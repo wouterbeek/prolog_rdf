@@ -112,11 +112,13 @@ application of the subclass relation.
 
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_container)).
-:- use_module(rdf(rdf_read)).
-:- use_module(rdf_reasoning(rdf_bnode_map)).
-:- use_module(rdf_term(rdf_typed_literal)).
+
 :- use_module(xml(xml_namespace)).
+
+:- use_module(plRdf(rdf_container)).
+:- use_module(plRdf(rdf_read)).
+:- use_module(plRdf_ent(rdf_bnode_map)).
+:- use_module(plRdf_term(rdf_typed_literal)).
 
 :- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 :- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').

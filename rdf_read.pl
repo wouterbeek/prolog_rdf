@@ -39,9 +39,11 @@ literals.
 
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_graph)).
-:- use_module(rdfs(rdfs_read)).
+
 :- use_module(xml(xml_namespace)).
+
+:- use_module(plRdf(rdf_graph)).
+:- use_module(plRdf(rdfs_read)).
 
 :- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 

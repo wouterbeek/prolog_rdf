@@ -37,13 +37,15 @@ Support for RDF containers (sequence, bag, and alternatives).
 @version 2011/08-2012/03, 2012/09, 2012/11-2013/03, 2013/07-2013/09, 2014/02
 */
 
-:- use_module(generics(typecheck)).
 :- use_module(library(apply)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(rdf_term(rdf_term)).
+
+:- use_module(generics(typecheck)).
 :- use_module(xml(xml_namespace)).
+
+:- use_module(plRdf_term(rdf_term)).
 
 :- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 

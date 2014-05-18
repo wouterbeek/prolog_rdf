@@ -10,6 +10,8 @@ load_plRdf:-
   file_directory_name(ThisFile, ThisDir),
   assert(user:file_search_path(plRdf, ThisDir)),
   
+  ensure_loaded(plRdf(index)),
+  
   % Prolog Library Collection (PLC).
   load_plc(plRdf).
 

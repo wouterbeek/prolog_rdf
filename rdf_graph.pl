@@ -58,8 +58,9 @@ Predicates that apply to entire RDF graphs.
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(list_ext)).
-:- use_module(rdf(rdf_graph_name)).
-:- use_module(rdf_term(rdf_term)).
+
+:- use_module(plRdf(rdf_graph_name)).
+:- use_module(plRdf_term(rdf_term)).
 
 :- rdf_meta(rdf_triple(r,r,r,?)).
 

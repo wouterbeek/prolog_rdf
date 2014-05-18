@@ -18,8 +18,9 @@ Support for naming graphs.
          2013/08-2013/09, 2013/11-2014/01
 */
 
-:- use_module(generics(atom_ext)).
 :- use_module(library(semweb/rdf_db)).
+
+:- use_module(generics(atom_ext)).
 :- use_module(os(file_ext)).
 
 
