@@ -37,7 +37,7 @@ Support for RDF typed literals.
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_name)). % Meta-DCG.
+:- use_module(plRdf(rdf_name)). % Meta-DCG.
 :- use_module(rdf_term(rdf_literal)).
 :- use_module(rdf_term(rdf_literal_build)).
 :- use_module(rdf_term(rdf_typed_literal)).

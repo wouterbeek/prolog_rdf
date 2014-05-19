@@ -55,8 +55,8 @@ Reification for RDF. Both reading and writing.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(rdf(rdf_build)).
-:- use_module(rdf(rdf_name)).
+:- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(rdf_name)).
 :- use_module(rdf_term(rdf_term)).
 :- use_module(rdfs(rdfs_label_ext)).
 :- use_module(xml(xml_namespace)).

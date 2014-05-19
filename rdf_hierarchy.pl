@@ -17,9 +17,9 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)). % rdf_meta/1.
-:- use_module(rdf(rdf_build)).
-:- use_module(rdf(rdf_export)).
-:- use_module(rdf(rdf_graph_name)).
+:- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(rdf_export)).
+:- use_module(plRdf(rdf_graph_name)).
 :- use_module(rdf_term(rdf_term)).
 :- use_module(rdf_reasoning(rdf_mat)).
 :- use_module(xml(xml_dom)).

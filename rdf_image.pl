@@ -38,7 +38,7 @@ When triples including images are read,
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(rdf(rdf_build)).
+:- use_module(plRdf(rdf_build)).
 :- use_module(xml(xml_namespace)).
 
 :- rdf_meta(rdf_assert_image(+,r,r,r,+)).

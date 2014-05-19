@@ -21,7 +21,7 @@ Meta-callings on an RDF graph.
 */
 
 :- use_module(os(file_ext)).
-:- use_module(rdf(rdf_graph_name)).
+:- use_module(plRdf(rdf_graph_name)).
 :- use_module(rdf_file(rdf_file)).
 :- use_module(rdf_file(rdf_serial)).
 

@@ -90,7 +90,7 @@ using the following triples:
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_build)).
+:- use_module(plRdf(rdf_build)).
 :- use_module(rdf_reasoning(rdf_bnode_map)).
 :- use_module(rdf_term(rdf_language_tagged_string)).
 :- use_module(rdf_term(rdf_string)).

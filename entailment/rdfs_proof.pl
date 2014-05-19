@@ -31,7 +31,7 @@ calculated via backward chaining.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(os(pdf)).
 :- use_module(os(run_ext)).
-:- use_module(rdf(rdf_name)). % Meta-DCG.
+:- use_module(plRdf(rdf_name)). % Meta-DCG.
 :- use_module(rdfs(rdfs_voc)).
 
 :- rdf_meta(rdfs_proof(r,r,o,+)).

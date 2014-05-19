@@ -30,7 +30,7 @@ Support for RDF files and file types.
 :- use_module(os(file_ext)).
 :- use_module(os(file_mime)).
 :- use_module(rdf_file(rdf_file_db)).
-:- use_module(rdf(rdf_meta)).
+:- use_module(plRdf(rdf_meta)).
 
 
 

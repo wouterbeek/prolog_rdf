@@ -29,8 +29,8 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_build)).
-:- use_module(rdf(rdf_list)).
+:- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(rdf_list)).
 :- use_module(rdf_term(rdf_literal_build)).
 :- use_module(rdfs(rdfs_build)).
 :- use_module(xml(xml_namespace)).

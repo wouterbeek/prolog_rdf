@@ -71,9 +71,9 @@ The procedure for determining the color of a vertex:
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf_term(rdf_datatype)).
-:- use_module(rdf(rdf_name)).
-:- use_module(rdf(rdf_namespace)).
-:- use_module(rdf(rdf_read)).
+:- use_module(plRdf(rdf_name)).
+:- use_module(plRdf(rdf_namespace)).
+:- use_module(plRdf(rdf_read)).
 :- use_module(rdf_term(rdf_term)).
 :- use_module(rdf_graph(rdf_graph_theory)).
 :- use_module(svg(svg_colors)).
