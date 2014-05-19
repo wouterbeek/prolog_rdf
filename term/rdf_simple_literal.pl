@@ -26,9 +26,9 @@ Support for RDF 1.0 and RDF 1.1 simple literals.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf_term(rdf_literal)).
-:- use_module(rdf_term(rdf_string)).
-:- use_module(rdf_term(rdf_term)).
+:- use_module(plRdf_term(rdf_literal)).
+:- use_module(plRdf_term(rdf_string)).
+:- use_module(plRdf_term(rdf_term)).
 
 :- rdf_meta(rdf_assert_simple_literal(r,r,?,?)).
 :- rdf_meta(rdf_simple_literal(r,r,?,?)).

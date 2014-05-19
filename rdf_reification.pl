@@ -49,17 +49,19 @@ Reification for RDF. Both reading and writing.
 @version 2013/02, 2013/07, 2013/09-2013/10, 2013/12-2014/01, 2014/03
 */
 
-:- use_module(dcg(dcg_ascii)).
-:- use_module(dcg(dcg_collection)).
-:- use_module(dcg(dcg_content)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+
+:- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_collection)).
+:- use_module(dcg(dcg_content)).
+:- use_module(xml(xml_namespace)).
+
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_name)).
-:- use_module(rdf_term(rdf_term)).
-:- use_module(rdfs(rdfs_label_ext)).
-:- use_module(xml(xml_namespace)).
+:- use_module(plRdf(rdfs_label_ext)).
+:- use_module(plRdf_term(rdf_term)).
 
 :- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 

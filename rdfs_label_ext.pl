@@ -39,16 +39,18 @@ Predicates for RDFS labels.
          2014/01-2014/03
 */
 
+:- use_module(library(semweb/rdf_db)). % RDF-meta.
+:- use_module(library(semweb/rdfs)).
+
 :- use_module(dcg(dcg_collection)). % Meta-called.
 :- use_module(dcg(dcg_content)). % Meta-called.
 :- use_module(dcg(dcg_generic)).
-:- use_module(library(semweb/rdf_db)). % RDF-meta.
-:- use_module(library(semweb/rdfs)).
-:- use_module(plRdf(rdf_list)).
-:- use_module(rdf_term(rdf_language_tagged_string)).
-:- use_module(rdf_term(rdf_literal_build)).
-:- use_module(rdf_term(rdf_string)).
 :- use_module(xml(xml_namespace)).
+
+:- use_module(plRdf(rdf_list)).
+:- use_module(plRdf_term(rdf_language_tagged_string)).
+:- use_module(plRdf_term(rdf_literal_build)).
+:- use_module(plRdf_term(rdf_string)).
 
 :- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 

@@ -6,16 +6,25 @@
                        % +Options:list(nvpair)
   ]
 ).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(sgml)).
-:- use_module(library(memfile)).
-:- use_module(library(option)).
-:- use_module(library(dcg/basics)).
 
-/** <module> Detect RDF document format from stream content
+/** <module> RDF detect
+
+Detect the RDF serialization format of a given stream.
+
+@author Jan Wielemaker
+@author Wouter Beek
+@version 2014/04-2014/05
 */
 
-%%  rdf_guess_format(+Stream, -ContentType, +Options) is semidet.
+:- use_module(library(dcg/basics)).
+:- use_module(library(memfile)).
+:- use_module(library(option)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(sgml)).
+
+
+
+%! rdf_guess_format(+Stream, -ContentType, +Options) is semidet.
 %
 %  True when Stream is  thought  to   contain  RDF  data  using the
 %  indicated content type.  Options processed:
@@ -38,7 +47,7 @@ rdf_guess_format(Stream, ContentType, Options) :-
 rdf_content_type(ContentType, Options) -->
   turtle_like(ContentType, Options), !.
 
-%%  turtle_like(-ContentType, +Options)// is semidet.
+%! turtle_like(-ContentType, +Options)// is semidet.
 %
 %  True if the start of the   input matches a turtle-like language.
 %  There are four of them:
@@ -88,7 +97,7 @@ turtle_like(Format, Options) -->      % starts with a collection
 turtle_keyword(base).
 turtle_keyword(prefix).
 
-%%  turtle_or_trig(-Format, +Options)//
+%! turtle_or_trig(-Format, +Options)//
 %
 %  The file starts with a Turtle construct.   It can still be TriG.
 %  We trust the content type and otherwise  we assume TriG if there
@@ -109,7 +118,7 @@ turtle_or_trig(trig).
 
 ... --> "" | [_], ... .
 
-%%  nt_turtle_like(-Format, +Options)//
+%! nt_turtle_like(-Format, +Options)//
 %
 %  We found a fully qualified triple.  This still can be Turtle,
 %  TriG, ntriples and nquads.
@@ -233,7 +242,7 @@ eols --> [].
      *        READ XML    *
      *******************************/
 
-%%  guess_xml_type(+Stream, -ContentType) is semidet.
+%! guess_xml_type(+Stream, -ContentType) is semidet.
 %
 %  Try to see whether the document is some  form of HTML or XML and
 %  in particular whether it is  RDF/XML.   The  latter is basically
@@ -271,7 +280,7 @@ doc_content_type(Dialect, Top, Attributes, xml) :-
   rdf_current_prefix(rdf, RDFNS).
 
 
-%%  xml_doctype(+Stream, -Dialect, -DocType, -Attributes) is semidet.
+%! xml_doctype(+Stream, -Dialect, -DocType, -Attributes) is semidet.
 %
 %  Parse a _repositional_ stream and get the  name of the first XML
 %  element *and* demand that this   element defines XML namespaces.
@@ -319,7 +328,7 @@ on_cdata(_CDATA, _Parser) :-
 skip_line --> eol, !.
 skip_line --> [_], skip_line.
 
-%%  icase_keyword(-Keyword)// is semidet.
+%! icase_keyword(-Keyword)// is semidet.
 %
 %  True when Keyword is an atom representing a non-empty sequence of
 %  alphanumeric characters, converted to lowercase.
@@ -336,7 +345,7 @@ alpha_to_lowers([H|T]) -->
 alpha_to_lowers([]) -->
   [].
 
-%%  open_binary_string_stream(+String, -Stream) is det.
+%! open_binary_string_stream(+String, -Stream) is det.
 %
 %  True when Stream is  a  binary   stream  holding  the context of
 %  String.
@@ -351,3 +360,4 @@ open_binary_string_stream(String, Stream) :-
        [ free_on_close(true),
          encoding(octet)
        ]).
+

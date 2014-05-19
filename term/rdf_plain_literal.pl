@@ -24,8 +24,8 @@ in Normal Form C with the set of BCP 47 language tags.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf_term(rdf_simple_literal)).
-:- use_module(rdf_term(rdf_term)).
+:- use_module(plRdf_term(rdf_simple_literal)).
+:- use_module(plRdf_term(rdf_term)).
 
 :- rdf_meta(rdf_plain_literal(o)).
 :- rdf_meta(rdf_plain_literal(o,?)).

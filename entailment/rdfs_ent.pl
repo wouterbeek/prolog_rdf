@@ -26,8 +26,8 @@
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf_term(rdf_plain_literal)).
-:- use_module(rdf_term(rdf_term)).
+:- use_module(plRdf_term(rdf_plain_literal)).
+:- use_module(plRdf_term(rdf_term)).
 :- use_module(rdf_reasoning(rdf_bnode_map)).
 :- use_module(xml(xml_namespace)).
 

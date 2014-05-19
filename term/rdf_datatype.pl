@@ -33,14 +33,16 @@ Support for RDF typed literals.
 @version 2013/10, 2014/01-2014/03
 */
 
-:- use_module(dcg(dcg_generic)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
+
+:- use_module(dcg(dcg_generic)).
+
 :- use_module(plRdf(rdf_name)). % Meta-DCG.
-:- use_module(rdf_term(rdf_literal)).
-:- use_module(rdf_term(rdf_literal_build)).
-:- use_module(rdf_term(rdf_typed_literal)).
+:- use_module(plRdf_term(rdf_literal)).
+:- use_module(plRdf_term(rdf_literal_build)).
+:- use_module(plRdf_term(rdf_typed_literal)).
 :- use_module(xsd(xsd)).
 
 :- rdf_meta(rdf_assert_datatype(r,r,+,r,+)).

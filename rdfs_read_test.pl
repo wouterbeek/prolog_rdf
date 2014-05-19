@@ -5,8 +5,10 @@
 :- begin_tests(rdfs_read).
 
 :- use_module(library(semweb/rdf_db)). % rdf_meta/1
-:- use_module(rdfs(rdfs_read)).
+
 :- use_module(xml(xml_namespace)).
+
+:- use_module(plRdf(rdfs_read)).
 
 :- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 :- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').

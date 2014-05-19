@@ -19,9 +19,11 @@
 
 :- use_module(generics(list_ext)).
 :- use_module(generics(thread_ext)).
-:- use_module(rdf_file(rdf_serial)).
-:- use_module(rdf_web(rdf_html_table)).
-:- use_module(server(web_modules)).
+
+:- use_module(plServer(web_modules)).
+
+:- use_module(plRdf_ser(rdf_serial)).
+:- use_module(plRdfDev_wui(rdf_html_table)).
 
 http:location(rdf, root(rdf), []).
 :- http_handler(rdf(gc_graph), rdf_gc_graph, []).

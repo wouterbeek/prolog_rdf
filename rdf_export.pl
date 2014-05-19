@@ -60,30 +60,32 @@ The procedure for determining the color of a vertex:
 @version 2013/01-2013/03, 2013/07-2013/09, 2014/01
 */
 
-:- use_module(dcg(dcg_generic)).
-:- use_module(generics(db_ext)).
-:- use_module(generics(list_ext)).
-:- use_module(graph_theory(random_vertex_coordinates)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(rdf_term(rdf_datatype)).
-:- use_module(plRdf(rdf_name)).
-:- use_module(plRdf(rdf_namespace)).
-:- use_module(plRdf(rdf_read)).
-:- use_module(rdf_term(rdf_term)).
+
+:- use_module(dcg(dcg_generic)).
+:- use_module(generics(db_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(graph_theory(random_vertex_coordinates)).
 :- use_module(rdf_graph(rdf_graph_theory)).
 :- use_module(svg(svg_colors)).
 :- use_module(xml(xml_namespace)).
 
+:- use_module(plRdf(rdf_name)).
+:- use_module(plRdf(rdf_namespace)).
+:- use_module(plRdf(rdf_read)).
+:- use_module(plRdf_term(rdf_datatype)).
+:- use_module(plRdf_term(rdf_term)).
+
 :- xml_register_namespace(rdf_image, 'http://www.wouterbeek.com/RDF-Image.owl#').
 
 :- dynamic(rdf_class_color/3).
-:- dynamic(rdf_namespace_color/3).
 :- dynamic(rdf_edge_style_/2).
+:- dynamic(rdf_namespace_color/3).
 
 :- meta_predicate(export_rdf_graph(+,4,+,-)).
 :- meta_predicate(rdf_vertex_term(+,+,+,4,+,-)).

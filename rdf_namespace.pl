@@ -26,7 +26,8 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf_term(rdf_term)).
+
+:- use_module(plRdf_term(rdf_term)).
 
 
 

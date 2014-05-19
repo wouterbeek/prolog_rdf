@@ -53,9 +53,9 @@ Build semantic models and syntax-to-semantics maps.
 
 :- use_module(generics(db_ext)).
 :- use_module(library(semweb/rdf_db)). % rdf_meta/1
-:- use_module(rdf_term(rdf_plain_literal)).
-:- use_module(rdf_term(rdf_term)).
-:- use_module(rdf_term(rdf_typed_literal)).
+:- use_module(plRdf_term(rdf_plain_literal)).
+:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf_term(rdf_typed_literal)).
 :- use_module(rdf_mt(rdf_mt)).
 
 :- rdf_meta(rdf_add_i_l(+,r,+,+)).

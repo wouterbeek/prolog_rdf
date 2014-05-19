@@ -26,6 +26,7 @@ Searching through an RDF graph.
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
+
 :- use_module(rdf_graph(rdf_graph_theory)).
 
 :- rdf_meta(rdf_beam(+,r,+,-,-)).

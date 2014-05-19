@@ -15,16 +15,18 @@ Exports the vocabulary for RDFS.
 @version 2013/08, 2013/11, 2014/03
 */
 
-:- use_module(gv(gv_file)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(plRdf(rdf_export)).
-:- use_module(plRdf(rdf_graph)).
-:- use_module(rdf_file(rdf_serial)).
-:- use_module(rdf_reasoning(rdf_mat)).
+
+:- use_module(gv(gv_file)).
 :- use_module(xml(xml_dom)).
 :- use_module(xml(xml_namespace)).
+
+:- use_module(plRdf(rdf_export)).
+:- use_module(plRdf(rdf_graph)).
+:- use_module(plRdf_ser(rdf_serial)).
+:- use_module(plRdf_ent(rdf_mat)).
 
 :- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 
