@@ -59,11 +59,14 @@ rdf_download(_, Url, File, Graph, Options):-
     rdf_unload_graph(Graph),
     rdf_download(Url, File, Graph, Options)
   ).
+rdf_download(_, _, File, Graph, Options):-
+  access_file(File, read), !,
+  rdf_load_any([graph(Graph)|Options], File).
 rdf_download(Goal, Url, File, Graph, Options):-
   call(Goal, Url, File, Graph, Options).
 
 
 rdf_download_default(Url, File, Graph, Options):-
   download_to_file(Url, File, Options),
-  rdf_load_any(File, [graph(Graph)|Options]).
+  rdf_load_any([graph(Graph)|Options], File).
 
