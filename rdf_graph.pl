@@ -1,8 +1,13 @@
 :- module(
   rdf_graph,
   [
+    is_fresh_rdf_graph/2, % +Graph:atom
+                          % +FreshnessLifetime:between(0.0,inf)
+    is_rdf_graph/1, % @Term
     rdf_graph/2, % +ComplexGraph:compound
                  % -SimpleGraph:atom
+    rdf_graph_age/2, % ?Graph:atom
+                     % -Age:between(0.0,inf)
     rdf_graph_copy/2, % +From:atom
                       % +To:atom
     rdf_graph_equivalence/2, % +Graph1:atom
@@ -46,7 +51,7 @@ Predicates that apply to entire RDF graphs.
 @see Graph theory support for RDF is found in module rdf_graph_theory.pl.
 @see For conversions from/to serialization formats, see module rdf_serial.pl.
 @tbd How to do backward chaining in query/[3,4]?
-@version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04
+@version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05
 */
 
 :- use_module(library(aggregate)).
@@ -58,12 +63,30 @@ Predicates that apply to entire RDF graphs.
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(list_ext)).
+:- use_module(math(math_ext)).
 
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf_term(rdf_term)).
 
 :- rdf_meta(rdf_triple(r,r,r,?)).
 
+
+
+%! is_fresh_rdf_graph(
+%!   +Graph:atom,
+%!   +FreshnessLifetime:between(0.0,inf)
+%! ) is semidet.
+
+is_fresh_rdf_graph(Graph, FreshnessLifetime):-
+  rdf_graph_age(Graph, Age),
+  is_fresh_age(Age, FreshnessLifetime).
+
+
+%! is_rdf_graph(@Term) is semidet.
+
+is_rdf_graph(Graph):-
+  nonvar(Graph),
+  rdf_graph(Graph).
 
 
 %! rdf_bnode_replace(
@@ -89,6 +112,15 @@ rdf_bnode_replace(_X, _Map, _Var).
 
 rdf_graph(G2:_RowNumber, G2):- !.
 rdf_graph(G, G).
+
+%! rdf_graph_age(+Graph:atom, -Age:between(0.0,inf)) is det.
+%! rdf_graph_age(-Graph:atom, -Age:between(0.0,inf)) is nondet.
+
+rdf_graph_age(Graph, Age):-
+  rdf_graph_property(Graph, source_last_modified(LastModified)),
+  get_time(Now),
+  Age is Now - LastModified.
+
 
 %! rdf_graph_copy(+From:atom, +To:atom) is det.
 % Copying a graph is the same as merging a single graph

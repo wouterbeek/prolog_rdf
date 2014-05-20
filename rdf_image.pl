@@ -68,17 +68,17 @@ rdf_assert_image(O1, S, P, O, G):-
 %   3. `fail`
 %   4. `ignore`
 
-rdf_image(O1, URL, File):-
-  url_nested_file(data(.), URL, File),
+rdf_image(Options, Url, File):-
+  url_nested_file(data(.), Url, File),
   (
     access_file(File, exist), !
   ;
-    download_to_file(O1, URL, File), !
+    download_to_file(Url, File, Options), !
   ;
     option(
       fail_mode(FM),
-      O1,
-      debug(rdf_image-'Could not fetch image from ~w'-[URL])
+      Options,
+      debug(rdf_image-'Could not fetch image from ~w'-[Url])
     ),
     fail_mode(FM)
   ).

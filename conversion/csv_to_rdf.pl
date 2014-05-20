@@ -52,7 +52,6 @@ csv_to_rdf(Stream, Graph, NamespacePrefix, ResourceClassName):-
   Rows2 = [Header|Rows3],
 
   % Convert header row.
-gtrace,
   csv_header_to_rdf(Graph, NamespacePrefix, Header, Properties),
 
   % Convert data rows.
@@ -63,7 +62,7 @@ csv_to_rdf(Url, Graph, NamespacePrefix, ResourceClassName):-
   nonvar(Scheme), !,
 
   setup_call_cleanup(
-    download_to_file([], Url, File),
+    download_to_file(Url, File),
     csv_to_rdf(File, Graph, NamespacePrefix, ResourceClassName),
     delete_file(File)
   ).
@@ -89,16 +88,16 @@ csv_header_to_rdf(Graph, NamespacePrefix, Header, Properties):-
 csv_header_entry_to_rdf(Graph, NamespacePrefix, HeaderEntry, Property):-
   dcg_phrase(rdf_property_name, HeaderEntry, PropertyName),
   rdf_global_id(NamespacePrefix:PropertyName, Property),
-  
+
   % @tbd Use rdfs_assert_domain/3.
   %      rdfs_assert_domain(Property, rdfs:'Resource', Graph),
   rdf_assert(Property, rdfs:domain, rdfs:'Resource', Graph),
-  
+
   % @tbd Use rdfs_assert_range/3.
   %      rdfs_assert_range(Property, xsd:string, Graph).
   rdf_assert(Property, rdfs:range, xsd:string, Graph).
 
-rdf_property_name, [45] -->
+rdf_property_name, [95] -->
   ascii_white, !,
   rdf_property_name.
 rdf_property_name, ascii_letter_lowercase(_, I) -->

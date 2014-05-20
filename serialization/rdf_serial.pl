@@ -215,11 +215,11 @@ rdf_load_any_debug(Graph):-
   ).
 
 % Adds a catch/3 around laod_stream_/4.
-load_stream(Stream, Location, Base, O1):-
+load_stream(Stream, Location, Base, Options):-
   catch(
-    load_stream_(Stream, Location, Base, O1),
-    E,
-    print_message(warning, E)
+    load_stream_(Stream, Location, Base, Options),
+    Exception,
+    print_message(warning, Exception)
   ).
 
 load_stream_(Stream, Location, Base, O1):-
