@@ -4,7 +4,7 @@
     csv_to_rdf/4 % +Input:or([atom,stream,url])
                  % +Graph:atom
                  % +NamespacePrefix:atom
-                 % +ResourceClassName:atom
+                 % +ClassName:atom
   ]
 ).
 
@@ -39,14 +39,14 @@ Automatic conversion from CSV to RDF.
 %!   +Input:or([atom,stream,url]),
 %!   +Graph:atom,
 %!   +NamespacePrefix:atom,
-%!   +ResourceClassName:atom
+%!   +ClassName:atom
 %! ) is det.
 
-csv_to_rdf(Stream, Graph, NamespacePrefix, ResourceClassName):-
+csv_to_rdf(Stream, Graph, NamespacePrefix, ClassName):-
   is_stream(Stream), !,
   % The XML namespace must be defined.
   xml_current_namespace(NamespacePrefix),
-
+  
   phrase_from_stream(csv(Rows1), Stream),
   maplist(row_to_list, Rows1, Rows2),
   Rows2 = [Header|Rows3],
@@ -55,23 +55,23 @@ csv_to_rdf(Stream, Graph, NamespacePrefix, ResourceClassName):-
   csv_header_to_rdf(Graph, NamespacePrefix, Header, Properties),
 
   % Convert data rows.
-  rdf_global_id(NamespacePrefix:ResourceClassName, ResourceClass),
-  maplist(csv_row_to_rdf(Graph, ResourceClass, Properties), Rows3).
-csv_to_rdf(Url, Graph, NamespacePrefix, ResourceClassName):-
+  rdf_global_id(NamespacePrefix:ClassName, Class),
+  maplist(csv_row_to_rdf(Graph, Class, Properties), Rows3).
+csv_to_rdf(Url, Graph, NamespacePrefix, ClassName):-
   uri_components(Url, uri_components(Scheme,_,_,_,_)),
   nonvar(Scheme), !,
 
   setup_call_cleanup(
     download_to_file(Url, File),
-    csv_to_rdf(File, Graph, NamespacePrefix, ResourceClassName),
+    csv_to_rdf(File, Graph, NamespacePrefix, ClassName),
     delete_file(File)
   ).
-csv_to_rdf(File, Graph, NamespacePrefix, ResourceClassName):-
+csv_to_rdf(File, Graph, NamespacePrefix, ClassName):-
   % Typecheck: the file exists and we have read access.
   access_file(File, read),
   setup_call_cleanup(
     open(File, read, Stream, []),
-    csv_to_rdf(Stream, Graph, NamespacePrefix, ResourceClassName),
+    csv_to_rdf(Stream, Graph, NamespacePrefix, ClassName),
     close(Stream)
   ).
 
@@ -111,10 +111,10 @@ rdf_property_name --> [].
 
 % CSV ROW TO RDF %
 
-csv_row_to_rdf(Graph, ResourceClass, Properties, Row):-
+csv_row_to_rdf(Graph, Class, Properties, Row):-
   % A row is translated into an instance of the given class.
   rdf_bnode(Resource),
-  rdf_assert_individual(Resource, ResourceClass, Graph),
+  rdf_assert_individual(Resource, Class, Graph),
 
   % Assert each cell in the given row.
   maplist(csv_cell_to_rdf(Graph, Resource), Properties, Row).
