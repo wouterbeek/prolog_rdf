@@ -376,8 +376,14 @@ rdf_is_subject(S):-
 % an RDF node and an RDF predicate term.
 
 rdf_term(Term):-
-  rdf_resource(Term).
+  nonvar(Term), !,
+  rdf_term_nondet(Term), !.
 rdf_term(Term):-
+  rdf_term_nondet(Term).
+
+rdf_term_nondet(Term):-
+  rdf_resource(Term).
+rdf_term_nondet(Term):-
   rdf_current_predicate(Term).
 
 
@@ -391,6 +397,12 @@ rdf_term(Term):-
 % in an RDF triple.
 
 rdf_term(Term, G):-
+  nonvar(Term), !,
+  rdf_term_nondet(Term, G), !.
+rdf_term(Term, G):-
+  rdf_term_nondet(Term, G).
+
+rdf_term_nondet(Term, G):-
   rdf_term(Term),
   (
     rdf_node(Term, G)
