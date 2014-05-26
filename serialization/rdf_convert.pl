@@ -17,14 +17,18 @@
 Predicates for converting RDF data between different serialization formats.
 
 @author Wouter Beek
-@version 
+@version 2014/04-2014/05
 */
 
-:- use_module(generics(meta_ext)).
 :- use_module(library(lists)).
+:- use_module(library(semweb/rdf_db)).
+
+:- use_module(generics(meta_ext)).
 :- use_module(os(file_ext)).
+
 :- use_module(plRdf(rdf_meta)).
-:- use_module(rdf_file(rdf_file)).
+:- use_module(plRdf_ser(rdf_file)).
+:- use_module(plRdf_ser(rdf_file_db)).
 
 
 
