@@ -22,6 +22,7 @@ Meta-callings on an RDF graph.
 
 :- use_module(os(file_ext)).
 
+:- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf_ser(rdf_file)).
 :- use_module(plRdf_ser(rdf_file_db)).
@@ -49,7 +50,7 @@ rdf_setup_call_cleanup(O1_Load, From, Goal):-
       rdf_load_any([graph(Graph)|O1_Load], From)
     ),
     call(Goal, Graph),
-    rdf_unload_graph_debug(Graph)
+    rdf_unload_graph_deb(Graph)
   ).
 
 
@@ -94,7 +95,7 @@ rdf_setup_call_cleanup(O1_Load, From, Goal, O1_Save, ToFile):-
     call(Goal, Graph),
     (
       rdf_save(O1_Save, Graph, ToFile),
-      rdf_unload_graph_debug(Graph)
+      rdf_unload_graph_deb(Graph)
     )
   ).
 

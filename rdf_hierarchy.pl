@@ -18,6 +18,7 @@
 :- use_module(library(semweb/rdf_db)). % rdf_meta/1.
 
 :- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf(rdf_export)).
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf_term(rdf_term)).
@@ -59,7 +60,7 @@ rdf_export_hierarchy(FromGs, Predicate) -->
         graph_to_svg_dom([method(dot)], GIF, SvgDom)
       ),
       % Remove the temporary graph.
-      rdf_unload_graph_debug(ToG)
+      rdf_unload_graph_deb(ToG)
     )
   },
   html(\xml_dom_as_atom(SvgDom)).

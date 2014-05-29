@@ -13,10 +13,9 @@
     rdf_load_any/3, % +Options:list(nvpair)
                     % +Input
                     % -Pairs:list(pair(atom))
-    rdf_save/3, % +Options:list(nvpair)
-                % +Graph:atom
-                % ?File:atom
-    rdf_unload_graph_debug/1 % +Graph:atom
+    rdf_save/3 % +Options:list(nvpair)
+               % +Graph:atom
+               % ?File:atom
   ]
 ).
 
@@ -36,7 +35,6 @@ since most datasets are published in a non-standard way.
          2013/08-2013/09, 2013/11, 2014/01-2014/04
 */
 
-:- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(lists)).
@@ -80,6 +78,7 @@ since most datasets are published in a non-standard way.
 :- use_module(os(unpack)).
 
 :- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf_ser(rdf_detect)).
 :- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_ntriples_write)).
@@ -148,7 +147,7 @@ rdf_load_any(O1, Inputs, Pairs):-
       member(_-TmpGraph, Pairs),
       call_cleanup(
         rdf_copy(TmpGraph, _, _, _, Graph),
-        rdf_unload_graph_debug(TmpGraph)
+        rdf_unload_graph_deb(TmpGraph)
       )
     )
   ;
@@ -197,21 +196,10 @@ rdf_load_any_1(O1, Input, Pairs):-
         ),
         close(Stream)
       ),
-      %%%%rdf_load_any_debug(Graph),
+      rdf_load_graph_deb(Graph),
       true
     ),
     Pairs
-  ).
-
-rdf_load_any_debug(Graph):-
-  var(Graph), !.
-rdf_load_any_debug(Graph):-
-  rdf_statistics(triples_by_graph(Graph,GraphTriples)),
-  rdf_statistics(triples(AllTriples)),
-  debug(
-    mem_triples,
-    'PLUS ~:d triples (~:d total)',
-    [GraphTriples,AllTriples]
   ).
 
 % Adds a catch/3 around laod_stream_/4.
@@ -387,19 +375,6 @@ rdf_save(_, triples, Graph, File):- !,
 rdf_save(O1, turtle, Graph, File):- !,
   merge_options([graph(Graph)], O1, O2),
   rdf_save_canonical_turtle(File, O2).
-
-
-%! rdf_unload_graph_debug(+Graph:atom) is det.
-
-rdf_unload_graph_debug(Graph):-
-  rdf_statistics(triples_by_graph(Graph,GraphTriples)),
-  rdf_unload_graph(Graph),
-  rdf_statistics(triples(AllTriples)),
-  debug(
-    mem_triples,
-    'MINUS ~:d triples (~:d total)',
-    [GraphTriples,AllTriples]
-  ).
 
 
 

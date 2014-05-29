@@ -22,6 +22,8 @@ Graph-based garbage collection for RDF.
 
 :- use_module(generics(thread_ext)).
 
+:- use_module(plRdf(rdf_deb)).
+
 %! rdf_graph_exlcuded_from_gc(?Graph:atom) is nondet.
 
 :- dynamic(rdf_graph_exlcuded_from_gc/1).
@@ -64,7 +66,7 @@ rdf_graph_touch_sync(Graph):-
 
 
 
-rdf_gc:-
+rdf_gc_by_graph:-
   rdf_statistics(triples(Triples)),
   rdf_gc_triples_by_graph(Triples).
 
@@ -88,7 +90,7 @@ rdf_gc_triples_by_graph(_):-
   rdf_statistics(triples_by_graph(Graph,Triples)),
   
   % Unload the graph and all of its contents.
-  rdf_unload_graph_debug(Graph),
+  rdf_unload_graph_deb(Graph),
   
   % Display the debug message.
   format(
@@ -99,7 +101,7 @@ rdf_gc_triples_by_graph(_):-
   flush_output(user_output),
   
   % See whether there is more work to do.
-  rdf_gc.
+  rdf_gc_by_graph.
 
 duration(Timestamp, Duration):-
   get_time(Now),
@@ -113,5 +115,5 @@ duration(Timestamp, Duration):-
 
 init_rdf_gc_graph:-
   % Run 5 seconds.
-  intermittent_thread(rdf_gc, fail, 5, _, []).
+  intermittent_thread(rdf_gc_by_graph, fail, 5, _, []).
 
