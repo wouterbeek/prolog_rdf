@@ -17,6 +17,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
+:- use_module(dcg(dcg_abnf)).
 :- use_module(dcg(dcg_cardinal)).
 :- use_module(dcg(dcg_generic)).
 :- use_module(generics(meta_ext)).
@@ -48,7 +49,7 @@ random_character -->
 
 randomize_iri(IRI1, IRI2):-
   uri_components(IRI1, uri_components(_, _, _, _, _)),
-  dcg_with_output_to(atom(Path1), dcg_multi(random_character, 15)),
+  dcg_with_output_to(atom(Path1), '#_c'(15, random_character)),
   atomic_concat('/', Path1, Path2),
   uri_components(IRI2, uri_components(http, 'vu.nl', Path2, _, _)).
 
