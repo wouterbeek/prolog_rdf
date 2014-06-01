@@ -2,8 +2,8 @@
   rdf_vocabulary,
   [
     load_rdf_vocabulary/1, % ?RdfGraph:atom
-    rdf_vocabulary_pdf/1, % ?File:atom
-    rdfs_vocabulary_pdf/1 % ?File:atom
+    rdf_vocabulary_gif/1, % -Gif:compound
+    rdfs_vocabulary_gif/1 % -Gif:compound
   ]
 ).
 
@@ -12,28 +12,22 @@
 Exports the vocabulary for RDFS.
 
 @author Wouter Beek
-@version 2013/08, 2013/11, 2014/03
+@version 2013/08, 2013/11, 2014/03, 2014/06
 */
 
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(gv(gv_file)).
 :- use_module(xml(xml_dom)).
 :- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_export)).
 :- use_module(plRdf(rdf_graph)).
-:- use_module(plRdf_ser(rdf_serial)).
 :- use_module(plRdf_ent(rdf_mat)).
+:- use_module(plRdf_ser(rdf_serial)).
 
 :- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
-
-http:location(rdf, root(rdf), []).
-:- http_handler(rdf(vocabulary), rdf_vocabulary, []).
-
-user:web_module('RDF vocabulary', rdf_vocabulary).
 
 
 
@@ -42,6 +36,8 @@ user:web_module('RDF vocabulary', rdf_vocabulary).
 % This means that materialization has to make less deductions
 % (tested on 163 less), and there are some labels and comments
 % that deduction would not produce.
+%
+% @tbd Do not reload.
 
 load_rdf_vocabulary(G):-
   rdfs_vocabulary_url(Url),
@@ -57,28 +53,7 @@ load_rdf_vocabulary(G):-
     G
   ).
 
-
-rdf_vocabulary(_Request):-
-  reply_html_page(
-    app_style,
-    title('RDF vocabulary'),
-    html([
-      h2('RDF vocabulary'),
-      \rdf_vocabulary,
-      h2('RDFS vocabulary'),
-      \rdfs_vocabulary
-    ])
-  ).
-
-%! rdf_vocabulary// is det.
-% Generates an HTML representation of the RDF vocabulary.
-
-rdf_vocabulary -->
-  {
-    rdf_vocabulary_gif(Gif),
-    graph_to_svg_dom([method(sfdp)], Gif, SvgDom)
-  },
-  html(\xml_dom_as_atom(SvgDom)).
+rdfs_vocabulary_url('http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 
 %! rdf_vocabulary_gif(-Gif:compound) is det.
@@ -116,32 +91,6 @@ rdf_vocabulary_gif(Gif):-
   ).
 
 
-%! rdf_vocabulary_pdf(?File:atom) is det.
-% Saves the RDF vocabulary to a PDF file.
-
-rdf_vocabulary_pdf(File):-
-  (
-    nonvar(File)
-  ->
-    access_file(File, write)
-  ;
-    true
-  ),
-  rdf_vocabulary_gif(Gif),
-  graph_to_gv_file([method(sfdp),to_file_type(pdf)], Gif, File).
-
-
-%! rdfs_vocabulary// is det.
-% Generates an HTML description of the RDFS vocabulary.
-
-rdfs_vocabulary -->
-  {
-    rdfs_voc(Gif),
-    graph_to_svg_dom([method(sfdp)], Gif, SvgDom)
-  },
-  html(\xml_dom_as_atom(SvgDom)).
-
-
 %! rdfs_vocabulary_gif(?File:atom) is det.
 % Returns the RDFS vocabulary in graph-interchange-format.
 
@@ -165,22 +114,4 @@ rdfs_vocabulary_gif(Gif):-
     G,
     Gif
   ).
-
-
-%! rdfs_vocabulary_pdf(?File:atom) is det.
-% Returns the RDFS vocabulary in graph-interchange-format.
-
-rdfs_vocabulary_pdf(File):-
-  (
-    nonvar(File)
-  ->
-    access_file(File, write)
-  ;
-    true
-  ),
-  rdfs_voc(Gif),
-  graph_to_gv_file([method(sfdp),to_file_type(pdf)], Gif, File).
-
-
-rdfs_vocabulary_url('http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 

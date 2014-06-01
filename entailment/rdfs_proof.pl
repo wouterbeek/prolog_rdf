@@ -1,15 +1,11 @@
 :- module(
   rdfs_proof,
   [
-    rdfs_proof/4, % ?Subject:or([bnode,iri])
-                  % ?Predicate:iri
-                  % ?Object:or([bnode,iri,literal])
-                  % +Graph:atom
     rdfs_proof/5 % ?Subject:or([bnode,iri])
                  % ?Predicate:iri
                  % ?Object:or([bnode,iri,literal])
                  % +Graph:atom
-                 % -Proof:compound
+                 % -ProofTree:compound
   ]
 ).
 
@@ -19,22 +15,16 @@ Deductive closure over RDFS classes,
 calculated via backward chaining.
 
 @author Wouter Beek
-@version 2014/03
+@version 2014/03, 2014/06
 */
 
-:- use_module(dcg(dcg_generic)).
-:- use_module(generics(trees)).
-:- use_module(gv(gv_file)).
-:- use_module(library(apply)).
-:- use_module(library(lists)).
-:- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(os(pdf)).
-:- use_module(os(run_ext)).
-:- use_module(plRdf(rdf_name)). % Meta-DCG.
-:- use_module(rdfs(rdfs_voc)).
 
-:- rdf_meta(rdfs_proof(r,r,o,+)).
+:- use_module(generics(trees)).
+
+:- use_module(plRdf(rdf_name)). % Meta-DCG.
+:- use_module(plRdf(rdf_vocabulary)).
+
 :- rdf_meta(rdfs_proof(r,r,o,+,-)).
 :- rdf_meta(rdfs_proof(r,r,o,+,+,-)).
 :- rdf_meta(rdfs_rule(+,r,r,o,r,r,o)).
@@ -43,43 +33,11 @@ calculated via backward chaining.
 :- discontiguous(rdfs_rule/7).
 :- discontiguous(rdfs_rule/10).
 
-:- initialization(load_rdf_vocabulary(_)).
 
 
-
-rdfs_proof(S, P, O, G):-
-  rdfs_proof(S, P, O, G, Tree),
-
-  flag(vertex, _Id, 0),
-  tree_to_ves(Tree, Vs, Es, _),
-length(Es, L), L > 4,
-  ves_to_ugraph(Vs, Es, UG),
-  absolute_file_name(tree, File, [access(write),file_type(pdf)]),
-  graph_to_gv_file([method(dot),to_file_type(pdf)], UG, File),
-  open_pdf(File).
-
-tree_to_ves(d(Rule,V1,Ants), Vs, Es, V1):- !,
-  maplist(tree_to_ves, Ants, Vss, Ess, VTops),
-  findall(V1-Rule-V2, member(V2, VTops), ETops),
-  ord_union([[V1]|Vss], Vs),
-  ord_union([ETops|Ess], Es).
-tree_to_ves(V, [V], [], V).
-
-ves_to_ugraph(Vs, Es, graph(VTerms, ETerms, [dir(forward)])):-
-  maplist(v_to_vterm(Vs), Vs, VTerms),
-  maplist(e_to_eterm(Vs), Es, ETerms).
-
-e_to_eterm(Vs, V1-Rule-V2, edge(Id1,Id2,[label(Rule)])):-
-  nth0(Id1, Vs, V1),
-  nth0(Id2, Vs, V2).
-
-v_to_vterm(Vs, rdf(S,P,O), vertex(Id,rdf(S,P,O),[label(Label)])):-
-  nth0(Id, Vs, rdf(S,P,O)),
-  dcg_with_output_to(atom(Label), rdf_triple_name(S, P, O)).
-
-
-rdfs_proof(S, P, O, G, Tree):-
-  rdfs_proof(S, P, O, G, [], Tree).
+rdfs_proof(S, P, O, G, ProofTree):-
+  load_rdf_vocabulary(_),
+  rdfs_proof(S, P, O, G, [], ProofTree).
 
 % Deduced via a rule with no antecedents, i.e. simple entailment.
 rdfs_proof(S, P, O, G, H, d(se,rdf(S,P,O),[])):-
