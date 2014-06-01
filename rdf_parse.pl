@@ -13,9 +13,9 @@ Parses RDF terms.
 @version 2013/07-2013/09, 2014/01
 */
 
+:- use_module(dcg(dcg_abnf)).
 :- use_module(dcg(dcg_ascii)).
 :- use_module(dcg(dcg_generic)).
-:- use_module(dcg(dcg_multi)).
 :- use_module(xml(xml_namespace)).
 
 
@@ -35,7 +35,7 @@ rdf_parse_term(IRI) -->
 % BNODE %
 
 rdf_parse_bnode(BNode) -->
-  dcg_multi1(underscore, 2, [H1,H2]),
+  '#'(2, underscore, [H1,H2]),
   dcg_all([output_format(codes)], T),
   {atom_codes(BNode, [H1,H2|T])}.
 

@@ -1,6 +1,7 @@
 :- module(
   rdf_file_db,
   [
+    rdf_extension/1, % ?Extension:atom
     rdf_mime/1, % ?MIME:atom
     rdf_mime_format/2, % ?MIME:atom
                        % ?Format:atom
@@ -18,7 +19,7 @@ Some very basic facts about RDF serialization formats,
 used by the RDF file modules.
 
 @author Wouter Beek
-@version 2014/04
+@version 2014/04-2014/05
 */
 
 :- use_module(library(lists)).

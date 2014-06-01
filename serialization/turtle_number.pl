@@ -35,8 +35,7 @@ DCGs for numbers defined in Turtle recommendations.
 
 'DECIMAL'(N) -->
   {nonvar(N)},
-  {Sign is sign(N)},
-  'sign?'(Sign),
+  'sign?'(N),
   {N1 is abs(N)},
   sparlq_DECIMAL(N1).
 'DECIMAL'(N) -->
@@ -58,8 +57,7 @@ DCGs for numbers defined in Turtle recommendations.
 
 'DOUBLE'(N) -->
   {nonvar(N)},
-  {Sign is sign(N)},
-  'sign?'(Sign),
+  'sign?'(N),
   {N1 is abs(N)},
   sparql_DOUBLE(N1).
 'DOUBLE'(N) -->
@@ -78,8 +76,7 @@ DCGs for numbers defined in Turtle recommendations.
 
 'INTEGER'(N) -->
   {nonvar(N)},
-  {Sign is sign(N)},
-  'sign?'(Sign),
+  'sign?'(N),
   {N1 is abs(N)},
   sparql_INTEGER(N1).
 'INTEGER'(N) -->

@@ -23,20 +23,13 @@
                               % ?DatatypeIri:iri
                               % ?LanguageTag:atom
                               % ?RdfGraph:atom
-    rdf_update_literal/7, % ?Subject:oneof([bnode,iri])
-                          % ?Predicate:iri
-                          % ?FromLexicalForm:atom
-                          % ?FromDatatypeIri:iri
-                          % ?FromLanguageTag:atom
-                          % ?RdfGraph:atom
-                          % +Action:compound
-    rdf_update_literal_preview/7 % ?Subject:oneof([bnode,iri])
-                                 % ?Predicate:iri
-                                 % ?FromLexicalForm:atom
-                                 % ?FromDatatypeIri:iri
-                                 % ?FromLanguageTag:atom
-                                 % ?RdfGraph:atom
-                                 % +Action:compound
+    rdf_update_literal/7 % ?Subject:oneof([bnode,iri])
+                         % ?Predicate:iri
+                         % ?FromLexicalForm:atom
+                         % ?FromDatatypeIri:iri
+                         % ?FromLanguageTag:atom
+                         % ?RdfGraph:atom
+                         % +Action:compound
   ]
 ).
 
@@ -53,8 +46,6 @@ Support for asserting/retracting triples with literal object terms.
 :- use_module(generics(meta_ext)).
 
 :- use_module(plRdf_term(rdf_literal)).
-
-:- use_module(plRdfDev_wui(rdf_store_table)).
 
 :- rdf_meta(rdf_assert_literal(r,r,+,r,+)).
 :- rdf_meta(rdf_assert_literal(r,r,+,r,+,+)).
@@ -202,44 +193,6 @@ rdf_update_literal(S, P, FromLexicalForm, FromDatatype, FromLangTag, G, Action):
     )
   ),
   forall(Antecedent, Consequent).
-
-
-%! rdf_update_literal_preview(
-%!   ?Subject:oneof([bnode,uri]),
-%!   ?Predicate:uri,
-%!   ?FromLexicalForm:atom,
-%!   ?FromDatatype:iri,
-%!   +FromLanguageTag:atom,
-%!   +RdfGraph:atom,
-%!   +Action:compound
-%! ) is det.
-% Generates a preview of what would happen if
-% triples with literal objtect terms would be updated.
-%
-% The supported actions are documented for rdf_update_literal/7.
-
-rdf_update_literal_preview(S, P, FromLexicalForm, FromDatatype, FromLangTag,
-    G, Action):-
-  % Take the first matching rule.
-  once(
-    rdf_update_literal_rule(
-      [S,P,FromLexicalForm,FromDatatype,FromLangTag,G,Action],
-      Header,
-      Antecedent,
-      Consequent,
-      Preview
-    )
-  ),
-  findall(
-    Header,
-    (
-      Antecedent,
-      Consequent,
-      Preview
-    ),
-    Rows
-  ),
-  rdf_store_rows(Rows).
 
 
 %! rdf_update_literal_rule(

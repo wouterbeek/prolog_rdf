@@ -19,7 +19,7 @@ Support for RDF files and file types.
 
 @author Wouter Beek
 @version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/06,
-         2013/08-2013/09, 2013/11, 2014/01-2014/04
+         2013/08-2013/09, 2013/11, 2014/01-2014/05
 */
 
 :- use_module(library(apply)).
@@ -29,8 +29,9 @@ Support for RDF files and file types.
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
 :- use_module(os(file_mime)).
-:- use_module(rdf_file(rdf_file_db)).
+
 :- use_module(plRdf(rdf_meta)).
+:- use_module(plRdf_ser(rdf_file_db)).
 
 
 
@@ -38,11 +39,11 @@ Support for RDF files and file types.
 % Succeeds if the given file contains an RDF serialization.
 
 is_rdf_file(File):-
-  file_mime(File, MIME),
-  rdf_mime(MIME), !.
+  file_mime(File, Mime),
+  rdf_mime(Mime), !.
 is_rdf_file(File):-
-  file_name_extension(_, Ext, File),
-  rdf_extension(Ext, _).
+  file_name_extension(_, Extension, File),
+  rdf_extension(Extension).
 
 
 %! rdf_directory_files(+Directory:atom, -RdfFiles:list(atom)) is det.

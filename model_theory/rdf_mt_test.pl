@@ -10,10 +10,13 @@ Tests for RDFS model theory.
 
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf_mt(rdf_mt_build)).
-:- use_module(rdf_mt(rdf_mt_i)).
-:- use_module(rdf_mt(rdf_mt_print)).
+
 :- use_module(xml(xml_namespace)).
+
+:- use_module(plRdf(rdf_deb)).
+:- use_module(plRdf_mt(rdf_mt_build)).
+:- use_module(plRdf_mt(rdf_mt_i)).
+:- use_module(plRdf_mt(rdf_mt_print)).
 
 :- xml_register_namespace(ex, 'http://www.example.com/').
 
@@ -96,7 +99,7 @@ build_test_syntax(G):-
 
 clean_test(G, M):-
   rdf_unload_model(M),
-  rdf_unload_graph_debug(G).
+  rdf_unload_graph_deb(G).
 
 %! test_name(?Succeeds:boolean, ?Graph:atom, ?Model:atom) is nondet.
 %

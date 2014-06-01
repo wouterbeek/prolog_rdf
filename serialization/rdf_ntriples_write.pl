@@ -1,8 +1,10 @@
 :- module(
   rdf_ntriples_write,
   [
+    sparql_insert_data/1, % +Options:list(nvpair)
+    rdf_ntriples_write/1, % +Options:list(nvpair)
     rdf_ntriples_write/2 % +Write:or([atom,stream])
-                         % +Options:list
+                         % +Options:list(nvpair)
   ]
 ).
 
@@ -37,6 +39,12 @@ This means that we can guarantee that the number of triples
 
 
 
+sparql_insert_data(Options):-
+  writeln('INSERT DATA {'),
+  rdf_ntriples_write(Options),
+  writeln('}').
+
+
 %! rdf_ntriples_write(+Write:or([atom,stream]), +Options:list) is det.
 % Writes RDF data serialization in the N-Triples format to the given file.
 %
@@ -60,7 +68,18 @@ This means that we can guarantee that the number of triples
 % Input is a stream.
 rdf_ntriples_write(Write, Options):-
   is_stream(Write), !,
+  with_output_to(Write, rdf_ntriples_write(Options)).
+% Input is a file.
+% Open a stream in `write` mode.
+rdf_ntriples_write(File, Options):-
+  is_absolute_file_name(File), !,
+  setup_call_cleanup(
+    open(File, write, Write),
+    with_output_to(Write, rdf_ntriples_write(Options)),
+    close(Write)
+  ).
 
+rdf_ntriples_write(Options):-
   % Reset the blank node store.
   reset_bnode_admin,
 
@@ -92,7 +111,7 @@ rdf_ntriples_write(Write, Options):-
       rdf(S, P, O, Graph:_),
       (
         inc_number_of_triples(State),
-        rdf_write_ntriple(Write, S, P, O, BNodePrefix)
+        rdf_write_ntriple(S, P, O, BNodePrefix)
       )
     )
   ;
@@ -101,7 +120,7 @@ rdf_ntriples_write(Write, Options):-
       rdf(S, P, O),
       (
         inc_number_of_triples(State),
-        rdf_write_ntriple(Write, S, P, O, BNodePrefix)
+        rdf_write_ntriple(S, P, O, BNodePrefix)
       )
     )
   ),
@@ -114,34 +133,26 @@ rdf_ntriples_write(Write, Options):-
   ;
     true
   ).
-% Input is a file.
-% Open a stream in `write` mode.
-rdf_ntriples_write(File, Options):-
-  is_absolute_file_name(File), !,
-  setup_call_cleanup(
-    open(File, write, Write),
-    rdf_ntriples_write(Write, Options),
-    close(Write)
-  ).
+
 
 inc_number_of_triples(State) :-
   arg(1, State, C0),
   C1 is C0 + 1,
   nb_setarg(1, State, C1).
 
-rdf_write_ntriple(Write, S, P, O, BNodePrefix):-
+rdf_write_ntriple(S, P, O, BNodePrefix):-
   flag(number_of_ntriples, X, X + 1),
-  rdf_write_subject(Write, S, BNodePrefix),
-  put_char(Write, ' '),
-  rdf_write_predicate(Write, P),
-  put_char(Write, ' '),
-  rdf_write_object(Write, O, BNodePrefix),
-  put_char(Write, ' '),
-  put_char(Write, '.'),
-  put_code(Write, 10), !. % Newline
+  rdf_write_subject(S, BNodePrefix),
+  put_char(' '),
+  rdf_write_predicate(P),
+  put_char(' '),
+  rdf_write_object(O, BNodePrefix),
+  put_char(' '),
+  put_char('.'),
+  put_code(10), !. % Newline
 
 % Typed literal.
-rdf_write_object(Write, literal(type(Datatype,Value1)), _):- !,
+rdf_write_object(literal(type(Datatype,Value1)), _):- !,
   % XSD XML literal.
   (
     rdf_equal(Datatype, rdf:'XMLLiteral')
@@ -160,29 +171,29 @@ rdf_write_object(Write, literal(type(Datatype,Value1)), _):- !,
     Value3 = Value2
   ),
 
-  turtle:turtle_write_quoted_string(Write, Value3),
-  write(Write, '^^'),
-  rdf_write_predicate(Write, Datatype).
+  turtle:turtle_write_quoted_string(current_output, Value3),
+  write('^^'),
+  rdf_write_predicate(Datatype).
 % Language-tagged string.
-rdf_write_object(Write, literal(lang(Language,Value)), _):- !,
-  turtle:turtle_write_quoted_string(Write, Value),
-  format(Write, '@~w', [Language]).
+rdf_write_object(literal(lang(Language,Value)), _):- !,
+  turtle:turtle_write_quoted_string(current_output, Value),
+  format(current_output, '@~w', [Language]).
 % XSD string.
-rdf_write_object(Write, literal(Value), _):- !,
-  turtle:turtle_write_quoted_string(Write, Value).
+rdf_write_object(literal(Value), _):- !,
+  turtle:turtle_write_quoted_string(current_output, Value).
 % Subject.
-rdf_write_object(Write, Term, BNodePrefix):-
-  rdf_write_subject(Write, Term, BNodePrefix).
+rdf_write_object(Term, BNodePrefix):-
+  rdf_write_subject(Term, BNodePrefix).
 
 
 
 % IRI.
-rdf_write_predicate(Write, Iri):-
-  turtle:turtle_write_uri(Write, Iri).
+rdf_write_predicate(Iri):-
+  turtle:turtle_write_uri(current_output, Iri).
 
 
 % Blank node.
-rdf_write_subject(Write, BNode, BNodePrefix):-
+rdf_write_subject(BNode, BNodePrefix):-
   rdf_is_bnode(BNode), !,
   (
     bnode_map(BNode, Id2)
@@ -199,13 +210,13 @@ rdf_write_subject(Write, BNode, BNodePrefix):-
   (
     BNodePrefix == '_:'
   ->
-    write(Write, BNodeName)
+    write(BNodeName)
   ;
-    rdf_write_predicate(Write, BNodeName)
+    rdf_write_predicate(BNodeName)
   ).
 % Predicate.
-rdf_write_subject(Write, Iri, _):-
-  rdf_write_predicate(Write, Iri).
+rdf_write_subject(Iri, _):-
+  rdf_write_predicate(Iri).
 
 
 

@@ -17,13 +17,15 @@
 Meta-callings on an RDF graph.
 
 @author Wouter Beek
-@version 2014/01-2014/02
+@version 2014/01-2014/02, 2014/05
 */
 
 :- use_module(os(file_ext)).
 
+:- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf_ser(rdf_file)).
+:- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_serial)).
 
 :- meta_predicate(rdf_setup_call_cleanup(+,+,1)).
@@ -48,7 +50,7 @@ rdf_setup_call_cleanup(O1_Load, From, Goal):-
       rdf_load_any([graph(Graph)|O1_Load], From)
     ),
     call(Goal, Graph),
-    rdf_unload_graph_debug(Graph)
+    rdf_unload_graph_deb(Graph)
   ).
 
 
@@ -69,7 +71,7 @@ rdf_setup_call_cleanup(O1_Load, From, Goal, O1_Save, ToFile):-
   (
     nonvar(ToFile), is_absolute_file_name(ToFile), !
   ;
-    rdf_serial:ensure_format(O1_Save, ToFile, ToFormat),
+    ensure_format(O1_Save, ToFile, ToFormat),
     once(rdf_serialization(ToExt, _, ToFormat, _, _)),
     (
       exists_directory(From)
@@ -93,7 +95,24 @@ rdf_setup_call_cleanup(O1_Load, From, Goal, O1_Save, ToFile):-
     call(Goal, Graph),
     (
       rdf_save(O1_Save, Graph, ToFile),
-      rdf_unload_graph_debug(Graph)
+      rdf_unload_graph_deb(Graph)
     )
   ).
+
+
+%! ensure_format(+Options:list(nvpair), +File:atom, -Format:atom) is det.
+% Try the best we can to extract some serialization format for exporting RDF.
+%
+% The format is established in the following way (in order of precedence):
+%    1. The value of the `format` option.
+%    2. The serialization format associated with the extension of `File`.
+%    3. N-Triples.
+
+ensure_format(Options, _, Format):-
+  option(format(Format), Options), !.
+ensure_format(_, File, Format):-
+  nonvar(File),
+  file_name_extension(_, Extension, File),
+  rdf_serialization(Extension, _, Format, _, _).
+ensure_format(_, _, ntriples).
 
