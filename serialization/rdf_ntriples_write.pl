@@ -1,7 +1,6 @@
 :- module(
   rdf_ntriples_write,
   [
-    sparql_insert_data/1, % +Options:list(nvpair)
     rdf_ntriples_write/1, % +Options:list(nvpair)
     rdf_ntriples_write/2 % +Write:or([atom,stream])
                          % +Options:list(nvpair)
@@ -37,12 +36,6 @@ This means that we can guarantee that the number of triples
 :- thread_local(bnode_counter/1).
 :- thread_local(bnode_map/2).
 
-
-
-sparql_insert_data(Options):-
-  writeln('INSERT DATA {'),
-  rdf_ntriples_write(Options),
-  writeln('}').
 
 
 %! rdf_ntriples_write(+Write:or([atom,stream]), +Options:list) is det.
