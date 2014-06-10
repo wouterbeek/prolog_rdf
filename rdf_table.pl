@@ -137,6 +137,6 @@ rdf_assert_row_headers(Graph, Table, RowHeaders, RowList):-
 % Asserts either column or row headers of a table, depending on `Predicate`.
 
 rdf_assert_headers(Graph, Table, Predicate, Headers, HeaderList):-
-  rdf_assert_list([datatype(xsd:string)], Headers, HeaderList, Graph),
+  rdf_assert_list(Headers, HeaderList, [datatype(xsd:string),graph(Graph)]),
   rdf_assert(Table, Predicate, HeaderList, Graph).
 

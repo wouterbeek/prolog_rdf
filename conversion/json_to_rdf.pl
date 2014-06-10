@@ -241,8 +241,8 @@ json_pair_to_rdf(Graph, _, XmlNamespace, Individual, Name, rdf_list(Type), Value
   is_list(Values), !,
   rdf_global_id(XmlNamespace:Name, Predicate),
   rdf_global_id(xsd:Type, Datatype),
-  rdf_assert_list([datatype(Datatype)], Values, RDF_List, Graph),
-  rdf_assert(Individual, Predicate, RDF_List, Graph).
+  rdf_assert_list(Values, RdfList, [datatype(Datatype),graph(Graph)]),
+  rdf_assert(Individual, Predicate, RdfList, Graph).
 % XSD
 json_pair_to_rdf(Graph, _, XmlNamespace, Individual, Name, DatatypeName, Value1):-
   rdf_global_id(XmlNamespace:Name, Predicate),

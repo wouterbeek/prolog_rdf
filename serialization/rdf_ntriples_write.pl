@@ -24,7 +24,7 @@ This means that we can guarantee that the number of triples
 @compat http://www.w3.org/TR/2014/REC-n-triples-20140225/
 @tbd We would like to serialize no duplicate triples.
      Provide this at least as an option.
-@version 2014/03-2014/05
+@version 2014/03-2014/06
 */
 
 :- use_module(library(option)).
@@ -82,18 +82,11 @@ rdf_ntriples_write(Options):-
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.
   (
-    option(bnode_base(Iri), Options)
+    option(bnode_base(Scheme-Authority-Hash1), Options)
   ->
-    uri_components(Iri, uri_components(Scheme,Authority,_,_,_)),
-    uri_components(IriPrefix, uri_components(Scheme,Authority,_,_,_)),
-    atom_concat(IriPrefix, IriPostfix, Iri),
-    rdf_atom_md5(IriPostfix, 1, Hash1),
     atomic_concat(Hash1, '#', Hash2),
     atomic_list_concat(['','.well-known',genid,Hash2], '/', Path),
-    uri_components(
-      BNodePrefix,
-      uri_components(Scheme,Authority,Path,_,_)
-    )
+    uri_components(BNodePrefix, uri_components(Scheme,Authority,Path,_,_))
   ;
     BNodePrefix = '_:'
   ),

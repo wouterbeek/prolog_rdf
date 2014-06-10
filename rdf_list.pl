@@ -2,13 +2,9 @@
   rdf_list,
   [
     rdf_is_list/1, % +RdfList:iri
-    rdf_assert_list/3, % +List:list
+    rdf_assert_list/3, % +PrologList:list
                        % -RdfList:iri
-                       % +Graph:atom
-    rdf_assert_list/4, % +Options:list(nvpair)
-                       % +List:list
-                       % -RdfList:iri
-                       % +Graph:atom
+                       % +Options:list(nvpair)
     rdf_list/2, % +RdfList:iri
                 % -List:list
     rdf_list/3, % +Options:list(nvpair)
@@ -45,10 +41,11 @@ Support for RDF lists.
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02
+         2014/01-2014/02, 2014/06
 */
 
 :- use_module(library(apply)).
+:- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(dcg(dcg_collection)).
@@ -64,7 +61,7 @@ Support for RDF lists.
 
 :- rdf_meta(rdf_is_list(r)).
 :- rdf_meta(rdf_assert_list(t,r,+)).
-:- rdf_meta(rdf_assert_list(t,t,r,+)).
+:- rdf_meta(rdf_assert_list(t,r,+,+)).
 :- rdf_meta(rdf_list(r,-)).
 :- rdf_meta(rdf_list(+,r,-)).
 :- rdf_meta(rdf_list_first(r,r)).
@@ -84,7 +81,7 @@ Support for RDF lists.
 %
 % ## Tricky stuff
 %
-% For a triple [1] simple entailment can deduce [2].
+% For triple [1], simple entailment deduces [2].
 % We do *not* want to represent `bnode2` as an RDF list,
 % since `bnode2` maps to `bnode1` in the blank node map.
 %
@@ -101,64 +98,57 @@ rdf_is_list(RDF_List1):-
   (b2r(_, RDF_List1, RDF_List2), ! ; RDF_List2 = RDF_List1),
   rdfs_individual(m(t,f,f), RDF_List2, C, _).
 
-%! rdf_assert_list(+PrologList:list, -RdfList:iri, +Graph:atom) is det.
+
 %! rdf_assert_list(
-%!   +Options:list(nvpair),
 %!   +PrologList:list,
 %!   -RdfList:iri,
-%!   +Graph:atom
+%!   +Options:list(nvpair)
 %! ) is det.
 % Asserts the given, possibly nested list into RDF.
 %
 % The following options are supported:
 %   * =|datatype(+Datatype:iri)|=
 %
-% @arg Options A list of name-value pairs.
-% @arg PrologList The, possibly nested, Prolog list.
-% @arg RdfList The URI of the node at which the RDF list starts.
-% @arg Graph The atomic name of a graph or unbound.
-%
-% @author Wouter Beek, elaborating on Sanders original, allowing the graph
-%         to be optional and returning the root of the asserted list.
+% @author Wouter Beek, elaborating on Sanders original, adding optional
+%         graph, lists of datatyped literals, and return argument for root.
 % @author Sander Latour, who wrote the original version, dealing with
 %         nested lists.
 
-rdf_assert_list(List, RdfList, G):-
-  rdf_assert_list([], List, RdfList, G).
+rdf_assert_list(List, RdfList, Options):-
+  option(graph(Graph), Options, _VAR),
+  add_blank_list_individual(RdfList, Graph),
+  rdf_assert_list(List, RdfList, Graph, Options).
 
-rdf_assert_list(O1, List, RdfList, G):-
-  add_blank_list_individual(RdfList, G),
-  rdf_assert_list0(O1, List, RdfList, G).
-
-rdf_assert_list0(_, [], rdf:nil, _Graph).
-rdf_assert_list0(O1, [H|T], RdfList, G):-
+rdf_assert_list([], rdf:nil, _, _).
+rdf_assert_list([H|T], RdfList, Graph, Options):-
   (
     is_list(H)
   ->
-    rdf_assert_list0(O1, H, H1, G)
+    rdf_assert_list(H, H1, Graph, Options)
   ;
-    option(datatype(D), O1)
+    option(datatype(Datatype), Options)
   ->
     rdf_bnode(H1),
     rdf_global_id(rdf:value, P),
-    rdf_assert_datatype(H1, P, H, D, G)
+    rdf_assert_datatype(H1, P, H, Datatype, Graph)
   ;
     H1 = H
   ),
-  rdf_assert(RdfList, rdf:first, H1, G),
+  rdf_assert(RdfList, rdf:first, H1, Graph),
   (
     T == []
   ->
     rdf_global_id(rdf:nil, TList)
   ;
-    add_blank_list_individual(TList, G),
-    rdf_assert_list0(O1, T, TList, G)
+    add_blank_list_individual(TList, Graph),
+    rdf_assert_list(T, TList, Graph, Options)
   ),
-  rdf_assert(RdfList, rdf:rest, TList, G).
+  rdf_assert(RdfList, rdf:rest, TList, Graph).
 
-add_blank_list_individual(Blank, G):-
+add_blank_list_individual(Blank, Graph):-
   rdf_bnode(Blank),
-  rdf_assert_individual(Blank, rdf:'List', G).
+  rdf_assert_individual(Blank, rdf:'List', Graph).
+
 
 %! rdf_list(+RdfList:rdf_list, -List:list) is det.
 % @see Wrapper around rdf_list/3.
