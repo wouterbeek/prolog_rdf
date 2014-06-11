@@ -351,10 +351,11 @@ alpha_to_lowers([]) -->
 %  String.
 
 open_binary_string_stream(String, Read) :-
+  atom_string(Atom, String),
+gtrace,
   new_memory_file(MF),
   setup_call_cleanup(
-      open_memory_file(MF, write, Write, [encoding(octet)]),
-      format(Write, '~s', [String]),
+      open_memory_file(MF, write, Write, []),
+      format(Write, '~w', [Atom]),
       close(Write)),
-  open_memory_file(MF, read, Read, [free_on_close(true),encoding(octet)]).
-
+  open_memory_file(MF, read, Read, [free_on_close(true)]).
