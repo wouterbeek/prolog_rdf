@@ -352,7 +352,6 @@ alpha_to_lowers([]) -->
 
 open_binary_string_stream(String, Read) :-
   atom_string(Atom, String),
-gtrace,
   new_memory_file(MF),
   setup_call_cleanup(
       open_memory_file(MF, write, Write, []),
