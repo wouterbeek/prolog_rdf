@@ -350,14 +350,11 @@ alpha_to_lowers([]) -->
 %  True when Stream is  a  binary   stream  holding  the context of
 %  String.
 
-open_binary_string_stream(String, Stream) :-
+open_binary_string_stream(String, Read) :-
   new_memory_file(MF),
   setup_call_cleanup(
-      open_memory_file(MF, write, Out, [encoding(octet)]),
-      format(Out, '~s', [String]),
-      close(Out)),
-  open_memory_file(MF, read, Stream,
-       [ free_on_close(true),
-         encoding(octet)
-       ]).
+      open_memory_file(MF, write, Write, [encoding(octet)]),
+      format(Write, '~s', [String]),
+      close(Write)),
+  open_memory_file(MF, read, Read, [free_on_close(true),encoding(octet)]).
 
