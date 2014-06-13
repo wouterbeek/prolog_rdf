@@ -12,10 +12,9 @@ Scripts for asserting RDF graphs that can be used for debugging.
 [[rdfs.png]]
 
 @author Wouter Beek
-@version 2012/12-2013/02, 2013/07
+@version 2012/12-2013/02, 2013/07, 2014/06
 */
 
-:- use_module(dbpedia(dbpedia)).
 :- use_module(owl(owl_build)).
 :- use_module(xml(xml_namespace)).
 
@@ -23,6 +22,7 @@ Scripts for asserting RDF graphs that can be used for debugging.
 :- use_module(plRdf(rdfs_build)).
 
 :- xml_register_namespace(ch,  'http://www.wouterbeek.com/ch.owl#' ).
+:- xml_register_namespace(dbpedia,    'http://dbpedia.org/resource/').
 :- xml_register_namespace(nl,  'http://www.wouterbeek.com/nl.owl#' ).
 
 
@@ -56,6 +56,4 @@ assert_visum(G):-
   owl_assert_class_equivalence(ch:capital,      nl:capital,     G),
   owl_assert_resource_identity(dbpedia:'Amsterdam', ch:'Amsterdam', G),
   owl_assert_resource_identity(dbpedia:'Amsterdam', nl:'Amsterdam', G).
-
-
 
