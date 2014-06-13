@@ -6,6 +6,7 @@
                              % +Graph:atom
     rdf_assert_property/2, % +Property:iri
                            % +Graph:atom
+    rdf_assert_triple/1, % +RdfTerms:list(or([bnode,iri,literal]))
     rdf_copy/5, % +FromGraph:atom
                 % ?Subject:or([bnode,iri])
                 % ?Predicate:iri
@@ -28,7 +29,7 @@ Simple asserion and retraction predicates for RDF.
 Triples with literals are treated in dedicated modules.
 
 @author Wouter Beek
-@version 2013/10, 2013/12-2014/01
+@version 2013/10, 2013/12-2014/01, 2014/06
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -60,6 +61,12 @@ rdf_assert_individual(I, C, G):-
 
 rdf_assert_property(Property, G):-
   rdf_assert_individual(Property, rdf:'Property', G).
+
+
+%! rdf_assert_triple(+RdfTerms:list(or([bnode,iri,literal]))) is det.
+
+rdf_assert_triple([S,P,O]):-
+  rdf_assert(S, P, O).
 
 
 %! rdf_create_next_resource(

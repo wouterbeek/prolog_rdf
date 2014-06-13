@@ -72,6 +72,7 @@ rdf_ntriples_write(File, Options):-
     close(Write)
   ).
 
+
 rdf_ntriples_write(Options):-
   % Reset the blank node store.
   reset_bnode_admin,
