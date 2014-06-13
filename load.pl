@@ -5,6 +5,6 @@
 
 :- use_module(load_project).
 :- load_project([
-     plc-'Prolog-Library-Collection',
+     plc-'Prolog-Library-Collection'
    ]).
 
