@@ -7,6 +7,9 @@
     b2r/3, % +Graph:atom
            % +BlankNode:bnode
            % -Resource:or([bnode,iri,literal])
+    has_r2b/3, % +Graph:atom,
+               % +Resource:or([bnode,iri,literal]),
+               % -BlankNode:bnode
     r2b/3, % +Graph:atom
            % +Resource:or([bnode,iri,literal])
            % -BlankNode:bnode
@@ -21,11 +24,11 @@ of RDF triples, blank nodes need to be associated with them in order
 to be able to form propositions regarding literals.
 
 Blank nodes and IRIs should also be mapped onto a single blank node
-in simple entailment, in order to ascertain that original graph
-is a proper instance of the materialized graph.
+in simple entailment, in order to ascertain that the original graph
+is a proper instance of every materialized graph.
 
 @author Wouter Beek
-@version 2013/09
+@version 2013/09, 2014/06
 */
 
 :- use_module(library(assoc)).
@@ -83,6 +86,18 @@ b2r_store(G, A):-
   empty_assoc(A),
   assert(b2r(G, A)).
 
+
+%! has_r2b(
+%!   +Graph:atom,
+%!   +Resource:or([bnode,iri,literal]),
+%!   -BlankNode:bnode
+%! ) is semidet.
+
+has_r2b(G, R, B):-
+  r2b_store(G, A),
+  get_assoc(R, A, B), !.
+
+
 %! r2b(
 %!   +Graph:atom,
 %!   +Resource:or([bnode,iri,literal]),
@@ -91,8 +106,7 @@ b2r_store(G, A):-
 
 % The store contains a blank node that stands for the given resource.
 r2b(G, R, B):-
-  r2b_store(G, A),
-  get_assoc(R, A, B), !.
+  has_r2b(G, R, B).
 % The store does not contain a blank node that stands for the given resource,
 % so a new blank node is created to stand for the given resource and this
 % resource-and-blank node pair is added to the R2B mapping.
