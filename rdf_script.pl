@@ -15,11 +15,11 @@ Scripts for asserting RDF graphs that can be used for debugging.
 @version 2012/12-2013/02, 2013/07, 2014/06
 */
 
-:- use_module(owl(owl_build)).
 :- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdfs_build)).
+:- use_module(plRdf_owl(owl_build)).
 
 :- xml_register_namespace(ch,  'http://www.wouterbeek.com/ch.owl#' ).
 :- xml_register_namespace(dbpedia,    'http://dbpedia.org/resource/').
