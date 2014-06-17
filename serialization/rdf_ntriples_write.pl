@@ -33,8 +33,7 @@ This means that we can guarantee that the number of triples
 :- use_module(library(sgml_write)).
 :- use_module(library(uri)).
 
-:- thread_local(bnode_counter/1).
-:- thread_local(bnode_map/2).
+:- use_module(plRdf_term(rdf_bnode)).
 
 
 
@@ -42,16 +41,19 @@ This means that we can guarantee that the number of triples
 % Writes RDF data serialization in the N-Triples format to the given file.
 %
 % The following options are supported:
-%   * =|bnode_base(?Iri:atom)|=
+%   * =|bnode_base(+Iri:atom)|=
 %     Replace blank nodes with an IRI, defined as per
 %     RDF 1.1 spec (see link below).
-%   * =|graph(?Graph:atom)|=
+%   * =|graph(+Graph:atom)|=
 %     The atomic name of a currently loaded RDF graph,
 %     to restrict the triples that are saved,
 %     or uninstantiated, in which case
 %     all currently loaded triples are saved.
 %   * =|number_of_triples(-Triples:nonneg)|=
 %     The number of triples that was written.
+%   * =|reset_bnode_map(+Reset:boolean)|=
+%     Whether the blank node mappings are reset or not.
+%     Default: `true`.
 %
 % @arg File The atomic name of a file.
 % @arg Options A list of name-value pairs.
@@ -74,8 +76,14 @@ rdf_ntriples_write(File, Options):-
 
 
 rdf_ntriples_write(Options):-
-  % Reset the blank node store.
-  reset_bnode_admin,
+  % Whether the blank node mappings are reset or not.
+  (
+    option(reset_bnode_map(true), Options, true)
+  ->
+    reset_bnode_admin
+  ;
+    true
+  ),
 
   % Keep track of the number of triples written.
   State = state(0),
@@ -83,14 +91,14 @@ rdf_ntriples_write(Options):-
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.
   (
-    option(bnode_base(Scheme-Authority-Hash1), Options)
+    option(bnode_base(Scheme-Authority-Hash), Options)
   ->
-    atomic_concat(Hash1, '#', Hash2),
-    atomic_list_concat(['','.well-known',genid,Hash2], '/', Path),
-    uri_components(BNodePrefix, uri_components(Scheme,Authority,Path,_,_))
+    rdf_bnode_prefix(Scheme, Authority, Hash, BNodePrefix)
   ;
-    BNodePrefix = '_:'
+    rdf_bnode_prefix(BNodePrefix)
   ),
+  
+  % Whether triples are read from a specific graph or not.
   (
     option(graph(Graph), Options)
   ->
@@ -128,7 +136,6 @@ inc_number_of_triples(State) :-
   nb_setarg(1, State, C1).
 
 rdf_write_ntriple(S, P, O, BNodePrefix):-
-  flag(number_of_ntriples, X, X + 1),
   rdf_write_subject(S, BNodePrefix),
   put_char(' '),
   rdf_write_predicate(P),
@@ -149,7 +156,7 @@ rdf_write_object(literal(type(Datatype,Value1)), _):- !,
     Value2 = Value1
   ),
 
-  % Convert numbers to atom.
+  % Convert numbers to atoms.
   (
     number(Value2)
   ->
@@ -173,7 +180,6 @@ rdf_write_object(Term, BNodePrefix):-
   rdf_write_subject(Term, BNodePrefix).
 
 
-
 % IRI.
 rdf_write_predicate(Iri):-
   turtle:turtle_write_uri(current_output, Iri).
@@ -182,46 +188,8 @@ rdf_write_predicate(Iri):-
 % Blank node.
 rdf_write_subject(BNode, BNodePrefix):-
   rdf_is_bnode(BNode), !,
-  (
-    bnode_map(BNode, Id2)
-  ->
-    true
-  ;
-    increment_bnode_counter(Id2),
-    assert(bnode_map(BNode, Id2))
-  ),
-  atomic_concat(BNodePrefix, Id2, BNodeName),
-
-  % If the blank node is replaced by a well-known IRI,
-  % then we use predicate term writer.
-  (
-    BNodePrefix == '_:'
-  ->
-    write(BNodeName)
-  ;
-    rdf_write_predicate(BNodeName)
-  ).
+  rdf_write_bnode(BNodePrefix, BNode).
 % Predicate.
 rdf_write_subject(Iri, _):-
   rdf_write_predicate(Iri).
-
-
-
-% Blank node administration.
-
-increment_bnode_counter(Id2):-
-  retract(bnode_counter(Id1)),
-  Id2 is Id1 + 1,
-  assert(bnode_counter(Id2)).
-
-reset_bnode_admin:-
-  reset_bnode_counter,
-  reset_bnode_map.
-
-reset_bnode_counter:-
-  retractall(bnode_counter(_)),
-  assert(bnode_counter(0)).
-
-reset_bnode_map:-
-  retractall(bnode_map(_,_)).
 
