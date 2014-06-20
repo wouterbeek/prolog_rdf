@@ -17,6 +17,8 @@ Debug tools for working with RDF.
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(plRdf(rdf_graph)).
+
 
 
 rdf_load_graph_deb(Graph):-
@@ -33,6 +35,8 @@ rdf_load_graph_deb(Graph):-
 
 %! rdf_unload_graph_deb(+Graph:atom) is det.
 
+rdf_unload_graph_deb(Graph):-
+  \+ is_rdf_graph(Graph), !.
 rdf_unload_graph_deb(Graph):-
   rdf_statistics(triples_by_graph(Graph,GraphTriples)),
   rdf_unload_graph(Graph),
