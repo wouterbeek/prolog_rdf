@@ -83,9 +83,10 @@ is_fresh_rdf_graph(Graph, FreshnessLifetime):-
 
 
 %! is_rdf_graph(@Term) is semidet.
+% rdf_graph/1 throws an exception for any non-atomic nonvar argument.
 
 is_rdf_graph(Graph):-
-  nonvar(Graph),
+  atom(Graph),
   rdf_graph(Graph).
 
 
