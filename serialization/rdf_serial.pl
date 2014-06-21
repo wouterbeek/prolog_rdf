@@ -80,7 +80,6 @@ since most datasets are published in a non-standard way.
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf_ser(rdf_detect)).
-:- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_ntriples_write)).
 
 
@@ -184,7 +183,7 @@ rdf_load_any_1(O1, Input, Pairs):-
   ;
     O2 = O1
   ),
-  
+
   findall(
     Base-Graph,
     (
