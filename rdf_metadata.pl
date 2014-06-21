@@ -25,6 +25,7 @@ The following metadata vocabularies are supported:
 
 :- use_module(library(persistency)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_http_plugin)). % HTTP support for RDF load.
 
 :- use_module(generics(db_ext)).
 :- use_module(os(file_ext)).

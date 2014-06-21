@@ -2,8 +2,12 @@
   rdf_ntriples_write,
   [
     rdf_ntriples_write/1, % +Options:list(nvpair)
-    rdf_ntriples_write/2 % +Write:or([atom,stream])
-                         % +Options:list(nvpair)
+    rdf_ntriples_write/2, % +Write:or([atom,stream])
+                          % +Options:list(nvpair)
+    rdf_write_ntriple/4 % +Subject:or([bnode,iri])
+                        % +Predicate:iri
+                        % +Object:or([bnode,iri,literal])
+                        % +BNodePrefix:atom
   ]
 ).
 
@@ -146,6 +150,14 @@ inc_number_of_triples(State) :-
   arg(1, State, C0),
   C1 is C0 + 1,
   nb_setarg(1, State, C1).
+
+
+%! rdf_write_ntriple(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Object:or([bnode,iri,literal]),
+%!   +BNodePrefix:atom
+%! ) is det.
 
 rdf_write_ntriple(S, P, O, BNodePrefix):-
   rdf_write_subject(S, BNodePrefix),
