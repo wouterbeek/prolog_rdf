@@ -49,7 +49,6 @@ This means that we can guarantee that the number of triples
 %   * =|bnode_base(+Iri:atom)|=
 %     Replace blank nodes with an IRI, defined as per
 %     RDF 1.1 spec (see link below).
-%   * =|filter(+Filter:oneof([metadata]))|=
 %   * =|graph(+Graph:atom)|=
 %     The atomic name of a currently loaded RDF graph,
 %     to restrict the triples that are saved,
@@ -106,16 +105,6 @@ rdf_ntriples_write(Options):-
   
   % Whether triples are read from a specific graph or not.
   (
-    option(filter(metadata), Options)
-  ->
-    forall(
-      rdf_metadata(S, P, O),
-      (
-        inc_number_of_triples(State),
-        rdf_write_ntriple(S, P, O, BNodePrefix)
-      )
-    )
-  ;
     option(graph(Graph), Options)
   ->
     forall(
