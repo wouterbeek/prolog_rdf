@@ -29,9 +29,7 @@
     rdf_assert_predicate/3, % +Stmt:statement
                             % +Predicate:resource
                             % +Graph:graph
-    rdf_assert_statement/5, % +Subject:resource
-                            % +Predicate:resource
-                            % +Object:resource
+    rdf_assert_statement/3, % +Triple:compound
                             % +Graph:graph
                             % -Stmt:statement
     rdf_assert_subject/3 % +Stmt:statement
@@ -46,7 +44,7 @@ Reification for RDF. Both reading and writing.
 
 @author Wouter Beek
 @tbd Assess this module after reading the semantics standard for reification.
-@version 2013/02, 2013/07, 2013/09-2013/10, 2013/12-2014/01, 2014/03
+@version 2013/02, 2013/07, 2013/09-2013/10, 2013/12-2014/01, 2014/03, 2014/06
 */
 
 :- use_module(library(option)).
@@ -72,7 +70,7 @@ Reification for RDF. Both reading and writing.
 
 :- rdf_meta(rdf_assert_object(r,r,+)).
 :- rdf_meta(rdf_assert_predicate(r,r,+)).
-:- rdf_meta(rdf_assert_statement(r,r,r,+,r)).
+:- rdf_meta(rdf_assert_statement(t,+,-)).
 :- rdf_meta(rdf_assert_subject(r,r,+)).
 
 
@@ -118,13 +116,16 @@ dcg_stmt(Brackets, triple, Stmt) -->
 rdf_object(Stmt, Object, Graph):-
   rdf(Stmt, rdf:object, Object, Graph).
 
+
 rdf_predicate(Stmt, Predicate, Graph):-
   rdf(Stmt, rdf:predicate, Predicate, Graph).
+
 
 rdf_statement(Subject, Predicate, Object, Graph, Stmt):-
   rdf_subject(Stmt, Subject, Graph),
   rdf_predicate(Stmt, Predicate, Graph),
   rdf_object(Stmt, Object, Graph).
+
 
 rdf_subject(Stmt, Subject, Graph):-
   rdf(Stmt, rdf:subject, Subject, Graph).
@@ -136,12 +137,14 @@ rdf_subject(Stmt, Subject, Graph):-
 rdf_assert_object(Stmt, Object, Graph):-
   rdf_assert(Stmt, rdf:object, Object, Graph).
 
+
 rdf_assert_predicate(Stmt, Predicate, Graph):-
   rdf_assert(Stmt, rdf:predicate, Predicate, Graph).
 
-rdf_assert_statement(Subject, Predicate, Object, Graph, Stmt):-
-  rdf_statement(Subject, Predicate, Object, Graph, Stmt), !.
-rdf_assert_statement(Subject, Predicate, Object, Graph, Stmt):-
+
+rdf_assert_statement(rdf(S,P,O), Graph, Stmt):-
+  rdf_statement(S, P, O, Graph, Stmt), !.
+rdf_assert_statement(rdf(S,P,O), Graph, Stmt):-
   % Make sure the statement parameter is instantiated.
   % Use a new blank node if this is not yet the case.
   (
@@ -153,10 +156,14 @@ rdf_assert_statement(Subject, Predicate, Object, Graph, Stmt):-
   ),
   
   rdf_assert_individual(Stmt, rdf:'Statement', Graph),
-  rdf_assert_subject(Stmt, Subject, Graph),
-  rdf_assert_predicate(Stmt, Predicate, Graph),
-  rdf_assert_object(Stmt, Object, Graph),
-  rdf_assert(Subject, Predicate, Object, Graph).
+  rdf_assert_subject(Stmt, S, Graph),
+  rdf_assert_predicate(Stmt, P, Graph),
+  rdf_assert_object(Stmt, O, Graph),
+  rdf_assert(S, P, O, Graph).
+rdf_assert_statement(rdf(S,P,O,G), Graph, Stmt):-
+  rdf_assert_statement(rdf(S,P,O), Graph, Stmt),
+  rdf_assert(G, rdf:asserts, Stmt, Graph).
+
 
 rdf_assert_subject(Stmt, Subject, Graph):-
   rdf_assert(Stmt, rdf:subject, Subject, Graph).

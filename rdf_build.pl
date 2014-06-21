@@ -6,7 +6,6 @@
                              % +Graph:atom
     rdf_assert_property/2, % +Property:iri
                            % +Graph:atom
-    rdf_assert_triple/1, % +RdfTerms:list(or([bnode,iri,literal]))
     rdf_copy/5, % +FromGraph:atom
                 % ?Subject:or([bnode,iri])
                 % ?Predicate:iri
@@ -61,12 +60,6 @@ rdf_assert_individual(I, C, G):-
 
 rdf_assert_property(Property, G):-
   rdf_assert_individual(Property, rdf:'Property', G).
-
-
-%! rdf_assert_triple(+RdfTerms:list(or([bnode,iri,literal]))) is det.
-
-rdf_assert_triple([S,P,O]):-
-  rdf_assert(S, P, O).
 
 
 %! rdf_create_next_resource(

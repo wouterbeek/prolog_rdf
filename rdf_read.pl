@@ -6,6 +6,10 @@
            % ?Predicate:iri
            % ?Object:or([bnode,iri,label])
            % ?Graph:atom
+    rdf_direction/4, % +Direction:oneof([backward,both,forward]),
+                     % +Resource:iri,
+                     % +Graph:atom,
+                     % -Propositions:ordset(list(or([bnode,iri,literal])))
     rdf_equiv/2, % ?Resource1:or([bnode,iri,literal])
                  % ?Resource2:or([bnode,iri,literal])
     rdf_find/4, % +Subject:or([bnode,iri]),
@@ -47,6 +51,7 @@ literals.
 
 :- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
+:- rdf_meta(rdf_direction(+,r,+,-)).
 :- rdf_meta(rdf_member(r,+)).
 :- rdf_meta(rdf_memberchk(r,+)).
 :- rdf_meta(rdf_property(+,r)).
@@ -105,6 +110,31 @@ rdf_both_bnode(X, Y):-
   rdf_is_bnode(X), !,
   rdf_is_bnode(Y).
 rdf_both_bnode(_, _).
+
+
+%! rdf_direction(
+%!   +Direction:oneof([backward,both,forward]),
+%!   +Resource:iri,
+%!   +Graph:atom,
+%!   -Propositions:ordset(list(or([bnode,iri,literal])))
+%! ) is det.
+
+rdf_direction(backward, Resource, Graph, Propositions):- !,
+  aggregate_all(
+    set([S,P,Resource]),
+    rdf(S, P, Resource, Graph),
+    Propositions
+  ).
+rdf_direction(both, Resource, Graph, Propositions):- !,
+  rdf_direction(backward, Resource, Graph, Propositions1),
+  rdf_direction(forward, Resource, Graph, Propositions2),
+  ord_union(Propositions1, Propositions2, Propositions).
+rdf_direction(forward, Resource, Graph, Propositions):- !,
+  aggregate_all(
+    set([Resource,P,O]),
+    rdf(Resource, P, O, Graph),
+    Propositions
+  ).
 
 
 rdf_equiv(X, Y):-
