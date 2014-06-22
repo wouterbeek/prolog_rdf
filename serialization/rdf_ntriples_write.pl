@@ -56,9 +56,6 @@ This means that we can guarantee that the number of triples
 %     all currently loaded triples are saved.
 %   * =|number_of_triples(-Triples:nonneg)|=
 %     The number of triples that was written.
-%   * =|reset_bnode_map(+Reset:boolean)|=
-%     Whether the blank node mappings are reset or not.
-%     Default: `true`.
 %
 % @arg File The atomic name of a file.
 % @arg Options A list of name-value pairs.
@@ -81,14 +78,7 @@ rdf_ntriples_write(File, Options):-
 
 
 rdf_ntriples_write(Options):-
-  % Whether the blank node mappings are reset or not.
-  (
-    option(reset_bnode_map(true), Options, true)
-  ->
-    reset_bnode_admin
-  ;
-    true
-  ),
+  reset_bnode_admin,
 
   % Keep track of the number of triples written.
   State = state(0),
