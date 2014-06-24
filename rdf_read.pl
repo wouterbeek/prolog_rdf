@@ -9,7 +9,7 @@
     rdf_direction/4, % +Direction:oneof([backward,both,forward]),
                      % +Resource:iri,
                      % +Graph:atom,
-                     % -Propositions:ordset(list(or([bnode,iri,literal])))
+                     % -Triples:ordset(compound)
     rdf_equiv/2, % ?Resource1:or([bnode,iri,literal])
                  % ?Resource2:or([bnode,iri,literal])
     rdf_find/4, % +Subject:or([bnode,iri]),
@@ -36,7 +36,7 @@ literals.
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/04, 2013/07-2013/10
-         2014/01
+         2014/01, 2014/06
 */
 
 :- rdf_meta(rdf(+,r,r,o,?)).
@@ -116,24 +116,24 @@ rdf_both_bnode(_, _).
 %!   +Direction:oneof([backward,both,forward]),
 %!   +Resource:iri,
 %!   +Graph:atom,
-%!   -Propositions:ordset(list(or([bnode,iri,literal])))
+%!   -Triples:ordset(compound)
 %! ) is det.
 
-rdf_direction(backward, Resource, Graph, Propositions):- !,
+rdf_direction(backward, Resource, Graph, Triples):- !,
   aggregate_all(
-    set([S,P,Resource]),
+    set(rdf(S,P,Resource)),
     rdf(S, P, Resource, Graph),
-    Propositions
+    Triples
   ).
-rdf_direction(both, Resource, Graph, Propositions):- !,
+rdf_direction(both, Resource, Graph, Triples):- !,
   rdf_direction(backward, Resource, Graph, Propositions1),
   rdf_direction(forward, Resource, Graph, Propositions2),
-  ord_union(Propositions1, Propositions2, Propositions).
-rdf_direction(forward, Resource, Graph, Propositions):- !,
+  ord_union(Propositions1, Propositions2, Triples).
+rdf_direction(forward, Resource, Graph, Triples):- !,
   aggregate_all(
-    set([Resource,P,O]),
+    set(rdf(Resource,P,O)),
     rdf(Resource, P, O, Graph),
-    Propositions
+    Triples
   ).
 
 
