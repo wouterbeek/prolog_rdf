@@ -39,6 +39,7 @@ When triples including images are read,
 :- use_module(generics(deb_ext)).
 :- use_module(generics(uri_ext)).
 :- use_module(http(http_download)).
+:- use_module(os(image_ext)).
 :- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_build)).
@@ -50,10 +51,9 @@ When triples including images are read,
 
 
 
-
 rdf_assert_image(O1, S, P, O, G):-
   rdf_image(O1, O, _),
-  is_image_url(O),
+  image_url(O),
   rdf_assert_individual(O, dcmit:'Image', G),
   rdf_assert(S, P, O, G).
 
