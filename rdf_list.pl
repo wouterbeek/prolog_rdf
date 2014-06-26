@@ -7,9 +7,9 @@
                        % +Options:list(nvpair)
     rdf_list/2, % +RdfList:iri
                 % -List:list
-    rdf_list/3, % +Options:list(nvpair)
-                % +RdfList:iri
+    rdf_list/3, % +RdfList:iri
                 % -List:list
+                % +Options:list(nvpair)
     rdf_list_first/2, % +List:iri
                       % -FirstElement:iri
     rdf_list_last/2, % +List:iri
@@ -35,7 +35,7 @@
   ]
 ).
 
-/** <module> RDF_LIST
+/** <module> RDF list
 
 Support for RDF lists.
 
@@ -46,6 +46,7 @@ Support for RDF lists.
 
 :- use_module(library(apply)).
 :- use_module(library(option)).
+:- use_module(library(predicate_options)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(dcg(dcg_collection)).
@@ -59,11 +60,19 @@ Support for RDF lists.
 
 :- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
+:- predicate_options(rdf_assert_list/3, 3, [
+     datatype(+atom)
+   ]).
+:- predicate_options(rdf_list/3, 3, [
+     datatype(+atom),
+     recursive(+boolean)
+   ]).
+
 :- rdf_meta(rdf_is_list(r)).
 :- rdf_meta(rdf_assert_list(t,r,+)).
 :- rdf_meta(rdf_assert_list(t,r,+,+)).
 :- rdf_meta(rdf_list(r,-)).
-:- rdf_meta(rdf_list(+,r,-)).
+:- rdf_meta(rdf_list(r,-,+)).
 :- rdf_meta(rdf_list_first(r,r)).
 :- rdf_meta(rdf_list_last(r,r)).
 :- rdf_meta(rdf_list_length(r,-)).
@@ -79,7 +88,7 @@ Support for RDF lists.
 %! rdf_is_list(?RdfList:rdf_list) is semidet.
 % Succeeds if the given term is an RDF list.
 %
-% ## Tricky stuff
+% ### Tricky stuff
 %
 % For triple [1], simple entailment deduces [2].
 % We do *not* want to represent `bnode2` as an RDF list,
@@ -154,37 +163,34 @@ add_blank_list_individual(Blank, Graph):-
 % @see Wrapper around rdf_list/3.
 
 rdf_list(RdfList, List):-
-  rdf_list([], RdfList, List).
+  rdf_list(RdfList, List, []).
 
-%! rdf_list(+Options:list(nvpair), +RDFList:iri, -List:list) is det
+%! rdf_list(+RDFList:iri, -List:list, +Options:list(nvpair)) is det
 % Returns the list that starts at the given node.
 %
 % The following options are supported:
 %   * =|datatype(+Datatype:iri)|=
-%   * =|recrsive(+Recursive:boolean)|=
+%   * =|recursive(+RecursivelyApplied:boolean)|=
+%     The default value is `true`.
 %
-% @arg Options A list of name-value pairs.
 % @arg StartNode The URI of a node that starts the RDF list.
 % @arg List A prolog list.
+% @arg Options A list of name-value pairs.
 %
 % @author Wouter Beek
 % @author Sander Latour
-%
-% The following options are supported:
-%   * =|recursive(+RecursivelyApplied:boolean)|=
-%     The default value is `true`.
 
-rdf_list(_, RDFList, []):-
+rdf_list(RDFList, [], _):-
   rdf_global_id(rdf:nil, RDFList), !.
-rdf_list(O1, RDFList, [H1 | T]):-
+rdf_list(RDFList, [H1|T], Options):-
   rdf_has(RDFList, rdf:first, H),
   (
-    option(recursive(true), O1, true),
+    option(recursive(true), Options, true),
     rdf_is_list(H)
   ->
-    rdf_list(O1, H, H1)
+    rdf_list(H, H1, Options)
   ;
-    option(datatype(D), O1)
+    option(datatype(D), Options)
   ->
     rdf_global_id(rdf:value, P),
     rdf_datatype(H, P, H1, D, _)
@@ -192,7 +198,7 @@ rdf_list(O1, RDFList, [H1 | T]):-
     H1 = H
   ),
   rdf_has(RDFList, rdf:rest, RDFTail), !,
-  rdf_list(O1, RDFTail, T).
+  rdf_list(RDFTail, T, Options).
 
 %! rdf_list_first(?List:iri, ?First:iri) is nondet.
 % Pairs of lists and their first element.

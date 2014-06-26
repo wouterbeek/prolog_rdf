@@ -112,7 +112,7 @@ rdfs_assert_label(S, LexicalForm, LangTag, G):-
 % An RDF list, compose the lexical form based on its members.
 rdfs_label(S, LexicalForm, LangTag, G):-
   rdf_is_list(S), !,
-  rdf_list([recursive(false)], S, RdfTerms),
+  rdf_list(S, RdfTerms, [recursive(false)]),
   findall(
     RdfsLabel,
     (
