@@ -35,9 +35,7 @@ This means that we can guarantee that the number of triples
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/turtle)). % Private predicates.
 :- use_module(library(sgml_write)).
-:- use_module(library(uri)).
 
-:- use_module(plRdf(rdf_metadata)).
 :- use_module(plRdf_term(rdf_bnode)).
 
 
@@ -92,7 +90,7 @@ rdf_ntriples_write(Options):-
   ;
     rdf_bnode_prefix(BNodePrefix)
   ),
-  
+
   % Whether triples are read from a specific graph or not.
   (
     option(graph(Graph), Options)
