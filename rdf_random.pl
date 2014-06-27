@@ -111,5 +111,5 @@ rdf_random_term(G, Requirement, T2):-
 rdf_random_triple(S, P, O, Graph):-
   rdf_graph_property(Graph, triples(NumberOfTriples)),
   random_between(1, NumberOfTriples, RndI),
-  rdf_index(RndI, S, P, O, RndI, Graph).
+  rdf_index(RndI, S, P, O, Graph).
 
