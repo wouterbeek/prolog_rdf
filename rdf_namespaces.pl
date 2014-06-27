@@ -5,7 +5,9 @@
   ]
 ).
 
-/** RDF database
+/** <module> RDF database
+
+XML namespace registrations.
 
 @author Wouter Beek
 @version 2014/06
