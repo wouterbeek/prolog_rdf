@@ -21,9 +21,9 @@ Scripts for asserting RDF graphs that can be used for debugging.
 :- use_module(plRdf(rdfs_build)).
 :- use_module(plRdf_owl(owl_build)).
 
-:- xml_register_namespace(ch,  'http://www.wouterbeek.com/ch.owl#' ).
-:- xml_register_namespace(dbpedia,    'http://dbpedia.org/resource/').
-:- xml_register_namespace(nl,  'http://www.wouterbeek.com/nl.owl#' ).
+:- xml_register_namespace(ch, 'http://www.wouterbeek.com/ch.owl#' ).
+:- xml_register_namespace(dbpedia, 'http://dbpedia.org/resource/').
+:- xml_register_namespace(nl, 'http://www.wouterbeek.com/nl.owl#' ).
 
 
 
