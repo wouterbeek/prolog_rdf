@@ -13,6 +13,8 @@
                     % ?Value
                     % ?DatatypeIri:iri
                     % ?RdfGraph:atom
+    rdf_datatype_literal/2, % +Literal:compound
+                            % -Value
     rdf_overwrite_datatype/5, % +Subject:oneof([bnode,iri])
                               % +Predicate:iri
                               % +LexicalForm2
@@ -30,7 +32,7 @@
 Support for RDF typed literals.
 
 @author Wouter Beek
-@version 2013/10, 2014/01-2014/03
+@version 2013/10, 2014/01-2014/03, 2014/06
 */
 
 :- use_module(library(apply)).
@@ -106,6 +108,12 @@ rdf_datatype(S, P, Value, Datatype, G):-
 rdf_datatype(S, P, Value, Datatype, G):-
   rdf_literal(S, P, LexicalForm, Datatype, _, G),
   rdf_literal_map(LexicalForm, Datatype, _, Value).
+
+
+%! rdf_datatype_literal(+Literal:compound, -Value) is det.
+
+rdf_datatype_literal(literal(type(Datatype,Lexical)), Value):-
+  xsd_lexical_map(Datatype, Lexical, Value).
 
 
 %! rdf_overwrite_datatype(
