@@ -37,6 +37,8 @@ dbpedia_localizations:-
   ).
 
 dbpedia_register(LangTag):-
+  atomic_list_concat([LangTag,dbpedia,org], '.', Authority),
+  
   % XML namespace for resources.
   atomic_list_concat([LangTag,dbp], '.', ResourceNamespace),
   uri_components(
