@@ -19,8 +19,8 @@
                            % +Comment:atom
                            % +Graph:atom
     rdfs_assert_comment/4, % +Resource:or([blank,iri,literal])
-                           % ?LanguageTag:atom
                            % +Comment:atom
+                           % ?LanguageTag:atom
                            % +Graph:atom
 
 % DOMAIN & RANGE
@@ -156,23 +156,23 @@ rdfs_remove_class(C, G):-
 %! ) is det.
 
 rdfs_assert_comment(R, Comment, G):-
-  rdfs_assert_comment(R, _LangTag, Comment, G).
+  rdfs_assert_comment(R, Comment, _, G).
 
 %! rdfs_assert_comment(
 %!   +Resource:or([blank,iri,literal]),
-%!   ?LanguageTag:atom,
 %!   +Comment:atom,
+%!   ?LanguageTag:atom,
 %!   +Graph:atom
 %! ) is det.
 
-rdfs_assert_comment(R, LangTag, Comment, G):-
+rdfs_assert_comment(R, Comment, LangTag, G):-
   rdf_is_literal(R), !,
   r2b(G, R, B),
   rdfs_assert_comment(B, Comment, LangTag, G).
-rdfs_assert_comment(R, LangTag, Comment, G):-
+rdfs_assert_comment(R, Comment, LangTag, G):-
   var(LangTag), !,
   rdf_assert_string(R, rdfs:comment, Comment, G).
-rdfs_assert_comment(R, LangTag, Comment, G):-
+rdfs_assert_comment(R, Comment, LangTag, G):-
   rdf_assert_language_tagged_string(R, rdfs:comment, Comment, LangTag, G).
 
 

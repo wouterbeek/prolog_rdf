@@ -257,13 +257,20 @@ dbpedia_language_tag(zh_yue).
 % DBpedia Yago
 :- xml_register_namespace(dbyago, 'http://dbpedia.org/class/yago/').
 
-% Dublin Core elements
+% DCAT
+:- xml_register_namespace(dcat, 'http://www.w3.org/ns/dcat#').
+
+% Dublin Core: elements
 :- xml_register_namespace(dc, 'http://purl.org/dc/elements/1.1/').
 
-% Dublin Core terms
+% Dublin Core: terms
+:- xml_register_namespace(dct, 'http://purl.org/dc/terms/').
 :- xml_register_namespace(dcterms, 'http://purl.org/dc/terms/').
 
-% Dublin core ?
+% Dublin Core: types
+:- xml_register_namespace(dctype, 'http://purl.org/dc/dcmitype/').
+
+% Dublin core: ?
 :- xml_register_namespace(eor, 'http://dublincore.org/2000/03/13/eor#').
 
 % Functional Requirements for Bibliographic Records (FRBR)
@@ -272,13 +279,13 @@ dbpedia_language_tag(zh_yue).
 % Freebase
 :- xml_register_namespace(fb, 'http://rdf.freebase.com/ns/').
 
-% FOAF
+% Friend Of A Friend (FOAF)
 :- xml_register_namespace(foaf, 'http://xmlns.com/foaf/0.1/').
 
 % OpenCyc
 :- xml_register_namespace(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
 
-% OWL
+% Web Ontology Language (OWL)
 :- xml_register_namespace(owl, 'http://www.w3.org/2002/07/owl#').
 :- rdf_set_predicate(owl:sameAs, symmetric(true)).
 :- rdf_set_predicate(owl:sameAs, transitive(true)).
@@ -310,6 +317,9 @@ dbpedia_language_tag(zh_yue).
 :- xml_register_namespace(umbel, 'http://umbel.org/umbel#').
 :- xml_register_namespace('umbel-sc', 'http://umbel.org/umbel/sc/').
 :- xml_register_namespace(umbelrc, 'http://umbel.org/umbel/rc/').
+
+% VCARD
+:- xml_register_namespace(vcard, 'http://www.w3.org/2006/vcard/ns#').
 
 % WordNet
 :- xml_register_namespace(wn, 'http://wordnet.princeton.edu/wn20/').
