@@ -27,7 +27,7 @@ XML namespace registrations.
 :- xml_register_namespace(category, 'http://dbpedia.org/resource/Category:').
 
 % DBpedia datatype
-:- xml_register_namespace('db:datatype/' ,'http://dbpedia.org/datatype').
+:- xml_register_namespace(dt, 'http://dbpedia.org/datatype/').
 
 % DBpedia localizations
 
@@ -273,14 +273,14 @@ dbpedia_language_tag(zh_yue).
 % Dublin core: ?
 :- xml_register_namespace(eor, 'http://dublincore.org/2000/03/13/eor#').
 
-% Functional Requirements for Bibliographic Records (FRBR)
-:- xml_register_namespace(frbr, 'http://purl.org/vocab/frbr/core#').
-
 % Freebase
 :- xml_register_namespace(fb, 'http://rdf.freebase.com/ns/').
 
 % Friend Of A Friend (FOAF)
 :- xml_register_namespace(foaf, 'http://xmlns.com/foaf/0.1/').
+
+% Functional Requirements for Bibliographic Records (FRBR)
+:- xml_register_namespace(frbr, 'http://purl.org/vocab/frbr/core#').
 
 % OpenCyc
 :- xml_register_namespace(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
