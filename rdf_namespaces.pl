@@ -77,11 +77,11 @@ dbpedia_language_tag(ay).
 dbpedia_language_tag(az).
 dbpedia_language_tag(ba).
 dbpedia_language_tag(bar).
-dbpedia_language_tag(bat_smg).
+dbpedia_language_tag('bat-smg').
 dbpedia_language_tag(bcl).
 dbpedia_language_tag(bcl_smg).
 dbpedia_language_tag(be).
-dbpedia_language_tag(be_x_old).
+dbpedia_language_tag('be-x-old').
 dbpedia_language_tag(bg).
 dbpedia_language_tag(bi).
 dbpedia_language_tag(bjn).
@@ -150,6 +150,7 @@ dbpedia_language_tag(it).
 dbpedia_language_tag(ja).
 dbpedia_language_tag(jbo).
 dbpedia_language_tag(jv).
+dbpedia_language_tag(ka).
 dbpedia_language_tag(kaa).
 dbpedia_language_tag(kab).
 dbpedia_language_tag(kbd).
@@ -182,6 +183,7 @@ dbpedia_language_tag(ms).
 dbpedia_language_tag(my).
 dbpedia_language_tag(na).
 dbpedia_language_tag(nah).
+dbpedia_language_tag(nds).
 dbpedia_language_tag(ne).
 dbpedia_language_tag(new).
 dbpedia_language_tag(nl).
@@ -190,6 +192,7 @@ dbpedia_language_tag(no).
 dbpedia_language_tag(nrm).
 dbpedia_language_tag(nv).
 dbpedia_language_tag(oc).
+dbpedia_language_tag(or).
 dbpedia_language_tag(pam).
 dbpedia_language_tag(pcd).
 dbpedia_language_tag(pnb).
@@ -223,6 +226,7 @@ dbpedia_language_tag(te).
 dbpedia_language_tag(tg).
 dbpedia_language_tag(th).
 dbpedia_language_tag(tl).
+dbpedia_language_tag(to).
 dbpedia_language_tag(tpi).
 dbpedia_language_tag(tr).
 dbpedia_language_tag(tt).
@@ -242,8 +246,8 @@ dbpedia_language_tag(yi).
 dbpedia_language_tag(yo).
 dbpedia_language_tag(yoh).
 dbpedia_language_tag(zh).
-dbpedia_language_tag(zh_min_nan).
-dbpedia_language_tag(zh_yue).
+dbpedia_language_tag('zh-min-nan').
+dbpedia_language_tag('zh-yue').
 
 % DBpedia ontology
 :- xml_register_namespace(dbo, 'http://dbpedia.org/ontology/').
