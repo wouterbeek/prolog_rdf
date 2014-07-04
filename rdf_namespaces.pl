@@ -1,7 +1,9 @@
 :- module(
   rdf_namespaces,
   [
-    dbpedia_language_tag/1 % ?LanguageTag:atom
+    dbpedia_language_tag/1, % ?LanguageTag:atom
+    rdf_reduced_location/2 % +FullUrl:url
+                           % -ReducedUrl:url
   ]
 ).
 
@@ -10,26 +12,15 @@
 XML namespace registrations.
 
 @author Wouter Beek
-@version 2014/06
+@version 2014/06-2014/07
 */
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
-:- use_module(xml(xml_namespace)).
+:- dynamic(rdf_reduced_location/1).
 
 
-
-% Creative Commons
-:- xml_register_namespace(cc, 'http://creativecommons.org/ns#').
-
-% DBpedia category
-:- xml_register_namespace(category, 'http://dbpedia.org/resource/Category:').
-
-% DBpedia datatype
-:- xml_register_namespace(dt, 'http://dbpedia.org/datatype/').
-
-% DBpedia localizations
 
 :- initialization(dbpedia_localizations).
 dbpedia_localizations:-
@@ -40,14 +31,14 @@ dbpedia_localizations:-
 
 dbpedia_register(LangTag):-
   atomic_list_concat([LangTag,dbpedia,org], '.', Authority),
-  
+
   % XML namespace for resources.
   atomic_list_concat([LangTag,dbp], '.', ResourceNamespace),
   uri_components(
     ResourcePrefix,
     uri_components(http,Authority,'/resource/',_,_)
   ),
-  xml_register_namespace(ResourceNamespace, ResourcePrefix),
+  rdf_register_prefix(ResourceNamespace, ResourcePrefix),
 
   % XML namespace for properties.
   atomic_list_concat([LangTag,dbpprop], '.', PropertyNamespace),
@@ -55,7 +46,32 @@ dbpedia_register(LangTag):-
     PropertyPrefix,
     uri_components(http,Authority,'/property/',_,_)
   ),
-  xml_register_namespace(PropertyNamespace, PropertyPrefix).
+  rdf_register_prefix(PropertyNamespace, PropertyPrefix).
+
+
+%! rdf_reduced_location(+FullUrl:url, -ReducedUrl:url) is semidet.
+
+rdf_reduced_location(Url1, Url2):-
+  rdf_global_id(Prefix:_, Url1),
+  rdf_reduced_location(Prefix), !,
+  rdf_current_prefix(Prefix, Url2).
+
+
+%! rdf_register_reduced_location(+Prefix:atom) is det.
+
+rdf_register_reduced_location(Prefix):-
+  assert(rdf_reduced_location(Prefix)).
+
+
+
+% Creative Commons
+:- rdf_register_prefix(cc, 'http://creativecommons.org/ns#').
+
+% DBpedia category
+:- rdf_register_prefix(category, 'http://dbpedia.org/resource/Category:').
+
+% DBpedia datatype
+:- rdf_register_prefix(dt, 'http://dbpedia.org/datatype/').
 
 %! dbpedia_language_tag(+LanguageTag:atom) is semidet.
 %! dbpedia_language_tag(-LanguageTag:atom) is multi.
@@ -250,91 +266,100 @@ dbpedia_language_tag('zh-min-nan').
 dbpedia_language_tag('zh-yue').
 
 % DBpedia ontology
-:- xml_register_namespace(dbo, 'http://dbpedia.org/ontology/').
+:- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
 
 % DBpedia property
-:- xml_register_namespace(dbp, 'http://dbpedia.org/property/').
+:- rdf_register_prefix(dbp, 'http://dbpedia.org/property/').
 
 % DBpedia resource
-:- xml_register_namespace(dbpedia, 'http://dbpedia.org/resource/').
+:- rdf_register_prefix(dbpedia, 'http://dbpedia.org/resource/').
 
 % DBpedia Yago
-:- xml_register_namespace(dbyago, 'http://dbpedia.org/class/yago/').
+:- rdf_register_prefix(dbyago, 'http://dbpedia.org/class/yago/').
 
 % DCAT
-:- xml_register_namespace(dcat, 'http://www.w3.org/ns/dcat#').
+:- rdf_register_prefix(dcat, 'http://www.w3.org/ns/dcat#').
 
 % Dublin Core: elements
-:- xml_register_namespace(dc, 'http://purl.org/dc/elements/1.1/').
+:- rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/').
+:- rdf_register_reduced_location(dc).
 
 % Dublin Core: terms
-:- xml_register_namespace(dct, 'http://purl.org/dc/terms/').
-:- xml_register_namespace(dcterms, 'http://purl.org/dc/terms/').
+:- rdf_register_prefix(dct, 'http://purl.org/dc/terms/').
+:- rdf_register_reduced_location(dct).
+:- rdf_register_prefix(dcterms, 'http://purl.org/dc/terms/').
+:- rdf_register_reduced_location(dcterms).
 
 % Dublin Core: types
-:- xml_register_namespace(dctype, 'http://purl.org/dc/dcmitype/').
+:- rdf_register_prefix(dctype, 'http://purl.org/dc/dcmitype/').
+:- rdf_register_reduced_location(dctype).
 
 % Dublin core: ?
-:- xml_register_namespace(eor, 'http://dublincore.org/2000/03/13/eor#').
+:- rdf_register_prefix(eor, 'http://dublincore.org/2000/03/13/eor#').
 
 % Freebase
-:- xml_register_namespace(fb, 'http://rdf.freebase.com/ns/').
+:- rdf_register_prefix(fb, 'http://rdf.freebase.com/ns/').
 
 % Friend Of A Friend (FOAF)
-:- xml_register_namespace(foaf, 'http://xmlns.com/foaf/0.1/').
+:- rdf_register_prefix(foaf, 'http://xmlns.com/foaf/0.1/').
+:- rdf_register_reduced_location(foaf).
 
 % Functional Requirements for Bibliographic Records (FRBR)
-:- xml_register_namespace(frbr, 'http://purl.org/vocab/frbr/core#').
+:- rdf_register_prefix(frbr, 'http://purl.org/vocab/frbr/core#').
 
 % OpenCyc
-:- xml_register_namespace(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
+:- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
 
 % Web Ontology Language (OWL)
-:- xml_register_namespace(owl, 'http://www.w3.org/2002/07/owl#').
+:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
+:- rdf_register_reduced_location(owl).
 :- rdf_set_predicate(owl:sameAs, symmetric(true)).
 :- rdf_set_predicate(owl:sameAs, transitive(true)).
 
 % ?
-:- xml_register_namespace('powder-s', 'http://www.w3.org/2007/05/powder-s#').
+:- rdf_register_prefix('powder-s', 'http://www.w3.org/2007/05/powder-s#').
 
 % PROV
-:- xml_register_namespace(prov, 'http://www.w3.org/ns/prov#').
+:- rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#').
 
 % RDF
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- rdf_register_reduced_location(rdf).
 
 % RDFS
-:- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
+:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
+:- rdf_register_reduced_location(rdfs).
 :- rdf_set_predicate(rdfs:subClassOf, transitive(true)).
 :- rdf_set_predicate(rdfs:subPropertyOf, transitive(true)).
 
 % Schema
-:- xml_register_namespace(schema, 'http://schema.org/').
+:- rdf_register_prefix(schema, 'http://schema.org/').
 
 % SERQL
-:- xml_register_namespace(serql, 'http://www.openrdf.org/schema/serql#').
+:- rdf_register_prefix(serql, 'http://www.openrdf.org/schema/serql#').
 
 % SKOS
-:- xml_register_namespace(skos, 'http://www.w3.org/2004/02/skos/core#').
+:- rdf_register_prefix(skos, 'http://www.w3.org/2004/02/skos/core#').
+:- rdf_register_reduced_location(skos).
 
 % UMBEL
-:- xml_register_namespace(umbel, 'http://umbel.org/umbel#').
-:- xml_register_namespace('umbel-sc', 'http://umbel.org/umbel/sc/').
-:- xml_register_namespace(umbelrc, 'http://umbel.org/umbel/rc/').
+:- rdf_register_prefix(umbel, 'http://umbel.org/umbel#').
+:- rdf_register_prefix('umbel-sc', 'http://umbel.org/umbel/sc/').
+:- rdf_register_prefix(umbelrc, 'http://umbel.org/umbel/rc/').
 
 % VCARD
-:- xml_register_namespace(vcard, 'http://www.w3.org/2006/vcard/ns#').
+:- rdf_register_prefix(vcard, 'http://www.w3.org/2006/vcard/ns#').
 
 % WordNet
-:- xml_register_namespace(wn, 'http://wordnet.princeton.edu/wn20/').
-:- xml_register_namespace('wn20:schema', 'http://www.w3.org/2006/03/wn/wn20/schema').
+:- rdf_register_prefix(wn, 'http://wordnet.princeton.edu/wn20/').
+:- rdf_register_prefix('wn20:schema', 'http://www.w3.org/2006/03/wn/wn20/schema').
 
 % XHTML Vocabulary.
-:- xml_register_namespace(xhv, 'http://www.w3.org/1999/xhtml/vocab#').
+:- rdf_register_prefix(xhv, 'http://www.w3.org/1999/xhtml/vocab#').
 
 % XSD
-:- xml_register_namespace(xsd, 'http://www.w3.org/2001/XMLSchema#').
+:- rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#').
 
 % YAGO resource
-:- xml_register_namespace(yago, 'http://yago-knowledge.org/resource/').
+:- rdf_register_prefix(yago, 'http://yago-knowledge.org/resource/').
 

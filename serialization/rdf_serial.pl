@@ -73,12 +73,14 @@ since most datasets are published in a non-standard way.
 :- use_module(library(semweb/turtle)).
 :- use_module(library(thread)).
 
+:- use_module(http(http_download)).
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
 :- use_module(os(unpack)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_deb)).
+:- use_module(plRdf(rdf_namespaces)).
 :- use_module(plRdf_ser(rdf_detect)).
 :- use_module(plRdf_ser(rdf_ntriples_write)).
 
@@ -92,7 +94,7 @@ since most datasets are published in a non-standard way.
 %!   -Format:atom
 %! ) is det.
 
-rdf_guess_format(O1, Stream, Location, Base, Format):-
+rdf_guess_format(Options1, Stream, Location, Base, Format):-
   location_base(Location, Base),
   (
     (
@@ -103,12 +105,12 @@ rdf_guess_format(O1, Stream, Location, Base, Format):-
       guess_format(Location, DefFormat)
     )
   ->
-    O2 = [format(DefFormat)|O1]
+    Options2 = [format(DefFormat)|Options1]
   ;
-    O2 = O1
+    Options2 = Options1
   ),
   (
-    rdf_guess_format(Stream, Format, O2)
+    rdf_guess_format(Stream, Format, Options2)
   ->
     true
   ;
@@ -117,8 +119,8 @@ rdf_guess_format(O1, Stream, Location, Base, Format):-
   ).
 
 
-rdf_load_any(O1, Input):-
-  rdf_load_any(O1, Input, _).
+rdf_load_any(Options1, Input):-
+  rdf_load_any(Options1, Input, _).
 
 %! rdf_load_any(
 %!   +Option:list(nvpair),
@@ -130,15 +132,19 @@ rdf_load_any(O1, Input):-
 % The following options are supported:
 %   * =|format(+Format:oneof([ntriples,turtle,xml]))|=
 %   * =|graph(+Graph:atom)|=
+%   * =|keep_file(+Keep:boolean)|=
+%     If the given input is a URL, the remote document is first
+%     downloaded, and then kept available, locally.
+%     Default: `false`.
 %   * =|void(+LoadVoid:boolean)|=
 
 % Loads multiple inputs.
-rdf_load_any(O1, Inputs, Pairs):-
+rdf_load_any(Options1, Inputs, Pairs):-
   is_list(Inputs), !,
-  concurrent_maplist(rdf_load_any_1(O1), Inputs, PairsList),
+  concurrent_maplist(rdf_load_any0(Options1), Inputs, PairsList),
   append(PairsList, Pairs),
   (
-    option(graph(Graph), O1),
+    option(graph(Graph), Options1),
     nonvar(Graph)
   ->
     % Copy all triples to the central graph.
@@ -150,40 +156,45 @@ rdf_load_any(O1, Inputs, Pairs):-
       )
     )
   ;
-    option(loaded(Pairs0), O1)
+    option(loaded(Pairs0), Options1)
   ->
     Pairs0 = Pairs
   ;
     true
   ).
 % Load all files from a given directory.
-rdf_load_any(O1, Dir, Pairs):-
+rdf_load_any(Options, Dir, Pairs):-
   exists_directory(Dir), !,
   directory_files(
     [file_types([rdf]),include_directories(false),recursive(true)],
     Dir,
     Files
   ),
-  rdf_load_any(O1, Files, Pairs).
-% A single, non-directory input.
-rdf_load_any(O1, Input, Pairs):-
-  rdf_load_any_1(O1, Input, Pairs),
+  rdf_load_any(Options, Files, Pairs).
+% A single, non-directory input: keep a file around.
+rdf_load_any(Options1, Url1, Pairs):-
+  select_option(keep_file(true), Options1, Options2, false),
+  rdf_reduced_location(Url1, Url2), !,
+  download_to_file(Url2, File, [freshness_lifetime(8640000)]),
+  rdf_load_any(Options2, File, Pairs).
+% A single, non-directory input: do not keep a file around.
+rdf_load_any(Options, Input, Pairs):-
+  rdf_load_any0(Options, Input, Pairs),
   (
-    option(loaded(Pairs0), O1)
+    option(loaded(Pairs0), Options)
   ->
     Pairs0 = Pairs
   ;
     true
   ).
 
-rdf_load_any_1(O1, Input, Pairs):-
+rdf_load_any0(Options1, Input, Pairs):-
   % Instantiate the RDF graph name.
   (
-    select_option(graph(Graph), O1, O2), !
+    select_option(graph(Graph), Options1, Options2), !
   ;
-    O2 = O1
+    Options2 = Options1
   ),
-
   findall(
     Base-Graph,
     (
@@ -191,7 +202,7 @@ rdf_load_any_1(O1, Input, Pairs):-
       call_cleanup(
         (
           location_base(Location, Base),
-          load_stream_(Stream, Location, Base, [graph(Graph)|O2])
+          load_stream_(Stream, Location, Base, [graph(Graph)|Options2])
         ),
         close(Stream)
       ),
@@ -209,7 +220,7 @@ load_stream(Stream, Location, Base, Options):-
     print_message(warning, Exception)
   ).
 
-load_stream_(Stream, Location, Base, O1):-
+load_stream_(Stream, Location, Base, Options1):-
   (
     (
       file_name_extension(_, Ext, Base),
@@ -219,18 +230,18 @@ load_stream_(Stream, Location, Base, O1):-
       guess_format(Location, DefFormat)
     )
   ->
-    O2 = [format(DefFormat)|O1]
+    Options2 = [format(DefFormat)|Options1]
   ;
-    O2 = O1
+    Options2 = Options1
   ),
   (
-    rdf_guess_format(Stream, Format, O2)
+    rdf_guess_format(Stream, Format, Options2)
   ->
     print_message(informational, rdf_load_any(rdf(Base, Format))),
     set_stream(Stream, file_name(Base)),
     rdf_load(
       stream(Stream),
-      [format(Format),base_uri(Base),register_namespaces(false)|O1]
+      [format(Format),base_uri(Base),register_namespaces(false)|Options1]
     )
   ;
     print_message(warning, rdf_load_any(no_rdf(Base))),
@@ -322,19 +333,19 @@ rdf_content_type('application/xhtml+xml', xhtml).
 
 % Derive the file name from the graph.
 % This only works if the graph was loaded form file.
-rdf_save(O1, Graph, File2):-
+rdf_save(Options1, Graph, File2):-
   var(File2), !,
   (
     rdf_graph_property(Graph, source(File1))
   ->
     http_path_correction(File1, File2),
     create_file(File2),
-    rdf_save(O1, Graph, File2)
+    rdf_save(Options1, Graph, File2)
   ;
     instantiation_error(File2)
   ).
 % Make up the format.
-rdf_save(O1, Graph, File):-
+rdf_save(Options1, Graph, File):-
   (
     % We do not need to save the graph if
     % (1) the contents of the graph did not change, and
@@ -350,8 +361,8 @@ rdf_save(O1, Graph, File):-
   ->
     debug(rdf_serial, 'No need to save graph ~w; no updates.', [Graph])
   ;
-    select_option(format(Format), O1, O2, turtle),
-    rdf_save(O2, Format, Graph, File),
+    select_option(format(Format), Options1, Options2, turtle),
+    rdf_save(Options2, Format, Graph, File),
     debug(
       rdf_serial,
       'Graph ~w was saved in ~w serialization to file ~w.',
@@ -360,20 +371,20 @@ rdf_save(O1, Graph, File):-
   ).
 
 % Save to RDF/XML
-rdf_save(O1, rdf_xml, Graph, File):- !,
-  merge_options([graph(Graph)], O1, O2),
-  rdf_save(File, O2).
+rdf_save(Options1, rdf_xml, Graph, File):- !,
+  merge_options([graph(Graph)], Options1, Options2),
+  rdf_save(File, Options2).
 % Save to N-Triples.
-rdf_save(O1, ntriples, Graph, File):- !,
-  merge_options([graph(Graph)], O1, O2),
-  rdf_ntriples_write(File, O2).
+rdf_save(Options1, ntriples, Graph, File):- !,
+  merge_options([graph(Graph)], Options1, Options2),
+  rdf_ntriples_write(File, Options2).
 % Save to Triples (binary storage format).
 rdf_save(_, triples, Graph, File):- !,
   rdf_save_db(File, Graph).
 % Save to Turtle.
-rdf_save(O1, turtle, Graph, File):- !,
-  merge_options([graph(Graph)], O1, O2),
-  rdf_save_canonical_turtle(File, O2).
+rdf_save(Options1, turtle, Graph, File):- !,
+  merge_options([graph(Graph)], Options1, Options2),
+  rdf_save_canonical_turtle(File, Options2).
 
 
 
