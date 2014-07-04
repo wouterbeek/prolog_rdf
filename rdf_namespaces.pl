@@ -94,10 +94,12 @@ dbpedia_language_tag(az).
 dbpedia_language_tag(ba).
 dbpedia_language_tag(bar).
 dbpedia_language_tag('bat-smg').
+dbpedia_language_tag(bat_smg).
 dbpedia_language_tag(bcl).
 dbpedia_language_tag(bcl_smg).
 dbpedia_language_tag(be).
 dbpedia_language_tag('be-x-old').
+dbpedia_language_tag(be_x_old).
 dbpedia_language_tag(bg).
 dbpedia_language_tag(bi).
 dbpedia_language_tag(bjn).
@@ -134,9 +136,12 @@ dbpedia_language_tag(et).
 dbpedia_language_tag(eu).
 dbpedia_language_tag(fa).
 dbpedia_language_tag(fi).
+dbpedia_language_tag(fiu).
+dbpedia_language_tag(fiu_vro).
 dbpedia_language_tag(fj).
 dbpedia_language_tag(fr).
 dbpedia_language_tag(frp).
+dbpedia_language_tag(frr).
 dbpedia_language_tag(fy).
 dbpedia_language_tag(ga).
 dbpedia_language_tag(gan).
@@ -181,6 +186,7 @@ dbpedia_language_tag(ks).
 dbpedia_language_tag(ku).
 dbpedia_language_tag(kv).
 dbpedia_language_tag(la).
+dbpedia_language_tag(lb).
 dbpedia_language_tag(lbe).
 dbpedia_language_tag(lez).
 dbpedia_language_tag(li).
@@ -200,6 +206,7 @@ dbpedia_language_tag(my).
 dbpedia_language_tag(na).
 dbpedia_language_tag(nah).
 dbpedia_language_tag(nds).
+dbpedia_language_tag(nds_nl).
 dbpedia_language_tag(ne).
 dbpedia_language_tag(new).
 dbpedia_language_tag(nl).
@@ -211,6 +218,7 @@ dbpedia_language_tag(oc).
 dbpedia_language_tag(or).
 dbpedia_language_tag(pam).
 dbpedia_language_tag(pcd).
+dbpedia_language_tag(pms).
 dbpedia_language_tag(pnb).
 dbpedia_language_tag(pl).
 dbpedia_language_tag(pt).
@@ -252,18 +260,22 @@ dbpedia_language_tag(ug).
 dbpedia_language_tag(uk).
 dbpedia_language_tag(ur).
 dbpedia_language_tag(uz).
+dbpedia_language_tag(vec).
 dbpedia_language_tag(vi).
 dbpedia_language_tag(vls).
 dbpedia_language_tag(wa).
 dbpedia_language_tag(war).
 dbpedia_language_tag(wo).
+dbpedia_language_tag(wuu).
 dbpedia_language_tag(xal).
 dbpedia_language_tag(yi).
 dbpedia_language_tag(yo).
 dbpedia_language_tag(yoh).
 dbpedia_language_tag(zh).
 dbpedia_language_tag('zh-min-nan').
+dbpedia_language_tag(zh_min_nan).
 dbpedia_language_tag('zh-yue').
+dbpedia_language_tag(zh_yue).
 
 % DBpedia ontology
 :- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
