@@ -39,18 +39,12 @@ Exports the vocabulary for RDFS.
 %
 % @tbd Do not reload.
 
-load_rdf_vocabulary(G):-
+load_rdf_vocabulary(Graph):-
   rdfs_vocabulary_url(Url),
-  (
-    nonvar(G)
-  ->
-    rdf_load_any([graph(G)], Url)
-  ;
-    rdf_load_any([], Url, [_-G])
-  ),
+  rdf_load_any(Url, [graph(Graph)]),
   materialize(
     [entailment_regimes([rdf,rdfs]),multiple_justifications(false)],
-    G
+    Graph
   ).
 
 rdfs_vocabulary_url('http://www.w3.org/1999/02/22-rdf-syntax-ns#').

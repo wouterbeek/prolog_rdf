@@ -145,25 +145,25 @@ Mismatch types:
 alignments_to_oaei_file(As, File):-
   rdf_new_graph(Graph),
   maplist(alignment_to_oaei_graph(Graph), As),
-  rdf_save([format(turtle)], Graph, File).
+  rdf_save_any(File, [format(turtle),graph(Graph)]).
 
-alignment_to_oaei_graph(G, X-Y):-
+alignment_to_oaei_graph(Graph, X-Y):-
   rdf_bnode(BNode),
-  rdf_assert(BNode, align:entity1, X, G),
-  rdf_assert(BNode, align:entity2, Y, G),
-  rdf_assert_string(BNode, align:relation, '=', G),
-  rdf_assert_datatype(BNode, align:measure, 1.0, xsd:float, G).
+  rdf_assert(BNode, align:entity1, X, Graph),
+  rdf_assert(BNode, align:entity2, Y, Graph),
+  rdf_assert_string(BNode, align:relation, '=', Graph),
+  rdf_assert_datatype(BNode, align:measure, 1.0, xsd:float, Graph).
 
 %! oaei_alignment_pair(?Graph:atom, ?From:uri, ?To:uri) is nondet.
 
-oaei_alignment_pair(G, From, To):-
-  rdf(BNode, align:entity1, From, G),
-  rdf(BNode, align:entity2, To, G),
+oaei_alignment_pair(Graph, From, To):-
+  rdf(BNode, align:entity1, From, Graph),
+  rdf(BNode, align:entity2, To, Graph),
   once((
-    rdf_string(BNode, align:relation, '=', G),
-    rdf_datatype(BNode, align:measure, 1.0, xsd:float, G)
+    rdf_string(BNode, align:relation, '=', Graph),
+    rdf_datatype(BNode, align:measure, 1.0, xsd:float, Graph)
   ;
-    debug(oaei, 'Non-standard alignment was read from graph ~w.', G)
+    debug(oaei, 'Non-standard alignment was read from graph ~w.', Graph)
   )).
 
 %! oaei_check_alignment(
@@ -185,31 +185,31 @@ oaei_check_alignment(ReferenceAlignments, RawAlignments):-
   ),
   flush_output(user_output).
 
-oaei_file_to_alignments(F, A_Pairs):-
+oaei_file_to_alignments(File, AlignmentPairs):-
   setup_call_cleanup(
     (
-      file_name(F, _Dir, G1, _Ext),
+      file_name(File, _, Graph1, _Ext),
       % Make sure the graph name is unique.
-      rdf_new_graph(G1, G2),
-      rdf_load_any([], F, [_-G2])
+      rdf_new_graph(Graph1, Graph2),
+      rdf_load_any(File, [graph(Graph2)])
     ),
-    oaei_file_to_alignments_(G2, A_Pairs),
-    rdf_unload_graph_deb(G2)
+    oaei_file_to_alignments_(Graph2, AlignmentPairs),
+    rdf_unload_graph_deb(Graph2)
   ).
-oaei_file_to_alignments_(G, A_Pairs):-
+oaei_file_to_alignments_(Graph, AlignmentPairs):-
   % Retrieve all alignment pairs.
   findall(
     X-Y,
-    oaei_alignment_pair(G, X, Y),
-    A_Pairs
+    oaei_alignment_pair(Graph, X, Y),
+    AlignmentPairs
   ),
 
   % DEB: Number of alignment pairs.
-  length(A_Pairs, L1),
+  length(AlignmentPairs, L1),
   debug(
     oaei,
     'Graph ~w contains ~w alignment pairs.',
-    [G,L1]
+    [Graph,L1]
   ).
 
 tsv_convert_directory(FromDir, ToDir, ap(status(succeed),files(ToFiles))):-
@@ -233,13 +233,13 @@ tsv_convert_directory(FromDir, ToDir, ToMime, ToFiles):-
 % Opens a tab separated values file and extracts the alignments it contains
 % as pairs.
 
-tsv_file_to_alignments(F, A_Pairs):-
+tsv_file_to_alignments(F, AlignmentPairs):-
   % US-ASCII code 32 denotes the horizontal tab.
   csv_read_file(F, Rows, [arity(2),separator(9)]),
   findall(
     X-Y,
     member(row(X,Y), Rows),
-    A_Pairs
+    AlignmentPairs
   ).
 
 tsv_file_to_oaei_file(FromFile, ToFile):-
@@ -250,28 +250,28 @@ tsv_file_to_oaei_file(FromFile, ToFile):-
 
 % TMP %
 
-oaei_graph(G):-
-  enforce_mode('_oaei_graph'(G), [G], [['+']-semidet,['-']-nondet]).
-'_oaei_graph'(G):-
-  rdf_graph(G),
+oaei_graph(Graph):-
+  enforce_mode('_oaei_graph'(Graph), [Graph], [['+']-semidet,['-']-nondet]).
+'_oaei_graph'(Graph):-
+  rdf_graph(Graph),
   once((
     rdfs_individual_of(Alignment, align:'Alignment'),
-    rdf(Alignment, _, _, G)
+    rdf(Alignment, _, _, Graph)
   )).
 
 %! oaei_ontologies(+Graph:atom, -File1:atom, -File2:atom) is det.
 % Returns the files in which the linked ontologies are stored.
 
-oaei_ontologies(G, File1, File2):-
-  oaei_ontology(G, File1),
-  oaei_ontology(G, File2),
+oaei_ontologies(Graph, File1, File2):-
+  oaei_ontology(Graph, File1),
+  oaei_ontology(Graph, File2),
   File1 \== File2, !.
 
 %! oaei_ontology(+Graph:atom, -File:atom) is nondet.
 % Returns an ontology file used in the given alignment graph.
 
-oaei_ontology(G, File):-
-  rdf_string(Ontology, align:location, URI, G),
+oaei_ontology(Graph, File):-
+  rdf_string(Ontology, align:location, URI, Graph),
   rdfs_individual_of(Ontology, align:'Ontology'),
   uri_components(
     URI,

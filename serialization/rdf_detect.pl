@@ -1,9 +1,13 @@
 :- module(
   rdf_detect,
   [
-    rdf_guess_format/3 % +Stream:stream
-                       % -ContentType:atom
-                       % +Options:list(nvpair)
+    rdf_guess_format/3, % +Read:stream
+                        % -ContentType:atom
+                        % +Options:list(nvpair)
+    rdf_guess_format/4 % +Read:blob
+                       % +FileExtension:atom,
+                       % +MediaType:atom,
+                       % -Format:atom
   ]
 ).
 
@@ -13,7 +17,7 @@ Detect the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05
+@version 2014/04-2014/05, 2014/07
 */
 
 :- use_module(library(dcg/basics)).
@@ -22,27 +26,55 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml)).
 
+:- use_module(plRdf_ser(rdf_file_db)).
+
 
 
 %! rdf_guess_format(+Stream, -ContentType, +Options) is semidet.
+% True when Stream is thought to contain RDF data using the
+% indicated content type.
 %
-%  True when Stream is  thought  to   contain  RDF  data  using the
-%  indicated content type.  Options processed:
-%
-%    - look_ahead(+Bytes)
-%    Look ahead the indicated amount
-%    - format(+Format)
-%    Guessed format from media type and/or file name
+% The following options are processed:
+%    * =|look_ahead(+NumberOfBytes:nonneg)|=
+%      Look ahead the indicated amount
+%    * =|format(+Format)|=
+%      The guessed RDF serialization format,
+%      e.g. based on the media type and/or file name.
 
 rdf_guess_format(Stream, ContentType, Options) :-
   option(look_ahead(Bytes), Options, 2000),
   peek_string(Stream, Bytes, String),
-  (   string_codes(String, Codes),
-      phrase(rdf_content_type(ContentType, Options), Codes, _)
-  ->  true
-  ;   open_binary_string_stream(String, StartStream),
-      guess_xml_type(StartStream, ContentType)
+  (
+    string_codes(String, Codes),
+    phrase(rdf_content_type(ContentType, Options), Codes, _)
+  ->
+    true
+  ;
+    open_binary_string_stream(String, StartStream),
+    guess_xml_type(StartStream, ContentType)
   ).
+
+%! rdf_guess_format(
+%!   +Read:blob,
+%!   +FileExtension:atom,
+%!   +ContentType:atom,
+%!   -Format:atom
+%! ) is semidet.
+% Fails if the RDF serialization format cannot be decided on.
+
+% Use the file extensions as the RDF serialization format suggestion.
+rdf_guess_format(Read, FileExtension, _, Format):-
+  nonvar(FileExtension),
+  rdf_db:rdf_file_type(FileExtension, SuggestedFormat),
+  rdf_guess_format(Read, Format, [format(SuggestedFormat)]), !.
+% Use the HTTP content type header as the RDF serialization format suggestion.
+rdf_guess_format(Read, _, ContentType, Format):-
+  nonvar(ContentType),
+  rdf_content_type(ContentType, SuggestedFormat),
+  rdf_guess_format(Read, Format, [format(SuggestedFormat)]), !.
+% Use no RDF serialization format suggestion.
+rdf_guess_format(Read, _, _, Format):-
+  rdf_guess_format(Read, Format, []), !.
 
 rdf_content_type(ContentType, Options) -->
   turtle_like(ContentType, Options), !.
@@ -358,3 +390,4 @@ open_binary_string_stream(String, Read) :-
       format(Write, '~w', [Atom]),
       close(Write)),
   open_memory_file(MF, read, Read, [free_on_close(true)]).
+

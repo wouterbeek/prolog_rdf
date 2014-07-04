@@ -75,10 +75,10 @@ rdf_convert_file(FromMIME, FromFile, ToMIME, ToFile):-
     LoadOptions = [mime(FromMIME)]
   ),
   rdf_setup_call_cleanup(
-    LoadOptions,
     FromFile,
     rdf_graph,
-    [mime(ToMIME)],
-    ToFile
+    ToFile,
+    LoadOptions,
+    [mime(ToMIME)]
   ).
 

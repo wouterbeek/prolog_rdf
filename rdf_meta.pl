@@ -1,14 +1,14 @@
 :- module(
   rdf_meta,
   [
-    rdf_setup_call_cleanup/3, % +LoadOptions:list(nvpair)
-                              % +From:or([atom,list(atom)])
+    rdf_setup_call_cleanup/3, % +From:or([atom,list(atom)])
                               % :Goal
-    rdf_setup_call_cleanup/5 % +LoadOptions:list(nvpair)
-                             % +From:or([atom,list(atom)])
+                              % +LoadOptions:list(nvpair)
+    rdf_setup_call_cleanup/5 % +From:or([atom,list(atom)])
                              % :Goal
-                             % +SaveOptions:list(nvpair)
                              % ?ToFile:atom
+                             % +LoadOptions:list(nvpair)
+                             % +SaveOptions:list(nvpair)
   ]
 ).
 
@@ -28,26 +28,35 @@ Meta-callings on an RDF graph.
 :- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_serial)).
 
-:- meta_predicate(rdf_setup_call_cleanup(+,+,1)).
-:- meta_predicate(rdf_setup_call_cleanup(+,+,1,+,?)).
+:- meta_predicate(rdf_setup_call_cleanup(+,1,+)).
+:- meta_predicate(rdf_setup_call_cleanup(+,1,?,+,+)).
 
+:- predicate_options(rdf_setup_call_cleanup/3, 3, [
+     pass_to(rdf_setup_call_cleanup/5, 5)
+   ]).
+:- predicate_options(rdf_setup_call_cleanup/5, 5, [
+     
+:- predicate_options(ensure_format/3, 3, [
+     format(+atom)
+   ]).
 
 
 %! rdf_setup_call_cleanup(
-%!   +LoadOptions:list(nvpair),
 %!   +FromFile:atom,
-%!   :Goal
+%!   :Goal,
+%!   +LoadOptions:list(nvpair)
 %! ) is det.
 % Do not save graph to file.
 %
 % @arg Goal Take one argument, which is the atomic name of an RDF graph.
 
 % Load RDF files, process goal, no output.
-rdf_setup_call_cleanup(O1_Load, From, Goal):-
+rdf_setup_call_cleanup(From, Goal, LoadOptions1):-
   setup_call_cleanup(
     (
       rdf_new_graph(temp, Graph),
-      rdf_load_any([graph(Graph)|O1_Load], From)
+      merge_options([graph(Graph)], LoadOptions1, LoadOptions2),
+      rdf_load_any(From, LoadOptions2)
     ),
     call(Goal, Graph),
     rdf_unload_graph_deb(Graph)
@@ -55,52 +64,37 @@ rdf_setup_call_cleanup(O1_Load, From, Goal):-
 
 
 %! rdf_setup_call_cleanup(
-%!   +LoadOptions:list(nvpair),
 %!   +FromFile:atom,
 %!   :Goal,
-%!   +SaveOptions:list(nvpair),
-%!   ?ToFile:atom
+%!   ?ToFile:atom,
+%!   +LoadOptions:list(nvpair),
+%!   +SaveOptions:list(nvpair)
 %! ) is det.
 % Save graph to file.
 %
 % @arg Goal Take one argument, which is the atomic name of an RDF graph.
 
-rdf_setup_call_cleanup(O1_Load, From, Goal, O1_Save, ToFile):-
-  % If the output file is not given,
-  % then it is based on the input file.
-  (
-    nonvar(ToFile), is_absolute_file_name(ToFile), !
-  ;
-    ensure_format(O1_Save, ToFile, ToFormat),
-    once(rdf_serialization(ToExt, _, ToFormat, _, _)),
-    (
-      exists_directory(From)
-    ->
-      file_name(ToFile, From, output, ttl)
-    ;
-      From = [FromFile|_]
-    ->
-      file_alternative(FromFile, _, _, ToExt, ToFile)
-    ;
-      FromFile = From,
-      file_alternative(FromFile, _, _, ToExt, ToFile)
-    )
-  ),
-
+rdf_setup_call_cleanup(FromFile, Goal, ToFile, LoadOptions1, SaveOptions1):-
+  output_file_based_on_input_file(FromFile, ToFile, SaveOptions1),
   setup_call_cleanup(
     (
-      rdf_new_graph(temp, Graph),
-      rdf_load_any([graph(Graph)|O1_Load], From)
+      rdf_new_graph(temp, TempGraph),
+      merge_options([graph(TempGraph)], LoadOptions1, LoadOptions2),
+      rdf_load_any(From, LoadOptions2)
     ),
-    call(Goal, Graph),
+    call(Goal, TempGraph),
     (
-      rdf_save(O1_Save, Graph, ToFile),
-      rdf_unload_graph_deb(Graph)
+      merge_option(graph(TempGraph), SaveOptions1, SaveOptions2),
+      rdf_save(ToFile, SaveOptions2),
+      rdf_unload_graph(TempGraph)
     )
   ).
 
 
-%! ensure_format(+Options:list(nvpair), +File:atom, -Format:atom) is det.
+
+% Helpers
+
+%! ensure_format(+File:atom, -Format:atom, +Options:list(nvpair)) is det.
 % Try the best we can to extract some serialization format for exporting RDF.
 %
 % The format is established in the following way (in order of precedence):
@@ -108,11 +102,33 @@ rdf_setup_call_cleanup(O1_Load, From, Goal, O1_Save, ToFile):-
 %    2. The serialization format associated with the extension of `File`.
 %    3. N-Triples.
 
-ensure_format(Options, _, Format):-
+ensure_format(_, Format, Options):-
   option(format(Format), Options), !.
-ensure_format(_, File, Format):-
+ensure_format(File, Format, _):-
   nonvar(File),
   file_name_extension(_, Extension, File),
   rdf_serialization(Extension, _, Format, _, _).
-ensure_format(_, _, ntriples).
+ensure_format(_, ntriples, _).
+
+
+%! output_file_based_on_input_file(
+%!   +FromFile:atom,
+%!   +ToFile:atom,
+%!   +SaveOptions:list(nvpair)
+%! ) is det.
+
+% If the output file is not given, then it is based on the input file.
+output_file_based_on_input_file(_, ToFile, _):-
+  nonvar(ToFile),
+  is_absolute_file_name(ToFile), !.
+output_file_based_on_input_file(FromFile, ToFile, SaveOptions):-
+  ensure_format(ToFile, ToFormat, SaveOptions),
+  once(rdf_serialization(ToFileExtension, _, ToFormat, _, _)),
+  (
+    exists_directory(FromFile)
+  ->
+    file_name(ToFile, FromFile, output, ttl)
+  ;
+    file_alternative(FromFile, _, _, ToExt, ToFile)
+  ).
 

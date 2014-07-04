@@ -6,9 +6,9 @@
                                   % -ToFile:atom
     rdf_directory_files/2, % +Directory:atom
                            % -Files:list(atom)
-    rdf_merge_directory/4 % +Options:list(nvpair)
-                          % +FromDirectory:atom
+    rdf_merge_directory/4 % +FromDirectory:atom
                           % +ToFile:atom
+                          % +LoadOptions:list(nvpair)
                           % +SaveOptions:list(nvpair)
   ]
 ).
@@ -32,6 +32,13 @@ Support for RDF files and file types.
 
 :- use_module(plRdf(rdf_meta)).
 :- use_module(plRdf_ser(rdf_file_db)).
+
+:- predicate_options(rdf_merge_directory/4, 3, [
+     pass_to(rdf_setup_call_cleanup/5, 4)
+   ]).
+:- predicate_options(rdf_merge_directory/4, 4, [
+     pass_to(rdf_setup_call_cleanup/5, 5)
+   ]).
 
 
 
@@ -85,14 +92,20 @@ rdf_file_correct_extension(File, File).
 
 
 %! rdf_merge_directory(
-%!   +Options:list(nvpair),
 %!   +FromDirectory:atom,
 %!   +ToFile:atom,
+%!   +LoadOptions:list(nvpair),
 %!   +SaveOptions:list(nvpair)
 %! ) is det.
 
-rdf_merge_directory(O1, FromDir, ToFile, SaveOptions):-
+rdf_merge_directory(FromDir, ToFile, LoadOptions, SaveOptions):-
   rdf_directory_files(FromDir, FromFiles),
   FromFiles \== [],
-  rdf_setup_call_cleanup(O1, FromFiles, rdf_graph, SaveOptions, ToFile).
+  rdf_setup_call_cleanup(
+    FromFiles,
+    rdf_graph,
+    ToFile,
+    LoadOptions,
+    SaveOptions
+  ).
 

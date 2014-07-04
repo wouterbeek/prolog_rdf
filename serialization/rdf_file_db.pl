@@ -1,6 +1,8 @@
 :- module(
   rdf_file_db,
   [
+    rdf_content_type/2, % ?ContentType:atom
+                        % ?Format:atom
     rdf_extension/1, % ?Extension:atom
     rdf_mime/1, % ?MIME:atom
     rdf_mime_format/2, % ?MIME:atom
@@ -13,35 +15,39 @@
   ]
 ).
 
-/** <module> RDF file DB
+/** <module> RDF file database
 
 Some very basic facts about RDF serialization formats,
 used by the RDF file modules.
 
+### RDF file types
+
+RDF file types are defined in Semweb as multifile
+and with namespace `rdf_db`.
+
 @author Wouter Beek
-@version 2014/04-2014/05
+@version 2014/04-2014/05, 2014/07
 */
 
 :- use_module(library(lists)).
 
-% RDF file types.
-user:prolog_file_type(nq,      nquads  ).
-user:prolog_file_type(nq,      rdf     ).
-user:prolog_file_type(nt,      ntriples).
-user:prolog_file_type(nt,      rdf     ).
-user:prolog_file_type(owl,     rdf_xml ).
-user:prolog_file_type(owl,     rdf     ).
-user:prolog_file_type(rdf,     rdf_xml ).
-user:prolog_file_type(rdf,     rdf     ).
-user:prolog_file_type(rdfs,    rdf_xml ).
-user:prolog_file_type(rdfs,    rdf     ).
-user:prolog_file_type(triples, triples ).
-user:prolog_file_type(triples, rdf     ).
-user:prolog_file_type(ttl,     turtle  ).
-user:prolog_file_type(ttl,     rdf     ).
-user:prolog_file_type(xml,     rdf_xml ).
-user:prolog_file_type(xml,     rdf     ).
 
+
+%! rdf_content_type(?ContentType:atom, ?Format:atom) is nondet.
+
+rdf_content_type('text/rdf',              xml).
+rdf_content_type('text/xml',              xml).
+rdf_content_type('text/rdf+xml',          xml).
+rdf_content_type('application/rdf+xml',   xml).
+rdf_content_type('application/x-turtle',  turtle).
+rdf_content_type('application/turtle',    turtle).
+rdf_content_type('application/trig',      trig).
+rdf_content_type('application/n-triples', ntriples).
+rdf_content_type('application/n-quads',   nquads).
+rdf_content_type('text/turtle',           turtle).
+rdf_content_type('text/rdf+n3',           turtle).  % Bit dubious
+rdf_content_type('text/html',             html).
+rdf_content_type('application/xhtml+xml', xhtml).
 
 
 %! rdf_extension(+Extension:atom) is semidet.

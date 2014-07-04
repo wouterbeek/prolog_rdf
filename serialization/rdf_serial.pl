@@ -1,21 +1,10 @@
 :- module(
   rdf_serial,
   [
-    location_base/2, % +Location:dict
-                     % -BaseUri:uri
-    rdf_guess_format/5, % +Options:list(nvpair)
-                        % +Stream:stream
-                        % +Location:dict
-                        % -BaseUri:atom
-                        % -Format:atom
-    rdf_load_any/2, % +Options:list(nvpair)
-                    % +Input
-    rdf_load_any/3, % +Options:list(nvpair)
-                    % +Input
-                    % -Pairs:list(pair(atom))
-    rdf_save/3 % +Options:list(nvpair)
-               % +Graph:atom
-               % ?File:atom
+    rdf_load_any/2, % +Input
+                    % +Options:list(nvpair)
+    rdf_save_any/2 % ?File:atom
+                   % +Options:list(nvpair)
   ]
 ).
 
@@ -25,20 +14,16 @@ Helper predicates for loading/saving RDF graphs.
 
 Also easily converts between different RDF serializations.
 
-At some point (2014/01/27) I decided that file types indicated by
-file extensions are not going to work for LOD,
-since most datasets are published in a non-standard way.
-
 @author Wouter Beek
-@tbd Writing in the N-triples format is not supported.
 @version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/06,
-         2013/08-2013/09, 2013/11, 2014/01-2014/04
+         2013/08-2013/09, 2013/11, 2014/01-2014/04, 2014/07
 */
 
 :- use_module(library(error)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(predicate_options)). % Declarations
 % rdf_file_type(xml,   xml    ).
 % rdf_file_type(rdf,   xml    ).
 % rdf_file_type(rdfs,  xml    ).
@@ -79,177 +64,218 @@ since most datasets are published in a non-standard way.
 :- use_module(os(unpack)).
 
 :- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf(rdf_namespaces)).
 :- use_module(plRdf_ser(rdf_detect)).
 :- use_module(plRdf_ser(rdf_ntriples_write)).
 
+:- predicate_options(rdf_load_any/2, 2, [
+     keep_file(+boolean),
+     number_of_threads(+positive_integer),
+     pass_to(rdf_load_any0/2, 2)
+   ]).
+:- predicate_options(rdf_load_any0/2, 2, [
+     graph(+atom),
+     pairs(-list),
+     pass_to(rdf_load_stream/4, 4)
+   ]).
+:- predicate_options(rdf_load_stream/4, 4, [
+     pass_to(rdf_load/2, 2)
+   ]).
 
 
-%! rdf_guess_format(
-%!   +Options:list(nvpair),
-%!   +Stream:stream,
-%!   +Location:dict,
-%!   -Base:atom,
-%!   -Format:atom
-%! ) is det.
 
-rdf_guess_format(Options1, Stream, Location, Base, Format):-
-  location_base(Location, Base),
-  (
-    (
-      file_name_extension(_, Ext, Base),
-      Ext \== '',
-      guess_format(Location.put(ext, Ext), DefFormat)
-    ;
-      guess_format(Location, DefFormat)
-    )
-  ->
-    Options2 = [format(DefFormat)|Options1]
-  ;
-    Options2 = Options1
-  ),
-  (
-    rdf_guess_format(Stream, Format, Options2)
-  ->
-    true
-  ;
-    print_message(warning, rdf_load_any(no_rdf(Base))),
-    fail
-  ).
-
-
-rdf_load_any(Options1, Input):-
-  rdf_load_any(Options1, Input, _).
-
-%! rdf_load_any(
-%!   +Option:list(nvpair),
-%!   +Input:or([atom,list(atom)]),
-%!   -Pairs:list(pair(atom))
-%! ) is det.
-% Load RDF from a file, a list of files, or a directory.
+%! rdf_load_any(+Input:or([atom,list(atom)]), +Option:list(nvpair)) is det.
+% Load RDF from a stream, a URL, a file, a list of files, or a file directory.
 %
 % The following options are supported:
 %   * =|format(+Format:oneof([ntriples,turtle,xml]))|=
+%     The RDF serialization that has to be used for parsing.
+%     Default: @tbd
 %   * =|graph(+Graph:atom)|=
+%     The name of the RDF graph in which the parsed data is loaded.
+%     Default: `user`.
 %   * =|keep_file(+Keep:boolean)|=
 %     If the given input is a URL, the remote document is first
 %     downloaded, and then kept available, locally.
 %     Default: `false`.
+%   * =|number_of_threads(+NumberOfThreads:positive_integer)|=
+%     The number of threads that are used for loading concurrent jobs.
+%     Default: the value of Prolog flag `cpu_count`.
 %   * =|void(+LoadVoid:boolean)|=
+%     Whether the loaded data should be recursively closed under
+%     VoID descriptions that appear in that data.
+%     Default: `false`.
 
-% Loads multiple inputs.
-rdf_load_any(Options1, Inputs, Pairs):-
+% Load multiple inputs.
+rdf_load_any(Inputs, Options):-
   is_list(Inputs), !,
-  concurrent_maplist(rdf_load_any0(Options1), Inputs, PairsList),
-  append(PairsList, Pairs),
-  (
-    option(graph(Graph), Options1),
-    nonvar(Graph)
-  ->
-    % Copy all triples to the central graph.
-    forall(
-      member(_-TmpGraph, Pairs),
-      call_cleanup(
-        rdf_copy(TmpGraph, _, _, _, Graph),
-        rdf_unload_graph_deb(TmpGraph)
-      )
-    )
-  ;
-    option(loaded(Pairs0), Options1)
-  ->
-    Pairs0 = Pairs
-  ;
-    true
-  ).
+  findall(
+    rdf_load_any0(Input, Options),
+    member(Input, Inputs),
+    Goals
+  ),
+  current_prolog_flag(cpu_count, DefaultNumberOfThreads),
+  option(number_of_threads(NumberOfThreads), Options, DefaultNumberOfThreads),
+  concurrent(NumberOfThreads, Goals, []).
 % Load all files from a given directory.
-rdf_load_any(Options, Dir, Pairs):-
+rdf_load_any(Dir, Options):-
   exists_directory(Dir), !,
   directory_files(
     [file_types([rdf]),include_directories(false),recursive(true)],
     Dir,
     Files
   ),
-  rdf_load_any(Options, Files, Pairs).
+  rdf_load_any(Files, Options).
 % A single, non-directory input: keep a file around.
-rdf_load_any(Options1, Url1, Pairs):-
+rdf_load_any(Url1, Options1):-
   select_option(keep_file(true), Options1, Options2, false),
   rdf_reduced_location(Url1, Url2), !,
   download_to_file(Url2, File, [freshness_lifetime(8640000)]),
-  rdf_load_any(Options2, File, Pairs).
+  rdf_load_any(File, Options2).
 % A single, non-directory input: do not keep a file around.
-rdf_load_any(Options, Input, Pairs):-
-  rdf_load_any0(Options, Input, Pairs),
-  (
-    option(loaded(Pairs0), Options)
-  ->
-    Pairs0 = Pairs
-  ;
-    true
-  ).
+rdf_load_any(Input, Options):-
+  rdf_load_any0(Input, Options).
 
-rdf_load_any0(Options1, Input, Pairs):-
+rdf_load_any0(Input, Options1):-
   % Instantiate the RDF graph name.
   (
     select_option(graph(Graph), Options1, Options2), !
   ;
     Options2 = Options1
   ),
+
+  % Load all individual RDF graphs.
   findall(
     Base-Graph,
     (
-      unpack(Input, Stream, Location),
+      unpack(Input, Read, Location),
       call_cleanup(
         (
           location_base(Location, Base),
-          load_stream_(Stream, Location, Base, [graph(Graph)|Options2])
+          rdf_load_stream(Read, Location, Base, [graph(Graph)|Options2])
         ),
-        close(Stream)
-      ),
-      rdf_load_graph_deb(Graph),
-      true
+        close(Read)
+      )
     ),
     Pairs
+  ),
+
+  % Return the pairs option.
+  (
+    option(pairs(Pairs0), Options2)
+  ->
+    Pairs0 = Pairs
+  ;
+    true
   ).
 
-% Adds a catch/3 around laod_stream_/4.
-load_stream(Stream, Location, Base, Options):-
+rdf_load_stream(Read, Location, Base, Options1):-
+  % Guess the RDF serialization format.
+  file_name_extension(_, FileExtension, Base),
+  ContentType = Location.get(content_type),
+  rdf_guess_format(Read, FileExtension, ContentType, Format),
+
+  % DEB
+  print_message(informational, rdf_load_any(rdf(Base,Format))),
+
+  % Collect options: base URI, RDF serialization format, XML namespaces.
+  set_stream(Read, file_name(Base)),
+  merge_options(
+    [base_uri(Base),format(Format),register_namespaces(false)],
+    Options1,
+    Options2
+  ),
+
+  % The actual loading of the RDF data.
   catch(
-    load_stream_(Stream, Location, Base, Options),
+    rdf_load(stream(Read), Options2),
     Exception,
     print_message(warning, Exception)
   ).
 
-load_stream_(Stream, Location, Base, Options1):-
+
+%! rdf_save_any(?File:atom, +Options:list(nvpair)) is det.
+% If the file name is not given, then a file name is construed.
+% There are two variants here:
+%   1. The graph was loaded from a file. Use the same file
+%      (if we have write access) to this file.
+%   2. Make up the file name based on the given graph name.
+%      If the format is specified as well, then this is used to determine
+%      the file extension.
+%
+% The following options are supported:
+%   * =|format(+Format:oneof([ntriples,rdf_xml,turtle])|=
+%     The serialization format in which the graph is exported.
+%   * =|mime(+MIME:oneof(['application/rdf+xml','application/x-turtle','text/plain','text/rdf+n3']))|=
+%
+% @arg Options A list of name-value pairs.
+% @arg File An atomic absolute file name.
+%
+% @throws =|mime_error(+File:atom, +Type:oneof(['RDF']), MIME:atom)|=
+
+% Derive the file name from the graph.
+% This only works if the graph was loaded form file.
+rdf_save_any(File2, Options):-
+  var(File2), !,
   (
-    (
-      file_name_extension(_, Ext, Base),
-      Ext \== '',
-      guess_format(Location.put(ext, Ext), DefFormat)
-    ;
-      guess_format(Location, DefFormat)
-    )
+    option(graph(Graph), Options),
+    rdf_graph_property(Graph, source(File1))
   ->
-    Options2 = [format(DefFormat)|Options1]
+    http_path_correction(File1, File2),
+    create_file(File2),
+    rdf_save_any(File2, Options)
   ;
-    Options2 = Options1
-  ),
+    instantiation_error(File2)
+  ).
+% Make up the format.
+rdf_save_any(File, Options1):-
   (
-    rdf_guess_format(Stream, Format, Options2)
+    % We do not need to save the graph if
+    % (1) the contents of the graph did not change, and
+    % (2) the serialization format of the graph did not change.
+    %
+    % Make sure the contents of the graph were not changed.
+    option(graph(Graph), Options1),
+    rdf_graph_property(Graph, modified(false)),
+    %
+    % Make sure the file is the same.
+    rdf_graph_property(Graph, source(FromFile1)),
+    http_path_correction(FromFile1, FromFile2),
+    FromFile2 == File
   ->
-    print_message(informational, rdf_load_any(rdf(Base, Format))),
-    set_stream(Stream, file_name(Base)),
-    rdf_load(
-      stream(Stream),
-      [format(Format),base_uri(Base),register_namespaces(false)|Options1]
-    )
+    debug(rdf_serial, 'No need to save graph ~w; no updates.', [Graph])
   ;
-    print_message(warning, rdf_load_any(no_rdf(Base))),
-    fail
+    select_option(graph(Graph), Options1, Options2, _NoGraph),
+    select_option(format(Format), Options2, Options3, turtle),
+    rdf_save_any(Options3, Format, Graph, File),
+    debug(
+      rdf_serial,
+      'Graph ~w was saved in ~w serialization to file ~w.',
+      [Graph,Format,File]
+    )
   ).
 
+% Save to RDF/XML
+rdf_save_any(Options1, rdf_xml, Graph, File):- !,
+  merge_options([graph(Graph)], Options1, Options2),
+  rdf_save(File, Options2).
+% Save to N-Triples.
+rdf_save_any(Options1, ntriples, Graph, File):- !,
+  merge_options([graph(Graph)], Options1, Options2),
+  rdf_ntriples_write(File, Options2).
+% Save to Triples (binary storage format).
+rdf_save_any(_, triples, Graph, File):- !,
+  rdf_save_db(File, Graph).
+% Save to Turtle.
+rdf_save_any(Options1, turtle, Graph, File):- !,
+  merge_options([graph(Graph)], Options1, Options2),
+  rdf_save_canonical_turtle(File, Options2).
 
-%! location_base(+Location:atom, -BaseUri:atom) is det.
+
+
+% Helpers
+
+%! location_base(+Location:dict, -Base:uri) is det.
 %  The base URI describes the location from where the data is loaded.
 
 location_base(Location, Base):-
@@ -257,7 +283,7 @@ location_base(Location, Base):-
   (
     location_suffix(Location.data, Suffix)
   ->
-    atomic_list_concat([Base1, Suffix], /, Base)
+    atomic_list_concat([Base1,Suffix], '/', Base)
   ;
     Base = Base1
   ).
@@ -291,109 +317,14 @@ location_suffix([Archive|T], Suffix):-
     Suffix = Archive.name
   ).
 
-guess_format(Location, Format):-
-  rdf_content_type(Location.get(content_type), Format), !.
-guess_format(Location, Format):-
-  rdf_db:rdf_file_type(Location.get(ext), Format).
-
-rdf_content_type('text/rdf',      xml).
-rdf_content_type('text/xml',      xml).
-rdf_content_type('text/rdf+xml',    xml).
-rdf_content_type('application/rdf+xml',    xml).
-rdf_content_type('application/x-turtle',  turtle).
-rdf_content_type('application/turtle',    turtle).
-rdf_content_type('application/trig',    trig).
-rdf_content_type('application/n-triples', ntriples).
-rdf_content_type('application/n-quads',   nquads).
-rdf_content_type('text/turtle',      turtle).
-rdf_content_type('text/rdf+n3',      turtle).  % Bit dubious
-rdf_content_type('text/html',      html).
-rdf_content_type('application/xhtml+xml', xhtml).
 
 
-
-%! rdf_save(+Options:list, +Graph:atom, ?File:atom) is det.
-% If the file name is not given, then a file name is construed.
-% There are two variants here:
-%   1. The graph was loaded from a file. Use the same file
-%      (if we have write access) to this file.
-%   2. Make up the file name based on the given graph name.
-%      If the format is specified as well, then this is used to determine
-%      the file extension.
-%
-% The following options are supported:
-%   * =|format(+Format:oneof([ntriples,rdf_xml,turtle])|=
-%     The serialization format in which the graph is exported.
-%   * =|mime(+MIME:oneof(['application/rdf+xml','application/x-turtle','text/plain','text/rdf+n3']))|=
-%
-% @arg Options A list of name-value pairs.
-% @arg File An atomic absolute file name.
-%
-% @throws =|mime_error(+File:atom, +Type:oneof(['RDF']), MIME:atom)|=
-
-% Derive the file name from the graph.
-% This only works if the graph was loaded form file.
-rdf_save(Options1, Graph, File2):-
-  var(File2), !,
-  (
-    rdf_graph_property(Graph, source(File1))
-  ->
-    http_path_correction(File1, File2),
-    create_file(File2),
-    rdf_save(Options1, Graph, File2)
-  ;
-    instantiation_error(File2)
-  ).
-% Make up the format.
-rdf_save(Options1, Graph, File):-
-  (
-    % We do not need to save the graph if
-    % (1) the contents of the graph did not change, and
-    % (2) the serialization format of the graph did not change.
-    %
-    % Make sure the contents of the graph were not changed.
-    rdf_graph_property(Graph, modified(false)),
-    %
-    % Make sure the file is the same.
-    rdf_graph_property(Graph, source(FromFile1)),
-    http_path_correction(FromFile1, FromFile2),
-    FromFile2 == File
-  ->
-    debug(rdf_serial, 'No need to save graph ~w; no updates.', [Graph])
-  ;
-    select_option(format(Format), Options1, Options2, turtle),
-    rdf_save(Options2, Format, Graph, File),
-    debug(
-      rdf_serial,
-      'Graph ~w was saved in ~w serialization to file ~w.',
-      [Graph,Format,File]
-    )
-  ).
-
-% Save to RDF/XML
-rdf_save(Options1, rdf_xml, Graph, File):- !,
-  merge_options([graph(Graph)], Options1, Options2),
-  rdf_save(File, Options2).
-% Save to N-Triples.
-rdf_save(Options1, ntriples, Graph, File):- !,
-  merge_options([graph(Graph)], Options1, Options2),
-  rdf_ntriples_write(File, Options2).
-% Save to Triples (binary storage format).
-rdf_save(_, triples, Graph, File):- !,
-  rdf_save_db(File, Graph).
-% Save to Turtle.
-rdf_save(Options1, turtle, Graph, File):- !,
-  merge_options([graph(Graph)], Options1, Options2),
-  rdf_save_canonical_turtle(File, Options2).
-
-
-
-% MESSAGES
+% Messages
 
 :- multifile(prolog:message//1).
 
-prolog:message(rdf_load_any(rdf(Base, Format))) -->
-  [ 'RDF in ~q: ~q'-[Base, Format] ].
+prolog:message(rdf_load_any(rdf(Base,Format))) -->
+  ['RDF in ~q: ~q'-[Base,Format]].
 prolog:message(rdf_load_any(no_rdf(Base))) -->
-  [ 'No RDF in ~q'-[Base] ].
+  ['No RDF in ~q'-[Base]].
 
