@@ -58,6 +58,7 @@ Also easily converts between different RDF serializations.
 :- use_module(library(semweb/turtle)).
 :- use_module(library(thread)).
 
+:- use_module(generics(db_ext)).
 :- use_module(http(http_download)).
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
@@ -81,6 +82,16 @@ Also easily converts between different RDF serializations.
 :- predicate_options(rdf_load_stream/4, 4, [
      pass_to(rdf_load/2, 2)
    ]).
+
+:- initialization(assert_rdf_file_types).
+assert_rdf_file_types:-
+  forall(
+    rdf_db:rdf_file_type(FileExtension, FileType),
+    (
+      db_add_novel(user:prolog_file_type(FileExtension, FileType)),
+      db_add_novel(user:prolog_file_type(FileExtension, rdf))
+    )
+  ).
 
 
 
@@ -171,8 +182,8 @@ rdf_load_any0(Input, Options1):-
 
 rdf_load_stream(Read, Location, Base, Options1):-
   % Guess the RDF serialization format.
-  file_name_extension(_, FileExtension, Base),
-  ContentType = Location.get(content_type),
+  ignore(file_name_extension(_, FileExtension, Base)),
+  ignore(ContentType = Location.get(content_type)),
   rdf_guess_format(Read, FileExtension, ContentType, Format),
 
   % DEB
@@ -237,7 +248,6 @@ rdf_save_any(File, Options1):-
     % Make sure the contents of the graph were not changed.
     option(graph(Graph), Options1),
     rdf_graph_property(Graph, modified(false)),
-    %
     % Make sure the file is the same.
     rdf_graph_property(Graph, source(FromFile1)),
     http_path_correction(FromFile1, FromFile2),
@@ -263,6 +273,10 @@ rdf_save_any(Options1, rdf_xml, Graph, File):- !,
 rdf_save_any(Options1, ntriples, Graph, File):- !,
   merge_options([graph(Graph)], Options1, Options2),
   rdf_ntriples_write(File, Options2).
+% Save to Trig.
+rdf_save_any(Options1, trig, Graph, File):- !,
+  merge_options([graph(Graph)], Options1, Options2),
+  rdf_save_trig(File, Options2).
 % Save to Triples (binary storage format).
 rdf_save_any(_, triples, Graph, File):- !,
   rdf_save_db(File, Graph).
