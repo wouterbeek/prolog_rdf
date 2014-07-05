@@ -9,17 +9,19 @@
     rdf_random_term/3, % +Graph:atom
                        % :Requirement
                        % -Term:or([bnode,literal,iri])
-    rdf_random_triple/4 % -RandomSubject:or([bnode,iri])
-                        % -RandomPredicate:iri
-                        % -RandomObject:or([bnode,iri,literal])
-                        % -Graph:atom
+    rdf_random_triple/2, % -RandomTriple:compound
+                         % +Graph:atom
+    rdf_random_triple/4 % ?RandomSubject:or([bnode,iri])
+                        % ?RandomPredicate:iri
+                        % ?RandomObject:or([bnode,iri,literal])
+                        % ?Graph:atom
   ]
 ).
 
 /** <module> RDF random
 
 @author Wouter Beek
-@version 2013/09, 2014/02, 2014/06
+@version 2013/09, 2014/02, 2014/06-2014/07
 */
 
 :- use_module(library(lists)).
@@ -30,9 +32,7 @@
 :- use_module(generics(flag_ext)).
 :- use_module(rdf_graph(rdf_graph_theory)).
 
-:- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf(rdf_parse)).
-:- use_module(plRdf_term(rdf_term)).
 
 :- meta_predicate(rdf_random_term(+,//,-)).
 
@@ -40,7 +40,7 @@
 :- rdf_meta(rdf_random_neighbor(+,r,r)).
 :- rdf_meta(rdf_random_term(+,r)).
 :- rdf_meta(rdf_random_term(+,:,r)).
-:- rdf_meta(rdf_random_triple(r,r,o,-)).
+:- rdf_meta(rdf_random_triple(r,r,o,?)).
 
 
 
@@ -95,10 +95,16 @@ rdf_random_term(G, Requirement, T2):-
   ).
 
 
+%! rdf_random_triple(-Triple:compound, +Graph:graph) is det.
+% Wrapper around rdf_random_triple/4.
+
+rdf_random_triple(rdf(S,P,O), G):-
+  rdf_random_triple(S, P, O, G).
+
 %! rdf_random_triple(
-%!   -Subject:oneof([bnode,iri]),
-%!   -Predicate:iri,
-%!   -Object:or([bnode,literal,iri]),
+%!   ?Subject:oneof([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:or([bnode,literal,iri]),
 %!   ?Graph:graph
 %! ) is det.
 % Returns a random triple from the given graph.
