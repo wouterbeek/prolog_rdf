@@ -198,6 +198,7 @@ dbpedia_language_tag(lmo).
 dbpedia_language_tag(ln).
 dbpedia_language_tag(lt).
 dbpedia_language_tag(lv).
+dbpedia_language_tag(map_bms).
 dbpedia_language_tag(mg).
 dbpedia_language_tag(mhr).
 dbpedia_language_tag(mk).
