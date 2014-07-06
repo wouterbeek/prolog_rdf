@@ -73,6 +73,9 @@ rdf_register_reduced_location(Prefix):-
 % DBpedia datatype
 :- rdf_register_prefix(dt, 'http://dbpedia.org/datatype/').
 
+% DBpedia describe
+:- rdf_register_prefix('db:describe', 'http://dbpedia.org/describe').
+
 %! dbpedia_language_tag(+LanguageTag:atom) is semidet.
 %! dbpedia_language_tag(-LanguageTag:atom) is multi.
 
