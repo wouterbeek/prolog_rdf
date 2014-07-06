@@ -142,6 +142,7 @@ dbpedia_language_tag(fi).
 dbpedia_language_tag(fiu).
 dbpedia_language_tag(fiu_vro).
 dbpedia_language_tag(fj).
+dbpedia_language_tag(fo).
 dbpedia_language_tag(fr).
 dbpedia_language_tag(frp).
 dbpedia_language_tag(frr).
@@ -265,6 +266,7 @@ dbpedia_language_tag(ur).
 dbpedia_language_tag(uz).
 dbpedia_language_tag(vec).
 dbpedia_language_tag(vi).
+dbpedia_language_tag(vo).
 dbpedia_language_tag(vls).
 dbpedia_language_tag(wa).
 dbpedia_language_tag(war).
@@ -295,6 +297,9 @@ dbpedia_language_tag(zh_yue).
 % DCAT
 :- rdf_register_prefix(dcat, 'http://www.w3.org/ns/dcat#').
 
+% DOC
+:- rdf_register_prefix(doc, 'http://www.w3.org/2000/10/swap/pim/doc#').
+
 % Dublin Core: elements
 :- rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/').
 :- rdf_register_reduced_location(dc).
@@ -324,6 +329,12 @@ dbpedia_language_tag(zh_yue).
 
 % Geo
 :- rdf_register_prefix(geo, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
+
+% Geodata
+:- rdf_register_prefix(geodata, 'http://sws.geonames.org/').
+
+% Geo RSS
+:- rdf_register_prefix(georss, 'http://www.georss.org/georss/').
 
 % OpenCyc
 :- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
@@ -370,6 +381,9 @@ dbpedia_language_tag(zh_yue).
 
 % VS
 :- rdf_register_prefix(vs, 'http://www.w3.org/2003/06/sw-vocab-status/ns#').
+
+% Wikidata
+:- rdf_register_prefix(wd, 'http://www.wikidata.org/entity/').
 
 % WordNet
 :- rdf_register_prefix(wn, 'http://wordnet.princeton.edu/wn20/').
