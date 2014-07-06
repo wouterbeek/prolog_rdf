@@ -322,6 +322,9 @@ dbpedia_language_tag(zh_yue).
 % Functional Requirements for Bibliographic Records (FRBR)
 :- rdf_register_prefix(frbr, 'http://purl.org/vocab/frbr/core#').
 
+% Geo
+:- rdf_register_prefix(geo, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
+
 % OpenCyc
 :- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
 
@@ -364,6 +367,9 @@ dbpedia_language_tag(zh_yue).
 
 % VCARD
 :- rdf_register_prefix(vcard, 'http://www.w3.org/2006/vcard/ns#').
+
+% VS
+:- rdf_register_prefix(vs, 'http://www.w3.org/2003/06/sw-vocab-status/ns#').
 
 % WordNet
 :- rdf_register_prefix(wn, 'http://wordnet.princeton.edu/wn20/').
