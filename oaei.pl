@@ -170,12 +170,8 @@ alignment(From, To, Graph):-
 alignment(From, To, Relation, Measure, Graph):-
   rdf(BNode, align:entity1, From, Graph),
   rdf(BNode, align:entity2, To, Graph),
-  once((
-    rdf_string(BNode, align:relation, Relation, Graph),
-    rdf_datatype(BNode, align:measure, Measure, xsd:float, Graph)
-  ;
-    print_message(warning, nonstandard_alignment(Graph,From,To))
-  )).
+  rdf_string(BNode, align:relation, Relation, Graph),
+  rdf_datatype(BNode, align:measure, Measure, xsd:float, Graph).
 
 
 %! alignments_to_oaei_file(+Alignments:list(pair), +File:atom) is det.
@@ -348,21 +344,4 @@ oaei_ontology(Graph, File):-
   uri_components(Uri, uri_components(_,_,Path,_,_)),
   file_base_name(Path, Base),
   absolute_file_name(ontology2(Base), File, [access(read)]).
-
-
-
-% Messages
-
-:- dynamic(prolog:message//1).
-:- multifile(prolog:message//1).
-   prolog:message(nonstandard_alignment(Graph,From,To) -->
-     [
-       'Non-standard alignment from ',
-       \rdf_term_name(From),
-       ' to ',
-       \rdf_term_name(To),
-       ' was read from graph ',
-       \rdf_term(Graph),
-       '.'
-     ].
 
