@@ -1,7 +1,7 @@
 :- module(
   rdf_mat,
   [
-    materialize/2 % +Graph:atom
+    rdf_materialize/2 % +Graph:atom
                   % +Options:list(nvpair)
   ]
 ).
@@ -14,6 +14,7 @@ Takes axioms, rules, and the RDF index and performs materializations.
 @version 2013/09-2013/10, 2013/12-2014/01, 2014/06-2014/07
 */
 
+:- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(predicate_options)). % Declarations.
@@ -68,37 +69,48 @@ Takes axioms, rules, and the RDF index and performs materializations.
 :- discontiguous(rdf:regime/1).
 :- multifile(rdf:regime/1).
 
-:- predicate_options(materialize/2, 2, [
+:- predicate_options(rdf_materialize/2, 2, [
      entailment_regimes(+list(atom)),
-     pass_to(materialize/3, 3)
+     pass_to(rdf_materialize/3, 3)
    ]).
-:- predicate_options(materialize/3, 3, [
+:- predicate_options(rdf_materialize/3, 3, [
      entailment_regimes(+list(atom)),
      multiple_justifications(+boolean)
    ]).
 
 
 
-%! materialize(?Graph:atom, +Options:list(nvpair)) is det.
+%! rdf_materialize(?Graph:atom, +Options:list(nvpair)) is det.
 % Performs all depth-one deductions for either the given RDF graph
 % or no RDF graph.
 %
-% If the graph parameter is given, then only triples from that graph
-% are considered for materialization.
-% The same graph is used for storing the results.
+% If a graph is given, then only triples from that graph are considered.
+% Results are added to the same graph.
+%
+% ### Options
 %
 % The following options are supported:
 %   * =|entailment_regimes(+list(atom))|=
 %     Default: `[rdf,rdfs]`
 %   * =|multiple_justifications(+boolean)|=
 %     Whether a single proposition can have more than one justification.
+%     Default: `false`.
+%
+% ### Regime specification
+%
+% Regimes are specified as an ordered set of atomic names
+% denoting the entailment regimes that are used for materialization.
+%
+% We cannot always assume that a 'lower' regime is applicable,
+% when a 'higher' regime is requested.
+% For instance with `[rdf,rdfs]` we do **not** intend to use `se`.
 
 % No materialization whatsoever.
-materialize(_, Options):-
+rdf_materialize(_, Options):-
   option(entailment_regimes(Regimes), Options),
   memberchk(none, Regimes), !.
 % Some form of materialization.
-materialize(Graph, Options):-
+rdf_materialize(Graph, Options):-
   % The default graph is called `user`.
   % This is also the default graph that rdf/3 writes to.
   default(user, Graph),
@@ -111,68 +123,49 @@ materialize(Graph, Options):-
   % DEB
   if_debug(rdf_mat, retractall(recent_triple(_,_))),
 
-  materialize(Tms, Graph, Options).
+  rdf_materialize(Tms, Graph, Options).
 
-%! materialize(+TMS:atom, +Graph:atom, +Options:list(nvpair)) is det.
+%! rdf_materialize(+TMS:atom, +Graph:atom, +Options:list(nvpair)) is nondet.
 % The inner loop of materialization.
 % This performs all depth-1 reasoning steps (i.e., breadth-first).
-%
-% ### Regime specification
-%
-% We cannot always assume that a 'lower' regime is applicable,
-% when a 'higher' regime is requested.
-% For instance with `[rdf,rdfs]` we do **not** intend to use `se`.
-%
-% ### Options
-%
-% The following options are supported:
-%   * `entailment_regimes(?EntailmentRegimes:list(oneof([se,rdf,rdfs])))`
-%   * `multiple_justifications(?MultipleJustifications:boolean)`
-%     Keep adding new justifications for old nodes.
-%
-% ### Arguments
-%
-% @arg Regimes An ordered set of atomic names denoting
-%      the entailment regimes that are used for materialization.
-% @arg TMS The atomic name of a Truth Maintenance System.
-% @arg Graph The atomic name of a graph.
 
-materialize(Tms, Graph, Options):-
+rdf_materialize(Tms, Graph, Options):-
   % A deduction of depth one.
   option(entailment_regimes(Regimes), Options, [rdf,rdfs]),
+
+  % NONDET
   member(Regime, Regimes),
-  rdf:rule(Regime, Rule, Premises, rdf(S,P,O), Graph),
-  
+  % NONDET
+  rdf:rule(Regime, Rule, Premises, rdf(S0,P0,O0), Graph),
+  % @tbd Can prefix expansion be fixed?
+  maplist(rdf_global_id, [S0,P0,O0], [S,P,O]),
+
   % Only accept new justifications.
   % A proposition may have multiple justifications.
   (
     option(multiple_justifications(true), Options, false)
   ->
+    % @tbd Checking for existing justifications does not work yet.
     \+ tms_justification(Tms, Premises, Rule, rdf(S,P,O))
   ;
     \+ rdf(S, P, O, Graph)
   ),
-  
+
   % Add to TMS.
   doyle_add_argument(Tms, Premises, Rule, rdf(S,P,O), Justification),
 
   % DEB
-  if_debug(
-    rdf_mat,
-    (
-      assert(recent_triple(Graph, rdf(S,P,O))),
-      dcg_with_output_to(atom(Msg), materialize_message(Tms, Justification)),
-      debug(rdf_mat, '~a', [Msg])
-    )
-  ),
-  
+  % @tbd debug/1 does not work.
+  % Put this under if_debug/2.
+  assert(recent_triple(Graph, rdf(S,P,O))),
+  dcg_with_output_to(atom(Msg), materialize_message(Tms, Justification)),
+  format(user_output, '~a\n', [Msg]),
+gtrace,
   % Store the result.
-  rdf_assert(S, P, O, Graph), !,
-  
-  % Look for more results.
-  materialize(Tms, Graph, Options).
+  rdf_assert(S, P, O, Graph),
+  fail.
 % Done!
-materialize(_, _, Options):-
+rdf_materialize(_, _, Options):-
   % DEB
   option(entailment_regimes(Regimes), Options, [rdf,rdfs]),
   dcg_with_output_to(atom(RegimesAtom), list(pl_term, Regimes)),
@@ -210,6 +203,9 @@ materialize_message(Tms, Justification) -->
   {flag(deductions, Id, Id + 1)},
   integer(Id),
   `: `,
-  tms_print_justification([indent(0),lang(en)], Tms, Justification),
-  nl.
+  tms_print_justification(
+    Tms,
+    Justification,
+    [indent(0),language_preferences([en])]
+  ).
 

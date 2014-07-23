@@ -42,7 +42,7 @@ Exports the vocabulary for RDFS.
 load_rdf_vocabulary(Graph):-
   rdfs_vocabulary_url(Url),
   rdf_load_any(Url, [graph(Graph)]),
-  materialize(
+  rdf_materialize(
     [entailment_regimes([rdf,rdfs]),multiple_justifications(false)],
     Graph
   ).

@@ -25,6 +25,8 @@ Specification of entailment rules for RDF.
 
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(math(math_ext)).
+
 :- use_module(plRdf_ent(rdf_bnode_map)).
 
 :- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
@@ -72,10 +74,10 @@ rdf:explanation(
 
 rdf:rule(se, se1, [rdf(S,P,O)], rdf(S,P,B), G):-
   rdf(S, P, O, G),
-  
+
   %%%%% THIS RESTRICTS THE STANDARD.
   %%%%\+ rdf_is_bnode(O),
-  
+
   % Use an existing mapping, if it exists.
   % Add a new mapping, otherwise.
   term_to_bnode(G, O, B).
@@ -91,10 +93,10 @@ rdf:explanation(
 
 rdf:rule(se, se2, [rdf(S,P,O)], rdf(B,P,O), G):-
   rdf(S, P, O, G),
-  
+
   %%%%% THIS RESTRICTS THE STANDARD.
   %%%%\+ rdf_is_bnode(S),
-  
+
   % Use an existing mapping, if it exists.
   % Add a new mapping, otherwise.
   term_to_bnode(G, S, B).
@@ -145,27 +147,33 @@ rdf:explanation(
   'XML literals are instances of rdf:XMLLiteral.'
 ).
 
-rdf:rule(rdf, rdf2, [rdf(S,P,TypedLit)], rdf(B,rdf:type,rdf:'XMLLiteral'), G):-
+rdf:rule(
+  rdf,
+  rdf2,
+  [rdf(S,P,TypedLit)],
+  rdf(B,rdf:type,rdf:'XMLLiteral'),
+  G
+):-
   rdf(S, P, TypedLit, G),
-  
+
   % @tbd This should be a well-typed XML literal...
   rdf_is_literal(TypedLit),
-  
+
   term_to_bnode(G, TypedLit, B).
 
 
 % RDF axiomatic triples.
-rdf:axiom(rdf, rdf:type,      rdf:type, rdf:'Property').
-rdf:axiom(rdf, rdf:subject,   rdf:type, rdf:'Property').
-rdf:axiom(rdf, rdf:predicate, rdf:type, rdf:'Property').
-rdf:axiom(rdf, rdf:object,    rdf:type, rdf:'Property').
-rdf:axiom(rdf, rdf:first,     rdf:type, rdf:'Property').
-rdf:axiom(rdf, rdf:rest,      rdf:type, rdf:'Property').
-rdf:axiom(rdf, rdf:value,     rdf:type, rdf:'Property').
+rdf:axiom(rdf, rdf(rdf:type,     rdf:type,rdf:'Property')).
+rdf:axiom(rdf, rdf(rdf:subject,  rdf:type,rdf:'Property')).
+rdf:axiom(rdf, rdf(rdf:predicate,rdf:type,rdf:'Property')).
+rdf:axiom(rdf, rdf(rdf:object,   rdf:type,rdf:'Property')).
+rdf:axiom(rdf, rdf(rdf:first,    rdf:type,rdf:'Property')).
+rdf:axiom(rdf, rdf(rdf:rest,     rdf:type,rdf:'Property')).
+rdf:axiom(rdf, rdf(rdf:value,    rdf:type,rdf:'Property')).
 % There is an infinite number of integer enumerator axioms.
-rdf:axiom(rdf, IRI,           rdf:type, rdf:'Property'):-
-  between(1, _, I),
+rdf:axiom(rdf, rdf(P,            rdf:type,rdf:'Property')):-
+  lbetween(1, _, I),
   format(atom(Name), '_~w', [I]),
-  rdf_global_id(rdf:Name, IRI).
-rdf:axiom(rdf, rdf:nil,       rdf:type, rdf:'List'    ).
+  rdf_global_id(rdf:Name, P).
+rdf:axiom(rdf, rdf(rdf:nil,      rdf:type,rdf:'List'    )).
 

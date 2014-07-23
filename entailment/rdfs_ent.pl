@@ -25,6 +25,8 @@ Specification of entailment rules for RDFS.
 
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(math(math_ext)).
+
 :- use_module(plRdf_ent(rdf_bnode_map)).
 :- use_module(plRdf_term(rdf_plain_literal)).
 :- use_module(plRdf_term(rdf_term)).
@@ -376,15 +378,15 @@ rdf:axiom(rdfs, rdf(rdfs:'Datatype',  rdfs:subClassOf,rdfs:'Class'   )).
 % RDFS axiomatic triples: container membership properies.
 % There is an infinite number of RDFS axioms for integer enumeration.
 rdf:axiom(rdfs, rdf(P,rdf:type,rdfs:'ContainerMembershipProperty')):-
-  between(1, _, Integer),
+  lbetween(1, _, Integer),
   format(atom(Local), '_~w', [Integer]),
   rdf_global_id(rdf:Local, P).
 rdf:axiom(rdfs, rdf(P,rdfs:domain,rdfs:'Resource')):-
-  between(1, _, Integer),
+  lbetween(1, _, Integer),
   format(atom(Local), '_~w', [Integer]),
   rdf_global_id(rdf:Local, P).
 rdf:axiom(rdfs, rdf(P,rdfs:range,rdfs:'Resource')):-
-  between(1, _, Integer),
+  lbetween(1, _, Integer),
   format(atom(Local), '_~w', [Integer]),
   rdf_global_id(rdf:Local, P).
 
