@@ -104,7 +104,7 @@ rdf_is_list(RDF_List1):-
   \+ rdf_is_literal(RDF_List1),
   rdf_global_id(rdf:'List', C),
   % WATCH OUT! THIS IS VERY TRICKY!
-  (b2r(_, RDF_List1, RDF_List2), ! ; RDF_List2 = RDF_List1),
+  (bnode_to_term(_, RDF_List1, RDF_List2), ! ; RDF_List2 = RDF_List1),
   rdfs_individual(m(t,f,f), RDF_List2, C, _).
 
 

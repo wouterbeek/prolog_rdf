@@ -1,135 +1,171 @@
 :- module(
   rdf_ent,
   [
-    axiom/4, % ?Regime:atom
-             % ?Subject:or([bnode,iri])
-             % ?Predicate:iri
-             % ?Object:or([bnode,literal,iri])
-    explanation/3, % ?Regime:atom
-                   % ?Rule:atom
-                   % ?Explanation:atom
-    rule/7 % ?Regime:atom
-           % ?Rule:atom
-           % ?Premises:list(compound)
-           % ?Subject:or([bnode,iri])
-           % ?Predicate:iri
-           % ?Object:or([bnode,iri,literal])
-           % ?Graph:atom
+    rdf:axiom/2, % ?Regime:atom
+                 % ?Axiom:compound
+    rdf:explanation/3, % ?Regime:atom
+                       % ?Rule:atom
+                       % ?Explanation:atom
+    rdf:rule/5 % ?Regime:atom
+               % ?Rule:atom
+               % ?Premises:list(compound)
+               % ?Conclusion:compound
+               % ?Graph:atom
   ]
 ).
 
-/** <module> RDF materialization
+/** <module> RDF entailment
 
-Axioms and rules for RDF materialization, as defined by Hayes2004.
+Specification of entailment rules for RDF.
 
 @author Wouter Beek
-@see Hayes2004
-@tbd Add the check for well-typed XML literals to rule `rdf2`.
-@version 2013/08-2013/09
+@see rdf-mt 1.1 (2014)
+@version 2013/08-2013/09, 2014/07
 */
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(xml(xml_namespace)).
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-
 :- use_module(plRdf_ent(rdf_bnode_map)).
 
+:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
+%! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 
-%! axiom(
-%!   ?Regime:atom,
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri])
-%! ) is nondet.
+:- discontiguous(rdf:axiom/2).
+:- multifile(rdf:axiom/2).
+:- rdf_meta(rdf:axiom(?,t)).
 
-:- discontiguous(axiom/4).
-:- rdf_meta(axiom(?,r,r,r)).
+%! rdf:explanation(?Regime:atom, ?Rule:atom, ?Explanation:atom) is nondet.
 
-%! explanation(?Regime:atom, ?Rule:atom, ?Explanation:atom) is nondet.
+:- discontiguous(rdf:explanation/3).
+:- multifile(rdf:explanation/3).
 
-:- discontiguous(explanation/3).
-:- rdf_meta(explanation(?,?,?)).
-
-%! rule(
+%! rdf:rule(
 %!   ?Regime:atom,
 %!   ?Rule:atom,
 %!   ?Premises:list(compound),
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri]),
+%!   ?Conclusion:compound,
 %!   ?Graph:atom
 %! ) is nondet.
 
-:- discontiguous(rule/7).
-:- rdf_meta(rule(?,?,?,r,r,r,?)).
+:- discontiguous(rdf:rule/5).
+:- multifile(rdf:rule/5).
+:- rdf_meta(rdf:rule(?,?,t,t,?)).
 
-:- discontiguous(user:regime/1).
-:- multifile(user:regime/1).
+%! rdf:regime(?Regime:atom) is nondet.
+
+:- discontiguous(rdf:regime/1).
+:- multifile(rdf:regime/1).
 
 
 
-user:regime(se).
+rdf:regime(se).
+
 
 % [se1] Existential quantification w.r.t. the object term.
-rule(se, se1, [rdf(S,P,O)], S, P, B, G):-
+
+rdf:explanation(
+  se,
+  se1,
+  'Existential quantification w.r.t. the object term.'
+).
+
+rdf:rule(se, se1, [rdf(S,P,O)], rdf(S,P,B), G):-
   rdf(S, P, O, G),
-  % THIS RESTRICTS THE STANDARD.
-  \+ rdf_is_bnode(O),
-  r2b(G, O, B).
+  
+  %%%%% THIS RESTRICTS THE STANDARD.
+  %%%%\+ rdf_is_bnode(O),
+  
+  % Use an existing mapping, if it exists.
+  % Add a new mapping, otherwise.
+  term_to_bnode(G, O, B).
+
 
 % [se2] Existential quantification w.r.t. the subject term.
-rule(se, se2, [rdf(S,P,O)], B, P, O, G):-
-  rdf(S, P, O, G),
-  % THIS RESTRICTS THE STANDARD.
-  \+ rdf_is_bnode(S),
-  r2b(G, S, B).
 
-/*
+rdf:explanation(
+  se,
+  se2,
+  'Existential quantification w.r.t. the subject term.'
+).
+
+rdf:rule(se, se2, [rdf(S,P,O)], rdf(B,P,O), G):-
+  rdf(S, P, O, G),
+  
+  %%%%% THIS RESTRICTS THE STANDARD.
+  %%%%\+ rdf_is_bnode(S),
+  
+  % Use an existing mapping, if it exists.
+  % Add a new mapping, otherwise.
+  term_to_bnode(G, S, B).
+
+
 % [lg] Literal generalization is a special case of [se1],
 %      where the object term is a literal.
 %      Literal generalization is used whenever something has to be
 %      predicated of a literal (since literals cannot occur
 %      as subject terms).
-rule(rdf, lg, [rdf(S,P,Lit)], S, P, B, G):-
+
+rdf:explanation(
+  rdf,
+  lg,
+  'Literal generalization is a special case of [se1],\c
+   where the object term is a literal.\c
+   Literal generalization is used whenever something has to be predicated of\c
+   a literal (since literals cannot occur as subject terms).'
+).
+
+rdf:rule(rdf, lg, [rdf(S,P,Lit)], rdf(S,P,B), G):-
   rdf(S, P, Lit, G),
   rdf_is_literal(Lit),
-  r2b(G, O, B).
-*/
+  term_to_bnode(G, Lit, B).
 
 
-user:regime(rdf).
+
+rdf:regime(rdf).
+
 
 % [rdf1] Predicate terms are instances of =|rdf:'Property'|=.
-explanation(
+
+rdf:explanation(
   rdf,
   rdf1,
   'Terms that occur in the predicate position are instances of rdf:Property.'
 ).
-rule(rdf, rdf1, [rdf(S,P,O)], P, rdf:type, rdf:'Property', G):-
+
+rdf:rule(rdf, rdf1, [rdf(S,P,O)], rdf(P,rdf:type,rdf:'Property'), G):-
   rdf(S, P, O, G).
 
+
 % [rdf2] XML literals are instances of =|rdf:'XMLLiteral'|=.
-explanation(rdf, rdf2, 'All XML literals are instances of rdf:XMLLiteral.').
-rule(rdf, rdf2, [rdf(S,P,TypedLit)], B, rdf:type, rdf:'XMLLiteral', G):-
+
+rdf:explanation(
+  rdf,
+  rdf2,
+  'XML literals are instances of rdf:XMLLiteral.'
+).
+
+rdf:rule(rdf, rdf2, [rdf(S,P,TypedLit)], rdf(B,rdf:type,rdf:'XMLLiteral'), G):-
   rdf(S, P, TypedLit, G),
+  
   % @tbd This should be a well-typed XML literal...
   rdf_is_literal(TypedLit),
-  r2b(G, TypedLit, B).
+  
+  term_to_bnode(G, TypedLit, B).
+
 
 % RDF axiomatic triples.
-axiom(rdf, rdf:type,      rdf:type, rdf:'Property').
-axiom(rdf, rdf:subject,   rdf:type, rdf:'Property').
-axiom(rdf, rdf:predicate, rdf:type, rdf:'Property').
-axiom(rdf, rdf:object,    rdf:type, rdf:'Property').
-axiom(rdf, rdf:first,     rdf:type, rdf:'Property').
-axiom(rdf, rdf:rest,      rdf:type, rdf:'Property').
-axiom(rdf, rdf:value,     rdf:type, rdf:'Property').
-% There is an infinite number of integer enumerator axioms...
-axiom(rdf, IRI, rdf:type, rdf:'Property'):-
-  between(1, 3, I),
+rdf:axiom(rdf, rdf:type,      rdf:type, rdf:'Property').
+rdf:axiom(rdf, rdf:subject,   rdf:type, rdf:'Property').
+rdf:axiom(rdf, rdf:predicate, rdf:type, rdf:'Property').
+rdf:axiom(rdf, rdf:object,    rdf:type, rdf:'Property').
+rdf:axiom(rdf, rdf:first,     rdf:type, rdf:'Property').
+rdf:axiom(rdf, rdf:rest,      rdf:type, rdf:'Property').
+rdf:axiom(rdf, rdf:value,     rdf:type, rdf:'Property').
+% There is an infinite number of integer enumerator axioms.
+rdf:axiom(rdf, IRI,           rdf:type, rdf:'Property'):-
+  between(1, _, I),
   format(atom(Name), '_~w', [I]),
   rdf_global_id(rdf:Name, IRI).
-axiom(rdf, rdf:nil,       rdf:type, rdf:'List'    ).
+rdf:axiom(rdf, rdf:nil,       rdf:type, rdf:'List'    ).
 

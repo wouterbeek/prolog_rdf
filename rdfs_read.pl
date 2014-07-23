@@ -385,10 +385,10 @@ rdfs_range_axiom(m(t,_,_), P, C):-
 rdf_same(X, X):- !.
 rdf_same(X, Y):-
   rdf_is_bnode(X),
-  b2r(_, X, Y).
+  bnode_to_term(_, X, Y).
 rdf_same(X, Y):-
   rdf_is_bnode(Y),
-  b2r(_, Y, X).
+  bnode_to_term(_, Y, X).
 
 rdfs_subclass(M, C1, C2, G):-
   rdfs_subclass(r(t,t), M, C1, C2, G).

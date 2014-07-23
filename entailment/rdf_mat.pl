@@ -1,12 +1,8 @@
 :- module(
   rdf_mat,
   [
-    materialize/2, % +Options:list(nvpair)
-                   % +Graph:atom
-    regime/1, % ?Regime:oneof([none,rdf,rdfs,se])
-    start_materializer/3 % +Options:list(nvpair)
-                         % +Interval:positive_integer
-                         % +Graph:atom
+    materialize/2 % +Graph:atom
+                  % +Options:list(nvpair)
   ]
 ).
 
@@ -15,10 +11,12 @@
 Takes axioms, rules, and the RDF index and performs materializations.
 
 @author Wouter Beek
-@version 2013/09-2013/10, 2013/12-2014/01, 2014/06
+@version 2013/09-2013/10, 2013/12-2014/01, 2014/06-2014/07
 */
 
 :- use_module(library(debug)).
+:- use_module(library(option)).
+:- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(dcg(dcg_cardinal)).
@@ -32,45 +30,56 @@ Takes axioms, rules, and the RDF index and performs materializations.
 :- use_module(tms(tms)).
 :- use_module(tms(tms_print)).
 
-:- use_module(
-  plRdf_ent(rdf_ent),
-  [
-    axiom/4 as rdf_axiom,
-    explanation/3 as rdf_explanation,
-    rule/7 as rdf_rule
-  ]
-).
-:- use_module(
-  plRdf_ent(rdfs_ent),
-  [
-    axiom/4 as rdfs_axiom,
-    explanation/3 as rdfs_explanation,
-    rule/7 as rdfs_rule
-  ]
-).
+:- use_module(plRdf_ent(rdf_ent)). % Axioms, explanations, rules.
+:- use_module(plRdf_ent(rdfs_ent)). % Axioms, explanations, rules.
 
-:- dynamic(recent_triple/4).
+%! recent_triple(?Graph:atom, ?Triple:compound) is semidet.
 
+:- dynamic(recent_triple/2).
 
+%! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 
-%! axiom(
+:- discontiguous(rdf:axiom/2).
+:- multifile(rdf:axiom/2).
+:- rdf_meta(rdf:axiom(?,t)).
+
+%! rdf:explanation(?Regime:atom, ?Rule:atom, ?Explanation:atom) is nondet.
+
+:- discontiguous(rdf:explanation/3).
+:- multifile(rdf:explanation/3).
+
+%! rdf:rule(
 %!   ?Regime:atom,
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri])
+%!   ?Rule:atom,
+%!   ?Premises:list(compound),
+%!   ?Conclusion:compound,
+%!   ?Graph:atom
 %! ) is nondet.
 
-axiom(Regime, S, P, O):-
-  rdf_axiom(Regime, S, P, O).
-axiom(Regime, S, P, O):-
-  rdfs_axiom(Regime, S, P, O).
+:- discontiguous(rdf:rule/5).
+:- multifile(rdf:rule/5).
+:- rdf_meta(rdf:rule(?,?,t,t,?)).
+   % All axioms can be deduced as if they are the outcome of a rule.
+   rdf:rule(Regime, axiom, [], Axiom, _):-
+     rdf:axiom(Regime, Axiom).
 
-explanation(Regime, Rule, Explanation):-
-  rdf_explanation(Regime, Rule, Explanation).
-explanation(Regime, Rule, Explanation):-
-  rdfs_explanation(Regime, Rule, Explanation).
+%! rdf:regime(?Regime:atom) is nondet.
 
-%! materialize(+Options:list(nvpair), ?Graph:atom) is det.
+:- discontiguous(rdf:regime/1).
+:- multifile(rdf:regime/1).
+
+:- predicate_options(materialize/2, 2, [
+     entailment_regimes(+list(atom)),
+     pass_to(materialize/3, 3)
+   ]).
+:- predicate_options(materialize/3, 3, [
+     entailment_regimes(+list(atom)),
+     multiple_justifications(+boolean)
+   ]).
+
+
+
+%! materialize(?Graph:atom, +Options:list(nvpair)) is det.
 % Performs all depth-one deductions for either the given RDF graph
 % or no RDF graph.
 %
@@ -79,155 +88,128 @@ explanation(Regime, Rule, Explanation):-
 % The same graph is used for storing the results.
 %
 % The following options are supported:
-%   * =|entailment_regimes(Regimes:list(oneof([none,rdf,rdfs])))|=
+%   * =|entailment_regimes(+list(atom))|=
 %     Default: `[rdf,rdfs]`
-%   * =|multiple_justifications(Multiple:boolean)|=
+%   * =|multiple_justifications(+boolean)|=
 %     Whether a single proposition can have more than one justification.
-%
-% @arg Regimes An ordered set of atomic names denoting
-%      the entailment regimes that are used by materialization.
-% @arg Graph Either the atomic name of a graph
-%      or uninstantiated (not restricted to a particular graph).
 
 % No materialization whatsoever.
-materialize(O1, _G):-
-  option(entailment_regimes(ERs), O1),
-  memberchk(none, ERs), !.
+materialize(_, Options):-
+  option(entailment_regimes(Regimes), Options),
+  memberchk(none, Regimes), !.
 % Some form of materialization.
-materialize(O1, G):-
+materialize(Graph, Options):-
   % The default graph is called `user`.
-  % This is also the default graph that rdf/3 write to.
-  (nonvar(G), ! ; G = user),
+  % This is also the default graph that rdf/3 writes to.
+  default(user, Graph),
 
-  % Make sure there is a registered TMS that can be used.
-  % Otherwise, we have to create a TMS for this purpose.
+  % Make sure there is an existing/registered TMS that can be used.
+  % Otherwise, we have to create a new TMS for this purpose.
   % We choose a TMS according to Doyle's orginal specification (classic!).
-  atom_concat(tms_, G, TMS),
-  (
-    tms(TMS), !
-  ;
-    register_tms(doyle, TMS),
-    doyle_reset(TMS),
-    doyle_init(TMS)
-  ),
+  graph_tms(Graph, Tms),
 
   % DEB
-  if_debug(rdf_mat, retractall(recent_triple(_,_,_,_))),
+  if_debug(rdf_mat, retractall(recent_triple(_,_))),
 
-  % Let's go!
-  materialize(O1, TMS, G).
+  materialize(Tms, Graph, Options).
 
-%! materialize(+Options:list(nvpair), +TMS:atom, +Graph:atom) is det.
+%! materialize(+TMS:atom, +Graph:atom, +Options:list(nvpair)) is det.
 % The inner loop of materialization.
 % This performs all depth-1 reasoning steps (i.e., breadth-first).
 %
-% # Regime specification
+% ### Regime specification
 %
 % We cannot always assume that a 'lower' regime is applicable,
-%  when a 'higher' regime is requested.
+% when a 'higher' regime is requested.
 % For instance with `[rdf,rdfs]` we do **not** intend to use `se`.
 %
-% # Options
+% ### Options
 %
 % The following options are supported:
 %   * `entailment_regimes(?EntailmentRegimes:list(oneof([se,rdf,rdfs])))`
 %   * `multiple_justifications(?MultipleJustifications:boolean)`
 %     Keep adding new justifications for old nodes.
 %
+% ### Arguments
+%
 % @arg Regimes An ordered set of atomic names denoting
-%        the entailment regimes that are used for materialization.
+%      the entailment regimes that are used for materialization.
 % @arg TMS The atomic name of a Truth Maintenance System.
 % @arg Graph The atomic name of a graph.
 
-materialize(O1, TMS, G):-
+materialize(Tms, Graph, Options):-
   % A deduction of depth one.
-  option(entailment_regimes(ERs), O1, [rdf,rdfs]),
-  member(ER, ERs),
-  rule(ER, Rule, Premises, S, P, O, G),
+  option(entailment_regimes(Regimes), Options, [rdf,rdfs]),
+  member(Regime, Regimes),
+  rdf:rule(Regime, Rule, Premises, rdf(S,P,O), Graph),
   
-  % Only accept new justifications
-  % (one proposition may have multiple justifications).
+  % Only accept new justifications.
+  % A proposition may have multiple justifications.
   (
-    option(multiple_justifications(true), O1, false)
+    option(multiple_justifications(true), Options, false)
   ->
-    \+ tms_justification(TMS, Premises, Rule, rdf(S,P,O))
+    \+ tms_justification(Tms, Premises, Rule, rdf(S,P,O))
   ;
-    \+ rdf(S, P, O, G)
+    \+ rdf(S, P, O, Graph)
   ),
+  
   % Add to TMS.
-  doyle_add_argument(TMS, Premises, Rule, rdf(S,P,O), J),
+  doyle_add_argument(Tms, Premises, Rule, rdf(S,P,O), Justification),
 
   % DEB
   if_debug(
     rdf_mat,
     (
-      assert(recent_triple(S, P, O, G)),
-      dcg_with_output_to(atom(Msg), materialize_message(TMS, J)),
+      assert(recent_triple(Graph, rdf(S,P,O))),
+      dcg_with_output_to(atom(Msg), materialize_message(Tms, Justification)),
       debug(rdf_mat, '~a', [Msg])
     )
   ),
   
   % Store the result.
-  rdf_assert(S, P, O, G), !,
+  rdf_assert(S, P, O, Graph), !,
   
-  % Look for more results...
-  materialize(O1, TMS, G).
+  % Look for more results.
+  materialize(Tms, Graph, Options).
 % Done!
-materialize(O1, _TMS, _G):-
+materialize(_, _, Options):-
   % DEB
-  option(entailment_regimes(ERs), O1, [rdf,rdfs]),
-  dcg_with_output_to(atom(ER_Atom), list(pl_term, ERs)),
+  option(entailment_regimes(Regimes), Options, [rdf,rdfs]),
+  dcg_with_output_to(atom(RegimesAtom), list(pl_term, Regimes)),
   if_debug(
     rdf_mat,
     (
       flag(deductions, N, 0),
-      debug(rdf_mat, 'Added ~w deductions (regimes: ~w).', [N,ER_Atom])
+      debug(rdf_mat, 'Added ~w deductions (regimes: ~w).', [N,RegimesAtom])
     )
   ).
 
-materialize_message(TMS, J) -->
+
+
+% Helpers
+
+%! graph_tms(+Graph:atom, -Tms:atom) is det.
+% Returns either the existing TMS for the given graph,
+% or creates and returns a new one.
+
+graph_tms(Graph, Tms):-
+  atomic_list_concat([tms,Graph], '_', Tms),
+  ensure_tms(Tms).
+
+ensure_tms(Tms):-
+  tms(Tms), !.
+ensure_tms(Tms):-
+  register_tms(doyle, Tms),
+  doyle_reset(Tms),
+  doyle_init(Tms).
+
+
+%! materialize_message(+Tms:atom, +Justification:compound)// is det.
+
+materialize_message(Tms, Justification) -->
   {flag(deductions, Id, Id + 1)},
   integer(Id),
   `: `,
-  tms_print_justification([indent(0),lang(en)], TMS, J),
+  tms_print_justification([indent(0),lang(en)], Tms, Justification),
   nl.
-
-
-%! rule(
-%!   ?Regime:atom,
-%!   ?Rule:atom,
-%!   ?Premises:list(compound),
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri]),
-%!   ?Graph:atom
-%! ) is nondet.
-
-% All axioms can be deduced as if they are the outcome of a rule.
-rule(Regime, axiom, [], S, P, O, _G):-
-  axiom(Regime, S, P, O).
-rule(Regime, Rule, Premises, S, P, O, G):-
-  rdf_rule(Regime, Rule, Premises, S, P, O, G).
-rule(Regime, Rule, Premises, S, P, O, G):-
-  rdfs_rule(Regime, Rule, Premises, S, P, O, G).
-
-%! start_materializer(
-%!   +Options:list(nvpair),
-%!   +Interval:positive_integer,
-%!   +Graph:atom
-%! ) is det.
-% Performs a depth-one materialization step every N seconds.
-%
-% @arg Options A list of name-value pairs.
-% @arg Interval The number of seconds between consecutive
-%        materialization attempts.
-% @arg Graph The atomic name of a graph
-%        or uninstantiated (not restricted to a particular graph).
-%
-% @see Performs materialization steps using materialize/1.
-
-start_materializer(O1, N, G):-
-  default(30, N),
-  intermittent_thread(materialize(O1, G), true, N, _Id, []),
-  debug(rdf_mat, 'A materializer was started on graph ~w.', [G]).
 

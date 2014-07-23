@@ -167,7 +167,7 @@ rdfs_assert_comment(R, Comment, G):-
 
 rdfs_assert_comment(R, Comment, LangTag, G):-
   rdf_is_literal(R), !,
-  r2b(G, R, B),
+  term_to_bnode(G, R, B),
   rdfs_assert_comment(B, Comment, LangTag, G).
 rdfs_assert_comment(R, Comment, LangTag, G):-
   var(LangTag), !,

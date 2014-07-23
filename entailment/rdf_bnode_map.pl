@@ -3,21 +3,18 @@
   [
     add_bnode_map/3, % +Graph:atom
                      % +BlankNode:bnode
-                     % +Resource:or([bnode,iri,literal])
-    b2r/3, % +Graph:atom
-           % +BlankNode:bnode
-           % -Resource:or([bnode,iri,literal])
-    has_r2b/3, % +Graph:atom,
-               % +Resource:or([bnode,iri,literal]),
-               % -BlankNode:bnode
-    r2b/3, % +Graph:atom
-           % +Resource:or([bnode,iri,literal])
-           % -BlankNode:bnode
-    remove_bnode_map/1 % +Graph:atom
+                     % +Term:or([bnode,iri,literal])
+    bnode_to_term/3, % +Graph:atom
+                     % +BlankNode:bnode
+                     % -Term:or([bnode,iri,literal])
+    clear_bnode_map/1, % +Graph:atom
+    term_to_bnode/3 % +Graph:atom
+                    % +Term:or([bnode,iri,literal])
+                    % -BlankNode:bnode
   ]
 ).
 
-/** <module> RDF bnode mapping
+/** <module> RDF blank node maps
 
 Since literals are not allowed to occur in the subject position
 of RDF triples, blank nodes need to be associated with them in order
@@ -28,108 +25,106 @@ in simple entailment, in order to ascertain that the original graph
 is a proper instance of every materialized graph.
 
 @author Wouter Beek
-@version 2013/09, 2014/06
+@version 2013/09, 2014/06-2014/07
 */
 
 :- use_module(library(assoc)).
 :- use_module(library(semweb/rdf_db)).
 
-% The mapping between blank nodes and literals, which is used
-% to assert predications of literals, even though literals cannot
-% be subject terms according to RDF 1.0 syntax.
-:- dynamic(b2r/2).
-:- dynamic(r2b/2).
+%! bnode_to_term_map0(+Graph:atom, -Map:assoc) is semidet.
+% The mapping from blank nodes to RDF terms.
+
+:- dynamic(bnode_to_term_map0/2).
+
+%! term_to_bnode_map0(+Graph:atom, -Map:assoc) is semidet.
+% The mapping from RDF terms to blank nodes.
+
+:- dynamic(term_to_bnode_map0/2).
 
 
 
 %! add_bnode_map(
 %!   +Graph:atom,
 %!   +BlankNode:bnode,
-%!   +Resource:or([bnode,iri,literal])
+%!   +RdfTerm:or([bnode,iri,literal])
 %! ) is det.
-% Adds the mapping between a single blank node and a single resource
-% to the association lists that are used for storage.
+% Adds the mapping between a single blank node and a single RDF term.
+%
+% This is stored in 2 association lists, one for each direction of the mapping.
 
-add_bnode_map(G, B, R):-
-  % Add a mapping from the blank node to the resource.
-  b2r_store(G, OldB2R),
-  retractall(b2r(G, OldB2R)),
-  put_assoc(B, OldB2R, R, NewB2R),
-  assert(b2r(G, NewB2R)),
+add_bnode_map(G, B, T):-
+  % Add a mapping from blank node to term.
+  bnode_to_term_map(G, OldB2T),
+  retractall(bnode_to_term_map0(G, OldB2T)),
+  put_assoc(B, OldB2T, T, NewB2T),
+  assert(bnode_to_term_map0(G, NewB2T)),
 
-  % Add a mapping from the resource to the blank node.
-  r2b_store(G, OldR2B),
-  retractall(r2b(G, OldR2B)),
-  put_assoc(R, OldR2B, B, NewR2B),
-  assert(r2b(G, NewR2B)).
+  % Add a mapping from term to blank node.
+  term_to_bnode_map(G, OldT2B),
+  retractall(term_to_bnode_map0(G, OldT2B)),
+  put_assoc(T, OldT2B, B, NewT2B),
+  assert(term_to_bnode_map0(G, NewT2B)).
 
-%! b2r(
+
+%! bnode_to_term(
 %!   +Graph:atom,
 %!   +BlankNode:bnode,
 %!   -Resource:or([bnode,iri,literal])
 %! ) is semidet.
+% If a mapping exists, this returns the mapped term.
 
-b2r(G, B, R):-
-  b2r_store(G, A),
-  get_assoc(B, A, R).
+bnode_to_term(G, B, T):-
+  bnode_to_term_map0(G, Map),
+  get_assoc(B, Map, T).
 
-%! b2r_init(+Graph:atom) is det.
-% Initialization of the B2R store for the given RDF graph.
-% This predicate ensures that the store exists for the given graph.
+%! bnode_to_term_map(+Graph:atom, -Map:assoc) is det.
 
 % The store already exists.
-b2r_store(G, A):-
-  b2r(G, A), !.
+bnode_to_term_map(G, Map):-
+  bnode_to_term_map0(G, Map), !.
 % The store is created.
-b2r_store(G, A):-
-  retractall(b2r/2),
-  empty_assoc(A),
-  assert(b2r(G, A)).
+bnode_to_term_map(G, Map):-
+  empty_assoc(Map),
+  assert(bnode_to_term_map0(G, Map)).
 
 
-%! has_r2b(
+%! clear_bnode_map(+Graph:atom) is det.
+% Removed the bnode maps for the given graph.
+%! clear_bnode_map(-Graph:atom) is det.
+% Removes the bnode maps for all graphs.
+
+clear_bnode_map(G):-
+  retractall(bnode_to_term_map0(G,_)),
+  retractall(term_to_bnode_map0(G,_)).
+
+
+%! term_to_bnode(
 %!   +Graph:atom,
-%!   +Resource:or([bnode,iri,literal]),
-%!   -BlankNode:bnode
-%! ) is semidet.
-
-has_r2b(G, R, B):-
-  r2b_store(G, A),
-  get_assoc(R, A, B), !.
-
-
-%! r2b(
-%!   +Graph:atom,
-%!   +Resource:or([bnode,iri,literal]),
+%!   +Term:or([bnode,iri,literal]),
 %!   -BlankNode:bnode
 %! ) is det.
+% Either an existing mapping is returned,
+% or a new mapping is created and returned.
 
 % The store contains a blank node that stands for the given resource.
-r2b(G, R, B):-
-  has_r2b(G, R, B).
+term_to_bnode(G, T, B):-
+  term_to_bnode_map0(G, Map),
+  get_assoc(T, Map, B), !.
 % The store does not contain a blank node that stands for the given resource,
 % so a new blank node is created to stand for the given resource and this
 % resource-and-blank node pair is added to the R2B mapping.
-r2b(G, R, B):-
+term_to_bnode(G, T, B):-
   rdf_bnode(B),
-  add_bnode_map(G, B, R).
+  add_bnode_map(G, B, T).
 
-%! r2b_init(+Graph:atom) is det.
-% Initialization of the R2B store for the given RDF graph.
-% This predicate ensures that the store exists for the given graph.
+
+%! term_to_bnode_map(+Graph:atom, -Map:assoc) is semidet.
 
 % The store already exists.
-r2b_store(G, A):-
-  r2b(G, A), !.
+term_to_bnode_map(G, Map):-
+  term_to_bnode_map0(G, Map), !.
 % The store is created.
-r2b_store(G, A):-
-  retractall(r2b/2),
-  empty_assoc(A),
-  assert(r2b(G, A)).
-
-%! remove_bnode_map(+Graph:atom) is det.
-
-remove_bnode_map(G):-
-  retractall(b2r(G,_)),
-  retractall(r2b(G,_)).
+term_to_bnode_map(G, Map):-
+  empty_assoc(Map),
+  assert(term_to_bnode_map0(G, Map)).
 
