@@ -16,6 +16,7 @@ Takes axioms, rules, and the RDF index and performs materializations.
 
 :- use_module(library(apply)).
 :- use_module(library(debug)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(semweb/rdf_db)).
@@ -33,10 +34,6 @@ Takes axioms, rules, and the RDF index and performs materializations.
 
 :- use_module(plRdf_ent(rdf_ent)). % Axioms, explanations, rules.
 :- use_module(plRdf_ent(rdfs_ent)). % Axioms, explanations, rules.
-
-%! recent_triple(?Graph:atom, ?Triple:compound) is semidet.
-
-:- dynamic(recent_triple/2).
 
 %! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 
@@ -120,9 +117,6 @@ rdf_materialize(Graph, Options):-
   % We choose a TMS according to Doyle's orginal specification (classic!).
   graph_tms(Graph, Tms),
 
-  % DEB
-  if_debug(rdf_mat, retractall(recent_triple(_,_))),
-
   rdf_materialize(Tms, Graph, Options).
 
 %! rdf_materialize(+TMS:atom, +Graph:atom, +Options:list(nvpair)) is nondet.
@@ -157,10 +151,9 @@ rdf_materialize(Tms, Graph, Options):-
   % DEB
   % @tbd debug/1 does not work.
   % Put this under if_debug/2.
-  assert(recent_triple(Graph, rdf(S,P,O))),
   dcg_with_output_to(atom(Msg), materialize_message(Tms, Justification)),
   format(user_output, '~a\n', [Msg]),
-gtrace,
+  
   % Store the result.
   rdf_assert(S, P, O, Graph),
   fail.
@@ -208,4 +201,15 @@ materialize_message(Tms, Justification) -->
     Justification,
     [indent(0),language_preferences([en])]
   ).
+
+
+
+% Helpers
+
+% All axioms can be deduced.
+rdf:rule(Regime, axiom, [], Axiom, _):-
+  rdf:axiom(Regime, Axiom).
+% All facts can be deduced.
+rdf:rule(Regime, fact, [], rdf(S,P,O), Graph):-
+  rdf(S, P, O, Graph).
 
