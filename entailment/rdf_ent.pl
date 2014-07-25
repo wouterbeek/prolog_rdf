@@ -29,7 +29,7 @@ Specification of entailment rules for RDF.
 
 :- use_module(plRdf_ent(rdf_bnode_map)).
 
-:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+%%%%:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 %! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 
@@ -135,7 +135,13 @@ rdf:explanation(
   'Terms that occur in the predicate position are instances of rdf:Property.'
 ).
 
-rdf:rule(rdf, rdf1, [rdf(S,P,O)], rdf(P,rdf:type,rdf:'Property'), G):-
+rdf:rule(
+  rdf,
+  rdf1,
+  [rdf(S,P,O)],
+  rdf(P,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'),
+  G
+):-
   rdf(S, P, O, G).
 
 
@@ -151,7 +157,7 @@ rdf:rule(
   rdf,
   rdf2,
   [rdf(S,P,TypedLit)],
-  rdf(B,rdf:type,rdf:'XMLLiteral'),
+  rdf(B,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
   G
 ):-
   rdf(S, P, TypedLit, G),
@@ -163,17 +169,80 @@ rdf:rule(
 
 
 % RDF axiomatic triples.
-rdf:axiom(rdf, rdf(rdf:type,     rdf:type,rdf:'Property')).
-rdf:axiom(rdf, rdf(rdf:subject,  rdf:type,rdf:'Property')).
-rdf:axiom(rdf, rdf(rdf:predicate,rdf:type,rdf:'Property')).
-rdf:axiom(rdf, rdf(rdf:object,   rdf:type,rdf:'Property')).
-rdf:axiom(rdf, rdf(rdf:first,    rdf:type,rdf:'Property')).
-rdf:axiom(rdf, rdf(rdf:rest,     rdf:type,rdf:'Property')).
-rdf:axiom(rdf, rdf(rdf:value,    rdf:type,rdf:'Property')).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#object',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#first',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#value',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
 % There is an infinite number of integer enumerator axioms.
-rdf:axiom(rdf, rdf(P,            rdf:type,rdf:'Property')):-
+rdf:axiom(
+  rdf,
+  rdf(
+    P,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+):-
   lbetween(1, _, I),
   format(atom(Name), '_~w', [I]),
   rdf_global_id(rdf:Name, P).
-rdf:axiom(rdf, rdf(rdf:nil,      rdf:type,rdf:'List'    )).
+rdf:axiom(
+  rdf,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#List'
+  )
+).
 
