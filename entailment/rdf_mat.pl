@@ -124,15 +124,12 @@ rdf_materialize(Graph, Options):-
 % This performs all depth-1 reasoning steps (i.e., breadth-first).
 
 rdf_materialize(Tms, Graph, Options):-
-  % A deduction of depth one.
   option(entailment_regimes(Regimes), Options, [rdf,rdfs]),
 
   % NONDET
   member(Regime, Regimes),
   % NONDET
-  rdf:rule(Regime, Rule, Premises, rdf(S0,P0,O0), Graph),
-  % @tbd Can prefix expansion be fixed?
-  maplist(rdf_global_id, [S0,P0,O0], [S,P,O]),
+  rdf:rule(Regime, Rule, Premises, rdf(S,P,O), Graph),
 
   % Only accept new justifications.
   % A proposition may have multiple justifications.
@@ -202,9 +199,6 @@ materialize_message(Tms, Justification) -->
     [indent(0),language_preferences([en])]
   ).
 
-
-
-% Helpers
 
 % All axioms can be deduced.
 rdf:rule(Regime, axiom, [], Axiom, _):-

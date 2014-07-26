@@ -6,11 +6,11 @@
     rdf:explanation/3, % ?Regime:atom
                        % ?Rule:atom
                        % ?Explanation:atom
-    rdf:rule/5 % ?Regime:atom
-               % ?Rule:atom
-               % ?Premises:list(compound)
-               % ?Conclusion:compound
-               % ?Graph:atom
+    rdf:rule_forward/5 % ?Regime:atom
+                       % ?Rule:atom
+                       % ?Premises:list(compound)
+                       % ?Conclusion:compound
+                       % ?Graph:atom
   ]
 ).
 
@@ -20,6 +20,7 @@ Specification of entailment rules for RDF.
 
 @author Wouter Beek
 @see rdf-mt 1.1 (2014)
+@tbd Can prefix expansion be fixed?
 @version 2013/08-2013/09, 2014/07
 */
 
@@ -42,7 +43,7 @@ Specification of entailment rules for RDF.
 :- discontiguous(rdf:explanation/3).
 :- multifile(rdf:explanation/3).
 
-%! rdf:rule(
+%! rdf:rule_forward(
 %!   ?Regime:atom,
 %!   ?Rule:atom,
 %!   ?Premises:list(compound),
@@ -50,9 +51,9 @@ Specification of entailment rules for RDF.
 %!   ?Graph:atom
 %! ) is nondet.
 
-:- discontiguous(rdf:rule/5).
-:- multifile(rdf:rule/5).
-:- rdf_meta(rdf:rule(?,?,t,t,?)).
+:- discontiguous(rdf:rule_forward/5).
+:- multifile(rdf:rule_forward/5).
+:- rdf_meta(rdf:rule_forward(?,?,t,t,?)).
 
 %! rdf:regime(?Regime:atom) is nondet.
 
@@ -72,7 +73,7 @@ rdf:explanation(
   'Existential quantification w.r.t. the object term.'
 ).
 
-rdf:rule(se, se1, [rdf(S,P,O)], rdf(S,P,B), G):-
+rdf:rule_forward(se, se1, [rdf(S,P,O)], rdf(S,P,B), G):-
   rdf(S, P, O, G),
 
   %%%%% THIS RESTRICTS THE STANDARD.
@@ -91,7 +92,7 @@ rdf:explanation(
   'Existential quantification w.r.t. the subject term.'
 ).
 
-rdf:rule(se, se2, [rdf(S,P,O)], rdf(B,P,O), G):-
+rdf:rule_forward(se, se2, [rdf(S,P,O)], rdf(B,P,O), G):-
   rdf(S, P, O, G),
 
   %%%%% THIS RESTRICTS THE STANDARD.
@@ -117,7 +118,7 @@ rdf:explanation(
    a literal (since literals cannot occur as subject terms).'
 ).
 
-rdf:rule(rdf, lg, [rdf(S,P,Lit)], rdf(S,P,B), G):-
+rdf:rule_forward(rdf, lg, [rdf(S,P,Lit)], rdf(S,P,B), G):-
   rdf(S, P, Lit, G),
   rdf_is_literal(Lit),
   term_to_bnode(G, Lit, B).
@@ -135,7 +136,7 @@ rdf:explanation(
   'Terms that occur in the predicate position are instances of rdf:Property.'
 ).
 
-rdf:rule(
+rdf:rule_forward(
   rdf,
   rdf1,
   [rdf(S,P,O)],
@@ -153,7 +154,7 @@ rdf:explanation(
   'XML literals are instances of rdf:XMLLiteral.'
 ).
 
-rdf:rule(
+rdf:rule_forward(
   rdf,
   rdf2,
   [rdf(S,P,TypedLit)],
@@ -234,7 +235,7 @@ rdf:axiom(
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
   )
 ):-
-  lbetween(1, _, I),
+  betwixt(1, _, I),
   format(atom(Name), '_~w', [I]),
   rdf_global_id(rdf:Name, P).
 rdf:axiom(

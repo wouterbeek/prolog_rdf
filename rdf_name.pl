@@ -5,12 +5,8 @@
     rdf_term_name//1, % ?RdfTerm
     rdf_term_name//2, % +Options:list(nvpair)
                       % +RdfTerm
-    rdf_triple_name//3, % +Subject:or([bnode,iri])
-                        % +Predicate:iri
-                        % +Object:or([bnode,iri,literal])
-    rdf_triple_name//4 % +Subject:or([bnode,iri])
-                       % +Predicate:iri
-                       % +Object:or([bnode,iri,literal])
+    rdf_triple_name//1, % +Triple:compound
+    rdf_triple_name//2 % +Triple:compound
                        % +Graph:atom
   ]
 ).
@@ -41,8 +37,8 @@ Generates names for RDF terms and triples.
 :- use_module(plRdf(rdfs_label_ext)).
 
 :- rdf_meta(rdf_term_name(r,?,?)).
-:- rdf_meta(rdf_triple_name(r,r,r,?,?)).
-:- rdf_meta(rdf_triple_name(r,r,r,+,?,?)).
+:- rdf_meta(rdf_triple_name(t,?,?)).
+:- rdf_meta(rdf_triple_name(t,+,?,?)).
 
 
 
@@ -124,10 +120,14 @@ rdf_term_name(_, PL_Term) -->
 
 % TRIPLE %
 
-rdf_triple_name(S, P, O) -->
+%! rdf_triple_name(+Triple:compound)// is det.
+
+rdf_triple_name(rdf(S,P,O)) -->
   tuple(ascii, rdf_term_name, [S,P,O]).
 
-rdf_triple_name(S, P, O, G) -->
+%! rdf_triple_name(+Triple:compound, +Graph:atom)// is det.
+
+rdf_triple_name(rdf(S,P,O), G) -->
   tuple(ascii, rdf_term_name, [S,P,O,G]).
 
 
