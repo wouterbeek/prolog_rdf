@@ -25,10 +25,12 @@ Specification of entailment rules for RDFS.
 */
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(settings)).
 
 :- use_module(math(math_ext)).
 
 :- use_module(plRdf_ent(rdf_bnode_map)).
+:- use_module(plRdf_ent(rdf_ent)). % Max enumerator setting.
 :- use_module(plRdf_term(rdf_plain_literal)).
 :- use_module(plRdf_term(rdf_term)).
 
@@ -777,7 +779,8 @@ rdf:axiom(
     'http://www.w3.org/2000/01/rdf-schema#ContainerMembershipProperty'
   )
 ):-
-  betwixt(1, _, Integer),
+  setting(rdf:max_enumerator, High),
+  betwixt(1, High, Integer),
   format(atom(Local), '_~w', [Integer]),
   rdf_global_id(rdf:Local, P).
 rdf:axiom(
@@ -788,7 +791,8 @@ rdf:axiom(
     'http://www.w3.org/2000/01/rdf-schema#Resource'
   )
 ):-
-  betwixt(1, _, Integer),
+  setting(rdf:max_enumerator, High),
+  betwixt(1, High, Integer),
   format(atom(Local), '_~w', [Integer]),
   rdf_global_id(rdf:Local, P).
 rdf:axiom(
@@ -799,7 +803,8 @@ rdf:axiom(
     'http://www.w3.org/2000/01/rdf-schema#Resource'
   )
 ):-
-  betwixt(1, _, Integer),
+  setting(rdf:max_enumerator, High),
+  betwixt(1, High, Integer),
   format(atom(Local), '_~w', [Integer]),
   rdf_global_id(rdf:Local, P).
 

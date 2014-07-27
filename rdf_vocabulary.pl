@@ -12,7 +12,7 @@
 Exports the vocabulary for RDFS.
 
 @author Wouter Beek
-@version 2013/08, 2013/11, 2014/03, 2014/06
+@version 2013/08, 2013/11, 2014/03, 2014/06-2014/07
 */
 
 :- use_module(library(http/html_write)).
@@ -20,14 +20,13 @@ Exports the vocabulary for RDFS.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(xml(xml_dom)).
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_export)).
 :- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf_ent(rdf_mat)).
 :- use_module(plRdf_ser(rdf_serial)).
 
-:- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
+:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 
 
 
@@ -43,8 +42,12 @@ load_rdf_vocabulary(Graph):-
   rdfs_vocabulary_url(Url),
   rdf_load_any(Url, [graph(Graph)]),
   rdf_materialize(
-    [entailment_regimes([rdf,rdfs]),multiple_justifications(false)],
-    Graph
+    Graph,
+    [
+      max_enumerator(3),
+      entailment_regimes([rdf,rdfs]),
+      multiple_justifications(false)
+    ]
   ).
 
 rdfs_vocabulary_url('http://www.w3.org/1999/02/22-rdf-syntax-ns#').

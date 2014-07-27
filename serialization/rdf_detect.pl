@@ -50,8 +50,22 @@ rdf_guess_format(Stream, ContentType, Options) :-
   ->
     true
   ;
-    open_binary_string_stream(String, StartStream),
-    guess_xml_type(StartStream, ContentType)
+    setup_call_cleanup(
+      new_memory_file(MemFile),
+      (
+        setup_call_cleanup(
+          open_memory_file(MemFile, write, Write, []),
+          format(Write, '~s', [String]),
+          close(Write)
+        ),
+        setup_call_cleanup(
+          open_memory_file(MemFile, read, Read, [free_on_close(true)]),
+          guess_xml_type(Read, ContentType),
+          close(Read)
+        )
+      ),
+      free_memory_file(MemFile)
+    )
   ).
 
 %! rdf_guess_format(
@@ -376,18 +390,4 @@ alpha_to_lowers([H|T]) -->
   alpha_to_lowers(T).
 alpha_to_lowers([]) -->
   [].
-
-%! open_binary_string_stream(+String, -Stream) is det.
-%
-%  True when Stream is  a  binary   stream  holding  the context of
-%  String.
-
-open_binary_string_stream(String, Read) :-
-  atom_string(Atom, String),
-  new_memory_file(MF),
-  setup_call_cleanup(
-      open_memory_file(MF, write, Write, []),
-      format(Write, '~w', [Atom]),
-      close(Write)),
-  open_memory_file(MF, read, Read, [free_on_close(true)]).
 

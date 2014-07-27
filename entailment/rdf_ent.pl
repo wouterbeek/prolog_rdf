@@ -25,6 +25,7 @@ Specification of entailment rules for RDF.
 */
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(settings)).
 
 :- use_module(math(math_ext)).
 
@@ -59,6 +60,13 @@ Specification of entailment rules for RDF.
 
 :- discontiguous(rdf:regime/1).
 :- multifile(rdf:regime/1).
+
+:- setting(
+     rdf:max_enumerator,
+     any,
+     inf,
+     'The maximum enumerator property that is considered.'
+).
 
 
 
@@ -235,7 +243,8 @@ rdf:axiom(
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
   )
 ):-
-  betwixt(1, _, I),
+  setting(rdf:max_enumerator, High),
+  betwixt(1, High, I),
   format(atom(Name), '_~w', [I]),
   rdf_global_id(rdf:Name, P).
 rdf:axiom(

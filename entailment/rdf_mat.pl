@@ -28,6 +28,7 @@ Takes axioms, rules, and the RDF index and performs materializations.
 :- use_module(doyle(doyle)).
 :- use_module(generics(deb_ext)).
 :- use_module(generics(meta_ext)).
+:- use_module(generics(setting_ext)).
 :- use_module(generics(thread_ext)).
 :- use_module(tms(tms)).
 :- use_module(tms(tms_print)).
@@ -68,6 +69,7 @@ Takes axioms, rules, and the RDF index and performs materializations.
 
 :- predicate_options(rdf_materialize/2, 2, [
      entailment_regimes(+list(atom)),
+     max_enumerator(+nonneg),
      pass_to(rdf_materialize/3, 3)
    ]).
 :- predicate_options(rdf_materialize/3, 3, [
@@ -89,6 +91,9 @@ Takes axioms, rules, and the RDF index and performs materializations.
 % The following options are supported:
 %   * =|entailment_regimes(+list(atom))|=
 %     Default: `[rdf,rdfs]`
+%   * =|max_enumerator(+nonneg)|=
+%     The maximum enumerator that is considered.
+%     Default: `inf`.
 %   * =|multiple_justifications(+boolean)|=
 %     Whether a single proposition can have more than one justification.
 %     Default: `false`.
@@ -107,7 +112,10 @@ rdf_materialize(_, Options):-
   option(entailment_regimes(Regimes), Options),
   memberchk(none, Regimes), !.
 % Some form of materialization.
-rdf_materialize(Graph, Options):-
+rdf_materialize(Graph, Options1):-
+  % Reset flag used for debugging.
+  flag(deductions, _, 0),
+
   % The default graph is called `user`.
   % This is also the default graph that rdf/3 writes to.
   default(user, Graph),
@@ -117,7 +125,12 @@ rdf_materialize(Graph, Options):-
   % We choose a TMS according to Doyle's orginal specification (classic!).
   graph_tms(Graph, Tms),
 
-  rdf_materialize(Tms, Graph, Options).
+  select_option(max_enumerator(High), Options1, Options2, inf),
+  temporarily_set_setting(
+    rdf:max_enumerator,
+    High,
+    rdf_materialize(Tms, Graph, Options2)
+  ).
 
 %! rdf_materialize(+TMS:atom, +Graph:atom, +Options:list(nvpair)) is nondet.
 % The inner loop of materialization.
@@ -150,22 +163,18 @@ rdf_materialize(Tms, Graph, Options):-
   % Put this under if_debug/2.
   dcg_with_output_to(atom(Msg), materialize_message(Tms, Justification)),
   format(user_output, '~a\n', [Msg]),
-  
+
   % Store the result.
   rdf_assert(S, P, O, Graph),
   fail.
 % Done!
 rdf_materialize(_, _, Options):-
   % DEB
+  % @tbd Use if_debug/2.
   option(entailment_regimes(Regimes), Options, [rdf,rdfs]),
   dcg_with_output_to(atom(RegimesAtom), list(pl_term, Regimes)),
-  if_debug(
-    rdf_mat,
-    (
-      flag(deductions, N, 0),
-      debug(rdf_mat, 'Added ~w deductions (regimes: ~w).', [N,RegimesAtom])
-    )
-  ).
+  flag(deductions, N, 0),
+  format(user_output, 'Added ~w deductions (regimes: ~w).', [N,RegimesAtom]).
 
 
 
@@ -204,6 +213,6 @@ materialize_message(Tms, Justification) -->
 rdf:rule(Regime, axiom, [], Axiom, _):-
   rdf:axiom(Regime, Axiom).
 % All facts can be deduced.
-rdf:rule(Regime, fact, [], rdf(S,P,O), Graph):-
+rdf:rule(_, fact, [], rdf(S,P,O), Graph):-
   rdf(S, P, O, Graph).
 

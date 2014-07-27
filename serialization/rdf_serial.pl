@@ -177,6 +177,11 @@ rdf_load_any0(Input, Options1):-
   ->
     Pairs0 = Pairs
   ;
+    option(graph(Graph), Options1),
+    Pairs = [_-Graph]
+  ->
+    true
+  ;
     true
   ).
 
