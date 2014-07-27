@@ -35,8 +35,6 @@ Exports the vocabulary for RDFS.
 % This means that materialization has to make less deductions
 % (tested on 163 less), and there are some labels and comments
 % that deduction would not produce.
-%
-% @tbd Do not reload.
 
 load_rdf_vocabulary(Graph):-
   rdfs_vocabulary_url(Url),
@@ -57,25 +55,32 @@ rdfs_vocabulary_url('http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 % Returns the RDF vocabulary in graph-interchange-format.
 
 rdf_vocabulary_gif(Gif):-
-  load_rdf_vocabulary(G),
+  setup_call_cleanup(
+    load_rdf_vocabulary(Graph),
+    rdf_vocabulary_gif(Graph, Gif),
+    rdf_unload_graph(Graph)
+  ).
 
+%! rdf_vocabular_gif(+Graph:atom, -Gif:compound) is det.
+
+rdf_vocabular_gif(Graph, Gif):-
   % Customization.
-  rdf_retractall(_, rdfs:isDefinedBy, _, G),
-  rdf_register_namespace_color(G, rdf, darkblue),
+  rdf_retractall(_, rdfs:isDefinedBy, _, Graph),
+  rdf_register_prefix_color(Graph, rdf, darkblue),
 
   % Remove the RDFS-only triples.
   forall(
     (
-      rdf(S, P, O, G),
+      rdf(S, P, O, Graph),
       rdf_global_id(rdfs:_, S),
       rdf_global_id(rdfs:_, P),
       rdf_global_id(rdfs:_, O)
     ),
-    rdf_retractall(S, P, O, G)
+    rdf_retractall(S, P, O, Graph)
   ),
 
   % Thats it, let's export the RDF graph to GIF.
-  export_rdf_graph(
+  rdf_graph_to_gif(
     [
       colorscheme(svg),
       edge_labels(replace),
@@ -83,7 +88,7 @@ rdf_vocabulary_gif(Gif):-
       literals(preferred_label),
       uri_desc(uri_only)
     ],
-    G,
+    Graph,
     Gif
   ).
 
@@ -92,15 +97,15 @@ rdf_vocabulary_gif(Gif):-
 % Returns the RDFS vocabulary in graph-interchange-format.
 
 rdfs_vocabulary_gif(Gif):-
-  load_rdf_vocabulary(G),
+  load_rdf_vocabulary(Graph),
 
   % Customization.
-  rdf_retractall(_, rdfs:isDefinedBy, _, G),
-  rdf_register_namespace_color(G, rdf, darkblue),
-  rdf_register_namespace_color(G, rdfs, darkgreen),
+  rdf_retractall(_, rdfs:isDefinedBy, _, Graph),
+  rdf_register_prefix_color(Graph, rdf, darkblue),
+  rdf_register_prefix_color(Graph, rdfs, darkgreen),
 
   % Thats it, let's export the RDF graph to GIF.
-  export_rdf_graph(
+  rdf_graph_to_gif(
     [
       colorscheme(svg),
       edge_labels(replace),
@@ -108,7 +113,7 @@ rdfs_vocabulary_gif(Gif):-
       literals(all),
       uri_desc(uri_only)
     ],
-    G,
+    Graph,
     Gif
   ).
 

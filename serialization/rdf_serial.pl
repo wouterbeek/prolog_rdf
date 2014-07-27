@@ -65,7 +65,7 @@ Also easily converts between different RDF serializations.
 :- use_module(os(unpack)).
 
 :- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdf_namespaces)).
+:- use_module(plRdf(rdf_prefixes)).
 :- use_module(plRdf_ser(rdf_detect)).
 :- use_module(plRdf_ser(rdf_ntriples_write)).
 

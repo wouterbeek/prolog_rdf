@@ -2,9 +2,9 @@
   rdf_name,
   [
     rdf_graph_name//1, % +RdfGraph:atom
-    rdf_term_name//1, % ?RdfTerm
+    rdf_term_name//1, % ?Term
     rdf_term_name//2, % +Options:list(nvpair)
-                      % +RdfTerm
+                      % +Term
     rdf_triple_name//1, % +Triple:compound
     rdf_triple_name//2 % +Triple:compound
                        % +Graph:atom
@@ -53,10 +53,10 @@ rdf_graph_name(G) --> atom(G).
 
 % TERM %
 
-%! rdf_term_name(+RdfTerm:oneof([bnode,iri,literal]))// is det.
+%! rdf_term_name(+Term:oneof([bnode,iri,literal]))// is det.
 %! rdf_term_name(
 %!   +Options:list(nvpair),
-%!   +RdfTerm:oneof([bnode,iri,literal])
+%!   +Term:oneof([bnode,iri,literal])
 %!)// is det.
 % Returns a display name for the given RDF term.
 %
@@ -80,14 +80,14 @@ rdf_graph_name(G) --> atom(G).
 %     The default value is `uri_only`.
 %
 % @arg Options A list of name-value pairs.
-% @arg RdfTerm An RDF term.
+% @arg Term An RDF term.
 
-rdf_term_name(RdfTerm) -->
-  rdf_term_name([], RdfTerm).
+rdf_term_name(Term) -->
+  rdf_term_name([], Term).
 
-rdf_term_name(O1, RdfTerm) -->
+rdf_term_name(O1, Term) -->
   {select_option(graph(Graph), O1, O2)}, !,
-  rdf_term_name(O2, RdfTerm),
+  rdf_term_name(O2, Term),
   ` in `,
   rdf_graph_name(Graph).
 % RDF list.
@@ -186,12 +186,12 @@ rdf_typed_literal_name(literal(type(DatatypeIri,LexicalForm))) -->
 % IRI %
 
 % The options `only_preferred_label` and `with_preferred_label`.
-rdf_iri_name(O1, RdfTerm) -->
+rdf_iri_name(O1, Term) -->
   % Whether to include the RDF term itself or only its preferred RDFS label.
   (
     {option(uri_desc(with_preferred_label), O1)}
   ->
-    rdf_iri_name([uri_desc(uri_only)], RdfTerm),
+    rdf_iri_name([uri_desc(uri_only)], Term),
     nl
   ;
     {option(uri_desc(only_preferred_label), O1)}
@@ -200,7 +200,7 @@ rdf_iri_name(O1, RdfTerm) -->
   % See whether a preferred label can be found.
   {option(language(LanguageTag), O1, en)},
   (
-    {rdfs_preferred_label(LanguageTag, RdfTerm, PreferredLabel, _, _)}
+    {rdfs_preferred_label(LanguageTag, Term, PreferredLabel, _, _)}
   ->
     atom(PreferredLabel)
   ;
@@ -208,12 +208,12 @@ rdf_iri_name(O1, RdfTerm) -->
   ).
 % The RDF term is set to collate all literals that (directly) relate to it.
 % These are options `only_literals` and `with_literals`.
-rdf_iri_name(O1, RdfTerm) -->
+rdf_iri_name(O1, Term) -->
   % The URI, if included.
   {(
     option(uri_desc(with_literals), O1)
   ->
-    Elements = [RdfTerm|Literals2]
+    Elements = [Term|Literals2]
   ;
     option(uri_desc(only_literals), O1)
   ->
@@ -223,14 +223,14 @@ rdf_iri_name(O1, RdfTerm) -->
   {
     % Labels are treated specially: only the preferred label is included.
     option(language(LanguageTag), O1, en),
-    rdfs_preferred_label(LanguageTag, RdfTerm, PreferredLabel, _, _),
+    rdfs_preferred_label(LanguageTag, Term, PreferredLabel, _, _),
 
     % All non-label literals are included.
     findall(
       Literal,
       (
         % Any directly related literal.
-        rdf(RdfTerm, P, Literal),
+        rdf(Term, P, Literal),
         rdf_is_literal(Literal),
         % Exclude literals that are RDFS labels.
         \+ rdf_equal(rdfs:label, P)
