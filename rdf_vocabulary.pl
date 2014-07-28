@@ -81,39 +81,47 @@ rdf_vocabulary_gif(Graph, Gif):-
 
   % Thats it, let's export the RDF graph to GIF.
   rdf_graph_to_gif(
+    Graph,
+    Gif,
     [
       colorscheme(svg),
       edge_labels(replace),
       language(en),
       literals(preferred_label),
       iri_description(iri_only)
-    ],
-    Graph,
-    Gif
+    ]
   ).
 
 
-%! rdfs_vocabulary_gif(?File:atom) is det.
+%! rdfs_vocabulary_gif(-Gif:compound) is det.
 % Returns the RDFS vocabulary in graph-interchange-format.
 
 rdfs_vocabulary_gif(Gif):-
-  load_rdf_vocabulary(Graph),
+  setup_call_cleanup(
+    load_rdf_vocabulary(Graph),
+    rdfs_vocabulary_gif(Graph, Gif),
+    rdf_unload_graph(Graph)
+  ).
 
+%! rdfs_vocabulary_gif(+Graph:atom, -Gif:compound) is det.
+
+rdfs_vocabulary_gif(Graph, Gif):-
+gtrace,
   % Customization.
   rdf_retractall(_, rdfs:isDefinedBy, _, Graph),
   rdf_register_prefix_color(Graph, rdf, darkblue),
   rdf_register_prefix_color(Graph, rdfs, darkgreen),
-
+  
   % Thats it, let's export the RDF graph to GIF.
   rdf_graph_to_gif(
+    Graph,
+    Gif,
     [
       colorscheme(svg),
       edge_labels(replace),
       language(en),
       literals(all),
       iri_description(iri_only)
-    ],
-    Graph,
-    Gif
+    ]
   ).
 

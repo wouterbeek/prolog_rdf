@@ -71,7 +71,7 @@ Generates names for RDF terms and triples.
 
 
 
-%! rdf_bnode_name(+BNode:bnode)// is det,
+%! rdf_bnode_name(+BNode:bnode)// is det.
 
 rdf_bnode_name(BNode) -->
   atom(BNode).
@@ -213,6 +213,10 @@ rdf_simple_literal_name(Options1, Value) -->
 
 
 %! rdf_term_name(+Term:oneof([bnode,iri,literal]))// is det.
+
+rdf_term_name(Term) -->
+  rdf_term_name([], Term).
+
 %! rdf_term_name(
 %!   +Options:list(nvpair),
 %!   +Term:oneof([bnode,iri,literal])
@@ -237,12 +241,6 @@ rdf_simple_literal_name(Options1, Value) -->
 %     ]))|=
 %     Whether or not literals are included in the name of the RDF term.
 %     The default value is `iri_only`.
-%
-% @arg Options A list of name-value pairs.
-% @arg Term An RDF term.
-
-rdf_term_name(Term) -->
-  rdf_term_name([], Term).
 
 rdf_term_name(Options1, Term) -->
   {select_option(graph(Graph), Options1, Options2)}, !,

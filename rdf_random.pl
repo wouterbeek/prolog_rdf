@@ -1,9 +1,10 @@
 :- module(
   rdf_random,
   [
-    rdf_random_neighbor/3, % +Graph:atom
+    rdf_random_neighbor/4, % +Graph:atom
                            % +Vertex:or([bnode,literal,iri])
-                           % -RandomNeighbor:or([bnode,literal,iri])
+                           % -RandomNeighborVertex:or([bnode,literal,iri])
+                           % +Options:list(nvpair)
     rdf_random_term/2, % +Graph:atom
                        % -Term:or([bnode,literal,iri])
     rdf_random_term/3, % +Graph:atom
@@ -26,6 +27,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
+:- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf_db)).
 
@@ -42,6 +44,10 @@
 :- rdf_meta(rdf_random_term(+,r)).
 :- rdf_meta(rdf_random_term(+,:,r)).
 :- rdf_meta(rdf_random_triple(r,r,o,?)).
+
+:- predicate_option(rdf_random_neighbor/4, 4, [
+     pass_to(rdf_neighbor_vertex/4, 4)
+   ]).
 
 
 
@@ -77,13 +83,15 @@ rdf_index(I, S, P, O, Graph):-
 %! rdf_random_neighbor(
 %!   +Graph:atom,
 %!   +Term:or([bnode,iri,literal]),
-%!   -RandomNeighbor:or([bnode,iri,literal])
+%!   -RandomNeighbor:or([bnode,iri,literal]),
+%!   +Options:list(nvpair)
 %! ) is det.
+% Options are passed to rdf_neighbor_vertex/4.
 
-rdf_random_neighbor(Graph, V, RndN):-
+rdf_random_neighbor(Graph, V, RndN, Options):-
   aggregate_all(
     set(N),
-    rdf_undirected_edge(Graph, V, N),
+    rdf_neighbor_vertex(Graph, V, N, Options),
     Ns
   ),
   random_member(RdN, Ns).

@@ -69,10 +69,12 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 :- rdf_meta(rdf_vertex_color_by_prefix(+,+,r,-)).
 
 :- predicate_options(rdf_graph_to_gif/3, 3, [
+     pass_to(rdf_directed_edge/3, 3),
      pass_to(rdf_graph_to_gif/4, 4)
    ]).
 :- predicate_options(rdf_graph_to_gif/4, 4, [
-     colorscheme(+oneof([none,svg,x11]))
+     colorscheme(+oneof([none,svg,x11])),
+     pass_to(rdf_term_name//2, 1)
    ]).
 :- predicate_options(rdf_register_prefix_colors/1, 1, [
      colorscheme(+oneof([none,svg,x11])),
@@ -81,6 +83,7 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 :- predicate_options(rdf_term_to_gif/3, 3, [
      depth(+nonneg),
      graph(+atom),
+     pass_to(rdf_directed_edge/3, 3),
      pass_to(rdf_graph_to_gif/4, 4)
    ]).
 
@@ -88,36 +91,30 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 
 %! rdf_graph_to_gif(+Graph:atom, +Gif:compound, +Options:list(nvpair)) is det.
 % The following options are supported:
-%   1. `colorscheme(+oneof([none,svg,x11]))`
-%      The colorscheme for the colors assigned to vertices and edges.
-%      Supported values are `svg`, `x11`, and `none` (for black and white).
-%      Default: `svg`.
-%   2. `edge_labels(oneof([all,none,replace]))`
-%      Whether edge labels are included (`all`),
-%      not included (`none`), or
-%      replaced by alternative labels (`replace`, default).
-%   3. `language_preferences(+LanguageTags:list(atom))`
-%      The atomic language tag of the language that is preferred for
-%      use in the RDF term's name.
-%      The default value is `en`.
-%   4. `literals(+oneof([all,none,preferred_label]))`
-%      Whether all (`all`, default), none (`none`) or only preferred label
-%      literals (`preferred_label`) are included as vertices.
-%   5. `iri_description(+oneof([only_all_literals,iri_only,with_all_literals,with_preferred_label]))`
-%      Whether or not literals are included in the name of the RDF term.
-%      The default value is `iri_only`.
+%   * `colorscheme(+oneof([none,svg,x11]))`
+%     The colorscheme for the colors assigned to vertices and edges.
+%     Supported values are `svg`, `x11`, and `none` (for black and white).
+%     Default: `svg`.
+%   * `iri_description(+oneof([only_all_literals,iri_only,with_all_literals,with_preferred_label]))`
+%     Passed to rdf_term_name//2.
+%   * `language_preferences(+LanguageTags:list(atom))`
+%     Passed to rdf_term_name//2.
+%   * `literal_filter(+boolean)`
+%     Passed to rdf_directed_edge/3.
+%   * `rdf_list_filter(+boolean)`
+%     Passed to rdf_directed_edge/3.
 
 rdf_graph_to_gif(Graph, Gif, Options):-
   aggregate_all(
     set(FromV-P-ToV),
-    rdf(FromV, P, ToV, Graph),
+    rdf_directed_edge(Graph, FromV-P-ToV, Options),
     Es
   ),
   edges_to_vertices(Es, Vs),
   rdf_graph_to_gif(Vs, Es, Gif, Options).
 
-rdf_graph_to_gif(Vs, Es, Gif, Options):-
-  option(colorscheme(Colorscheme), Options, svg),
+rdf_graph_to_gif(Vs, Es, Gif, Options1):-
+  select_option(colorscheme(Colorscheme), Options1, Options2, svg),
   create_gif(
     Vs,
     Es,
@@ -131,7 +128,7 @@ rdf_graph_to_gif(Vs, Es, Gif, Options):-
       graph_label(Graph),
       vertex_color(rdf_vertex_color(Colorscheme, Graph)),
       vertex_image(rdf_vertex_image(Graph)),
-      vertex_label(rdf_vertex_label),
+      vertex_label(rdf_vertex_label(Options2)),
       vertex_peripheries(rdf_vertex_peripheries),
       vertex_shape(rdf_vertex_shape)
     ]
@@ -241,17 +238,18 @@ rdf_register_prefix_colors(Options):-
 %   * =|graph(+atom)|=
 %     The name of the RDF graph to which the term description is restricted.
 %     No default.
-%   * Other options are passed to rdf_graph_to_gif/4.
+%   * Other options are passed to rdf_graph_to_gif/4 and rdf_directed_edge/3.
 
 rdf_term_to_gif(Term, Gif, Options1):-
   select_option(depth(Depth), Options1, Options2, 1),
   option(graph(Graph), Options2, _VAR),
-  depth(rdf_directed_edge(Graph), Depth, Term, Vs, Es),
+  depth(rdf_directed_edge(Options2, Graph), Depth, Term, Vs, Es),
   rdf_graph_to_gif(Vs, Es, Gif, Options2).
 % Aux.
-rdf_directed_edge(Graph, FromV, ToV):-
-  rdf_directed_edge(Graph, Edge),
+rdf_directed_edge(Options, Graph, FromV, ToV):-
+  rdf_directed_edge(Graph, Edge, Options),
   edge_components(Edge, FromV, ToV).
+
 
 
 % Attribute-setting predicates.
@@ -405,10 +403,15 @@ rdf_vertex_image(Graph, V, VImage):-
   once(rdf_image(V, _, _, VImage, Graph)).
 
 
-%! rdf_vertex_label(+Term:or([bnode,iri,literal]), -Label:atom) is det.
+%! rdf_vertex_label(
+%!   +Options:list(nvpair),
+%!   +Term:or([bnode,iri,literal]),
+%!   -Label:atom
+%! ) is det.
 
-rdf_vertex_label(V, VLabel):-
-  dcg_with_output_to(atom(VLabel), rdf_term_name([literal_ellipsis(50)], V)).
+rdf_vertex_label(Options1, V, VLabel):-
+  merge_options(Options1, [literal_ellipsis(50)], Options2),
+  dcg_with_output_to(atom(VLabel), rdf_term_name(Options2, V)).
 
 
 %! rdf_vertex_peripheries(

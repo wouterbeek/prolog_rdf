@@ -1,17 +1,23 @@
 :- module(
   rdf_graph_theory,
   [
-    rdf_directed_edge/2, % ?Graph:atom
+    rdf_directed_edge/3, % ?Graph:atom
                          % ?DirectedEdge:compound
+                         % +Options:list(nvair)
     rdf_graph_to_ugraph/3, % +Graph:atom
                            % -UGraph:ugraph
                            % +Options:list(nvair)
+    rdf_neighbor_vertex/4, % ?Graph:atom
+                           % +Vertex
+                           % -NeighborVertex
+                           % +Options:list(nvpair)
     rdf_triples_to_edges/2, % +Triples:list(rdf_triple)
                             % -Edges:ordset(rdf_term)
     rdf_triples_to_vertices/2, % +Triples:list(rdf_triple)
                                % -Vertices:ordset(rdf_term)
-    rdf_undirected_edge/2, % ?Graph:atom
+    rdf_undirected_edge/3, % ?Graph:atom
                            % ?UndirectedEdge:compound
+                           % +Options:list(nvair)
     rdf_vertex_equivalence/2 % +Resource1:uri
                              % +Resource2:uri
   ]
@@ -32,6 +38,8 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
+:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(predicate_options)). % Declaration.
@@ -47,23 +55,38 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 
 :- rdf_meta(rdf_vertex_equivalence(r,r)).
 
+:- predicate_options(rdf_directed_edge/3, 3, [
+     pass_to(rdf_vertex_filter/2, 2)
+   ]).
 :- predicate_options(rdf_graph_to_ugraph/3, 3, [
+     pass_to(rdf_undirected_edge/3, 3),
      pass_to(rdf_vertex/3, 3)
    ]).
+:- predicate_options(rdf_neighbor_vertex/4, 4, [
+     pass_to(rdf_vertex_filter/2, 2)
+   ]).
+:- predicate_options(rdf_undirected_edge/3, 3, [
+     pass_to(rdf_vertex_filter/2, 2)
+   ]).
 :- predicate_options(rdf_vertex/3, 3, [
+     pass_to(rdf_vertex_filter/2, 2)
+   ]).
+:- predicate_options(rdf_vertex_filter/2, 2, [
      literal_filter(+boolean),
      rdf_list_filter(+boolean)
    ]).
 
 
 
-%! rdf_directed_edge(+Graph:atom, +DirectedEdge:compound) is semidet.
-%! rdf_directed_edge(+Graph:atom, -DirectedEdge:compound) is nondet.
-%! rdf_directed_edge(-Graph:atom, +DirectedEdge:compound) is nondet.
-%! rdf_directed_edge(-Graph:atom, -DirectedEdge:compound) is nondet.
+%! rdf_directed_edge(
+%!   +Graph:atom,
+%!   +DirectedEdge:compound,
+%!   +Options:list(nvpair)
+%! ) is nondet.
 
-rdf_directed_edge(Graph, FromV-P-ToV):-
-  rdf(FromV, P, ToV, Graph).
+rdf_directed_edge(Graph, FromV-P-ToV, Options):-
+  rdf(FromV, P, ToV, Graph),
+  maplist(\V^rdf_vertex_filter(V, Options), [FromV,ToV]).
 
 
 %! rdf_graph_to_ugraph(
@@ -73,7 +96,7 @@ rdf_directed_edge(Graph, FromV-P-ToV):-
 %! ) is det.
 % Returns the UGraph representation of a given RDF graph.
 %
-% Options are passed to rdf_vertex/3.
+% Options are passed to rdf_vertex/3 and rdf_undirected_edge/3.
 
 rdf_graph_to_ugraph(Graph, UGraph, Options):-
   aggregate_all(
@@ -82,12 +105,27 @@ rdf_graph_to_ugraph(Graph, UGraph, Options):-
       rdf_vertex(Graph, From, Options),
       aggregate_all(
         set(To),
-        rdf_undirected_edge(Graph, From-_-To),
+        rdf_undirected_edge(Graph, From-_-To, Options),
         Neighbors
       )
     ),
     UGraph
   ).
+
+
+%! rdf_neighbor_vertex(
+%!   ?Graph:atom,
+%!   +Vertex,
+%!   -NeighborVertex,
+%!   +Options:list(nvpair)
+%! ) is nondet.
+
+rdf_neighbor_vertex(Graph, V, N, Options):-
+  rdf(V, _, N, Graph),
+  rdf_vertex_filter(N, Options).
+rdf_neighbor_vertex(Graph, V, N, Options):-
+  rdf(N, _, V, Graph),
+  rdf_vertex_filter(N, Options).
 
 
 %! rdf_triples_to_edges(
@@ -123,15 +161,18 @@ rdf_triples_to_vertices(Ts, Vs):-
   ).
 
 
-%! rdf_undirected_edge(+Graph:atom, +UndirectedEdge:compound) is semidet.
-%! rdf_undirected_edge(+Graph:atom, -UndirectedEdge:compound) is nondet.
-%! rdf_undirected_edge(-Graph:atom, +UndirectedEdge:compound) is nondet.
-%! rdf_undirected_edge(-Graph:atom, -UndirectedEdge:compound) is nondet.
+%! rdf_undirected_edge(
+%!   ?Graph:atom,
+%!   ?UndirectedEdge:compound,
+%!   +Options:list(nvpair)
+%! ) is nondet.
 
-rdf_undirected_edge(Graph, FromV-P-ToV):-
-  rdf(FromV, P, ToV, Graph).
-rdf_undirected_edge(Graph, FromV-P-ToV):-
-  rdf(ToV, P, FromV, Graph).
+rdf_undirected_edge(Graph, FromV-P-ToV, Options):-
+  rdf(FromV, P, ToV, Graph),
+  maplist(\V^rdf_vertex_filter(V, Options), [FromV,ToV]).
+rdf_undirected_edge(Graph, FromV-P-ToV, Options):-
+  rdf(ToV, P, FromV, Graph),
+  maplist(\V^rdf_vertex_filter(V, Options), [FromV,ToV]).
 
 
 %! rdf_vertex(+Graph:atom, ?Vertex:rdf_term, +Options:list(nvpair)) is nondet.
@@ -154,24 +195,7 @@ rdf_vertex(Graph, Vertex, Options):-
   ;
     rdf_object(Vertex, Graph)
   ),
-  
-  % Literal filtering.
-  (
-    rdf_is_literal(Vertex)
-  ->
-    option(literal_filter(true), Options, true)
-  ;
-    true
-  ),
-  
-  % RDF list filtering.
-  (
-    option(rdf_list_filter(true), Options, true)
-  ->
-    true
-  ;
-    \+ rdf_list_member(Vertex, _)
-  ).
+  rdf_vertex_filter(Vertex, Options).
 
 
 % @tbd What is this?
@@ -202,5 +226,33 @@ rdf_vertex_equivalence(X, Y):-
   forall(
     rdf_has(S, P, Y),
     rdf_has(S, P, X)
+  ).
+
+
+
+% Helpers.
+
+%! rdf_vertex_filter(
+%!   +Vertex:or([bnode,iri,literal]),
+%!   +Options:list(nvpair)
+%! ) is semidet.
+
+rdf_vertex_filter(Vertex, Options):-
+  % Literal filtering.
+  (
+    rdf_is_literal(Vertex)
+  ->
+    option(literal_filter(true), Options, true)
+  ;
+    true
+  ),
+  
+  % RDF list filtering.
+  (
+    option(rdf_list_filter(true), Options, true)
+  ->
+    true
+  ;
+    \+ rdf_list_member(Vertex, _)
   ).
 
