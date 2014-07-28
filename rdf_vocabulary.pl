@@ -86,7 +86,7 @@ rdf_vocabular_gif(Graph, Gif):-
       edge_labels(replace),
       language(en),
       literals(preferred_label),
-      uri_desc(uri_only)
+      iri_description(iri_only)
     ],
     Graph,
     Gif
@@ -111,7 +111,7 @@ rdfs_vocabulary_gif(Gif):-
       edge_labels(replace),
       language(en),
       literals(all),
-      uri_desc(uri_only)
+      iri_description(iri_only)
     ],
     Graph,
     Gif

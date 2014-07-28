@@ -26,12 +26,11 @@
                          % ?PreviousElement:iri
     rdf_list_member/2, % ?Element
                        % ?RdfList:iri
-    rdf_list_nth0/3, % +Index:nonneg
-                     % +RdfList:iri
-                     % -Element:or([bnode,iri])
-% DEBUG
-    rdf_list_name//2 % +Options:list(nvpair)
-                     % +RdfList:or([bnode,iri])
+    rdf_list_name//2, % +Options:list(nvpair)
+                      % +RdfList:or([bnode,iri])
+    rdf_list_nth0/3 % +Index:nonneg
+                    % +RdfList:iri
+                    % -Element:or([bnode,iri])
   ]
 ).
 
@@ -287,6 +286,18 @@ rdf_list_member_(Element, TempElement1):-
   rdf_list_member_(Element, TempElement2).
 
 
+%! rdf_list_name(+Options1:list(nvpair), +RdfList:iri)// is det.
+
+rdf_list_name(Options1, RdfList) -->
+  % Recursively retrieve the contents of the RDF list.
+  % This has to be done non-recursively, since the nested
+  % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
+  % trouble when it comes accross `[b,c]`
+  % (which fails the check for RDF list).
+  {rdf_list([recursive(false)], RdfList, Terms)},
+  list(rdf_term_name(Option1), Terms).
+
+
 %! rdf_list_nth0(+Index:nonneg, +RdfList:iri, -Element:or([bnode,iri])) is det.
 
 rdf_list_nth0(I, L, E):-
@@ -298,18 +309,4 @@ rdf_list_nth0_(I1, E1, E):-
   rdf_list_next(E1, E2),
   I2 is I1 - 1,
   rdf_list_nth0_(I2, E2, E).
-
-
-
-% DEBUG %
-
-rdf_list_name(O1, RdfList) -->
-  % Recursively retrieve the contents of the RDF list.
-  % This has to be done non-recursively, since the nested
-  % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
-  % trouble when it comes accross `[b,c]`
-  % (which fails the check for RDF list).
-  {rdf_list([recursive(false)], RdfList, RDF_Terms)},
-
-  list(rdf_term_name(O1), RDF_Terms).
 
