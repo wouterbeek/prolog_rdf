@@ -106,7 +106,6 @@ rdfs_vocabulary_gif(Gif):-
 %! rdfs_vocabulary_gif(+Graph:atom, -Gif:compound) is det.
 
 rdfs_vocabulary_gif(Graph, Gif):-
-gtrace,
   % Customization.
   rdf_retractall(_, rdfs:isDefinedBy, _, Graph),
   rdf_register_prefix_color(Graph, rdf, darkblue),
@@ -118,10 +117,10 @@ gtrace,
     Gif,
     [
       colorscheme(svg),
-      edge_labels(replace),
-      language(en),
-      literals(all),
-      iri_description(iri_only)
+      iri_description(iri_only),
+      language_preferences([en]),
+      literal_filter(false),
+      rdf_list_filter(false)
     ]
   ).
 

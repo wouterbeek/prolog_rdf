@@ -120,17 +120,17 @@ rdf_graph_to_gif(Vs, Es, Gif, Options1):-
     Es,
     Gif,
     [
-      edge_arrowhead(rdf_edge_arrowhead),
-      edge_color(rdf_edge_color(Colorscheme, Graph)),
-      edge_label(rdf_edge_label(Graph)),
-      edge_style(rdf_edge_style(Graph)),
+      edge_arrowhead(rdf_export:rdf_edge_arrowhead),
+      edge_color(rdf_export:rdf_edge_color(Colorscheme, Graph)),
+      edge_label(rdf_export:rdf_edge_label(Graph)),
+      edge_style(rdf_export:rdf_edge_style(Graph)),
       graph_colorscheme(Colorscheme),
       graph_label(Graph),
-      vertex_color(rdf_vertex_color(Colorscheme, Graph)),
-      vertex_image(rdf_vertex_image(Graph)),
-      vertex_label(rdf_vertex_label(Options2)),
-      vertex_peripheries(rdf_vertex_peripheries),
-      vertex_shape(rdf_vertex_shape)
+      vertex_color(rdf_export:rdf_vertex_color(Colorscheme, Graph)),
+      vertex_image(rdf_export:rdf_vertex_image(Graph)),
+      vertex_label(rdf_export:rdf_vertex_label(Options2)),
+      vertex_peripheries(rdf_export:rdf_vertex_peripheries),
+      vertex_shape(rdf_export:rdf_vertex_shape)
     ]
   ).
 
@@ -205,12 +205,12 @@ rdf_register_prefix_colors(Options):-
   ),
   length(Prefixes, NumberOfPrefixes),
   NumberOfPrefixes > 0,
-  
+
   % Colorscheme option.
   option(colorscheme(svg), Options, svg),
   svg_colors(Colors),
   length(Colors, NumberOfColors),
-  
+
   % Register colors for RDF prefixes.
   Delta is NumberOfColors // NumberOfPrefixes,
   forall(
@@ -293,7 +293,7 @@ rdf_edge_color(_, _, _, black).
 %! rdf_edge_label(+Graph:atom, +Edge:compound, -Label:atom) is det.
 
 % Some edge labels are not displayed (e.g., RDF(S) terminology).
-rdf_edge_label(_, P, ''):-
+rdf_edge_label(_, _-P-_, ''):-
   rdf_memberchk(
     P,
     [rdf:type,rdfs:label,rdfs:subClassOf,rdfs:subPropertyOf]
@@ -304,7 +304,7 @@ rdf_edge_label(Graph, _-P-_, ELabel):-
 % The edge label is based on the corresponding predicate term.
 rdf_edge_label(_, _-P-_, ELabel):-
   % The edge name is the name of the predicate term.
-  dcg_with_output_to(atom(ELabel), rdf_term_name([], P)).
+  dcg_with_output_to(atom(ELabel), rdf_term_name([], P)), !.
 % The empty label.
 rdf_edge_label(_, _, '').
 
