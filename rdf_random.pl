@@ -24,14 +24,15 @@
 @version 2013/09, 2014/02, 2014/06-2014/07
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(dcg(dcg_generic)).
 :- use_module(generics(flag_ext)).
-:- use_module(rdf_graph(rdf_graph_theory)).
 
+:- use_module(plRdf(rdf_graph_theory)).
 :- use_module(plRdf(rdf_parse)).
 
 :- meta_predicate(rdf_random_term(+,//,-)).
@@ -73,11 +74,20 @@ rdf_index(I, S, P, O, Graph):-
   I0 == I, !.
 
 
-rdf_random_neighbor(G, V, RndN):-
-  rdf_neighbors(G, V, Ns),
-  length(Ns, L),
-  random_between(1, L, I),
-  nth1(I, Ns, RndN).
+%! rdf_random_neighbor(
+%!   +Graph:atom,
+%!   +Term:or([bnode,iri,literal]),
+%!   -RandomNeighbor:or([bnode,iri,literal])
+%! ) is det.
+
+rdf_random_neighbor(Graph, V, RndN):-
+  aggregate_all(
+    set(N),
+    rdf_undirected_edge(Graph, V, N),
+    Ns
+  ),
+  random_member(RdN, Ns).
+
 
 rdf_random_term(G, T):-
   rdf_random_term(G, rdf_parse_term(_), T).

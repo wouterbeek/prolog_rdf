@@ -48,8 +48,8 @@
 Predicates that apply to entire RDF graphs.
 
 @author Wouter Beek
-@see Graph theory support for RDF is found in module rdf_graph_theory.pl.
-@see For conversions from/to serialization formats, see module rdf_serial.pl.
+@see Graph theory support for RDF is found in module [rdf_graph_theory].
+@see For conversions from/to serialization formats, see module [rdf_serial].
 @tbd How to do backward chaining in query/[3,4]?
 @version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05
 */

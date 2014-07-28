@@ -36,7 +36,7 @@ Generates names for RDF terms and triples.
 
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf(rdf_list)).
-:- use_module(plRdf(rdf_namespace)).
+:- use_module(plRdf(rdf_prefix)).
 :- use_module(plRdf(rdfs_label_ext)).
 
 :- rdf_meta(rdf_term_name(+,r,?,?)).
@@ -52,7 +52,7 @@ Generates names for RDF terms and triples.
        with_all_literals,
        with_preferred_label
      ])),
-     preferred_languages(+list(atom))
+     language_preferences(+list(atom))
    ]).
 :- predicate_options(rdf_literal_name//2, 1, [
      pass_to(rdf_plain_literal_name//2, 1)
@@ -96,7 +96,7 @@ rdf_graph_name(Graph) --> atom(Graph).
 %         with_all_literals,
 %         with_preferred_label
 %     ]))|=
-%   * =|preferred_languages(+list(atom))|=
+%   * =|language_preferences(+list(atom))|=
 
 % The options `only_preferred_label` and `with_preferred_label`.
 rdf_iri_name(Options1, Iri) -->
@@ -135,7 +135,7 @@ rdf_iri_name(Options1, Iri) -->
   
   {
     % Labels are treated specially: only the preferred label is included.
-    option(preferred_languages(LanguageTags), Options1, [en]),
+    option(language_preferences(LanguageTags), Options1, [en]),
     rdfs_preferred_label(LanguageTags, Iri, PreferredLabel, _, _),
 
     % All non-label literals are included.

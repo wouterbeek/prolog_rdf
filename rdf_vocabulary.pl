@@ -61,9 +61,9 @@ rdf_vocabulary_gif(Gif):-
     rdf_unload_graph(Graph)
   ).
 
-%! rdf_vocabular_gif(+Graph:atom, -Gif:compound) is det.
+%! rdf_vocabulary_gif(+Graph:atom, -Gif:compound) is det.
 
-rdf_vocabular_gif(Graph, Gif):-
+rdf_vocabulary_gif(Graph, Gif):-
   % Customization.
   rdf_retractall(_, rdfs:isDefinedBy, _, Graph),
   rdf_register_prefix_color(Graph, rdf, darkblue),

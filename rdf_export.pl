@@ -1,55 +1,31 @@
 :- module(
   rdf_export,
   [
-% COLORS
+    rdf_graph_to_gif/3, % +Graph:atom
+                        % -Gif:compound
+                        % +Options:list(nvpair)
+    rdf_register_class_color/3, % +Graph:atom
+                                % +Class:class
+                                % +Color:atom
+    rdf_register_edge_style/3, % +Graph:atom
+                               % +Term:or([bnode,iri,literal])
+                               % -EdgeStyle:atom
+    rdf_register_predicate_label/3, % +Graph:atom
+                                    % +Predicate:iri
+                                    % -Label:atom
     rdf_register_prefix_color/3, % +Graph:graph
                                  % +Prefix:atom
                                  % +Color:atom
     rdf_register_prefix_colors/1, % +Options:list(nvpair)
-    rdf_register_class_color/3, % +Graph:atom
-                                % +Class:class
-                                % +Color:atom
-    rdf_register_edge_style/2, % +Term:or([bnode,iri,literal])
-                               % -EdgeStyle:atom
-
-% GRAPH EXPORT
-    rdf_graph_to_gif/3, % +Graph:atom
-                        % -Gif:compound
-                        % +Options:list(nvpair)
-    rdf_edge_term/5, % +Graph:atom
-                     % +Vertices:list(iri)
-                     % +Edge:pair(iri)
-                     % -EdgeTerm:compound
-                     % +Options:list(nvpair)
-    rdf_vertex_term/5 % +Graph:atom
-                      % +Vertices:list(iri)
-                      % +Vertex:iri
-                      % -VertexTerm:compound
+    rdf_term_to_gif/3 % +Term:or([bnode,iri,literal])
+                      % -Gif:compound
                       % +Options:list(nvpair)
   ]
 ).
 
 /** <module> RDF export
 
-Predicates for exporting RDF.
-
-### Edge naming
-
-Specific edge labels can be hidden by adding clauses to
-rdf_edge_label_replace/2.
-
-### Edge styling
-
-### Vertex coloring
-
-The procedure for determining the color of a vertex:
-  1. Look whether the =colorscheme= option is not set to =none=.
-  2. See whether the vertex is an individual of a colored class.
-  3. See whether the vertex belongs to a colored namespace.
-  4. If at least one vertex is not colored by class or namespace, then all
-     namespaces are (re)assigned colors.
-
-### Vertex naming
+Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 
 @author Wouter Beek
 @version 2013/01-2013/03, 2013/07-2013/09, 2014/01, 2014/07
@@ -68,12 +44,15 @@ The procedure for determining the color of a vertex:
 :- use_module(generics(list_ext)).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(graph_theory(random_vertex_coordinates)).
-:- use_module(Graph(rdf_graph_theory)).
 :- use_module(svg(svg_colors)).
 
+:- use_module(plGraphViz(gv_gif)).
+
 :- use_module(plRdf(rdf_graph)).
+:- use_module(plRdf(rdf_graph_theory)).
+:- use_module(plRdf(rdf_image)).
 :- use_module(plRdf(rdf_name)).
-:- use_module(plRdf(rdf_namespace)).
+:- use_module(plRdf(rdf_prefix)).
 :- use_module(plRdf(rdf_read)).
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_term)).
@@ -82,26 +61,112 @@ The procedure for determining the color of a vertex:
 
 :- dynamic(rdf_class_color0/3).
 :- dynamic(rdf_edge_style0/3).
+:- dynamic(rdf_predicate_label0/3).
 :- dynamic(rdf_prefix_color0/3).
 
-:- meta_predicate(rdf_vertex_term(+,+,+,4,+,-)).
-
-% Color.
 :- rdf_meta(rdf_register_class_color(+,r,+)).
+:- rdf_meta(rdf_term_to_gif(r,-,+)).
 :- rdf_meta(rdf_vertex_color_by_prefix(+,+,r,-)).
 
-% Vertices.
-:- rdf_meta(rdf_vertex_color(+,+,r,-)).
-:- rdf_meta(rdf_vertex_peripheries(r,-)).
-:- rdf_meta(rdf_vertex_image(+,r,-)).
-:- rdf_meta(rdf_vertex_shape(r,-)).
-:- rdf_meta(rdf_vertex_term(+,+,+,:,r,-)).
+:- predicate_options(rdf_graph_to_gif/3, 3, [
+     pass_to(rdf_graph_to_gif/4, 4)
+   ]).
+:- predicate_options(rdf_graph_to_gif/4, 4, [
+     colorscheme(+oneof([none,svg,x11]))
+   ]).
+:- predicate_options(rdf_register_prefix_colors/1, 1, [
+     colorscheme(+oneof([none,svg,x11])),
+     graph(+atom)
+   ]).
+:- predicate_options(rdf_term_to_gif/3, 3, [
+     depth(+nonneg),
+     graph(+atom),
+     pass_to(rdf_graph_to_gif/4, 4)
+   ]).
 
-:- multifile(rdf_edge_name/2).
 
 
+%! rdf_graph_to_gif(+Graph:atom, +Gif:compound, +Options:list(nvpair)) is det.
+% The following options are supported:
+%   1. `colorscheme(+oneof([none,svg,x11]))`
+%      The colorscheme for the colors assigned to vertices and edges.
+%      Supported values are `svg`, `x11`, and `none` (for black and white).
+%      Default: `svg`.
+%   2. `edge_labels(oneof([all,none,replace]))`
+%      Whether edge labels are included (`all`),
+%      not included (`none`), or
+%      replaced by alternative labels (`replace`, default).
+%   3. `language_preferences(+LanguageTags:list(atom))`
+%      The atomic language tag of the language that is preferred for
+%      use in the RDF term's name.
+%      The default value is `en`.
+%   4. `literals(+oneof([all,none,preferred_label]))`
+%      Whether all (`all`, default), none (`none`) or only preferred label
+%      literals (`preferred_label`) are included as vertices.
+%   5. `iri_description(+oneof([only_all_literals,iri_only,with_all_literals,with_preferred_label]))`
+%      Whether or not literals are included in the name of the RDF term.
+%      The default value is `iri_only`.
 
-% Registrations
+rdf_graph_to_gif(Graph, Gif, Options):-
+  aggregate_all(
+    set(FromV-P-ToV),
+    rdf(FromV, P, ToV, Graph),
+    Es
+  ),
+  edges_to_vertices(Es, Vs),
+  rdf_graph_to_gif(Vs, Es, Gif, Options).
+
+rdf_graph_to_gif(Vs, Es, Gif, Options):-
+  option(colorscheme(Colorscheme), Options, svg),
+  create_gif(
+    Vs,
+    Es,
+    Gif,
+    [
+      edge_arrowhead(rdf_edge_arrowhead),
+      edge_color(rdf_edge_color(Colorscheme, Graph)),
+      edge_label(rdf_edge_label(Graph)),
+      edge_style(rdf_edge_style(Graph)),
+      graph_colorscheme(Colorscheme),
+      graph_label(Graph),
+      vertex_color(rdf_vertex_color(Colorscheme, Graph)),
+      vertex_image(rdf_vertex_image(Graph)),
+      vertex_label(rdf_vertex_label),
+      vertex_peripheries(rdf_vertex_peripheries),
+      vertex_shape(rdf_vertex_shape)
+    ]
+  ).
+
+
+%! rdf_register_class_color(+Graph:atom, +Class:iri, +ClassColor:atom) is det.
+% A class color can either be registered for a specific RDF graph,
+% or for all RDF graph, but leaving the graph argument uninstantiated.
+
+rdf_register_class_color(Graph, Class, ClassColor):-
+  db_replace_novel(rdf_class_color0(Graph, Class, ClassColor), [e,e,r]).
+
+
+%! rdf_register_edge_style(
+%!   +Graph:atom,
+%!   +Predicate:iri,
+%!   +EdgeStyle:atom
+%! ) is det.
+% An edge style can either be registered for a specific RDF graph,
+% or for all RDF graph, but leaving the graph argument uninstantiated.
+
+rdf_register_edge_style(Graph, Predicate, EdgeStyle):-
+  db_replace_novel(rdf_edge_style0(Graph, Predicate, EdgeStyle), [e,e,r]).
+
+
+%! rdf_register_predicate_label(
+%!   +Graph:atom,
+%!   +Predicate:iri,
+%!   -Label:atom
+%! ) is det.
+
+rdf_register_predicate_label(Graph, Predicate, Label):-
+  db_replace_novel(rdf_predicate_label0(Graph, Predicate, Label), [e,e,r]).
+
 
 %! rdf_register_prefix_color(
 %!   +Graph:atom,
@@ -123,12 +188,12 @@ rdf_register_prefix_color(Graph, Prefix, PrefixColor):-
 % given graph.
 %
 % The following options are supported:
+%   * =|colorscheme(+oneof([none,svg,x11]))
+%     The colorscheme that is used for registering colors.
+%     Defaut: `svg`.
 %   * =|graph(+atom)|=
 %     The RDF graph for whose RDF prefixes colors are registered.
 %     No default.
-%   * =|colorscheme(+oneof([svg,x11]))
-%     The colorscheme that is used for registering colors.
-%     Defaut: `svg`.
 %
 % @tbd Add support for colorscheme x11.
 
@@ -164,80 +229,32 @@ rdf_register_prefix_colors(Options):-
   ).
 
 
-%! rdf_register_class_color(+Graph:atom, +Class:iri, +ClassColor:atom) is det.
-% A class color can either be registered for a specific RDF graph,
-% or for all RDF graph, but leaving the graph argument uninstantiated.
-
-rdf_register_class_color(Graph, Class, ClassColor):-
-  db_replace_novel(rdf_class_color0(Graph, Class, ClassColor), [e,e,r]).
-
-
-%! rdf_register_edge_style(
-%!   +Graph:atom,
-%!   +Predicate:iri,
-%!   +EdgeStyle:atom
+%! rdf_term_to_gif(
+%!   +Term:or([bnode,iri,literal]),
+%!   -Gif:compound,
+%!   +Options:list(nvpair)
 %! ) is det.
-% An edge style can either be registered for a specific RDF graph,
-% or for all RDF graph, but leaving the graph argument uninstantiated.
-
-rdf_register_edge_style(Graph, Predicate, EdgeStyle):-
-  db_replace_novel(rdf_edge_style0(Graph, Predicate, EdgeStyle), [e,e,r]).
-
-
-
-% GRAPH EXPORT %
-
-%! rdf_graph_to_gif(+Graph:atom, +Gif:compound, +Options:list(nvpair)) is det.
 % The following options are supported:
-%   1. `colorscheme(+Colorscheme:atom)`
-%      The colorscheme for the colors assigned to vertices and edges.
-%      Supported values are `svg`, `x11` (default), and the
-%      Brewer colorschemes (see module [brewer.pl].
-%   2. `coordinate_function(+Function)`
-%      The function that is used to determine the coordinates of the vertices.
-%      Default: random_vertex_coordinate/2.
-%   3. `edge_labels(oneof([all,none,replace]))`
-%      Whether edge labels are included (`all`),
-%      not included (`none`), or
-%      replaced by alternative labels (`replace`, default).
-%   4. `language(+Language:atom)`
-%      The atomic language tag of the language that is preferred for
-%      use in the RDF term's name.
-%      The default value is `en`.
-%   5. `literals(+Include:oneof([all,none,preferred_label]))`
-%      Whether all (`all`, default), none (`none`) or only preferred label
-%      literals (`preferred_label`) are included as vertices.
-%   6. `iri_description(+DescriptionMode:oneof([only_all_literals,iri_only,with_all_literals,with_preferred_label]))`
-%      Whether or not literals are included in the name of the RDF term.
-%      The default value is `iri_only`.
+%   * =|depth(+nonneg)|=
+%     How much context is taken into account when exporting an RDF term.
+%     Default: `1`.
+%   * =|graph(+atom)|=
+%     The name of the RDF graph to which the term description is restricted.
+%     No default.
+%   * Other options are passed to rdf_graph_to_gif/4.
 
-rdf_graph_to_gif(Graph, Gif):-
-  aggregate_all(
-    set(Edge),
-    rdf(FromV, P, ToV, Graph),
-    Edges
-  ),
-  create_gif(
-    Edges,
-    Gif,
-    [
-      edge_arrowhead(rdf_edge_arrowhead),
-      edge_color(rdf_edge_color(svg, Graph),
-      edge_label(rdf_edge_label(Graph)),
-      edge_style(rdf_edge_style),
-      graph_colorscheme(svg),
-      graph_label(Graph),
-      vertex_color(rdf_vertex_color(svg, Graph)),
-      vertex_image(rdf_vertex_image(Graph)),
-      vertex_label(rdf_vertex_label),
-      vertex_peripheries(rdf_vertex_peripheries),
-      vertex_shape(rdf_vertex_shape)
-    ]
-  ).
+rdf_term_to_gif(Term, Gif, Options1):-
+  select_option(depth(Depth), Options1, Options2, 1),
+  option(graph(Graph), Options2, _VAR),
+  depth(rdf_directed_edge(Graph), Depth, Term, Vs, Es),
+  rdf_graph_to_gif(Vs, Es, Gif, Options2).
+% Aux.
+rdf_directed_edge(Graph, FromV, ToV):-
+  rdf_directed_edge(Graph, Edge),
+  edge_components(Edge, FromV, ToV).
 
 
-
-% RDF edge export.
+% Attribute-setting predicates.
 
 %! rdf_edge_arrowhead(+Edge:compound, -ArrowHead:atom) is det.
 
@@ -285,7 +302,7 @@ rdf_edge_label(_, P, ''):-
   ), !.
 % Explicitly registered replacements.
 rdf_edge_label(Graph, _-P-_, ELabel):-
-  rdf_edge_name(Graph, P, Replacement), !.
+  rdf_predicate_label0(Graph, P, ELabel), !.
 % The edge label is based on the corresponding predicate term.
 rdf_edge_label(_, _-P-_, ELabel):-
   % The edge name is the name of the predicate term.
@@ -294,23 +311,21 @@ rdf_edge_label(_, _-P-_, ELabel):-
 rdf_edge_label(_, _, '').
 
 
-%! rdf_edge_style(+Edge:compound, -Style:atom) is det.
+%! rdf_edge_style(+Graph:atom, +Edge:compound, -Style:atom) is det.
 
 % Based on registrations.
-rdf_edge_style(E, EStyle):-
-  rdf_edge_style0(E, EStyle), !.
+rdf_edge_style(Graph, E, EStyle):-
+  rdf_edge_style0(Graph, E, EStyle), !.
 % Hierarchy edges.
-rdf_edge_style(_-P-_, solid):-
+rdf_edge_style(_, _-P-_, solid):-
   rdf_memberchk(P, [rdf:type,rdfs:subClassOf,rdfs:subPropertyOf]), !.
 % Label edges.
-rdf_edge_style(_-P-_, dotted):-
+rdf_edge_style(_, _-P-_, dotted):-
   rdf_memberchk(P, [rdfs:label]), !.
 % Others.
-rdf_edge_style(_, solid).
+rdf_edge_style(_, _, solid).
 
 
-
-% RDF vertex export
 
 %! rdf_vertex_color(
 %!   +Colorscheme:oneof([none,svg,x11]),
@@ -375,7 +390,7 @@ rdf_vertex_color_by_prefix(Graph, _, V, VColor):-
   rdf_global_id(Prefix:_, V),
   rdf_prefix_color0(Graph, Prefix, VColor), !.
 rdf_vertex_color_by_prefix(Graph, Colorscheme, V, VColor):-
-  rdf_register_prefix_colors(Graph, Colorscheme),
+  rdf_register_prefix_colors([colorscheme(Colorscheme),graph(Graph)]),
   rdf_vertex_color_by_prefix(Graph, Colorscheme, V, VColor).
 
 

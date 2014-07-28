@@ -28,7 +28,8 @@ Searching through an RDF graph.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(graph_theory(graph_generic)).
-:- use_module(rdf_graph(rdf_graph_theory)).
+
+:- use_module(plRdf(rdf_graph_theory)).
 
 :- rdf_meta(rdf_beam(+,r,+,-,-)).
 :- rdf_meta(rdf_breadth_first(+,r,r,-,-)).

@@ -1,5 +1,5 @@
 :- module(
-  rdf_namespace,
+  rdf_prefix,
   [
     rdf_convert_prefixes/6, % +FromPrefix:atom
                             % +ToPrefix:atom
@@ -107,7 +107,7 @@ rdf_prefixes(Graph, Prefixes):-
 %!   -ShortestLocalName:atom
 %! ) is det.
 
-rdf_iri_to_prefix(Resource, LongestPrefix, ShortestLocalName):-
+rdf_iri_to_prefix(Iri, LongestPrefix, ShortestLocalName):-
   findall(
     LocalNameLength-Prefix,
     (

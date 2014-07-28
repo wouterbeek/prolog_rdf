@@ -16,21 +16,21 @@
                      % -LastElement:iri
     rdf_list_length/2, % +List:iri
                        % -Length:number
-    rdf_list_next/2, % ?Element:iri
-                     % ?NextElement:iri
-    rdf_list_occurs_after/2, % +After:iri
-                             % +Before:iri
-    rdf_list_occurs_before/2, % +Before:iri
-                              % +After:iri
-    rdf_list_previous/2, % ?Element:iri
-                         % ?PreviousElement:iri
     rdf_list_member/2, % ?Element
                        % ?RdfList:iri
     rdf_list_name//2, % +Options:list(nvpair)
                       % +RdfList:or([bnode,iri])
-    rdf_list_nth0/3 % +Index:nonneg
-                    % +RdfList:iri
-                    % -Element:or([bnode,iri])
+    rdf_list_next/2, % ?Element:iri
+                     % ?NextElement:iri
+    rdf_list_nth0/3, % +Index:nonneg
+                     % +RdfList:iri
+                     % -Element:or([bnode,iri])
+    rdf_list_occurs_after/2, % +After:iri
+                             % +Before:iri
+    rdf_list_occurs_before/2, % +Before:iri
+                              % +After:iri
+    rdf_list_previous/2 % ?Element:iri
+                        % ?PreviousElement:iri
   ]
 ).
 
@@ -199,20 +199,22 @@ rdf_list(RDFList, [H1|T], Options):-
   rdf_has(RDFList, rdf:rest, RDFTail), !,
   rdf_list(RDFTail, T, Options).
 
-%! rdf_list_first(?List:iri, ?First:iri) is nondet.
-% Pairs of lists and their first element.
-%
-% @arg List an RDF list.
-% @arg First The first element of an RDF list.
+
+%! rdf_list_first(+List:iri, +FirstElement:iri) is semidet.
+%! rdf_list_first(+List:iri, -FirstElement:iri) is nondet.
+%! rdf_list_first(-List:iri, +FirstElement:iri) is nondet.
+%! rdf_list_first(-List:iri, -FirstElement:iri) is nondet.
+% Relates RDF lists to their first element.
 
 rdf_list_first(List, First):-
   rdf_has(List, rdf:first, First).
 
-%! rdf_list_first(?List:iri, ?Last:iri) is nondet.
+
+%! rdf_list_last(+List:iri, +LastElement:iri) is nondet.
+%! rdf_list_last(+List:iri, -LastElement:iri) is nondet.
+%! rdf_list_last(-List:iri, +LastElement:iri) is nondet.
+%! rdf_list_last(-List:iri, -LastElement:iri) is nondet.
 % Pairs of lists and their last element.
-%
-% @arg List an RDF list.
-% @arg Last The last element of an RDF list.
 
 rdf_list_last(List, Last):-
   rdf_has(List, rdf:rest, rdf:nil), !,
@@ -220,6 +222,7 @@ rdf_list_last(List, Last):-
 rdf_list_last(List, Last):-
   rdf_has(List, rdf:rest, NextList),
   rdf_list_last(NextList, Last).
+
 
 %! rdf_list_length(+List:iri, -Length:integer) is det.
 % Returns the number of elements in the given list.
@@ -237,7 +240,26 @@ rdf_list_length(List, Length, Length):-
   rdf_list_length(PartialList, PartialLength, Length),
   succ(PartialLength, Length).
 
-%! rdf_list_next(Element, NextElement) is nondet.
+
+%! rdf_list_member(+Element, +RdfList:iri) is semidet.
+%! rdf_list_member(+Element, -RdfList:iri) is multi.
+%! rdf_list_member(-Element, +RdfList:iri) is multi.
+%! rdf_list_member(-Element, -RdfList:iri) is multi.
+% Variant of member/2 for RDF lists.
+
+rdf_list_member(Element, RdfList):-
+  rdf_list_first(RdfList, FirstElement),
+  rdf_list_member0(Element, FirstElement).
+rdf_list_member0(Element, Element).
+rdf_list_member0(Element, TempElement1):-
+  rdf_list_next(TempElement1, TempElement2),
+  rdf_list_member0(Element, TempElement2).
+
+
+%! rdf_list_next(+Element:iri, +NextElement:iri) is semidet.
+%! rdf_list_next(+Element:iri, -NextElement:iri) is semidet.
+%! rdf_list_next(-Element:iri, +NextElement:iri) is semidet.
+%! rdf_list_next(-Element:iri, -NextElement:iri) is multi.
 % Returns pairs of consecutive elements in a list.
 %
 % @arg Element A resource that is an element in an RDF list.
@@ -274,28 +296,17 @@ rdf_list_occurs_before0(Before1, After):-
 rdf_list_previous(Element, PreviousElement):-
   rdf_list_next(PreviousElement, Element).
 
-%! rdf_list_member(?Element, ?RdfList:rdf_list) is nondet.
-% @see Variant of member/2 for RDF lists.
 
-rdf_list_member(Element, RdfList):-
-  rdf_list_first(RdfList, FirstElement),
-  rdf_list_member_(Element, FirstElement).
-rdf_list_member_(Element, Element).
-rdf_list_member_(Element, TempElement1):-
-  rdf_list_next(TempElement1, TempElement2),
-  rdf_list_member_(Element, TempElement2).
+%! rdf_list_name(+Options:list(nvpair), +RdfList:iri)// is det.
 
-
-%! rdf_list_name(+Options1:list(nvpair), +RdfList:iri)// is det.
-
-rdf_list_name(Options1, RdfList) -->
+rdf_list_name(Options, RdfList) -->
   % Recursively retrieve the contents of the RDF list.
   % This has to be done non-recursively, since the nested
   % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
   % trouble when it comes accross `[b,c]`
   % (which fails the check for RDF list).
   {rdf_list([recursive(false)], RdfList, Terms)},
-  list(rdf_term_name(Option1), Terms).
+  list(rdf_term_name(Options), Terms).
 
 
 %! rdf_list_nth0(+Index:nonneg, +RdfList:iri, -Element:or([bnode,iri])) is det.
