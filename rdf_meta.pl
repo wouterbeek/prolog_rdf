@@ -20,6 +20,9 @@ Meta-callings on an RDF graph.
 @version 2014/01-2014/02, 2014/05, 2014/07
 */
 
+:- use_module(library(option)).
+:- use_module(library(predicate_options)). % Declarations.
+
 :- use_module(os(file_ext)).
 
 :- use_module(plRdf(rdf_deb)).
@@ -91,7 +94,7 @@ rdf_setup_call_cleanup(FromFile, Goal, ToFile, LoadOptions1, SaveOptions1):-
     ),
     call(Goal, TempGraph),
     (
-      merge_option(graph(TempGraph), SaveOptions1, SaveOptions2),
+      merge_options([graph(TempGraph)], SaveOptions1, SaveOptions2),
       rdf_save(ToFile, SaveOptions2),
       rdf_unload_graph(TempGraph)
     )

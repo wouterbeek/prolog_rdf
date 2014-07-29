@@ -218,16 +218,6 @@ rdf_load_stream(Read, Location, Base, Options1):-
 %   2. Make up the file name based on the given graph name.
 %      If the format is specified as well, then this is used to determine
 %      the file extension.
-%
-% The following options are supported:
-%   * =|format(+Format:oneof([ntriples,rdf_xml,turtle])|=
-%     The serialization format in which the graph is exported.
-%   * =|mime(+MIME:oneof(['application/rdf+xml','application/x-turtle','text/plain','text/rdf+n3']))|=
-%
-% @arg Options A list of name-value pairs.
-% @arg File An atomic absolute file name.
-%
-% @throws =|mime_error(+File:atom, +Type:oneof(['RDF']), MIME:atom)|=
 
 % Derive the file name from the graph.
 % This only works if the graph was loaded form file.

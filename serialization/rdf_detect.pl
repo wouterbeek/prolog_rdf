@@ -54,12 +54,12 @@ rdf_guess_format(Stream, ContentType, Options) :-
       new_memory_file(MemFile),
       (
         setup_call_cleanup(
-          open_memory_file(MemFile, write, Write, []),
+          open_memory_file(MemFile, write, Write),
           format(Write, '~s', [String]),
           close(Write)
         ),
         setup_call_cleanup(
-          open_memory_file(MemFile, read, Read, [free_on_close(true)]),
+          open_memory_file(MemFile, read, Read),
           guess_xml_type(Read, ContentType),
           close(Read)
         )
@@ -337,17 +337,24 @@ doc_content_type(Dialect, Top, Attributes, xml) :-
 %  Turtle URI (using <URI>) with a valid xmlns declaration.
 
 xml_doctype(Stream, Dialect, DocType, Attributes) :-
-  catch(setup_call_cleanup(
+  catch(
+    setup_call_cleanup(
       make_parser(Stream, Parser, State),
-      sgml_parse(Parser,
-           [ source(Stream),
-             max_errors(100),
-             syntax_errors(quiet),
-             call(begin, on_begin),
-             call(cdata, on_cdata)
-           ]),
-      cleanup_parser(Stream, Parser, State)),
-        E, true),
+      sgml_parse(
+        Parser,
+        [
+          call(begin, on_begin),
+          call(cdata, on_cdata),
+          max_errors(100),
+          source(Stream),
+          syntax_errors(quiet)
+        ]
+      ),
+      cleanup_parser(Stream, Parser, State)
+    ),
+    E,
+    true
+  ),
   nonvar(E),
   E = tag(Dialect, DocType, Attributes).
 

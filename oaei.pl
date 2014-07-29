@@ -118,6 +118,7 @@ Mismatch types:
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(meta_ext)).
+:- use_module(generics(pair_ext)).
 :- use_module(math(statistics)).
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
@@ -127,6 +128,7 @@ Mismatch types:
 :- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf(rdf_name)).
+:- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_serial)).
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_literal)).
@@ -221,7 +223,7 @@ assert_alignment(From, To, Relation, Measure, Graph):-
 assert_alignments([From-To|Pairs], Graph):- !,
   assert_alignments0([From-To|Pairs], Graph).
 assert_alignments(Set, Graph):-
-  set_to_pairs(Set, @<, Pairs),
+  pair_ext:set_to_pairs(Set, @<, Pairs),
   assert_alignments0(Pairs, Graph).
 
 assert_alignments0(Pairs, Graph):-
