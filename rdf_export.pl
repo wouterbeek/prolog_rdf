@@ -42,7 +42,8 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 :- use_module(dcg(dcg_generic)).
 :- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
-:- use_module(graph_theory(graph_generic)).
+:- use_module(graph_theory(graph_theory)).
+:- use_module(graph_theory(graph_trav)).
 :- use_module(graph_theory(random_vertex_coordinates)).
 :- use_module(svg(svg_colors)).
 
@@ -243,7 +244,13 @@ rdf_register_prefix_colors(Options):-
 rdf_term_to_gif(Term, Gif, Options1):-
   select_option(depth(Depth), Options1, Options2, 1),
   option(graph(Graph), Options2, _VAR),
-  depth(rdf_directed_edge(Options2, Graph), Depth, Term, Vs, Es),
+  bounded_breadthfirst_graph_search(
+    rdf_directed_edge(Options2, Graph),
+    Depth,
+    Term,
+    Vs,
+    Es
+  ),
   rdf_graph_to_gif(Vs, Es, Gif, Options2).
 % Aux.
 rdf_directed_edge(Options, Graph, FromV, ToV):-
