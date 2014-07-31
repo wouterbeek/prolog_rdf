@@ -141,7 +141,7 @@ rdf_graph_to_gif(Vs, Es, Gif, Options1):-
 % or for all RDF graph, but leaving the graph argument uninstantiated.
 
 rdf_register_class_color(Graph, Class, ClassColor):-
-  db_replace_novel(rdf_class_color0(Graph, Class, ClassColor), [e,e,r]).
+  db_replace(rdf_class_color0(Graph,Class,ClassColor), [e,e,r]).
 
 
 %! rdf_register_edge_style(
@@ -153,7 +153,7 @@ rdf_register_class_color(Graph, Class, ClassColor):-
 % or for all RDF graph, but leaving the graph argument uninstantiated.
 
 rdf_register_edge_style(Graph, Predicate, EdgeStyle):-
-  db_replace_novel(rdf_edge_style0(Graph, Predicate, EdgeStyle), [e,e,r]).
+  db_replace(rdf_edge_style0(Graph,Predicate,EdgeStyle), [e,e,r]).
 
 
 %! rdf_register_predicate_label(
@@ -163,7 +163,7 @@ rdf_register_edge_style(Graph, Predicate, EdgeStyle):-
 %! ) is det.
 
 rdf_register_predicate_label(Graph, Predicate, Label):-
-  db_replace_novel(rdf_predicate_label0(Graph, Predicate, Label), [e,e,r]).
+  db_replace(rdf_predicate_label0(Graph,Predicate,Label), [e,e,r]).
 
 
 %! rdf_register_prefix_color(
@@ -175,10 +175,7 @@ rdf_register_predicate_label(Graph, Predicate, Label):-
 % or for all RDF graph, but leaving the graph argument uninstantiated.
 
 rdf_register_prefix_color(Graph, Prefix, PrefixColor):-
-  db_replace_novel(
-    rdf_prefix_color0(Graph, Prefix, PrefixColor),
-    [e,e,r]
-  ).
+  db_replace(rdf_prefix_color0(Graph,Prefix,PrefixColor), [e,e,r]).
 
 
 %! rdf_register_prefix_colors(+Options:list(nvpair)) is det.
@@ -255,7 +252,7 @@ rdf_term_to_gif(Term, Gif, Options1):-
 % Aux.
 rdf_directed_edge(Options, Graph, FromV, ToV):-
   rdf_directed_edge(Graph, Edge, Options),
-  edge_components(Edge, FromV, ToV).
+  edge(Edge, FromV, ToV).
 
 
 
