@@ -49,7 +49,7 @@ rdf_beam(O, V, Ps, Vs, Es):-
   rdf_beam(O, [V], Ps, Vs, [], Es).
 
 rdf_beam(_O, [], _Ps, AllVs, AllEs, AllEs):-
-  graph_theory:edges_to_vertices(AllEs, AllVs), !.
+  edges_to_vertices(AllEs, AllVs), !.
 rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
   aggregate_all(
     set(V-NextV),
@@ -62,7 +62,7 @@ rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
     NextEs
   ),
   ord_union(Es, NextEs, NewEs),
-  graph_theory:edges_to_vertices(NextEs, NextVs),
+  edges_to_vertices(NextEs, NextVs),
   rdf_beam(O, NextVs, Ps, AllVs, NewEs, AllEs).
 
 %! rdf_breadth_first(
