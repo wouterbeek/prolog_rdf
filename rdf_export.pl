@@ -252,7 +252,7 @@ rdf_term_to_gif(Term, Gif, Options1):-
 % Aux.
 rdf_directed_edge(Options, Graph, FromV, ToV):-
   rdf_directed_edge(Graph, Edge, Options),
-  edge(Edge, FromV, ToV).
+  edge_components(Edge, FromV, ToV).
 
 
 
