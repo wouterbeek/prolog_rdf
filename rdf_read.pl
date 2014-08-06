@@ -36,21 +36,18 @@ literals.
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/04, 2013/07-2013/10
-         2014/01, 2014/06
+         2014/01, 2014/06-2014/07
 */
-
-:- rdf_meta(rdf(+,r,r,o,?)).
 
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(xml(xml_namespace)).
-
 :- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf(rdfs_read)).
 
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
+:- rdf_meta(rdf(+,r,r,o,?)).
 :- rdf_meta(rdf_direction(+,r,+,-)).
 :- rdf_meta(rdf_member(r,+)).
 :- rdf_meta(rdf_memberchk(r,+)).
@@ -90,15 +87,6 @@ rdf(O1, S, P, O, Graph):-
 rdf(_, S, P, O, Graph):-
   rdf(S, P, O, Graph).
 
-%! rdf_bnode_to_var(
-%!   +RDF_Term:or([bnode,iri,literal]),
-%!   ?Out:or([iri,literal])
-%! ) is det.
-% Replaced blank nodes with uninstantiated variables.
-
-rdf_bnode_to_var(X, _):-
-  rdf_is_bnode(X), !.
-rdf_bnode_to_var(X, X).
 
 %! rdf_both_bnode(
 %!   +RDF_Term1:or([bnode,iri,literal]),
@@ -186,4 +174,19 @@ rdf_property(G, P):-
 
 rdfg(S, P, O, G):-
   rdf([graph_mode(no_index)], S, P, O, G).
+
+
+
+% Helpers.
+
+%! rdf_bnode_to_var(
+%!   +Term:or([bnode,iri,literal]),
+%!   -TermOrVar:or([iri,literal])
+%! ) is det.
+% Replaces blank nodes with uninstantiated variables,
+% and returns IRIs and literals unchanged.
+
+rdf_bnode_to_var(X, _):-
+  rdf_is_bnode(X), !.
+rdf_bnode_to_var(X, X).
 

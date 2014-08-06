@@ -17,8 +17,11 @@
 Meta-callings on an RDF graph.
 
 @author Wouter Beek
-@version 2014/01-2014/02, 2014/05
+@version 2014/01-2014/02, 2014/05, 2014/07
 */
+
+:- use_module(library(option)).
+:- use_module(library(predicate_options)). % Declarations.
 
 :- use_module(os(file_ext)).
 
@@ -32,13 +35,20 @@ Meta-callings on an RDF graph.
 :- meta_predicate(rdf_setup_call_cleanup(+,1,?,+,+)).
 
 :- predicate_options(rdf_setup_call_cleanup/3, 3, [
-     pass_to(rdf_setup_call_cleanup/5, 5)
+     pass_to(rdf_load_any/2, 2)
    ]).
 :- predicate_options(rdf_setup_call_cleanup/5, 5, [
-     
+     pass_to(output_file_based_on_input_file/3, 3),
+     pass_to(rdf_load_any/2, 2),
+     pass_to(rdf_save/2, 2)
+   ]).
+:- predicate_options(output_file_based_on_input_file/3, 3, [
+     pass_to(ensure_format/3, 3)
+   ]).
 :- predicate_options(ensure_format/3, 3, [
      format(+atom)
    ]).
+
 
 
 %! rdf_setup_call_cleanup(
@@ -80,11 +90,11 @@ rdf_setup_call_cleanup(FromFile, Goal, ToFile, LoadOptions1, SaveOptions1):-
     (
       rdf_new_graph(temp, TempGraph),
       merge_options([graph(TempGraph)], LoadOptions1, LoadOptions2),
-      rdf_load_any(From, LoadOptions2)
+      rdf_load_any(FromFile, LoadOptions2)
     ),
     call(Goal, TempGraph),
     (
-      merge_option(graph(TempGraph), SaveOptions1, SaveOptions2),
+      merge_options([graph(TempGraph)], SaveOptions1, SaveOptions2),
       rdf_save(ToFile, SaveOptions2),
       rdf_unload_graph(TempGraph)
     )
@@ -107,28 +117,32 @@ ensure_format(_, Format, Options):-
 ensure_format(File, Format, _):-
   nonvar(File),
   file_name_extension(_, Extension, File),
-  rdf_serialization(Extension, _, Format, _, _).
+  rdf_file_extension(Extension, Format).
 ensure_format(_, ntriples, _).
 
 
 %! output_file_based_on_input_file(
 %!   +FromFile:atom,
-%!   +ToFile:atom,
+%!   ?ToFile:atom,
 %!   +SaveOptions:list(nvpair)
 %! ) is det.
+% Returns the name of the output file, based on the given input file
+% and sae options.
 
-% If the output file is not given, then it is based on the input file.
+% If the output file is already given, then we are done.
 output_file_based_on_input_file(_, ToFile, _):-
   nonvar(ToFile),
   is_absolute_file_name(ToFile), !.
+% If the output file is not given, then it is based on the input file.
 output_file_based_on_input_file(FromFile, ToFile, SaveOptions):-
   ensure_format(ToFile, ToFormat, SaveOptions),
-  once(rdf_serialization(ToFileExtension, _, ToFormat, _, _)),
+  rdf_file_extension(ToExtension, ToFormat),
+  % If the from file is a directory, then call the to file `output`.
   (
     exists_directory(FromFile)
   ->
-    file_name(ToFile, FromFile, output, ttl)
+    file_name(ToFile, FromFile, output, ToExtension)
   ;
-    file_alternative(FromFile, _, _, ToExt, ToFile)
+    file_alternative(FromFile, _, _, ToExtension, ToFile)
   ).
 

@@ -139,19 +139,20 @@ rdf_language_tagged_string(Subject, Predicate, LexicalForm, LangTag, Graph):-
 % Look for the preferred languages, in order of occurrence in
 % the given list of language tags.
 
+% Allow a single language tag to be given as argument.
 rdf_preferred_language_tagged_string(LangTag1, S, P, LexicalForm, LangTag2, G):-
   \+ is_list(LangTag1), !,
   rdf_preferred_language_tagged_string([LangTag1], S, P, LexicalForm, LangTag2, G).
+% A label with a preferred language tag exists.
 rdf_preferred_language_tagged_string(LangTags, S, P, LexicalForm, LangTag, G):-
   % Backtracking over membership ensures
   % that we try all given language tags.
   member(LangTag, LangTags),
   rdf_language_tagged_string(S, P, LexicalForm, LangTag, G), !.
-% If the given language tag cannot be matched at all,
-% take an arbitrary literal.
+% If the given language tag cannot be matched, we take an arbitrary literal.
 rdf_preferred_language_tagged_string(_, S, P, LexicalForm, LangTag, G):-
   rdf_language_tagged_string(S, P, LexicalForm, LangTag, G), !.
-% No language tag at all.
+% If no language tagged string can be found, we look for a simple literal.
 rdf_preferred_language_tagged_string(_, S, P, LexicalForm, _, G):-
   rdf_simple_literal(S, P, LexicalForm, G).
 

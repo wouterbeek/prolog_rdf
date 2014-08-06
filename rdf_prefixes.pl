@@ -1,5 +1,5 @@
 :- module(
-  rdf_namespaces,
+  rdf_prefixes,
   [
     dbpedia_language_tag/1, % ?LanguageTag:atom
     rdf_reduced_location/2 % +FullUrl:url
@@ -7,9 +7,9 @@
   ]
 ).
 
-/** <module> RDF database
+/** <module> RDF prefixes
 
-XML namespace registrations.
+RDF prefix registrations.
 
 @author Wouter Beek
 @version 2014/06-2014/07

@@ -50,8 +50,22 @@ rdf_guess_format(Stream, ContentType, Options) :-
   ->
     true
   ;
-    open_binary_string_stream(String, StartStream),
-    guess_xml_type(StartStream, ContentType)
+    setup_call_cleanup(
+      new_memory_file(MemFile),
+      (
+        setup_call_cleanup(
+          open_memory_file(MemFile, write, Write),
+          format(Write, '~s', [String]),
+          close(Write)
+        ),
+        setup_call_cleanup(
+          open_memory_file(MemFile, read, Read),
+          guess_xml_type(Read, ContentType),
+          close(Read)
+        )
+      ),
+      free_memory_file(MemFile)
+    )
   ).
 
 %! rdf_guess_format(
@@ -323,17 +337,24 @@ doc_content_type(Dialect, Top, Attributes, xml) :-
 %  Turtle URI (using <URI>) with a valid xmlns declaration.
 
 xml_doctype(Stream, Dialect, DocType, Attributes) :-
-  catch(setup_call_cleanup(
+  catch(
+    setup_call_cleanup(
       make_parser(Stream, Parser, State),
-      sgml_parse(Parser,
-           [ source(Stream),
-             max_errors(100),
-             syntax_errors(quiet),
-             call(begin, on_begin),
-             call(cdata, on_cdata)
-           ]),
-      cleanup_parser(Stream, Parser, State)),
-        E, true),
+      sgml_parse(
+        Parser,
+        [
+          call(begin, on_begin),
+          call(cdata, on_cdata),
+          max_errors(100),
+          source(Stream),
+          syntax_errors(quiet)
+        ]
+      ),
+      cleanup_parser(Stream, Parser, State)
+    ),
+    E,
+    true
+  ),
   nonvar(E),
   E = tag(Dialect, DocType, Attributes).
 
@@ -376,18 +397,4 @@ alpha_to_lowers([H|T]) -->
   alpha_to_lowers(T).
 alpha_to_lowers([]) -->
   [].
-
-%! open_binary_string_stream(+String, -Stream) is det.
-%
-%  True when Stream is  a  binary   stream  holding  the context of
-%  String.
-
-open_binary_string_stream(String, Read) :-
-  atom_string(Atom, String),
-  new_memory_file(MF),
-  setup_call_cleanup(
-      open_memory_file(MF, write, Write, []),
-      format(Write, '~w', [Atom]),
-      close(Write)),
-  open_memory_file(MF, read, Read, [free_on_close(true)]).
 

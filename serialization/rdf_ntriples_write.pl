@@ -36,7 +36,7 @@ This means that we can guarantee that the number of triples
 :- use_module(library(semweb/turtle)). % Private predicates.
 :- use_module(library(sgml_write)).
 
-:- use_module(plRdf_term(rdf_bnode)).
+:- use_module(plRdf_ser(rdf_bnode_write)).
 
 
 
@@ -189,7 +189,7 @@ rdf_write_predicate(Iri):-
 % Blank node.
 rdf_write_subject(BNode, BNodePrefix):-
   rdf_is_bnode(BNode), !,
-  rdf_write_bnode(BNodePrefix, BNode).
+  rdf_bnode_write(BNodePrefix, BNode).
 % Predicate.
 rdf_write_subject(Iri, _):-
   rdf_write_predicate(Iri).

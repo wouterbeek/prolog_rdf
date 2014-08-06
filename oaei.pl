@@ -4,7 +4,7 @@
     oaei_check_alignment/2, % +ReferenceAlignments:list(pair(iri))
                             % +RawAlignments:list(pair(iri))
     oaei_file_to_alignments/2, % +File:atom
-                               % -AlignmentPairs:list(pair(iri))
+                               % -AlignmentPairs:ordset(pair(iri))
     tsv_convert_directory/4, % +FromDirectory:atom
                              % +ToDirectory:atom
                              % ?ToMIME:atom
@@ -103,9 +103,10 @@ Mismatch types:
     * Data semantic transformation
 
 @author Wouter Beek
-@version 2013/04-2013/05, 2013/08-2013/09, 2013/12-2014/01, 2014/03
+@version 2013/04-2013/05, 2013/08-2013/09, 2013/12-2014/01, 2014/03, 2014/07
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(debug)).
@@ -117,6 +118,7 @@ Mismatch types:
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(meta_ext)).
+:- use_module(generics(pair_ext)).
 :- use_module(math(statistics)).
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
@@ -125,15 +127,27 @@ Mismatch types:
 
 :- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf(rdf_graph_name)).
+:- use_module(plRdf(rdf_name)).
+:- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_serial)).
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_literal)).
 :- use_module(plRdf_term(rdf_string)).
 
-:- xml_register_namespace(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
+:- rdf_register_prefix(
+     align,
+     'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
+   ).
 
-:- db_add_novel(user:prolog_file_type(owl, owl)).
-:- db_add_novel(user:prolog_file_type(tsv, tsv)).
+:- dynamic(user:prolog_file_type/2).
+:- multifile(user:prolog_file_type/2).
+   :- db_add_novel(user:prolog_file_type(owl, owl)).
+   :- db_add_novel(user:prolog_file_type(tsv, tsv)).
+
+:- rdf_meta(alignment(r,r,?)).
+:- rdf_meta(alignment(r,r,?,?,?)).
+:- rdf_meta(assert_alignment(r,r,+)).
+:- rdf_meta(assert_alignment(r,r,+,+,+)).
 
 :- db_add_novel(user:file_search_path(alignment2, data(alignment2))).
 :- db_add_novel(user:file_search_path(mapping2, alignment2(alignment))).
@@ -142,29 +156,82 @@ Mismatch types:
 
 
 
-alignments_to_oaei_file(As, File):-
-  rdf_new_graph(Graph),
-  maplist(alignment_to_oaei_graph(Graph), As),
-  rdf_save_any(File, [format(turtle),graph(Graph)]).
+%! alignment(?From:iri, ?To:iri, ?Graph:atom) is nondet.
 
-alignment_to_oaei_graph(Graph, X-Y):-
-  rdf_bnode(BNode),
-  rdf_assert(BNode, align:entity1, X, Graph),
-  rdf_assert(BNode, align:entity2, Y, Graph),
-  rdf_assert_string(BNode, align:relation, '=', Graph),
-  rdf_assert_datatype(BNode, align:measure, 1.0, xsd:float, Graph).
+alignment(From, To, Graph):-
+  alignment(From, To, =, 1.0, Graph).
 
-%! oaei_alignment_pair(?Graph:atom, ?From:uri, ?To:uri) is nondet.
+%! alignment(
+%!   ?From:iri,
+%!   ?To:iri,
+%!   ?Relation:atom,
+%!   ?Measure:between(0.0,1.0),
+%!   ?Graph:atom
+%! ) is nondet.
 
-oaei_alignment_pair(Graph, From, To):-
+alignment(From, To, Relation, Measure, Graph):-
   rdf(BNode, align:entity1, From, Graph),
   rdf(BNode, align:entity2, To, Graph),
-  once((
-    rdf_string(BNode, align:relation, '=', Graph),
-    rdf_datatype(BNode, align:measure, 1.0, xsd:float, Graph)
-  ;
-    debug(oaei, 'Non-standard alignment was read from graph ~w.', Graph)
-  )).
+  rdf_string(BNode, align:relation, Relation, Graph),
+  rdf_datatype(BNode, align:measure, Measure, xsd:float, Graph).
+
+
+%! alignments_to_oaei_file(+Alignments:list(pair), +File:atom) is det.
+% @tbd Is the same alignment allowed to occur multiple times?
+%      Otherwise use an ordset i.o. a list.
+
+alignments_to_oaei_file(Alignments, File):-
+  setup_call_cleanup(
+    rdf_new_graph(Graph),
+    (
+      forall(
+        member(From-To, Alignments),
+        assert_alignment(From, To, Graph)
+      ),
+      rdf_save_any(File, [format(turtle),graph(Graph)])
+    ),
+    rdf_unload_graph(Graph)
+  ).
+
+
+%! assert_alignment(+Alignment:pair(iri), +Graph:atom) is det.
+
+assert_alignment(From-To, Graph):-
+  assert_alignment(From, To, Graph).
+
+%! assert_alignment(+From:iri, +To:iri, +Graph:atom) is det.
+
+assert_alignment(From, To, Graph):-
+  assert_alignment(From, To, =, 1.0, Graph).
+
+%! assert_alignment(
+%!   +From:iri,
+%!   +To:iri,
+%!   +Relation:atom,
+%!   +Measure:between(0.0,1.0),
+%!   +Graph:atom
+%! ) is det.
+
+assert_alignment(From, To, Relation, Measure, Graph):-
+  rdf_bnode(BNode),
+  rdf_assert(BNode, align:entity1, From, Graph),
+  rdf_assert(BNode, align:entity2, To, Graph),
+  rdf_assert_string(BNode, align:relation, Relation, Graph),
+  rdf_assert_datatype(BNode, align:measure, Measure, xsd:float, Graph).
+
+
+assert_alignments([From-To|Pairs], Graph):- !,
+  assert_alignments0([From-To|Pairs], Graph).
+assert_alignments(Set, Graph):-
+  pair_ext:set_to_pairs(Set, @<, Pairs),
+  assert_alignments0(Pairs, Graph).
+
+assert_alignments0(Pairs, Graph):-
+  forall(
+    member(From-To, Pairs),
+    assert_alignment(From, To, Graph)
+  ).
+
 
 %! oaei_check_alignment(
 %!   +ReferenceAlignments:list(pair),
@@ -185,7 +252,8 @@ oaei_check_alignment(ReferenceAlignments, RawAlignments):-
   ),
   flush_output(user_output).
 
-oaei_file_to_alignments(File, AlignmentPairs):-
+
+oaei_file_to_alignments(File, Alignments):-
   setup_call_cleanup(
     (
       file_name(File, _, Graph1, _Ext),
@@ -193,24 +261,21 @@ oaei_file_to_alignments(File, AlignmentPairs):-
       rdf_new_graph(Graph1, Graph2),
       rdf_load_any(File, [graph(Graph2)])
     ),
-    oaei_file_to_alignments_(Graph2, AlignmentPairs),
+    oaei_graph_to_alignments(Graph2, Alignments),
     rdf_unload_graph_deb(Graph2)
   ).
-oaei_file_to_alignments_(Graph, AlignmentPairs):-
-  % Retrieve all alignment pairs.
-  findall(
-    X-Y,
-    oaei_alignment_pair(Graph, X, Y),
-    AlignmentPairs
-  ),
 
-  % DEB: Number of alignment pairs.
-  length(AlignmentPairs, L1),
-  debug(
-    oaei,
-    'Graph ~w contains ~w alignment pairs.',
-    [Graph,L1]
+
+%! oaei_graph_to_alignments(+Graph:atom, -Alignments:ordset(pair(iri))) is det.
+
+oaei_graph_to_alignments(Graph, Alignments):-
+  % Retrieve all alignment pairs.
+  aggregate_all(
+    set(From-To),
+    alignment(From, To, Graph),
+    Alignments
   ).
+
 
 tsv_convert_directory(FromDir, ToDir, ap(status(succeed),files(ToFiles))):-
   tsv_convert_directory(FromDir, ToDir, _, ToFiles).
@@ -229,18 +294,21 @@ tsv_convert_directory(FromDir, ToDir, ToMime, ToFiles):-
     ToFiles
   ).
 
-%! tsv_file_to_alignments(+File:atom, -AlignmentPairs:list(pair(iri))) is det.
+
+%! tsv_file_to_alignments(+File:atom, -Alignments:ordset(pair(iri))) is det.
 % Opens a tab separated values file and extracts the alignments it contains
 % as pairs.
 
-tsv_file_to_alignments(F, AlignmentPairs):-
-  % US-ASCII code 32 denotes the horizontal tab.
-  csv_read_file(F, Rows, [arity(2),separator(9)]),
-  findall(
-    X-Y,
-    member(row(X,Y), Rows),
-    AlignmentPairs
+tsv_file_to_alignments(File, Alignments):-
+  csv_read_file(File, Rows, [arity(2),separator(9)]),
+  aggregate_all(
+    set(From-To),
+    member(row(From,To), Rows),
+    Alignments
   ).
+
+
+%! tsv_file_to_oaei_file(+FromFile:atom, +ToFile:atom) is det.
 
 tsv_file_to_oaei_file(FromFile, ToFile):-
   tsv_file_to_alignments(FromFile, Alignments),
@@ -259,6 +327,7 @@ oaei_graph(Graph):-
     rdf(Alignment, _, _, Graph)
   )).
 
+
 %! oaei_ontologies(+Graph:atom, -File1:atom, -File2:atom) is det.
 % Returns the files in which the linked ontologies are stored.
 
@@ -267,16 +336,14 @@ oaei_ontologies(Graph, File1, File2):-
   oaei_ontology(Graph, File2),
   File1 \== File2, !.
 
+
 %! oaei_ontology(+Graph:atom, -File:atom) is nondet.
 % Returns an ontology file used in the given alignment graph.
 
 oaei_ontology(Graph, File):-
-  rdf_string(Ontology, align:location, URI, Graph),
+  rdf_string(Ontology, align:location, Uri, Graph),
   rdfs_individual_of(Ontology, align:'Ontology'),
-  uri_components(
-    URI,
-    uri_components(_, _, Path, _, _)
-  ),
+  uri_components(Uri, uri_components(_,_,Path,_,_)),
   file_base_name(Path, Base),
   absolute_file_name(ontology2(Base), File, [access(read)]).
 

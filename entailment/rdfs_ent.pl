@@ -1,85 +1,90 @@
 :- module(
   rdfs_ent,
   [
-    axiom/4, % ?Regime:atom
-             % ?Subject:or([bnode,iri])
-             % ?Predicate:iri
-             % ?Object:or([bnode,literal,iri])
-    explanation/3, % ?Regime:atom
-                   % ?Rule:atom
-                   % ?Explanation:atom
-    rule/7 % ?Regime:atom
-           % ?Rule:atom
-           % ?Premises:list(compound)
-           % ?Subject:or([bnode,iri])
-           % ?Predicate:iri
-           % ?Object:or([bnode,iri,literal])
-           % ?Graph:atom
+    rdf:axiom/2, % ?Regime:atom
+                 % ?Axiom:compound
+    rdf:explanation/3, % ?Regime:atom
+                       % ?Rule:atom
+                       % ?Explanation:atom
+    rdf:rule_forward/5 % ?Regime:atom
+               % ?Rule:atom
+               % ?Premises:list(compound)
+               % ?Conclusion:compound
+               % ?Graph:atom
   ]
 ).
 
-/** <module> RDFS materialization
+/** <module> RDFS entailment
+
+Specification of entailment rules for RDFS.
 
 @author Wouter Beek
-@see Hayes2004
-@version 2013/08-2013/09, 2014/06
+@see rdf-mt 1.1 (2014)
+@tbd Can prefix expansion be fixed?
+@version 2013/08-2013/09, 2014/06-2014/07
 */
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(settings)).
 
-:- use_module(xml(xml_namespace)).
+:- use_module(math(math_ext)).
 
 :- use_module(plRdf_ent(rdf_bnode_map)).
+:- use_module(plRdf_ent(rdf_ent)). % Max enumerator setting.
 :- use_module(plRdf_term(rdf_plain_literal)).
 :- use_module(plRdf_term(rdf_term)).
 
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-:- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
+%%%%:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+%%%%:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 
-%! axiom(
-%!   ?Regime:atom,
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri])
-%! ) is nondet.
+%! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 
-:- discontiguous(axiom/4).
-:- multifile(axiom/4).
-:- rdf_meta(axiom(?,r,r,r)).
+:- discontiguous(rdf:axiom/2).
+:- multifile(rdf:axiom/2).
+:- rdf_meta(rdf:axiom(?,t)).
 
-%! explanation(?Regime:atom, ?Rule:atom, ?Explanation:atom) is nondet.
+%! rdf:explanation(?Regime:atom, ?Rule:atom, ?Explanation:atom) is nondet.
 
-:- discontiguous(explanation/3).
-:- multifile(explanation/3).
-:- rdf_meta(explanation(?,?,?)).
+:- discontiguous(rdf:explanation/3).
+:- multifile(rdf:explanation/3).
 
-%! rule(
+%! rdf:rule_forward(
 %!   ?Regime:atom,
 %!   ?Rule:atom,
 %!   ?Premises:list(compound),
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri]),
+%!   ?Conclusion:compound,
 %!   ?Graph:atom
 %! ) is nondet.
 
-:- discontiguous(rule/7).
-:- multifile(rule/7).
-:- rdf_meta(rule(?,?,t,r,r,r,?)).
+:- discontiguous(rdf:rule_forward/5).
+:- multifile(rdf:rule_forward/5).
+:- rdf_meta(rdf:rule_forward(?,?,t,t,?)).
 
-:- discontiguous(user:regime/1).
-:- multifile(user:regime/1).
+%! rdf:regime(?Regime:atom) is nondet.
+
+:- discontiguous(rdf:regime/1).
+:- multifile(rdf:regime/1).
 
 
 
-user:regime(rdfs).
+rdf:regime(rdfs).
+
 
 % [gl] Literal instantiation rule
 %      This ensures that every triple that contains a literal and
 %      its similar triple that contains the allocated blank node
 %      (according to the literal generation rule [lg])
 %      are derivable from each other.
-rule(rdfs, gl, [rdf(S,P,B)], S, P, Lit, G):-
+
+rdf:explanation(
+  rdfs,
+  gl,
+  'The literal instantiation rule ensures that every triple that contains\c
+   a literal and the triple that only differs in that it contains\c
+   the blank node allocated to that triple, are derivable from each other.'
+).
+
+rdf:rule_forward(rdfs, gl, [rdf(S,P,B)], rdf(S,P,Lit), G):-
   rdf(S, P, B, G),
   % If the object term is not a blank node,
   % then we do not have to search the blank node-literal mapping.
@@ -88,173 +93,718 @@ rule(rdfs, gl, [rdf(S,P,B)], S, P, Lit, G):-
   % Not every blank node that is an object term in some triple
   % is a generalization for a literal.
   % Therefore, it has to occur in the mapping established by rule [lg].
-  b2r(G, B, Lit),
+  bnode_to_term(G, B, Lit),
   rdf_is_literal(Lit).
 
-% [rdfs1] Literals are instances of =|rdfs:'Literal'|=.
-explanation(
+
+% [rdfs1] Literals are instances of
+%         `http://www.w3.org/2000/01/rdf-schema#Literal`.
+
+rdf:explanation(
   rdfs,
   rdfs1,
   'Literal terms belong to the extension of the RDFS literal class.'
 ).
-rule(rdfs, rdfs1, [rdf(S,P,PlainLit)], B, rdf:type, rdfs:'Literal', G):-
+
+rdf:rule_forward(
+  rdfs,
+  rdfs1,
+  [rdf(S,P,PlainLit)],
+  rdf(
+    B,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#Literal'
+  ),
+  G
+):-
   rdf(S, P, PlainLit, G),
   rdf_plain_literal(PlainLit),
 
-  r2b(G, PlainLit, B).
+  term_to_bnode(G, PlainLit, B).
+
 
 % [rdfs2] Class membership through domain restriction.
-rule(rdfs, rdfs2, [rdf(P,rdfs:domain,C),rdf(S,P,O)], S, rdf:type, C, G):-
-  rdf(P, rdfs:domain, C, G),
+
+rdf:explanation(rdfs, rdfs2, 'Class membership through domain restriction.').
+
+rdf:rule_forward(
+  rdfs,
+  rdfs2,
+  [rdf(P,'http://www.w3.org/2000/01/rdf-schema#domain',C),rdf(S,P,O)],
+  rdf(S,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',C),
+  G
+):-
+  rdf(P, 'http://www.w3.org/2000/01/rdf-schema#domain', C, G),
   rdf_iri(P),
   rdf(S, P, O, G).
 
+
 % [rdfs3] Class membership through range restriction.
-rule(rdfs, rdfs3, [rdf(P,rdfs:range,C),rdf(S,P,O)], O, rdf:type, C, G):-
-  rdf(P, rdfs:range, C, G),
+
+rdf:explanation(rdfs, rdfs3, 'Class membership through range restriction.').
+
+rdf:rule_forward(
+  rdfs,
+  rdfs3,
+  [rdf(P,'http://www.w3.org/2000/01/rdf-schema#range',C),rdf(S,P,O)],
+  rdf(O,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',C),
+  G
+):-
+  rdf(P, 'http://www.w3.org/2000/01/rdf-schema#range', C, G),
   rdf_iri(P),
   rdf(S, P, O, G),
   \+ rdf_is_literal(O).
 
+
 % [rdfs4a] Subject terms are resources.
-explanation(
+
+rdf:explanation(
   rdfs,
   rdfs4a,
   'Terms that occur in the subject position are RDFS resources.'
 ).
-rule(rdfs, rdfs4a, [rdf(S,P,O)], S, rdf:type, rdfs:'Resource', G):-
+
+rdf:rule_forward(
+  rdfs,
+  rdfs4a,
+  [rdf(S,P,O)],
+  rdf(
+    S,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  ),
+  G
+):-
   rdf(S, P, O, G).
+
+
 % [rdfs4b] Object terms are resources.
-explanation(
+
+rdf:explanation(
   rdfs,
   rdfs4b,
   'Terms that occur in the object position are RDFS resources.'
 ).
-rule(rdfs, rdfs4b, [rdf(S,P,O)], O, rdf:type, rdfs:'Resource', G):-
+
+rdf:rule_forward(
+  rdfs,
+  rdfs4b,
+  [rdf(S,P,O)],
+  rdf(
+    O,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  ),
+  G
+):-
   rdf(S, P, O, G),
   \+ rdf_is_literal(O).
 
+
 % [rdfs5] Transitive closure of the property hierarchy relation.
-rule(rdfs, rdfs5, [rdf(P1,rdfs:subPropertyOf,P2),rdf(P2,rdfs:subPropertyOf,P3)], P1, rdfs:subPropertyOf, P3, G):-
-  rdf(P1, rdfs:subPropertyOf, P2, G),
+
+rdf:explanation(
+  rdfs,
+  rdfs5,
+  'Transitive closure of the property hierarchy relation.'
+).
+
+rdf:rule_forward(
+  rdfs,
+  rdfs5,
+  [
+    rdf(P1,'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',P2),
+    rdf(P2,'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',P3)
+  ],
+  rdf(P1,'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',P3),
+  G
+):-
+  rdf(P1, 'http://www.w3.org/2000/01/rdf-schema#subPropertyOf', P2, G),
   % `P2` is automatically constrained to blank nodes and IRIs,
   % since is must appear as the subject term of some triple.
-  rdf(P2, rdfs:subPropertyOf, P3, G).
+  rdf(P2, 'http://www.w3.org/2000/01/rdf-schema#subPropertyOf', P3, G).
+
 
 % [rdfs6] Reflexivity of the property hierarchy relation.
-rule(rdfs, rdfs6, [rdf(P,rdf:type,rdf:'Property')], P, rdfs:subPropertyOf, P, G):-
-  rdf(P, rdf:type, rdf:'Property', G).
+
+rdf:explanation(
+  rdfs,
+  rdfs6,
+  'Reflexivity of the property hierarchy relation.'
+).
+
+rdf:rule_forward(
+  rdfs,
+  rdfs6,
+  [
+    rdf(
+      P,
+      'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+    )
+  ],
+  rdf(P,'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',P),
+  G
+):-
+  rdf(
+    P,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property',
+    G
+  ).
+
 
 % [rdfs7] Using the property hierarchy.
-rule(rdfs, rdfs7, [rdf(P1,rdfs:subPropertyOf,P2),rdf(S,P1,O)], S, P2, O, G):-
-  rdf(P1, rdfs:subPropertyOf, P2, G),
+
+rdf:explanation(rdfs, rdfs7, 'Using the property hierarchy.').
+
+rdf:rule_forward(
+  rdfs,
+  rdfs7,
+  [
+    rdf(P1,'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',P2),
+    rdf(S,P1,O)
+  ],
+  rdf(S,P2,O),
+  G
+):-
+  rdf(P1, 'http://www.w3.org/2000/01/rdf-schema#subPropertyOf', P2, G),
   rdf_iri(P1),
   rdf_iri(P2),
   rdf(S, P1, O, G).
 
-% [rdfs8] Classes are instances of =|rdfs:Resource|=.
-rule(rdfs, rdfs8, [rdf(C,rdf:type,rdfs:'Class')], C, rdfs:subClassOf, rdfs:'Resource', G):-
-  rdf(C, rdf:type, rdfs:'Class', G).
+
+% [rdfs8] Classes are instances of =|'http://www.w3.org/2000/01/rdf-schema#Resource'|=.
+
+rdf:explanation(rdfs, rdfs8, 'Classes are instances of =|rdfs:Resource|=').
+
+rdf:rule_forward(
+  rdfs,
+  rdfs8,
+  [
+    rdf(
+      C,
+      'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      'http://www.w3.org/2000/01/rdf-schema#Class'
+    )
+  ],
+  rdf(
+    C,
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  ),
+  G
+):-
+  rdf(
+    C,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#Class',
+    G
+  ).
+
 
 % [rdfs9] Using the class hierarchy.
-rule(rdfs, rdfs9, [rdf(C1,rdfs:subClassOf,C2),rdf(I,rdf:type,C1)], I, rdf:type, C2, G):-
-  rdf(C1, rdfs:subClassOf, C2, G),
+
+rdf:explanation(
+  rdfs,
+  rdfs9,
+  'Instantiation is closed under the class hierarchy.'
+).
+
+rdf:rule_forward(
+  rdfs,
+  rdfs9,
+  [
+    rdf(C1,'http://www.w3.org/2000/01/rdf-schema#subClassOf',C2),
+    rdf(I,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',C1)
+  ],
+  rdf(I,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',C2),
+  G
+):-
+  rdf(C1, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C2, G),
   % `C1` is automatically constrained to blank nodes and IRIs,
   % since is must have appeared as the subject term of some triple.
-  rdf(I, rdf:type, C1, G).
+  rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C1, G).
+
 
 % [rdfs10] Reflexivity of the class hierarchy relation.
-rule(rdfs, rdfs10, [rdf(C,rdf:type,rdfs:'Class')], C, rdfs:subClassOf, C, G):-
-  rdf(C, rdf:type, rdfs:'Class', G).
+
+rdf:explanation(rdfs, rdfs10, 'Reflexivity of the class hierarchy relation.').
+
+rdf:rule_forward(
+  rdfs,
+  rdfs10,
+  [
+    rdf(
+      C,
+      'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      'http://www.w3.org/2000/01/rdf-schema#Class'
+    )
+  ],
+  rdf(C,'http://www.w3.org/2000/01/rdf-schema#subClassOf',C),
+  G
+):-
+  rdf(
+    C,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#Class',
+    G
+  ).
+
 
 % [rdfs11] Transitivity of the class hierarchy relation.
-rule(rdfs, rdfs11, [rdf(C1,rdfs:subClassOf,C2),rdf(C2,rdfs:subClassOf,C3)], C1, rdfs:subClassOf, C3, G):-
-  rdf(C1, rdfs:subClassOf, C2, G),
+
+rdf:explanation(
+  rdfs,
+  rdfs11,
+  'Transitivity of the class hierarchy relation.'
+).
+
+rdf:rule_forward(
+  rdfs,
+  rdfs11,
+  [
+    rdf(C1,'http://www.w3.org/2000/01/rdf-schema#subClassOf',C2),
+    rdf(C2,'http://www.w3.org/2000/01/rdf-schema#subClassOf',C3)
+  ],
+  rdf(C1,'http://www.w3.org/2000/01/rdf-schema#subClassOf',C3),
+  G
+):-
+  rdf(C1, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C2, G),
   \+ rdf_is_literal(C2),
-  rdf(C2, rdfs:subClassOf, C3, G).
+  rdf(C2, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C3, G).
 
-% [rdfs12]
-rule(rdfs, rdfs12, [rdf(P,rdf:type,rdfs:'ContainerMembershipProperty')], P, rdfs:subPropertyOf, rdfs:member, G):-
-  rdf(P, rdf:type, rdfs:'ContainerMembershipProperty', G).
 
-% [rdfs13]
-rule(rdfs, rdfs13, [rdf(D,rdf:type,rdfs:'Datatype')], D, rdfs:subClassOf, rdfs:'Literal', G):-
-  rdf(D, rdf:type, rdfs:'Datatype', G).
+% [rdfs12] Container membership properties are subproperties
+%          of the member property.
+
+rdf:explanation(
+  rdfs,
+  rdfs12,
+  'Container membership properties are subproperties of the member property.'
+).
+
+rdf:rule_forward(
+  rdfs,
+  rdfs12,
+  [
+    rdf(
+      P,
+      'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      'http://www.w3.org/2000/01/rdf-schema#ContainerMembershipProperty'
+    )
+  ],
+  rdf(
+    P,
+    'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',
+    'http://www.w3.org/2000/01/rdf-schema#member'
+  ),
+  G
+):-
+  rdf(
+    P,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#ContainerMembershipProperty',
+    G
+  ).
+
+
+% [rdfs13] Datatypes are subclasses of literal.
+
+rdf:explanation(rdfs, rdfs13, 'Datatypes are subclasses of literal.').
+
+rdf:rule_forward(
+  rdfs,
+  rdfs13,
+  [
+    rdf(
+      D,
+      'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      'http://www.w3.org/2000/01/rdf-schema#Datatype'
+    )
+  ],
+  rdf(
+    D,
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#Literal'
+  ),
+  G
+):-
+  rdf(
+    D,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#Datatype',
+    G
+  ).
 
 
 
 % RDFS axiomatic triples: domain.
-axiom(rdfs,  rdf:type,          rdfs:domain, rdfs:'Resource' ).
-axiom(rdfs, rdfs:domain,        rdfs:domain,  rdf:'Property' ).
-axiom(rdfs, rdfs:range,         rdfs:domain,  rdf:'Property' ).
-axiom(rdfs, rdfs:subPropertyOf, rdfs:domain,  rdf:'Property' ).
-axiom(rdfs, rdfs:subClassOf,    rdfs:domain, rdfs:'Class'    ).
-axiom(rdfs,  rdf:subject,       rdfs:domain,  rdf:'Statement').
-axiom(rdfs,  rdf:predicate,     rdfs:domain,  rdf:'Statement').
-axiom(rdfs,  rdf:object,        rdfs:domain,  rdf:'Statement').
-axiom(rdfs, rdfs:member,        rdfs:domain, rdfs:'Resource' ).
-axiom(rdfs,  rdf:first,         rdfs:domain,  rdf:'List'     ).
-axiom(rdfs,  rdf:rest,          rdfs:domain,  rdf:'List'     ).
-axiom(rdfs, rdfs:seeAlso,       rdfs:domain, rdfs:'Resource' ).
-axiom(rdfs, rdfs:isDefinedBy,   rdfs:domain, rdfs:'Resource' ).
-axiom(rdfs, rdfs:comment,       rdfs:domain, rdfs:'Resource' ).
-axiom(rdfs, rdfs:label,         rdfs:domain, rdfs:'Resource' ).
-axiom(rdfs,  rdf:value,         rdfs:domain, rdfs:'Resource' ).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Class'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#object',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#member',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#first',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#List'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#List'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#seeAlso',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#isDefinedBy',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#comment',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#label',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#value',
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
 
 % RDFS axiomatic triples: range.
-axiom(rdfs,  rdf:type,          rdfs:range, rdfs:'Class'   ).
-axiom(rdfs, rdfs:domain,        rdfs:range, rdfs:'Class'   ).
-axiom(rdfs, rdfs:range,         rdfs:range, rdfs:'Class'   ).
-axiom(rdfs, rdfs:subPropertyOf, rdfs:range,  rdf:'Property').
-axiom(rdfs, rdfs:subClassOf,    rdfs:range, rdfs:'Class'   ).
-axiom(rdfs,  rdf:subject,       rdfs:range, rdfs:'Resource').
-axiom(rdfs,  rdf:predicate,     rdfs:range, rdfs:'Resource').
-axiom(rdfs,  rdf:object,        rdfs:range, rdfs:'Resource').
-axiom(rdfs, rdfs:member,        rdfs:range, rdfs:'Resource').
-axiom(rdfs,  rdf:first,         rdfs:range, rdfs:'Resource').
-axiom(rdfs,  rdf:rest,          rdfs:range,  rdf:'List'    ).
-axiom(rdfs, rdfs:seeAlso,       rdfs:range, rdfs:'Resource').
-axiom(rdfs, rdfs:isDefinedBy,   rdfs:range, rdfs:'Resource').
-axiom(rdfs, rdfs:comment,       rdfs:range, rdfs:'Literal' ).
-axiom(rdfs, rdfs:label,         rdfs:range, rdfs:'Literal' ).
-axiom(rdfs,  rdf:value,         rdfs:range, rdfs:'Resource').
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Class'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Class'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Class'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Class'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#object',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#member',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#first',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#List'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#seeAlso',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#isDefinedBy',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#comment',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Literal'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#label',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Literal'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#value',
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+).
 
 % RDFS axiomatic triples: subclass hierarchy.
-axiom(rdfs,  rdf:'Alt', rdfs:subClassOf, rdfs:'Container').
-axiom(rdfs,  rdf:'Bag', rdfs:subClassOf, rdfs:'Container').
-axiom(rdfs,  rdf:'Seq', rdfs:subClassOf, rdfs:'Container').
-axiom(rdfs, rdfs:'ContainerMembershipProperty', rdfs:subClassOf, rdf:'Property').
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Alt',
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#Container'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag',
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#Container'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq',
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#Container'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#ContainerMembershipProperty',
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'
+  )
+).
 
 % RDFS axiomatic triples: subproperty hierarchy.
-axiom(rdfs, rdfs:isDefinedBy, rdfs:subPropertyOf, rdfs:seeAlso).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#isDefinedBy',
+    'http://www.w3.org/2000/01/rdf-schema#subPropertyOf',
+    'http://www.w3.org/2000/01/rdf-schema#seeAlso'
+  )
+).
 
 % RDFS axiomatic triples: datatypes.
-axiom(rdfs,  rdf:'XMLLiteral',  rdf:type,       rdfs:'Datatype').
-axiom(rdfs,  rdf:'XMLLiteral', rdfs:subClassOf, rdfs:'Literal' ).
-axiom(rdfs, rdfs:'Datatype',   rdfs:subClassOf, rdfs:'Class'   ).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral',
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#Datatype'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral',
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#Literal'
+  )
+).
+rdf:axiom(
+  rdfs,
+  rdf(
+    'http://www.w3.org/2000/01/rdf-schema#Datatype',
+    'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+    'http://www.w3.org/2000/01/rdf-schema#Class'
+  )
+).
 
 % RDFS axiomatic triples: container membership properies.
-/*
-axiom(rdfs, rdf:'_1',  rdf:type,   rdfs:'ContainerMembershipProperty').
-axiom(rdfs, rdf:'_1', rdfs:domain, rdfs:'Resource'                   ).
-axiom(rdfs, rdf:'_1', rdfs:range,  rdfs:'Resource'                   ).
-axiom(rdfs, rdf:'_2',  rdf:type,   rdfs:'ContainerMembershipProperty').
-axiom(rdfs, rdf:'_2', rdfs:domain, rdfs:'Resource'                   ).
-axiom(rdfs, rdf:'_2', rdfs:range,  rdfs:'Resource'                   ).
-axiom(rdfs, rdf:'_3',  rdf:type,   rdfs:'ContainerMembershipProperty').
-axiom(rdfs, rdf:'_3', rdfs:domain, rdfs:'Resource'                   ).
-axiom(rdfs, rdf:'_3', rdfs:range,  rdfs:'Resource'                   ).
-*/
-% There is an infinite number of RDFS axioms for integer enumeration...
-axiom(rdfs, UriRef, rdf:type, rdfs:'ContainerMembershipProperty'):-
-  between(1, 3, Integer),
+% There is an infinite number of RDFS axioms for integer enumeration.
+rdf:axiom(
+  rdfs,
+  rdf(
+    P,
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+    'http://www.w3.org/2000/01/rdf-schema#ContainerMembershipProperty'
+  )
+):-
+  setting(rdf:max_enumerator, High),
+  betwixt(1, High, Integer),
   format(atom(Local), '_~w', [Integer]),
-  rdf_global_id(rdf:Local, UriRef).
-axiom(rdfs, UriRef, rdfs:domain, rdfs:'Resource'):-
-  between(1, 3, Integer),
+  rdf_global_id(rdf:Local, P).
+rdf:axiom(
+  rdfs,
+  rdf(
+    P,
+    'http://www.w3.org/2000/01/rdf-schema#domain',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+):-
+  setting(rdf:max_enumerator, High),
+  betwixt(1, High, Integer),
   format(atom(Local), '_~w', [Integer]),
-  rdf_global_id(rdf:Local, UriRef).
-axiom(rdfs, UriRef, rdfs:range, rdfs:'Resource'):-
-  between(1, 3, Integer),
+  rdf_global_id(rdf:Local, P).
+rdf:axiom(
+  rdfs,
+  rdf(
+    P,
+    'http://www.w3.org/2000/01/rdf-schema#range',
+    'http://www.w3.org/2000/01/rdf-schema#Resource'
+  )
+):-
+  setting(rdf:max_enumerator, High),
+  betwixt(1, High, Integer),
   format(atom(Local), '_~w', [Integer]),
-  rdf_global_id(rdf:Local, UriRef).
+  rdf_global_id(rdf:Local, P).
+

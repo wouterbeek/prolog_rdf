@@ -43,7 +43,7 @@ Predicates for building higher-level RDFS constructs.
 %! ) is det.
 
 rdfs_assert_class(Class, Parent, Label, Comment, Graph):-
-  rdfs_assert_class(Class, Parent, Graph),
+  rdfs_assert_subclass(Class, Parent, Graph),
   rdfs_assert_label(Class, Label, en, Graph),
   rdfs_assert_comment(Class, Comment, en, Graph).
 

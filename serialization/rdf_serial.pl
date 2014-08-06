@@ -65,7 +65,7 @@ Also easily converts between different RDF serializations.
 :- use_module(os(unpack)).
 
 :- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdf_namespaces)).
+:- use_module(plRdf(rdf_prefixes)).
 :- use_module(plRdf_ser(rdf_detect)).
 :- use_module(plRdf_ser(rdf_ntriples_write)).
 
@@ -177,6 +177,11 @@ rdf_load_any0(Input, Options1):-
   ->
     Pairs0 = Pairs
   ;
+    option(graph(Graph), Options1),
+    Pairs = [_-Graph]
+  ->
+    true
+  ;
     true
   ).
 
@@ -213,16 +218,6 @@ rdf_load_stream(Read, Location, Base, Options1):-
 %   2. Make up the file name based on the given graph name.
 %      If the format is specified as well, then this is used to determine
 %      the file extension.
-%
-% The following options are supported:
-%   * =|format(+Format:oneof([ntriples,rdf_xml,turtle])|=
-%     The serialization format in which the graph is exported.
-%   * =|mime(+MIME:oneof(['application/rdf+xml','application/x-turtle','text/plain','text/rdf+n3']))|=
-%
-% @arg Options A list of name-value pairs.
-% @arg File An atomic absolute file name.
-%
-% @throws =|mime_error(+File:atom, +Type:oneof(['RDF']), MIME:atom)|=
 
 % Derive the file name from the graph.
 % This only works if the graph was loaded form file.
@@ -248,16 +243,28 @@ rdf_save_any(File, Options1):-
     % Make sure the contents of the graph were not changed.
     option(graph(Graph), Options1),
     rdf_graph_property(Graph, modified(false)),
+
     % Make sure the file is the same.
     rdf_graph_property(Graph, source(FromFile1)),
     http_path_correction(FromFile1, FromFile2),
-    FromFile2 == File
+    FromFile2 == File,
+
+    % The file was not modified after the graph was loaded.
+    rdf_graph_property(Graph, source_last_modified(LastModified)),
+    exists_file(File),
+    time_file(File, LastModified)
   ->
     debug(rdf_serial, 'No need to save graph ~w; no updates.', [Graph])
   ;
     select_option(graph(Graph), Options1, Options2, _NoGraph),
     select_option(format(Format), Options2, Options3, turtle),
+    
+    % Make sure the directory for the given file name exists.
+    % A new file in an existing directory is created on the fly.
+    create_file_directory(File),
+    
     rdf_save_any(Options3, Format, Graph, File),
+    
     debug(
       rdf_serial,
       'Graph ~w was saved in ~w serialization to file ~w.',

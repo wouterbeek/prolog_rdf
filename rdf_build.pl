@@ -91,6 +91,8 @@ rdf_graph(G1, S, P, O, G2):-
 %!   +ToGraph:atom
 %! ) is det.
 % Copies triples between graphs.
+%
+% @tbd Perform blank node renaming.
 
 rdf_copy(FromGraph, S, P, O, ToGraph):-
   forall(

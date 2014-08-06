@@ -14,12 +14,12 @@
   ]
 ).
 
-/** <module> RDF SEARCH
+/** <module> RDF search
 
 Searching through an RDF graph.
 
 @author Wouter Beek
-@version 2013/05
+@version 2013/05, 2014/07
 */
 
 :- use_module(library(aggregate)).
@@ -27,7 +27,9 @@ Searching through an RDF graph.
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(rdf_graph(rdf_graph_theory)).
+:- use_module(plGraph(graph_generic)).
+
+:- use_module(plRdf(rdf_graph_theory)).
 
 :- rdf_meta(rdf_beam(+,r,+,-,-)).
 :- rdf_meta(rdf_breadth_first(+,r,r,-,-)).
@@ -47,7 +49,7 @@ rdf_beam(O, V, Ps, Vs, Es):-
   rdf_beam(O, [V], Ps, Vs, [], Es).
 
 rdf_beam(_O, [], _Ps, AllVs, AllEs, AllEs):-
-  rdf_edges_to_vertices(AllEs, AllVs), !.
+  edges_to_vertices(AllEs, AllVs), !.
 rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
   aggregate_all(
     set(V-NextV),
@@ -60,7 +62,7 @@ rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
     NextEs
   ),
   ord_union(Es, NextEs, NewEs),
-  rdf_edges_to_vertices(NextEs, NextVs),
+  edges_to_vertices(NextEs, NextVs),
   rdf_beam(O, NextVs, Ps, AllVs, NewEs, AllEs).
 
 %! rdf_breadth_first(

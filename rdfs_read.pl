@@ -106,7 +106,7 @@ This is solved by constraining RDFS 11 to non-reflexive
 application of the subclass relation.
 
 @author Wouter Beek
-@tbd How to materialize the membership properties (an infinite lot of them)?
+@tbd How to rdf_materialize the membership properties (an infinite lot of them)?
 @version 2011/08-2012/03, 2012/09, 2012/11-2013/03, 2013/07-2013/09,
          2014/02-2014/03
 */
@@ -385,10 +385,10 @@ rdfs_range_axiom(m(t,_,_), P, C):-
 rdf_same(X, X):- !.
 rdf_same(X, Y):-
   rdf_is_bnode(X),
-  b2r(_, X, Y).
+  bnode_to_term(_, X, Y).
 rdf_same(X, Y):-
   rdf_is_bnode(Y),
-  b2r(_, Y, X).
+  bnode_to_term(_, Y, X).
 
 rdfs_subclass(M, C1, C2, G):-
   rdfs_subclass(r(t,t), M, C1, C2, G).

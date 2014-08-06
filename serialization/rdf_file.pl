@@ -47,10 +47,10 @@ Support for RDF files and file types.
 
 is_rdf_file(File):-
   file_mime(File, Mime),
-  rdf_mime(Mime), !.
+  rdf_content_type(Mime), !.
 is_rdf_file(File):-
   file_name_extension(_, Extension, File),
-  rdf_extension(Extension).
+  rdf_file_extension(Extension).
 
 
 %! rdf_directory_files(+Directory:atom, -RdfFiles:list(atom)) is det.

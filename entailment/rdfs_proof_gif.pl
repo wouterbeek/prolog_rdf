@@ -64,5 +64,5 @@ e_to_eterm(Vs, V1-Rule-V2, edge(Id1,Id2,[label(Rule)])):-
 
 v_to_vterm(Vs, rdf(S,P,O), vertex(Id,rdf(S,P,O),[label(Label)])):-
   nth0(Id, Vs, rdf(S,P,O)),
-  dcg_with_output_to(atom(Label), rdf_triple_name(S, P, O)).
+  dcg_with_output_to(atom(Label), rdf_triple_name(rdf(S,P,O))).
 
