@@ -2,12 +2,12 @@
   rdf_detect,
   [
     rdf_guess_format/3, % +Read:stream
-                        % -ContentType:atom
+                        % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
                         % +Options:list(nvpair)
     rdf_guess_format/4 % +Read:blob
                        % +FileExtension:atom,
-                       % +MediaType:atom,
-                       % -Format:atom
+                       % +ContentType:atom,
+                       % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
   ]
 ).
 
@@ -17,7 +17,7 @@ Detect the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07
+@version 2014/04-2014/05, 2014/07-2014/08
 */
 
 :- use_module(library(dcg/basics)).
@@ -30,23 +30,27 @@ Detect the RDF serialization format of a given stream.
 
 
 
-%! rdf_guess_format(+Stream, -ContentType, +Options) is semidet.
+%! rdf_guess_format(
+%!   +Stream:stream,
+%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml]),
+%!   +Options:list(nvpair)
+%! ) is semidet.
 % True when Stream is thought to contain RDF data using the
 % indicated content type.
 %
 % The following options are processed:
-%    * =|look_ahead(+NumberOfBytes:nonneg)|=
-%      Look ahead the indicated amount
-%    * =|format(+Format)|=
-%      The guessed RDF serialization format,
-%      e.g. based on the media type and/or file name.
+%   * =|look_ahead(+NumberOfBytes:nonneg)|=
+%     Look ahead the indicated amount
+%   * =|format(+Format)|=
+%     The guessed RDF serialization format,
+%     e.g. based on the media type and/or file name.
 
-rdf_guess_format(Stream, ContentType, Options) :-
+rdf_guess_format(Stream, Format, Options) :-
   option(look_ahead(Bytes), Options, 2000),
   peek_string(Stream, Bytes, String),
   (
     string_codes(String, Codes),
-    phrase(rdf_content_type(ContentType, Options), Codes, _)
+    phrase(turtle_like(Format, Options), Codes, _)
   ->
     true
   ;
@@ -60,7 +64,7 @@ rdf_guess_format(Stream, ContentType, Options) :-
         ),
         setup_call_cleanup(
           open_memory_file(MemFile, read, Read),
-          guess_xml_type(Read, ContentType),
+          guess_xml_type(Read, Format),
           close(Read)
         )
       ),
@@ -72,7 +76,7 @@ rdf_guess_format(Stream, ContentType, Options) :-
 %!   +Read:blob,
 %!   +FileExtension:atom,
 %!   +ContentType:atom,
-%!   -Format:atom
+%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
 %! ) is semidet.
 % Fails if the RDF serialization format cannot be decided on.
 
@@ -83,35 +87,34 @@ rdf_guess_format(Read, FileExtension, _, Format):-
   rdf_guess_format(Read, Format, [format(SuggestedFormat)]), !.
 % Use the HTTP content type header as the RDF serialization format suggestion.
 rdf_guess_format(Read, _, ContentType, Format):-
-  nonvar(ContentType),
+  nonvar(Format),
   rdf_content_type(ContentType, SuggestedFormat),
   rdf_guess_format(Read, Format, [format(SuggestedFormat)]), !.
 % Use no RDF serialization format suggestion.
 rdf_guess_format(Read, _, _, Format):-
   rdf_guess_format(Read, Format, []), !.
 
-rdf_content_type(ContentType, Options) -->
-  turtle_like(ContentType, Options), !.
 
-%! turtle_like(-ContentType, +Options)// is semidet.
+%! turtle_like(
+%!   -Format:oneof([nquads,ntriples,turtle,trig]),
+%!   +Options:list(nvpair)
+%! )// is semidet.
+% True if the start of the input matches a turtle-like language.
+% There are four of them:
+%   1. Turtle
+%   2. TRiG
+%   3. ntriples
+%   4. nquads.
 %
-%  True if the start of the   input matches a turtle-like language.
-%  There are four of them:
-%
-%    1. Turtle
-%    2. TRiG
-%    3. ntriples
-%    4. nquads.
-%
-%  The first three can all be handled   by the turtle parser, so it
-%  doesn't matter too much.
+% The first three can all be handled by the turtle parser,
+% so it oesn't matter too much.
 
-turtle_like(ContentType, Options) -->
+turtle_like(Format, Options) -->
   blank, !, blanks,
-  turtle_like(ContentType, Options).
-turtle_like(ContentType, Options) -->
+  turtle_like(Format, Options).
+turtle_like(Format, Options) -->
   "#", !, skip_line,
-  turtle_like(ContentType, Options).
+  turtle_like(Format, Options).
 turtle_like(Format, Options) -->
   "@", icase_keyword(Keyword), {turtle_keyword(Keyword)}, !,
   turtle_or_trig(Format, Options).
@@ -164,10 +167,12 @@ turtle_or_trig(trig).
 
 ... --> "" | [_], ... .
 
-%! nt_turtle_like(-Format, +Options)//
-%
-%  We found a fully qualified triple.  This still can be Turtle,
-%  TriG, ntriples and nquads.
+%! nt_turtle_like(
+%!   -Format:oneof([nquads,ntriples,turtle,trig]),
+%!   +Options:list(nvpair)
+%! )//
+% We found a fully qualified triple.
+% This still can be Turtle, TriG, N-Triples or N-Quads.
 
 nt_turtle_like(Format, Options) -->
   { option(format(Format), Options),
@@ -288,7 +293,7 @@ eols --> [].
      *        READ XML    *
      *******************************/
 
-%! guess_xml_type(+Stream, -ContentType) is semidet.
+%! guess_xml_type(+Stream, -Format:oneof([rdfs,xml])) is semidet.
 %
 %  Try to see whether the document is some  form of HTML or XML and
 %  in particular whether it is  RDF/XML.   The  latter is basically
@@ -302,9 +307,9 @@ eols --> [].
 %  If the toplevel element is detected as =HTML=, we pass =rdfa= as
 %  type.
 
-guess_xml_type(Stream, ContentType) :-
+guess_xml_type(Stream, Format) :-
   xml_doctype(Stream, Dialect, DocType, Attributes),
-  once(doc_content_type(Dialect, DocType, Attributes, ContentType)).
+  once(doc_content_type(Dialect, DocType, Attributes, Format)).
 
 doc_content_type(_,   html, _, rdfa).
 doc_content_type(html,   _,    _, rdfa).
