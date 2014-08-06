@@ -29,8 +29,8 @@ Predicates for building higher-level RDFS constructs.
 :- use_module(plRdf(rdfs_build)).
 :- use_module(plRdf(rdfs_label_ext)).
 
-:- rdf_meta(rdf_assert_class(r,r,+,+,+)).
-:- rdf_meta(rdf_assert_property(r,r,r,+,+,+)).
+:- rdf_meta(rdfs_assert_class(r,r,+,+,+)).
+:- rdf_meta(rdfs_assert_property(r,r,r,+,+,+)).
 
 
 

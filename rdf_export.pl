@@ -45,7 +45,7 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(svg(svg_colors)).
 
-:- use_module(plGraphViz(gv_gif)).
+:- use_module(plGraph(gif_build)).
 
 :- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf(rdf_graph_theory)).
@@ -114,7 +114,7 @@ rdf_graph_to_gif(Graph, Gif, Options):-
 
 rdf_graph_to_gif(Vs, Es, Gif, Options1):-
   select_option(colorscheme(Colorscheme), Options1, Options2, svg),
-  create_gif(
+  build_gif(
     Vs,
     Es,
     Gif,
