@@ -28,7 +28,7 @@
 Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 
 @author Wouter Beek
-@version 2013/01-2013/03, 2013/07-2013/09, 2014/01, 2014/07
+@version 2013/01-2013/03, 2013/07-2013/09, 2014/01, 2014/07-2014/08
 */
 
 :- use_module(library(apply)).
@@ -42,10 +42,11 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 :- use_module(dcg(dcg_generic)).
 :- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
-:- use_module(graph_theory(graph_generic)).
+:- use_module(plc(graph_theory/graph_trav)).
 :- use_module(svg(svg_colors)).
 
 :- use_module(plGraph(gif_build)).
+:- use_module(plGraph(graph_generic)).
 
 :- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf(rdf_graph_theory)).
@@ -58,10 +59,10 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 
 :- rdf_register_prefix(rdf_image, 'http://www.wouterbeek.com/RDF-Image.owl#').
 
-:- dynamic(rdf_class_color0/3).
-:- dynamic(rdf_edge_style0/3).
-:- dynamic(rdf_predicate_label0/3).
-:- dynamic(rdf_prefix_color0/3).
+:- dynamic(rdf:rdf_class_color/3).
+:- dynamic(rdf:rdf_edge_style/3).
+:- dynamic(rdf:rdf_predicate_label/3).
+:- dynamic(rdf:rdf_prefix_color/3).
 
 :- rdf_meta(rdf_register_class_color(+,r,+)).
 :- rdf_meta(rdf_term_to_gif(r,-,+)).
@@ -73,6 +74,7 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
    ]).
 :- predicate_options(rdf_graph_to_gif/4, 4, [
      colorscheme(+oneof([none,svg,x11])),
+     pass_to(gif_build/3, 3),
      pass_to(rdf_term_name//2, 1)
    ]).
 :- predicate_options(rdf_register_prefix_colors/1, 1, [
@@ -114,10 +116,8 @@ rdf_graph_to_gif(Graph, Gif, Options):-
 
 rdf_graph_to_gif(Vs, Es, Gif, Options1):-
   select_option(colorscheme(Colorscheme), Options1, Options2, svg),
-  build_gif(
-    Vs,
-    Es,
-    Gif,
+  merge_options(
+    Options2,
     [
       edge_arrowhead(rdf_export:rdf_edge_arrowhead),
       edge_color(rdf_export:rdf_edge_color(Colorscheme, Graph)),
@@ -130,8 +130,10 @@ rdf_graph_to_gif(Vs, Es, Gif, Options1):-
       vertex_label(rdf_export:rdf_vertex_label(Options2)),
       vertex_peripheries(rdf_export:rdf_vertex_peripheries),
       vertex_shape(rdf_export:rdf_vertex_shape)
-    ]
-  ).
+    ],
+    Options3
+  ),
+  build_gif(Vs, Es, Gif, Options3).
 
 
 %! rdf_register_class_color(+Graph:atom, +Class:iri, +ClassColor:atom) is det.
@@ -139,7 +141,7 @@ rdf_graph_to_gif(Vs, Es, Gif, Options1):-
 % or for all RDF graph, but leaving the graph argument uninstantiated.
 
 rdf_register_class_color(Graph, Class, ClassColor):-
-  db_replace(rdf_class_color0(Graph,Class,ClassColor), [e,e,r]).
+  db_replace(rdf:rdf_class_color(Graph,Class,ClassColor), [e,e,r]).
 
 
 %! rdf_register_edge_style(
@@ -151,7 +153,7 @@ rdf_register_class_color(Graph, Class, ClassColor):-
 % or for all RDF graph, but leaving the graph argument uninstantiated.
 
 rdf_register_edge_style(Graph, Predicate, EdgeStyle):-
-  db_replace(rdf_edge_style0(Graph,Predicate,EdgeStyle), [e,e,r]).
+  db_replace(rdf:rdf_edge_style(Graph,Predicate,EdgeStyle), [e,e,r]).
 
 
 %! rdf_register_predicate_label(
@@ -161,7 +163,7 @@ rdf_register_edge_style(Graph, Predicate, EdgeStyle):-
 %! ) is det.
 
 rdf_register_predicate_label(Graph, Predicate, Label):-
-  db_replace(rdf_predicate_label0(Graph,Predicate,Label), [e,e,r]).
+  db_replace(rdf:rdf_predicate_label(Graph,Predicate,Label), [e,e,r]).
 
 
 %! rdf_register_prefix_color(
@@ -173,7 +175,7 @@ rdf_register_predicate_label(Graph, Predicate, Label):-
 % or for all RDF graph, but leaving the graph argument uninstantiated.
 
 rdf_register_prefix_color(Graph, Prefix, PrefixColor):-
-  db_replace(rdf_prefix_color0(Graph,Prefix,PrefixColor), [e,e,r]).
+  db_replace(rdf:rdf_prefix_color(Graph,Prefix,PrefixColor), [e,e,r]).
 
 
 %! rdf_register_prefix_colors(+Options:list(nvpair)) is det.
@@ -217,7 +219,7 @@ rdf_register_prefix_colors(Options):-
       J is (I * Delta) mod NumberOfColors,
       % J can be 0 becasue of the modulus function, so do not use nth1/3.
       nth0chk(J, Colors, Color),
-      assert(rdf_prefix_color0(Graph, Prefix, Color))
+      assert(rdf:rdf_prefix_color(Graph, Prefix, Color))
     )
   ).
 
@@ -302,7 +304,7 @@ rdf_edge_label(_, _-P-_, ''):-
   ), !.
 % Explicitly registered replacements.
 rdf_edge_label(Graph, _-P-_, ELabel):-
-  rdf_predicate_label0(Graph, P, ELabel), !.
+  rdf:rdf_predicate_label(Graph, P, ELabel), !.
 % The edge label is based on the corresponding predicate term.
 rdf_edge_label(_, _-P-_, ELabel):-
   % The edge name is the name of the predicate term.
@@ -315,7 +317,7 @@ rdf_edge_label(_, _, '').
 
 % Based on registrations.
 rdf_edge_style(Graph, E, EStyle):-
-  rdf_edge_style0(Graph, E, EStyle), !.
+  rdf:rdf_edge_style(Graph, E, EStyle), !.
 % Hierarchy edges.
 rdf_edge_style(_, _-P-_, solid):-
   rdf_memberchk(P, [rdf:type,rdfs:subClassOf,rdfs:subPropertyOf]), !.
@@ -347,7 +349,7 @@ rdf_vertex_color(_, Graph, V, VColor):-
   ;
     rdfs_subclass_of(V, Class)
   ),
-  rdf_class_color0(Graph, Class, VColor), !.
+  rdf:rdf_class_color(Graph, Class, VColor), !.
 % Resource colored based on its namespace.
 rdf_vertex_color(Colorscheme, Graph, V, VColor):-
   (
@@ -388,7 +390,7 @@ rdf_vertex_color(Colorscheme, Graph, V, VColor):-
 
 rdf_vertex_color_by_prefix(Graph, _, V, VColor):-
   rdf_global_id(Prefix:_, V),
-  rdf_prefix_color0(Graph, Prefix, VColor), !.
+  rdf:rdf_prefix_color(Graph, Prefix, VColor), !.
 rdf_vertex_color_by_prefix(Graph, Colorscheme, V, VColor):-
   rdf_register_prefix_colors([colorscheme(Colorscheme),graph(Graph)]),
   rdf_vertex_color_by_prefix(Graph, Colorscheme, V, VColor).
