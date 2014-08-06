@@ -243,16 +243,28 @@ rdf_save_any(File, Options1):-
     % Make sure the contents of the graph were not changed.
     option(graph(Graph), Options1),
     rdf_graph_property(Graph, modified(false)),
+
     % Make sure the file is the same.
     rdf_graph_property(Graph, source(FromFile1)),
     http_path_correction(FromFile1, FromFile2),
-    FromFile2 == File
+    FromFile2 == File,
+
+    % The file was not modified after the graph was loaded.
+    rdf_graph_property(Graph, source_last_modified(LastModified)),
+    exists_file(File),
+    time_file(File, LastModified)
   ->
     debug(rdf_serial, 'No need to save graph ~w; no updates.', [Graph])
   ;
     select_option(graph(Graph), Options1, Options2, _NoGraph),
     select_option(format(Format), Options2, Options3, turtle),
+    
+    % Make sure the directory for the given file name exists.
+    % A new file in an existing directory is created on the fly.
+    create_file_directory(File),
+    
     rdf_save_any(Options3, Format, Graph, File),
+    
     debug(
       rdf_serial,
       'Graph ~w was saved in ~w serialization to file ~w.',

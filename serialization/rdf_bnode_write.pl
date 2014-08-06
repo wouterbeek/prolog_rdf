@@ -1,12 +1,12 @@
 :- module(
-  rdf_bnode,
+  rdf_bnode_write,
   [
     rdf_bnode_prefix/1, % -BNodePrefix:atom
     rdf_bnode_prefix/4, % +Scheme:atom
                         % +Authority:atom
                         % +Hash:atom
                         % -BNodePrefix:atom
-    rdf_write_bnode/2, % +BNodePrefix:atom
+    rdf_bnode_write/2, % +BNodePrefix:atom
                        % +BNode:atom
     reset_bnode_admin/0
   ]
@@ -60,9 +60,9 @@ rdf_bnode_prefix(Scheme, Authority, Hash1, BNodePrefix):-
   uri_components(BNodePrefix, uri_components(Scheme,Authority,Path,_,_)).
 
 
-%! rdf_write_bnode(+BNodePrefix:atom, +BNode:atom) is det.
+%! rdf_bnode_write(+BNodePrefix:atom, +BNode:atom) is det.
 
-rdf_write_bnode(BNodePrefix, BNode):-
+rdf_bnode_write(BNodePrefix, BNode):-
   rdf_bnode_map(BNodePrefix, BNode, MappedBNode),
   
   % If the blank node is replaced by a well-known IRI,
