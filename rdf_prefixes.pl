@@ -373,7 +373,8 @@ dbpedia_language_tag(zh_yue).
 :- rdf_register_reduced_location(skos).
 
 % UMBEL
-:- rdf_register_prefix(umbel, 'http://umbel.org/umbel#').
+% Already registered by ClioPatria.
+:- rdf_register_prefix(umbel, 'http://umbel.org/umbel#', [keep(true)]).
 :- rdf_register_prefix('umbel-sc', 'http://umbel.org/umbel/sc/').
 :- rdf_register_prefix(umbelrc, 'http://umbel.org/umbel/rc/').
 
