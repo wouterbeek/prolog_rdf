@@ -33,7 +33,7 @@ Automated conversion from Prolog terms to RDF triples.
 prolog_to_rdf(Graph, Module, Term, Individual):-
   % Namespace.
   (
-    xml_current_namespace(Module, _), !
+    rdf_current_prefix(Module, _), !
   ;
     atomic_list_concat(['http://www.wouterbeek.com',Module,''], '/', URL),
     rdf_register_prefix(Module, URL)

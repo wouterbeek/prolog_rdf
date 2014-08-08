@@ -81,9 +81,10 @@ rdf_parse_iri(IRI) -->
   colon,
   dcg_all([output_format(atom)], Postfix),
   {(
-    xml_current_namespace(Prefix, _)
+    rdf_current_prefix(Prefix, _)
   ->
     IRI = Prefix:Postfix
   ;
     atomic_list_concat([Prefix,Postfix], ':', IRI)
   )}.
+
