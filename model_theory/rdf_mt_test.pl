@@ -11,14 +11,13 @@ Tests for RDFS model theory.
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf_mt(rdf_mt_build)).
 :- use_module(plRdf_mt(rdf_mt_i)).
 :- use_module(plRdf_mt(rdf_mt_print)).
 
-:- xml_register_namespace(ex, 'http://www.example.com/').
+:- rdf_register_prefix(ex, 'http://www.example.com/').
 
 :- begin_tests(rdf_mt).
 

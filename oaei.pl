@@ -123,7 +123,6 @@ Mismatch types:
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
 :- use_module(pl(pl_mode)).
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_deb)).
 :- use_module(plRdf(rdf_graph_name)).

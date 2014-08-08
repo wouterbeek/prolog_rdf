@@ -33,11 +33,10 @@ Triples with literals are treated in dedicated modules.
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_read)).
 
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 :- rdf_meta(rdf_assert_individual(r,r,+)).
 :- rdf_meta(rdf_assert_property(r,+)).

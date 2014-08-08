@@ -21,7 +21,6 @@ Automated conversion from Prolog terms to RDF triples.
 
 :- use_module(dcg(dcg_content)).
 :- use_module(dcg(dcg_generic)).
-:- use_module(xml(xml_namespace)).
 :- use_module(xsd(xsd)).
 
 :- use_module(plRdf(rdf_build)).
@@ -37,7 +36,7 @@ prolog_to_rdf(Graph, Module, Term, Individual):-
     xml_current_namespace(Module, _), !
   ;
     atomic_list_concat(['http://www.wouterbeek.com',Module,''], '/', URL),
-    xml_register_namespace(Module, URL)
+    rdf_register_prefix(Module, URL)
   ),
 
   % Class.

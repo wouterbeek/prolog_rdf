@@ -28,7 +28,6 @@ Predicates for building OWL ontologies.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(xml(xml_namespace)).
 
 :- rdf_meta(owl_assert_class_equivalence(r,r,+)).
 :- rdf_meta(owl_assert_disjointWith(r,r,+)).
@@ -36,7 +35,7 @@ Predicates for building OWL ontologies.
 :- rdf_meta(owl_retractall_class_equivalence(r,r,+)).
 :- rdf_meta(owl_retractall_resource_identity(r,r,+)).
 
-:- xml_register_namespace(owl, 'http://www.w3.org/2002/07/owl#').
+:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
 
 
 

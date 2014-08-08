@@ -52,12 +52,11 @@ Reification for RDF. Both reading and writing.
 
 :- use_module(dcg(dcg_collection)).
 :- use_module(dcg(dcg_content)).
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_name)).
 
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 :- rdf_meta(rdf_object(r,r,?)).
 :- rdf_meta(rdf_predicate(r,r,?)).

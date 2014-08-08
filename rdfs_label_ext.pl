@@ -45,14 +45,13 @@ Predicates for RDFS labels.
 :- use_module(dcg(dcg_collection)). % Meta-called.
 :- use_module(dcg(dcg_content)). % Meta-called.
 :- use_module(dcg(dcg_generic)).
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_list)).
 :- use_module(plRdf_term(rdf_language_tagged_string)).
 :- use_module(plRdf_term(rdf_literal_build)).
 :- use_module(plRdf_term(rdf_string)).
 
-:- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
+:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 
 :- rdf_meta(rdfs_assert_label(r,+,+)).
 :- rdf_meta(rdfs_assert_label(r,+,+,+)).

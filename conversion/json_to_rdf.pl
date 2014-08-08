@@ -30,7 +30,6 @@ This requires a Prolog module whose name is also registered as
 :- use_module(dcg(dcg_content)). % Meta-argument.
 :- use_module(dcg(dcg_generic)).
 :- use_module(dcg(dcg_replace)). % Meta-argument.
-:- use_module(xml(xml_namespace)).
 :- use_module(xsd(xsd)).
 :- use_module(xsd(xsd_clean)).
 
@@ -122,7 +121,7 @@ json_to_rdf(Graph, Module, XmlNamespace, JSON, Individual):-
     xml_current_namespace(XmlNamespace, _), !
   ;
     atomic_list_concat(['http://www.wouterbeek.com/',Module,'#'], '', URL),
-    xml_register_namespace(XmlNamespace, URL)
+    rdf_register_prefix(XmlNamespace, URL)
   ),
   json_object_to_rdf(Graph, Module, XmlNamespace, JSON, Individual).
 

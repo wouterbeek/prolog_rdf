@@ -49,7 +49,6 @@ Support for RDF lists.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(dcg(dcg_collection)).
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_name)).
@@ -57,7 +56,7 @@ Support for RDF lists.
 :- use_module(plRdf_ent(rdf_bnode_map)).
 :- use_module(plRdf_term(rdf_datatype)).
 
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 :- predicate_options(rdf_assert_list/3, 3, [
      datatype(+atom)

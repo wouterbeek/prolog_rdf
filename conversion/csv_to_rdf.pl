@@ -26,7 +26,6 @@ Automatic conversion from CSV to RDF.
 :- use_module(dcg(dcg_generic)).
 :- use_module(generics(row_ext)).
 :- use_module(http(http_download)).
-:- use_module(xml(xml_namespace)).
 :- use_module(xsd(xsd)). % XML namespace.
 
 :- use_module(plRdf(rdf_build)).

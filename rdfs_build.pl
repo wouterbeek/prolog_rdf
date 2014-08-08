@@ -91,7 +91,6 @@ using the following triples:
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdfs_read)).
@@ -99,8 +98,8 @@ using the following triples:
 :- use_module(plRdf_term(rdf_language_tagged_string)).
 :- use_module(plRdf_term(rdf_string)).
 
-:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-:- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
+:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 
 % CLASS HIERARCHY
 :- rdf_meta(rdfs_assert_class(r,+)).

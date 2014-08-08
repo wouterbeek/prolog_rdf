@@ -40,14 +40,13 @@ When triples including images are read,
 :- use_module(generics(uri_ext)).
 :- use_module(http(http_download)).
 :- use_module(os(image_ext)).
-:- use_module(xml(xml_namespace)).
 
 :- use_module(plRdf(rdf_build)).
 
 :- rdf_meta(rdf_assert_image(+,r,r,r,+)).
 :- rdf_meta(rdf_image(r,r,r,-,?)).
 
-:- xml_register_namespace(dcmit, 'http://purl.org/dc/dcmitype/').
+:- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
 
 
 

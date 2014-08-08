@@ -29,7 +29,6 @@ The following metadata vocabularies are supported:
 
 :- use_module(generics(db_ext)).
 :- use_module(os(file_ext)).
-:- use_module(xml(xml_namespace)).
 
 :- db_add_novel(user:prolog_file_type(log, logging)).
 
@@ -149,7 +148,7 @@ rdf_metadata_download:-
 %! rdf_metadata_download(+Vocabulary:atom, +Url:url) is det.
 
 rdf_metadata_download(Vocabulary, Url):-
-  xml_register_namespace(Vocabulary, Url),
+  rdf_register_prefix(Vocabulary, Url),
   Graph = Url,
   setup_call_cleanup(
     rdf_load(Url, [graph(Graph)]),

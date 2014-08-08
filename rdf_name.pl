@@ -31,7 +31,6 @@ Generates names for RDF terms and triples.
 :- use_module(generics(codes_ext)).
 :- use_module(generics(typecheck)).
 :- use_module(pl(pl_log)).
-:- use_module(xml(xml_namespace)).
 :- use_module(xsd(xsd)).
 
 :- use_module(plRdf_term(rdf_datatype)).
