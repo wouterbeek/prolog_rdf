@@ -45,9 +45,15 @@ rdf_content_type(ContentType):-
 %! rdf_content_type(-ContentType:atom, +Format:atom) is nondet.
 %! rdf_content_type(-ContentType:atom, -Format:atom) is multi.
 
-rdf_content_type(ContentType, Format):-
+rdf_content_type(ContentType1, Format):-
+  content_type_remove_encoding(ContentType1, ContentType2),
   rdf_serialization(_, _, Format, ContentTypes, _),
-  member(ContentType, ContentTypes).
+  member(ContentType2, ContentTypes).
+
+content_type_remove_encoding(ContentType1, ContentType2):-
+  nonvar(ContentType1),
+  atomic_list_concat([ContentType2|_], ';', ContentType1), !.
+content_type_remove_encoding(ContentType, ContentType).
 
 
 %! rdf_file_extension(+Extension:atom) is semidet.

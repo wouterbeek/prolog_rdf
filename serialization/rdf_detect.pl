@@ -46,7 +46,7 @@ Detect the RDF serialization format of a given stream.
 %     e.g. based on the media type and/or file name.
 
 rdf_guess_format(Stream, Format, Options) :-
-  option(look_ahead(Bytes), Options, 2000),
+  option(look_ahead(Bytes), Options, 2500),
   peek_string(Stream, Bytes, String),
   (
     string_codes(String, Codes),
@@ -83,13 +83,13 @@ rdf_guess_format(Stream, Format, Options) :-
 % Use the file extensions as the RDF serialization format suggestion.
 rdf_guess_format(Read, FileExtension, _, Format):-
   nonvar(FileExtension),
-  rdf_db:rdf_file_type(FileExtension, SuggestedFormat),
-  rdf_guess_format(Read, Format, [format(SuggestedFormat)]), !.
+  rdf_db:rdf_file_type(FileExtension, SuggestedFormat), !,
+  rdf_guess_format(Read, Format, [format(SuggestedFormat)]).
 % Use the HTTP content type header as the RDF serialization format suggestion.
 rdf_guess_format(Read, _, ContentType, Format):-
   nonvar(ContentType),
-  rdf_content_type(ContentType, SuggestedFormat),
-  rdf_guess_format(Read, Format, [format(SuggestedFormat)]), !.
+  rdf_content_type(ContentType, SuggestedFormat), !,
+  rdf_guess_format(Read, Format, [format(SuggestedFormat)]).
 % Use no RDF serialization format suggestion.
 rdf_guess_format(Read, _, _, Format):-
   rdf_guess_format(Read, Format, []), !.
