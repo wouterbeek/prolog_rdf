@@ -20,6 +20,7 @@ Also easily converts between different RDF serializations.
 */
 
 :- use_module(library(error)).
+:- use_module(library(http/http_cookie)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
