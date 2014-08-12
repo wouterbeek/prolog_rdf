@@ -68,7 +68,7 @@ Also easily converts between different RDF serializations.
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_prefixes)).
 :- use_module(plRdf_ser(rdf_detect)).
-:- use_module(plRdf_ser(rdf_ntriples_write)).
+:- use_module(plRdf_ser(ctriples_write)).
 
 :- predicate_options(rdf_load_any/2, 2, [
      keep_file(+boolean),
@@ -280,7 +280,7 @@ rdf_save_any(Options1, rdf_xml, Graph, File):- !,
 % Save to N-Triples.
 rdf_save_any(Options1, ntriples, Graph, File):- !,
   merge_options([graph(Graph)], Options1, Options2),
-  rdf_ntriples_write(File, Options2).
+  ctriples_write(File, Options2).
 % Save to Trig.
 rdf_save_any(Options1, trig, Graph, File):- !,
   merge_options([graph(Graph)], Options1, Options2),
