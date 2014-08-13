@@ -50,6 +50,8 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 :- use_module(plRdf_ser(rdf_bnode_write)).
 :- use_module(plRdf_term(rdf_term)).
 
+:- thread_local(ctriples_format/1).
+
 
 
 %! ctriples_write(
@@ -70,6 +72,8 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 %   * =|bnode_base(+atom)|=
 %     Replace blank nodes with an IRI, defined as per
 %     RDF 1.1 spec (see link below).
+%   * =|format(-oneof([quads,triples]))|=
+%     `quads` if at least one named graph occurs, `triples` otherwise.
 %   * =|graph(+atom)|=
 %     The atomic name of a currently loaded RDF graph,
 %     to restrict the triples that are saved,
@@ -114,34 +118,11 @@ ctriples_write(Write, Triples, Options):-
 % This assumes that we can write to current output.
 
 ctriples_write_to_stream(Options):-
-  reset_bnode_admin,
-
-  % Keep track of the number of triples written.
-  State = state(0),
-
-  % Process the option for replacing blank nodes with IRIs,
-  % establishing the prefix for each blank node.
-  (
-    option(bnode_base(Scheme-Authority-Hash), Options)
-  ->
-    rdf_bnode_prefix(Scheme, Authority, Hash, BNodePrefix)
-  ;
-    rdf_bnode_prefix(BNodePrefix)
-  ),
-
-  % Whether triples are read from a specific graph or not.
-  option(graph(Graph), Options, _VAR),
-  ctriples_write_triples(State, BNodePrefix, Graph),
-
-  % Statistics option: number of triples written.
-  (
-    option(number_of_triples(TripleCount), Options)
-  ->
-    arg(1, State, TripleCount)
-  ;
-    true
-  ).
-
+  ctriples_write_to_stream_begin(Options, State, BNodePrefix),
+    % Whether triples are read from a specific graph or not.
+    option(graph(Graph), Options, _VAR),
+    ctriples_write_triples(State, BNodePrefix, Graph),
+  ctriples_write_to_stream_end(Options, State).
 
 %! ctriples_write_to_stream(
 %!   +Triples:list(list(or([atom,bnode,iri,literal]))),
@@ -149,7 +130,20 @@ ctriples_write_to_stream(Options):-
 %! ) is det.
 
 ctriples_write_to_stream(Triples1, Options):-
+  ctriples_write_to_stream_begin(Options, State, BNodePrefix),
+    sort(Triples1, Triples2),
+    maplist(ctriples_write_triple(State, BNodePrefix), Triples2),
+  ctriples_write_to_stream_end(Options, State).
+
+%! ctriples_write_to_stream_begin(
+%!   +Options:list(nvpair),
+%!   -State:compound,
+%!   -BNodePrefix:iri
+%! ) is det.
+
+ctriples_write_to_stream_begin(Options, State, BNodePrefix):-
   reset_bnode_admin,
+  reset_ctriples_format,
 
   % Keep track of the number of triples written.
   State = state(0),
@@ -162,10 +156,22 @@ ctriples_write_to_stream(Triples1, Options):-
     rdf_bnode_prefix(Scheme, Authority, Hash, BNodePrefix)
   ;
     rdf_bnode_prefix(BNodePrefix)
-  ),
+  ).
 
-  sort(Triples1, Triples2),
-  maplist(ctriples_write_triple(State, BNodePrefix), Triples2),
+%! ctriples_write_to_stream_end(
+%!   +Options:list(nvpair),
+%!   +State:compound
+%! ) is det.
+
+ctriples_write_to_stream_end(Options, State):-
+  % The serialization format: triples or quads?
+  (
+    option(format(Format), Options)
+  ->
+    ctriples_format(Format)
+  ;
+    true
+  ),
 
   % Statistics option: number of triples written.
   (
@@ -273,6 +279,9 @@ rdf_write_ctriple(S, P, O, Graph, BNodePrefix):-
   (
     is_url(Graph)
   ->
+    % The format is now C-Quads.
+    set_ctriples_format_to_quads,
+    
     % Named graphs and predicate terms are both IRIs.
     rdf_write_predicate(Graph),
     put_char(' ')
@@ -334,6 +343,20 @@ rdf_write_subject(Iri, _):-
   rdf_write_predicate(Iri).
 
 
+%! reset_ctriples_format is det.
+
+reset_ctriples_format:-
+  retractall(ctriples_format(_)),
+  assert(ctriples_format(triples)).
+
+%! set_ctriples_format_to_quads is det.
+
+set_ctriples_format_to_quads:-
+  ctriples_format(quads), !.
+set_ctriples_format_to_quads:-
+  assert(ctriples_format(quads)).
+
+
 %! sorted_subject_terms(?Graph:atom, -Subjects:ordset(or([bnode,iri]))) is det.
 % Returns a sorted list of subject terms, possibly resricted to a given graph.
 
@@ -350,3 +373,4 @@ sorted_subject_terms(_, Subjects):-
     rdf_subject(Subject),
     Subjects
   ).
+
