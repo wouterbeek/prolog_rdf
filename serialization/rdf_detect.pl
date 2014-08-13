@@ -350,7 +350,7 @@ xml_doctype(Stream, Dialect, DocType, Attributes) :-
         [
           call(begin, on_begin),
           call(cdata, on_cdata),
-          max_errors(100),
+          max_errors(-1),
           source(Stream),
           syntax_errors(quiet)
         ]
