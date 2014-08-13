@@ -200,7 +200,7 @@ rdf_load_stream(Read, Location, Base, Options1):-
   merge_options(
     [base_uri(Base),format(Format),register_namespaces(false)],
     Options1,
-    Options3
+    Options2
   ),
   
   % Add options that are specific to the RDFa serialization format.
