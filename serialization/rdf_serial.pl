@@ -194,18 +194,27 @@ rdf_load_stream(Read, Location, Base, Options1):-
 
   % DEB
   print_message(informational, rdf_load_any(rdf(Base,Format))),
-
+  
   % Collect options: base URI, RDF serialization format, XML namespaces.
   set_stream(Read, file_name(Base)),
   merge_options(
     [base_uri(Base),format(Format),register_namespaces(false)],
     Options1,
-    Options2
+    Options3
   ),
-
+  
+  % Add options that are specific to the RDFa serialization format.
+  (
+    Format == rdfa
+  ->
+    merge_options([max_errors(-1),syntax(style)], Options2, Options3)
+  ;
+    Options3 = Options2
+  ),
+  
   % The actual loading of the RDF data.
   catch(
-    rdf_load(stream(Read), Options2),
+    rdf_load(stream(Read), Options3),
     Exception,
     print_message(warning, Exception)
   ).
