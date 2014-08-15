@@ -45,7 +45,7 @@
 :- rdf_meta(rdf_random_term(+,:,r)).
 :- rdf_meta(rdf_random_triple(r,r,o,?)).
 
-:- predicate_option(rdf_random_neighbor/4, 4, [
+:- predicate_options(rdf_random_neighbor/4, 4, [
      pass_to(rdf_neighbor_vertex/4, 4)
    ]).
 
@@ -94,7 +94,7 @@ rdf_random_neighbor(Graph, V, RndN, Options):-
     rdf_neighbor_vertex(Graph, V, N, Options),
     Ns
   ),
-  random_member(RdN, Ns).
+  random_member(RndN, Ns).
 
 
 rdf_random_term(G, T):-

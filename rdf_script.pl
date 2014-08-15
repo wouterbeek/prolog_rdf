@@ -15,6 +15,7 @@ Scripts for asserting RDF graphs that can be used for debugging.
 @version 2012/12-2013/02, 2013/07, 2014/06
 */
 
+:- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdfs_build)).

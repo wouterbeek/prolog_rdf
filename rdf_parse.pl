@@ -13,6 +13,8 @@ Parses RDF terms.
 @version 2013/07-2013/09, 2014/01
 */
 
+:- use_module(library(semweb/rdf_db)).
+
 :- use_module(dcg(dcg_abnf)).
 :- use_module(dcg(dcg_ascii)).
 :- use_module(dcg(dcg_generic)).
