@@ -11,14 +11,22 @@
 /** <module> Turtle
 
 @author Wouter Beek
-@version 2014/04-2014/05
+@version 2014/04-2014/05, 2014/08
 */
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(readutil)).
+:- use_module(library(semweb/rdf_db)).
 
-:- use_module(sparql(sparql_word)).
+:- use_module(generics(db_ext)).
+:- use_module(sparql(sparql_bnode)).
+:- use_module(sparql(sparql_query)).
 :- use_module(turtle(turtle_number)).
+
+:- use_module(plRdf(rdf_list)).
+
+:- dynamic(base/1).
+:- dynamic(triple/1).
 
 
 
@@ -61,192 +69,253 @@ test(N):-
 
 % GRAMMAR
 
-%! base// .
+%! base// is det.
+% Sets the current Base IRI.
+%
+% The scope of the base IRI
+% starts at the end of the `@base` or `BASE` directive
+% and ends at the beginning of the next `@base` or `BASE` diretive
+% or at the end of the file.
+%
 % ~~~{.abnf}
-% [5]   base ::= '@base' IRIREF '.'
+% base ::= '@base' IRIREF '.'
 % ~~~
+%
+% @compat Turtle 1.1 [5].
 
-base --> `@base`, b, 'IRIREF', b, `.`.
+base -->
+  "@base", b,
+  'IRIREF'(Base),
+  db_replace_all(base(_), base(Base)),
+  b, `.`.
 
 
-%! blankNodePropertyList// .
+
+%! blankNodePropertyList(-BNode:bnode)// .
 % ~~~{.ebnf}
-% [14]   blankNodePropertyList ::= '[' predicateObjectList ']'
+% blankNodePropertyList ::= '[' predicateObjectList ']'
 % ~~~
+%
+% @compat Turtle 1.1 [14].
 
-blankNodePropertyList --> `[`, b, predicateObjectList, b, `]`.
+blankNodePropertyList(BNode) -->
+  {rdf_bnode(BNode)}.
+  bracketed(square, (
+    b, predicateObjectList(BNode), b
+  )).
 
 
-%! collection// .
+
+%! collection(-RdfList:bnode)// .
 % ~~~{.ebnf}
-% [15]   collection ::= '(' object* ')'
+% collection ::= '(' object* ')'
 % ~~~
+%
+% @compat Turtle 1.1 [15].
 
-collection --> `(`, b, 'object*', b, `)`.
+collection(RdfList) -->
+  bracketed(round, (
+    b, 'object*'(Objects), b
+  )),
+  rdf_list(Objects, RdfList).
+'object*'([H|T]) -->
+  object(H), b,
+  'object*'(T).
+'object*'([]) --> [].
 
-'object*' --> object, b, 'object*'.
-'object*' --> [].
 
 
-%! directory// .
+%! directive// .
 % ~~~{.ebnf}
-% [3]   directive ::=		prefixID | base | sparqlPrefix | sparqlBase
+% directive ::= prefixID | base | sparqlPrefix | sparqlBase
 % ~~~
+%
+% @compat Turtle 1.1 [3].
 
 directive --> prefixID.
-directive --> base.
+directive --> base(Base).
 directive --> sparqlPrefix.
 directive --> sparqlBase.
 
 
-%! literal// .
-% ~~~{.ebnf}
-% [13]   literal ::= RDFLiteral | NumericLiteral | BooleanLiteral
-% ~~~
-
-literal --> 'RDFLiteral'.
-literal --> 'NumericLiteral'.
-literal --> 'BooleanLiteral'.
-
-
-%! 'NumericLiteral'// .
-% ~~~{.ebnf}
-% NumericLiteral ::= INTEGER | DECIMAL | DOUBLE
-% ~~~
-%
-% @compat Turtle 1.1 [16].
-
-'NumericLiteral' --> 'DOUBLE'.
-'NumericLiteral' --> 'DECIMAL'.
-'NumericLiteral' --> 'INTEGER'.
-
 
 %! object// .
 % ~~~{.ebnf}
-% [12]   object ::= iri | BlankNode | collection | blankNodePropertyList |
-%                   literal
+% object ::=   iri
+%            | BlankNode
+%            | collection
+%            | blankNodePropertyList
+%            | literal
 % ~~~
+%
+% @compat Turtle 1.1 [12].
 
-object --> iri.
-object --> 'BlankNode'.
-object --> collection.
-object --> blankNodePropertyList.
-object --> literal.
+object(Iri) -->
+  iri(Iri).
+object(BNode) -->
+  'BlankNode'(BNode).
+object(RdfList) -->
+  collection(RdfList).
+object(Literal) -->
+  literal(Literal).
+object(BNode) -->
+  blankNodePropertyList(BNode).
 
 
-%! objectList// .
+
+%! objectList(+Subject:or([bnode,iri]), +Predicate:iri)// .
 % ~~~{.ebnf}
-% [8]   objectList ::= object (',' object)*
+% objectList ::= object (',' object)*
 % ~~~
+%
+% @compat Turtle 1.1 [8].
 
-objectList --> object, 'objectList_2*'.
+objectList(S, P) -->
+  object(O),
+  {rdf_assert(S, P, O)},
+  (
+    comma_separator,
+    object(O),
+    {rdf_assert(S, P, O)},
+    objectList(S, P)
+  ;
+    ""
+  ).
 
-'objectList_2*' --> b, `,`, b, object, 'objectList_2*'.
-'objectList_2*' --> [].
 
 
-%! predicate// .
+%! predicate(-Predicate:iri)// .
 % ~~~{.ebnf}
-% [11]   predicate ::= iri
+% predicate ::= iri
 % ~~~
+%
+% @compat Turtle 1.1 [11].
 
-predicate --> iri.
+predicate(Iri) -->
+  iri(Iri).
 
 
-%! predicateObjectList// .
+%! predicateObjectList(+Subject:or([bnode,iri]))// .
 % ~~~{.ebnf}
-% [7]   predicateObjectList ::= verb objectList (';' (verb objectList)?)*
+% predicateObjectList ::= verb objectList (';' (verb objectList)?)*
 % ~~~
+%
+% @compat Turtle 1.1 [7].
 
-predicateObjectList --> verb, b, objectList, 'predicateObjectList_3*'.
+predicateObjectList(S) -->
+  verb(P), b,
+  objectList(S, P).
+predicateObjectList(S) -->
+  verb(P), b,
+  objectList(S, P),
+  semicolon_separator,
+  predicateObjectList(S).
 
-'predicateObjectList_3*' --> b, `;`, (`` ; b, verb, b, objectList), 'predicateObjectList_3*'.
-'predicateObjectList_3*' --> [].
 
 
 %! prefixID// .
-% ~~~{.abnf}
-% [4]			prefixID ::= '@prefix' PNAME_NS IRIREF '.'
+% ~~~{.ebnf}
+% prefixID ::= '@prefix' PNAME_NS IRIREF '.'
 % ~~~
+%
+% @compat Turtle 1.1 [4].
 
-prefixID --> `@prefix`, b, 'PNAME_NS', b, 'IRIREF', b, `.`.
+prefixID -->
+  "@prefix", b,
+  'PNAME_NS'(PrefixLabel), b,
+  'IRIREF'(Iri), b, `.`,
+  {rdf_register_prefix(PrefixLabel, Iri)}.
+
 
 
 %! sparqlBase// .
 % ~~~{.ebnf}
-% [5s]   sparqlBase ::= "BASE" IRIREF
+% sparqlBase ::= "BASE" IRIREF
 % ~~~
 %
-% @tbd Make `BASE` case-insensitive.
+% @compat Turtle 1.1 [5a].
 
-sparqlBase --> `BASE`, b, 'IRIREF'.
+sparqlBase -->
+  'BaseDecl'(Base),
+  {db_replace(base(_), base(Base))}.
+
 
 
 %! sparqlPrefix// .
 % ~~~{.ebnf}
-% [6s]   sparqlPrefix ::= "PREFIX" PNAME_NS IRIREF
+% sparqlPrefix ::= "PREFIX" PNAME_NS IRIREF
 % ~~~
 %
-% @tbd Make `PREFIX` case-insensitive.
+% @compat Turtle 1.1 [6s].
 
-sparqlPrefix --> `PREFIX`, b, 'PNAME_NS', b, 'IRIREF'.
+sparqlPrefix -->
+  'PrefixDecl'(PrefixLabel, Iri),
+  {rdf_register_prefix(PrefixLabel, Iri)}.
+
 
 
 %! statement// .
 % ~~~{.ebnf}
-% [2]		  statement ::=		directive | triples '.'
-% ~~~
-
-statement --> comment.
-statement --> directive.
-statement --> triples, b, `.`.
-
-
-%! subject// .
-% ~~~{.ebnf}
-% [10]   subject ::= iri | BlankNode | collection
-% ~~~
-
-subject --> iri.
-subject --> 'BlankNode'.
-subject --> collection.
-
-
-%! 'String'// .
-% ~~~{.ebnf}
-% String ::= STRING_LITERAL_QUOTE |
-%            STRING_LITERAL_SINGLE_QUOTE |
-%            STRING_LITERAL_LONG_SINGLE_QUOTE |
-%            STRING_LITERAL_LONG_QUOTE
+% statement ::= directive | triples '.'
 % ~~~
 %
-% @compat Turtle 1.1 [17].
+% @compat Turtle 1.1 [2].
 
-'String' --> 'STRING_LITERAL_QUOTE'.
-'String' --> 'STRING_LITERAL_SINGLE_QUOTE'.
-'String' --> 'STRING_LITERAL_LONG_SINGLE_QUOTE'.
-'String' --> 'STRING_LITERAL_LONG_QUOTE'.
+statement -->
+  comment.
+statement -->
+  directive.
+statement -->
+  triples,
+  b, `.`.
+
+
+
+%! subject(-Subject:or([bnode,iri,literal]))// .
+% ~~~{.ebnf}
+% subject ::= iri | BlankNode | collection
+% ~~~
+%
+% @compat Turtle 1.1 [10].
+
+subject(Iri) --> iri(Iri).
+subject(BNode) --> 'BlankNode'(BNode).
+subject(RdfList) --> collection(RdfList).
+
 
 
 %! triples// .
 % ~~~{.ebnf}
-% [6]   triples ::= subject predicateObjectList |
-%                   blankNodePropertyList predicateObjectList?
+% triples ::=   subject               predicateObjectList
+%             | blankNodePropertyList predicateObjectList?
 % ~~~
+%
+% @compat Turtle 1.1 [6].
 
-triples --> subject, b, predicateObjectList.
-triples --> blankNodePropertyList, (b, 'predicateObjectList'; ``).
+triples -->
+  subject(S), b,
+  predicateObjectList(S).
+triples -->
+  blankNodePropertyList(BNode),
+  (b, predicateObjectList(BNode); "").
 
 
-%! turtleDoc// .
+
+%! turtleDoc(-Triples:list(compound))// .
 % ~~~{.ebnf}
-% [1]   turtleDoc ::=		statement*
+% turtleDoc ::= statement*
 % ~~~
+%
+% @compat Turtle 1.1 [1].
 
-turtleDoc --> 'statement*'.
+turtleDoc(Triples) -->
+  turtleDoc(_, [], Triples).
 
-'statement*' --> statement, !, b, 'statement*'.
-'statement*' --> [].
+turtleDoc(Base1, Triples1, Triples3) -->
+  statement(Base1, Triples1, Base2, Triples2), b,
+  turtleDoc(Base2, Triples2, Triples3).
+turtleDoc(_, Triples, Triples) --> [].
+
 
 
 %! verb// .
@@ -263,6 +332,9 @@ verb --> predicate.
 
 b --> blanks, comment, !, b.
 b --> blanks.
+
+comma_separator -->
+  b, ",", b.
 
 comment --> `#`, string(_), newline.
 

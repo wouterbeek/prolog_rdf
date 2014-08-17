@@ -16,7 +16,7 @@ DCGs for numbers defined in Turtle recommendations.
 */
 
 :- use_module(
-  sparql(sparql_char),
+  sparql(sparql_number),
   [
     'DECIMAL'//1 as sparql_DECIMAL,
     'DOUBLE'//1 as sparql_DOUBLE,
@@ -45,6 +45,7 @@ DCGs for numbers defined in Turtle recommendations.
   {N is Sign * N1}.
 
 
+
 %! 'DOUBLE'(?Value:float)// .
 % ~~~{.ebnf}
 % DOUBLE ::= [+-]?
@@ -65,6 +66,7 @@ DCGs for numbers defined in Turtle recommendations.
   'sign?'(Sign),
   sparql_DOUBLE(N1),
   {N is Sign * N1}.
+
 
 
 %! 'INTEGER'(?Value:integer)// .

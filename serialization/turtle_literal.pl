@@ -1,7 +1,7 @@
 :- module(
   turtle_literal,
   [
-    'STRING_LITERAL_QUOTE'//1, % ?Codes:list(code)
+    literal//1 % ?Literal:compound
   ]
 ).
 
@@ -10,106 +10,73 @@
 DCGs for literal expression defined in Turtle recommendations.
 
 @author Wouter Beek
-@version 2014/04-2014/05
+@version 2014/04-2014/05, 2014/08
 */
 
 :- use_module(dcg(dcg_content)).
+:- use_module(dcg(dcg_generic)).
+
+:- use_module(sparql(sparql_literal)).
+:- use_module(turtle(turtle_number)).
 
 
 
-%! 'STRING_LITERAL_QUOTE'(?Codes:list(code))// .
+%! literal(?Literal:compound)// .
 % ~~~{.ebnf}
-% STRING_LITERAL_QUOTE ::= '"' ([^#x22#x5C#xA#xD] | ECHAR | UCHAR)* '"'
-%                          /* #x22=" #x5C=\ #xA=new line
-%                             #xD=carriage return */
+% literal ::= RDFLiteral | NumericLiteral | BooleanLiteral
 % ~~~
 %
-% @compat Turtle 1.1 [22].
+% @compat Turtle 1.1 [13].
 
-'STRING_LITERAL_QUOTE'(L) -->
-  quoted('STRING_LITERAL_QUOTE_char*'(L)).
-
-'STRING_LITERAL_QUOTE_char*'([H|T]) -->
-  'STRING_LITERAL_QUOTE_char'(H),
-  'STRING_LITERAL_QUOTE_char*'(T).
-'STRING_LITERAL_QUOTE_char*'([]) --> [].
-
-'STRING_LITERAL_QUOTE_char'(C) --> 'ECHAR'(C).
-'STRING_LITERAL_QUOTE_char'(C) --> 'UCHAR'(C).
-'STRING_LITERAL_QUOTE_char'(C) --> hex('22'), !, {fail}.
-'STRING_LITERAL_QUOTE_char'(C) --> hex('5C'), !, {fail}.
-'STRING_LITERAL_QUOTE_char'(C) --> hex('A'), !, {fail}.
-'STRING_LITERAL_QUOTE_char'(C) --> hex('D'), !, {fail}.
-'STRING_LITERAL_QUOTE_char'(C) --> [C].
+literal(Literal) --> 'RDFLiteral'(Literal).
+literal(Literal) --> 'NumericLiteral'(Literal).
+literal(Literal) --> 'BooleanLiteral'(Literal).
 
 
-%! 'STRING_LITERAL_SINGLE_QUOTE'// .
+
+%! 'NumericLiteral'(?Literal:compound)// .
 % ~~~{.ebnf}
-% [23]   STRING_LITERAL_SINGLE_QUOTE ::= "'"
-%                                        ([^#x27#x5C#xA#xD] | ECHAR | UCHAR)*
-%                                        "'"
-%                                        /* #x27=' #x5C=\ #xA=new line
-%                                           #xD=carriage return */
+% NumericLiteral ::= INTEGER | DECIMAL | DOUBLE
 % ~~~
+%
+% @compat Turtle 1.1 [16].
 
-'STRING_LITERAL_SINGLE_QUOTE' --> `'`, 'STRING_LITERAL_SINGLE_QUOTE_char*', `'`.
-
-'STRING_LITERAL_SINGLE_QUOTE_char*' --> 'STRING_LITERAL_SINGLE_QUOTE_char', 'STRING_LITERAL_SINGLE_QUOTE_char*'.
-'STRING_LITERAL_SINGLE_QUOTE_char*' --> [].
-
-'STRING_LITERAL_SINGLE_QUOTE_char' --> 'ECHAR'.
-'STRING_LITERAL_SINGLE_QUOTE_char' --> 'UCHAR'.
-'STRING_LITERAL_SINGLE_QUOTE_char' --> hex('27'), !, {fail}.
-'STRING_LITERAL_SINGLE_QUOTE_char' --> hex('5C'), !, {fail}.
-'STRING_LITERAL_SINGLE_QUOTE_char' --> hex('A'), !, {fail}.
-'STRING_LITERAL_SINGLE_QUOTE_char' --> hex('D'), !, {fail}.
-'STRING_LITERAL_SINGLE_QUOTE_char' --> [_].
+'NumericLiteral'(literal(type(xsd:decimal,Value))) -->
+  'DECIMAL'(Value).
+'NumericLiteral'(literal(type(xsd:double,Value))) -->
+  'DOUBLE'(Value).
+'NumericLiteral'(literal(type(xsd:integer,Value)) -->
+  'INTEGER'(Value).
 
 
-%! 'STRING_LITERAL_LONG_SINGLE_QUOTE'// .
+
+%! 'RDFLiteral'(?Literal:compound)// is det.
+% The general syntax for RDF literals.
+% The consist of a string (enclosed in either double or single quotes),
+% with either an optional language tag (introduced by `@`)
+% or an optional datatype IRI or prefixed name (introduced by `^^`).
+%
+% @arg `Literal` is a literal compound term
+%      as specified in the Semweb library:
+%        - `literal(<value>)`
+%        - `literal(lang(<langtag>,<value>))`
+%        - `literal(type(<datatype>,<lexical-expression>))`
+%
 % ~~~{.ebnf}
-% [24]   STRING_LITERAL_LONG_SINGLE_QUOTE ::= "'''"
-%                                             (("'" | "''")?
-%                                              ([^'\] | ECHAR | UCHAR)
-%                                             )*
-%                                             "'''"
+% RDFLiteral ::= String ( LANGTAG | ( '^^' iri ) )?
 % ~~~
+%
+% @compat Turtle 1.1 [128s].
 
-'STRING_LITERAL_LONG_SINGLE_QUOTE' -->
-  `'''`,
-  (`` ; `'` ; `''`),
-  'STRING_LITERAL_LONG_SINGLE_QUOTE_char*',
-  `'''`.
-
-'STRING_LITERAL_LONG_SINGLE_QUOTE_char*' --> 'STRING_LITERAL_LONG_SINGLE_QUOTE_char', 'STRING_LITERAL_LONG_SINGLE_QUOTE_char*'.
-'STRING_LITERAL_LONG_SINGLE_QUOTE_char*' --> [].
-
-'STRING_LITERAL_LONG_SINGLE_QUOTE_char' --> 'ECHAR'.
-'STRING_LITERAL_LONG_SINGLE_QUOTE_char' --> 'UCHAR'.
-'STRING_LITERAL_LONG_SINGLE_QUOTE_char' --> `'`, !, {fail}.
-'STRING_LITERAL_LONG_SINGLE_QUOTE_char' --> `\\`, !, {fail}.
-'STRING_LITERAL_LONG_SINGLE_QUOTE_char' --> [_].
-
-
-%! 'STRING_LITERAL_LONG_QUOTE'// .
-% ~~~{.ebnf}
-% [25]   STRING_LITERAL_LONG_QUOTE ::= '"""'
-%                                      (('"' | '""')? ([^"\] | ECHAR | UCHAR))*
-%                                      '"""'
-% ~~~
-
-'STRING_LITERAL_LONG_QUOTE' -->
-  `"""`,
-  (`` ; `"` ; `""`),
-  'STRING_LITERAL_LONG_QUOTE_char*',
-  `"""`.
-
-'STRING_LITERAL_LONG_QUOTE_char*' --> 'STRING_LITERAL_LONG_QUOTE_char', 'STRING_LITERAL_LONG_QUOTE_char*'.
-'STRING_LITERAL_LONG_QUOTE_char*' --> [].
-
-'STRING_LITERAL_LONG_QUOTE_char' --> 'ECHAR'.
-'STRING_LITERAL_LONG_QUOTE_char' --> 'UCHAR'.
-'STRING_LITERAL_LONG_QUOTE_char' --> `"`, !, {fail}.
-'STRING_LITERAL_LONG_QUOTE_char' --> `\\`, !, {fail}.
-'STRING_LITERAL_LONG_QUOTE_char' --> [_].
-
+% Typed literal.
+'RDFLiteral'(literal(type(Datatype,LexicalExpression)) -->
+  'String'(LexicalExpression),
+  "^^",
+  iri(Datatype).
+% Language-tagged string.
+'RDFLiteral'(literal(lang(Langtag,Value)) -->
+  'String'(Value),
+  'LANGTAG'(Langtag).
+% Simple literal.
+'RDFLiteral'(literal(Value)) -->
+  'String'(Value),

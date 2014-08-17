@@ -2,21 +2,25 @@
   turtle_char,
   [
     'IRIREF'//1, % ?Value:float
-    'UCHAR'//0
+    'UCHAR'//1 % ?Code:code
+  ]
+).
+:- reexport(
+  sparql_bnode,
+  [
+    'ANON'//0,
+    'BLANK_NODE_LABEL'//0
   ]
 ).
 :- reexport(
   sparql_char,
   [
-    'ANON'//0,
-    'BLANK_NODE_LABEL'//0,
-    'ECHAR'//0,
-    'EXPONENT'//0,
-    'HEX'//0,
+    'ECHAR'//1,
+    'HEX'//1,
     'LANGTAG'//0,
-    'PERCENT'//0,
-    'PLX'//0,
-    'PN_CHARS'//0,
+    'PERCENT'//1,
+    'PLX'//1,
+    'PN_CHARS'//1
   ]
 ).
 
@@ -29,34 +33,41 @@ DCGs for character definitions in Turtle recommendations.
 */
 
 :- use_module(dcg(dcg_content)).
+:- use_module(math(radix)).
 
 
 
-%! 'IRIREF'// .
+%! 'IRIREF'(?Codes:list(code))// .
 % ~~~{.ebfn}
-% [18]   IRIREF ::= '<' ( [^#x00-#x20<>"{}|^`\] | UCHAR )* '>'
-%                   /* #x00=NULL #01, '1F=control codes #x20=space */
+% IRIREF ::= '<' ( [^#x00-#x20<>"{}|^`\] | UCHAR )* '>'
+%                  /* #x00=NULL #01, '1F=control codes #x20=space */
 % ~~~
 %
 % @compat Turtle 1.1 [18].
 
-'IRIREF' --> bracketed(angular, 'IRIREF_char*').
+'IRIREF'(L) -->
+  bracketed(angular,
+    'IRIREF_char*'(L)
+  ).
 
-'IRIREF_char*' --> 'IRIREF_char', 'IRIREF_char*'.
-'IRIREF_char*' --> [].
+'IRIREF_char*'([H|T]) -->
+  'IRIREF_char'(H),
+  'IRIREF_char*'(T).
+'IRIREF_char*'([]) --> [].
 
-'IRIREF_char' --> [C], {C =< 32}, !, {fail}.
-'IRIREF_char' --> `<`, !, {fail}.
-'IRIREF_char' --> `>`, !, {fail}.
-'IRIREF_char' --> `"`, !, {fail}.
-'IRIREF_char' --> `{`, !, {fail}.
-'IRIREF_char' --> `}`, !, {fail}.
-'IRIREF_char' --> `|`, !, {fail}.
-'IRIREF_char' --> `^`, !, {fail}.
-'IRIREF_char' --> `\``, !, {fail}.
-'IRIREF_char' --> `\\`, !, {fail}.
-'IRIREF_char' --> 'UCHAR'.
-'IRIREF_char' --> [_].
+'IRIREF_char'(_) --> [C], {C =< 32}, !, {fail}.
+'IRIREF_char'(_) --> "<", !, {fail}.
+'IRIREF_char'(_) --> ">", !, {fail}.
+'IRIREF_char'(_) --> "\"", !, {fail}.
+'IRIREF_char'(_) --> "{", !, {fail}.
+'IRIREF_char'(_) --> "}", !, {fail}.
+'IRIREF_char'(_) --> "|", !, {fail}.
+'IRIREF_char'(_) --> "^", !, {fail}.
+'IRIREF_char'(_) --> "\`", !, {fail}.
+'IRIREF_char'(_) --> "\\", !, {fail}.
+'IRIREF_char'(C) --> 'UCHAR'(C).
+'IRIREF_char'(C) --> [C].
+
 
 
 %! 'UCHAR'// .
@@ -66,6 +77,13 @@ DCGs for character definitions in Turtle recommendations.
 %
 % @compat Turtle 1.1 [26].
 
-'UCHAR' --> `\\u`, 'HEX', 'HEX', 'HEX', 'HEX'.
-'UCHAR' --> `\\U`, 'HEX', 'HEX', 'HEX', 'HEX', 'HEX', 'HEX', 'HEX', 'HEX'.
+'UCHAR'(C) -->
+  "\\u",
+  'HEX'(H1), 'HEX'(H2), 'HEX'(H3), 'HEX'(H4),
+  {digits_to_decimal([H1,H2,H3,H4], 16, C)}.
+'UCHAR'(C) -->
+  "\\U",
+  'HEX'(H1), 'HEX'(H2), 'HEX'(H3), 'HEX'(H4),
+  'HEX'(H5), 'HEX'(H6), 'HEX'(H7), 'HEX'(H8),
+  {digits_to_decimal([H1,H2,H3,H4,H5,H6,H7,H8], 16, C)}.
 
