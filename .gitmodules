@@ -8,3 +8,6 @@
 [submodule "plXsd"]
 	path = plXsd
 	url = https://github.com/wouterbeek/plXsd.git
+[submodule "plDcg"]
+	path = plDcg
+	url = https://github.com/wouterbeek/plDcg.git
