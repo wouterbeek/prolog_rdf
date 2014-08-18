@@ -2,3 +2,6 @@
 	path = Prolog-Library-Collection
 	url = https://github.com/wouterbeek/Prolog-Library-Collection.git
 	branch = master
+[submodule "plTree"]
+	path = plTree
+	url = https://github.com/wouterbeek/plTree.git
