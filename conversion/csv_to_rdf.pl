@@ -26,8 +26,8 @@ Automatic conversion from CSV to RDF.
 :- use_module(dcg(dcg_generic)).
 :- use_module(generics(row_ext)).
 :- use_module(http(http_download)).
-:- use_module(xml(xml_namespace)).
-:- use_module(xsd(xsd)). % XML namespace.
+
+:- use_module(plXsd(xsd)). % XML namespace.
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdfs_build)).
@@ -45,7 +45,7 @@ Automatic conversion from CSV to RDF.
 csv_to_rdf(Stream, Graph, NamespacePrefix, ClassName):-
   is_stream(Stream), !,
   % The XML namespace must be defined.
-  xml_current_namespace(NamespacePrefix),
+  rdf_current_prefix(NamespacePrefix, _),
   
   phrase_from_stream(csv(Rows1), Stream),
   maplist(row_to_list, Rows1, Rows2),

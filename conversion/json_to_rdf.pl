@@ -27,11 +27,12 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_content)). % Meta-argument.
-:- use_module(dcg(dcg_generic)).
-:- use_module(dcg(dcg_replace)). % Meta-argument.
-:- use_module(xsd(xsd)).
-:- use_module(xsd(xsd_clean)).
+:- use_module(plDcg(dcg_content)). % Meta-argument.
+:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_replace)). % Meta-argument.
+
+:- use_module(plXsd(xsd)).
+:- use_module(plXsd(xsd_clean)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_list)).

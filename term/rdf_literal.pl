@@ -40,9 +40,11 @@ Support for reading triples with literal object terms.
 */
 
 :- use_module(library(semweb/rdf_db)).
+
+:- use_module(plXsd(xsd)).
+:- use_module(plXsd(xsd_clean)).
+
 :- use_module(plRdf_term(rdf_term)).
-:- use_module(xsd(xsd)).
-:- use_module(xsd(xsd_clean)).
 
 :- rdf_meta(rdf_literal(o)).
 :- rdf_meta(rdf_literal(o,?)).

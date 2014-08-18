@@ -41,7 +41,8 @@ Converts XML DOMs to RDF graphs.
 :- use_module(os(file_ext)).
 :- use_module(os(file_mime)).
 :- use_module(xml(xml_word)).
-:- use_module(xsd(xsd)).
+
+:- use_module(plXsd(xsd)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_container)).

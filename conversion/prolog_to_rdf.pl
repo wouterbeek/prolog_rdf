@@ -21,7 +21,8 @@ Automated conversion from Prolog terms to RDF triples.
 
 :- use_module(dcg(dcg_content)).
 :- use_module(dcg(dcg_generic)).
-:- use_module(xsd(xsd)).
+
+:- use_module(plXsd(xsd)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdfs_build)).
