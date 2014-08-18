@@ -25,12 +25,13 @@ Generates names for RDF terms and triples.
 :- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_ascii)).
-:- use_module(dcg(dcg_content)).
-:- use_module(dcg(dcg_collection)).
 :- use_module(generics(codes_ext)).
 :- use_module(generics(typecheck)).
 :- use_module(pl(pl_log)).
+
+:- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_content)).
+:- use_module(pLDcg(dcg_collection)).
 
 :- use_module(plXsd(xsd)).
 

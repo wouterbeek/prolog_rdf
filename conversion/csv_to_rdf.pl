@@ -22,10 +22,11 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
-:- use_module(dcg(dcg_ascii)).
-:- use_module(dcg(dcg_generic)).
 :- use_module(generics(row_ext)).
 :- use_module(http(http_download)).
+
+:- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_generic)).
 
 :- use_module(plXsd(xsd)). % XML namespace.
 

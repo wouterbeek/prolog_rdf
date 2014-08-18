@@ -48,7 +48,7 @@ Support for RDF lists.
 :- use_module(library(predicate_options)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_collection)).
+:- use_module(plDcg(dcg_collection)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_name)).

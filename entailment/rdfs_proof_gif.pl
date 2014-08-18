@@ -22,7 +22,7 @@ Generates proof trees for RDFS entailment using the Graph Interchange Format.
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_generics)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf_ent(rdfs_proof)).

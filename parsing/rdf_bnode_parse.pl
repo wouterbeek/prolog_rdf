@@ -20,7 +20,7 @@ Parser for RDF Blank Nodes.
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_content)).
+:- use_module(plDcg(dcg_content)).
 
 
 

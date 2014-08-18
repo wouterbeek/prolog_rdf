@@ -25,8 +25,8 @@ The latter condition holds under structural identity, i.e. =@=/2.
 :- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_content)).
-:- use_module(dcg(dcg_generic)).
+:- use_module(plDcg(dcg_content)).
+:- use_module(plDcg(dcg_generic)).
 
 :- use_module(plTree(tree_print)).
 

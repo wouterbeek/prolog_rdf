@@ -17,10 +17,11 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
-:- use_module(dcg(dcg_abnf)).
-:- use_module(dcg(dcg_cardinal)).
-:- use_module(dcg(dcg_generic)).
 :- use_module(generics(meta_ext)).
+
+:- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_cardinal)).
+:- use_module(plDcg(dcg_generic)).
 
 :- use_module(plRdf_term(rdf_term)).
 

@@ -31,8 +31,9 @@
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_generic)).
 :- use_module(generics(flag_ext)).
+
+:- use_module(plDcg(dcg_generic)).
 
 :- use_module(plRdf(rdf_graph_theory)).
 :- use_module(plRdf(rdf_parse)).

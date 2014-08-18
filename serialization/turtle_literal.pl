@@ -13,10 +13,10 @@ DCGs for literal expression defined in Turtle recommendations.
 @version 2014/04-2014/05, 2014/08
 */
 
-:- use_module(dcg(dcg_content)).
-:- use_module(dcg(dcg_generic)).
+:- use_module(plDcg(dcg_content)).
+:- use_module(plDcg(dcg_generic)).
 
-:- use_module(sparql(sparql_literal)).
+:- use_module(plSparql_parse(sparql_literal)).
 :- use_module(turtle(turtle_number)).
 
 

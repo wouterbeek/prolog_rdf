@@ -32,8 +32,9 @@ DCGs for character definitions in Turtle recommendations.
 @version 2014/04-2014/05
 */
 
-:- use_module(dcg(dcg_content)).
 :- use_module(math(radix)).
+
+:- use_module(plDcg(dcg_content)).
 
 
 

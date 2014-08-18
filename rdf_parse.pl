@@ -15,9 +15,9 @@ Parses RDF terms.
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(dcg(dcg_abnf)).
-:- use_module(dcg(dcg_ascii)).
-:- use_module(dcg(dcg_generic)).
+:- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_generic)).
 
 
 
