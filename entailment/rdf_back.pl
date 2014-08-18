@@ -27,7 +27,8 @@ The latter condition holds under structural identity, i.e. =@=/2.
 
 :- use_module(dcg(dcg_content)).
 :- use_module(dcg(dcg_generic)).
-:- use_module(generics(trees)).
+
+:- use_module(plTree(tree_print)).
 
 :- use_module(plRdf(rdf_name)). % Meta-argument.
 :- use_module(plRdf_ent(rdf_bnode_map)).
