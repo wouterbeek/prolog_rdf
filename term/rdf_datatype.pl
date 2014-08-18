@@ -41,8 +41,9 @@ Support for RDF typed literals.
 
 :- use_module(plDcg(dcg_generic)).
 
-:- use_module(plRdf(rdf_name)). % Meta-DCG.:- use_module(plXsd(xsd)).
+:- use_module(plXsd(xsd)).
 
+:- use_module(plRdf(rdf_name)). % Meta-DCG.
 :- use_module(plRdf_term(rdf_literal)).
 :- use_module(plRdf_term(rdf_literal_build)).
 :- use_module(plRdf_term(rdf_typed_literal)).
