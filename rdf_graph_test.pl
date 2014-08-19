@@ -10,6 +10,8 @@ Unit testing for RDF graph support.
 
 :- use_module(library(plunit)).
 
+
+
 :- begin_tests(rdf_graph).
 
 :- use_module(library(apply)).

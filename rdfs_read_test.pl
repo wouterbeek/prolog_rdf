@@ -6,7 +6,6 @@
 
 :- use_module(library(semweb/rdf_db)). % rdf_meta/1
 
-
 :- use_module(plRdf(rdfs_read)).
 
 :- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').

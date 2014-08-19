@@ -91,7 +91,6 @@ using the following triples:
 
 :- use_module(library(semweb/rdf_db)).
 
-
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdfs_read)).
 :- use_module(plRdf_ent(rdf_bnode_map)).
