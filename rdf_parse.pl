@@ -36,7 +36,7 @@ rdf_parse_term(IRI) -->
 % BNODE %
 
 rdf_parse_bnode(BNode) -->
-  '#'(2, underscore, [H1,H2]),
+  '#'(2, underscore, [H1,H2], []),
   dcg_all([output_format(codes)], T),
   {atom_codes(BNode, [H1,H2|T])}.
 
