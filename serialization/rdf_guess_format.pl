@@ -48,20 +48,17 @@ Detect the RDF serialization format of a given stream.
 rdf_guess_format(File0, Format):-
   % Make sure the file exists and we have read access to it.
   absolute_file_name(File0, File, [access(read)]),
-  
+
   % Take the file extension into account, if any.
   file_name_extension(File, FileExtension0, _),
   (  FileExtension0 == ''
   -> true
   ;  FileExtension = FileExtension0
   ),
-  
-  % Take the content type into account, if any.
-  option(content_type(ContentType), Options, _VAR),
-  
+
   setup_call_cleanup(
     open(File, read, Stream),
-    rdf_guess_format(Stream, FileExtension, ContentType, Format),
+    rdf_guess_format(Stream, FileExtension, _, Format),
     close(Stream)
   ).
 
