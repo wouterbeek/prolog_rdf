@@ -1,5 +1,5 @@
 :- module(
-  rdf_detect,
+  rdf_guess_format,
   [
     rdf_guess_format/3, % +Read:stream
                         % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])

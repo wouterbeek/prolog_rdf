@@ -67,8 +67,8 @@ Also easily converts between different RDF serializations.
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_prefixes)).
-:- use_module(plRdf_ser(rdf_detect)).
 :- use_module(plRdf_ser(ctriples_write)).
+:- use_module(plRdf_ser(rdf_guess_format)).
 
 :- predicate_options(rdf_load_any/2, 2, [
      keep_file(+boolean),
@@ -77,7 +77,7 @@ Also easily converts between different RDF serializations.
    ]).
 :- predicate_options(rdf_load_any0/2, 2, [
      graph(+atom),
-     pairs(-list),
+     pairs(-list(pair)),
      pass_to(rdf_load_stream/4, 4)
    ]).
 :- predicate_options(rdf_load_stream/4, 4, [
@@ -85,6 +85,11 @@ Also easily converts between different RDF serializations.
    ]).
 
 :- initialization(assert_rdf_file_types).
+
+
+
+%! assert_rdf_file_types is det.
+
 assert_rdf_file_types:-
   forall(
     rdf_db:rdf_file_type(FileExtension, FileType),
@@ -93,7 +98,6 @@ assert_rdf_file_types:-
       db_add_novel(user:prolog_file_type(FileExtension, rdf))
     )
   ).
-
 
 
 %! rdf_load_any(+Input:or([atom,list(atom)]), +Option:list(nvpair)) is det.
@@ -148,14 +152,7 @@ rdf_load_any(Url1, Options1):-
 rdf_load_any(Input, Options):-
   rdf_load_any0(Input, Options).
 
-rdf_load_any0(Input, Options1):-
-  % Instantiate the RDF graph name.
-  (
-    select_option(graph(Graph), Options1, Options2), !
-  ;
-    Options2 = Options1
-  ),
-
+rdf_load_any0(Input, Options):-
   % Load all individual RDF graphs.
   findall(
     Base-Graph,
@@ -164,7 +161,7 @@ rdf_load_any0(Input, Options1):-
       call_cleanup(
         (
           location_base(Location, Base),
-          rdf_load_stream(Read, Location, Base, [graph(Graph)|Options2])
+          rdf_load_stream(Read, Location, Base, Options)
         ),
         close(Read)
       )
