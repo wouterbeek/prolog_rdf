@@ -203,7 +203,7 @@ ctriples_write_triples(State, BNodePrefix, Graph):-
 % Collects a sorted list of predicate-object pairs.
 % Then processes each pairs -- and thus each triple -- separately.
 
-ctriples_write_subject(State, BNodePrefix, Graph, S):-
+ctriples_write_subject(State, BNodePrefix, G, S):-
   % Collect a sorted list of the predicate-object pairs
   % for the given subject term.
   aggregate_all(
@@ -216,9 +216,9 @@ ctriples_write_subject(State, BNodePrefix, Graph, S):-
 
 %! ctriples_write_triple0(+BNodePrefix:iri, +Triple:compound) is det.
 
-ctriples_write_triple0(BNodePrefix, rdf(S,P,O)):- !,
+ctriples_write_triple(BNodePrefix, rdf(S,P,O)):- !,
   rdf_write_ctriple(S, P, O, _, BNodePrefix).
-ctriples_write_triple0(BNodePrefix, rdf(S,P,O,G)):-
+ctriples_write_triple(BNodePrefix, rdf(S,P,O,G)):-
   rdf_write_ctriple(S, P, O, G, BNodePrefix).
 
 
@@ -267,21 +267,21 @@ rdf_write_ctriple(S, P, O, Graph, BNodePrefix):-
   put_char(' '),
   rdf_write_object(O, BNodePrefix),
   put_char(' '),
-  
+
   % C-Triples or C-Quads?
   (
     is_url(Graph)
   ->
     % The format is now C-Quads.
     set_ctriples_format_to_quads,
-    
+
     % Named graphs and predicate terms are both IRIs.
     rdf_write_predicate(Graph),
     put_char(' ')
   ;
     true
   ),
-  
+
   % End of triple / end of line.
   put_char('.'),
   put_code(10), !. % Newline character.
