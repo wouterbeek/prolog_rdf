@@ -1,7 +1,7 @@
 :- module(
   rdf_guess_format,
   [
-    rdf_guess_format/3, % +Read:stream
+    rdf_guess_format/3, % +Source
                         % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
                         % +Options:list(nvpair)
     rdf_guess_format/4 % +Read:blob
@@ -31,12 +31,14 @@ Detect the RDF serialization format of a given stream.
 
 
 %! rdf_guess_format(
-%!   +Stream:stream,
+%!   +Source,
 %!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml]),
 %!   +Options:list(nvpair)
 %! ) is semidet.
-% True when Stream is thought to contain RDF data using the
+% True when `Source` is thought to contain RDF data using the
 % indicated content type.
+%
+% `Source` is either a stream or a file name.
 %
 % The following options are processed:
 %   * =|look_ahead(+NumberOfBytes:nonneg)|=
@@ -45,7 +47,11 @@ Detect the RDF serialization format of a given stream.
 %     The guessed RDF serialization format,
 %     e.g. based on the media type and/or file name.
 
-rdf_guess_format(Stream, Format, Options) :-
+rdf_guess_format(stream(Stream), Format, Options):- !,
+  rdf_guess_format(Stream, Format, Options).
+rdf_guess_format(Stream, Format, Options):-
+  is_stream(Stream), !,
+  
   option(look_ahead(Bytes), Options, 2500),
   peek_string(Stream, Bytes, String),
   (
@@ -71,6 +77,29 @@ rdf_guess_format(Stream, Format, Options) :-
       free_memory_file(MemFile)
     )
   ).
+rdf_guess_format(File0, Format, Options):-
+  % Make sure the file exists and we have read access to it.
+  absolute_file_name(File0, File, [access(read)]),
+  
+  % Take the file extension into account, if any.
+  file_name_extension(File, FileExtension0, _),
+  (
+    FileExtension0 == ''
+  ->
+    true
+  ;
+    FileExtension = FileExtension0
+  ),
+  
+  % Take the content type into account, if any.
+  option(content_type(ContentType), Options, _VAR),
+  
+  setup_call_cleanup(
+    open(File, read, Stream),
+    rdf_guess_format(Stream, FileExtension, ContentType, Format),
+    close(Stream)
+  ).
+
 
 %! rdf_guess_format(
 %!   +Read:blob,
@@ -231,11 +260,11 @@ azd  --> [C], { between(0'a,0'z,C) ; between(0'A,0'Z,C), between(0'0,0'9,C) }, !
 azs  --> az, !, azs | "".
 azds --> azd, !, azds | "".
 
-term_expansion(no_iri_code(x), Clauses) :-
+term_expansion(no_iri_code(x), Clauses):-
   findall(no_iri_code(C),
     string_code(_,"<>\"{}|^`\\",C),
     Clauses).
-term_expansion(echar(x), Clauses) :-
+term_expansion(echar(x), Clauses):-
   findall(echar(C),
     string_code(_,"tbnrf\"\'\\",C),
     Clauses).
@@ -307,7 +336,7 @@ eols --> [].
 %  If the toplevel element is detected as =HTML=, we pass =rdfa= as
 %  type.
 
-guess_xml_type(Stream, Format) :-
+guess_xml_type(Stream, Format):-
   xml_doctype(Stream, Dialect, DocType, Attributes),
   once(doc_content_type(Dialect, DocType, Attributes, Format)).
 
@@ -316,7 +345,7 @@ doc_content_type(html,   _,    _, rdfa).
 doc_content_type(xhtml,   _,    _, rdfa).
 doc_content_type(html5,   _,    _, rdfa).
 doc_content_type(xhtml5, _,    _, rdfa).
-doc_content_type(Dialect, Top, Attributes, xml) :-
+doc_content_type(Dialect, Top, Attributes, xml):-
   (
     Dialect == sgml
   ->
@@ -341,7 +370,7 @@ doc_content_type(Dialect, Top, Attributes, xml) :-
 %  namespaces, while it is not possible  to define a valid absolute
 %  Turtle URI (using <URI>) with a valid xmlns declaration.
 
-xml_doctype(Stream, Dialect, DocType, Attributes) :-
+xml_doctype(Stream, Dialect, DocType, Attributes):-
   catch(
     setup_call_cleanup(
       make_parser(Stream, Parser, State),
@@ -363,19 +392,19 @@ xml_doctype(Stream, Dialect, DocType, Attributes) :-
   nonvar(E),
   E = tag(Dialect, DocType, Attributes).
 
-make_parser(Stream, Parser, state(Pos)) :-
+make_parser(Stream, Parser, state(Pos)):-
   stream_property(Stream, position(Pos)),
   new_sgml_parser(Parser, []).
 
-cleanup_parser(Stream, Parser, state(Pos)) :-
+cleanup_parser(Stream, Parser, state(Pos)):-
   free_sgml_parser(Parser),
   set_stream_position(Stream, Pos).
 
-on_begin(Tag, Attributes, Parser) :-
+on_begin(Tag, Attributes, Parser):-
   get_sgml_parser(Parser, dialect(Dialect)),
   throw(tag(Dialect, Tag, Attributes)).
 
-on_cdata(_CDATA, _Parser) :-
+on_cdata(_CDATA, _Parser):-
   throw(error(cdata)).
 
 
