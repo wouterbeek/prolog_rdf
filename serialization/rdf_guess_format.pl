@@ -1,9 +1,8 @@
 :- module(
   rdf_guess_format,
   [
-    rdf_guess_format/3, % +Source
+    rdf_guess_format/2, % +File:atom
                         % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
-                        % +Options:list(nvpair)
     rdf_guess_format/4 % +Read:blob
                        % +FileExtension:atom,
                        % +ContentType:atom,
@@ -31,9 +30,8 @@ Detect the RDF serialization format of a given stream.
 
 
 %! rdf_guess_format(
-%!   +Source,
-%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml]),
-%!   +Options:list(nvpair)
+%!   +File:atom,
+%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
 %! ) is semidet.
 % True when `Source` is thought to contain RDF data using the
 % indicated content type.
@@ -41,17 +39,33 @@ Detect the RDF serialization format of a given stream.
 % `Source` is either a stream or a file name.
 %
 % The following options are processed:
-%   * =|look_ahead(+NumberOfBytes:nonneg)|=
-%     Look ahead the indicated amount
 %   * =|format(+Format)|=
 %     The guessed RDF serialization format,
 %     e.g. based on the media type and/or file name.
+%   * =|look_ahead(+NumberOfBytes:nonneg)|=
+%     Look ahead the indicated amount
 
-rdf_guess_format(stream(Stream), Format, Options):- !,
-  rdf_guess_format(Stream, Format, Options).
-rdf_guess_format(Stream, Format, Options):-
-  is_stream(Stream), !,
+rdf_guess_format(File0, Format):-
+  % Make sure the file exists and we have read access to it.
+  absolute_file_name(File0, File, [access(read)]),
   
+  % Take the file extension into account, if any.
+  file_name_extension(File, FileExtension0, _),
+  (  FileExtension0 == ''
+  -> true
+  ;  FileExtension = FileExtension0
+  ),
+  
+  % Take the content type into account, if any.
+  option(content_type(ContentType), Options, _VAR),
+  
+  setup_call_cleanup(
+    open(File, read, Stream),
+    rdf_guess_format(Stream, FileExtension, ContentType, Format),
+    close(Stream)
+  ).
+
+rdf_guess_format(Stream, Format, Options):-
   option(look_ahead(Bytes), Options, 2500),
   peek_string(Stream, Bytes, String),
   (
@@ -76,28 +90,6 @@ rdf_guess_format(Stream, Format, Options):-
       ),
       free_memory_file(MemFile)
     )
-  ).
-rdf_guess_format(File0, Format, Options):-
-  % Make sure the file exists and we have read access to it.
-  absolute_file_name(File0, File, [access(read)]),
-  
-  % Take the file extension into account, if any.
-  file_name_extension(File, FileExtension0, _),
-  (
-    FileExtension0 == ''
-  ->
-    true
-  ;
-    FileExtension = FileExtension0
-  ),
-  
-  % Take the content type into account, if any.
-  option(content_type(ContentType), Options, _VAR),
-  
-  setup_call_cleanup(
-    open(File, read, Stream),
-    rdf_guess_format(Stream, FileExtension, ContentType, Format),
-    close(Stream)
   ).
 
 
