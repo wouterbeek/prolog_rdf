@@ -4,9 +4,9 @@
     ctriples_write/2, % +Write:or([atom,stream])
                       % +Options:list(nvpair)
     ctriples_write/3, % +Write:or([atom,stream])
-                      % +Triples:list(list(or([atom,bnode,iri,literal])))
+                      % +Triples:list(compound)
                       % +Options:list(nvpair)
-    ctriples_write_to_stream/2 % +Triples:list(list(or([atom,bnode,iri,literal])))
+    ctriples_write_to_stream/2 % +Triples:list(compound)
                                % +Options:list(nvpair)
   ]
 ).
@@ -54,18 +54,7 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 
 
-%! ctriples_write(
-%!   +Source:atom,
-%!   +Triples:list(list(or([atom,bnode,iri,literal]))),
-%!   +Options:list
-%! ) is det.
-%! ctriples_write(
-%!   +Sourse:stream,
-%!   +Triples:list(list(or([atom,bnode,iri,literal]))),
-%!   +Options:list
-%! ) is det.
-% Writes RDF data using the C-Triples/C-Quads serialization format.
-%
+%! ctriples_write(+Source:or([atom,stream]), +Options:list) is det.
 % `Source` is either a file name or a write stream.
 %
 % The following options are supported:
@@ -99,8 +88,12 @@ ctriples_write(File, Options):-
   ).
 
 
-%! ctriples_write(+Source:atom, +Options:list) is det.
-%! ctriples_write(+Sourse:stream, +Options:list) is det.
+%! ctriples_write(
+%!   +Source:or([atom,stream]),
+%!   +Triples:list(compound),
+%!   +Options:list
+%! ) is det.
+% Writes RDF data using the C-Triples/C-Quads serialization format.
 
 ctriples_write(Write, Triples, Options):-
   is_stream(Write), !,
@@ -125,7 +118,7 @@ ctriples_write_to_stream(Options):-
   ctriples_write_to_stream_end(Options, State).
 
 %! ctriples_write_to_stream(
-%!   +Triples:list(list(or([atom,bnode,iri,literal]))),
+%!   +Triples:list(compound),
 %!   +Options:list(nvpair)
 %! ) is det.
 
@@ -210,34 +203,34 @@ ctriples_write_triples(State, BNodePrefix, Graph):-
 % Collects a sorted list of predicate-object pairs.
 % Then processes each pairs -- and thus each triple -- separately.
 
-ctriples_write_subject(State, BNodePrefix, Graph, Subject):-
+ctriples_write_subject(State, BNodePrefix, Graph, S):-
   % Collect a sorted list of the predicate-object pairs
   % for the given subject term.
   aggregate_all(
-    set(Predicate-Object-Graph),
-    rdf(Subject, Predicate, Object, Graph:_),
+    set(P-O-G),
+    rdf(S, P, O, G:_),
     POPairs
   ),
-  maplist(ctriples_write_triple(State, BNodePrefix, Subject), POPairs).
+  maplist(ctriples_write_triple(State, BNodePrefix, S), POPairs).
+
+
+%! ctriples_write_triple0(+BNodePrefix:iri, +Triple:compound) is det.
+
+ctriples_write_triple0(BNodePrefix, rdf(S,P,O)):- !,
+  rdf_write_ctriple(S, P, O, _, BNodePrefix).
+ctriples_write_triple0(BNodePrefix, rdf(S,P,O,G)):-
+  rdf_write_ctriple(S, P, O, G, BNodePrefix).
 
 
 %! ctriples_write_triple(
 %!   +State:compound,
 %!   +BNodePrefix:iri,
-%!   +Triple:list(or([atom,bnode,iri,literal]))
+%!   +Triple:list(compound)
 %! ) is det.
 
 ctriples_write_triple(State, BNodePrefix, Triple):-
   inc_number_of_triples(State),
-  (
-    Triple = [Subject,Predicate,Object,Graph]
-  ->
-    rdf_write_ctriple(Subject, Predicate, Object, Graph, BNodePrefix)
-  ;
-    Triple = [Subject,Predicate,Object]
-  ->
-    rdf_write_ctriple(Subject, Predicate, Object, _, BNodePrefix)
-  ).
+  ctriples_write_triple(BNodePrefix, Triple).
 
 
 %! ctriples_write_triple(
@@ -248,9 +241,9 @@ ctriples_write_triple(State, BNodePrefix, Triple):-
 %! ) is det.
 % Writes a single triple.
 
-ctriples_write_triple(State, BNodePrefix, Subject, Predicate-Object-Graph):-
+ctriples_write_triple(State, BNodePrefix, S, P-O-G):-
   inc_number_of_triples(State),
-  rdf_write_ctriple(Subject, Predicate, Object, Graph, BNodePrefix).
+  rdf_write_ctriple(S, P, O, G, BNodePrefix).
 
 
 inc_number_of_triples(State) :-
