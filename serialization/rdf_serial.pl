@@ -171,11 +171,11 @@ rdf_load_any0(Input, Options):-
 
   % Return the pairs option.
   (
-    option(pairs(Pairs0), Options2)
+    option(pairs(Pairs0), Options)
   ->
     Pairs0 = Pairs
   ;
-    option(graph(Graph), Options1),
+    option(graph(Graph), Options),
     Pairs = [_-Graph]
   ->
     true
@@ -191,7 +191,7 @@ rdf_load_stream(Read, Location, Base, Options1):-
 
   % DEB
   print_message(informational, rdf_load_any(rdf(Base,Format))),
-  
+
   % Collect options: base URI, RDF serialization format, XML namespaces.
   set_stream(Read, file_name(Base)),
   merge_options(
@@ -199,7 +199,7 @@ rdf_load_stream(Read, Location, Base, Options1):-
     Options1,
     Options2
   ),
-  
+
   % Add options that are specific to the RDFa serialization format.
   (
     Format == rdfa
@@ -208,7 +208,7 @@ rdf_load_stream(Read, Location, Base, Options1):-
   ;
     Options3 = Options2
   ),
-  
+
   % The actual loading of the RDF data.
   catch(
     rdf_load(stream(Read), Options3),
@@ -265,13 +265,13 @@ rdf_save_any(File, Options1):-
   ;
     select_option(graph(Graph), Options1, Options2, _NoGraph),
     select_option(format(Format), Options2, Options3, turtle),
-    
+
     % Make sure the directory for the given file name exists.
     % A new file in an existing directory is created on the fly.
     create_file_directory(File),
-    
+
     rdf_save_any(Options3, Format, Graph, File),
-    
+
     debug(
       rdf_serial,
       'Graph ~w was saved in ~w serialization to file ~w.',
