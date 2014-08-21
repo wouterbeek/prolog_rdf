@@ -1,8 +1,7 @@
 :- module(
   load_project,
   [
-    load_project/2, % +Parent:atom
-                    % +ChildProjects:list(or([atom,pair(atom)]))
+    load_project/1, % +ChildProjects:list(or([atom,pair(atom)]))
     load_subproject/2, % +ParentFileSearchPath:atom
                        % +Child:or([atom,pair(atom)])
     set_data_subdirectory/1 % +ParentDirectory:atom
@@ -17,7 +16,7 @@ Generic code for loading a project:
   * Load the index of subprojects onto the file search path.
 
 @author Wouter Beek
-@version 2014/06/14
+@version 2014/08/20
 */
 
 :- use_module(library(ansi_term)). % Colorized terminal messages.
@@ -30,11 +29,11 @@ Generic code for loading a project:
 
 
 
-load_project(Parent, ChildProjects):-
-  parent_alias(Parent, ParentFsp),
+load_project(ChildProjects):-
+  parent_alias(ParentFsp),
 
   % Entry point.
-  source_file(load_project(_,_), ThisFile),
+  source_file(load_project(_), ThisFile),
   file_directory_name(ThisFile, ThisDir),
   assert(user:file_search_path(ParentFsp, ThisDir)),
   assert(user:file_search_path(project, ThisDir)),
@@ -92,11 +91,12 @@ load_project_index(Fsp):-
 load_project_index(_).
 
 
-%! parent_alias(+Parent:atom, -ParentFsp:atom) is det.
+%! parent_alias(-ParentFsp:atom) is det.
 
-parent_alias(Parent, ParentFsp):-
-  user:project(Parent, _, ParentFsp), !.
-parent_alias(Parent, Parent).
+parent_alias(ParentFsp):-
+  user:project(_, _, ParentFsp), !.
+parent_alias(ParentFsp):-
+  user:project(ParentFsp, _).
 
 
 %! set_data_subdirectory(+ParentDirectory:atom) is det.
@@ -107,6 +107,8 @@ set_data_subdirectory(ParentDir):-
   assert(user:file_search_path(data, DataDir)).
 
 
+
+% Messages
 
 :- multifile(prolog:message//1).
 

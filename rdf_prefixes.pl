@@ -20,9 +20,10 @@ RDF prefix registrations.
 
 :- dynamic(rdf_reduced_location/1).
 
-
-
 :- initialization(dbpedia_localizations).
+
+
+
 dbpedia_localizations:-
   forall(
     dbpedia_language_tag(LangTag),
