@@ -115,7 +115,7 @@ rdf_property_name --> [].
 csv_row_to_rdf(Graph, Class, Properties, Row):-
   % A row is translated into an instance of the given class.
   rdf_bnode(Resource),
-  rdf_assert_individual(Resource, Class, Graph),
+  rdf_assert_instance(Resource, Class, Graph),
 
   % Assert each cell in the given row.
   maplist(csv_cell_to_rdf(Graph, Resource), Properties, Row).

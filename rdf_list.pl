@@ -154,7 +154,7 @@ rdf_assert_list([H|T], RdfList, Graph, Options):-
 
 add_blank_list_individual(Blank, Graph):-
   rdf_bnode(Blank),
-  rdf_assert_individual(Blank, rdf:'List', Graph).
+  rdf_assert_instance(Blank, rdf:'List', Graph).
 
 
 %! rdf_list(+RdfList:rdf_list, -List:list) is det.

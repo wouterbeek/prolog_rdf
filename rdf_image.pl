@@ -53,7 +53,7 @@ When triples including images are read,
 rdf_assert_image(O1, S, P, O, G):-
   rdf_image(O1, O, _),
   image_url(O),
-  rdf_assert_individual(O, dcmit:'Image', G),
+  rdf_assert_instance(O, dcmit:'Image', G),
   rdf_assert(S, P, O, G).
 
 

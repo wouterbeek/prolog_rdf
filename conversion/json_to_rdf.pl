@@ -78,7 +78,7 @@ create_resource(Graph, RdfPrefix, Legend, Id, Individual):-
     atomic_list_concat([ClassName,Id], '/', IndividualName),
     rdf_global_id(ckan:IndividualName, Individual)
   ),
-  rdf_assert_individual(Individual, Class, Graph).
+  rdf_assert_instance(Individual, Class, Graph).
 
 
 %! json_to_rdf(

@@ -150,7 +150,7 @@ rdf_assert_statement(rdf(S,P,O), Graph, Stmt):-
     true
   ),
 
-  rdf_assert_individual(Stmt, rdf:'Statement', Graph),
+  rdf_assert_instance(Stmt, rdf:'Statement', Graph),
   rdf_assert_subject(Stmt, S, Graph),
   rdf_assert_predicate(Stmt, P, Graph),
   rdf_assert_object(Stmt, O, Graph),
