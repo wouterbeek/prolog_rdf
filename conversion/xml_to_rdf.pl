@@ -118,7 +118,7 @@ xml_parse(NS, S, G) -->
   xml_parses(NS, O, G),
   'ETag'(OTag), skip_whites,
   {
-    rdf_assert_individual(S, rdf:'Bag', G),
+    rdf_assert_instance(S, rdf:'Bag', G),
     rdf_assert_collection_member(S, O, G)
   }.
 
@@ -183,7 +183,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
 
   rdf_global_id(Ns:Name4, S),
 
-  rdf_assert_individual(S, C, G),
+  rdf_assert_instance(S, C, G),
 
   create_triples(DOM1, XML_PrimaryPs, Trans, S, G, DOM2).
 

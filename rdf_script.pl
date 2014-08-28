@@ -40,17 +40,17 @@ assert_visum(G):-
   % Chinese namespace
   rdfs_assert_class(    ch:cityWithAirport,                     G),
   rdfs_assert_subclass( ch:capital,         ch:cityWithAirport, G),
-  rdf_assert_individual(ch:'Amsterdam',     ch:capital,         G),
+  rdf_assert_instance(ch:'Amsterdam',     ch:capital,         G),
   rdfs_assert_class(    ch:visumNeeded,                         G),
   rdfs_assert_subclass( ch:europeanCity,    ch:visumNeeded,     G),
-  rdf_assert_individual(ch:'Amsterdam',     ch:europeanCity,    G),
+  rdf_assert_instance(ch:'Amsterdam',     ch:europeanCity,    G),
 
   % Dutch namespace
   rdfs_assert_class(    nl:europeanCity,                   G),
   rdfs_assert_subclass( nl:visumFree,    nl:europeanCity,  G),
-  rdf_assert_individual(nl:'Amsterdam',  nl:europeanCity,  G),
+  rdf_assert_instance(nl:'Amsterdam',  nl:europeanCity,  G),
   rdfs_assert_class(    nl:capital,                        G),
-  rdf_assert_individual(nl:'Amsterdam',  nl:capital,       G),
+  rdf_assert_instance(nl:'Amsterdam',  nl:capital,       G),
 
   % Interrelations
   owl_assert_class_equivalence(ch:capital,      nl:capital,     G),

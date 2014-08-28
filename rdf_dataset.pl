@@ -41,7 +41,7 @@ rdf_assert_dataset(RdfDataset):-
   maplist(rdf_assert_named_graph(DefaultGraph), NamedGraphs).
 
 rdf_assert_named_graph(DefaultGraph, NamedGraph):-
-  rdf_assert_individual(NamedGraph, void:'Dataset', DefaultGraph).
+  rdf_assert_instance(NamedGraph, void:'Dataset', DefaultGraph).
 
 
 %! rdf_dataset(+RdfDataset:compound) is semidet.

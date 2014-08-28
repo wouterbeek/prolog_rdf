@@ -2,15 +2,15 @@
   rdfs_build,
   [
 % CLASS HIERARCHY
-    rdfs_assert_class/2, % +Class:uri
-                         % +Graph:graph
-    rdfs_assert_individual/2, % +Individual:uri
-                              % +Graph:graph
-    rdfs_assert_property_class/2, % +PropertyClass:uri
-                                  % +Graph:graph
-    rdfs_assert_subclass/3, % +Class:uri
-                            % +SuperClass:uri
-                            % +Graph:graph
+    rdfs_assert_class/2, % +Class:iri
+                         % +Graph:atom
+    rdfs_assert_instance/2, % +Instance:iri
+                            % +Graph:atom
+    rdfs_assert_property_class/2, % +PropertyClass:iri
+                                  % +Graph:atom
+    rdfs_assert_subclass/3, % +Class:iri
+                            % +SuperClass:iri
+                            % +Graph:atom
     rdfs_remove_class/2, % +Class:iri
                          % +Graph:atom
 
@@ -24,14 +24,14 @@
                            % +Graph:atom
 
 % DOMAIN & RANGE
-    rdfs_assert_domain/3, % +Property:uri
-                          % +Class:uri
+    rdfs_assert_domain/3, % +Property:iri
+                          % +Class:iri
                           % +Graph:atom
-    rdfs_assert_domain_range/3, % +Property:uri
-                                % +Class:uri
+    rdfs_assert_domain_range/3, % +Property:iri
+                                % +Class:iri
                                 % +Graph:atom
-    rdfs_assert_range/3, % +Property:uri
-                         % +Class:uri
+    rdfs_assert_range/3, % +Property:iri
+                         % +Class:iri
                          % +Graph:atom
 
 % IS DEFINED BY
@@ -39,9 +39,9 @@
                                % +Graph:atom
 
 % PROPERTY HIERARCHY
-    rdfs_assert_subproperty/3, % +Property:uri
-                               % +SuperProperty:uri
-                               % +Graph:graph
+    rdfs_assert_subproperty/3, % +Property:iri
+                               % +SuperProperty:iri
+                               % +Graph:atom
 
 % UTILITY PROPERTIES
     rdfs_assert_seeAlso/3 % +Subject:or([bnode,iri])
@@ -86,7 +86,7 @@ using the following triples:
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/02, 2013/05-2013/06,
-         2014/03
+         2014/03, 2014/08
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -97,12 +97,9 @@ using the following triples:
 :- use_module(plRdf_term(rdf_language_tagged_string)).
 :- use_module(plRdf_term(rdf_string)).
 
-:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
-
 % CLASS HIERARCHY
 :- rdf_meta(rdfs_assert_class(r,+)).
-:- rdf_meta(rdfs_assert_individual(r,+)).
+:- rdf_meta(rdfs_assert_instance(r,+)).
 :- rdf_meta(rdfs_assert_property_class(r,+)).
 :- rdf_meta(rdfs_assert_subclass(r,r,+)).
 :- rdf_meta(rdfs_remove_class(r,+)).
@@ -124,15 +121,15 @@ using the following triples:
 
 rdfs_assert_class(Class, G):-
   % Materialization would figure this one out as well.
-  rdf_assert_individual(Class, rdfs:'Class',    G),
+  rdf_assert_instance(Class, rdfs:'Class',    G),
   rdfs_assert_subclass( Class, rdfs:'Resource', G).
 
-rdfs_assert_individual(Individual, G):-
-  rdf_assert_individual(Individual, rdfs:'Resource', G).
+rdfs_assert_instance(Instance, G):-
+  rdf_assert_instance(Instance, rdfs:'Resource', G).
 
 rdfs_assert_property_class(PropertyClass, G):-
   % Materialization would figure this one out as well.
-  rdf_assert_individual(PropertyClass, rdfs:'Class',   G),
+  rdf_assert_instance(PropertyClass, rdfs:'Class',   G),
   rdfs_assert_subclass( PropertyClass, rdf:'Property', G).
 
 rdfs_assert_subclass(Class, SuperClass, G):-
@@ -177,19 +174,19 @@ rdfs_assert_comment(R, Comment, LangTag, G):-
 
 % DOMAIN & RANGE %
 
-%! rdfs_assert_domain(+Property:uri, +Class:uri, +Graph:atom) is det.
+%! rdfs_assert_domain(+Property:iri, +Class:iri, +Graph:atom) is det.
 
 rdfs_assert_domain(P, C, G):-
   rdf_assert(P, rdfs:domain, C, G).
 
-%! rdfs_assert_domain_range(+Property:uri, +Class:uri, +Graph:atom) is det.
+%! rdfs_assert_domain_range(+Property:iri, +Class:iri, +Graph:atom) is det.
 % RDFS properties whose domain and range are the same RDFS class.
 
 rdfs_assert_domain_range(P, C, G):-
   rdf_assert(P, rdfs:domain, C, G),
   rdf_assert(P, rdfs:range, C, G).
 
-%! rdfs_assert_range(+Property:uri, Class:uri, Graph:atom) is det.
+%! rdfs_assert_range(+Property:iri, Class:iri, Graph:atom) is det.
 
 rdfs_assert_range(P, C, G):-
   rdf_assert(P, rdfs:range, C, G).
@@ -210,7 +207,7 @@ rdfs_assert_isDefinedBy(R, G):-
 %! rdfs_assert_subproperty(
 %!   +Property:property,
 %!   +SuperProperty:property,
-%!   +Graph:graph
+%!   +Graph:atom
 %! ) is det.
 % Creates a new property that is a subproperty of the given parent property.
 %
