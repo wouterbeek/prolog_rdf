@@ -26,7 +26,21 @@ RDF file types are defined in Semweb as multifile
 and with namespace `rdf_db`.
 
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07
+@tbd Add support for JSON-LD: http://www.w3.org/ns/formats/JSON-LD
+@tbd Add support for OWL XML Serialization: http://www.w3.org/ns/formats/OWL_XML
+@tbd Add support for OWL Functional Syntax: http://www.w3.org/ns/formats/OWL_Functional
+@tbd Add support for OWL Manchester Syntax: http://www.w3.org/ns/formats/OWL_Manchester
+@tbd Add support for POWDER: http://www.w3.org/ns/formats/POWDER
+@tbd Add support for POWDER-S: http://www.w3.org/ns/formats/POWDER-S
+@tbd Add support for PROV-N: http://www.w3.org/ns/formats/PROV-N
+@tbd Add support for PROV-XML: http://www.w3.org/ns/formats/PROV-XML
+@tbd Add support for RDF/JSON: http://www.w3.org/ns/formats/RDF_JSON
+@tbd Add support for RIF XML Syntax: http://www.w3.org/ns/formats/RIF_XML
+@tbd Add support for SPARQL Results in XML: http://www.w3.org/ns/formats/SPARQL_Results_XML
+@tbd Add support for SPARQL Results in JSON: http://www.w3.org/ns/formats/SPARQL_Results_JSON
+@tbd Add support for SPARQL Results in CSV: http://www.w3.org/ns/formats/SPARQL_Results_CSV
+@tbd Add support for SPARQL Results in TSV: http://www.w3.org/ns/formats/SPARQL_Results_TSV
+@version 2014/04-2014/05, 2014/07-2014/08
 */
 
 :- use_module(library(lists)).
@@ -132,7 +146,7 @@ rdf_serialization(
     'application/xhtml+xml',
     'text/html'
   ],
-  ''
+  'http://www.w3.org/ns/formats/RDFa'
 ).
 rdf_serialization(
   trig,
@@ -164,6 +178,6 @@ rdf_serialization(
     'text/rdf+n3',
     'text/n3'
   ],
-  'http://www.w3.org/TeamSubmission/n3/'
+  'http://www.w3.org/ns/formats/N3'
 ).
 
