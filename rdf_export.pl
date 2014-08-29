@@ -188,7 +188,7 @@ rdf_register_prefix_color(Graph, Prefix, PrefixColor):-
 %     The colorscheme that is used for registering colors.
 %     Defaut: `svg`.
 %   * =|graph(+atom)|=
-%     The RDF graph for whose RDF prefixes colors are registered.
+%     The RDF graph for which RDF prefixes colors are registered.
 %     No default.
 %
 % @tbd Add support for colorscheme x11.
