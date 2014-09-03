@@ -315,7 +315,7 @@ eols --> [].
 %
 %  Try to see whether the document is some  form of HTML or XML and
 %  in particular whether it is  RDF/XML.   The  latter is basically
-%  impossible because it is not obligatory  for an XML/RDF document
+%  impossible because it is not obligatory  for an RDF/XML document
 %  to have an rdf:RDF top level  element,   and  when using a typed
 %  node, just about anything can  qualify   for  RDF. The only real
 %  demand is the XML document uses XML namespaces because these are
