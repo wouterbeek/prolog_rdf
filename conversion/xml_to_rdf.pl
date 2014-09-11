@@ -90,7 +90,11 @@ parse_file(File1, NS, G):-
 xml_parse(NS, G) -->
   xml_declaration(_),
   'STag'(RootTag), skip_whites,
-  {rdf_create_next_resource(NS, RootTag, S, G)},
+  {
+    rdf_create_next_resource(RootTag, NS, S),
+    rdf_global_id(NS:RootTag, Class),
+    rdf_assert_instance(S, Class, G)
+  },
   xml_parses(NS, S, G),
   'ETag'(RootTag), dcg_done.
 
@@ -114,7 +118,11 @@ xml_parse(_, _, _) -->
 xml_parse(NS, S, G) -->
   'STag'(OTag), !,
   skip_whites, !,
-  {rdf_create_next_resource(NS, OTag, O, G)},
+  {
+    rdf_create_next_resource(OTag, NS, O),
+    rdf_global_id(NS:OTag, Class),
+    rdf_assert_instance(O, Class, G)
+  },
   xml_parses(NS, O, G),
   'ETag'(OTag), skip_whites,
   {
