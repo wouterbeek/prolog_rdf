@@ -11,7 +11,14 @@
                             % ?Label:or([atom,pair(atom)])
                             % ?Comment:or([atom,pair(atom)])
                             % +Graph:atom
-    rdfs_assert_property/6 % +Property:iri
+    rdfs_assert_property/6, % +Property:iri
+                            % +Domain:iri
+                            % +Range:iri
+                            % ?Label:or([atom,pair(atom)])
+                            % ?Comment:or([atom,pair(atom)])
+                            % +Graph:atom
+    rdfs_assert_property/7 % +Property:iri
+                           % +SuperProperty:iri
                            % +Domain:iri
                            % +Range:iri
                            % ?Label:or([atom,pair(atom)])
@@ -25,7 +32,7 @@
 Predicates for building higher-level RDFS constructs.
 
 @author Wouter Beek
-@versdion 2014/06, 2014/08
+@versdion 2014/06, 2014/08-2014/09
 */
 
 :- use_module(library(semweb/rdf_db)). % Declaration.
@@ -37,6 +44,7 @@ Predicates for building higher-level RDFS constructs.
 :- rdf_meta(rdfs_assert_class(r,r,?,?,+)).
 :- rdf_meta(rdfs_assert_instance(r,r,?,?,+)).
 :- rdf_meta(rdfs_assert_property(r,r,r,?,?,+)).
+:- rdf_meta(rdfs_assert_property(r,r,r,r,?,?,+)).
 
 
 
@@ -83,6 +91,29 @@ rdfs_assert_property(Property, Domain, Range, Label, Comment, Graph):-
   rdfs_assert_range(Property, Range, Graph),
   rdfs_assert_label_wrapper(Property, Label, Graph),
   rdfs_assert_comment_wrapper(Property, Comment, Graph).
+
+
+%! rdfs_assert_property(
+%!   +Property:iri,
+%!   +SuperProperty:iri,
+%!   +Domain:iri,
+%!   +Range:iri,
+%!   ?Label:or([atom,pair(atom)]),
+%!   ?Comment:or([atom,pair(atom)]),
+%!   +Graph:atom
+%! ) is det.
+
+rdfs_assert_property(
+  Property,
+  SuperProperty,
+  Domain,
+  Range,
+  Label,
+  Comment,
+  Graph
+):-
+  rdfs_assert_property(Property, Domain, Range, Label, Comment, Graph),
+  rdfs_assert_subproperty(Property, SuperProperty, Graph).
 
 
 
