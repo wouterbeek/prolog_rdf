@@ -1,9 +1,10 @@
 :- module(
   rdf_reification_write,
   [
-    rdf_assert_datatype_statement/5, % +Subject:or([bnode,iri])
+    rdf_assert_datatype_statement/6, % +Subject:or([bnode,iri])
                                      % +Predicate:iri
-                                     % +Object:or([bnode,iri,literal])
+                                     % +Value
+                                     % +Datatype:iri
                                      % +Graph:atom
                                      % -Statement:or([bnode,iri])
     rdf_assert_object/3, % +Statement:or([bnode,iri])
@@ -47,7 +48,8 @@ Read support for reified triples.
 %! rdf_assert_datatype_statement(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
-%!   +Object:or([bnode,iri,literal]),
+%!   +Value,
+%!   +Datatype:iri,
 %!   +Graph:graph,
 %!   -Statement:statement
 %! ) is det.
