@@ -296,8 +296,17 @@ rdf_save_any(_, triples, Graph, File):- !,
   rdf_save_db(File, Graph).
 % Save to Turtle.
 rdf_save_any(Options1, turtle, Graph, File):- !,
-  merge_options([graph(Graph)], Options1, Options2),
-  rdf_save_canonical_turtle(File, Options2).
+  merge_options(
+    [
+      graph(Graph),
+      only_known_prefixes(true),
+      tab_distance(0),
+      user_prefixes(true)
+    ],
+    Options1,
+    Options2
+  ),
+  rdf_save_turtle(File, Options2).
 
 
 
