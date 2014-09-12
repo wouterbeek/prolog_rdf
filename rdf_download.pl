@@ -21,7 +21,6 @@ e.g. freshness lifetime.
 */
 
 :- use_module(library(option)).
-:- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(generics(uri_ext)).

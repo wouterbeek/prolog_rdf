@@ -24,7 +24,6 @@ Also easily converts between different RDF serializations.
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(predicate_options)). % Declarations
 % rdf_file_type(xml,   xml    ).
 % rdf_file_type(rdf,   xml    ).
 % rdf_file_type(rdfs,  xml    ).

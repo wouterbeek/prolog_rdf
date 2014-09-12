@@ -42,7 +42,6 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(predicate_options)). % Declaration.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf(rdf_list)).

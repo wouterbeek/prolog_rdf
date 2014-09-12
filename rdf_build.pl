@@ -11,10 +11,9 @@
                 % ?Predicate:iri
                 % ?Object:or([bnode,iri,literal])
                 % +ToGraph:atom
-    rdf_create_next_resource/4, % +Namespace:atom
-                                % +BaseName:atom
+    rdf_create_next_resource/3, % +Flag:atom
+                                % +Prefix:atom
                                 % -Resource:iri
-                                % +Graph:atom
     rdf_remove_property/2, % +Graph:atom
                            % +Property:iri
     rdf_remove_resource/2 % +Graph:atom
@@ -55,19 +54,12 @@ rdf_assert_property(Property, G):-
   rdf_assert_instance(Property, rdf:'Property', G).
 
 
-%! rdf_create_next_resource(
-%!   +Namespace:atom,
-%!   +BaseName:atom,
-%!   -Resource:iri,
-%!   +Graph:atom
-%! ) is det.
+%! rdf_create_next_resource(+Flag:atom, +Prefix:atom, -Resource:iri) is det.
 
-rdf_create_next_resource(Namespace, BaseName, Resource, Graph):-
-  flag(BaseName, Id, Id + 1),
-  atomic_list_concat([BaseName,Id], '/', LocalName),
-  rdf_global_id(Namespace:LocalName, Resource),
-  rdf_global_id(Namespace:BaseName, Class),
-  rdf_assert_instance(Resource, Class, Graph).
+rdf_create_next_resource(Flag, Prefix, Resource):-
+  flag(Flag, Id0, Id0 + 1),
+  atom_number(Id, Id0),
+  rdf_global_id(Prefix:Id, Resource).
 
 rdf_graph(G1, S, P, O, G2):-
   forall(

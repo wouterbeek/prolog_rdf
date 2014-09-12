@@ -35,7 +35,6 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
-:- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 

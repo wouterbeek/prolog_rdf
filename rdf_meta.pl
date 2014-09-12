@@ -21,7 +21,6 @@ Meta-callings on an RDF graph.
 */
 
 :- use_module(library(option)).
-:- use_module(library(predicate_options)). % Declarations.
 
 :- use_module(os(file_ext)).
 

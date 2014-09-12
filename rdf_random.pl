@@ -27,7 +27,6 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
-:- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf_db)).
 
