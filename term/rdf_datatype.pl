@@ -4,26 +4,26 @@
     rdf_assert_datatype/5, % +Subject:oneof([bnode,iri])
                            % +Predicate:iri
                            % +Value
-                           % +DatatypeIri:iri
-                           % +RdfGraph:atom
-    rdf_datatype/2, % ?DatatypeIri:iri
-                    % ?RdfGraph:atom
+                           % +Datatype:iri
+                           % +Graph:atom
+    rdf_datatype/2, % ?Datatype:iri
+                    % ?Graph:atom
     rdf_datatype/5, % ?Subject:oneof([bnode,iri])
                     % ?Predicate:iri
                     % ?Value
-                    % ?DatatypeIri:iri
-                    % ?RdfGraph:atom
+                    % ?Datatype:iri
+                    % ?Graph:atom
     rdf_datatype_literal/2, % +Literal:compound
                             % -Value
     rdf_overwrite_datatype/5, % +Subject:oneof([bnode,iri])
                               % +Predicate:iri
                               % +LexicalForm2
-                              % +DatatypeIri:iri
-                              % +RdfGraph:atom
+                              % +Datatype:iri
+                              % +Graph:atom
     rdf_retractall_datatype/4 % ?Subject:oneof([bnode,iri])
                               % ?Predicate:iri
-                              % ?DatatypeIri:iri
-                              % ?RdfGraph:atom
+                              % ?Datatype:iri
+                              % ?Graph:atom
   ]
 ).
 
@@ -60,8 +60,8 @@ Support for RDF typed literals.
 %!   +Subject:oneof([bnode,iri]),
 %!   +Predicate:iri,
 %!   +Value,
-%!   +DatatypeIri:iri,
-%!   +RdfGraph:atom
+%!   +Datatype:iri,
+%!   +Graph:atom
 %! ) is det.
 % Asserts a datatyped value for a blank node or IRI reference.
 %
@@ -74,16 +74,16 @@ Support for RDF typed literals.
 % Language-tagged strings cannot be asserted in this way.
 
 % Simple literals.
-rdf_assert_datatype(S, P, Value, DatatypeIri, G):-
-  var(DatatypeIri), !,
+rdf_assert_datatype(S, P, Value, Datatype, G):-
+  var(Datatype), !,
   rdf_assert_datatype(S, P, Value, xsd:string, G).
 % Others.
-rdf_assert_datatype(S, P, Value, DatatypeIri, G):-
-  xsd_canonical_map(DatatypeIri, Value, LexicalForm),
-  rdf_assert_literal(S, P, LexicalForm, DatatypeIri, _, G).
+rdf_assert_datatype(S, P, Value, Datatype, G):-
+  xsd_canonical_map(Datatype, Value, LexicalForm),
+  rdf_assert_literal(S, P, LexicalForm, Datatype, _, G).
 
 
-%! rdf_datatype(?DatatypeIri:iri, ?RdfGraph:atom) is nondet.
+%! rdf_datatype(?Datatype:iri, ?Graph:atom) is nondet.
 
 rdf_datatype(D, G):-
   rdf_literal(_, _, _, D, _, G).
@@ -93,8 +93,8 @@ rdf_datatype(D, G):-
 %!   ?Subject:oneof([bnode,iri]),
 %!   ?Predicate:iri,
 %!   ?Value,
-%!   ?DatatypeIri:or([atom,iri]),
-%!   ?RdfGraph:atom
+%!   ?Datatype:or([atom,iri]),
+%!   ?Graph:atom
 %! ) is nondet.
 % @tbd Ideally, we would like to close lexical expressions
 %      under identity and equivalence in search.
@@ -121,8 +121,8 @@ rdf_datatype_literal(literal(type(Datatype,Lexical)), Value):-
 %!   +Subject:oneof([bnode,iri]),
 %!   +Predicate:iri,
 %!   +LexicalForm2,
-%!   +DatatypeIri:iri,
-%!   +RdfGraph:atom
+%!   +Datatype:iri,
+%!   +Graph:atom
 %! ) is det.
 % The single new value is going to overwrite all old values, unless the new
 % value is already asserted. In that case none of the other values gets
@@ -160,11 +160,11 @@ rdf_overwrite_datatype(S, P, LexicalForm2, Datatype, G):-
 %! rdf_retractall_datatype(
 %!   ?Subject:oneof([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?DatatypeIri:iri,
-%!   ?RdfGraph:atom
+%!   ?Datatype:iri,
+%!   ?Graph:atom
 %! ) is det.
 % Retracts all matching RDF triples that assert a datatypes value.
 
-rdf_retractall_datatype(S, P, DatatypeIri, G):-
-  rdf_retractall_literal(S, P, _, DatatypeIri, G).
+rdf_retractall_datatype(S, P, Datatype, G):-
+  rdf_retractall_literal(S, P, _, Datatype, G).
 
