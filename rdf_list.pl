@@ -45,7 +45,6 @@ Support for RDF lists.
 
 :- use_module(library(apply)).
 :- use_module(library(option)).
-:- use_module(library(predicate_options)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plDcg(dcg_collection)).
@@ -154,7 +153,7 @@ rdf_assert_list([H|T], RdfList, Graph, Options):-
 
 add_blank_list_individual(Blank, Graph):-
   rdf_bnode(Blank),
-  rdf_assert_individual(Blank, rdf:'List', Graph).
+  rdf_assert_instance(Blank, rdf:'List', Graph).
 
 
 %! rdf_list(+RdfList:rdf_list, -List:list) is det.

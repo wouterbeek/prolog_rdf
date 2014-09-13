@@ -41,8 +41,7 @@ Graph-based garbage collection for RDF.
 rdf_graph_exclude_from_gc(Graph):-
   rdf_graph_exlcuded_from_gc(Graph), !.
 rdf_graph_exclude_from_gc(Graph):-
-  with_mutex(
-    rdf_gc,
+  with_mutex(rdf_gc,
     assert(rdf_graph_exlcuded_from_gc(Graph))
   ).
 
@@ -51,8 +50,7 @@ rdf_graph_exclude_from_gc(Graph):-
 rdf_graph_touch(Graph):-
   rdf_graph_exlcuded_from_gc(Graph).
 rdf_graph_touch(Graph):-
-  with_mutex(
-    rdf_gc,
+  with_mutex(rdf_gc,
     rdf_graph_touch_sync(Graph)
   ).
 

@@ -48,7 +48,7 @@ prolog_to_rdf(Graph, Module, Term, Individual):-
 
   % Individual.
   rdf_bnode(Individual),
-  rdf_assert_individual(Individual, Class, Graph),
+  rdf_assert_instance(Individual, Class, Graph),
 
   % Propositions.
   Module:legend(Functor, _, ArgRequirements),

@@ -20,7 +20,7 @@ The following metadata vocabularies are supported:
 
 @author Wouter Beek
 @see http://www.w3.org/ns/sparql-service-description#
-@version 2014/06
+@version 2014/06, 2014/08
 */
 
 :- use_module(library(persistency)).
@@ -28,6 +28,7 @@ The following metadata vocabularies are supported:
 :- use_module(library(semweb/rdf_http_plugin)). % HTTP support for RDF load.
 
 :- use_module(generics(db_ext)).
+:- use_module(generics(persistent_db_ext)).
 :- use_module(os(file_ext)).
 
 :- db_add_novel(user:prolog_file_type(log, logging)).
@@ -171,9 +172,7 @@ rdf_metadata_file(File):-
 
 rdf_metadata_init:-
   rdf_metadata_file(File),
-  safe_db_attach(File),
-  file_age(File, Age),
-  rdf_metadata_update(Age).
+  persistent_db_init(File, rdf_metadata_update).
 
 
 %! rdf_metadata_update(+Age:float) is det.
@@ -181,20 +180,10 @@ rdf_metadata_init:-
 % The persistent store is still fresh.
 rdf_metadata_update(Age):-
   once((rdf_meta_class(_, _) ; rdf_meta_property(_, _))),
-  Age < 8640000, !.
+  Age < 8640000, !. % 10 days.
 % The persistent store has become stale, so refresh it.
 rdf_metadata_update(_):-
   retractall_rdf_meta_class(_, _),
   retractall_rdf_meta_property(_, _),
   rdf_metadata_download.
-
-
-%! safe_db_attach(+File:atom) is det.
-
-safe_db_attach(File):-
-  exists_file(File), !,
-  db_attach(File, []).
-safe_db_attach(File):-
-  touch_file(File),
-  safe_db_attach(File).
 

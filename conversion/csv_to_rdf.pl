@@ -13,11 +13,12 @@
 Automatic conversion from CSV to RDF.
 
 @author Wouter Beek
-@version 2014/02, 2014/05
+@version 2014/02, 2014/05, 2014/08
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
+:- use_module(library(error)).
 :- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
@@ -31,8 +32,6 @@ Automatic conversion from CSV to RDF.
 :- use_module(plXsd(xsd)). % XML namespace.
 
 :- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdfs_build)).
-:- use_module(plRdf_term(rdf_string)).
 
 
 
@@ -42,12 +41,14 @@ Automatic conversion from CSV to RDF.
 %!   +NamespacePrefix:atom,
 %!   +ClassName:atom
 %! ) is det.
+% @throws type_error if the given prefix is not a registered RDF prefix.
 
+csv_to_rdf(_, _, Prefix, _):-
+  \+ rdf_current_prefix(Prefix, _), !,
+  type_error(rdf_prefix, Prefix).
 csv_to_rdf(Stream, Graph, NamespacePrefix, ClassName):-
   is_stream(Stream), !,
-  % The XML namespace must be defined.
-  rdf_current_prefix(NamespacePrefix, _),
-  
+
   phrase_from_stream(csv(Rows1), Stream),
   maplist(row_to_list, Rows1, Rows2),
   Rows2 = [Header|Rows3],
@@ -115,7 +116,7 @@ rdf_property_name --> [].
 csv_row_to_rdf(Graph, Class, Properties, Row):-
   % A row is translated into an instance of the given class.
   rdf_bnode(Resource),
-  rdf_assert_individual(Resource, Class, Graph),
+  rdf_assert_instance(Resource, Class, Graph),
 
   % Assert each cell in the given row.
   maplist(csv_cell_to_rdf(Graph, Resource), Properties, Row).

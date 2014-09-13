@@ -12,6 +12,7 @@
 RDF prefix registrations.
 
 @author Wouter Beek
+@tbd Add prefixes that occur in http://dbpedia.org/sparql?nsdecl
 @version 2014/06-2014/07
 */
 

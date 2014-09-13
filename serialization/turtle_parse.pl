@@ -20,7 +20,7 @@
 
 :- use_module(generics(db_ext)).
 :- use_module(sparql(sparql_bnode)).
-:- use_module(sparql(sparql_query)).
+:- use_module(sparql(sparql_query_generics)).
 :- use_module(turtle(turtle_number)).
 
 :- use_module(plRdf(rdf_list)).

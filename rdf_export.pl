@@ -35,7 +35,6 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
-:- use_module(library(predicate_options)). % Declarations.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -188,7 +187,7 @@ rdf_register_prefix_color(Graph, Prefix, PrefixColor):-
 %     The colorscheme that is used for registering colors.
 %     Defaut: `svg`.
 %   * =|graph(+atom)|=
-%     The RDF graph for whose RDF prefixes colors are registered.
+%     The RDF graph for which RDF prefixes colors are registered.
 %     No default.
 %
 % @tbd Add support for colorscheme x11.
