@@ -15,7 +15,7 @@
                             % +Graph:atom
     rdf_assert_statement/3, % +Triple:compound
                             % +Graph:atom
-                            % -Statement:or([bnode,iri])
+                            % ?Statement:or([bnode,iri])
     rdf_assert_subject/3 % +Statement:or([bnode,iri])
                          % +Subject:iri
                          % +Graph:atom
@@ -37,10 +37,10 @@ Read support for reified triples.
 :- use_module(plRdf_term(rdf_literal)).
 :- use_module(plRdf_term(rdf_literal_build)).
 
-:- rdf_meta(rdf_assert_datatype_statement(r,r,+,r,+,-)).
+:- rdf_meta(rdf_assert_datatype_statement(r,r,+,r,+,?)).
 :- rdf_meta(rdf_assert_object(r,o,+)).
 :- rdf_meta(rdf_assert_predicate(r,r,+)).
-:- rdf_meta(rdf_assert_statement(t,+,-)).
+:- rdf_meta(rdf_assert_statement(t,+,?)).
 :- rdf_meta(rdf_assert_subject(r,r,+)).
 
 
@@ -51,7 +51,7 @@ Read support for reified triples.
 %!   +Value,
 %!   +Datatype:iri,
 %!   +Graph:graph,
-%!   -Statement:statement
+%!   ?Statement:or(bnode,iri])
 %! ) is det.
 % Asserts a datatyped statement, and automatically converts the given value
 % to its corresponding lexical form.
@@ -109,7 +109,7 @@ rdf_assert_predicate(Statement, Predicate, Graph):-
 %! rdf_assert_statement(
 %!   +Triple:compound,
 %!   +Graph:atom,
-%!   -Statement:or([bnode,iri])
+%!   ?Statement:or([bnode,iri])
 %! ) is det.
 
 rdf_assert_statement(rdf(Subject,Predicate,Object), Graph, Statement):-
@@ -117,12 +117,9 @@ rdf_assert_statement(rdf(Subject,Predicate,Object), Graph, Statement):-
 rdf_assert_statement(rdf(Subject,Predicate,Object), Graph, Statement):-
   % Make sure the statement parameter is instantiated.
   % Use a new blank node if this is not yet the case.
-  (
-    var(Statement)
-  ->
-    rdf_bnode(Statement)
-  ;
-    true
+  (   var(Statement)
+  ->  rdf_bnode(Statement)
+  ;   true
   ),
 
   rdf_assert_instance(Statement, rdf:'Statement', Graph),
