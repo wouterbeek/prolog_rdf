@@ -191,6 +191,10 @@ rdf_literal_map(LexicalForm, Datatype, LangTag, Value):-
   ;
     nonvar(LexicalForm)
   ->
-    xsd_lexical_map(Datatype, LexicalForm, Value)
+    once(xsd_lexical_map(Datatype, LexicalForm, Value))
   ).
+
+
+
+
 

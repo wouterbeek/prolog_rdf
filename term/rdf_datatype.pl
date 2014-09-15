@@ -107,7 +107,7 @@ rdf_datatype(S, P, Value, Datatype, G):-
   xsd_canonical_map(Datatype, Value, LexicalForm),
   rdf_literal(S, P, LexicalForm, Datatype, _, G).
 rdf_datatype(S, P, Value, Datatype, G):-
-  rdf_literal(S, P, LexicalForm, Datatype, _, G),
+  once(rdf_literal(S, P, LexicalForm, Datatype, _, G)),
   rdf_literal_map(LexicalForm, Datatype, _, Value).
 
 
