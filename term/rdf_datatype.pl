@@ -8,6 +8,10 @@
                            % +Graph:atom
     rdf_datatype/2, % ?Datatype:iri
                     % ?Graph:atom
+    rdf_datatype/4, % ?Subject:oneof([bnode,iri])
+                    % ?Predicate:iri
+                    % ?Value
+                    % ?Datatype:iri
     rdf_datatype/5, % ?Subject:oneof([bnode,iri])
                     % ?Predicate:iri
                     % ?Value
@@ -32,7 +36,7 @@
 Support for RDF typed literals.
 
 @author Wouter Beek
-@version 2013/10, 2014/01-2014/03, 2014/06
+@version 2013/10, 2014/01-2014/03, 2014/06, 2014/09
 */
 
 :- use_module(library(apply)).
@@ -50,6 +54,7 @@ Support for RDF typed literals.
 
 :- rdf_meta(rdf_assert_datatype(r,r,+,r,+)).
 :- rdf_meta(rdf_datatype(r,?)).
+:- rdf_meta(rdf_datatype(r,r,?,r)).
 :- rdf_meta(rdf_datatype(r,r,?,r,?)).
 :- rdf_meta(rdf_overwrite_datatype(r,r,+,r,+)).
 :- rdf_meta(rdf_retractall_datatype(r,r,r,?)).
@@ -87,6 +92,18 @@ rdf_assert_datatype(S, P, Value, Datatype, G):-
 
 rdf_datatype(D, G):-
   rdf_literal(_, _, _, D, _, G).
+
+
+%! rdf_datatype(
+%!   ?Subject:oneof([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Value,
+%!   ?Datatype:or([atom,iri])
+%! ) is nondet.
+% @see rdf_datatype/5
+
+rdf_datatype(S, P, Value, Datatype):-
+  rdf_datatype(S, P, Value, Datatype, _).
 
 
 %! rdf_datatype(

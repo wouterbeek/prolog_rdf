@@ -34,6 +34,8 @@ Read support for reified triples.
 
 :- use_module(plXsd(xsd)).
 
+:- use_module(plRdf(rdf_build)).
+:- use_module(plRdf_rei(rdf_reification_read)).
 :- use_module(plRdf_term(rdf_literal)).
 :- use_module(plRdf_term(rdf_literal_build)).
 
@@ -51,7 +53,7 @@ Read support for reified triples.
 %!   +Value,
 %!   +Datatype:iri,
 %!   +Graph:graph,
-%!   ?Statement:or(bnode,iri])
+%!   ?Statement:or([bnode,iri])
 %! ) is det.
 % Asserts a datatyped statement, and automatically converts the given value
 % to its corresponding lexical form.
