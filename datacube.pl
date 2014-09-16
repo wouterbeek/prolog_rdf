@@ -30,21 +30,21 @@ Predicates for perfoming measurements represented in RDF.
 @version 2014/09
 */
 
-:- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdfs_build)).
-:- use_module(plRdf_rei(rdf_reification_write)).
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_dateTime)).
 
 :- use_module(plXsd(xsd)).
 
+:- meta_predicate(assert_observation(+,+,1,+)).
 :- meta_predicate(assert_observation(+,+,1,+,-)).
 
+:- rdf_meta(assert_datastructure_definition(t,r,t,+)).
 :- rdf_meta(assert_datastructure_definition(t,r,t,+,-)).
+:- rdf_meta(assert_observation(r,r,:,+)).
 :- rdf_meta(assert_observation(r,r,:,+,-)).
 :- rdf_meta(assert_relation(-,r,+,+)).
 :- rdf_meta(assert_relation0(r,+,+,-)).
@@ -90,11 +90,11 @@ assert_datastructure_definition(
   rdf_create_next_resource(
     data_structure_definition,
     Graph,
-    [data_structure_definition],
+    ['DataStructureDefinition'],
     DSDef
   ),
   rdf_assert_instance(DSDef, qb:'DataStructureDefinition', Graph),
-  
+
   % Create the component resources.
   findall(
     Component,
@@ -114,7 +114,7 @@ assert_datastructure_definition(
     ComponentsC
   ),
   append([ComponentB|ComponentsA], ComponentsC, Components),
-  
+
   % Relate components to data structure definition.
   forall(
     member(Component, Components),
@@ -141,18 +141,18 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
   % Extract the datatype.
   rdf(Property, rdfs:range, Datatype),
   xsd_datatype(Datatype),
-  
+
   % Create the observation.
-  rdf_create_next_resource(observation, Graph, [observation], Observation),
+  rdf_create_next_resource(observation, Graph, ['Observation'], Observation),
   rdf_assert_instance(Observation, qb:'Observation', Graph),
-  
+
   % qb:dataSet
   rdf_assert(Observation, qb:dataSet, Dataset, Graph),
-  
+
   % Assert the measurement value.
   call(Goal, Value),
   rdf_assert_datatype(Observation, Property, Value, Datatype, Graph),
-  
+
   % Assert the temporal dimension value.
   rdf_assert_now(Observation, 'sdmx-dimension':timePeriod, Graph).
 
