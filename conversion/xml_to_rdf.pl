@@ -91,7 +91,7 @@ xml_parse(NS, G) -->
   xml_declaration(_),
   'STag'(RootTag), skip_whites,
   {
-    rdf_create_next_resource(RootTag, NS, S),
+    rdf_create_next_resource(RootTag, NS, [], S),
     rdf_global_id(NS:RootTag, Class),
     rdf_assert_instance(S, Class, G)
   },
@@ -119,7 +119,7 @@ xml_parse(NS, S, G) -->
   'STag'(OTag), !,
   skip_whites, !,
   {
-    rdf_create_next_resource(OTag, NS, O),
+    rdf_create_next_resource(OTag, NS, [], O),
     rdf_global_id(NS:OTag, Class),
     rdf_assert_instance(O, Class, G)
   },

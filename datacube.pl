@@ -31,7 +31,6 @@ Predicates for perfoming measurements represented in RDF.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 
@@ -47,6 +46,9 @@ Predicates for perfoming measurements represented in RDF.
 
 :- rdf_meta(assert_datastructure_definition(t,r,t,+,-)).
 :- rdf_meta(assert_observation(r,r,:,+,-)).
+:- rdf_meta(assert_relation(-,r,+,+)).
+:- rdf_meta(assert_relation0(r,+,+,-)).
+:- rdf_meta(rdf_assert0(r,r,+,o)).
 
 :- rdf_register_prefix(dct, 'http://purl.org/dc/terms/').
 :- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
@@ -75,6 +77,7 @@ assert_datastructure_definition(Ds, M, As, G):-
 %! ) is det.
 % @tbd Add support for qb:order.
 % @tbd Add support for qb:componentRequired.
+% @tbd Fix RDF expansion in lambda expression.
 
 assert_datastructure_definition(
   Dimensions,
@@ -83,25 +86,39 @@ assert_datastructure_definition(
   Graph,
   DSDef
 ):-
-  rdf_create_next_resource(data_structure_definition, dhm, DSDef),
+  % Create the data structure definition resource.
+  rdf_create_next_resource(
+    data_structure_definition,
+    Graph,
+    [data_structure_definition],
+    DSDef
+  ),
   rdf_assert_instance(DSDef, qb:'DataStructureDefinition', Graph),
   
-  maplist(
-    \Dimension^Component^assert_relation(Component, qb:dimension, Dimension, Graph),
-    Dimensions,
+  % Create the component resources.
+  findall(
+    Component,
+    (
+      member(Dimension, Dimensions),
+      assert_relation(Component, qb:dimension, Graph, Dimension)
+    ),
     Components1
   ),
   assert_relation(Component, qb:measure, Measure, Graph),
-  maplist(
-    \Attribute^Component^assert_relation(Component, qb:attribute, Attribute, Graph),
-    Attributes,
+  findall(
+    Component,
+    (
+      member(Attribute, Attributes),
+      assert_relation(Component, qb:attribute, Attribute, Graph)
+    ),
     Components2
   ),
   append([Component|Components1], Components2, Components),
   
-  maplist(
-    \Component^rdf_assert(DSDef, qb:component, Component, Graph),
-    Components
+  % Relate components to data structure definition.
+  forall(
+    member(Component, Components),
+    rdf_assert(DSDef, qb:component, Component, Graph)
   ).
 
 
@@ -126,7 +143,7 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
   xsd_datatype(Datatype),
   
   % Create the observation.
-  rdf_create_next_resource(observation, qb, Observation),
+  rdf_create_next_resource(observation, Graph, [observation], Observation),
   rdf_assert_instance(Observation, qb:'Observation', Graph),
   
   % qb:dataSet
@@ -142,6 +159,13 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
 
 
 % Helpers
+
+%! assert_relation(
+%!   -Component:or([bnode,iri]),
+%!   +Relation:iri,
+%!   +Dimension:iri,
+%!   +Graph:atom
+%! ) is det.
 
 assert_relation(Component, Relation, Dimension, Graph):-
   rdf(Component, Relation, Dimension,  Graph), !.

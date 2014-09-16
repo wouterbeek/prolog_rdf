@@ -277,7 +277,7 @@ rdf_triple_name(rdf(S,P,O)) -->
 %! rdf_triple_name(+Triple:compound, +Graph:atom)// is det.
 
 rdf_triple_name(rdf(S,P,O), Graph) -->
-  tuple(ascii, rdf_term_name, [S,P,O,Graph]).
+  tuple(ascii, rdf_term_name, [S,P,O,graph(Graph)]).
 
 
 %! rdf_typed_literal_name(+TypedLiteral:compound)// is det.
