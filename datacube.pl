@@ -100,20 +100,20 @@ assert_datastructure_definition(
     Component,
     (
       member(Dimension, Dimensions),
-      assert_relation(Component, qb:dimension, Graph, Dimension)
+      assert_relation(Component, qb:dimension, Dimension, Graph)
     ),
-    Components1
+    ComponentsA
   ),
-  assert_relation(Component, qb:measure, Measure, Graph),
+  assert_relation(ComponentB, qb:measure, Measure, Graph),
   findall(
     Component,
     (
       member(Attribute, Attributes),
       assert_relation(Component, qb:attribute, Attribute, Graph)
     ),
-    Components2
+    ComponentsC
   ),
-  append([Component|Components1], Components2, Components),
+  append([ComponentB|ComponentsA], ComponentsC, Components),
   
   % Relate components to data structure definition.
   forall(
