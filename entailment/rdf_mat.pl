@@ -31,7 +31,7 @@ Takes axioms, rules, and the RDF index and performs materializations.
 :- use_module(plDcg(dcg_cardinal)).
 :- use_module(plDcg(dcg_collection)). % DCG-meta.
 :- use_module(plDcg(dcg_content)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf_ent(rdf_ent)). % Axioms, explanations, rules.
 :- use_module(plRdf_ent(rdfs_ent)). % Axioms, explanations, rules.

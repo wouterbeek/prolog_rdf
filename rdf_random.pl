@@ -32,7 +32,7 @@
 
 :- use_module(generics(flag_ext)).
 
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(rdf_graph_theory)).
 :- use_module(plRdf(rdf_parse)).

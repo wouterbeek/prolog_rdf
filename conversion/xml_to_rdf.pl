@@ -38,7 +38,7 @@ Converts XML DOMs to RDF graphs.
 :- use_module(xml(xml_word)).
 
 :- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_meta)).
 :- use_module(plDcg(dcg_peek)).
 :- use_module(plDcg(dcg_replace)).

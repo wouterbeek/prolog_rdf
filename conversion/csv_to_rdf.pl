@@ -27,7 +27,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(http(http_download)).
 
 :- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plXsd(xsd)). % XML namespace.
 

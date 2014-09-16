@@ -28,7 +28,7 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plDcg(dcg_content)). % Meta-argument.
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_replace)). % Meta-argument.
 
 :- use_module(plXsd(xsd)).

@@ -43,7 +43,7 @@ Support for RDF typed literals.
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plXsd(xsd)).
 

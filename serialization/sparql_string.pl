@@ -18,7 +18,7 @@ Grammar for strings in Turtle.
 
 :- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_content)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 
 

@@ -24,7 +24,7 @@ Sytax-to-semantics map printing.
 :- use_module(library(lists)).
 
 :- use_module(plDcg(dcg_collection)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf(rdf_name)).

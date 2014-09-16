@@ -44,7 +44,7 @@ Predicates for RDFS labels.
 
 :- use_module(plDcg(dcg_collection)). % Meta-called.
 :- use_module(plDcg(dcg_content)). % Meta-called.
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(rdf_list)).
 :- use_module(plRdf_term(rdf_language_tagged_string)).

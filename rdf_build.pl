@@ -28,10 +28,11 @@ Simple asserion and retraction predicates for RDF.
 Triples with literals are treated in dedicated modules.
 
 @author Wouter Beek
-@version 2013/10, 2013/12-2014/01, 2014/06, 2014/08
+@version 2013/10, 2013/12-2014/01, 2014/06, 2014/08-2014/09
 */
 
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri)).
 
 
 :- use_module(plRdf(rdf_read)).
@@ -47,8 +48,7 @@ Triples with literals are treated in dedicated modules.
 % Asserts an instance/class relationship.
 
 rdf_assert_instance(I, C, G):-
-  rdf_assert(I, rdf:type, C, G),
-  rdf_assert(C, rdf:type, rdfs:'Class', G).
+  rdf_assert(I, rdf:type, C, G).
 
 
 rdf_assert_property(Property, G):-
@@ -63,7 +63,6 @@ rdf_assert_property(Property, G):-
 %! ) is det.
 
 rdf_create_next_resource(Flag, Prefix1, SubPaths1, Resource):-
-gtrace,
   flag(Flag, Id, Id + 1),
   append(SubPaths1, [Id], SubPaths2),
   atomic_list_concat(SubPaths2, '/', Path),
