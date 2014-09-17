@@ -79,3 +79,15 @@ increment_bnode_counter(Id2):-
   Id2 is Id1 + 1,
   assert(bnode_counter(Id2)).
 
+
+reset_bnode_admin:-
+  reset_bnode_counter,
+  reset_bnode_map.
+
+reset_bnode_counter:-
+  retractall(bnode_counter(_)),
+  assert(bnode_counter(0)).
+
+reset_bnode_map:-
+  retractall(bnode_map(_,_)).
+
