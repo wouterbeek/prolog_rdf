@@ -211,7 +211,8 @@ ctriples_write_subject(State, BNodePrefix, G, S):-
     rdf(S, P, O, G:_),
     POPairs
   ),
-  maplist(ctriples_write_triple(State, BNodePrefix, S), POPairs).
+  inc_number_of_triples(State),
+  rdf_write_ctriple(S, P, O, G, BNodePrefix).
 
 
 %! ctriples_write_triple0(+BNodePrefix:iri, +Triple:compound) is det.
@@ -231,19 +232,6 @@ ctriples_write_triple(BNodePrefix, rdf(S,P,O,G)):-
 ctriples_write_triple(State, BNodePrefix, Triple):-
   inc_number_of_triples(State),
   ctriples_write_triple(BNodePrefix, Triple).
-
-
-%! ctriples_write_triple(
-%!   +State:compound,
-%!   +BNodePrefix:iri,
-%!   +Subject:or([bnode,iri]),
-%!   +PredicateObjectPairs:ordset(triple(iri,or([bnode,iri,literal]),iri))
-%! ) is det.
-% Writes a single triple.
-
-ctriples_write_triple(State, BNodePrefix, S, P-O-G):-
-  inc_number_of_triples(State),
-  rdf_write_ctriple(S, P, O, G, BNodePrefix).
 
 
 inc_number_of_triples(State) :-
