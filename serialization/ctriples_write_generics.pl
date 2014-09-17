@@ -1,6 +1,22 @@
 :- module(
   ctriples_write_generics,
   [
+    ctriples_write_begin/3, % +State:compound
+                            % +BNodePrefix:iri
+                            % +Options:list(nvpair)
+    ctriples_write_end/3, % +State:compound
+                          % +BNodePrefix:iri
+                          % +Options:list(nvpair)
+    inc_number_of_triples/1, % +State:compound
+    write_quad/5, % +Subject:or([bnode,iri])
+                  % +Predicate:iri
+                  % +Object:or([bnode,iri,literal])
+                  % +Graph:atom
+                  % +BNodePrefix:atom
+    write_triple/4 % +Subject:or([bnode,iri])
+                   % +Predicate:iri
+                   % +Object:or([bnode,iri,literal])
+                   % +BNodePrefix:atom
   ]
 ).
 
@@ -46,7 +62,7 @@ ctriples_write_end(State, Options):-
   ).
 
 
-%! inc_number_of_triples(+State:compound):-
+%! inc_number_of_triples(+State:compound) is det.
 
 inc_number_of_triples(State):-
   arg(1, State, C0),
@@ -63,9 +79,11 @@ reset_bnode_admin:-
   reset_bnode_counter,
   reset_bnode_map.
 
+
 reset_bnode_counter:-
   retractall(bnode_counter(_)),
   assert(bnode_counter(0)).
+
 
 reset_bnode_map:-
   retractall(bnode_map(_,_)).
@@ -152,4 +170,3 @@ write_subject(BNode, BNodePrefix):-
 % Subject term: IRI
 write_subject(Iri, _):-
   turtle:turtle_write_uri(current_output, Iri).
-
