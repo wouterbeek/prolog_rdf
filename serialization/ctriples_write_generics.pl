@@ -1,6 +1,21 @@
 :- module(
   ctriples_write_generics,
   [
+    ctriples_write_begin/3, % +State:compound
+                            % +BNodePrefix:iri
+                            % +Options:list(nvpair)
+    ctriples_write_end/2, % +State:compound
+                          % +Options:list(nvpair)
+    inc_number_of_triples/1, % +State:compound
+    write_quad/5, % +Subject:or([bnode,iri])
+                  % +Predicate:iri
+                  % +Object:or([bnode,iri,literal])
+                  % +Graph:atom
+                  % +BNodePrefix:atom
+    write_triple/4 % +Subject:or([bnode,iri])
+                   % +Predicate:iri
+                   % +Object:or([bnode,iri,literal])
+                   % +BNodePrefix:atom
   ]
 ).
 
@@ -13,6 +28,9 @@ Generic predicates for writing C-Triples.
 */
 
 :- use_module(library(option)).
+:- use_module(library(semweb/turtle)). % Private predicates.
+
+:- use_module(plRdf_ser(rdf_bnode_write)).
 
 
 
@@ -24,10 +42,10 @@ Generic predicates for writing C-Triples.
 
 ctriples_write_begin(State, BNodePrefix, Options):-
   reset_bnode_admin,
-  
+
   % Keep track of the number of triples written.
   State = state(0),
-  
+
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.
   (   option(bnode_base(Scheme-Authority-Hash), Options)
@@ -46,12 +64,26 @@ ctriples_write_end(State, Options):-
   ).
 
 
-%! inc_number_of_triples(+State:compound):-
+%! inc_number_of_triples(+State:compound) is det.
 
 inc_number_of_triples(State):-
   arg(1, State, C0),
   C1 is C0 + 1,
   nb_setarg(1, State, C1).
+
+
+reset_bnode_admin:-
+  reset_bnode_counter,
+  reset_bnode_map.
+
+
+reset_bnode_counter:-
+  retractall(bnode_counter(_)),
+  assert(bnode_counter(0)).
+
+
+reset_bnode_map:-
+  retractall(bnode_map(_,_)).
 
 
 %! write_quad(
