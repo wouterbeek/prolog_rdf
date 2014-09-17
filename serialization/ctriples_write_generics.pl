@@ -54,11 +54,6 @@ inc_number_of_triples(State):-
   nb_setarg(1, State, C1).
 
 
-%! rdf_bnode_prefix(-BNodePrefix:atom) is semidet.
-
-rdf_bnode_prefix('_:').
-
-
 %! write_quad(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
