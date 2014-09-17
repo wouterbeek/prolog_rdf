@@ -72,20 +72,6 @@ inc_number_of_triples(State):-
   nb_setarg(1, State, C1).
 
 
-reset_bnode_admin:-
-  reset_bnode_counter,
-  reset_bnode_map.
-
-
-reset_bnode_counter:-
-  retractall(bnode_counter(_)),
-  assert(bnode_counter(0)).
-
-
-reset_bnode_map:-
-  retractall(bnode_map(_,_)).
-
-
 %! write_quad(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
