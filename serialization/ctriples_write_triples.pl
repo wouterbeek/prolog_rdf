@@ -38,16 +38,8 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 */
 
 :- use_module(library(lists)).
-:- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/turtle)). % Private predicates.
-:- use_module(library(sgml_write)).
 
-:- use_module(generics(typecheck)).
-
-:- use_module(plRdf(rdf_graph)).
-:- use_module(plRdf_ser(rdf_bnode_write)).
-:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf_ser(ctriples_write_generics)).
 
 
 
@@ -86,13 +78,6 @@ ctriples_write_triples_to_stream(Triples1, Options):-
 
   ctriples_write_end(Options, State).
 
-%! ctriples_write_triple(+BNodePrefix:iri, +Triple:compound) is det.
-
-ctriples_write_triple(BNodePrefix, rdf(S,P,O)):- !,
-  rdf_write_ctriple(S, P, O, _, BNodePrefix).
-ctriples_write_triple(BNodePrefix, rdf(S,P,O,G)):-
-  rdf_write_ctriple(S, P, O, G, BNodePrefix).
-
 
 %! ctriples_write_triple(
 %!   +State:compound,
@@ -102,5 +87,11 @@ ctriples_write_triple(BNodePrefix, rdf(S,P,O,G)):-
 
 ctriples_write_triple(State, BNodePrefix, Triple):-
   inc_number_of_triples(State),
-  ctriples_write_triple(BNodePrefix, Triple).
+  (   Triple = rdf(S,P,O)
+  ->  write_triple(S, P, O, BNodePrefix)
+  ;   Triple = rdf(S,P,O,G)
+  ->  write_quad(S, P, O, G, BNodePrefix)
+  ;   true
+  ).
+
 

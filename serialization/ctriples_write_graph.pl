@@ -70,20 +70,20 @@ ctriples_write_graph(File, Graph, Options):-
 
 write_graph(Graph, Options):-
   ctriples_write_begin(State, BNodePrefix, Options),
-  
+
   option(format(Format), Options, triples),
-  
+
   findall(
     S,
     rdf(S, _, _, Graph),
-    Ss
+    Ss1
   ),
   sort(Ss1, Ss2),
   forall(
-    member(S, Ss),
+    member(S, Ss2),
     write_subject(State, BNodePrefix, Graph, Format, S)
   ),
-  
+
   ctriples_write_end(Options, State).
 
 
@@ -105,7 +105,7 @@ write_subject(State, BNodePrefix, Graph, quads, S):-
   findall(
     P-O-Graph,
     rdf(S, P, O, Graph),
-    POPairs1
+    POGTriples1
   ),
   sort(POGTriples1, POGTriples2),
   forall(
