@@ -4,8 +4,7 @@
     ctriples_write_begin/3, % +State:compound
                             % +BNodePrefix:iri
                             % +Options:list(nvpair)
-    ctriples_write_end/3, % +State:compound
-                          % +BNodePrefix:iri
+    ctriples_write_end/2, % +State:compound
                           % +Options:list(nvpair)
     inc_number_of_triples/1, % +State:compound
     write_quad/5, % +Subject:or([bnode,iri])
@@ -30,6 +29,8 @@ Generic predicates for writing C-Triples.
 
 :- use_module(library(option)).
 
+:- use_module(plRdf_ser(rdf_bnode_write)).
+
 
 
 %! ctriples_write_begin(
@@ -40,10 +41,10 @@ Generic predicates for writing C-Triples.
 
 ctriples_write_begin(State, BNodePrefix, Options):-
   reset_bnode_admin,
-  
+
   % Keep track of the number of triples written.
   State = state(0),
-  
+
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.
   (   option(bnode_base(Scheme-Authority-Hash), Options)
