@@ -42,11 +42,6 @@ rdf_bnode_map(BNodePrefix, BNode, MappedBNode):-
   atomic_concat(BNodePrefix, Id2, MappedBNode).
 
 
-%! rdf_bnode_prefix(-BNodePrefix:atom) is semidet.
-
-rdf_bnode_prefix('_:').
-
-
 %! rdf_bnode_prefix(
 %!   +Scheme:atom,
 %!   +Authority:atom,
@@ -83,15 +78,4 @@ increment_bnode_counter(Id2):-
   retract(bnode_counter(Id1)),
   Id2 is Id1 + 1,
   assert(bnode_counter(Id2)).
-
-reset_bnode_admin:-
-  reset_bnode_counter,
-  reset_bnode_map.
-
-reset_bnode_counter:-
-  retractall(bnode_counter(_)),
-  assert(bnode_counter(0)).
-
-reset_bnode_map:-
-  retractall(bnode_map(_,_)).
 
