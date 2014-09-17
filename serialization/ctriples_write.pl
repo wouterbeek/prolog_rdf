@@ -34,11 +34,10 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 @author Jan Wielemaker
 @author Laurens Rietveld
 @compat http://www.w3.org/TR/2014/REC-n-triples-20140225/
-@version 2014/03-2014/06, 2014/08
+@version 2014/03-2014/06, 2014/08-2014/09
 */
 
-:- use_module(library(aggregate)).
-:- use_module(library(apply)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/turtle)). % Private predicates.
@@ -112,9 +111,11 @@ ctriples_write(Write, Triples, Options):-
 
 ctriples_write_to_stream(Options):-
   ctriples_write_to_stream_begin(Options, State, BNodePrefix),
-    % Whether triples are read from a specific graph or not.
-    option(graph(Graph), Options, _VAR),
-    ctriples_write_triples(State, BNodePrefix, Graph),
+
+  % Whether triples are read from a specific graph or not.
+  option(graph(Graph), Options, _VAR),
+  ctriples_write_triples(State, BNodePrefix, Graph),
+
   ctriples_write_to_stream_end(Options, State).
 
 %! ctriples_write_to_stream(
@@ -124,8 +125,13 @@ ctriples_write_to_stream(Options):-
 
 ctriples_write_to_stream(Triples1, Options):-
   ctriples_write_to_stream_begin(Options, State, BNodePrefix),
-    sort(Triples1, Triples2),
-    maplist(ctriples_write_triple(State, BNodePrefix), Triples2),
+
+  sort(Triples1, Triples2),
+  forall(
+    member(Triple, Triples2),
+    ctriples_write_triple(State, BNodePrefix, Triple)
+  ),
+
   ctriples_write_to_stream_end(Options, State).
 
 %! ctriples_write_to_stream_begin(
@@ -188,7 +194,10 @@ ctriples_write_to_stream_end(Options, State):-
 
 ctriples_write_triples(State, BNodePrefix, Graph):-
   sorted_subject_terms(Graph, Subjects),
-  maplist(ctriples_write_subject(State, BNodePrefix, Graph), Subjects).
+  forall(
+    member(Subject, Subjects),
+    ctriples_write_subject(State, BNodePrefix, Graph, Subject)
+  ).
 
 
 %! ctriples_write_subject(
@@ -206,15 +215,19 @@ ctriples_write_triples(State, BNodePrefix, Graph):-
 ctriples_write_subject(State, BNodePrefix, G, S):-
   % Collect a sorted list of the predicate-object pairs
   % for the given subject term.
-  aggregate_all(
+  findall(
     set(P-O-G),
     rdf(S, P, O, G:_),
-    POPairs
+    POPairs1
   ),
-  maplist(ctriples_write_triple(State, BNodePrefix, S), POPairs).
+  sort(POPairs1, POPairs2),
+  forall(
+    member(POPair, POPairs2),
+    ctriples_write_triple(State, BNodePrefix, S, POPair)
+  ).
 
 
-%! ctriples_write_triple0(+BNodePrefix:iri, +Triple:compound) is det.
+%! ctriples_write_triple(+BNodePrefix:iri, +Triple:compound) is det.
 
 ctriples_write_triple(BNodePrefix, rdf(S,P,O)):- !,
   rdf_write_ctriple(S, P, O, _, BNodePrefix).
@@ -353,17 +366,19 @@ set_ctriples_format_to_quads:-
 %! sorted_subject_terms(?Graph:atom, -Subjects:ordset(or([bnode,iri]))) is det.
 % Returns a sorted list of subject terms, possibly resricted to a given graph.
 
-sorted_subject_terms(Graph, Subjects):-
+sorted_subject_terms(Graph, Subjects2):-
   is_rdf_graph(Graph), !,
-  aggregate_all(
-    set(Subject),
+  findall(
+    Subject,
     rdf_subject(Subject, Graph),
-    Subjects
-  ).
-sorted_subject_terms(_, Subjects):-
-  aggregate_all(
-    set(Subject),
+    Subjects1
+  ),
+  sort(Subjects1, Subjects2).
+sorted_subject_terms(_, Subjects2):-
+  findall(
+    Subject,
     rdf_subject(Subject),
-    Subjects
-  ).
+    Subjects1
+  ),
+  sort(Subjects1, Subjects2).
 
