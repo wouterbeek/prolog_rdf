@@ -6,21 +6,17 @@
   ]
 ).
 :- reexport(
-  sparql_bnode,
-  [
-    'ANON'//0,
-    'BLANK_NODE_LABEL'//0
-  ]
-).
-:- reexport(
   sparql_char,
   [
     'ECHAR'//1,
-    'HEX'//1,
-    'LANGTAG'//0,
+    'HEX'//2,
     'PERCENT'//1,
     'PLX'//1,
-    'PN_CHARS'//1
+    'PN_CHARS'//1,
+    'PN_CHARS_BASE'//1,
+    'PN_CHARS_U'//1,
+    'PN_LOCAL_ESC'//1,
+    'WS'//0
   ]
 ).
 
@@ -28,8 +24,10 @@
 
 DCGs for character definitions in Turtle recommendations.
 
+Turtle characters are a superset of SPARQL characters.
+
 @author Wouter Beek
-@version 2014/04-2014/05
+@version 2014/04-2014/05, 2014/09
 */
 
 :- use_module(math(radix)).

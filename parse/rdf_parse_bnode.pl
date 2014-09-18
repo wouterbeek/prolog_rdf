@@ -11,6 +11,9 @@
 
 Grammar rules for parsing RDF Blank Nodes.
 
+Blank nodes in graph patterns act as variables,
+not as references to specific blank nodes in the data being queried.
+
 @author Wouter Beek
 @compat SPARQL 1.0 Query.
 @compat SPARQL 1.1 Query.
@@ -20,7 +23,10 @@ Grammar rules for parsing RDF Blank Nodes.
 
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_content)).
+
+:- dynamic(bnode_memory(BNodeLabel, BNode)).
 
 
 
@@ -62,13 +68,12 @@ Grammar rules for parsing RDF Blank Nodes.
 
 'BLANK_NODE_LABEL'(BNode) -->
   dcg_atom_codes('BLANK_NODE_LABEL_codes', BNodeLabel),
-  (
-    % The blank node label is already associated with a blank node.
-    bnode_memory(BNodeLabel, BNode), !
-  ;
-    % A new blank node is created, and is associated to the blank node label.
-    rdf_bnode(BNode),
-    assert(bnode_memory(BNodeLabel, BNode))
+  (   % The blank node label is already associated with a blank node.
+      bnode_memory(BNodeLabel, BNode)
+  ->  true
+  ;   % A new blank node is created, and is associated to the blank node label.
+      rdf_bnode(BNode),
+      assert(bnode_memory(BNodeLabel, BNode))
   ).
 
 'BLANK_NODE_LABEL_codes'([H|T2]) -->
@@ -205,6 +210,5 @@ nameStartChar(C) --> between_hex('10000', 'EFFFF').
 
 nodeID(BNode) -->
   "_:",
-  name(BNodeLabel),
-  
+  name(BNodeLabel).
 

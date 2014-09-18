@@ -79,4 +79,5 @@ literal(Literal) --> 'BooleanLiteral'(Literal).
   'LANGTAG'(Langtag).
 % Simple literal.
 'RDFLiteral'(literal(Value)) -->
-  'String'(Value),
+  'String'(Value).
+
