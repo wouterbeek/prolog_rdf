@@ -70,8 +70,16 @@ ctriples_write_graph(File, Graph, Options):-
 
 write_graph(Graph, Options):-
   ctriples_write_begin(State, BNodePrefix, Options),
-
-  option(format(Format), Options, triples),
+  
+  % Decide whether triples or quadruples are written.
+  (   option(format(Format), Options),
+      nonvar(Format)
+  ->  memberchk(Format, [quads,triples])
+  ;   rdf(_, _, _, G),
+      G \== user
+  ->  Format = quads
+  ;   Format = triples
+  ),
 
   findall(
     S,
