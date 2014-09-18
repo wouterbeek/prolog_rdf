@@ -90,7 +90,10 @@ write_quad(S, P, O, G, BNodePrefix):-
   write_object(O, BNodePrefix),
   put_char(' '),
   % Named graphs are IRIs.
-  turtle:turtle_write_uri(current_output, G),
+  (   G == user
+  ->  true
+  ;   turtle:turtle_write_uri(current_output, G)
+  ),
   put_char(' '),
   put_char('.'),
   put_code(10).

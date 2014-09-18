@@ -70,13 +70,14 @@ ctriples_write_graph(File, Graph, Options):-
 
 write_graph(Graph, Options):-
   ctriples_write_begin(State, BNodePrefix, Options),
-  
+
   % Decide whether triples or quadruples are written.
   (   option(format(Format), Options),
       nonvar(Format)
   ->  memberchk(Format, [quads,triples])
-  ;   rdf(_, _, _, G),
-      G \== user
+  ;   rdf_graph(G),
+      G \== user,
+      rdf(_, _, _, G:_)
   ->  Format = quads
   ;   Format = triples
   ),
@@ -112,7 +113,7 @@ write_graph(Graph, Options):-
 write_subject(State, BNodePrefix, Graph, quads, S):-
   findall(
     P-O-Graph,
-    rdf(S, P, O, Graph),
+    rdf(S, P, O, Graph:_),
     POGTriples1
   ),
   sort(POGTriples1, POGTriples2),
@@ -127,7 +128,7 @@ write_subject(State, BNodePrefix, Graph, quads, S):-
 write_subject(State, BNodePrefix, Graph, triples, S):-
   findall(
     P-O,
-    rdf(S, P, O, Graph),
+    rdf(S, P, O, Graph:_),
     POPairs1
   ),
   sort(POPairs1, POPairs2),
