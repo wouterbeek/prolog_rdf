@@ -84,7 +84,7 @@ write_graph(Graph, Options):-
     write_subject(State, BNodePrefix, Graph, Format, S)
   ),
 
-  ctriples_write_end(Options, State).
+  ctriples_write_end(State, Options).
 
 
 %! write_subject(
