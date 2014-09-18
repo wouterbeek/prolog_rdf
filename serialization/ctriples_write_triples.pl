@@ -68,7 +68,7 @@ ctriples_write_triples(Write, Triples, Options):-
 %! ) is det.
 
 ctriples_write_triples_to_stream(Triples1, Options):-
-  ctriples_write_begin(Options, State, BNodePrefix),
+  ctriples_write_begin(State, BNodePrefix, Options),
 
   sort(Triples1, Triples2),
   forall(
@@ -76,7 +76,7 @@ ctriples_write_triples_to_stream(Triples1, Options):-
     ctriples_write_triple(State, BNodePrefix, Triple)
   ),
 
-  ctriples_write_end(Options, State).
+  ctriples_write_end(State, Options).
 
 
 %! ctriples_write_triple(
