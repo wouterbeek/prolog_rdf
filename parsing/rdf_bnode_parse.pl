@@ -1,5 +1,5 @@
 :- module(
-  rdf_bnode_parse,
+  rdf_parse_bnode,
   [
     'ANON'//1, % -BNode:bnode
     'BLANK_NODE_LABEL'//1, % -BNode:bnode
@@ -7,15 +7,15 @@
   ]
 ).
 
-/** <module> RDF Blank Node Parse
+/** <module> RDF Parse: Blank Node
 
-Parser for RDF Blank Nodes.
+Grammar rules for parsing RDF Blank Nodes.
 
 @author Wouter Beek
 @compat SPARQL 1.0 Query.
 @compat SPARQL 1.1 Query.
 @compat Turtle 1.1.
-@version 2014/08
+@version 2014/08-2014/09
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -175,6 +175,7 @@ nameChar(C) --> between_hex('203F', '2040', C).
 % ~~~
 %
 % @compat Turtle 1.0 [30].
+% @deprecated
 
 nameStartChar(C) --> ascii_letter_uppercase(C).
 nameStartChar(C) --> underscore(C).
