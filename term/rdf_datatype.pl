@@ -17,7 +17,7 @@
                     % ?Value
                     % ?Datatype:iri
                     % ?Graph:atom
-    rdf_literal_value/2, % +Literal:compound
+    rdf_literal_value2/2, % +Literal:compound
                          % -Value
     rdf_overwrite_datatype/5, % +Subject:oneof([bnode,iri])
                               % +Predicate:iri
@@ -127,9 +127,9 @@ rdf_datatype(S, P, Value, Datatype, G):-
   rdf_literal_map(LexicalForm, Datatype, _, Value).
 
 
-%! rdf_literal_value(+Literal:compound, -Value) is det.
+%! rdf_literal_value2(+Literal:compound, -Value) is det.
 
-rdf_literal_value(Literal, Value):-
+rdf_literal_value2(Literal, Value):-
   rdf_literal(Literal, LexicalForm, Datatype, _),
   (   rdf_equal(rdf:langString, Datatype)
   ->  Value = LexicalForm
