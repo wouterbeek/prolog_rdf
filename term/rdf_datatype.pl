@@ -39,7 +39,6 @@ Support for RDF typed literals.
 @version 2013/10, 2014/01-2014/03, 2014/06, 2014/09
 */
 
-:- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 
@@ -131,7 +130,7 @@ rdf_datatype(S, P, Value, Datatype, G):-
 %! rdf_literal_value(+Literal:compound, -Value) is det.
 
 rdf_literal_value(Literal, Value):-
-  rdf_literal(Literal, LexicalForm, Datatype, LanguageTag),
+  rdf_literal(Literal, LexicalForm, Datatype, _),
   (   rdf_equal(rdf:langString, Datatype)
   ->  Value = LexicalForm
   ;   xsd_lexical_map(Datatype, LexicalForm, Value)
