@@ -3,7 +3,7 @@
   [
     rdf_literal/1, % ?Literal:compound
     rdf_literal/2, % ?Literal:compound
-                   % ?RdfGraph:atom
+                   % ?LexicalForm:atom
     rdf_literal/3, % ?Literal:compound
                    % ?LexicalForm:atom
                    % ?DatatypeIri:iri
@@ -36,7 +36,7 @@
 Support for reading triples with literal object terms.
 
 @author Wouter Beek
-@version 2013/10, 2014/03-2014/04
+@version 2013/10, 2014/03-2014/04, 2014/09
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -64,16 +64,13 @@ rdf_literal(Literal):-
   rdf_current_literal(Literal).
 
 
-%! rdf_literal(+Literal:compound, +RdfGraph:atom) is semidet.
-%! rdf_literal(+Literal:compound, -RdfGraph:atom) is nondet.
-%! rdf_literal(-Literal:compound, +RdfGraph:atom) is nondet.
-%! rdf_literal(-Literal:compound, -RdfGraph:atom) is nondet.
+%! rdf_literal(+Literal:compound, +LexicalForm:atom) is semidet.
+%! rdf_literal(+Literal:compound, -LexicalForm:atom) is nondet.
+%! rdf_literal(-Literal:compound, +LexicalForm:atom) is nondet.
+%! rdf_literal(-Literal:compound, -LexicalForm:atom) is nondet.
 
-rdf_literal(Literal, G):-
-  % Enumerated all literals.
-  rdf_literal(Literal),
-  % Relates to an RDF graph.
-  rdf_object(Literal, G).
+rdf_literal(Literal, LexicalForm):-
+  rdf_literal(Literal, LexicalForm, _, _).
 
 
 %! rdf_literal(+Literal:compound, +LexicalForm:atom, +DatatypeIri:iri) is semidet.
