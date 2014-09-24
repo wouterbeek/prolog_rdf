@@ -209,7 +209,7 @@ rdf_register_prefix_colors(Options):-
   % Register colors for RDF prefixes.
   Delta is NumberOfColors // NumberOfPrefixes,
   forall(
-    nth1(I, Prefixes, _-Prefix),
+    nth1(I, Prefixes, Prefix),
     (
       % In case there are more namespaces than colors, Delta=1 and we use
       % the same color for all namespaces with index I mod M.
