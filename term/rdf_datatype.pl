@@ -17,8 +17,8 @@
                     % ?Value
                     % ?Datatype:iri
                     % ?Graph:atom
-    rdf_datatype_literal/2, % +Literal:compound
-                            % -Value
+    rdf_literal_value/2, % +Literal:compound
+                         % -Value
     rdf_overwrite_datatype/5, % +Subject:oneof([bnode,iri])
                               % +Predicate:iri
                               % +LexicalForm2
@@ -128,10 +128,16 @@ rdf_datatype(S, P, Value, Datatype, G):-
   rdf_literal_map(LexicalForm, Datatype, _, Value).
 
 
-%! rdf_datatype_literal(+Literal:compound, -Value) is det.
+%! rdf_literal_value(+Literal:compound, -Value) is det.
 
-rdf_datatype_literal(literal(type(Datatype,Lexical)), Value):-
-  xsd_lexical_map(Datatype, Lexical, Value).
+rdf_literal_value(Literal, Value):-
+  rdf_literal(Literal, LexicalForm, Datatype, LanguageTag),
+  (   rdf_equal(rdf:langString, Datatype)
+  ->  Value = LexicalForm
+  ;   xsd_lexical_map(Datatype, LexicalForm, Value)
+  ->  true
+  ;   gtrace % Datatype not yet implemented.
+  ).
 
 
 %! rdf_overwrite_datatype(
