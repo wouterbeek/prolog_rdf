@@ -25,9 +25,9 @@ Writes the given graph (or all currently stored triples) to a source.
      pass_to(write_graph/2, 2)
    ]).
 :- predicate_options(write_graph/2, 2, [
-     bnode_base(+atom),
-     format(+oneof([quads,triples])),
-     number_of_triples(-nonneg)
+     pass_to(ctriples_write_begin/3, 3),
+     pass_to(ctriples_write_end/2, 2),
+     format(+oneof([quads,triples]))
    ]).
 
 

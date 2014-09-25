@@ -18,7 +18,7 @@
 Additional Blank Node support.
 
 @author Wouter Beek
-@version 2014/06
+@version 2014/06, 2014/09
 */
 
 :- use_module(library(semweb/turtle)). % Private predicates.
@@ -32,12 +32,16 @@ Additional Blank Node support.
 %! rdf_bnode_map(+BNodePrefix:atom, +BNode:atom, -MappedBNode:atom) is det.
 
 rdf_bnode_map(BNodePrefix, BNode, MappedBNode):-
-  (   bnode_map(BNode, Id2)
+  % Retrieve (existing) or create (new) a numeric blank node identifier.
+  (   bnode_map(BNode, Id)
   ->  true
-  ;   increment_bnode_counter(Id2),
-      assert(bnode_map(BNode, Id2))
+  ;   increment_bnode_counter(Id),
+      assert(bnode_map(BNode, Id))
   ),
-  atomic_concat(BNodePrefix, Id2, MappedBNode).
+  
+  % @tbd Vistuoso does not accept a digit as the first character in
+  %      a blank node label (going against the Turtle 1.1 specification).
+  atomic_list_concat([BNodePrefix,x,Id], MappedBNode).
 
 
 %! rdf_bnode_prefix(-BNodePrefix:atom) is semidet.

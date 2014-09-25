@@ -31,15 +31,20 @@ Simple literals are not emitted, the `xsd:string` datatype is made explicit.
 Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 @author Wouter Beek
-@author Jan Wielemaker
-@author Laurens Rietveld
-@compat http://www.w3.org/TR/2014/REC-n-triples-20140225/
-@version 2014/03-2014/06, 2014/08-2014/09
+@version 2014/08-2014/09
 */
 
 :- use_module(library(lists)).
 
 :- use_module(plRdf_ser(ctriples_write_generics)).
+
+:- predicate_options(ctriples_write_triples/3, 3, [
+     pass_to(ctriples_write_triples_to_stream/2, 2)
+   ]).
+:- predicate_options(ctriples_write_triples_to_stream/2, 2, [
+     pass_to(ctriples_write_begin/3, 3),
+     pass_to(ctriples_write_end/2, 2)
+   ]).
 
 
 
@@ -93,5 +98,4 @@ ctriples_write_triple(State, BNodePrefix, Triple):-
   ->  write_quad(S, P, O, G, BNodePrefix)
   ;   true
   ).
-
 

@@ -24,7 +24,10 @@
 Generic predicates for writing C-Triples.
 
 @author Wouter Beek
-@version 2014/09
+@author Jan Wielemaker
+@author Laurens Rietveld
+@compat http://www.w3.org/TR/2014/REC-n-triples-20140225/
+@version 2014/03-2014/06, 2014/08-2014/09
 */
 
 :- use_module(library(option)).
@@ -32,6 +35,13 @@ Generic predicates for writing C-Triples.
 :- use_module(library(semweb/turtle)). % Private predicates.
 
 :- use_module(plRdf_ser(rdf_bnode_write)).
+
+:- predicate_options(ctriples_write_begin/3, 3, [
+     bnode_base(+atom)
+   ]).
+:- predicate_options(ctriples_write_begin/2, 2, [
+     number_of_triples(-nonneg)
+   ]).
 
 
 
