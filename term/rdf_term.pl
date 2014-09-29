@@ -18,6 +18,8 @@
                    % ?Graph:atom
     rdf_term/2, % ?Term:or([bnode,iriliteral])
                 % ?Graph:atom
+    rdf_term_value/2, % +RdfTerm:or([bnode,iri,literal])
+                      % -PrologTerm
     rdf_vocabulary/2 % +Graph:atom
                      % -Vocabulary:ordset(or([iri,literal]))
   ]
@@ -32,13 +34,15 @@ Support for RDF literals is found in [rdf_literal].
 @see CyganiakWoodLanthaler2014
      RDF 1.1 Concepts and Abstract Syntax
      http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/
-@version 2012/01-2013/05, 2013/07-2013/08, 2014/01-2014/03, 2014/05
+@version 2012/01-2013/05, 2013/07-2013/08, 2014/01-2014/03, 2014/05,
+	 2014/09
 */
 
-:- use_module(library(aggregate)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(generics(typecheck)).
+
+:- use_module(plRdf_term(rdf_literal)).
 
 :- rdf_meta(rdf_iri(r)).
 :- rdf_meta(rdf_iri(r,?)).
@@ -293,6 +297,15 @@ rdf_term_(Term, Graph):-
   rdf_node(Term, Graph).
 rdf_term_(Term, Graph):-
   rdf_predicate(Term, Graph).
+
+
+%! rdf_term_value(+RdfTerm:or([bnode,iri,literal]), -PrologTerm) is det.
+% Generalization of rdf_literal/2 that returns IRIs and blank nodes
+% as is.
+
+rdf_term_value(Literal, Value):-
+  rdf_literal(Literal, Value), !.
+rdf_term_value(X, X).
 
 
 %! rdf_vocabulary(+Graph:atom, -Vocabulary:ordset([literal,iri])) is det.
