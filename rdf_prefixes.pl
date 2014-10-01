@@ -69,8 +69,12 @@ rdf_register_reduced_location(Prefix):-
 % Creative Commons
 :- rdf_register_prefix(cc, 'http://creativecommons.org/ns#').
 
+% Datacube
+:- rdf_register_prefix(qb, '	http://purl.org/linked-data/cube#').
+
 % DBpedia category
 :- rdf_register_prefix(category, 'http://dbpedia.org/resource/Category:').
+:- rdf_register_prefix(dbc, 'http://dbpedia.org/resource/Category:').
 
 % DBpedia datatype
 :- rdf_register_prefix(dt, 'http://dbpedia.org/datatype/').
@@ -342,11 +346,8 @@ dbpedia_language_tag(zh_yue).
 % OpenCyc
 :- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
 
-% Web Ontology Language (OWL)
-:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
-:- rdf_register_reduced_location(owl).
-:- rdf_set_predicate(owl:sameAs, symmetric(true)).
-:- rdf_set_predicate(owl:sameAs, transitive(true)).
+% ORG
+:- rdf_register_prefix(org, 'http://www.w3.org/ns/org#').
 
 % ?
 :- rdf_register_prefix('powder-s', 'http://www.w3.org/2007/05/powder-s#').
@@ -367,6 +368,31 @@ dbpedia_language_tag(zh_yue).
 % Schema
 :- rdf_register_prefix(schema, 'http://schema.org/').
 
+% SCOVO
+:- rdf_register_prefix(scovo, 'http://purl.org/NET/scovo#').
+
+% SDMX
+:- rdf_register_prefix(
+     'sdmx-concept',
+     'http://purl.org/linked-data/sdmx/2009/concept#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-code',
+     'http://purl.org/linked-data/sdmx/2009/code#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-dimension',
+     'http://purl.org/linked-data/sdmx/2009/dimension#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-attribute',
+     'http://purl.org/linked-data/sdmx/2009/attribute#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-measure',
+     'http://purl.org/linked-data/sdmx/2009/measure#'
+   ).
+
 % SERQL
 :- rdf_register_prefix(serql, 'http://www.openrdf.org/schema/serql#').
 
@@ -385,6 +411,12 @@ dbpedia_language_tag(zh_yue).
 
 % VS
 :- rdf_register_prefix(vs, 'http://www.w3.org/2003/06/sw-vocab-status/ns#').
+
+% Web Ontology Language (OWL)
+:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
+:- rdf_register_reduced_location(owl).
+:- rdf_set_predicate(owl:sameAs, symmetric(true)).
+:- rdf_set_predicate(owl:sameAs, transitive(true)).
 
 % Wikidata
 :- rdf_register_prefix(wd, 'http://www.wikidata.org/entity/').

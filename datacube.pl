@@ -1,15 +1,15 @@
 :- module(
   datacube,
   [
-    assert_datastructure_definition/4, % +Dimensions:list(iri)
-                                       % +Measure:iri
-                                       % +Attributes:list(iri)
-                                       % +Graph:atom
     assert_datastructure_definition/5, % +Dimensions:list(iri)
                                        % +Measure:iri
                                        % +Attributes:list(iri)
                                        % +Graph:atom
                                        % -DataStructureDefinition:iri
+    assert_measure_property/4, % +MeasureProperty:iri
+                               % +Concept:iri
+                               % +Range:iri
+                               % +Graph:atom
     assert_observation/4, % +Dataset:iri
                           % +Property:iri
                           % :Goal
@@ -27,13 +27,14 @@
 Predicates for perfoming measurements represented in RDF.
 
 @author Wouter Beek
-@version 2014/09
+@version 2014/09-2014/10
 */
 
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(rdf_prefixes)). % RDF prefix declarations.
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_dateTime)).
 
@@ -42,7 +43,6 @@ Predicates for perfoming measurements represented in RDF.
 :- meta_predicate(assert_observation(+,+,1,+)).
 :- meta_predicate(assert_observation(+,+,1,+,-)).
 
-:- rdf_meta(assert_datastructure_definition(t,r,t,+)).
 :- rdf_meta(assert_datastructure_definition(t,r,t,+,-)).
 :- rdf_meta(assert_observation(r,r,:,+)).
 :- rdf_meta(assert_observation(r,r,:,+,-)).
@@ -50,22 +50,6 @@ Predicates for perfoming measurements represented in RDF.
 :- rdf_meta(assert_relation0(r,+,+,-)).
 :- rdf_meta(rdf_assert0(r,r,+,o)).
 
-:- rdf_register_prefix(dct, 'http://purl.org/dc/terms/').
-:- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
-:- rdf_register_prefix('sdmx-dimension', 'http://purl.org/linked-data/sdmx/2009/dimension#').
-
-
-
-%! assert_datastructure_definition(
-%!   +Dimensions:list(iri),
-%!   +Measure:iri,
-%!   +Attributes:list(iri),
-%!   +Graph:atom
-%! ) is det.
-% @see assert_datastructure_definition/5
-
-assert_datastructure_definition(Ds, M, As, G):-
-  assert_datastructure_definition(Ds, M, As, G, _).
 
 
 %! assert_datastructure_definition(
@@ -119,6 +103,31 @@ assert_datastructure_definition(
   forall(
     member(Component, Components),
     rdf_assert(DSDef, qb:component, Component, Graph)
+  ).
+
+
+%! assert_measure_property(
+%!   +MeasureProperty:iri,
+%!   +Concept:iri,
+%!   +Range:iri,
+%!   +Graph:atom
+%! ) is det.
+
+assert_measure_property(MeasureProperty, Concept, Range, Graph):-
+  % rdf:type
+  rdf_assert_individual(MeasureProperty, qb:'MeasureProperty', Graph),
+  
+  % qb:concept
+  rdf_assert(MeasureProperty, qb:concept, Concept, Graph),
+  
+  % rdfs:range
+  rdfs_assert(MeasureProperty, rdfs:range, xsd:float, Graph),
+  
+  % rdfs:isDefinedBy
+  (   rdf_global_id(Prefix:_, MeasureProperty),
+      rdf_current_prefix(Prefix, Url)
+  ->  rdf_assert(MeasureProperty, rdfs:isDefinedBy, Url, Graph)
+  ;   true
   ).
 
 
