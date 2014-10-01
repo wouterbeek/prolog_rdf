@@ -10,15 +10,16 @@
                                % +Concept:iri
                                % +Range:iri
                                % +Graph:atom
-    assert_observation/4, % +Dataset:iri
+    assert_observation/5, % +Dataset:iri
                           % +Property:iri
                           % :Goal
                           % +Graph
-    assert_observation/5 % +Dataset:iri
-                         % +Property:iri
-                         % :Goal
-                         % +Graph
-                         % -Observation:iri
+                          % -Observation:iri
+    assert_multimeasure_observation/5 % +Dataset:iri
+                                      % +Property:iri
+                                      % :Goal
+                                      % +Graph
+                                      % -Observation:iri
   ]
 ).
 
@@ -40,12 +41,12 @@ Predicates for perfoming measurements represented in RDF.
 
 :- use_module(plXsd(xsd)).
 
-:- meta_predicate(assert_observation(+,+,1,+)).
 :- meta_predicate(assert_observation(+,+,1,+,-)).
+:- meta_predicate(assert_multimeasure_observation(+,+,1,+,-)).
 
 :- rdf_meta(assert_datastructure_definition(t,r,t,+,-)).
-:- rdf_meta(assert_observation(r,r,:,+)).
 :- rdf_meta(assert_observation(r,r,:,+,-)).
+:- rdf_meta(assert_multimeasure_observation(r,r,:,+,-)).
 :- rdf_meta(assert_relation(-,r,+,+)).
 :- rdf_meta(assert_relation0(r,+,+,-)).
 :- rdf_meta(rdf_assert0(r,r,+,o)).
@@ -164,6 +165,29 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
 
   % Assert the temporal dimension value.
   rdf_assert_now(Observation, 'sdmx-dimension':timePeriod, Graph).
+
+
+%! assert_multimeasure_observation(
+%!   +Dataset:iri,
+%!   +Property:iri,
+%!   :Goal,
+%!   +Graph:atom,
+%!   -Observation:iri
+%! ) is det.
+% Asserts an observation that belongs to a multi-measure dataset.
+% This requires the measurement to be specified explicitly.
+
+assert_multimeasure_observation(
+  Dataset,
+  Property,
+  Goal,
+  Graph,
+  Observation
+):-
+  assert_observation(Dataset, Property, Goal, Graph, Observation),
+  
+  % qb:measureType
+  rdf_assert(Dataset, qb:measureType, Property, Graph).
 
 
 

@@ -79,10 +79,10 @@ Turtle characters are a superset of SPARQL characters.
 'UCHAR'(C) -->
   "\\u",
   'HEX'(H1), 'HEX'(H2), 'HEX'(H3), 'HEX'(H4),
-  {digits_to_decimal([H1,H2,H3,H4], 16, C)}.
+  {digits_decimal([H1,H2,H3,H4], 16, C)}.
 'UCHAR'(C) -->
   "\\U",
   'HEX'(H1), 'HEX'(H2), 'HEX'(H3), 'HEX'(H4),
   'HEX'(H5), 'HEX'(H6), 'HEX'(H7), 'HEX'(H8),
-  {digits_to_decimal([H1,H2,H3,H4,H5,H6,H7,H8], 16, C)}.
+  {digits_decimal([H1,H2,H3,H4,H5,H6,H7,H8], 16, C)}.
 
