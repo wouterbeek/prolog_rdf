@@ -1,8 +1,11 @@
 :- module(
   datacube,
   [
+    assert_dataset/3, % +DataStructureDefinition:iri
+                      % +Graph:atom
+                      % -DataSet:iri
     assert_datastructure_definition/5, % +Dimensions:list(iri)
-                                       % +Measure:iri
+                                       % +Measures:list(iri)
                                        % +Attributes:list(iri)
                                        % +Graph:atom
                                        % -DataStructureDefinition:iri
@@ -10,16 +13,19 @@
                                % +Concept:iri
                                % +Range:iri
                                % +Graph:atom
+    assert_multimeasure_observation/5, % +Dataset:iri
+                                       % +Property:iri
+                                       % :Goal
+                                       % +Graph
+                                       % -Observation:iri
     assert_observation/5, % +Dataset:iri
                           % +Property:iri
                           % :Goal
                           % +Graph
                           % -Observation:iri
-    assert_multimeasure_observation/5 % +Dataset:iri
-                                      % +Property:iri
-                                      % :Goal
-                                      % +Graph
-                                      % -Observation:iri
+    assert_slice/3 % +DataSet:iri
+                   % +Graph:atom
+                   % -Slice:iri
   ]
 ).
 
@@ -44,8 +50,10 @@ Predicates for perfoming measurements represented in RDF.
 :- meta_predicate(assert_observation(+,+,1,+,-)).
 :- meta_predicate(assert_multimeasure_observation(+,+,1,+,-)).
 
-:- rdf_meta(assert_datastructure_definition(t,r,t,+,-)).
+:- rdf_meta(assert_dataset(r,+,-)).
+:- rdf_meta(assert_datastructure_definition(t,t,t,+,-)).
 :- rdf_meta(assert_observation(r,r,:,+,-)).
+:- rdf_meta(assert_measure_property(r,r,r,+)).
 :- rdf_meta(assert_multimeasure_observation(r,r,:,+,-)).
 :- rdf_meta(assert_relation(-,r,+,+)).
 :- rdf_meta(assert_relation0(r,+,+,-)).
@@ -53,9 +61,26 @@ Predicates for perfoming measurements represented in RDF.
 
 
 
+%! assert_dataset(
+%!   +DataStructureDefinition:iri,
+%!   +Graph:atom,
+%!   -DataSet:iri
+%! ) is det.
+
+assert_dataset(DataStructureDefinition, Graph, DataSet):-
+  % Create the data set.
+  rdf_create_next_resource(data_set, Graph, ['DataSet'], DataSet),
+
+  % rdf:type
+  rdf_assert_instance(DataSet, qb:'DataSet', Graph),
+
+  % qb:structure
+  rdf_assert(DataSet, qb:structure, DataStructureDefinition, Graph).
+
+
 %! assert_datastructure_definition(
 %!   +Dimensions:list(iri),
-%!   +Measure:iri,
+%!   +Measures:list(iri),
 %!   +Attributes:list(iri),
 %!   +Graph:atom,
 %!   -DataStructureDefinition:iri
@@ -66,7 +91,7 @@ Predicates for perfoming measurements represented in RDF.
 
 assert_datastructure_definition(
   Dimensions,
-  Measure,
+  Measures,
   Attributes,
   Graph,
   DSDef
@@ -89,7 +114,14 @@ assert_datastructure_definition(
     ),
     ComponentsA
   ),
-  assert_relation(ComponentB, qb:measure, Measure, Graph),
+  findall(
+    Component,
+    (
+      member(Measure, Measures),
+      assert_relation(Component, qb:measure, Measure, Graph)
+    ),
+    ComponentsB
+  ),
   findall(
     Component,
     (
@@ -98,7 +130,7 @@ assert_datastructure_definition(
     ),
     ComponentsC
   ),
-  append([ComponentB|ComponentsA], ComponentsC, Components),
+  append([ComponentsA,ComponentsB,ComponentsC], Components),
 
   % Relate components to data structure definition.
   forall(
@@ -116,14 +148,14 @@ assert_datastructure_definition(
 
 assert_measure_property(MeasureProperty, Concept, Range, Graph):-
   % rdf:type
-  rdf_assert_individual(MeasureProperty, qb:'MeasureProperty', Graph),
-  
+  rdf_assert_instance(MeasureProperty, qb:'MeasureProperty', Graph),
+
   % qb:concept
   rdf_assert(MeasureProperty, qb:concept, Concept, Graph),
-  
+
   % rdfs:range
-  rdfs_assert(MeasureProperty, rdfs:range, xsd:float, Graph),
-  
+  rdf_assert(MeasureProperty, rdfs:range, Range, Graph),
+
   % rdfs:isDefinedBy
   (   rdf_global_id(Prefix:_, MeasureProperty),
       rdf_current_prefix(Prefix, Url)
@@ -132,11 +164,27 @@ assert_measure_property(MeasureProperty, Concept, Range, Graph):-
   ).
 
 
-%! assert_observation(+Dataset:iri, +Property:iri, :Goal, +Graph:atom) is det.
-% @see assert_observation/5
+%! assert_multimeasure_observation(
+%!   +Dataset:iri,
+%!   +Property:iri,
+%!   :Goal,
+%!   +Graph:atom,
+%!   -Observation:iri
+%! ) is det.
+% Asserts an observation that belongs to a multi-measure dataset.
+% This requires the measurement to be specified explicitly.
 
-assert_observation(D, P, Goal, G):-
-  assert_observation(D, P, Goal, G, _).
+assert_multimeasure_observation(
+  Dataset,
+  Property,
+  Goal,
+  Graph,
+  Observation
+):-
+  assert_observation(Dataset, Property, Goal, Graph, Observation),
+
+  % qb:measureType
+  rdf_assert(Observation, qb:measureType, Property, Graph).
 
 
 %! assert_observation(
@@ -167,27 +215,17 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
   rdf_assert_now(Observation, 'sdmx-dimension':timePeriod, Graph).
 
 
-%! assert_multimeasure_observation(
-%!   +Dataset:iri,
-%!   +Property:iri,
-%!   :Goal,
-%!   +Graph:atom,
-%!   -Observation:iri
-%! ) is det.
-% Asserts an observation that belongs to a multi-measure dataset.
-% This requires the measurement to be specified explicitly.
+%! assert_slice(+DataSet:iri, +Graph:atom, -Slice:iri) is det.
 
-assert_multimeasure_observation(
-  Dataset,
-  Property,
-  Goal,
-  Graph,
-  Observation
-):-
-  assert_observation(Dataset, Property, Goal, Graph, Observation),
-  
-  % qb:measureType
-  rdf_assert(Dataset, qb:measureType, Property, Graph).
+assert_slice(DataSet, Graph, Slice):-
+  % Create the observation.
+  rdf_create_next_resource(slice, Graph, ['Slice'], Slice),
+
+  % rdf:type
+  rdf_assert_instance(Slice, qb:'Slice', Graph),
+
+  % qb:slice
+  rdf_assert(DataSet, qb:slice, Slice, Graph).
 
 
 

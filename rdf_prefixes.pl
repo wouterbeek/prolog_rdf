@@ -70,7 +70,7 @@ rdf_register_reduced_location(Prefix):-
 :- rdf_register_prefix(cc, 'http://creativecommons.org/ns#').
 
 % Datacube
-:- rdf_register_prefix(qb, '	http://purl.org/linked-data/cube#').
+:- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
 
 % DBpedia category
 :- rdf_register_prefix(category, 'http://dbpedia.org/resource/Category:').
