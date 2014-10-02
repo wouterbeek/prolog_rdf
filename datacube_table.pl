@@ -19,11 +19,9 @@ Creates tables based on a Data Cube graph.
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 
+:- use_module(generics(pair_ext)).
 :- use_module(generics(sort_ext)).
-
-:- use_module(plRdf(datacube)).
 
 
 
@@ -44,7 +42,7 @@ datacube_table(DataSet, HeaderRows, DataRows):-
 
 datacube_tree(Root1-Root2, Root2-Trees):-
   findall(
-    Slice-po(Dimension,DimensionValue),
+    Slice-DimensionValue,
     (
       rdf(Root1, qb:slice, Slice),
       rdf(Slice, Dimension, DimensionValue),
@@ -56,7 +54,7 @@ datacube_tree(Root1-Root2, Root2-Trees):-
   maplist(datacube_tree, Pairs, Trees).
 datacube_tree(Root1-Root2, Root2-Pairs):-
   findall(
-    po(Dimension,DimensionValue)-po(Measure,MeasureValue),
+    DimensionValue-MeasureValue,
     (
       rdf(Root1, qb:observation, Observation),
       rdf(Observation, Dimension, DimensionValue),
@@ -84,7 +82,7 @@ tree_data(Tree, DataRows):-
     DimensionValue-MeasureValue,
     leaf_node(Tree, DimensionValue, MeasureValue),
     Pairs1
-  ),gtrace,
+  ),
   sort(Pairs1, Pairs2, [duplicates(true),inverted(false)]),
   group_pairs_by_key(Pairs2, Groups),
   pairs_values(Groups, DataRows).
@@ -96,11 +94,18 @@ tree_data(Tree, DataRows):-
 %! ) is det.
 
 tree_headers([], []).
-tree_headers([_-[_-X|_]|_], []):-
-  \+ is_list(X), !.
+tree_headers([_-Pairs|_], [HeaderRow]):-
+  (   Pairs == []
+  ->  HeaderRow = []
+  ;   Pairs = [_-Measure|_],
+      \+ is_list(Measure)
+  ->  maplist(pair_second, Pairs, HeaderRow)
+  ;   fail
+  ).
 tree_headers(Trees, [HeaderRow|HeaderRows]):-
   pairs_keys_values(Trees, Roots, Subtrees),
   maplist(length, Subtrees, NumberOfColumns),
   pairs_keys_values(HeaderRow, Roots, NumberOfColumns),
   append(Subtrees, Trees0),
   tree_headers(Trees0, HeaderRows).
+
