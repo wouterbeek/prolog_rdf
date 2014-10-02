@@ -8,7 +8,7 @@
                                        % +Measures:list(iri)
                                        % +Attributes:list(iri)
                                        % +Graph:atom
-                                       % -DataStructureDefinition:iri
+                                       % ?DataStructureDefinition:or([bnode,iri])
     assert_measure_property/4, % +MeasureProperty:iri
                                % +Concept:iri
                                % +Range:iri
@@ -51,7 +51,7 @@ Predicates for perfoming measurements represented in RDF.
 :- meta_predicate(assert_multimeasure_observation(+,+,1,+,-)).
 
 :- rdf_meta(assert_dataset(r,+,-)).
-:- rdf_meta(assert_datastructure_definition(t,t,t,+,-)).
+:- rdf_meta(assert_datastructure_definition(t,t,t,+,r)).
 :- rdf_meta(assert_observation(r,r,:,+,-)).
 :- rdf_meta(assert_measure_property(r,r,r,+)).
 :- rdf_meta(assert_multimeasure_observation(r,r,:,+,-)).
@@ -83,7 +83,7 @@ assert_dataset(DataStructureDefinition, Graph, DataSet):-
 %!   +Measures:list(iri),
 %!   +Attributes:list(iri),
 %!   +Graph:atom,
-%!   -DataStructureDefinition:iri
+%!   ?DataStructureDefinition:iri
 %! ) is det.
 % @tbd Add support for qb:order.
 % @tbd Add support for qb:componentRequired.
@@ -94,18 +94,28 @@ assert_datastructure_definition(
   Measures,
   Attributes,
   Graph,
-  DSDef
+  DataStructureDefinition
 ):-
-  % Create the data structure definition resource.
-  rdf_create_next_resource(
-    data_structure_definition,
-    Graph,
-    ['DataStructureDefinition'],
-    DSDef
+  % Create the data structure definition resource if it is not given.
+  (   var(DataStructureDefinition)
+  ->  rdf_create_next_resource(
+        data_structure_definition,
+        Graph,
+        ['DataStructureDefinition'],
+        DataStructureDefinition
+      )
+  ;   true
   ),
-  rdf_assert_instance(DSDef, qb:'DataStructureDefinition', Graph),
+  
+  % rdf:type
+  rdf_assert_instance(
+    DataStructureDefinition,
+    qb:'DataStructureDefinition',
+    Graph
+  ),
 
   % Create the component resources.
+  % qb:dimension
   findall(
     Component,
     (
@@ -114,6 +124,7 @@ assert_datastructure_definition(
     ),
     ComponentsA
   ),
+  % qb:measure
   findall(
     Component,
     (
@@ -122,6 +133,7 @@ assert_datastructure_definition(
     ),
     ComponentsB
   ),
+  % qb:attribute
   findall(
     Component,
     (
@@ -133,9 +145,10 @@ assert_datastructure_definition(
   append([ComponentsA,ComponentsB,ComponentsC], Components),
 
   % Relate components to data structure definition.
+  % qb:component
   forall(
     member(Component, Components),
-    rdf_assert(DSDef, qb:component, Component, Graph)
+    rdf_assert(DataStructureDefinition, qb:component, Component, Graph)
   ).
 
 
