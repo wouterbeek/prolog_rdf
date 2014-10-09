@@ -343,6 +343,9 @@ dbpedia_language_tag(zh_yue).
 % Geo RSS
 :- rdf_register_prefix(georss, 'http://www.georss.org/georss/').
 
+% Music Ontology (MO)
+:- rdf_register_prefix(mo, 'http://purl.org/ontology/mo/').
+
 % OpenCyc
 :- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
 
