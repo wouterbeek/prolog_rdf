@@ -346,6 +346,9 @@ dbpedia_language_tag(zh_yue).
 % Music Ontology (MO)
 :- rdf_register_prefix(mo, 'http://purl.org/ontology/mo/').
 
+% MUTO
+:- rdf_register_prefix(muto, 'http://purl.org/muto/core#').
+
 % OpenCyc
 :- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
 
