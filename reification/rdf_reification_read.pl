@@ -29,8 +29,10 @@
 Read support for reified triples.
 
 @author Wouter Beek
-@version 2014/09
+@version 2014/09-2014/10
 */
+
+:- use_module(library(semweb/rdf_db)).
 
 :- use_module(plXsd(xsd)).
 
