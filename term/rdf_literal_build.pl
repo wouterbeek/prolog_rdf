@@ -5,50 +5,51 @@
                           % +Predicate:iri
                           % +LexicalForm:atom
                           % +DatatypeIri:iri
-                          % +RdfGraph:atom
+                          % ?Graph:atom
     rdf_assert_literal/6, % +Subject:oneof([bnode,iri])
                           % +Predicate:iri
                           % +LexicalForm:atom
                           % +DatatypeIri:iri
                           % +LanguageTag:atom
-                          % +RdfGraph:atom
+                          % ?Graph:atom
     rdf_retractall_literal/5, % ?Subject:oneof([bnode,iri])
                               % ?Predicate:iri
                               % ?LexicalForm:atom
                               % ?DatatypeIri:iri
-                              % ?RdfGraph:atom
+                              % ?Graph:atom
     rdf_retractall_literal/6, % ?Subject:oneof([bnode,iri])
                               % ?Predicate:iri
                               % ?LexicalForm:atom
                               % ?DatatypeIri:iri
                               % ?LanguageTag:atom
-                              % ?RdfGraph:atom
+                              % ?Graph:atom
     rdf_update_literal/7 % ?Subject:oneof([bnode,iri])
                          % ?Predicate:iri
                          % ?FromLexicalForm:atom
                          % ?FromDatatypeIri:iri
                          % ?FromLanguageTag:atom
-                         % ?RdfGraph:atom
+                         % ?Graph:atom
                          % +Action:compound
   ]
 ).
 
-/** <module> RDF literal build
+/** <module> RDF literal: Build
 
 Support for asserting/retracting triples with literal object terms.
 
 @author Wouter Beek
-@version 2013/10, 2014/03
+@version 2013/10, 2014/03, 2014/10
 */
 
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(generics(meta_ext)).
 
+:- use_module(plRdf(rdf_build)).
 :- use_module(plRdf_term(rdf_literal)).
 
-:- rdf_meta(rdf_assert_literal(r,r,+,r,+)).
-:- rdf_meta(rdf_assert_literal(r,r,+,r,+,+)).
+:- rdf_meta(rdf_assert_literal(r,r,+,r,?)).
+:- rdf_meta(rdf_assert_literal(r,r,+,r,+,?)).
 :- rdf_meta(rdf_retractall_literal(r,r,?,r,?)).
 :- rdf_meta(rdf_retractall_literal(r,r,?,r,?,?)).
 :- rdf_meta(rdf_update_literal(r,r,?,r,?,?,t)).
@@ -62,7 +63,7 @@ Support for asserting/retracting triples with literal object terms.
 %!   +Predicate:iri,
 %!   +LexicalForm:atom,
 %!   ?DatatypeIri:iri,
-%!   +RdfGraph:atom
+%!   ?Graph:atom
 %! ) is det.
 % Asserts a triple with a literal object term.
 %
@@ -81,23 +82,23 @@ rdf_assert_literal(S, P, LexicalForm, Datatype, Graph):-
 %!   +LexicalForm:atom,
 %!   ?DatatypeIri:iri,
 %!   +LanguageTag:atom,
-%!   +RdfGraph:atom
+%!   ?Graph:atom
 %! ) is det.
 % Asserts a triple with a literal object term.
 
 % Language-tagged strings.
-rdf_assert_literal(S, P, LexicalForm, Datatype, LangTag, G):-
+rdf_assert_literal(S, P, LexicalForm, Datatype, LangTag, Graph):-
   nonvar(LangTag), !,
   % The datatype IRI is =|rdf:langString|= iff the language tag is set.
   rdf_equal(rdf:langString, Datatype),
-  rdf_assert(S, P, literal(lang(LangTag,LexicalForm)), G).
+  rdf_assert2(S, P, literal(lang(LangTag,LexicalForm)), Graph).
 % Simple literals.
-rdf_assert_literal(S, P, LexicalForm, Datatype, _, G):-
+rdf_assert_literal(S, P, LexicalForm, Datatype, _, Graph):-
   var(Datatype), !,
-  rdf_assert_literal(S, P, LexicalForm, xsd:string, _, G).
+  rdf_assert_literal(S, P, LexicalForm, xsd:string, _, Graph).
 % Others.
-rdf_assert_literal(S, P, LexicalForm, Datatype, _, G):-
-  rdf_assert(S, P, literal(type(Datatype,LexicalForm)), G).
+rdf_assert_literal(S, P, LexicalForm, Datatype, _, Graph):-
+  rdf_assert2(S, P, literal(type(Datatype,LexicalForm)), Graph).
 
 
 %! rdf_convert_literal(
@@ -126,7 +127,7 @@ rdf_convert_literal(
 %!   ?Predicate:iri,
 %!   ?LexicalForm:atom,
 %!   ?DatatypeIri:iri,
-%!   ?RdfGraph:atom
+%!   ?Graph:atom
 %! ) is det.
 % Retracts all matching RDF triples that have literal object terms.
 %
@@ -142,7 +143,7 @@ rdf_retractall_literal(S, P, LexicalForm, Datatype, G):-
 %!   ?LexicalForm:atom,
 %!   ?DatatypeIri:iri,
 %!   ?LanguageTag:atom,
-%!   ?RdfGraph:atom
+%!   ?Graph:atom
 %! ) is det.
 % Retracts all matching RDF triples that have literal object terms.
 %
@@ -166,7 +167,7 @@ rdf_retractall_literal(S, P, LexicalForm, Datatype, _, G):-
 %!   ?FromLexicalForm:atom,
 %!   ?FromDatatype:iri,
 %!   +FromLanguageTag:atom,
-%!   +RdfGraph:atom,
+%!   +Graph:atom,
 %!   +Action:compound
 %! ) is det.
 % Updates triples with literal objtect terms.
