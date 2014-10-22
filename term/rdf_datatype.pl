@@ -5,7 +5,7 @@
                            % +Predicate:iri
                            % +Value
                            % +Datatype:iri
-                           % +Graph:atom
+                           % ?Graph:atom
     rdf_datatype/2, % ?Datatype:iri
                     % ?Graph:atom
     rdf_datatype/4, % ?Subject:oneof([bnode,iri])
@@ -51,7 +51,7 @@ Support for RDF typed literals.
 :- use_module(plRdf_term(rdf_literal_build)).
 :- use_module(plRdf_term(rdf_typed_literal)).
 
-:- rdf_meta(rdf_assert_datatype(r,r,+,r,+)).
+:- rdf_meta(rdf_assert_datatype(r,r,+,r,?)).
 :- rdf_meta(rdf_datatype(r,?)).
 :- rdf_meta(rdf_datatype(r,r,?,r)).
 :- rdf_meta(rdf_datatype(r,r,?,r,?)).
@@ -65,7 +65,7 @@ Support for RDF typed literals.
 %!   +Predicate:iri,
 %!   +Value,
 %!   +Datatype:iri,
-%!   +Graph:atom
+%!   ?Graph:atom
 %! ) is det.
 % Asserts a datatyped value for a blank node or IRI reference.
 %
@@ -78,13 +78,13 @@ Support for RDF typed literals.
 % Language-tagged strings cannot be asserted in this way.
 
 % Simple literals.
-rdf_assert_datatype(S, P, Value, Datatype, G):-
+rdf_assert_datatype(S, P, Value, Datatype, Graph):-
   var(Datatype), !,
-  rdf_assert_datatype(S, P, Value, xsd:string, G).
+  rdf_assert_datatype(S, P, Value, xsd:string, Graph).
 % Others.
-rdf_assert_datatype(S, P, Value, Datatype, G):-
+rdf_assert_datatype(S, P, Value, Datatype, Graph):-
   xsd_canonical_map(Datatype, Value, LexicalForm),
-  rdf_assert_literal(S, P, LexicalForm, Datatype, _, G).
+  rdf_assert_literal(S, P, LexicalForm, Datatype, _, Graph).
 
 
 %! rdf_datatype(?Datatype:iri, ?Graph:atom) is nondet.

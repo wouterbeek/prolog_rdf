@@ -1,24 +1,31 @@
 :- module(
   datacube,
   [
-    assert_datastructure_definition/4, % +Dimensions:list(iri)
-                                       % +Measure:iri
-                                       % +Attributes:list(iri)
-                                       % +Graph:atom
+    assert_dataset/3, % +DataStructureDefinition:iri
+                      % +Graph:atom
+                      % -DataSet:iri
     assert_datastructure_definition/5, % +Dimensions:list(iri)
-                                       % +Measure:iri
+                                       % +Measures:list(iri)
                                        % +Attributes:list(iri)
                                        % +Graph:atom
-                                       % -DataStructureDefinition:iri
-    assert_observation/4, % +Dataset:iri
+                                       % ?DataStructureDefinition:or([bnode,iri])
+    assert_measure_property/4, % +MeasureProperty:iri
+                               % +Concept:iri
+                               % +Range:iri
+                               % +Graph:atom
+    assert_multimeasure_observation/5, % +Dataset:iri
+                                       % +Property:iri
+                                       % :Goal
+                                       % +Graph
+                                       % -Observation:iri
+    assert_observation/5, % +Dataset:iri
                           % +Property:iri
                           % :Goal
                           % +Graph
-    assert_observation/5 % +Dataset:iri
-                         % +Property:iri
-                         % :Goal
-                         % +Graph
-                         % -Observation:iri
+                          % -Observation:iri
+    assert_slice/3 % +DataSet:iri
+                   % +Graph:atom
+                   % -Slice:iri
   ]
 ).
 
@@ -27,53 +34,56 @@
 Predicates for perfoming measurements represented in RDF.
 
 @author Wouter Beek
-@version 2014/09
+@version 2014/09-2014/10
 */
 
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(rdf_prefixes)). % RDF prefix declarations.
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_dateTime)).
 
 :- use_module(plXsd(xsd)).
 
-:- meta_predicate(assert_observation(+,+,1,+)).
 :- meta_predicate(assert_observation(+,+,1,+,-)).
+:- meta_predicate(assert_multimeasure_observation(+,+,1,+,-)).
 
-:- rdf_meta(assert_datastructure_definition(t,r,t,+)).
-:- rdf_meta(assert_datastructure_definition(t,r,t,+,-)).
-:- rdf_meta(assert_observation(r,r,:,+)).
+:- rdf_meta(assert_dataset(r,+,-)).
+:- rdf_meta(assert_datastructure_definition(t,t,t,+,r)).
 :- rdf_meta(assert_observation(r,r,:,+,-)).
+:- rdf_meta(assert_measure_property(r,r,r,+)).
+:- rdf_meta(assert_multimeasure_observation(r,r,:,+,-)).
 :- rdf_meta(assert_relation(-,r,+,+)).
 :- rdf_meta(assert_relation0(r,+,+,-)).
 :- rdf_meta(rdf_assert0(r,r,+,o)).
 
-:- rdf_register_prefix(dct, 'http://purl.org/dc/terms/').
-:- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
-:- rdf_register_prefix('sdmx-dimension', 'http://purl.org/linked-data/sdmx/2009/dimension#').
 
 
-
-%! assert_datastructure_definition(
-%!   +Dimensions:list(iri),
-%!   +Measure:iri,
-%!   +Attributes:list(iri),
-%!   +Graph:atom
+%! assert_dataset(
+%!   +DataStructureDefinition:iri,
+%!   +Graph:atom,
+%!   -DataSet:iri
 %! ) is det.
-% @see assert_datastructure_definition/5
 
-assert_datastructure_definition(Ds, M, As, G):-
-  assert_datastructure_definition(Ds, M, As, G, _).
+assert_dataset(DataStructureDefinition, Graph, DataSet):-
+  rdf_create_next_resource(
+    data_set,
+    ['DataSet'],
+    qb:'DataSet',
+    Graph,
+    DataSet
+  ),
+  rdf_assert(DataSet, qb:structure, DataStructureDefinition, Graph).
 
 
 %! assert_datastructure_definition(
 %!   +Dimensions:list(iri),
-%!   +Measure:iri,
+%!   +Measures:list(iri),
 %!   +Attributes:list(iri),
 %!   +Graph:atom,
-%!   -DataStructureDefinition:iri
+%!   ?DataStructureDefinition:iri
 %! ) is det.
 % @tbd Add support for qb:order.
 % @tbd Add support for qb:componentRequired.
@@ -81,21 +91,25 @@ assert_datastructure_definition(Ds, M, As, G):-
 
 assert_datastructure_definition(
   Dimensions,
-  Measure,
+  Measures,
   Attributes,
   Graph,
-  DSDef
+  DataStructureDefinition
 ):-
-  % Create the data structure definition resource.
-  rdf_create_next_resource(
-    data_structure_definition,
-    Graph,
-    ['DataStructureDefinition'],
-    DSDef
+  % Create the data structure definition resource if it is not given.
+  (   var(DataStructureDefinition)
+  ->  rdf_create_next_resource(
+        data_structure_definition,
+        ['DataStructureDefinition'],
+        qb:'DataStructureDefinition',
+        Graph,
+        DataStructureDefinition
+      )
+  ;   true
   ),
-  rdf_assert_instance(DSDef, qb:'DataStructureDefinition', Graph),
-
+  
   % Create the component resources.
+  % qb:dimension
   findall(
     Component,
     (
@@ -104,7 +118,16 @@ assert_datastructure_definition(
     ),
     ComponentsA
   ),
-  assert_relation(ComponentB, qb:measure, Measure, Graph),
+  % qb:measure
+  findall(
+    Component,
+    (
+      member(Measure, Measures),
+      assert_relation(Component, qb:measure, Measure, Graph)
+    ),
+    ComponentsB
+  ),
+  % qb:attribute
   findall(
     Component,
     (
@@ -113,20 +136,62 @@ assert_datastructure_definition(
     ),
     ComponentsC
   ),
-  append([ComponentB|ComponentsA], ComponentsC, Components),
+  append([ComponentsA,ComponentsB,ComponentsC], Components),
 
   % Relate components to data structure definition.
+  % qb:component
   forall(
     member(Component, Components),
-    rdf_assert(DSDef, qb:component, Component, Graph)
+    rdf_assert(DataStructureDefinition, qb:component, Component, Graph)
   ).
 
 
-%! assert_observation(+Dataset:iri, +Property:iri, :Goal, +Graph:atom) is det.
-% @see assert_observation/5
+%! assert_measure_property(
+%!   +MeasureProperty:iri,
+%!   +Concept:iri,
+%!   +Range:iri,
+%!   +Graph:atom
+%! ) is det.
 
-assert_observation(D, P, Goal, G):-
-  assert_observation(D, P, Goal, G, _).
+assert_measure_property(MeasureProperty, Concept, Range, Graph):-
+  % rdf:type
+  rdf_assert_instance(MeasureProperty, qb:'MeasureProperty', Graph),
+
+  % qb:concept
+  rdf_assert(MeasureProperty, qb:concept, Concept, Graph),
+
+  % rdfs:range
+  rdf_assert(MeasureProperty, rdfs:range, Range, Graph),
+
+  % rdfs:isDefinedBy
+  (   rdf_global_id(Prefix:_, MeasureProperty),
+      rdf_current_prefix(Prefix, Url)
+  ->  rdf_assert(MeasureProperty, rdfs:isDefinedBy, Url, Graph)
+  ;   true
+  ).
+
+
+%! assert_multimeasure_observation(
+%!   +Dataset:iri,
+%!   +Property:iri,
+%!   :Goal,
+%!   +Graph:atom,
+%!   -Observation:iri
+%! ) is det.
+% Asserts an observation that belongs to a multi-measure dataset.
+% This requires the measurement to be specified explicitly.
+
+assert_multimeasure_observation(
+  Dataset,
+  Property,
+  Goal,
+  Graph,
+  Observation
+):-
+  assert_observation(Dataset, Property, Goal, Graph, Observation),
+
+  % qb:measureType
+  rdf_assert(Observation, qb:measureType, Property, Graph).
 
 
 %! assert_observation(
@@ -143,8 +208,13 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
   xsd_datatype(Datatype),
 
   % Create the observation.
-  rdf_create_next_resource(observation, Graph, ['Observation'], Observation),
-  rdf_assert_instance(Observation, qb:'Observation', Graph),
+  rdf_create_next_resource(
+    observation,
+    ['Observation'],
+    qb:'Observation',
+    Graph,
+    Observation
+  ),
 
   % qb:dataSet
   rdf_assert(Observation, qb:dataSet, Dataset, Graph),
@@ -155,6 +225,13 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
 
   % Assert the temporal dimension value.
   rdf_assert_now(Observation, 'sdmx-dimension':timePeriod, Graph).
+
+
+%! assert_slice(+DataSet:iri, +Graph:atom, -Slice:iri) is det.
+
+assert_slice(DataSet, Graph, Slice):-
+  rdf_create_next_resource(slice, ['Slice'], qb:'Slice', Graph, Slice),
+  rdf_assert(DataSet, qb:slice, Slice, Graph).
 
 
 

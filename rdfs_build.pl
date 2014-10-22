@@ -9,7 +9,7 @@
     rdfs_assert_property_class/2, % +PropertyClass:iri
                                   % +Graph:atom
     rdfs_assert_subclass/3, % +Class:iri
-                            % +SuperClass:iri
+                            % ?Superclass:iri
                             % +Graph:atom
     rdfs_remove_class/2, % +Class:iri
                          % +Graph:atom
@@ -121,19 +121,27 @@ using the following triples:
 
 rdfs_assert_class(Class, G):-
   % Materialization would figure this one out as well.
-  rdf_assert_instance(Class, rdfs:'Class',    G),
-  rdfs_assert_subclass( Class, rdfs:'Resource', G).
+  rdf_assert_instance(Class, rdfs:'Class', G),
+  rdfs_assert_subclass(Class, rdfs:'Resource', G).
 
 rdfs_assert_instance(Instance, G):-
   rdf_assert_instance(Instance, rdfs:'Resource', G).
 
 rdfs_assert_property_class(PropertyClass, G):-
   % Materialization would figure this one out as well.
-  rdf_assert_instance(PropertyClass, rdfs:'Class',   G),
-  rdfs_assert_subclass( PropertyClass, rdf:'Property', G).
+  rdf_assert_instance(PropertyClass, rdfs:'Class', G),
+  rdfs_assert_subclass(PropertyClass, rdf:'Property', G).
 
-rdfs_assert_subclass(Class, SuperClass, G):-
-  rdf_assert(Class, rdfs:subClassOf, SuperClass, G).
+
+%! rdfs_assert_subclass(+Class:iri, ?Superclass:iri, +Graph) is det.
+
+rdfs_assert_subclass(Class, Superclass, G):-
+  % Allow the superclass to be uninstantiated.
+  (   var(Superclass)
+  ->  rdf_equal(Superclass, rdfs:'Class')
+  ;   true
+  ),
+  rdf_assert(Class, rdfs:subClassOf, Superclass, G).
 
 rdfs_remove_class(C, G):-
   rdfs_class(m(t,f,f), C, G), !,
