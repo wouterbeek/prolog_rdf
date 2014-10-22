@@ -116,7 +116,11 @@ assert_rdf_file_types:-
 %   * =|number_of_threads(+NumberOfThreads:positive_integer)|=
 %     The number of threads that are used for loading concurrent jobs.
 %     Default: the value of Prolog flag `cpu_count`.
-%   * =|void(+LoadVoid:boolean)|=
+%   * =|reduced_locations(+Use:boolean)|=
+%     Whether reduced locations are used of not.
+%     See [rdf_prefixes].
+%     Default: `false`.
+%   * =|void(+Load:boolean)|=
 %     Whether the loaded data should be recursively closed under
 %     VoID descriptions that appear in that data.
 %     Default: `false`.
@@ -143,8 +147,66 @@ rdf_load_any(Dir, Options):-
   rdf_load_any(Files, Options).
 % A single, non-directory input: keep a file around.
 rdf_load_any(Url1, Options1):-
-  select_option(keep_file(true), Options1, Options2, false),
+
+% URL with reduced location.
+rdf_load_any(url(Url), Options1):-
+  select_option(reduced_locations(true), Options1, Options2),
   rdf_reduced_location(Url1, Url2), !,
+  rdf_load_any(url(ReducedUrl), Options2).
+
+/*
+% URL downloaded from file.
+rdf_load_any(url(Url), Options1):-
+  select_option(keep_file(true), Options1, Options2), !,
+  
+  % Download the file denoted by the URL.
+  lod_accept_header_value(AcceptValue),
+  download_to_file(
+    Url,
+    File,
+    [
+      cert_verify_hook(ssl_verify),
+      % Always redownload.
+      freshness_lifetime(0.0),
+      header(content_length, ContentLength),
+      header(content_type, ContentType),
+      header(last_modified, LastModified),
+      request_header('Accept'=AcceptValue)
+    ]
+  ),
+  
+  % Properties of the downloaded file.
+  size_file(File, FileSize),
+  file_name_extension(_, FileExtension, File),
+  
+  archive_extract(File, _, Filters, Entries),
+  (   Entries == []
+  ->  % THE ARCHIVE CONTAINS NO ENTRIES.
+  ;   Entries = [data-Properties]
+      memberchk(format(raw), Properties)
+  ->  
+  
+  merge_options(
+    Options2,
+    [
+      content_length(ContentLength),
+      content_type(ContentType),
+      file_extension(FileExtension),
+      file_size(FileSize),
+      last_modified(LastModified)
+    | Filters
+    ],
+    Options3
+  ),
+  
+  rdf_load_any(file(File), Options3).
+*/
+
+rdf_load_any(url(Url), Options):-
+  unpack(Url, Read, Location),
+
+
+url_file_extension
   download_to_file(Url2, File, [freshness_lifetime(8640000)]),
   rdf_load_any(File, Options2).
 % A single, non-directory input: do not keep a file around.
