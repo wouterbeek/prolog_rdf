@@ -47,6 +47,26 @@ and with namespace `rdf_db`.
 
 
 
+%! rdf_accept_header_value(-Value:atom) is det.
+
+rdf_accept_header_value(Value):-
+  findall(
+    Value,
+    (
+      rdf_content_type(ContentType, Q),
+      format(atom(Value), '~a; q=~1f', [ContentType,Q])
+    ),
+    Values
+  ),
+  atomic_list_concat(Values, ', ', Value).
+
+
+%! rdf_content_type(?ContentType:atom, ?QValue:between(0.0,1.0)) is nondet.
+
+% All
+rdf_content_type('*/*',                    0.1).
+
+
 %! rdf_content_type(+ContentType:atom) is semidet.
 %! rdf_content_type(-ContentType:atom) is multi.
 
@@ -91,9 +111,27 @@ rdf_file_extension(Ext, Format):-
 %!   ?DefaultExtension:atom,
 %!   ?FileType:atom,
 %!   ?Format:atom,
-%!   ?MIME:list(atom),
+%!   ?ContentTypes:list(pair(between(0.0,1.0),atom)),
 %!   ?Url:atom
 %! ) is nondet.
+%
+% # Content types
+%
+% Content types are represented as pairs.
+% The first element of the pair is a qvalue, as specified in RFC 2616.
+% The second element of the pair is the content type name.
+%
+% The qvalues are determined based on the following criteria:
+%   | **Q-Value** | **Reason**                   |
+%   | 0.45        | Official content type        |
+%   | 0.45        | Specific for RDF content     |
+%   | 0.05        | Inofficial content type      |
+%   | 0.05        | Not specific for RDF content |
+%
+% For example, `text/tutle` has qvalue `0.9` because it is
+% an official content type that is RDF-specific.
+%
+% # Arguments
 %
 % @arg DefaultExtension The default extension of the RDF serialization.
 %      RDF serializations may have multiple non-default extensions,
@@ -102,8 +140,8 @@ rdf_file_extension(Ext, Format):-
 %      File types are registered via user:prolog_file_type/2.
 %      Every RDF file type also has the non-default file type `rdf`.
 % @arg Format The format name that is used by the Semweb library.
-% @arg ContentTypes A list of MIME content types.
-%      The first atom is the standardized MIME content type
+% @arg ContentTypes A list of content types.
+%      The first atom is the standardized content type
 %      according to the 1.1 recommendations.
 % @arg Url The URL at which the serialization is described, if any.
 %
@@ -113,14 +151,18 @@ rdf_serialization(
   nq,
   nquads,
   nquads,
-  ['application/n-quads'],
+  [
+    0.9-'application/n-quads'
+  ],
   'http://www.w3.org/ns/formats/N-Quads'
 ).
 rdf_serialization(
   nt,
   ntriples,
   ntriples,
-  ['application/n-triples'],
+  [
+    0.9-'application/n-triples'
+  ],
   'http://www.w3.org/ns/formats/N-Triples'
 ).
 rdf_serialization(
@@ -128,13 +170,13 @@ rdf_serialization(
   rdf_xml,
   xml,
   [
-    'application/rdf+xml',
-    'text/rdf+xml',
-    'application/xhtml+xml',
-    'application/xml',
-    'text/rdf',
-    'text/xml',
-    'application/rss+xml'
+    0.9-'text/rdf+xml',
+    0.5-'application/rdf+xml',
+    0.5-'text/rdf',
+    0.5-'text/xml',
+    0.5-'application/rdf',
+    0.1-'application/rss+xml',
+    0.1-'application/xml'
   ],
   'http://www.w3.org/ns/formats/RDF_XML'
 ).
@@ -143,8 +185,8 @@ rdf_serialization(
   rdfa,
   rdfa,
   [
-    'application/xhtml+xml',
-    'text/html'
+    0.5-'application/xhtml+xml',
+    0.5-'text/html'
   ],
   'http://www.w3.org/ns/formats/RDFa'
 ).
@@ -153,8 +195,8 @@ rdf_serialization(
   trig,
   trig,
   [
-    'application/trig',
-    'application/x-trig'
+    0.9-'application/trig',
+    0.5-'application/x-trig'
   ],
   'http://www.w3.org/ns/formats/TriG'
 ).
@@ -163,10 +205,10 @@ rdf_serialization(
   turtle,
   turtle,
   [
-    'application/turtle',
-    'application/x-turtle',
-    'application/rdf+turtle',
-    'text/turtle'
+    0.9-'text/turtle',
+    0.5-'application/turtle',
+    0.5-'application/x-turtle',
+    0.5-'application/rdf+turtle'
   ],
   'http://www.w3.org/ns/formats/Turtle'
 ).
@@ -175,8 +217,8 @@ rdf_serialization(
   n3,
   turtle,
   [
-    'text/rdf+n3',
-    'text/n3'
+    0.9-'text/n3',
+    0.5-'text/rdf+n3'
   ],
   'http://www.w3.org/ns/formats/N3'
 ).

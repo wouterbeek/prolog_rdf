@@ -2,7 +2,7 @@
   rdfs_build2,
   [
     rdfs_assert_class/5, % +Class:iri
-                         % +Parent:iri
+                         % ?Parent:iri
                          % ?Label:or([atom,pair(atom)])
                          % ?Comment:or([atom,pair(atom)])
                          % +Graph:atom
@@ -50,7 +50,7 @@ Predicates for building higher-level RDFS constructs.
 
 %! rdfs_assert_class(
 %!   +Class:iri,
-%!   +Parent:iri,
+%!   ?Parent:iri,
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   +Graph:atom

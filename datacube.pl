@@ -68,13 +68,13 @@ Predicates for perfoming measurements represented in RDF.
 %! ) is det.
 
 assert_dataset(DataStructureDefinition, Graph, DataSet):-
-  % Create the data set.
-  rdf_create_next_resource(data_set, Graph, ['DataSet'], DataSet),
-
-  % rdf:type
-  rdf_assert_instance(DataSet, qb:'DataSet', Graph),
-
-  % qb:structure
+  rdf_create_next_resource(
+    data_set,
+    ['DataSet'],
+    qb:'DataSet',
+    Graph,
+    DataSet
+  ),
   rdf_assert(DataSet, qb:structure, DataStructureDefinition, Graph).
 
 
@@ -100,20 +100,14 @@ assert_datastructure_definition(
   (   var(DataStructureDefinition)
   ->  rdf_create_next_resource(
         data_structure_definition,
-        Graph,
         ['DataStructureDefinition'],
+        qb:'DataStructureDefinition',
+        Graph,
         DataStructureDefinition
       )
   ;   true
   ),
   
-  % rdf:type
-  rdf_assert_instance(
-    DataStructureDefinition,
-    qb:'DataStructureDefinition',
-    Graph
-  ),
-
   % Create the component resources.
   % qb:dimension
   findall(
@@ -214,8 +208,13 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
   xsd_datatype(Datatype),
 
   % Create the observation.
-  rdf_create_next_resource(observation, Graph, ['Observation'], Observation),
-  rdf_assert_instance(Observation, qb:'Observation', Graph),
+  rdf_create_next_resource(
+    observation,
+    ['Observation'],
+    qb:'Observation',
+    Graph,
+    Observation
+  ),
 
   % qb:dataSet
   rdf_assert(Observation, qb:dataSet, Dataset, Graph),
@@ -231,13 +230,7 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
 %! assert_slice(+DataSet:iri, +Graph:atom, -Slice:iri) is det.
 
 assert_slice(DataSet, Graph, Slice):-
-  % Create the observation.
-  rdf_create_next_resource(slice, Graph, ['Slice'], Slice),
-
-  % rdf:type
-  rdf_assert_instance(Slice, qb:'Slice', Graph),
-
-  % qb:slice
+  rdf_create_next_resource(slice, ['Slice'], qb:'Slice', Graph, Slice),
   rdf_assert(DataSet, qb:slice, Slice, Graph).
 
 

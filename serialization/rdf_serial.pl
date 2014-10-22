@@ -136,6 +136,10 @@ rdf_load_any(Inputs, Options):-
   current_prolog_flag(cpu_count, DefaultNumberOfThreads),
   option(number_of_threads(NumberOfThreads), Options, DefaultNumberOfThreads),
   concurrent(NumberOfThreads, Goals, []).
+% Load the IRI denoted by a registered RDF prefix.
+rdf_load_any(Prefix, Options):-
+  rdf_current_prefix(Prefix, Url), !,
+  rdf_load_any(Url, Options).
 % Load all files from a given directory.
 rdf_load_any(Dir, Options):-
   exists_directory(Dir), !,
@@ -214,6 +218,7 @@ rdf_load_any(Input, Options):-
   rdf_load_any0(Input, Options).
 
 rdf_load_any0(Input, Options):-
+gtrace,
   % Load all individual RDF graphs.
   findall(
     Base-Graph,

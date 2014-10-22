@@ -88,6 +88,15 @@ rdf_register_reduced_location_prefix(Prefix):-
 
 
 
+% Citation Counting and Context Characterization Ontology (C4O)
+:- rdf_register_prefix(
+     c4o,
+     'http://www.essepuntato.it/lode/http://purl.org/spar/c4o'
+   ).
+
+% Citation Oriented Bibliographic Vocabulary (BIBLIO)
+:- rdf_register_prefix(biblio, 'http://purl.org/net/biblio#').
+
 % Creative Commons
 :- rdf_register_prefix(cc, 'http://creativecommons.org/ns#').
 
@@ -328,6 +337,12 @@ dbpedia_language_tag(zh_yue).
 
 % DOC
 :- rdf_register_prefix(doc, 'http://www.w3.org/2000/10/swap/pim/doc#').
+
+% Document Components Ontology (DoCO)
+:- rdf_register_prefix(
+     doco,
+     'http://www.essepuntato.it/lode/http://purl.org/spar/doco'
+   ).
 
 % Dublin Core: elements
 :- rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/').
