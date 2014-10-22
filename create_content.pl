@@ -1,9 +1,7 @@
 :- module(
   create_content,
   [
-    content_create/2, % +Request:list(nvpair)
-                      % +HtmlStyle
-    register_content_class/1 % +Class:iri
+    content_create_instance//1 % +Class:iri
   ]
 ).
 
@@ -17,89 +15,68 @@ Content creation according to an RDF Schema.
 
 :- use_module(library(aggregate)).
 :- use_module(library(http/html_write)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(plDcg(dcg_generics)).
+:- use_module(plXsd(xsd_html5)).
 
-:- use_module(plRdf(rdf_name)).
+:- use_module(plTabular(rdf_term_html)).
+
+:- rdf_meta(content_create_instance(r)).
 
 
 
-content_create(Request, HtmlStyle):-
-  {
-    request_name_value(Request, class, Class), !,
-    dcg_with_output_to(atom(ClassName), rdf_term_name(Class)),
-  },
-  reply_html_page(
-    HtmlStyle,
-    html(title(['Create content - ',ClassName])),
-    html(\content_create_instance(Class))
-  ).
-
+%! content_create_instance(+Class:iri)// is det.
 
 content_create_instance(Class) -->
   {
     aggregate_all(
-      set(Property-Range),
+      set(popair(Property,Range)),
       (
         instance_has_property(Class, Property),
         rdfs_range(Property, Range)
       ),
-      Pairs
-    ),
-    http_absolute_uri(content_create(.), AgentLocation)
+      POPairs
+    )
   },
   html(
     form(
       [
-        action=AgentLocation,
+        action=Class,
         class=['pure-form','pure-form-stacked'],
-        id=agentDefinitionForm,
+        id=contentCreateInstanceForm,
         method=post
       ],
       fieldset([
-        legend('Agent definitions'),
-        div(class='pure-g', [
-          div([
-            class=['pure-u-1','pure-u-md-1-3'],
-            id=agentDefinitionsContainer
-          ], []),
-          div([
-            class=['pure-u-1','pure-u-md-1-3'],
-            id=agentDefinitionContainer
-          ], [])
-        ]),
+        legend(['Create ',\rdf_term_html(plTabular,Class)]),
+        \property_fields(POPairs),
         button(
           [
             class=['pure-button','pure-button-primary'],
-            id=createBtn,
+            id=contentCreateBtn,
             type=submit
           ],
-          ['Create agent']
+          ['Create ',\rdf_term_html(plTabular,Class)]
         )
       ])
-    ),
-      \js_script({|javascript(AgentLocation,AgentDefinitionLocation,SparqlLocation)||
-
-  content_create_properties(Pairs).
+    )
+  ).
 
 
-content_create_properties([]) --> !, [].
-content_create_properties([H|T]) -->
-  content_create_property(H),
-  content_create_properties(T).
+property_field(popair(Property,Datatype)) -->
+  {xsd_datatype_to_input_type(Datatype, Type)},
+  html(
+    p([
+      label([], [\rdf_term_html(plTabular,Property)]),
+      input([id=Property,type=Type], [])
+    ])
+  ).
 
 
-content_create_property(Property-Range) -->
-  
-
-
-%! register_content_class(+Class:iri) is det.
-% For a given class:
-%   - creates an HTTP handler on that class' IRI.
-
-register_content_class(Class):-
-  http_handler(
+property_fields([]) --> !, [].
+property_fields([H|T]) -->
+  property_field(H),
+  property_fields(T).
 
 
 
