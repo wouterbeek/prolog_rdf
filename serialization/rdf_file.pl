@@ -47,7 +47,7 @@ Support for RDF files and file types.
 
 is_rdf_file(File):-
   file_mime(File, Mime),
-  rdf_content_type(Mime), !.
+  rdf_media_type(Mime), !.
 is_rdf_file(File):-
   file_name_extension(_, Extension, File),
   rdf_file_extension(Extension).

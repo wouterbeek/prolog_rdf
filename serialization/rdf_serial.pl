@@ -136,10 +136,12 @@ rdf_load_any(Inputs, Options):-
   current_prolog_flag(cpu_count, DefaultNumberOfThreads),
   option(number_of_threads(NumberOfThreads), Options, DefaultNumberOfThreads),
   concurrent(NumberOfThreads, Goals, []).
+
 % Load the IRI denoted by a registered RDF prefix.
 rdf_load_any(Prefix, Options):-
   rdf_current_prefix(Prefix, Url), !,
   rdf_load_any(Url, Options).
+
 % Load all files from a given directory.
 rdf_load_any(Dir, Options):-
   exists_directory(Dir), !,
@@ -149,13 +151,11 @@ rdf_load_any(Dir, Options):-
     Files
   ),
   rdf_load_any(Files, Options).
-% A single, non-directory input: keep a file around.
-rdf_load_any(Url1, Options1):-
 
 % URL with reduced location.
 rdf_load_any(url(Url), Options1):-
   select_option(reduced_locations(true), Options1, Options2),
-  rdf_reduced_location(Url1, Url2), !,
+  rdf_reduced_location(Url, ReducedUrl), !,
   rdf_load_any(url(ReducedUrl), Options2).
 
 /*
@@ -204,15 +204,11 @@ rdf_load_any(url(Url), Options1):-
   ),
   
   rdf_load_any(file(File), Options3).
-*/
-
 rdf_load_any(url(Url), Options):-
   unpack(Url, Read, Location),
-
-
-url_file_extension
   download_to_file(Url2, File, [freshness_lifetime(8640000)]),
   rdf_load_any(File, Options2).
+*/
 % A single, non-directory input: do not keep a file around.
 rdf_load_any(Input, Options):-
   rdf_load_any0(Input, Options).

@@ -106,7 +106,7 @@ rdf_guess_format(Read, FileExtension, _, Format):-
 % Use the HTTP content type header as the RDF serialization format suggestion.
 rdf_guess_format(Read, _, ContentType, Format):-
   nonvar(ContentType),
-  rdf_content_type(ContentType, SuggestedFormat), !,
+  rdf_media_type_format(ContentType, SuggestedFormat), !,
   rdf_guess_format(Read, Format, [format(SuggestedFormat)]).
 % Use no RDF serialization format suggestion.
 rdf_guess_format(Read, _, _, Format):-
