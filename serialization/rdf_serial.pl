@@ -158,7 +158,7 @@ rdf_load_any(file(Dir), Options):-
     Files
   ),
   maplist(file_term, Files, FileTerms),
-  rdf_load_any(Files, Options).
+  rdf_load_any(FileTerms, Options).
 
 % Load a URL with reduced location.
 rdf_load_any(url(Url), Options1):-
@@ -193,9 +193,9 @@ rdf_load_any(url(Url), Options1):-
   archive_extract(File, _, Filters, Entries),
   (   Entries == []
   ->  % THE ARCHIVE CONTAINS NO ENTRIES.
-  ;   Entries = [data-Properties]
+  ;   Entries = [data-Properties],
       memberchk(format(raw), Properties)
-  ->  
+  ),
   
   merge_options(
     Options2,
@@ -215,7 +215,7 @@ rdf_load_any(url(Url), Options):-
   unpack(Url, Read, Location),
   download_to_file(Url2, File, [freshness_lifetime(8640000)]),
   rdf_load_any(File, Options2).
-*/
+
 % A single, non-directory input: do not keep a file around.
 rdf_load_any(Input, Options):-
   rdf_load_any0(Input, Options).
