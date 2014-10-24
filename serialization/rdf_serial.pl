@@ -99,8 +99,15 @@ assert_rdf_file_types:-
   ).
 
 
-%! rdf_load_any(+Input:or([atom,list(atom)]), +Option:list(nvpair)) is det.
+%! rdf_load_any(+Input, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
+%
+% Input can be one of the following:
+%   - List
+%   - file/1
+%   - prefix/1
+%   - url/1
+%   - uri_components/5
 %
 % The following options are supported:
 %   * =|format(+Format:oneof([ntriples,turtle,xml]))|=
@@ -138,27 +145,27 @@ rdf_load_any(Inputs, Options):-
   concurrent(NumberOfThreads, Goals, []).
 
 % Load the IRI denoted by a registered RDF prefix.
-rdf_load_any(Prefix, Options):-
+rdf_load_any(prefix(Prefix), Options):-
   rdf_current_prefix(Prefix, Url), !,
   rdf_load_any(Url, Options).
 
 % Load all files from a given directory.
-rdf_load_any(Dir, Options):-
+rdf_load_any(file(Dir), Options):-
   exists_directory(Dir), !,
   directory_files(
     [file_types([rdf]),include_directories(false),recursive(true)],
     Dir,
     Files
   ),
+  maplist(file_term, Files, FileTerms),
   rdf_load_any(Files, Options).
 
-% URL with reduced location.
+% Load a URL with reduced location.
 rdf_load_any(url(Url), Options1):-
   select_option(reduced_locations(true), Options1, Options2),
   rdf_reduced_location(Url, ReducedUrl), !,
   rdf_load_any(url(ReducedUrl), Options2).
 
-/*
 % URL downloaded from file.
 rdf_load_any(url(Url), Options1):-
   select_option(keep_file(true), Options1, Options2), !,
@@ -212,6 +219,9 @@ rdf_load_any(url(Url), Options):-
 % A single, non-directory input: do not keep a file around.
 rdf_load_any(Input, Options):-
   rdf_load_any0(Input, Options).
+
+file_term(File, file(File)).
+
 
 rdf_load_any0(Input, Options):-
 gtrace,
