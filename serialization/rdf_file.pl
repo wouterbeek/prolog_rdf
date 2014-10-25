@@ -28,7 +28,6 @@ Support for RDF files and file types.
 
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
-:- use_module(os(file_mime)).
 
 :- use_module(plRdf(rdf_meta)).
 :- use_module(plRdf_ser(rdf_file_db)).
@@ -83,7 +82,7 @@ rdf_directory_files(O1, Dir, RdfFiles):-
 
 rdf_file_correct_extension(File1, File2):-
   file_mime(File1, Mime),
-  rdf_serialization(Extension, _, _, Mimes, _),
+  rdf_serialization(Extension, _, Mimes, _),
   memberchk(Mime, Mimes),
   file_alternative(File1, _, _, Extension, File2),
   File1 \== File2, !,

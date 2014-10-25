@@ -128,7 +128,8 @@ Mismatch types:
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf_ser(rdf_file_db)).
-:- use_module(plRdf_ser(rdf_serial)).
+:- use_module(plRdf_ser(rdf_load_any)).
+:- use_module(plRdf_ser(rdf_save_any)).
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_literal)).
 :- use_module(plRdf_term(rdf_string)).
@@ -286,7 +287,7 @@ tsv_convert_directory(FromDir, ToDir, ToMime, ToFiles):-
     ToFile,
     (
       member(FromFile, FromFiles),
-      once(rdf_serialization(ToExt, _, _, ToMime, _)),
+      once(rdf_serialization(ToExt _, ToMime, _)),
       file_alternative(FromFile, ToDir, _, ToExt, ToFile),
       tsv_file_to_oaei_file(FromFile, ToFile)
     ),
