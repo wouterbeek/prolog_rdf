@@ -51,9 +51,9 @@ rdf_guess_format(File0, Format):-
 
   % Take the file extension into account, if any.
   file_name_extension(File, FileExtension0, _),
-  (  FileExtension0 == ''
-  -> true
-  ;  FileExtension = FileExtension0
+  (   FileExtension0 == ''
+  ->  true
+  ;   FileExtension = FileExtension0
   ),
 
   setup_call_cleanup(
@@ -65,28 +65,25 @@ rdf_guess_format(File0, Format):-
 rdf_guess_format(Stream, Format, Options):-
   option(look_ahead(Bytes), Options, 2500),
   peek_string(Stream, Bytes, String),
-  (
-    string_codes(String, Codes),
-    phrase(turtle_like(Format, Options), Codes, _)
-  ->
-    true
-  ;
-    setup_call_cleanup(
-      new_memory_file(MemFile),
-      (
-        setup_call_cleanup(
-          open_memory_file(MemFile, write, Write),
-          format(Write, '~s', [String]),
-          close(Write)
+  (   string_codes(String, Codes),
+      phrase(turtle_like(Format, Options), Codes, _)
+  ->  true
+  ;   setup_call_cleanup(
+        new_memory_file(MemFile),
+        (
+          setup_call_cleanup(
+            open_memory_file(MemFile, write, Write),
+            format(Write, '~s', [String]),
+            close(Write)
+          ),
+          setup_call_cleanup(
+            open_memory_file(MemFile, read, Read),
+            guess_xml_type(Read, Format),
+            close(Read)
+          )
         ),
-        setup_call_cleanup(
-          open_memory_file(MemFile, read, Read),
-          guess_xml_type(Read, Format),
-          close(Read)
-        )
-      ),
-      free_memory_file(MemFile)
-    )
+        free_memory_file(MemFile)
+      )
   ).
 
 
@@ -171,7 +168,8 @@ turtle_keyword(prefix).
 %  is a "{" in the first section of the file.
 
 turtle_or_trig(Format, Options) -->
-  { option(format(Format), Options),
+  {
+    option(format(Format), Options),
     turtle_or_trig(Format)
   }, !.
 turtle_or_trig(Format, _Options) -->
@@ -193,7 +191,8 @@ turtle_or_trig(trig).
 % This still can be Turtle, TriG, N-Triples or N-Quads.
 
 nt_turtle_like(Format, Options) -->
-  { option(format(Format), Options),
+  {
+    option(format(Format), Options),
     nt_turtle_like(Format)
   }, !.
 nt_turtle_like(ntriples, _) -->
@@ -290,7 +289,12 @@ string_code --> [_].
 nt_white --> [10], !.
 nt_white --> [13], !.
 nt_white --> white, !.
-nt_white, " " --> "#", string(_), ( eol1 ; eos ), !.
+nt_white, " " -->
+  "#",
+  string(_),
+  (   eol1
+  ;   eos
+  ), !.
 
 nt_end -->
   (   eol
@@ -335,14 +339,10 @@ doc_content_type(xhtml,   _,    _, rdfa).
 doc_content_type(html5,   _,    _, rdfa).
 doc_content_type(xhtml5, _,    _, rdfa).
 doc_content_type(Dialect, Top, Attributes, xml):-
-  (
-    Dialect == sgml
-  ->
-    atomic_list_concat([NS,rdf], :, Top)
-  ;
-    Dialect == xml
-  ->
-    atomic_list_concat([NS,'RDF'], :, Top)
+  (   Dialect == sgml
+  ->  atomic_list_concat([NS,rdf], :, Top)
+  ;   Dialect == xml
+  ->  atomic_list_concat([NS,'RDF'], :, Top)
   ),
   atomic_list_concat([xmlns,NS], :, Attr),
   memberchk(Attr=RDFNS, Attributes),
