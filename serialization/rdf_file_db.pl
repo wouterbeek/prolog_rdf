@@ -76,11 +76,12 @@ rdf_accept_header_value(Value):-
     MediaTypes
   ),
   dcg_with_output_to(atom(Value),
-    '*'(
-      'media-type',
+    '#'(
       _,
+      'media-type',
+			_,
       [media_type('*','*',[q(0.1)])|MediaTypes],
-      [separator(", ")]
+      [separator(atom(', '))]
     )
   ).
 
