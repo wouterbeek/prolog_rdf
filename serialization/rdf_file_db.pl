@@ -43,6 +43,11 @@ Basic facts about RDF serialization formats.
 :- use_module(library(lists)).
 
 :- use_module(os(media_type)).
+:- use_module(http_parameters(rfc2616_media_type)).
+
+:- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_content)).
+:- use_module(plDcg(dcg_generics)).
 
 :- multifile(error:has_type/2).
 
@@ -63,19 +68,21 @@ error:has_type(rdf_format, Term):-
 
 rdf_accept_header_value(Value):-
   findall(
-    [QValue,MediaType],
+    MediaType,
     (
       rdf_serialization(_, _, MediaTypes, _),
-      member(QValue-MediaType, MediaTypes)
+      member(MediaType, MediaTypes)
     ),
-    Pairs1
+    MediaTypes
   ),
-  keysort(Pairs1, Pairs2),
-  maplist(format_media_type_value, [0.1-media_type('*','*')|Pairs2], Values),
-  atomic_list_concat(Values, ', ', Value).
-
-format_media_type_value(QValue-MediaType, Value):-
-  format(atom(Value), '~a; q=~1f', [MediaType,QValue]).
+  dcg_with_output_to(atom(Value),
+    '*'(
+      'media-type',
+      _,
+      [media_type('*','*',[q(0.1)])|MediaTypes],
+      [separator(", ")]
+    )
+  ).
 
 
 
@@ -168,7 +175,7 @@ rdf_serialization(
   nq,
   nquads,
   [
-    0.9-media_type(application,'n-quads')
+    media_type(application,'n-quads',[q(0.9)])
   ],
   'http://www.w3.org/ns/formats/N-Quads'
 ).
@@ -176,7 +183,7 @@ rdf_serialization(
   nt,
   ntriples,
   [
-    0.9-media_type(application,'n-triples')
+    media_type(application,'n-triples',[q(0.9)])
   ],
   'http://www.w3.org/ns/formats/N-Triples'
 ).
@@ -184,13 +191,13 @@ rdf_serialization(
   rdf,
   xml,
   [
-    0.9-media_type(text,'rdf+xml'),
-    0.5-media_type(application,'rdf+xml'),
-    0.5-media_type(text,rdf),
-    0.5-media_type(text,xml),
-    0.5-media_type(application,rdf),
-    0.1-media_type(application,'rss+xml'),
-    0.1-media_type(application,xml)
+    media_type(text,'rdf+xml',[q(0.9)]),
+    media_type(application,'rdf+xml',[q(0.5)]),
+    media_type(text,rdf,[q(0.5)]),
+    media_type(text,xml,[q(0.5)]),
+    media_type(application,rdf,[q(0.5)]),
+    media_type(application,'rss+xml',[q(0.1)]),
+    media_type(application,xml,[q(0.1)])
   ],
   'http://www.w3.org/ns/formats/RDF_XML'
 ).
@@ -198,8 +205,8 @@ rdf_serialization(
   rdfa,
   rdfa,
   [
-    0.5-media_type(application,'xhtml+xml'),
-    0.5-media_type(text,html)
+    media_type(application,'xhtml+xml',[q(0.5)]),
+    media_type(text,html,[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/RDFa'
 ).
@@ -207,8 +214,8 @@ rdf_serialization(
   trig,
   trig,
   [
-    0.9-media_type(application,trig),
-    0.5-media_type(application,'x-trig')
+    media_type(application,trig,[q(0.9)]),
+    media_type(application,'x-trig',[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/TriG'
 ).
@@ -216,10 +223,10 @@ rdf_serialization(
   ttl,
   turtle,
   [
-    0.9-media_type(text,turtle),
-    0.5-media_type(application,turtle),
-    0.5-media_type(application,'x-turtle'),
-    0.5-media_type(application,'rdf+turtle')
+    media_type(text,turtle,[q(0.9)]),
+    media_type(application,turtle,[q(0.5)]),
+    media_type(application,'x-turtle',[q(0.5)]),
+    media_type(application,'rdf+turtle',[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/Turtle'
 ).
@@ -227,8 +234,8 @@ rdf_serialization(
   n3,
   turtle,
   [
-    0.9-media_type(text,n3),
-    0.5-media_type(text,'rdf+n3')
+    media_type(text,n3,[q(0.9)]),
+    media_type(text,'rdf+n3',[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/N3'
 ).
