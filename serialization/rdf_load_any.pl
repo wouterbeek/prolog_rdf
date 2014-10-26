@@ -1,6 +1,9 @@
 :- module(
   rdf_load_any,
   [
+    rdf_load_any/1, % +Input
+    rdf_load_any/2, % +Input
+                    % +Options:list(nvpair)
     rdf_load_any/3 % +Input
                    % -Metadata:dict
                    % +Options:list(nvpair)
@@ -66,8 +69,11 @@
 :- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_guess_format)).
 
+:- predicate_options(rdf_load_any/2, 2, [
+     pass_to(rdf_load_any/3, 3)
+   ]).
 :- predicate_options(rdf_load_any/3, 3, [
-     pass_to(open_any/3, 3),
+     pass_to(open_any/4, 4),
      pass_to(rdf_load_from_stream/4, 4)
    ]).
 :- predicate_options(rdf_load_from_stream/4, 4, [
@@ -85,6 +91,18 @@ assert_rdf_file_types:-
     )
   ).
 
+
+
+%! rdf_load_any(+Input) is det.
+
+rdf_load_any(Input):-
+  rdf_load_any(Input, []).
+
+
+%! rdf_load_any(+Input, +Option:list(nvpair)) is det.
+
+rdf_load_any(Input, Options):-
+  rdf_load_any(Input, _, Options).
 
 
 %! rdf_load_any(+Input, -Metadata:dict, +Option:list(nvpair)) is det.
@@ -141,7 +159,7 @@ rdf_load_any(uri(Uri), M, Options1):-
   rdf_reduced_location(Uri, ReducedUri), !,
   rdf_load_any(uri(ReducedUri), M, Options2).
 
-% 3. Reuse the versatile open_any/3.
+% 3. Reuse the versatile open_any/4.
 rdf_load_any(Input, Metadatas, Options1):-
   rdf_extra_headers(ExtraHeaders),
   merge_options(Options1, ExtraHeaders, Options2),
