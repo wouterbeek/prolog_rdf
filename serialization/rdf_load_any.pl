@@ -1,7 +1,8 @@
 :- module(
   rdf_load_any,
   [
-    rdf_load_any/2 % +Input
+    rdf_load_any/3 % +Input
+                   % -Metadata:dict
                    % +Options:list(nvpair)
   ]
 ).
@@ -65,7 +66,7 @@
 :- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_guess_format)).
 
-:- predicate_options(rdf_load_any/2, 2, [
+:- predicate_options(rdf_load_any/3, 3, [
      keep_file(+boolean),
      pass_to(open_any/3, 3),
      pass_to(rdf_load_from_stream/2, 2)
@@ -89,7 +90,7 @@ assert_rdf_file_types:-
 
 
 
-%! rdf_load_any(+Input, +Option:list(nvpair)) is det.
+%! rdf_load_any(+Input, -Metadata:dict, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
 %
 % Input can be one of the following:
@@ -120,43 +121,38 @@ assert_rdf_file_types:-
 %     Default: `false`.
 
 % 1. Load the URI denoted by a registered RDF prefix.
-rdf_load_any(prefix(Prefix), Options):-
+rdf_load_any(prefix(Prefix), M, Options):-
   rdf_current_prefix(Prefix, Uri), !,
-  rdf_load_any(uri(Uri), Options).
+  rdf_load_any(uri(Uri), M, Options).
 
 % 2. Load from a URL with reduced location.
-rdf_load_any(uri(Uri), Options1):-
+rdf_load_any(uri(Uri), M, Options1):-
   select_option(reduced_locations(true), Options1, Options2),
   rdf_reduced_location(Uri, ReducedUri), !,
-  rdf_load_any(uri(ReducedUri), Options2).
+  rdf_load_any(uri(ReducedUri), M, Options2).
 
 % 3. Reuse the versatile open_any/3.
-rdf_load_any(Input, Options1):-
+rdf_load_any(Input, Metadatas, Options1):-
   rdf_extra_headers(ExtraHeaders),
-  merge_options([metadata(Metadata)], Options1, Options2),
-  merge_options(Options2, ExtraHeaders, Options3),
-  
+  merge_options(Options1, ExtraHeaders, Options2),
+
   % Load all individual RDF graphs.
   findall(
-    Base-Graph,
+    Metadata,
     (
-      open_any(Input, Out, Options3),
+      open_any(Input, Out, Metadata0, Options2),
+      metadata_to_base(Metadata0, Base),
       call_cleanup(
-        (
-          metadata_to_base(Metadata, Base),
-          rdf_load_from_stream(Out, Metadata, Base, Options),
-          option(graph(Graph), Options, _NoGraph)
-        ),
+        rdf_load_from_stream(Out, Metadata0, Base, Options2),
         close(Out)
+      ),
+      (   option(graph(Graph), Options2)
+      ->  rdf_statistics(triples_by_graph(Graph, Triples)),
+          Metadata = Metadata0.put({graph:Graph,triples:Triples})
+      ;   Metadata = Metadata0
       )
     ),
-    Pairs
-  ),
-
-  % Return the graphs option.
-  (   option(graphs(Pairs0), Options)
-  ->  Pairs0 = Pairs
-  ;   true
+    Metadatas
   ).
 
 
@@ -202,7 +198,6 @@ rdf_load_any(file(Dir), Options):-
   maplist(file_term, Files, FileTerms),
   rdf_load_any(FileTerms, Options).
 */
-
 
 %! rdf_extra_headers(-Headers:list(nvpair)) is det.
 
