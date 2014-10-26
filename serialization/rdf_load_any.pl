@@ -67,13 +67,10 @@
 :- use_module(plRdf_ser(rdf_guess_format)).
 
 :- predicate_options(rdf_load_any/3, 3, [
-     keep_file(+boolean),
      pass_to(open_any/3, 3),
-     pass_to(rdf_load_from_stream/2, 2)
+     pass_to(rdf_load_from_stream/4, 4)
    ]).
-:- predicate_options(rdf_load_from_stream/2, 2, [
-     graph(+atom),
-     graphs(-list(pair(atom))),
+:- predicate_options(rdf_load_from_stream/4, 4, [
      pass_to(rdf_load/2, 2)
    ]).
 
@@ -120,6 +117,19 @@ assert_rdf_file_types:-
 %     VoID descriptions that appear in that data.
 %     Default: `false`.
 
+/*
+% 4. Load all files from a given directory.
+rdf_load_any(file(Dir), Options):-
+  exists_directory(Dir), !,
+  directory_files(
+    [file_types([rdf]),include_directories(false),recursive(true)],
+    Dir,
+    Files
+  ),
+  maplist(file_term, Files, FileTerms),
+  rdf_load_any(FileTerms, Options).
+*/
+
 % 1. Load the URI denoted by a registered RDF prefix.
 rdf_load_any(prefix(Prefix), M, Options):-
   rdf_current_prefix(Prefix, Uri), !,
@@ -143,7 +153,7 @@ rdf_load_any(Input, Metadatas, Options1):-
       open_any(Input, Out, Metadata0, Options2),
       metadata_to_base(Metadata0, Base),
       call_cleanup(
-        rdf_load_from_stream(Out, Metadata0, Base, Options2),
+        rdf_load_from_stream(Out, Base, Metadata0, Options2),
         close(Out)
       ),
       (   option(graph(Graph), Options2)
@@ -156,7 +166,14 @@ rdf_load_any(Input, Metadatas, Options1):-
   ).
 
 
-rdf_load_from_stream(Read, Metadata, Base, Options1):-
+%! rdf_load_from_stream(
+%!   +Read:stream,
+%!   +Base:atom,
+%!   -Metadata:dict,
+%!   +Options:list(nvpair)
+%! ) is det.
+
+rdf_load_from_stream(Read, Base, Metadata, Options1):-
   % Guess the RDF serialization format.
   ignore(file_name_extension(_, FileExtension, Base)),
   ignore(ContentType = Metadata.get(content_type)),
@@ -186,26 +203,22 @@ rdf_load_from_stream(Read, Metadata, Base, Options1):-
     print_message(warning, Exception)
   ).
 
-/*
-% Load all files from a given directory.
-rdf_load_any(file(Dir), Options):-
-  exists_directory(Dir), !,
-  directory_files(
-    [file_types([rdf]),include_directories(false),recursive(true)],
-    Dir,
-    Files
-  ),
-  maplist(file_term, Files, FileTerms),
-  rdf_load_any(FileTerms, Options).
-*/
 
-%! rdf_extra_headers(-Headers:list(nvpair)) is det.
 
-rdf_extra_headers([
-  cert_verify_hook(ssl_verify),
-  request_header('Accept'=AcceptValue)
-]):-
-  rdf_accept_header_value(AcceptValue).
+% HELPERS
+
+%! location_suffix(+EntryMetadata, -Suffix:atom) is det.
+
+location_suffix([filter(_)|T], Suffix):- !,
+  location_suffix(T, Suffix).
+location_suffix([Archive|T], Suffix):-
+  _{name:data, format:raw} :< Archive, !,
+  location_suffix(T, Suffix).
+location_suffix([Archive|T], Suffix):-
+  (   location_suffix(T, Suffix0)
+  ->  atomic_list_concat([Archive.name, Suffix0], /, Suffix)
+  ;   Suffix = Archive.name
+  ).
 
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
@@ -234,18 +247,13 @@ metadata_to_base0(_Location, Base):-
   gensym('stream://', Base).
 
 
-%! location_suffix(+EntryMetadata, -Suffix:atom) is det.
+%! rdf_extra_headers(-Headers:list(nvpair)) is det.
 
-location_suffix([filter(_)|T], Suffix):- !,
-  location_suffix(T, Suffix).
-location_suffix([Archive|T], Suffix):-
-  _{name:data, format:raw} :< Archive, !,
-  location_suffix(T, Suffix).
-location_suffix([Archive|T], Suffix):-
-  (   location_suffix(T, Suffix0)
-  ->  atomic_list_concat([Archive.name, Suffix0], /, Suffix)
-  ;   Suffix = Archive.name
-  ).
+rdf_extra_headers([
+  cert_verify_hook(ssl_verify),
+  request_header('Accept'=AcceptValue)
+]):-
+  rdf_accept_header_value(AcceptValue).
 
 
 
