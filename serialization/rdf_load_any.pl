@@ -165,47 +165,13 @@ rdf_load_any(uri(Uri), M, Options1):-
   rdf_load_any(uri(ReducedUri), M, Options2).
 
 % 3. Reuse the versatile open_any/4.
-rdf_load_any(In, Metadata3, Options1):-
+rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
   rdf_extra_headers(ExtraHeaders),
   merge_options(Options1, ExtraHeaders, Options2),
-
-  run_collect_messages(
-    rdf_load_all_streams(In, EntryMetadatas, Options2),
-    Status,
-    Warnings
-  ),
-	Metadata1 = json{entries:EntryMetadatas},
-
-  % Store exception, if any, as metadata.
-  (   Status == true
-  ->  Metadata2 = Metadata1
-  ;   Status == false
-  ->  gtrace
-  ;   exception_json(Status, StatusDict),
-      Metadata2 = Metadata1.put(json{exception:StatusDict})
-  ),
-
-  % Store warnings as metadata.
-  length(Warnings, NumberOfWarnings),
-	Metadata3 = Metadata2.put(json{'number-of-warnings':NumberOfWarnings}),
-  (   NumberOfWarnings == 0
-  ->  Metadata3 = Metadata2
-  ;   maplist(warning_json, Warnings, WarningDicts),
-      Metadata3 = Metadata2.put(json{warnings:WarningDicts})
-  ).
-
-
-%! rdf_load_all_streams(
-%!   +In:stream,
-%!   -StreamMetadatas:list(dict),
-%!   +Options:list(nvpair)
-%! ) is det.
-
-rdf_load_all_streams(In, StreamMetadatas, Options):-
   findall(
-    StreamMetadata,
-    rdf_load_from_stream_nondet(In, StreamMetadata, Options),
-    StreamMetadatas
+    EntryMetadata,
+    rdf_load_from_stream_nondet(In, EntryMetadata, Options),
+    EntryMetadatas
   ).
 
 
@@ -216,8 +182,9 @@ rdf_load_all_streams(In, StreamMetadatas, Options):-
 %! ) is det.
 
 rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
-gtrace,
+  % NONDET: iterates over archive substreams recursively.
   open_any(In, SubIn, OpenMetadata, Options),
+gtrace,
   call_cleanup(
     rdf_load_from_stream_det(SubIn, OpenMetadata, RdfMetadata, Options),
     close_any(SubIn, CloseMetadata)
@@ -277,9 +244,6 @@ rdf_load_from_stream_det(In, Metadata1, Metadata4, Options1):-
 
 % HELPERS
 
-exception_json(X, X).
-
-
 %! location_suffix(+EntryMetadata, -Suffix:atom) is det.
 
 location_suffix([filter(_)|T], Suffix):- !,
@@ -327,9 +291,6 @@ rdf_extra_headers([
   request_header('Accept'=AcceptValue)
 ]):-
   rdf_accept_header_value(AcceptValue).
-
-
-warning_json(X, X).
 
 
 
