@@ -170,7 +170,7 @@ rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
   merge_options(Options1, ExtraHeaders, Options2),
   findall(
     EntryMetadata,
-    rdf_load_from_stream_nondet(In, EntryMetadata, Options),
+    rdf_load_from_stream_nondet(In, EntryMetadata, Options2),
     EntryMetadatas
   ).
 
