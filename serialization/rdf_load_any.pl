@@ -1,10 +1,10 @@
 :- module(
   rdf_load_any,
   [
-    rdf_load_any/1, % +Input
-    rdf_load_any/2, % +Input
+    rdf_load_any/1, % +In
+    rdf_load_any/2, % +In
                     % +Options:list(nvpair)
-    rdf_load_any/3 % +Input
+    rdf_load_any/3 % +In
                    % -Metadata:dict
                    % +Options:list(nvpair)
   ]
@@ -18,6 +18,7 @@
          2013/08-2013/09, 2013/11, 2014/01-2014/04, 2014/07, 2014/10
 */
 
+:- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(http/http_cookie)).
 :- use_module(library(http/http_ssl_plugin)).
@@ -62,6 +63,10 @@
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
 :- use_module(os(open_any)).
+:- use_module(pl(pl_log)).
+
+:- use_module(plDcg(dcg_generics)).
+:- use_module(plDcg(dcg_pl_term)).
 
 :- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_prefixes)).
@@ -74,9 +79,9 @@
    ]).
 :- predicate_options(rdf_load_any/3, 3, [
      pass_to(open_any/4, 4),
-     pass_to(rdf_load_from_stream/4, 4)
+     pass_to(rdf_load_from_stream_det/4, 4)
    ]).
-:- predicate_options(rdf_load_from_stream/4, 4, [
+:- predicate_options(rdf_load_from_stream_det/4, 4, [
      pass_to(rdf_load/2, 2)
    ]).
 
@@ -93,22 +98,22 @@ assert_rdf_file_types:-
 
 
 
-%! rdf_load_any(+Input) is det.
+%! rdf_load_any(+In) is det.
 
-rdf_load_any(Input):-
-  rdf_load_any(Input, []).
-
-
-%! rdf_load_any(+Input, +Option:list(nvpair)) is det.
-
-rdf_load_any(Input, Options):-
-  rdf_load_any(Input, _, Options).
+rdf_load_any(In):-
+  rdf_load_any(In, []).
 
 
-%! rdf_load_any(+Input, -Metadata:dict, +Option:list(nvpair)) is det.
+%! rdf_load_any(+In, +Option:list(nvpair)) is det.
+
+rdf_load_any(In, Options):-
+  rdf_load_any(In, _, Options).
+
+
+%! rdf_load_any(+In, -Metadata:dict, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
 %
-% Input can be one of the following:
+% In can be one of the following:
 %   - List
 %   - file/1
 %   - prefix/1
@@ -160,50 +165,94 @@ rdf_load_any(uri(Uri), M, Options1):-
   rdf_load_any(uri(ReducedUri), M, Options2).
 
 % 3. Reuse the versatile open_any/4.
-rdf_load_any(Input, Metadatas, Options1):-
+rdf_load_any(In, Metadata3, Options1):-
   rdf_extra_headers(ExtraHeaders),
   merge_options(Options1, ExtraHeaders, Options2),
 
-  % Load all individual RDF graphs.
-  findall(
-    Metadata,
-    (
-      open_any(Input, Out, Metadata0, Options2),
-      metadata_to_base(Metadata0, Base),
-      call_cleanup(
-        rdf_load_from_stream(Out, Base, Metadata0, Options2),
-        close(Out)
-      ),
-      (   option(graph(Graph), Options2)
-      ->  rdf_statistics(triples_by_graph(Graph, Triples)),
-          Metadata = Metadata0.put({graph:Graph,triples:Triples})
-      ;   Metadata = Metadata0
-      )
-    ),
-    Metadatas
+  run_collect_messages(
+    rdf_load_all_streams(In, EntryMetadatas, Options2),
+    Status,
+    Warnings
+  ),
+	Metadata1 = json{entries:EntryMetadatas},
+
+  % Store exception, if any, as metadata.
+  (   Status == true
+  ->  Metadata2 = Metadata1
+  ;   Status == false
+  ->  gtrace
+  ;   exception_json(Status, StatusDict),
+      Metadata2 = Metadata1.put(json{exception:StatusDict})
+  ),
+
+  % Store warnings as metadata.
+  length(Warnings, NumberOfWarnings),
+	Metadata3 = Metadata2.put(json{'number-of-warnings':NumberOfWarnings}),
+  (   NumberOfWarnings == 0
+  ->  Metadata3 = Metadata2
+  ;   maplist(warning_json, Warnings, WarningDicts),
+      Metadata3 = Metadata2.put(json{warnings:WarningDicts})
   ).
 
 
-%! rdf_load_from_stream(
-%!   +Read:stream,
-%!   +Base:atom,
-%!   -Metadata:dict,
+%! rdf_load_all_streams(
+%!   +In:stream,
+%!   -StreamMetadatas:list(dict),
 %!   +Options:list(nvpair)
 %! ) is det.
 
-rdf_load_from_stream(Read, Base, Metadata, Options1):-
-  % Guess the RDF serialization format.
+rdf_load_all_streams(In, StreamMetadatas, Options):-
+  findall(
+    StreamMetadata,
+    rdf_load_from_stream_nondet(In, StreamMetadata, Options),
+    StreamMetadatas
+  ).
+
+
+%! rdf_load_from_stream_nondet(
+%!   +In:stream,
+%!   -StreamMetadata:dict,
+%!   +Options:list(nvpair)
+%! ) is det.
+
+rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
+gtrace,
+  open_any(In, SubIn, OpenMetadata, Options),
+  call_cleanup(
+    rdf_load_from_stream_det(SubIn, OpenMetadata, RdfMetadata, Options),
+    close_any(SubIn, CloseMetadata)
+  ),
+  StreamMetadata = RdfMetadata.put(json{stream:CloseMetadata}),
+  print_message(informational, rdf_load_any(StreamMetadata)).
+
+
+
+%! rdf_load_from_stream_det(
+%!   +In:stream,
+%!   +OldMetadata:dict,
+%!   -NewMetadata:dict,
+%!   +Options:list(nvpair)
+%! ) is det.
+
+rdf_load_from_stream_det(In, Metadata1, Metadata4, Options1):-
+  % Return the file name extension as metadata.
+  metadata_to_base(Metadata1, Base),
   ignore(file_name_extension(_, FileExtension, Base)),
-  ignore(ContentType = Metadata.get(content_type)),
-  rdf_guess_format(Read, FileExtension, ContentType, Format),
+  Metadata2 = Metadata1.put(json{'file-extension':FileExtension}),
 
-  % DEB
-  print_message(informational, rdf_load_any(rdf(Base,Format))),
+  % Guess the RDF serialization format based on
+  % the HTTP Content-Type header value and the file name extension.
+  ignore(ContentType = Metadata2.get(content_type)),
+  rdf_guess_format(In, FileExtension, ContentType, Format),
 
-  % Collect options: base URI, RDF serialization format, XML namespaces.
-  set_stream(Read, file_name(Base)),
+  % Store the guessed RDF serialization format as metadata.
+  rdf_serialization(_, Format, _, Serialization),
+  Metadata3 = Metadata2.put(json{'rdf-serialization-format':Serialization}),
+
+  % Set options: base URI, RDF serialization format, XML namespaces.
+  set_stream(In, file_name(Base)),
   merge_options(
-    [base_uri(Base),format(Format),register_namespaces(false)],
+    [base_uri(Base),format(Format),register_namespaces(false),silent(true)],
     Options1,
     Options2
   ),
@@ -215,15 +264,21 @@ rdf_load_from_stream(Read, Base, Metadata, Options1):-
   ),
 
   % The actual loading of the RDF data.
-  catch(
-    rdf_load(stream(Read), Options3),
-    Exception,
-    print_message(warning, Exception)
+  rdf_load(stream(In), Options3),
+
+  % Graph and triples.
+  (   option(graph(Graph), Options2)
+  ->  rdf_statistics(triples_by_graph(Graph, Triples)),
+      Metadata4 = Metadata3.put(json{graph:Graph,triples:Triples})
+  ;   Metadata4 = Metadata3
   ).
 
 
 
 % HELPERS
+
+exception_json(X, X).
+
 
 %! location_suffix(+EntryMetadata, -Suffix:atom) is det.
 
@@ -274,13 +329,14 @@ rdf_extra_headers([
   rdf_accept_header_value(AcceptValue).
 
 
+warning_json(X, X).
+
+
 
 % Messages
 
 :- multifile(prolog:message//1).
 
-prolog:message(rdf_load_any(rdf(Base,Format))) -->
-  ['RDF in ~q: ~q'-[Base,Format]].
-prolog:message(rdf_load_any(no_rdf(Base))) -->
-  ['No RDF in ~q'-[Base]].
-
+prolog:message(rdf_load_any(Metadata)) -->
+  {dcg_phrase(dcg_pl_term(Metadata), Atom)},
+  [Atom].
