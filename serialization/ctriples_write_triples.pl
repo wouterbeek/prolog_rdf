@@ -34,7 +34,7 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 @version 2014/08-2014/09
 */
 
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 
 :- use_module(plRdf_ser(ctriples_write_generics)).
 

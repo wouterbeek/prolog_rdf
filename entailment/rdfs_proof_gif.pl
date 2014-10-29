@@ -18,7 +18,7 @@ Generates proof trees for RDFS entailment using the Graph Interchange Format.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 

@@ -39,14 +39,12 @@ Basic facts about RDF serialization formats.
 @version 2014/04-2014/05, 2014/07-2014/08, 2014/10
 */
 
-:- use_module(library(apply)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 
 :- use_module(os(media_type)).
 :- use_module(http_parameters(rfc2616_media_type)).
 
 :- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
 
 :- multifile(error:has_type/2).

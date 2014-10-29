@@ -25,17 +25,18 @@
 Converts XML DOMs to RDF graphs.
 
 @author Wouter Beek
-@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03
+@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10
 */
 
 :- use_module(library(debug)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(os(file_ext)).
 :- use_module(xml(xml_word)).
 
+:- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_meta)).
@@ -129,7 +130,7 @@ xml_parse(Prefix, S, G) -->
 
 
 skip_whites -->
-  ascii_whites, !.
+  '*'(white, []), !.
 
 
 xml_parses(Prefix, S, G) -->

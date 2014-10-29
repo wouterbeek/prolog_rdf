@@ -23,7 +23,7 @@ Support for RDF files and file types.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(os(dir_ext)).

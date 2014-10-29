@@ -18,11 +18,7 @@
          2013/08-2013/09, 2013/11, 2014/01-2014/04, 2014/07, 2014/10
 */
 
-:- use_module(library(apply)).
-:- use_module(library(error)).
-:- use_module(library(http/http_cookie)).
 :- use_module(library(http/http_ssl_plugin)).
-:- use_module(library(lists)).
 :- use_module(library(option)).
 % rdf_file_type(xml,   xml    ).
 % rdf_file_type(rdf,   xml    ).
@@ -46,7 +42,6 @@
 % rdf_file_type(nq,       nquads  ).
 % rdf_file_type(nquads,   nquads  ).
 :- use_module(library(semweb/rdf_ntriples)). % Serialization format support.
-:- use_module(library(semweb/rdf_turtle_write)).
 % rdf_open_decode(gzip, ...)
 % rdf_storage_encoding(gz, gzip)
 :- use_module(library(semweb/rdf_zlib_plugin)).
@@ -55,22 +50,15 @@
 % rdf_file_type(ttl,  turtle).
 % rdf_file_type(n3,   turtle).
 % rdf_file_type(trig, trig  ).
-:- use_module(library(semweb/turtle)).
-:- use_module(library(thread)).
+:- use_module(library(semweb/turtle)). % Serialization format support.
 
 :- use_module(generics(db_ext)).
-:- use_module(http(http_download)).
-:- use_module(os(dir_ext)).
-:- use_module(os(file_ext)).
 :- use_module(os(open_any)).
-:- use_module(pl(pl_log)).
 
 :- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_pl_term)).
 
-:- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_prefixes)).
-:- use_module(plRdf_ser(ctriples_write_graph)).
 :- use_module(plRdf_ser(rdf_file_db)).
 :- use_module(plRdf_ser(rdf_guess_format)).
 
@@ -184,7 +172,6 @@ rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
 rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
   % NONDET: iterates over archive substreams recursively.
   open_any(In, SubIn, OpenMetadata, Options),
-gtrace,
   call_cleanup(
     rdf_load_from_stream_det(SubIn, OpenMetadata, RdfMetadata, Options),
     close_any(SubIn, CloseMetadata)

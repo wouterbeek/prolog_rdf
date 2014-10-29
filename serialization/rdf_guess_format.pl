@@ -2,11 +2,11 @@
   rdf_guess_format,
   [
     rdf_guess_format/2, % +File:atom
-                        % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
+                        % -Format:rdf_format
     rdf_guess_format/4 % +Read:blob
                        % +FileExtension:atom,
                        % +ContentType:atom,
-                       % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
+                       % -Format:rdf_format
   ]
 ).
 
@@ -16,7 +16,7 @@ Detect the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07-2014/08
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10
 */
 
 :- use_module(library(dcg/basics)).
@@ -29,10 +29,7 @@ Detect the RDF serialization format of a given stream.
 
 
 
-%! rdf_guess_format(
-%!   +File:atom,
-%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
-%! ) is semidet.
+%! rdf_guess_format(+File:atom, -Format:rdf_format) is semidet.
 % True when `Source` is thought to contain RDF data using the
 % indicated content type.
 %
@@ -55,16 +52,44 @@ rdf_guess_format(File0, Format):-
   ->  true
   ;   FileExtension = FileExtension0
   ),
-
+  
   setup_call_cleanup(
     open(File, read, Stream),
     rdf_guess_format(Stream, FileExtension, _, Format),
     close(Stream)
   ).
 
-rdf_guess_format(Stream, Format, Options):-
-  option(look_ahead(Bytes), Options, 2500),
+
+%! rdf_guess_format0(
+%!   +Stream:stream,
+%!   -Format:rdf_format,
+%!   +Options:list(nvpair)
+%! ) is det.
+
+rdf_guess_format0(Stream, Format, Options):-
+  rdf_guess_format0(Stream, 1, Format, Options).
+
+%! rdf_guess_format0(
+%!   +Stream:stream,
+%!   +Iteration:positive_integer,
+%!   -Format:rdf_format,
+%!   +Options:list(nvpair)
+%! ) is det.
+
+rdf_guess_format0(Stream, Iteration, Format, Options):-
+  % Peek a given number of bytes from stream.
+  option(look_ahead(Bytes0), Options, 1000),
+  Bytes is Iteration * Bytes0,
   peek_string(Stream, Bytes, String),
+  
+  % Do not backtrack if the whole stream has been peeked.
+  string_length(String, Length),
+  (   Length < Bytes
+  ->  !
+  ;   true
+  ),
+  
+  % Try to parse the peeked string as Turtle- or XML-like.
   (   string_codes(String, Codes),
       phrase(turtle_like(Format, Options), Codes, _)
   ->  true
@@ -84,14 +109,17 @@ rdf_guess_format(Stream, Format, Options):-
         ),
         free_memory_file(MemFile)
       )
-  ).
+  ), !.
+rdf_guess_format0(Stream, Iteration, Format, Options):-
+  NewIteration is Iteration + 1,
+  rdf_guess_format0(Stream, NewIteration, Format, Options).
 
 
 %! rdf_guess_format(
 %!   +Read:blob,
 %!   +FileExtension:atom,
 %!   +ContentType:atom,
-%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
+%!   -Format:rdf_format
 %! ) is semidet.
 % Fails if the RDF serialization format cannot be decided on.
 
@@ -99,15 +127,15 @@ rdf_guess_format(Stream, Format, Options):-
 rdf_guess_format(Read, FileExtension, _, Format):-
   nonvar(FileExtension),
   rdf_db:rdf_file_type(FileExtension, SuggestedFormat), !,
-  rdf_guess_format(Read, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
 % Use the HTTP content type header as the RDF serialization format suggestion.
 rdf_guess_format(Read, _, ContentType, Format):-
   nonvar(ContentType),
   rdf_media_type_format(ContentType, SuggestedFormat), !,
-  rdf_guess_format(Read, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
 % Use no RDF serialization format suggestion.
 rdf_guess_format(Read, _, _, Format):-
-  rdf_guess_format(Read, Format, []), !.
+  rdf_guess_format0(Read, Format, []), !.
 
 
 %! turtle_like(
@@ -363,7 +391,7 @@ xml_doctype(Stream, Dialect, DocType, Attributes):-
   catch(
     setup_call_cleanup(
       make_parser(Stream, Parser, State),
-      sgml_parse(
+      (	writeln(hallo),sgml_parse(
         Parser,
         [
           call(begin, on_begin),
@@ -372,7 +400,7 @@ xml_doctype(Stream, Dialect, DocType, Attributes):-
           source(Stream),
           syntax_errors(quiet)
         ]
-      ),
+      )),
       cleanup_parser(Stream, Parser, State)
     ),
     E,
