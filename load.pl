@@ -7,6 +7,7 @@
 :- use_module(load_project).
 :- load_project(plRdf, [
      plc-'Prolog-Library-Collection',
-     plGraph
+     plGraph,
+     plHttp
    ]).
 

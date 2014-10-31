@@ -42,7 +42,8 @@ Basic facts about RDF serialization formats.
 :- use_module(library(lists), except([delete/3])).
 
 :- use_module(os(media_type)).
-:- use_module(http_parameters(rfc2616_media_type)).
+
+:- use_module(plHttp_par(rfc2616_media_type)).
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_generics)).
