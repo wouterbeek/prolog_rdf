@@ -47,6 +47,7 @@ do_not_load(File1):-
 do_not_load0(dcg_ascii).
 do_not_load0(dcg_unicode).
 do_not_load0(debug).
+do_not_load0(debug_project).
 do_not_load0(index).
 do_not_load0(load).
 do_not_load0(load_project).

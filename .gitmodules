@@ -20,3 +20,6 @@
 [submodule "plXml"]
 	path = plXml
 	url = https://github.com/wouterbeek/plXml.git
+[submodule "plUri"]
+	path = plUri
+	url = https://github.com/wouterbeek/plUri.git

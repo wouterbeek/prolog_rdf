@@ -1,6 +1,6 @@
 % The load file for the plRdf library.
 
-:- dynamic(user:prolog/2).
+:- dynamic(user:project/2).
 :- multifile(user:project/2).
    user:project(plRdf, 'Web-based Qualitative Reasoning engine.').
 
@@ -11,6 +11,7 @@
      plGraph,
      plHttp,
      plTree,
+     plUri,
      plXml,
      plXsd
    ]).

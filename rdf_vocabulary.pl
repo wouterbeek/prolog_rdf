@@ -19,7 +19,7 @@ Exports the vocabulary for RDFS.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(xml(xml_dom)).
+:- use_module(plXml(xml_dom)).
 
 :- use_module(plRdf(rdf_export)).
 :- use_module(plRdf(rdf_graph)).
