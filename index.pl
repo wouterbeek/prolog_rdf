@@ -9,3 +9,4 @@ user:file_search_path(plRdf_parse, plRdf(parse)).
 user:file_search_path(plRdf_rei,   plRdf(reification)).
 user:file_search_path(plRdf_ser,   plRdf(serialization)).
 user:file_search_path(plRdf_term,  plRdf(term)).
+user:file_search_path(void,        plRdf(void)).
