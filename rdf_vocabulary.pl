@@ -24,7 +24,7 @@ Exports the vocabulary for RDFS.
 :- use_module(plRdf(rdf_export)).
 :- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf_ent(rdf_mat)).
-:- use_module(plRdf_ser(rdf_serial)).
+:- use_module(plRdf_ser(rdf_load_any)).
 
 :- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 

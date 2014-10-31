@@ -23,12 +23,11 @@ Support for RDF files and file types.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(os(dir_ext)).
 :- use_module(os(file_ext)).
-:- use_module(os(file_mime)).
 
 :- use_module(plRdf(rdf_meta)).
 :- use_module(plRdf_ser(rdf_file_db)).
@@ -47,7 +46,7 @@ Support for RDF files and file types.
 
 is_rdf_file(File):-
   file_mime(File, Mime),
-  rdf_content_type(Mime), !.
+  rdf_media_type(Mime), !.
 is_rdf_file(File):-
   file_name_extension(_, Extension, File),
   rdf_file_extension(Extension).
@@ -83,7 +82,7 @@ rdf_directory_files(O1, Dir, RdfFiles):-
 
 rdf_file_correct_extension(File1, File2):-
   file_mime(File1, Mime),
-  rdf_serialization(Extension, _, _, Mimes, _),
+  rdf_serialization(Extension, _, Mimes, _),
   memberchk(Mime, Mimes),
   file_alternative(File1, _, _, Extension, File2),
   File1 \== File2, !,

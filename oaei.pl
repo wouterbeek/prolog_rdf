@@ -110,7 +110,7 @@ Mismatch types:
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(debug)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -128,7 +128,8 @@ Mismatch types:
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf_ser(rdf_file_db)).
-:- use_module(plRdf_ser(rdf_serial)).
+:- use_module(plRdf_ser(rdf_load_any)).
+:- use_module(plRdf_ser(rdf_save_any)).
 :- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_literal)).
 :- use_module(plRdf_term(rdf_string)).
@@ -255,7 +256,7 @@ oaei_check_alignment(ReferenceAlignments, RawAlignments):-
 oaei_file_to_alignments(File, Alignments):-
   setup_call_cleanup(
     (
-      file_name(File, _, Graph1, _Ext),
+      file_components(File, _, Graph1, _Ext),
       % Make sure the graph name is unique.
       rdf_new_graph(Graph1, Graph2),
       rdf_load_any(File, [graph(Graph2)])
@@ -286,7 +287,7 @@ tsv_convert_directory(FromDir, ToDir, ToMime, ToFiles):-
     ToFile,
     (
       member(FromFile, FromFiles),
-      once(rdf_serialization(ToExt, _, _, ToMime, _)),
+      once(rdf_serialization(ToExt _, ToMime, _)),
       file_alternative(FromFile, ToDir, _, ToExt, ToFile),
       tsv_file_to_oaei_file(FromFile, ToFile)
     ),

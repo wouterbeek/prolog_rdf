@@ -20,25 +20,25 @@
   ]
 ).
 
-/** <module> XML to RDF
+/** <module> XML to RDF conversion
 
 Converts XML DOMs to RDF graphs.
 
 @author Wouter Beek
-@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03
+@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10
 */
 
 :- use_module(library(debug)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(os(file_ext)).
-:- use_module(os(file_mime)).
 :- use_module(xml(xml_word)).
 
+:- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_meta)).
 :- use_module(plDcg(dcg_peek)).
 :- use_module(plDcg(dcg_replace)).
@@ -70,13 +70,13 @@ ensure_graph_name(F, G):-
   file_to_graph_name(F, G).
 
 
-parse_file(File1, NS, G):-
+parse_file(File1, Prefix, G):-
   ensure_graph_name(File1, G),
-  phrase_from_file(xml_parse(NS, G), File1),
+  phrase_from_file(xml_parse(Prefix, G), File1),
   %%%%file_to_atom(File, Atom), %DEB
   %%%%dcg_phrase(xml_parse(el), Atom), %DEB
   debug(xml_to_rdf, 'Done parsing file ~w', [File1]), %DEB
-  file_type_alternative(File1, turtle, File2),
+  file_kind_alternative(File1, turtle, File2),
   prolog_stack_property(global, limit(Limit)),
   debug(xml_to_rdf, 'About to save triples to file with ~:d global stack.',
       [Limit]),
@@ -84,30 +84,29 @@ parse_file(File1, NS, G):-
   rdf_unload_graph_deb(G).
 
 
-%! xml_parse(+XmlNamespace:atom, +RdfGraph:atom)// is det.
+%! xml_parse(+Prefix:atom, +RdfGraph:atom)// is det.
 % Parses the root tag.
 
-xml_parse(NS, G) -->
+xml_parse(Prefix, G) -->
   xml_declaration(_),
   'STag'(RootTag), skip_whites,
   {
-    rdf_create_next_resource(RootTag, NS, S),
-    rdf_global_id(NS:RootTag, Class),
-    rdf_assert_instance(S, Class, G)
+    rdf_global_id(Prefix:RootTag, Class),
+    rdf_create_next_resource(Prefix, [RootTag], Class, G, S)
   },
-  xml_parses(NS, S, G),
+  xml_parses(Prefix, S, G),
   'ETag'(RootTag), dcg_done.
 
 
 %! xml_parse(+RdfContainer:iri, +RdfGraph:atom)// is det.
 
 % Non-tag content.
-xml_parse(NS, S, G) -->
+xml_parse(Prefix, S, G) -->
   'STag'(PTag), skip_whites,
   xml_content(PTag, Codes), !,
   {
     atom_codes(O, Codes),
-    rdf_global_id(NS:PTag, P),
+    rdf_global_id(Prefix:PTag, P),
     rdf_assert_string(S, P, O, G)
   }.
 % Skip short tags.
@@ -115,15 +114,14 @@ xml_parse(_, _, _) -->
   'EmptyElemTag'(_), !,
   skip_whites, !.
 % Nested tag.
-xml_parse(NS, S, G) -->
+xml_parse(Prefix, S, G) -->
   'STag'(OTag), !,
   skip_whites, !,
   {
-    rdf_create_next_resource(OTag, NS, O),
-    rdf_global_id(NS:OTag, Class),
-    rdf_assert_instance(O, Class, G)
+    rdf_global_id(Prefix:OTag, Class),
+    rdf_create_next_resource(Prefix, [OTag], Class, G, O)
   },
-  xml_parses(NS, O, G),
+  xml_parses(Prefix, O, G),
   'ETag'(OTag), skip_whites,
   {
     rdf_assert_instance(S, rdf:'Bag', G),
@@ -132,12 +130,12 @@ xml_parse(NS, S, G) -->
 
 
 skip_whites -->
-  ascii_whites, !.
+  '*'(white, []), !.
 
 
-xml_parses(NS, S, G) -->
-  xml_parse(NS, S, G), !,
-  xml_parses(NS, S, G).
+xml_parses(Prefix, S, G) -->
+  xml_parse(Prefix, S, G), !,
+  xml_parses(Prefix, S, G).
 xml_parses(_, _, _) --> [], !.
 xml_parses(_, _, _) -->
   dcg_all([output_format(atom)], Remains),

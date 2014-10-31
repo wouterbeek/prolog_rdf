@@ -14,7 +14,7 @@ DCGs for literal expression defined in Turtle recommendations.
 */
 
 :- use_module(plDcg(dcg_content)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plSparql_parse(sparql_literal)).
 :- use_module(turtle(turtle_number)).
@@ -79,4 +79,5 @@ literal(Literal) --> 'BooleanLiteral'(Literal).
   'LANGTAG'(Langtag).
 % Simple literal.
 'RDFLiteral'(literal(Value)) -->
-  'String'(Value),
+  'String'(Value).
+

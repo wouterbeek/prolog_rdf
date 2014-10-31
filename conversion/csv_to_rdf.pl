@@ -27,7 +27,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(http(http_download)).
 
 :- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plXsd(xsd)). % XML namespace.
 
@@ -100,10 +100,10 @@ csv_header_entry_to_rdf(Graph, NamespacePrefix, HeaderEntry, Property):-
   rdf_assert(Property, rdfs:range, xsd:string, Graph).
 
 rdf_property_name, [95] -->
-  ascii_white, !,
+  white, !,
   rdf_property_name.
-rdf_property_name, ascii_letter_lowercase(_, I) -->
-  ascii_letter_uppercase(_, I), !,
+rdf_property_name, letter_lowercase(_, I) -->
+  letter_uppercase(_, I), !,
   rdf_property_name.
 rdf_property_name, [X] -->
   [X], !,

@@ -39,8 +39,8 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(lambda)).
-:- use_module(library(lists)).
+:- use_module(generics(lambda_meta)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 

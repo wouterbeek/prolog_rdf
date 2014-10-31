@@ -6,21 +6,17 @@
   ]
 ).
 :- reexport(
-  sparql_bnode,
-  [
-    'ANON'//0,
-    'BLANK_NODE_LABEL'//0
-  ]
-).
-:- reexport(
   sparql_char,
   [
     'ECHAR'//1,
-    'HEX'//1,
-    'LANGTAG'//0,
+    'HEX'//2,
     'PERCENT'//1,
     'PLX'//1,
-    'PN_CHARS'//1
+    'PN_CHARS'//1,
+    'PN_CHARS_BASE'//1,
+    'PN_CHARS_U'//1,
+    'PN_LOCAL_ESC'//1,
+    'WS'//0
   ]
 ).
 
@@ -28,8 +24,10 @@
 
 DCGs for character definitions in Turtle recommendations.
 
+Turtle characters are a superset of SPARQL characters.
+
 @author Wouter Beek
-@version 2014/04-2014/05
+@version 2014/04-2014/05, 2014/09-2014/10
 */
 
 :- use_module(math(radix)).
@@ -72,19 +70,21 @@ DCGs for character definitions in Turtle recommendations.
 
 
 %! 'UCHAR'// .
+%! 'UCHAR'(?Code:nonneg)// .
 % ~~~{.ebnf}
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ~~~
 %
 % @compat Turtle 1.1 [26].
 
-'UCHAR'(C) -->
+'UCHAR' -->
+  'UCHAR'(_).
+
+'UCHAR'(Code) -->
   "\\u",
-  'HEX'(H1), 'HEX'(H2), 'HEX'(H3), 'HEX'(H4),
-  {digits_to_decimal([H1,H2,H3,H4], 16, C)}.
+  '#'(4, 'HEX', Weights, []),
+  {weights_radix(Weights, Code)}.
 'UCHAR'(C) -->
   "\\U",
-  'HEX'(H1), 'HEX'(H2), 'HEX'(H3), 'HEX'(H4),
-  'HEX'(H5), 'HEX'(H6), 'HEX'(H7), 'HEX'(H8),
-  {digits_to_decimal([H1,H2,H3,H4,H5,H6,H7,H8], 16, C)}.
-
+  '#'(8, 'HEX', Weights, []),
+  {weights_radix(Weights, Code)}.

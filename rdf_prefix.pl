@@ -7,9 +7,11 @@
                             % ?Predicate:iri
                             % ?Object:or([bnode,iri,literal])
                             % ?Graph:atom
-    rdf_prefixes/1, % -Prefixes:ordset(atom)
-    rdf_prefixes/2, % ?Graph:atom
-                    % -Prefixes:ordset(atom)
+    rdf_prefixes/5, % ?Subject:or([bnode,iri])
+                    % ?Predicate:iri
+                    % ?Object:or([bnode,iri,literal])
+                    % ?Graph:atom
+                    % -Prefixes:ordset(pair(atom,positive_integer))
     rdf_iri_to_prefix/3 % +Iri:iri
                         % -LongestPrefix:atom
                         % -ShortestLocalName:atom
@@ -21,16 +23,19 @@
 Namespace support for RDF(S), building on namespace prefix support for XML.
 
 @author Wouter Beek
-@version 2013/03-2013/05, 2014/01, 2014/07
+@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(lists), except([delete/3])).
+:- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf_term(rdf_term)).
 
-:- rdf_meta(rdf_convert_prefixes(+,+,r,r,r,?)).
+:- rdf_meta(rdf_prefixes(r,r,o,?,-)).
+:- rdf_meta(rdf_convert_prefixes(+,+,r,r,o,?)).
 
 
 
@@ -76,29 +81,30 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, Graph):-
   ).
 
 
-%! rdf_prefixes(-Prefixes:ordset(atom)) is det.
+%! rdf_prefixes(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:or([bnode,iri,literal]),
+%!   ?Graph:atom,
+%!   -Prefixes:ordset(pair(atom,positive_integer))
+%! ) is det.
 
-rdf_prefixes(Prefixes):-
+rdf_prefixes(S, P, O, Graph, Pairs5):-
   aggregate_all(
-    set(Prefix),
-    rdf_current_prefix(Prefix, _),
-    Prefixes
-  ).
-
-%! rdf_prefixes(+Graph:atom, -Prefixes:ordset(atom)) is det.
-
-rdf_prefixes(Graph, Prefixes):-
-  var(Graph), !,
-  rdf_prefixes(Prefixes).
-rdf_prefixes(Graph, Prefixes):-
-  aggregate_all(
-    set(Prefix),
+    set(Prefix-Term),
     (
-      rdf_iri(Iri, Graph),
-      rdf_global_id(Prefix:_, Iri)
+      rdf(S, P, O, Graph),
+      member(Term, [S,P,O]),
+      rdf_global_id(Prefix:_, Term)
     ),
-    Prefixes
-  ).
+    Pairs1
+  ),
+  group_pairs_by_key(Pairs1, Pairs2),
+  pairs_keys_values(Pairs2, Prefixes, Terms),
+  maplist(length, Terms, Sizes),
+  pairs_keys_values(Pairs3, Sizes, Prefixes),
+  keysort(Pairs3, Pairs4),
+  reverse(Pairs4, Pairs5).
 
 
 %! rdf_iri_to_prefix(

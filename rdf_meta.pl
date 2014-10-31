@@ -28,7 +28,7 @@ Meta-callings on an RDF graph.
 :- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf_ser(rdf_file)).
 :- use_module(plRdf_ser(rdf_file_db)).
-:- use_module(plRdf_ser(rdf_serial)).
+:- use_module(plRdf_ser(rdf_load_any)).
 
 :- meta_predicate(rdf_setup_call_cleanup(+,1,+)).
 :- meta_predicate(rdf_setup_call_cleanup(+,1,?,+,+)).
@@ -140,7 +140,7 @@ output_file_based_on_input_file(FromFile, ToFile, SaveOptions):-
   (
     exists_directory(FromFile)
   ->
-    file_name(ToFile, FromFile, output, ToExtension)
+    file_components(ToFile, FromFile, output, ToExtension)
   ;
     file_alternative(FromFile, _, _, ToExtension, ToFile)
   ).

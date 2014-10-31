@@ -2,7 +2,7 @@
   rdfs_build2,
   [
     rdfs_assert_class/5, % +Class:iri
-                         % +Parent:iri
+                         % ?Parent:iri
                          % ?Label:or([atom,pair(atom)])
                          % ?Comment:or([atom,pair(atom)])
                          % +Graph:atom
@@ -12,15 +12,15 @@
                             % ?Comment:or([atom,pair(atom)])
                             % +Graph:atom
     rdfs_assert_property/6, % +Property:iri
-                            % +Domain:iri
-                            % +Range:iri
+                            % ?Domain:iri
+                            % ?Range:iri
                             % ?Label:or([atom,pair(atom)])
                             % ?Comment:or([atom,pair(atom)])
                             % +Graph:atom
     rdfs_assert_property/7 % +Property:iri
                            % +SuperProperty:iri
-                           % +Domain:iri
-                           % +Range:iri
+                           % ?Domain:iri
+                           % ?Range:iri
                            % ?Label:or([atom,pair(atom)])
                            % ?Comment:or([atom,pair(atom)])
                            % +Graph:atom
@@ -32,7 +32,7 @@
 Predicates for building higher-level RDFS constructs.
 
 @author Wouter Beek
-@versdion 2014/06, 2014/08-2014/09
+@versdion 2014/06, 2014/08-2014/10
 */
 
 :- use_module(library(semweb/rdf_db)). % Declaration.
@@ -50,7 +50,7 @@ Predicates for building higher-level RDFS constructs.
 
 %! rdfs_assert_class(
 %!   +Class:iri,
-%!   +Parent:iri,
+%!   ?Parent:iri,
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   +Graph:atom
@@ -78,26 +78,41 @@ rdfs_assert_instance(Instance, Class, Label, Comment, Graph):-
 
 %! rdfs_assert_property(
 %!   +Property:iri,
-%!   +Domain:iri,
-%!   +Range:iri,
+%!   ?Domain:iri,
+%!   ?Range:iri,
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   +Graph:atom
 %! ) is det.
 
 rdfs_assert_property(Property, Domain, Range, Label, Comment, Graph):-
+  % rdf:type
   rdf_assert_property(Property, Graph),
-  rdfs_assert_domain(Property, Domain, Graph),
-  rdfs_assert_range(Property, Range, Graph),
+  
+  % rdfs:domain
+  (   nonvar(Domain)
+  ->  rdfs_assert_domain(Property, Domain, Graph)
+  ;   true
+  ),
+  
+  % rdfs:range
+  (   nonvar(Range)
+  ->  rdfs_assert_range(Property, Range, Graph)
+  ;   true
+  ),
+  
+  % rdfs:label
   rdfs_assert_label_wrapper(Property, Label, Graph),
+  
+  % rdfs:commnet
   rdfs_assert_comment_wrapper(Property, Comment, Graph).
 
 
 %! rdfs_assert_property(
 %!   +Property:iri,
 %!   +SuperProperty:iri,
-%!   +Domain:iri,
-%!   +Range:iri,
+%!   ?Domain:iri,
+%!   ?Range:iri,
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   +Graph:atom

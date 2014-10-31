@@ -3,7 +3,7 @@
   [
     rdf_is_list/1, % +RdfList:iri
     rdf_assert_list/3, % +PrologList:list
-                       % -RdfList:iri
+                       % ?RdfList:or([bnode,iri])
                        % +Options:list(nvpair)
     rdf_list/2, % +RdfList:iri
                 % -List:list
@@ -40,7 +40,7 @@ Support for RDF lists.
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02, 2014/06
+         2014/01-2014/02, 2014/06, 2014/10
 */
 
 :- use_module(library(apply)).
@@ -54,8 +54,6 @@ Support for RDF lists.
 :- use_module(plRdf(rdfs_read)).
 :- use_module(plRdf_ent(rdf_bnode_map)).
 :- use_module(plRdf_term(rdf_datatype)).
-
-:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 :- predicate_options(rdf_assert_list/3, 3, [
      datatype(+atom)
@@ -107,7 +105,7 @@ rdf_is_list(RDF_List1):-
 
 %! rdf_assert_list(
 %!   +PrologList:list,
-%!   -RdfList:iri,
+%!   ?RdfList:or([bnode,iri]),
 %!   +Options:list(nvpair)
 %! ) is det.
 % Asserts the given, possibly nested list into RDF.
@@ -122,38 +120,35 @@ rdf_is_list(RDF_List1):-
 
 rdf_assert_list(List, RdfList, Options):-
   option(graph(Graph), Options, _VAR),
-  add_blank_list_individual(RdfList, Graph),
+  add_list_individual(RdfList, Graph),
   rdf_assert_list(List, RdfList, Graph, Options).
 
 rdf_assert_list([], rdf:nil, _, _).
 rdf_assert_list([H|T], RdfList, Graph, Options):-
-  (
-    is_list(H)
-  ->
-    rdf_assert_list(H, H1, Graph, Options)
-  ;
-    option(datatype(Datatype), Options)
-  ->
-    rdf_bnode(H1),
-    rdf_global_id(rdf:value, P),
-    rdf_assert_datatype(H1, P, H, Datatype, Graph)
-  ;
-    H1 = H
+  (   is_list(H)
+  ->  rdf_assert_list(H, H1, Graph, Options)
+  ;   option(datatype(Datatype), Options)
+  ->  rdf_bnode(H1),
+      rdf_global_id(rdf:value, P),
+      rdf_assert_datatype(H1, P, H, Datatype, Graph)
+  ;   H1 = H
   ),
-  rdf_assert(RdfList, rdf:first, H1, Graph),
-  (
-    T == []
-  ->
-    rdf_global_id(rdf:nil, TList)
-  ;
-    add_blank_list_individual(TList, Graph),
-    rdf_assert_list(T, TList, Graph, Options)
+  rdf_assert2(RdfList, rdf:first, H1, Graph),
+  (   T == []
+  ->  rdf_global_id(rdf:nil, TList)
+  ;   add_list_individual(TList, Graph),
+      rdf_assert_list(T, TList, Graph, Options)
   ),
-  rdf_assert(RdfList, rdf:rest, TList, Graph).
+  rdf_assert2(RdfList, rdf:rest, TList, Graph).
 
-add_blank_list_individual(Blank, Graph):-
-  rdf_bnode(Blank),
-  rdf_assert_instance(Blank, rdf:'List', Graph).
+%! add_list_individual(?RdfList:or([bnode,iri]), ?Graph:atom) is det.
+
+add_list_individual(RdfList, Graph):-
+  (   var(RdfList)
+  ->  rdf_bnode(RdfList)
+  ;   true
+  ),
+  rdf_assert_instance(RdfList, rdf:'List', Graph).
 
 
 %! rdf_list(+RdfList:rdf_list, -List:list) is det.

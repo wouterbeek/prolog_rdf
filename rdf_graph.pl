@@ -57,7 +57,7 @@ Predicates that apply to entire RDF graphs.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -83,7 +83,8 @@ is_fresh_rdf_graph(Graph, FreshnessLifetime):-
 
 
 %! is_rdf_graph(@Term) is semidet.
-% rdf_graph/1 throws an exception for any non-atomic nonvar argument.
+% rdf_graph/1 throws an exception for any non-atomic nonvar argument,
+% whereas this predicate fails silently.
 
 is_rdf_graph(Graph):-
   atom(Graph),
@@ -281,6 +282,8 @@ rdf_ground(G):-
     rdf(S, P, O, G),
     rdf_ground(rdf(S,P,O))
   ).
+
+% @tbd What is this?
 
 rdf_is_graph(Graph:_, Graph):-
   atom(Graph),

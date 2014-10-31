@@ -11,7 +11,7 @@
 /** <module> Turtle
 
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/08
+@version 2014/04-2014/05, 2014/08-2014/09
 */
 
 :- use_module(library(dcg/basics)).
@@ -19,7 +19,6 @@
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(generics(db_ext)).
-:- use_module(sparql(sparql_bnode)).
 :- use_module(sparql(sparql_query_generics)).
 :- use_module(turtle(turtle_number)).
 
@@ -27,6 +26,8 @@
 
 :- dynamic(base/1).
 :- dynamic(triple/1).
+
+:- rdf_meta(verb(r)).
 
 
 
@@ -69,7 +70,7 @@ test(N):-
 
 % GRAMMAR
 
-%! base// is det.
+%! base(?BaseIri:atom)// is det.
 % Sets the current Base IRI.
 %
 % The scope of the base IRI
@@ -83,11 +84,11 @@ test(N):-
 %
 % @compat Turtle 1.1 [5].
 
-base -->
+base(BaseIri) -->
   "@base", b,
   'IRIREF'(Base),
   db_replace_all(base(_), base(Base)),
-  b, `.`.
+  b, ".".
 
 
 
@@ -101,7 +102,7 @@ base -->
 blankNodePropertyList(BNode) -->
   {rdf_bnode(BNode)}.
   bracketed(square, (
-    b, predicateObjectList(BNode), b
+    'b*', predicateObjectList(BNode), 'b*'
   )).
 
 
@@ -115,14 +116,9 @@ blankNodePropertyList(BNode) -->
 
 collection(RdfList) -->
   bracketed(round, (
-    b, 'object*'(Objects), b
+    'b*', '*'((object, 'b+') Objects, []), 'b*'
   )),
   rdf_list(Objects, RdfList).
-'object*'([H|T]) -->
-  object(H), b,
-  'object*'(T).
-'object*'([]) --> [].
-
 
 
 %! directive// .
@@ -156,10 +152,10 @@ object(BNode) -->
   'BlankNode'(BNode).
 object(RdfList) -->
   collection(RdfList).
-object(Literal) -->
-  literal(Literal).
 object(BNode) -->
   blankNodePropertyList(BNode).
+object(Literal) -->
+  literal(Literal).
 
 
 
@@ -318,13 +314,17 @@ turtleDoc(_, Triples, Triples) --> [].
 
 
 
-%! verb// .
+%! verb(?Iri:atom)// .
 % ~~~{.ebnf}
-% [9]   verb ::= predicate | 'a'
+% verb ::= predicate | 'a'
 % ~~~
+%
+% @compat Turtle 1.1 [9].
 
-verb --> `a`.
-verb --> predicate.
+verb(Iri) -->
+  predicate(Iri).
+verb(rdf:type) -->
+  "a".
 
 
 

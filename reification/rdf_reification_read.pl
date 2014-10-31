@@ -18,9 +18,9 @@
                      % ?Object:onef([bnode,iri,literal])
                      % ?Graph:atom
                      % ?Statement:or([bnode,iri])
-    rdf_subject/3, % ?Statement:or([bnode,iri])
-                   % ?Subject:or([bnode,iri])
-                   % ?Graph:atom
+    rdf_subject/3 % ?Statement:or([bnode,iri])
+                  % ?Subject:or([bnode,iri])
+                  % ?Graph:atom
   ]
 ).
 
@@ -29,8 +29,10 @@
 Read support for reified triples.
 
 @author Wouter Beek
-@version 2014/09
+@version 2014/09-2014/10
 */
+
+:- use_module(library(semweb/rdf_db)).
 
 :- use_module(plXsd(xsd)).
 
@@ -83,7 +85,7 @@ rdf_datatype_statement(
 rdf_object(Statement, Object, Graph):-
   rdf_is_literal(Object), !,
   rdf_literal(Object, LexicalForm, Datatype, LanguageTag),
-  rdf_object_literal(Object, LexicalForm, Datatype, LanguageTag, Graph).
+  rdf_object_literal(Statement, LexicalForm, Datatype, LanguageTag, Graph).
 rdf_object(Statement, Object, Graph):-
   rdf(Statement, rdf:object, Object, Graph).
 

@@ -28,33 +28,29 @@
 Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 
 @author Wouter Beek
-@version 2013/01-2013/03, 2013/07-2013/09, 2014/01, 2014/07-2014/08
+@version 2013/01-2013/03, 2013/07-2013/09, 2014/01, 2014/07-2014/09
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(option)).
-:- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
-:- use_module(plc(graph_theory/graph_trav)).
 :- use_module(svg(svg_colors)).
 
-:- use_module(plDcg(dcg_generic)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plGraph(gif_build)).
-:- use_module(plGraph(graph_generic)).
+:- use_module(plGraph(graph_generics)).
 
-:- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf(rdf_graph_theory)).
 :- use_module(plRdf(rdf_image)).
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(rdf_prefix)).
 :- use_module(plRdf(rdf_read)).
-:- use_module(plRdf_term(rdf_datatype)).
 :- use_module(plRdf_term(rdf_term)).
 
 :- rdf_register_prefix(rdf_image, 'http://www.wouterbeek.com/RDF-Image.owl#').
@@ -194,13 +190,12 @@ rdf_register_prefix_color(Graph, Prefix, PrefixColor):-
 
 rdf_register_prefix_colors(Options):-
   % Graph option.
-  (
-    option(graph(Graph), Options)
-  ->
-    rdf_prefixes(Graph, Prefixes)
-  ;
-    rdf_prefixes(Prefixes)
+  (   option(graph(Graph), Options)
+  ->  rdf_prefixes(_, _, _, Graph, PrefixPairs)
+  ;   rdf_prefixes(_, _, _, _, PrefixPairs)
   ),
+  pairs_values(PrefixPairs, AllPrefixes),
+  exclude(rdf_current_prefix, AllPrefixes, Prefixes),
   length(Prefixes, NumberOfPrefixes),
   NumberOfPrefixes > 0,
 
@@ -219,9 +214,11 @@ rdf_register_prefix_colors(Options):-
       J is (I * Delta) mod NumberOfColors,
       % J can be 0 becasue of the modulus function, so do not use nth1/3.
       nth0chk(J, Colors, Color),
-      assert(rdf:rdf_prefix_color(Graph, Prefix, Color))
+      rdf_register_prefix_color(Graph, Prefix, Color)
     )
   ).
+rdf_current_prefix(Prefix):-
+  rdf:rdf_prefix_color(_,Prefix,_).
 
 
 %! rdf_term_to_gif(

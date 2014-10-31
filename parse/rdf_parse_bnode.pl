@@ -1,5 +1,5 @@
 :- module(
-  rdf_bnode_parse,
+  rdf_parse_bnode,
   [
     'ANON'//1, % -BNode:bnode
     'BLANK_NODE_LABEL'//1, % -BNode:bnode
@@ -7,20 +7,27 @@
   ]
 ).
 
-/** <module> RDF Blank Node Parse
+/** <module> RDF Parse: Blank Node
 
-Parser for RDF Blank Nodes.
+Grammar rules for parsing RDF Blank Nodes.
+
+Blank nodes in graph patterns act as variables,
+not as references to specific blank nodes in the data being queried.
 
 @author Wouter Beek
 @compat SPARQL 1.0 Query.
 @compat SPARQL 1.1 Query.
 @compat Turtle 1.1.
-@version 2014/08
+@version 2014/08-2014/10
 */
 
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_content)).
+
+:- dynamic(bnode_memory(BNodeLabel, BNode)).
 
 
 
@@ -62,36 +69,29 @@ Parser for RDF Blank Nodes.
 
 'BLANK_NODE_LABEL'(BNode) -->
   dcg_atom_codes('BLANK_NODE_LABEL_codes', BNodeLabel),
-  (
-    % The blank node label is already associated with a blank node.
-    bnode_memory(BNodeLabel, BNode), !
-  ;
-    % A new blank node is created, and is associated to the blank node label.
-    rdf_bnode(BNode),
-    assert(bnode_memory(BNodeLabel, BNode))
+  (   % The blank node label is already associated with a blank node.
+      bnode_memory(BNodeLabel, BNode)
+  ->  true
+  ;   % A new blank node is created, and is associated to the blank node label.
+      rdf_bnode(BNode),
+      assert(bnode_memory(BNodeLabel, BNode))
   ).
 
 'BLANK_NODE_LABEL_codes'([H|T2]) -->
   "_:",
   % First character after colon.
-  (
-    'PN_CHARS_U'(H)
-  ;
-    decimal_digit(H)
+  (   'PN_CHARS_U'(H)
+  ;   decimal_digit(H)
   ),
   % Rest of characters.
-  (
-    "", {T2 = []}
-  ;
-    'BLANK_NODE_LABEL_1*'(T1),
-    'PN_CHARS'(Last),
-    {append(T1, [Last], T2)}
+  (   {T2 = []}
+  ;   '*'('BLANK_NODE_LABEL_codes0', T1, []),
+      'PN_CHARS'(Last),
+      {append(T1, [Last], T2)}
   ).
 
-'BLANK_NODE_LABEL_1*'([H|T]) -->
-  ('PN_CHARS'(H) ; dot(H)),
-  'BLANK_NODE_LABEL_1*'(T).
-'BLANK_NODE_LABEL_1*'([]) --> [].
+'BLANK_NODE_LABEL_codes0'(Code) --> 'PN_CHARS'(Code).
+'BLANK_NODE_LABEL_codes0'(Code) --> dot(Code).
 
 
 
@@ -124,12 +124,7 @@ Parser for RDF Blank Nodes.
 
 name([H|T]) -->
   nameStartChar(H),
-  'nameChar*'(T).
-
-'nameChar*'([H|T]) -->
-  nameChar(H),
-  'nameChar*'(T).
-'nameChar*'([]) --> [].
+  '*'(nameChar, T, []).
 
 
 
@@ -146,12 +141,12 @@ name([H|T]) -->
 % @compat Turtle 1.0 [31].
 % @deprecated
 
-nameChar(C) --> nameStartChar(C).
-nameChar(C) --> hyphen(C).
-nameChar(C) --> decimal_digit(C).
-nameChar(C) --> hex_code('00B7', C).
-nameChar(C) --> between_hex('0300', '036F', C).
-nameChar(C) --> between_hex('203F', '2040', C).
+nameChar(Code) --> nameStartChar(Code).
+nameChar(Code) --> hyphen(Code).
+nameChar(Code) --> decimal_digit(Code).
+nameChar(Code) --> code(hex('00B7'), Code).
+nameChar(Code) --> between_code(hex('0300'), hex('036F'), Code).
+nameChar(Code) --> between_code(hex('203F'), hex('2040'), Code).
 
 
 
@@ -175,22 +170,23 @@ nameChar(C) --> between_hex('203F', '2040', C).
 % ~~~
 %
 % @compat Turtle 1.0 [30].
+% @deprecated
 
-nameStartChar(C) --> ascii_letter_uppercase(C).
-nameStartChar(C) --> underscore(C).
-nameStartChar(C) --> ascii_letter_lowercase(C).
-nameStartChar(C) --> between_hex('00C0', '00D6').
-nameStartChar(C) --> between_hex('00D8', '00F6').
-nameStartChar(C) --> between_hex('00F8', '02FF').
-nameStartChar(C) --> between_hex('0370', '037D').
-nameStartChar(C) --> between_hex('037F', '1FFF').
-nameStartChar(C) --> between_hex('200C', '200D').
-nameStartChar(C) --> between_hex('2070', '218F').
-nameStartChar(C) --> between_hex('2C00', '2FEF').
-nameStartChar(C) --> between_hex('3001', 'D7FF').
-nameStartChar(C) --> between_hex('F900', 'FDCF').
-nameStartChar(C) --> between_hex('FDF0', 'FFFD').
-nameStartChar(C) --> between_hex('10000', 'EFFFF').
+nameStartChar(Code) --> letter_uppercase(Code).
+nameStartChar(Code) --> underscore(Code).
+nameStartChar(Code) --> letter_lowercase(Code).
+nameStartChar(Code) --> between_code(hex('00C0'), hex('00D6')).
+nameStartChar(Code) --> between_code(hex('00D8'), hex('00F6')).
+nameStartChar(Code) --> between_code(hex('00F8'), hex('02FF')).
+nameStartChar(Code) --> between_code(hex('0370'), hex('037D')).
+nameStartChar(Code) --> between_code(hex('037F'), hex('1FFF')).
+nameStartChar(Code) --> between_code(hex('200C'), hex('200D')).
+nameStartChar(Code) --> between_code(hex('2070'), hex('218F')).
+nameStartChar(Code) --> between_code(hex('2C00'), hex('2FEF')).
+nameStartChar(Code) --> between_code(hex('3001'), hex('D7FF')).
+nameStartChar(Code) --> between_code(hex('F900'), hex('FDCF')).
+nameStartChar(Code) --> between_code(hex('FDF0'), hex('FFFD')).
+nameStartChar(Code) --> between_code(hex('10000'), hex('EFFFF')).
 
 
 
@@ -204,6 +200,5 @@ nameStartChar(C) --> between_hex('10000', 'EFFFF').
 
 nodeID(BNode) -->
   "_:",
-  name(BNodeLabel),
-  
+  name(BNodeLabel).
 

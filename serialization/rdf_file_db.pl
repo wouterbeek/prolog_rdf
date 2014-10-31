@@ -1,29 +1,25 @@
 :- module(
   rdf_file_db,
   [
-    rdf_content_type/1, % ?ContentType:atom
-    rdf_content_type/2, % ?ContentType:atom
-                        % ?Format:atom
-    rdf_file_extension/1, % ?Extension:atom
-    rdf_file_extension/2, % ?Extension:atom
-                          % ?Format:atom
-    rdf_serialization/5 % ?DefaultExtension:atom
-                        % ?DefaultFileType:atom
-                        % ?Format:atom
-                        % ?ContentTypes:list(atom)
+    rdf_accept_header_value/1, % -Value:atom
+    rdf_file_extension/1, % ?FileExtension:atom
+    rdf_file_extension_format/2, % ?FileExtension:atom
+                                 % ?Format:rdf_format
+    rdf_media_type/1, % ?MediaType:compound
+    rdf_media_type_format/2, % ?MediaType:compound
+                             % ?Format:rdf_format
+    rdf_media_type_string/2, % ?MediaType:compound
+                             % ?String:string
+    rdf_serialization/4 % ?DefaultFileExtension:atom
+                        % ?Format:rdf_format
+                        % ?MediaTypes:list(pair(between(0.0,1.0),compound))
                         % ?Url:atom
   ]
 ).
 
-/** <module> RDF file database
+/** <module> RDF: file database
 
-Some very basic facts about RDF serialization formats,
-used by the RDF file modules.
-
-### RDF file types
-
-RDF file types are defined in Semweb as multifile
-and with namespace `rdf_db`.
+Basic facts about RDF serialization formats.
 
 @author Wouter Beek
 @tbd Add support for JSON-LD: http://www.w3.org/ns/formats/JSON-LD
@@ -40,70 +36,136 @@ and with namespace `rdf_db`.
 @tbd Add support for SPARQL Results in JSON: http://www.w3.org/ns/formats/SPARQL_Results_JSON
 @tbd Add support for SPARQL Results in CSV: http://www.w3.org/ns/formats/SPARQL_Results_CSV
 @tbd Add support for SPARQL Results in TSV: http://www.w3.org/ns/formats/SPARQL_Results_TSV
-@version 2014/04-2014/05, 2014/07-2014/08
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10
 */
 
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
+
+:- use_module(os(media_type)).
+
+:- use_module(plHttp_par(rfc2616_media_type)).
+
+:- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_generics)).
+
+:- multifile(error:has_type/2).
+
+error:has_type(rdf_format, Term):-
+  error:has_type(oneof([nquads,ntriples,rdfa,trig,turtle,xml]), Term).
 
 
 
-%! rdf_content_type(+ContentType:atom) is semidet.
-%! rdf_content_type(-ContentType:atom) is multi.
+%! rdf_accept_header_value(-Value:atom) is det.
+% Returns a value that can be used for the Accept header of an HTTP request
+% in order to have a fair chance that RDF content -- if available --
+% will be returned.
+%
+% The media types that are considered are:
+%   - all the media types that are specified
+%     as part of the rdf_serialization/4 predicate.
+%   - the most generic media type, i.e. `*/*`.
 
-rdf_content_type(ContentType):-
-  rdf_serialization(_, _, _, ContentTypes, _),
-  member(ContentType, ContentTypes).
+rdf_accept_header_value(Value):-
+  findall(
+    MediaType,
+    (
+      rdf_serialization(_, _, MediaTypes, _),
+      member(MediaType, MediaTypes)
+    ),
+    MediaTypes
+  ),
+  dcg_with_output_to(atom(Value),
+    '#'(
+      _,
+      'media-type',
+			_,
+      [media_type('*','*',[q(0.1)])|MediaTypes],
+      [separator(atom(', '))]
+    )
+  ).
 
-%! rdf_content_type(+ContentType:atom, +Format:atom) is semidet.
-%! rdf_content_type(+ContentType:atom, -Format:atom) is semidet.
-%! rdf_content_type(-ContentType:atom, +Format:atom) is nondet.
-%! rdf_content_type(-ContentType:atom, -Format:atom) is multi.
-
-rdf_content_type(ContentType1, Format):-
-  content_type_remove_encoding(ContentType1, ContentType2),
-  rdf_serialization(_, _, Format, ContentTypes, _),
-  member(ContentType2, ContentTypes).
-
-content_type_remove_encoding(ContentType1, ContentType2):-
-  nonvar(ContentType1),
-  atomic_list_concat([ContentType2|_], ';', ContentType1), !.
-content_type_remove_encoding(ContentType, ContentType).
 
 
-%! rdf_file_extension(+Extension:atom) is semidet.
+%! rdf_file_extension(+FileExtension:atom) is semidet.
 % Succeeds for file extensions of RDF serializations.
-%! rdf_file_extension(-Extension:atom) is multi.
+%! rdf_file_extension(-FileExtension:atom) is multi.
 % Enumerates file extensions RDF serializations.
 
-rdf_file_extension(Ext):-
-  rdf_serialization(Ext, _, _, _, _).
+rdf_file_extension(FileExtension):-
+  rdf_serialization(FileExtension, _, _, _).
 
-%! rdf_file_extension(+Extension:atom, +Format:atom) is semidet.
-%! rdf_file_extension(+Extension:atom, -Format:atom) is semidet.
-%! rdf_file_extension(-Extension:atom, +Format:atom) is det.
-%! rdf_file_extension(-Extension:atom, -Format:atom) is multi.
 
-rdf_file_extension(Ext, Format):-
-  rdf_serialization(Ext, _, Format, _, _).
+
+%! rdf_file_extension_format(+FileExtension:atom, +Format:rdf_format) is semidet.
+%! rdf_file_extension_format(+FileExtension:atom, -Format:rdf_format) is semidet.
+%! rdf_file_extension_format(-FileExtension:atom, +Format:rdf_format) is det.
+%! rdf_file_extension_format(-FileExtension:atom, -Format:rdf_format) is multi.
+
+rdf_file_extension_format(Ext, Format):-
+  rdf_serialization(Ext, Format, _, _).
+
+
+
+%! rdf_media_type(+MediaType:compound) is semidet.
+%! rdf_media_type(-MediaType:compound) is multi.
+
+rdf_media_type(MediaType):-
+  rdf_serialization(_, _, MediaTypes, _),
+  member(_-MediaType, MediaTypes).
+
+
+
+%! rdf_media_type_format(+MediaType:compound, +Format:rdf_format) is semidet.
+%! rdf_media_type_format(+MediaType:compound, -Format:rdf_format) is semidet.
+%! rdf_media_type_format(-MediaType:compound, +Format:rdf_format) is nondet.
+%! rdf_media_type_format(-MediaType:compound, -Format:rdf_format) is multi.
+
+rdf_media_type_format(MediaType, Format):-
+  rdf_serialization(_, Format, MediaTypes, _),
+  member(_-MediaType, MediaTypes).
+
+
+
+%! rdf_media_type_string(+MediaType:compound, -String:string) is det.
+%! rdf_media_type_string(-MediaType:compound, +String:string) is det.
+
+rdf_media_type_string(MediaType, String):-
+  media_type_string(MediaType, String),
+  rdf_media_type(MediaType).
+
 
 
 %! rdf_serialization(
-%!   ?DefaultExtension:atom,
-%!   ?FileType:atom,
-%!   ?Format:atom,
-%!   ?MIME:list(atom),
+%!   ?DefaultFileExtension:atom,
+%!   ?Format:rdf_format,
+%!   ?MediaTypes:list(pair(between(0.0,1.0),compound)),
 %!   ?Url:atom
 %! ) is nondet.
+%
+% ### Content types
+%
+% Content types are represented as pairs.
+% The first element of the pair is a qvalue, as specified in RFC 2616.
+% The second element of the pair is the content type name.
+%
+% The qvalues are determined based on the following criteria:
+%   | **Q-Value** | **Reason**                   |
+%   | 0.45        | Official content type        |
+%   | 0.45        | Specific for RDF content     |
+%   | 0.05        | Inofficial content type      |
+%   | 0.05        | Not specific for RDF content |
+%
+% For example, `text/tutle` has qvalue `0.9` because it is
+% an official content type that is RDF-specific.
+%
+% ### Arguments
 %
 % @arg DefaultExtension The default extension of the RDF serialization.
 %      RDF serializations may have multiple non-default extensions,
 %      e.g. =owl= and =xml= for RDF/XML.
-% @arg DefaultFileType The default file type of the RDF serialization.
-%      File types are registered via user:prolog_file_type/2.
-%      Every RDF file type also has the non-default file type `rdf`.
 % @arg Format The format name that is used by the Semweb library.
-% @arg ContentTypes A list of MIME content types.
-%      The first atom is the standardized MIME content type
+% @arg MediaTypes A list of content types.
+%      The first atom is the standardized content type
 %      according to the 1.1 recommendations.
 % @arg Url The URL at which the serialization is described, if any.
 %
@@ -112,71 +174,68 @@ rdf_file_extension(Ext, Format):-
 rdf_serialization(
   nq,
   nquads,
-  nquads,
-  ['application/n-quads'],
+  [
+    media_type(application,'n-quads',[q(0.9)])
+  ],
   'http://www.w3.org/ns/formats/N-Quads'
 ).
 rdf_serialization(
   nt,
   ntriples,
-  ntriples,
-  ['application/n-triples'],
+  [
+    media_type(application,'n-triples',[q(0.9)])
+  ],
   'http://www.w3.org/ns/formats/N-Triples'
 ).
 rdf_serialization(
   rdf,
-  rdf_xml,
   xml,
   [
-    'application/rdf+xml',
-    'text/rdf+xml',
-    'application/xhtml+xml',
-    'application/xml',
-    'text/rdf',
-    'text/xml',
-    'application/rss+xml'
+    media_type(text,'rdf+xml',[q(0.9)]),
+    media_type(application,'rdf+xml',[q(0.5)]),
+    media_type(text,rdf,[q(0.5)]),
+    media_type(text,xml,[q(0.5)]),
+    media_type(application,rdf,[q(0.5)]),
+    media_type(application,'rss+xml',[q(0.1)]),
+    media_type(application,xml,[q(0.1)])
   ],
   'http://www.w3.org/ns/formats/RDF_XML'
 ).
 rdf_serialization(
   rdfa,
   rdfa,
-  rdfa,
   [
-    'application/xhtml+xml',
-    'text/html'
+    media_type(application,'xhtml+xml',[q(0.5)]),
+    media_type(text,html,[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/RDFa'
 ).
 rdf_serialization(
   trig,
   trig,
-  trig,
   [
-    'application/trig',
-    'application/x-trig'
+    media_type(application,trig,[q(0.9)]),
+    media_type(application,'x-trig',[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/TriG'
 ).
 rdf_serialization(
   ttl,
   turtle,
-  turtle,
   [
-    'application/turtle',
-    'application/x-turtle',
-    'application/rdf+turtle',
-    'text/turtle'
+    media_type(text,turtle,[q(0.9)]),
+    media_type(application,turtle,[q(0.5)]),
+    media_type(application,'x-turtle',[q(0.5)]),
+    media_type(application,'rdf+turtle',[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/Turtle'
 ).
 rdf_serialization(
   n3,
-  n3,
   turtle,
   [
-    'text/rdf+n3',
-    'text/n3'
+    media_type(text,n3,[q(0.9)]),
+    media_type(text,'rdf+n3',[q(0.5)])
   ],
   'http://www.w3.org/ns/formats/N3'
 ).

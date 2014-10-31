@@ -2,8 +2,9 @@
   rdf_prefixes,
   [
     dbpedia_language_tag/1, % ?LanguageTag:atom
-    rdf_reduced_location/2 % +FullUrl:url
-                           % -ReducedUrl:url
+    rdf_reduced_location/2, % +FullUrl:url
+                            % -ReducedUrl:url
+    rdf_reduced_location_prefix/1 % ?Prefix:atom
   ]
 ).
 
@@ -11,15 +12,36 @@
 
 RDF prefix registrations.
 
+# Reduced
+
+A **reduced location** is an IRI whose prefix is a reduced location prefix.
+
+A **reduced location prefix** is a registered RDF prefix
+all of whose reduced locations should be dereferenced as their prefix.
+
+Reduced locations often occur in vocabularies,
+where the file denoted by [1] contains the assertions for [2], [3], etc.
+
+~~~{.url}
+[1]   http://www.w3.org/1999/02/22-rdf-syntax-ns#
+[2]   http://www.w3.org/1999/02/22-rdf-syntax-ns#first
+[3]   http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+~~~
+
+--
+
 @author Wouter Beek
 @tbd Add prefixes that occur in http://dbpedia.org/sparql?nsdecl
-@version 2014/06-2014/07
+@version 2014/06-2014/07, 2014/10
 */
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
-:- dynamic(rdf_reduced_location/1).
+%! rdf_reduced_location_prefix(+Prefix:atom) is semidet.
+%! rdf_reduced_location_prefix(-Prefix:atom) is nondet.
+
+:- dynamic(rdf_reduced_location_prefix/1).
 
 :- initialization(dbpedia_localizations).
 
@@ -51,26 +73,39 @@ dbpedia_register(LangTag):-
   rdf_register_prefix(PropertyNamespace, PropertyPrefix).
 
 
-%! rdf_reduced_location(+FullUrl:url, -ReducedUrl:url) is semidet.
+%! rdf_reduced_location(+FullUrl:atom, -ReducedUrl:atom) is semidet.
 
 rdf_reduced_location(Url1, Url2):-
   rdf_global_id(Prefix:_, Url1),
-  rdf_reduced_location(Prefix), !,
+  rdf_reduced_location_prefix(Prefix), !,
   rdf_current_prefix(Prefix, Url2).
 
 
-%! rdf_register_reduced_location(+Prefix:atom) is det.
+%! rdf_register_reduced_location_prefix(+Prefix:atom) is det.
 
-rdf_register_reduced_location(Prefix):-
-  assert(rdf_reduced_location(Prefix)).
+rdf_register_reduced_location_prefix(Prefix):-
+  assert(rdf_reduced_location_prefix(Prefix)).
 
 
+
+% Citation Counting and Context Characterization Ontology (C4O)
+:- rdf_register_prefix(
+     c4o,
+     'http://www.essepuntato.it/lode/http://purl.org/spar/c4o'
+   ).
+
+% Citation Oriented Bibliographic Vocabulary (BIBLIO)
+:- rdf_register_prefix(biblio, 'http://purl.org/net/biblio#').
 
 % Creative Commons
 :- rdf_register_prefix(cc, 'http://creativecommons.org/ns#').
 
+% Datacube
+:- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
+
 % DBpedia category
 :- rdf_register_prefix(category, 'http://dbpedia.org/resource/Category:').
+:- rdf_register_prefix(dbc, 'http://dbpedia.org/resource/Category:').
 
 % DBpedia datatype
 :- rdf_register_prefix(dt, 'http://dbpedia.org/datatype/').
@@ -303,19 +338,25 @@ dbpedia_language_tag(zh_yue).
 % DOC
 :- rdf_register_prefix(doc, 'http://www.w3.org/2000/10/swap/pim/doc#').
 
+% Document Components Ontology (DoCO)
+:- rdf_register_prefix(
+     doco,
+     'http://www.essepuntato.it/lode/http://purl.org/spar/doco'
+   ).
+
 % Dublin Core: elements
 :- rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/').
-:- rdf_register_reduced_location(dc).
+:- rdf_register_reduced_location_prefix(dc).
 
 % Dublin Core: terms
 :- rdf_register_prefix(dct, 'http://purl.org/dc/terms/').
-:- rdf_register_reduced_location(dct).
+:- rdf_register_reduced_location_prefix(dct).
 :- rdf_register_prefix(dcterms, 'http://purl.org/dc/terms/').
-:- rdf_register_reduced_location(dcterms).
+:- rdf_register_reduced_location_prefix(dcterms).
 
 % Dublin Core: types
 :- rdf_register_prefix(dctype, 'http://purl.org/dc/dcmitype/').
-:- rdf_register_reduced_location(dctype).
+:- rdf_register_reduced_location_prefix(dctype).
 
 % Dublin core: ?
 :- rdf_register_prefix(eor, 'http://dublincore.org/2000/03/13/eor#').
@@ -325,7 +366,7 @@ dbpedia_language_tag(zh_yue).
 
 % Friend Of A Friend (FOAF)
 :- rdf_register_prefix(foaf, 'http://xmlns.com/foaf/0.1/').
-:- rdf_register_reduced_location(foaf).
+:- rdf_register_reduced_location_prefix(foaf).
 
 % Functional Requirements for Bibliographic Records (FRBR)
 :- rdf_register_prefix(frbr, 'http://purl.org/vocab/frbr/core#').
@@ -339,14 +380,17 @@ dbpedia_language_tag(zh_yue).
 % Geo RSS
 :- rdf_register_prefix(georss, 'http://www.georss.org/georss/').
 
+% Music Ontology (MO)
+:- rdf_register_prefix(mo, 'http://purl.org/ontology/mo/').
+
+% MUTO
+:- rdf_register_prefix(muto, 'http://purl.org/muto/core#').
+
 % OpenCyc
 :- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
 
-% Web Ontology Language (OWL)
-:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
-:- rdf_register_reduced_location(owl).
-:- rdf_set_predicate(owl:sameAs, symmetric(true)).
-:- rdf_set_predicate(owl:sameAs, transitive(true)).
+% ORG
+:- rdf_register_prefix(org, 'http://www.w3.org/ns/org#').
 
 % ?
 :- rdf_register_prefix('powder-s', 'http://www.w3.org/2007/05/powder-s#').
@@ -356,23 +400,48 @@ dbpedia_language_tag(zh_yue).
 
 % RDF
 :- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-:- rdf_register_reduced_location(rdf).
+:- rdf_register_reduced_location_prefix(rdf).
 
 % RDFS
 :- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
-:- rdf_register_reduced_location(rdfs).
+:- rdf_register_reduced_location_prefix(rdfs).
 :- rdf_set_predicate(rdfs:subClassOf, transitive(true)).
 :- rdf_set_predicate(rdfs:subPropertyOf, transitive(true)).
 
 % Schema
 :- rdf_register_prefix(schema, 'http://schema.org/').
 
+% SCOVO
+:- rdf_register_prefix(scovo, 'http://purl.org/NET/scovo#').
+
+% SDMX
+:- rdf_register_prefix(
+     'sdmx-concept',
+     'http://purl.org/linked-data/sdmx/2009/concept#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-code',
+     'http://purl.org/linked-data/sdmx/2009/code#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-dimension',
+     'http://purl.org/linked-data/sdmx/2009/dimension#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-attribute',
+     'http://purl.org/linked-data/sdmx/2009/attribute#'
+   ).
+:- rdf_register_prefix(
+     'sdmx-measure',
+     'http://purl.org/linked-data/sdmx/2009/measure#'
+   ).
+
 % SERQL
 :- rdf_register_prefix(serql, 'http://www.openrdf.org/schema/serql#').
 
 % SKOS
 :- rdf_register_prefix(skos, 'http://www.w3.org/2004/02/skos/core#').
-:- rdf_register_reduced_location(skos).
+:- rdf_register_reduced_location_prefix(skos).
 
 % UMBEL
 % Already registered by ClioPatria.
@@ -385,6 +454,12 @@ dbpedia_language_tag(zh_yue).
 
 % VS
 :- rdf_register_prefix(vs, 'http://www.w3.org/2003/06/sw-vocab-status/ns#').
+
+% Web Ontology Language (OWL)
+:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
+:- rdf_register_reduced_location_prefix(owl).
+:- rdf_set_predicate(owl:sameAs, symmetric(true)).
+:- rdf_set_predicate(owl:sameAs, transitive(true)).
 
 % Wikidata
 :- rdf_register_prefix(wd, 'http://www.wikidata.org/entity/').

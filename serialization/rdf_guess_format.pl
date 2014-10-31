@@ -2,11 +2,11 @@
   rdf_guess_format,
   [
     rdf_guess_format/2, % +File:atom
-                        % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
+                        % -Format:rdf_format
     rdf_guess_format/4 % +Read:blob
                        % +FileExtension:atom,
                        % +ContentType:atom,
-                       % -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
+                       % -Format:rdf_format
   ]
 ).
 
@@ -16,7 +16,7 @@ Detect the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07-2014/08
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10
 */
 
 :- use_module(library(dcg/basics)).
@@ -29,10 +29,7 @@ Detect the RDF serialization format of a given stream.
 
 
 
-%! rdf_guess_format(
-%!   +File:atom,
-%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
-%! ) is semidet.
+%! rdf_guess_format(+File:atom, -Format:rdf_format) is semidet.
 % True when `Source` is thought to contain RDF data using the
 % indicated content type.
 %
@@ -51,50 +48,78 @@ rdf_guess_format(File0, Format):-
 
   % Take the file extension into account, if any.
   file_name_extension(File, FileExtension0, _),
-  (  FileExtension0 == ''
-  -> true
-  ;  FileExtension = FileExtension0
+  (   FileExtension0 == ''
+  ->  true
+  ;   FileExtension = FileExtension0
   ),
-
+  
   setup_call_cleanup(
     open(File, read, Stream),
     rdf_guess_format(Stream, FileExtension, _, Format),
     close(Stream)
   ).
 
-rdf_guess_format(Stream, Format, Options):-
-  option(look_ahead(Bytes), Options, 2500),
+
+%! rdf_guess_format0(
+%!   +Stream:stream,
+%!   -Format:rdf_format,
+%!   +Options:list(nvpair)
+%! ) is det.
+
+rdf_guess_format0(Stream, Format, Options):-
+  rdf_guess_format0(Stream, 1, Format, Options).
+
+%! rdf_guess_format0(
+%!   +Stream:stream,
+%!   +Iteration:positive_integer,
+%!   -Format:rdf_format,
+%!   +Options:list(nvpair)
+%! ) is det.
+
+rdf_guess_format0(Stream, Iteration, Format, Options):-
+  % Peek a given number of bytes from stream.
+  option(look_ahead(Bytes0), Options, 1000),
+  Bytes is Iteration * Bytes0,
   peek_string(Stream, Bytes, String),
-  (
-    string_codes(String, Codes),
-    phrase(turtle_like(Format, Options), Codes, _)
-  ->
-    true
-  ;
-    setup_call_cleanup(
-      new_memory_file(MemFile),
-      (
-        setup_call_cleanup(
-          open_memory_file(MemFile, write, Write),
-          format(Write, '~s', [String]),
-          close(Write)
+  
+  % Do not backtrack if the whole stream has been peeked.
+  string_length(String, Length),
+  (   Length < Bytes
+  ->  !
+  ;   true
+  ),
+  
+  % Try to parse the peeked string as Turtle- or XML-like.
+  (   string_codes(String, Codes),
+      phrase(turtle_like(Format, Options), Codes, _)
+  ->  true
+  ;   setup_call_cleanup(
+        new_memory_file(MemFile),
+        (
+          setup_call_cleanup(
+            open_memory_file(MemFile, write, Write),
+            format(Write, '~s', [String]),
+            close(Write)
+          ),
+          setup_call_cleanup(
+            open_memory_file(MemFile, read, Read),
+            guess_xml_type(Read, Format),
+            close(Read)
+          )
         ),
-        setup_call_cleanup(
-          open_memory_file(MemFile, read, Read),
-          guess_xml_type(Read, Format),
-          close(Read)
-        )
-      ),
-      free_memory_file(MemFile)
-    )
-  ).
+        free_memory_file(MemFile)
+      )
+  ), !.
+rdf_guess_format0(Stream, Iteration, Format, Options):-
+  NewIteration is Iteration + 1,
+  rdf_guess_format0(Stream, NewIteration, Format, Options).
 
 
 %! rdf_guess_format(
 %!   +Read:blob,
 %!   +FileExtension:atom,
 %!   +ContentType:atom,
-%!   -Format:oneof([nquads,ntriples,rdfa,turtle,trig,xml])
+%!   -Format:rdf_format
 %! ) is semidet.
 % Fails if the RDF serialization format cannot be decided on.
 
@@ -102,15 +127,15 @@ rdf_guess_format(Stream, Format, Options):-
 rdf_guess_format(Read, FileExtension, _, Format):-
   nonvar(FileExtension),
   rdf_db:rdf_file_type(FileExtension, SuggestedFormat), !,
-  rdf_guess_format(Read, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
 % Use the HTTP content type header as the RDF serialization format suggestion.
 rdf_guess_format(Read, _, ContentType, Format):-
   nonvar(ContentType),
-  rdf_content_type(ContentType, SuggestedFormat), !,
-  rdf_guess_format(Read, Format, [format(SuggestedFormat)]).
+  rdf_media_type_format(ContentType, SuggestedFormat), !,
+  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
 % Use no RDF serialization format suggestion.
 rdf_guess_format(Read, _, _, Format):-
-  rdf_guess_format(Read, Format, []), !.
+  rdf_guess_format0(Read, Format, []), !.
 
 
 %! turtle_like(
@@ -171,7 +196,8 @@ turtle_keyword(prefix).
 %  is a "{" in the first section of the file.
 
 turtle_or_trig(Format, Options) -->
-  { option(format(Format), Options),
+  {
+    option(format(Format), Options),
     turtle_or_trig(Format)
   }, !.
 turtle_or_trig(Format, _Options) -->
@@ -193,7 +219,8 @@ turtle_or_trig(trig).
 % This still can be Turtle, TriG, N-Triples or N-Quads.
 
 nt_turtle_like(Format, Options) -->
-  { option(format(Format), Options),
+  {
+    option(format(Format), Options),
     nt_turtle_like(Format)
   }, !.
 nt_turtle_like(ntriples, _) -->
@@ -290,7 +317,12 @@ string_code --> [_].
 nt_white --> [10], !.
 nt_white --> [13], !.
 nt_white --> white, !.
-nt_white, " " --> "#", string(_), ( eol1 ; eos ), !.
+nt_white, " " -->
+  "#",
+  string(_),
+  (   eol1
+  ;   eos
+  ), !.
 
 nt_end -->
   (   eol
@@ -335,14 +367,10 @@ doc_content_type(xhtml,   _,    _, rdfa).
 doc_content_type(html5,   _,    _, rdfa).
 doc_content_type(xhtml5, _,    _, rdfa).
 doc_content_type(Dialect, Top, Attributes, xml):-
-  (
-    Dialect == sgml
-  ->
-    atomic_list_concat([NS,rdf], :, Top)
-  ;
-    Dialect == xml
-  ->
-    atomic_list_concat([NS,'RDF'], :, Top)
+  (   Dialect == sgml
+  ->  atomic_list_concat([NS,rdf], :, Top)
+  ;   Dialect == xml
+  ->  atomic_list_concat([NS,'RDF'], :, Top)
   ),
   atomic_list_concat([xmlns,NS], :, Attr),
   memberchk(Attr=RDFNS, Attributes),
@@ -363,7 +391,7 @@ xml_doctype(Stream, Dialect, DocType, Attributes):-
   catch(
     setup_call_cleanup(
       make_parser(Stream, Parser, State),
-      sgml_parse(
+      (	writeln(hallo),sgml_parse(
         Parser,
         [
           call(begin, on_begin),
@@ -372,7 +400,7 @@ xml_doctype(Stream, Dialect, DocType, Attributes):-
           source(Stream),
           syntax_errors(quiet)
         ]
-      ),
+      )),
       cleanup_parser(Stream, Parser, State)
     ),
     E,

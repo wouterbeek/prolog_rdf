@@ -27,7 +27,7 @@ e.g. freshness lifetime.
 :- use_module(http(http_download)).
 
 :- use_module(plRdf(rdf_graph)).
-:- use_module(plRdf_ser(rdf_serial)).
+:- use_module(plRdf_ser(rdf_load_any)).
 
 :- meta_predicate(rdf_download(3,+,?,+)).
 

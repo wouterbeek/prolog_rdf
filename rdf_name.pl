@@ -18,7 +18,7 @@ Generates names for RDF terms and triples.
 @author Wouter Beek
 @tbd Update to RDF 1,1,
 @tbd Add support for RDF list printing.
-@version 2013/07-2013/09, 2014/01-2014/04, 2014/07
+@version 2013/07-2013/09, 2014/01-2014/04, 2014/07, 2014/10
 */
 
 :- use_module(library(option)).
@@ -28,6 +28,7 @@ Generates names for RDF terms and triples.
 :- use_module(generics(typecheck)).
 :- use_module(pl(pl_log)).
 
+:- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_collection)).
@@ -266,7 +267,7 @@ rdf_term_name(Options1, Iri) -->
 % Prolog term.
 rdf_term_name(_, PlTerm) -->
   {with_output_to(codes(Codes), write_canonical_blobs(PlTerm))},
-  codes(Codes).
+  '*'(code, Codes, []).
 
 
 %! rdf_triple_name(+Triple:compound)// is det.
@@ -277,7 +278,7 @@ rdf_triple_name(rdf(S,P,O)) -->
 %! rdf_triple_name(+Triple:compound, +Graph:atom)// is det.
 
 rdf_triple_name(rdf(S,P,O), Graph) -->
-  tuple(ascii, rdf_term_name, [S,P,O,Graph]).
+  tuple(ascii, rdf_term_name, [S,P,O,graph(Graph)]).
 
 
 %! rdf_typed_literal_name(+TypedLiteral:compound)// is det.

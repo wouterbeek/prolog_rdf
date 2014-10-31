@@ -55,7 +55,7 @@ pred(Converted2, AlsoConverted2, NotConvertedLabel):-
 @version 2011, 2013/08
 */
 
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 
 :- use_module(generics(db_ext)).
 
