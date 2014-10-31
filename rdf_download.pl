@@ -24,7 +24,8 @@ e.g. freshness lifetime.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(generics(uri_ext)).
-:- use_module(http(http_download)).
+
+:- use_module(plHttp(http_download)).
 
 :- use_module(plRdf(rdf_graph)).
 :- use_module(plRdf_ser(rdf_load_any)).

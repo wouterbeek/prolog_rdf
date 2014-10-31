@@ -39,7 +39,6 @@ Predicates for exporting RDF graphs to the Graph Interchange Format (GIF).
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
-:- use_module(svg(svg_colors)).
 
 :- use_module(plDcg(dcg_generics)).
 

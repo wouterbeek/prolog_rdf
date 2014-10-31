@@ -38,8 +38,9 @@ When triples including images are read,
 
 :- use_module(generics(deb_ext)).
 :- use_module(generics(uri_ext)).
-:- use_module(http(http_download)).
 :- use_module(os(image_ext)).
+
+:- use_module(plHttp(http_download)).
 
 :- use_module(plRdf(rdf_build)).
 
