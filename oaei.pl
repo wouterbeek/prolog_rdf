@@ -256,7 +256,7 @@ oaei_check_alignment(ReferenceAlignments, RawAlignments):-
 oaei_file_to_alignments(File, Alignments):-
   setup_call_cleanup(
     (
-      file_name(File, _, Graph1, _Ext),
+      file_components(File, _, Graph1, _Ext),
       % Make sure the graph name is unique.
       rdf_new_graph(Graph1, Graph2),
       rdf_load_any(File, [graph(Graph2)])

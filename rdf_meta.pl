@@ -140,7 +140,7 @@ output_file_based_on_input_file(FromFile, ToFile, SaveOptions):-
   (
     exists_directory(FromFile)
   ->
-    file_name(ToFile, FromFile, output, ToExtension)
+    file_components(ToFile, FromFile, output, ToExtension)
   ;
     file_alternative(FromFile, _, _, ToExtension, ToFile)
   ).

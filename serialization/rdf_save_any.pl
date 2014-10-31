@@ -73,7 +73,7 @@ rdf_save_any(File, Options):-
 % 3. 
 rdf_save_any(File, Options1):-
   % Derive the RDF output format.
-  (   select_option(format(Format), Options1, Options2),
+  (   select_option(format(Format), Options1, Options2)
   ->  true
   ;   Options2 = Options1,
       (   file_name_extension(_, Extension, File),
@@ -89,11 +89,12 @@ rdf_save_any(File, Options1):-
   
   rdf_save_any(File, Format, Options2),
   
-  debug(
-    rdf_save_any,
-    'Graph ~w was saved in ~w serialization to file ~w.',
-    [Graph,Format,File]
+  (   option(silent(true), Options2)
+  ->  true
+  ;   option(graph(Graph), Options2),
+      print_message(informational, rdf_saved(Graph,Format,File))
   ).
+
 
 % Save to RDF/XML
 rdf_save_any(File, rdf_xml, Options):- !,
@@ -121,3 +122,12 @@ rdf_save_any(File, turtle, Options1):- !,
     Options2
   ),
   rdf_save_turtle(File, Options2).
+
+
+
+% MESSAGE
+
+:- multifile(prolog:message//1).
+
+prolog:message(rdf_saved(Graph,Format,File)) -->
+  ['Graph ',Graph,' was saved in ',Format,' serialization to file ',File,'.'].

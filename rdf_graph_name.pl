@@ -31,7 +31,7 @@ Support for naming graphs.
 % This ensures that the graph name does not already exist.
 
 file_to_graph_name(F, G):-
-  file_name(F, _Dir, SuggestedG, _Ext),
+  file_components(F, _Dir, SuggestedG, _Ext),
   % Make sure the graph does not already exist.
   rdf_new_graph(SuggestedG, G).
 

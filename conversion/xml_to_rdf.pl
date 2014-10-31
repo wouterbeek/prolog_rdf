@@ -76,7 +76,7 @@ parse_file(File1, Prefix, G):-
   %%%%file_to_atom(File, Atom), %DEB
   %%%%dcg_phrase(xml_parse(el), Atom), %DEB
   debug(xml_to_rdf, 'Done parsing file ~w', [File1]), %DEB
-  file_type_alternative(File1, turtle, File2),
+  file_kind_alternative(File1, turtle, File2),
   prolog_stack_property(global, limit(Limit)),
   debug(xml_to_rdf, 'About to save triples to file with ~:d global stack.',
       [Limit]),
