@@ -1,4 +1,5 @@
 % Index for the plRdf project.
+% File search path `plRdf` is assumed to be set prior to loading this file.
 
 user:file_search_path(plRdf_conv, plRdf(conversion)).
 user:file_search_path(plRdf_ent, plRdf(entailment)).
