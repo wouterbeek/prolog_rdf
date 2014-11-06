@@ -37,7 +37,13 @@ debug_all_files:-
     ]
   ),
   exclude(do_not_load, Files1, Files2),
-  maplist(use_module, Files2).
+  forall(
+    member(File, Files2),
+    (
+      print_message(informational, loading_module(File)),
+      use_module(File)
+    )
+  ).
 
 do_not_load(File1):-
   file_base_name(File1, File2),
@@ -51,5 +57,16 @@ do_not_load0(debug_project).
 do_not_load0(index).
 do_not_load0(load).
 do_not_load0(load_project).
+do_not_load0(pl_clause_enhancement).
+do_not_load0(pl_typecheck).
 do_not_load0(rfc2616_basic).
 do_not_load0(run).
+
+
+
+% MESSAGES
+
+:- multifile(prolog:message//1).
+
+prolog:message(loading_module(File)) -->
+  ['[M] ',File].
