@@ -23,7 +23,7 @@ Grammar for strings in Turtle.
 
 
 %! 'String'(-Value:atom)// .
-% ```{.ebnf}
+% ```ebnf
 % String ::= STRING_LITERAL_QUOTE |
 %            STRING_LITERAL_SINGLE_QUOTE |
 %            STRING_LITERAL_LONG_SINGLE_QUOTE |
@@ -44,7 +44,7 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_QUOTE'(?Codes:list(code))// .
-% ```{.ebnf}
+% ```ebnf
 % STRING_LITERAL_QUOTE ::= '"' ([^#x22#x5C#xA#xD] | ECHAR | UCHAR)* '"'
 %                          /* #x22=" #x5C=\ #xA=new line
 %                             #xD=carriage return */
@@ -73,7 +73,7 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_SINGLE_QUOTE'(-Codes:list(code))// .
-% ```{.ebnf}
+% ```ebnf
 % STRING_LITERAL_SINGLE_QUOTE ::= "'"
 %                                 ([^#x27#x5C#xA#xD] | ECHAR | UCHAR)*
 %                                 "'"
@@ -104,7 +104,7 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_LONG_SINGLE_QUOTE'(-Codes:list(code))// .
-% ```{.ebnf}
+% ```ebnf
 % STRING_LITERAL_LONG_SINGLE_QUOTE ::= "'''"
 %                                      (
 %                                        ("'" | "''")?
@@ -150,7 +150,7 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_LONG_QUOTE'(-Codes:list(code))// .
-% ```{.ebnf}
+% ```ebnf
 % STRING_LITERAL_LONG_QUOTE ::= '"""'
 %                               (
 %                                 ('"' | '""')?

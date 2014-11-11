@@ -38,7 +38,7 @@ Turtle characters are a superset of SPARQL characters.
 
 
 %! 'IRIREF'(?Codes:list(code))// .
-% ```{.ebfn}
+% ```ebfn
 % IRIREF ::= '<' ( [^#x00-#x20<>"{}|^`\] | UCHAR )* '>'
 %                  /* #x00=NULL #01, '1F=control codes #x20=space */
 % ```
@@ -72,7 +72,7 @@ Turtle characters are a superset of SPARQL characters.
 
 %! 'UCHAR'// .
 %! 'UCHAR'(?Code:nonneg)// .
-% ```{.ebnf}
+% ```ebnf
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ```
 %

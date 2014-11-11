@@ -38,7 +38,7 @@ not as references to specific blank nodes in the data being queried.
 %
 % A unique blank node will be used to form the triple pattern.
 %
-% ```{.ebnf}
+% ```ebnf
 % ANON ::= '[' WS* ']'
 % ```
 %
@@ -58,7 +58,7 @@ not as references to specific blank nodes in the data being queried.
 % The same blank node label cannot be used
 % in two different basic graph patterns in the same query.
 %
-% ```{.ebnf}
+% ```ebnf
 % BLANK_NODE_LABEL ::= '_:'
 %                      ( PN_CHARS_U | [0-9] )
 %                      ( ( PN_CHARS | '.' )* PN_CHARS )?
@@ -100,7 +100,7 @@ not as references to specific blank nodes in the data being queried.
 % Blank nodes are indicated by either the label form,
 % such as `_:abc`, or the abbreviated form `[]`.
 %
-% ```{.ebnf}
+% ```ebnf
 % BlankNode ::= BLANK_NODE_LABEL | ANON
 % ```
 %
@@ -116,7 +116,7 @@ not as references to specific blank nodes in the data being queried.
 
 
 %! name(?Codes:list(code))// .
-% ```{.ebnf}
+% ```ebnf
 % name ::= nameStartChar nameChar*
 % ```
 %
@@ -130,7 +130,7 @@ name([H|T]) -->
 
 
 %! nameChar(?Code:code)// .
-% ```{.ebnf}
+% ```ebnf
 % nameChar ::=   nameStartChar
 %              | '-'
 %              | [0-9]
@@ -152,7 +152,7 @@ nameChar(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
 
 
 %! nameStartChar(?Code:code)// .
-% ```{.ebnf}
+% ```ebnf
 % nameStartChar ::=   [A-Z]
 %                   | "_" 
 %                   | [a-z]
@@ -192,7 +192,7 @@ nameStartChar(Code) --> between_code_radix(hex('10000'), hex('EFFFF')).
 
 
 %! nodeID(-BNode:bnode)// .
-% ```{.ebnf}
+% ```ebnf
 % nodeID ::= '_:' name
 % ```
 %

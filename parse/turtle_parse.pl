@@ -80,7 +80,7 @@ test(N):-
 % and ends at the beginning of the next `@base` or `BASE` diretive
 % or at the end of the file.
 %
-% ```{.abnf}
+% ```abnf
 % base ::= '@base' IRIREF '.'
 % ```
 %
@@ -95,7 +95,7 @@ base(BaseIri) -->
 
 
 %! blankNodePropertyList(-BNode:bnode)// .
-% ```{.ebnf}
+% ```ebnf
 % blankNodePropertyList ::= '[' predicateObjectList ']'
 % ```
 %
@@ -110,7 +110,7 @@ blankNodePropertyList(BNode) -->
 
 
 %! collection(-RdfList:bnode)// .
-% ```{.ebnf}
+% ```ebnf
 % collection ::= '(' object* ')'
 % ```
 %
@@ -124,7 +124,7 @@ collection(RdfList) -->
 
 
 %! directive// .
-% ```{.ebnf}
+% ```ebnf
 % directive ::= prefixID | base | sparqlPrefix | sparqlBase
 % ```
 %
@@ -138,7 +138,7 @@ directive --> sparqlBase.
 
 
 %! object// .
-% ```{.ebnf}
+% ```ebnf
 % object ::=   iri
 %            | BlankNode
 %            | collection
@@ -162,7 +162,7 @@ object(Literal) -->
 
 
 %! objectList(+Subject:or([bnode,iri]), +Predicate:iri)// .
-% ```{.ebnf}
+% ```ebnf
 % objectList ::= object (',' object)*
 % ```
 %
@@ -183,7 +183,7 @@ objectList(S, P) -->
 
 
 %! predicate(-Predicate:iri)// .
-% ```{.ebnf}
+% ```ebnf
 % predicate ::= iri
 % ```
 %
@@ -194,7 +194,7 @@ predicate(Iri) -->
 
 
 %! predicateObjectList(+Subject:or([bnode,iri]))// .
-% ```{.ebnf}
+% ```ebnf
 % predicateObjectList ::= verb objectList (';' (verb objectList)?)*
 % ```
 %
@@ -212,7 +212,7 @@ predicateObjectList(S) -->
 
 
 %! prefixID// .
-% ```{.ebnf}
+% ```ebnf
 % prefixID ::= '@prefix' PNAME_NS IRIREF '.'
 % ```
 %
@@ -227,7 +227,7 @@ prefixID -->
 
 
 %! sparqlBase// .
-% ```{.ebnf}
+% ```ebnf
 % sparqlBase ::= "BASE" IRIREF
 % ```
 %
@@ -240,7 +240,7 @@ sparqlBase -->
 
 
 %! sparqlPrefix// .
-% ```{.ebnf}
+% ```ebnf
 % sparqlPrefix ::= "PREFIX" PNAME_NS IRIREF
 % ```
 %
@@ -253,7 +253,7 @@ sparqlPrefix -->
 
 
 %! statement// .
-% ```{.ebnf}
+% ```ebnf
 % statement ::= directive | triples '.'
 % ```
 %
@@ -270,7 +270,7 @@ statement -->
 
 
 %! subject(-Subject:or([bnode,iri,literal]))// .
-% ```{.ebnf}
+% ```ebnf
 % subject ::= iri | BlankNode | collection
 % ```
 %
@@ -283,7 +283,7 @@ subject(RdfList) --> collection(RdfList).
 
 
 %! triples// .
-% ```{.ebnf}
+% ```ebnf
 % triples ::=   subject               predicateObjectList
 %             | blankNodePropertyList predicateObjectList?
 % ```
@@ -300,7 +300,7 @@ triples -->
 
 
 %! turtleDoc(-Triples:list(compound))// .
-% ```{.ebnf}
+% ```ebnf
 % turtleDoc ::= statement*
 % ```
 %
@@ -317,7 +317,7 @@ turtleDoc(_, Triples, Triples) --> [].
 
 
 %! verb(?Iri:atom)// .
-% ```{.ebnf}
+% ```ebnf
 % verb ::= predicate | 'a'
 % ```
 %
