@@ -145,8 +145,8 @@ nameChar(Code) --> nameStartChar(Code).
 nameChar(Code) --> hyphen(Code).
 nameChar(Code) --> decimal_digit(Code).
 nameChar(Code) --> code(hex('00B7'), Code).
-nameChar(Code) --> between_code(hex('0300'), hex('036F'), Code).
-nameChar(Code) --> between_code(hex('203F'), hex('2040'), Code).
+nameChar(Code) --> between_code_radix(hex('0300'), hex('036F'), Code).
+nameChar(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
 
 
 
@@ -175,18 +175,18 @@ nameChar(Code) --> between_code(hex('203F'), hex('2040'), Code).
 nameStartChar(Code) --> letter_uppercase(Code).
 nameStartChar(Code) --> underscore(Code).
 nameStartChar(Code) --> letter_lowercase(Code).
-nameStartChar(Code) --> between_code(hex('00C0'), hex('00D6')).
-nameStartChar(Code) --> between_code(hex('00D8'), hex('00F6')).
-nameStartChar(Code) --> between_code(hex('00F8'), hex('02FF')).
-nameStartChar(Code) --> between_code(hex('0370'), hex('037D')).
-nameStartChar(Code) --> between_code(hex('037F'), hex('1FFF')).
-nameStartChar(Code) --> between_code(hex('200C'), hex('200D')).
-nameStartChar(Code) --> between_code(hex('2070'), hex('218F')).
-nameStartChar(Code) --> between_code(hex('2C00'), hex('2FEF')).
-nameStartChar(Code) --> between_code(hex('3001'), hex('D7FF')).
-nameStartChar(Code) --> between_code(hex('F900'), hex('FDCF')).
-nameStartChar(Code) --> between_code(hex('FDF0'), hex('FFFD')).
-nameStartChar(Code) --> between_code(hex('10000'), hex('EFFFF')).
+nameStartChar(Code) --> between_code_radix(hex('00C0'), hex('00D6')).
+nameStartChar(Code) --> between_code_radix(hex('00D8'), hex('00F6')).
+nameStartChar(Code) --> between_code_radix(hex('00F8'), hex('02FF')).
+nameStartChar(Code) --> between_code_radix(hex('0370'), hex('037D')).
+nameStartChar(Code) --> between_code_radix(hex('037F'), hex('1FFF')).
+nameStartChar(Code) --> between_code_radix(hex('200C'), hex('200D')).
+nameStartChar(Code) --> between_code_radix(hex('2070'), hex('218F')).
+nameStartChar(Code) --> between_code_radix(hex('2C00'), hex('2FEF')).
+nameStartChar(Code) --> between_code_radix(hex('3001'), hex('D7FF')).
+nameStartChar(Code) --> between_code_radix(hex('F900'), hex('FDCF')).
+nameStartChar(Code) --> between_code_radix(hex('FDF0'), hex('FFFD')).
+nameStartChar(Code) --> between_code_radix(hex('10000'), hex('EFFFF')).
 
 
 
