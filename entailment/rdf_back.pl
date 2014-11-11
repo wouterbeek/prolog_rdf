@@ -24,6 +24,7 @@ The latter condition holds under structural identity, i.e. =@=/2.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
 
@@ -342,7 +343,7 @@ rule_back(Regimes, Axiom, _, Path, (axiom-Axiom)-[]):-
 
 rdf_proof_node(Rule-Triple) -->
   bracketed(square, atom(Rule)),
-  ` `,
+  " ",
   rdf_triple_name(Triple).
 
 
@@ -368,12 +369,9 @@ without_structural_variant(L, X):-
 
 without_structural_variant(T, H1, [H2|T]):-
   copy_term(H1, H2),
-  (
-    member(X, T),
-    H2 =@= X
-  ->
-    fail
-  ;
-    true
+  (   member(X, T),
+      H2 =@= X
+  ->  fail
+  ;   true
   ).
 

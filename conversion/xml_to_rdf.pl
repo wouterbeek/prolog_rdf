@@ -34,7 +34,7 @@ Converts XML DOMs to RDF graphs.
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(os(file_ext)).
-:- use_module(xml(xml_word)).
+:- use_module(plXml(xml_word)).
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).

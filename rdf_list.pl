@@ -89,10 +89,10 @@ Support for RDF lists.
 % We do *not* want to represent `bnode2` as an RDF list,
 % since `bnode2` maps to `bnode1` in the blank node map.
 %
-% ~~~
+% ```
 % [1] <bnode1,rdf:type,rdf:List>
 % [2] <bnode2,rdf:type,rdf:List>
-% ~~~
+% ```
 
 rdf_is_list(RDF_List1):-
   nonvar(RDF_List1),

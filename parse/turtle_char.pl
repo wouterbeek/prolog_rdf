@@ -32,15 +32,16 @@ Turtle characters are a superset of SPARQL characters.
 
 :- use_module(math(radix)).
 
+:- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_content)).
 
 
 
 %! 'IRIREF'(?Codes:list(code))// .
-% ~~~{.ebfn}
+% ```{.ebfn}
 % IRIREF ::= '<' ( [^#x00-#x20<>"{}|^`\] | UCHAR )* '>'
 %                  /* #x00=NULL #01, '1F=control codes #x20=space */
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [18].
 
@@ -54,7 +55,7 @@ Turtle characters are a superset of SPARQL characters.
   'IRIREF_char*'(T).
 'IRIREF_char*'([]) --> [].
 
-'IRIREF_char'(_) --> [C], {C =< 32}, !, {fail}.
+'IRIREF_char'(_) --> [Code], {Code =< 32}, !, {fail}.
 'IRIREF_char'(_) --> "<", !, {fail}.
 'IRIREF_char'(_) --> ">", !, {fail}.
 'IRIREF_char'(_) --> "\"", !, {fail}.
@@ -64,16 +65,16 @@ Turtle characters are a superset of SPARQL characters.
 'IRIREF_char'(_) --> "^", !, {fail}.
 'IRIREF_char'(_) --> "\`", !, {fail}.
 'IRIREF_char'(_) --> "\\", !, {fail}.
-'IRIREF_char'(C) --> 'UCHAR'(C).
-'IRIREF_char'(C) --> [C].
+'IRIREF_char'(Code) --> 'UCHAR'(Code).
+'IRIREF_char'(Code) --> [Code].
 
 
 
 %! 'UCHAR'// .
 %! 'UCHAR'(?Code:nonneg)// .
-% ~~~{.ebnf}
+% ```{.ebnf}
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [26].
 

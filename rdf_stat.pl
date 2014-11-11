@@ -90,10 +90,10 @@ Statistics for RDF data.
 % This definition is actually incorrect, since a class can be specified
 % using either of the following triple schemes, without the class having
 % to occur in the object position of any triple.
-% ~~~
+% ```
 % <C,  rdf:type,        rdfs:Class>
 % <C, rdfs:subClassOf,  C'        >
-% ~~~
+% ```
 %
 % @see Based on the definition of =|void:classes|=.
 
@@ -172,10 +172,10 @@ count_objects(S, P, G, Count):-
 % This definition is actually incorrect, since a property can be specified
 % using either of the following triple schemes, without the property having
 % to occur in the predicate position of any triple.
-% ~~~
+% ```
 % <P,  rdf:type,           rdf:Property>
 % <P1, rdfs:subPropertyOf, P2          >
-% ~~~
+% ```
 %
 % @see Based on the definition of =|void:properties|=.
 
