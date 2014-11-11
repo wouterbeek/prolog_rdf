@@ -24,7 +24,7 @@ Generates names for RDF terms and triples.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(generics(codes_ext)).
+:- use_module(generics(code_ext)).
 :- use_module(generics(typecheck)).
 :- use_module(pl(pl_log)).
 
