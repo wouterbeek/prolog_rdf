@@ -22,17 +22,17 @@
 
 
 
-graph_closure([], _, [], []):- !.
-graph_closure([H|T], Pred, VSol, PropsSol):-
-  graph_closure([H|T], Pred, [H], VSol, [], PropsSol).
+rdf_graph_closure([], _, [], []):- !.
+rdf_graph_closure([H|T], Pred, VSol, PropsSol):-
+  rdf_graph_closure([H|T], Pred, [H], VSol, [], PropsSol).
 
-graph_closure([H1|T1], Pred, Vs1, VSol, Props1, PropsSol):-
+rdf_graph_closure([H1|T1], Pred, Vs1, VSol, Props1, PropsSol):-
   call(Pred, H1, Neighbors, NewProps),
   exclude(in_ordset(Vs1), Neighbors, NewNeighbors),
   append(T1, NewNeighbors, T2),
   ord_union(Vs1, Neighbors, Vs2),
   ord_union(Props1, NewProps, Props2),
-  graph_closure(T2, Pred, Vs2, VSol, Props2, PropsSol).
+  rdf_graph_closure(T2, Pred, Vs2, VSol, Props2, PropsSol).
 
 in_ordset(Set, Element):-
   memberchk(Element, Set).

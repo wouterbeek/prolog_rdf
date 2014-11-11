@@ -22,4 +22,5 @@ jsonld_dict(POPairs, Dict):-
   maplist(pairify, POPairs, Pairs),
   dict_pairs(Dict, json, Pairs).
 
-pairify(popair(Property,Object), [Property-json{"@id":Object}]).
+pairify(popair(Property,Object), [Property-Dict]):-
+  dict_create(Dict, json, ["@id"-Object]).
