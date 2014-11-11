@@ -37,8 +37,9 @@ When triples including images are read,
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(deb_ext)).
-:- use_module(generics(uri_ext)).
 :- use_module(os(image_ext)).
+
+:- use_module(plUri(uri_ext)).
 
 :- use_module(plHttp(http_download)).
 
