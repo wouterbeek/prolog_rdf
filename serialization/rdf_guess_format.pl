@@ -391,16 +391,19 @@ xml_doctype(Stream, Dialect, DocType, Attributes):-
   catch(
     setup_call_cleanup(
       make_parser(Stream, Parser, State),
-      (	writeln(hallo),sgml_parse(
-        Parser,
-        [
-          call(begin, on_begin),
-          call(cdata, on_cdata),
-          max_errors(-1),
-          source(Stream),
-          syntax_errors(quiet)
-        ]
-      )),
+      (
+        writeln(hallo),
+        sgml_parse(
+          Parser,
+          [
+            call(begin, on_begin),
+            call(cdata, on_cdata),
+            max_errors(-1),
+            source(Stream),
+            syntax_errors(quiet)
+          ]
+        )
+      ),
       cleanup_parser(Stream, Parser, State)
     ),
     E,

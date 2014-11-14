@@ -63,10 +63,10 @@ rdfs_subClassOf(C', rdfs:Class), and by (2) a triple of the form
 
 For example =|rdf:XMLLiteral|=:
 
-~~~
+```
 < rdf:XMLLiteral, rdf:type,        rdfs:Datatype >
 < rdf:XMLLiteral, rdfs:subClassOf, rdfs:Literal  >
-~~~
+```
 
 A property P is asserted by a triple of the form <P, rdf:type, P'>, such that
 rdfs_subPropertyOf(P', rdf:Property).

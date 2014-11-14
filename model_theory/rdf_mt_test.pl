@@ -105,32 +105,32 @@ clean_test(G, M):-
 % ## `rdf_mt_graph_1` & `rdf_mt_model_1`
 %
 % The first example from Hayes2004 (true):
-% ~~~
+% ```
 % <ex:a> <ex:b> <ex:c> .
 % <ex:c> <ex:a> <ex:a> .
 % <ex:c> <ex:b> <ex:a> .
 % <ex:a> <ex:b> "whatever"^^<ex:b> .
-% ~~~
+% ```
 %
 % ## `rdf_mt_graph_2` & `rdf_mt_model_1`
 %
 % The second example from Hayes2004 (false):
-% ~~~
+% ```
 % <ex:a> <ex:c> <ex:b> .
 % <ex:a> <ex:b> <ex:b> .
 % <ex:c> <ex:a> <ex:c> .
 % <ex:a> <ex:b> "whatever" .
-% ~~~
+% ```
 %
 % ## `rdf_mt_graph_3` & `rdf_mt_model_1`
 %
 % Variant with blank nodes (true):
-% ~~~
+% ```
 %   _:x  <ex:c> <ex:b> .
 % <ex:a> <ex:b> <ex:b> .
 % <ex:c> <ex:a> <ex:c> .
 % <ex:a> <ex:b> "whatever"^^<ex:b> .
-% ~~~
+% ```
 
 test_name(true,  rdf_mt_graph_1, rdf_mt_model_1).
 test_name(false, rdf_mt_graph_2, rdf_mt_model_1).

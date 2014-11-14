@@ -27,9 +27,9 @@ DCGs for numbers defined in Turtle recommendations.
 
 
 %! 'DECIMAL'(?Value:float)// .
-% ~~~{.ebnf}
+% ```ebnf
 % DECIMAL ::= [+-]? [0-9]* '.' [0-9]+
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [20].
 
@@ -47,12 +47,12 @@ DCGs for numbers defined in Turtle recommendations.
 
 
 %! 'DOUBLE'(?Value:float)// .
-% ~~~{.ebnf}
+% ```ebnf
 % DOUBLE ::= [+-]?
 %            ( [0-9]+ '.' [0-9]* EXPONENT |
 %              '.' [0-9]+ EXPONENT |
 %              [0-9]+ EXPONENT )
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [21].
 
@@ -70,9 +70,9 @@ DCGs for numbers defined in Turtle recommendations.
 
 
 %! 'INTEGER'(?Value:integer)// .
-% ~~~{.ebnf}
+% ```ebnf
 % INTEGER ::= [+-]? [0-9]+
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [19].
 

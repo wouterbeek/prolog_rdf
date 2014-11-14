@@ -23,12 +23,12 @@ Grammar for strings in Turtle.
 
 
 %! 'String'(-Value:atom)// .
-% ~~~{.ebnf}
+% ```ebnf
 % String ::= STRING_LITERAL_QUOTE |
 %            STRING_LITERAL_SINGLE_QUOTE |
 %            STRING_LITERAL_LONG_SINGLE_QUOTE |
 %            STRING_LITERAL_LONG_QUOTE
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [17].
 
@@ -44,11 +44,11 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_QUOTE'(?Codes:list(code))// .
-% ~~~{.ebnf}
+% ```ebnf
 % STRING_LITERAL_QUOTE ::= '"' ([^#x22#x5C#xA#xD] | ECHAR | UCHAR)* '"'
 %                          /* #x22=" #x5C=\ #xA=new line
 %                             #xD=carriage return */
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [22].
 
@@ -73,13 +73,13 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_SINGLE_QUOTE'(-Codes:list(code))// .
-% ~~~{.ebnf}
+% ```ebnf
 % STRING_LITERAL_SINGLE_QUOTE ::= "'"
 %                                 ([^#x27#x5C#xA#xD] | ECHAR | UCHAR)*
 %                                 "'"
 %                                 /* #x27=' #x5C=\ #xA=new line
 %                                    #xD=carriage return */
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [23].
 
@@ -104,14 +104,14 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_LONG_SINGLE_QUOTE'(-Codes:list(code))// .
-% ~~~{.ebnf}
+% ```ebnf
 % STRING_LITERAL_LONG_SINGLE_QUOTE ::= "'''"
 %                                      (
 %                                        ("'" | "''")?
 %                                        ([^'\] | ECHAR | UCHAR)
 %                                      )*
 %                                      "'''"
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [24].
 
@@ -150,14 +150,14 @@ Grammar for strings in Turtle.
 
 
 %! 'STRING_LITERAL_LONG_QUOTE'(-Codes:list(code))// .
-% ~~~{.ebnf}
+% ```ebnf
 % STRING_LITERAL_LONG_QUOTE ::= '"""'
 %                               (
 %                                 ('"' | '""')?
 %                                 ([^"\] | ECHAR | UCHAR)
 %                               )*
 %                               '"""'
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [25].
 

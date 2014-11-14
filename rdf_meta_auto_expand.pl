@@ -25,7 +25,7 @@ by either:
 
 ### Example
 
-~~~{.pl}
+```prolog}
 :- rdf_meta_expand pred(e,e,i).
 
 pred(Converted, AlsoConverted, NotConvertedLabel):-
@@ -34,18 +34,18 @@ pred(Converted, AlsoConverted, NotConvertedLabel):-
   writeln(NotConvertedLabel).
 
 :- X = rdfs:domains, pred(X, rdfs:range, label).
-~~~
+```
 
 The resulting listing of pred/3 will be:
 
-~~~{.pl}
+```prolog}
 pred(Converted2, AlsoConverted2, NotConvertedLabel):-
   rdf_global_id(Converted2, Converted),
   rdf_global_id(AlsoConverted2, AlsoConverted),
   rdf(Converted, rdf:type, rdfs:Class),
   rdf(Converted, rdf:type, rdfs:Class),
   writeln(NotConvertedLabel).
-~~~
+```
 
 --
 

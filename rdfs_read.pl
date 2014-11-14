@@ -38,7 +38,7 @@
 
 Examples of deductions that are incorrect in SWI-Prolog Semweb v3.
 
-~~~
+```
 rdfs_individual_of(rdfs:Datatype,X).
 +rdfs:Resource
 -rdfs:Class
@@ -65,7 +65,7 @@ rdfs_individual_of(rdfs:'Class', X)
 
 rdfs_individual_of(rdfs:Class, rdfs:Class)
 ~false
-~~~
+```
 
 ## Loops
 
@@ -75,14 +75,14 @@ a few loops occur in deduction. We enumerate these loops.
 ### RDFS10-RDFS9 loop
 
 Example:
-~~~
+```
 [RDFS 10] <rdfs:Dataype, rdf:type, rdfs:Datatype> if
           <rdfs:Dataype, rdf:type, rdfs:Class>
 [RDFS 9]  <rdfs:Dataype, rdf:type, rdfs:Class> if
           <X, rdfs:subClassOf, rdfs:Class>
           <rdfs:Datatype, rdf:type, X>
 [AXIOM]   [X/rdfs:Datatype]
-~~~
+```
 
 This is solved by constraining RDFS 9 to non-reflexive
 applications of the subclass relation.
@@ -90,7 +90,7 @@ applications of the subclass relation.
 ## RDFS9-RDFS11-RDFS10 loop
 
 Example:
-~~~
+```
 [RDFS 9]  <rdfs:Datatype, rdf:type, rdfs:Class> if
           <X, rdfs:subClassOf, rdfs:Class>
           <rdfs:Datatype, rdf:type, X>
@@ -100,7 +100,7 @@ Example:
 [AXIOM]   [Y/rdfs:Datatype]
 [RDFS 10] [X/rdfs:Datatype] if
           <rdfs:Datatype, rdf:type, rdfs:Class>
-~~~
+```
 
 This is solved by constraining RDFS 11 to non-reflexive
 application of the subclass relation.

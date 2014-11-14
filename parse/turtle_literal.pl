@@ -22,9 +22,9 @@ DCGs for literal expression defined in Turtle recommendations.
 
 
 %! literal(?Literal:compound)// .
-% ~~~{.ebnf}
+% ```ebnf
 % literal ::= RDFLiteral | NumericLiteral | BooleanLiteral
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [13].
 
@@ -35,9 +35,9 @@ literal(Literal) --> 'BooleanLiteral'(Literal).
 
 
 %! 'NumericLiteral'(?Literal:compound)// .
-% ~~~{.ebnf}
+% ```ebnf
 % NumericLiteral ::= INTEGER | DECIMAL | DOUBLE
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [16].
 
@@ -62,9 +62,9 @@ literal(Literal) --> 'BooleanLiteral'(Literal).
 %        - `literal(lang(<langtag>,<value>))`
 %        - `literal(type(<datatype>,<lexical-expression>))`
 %
-% ~~~{.ebnf}
+% ```ebnf
 % RDFLiteral ::= String ( LANGTAG | ( '^^' iri ) )?
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [128s].
 

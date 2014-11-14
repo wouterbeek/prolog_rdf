@@ -25,6 +25,7 @@ not as references to specific blank nodes in the data being queried.
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_content)).
 
 :- dynamic(bnode_memory(BNodeLabel, BNode)).
@@ -37,9 +38,9 @@ not as references to specific blank nodes in the data being queried.
 %
 % A unique blank node will be used to form the triple pattern.
 %
-% ~~~{.ebnf}
+% ```ebnf
 % ANON ::= '[' WS* ']'
-% ~~~
+% ```
 %
 % @compat SPARQL 1.0 [162].
 % @compat SPARQL 1.1 Query [163].
@@ -57,11 +58,11 @@ not as references to specific blank nodes in the data being queried.
 % The same blank node label cannot be used
 % in two different basic graph patterns in the same query.
 %
-% ~~~{.ebnf}
+% ```ebnf
 % BLANK_NODE_LABEL ::= '_:'
 %                      ( PN_CHARS_U | [0-9] )
 %                      ( ( PN_CHARS | '.' )* PN_CHARS )?
-% ~~~
+% ```
 %
 % @compat SPARQL 1.0 [141].
 % @compat SPARQL 1.1 Query [142].
@@ -99,9 +100,9 @@ not as references to specific blank nodes in the data being queried.
 % Blank nodes are indicated by either the label form,
 % such as `_:abc`, or the abbreviated form `[]`.
 %
-% ~~~{.ebnf}
+% ```ebnf
 % BlankNode ::= BLANK_NODE_LABEL | ANON
-% ~~~
+% ```
 %
 % @compat SPARQL 1.0 [137].
 % @compat SPARQL 1.1 Query [138].
@@ -115,9 +116,9 @@ not as references to specific blank nodes in the data being queried.
 
 
 %! name(?Codes:list(code))// .
-% ~~~{.ebnf}
+% ```ebnf
 % name ::= nameStartChar nameChar*
-% ~~~
+% ```
 %
 % @compat Turtle 1.0 [32].
 % @deprecated
@@ -129,14 +130,14 @@ name([H|T]) -->
 
 
 %! nameChar(?Code:code)// .
-% ~~~{.ebnf}
+% ```ebnf
 % nameChar ::=   nameStartChar
 %              | '-'
 %              | [0-9]
 %              | #x00B7
 %              | [#x0300-#x036F]
 %              | [#x203F-#x2040]
-% ~~~
+% ```
 %
 % @compat Turtle 1.0 [31].
 % @deprecated
@@ -145,13 +146,13 @@ nameChar(Code) --> nameStartChar(Code).
 nameChar(Code) --> hyphen(Code).
 nameChar(Code) --> decimal_digit(Code).
 nameChar(Code) --> code(hex('00B7'), Code).
-nameChar(Code) --> between_code(hex('0300'), hex('036F'), Code).
-nameChar(Code) --> between_code(hex('203F'), hex('2040'), Code).
+nameChar(Code) --> between_code_radix(hex('0300'), hex('036F'), Code).
+nameChar(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
 
 
 
 %! nameStartChar(?Code:code)// .
-% ~~~{.ebnf}
+% ```ebnf
 % nameStartChar ::=   [A-Z]
 %                   | "_" 
 %                   | [a-z]
@@ -167,7 +168,7 @@ nameChar(Code) --> between_code(hex('203F'), hex('2040'), Code).
 %                   | [#xF900-#xFDCF]
 %                   | [#xFDF0-#xFFFD]
 %                   | [#x10000-#xEFFFF]
-% ~~~
+% ```
 %
 % @compat Turtle 1.0 [30].
 % @deprecated
@@ -175,25 +176,25 @@ nameChar(Code) --> between_code(hex('203F'), hex('2040'), Code).
 nameStartChar(Code) --> letter_uppercase(Code).
 nameStartChar(Code) --> underscore(Code).
 nameStartChar(Code) --> letter_lowercase(Code).
-nameStartChar(Code) --> between_code(hex('00C0'), hex('00D6')).
-nameStartChar(Code) --> between_code(hex('00D8'), hex('00F6')).
-nameStartChar(Code) --> between_code(hex('00F8'), hex('02FF')).
-nameStartChar(Code) --> between_code(hex('0370'), hex('037D')).
-nameStartChar(Code) --> between_code(hex('037F'), hex('1FFF')).
-nameStartChar(Code) --> between_code(hex('200C'), hex('200D')).
-nameStartChar(Code) --> between_code(hex('2070'), hex('218F')).
-nameStartChar(Code) --> between_code(hex('2C00'), hex('2FEF')).
-nameStartChar(Code) --> between_code(hex('3001'), hex('D7FF')).
-nameStartChar(Code) --> between_code(hex('F900'), hex('FDCF')).
-nameStartChar(Code) --> between_code(hex('FDF0'), hex('FFFD')).
-nameStartChar(Code) --> between_code(hex('10000'), hex('EFFFF')).
+nameStartChar(Code) --> between_code_radix(hex('00C0'), hex('00D6')).
+nameStartChar(Code) --> between_code_radix(hex('00D8'), hex('00F6')).
+nameStartChar(Code) --> between_code_radix(hex('00F8'), hex('02FF')).
+nameStartChar(Code) --> between_code_radix(hex('0370'), hex('037D')).
+nameStartChar(Code) --> between_code_radix(hex('037F'), hex('1FFF')).
+nameStartChar(Code) --> between_code_radix(hex('200C'), hex('200D')).
+nameStartChar(Code) --> between_code_radix(hex('2070'), hex('218F')).
+nameStartChar(Code) --> between_code_radix(hex('2C00'), hex('2FEF')).
+nameStartChar(Code) --> between_code_radix(hex('3001'), hex('D7FF')).
+nameStartChar(Code) --> between_code_radix(hex('F900'), hex('FDCF')).
+nameStartChar(Code) --> between_code_radix(hex('FDF0'), hex('FFFD')).
+nameStartChar(Code) --> between_code_radix(hex('10000'), hex('EFFFF')).
 
 
 
 %! nodeID(-BNode:bnode)// .
-% ~~~{.ebnf}
+% ```ebnf
 % nodeID ::= '_:' name
-% ~~~
+% ```
 %
 % @compat Turtle 1.0 [26].
 % @deprecated

@@ -22,6 +22,8 @@
 :- use_module(sparql(sparql_query_generics)).
 :- use_module(turtle(turtle_number)).
 
+:- use_module(plDcg(dcg_bracket)).
+
 :- use_module(plRdf(rdf_list)).
 
 :- dynamic(base/1).
@@ -78,9 +80,9 @@ test(N):-
 % and ends at the beginning of the next `@base` or `BASE` diretive
 % or at the end of the file.
 %
-% ~~~{.abnf}
+% ```abnf
 % base ::= '@base' IRIREF '.'
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [5].
 
@@ -93,9 +95,9 @@ base(BaseIri) -->
 
 
 %! blankNodePropertyList(-BNode:bnode)// .
-% ~~~{.ebnf}
+% ```ebnf
 % blankNodePropertyList ::= '[' predicateObjectList ']'
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [14].
 
@@ -108,9 +110,9 @@ blankNodePropertyList(BNode) -->
 
 
 %! collection(-RdfList:bnode)// .
-% ~~~{.ebnf}
+% ```ebnf
 % collection ::= '(' object* ')'
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [15].
 
@@ -122,9 +124,9 @@ collection(RdfList) -->
 
 
 %! directive// .
-% ~~~{.ebnf}
+% ```ebnf
 % directive ::= prefixID | base | sparqlPrefix | sparqlBase
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [3].
 
@@ -136,13 +138,13 @@ directive --> sparqlBase.
 
 
 %! object// .
-% ~~~{.ebnf}
+% ```ebnf
 % object ::=   iri
 %            | BlankNode
 %            | collection
 %            | blankNodePropertyList
 %            | literal
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [12].
 
@@ -160,9 +162,9 @@ object(Literal) -->
 
 
 %! objectList(+Subject:or([bnode,iri]), +Predicate:iri)// .
-% ~~~{.ebnf}
+% ```ebnf
 % objectList ::= object (',' object)*
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [8].
 
@@ -181,9 +183,9 @@ objectList(S, P) -->
 
 
 %! predicate(-Predicate:iri)// .
-% ~~~{.ebnf}
+% ```ebnf
 % predicate ::= iri
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [11].
 
@@ -192,9 +194,9 @@ predicate(Iri) -->
 
 
 %! predicateObjectList(+Subject:or([bnode,iri]))// .
-% ~~~{.ebnf}
+% ```ebnf
 % predicateObjectList ::= verb objectList (';' (verb objectList)?)*
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [7].
 
@@ -210,9 +212,9 @@ predicateObjectList(S) -->
 
 
 %! prefixID// .
-% ~~~{.ebnf}
+% ```ebnf
 % prefixID ::= '@prefix' PNAME_NS IRIREF '.'
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [4].
 
@@ -225,9 +227,9 @@ prefixID -->
 
 
 %! sparqlBase// .
-% ~~~{.ebnf}
+% ```ebnf
 % sparqlBase ::= "BASE" IRIREF
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [5a].
 
@@ -238,9 +240,9 @@ sparqlBase -->
 
 
 %! sparqlPrefix// .
-% ~~~{.ebnf}
+% ```ebnf
 % sparqlPrefix ::= "PREFIX" PNAME_NS IRIREF
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [6s].
 
@@ -251,9 +253,9 @@ sparqlPrefix -->
 
 
 %! statement// .
-% ~~~{.ebnf}
+% ```ebnf
 % statement ::= directive | triples '.'
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [2].
 
@@ -268,9 +270,9 @@ statement -->
 
 
 %! subject(-Subject:or([bnode,iri,literal]))// .
-% ~~~{.ebnf}
+% ```ebnf
 % subject ::= iri | BlankNode | collection
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [10].
 
@@ -281,10 +283,10 @@ subject(RdfList) --> collection(RdfList).
 
 
 %! triples// .
-% ~~~{.ebnf}
+% ```ebnf
 % triples ::=   subject               predicateObjectList
 %             | blankNodePropertyList predicateObjectList?
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [6].
 
@@ -298,9 +300,9 @@ triples -->
 
 
 %! turtleDoc(-Triples:list(compound))// .
-% ~~~{.ebnf}
+% ```ebnf
 % turtleDoc ::= statement*
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [1].
 
@@ -315,9 +317,9 @@ turtleDoc(_, Triples, Triples) --> [].
 
 
 %! verb(?Iri:atom)// .
-% ~~~{.ebnf}
+% ```ebnf
 % verb ::= predicate | 'a'
-% ~~~
+% ```
 %
 % @compat Turtle 1.1 [9].
 

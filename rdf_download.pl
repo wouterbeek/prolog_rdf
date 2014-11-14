@@ -23,7 +23,7 @@ e.g. freshness lifetime.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(generics(uri_ext)).
+:- use_module(plUri(uri_ext)).
 
 :- use_module(plHttp(http_download)).
 
@@ -62,13 +62,10 @@ rdf_download(_, Url, File, Options):-
   option(graph(Graph), Options),
   is_rdf_graph(Graph), !,
   option(freshness_lifetime(FreshnessLifetime), Options, inf),
-  (
-    is_fresh_rdf_graph(Graph, FreshnessLifetime)
-  ->
-    true
-  ;
-    rdf_unload_graph(Graph),
-    rdf_download(Url, File, Options)
+  (   is_fresh_rdf_graph(Graph, FreshnessLifetime)
+  ->  true
+  ;   rdf_unload_graph(Graph),
+      rdf_download(Url, File, Options)
   ).
 % The data from the given URL can already be loaded from file.
 rdf_download(_, Url, File, Options):-

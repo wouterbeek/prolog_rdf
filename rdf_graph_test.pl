@@ -37,13 +37,10 @@ test(rdf_graph_instance, []):-
     Map,
     (
       rdf_graph_instance(test_graph_instance, test_graph, Map),
-      dcg_with_output_to(user_output, dummy)
+      dcg_with_output_to(user_output, (list(pl_term, Map), nl))
     ),
     _Maps
   ).
-dummy -->
-  list(pl_term, Map),
-  nl.
 
 :- end_tests(rdf_graph).
 
