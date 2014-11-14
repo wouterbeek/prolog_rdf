@@ -43,7 +43,9 @@ rdf_bnode_var(T, T).
 
 %! rdf_bnode_replace(+Graph:atom, +OtherGraphs:list(atom)) is det.
 % Replaces any blank nodes that occur in Graph and
-% at least one of the OtherGraphs.
+%  at least one of the OtherGraphs.
+%
+% This step is required before merging graphs.
 
 rdf_bnode_replace(G, OGs):-
   forall(
