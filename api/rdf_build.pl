@@ -39,15 +39,16 @@ Triples with literals are treated in dedicated modules.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
-:- use_module(plRdf(rdf_read)).
+:- use_module(plRdf(api/rdf_read)).
+:- use_module(plRdf(term/rdf_bnode_map)).
 
-:- rdf_meta(rdf_assert_instance(r,r,+)).
-:- rdf_meta(rdf_assert_property(r,+)).
+:- rdf_meta(rdf_assert_instance(r,r,?)).
+:- rdf_meta(rdf_assert_property(r,?)).
 :- rdf_meta(rdf_assert2(r,r,o,?)).
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
 :- rdf_meta(rdf_create_next_resource(+,+,r,?,-)).
-:- rdf_meta(rdf_remove_resource(r,+)).
-:- rdf_meta(rdf_remove_term(r,+)).
+:- rdf_meta(rdf_remove_resource(r,?)).
+:- rdf_meta(rdf_remove_term(r,?)).
 
 
 
@@ -174,6 +175,11 @@ rdf_remove_resource(Term, Graph):-
 % Removes all triples in which the given RDF term occurs.
 
 rdf_remove_term(Term, Graph):-
+  % Remove the mapped blank node, if it exists.
+  term_to_bnode(Term, BNode),
+  rdf_remove_term(BNode, Graph),
+  
+  % Remove the plain triples in which the term occurs.
   rdf_retractall(Term, _, _, Graph),
   rdf_retractall(_, Term, _, Graph),
   rdf_retractall(_, _, Term, Graph).

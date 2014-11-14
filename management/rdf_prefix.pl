@@ -7,6 +7,8 @@
                             % ?Predicate:iri
                             % ?Object:or([bnode,iri,literal])
                             % ?Graph:atom
+    rdf_prefix_iri/2, % +Iri:atom
+                      % -PrefixIri:atom
     rdf_prefixes/5, % ?Subject:or([bnode,iri])
                     % ?Predicate:iri
                     % ?Object:or([bnode,iri,literal])
@@ -18,12 +20,12 @@
   ]
 ).
 
-/** <module> RDF prefixes
+/** <module> RDF: Prefix
 
 Namespace support for RDF(S), building on namespace prefix support for XML.
 
 @author Wouter Beek
-@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09
+@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11
 */
 
 :- use_module(library(aggregate)).
@@ -34,6 +36,7 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 
 :- use_module(plRdf_term(rdf_term)).
 
+:- rdf_meta(rdf_prefixe_iri(r,-)).
 :- rdf_meta(rdf_prefixes(r,r,o,?,-)).
 :- rdf_meta(rdf_convert_prefixes(+,+,r,r,o,?)).
 
@@ -79,6 +82,20 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, Graph):-
       rdf_assert(S2, P2, O2, Graph)
     )
   ).
+
+
+
+%! rdf_prefix_iri(+Iri:atom, -PrefixIri:atom) is det.
+% Returns the prefix of the given IRI that is abbreviated with a registered
+%  RDF prefix, if any.
+%
+% If no registered RDF prefix occurs in Iri, then the full IRI is returned.
+
+rdf_prefix_iri(Iri, PrefixIri):-
+  rdf_global_id(Prefix:_, Iri), !,
+  rdf_current_prefix(Prefix, PrefixIri).
+rdf_prefix_iri(Iri, Iri).
+
 
 
 %! rdf_prefixes(
