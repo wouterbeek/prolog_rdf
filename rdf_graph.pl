@@ -91,25 +91,6 @@ is_rdf_graph(Graph):-
   rdf_graph(Graph).
 
 
-%! rdf_bnode_replace(
-%!   +Triple1:compound,
-%!   +Map:list(pair(bnode,or([literal,iri,var]))),
-%!   -Triple2:compound
-%! ) is det.
-% Replaces bnodes in triples with variables.
-
-rdf_bnode_replace(rdf(S1,P,O1), Map, rdf(S2,P,O2)):- !,
-  rdf_bnode_replace(S1, Map, S2),
-  rdf_bnode_replace(O1, Map, O2).
-% Not a blank node, do not replace.
-rdf_bnode_replace(X, _Map, X):-
-  \+ rdf_is_bnode(X), !.
-% A blank node that is in the mapping.
-rdf_bnode_replace(X, Map, Y):-
-  memberchk(X-Y, Map), !.
-% A blank node that is not in the mapping, replace with a Prolog variable.
-rdf_bnode_replace(_X, _Map, _Var).
-
 %! rdf_graph(+ComplexGraph:or([atom,compound]), -SimpleGraph:atom) is det.
 
 rdf_graph(G2:_RowNumber, G2):- !.
@@ -203,26 +184,23 @@ rdf_graph_merge(Gs, MergedG):-
     SharedBNodes
   ),
 
-  % Replace the blank nodes.
-  (
-    SharedBNodes == []
-  ->
-    rdf_graphs_to_graph(Gs, MergedG)
-  ;
-    forall(
-      (
-        member(G, Gs),
-        rdf(S, P, O, G)
-      ),
-      (
-        rdf_bnode_replace(
-          SharedBNodes,
-          rdf(S, P, O, G),
-          rdf(NewS, P, NewO)
+  % Replace any shared blank nodes.
+  (   SharedBNodes == []
+  ->  rdf_graphs_to_graph(Gs, MergedG)
+  ;   forall(
+        (
+          member(G, Gs),
+          rdf(S, P, O, G)
         ),
-        rdf_assert(NewS, P, NewO, MergedG)
+        (
+          rdf_bnode_replace(
+            SharedBNodes,
+            rdf(S, P, O, G),
+            rdf(NewS, P, NewO)
+          ),
+          rdf_assert(NewS, P, NewO, MergedG)
+        )
       )
-    )
   ).
 
 %! rdf_graph_proper_instance(

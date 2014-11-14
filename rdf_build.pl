@@ -49,15 +49,28 @@ Triples with literals are treated in dedicated modules.
 
 %! rdf_assert_instance(+Instance:iri, +Class:iri, ?Graph:graph) is det.
 % Asserts an instance/class relationship.
+%
+% The following triples are added to the database:
+% ~~~{.nq}
+% INSTANCE rdf:type CLASS GRAPH .
+% ~~~
 
 rdf_assert_instance(Instance, Class, Graph):-
   rdf_assert2(Instance, rdf:type, Class, Graph).
 
 
+
 %! rdf_assert_property(+Property:iri, ?Graph:atom) is det.
+% Asserts an RDF property.
+%
+% The following triples are added to the database:
+% ~~~{.nq}
+% PROPERTY rdf:type rdf:Property GRAPH .
+% ~~~
 
 rdf_assert_property(Property, Graph):-
   rdf_assert_instance(Property, rdf:'Property', Graph).
+
 
 
 %! rdf_assert2(
@@ -84,14 +97,18 @@ rdf_assert2(S, P, O, G):-
 %!   ?Graph:atom,
 %!   -Resource:iri
 %! ) is det.
-% Creates a new IRI that refers to a resource
-% and is constructed in a uniform way.
+% Creates new resource-denoting IRIs in a uniform way.
 %
 % @arg Prefix is a registered RDF prefix name.
 %      The replacing IRI is used as the base IRI for the resource.
-% @arg SubPaths is a list of path names that are appended to the base IRI.
+%      See rdf_register_prefix/2.
+% @arg SubPaths is a list of path names that are suffixed to the base IRI.
+% @arg Class An optional IRI denoting an RDFS class.
+%      See rdf_assert_instance/3.
+% @arg Graph An optional RDF graph name.
+% @arg Resource The newly created IRI.
 %
-% The Prefix + Subpath combination is used as the unique flag name
+% The Prefix + Subpaths combination is used as the unique flag name
 % for counting the created IRIs.
 
 rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
@@ -112,6 +129,7 @@ rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
   ->  rdf_assert_instance(Resource, Class, Graph)
   ;   true
   ).
+
 
 
 %! rdf_copy(
