@@ -15,10 +15,10 @@
                          % +Graph:atom
 
 % COMMENT
-    rdfs_assert_comment/3, % +Resource:or([blank,iri,literal])
+    rdfs_assert_comment/3, % +Resource:rdf_term
                            % +Comment:atom
                            % +Graph:atom
-    rdfs_assert_comment/4, % +Resource:or([blank,iri,literal])
+    rdfs_assert_comment/4, % +Resource:rdf_term
                            % +Comment:atom
                            % ?LanguageTag:atom
                            % +Graph:atom
@@ -50,7 +50,7 @@
   ]
 ).
 
-/** <module> RDFS build
+/** <module> RDF API: Build RDFS
 
 Predicates for asseritng RDFS statements in an easy way.
 

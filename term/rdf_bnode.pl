@@ -1,6 +1,8 @@
 :- module(
   rdf_bnode,
   [
+    rdf_bnode_match/2, % +Triple:compound
+                       % -MatchingTriple:compound
     rdf_bnode_replace/2 % +Graph:atom
                         % +OtherGraphs:list(atom)
   ]
@@ -18,6 +20,24 @@ Support for blank node terms in RDF.
 :- use_module(library(semweb/rdf_db)).
 
 :- thread_local(bnode_map/3).
+
+
+
+%! rdf_bnode_match(+Triple:compound, +MatchingTriple:compound) is semidet.
+%! rdf_bnode_match(+Triple:compound, -MatchingTriple:compound) is nondet.
+% Matches triples w.r.t. blank nodes.
+
+% Triple
+rdf_bnode_match(rdf(S1,P1,O1), rdf(S2,P2,O2)):-
+  rdf_bnode_match(rdf(S1,P1,O1,_), rdf(S2,P2,O2,_)).
+% Quadruple
+rdf_bnode_match(rdf(S1,P1,O1,G), rdf(S2,P2,O2,G)):-
+  maplist(rdf_bnode_var, [S1,P1,O1], [S2,P2,O2]),
+  rdf(S2, P2, O2, G).
+
+rdf_bnode_var(T, _):-
+  rdf_is_bnode(T), !.
+rdf_bnode_var(T, T).
 
 
 

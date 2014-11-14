@@ -20,18 +20,20 @@
                                 % ?Class:iri
                                 % ?Graph:atom
                                 % -Resource:iri
-    rdf_remove_term/2 % +Resource:iri
+    rdf_remove_resource/2, % +Resource:rdf_term
+                           % ?Graph:atom
+    rdf_remove_term/2 % +Term:rdf_term
                       % ?Graph:atom
   ]
 ).
 
-/** <module> RDF build
+/** <module> RDF API: Build RDF
 
 Simple asserion and retraction predicates for RDF.
 Triples with literals are treated in dedicated modules.
 
 @author Wouter Beek
-@version 2013/10, 2013/12-2014/01, 2014/06, 2014/08-2014/10
+@version 2013/10, 2013/12-2014/01, 2014/06, 2014/08-2014/11
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -41,8 +43,10 @@ Triples with literals are treated in dedicated modules.
 
 :- rdf_meta(rdf_assert_instance(r,r,+)).
 :- rdf_meta(rdf_assert_property(r,+)).
-:- rdf_meta(rdf_assert2(t,r,o,?)).
+:- rdf_meta(rdf_assert2(r,r,o,?)).
+:- rdf_meta(rdf_copy(+,r,r,o,+)).
 :- rdf_meta(rdf_create_next_resource(+,+,r,?,-)).
+:- rdf_meta(rdf_remove_resource(r,+)).
 :- rdf_meta(rdf_remove_term(r,+)).
 
 
@@ -51,9 +55,10 @@ Triples with literals are treated in dedicated modules.
 % Asserts an instance/class relationship.
 %
 % The following triples are added to the database:
-% ~~~{.nq}
-% INSTANCE rdf:type CLASS GRAPH .
-% ~~~
+%
+% ```nquads
+% <INSTANCE,rdf:type,CLASS,GRAPH>
+% ```
 
 rdf_assert_instance(Instance, Class, Graph):-
   rdf_assert2(Instance, rdf:type, Class, Graph).
@@ -64,9 +69,10 @@ rdf_assert_instance(Instance, Class, Graph):-
 % Asserts an RDF property.
 %
 % The following triples are added to the database:
-% ~~~{.nq}
-% PROPERTY rdf:type rdf:Property GRAPH .
-% ~~~
+%
+% ```nquads
+% <PROPERTY,rdf:type,rdf:Property,GRAPH>
+% ```
 
 rdf_assert_property(Property, Graph):-
   rdf_assert_instance(Property, rdf:'Property', Graph).
@@ -76,7 +82,7 @@ rdf_assert_property(Property, Graph):-
 %! rdf_assert2(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
-%!   +Object:or([bnode,iri,literal]),
+%!   +Object:rdf_term,
 %!   ?Graph:atom
 %! ) is det.
 % Like rdf/4 in [rdf_db], but allows Graph to be uninstantiated.
@@ -88,6 +94,26 @@ rdf_assert2(S, P, O, G):-
   rdf_assert(S, P, O).
 rdf_assert2(S, P, O, G):-
   rdf_assert(S, P, O, G).
+
+
+
+%! rdf_copy(
+%!   +FromGraph:atom,
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:or([bnode,iri,literal]),
+%!   +ToGraph:atom
+%! ) is det.
+% Copies triples between graphs.
+%
+% @tbd Perform blank node renaming.
+
+rdf_copy(FromGraph, S, P, O, ToGraph):-
+  forall(
+    rdf(S, P, O, FromGraph),
+    rdf_assert(S, P, O, ToGraph)
+  ).
+
 
 
 %! rdf_create_next_resource(
@@ -132,30 +158,22 @@ rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
 
 
 
-%! rdf_copy(
-%!   +FromGraph:atom,
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:or([bnode,iri,literal]),
-%!   +ToGraph:atom
-%! ) is det.
-% Copies triples between graphs.
-%
-% @tbd Perform blank node renaming.
+%! rdf_remove_resource(+Resource:rdf_term, ?Graph:atom) is det.
+% Removes all triples in which the resource denoted by the given RDF term
+%  occurs.
 
-rdf_copy(FromGraph, S, P, O, ToGraph):-
+rdf_remove_resource(Term, Graph):-
   forall(
-    rdf(S, P, O, FromGraph),
-    rdf_assert(S, P, O, ToGraph)
+    rdf_id(Term, Term0),
+    rdf_remove_term(Term0, Graph)
   ).
 
 
-%! rdf_remove_term(
-%!   +Resource:or([bnode,iri,literal]),
-%!   ?Graph:atom
-%! ) is det.
 
-rdf_remove_term(Resource, Graph):-
-  rdf_retractall(Resource, _, _, Graph),
-  rdf_retractall(_, Resource, _, Graph),
-  rdf_retractall(_, _, Resource, Graph).
+%! rdf_remove_term(+Term:rdf_term, ?Graph:atom) is det.
+% Removes all triples in which the given RDF term occurs.
+
+rdf_remove_term(Term, Graph):-
+  rdf_retractall(Term, _, _, Graph),
+  rdf_retractall(_, Term, _, Graph),
+  rdf_retractall(_, _, Term, Graph).

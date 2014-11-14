@@ -106,7 +106,7 @@ This is solved by constraining RDFS 11 to non-reflexive
 application of the subclass relation.
 
 @author Wouter Beek
-@tbd How to rdf_materialize the membership properties (an infinite lot of them)?
+@tbd MERGE WITH ENTAILMENT MODULES OR WITH SEMWEB/RDFS.
 @version 2011/08-2012/03, 2012/09, 2012/11-2013/03, 2013/07-2013/09,
          2014/02-2014/03
 */
