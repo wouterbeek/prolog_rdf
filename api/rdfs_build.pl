@@ -18,6 +18,10 @@
     rdfs_assert_isDefinedBy/3, % +Term:rdf_term
                                % ?Uri:atom
                                % ?Graph:atom
+    rdfs_assert_label/4, % +Term:rdf_term
+                         % +LexicalForm:atom
+                         % ?LangTag:atom
+                         % ?Graph:graph
     rdfs_assert_property_class/2, % +PropertyClass:iri
                                   % ?Graph:atom
     rdfs_assert_range/3, % +Property:iri
@@ -37,7 +41,7 @@
   ]
 ).
 
-/** <module> RDF API: Build RDFS
+/** <module> RDF API: Build lower-level descriptions in RDFS
 
 Predicates for asseritng RDFS statements in an easy way.
 
@@ -60,6 +64,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_assert_domain_range(r,r,?)).
 :- rdf_meta(rdfs_assert_instance(r,?)).
 :- rdf_meta(rdfs_assert_isDefinedBy(r,?,?)).
+:- rdf_meta(rdfs_assert_label(r,+,?,?)).
 :- rdf_meta(rdfs_assert_property_class(r,?)).
 :- rdf_meta(rdfs_assert_range(r,r,?)).
 :- rdf_meta(rdfs_assert_seeAlso(r,+,?)).
@@ -174,6 +179,29 @@ rdfs_assert_isDefinedBy(Term, Uri, Graph):-
   rdfs_assert_isDefinedBy(Term, Uri, Graph).
 rdfs_assert_isDefinedBy(Term, Uri, Graph):-
   rdf_assert(Term, rdfs:isDefinedBy, Uri, Graph).
+
+
+
+%! rdfs_assert_label(
+%!   +Term:rdf_term,
+%!   +Label:atom,
+%!   ?LangTag:list(atom),
+%!   ?Graph:atom
+%! ) is det.
+% Assigns an RDFS label to the resource denoted by the given RDF term.
+
+% Assign an RDFS label to a literal using the blank node map.
+rdfs_assert_label(Term, Label, LangTag, Graph):-
+  rdf_is_literal(Term), !,
+  term_to_bnode(Graph, Term, BNode),
+  rdfs_assert_label(BNode, Label, LangTag, Graph).
+% Labels without language tag are asserted as `xsd:string`.
+rdfs_assert_label(Term, Label, LangTag, Graph):-
+  var(LangTag), !,
+  rdf_assert_string(Term, rdfs:label, Label, Graph).
+% Labels with language tag are asserted as `rdf:langString`.
+rdfs_assert_label(Term, Label, LangTag, Graph):-
+  rdf_assert_language_tagged_string(Term, rdfs:label, Label, LangTag, Graph).
 
 
 

@@ -1,13 +1,6 @@
 :- module(
   rdfs_label_ext,
   [
-    rdfs_assert_label/3, % +Subject:oneof([bnode,iri])
-                         % +LexicalForm:atom
-                         % +RdfGraph:graph
-    rdfs_assert_label/4, % +Subject:oneof([bnode,iri])
-                         % +LexicalForm:atom
-                         % +LangTag:atom
-                         % +RdfGraph:graph
     rdfs_label/4, % ?Subject:or([bnode,iri])
                   % ?LexicalForm:atom
                   % ?LangTag:atom
@@ -51,50 +44,11 @@ Predicates for RDFS labels.
 :- use_module(plRdf_term(rdf_literal_build)).
 :- use_module(plRdf_term(rdf_string)).
 
-:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
-
-:- rdf_meta(rdfs_assert_label(r,+,+)).
-:- rdf_meta(rdfs_assert_label(r,+,+,+)).
 :- rdf_meta(rdfs_label(r,?,?,?)).
 :- rdf_meta(rdfs_list_by_label(r,+,-)).
 :- rdf_meta(rdfs_preferred_label(+,r,-,-,?)).
 :- rdf_meta(rdfs_retractall_label(r,?,?,?)).
 
-
-
-%! rdfs_assert_label(
-%!   +Subject:oneof([bnode,iri]),
-%!   +LexicalForm:atom,
-%!   +RdfGraph:atom
-%! ) is det.
-% Assert the subject's label description.
-%
-% @arg Subject An RDF subject term.
-% @arg LexicalForm An atomic description of a resource.
-% @arg RdfGraph The atomic name of an RDF graph.
-% @see rdfs_assert_label/4 also specifies the label.
-
-rdfs_assert_label(S, LexicalForm, G):-
-  rdf_assert_string(S, rdfs:label, LexicalForm, G).
-
-
-%! rdfs_assert_label(
-%!   +Subject:oneof([bnode,iri]),
-%!   +LexicalForm:atom,
-%!   +LangTag:atom,
-%!   +RdfGraph:atom
-%! ) is det.
-% Assert the subject's label description in the given label.
-%
-% @arg Subject An RDF subject term.
-% @arg LexicalForm An atomic description of a resource.
-% @arg LangTag The atomic name of a language.
-% @arg RdfGraph The atomic name of an RDF graph.
-%
-% @tbd Why are explicit conversions necessary here?
-
-rdfs_assert_label(S, LexicalForm, LangTag, G):-
-  rdf_assert_language_tagged_string(S, rdfs:label, LexicalForm, LangTag, G).
 
 
 %! rdfs_label(

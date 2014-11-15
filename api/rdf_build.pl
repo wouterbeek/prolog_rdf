@@ -1,19 +1,19 @@
 :- module(
   rdf_build,
   [
-    rdf_assert_instance/3, % +Instance:iri
-                           % +Class:iri
+    rdf_assert_instance/3, % +Instance:or([bnode,iri])
+                           % ?Class:iri
                            % ?Graph:atom
     rdf_assert_property/2, % +Property:iri
                            % ?Graph:atom
     rdf_assert2/4, % +Subject:or([bnode,iri])
                    % +Predicate:iri
-                   % +Object:or([bnode,iri,literal])
+                   % +Object:rdf_term
                    % ?Graph:atom
     rdf_copy/5, % +FromGraph:atom
                 % ?Subject:or([bnode,iri])
                 % ?Predicate:iri
-                % ?Object:or([bnode,iri,literal])
+                % ?Object:rdf_term
                 % +ToGraph:atom
     rdf_create_next_resource/5, % +Prefix:atom
                                 % +SubPaths:list(atom)
@@ -39,6 +39,8 @@ Triples with literals are treated in dedicated modules.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
+:- use_module(generics(meta_ext)).
+
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(term/rdf_bnode_map)).
 
@@ -52,7 +54,11 @@ Triples with literals are treated in dedicated modules.
 
 
 
-%! rdf_assert_instance(+Instance:iri, +Class:iri, ?Graph:graph) is det.
+%! rdf_assert_instance(
+%!   +Instance:or([bnode,iri]),
+%!   ?Class:iri,
+%!   ?Graph:graph
+%! ) is det.
 % Asserts an instance/class relationship.
 %
 % The following triples are added to the database:
@@ -60,8 +66,13 @@ Triples with literals are treated in dedicated modules.
 % ```nquads
 % <INSTANCE,rdf:type,CLASS,GRAPH>
 % ```
+%
+% @arg Instance Required IRI or blank node.
+% @arg Class    Using `rdfs:Resource` when uninstantiated.
+% @arg Grapg    Using `user` when uninstantiated.
 
 rdf_assert_instance(Instance, Class, Graph):-
+  default(rdfs:'Resource', Class),
   rdf_assert2(Instance, rdf:type, Class, Graph).
 
 
