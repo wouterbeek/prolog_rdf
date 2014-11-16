@@ -33,7 +33,7 @@ The latter condition holds under structural identity, i.e. =@=/2.
 :- use_module(plRdf(rdf_name)). % Meta-argument.
 :- use_module(plRdf(entailment/rdf_ent)). % Axioms, explanations, rules.
 :- use_module(plRdf(entailment/rdfs_ent)). % Axioms, explanations, rules.
-:- use_module(plRdf(term/rdf_bnode_map)).
+:- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_typed_literal)).
 
 %! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.

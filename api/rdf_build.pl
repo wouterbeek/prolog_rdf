@@ -42,7 +42,7 @@ Triples with literals are treated in dedicated modules.
 :- use_module(generics(meta_ext)).
 
 :- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(term/rdf_bnode_map)).
+:- use_module(plRdf(entailment/rdf_bnode_map)).
 
 :- rdf_meta(rdf_assert_instance(r,r,?)).
 :- rdf_meta(rdf_assert_property(r,?)).

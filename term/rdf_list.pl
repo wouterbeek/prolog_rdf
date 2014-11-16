@@ -51,7 +51,7 @@ Support for RDF lists.
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_read)).
-:- use_module(plRdf(term/rdf_bnode_map)).
+:- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).
 
 :- predicate_options(rdf_assert_list/3, 3, [

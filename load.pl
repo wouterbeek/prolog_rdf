@@ -11,6 +11,7 @@
      plGraph,
      plHttp,
      plSet,
+     plTms,
      plTree,
      plUri,
      plXml,
