@@ -38,6 +38,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(plRdf(rdf_triples)).
 :- use_module(plRdf(term/rdf_bnode)).
 :- use_module(plRdf(term/rdf_term)).
 

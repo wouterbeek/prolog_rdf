@@ -28,12 +28,10 @@
                               % -Predicate:iri
                               % -Subject:or([bnode,iri])
                               % ?Graph:atom
-    rdf_term_outgoing_edge/4, % +Subject:or([bnode,iri])
-                              % -Predicate:iri
-                              % -Object:rdf_term
-                              % ?Graph:atom
-    rdf_triples/2 % +Graph:atom
-                  % -Triples:ordset(compound)
+    rdf_term_outgoing_edge/4 % +Subject:or([bnode,iri])
+                             % -Predicate:iri
+                             % -Object:rdf_term
+                             % ?Graph:atom
   ]
 ).
 
@@ -184,14 +182,3 @@ rdf_term_incoming_edge(O, P, S, G):-
 
 rdf_term_outgoing_edge(S, P, O, G):-
   rdf(S, P, O, G).
-
-
-
-%! rdf_triples(+Graph:atom, -Triples:ordset(compound)) is det.
-
-rdf_triples(Graph, Triples):-
-  aggregate_all(
-    set(rdf(S,P,O),
-    rdf(S, P, O, Graph),
-    Triples
-  ).
