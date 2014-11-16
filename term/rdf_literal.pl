@@ -1,26 +1,10 @@
 :- module(
   rdf_literal,
   [
-    rdf_literal/1, % ?Literal:compound
-    rdf_literal/2, % ?Literal:compound
-                   % ?LexicalForm:atom
-    rdf_literal/3, % ?Literal:compound
-                   % ?LexicalForm:atom
-                   % ?Datatype:iri
-    rdf_literal/4, % ?Literal:compound
-                   % ?LexicalForm:atom
-                   % ?Datatype:iri
-                   % ?LanguageTag:atom
     rdf_literal/5, % ?Subject:or([bnode,iri])
                    % ?Predicate:iri
                    % ?LexicalForm:atom
                    % ?Datatype:iri
-                   % ?RdfGraph:atom
-    rdf_literal/6, % ?Subject:or([bnode,iri])
-                   % ?Predicate:iri
-                   % ?LexicalForm:atom
-                   % ?Datatype:iri
-                   % ?LanguageTag:atom
                    % ?RdfGraph:atom
     rdf_literal_equality/2, % +Literal1:compound
                             % +Literal2:compound
@@ -46,91 +30,8 @@ Support for reading triples with literal object terms.
 
 :- use_module(plRdf(term/rdf_term)).
 
-:- rdf_meta(rdf_literal(o)).
-:- rdf_meta(rdf_literal(o,?)).
-:- rdf_meta(rdf_literal(o,?,r)).
-:- rdf_meta(rdf_literal(o,?,r,?)).
-:- rdf_meta(rdf_literal(r,r,?,r,?)).
-:- rdf_meta(rdf_literal(r,r,?,r,?,?)).
 :- rdf_meta(rdf_literal_map(?,r,?,?)).
 
-
-
-%! rdf_literal(+Literal:compound) is semidet.
-%! rdf_literal(-Literal:compound) is nondet.
-
-rdf_literal(Literal):-
-  % Enumerates all literals.
-  rdf_current_literal(Literal).
-
-
-%! rdf_literal(+Literal:compound, +LexicalForm:atom) is semidet.
-%! rdf_literal(+Literal:compound, -LexicalForm:atom) is nondet.
-%! rdf_literal(-Literal:compound, +LexicalForm:atom) is nondet.
-%! rdf_literal(-Literal:compound, -LexicalForm:atom) is nondet.
-
-rdf_literal(Literal, LexicalForm):-
-  rdf_literal(Literal, LexicalForm, _, _).
-
-
-%! rdf_literal(+Literal:compound, +LexicalForm:atom, +Datatype:iri) is semidet.
-%! rdf_literal(+Literal:compound, -LexicalForm:atom, -Datatype:iri) is det.
-%! rdf_literal(-Literal:compound, +LexicalForm:atom, +Datatype:iri) is det.
-% Does not work for datatype `rdf:langTag`.
-
-rdf_literal(Literal, LexicalForm, Datatype):-
-  rdf_literal(Literal, LexicalForm, Datatype, _),
-  \+ rdf_equal(rdf:langTag, Datatype).
-
-
-%! rdf_literal(+Literal:compound, +LexicalForm:atom, +Datatype:iri, ?LanguageTag:atom) is semidet.
-%! rdf_literal(+Literal:compound, -LexicalForm:atom, -Datatype:iri, ?LanguageTag:atom) is det.
-%! rdf_literal(-Literal:compound, +LexicalForm:atom, +Datatype:iri, ?LanguageTag:atom) is det.
-% Construct/disassemble an RDF literal compound term in the Semweb format.
-
-rdf_literal(literal(lang(LangTag,LexicalForm)), LexicalForm, rdf:langString, LangTag):- !.
-rdf_literal(literal(type(Datatype,LexicalForm)), LexicalForm, Datatype, _):- !.
-rdf_literal(literal(LexicalForm), LexicalForm, xsd:string, _):-
-  atom(LexicalForm), !.
-
-%! rdf_literal(
-%!   ?Subject:oneof([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
-%!   ?Datatype:iri,
-%!   ?LanguageTag:atom,
-%!   ?RdfGraph:graph
-%! ) is nondet.
-% This does not work for language-tagged strings.
-
-rdf_literal(S, P, LexicalForm, Datatype, G):-
-  rdf_literal(S, P, LexicalForm, Datatype, _, G),
-  \+ rdf_equal(rdf:langString, Datatype).
-
-%! rdf_literal(
-%!   ?Subject:oneof([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
-%!   ?Datatype:iri,
-%!   ?LanguageTag:atom,
-%!   ?RdfGraph:graph
-%! ) is nondet.
-
-% Language-tagged strings.
-rdf_literal(S, P, LexicalForm, Datatype, LangTag, G):-
-  rdf_equal(rdf:langString, Datatype),
-  rdf(S, P, literal(lang(LangTag,LexicalForm)), G).
-% Typed literals.
-rdf_literal(S, P, LexicalForm, Datatype, LangTag, G):-
-  var(LangTag),
-  nonvar(Datatype),
-  rdf(S, P, literal(type(Datatype,LexicalForm)), G).
-% Simple literals.
-rdf_literal(S, P, LexicalForm, Datatype, LangTag, G):-
-  var(LangTag),
-  rdf_equal(xsd:string, Datatype),
-  rdf(S, P, literal(LexicalForm), G),
-  atom(LexicalForm).
 
 
 %! rdf_literal_equality(+Literal1:compound, +Literal2:compound) is semidet.
@@ -181,17 +82,8 @@ rdf_literal_map(LexicalForm, rdf:langString, LangTag, lang(LangTag,LexicalForm))
 rdf_literal_map(LexicalForm, Datatype, LangTag, Value):-
   xsd_datatype(Datatype),
   var(LangTag),
-  (
-    nonvar(Value)
-  ->
-    xsd_canonical_map(Datatype, Value, LexicalForm)
-  ;
-    nonvar(LexicalForm)
-  ->
-    once(xsd_lexical_map(Datatype, LexicalForm, Value))
+  (   nonvar(Value)
+  ->  xsd_canonical_map(Datatype, Value, LexicalForm)
+  ;   nonvar(LexicalForm)
+  ->  once(xsd_lexical_map(Datatype, LexicalForm, Value))
   ).
-
-
-
-
-

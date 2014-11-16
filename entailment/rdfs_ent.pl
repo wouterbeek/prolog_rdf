@@ -120,7 +120,7 @@ rdf:rule_forward(
   rdf(S, P, PlainLit, G),
   rdf_plain_literal(PlainLit),
 
-  term_to_bnode(G, PlainLit, B).
+  term_set_bnode(G, PlainLit, B).
 
 
 % [rdfs2] Class membership through domain restriction.

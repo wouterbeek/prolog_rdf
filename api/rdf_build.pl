@@ -4,6 +4,17 @@
     rdf_assert_instance/3, % +Instance:or([bnode,iri])
                            % ?Class:iri
                            % ?Graph:atom
+    rdf_assert_language_tagged_string/5, % +Term:rdf_term
+                                         % +Predicate:iri
+                                         % +LexicalForm:atom
+                                         % +LangTag:list(atom)
+                                         % ?Graph:atom
+    rdf_assert_literal/6, % +Term:rdf_term
+                          % +Predicate:iri
+                          % +LexicalForm:atom
+                          % ?DatatypeIri:iri
+                          % ?LangTag:list(atom)
+                          % ?Graph:atom
     rdf_assert_property/2, % +Property:iri
                            % ?Graph:atom
     rdf_assert2/4, % +Subject:or([bnode,iri])
@@ -20,10 +31,20 @@
                                 % ?Class:iri
                                 % ?Graph:atom
                                 % -Resource:iri
-    rdf_remove_resource/2, % +Resource:rdf_term
-                           % ?Graph:atom
-    rdf_remove_term/2 % +Term:rdf_term
-                      % ?Graph:atom
+    rdf_retractall2/4, % ?Term:rdf_term
+                       % ?Predicate:iri
+                       % ?Object:rdf_term
+                       % ?Graph:atom
+    rdf_retractall_literal/6, % ?Subject:oneof([bnode,iri])
+                              % ?Predicate:iri
+                              % ?LexicalForm:atom
+                              % ?DatatypeIri:iri
+                              % ?LangTag:list(atom)
+                              % ?Graph:atom
+    rdf_retractall_resource/2, % +Resource:rdf_term
+                               % ?Graph:atom
+    rdf_retractall_term/2 % +Term:rdf_term
+                          % ?Graph:atom
   ]
 ).
 
@@ -44,55 +65,92 @@ Triples with literals are treated in dedicated modules.
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 
-:- rdf_meta(rdf_assert_instance(r,r,?)).
-:- rdf_meta(rdf_assert_property(r,?)).
-:- rdf_meta(rdf_assert2(r,r,o,?)).
+:- rdf_meta(rdf_assert_instance(o,r,?)).
+:- rdf_meta(rdf_assert_language_tagged_string(o,r,+,+,?)).
+:- rdf_meta(rdf_assert_literal(o,r,+,?,?,?)).
+:- rdf_meta(rdf_assert_property(o,?)).
+:- rdf_meta(rdf_assert2(o,r,o,?)).
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
 :- rdf_meta(rdf_create_next_resource(+,+,r,?,-)).
-:- rdf_meta(rdf_remove_resource(r,?)).
-:- rdf_meta(rdf_remove_term(r,?)).
+:- rdf_meta(rdf_retractall2(o,r,o,?)).
+:- rdf_meta(rdf_retractall_literal(o,r,?,r,?,?)).
+:- rdf_meta(rdf_retractall_resource(o,?)).
+:- rdf_meta(rdf_retractall_term(o,?)).
 
 
 
-%! rdf_assert_instance(
-%!   +Instance:or([bnode,iri]),
-%!   ?Class:iri,
-%!   ?Graph:graph
-%! ) is det.
+%! rdf_assert_instance(+Term:rdf_term, ?Class:iri, ?Graph:graph) is det.
 % Asserts an instance/class relationship.
 %
 % The following triples are added to the database:
 %
 % ```nquads
-% <INSTANCE,rdf:type,CLASS,GRAPH>
+% <TERM,rdf:type,CLASS,GRAPH>
 % ```
 %
 % @arg Instance Required IRI or blank node.
 % @arg Class    Using `rdfs:Resource` when uninstantiated.
 % @arg Grapg    Using `user` when uninstantiated.
 
-rdf_assert_instance(Instance, Class, Graph):-
+rdf_assert_instance(Term, Class, Graph):-
   default(rdfs:'Resource', Class),
-  rdf_assert2(Instance, rdf:type, Class, Graph).
+  rdf_assert2(Term, rdf:type, Class, Graph).
 
 
 
-%! rdf_assert_property(+Property:iri, ?Graph:atom) is det.
+%! rdf_assert_language_tagged_string(
+%!   +Term:rdf_term,
+%!   +Predicate:iri,
+%!   +LexicalForm:atom,
+%!   +LangTag:list(atom),
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, Graph):-
+  rdf_assert_literal(Term, P, LexicalForm, rdf:langString, LangTag, Graph).
+
+
+
+%! rdf_assert_literal(
+%!   +Term:rdf_term,
+%!   +Predicate:iri,
+%!   +LexicalForm:atom,
+%!   ?DatatypeIri:iri,
+%!   ?LangTag:list(atom),
+%!   ?Graph:atom
+%! ) is det.
+% Asserts a triple with a literal object term.
+
+% Language-tagged strings.
+rdf_assert_literal(Node, P, LexicalForm, rdf:langString, LangTag, Graph):-
+  nonvar(LangTag), !,
+  rdf_assert2(Node, P, literal(lang(LangTag,LexicalForm)), Graph).
+% Simple literals.
+rdf_assert_literal(Node, P, LexicalForm, Datatype, _, Graph):-
+  var(Datatype), !,
+  rdf_assert_literal(Node, P, LexicalForm, xsd:string, _, Graph).
+% (Explicitly) typed literals.
+rdf_assert_literal(Node, P, LexicalForm, Datatype, _, Graph):-
+  rdf_assert2(Node, P, literal(type(Datatype,LexicalForm)), Graph).
+
+
+
+%! rdf_assert_property(+Term:rdf_term, ?Graph:atom) is det.
 % Asserts an RDF property.
 %
 % The following triples are added to the database:
 %
 % ```nquads
-% <PROPERTY,rdf:type,rdf:Property,GRAPH>
+% <TERM,rdf:type,rdf:Property,GRAPH>
 % ```
 
-rdf_assert_property(Property, Graph):-
-  rdf_assert_instance(Property, rdf:'Property', Graph).
+rdf_assert_property(Term, Graph):-
+  rdf_assert_instance(Term, rdf:'Property', Graph).
 
 
 
 %! rdf_assert2(
-%!   +Subject:or([bnode,iri]),
+%!   +Term:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
 %!   ?Graph:atom
@@ -101,11 +159,15 @@ rdf_assert_property(Property, Graph):-
 %
 % @see rdf_db:rdf/4
 
-rdf_assert2(S, P, O, G):-
+rdf_assert2(Literal, P, O, G):-
+  rdf_is_literal(Literal), !,
+  term_get_bnode(Literal, BNode),
+  rdf_assert2(BNode, P, O, G).
+rdf_assert2(Node, P, O, G):-
   var(G), !,
-  rdf_assert(S, P, O).
-rdf_assert2(S, P, O, G):-
-  rdf_assert(S, P, O, G).
+  rdf_assert(Node, P, O).
+rdf_assert2(Node, P, O, G):-
+  rdf_assert(Node, P, O, G).
 
 
 
@@ -170,27 +232,68 @@ rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
 
 
 
-%! rdf_remove_resource(+Resource:rdf_term, ?Graph:atom) is det.
-% Removes all triples in which the resource denoted by the given RDF term
-%  occurs.
+%! rdf_retractall2(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:atom
+%! ) is det.
 
-rdf_remove_resource(Term, Graph):-
-  forall(
-    rdf_id(Term, Term0),
-    rdf_remove_term(Term0, Graph)
+rdf_retractall2(Term, P, O, Graph):-
+  rdf_is_literal(Term), !,
+  term_get_bnode(Term, BNode)
+  rdf_retractall(BNode, P, O, Graph).
+rdf_retractall2(Node, P, O, Graph):-
+  rdf_retractall(Node, P, O, Graph).
+
+
+
+%! rdf_retractall_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?LexicalForm:atom,
+%!   ?DatatypeIri:iri,
+%!   ?LangTag:list(atom),
+%!   ?Graph:atom
+%! ) is det.
+% Retracts all matching RDF triples that have literal object terms.
+%
+% Implementation note: this assumes that simple literals are always
+%  asserted with datatype IRI `xsd:string`.
+% We do not retract literal compound terms of the form
+%  `literal(LexicalForm:atom)`.
+
+rdf_retractall_literal(Node, P, LexicalForm, Datatype, LangTag, Graph):-
+  % Retract language-tagged strings only if
+  % Datatype is unifiable with rdf:langString.
+  (   rdf_equal(Datatype, rdf:langString)
+  ->  rdf_retractall2(Node, P, literal(lang(LangTag,LexicalForm)), Graph)
+  ;   true
+  ),
+  % Retract datatyped literals only if LangTag is uninstantiated.
+  (   var(LangTag)
+  ->  rdf_retractall2(Node, P, literal(type(Datatype,LexicalForm)), Graph)
+  ;   true
   ).
 
 
 
-%! rdf_remove_term(+Term:rdf_term, ?Graph:atom) is det.
+%! rdf_retractall_resource(+Resource:rdf_term, ?Graph:atom) is det.
+% Removes all triples in which the resource denoted by the given RDF term
+%  occurs.
+
+rdf_retractall_resource(Term, Graph):-
+  forall(
+    rdf_id(Term, Term0),
+    rdf_retractall_term(Term0, Graph)
+  ).
+
+
+
+%! rdf_retractall_term(+Term:rdf_term, ?Graph:atom) is det.
 % Removes all triples in which the given RDF term occurs.
 
-rdf_remove_term(Term, Graph):-
-  % Remove the mapped blank node, if it exists.
-  term_to_bnode(Term, BNode),
-  rdf_remove_term(BNode, Graph),
-  
-  % Remove the plain triples in which the term occurs.
-  rdf_retractall(Term, _, _, Graph),
-  rdf_retractall(_, Term, _, Graph),
-  rdf_retractall(_, _, Term, Graph).
+rdf_retractall_term(Term, Graph):-
+  rdf_retractall2(Term, _, _, Graph),
+  rdf_retractall2(_, Term, _, Graph),
+  rdf_retractall2(_, _, Term, Graph).

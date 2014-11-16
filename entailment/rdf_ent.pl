@@ -89,7 +89,7 @@ rdf:rule_forward(se, se1, [rdf(S,P,O)], rdf(S,P,B), G):-
 
   % Use an existing mapping, if it exists.
   % Add a new mapping, otherwise.
-  term_to_bnode(G, O, B).
+  term_set_bnode(G, O, B).
 
 
 % [se2] Existential quantification w.r.t. the subject term.
@@ -108,7 +108,7 @@ rdf:rule_forward(se, se2, [rdf(S,P,O)], rdf(B,P,O), G):-
 
   % Use an existing mapping, if it exists.
   % Add a new mapping, otherwise.
-  term_to_bnode(G, S, B).
+  term_set_bnode(G, S, B).
 
 
 % [lg] Literal generalization is a special case of [se1],
@@ -129,7 +129,7 @@ rdf:explanation(
 rdf:rule_forward(rdf, lg, [rdf(S,P,Lit)], rdf(S,P,B), G):-
   rdf(S, P, Lit, G),
   rdf_is_literal(Lit),
-  term_to_bnode(G, Lit, B).
+  term_set_bnode(G, Lit, B).
 
 
 
@@ -174,7 +174,7 @@ rdf:rule_forward(
   % @tbd This should be a well-typed XML literal...
   rdf_is_literal(TypedLit),
 
-  term_to_bnode(G, TypedLit, B).
+  term_set_bnode(G, TypedLit, B).
 
 
 % RDF axiomatic triples.

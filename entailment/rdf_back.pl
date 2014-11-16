@@ -152,7 +152,7 @@ rule_back(
 
   % Use an existing mapping, if it exists.
   % Add a new mapping, otherwise.
-  term_to_bnode(Graph, O, BNode).
+  term_set_bnode(Graph, O, BNode).
 
 
 % [se2] Existential quantification w.r.t. the subject term.
@@ -172,7 +172,7 @@ rule_back(
 
   % Use an existing mapping, if it exists.
   % Add a new mapping, otherwise.
-  term_to_bnode(Graph, S, BNode).
+  term_set_bnode(Graph, S, BNode).
 
 
 % [lg] Literal generalization is a special case of [se1],
@@ -197,7 +197,7 @@ rule_back(
   without_structural_variant(Path1, lg-rdf(S,P,BNode), Path2),
   rule_back(Regimes, rdf(S,P,literal(Literal)), Graph, Path2, SubTree),
 
-  term_to_bnode(Graph, literal(Literal), BNode).
+  term_set_bnode(Graph, literal(Literal), BNode).
 
 
 % [rdf1] Predicate terms are instances of =|rdf:'Property'|=.
@@ -279,7 +279,7 @@ rule_back(
 
   % @tbd Check whether the values is a well-typed XML expression.
 
-  term_to_bnode(Graph, XmlLiteral, BNode).
+  term_set_bnode(Graph, XmlLiteral, BNode).
 
 
 % [rdfs2] Class membership through domain restriction.

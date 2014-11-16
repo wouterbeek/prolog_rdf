@@ -8,9 +8,12 @@
                      % +BNode:bnode
                      % -Term:rdf_term
     clear_bnode_map/1, % ?Graph:atom
-    term_to_bnode/3 % ?Graph:atom
-                    % +Term:rdf_term
-                    % -BNode:bnode
+    term_get_bnode/3, % ?Graph:atom
+                      % +Term:rdf_term
+                      % -BNode:bnode
+    term_set_bnode/3 % ?Graph:atom
+                     % +Term:rdf_term
+                     % -BNode:bnode
   ]
 ).
 
@@ -59,7 +62,7 @@ The graph argument is required in blank node maps,
 % Mappings are relative to graphs.
 
 add_bnode_map(Graph, BNode, Term):-
-  default(user, Graph),
+  rdf_graph(Graph),
   with_mutex(rdf_bnode_map, (
     % Add a mapping from blank node to term.
     bnode_to_term_map(Graph, OldB2T),
@@ -80,7 +83,7 @@ add_bnode_map(Graph, BNode, Term):-
 % Returns the RDF term to which the given blank node was mapped, if any.
 
 bnode_to_term(Graph, BNode, Term):-
-  default(user, Graph),
+  rdf_graph(Graph),
   with_mutex(rdf_bnode_map, (
     bnode_to_term_map0(Graph, Map),
     get_assoc(BNode, Map, Term)
@@ -92,7 +95,7 @@ bnode_to_term(Graph, BNode, Term):-
 % Removes the blank node maps for the given graph.
 
 clear_bnode_map(Graph):-
-  default(user, Graph),
+  rdf_graph(Graph),
   rdf_is_graph(Graph),
   with_mutex(rdf_bnode_map, (
     retractall(bnode_to_term_map0(Graph,_)),
@@ -101,13 +104,25 @@ clear_bnode_map(Graph):-
 
 
 
-%! term_to_bnode(+Graph:atom, +Term:rdf_term, -BNode:bnode) is det.
+%! term_get_bnode(+Graph:atom, +Term:rdf_term, -BNode:bnode) is det.
+
+term_get_bnode(Graph, Term, BNode):-
+  rdf_graph(Graph),
+  with_mutex(rdf_bnode_map, (
+    (   term_to_bnode_map0(Graph, Map),
+        get_assoc(Term, Map, BNode)
+    )
+  )).
+
+
+
+%! term_set_bnode(+Graph:atom, +Term:rdf_term, -BNode:bnode) is det.
 % Either an existing mapping is returned,
 %  or a new mapping is created and returned.
 
 % The store contains a blank node that stands for the given resource.
-term_to_bnode(Graph, Term, BNode):-
-  default(user, Graph),
+term_set_bnode(Graph, Term, BNode):-
+  rdf_graph(Graph),
   with_mutex(rdf_bnode_map, (
     (   term_to_bnode_map0(Graph, Map),
         get_assoc(Term, Map, BNode)
