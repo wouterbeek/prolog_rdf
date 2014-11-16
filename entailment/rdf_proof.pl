@@ -123,7 +123,7 @@ rdf_rule('RDFS-10',
 ).
 rdf_rule('RDFS-11',
   rdf(C,rdfs:subClassOf,E),
-  rdf(C,rdfs:subClassOf,D,
+  rdf(C,rdfs:subClassOf,D),
   rdf(D,rdfs:subClassOf,E)
 ).
 rdf_rule('RDFS-12',
