@@ -32,6 +32,7 @@ Converts XML DOMs to RDF graphs.
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri)).
 
 :- use_module(os(file_ext)).
 :- use_module(plXml(xml_word)).
@@ -64,10 +65,12 @@ Converts XML DOMs to RDF graphs.
 
 
 
-ensure_graph_name(_, G):-
-  nonvar(G), !.
-ensure_graph_name(F, G):-
-  file_to_graph_name(F, G).
+%! ensure_graph_name(+File:atom, ?Graph:atom) is det.
+
+ensure_graph_name(_, Graph):-
+  nonvar(Graph), !.
+ensure_graph_name(File, Graph):-
+  uri_file_name(File, Graph).
 
 
 parse_file(File1, Prefix, G):-

@@ -1,8 +1,6 @@
 :- module(
   rdf_graph_name,
   [
-    file_to_graph_name/2, % +File:atom
-                          % -Graph:atom
     rdf_new_graph/1, % ?Graph:atom
     rdf_new_graph/2 % +Graph1:atom
                     % -Graph2:atom
@@ -25,22 +23,13 @@ Support for naming graphs.
 
 
 
-%! file_to_graph_name(+File:atom, -Graph:atom) is det.
-% Returns an atomic name for the graph that could be encoded in the given
-% file, by basing the graph name on the file name.
-% This ensures that the graph name does not already exist.
-
-file_to_graph_name(F, G):-
-  file_components(F, _Dir, SuggestedG, _Ext),
-  % Make sure the graph does not already exist.
-  rdf_new_graph(SuggestedG, G).
-
 %! rdf_new_graph(?Graph:atom) is det.
 
 rdf_new_graph(G):-
   var(G), !,
   rdf_new_graph(user, G).
 rdf_new_graph(_).
+
 
 %! rdf_new_graph(+GraphSuggestion:atom, -NewGraph:atom) is det.
 % Returns a graph name that is close to the given graph name,

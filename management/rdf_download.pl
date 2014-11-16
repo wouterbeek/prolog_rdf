@@ -62,7 +62,7 @@ rdf_download(_, Url, File, Options):-
   option(graph(Graph), Options),
   is_rdf_graph(Graph), !,
   option(freshness_lifetime(FreshnessLifetime), Options, inf),
-  (   is_fresh_rdf_graph(Graph, FreshnessLifetime)
+  (   rdf_graph_fresh(Graph, FreshnessLifetime)
   ->  true
   ;   rdf_unload_graph(Graph),
       rdf_download(Url, File, Options)

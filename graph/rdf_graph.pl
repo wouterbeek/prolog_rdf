@@ -1,100 +1,71 @@
 :- module(
   rdf_graph,
   [
-    is_fresh_rdf_graph/2, % +Graph:atom
-                          % +FreshnessLifetime:between(0.0,inf)
-    is_rdf_graph/1, % @Term
-    rdf_graph/2, % +ComplexGraph:compound
-                 % -SimpleGraph:atom
+    rdf_fresh_graph/2, % ?Graph:atom
+                       % +FreshnessLifetime:between(0.0,inf)
     rdf_graph_age/2, % ?Graph:atom
                      % -Age:between(0.0,inf)
-    rdf_graph_copy/2, % +From:atom
-                      % +To:atom
-    rdf_graph_equivalence/2, % +Graph1:atom
-                             % +Graph2:atom
-    rdf_graph_instance/3, % +Graph1:atom
-                          % +Graph2:atom
-                          % -BNodeMap:list(pair(bnode,or([iri,literal])))
-    rdf_graph_proper_instance/3, % +Graph1:atom
-                                 % +Graph2:atom
-                                 % -BNodeMap:list(pair(bnode,or([iri,literal])))
+    rdf_graph_instance/3, % +Instance:atom
+                          % +Graph:atom
+                          % -Map:list(pair(bnode,rdf_term))
     rdf_graph_merge/2, % +MergingGraphs:list(atom)
                        % +MergedGraph:atom
-    rdf_graph_to_triples/2, % +Graph:atom
-                            % -Triples:list(compound)
-    rdf_graphs_to_graph/2, % +FromGraphs:list(atom)
-                           % +ToGraph:atom
-    rdf_ground/1, % +Graph:atom
-    rdf_ground/1, % +Triple:compound
-    rdf_is_graph/2, % +Graph:atom
-                    % -NormalizedGraph:atom
-    rdf_same_graph/2, % +Graph1:atom
-                      % +Graph2:atom
-    rdf_schema/4, % +Graph:atom
-                  % -RdfsClasses:ordset(iri)
-                  % -RdfProperties:ordset(iri)
-                  % -Triples:ordset(compound)
-    rdf_subgraph/2, % +Graph1:atom
-                    % +Graph2:atom
-    rdf_triple/4 % ?Subject:or([bnode,iri])
-                 % ?Predicate:iri
-                 % ?Object:or([bnode,literal,iri])
-                 % ?Triple:triple
+    rdf_graph_same_size/2, % +Graph1:atom
+                           % +Graph2:atom
+    rdf_is_graph/1, % @Term
+    rdf_is_ground_graph/1, % +Graph:atom
+    rdf_is_lean_graph/1, % +Graph:atom
+    rdf_lean_graph/2, % +Graph:atom
+                      % -NonleanTriple:compound
+    rdf_proper_graph_instance/3, % +Graph1:atom
+                                 % +Graph2:atom
+                                 % -BNodeMap:list(pair(bnode,or([iri,literal])))
+    rdf_proper_subgraph/2, % +ProperSubgraph:atom
+                           % +Graph:atom
+    rdf_stale_graph/2, % ?Graph:atom
+                       % +FreshnessLifetime:between(0.0,inf)
+    rdf_subgraph/2 % +ProperSubgraph:atom
+                   % +Graph:atom
   ]
 ).
 
 /** <module> RDF graph
 
-Predicates that apply to entire RDF graphs.
-
 @author Wouter Beek
-@version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05
+@compat [RDF 1.1 Semantics](http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/)
+@version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05, 2014/11
 */
 
-:- use_module(library(aggregate)).
-:- use_module(library(apply)).
-:- use_module(library(debug)).
-:- use_module(library(lists), except([delete/3])).
-:- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 
-:- use_module(generics(list_ext)).
-:- use_module(math(math_ext)).
-
-:- use_module(plRdf(rdf_graph_name)).
-:- use_module(plRdf_term(rdf_term)).
-
-:- rdf_meta(rdf_triple(r,r,r,?)).
+:- use_module(plRdf(term/rdf_bnode)).
+:- use_module(plRdf(term/rdf_term)).
 
 
 
-%! is_fresh_rdf_graph(
+%! rdf_fresh_graph(
 %!   +Graph:atom,
 %!   +FreshnessLifetime:between(0.0,inf)
 %! ) is semidet.
+% Succeeds if the age of the given RDF graph is under the given freshness
+%  lifetime.
+%! rdf_fresh_graph(
+%!   -Graph:atom,
+%!   +FreshnessLifetime:between(0.0,inf)
+%! ) is nondet.
+% Enumerates the RDF graphs that are fresh w.r.t. the given freshness
+%  lifetime.
 
-is_fresh_rdf_graph(Graph, FreshnessLifetime):-
+rdf_fresh_graph(Graph, FreshnessLifetime):-
   rdf_graph_age(Graph, Age),
   is_fresh_age(Age, FreshnessLifetime).
 
 
-%! is_rdf_graph(@Term) is semidet.
-% rdf_graph/1 throws an exception for any non-atomic nonvar argument,
-% whereas this predicate fails silently.
-
-is_rdf_graph(Graph):-
-  atom(Graph),
-  rdf_graph(Graph).
-
-
-%! rdf_graph(+ComplexGraph:or([atom,compound]), -SimpleGraph:atom) is det.
-
-rdf_graph(G2:_RowNumber, G2):- !.
-rdf_graph(G, G).
 
 %! rdf_graph_age(+Graph:atom, -Age:between(0.0,inf)) is det.
+% Returns the age of the RDF graph with the given name in seconds.
 %! rdf_graph_age(-Graph:atom, -Age:between(0.0,inf)) is nondet.
+% Enumerates the currently loaded RDF graphs and their age in seconds.
 
 rdf_graph_age(Graph, Age):-
   rdf_graph_property(Graph, source_last_modified(LastModified)),
@@ -102,210 +73,302 @@ rdf_graph_age(Graph, Age):-
   Age is Now - LastModified.
 
 
-%! rdf_graph_copy(+From:atom, +To:atom) is det.
-% Copying a graph is the same as merging a single graph
-% and storing the result under a new name.
 
-rdf_graph_copy(From, To):-
-  From \== To,
-  rdf_graph_merge([From], To).
+%! rdf_graph_instance(
+%!   +Instance:atom,
+%!   +Graph:atom,
+%!   -Map:list(pair(bnode,rdf_term))
+%! ) is semidet.
+% Suppose that M is a functional mapping from a set of blank nodes to
+%  some set of literals, blank nodes and IRIs.
+% Any graph obtained from a graph G by replacing some or all of
+%  the blank nodes N in G by M(N) is an **instance** of G.
+%
+% Any graph is an instance of itself.
+% An instance of an instance of G is an instance of G.
+% If H is an instance of G then every triple in H is an instance of
+%  at least one triple in G.
 
-%! rdf_graph_equivalence(+Graph1:atom, +Graph2:atom) is semidet.
+rdf_graph_instance(H, G, Map):-
+  rdf_triples(G, GTriples),
+  partition(rdf_is_ground_triple, GTriples, GGround, GNonground),
+  rdf_triples(H, HTriples),
+  ord_subtract(HTriples, GGround, HInstance),
+  rdf_graph_instance(HInstance, GNonground, [], Map).
 
-rdf_graph_equivalence(Graph1, Graph2):-
-  rdf_graph_equivalence0(Graph1, Graph2),
-  rdf_graph_equivalence0(Graph2, Graph1).
-rdf_graph_equivalence0(Graph1, Graph2):-
-  forall(
-    rdf(Subject1, Predicate, Object1, Graph1),
-    (
-      rdf(Subject2, Predicate, Object2, Graph2),
-      rdf_graph_equivalence_subject0(Graph1, Subject1, Graph2, Subject2),
-      rdf_graph_equivalence_object0(Graph1, Object1, Graph2, Object2)
-    )
-  ).
-rdf_graph_equivalence_subject0(_Graph1, Subject, _Graph2, Subject):-
-  rdf_is_resource(Subject), !.
-rdf_graph_equivalence_subject0(Graph1, Subject1, Graph2, Subject2):-
-  bnode_translation0(Graph1, Subject1, Graph2, Subject2).
-rdf_graph_equivalence_object0(_Graph1, Object, _Graph2, Object):-
-  rdf_is_resource(Object), !.
-rdf_graph_equivalence_object0(_Graph1, Object, _Graph2, Object):-
-  rdf_is_literal(Object), !.
-rdf_graph_equivalence_object0(Graph1, Object1, Graph2, Object2):-
-  bnode_translation0(Graph1, Object1, Graph2, Object2).
-bnode_translation0(G1, Resource1, G2, Resource2):-
-  maplist(rdf_bnode, [Resource1,Resource2], [G1,G2]), !.
+rdf_graph_instance([], [], Map, Map):- !.
+rdf_graph_instance0(L1, [rdf(S2,P,O2)|T2], Map1, Map):-
+  % Find an instance, i.e., Specific of Generic.
+  maplist(bnode_to_var, [S2,O2], [S3,O3]),
+  select(rdf(S3,P,O3), L1, NewL1),
+  rdf_term_instance(S3, S2, Map1, Map2),
+  rdf_term_instance(O3, O2, Map2, Map3),
+  rdf_graph_instance0(NewL1, T2, Map3, Map).
 
-rdf_graph_instance(G, H, Map):-
-  rdf_graph(G), rdf_graph(H),
-  rdf_triples(G, L1), rdf_triples(H, L2),
-  rdf_graph_instance(L2, L1, [], Map).
 
-rdf_graph_instance([], _L2, SolMap, SolMap):- !.
-rdf_graph_instance([S1-P-O1|T1], L2, Map, SolMap):-
-  rdf_bnode_replace(S1, Map, S2),
-  (var(S2) -> MapExtension1 = [S1-S2] ; MapExtension1 = []),
-  rdf_bnode_replace(O1, Map, O2),
-  (var(O2) -> MapExtension2 = [O1-O2] ; MapExtension2 = []),
-  member(S2-P-O2, L2),
-  append([Map,MapExtension1,MapExtension2], NewMap),
-  rdf_graph_instance(T1, L2, NewMap, SolMap).
 
 %! rdf_graph_merge(+MergingGraphs:list(atom), +MergedGraph:atom) is det.
-%! rdf_graph_merge(+MergingGraphs:list(atom), -MergedGraph:atom) is det.
-% Merges RDF graphs.
-% When merging RDF graphs we have to make sure that their blank nodes are
-% standardized apart.
+% The operation fo **merging** takes the union after forcing any shared
+%  blank nodes, which occur in more than one graph, to be distinct in each
+%  graph.
+% The resulting graph is called the **merge**.
 
-rdf_graph_merge(Gs, MergedG):-
-  % Type checking.
-  is_list(Gs),
-  maplist(rdf_graph, Gs),
-
-  % Generate a name for the merged graph, if needed.
-  rdf_new_graph(MergedG),
-
+rdf_graph_merge(FromGs, ToG):-
   % Collect the shared blank nodes.
-  findall(
-    G1/G2/SharedBNode,
+  aggregate_all(
+    set(FromG1-SharedBNode),
     (
-      member(G1, G2, Gs),
+      member(FromG1, FromG2, FromGs),
       % Use the natural order of atomic names.
       % The idea is that we only replace shared blank nodes in
-      % the latter graph.
-      G1 @< G2,
-      rdf_bnode(SharedBNode, G1),
-      rdf_bnode(SharedBNode, G2)
+      % the latter graph, but not in the former.
+      FromG1 @< FromG2,
+      \+ (
+        member(FromG3, FromGs),
+        FromG1 @< FromG3,
+        FromG3 @< FromG2
+      ),
+      rdf_bnode(SharedBNode, FromG1),
+      rdf_bnode(SharedBNode, FromG2)
     ),
     SharedBNodes
   ),
-
-  % Replace any shared blank nodes.
-  (   SharedBNodes == []
-  ->  rdf_graphs_to_graph(Gs, MergedG)
-  ;   forall(
-        (
-          member(G, Gs),
-          rdf(S, P, O, G)
-        ),
-        (
-          rdf_bnode_replace(
-            SharedBNodes,
-            rdf(S, P, O, G),
-            rdf(NewS, P, NewO)
-          ),
-          rdf_assert(NewS, P, NewO, MergedG)
-        )
-      )
-  ).
-
-%! rdf_graph_proper_instance(
-%!   +Graph1:atom,
-%!   +Graph2:atom,
-%!   -BNodeMap:list(pair(bnode,or([literal,iri])))
-%! ) is semidet.
-% A proper instance of a graph is an instance in which a blank node
-% has been replaced by a name, or two blank nodes in the graph have
-% been mapped into the same node in the instance.
-
-rdf_graph_proper_instance(G, H, Map):-
-  rdf_graph_instance(G, H, Map),
-  (
-    % A node is mapped onto an RDF name.
-    member(_-X, Map),
-    rdf_name(X, G)
-  ;
-    % Two different blank nodes are mapped onto the same blank node.
-    member(X1-Y, Map),
-    member(X2-Y, Map),
-    X1 \== X2
-  ), !.
-
-%! rdf_graph_to_triples(+Graph:atom, -Triples:list(rdf_triple)) is det.
-% Returns an unsorted list containing all the triples in a graph.
-%
-% @arg In The atomic name of a loaded RDF graph, or a URI.
-% @arg Triples A list of triple compound term.
-
-rdf_graph_to_triples(G, Ts):-
-  rdf_graph(G), !,
-  findall(rdf(S,P,O), rdf(S, P, O, G), Ts).
-
-rdf_graphs_to_graph(G1s, G2):-
+  
+  % From the shared blank nodes that will be replaced per graph
+  %  to the actual blank node mapping.
+  findall(
+    bnode_map(FromG, SharedBNode-NewBNode),
+    (
+      member(FromG, SharedBNode),
+      rdf_bnode(NewBNode)
+    ),
+    Map
+  ),
+  
+  % Effectuate the mapping while performing the merge.
   forall(
     (
-      member(G1, G1s),
-      rdf(S, P, O, G1)
+      member(FromG, FromGs),
+      rdf_retractall(S1, P, O1, FromG)
     ),
-    rdf_assert(S, P, O, G2)
+    (
+      (   memberchk(FromG, S1-S2)
+      ->  true
+      ;   S2 = S1
+      ),
+      (   memberchk(FromG, O1-O2)
+      ->  true
+      ;   O2 = O1
+      ),
+      rdf_assert(S2, P, O2, ToG)
+    )
   ).
 
-%! rdf_ground(+Graph:graph) is semidet.
-% Succeeds if the given graph is ground, i.e., contains no blank node.
-%! rdf_ground(+Triple) is semidet.
-% Succeeds if the given triple is ground, i.e., contains no blank node.
-% The predicate cannot be a blank node by definition.
+
+
+%! rdf_graph_same_size(+Graph1:atom, +Graph2:atom) is semidet.
+% Succeds if the RDF graphs denoted by the given names have the same
+%  number of triples.
+
+rdf_graph_same_size(G, H):-
+  rdf_graph_property(G, triples(Count)),
+  rdf_graph_property(H, triples(Count)).
+
+
+
+%! rdf_is_graph(@Term) is semidet.
+% rdf_graph/1 throws an exception for any non-atomic nonvar argument,
+% whereas this predicate fails silently.
 %
-% @see RDF Semantics http://www.w3.org/TR/2004/REC-rdf-mt-20040210/
+% The name of this predicate is in line with rdf_is_bnode/1, rdf_is_literal/1,
+%  and rdf_is_resource/1 in [library(semweb/rdf_db)].
 
-rdf_ground(rdf(S,_,O)):- !,
-  \+ rdf_is_bnode(S),
-  \+ rdf_is_bnode(O).
-rdf_ground(G):-
-  forall(
-    rdf(S, P, O, G),
-    rdf_ground(rdf(S,P,O))
-  ).
-
-% @tbd What is this?
-
-rdf_is_graph(Graph:_, Graph):-
-  atom(Graph),
-  rdf_graph(Graph), !.
-rdf_is_graph(Graph, Graph):-
+rdf_is_graph(Graph):-
   atom(Graph),
   rdf_graph(Graph).
 
-rdf_same_graph(Graph1, Graph2):-
-  rdf_is_graph(Graph1, Graph),
-  rdf_is_graph(Graph2, Graph).
 
-rdf_schema(G, RdfsClasses, RdfProperties, Triples):-
-  aggregate_all(
-    set(C),
-    rdfs_individual_of(C, rdfs:'Class'),
-    RdfsClasses
-  ),
-  aggregate_all(
-    set(P),
-    rdfs_individual_of(P, rdf:'Property'),
-    RdfProperties
-  ),
-  ord_union(RdfsClasses, RdfProperties, Vocabulary),
-  aggregate_all(
-    set(rdf(S,P,O)),
-    (
-      member(S, O, Vocabulary),
-      rdf(S, P, O, G)
+
+%! rdf_is_ground_graph(+Graph:atom) is semidet.
+% Succeeds if the given RDF graph is ground, i.e., contains no blank node.
+%! rdf_is_ground_graph(-Graph:atom) is nondet.
+% Enumerates RDF graphs that are ground.
+%
+% A **ground** RDF graph is one that contains no blank nodes.
+%
+% @compat RDF 1.1 Semantics
+
+rdf_is_ground_graph(Graph):-
+  rdf_graph(Graph),
+  \+ rdf_bnode(_, Graph).
+
+
+
+%! rdf_is_lean_graph(+Lean:atom) is semidet.
+% An RDF graph is **lean** if it has no instance which is a proper subgraph
+%  of itself.
+%
+% Non-lean graphs have internal redundancy and express the same content
+% as their lean subgraphs. For example, the graph
+%
+% ```
+% ex:a ex:p _:x .
+% _:y  ex:p _:x .
+% ```
+%
+% is not lean, but
+%
+% ```
+% ex:a ex:p _:x .
+% _:x  ex:p _:x .
+% ```
+%
+% is lean.
+%
+% Ground graphs are lean.
+%
+% ### Algorithm
+%
+% The idea behind the algorith is that a non-lean graph must contain
+%  two triples: Generic and Specific such that
+%  the latter is a proper instance of the former.
+% This means that Specific entails Generic, which is therefore verbose.
+%
+% @compat RDF 1.1 Semantics
+
+rdf_is_lean_graph(Graph):-
+ \+ rdf_lean_graph(Graph, _).
+
+
+
+%! rdf_lean_graph(+Graph:atom, -NonleanTriple:compound) is nondet.
+% Graph leaning process, enumerates the non-lean triples in Graph.
+
+rdf_lean_graph(Graph, rdf(S1,P,O1)):-
+  rdf_triples(Graph, Triples),
+  partition(rdf_is_ground_triple, Triples, Ground, NonGround),
+  \+ (
+    % Generic. Example 1: `_:y ex:p _:x`.
+    member(rdf(S1,P,O1), NonGround),
+    % Specific. Example 2: `ex:a ex:p _:x`.
+    % This is likelier to be found in ground triples.
+    (   member(rdf(S2,P,O2), Ground)
+    ;   member(rdf(S2,P,O2), NonGround)
     ),
-    Triples
+    
+    % Check whether Specific is a *proper instance* of Generic.
+    \+ (S1 == S2, O1 == O2),
+    rdf_triple_instance(rdf(S2,P,O2), rdf(S1,P,O1), Map),
+    
+    % Check whether the mapping extends to the entire graph.
+    forall(
+      member(rdf(S3,P3,O3), NonGround),
+      (
+        rdf_triple_bnode_map(rdf(S3,P3,O3), rdf(S4,P4,O4), Map),
+        memberchk(rdf(S4,P4,O4), Triples)
+      )
+    )
   ).
 
-%! rdf_subgraph(+Graph1:atom, +Graph2:atom) is semidet.
-% Succeeds if the former graph is a subgraph of the latter.
+
+
+%! rdf_proper_graph_instance(
+%!   +ProperInstance:atom,
+%!   +Graph:atom,
+%!   -Map:list(pair(bnode,rdf_term))
+%! ) is semidet.
+% A **proper instance** of a graph is an instance in which a blank node
+%  has been replaced by a name, or two blank nodes in the graph have
+%  been mapped into the same node in the instance.
 %
-% @see RDF Semantics http://www.w3.org/TR/2004/REC-rdf-mt-20040210/
+% @compat RDF 1.1 Semantics
+
+rdf_proper_graph_instance(G, H, Map):-
+  rdf_graph_instance(G, H, Map),
+  rdf_proper_graph_instance(Map).
+
+% A blank node is mapped onto an RDF name.
+rdf_proper_graph_instance(Map):-
+  ord_member(_-Name, Map),
+  rdf_is_name(Name), !.
+% Two different blank nodes are mapped onto the same blank node.
+rdf_proper_graph_instance(Map):-
+  member(BNode1-BNode3, Map),
+  member(BNode2-BNode3, Map),
+  BNode1 \== BNode2, !.
+
+
+
+%! rdf_proper_subgraph(+ProperSubgraph:atom, +Graph) is semidet.
+% A **proper subgraph** is a proper subset of the triples in the graph. 
+%
+% @compat RDF 1.1 Semantics
+
+rdf_proper_subgraph(G, H):-
+  rdf_propert_subgraph(G, H),
+  \+ rdf_graph_same_size(G, H).
+
+
+
+%! rdf_stale_graph(
+%!   +Graph:atom,
+%!   +FreshnessLifetime:between(0.0,inf)
+%! ) is semidet.
+% Succeeds if the age of the given RDF graph is over the given freshness
+%  lifetime.
+%! rdf_stale_graph(
+%!   -Graph:atom,
+%!   +FreshnessLifetime:between(0.0,inf)
+%! ) is nondet.
+% Enumerates the RDF graphs that are stale w.r.t. the given freshness
+%  lifetime.
+
+rdf_stale_graph(Graph, FreshnessLifetime):-
+  rdf_graph_age(Graph, Age),
+  is_stale_age(Age, FreshnessLifetime).
+
+
+
+%! rdf_subgraph(+Subgraph:atom, +Graph:atom) is semidet.
+% A **subgraph** of an RDF graph is a subset of the triples in the graph.
+%
+% @compat RDF 1.1 Semantics
 
 rdf_subgraph(G, H):-
-  rdf_graph(G),
-  rdf_graph(H), !,
-  \+ (rdf(S, P, O, G),
-  \+ rdf(S, P, O, H)).
+  \+ ((
+    rdf(S, P, O, G),
+    \+ rdf(S, P, O, H)
+  )).
 
-rdf_triple(S1, P1, O1, Triple):-
-  var(Triple), !,
-  maplist(rdf_global_id, [S1,P1,O1], [S2,P2,O2]),
-  Triple = rdf(S2,P2,O2).
-rdf_triple(S, P, O, rdf(S,P,O)).
 
+
+/*
+% UNDER DEVELOPMENT
+
+%! rdf_graph_sat(+I, +G:atom) is semidet.
+% Interpretation I **(simply) satisfies** RDF graph E when I(E)=true.
+% 
+% RDF graph E is (simply) satisfiable when
+%  a simple interpretation I exists which satisfies it.
+% Otherwise, RDF graph E is (simply) unsatisfiable.
+%
+% @compat RDF 1.1 Semantics
+
+
+%! rdf_graph_entails(+G:atom, +E:atom) is semidet.
+% RDF Graph G simply **entails** RDF graph E when every interpretation which
+%  *satisfies* G also satisfies E.
+%
+% @compat RDF 1.1 Semantics
+
+
+
+%! rdf_graph_equiv(+Graph1:atom, +Graph2:atom) is semidet.
+% RDF graphs are **logically equivalent** iff they *entail* each other.
+%
+% @compat RDF 1.1 Semantics
+
+rdf_graph_equiv(G1, G2):-
+  rdf_graph_entails(G1, G2),
+  rdf_graph_entails(G2, G1).
+*/

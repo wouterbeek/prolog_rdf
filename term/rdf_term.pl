@@ -1,14 +1,15 @@
 :- module(
   rdf_term,
   [
-    rdf_bnode/2, % ?BlankNode:bnode
+    rdf_bnode/2, % ?BNode:bnode
                  % ?Graph:atom
     rdf_iri/1, % ?Iri:iri
     rdf_iri/2, % ?Iri:iri
                % ?Graph:atom
+    rdf_is_name/1, % @Term
     rdf_name/2, % ?Name:oneof([iri,literal])
                 % ?Graph:atom
-    rdf_node/2, % ?RdfNode:or([bnode,iri,literal])
+    rdf_node/2, % ?Node:or([bnode,iri,literal])
                 % ?Graph:atom
     rdf_object/2, % ?Object:oneof([bnode,literal,iri])
                   % ?Graph:atom
@@ -16,33 +17,32 @@
                      % ?Graph:atom
     rdf_subject/2, % ?Subject:oneof([bnode,iri])
                    % ?Graph:atom
-    rdf_term/2, % ?Term:or([bnode,iriliteral])
+    rdf_term/2, % ?Term:rdf_term
                 % ?Graph:atom
-    rdf_term_value/2, % +RdfTerm:or([bnode,iri,literal])
+    rdf_term_value/2, % +Term:rdf_term
                       % -PrologTerm
     rdf_vocabulary/2 % +Graph:atom
                      % -Vocabulary:ordset(or([iri,literal]))
   ]
 ).
 
-/** <module> RDF Term
+/** <module> RDF term
 
 Support for RDF 1.1 terms.
 Support for RDF literals is found in [rdf_literal].
 
 @author Wouter Beek
-@see CyganiakWoodLanthaler2014
-     RDF 1.1 Concepts and Abstract Syntax
-     http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/
+@compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 @version 2012/01-2013/05, 2013/07-2013/08, 2014/01-2014/03, 2014/05,
-	 2014/09
+         2014/09, 2014/11
 */
 
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(generics(typecheck)).
+:- use_module(pl(pl_mode)).
 
-:- use_module(plRdf_term(rdf_literal)).
+:- use_module(plRdf(term/rdf_literal)).
 
 :- rdf_meta(rdf_iri(r)).
 :- rdf_meta(rdf_iri(r,?)).
@@ -56,18 +56,19 @@ Support for RDF literals is found in [rdf_literal].
 
 
 
-%! rdf_bnode(+BlankNode:bnode, +Graph:atom) is semidet.
-%! rdf_bnode(-BlankNode:bnode, +Graph:atom) is nondet.
-%! rdf_bnode(+BlankNode:bnode, -Graph:atom) is nondet.
-%! rdf_bnode(-BlankNode:bnode, -Graph:atom) is nondet.
+%! rdf_bnode(+BNode:bnode, +Graph:atom) is semidet.
+%! rdf_bnode(-BNode:bnode, +Graph:atom) is nondet.
+%! rdf_bnode(+BNode:bnode, -Graph:atom) is nondet.
+%! rdf_bnode(-BNode:bnode, -Graph:atom) is nondet.
 % Relates blank nodes to RDF graphs in which they occur.
-% Ensures that no pairs occurs twice.
+% Ensures that no pair occurs twice.
 
 rdf_bnode(BNode, Graph):-
   % Enumerates RDF nodes.
   rdf_resource(BNode),
+  % Typecheck for being a blank node.
   rdf_is_bnode(BNode),
-  % Relate the blank node to a graph.
+  % Relate blank node to graph.
   rdf_node(BNode, Graph).
 
 
@@ -116,11 +117,24 @@ rdf_is_iri(IRI):-
   is_of_type(iri, IRI).
 
 
+
+%! rdf_is_name(@Term) is semidet.
+% Succeeds if the given term is an RDF name.
+
+rdf_is_name(Name):-
+  rdf_is_literal(Name).
+rdf_is_name(Name):-
+  rdf_is_resource(Name).
+
+
+
 %! rdf_name(+Name:or([iri,literal]), +Graph:atom) is semidet.
 %! rdf_name(-Name:or([iri,literal]), +Graph:atom) is nondet.
 %! rdf_name(+Name:or([iri,literal]), -Graph:atom) is nondet.
 %! rdf_name(-Name:or([iri,literal]), -Graph:atom) is nondet.
-% RDF names are IRIs and RDF literals.
+% **RDF names** are either IRIs or RDF literals.
+%
+% Notice that RDF names are the RDF ground terms.
 %
 % ### Uniqueness
 %
@@ -143,27 +157,20 @@ rdf_is_iri(IRI):-
 % @see RDF Semantics http://www.w3.org/TR/2004/REC-rdf-mt-20040210/
 
 rdf_name(Name, Graph):-
-  nonvar(Name),
-  nonvar(Graph), !,
-  rdf_name_(Name, Graph), !.
-rdf_name(Name, Graph):-
-  rdf_name_(Name, Graph).
+  call_det(rdf_name0, nonvar-Name, nonvar-Graph).
 
-rdf_name_(Name, Graph):-
-  (
-    rdf_resource(Name)
-  ;
-    rdf_current_predicate(Name)
+rdf_name0(Name, Graph):-
+  (   % Subject or object terms.
+      rdf_resource(Name)
+  ;   % Predicate terms.
+      rdf_current_predicate(Name)
   ),
   % Exclude blank nodes.
   \+ rdf_is_bnode(Name),
   % Relate to an RDF graph.
-  (
-    rdf_subject(Name, Graph)
-  ;
-    rdf_predicate(Name, Graph)
-  ;
-    rdf_object(Name, Graph)
+  (   rdf_subject(Name, Graph)
+  ;   rdf_predicate(Name, Graph)
+  ;   rdf_object(Name, Graph)
   ).
 
 
