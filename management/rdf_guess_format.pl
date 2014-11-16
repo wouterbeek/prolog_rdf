@@ -25,7 +25,7 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml)).
 
-:- use_module(plRdf_ser(rdf_file_db)).
+:- use_module(plRdf(management/rdf_file_db)).
 
 
 

@@ -37,6 +37,8 @@ The graph argument is required in blank node maps,
 
 :- use_module(generics(meta_ext)).
 
+:- use_module(plRdf(graph/rdf_graph)).
+
 %! bnode_to_term_map0(+Graph:atom, -Map:assoc) is semidet.
 % The mapping from blank nodes to RDF terms.
 
@@ -64,13 +66,13 @@ add_bnode_map(Graph, BNode, Term):-
     retractall(bnode_to_term_map0(Graph, OldB2T)),
     put_assoc(BNode, OldB2T, Term, NewB2T),
     assert(bnode_to_term_map0(Graph, NewB2T)),
-    
+
     % Add a mapping from term to blank node.
     term_to_bnode_map(Graph, OldT2B),
     retractall(term_to_bnode_map0(Graph, OldT2B)),
     put_assoc(Term, OldT2B, BNode, NewT2B),
     assert(term_to_bnode_map0(Graph, NewT2B))
-  ).
+  )).
 
 
 
@@ -82,7 +84,7 @@ bnode_to_term(Graph, BNode, Term):-
   with_mutex(rdf_bnode_map, (
     bnode_to_term_map0(Graph, Map),
     get_assoc(BNode, Map, Term)
-  ).
+  )).
 
 
 
@@ -95,7 +97,7 @@ clear_bnode_map(Graph):-
   with_mutex(rdf_bnode_map, (
     retractall(bnode_to_term_map0(Graph,_)),
     retractall(term_to_bnode_map0(Graph,_))
-  ).
+  )).
 
 
 
@@ -117,7 +119,7 @@ term_to_bnode(Graph, Term, BNode):-
         rdf_bnode(BNode),
         add_bnode_map(Graph, BNode, Term)
     )
-  ).
+  )).
 
 
 
@@ -139,7 +141,7 @@ bnode_to_term_map(Graph, Map):-
         empty_assoc(Map),
         assert(bnode_to_term_map0(Graph, Map))
     )
-  ).
+  )).
 
 
 
@@ -157,5 +159,5 @@ term_to_bnode_map(Graph, Map):-
         empty_assoc(Map),
         assert(term_to_bnode_map0(Graph, Map))
     )
-  ).
+  )).
 

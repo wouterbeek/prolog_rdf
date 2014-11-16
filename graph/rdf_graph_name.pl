@@ -33,14 +33,21 @@ rdf_new_graph(Graph):-
 % No RDF graph with the given name exists, so it is safe to use.
 rdf_new_graph(Name, Graph):-
   atomic_concat('/', Name, Path),
-  uri_compound(Uri, uri_components(http,'www.example.com',Path,_,_)),
-  \+ rdf_graph(Uri), !,
+  uri_compound(Graph1, uri_components(http,'www.example.com',Path,_,_)),
+  
   % Make sure the RDF graph now exists,
   % since otherwise it will not exist until
   % a first triple is stored inside it.
-  rdf_create_graph(Uri).
+  with_mutex(rdf_graph_name, (
+    rdf_new_graph0(Graph1, Graph2),
+    rdf_create_graph(Graph)
+  )).
+
+% The graph name is new.
+rdf_new_graph0(Name, Name):-
+  \+ rdf_graph(Name), !.
 % An RDF graph with the same name already exists, so the name is altered.
-rdf_new_graph(Name1, Graph):-
+rdf_new_graph0(Name1, Name):-
   new_atom(Name1, Name2),
-  rdf_new_graph(Name2, Graph).
+  rdf_new_graph0(Name2, Name).
 

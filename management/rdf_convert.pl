@@ -34,8 +34,8 @@ Predicates for converting RDF data between different serialization formats.
 :- use_module(os(file_ext)).
 
 :- use_module(plRdf(rdf_meta)).
-:- use_module(plRdf_ser(rdf_file)).
-:- use_module(plRdf_ser(rdf_file_db)).
+:- use_module(plRdf(management/rdf_file)).
+:- use_module(plRdf(management/rdf_file_db)).
 
 :- predicate_options(rdf_convert_directory/4, 4, [
      pass_to(rdf_convert_directory/5, 5)

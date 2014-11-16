@@ -134,18 +134,18 @@ rdf_graph_merge(FromGs, ToG):-
     ),
     SharedBNodes
   ),
-  
+
   % From the shared blank nodes that will be replaced per graph
   %  to the actual blank node mapping.
   findall(
     bnode_map(FromG, SharedBNode-NewBNode),
     (
-      member(FromG, SharedBNode),
+      member(FromG-SharedBNode, SharedBNodes),
       rdf_bnode(NewBNode)
     ),
     Map
   ),
-  
+
   % Effectuate the mapping while performing the merge.
   forall(
     (
@@ -153,11 +153,11 @@ rdf_graph_merge(FromGs, ToG):-
       rdf_retractall(S1, P, O1, FromG)
     ),
     (
-      (   memberchk(FromG, S1-S2)
+      (   memberchk(bnode_map(FromG,S1-S2), Map)
       ->  true
       ;   S2 = S1
       ),
-      (   memberchk(FromG, O1-O2)
+      (   memberchk(bnode_map(FromG,O1-O2), Map)
       ->  true
       ;   O2 = O1
       ),
@@ -256,11 +256,11 @@ rdf_lean_graph(Graph, rdf(S1,P,O1)):-
     (   member(rdf(S2,P,O2), Ground)
     ;   member(rdf(S2,P,O2), NonGround)
     ),
-    
+
     % Check whether Specific is a *proper instance* of Generic.
     \+ (S1 == S2, O1 == O2),
     rdf_triple_instance(rdf(S2,P,O2), rdf(S1,P,O1), Map),
-    
+
     % Check whether the mapping extends to the entire graph.
     forall(
       member(rdf(S3,P3,O3), NonGround),
@@ -301,7 +301,7 @@ rdf_proper_graph_instance(Map):-
 
 
 %! rdf_proper_subgraph(+ProperSubgraph:atom, +Graph) is semidet.
-% A **proper subgraph** is a proper subset of the triples in the graph. 
+% A **proper subgraph** is a proper subset of the triples in the graph.
 %
 % @compat RDF 1.1 Semantics
 
@@ -348,7 +348,7 @@ rdf_subgraph(G, H):-
 
 %! rdf_graph_sat(+I, +G:atom) is semidet.
 % Interpretation I **(simply) satisfies** RDF graph E when I(E)=true.
-% 
+%
 % RDF graph E is (simply) satisfiable when
 %  a simple interpretation I exists which satisfies it.
 % Otherwise, RDF graph E is (simply) unsatisfiable.

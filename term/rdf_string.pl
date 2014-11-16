@@ -29,8 +29,9 @@ with datatype IRI xsd:string.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(plRdf_term(rdf_literal)).
-:- use_module(plRdf_term(rdf_literal_build)).
+
+:- use_module(plRdf(term/rdf_literal)).
+:- use_module(plRdf(term/rdf_literal_build)).
 
 :- rdf_meta(rdf_assert_string(r,r,+,+)).
 :- rdf_meta(rdf_retractall_string(r,r,?,?)).

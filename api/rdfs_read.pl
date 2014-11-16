@@ -114,13 +114,10 @@ application of the subclass relation.
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf(rdf_container)).
-:- use_module(plRdf(rdf_read)).
-:- use_module(plRdf_ent(rdf_bnode_map)).
-:- use_module(plRdf_term(rdf_typed_literal)).
-
-:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
+:- use_module(plRdf(api/rdf_read)).
+:- use_module(plRdf(term/rdf_bnode_map)).
+:- use_module(plRdf(term/rdf_container)).
+:- use_module(plRdf(term/rdf_typed_literal)).
 
 :- rdf_meta(rdf_db_or_axiom(+,r,r,r,?)).
 :- rdf_meta(rdfs(r,r,r,?)).
@@ -155,7 +152,7 @@ rdf_db_or_axiom(M, C1, rdfs:subClassOf, C2, _):-
   rdfs_subclass_axiom(M, C1, C2),
   debug(rdfs_read, '[AX] ~w SUBCLASS ~w', [C1,C2]).
 rdf_db_or_axiom(_, S, P, O, G):-
-  rdf([graph_mode(no_index)], S, P, O, G),
+  rdf(S, P, O, G:_),
   debug(rdfs_read, '[DB] ~w ~w ~w', [S,P,O]).
 
 rdfs(S, P, O, G):-

@@ -16,10 +16,10 @@
                                   % -Predicate:iri
                                   % -Subject:or([bnode,iri])
                                   % ?Graph:atom
-    rdf_resource_outgoing_edge/4 % +Subject:or([bnode,iri])
-                                 % -Predicate:iri
-                                 % -Object:rdf_term
-                                 % ?Graph:atom
+    rdf_resource_outgoing_edge/4, % +Subject:or([bnode,iri])
+                                  % -Predicate:iri
+                                  % -Object:rdf_term
+                                  % ?Graph:atom
     rdf_term_edge/4, % +Term:rdf_term
                      % -Predicate:iri
                      % -OtherTerm:rdf_term
@@ -68,7 +68,7 @@ error:has_type(rdf_term, Term):-
 
 
 
-%! rdf_ground_triple
+%! rdf_ground_triple(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
@@ -93,8 +93,8 @@ rdf_id(T1, T2):-
 %! rdf_is_ground_triple(+Triple:compound) is semidet.
 % Succeeds if the given triple is ground, i.e., contains no blank node.
 
-rdf_is_ground_triple(rdf(S,P,O)):-
-  maplist(rdf_ground_term, [S,O])
+rdf_is_ground_triple(rdf(S,_,O)):-
+  maplist(rdf_is_name, [S,O]).
 
 
 

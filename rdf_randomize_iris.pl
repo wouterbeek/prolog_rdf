@@ -23,7 +23,7 @@
 :- use_module(plDcg(dcg_cardinal)).
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf(term/rdf_term)).
 
 
 

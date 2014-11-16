@@ -35,10 +35,11 @@ Support for RDF 1.1 language tagged strings.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(plRdf_term(rdf_literal)).
-:- use_module(plRdf_term(rdf_literal_build)).
-:- use_module(plRdf_term(rdf_simple_literal)).
-:- use_module(plRdf_term(rdf_term)).
+
+:- use_module(plRdf(term/rdf_literal)).
+:- use_module(plRdf(term/rdf_literal_build)).
+:- use_module(plRdf(term/rdf_simple_literal)).
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_assert_language_tagged_string(r,r,+,+,+)).
 :- rdf_meta(rdf_language_tagged_string(o)).

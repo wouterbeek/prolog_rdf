@@ -34,10 +34,10 @@ Read support for reified triples.
 
 :- use_module(plXsd(xsd)).
 
-:- use_module(plRdf(rdf_build)).
-:- use_module(plRdf_rei(rdf_reification_read)).
-:- use_module(plRdf_term(rdf_literal)).
-:- use_module(plRdf_term(rdf_literal_build)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(reification/rdf_reification_read)).
+:- use_module(plRdf(term/rdf_literal)).
+:- use_module(plRdf(term/rdf_literal_build)).
 
 :- rdf_meta(rdf_assert_datatype_statement(r,r,+,r,+,?)).
 :- rdf_meta(rdf_assert_object(r,o,+)).

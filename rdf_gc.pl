@@ -22,7 +22,7 @@ Graph-based garbage collection for RDF.
 
 :- use_module(generics(thread_ext)).
 
-:- use_module(plRdf(rdf_deb)).
+:- use_module(plRdf(debug/rdf_deb)).
 
 %! rdf_graph_exlcuded_from_gc(?Graph:atom) is nondet.
 

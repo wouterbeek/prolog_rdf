@@ -1,12 +1,12 @@
 :- module(
   rdf_triples,
   [
-    rdf_triples/2 % +Graph:atom
-                  % -Triples:ordset(compound)
+    rdf_triples/2, % +Graph:atom
+                   % -Triples:ordset(compound)
     rdf_triples_edges/2, % +Triples:list(compound)
                          % -Edges:ordset(pair(rdf_term))
-    rdf_triples_vertices/2, % +Triples:list(compound)
-                            % -Vertices:ordset(rdf_term)
+    rdf_triples_vertices/2 % +Triples:list(compound)
+												   % -Vertices:ordset(rdf_term)
   ]
 ).
 
@@ -19,7 +19,7 @@ Support for RDF triple compound terms.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(lists, except([delete/3]))).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db)).
 
 
@@ -28,7 +28,7 @@ Support for RDF triple compound terms.
 
 rdf_triples(Graph, Triples):-
   aggregate_all(
-    set(rdf(S,P,O),
+    set(rdf(S,P,O)),
     rdf(S, P, O, Graph),
     Triples
   ).

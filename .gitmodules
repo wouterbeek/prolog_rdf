@@ -23,3 +23,6 @@
 [submodule "plUri"]
 	path = plUri
 	url = https://github.com/wouterbeek/plUri.git
+[submodule "plSet"]
+	path = plSet
+	url = https://github.com/wouterbeek/plSet.git

@@ -5,6 +5,8 @@
     rdf_term_name//1, % ?Term:or([bnode,iri,literal])
     rdf_term_name//2, % +Options:list(nvpair)
                       % +Term:or([bnode,iri,literal])
+    rdf_triple_name/2, % +Triple:compound
+                       % -Name:atom
     rdf_triple_name//1, % +Triple:compound
     rdf_triple_name//2 % +Triple:compound
                        % +Graph:atom
@@ -35,10 +37,10 @@ Generates names for RDF terms and triples.
 
 :- use_module(plXsd(xsd)).
 
-:- use_module(plRdf_term(rdf_datatype)).
-:- use_module(plRdf(rdf_list)).
-:- use_module(plRdf(rdf_prefix)).
-:- use_module(plRdf(rdfs_label_ext)).
+:- use_module(plRdf(management/rdf_prefix)).
+:- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(term/rdfs_label_ext)).
+:- use_module(plRdf(term/rdf_list)).
 
 :- rdf_meta(rdf_term_name(+,r,?,?)).
 :- rdf_meta(rdf_term_name(r,?,?)).

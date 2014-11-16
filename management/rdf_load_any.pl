@@ -58,9 +58,9 @@
 :- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_pl_term)).
 
-:- use_module(plRdf(rdf_prefixes)).
-:- use_module(plRdf_ser(rdf_file_db)).
-:- use_module(plRdf_ser(rdf_guess_format)).
+:- use_module(plRdf(management/rdf_file_db)).
+:- use_module(plRdf(management/rdf_guess_format)).
+:- use_module(plRdf(management/rdf_prefixes)).
 
 :- predicate_options(rdf_load_any/2, 2, [
      pass_to(rdf_load_any/3, 3)

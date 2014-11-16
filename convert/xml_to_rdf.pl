@@ -35,7 +35,6 @@ Converts XML DOMs to RDF graphs.
 :- use_module(library(uri)).
 
 :- use_module(os(file_ext)).
-:- use_module(plXml(xml_word)).
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
@@ -46,13 +45,13 @@ Converts XML DOMs to RDF graphs.
 
 :- use_module(plXsd(xsd)).
 
-:- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdf_container)).
-:- use_module(plRdf(rdf_deb)).
-:- use_module(plRdf(rdf_graph_name)).
-:- use_module(plRdf_term(rdf_datatype)).
-:- use_module(plRdf_term(rdf_literal)).
-:- use_module(plRdf_term(rdf_string)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(debug/rdf_deb)).
+:- use_module(plRdf(graph/rdf_graph_name)).
+:- use_module(plRdf(term/rdf_container)).
+:- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(term/rdf_literal)).
+:- use_module(plRdf(term/rdf_string)).
 
 :- meta_predicate(create_resource(+,+,3,+,+,-,-)).
 :- meta_predicate(create_triples(+,+,3,+,+,-)).
@@ -60,8 +59,6 @@ Converts XML DOMs to RDF graphs.
 
 :- rdf_meta(create_resource(+,+,:,r,+,-,-)).
 :- rdf_meta(create_triples(+,+,:,r,+,-)).
-
-:- debug(xml_to_rdf).
 
 
 

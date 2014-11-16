@@ -5,14 +5,10 @@
                             % +RawAlignments:list(pair(iri))
     oaei_file_to_alignments/2, % +File:atom
                                % -AlignmentPairs:ordset(pair(iri))
-    tsv_convert_directory/4, % +FromDirectory:atom
-                             % +ToDirectory:atom
-                             % ?ToMIME:atom
-                             % -ToFiles:list(atom)
-% AP
-    tsv_convert_directory/3 % +FromDirectory:atom
+    tsv_convert_directory/4 % +FromDirectory:atom
                             % +ToDirectory:atom
-                            % -AP_Status:compound
+                            % ?ToMIME:atom
+                            % -ToFiles:list(atom)
   ]
 ).
 
@@ -124,15 +120,15 @@ Mismatch types:
 :- use_module(os(file_ext)).
 :- use_module(pl(pl_mode)).
 
-:- use_module(plRdf(rdf_deb)).
-:- use_module(plRdf(rdf_graph_name)).
 :- use_module(plRdf(rdf_name)).
-:- use_module(plRdf_ser(rdf_file_db)).
-:- use_module(plRdf_ser(rdf_load_any)).
-:- use_module(plRdf_ser(rdf_save_any)).
-:- use_module(plRdf_term(rdf_datatype)).
-:- use_module(plRdf_term(rdf_literal)).
-:- use_module(plRdf_term(rdf_string)).
+:- use_module(plRdf(debug/rdf_deb)).
+:- use_module(plRdf(graph/rdf_graph_name)).
+:- use_module(plRdf(management/rdf_file_db)).
+:- use_module(plRdf(management/rdf_load_any)).
+:- use_module(plRdf(management/rdf_save_any)).
+:- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(term/rdf_literal)).
+:- use_module(plRdf(term/rdf_string)).
 
 :- rdf_register_prefix(
      align,
@@ -277,17 +273,21 @@ oaei_graph_to_alignments(Graph, Alignments):-
   ).
 
 
-tsv_convert_directory(FromDir, ToDir, ap(status(succeed),files(ToFiles))):-
-  tsv_convert_directory(FromDir, ToDir, _, ToFiles).
+%! tsv_convert_directory(
+%!   +FromDirectory:atom,
+%!   +ToDirectory:atom,
+%!   ?ToMime:compound,
+%!   -ToFiles:list(atom)
+%! ) is det.
 
 tsv_convert_directory(FromDir, ToDir, ToMime, ToFiles):-
-  default('application/x-turtle', ToMime),
-  directory_files([file_types([tsv])], FromDir, FromFiles),
+  default(mime_type(application,'x-turtle',[]), ToMime),
+  directory_files(FromDir, FromFiles, [file_types([tsv])]),
   findall(
     ToFile,
     (
       member(FromFile, FromFiles),
-      once(rdf_serialization(ToExt _, ToMime, _)),
+      once(rdf_serialization(ToExt, _, ToMime, _)),
       file_alternative(FromFile, ToDir, _, ToExt, ToFile),
       tsv_file_to_oaei_file(FromFile, ToFile)
     ),

@@ -39,10 +39,10 @@ Predicates for RDFS labels.
 :- use_module(plDcg(dcg_content)). % Meta-called.
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plRdf(rdf_list)).
-:- use_module(plRdf_term(rdf_language_tagged_string)).
-:- use_module(plRdf_term(rdf_literal_build)).
-:- use_module(plRdf_term(rdf_string)).
+:- use_module(plRdf(term/rdf_list)).
+:- use_module(plRdf(term/rdf_language_tagged_string)).
+:- use_module(plRdf(term/rdf_literal_build)).
+:- use_module(plRdf(term/rdf_string)).
 
 :- rdf_meta(rdfs_label(r,?,?,?)).
 :- rdf_meta(rdfs_list_by_label(r,+,-)).

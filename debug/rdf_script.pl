@@ -17,9 +17,9 @@ Scripts for asserting RDF graphs that can be used for debugging.
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdfs_build)).
-:- use_module(plRdf_owl(owl_build)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdfs_build)).
+:- use_module(plRdf(owl/owl_build)).
 
 :- rdf_register_prefix(ch, 'http://www.wouterbeek.com/ch.owl#' ).
 :- rdf_register_prefix(dbpedia, 'http://dbpedia.org/resource/').

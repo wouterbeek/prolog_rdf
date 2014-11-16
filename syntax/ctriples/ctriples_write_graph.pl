@@ -19,7 +19,7 @@ Writes the given graph (or all currently stored triples) to a source.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf_ser(ctriples_write_generics)).
+:- use_module(plRdf(management/ctriples_write_generics)).
 
 :- predicate_options(ctriples_write_graph/3, 3, [
      pass_to(write_graph/2, 2)

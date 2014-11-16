@@ -29,7 +29,7 @@ with datatype IRI xsd:boolean.
 
 :- use_module(plXsd(xsd)). % XML namespace.
 
-:- use_module(plRdf_term(rdf_datatype)).
+:- use_module(plRdf(term/rdf_datatype)).
 
 :- rdf_meta(rdf_assert_false(r,r,+)).
 :- rdf_meta(rdf_assert_true(r,r,+)).

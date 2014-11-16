@@ -40,10 +40,10 @@ Predicates for perfoming measurements represented in RDF.
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdf_prefixes)). % RDF prefix declarations.
-:- use_module(plRdf_term(rdf_datatype)).
-:- use_module(plRdf_term(rdf_dateTime)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(management/rdf_prefixes)). % RDF prefix declarations.
+:- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(term/rdf_dateTime)).
 
 :- use_module(plXsd(xsd)).
 

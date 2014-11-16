@@ -10,6 +10,7 @@
      plDcg,
      plGraph,
      plHttp,
+     plSet,
      plTree,
      plUri,
      plXml,

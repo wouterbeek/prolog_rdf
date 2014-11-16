@@ -25,10 +25,10 @@ e.g. freshness lifetime.
 
 :- use_module(plUri(uri_ext)).
 
-:- use_module(plHttp(http_download)).
+:- use_module(plHttp(download_to_file)).
 
-:- use_module(plRdf(rdf_graph)).
-:- use_module(plRdf_ser(rdf_load_any)).
+:- use_module(plRdf(graph/rdf_graph)).
+:- use_module(plRdf(management/rdf_load_any)).
 
 :- meta_predicate(rdf_download(3,+,?,+)).
 

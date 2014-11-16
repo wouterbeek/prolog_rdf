@@ -44,7 +44,7 @@ Support for reading triples with literal object terms.
 :- use_module(plXsd(xsd)).
 :- use_module(plXsd(xsd_clean)).
 
-:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_literal(o)).
 :- rdf_meta(rdf_literal(o,?)).

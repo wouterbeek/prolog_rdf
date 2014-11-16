@@ -53,7 +53,7 @@ Predicates for building higher-level RDFS constructs.
 rdfs_assert_class(Class, Superclass, Label, Comment, LangTag, Graph):-
   rdfs_assert_subclass(Class, Superclass, Graph),
   rdfs_assert_label_if_nonvar(Class, Label, LangTag, Graph),
-  rdfs_assert_comment_if_nonvar(Class, Label, LangTag, Graph).
+  rdfs_assert_comment_if_nonvar(Class, Comment, LangTag, Graph).
 
 
 
@@ -86,6 +86,7 @@ rdfs_assert_instance(Instance, Class, Label, Comment, LangTag, Graph):-
 
 rdfs_assert_property(
   Property,
+  Superproperty,
   Domain,
   Range,
   Label,

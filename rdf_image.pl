@@ -41,9 +41,9 @@ When triples including images are read,
 
 :- use_module(plUri(uri_ext)).
 
-:- use_module(plHttp(http_download)).
+:- use_module(plHttp(download_to_file)).
 
-:- use_module(plRdf(rdf_build)).
+:- use_module(plRdf(api/rdf_build)).
 
 :- rdf_meta(rdf_assert_image(+,r,r,r,+)).
 :- rdf_meta(rdf_image(r,r,r,-,?)).

@@ -43,17 +43,16 @@ Support for RDF lists.
          2014/01-2014/02, 2014/06, 2014/10
 */
 
-:- use_module(library(apply)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plDcg(dcg_collection)).
 
-:- use_module(plRdf(rdf_build)).
 :- use_module(plRdf(rdf_name)).
-:- use_module(plRdf(rdfs_read)).
-:- use_module(plRdf_ent(rdf_bnode_map)).
-:- use_module(plRdf_term(rdf_datatype)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdfs_read)).
+:- use_module(plRdf(term/rdf_bnode_map)).
+:- use_module(plRdf(term/rdf_datatype)).
 
 :- predicate_options(rdf_assert_list/3, 3, [
      datatype(+atom)

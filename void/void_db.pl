@@ -24,10 +24,10 @@ Generic support for VoID, used by other VoID modules.
 :- use_module(generics(typecheck)).
 :- use_module(os(file_ext)).
 
-:- use_module(plHttp(http_download)).
+:- use_module(plHttp(download_to_file)).
 
-:- use_module(plRdf_ser(rdf_load_any)).
-:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf(management/rdf_load_any)).
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_register_prefix(void, 'http://rdfs.org/ns/void#').
 

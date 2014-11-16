@@ -27,10 +27,8 @@
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(void(void_db)). % XML namespace.
-
-:- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdf_read)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdf_read)).
 
 
 

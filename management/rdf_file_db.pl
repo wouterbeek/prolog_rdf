@@ -43,10 +43,10 @@ Basic facts about RDF serialization formats.
 
 :- use_module(os(media_type)).
 
-:- use_module(plHttp_par(rfc2616_media_type)).
-
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_generics)).
+
+:- use_module(plHttp(parameter/http_media_type)).
 
 :- multifile(error:has_type/2).
 

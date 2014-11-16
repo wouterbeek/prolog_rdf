@@ -26,7 +26,7 @@ the Unicode strings in Normal Form C with the set of datatype URIs.
 
 :- use_module(generics(typecheck)).
 
-:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_typed_literal(o)).
 :- rdf_meta(rdf_typed_literal(o,?)).

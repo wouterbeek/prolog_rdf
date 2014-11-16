@@ -24,10 +24,10 @@ Automated conversion from Prolog terms to RDF triples.
 
 :- use_module(plXsd(xsd)).
 
-:- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdfs_build)).
-:- use_module(plRdf_term(rdf_datatype)).
-:- use_module(plRdf_term(rdf_literal)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdfs_build)).
+:- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(term/rdf_literal)).
 
 
 

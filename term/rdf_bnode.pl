@@ -8,13 +8,17 @@
                          % +Generic:compound
                          % +Map:list(pair(bnode,rdf_term))
                          % -NewMap:list(pair(bnode,rdf_term))
+    rdf_term_variant/2, % +Term1:rdf_term
+                        % +Term1:rdf_term
     rdf_triple_instance/3, % +Specific:compound
                            % +Generic:compound
                            % -NewMap:list(pair(bnode,rdf_term))
-    rdf_triple_instance/4 % +Specific:compound
-                          % +Generic:compound
-                          % +Map:list(pair(bnode,rdf_term))
-                          % -NewMap:list(pair(bnode,rdf_term))
+    rdf_triple_instance/4, % +Specific:compound
+                           % +Generic:compound
+                           % +Map:list(pair(bnode,rdf_term))
+                           % -NewMap:list(pair(bnode,rdf_term))
+    rdf_triple_variant/3 % +Triple1:compound
+                         % +Triple2:compound
   ]
 ).
 
@@ -28,6 +32,13 @@ Support for blank node mappings in RDF.
 
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
+
+:- rdf_meta(rdf_term_variant(o,o)).
+:- rdf_meta(rdf_term_instance(o,o,-)).
+:- rdf_meta(rdf_term_instance(o,o,+,-)).
+:- rdf_meta(rdf_triple_instance(t,t,-)).
+:- rdf_meta(rdf_triple_instance(t,t,+,-)).
+:- rdf_meta(rdf_triple_variant(t,t)).
 
 
 
@@ -58,6 +69,18 @@ rdf_term_instance(Term, BNode, Map1, Map2):-
 
 
 
+%! rdf_term_variant(+Term1:rdf_term, +Term1:rdf_term) is semidet.
+% Succeeds if the given RDF terms are variants.
+%
+% Similar to Prolog term variants, i.e. =@=/2.
+
+rdf_term_variant(BNode1, BNode2):-
+  rdf_is_bnode(BNode1),
+  rdf_is_bnode(BNode2), !.
+rdf_term_variant(Term, Term).
+
+
+
 %! rdf_triple_instance(
 %!   +Specific:compound,
 %!   +Generic:compound,
@@ -82,3 +105,14 @@ rdf_triple_instance(rdf(S2,P,O2), rdf(S1,P,O1), Map1, Map3):-
   % Example 1: `_:x -> _:x`.
   % Example 2: `_:x -> ex:a`.
   rdf_term_instance(O2, O1, Map2, Map3).
+
+
+
+%! rdf_triple_variant(+Triple1:compound, +Triple1:compound) is semidet.
+% Succeeds if the given RDF triples are variants.
+%
+% Similar to Prolog term variants, i.e. =@=/2.
+
+rdf_triple_variant(rdf(S1,P,O1), rdf(S2,P,O2)):-
+  rdf_term_variant(S1, S2),
+  rdf_term_variant(O1, O2).

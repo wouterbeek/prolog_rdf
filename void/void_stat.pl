@@ -20,15 +20,14 @@ Asserts statistics for VoID descriptions.
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(thread_ext)).
-:- use_module(void(void_db)). % RDF prefix registration.
 
-:- use_module(plRdf(rdf_graph_name)).
+:- use_module(plXsd(datetime/xsd_dateTime_ext)).
+
 :- use_module(plRdf(rdf_stat)).
-:- use_module(plRdf_term(rdf_dateTime)).
-:- use_module(plRdf_term(rdf_datatype)).
-:- use_module(plRdf_term(rdf_string)).
-
-:- use_module(plXsd_datetime(xsd_dateTime_ext)).
+:- use_module(plRdf(graph/rdf_graph_name)).
+:- use_module(plRdf(term/rdf_dateTime)).
+:- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(term/rdf_string)).
 
 :- rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/').
 

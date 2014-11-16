@@ -44,9 +44,7 @@ Support for RDF containers (sequence, bag, and alternatives).
 
 :- use_module(generics(typecheck)).
 
-:- use_module(plRdf_term(rdf_term)).
-
-:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_alt(r,-,?)).
 :- rdf_meta(rdf_assert_collection_member(r,r,+)).

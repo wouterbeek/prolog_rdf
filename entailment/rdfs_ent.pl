@@ -29,10 +29,10 @@ Specification of entailment rules for RDFS.
 
 :- use_module(math(math_ext)).
 
-:- use_module(plRdf_ent(rdf_bnode_map)).
-:- use_module(plRdf_ent(rdf_ent)). % Max enumerator setting.
-:- use_module(plRdf_term(rdf_plain_literal)).
-:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf(entailment/rdf_bnode_map)).
+:- use_module(plRdf(entailment/rdf_ent)). % Max enumerator setting.
+:- use_module(plRdf(term/rdf_plain_literal)).
+:- use_module(plRdf(term/rdf_term)).
 
 %%%%:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 %%%%:- rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').

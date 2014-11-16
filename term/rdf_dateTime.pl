@@ -27,10 +27,9 @@ with datatype IRI xsd:string.
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plXsd_datetime(xsd_dateTime_ext)).
+:- use_module(plXsd(datetime/xsd_dateTime_ext)).
 
-:- use_module(plRdf_term(rdf_datatype)).
-
+:- use_module(plRdf(term/rdf_datatype)).
 :- rdf_meta(rdf_assert_now(r,r,+)).
 :- rdf_meta(rdf_assert_today(r,r,+)).
 :- rdf_meta(rdf_update_now(r,r,+)).

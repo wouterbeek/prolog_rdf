@@ -3,7 +3,7 @@
 :- use_module(void(void_file)).
 :- use_module(void(void_tabular)). % Debug tool.
 
-:- use_module(plRdf_ser(rdf_package)).
+:- use_module(plRdf(management/rdf_package)).
 
 :- initialization(void_test).
 

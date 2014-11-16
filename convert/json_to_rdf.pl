@@ -34,10 +34,10 @@ This requires a Prolog module whose name is also registered as
 :- use_module(plXsd(xsd)).
 :- use_module(plXsd(xsd_clean)).
 
-:- use_module(plRdf(rdf_build)).
-:- use_module(plRdf(rdf_list)).
-:- use_module(plRdf(rdfs_build)).
-:- use_module(plRdf_term(rdf_literal_build)).
+:- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdfs_build)).
+:- use_module(plRdf(term/rdf_list)).
+:- use_module(plRdf(term/rdf_literal_build)).
 
 
 

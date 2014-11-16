@@ -17,7 +17,7 @@ Debug tools for working with RDF.
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf(rdf_graph)).
+:- use_module(plRdf(graph/rdf_graph)).
 
 
 

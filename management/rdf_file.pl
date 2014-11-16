@@ -30,7 +30,7 @@ Support for RDF files and file types.
 :- use_module(os(file_ext)).
 
 :- use_module(plRdf(rdf_meta)).
-:- use_module(plRdf_ser(rdf_file_db)).
+:- use_module(plRdf(management/rdf_file_db)).
 
 :- predicate_options(rdf_merge_directory/4, 3, [
      pass_to(rdf_setup_call_cleanup/5, 4)

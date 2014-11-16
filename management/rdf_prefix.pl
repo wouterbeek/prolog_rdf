@@ -34,7 +34,7 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf_term(rdf_term)).
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_prefixe_iri(r,-)).
 :- rdf_meta(rdf_prefixes(r,r,o,?,-)).

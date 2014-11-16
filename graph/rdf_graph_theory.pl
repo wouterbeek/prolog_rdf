@@ -11,9 +11,9 @@
                            % +Vertex
                            % -NeighborVertex
                            % +Options:list(nvpair)
-    rdf_undirected_edge/3, % ?Graph:atom
-                           % ?UndirectedEdge:compound
-                           % +Options:list(nvair)
+    rdf_undirected_edge/3 % ?Graph:atom
+                          % ?UndirectedEdge:compound
+                          % +Options:list(nvair)
   ]
 ).
 

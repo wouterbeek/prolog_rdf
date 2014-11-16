@@ -20,21 +20,22 @@ Takes axioms, rules, and the RDF index and performs materializations.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(doyle(doyle)).
 :- use_module(generics(deb_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(setting_ext)).
 :- use_module(generics(thread_ext)).
-:- use_module(tms(tms)).
-:- use_module(tms(tms_print)).
 
 :- use_module(plDcg(dcg_cardinal)).
 :- use_module(plDcg(dcg_collection)). % DCG-meta.
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plRdf_ent(rdf_ent)). % Axioms, explanations, rules.
-:- use_module(plRdf_ent(rdfs_ent)). % Axioms, explanations, rules.
+:- use_module(plTms(tms)).
+:- use_module(plTms(tms_print)).
+:- use_module(plTms(doyle/doyle)).
+
+:- use_module(plRdf(entailment/rdf_ent)). % Axioms, explanations, rules.
+:- use_module(plRdf(entailment/rdfs_ent)). % Axioms, explanations, rules.
 
 %! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 
