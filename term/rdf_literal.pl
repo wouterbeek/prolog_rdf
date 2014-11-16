@@ -1,11 +1,6 @@
 :- module(
   rdf_literal,
   [
-    rdf_literal/5, % ?Subject:or([bnode,iri])
-                   % ?Predicate:iri
-                   % ?LexicalForm:atom
-                   % ?Datatype:iri
-                   % ?RdfGraph:atom
     rdf_literal_equality/2, % +Literal1:compound
                             % +Literal2:compound
     rdf_literal_map/4 % ?LexicalForm:atom

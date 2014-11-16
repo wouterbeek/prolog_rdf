@@ -59,5 +59,5 @@ rdfs_label(Node, Label, LangTags, _, Graph):-
 % A language-tagged string.
 rdfs_label(Node, Label, LangTags, LangTag, Graph):-
   member(LangTag, LangTags),
-  rdf_language_tagged_string(Node, rdfs:label, Label, LangTag, Graph).
+  rdf_langstring(Node, rdfs:label, Label, LangTag, Graph).
 

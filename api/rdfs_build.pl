@@ -64,7 +64,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
-:- use_module(plRdf(term/rdf_language_tagged_string)).
+:- use_module(plRdf(term/rdf_langstring)).
 :- use_module(plRdf(term/rdf_string)).
 
 :- rdf_meta(rdfs_assert_class(o,?)).

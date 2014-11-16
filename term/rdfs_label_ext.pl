@@ -40,7 +40,7 @@ Predicates for RDFS labels.
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(term/rdf_list)).
-:- use_module(plRdf(term/rdf_language_tagged_string)).
+:- use_module(plRdf(term/rdf_langstring)).
 :- use_module(plRdf(term/rdf_literal_build)).
 :- use_module(plRdf(term/rdf_string)).
 

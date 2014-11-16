@@ -1,13 +1,9 @@
 :- module(
   rdf_read,
   [
-    rdf_ground_triple/4, % ?Subject:or([bnode,iri])
-                         % ?Predicate:iri
-                         % ?Object:rdf_term
-                         % ?Graph:atom
     rdf_id/2, % ?Term:rdf_term
               % ?EquivTerm:rdf_term
-    rdf_is_ground_triple/1, % +Triple:compound
+    rdf_is_langstring/1, % @Term
     rdf_langstring/5, % ?Term:rdf_term
                       % ?Predicate:iri
                       % ?LexicalForm:atom
@@ -15,7 +11,7 @@
                       % ?Graph:atom
     rdf_langstring_data/1, % ?Field:oneof([datatype,langtag,lexical_form])
                            % +Literal:compound
-                           % -Data
+                           % ?Data
     rdf_langstring_term/1, % ?Literal:compound
     rdf_literal/6, % ?Term:rdf_term
                    % ?Predicate:iri
@@ -25,7 +21,7 @@
                    % ?Graph:atom
     rdf_literal_data/3, % ?Field:oneof([datatype,langtag,lexical_form])
                         % +Literal:compound
-                        % -Data
+                        % ?Data
     rdf_literal_term/1, % ?Literal:compound
     rdf_resource_edge/4, % +Term:rdf_term
                          % -Predicate:iri
@@ -69,7 +65,6 @@ Predicates for reading from RDF, customized for specific datatypes and
 
 :- use_module(plRdf(term/rdf_term)).
 
-:- rdf_meta(rdf_ground_triple(r,r,o,?)).
 :- rdf_meta(rdf_id(o,o)).
 :- rdf_meta(rdf_langstring(o,r,?,?,?)).
 :- rdf_meta(rdf_langstring_data(?,o,-)).
@@ -93,33 +88,12 @@ error:has_type(rdf_term, Term):-
 
 
 
-%! rdf_ground_triple(
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   ?Graph:atom
-%! ) is nondet.
-
-rdf_ground_triple(S, P, O, G):-
-  rdf(S, P, O, G),
-  rdf_is_ground_triple(rdf(S,P,O)).
-
-
-
 %! rdf_id(+Term:rdf_term, +EquivTerm:rdf_term) is semidet.
 %! rdf_id(+Term:rdf_term, -EquivTerm:rdf_term) is multi.
 %! rdf_id(-Term:rdf_term, +EquivTerm:rdf_term) is multi.
 
 rdf_id(T1, T2):-
   rdf_reachable(T1, owl:sameAs, T2).
-
-
-
-%! rdf_is_ground_triple(+Triple:compound) is semidet.
-% Succeeds if the given triple is ground, i.e., contains no blank node.
-
-rdf_is_ground_triple(rdf(S,_,O)):-
-  maplist(rdf_is_name, [S,O]).
 
 
 
