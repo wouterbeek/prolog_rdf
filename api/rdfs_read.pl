@@ -1,7 +1,11 @@
 :- module(
   rdfs_read,
   [
-    
+    rdfs_label/5, % ?Term:rdf_term
+                  % ?Label:atom
+                  % ?LangTags:list(list(atom))
+                  % -LangTag:list(atom)
+                  % ?Graph:atom
   ]
 ).
 
@@ -11,6 +15,7 @@
 @version 2014/11
 */
 
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf(entailment/rdf_bnode_map)).
@@ -52,12 +57,11 @@ rdfs_label(List, Label, LangTags, LangTag, Graph):-
     Sublabels
   ),
   dcg_with_output_to(atom(Label), list(pl_term, Sublabels)).
-% A string with no language tag.
-rdfs_label(Node, Label, LangTags, _, Graph):-
-  var(LangTags), !,
-  rdf_string(Node, rdfs:label, Label, Graph).
 % A language-tagged string.
 rdfs_label(Node, Label, LangTags, LangTag, Graph):-
+  is_list(LangTags),
   member(LangTag, LangTags),
   rdf_langstring(Node, rdfs:label, Label, LangTag, Graph).
-
+% A string with no language tag.
+rdfs_label(Node, Label, LangTags, _, Graph):-
+  rdf_literal(Node, rdfs:label, Label, xsd:string, _, Graph).
