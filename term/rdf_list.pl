@@ -1,36 +1,45 @@
 :- module(
   rdf_list,
   [
-    rdf_is_list/1, % +List:or([bnode,iri])
-    rdf_assert_list/3, % +PrologList:list
+    rdf_assert_list/4, % +PrologList:list
                        % ?RdfList:or([bnode,iri])
+                       % ?Graph:atom
                        % +Options:list(nvpair)
-    rdf_list/2, % +RdfList:or([bnode,iri])
-                % -PrologList:list
+    rdf_list/1, % ?List:or([bnode,iri])
     rdf_list/3, % +RdfList:or([bnode,iri])
                 % -PrologList:list
                 % +Options:list(nvpair)
-    rdf_list_first/2, % +List:or([bnode,iri])
-                      % -FirstElement:iri
-    rdf_list_last/2, % +List:or([bnode,iri])
-                     % -LastElement:or([bnode,iri])
-    rdf_list_length/2, % +List:or([bnode,iri])
-                       % -Length:number
-    rdf_list_member/2, % ?Element:or([bnode,iri])
+    rdf_list_after/4, % ?After:rdf_term
+                      % ?Before:rdf_term
+                      % ?List:or([bnode,iri])
+                      % ?Graph:atom
+    rdf_list_before/4, % ?Before:rdf_term
+                       % ?After:rdf_term
                        % ?List:or([bnode,iri])
-    rdf_list_name//2, % +Options:list(nvpair)
-                      % +List:or([bnode,iri])
-    rdf_list_next/2, % ?Element:or([bnode,iri])
-                     % ?NextElement:or([bnode,iri])
-    rdf_list_nth0/3, % +Index:nonneg
-                     % +List:or([bnode,iri])
-                     % -Element:or([bnode,iri])
-    rdf_list_occurs_after/2, % +After:or([bnode,iri])
-                             % +Before:or([bnode,iri])
-    rdf_list_occurs_before/2, % +Before:or([bnode,iri])
-                              % +After:or([bnode,iri])
-    rdf_list_previous/2 % ?Element:or([bnode,iri])
-                        % ?PreviousElement:or([bnode,iri])
+                       % ?Graph:atom
+    rdf_list_directly_after/4, % ?After:rdf_term
+                               % ?Before:rdf_term
+                               % ?List:or([bnode,iri])
+                               % ?Graph:atom
+    rdf_list_directly_before/4, % ?Before:rdf_term
+                                % ?After:rdf_term
+                                % ?List:or([bnode,iri])
+                                % ?Graph:atom
+    rdf_list_first/3, % ?List:or([bnode,iri])
+                      % ?First:rdf_term
+                      % ?Graph:atom
+    rdf_list_last/3, % ?List:or([bnode,iri])
+                     % ?Last:rdf_term
+                     % ?Graph:atom
+    rdf_list_length/2, % ?List:or([bnode,iri])
+                       % ?Length:number
+    rdf_list_member/3, % ?Element:rdf_term
+                       % ?List:or([bnode,iri])
+                       % ?Graph:atom
+    rdf_list_nth0/4 % ?Index:nonneg
+                    % ?List:or([bnode,iri])
+                    % ?Element:rdf_term
+                    % ?Graph:atom
   ]
 ).
 
@@ -40,22 +49,27 @@ Support for RDF lists.
 
 @author Wouter Beek
 @compat [RDF Schema 1.1](http://www.w3.org/TR/2014/REC-rdf-schema-20140225/)
+@tbd Add RDF list retraction.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
          2014/01-2014/02, 2014/06, 2014/10-2014/11
 */
 
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
+
+:- use_module(generics(lambda_meta)).
 
 :- use_module(plDcg(dcg_collection)).
 
+:- use_module(plSet(set_theory)).
+
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(api/rdfs_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).
 
-:- predicate_options(rdf_assert_list/3, 3, [
+:- predicate_options(rdf_assert_list/4, 4, [
      datatype(+atom)
    ]).
 :- predicate_options(rdf_list/3, 3, [
@@ -63,25 +77,72 @@ Support for RDF lists.
      recursive(+boolean)
    ]).
 
-:- rdf_meta(rdf_is_list(r)).
-:- rdf_meta(rdf_assert_list(t,r,+)).
-:- rdf_meta(rdf_assert_list(t,r,+,+)).
-:- rdf_meta(rdf_list(r,-)).
+:- rdf_meta(rdf_assert_list(o,r,?,+)).
+:- rdf_meta(rdf_list(r)).
 :- rdf_meta(rdf_list(r,-,+)).
-:- rdf_meta(rdf_list_first(r,r)).
-:- rdf_meta(rdf_list_last(r,r)).
-:- rdf_meta(rdf_list_length(r,-)).
-:- rdf_meta(rdf_list_next(r,r)).
-:- rdf_meta(rdf_list_occurs_after(r,r)).
-:- rdf_meta(rdf_list_occurs_before(r,r)).
-:- rdf_meta(rdf_list_previous(r,r)).
-:- rdf_meta(rdf_list_member(r,r)).
-:- rdf_meta(rdf_list_name(+,r,?,?)).
+:- rdf_meta(rdf_list_after(o,o,r,?)).
+:- rdf_meta(rdf_list_before(o,o,r,?)).
+:- rdf_meta(rdf_list_directly_after(o,o,r,?)).
+:- rdf_meta(rdf_list_directly_before(o,o,r,?)).
+:- rdf_meta(rdf_list_first(r,o,?)).
+:- rdf_meta(rdf_list_last(r,o,?)).
+:- rdf_meta(rdf_list_length(r,?)).
+:- rdf_meta(rdf_list_member(r,o,?)).
+:- rdf_meta(rdf_list_nth0(?,r,o,?)).
 
 
 
-%! rdf_is_list(?List:or([bnode,iri])) is semidet.
-% Succeeds if the given RDF term is an RDF list.
+%! rdf_assert_list(
+%!   +PrologList:list,
+%!   ?RdfList:or([bnode,iri]),
+%!   ?Graph:atom,
+%!   +Options:list(nvpair)
+%! ) is det.
+% Asserts the given, possibly nested list into RDF.
+%
+% The following options are supported:
+%   * =|datatype(+Datatype:iri)|=
+%
+% @author Wouter Beek, elaborating on Sanders original, adding optional
+%         graph, lists of datatyped literals, and return argument for root.
+% @author Sander Latour, who wrote the original version, dealing with
+%         nested lists.
+% @tbd Add Prolog term ---> RDF datatype conversion,
+%      e.g., `rdf_assert_list([a,1,0.1,com(pound)], -RdfList, _, [])`.
+
+rdf_assert_list(PlList, RdfList, Graph, Options):-
+  add_list_individual(RdfList, Graph),
+  rdf_assert_list_items(PlList, RdfList, Graph, Options).
+
+rdf_assert_list_items([], rdf:nil, _, _).
+rdf_assert_list_items([H|T], RdfList, Graph, Options):-
+  % rdf:first
+  (   % Nested list.
+      is_list(H)
+  ->  rdf_assert_list(H, First, Graph, Options)
+  ;   % Dedicated support for RDF datatypes.
+      option(datatype(Datatype), Options)
+  ->  rdf_bnode(First),
+      rdf_assert_typed_literal(First, rdf:value, H, Datatype, Graph)
+  ;   First = H
+  ),
+  rdf_assert2(RdfList, rdf:first, First, Graph),
+  
+  % rdf:rest
+  (   T == []
+  ->  rdf_global_id(rdf:nil, Rest)
+  ;   add_list_individual(Rest, Graph),
+      rdf_assert_list_items(T, Rest, Graph, Options)
+  ),
+  rdf_assert2(RdfList, rdf:rest, Rest, Graph).
+
+
+
+%! rdf_list(+List:or([bnode,iri])) is semidet.
+%! rdf_list(-List:or([bnode,iri])) is nondet.
+% Succeeds if the given RDF term is an RDF list
+%  or enumerates RDF lists.
+% Notice that every sublist of an RDF list is an RDF list.
 %
 % ### Tricky stuff
 %
@@ -100,224 +161,213 @@ Support for RDF lists.
 %
 % @tbd Solve syntax/semantics distinction as to what is an RDF list.
 
-rdf_is_list(List1):-
-  nonvar(List1),
-  
-  (   bnode_get_term(_, List, List0)
+rdf_list(List):-
+  nonvar(List), !,
+  (   bnode_to_term(_, List, List0)
   ;   List0 = List
   ),
-  rdfs_individual_of(List0, rdf:'List', _).
+  rdfs_individual_of(List0, rdf:'List').
+rdf_list(List):-
+  rdfs_individual_of(List, rdf:'List').
 
 
 
-%! rdf_assert_list(
-%!   +PrologList:list,
-%!   ?RdfList:or([bnode,iri]),
+%! rdf_list(
+%!   +RdfList:or([bnode,iri]),
+%!   -PrologList:list,
+%!   ?Graph:atom,
 %!   +Options:list(nvpair)
-%! ) is det.
-% Asserts the given, possibly nested list into RDF.
+%! ) is det
+% Returns the given RDF list in Prolog list notation.
 %
 % The following options are supported:
-%   * =|datatype(+Datatype:iri)|=
-%
-% @author Wouter Beek, elaborating on Sanders original, adding optional
-%         graph, lists of datatyped literals, and return argument for root.
-% @author Sander Latour, who wrote the original version, dealing with
-%         nested lists.
-
-rdf_assert_list(List, RdfList, Options):-
-  option(graph(Graph), Options, _VAR),
-  add_list_individual(RdfList, Graph),
-  rdf_assert_list(List, RdfList, Graph, Options).
-
-rdf_assert_list([], rdf:nil, _, _).
-rdf_assert_list([H|T], RdfList, Graph, Options):-
-  (   is_list(H)
-  ->  rdf_assert_list(H, H1, Graph, Options)
-  ;   option(datatype(Datatype), Options)
-  ->  rdf_bnode(H1),
-      rdf_global_id(rdf:value, P),
-      rdf_assert_datatype(H1, P, H, Datatype, Graph)
-  ;   H1 = H
-  ),
-  rdf_assert2(RdfList, rdf:first, H1, Graph),
-  (   T == []
-  ->  rdf_global_id(rdf:nil, TList)
-  ;   add_list_individual(TList, Graph),
-      rdf_assert_list(T, TList, Graph, Options)
-  ),
-  rdf_assert2(RdfList, rdf:rest, TList, Graph).
-
-%! add_list_individual(?RdfList:or([bnode,iri]), ?Graph:atom) is det.
-
-add_list_individual(RdfList, Graph):-
-  (   var(RdfList)
-  ->  rdf_bnode(RdfList)
-  ;   true
-  ),
-  rdf_assert_instance(RdfList, rdf:'List', Graph).
-
-
-%! rdf_list(+RdfList:rdf_list, -List:list) is det.
-% @see Wrapper around rdf_list/3.
-
-rdf_list(RdfList, List):-
-  rdf_list(RdfList, List, []).
-
-%! rdf_list(+RDFList:iri, -List:list, +Options:list(nvpair)) is det
-% Returns the list that starts at the given node.
-%
-% The following options are supported:
-%   * =|datatype(+Datatype:iri)|=
-%   * =|recursive(+RecursivelyApplied:boolean)|=
-%     The default value is `true`.
-%
-% @arg StartNode The URI of a node that starts the RDF list.
-% @arg List A prolog list.
-% @arg Options A list of name-value pairs.
+%   * `datatype(+Datatype:iri)`
+%   * `recursive(+RecursivelyApplied:boolean)`
+%     Whether RDF list items are also converted to Prolog list notation.
+%     Default: `true`.
 %
 % @author Wouter Beek
 % @author Sander Latour
+% @tbd Add RDF datatype --> Prolog term conversion,
+%      e.g., `"0.1"^^xsd:float` ---> `0.1`.
 
-rdf_list(RDFList, [], _):-
-  rdf_global_id(rdf:nil, RDFList), !.
-rdf_list(RDFList, [H1|T], Options):-
-  rdf_has(RDFList, rdf:first, H),
-  (
-    option(recursive(true), Options, true),
-    rdf_is_list(H)
-  ->
-    rdf_list(H, H1, Options)
-  ;
-    option(datatype(D), Options)
-  ->
-    rdf_global_id(rdf:value, P),
-    rdf_datatype(H, P, H1, D, _)
-  ;
-    H1 = H
+rdf_list(rdf:nil, [], _, _):- !.
+rdf_list(RdfList, [H|T], Graph, Options):-
+  % `rdf:first`
+  rdf(RdfList, rdf:first, First, Graph),
+  (   % Nested list.
+      option(recursive(true), Options, true),
+      rdf_list(First)
+  ->  rdf_list(First, H, Graph, Options)
+  ;   % Dedicated support for RDF datatypes.
+      option(datatype(Datatype), Options)
+  ->  rdf_typed_literal(First, rdf:value, H, Datatype, Graph)
+  ;   H = First
   ),
-  rdf_has(RDFList, rdf:rest, RDFTail), !,
-  rdf_list(RDFTail, T, Options).
+  
+  % `rdf:rest`
+  rdf(RdfList, rdf:rest, Rest, Graph),
+  rdf_list(Rest, T, Graph, Options).
 
 
-%! rdf_list_first(+List:iri, +FirstElement:iri) is semidet.
-%! rdf_list_first(+List:iri, -FirstElement:iri) is nondet.
-%! rdf_list_first(-List:iri, +FirstElement:iri) is nondet.
-%! rdf_list_first(-List:iri, -FirstElement:iri) is nondet.
+
+%! rdf_list_after(
+%!   ?After:rdf_term,
+%!   ?Before:rdf_term,
+%!   ?List:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is nondet.
+% Succeeds in case After occurs after Before in an RDF list.
+%
+% @see The inverse of rdf_list_before/4.
+
+rdf_list_after(After, Before, List, Graph):-
+  rdf_list_before(Before, After, List, Graph).
+
+
+
+%! rdf_list_before(
+%!   ?Before:rdf_term,
+%!   ?After:rdf_term,
+%!   ?List:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is nondet.
+% Succeeds in case Before occurs before After in an RDF list.
+%
+% @see Transitive closure of rdf_list_directly_before/3.
+
+rdf_list_before(Before, After, List, Graph):-
+  closure(
+    \Before^After^rdf_list_directly_before(Before, After, List, Graph),
+    Before,
+    After
+  ).
+
+
+
+%! rdf_list_directly_after(
+%!   ?After:rdf_term,
+%!   ?Before:rdf_term,
+%!   ?List:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is nondet.
+% Succeeds in case After occurs directly after Before in an RDF list.
+%
+% @see Inversion of rdf_list_directly_before/4.
+
+rdf_list_directly_after(After, Before, List, Graph):-
+  rdf_list_directly_before(Before, After, List, Graph).
+
+
+
+%! rdf_list_directly_before(
+%!   ?Before:rdf_term,
+%!   ?After:rdf_term,
+%!   ?List:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is nondet.
+% Succeeds in case Before occurs directly before After in an RDF list.
+
+rdf_list_directly_before(Before, After, List, Graph):-
+  rdf(List, rdf:first, Before, Graph),
+  rdf(List, rdf:rest, Rest, Graph),
+  rdf(Rest, rdf:first, After, Graph).
+
+
+
+%! rdf_list_first(
+%!   ?List:or([bnode,iri]),
+%!   ?First:rdf_term,
+%!   ?List:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is nondet.
 % Relates RDF lists to their first element.
 
-rdf_list_first(List, First):-
-  rdf_has(List, rdf:first, First).
+rdf_list_first(List, First, List, Graph):-
+  rdf(List, rdf:first, First, Graph).
 
 
-%! rdf_list_last(+List:iri, +LastElement:iri) is nondet.
-%! rdf_list_last(+List:iri, -LastElement:iri) is nondet.
-%! rdf_list_last(-List:iri, +LastElement:iri) is nondet.
-%! rdf_list_last(-List:iri, -LastElement:iri) is nondet.
+
+%! rdf_list_last(
+%!   ?List:or([bnode,iri]),
+%!   ?Last:rdf_term,
+%!   ?Graph:atom
+%! ) is nondet.
 % Pairs of lists and their last element.
 
-rdf_list_last(List, Last):-
-  rdf_has(List, rdf:rest, rdf:nil), !,
-  rdf_has(List, rdf:first, Last).
-rdf_list_last(List, Last):-
-  rdf_has(List, rdf:rest, NextList),
-  rdf_list_last(NextList, Last).
+rdf_list_last(List, Last, Graph):-
+  rdf(List, rdf:rest, rdf:nil, Graph), !,
+  rdf(List, rdf:first, Last, Graph).
+rdf_list_last(List, Last, Graph):-
+  rdf(List, rdf:rest, Rest, Graph),
+  rdf_list_last(Rest, Last, Graph).
 
 
-%! rdf_list_length(+List:iri, -Length:integer) is det.
-% Returns the number of elements in the given list.
-%
-% @arg List An RDF list.
-% @arg Length An integer.
 
-rdf_list_length(List, Length):-
-  rdf_list_length(List, 0, Length).
+%! rdf_list_length(
+%!   ?List:or([bnode,iri]),
+%!   ?Length:nonneg,
+%!   ?Graph:atom
+%! ) is nondet.
+% Succeeds if Length is the number of elements in List.
 
-rdf_list_length(List, Length, Length):-
-  rdf_has(List, rdf:rest, rdf:nil), !.
-rdf_list_length(List, Length, Length):-
-  rdf_has(List, rdf:rest, PartialList),
-  rdf_list_length(PartialList, PartialLength, Length),
-  succ(PartialLength, Length).
+rdf_list_length(List, N, Graph):-
+  rdf_list_length(List, 0, N, Graph).
 
-
-%! rdf_list_member(+Element, +RdfList:iri) is semidet.
-%! rdf_list_member(+Element, -RdfList:iri) is multi.
-%! rdf_list_member(-Element, +RdfList:iri) is multi.
-%! rdf_list_member(-Element, -RdfList:iri) is multi.
-% Variant of member/2 for RDF lists.
-
-rdf_list_member(Element, RdfList):-
-  rdf_list_first(RdfList, FirstElement),
-  rdf_list_member0(Element, FirstElement).
-rdf_list_member0(Element, Element).
-rdf_list_member0(Element, TempElement1):-
-  rdf_list_next(TempElement1, TempElement2),
-  rdf_list_member0(Element, TempElement2).
+rdf_list_length(List, N, N, Graph):-
+  rdf(List, rdf:rest, rdf:nil, Graph), !.
+rdf_list_length(List, N1, N3, Graph):-
+  rdf(List, rdf:rest, Rest, Graph),
+  rdf_list_length(Rest, N1, N2, Graph),
+  succ(N2, N3).
 
 
-%! rdf_list_next(+Element:iri, +NextElement:iri) is semidet.
-%! rdf_list_next(+Element:iri, -NextElement:iri) is semidet.
-%! rdf_list_next(-Element:iri, +NextElement:iri) is semidet.
-%! rdf_list_next(-Element:iri, -NextElement:iri) is multi.
-% Returns pairs of consecutive elements in a list.
-%
-% @arg Element A resource that is an element in an RDF list.
-% @arg NextElement A resource that is an element in an RDF list.
 
-rdf_list_next(Element, NextElement):-
-  rdf_has(List, rdf:first, Element),
-  rdf_has(List, rdf:rest, NextList),
-  \+ rdf_global_id(rdf:nil, NextList),
-  rdf_has(NextList, rdf:first, NextElement).
+%! rdf_list_member(
+%!   ?Member:rdf_term,
+%!   ?List:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is semidet.
+% Succeeds if Member occurs in List.
 
-rdf_list_occurs_after(After, Before):-
-  After \== Before,
-  rdf_list_occurs_after0(After, Before).
-rdf_list_occurs_after0(X, X).
-rdf_list_occurs_after0(After1, Before):-
-  rdf_list_previous(After1, After2),
-  rdf_list_occurs_after0(After2, Before).
-
-rdf_list_occurs_before(Before, After):-
-  Before \== After,
-  rdf_list_occurs_before0(Before, After).
-rdf_list_occurs_before0(X, X).
-rdf_list_occurs_before0(Before1, After):-
-  rdf_list_next(Before1, Before2),
-  rdf_list_occurs_before0(Before2, After).
-
-%! rdf_list_previous(Element, PreviousElement) is nondet.
-% Returns pairs of inverted consecutive elements in a list.
-%
-% @arg Element A resource that is an element in an RDF list.
-% @arg PreviousElement A resource that is an element in an RDF list.
-
-rdf_list_previous(Element, PreviousElement):-
-  rdf_list_next(PreviousElement, Element).
+rdf_list_member(Member, List, Graph):-
+  rdf_list_first(List, Member, Graph).
+rdf_list_member(Member, List, Graph):-
+  rdf(List, rdf:rest, Rest, Graph),
+  rdf_list_member(Member, Rest, Graph).
 
 
-%! rdf_list_name(+Options:list(nvpair), +RdfList:iri)// is det.
 
-rdf_list_name(Options, RdfList) -->
-  % Recursively retrieve the contents of the RDF list.
-  % This has to be done non-recursively, since the nested
-  % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
-  % trouble when it comes accross `[b,c]`
-  % (which fails the check for RDF list).
-  {rdf_list([recursive(false)], RdfList, Terms)},
-  list(rdf_term_name(Options), Terms).
+%! rdf_list_nth0(
+%!   ?Index:nonneg,
+%!   ?List:or([bnode,iri]),
+%!   ?Elem:rdf_term,
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_list_nth0(I, L, E, G):-
+  rdf_list_nth0(0, I, L, E, G).
+
+rdf_list_nth0(I, I, L, E, G):-
+  rdf_list_first(L, rdf:first, E, G).
+rdf_list_nth0(I1, I3, L, E, G):-
+  rdf(L, rdf:rest, R, G),
+  rdf_list_nth0(I1, I2, R, E, G),
+  succ(I2, I3).
 
 
-%! rdf_list_nth0(+Index:nonneg, +RdfList:iri, -Element:or([bnode,iri])) is det.
 
-rdf_list_nth0(I, L, E):-
-  rdf_list_first(L, E1),
-  rdf_list_nth0_(I, E1, E).
 
-rdf_list_nth0_(0, E, E):- !.
-rdf_list_nth0_(I1, E1, E):-
-  rdf_list_next(E1, E2),
-  I2 is I1 - 1,
-  rdf_list_nth0_(I2, E2, E).
 
+% HELPERS
+
+%! add_list_individual(?List:or([bnode,iri]), ?Graph:atom) is det.
+% @arg List Defaults to a new;y created blank node.
+% @arg Graph Defaults to graph `user`.
+
+add_list_individual(List, Graph):-
+  (   var(List)
+  ->  rdf_bnode(List)
+  ;   true
+  ),
+  rdf_assert_instance(List, rdf:'List', Graph).

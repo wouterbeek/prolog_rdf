@@ -1,192 +1,137 @@
 :- module(
   rdf_datatype,
   [
-    rdf_assert_datatype/5, % +Subject:oneof([bnode,iri])
-                           % +Predicate:iri
-                           % +Value
-                           % +Datatype:iri
-                           % ?Graph:atom
-    rdf_datatype/2, % ?Datatype:iri
-                    % ?Graph:atom
-    rdf_datatype/4, % ?Subject:oneof([bnode,iri])
-                    % ?Predicate:iri
-                    % ?Value
-                    % ?Datatype:iri
-    rdf_datatype/5, % ?Subject:oneof([bnode,iri])
-                    % ?Predicate:iri
-                    % ?Value
-                    % ?Datatype:iri
-                    % ?Graph:atom
-    rdf_literal_value2/2, % +Literal:compound
-                         % -Value
-    rdf_overwrite_datatype/5, % +Subject:oneof([bnode,iri])
-                              % +Predicate:iri
-                              % +LexicalForm2
-                              % +Datatype:iri
-                              % +Graph:atom
-    rdf_retractall_datatype/4 % ?Subject:oneof([bnode,iri])
-                              % ?Predicate:iri
-                              % ?Datatype:iri
-                              % ?Graph:atom
+    rdf_canonical_map/3, % +Datatype:iri
+                         % +Value
+                         % ?LexicalForm:atom
+    rdf_compare/4, % +Datatype:iri
+                   % -Order:oneof([incomparable,<,=,>])
+                   % +Value1
+                   % +Value2
+    rdf_datatype/1, % ?Datatype:iri
+    rdf_equiv/3, % +Datatype:iri
+                 % +Value1
+                 % +Value2
+    rdf_lexical_map/3 % +Datatype:iri
+                      % +LexicalForm:atom
+                      % ?Value
   ]
 ).
 
 /** <module> RDF datatype
 
-Support for RDF typed literals.
-
 @author Wouter Beek
-@version 2013/10, 2014/01-2014/03, 2014/06, 2014/09
+@compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
+@version 2014/11
 */
 
-:- use_module(library(debug)).
+:- use_module(library(memfile)).
 :- use_module(library(semweb/rdf_db)).
-
-:- use_module(plDcg(dcg_generics)).
+:- use_module(library(sgml)).
+:- use_module(library(sgml_write)).
 
 :- use_module(plXsd(xsd)).
 
-:- use_module(plRdf(rdf_name)). % Meta-DCG.
-:- use_module(plRdf(term/rdf_literal)).
-:- use_module(plRdf(term/rdf_literal_build)).
-:- use_module(plRdf(term/rdf_typed_literal)).
-
-:- rdf_meta(rdf_assert_datatype(r,r,+,r,?)).
-:- rdf_meta(rdf_datatype(r,?)).
-:- rdf_meta(rdf_datatype(r,r,?,r)).
-:- rdf_meta(rdf_datatype(r,r,?,r,?)).
-:- rdf_meta(rdf_overwrite_datatype(r,r,+,r,+)).
-:- rdf_meta(rdf_retractall_datatype(r,r,r,?)).
+:- rdf_meta(rdf_canonical_map(r,+,?)).
+:- rdf_meta(rdf_compare(r,?,+,+)).
+:- rdf_meta(rdf_datatype(r)).
+:- rdf_meta(rdf_equiv(r,+,+)).
+:- rdf_meta(rdf_lexical_map(r,+,?)).
 
 
 
-%! rdf_assert_datatype(
-%!   +Subject:oneof([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Value,
+%! rdf_canonical_map(+Datatype:iri, +Value, +LexicalForm:atom) is semidet.
+%! rdf_canonical_map(+Datatype:iri, +Value, -LexicalForm:atom) is det.
+% Maps RDF datatyped values onto a unique / canonical lexical form.
+%
+% Supports the following RDF datatypes:
+%   - `rdf:HTML`
+%   - `rdf:XMLLiteral`
+%   - The XSD datatypes as defined by xsd.pl.
+%
+% @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
+
+rdf_canonical_map(rdf:'HTML', Value, LexicalForm):- !,
+  with_output_to(atom(LexicalForm), html_write(current_output, Value, [])).
+rdf_canonical_map(rdf:'XMLLiteral', Value, LexicalForm):- !,
+  with_output_to(atom(LexicalForm), xml_write(current_output, Value, [])).
+rdf_canonical_map(Datatype, Value, LexicalForm):-
+  xsd_canonical_map(Datatype, Value, LexicalForm).
+
+
+
+%! rdf_compare(
 %!   +Datatype:iri,
-%!   ?Graph:atom
-%! ) is det.
-% Asserts a datatyped value for a blank node or IRI reference.
+%!   +Order:oneof([incomparable,<,=,>]),
+%!   +Value1,
+%!   +Value2
+%! ) is semidet.
+%! rdf_compare(
+%!   +Datatype:iri,
+%!   -Order:oneof([incomparable,<,=,>]),
+%!   +Value1,
+%!   +Value2
+%! ) is semidet.
+
+rdf_compare(Datatype, Order, Value1, Value2):-
+  (   rdf_equal(Datatype, rdf:'HTML')
+  ;   rdf_equal(Datatype, rdf:'XMLLiteral')
+  ), !,
+  compare(Order, Value1, Value2).
+rdf_compare(Datatype, Order, Value1, Value2):-
+  xsd_compare(Datatype, Order, Value1, Value2).
+
+
+
+%! rdf_datatype(+Datatype:iri) is semidet.
+%! rdf_datatype(-Datatype:iri) is multi.
+
+rdf_datatype(rdf:'HTML').
+rdf_datatype(rdf:'XMLLiteral').
+rdf_datatype(rdf:langString).
+rdf_datatype(Datatype):-
+  xsd_datatype(Datatype).
+
+
+
+%! rdf_equiv(+Datatype:iri, +Value1, +Value2) is semidet.
+% RDF typed literal value equivalence w.r.t. a datatype.
+
+rdf_equiv(D, V1, V2):-
+  rdf_compare(D, =, V1, V2).
+
+
+
+%! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, +Value) is semidet.
+%! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, -Value) is nondet.
+% Maps lexical forms onto the values they represent.
 %
-% We choose to use the XML Schema 2 Datatypes (2nd Edition)
-% for this. The asserted values are the atomic equivalent of the
-% *|canonical lexical representations|* as defined by that standard.
+% Supports the following RDF datatypes:
+%   - `rdf:HTML`
+%   - `rdf:XMLLiteral`
+%   - The XSD datatypes as defined by xsd.pl.
 %
-% We only emit canonical representations for XSD values.
-%
-% Language-tagged strings cannot be asserted in this way.
+% @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
-% Simple literals.
-rdf_assert_datatype(S, P, Value, Datatype, Graph):-
-  var(Datatype), !,
-  rdf_assert_datatype(S, P, Value, xsd:string, Graph).
-% Others.
-rdf_assert_datatype(S, P, Value, Datatype, Graph):-
-  xsd_canonical_map(Datatype, Value, LexicalForm),
-  rdf_assert_literal(S, P, LexicalForm, Datatype, _, Graph).
-
-
-%! rdf_datatype(?Datatype:iri, ?Graph:atom) is nondet.
-
-rdf_datatype(D, G):-
-  rdf_literal(_, _, _, D, _, G).
-
-
-%! rdf_datatype(
-%!   ?Subject:oneof([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Value,
-%!   ?Datatype:or([atom,iri])
-%! ) is nondet.
-% @see rdf_datatype/5
-
-rdf_datatype(S, P, Value, Datatype):-
-  rdf_datatype(S, P, Value, Datatype, _).
-
-
-%! rdf_datatype(
-%!   ?Subject:oneof([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Value,
-%!   ?Datatype:or([atom,iri]),
-%!   ?Graph:atom
-%! ) is nondet.
-% @tbd Ideally, we would like to close lexical expressions
-%      under identity and equivalence in search.
-
-rdf_datatype(S, P, Value, Datatype, G):-
-  nonvar(Datatype),
-  ground(Value), !,
-  % @tbd Ideally, we would like to close the lexical form
-  %      under identity or equivalence.
-  xsd_canonical_map(Datatype, Value, LexicalForm),
-  rdf_literal(S, P, LexicalForm, Datatype, _, G).
-rdf_datatype(S, P, Value, Datatype, G):-
-  once(rdf_literal(S, P, LexicalForm, Datatype, _, G)),
-  rdf_literal_map(LexicalForm, Datatype, _, Value).
-
-
-%! rdf_literal_value2(+Literal:compound, -Value) is det.
-
-rdf_literal_value2(Literal, Value):-
-  rdf_literal(Literal, LexicalForm, Datatype, _),
-  (   rdf_equal(rdf:langString, Datatype)
-  ->  Value = LexicalForm
-  ;   xsd_lexical_map(Datatype, LexicalForm, Value)
-  ->  true
-  ;   gtrace % Datatype not yet implemented.
+rdf_lexical_map(rdf:'HTML', LexicalForm, Value):- !,
+  setup_call_cleanup(
+    atom_to_memory_file(LexicalForm, Handle),
+    setup_call_cleanup(
+      open_memory_file(Handle, read, In),
+      load_html(In, Value, []),
+      close(In)
+    ),
+    free_memory_file(Handle)
   ).
-
-
-%! rdf_overwrite_datatype(
-%!   +Subject:oneof([bnode,iri]),
-%!   +Predicate:iri,
-%!   +LexicalForm2,
-%!   +Datatype:iri,
-%!   +Graph:atom
-%! ) is det.
-% The single new value is going to overwrite all old values, unless the new
-% value is already asserted. In that case none of the other values gets
-% retracted.
-
-rdf_overwrite_datatype(S, P, LexicalForm2, Datatype, G):-
-  % Make sure there is at most one value that would be overwritten.
-  findall(
-    [S,P,Datatype,LexicalForm1,G],
-    rdf_datatype(S, P, LexicalForm1, Datatype, G),
-    Tuples
-  ),
-  (
-    Tuples == [], !
-  ;
-    Tuples = [[S,P,Datatype,LexicalForm1,G]], !
-  ),
-
-  % Remove the old value and assert the new value.
-  rdf_retractall_datatype(S, P, Datatype, G),
-  rdf_assert_datatype(S, P, LexicalForm2, Datatype, G),
-
-  % DEB: Old object term.
-  rdf_typed_literal(Literal1, LexicalForm1, Datatype),
-  dcg_with_output_to(atom(T1), rdf_triple_name(rdf(S,P,Literal1), G)),
-
-  % DEB: New object term.
-  rdf_typed_literal(Literal2, LexicalForm2, Datatype),
-  dcg_with_output_to(atom(T2), rdf_triple_name(rdf(S,P,Literal2), G)),
-
-  % DEB: Show old and new object term in debug message.
-  debug(rdf_datatype, 'Updated triple: ~w --> ~w', [T1,T2]).
-
-
-%! rdf_retractall_datatype(
-%!   ?Subject:oneof([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Datatype:iri,
-%!   ?Graph:atom
-%! ) is det.
-% Retracts all matching RDF triples that assert a datatypes value.
-
-rdf_retractall_datatype(S, P, Datatype, G):-
-  rdf_retractall_literal(S, P, _, Datatype, G).
-
+rdf_lexical_map(rdf:'XMLLiteral', LexicalForm, Value):- !,
+  setup_call_cleanup(
+    atom_to_memory_file(LexicalForm, Handle),
+    setup_call_cleanup(
+      open_memory_file(Handle, read, In),
+      load_xml(In, Value, []),
+      close(In)
+    ),
+    free_memory_file(Handle)
+  ).
+rdf_lexical_map(Datatype, LexicalForm, Value):-
+  xsd_lexical_map(Datatype, LexicalForm, Value).

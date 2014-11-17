@@ -1,8 +1,11 @@
 :- module(
   rdf_term,
   [
+    rdf_bnode/1, % ?BNode:bnode
     rdf_bnode/2, % ?BNode:bnode
                  % ?Graph:atom
+    rdf_id/2, % ?Term:rdf_term
+              % ?EquivTerm:rdf_term
     rdf_iri/1, % ?Iri:iri
     rdf_iri/2, % ?Iri:iri
                % ?Graph:atom
@@ -61,6 +64,7 @@ But this is not the case either, since typed literals are mapped onto
 
 :- use_module(plRdf(term/rdf_literal)).
 
+:- rdf_meta(rdf_id(o,o)).
 :- rdf_meta(rdf_iri(r)).
 :- rdf_meta(rdf_iri(r,?)).
 :- rdf_meta(rdf_is_iri(o)).
@@ -82,8 +86,8 @@ But this is not the case either, since typed literals are mapped onto
 
 
 
-%! rdf_bnode(+BNode) is semidet.
-%! rdf_bnode(-BNode) is nondet.
+%! rdf_bnode(+BNode:bnode) is semidet.
+%! rdf_bnode(-BNode:bnode) is nondet.
 % Enumerates the current blank node terms.
 % Ensures that no blank node occurs twice.
 
@@ -104,6 +108,15 @@ rdf_bnode(BNode, Graph):-
   rdf_bnode(BNode),
   % Relate blank node to graph.
   rdf_node(BNode, Graph).
+
+
+
+%! rdf_id(+Term:rdf_term, +EquivTerm:rdf_term) is semidet.
+%! rdf_id(+Term:rdf_term, -EquivTerm:rdf_term) is multi.
+%! rdf_id(-Term:rdf_term, +EquivTerm:rdf_term) is multi.
+
+rdf_id(T1, T2):-
+  rdf_reachable(T1, owl:sameAs, T2).
 
 
 

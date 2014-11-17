@@ -20,7 +20,7 @@ Generates names for RDF terms and triples.
 @author Wouter Beek
 @tbd Update to RDF 1,1,
 @tbd Add support for RDF list printing.
-@version 2013/07-2013/09, 2014/01-2014/04, 2014/07, 2014/10
+@version 2013/07-2013/09, 2014/01-2014/04, 2014/07, 2014/10-2014/11
 */
 
 :- use_module(library(option)).
@@ -39,8 +39,8 @@ Generates names for RDF terms and triples.
 
 :- use_module(plRdf(management/rdf_prefix)).
 :- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdfs_label_ext)).
 :- use_module(plRdf(term/rdf_list)).
+:- use_module(plRdf(term/rdfs_label_ext)).
 
 :- rdf_meta(rdf_term_name(+,r,?,?)).
 :- rdf_meta(rdf_term_name(r,?,?)).
@@ -104,36 +104,26 @@ rdf_graph_name(Graph) --> atom(Graph).
 % The options `only_preferred_label` and `with_preferred_label`.
 rdf_iri_name(Options1, Iri) -->
   % Whether to include the RDF term itself or only its preferred RDFS label.
-  (
-    {option(iri_description(with_preferred_label), Options1)}
-  ->
-    rdf_iri_name([iri_description(iri_only)], Iri),
-    nl
-  ;
-    {option(iri_description(only_preferred_label), Options1)}
+  (   {option(iri_description(with_preferred_label), Options1)}
+  ->  rdf_iri_name([iri_description(iri_only)], Iri),
+      nl
+  ;  {option(iri_description(only_preferred_label), Options1)}
   ), !,
 
   % See whether a preferred label can be found.
-  ({
-    option(prferred_languages(LanguageTags), Options1, en),
-    rdfs_preferred_label(LanguageTags, Iri, PreferredLabel, _, _)
-  } ->
-    atom(PreferredLabel)
-  ;
-    ``
+  ({    option(prferred_languages(LanguageTags), Options1, en),
+        rdfs_preferred_label(LanguageTags, Iri, PreferredLabel, _, _)
+  } ->  atom(PreferredLabel)
+  ;     ""
   ).
 % The IRI is set to collate all literals that (directly) relate to it.
 % These are the options `only_all_literals` and `with_all_literals`.
 rdf_iri_name(Options1, Iri) -->
   % The URI, if included.
-  {(
-    option(iri_description(with_all_literals), Options1)
-  ->
-    Elements = [Iri|Literals2]
-  ;
-    option(iri_description(only_all_literals), Options1)
-  ->
-    Elements = Literals2
+  {(  option(iri_description(with_all_literals), Options1)
+  ->  Elements = [Iri|Literals2]
+  ;   option(iri_description(only_all_literals), Options1)
+  ->  Elements = Literals2
   )},
   
   {
@@ -169,17 +159,19 @@ rdf_iri_name(_, Iri) -->
   % We take the prefix that stands for the longest IRI substring.
   {rdf_iri_to_prefix(Iri, LongestPrefix, ShortestLocalName)}, !,
   atom(LongestPrefix),
-  `:`,
+  ":",
   atom(ShortestLocalName).
 % An IRI without an RDF prefix.
 rdf_iri_name(_, Iri) -->
   atom(Iri).
 
 
+
 %! rdf_language_tag_name(+LanguageTag:atom)// is det.
 
 rdf_language_tag_name(LanguageTag) -->
   atom(LanguageTag).
+
 
 
 %! rdf_literal_name(+Options:list(nvpair), +Literal:compound)// is det.
@@ -189,6 +181,7 @@ rdf_literal_name(_, Literal) -->
   rdf_typed_literal_name(Literal).
 rdf_literal_name(Options1, Literal) -->
   rdf_plain_literal_name(Options1, Literal).
+
 
 
 %! rdf_plain_literal_name(
@@ -205,6 +198,7 @@ rdf_plain_literal_name(Options1, literal(Value)) -->
   rdf_simple_literal_name(Options1, Value).
 
 
+
 %! rdf_simple_literal_name(+Options:list(nvpair), +Value:atom)// is det.
 % The following options are supported:
 %   * =|literal_ellipsis(+or([oneof([inf]),positive_integer]))|=
@@ -213,6 +207,7 @@ rdf_plain_literal_name(Options1, literal(Value)) -->
 rdf_simple_literal_name(Options1, Value) -->
   {option(literal_ellipsis(Ellipsis), Options1, inf)},
   quoted(atom(Value, Ellipsis)).
+
 
 
 %! rdf_term_name(+Term:oneof([bnode,iri,literal]))// is det.
@@ -248,12 +243,18 @@ rdf_term_name(Term) -->
 rdf_term_name(Options1, Term) -->
   {select_option(graph(Graph), Options1, Options2)}, !,
   rdf_term_name(Options2, Term),
-  ` in `,
+  " in ",
   rdf_graph_name(Graph).
 % RDF list.
-%rdf_term_name(Options1, RdfList) -->
-%  {rdf_is_list(RdfList)}, !,
-%  rdf_list_name(Options1, RdfList).
+rdf_term_name(Options1, RdfList) -->
+  {rdf_is_list(RdfList)}, !,
+  % Recursively retrieve the contents of the RDF list.
+  % This has to be done non-recursively, since the nested
+  % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
+  % trouble when it comes accross `[b,c]`
+  % (which fails the check for RDF list).
+  {rdf_list(RdfList, PlList, [recursive(false)])},
+  list(rdf_term_name(Options), PlList).
 % Blank node.
 rdf_term_name(_, BNode) -->
   {rdf_is_bnode(BNode)}, !,

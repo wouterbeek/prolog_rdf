@@ -6,9 +6,9 @@
     rdf_is_typed_literal_term/1, % @Term
     rdf_simple_literal/4 % ?Term:rdf_term
                          % ?Predicate:iri
-                         % ?LexicalForm:atom
+                         % ?Value:atom
                          % ?Graph:atom
-    rdf_simple_literal_data/3, % ?Field:oneof([lexical_form])
+    rdf_simple_literal_data/3, % ?Field:oneof([lexical_form,value])
                                % +Literal:compound
                                % ?Data
     rdf_simple_literal_term/1, % ?Literal:compound
@@ -16,10 +16,10 @@
                                % ?Graph:atom
     rdf_typed_literal/5 % ?Term:rdf_term
                         % ?Predicate:iri
-                        % ?LexicalForm:atom
+                        % ?Value
                         % ?Datatype:iri
                         % ?Graph:atom
-    rdf_typed_literal_data/3, % ?Field:oneof([datatype,lexical_form])
+    rdf_typed_literal_data/3, % ?Field:oneof([datatype,lexical_form,value])
                               % +Literal:compound
                               % ?Data
     rdf_typed_literal_term/1, % ?Literal:compound
@@ -50,6 +50,7 @@ the Unicode strings in Normal Form C with the set of datatype URIs.
 :- use_module(generics(typecheck)).
 
 :- use_module(plRdf(api/rdf_read)).
+:- use_module(plRdf(term/rdf_literal)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_is_typed_literal(o)).
@@ -128,32 +129,33 @@ rdf_plain_literal_term(Literal, Graph):-
 %! rdf_simple_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
+%!   ?Value:atom,
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_simple_literal(Term, Predicate, LexicalForm, Graph):-
-  rdf_literal(Term, Predicate, LexicalForm, xsd:string, _, Graph).
+rdf_simple_literal(Term, Predicate, Value, Graph):-
+  rdf_literal(Term, Predicate, Value, xsd:string, _, Graph).
 
 
 
 %! rdf_simple_literal_data(
-%!   +Field:oneof([lexical_form]),
+%!   +Field:oneof([lexical_form,value]),
 %!   +Literal:compound,
 %!   +Data
 %! ) is semidet.
 %! rdf_simple_literal_data(
-%!   +Field:oneof([lexical_form]),
+%!   +Field:oneof([lexical_form,value]),
 %!   +Literal:compound,
 %!   -Data
 %! ) is det.
 %! rdf_simple_literal_data(
-%!   -Field:oneof([lexical_form]),
+%!   -Field:oneof([lexical_form,value]),
 %!   +Literal:compound,
 %!   -Data
 %! ) is multi.
 
 rdf_simple_literal_data(lexical_form, literal(LexicalForm), LexicalForm).
+rdf_simple_literal_data(value, literal(Value), Value).
 
 
 
@@ -186,28 +188,28 @@ rdf_simple_literal_term(Literal, Graph):-
 %! rdf_typed_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
+%!   ?Value,
 %!   ?Datatype:iri,
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_typed_literal(Term, Predicate, LexicalForm, Datatype, Graph):-
-  rdf_literal(Term, Predicate, LexicalForm, Datatype, _, Graph).
+rdf_typed_literal(Term, Predicate, Value, Datatype, Graph):-
+  rdf_literal(Term, Predicate, Value, Datatype, _, Graph).
 
 
 
 %! rdf_typed_literal_data(
-%!   +Field:oneof([datatype,lexical_form]),
+%!   +Field:oneof([datatype,lexical_form,value]),
 %!   +Literal:compound,
 %!   +Data
 %! ) is semidet.
 %! rdf_typed_literal_data(
-%!   +Field:oneof([datatype,lexical_form]),
+%!   +Field:oneof([datatype,lexical_form,value]),
 %!   +Literal:compound,
 %!   -Data
 %! ) is det.
 %! rdf_typed_literal_data(
-%!   -Field:oneof([datatype,lexical_form]),
+%!   -Field:oneof([datatype,lexical_form,value]),
 %!   +Literal:compound,
 %!   -Data
 %! ) is multi.
@@ -218,6 +220,8 @@ rdf_typed_literal_data(
   literal(type(_,LexicalForm)),
   LexicalForm
 ).
+rdf_typed_literal_data(value, literal(type(Datatype,LexicalForm)), Value):-
+  rdf_lexical_map(Datatype, LexicalForm, Value).
 
 
 

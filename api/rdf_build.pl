@@ -37,7 +37,7 @@
                        % ?Graph:atom
     rdf_retractall_literal/6, % ?Subject:oneof([bnode,iri])
                               % ?Predicate:iri
-                              % ?LexicalForm:atom
+                              % ?Value:atom
                               % ?DatatypeIri:iri
                               % ?LangTag:list(atom)
                               % ?Graph:atom
@@ -64,6 +64,7 @@ Triples with literals are treated in dedicated modules.
 
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
+:- use_module(plRdf(term/rdf_datatype)).
 
 :- rdf_meta(rdf_assert_instance(o,r,?)).
 :- rdf_meta(rdf_assert_language_tagged_string(o,r,+,+,?)).
@@ -114,23 +115,29 @@ rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, Graph):-
 %! rdf_assert_literal(
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
-%!   +LexicalForm:atom,
+%!   +Value:atom,
 %!   ?DatatypeIri:iri,
 %!   ?LangTag:list(atom),
 %!   ?Graph:atom
 %! ) is det.
 % Asserts a triple with a literal object term.
+%
+% Only emits canonical representations for XSD values.
+%
+% @compat RDF 1.1 Concepts and Abstract Syntax
+% @compat XSD 1.1 Schema 2: Datatypes
 
 % Language-tagged strings.
-rdf_assert_literal(Node, P, LexicalForm, rdf:langString, LangTag, Graph):-
+rdf_assert_literal(Node, P, Value, rdf:langString, LangTag, Graph):-
   nonvar(LangTag), !,
-  rdf_assert2(Node, P, literal(lang(LangTag,LexicalForm)), Graph).
+  rdf_assert2(Node, P, literal(lang(LangTag,Value)), Graph).
 % Simple literals.
-rdf_assert_literal(Node, P, LexicalForm, Datatype, _, Graph):-
+rdf_assert_literal(Node, P, Value, Datatype, _, Graph):-
   var(Datatype), !,
-  rdf_assert_literal(Node, P, LexicalForm, xsd:string, _, Graph).
+  rdf_assert_literal(Node, P, Value, xsd:string, _, Graph).
 % (Explicitly) typed literals.
-rdf_assert_literal(Node, P, LexicalForm, Datatype, _, Graph):-
+rdf_assert_literal(Node, P, Value, Datatype, _, Graph):-
+  rdf_canonical_map(Datatype, Value, LexicalForm),
   rdf_assert2(Node, P, literal(type(Datatype,LexicalForm)), Graph).
 
 
@@ -251,7 +258,7 @@ rdf_retractall2(Node, P, O, Graph):-
 %! rdf_retractall_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
+%!   ?Value,
 %!   ?DatatypeIri:iri,
 %!   ?LangTag:list(atom),
 %!   ?Graph:atom
@@ -263,16 +270,18 @@ rdf_retractall2(Node, P, O, Graph):-
 % We do not retract literal compound terms of the form
 %  `literal(LexicalForm:atom)`.
 
-rdf_retractall_literal(Node, P, LexicalForm, Datatype, LangTag, Graph):-
-  % Retract language-tagged strings only if
-  % Datatype is unifiable with rdf:langString.
+rdf_retractall_literal(Node, P, Value, Datatype, LangTag, Graph):-
+  % Retract language-tagged strings only if Datatype is unifiable with
+  %  `rdf:langString`.
   (   rdf_equal(Datatype, rdf:langString)
   ->  rdf_retractall2(Node, P, literal(lang(LangTag,LexicalForm)), Graph)
-  ;   true
+  ;   Value = LexicalForm-LangTag
   ),
-  % Retract datatyped literals only if LangTag is uninstantiated.
+  % Retract typed literals only if LangTag is uninstantiated.
   (   var(LangTag)
-  ->  rdf_retractall2(Node, P, literal(type(Datatype,LexicalForm)), Graph)
+  ->  rdf_retractall2(Node, P, literal(type(Datatype,LexicalForm)), Graph),
+      % Possibly computationally intensive.
+      rdf_lexical_map(Datatype, LexicalForm, Value)
   ;   true
   ).
 

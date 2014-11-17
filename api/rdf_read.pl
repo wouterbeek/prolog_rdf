@@ -1,28 +1,17 @@
 :- module(
   rdf_read,
   [
-    rdf_id/2, % ?Term:rdf_term
-              % ?EquivTerm:rdf_term
-    rdf_is_langstring/1, % @Term
     rdf_langstring/5, % ?Term:rdf_term
                       % ?Predicate:iri
                       % ?LexicalForm:atom
-                      % ?LangTag:atom
+                      % ?Value
                       % ?Graph:atom
-    rdf_langstring_data/1, % ?Field:oneof([datatype,langtag,lexical_form])
-                           % +Literal:compound
-                           % ?Data
-    rdf_langstring_term/1, % ?Literal:compound
     rdf_literal/6, % ?Term:rdf_term
                    % ?Predicate:iri
-                   % ?LexicalForm:atom
+                   % ?Value
                    % ?Datatype:iri
                    % ?LangTag:list(atom)
                    % ?Graph:atom
-    rdf_literal_data/3, % ?Field:oneof([datatype,langtag,lexical_form])
-                        % +Literal:compound
-                        % ?Data
-    rdf_literal_term/1, % ?Literal:compound
     rdf_resource_edge/4, % +Term:rdf_term
                          % -Predicate:iri
                          % -OtherTerm:rdf_term
@@ -63,15 +52,11 @@ Predicates for reading from RDF, customized for specific datatypes and
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
 
+:- use_module(plRdf(term/rdf_literal)).
 :- use_module(plRdf(term/rdf_term)).
 
-:- rdf_meta(rdf_id(o,o)).
 :- rdf_meta(rdf_langstring(o,r,?,?,?)).
-:- rdf_meta(rdf_langstring_data(?,o,-)).
-:- rdf_meta(rdf_langstring_term(o)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?)).
-:- rdf_meta(rdf_literal_data(+,o,-)).
-:- rdf_meta(rdf_literal_term(o)).
 :- rdf_meta(rdf_resource_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_incoming_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_outgoing_edge(o,r,o,?)).
@@ -88,111 +73,52 @@ error:has_type(rdf_term, Term):-
 
 
 
-%! rdf_id(+Term:rdf_term, +EquivTerm:rdf_term) is semidet.
-%! rdf_id(+Term:rdf_term, -EquivTerm:rdf_term) is multi.
-%! rdf_id(-Term:rdf_term, +EquivTerm:rdf_term) is multi.
-
-rdf_id(T1, T2):-
-  rdf_reachable(T1, owl:sameAs, T2).
-
-
-
 %! rdf_langstring(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
+%!   ?Value,
 %!   ?LangTag:list(atom),
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_langstring(Term, Predicate, LexicalForm, LangTag, Graph):-
-  rdf_literal(Term, Predicate, LexicalForm, rdf:langString, LangTag, Graph).
-
-
-
-%! rdf_langstring_data(
-%!   +Field:oneof([datatype,langtag,lexical_form])
-%!   +Literal:compound
-%!   -Data
-%! ) is det.
-%! rdf_langstring_data(
-%!   -Field:oneof([datatype,langtag,lexical_form])
-%!   +Literal:compound
-%!   -Data
-%! ) is multi.
-
-rdf_langstring_data(datatype, literal(lang(_,_)), rdf:langString).
-rdf_langstring_data(langtag, literal(lang(Langtag,_)), Langtag).
-rdf_langstring_data(lexical_form, literal(lang(_,LexicalForm)), LexicalForm).
-
-
-
-%! rdf_langstring_term(+LangTaggedString:compound) is semidet.
-%! rdf_langstring_term(-LangTaggedString:compound) is nondet.
-% Language tagged strings, according to the Semweb format.
-% Enumeration is assured to not deliver any duplicates.
-
-rdf_langstring_term(literal(lang(LangTag,LexicalForm))):-
-  rdf_current_literal(literal(lang(LangTag,LexicalForm))).
+rdf_langstring(Term, Predicate, Value, LangTag, Graph):-
+  rdf_literal(Term, Predicate, Value, rdf:langString, LangTag, Graph).
 
 
 
 %! rdf_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
+%!   ?Value:atom,
 %!   ?Datatype:iri,
 %!   ?LangTag:list(atom),
 %!   ?Graph:graph
 %! ) is nondet.
 
 % Literals that are mapped onto a blank node.
-rdf_literal(Literal, P, LexicalForm, rdf:langString, LangTag, Graph):-
+rdf_literal(Literal, P, Value, rdf:langString, LangTag, Graph):-
   rdf_is_literal(Literal),
   term_get_bnode(Literal, BNode), !,
-  rdf_literal(BNode, P, LexicalForm, rdf:langString, LangTag, Graph).
+  rdf_literal(BNode, P, Value, rdf:langString, LangTag, Graph).
 % Language-tagged strings.
-rdf_literal(Node, P, LexicalForm, rdf:langString, LangTag, Graph):-
-  rdf(Node, P, literal(lang(LangTag,LexicalForm)), Graph).
+% No datatype is formally defined for `rdf:langString` because
+%  the definition of datatypes does not accommodate language tags
+%  in the lexical space.
+% The value space of `rdf"langString` is the set of all pairs
+%  of strings and language tags.
+rdf_literal(Node, P, Value, rdf:langString, LangTag, Graph):-
+  rdf(Node, P, literal(lang(LangTag,Value)), Graph),
+  Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
-rdf_literal(Node, P, LexicalForm, Datatype, LangTag, Graph):-
+rdf_literal(Node, P, Value, Datatype, LangTag, Graph):-
   var(LangTag),
   (   rdf_equal(Datatype, xsd:string),
-      rdf(Node, P, literal(LexicalForm), Graph)
-  ;   rdf(Node, P, literal(type(Datatype,LexicalForm)), Graph)
+      rdf(Node, P, literal(Value), Graph),
+      Value \= type(_,_)
+  ;   rdf(Node, P, literal(type(Datatype,LexicalForm)), Graph),
+      % Possibly computationally intensive.
+      rdf_lexical_map(Datatype, LexicalForm, Value)
   ).
-
-
-
-%! rdf_literal_data(
-%!   +Field:oneof([datatype,langtag,lexical_form])
-%!   +Literal:compound
-%!   -Data
-%! ) is det.
-%! rdf_literal_data(
-%!   -Field:oneof([datatype,langtag,lexical_form])
-%!   +Literal:compound
-%!   -Data
-%! ) is multi.
-
-rdf_literal_data(datatype, literal(type(Datatype,_)), Datatype).
-rdf_literal_data(langtag, literal(lang(LangTag,_)), LangTag).
-rdf_literal_data(lexical_form, Literal, LexicalForm):-
-  (   Literal = literal(lang(_,LexicalForm))
-  ->  true
-  ;   Literal = literal(type(_,LexicalForm))
-  ->  true
-  ;   Literal = literal(LexicalForm)
-  ).
-
-
-
-%! rdf_literal_term(+Literal:compound) is semidet.
-%! rdf_literal_term(-Literal:compound) is nondet.
-
-rdf_literal_term(Literal):-
-  % Enumerates all literals.
-  rdf_current_literal(Literal).
 
 
 
