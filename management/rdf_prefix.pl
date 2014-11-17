@@ -5,13 +5,13 @@
                             % +ToPrefix:atom
                             % ?Subject:or([bnode,iri])
                             % ?Predicate:iri
-                            % ?Object:or([bnode,iri,literal])
+                            % ?Object:rdf_term
                             % ?Graph:atom
     rdf_prefix_iri/2, % +Iri:atom
                       % -PrefixIri:atom
     rdf_prefixes/5, % ?Subject:or([bnode,iri])
                     % ?Predicate:iri
-                    % ?Object:or([bnode,iri,literal])
+                    % ?Object:rdf_term
                     % ?Graph:atom
                     % -Prefixes:ordset(pair(atom,positive_integer))
     rdf_iri_to_prefix/3 % +Iri:iri
@@ -44,9 +44,9 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 
 %! rdf_convert_prefixes(
 %!   +FromPrefix:atom,
-%!   +FromTerm:or([bnode,iri,literal]),
+%!   +FromTerm:rdf_term,
 %!   +ToPrefix:atom,
-%!   +ToTerm:or([bnode,iri,literal])
+%!   +ToTerm:rdf_term
 %! ) is det.
 
 rdf_convert_prefixes(_, _, BNode, BNode):-
@@ -62,7 +62,7 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
 %!   +ToPrefix:atom,
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri]),
+%!   ?Object:rdf_term,
 %!   ?Graph:atom
 %! ) is det.
 % Converts all resources that occur in the given patterns
@@ -101,7 +101,7 @@ rdf_prefix_iri(Iri, Iri).
 %! rdf_prefixes(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,iri,literal]),
+%!   ?Object:rdf_term,
 %!   ?Graph:atom,
 %!   -Prefixes:ordset(pair(atom,positive_integer))
 %! ) is det.

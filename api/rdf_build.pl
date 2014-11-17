@@ -35,11 +35,10 @@
                        % ?Predicate:iri
                        % ?Object:rdf_term
                        % ?Graph:atom
-    rdf_retractall_literal/6, % ?Subject:oneof([bnode,iri])
+    rdf_retractall_literal/5, % ?Subject:oneof([bnode,iri])
                               % ?Predicate:iri
                               % ?Value:atom
                               % ?DatatypeIri:iri
-                              % ?LangTag:list(atom)
                               % ?Graph:atom
     rdf_retractall_resource/2, % +Resource:rdf_term
                                % ?Graph:atom
@@ -74,7 +73,7 @@ Triples with literals are treated in dedicated modules.
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
 :- rdf_meta(rdf_create_next_resource(+,+,r,?,-)).
 :- rdf_meta(rdf_retractall2(o,r,o,?)).
-:- rdf_meta(rdf_retractall_literal(o,r,?,r,?,?)).
+:- rdf_meta(rdf_retractall_literal(o,r,?,r,?)).
 :- rdf_meta(rdf_retractall_resource(o,?)).
 :- rdf_meta(rdf_retractall_term(o,?)).
 
@@ -260,7 +259,6 @@ rdf_retractall2(Node, P, O, Graph):-
 %!   ?Predicate:iri,
 %!   ?Value,
 %!   ?DatatypeIri:iri,
-%!   ?LangTag:list(atom),
 %!   ?Graph:atom
 %! ) is det.
 % Retracts all matching RDF triples that have literal object terms.
@@ -270,20 +268,23 @@ rdf_retractall2(Node, P, O, Graph):-
 % We do not retract literal compound terms of the form
 %  `literal(LexicalForm:atom)`.
 
-rdf_retractall_literal(Node, P, Value, Datatype, LangTag, Graph):-
-  % Retract language-tagged strings only if Datatype is unifiable with
-  %  `rdf:langString`.
-  (   rdf_equal(Datatype, rdf:langString)
+rdf_retractall_literal(Node, P, Value, Datatype, Graph):-
+  % Retract language-tagged strings only if:
+  %   1. Datatype is unifiable with `rdf:langString`, and
+  %   2. Value us unifiable with a value from the value space of
+  %       language-tagged strings.
+  (   rdf_equal(Datatype, rdf:langString),
+      Value = LexicalForm-LangTag
   ->  rdf_retractall2(Node, P, literal(lang(LangTag,LexicalForm)), Graph)
-  ;   Value = LexicalForm-LangTag
-  ),
-  % Retract typed literals only if LangTag is uninstantiated.
-  (   var(LangTag)
-  ->  rdf_retractall2(Node, P, literal(type(Datatype,LexicalForm)), Graph),
-      % Possibly computationally intensive.
-      rdf_lexical_map(Datatype, LexicalForm, Value)
   ;   true
-  ).
+  ),
+  % Retract all matching typed literals.
+  forall(
+    (
+      rdf(Node, P, Value, Datatype
+  % Possibly computationally intensive.
+  rdf_lexical_map(Datatype, LexicalForm, Value).
+    rdf_retractall2(Node, P, literal(type(Datatype,LexicalForm)), Graph),
 
 
 

@@ -1,7 +1,7 @@
 :- module(
   rdf_prefixes,
   [
-    dbpedia_language_tag/1, % ?LanguageTag:atom
+    dbpedia_language_tag/1, % ?LangTag:atom
     rdf_reduced_location/2, % +FullUrl:url
                             % -ReducedUrl:url
     rdf_reduced_location_prefix/1 % ?Prefix:atom

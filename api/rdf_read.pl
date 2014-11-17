@@ -3,8 +3,8 @@
   [
     rdf_langstring/5, % ?Term:rdf_term
                       % ?Predicate:iri
-                      % ?LexicalForm:atom
-                      % ?Value
+                      % ?Value:pair(atom,list(atom))
+                      % ?LangTagPreference:list(list(atom))
                       % ?Graph:atom
     rdf_literal/6, % ?Term:rdf_term
                    % ?Predicate:iri
@@ -76,13 +76,19 @@ error:has_type(rdf_term, Term):-
 %! rdf_langstring(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?Value,
-%!   ?LangTag:list(atom),
+%!   ?Value:pair(atom,list(atom)),
+%!   ?LangTagPreference:list(list(atom)),
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_langstring(Term, Predicate, Value, LangTag, Graph):-
+% Language-tag preference can be met.
+rdf_langstring(Term, Predicate, Value, LangTags, Graph):-
+  is_list(LangTags), !,
+  member(LangTag, LangTags),
   rdf_literal(Term, Predicate, Value, rdf:langString, LangTag, Graph).
+% Language-tag preference cannot be met.
+rdf_langstring(Term, Predicate, Value, _, Graph):-
+  rdf_literal(Term, Predicate, Value, rdf:langString, _, Graph).
 
 
 
@@ -91,29 +97,33 @@ rdf_langstring(Term, Predicate, Value, LangTag, Graph):-
 %!   ?Predicate:iri,
 %!   ?Value:atom,
 %!   ?Datatype:iri,
-%!   ?LangTag:list(atom),
+%!   ?LangTagPreferences:list(list(atom)),
 %!   ?Graph:graph
 %! ) is nondet.
 
 % Literals that are mapped onto a blank node.
-rdf_literal(Literal, P, Value, rdf:langString, LangTag, Graph):-
+rdf_literal(Literal, P, Value, rdf:langString, LangTags, Graph):-
   rdf_is_literal(Literal),
   term_get_bnode(Literal, BNode), !,
-  rdf_literal(BNode, P, Value, rdf:langString, LangTag, Graph).
+  rdf_literal(BNode, P, Value, rdf:langString, LangTags, Graph).
 % Language-tagged strings.
 % No datatype is formally defined for `rdf:langString` because
 %  the definition of datatypes does not accommodate language tags
 %  in the lexical space.
 % The value space of `rdf"langString` is the set of all pairs
 %  of strings and language tags.
-rdf_literal(Node, P, Value, rdf:langString, LangTag, Graph):-
+rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph):-
   rdf(Node, P, literal(lang(LangTag,Value)), Graph),
+  % Language tag preference.
+  (   is_list(LangTag)
+  ->  member(LangTag, LangTags)
+  ;   true
+  ),
   Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
-rdf_literal(Node, P, Value, Datatype, LangTag, Graph):-
-  var(LangTag),
-  (   rdf_equal(Datatype, xsd:string),
-      rdf(Node, P, literal(Value), Graph),
+rdf_literal(Node, P, Value, Datatype, LangTags, Graph):-
+  (   rdf(Node, P, literal(Value), Graph),
+      rdf_equal(Datatype, xsd:string),
       Value \= type(_,_)
   ;   rdf(Node, P, literal(type(Datatype,LexicalForm)), Graph),
       % Possibly computationally intensive.

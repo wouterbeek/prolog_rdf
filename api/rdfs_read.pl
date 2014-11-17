@@ -1,11 +1,10 @@
 :- module(
   rdfs_read,
   [
-    rdfs_label/5, % ?Term:rdf_term
-                  % ?Label:atom
-                  % ?LangTags:list(list(atom))
-                  % -LangTag:list(atom)
-                  % ?Graph:atom
+    rdfs_label/4 % ?Term:rdf_term
+                 % ?Value
+                 % ?LangTagPreference:list(list(atom))
+                 % ?Graph:atom
   ]
 ).
 
@@ -15,53 +14,21 @@
 @version 2014/11
 */
 
-:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_list)).
 
-:- rdf_meta(rdfs_label(r,?,?,?)).
+:- rdf_meta(rdfs_label(o,?,?,?)).
 
 
 
 %! rdfs_label(
-%!   ?Subject:or([bnode,iri]),
-%!   ?Label:atom,
-%!   ?LangTags:list(list(atom)),
-%!   ?LangTag:list(atom),
+%!   ?Term:rdf_term,
+%!   ?Value,
+%!   ?LangTagPreference:list(list(atom)),
 %!   ?Graph:atom
 %! ) is nondet.
 % Reads RDFS labels attributed to resources.
-%
-% Special support for:
-%   - RDF lists include labels of all their elements.
-%   - Optional language tags argument:
-%     either present (`rdf:langString`) or not (`xsd:string`).
-%   - Multiple language tags in descending order of preference;
-%     non-deterministically returns labels of descending preference.
-%   _ Optional graph argument.
-%
-% Also returns listified labels for RDF list resources.
 
-% An RDF list, compose the lexical form based on its members.
-rdfs_label(List, Label, LangTags, LangTag, Graph):-
-  rdf_is_list(List), !,
-  rdf_list(List, Subterms, [recursive(false)]),
-  findall(
-    Sublabel,
-    (
-      member(Subterm, Subterms),
-      rdfs_label(Subterm, Sublabel, LangTags, LangTag, Graph)
-    ),
-    Sublabels
-  ),
-  dcg_with_output_to(atom(Label), list(pl_term, Sublabels)).
-% A language-tagged string.
-rdfs_label(Node, Label, LangTags, LangTag, Graph):-
-  is_list(LangTags),
-  member(LangTag, LangTags),
-  rdf_langstring(Node, rdfs:label, Label, LangTag, Graph).
-% A string with no language tag.
-rdfs_label(Node, Label, LangTags, _, Graph):-
-  rdf_literal(Node, rdfs:label, Label, xsd:string, _, Graph).
+rdfs_label(Term, Value, LangTags, Graph):-
+  rdf_literal(Term, rdfs:label, Value, _, LangTags, Graph).

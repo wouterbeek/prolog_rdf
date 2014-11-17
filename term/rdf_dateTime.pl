@@ -1,28 +1,22 @@
 :- module(
   rdf_dateTime,
   [
-    rdf_assert_now/3, % +Subject:or([bnode,iri])
+    rdf_assert_now/3, % +Term:rdf_term
                       % +Predicate:iri
-                      % +RdfGraph:atom
-    rdf_assert_today/3, % +Subject:or([bnode,iri])
-                        % +Predicate:iri
-                        % +RdfGraph:atom
-    rdf_update_now/3, % +Subject:or([bnode,iri])
-                      % +Predicate:iri
-                      % +RdfGraph:atom
-    rdf_update_today/3 % +Subject:or([bnode,iri])
+                      % ?Graph:atom
+    rdf_assert_today/3 % +Term:rdf_term
                        % +Predicate:iri
-                       % +RdfGraph:atom
+                       % ?Graph:atom
   ]
 ).
 
-/** <module> RDF string
+/** <module> RDF date-time
 
 Support for RDF triples with a literal object term
-with datatype IRI xsd:string.
+ denoting a commonly occurring date-time value.
 
 @author Wouter Beek
-@version 2014/03, 2014/09
+@version 2014/03, 2014/09, 2014/11
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -30,39 +24,24 @@ with datatype IRI xsd:string.
 :- use_module(plXsd(datetime/xsd_dateTime_ext)).
 
 :- use_module(plRdf(term/rdf_datatype)).
-:- rdf_meta(rdf_assert_now(r,r,+)).
-:- rdf_meta(rdf_assert_today(r,r,+)).
-:- rdf_meta(rdf_update_now(r,r,+)).
-:- rdf_meta(rdf_update_today(r,r,+)).
+
+:- rdf_meta(rdf_assert_now(o,r,?)).
+:- rdf_meta(rdf_assert_today(o,r,?)).
 
 
 
-%! rdf_assert_now(+Subject:or([bnode,iri]), +Predicate:iri, +RdfGraph:atom) is det.
+%! rdf_assert_now(+Term:rdf_term, +Predicate:iri, ?Graph:atom) is det.
 
-rdf_assert_now(S, P, G):-
-  get_time(POSIX_TS),
-  posix_timestamp_to_xsd_dateTime(POSIX_TS, XSD_DT),
-  rdf_assert_datatype(S, P, XSD_DT, xsd:dateTime, G).
-
-
-%! rdf_assert_today(+Subject:or([bnode,iri]), +Predicate:iri, +RdfGraph:atom) is det.
-
-rdf_assert_today(S, P, G):-
-  get_time(POSIX_TS),
-  posix_timestamp_to_xsd_dateTime(POSIX_TS, XSD_DT),
-  rdf_assert_datatype(S, P, XSD_DT, xsd:date, G).
+rdf_assert_now(Term, P, Graph):-
+  get_time(Timestamp),
+  posix_timestamp_to_xsd_dateTime(Timestamp, Datetime),
+  rdf_assert_literal(Term, P, Datetime, xsd:dateTime, _, Graph).
 
 
-%! rdf_update_now(+Subject:or([bnode,iri]), +Predicate:iri, +RdfGraph:atom) is det.
 
-rdf_update_now(S, P, G):-
-  rdf_retractall_datatype(S, P, xsd:dateTime, G),
-  rdf_assert_now(S, P, G).
+%! rdf_assert_today(+Term:rdf_term, +Predicate:iri, ?Graph:atom) is det.
 
-
-%! rdf_update_today(+Subject:or([bnode,iri]), +Predicate:iri, +RdfGraph:atom) is det.
-
-rdf_update_today(S, P, G):-
-  rdf_retractall_datatype(S, P, xsd:date, G),
-  rdf_assert_today(S, P, G).
-
+rdf_assert_today(Term, P, Graph):-
+  get_time(Timestamp),
+  posix_timestamp_to_xsd_dateTime(Timestamp, Datetime),
+  rdf_assert_literal(Term, P, Datetime, xsd:date, _, Graph).
