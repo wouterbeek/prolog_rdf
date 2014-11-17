@@ -1,7 +1,7 @@
 :- module(
   rdf_term,
   [
-    rdf_bnode/1, % ?BNode:bnode
+    rdf_bnode2/1, % ?BNode:bnode
     rdf_bnode/2, % ?BNode:bnode
                  % ?Graph:atom
     rdf_id/2, % ?Term:rdf_term
@@ -24,7 +24,7 @@
     rdf_predicate/1, % ?Predicate:iri
     rdf_predicate/2, % ?Predicate:iri
                      % ?Graph:atom
-    rdf_subject/1, % ?Subject:or([bnode,iri])
+    rdf_subject2/1, % ?Subject:or([bnode,iri])
     rdf_subject/2, % ?Subject:or([bnode,iri])
                    % ?Graph:atom
     rdf_term/1, % ?Term:rdf_term
@@ -78,7 +78,7 @@ But this is not the case either, since typed literals are mapped onto
 :- rdf_meta(rdf_object(o,?)).
 :- rdf_meta(rdf_predicate(r)).
 :- rdf_meta(rdf_predicate(r,?)).
-:- rdf_meta(rdf_subject(r)).
+:- rdf_meta(rdf_subject2(r)).
 :- rdf_meta(rdf_subject(r,?)).
 :- rdf_meta(rdf_term(o)).
 :- rdf_meta(rdf_term(o,?)).
@@ -86,14 +86,16 @@ But this is not the case either, since typed literals are mapped onto
 
 
 
-%! rdf_bnode(+BNode:bnode) is semidet.
-%! rdf_bnode(-BNode:bnode) is nondet.
+%! rdf_bnode2(+BNode:bnode) is semidet.
+%! rdf_bnode2(-BNode:bnode) is nondet.
 % Enumerates the current blank node terms.
 % Ensures that no blank node occurs twice.
+%
+% Unfortunate naming due to conflict with rdf_bnode/1 in rdf_db.pl.
 
-rdf_bnode(BNode, Graph):-
+rdf_bnode2(BNode):-
   rdf_resource(BNode),
-  rdf_is_bnode(BNode),
+  rdf_is_bnode(BNode).
 
 
 
@@ -233,7 +235,7 @@ rdf_name(Name, Graph):-
 rdf_node(Node):-
   rdf_resource(Node),
   once(
-    (   rdf_subject(Node)
+    (   rdf_subject2(Node)
     ;   rdf_object(Node)
     )
   ).
@@ -301,10 +303,11 @@ rdf_predicate(Predicate, Graph):-
 
 
 
-%! rdf_subject(+Subject:or([bnode,iri])) is semidet.
-%! rdf_subject(-Subject:or([bnode,iri])) is nondet.
+%! rdf_subject2(+Subject:or([bnode,iri])) is semidet.
+%! rdf_subject2(-Subject:or([bnode,iri])) is nondet.
+% Unfortunate naming due to conflict with rdf_subject/1 from rdf_db.pl.
 
-rdf_subject(Subject):-
+rdf_subject2(Subject):-
   rdf_resource(Subject),
   rdf(Subject, _, _).
 

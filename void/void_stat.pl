@@ -27,7 +27,6 @@ Asserts statistics for VoID descriptions.
 :- use_module(plRdf(graph/rdf_graph_name)).
 :- use_module(plRdf(term/rdf_dateTime)).
 :- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdf_string)).
 
 :- rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/').
 
@@ -80,22 +79,19 @@ void_update_dataset(VoidGraph, VoidDataset):-
 
 /*
   % void:entities
-  (
-    rdf_string(VoidDataset, void:uriRegexPattern, RegularExpression, VoidGraph)
-  ->
-    aggregate_all(
-      set(Entity),
-      (
-        rdf(Entity, _, _, VoidDataset),
-        Entity=~RegularExpression
+  (   rdf_literal(VoidDataset, void:uriRegexPattern, RegularExpression, xsd:string, _, VoidGraph)
+  ->  aggregate_all(
+        set(Entity),
+        (
+          rdf(Entity, _, _, VoidDataset),
+          Entity=~RegularExpression
+        ),
+        Entities
       ),
-      Entities
-    ),
-    length(Entities, NumberOfEntities),
-    rdf_overwrite_datatype(VoidDataset, void:entities, NumberOfEntities,
+      length(Entities, NumberOfEntities),
+      rdf_overwrite_datatype(VoidDataset, void:entities, NumberOfEntities,
         xsd:integer, VoidGraph)
-  ;
-    true
+  ;   true
   ),
 */
 

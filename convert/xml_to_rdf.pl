@@ -50,8 +50,6 @@ Converts XML DOMs to RDF graphs.
 :- use_module(plRdf(graph/rdf_graph_name)).
 :- use_module(plRdf(term/rdf_container)).
 :- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdf_literal)).
-:- use_module(plRdf(term/rdf_string)).
 
 :- meta_predicate(create_resource(+,+,3,+,+,-,-)).
 :- meta_predicate(create_triples(+,+,3,+,+,-)).
@@ -316,13 +314,13 @@ create_resource(DOM, PrimaryPs, Trans, _C, G, S, DOM):-
 % Succeeds if there is a subject resource with the given predicate term
 % and an object term that is the literal value of the given XML content.
 rdf_object_trans(S, P, literal, Content, G):- !,
-  rdf_string(S, P, Content, G).
+  rdf_literal(S, P, Content, xsd:string, _, G).
 % Succeeds if there is a subject resource with the given predicate term
 % and an object term that translates to the same value as
 % the given XML content.
 rdf_object_trans(S, P, DName, Content, G):-
-  xsd_datatype(DName, _), !,
-  rdf_datatype(S, P, Content, DName, G).
+  rdf_datatype(DName), !,
+  rdf_literal(S, P, Content, DName, _, G).
 
 %! rdf_property_trans(
 %!   +XML_DOM:list,

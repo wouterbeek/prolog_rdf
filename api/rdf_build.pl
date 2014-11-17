@@ -4,17 +4,19 @@
     rdf_assert_instance/3, % +Instance:or([bnode,iri])
                            % ?Class:iri
                            % ?Graph:atom
-    rdf_assert_language_tagged_string/5, % +Term:rdf_term
+    rdf_assert_language_tagged_string/6, % +Term:rdf_term
                                          % +Predicate:iri
                                          % +LexicalForm:atom
                                          % +LangTag:list(atom)
                                          % ?Graph:atom
-    rdf_assert_literal/6, % +Term:rdf_term
+                                         % -Triple:compound
+    rdf_assert_literal/7, % +Term:rdf_term
                           % +Predicate:iri
                           % +LexicalForm:atom
                           % ?DatatypeIri:iri
                           % ?LangTag:list(atom)
                           % ?Graph:atom
+                          % -Triple:compound
     rdf_assert_property/2, % +Property:iri
                            % ?Graph:atom
     rdf_assert2/4, % +Subject:or([bnode,iri])
@@ -66,8 +68,8 @@ Triples with literals are treated in dedicated modules.
 :- use_module(plRdf(term/rdf_datatype)).
 
 :- rdf_meta(rdf_assert_instance(o,r,?)).
-:- rdf_meta(rdf_assert_language_tagged_string(o,r,+,+,?)).
-:- rdf_meta(rdf_assert_literal(o,r,+,?,?,?)).
+:- rdf_meta(rdf_assert_language_tagged_string(o,r,+,+,?,-)).
+:- rdf_meta(rdf_assert_literal(o,r,+,?,?,?,-)).
 :- rdf_meta(rdf_assert_property(o,?)).
 :- rdf_meta(rdf_assert2(o,r,o,?)).
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
@@ -103,11 +105,12 @@ rdf_assert_instance(Term, Class, Graph):-
 %!   +Predicate:iri,
 %!   +LexicalForm:atom,
 %!   +LangTag:list(atom),
-%!   ?Graph:atom
+%!   ?Graph:atom,
+%!   -Triple:compound
 %! ) is det.
 
-rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, Graph):-
-  rdf_assert_literal(Term, P, LexicalForm, rdf:langString, LangTag, Graph).
+rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, G, T):-
+  rdf_assert_literal(Term, P, LexicalForm, rdf:langString, LangTag, G, T).
 
 
 
@@ -115,9 +118,10 @@ rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, Graph):-
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
 %!   +Value:atom,
-%!   ?DatatypeIri:iri,
+%!   ?Datatype:iri,
 %!   ?LangTag:list(atom),
-%!   ?Graph:atom
+%!   ?Graph:atom,
+%!   -Triple:compound
 %! ) is det.
 % Asserts a triple with a literal object term.
 %
@@ -127,17 +131,19 @@ rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, Graph):-
 % @compat XSD 1.1 Schema 2: Datatypes
 
 % Language-tagged strings.
-rdf_assert_literal(Node, P, Value, rdf:langString, LangTag, Graph):-
+rdf_assert_literal(Node, P, Val, rdf:langString, LangTag, G, rdf(Node,P,O)):-
   nonvar(LangTag), !,
-  rdf_assert2(Node, P, literal(lang(LangTag,Value)), Graph).
+  O = literal(lang(LangTag,Val)),
+  rdf_assert2(Node, P, O, Graph).
 % Simple literals.
-rdf_assert_literal(Node, P, Value, Datatype, _, Graph):-
+rdf_assert_literal(Node, P, Value, Datatype, _, Graph, Triple):-
   var(Datatype), !,
-  rdf_assert_literal(Node, P, Value, xsd:string, _, Graph).
+  rdf_assert_literal(Node, P, Value, xsd:string, _, Graph, Triple).
 % (Explicitly) typed literals.
-rdf_assert_literal(Node, P, Value, Datatype, _, Graph):-
+rdf_assert_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
   rdf_canonical_map(Datatype, Value, LexicalForm),
-  rdf_assert2(Node, P, literal(type(Datatype,LexicalForm)), Graph).
+  O = literal(type(Datatype,LexicalForm)),
+  rdf_assert2(Node, P, O, Graph).
 
 
 
@@ -247,7 +253,7 @@ rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
 
 rdf_retractall2(Term, P, O, Graph):-
   rdf_is_literal(Term), !,
-  term_get_bnode(Term, BNode)
+  term_get_bnode(Term, BNode),
   rdf_retractall(BNode, P, O, Graph).
 rdf_retractall2(Node, P, O, Graph):-
   rdf_retractall(Node, P, O, Graph).
@@ -281,10 +287,12 @@ rdf_retractall_literal(Node, P, Value, Datatype, Graph):-
   % Retract all matching typed literals.
   forall(
     (
-      rdf(Node, P, Value, Datatype
-  % Possibly computationally intensive.
-  rdf_lexical_map(Datatype, LexicalForm, Value).
-    rdf_retractall2(Node, P, literal(type(Datatype,LexicalForm)), Graph),
+      rdf(Node, P, literal(type(Datatype,LexicalForm)), Graph),
+      % Possibly computationally intensive!
+      rdf_lexical_map(Datatype, LexicalForm, Value)
+    ),
+    rdf_retractall2(Node, P, literal(type(Datatype,LexicalForm)), Graph)
+  ).
 
 
 

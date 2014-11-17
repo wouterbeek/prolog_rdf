@@ -35,7 +35,7 @@ Support for RDF triples with a literal object term
 rdf_assert_now(Term, P, Graph):-
   get_time(Timestamp),
   posix_timestamp_to_xsd_dateTime(Timestamp, Datetime),
-  rdf_assert_literal(Term, P, Datetime, xsd:dateTime, _, Graph).
+  rdf_assert_literal(Term, P, Datetime, xsd:dateTime, _, Graph, _).
 
 
 
@@ -44,4 +44,4 @@ rdf_assert_now(Term, P, Graph):-
 rdf_assert_today(Term, P, Graph):-
   get_time(Timestamp),
   posix_timestamp_to_xsd_dateTime(Timestamp, Datetime),
-  rdf_assert_literal(Term, P, Datetime, xsd:date, _, Graph).
+  rdf_assert_literal(Term, P, Datetime, xsd:date, _, Graph, _).

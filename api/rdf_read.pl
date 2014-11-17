@@ -52,7 +52,8 @@ Predicates for reading from RDF, customized for specific datatypes and
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf(term/rdf_literal)).
+:- use_module(plRdf(entailment/rdf_bnode_map)).
+:- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_langstring(o,r,?,?,?)).
@@ -104,7 +105,7 @@ rdf_langstring(Term, Predicate, Value, _, Graph):-
 % Literals that are mapped onto a blank node.
 rdf_literal(Literal, P, Value, rdf:langString, LangTags, Graph):-
   rdf_is_literal(Literal),
-  term_get_bnode(Literal, BNode), !,
+  term_get_bnode(Graph, Literal, BNode), !,
   rdf_literal(BNode, P, Value, rdf:langString, LangTags, Graph).
 % Language-tagged strings.
 % No datatype is formally defined for `rdf:langString` because
@@ -113,7 +114,7 @@ rdf_literal(Literal, P, Value, rdf:langString, LangTags, Graph):-
 % The value space of `rdf"langString` is the set of all pairs
 %  of strings and language tags.
 rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph):-
-  rdf(Node, P, literal(lang(LangTag,Value)), Graph),
+  rdf(Node, P, literal(lang(LangTag,LexicalValue)), Graph),
   % Language tag preference.
   (   is_list(LangTag)
   ->  member(LangTag, LangTags)
@@ -121,7 +122,7 @@ rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph):-
   ),
   Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
-rdf_literal(Node, P, Value, Datatype, LangTags, Graph):-
+rdf_literal(Node, P, Value, Datatype, _, Graph):-
   (   rdf(Node, P, literal(Value), Graph),
       rdf_equal(Datatype, xsd:string),
       Value \= type(_,_)

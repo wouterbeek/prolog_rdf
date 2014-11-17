@@ -128,7 +128,6 @@ Mismatch types:
 :- use_module(plRdf(management/rdf_save_any)).
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_literal)).
-:- use_module(plRdf(term/rdf_string)).
 
 :- rdf_register_prefix(
      align,
@@ -168,8 +167,8 @@ alignment(From, To, Graph):-
 alignment(From, To, Relation, Measure, Graph):-
   rdf(BNode, align:entity1, From, Graph),
   rdf(BNode, align:entity2, To, Graph),
-  rdf_string(BNode, align:relation, Relation, Graph),
-  rdf_datatype(BNode, align:measure, Measure, xsd:float, Graph).
+  rdf_literal(BNode, align:relation, Relation, xsd:string, _, Graph),
+  rdf_literal(BNode, align:measure, Measure, xsd:float, _, Graph).
 
 
 %! alignments_to_oaei_file(+Alignments:list(pair), +File:atom) is det.

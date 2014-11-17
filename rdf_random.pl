@@ -34,8 +34,8 @@
 
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plRdf(rdf_graph_theory)).
 :- use_module(plRdf(rdf_parse)).
+:- use_module(plRdf(graph/rdf_graph_theory)).
 
 :- meta_predicate(rdf_random_term(+,//,-)).
 

@@ -1,5 +1,5 @@
 :- module(
-  rdf_triple,
+  rdf_triples,
   [
     rdf_ground_triple/4, % ?Subject:or([bnode,iri])
                          % ?Predicate:iri
@@ -12,7 +12,7 @@
     rdf_triples_edges/2, % +Triples:list(compound)
                          % -Edges:ordset(pair(rdf_term))
     rdf_triples_vertices/2 % +Triples:list(compound)
-												   % -Vertices:ordset(rdf_term)
+                           % -Vertices:ordset(rdf_term)
   ]
 ).
 

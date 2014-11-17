@@ -41,7 +41,7 @@ calculated via backward chaining.
 %! ) is nondet.
 
 rdf_proof(S, P, O, G, ProofTree):-
-  rdf_proof(rdf(S,P,O,G) [], ProofTree).
+  rdf_proof(rdf(S,P,O,G), [], ProofTree).
 
 %! rdf_proof(
 %!   +Triple:compound,
@@ -56,7 +56,7 @@ rdf_proof(rdf(S,P,O,G), Triples, deduction(rdf(S,P,O),se)-[]):-
 % Deduced via a rule with one antecedent.
 rdf_proof(rdf(S1,P1,O1,G), Triples, deduction(rdf(S1,P1,O1),Name)-[Subtree]):-
   rdf_rule(Name, rdf(S1,P1,O1), rdf(S2,P2,O2)),
-  \+ rdf_triple_variant_member(rdf(S2,P2,O2), H),
+  \+ rdf_triple_variant_member(rdf(S2,P2,O2), Triples),
   rdf_proof(rdf(S2,P2,O2,G), [rdf(S1,P1,O1)|Triples], Subtree).
 % Deduced via a rule with two antecedents: order 1.
 rdf_proof(

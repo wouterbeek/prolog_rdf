@@ -23,11 +23,7 @@
 
 :- use_module(library(semweb/rdf_db)).
 
-:- use_module(plXsd(xsd)).
-:- use_module(plXsd(xsd_clean)).
-
 :- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_langstring_data(?,o,-)).
 :- rdf_meta(rdf_langstring_term(o)).
@@ -35,6 +31,14 @@
 :- rdf_meta(rdf_literal_equiv(r,o,o)).
 :- rdf_meta(rdf_literal_term(o)).
 :- rdf_meta(rdf_lexical_map(?,r,?,?)).
+
+
+
+%! rdf_is_langstring(@Term) is semidet.
+
+rdf_is_langstring(literal(lang(LangTag,LexicalForm))):-
+  atom(LangTag),
+  atom(LexicalForm).
 
 
 
@@ -50,7 +54,7 @@
 %! ) is multi.
 
 rdf_langstring_data(datatype, literal(lang(_,_)), rdf:langString).
-rdf_langstring_data(langtag, literal(lang(Langtag,_)), Langtag).
+rdf_langstring_data(langtag, literal(lang(LangTag,_)), LangTag).
 rdf_langstring_data(lexical_form, literal(lang(_,LexicalForm)), LexicalForm).
 rdf_langstring_data(value, literal(lang(LangTag,LexicalForm)), Value):-
   Value = LexicalForm-LangTag.
@@ -89,7 +93,7 @@ rdf_literal_data(lexical_form, Literal, LexicalForm):-
   ).
 rdf_literal_data(value, Literal, Value):-
   (   Literal = literal(lang(LangTag,LexicalForm))
-  ->  Value = LexicalForm-Langtag
+  ->  Value = LexicalForm-LangTag
   ;   Literal = literal(type(Datatype,LexicalForm))
   ->  rdf_lexical_map(Datatype, LexicalForm, Value)
   ;   Literal = literal(LexicalForm)

@@ -25,7 +25,6 @@ A simple RDF vocabulary for representing tables.
 
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_list)).
-:- use_module(plRdf(term/rdf_string)).
 
 :- rdf_register_prefix(rdf_table, 'http://www.wouterbeek.com/rdf_table#').
 

@@ -3,7 +3,7 @@
   [
     dcg_stmt//3 % +Brackets:oneof([ascii,html])
                 % +Mode:oneof([natlang,triple])
-                % +Statement:iri
+                % +Statement:or([bnode,iri])
   ]
 ).
 
@@ -22,14 +22,14 @@ Print reified RDF statements.
 :- use_module(plDcg(dcg_content)).
 
 :- use_module(plRdf(rdf_name)).
-:- use_module(plRdf_rei(rdf_reification_read)).
+:- use_module(plRdf(reification/rdf_reification_read)).
 
 
 
 %! dcg_stmt(
 %!   +Brackets:oneof([ascii,html]),
 %!   +Mode:oneof([natlang,triple]),
-%!   +Statement:iri
+%!   +Statement:or([bnode,iri])
 %! )// is det.
 % @arg Brackets Either `ascii` or `html`.
 % @arg Mode The mode in which the statenent is printed.

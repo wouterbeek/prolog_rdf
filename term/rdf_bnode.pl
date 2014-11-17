@@ -17,7 +17,7 @@
                            % +Generic:compound
                            % +Map:list(pair(bnode,rdf_term))
                            % -NewMap:list(pair(bnode,rdf_term))
-    rdf_triple_variant/3 % +Triple1:compound
+    rdf_triple_variant/2 % +Triple1:compound
                          % +Triple2:compound
   ]
 ).
