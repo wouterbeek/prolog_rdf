@@ -1,36 +1,36 @@
 :- module(
   rdf_list,
   [
-    rdf_is_list/1, % +RdfList:iri
+    rdf_is_list/1, % +List:or([bnode,iri])
     rdf_assert_list/3, % +PrologList:list
                        % ?RdfList:or([bnode,iri])
                        % +Options:list(nvpair)
-    rdf_list/2, % +RdfList:iri
-                % -List:list
-    rdf_list/3, % +RdfList:iri
-                % -List:list
+    rdf_list/2, % +RdfList:or([bnode,iri])
+                % -PrologList:list
+    rdf_list/3, % +RdfList:or([bnode,iri])
+                % -PrologList:list
                 % +Options:list(nvpair)
-    rdf_list_first/2, % +List:iri
+    rdf_list_first/2, % +List:or([bnode,iri])
                       % -FirstElement:iri
-    rdf_list_last/2, % +List:iri
-                     % -LastElement:iri
-    rdf_list_length/2, % +List:iri
+    rdf_list_last/2, % +List:or([bnode,iri])
+                     % -LastElement:or([bnode,iri])
+    rdf_list_length/2, % +List:or([bnode,iri])
                        % -Length:number
-    rdf_list_member/2, % ?Element
-                       % ?RdfList:iri
+    rdf_list_member/2, % ?Element:or([bnode,iri])
+                       % ?List:or([bnode,iri])
     rdf_list_name//2, % +Options:list(nvpair)
-                      % +RdfList:or([bnode,iri])
-    rdf_list_next/2, % ?Element:iri
-                     % ?NextElement:iri
+                      % +List:or([bnode,iri])
+    rdf_list_next/2, % ?Element:or([bnode,iri])
+                     % ?NextElement:or([bnode,iri])
     rdf_list_nth0/3, % +Index:nonneg
-                     % +RdfList:iri
+                     % +List:or([bnode,iri])
                      % -Element:or([bnode,iri])
-    rdf_list_occurs_after/2, % +After:iri
-                             % +Before:iri
-    rdf_list_occurs_before/2, % +Before:iri
-                              % +After:iri
-    rdf_list_previous/2 % ?Element:iri
-                        % ?PreviousElement:iri
+    rdf_list_occurs_after/2, % +After:or([bnode,iri])
+                             % +Before:or([bnode,iri])
+    rdf_list_occurs_before/2, % +Before:or([bnode,iri])
+                              % +After:or([bnode,iri])
+    rdf_list_previous/2 % ?Element:or([bnode,iri])
+                        % ?PreviousElement:or([bnode,iri])
   ]
 ).
 
@@ -39,8 +39,9 @@
 Support for RDF lists.
 
 @author Wouter Beek
+@compat [RDF Schema 1.1](http://www.w3.org/TR/2014/REC-rdf-schema-20140225/)
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02, 2014/06, 2014/10
+         2014/01-2014/02, 2014/06, 2014/10-2014/11
 */
 
 :- use_module(library(option)).
@@ -79,27 +80,34 @@ Support for RDF lists.
 
 
 
-%! rdf_is_list(?RdfList:rdf_list) is semidet.
-% Succeeds if the given term is an RDF list.
+%! rdf_is_list(?List:or([bnode,iri])) is semidet.
+% Succeeds if the given RDF term is an RDF list.
 %
 % ### Tricky stuff
 %
 % For triple [1], simple entailment deduces [2].
-% We do *not* want to represent `bnode2` as an RDF list,
-% since `bnode2` maps to `bnode1` in the blank node map.
+% Do we want to represent both `_:x` and  `_:y` as RDF lists?
 %
+% ```ntriples
+% [1]   _:x rdf:type rdf:List .
+% [2]   _:y rdf:type rdf:List .
 % ```
-% [1] <bnode1,rdf:type,rdf:List>
-% [2] <bnode2,rdf:type,rdf:List>
-% ```
+%
+% Basically [1] and [2] both states that there is a list (nothing more).
+% Yet [1] is an RDF list, syntactically speaking,
+%  i.e., it occurs in the subject position of a triple with predicate
+%  `rdf:first`.
+%
+% @tbd Solve syntax/semantics distinction as to what is an RDF list.
 
-rdf_is_list(RDF_List1):-
-  nonvar(RDF_List1),
-  \+ rdf_is_literal(RDF_List1),
-  rdf_global_id(rdf:'List', C),
-  % WATCH OUT! THIS IS VERY TRICKY!
-  (bnode_to_term(_, RDF_List1, RDF_List2), ! ; RDF_List2 = RDF_List1),
-  rdfs_individual(m(t,f,f), RDF_List2, C, _).
+rdf_is_list(List1):-
+  nonvar(List1),
+  
+  (   bnode_get_term(_, List, List0)
+  ;   List0 = List
+  ),
+  rdfs_individual_of(List0, rdf:'List', _).
+
 
 
 %! rdf_assert_list(
