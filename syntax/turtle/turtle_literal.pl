@@ -16,8 +16,7 @@ DCGs for literal expression defined in Turtle recommendations.
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plSparql_parse(sparql_literal)).
-:- use_module(turtle(turtle_number)).
+:- use_module(plRdf(syntax/turtle/turtle_number)).
 
 
 
@@ -45,7 +44,7 @@ literal(Literal) --> 'BooleanLiteral'(Literal).
   'DECIMAL'(Value).
 'NumericLiteral'(literal(type(xsd:double,Value))) -->
   'DOUBLE'(Value).
-'NumericLiteral'(literal(type(xsd:integer,Value)) -->
+'NumericLiteral'(literal(type(xsd:integer,Value))) -->
   'INTEGER'(Value).
 
 
@@ -69,12 +68,12 @@ literal(Literal) --> 'BooleanLiteral'(Literal).
 % @compat Turtle 1.1 [128s].
 
 % Typed literal.
-'RDFLiteral'(literal(type(Datatype,LexicalExpression)) -->
+'RDFLiteral'(literal(type(Datatype,LexicalExpression))) -->
   'String'(LexicalExpression),
   "^^",
   iri(Datatype).
 % Language-tagged string.
-'RDFLiteral'(literal(lang(Langtag,Value)) -->
+'RDFLiteral'(literal(lang(Langtag,Value))) -->
   'String'(Value),
   'LANGTAG'(Langtag).
 % Simple literal.

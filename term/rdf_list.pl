@@ -60,21 +60,17 @@ Support for RDF lists.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(generics(lambda_meta)).
+:- use_module(generics(closure)).
 
-:- use_module(plDcg(dcg_collection)).
-
-:- use_module(plSet(set_theory)).
-
-:- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdf_build_legacy)).
+:- use_module(plRdf(api/rdf_read_legacy)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
-:- use_module(plRdf(term/rdf_datatype)).
 
 :- predicate_options(rdf_assert_list/4, 4, [
      datatype(+atom)
    ]).
-:- predicate_options(rdf_list/3, 3, [
+:- predicate_options(rdf_list/4, 4, [
      datatype(+atom),
      recursive(+boolean)
    ]).
@@ -129,7 +125,7 @@ rdf_assert_list_items([H|T], RdfList, Graph, Options):-
   ;   First = H
   ),
   rdf_assert2(RdfList, rdf:first, First, Graph),
-  
+
   % rdf:rest
   (   T == []
   ->  rdf_global_id(rdf:nil, Rest)
@@ -206,7 +202,7 @@ rdf_list(RdfList, [H|T], Graph, Options):-
   ->  rdf_typed_literal(First, rdf:value, H, Datatype, Graph)
   ;   H = First
   ),
-  
+
   % `rdf:rest`
   rdf(RdfList, rdf:rest, Rest, Graph),
   rdf_list(Rest, T, Graph, Options).

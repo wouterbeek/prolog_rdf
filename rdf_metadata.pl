@@ -96,7 +96,9 @@ rdf_metadata(S, P, O, G):-
 
 
 
-% Initialization
+
+
+% INITIALIZATION
 
 %! rdf_metadata_assert(+Graph:atom, +Vocabulary:atom) is det.
 
