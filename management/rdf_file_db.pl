@@ -44,6 +44,7 @@ Basic facts about RDF serialization formats.
 :- use_module(os(media_type)).
 
 :- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_atom)). % Meta-option.
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plHttp(parameter/http_media_type)).
@@ -75,13 +76,7 @@ rdf_accept_header_value(Value):-
     MediaTypes
   ),
   dcg_with_output_to(atom(Value),
-    '#'(
-      _,
-      'media-type',
-			_,
-      [media_type('*','*',[q(0.1)])|MediaTypes],
-      [separator(atom(', '))]
-    )
+    '#'('media-type', MediaTypes, [separator(atom(', '))])
   ).
 
 

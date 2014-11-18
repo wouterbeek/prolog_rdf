@@ -44,17 +44,18 @@ Converts XML DOMs to RDF graphs.
 :- use_module(plDcg(dcg_peek)).
 :- use_module(plDcg(dcg_replace)).
 
-:- use_module(plXml(syntax/xml_element)).
+:- use_module(plXml(syntax/xml_element), [
+     'EmptyElemTag'//3,
+     'ETag@xml'//1 as 'ETag',
+     'STag'//3
+   ]).
 :- use_module(plXml(syntax/xml_prolog)).
 
 :- use_module(plXsd(xsd)).
 
 :- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(api/rdf_build_legacy)).
 :- use_module(plRdf(debug/rdf_deb)).
-:- use_module(plRdf(graph/rdf_graph_name)).
 :- use_module(plRdf(term/rdf_container)).
-:- use_module(plRdf(term/rdf_datatype)).
 
 :- meta_predicate(create_resource(+,+,3,+,+,-,-)).
 :- meta_predicate(create_triples(+,+,3,+,+,-)).

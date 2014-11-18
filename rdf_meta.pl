@@ -21,6 +21,7 @@ Meta-callings on an RDF graph.
 */
 
 :- use_module(library(option)).
+:- use_module(library(semweb/rdf_db)).
 
 :- use_module(os(file_ext)).
 
@@ -116,7 +117,7 @@ ensure_format(_, Format, Options):-
 ensure_format(File, Format, _):-
   nonvar(File),
   file_name_extension(_, Extension, File),
-  rdf_file_extension(Extension, Format).
+  rdf_file_extension_format(Extension, Format).
 ensure_format(_, ntriples, _).
 
 
@@ -135,7 +136,7 @@ output_file_based_on_input_file(_, ToFile, _):-
 % If the output file is not given, then it is based on the input file.
 output_file_based_on_input_file(FromFile, ToFile, SaveOptions):-
   ensure_format(ToFile, ToFormat, SaveOptions),
-  rdf_file_extension(ToExtension, ToFormat),
+  rdf_file_extension_format(ToExtension, ToFormat),
   % If the from file is a directory, then call the to file `output`.
   (
     exists_directory(FromFile)

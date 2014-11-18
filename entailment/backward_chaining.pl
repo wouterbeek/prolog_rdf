@@ -115,7 +115,6 @@ application of the subclass relation.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(api/rdf_read_legacy)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_container)).
 

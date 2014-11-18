@@ -1,6 +1,11 @@
 :- module(
   rdf_read,
   [
+    rdf_plain_literal/5, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value:atom
+                         % ?LangTagPreference:list(list(atom))
+                         % ?Graph:atom
     rdf_langstring/5, % ?Term:rdf_term
                       % ?Predicate:iri
                       % ?Value:pair(atom,list(atom))
@@ -31,6 +36,10 @@
                                   % -Predicate:iri
                                   % -Object:rdf_term
                                   % ?Graph:atom
+    rdf_simple_literal/4, % ?Term:rdf_term
+                          % ?Predicate:iri
+                          % ?Value:atom
+                          % ?Graph:atom
     rdf_term_edge/4, % +Term:rdf_term
                      % -Predicate:iri
                      % -OtherTerm:rdf_term
@@ -39,10 +48,15 @@
                               % -Predicate:iri
                               % -Subject:or([bnode,iri])
                               % ?Graph:atom
-    rdf_term_outgoing_edge/4 % +Subject:or([bnode,iri])
-                             % -Predicate:iri
-                             % -Object:rdf_term
-                             % ?Graph:atom
+    rdf_term_outgoing_edge/4, % +Subject:or([bnode,iri])
+                              % -Predicate:iri
+                              % -Object:rdf_term
+                              % ?Graph:atom
+    rdf_typed_literal/5 % ?Term:rdf_term
+                        % ?Predicate:iri
+                        % ?Value
+                        % ?Datatype:iri
+                        % ?Graph:atom
   ]
 ).
 
@@ -66,12 +80,15 @@ Predicates for reading from RDF, customized for specific datatypes and
 :- rdf_meta(rdf_langstring(o,r,?,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?,-)).
+:- rdf_meta(rdf_plain_literal(o,r,?,?,?)).
 :- rdf_meta(rdf_resource_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_incoming_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_outgoing_edge(o,r,o,?)).
+:- rdf_meta(rdf_simple_literal(o,r,?,?)).
 :- rdf_meta(rdf_term_edge(o,r,o,?)).
 :- rdf_meta(rdf_term_incoming_edge(o,r,o,?)).
 :- rdf_meta(rdf_term_outgoing_edge(o,r,o,?)).
+:- rdf_meta(rdf_typed_literal(o,r,?,r,?)).
 
 :- multifile(error:has_type/2).
 error:has_type(rdf_term, Term):-
@@ -143,7 +160,7 @@ rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph, rdf(Node,P,O)):-
   ),
   Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
-rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(S,P,O)):-
+rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
   (   O = literal(Value),
       rdf(Node, P, O, Graph),
       rdf_equal(Datatype, xsd:string),
@@ -153,6 +170,21 @@ rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(S,P,O)):-
       % Possibly computationally intensive.
       rdf_lexical_map(Datatype, LexicalForm, Value)
   ).
+
+
+
+%! rdf_plain_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?LexicalForm:atom,
+%!   ?LangTagPreference:list(list(atom)),
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_plain_literal(Term, Predicate, Value, LangTagPreference, Graph):-
+  rdf_langstring(Term, Predicate, Value, LangTagPreference, Graph).
+rdf_plain_literal(Term, Predicate, Value, _, Graph):-
+  rdf_simple_literal(Term, Predicate, Value, Graph).
 
 
 
@@ -202,6 +234,18 @@ rdf_resource_outgoing_edge(From, P, To, G):-
 
 
 
+%! rdf_simple_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Value:atom,
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_simple_literal(Term, Predicate, Value, Graph):-
+  rdf_literal(Term, Predicate, Value, xsd:string, _, Graph).
+
+
+
 %! rdf_term_edge(
 %!   +Term:rdf_term,
 %!   -Predicate:iri,
@@ -240,3 +284,16 @@ rdf_term_incoming_edge(O, P, S, G):-
 
 rdf_term_outgoing_edge(S, P, O, G):-
   rdf(S, P, O, G).
+
+
+
+%! rdf_typed_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Value,
+%!   ?Datatype:iri,
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_typed_literal(Term, Predicate, Value, Datatype, Graph):-
+  rdf_literal(Term, Predicate, Value, Datatype, _, Graph).

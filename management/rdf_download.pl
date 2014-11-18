@@ -69,7 +69,7 @@ rdf_download(_, Url, File, Options):-
   ).
 % The data from the given URL can already be loaded from file.
 rdf_download(_, Url, File, Options):-
-  url_nested_file(data(.), Url, File),
+  uri_nested_file(data(.), Url, File),
   access_file(File, read), !,
   rdf_load_any(File, Options).
 % The data has to be downloaded from the URL and saved

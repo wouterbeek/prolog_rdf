@@ -11,23 +11,25 @@
   ]
 ).
 
-/** <module> RDF_MT_PRINT
+/** <module> RDF Model Theory: Pretty-Print
 
 Semantic model printing.
 
 Sytax-to-semantics map printing.
 
 @author Wouter Beek
-@version 2013/08, 2014/01
+@version 2013/08, 2014/01, 2014/11
 */
 
 :- use_module(library(lists), except([delete/3])).
+
+:- use_module(generics(print_ext)).
 
 :- use_module(plDcg(dcg_collection)).
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(rdf_name)).
-:- use_module(plRdf(graph/rdf_graph)).
+:- use_module(plRdf(rdf_triples)).
 :- use_module(plRdf(model_theory/rdf_mt)).
 
 
@@ -36,7 +38,7 @@ Sytax-to-semantics map printing.
 
 rdf_mt_print_graph(G):-
   format('GRAPH ~w\n', [G]),
-  rdf_graph:rdf_graph_to_triples(G, Ts),
+  rdf_triples(G, Ts),
   forall(
     member(T, Ts),
     (
@@ -158,7 +160,9 @@ rdf_mt_print_i_ext(M):-
     ),
     (
       format('\t~w -> ', [Property]),
-      dcg_with_output_to(current_output, set(pair(ascii), ResourcePairs)),
+      dcg_with_output_to(current_output,
+        set(pair(ascii,rdf_term_name), ResourcePairs)
+      ),
       nl
     )
   ).

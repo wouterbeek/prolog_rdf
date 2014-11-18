@@ -240,7 +240,7 @@ json_pair_to_rdf(Graph, _, RdfPrefix, Individual, Name, rdf_list(Type), Values):
   is_list(Values), !,
   rdf_global_id(RdfPrefix:Name, Predicate),
   rdf_global_id(xsd:Type, Datatype),
-  rdf_assert_list(Values, RdfList, [datatype(Datatype),graph(Graph)]),
+  rdf_assert_list(Values, RdfList, Graph, [datatype(Datatype)]),
   rdf_assert(Individual, Predicate, RdfList, Graph).
 % XSD
 json_pair_to_rdf(Graph, _, RdfPrefix, Individual, Name, DatatypeName, Value1):-

@@ -23,7 +23,7 @@ A simple RDF vocabulary for representing tables.
 
 :- use_module(generics(row_ext)).
 
-:- use_module(plRdf(api/rdf_build_legacy)).
+:- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(term/rdf_list)).
 
 :- rdf_register_prefix(rdf_table, 'http://www.wouterbeek.com/rdf_table#').

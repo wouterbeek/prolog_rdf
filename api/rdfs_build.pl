@@ -44,11 +44,11 @@
     rdfs_assert_subproperty/3, % +Property:iri
                                % +SuperProperty:iri
                                % ?Graph:atom
-    rdfs_update_label/5, % +Term:rdf_term
-                         % +Label:atom
-                         % ?LangTag:list(atom)
-                         % ?Graph:atom
-                         % +Action:compound
+    %rdfs_update_label/5, % +Term:rdf_term
+    %                     % +Label:atom
+    %                     % ?LangTag:list(atom)
+    %                     % ?Graph:atom
+    %                     % +Action:compound
     rdfs_retractall_class_resource/1, % +Class:iri
     rdfs_retractall_class_term/1, % +Class:iri
     rdfs_retractall_label/3 % +Term:rdf_term

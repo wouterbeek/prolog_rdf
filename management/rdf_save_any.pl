@@ -9,17 +9,19 @@
 /** <module> RDF: save any
 
 @author Wouter Beek
-@version 2014/10
+@version 2014/10-2014/11
 */
 
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
 
 :- use_module(os(file_ext)).
 
+:- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(syntax/ctriples/ctriples_write_graph)).
 
 

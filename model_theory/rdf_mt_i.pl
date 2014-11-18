@@ -43,13 +43,15 @@ Interpretation function `I`:
 @see Hayes2004
 @tbd Add the additional semantic constraints imposed by
      the RDF vocabulary and the RDFS vocabulary.
-@version 2013/05, 2013/08
+@version 2013/05, 2013/08, 2014/11
 */
 
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
+:- use_module(plRdf(rdf_triples)).
 :- use_module(plRdf(graph/rdf_graph)).
+:- use_module(plRdf(model_theory/rdf_mt)).
 :- use_module(plRdf(term/rdf_term)).
 
 % The overarching interpretation plus assignment function.
@@ -89,8 +91,9 @@ mt_i(G, M, A):-
 
 % Satisfaction for an RDF graph.
 mt_i(G, M, A1, A2):-
-  rdf_graph(G), model(M), !,
-  rdf_graph:rdf_graph_to_triples(G, Ts),
+  rdf_graph(G),
+  model(M), !,
+  rdf_triples(G, Ts),
   mt_i(G, M, Ts, A1, A2).
 
 %! mt_i(
@@ -131,17 +134,14 @@ mt_i(G, M, rdf(SYN_S1,SYN_P1,SYN_O1), A1, A4):-
 % The interpretation function for subsentential components.
 
 % Blank nodes.
-mt_i(_G, M, BNode, Resource, A1, A2):-
+mt_i(_, M, BNode, Resource, A1, A2):-
   rdf_is_bnode(BNode), !,
-  (
-    memberchk([BNode,Resource], A1)
-  ->
-    A2 = A1
-  ;
-    % Since the blank node does not occur in the assignment function yet,
-    % we add it. Notice that the assignment is nondet.
-    resource(M, Resource),
-    A2 = [BNode,Resource|A1]
+  (   memberchk(BNode-Resource, A1)
+  ->  A2 = A1
+  ;   % Since the blank node does not occur in the assignment function yet,
+      % we add it. Notice that the assignment is nondet.
+      resource(M, Resource),
+      A2 = [BNode-Resource|A1]
   ).
 % Plain literals. There map onto themselves.
 mt_i(G, M, PlainLit, PlainLit, A, A):-

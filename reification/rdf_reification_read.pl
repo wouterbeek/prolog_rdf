@@ -36,7 +36,7 @@ Read support for reified triples.
 
 :- use_module(plXsd(xsd)).
 
-:- use_module(plRdf(term/rdf_literal)).
+:- use_module(plRdf(api/rdf_read)).
 
 :- rdf_meta(rdf_literal_statement(r,r,?,r,?,r)).
 :- rdf_meta(rdf_object(r,o,?)).
@@ -59,7 +59,7 @@ Read support for reified triples.
 rdf_literal_statement(S, P, Value, Datatype, Graph, Statement):-
   rdf_subject(Statement, S, Graph),
   rdf_predicate(Statement, P, Graph),
-  rdf_literal(S, P, Value, Datatype, Graph, _, rdf(S,P,O)),
+  rdf_literal(S, P, Value, Datatype, _, Graph, rdf(S,P,O)),
   rdf_object(Statement, O, Graph).
 
 

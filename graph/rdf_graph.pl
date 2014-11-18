@@ -36,7 +36,11 @@
 @version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05, 2014/11
 */
 
+:- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+
+:- use_module(generics(list_ext)).
+:- use_module(math(math_ext)).
 
 :- use_module(plRdf(rdf_triples)).
 :- use_module(plRdf(term/rdf_bnode)).
@@ -105,6 +109,10 @@ rdf_graph_instance0(L1, [rdf(S2,P,O2)|T2], Map1, Map):-
   rdf_term_instance(S3, S2, Map1, Map2),
   rdf_term_instance(O3, O2, Map2, Map3),
   rdf_graph_instance0(NewL1, T2, Map3, Map).
+
+bnode_to_var(BNode, _):-
+  rdf_is_bnode(BNode), !.
+bnode_to_var(Term, Term).
 
 
 
@@ -265,7 +273,7 @@ rdf_lean_graph(Graph, rdf(S1,P,O1)):-
     forall(
       member(rdf(S3,P3,O3), NonGround),
       (
-        rdf_triple_bnode_map(rdf(S3,P3,O3), rdf(S4,P4,O4), Map),
+        rdf_triple_instance(rdf(S3,P3,O3), rdf(S4,P4,O4), Map),
         memberchk(rdf(S4,P4,O4), Triples)
       )
     )
@@ -286,14 +294,14 @@ rdf_lean_graph(Graph, rdf(S1,P,O1)):-
 
 rdf_proper_graph_instance(G, H, Map):-
   rdf_graph_instance(G, H, Map),
-  rdf_proper_graph_instance(Map).
+  rdf_proper_graph_instance_map(Map).
 
 % A blank node is mapped onto an RDF name.
-rdf_proper_graph_instance(Map):-
-  ord_member(_-Name, Map),
+rdf_proper_graph_instance_map(Map):-
+  ord_memberchk(_-Name, Map),
   rdf_is_name(Name), !.
 % Two different blank nodes are mapped onto the same blank node.
-rdf_proper_graph_instance(Map):-
+rdf_proper_graph_instance_map(Map):-
   member(BNode1-BNode3, Map),
   member(BNode2-BNode3, Map),
   BNode1 \== BNode2, !.
@@ -306,7 +314,7 @@ rdf_proper_graph_instance(Map):-
 % @compat RDF 1.1 Semantics
 
 rdf_proper_subgraph(G, H):-
-  rdf_propert_subgraph(G, H),
+  rdf_subgraph(G, H),
   \+ rdf_graph_same_size(G, H).
 
 

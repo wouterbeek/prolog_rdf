@@ -24,21 +24,20 @@ Generates names for RDF terms and triples.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(code_ext)).
 :- use_module(generics(typecheck)).
 :- use_module(pl(pl_log)).
 
 :- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_code)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_collection)).
+:- use_module(plDcg(dcg_quote)).
 
 :- use_module(plXsd(xsd)).
 
+:- use_module(plRdf(api/rdfs_read)).
 :- use_module(plRdf(management/rdf_prefix)).
-:- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_list)).
 
 :- rdf_meta(rdf_term_name(+,r,?,?)).
@@ -81,8 +80,10 @@ rdf_bnode_name(BNode) -->
 
 %! rdf_graph_name(+Graph:atom)// is det.
 
-rdf_graph_name(Graph) --> {var(Graph)}, !, [].
-rdf_graph_name(Graph) --> atom(Graph).
+rdf_graph_name(Graph) -->
+  {var(Graph)}, !, [].
+rdf_graph_name(Graph) -->
+  atom(Graph).
 
 
 
@@ -124,11 +125,11 @@ rdf_iri_name(Options1, Iri) -->
   ;   option(iri_description(only_all_literals), Options1)
   ->  Elements = Literals2
   )},
-  
+
   {
     % Labels are treated specially: only the preferred label is included.
     option(language_preferences(LanguageTags), Options1, [en]),
-    rdfs_preferred_label(Iri, PreferredLabel, LanguageTags, _),
+    rdfs_label(Iri, PreferredLabel, LanguageTags, _),
 
     % All non-label literals are included.
     findall(
@@ -191,7 +192,7 @@ rdf_literal_name(Options1, Literal) -->
 % Non-simple plain literals must occur before simple literals.
 rdf_plain_literal_name(Options1, literal(lang(LanguageTag,Value))) --> !,
   rdf_simple_literal_name(Options1, Value),
-  `@`,
+  "@",
   rdf_language_tag_name(LanguageTag).
 rdf_plain_literal_name(Options1, literal(Value)) -->
   rdf_simple_literal_name(Options1, Value).
@@ -205,7 +206,7 @@ rdf_plain_literal_name(Options1, literal(Value)) -->
 
 rdf_simple_literal_name(Options1, Value) -->
   {option(literal_ellipsis(Ellipsis), Options1, inf)},
-  quoted(atom(Value, Ellipsis)).
+  quoted(atom_ellipsis(Value, Ellipsis)).
 
 
 
@@ -246,7 +247,7 @@ rdf_term_name(Options1, Term) -->
   rdf_graph_name(Graph).
 % RDF list.
 rdf_term_name(Options, RdfList) -->
-  {rdf_is_list(RdfList)}, !,
+  {rdf_list(RdfList)}, !,
   % Recursively retrieve the contents of the RDF list.
   % This has to be done non-recursively, since the nested
   % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
@@ -264,12 +265,13 @@ rdf_term_name(Options1, Literal) -->
   rdf_literal_name(Options1, Literal).
 % IRI.
 rdf_term_name(Options1, Iri) -->
-  {is_url(Iri)}, !,
+  {is_uri(Iri)}, !,
   rdf_iri_name(Options1, Iri).
 % Prolog term.
 rdf_term_name(_, PlTerm) -->
   {with_output_to(codes(Codes), write_canonical_blobs(PlTerm))},
   '*'(code, Codes, []).
+
 
 
 %! rdf_triple_name(+Triple:compound)// is det.
@@ -283,20 +285,18 @@ rdf_triple_name(rdf(S,P,O), Graph) -->
   tuple(ascii, rdf_term_name, [S,P,O,graph(Graph)]).
 
 
+
 %! rdf_typed_literal_name(+TypedLiteral:compound)// is det.
 
 rdf_typed_literal_name(literal(type(Datatype,LexicalForm))) -->
-  {(
-    % The datatype is recognized, so we can display
-    % the lexically mapped value.
-    xsd_datatype(Datatype)
-  ->
-    xsd_lexical_map(Datatype, LexicalForm, Value0),
-    with_output_to(atom(Value), write_canonical_blobs(Value0))
-  ;
-    Value = LexicalForm
+  {(  % The datatype is recognized, so we can display
+      % the lexically mapped value.
+      xsd_datatype(Datatype)
+  ->  xsd_lexical_map(Datatype, LexicalForm, Value0),
+      with_output_to(atom(Value), write_canonical_blobs(Value0))
+  ;   Value = LexicalForm
   )},
   quoted(atom(Value)),
-  `^^`,
+  "^^",
   rdf_iri_name([], Datatype).
 

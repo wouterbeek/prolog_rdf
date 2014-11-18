@@ -50,7 +50,9 @@ random_character -->
 
 randomize_iri(IRI1, IRI2):-
   uri_components(IRI1, uri_components(_, _, _, _, _)),
-  dcg_with_output_to(atom(Path1), '#_c'(15, random_character)),
+  dcg_with_output_to(atom(Path1),
+    '#'(15, random_character, [copy_term(true)])
+  ),
   atomic_concat('/', Path1, Path2),
   uri_components(IRI2, uri_components(http, 'vu.nl', Path2, _, _)).
 

@@ -117,7 +117,7 @@ rdf:rule_forward(
   G
 ):-
   rdf(S, P, PlainLit, G),
-  rdf_plain_literal(PlainLit),
+  rdf_plain_literal_term(PlainLit),
 
   term_set_bnode(G, PlainLit, B).
 

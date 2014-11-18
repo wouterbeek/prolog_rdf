@@ -61,10 +61,10 @@ Support for RDF lists.
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(closure)).
+:- use_module(generics(lambda_meta)).
 
 :- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(api/rdf_build_legacy)).
-:- use_module(plRdf(api/rdf_read_legacy)).
+:- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 
 :- predicate_options(rdf_assert_list/4, 4, [

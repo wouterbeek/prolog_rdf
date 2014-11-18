@@ -39,6 +39,7 @@ When triples including images are read,
 :- use_module(generics(deb_ext)).
 :- use_module(os(image_ext)).
 
+:- use_module(plUri(image_uri)).
 :- use_module(plUri(uri_ext)).
 
 :- use_module(plHttp(download_to_file)).
@@ -54,7 +55,7 @@ When triples including images are read,
 
 rdf_assert_image(O1, S, P, O, G):-
   rdf_image(O1, O, _),
-  image_url(O),
+  is_image_uri(O),
   rdf_assert_instance(O, dcmit:'Image', G),
   rdf_assert(S, P, O, G).
 
@@ -70,18 +71,15 @@ rdf_assert_image(O1, S, P, O, G):-
 %   4. `ignore`
 
 rdf_image(Options, Url, File):-
-  url_nested_file(data(.), Url, File),
-  (
-    access_file(File, exist), !
-  ;
-    download_to_file(Url, File, Options), !
-  ;
-    option(
-      fail_mode(FM),
-      Options,
-      debug(rdf_image-'Could not fetch image from ~w'-[Url])
-    ),
-    fail_mode(FM)
+  uri_nested_file(data(.), Url, File),
+  (   access_file(File, exist), !
+  ;   download_to_file(Url, File, Options), !
+  ;   option(
+        fail_mode(FM),
+        Options,
+        debug(rdf_image-'Could not fetch image from ~w'-[Url])
+      ),
+      fail_mode(FM)
   ).
 
 

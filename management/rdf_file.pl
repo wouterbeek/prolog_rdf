@@ -2,8 +2,6 @@
   rdf_file,
   [
     is_rdf_file/1, % +File:atom
-    rdf_file_correct_extension/2, % +FromFile:atom
-                                  % -ToFile:atom
     rdf_directory_files/2, % +Directory:atom
                            % -Files:list(atom)
     rdf_merge_directory/4 % +FromDirectory:atom
@@ -76,18 +74,6 @@ rdf_directory_files(O1, Dir, RdfFiles):-
   % Retrieve all files.
   directory_files(O1, Dir, Files),
   include(is_rdf_file, Files, RdfFiles).
-
-
-%! rdf_file_correct_extension(+FromFile:atom, -ToFile:atom) is det.
-
-rdf_file_correct_extension(File1, File2):-
-  file_mime(File1, Mime),
-  rdf_serialization(Extension, _, Mimes, _),
-  memberchk(Mime, Mimes),
-  file_alternative(File1, _, _, Extension, File2),
-  File1 \== File2, !,
-  rename_file(File1, File2).
-rdf_file_correct_extension(File, File).
 
 
 %! rdf_merge_directory(

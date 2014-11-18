@@ -18,7 +18,7 @@
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(ordsets)).
 
-:- meta_predicate(graph_closure(+,3,-,-)).
+:- meta_predicate(rdf_graph_closure(+,3,-,-)).
 
 
 
