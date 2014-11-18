@@ -117,6 +117,7 @@ application of the subclass relation.
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_container)).
+:- use_module(plRdf(term/rdf_literal)).
 
 :- rdf_meta(rdf_db_or_axiom(+,r,r,r,?)).
 :- rdf_meta(rdfs(r,r,r,?)).
@@ -277,8 +278,9 @@ rdfs_individual(M, I, C, G):- M=m(t,_,_),
 % RDFD 1
 rdfs_individual(M, LexicalForm, Datatype, G):- M=m(t,_,t),
   rdf_db_or_axiom(M, _, _, TypedLiteral, G),
-  rdf_typed_literal(G, TypedLiteral),
-  rdf_typed_literal(TypedLiteral, LexicalForm, Datatype),
+  rdf_typed_literal_term(TypedLiteral, G),
+  rdf_typed_literal_data(TypedLiteral, lexical_form, LexicalForm),
+  rdf_typed_literal_data(TypedLiteral, datatype, Datatype),
   rdfs_individual(M, Datatype, rdfs:'Datatype', G),
   debug(rdfs_read, '[RDFD 1] ~w IN ~w', [LexicalForm,Datatype]).
 

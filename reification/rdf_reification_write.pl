@@ -1,12 +1,11 @@
 :- module(
   rdf_reification_write,
   [
-    rdf_assert_literal_statement/7, % +Subject:or([bnode,iri])
+    rdf_assert_literal_statement/6, % +Subject:or([bnode,iri])
                                     % +Predicate:iri
                                     % +Value
                                     % +Datatype:iri
-				    % ?LangTag:list(atom)
-                                    % ?Graph:atom
+			            % ?Graph:atom
                                     % ?Statement:or([bnode,iri])
     rdf_assert_object/3, % +Statement:or([bnode,iri])
                          % +Object:oneof([literal,iri])
@@ -33,13 +32,10 @@ Read support for reified triples.
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plXsd(xsd)).
-
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(reification/rdf_reification_read)).
-:- use_module(plRdf(term/rdf_literal)).
 
-:- rdf_meta(rdf_assert_datatype_statement(r,r,+,r,?,?,r)).
+:- rdf_meta(rdf_assert_datatype_statement(r,r,+,r,?,r)).
 :- rdf_meta(rdf_assert_object(r,o,?)).
 :- rdf_meta(rdf_assert_predicate(r,r,?)).
 :- rdf_meta(rdf_assert_statement(t,?,r)).
@@ -58,8 +54,8 @@ Read support for reified triples.
 % Asserts a datatyped statement, automatically converting the given value
 %  to its corresponding lexical form.
 
-rdf_assert_literal_statement(S, P, Value, Datatype, LangTag, G, Statement):-
-  rdf_assert_literal(S, P, Value, Datatype, LangTag, G, Triple),
+rdf_assert_literal_statement(S, P, Value, Datatype, G, Statement):-
+  rdf_assert_literal(S, P, Value, Datatype, G, Triple),
   rdf_assert_statement(Triple, G, Statement).
 
 

@@ -13,6 +13,8 @@
     rdf_collection/3, % ?Collection:or([bnode,iri])
                       % -Contents:list(rdf_term)
                       % ?Graph:atom
+    rdf_container_membership_property/2, % ?Predicate:iri
+                                         % ?Index:positive_integer
     rdf_seq/3 % ?Seq:or([bnode,iri])
               % -Contents:list(rdf_term)
               % ?Graph:atom
@@ -37,6 +39,7 @@ Support for RDF containers (sequence, bag, and alternatives).
 
 :- use_module(generics(typecheck)).
 
+:- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_alt(r,t,?)).

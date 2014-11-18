@@ -62,7 +62,7 @@ rdf_term_instance(Name, Name, Map, Map):-
   \+ rdf_is_bnode(Name), !.
 % Generic is a known blank node, use the existing mapping.
 rdf_term_instance(Term, BNode, Map, Map):-
-  ord_member(BNode-Term, Map), !.
+  ord_memberchk(BNode-Term, Map), !.
 % Generic is a new blank node, add it to the mapping.
 rdf_term_instance(Term, BNode, Map1, Map2):-
   ord_add_element(Map1, BNode-Term, Map2).

@@ -1,25 +1,22 @@
 :- module(
   rdfs_build2,
   [
-    rdfs_assert_class/6, % +Class:iri
+    rdfs_assert_class/5, % +Class:iri
                          % ?Superclass:iri
                          % ?Label:atom
-                         % ?Comment:atom
-                         % ?LangTag:list(atom)
+                         % ?Comment:or([atom,list(atom)])
                          % ?Graph:atom
-    rdfs_assert_instance/6, % +Instance:iri
+    rdfs_assert_instance/5, % +Instance:iri
                             % ?Class:iri
                             % ?Label:atom
-                            % ?Comment:atom
-                            % ?LangTag:list(atom)
+                            % ?Comment:or([atom,list(atom)])
                             % ?Graph:atom
-    rdfs_assert_property/8 % +Property:iri
+    rdfs_assert_property/7 % +Property:iri
                            % ?Superproperty:iri
                            % ?Domain:iri
                            % ?Range:iri
                            % ?Label:or([atom,pair(atom)])
                            % ?Comment:or([atom,pair(atom)])
-                           % ?LangTag:list(atom)
                            % ?Graph:atom
   ]
 ).
@@ -35,41 +32,39 @@ Predicates for building higher-level RDFS constructs.
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).
 
-:- rdf_meta(rdfs_assert_class(r,r,?,?,?,?)).
-:- rdf_meta(rdfs_assert_instance(r,r,?,?,?,?)).
-:- rdf_meta(rdfs_assert_property(r,r,r,r,?,?,?,?)).
+:- rdf_meta(rdfs_assert_class(r,r,?,?,?)).
+:- rdf_meta(rdfs_assert_instance(r,r,?,?,?)).
+:- rdf_meta(rdfs_assert_property(r,r,r,r,?,?,?)).
 
 
 
 %! rdfs_assert_class(
 %!   +Class:iri,
 %!   ?Superclass:iri,
-%!   ?Label:atom,
-%!   ?Comment:atom,
-%!   ?LangTag:list(atom),
+%!   ?Label:or([atom,list(atom)]),
+%!   ?Comment:or([atom,list(atom)]),
 %!   ?Graph:atom
 %! ) is det.
 
-rdfs_assert_class(Class, Superclass, Label, Comment, LangTag, Graph):-
+rdfs_assert_class(Class, Superclass, Label, Comment, Graph):-
   rdfs_assert_subclass(Class, Superclass, Graph),
-  rdfs_assert_label_if_nonvar(Class, Label, LangTag, Graph),
-  rdfs_assert_comment_if_nonvar(Class, Comment, LangTag, Graph).
+  rdfs_assert_label_if_nonvar(Class, Label, Graph),
+  rdfs_assert_comment_if_nonvar(Class, Comment, Graph).
 
 
 
 %! rdfs_assert_instance(
 %!   +Instance:iri,
 %!   ?Class:iri,
-%!   ?Label:atom,
-%!   ?Comment:atom,
-%!   ?LangTag:list(atom),
+%!   ?Label:or([atom,list(atom)]),
+%!   ?Comment:or([atom,list(atom)]),
 %!   ?Graph:atom
 %! ) is det.
 
-rdfs_assert_instance(Instance, Class, Label, Comment, LangTag, Graph):-
+rdfs_assert_instance(Instance, Class, Label, Comment, Graph):-
   rdf_assert_instance(Instance, Class, Graph),
-  rdfs_assert_label_if_nonvar(Instance, Label, LangTag, Graph),
-  rdfs_assert_comment_if_nonvar(Instance, Comment, LangTag, Graph).
+  rdfs_assert_label_if_nonvar(Instance, Label, Graph),
+  rdfs_assert_comment_if_nonvar(Instance, Comment, Graph).
 
 
 
@@ -78,9 +73,8 @@ rdfs_assert_instance(Instance, Class, Label, Comment, LangTag, Graph):-
 %!   ?SuperProperty:iri,
 %!   ?Domain:iri,
 %!   ?Range:iri,
-%!   ?Label:atom,
-%!   ?Comment:atom,
-%!   ?LangTag:list(atom),
+%!   ?Label:or([atom,list(atom)]),
+%!   ?Comment:or([atom,list(atom)]),
 %!   ?Graph:atom
 %! ) is det.
 
@@ -91,7 +85,6 @@ rdfs_assert_property(
   Range,
   Label,
   Comment,
-  LangTag,
   Graph
 ):-
   rdf_assert_property(Property, Graph),
@@ -101,8 +94,8 @@ rdfs_assert_property(
   ),
   rdfs_assert_domain(Property, Domain, Graph),
   rdfs_assert_range(Property, Range, Graph),
-  rdfs_assert_label_if_nonvar(Property, Label, LangTag, Graph),
-  rdfs_assert_comment_if_nonvar(Property, Comment, LangTag, Graph).
+  rdfs_assert_label_if_nonvar(Property, Label, Graph),
+  rdfs_assert_comment_if_nonvar(Property, Comment, Graph).
 
 
 
@@ -110,15 +103,15 @@ rdfs_assert_property(
 
 % HELPERS
 
-rdfs_assert_label_if_nonvar(_, Label, _, _):-
+rdfs_assert_label_if_nonvar(_, Label, _):-
   var(Label), !.
-rdfs_assert_label_if_nonvar(Class, Label, LangTag, Graph):-
-  rdfs_assert_label(Class, Label, LangTag, Graph).
+rdfs_assert_label_if_nonvar(Class, Label, Graph):-
+  rdfs_assert_label(Class, Label, Graph).
 
 
 
-rdfs_assert_comment_if_nonvar(_, Comment, _, _):-
+rdfs_assert_comment_if_nonvar(_, Comment, _):-
   var(Comment), !.
-rdfs_assert_comment_if_nonvar(Class, Comment, LangTag, Graph):-
-  rdfs_assert_comment(Class, Comment, LangTag, Graph).
+rdfs_assert_comment_if_nonvar(Class, Comment, Graph):-
+  rdfs_assert_comment(Class, Comment, Graph).
 

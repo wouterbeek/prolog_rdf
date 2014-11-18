@@ -3,10 +3,8 @@
   [
     owl_class_equivalence/2, % ?Class1:uri
                              % ?Class2:uri
-    owl_disjointWith/4, % +Mode:compound
+    owl_disjointWith/2, % ?Class:iri
                         % ?Class:iri
-                        % ?Class:iri
-                        % ?Graph:atom
     owl_identity_set/2, % +IRI:iri
                         % -IdentitySet:ordset(iri)
     owl_resource_identity/2, % ?Resource1:uri
@@ -31,22 +29,22 @@
 Predicates for reading from OWL data.
 
 @author Wouter Beek
-@version 2013/01, 2013/03-2013/05, 2013/08, 2014/06
+@version 2013/01, 2013/03-2013/05, 2013/08, 2014/06, 2014/11
 */
 
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(meta_ext)).
 
-:- use_module(plRdf(api/rdfs_read)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
 :- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 :- rdf_meta(owl_class_equivalence(r,r)).
-:- rdf_meta(owl_disjointWith(+,r,r,?)).
+:- rdf_meta(owl_disjointWith(+,r,r)).
 :- rdf_meta(owl_resource_identity(r,r)).
 
 
@@ -54,13 +52,13 @@ Predicates for reading from OWL data.
 owl_class_equivalence(Class1, Class2):-
   rdf_has(Class1, owl:equivalentClass, Class2).
 
-owl_disjointWith(M, C1, C2, G):-
-  rdf(C1, owl:disjointWith, C2, G), !,
-  rdfs_class(M, C1, G),
-  rdfs_class(M, C2, G),
+owl_disjointWith(C1, C2):-
+  rdf(C1, owl:disjointWith, C2), !,
+  rdfs_individual_of(C1, rdfs:'Class'),
+  rdfs_individual_of(C2, rdfs:'Class'),
   \+ ((
-    rdfs_individual(X, C1, G),
-    rdfs_individual(X, C1, G)
+    rdfs_individual_of(X, C1),
+    rdfs_individual_of(X, C1)
   )).
 
 %! owl_identity_set(+IRI:iri, -IdentitySet:ordset(iri)) is det.

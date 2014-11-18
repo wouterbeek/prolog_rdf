@@ -122,6 +122,7 @@ Mismatch types:
 
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(debug/rdf_deb)).
 :- use_module(plRdf(graph/rdf_graph_name)).
 :- use_module(plRdf(management/rdf_file_db)).
@@ -341,7 +342,7 @@ oaei_ontologies(Graph, File1, File2):-
 % Returns an ontology file used in the given alignment graph.
 
 oaei_ontology(Graph, File):-
-  rdf_string(Ontology, align:location, Uri, Graph),
+  rdf_typed_literal(Ontology, align:location, Uri, xsd:string, Graph),
   rdfs_individual_of(Ontology, align:'Ontology'),
   uri_components(Uri, uri_components(_,_,Path,_,_)),
   file_base_name(Path, Base),

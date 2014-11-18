@@ -3,9 +3,8 @@
   [
     rdfs_assert_class/2, % +Term:rdf_term
                          % ?Graph:atom
-    rdfs_assert_comment/4, % +Resource:rdf_term
+    rdfs_assert_comment/3, % +Resource:rdf_term
                            % +Comment:atom
-                           % ?LanguageTag:atom
                            % ?Graph:atom
     rdfs_assert_domain/3, % +Property:iri
                           % +Class:iri
@@ -19,15 +18,10 @@
                                % ?Uri:atom
                                % ?Graph:atom
     rdfs_assert_label/3, % +Term:rdf_term
-                         % +Label:atom
+                         % +Label
                          % ?Graph:graph
     rdfs_assert_label/4, % +Term:rdf_term
-                         % +Label:atom
-                         % ?LangTag:atom
-                         % ?Graph:graph
-    rdfs_assert_label/5, % +Term:rdf_term
-                         % +Label:atom
-                         % ?LangTag:atom
+                         % +Label
                          % ?Graph:graph
                          % -Triple:compound
     rdfs_assert_property_class/2, % +PropertyClass:iri
@@ -76,20 +70,19 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdfs_assert_class(o,?)).
-:- rdf_meta(rdfs_assert_comment(o,+,?,?)).
+:- rdf_meta(rdfs_assert_comment(o,+,?)).
 :- rdf_meta(rdfs_assert_domain(o,r,?)).
 :- rdf_meta(rdfs_assert_domain_range(o,r,?)).
 :- rdf_meta(rdfs_assert_instance(o,?)).
 :- rdf_meta(rdfs_assert_isDefinedBy(o,?,?)).
 :- rdf_meta(rdfs_assert_label(o,+,?)).
-:- rdf_meta(rdfs_assert_label(o,+,?,?)).
-:- rdf_meta(rdfs_assert_label(o,+,?,?,-)).
+:- rdf_meta(rdfs_assert_label(o,+,?,-)).
 :- rdf_meta(rdfs_assert_property_class(o,?)).
 :- rdf_meta(rdfs_assert_range(o,r,?)).
 :- rdf_meta(rdfs_assert_seeAlso(o,+,?)).
 :- rdf_meta(rdfs_assert_subclass(o,r,?)).
 :- rdf_meta(rdfs_assert_subproperty(o,r,?)).
-:- rdf_meta(rdfs_update_label(o,+,?,?,+)).
+%:- rdf_meta(rdfs_update_label(o,+,?,?,+)).
 :- rdf_meta(rdfs_retractall_class_resource(o)).
 :- rdf_meta(rdfs_retractall_class_term(o)).
 :- rdf_meta(rdfs_retractall_label(o,?,?)).
@@ -110,27 +103,15 @@ rdfs_assert_class(Term, Graph):-
 
 
 
-%! rdfs_assert_comment(
-%!   +Term:rdf_term,
-%!   +Comment:atom,
-%!   ?LangTag:atom,
-%!   ?Graph:atom
-%! ) is det.
+%! rdfs_assert_comment(+Term:rdf_term, +Comment, ?Graph:atom) is det.
 
 % Without a language tag the comment is asserted as XSD string.
-rdfs_assert_comment(Term, Comment, LangTag, Graph):-
-  var(LangTag), !,
-  rdf_assert_literal(Term, rdfs:comment, Comment, xsd:string, LangTag, Graph, _).
+rdfs_assert_comment(Term, Value, Graph):-
+  Value = _-_, !,
+  rdf_assert_langstring(Term, rdfs:comment, Value, Graph).
 % With a language tag the comment is asserted as RDF langString.
-rdfs_assert_comment(Term, Comment, LangTag, Graph):-
-  rdf_assert_language_tagged_string(
-    Term,
-    rdfs:comment,
-    Comment,
-    LangTag,
-    Graph,
-    _
-  ).
+rdfs_assert_comment(Term, Comment, Graph):-
+  rdf_assert_literal(Term, rdfs:comment, Comment, xsd:string, Graph).
 
 
 
@@ -196,49 +177,26 @@ rdfs_assert_isDefinedBy(Term, Uri, Graph):-
 
 
 
-%! rdfs_assert_label(
-%!   +Term:rdf_term,
-%!   +Label:atom,
-%!   ?LangTag:list(atom),
-%!   ?Graph:atom
-%! ) is det.
+%! rdfs_assert_label(+Term:rdf_term, +Label, ?Graph:atom) is det.
 
 rdfs_assert_label(Term, Label, Graph):-
-  rdfs_assert_label(Term, Label, _, Graph).
+  rdfs_assert_label(Term, Label, Graph, _).
 
 %! rdfs_assert_label(
 %!   +Term:rdf_term,
-%!   +Label:atom,
-%!   ?LangTag:list(atom),
-%!   ?Graph:atom
-%! ) is det.
-
-rdfs_assert_label(Term, Label, LangTag, Graph):-
-  rdfs_assert_label(Term, Label, LangTag, Graph, _).
-
-%! rdfs_assert_label(
-%!   +Term:rdf_term,
-%!   +Label:atom,
-%!   ?LangTag:list(atom),
+%!   +Label,
 %!   ?Graph:atom,
 %!   -Triple:compound
 %! ) is det.
 % Assigns an RDFS label to the resource denoted by the given RDF term.
 
 % Labels without language tag are asserted as `xsd:string`.
-rdfs_assert_label(Term, Label, LangTag, Graph, Triple):-
-  var(LangTag), !,
-  rdf_assert_literal(Term, rdfs:label, Label, xsd:string, _, Graph, Triple).
+rdfs_assert_label(Term, Label, Graph, Triple):-
+  Label = _-_, !,
+  rdf_assert_langstring(Term, rdfs:label, Label, Graph, Triple).
 % Labels with language tag are asserted as `rdf:langString`.
-rdfs_assert_label(Term, Label, LangTag, Graph, Triple):-
-  rdf_assert_language_tagged_string(
-    Term,
-    rdfs:label,
-    Label,
-    LangTag,
-    Graph,
-    Triple
-  ).
+rdfs_assert_label(Term, Label, Graph, Triple):-
+  rdf_assert_literal(Term, rdfs:label, Label, xsd:string, Graph, Triple).
 
 
 

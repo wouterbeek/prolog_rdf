@@ -101,8 +101,8 @@ csv_header_entry_to_rdf(Graph, NamespacePrefix, HeaderEntry, Property):-
 rdf_property_name, [95] -->
   white, !,
   rdf_property_name.
-rdf_property_name, letter_lowercase(_, I) -->
-  letter_uppercase(_, I), !,
+rdf_property_name, letter_lowercase(_, Index) -->
+  letter_uppercase(_, Index), !,
   rdf_property_name.
 rdf_property_name, [X] -->
   [X], !,

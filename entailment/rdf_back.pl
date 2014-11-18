@@ -24,6 +24,7 @@ The latter condition holds under structural identity, i.e. =@=/2.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
+:- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).

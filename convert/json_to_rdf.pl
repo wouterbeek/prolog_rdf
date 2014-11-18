@@ -249,5 +249,5 @@ json_pair_to_rdf(Graph, _, RdfPrefix, Individual, Name, DatatypeName, Value1):-
   % This is where we validate that the value is of the required type.
   xsd_datatype(DatatypeName, Datatype),
   pl_to_xsd_value(Datatype, Value1, Value2),
-  rdf_assert_literal(Individual, Predicate, Value2, Datatype, _, Graph, _).
+  rdf_assert_literal(Individual, Predicate, Value2, Datatype, Graph).
 

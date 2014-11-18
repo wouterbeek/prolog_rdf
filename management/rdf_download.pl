@@ -60,9 +60,9 @@ rdf_download(Url, File, Options):-
 % The data from the given URL is laready loaded in an RDF graph.
 rdf_download(_, Url, File, Options):-
   option(graph(Graph), Options),
-  is_rdf_graph(Graph), !,
+  rdf_is_graph(Graph), !,
   option(freshness_lifetime(FreshnessLifetime), Options, inf),
-  (   rdf_graph_fresh(Graph, FreshnessLifetime)
+  (   rdf_fresh_graph(Graph, FreshnessLifetime)
   ->  true
   ;   rdf_unload_graph(Graph),
       rdf_download(Url, File, Options)

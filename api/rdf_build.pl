@@ -4,32 +4,57 @@
     rdf_assert_instance/3, % +Instance:or([bnode,iri])
                            % ?Class:iri
                            % ?Graph:atom
-    rdf_assert_language_tagged_string/6, % +Term:rdf_term
-                                         % +Predicate:iri
-                                         % +LexicalForm:atom
-                                         % +LangTag:list(atom)
-                                         % ?Graph:atom
-                                         % -Triple:compound
-    rdf_assert_literal/7, % +Term:rdf_term
+    rdf_assert_langstring/4, % +Term:rdf_term
+                             % +Predicate:iri
+                             % +Value:pair(list(atom),atom)
+                             % ?Graph:atom
+    rdf_assert_langstring/5, % +Term:rdf_term
+                             % +Predicate:iri
+                             % +Value:pair(list(atom),atom)
+                             % ?Graph:atom
+                             % -Triple:compound
+    rdf_assert_literal/5, % +Term:rdf_term
                           % +Predicate:iri
                           % +LexicalForm:atom
-                          % ?DatatypeIri:iri
-                          % ?LangTag:list(atom)
+                          % ?Datatype:iri
+                          % ?Graph:atom
+    rdf_assert_literal/6, % +Term:rdf_term
+                          % +Predicate:iri
+                          % +LexicalForm:atom
+                          % ?Datatype:iri
                           % ?Graph:atom
                           % -Triple:compound
+    rdf_assert_plain_literal/4, % +Term:rdf_term
+                                % +Predicate:iri
+                                % +Value
+                                % ?Graph:atom
     rdf_assert_plain_literal/5, % +Term:rdf_term
                                 % +Predicate:iri
                                 % +Value
-                                % ?LangTag:list(atom)
-                                % ?Graph:atom
-    rdf_assert_plain_literal/6, % +Term:rdf_term
-                                % +Predicate:iri
-                                % +Value
-                                % ?LangTag:list(atom)
                                 % ?Graph:atom
                                 % -Triple:compound
     rdf_assert_property/2, % +Property:iri
                            % ?Graph:atom
+    rdf_assert_simple_literal/4, % +Term:rdf_term
+                                 % +Predicate:iri
+                                 % +Value
+                                 % ?Graph:atom
+    rdf_assert_simple_literal/5, % +Term:rdf_term
+                                 % +Predicate:iri
+                                 % +Value
+                                 % ?Graph:atom
+                                 % -Triple:compound
+    rdf_assert_typed_literal/5, % +Term:rdf_term
+                                % +Predicate:iri
+                                % +Value
+                                % +Datatype:iri
+                                % ?Graph:atom
+    rdf_assert_typed_literal/6, % +Term:rdf_term
+                                % +Predicate:iri
+                                % +Value
+                                % +Datatype:iri
+                                % ?Graph:atom
+                                % -Triple:compound
     rdf_assert2/4, % +Subject:or([bnode,iri])
                    % +Predicate:iri
                    % +Object:rdf_term
@@ -51,32 +76,12 @@
     rdf_retractall_literal/5, % ?Term:rdf_term
                               % ?Predicate:iri
                               % ?Value:atom
-                              % ?DatatypeIri:iri
+                              % ?Datatype:iri
                               % ?Graph:atom
     rdf_retractall_resource/2, % +Resource:rdf_term
                                % ?Graph:atom
-    rdf_retractall_term/2, % +Term:rdf_term
-                           % ?Graph:atom
-    rdf_assert_simple_literal/4, % +Term:rdf_term
-                                 % +Predicate:iri
-                                 % +Value
-                                 % ?Graph:atom
-    rdf_assert_simple_literal/5, % +Term:rdf_term
-                                 % +Predicate:iri
-                                 % +Value
-                                 % ?Graph:atom
-                                 % -Triple:compound
-    rdf_assert_typed_literal/5, % +Term:rdf_term
-                                % +Predicate:iri
-                                % +Value
-                                % +Datatype:iri
-                                % ?Graph:atom
-    rdf_assert_typed_literal/6 % +Term:rdf_term
-                               % +Predicate:iri
-                               % +Value
-                               % +Datatype:iri
-                               % ?Graph:atom
-                               % -Triple:compound
+    rdf_retractall_term/2 % +Term:rdf_term
+                          % ?Graph:atom
   ]
 ).
 
@@ -97,13 +102,19 @@ Triples with literals are treated in dedicated modules.
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_assert_instance(o,r,?)).
-:- rdf_meta(rdf_assert_language_tagged_string(o,r,+,+,?,-)).
-:- rdf_meta(rdf_assert_literal(o,r,+,?,?,?,-)).
-:- rdf_meta(rdf_assert_plain_literal(o,r,+,?,?,-)).
+:- rdf_meta(rdf_assert_langstring(o,r,+,+)).
+:- rdf_meta(rdf_assert_langstring(o,r,+,+,-)).
+:- rdf_meta(rdf_assert_literal(o,r,+,?,?)).
+:- rdf_meta(rdf_assert_literal(o,r,+,?,?,-)).
+:- rdf_meta(rdf_assert_plain_literal(o,r,+,?)).
+:- rdf_meta(rdf_assert_plain_literal(o,r,+,?,-)).
 :- rdf_meta(rdf_assert_property(o,?)).
+:- rdf_meta(rdf_assert_simple_literal(o,r,+,?)).
 :- rdf_meta(rdf_assert_simple_literal(o,r,+,?,-)).
+:- rdf_meta(rdf_assert_typed_literal(o,r,+,r,?)).
 :- rdf_meta(rdf_assert_typed_literal(o,r,+,r,?,-)).
 :- rdf_meta(rdf_assert2(o,r,o,?)).
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
@@ -134,17 +145,26 @@ rdf_assert_instance(Term, Class, Graph):-
 
 
 
-%! rdf_assert_language_tagged_string(
+%! rdf_assert_langstring(
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
-%!   +LexicalForm:atom,
-%!   +LangTag:list(atom),
+%!   +Value:pair(list(atom),atom),
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_assert_langstring(Term, P, LexicalForm, Graph):-
+  rdf_assert_langstring(Term, P, LexicalForm, Graph, _).
+
+%! rdf_assert_langstring(
+%!   +Term:rdf_term,
+%!   +Predicate:iri,
+%!   +Value:pair(list(atom),atom),
 %!   ?Graph:atom,
 %!   -Triple:compound
 %! ) is det.
 
-rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, G, T):-
-  rdf_assert_literal(Term, P, LexicalForm, rdf:langString, LangTag, G, T).
+rdf_assert_langstring(Term, P, LexicalForm, Graph, Triple):-
+  rdf_assert_literal(Term, P, LexicalForm, rdf:langString, Graph, Triple).
 
 
 
@@ -153,7 +173,17 @@ rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, G, T):-
 %!   +Predicate:iri,
 %!   +Value:atom,
 %!   ?Datatype:iri,
-%!   ?LangTag:list(atom),
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_assert_literal(Node, P, Value, Datatype, Graph):-
+  rdf_assert_literal(Node, P, Value, Datatype, Graph, _).
+
+%! rdf_assert_literal(
+%!   +Term:rdf_term,
+%!   +Predicate:iri,
+%!   +Value:atom,
+%!   ?Datatype:iri,
 %!   ?Graph:atom,
 %!   -Triple:compound
 %! ) is det.
@@ -165,16 +195,17 @@ rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, G, T):-
 % @compat XSD 1.1 Schema 2: Datatypes
 
 % Language-tagged strings.
-rdf_assert_literal(Node, P, Val, rdf:langString, LangTag, G, rdf(Node,P,O)):-
+rdf_assert_literal(Node, P, LangTag-LexicalForm, rdf:langString, G, Triple):-
   nonvar(LangTag), !,
-  O = literal(lang(LangTag,Val)),
-  rdf_assert2(Node, P, O, G).
+  O = literal(lang(LangTag,LexicalForm)),
+  rdf_assert2(Node, P, O, G),
+  Triple = rdf(Node,P,O).
 % Simple literals.
-rdf_assert_literal(Node, P, Value, Datatype, _, Graph, Triple):-
+rdf_assert_literal(Node, P, Value, Datatype, Graph, Triple):-
   var(Datatype), !,
-  rdf_assert_literal(Node, P, Value, xsd:string, _, Graph, Triple).
+  rdf_assert_literal(Node, P, Value, xsd:string, Graph, Triple).
 % (Explicitly) typed literals.
-rdf_assert_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
+rdf_assert_literal(Node, P, Value, Datatype, Graph, rdf(Node,P,O)):-
   rdf_canonical_map(Datatype, Value, LexicalForm),
   O = literal(type(Datatype,LexicalForm)),
   rdf_assert2(Node, P, O, Graph).
@@ -185,30 +216,28 @@ rdf_assert_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
 %!   +Value,
-%!   ?LangTag:list(atom),
 %!   ?Graph:atom
 %! ) is det.
-% @see rdf_assert_plain_literal/6
+% @see rdf_assert_plain_literal/5
 
-rdf_assert_plain_literal(Term, P, Value, LangTag, Graph):-
-  rdf_assert_plain_literal(Term, P, Value, LangTag, Graph, _).
+rdf_assert_plain_literal(Term, P, Value, Graph):-
+  rdf_assert_plain_literal(Term, P, Value, Graph, _).
 
 %! rdf_assert_plain_literal(
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
 %!   +Value,
-%!   ?LangTag:list(atom),
 %!   ?Graph:atom,
 %!   -Triple:compound
 %! ) is det.
 % Asserts a plain literal.
 
-rdf_assert_plain_literal(Term, P, Value, LangTag, Graph, Triple):-
-  (   var(LangTag)
-  ->  rdf_equal(Datatype, xsd:string)
-  ;   rdf_equal(Datatype, rdf:langTag)
+rdf_assert_plain_literal(Term, P, Value, Graph, Triple):-
+  (   Value = _-_
+  ->  rdf_equal(Datatype, rdf:langTag)
+  ;   rdf_equal(Datatype, xsd:string)
   ),
-  rdf_assert_literal(Term, P, Value, Datatype, LangTag, Graph, Triple).
+  rdf_assert_literal(Term, P, Value, Datatype, Graph, Triple).
 
 
 
@@ -247,7 +276,7 @@ rdf_assert_simple_literal(Term, P, Value, Graph):-
 % Asserts a simple literal.
 
 rdf_assert_simple_literal(Term, P, Value, Graph, Triple):-
-  rdf_assert_literal(Term, P, Value, xsd:string, _, Graph, Triple).
+  rdf_assert_literal(Term, P, Value, xsd:string, Graph, Triple).
 
 
 
@@ -274,7 +303,7 @@ rdf_assert_typed_literal(Term, P, Value, Datatype, Graph):-
 % Asserts a typed literal.
 
 rdf_assert_typed_literal(Term, P, Value, Datatype, Graph, Triple):-
-  rdf_assert_literal(Term, P, Value, Datatype, _, Graph, Triple).
+  rdf_assert_literal(Term, P, Value, Datatype, Graph, Triple).
 
 
 
@@ -288,15 +317,15 @@ rdf_assert_typed_literal(Term, P, Value, Datatype, Graph, Triple):-
 %
 % @see rdf_db:rdf/4
 
-rdf_assert2(Literal, P, O, G):-
+rdf_assert2(Literal, P, O, Graph):-
   rdf_is_literal(Literal), !,
-  term_get_bnode(Literal, BNode),
-  rdf_assert2(BNode, P, O, G).
-rdf_assert2(Node, P, O, G):-
-  var(G), !,
+  term_get_bnode(Graph, Literal, BNode),
+  rdf_assert2(BNode, P, O, Graph).
+rdf_assert2(Node, P, O, Graph):-
+  var(Graph), !,
   rdf_assert(Node, P, O).
-rdf_assert2(Node, P, O, G):-
-  rdf_assert(Node, P, O, G).
+rdf_assert2(Node, P, O, Graph):-
+  rdf_assert(Node, P, O, Graph).
 
 
 
@@ -345,15 +374,15 @@ rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
   with_output_to(atom(FlagTerm), write_term([Prefix|SubPaths1], [])),
   rdf_atom_md5(FlagTerm, 1, Flag),
   flag(Flag, Id, Id + 1),
-  
+
   % The identifier is appended to the IRI path.
   append(SubPaths1, [Id], SubPaths2),
   atomic_list_concat(SubPaths2, '/', Path),
-  
+
   % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
   rdf_global_id(Prefix:'', Base),
   uri_normalized(Path, Base, Resource),
-  
+
   (   nonvar(Class)
   ->  rdf_assert_instance(Resource, Class, Graph)
   ;   true
@@ -370,7 +399,7 @@ rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
 
 rdf_retractall2(Term, P, O, Graph):-
   rdf_is_literal(Term), !,
-  term_get_bnode(Term, BNode),
+  term_get_bnode(Graph, Term, BNode),
   rdf_retractall(BNode, P, O, Graph).
 rdf_retractall2(Node, P, O, Graph):-
   rdf_retractall(Node, P, O, Graph).
@@ -381,7 +410,7 @@ rdf_retractall2(Node, P, O, Graph):-
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Value,
-%!   ?DatatypeIri:iri,
+%!   ?Datatype:iri,
 %!   ?Graph:atom
 %! ) is det.
 % Retracts all matching RDF triples that have literal object terms.
@@ -401,7 +430,7 @@ rdf_retractall_literal(Node, P, Value, Datatype, Graph):-
   ->  rdf_retractall2(Node, P, literal(lang(LangTag,LexicalForm)), Graph)
   ;   true
   ),
-  
+
   % Retract all matching typed literals.
   forall(
     (
