@@ -121,6 +121,7 @@ Mismatch types:
 :- use_module(pl(pl_mode)).
 
 :- use_module(plRdf(rdf_name)).
+:- use_module(plRdf(api/rdf_build_legacy)).
 :- use_module(plRdf(debug/rdf_deb)).
 :- use_module(plRdf(graph/rdf_graph_name)).
 :- use_module(plRdf(management/rdf_file_db)).

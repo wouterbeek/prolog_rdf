@@ -1,20 +1,17 @@
 :- module(
   rdf_random,
   [
-    rdf_random_neighbor/4, % +Graph:atom
-                           % +Vertex:or([bnode,literal,iri])
-                           % -RandomNeighborVertex:or([bnode,literal,iri])
+    rdf_random_neighbor/4, % +Vertex:rdf_term
+                           % -RandomNeighborVertex:rdf_term
+                           % +Graph:atom
                            % +Options:list(nvpair)
-    rdf_random_term/2, % +Graph:atom
-                       % -Term:or([bnode,literal,iri])
-    rdf_random_term/3, % +Graph:atom
-                       % :Requirement
-                       % -Term:or([bnode,literal,iri])
+    rdf_random_term/2, % -RandomTerm:rdf_term
+                       % +Graph:atom
     rdf_random_triple/2, % -RandomTriple:compound
                          % +Graph:atom
     rdf_random_triple/4 % ?RandomSubject:or([bnode,iri])
                         % ?RandomPredicate:iri
-                        % ?RandomObject:or([bnode,iri,literal])
+                        % ?RandomObject:rdf_term
                         % ?Graph:atom
   ]
 ).
@@ -22,7 +19,7 @@
 /** <module> RDF random
 
 @author Wouter Beek
-@version 2013/09, 2014/02, 2014/06-2014/07
+@version 2013/09, 2014/02, 2014/06-2014/07, 2014/11
 */
 
 :- use_module(library(aggregate)).
@@ -32,17 +29,10 @@
 
 :- use_module(generics(flag_ext)).
 
-:- use_module(plDcg(dcg_generics)).
-
 :- use_module(plRdf(graph/rdf_graph_theory)).
-:- use_module(plRdf(syntax/rdf_parse)).
-
-:- meta_predicate(rdf_random_term(+,//,-)).
 
 :- rdf_meta(rdf_index(?,r,r,o,?)).
 :- rdf_meta(rdf_random_neighbor(+,r,r)).
-:- rdf_meta(rdf_random_term(+,r)).
-:- rdf_meta(rdf_random_term(+,:,r)).
 :- rdf_meta(rdf_random_triple(r,r,o,?)).
 
 :- predicate_options(rdf_random_neighbor/4, 4, [
@@ -71,46 +61,38 @@
 rdf_index(I, S, P, O, Graph):-
   state_init(State),
   repeat,
-  (
-    rdf(S, P, O, Graph)
-  ;
-    !
+  (   rdf(S, P, O, Graph)
+  ;   !
   ),
   state_tick(State, I0),
   I0 == I, !.
 
 
+
 %! rdf_random_neighbor(
+%!   +Term:rdf_term,
+%!   -RandomNeighbor:rdf_term,
 %!   +Graph:atom,
-%!   +Term:or([bnode,iri,literal]),
-%!   -RandomNeighbor:or([bnode,iri,literal]),
 %!   +Options:list(nvpair)
 %! ) is det.
 % Options are passed to rdf_neighbor_vertex/4.
 
-rdf_random_neighbor(Graph, V, RndN, Options):-
+rdf_random_neighbor(V, RndN, Graph, Options):-
   aggregate_all(
     set(N),
-    rdf_neighbor_vertex(Graph, V, N, Options),
+    rdf_neighbor_vertex(V, N, Graph, Options),
     Ns
   ),
   random_member(RndN, Ns).
 
 
-rdf_random_term(G, T):-
-  rdf_random_term(G, rdf_parse_term(_), T).
 
-rdf_random_term(G, Requirement, T2):-
-  rdf_random_triple(S, P, O, G),
-  random_between(1, 2, J),
-  nth1(J, [S,P,O], T1),
-  (
-    dcg_phrase(Requirement, T1)
-  ->
-    T2 = T1
-  ;
-    rdf_random_term(G, Requirement, T2)
-  ).
+%! rdf_random_term(-Term:rdf_term, +Graph:atom) is det.
+
+rdf_random_term(Term, Graph):-
+  rdf_random_triple(S, P, O, Graph),
+  random_member(Term, [S,P,O]).
+
 
 
 %! rdf_random_triple(-Triple:compound, +Graph:graph) is det.
@@ -119,10 +101,12 @@ rdf_random_term(G, Requirement, T2):-
 rdf_random_triple(rdf(S,P,O), G):-
   rdf_random_triple(S, P, O, G).
 
+
+
 %! rdf_random_triple(
 %!   ?Subject:oneof([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri]),
+%!   ?Object:rdf_term,
 %!   ?Graph:graph
 %! ) is det.
 % Returns a random triple from the given graph.

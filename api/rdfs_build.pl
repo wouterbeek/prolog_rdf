@@ -51,9 +51,8 @@
                          % +Action:compound
     rdfs_retractall_class_resource/1, % +Class:iri
     rdfs_retractall_class_term/1, % +Class:iri
-    rdfs_retractall_label/4 % +Term:rdf_term
-                            % ?Label:atom
-                            % ?LangTag:list(atom)
+    rdfs_retractall_label/3 % +Term:rdf_term
+                            % ?Value
                             % ?Graph:atom
   ]
 ).
@@ -74,6 +73,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(plRdf(api/rdfs_build)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(management/rdf_prefix)).
+:- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdfs_assert_class(o,?)).
 :- rdf_meta(rdfs_assert_comment(o,+,?,?)).
@@ -92,7 +92,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_update_label(o,+,?,?,+)).
 :- rdf_meta(rdfs_retractall_class_resource(o)).
 :- rdf_meta(rdfs_retractall_class_term(o)).
-:- rdf_meta(rdfs_retractall_label(o,?,?,?)).
+:- rdf_meta(rdfs_retractall_label(o,?,?)).
 
 
 
@@ -317,6 +317,7 @@ rdfs_assert_subproperty(Term, SuperProperty, Graph):-
 
 
 
+/*
 %! rdfs_update_label(
 %!   +Term:rdf_term,
 %!   +Label:atom,
@@ -324,9 +325,11 @@ rdfs_assert_subproperty(Term, SuperProperty, Graph):-
 %!   ?Graph:atom,
 %!   +Action:compound
 %! ) is det.
+% @tbd
 
 rdfs_update_label(Term, Label, LangTag, Graph, Action):-
   rdfs_update_literal(Term, Label, _, LangTag, Graph, Action).
+*/
 
 
 
@@ -372,16 +375,8 @@ rdfs_retractall_class_term(Class):-
 
 
 
-%! rdfs_retractall_label_term(
-%!   +Term:rdf_term,
-%!   ?Label:atom,
-%!   ?LangTag:list(atom),
-%!   ?Graph:atom
-%! ) is det.
+%! rdfs_retractall_label_term(+Term:rdf_term, ?Value, ?Graph:atom) is det.
 
-rdfs_retractall_label(Term, Value, LangTag, Graph):-
-  (   var(LangTag)
-  ->  rdf_retractall_literal(Term, rdfs:label, _, _, Graph)
-  ;   rdf_retractall_literal(Term, rdfs:label, _-LangTag, _, Graph)
-  ).
+rdfs_retractall_label(Term, Value, Graph):-
+  rdf_retractall_literal(Term, rdfs:label, Value, _, Graph).
 

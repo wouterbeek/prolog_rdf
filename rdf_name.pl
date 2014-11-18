@@ -31,6 +31,7 @@ Generates names for RDF terms and triples.
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_atom)).
+:- use_module(plDcg(dcg_code)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_collection)).
 
