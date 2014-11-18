@@ -211,8 +211,8 @@ assert_alignment(From, To, Relation, Measure, Graph):-
   rdf_bnode(BNode),
   rdf_assert(BNode, align:entity1, From, Graph),
   rdf_assert(BNode, align:entity2, To, Graph),
-  rdf_assert_string(BNode, align:relation, Relation, Graph),
-  rdf_assert_datatype(BNode, align:measure, Measure, xsd:float, Graph).
+  rdf_assert_typed_literal(BNode, align:relation, Relation, xsd:string, Graph),
+  rdf_assert_typed_literal(BNode, align:measure, Measure, xsd:float, Graph).
 
 
 assert_alignments([From-To|Pairs], Graph):- !,

@@ -63,7 +63,7 @@ csv_to_rdf(Url, Graph, NamespacePrefix, ClassName):-
   nonvar(Scheme), !,
 
   setup_call_cleanup(
-    download_to_file(Url, File),
+    download_to_file(Url, File, []),
     csv_to_rdf(File, Graph, NamespacePrefix, ClassName),
     delete_file(File)
   ).
@@ -125,7 +125,5 @@ csv_row_to_rdf(Graph, Class, Properties, Row):-
 
 csv_cell_to_rdf(_, _, _, ''):- !.
 csv_cell_to_rdf(Graph, Resource, Property, String):-
-  % @tbd Use rdf_assert_string/4.
-  %      rdf_assert_string(Resource, Property, String, Graph).
-  rdf_assert(Resource, Property, literal(type(xsd:string,String)), Graph).
+  rdf_assert_typed_literal(Resource, Property, String, xsd:string, Graph).
 

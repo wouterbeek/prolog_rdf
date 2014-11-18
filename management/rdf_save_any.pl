@@ -20,6 +20,8 @@
 
 :- use_module(os(file_ext)).
 
+:- use_module(plRdf(syntax/ctriples/ctriples_write_graph)).
+
 
 
 %! rdf_save_any(?File:atom, +Options:list(nvpair)) is det.

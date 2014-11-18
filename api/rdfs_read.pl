@@ -16,7 +16,7 @@
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plRdf(term/rdf_list)).
+:- use_module(plRdf(api/rdf_read)).
 
 :- rdf_meta(rdfs_label(o,?,?,?)).
 

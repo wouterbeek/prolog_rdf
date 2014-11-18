@@ -1,7 +1,7 @@
 :- module(
   rdf_read_legacy,
   [
-    rdf_is_plain_literal1, % @Term
+    rdf_is_plain_literal/1, % @Term
     rdf_is_simple_literal/1, % @Term
     rdf_is_typed_literal/1, % @Term
     rdf_simple_literal/4, % ?Term:rdf_term
@@ -33,12 +33,15 @@
 Support for RDF 1.0 simple, plain, and typed literals.
 Simple, plain, and typed literals are obsolete in RDF 1.1.
 
-A **plain literal** used to be defined as the union of the Unicode strings
-in Normal Form C and the cartesian product of the Unicode strings
-in Normal Form C with the set of BCP 47 language tags.
+The **simple literals** used to be defined as the Unicode strings
+ in Normal Form C.
 
-A **typed literal** used to be defined as the cartesian product of
-the Unicode strings in Normal Form C with the set of datatype URIs.
+The **plain literals** used to be defined as the union of the Unicode strings
+ in Normal Form C and the cartesian product of the Unicode strings
+ in Normal Form C with the set of BCP 47 language tags.
+
+The **typed literals** used to be defined as the cartesian product of
+ the Unicode strings in Normal Form C with the set of datatype URIs.
 
 @author Wouter Beek
 @compat RDF 1.0
@@ -164,11 +167,11 @@ rdf_simple_literal_data(value, literal(Value), Value).
 % Plain literal compound terms, according to the Semweb format.
 % Enumeration is assured to not deliver any duplicates.
 
-rdf_typed_literal_term(Literal):-
+rdf_simple_literal_term(Literal):-
   % Enumerate all literals.
   rdf_current_literal(Literal),
-  % Make sure the literal is typed.
-  rdf_is_typed_literal(Literal).
+  % Make sure the literal is simple.
+  rdf_is_simple_literal(Literal).
 
 
 

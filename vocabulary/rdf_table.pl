@@ -23,7 +23,7 @@ A simple RDF vocabulary for representing tables.
 
 :- use_module(generics(row_ext)).
 
-:- use_module(plRdf(term/rdf_datatype)).
+:- use_module(plRdf(api/rdf_build_legacy)).
 :- use_module(plRdf(term/rdf_list)).
 
 :- rdf_register_prefix(rdf_table, 'http://www.wouterbeek.com/rdf_table#').
@@ -42,7 +42,7 @@ A simple RDF vocabulary for representing tables.
 
 rdf_assert_table(Graph, Caption, ColumnHeaders, RowHeaders, Rows, Table):-
   % Assert caption.
-  rdf_assert_string(Table, rdf_table:caption, Caption, Graph),
+  rdf_assert_typed_literal(Table, rdf_table:caption, Caption, xsd:string, Graph),
   
   % Assert headers.
   rdf_assert_column_headers(Graph, Table, ColumnHeaders, ColumnList),
@@ -85,15 +85,15 @@ rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
   rdf_bnode(Cell),
   
   % Assert the column header.
-  rdf_list_nth0(X, ColumnList, ColumnHeader),
-  rdf_assert_string(Cell, rdf_table:column, ColumnHeader, G),
+  rdf_list_nth0(X, ColumnList, ColumnHeader, G),
+  rdf_assert_typed_literal(Cell, rdf_table:column, ColumnHeader, xsd:string, G),
   
   % Assert the row header.
-  rdf_list_nth0(Y, RowList, RowHeader),
-  rdf_assert_string(Cell, rdf_table:row, RowHeader, G),
+  rdf_list_nth0(Y, RowList, RowHeader, G),
+  rdf_assert_typed_literal(Cell, rdf_table:row, RowHeader, xsd:string, G),
   
   % Assert the cell value.
-  rdf_assert_datatype(Cell, rdf:value, Value, xsd:float, G),
+  rdf_assert_typed_literal(Cell, rdf:value, Value, xsd:float, G),
   
   % Relate cell to table.
   rdf_assert(Table, rdf_table:cell, Cell, G).
@@ -135,6 +135,6 @@ rdf_assert_row_headers(Graph, Table, RowHeaders, RowList):-
 % Asserts either column or row headers of a table, depending on `Predicate`.
 
 rdf_assert_headers(Graph, Table, Predicate, Headers, HeaderList):-
-  rdf_assert_list(Headers, HeaderList, [datatype(xsd:string),graph(Graph)]),
+  rdf_assert_list(Headers, HeaderList, Graph, [datatype(xsd:string)]),
   rdf_assert(Table, Predicate, HeaderList, Graph).
 

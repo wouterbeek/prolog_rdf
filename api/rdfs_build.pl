@@ -70,8 +70,10 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(api/rdfs_build)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
+:- use_module(plRdf(management/rdf_prefix)).
 
 :- rdf_meta(rdfs_assert_class(o,?)).
 :- rdf_meta(rdfs_assert_comment(o,+,?,?)).
@@ -202,7 +204,7 @@ rdfs_assert_isDefinedBy(Term, Uri, Graph):-
 %! ) is det.
 
 rdfs_assert_label(Term, Label, Graph):-
-  rdfs_assert_label(Term, Label, LangTag, Graph).
+  rdfs_assert_label(Term, Label, _, Graph).
 
 %! rdfs_assert_label(
 %!   +Term:rdf_term,
@@ -226,7 +228,7 @@ rdfs_assert_label(Term, Label, LangTag, Graph):-
 % Labels without language tag are asserted as `xsd:string`.
 rdfs_assert_label(Term, Label, LangTag, Graph, Triple):-
   var(LangTag), !,
-  rdfs_assert_literal(Term, rdfs:label, Label, xsd:string, _, Graph, Triple).
+  rdf_assert_literal(Term, rdfs:label, Label, xsd:string, _, Graph, Triple).
 % Labels with language tag are asserted as `rdf:langString`.
 rdfs_assert_label(Term, Label, LangTag, Graph, Triple):-
   rdf_assert_language_tagged_string(
@@ -378,5 +380,8 @@ rdfs_retractall_class_term(Class):-
 %! ) is det.
 
 rdfs_retractall_label(Term, Value, LangTag, Graph):-
-  rdf_retractall_label(Term, Value, LangTag, Graph).
+  (   var(LangTag)
+  ->  rdf_retractall_literal(Term, rdfs:label, _, _, Graph)
+  ;   rdf_retractall_literal(Term, rdfs:label, _-LangTag, _, Graph)
+  ).
 

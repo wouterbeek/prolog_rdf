@@ -6,6 +6,9 @@
                          % ?Object:rdf_term
                          % ?Graph:atom
     rdf_is_ground_triple/1, % @Term
+    rdf_is_object/1, % @Term
+    rdf_is_predicate/1, % @Term
+    rdf_is_subject/1, % @Term
     rdf_is_triple/1, % @Triple
     rdf_triples/2, % +Graph:atom
                    % -Triples:ordset(compound)
@@ -56,6 +59,31 @@ rdf_is_ground_triple(rdf(S,P,O)):-
   rdf_is_name(S),
   rdf_is_resource(P),
   rdf_is_name(O).
+
+
+
+%! rdf_is_object(@Term) is semidet.
+
+rdf_is_object(Term):-
+  rdf_is_subject(Term).
+rdf_is_object(Term):-
+  rdf_is_literal(Term).
+
+
+
+%! rdf_is_predicate(@Term) is semidet.
+
+rdf_is_predicate(Term):-
+  rdf_is_resource(Term).
+
+
+
+%! rdf_is_subject(@Term) is semidet.
+
+rdf_is_subject(Term):-
+  rdf_is_bnode(Term).
+rdf_is_subject(Term):-
+  rdf_is_resource(Term).
 
 
 

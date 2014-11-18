@@ -83,7 +83,7 @@ prolog_to_rdf(
   ;
     xsd_datatype(Type, Datatype)
   ->
-    rdf_assert_datatype(Individual1, Predicate, Value, Datatype, Graph)
+    rdf_assert_typed_literal(Individual1, Predicate, Value, Datatype, Graph)
   ;
     Optional = true
   ).

@@ -130,7 +130,10 @@ count_entities(G, Count):-
 count_individuals(C, G, N):-
   aggregate_all(
     set(I),
-    rdfs_individual(m(t,f,f), I, C, G),
+    (
+      rdfs_individual_of(I, C),
+      rdf_term(I, G)
+    ),
     Is
   ),
   length(Is, N).
@@ -213,7 +216,7 @@ count_subjects(P, O, G, Count):-
 rdf_property_table(P, G, T):-
   aggregate_all(
     set(O),
-    rdf([graph_mode(no_index)], _, P, O, G),
+    rdf(_, P, O, G),
     Os
   ),
   findall(
@@ -222,7 +225,7 @@ rdf_property_table(P, G, T):-
       member(O, Os),
       aggregate_all(
         count,
-        rdf([graph_mode(no_index)], _, P, O, G),
+        rdf(_, P, O, G),
         NumberOfO
       )
     ),

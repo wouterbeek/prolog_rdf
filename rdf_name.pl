@@ -30,6 +30,7 @@ Generates names for RDF terms and triples.
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_collection)).
 
@@ -109,7 +110,7 @@ rdf_iri_name(Options1, Iri) -->
 
   % See whether a preferred label can be found.
   ({    option(prferred_languages(LanguageTags), Options1, en),
-        rdfs_preferred_label(LanguageTags, Iri, PreferredLabel, _, _)
+        rdfs_label(Iri, PreferredLabel, LanguageTags, _)
   } ->  atom(PreferredLabel)
   ;     ""
   ).
@@ -126,7 +127,7 @@ rdf_iri_name(Options1, Iri) -->
   {
     % Labels are treated specially: only the preferred label is included.
     option(language_preferences(LanguageTags), Options1, [en]),
-    rdfs_preferred_label(LanguageTags, Iri, PreferredLabel, _, _),
+    rdfs_preferred_label(Iri, PreferredLabel, LanguageTags, _),
 
     % All non-label literals are included.
     findall(
@@ -250,7 +251,7 @@ rdf_term_name(Options, RdfList) -->
   % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
   % trouble when it comes accross `[b,c]`
   % (which fails the check for RDF list).
-  {rdf_list(RdfList, PlList, [recursive(false)])},
+  {rdf_list(RdfList, PlList, _, [recursive(false)])},
   list(rdf_term_name(Options), PlList).
 % Blank node.
 rdf_term_name(_, BNode) -->
