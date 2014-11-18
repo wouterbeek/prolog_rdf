@@ -47,7 +47,7 @@ Interpretation function `I`:
 */
 
 :- use_module(library(apply)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(graph/rdf_graph)).
 :- use_module(plRdf(term/rdf_term)).

@@ -58,7 +58,7 @@ Triples with literals are treated in dedicated modules.
 @version 2013/10, 2013/12-2014/01, 2014/06, 2014/08-2014/11
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
 :- use_module(generics(meta_ext)).
@@ -134,7 +134,7 @@ rdf_assert_language_tagged_string(Term, P, LexicalForm, LangTag, G, T):-
 rdf_assert_literal(Node, P, Val, rdf:langString, LangTag, G, rdf(Node,P,O)):-
   nonvar(LangTag), !,
   O = literal(lang(LangTag,Val)),
-  rdf_assert2(Node, P, O, Graph).
+  rdf_assert2(Node, P, O, G).
 % Simple literals.
 rdf_assert_literal(Node, P, Value, Datatype, _, Graph, Triple):-
   var(Datatype), !,

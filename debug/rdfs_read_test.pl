@@ -4,7 +4,7 @@
 
 :- begin_tests(rdfs_read).
 
-:- use_module(library(semweb/rdf_db)). % rdf_meta/1
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])). % rdf_meta/1
 
 :- use_module(plRdf(api/rdfs_read)).
 

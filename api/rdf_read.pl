@@ -50,7 +50,7 @@ Predicates for reading from RDF, customized for specific datatypes and
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).

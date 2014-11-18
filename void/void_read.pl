@@ -23,7 +23,7 @@ as it appears in the VoID specification.
 @version 2013/10, 2014/03
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(term/rdf_term)).
 

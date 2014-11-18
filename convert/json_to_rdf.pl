@@ -25,7 +25,7 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plDcg(dcg_content)). % Meta-argument.
 :- use_module(plDcg(dcg_generics)).

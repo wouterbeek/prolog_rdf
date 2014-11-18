@@ -16,7 +16,7 @@ Asserts statistics for VoID descriptions.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(thread_ext)).

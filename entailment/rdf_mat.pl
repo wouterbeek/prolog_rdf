@@ -18,7 +18,7 @@ Takes axioms, rules, and the RDF index and performs materializations.
 :- use_module(library(debug)).
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(deb_ext)).
 :- use_module(generics(meta_ext)).

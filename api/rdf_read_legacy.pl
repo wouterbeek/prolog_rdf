@@ -4,27 +4,27 @@
     rdf_is_plain_literal_term/1, % @Term
     rdf_is_simple_literal_term/1, % @Term
     rdf_is_typed_literal_term/1, % @Term
-    rdf_simple_literal/4 % ?Term:rdf_term
-                         % ?Predicate:iri
-                         % ?Value:atom
-                         % ?Graph:atom
+    rdf_simple_literal/4, % ?Term:rdf_term
+                          % ?Predicate:iri
+                          % ?Value:atom
+                          % ?Graph:atom
     rdf_simple_literal_data/3, % ?Field:oneof([lexical_form,value])
                                % +Literal:compound
                                % ?Data
     rdf_simple_literal_term/1, % ?Literal:compound
     rdf_simple_literal_term/2, % ?Literal:compound
                                % ?Graph:atom
-    rdf_typed_literal/5 % ?Term:rdf_term
-                        % ?Predicate:iri
-                        % ?Value
-                        % ?Datatype:iri
-                        % ?Graph:atom
+    rdf_typed_literal/5, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value
+                         % ?Datatype:iri
+                         % ?Graph:atom
     rdf_typed_literal_data/3, % ?Field:oneof([datatype,lexical_form,value])
                               % +Literal:compound
                               % ?Data
     rdf_typed_literal_term/1, % ?Literal:compound
-    rdf_typed_literal_term/2, % ?Literal:compound
-                              % ?Graph:atom
+    rdf_typed_literal_term/2 % ?Literal:compound
+                             % ?Graph:atom
   ]
 ).
 
@@ -45,7 +45,7 @@ the Unicode strings in Normal Form C with the set of datatype URIs.
 @version 2014/11
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(typecheck)).
 
@@ -121,7 +121,7 @@ rdf_plain_literal_term(Literal):-
 % Enumeration is assured to not deliver any duplicates.
 
 rdf_plain_literal_term(Literal, Graph):-
-  rdf_plain_literal(Literal),
+  rdf_plain_literal_term(Literal),
   rdf_object(Literal, Graph).
 
 

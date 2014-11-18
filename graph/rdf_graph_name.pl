@@ -15,7 +15,7 @@ Support for naming graphs.
 @version 2014/11
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
 :- use_module(generics(atom_ext)).
@@ -31,7 +31,7 @@ rdf_new_graph(Graph):-
   rdf_new_graph(user, Graph).
 
 % No RDF graph with the given name exists, so it is safe to use.
-rdf_new_graph(Name, Graph):-
+rdf_new_graph(Name, Graph2):-
   atomic_concat('/', Name, Path),
   uri_compound(Graph1, uri_components(http,'www.example.com',Path,_,_)),
   
@@ -40,7 +40,7 @@ rdf_new_graph(Name, Graph):-
   % a first triple is stored inside it.
   with_mutex(rdf_graph_name, (
     rdf_new_graph0(Graph1, Graph2),
-    rdf_create_graph(Graph)
+    rdf_create_graph(Graph2)
   )).
 
 % The graph name is new.

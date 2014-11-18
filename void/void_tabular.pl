@@ -14,7 +14,7 @@ Tabular browser for VoID data.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(plServer(web_modules)).

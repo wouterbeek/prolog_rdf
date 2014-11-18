@@ -24,7 +24,7 @@ Specification of entailment rules for RDF.
 @version 2013/08-2013/09, 2014/07
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(settings)).
 
 :- use_module(math(math_ext)).

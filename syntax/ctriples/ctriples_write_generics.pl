@@ -31,7 +31,7 @@ Generic predicates for writing C-Triples.
 */
 
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/turtle)). % Private predicates.
 
 :- use_module(plRdf(management/rdf_bnode_write)).

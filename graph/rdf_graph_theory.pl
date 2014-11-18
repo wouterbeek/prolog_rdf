@@ -33,7 +33,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 
 :- use_module(library(aggregate)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- predicate_options(rdf_directed_edge/3, 3, [
      pass_to(rdf_vertex_filter/2, 2)

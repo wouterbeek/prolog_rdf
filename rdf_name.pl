@@ -5,8 +5,6 @@
     rdf_term_name//1, % ?Term:or([bnode,iri,literal])
     rdf_term_name//2, % +Options:list(nvpair)
                       % +Term:or([bnode,iri,literal])
-    rdf_triple_name/2, % +Triple:compound
-                       % -Name:atom
     rdf_triple_name//1, % +Triple:compound
     rdf_triple_name//2 % +Triple:compound
                        % +Graph:atom
@@ -24,7 +22,7 @@ Generates names for RDF terms and triples.
 */
 
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(code_ext)).
 :- use_module(generics(typecheck)).
@@ -40,7 +38,6 @@ Generates names for RDF terms and triples.
 :- use_module(plRdf(management/rdf_prefix)).
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_list)).
-:- use_module(plRdf(term/rdfs_label_ext)).
 
 :- rdf_meta(rdf_term_name(+,r,?,?)).
 :- rdf_meta(rdf_term_name(r,?,?)).
@@ -246,7 +243,7 @@ rdf_term_name(Options1, Term) -->
   " in ",
   rdf_graph_name(Graph).
 % RDF list.
-rdf_term_name(Options1, RdfList) -->
+rdf_term_name(Options, RdfList) -->
   {rdf_is_list(RdfList)}, !,
   % Recursively retrieve the contents of the RDF list.
   % This has to be done non-recursively, since the nested

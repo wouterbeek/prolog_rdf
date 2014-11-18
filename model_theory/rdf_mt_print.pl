@@ -39,7 +39,11 @@ rdf_mt_print_graph(G):-
   rdf_graph:rdf_graph_to_triples(G, Ts),
   forall(
     member(T, Ts),
-    (tab, dcg_with_output_to(current_output, rdf_triple_name(T)), nl)
+    (
+      tab,
+      dcg_with_output_to(current_output, rdf_triple_name(T)),
+      nl
+    )
   ).
 
 

@@ -15,7 +15,7 @@
 @version 2014/06
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- discontiguous(rdf_entailment_pattern/2).
 :- discontiguous(rdf_entailment_pattern/3).

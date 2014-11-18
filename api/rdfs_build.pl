@@ -67,7 +67,7 @@ Predicates for asseritng RDFS statements in an easy way.
          2014/03, 2014/08, 2014/11
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).

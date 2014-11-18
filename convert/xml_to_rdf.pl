@@ -31,7 +31,7 @@ Converts XML DOMs to RDF graphs.
 :- use_module(library(debug)).
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(pure_input)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
 :- use_module(os(file_ext)).

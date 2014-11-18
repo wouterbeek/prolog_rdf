@@ -26,7 +26,7 @@ Support for RDF triple compound terms.
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists), except([delete/3])).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(term/rdf_term)).
 
@@ -52,7 +52,7 @@ rdf_ground_triple(S, P, O, G):-
 %! rdf_is_ground_triple(@Term) is semidet.
 % Succeeds if the given triple is ground, i.e., contains no blank node.
 
-rdf_is_ground_triple(rdf(S,_,O)):-
+rdf_is_ground_triple(rdf(S,P,O)):-
   rdf_is_name(S),
   rdf_is_resource(P),
   rdf_is_name(O).

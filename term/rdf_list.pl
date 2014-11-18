@@ -6,8 +6,9 @@
                        % ?Graph:atom
                        % +Options:list(nvpair)
     rdf_list/1, % ?List:or([bnode,iri])
-    rdf_list/3, % +RdfList:or([bnode,iri])
+    rdf_list/4, % +RdfList:or([bnode,iri])
                 % -PrologList:list
+                % ?Graph:atom
                 % +Options:list(nvpair)
     rdf_list_after/4, % ?After:rdf_term
                       % ?Before:rdf_term
@@ -31,8 +32,9 @@
     rdf_list_last/3, % ?List:or([bnode,iri])
                      % ?Last:rdf_term
                      % ?Graph:atom
-    rdf_list_length/2, % ?List:or([bnode,iri])
+    rdf_list_length/3, % ?List:or([bnode,iri])
                        % ?Length:number
+                       % ?Graph:atom
     rdf_list_member/3, % ?Element:rdf_term
                        % ?List:or([bnode,iri])
                        % ?Graph:atom
@@ -55,7 +57,7 @@ Support for RDF lists.
 */
 
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(lambda_meta)).
@@ -86,7 +88,7 @@ Support for RDF lists.
 :- rdf_meta(rdf_list_directly_before(o,o,r,?)).
 :- rdf_meta(rdf_list_first(r,o,?)).
 :- rdf_meta(rdf_list_last(r,o,?)).
-:- rdf_meta(rdf_list_length(r,?)).
+:- rdf_meta(rdf_list_length(r,?,?)).
 :- rdf_meta(rdf_list_member(r,o,?)).
 :- rdf_meta(rdf_list_nth0(?,r,o,?)).
 
@@ -278,12 +280,11 @@ rdf_list_directly_before(Before, After, List, Graph):-
 %! rdf_list_first(
 %!   ?List:or([bnode,iri]),
 %!   ?First:rdf_term,
-%!   ?List:or([bnode,iri]),
 %!   ?Graph:atom
 %! ) is nondet.
 % Relates RDF lists to their first element.
 
-rdf_list_first(List, First, List, Graph):-
+rdf_list_first(List, First, Graph):-
   rdf(List, rdf:first, First, Graph).
 
 
@@ -349,7 +350,7 @@ rdf_list_nth0(I, L, E, G):-
   rdf_list_nth0(0, I, L, E, G).
 
 rdf_list_nth0(I, I, L, E, G):-
-  rdf_list_first(L, rdf:first, E, G).
+  rdf_list_first(L, E, G).
 rdf_list_nth0(I1, I3, L, E, G):-
   rdf(L, rdf:rest, R, G),
   rdf_list_nth0(I1, I2, R, E, G),

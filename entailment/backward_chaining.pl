@@ -1,5 +1,5 @@
 :- module(
-  rdfs_read,
+  backward_chaining,
   [
     rdfs/4, % ?Subject:or([bnode,iri])
             % ?Predicate:iri
@@ -112,12 +112,12 @@ application of the subclass relation.
 */
 
 :- use_module(library(debug)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(api/rdf_read)).
+:- use_module(plRdf(api/rdf_read_legacy)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_container)).
-:- use_module(plRdf(term/rdf_typed_literal)).
 
 :- rdf_meta(rdf_db_or_axiom(+,r,r,r,?)).
 :- rdf_meta(rdfs(r,r,r,?)).

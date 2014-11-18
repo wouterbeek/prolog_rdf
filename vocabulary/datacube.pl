@@ -38,7 +38,7 @@ Predicates for perfoming measurements represented in RDF.
 */
 
 :- use_module(library(lists), except([delete/3])).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(management/rdf_prefixes)). % RDF prefix declarations.

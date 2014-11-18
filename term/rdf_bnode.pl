@@ -31,7 +31,7 @@ Support for blank node mappings in RDF.
 */
 
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- rdf_meta(rdf_term_variant(o,o)).
 :- rdf_meta(rdf_term_instance(o,o,-)).

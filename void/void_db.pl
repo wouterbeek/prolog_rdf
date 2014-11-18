@@ -18,7 +18,7 @@ Generic support for VoID, used by other VoID modules.
 */
 
 :- use_module(library(lists), except([delete/3])).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(typecheck)).

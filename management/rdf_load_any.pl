@@ -30,7 +30,7 @@
 % rdf_file_type(trp,   triples).
 % rdf_storage_encoding('', plain).
 % url_protocol(file).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 % rdf_open_hook(http,  ...)
 % rdf_open_hook(https, ...)
 % rdf_storage_encoding(_, gzip).

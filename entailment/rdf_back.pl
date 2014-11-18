@@ -22,7 +22,7 @@ The latter condition holds under structural identity, i.e. =@=/2.
 
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_content)).
@@ -31,10 +31,10 @@ The latter condition holds under structural identity, i.e. =@=/2.
 :- use_module(plTree(tree_print)).
 
 :- use_module(plRdf(rdf_name)). % Meta-argument.
+:- use_module(plRdf(api/rdf_read_legacy)).
+:- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(entailment/rdf_ent)). % Axioms, explanations, rules.
 :- use_module(plRdf(entailment/rdfs_ent)). % Axioms, explanations, rules.
-:- use_module(plRdf(entailment/rdf_bnode_map)).
-:- use_module(plRdf(term/rdf_typed_literal)).
 
 %! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 

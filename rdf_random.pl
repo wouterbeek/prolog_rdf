@@ -28,14 +28,14 @@
 :- use_module(library(aggregate)).
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(random)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(flag_ext)).
 
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plRdf(rdf_parse)).
 :- use_module(plRdf(graph/rdf_graph_theory)).
+:- use_module(plRdf(syntax/rdf_parse)).
 
 :- meta_predicate(rdf_random_term(+,//,-)).
 

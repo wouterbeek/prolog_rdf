@@ -36,7 +36,7 @@ The graph argument is required in blank node maps,
 */
 
 :- use_module(library(assoc)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(meta_ext)).
 

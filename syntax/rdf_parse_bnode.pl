@@ -21,7 +21,7 @@ not as references to specific blank nodes in the data being queried.
 @version 2014/08-2014/10
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).

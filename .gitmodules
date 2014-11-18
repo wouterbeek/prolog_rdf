@@ -29,3 +29,6 @@
 [submodule "plTms"]
 	path = plTms
 	url = https://github.com/wouterbeek/plTms.git
+[submodule "plLangTag"]
+	path = plLangTag
+	url = https://github.com/wouterbeek/plLangTag.git

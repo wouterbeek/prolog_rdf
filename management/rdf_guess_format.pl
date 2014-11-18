@@ -22,7 +22,7 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(dcg/basics)).
 :- use_module(library(memfile)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(sgml)).
 
 :- use_module(plRdf(management/rdf_file_db)).

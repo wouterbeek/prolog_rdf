@@ -16,7 +16,7 @@
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(readutil)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(db_ext)).
 :- use_module(sparql(sparql_query_generics)).

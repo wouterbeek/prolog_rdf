@@ -36,7 +36,7 @@
 @version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05, 2014/11
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(rdf_triples)).
 :- use_module(plRdf(term/rdf_bnode)).

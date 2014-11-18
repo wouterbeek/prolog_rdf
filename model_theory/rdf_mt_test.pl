@@ -9,7 +9,7 @@ Tests for RDFS model theory.
 */
 
 :- use_module(library(plunit)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(debug/rdf_deb)).
 :- use_module(plRdf(model_theory/rdf_mt_build)).

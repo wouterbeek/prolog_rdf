@@ -27,7 +27,7 @@ Predicates for building OWL ontologies.
 @version 2012/12-2013/01, 2013/03, 2013/05, 2013/09
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- rdf_meta(owl_assert_class_equivalence(r,r,+)).
 :- rdf_meta(owl_assert_disjointWith(r,r,+)).

@@ -35,7 +35,7 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 @version 2014/06-2014/07, 2014/10
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
 %! rdf_reduced_location_prefix(+Prefix:atom) is semidet.

@@ -20,7 +20,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(csv)).
 :- use_module(library(error)).
 :- use_module(library(pure_input)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
 :- use_module(generics(row_ext)).
