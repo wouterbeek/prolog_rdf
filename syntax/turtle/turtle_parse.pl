@@ -23,6 +23,7 @@
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_bracket)).
 
+:- use_module(plRdf(syntax/rdf_parse_bnode)).
 :- use_module(plRdf(syntax/turtle/turtle_number)).
 :- use_module(plRdf(term/rdf_list)).
 
