@@ -16,8 +16,7 @@ DCGs for literal expression defined in Turtle recommendations.
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plSparql_parse(sparql_literal)).
-:- use_module(turtle(turtle_number)).
+:- use_module(plRdf(syntax/turtle/turtle_number)).
 
 
 
