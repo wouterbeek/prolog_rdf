@@ -1,9 +1,9 @@
 :- module(
   rdf_read_legacy,
   [
-    rdf_is_plain_literal_term/1, % @Term
-    rdf_is_simple_literal_term/1, % @Term
-    rdf_is_typed_literal_term/1, % @Term
+    rdf_is_plain_literal1, % @Term
+    rdf_is_simple_literal/1, % @Term
+    rdf_is_typed_literal/1, % @Term
     rdf_simple_literal/4, % ?Term:rdf_term
                           % ?Predicate:iri
                           % ?Value:atom
@@ -62,7 +62,7 @@ the Unicode strings in Normal Form C with the set of datatype URIs.
 
 
 
-%! rdf_is_simple_literal(@Term) is semidet.
+%! rdf_is_plain_literal(@Term) is semidet.
 % Succeeds if the given Term denotes a plain literal.
 
 rdf_is_plain_literal(Term):-

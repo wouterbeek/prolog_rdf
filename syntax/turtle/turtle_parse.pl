@@ -19,12 +19,12 @@
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(db_ext)).
-:- use_module(sparql(sparql_query_generics)).
-:- use_module(turtle(turtle_number)).
 
+:- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_bracket)).
 
-:- use_module(plRdf(rdf_list)).
+:- use_module(plRdf(syntax/turtle/turtle_number)).
+:- use_module(plRdf(term/rdf_list)).
 
 :- dynamic(base/1).
 :- dynamic(triple/1).
@@ -57,12 +57,9 @@ test:-
   ).
 
 test(N):-
-  (
-    N =< 9
-  ->
-    format(atom(Base), 'test-0~d', [N])
-  ;
-    format(atom(Base), 'test-~d', [N])
+  (    N =< 9
+  ->   format(atom(Base), 'test-0~d', [N])
+  ;    format(atom(Base), 'test-~d', [N])
   ),
   absolute_file_name(turtle(Base), File, [access(read),extensions([ttl])]),
   turtle(File),
@@ -86,10 +83,10 @@ test(N):-
 %
 % @compat Turtle 1.1 [5].
 
-base(BaseIri) -->
+base(Base) -->
   "@base", b,
   'IRIREF'(Base),
-  db_replace_all(base(_), base(Base)),
+  {db_replace_all(base(_), base(Base))},
   b, ".".
 
 
@@ -102,10 +99,12 @@ base(BaseIri) -->
 % @compat Turtle 1.1 [14].
 
 blankNodePropertyList(BNode) -->
-  {rdf_bnode(BNode)}.
-  bracketed(square, (
-    'b*', predicateObjectList(BNode), 'b*'
-  )).
+  {rdf_bnode(BNode)},
+  "[",
+    '*'(b, []),
+    predicateObjectList(BNode),
+    '*'(b, []),
+  "]".
 
 
 
@@ -117,9 +116,11 @@ blankNodePropertyList(BNode) -->
 % @compat Turtle 1.1 [15].
 
 collection(RdfList) -->
-  bracketed(round, (
-    'b*', '*'((object, 'b+') Objects, []), 'b*'
-  )),
+  "(",
+    '*'(b, []),
+    '*'(object, Objects, [separator('+'(b, []))]),
+    '*'(b, []),
+  ")",
   rdf_list(Objects, RdfList).
 
 

@@ -12,7 +12,7 @@
                                  % +LexicalForm:atom
                                  % ?Graph:atom
                                  % -Triple:compound
-    rdf_assert_typed_literal/5 % +Term:rdf_term
+    rdf_assert_typed_literal/6 % +Term:rdf_term
                                % +Predicate:iri
                                % +LexicalForm:atom
                                % +Datatype:iri
@@ -40,7 +40,7 @@
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
 %!   +LexicalForm:atom,
-%!   ?LangTag:list(atom)
+%!   ?LangTag:list(atom),
 %!   ?Graph:atom,
 %!   -Triple:compound
 %! ) is det.
