@@ -59,8 +59,8 @@ owl_disjointWith(M, C1, C2, G):-
   rdfs_class(M, C1, G),
   rdfs_class(M, C2, G),
   \+ ((
-    rdfs_individual(M, X, C1, G),
-    rdfs_individual(M, X, C1, G)
+    rdfs_individual(X, C1, G),
+    rdfs_individual(X, C1, G)
   )).
 
 %! owl_identity_set(+IRI:iri, -IdentitySet:ordset(iri)) is det.

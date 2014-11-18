@@ -36,7 +36,7 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 :- use_module(library(lists), except([delete/3])).
 
-:- use_module(plRdf(management/ctriples_write_generics)).
+:- use_module(plRdf(syntax/ctriples/ctriples_write_generics)).
 
 :- predicate_options(ctriples_write_triples/3, 3, [
      pass_to(ctriples_write_triples_to_stream/2, 2)

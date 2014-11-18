@@ -37,7 +37,7 @@
                        % ?Predicate:iri
                        % ?Object:rdf_term
                        % ?Graph:atom
-    rdf_retractall_literal/5, % ?Subject:oneof([bnode,iri])
+    rdf_retractall_literal/5, % ?Term:rdf_term
                               % ?Predicate:iri
                               % ?Value:atom
                               % ?DatatypeIri:iri
@@ -284,6 +284,7 @@ rdf_retractall_literal(Node, P, Value, Datatype, Graph):-
   ->  rdf_retractall2(Node, P, literal(lang(LangTag,LexicalForm)), Graph)
   ;   true
   ),
+  
   % Retract all matching typed literals.
   forall(
     (

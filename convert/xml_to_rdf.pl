@@ -1,9 +1,10 @@
 :- module(
   xml_to_rdf,
   [
-    parse_file/3, % +File:atom
+    parse_file/4, % +File:atom
+                  % +ParserVersion:oneof(['1.0','1.1'])
                   % +Namespace:atom
-                  % ?RdfGraph:atom
+                  % ?Graph:atom
     create_resource/7, % +XML_DOM:list
                        % +XML_PrimaryProperties:list(atom)
                        % :XML2RDF_Translation
@@ -25,7 +26,7 @@
 Converts XML DOMs to RDF graphs.
 
 @author Wouter Beek
-@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10
+@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11
 */
 
 :- use_module(library(debug)).
@@ -43,9 +44,13 @@ Converts XML DOMs to RDF graphs.
 :- use_module(plDcg(dcg_peek)).
 :- use_module(plDcg(dcg_replace)).
 
+:- use_module(plXml(syntax/xml_element)).
+:- use_module(plXml(syntax/xml_prolog)).
+
 :- use_module(plXsd(xsd)).
 
 :- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdf_build_legacy)).
 :- use_module(plRdf(debug/rdf_deb)).
 :- use_module(plRdf(graph/rdf_graph_name)).
 :- use_module(plRdf(term/rdf_container)).
@@ -68,11 +73,9 @@ ensure_graph_name(File, Graph):-
   uri_file_name(File, Graph).
 
 
-parse_file(File1, Prefix, G):-
+parse_file(File1, Version, Prefix, G):-
   ensure_graph_name(File1, G),
-  phrase_from_file(xml_parse(Prefix, G), File1),
-  %%%%file_to_atom(File, Atom), %DEB
-  %%%%dcg_phrase(xml_parse(el), Atom), %DEB
+  phrase_from_file(xml_parse(Version, Prefix, G), File1),
   debug(xml_to_rdf, 'Done parsing file ~w', [File1]), %DEB
   file_kind_alternative(File1, turtle, File2),
   prolog_stack_property(global, limit(Limit)),
@@ -82,74 +85,87 @@ parse_file(File1, Prefix, G):-
   rdf_unload_graph_deb(G).
 
 
-%! xml_parse(+Prefix:atom, +RdfGraph:atom)// is det.
+
+%! xml_parse(
+%!   +Version:oneof(['1.0','1.1']),
+%!   +Prefix:atom,
+%!   +Graph:atom
+%! )// is det.
 % Parses the root tag.
 
-xml_parse(Prefix, G) -->
-  xml_declaration(_),
-  'STag'(RootTag), skip_whites,
+xml_parse(ParserVersion, Prefix, Graph) -->
+  {xml_version_map(ParserVersion, DocumentVersion)},
+  'XMLDecl'(ParserVersion, xml_decl(DocumentVersion,_,_)),
+  'STag'(ParserVersion, RootName, _),
+  '*'(white, []),
   {
-    rdf_global_id(Prefix:RootTag, Class),
-    rdf_create_next_resource(Prefix, [RootTag], Class, G, S)
+    rdf_global_id(Prefix:RootName, Class),
+    rdf_create_next_resource(Prefix, [RootName], Class, Graph, Resource)
   },
-  xml_parses(Prefix, S, G),
-  'ETag'(RootTag), dcg_done.
+  xml_parses(ParserVersion, Prefix, Resource, Graph),
+  'ETag'(RootName),
+  dcg_done.
 
 
-%! xml_parse(+RdfContainer:iri, +RdfGraph:atom)// is det.
+
+%! xml_parse(
+%!   +Version:oneof(['1.0','1.1']),
+%!   +Prefix:atom,
+%!   +Resource:iri,
+%!   +Graph:atom
+%! )// is det.
 
 % Non-tag content.
-xml_parse(Prefix, S, G) -->
-  'STag'(PTag), skip_whites,
-  xml_content(PTag, Codes), !,
+xml_parse(Version, Prefix, S, G) -->
+  'STag'(Version, PTag, _), !,
+  '*'(white, []),
+  xml_content(Version, PTag, Codes),
   {
     atom_codes(O, Codes),
     rdf_global_id(Prefix:PTag, P),
-    rdf_assert_string(S, P, O, G)
+    rdf_assert_typed_literal(S, P, O, xsd:string, G)
   }.
 % Skip short tags.
-xml_parse(_, _, _) -->
-  'EmptyElemTag'(_), !,
-  skip_whites, !.
+xml_parse(Version, _, _, _) -->
+  'EmptyElemTag'(Version, _, _), !,
+  '*'(white, []).
 % Nested tag.
-xml_parse(Prefix, S, G) -->
-  'STag'(OTag), !,
-  skip_whites, !,
+xml_parse(Version, Prefix, S, G) -->
+  'STag'(Version, OTag, _), !,
+  '*'(white, []),
   {
     rdf_global_id(Prefix:OTag, Class),
     rdf_create_next_resource(Prefix, [OTag], Class, G, O)
   },
-  xml_parses(Prefix, O, G),
-  'ETag'(OTag), skip_whites,
+  xml_parses(Version, Prefix, O, G),
+  'ETag'(OTag),
+  '*'(white, []),
   {
     rdf_assert_instance(S, rdf:'Bag', G),
     rdf_assert_collection_member(S, O, G)
   }.
 
 
-skip_whites -->
-  '*'(white, []), !.
-
-
-xml_parses(Prefix, S, G) -->
-  xml_parse(Prefix, S, G), !,
-  xml_parses(Prefix, S, G).
-xml_parses(_, _, _) --> [], !.
-xml_parses(_, _, _) -->
+xml_parses(Version, Prefix, S, G) -->
+  xml_parse(Version, Prefix, S, G), !,
+  xml_parses(Version, Prefix, S, G).
+xml_parses(_, _, _, _) --> [], !.
+xml_parses(_, _, _, _) -->
   dcg_all([output_format(atom)], Remains),
   {format(user_output, '~w', [Remains])}.
 
 
 % The tag closes: end of content codes.
-xml_content(Tag, []) -->
-  'ETag'(Tag), skip_whites, !.
+xml_content(_, Tag, []) -->
+  'ETag'(Tag), !,
+  '*'(white, []).
 % Another XML tag starts, this is not XML content.
-xml_content(_, []) -->
-  dcg_peek('STag'(_)), !, {fail}.
+xml_content(Version, _, []) -->
+  dcg_peek('STag'(Version, _, _)), !, {fail}.
 % Parse a code of content.
-xml_content(Tag, [H|T]) -->
+xml_content(Version, Tag, [H|T]) -->
   [H],
-  xml_content(Tag, T).
+  xml_content(Version, Tag, T).
 
 
 
@@ -192,6 +208,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
   create_triples(DOM1, XML_PrimaryPs, Trans, S, G, DOM2).
 
 
+
 %! create_triple(
 %!   +RDF_Subject:or([bnode,iri]),
 %!   +RDF_Predicate:iri,
@@ -202,15 +219,16 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
 
 % Simple literal.
 create_triple(S, P, literal, Content, G):- !,
-  rdf_assert_string(S, P, Content, G).
+  rdf_assert_typed_literal(S, P, Content, xsd:string, G).
 % Typed literal.
 create_triple(S, P, D1, Content, G):-
   xsd_datatype(D1, D2), !,
-  rdf_assert_datatype(S, P, D2, Content, G).
+  rdf_assert_typed_literal(S, P, D2, Content, G).
 % IRI.
 create_triple(S, P, _, Content, G):-
   % Spaces are not allowed in IRIs.
   rdf_assert(S, P, Content, G).
+
 
 
 %! create_triples(
@@ -232,14 +250,12 @@ create_triples(DOM1, Ps1, Trans, S, G, RestDOM):-
   select(element(XML_P, _, Content1), DOM1, DOM2),
   update_property_filter(Ps1, XML_P, Ps2), !,
 
-  (
-    % XML element with no content.
-    Content1 == [], !
-  ;
-    % XML element with content.
-    Content1 = [Content2],
-    call(Trans, XML_P, RDF_P, RDF_O_Type),
-    create_triple(S, RDF_P, RDF_O_Type, Content2, G)
+  (   % XML element with no content.
+      Content1 == [], !
+  ;   % XML element with content.
+      Content1 = [Content2],
+      call(Trans, XML_P, RDF_P, RDF_O_Type),
+      create_triple(S, RDF_P, RDF_O_Type, Content2, G)
   ),
 
   create_triples(DOM2, Ps2, Trans, S, G, RestDOM).
@@ -258,16 +274,11 @@ create_triples(DOM, _Ps, _Trans, _S, _G, DOM).
 get_dom_value(DOM, Trans, XML_P, Value):-
   memberchk(element(XML_P, _, [LexicalForm]), DOM),
   call(Trans, XML_P, _, O_Type),
-  (
-    O_Type == literal
-  ->
-    Value = LexicalForm
-  ;
-    xsd_datatype(O_Type, XSD_Datatype)
-  ->
-    xsd_canonical_map(XSD_Datatype, LexicalForm, Value)
-  ;
-    Value = LexicalForm
+  (   O_Type == literal
+  ->  Value = LexicalForm
+  ;   xsd_datatype(O_Type, XSD_Datatype)
+  ->  xsd_canonical_map(XSD_Datatype, LexicalForm, Value)
+  ;   Value = LexicalForm
   ).
 
 update_property_filter(Ps1, _, _):-
@@ -277,82 +288,15 @@ update_property_filter(Ps1, XML_P, Ps2):-
 
 
 
-/*
-In the past, I first used to check whether a resource already existed.
-This meant that XML2RDF conversion would slow down over time
-(increasingly longer query times for resource existence in the growing
-RDF graph).
 
-Nevertheless, some of these methods are quite nice.
-They translate XML elements to RDF properties and use the object type
-for converting XML content to RDF objects.
 
-:- meta_predicate(rdf_property_trans(+,3,+,+,+)).
-:- meta_predicate(rdf_subject_trans(+,+,3,+,+)).
+% HELPERS
 
-:- rdf_meta(rdf_property_trans(+,:,r,+,+)).
-:- rdf_meta(rdf_subject_trans(+,+,:,r,+)).
+%! xml_version_map(
+%!   ?ParserVersion:oneof(['1.0','1.1']),
+%!   ?DocumentVersion:compound
+%! ) .
 
-% The resource already exists.
-create_resource(DOM, PrimaryPs, Trans, _C, G, S, DOM):-
-  rdf_subject_trans(DOM, PrimaryPs, Trans, S, G), !,
-  debug(
-    xml_to_rdf,
-    'The resource for the following XML DOM already exists: ~w',
-    [DOM]
-  ).
-% The resource does not yet exist and is created.
-
-%! rdf_object_trans(
-%!   ?RDF_Subject:or([bnode,iri]),
-%!   +RDF_Predicate:iri,
-%!   +RDF_ObjectType:atom,
-%!   +XML_Content:atom,
-%!   +RDF_Graph:atom
-%! ) is nondet.
-
-% Succeeds if there is a subject resource with the given predicate term
-% and an object term that is the literal value of the given XML content.
-rdf_object_trans(S, P, literal, Content, G):- !,
-  rdf_literal(S, P, Content, xsd:string, _, G).
-% Succeeds if there is a subject resource with the given predicate term
-% and an object term that translates to the same value as
-% the given XML content.
-rdf_object_trans(S, P, DName, Content, G):-
-  rdf_datatype(DName), !,
-  rdf_literal(S, P, Content, DName, _, G).
-
-%! rdf_property_trans(
-%!   +XML_DOM:list,
-%!   :XML2RDF_Translation,
-%!   +RDF_Subject:or([bnode,iri]),
-%!   +XML_Property:atom,
-%!   +RDF_Graph:atom
-%! ) is nondet.
-% Reads a predicate from the DOM and checks whether
-% it is already present for some subject resource
-% under the given translation.
-
-rdf_property_trans(DOM, Trans, S, XML_P, G):-
-  memberchk(element(XML_P, _, [Content]), DOM),
-  call(Trans, XML_P, RDF_P, O_Type),
-  rdf_object_trans(S, RDF_P, O_Type, Content, G).
-
-%! rdf_subject_trans(
-%!   +XML_DOM:list,
-%!   +XML_Properties:list(atom),
-%!   :XML2RDF_Translation,
-%!   ?RDF_Subject:or([bnode,iri]),
-%!   +RDF_Graph:atom
-%! ) is nondet.
-% Returns a resource that has the given XML properties set to
-% the object values that occur in the XML DOM.
-
-rdf_subject_trans(DOM, [P|Ps], Trans, S, G):-
-  rdf_property_trans(DOM, Trans, S, P, G),
-  forall(
-    member(P_, Ps),
-    rdf_property_trans(DOM, Trans, S, P_, G)
-  ).
-*/
+xml_version_map('1.0', version(1,0)).
+xml_version_map('1.1', version(1,1)).
 

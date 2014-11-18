@@ -221,7 +221,7 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
 
   % Assert the measurement value.
   call(Goal, Value),
-  rdf_assert_datatype(Observation, Property, Value, Datatype, Graph),
+  rdf_assert_typed_literal(Observation, Property, Value, Datatype, Graph),
 
   % Assert the temporal dimension value.
   rdf_assert_now(Observation, 'sdmx-dimension':timePeriod, Graph).

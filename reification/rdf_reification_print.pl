@@ -18,6 +18,7 @@ Print reified RDF statements.
 
 :- use_module(library(semweb/rdfs)).
 
+:- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_collection)).
 :- use_module(plDcg(dcg_content)).
 
