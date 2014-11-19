@@ -11,8 +11,7 @@
                             % ?Label:atom
                             % ?Comment:or([atom,list(atom)])
                             % ?Graph:atom
-    rdfs_assert_property/7 % +Property:iri
-                           % ?Superproperty:iri
+    rdfs_assert_property/6 % +Property:iri
                            % ?Domain:iri
                            % ?Range:iri
                            % ?Label:or([atom,pair(atom)])
@@ -34,7 +33,7 @@ Predicates for building higher-level RDFS constructs.
 
 :- rdf_meta(rdfs_assert_class(r,r,?,?,?)).
 :- rdf_meta(rdfs_assert_instance(r,r,?,?,?)).
-:- rdf_meta(rdfs_assert_property(r,r,r,r,?,?,?)).
+:- rdf_meta(rdfs_assert_property(r,r,r,?,?,?)).
 
 
 
@@ -70,7 +69,6 @@ rdfs_assert_instance(Instance, Class, Label, Comment, Graph):-
 
 %! rdfs_assert_property(
 %!   +Property:iri,
-%!   ?SuperProperty:iri,
 %!   ?Domain:iri,
 %!   ?Range:iri,
 %!   ?Label:or([atom,list(atom)]),
@@ -80,7 +78,6 @@ rdfs_assert_instance(Instance, Class, Label, Comment, Graph):-
 
 rdfs_assert_property(
   Property,
-  Superproperty,
   Domain,
   Range,
   Label,
@@ -88,10 +85,6 @@ rdfs_assert_property(
   Graph
 ):-
   rdf_assert_property(Property, Graph),
-  (   var(Superproperty)
-  ->  true
-  ;   rdfs_assert_subproperty(Property, Superproperty, Graph)
-  ),
   rdfs_assert_domain(Property, Domain, Graph),
   rdfs_assert_range(Property, Range, Graph),
   rdfs_assert_label_if_nonvar(Property, Label, Graph),

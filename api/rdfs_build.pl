@@ -7,11 +7,8 @@
                            % +Comment:atom
                            % ?Graph:atom
     rdfs_assert_domain/3, % +Property:iri
-                          % +Class:iri
+                          % ?Class:iri
                           % ?Graph:atom
-    rdfs_assert_domain_range/3, % +Property:iri
-                                % +Class:iri
-                                % ?Graph:atom
     rdfs_assert_instance/2, % +Instance:iri
                             % ?Graph:atom
     rdfs_assert_isDefinedBy/3, % +Term:rdf_term
@@ -27,7 +24,7 @@
     rdfs_assert_property_class/2, % +PropertyClass:iri
                                   % ?Graph:atom
     rdfs_assert_range/3, % +Property:iri
-                         % +Class:iri
+                         % ?Class:iri
                          % ?Graph:atom
     rdfs_assert_seeAlso/3, % +Term:rdf_term
                            % +Uri:atom
@@ -72,7 +69,6 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_assert_class(o,?)).
 :- rdf_meta(rdfs_assert_comment(o,+,?)).
 :- rdf_meta(rdfs_assert_domain(o,r,?)).
-:- rdf_meta(rdfs_assert_domain_range(o,r,?)).
 :- rdf_meta(rdfs_assert_instance(o,?)).
 :- rdf_meta(rdfs_assert_isDefinedBy(o,?,?)).
 :- rdf_meta(rdfs_assert_label(o,+,?)).
@@ -111,35 +107,25 @@ rdfs_assert_comment(Term, Value, Graph):-
   rdf_assert_langstring(Term, rdfs:comment, Value, Graph).
 % With a language tag the comment is asserted as RDF langString.
 rdfs_assert_comment(Term, Comment, Graph):-
-  rdf_assert_literal(Term, rdfs:comment, Comment, xsd:string, Graph).
+  rdf_assert_simple_literal(Term, rdfs:comment, Comment, Graph).
 
 
 
-%! rdfs_assert_domain(+Term:rdf_term, +Class:iri, ?Graph:atom) is det.
+%! rdfs_assert_domain(+Term:rdf_term, ?Class:iri, ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
 % NODE  rdfs:domain CLASS GRAPH .
 % ```
+%
+% Default class: `rdfsResource`.
 
 rdfs_assert_domain(Term, Class, Graph):-
+  (   var(Class)
+  ->  rdf_equal(Class, rdfs:'Resource')
+  ;   true
+  ),
   rdf_assert2(Term, rdfs:domain, Class, Graph).
-
-
-
-%! rdfs_assert_domain_range(+Term:rdf_term, +Class:iri, ?Graph:atom) is det.
-% RDFS properties whose domain and range are the same RDFS class.
-%
-% Asserts the following propositions:
-%
-% ```nquads
-% NODE  rdfs:domain CLASS GRAPH .
-% NODE  rdfs:range  CLASS GRAPH .
-% ```
-
-rdfs_assert_domain_range(Term, Class, Graph):-
-  rdfs_assert_domain(Term, Class, Graph),
-  rdfs_assert_range(Term, Class, Graph).
 
 
 
@@ -215,14 +201,20 @@ rdfs_assert_property_class(Term, Graph):-
 
 
 
-%! rdfs_assert_range(+Term:rdf_term, +Class:iri, ?Graph:atom) is det.
+%! rdfs_assert_range(+Term:rdf_term, ?Class:iri, ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
 % NODE  rdfs:range  CLASS GRAPH .
 % ```
+%
+% Default class: `rdfsResource`.
 
 rdfs_assert_range(Term, Class, Graph):-
+  (   var(Class)
+  ->  rdf_equal(Class, rdfs:'Resource')
+  ;   true
+  ),
   rdf_assert2(Term, rdfs:range, Class, Graph).
 
 

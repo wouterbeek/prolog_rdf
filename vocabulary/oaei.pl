@@ -99,7 +99,8 @@ Mismatch types:
     * Data semantic transformation
 
 @author Wouter Beek
-@version 2013/04-2013/05, 2013/08-2013/09, 2013/12-2014/01, 2014/03, 2014/07
+@version 2013/04-2013/05, 2013/08-2013/09, 2013/12-2014/01, 2014/03, 2014/07,
+         2014/11
 */
 
 :- use_module(library(aggregate)).
@@ -169,8 +170,8 @@ alignment(From, To, Graph):-
 alignment(From, To, Relation, Measure, Graph):-
   rdf(BNode, align:entity1, From, Graph),
   rdf(BNode, align:entity2, To, Graph),
-  rdf_literal(BNode, align:relation, Relation, xsd:string, _, Graph),
-  rdf_literal(BNode, align:measure, Measure, xsd:float, _, Graph).
+  rdf_simple_literal(BNode, align:relation, Relation, Graph),
+  rdf_typed_literal(BNode, align:measure, Measure, xsd:float, Graph).
 
 
 %! alignments_to_oaei_file(+Alignments:list(pair), +File:atom) is det.
@@ -213,7 +214,7 @@ assert_alignment(From, To, Relation, Measure, Graph):-
   rdf_bnode(BNode),
   rdf_assert(BNode, align:entity1, From, Graph),
   rdf_assert(BNode, align:entity2, To, Graph),
-  rdf_assert_typed_literal(BNode, align:relation, Relation, xsd:string, Graph),
+  rdf_assert_simple_literal(BNode, align:relation, Relation, Graph),
   rdf_assert_typed_literal(BNode, align:measure, Measure, xsd:float, Graph).
 
 
@@ -342,7 +343,7 @@ oaei_ontologies(Graph, File1, File2):-
 % Returns an ontology file used in the given alignment graph.
 
 oaei_ontology(Graph, File):-
-  rdf_typed_literal(Ontology, align:location, Uri, xsd:string, Graph),
+  rdf_typed_literal(Ontology, align:location, Uri, xsd:anyURI, Graph),
   rdfs_individual_of(Ontology, align:'Ontology'),
   uri_components(Uri, uri_components(_,_,Path,_,_)),
   file_base_name(Path, Base),

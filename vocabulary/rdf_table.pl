@@ -42,7 +42,7 @@ A simple RDF vocabulary for representing tables.
 
 rdf_assert_table(Graph, Caption, ColumnHeaders, RowHeaders, Rows, Table):-
   % Assert caption.
-  rdf_assert_typed_literal(Table, rdf_table:caption, Caption, xsd:string, Graph),
+  rdf_assert_simple_literal(Table, rdf_table:caption, Caption, Graph),
   
   % Assert headers.
   rdf_assert_column_headers(Graph, Table, ColumnHeaders, ColumnList),
@@ -86,11 +86,11 @@ rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
   
   % Assert the column header.
   rdf_list_nth0(X, ColumnList, ColumnHeader, G),
-  rdf_assert_typed_literal(Cell, rdf_table:column, ColumnHeader, xsd:string, G),
+  rdf_assert_simple_literal(Cell, rdf_table:column, ColumnHeader, G),
   
   % Assert the row header.
   rdf_list_nth0(Y, RowList, RowHeader, G),
-  rdf_assert_typed_literal(Cell, rdf_table:row, RowHeader, xsd:string, G),
+  rdf_assert_simple_literal(Cell, rdf_table:row, RowHeader, G),
   
   % Assert the cell value.
   rdf_assert_typed_literal(Cell, rdf:value, Value, xsd:float, G),

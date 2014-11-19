@@ -75,11 +75,15 @@
                        % ?Graph:atom
     rdf_retractall_literal/5, % ?Term:rdf_term
                               % ?Predicate:iri
-                              % ?Value:atom
+                              % ?Value
                               % ?Datatype:iri
                               % ?Graph:atom
     rdf_retractall_resource/2, % +Resource:rdf_term
                                % ?Graph:atom
+    rdf_retractall_simple_literal/4, % ?Term:rdf_term
+                                     % ?Predicate:iri
+                                     % ?Value
+                                     % ?Graph:atom
     rdf_retractall_term/2 % +Term:rdf_term
                           % ?Graph:atom
   ]
@@ -122,6 +126,7 @@ Triples with literals are treated in dedicated modules.
 :- rdf_meta(rdf_retractall2(o,r,o,?)).
 :- rdf_meta(rdf_retractall_literal(o,r,?,r,?)).
 :- rdf_meta(rdf_retractall_resource(o,?)).
+:- rdf_meta(rdf_retractall_simple_literal(o,r,?,?)).
 :- rdf_meta(rdf_retractall_term(o,?)).
 
 
@@ -171,7 +176,7 @@ rdf_assert_langstring(Term, P, LexicalForm, Graph, Triple):-
 %! rdf_assert_literal(
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
-%!   +Value:atom,
+%!   +Value,
 %!   ?Datatype:iri,
 %!   ?Graph:atom
 %! ) is det.
@@ -182,7 +187,7 @@ rdf_assert_literal(Node, P, Value, Datatype, Graph):-
 %! rdf_assert_literal(
 %!   +Term:rdf_term,
 %!   +Predicate:iri,
-%!   +Value:atom,
+%!   +Value,
 %!   ?Datatype:iri,
 %!   ?Graph:atom,
 %!   -Triple:compound
@@ -452,6 +457,18 @@ rdf_retractall_resource(Term, Graph):-
     rdf_id(Term, Term0),
     rdf_retractall_term(Term0, Graph)
   ).
+
+
+
+%! rdf_retractall_simple_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Value,
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_retractall_simple_literal(Term, Predicate, Value, Graph):-
+  rdf_retractall_literal(Term, Predicate, Value, xsd:string, Graph).
 
 
 

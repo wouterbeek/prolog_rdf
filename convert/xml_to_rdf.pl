@@ -124,7 +124,7 @@ xml_parse(Version, Prefix, S, G) -->
   {
     atom_codes(O, Codes),
     rdf_global_id(Prefix:PTag, P),
-    rdf_assert_typed_literal(S, P, O, xsd:string, G)
+    rdf_assert_simple_literal(S, P, O, G)
   }.
 % Skip short tags.
 xml_parse(Version, _, _, _) -->
@@ -220,7 +220,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
 
 % Simple literal.
 create_triple(S, P, literal, Content, G):- !,
-  rdf_assert_typed_literal(S, P, Content, xsd:string, G).
+  rdf_assert_simple_literal(S, P, Content, G).
 % Typed literal.
 create_triple(S, P, D1, Content, G):-
   xsd_datatype(D1, D2), !,

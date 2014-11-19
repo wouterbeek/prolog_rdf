@@ -13,7 +13,7 @@
 Automatic conversion from CSV to RDF.
 
 @author Wouter Beek
-@version 2014/02, 2014/05, 2014/08
+@version 2014/02, 2014/05, 2014/08, 2014/11
 */
 
 :- use_module(library(apply)).
@@ -31,6 +31,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(plHttp(download_to_file)).
 
 :- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(api/rdfs_build)).
 
 
 
@@ -89,14 +90,8 @@ csv_header_to_rdf(Graph, NamespacePrefix, Header, Properties):-
 csv_header_entry_to_rdf(Graph, NamespacePrefix, HeaderEntry, Property):-
   dcg_phrase(rdf_property_name, HeaderEntry, PropertyName),
   rdf_global_id(NamespacePrefix:PropertyName, Property),
-
-  % @tbd Use rdfs_assert_domain/3.
-  %      rdfs_assert_domain(Property, rdfs:'Resource', Graph),
-  rdf_assert(Property, rdfs:domain, rdfs:'Resource', Graph),
-
-  % @tbd Use rdfs_assert_range/3.
-  %      rdfs_assert_range(Property, xsd:string, Graph).
-  rdf_assert(Property, rdfs:range, xsd:string, Graph).
+  rdfs_assert_domain(Property, rdfs:'Resource', Graph),
+  rdfs_assert_range(Property, xsd:string, Graph).
 
 rdf_property_name, [95] -->
   white, !,
@@ -125,5 +120,5 @@ csv_row_to_rdf(Graph, Class, Properties, Row):-
 
 csv_cell_to_rdf(_, _, _, ''):- !.
 csv_cell_to_rdf(Graph, Resource, Property, String):-
-  rdf_assert_typed_literal(Resource, Property, String, xsd:string, Graph).
+  rdf_assert_simple_literal(Resource, Property, String, Graph).
 
