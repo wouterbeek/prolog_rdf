@@ -40,9 +40,6 @@ Predicates for reading from OWL data.
 
 :- use_module(plRdf(term/rdf_term)).
 
-:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
-:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-
 :- rdf_meta(owl_class_equivalence(r,r)).
 :- rdf_meta(owl_disjointWith(+,r,r)).
 :- rdf_meta(owl_resource_identity(r,r)).

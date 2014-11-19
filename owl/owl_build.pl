@@ -35,8 +35,6 @@ Predicates for building OWL ontologies.
 :- rdf_meta(owl_retractall_class_equivalence(r,r,+)).
 :- rdf_meta(owl_retractall_resource_identity(r,r,+)).
 
-:- rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#').
-
 
 
 %! owl_assert_class_equivalence(+Class1:iri, +Class2:iri, +Graph:atom) is det.

@@ -31,8 +31,6 @@ Specification of entailment rules for RDF.
 
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 
-%%%%:- rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
-
 %! rdf:axiom(?Regime:atom, ?Axiom:compound) is nondet.
 
 :- discontiguous(rdf:axiom/2).
