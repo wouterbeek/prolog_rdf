@@ -103,7 +103,6 @@ Triples with literals are treated in dedicated modules.
 
 :- use_module(generics(meta_ext)).
 
-:- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
@@ -111,8 +110,8 @@ Triples with literals are treated in dedicated modules.
 :- rdf_meta(rdf_assert_instance(o,r,?)).
 :- rdf_meta(rdf_assert_langstring(o,r,+,+)).
 :- rdf_meta(rdf_assert_langstring(o,r,+,+,-)).
-:- rdf_meta(rdf_assert_literal(o,r,+,?,?)).
-:- rdf_meta(rdf_assert_literal(o,r,+,?,?,-)).
+:- rdf_meta(rdf_assert_literal(o,r,+,r,?)).
+:- rdf_meta(rdf_assert_literal(o,r,+,r,?,-)).
 :- rdf_meta(rdf_assert_plain_literal(o,r,+,?)).
 :- rdf_meta(rdf_assert_plain_literal(o,r,+,?,-)).
 :- rdf_meta(rdf_assert_property(o,?)).

@@ -63,7 +63,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 
 %! rdf_directed_edge(
 %!   +Graph:atom,
-%!   +DirectedEdge:pair(rdf_term),
+%!   ?DirectedEdge:pair(rdf_term),
 %!   +Options:list(nvpair)
 %! ) is nondet.
 
