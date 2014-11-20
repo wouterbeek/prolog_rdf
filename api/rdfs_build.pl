@@ -237,11 +237,13 @@ rdfs_assert_seeAlso(Term, Uri, Graph):-
 % ```nquads
 % NODE  rdfs:subClassOf SUPERCLASS  GRAPH .
 % ```
+%
+% If SuperClass is uninstantiated it defaults to `rdfs:Resource`.
 
 rdfs_assert_subclass(Term, Superclass, Graph):-
   % Allow the superclass to be uninstantiated.
   (   var(Superclass)
-  ->  rdf_equal(Superclass, rdfs:'Class')
+  ->  rdf_equal(Superclass, rdfs:'Resource')
   ;   true
   ),
   rdf_assert2(Term, rdfs:subClassOf, Superclass, Graph).
