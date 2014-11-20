@@ -23,6 +23,7 @@ Print reified RDF statements.
 :- use_module(plDcg(dcg_content)).
 
 :- use_module(plRdf(rdf_name)).
+:- use_module(plRdf(api/rdfs_read)).
 :- use_module(plRdf(reification/rdf_reification_read)).
 
 
@@ -47,9 +48,9 @@ dcg_stmt(_, natlang, Statement) --> !,
 
     % Extract natural language labels for the terms that compose
     % the statement.
-    rdfs_label(S, SName),
-    rdfs_label(P, PName),
-    rdfs_label(O, OName)
+    rdfs_label(S, SName, _, _),
+    rdfs_label(P, PName, _, _),
+    rdfs_label(O, OName, _, _)
   },
   collection(``, ``, =, ` `, atom, [SName,PName,OName]).
 % Print the triple representation of the given statement.

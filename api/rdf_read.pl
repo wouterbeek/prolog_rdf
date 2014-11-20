@@ -125,8 +125,8 @@ rdf_langstring(Term, Predicate, Value, _, Graph):-
 %!   ?Graph:graph
 %! ) is nondet.
 
-rdf_literal(Literal, P, Value, rdf:langString, LangTags, Graph):-
-  rdf_literal(Literal, P, Value, rdf:langString, LangTags, Graph, _).
+rdf_literal(Literal, P, Value, Datatype, LangTags, Graph):-
+  rdf_literal(Literal, P, Value, Datatype, LangTags, Graph, _).
 
 %! rdf_literal(
 %!   ?Term:rdf_term,
@@ -138,10 +138,10 @@ rdf_literal(Literal, P, Value, rdf:langString, LangTags, Graph):-
 %! ) is nondet.
 
 % Literals that are mapped onto a blank node.
-rdf_literal(Literal, P, Value, rdf:langString, LangTags, Graph, Triple):-
+rdf_literal(Literal, P, Value, Datatype, LangTags, Graph, Triple):-
   rdf_is_literal(Literal),
   term_get_bnode(Graph, Literal, BNode), !,
-  rdf_literal(BNode, P, Value, rdf:langString, LangTags, Graph, Triple).
+  rdf_literal(BNode, P, Value, Datatype, LangTags, Graph, Triple).
 % Language-tagged strings.
 % No datatype is formally defined for `rdf:langString` because
 %  the definition of datatypes does not accommodate language tags
@@ -159,14 +159,14 @@ rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph, rdf(Node,P,O)):-
   Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
 rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
-  (   O = literal(Value),
-      rdf(Node, P, O, Graph),
-      rdf_equal(Datatype, xsd:string),
-      Value \= type(_,_)
-  ;   O = literal(type(Datatype,LexicalForm)),
+  (   O = literal(type(Datatype,LexicalForm)),
       rdf(Node, P, O, Graph),
       % Possibly computationally intensive.
       rdf_lexical_map(Datatype, LexicalForm, Value)
+  ;   O = literal(Value),
+      rdf(Node, P, O, Graph),
+      rdf_equal(Datatype, xsd:string),
+      Value \= type(_,_)
   ).
 
 

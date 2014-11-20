@@ -103,6 +103,10 @@ Triples with literals are treated in dedicated modules.
 
 :- use_module(generics(meta_ext)).
 
+:- use_module(plDcg(dcg_generics)).
+
+:- use_module(plLangTag(language_tag)).
+
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
@@ -156,8 +160,8 @@ rdf_assert_instance(Term, Class, Graph):-
 %!   ?Graph:atom
 %! ) is det.
 
-rdf_assert_langstring(Term, P, LexicalForm, Graph):-
-  rdf_assert_langstring(Term, P, LexicalForm, Graph, _).
+rdf_assert_langstring(Term, P, Value, Graph):-
+  rdf_assert_langstring(Term, P, Value, Graph, _).
 
 %! rdf_assert_langstring(
 %!   +Term:rdf_term,
@@ -167,8 +171,8 @@ rdf_assert_langstring(Term, P, LexicalForm, Graph):-
 %!   -Triple:compound
 %! ) is det.
 
-rdf_assert_langstring(Term, P, LexicalForm, Graph, Triple):-
-  rdf_assert_literal(Term, P, LexicalForm, rdf:langString, Graph, Triple).
+rdf_assert_langstring(Term, P, Value, Graph, Triple):-
+  rdf_assert_literal(Term, P, Value, rdf:langString, Graph, Triple).
 
 
 
@@ -201,7 +205,9 @@ rdf_assert_literal(Node, P, Value, Datatype, Graph):-
 % Language-tagged strings.
 rdf_assert_literal(Node, P, LangTag-LexicalForm, rdf:langString, G, Triple):-
   nonvar(LangTag), !,
-  O = literal(lang(LangTag,LexicalForm)),
+gtrace,
+  dcg_phrase('Language-Tag'(LangTag), LangTagString),
+  O = literal(lang(LangTagString,LexicalForm)),
   rdf_assert2(Node, P, O, G),
   Triple = rdf(Node,P,O).
 % Simple literals.

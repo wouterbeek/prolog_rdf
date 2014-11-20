@@ -31,4 +31,4 @@
 % Reads RDFS labels attributed to resources.
 
 rdfs_label(Term, Value, LangTags, Graph):-
-  rdf_literal(Term, rdfs:label, Value, _, LangTags, Graph).
+  rdf_plain_literal(Term, rdfs:label, Value, LangTags, Graph).
