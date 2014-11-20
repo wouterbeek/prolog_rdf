@@ -68,7 +68,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 %! ) is nondet.
 
 rdf_directed_edge(Graph, FromV-ToV, Options):-
-  rdf(FromV, ToV, Graph),
+  rdf(FromV, _, ToV, Graph),
   rdf_vertex_filter(FromV, Options),
   rdf_vertex_filter(ToV, Options).
 
@@ -165,7 +165,7 @@ rdf_vertex_filter(V, Options):-
   ->  option(literal_filter(true), Options, true)
   ;   true
   ),
-  
+
   % RDF list filtering.
   (   option(rdf_list_filter(true), Options, true)
   ->  true

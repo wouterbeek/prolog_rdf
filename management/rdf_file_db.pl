@@ -41,6 +41,7 @@ Basic facts about RDF serialization formats.
 
 :- use_module(library(lists), except([delete/3])).
 
+:- use_module(generics(db_ext)).
 :- use_module(os(media_type)).
 
 :- use_module(plDcg(dcg_abnf)).
@@ -53,6 +54,11 @@ Basic facts about RDF serialization formats.
 
 error:has_type(rdf_format, Term):-
   error:has_type(oneof([nquads,ntriples,rdfa,trig,turtle,xml]), Term).
+
+:- dynamic(user:prolog_file_type/2).
+:- multifile(user:prolog_file_type/2).
+
+:- initialization(register_rdf_file_types).
 
 
 
@@ -235,3 +241,20 @@ rdf_serialization(
   'http://www.w3.org/ns/formats/N3'
 ).
 
+
+
+
+
+% INITIALIZATION
+
+%! register_rdf_file_types is det.
+% Registes the RDF file extensions as Prolog file types.
+
+register_rdf_file_types:-
+  forall(
+    rdf_file_extension_format(Ext, Format),
+    (
+      db_add_novel(user:prolog_file_type(Ext, Format)),
+      db_add_novel(user:prolog_file_type(Ext, rdf))
+    )
+  ).

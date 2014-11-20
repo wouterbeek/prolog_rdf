@@ -9,6 +9,8 @@
                    % +Value1
                    % +Value2
     rdf_datatype/1, % ?Datatype:iri
+    rdf_datatype/2, % ?Datatype:iri
+                    % ?PrologType
     rdf_equiv/3, % +Datatype:iri
                  % +Value1
                  % +Value2
@@ -35,6 +37,7 @@
 :- rdf_meta(rdf_canonical_map(r,+,?)).
 :- rdf_meta(rdf_compare(r,?,+,+)).
 :- rdf_meta(rdf_datatype(r)).
+:- rdf_meta(rdf_datatype(r,?)).
 :- rdf_meta(rdf_equiv(r,+,+)).
 :- rdf_meta(rdf_lexical_map(r,+,?)).
 
@@ -86,11 +89,19 @@ rdf_compare(Datatype, Order, Value1, Value2):-
 %! rdf_datatype(+Datatype:iri) is semidet.
 %! rdf_datatype(-Datatype:iri) is multi.
 
-rdf_datatype(rdf:'HTML').
-rdf_datatype(rdf:'XMLLiteral').
-rdf_datatype(rdf:langString).
 rdf_datatype(Datatype):-
-  xsd_datatype(Datatype).
+  rdf_datatype(Datatype, _).
+
+%! rdf_datatype(+Datatype:iri, +PrologType) is semidet.
+%! rdf_datatype(+Datatype:iri, -PrologType) is det.
+%! rdf_datatype(-Datatype:iri, +PrologType) is nondet.
+%! rdf_datatype(-Datatype:iri, -PrologType) is nondet.
+
+rdf_datatype(rdf:'HTML',       compound).
+rdf_datatype(rdf:'XMLLiteral', compound).
+rdf_datatype(rdf:langString,   pair).
+rdf_datatype(Datatype,         Type):-
+  xsd_datatype(Datatype, Type).
 
 
 

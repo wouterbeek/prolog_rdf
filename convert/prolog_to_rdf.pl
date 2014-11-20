@@ -13,7 +13,7 @@
 Automated conversion from Prolog terms to RDF triples.
 
 @author Wouter Beek
-@version 2014/01
+@version 2014/01, 2014/11
 */
 
 :- use_module(library(apply)).
@@ -62,29 +62,22 @@ prolog_to_rdf(
   Value
 ):-
   rdf_global_id(Module:PredicateName, Predicate),
-  (
-    Type =.. [list,InnerType]
-  ->
-    is_list(Value),
-    maplist(
-      prolog_to_rdf(
-        Graph,
-        Module,
-        Individual1,
-        PredicateName-InnerType-Optional
-      ),
-      Value
-    )
-  ;
-    Type = _/_
-  ->
-    prolog_to_rdf(Graph, Module, Value, Individual2),
-    rdf_assert(Individual1, Predicate, Individual2, Graph)
-  ;
-    xsd_datatype(Type, Datatype)
-  ->
-    rdf_assert_typed_literal(Individual1, Predicate, Value, Datatype, Graph)
-  ;
-    Optional = true
+  (   Type =.. [list,InnerType]
+  ->  is_list(Value),
+      maplist(
+        prolog_to_rdf(
+          Graph,
+          Module,
+          Individual1,
+          PredicateName-InnerType-Optional
+        ),
+        Value
+      )
+  ;   Type = _/_
+  ->  prolog_to_rdf(Graph, Module, Value, Individual2),
+      rdf_assert(Individual1, Predicate, Individual2, Graph)
+  ;   rdf_datatype(Type, Datatype)
+  ->  rdf_assert_typed_literal(Individual1, Predicate, Value, Datatype, Graph)
+  ;   Optional = true
   ).
 

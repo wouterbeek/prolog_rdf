@@ -36,6 +36,7 @@ This requires a Prolog module whose name is also registered as
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).
+:- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_list)).
 
 
@@ -247,7 +248,7 @@ json_pair_to_rdf(Graph, _, RdfPrefix, Individual, Name, DatatypeName, Value1):-
   rdf_global_id(RdfPrefix:Name, Predicate),
   % Convert the JSON value to an RDF object term.
   % This is where we validate that the value is of the required type.
-  xsd_datatype(DatatypeName, Datatype),
+  rdf_datatype(DatatypeName, Datatype),
   pl_to_xsd_value(Datatype, Value1, Value2),
   rdf_assert_literal(Individual, Predicate, Value2, Datatype, Graph).
 

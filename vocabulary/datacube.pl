@@ -40,12 +40,12 @@ Predicates for perfoming measurements represented in RDF.
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
+:- use_module(plXsd(xsd)).
+
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(management/rdf_prefixes)). % RDF prefix declarations.
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_datetime)).
-
-:- use_module(plXsd(xsd)).
 
 :- meta_predicate(assert_observation(+,+,1,+,-)).
 :- meta_predicate(assert_multimeasure_observation(+,+,1,+,-)).
@@ -205,7 +205,7 @@ assert_multimeasure_observation(
 assert_observation(Dataset, Property, Goal, Graph, Observation):-
   % Extract the datatype.
   rdf(Property, rdfs:range, Datatype),
-  xsd_datatype(Datatype),
+  rdf_datatype(Datatype),
 
   % Create the observation.
   rdf_create_next_resource(

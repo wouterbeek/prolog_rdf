@@ -38,6 +38,7 @@ Generates names for RDF terms and triples.
 
 :- use_module(plRdf(api/rdfs_read)).
 :- use_module(plRdf(management/rdf_prefix)).
+:- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_list)).
 
 :- rdf_meta(rdf_term_name(+,r,?,?)).
@@ -291,8 +292,8 @@ rdf_triple_name(rdf(S,P,O), Graph) -->
 rdf_typed_literal_name(literal(type(Datatype,LexicalForm))) -->
   {(  % The datatype is recognized, so we can display
       % the lexically mapped value.
-      xsd_datatype(Datatype)
-  ->  xsd_lexical_map(Datatype, LexicalForm, Value0),
+      rdf_datatype(Datatype)
+  ->  rdf_lexical_map(Datatype, LexicalForm, Value0),
       with_output_to(atom(Value), write_canonical_blobs(Value0))
   ;   Value = LexicalForm
   )},
