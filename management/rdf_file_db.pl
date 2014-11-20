@@ -8,8 +8,6 @@
     rdf_media_type/1, % ?MediaType:compound
     rdf_media_type_format/2, % ?MediaType:compound
                              % ?Format:rdf_format
-    rdf_media_type_string/2, % ?MediaType:compound
-                             % ?String:string
     rdf_serialization/4 % ?DefaultFileExtension:atom
                         % ?Format:rdf_format
                         % ?MediaTypes:list(pair(between(0.0,1.0),compound))
@@ -42,7 +40,6 @@ Basic facts about RDF serialization formats.
 :- use_module(library(lists), except([delete/3])).
 
 :- use_module(generics(db_ext)).
-:- use_module(os(media_type)).
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_atom)). % Meta-option.
@@ -124,15 +121,6 @@ rdf_media_type(MediaType):-
 rdf_media_type_format(MediaType, Format):-
   rdf_serialization(_, Format, MediaTypes, _),
   member(_-MediaType, MediaTypes).
-
-
-
-%! rdf_media_type_string(+MediaType:compound, -String:string) is det.
-%! rdf_media_type_string(-MediaType:compound, +String:string) is det.
-
-rdf_media_type_string(MediaType, String):-
-  media_type_string(MediaType, String),
-  rdf_media_type(MediaType).
 
 
 
