@@ -49,7 +49,7 @@ A second mistake one may make is to assume that rdf_is_resource/1 will
 But this is not the case either, since typed literals are mapped onto
  resources as well.
 
---
+---
 
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)

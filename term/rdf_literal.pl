@@ -62,7 +62,7 @@ The **plain literals** used to be defined as the union of the Unicode strings
 The **typed literals** used to be defined as the cartesian product of
  the Unicode strings in Normal Form C with the set of datatype URIs.
 
---
+---
 
 @author Wouter Beek
 @version 2014/11

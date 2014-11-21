@@ -32,3 +32,4 @@
 
 rdfs_label(Term, Value, LangTags, Graph):-
   rdf_plain_literal(Term, rdfs:label, Value, LangTags, Graph).
+

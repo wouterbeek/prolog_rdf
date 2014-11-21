@@ -163,9 +163,9 @@ rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
       rdf(Node, P, O, Graph),
       % Possibly computationally intensive.
       rdf_lexical_map(Datatype, LexicalForm, Value)
-  ;   O = literal(Value),
+  ;   rdf_equal(Datatype, xsd:string),
+      O = literal(Value),
       rdf(Node, P, O, Graph),
-      rdf_equal(Datatype, xsd:string),
       Value \= type(_,_)
   ).
 

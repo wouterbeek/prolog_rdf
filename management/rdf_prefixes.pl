@@ -28,7 +28,7 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 [3]   http://www.w3.org/1999/02/22-rdf-syntax-ns#type
 ```
 
---
+---
 
 @author Wouter Beek
 @tbd Add prefixes that occur in http://dbpedia.org/sparql?nsdecl

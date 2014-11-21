@@ -47,7 +47,7 @@ pred(Converted2, AlsoConverted2, NotConvertedLabel):-
   writeln(NotConvertedLabel).
 ```
 
---
+---
 
 @author Sander Latour wrote this module in 2011.
 @author Wouter Beek made lots of use of this module and updated it
