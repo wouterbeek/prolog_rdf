@@ -205,8 +205,8 @@ rdf_assert_literal(Node, P, Value, Datatype, Graph):-
 % Language-tagged strings.
 rdf_assert_literal(Node, P, LangTag-LexicalForm, rdf:langString, G, Triple):-
   nonvar(LangTag), !,
-gtrace,
-  dcg_phrase('Language-Tag'(LangTag), LangTagString),
+  % @ tbd Use 'Language-Tag'//1.
+  atomic_list_concat(LangTag, '-', LangTagString),
   O = literal(lang(LangTagString,LexicalForm)),
   rdf_assert2(Node, P, O, G),
   Triple = rdf(Node,P,O).
