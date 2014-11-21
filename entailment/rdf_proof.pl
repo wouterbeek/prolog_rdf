@@ -1,10 +1,10 @@
 :- module(
   rdf_proof,
   [
-    rdf_proof/5 % ?Subject:or([bnode,iri])
-                % ?Predicate:iri
-                % ?Object:rdf_term
-                % +Graph:atom
+    rdf_proof/5 % +Subject:or([bnode,iri])
+                % +Predicate:iri
+                % +Object:rdf_term
+                % ?Graph:atom
                 % -ProofTree:pair
   ]
 ).
