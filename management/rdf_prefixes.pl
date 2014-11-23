@@ -452,6 +452,9 @@ dbpedia_language_tag(zh_yue).
 % VCARD
 :- rdf_register_prefix(vcard, 'http://www.w3.org/2006/vcard/ns#').
 
+% VoID
+:- rdf_register_prefix(void, 'http://rdfs.org/ns/void#').
+
 % VS
 :- rdf_register_prefix(vs, 'http://www.w3.org/2003/06/sw-vocab-status/ns#').
 
