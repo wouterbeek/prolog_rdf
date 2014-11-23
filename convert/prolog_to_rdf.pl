@@ -58,25 +58,25 @@ prolog_to_rdf(
   Graph,
   Module,
   Individual1,
-  PredicateName-Type-Optional,
+  PredicateName-PrologType-Optional,
   Value
 ):-
   rdf_global_id(Module:PredicateName, Predicate),
-  (   Type =.. [list,InnerType]
+  (   PrologType =.. [list,InnerPrologType]
   ->  is_list(Value),
       maplist(
         prolog_to_rdf(
           Graph,
           Module,
           Individual1,
-          PredicateName-InnerType-Optional
+          PredicateName-InnerPrologType-Optional
         ),
         Value
       )
-  ;   Type = _/_
+  ;   PrologType = _/_
   ->  prolog_to_rdf(Graph, Module, Value, Individual2),
       rdf_assert(Individual1, Predicate, Individual2, Graph)
-  ;   rdf_datatype(Type, Datatype)
+  ;   rdf_datatype(Datatype, PrologType)
   ->  rdf_assert_typed_literal(Individual1, Predicate, Value, Datatype, Graph)
   ;   Optional = true
   ).

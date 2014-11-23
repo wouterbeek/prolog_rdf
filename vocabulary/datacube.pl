@@ -34,7 +34,7 @@
 Predicates for perfoming measurements represented in RDF.
 
 @author Wouter Beek
-@version 2014/09-2014/10
+@version 2014/09-2014/11
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -205,7 +205,7 @@ assert_multimeasure_observation(
 assert_observation(Dataset, Property, Goal, Graph, Observation):-
   % Extract the datatype.
   rdf(Property, rdfs:range, Datatype),
-  rdf_datatype(Datatype),
+  rdf_datatype_term(Datatype),
 
   % Create the observation.
   rdf_create_next_resource(

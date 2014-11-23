@@ -28,7 +28,7 @@ Predicates for building higher-level RDFS constructs.
 @versdion 2014/06, 2014/08-2014/11
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).

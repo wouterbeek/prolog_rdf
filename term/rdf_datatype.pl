@@ -11,6 +11,9 @@
     rdf_datatype/1, % ?Datatype:iri
     rdf_datatype/2, % ?Datatype:iri
                     % ?PrologType
+    rdf_datatype_term/1, % ?Datatype:iri
+    rdf_datatype_term/2, % ?Datatype:iri
+                         % ?Graph:atom
     rdf_equiv/3, % +Datatype:iri
                  % +Value1
                  % +Value2
@@ -29,17 +32,24 @@
 
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 
 :- use_module(plXsd(xsd)).
 
+:- use_module(plRdf(term/rdf_term)).
+
 :- rdf_meta(rdf_canonical_map(r,+,?)).
 :- rdf_meta(rdf_compare(r,?,+,+)).
 :- rdf_meta(rdf_datatype(r)).
 :- rdf_meta(rdf_datatype(r,?)).
+:- rdf_meta(rdf_datatype_term(r)).
+:- rdf_meta(rdf_datatype_term(r,?)).
 :- rdf_meta(rdf_equiv(r,+,+)).
 :- rdf_meta(rdf_lexical_map(r,+,?)).
+
+
 
 
 
@@ -102,6 +112,25 @@ rdf_datatype(rdf:'XMLLiteral', compound).
 rdf_datatype(rdf:langString,   pair).
 rdf_datatype(Datatype,         Type):-
   xsd_datatype(Datatype, Type).
+
+
+
+%! rdf_datatype_term(+Datatype:iri) is semidet.
+%! rdf_datatype_term(-Datatype:iri) is nondet.
+
+rdf_datatype_term(Datatype):-
+  rdf_datatype_term(Datatype, _).
+
+%! rdf_datatype_term(+Datatype:iri, +Graph:atom) is semidet.
+%! rdf_datatype_term(+Datatype:iri, -Graph:atom) is nondet.
+%! rdf_datatype_term(-Datatype:iri, +Graph:atom) is nondet.
+%! rdf_datatype_term(-Datatype:iri, -Graph:atom) is nondet.
+
+rdf_datatype_term(Datatype, Graph):-
+  rdf(_, _, literal(type(Datatype,_)), Graph).
+rdf_datatype_term(Datatype, Graph):-
+  rdfs_individual_of(Datatype, rdfs:'Datatype'),
+  rdf_term(Datatype, Graph).
 
 
 

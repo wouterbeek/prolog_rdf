@@ -107,7 +107,7 @@ rdf_bnode2(BNode):-
 % Ensures that no pair occurs twice.
 
 rdf_bnode(BNode, Graph):-
-  rdf_bnode(BNode),
+  rdf_bnode2(BNode),
   % Relate blank node to graph.
   rdf_node(BNode, Graph).
 

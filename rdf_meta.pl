@@ -21,7 +21,7 @@ Meta-callings on an RDF graph.
 */
 
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(os(file_ext)).
 
