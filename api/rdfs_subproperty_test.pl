@@ -108,7 +108,7 @@ subproperty_closure(ClQ, Sol):-
     set(Q0),
     (
       member(Q, ClQ),
-      closure0(subproperty(ClQ), Q, Q0)
+      closure0(rdfs_forward(ClQ), Q, Q0)
     ),
     ClQ0
   ),
@@ -117,11 +117,9 @@ subproperty_closure(ClQ, Sol):-
   ;   subproperty_closure(ClQ0, Sol)
   ).
 
-subproperty(ClQ, X, Y):-
+rdfs_forward(ClQ, X, Y):-
   member(Q, ClQ),
-  (   rdf(X, Q, Y)
-  ;   rdf(Y, Q, X)
-  ).
+  rdf(X, Q, Y).
 
 
 
@@ -145,7 +143,7 @@ init_subproperty_test:-
       rdf_global_id(Prefix1:LocalName1, P1),
       rdf_global_id(Prefix2:LocalName2, P2),
       format(
-        '~a:~a\trdfs:subProperty\t~a:~a\n',
+        '~a:~a\trdfs:subPropertyOf\t~a:~a\n',
         [Prefix1,LocalName1,Prefix2,LocalName2]
       )
     )

@@ -16,8 +16,11 @@
                   % ?Value
                   % ?LangTagPreference:list(list(atom))
                   % ?Graph:atom
-    rdfs_sublass/2, % ?Subclass:iri
-                    % ?Superclass:iri
+    rdfs_reachable/3, % ?Subject:or([bnode,iri]),
+                      % ?Predicate:iri,
+                      % ?Object:rdf_term
+    rdfs_subclass/2, % ?Subclass:iri
+                     % ?Superclass:iri
     rdfs_subproperty/2 % ?Subproperty:iri
                        % ?Superproperty:iri
   ]
@@ -29,10 +32,13 @@
 @version 2014/11
 */
 
+:- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs)).
+
+:- use_module(generics(closure)).
 
 :- use_module(plRdf(api/rdf_read)).
+:- use_module(plRdf(api/rdfs_subproperty_test)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_property(r)).
@@ -41,8 +47,10 @@
 :- rdf_meta(rdfs_class(r,?)).
 :- rdf_meta(rdfs_datatype(r)).
 :- rdf_meta(rdfs_datatype(r,?)).
+:- rdf_meta(rdfs_has(r,r,o)).
 :- rdf_meta(rdfs_instance(o,r)).
 :- rdf_meta(rdfs_label(o,?,?,?)).
+:- rdf_meta(rdfs_reachable(r,r,o)).
 :- rdf_meta(rdfs_subclass(r,r)).
 :- rdf_meta(rdfs_subproperty(r,r)).
 % Private.
@@ -58,13 +66,13 @@
 %! rdf_property(+Property:iri) is semidet.
 %! rdf_property(-Property:iri) is multi.
 
-rdf_property(Class):-
-  rdfs_instance_of(Class, rdfs:'Class').
+rdf_property(Property):-
+  rdfs_instance(Property, rdfs:'Property').
 
 %! rdf_property(?Property:iri, ?Graph:atom) is nondet
 
 rdf_property(Property, Graph):-
-  rdfs_instance_of(Property, rdf:'Property'),
+  rdf_property(Property),
   once(rdf_term(Property, Graph)).
 
 
@@ -73,7 +81,7 @@ rdf_property(Property, Graph):-
 %! rdfs_class(-Class:iri) is multi.
 
 rdfs_class(Class):-
-  rdfs_instance_of(Class, rdfs:'Class').
+  rdfs_instance(Class, rdfs:'Class').
 
 %! rdfs_class(?Class:iri, ?Graph:atom) is nondet
 
@@ -87,13 +95,25 @@ rdfs_class(Class, Graph):-
 %! rdfs_datatype(-Datatype:iri) is multi.
 
 rdfs_datatype(Datatype):-
-  rdfs_instance_of(Datatype, rdfs:'Datatype').
+  rdfs_instance(Datatype, rdfs:'Datatype').
 
 %! rdfs_datatype(?Datatype:iri, ?Graph:atom) is nondet
 
 rdfs_datatype(Datatype, Graph):-
   rdfs_datatype(Datatype),
   once(rdf_term(Datatype, Graph)).
+
+
+
+%! rdfs_has(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term
+%! ) is nondet.
+
+rdfs_has(S, P, O):-
+  rdfs_subproperty(P0, P),
+  rdf(S, P0, O).
 
 
 
@@ -154,18 +174,15 @@ rdfs_instance(Property, rdf:'Property'):-
   rdf_has(Property, rdfs:subPropertyOf, _).
 rdfs_instance(Property, rdf:'Property'):-
   rdf_has(_, rdfs:subPropertyOf, Property).
-rdfs_instance(Property, rdf:'Property'):-
-  rdf:type rdfs:ContainerMembershipProperty
 % [3e] Property: occurrence in the data.
 rdfs_instance(Property, rdf:'Property'):-
-  rdf_current_property(Property),
+  rdf_current_predicate(Property),
   \+ rdf_property_term(Property),
   \+ rdfs_property_term(Property).
 
 % [4] Resource: IRIs.
 rdfs_instance(Resource, rdfs:'Resource'):-
   rdf_resource(Resource).
-rdfs_instance(Resource, rdfs:'Resource'):-
 
 % [5a] Class: RDF vocabulary.
 rdfs_instance(Class, rdfs:'Class'):-
@@ -188,10 +205,15 @@ rdfs_instance(Class, rdfs:'Class'):-
 rdfs_instance(Class, rdfs:'Class'):-
   rdf_has(_, rdfs:subClassOf, Class).
 
-% [6] RDF list.
+% [6a] RDF list: RDF vocabulary.
 % "no special semantic conditions are imposed on this vocabulary
 %  other than the type of `rdf:nil` being `rdf:List`." [RDF 1.1 Semantics]
 rdfs_instance(rdf:nil, rdf:'List').
+% [6b] RDF list: RDFS vocabulary.
+rdfs_instance(List, rdf:'List'):-
+  rdf(List, rdf:first, _).
+rdfs_instance(List, rdf:'List'):-
+  rdf(List, rdf:rest, _).
 
 
 
@@ -205,6 +227,58 @@ rdfs_instance(rdf:nil, rdf:'List').
 
 rdfs_label(Term, Value, LangTags, Graph):-
   rdf_plain_literal(Term, rdfs:label, Value, LangTags, Graph).
+
+
+
+%! rdfs_reachable(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term
+%! ) is nondet.
+
+rdfs_reachable(S, P, O):-
+  closure0(rdfs_has0(P), S, O).
+
+
+
+%! rdfs_sublass(?Subclass:iri, ?Superclass:iri) is nondet.
+
+rdfs_subclass(Class, Class):-
+  rdfs_instance(Class, rdfs:'Class').
+rdfs_subclass(C1, C2):-
+  rdf_global_id(rdfs:subClassOf, P),
+  (   nonvar(C1)
+  ->  closure0(rdfs_has0(P), C1, C2)
+  ;   closure0(rdfs_has_backward0(P), C1, C2)
+  ).
+
+
+
+%! rdfs_subproperty(+Subproperty:iri, +Superproperty:iri) is semidet.
+%! rdfs_subproperty(+Subproperty:iri, -Superproperty:iri) is multi.
+%! rdfs_subproperty(-Subproperty:iri, +Superproperty:iri) is multi.
+
+% [1] Reflexive-transitive closure of the subproperty hierarchy.
+rdfs_subproperty(P1, P2):-
+  subproperty_closure(Qs),
+  (   nonvar(P1)
+  ->  closure0(rdfs_forward(Qs), P1, P2)
+  ;   closure0(rdfs_backward(Qs), P2, P1)
+  ).
+% [2] Container membership properties.
+% "If x is in ICEXT(I(rdfs:ContainerMembershipProperty)) then:
+%  < x, I(rdfs:member) > is in IEXT(I(rdfs:subPropertyOf))"
+% [RDF 1.1 Semantics]
+rdfs_subproperty(P, rdfs:member):-
+  rdfs_instance(P, rdfs:'ContainerMembershipProperty').
+
+rdfs_forward(Qs, X, Y):-
+  member(Q, Qs),
+  rdf(X, Q, Y).
+
+rdfs_backward(Qs, X, Y):-
+  member(Q, Qs),
+  rdf(Y, Q, X).
 
 
 
@@ -263,6 +337,17 @@ rdfs_class_term(rdfs:'ContainerMembershipProperty').
 rdfs_class_term(rdfs:'Datatype').
 rdfs_class_term(rdfs:'Literal').
 rdfs_class_term(rdfs:'Resource').
+
+
+
+rdfs_has_backward0(P, S, O):-
+  rdfs_subproperty(P0, P),
+  rdf(O, P0, S).
+
+
+
+rdfs_has0(P, S, O):-
+  rdfs_has(S, P, O).
 
 
 
