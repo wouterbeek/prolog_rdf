@@ -148,12 +148,15 @@ rdfs_instance(Property, rdf:'Property'):-
   rdfs_property_term(Property).
 % [3c] Property: RDFS vocabulary deduction.
 rdfs_instance(Property, rdf:'Property'):-
+  rdf(_, Property, _).
+% [3d] Property: RDFS vocabulary deduction.
+rdfs_instance(Property, rdf:'Property'):-
   rdf_has(Property, rdfs:subPropertyOf, _).
 rdfs_instance(Property, rdf:'Property'):-
   rdf_has(_, rdfs:subPropertyOf, Property).
 rdfs_instance(Property, rdf:'Property'):-
   rdf:type rdfs:ContainerMembershipProperty
-% [3c] Property: occurring in the data.
+% [3e] Property: occurrence in the data.
 rdfs_instance(Property, rdf:'Property'):-
   rdf_current_property(Property),
   \+ rdf_property_term(Property),
