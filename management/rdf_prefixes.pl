@@ -88,17 +88,23 @@ rdf_register_reduced_location_prefix(Prefix):-
 
 
 
+% Bibliographic Ontology
+:- rdf_register_prefix(bibo, 'http://purl.org/ontology/bibo/').
+
 % Citation Counting and Context Characterization Ontology (C4O)
-:- rdf_register_prefix(
-     c4o,
-     'http://www.essepuntato.it/lode/http://purl.org/spar/c4o'
-   ).
+:- rdf_register_prefix(c4o, 'http://www.essepuntato.it/lode/http://purl.org/spar/c4o').
 
 % Citation Oriented Bibliographic Vocabulary (BIBLIO)
 :- rdf_register_prefix(biblio, 'http://purl.org/net/biblio#').
 
+% Copyright Ontology
+:- rdf_register_prefix(co, 'http://rhizomik.net/ontologies/copyrightonto.owl#').
+
 % Creative Commons
 :- rdf_register_prefix(cc, 'http://creativecommons.org/ns#').
+
+% Data Quality Management (DQM)
+:- rdf_register_prefix(dqm, 'http://purl.org/dqm-vocabulary/v1/dqm#').
 
 % Datacube
 :- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
@@ -361,6 +367,9 @@ dbpedia_language_tag(zh_yue).
 % Dublin core: ?
 :- rdf_register_prefix(eor, 'http://dublincore.org/2000/03/13/eor#').
 
+% Frapo
+:- rdf_register_prefix(frapo, 'http://purl.org/cerif/frapo/').
+
 % Freebase
 :- rdf_register_prefix(fb, 'http://rdf.freebase.com/ns/').
 
@@ -380,11 +389,20 @@ dbpedia_language_tag(zh_yue).
 % Geo RSS
 :- rdf_register_prefix(georss, 'http://www.georss.org/georss/').
 
+% Interval
+:- rdf_register_prefix(interval, 'http://reference.data.gov.uk/def/intervals/').
+
+% Kaballah Tree of Life
+:- rdf_register_prefix(kaballah, 'http://data.totl.net/kabbalah/').
+
 % Music Ontology (MO)
 :- rdf_register_prefix(mo, 'http://purl.org/ontology/mo/').
 
 % MUTO
 :- rdf_register_prefix(muto, 'http://purl.org/muto/core#').
+
+% Pattern
+:- rdf_register_prefix(pattern, 'http://www.essepuntato.it/2008/12/pattern#').
 
 % OpenCyc
 :- rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/').
@@ -442,6 +460,12 @@ dbpedia_language_tag(zh_yue).
 % SKOS
 :- rdf_register_prefix(skos, 'http://www.w3.org/2004/02/skos/core#').
 :- rdf_register_reduced_location_prefix(skos).
+
+% TaxonConcept Ontology
+:- rdf_register_prefix(txn, 'http://lod.taxonconcept.org/ontology/txn.owl#').
+
+% Turismo
+:- rdf_register_prefix(turismo, 'http://idi.fundacionctic.org/cruzar/turismo#').
 
 % UMBEL
 % Already registered by ClioPatria.
