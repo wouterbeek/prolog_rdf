@@ -13,16 +13,16 @@
 ex:subPropertyOf2   ex:subPropertyOf1   ex:subPropertyOf1  .
 ex:subPropertyOf1 rdfs:subPropertyOf  rdfs:subPropertyOf   .
 ex:property2      rdfs:subPropertyOf    ex:property1       .
-ex:property1        ex:subProperty2     ex:property        .
+ex:property1        ex:subPropertyOf2   ex:property        .
 ```
 
 # Results in SWI-Prolog 7.1.26
 
 ```ntriples
-ex:property2      rdfs:subProperty    ex:property1       .
-ex:subPropertyOf2 rdfs:subProperty    ex:subPropertyOf1  .
-ex:subPropertyOf2 rdfs:subProperty  rdfs:subPropertyOf   .
-ex:subPropertyOf1 rdfs:subProperty  rdfs:subPropertyOf   .
+ex:property2      rdfs:subPropertyOf    ex:property1       .
+ex:subPropertyOf2 rdfs:subPropertyOf    ex:subPropertyOf1  .
+ex:subPropertyOf2 rdfs:subPropertyOf  rdfs:subPropertyOf   .
+ex:subPropertyOf1 rdfs:subPropertyOf  rdfs:subPropertyOf   .
 ```
 
 # Correct results
@@ -108,7 +108,7 @@ subproperty_closure(ClQ, Sol):-
     set(Q0),
     (
       member(Q, ClQ),
-      closure0(rdfs_forward(ClQ), Q, Q0)
+      closure0(rdfs_backward(ClQ), Q, Q0)
     ),
     ClQ0
   ),
@@ -117,9 +117,9 @@ subproperty_closure(ClQ, Sol):-
   ;   subproperty_closure(ClQ0, Sol)
   ).
 
-rdfs_forward(ClQ, X, Y):-
+rdfs_backward(ClQ, X, Y):-
   member(Q, ClQ),
-  rdf(X, Q, Y).
+  rdf(Y, Q, X).
 
 
 
