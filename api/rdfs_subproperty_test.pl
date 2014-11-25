@@ -80,7 +80,7 @@ cl_{i+1}(s)_{\leq_i} :=
 
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(generics(closure)).

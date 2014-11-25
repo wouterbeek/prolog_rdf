@@ -343,7 +343,7 @@ rdf_assert2(Node, P, O, Graph):-
 %!   +FromGraph:atom,
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,iri,literal]),
+%!   ?Object:rdf_term,
 %!   +ToGraph:atom
 %! ) is det.
 % Copies triples between graphs.

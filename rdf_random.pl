@@ -45,7 +45,7 @@
 %!   ?Index:integer,
 %!   ?Subject:oneof([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,iri,literal]),
+%!   ?Object:rdf_term,
 %!   ?Graph:graph
 %! ) is nondet.
 % Returns the rdf triple that has the given index in the arbitrary sequence

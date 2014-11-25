@@ -4,14 +4,14 @@
     rdf_assert_image/5, % +Options:list(nvpair)
                         % +Subject:or([bnode,iri])
                         % +Predicate:iri
-                        % +Object:or([bnode,iri,literal])
+                        % +Object:rdf_term
                         % +Graph:atom
     rdf_image/3, % +Options:list(nvpair)
                  % +URL:atom
                  % -File:atom
     rdf_image/5 % ?Subject:or([bnode,iri])
                 % ?Predicate:iri
-                % ?Object:or([bnode,iri,literal])
+                % ?Object:rdf_term
                 % ?ImageFile:atom
                 % ?Graph:atom
   ]

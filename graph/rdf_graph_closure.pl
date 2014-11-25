@@ -1,9 +1,9 @@
 :- module(
   rdf_graph_closure,
   [
-    rdf_graph_closure/4 % +Resources1:ordset(or([bnode,iri,literal]))
+    rdf_graph_closure/4 % +Resources1:ordset(rdf_term)
                         % :Predicate
-                        % -Resources2:ordset(or([bnode,iri,literal]))
+                        % -Resources2:ordset(rdf_term)
                         % -Propositions:ordset(list)
   ]
 ).

@@ -13,11 +13,11 @@
                      % +Graph:atom
                      % -Count:nonneg
     count_properties/4, % ?Subject:or([bnode,iri])
-                        % ?Object:or([bnode,iri,literal])
+                        % ?Object:rdf_term
                         % +Graph:atom
                         % -Count:nonneg
     count_subjects/4, % ?Predicate:iri
-                      % ?Object:or([bnode,iri,literal])
+                      % ?Object:rdf_term
                       % +Graph:atom
                       % -Count:nonneg
     rdf_property_table/3, % +Property:iri
@@ -27,11 +27,11 @@
                                % ?Datatype:iri
                                % -NumberOfTriples:nonneg
     rdf_triples_by_object/3, % ?RdfGraph:atom
-                             % ?Object:or([bnode,iri,literal])
+                             % ?Object:rdf_term
                              % -NumberOfTriples:nonneg
     rdf_triples_by_pattern/5, % ?Subject:or([bnode,iri])
                               % ?Predicate:iri
-                              % ?Object:or([bnode,iri,literal])
+                              % ?Object:rdf_term
                               % ?RdfGraph:atom
                               % -NumberOfTriples:nonneg
     rdf_triples_by_predicate/3, % ?RdfGraph:atom
@@ -41,7 +41,7 @@
                               % ?Subject:or([bnode,iri])
                               % -NumberOfTriples:nonneg
     rdf_triples_by_term/3 % ?RdfGraph:atom
-                          % ?RdfTerm:or([bnode,iri,literal])
+                          % ?RdfTerm:rdf_term
                           % -NumberOfTriples:nonneg
   ]
 ).
@@ -162,7 +162,7 @@ count_objects(S, P, G, Count):-
 
 %! count_properties(
 %!   ?Subject:or([bnode,iri]),
-%!   ?Object:or([bnode,iri,literal]),
+%!   ?Object:rdf_term,
 %!   +Graph:atom,
 %!   -Count:nonneg
 %! ) is det.
@@ -250,7 +250,7 @@ rdf_triples_by_datatype(G, D, ND):-
 
 %! rdf_triples_by_object(
 %!   ?RdfGraph:atom,
-%!   +Object:or([bnode,iri,literal]),
+%!   +Object:rdf_term,
 %!   -NumberOfTriples:nonneg
 %! ) is det.
 
@@ -261,7 +261,7 @@ rdf_triples_by_object(G, O, NO):-
 %! rdf_triples_by_pattern(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,iri,literal]),
+%!   ?Object:rdf_term,
 %!   ?RdfGraph:atom,
 %!   -NumberOfTriples:nonneg
 %! ) is det.
@@ -292,7 +292,7 @@ rdf_triples_by_subject(G, S, NS):-
 
 %! rdf_triples_by_term(
 %!   ?RdfGraph:atom,
-%!   ?RdfTerm:or([bnode,iri,literal]),
+%!   ?RdfTerm:rdf_term,
 %!   -NumberOfTriples:nonneg
 %! ) is det.
 

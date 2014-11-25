@@ -2,9 +2,9 @@
   rdf_name,
   [
     rdf_graph_name//1, % +RdfGraph:atom
-    rdf_term_name//1, % ?Term:or([bnode,iri,literal])
+    rdf_term_name//1, % ?Term:rdf_term
     rdf_term_name//2, % +Options:list(nvpair)
-                      % +Term:or([bnode,iri,literal])
+                      % +Term:rdf_term
     rdf_triple_name//1, % +Triple:compound
     rdf_triple_name//2 % +Triple:compound
                        % +Graph:atom
@@ -90,7 +90,7 @@ rdf_graph_name(Graph) -->
 
 %! rdf_iri_name(
 %!   +Options:list(nvpair),
-%!   +Term:or([bnode,iri,literal])
+%!   +Term:rdf_term
 %! )// is det.
 % The following options are supported:
 %   * =|iri_description(+oneof([

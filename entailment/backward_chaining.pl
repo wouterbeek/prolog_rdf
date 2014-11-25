@@ -3,7 +3,7 @@
   [
     rdfs/4, % ?Subject:or([bnode,iri])
             % ?Predicate:iri
-            % ?Object:or([bnode,iri,literal])
+            % ?Object:rdf_term
             % ?Graph:atom
     rdfs_class/3, % +Mode:compound
                   % ?Class:iri
@@ -365,8 +365,8 @@ rdfs_range_axiom(m(t,_,_), P, C):-
   rdf_equal(rdfs:'Resource', C).
 
 %! rdf_same(
-%!   +Resource1:or([bnode,iri,literal]),
-%!   +Resource1:or([bnode,iri,literal])
+%!   +Resource1:rdf_term,
+%!   +Resource1:rdf_term
 %! ) is semidet.
 % For transitive hierarchic relations, we want to make sure that
 % some of their deduction rules (RDFS 9, RDFS 11, RDFS 13) do not consider

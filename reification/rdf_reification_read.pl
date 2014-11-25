@@ -90,7 +90,7 @@ rdf_predicate(Statement, P, Graph):-
 %! rdf_statement(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate,
-%!   ?Object:or([bnode,iri,literal]),
+%!   ?Object:rdf_term,
 %!   ?Graph:atom,
 %!   ?Statement:or([bnode,iri])
 %! ) is nondet.

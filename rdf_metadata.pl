@@ -3,10 +3,10 @@
   [
     rdf_metadata/3, % ?Subject:or([bnode,iri])
                     % ?Predicate:iri
-                    % ?Object:or([bnode,iri,literal])
+                    % ?Object:rdf_term
     rdf_metadata/4 % ?Subject:or([bnode,iri])
                    % ?Predicate:iri
-                   % ?Object:or([bnode,iri,literal])
+                   % ?Object:rdf_term
                    % ?Graph:atom
   ]
 ).
@@ -51,7 +51,7 @@ The following metadata vocabularies are supported:
 %! rdf_contains_metadata(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
-%!   +Object:or([bnode,iri,literal])
+%!   +Object:rdf_term
 %! ) is semidet.
 
 rdf_contains_metadata(_, P, _):-
@@ -77,7 +77,7 @@ rdf_meta_namespace(wv, 'http://vocab.org/waiver/terms/norms').
 %! rdf_metadata(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,iri,literal])
+%!   ?Object:rdf_term
 %! ) is nondet.
 
 rdf_metadata(S, P, O):-
@@ -86,7 +86,7 @@ rdf_metadata(S, P, O):-
 %! rdf_metadata(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,iri,literal]),
+%!   ?Object:rdf_term,
 %!   ?Graph:atom
 %! ) is nondet.
 

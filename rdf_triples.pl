@@ -12,9 +12,9 @@
     rdf_is_triple/1, % @Triple
     rdf_triples/2, % +Graph:atom
                    % -Triples:ordset(compound)
-    rdf_triples_edges/2, % +Triples:list(compound)
+    rdf_triples_to_edges/2, % +Triples:list(compound)
                          % -Edges:ordset(pair(rdf_term))
-    rdf_triples_vertices/2 % +Triples:list(compound)
+    rdf_triples_to_terms/2 % +Triples:list(compound)
                            % -Vertices:ordset(rdf_term)
   ]
 ).
@@ -97,6 +97,14 @@ rdf_is_triple(rdf(S,P,O)):-
 
 
 
+%! rdf_triple_to_term(+Triple:compound, -Term:rdf_term) is nondet.
+
+rdf_triple_to_term(rdf(S,_,_), S).
+rdf_triple_to_term(rdf(_,P,_), P).
+rdf_triple_to_term(rdf(_,_,O), O).
+
+
+
 %! rdf_triples(+Graph:atom, -Triples:ordset(compound)) is det.
 
 rdf_triples(Graph, Triples):-
@@ -108,12 +116,12 @@ rdf_triples(Graph, Triples):-
 
 
 
-%! rdf_triples_edges(
-%!   +Triples:list(or([bnode,iri,literal])),
+%! rdf_triples_to_edges(
+%!   +Triples:list(rdf_term),
 %!   -Edges:ordset(compound)
 %! ) is det.
 
-rdf_triples_edges(Ts, Es):-
+rdf_triples_to_edges(Ts, Es):-
   aggregate_all(
     set(FromV-ToV),
     member(rdf(FromV,_,ToV), Ts),
@@ -122,19 +130,17 @@ rdf_triples_edges(Ts, Es):-
 
 
 
-%! rdf_triples_vertices(
-%!   +Triples:list(or([bnode,iri,literal])),
-%!   -Vertices:ordset(or([bnode,iri,literal]))
+%! rdf_triples_to_terms(
+%!   +Triples:list(rdf_term),
+%!   -Terms:ordset(rdf_term)
 %! ) is det.
 
-rdf_triples_vertices(Ts, Vs):-
+rdf_triples_to_terms(Triples, Terms):-
   aggregate_all(
-    set(V),
+    set(Term),
     (
-      member(rdf(V1,_,V2), Ts),
-      (   V = V1
-      ;   V = V2
-      )
+      member(Triple, Triples),
+      rdf_triple_to_term(Triple, Term)
     ),
-    Vs
+    Terms
   ).
