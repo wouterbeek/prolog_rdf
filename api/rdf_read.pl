@@ -1,6 +1,10 @@
 :- module(
   rdf_read,
   [
+    rdf_direction_triples/4, % +Resource:iri,
+                             % +Direction:oneof([backward,both,forward])
+                             % -Triples:ordset(compound)
+                             % ?Graph:atom
     rdf_plain_literal/5, % ?Term:rdf_term
                          % ?Predicate:iri
                          % ?Value:atom
@@ -94,6 +98,34 @@ error:has_type(rdf_term, Term):-
   ;   rdf_is_literal(Term)
   ;   rdf_is_resource(Term)
   ).
+
+
+
+
+
+%! rdf_direction_triples(
+%!   +Resource:iri,
+%!   +Direction:oneof([backward,both,forward]),
+%!   -Triples:ordset(compound),
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_direction_triples(Resource, forward, Triples, Graph):-
+  aggregate_all(
+    set(rdf(Resource,P,O)),
+    rdf_term_outgoing_edge(Resource, P, O, Graph),
+    Triples
+  ).
+rdf_direction_triples(Resource, backward, Triples, Graph):-
+  aggregate_all(
+    set(rdf(S,P,Resource)),
+    rdf_term_incoming_edge(S, P, Resource, Graph),
+    Triples
+  ).
+rdf_direction_triples(Resource, both, Triples, Graph):-
+  rdf_direction_triples(Resource, backward, Triples1, Graph),
+  rdf_direction_triples(Resource, forward, Triples2, Graph),
+  ord_union(Triples1, Triples2, Triples).
 
 
 

@@ -32,7 +32,7 @@
     rdfs_assert_subclass/3, % +Class:iri
                             % ?Superclass:iri
                             % ?Graph:atom
-    rdfs_assert_subproperty/3, % +Property:iri
+    rdfs_assert_subproperty/3, % +Subproperty:iri
                                % +SuperProperty:iri
                                % ?Graph:atom
     %rdfs_update_label/5, % +Term:rdf_term
@@ -77,7 +77,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_assert_range(o,r,?)).
 :- rdf_meta(rdfs_assert_seeAlso(o,+,?)).
 :- rdf_meta(rdfs_assert_subclass(o,r,?)).
-:- rdf_meta(rdfs_assert_subproperty(o,r,?)).
+:- rdf_meta(rdfs_assert_subproperty(r,r,?)).
 %:- rdf_meta(rdfs_update_label(o,+,?,?,+)).
 :- rdf_meta(rdfs_retractall_class_resource(o)).
 :- rdf_meta(rdfs_retractall_class_term(o)).
@@ -251,7 +251,7 @@ rdfs_assert_subclass(Term, Superclass, Graph):-
 
 
 %! rdfs_assert_subproperty(
-%!   +Term:rdf_term,
+%!   +Subproperty:iri,
 %!   +SuperProperty:iri,
 %!   ?Graph:atom
 %! ) is det.
@@ -264,8 +264,8 @@ rdfs_assert_subclass(Term, Superclass, Graph):-
 % NODE  rdfs:subPropertyOf  SUPER-PROPERTY  GRAPH .
 % ```
 
-rdfs_assert_subproperty(Term, SuperProperty, Graph):-
-  rdf_assert2(Term, rdfs:subPropertyOf, SuperProperty, Graph).
+rdfs_assert_subproperty(Subproperty, SuperProperty, Graph):-
+  rdf_assert2(Subproperty, rdfs:subPropertyOf, SuperProperty, Graph).
 
 
 
