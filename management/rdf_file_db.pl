@@ -34,7 +34,7 @@ Basic facts about RDF serialization formats.
 @tbd Add support for SPARQL Results in JSON: http://www.w3.org/ns/formats/SPARQL_Results_JSON
 @tbd Add support for SPARQL Results in CSV: http://www.w3.org/ns/formats/SPARQL_Results_CSV
 @tbd Add support for SPARQL Results in TSV: http://www.w3.org/ns/formats/SPARQL_Results_TSV
-@version 2014/04-2014/05, 2014/07-2014/08, 2014/10
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10-2014/11
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -45,6 +45,8 @@ Basic facts about RDF serialization formats.
 :- use_module(plDcg(dcg_atom)). % Meta-option.
 :- use_module(plDcg(dcg_generics)).
 
+:- use_module(plHttp(parameter/http_media_type)).
+
 :- multifile(error:has_type/2).
 
 error:has_type(rdf_format, Term):-
@@ -54,6 +56,8 @@ error:has_type(rdf_format, Term):-
 :- multifile(user:prolog_file_type/2).
 
 :- initialization(register_rdf_file_types).
+
+
 
 
 
@@ -77,7 +81,7 @@ rdf_accept_header_value(Value):-
     MediaTypes
   ),
   dcg_with_output_to(atom(Value),
-    '#'('media-type', MediaTypes, [separator(atom(', '))])
+    '*'('media-type', MediaTypes, [separator(atom(', '))])
   ).
 
 
