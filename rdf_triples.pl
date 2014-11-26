@@ -13,13 +13,13 @@
     rdf_triples/2, % +Graph:atom
                    % -Triples:ordset(compound)
     rdf_triples_to_edges/2, % +Triples:list(compound)
-                         % -Edges:ordset(pair(rdf_term))
+                            % -Edges:ordset(pair(rdf_term))
     rdf_triples_to_terms/2 % +Triples:list(compound)
                            % -Vertices:ordset(rdf_term)
   ]
 ).
 
-/** <module> RDF triple
+/** <module> RDF triples
 
 Support for RDF triple compound terms.
 
