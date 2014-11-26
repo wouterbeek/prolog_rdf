@@ -86,6 +86,8 @@ assert_rdf_file_types:-
 
 
 
+
+
 %! rdf_load_any(+In) is det.
 
 rdf_load_any(In):-
@@ -204,7 +206,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata4, Options1):-
   Metadata3 = Metadata2.put(json{'rdf-serialization-format':Serialization}),
 
   % Set options: base URI, RDF serialization format, XML namespaces.
-  set_stream(In, file_components(Base)),
+  set_stream(In, file_name(Base)),
   merge_options(
     [base_uri(Base),format(Format),register_namespaces(false),silent(true)],
     Options1,
@@ -258,11 +260,11 @@ metadata_to_base(Metadata, Base):-
 
 %! metadata_to_base0(+Metadata:dict, -Base0:atom) is det.
 
-metadata_to_base0(Metadata, Metadata.get(url)):- !.
+metadata_to_base0(Metadata, Metadata.get('URI')):- !.
 metadata_to_base0(Metadata, Base):-
   uri_file_name(Base, Metadata.get(path)), !.
 metadata_to_base0(Metadata, Base):-
-  stream_property(Metadata.get(stream), file_components(FileName)), !,
+  stream_property(Metadata.get(stream), file_name(FileName)), !,
   (   uri_is_global(FileName)
   ->  Base = FileName
   ;   uri_file_name(Base, FileName)
