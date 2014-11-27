@@ -1,5 +1,5 @@
 :- module(
-  rdf_bnode,
+  rdf_instance,
   [
     rdf_term_instance/3, % +Specific:compound
                          % +Generic:compound
@@ -22,7 +22,7 @@
   ]
 ).
 
-/** <module> RDF: Blank node
+/** <module> RDF: Term and triple instances
 
 Support for blank node mappings in RDF.
 

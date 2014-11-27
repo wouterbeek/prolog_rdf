@@ -43,7 +43,7 @@
 :- use_module(math(math_ext)).
 
 :- use_module(plRdf(rdf_triples)).
-:- use_module(plRdf(term/rdf_bnode)).
+:- use_module(plRdf(term/rdf_instance)).
 :- use_module(plRdf(term/rdf_term)).
 
 
