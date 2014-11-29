@@ -392,7 +392,6 @@ xml_doctype(Stream, Dialect, DocType, Attributes):-
     setup_call_cleanup(
       make_parser(Stream, Parser, State),
       (
-        writeln(hallo),
         sgml_parse(
           Parser,
           [
