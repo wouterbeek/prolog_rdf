@@ -77,7 +77,7 @@ Support for RDF lists.
 
 :- rdf_meta(rdf_assert_list(o,r,?,+)).
 :- rdf_meta(rdf_list(r)).
-:- rdf_meta(rdf_list(r,-,+)).
+:- rdf_meta(rdf_list(r,-,?,+)).
 :- rdf_meta(rdf_list_after(o,o,r,?)).
 :- rdf_meta(rdf_list_before(o,o,r,?)).
 :- rdf_meta(rdf_list_directly_after(o,o,r,?)).
@@ -192,7 +192,7 @@ rdf_list(List):-
 rdf_list(rdf:nil, [], _, _):- !.
 rdf_list(RdfList, [H|T], Graph, Options):-
   % `rdf:first`
-  rdf(RdfList, rdf:first, First, Graph),
+  rdf(RdfList, rdf:first, First, Graph:_),
   (   % Nested list.
       option(recursive(true), Options, true),
       rdf_list(First)
@@ -204,7 +204,7 @@ rdf_list(RdfList, [H|T], Graph, Options):-
   ),
 
   % `rdf:rest`
-  rdf(RdfList, rdf:rest, Rest, Graph),
+  rdf(RdfList, rdf:rest, Rest, Graph:_),
   rdf_list(Rest, T, Graph, Options).
 
 

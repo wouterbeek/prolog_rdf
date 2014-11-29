@@ -92,7 +92,7 @@ rdf_register_reduced_location_prefix(Prefix):-
 :- rdf_register_prefix(bibo, 'http://purl.org/ontology/bibo/').
 
 % Citation Counting and Context Characterization Ontology (C4O)
-:- rdf_register_prefix(c4o, 'http://purl.org/spar/c4o').
+:- rdf_register_prefix(c4o, 'http://purl.org/spar/c4o/').
 
 % Citation Oriented Bibliographic Vocabulary (BIBLIO)
 :- rdf_register_prefix(biblio, 'http://purl.org/net/biblio#').
@@ -345,7 +345,7 @@ dbpedia_language_tag(zh_yue).
 :- rdf_register_prefix(doc, 'http://www.w3.org/2000/10/swap/pim/doc#').
 
 % Document Components Ontology (DoCO)
-:- rdf_register_prefix(doco, 'http://purl.org/spar/doco').
+:- rdf_register_prefix(doco, 'http://purl.org/spar/doco/').
 
 % Dublin Core: elements
 :- rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/').
