@@ -1,6 +1,8 @@
 :- module(
   rdf_dataset,
   [
+    rdf_add_named_graph/2, % +Dataset:iri
+                           % +NamedGraphMap:pair(or([bnode,iri]),atom)
     rdf_assert_dataset/2, % +DefaultGraph:atom
                           % +NamedGraphMap:list(pair(or([bnode,iri]),atom))
     rdf_dataset/1, % ?DefaultGraph:atom
@@ -34,6 +36,20 @@
 :- dynamic(rdf_dataset/2).
 
 
+
+
+
+%! rdf_add_named_graph(
+%!   +Dataset:iri,
+%!   +NamedGraphMap:pair(or([bnode,iri]),atom)
+%! ) is det.
+
+rdf_add_named_graph(DG, Name-NG):- !,
+  retract(rdf_dataset(DG, Map1)),
+  keysort([Name-NG|Map1], Map2),
+  assert(rdf_dataset(DG, Map2)).
+rdf_add_named_graph(DG, NG):-
+  rdf_add_named_graph(DG, NG-NG).
 
 
 
