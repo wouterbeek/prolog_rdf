@@ -5,6 +5,9 @@
                              % +Direction:oneof([backward,both,forward])
                              % -Triples:ordset(compound)
                              % ?Graph:atom
+    rdf_instance/3, % ?Instance:rdf_term
+                    % ?Class:iri
+                    % ?Graph:atom
     rdf_plain_literal/5, % ?Term:rdf_term
                          % ?Predicate:iri
                          % ?Value:atom
@@ -79,6 +82,7 @@ Predicates for reading from RDF, customized for specific datatypes and
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
+:- rdf_meta(rdf_instance(o,r,?)).
 :- rdf_meta(rdf_langstring(o,r,?,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?,-)).
@@ -126,6 +130,17 @@ rdf_direction_triples(Resource, both, Triples, Graph):-
   rdf_direction_triples(Resource, backward, Triples1, Graph),
   rdf_direction_triples(Resource, forward, Triples2, Graph),
   ord_union(Triples1, Triples2, Triples).
+
+
+
+%! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
+
+rdf_instance(Literal, Class, Graph):-
+  rdf_is_literal(Literal),
+  term_get_bnode(Graph, Literal, BNode), !,
+  rdf_instance(BNode, Class, Graph).
+rdf_instance(Term, Class, Graph):-
+  rdf(Term, rdf:type, Class, Graph).
 
 
 

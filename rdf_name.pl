@@ -55,7 +55,7 @@ Generates names for RDF terms and triples.
        with_all_literals,
        with_preferred_label
      ])),
-     language_preferences(+list(atom))
+     language_preferences(+list(list(atom)))
    ]).
 :- predicate_options(rdf_literal_name//2, 1, [
      pass_to(rdf_plain_literal_name//2, 1)
