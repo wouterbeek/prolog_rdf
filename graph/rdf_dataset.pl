@@ -36,7 +36,7 @@
 
 %! rdf_assert_dataset(
 %!   +DefaultGraph:atom,
-%!   +NamedGraphMap:list(pair(or([bnone,iri]), atom))
+%!   +NamedGraphMap:list(pair(or([bnone,iri]),atom))
 %! ) is det.
 % @throws existence_error If the DefaultGraph or one of the named graphs
 %                         does not exist.
