@@ -1,6 +1,7 @@
 :- module(
   rdf_name,
   [
+    rdf_dataset_name//1, % +RdfDataset:atom
     rdf_graph_name//1, % +RdfGraph:atom
     rdf_term_name//1, % ?Term:rdf_term
     rdf_term_name//2, % +Options:list(nvpair)
@@ -73,10 +74,20 @@ Generates names for RDF terms and triples.
 
 
 
+
+
 %! rdf_bnode_name(+BNode:bnode)// is det.
 
 rdf_bnode_name(BNode) -->
   atom(BNode).
+
+
+
+%! rdf_dataset_name(+Dataset:atom)// is det.
+
+rdf_dataset_name(Dataset) -->
+  atom(Dataset).
+
 
 
 %! rdf_graph_name(+Graph:atom)// is det.

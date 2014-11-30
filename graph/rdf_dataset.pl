@@ -3,8 +3,11 @@
   [
     rdf_assert_dataset/2, % +DefaultGraph:atom
                           % +NamedGraphMap:list(pair(or([bnode,iri]),atom))
-    rdf_dataset/2 % ?DefaultGraph:atom
-                  % ?NamedGraphMap:list(pair(or([bnode,iri]),atom))
+    rdf_dataset/1, % ?DefaultGraph:atom
+    rdf_dataset/2, % ?DefaultGraph:atom
+                   % ?NamedGraphMap:list(pair(or([bnode,iri]),atom))
+    rdf_dataset_member/2 % ?Graph:atom
+                         % ?Dataset:atom
   ]
 ).
 
@@ -49,4 +52,34 @@ rdf_assert_dataset(_, NGMap):-
   \+ rdf_graph(NG), !,
   existence_error(rdf_graph, NG).
 rdf_assert_dataset(DG, NGMap):-
-  db_add_novel(dataset(DG, NGMap)).
+  rdf_dataset(DG, NGMap0), !,
+  (   NGMap0 \== NGMap
+  ->  % You are trying to redefined DG.
+      gtrace
+  ;   % Fail silently
+      fail
+  ).
+rdf_assert_dataset(DG, NGMap):-
+  assert(rdf_dataset(DG, NGMap)).
+
+
+
+%! rdf_dataset(?DefaultGraph:atom) is semidet.
+
+rdf_dataset(DG):-
+  rdf_dataset(DG, _).
+
+
+
+%! rdf_dataset_member(+Graph:atom, +Dataset:atom) is semidet.
+%! rdf_dataset_member(-Graph:atom, +Dataset:atom) is nondet.
+%! rdf_dataset_member(+Graph:atom, -Dataset:atom) is nondet.
+% Succeeds if Graph is part of Dataset.
+
+% Default graph.
+rdf_dataset_member(G, G):-
+  rdf_dataset(G, _).
+% Named graph.
+rdf_dataset_member(G, DG):-
+  rdf_dataset(DG, Map),
+  memberchk(_-G, Map).
