@@ -67,10 +67,14 @@
    ]).
 :- predicate_options(rdf_load_any/3, 3, [
      pass_to(open_any/4, 4),
-     pass_to(rdf_load_from_stream_det/4, 4)
+     pass_to(rdf_load_from_stream_nondet/3, 3)
    ]).
 :- predicate_options(rdf_load_from_stream_det/4, 4, [
      pass_to(rdf_load/2, 2)
+   ]).
+:- predicate_options(rdf_load_from_stream_nondet/3, 3, [
+     silent(+boolean),
+     pass_to(rdf_load_from_stream_det/4, 4)
    ]).
 
 :- initialization(assert_rdf_file_types).
@@ -111,21 +115,24 @@ rdf_load_any(In, Options):-
 %   - uri_components/5
 %
 % The following options are supported:
-%   * =|format(+Format:oneof([ntriples,turtle,xml]))|=
+%   - `format(+Format:oneof([ntriples,turtle,xml]))`
 %     The RDF serialization that has to be used for parsing.
 %     Default: @tbd
-%   * =|graph(+Graph:atom)|=
+%   - `graph(+Graph:atom)`
 %     The name of the RDF graph in which the parsed data is loaded.
 %     Default: `user`.
-%   * =|keep_file(+Keep:boolean)|=
+%   - `keep_file(+Keep:boolean)`
 %     If the given input is a URL, the remote document is first
 %     downloaded, and then kept available, locally.
 %     Default: `false`.
-%   * =|reduced_locations(+Use:boolean)|=
+%   - `reduced_locations(+Use:boolean)`
 %     Whether reduced locations are used of not.
 %     See [rdf_prefixes].
 %     Default: `false`.
-%   * =|void(+Load:boolean)|=
+%   - `silent(+boolean)`
+%     Whether informational messages about loaded content are shown.
+%     Default: `true`.
+%   - `void(+Load:boolean)`
 %     Whether the loaded data should be recursively closed under
 %     VoID descriptions that appear in that data.
 %     Default: `false`.
@@ -179,7 +186,12 @@ rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
     close_any(SubIn, CloseMetadata)
   ),
   StreamMetadata = RdfMetadata.put(json{stream:CloseMetadata}),
-  print_message(informational, rdf_load_any(StreamMetadata)).
+  
+  % Allow informational messages to be skipped in silent mode.
+  (   option(silent(true), Options)
+  ->  true
+  ;   print_message(informational, rdf_load_any(StreamMetadata))
+  ).
 
 
 
