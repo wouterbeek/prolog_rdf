@@ -179,6 +179,7 @@ dbpedia_language_tag(el).
 dbpedia_language_tag(eo).
 dbpedia_language_tag(es).
 dbpedia_language_tag(et).
+dbpedia_language_tag(ext).
 dbpedia_language_tag(eu).
 dbpedia_language_tag(fa).
 dbpedia_language_tag(fi).

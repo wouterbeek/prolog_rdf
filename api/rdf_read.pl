@@ -76,6 +76,7 @@ Predicates for reading from RDF, customized for specific datatypes and
 @version 2014/11-2014/12
 */
 
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(list_ext)).
@@ -204,7 +205,7 @@ rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph, rdf(Node,P,O)):-
   % Notice that this merely prioritizes: every language-tagged string
   % is returned eventually.
   (   is_list(LangTags),
-      memberchk(LangTag, LangTags),
+      member(LangTag, LangTags),
       sublist(LangTagPrefix, LangTag),
       LangTagPrefix \== [],
       atomic_list_concat(LangTagPrefix, '-', LangTag0)
