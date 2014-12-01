@@ -73,10 +73,12 @@ Predicates for reading from RDF, customized for specific datatypes and
  literals.
 
 @author Wouter Beek
-@version 2014/11
+@version 2014/11-2014/12
 */
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+
+:- use_module(generics(list_ext)).
 
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).
@@ -155,8 +157,7 @@ rdf_instance(Term, Class, Graph):-
 % Language-tag preference can be met.
 rdf_langstring(Term, Predicate, Value, LangTags, Graph):-
   is_list(LangTags), !,
-  member(LangTag, LangTags),
-  rdf_literal(Term, Predicate, Value, rdf:langString, LangTag, Graph).
+  rdf_literal(Term, Predicate, Value, rdf:langString, LangTags, Graph).
 % Language-tag preference cannot be met.
 rdf_langstring(Term, Predicate, Value, _, Graph):-
   rdf_literal(Term, Predicate, Value, rdf:langString, _, Graph).
@@ -193,16 +194,23 @@ rdf_literal(Literal, P, Value, Datatype, LangTags, Graph, Triple):-
 % No datatype is formally defined for `rdf:langString` because
 %  the definition of datatypes does not accommodate language tags
 %  in the lexical space.
-% The value space of `rdf"langString` is the set of all pairs
+% The value space of `rdf:langString` is the set of all pairs
 %  of strings and language tags.
 rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph, rdf(Node,P,O)):-
-  O = literal(lang(LangTag,LexicalValue)),
-  rdf(Node, P, O, Graph),
-  % Language tag preference.
-  (   is_list(LangTag)
-  ->  member(LangTag, LangTags)
+  O = literal(lang(LangTag0,LexicalValue)),
+  % Prioritize language-tagged strings based on the given language tag
+  %  preferences, if any.
+  % Respect the order on preferences from left to right.
+  % Notice that this merely prioritizes: every language-tagged string
+  % is returned eventually.
+  (   is_list(LangTags),
+      memberchk(LangTag, LangTags),
+      sublist(LangTagPrefix, LangTag),
+      LangTagPrefix \== [],
+      atomic_list_concat(LangTagPrefix, '-', LangTag0)
   ;   true
   ),
+  rdf(Node, P, O, Graph),
   Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
 rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
