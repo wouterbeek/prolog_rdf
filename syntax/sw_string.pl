@@ -1,6 +1,7 @@
 :- module(
   sw_string,
   [
+    quotedString//1, % ?String:atom
     'String'//2 % +Language:oneof([sparql,turtle])
                 % ?String:atom
   ]
@@ -24,12 +25,42 @@ Grammar rules for strings in Semantic Web standards.
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_code)).
+:- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_meta)).
 :- use_module(plDcg(dcg_quote)).
 
 :- use_module(plRdf(syntax/sw_char)).
 
 
+
+
+
+%! quotedString(?String:atom)// .
+% ```bnf
+% quotedString := a finite sequence of characters
+%                 in which " (U+22) and \ (U+5C) occur only in pairs
+%                 of the form \" (U+5C, U+22) and \\ (U+5C, U+5C),
+%                 enclosed in a pair of " (U+22) characters
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+quotedString(String) -->
+  bracketed(dcg_atom_codes(quotedString_codes, String)).
+
+quotedString_codes([H1,H2|T]) -->
+  backslash(H1),
+  double_quote(H2), !,
+  quotedString_codes(T).
+quotedString_codes([H1,H2|T]) -->
+  backslash(H1),
+  backslash(H2), !,
+  quotedString_codes(T).
+quotedString_codes(_) --> "\\", !, {fail}.
+quotedString_codes(_) --> "\"", !, {fail}.
+quotedString_codes([H|T]) -->
+  [H],
+  quotedString_codes(T).
 
 
 

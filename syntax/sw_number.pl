@@ -2,18 +2,21 @@
   sw_number,
   [
     'DECIMAL'//2, % +Language:oneof([sparql,turtle])
-                  % ?Value:float
-    'DECIMAL_NEGATIVE'//1, % ?Value:float
-    'DECIMAL_POSITIVE'//1, % ?Value:float
+                  % ?Decimal:float
+    decimalLiteral//1, % ?Decimal:float
+    'DECIMAL_NEGATIVE'//1, % ?Decimal:float
+    'DECIMAL_POSITIVE'//1, % ?Decimal:float
     'DOUBLE'//2, % +Language:oneof([sparql,turtle])
-                 % ?Value:float
-    'DOUBLE_NEGATIVE'//1, % ?Value:float
-    'DOUBLE_POSITIVE'//1, % ?Value:float
+                 % ?Double:float
+    'DOUBLE_NEGATIVE'//1, % ?Double:float
+    'DOUBLE_POSITIVE'//1, % ?Double:float
     'EXPONENT'//1, % ?Value:integer
+    floatingPointLiteral//1, % ?Float:float
     'INTEGER'//2, % +Language:oneof([sparql,turtle])
-                  % ?Value:integer
-    'INTEGER_NEGATIVE'//1, % ?Value:integer
-    'INTEGER_POSITIVE'//1 % ?Value:integer
+                  % ?Integer:integer
+    integerLiteral//1, % ?Integer:integer
+    'INTEGER_NEGATIVE'//1, % ?Integer:integer
+    'INTEGER_POSITIVE'//1 % ?Integer:integer
   ]
 ).
 
@@ -41,7 +44,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'DECIMAL'(+Language:oneof([sparql,turtle]), ?Value:float)// .
+%! 'DECIMAL'(+Language:oneof([sparql,turtle]), ?Decimal:float)// .
 % ```ebnf
 % [SPARQL]   DECIMAL ::= [0-9]* '.' [0-9]+
 % [Turtle]   DECIMAL ::= [+-]? [0-9]* '.' [0-9]+
@@ -56,7 +59,43 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'DECIMAL_NEGATIVE'(?Value:float)// .
+%! decimalLiteral(?Decimal:float)// .
+% ```bnf
+% decimalLiteral ::= ['+' | '-'] digits '.' digits
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat Different from 'DECIMAL'//2 (SPARQL, Turtle) in that
+%         (1) at least one digit must appear before the dot,
+%         (2) at least one digit must appear after the dot.
+
+decimalLiteral(N) -->
+  {var(N)}, !,
+  '?'(sign, Sg, [empty1(1)]),
+  digits(L1),
+  ".",
+  digits(L2),
+  {
+    weights_decimal(L1, IntegerPart),
+    weights_decimal(L2, FractionalPart),
+    number_integer_parts(N0, IntegerPart, FractionalPart),
+    N is copysign(N0, Sg)
+  }.
+decimalLiteral(N) -->
+  sign(N),
+  {
+    N0 is abs(N),
+    number_integer_parts(N0, IntegerPart, FractionalPart),
+    weights_decimal(L1, IntegerPart),
+    weights_decimal(L2, FractionalPart)
+  },
+  digits(L1),
+  ".",
+  digits(L2),
+
+
+
+%! 'DECIMAL_NEGATIVE'(?Decimal:float)// .
 % ```bnf
 % DECIMAL_NEGATIVE ::= '-' DECIMAL
 % ```
@@ -75,7 +114,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'DECIMAL_POSITIVE'(?Value:float)// .
+%! 'DECIMAL_POSITIVE'(?Decimal:float)// .
 % ```bnf
 % DECIMAL_POSITIVE ::= '+' INTEGER
 % ```
@@ -89,7 +128,31 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'DOUBLE'(+Language:oneof([sparql,turtle]), ?Value:float)// .
+%! digit(?Digit:between(0,9))// .
+% ```bnf
+% digit ::= zero | nonZero
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+digit(N) --> zero(N).
+digit(N) --> nonZero(N).
+
+
+
+%! digits(?Digits:list(between(0,9)))// .
+% ```bnf
+% digits ::= digit { digit }
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+digits(L) -->
+  '+'(digit, L, []).
+
+
+
+%! 'DOUBLE'(+Language:oneof([sparql,turtle]), ?Double:float)// .
 % ```ebnf
 % [SPARQL]   DOUBLE ::=   [0-9]+ '.' [0-9]* EXPONENT
 %                       | '.' ([0-9])+ EXPONENT
@@ -106,15 +169,12 @@ Grammar rules for numbers as defined by Semantic Web standards.
 % @compat Turtle 1.1 [21]
 % @tbd How to write the exponent in the generative case?
 
-'DECIMAL'(sparql, N) --> number(N).
-'DECIMAL'(turtle, N) --> signed_decimal(N).
-
 'DOUBLE'(sparql, N) --> double(N).
 'DOUBLE'(turtle, N) --> signed_double(N).
 
 
 
-%! 'DOUBLE_POSITIVE'(?Value:float)// .
+%! 'DOUBLE_POSITIVE'(?Double:float)// .
 % ```bnf
 % DOUBLE_POSITIVE ::= '+' DOUBLE
 % ```
@@ -128,7 +188,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'DOUBLE_NEGATIVE'(?Value:float)// .
+%! 'DOUBLE_NEGATIVE'(?Double:float)// .
 % ```bnf
 % DOUBLE_NEGATIVE ::= '-' DOUBLE
 % ```
@@ -160,7 +220,51 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'INTEGER'(?Language:oneof([sparql,turtle]), ?Value:integer)// .
+%! exponent(?Value:float)// .
+% ```bnf
+% exponent ::= ('e' | 'E') ['+' | '-'] digits
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat Differs from 'EXPONENT'//1 (SPARQL, Turtle) in that the sign is
+%         required here.
+
+exponent(N) -->
+  e,
+  (   {var(N)}
+  ->  sign(Sg),
+      digits(Ws),
+      {
+        weights_decimal(Ws, N0),
+        N is copysign(N0, Sg)
+      }
+  ;   % @tbd
+      ""
+  ).
+
+
+
+%! floatingPointLiteral(?Float:float)// .
+% ```bnf
+% floatingPointLiteral ::= [ '+' | '-']
+%                          ( digits ['.'digits] [exponent]
+%                          | '.' digits [exponent])
+%                          ( 'f' | 'F' )
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat This is different from 'DOUBLE'//2 (SPARQL, Turtle) where
+%         (1) the exponent is required,
+%         (2) where the dot is allowed even if it is not followed by
+%             any digit.
+
+floatingPointLiteral(N) -->
+  signed_float(N),
+  f.
+
+
+
+%! 'INTEGER'(?Language:oneof([sparql,turtle]), ?Integer:integer)// .
 % ```ebnf
 % [SPARQL]   INTEGER ::= [0-9]+
 % [Turtle]   INTEGER ::= [+-]? [0-9]+
@@ -175,7 +279,19 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'INTEGER_POSITIVE'(?Value:integer)// .
+%! integerLiteral(?Integer:integer)// .
+% ```bnf
+% integerLiteral ::= ['+' | '-'] digits
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+integerLiteral(N) -->
+  'INTEGER'(N).
+
+
+
+%! 'INTEGER_POSITIVE'(?Integer:integer)// .
 % ```bnf
 % INTEGER_POSITIVE ::= '+' INTEGER
 % ```
@@ -189,7 +305,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'INTEGER_NEGATIVE'(?Value:integer)// .
+%! 'INTEGER_NEGATIVE'(?Integer:integer)// .
 % ```bnf
 % INTEGER_NEGATIVE ::= '-' INTEGER
 % ```
@@ -205,3 +321,64 @@ Grammar rules for numbers as defined by Semantic Web standards.
   ;   {N0 is abs(N)},
       'INTEGER'(sparql, N0)
   ).
+
+
+
+%! nonNegativeInteger(?Integer:nonneg)// .
+% ```bnf
+% nonNegativeInteger ::= zero | positiveInteger
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+nonNegativeInteger(N) --> zero(N).
+nonNegativeInteger(N) --> positiveInteger(N).
+
+
+
+%! positiveInteger(?Integer:positive_integer)// .
+% ```bnf
+% positiveInteger ::= nonZero { digit }
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+positiveInteger(N) -->
+  {var(N)}, !,
+  nonZero(H),
+  '*'(digit, T, []),
+  {weights_decimal([H|T], N)}.
+positiveInteger(N) -->
+  {weights_decimal([H|T], N)},
+  nonZero(H),
+  '*'(digit, T, []).
+
+
+
+%! nonZero(?Digit:between(1,9))// .
+% ```bnf
+% nonZero := '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+nonZero(1) --> "1".
+nonZero(2) --> "2".
+nonZero(3) --> "3".
+nonZero(4) --> "4".
+nonZero(5) --> "5".
+nonZero(6) --> "6".
+nonZero(7) --> "7".
+nonZero(8) --> "8".
+nonZero(9) --> "9".
+
+
+
+%! zero(?Digit:between(0,0))// .
+% ```bnf
+% zero := '0'
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+zero(0) --> "0".

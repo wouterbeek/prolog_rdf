@@ -1,8 +1,15 @@
 :- module(
   sw_iri,
   [
+    annotationPropertyIRI//1, % ?Iri:atom
+    classIRI//1, % ?Iri:atom
+    dataPropertyIRI//1, % ?Iri:atom
+    'Datatype'//1, % ?Iri:atom
+    datatypeIRI//1, % ?Iri:atom
+    individualIRI//1, % ?Iri:atom
     iri//1, % ?Iri:atom
-    'IRI'//1 % ?Iri:atom
+    'IRI'//1, % ?Iri:atom
+    objectPropertyIRI//1 % ?Iri:atom
   ]
 ).
 
@@ -36,6 +43,8 @@ Most standards allow IRIs to be abbreviated by splitting them in
 
 :- use_module(plRdf(syntax/sw_char)).
 
+:- rdf_meta('Datatype'(r,?,?)).
+
 
 
 
@@ -50,6 +59,76 @@ Most standards allow IRIs to be abbreviated by splitting them in
 
 abbreviatedIRI(Iri) -->
   'PNAME_LN'(Iri).
+
+
+
+%! annotationPropertyIRI(?Iri:atom)// .
+% ```bnf
+% annotationPropertyIRI ::= IRI
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+annotationPropertyIRI(Iri) --> 'IRI'(Iri).
+
+
+
+%! classIRI(?Iri:atom)// .
+% ```bnf
+% classIRI ::= IRI
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+classIRI(Iri) --> 'IRI'(Iri).
+
+
+
+%! dataPropertyIRI(?Iri:atom)// .
+% ```bnf
+% dataPropertyIRI ::= IRI
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+dataPropertyIRI(Iri) --> 'IRI'(Iri).
+
+
+
+%! 'Datatype'(?Iri:atom)// .
+% ```bnf
+% Datatype ::= datatypeIRI | 'integer' | 'decimal' | 'float' | 'string'
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+'Datatype'(Iri) --> datatypeIRI(Iri).
+'Datatype'(xsd:integer) --> "integer".
+'Datatype'(xsd:decimal) --> "decimal".
+'Datatype'(xsd:float) --> "float".
+'Datatype'(xsd:string) --> "string".
+
+
+
+%! datatypeIRI(?Iri:atom)// .
+% ```bnf
+% datatypeIRI ::= IRI
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+datatypeIRI(Iri) --> 'IRI'(Iri).
+
+
+
+%! individualIRI(?Iri:atom)// .
+% ```bnf
+% individualIRI ::= IRI
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+individualIRI(Iri) --> 'IRI'(Iri).
 
 
 
@@ -150,6 +229,17 @@ iri(Iri) -->
   'IRIREF'(Iri).
 iri(Iri) -->
   'PrefixedName'(Iri).
+
+
+
+%! objectPropertyIRI(?Iri:atom)// .
+% ```bnf
+% objectPropertyIRI ::= IRI
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+objectPropertyIRI(Iri) --> 'IRI'(Iri).
 
 
 

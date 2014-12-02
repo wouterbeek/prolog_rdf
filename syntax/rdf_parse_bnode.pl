@@ -1,24 +1,26 @@
 :- module(
-  rdf_parse_bnode,
+  sw_bnode,
   [
     'ANON'//1, % -BNode:bnode
     'BLANK_NODE_LABEL'//1, % -BNode:bnode
     'BlankNode'//1 % ?BNode:bnode
+    nodeID//1 % ?BNode:bnode
   ]
 ).
 
-/** <module> RDF Syntax: Blank Node
+/** <module> SW grammar: Blank nodes
 
-Grammar rules for parsing RDF Blank Nodes.
+Grammar rules for blank nodes in Semantic Web standards.
 
 Blank nodes in graph patterns act as variables,
 not as references to specific blank nodes in the data being queried.
 
 @author Wouter Beek
+@compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 @compat SPARQL 1.0 Query.
 @compat SPARQL 1.1 Query.
 @compat Turtle 1.1.
-@version 2014/08-2014/10
+@version 2014/08-2014/10, 2014/12
 */
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -36,9 +38,11 @@ not as references to specific blank nodes in the data being queried.
 
 
 
+
+
 %! 'ANON'(-BNode:bnode)// is det.
 % A blank node that is used in only one place in the query syntax
-% can be indicated with [].
+% can be indicated with []
 %
 % A unique blank node will be used to form the triple pattern.
 %
@@ -46,9 +50,9 @@ not as references to specific blank nodes in the data being queried.
 % ANON ::= '[' WS* ']'
 % ```
 %
-% @compat SPARQL 1.0 [162].
-% @compat SPARQL 1.1 Query [163].
-% @compat Turtle 1.1 [162s].
+% @compat SPARQL 1.0 [94]
+% @compat SPARQL 1.1 Query [163]
+% @compat Turtle 1.1 [162s]
 
 'ANON'(BNode) -->
   bracketed(square, '*'('WS', [])),
@@ -68,9 +72,9 @@ not as references to specific blank nodes in the data being queried.
 %                      ( ( PN_CHARS | '.' )* PN_CHARS )?
 % ```
 %
-% @compat SPARQL 1.0 [141].
-% @compat SPARQL 1.1 Query [142].
-% @compat Turtle 1.1 [141s].
+% @compat SPARQL 1.0 [73]
+% @compat SPARQL 1.1 Query [142]
+% @compat Turtle 1.1 [141s]
 
 'BLANK_NODE_LABEL'(BNode) -->
   dcg_atom_codes('BLANK_NODE_LABEL_codes', BNodeLabel),
@@ -84,11 +88,13 @@ not as references to specific blank nodes in the data being queried.
 
 'BLANK_NODE_LABEL_codes'([H|T]) -->
   "_:",
+  
   % First character after colon.
   (   'PN_CHARS_U'(H)
   ;   decimal_digit(H)
   ),
-  % Rest of characters.
+  
+  % Non-first characters.
   (   '*'('BLANK_NODE_LABEL_code', T0, []),
       'PN_CHARS'(Last),
       {append(T0, [Last], T)}
@@ -108,9 +114,9 @@ not as references to specific blank nodes in the data being queried.
 % BlankNode ::= BLANK_NODE_LABEL | ANON
 % ```
 %
-% @compat SPARQL 1.0 [137].
-% @compat SPARQL 1.1 Query [138].
-% @compat Turtle 1.1 [137s].
+% @compat SPARQL 1.0 [69]
+% @compat SPARQL 1.1 Query [138]
+% @compat Turtle 1.1 [137s]
 
 'BlankNode'(BNode) -->
   'BLANK_NODE_LABEL'(BNode).
@@ -124,12 +130,24 @@ not as references to specific blank nodes in the data being queried.
 % name ::= nameStartChar nameChar*
 % ```
 %
-% @compat Turtle 1.0 [32].
+% @compat Turtle 1.0 [32]
 % @deprecated
 
 name([H|T]) -->
   nameStartChar(H),
   '*'(nameChar, T, []).
+
+
+
+%! nodeID(?BNode:bnode)// .
+% ```bnf
+% nodeID := a finite sequence of characters matching the BLANK_NODE_LABEL
+%           production of [SPARQL].
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+nodeID(BNode) --> 'BLANK_NODE_LABEL'(BNode).
 
 
 
@@ -143,7 +161,7 @@ name([H|T]) -->
 %              | [#x203F-#x2040]
 % ```
 %
-% @compat Turtle 1.0 [31].
+% @compat Turtle 1.0 [31]
 % @deprecated
 
 nameChar(Code) --> nameStartChar(Code).
@@ -174,7 +192,7 @@ nameChar(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
 %                   | [#x10000-#xEFFFF]
 % ```
 %
-% @compat Turtle 1.0 [30].
+% @compat Turtle 1.0 [30]
 % @deprecated
 
 nameStartChar(Code) --> letter_uppercase(Code).
@@ -200,7 +218,7 @@ nameStartChar(Code) --> between_code_radix(hex('10000'), hex('EFFFF'), Code).
 % nodeID ::= '_:' name
 % ```
 %
-% @compat Turtle 1.0 [26].
+% @compat Turtle 1.0 [26]
 % @deprecated
 
 nodeID(BNodeLabel) -->

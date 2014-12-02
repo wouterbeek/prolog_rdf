@@ -9,6 +9,7 @@
     'PN_CHARS_U'//1, % ?Code:code
     'PN_LOCAL_ESC'//1, % ?Code:code
     'UCHAR'//1, % ?Code:code
+    white_space//0,
     'WS'//0 % ?Code:code
   ]
 ).
@@ -36,12 +37,30 @@ Turtle characters are a superset of SPARQL characters.
 :- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_code)).
 :- use_module(plDcg(dcg_content)).
+:- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_unicode), [
      zero_width_joiner//1,
      zero_width_non_joiner//1
    ]).
 
 
+
+
+
+% comment// .
+% Comments are maximal sequences of Unicode characters starting with a `#`
+%  and not containing a line feed or a carriage return.
+% Note that comments are only recognized where white space is allowed,
+%  and thus not inside the above non-terminals.
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+comment -->
+  "#",
+  dcg_until(end_of_comment, _, [end_mode(inclusive)]).
+
+end_of_comment --> carriage_return.
+end_of_comment --> line_feed.
 
 
 
@@ -270,6 +289,26 @@ Turtle characters are a superset of SPARQL characters.
   "\\U",
   '#'(8, 'HEX', Weights, []),
   {weights_radix(Weights, Code)}.
+
+
+
+%! white_space// .
+% White space is a sequence of:
+%   - blanks (U+20)
+%   - tabs (U+9)
+%   - line feeds (U+A)
+%   - carriage returns (U+D)
+%   - comments
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+white_space -->
+  'WS',
+  white_space.
+white_space -->
+  comments,
+  white_space.
+white_space --> [].
 
 
 

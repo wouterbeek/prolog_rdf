@@ -1,7 +1,8 @@
 :- module(
   sw_literal,
   [
-    literal//1 % ?Literal:compound
+    literal//2 % +Language:oneof([manchester,turtle])
+               % ?Literal:compound
   ]
 ).
 
@@ -28,6 +29,7 @@ Examples of literal syntax in SPARQL include:
 ---
 
 @author Wouter Beek
+@compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
@@ -41,6 +43,9 @@ Examples of literal syntax in SPARQL include:
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
 
+:- use_module(plLangTag(language_tag)).
+
+:- use_module(plRdf(syntax/sw_iri)).
 :- use_module(plRdf(syntax/sw_number)).
 :- use_module(plRdf(syntax/sw_string)).
 
@@ -80,7 +85,7 @@ Examples of literal syntax in SPARQL include:
 % @compat SPARQL 1.1 Query [145]
 % @compat Turtle 1.1 [144s]
 
-'LANTAG'(LangTag) -->
+'LANGTAG'(LangTag) -->
   "@",
   {LangTag = [Tag|Subtags]},
   tag(Tag),
@@ -97,16 +102,54 @@ subtag(Subtag) -->
 
 
 
-%! literal(?Literal:compound)// .
-% ```ebnf
-% literal ::= RDFLiteral | NumericLiteral | BooleanLiteral
+%! languageTag(?LangTag:list(atom))// .
+% ```BNF
+% languageTag := @ (U+40) followed a nonempty sequence of characters matching
+%                the langtag production from [BCP 47]
 % ```
 %
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+languageTag(LangTag) -->
+  "@",
+  'Language-Tag'(LangTag).
+
+
+
+%! lexicalValue(?LexicalForm:atom)// .
+% ```bnf
+% lexicalValue ::= quotedString
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+lexicalValue(LexicalForm) --> quotedString(LexicalForm).
+
+
+
+%! literal(+Language:oneof([manchester,turtle]), ?Literal:compound)// .
+% ```ebnf
+% [Manchester]   literal ::=   typedLiteral
+%                            | stringLiteralNoLanguage
+%                            | stringLiteralWithLanguage
+%                            | integerLiteral
+%                            | decimalLiteral
+%                            | floatingPointLiteral
+% [Turtle]       literal ::= RDFLiteral | NumericLiteral | BooleanLiteral
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 % @compat Turtle 1.1 [13]
 
-literal(Literal) --> 'RDFLiteral'(Literal).
-literal(Literal) --> 'NumericLiteral'(Literal).
-literal(Literal) --> 'BooleanLiteral'(Literal).
+literal(manchester, Literal) --> typedLiteral(Literal).
+literal(manchester, Literal) --> stringLiteralNoLanguage(Literal).
+literal(manchester, Literal) --> stringLiteralWithLanguage(Literal).
+literal(manchester, Literal) --> integerLiteral(Literal).
+literal(manchester, Literal) --> decimalLiteral(Literal).
+literal(manchester, Literal) --> floatingPointLiteral(Literal).
+literal(turtle, Literal) --> 'RDFLiteral'(Literal).
+literal(turtle, Literal) --> 'NumericLiteral'(Literal).
+literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 
 
 
@@ -235,3 +278,41 @@ literal(Literal) --> 'BooleanLiteral'(Literal).
 % Simple literal.
 'RDFLiteral'(literal(LexicalExpression)) -->
   'String'(LexicalExpression).
+
+
+
+%! stringLiteralNoLanguage(?String:atom)// .
+% ```bnf
+% stringLiteralNoLanguage ::= quotedString
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+stringLiteralNoLanguage(String) --> quotedString(String).
+
+
+
+%! stringLiteralWithLanguage(?String:atom)// .
+% ```bnf
+% stringLiteralWithLanguage ::= quotedString languageTag
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+stringLiteralWithLanguage(LangTag-LexicalForm) -->
+  quotedString(LexicalForm),
+  languageTag(LangTag).
+
+
+
+%! typedLiteral// .
+% ```bnf
+% typedLiteral ::= lexicalValue '^^' Datatype
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+typedLiteral(literal(type(Datatype,LexicalForm))) -->
+  lexicalValue(LexicalForm),
+  "^^",
+  'Datatype'(Datatype).

@@ -50,41 +50,42 @@ Generally this means requiring white space except before and after
 @version 2014/12
 */
 
-:- use_module(plDcg(dcg_generics)).
+:- use_module(plDcg(dcg_bracket)).
 
+:- use_module(plRdf(syntax/sw_bnode)).
 :- use_module(plRdf(syntax/sw_char)).
+:- use_module(plRdf(syntax/sw_iri)).
 
 
 
 
 
-% comment// .
-% Comments are maximal sequences of Unicode characters starting with a `#`
-%  and not containing a line feed or a carriage return.
-% Note that comments are only recognized where white space is allowed,
-%  and thus not inside the above non-terminals.
+%! entity// .
+% ```bnf
+% entity ::=   'Datatype' '(' Datatype ')'
+%            | 'Class' '(' classIRI ')'
+%            | 'ObjectProperty' '(' objectPropertyIRI ')'
+%            | 'DataProperty' '('dataPropertyIRI ')'
+%            | 'AnnotationProperty' '(' annotationPropertyIRI ')'
+%            | 'NamedIndividual' '(' individualIRI ')'
+% ```
+% 
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-comment -->
-  "#",
-  dcg_until(end_of_comment, _, [end_mode(inclusive)]).
-
-end_of_comment --> carriage_return.
-end_of_comment --> line_feed.
-
+entity(Iri) --> "Datatype", bracketed('Datatype'(Iri)).
+entity(Iri) --> "Class", bracketed(classIRI(Iri)).
+entity(Iri) --> "ObjectProperty", bracketed(objectPropertyIRI(Iri)).
+entity(Iri) --> "AnnotationProperty", bracketed(annotationPropertyIRI(Iri)).
+entity(Iri) --> "NamedIndividual", bracketed(individualIRI(Iri)).
 
 
-%! white_space// .
-% White space is a sequence of:
-%   - blanks (U+20)
-%   - tabs (U+9)
-%   - line feeds (U+A)
-%   - carriage returns (U+D)
-%   - comments
 
-white_space -->
-  'WS',
-  white_space.
-white_space -->
-  comments,
-  white_space.
-white_space --> [].
+%! individual(?Individual:or([bnode,iri]))// .
+% ```bnf
+% individual ::= individualIRI | nodeID
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+individual(Iri) --> individualIRI(Iri).
+individual(BNode) --> nodeID(BNode).
