@@ -220,8 +220,8 @@ rdf_serialization(
   n3,
   n3,
   [
-    0.9-media_type(text,n3,[q(0.9)]),
-    0.5-media_type(text,'rdf+n3',[q(0.5)])
+    0.9-media_type(text,n3,[]),
+    0.5-media_type(text,'rdf+n3',[])
   ],
   'http://www.w3.org/ns/formats/N3'
 ).
