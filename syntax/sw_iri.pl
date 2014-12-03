@@ -459,6 +459,22 @@ simpleIRI(Iri) -->
 
 
 
+%! sparqlPrefix(?PrefixLabel:atom, ?Iri:atom)// .
+% ```ebnf
+% sparqlPrefix ::= "PREFIX" PNAME_NS IRIREF
+% ```
+%
+% @compat Turtle 1.1 [6s]
+
+sparqlPrefix(PrefixLabel, Iri) -->
+  "PREFIX",
+  'PNAME_NS'(PrefixLabel),
+  'IRIREF'(Iri),
+  {rdf_register_prefix(PrefixLabel, Iri)}.
+
+
+
+
 
 % HELPERS
 

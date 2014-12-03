@@ -147,8 +147,8 @@ literal(manchester, Literal) --> stringLiteralWithLanguage(Literal).
 literal(manchester, Literal) --> integerLiteral(Literal).
 literal(manchester, Literal) --> decimalLiteral(Literal).
 literal(manchester, Literal) --> floatingPointLiteral(Literal).
-literal(turtle, Literal) --> 'RDFLiteral'(Literal).
-literal(turtle, Literal) --> 'NumericLiteral'(Literal).
+literal(turtle, Literal) --> 'RDFLiteral'(turtle, Literal).
+literal(turtle, Literal) --> 'NumericLiteral'(turtle, Literal).
 literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 
 
@@ -176,11 +176,11 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat Turtle 1.1 [16]
 
 'NumericLiteral'(turtle, literal(type(xsd:decimal,Value))) -->
-  'DECIMAL'(Value).
+  'DECIMAL'(turtle, Value).
 'NumericLiteral'(turtle, literal(type(xsd:double,Value))) -->
-  'DOUBLE'(Value).
+  'DOUBLE'(turtle, Value).
 'NumericLiteral'(turtle, literal(type(xsd:integer,Value))) -->
-  'INTEGER'(Value).
+  'INTEGER'(turtle, Value).
 'NumericLiteral'(sparql, Value) -->
   'NumericLiteralNegative'(Value).
 'NumericLiteral'(sparql, Value) -->
@@ -237,11 +237,11 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat SPARQL 1.1 Update [131]
 
 'NumericLiteralUnsigned'(literal(type(xsd:decimal,Value))) -->
-  'DECIMAL'(Value).
+  'DECIMAL'(sparql, Value).
 'NumericLiteralUnsigned'(literal(type(xsd:double,Value))) -->
-  'DOUBLE'(Value).
+  'DOUBLE'(sparql, Value).
 'NumericLiteralUnsigned'(literal(type(xsd:integer,Value))) -->
-  'INTEGER'(Value).
+  'INTEGER'(sparql, Value).
 
 
 
@@ -266,18 +266,18 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat Turtle 1.1 [128s] is the same, but uses a different `String`.
 
 % Typed literal.
-'RDFLiteral'(literal(type(Datatype,LexicalExpression))) -->
-  'String'(LexicalExpression),
+'RDFLiteral'(Language, literal(type(Datatype,LexicalExpression))) -->
+  'String'(Language, LexicalExpression),
   "^^",
   iri(Datatype).
 % Language-tagged string.
-'RDFLiteral'(literal(lang(LangTag,LexicalExpression))) -->
-  'String'(LexicalExpression),
+'RDFLiteral'(Language, literal(lang(LangTag,LexicalExpression))) -->
+  'String'(Language, LexicalExpression),
   'LANGTAG'(LangTag0),
   {atomic_list_concat(LangTag0, '-', LangTag)}.
 % Simple literal.
-'RDFLiteral'(literal(LexicalExpression)) -->
-  'String'(LexicalExpression).
+'RDFLiteral'(Language, literal(LexicalExpression)) -->
+  'String'(Language, LexicalExpression).
 
 
 

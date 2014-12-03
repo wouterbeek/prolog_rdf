@@ -24,12 +24,18 @@ Grammar rules for strings in Semantic Web standards.
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_code)).
 :- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_meta)).
 :- use_module(plDcg(dcg_quote)).
 
 :- use_module(plRdf(syntax/sw_char)).
+
+:- meta_predicate('STRING_LITERAL'(+,//,?,?,?)).
+:- meta_predicate('STRING_LITERAL_char'(+,//,?,?,?)).
+:- meta_predicate('STRING_LITERAL_LONG'(+,//,?,?,?)).
+:- meta_predicate('STRING_LITERAL_LONG_char'(+,//,?,?,?)).
 
 
 
@@ -264,13 +270,28 @@ quotedString_codes([H|T]) -->
 
 
 
+%! 'STRING_LITERAL_char'(
+%!   +Language:oneof([sparql,turtle]),
+%!   :Exclude,
+%!   ?Code:code
+%! )// .
+
+'STRING_LITERAL_char'(_, Exclude, _) --> Exclude, !, {fail}.
+'STRING_LITERAL_char'(_, _, Code) --> 'ECHAR'(Code).
+'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('5C')), !, {fail}.
+'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('A')), !, {fail}.
+'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('D')), !, {fail}.
+'STRING_LITERAL_char'(turtle, _, Code) --> 'UCHAR'(Code).
+
+
+
 %! 'STRING_LITERAL_LONG_char'(
 %!   +Language:oneof([sparql,turtle]),
 %!   +Quote:oneof([double_quote,single_quote]),
 %!   ?String:atom
 %! )// .
 
-'STRING_LITERAL_LONG'(Language, Quote, String):-
+'STRING_LITERAL_LONG'(Language, Quote, String) -->
   quoted(3, Quote,
     '*'(
       'STRING_LITERAL_LONG_char'(Language, Quote),
@@ -293,16 +314,3 @@ quotedString_codes([H|T]) -->
 'STRING_LITERAL_LONG_char'(_, _, Code) --> 'ECHAR'(Code).
 'STRING_LITERAL_LONG_char'(turtle, _, Code) --> 'UCHAR'(Code).
 
-
-%! 'STRING_LITERAL_char'(
-%!   +Language:oneof([sparql,turtle]),
-%!   :Exclude,
-%!   ?Code:code
-%! )// .
-
-'STRING_LITERAL_char'(_, Exclude, _) --> Exclude, !, {fail}.
-'STRING_LITERAL_char'(_, _, Code) --> 'ECHAR'(Code).
-'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('5C')), !, {fail}.
-'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('A')), !, {fail}.
-'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('D')), !, {fail}.
-'STRING_LITERAL_char'(turtle, _, Code) --> 'UCHAR'(Code).

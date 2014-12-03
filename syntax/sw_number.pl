@@ -106,10 +106,10 @@ decimalLiteral(N) -->
 'DECIMAL_NEGATIVE'(N) -->
   "-",
   (   {var(N)}
-  ->  'DECIMAL'(N0),
+  ->  'DECIMAL'(sparql, N0),
       {N is copysign(N0, -1)}
   ;   {N0 is abs(N)},
-      'DECIMAL'(N0)
+      'DECIMAL'(sparql, N0)
   ).
 
 
@@ -124,7 +124,7 @@ decimalLiteral(N) -->
 
 'DECIMAL_POSITIVE'(N) -->
   "+",
-  'DECIMAL'(N).
+  'DECIMAL'(sparql, N).
 
 
 
@@ -184,7 +184,7 @@ digits(L) -->
 
 'DOUBLE_POSITIVE'(N) -->
   "+",
-  'DOUBLE'(N).
+  'DOUBLE'(sparql, N).
 
 
 
@@ -272,7 +272,7 @@ floatingPointLiteral(N) -->
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
 integerLiteral(N) -->
-  'INTEGER'(N).
+  signed_integer(N).
 
 
 

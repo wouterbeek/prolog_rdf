@@ -29,6 +29,7 @@ Generates names for RDF terms and triples.
 :- use_module(pl(pl_log)).
 
 :- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_code)).
 :- use_module(plDcg(dcg_content)).
@@ -104,14 +105,14 @@ rdf_graph_name(Graph) -->
 %!   +Term:rdf_term
 %! )// is det.
 % The following options are supported:
-%   * =|iri_description(+oneof([
+%   - `iri_description(+oneof([
 %         iri_only,
 %         only_all_literals,
 %         only_preferred_label,
 %         with_all_literals,
 %         with_preferred_label
-%     ]))|=
-%   * =|language_preferences(+list(atom))|=
+%     ]))`
+%   - `language_preferences(+list(atom))`
 
 % The options `only_preferred_label` and `with_preferred_label`.
 rdf_iri_name(Options1, Iri) -->
@@ -213,12 +214,12 @@ rdf_plain_literal_name(Options1, literal(Value)) -->
 
 %! rdf_simple_literal_name(+Options:list(nvpair), +Value:atom)// is det.
 % The following options are supported:
-%   * =|literal_ellipsis(+or([oneof([inf]),positive_integer]))|=
+%   - `literal_ellipsis(+or([oneof([inf]),positive_integer]))`
 %     The maximum length of a literal before ellipsis s used.
 
 rdf_simple_literal_name(Options1, Value) -->
   {option(literal_ellipsis(Ellipsis), Options1, inf)},
-  quoted(atom_ellipsis(Value, Ellipsis)).
+  quoted(double_quote, atom_ellipsis(Value, Ellipsis)).
 
 
 
@@ -234,21 +235,21 @@ rdf_term_name(Term) -->
 % Returns a display name for the given RDF term.
 %
 % The following options are supported:
-%   * =|graph(+Graph:atom)|=
+%   - `graph(+Graph:atom)`
 %     `TERM in GRAPH`
-%   * =|language(+Language:atom)|=
+%   - `language(+Language:atom)`
 %     The atomic language tag of the language that is preferred for
 %     use in the RDF term's name.
 %     The default value is `en`.
-%   * =|literal_ellipsis(+or([oneof([inf]),positive_integer]))|=
+%   - `literal_ellipsis(+or([oneof([inf]),positive_integer]))`
 %     The maximum length of a literal before ellipsis s used.
-%   * =|iri_description(+DescriptionMode:oneof([
+%   - `iri_description(+DescriptionMode:oneof([
 %       only_all_literals,
 %       only_preferred_label,
 %       iri_only,
 %       with_all_literals,
 %       with_preferred_label
-%     ]))|=
+%     ]))`
 %     Whether or not literals are included in the name of the RDF term.
 %     The default value is `iri_only`.
 
@@ -308,7 +309,7 @@ rdf_typed_literal_name(literal(type(Datatype,LexicalForm))) -->
       with_output_to(atom(Value), write_canonical_blobs(Value0))
   ;   Value = LexicalForm
   )},
-  quoted(atom(Value)),
+  quoted(double_quote, atom(Value)),
   "^^",
   rdf_iri_name([], Datatype).
 
