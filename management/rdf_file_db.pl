@@ -80,8 +80,7 @@ rdf_accept_header_value(AcceptValue):-
     ),
     MediaRanges
   ),
-  dcg_with_output_to(atom(AcceptValue), 'Accept'(MediaRanges)),
-  format(user_output, '>>>>>>>>>>\n~a\n<<<<<<<<<<\n', [AcceptValue]).
+  dcg_with_output_to(atom(AcceptValue), 'Accept'(MediaRanges)).
 
 
 
