@@ -85,7 +85,7 @@ Statistics for RDF data.
 %
 % The total number of distinct classes in the graph.
 % In other words, the number of distinct class URIs
-% occuring as objects of =|rdf:type|= triples in the graph.
+% occuring as objects of =|rdf:type` triples in the graph.
 %
 % This definition is actually incorrect, since a class can be specified
 % using either of the following triple schemes, without the class having
@@ -95,7 +95,7 @@ Statistics for RDF data.
 % <C, rdfs:subClassOf,  C'        >
 % ```
 %
-% @see Based on the definition of =|void:classes|=.
+% @see Based on the definition of =|void:classes`.
 
 count_classes(G, Count):-
   aggregate_all(
@@ -111,7 +111,7 @@ count_classes(G, Count):-
 %	The total number of entities that are described in the graph.
 % To be an entity in a graph, a resource must have a URI.
 %
-% @see Based on the definition of =|void:entities|=.
+% @see Based on the definition of =|void:entities`.
 
 count_entities(G, Count):-
   aggregate_all(
@@ -150,7 +150,7 @@ count_individuals(C, G, N):-
 % In other words, the number of distinct URIs, blank nodes, or literals
 % that occur in the object position of triples in the graph.
 %
-% @see Based on the definition of =|void:distinctObjects|=.
+% @see Based on the definition of =|void:distinctObjects`.
 
 count_objects(S, P, G, Count):-
   aggregate_all(
@@ -180,7 +180,7 @@ count_objects(S, P, G, Count):-
 % <P1, rdfs:subPropertyOf, P2          >
 % ```
 %
-% @see Based on the definition of =|void:properties|=.
+% @see Based on the definition of =|void:properties`.
 
 count_properties(S, O, G, Count):-
   aggregate_all(
@@ -203,7 +203,7 @@ count_properties(S, O, G, Count):-
 % In other words, the number of distinct URIs or blank nodes
 % that occur in the subject position of triples in the graph.
 %
-% @see Based on the definition of =|void:distinctSubjects|=.
+% @see Based on the definition of =|void:distinctSubjects`.
 
 count_subjects(P, O, G, Count):-
   aggregate_all(

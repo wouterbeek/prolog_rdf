@@ -30,12 +30,12 @@ some are exclusively in `IR`;
 some are exclusively in `IP`.
 
 Interpretation function `I`:
-  1. If `E` is a plain literal =|"aaa"|=, then =|I(E) = aaa|=.
-  2. If `E` is a plain literal, then =|I(E) = aaa|=.
-  3. If `E` is a typed literal in `V`, then =|I(E) = IL(E)|=.
-  4. If `E` is a URI reference in `V`, then =|I(E) = IS(E)|=.
+  1. If `E` is a plain literal =|"aaa"`, then =|I(E) = aaa`.
+  2. If `E` is a plain literal, then =|I(E) = aaa`.
+  3. If `E` is a typed literal in `V`, then =|I(E) = IL(E)`.
+  4. If `E` is a URI reference in `V`, then =|I(E) = IS(E)`.
   5. If `E` is a ground triple $\langle s, p, o \rangle$,
-     the =|I(E) = true|= iff `s`, `p`, and `o` are in `V`,
+     the =|I(E) = true` iff `s`, `p`, and `o` are in `V`,
      $I(p) \in IP$ and $\langle I(s), I(o) \rangle \in IEXT(I(p))$.
   6. A graph is true if each triple is true.
 

@@ -69,7 +69,7 @@ rdf_meta_expand(Term):-
 %! expand_body(+Expansions, +Body, -ExpandedBody)
 % Expands the original body with each element in
 % the list of expansions by combining them in
-% a conjunction using the '=|,|=' operator.
+% a conjunction using the '=|,`' operator.
 
 expand_body([], Body, Body).
 expand_body([Expansion|Expansions], Body, (Expansion, ExpandedBody)):-

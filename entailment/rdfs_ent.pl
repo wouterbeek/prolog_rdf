@@ -270,9 +270,9 @@ rdf:rule_forward(
   rdf(S, P1, O, G).
 
 
-% [rdfs8] Classes are instances of =|'http://www.w3.org/2000/01/rdf-schema#Resource'|=.
+% [rdfs8] Classes are instances of =|'http://www.w3.org/2000/01/rdf-schema#Resource'`.
 
-rdf:explanation(rdfs, rdfs8, 'Classes are instances of =|rdfs:Resource|=').
+rdf:explanation(rdfs, rdfs8, 'Classes are instances of =|rdfs:Resource`').
 
 rdf:rule_forward(
   rdfs,

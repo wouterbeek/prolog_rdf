@@ -99,7 +99,7 @@ Support for RDF lists.
 % Asserts the given, possibly nested list into RDF.
 %
 % The following options are supported:
-%   * =|datatype(+Datatype:iri)|=
+%   - `datatype(+Datatype:iri)`
 %
 % @author Wouter Beek, elaborating on Sanders original, adding optional
 %         graph, lists of datatyped literals, and return argument for root.

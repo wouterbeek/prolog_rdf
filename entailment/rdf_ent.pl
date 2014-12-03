@@ -134,7 +134,7 @@ rdf:rule_forward(rdf, lg, [rdf(S,P,Lit)], rdf(S,P,B), G):-
 rdf:regime(rdf).
 
 
-% [rdf1] Predicate terms are instances of =|rdf:'Property'|=.
+% [rdf1] Predicate terms are instances of =|rdf:'Property'`.
 
 rdf:explanation(
   rdf,
@@ -152,7 +152,7 @@ rdf:rule_forward(
   rdf(S, P, O, G).
 
 
-% [rdf2] XML literals are instances of =|rdf:'XMLLiteral'|=.
+% [rdf2] XML literals are instances of =|rdf:'XMLLiteral'`.
 
 rdf:explanation(
   rdf,

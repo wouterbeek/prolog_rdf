@@ -40,12 +40,12 @@ Writes the given graph (or all currently stored triples) to a source.
 % `Source` is either a file name or a write stream.
 %
 % The following options are supported:
-%   * =|bnode_base(+atom)|=
+%   - `bnode_base(+atom)`
 %     Replace blank nodes with an IRI, defined as per
 %     RDF 1.1 spec (see link below).
-%   * =|format(-oneof([quads,triples]))|=
+%   - `format(-oneof([quads,triples]))`
 %     `quads` if at least one named graph occurs, `triples` otherwise.
-%   * =|number_of_triples(-nonneg)|=
+%   - `number_of_triples(-nonneg)`
 %     The number of triples that was written.
 %
 % @see http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/#section-skolemization

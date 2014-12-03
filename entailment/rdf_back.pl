@@ -74,14 +74,14 @@ rdf_back(Triple):-
 
 %! rdf_back(+Conclusion:compound, +Options:list(nvpair)) is nondet.
 % The following options are supported:
-%   * =|entailment_regimes(+list(atom))|=
+%   - `entailment_regimes(+list(atom))`
 %     The entailment regimes whose rules are used to backward chaining.
 %     Default: `[rdf]`.
-%   * =|graph(+atom)|=
+%   - `graph(+atom)`
 %     Retrict the facts that are considered
 %     to those that appear in a specific graph.
 %     Default: `user`.
-%   * =|multiple_justifications(+boolean)|=
+%   - `multiple_justifications(+boolean)`
 %     Whether the same result is returned multiple times,
 %     in case multiple justifications exist.
 %     Default: `false`.
@@ -201,7 +201,7 @@ rule_back(
   term_set_bnode(Graph, literal(Literal), BNode).
 
 
-% [rdf1] Predicate terms are instances of =|rdf:'Property'|=.
+% [rdf1] Predicate terms are instances of =|rdf:'Property'`.
 
 rule_back(
   Regimes,
@@ -232,7 +232,7 @@ rule_back(
   rule_back(Regimes, rdf(_,P,_), Graph, Path2, SubTree).
 
 
-% [rdf2] XML literals are instances of =|rdf:'XMLLiteral'|=.
+% [rdf2] XML literals are instances of =|rdf:'XMLLiteral'`.
 
 rule_back(
   Regimes,

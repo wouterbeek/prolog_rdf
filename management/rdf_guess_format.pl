@@ -36,10 +36,10 @@ Detect the RDF serialization format of a given stream.
 % `Source` is either a stream or a file name.
 %
 % The following options are processed:
-%   * =|format(+Format)|=
+%   - `format(+Format)`
 %     The guessed RDF serialization format,
 %     e.g. based on the media type and/or file name.
-%   * =|look_ahead(+NumberOfBytes:nonneg)|=
+%   - `look_ahead(+NumberOfBytes:nonneg)`
 %     Look ahead the indicated amount
 
 rdf_guess_format(File0, Format):-

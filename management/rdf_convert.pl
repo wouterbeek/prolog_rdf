@@ -74,7 +74,7 @@ rdf_convert_directory(Dir, ToFormat, ToFiles, Options):-
 % in another directory.
 %
 % The following options are supported:
-%   * =|overwrite(+boolean)|=
+%   - `overwrite(+boolean)`
 %     Whether RDF files that have been converted to a new file
 %     should be overwritten.
 %     Default: `false`.
@@ -107,7 +107,7 @@ rdf_convert_directory(FromDir, ToDir, ToFormat, ToFiles, Options):-
 % with the given MIME content type.
 %
 % The following options are supported:
-%   * =|overwrite(+boolean)|=
+%   - `overwrite(+boolean)`
 %     Whether RDF files that have been converted to a new file
 %     should be overwritten.
 %     Default: `false`.
