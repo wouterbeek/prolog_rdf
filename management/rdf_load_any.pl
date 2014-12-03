@@ -238,18 +238,20 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
 
   % The actual loading of the RDF data.
   rdf_load(stream(In), Options3),
+  % Use the default graph as given by the calling context, otherwise `user`.
+  option(graph(DefaultGraph), Options3, user),
 
   % RDF metadata: dataset (default graph, named graphs), serialization format.
   aggregate_all(
     set(NamedGraphMetadata),
     (
       rdf_graph_property(Graph, triples(Triples)),
-      Graph \== user,
+      Graph \== DefaultGraph,
       dict_create(NamedGraphMetadata, json, [name-Graph,triples-Triples])
     ),
     NamedGraphMetadatas
   ),
-  rdf_graph_property(user, triples(DefaultGraphTriples)),
+  rdf_graph_property(DefaultGraph, triples(DefaultGraphTriples)),
   rdf_statistics(graphs(Graphs)),
   rdf_statistics(literals(Literals)),
   rdf_statistics(properties(Properties)),
@@ -297,9 +299,11 @@ location_suffix([Archive|T], Suffix):-
 % Extracts a content type term from the metadata object, if present.
 
 metadata_content_type(Metadata, media_type(Type,Subtype,Parameters)):-
-  Type = Metadata.'HTTP'.'Content-Type'.type,
-  Subtype = Metadata.'HTTP'.'Content-Type'.subtype,
-  Parameters = Metadata.'HTTP'.'Content-Type'.parameters.
+  get_dict('HTTP', Metadata, HttpMetadata),
+  get_dict('Content-Type', HttpMetadata, ContentType),
+  get_dict(type, ContentType, Type),
+  get_dict(subtype, ContentType, Subtype),
+  get_dict(parameters, ContentType, Parameters).
 
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
