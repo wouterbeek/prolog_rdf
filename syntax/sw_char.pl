@@ -88,7 +88,7 @@ end_of_comment --> line_feed.
 
 
 
-%! 'PERCENT'(?Weight:between(0,256))// .
+%! 'PERCENT'(?Code:between(0,256))// .
 % ```bnf
 % PERCENT ::= '%' HEX HEX
 % ```
@@ -96,20 +96,20 @@ end_of_comment --> line_feed.
 % @compat SPARQL Query 1.1 [171].
 % @compat Turtle 1.1 [170s].
 
-'PERCENT'(Weight) -->
-  {between(0, 256, Weight)},
-  {Weight1 is Weight // 16},
-  {Weight2 is Weight rem 16},
-  'PERCENT'(Weight1, Weight2).
-'PERCENT'(Weight) -->
-  {var(Weight)},
-  'PERCENT'(Weight1, Weight2),
-  {Weight is Weight1 * 16 + Weight2}.
+'PERCENT'(W) -->
+  {between(0, 256, W)},
+  {W1 is W // 16},
+  {W2 is W rem 16},
+  'PERCENT'(W1, W2).
+'PERCENT'(W) -->
+  {var(W)},
+  'PERCENT'(W1, W2),
+  {W is W1 * 16 + W2}.
 
-'PERCENT'(Weight1, Weight2) -->
+'PERCENT'(W1, W2) -->
   "%",
-  'HEX'(Weight1),
-  'HEX'(Weight2).
+  'HEX'(W1),
+  'HEX'(W2).
 
 
 
@@ -270,16 +270,12 @@ end_of_comment --> line_feed.
 
 
 
-%! 'UCHAR'// .
 %! 'UCHAR'(?Code:nonneg)// .
 % ```ebnf
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ```
 %
 % @compat Turtle 1.1 [26].
-
-'UCHAR' -->
-  'UCHAR'(_).
 
 'UCHAR'(Code) -->
   "\\u",
@@ -306,7 +302,7 @@ white_space -->
   'WS',
   white_space.
 white_space -->
-  comments,
+  comment,
   white_space.
 white_space --> [].
 

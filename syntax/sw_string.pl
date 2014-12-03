@@ -287,7 +287,7 @@ quotedString_codes([H|T]) -->
 %!   ?Code:code
 %! )// .
 
-'STRING_LITERAL_LONG_char'(_, _, Code) --> "\\", !, {fail}.
+'STRING_LITERAL_LONG_char'(_, _, _) --> "\\", !, {fail}.
 'STRING_LITERAL_LONG_char'(_, Exclude, _) -->
   Exclude, Exclude, Exclude, !, {fail}.
 'STRING_LITERAL_LONG_char'(_, _, Code) --> 'ECHAR'(Code).

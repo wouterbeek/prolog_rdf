@@ -91,7 +91,7 @@ decimalLiteral(N) -->
   },
   digits(L1),
   ".",
-  digits(L2),
+  digits(L2).
 
 
 
@@ -135,7 +135,7 @@ decimalLiteral(N) -->
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-digit(N) --> zero(N).
+digit(N) --> zero(_, N).
 digit(N) --> nonZero(N).
 
 
@@ -226,21 +226,6 @@ digits(L) -->
 % ```
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
-% @compat Differs from 'EXPONENT'//1 (SPARQL, Turtle) in that the sign is
-%         required here.
-
-exponent(N) -->
-  e,
-  (   {var(N)}
-  ->  sign(Sg),
-      digits(Ws),
-      {
-        weights_decimal(Ws, N0),
-        N is copysign(N0, Sg)
-      }
-  ;   % @tbd
-      ""
-  ).
 
 
 
@@ -331,7 +316,7 @@ integerLiteral(N) -->
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-nonNegativeInteger(N) --> zero(N).
+nonNegativeInteger(N) --> zero(_, N).
 nonNegativeInteger(N) --> positiveInteger(N).
 
 
@@ -362,23 +347,13 @@ positiveInteger(N) -->
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-nonZero(1) --> "1".
-nonZero(2) --> "2".
-nonZero(3) --> "3".
-nonZero(4) --> "4".
-nonZero(5) --> "5".
-nonZero(6) --> "6".
-nonZero(7) --> "7".
-nonZero(8) --> "8".
-nonZero(9) --> "9".
+nonZero(Weight) --> between_digit(1, 9, Weight).
 
 
 
-%! zero(?Digit:between(0,0))// .
+%! zero(?Code:code, ?Digit:between(0,0))// .
 % ```bnf
 % zero := '0'
 % ```
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
-
-zero(0) --> "0".

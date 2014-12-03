@@ -23,9 +23,9 @@
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_bracket)).
 
-:- use_module(plRdf(syntax/turtle/turtle_char)).
-:- use_module(plRdf(syntax/turtle/turtle_iri)).
-:- use_module(plRdf(syntax/turtle/turtle_number)).
+:- use_module(plRdf(syntax/sw_char)).
+:- use_module(plRdf(syntax/sw_iri)).
+:- use_module(plRdf(syntax/sw_number)).
 :- use_module(plRdf(term/rdf_list)).
 
 :- dynamic(base/1).
@@ -205,21 +205,6 @@ predicateObjectList_content(P-Os) -->
   verb(P),
   b,
   objectList(Os).
-
-
-
-%! prefixID// .
-% ```ebnf
-% prefixID ::= '@prefix' PNAME_NS IRIREF '.'
-% ```
-%
-% @compat Turtle 1.1 [4].
-
-prefixID -->
-  "@prefix", b,
-  'PNAME_NS'(PrefixLabel), b,
-  'IRIREF'(Iri), b, `.`,
-  {rdf_register_prefix(PrefixLabel, Iri)}.
 
 
 

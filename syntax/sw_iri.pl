@@ -30,16 +30,17 @@ Most standards allow IRIs to be abbreviated by splitting them in
 */
 
 :- use_module(library(error)).
-:- use_module(library(lists)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(lists), except([delete/3])).
+:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(char_ext)).
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_bracket)).
 :- use_module(plDcg(dcg_meta)).
 
-:- use_module(plUri(rfc3987)).
+:- use_module(plUri(rfc3987), ['IRI'//1 as 'IRI_rdf3987']).
 
 :- use_module(plRdf(syntax/sw_char)).
 
@@ -141,7 +142,7 @@ individualIRI(Iri) --> 'IRI'(Iri).
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
 fullIRI(Iri) -->
-  bracketed(angular, 'IRI'(Iri)).
+  bracketed(angular, 'IRI_rdf3987'(Iri)).
 
 
 
@@ -201,7 +202,7 @@ fullIRI(Iri) -->
 
 
 
-%! IRIref(?Iri:atom)// .
+%! 'IRIref'(?Iri:atom)// .
 % ```bnf
 % IRIref ::= IRI_REF | PrefixedName
 % ```
@@ -349,6 +350,22 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 'PNAME_NS'(Prefix) -->
   '?'('PN_PREFIX', Prefix, [empty1('')]),
   ":".
+
+
+
+%! prefixID(?PrefixLabel:atom, ?Iri:atom)// .
+% ```ebnf
+% prefixID ::= '@prefix' PNAME_NS IRIREF '.'
+% ```
+%
+% @compat Turtle 1.1 [4].
+
+prefixID(PrefixLabel, Iri) -->
+  "@prefix",
+  'PNAME_NS'(PrefixLabel),
+  'IRIREF'(Iri),
+  ".",
+  {rdf_register_prefix(PrefixLabel, Iri)}.
 
 
 

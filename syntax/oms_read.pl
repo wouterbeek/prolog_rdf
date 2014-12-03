@@ -88,4 +88,4 @@ entity(Iri) --> "NamedIndividual", bracketed(individualIRI(Iri)).
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
 individual(Iri) --> individualIRI(Iri).
-individual(BNode) --> nodeID(BNode).
+individual(BNode) --> nodeID(manchester, BNode).

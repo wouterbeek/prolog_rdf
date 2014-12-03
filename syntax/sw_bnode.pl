@@ -3,8 +3,9 @@
   [
     'ANON'//1, % -BNode:bnode
     'BLANK_NODE_LABEL'//1, % -BNode:bnode
-    'BlankNode'//1 % ?BNode:bnode
-    nodeID//1 % ?BNode:bnode
+    'BlankNode'//1, % ?BNode:bnode
+    nodeID//2 % ?Language:oneof([manchester,turtle10])
+              % ?BNode:bnode
   ]
 ).
 
@@ -31,6 +32,8 @@ not as references to specific blank nodes in the data being queried.
 :- use_module(plDcg(dcg_code)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_meta)).
+
+:- use_module(plRdf(syntax/sw_char)).
 
 %! bnode_memory(?BNodeLabel:atom, BNode:bnode) is nondet.
 
@@ -78,13 +81,7 @@ not as references to specific blank nodes in the data being queried.
 
 'BLANK_NODE_LABEL'(BNode) -->
   dcg_atom_codes('BLANK_NODE_LABEL_codes', BNodeLabel),
-  {(   % The blank node label is already associated with a blank node.
-      bnode_memory(BNodeLabel, BNode)
-  ->  true
-  ;   % A new blank node is created, and is associated to the blank node label.
-      rdf_bnode(BNode),
-      assert(bnode_memory(BNodeLabel, BNode))
-  )}.
+  {bnode_label(BNodeLabel, BNode)}.
 
 'BLANK_NODE_LABEL_codes'([H|T]) -->
   "_:",
@@ -125,7 +122,7 @@ not as references to specific blank nodes in the data being queried.
 
 
 
-%! name(?Codes:list(code))// .
+%! name(?Name:atom)// .
 % ```ebnf
 % name ::= nameStartChar nameChar*
 % ```
@@ -133,21 +130,15 @@ not as references to specific blank nodes in the data being queried.
 % @compat Turtle 1.0 [32]
 % @deprecated
 
-name([H|T]) -->
+name(Name) -->
+  {var(Name)}, !,
+  nameStartChar(H),
+  '*'(nameChar, T, []),
+  {atom_codes(Name, [H|T])}.
+name(Name) -->
+  {atom_codes(Name, [H|T])},
   nameStartChar(H),
   '*'(nameChar, T, []).
-
-
-
-%! nodeID(?BNode:bnode)// .
-% ```bnf
-% nodeID := a finite sequence of characters matching the BLANK_NODE_LABEL
-%           production of [SPARQL].
-% ```
-%
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
-
-nodeID(BNode) --> 'BLANK_NODE_LABEL'(BNode).
 
 
 
@@ -213,15 +204,34 @@ nameStartChar(Code) --> between_code_radix(hex('10000'), hex('EFFFF'), Code).
 
 
 
-%! nodeID(-BNodeLabel:atom)// .
-% ```ebnf
-% nodeID ::= '_:' name
+
+%! nodeID(?Language:oneof([manchester,turtle10]), ?BNode:bnode)// .
+% ```bnf
+% [Manchester]   nodeID := a finite sequence of characters matching
+%                          the BLANK_NODE_LABEL production of [SPARQL].
+% [Turtle]       nodeID ::= '_:' name
 % ```
 %
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 % @compat Turtle 1.0 [26]
-% @deprecated
+% @deprecated Turtle 1.1 [26]
 
-nodeID(BNodeLabel) -->
+nodeID(manchester, BNode) -->
+  'BLANK_NODE_LABEL'(BNode).
+nodeID(turtle, BNodeLabel) -->
   "_:",
   name(BNodeLabel).
 
+
+
+
+
+% HELPERS
+
+% The blank node label is already associated with a blank node.
+bnode_label(BNodeLabel, BNode):-
+  bnode_memory(BNodeLabel, BNode), !.
+% A new blank node is created, and is associated to the blank node label.
+bnode_label(BNodeLabel, BNode):-
+  rdf_bnode(BNode),
+  assert(bnode_memory(BNodeLabel, BNode)).
