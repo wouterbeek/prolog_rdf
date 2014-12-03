@@ -80,7 +80,8 @@ rdf_accept_header_value(AcceptValue):-
     ),
     MediaRanges
   ),
-  dcg_with_output_to(atom(AcceptValue), 'Accept'(MediaRanges)).
+  dcg_with_output_to(atom(AcceptValue), 'Accept'(MediaRanges)),
+  format(user_output, '>>>>>>>>>>\n~a\n<<<<<<<<<<\n', [AcceptValue]).
 
 
 
@@ -190,8 +191,8 @@ rdf_serialization(
   rdfa,
   rdfa,
   [
-    0.5-media_type(application,'xhtml+xml',[]),
-    0.5-media_type(text,html,[])
+    0.2-media_type(application,'xhtml+xml',[]),
+    0.1-media_type(text,html,[])
   ],
   'http://www.w3.org/ns/formats/RDFa'
 ).
