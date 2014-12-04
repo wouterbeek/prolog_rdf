@@ -14,7 +14,7 @@
                     % ?Object:rdf_term
                     % ?Graph:atom
                     % -Prefixes:ordset(pair(atom,positive_integer))
-    rdf_iri_to_prefix/3 % +Iri:iri
+    rdf_longest_prefix/3 % +Iri:iri
                         % -LongestPrefix:atom
                         % -ShortestLocalName:atom
   ]
@@ -124,17 +124,17 @@ rdf_prefixes(S, P, O, Graph, Pairs5):-
   reverse(Pairs4, Pairs5).
 
 
-%! rdf_iri_to_prefix(
+%! rdf_longest_prefix(
 %!   +Iri:iri,
 %!   -LongestPrefix:atom,
 %!   -ShortestLocalName:atom
 %! ) is det.
 
-rdf_iri_to_prefix(Iri, LongestPrefix, ShortestLocalName):-
+rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
   findall(
     LocalNameLength-Prefix,
     (
-      rdf_global_id(Prefix:LocalName, Iri),
+      rdf_db:global(Prefix, LocalName, Iri),
       atom_length(LocalName, LocalNameLength)
     ),
     Pairs

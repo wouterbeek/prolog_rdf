@@ -170,7 +170,7 @@ rdf_iri_name(Options1, Iri) -->
 % The IRI has at least one XML namespace prefix.
 rdf_iri_name(_, Iri) -->
   % We take the prefix that stands for the longest IRI substring.
-  {rdf_iri_to_prefix(Iri, LongestPrefix, ShortestLocalName)}, !,
+  {rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName)}, !,
   atom(LongestPrefix),
   ":",
   atom(ShortestLocalName).

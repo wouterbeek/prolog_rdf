@@ -399,6 +399,10 @@ dbpedia_language_tag(zh_yue).
 % MUTO
 :- rdf_register_prefix(muto, 'http://purl.org/muto/core#').
 
+% New York Times
+:- rdf_register_prefix(nyt, 'http://data.nytimes.com/').
+:- rdf_register_prefix(nytimes, 'http://data.nytimes.com/elements/').
+
 % Pattern
 :- rdf_register_prefix(pattern, 'http://www.essepuntato.it/2008/12/pattern#').
 
