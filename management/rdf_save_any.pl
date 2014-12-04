@@ -1,15 +1,15 @@
 :- module(
   rdf_save_any,
   [
-    rdf_save_any/2 % ?File:atom
+    rdf_save_any/2 % ?Out
                    % +Options:list(nvpair)
   ]
 ).
 
-/** <module> RDF: save any
+/** <module> RDF Management: Save in any format
 
 @author Wouter Beek
-@version 2014/10-2014/11
+@version 2014/10-2014/12
 */
 
 :- use_module(library(debug)).
@@ -24,9 +24,25 @@
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(syntax/ctriples/ctriples_write_graph)).
 
+:- predicate_options(rdf_save_any/2, 2, [
+     format(+oneof([ntriples,rdf_xml,trig,triples,turtle])),
+     graph(+atom),
+     silent(+boolean),
+     pass_to(rdf_save_any/3, 3)
+   ]).
+:- predicate_options(rdf_save_any/3, 3, [
+     compress(+oneof([deflate,gzip])),
+     pass_to(ctriples_write_graph/3, 3),
+     pass_to(rdf_save/2, 2),
+     pass_to(rdf_save_trig/2, 2),
+     pass_to(rdf_save_turtle/2, 2)
+   ]).
 
 
-%! rdf_save_any(?File:atom, +Options:list(nvpair)) is det.
+
+
+
+%! rdf_save_any(?Out, +Options:list(nvpair)) is det.
 % If the file name is not given, then a file name is construed.
 % There are two variants here:
 %   1. The graph was loaded from a file. Use the same file
@@ -38,10 +54,10 @@
 % @throws instantiation_error If (1) File is uninstantiated and
 %         (2) there is no `graph` option that has a file associated to it.
 
-% 1.
+% 1. Uninstantiated `Out`; come up with a file name.
 % File name derived from graph.
 % This only works if a graph option is given
-% and the denoted graph was loaded form file.
+% and the denoted graph was loaded from file.
 rdf_save_any(File2, Options):-
   var(File2), !,
   (   option(graph(Graph), Options),
@@ -52,8 +68,7 @@ rdf_save_any(File2, Options):-
   ;   instantiation_error(File2)
   ).
 
-% 2.
-% No modifications.
+% 2. `Out` instantiated to a file name: No modifications.
 rdf_save_any(File, Options):-
   % We do not need to save the graph if
   % (1) the contents of the graph did not change, and
@@ -74,7 +89,7 @@ rdf_save_any(File, Options):-
   time_file(File, LastModified), !,
   debug(rdf_save_any, 'No need to save graph ~w; no updates.', [Graph]).
 
-% 3. 
+% 3. `Out` instantiated to a file name: There are modifications.
 rdf_save_any(File, Options1):-
   % Derive the RDF output format.
   (   select_option(format(Format), Options1, Options2)
@@ -100,22 +115,44 @@ rdf_save_any(File, Options1):-
   ).
 
 
+rdf_save_any(file(File), Format, Options):- !,
+  (   option(compress(Compress), Options)
+  ->  setup_call_cleanup(
+        gzopen(File, write, Write, [format(Compress)]),
+        rdf_save_any(stream(Write), Format, Options),
+        close(Write)
+      )
+  ;   setup_call_cleanup(
+        open(File, write, Write),
+        rdf_save_any(stream(Write), Format, Options),
+        close(Write)
+      )
+  ).
+
 % Save to RDF/XML
-rdf_save_any(File, rdf_xml, Options):- !,
-  rdf_save(File, Options).
+rdf_save_any(stream(Write), rdf_xml, Options):- !,
+  rdf_save(Write, Options).
 % Save to N-Triples.
-rdf_save_any(File, ntriples, Options):- !,
-  option(graph(Graph), Options, _NoGraph),
-  ctriples_write_graph(File, Graph, Options).
+rdf_save_any(stream(Write), Format0, Options1):-
+  (   Format0 == ntriples
+  ->  Format = triples
+  ;   Format0 == nquads
+  ->  Format = quads
+  ), !,
+  option(graph(Graph), Options1, _NoGraph),
+  merge_options([format(Format)], Options1, Options2),
+  ctriples_write_graph(Write, Graph, Options2).
 % Save to Trig.
-rdf_save_any(File, trig, Options):- !,
-  rdf_save_trig(File, Options).
+rdf_save_any(stream(Write), trig, Options):- !,
+  rdf_save_trig(Write, Options).
 % Save to Triples (binary storage format).
-rdf_save_any(File, triples, Options):- !,
-  option(graph(Graph), Options, user),
-  rdf_save_db(File, Graph).
+rdf_save_any(stream(Write), triples, Options):- !,
+  (   option(graph(Graph), Options)
+  ->  rdf_save_db(Write, Graph)
+  ;   rdf_save_db(Write)
+  ).
 % Save to Turtle.
-rdf_save_any(File, turtle, Options1):- !,
+rdf_save_any(stream(Write), turtle, Options1):- !,
   merge_options(
     [
       only_known_prefixes(true),
@@ -125,7 +162,9 @@ rdf_save_any(File, turtle, Options1):- !,
     Options1,
     Options2
   ),
-  rdf_save_turtle(File, Options2).
+  rdf_save_turtle(Write, Options2).
+
+
 
 
 

@@ -32,6 +32,8 @@ Writes the given graph (or all currently stored triples) to a source.
 
 
 
+
+
 %! ctriples_write_graph(
 %!   +Source:or([atom,stream]),
 %!   ?Graph:atom,
@@ -65,6 +67,7 @@ ctriples_write_graph(File, Graph, Options):-
   ).
 
 
+
 %! write_graph(?Graph:atom, +Options:list(nvpair)) is det.
 % This assumes that we can write to current output.
 
@@ -94,6 +97,7 @@ write_graph(Graph, Options):-
   ),
 
   ctriples_write_end(State, Options).
+
 
 
 %! write_subject(
