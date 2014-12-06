@@ -351,7 +351,9 @@ rdf_extra_headers([
 
 
 
-% Messages
+
+
+% MESSAGES %
 
 :- multifile(prolog:message//1).
 
