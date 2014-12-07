@@ -26,10 +26,12 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
+:- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).
+:- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_list)).
 
 
@@ -55,7 +57,7 @@ find_matching_legend(Dict, Module, MatchingLegend):-
       intersection(Keyset1, Keyset2, Shared),
       length(Shared, Length)
     ),
-    MatchingLegend
+    max(_, MatchingLegend)
   ).
 
 
@@ -74,7 +76,7 @@ create_resource(Prefix, Legend, Graph, Resource):-
   rdf_global_id(Prefix:ClassLocalName, Class),
 
   % Create the instance.
-  rdf_create_next_resource(Prefix, [resource], Class, Graph, Resource).
+  rdf_create_next_resource(Prefix, [Legend], Class, Graph, Resource).
 
 
 
@@ -135,8 +137,9 @@ json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource):-
 
   % Assert all predications of Resource.
   dict_pairs(Dict, json, Pairs),
+  Module:legend(Legend, Specs),
   maplist(
-    assert_json_property(Graph, Module, Prefix, Legend, Resource),
+    assert_json_property(Graph, Module, Prefix, Specs, Resource),
     Pairs
   ).
 
@@ -145,20 +148,20 @@ json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource):-
 %!   +Graph:atom,
 %!   +Module:atom,
 %!   +Prefix:atom,
+%!   +ArgumentSpecifications:list(pair),
 %!   +Resource:iri,
-%!   +ArgumentSpecification:compound,
 %!   +NVPair:pair(atom,term)
 %! ) is det.
 % Make sure a property with the given name exists.
 % Also retrieve the type the value should adhere to.
 
-assert_json_property(Graph, Module, Prefix, Resource, Specs, Name-Value):-
-  memberchk(arg(Name,Type,_), Specs),
+assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value):-
+  memberchk(Name-Type, Specs),
   assert_json_property(Graph, Module, Prefix, Resource, Name, Type, Value), !.
 % DEB: Unrecognized name-value pair (cannot convert).
-assert_json_property(Graph, Module, Prefix, Resource, Spec, Name-Value):-
+assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value):-
   gtrace, %DEB
-  assert_json_property(Graph, Module, Prefix, Resource, Spec, Name-Value).
+  assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value).
 
 % The value must match at least one of the given types.
 assert_json_property(Graph, Module, Prefix, Resource, Name, or(Types), Value):-
@@ -211,8 +214,10 @@ assert_json_property(Graph, _, Prefix, Resource, Name, rdf_list(Type), Values):-
   rdf_assert_list(Values, RdfList, Graph, [datatype(Datatype)]),
   rdf_assert(Resource, Predicate, RdfList, Graph).
 % Typed literals.
-assert_json_property(Graph, _, Prefix, Resource, Name, Datatype0, Value):-
+assert_json_property(Graph, _, Prefix, Resource, Name, Datatype0, Value0):-
   rdf_global_id(Datatype0, Datatype),
   rdf_global_id(Prefix:Name, Predicate),
+  rdf_lexical_map(Datatype, Value0, Value),
+gtrace,
   rdf_assert_typed_literal(Resource, Predicate, Value, Datatype, Graph).
 
