@@ -186,9 +186,9 @@ nameChar(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
 % @compat Turtle 1.0 [30]
 % @deprecated
 
-nameStartChar(Code) --> letter_uppercase(Code).
+nameStartChar(Code) --> ascii_letter_uppercase(Code).
 nameStartChar(Code) --> underscore(Code).
-nameStartChar(Code) --> letter_lowercase(Code).
+nameStartChar(Code) --> ascii_letter_lowercase(Code).
 nameStartChar(Code) --> between_code_radix(hex('00C0'), hex('00D6'), Code).
 nameStartChar(Code) --> between_code_radix(hex('00D8'), hex('00F6'), Code).
 nameStartChar(Code) --> between_code_radix(hex('00F8'), hex('02FF'), Code).

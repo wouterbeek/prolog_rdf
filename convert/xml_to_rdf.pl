@@ -98,7 +98,7 @@ xml_parse(ParserVersion, Prefix, Graph) -->
   {xml_version_map(ParserVersion, DocumentVersion)},
   'XMLDecl'(ParserVersion, xml_decl(DocumentVersion,_,_)),
   'STag'(ParserVersion, RootName, _),
-  '*'(white, []),
+  '*'(ascii_white, []),
   {
     rdf_global_id(Prefix:RootName, Class),
     rdf_create_next_resource(Prefix, [RootName], Class, Graph, Resource)
@@ -119,7 +119,7 @@ xml_parse(ParserVersion, Prefix, Graph) -->
 % Non-tag content.
 xml_parse(Version, Prefix, S, G) -->
   'STag'(Version, PTag, _), !,
-  '*'(white, []),
+  '*'(ascii_white, []),
   xml_content(Version, PTag, Codes),
   {
     atom_codes(O, Codes),
@@ -129,18 +129,18 @@ xml_parse(Version, Prefix, S, G) -->
 % Skip short tags.
 xml_parse(Version, _, _, _) -->
   'EmptyElemTag'(Version, _, _), !,
-  '*'(white, []).
+  '*'(ascii_white, []).
 % Nested tag.
 xml_parse(Version, Prefix, S, G) -->
   'STag'(Version, OTag, _), !,
-  '*'(white, []),
+  '*'(ascii_white, []),
   {
     rdf_global_id(Prefix:OTag, Class),
     rdf_create_next_resource(Prefix, [OTag], Class, G, O)
   },
   xml_parses(Version, Prefix, O, G),
   'ETag'(OTag),
-  '*'(white, []),
+  '*'(ascii_white, []),
   {
     rdf_assert_instance(S, rdf:'Bag', G),
     rdf_assert_collection_member(S, O, G)
@@ -159,7 +159,7 @@ xml_parses(_, _, _, _) -->
 % The tag closes: end of content codes.
 xml_content(_, Tag, []) -->
   'ETag'(Tag), !,
-  '*'(white, []).
+  '*'(ascii_white, []).
 % Another XML tag starts, this is not XML content.
 xml_content(Version, _, []) -->
   dcg_peek('STag'(Version, _, _)), !, {fail}.

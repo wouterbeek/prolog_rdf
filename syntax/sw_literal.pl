@@ -95,10 +95,10 @@ Examples of literal syntax in SPARQL include:
   ).
 
 tag(Tag) -->
-  '+'(letter, Tag, [convert1(codes_atom)]).
+  '+'(ascii_letter, Tag, [convert1(codes_atom)]).
 
 subtag(Subtag) -->
-  '+'(alpha_numeric, Subtag, [separator(codes_atom)]).
+  '+'(ascii_alpha_numeric, Subtag, [separator(codes_atom)]).
 
 
 

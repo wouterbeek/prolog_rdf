@@ -1,7 +1,6 @@
 :- module(
   oms_read,
   [
-    oms_read/1 % +Stream:stream
   ]
 ).
 
@@ -89,3 +88,4 @@ entity(Iri) --> "NamedIndividual", bracketed(individualIRI(Iri)).
 
 individual(Iri) --> individualIRI(Iri).
 individual(BNode) --> nodeID(manchester, BNode).
+

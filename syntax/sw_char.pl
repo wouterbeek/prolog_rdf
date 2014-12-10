@@ -175,7 +175,7 @@ end_of_comment --> line_feed.
 
 % [A-Z] and [a-z]
 'PN_CHARS_BASE'(Code) -->
-  letter(Code).
+  ascii_letter(Code).
 % #xC0-#xD6
 'PN_CHARS_BASE'(Code) -->
   between_code_radix(hex('C0'), hex('D6'), Code).
