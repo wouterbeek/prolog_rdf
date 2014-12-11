@@ -32,7 +32,7 @@
 @version 2014/11
 */
 
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(closure)).
