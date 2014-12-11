@@ -218,6 +218,4 @@ assert_json_property(Graph, _, Prefix, Resource, Name, Datatype0, Value0):-
   rdf_global_id(Datatype0, Datatype),
   rdf_global_id(Prefix:Name, Predicate),
   rdf_lexical_map(Datatype, Value0, Value),
-gtrace,
   rdf_assert_typed_literal(Resource, Predicate, Value, Datatype, Graph).
-
