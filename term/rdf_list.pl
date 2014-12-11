@@ -6,14 +6,20 @@
                        % ?Graph:atom
                        % +Options:list(nvpair)
     rdf_list/1, % ?List:or([bnode,iri])
+    rdf_list/2, % +RdfList:or([bnode,iri])
+                % -PrologList:list
     rdf_list/4, % +RdfList:or([bnode,iri])
                 % -PrologList:list
                 % ?Graph:atom
                 % +Options:list(nvpair)
+    rdf_list_after/2, % ?After:rdf_term
+                      % ?Before:rdf_term
     rdf_list_after/4, % ?After:rdf_term
                       % ?Before:rdf_term
                       % ?List:or([bnode,iri])
                       % ?Graph:atom
+    rdf_list_before/2, % ?Before:rdf_term
+                       % ?After:rdf_term
     rdf_list_before/4, % ?Before:rdf_term
                        % ?After:rdf_term
                        % ?List:or([bnode,iri])
@@ -26,15 +32,21 @@
                                 % ?After:rdf_term
                                 % ?List:or([bnode,iri])
                                 % ?Graph:atom
+    rdf_list_first/2, % ?List:or([bnode,iri])
+                      % ?First:rdf_term
     rdf_list_first/3, % ?List:or([bnode,iri])
                       % ?First:rdf_term
                       % ?Graph:atom
+    rdf_list_last/2, % ?List:or([bnode,iri])
+                     % ?Last:rdf_term
     rdf_list_last/3, % ?List:or([bnode,iri])
                      % ?Last:rdf_term
                      % ?Graph:atom
     rdf_list_length/3, % ?List:or([bnode,iri])
                        % ?Length:number
                        % ?Graph:atom
+    rdf_list_member/2, % ?Element:rdf_term
+                       % ?List:or([bnode,iri])
     rdf_list_member/3, % ?Element:rdf_term
                        % ?List:or([bnode,iri])
                        % ?Graph:atom
@@ -53,7 +65,7 @@ Support for RDF lists.
 @compat [RDF Schema 1.1](http://www.w3.org/TR/2014/REC-rdf-schema-20140225/)
 @tbd Add RDF list retraction.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02, 2014/06, 2014/10-2014/11
+         2014/01-2014/02, 2014/06, 2014/10-2014/12
 */
 
 :- use_module(library(option)).
@@ -77,16 +89,24 @@ Support for RDF lists.
 
 :- rdf_meta(rdf_assert_list(o,r,?,+)).
 :- rdf_meta(rdf_list(r)).
+:- rdf_meta(rdf_list(r,-)).
 :- rdf_meta(rdf_list(r,-,?,+)).
+:- rdf_meta(rdf_list_after(o,o)).
 :- rdf_meta(rdf_list_after(o,o,r,?)).
+:- rdf_meta(rdf_list_before(o,o)).
 :- rdf_meta(rdf_list_before(o,o,r,?)).
 :- rdf_meta(rdf_list_directly_after(o,o,r,?)).
 :- rdf_meta(rdf_list_directly_before(o,o,r,?)).
+:- rdf_meta(rdf_list_first(r,o)).
 :- rdf_meta(rdf_list_first(r,o,?)).
+:- rdf_meta(rdf_list_last(r,o)).
 :- rdf_meta(rdf_list_last(r,o,?)).
 :- rdf_meta(rdf_list_length(r,?,?)).
+:- rdf_meta(rdf_list_member(r,o)).
 :- rdf_meta(rdf_list_member(r,o,?)).
 :- rdf_meta(rdf_list_nth0(?,r,o,?)).
+
+
 
 
 
@@ -168,7 +188,10 @@ rdf_list(List):-
 rdf_list(List):-
   rdfs_individual_of(List, rdf:'List').
 
+%! rdf_list(+RdfList:or([bnode,iri]), -PrologList:list) is det.
 
+rdf_list(RdfL, PlL):-
+  rdf_list(RdfL, PlL, _, []).
 
 %! rdf_list(
 %!   +RdfList:or([bnode,iri]),
@@ -209,6 +232,11 @@ rdf_list(RdfList, [H|T], Graph, Options):-
 
 
 
+%! rdf_list_after(?After:rdf_term, ?Before:rdf_term) is nondet.
+
+rdf_list_after(After, Before):-
+  rdf_list_after(After, Before, _, _).
+
 %! rdf_list_after(
 %!   ?After:rdf_term,
 %!   ?Before:rdf_term,
@@ -223,6 +251,11 @@ rdf_list_after(After, Before, List, Graph):-
   rdf_list_before(Before, After, List, Graph).
 
 
+
+%! rdf_list_before(?Before:rdf_term, ?After:rdf_term) is nondet.
+
+rdf_list_before(Before, After):-
+  rdf_list_before(Before, After, _, _).
 
 %! rdf_list_before(
 %!   ?Before:rdf_term,
@@ -273,6 +306,11 @@ rdf_list_directly_before(Before, After, List, Graph):-
 
 
 
+%! rdf_list_first(?List:or([bnode,iri]), ?First:rdf_term) is nondet.
+
+rdf_list_first(List, First):-
+  rdf_list_first(List, First, _).
+
 %! rdf_list_first(
 %!   ?List:or([bnode,iri]),
 %!   ?First:rdf_term,
@@ -284,6 +322,11 @@ rdf_list_first(List, First, Graph):-
   rdf(List, rdf:first, First, Graph).
 
 
+
+%! rdf_list_last(?List:or([bnode,iri]), ?Last:rdf_term) is det.
+
+rdf_list_last(List, Last):-
+  rdf_list_last(List, Last, _).
 
 %! rdf_list_last(
 %!   ?List:or([bnode,iri]),
@@ -320,11 +363,16 @@ rdf_list_length(List, N1, N3, Graph):-
 
 
 
+%! rdf_list_member(?Member:rdf_term, ?List:or([bnode,iri])) is nondet.
+
+rdf_list_member(Member, List):-
+  rdf_list_member(Member, List, _).
+
 %! rdf_list_member(
 %!   ?Member:rdf_term,
 %!   ?List:or([bnode,iri]),
 %!   ?Graph:atom
-%! ) is semidet.
+%! ) is nondet.
 % Succeeds if Member occurs in List.
 
 rdf_list_member(Member, List, Graph):-
