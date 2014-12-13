@@ -225,8 +225,8 @@ rdfs_instance(List, rdf:'List'):-
 %! ) is nondet.
 % Reads RDFS labels attributed to resources.
 
-rdfs_label(Term, Value, LangTags, Graph):-
-  rdf_plain_literal(Term, rdfs:label, Value, LangTags, Graph).
+rdfs_label(Term, Value, LangPrefs, Graph):-
+  rdf_plain_literal(Term, rdfs:label, Value, LangPrefs, Graph).
 
 
 
