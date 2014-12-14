@@ -63,14 +63,14 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 
 %! rdf_directed_edge(
 %!   +Graph:atom,
-%!   ?DirectedEdge:pair(rdf_term),
+%!   ?DirectedEdge:compound,
 %!   +Options:list(nvpair)
 %! ) is nondet.
 
-rdf_directed_edge(Graph, FromV-ToV, Options):-
-  rdf(FromV, _, ToV, Graph),
-  rdf_vertex_filter(FromV, Options),
-  rdf_vertex_filter(ToV, Options).
+rdf_directed_edge(Graph, rdf(S,P,O), Options):-
+  rdf(S, P, O, Graph),
+  rdf_vertex_filter(S, Options),
+  rdf_vertex_filter(O, Options).
 
 
 
@@ -85,13 +85,13 @@ rdf_directed_edge(Graph, FromV-ToV, Options):-
 
 rdf_graph_to_srep(Graph, UGraph, Options):-
   aggregate_all(
-    set(FromV-Ns),
+    set(V-Ws),
     (
-      rdf_vertex(Graph, FromV, Options),
+      rdf_vertex(Graph, V, Options),
       aggregate_all(
-        set(ToV),
-        rdf_directed_edge(Graph, FromV-ToV, Options),
-        Ns
+        set(W),
+        rdf_directed_edge(Graph, rdf(V,_,W), Options),
+        Ws
       )
     ),
     UGraph
@@ -116,18 +116,17 @@ rdf_neighbor_vertex(Graph, V, N, Options):-
 
 %! rdf_undirected_edge(
 %!   ?Graph:atom,
-%!   ?UndirectedEdge:pair(rdf_term),
+%!   ?UndirectedEdge:compound,
 %!   +Options:list(nvpair)
 %! ) is nondet.
 
-rdf_undirected_edge(Graph, FromV-ToV, Options):-
-  rdf(FromV, _, ToV, Graph),
-  rdf_vertex_filter(FromV, Options),
-  rdf_vertex_filter(ToV, Options).
-rdf_undirected_edge(Graph, FromV-ToV, Options):-
-  rdf(ToV, _, FromV, Graph),
-  rdf_vertex_filter(ToV, Options),
-  rdf_vertex_filter(FromV, Options).
+rdf_undirected_edge(Graph, UndirectedEdge, Options):-
+  rdf(S, P, O, Graph),
+  rdf_vertex_filter(S, Options),
+  rdf_vertex_filter(O, Options),
+  (   UndirectedEdge = rdf(S,P,O)
+  ;   UndirectedEdge = rdf(O,P,S)
+  ).
 
 
 
