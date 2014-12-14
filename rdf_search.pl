@@ -27,7 +27,7 @@ Searching through an RDF graph.
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plGraph(graph_srep)).
+:- use_module(plGraph(s_graph/s_graph)).
 
 :- use_module(plRdf(graph/rdf_graph_theory)).
 
@@ -49,7 +49,7 @@ rdf_beam(O, V, Ps, Vs, Es):-
   rdf_beam(O, [V], Ps, Vs, [], Es).
 
 rdf_beam(_O, [], _Ps, AllVs, AllEs, AllEs):-
-  edges_to_vertices(AllEs, AllVs), !.
+  s_edges_vertices(AllEs, AllVs), !.
 rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
   aggregate_all(
     set(V-NextV),
@@ -62,7 +62,7 @@ rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
     NextEs
   ),
   ord_union(Es, NextEs, NewEs),
-  edges_to_vertices(NextEs, NextVs),
+  s_edges_vertices(NextEs, NextVs),
   rdf_beam(O, NextVs, Ps, AllVs, NewEs, AllEs).
 
 %! rdf_breadth_first(
