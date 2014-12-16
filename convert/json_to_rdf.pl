@@ -26,7 +26,7 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plDcg(dcg_content)).
+:- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(api/rdf_build)).
@@ -71,7 +71,7 @@ find_matching_legend(Dict, Module, MatchingLegend):-
 
 create_resource(Prefix, Legend, Graph, Resource):-
   % Create the class-denoting RDF term based on the legend name.
-  once(dcg_phrase(capitalize, Legend, ClassName)),
+  once(dcg_phrase(atom_capitalize, Legend, ClassName)),
   atomic_list_concat([ontology,ClassName], ClassLocalName),
   rdf_global_id(Prefix:ClassLocalName, Class),
 

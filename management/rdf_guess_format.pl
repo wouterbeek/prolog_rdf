@@ -52,7 +52,7 @@ rdf_guess_format(File0, Format):-
   ->  true
   ;   FileExtension = FileExtension0
   ),
-  
+
   setup_call_cleanup(
     open(File, read, Stream),
     rdf_guess_format(Stream, FileExtension, _, Format),
@@ -81,14 +81,14 @@ rdf_guess_format0(Stream, Iteration, Format, Options):-
   option(look_ahead(Bytes0), Options, 1000),
   Bytes is Iteration * Bytes0,
   peek_string(Stream, Bytes, String),
-  
+
   % Do not backtrack if the whole stream has been peeked.
   string_length(String, Length),
   (   Length < Bytes
   ->  !
   ;   true
   ),
-  
+
   % Try to parse the peeked string as Turtle- or XML-like.
   (   string_codes(String, Codes),
       phrase(turtle_like(Format, Options), Codes, _)
@@ -111,6 +111,7 @@ rdf_guess_format0(Stream, Iteration, Format, Options):-
       )
   ), !.
 rdf_guess_format0(Stream, Iteration, Format, Options):-
+  Iteration < 3,
   NewIteration is Iteration + 1,
   rdf_guess_format0(Stream, NewIteration, Format, Options).
 
