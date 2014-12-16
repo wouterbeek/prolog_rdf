@@ -28,6 +28,8 @@ Print reified RDF statements.
 
 
 
+
+
 %! dcg_stmt(
 %!   +Brackets:oneof([ascii,html]),
 %!   +Mode:oneof([natlang,triple]),
@@ -48,9 +50,9 @@ dcg_stmt(_, natlang, Statement) --> !,
 
     % Extract natural language labels for the terms that compose
     % the statement.
-    rdfs_label(S, SName, _, _),
-    rdfs_label(P, PName, _, _),
-    rdfs_label(O, OName, _, _)
+    rdfs_label0(S, SName),
+    rdfs_label0(P, PName),
+    rdfs_label0(O, OName)
   },
   collection(``, ``, =, ` `, atom, [SName,PName,OName]).
 % Print the triple representation of the given statement.
@@ -60,3 +62,7 @@ dcg_stmt(Brackets, triple, Statement) -->
   % A statement is serialized as a triple of RDF terms.
   tuple(Brackets, rdf_term_name, [S,P,O]).
 
+rdfs_label0(Resource, Label):-
+  rdfs_label(Resource, Label, _, _), !.
+rdfs_label0(Resource, Atom):-
+  term_to_atom(Resource, Atom).
