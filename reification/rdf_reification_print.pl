@@ -13,7 +13,7 @@ Print reified RDF statements.
 
 @author Wouter Beek
 @version 2013/02, 2013/07, 2013/09-2013/10, 2013/12-2014/01, 2014/03, 2014/06,
-         2014/09-2014/10
+         2014/09-2014/10, 2014/12
 */
 
 :- use_module(library(semweb/rdfs)).
@@ -21,6 +21,7 @@ Print reified RDF statements.
 :- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_collection)).
 :- use_module(plDcg(dcg_content)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdfs_read)).
@@ -62,7 +63,7 @@ dcg_stmt(Brackets, triple, Statement) -->
   % A statement is serialized as a triple of RDF terms.
   tuple(Brackets, rdf_term_name, [S,P,O]).
 
-rdfs_label0(Resource, Label):-
-  rdfs_label(Resource, Label, _, _), !.
-rdfs_label0(Resource, Atom):-
-  term_to_atom(Resource, Atom).
+rdfs_label0(Term, Label):-
+  rdfs_label_value(Term, Label, _, _), !.
+rdfs_label0(Term, Atom):-
+  dcg_with_output_to(atom(Atom), rdf_term_name(Term)).

@@ -207,6 +207,7 @@ rdf_literal(Node, P, Value, rdf:langString, LangPrefs, Graph, rdf(Node,P,O)):-
   (   is_list(LangPrefs),
       member(LangTag, LangPrefs),
       sublist(LangTagPrefix, LangTag),
+      prefix(LangTagPrefix, LangTag),
       LangTagPrefix \== [],
       atomic_list_concat(LangTagPrefix, '-', LangTag0)
   ;   true

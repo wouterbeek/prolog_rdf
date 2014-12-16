@@ -5,8 +5,8 @@
                          % ?DirectedEdge:compound
                          % +Options:list(nvair)
     rdf_graph_to_srep/3, % +Graph:atom
-                           % -UGraph:ugraph
-                           % +Options:list(nvair)
+                         % -UGraph:ugraph
+                         % +Options:list(nvair)
     rdf_neighbor_vertex/4, % ?Graph:atom
                            % +Vertex
                            % -NeighborVertex
@@ -55,8 +55,8 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
      pass_to(rdf_vertex_filter/2, 2)
    ]).
 :- predicate_options(rdf_vertex_filter/2, 2, [
-     literal_filter(+boolean),
-     rdf_list_filter(+boolean)
+     exclude_literals(+boolean),
+     exclude_list_elements(+boolean)
    ]).
 
 
@@ -136,12 +136,11 @@ rdf_undirected_edge(Graph, UndirectedEdge, Options):-
 % RDF triple.
 %
 % The following options are supported:
-%   1. `literal_filter(+boolean)`
-%      Whether literals are considered vertices (`true`, default)
-%      or not (`false`).
-%   2. `rdf_list_filter(+boolean)`
-%      Whether vertices that occur within some RDF list should be included
-%      (`true`, default) or not (`false`).
+%   1. `exclude_list_elements(+boolean)`
+%      Whether vertices that occur within some RDF list should be excluded
+%      (`true`) or not (`false`, default).
+%   2. `exclude_literals(+boolean)`
+%      Whether literals are excluded (`true`) or not (`false`, default).
 
 rdf_vertex(Graph, Vertex, Options):-
   % Subject and object terms are vertices.
@@ -161,14 +160,14 @@ rdf_vertex(Graph, Vertex, Options):-
 rdf_vertex_filter(V, Options):-
   % Literal filtering.
   (   rdf_is_literal(V)
-  ->  option(literal_filter(true), Options, true)
+  ->  \+ option(exclude_literals(true), Options)
   ;   true
   ),
 
   % RDF list filtering.
-  (   option(rdf_list_filter(true), Options, true)
-  ->  true
-  ;   % Does not belong to an RDF list.
+  (   option(exclude_list_elements(true), Options)
+  ->  % Does not belong to an RDF list.
       \+ rdf_list_member(V, _, _)
+  ;   true
   ).
 

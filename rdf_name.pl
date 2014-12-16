@@ -68,6 +68,7 @@ Generates names for RDF terms and triples.
      literal_ellipsis(+nonneg)
    ]).
 :- predicate_options(rdf_term_name//2, 1, [
+     collate_rdf_lists(+boolean),
      graph(+atom),
      pass_to(rdf_iri_name//2, 1),
      pass_to(rdf_literal_name//2, 1)
@@ -124,8 +125,8 @@ rdf_iri_name(Options1, Iri) -->
   ), !,
 
   % See whether a preferred label can be found.
-  ({    option(prferred_languages(LanguageTags), Options1, en),
-        rdfs_label(Iri, PreferredLabel, LanguageTags, _)
+  ({    option(prferred_languages(LanguageTags), Options1, [[en,'US']]),
+        rdfs_label_value(Iri, PreferredLabel, LanguageTags, _)
   } ->  atom(PreferredLabel)
   ;     ""
   ).
@@ -142,7 +143,7 @@ rdf_iri_name(Options1, Iri) -->
   {
     % Labels are treated specially: only the preferred label is included.
     option(language_preferences(LanguageTags), Options1, [en]),
-    rdfs_label(Iri, PreferredLabel, LanguageTags, _),
+    rdfs_label_value(Iri, PreferredLabel, LanguageTags, _),
 
     % All non-label literals are included.
     findall(
@@ -219,7 +220,7 @@ rdf_plain_literal_name(Options1, literal(Value)) -->
 
 rdf_simple_literal_name(Options1, Value) -->
   {option(literal_ellipsis(Ellipsis), Options1, inf)},
-  quoted(double_quote, atom_ellipsis(Value, Ellipsis)).
+  quoted(atom_ellipsis(Value, Ellipsis)).
 
 
 
@@ -235,6 +236,10 @@ rdf_term_name(Term) -->
 % Returns a display name for the given RDF term.
 %
 % The following options are supported:
+%   - `collate_rdf_lists(+boolean)`
+%     Whether or not the name of an RDF list should consist of the names of
+%     its elements.
+%     Default: `true`.
 %   - `graph(+Graph:atom)`
 %     `TERM in GRAPH`
 %   - `language(+Language:atom)`
@@ -260,7 +265,10 @@ rdf_term_name(Options1, Term) -->
   rdf_graph_name(Graph).
 % RDF list.
 rdf_term_name(Options, RdfList) -->
-  {rdf_list(RdfList)}, !,
+  {
+    rdf_list(RdfList),
+    \+ option(collate_rdf_lists(false), Options)
+  }, !,
   % Recursively retrieve the contents of the RDF list.
   % This has to be done non-recursively, since the nested
   % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
@@ -279,6 +287,7 @@ rdf_term_name(Options1, Literal) -->
 % IRI.
 rdf_term_name(Options1, Iri) -->
   {is_uri(Iri)}, !,
+	{(rdf_equal(Iri, rdf:'List') -> gtrace ; true)},
   rdf_iri_name(Options1, Iri).
 % Prolog term.
 rdf_term_name(_, PlTerm) -->
