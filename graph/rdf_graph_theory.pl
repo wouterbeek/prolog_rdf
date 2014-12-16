@@ -67,7 +67,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 %!   +Options:list(nvpair)
 %! ) is nondet.
 
-rdf_directed_edge(Graph, rdf(S,P,O), Options):-
+rdf_directed_edge(Graph, edge(S,P,O), Options):-
   rdf(S, P, O, Graph),
   rdf_vertex_filter(S, Options),
   rdf_vertex_filter(O, Options).
@@ -90,7 +90,7 @@ rdf_graph_to_srep(Graph, UGraph, Options):-
       rdf_vertex(Graph, V, Options),
       aggregate_all(
         set(W),
-        rdf_directed_edge(Graph, rdf(V,_,W), Options),
+        rdf_directed_edge(Graph, edge(V,_,W), Options),
         Ws
       )
     ),
@@ -124,8 +124,8 @@ rdf_undirected_edge(Graph, UndirectedEdge, Options):-
   rdf(S, P, O, Graph),
   rdf_vertex_filter(S, Options),
   rdf_vertex_filter(O, Options),
-  (   UndirectedEdge = rdf(S,P,O)
-  ;   UndirectedEdge = rdf(O,P,S)
+  (   UndirectedEdge = edge(S,P,O)
+  ;   UndirectedEdge = edge(O,P,S)
   ).
 
 
