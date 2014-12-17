@@ -127,6 +127,7 @@ json_to_rdf(Graph, Module, Prefix, Dict, Resource):-
   ),
 
   % Find the legend to which this JSON object matches most closely.
+gtrace,
   find_matching_legend(Dict, Module, Legend),
   json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource).
 
