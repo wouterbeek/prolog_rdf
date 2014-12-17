@@ -287,7 +287,6 @@ rdf_term_name(Options1, Literal) -->
 % IRI.
 rdf_term_name(Options1, Iri) -->
   {is_uri(Iri)}, !,
-	{(rdf_equal(Iri, rdf:'List') -> gtrace ; true)},
   rdf_iri_name(Options1, Iri).
 % Prolog term.
 rdf_term_name(_, PlTerm) -->

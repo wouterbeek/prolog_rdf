@@ -167,7 +167,8 @@ rdf_vertex_filter(V, Options):-
   % RDF list filtering.
   (   option(exclude_list_elements(true), Options)
   ->  % Does not belong to an RDF list.
-      \+ rdf_list_member(V, _, _)
+      \+ rdf_has(_, rdf:first, V),
+      \+ rdf_has(_, rdf:rest, V)
   ;   true
   ).
 
