@@ -5,7 +5,7 @@
                   % +Module:atom
                   % +Prefix:atom
                   % +Json:dict
-                  % -Resource:iri
+                  % ?Resource:iri
   ]
 ).
 
@@ -66,7 +66,7 @@ find_matching_legend(Dict, Module, MatchingLegend):-
 %!   +Prefix:atom,
 %!   +Legend:atom,
 %!   +Graph:atom,
-%!   -Resource:iri
+%!   ?Resource:iri
 %! ) is det.
 
 create_resource(Prefix, Legend, Graph, Resource):-
@@ -85,7 +85,7 @@ create_resource(Prefix, Legend, Graph, Resource):-
 %!   +Module:atom,
 %!   +Prefix:atom,
 %!   +Json:dict,
-%!   -Resource:iri
+%!   ?Resource:iri
 %! ) is det.
 % Automated conversion from JSON to RDF,
 %  based on registered legends.
@@ -134,7 +134,10 @@ gtrace,
 % Now we have a legend based on which we do the conversion.
 json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource):-
   % Class and individual.
-  create_resource(Prefix, Legend, Graph, Resource),
+  (   var(Resource)
+  ->  create_resource(Prefix, Legend, Graph, Resource)
+  ;   true
+  ),
 
   % Assert all predications of Resource.
   dict_pairs(Dict, json, Pairs),
