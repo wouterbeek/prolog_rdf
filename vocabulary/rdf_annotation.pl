@@ -7,8 +7,10 @@
     rdf_annotate/3, % +Resource:or([bnode,iri])
                     % +Text:atom
                     % +Graph:atom
-    rdf_annotation/2 % +Resource:or([bnode,iri])
-                     % -Concept:iri
+    rdf_annotation/2, % +Resource:or([bnode,iri])
+                      % -Concept:iri
+    rdf_annotations/2 % +Resource:or([bnode,iri])
+                      % -Concepts:ordset(iri)
   ]
 ).
 
@@ -43,6 +45,7 @@ the RDF annotation vocabulary.
 :- rdf_meta(html_annotations(+,+,r,?,?)).
 :- rdf_meta(rdf_annotate(r,+,?)).
 :- rdf_meta(rdf_annotation(r,r)).
+:- rdf_meta(rdf_annotations(r,t)).
 
 
 
@@ -163,3 +166,17 @@ rdf_annotation(Resource, Concept):-
   % NONDET.
   rdf_list_member(Annotation, Annotations),
   rdf_typed_literal(Annotation, bo:'@URI', Concept, xsd:anyURI).
+
+
+
+%! rdf_annotations(
+%!   +Resource:or([bnode,iri]),
+%!   -Concepts:ordset(iri)
+%! ) is nondet.
+
+rdf_annotations(Resource, Concepts):-
+  aggregate_all(
+    set(Concept),
+    rdf_annotation(Resource, Concept),
+    Concepts
+  ).
