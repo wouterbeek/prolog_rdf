@@ -6,13 +6,12 @@
                         % +Predicate:iri
                         % +Object:rdf_term
                         % +Graph:atom
-    rdf_image/3, % +Options:list(nvpair)
-                 % +URL:atom
-                 % -File:atom
-    rdf_image/5 % ?Subject:or([bnode,iri])
+    rdf_image/3, % ?Subject:or([bnode,iri])
+                 % ?Predicate:iri
+                 % ?Object:rdf_term
+    rdf_image/4 % ?Subject:or([bnode,iri])
                 % ?Predicate:iri
                 % ?Object:rdf_term
-                % ?ImageFile:atom
                 % ?Graph:atom
   ]
 ).
@@ -29,7 +28,7 @@ When triples including images are read,
  (and an image resource is available online).
 
 @author Wouter Beek
-@version 2014/01
+@version 2014/01, 2014/12
 */
 
 :- use_module(library(option)).
@@ -45,11 +44,15 @@ When triples including images are read,
 :- use_module(plHttp(download_to_file)).
 
 :- use_module(plRdf(api/rdf_build)).
+:- use_module(plRdf(management/rdf_prefix)).
 
 :- rdf_meta(rdf_assert_image(+,r,r,r,+)).
-:- rdf_meta(rdf_image(r,r,r,-,?)).
+:- rdf_meta(rdf_image(r,r,o)).
+:- rdf_meta(rdf_image(r,r,o,?)).
 
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
+
+
 
 
 
@@ -60,31 +63,13 @@ rdf_assert_image(O1, S, P, O, G):-
   rdf_assert(S, P, O, G).
 
 
-%! rdf_image(+Options:list(nvpair), +URL:atom, -File:atom) is det.
-% Image storage on the Web is often unreliable,
-% because Web locations go in and out of existence rapidly.
-% We do not want automated procedures to fail due to unavailable images.
-% Therefore the option `fail_mode` can be used with the following values:
-%   1. `debug(Category:atom-Format:atom-Arguments:list)`
-%   2. `error(Exception:compound)`
-%   3. `fail`
-%   4. `ignore`
 
-rdf_image(Options, Url, File):-
-  uri_nested_file(data(.), Url, File),
-  (   access_file(File, exist), !
-  ;   download_to_file(Url, File, Options), !
-  ;   option(
-        fail_mode(FM),
-        Options,
-        debug(rdf_image-'Could not fetch image from ~w'-[Url])
-      ),
-      fail_mode(FM)
-  ).
+rdf_image(S, P, O):-
+  rdf_image(S, P, O, _).
 
 
-rdf_image(S, P, O, File, G):-
-  rdf(S, P, O, G),
-  rdfs_individual_of(O, dcmit:'Image'),
-  rdf_image([fail_mode(fail)], O, File).
 
+rdf_image(S, P, O, G):-
+  rdf_member(P, [dbo:thumbnail,foaf:depiction]),
+  rdf_reachable(S, owl:sameAs, S0),
+  rdf(S0, P, O, G).

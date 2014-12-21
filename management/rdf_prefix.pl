@@ -7,6 +7,8 @@
                             % ?Predicate:iri
                             % ?Object:rdf_term
                             % ?Graph:atom
+    rdf_member/2, % ?Term:rdf_term
+                  % +PrefixedTerms:list(rdf_term)
     rdf_memberchk/2, % ?Term:rdf_term
                      % +PrefixedTerms:list(rdf_term)
     rdf_prefix_iri/2, % +Iri:atom
@@ -38,6 +40,7 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 
 :- use_module(plRdf(term/rdf_term)).
 
+:- rdf_meta(rdf_member(r,t)).
 :- rdf_meta(rdf_memberchk(r,t)).
 :- rdf_meta(rdf_prefixe_iri(r,-)).
 :- rdf_meta(rdf_prefixes(r,r,o,?,-)).
@@ -87,6 +90,14 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, Graph):-
       rdf_assert(S2, P2, O2, Graph)
     )
   ).
+
+
+
+%! rdf_member(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
+%! rdf_member(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
+
+rdf_member(X, L):-
+  memberchk(X, L).
 
 
 
