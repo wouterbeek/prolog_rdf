@@ -8,11 +8,6 @@
     rdf_instance/3, % ?Instance:rdf_term
                     % ?Class:iri
                     % ?Graph:atom
-    rdf_plain_literal/5, % ?Term:rdf_term
-                         % ?Predicate:iri
-                         % ?Value
-                         % ?LangTagPreference:list(list(atom))
-                         % ?Graph:atom
     rdf_langstring/5, % ?Term:rdf_term
                       % ?Predicate:iri
                       % ?Value:pair(atom,list(atom))
@@ -31,6 +26,15 @@
                    % ?LangTag:list(atom)
                    % ?Graph:atom
                    % -Triple:compound
+    rdf_plain_literal/4, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value
+                         % ?LangTagPreference:list(list(atom))
+    rdf_plain_literal/5, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value
+                         % ?LangTagPreference:list(list(atom))
+                         % ?Graph:atom
     rdf_resource_edge/4, % +Term:rdf_term
                          % -Predicate:iri
                          % -OtherTerm:rdf_term
@@ -43,6 +47,9 @@
                                   % -Predicate:iri
                                   % -Object:rdf_term
                                   % ?Graph:atom
+    rdf_simple_literal/3, % ?Term:rdf_term
+                          % ?Predicate:iri
+                          % ?Value:atom
     rdf_simple_literal/4, % ?Term:rdf_term
                           % ?Predicate:iri
                           % ?Value:atom
@@ -59,6 +66,10 @@
                               % -Predicate:iri
                               % -Object:rdf_term
                               % ?Graph:atom
+    rdf_typed_literal/4, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value
+                         % ?Datatype:iri
     rdf_typed_literal/5 % ?Term:rdf_term
                         % ?Predicate:iri
                         % ?Value
@@ -89,14 +100,17 @@ Predicates for reading from RDF, customized for specific datatypes and
 :- rdf_meta(rdf_langstring(o,r,?,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?,-)).
+:- rdf_meta(rdf_plain_literal(o,r,?,?)).
 :- rdf_meta(rdf_plain_literal(o,r,?,?,?)).
 :- rdf_meta(rdf_resource_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_incoming_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_outgoing_edge(o,r,o,?)).
+:- rdf_meta(rdf_simple_literal(o,r,?)).
 :- rdf_meta(rdf_simple_literal(o,r,?,?)).
 :- rdf_meta(rdf_term_edge(o,r,o,?)).
 :- rdf_meta(rdf_term_incoming_edge(o,r,o,?)).
 :- rdf_meta(rdf_term_outgoing_edge(o,r,o,?)).
+:- rdf_meta(rdf_typed_literal(o,r,?,r)).
 :- rdf_meta(rdf_typed_literal(o,r,?,r,?)).
 
 :- multifile(error:has_type/2).
@@ -232,6 +246,17 @@ rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Value,
+%!   ?LangTagPreference:list(list(atom))
+%! ) is nondet.
+
+rdf_plain_literal(Term, Predicate, Value, LangTagPreference):-
+  rdf_plain_literal(Term, Predicate, Value, LangTagPreference, _).
+
+
+%! rdf_plain_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Value,
 %!   ?LangTagPreference:list(list(atom)),
 %!   ?Graph:atom
 %! ) is nondet.
@@ -289,6 +314,11 @@ rdf_resource_outgoing_edge(From, P, To, G):-
 
 
 
+%! rdf_simple_literal(?Term:rdf_term, ?Predicate:iri, ?Value:atom) is nondet.
+
+rdf_simple_literal(Term, Predicate, Value):-
+  rdf_simple_literal(Term, Predicate, Value, _).
+
 %! rdf_simple_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
@@ -341,6 +371,16 @@ rdf_term_outgoing_edge(S, P, O, G):-
   rdf(S, P, O, G).
 
 
+
+%! rdf_typed_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Value,
+%!   ?Datatype:iri
+%! ) is nondet.
+
+rdf_typed_literal(Term, Predicate, Value, Datatype):-
+  rdf_typed_literal(Term, Predicate, Value, Datatype, _).
 
 %! rdf_typed_literal(
 %!   ?Term:rdf_term,

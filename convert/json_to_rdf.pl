@@ -175,9 +175,9 @@ assert_json_property(Graph, Module, Prefix, Resource, Name, or(Types), Value):-
 % so we do not assert pairs with a null value in RDF.
 assert_json_property(_, _, _, _, _, _, Value):-
   Value = @(null), !.
-% We do not believe that empty values -- i.e. the empty atom --
+% We do not believe that empty values -- i.e. the empty string --
 % are very usefull, so we do not assert pairs with this value.
-assert_json_property(_, _, _, _, _, _, ''):- !.
+assert_json_property(_, _, _, _, _, _, ""):- !.
 % We have a specific type that is always skipped, appropriately called `skip`.
 assert_json_property(_, _, _, _, _, skip, _):- !.
 % There are two ways to realize legend types / create resources:
@@ -190,7 +190,8 @@ assert_json_property(Graph, Module, Prefix, Individual1, Name, Legend/_, Value):
 % There are two ways to realize legend types / create resources:
 % 2. JSON strings (sometimes).
 assert_json_property(Graph, _, Prefix, Resource1, Name, Legend/_, Value):-
-  atom(Value), !,
+  % Remember that SWI dictionaries contain SWI strings, not atoms.
+  is_string(Value), !,
   create_resource(Prefix, Legend, Graph, Resource2),
   rdfs_assert_label(Resource2, Value, Graph),
   rdf_global_id(Prefix:Name, Predicate),
@@ -217,8 +218,10 @@ assert_json_property(Graph, _, Prefix, Resource, Name, rdf_list(Type), Values):-
   rdf_assert_list(Values, RdfList, Graph, [datatype(Datatype)]),
   rdf_assert(Resource, Predicate, RdfList, Graph).
 % Typed literals.
-assert_json_property(Graph, _, Prefix, Resource, Name, Datatype0, Value0):-
+assert_json_property(Graph, _, Prefix, Resource, Name, Datatype0, Value1):-
   rdf_global_id(Datatype0, Datatype),
   rdf_global_id(Prefix:Name, Predicate),
-  rdf_lexical_map(Datatype, Value0, Value),
-  rdf_assert_typed_literal(Resource, Predicate, Value, Datatype, Graph).
+  % Remember that SWI dictionaries contain SWI strings, not atoms.
+  atom_string(Value2, Value1),
+  rdf_lexical_map(Datatype, Value2, Value3),
+  rdf_assert_typed_literal(Resource, Predicate, Value3, Datatype, Graph).
