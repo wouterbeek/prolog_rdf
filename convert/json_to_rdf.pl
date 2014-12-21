@@ -1,9 +1,10 @@
 :- module(
   json_to_rdf,
   [
-    json_to_rdf/5 % +Graph:atom
+    json_to_rdf/6 % +Graph:atom
                   % +Module:atom
-                  % +Prefix:atom
+                  % +SchemaPrefix:atom
+                  % +DataPrefix:atom
                   % +Json:dict
                   % ?Resource:iri
   ]
@@ -22,6 +23,7 @@ This requires a Prolog module whose name is also registered as
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(error)).
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -44,14 +46,14 @@ This requires a Prolog module whose name is also registered as
 %!   -MatchingLegend:atom
 %! ) is det.
 
-find_matching_legend(Dict, Module, MatchingLegend):-
+find_matching_legend(Dict, Mod, MatchingLegend):-
   dict_pairs(Dict, json, Pairs1),
   pairs_keys(Pairs1, Keys1),
   list_to_set(Keys1, Keyset1),
   aggregate(
     max(Length, Legend),
     (
-      Module:legend(Legend, Pairs2),
+      Mod:legend(Legend, Pairs2),
       pairs_keys(Pairs2, Keys2),
       list_to_set(Keys2, Keyset2),
       intersection(Keyset1, Keyset2, Shared),
@@ -69,23 +71,23 @@ find_matching_legend(Dict, Module, MatchingLegend):-
 %!   ?Resource:iri
 %! ) is det.
 
-create_resource(Prefix, Legend, Graph, Resource):-
+create_resource(SPrefix, DPrefix, Legend, G, Resource):-
   % Create the class-denoting RDF term based on the legend name.
   once(dcg_phrase(atom_capitalize, Legend, ClassName)),
-  atomic_list_concat([ontology,ClassName], ClassLocalName),
-  rdf_global_id(Prefix:ClassLocalName, Class),
+  rdf_global_id(SPrefix:ClassName, Class),
 
   % Create the instance.
-  rdf_create_next_resource(Prefix, [Legend], Class, Graph, Resource).
+  rdf_create_next_resource(DPrefix, [Legend], Class, G, Resource).
 
 
 
 %! json_to_rdf(
 %!   +Graph:atom,
 %!   +Module:atom,
-%!   +Prefix:atom,
+%!   +SchemaPrefix:atom,
+%!   +DataPrefix:atom,
 %!   +Json:dict,
-%!   ?Resource:iri
+%!   ?Subject:iri
 %! ) is det.
 % Automated conversion from JSON to RDF,
 %  based on registered legends.
@@ -109,119 +111,129 @@ create_resource(Prefix, Legend, Graph, Resource):-
 % @arg Graph The atomic name of the RDF graph in which results are asserted.
 % @arg LegendModule The atomic name of the Prolog module that contains
 %      the legens to which JSON terms have to conform.
-% @arg Prefix ???
+% @arg SchemaPrefix
+% @arg DataPrefix
 % @arg Json A compound term representing a JSON term.
 %      This will be converted to RDF.
 % @arg Resource An IRI denoting the RDF version of the JSON term.
 
-% Multiple JSON objects need to be converted.
-json_to_rdf(Graph, Module, Prefix, Dicts, Resources):-
-  is_list(Dicts), !,
-  maplist(json_to_rdf(Graph, Module, Prefix), Dicts, Resources).
-
-json_to_rdf(Graph, Module, Prefix, Dict, Resource):-
+json_to_rdf(G, Mod, SPrefix, DPrefix, Dict, Resource):-
   % Make sure the RDF prefix has been registered.
-  (   rdf_current_prefix(Prefix, _)
-  ->  true
-  ;   existence_error(rdf_prefix, Prefix)
-  ),
-
+  maplist(exists_rdf_prefix, [SPrefix,DPrefix]),
   % Find the legend to which this JSON object matches most closely.
-  find_matching_legend(Dict, Module, Legend),
-  json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource).
+  find_matching_legend(Dict, Mod, Legend),
+  json_to_rdf(G, Mod, SPrefix, DPrefix, Legend, Dict, Resource).
+
+exists_rdf_prefix(Prefix):-
+  rdf_current_prefix(Prefix, _), !.
+exists_rdf_prefix(Prefix):-
+  existence_error(rdf_prefix, Prefix).
 
 % Now we have a legend based on which we do the conversion.
-json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource):-
-  % Class and individual.
-  (   var(Resource)
-  ->  create_resource(Prefix, Legend, Graph, Resource)
+json_to_rdf(G, Mod, SPrefix, DPrefix, Legend, Dict, S):-
+  (   var(S)
+  ->  create_resource(SPrefix, DPrefix, Legend, G, S)
   ;   true
   ),
-
-  % Assert all predications of Resource.
+  
+  % Assert all predications (P-O) of S.
   dict_pairs(Dict, json, Pairs),
-  Module:legend(Legend, Specs),
+  Mod:legend(Legend, Specs),
+  pairs_keys_values(Pairs, Ps, Values),
   maplist(
-    assert_json_property(Graph, Module, Prefix, Specs, Resource),
-    Pairs
-  ).
+    assert_json_property(G, Mod, SPrefix, DPrefix, Specs),
+    Ps,
+    Values,
+    Os
+  ),
+  maplist(assert_triples0(SPrefix, G, S), Ps, Os).
+
+assert_triples0(_, _, _, _, O):-
+  var(O), !.
+assert_triples0(SchemaPrefix, G, S, P, Os):-
+  is_list(Os), !,
+  maplist(assert_triples0(SchemaPrefix, G, S, P), Os).
+assert_triples0(SchemaPrefix, G, S, P0, O):-
+  rdf_global_id(SchemaPrefix:P0, P),
+  rdf_assert(S, P, O, G).
+
 
 
 %! assert_json_property(
 %!   +Graph:atom,
 %!   +Module:atom,
-%!   +Prefix:atom,
+%!   +SchemaPrefix:atom,
+%!   +DataPrefix:atom,
 %!   +ArgumentSpecifications:list(pair),
-%!   +Resource:iri,
-%!   +NVPair:pair(atom,term)
+%!   +Predicate:iri,
+%!   +Value,
+%!   -Object:rdf_term
 %! ) is det.
 % Make sure a property with the given name exists.
 % Also retrieve the type the value should adhere to.
 
-assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value):-
-  memberchk(Name-Type, Specs), !,
-  assert_json_property(Graph, Module, Prefix, Resource, Name, Type, Value).
+assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O):-
+  memberchk(P-Type, Specs), !,
+  assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O).
 % Unrecognized JSON key / RDF property.
-assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value):-
+assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O):-
   gtrace, %DEB
-  assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value).
+  assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O).
 
 % The value must match at least one of the given types.
-assert_json_property(Graph, Module, Prefix, Resource, Name, or(Types), Value):-
+assert_json_property(G, Mod, SPrefix, DPrefix, or(Types), Value, O):-
   % NONDET.
   member(Type, Types),
-  assert_json_property(Graph, Module, Prefix, Resource, Name, Type, Value), !.
+  assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O), !.
 % We do not have an RDF equivalent for the JSON null value,
 % so we do not assert pairs with a null value in RDF.
-assert_json_property(_, _, _, _, _, _, Value):-
+assert_json_property(_, _, _, _, _, Value, _):-
   Value = @(null), !.
 % We do not believe that empty values -- i.e. the empty string --
 % are very usefull, so we do not assert pairs with this value.
-assert_json_property(_, _, _, _, _, _, ""):- !.
-% We have a specific type that is always skipped, appropriately called `skip`.
-assert_json_property(_, _, _, _, _, skip, _):- !.
+assert_json_property(_, _, _, _, _, "", _):- !.
+% We have a specific type that is always skipped,
+% appropriately called `skip`.
+assert_json_property(_, _, _, _, skip, _, _):- !.
 % There are two ways to realize legend types / create resources:
 % 1. JSON terms (always).
-assert_json_property(Graph, Module, Prefix, Individual1, Name, Legend/_, Value):-
+assert_json_property(G, Mod, SPrefix, DPrefix, Legend/_, Value, O):-
   is_dict(Value), !,
-  json_to_rdf(Graph, Module, Prefix, Legend, Value, Individual2),
-  rdf_global_id(Prefix:Name, Predicate),
-  rdf_assert(Individual1, Predicate, Individual2, Graph).
+  json_to_rdf(G, Mod, SPrefix, DPrefix, Legend, Value, O).
 % There are two ways to realize legend types / create resources:
 % 2. JSON strings (sometimes).
-assert_json_property(Graph, _, Prefix, Resource1, Name, Legend/_, Value):-
+assert_json_property(G, _, SPrefix, DPrefix, Legend/_, Value, O):-
   % Remember that SWI dictionaries contain SWI strings, not atoms.
-  is_string(Value), !,
-  create_resource(Prefix, Legend, Graph, Resource2),
-  rdfs_assert_label(Resource2, Value, Graph),
-  rdf_global_id(Prefix:Name, Predicate),
-  rdf_assert(Resource1, Predicate, Resource2, Graph).
+  string(Value), !,
+  create_resource(SPrefix, DPrefix, Legend, G, O),
+  rdfs_assert_label(O, Value, G).
 % A JSON object occurs for which the legend is not yet known.
-assert_json_property(Graph, Module, Prefix, Individual1, Name, Type, Value):-
+assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O):-
   Type \= _/_,
   is_dict(Value), !,
-  json_to_rdf(Graph, Module, Prefix, Value, Individual2),
-  rdf_global_id(Prefix:Name, Predicate),
-  rdf_assert(Individual1, Predicate, Individual2, Graph).
+  json_to_rdf(G, Mod, SPrefix, DPrefix, Value, O).
 % List: link every element individually.
-assert_json_property(Graph, Module, Prefix, Resource, Name, list(Type), Values):-
+assert_json_property(G, Mod, SPrefix, DPrefix, list(Type), Values, Os):-
   is_list(Values), !,
   maplist(
-    assert_json_property(Graph, Module, Prefix, Resource, Name, Type),
-    Values
+    assert_json_property(G, Mod, SPrefix, DPrefix, Type),
+    Values,
+    Os
   ).
 % RDF list: mimic the list in RDF and link to the list.
-assert_json_property(Graph, _, Prefix, Resource, Name, rdf_list(Type), Values):-
+assert_json_property(G, Mod, SPrefix, DPrefix, rdf_list(Type), Values, O):-
   is_list(Values), !,
-  rdf_global_id(Prefix:Name, Predicate),
-  rdf_global_id(xsd:Type, Datatype),
-  rdf_assert_list(Values, RdfList, Graph, [datatype(Datatype)]),
-  rdf_assert(Resource, Predicate, RdfList, Graph).
+  maplist(
+    assert_json_property(G, Mod, SPrefix, DPrefix, Type),
+    Values,
+    Os
+  ),
+  rdf_assert_list(Os, O, G, []).
 % Typed literals.
-assert_json_property(Graph, _, Prefix, Resource, Name, Datatype0, Value1):-
+assert_json_property(_, _, _, _, Datatype0, Value1, O):-
   rdf_global_id(Datatype0, Datatype),
-  rdf_global_id(Prefix:Name, Predicate),
   % Remember that SWI dictionaries contain SWI strings, not atoms.
   atom_string(Value2, Value1),
   rdf_lexical_map(Datatype, Value2, Value3),
-  rdf_assert_typed_literal(Resource, Predicate, Value3, Datatype, Graph).
+  rdf_canonical_map(Datatype, Value3, LexicalForm),
+  O = literal(type(Datatype,LexicalForm)).

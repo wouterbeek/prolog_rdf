@@ -27,6 +27,7 @@ the RDF annotation vocabulary.
 :- use_module(plUri(uri_query)).
 
 :- use_module(plRdf(api/rdf_read)).
+:- use_module(plRdf(term/rdf_list)).
 
 :- use_module(lodCache(lod_cache_egograph)).
 
@@ -44,14 +45,8 @@ the RDF annotation vocabulary.
 
 html_annotation_job(LocationPrefix, Text, AnnotationJob) -->
   {
-    % If there are annotations than we assume they appear in order.
-    % If this every turns out not to be the case we must insert a sorting
-    % step prior to calling this predicate.
-    aggregate_all(
-      set(Annotation),
-      rdf_has(AnnotationJob, bo:'Resources', Annotation),
-      Annotations
-    ),
+    rdf_has(AnnotationJob, bo:'Resources', Annotations0),
+    rdf_list(Annotations0, Annotations),
     atom_codes(Text, Codes)
   },
   html_annotations(LocationPrefix, Codes, Annotations).
