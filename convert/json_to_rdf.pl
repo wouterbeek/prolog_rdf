@@ -26,7 +26,7 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plDcg(dcg_atom)).
+:- use_module(plDcg(dcg_atom)). % DCG rule.
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(api/rdf_build)).
@@ -58,7 +58,7 @@ find_matching_legend(Dict, Module, MatchingLegend):-
       length(Shared, Length)
     ),
     max(_, MatchingLegend)
-  ).
+  ), !.
 
 
 
@@ -127,7 +127,6 @@ json_to_rdf(Graph, Module, Prefix, Dict, Resource):-
   ),
 
   % Find the legend to which this JSON object matches most closely.
-gtrace,
   find_matching_legend(Dict, Module, Legend),
   json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource).
 
@@ -160,9 +159,9 @@ json_to_rdf(Graph, Module, Prefix, Legend, Dict, Resource):-
 % Also retrieve the type the value should adhere to.
 
 assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value):-
-  memberchk(Name-Type, Specs),
-  assert_json_property(Graph, Module, Prefix, Resource, Name, Type, Value), !.
-% DEB: Unrecognized name-value pair (cannot convert).
+  memberchk(Name-Type, Specs), !,
+  assert_json_property(Graph, Module, Prefix, Resource, Name, Type, Value).
+% Unrecognized JSON key / RDF property.
 assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value):-
   gtrace, %DEB
   assert_json_property(Graph, Module, Prefix, Specs, Resource, Name-Value).
