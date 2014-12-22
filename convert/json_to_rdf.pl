@@ -50,7 +50,7 @@ find_matching_legend(Dict, Mod, MatchingLegend):-
   dict_pairs(Dict, json, Pairs1),
   pairs_keys(Pairs1, Keys1),
   list_to_set(Keys1, Keyset1),
-  aggregate(
+  aggregate_all(
     max(Length, Legend),
     (
       Mod:legend(Legend, Pairs2),
@@ -135,7 +135,7 @@ json_to_rdf(G, Mod, SPrefix, DPrefix, Legend, Dict, S):-
   ->  create_resource(SPrefix, DPrefix, Legend, G, S)
   ;   true
   ),
-  
+
   % Assert all predications (P-O) of S.
   dict_pairs(Dict, json, Pairs),
   Mod:legend(Legend, Specs),
@@ -180,18 +180,31 @@ assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O):-
   gtrace, %DEB
   assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O).
 
+% We do not believe that empty values -- i.e. the empty string --
+% are very usefull, so we do not assert pairs with this value.
+assert_json_property(_, _, _, _, _, "", _):- !.
+% List: link every element individually.
+assert_json_property(G, Mod, SPrefix, DPrefix, list(Type), Values, Os):-
+  is_list(Values), !,
+  maplist(
+    assert_json_property(G, Mod, SPrefix, DPrefix, Type),
+    Values,
+    Os
+  ).
 % The value must match at least one of the given types.
 assert_json_property(G, Mod, SPrefix, DPrefix, or(Types), Value, O):-
   % NONDET.
   member(Type, Types),
   assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O), !.
-% We do not have an RDF equivalent for the JSON null value,
-% so we do not assert pairs with a null value in RDF.
-assert_json_property(_, _, _, _, _, Value, _):-
-  Value = @(null), !.
-% We do not believe that empty values -- i.e. the empty string --
-% are very usefull, so we do not assert pairs with this value.
-assert_json_property(_, _, _, _, _, "", _):- !.
+% RDF list: mimic the list in RDF and link to the list.
+assert_json_property(G, Mod, SPrefix, DPrefix, rdf_list(Type), Values, O):-
+  is_list(Values), !,
+  maplist(
+    assert_json_property(G, Mod, SPrefix, DPrefix, Type),
+    Values,
+    Os
+  ),
+  rdf_assert_list(Os, O, G, []).
 % We have a specific type that is always skipped,
 % appropriately called `skip`.
 assert_json_property(_, _, _, _, skip, _, _):- !.
@@ -207,28 +220,15 @@ assert_json_property(G, _, SPrefix, DPrefix, Legend/_, Value, O):-
   string(Value), !,
   create_resource(SPrefix, DPrefix, Legend, G, O),
   rdfs_assert_label(O, Value, G).
+% We do not have an RDF equivalent for the JSON null value,
+% so we do not assert pairs with a null value in RDF.
+assert_json_property(_, _, _, _, _, Value, _):-
+  Value = @(null), !.
 % A JSON object occurs for which the legend is not yet known.
 assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O):-
   Type \= _/_,
   is_dict(Value), !,
   json_to_rdf(G, Mod, SPrefix, DPrefix, Value, O).
-% List: link every element individually.
-assert_json_property(G, Mod, SPrefix, DPrefix, list(Type), Values, Os):-
-  is_list(Values), !,
-  maplist(
-    assert_json_property(G, Mod, SPrefix, DPrefix, Type),
-    Values,
-    Os
-  ).
-% RDF list: mimic the list in RDF and link to the list.
-assert_json_property(G, Mod, SPrefix, DPrefix, rdf_list(Type), Values, O):-
-  is_list(Values), !,
-  maplist(
-    assert_json_property(G, Mod, SPrefix, DPrefix, Type),
-    Values,
-    Os
-  ),
-  rdf_assert_list(Os, O, G, []).
 % Typed literals.
 assert_json_property(_, _, _, _, Datatype0, Value1, O):-
   rdf_global_id(Datatype0, Datatype),

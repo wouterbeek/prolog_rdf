@@ -128,6 +128,7 @@ Support for RDF lists.
 % @tbd Add Prolog term ---> RDF datatype conversion,
 %      e.g., `rdf_assert_list([a,1,0.1,com(pound)], -RdfList, _, [])`.
 
+rdf_assert_list([], rdf:nil, _, _):- !.
 rdf_assert_list(PlList, RdfList, Graph, Options):-
   add_list_individual(RdfList, Graph),
   rdf_assert_list_items(PlList, RdfList, Graph, Options).
