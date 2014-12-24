@@ -104,7 +104,7 @@ html_annotations(LocationPrefix, Codes1, OffsetAdjustment1, [H|T]) -->
         rdf_typed_literal(H, bo:'@URI', Resource, xsd:anyURI),
         (   var(LocationPrefix)
         ->  Location = Resource
-        ;   uri_query_add_nvpair(LocationPrefix, term, Resource, Location)
+        ;   uri_query_add_nvpair(LocationPrefix, concept, Resource, Location)
         ),
     
         % Background caching of annotation concepts.
@@ -137,8 +137,7 @@ rdf_annotate(Resource, Text, Graph):-
       concepts(Concepts),
       % NOTICE THAT THE DBPEDIA SPOTLIGHT BACKEND CANNOT PROCESS :0.0"!
       confidence(0),
-      language(Language),
-      localhost(2222)
+      language(Language)
     ]
   ),
   % Store the annotations.
