@@ -4,9 +4,10 @@
     html_annotations//3, % +Location:uri
                          % +Text:atom
                          % +Resource:or([bnode,iri])
-    rdf_annotate/3, % +Resource:or([bnode,iri])
+    rdf_annotate/4, % +Resource:or([bnode,iri])
                     % +Text:atom
                     % +Graph:atom
+                    % +Options:list(nvpair)
     rdf_annotation/2, % +Resource:or([bnode,iri])
                       % -Concept:iri
     rdf_annotations/2 % +Resource:or([bnode,iri])
@@ -43,9 +44,13 @@ the RDF annotation vocabulary.
 :- use_module(lodCache(lod_cache_egograph)).
 
 :- rdf_meta(html_annotations(+,+,r,?,?)).
-:- rdf_meta(rdf_annotate(r,+,?)).
+:- rdf_meta(rdf_annotate(r,+,?,+)).
 :- rdf_meta(rdf_annotation(r,r)).
 :- rdf_meta(rdf_annotations(r,t)).
+
+:- predicate_options(rdf_annotate/4, 4, [
+     pass_to(annotate/3, 3)
+   ]).
 
 
 
@@ -90,7 +95,7 @@ html_annotations(LocationPrefix, Codes1, OffsetAdjustment1, [H|T]) -->
         atom_codes(Prefix, Prefix0)
       },
       html(Prefix),
-    
+
       % Secondly, emit the annotation.
       % This requires adjusting all pending annotations.
       {
@@ -99,14 +104,14 @@ html_annotations(LocationPrefix, Codes1, OffsetAdjustment1, [H|T]) -->
         length(SurfaceFormCodes, Skip),
         append(SurfaceFormCodes, Codes3, Codes2),
         OffsetAdjustment2 is OffsetAdjustment1 + Offset + Skip,
-    
+
         % The hyperlink is based on the given LocationId, if any.
         rdf_typed_literal(H, bo:'@URI', Resource, xsd:anyURI),
         (   var(LocationPrefix)
         ->  Location = Resource
         ;   uri_query_add_nvpair(LocationPrefix, concept, Resource, Location)
         ),
-    
+
         % Background caching of annotation concepts.
         (   rdf_graph(Resource)
         ->  % Already cached.
@@ -126,22 +131,29 @@ html_annotations(LocationPrefix, Codes1, OffsetAdjustment1, [H|T]) -->
 
 
 
-%! rdf_annotate(+Resource:or([bnode,iri]), +Text:atom, +Graph:atom) is det.
+%! rdf_annotate(
+%!   +Resource:or([bnode,iri]),
+%!   +Text:atom,
+%!   +Graph:atom,
+%!   +Options:list(nvpair)
+%! ) is det.
 
-rdf_annotate(Resource, Text, Graph):-
-  % Annotate the paragraph text with DBpedia links.
-  annotate(
-    Text,
-    Annotations,
+rdf_annotate(Resource, Text, Graph, Options1):-
+  merge_options(
+    Options1,
     [
       concepts(Concepts),
       % NOTICE THAT THE DBPEDIA SPOTLIGHT BACKEND CANNOT PROCESS :0.0"!
-      confidence(0),
-      language(Language)
-    ]
+      confidence(0)
+    ],
+    Options2
   ),
+
+  % Annotate the paragraph text with DBpedia links.
+  annotate(Text, Annotations, Options2),
   % Store the annotations.
   json_to_rdf(Graph, dbpedia_spotlight, bo, b, Annotations, AnnotationJob),
+  option(language(Language), Options2),
   rdf_assert_simple_literal(
     AnnotationJob,
     bo:natural_language,
