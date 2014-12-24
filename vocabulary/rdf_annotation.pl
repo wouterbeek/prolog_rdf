@@ -137,7 +137,8 @@ rdf_annotate(Resource, Text, Graph):-
       concepts(Concepts),
       % NOTICE THAT THE DBPEDIA SPOTLIGHT BACKEND CANNOT PROCESS :0.0"!
       confidence(0),
-      language(Language)
+      language(Language),
+      localhost(2222)
     ]
   ),
   % Store the annotations.
