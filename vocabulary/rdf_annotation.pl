@@ -153,7 +153,7 @@ rdf_annotate(Resource, Text, Graph):-
   % Relate the annotation concepts to the resource in whose text they occur.
   forall(
     member(Concept, Concepts),
-    rdf_assert(Resource, bo:has_concept, Concept)
+    rdf_assert(Resource, bo:has_concept, Concept, Graph)
   ).
 
 
