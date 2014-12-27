@@ -29,12 +29,9 @@ Scripts for asserting RDF graphs that can be used for debugging.
 
 assert_visum(G):-
   % Use a default graph name if none is given.
-  (
-    var(G)
-  ->
-    G = visum
-  ;
-    true
+  (   var(G)
+  ->  G = visum
+  ;   true
   ),
 
   % Chinese namespace
