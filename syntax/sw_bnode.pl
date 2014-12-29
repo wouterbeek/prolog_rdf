@@ -2,7 +2,8 @@
   sw_bnode,
   [
     'ANON'//1, % -BNode:bnode
-    'BLANK_NODE_LABEL'//1, % -BNode:bnode
+    'BLANK_NODE_LABEL'//2, % ?Language:oneof([ntriples,sparql,turtle])
+                           % -BNode:bnode
     'BlankNode'//1, % ?BNode:bnode
     nodeID//2 % ?Language:oneof([manchester,turtle10])
               % ?BNode:bnode
@@ -24,6 +25,7 @@ not as references to specific blank nodes in the data being queried.
 @version 2014/08-2014/10, 2014/12
 */
 
+:- use_module(library(dif)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plDcg(dcg_abnf)).
@@ -63,7 +65,10 @@ not as references to specific blank nodes in the data being queried.
 
 
 
-%! 'BLANK_NODE_LABEL'(-BNode:bnode)// .
+%! 'BLANK_NODE_LABEL'(
+%!   ?Language:oneof([ntriples,sparql,turtle]),
+%!   -BNode:bnode
+%! )// .
 % Blank node labels are written as `_:abc` for a blank node with label `abc`.
 %
 % The same blank node label cannot be used
@@ -75,19 +80,20 @@ not as references to specific blank nodes in the data being queried.
 %                      ( ( PN_CHARS | '.' )* PN_CHARS )?
 % ```
 %
+% @compat N-Triples 1.1 [141s].
 % @compat SPARQL 1.0 [73]
 % @compat SPARQL 1.1 Query [142]
 % @compat Turtle 1.1 [141s]
 
-'BLANK_NODE_LABEL'(BNode) -->
-  dcg_atom_codes('BLANK_NODE_LABEL_codes', BNodeLabel),
+'BLANK_NODE_LABEL'(Lang, BNode) -->
+  dcg_atom_codes('BLANK_NODE_LABEL_codes'(Lang), BNodeLabel),
   {bnode_label(BNodeLabel, BNode)}.
 
-'BLANK_NODE_LABEL_codes'([H|T]) -->
+'BLANK_NODE_LABEL_codes'(Lang, [H|T]) -->
   "_:",
   
   % First character after colon.
-  (   'PN_CHARS_U'(H)
+  (   'PN_CHARS_U'(Lang, H)
   ;   decimal_digit(H)
   ),
   
@@ -116,8 +122,9 @@ not as references to specific blank nodes in the data being queried.
 % @compat Turtle 1.1 [137s]
 
 'BlankNode'(BNode) -->
-  'BLANK_NODE_LABEL'(BNode).
-'BlankNode'(BNode) -->
+  'BLANK_NODE_LABEL'(Lang, BNode),
+  {\+ dif(Lang, ntriples)}.
+'BlankNode'(_, BNode) -->
   'ANON'(BNode).
 
 
@@ -213,11 +220,11 @@ nameStartChar(Code) --> between_code_radix(hex('10000'), hex('EFFFF'), Code).
 % ```
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
-% @compat Turtle 1.0 [26]
-% @deprecated Turtle 1.1 [26]
+% @deprecated Turtle 1.0 [26]
+% @compat Turtle 1.1 [26]
 
 nodeID(manchester, BNode) -->
-  'BLANK_NODE_LABEL'(BNode).
+  'BLANK_NODE_LABEL'(sparql, BNode).
 nodeID(turtle, BNodeLabel) -->
   "_:",
   name(BNodeLabel).

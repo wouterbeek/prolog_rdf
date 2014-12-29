@@ -1,7 +1,7 @@
 :- module(
   sw_literal,
   [
-    literal//2 % +Language:oneof([manchester,turtle])
+    literal//2 % +Language:oneof([manchester,ntriples,turtle])
                % ?Literal:compound
   ]
 ).
@@ -127,7 +127,10 @@ lexicalValue(LexicalForm) --> quotedString(LexicalForm).
 
 
 
-%! literal(+Language:oneof([manchester,turtle]), ?Literal:compound)// .
+%! literal(
+%!   ?Language:oneof([manchester,ntriples,turtle]),
+%!   ?Literal:compound
+%! )// .
 % ```ebnf
 % [Manchester]   literal ::=   typedLiteral
 %                            | stringLiteralNoLanguage
@@ -135,9 +138,11 @@ lexicalValue(LexicalForm) --> quotedString(LexicalForm).
 %                            | integerLiteral
 %                            | decimalLiteral
 %                            | floatingPointLiteral
+% [N-Triples]    literal ::= STRING_LITERAL_QUOTE ('^^' IRIREF | LANGTAG)?
 % [Turtle]       literal ::= RDFLiteral | NumericLiteral | BooleanLiteral
 % ```
 %
+% @compat N-Triples 1.1 [6]
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 % @compat Turtle 1.1 [13]
 
@@ -147,6 +152,15 @@ literal(manchester, Literal) --> stringLiteralWithLanguage(Literal).
 literal(manchester, Literal) --> integerLiteral(Literal).
 literal(manchester, Literal) --> decimalLiteral(Literal).
 literal(manchester, Literal) --> floatingPointLiteral(Literal).
+literal(ntriples, Literal) -->
+  'STRING_LITERAL_QUOTE'(LexicalForm),
+  (   "^^",
+      'IRIREF'(Datatype)
+  ->  {Literal = literal(type(Datatype,LexicalForm))}
+  ;   'LANGTAG'(LangTag)
+  ->  {Literal = literal(lang(LangTag,LexicalForm))}
+  ;   {Literal = literal(LexicalForm)}
+  ).
 literal(turtle, Literal) --> 'RDFLiteral'(turtle, Literal).
 literal(turtle, Literal) --> 'NumericLiteral'(turtle, Literal).
 literal(turtle, Literal) --> 'BooleanLiteral'(Literal).

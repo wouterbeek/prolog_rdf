@@ -29,6 +29,7 @@ Most standards allow IRIs to be abbreviated by splitting them in
 @version 2014/08-2014/12
 */
 
+:- use_module(library(dif)).
 :- use_module(library(error)).
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -122,6 +123,19 @@ datatypeIRI(Iri) --> 'IRI'(Iri).
 
 
 
+%! fullIRI(?Iri:atom)// .
+% ```bnf
+% fullIRI := an IRI as defined in [RFC 3987], enclosed in a pair of
+%            < (U+3C) and > (U+3E) characters
+% ```
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+fullIRI(Iri) -->
+  bracketed(angular, 'IRI_rdf3987'(Iri)).
+
+
+
 %! individualIRI(?Iri:atom)// .
 % ```bnf
 % individualIRI ::= IRI
@@ -133,16 +147,21 @@ individualIRI(Iri) --> 'IRI'(Iri).
 
 
 
-%! fullIRI(?Iri:atom)// .
+%! iri(?Iri:atom)// is det.
+%
 % ```bnf
-% fullIRI := an IRI as defined in [RFC 3987], enclosed in a pair of
-%            < (U+3C) and > (U+3E) characters
+% iri ::= IRIREF | PrefixedName
 % ```
 %
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat SPARQL 1.0 [135]
+% @compat SPARQL 1.1 Query [136]
+% @compat Turtle 1.1 [135a]
+% @deprecated 'IRI'//1
 
-fullIRI(Iri) -->
-  bracketed(angular, 'IRI_rdf3987'(Iri)).
+iri(Iri) -->
+  'IRIREF'(Iri).
+iri(Iri) -->
+  'PrefixedName'(Iri).
 
 
 
@@ -179,6 +198,7 @@ fullIRI(Iri) -->
 %                       /* #x00=NULL #01, '1F=control codes #x20=space */
 % ```
 %
+% @compat N-Triples 1.1 [8].
 % @compat SPARQL 1.1 Query [139].
 % @compat Turtle 1.1 [18].
 % @deprecated fullIri//1
@@ -212,24 +232,6 @@ fullIRI(Iri) -->
 
 'IRIref'(Iri) --> 'IRI_REF'(Iri).
 'IRIref'(Iri) --> 'PrefixedName'(Iri).
-
-
-
-%! iri(?Iri:atom)// is det.
-%
-% ```bnf
-% iri ::= IRIREF | PrefixedName
-% ```
-%
-% @compat SPARQL 1.0 [135]
-% @compat SPARQL 1.1 Query [136]
-% @compat Turtle 1.1 [135a]
-% @deprecated 'IRI'//1
-
-iri(Iri) -->
-  'IRIREF'(Iri).
-iri(Iri) -->
-  'PrefixedName'(Iri).
 
 
 
@@ -270,17 +272,22 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
   ;   {T = []}
   ).
 
-'PN_LOCAL_1'(Code) --> 'PN_CHARS_U'(Code).
+'PN_LOCAL_1'(Code) -->
+  'PN_CHARS_U'(Lang, Code),
+  {\+ dif(Lang, ntriples)}.
 'PN_LOCAL_1'(Code) --> colon(Code).
 'PN_LOCAL_1'(Code) --> decimal_digit(Code).
 'PN_LOCAL_1'(Code) --> 'PLX'(Code).
 
-'PN_LOCAL_2'(Code) --> 'PN_CHARS_U'(Code).
+'PN_LOCAL_2'(Code) -->
+  'PN_CHARS_U'(Lang, Code),
+  {\+ dif(Lang, ntriples)}.
 'PN_LOCAL_2'(Code) --> dot(Code).
 'PN_LOCAL_2'(Code) --> semi_colon(Code).
 'PN_LOCAL_2'(Code) --> 'PLX'(Code).
 
 'PN_LOCAL_3'(Code) --> 'PN_CHARS'(Code).
+  {\+ dif(Lang, ntriples)}.
 'PN_LOCAL_3'(Code) --> colon(Code).
 'PN_LOCAL_3'(Code) --> 'PLX'(Code).
 

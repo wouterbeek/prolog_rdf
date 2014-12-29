@@ -6,7 +6,8 @@
     'PLX'//1, % ?Code:code
     'PN_CHARS'//1, % ?Code:code
     'PN_CHARS_BASE'//1, % ?Code:code
-    'PN_CHARS_U'//1, % ?Code:code
+    'PN_CHARS_U'//2, % ?Language:oneof([ntriples,sparql,turtle])
+                     % ?Code:code
     'PN_LOCAL_ESC'//1, % ?Code:code
     'UCHAR'//1, % ?Code:code
     white_space//0,
@@ -28,6 +29,8 @@ Turtle characters are a superset of SPARQL characters.
 @compat Turtle 1.1
 @version 2014/04-2014/05, 2014/09-2014/12
 */
+
+:- use_module(library(dif)).
 
 :- use_module(math(radix)).
 
@@ -140,7 +143,9 @@ end_of_comment --> line_feed.
 % @compat SPARQL 1.1 Query [167].
 % @compat Turtle 1.1 [166s].
 
-'PN_CHARS'(Code) --> 'PN_CHARS_U'(Code).
+'PN_CHARS'(Code) -->
+  'PN_CHARS_U'(Lang, Code),
+  {\+ dif(Lang, ntriples)}.
 'PN_CHARS'(Code) --> hyphen_minus(Code).
 'PN_CHARS'(Code) --> decimal_digit(Code).
 'PN_CHARS'(Code) --> code_radix(hex('00B7'), Code).
@@ -217,17 +222,22 @@ end_of_comment --> line_feed.
 
 
 
-%! 'PN_CHARS_U'(?Code:code)// .
+%! 'PN_CHARS_U'(?Language:oneof([ntriples,sparql,turtle]), ?Code:code)// .
 % ```bnf
-% PN_CHARS_U ::= PN_CHARS_BASE | '_'
+% [N-Triples]       PN_CHARS_U ::= PN_CHARS_BASE | '_' | ':'
+% [Turtle,SPARQL]   PN_CHARS_U ::= PN_CHARS_BASE | '_'
 % ```
 %
+% @compat N-Triples [158s].
 % @compat SPARQL 1.0 [96].
 % @compat SPARQL 1.1 Query [165].
 % @compat Turtle 1.1 [164s].
 
-'PN_CHARS_U'(Code) --> 'PN_CHARS_BASE'(Code).
-'PN_CHARS_U'(Code) --> underscore(Code).
+'PN_CHARS_U'(_, Code) --> 'PN_CHARS_BASE'(Code).
+'PN_CHARS_U'(_, Code) --> underscore(Code).
+'PN_CHARS_U'(Lang, Code) -->
+  {dif(Lang, ntriples)},
+  colon(Code).
 
 
 
@@ -275,6 +285,7 @@ end_of_comment --> line_feed.
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ```
 %
+% @compat N-Triples 1.1 [10].
 % @compat Turtle 1.1 [26].
 
 'UCHAR'(Code) -->
