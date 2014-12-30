@@ -35,6 +35,7 @@ Most standards allow IRIs to be abbreviated by splitting them in
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
+:- use_module(generics(atom_ext)). % Meta-option.
 :- use_module(generics(char_ext)).
 
 :- use_module(plDcg(dcg_abnf)).
@@ -157,7 +158,6 @@ individualIRI(Iri) --> 'IRI'(Iri).
 % @compat SPARQL 1.0 [135]
 % @compat SPARQL 1.1 Query [136]
 % @compat Turtle 1.1 [135a]
-% @deprecated 'IRI'//1
 
 iri(Iri) -->
   'IRIREF'(Iri).
@@ -185,7 +185,7 @@ iri(Iri) -->
 % ```
 %
 % @compat SPARQL 1.0 [70]
-% @deprecated 'IRIREF'//1
+% @deprecated Use 'IRIREF'//1 instead.
 
 'IRI_REF'(Iri) -->
   'IRIREF'(Iri).
@@ -194,21 +194,17 @@ iri(Iri) -->
 
 %! 'IRIREF'(?Iri:atom)// .
 % ```bnf
-% [SPARQL]   IRIREF ::= '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
-% [Turtle]   IRIREF ::= '<' ( [^#x00-#x20<>"{}|^`\] | UCHAR )* '>'
-%                       /* #x00=NULL #01, '1F=control codes #x20=space */
+% [SPARQL]             IRIREF ::= '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
+% [N-Triples,Turtle]   IRIREF ::= '<' ( [^#x00-#x20<>"{}|^`\] | UCHAR )* '>'
 % ```
 %
 % @compat N-Triples 1.1 [8].
 % @compat SPARQL 1.1 Query [139].
 % @compat Turtle 1.1 [18].
-% @deprecated fullIri//1
 % @tbd What about DELETE (decimal 127)?
 
 'IRIREF'(Iri) -->
-  'IRI'(Iri).
-'IRIREF'(Iri) -->
-  bracketed(angular, '*'('IRIREF_char', Iri, [convert1(codes_atom)])).
+  bracketed(angular, '*'('IRIREF_char', Iri, [convert1(codes_atom),mode(parse)])).
 
 'IRIREF_char'(_) --> control, !, {fail}.
 'IRIREF_char'(_) --> angular_bracket, !, {fail}.
@@ -229,7 +225,7 @@ iri(Iri) -->
 % ```
 %
 % @compat SPARQL 1.0 [67]
-% @deprecated iri//1
+% @deprecated Use iri//1 instead.
 
 'IRIref'(Iri) --> 'IRI_REF'(Iri).
 'IRIref'(Iri) --> 'PrefixedName'(Iri).

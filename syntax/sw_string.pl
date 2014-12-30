@@ -21,7 +21,7 @@ Grammar rules for strings in Semantic Web standards.
 @version 2014/04-2014/05, 2014/08, 2014/11-2014/12
 */
 
-:- use_module(generics(code_ext)). % Meta-option.
+:- use_module(generics(atom_ext)). % Meta-option.
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
@@ -265,9 +265,9 @@ quotedString_codes([H|T]) -->
     '*'(
       'STRING_LITERAL_char'(Language, Quote),
       String,
-      [convert1(codes_atom)]
+      [convert1(codes_atom),mode(parse)]
     )
-  ).
+  ), !.
 
 
 
@@ -283,6 +283,7 @@ quotedString_codes([H|T]) -->
 'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('A')), !, {fail}.
 'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('D')), !, {fail}.
 'STRING_LITERAL_char'(turtle, _, Code) --> 'UCHAR'(Code).
+'STRING_LITERAL_char'(_, _, Code) --> [Code].
 
 
 
@@ -297,9 +298,9 @@ quotedString_codes([H|T]) -->
     '*'(
       'STRING_LITERAL_LONG_char'(Language, Quote),
       String,
-      [convert1(codes_atom)]
+      [convert1(codes_atom),mode(parse)]
     )
-  ).
+  ), !.
 
 
 

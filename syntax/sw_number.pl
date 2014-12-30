@@ -71,7 +71,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 decimalLiteral(N) -->
   {var(N)}, !,
-  '?'(sign, Sg, [empty1(1)]),
+  '?'(sign, Sg, [empty1(1),mode(parse)]),
   digits(L1),
   ".",
   digits(L2),
@@ -331,12 +331,12 @@ nonNegativeInteger(N) --> positiveInteger(N).
 positiveInteger(N) -->
   {var(N)}, !,
   nonZero(H),
-  '*'(digit, T, []),
+  '*'(digit, T, [mode(parse)]),
   {weights_decimal([H|T], N)}.
 positiveInteger(N) -->
   {weights_decimal([H|T], N)},
   nonZero(H),
-  '*'(digit, T, []).
+  '*'(digit, T, [mode(generate)]).
 
 
 

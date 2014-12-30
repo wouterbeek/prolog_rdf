@@ -36,6 +36,7 @@ Examples of literal syntax in SPARQL include:
 @version 2014/04-2014/05, 2014/08, 2014/11-2014/12
 */
 
+:- use_module(generics(atom_ext)). % Meta-option.
 :- use_module(generics(code_ext)). % Meta-option.
 
 :- use_module(plDcg(dcg_abnf)).
@@ -90,15 +91,15 @@ Examples of literal syntax in SPARQL include:
   {LangTag = [Tag|Subtags]},
   tag(Tag),
   (   "-",
-      '+'(subtag, Subtags, [separator(hyphen)])
+      '+'(subtag, Subtags, [mode(parse),separator(hyphen)])
   ;   {Subtags = []}
   ).
 
 tag(Tag) -->
-  '+'(ascii_letter, Tag, [convert1(codes_atom)]).
+  '+'(ascii_letter, Tag, [convert1(codes_atom),mode(parse)]).
 
 subtag(Subtag) -->
-  '+'(ascii_alpha_numeric, Subtag, [separator(codes_atom)]).
+  '+'(ascii_alpha_numeric, Subtag, [mode(parse),separator(codes_atom)]).
 
 
 

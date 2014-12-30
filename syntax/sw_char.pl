@@ -103,9 +103,8 @@ end_of_comment --> line_feed.
 'EOL' -->
   '+'('EOL0', []).
 
-'EOL0' -->
-  carriage_return,
-  line_feed.
+'EOL0' --> carriage_return.
+'EOL0' --> line_feed.
 
 
 
@@ -320,8 +319,8 @@ end_of_comment --> line_feed.
 %! white_space(?Language:oneof([manchester,ntriples]))// .
 % White space is a sequence of:
 %   - N-Triples 1.1:
-%     - 
-%     - 
+%     -
+%     -
 %   - OWL 2 Web Ontology Language Manchester Syntax (Second Edition):
 %     - blanks (U+20)
 %     - tabs (U+9)
