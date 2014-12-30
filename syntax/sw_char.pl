@@ -2,6 +2,7 @@
   sw_char,
   [
     'ECHAR'//1, % ?Code:code
+    'EOL'//0,
     'PERCENT'//1, % ?Code:code
     'PLX'//1, % ?Code:code
     'PN_CHARS'//1, % ?Code:code
@@ -88,6 +89,19 @@ end_of_comment --> line_feed.
 'ECHAR_char'(Code) --> double_quote(Code).
 'ECHAR_char'(Code) --> apostrophe(Code).
 'ECHAR_char'(Code) --> backslash(Code).
+
+
+
+%! 'EOL'// .
+% ```abnf
+% EOL ::= [#xD#xA]+
+% ```
+%
+% @compat N-Triples [7].
+
+'EOL' -->
+  carriage_return,
+  line_feed.
 
 
 
