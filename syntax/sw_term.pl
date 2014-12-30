@@ -35,13 +35,13 @@ object(Iri) -->
 object(BNode) -->
   'BLANK_NODE_LABEL'(ntriples, BNode).
 object(Literal) -->
-  literal(Literal).
+  literal(ntriples, Literal).
 
 
 
 %! predicate(?Predicate:iri)// .
 % ```abnf
-% predicate 	::= 	IRIREF
+% predicate ::= IRIREF
 % ```
 %
 % @compat N-Triples 1.1 [4].

@@ -9,6 +9,7 @@
     individualIRI//1, % ?Iri:atom
     iri//1, % ?Iri:atom
     'IRI'//1, % ?Iri:atom
+    'IRIREF'//1, % ?Iri:atom
     objectPropertyIRI//1 % ?Iri:atom
   ]
 ).
@@ -287,7 +288,6 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 'PN_LOCAL_2'(Code) --> 'PLX'(Code).
 
 'PN_LOCAL_3'(Code) --> 'PN_CHARS'(Code).
-  {\+ dif(Lang, ntriples)}.
 'PN_LOCAL_3'(Code) --> colon(Code).
 'PN_LOCAL_3'(Code) --> 'PLX'(Code).
 

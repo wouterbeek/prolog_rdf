@@ -2,8 +2,9 @@
   sw_string,
   [
     quotedString//1, % ?String:atom
-    'String'//2 % +Language:oneof([sparql,turtle])
-                % ?String:atom
+    'String'//2, % +Language:oneof([sparql,turtle])
+                 % ?String:atom
+    'STRING_LITERAL_QUOTE'//1 % ?String:atom
   ]
 ).
 

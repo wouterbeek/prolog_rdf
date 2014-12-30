@@ -1,9 +1,7 @@
 :- module(
   sw_triple,
   [
-    triple//3 % ?Subject:or([bnode,iri])
-              % ?Predicate:iri
-              % ?Object:rdf_term
+    triple//1 % ?Triple:compound
   ]
 ).
 
@@ -18,27 +16,25 @@ Grammar rules for triples.
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_ascii)).
 
+:- use_module(plRdf(syntax/sw_char)).
 :- use_module(plRdf(syntax/sw_term)).
 
 
 
 
 
-%! triple(?Subject:or([bnode,iri]), ?Predicate:iri, ?Object:rdf_term)// .
+%! triple(?Triple:compound)// .
 % ```abnf
 % triple ::= subject predicate object '.'
 % ```
 %
 % @compat N-Triples 1.1 [2].
 
-triple(S, P, O) -->
+triple(rdf(S,P,O)) -->
   subject(S),
-  '+'(ws, []),
+  '+'(white_space(ntriples), []),
   predicate(P),
-  '+'(ws, []),
+  '+'(white_space(ntriples), []),
   object(O),
-  '+'(ws, []),
+  '+'(white_space(ntriples), []),
   ".".
-
-ws --> horizontal_tab.
-ws --> space.

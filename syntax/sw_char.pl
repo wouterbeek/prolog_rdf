@@ -11,8 +11,8 @@
                      % ?Code:code
     'PN_LOCAL_ESC'//1, % ?Code:code
     'UCHAR'//1, % ?Code:code
-    white_space//0,
-    'WS'//0 % ?Code:code
+    white_space//1, % ?Language:oneof([manchester,ntriples])
+    'WS'//0
   ]
 ).
 
@@ -25,6 +25,7 @@ Turtle characters are a superset of SPARQL characters.
 ---
 
 @author Wouter Beek
+@compat N-Triples 1.1
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
@@ -100,6 +101,9 @@ end_of_comment --> line_feed.
 % @compat N-Triples [7].
 
 'EOL' -->
+  '+'('EOL0', []).
+
+'EOL0' -->
   carriage_return,
   line_feed.
 
@@ -313,23 +317,25 @@ end_of_comment --> line_feed.
 
 
 
-%! white_space// .
+%! white_space(?Language:oneof([manchester,ntriples]))// .
 % White space is a sequence of:
-%   - blanks (U+20)
-%   - tabs (U+9)
-%   - line feeds (U+A)
-%   - carriage returns (U+D)
-%   - comments
+%   - N-Triples 1.1:
+%     - 
+%     - 
+%   - OWL 2 Web Ontology Language Manchester Syntax (Second Edition):
+%     - blanks (U+20)
+%     - tabs (U+9)
+%     - line feeds (U+A)
+%     - carriage returns (U+D)
+%     - comments
 %
+% @compat N-Triples 1.1
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-white_space -->
-  'WS',
-  white_space.
-white_space -->
-  comment,
-  white_space.
-white_space --> [].
+white_space(manchester) --> 'WS'.
+white_space(manchester) --> comment.
+white_space(ntriples) --> horizontal_tab.
+white_space(ntriples) --> space.
 
 
 
