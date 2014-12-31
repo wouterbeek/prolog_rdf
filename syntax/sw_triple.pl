@@ -9,6 +9,15 @@
 
 Grammar rules for triples.
 
+# N-Triples 1.1
+
+```prolog
+'*'(process_triple, [mode(parse),separator('EOL')]),
+'?'('EOL', [mode(parse)]).
+```
+
+---
+
 @author Wouter Beek
 @version 2014/12
 */
