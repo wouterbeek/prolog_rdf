@@ -372,7 +372,10 @@ assert_schema_prefixes:-
   % Dublin Core: elements
   rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/'),
   rdf_register_reduced_location_prefix(dc),
-
+  
+  % ???
+  rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/'),
+  
   % Dublin Core: terms
   rdf_register_prefix(dct, 'http://purl.org/dc/terms/'),
   rdf_register_reduced_location_prefix(dct),

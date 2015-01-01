@@ -5,7 +5,7 @@
                                     % +Predicate:iri
                                     % +Value
                                     % +Datatype:iri
-			            % ?Graph:atom
+                                    % ?Graph:atom
                                     % ?Statement:or([bnode,iri])
     rdf_assert_object/3, % +Statement:or([bnode,iri])
                          % +Object:oneof([literal,iri])

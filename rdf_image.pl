@@ -50,7 +50,9 @@ When triples including images are read,
 :- rdf_meta(rdf_image(r,r,o)).
 :- rdf_meta(rdf_image(r,r,o,?)).
 
+:- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
+:- rdf_register_prefix(foaf, 'http://xmlns.com/foaf/0.1/').
 
 
 
