@@ -343,7 +343,6 @@ assert_schema_prefixes:-
 
   % DBpedia category
   rdf_register_prefix(category, 'http://dbpedia.org/resource/Category:'),
-  rdf_register_prefix(dbc, 'http://dbpedia.org/resource/Category:'),
 
   % DBpedia datatype
   rdf_register_prefix(dt, 'http://dbpedia.org/datatype/'),
