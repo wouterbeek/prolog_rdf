@@ -18,14 +18,13 @@ This requires a Prolog module whose name is also registered as
  the XML namespace that is used for the RDF vocabulary.
 
 @author Wouter Beek
-@version 2014/01-2014/03, 2014/12
+@version 2014/01-2014/03, 2014/12-2015/01
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(lists), except([delete/3])).
-:- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plDcg(dcg_atom)). % DCG rule.
@@ -137,16 +136,20 @@ json_to_rdf(G, Mod, SPrefix, DPrefix, Legend, Dict, S):-
   ),
 
   % Assert all predications (P-O) of S.
-  dict_pairs(Dict, json, Pairs),
+  dict_pairs(Dict, json, Pairs1),
   Mod:legend(Legend, Specs),
-  pairs_keys_values(Pairs, Ps, Values),
-  maplist(
-    assert_json_property(G, Mod, SPrefix, DPrefix, Specs),
-    Ps,
-    Values,
-    Os
+  findall(
+    P-O,
+    (
+      member(P-Value, Pairs1),
+      assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O)
+    ),
+    Pairs2
   ),
-  maplist(assert_triples0(SPrefix, G, S), Ps, Os).
+  forall(
+    member(P-O, Pairs2),
+    assert_triples0(SPrefix, G, S, P, O)
+  ).
 
 assert_triples0(_, _, _, _, O):-
   var(O), !.
@@ -168,7 +171,7 @@ assert_triples0(SchemaPrefix, G, S, P0, O):-
 %!   +Predicate:iri,
 %!   +Value,
 %!   -Object:rdf_term
-%! ) is det.
+%! ) is semidet.
 % Make sure a property with the given name exists.
 % Also retrieve the type the value should adhere to.
 
@@ -182,7 +185,7 @@ assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O):-
 
 % We do not believe that empty values -- i.e. the empty string --
 % are very usefull, so we do not assert pairs with this value.
-assert_json_property(_, _, _, _, _, "", _):- !.
+assert_json_property(_, _, _, _, _, "", _):- !, fail.
 % List: link every element individually.
 assert_json_property(G, Mod, SPrefix, DPrefix, list(Type), Values, Os):-
   is_list(Values), !,
@@ -199,15 +202,18 @@ assert_json_property(G, Mod, SPrefix, DPrefix, or(Types), Value, O):-
 % RDF list: mimic the list in RDF and link to the list.
 assert_json_property(G, Mod, SPrefix, DPrefix, rdf_list(Type), Values, O):-
   is_list(Values), !,
-  maplist(
-    assert_json_property(G, Mod, SPrefix, DPrefix, Type),
-    Values,
+  findall(
+    O,
+    (
+      member(Value, Values),
+      assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O)
+    ),
     Os
   ),
   rdf_assert_list(Os, O, G, []).
 % We have a specific type that is always skipped,
 % appropriately called `skip`.
-assert_json_property(_, _, _, _, skip, _, _):- !.
+assert_json_property(_, _, _, _, skip, _, _):- !, fail.
 % There are two ways to realize legend types / create resources:
 % 1. JSON terms (always).
 assert_json_property(G, Mod, SPrefix, DPrefix, Legend/_, Value, O):-
@@ -223,7 +229,8 @@ assert_json_property(G, _, SPrefix, DPrefix, Legend/_, Value, O):-
 % We do not have an RDF equivalent for the JSON null value,
 % so we do not assert pairs with a null value in RDF.
 assert_json_property(_, _, _, _, _, Value, _):-
-  Value = @(null), !.
+  Value = @(null), !,
+  fail.
 % A JSON object occurs for which the legend is not yet known.
 assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O):-
   Type \= _/_,
