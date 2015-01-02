@@ -85,7 +85,7 @@ cl_{i+1}(s)_{\leq_i} :=
 
 :- use_module(generics(closure)).
 
-:- rdf_register_prefix(ex, 'http://www.example.com/').
+:- rdf_register_prefix(ex, 'http://www.example.org/').
 
 :- rdf_meta(rdf_property(r)).
 

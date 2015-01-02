@@ -3,6 +3,7 @@
   [
     assert_cc_prefixes/0,
     assert_data_prefixes/0,
+    assert_prefixes/0,
     assert_schema_prefixes/0,
     dbpedia_language_tag/1, % ?LangTag:atom
     rdf_reduced_location/2, % +FullUrl:url
@@ -35,7 +36,7 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 
 @author Wouter Beek
 @tbd Add prefixes that occur in http://dbpedia.org/sparql?nsdecl
-@version 2014/06-2014/07, 2014/10, 2014/12
+@version 2014/06-2014/07, 2014/10, 2014/12-2015/01
 */
 
 :- use_module(library(apply)).
@@ -63,7 +64,25 @@ assert_cc_prefixes:-
 assert_cc_prefix(row(Prefix, Uri)):-
   rdf_register_prefix(Prefix, Uri, [force(true)]).
 
+assert_data_prefixes:-
+  assert_prefixes(data).
 
+assert_schema_prefixes:-
+  assert_prefixes(schema).
+
+assert_prefixes:-
+  assert_data_prefixes,
+  assert_schema_prefixes.
+
+%! assert_prefixes(+Type:oneof([data,schema])) is det.
+
+assert_prefixes(Type):-
+  absolute_file_name(data('prefixes.csv'), File, [access(read)]),
+  csv_read_file(File, Rows),
+  forall(
+    member(row(Uri,Prefix,Type), Rows),
+    rdf_register_prefix(Prefix, Uri)
+  ).
 
 assert_dbpedia_localizations:-
   forall(
@@ -75,7 +94,7 @@ dbpedia_register(LangTag):-
   atomic_list_concat([LangTag,dbpedia,org], '.', Authority),
 
   % XML namespace for resources.
-  atomic_list_concat([LangTag,dbp], '.', ResourceNamespace),
+  atomic_list_concat([LangTag,dbr], '.', ResourceNamespace),
   uri_components(
     ResourcePrefix,
     uri_components(http,Authority,'/resource/',_,_)
@@ -83,7 +102,7 @@ dbpedia_register(LangTag):-
   rdf_register_prefix(ResourceNamespace, ResourcePrefix),
 
   % XML namespace for properties.
-  atomic_list_concat([LangTag,dbpprop], '.', PropertyNamespace),
+  atomic_list_concat([LangTag,dbp], '.', PropertyNamespace),
   uri_components(
     PropertyPrefix,
     uri_components(http,Authority,'/property/',_,_)
@@ -314,236 +333,39 @@ dbpedia_language_tag(zh_min_nan).
 dbpedia_language_tag('zh-yue').
 dbpedia_language_tag(zh_yue).
 
-
-
-assert_schema_prefixes:-
-  % Bibliographic Ontology
-  rdf_register_prefix(bibo, 'http://purl.org/ontology/bibo/'),
-
-  % Citation Counting and Context Characterization Ontology (C4O)
-  rdf_register_prefix(c4o, 'http://purl.org/spar/c4o/'),
-
-  % Citation Oriented Bibliographic Vocabulary (BIBLIO)
-  rdf_register_prefix(biblio, 'http://purl.org/net/biblio#'),
-
-  % Copyright Ontology
-  rdf_register_prefix(
-    co,
-    'http://rhizomik.net/ontologies/copyrightonto.owl#'
-  ),
-
-  % Creative Commons
-  rdf_register_prefix(cc, 'http://creativecommons.org/ns#'),
-
-  % Data Quality Management (DQM)
-  rdf_register_prefix(dqm, 'http://purl.org/dqm-vocabulary/v1/dqm#'),
-
-  % Datacube
-  rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#'),
-
-  % DBpedia category
-  rdf_register_prefix(category, 'http://dbpedia.org/resource/Category:'),
-
-  % DBpedia datatype
-  rdf_register_prefix(dt, 'http://dbpedia.org/datatype/'),
-
-  % DBpedia describe
-  rdf_register_prefix('db:describe', 'http://dbpedia.org/describe'),
-
-  % DBpedia ontology
-  rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/'),
-
-  % DBpedia property
-  rdf_register_prefix(dbp, 'http://dbpedia.org/property/'),
-
-  % DBpedia Yago
-  rdf_register_prefix(dbyago, 'http://dbpedia.org/class/yago/'),
-
-  % DCAT
-  rdf_register_prefix(dcat, 'http://www.w3.org/ns/dcat#'),
-
-  % DOC
-  rdf_register_prefix(doc, 'http://www.w3.org/2000/10/swap/pim/doc#'),
-
-  % Document Components Ontology (DoCO)
-  rdf_register_prefix(doco, 'http://purl.org/spar/doco/'),
-
+/*
   % Dublin Core: elements
-  rdf_register_prefix(dc, 'http://purl.org/dc/elements/1.1/'),
   rdf_register_reduced_location_prefix(dc),
   
-  % ???
-  rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/'),
-  
   % Dublin Core: terms
-  rdf_register_prefix(dct, 'http://purl.org/dc/terms/'),
   rdf_register_reduced_location_prefix(dct),
-  rdf_register_prefix(dcterms, 'http://purl.org/dc/terms/'),
   rdf_register_reduced_location_prefix(dcterms),
 
   % Dublin Core: types
-  rdf_register_prefix(dctype, 'http://purl.org/dc/dcmitype/'),
   rdf_register_reduced_location_prefix(dctype),
 
-  % Dublin core: ?
-  rdf_register_prefix(eor, 'http://dublincore.org/2000/03/13/eor#'),
-
-  % Frapo
-  rdf_register_prefix(frapo, 'http://purl.org/cerif/frapo/'),
-
   % Friend Of A Friend (FOAF)
-  rdf_register_prefix(foaf, 'http://xmlns.com/foaf/0.1/'),
   rdf_register_reduced_location_prefix(foaf),
 
-  % Functional Requirements for Bibliographic Records (FRBR)
-  rdf_register_prefix(frbr, 'http://purl.org/vocab/frbr/core#'),
-
-  % Geo
-  rdf_register_prefix(geo, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
-
-  % Geodata
-  rdf_register_prefix(geodata, 'http://sws.geonames.org/'),
-
-  % Geo RSS
-  rdf_register_prefix(georss, 'http://www.georss.org/georss/'),
-
-  % Interval
-  rdf_register_prefix(
-    interval,
-    'http://reference.data.gov.uk/def/intervals/'
-  ),
-
-  % Kaballah Tree of Life
-  rdf_register_prefix(kaballah, 'http://data.totl.net/kabbalah/'),
-
-  % Music Ontology (MO)
-  rdf_register_prefix(mo, 'http://purl.org/ontology/mo/'),
-
-  % MUTO
-  rdf_register_prefix(muto, 'http://purl.org/muto/core#'),
-
-  % Pattern
-  rdf_register_prefix(pattern, 'http://www.essepuntato.it/2008/12/pattern#'),
-
-  % Pobo
-  rdf_register_prefix(pobo, 'http://purl.obolibrary.org/obo/'),
-
-  % OpenCyc
-  rdf_register_prefix(opencyc, 'http://sw.opencyc.org/2008/06/10/concept/'),
-
-  % ORG
-  rdf_register_prefix(org, 'http://www.w3.org/ns/org#'),
-
-  % ?
-  rdf_register_prefix('powder-s', 'http://www.w3.org/2007/05/powder-s#'),
-
-  % PROV
-  rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#'),
-  rdf_register_prefix('prov-old', 'http://purl.org/net/provenance/ns#'),
-
   % RDF
-  rdf_register_prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
   rdf_register_reduced_location_prefix(rdf),
 
   % RDFS
-  rdf_register_prefix(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
   rdf_register_reduced_location_prefix(rdfs),
   rdf_set_predicate(rdfs:subClassOf, transitive(true)),
   rdf_set_predicate(rdfs:subPropertyOf, transitive(true)),
 
-  % Schema
-  rdf_register_prefix(schema, 'http://schema.org/'),
-
-  % SCOVO
-  rdf_register_prefix(scovo, 'http://purl.org/NET/scovo#'),
-
-  % SDMX
-  rdf_register_prefix(
-    'sdmx-concept',
-    'http://purl.org/linked-data/sdmx/2009/concept#'
-  ),
-  rdf_register_prefix(
-    'sdmx-code',
-    'http://purl.org/linked-data/sdmx/2009/code#'
-  ),
-  rdf_register_prefix(
-    'sdmx-dimension',
-    'http://purl.org/linked-data/sdmx/2009/dimension#'
-  ),
-  rdf_register_prefix(
-    'sdmx-attribute',
-    'http://purl.org/linked-data/sdmx/2009/attribute#'
-  ),
-  rdf_register_prefix(
-     'sdmx-measure',
-     'http://purl.org/linked-data/sdmx/2009/measure#'
-   ),
-
-  % SERQL
-  rdf_register_prefix(serql, 'http://www.openrdf.org/schema/serql#'),
-
   % SKOS
-  rdf_register_prefix(skos, 'http://www.w3.org/2004/02/skos/core#'),
   rdf_register_reduced_location_prefix(skos),
 
-  % TaxonConcept Ontology
-  rdf_register_prefix(txn, 'http://lod.taxonconcept.org/ontology/txn.owl#'),
-
-  % Turismo
-  rdf_register_prefix(
-    turismo,
-    'http://idi.fundacionctic.org/cruzar/turismo#'
-  ),
-
   % UMBEL
-  % Already registered by ClioPatria.
   rdf_register_prefix(umbel, 'http://umbel.org/umbel#', [keep(true)]),
   rdf_register_prefix('umbel-sc', 'http://umbel.org/umbel/sc/'),
   rdf_register_prefix(umbelrc, 'http://umbel.org/umbel/rc/'),
 
-  % VCARD
-  rdf_register_prefix(vcard, 'http://www.w3.org/2006/vcard/ns#'),
-
-  % VoID
-  rdf_register_prefix(void, 'http://rdfs.org/ns/void#'),
-
-  % VS
-  rdf_register_prefix(vs, 'http://www.w3.org/2003/06/sw-vocab-status/ns#'),
-
   % Web Ontology Language (OWL)
-  rdf_register_prefix(owl, 'http://www.w3.org/2002/07/owl#'),
   rdf_register_reduced_location_prefix(owl),
   rdf_set_predicate(owl:sameAs, symmetric(true)),
-  rdf_set_predicate(owl:sameAs, transitive(true)),
+  rdf_set_predicate(owl:sameAs, transitive(true)).
+*/
 
-  % Wikidata
-  rdf_register_prefix(wd, 'http://www.wikidata.org/entity/'),
-
-  % WordNet
-  rdf_register_prefix(wn, 'http://wordnet.princeton.edu/wn20/'),
-  rdf_register_prefix(
-    'wn20:schema',
-    'http://www.w3.org/2006/03/wn/wn20/schema'
-  ),
-
-  % XHTML Vocabulary.
-  rdf_register_prefix(xhv, 'http://www.w3.org/1999/xhtml/vocab#'),
-
-  % XSD
-  rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#'),
-
-  % YAGO resource
-  rdf_register_prefix(yago, 'http://yago-knowledge.org/resource/').
-
-
-
-assert_data_prefixes:-
-  % DBpedia resource
-  rdf_register_prefix(dbpedia, 'http://dbpedia.org/resource/'),
-
-  % Freebase
-  rdf_register_prefix(fb, 'http://rdf.freebase.com/ns/'),
-
-  % New York Times
-  rdf_register_prefix(nyt, 'http://data.nytimes.com/'),
-  rdf_register_prefix(nytimes, 'http://data.nytimes.com/elements/').
