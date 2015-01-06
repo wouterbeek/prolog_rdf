@@ -1,6 +1,9 @@
 :- module(
   ctriples_write_triples,
   [
+    ctriples_write_triple/3, % +State:compound
+                             % +BNodePrefix:iri
+                             % +Triple:compound
     ctriples_write_triples/3, % +Write:or([atom,stream])
                               % +Triples:list(compound)
                               % +Options:list(nvpair)
@@ -87,7 +90,7 @@ ctriples_write_triples_to_stream(Triples1, Options):-
 %! ctriples_write_triple(
 %!   +State:compound,
 %!   +BNodePrefix:iri,
-%!   +Triple:list(compound)
+%!   +Triple:compound
 %! ) is det.
 
 ctriples_write_triple(State, BNodePrefix, Triple):-
