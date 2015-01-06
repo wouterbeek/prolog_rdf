@@ -1,10 +1,11 @@
 :- module(
   ctriples_write_triples,
   [
-    ctriples_write_triple/3, % +State:compound
+    ctriples_write_triple/4, % +Out:stream
+                             % +State:compound
                              % +BNodePrefix:iri
                              % +Triple:compound
-    ctriples_write_triples/3, % +Write:or([atom,stream])
+    ctriples_write_triples/3, % +Out:or([atom,stream])
                               % +Triples:list(compound)
                               % +Options:list(nvpair)
     ctriples_write_triples_to_stream/2 % +Triples:list(compound)
@@ -58,15 +59,15 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 %! ) is det.
 % Writes RDF data using the C-Triples/C-Quads serialization format.
 
-ctriples_write_triples(Write, Triples, Options):-
-  is_stream(Write), !,
-  with_output_to(Write, ctriples_write_triples_to_stream(Triples, Options)).
-ctriples_write_triples(Write, Triples, Options):-
+ctriples_write_triples(Out, Triples, Options):-
+  is_stream(Out), !,
+  with_output_to(Out, ctriples_write_triples_to_stream(Triples, Options)).
+ctriples_write_triples(Out, Triples, Options):-
   is_absolute_file_name(File), !,
   setup_call_cleanup(
-    open(File, write, Write),
-    with_output_to(Write, ctriples_write_triples_to_stream(Triples, Options)),
-    close(Write)
+    open(File, write, Out),
+    with_output_to(Out, ctriples_write_triples_to_stream(Triples, Options)),
+    close(Out)
   ).
 
 
@@ -101,4 +102,14 @@ ctriples_write_triple(State, BNodePrefix, Triple):-
   ->  write_quad(S, P, O, G, BNodePrefix)
   ;   true
   ).
+
+%! ctriples_write_triple(
+%!   +Out:stream,
+%!   +State:compound,
+%!   +BNodePrefix:iri,
+%!   +Triple:compound
+%! ) is det.
+
+ctriples_write_triple(Out, State, BNodePrefix, Triple):-
+  with_output_to(Out, ctriples_write_triple(State, BNodePrefix, Triple)).
 
