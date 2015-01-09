@@ -108,7 +108,10 @@ decimalLiteral(N) -->
   (   {var(N)}
   ->  'DECIMAL'(sparql, N0),
       {N is copysign(N0, -1)}
-  ;   {N0 is abs(N)},
+  ;   {
+        N < 0.0,
+        N0 is abs(N)
+      },
       'DECIMAL'(sparql, N0)
   ).
 
@@ -201,7 +204,10 @@ digits(L) -->
   (   {var(N)}
   ->  'DOUBLE'(sparql, N0),
       {N is copysign(N0, -1)}
-  ;   {N0 is abs(N)},
+  ;   {
+        N < 0.0,
+        N0 is abs(N)
+      },
       'DOUBLE'(sparql, N0)
   ).
 
@@ -303,7 +309,10 @@ integerLiteral(N) -->
   (   {var(N)}
   ->  'INTEGER'(sparql, N0),
       {N is copysign(N0, -1)}
-  ;   {N0 is abs(N)},
+  ;   {
+        N < 0.0,
+        N0 is abs(N)
+      },
       'INTEGER'(sparql, N0)
   ).
 
