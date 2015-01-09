@@ -1,7 +1,7 @@
 :- module(
   sw_literal,
   [
-    literal//2, % +Language:oneof([manchester,ntriples,turtle])
+    literal//2, % +Language:oneof([manchester,n,turtle])
                 % ?Literal:compound
     'NumericLiteral'//2 % ?Language:oneof([sparql,turtle])
                         % ?Literal:compound
@@ -31,11 +31,12 @@ Examples of literal syntax in SPARQL include:
 ---
 
 @author Wouter Beek
+@compat N-Quads 1.1
 @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/04-2014/05, 2014/08, 2014/11-2014/12, 2015/01
+@version 2014/04-2014/05, 2014/08, 2014/11-2015/01
 */
 
 :- use_module(generics(atom_ext)). % Meta-option.
@@ -70,9 +71,9 @@ Examples of literal syntax in SPARQL include:
 % BooleanLiteral ::= 'true' | 'false'
 % ```
 %
-% @compat SPARQL 1.0 [65]
-% @compat SPARQL 1.1 Query [134]
-% @compat Turtle 1.1 [133s]
+% @compat SPARQL 1.0 [65].
+% @compat SPARQL 1.1 Query [134].
+% @compat Turtle 1.1 [133s].
 
 'BooleanLiteral'(false) --> "false".
 'BooleanLiteral'(true)  --> "true".
@@ -84,9 +85,10 @@ Examples of literal syntax in SPARQL include:
 % LANGTAG ::= '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)*
 % ```
 %
-% @compat SPARQL 1.0 [76]
-% @compat SPARQL 1.1 Query [145]
-% @compat Turtle 1.1 [144s]
+% @compat N-Quads 1.1 [144s].
+% @compat SPARQL 1.0 [76].
+% @compat SPARQL 1.1 Query [145].
+% @compat Turtle 1.1 [144s].
 
 'LANGTAG'(LangTag) -->
   "@",
@@ -111,7 +113,7 @@ subtag(Subtag) -->
 %                the langtag production from [BCP 47]
 % ```
 %
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
 languageTag(LangTag) -->
   "@",
@@ -124,30 +126,34 @@ languageTag(LangTag) -->
 % lexicalValue ::= quotedString
 % ```
 %
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
 lexicalValue(LexicalForm) --> quotedString(LexicalForm).
 
 
 
 %! literal(
-%!   ?Language:oneof([manchester,ntriples,turtle]),
+%!   ?Language:oneof([manchester,n,turtle]),
 %!   ?Literal:compound
 %! )// .
 % ```ebnf
-% [Manchester]   literal ::=   typedLiteral
-%                            | stringLiteralNoLanguage
-%                            | stringLiteralWithLanguage
-%                            | integerLiteral
-%                            | decimalLiteral
-%                            | floatingPointLiteral
-% [N-Triples]    literal ::= STRING_LITERAL_QUOTE ('^^' IRIREF | LANGTAG)?
-% [Turtle]       literal ::= RDFLiteral | NumericLiteral | BooleanLiteral
+% [Manchester]          literal ::=   typedLiteral
+%                                   | stringLiteralNoLanguage
+%                                   | stringLiteralWithLanguage
+%                                   | integerLiteral
+%                                   | decimalLiteral
+%                                   | floatingPointLiteral
+% [N-Quads,N-Triples]   literal ::=   STRING_LITERAL_QUOTE
+%                                     ('^^' IRIREF | LANGTAG)?
+% [Turtle]              literal ::=   RDFLiteral
+%                                   | NumericLiteral
+%                                   | BooleanLiteral
 % ```
 %
-% @compat N-Triples 1.1 [6]
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
-% @compat Turtle 1.1 [13]
+% @compat N-Quads 1.1 [7].
+% @compat N-Triples 1.1 [6].
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
+% @compat Turtle 1.1 [13].
 
 literal(manchester, Literal) --> typedLiteral(Literal).
 literal(manchester, Literal) --> stringLiteralNoLanguage(Literal).
@@ -155,7 +161,7 @@ literal(manchester, Literal) --> stringLiteralWithLanguage(Literal).
 literal(manchester, Literal) --> integerLiteral(Literal).
 literal(manchester, Literal) --> decimalLiteral(Literal).
 literal(manchester, Literal) --> floatingPointLiteral(Literal).
-literal(ntriples, Literal) -->
+literal(n, Literal) -->
   'STRING_LITERAL_QUOTE'(LexicalForm),
   (   "^^",
       'IRIREF'(Datatype)
@@ -190,7 +196,7 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 %
 % @compat SPARQL 1.0 [61].
 % @compat SPARQL 1.1 Query [130].
-% @compat Turtle 1.1 [16]
+% @compat Turtle 1.1 [16].
 
 'NumericLiteral'(turtle, literal(type(xsd:decimal,Value))) -->
   'DECIMAL'(turtle, Value).
@@ -214,8 +220,8 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 %                            | DOUBLE_NEGATIVE
 % ```
 %
-% @compat SPARQL 1.0 [64]
-% @compat SPARQL 1.1 Query [133]
+% @compat SPARQL 1.0 [64].
+% @compat SPARQL 1.1 Query [133].
 
 'NumericLiteralNegative'(Value) -->
   'DECIMAL_NEGATIVE'(Value).
@@ -233,8 +239,8 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 %                            | DOUBLE_POSITIVE
 % ```
 %
-% @compat SPARQL 1.0 [63]
-% @compat SPARQL 1.1 Query [132]
+% @compat SPARQL 1.0 [63].
+% @compat SPARQL 1.1 Query [132].
 
 'NumericLiteralPositive'(Value) -->
   'DECIMAL_POSITIVE'(Value).
@@ -250,8 +256,8 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % NumericLiteralUnsigned ::= INTEGER | DECIMAL | DOUBLE
 % ```
 %
-% @compat SPARQL 1.0 [62]
-% @compat SPARQL 1.1 Update [131]
+% @compat SPARQL 1.0 [62].
+% @compat SPARQL 1.1 Update [131].
 
 'NumericLiteralUnsigned'(Value) -->
   'DECIMAL'(sparql, Value).
@@ -278,8 +284,8 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % RDFLiteral ::= String ( LANGTAG | ( '^^' iri ) )?
 % ```
 %
-% @compat SPARQL 1.0 [128]
-% @compat SPARQL 1.1 Query [129]
+% @compat SPARQL 1.0 [128].
+% @compat SPARQL 1.1 Query [129].
 % @compat Turtle 1.1 [128s] is the same, but uses a different `String`.
 
 % Typed literal.
@@ -303,7 +309,7 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % stringLiteralNoLanguage ::= quotedString
 % ```
 %
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
 stringLiteralNoLanguage(String) --> quotedString(String).
 
@@ -314,7 +320,7 @@ stringLiteralNoLanguage(String) --> quotedString(String).
 % stringLiteralWithLanguage ::= quotedString languageTag
 % ```
 %
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
 stringLiteralWithLanguage(LangTag-LexicalForm) -->
   quotedString(LexicalForm),
@@ -327,7 +333,7 @@ stringLiteralWithLanguage(LangTag-LexicalForm) -->
 % typedLiteral ::= lexicalValue '^^' Datatype
 % ```
 %
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
 typedLiteral(literal(type(Datatype,LexicalForm))) -->
   lexicalValue(LexicalForm),

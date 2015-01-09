@@ -194,10 +194,13 @@ iri(Iri) -->
 
 %! 'IRIREF'(?Iri:atom)// .
 % ```bnf
-% [SPARQL]             IRIREF ::= '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
-% [N-Triples,Turtle]   IRIREF ::= '<' ( [^#x00-#x20<>"{}|^`\] | UCHAR )* '>'
+% [SPARQL]                     IRIREF ::= '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
+% [N-Quads,N-Triples,Turtle]   IRIREF ::= '<'
+%                                         ( [^#x00-#x20<>"{}|^`\] | UCHAR )*
+%                                         '>'
 % ```
 %
+% @compat N-Quads 1.1 [10].
 % @compat N-Triples 1.1 [8].
 % @compat SPARQL 1.1 Query [139].
 % @compat Turtle 1.1 [18].
@@ -271,14 +274,14 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 
 'PN_LOCAL_1'(Code) -->
   'PN_CHARS_U'(Lang, Code),
-  {\+ dif(Lang, ntriples)}.
+  {\+ dif(Lang, n)}.
 'PN_LOCAL_1'(Code) --> colon(Code).
 'PN_LOCAL_1'(Code) --> decimal_digit(Code).
 'PN_LOCAL_1'(Code) --> 'PLX'(Code).
 
 'PN_LOCAL_2'(Code) -->
   'PN_CHARS_U'(Lang, Code),
-  {\+ dif(Lang, ntriples)}.
+  {\+ dif(Lang, n)}.
 'PN_LOCAL_2'(Code) --> dot(Code).
 'PN_LOCAL_2'(Code) --> semi_colon(Code).
 'PN_LOCAL_2'(Code) --> 'PLX'(Code).

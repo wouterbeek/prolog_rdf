@@ -169,7 +169,7 @@ turtle_like(Format, Options) -->
   "BASE", blank, !,
   turtle_or_trig(Format, Options).
 turtle_like(Format, Options) -->
-  iriref, 'nt_whites+', iriref_pred, 'nt_whites+', nt_object,
+  subject, 'nt_whites+', iriref_pred, 'nt_whites+', nt_object,
   'nt_whites+',
   (   "."
   ->  nt_end,
@@ -253,7 +253,7 @@ iri_codes --> [].
 
 iri_code -->
   [C],
-  { (   C =< 0'\s
+  {(   C =< 0'\s
     ;   no_iri_code(C)
     ), !, fail
   }.
@@ -272,8 +272,8 @@ langtag --> az, azs, sublangs.
 sublangs --> "-", !, azd, azds, sublangs.
 sublangs --> "".
 
-az   --> [C], { between(0'a,0'z,C) ; between(0'A,0'Z,C) }, !.
-azd  --> [C], { between(0'a,0'z,C) ; between(0'A,0'Z,C), between(0'0,0'9,C) }, !.
+az   --> [C], {between(0'a,0'z,C) ; between(0'A,0'Z,C)}, !.
+azd  --> [C], {between(0'a,0'z,C) ; between(0'A,0'Z,C), between(0'0,0'9,C)}, !.
 azs  --> az, !, azs | "".
 azds --> azd, !, azds | "".
 
@@ -443,8 +443,7 @@ skip_line --> [_], skip_line.
 icase_keyword(Keyword) -->
   alpha_to_lower(H),
   alpha_to_lowers(T),
-  { atom_codes(Keyword, [H|T])
-  }.
+  {atom_codes(Keyword, [H|T])}.
 
 alpha_to_lowers([H|T]) -->
   alpha_to_lower(H), !,

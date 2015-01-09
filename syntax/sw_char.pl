@@ -7,11 +7,11 @@
     'PLX'//1, % ?Code:code
     'PN_CHARS'//1, % ?Code:code
     'PN_CHARS_BASE'//1, % ?Code:code
-    'PN_CHARS_U'//2, % ?Language:oneof([ntriples,sparql,turtle])
+    'PN_CHARS_U'//2, % ?Language:oneof([n,sparql,turtle])
                      % ?Code:code
     'PN_LOCAL_ESC'//1, % ?Code:code
     'UCHAR'//1, % ?Code:code
-    white_space//1, % ?Language:oneof([manchester,ntriples])
+    white_space//1, % ?Language:oneof([manchester,n])
     'WS'//0
   ]
 ).
@@ -25,11 +25,12 @@ Turtle characters are a superset of SPARQL characters.
 ---
 
 @author Wouter Beek
+@compat N-Quads 1.1
 @compat N-Triples 1.1
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/04-2014/05, 2014/09-2014/12
+@version 2014/04-2014/05, 2014/09-2015/01
 */
 
 :- use_module(library(dif)).
@@ -98,6 +99,7 @@ end_of_comment --> line_feed.
 % EOL ::= [#xD#xA]+
 % ```
 %
+% @compat N-Quads [8].
 % @compat N-Triples [7].
 
 'EOL' -->
@@ -156,13 +158,14 @@ end_of_comment --> line_feed.
 %              | [#x203F-#x2040]
 % ```
 %
+% @compat N-Quads 1.1 [160s].
 % @compat SPARQL 1.0 [98].
 % @compat SPARQL 1.1 Query [167].
 % @compat Turtle 1.1 [166s].
 
 'PN_CHARS'(Code) -->
   'PN_CHARS_U'(Lang, Code),
-  {\+ dif(Lang, ntriples)}.
+  {\+ dif(Lang, n)}.
 'PN_CHARS'(Code) --> hyphen_minus(Code).
 'PN_CHARS'(Code) --> decimal_digit(Code).
 'PN_CHARS'(Code) --> code_radix(hex('00B7'), Code).
@@ -189,6 +192,7 @@ end_of_comment --> line_feed.
 %                   | [#x10000-#xEFFFF]
 % ```
 %
+% @compat N-Quads 1.1 [157s].
 % @compat SPARQL 1.0 [95].
 % @compat SPARQL 1.1 Query [164].
 % @compat Turtle 1.1 [163s].
@@ -239,12 +243,13 @@ end_of_comment --> line_feed.
 
 
 
-%! 'PN_CHARS_U'(?Language:oneof([ntriples,sparql,turtle]), ?Code:code)// .
+%! 'PN_CHARS_U'(?Language:oneof([n,sparql,turtle]), ?Code:code)// .
 % ```bnf
-% [N-Triples]       PN_CHARS_U ::= PN_CHARS_BASE | '_' | ':'
-% [Turtle,SPARQL]   PN_CHARS_U ::= PN_CHARS_BASE | '_'
+% [N-Quads,N-Triples]   PN_CHARS_U ::= PN_CHARS_BASE | '_' | ':'
+% [Turtle,SPARQL]       PN_CHARS_U ::= PN_CHARS_BASE | '_'
 % ```
 %
+% @compat N-Quads [158s].
 % @compat N-Triples [158s].
 % @compat SPARQL 1.0 [96].
 % @compat SPARQL 1.1 Query [165].
@@ -253,7 +258,7 @@ end_of_comment --> line_feed.
 'PN_CHARS_U'(_, Code) --> 'PN_CHARS_BASE'(Code).
 'PN_CHARS_U'(_, Code) --> underscore(Code).
 'PN_CHARS_U'(Lang, Code) -->
-  {dif(Lang, ntriples)},
+  {dif(Lang, n)},
   colon(Code).
 
 
@@ -302,6 +307,7 @@ end_of_comment --> line_feed.
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ```
 %
+% @compat N-Quads 1.1 [12].
 % @compat N-Triples 1.1 [10].
 % @compat Turtle 1.1 [26].
 
@@ -316,11 +322,9 @@ end_of_comment --> line_feed.
 
 
 
-%! white_space(?Language:oneof([manchester,ntriples]))// .
+%! white_space(?Language:oneof([manchester,n]))// .
 % White space is a sequence of:
-%   - N-Triples 1.1:
-%     -
-%     -
+%   - N-Quads 1.1, N-Triples 1.1
 %   - OWL 2 Web Ontology Language Manchester Syntax (Second Edition):
 %     - blanks (U+20)
 %     - tabs (U+9)
@@ -333,8 +337,8 @@ end_of_comment --> line_feed.
 
 white_space(manchester) --> 'WS'.
 white_space(manchester) --> comment.
-white_space(ntriples) --> horizontal_tab.
-white_space(ntriples) --> space.
+white_space(n) --> horizontal_tab.
+white_space(n) --> space.
 
 
 

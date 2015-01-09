@@ -117,6 +117,7 @@ quotedString_codes([H|T]) -->
 %                          /* #x22=" #x5C=\ #xA=new line
 %                             #xD=carriage return */
 % ```
+% @compat N-Quads 1.1 [11].
 % @compat N-Triples 1.1 [6].
 % @compat Turtle 1.1 [22]
 % @compat This different from SPARQL 1.0 [88] and SPARQL 1.1 [157]
