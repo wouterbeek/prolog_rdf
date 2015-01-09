@@ -1,8 +1,10 @@
 :- module(
   sw_literal,
   [
-    literal//2 % +Language:oneof([manchester,ntriples,turtle])
-               % ?Literal:compound
+    literal//2, % +Language:oneof([manchester,ntriples,turtle])
+                % ?Literal:compound
+    'NumericLiteral'//2 % ?Language:oneof([sparql,turtle])
+                        % ?Literal:compound
   ]
 ).
 
@@ -33,7 +35,7 @@ Examples of literal syntax in SPARQL include:
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/04-2014/05, 2014/08, 2014/11-2014/12
+@version 2014/04-2014/05, 2014/08, 2014/11-2014/12, 2015/01
 */
 
 :- use_module(generics(atom_ext)). % Meta-option.
@@ -215,11 +217,11 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat SPARQL 1.0 [64]
 % @compat SPARQL 1.1 Query [133]
 
-'NumericLiteralNegative'(literal(type(xsd:decimal,Value))) -->
+'NumericLiteralNegative'(Value) -->
   'DECIMAL_NEGATIVE'(Value).
-'NumericLiteralNegative'(literal(type(xsd:double,Value))) -->
+'NumericLiteralNegative'(Value) -->
   'DOUBLE_NEGATIVE'(Value).
-'NumericLiteralNegative'(literal(type(xsd:integer,Value))) -->
+'NumericLiteralNegative'(Value) -->
   'INTEGER_NEGATIVE'(Value).
 
 
@@ -234,11 +236,11 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat SPARQL 1.0 [63]
 % @compat SPARQL 1.1 Query [132]
 
-'NumericLiteralPositive'(literal(type(xsd:decimal,Value))) -->
+'NumericLiteralPositive'(Value) -->
   'DECIMAL_POSITIVE'(Value).
-'NumericLiteralPositive'(literal(type(xsd:double,Value))) -->
+'NumericLiteralPositive'(Value) -->
   'DOUBLE_POSITIVE'(Value).
-'NumericLiteralPositive'(literal(type(xsd:integer,Value))) -->
+'NumericLiteralPositive'(Value) -->
   'INTEGER_POSITIVE'(Value).
 
 
@@ -251,11 +253,11 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat SPARQL 1.0 [62]
 % @compat SPARQL 1.1 Update [131]
 
-'NumericLiteralUnsigned'(literal(type(xsd:decimal,Value))) -->
+'NumericLiteralUnsigned'(Value) -->
   'DECIMAL'(sparql, Value).
-'NumericLiteralUnsigned'(literal(type(xsd:double,Value))) -->
+'NumericLiteralUnsigned'(Value) -->
   'DOUBLE'(sparql, Value).
-'NumericLiteralUnsigned'(literal(type(xsd:integer,Value))) -->
+'NumericLiteralUnsigned'(Value) -->
   'INTEGER'(sparql, Value).
 
 
