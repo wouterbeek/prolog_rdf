@@ -25,7 +25,10 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(sgml)).
 
+:- use_module(plDcg(dcg_ascii)).
+
 :- use_module(plRdf(management/rdf_file_db)).
+:- use_module(plRdf(syntax/sw_char)).
 
 
 
@@ -171,7 +174,7 @@ turtle_like(Format, Options) -->
   "BASE", blank, !,
   turtle_or_trig(Format, Options).
 turtle_like(Format, Options) -->
-  iriref, 'nt_whites+', iriref_pred, 'nt_whites+', nt_object,
+  nt_subject, 'nt_whites+', nt_predicate, 'nt_whites+', nt_object,
   'nt_whites+',
   (   "."
   ->  nt_end,
@@ -188,6 +191,22 @@ turtle_like(Format, Options) -->    % starts with a blank node
 turtle_like(Format, Options) -->      % starts with a collection
   "(", !,
   turtle_or_trig(Format, Options).
+
+nt_subject --> iriref.
+nt_subject --> nt_bnode.
+
+nt_bnode --> "_:", nt_bnode_first, nt_bnode_latters.
+
+nt_bnode_first --> 'PN_CHARS_U'(turtle, _).
+nt_bnode_first --> decimal_digit.
+
+nt_bnode_latters -->
+  nt_bnode_latter, !,
+  nt_bnode_latters.
+nt_bnode_latters --> [].
+
+nt_bnode_latter --> 'PN_CHARS_U'(turtle, _).
+nt_bnode_latter --> ".".
 
 turtle_keyword(base).
 turtle_keyword(prefix).
@@ -236,10 +255,11 @@ nt_turtle_like(nquads).
 
 iriref --> "<", iri_codes, ">".
 
-iriref_pred --> `a`.
-iriref_pred --> iriref.
+nt_predicate --> `a`.
+nt_predicate --> iriref.
 
 nt_object --> iriref, !.
+nt_object --> nt_bnode, !.
 nt_object -->
   nt_string,
   (   "^^"
