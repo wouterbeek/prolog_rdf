@@ -299,12 +299,7 @@ location_suffix([Archive|T], Suffix):-
 % Extracts a content type term from the metadata object, if present.
 
 metadata_content_type(Metadata, media_type(Type,Subtype,Parameters)):-
-  get_dict('HTTP', Metadata, HttpMetadata),
-  get_dict('Content-Type', HttpMetadata, ContentType),
-  get_dict(type, ContentType, Type),
-  get_dict(subtype, ContentType, Subtype),
-  get_dict(parameters, ContentType, Parameters).
-
+  _{type:Type, subtype:Subtype, parameters:Parameters} :< Metadata.'HTTP'.'Content-Type'.
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
 %  The base URI describes the location where the data is loaded from.
