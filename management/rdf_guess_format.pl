@@ -16,7 +16,7 @@ Detect the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07-2014/08, 2014/10
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10, 2015/01
 */
 
 :- use_module(library(dcg/basics)).
@@ -26,6 +26,8 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(sgml)).
 
 :- use_module(plRdf(management/rdf_file_db)).
+
+
 
 
 
@@ -47,7 +49,7 @@ rdf_guess_format(File0, Format):-
   absolute_file_name(File0, File, [access(read)]),
 
   % Take the file extension into account, if any.
-  file_name_extension(File, FileExtension0, _),
+  file_name_extension(_, FileExtension0, File),
   (   FileExtension0 == ''
   ->  true
   ;   FileExtension = FileExtension0
@@ -169,7 +171,7 @@ turtle_like(Format, Options) -->
   "BASE", blank, !,
   turtle_or_trig(Format, Options).
 turtle_like(Format, Options) -->
-  subject, 'nt_whites+', iriref_pred, 'nt_whites+', nt_object,
+  iriref, 'nt_whites+', iriref_pred, 'nt_whites+', nt_object,
   'nt_whites+',
   (   "."
   ->  nt_end,
@@ -177,7 +179,7 @@ turtle_like(Format, Options) -->
   ;   ";"
   ->  nt_end,
       nt_turtle_like(Format, Options)
-  ;   iriref, nt_end
+  ;   iriref, 'nt_whites+', ".", nt_end
   ->  {Format = nquads}
   ).
 turtle_like(Format, Options) -->    % starts with a blank node
