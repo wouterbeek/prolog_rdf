@@ -3,9 +3,9 @@
   [
     rdf_guess_format/2, % +File:atom
                         % -Format:rdf_format
-    rdf_guess_format/4 % +Read:blob
-                       % +FileExtension:atom,
-                       % +ContentType:atom,
+    rdf_guess_format/4 % +In:stream
+                       % ?FileExtension:atom,
+                       % ?ContentType:atom,
                        % -Format:rdf_format
   ]
 ).
@@ -26,6 +26,7 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(sgml)).
 
 :- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(syntax/sw_char)).
@@ -81,35 +82,37 @@ rdf_guess_format0(Stream, Format, Options):-
 %!   +Options:list(nvpair)
 %! ) is det.
 
-rdf_guess_format0(Stream, Iteration, Format, Options):-
+rdf_guess_format0(Stream, Iteration, Format, Options1):-
   % Peek a given number of bytes from stream.
-  option(look_ahead(Bytes0), Options, 1000),
+  option(look_ahead(Bytes0), Options1, 1000),
   Bytes is Iteration * Bytes0,
   peek_string(Stream, Bytes, String),
 
   % Do not backtrack if the whole stream has been peeked.
   string_length(String, Length),
   (   Length < Bytes
-  ->  !
-  ;   true
+  ->  !,
+      EoS = true
+  ;   EoS = false
   ),
+  merge_options([eos(EoS)], Options1, Options2),
 
   % Try to parse the peeked string as Turtle- or XML-like.
   (   string_codes(String, Codes),
-      phrase(turtle_like(Format, Options), Codes, _)
+      phrase(turtle_like(Format, Options2), Codes, _)
   ->  true
   ;   setup_call_cleanup(
         new_memory_file(MemFile),
         (
           setup_call_cleanup(
-            open_memory_file(MemFile, write, Write),
-            format(Write, '~s', [String]),
-            close(Write)
+            open_memory_file(MemFile, write, Out),
+            format(Out, '~s', [String]),
+            close(Out)
           ),
           setup_call_cleanup(
-            open_memory_file(MemFile, read, Read),
-            guess_xml_type(Read, Format),
-            close(Read)
+            open_memory_file(MemFile, read, In),
+            guess_xml_type(In, Format),
+            close(In)
           )
         ),
         free_memory_file(MemFile)
@@ -122,26 +125,26 @@ rdf_guess_format0(Stream, Iteration, Format, Options):-
 
 
 %! rdf_guess_format(
-%!   +Read:blob,
-%!   +FileExtension:atom,
-%!   +ContentType:atom,
+%!   +In:stream,
+%!   ?FileExtension:atom,
+%!   ?ContentType:atom,
 %!   -Format:rdf_format
 %! ) is semidet.
 % Fails if the RDF serialization format cannot be decided on.
 
 % Use the file extensions as the RDF serialization format suggestion.
-rdf_guess_format(Read, FileExtension, _, Format):-
+rdf_guess_format(In, FileExtension, _, Format):-
   nonvar(FileExtension),
   rdf_db:rdf_file_type(FileExtension, SuggestedFormat), !,
-  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(In, Format, [format(SuggestedFormat)]).
 % Use the HTTP content type header as the RDF serialization format suggestion.
-rdf_guess_format(Read, _, ContentType, Format):-
+rdf_guess_format(In, _, ContentType, Format):-
   nonvar(ContentType),
   rdf_media_type_format(ContentType, SuggestedFormat), !,
-  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(In, Format, [format(SuggestedFormat)]).
 % Use no RDF serialization format suggestion.
-rdf_guess_format(Read, _, _, Format):-
-  rdf_guess_format0(Read, Format, []), !.
+rdf_guess_format(In, _, _, Format):-
+  rdf_guess_format0(In, Format, []), !.
 
 
 %! turtle_like(
@@ -158,6 +161,14 @@ rdf_guess_format(Read, _, _, Format):-
 % The first three can all be handled by the turtle parser,
 % so it oesn't matter too much.
 
+% Whenever the end-of-stream is reached we assume it is in a format
+% belonging to the Turtle family.
+% This e.g. allows Turtle files that consist of comments exclusively
+% to be classified as such.
+turtle_like(Format, Options) -->
+  dcg_end,
+  {option(eos(true), Options)}, !,
+  turtle_or_trig(Format, Options).
 turtle_like(Format, Options) -->
   blank, !, blanks,
   turtle_like(Format, Options).
@@ -185,10 +196,12 @@ turtle_like(Format, Options) -->
   ;   iriref, 'nt_whites+', ".", nt_end
   ->  {Format = nquads}
   ).
-turtle_like(Format, Options) -->    % starts with a blank node
+% starts with a blank node
+turtle_like(Format, Options) -->
   "[", !,
   turtle_or_trig(Format, Options).
-turtle_like(Format, Options) -->      % starts with a collection
+% starts with a collection
+turtle_like(Format, Options) -->
   "(", !,
   turtle_or_trig(Format, Options).
 
@@ -222,7 +235,7 @@ turtle_or_trig(Format, Options) -->
     option(format(Format), Options),
     turtle_or_trig(Format)
   }, !.
-turtle_or_trig(Format, _Options) -->
+turtle_or_trig(Format, _) -->
   (   ..., "{"
   ->  {Format = trig}
   ;   {Format = turtle}
