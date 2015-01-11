@@ -228,9 +228,8 @@ nt_iri_codes --> [].
 nt_iri_code --> ">", !, {fail}.
 nt_iri_code --> [_].
 
-nt_langtag --> blank, !, {fail}.
-nt_langtag --> [_], nt_langtag.
 nt_langtag --> "".
+nt_langtag --> [_], nt_langtag.
 
 nt_object --> nt_iriref, !.
 nt_object --> nt_bnode, !.
@@ -246,20 +245,21 @@ nt_object -->
 nt_predicate --> "a".
 nt_predicate --> nt_iriref.
 
-nt_string --> "'", nt_string_codes([39]), "'".
-nt_string --> "\"", nt_string_codes([34]), "\"".
-nt_string --> "'''", nt_string_codes([39,39,39]), "'''".
-nt_string --> "\"\"\"", nt_string_codes([34,34,34]), "\"\"\"".
+nt_string --> "'''", !, nt_string_codes([39,39,39]).
+nt_string --> "'", !, nt_string_codes([39]).
+nt_string --> "\"\"\"", !, nt_string_codes([34,34,34]).
+nt_string --> "\"", !, nt_string_codes([34]).
 
-nt_string_codes(End) --> End, !, {fail}.
+nt_string_codes(End) --> End, !.
 nt_string_codes(End) --> [_], !, nt_string_codes(End).
 nt_string_codes(_) --> [].
 
-nt_subject --> nt_iriref.
+nt_subject --> nt_iriref, !.
 nt_subject --> nt_bnode.
 
-nt_whites --> nt_white, !, nt_whites.
-nt_whites --> [].
+nt_whites --> nt_white, !, nt_whites0.
+nt_whites0 --> nt_white, !, nt_whites0.
+nt_whites0 --> [].
 
 nt_white --> [10], !.
 nt_white --> [13], !.
