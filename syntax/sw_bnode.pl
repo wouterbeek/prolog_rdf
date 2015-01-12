@@ -2,7 +2,7 @@
   sw_bnode,
   [
     'ANON'//1, % -BNode:bnode
-    'BLANK_NODE_LABEL'//2, % ?Language:oneof([ntriples,sparql,turtle])
+    'BLANK_NODE_LABEL'//2, % ?Language:oneof([n,sparql,turtle])
                            % -BNode:bnode
     'BlankNode'//1, % ?BNode:bnode
     nodeID//2 % ?Language:oneof([manchester,turtle10])
@@ -65,10 +65,7 @@ not as references to specific blank nodes in the data being queried.
 
 
 
-%! 'BLANK_NODE_LABEL'(
-%!   ?Language:oneof([ntriples,sparql,turtle]),
-%!   -BNode:bnode
-%! )// .
+%! 'BLANK_NODE_LABEL'(?Language:oneof([n,sparql,turtle]), -BNode:bnode)// .
 % Blank node labels are written as `_:abc` for a blank node with label `abc`.
 %
 % The same blank node label cannot be used
@@ -80,6 +77,7 @@ not as references to specific blank nodes in the data being queried.
 %                      ( ( PN_CHARS | '.' )* PN_CHARS )?
 % ```
 %
+% @compat N-Quads 1.1 [141s].
 % @compat N-Triples 1.1 [141s].
 % @compat SPARQL 1.0 [73]
 % @compat SPARQL 1.1 Query [142]
@@ -123,7 +121,7 @@ not as references to specific blank nodes in the data being queried.
 
 'BlankNode'(BNode) -->
   'BLANK_NODE_LABEL'(Lang, BNode),
-  {\+ dif(Lang, ntriples)}.
+  {\+ dif(Lang, n)}.
 'BlankNode'(_, BNode) -->
   'ANON'(BNode).
 

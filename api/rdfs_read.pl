@@ -44,7 +44,6 @@
 :- use_module(generics(closure)).
 
 :- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(api/rdfs_subproperty_test)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_property(r)).

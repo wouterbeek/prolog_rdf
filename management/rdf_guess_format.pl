@@ -3,9 +3,9 @@
   [
     rdf_guess_format/2, % +File:atom
                         % -Format:rdf_format
-    rdf_guess_format/4 % +Read:blob
-                       % +FileExtension:atom,
-                       % +ContentType:atom,
+    rdf_guess_format/4 % +In:stream
+                       % ?FileExtension:atom,
+                       % ?ContentType:atom,
                        % -Format:rdf_format
   ]
 ).
@@ -16,7 +16,7 @@ Detect the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07-2014/08, 2014/10
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10, 2015/01
 */
 
 :- use_module(library(dcg/basics)).
@@ -25,7 +25,15 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(sgml)).
 
+:- use_module(plDcg(dcg_ascii)).
+:- use_module(plDcg(dcg_generics)).
+
 :- use_module(plRdf(management/rdf_file_db)).
+:- use_module(plRdf(syntax/sw_char)).
+
+:- meta_predicate(nt_string_codes(//,?,?)).
+
+
 
 
 
@@ -47,7 +55,7 @@ rdf_guess_format(File0, Format):-
   absolute_file_name(File0, File, [access(read)]),
 
   % Take the file extension into account, if any.
-  file_name_extension(File, FileExtension0, _),
+  file_name_extension(_, FileExtension0, File),
   (   FileExtension0 == ''
   ->  true
   ;   FileExtension = FileExtension0
@@ -76,35 +84,37 @@ rdf_guess_format0(Stream, Format, Options):-
 %!   +Options:list(nvpair)
 %! ) is det.
 
-rdf_guess_format0(Stream, Iteration, Format, Options):-
+rdf_guess_format0(Stream, Iteration, Format, Options1):-
   % Peek a given number of bytes from stream.
-  option(look_ahead(Bytes0), Options, 1000),
+  option(look_ahead(Bytes0), Options1, 1000),
   Bytes is Iteration * Bytes0,
   peek_string(Stream, Bytes, String),
 
   % Do not backtrack if the whole stream has been peeked.
   string_length(String, Length),
   (   Length < Bytes
-  ->  !
-  ;   true
+  ->  !,
+      EoS = true
+  ;   EoS = false
   ),
+  merge_options([eos(EoS)], Options1, Options2),
 
   % Try to parse the peeked string as Turtle- or XML-like.
   (   string_codes(String, Codes),
-      phrase(turtle_like(Format, Options), Codes, _)
+      phrase(turtle_like(Format, Options2), Codes, _)
   ->  true
   ;   setup_call_cleanup(
         new_memory_file(MemFile),
         (
           setup_call_cleanup(
-            open_memory_file(MemFile, write, Write),
-            format(Write, '~s', [String]),
-            close(Write)
+            open_memory_file(MemFile, write, Out),
+            format(Out, '~s', [String]),
+            close(Out)
           ),
           setup_call_cleanup(
-            open_memory_file(MemFile, read, Read),
-            guess_xml_type(Read, Format),
-            close(Read)
+            open_memory_file(MemFile, read, In),
+            guess_xml_type(In, Format),
+            close(In)
           )
         ),
         free_memory_file(MemFile)
@@ -117,26 +127,26 @@ rdf_guess_format0(Stream, Iteration, Format, Options):-
 
 
 %! rdf_guess_format(
-%!   +Read:blob,
-%!   +FileExtension:atom,
-%!   +ContentType:atom,
+%!   +In:stream,
+%!   ?FileExtension:atom,
+%!   ?ContentType:atom,
 %!   -Format:rdf_format
 %! ) is semidet.
 % Fails if the RDF serialization format cannot be decided on.
 
 % Use the file extensions as the RDF serialization format suggestion.
-rdf_guess_format(Read, FileExtension, _, Format):-
+rdf_guess_format(In, FileExtension, _, Format):-
   nonvar(FileExtension),
   rdf_db:rdf_file_type(FileExtension, SuggestedFormat), !,
-  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(In, Format, [format(SuggestedFormat)]).
 % Use the HTTP content type header as the RDF serialization format suggestion.
-rdf_guess_format(Read, _, ContentType, Format):-
+rdf_guess_format(In, _, ContentType, Format):-
   nonvar(ContentType),
   rdf_media_type_format(ContentType, SuggestedFormat), !,
-  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(In, Format, [format(SuggestedFormat)]).
 % Use no RDF serialization format suggestion.
-rdf_guess_format(Read, _, _, Format):-
-  rdf_guess_format0(Read, Format, []), !.
+rdf_guess_format(In, _, _, Format):-
+  rdf_guess_format0(In, Format, []), !.
 
 
 %! turtle_like(
@@ -153,167 +163,105 @@ rdf_guess_format(Read, _, _, Format):-
 % The first three can all be handled by the turtle parser,
 % so it oesn't matter too much.
 
+% Whenever the end-of-stream is reached we assume it is in a format
+% belonging to the Turtle family.
+% This e.g. allows Turtle files that consist of comments exclusively
+% to be classified as such.
+turtle_like(Format, Options) -->
+  dcg_end,
+  {option(eos(true), Options)}, !,
+  nt_turtle_or_trig(Format, Options).
 turtle_like(Format, Options) -->
   blank, !, blanks,
   turtle_like(Format, Options).
+% Turtle comment.
 turtle_like(Format, Options) -->
   "#", !, skip_line,
   turtle_like(Format, Options).
+% @BASE
+% @PREFIX
 turtle_like(Format, Options) -->
   "@", icase_keyword(Keyword), {turtle_keyword(Keyword)}, !,
-  turtle_or_trig(Format, Options).
+  nt_turtle_or_trig(Format, Options).
+% BASE
+% PREFIX
 turtle_like(Format, Options) -->
-  "PREFIX", blank, !,
-  turtle_or_trig(Format, Options).
+  icase_keyword(Keyword), {turtle_keyword(Keyword)}, blank, !,
+  nt_turtle_or_trig(Format, Options).
+% Turtle triple.
 turtle_like(Format, Options) -->
-  "BASE", blank, !,
-  turtle_or_trig(Format, Options).
-turtle_like(Format, Options) -->
-  iriref, 'nt_whites+', iriref_pred, 'nt_whites+', nt_object,
-  'nt_whites+',
+  nt_subject,
+  nt_whites,
+  nt_predicate,
+  nt_whites,
+  nt_object,
+  nt_whites,
   (   "."
   ->  nt_end,
       nt_turtle_like(Format, Options)
   ;   ";"
   ->  nt_end,
-      nt_turtle_like(Format, Options)
-  ;   iriref, nt_end
+      nt_turtle_or_trig(Format, Options)
+  ;   nt_graph, nt_whites, ".", nt_end
   ->  {Format = nquads}
   ).
-turtle_like(Format, Options) -->    % starts with a blank node
+% Turtle anonymous blank node.
+turtle_like(Format, Options) -->
   "[", !,
-  turtle_or_trig(Format, Options).
-turtle_like(Format, Options) -->      % starts with a collection
+  nt_turtle_or_trig(Format, Options).
+% Turtle collection.
+turtle_like(Format, Options) -->
   "(", !,
-  turtle_or_trig(Format, Options).
+  nt_turtle_or_trig(Format, Options).
 
-turtle_keyword(base).
-turtle_keyword(prefix).
+nt_bnode --> "_:", nt_bnode_codes.
 
-%! turtle_or_trig(-Format, +Options)//
-%
-%  The file starts with a Turtle construct.   It can still be TriG.
-%  We trust the content type and otherwise  we assume TriG if there
-%  is a "{" in the first section of the file.
+nt_bnode_codes --> blank, !, {fail}.
+nt_bnode_codes --> [_], !, nt_bnode_codes.
+nt_bnode_codes --> [].
 
-turtle_or_trig(Format, Options) -->
-  {
-    option(format(Format), Options),
-    turtle_or_trig(Format)
-  }, !.
-turtle_or_trig(Format, _Options) -->
-  (   ..., "{"
-  ->  {Format = trig}
-  ;   {Format = turtle}
-  ).
+nt_graph --> nt_iriref.
 
-turtle_or_trig(turtle).
-turtle_or_trig(trig).
+nt_iriref --> "<", nt_iri_codes, ">".
 
-... --> "" | [_], ... .
+nt_iri_codes --> nt_iri_code, !, nt_iri_codes.
+nt_iri_codes --> [].
 
-%! nt_turtle_like(
-%!   -Format:oneof([nquads,ntriples,turtle,trig]),
-%!   +Options:list(nvpair)
-%! )//
-% We found a fully qualified triple.
-% This still can be Turtle, TriG, N-Triples or N-Quads.
+nt_iri_code --> ">", !, {fail}.
+nt_iri_code --> [_].
 
-nt_turtle_like(Format, Options) -->
-  {
-    option(format(Format), Options),
-    nt_turtle_like(Format)
-  }, !.
-nt_turtle_like(ntriples, _) -->
-  "".
+nt_langtag --> "".
+nt_langtag --> [_], nt_langtag.
 
-nt_turtle_like(turtle).
-nt_turtle_like(trig).
-nt_turtle_like(ntriples).
-nt_turtle_like(nquads).
-
-iriref --> "<", iri_codes, ">".
-
-iriref_pred --> `a`.
-iriref_pred --> iriref.
-
-nt_object --> iriref, !.
+nt_object --> nt_iriref, !.
+nt_object --> nt_bnode, !.
 nt_object -->
   nt_string,
   (   "^^"
-  ->  iriref
+  ->  nt_iriref
   ;   "@"
-  ->  langtag
-  ;
-    {true}
+  ->  nt_langtag
+  ;   ""
   ).
 
-iri_codes --> iri_code, !, iri_codes.
-iri_codes --> [].
+nt_predicate --> "a".
+nt_predicate --> nt_iriref.
 
-iri_code -->
-  [C],
-  { (   C =< 0'\s
-    ;   no_iri_code(C)
-    ), !, fail
-  }.
-iri_code -->
-  "\\",
-  (   "u"
-  ->  xdigit4
-  ;   "U"
-  ->  xdigit8
-  ).
-iri_code -->
-  [_].
+nt_string --> "'''", !, nt_string_codes([39,39,39]).
+nt_string --> "'", !, nt_string_codes([39]).
+nt_string --> "\"\"\"", !, nt_string_codes([34,34,34]).
+nt_string --> "\"", !, nt_string_codes([34]).
 
-langtag --> az, azs, sublangs.
+nt_string_codes(End) --> End, !.
+nt_string_codes(End) --> [_], !, nt_string_codes(End).
+nt_string_codes(_) --> [].
 
-sublangs --> "-", !, azd, azds, sublangs.
-sublangs --> "".
+nt_subject --> nt_iriref, !.
+nt_subject --> nt_bnode.
 
-az   --> [C], { between(0'a,0'z,C) ; between(0'A,0'Z,C) }, !.
-azd  --> [C], { between(0'a,0'z,C) ; between(0'A,0'Z,C), between(0'0,0'9,C) }, !.
-azs  --> az, !, azs | "".
-azds --> azd, !, azds | "".
-
-term_expansion(no_iri_code(x), Clauses):-
-  findall(no_iri_code(C),
-    string_code(_,"<>\"{}|^`\\",C),
-    Clauses).
-term_expansion(echar(x), Clauses):-
-  findall(echar(C),
-    string_code(_,"tbnrf\"\'\\",C),
-    Clauses).
-
-no_iri_code(x).
-echar(x).
-
-xdigit2 --> xdigit(_), xdigit(_).
-xdigit4 --> xdigit2, xdigit2.
-xdigit8 --> xdigit4, xdigit4.
-
-nt_string --> "\"", nt_string_codes, "\"".
-
-nt_string_codes --> string_code, !, nt_string_codes.
-nt_string_codes --> [].
-
-string_code --> "\"", !, {fail}.
-string_code --> "\n", !, {fail}.
-string_code --> "\r", !, {fail}.
-string_code --> "\\", !,
-  (   "u"
-  ->  xdigit4
-  ;   "U"
-  ->  xdigit8
-  ;   [C],
-      {echar(C)}
-  ).
-string_code --> [_].
-
-'nt_whites+' --> nt_white, 'nt_whites*'.
-'nt_whites*' --> nt_white, 'nt_whites*'.
-'nt_whites*' --> [].
+nt_whites --> nt_white, !, nt_whites0.
+nt_whites0 --> nt_white, !, nt_whites0.
+nt_whites0 --> [].
 
 nt_white --> [10], !.
 nt_white --> [13], !.
@@ -338,6 +286,50 @@ eol1 --> "\r".
 
 eols --> eol1, !, eols.
 eols --> [].
+
+turtle_keyword(base).
+turtle_keyword(prefix).
+
+%! nt_turtle_or_trig(-Format, +Options)//
+%
+%  The file starts with a Turtle construct.   It can still be TriG.
+%  We trust the content type and otherwise  we assume TriG if there
+%  is a "{" in the first section of the file.
+
+nt_turtle_or_trig(Format, Options) -->
+  {
+    option(format(Format), Options),
+    nt_turtle_or_trig(Format)
+  }, !.
+nt_turtle_or_trig(Format, _) -->
+  (   ..., "{"
+  ->  {Format = trig}
+  ;   {Format = turtle}
+  ).
+
+nt_turtle_or_trig(turtle).
+nt_turtle_or_trig(trig).
+
+%! nt_turtle_like(
+%!   -Format:oneof([nquads,ntriples,turtle,trig]),
+%!   +Options:list(nvpair)
+%! )//
+% We found a fully qualified triple.
+% This still can be Turtle, TriG, N-Triples or N-Quads.
+
+nt_turtle_like(Format, Options) -->
+  {
+    option(format(Format), Options),
+    nt_turtle_like(Format)
+  }, !.
+nt_turtle_like(ntriples, _) -->
+  "".
+
+nt_turtle_like(turtle).
+nt_turtle_like(trig).
+nt_turtle_like(ntriples).
+nt_turtle_like(nquads).
+
 
 
      /*******************************
@@ -432,6 +424,8 @@ on_cdata(_CDATA, _Parser):-
      *      DCG BASICS    *
      *******************************/
 
+... --> "" | [_], ... .
+
 skip_line --> eol, !.
 skip_line --> [_], skip_line.
 
@@ -443,8 +437,7 @@ skip_line --> [_], skip_line.
 icase_keyword(Keyword) -->
   alpha_to_lower(H),
   alpha_to_lowers(T),
-  { atom_codes(Keyword, [H|T])
-  }.
+  {atom_codes(Keyword, [H|T])}.
 
 alpha_to_lowers([H|T]) -->
   alpha_to_lower(H), !,

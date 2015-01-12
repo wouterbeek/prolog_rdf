@@ -29,6 +29,8 @@ Additional Blank Node support.
 
 
 
+
+
 %! rdf_bnode_map(+BNodePrefix:atom, +BNode:atom, -MappedBNode:atom) is det.
 
 rdf_bnode_map(BNodePrefix, BNode, MappedBNode):-
