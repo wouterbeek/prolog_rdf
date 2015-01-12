@@ -31,6 +31,8 @@ Detect the RDF serialization format of a given stream.
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(syntax/sw_char)).
 
+:- meta_predicate(nt_string_codes(//,?,?)).
+
 
 
 
