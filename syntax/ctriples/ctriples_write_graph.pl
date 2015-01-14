@@ -12,7 +12,7 @@
 Writes the given graph (or all currently stored triples) to a source.
 
 @author Wouter Beek
-@version 2014/03-2014/06, 2014/08-2014/09
+@version 2014/03-2014/06, 2014/08-2014/09, 2015/01
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -27,7 +27,7 @@ Writes the given graph (or all currently stored triples) to a source.
 :- predicate_options(write_graph/2, 2, [
      pass_to(ctriples_write_begin/3, 3),
      pass_to(ctriples_write_end/2, 2),
-     format(+oneof([quads,triples]))
+     format(+oneof([quadruples,triples]))
    ]).
 
 
@@ -45,8 +45,8 @@ Writes the given graph (or all currently stored triples) to a source.
 %   - `bnode_base(+atom)`
 %     Replace blank nodes with an IRI, defined as per
 %     RDF 1.1 spec (see link below).
-%   - `format(-oneof([quads,triples]))`
-%     `quads` if at least one named graph occurs, `triples` otherwise.
+%   - `format(-oneof([quadruples,triples]))`
+%     `quadruples` if at least one named graph occurs, `triples` otherwise.
 %   - `number_of_triples(-nonneg)`
 %     The number of triples that was written.
 %
@@ -75,14 +75,14 @@ write_graph(Graph, Options):-
   ctriples_write_begin(State, BNodePrefix, Options),
 
   % Decide whether triples or quadruples are written.
-  (   option(format(Format), Options),
-      nonvar(Format)
-  ->  memberchk(Format, [quads,triples])
+  (   option(format(CFormat), Options),
+      nonvar(CFormat)
+  ->  memberchk(CFormat, [quadruples,triples])
   ;   rdf_graph(G),
       G \== user,
       rdf(_, _, _, G:_)
-  ->  Format = quads
-  ;   Format = triples
+  ->  CFormat = quadruples
+  ;   CFormat = triples
   ),
 
   findall(
@@ -93,7 +93,7 @@ write_graph(Graph, Options):-
   sort(Ss1, Ss2),
   forall(
     member(S, Ss2),
-    write_subject(State, BNodePrefix, Graph, Format, S)
+    write_subject(State, BNodePrefix, Graph, CFormat, S)
   ),
 
   ctriples_write_end(State, Options).
@@ -104,7 +104,7 @@ write_graph(Graph, Options):-
 %!   +State:compound,
 %!   +BNodePrefix:iri,
 %!   ?Graph:atom,
-%!   +Format:or([quads,triples]),
+%!   +CFormat:or([quadruples,triples]),
 %!   +Subject:or([bnode,iri])
 %! ) is det.
 % Writes all triples that occur with the given subject term,
@@ -114,7 +114,7 @@ write_graph(Graph, Options):-
 % Then processes each pairs -- and thus each triple -- separately.
 
 % Format: C-Quads
-write_subject(State, BNodePrefix, Graph, quads, S):-
+write_subject(State, BNodePrefix, Graph, quadruples, S):-
   findall(
     P-O-Graph,
     rdf(S, P, O, Graph:_),
@@ -125,7 +125,7 @@ write_subject(State, BNodePrefix, Graph, quads, S):-
     member(P-O-G, POGTriples2),
     (
       inc_number_of_triples(State),
-      write_quad(S, P, O, G, BNodePrefix)
+      write_quadruple(S, P, O, G, BNodePrefix)
     )
   ).
 % Format: C-Triples

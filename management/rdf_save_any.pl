@@ -133,14 +133,14 @@ rdf_save_any(file(File), Format, Options):- !,
 rdf_save_any(stream(Write), rdf_xml, Options):- !,
   rdf_save(Write, Options).
 % Save to N-Triples.
-rdf_save_any(stream(Write), Format0, Options1):-
-  (   Format0 == ntriples
-  ->  Format = triples
-  ;   Format0 == nquads
-  ->  Format = quads
+rdf_save_any(stream(Write), Format, Options1):-
+  (   Format == ntriples
+  ->  CFormat = triples
+  ;   Format == nquads
+  ->  CFormat = quadruples
   ), !,
   option(graph(Graph), Options1, _NoGraph),
-  merge_options([format(Format)], Options1, Options2),
+  merge_options([format(CFormat)], Options1, Options2),
   ctriples_write_graph(Write, Graph, Options2).
 % Save to Trig.
 rdf_save_any(stream(Write), trig, Options):- !,

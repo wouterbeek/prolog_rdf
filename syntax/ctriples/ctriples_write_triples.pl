@@ -35,7 +35,7 @@ Simple literals are not emitted, the `xsd:string` datatype is made explicit.
 Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 @author Wouter Beek
-@version 2014/08-2014/09
+@version 2014/08-2014/09, 2015/01
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -49,6 +49,8 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
      pass_to(ctriples_write_begin/3, 3),
      pass_to(ctriples_write_end/2, 2)
    ]).
+
+
 
 
 
@@ -99,7 +101,7 @@ ctriples_write_triple(State, BNodePrefix, Triple):-
   (   Triple = rdf(S,P,O)
   ->  write_triple(S, P, O, BNodePrefix)
   ;   Triple = rdf(S,P,O,G)
-  ->  write_quad(S, P, O, G, BNodePrefix)
+  ->  write_quadruple(S, P, O, G, BNodePrefix)
   ;   true
   ).
 
