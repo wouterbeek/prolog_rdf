@@ -30,7 +30,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/04-2014/05, 2014/11-2014/12
+@version 2014/04-2014/05, 2014/11-2015/01
 */
 
 :- use_module(math(math_ext)).
@@ -54,7 +54,15 @@ Grammar rules for numbers as defined by Semantic Web standards.
 % @compat SPARQL 1.1 Query [147]
 % @compat Turtle 1.1 [20]
 
-'DECIMAL'(sparql, N) --> decimal(N).
+'DECIMAL'(sparql, N) -->
+  {nonvar(N)}, !,
+  {number_integer_parts(N, Integer, Fraction)},
+  '*'(decimal_digit, Integer, [convert1(weights_decimal)]),
+  ".",
+  {weights_fraction(Weights, Fraction)},
+  '+'(decimal_digit, Weights, []).
+
+
 'DECIMAL'(turtle, N) --> signed_decimal(N).
 
 
