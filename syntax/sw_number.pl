@@ -44,7 +44,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 
 
-%! 'DECIMAL'(+Language:oneof([sparql,turtle]), ?Decimal:float)// .
+%! 'DECIMAL'(+Language:oneof([sparql,turtle]), ?Decimal:compound)// .
 % ```ebnf
 % [SPARQL]   DECIMAL ::= [0-9]* '.' [0-9]+
 % [Turtle]   DECIMAL ::= [+-]? [0-9]* '.' [0-9]+
@@ -55,15 +55,30 @@ Grammar rules for numbers as defined by Semantic Web standards.
 % @compat Turtle 1.1 [20]
 
 'DECIMAL'(sparql, N) -->
-  {nonvar(N)}, !,
-  {number_integer_parts(N, Integer, Fraction)},
-  '*'(decimal_digit, Integer, [convert1(weights_decimal)]),
-  ".",
-  {weights_fraction(Weights, Fraction)},
-  '+'(decimal_digit, Weights, []).
-
-
-'DECIMAL'(turtle, N) --> signed_decimal(N).
+  (   {ground(N)}
+  ->  {rational_parts(N, Integer, Fraction)},
+      {weights_nonneg(Integer0, Integer)},
+      '[0-9]*'(Integer0),
+      ".",
+      {weights_fraction(Fraction0, Fraction)},
+      '[0-9]+'(Fraction0).
+  ;   '[0-9]*'(Integer0),
+      {weights_nonneg(Integer0, Integer)},
+      ".",
+      '[0-9]+'(Fraction0).
+      {weights_fraction(Fraction0, Fraction)},
+      {rational_parts(N, Integer, Fraction)}
+  ).
+'DECIMAL'(turtle, N) -->
+  (   {ground(N)}
+  ->  {Sg is sign(N)},
+      '[+-]?'(Sg),
+      {N0 is abs(N)},
+      'DECIMAL'(sparql, N)
+  ;   '[+-]?'(Sg),
+      'DECIMAL'(sparql, N0),
+      {N is copysign(N0, Sg)}
+  ).
 
 
 
@@ -84,18 +99,18 @@ decimalLiteral(N) -->
   ".",
   digits(L2),
   {
-    weights_decimal(L1, IntegerPart),
-    weights_decimal(L2, FractionalPart),
-    number_integer_parts(N0, IntegerPart, FractionalPart),
+    weights_nonneg(L1, IntegerPart),
+    weights_nonneg(L2, FractionalPart),
+    rational_parts(N0, IntegerPart, FractionalPart),
     N is copysign(N0, Sg)
   }.
 decimalLiteral(N) -->
   sign(N),
   {
     N0 is abs(N),
-    number_integer_parts(N0, IntegerPart, FractionalPart),
-    weights_decimal(L1, IntegerPart),
-    weights_decimal(L2, FractionalPart)
+    rational_parts(N0, IntegerPart, FractionalPart),
+    weights_nonneg(L1, IntegerPart),
+    weights_nonneg(L2, FractionalPart)
   },
   digits(L1),
   ".",
@@ -103,7 +118,7 @@ decimalLiteral(N) -->
 
 
 
-%! 'DECIMAL_NEGATIVE'(?Decimal:float)// .
+%! 'DECIMAL_NEGATIVE'(?Decimal:compound)// .
 % ```bnf
 % DECIMAL_NEGATIVE ::= '-' DECIMAL
 % ```
@@ -113,14 +128,11 @@ decimalLiteral(N) -->
 
 'DECIMAL_NEGATIVE'(N) -->
   "-",
-  (   {var(N)}
-  ->  'DECIMAL'(sparql, N0),
-      {N is copysign(N0, -1)}
-  ;   {
-        N < 0.0,
-        N0 is abs(N)
-      },
+  (   {ground(N)}
+  ->  {N0 is copysign(N, 1)}
       'DECIMAL'(sparql, N0)
+  ;   'DECIMAL'(sparql, N0),
+      {N is copysign(N0, -1)}
   ).
 
 
@@ -209,14 +221,11 @@ digits(L) -->
 
 'DOUBLE_NEGATIVE'(N) -->
   "-",
-  (   {var(N)}
-  ->  'DOUBLE'(sparql, N0),
-      {N is copysign(N0, -1)}
-  ;   {
-        N < 0.0,
-        N0 is abs(N)
-      },
+  (   {ground(N)}
+  ->  {N0 is abs(N)},
       'DOUBLE'(sparql, N0)
+  ;   'DOUBLE'(sparql, N0),
+      {N is copysign(N0, -1)}
   ).
 
 
@@ -230,13 +239,14 @@ digits(L) -->
 % @compat SPARQL 1.1 Query [155]
 % @compat Turtle 1.1 [154s]
 
-'EXPONENT'(N) --> exponent(N).
+'EXPONENT'(N) -->
+  exponent(N).
 
 
 
 %! exponent(?Value:float)// .
 % ```bnf
-% exponent ::= ('e' | 'E') ['+' | '-'] digits
+% exponent ::= ( 'e' | 'E' ) [ '+' | '-' ] digits
 % ```
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
@@ -245,7 +255,7 @@ digits(L) -->
 
 %! floatingPointLiteral(?Float:float)// .
 % ```bnf
-% floatingPointLiteral ::= [ '+' | '-']
+% floatingPointLiteral ::= [ '+' | '-' ]
 %                          ( digits ['.'digits] [exponent]
 %                          | '.' digits [exponent])
 %                          ( 'f' | 'F' )
@@ -258,9 +268,48 @@ digits(L) -->
 %             any digit.
 
 floatingPointLiteral(N) -->
-  signed_float(N),
-  f.
-
+  (   ground(N)
+  ->  {Sg is sign(N)},
+      '[+-]'(Sg),
+      {N0 is abs(N)},
+      {rational_parts(N0, Integer, Fraction)},
+      {weights_nonneg(Integer0, Integer)},
+      {weights_fraction(Fraction0, Fraction)},
+      (   digits(Integer0),
+          (   ".",
+              digits(Fraction0)
+          ;   ""
+          ),
+          (   exponent(Exp)
+          ;   ""
+          )
+      ;   ".",
+          digits(Fraction0)
+          (   exponent(Exp)
+          ;   ""
+          )
+      ),
+  ;   (   digits(Integer0),
+          (   ".",
+              digits(Fraction0)
+          ;   ""
+          ),
+          (   exponent(Exp)
+          ;   ""
+          )
+      ;   ".",
+          digits(Fraction0)
+          (   exponent(Exp)
+          ;   ""
+          )
+      ),
+      {weights_nonneg(Integer0, Integer)},
+      {IntegerExp is Integer * 10 ^ Exp},
+      {weights_fraction(Fraction0, Fraction)},
+      {rational_parts(N0, IntegerExp, Fraction)},
+      {N is copysign(N0, Sg)}
+  ),
+  ("f" ; "F").
 
 
 %! 'INTEGER'(?Language:oneof([sparql,turtle]), ?Integer:integer)// .
@@ -273,8 +322,10 @@ floatingPointLiteral(N) -->
 % @compat SPARQL 1.1 Query [146]
 % @compat Turtle 1.1 [19]
 
-'INTEGER'(sparql, N) --> integer(N).
-'INTEGER'(turtle, N) --> signed_integer(N).
+'INTEGER'(sparql, N) -->
+  integer(N).
+'INTEGER'(turtle, N) -->
+  signed_integer(N).
 
 
 
@@ -349,9 +400,9 @@ positiveInteger(N) -->
   {var(N)}, !,
   nonZero(H),
   '*'(digit, T, [mode(parse)]),
-  {weights_decimal([H|T], N)}.
+  {weights_nonneg([H|T], N)}.
 positiveInteger(N) -->
-  {weights_decimal([H|T], N)},
+  {weights_nonneg([H|T], N)},
   nonZero(H),
   '*'(digit, T, [mode(generate)]).
 
