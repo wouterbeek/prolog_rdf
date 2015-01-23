@@ -46,11 +46,11 @@ Examples of literal syntax in SPARQL include:
 :- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_content)).
 :- use_module(plDcg(dcg_generics)).
+:- use_module(plDcg(language/sw_number)).
 
 :- use_module(plLangTag(language_tag)).
 
 :- use_module(plRdf(syntax/sw_iri)).
-:- use_module(plRdf(syntax/sw_number)).
 :- use_module(plRdf(syntax/sw_string)).
 
 :- rdf_meta('NumericLiteral'(+,o,?,?)).
