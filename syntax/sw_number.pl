@@ -84,7 +84,7 @@ Grammar rules for numbers as defined by Semantic Web standards.
 
 %! decimalLiteral(?Decimal:float)// .
 % ```bnf
-% decimalLiteral ::= ['+' | '-'] digits '.' digits
+% decimalLiteral ::= [ '+' | '-' ] digits '.' digits
 % ```
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
@@ -93,28 +93,24 @@ Grammar rules for numbers as defined by Semantic Web standards.
 %         (2) at least one digit must appear after the dot.
 
 decimalLiteral(N) -->
-  {var(N)}, !,
-  '?'(sign, Sg, [empty1(1),mode(parse)]),
-  digits(L1),
-  ".",
-  digits(L2),
-  {
-    weights_nonneg(L1, IntegerPart),
-    weights_nonneg(L2, FractionalPart),
-    rational_parts(N0, IntegerPart, FractionalPart),
-    N is copysign(N0, Sg)
-  }.
-decimalLiteral(N) -->
-  sign(N),
-  {
-    N0 is abs(N),
-    rational_parts(N0, IntegerPart, FractionalPart),
-    weights_nonneg(L1, IntegerPart),
-    weights_nonneg(L2, FractionalPart)
-  },
-  digits(L1),
-  ".",
-  digits(L2).
+  (   ground(N)
+  ->  '[+|-]?'(N),
+      {N0 is abs(N)},
+      {rational_parts(N0, Integer, Fraction)},
+      {weights_nonneg(Integer0, Integer)},
+      digits(Integer0),
+      {weights_fraction(Fraction0, Fraction)},
+      ".",
+      digits(Fraction0)
+  ;   '[+|-]?'(Sg),
+      digits(Integer0),
+      {weights_nonneg(Integer0, Integer)},
+      ".",
+      digits(Fraction0, Fraction),
+      {weights_fraction(Integer0, Integer)},
+      {rational_parts(N0, Integer, Fraction)},
+      {N is copysign(N0, Sg)}
+  ).
 
 
 
@@ -158,8 +154,10 @@ decimalLiteral(N) -->
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-digit(N) --> zero(_, N).
-digit(N) --> nonZero(N).
+digit(N) -->
+  (   zero(_, N)
+  ;   nonZero(N)
+  ).
 
 
 
@@ -192,7 +190,27 @@ digits(L) -->
 % @compat Turtle 1.1 [21]
 % @tbd How to write the exponent in the generative case?
 
-'DOUBLE'(sparql, N) --> double(N).
+'DOUBLE'(sparql, N) -->
+  (   ground(N)
+  ->  {normalized_number(N, Norm, Exp)},
+      {Integer is float_integer_part(N)},
+      {Fraction is float_fractional_part(N)},
+      {weights_fraction(Fraction0, Fraction)},
+      (   {weights_nonneg(Integer0, Integer)},
+          '[0-9]+'(Integer0),
+          ".",
+          '[0-9]*'(Fraction0),
+          'EXPONENT'(Exp)
+      ;   {Integer =:= 0},
+          (   "."
+          ;   ""
+          ),
+          '[0-9]*'(Fraction0),
+          'EXPONENT'(Exp)
+      )
+  ;   (   '[0-9]+',
+          
+  ).
 'DOUBLE'(turtle, N) --> signed_double(N).
 
 
