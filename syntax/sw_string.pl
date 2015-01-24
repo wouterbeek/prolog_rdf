@@ -18,7 +18,7 @@ Grammar rules for strings in Semantic Web standards.
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/04-2014/05, 2014/08, 2014/11-2014/12
+@version 2014/04-2014/05, 2014/08, 2014/11-2015/01
 */
 
 :- use_module(generics(atom_ext)). % Meta-option.
@@ -68,6 +68,41 @@ quotedString_codes(_) --> "\"", !, {fail}.
 quotedString_codes([H|T]) -->
   [H],
   quotedString_codes(T).
+
+
+
+%! 'String'(?Language:oneof([sparql,turtle]), ?String:atom)// .
+% ```ebnf
+% [SPARQL]   String ::=   STRING_LITERAL1
+%                       | STRING_LITERAL2
+%                       | STRING_LITERAL_LONG1
+%                       | STRING_LITERAL_LONG2
+% [Turtle]   String ::=   STRING_LITERAL_QUOTE
+%                       | STRING_LITERAL_SINGLE_QUOTE
+%                       | STRING_LITERAL_LONG_SINGLE_QUOTE
+%                       | STRING_LITERAL_LONG_QUOTE
+% ```
+%
+% @compat SPARQL 1.0 [66].
+% @compat SPARQL 1.1 Query [135].
+% @compat Turtle 1.1 [17].
+
+'String'(sparql, Literal) -->
+  'STRING_LITERAL1'(Literal).
+'String'(sparql, Literal) -->
+  'STRING_LITERAL2'(Literal).
+'String'(sparql, Literal) -->
+  'STRING_LITERAL_LONG1'(Literal).
+'String'(sparql, Literal) -->
+  'STRING_LITERAL_LONG2'(Literal).
+'String'(turtle, String) -->
+  'STRING_LITERAL_QUOTE'(String).
+'String'(turtle, String) -->
+  'STRING_LITERAL_SINGLE_QUOTE'(String).
+'String'(turtle, String) -->
+  'STRING_LITERAL_LONG_SINGLE_QUOTE'(String).
+'String'(turtle, String) -->
+  'STRING_LITERAL_LONG_QUOTE'(String).
 
 
 
@@ -213,41 +248,6 @@ quotedString_codes([H|T]) -->
 
 'STRING_LITERAL2'(String) -->
   'STRING_LITERAL'(sparql, double_quote, String).
-
-
-
-%! 'String'(?Language:oneof([sparql,turtle]), ?String:atom)// .
-% ```ebnf
-% [SPARQL]   String ::=   STRING_LITERAL1
-%                       | STRING_LITERAL2
-%                       | STRING_LITERAL_LONG1
-%                       | STRING_LITERAL_LONG2
-% [Turtle]   String ::=   STRING_LITERAL_QUOTE
-%                       | STRING_LITERAL_SINGLE_QUOTE
-%                       | STRING_LITERAL_LONG_SINGLE_QUOTE
-%                       | STRING_LITERAL_LONG_QUOTE
-% ```
-%
-% @compat SPARQL 1.0 [66]
-% @compat SPARQL 1.1 Query [135]
-% @compat Turtle 1.1 [17]
-
-'String'(sparql, Literal) -->
-  'STRING_LITERAL1'(Literal).
-'String'(sparql, Literal) -->
-  'STRING_LITERAL2'(Literal).
-'String'(sparql, Literal) -->
-  'STRING_LITERAL_LONG1'(Literal).
-'String'(sparql, Literal) -->
-  'STRING_LITERAL_LONG2'(Literal).
-'String'(turtle, String) -->
-  'STRING_LITERAL_QUOTE'(String).
-'String'(turtle, String) -->
-  'STRING_LITERAL_SINGLE_QUOTE'(String).
-'String'(turtle, String) -->
-  'STRING_LITERAL_LONG_SINGLE_QUOTE'(String).
-'String'(turtle, String) -->
-  'STRING_LITERAL_LONG_QUOTE'(String).
 
 
 

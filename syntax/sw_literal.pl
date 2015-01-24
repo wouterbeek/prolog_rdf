@@ -1,10 +1,14 @@
 :- module(
   sw_literal,
   [
+    'BooleanLiteral'//1, % ?Value:boolean
     literal//2, % +Language:oneof([manchester,n,turtle])
                 % ?Literal:compound
-    'NumericLiteral'//2 % ?Language:oneof([sparql,turtle])
-                        % ?Literal:compound
+    'NumericLiteral'//2, % ?Language:oneof([sparql,turtle])
+                         % ?Literal:compound
+    'NumericLiteralNegative'//1, % ?Value:number
+    'RDFLiteral'//2 % ?Language:oneof([sparql,turtle])
+                    % ?Literal:compound
   ]
 ).
 

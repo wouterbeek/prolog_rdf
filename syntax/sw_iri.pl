@@ -10,7 +10,8 @@
     iri//1, % ?Iri:atom
     'IRI'//1, % ?Iri:atom
     'IRIREF'//1, % ?Iri:atom
-    objectPropertyIRI//1 % ?Iri:atom
+    objectPropertyIRI//1, % ?Iri:atom
+    'PNAME_NS'//1 % ?Prefix:atom
   ]
 ).
 

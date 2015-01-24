@@ -50,10 +50,13 @@
     rdf_list_member/3, % ?Element:rdf_term
                        % ?List:or([bnode,iri])
                        % ?Graph:atom
-    rdf_list_nth0/4 % ?Index:nonneg
-                    % ?List:or([bnode,iri])
-                    % ?Element:rdf_term
-                    % ?Graph:atom
+    rdf_list_nth0/4, % ?Index:nonneg
+                     % ?List:or([bnode,iri])
+                     % ?Element:rdf_term
+                     % ?Graph:atom
+    rdf_list_triples/3 % +PrologList:list
+                       % -RdfList:bnode
+                       % -Triples:list(compound)
   ]
 ).
 
@@ -65,7 +68,7 @@ Support for RDF lists.
 @compat [RDF Schema 1.1](http://www.w3.org/TR/2014/REC-rdf-schema-20140225/)
 @tbd Add RDF list retraction.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02, 2014/06, 2014/10-2014/12
+         2014/01-2014/02, 2014/06, 2014/10-2015/01
 */
 
 :- use_module(library(option)).
@@ -105,6 +108,7 @@ Support for RDF lists.
 :- rdf_meta(rdf_list_member(r,o)).
 :- rdf_meta(rdf_list_member(r,o,?)).
 :- rdf_meta(rdf_list_nth0(?,r,o,?)).
+:- rdf_meta(rdf_list_triples(+,-,t)).
 
 
 
@@ -403,9 +407,27 @@ rdf_list_nth0(I1, I3, L, E, G):-
 
 
 
+%! rdf_list_triples(
+%!   +PrologList:list,
+%!   -RdfList:bnode,
+%!   -Triples:list(compound)
+%! ) is det.
+
+rdf_list_triples(L, B, Ts):-
+  rdf_bnode(B),
+  rdf_list_triples0(L, B, Ts).
+
+rdf_list_triples0([], _, []).
+rdf_list_triples0([H], B, [rdf(B,rdf:first,H),rdf(B,rdf:rest,rdf:nil)]).
+rdf_list_triples0([H|T], B1, [rdf(B1,rdf:first,H),rdf(B1,rdf:rest,B2)|Ts]):-
+  rdf_bnode(B2),
+  rdf_list_triples0(T, B2, Ts).
 
 
-% HELPERS
+
+
+
+% HELPERS %
 
 %! add_list_individual(?List:or([bnode,iri]), ?Graph:atom) is det.
 % @arg List Defaults to a new;y created blank node.

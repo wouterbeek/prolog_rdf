@@ -12,7 +12,8 @@
     'PN_LOCAL_ESC'//1, % ?Code:code
     'UCHAR'//1, % ?Code:code
     white_space//1, % ?Language:oneof([manchester,n])
-    'WS'//0
+    'WS'//0,
+    'WS*'//0
   ]
 ).
 
@@ -357,3 +358,10 @@ white_space(n) --> space.
 'WS' --> horizontal_tab.
 'WS' --> carriage_return.
 'WS' --> line_feed.
+
+
+
+'WS*' -->
+  'WS',
+  'WS*'.
+'WS*' --> [].
