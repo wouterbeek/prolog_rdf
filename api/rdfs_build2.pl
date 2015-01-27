@@ -18,7 +18,7 @@
                             % ?Comment:or([atom,pair(atom)])
                             % ?Graph:atom
     rdfs_assert_property/7 % +Property:iri
-                           % +Subproperty:iri
+                           % +SuperProperty:iri
                            % ?Domain:iri
                            % ?Range:iri
                            % ?Label:or([atom,pair(atom)])
@@ -103,7 +103,7 @@ rdfs_assert_property(
 
 %! rdfs_assert_property(
 %!   +Property:iri,
-%!   +Subproperty:iri,
+%!   +SuperProperty:iri,
 %!   ?Domain:iri,
 %!   ?Range:iri,
 %!   ?Label:or([atom,list(atom)]),
@@ -113,7 +113,7 @@ rdfs_assert_property(
 
 rdfs_assert_property(
   Property,
-  Subproperty,
+  SuperProperty,
   Domain,
   Range,
   Label,
@@ -121,7 +121,7 @@ rdfs_assert_property(
   Graph
 ):-
   rdfs_assert_property(Property, Domain, Range, Label, Comment, Graph),
-  rdfs_assert_subproperty(Subproperty, Property, Graph).
+  rdfs_assert_subproperty(Property, SuperProperty, Graph).
 
 
 

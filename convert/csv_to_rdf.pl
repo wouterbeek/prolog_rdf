@@ -25,7 +25,7 @@ Automatic conversion from CSV to RDF.
 
 :- use_module(generics(row_ext)).
 
-:- use_module(plDcg(dcg_ascii), [underscore//0])  .
+:- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_generics)).
 :- use_module(plDcg(dcg_unicode)).
 

@@ -18,7 +18,9 @@
 Additional Blank Node support.
 
 @author Wouter Beek
-@version 2014/06, 2014/09
+@compat Vistuoso does not accept a digit as the first character in
+        a blank node label (going against the Turtle 1.1 specification).
+@version 2014/06, 2014/09, 2015/01
 */
 
 :- use_module(library(semweb/turtle)). % Private predicates.
@@ -26,6 +28,8 @@ Additional Blank Node support.
 
 :- thread_local(bnode_counter/1).
 :- thread_local(bnode_map/2).
+
+
 
 
 
@@ -39,9 +43,7 @@ rdf_bnode_map(BNodePrefix, BNode, MappedBNode):-
       assert(bnode_map(BNode, Id))
   ),
   
-  % @tbd Vistuoso does not accept a digit as the first character in
-  %      a blank node label (going against the Turtle 1.1 specification).
-  atomic_list_concat([BNodePrefix,x,Id], MappedBNode).
+  atomic_list_concat([BNodePrefix,Id], MappedBNode).
 
 
 %! rdf_bnode_prefix(-BNodePrefix:atom) is semidet.

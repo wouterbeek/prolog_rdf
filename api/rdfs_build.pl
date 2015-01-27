@@ -9,8 +9,13 @@
     rdfs_assert_domain/3, % +Property:iri
                           % ?Class:iri
                           % ?Graph:atom
+    rdfs_assert_domain_range/3, % +Property:iri
+                                % ?Class:iri
+                                % ?Graph:atom
     rdfs_assert_instance/2, % +Instance:iri
                             % ?Graph:atom
+    rdfs_assert_isDefinedBy/2, % +Term:rdf_term
+                               % +Graph:atom
     rdfs_assert_isDefinedBy/3, % +Term:rdf_term
                                % ?Uri:atom
                                % ?Graph:atom
@@ -54,7 +59,7 @@ Predicates for asseritng RDFS statements in an easy way.
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/02, 2013/05-2013/06,
-         2014/03, 2014/08, 2014/11
+         2014/03, 2014/08, 2014/11-2014/12
 */
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -69,7 +74,9 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_assert_class(o,?)).
 :- rdf_meta(rdfs_assert_comment(o,+,?)).
 :- rdf_meta(rdfs_assert_domain(o,r,?)).
+:- rdf_meta(rdfs_assert_domain_range(o,r,?)).
 :- rdf_meta(rdfs_assert_instance(o,?)).
+:- rdf_meta(rdfs_assert_isDefinedBy(o,+)).
 :- rdf_meta(rdfs_assert_isDefinedBy(o,?,?)).
 :- rdf_meta(rdfs_assert_label(o,+,?)).
 :- rdf_meta(rdfs_assert_label(o,+,?,-)).
@@ -129,6 +136,14 @@ rdfs_assert_domain(Term, Class, Graph):-
 
 
 
+%! rdfs_assert_domain_range(+Term:rdf_term, ?Class:iri, ?Graph:atom) is det.
+
+rdfs_assert_domain_range(Term, Class, Graph):-
+  rdfs_assert_domain(Term, Class, Graph),
+  rdfs_assert_range(Term, Class, Graph).
+
+
+
 %! rdfs_assert_instance(+Term:rdf_term, ?Graph:atom) is det.
 % Asserts the following propositions:
 %
@@ -140,6 +155,12 @@ rdfs_assert_instance(Term, Graph):-
   rdf_assert_instance(Term, rdfs:'Resource', Graph).
 
 
+
+%! rdfs_assert_isDefinedBy(+Term:rdf_term, +Graph:atom) is det.
+
+rdfs_assert_isDefinedBy(Term, Graph):-
+  rdf_global_id(Prefix:_, Term),
+  rdfs_assert_isDefinedBy(Term, Prefix, Graph).
 
 %! rdfs_assert_isDefinedBy(+Term:rdf_term, ?Uri:atom, ?Graph:atom) is det.
 % Asserts the following propositions:

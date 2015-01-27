@@ -279,8 +279,8 @@ rdfs_individual(M, I, C, G):- M=m(t,_,_),
 rdfs_individual(M, LexicalForm, Datatype, G):- M=m(t,_,t),
   rdf_db_or_axiom(M, _, _, TypedLiteral, G),
   rdf_typed_literal_term(TypedLiteral, G),
-  rdf_typed_literal_data(TypedLiteral, lexical_form, LexicalForm),
-  rdf_typed_literal_data(TypedLiteral, datatype, Datatype),
+  rdf_typed_literal_data(lexical_form, TypedLiteral, LexicalForm),
+  rdf_typed_literal_data(datatype, TypedLiteral, Datatype),
   rdfs_individual(M, Datatype, rdfs:'Datatype', G),
   debug(rdfs_read, '[RDFD 1] ~w IN ~w', [LexicalForm,Datatype]).
 

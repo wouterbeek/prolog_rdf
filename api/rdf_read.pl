@@ -5,11 +5,9 @@
                              % +Direction:oneof([backward,both,forward])
                              % -Triples:ordset(compound)
                              % ?Graph:atom
-    rdf_plain_literal/5, % ?Term:rdf_term
-                         % ?Predicate:iri
-                         % ?Value:atom
-                         % ?LangTagPreference:list(list(atom))
-                         % ?Graph:atom
+    rdf_instance/3, % ?Instance:rdf_term
+                    % ?Class:iri
+                    % ?Graph:atom
     rdf_langstring/5, % ?Term:rdf_term
                       % ?Predicate:iri
                       % ?Value:pair(atom,list(atom))
@@ -28,6 +26,15 @@
                    % ?LangTag:list(atom)
                    % ?Graph:atom
                    % -Triple:compound
+    rdf_plain_literal/4, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value
+                         % ?LangTagPreference:list(list(atom))
+    rdf_plain_literal/5, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value
+                         % ?LangTagPreference:list(list(atom))
+                         % ?Graph:atom
     rdf_resource_edge/4, % +Term:rdf_term
                          % -Predicate:iri
                          % -OtherTerm:rdf_term
@@ -40,6 +47,9 @@
                                   % -Predicate:iri
                                   % -Object:rdf_term
                                   % ?Graph:atom
+    rdf_simple_literal/3, % ?Term:rdf_term
+                          % ?Predicate:iri
+                          % ?Value:atom
     rdf_simple_literal/4, % ?Term:rdf_term
                           % ?Predicate:iri
                           % ?Value:atom
@@ -56,6 +66,10 @@
                               % -Predicate:iri
                               % -Object:rdf_term
                               % ?Graph:atom
+    rdf_typed_literal/4, % ?Term:rdf_term
+                         % ?Predicate:iri
+                         % ?Value
+                         % ?Datatype:iri
     rdf_typed_literal/5 % ?Term:rdf_term
                         % ?Predicate:iri
                         % ?Value
@@ -70,26 +84,33 @@ Predicates for reading from RDF, customized for specific datatypes and
  literals.
 
 @author Wouter Beek
-@version 2014/11
+@version 2014/11-2014/12
 */
 
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+
+:- use_module(generics(list_ext)).
 
 :- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
+:- rdf_meta(rdf_instance(o,r,?)).
 :- rdf_meta(rdf_langstring(o,r,?,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?)).
 :- rdf_meta(rdf_literal(o,r,?,r,?,?,-)).
+:- rdf_meta(rdf_plain_literal(o,r,?,?)).
 :- rdf_meta(rdf_plain_literal(o,r,?,?,?)).
 :- rdf_meta(rdf_resource_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_incoming_edge(o,r,o,?)).
 :- rdf_meta(rdf_resource_outgoing_edge(o,r,o,?)).
+:- rdf_meta(rdf_simple_literal(o,r,?)).
 :- rdf_meta(rdf_simple_literal(o,r,?,?)).
 :- rdf_meta(rdf_term_edge(o,r,o,?)).
 :- rdf_meta(rdf_term_incoming_edge(o,r,o,?)).
 :- rdf_meta(rdf_term_outgoing_edge(o,r,o,?)).
+:- rdf_meta(rdf_typed_literal(o,r,?,r)).
 :- rdf_meta(rdf_typed_literal(o,r,?,r,?)).
 
 :- multifile(error:has_type/2).
@@ -129,6 +150,17 @@ rdf_direction_triples(Resource, both, Triples, Graph):-
 
 
 
+%! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
+
+rdf_instance(Literal, Class, Graph):-
+  rdf_is_literal(Literal),
+  term_get_bnode(Graph, Literal, BNode), !,
+  rdf_instance(BNode, Class, Graph).
+rdf_instance(Term, Class, Graph):-
+  rdf(Term, rdf:type, Class, Graph).
+
+
+
 %! rdf_langstring(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
@@ -138,10 +170,9 @@ rdf_direction_triples(Resource, both, Triples, Graph):-
 %! ) is nondet.
 
 % Language-tag preference can be met.
-rdf_langstring(Term, Predicate, Value, LangTags, Graph):-
-  is_list(LangTags), !,
-  member(LangTag, LangTags),
-  rdf_literal(Term, Predicate, Value, rdf:langString, LangTag, Graph).
+rdf_langstring(Term, Predicate, Value, LangPrefs, Graph):-
+  is_list(LangPrefs), !,
+  rdf_literal(Term, Predicate, Value, rdf:langString, LangPrefs, Graph).
 % Language-tag preference cannot be met.
 rdf_langstring(Term, Predicate, Value, _, Graph):-
   rdf_literal(Term, Predicate, Value, rdf:langString, _, Graph).
@@ -151,43 +182,51 @@ rdf_langstring(Term, Predicate, Value, _, Graph):-
 %! rdf_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?Value:atom,
+%!   ?Value,
 %!   ?Datatype:iri,
 %!   ?LangTagPreferences:list(list(atom)),
 %!   ?Graph:graph
 %! ) is nondet.
 
-rdf_literal(Literal, P, Value, Datatype, LangTags, Graph):-
-  rdf_literal(Literal, P, Value, Datatype, LangTags, Graph, _).
+rdf_literal(Literal, P, Value, Datatype, LangPrefs, Graph):-
+  rdf_literal(Literal, P, Value, Datatype, LangPrefs, Graph, _).
 
 %! rdf_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?Value:atom,
+%!   ?Value,
 %!   ?Datatype:iri,
 %!   ?LangTagPreferences:list(list(atom)),
 %!   ?Graph:graph
 %! ) is nondet.
 
 % Literals that are mapped onto a blank node.
-rdf_literal(Literal, P, Value, Datatype, LangTags, Graph, Triple):-
+rdf_literal(Literal, P, Value, Datatype, LangPrefs, Graph, Triple):-
   rdf_is_literal(Literal),
   term_get_bnode(Graph, Literal, BNode), !,
-  rdf_literal(BNode, P, Value, Datatype, LangTags, Graph, Triple).
+  rdf_literal(BNode, P, Value, Datatype, LangPrefs, Graph, Triple).
 % Language-tagged strings.
 % No datatype is formally defined for `rdf:langString` because
 %  the definition of datatypes does not accommodate language tags
 %  in the lexical space.
-% The value space of `rdf"langString` is the set of all pairs
+% The value space of `rdf:langString` is the set of all pairs
 %  of strings and language tags.
-rdf_literal(Node, P, Value, rdf:langString, LangTags, Graph, rdf(Node,P,O)):-
-  O = literal(lang(LangTag,LexicalValue)),
-  rdf(Node, P, O, Graph),
-  % Language tag preference.
-  (   is_list(LangTag)
-  ->  member(LangTag, LangTags)
+rdf_literal(Node, P, Value, rdf:langString, LangPrefs, Graph, rdf(Node,P,O)):-
+  O = literal(lang(LangTag0,LexicalValue)),
+  % Prioritize language-tagged strings based on the given language tag
+  %  preferences, if any.
+  % Respect the order on preferences from left to right.
+  % Notice that this merely prioritizes: every language-tagged string
+  % is returned eventually.
+  (   is_list(LangPrefs),
+      member(LangTag, LangPrefs),
+      sublist(LangTagPrefix, LangTag),
+      prefix(LangTagPrefix, LangTag),
+      LangTagPrefix \== [],
+      atomic_list_concat(LangTagPrefix, '-', LangTag0)
   ;   true
   ),
+  rdf(Node, P, O, Graph),
   Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
 rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
@@ -206,7 +245,18 @@ rdf_literal(Node, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
 %! rdf_plain_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
-%!   ?LexicalForm:atom,
+%!   ?Value,
+%!   ?LangTagPreference:list(list(atom))
+%! ) is nondet.
+
+rdf_plain_literal(Term, Predicate, Value, LangTagPreference):-
+  rdf_plain_literal(Term, Predicate, Value, LangTagPreference, _).
+
+
+%! rdf_plain_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Value,
 %!   ?LangTagPreference:list(list(atom)),
 %!   ?Graph:atom
 %! ) is nondet.
@@ -264,6 +314,11 @@ rdf_resource_outgoing_edge(From, P, To, G):-
 
 
 
+%! rdf_simple_literal(?Term:rdf_term, ?Predicate:iri, ?Value:atom) is nondet.
+
+rdf_simple_literal(Term, Predicate, Value):-
+  rdf_simple_literal(Term, Predicate, Value, _).
+
 %! rdf_simple_literal(
 %!   ?Term:rdf_term,
 %!   ?Predicate:iri,
@@ -316,6 +371,16 @@ rdf_term_outgoing_edge(S, P, O, G):-
   rdf(S, P, O, G).
 
 
+
+%! rdf_typed_literal(
+%!   ?Term:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Value,
+%!   ?Datatype:iri
+%! ) is nondet.
+
+rdf_typed_literal(Term, Predicate, Value, Datatype):-
+  rdf_typed_literal(Term, Predicate, Value, Datatype, _).
 
 %! rdf_typed_literal(
 %!   ?Term:rdf_term,

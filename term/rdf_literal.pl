@@ -180,7 +180,11 @@ rdf_langstring_term(Literal, Graph):-
 %   - `value`
 
 rdf_literal_data(datatype, literal(type(Datatype,_)), Datatype).
-rdf_literal_data(langtag, literal(lang(LangTag,_)), LangTag).
+rdf_literal_data(datatype, literal(lang(_,_)), rdf:langString).
+rdf_literal_data(datatype, literal(LexicalForm), xsd:string):-
+  atom(LexicalForm).
+rdf_literal_data(langtag, literal(lang(LangTag0,_)), LangTag):-
+  atomic_list_concat(LangTag, '-', LangTag0).
 rdf_literal_data(lexical_form, Literal, LexicalForm):-
   (   Literal = literal(lang(_,LexicalForm))
   ->  true

@@ -19,7 +19,7 @@ Automated conversion from Prolog terms to RDF triples.
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plDcg(dcg_content)).
+:- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plXsd(xsd)).
@@ -42,7 +42,7 @@ prolog_to_rdf(Graph, Module, Term, Individual):-
 
   % Class.
   Term =.. [Functor|Args],
-  once(dcg_phrase(capitalize, Functor, ClassName)),
+  once(dcg_phrase(atom_capitalize, Functor, ClassName)),
   rdf_global_id(Module:ClassName, Class),
   rdfs_assert_class(Class, Graph),
 

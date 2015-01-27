@@ -34,7 +34,7 @@
 Predicates for perfoming measurements represented in RDF.
 
 @author Wouter Beek
-@version 2014/09-2014/11
+@version 2014/09-2014/11, 2015/01
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -58,6 +58,14 @@ Predicates for perfoming measurements represented in RDF.
 :- rdf_meta(assert_relation(-,r,+,+)).
 :- rdf_meta(assert_relation0(r,+,+,-)).
 :- rdf_meta(rdf_assert0(r,r,+,o)).
+
+:- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
+:- rdf_register_prefix(
+     'sdmx-dimension',
+     'http://purl.org/linked-data/sdmx/2009/dimension#'
+   ).
+
+
 
 
 

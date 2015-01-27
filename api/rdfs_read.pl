@@ -16,6 +16,12 @@
                   % ?Value
                   % ?LangTagPreference:list(list(atom))
                   % ?Graph:atom
+    rdfs_label_value/2, % ?Term:rdf_term
+                        % ?Label:atom
+    rdfs_label_value/4, % ?Term:rdf_term
+                        % ?Label:atom
+                        % ?LangTagPreference:list(list(atom))
+                        % ?Graph:atom
     rdfs_reachable/3, % ?Subject:or([bnode,iri]),
                       % ?Predicate:iri,
                       % ?Object:rdf_term
@@ -29,16 +35,15 @@
 /** <module> RDF API: Read RDFS constructs
 
 @author Wouter Beek
-@version 2014/11
+@version 2014/11-2015/01
 */
 
-:- use_module(library(lists)).
+:- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(closure)).
 
 :- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(api/rdfs_subproperty_test)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_property(r)).
@@ -50,6 +55,9 @@
 :- rdf_meta(rdfs_has(r,r,o)).
 :- rdf_meta(rdfs_instance(o,r)).
 :- rdf_meta(rdfs_label(o,?,?,?)).
+:- rdf_meta(rdfs_label(o,?,?,?)).
+:- rdf_meta(rdfs_label_value(o,?)).
+:- rdf_meta(rdfs_label_value(o,?,?,?)).
 :- rdf_meta(rdfs_reachable(r,r,o)).
 :- rdf_meta(rdfs_subclass(r,r)).
 :- rdf_meta(rdfs_subproperty(r,r)).
@@ -225,8 +233,37 @@ rdfs_instance(List, rdf:'List'):-
 %! ) is nondet.
 % Reads RDFS labels attributed to resources.
 
-rdfs_label(Term, Value, LangTags, Graph):-
-  rdf_plain_literal(Term, rdfs:label, Value, LangTags, Graph).
+rdfs_label(Term, Value, LangPrefs, Graph):-
+  rdf_plain_literal(Term, rdfs:label, Value, LangPrefs, Graph).
+
+
+
+%! rdfs_label_value(?Term:rdf_term, ?Label:atom) is nondet.
+
+rdfs_label_value(Term, Label):-
+  rdfs_label_value(Term, Label, _, _).
+
+%! rdfs_label_value(
+%!   ?Term:rdf_term,
+%!   ?Label:atom,
+%!   ?LangTagPreference:list(list(atom)),
+%!   ?Graph:atom
+%! ) is nondet.
+% Since RDFS labels can be of type `rdf:langTag` or `xsd:string`,
+% the `Value` returned by rdfs_label/4 can be either an atom or a pair.
+%
+% This predicate normalizes argument Label.
+% It is either the full `Value` (if `xsd:string`)
+% or the second argument of the pair (if `rdf:langTag`).
+%
+% @see rdfs_label/4
+
+rdfs_label_value(Term, Label, LangPrefs, Graph):-
+  rdfs_label(Term, Value, LangPrefs, Graph),
+  (   Value = Label-_
+  ->  true
+  ;   Label = Value
+  ).
 
 
 

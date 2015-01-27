@@ -7,6 +7,10 @@
                             % ?Predicate:iri
                             % ?Object:rdf_term
                             % ?Graph:atom
+    rdf_member/2, % ?Term:rdf_term
+                  % +PrefixedTerms:list(rdf_term)
+    rdf_memberchk/2, % ?Term:rdf_term
+                     % +PrefixedTerms:list(rdf_term)
     rdf_prefix_iri/2, % +Iri:atom
                       % -PrefixIri:atom
     rdf_prefixes/5, % ?Subject:or([bnode,iri])
@@ -14,7 +18,7 @@
                     % ?Object:rdf_term
                     % ?Graph:atom
                     % -Prefixes:ordset(pair(atom,positive_integer))
-    rdf_iri_to_prefix/3 % +Iri:iri
+    rdf_longest_prefix/3 % +Iri:iri
                         % -LongestPrefix:atom
                         % -ShortestLocalName:atom
   ]
@@ -25,7 +29,7 @@
 Namespace support for RDF(S), building on namespace prefix support for XML.
 
 @author Wouter Beek
-@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11
+@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12
 */
 
 :- use_module(library(aggregate)).
@@ -36,9 +40,13 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 
 :- use_module(plRdf(term/rdf_term)).
 
+:- rdf_meta(rdf_member(r,t)).
+:- rdf_meta(rdf_memberchk(r,t)).
 :- rdf_meta(rdf_prefixe_iri(r,-)).
 :- rdf_meta(rdf_prefixes(r,r,o,?,-)).
 :- rdf_meta(rdf_convert_prefixes(+,+,r,r,o,?)).
+
+
 
 
 
@@ -85,6 +93,22 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, Graph):-
 
 
 
+%! rdf_member(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
+%! rdf_member(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
+
+rdf_member(X, L):-
+  memberchk(X, L).
+
+
+
+%! rdf_memberchk(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
+%! rdf_memberchk(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
+
+rdf_memberchk(X, L):-
+  memberchk(X, L).
+
+
+
 %! rdf_prefix_iri(+Iri:atom, -PrefixIri:atom) is det.
 % Returns the prefix of the given IRI that is abbreviated with a registered
 %  RDF prefix, if any.
@@ -124,17 +148,17 @@ rdf_prefixes(S, P, O, Graph, Pairs5):-
   reverse(Pairs4, Pairs5).
 
 
-%! rdf_iri_to_prefix(
+%! rdf_longest_prefix(
 %!   +Iri:iri,
 %!   -LongestPrefix:atom,
 %!   -ShortestLocalName:atom
 %! ) is det.
 
-rdf_iri_to_prefix(Iri, LongestPrefix, ShortestLocalName):-
+rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
   findall(
     LocalNameLength-Prefix,
     (
-      rdf_global_id(Prefix:LocalName, Iri),
+      rdf_db:global(Prefix, LocalName, Iri),
       atom_length(LocalName, LocalNameLength)
     ),
     Pairs

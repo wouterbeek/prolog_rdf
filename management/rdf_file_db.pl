@@ -34,7 +34,7 @@ Basic facts about RDF serialization formats.
 @tbd Add support for SPARQL Results in JSON: http://www.w3.org/ns/formats/SPARQL_Results_JSON
 @tbd Add support for SPARQL Results in CSV: http://www.w3.org/ns/formats/SPARQL_Results_CSV
 @tbd Add support for SPARQL Results in TSV: http://www.w3.org/ns/formats/SPARQL_Results_TSV
-@version 2014/04-2014/05, 2014/07-2014/08, 2014/10-2014/11
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10-2014/12
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -45,7 +45,7 @@ Basic facts about RDF serialization formats.
 :- use_module(plDcg(dcg_atom)). % Meta-option.
 :- use_module(plDcg(dcg_generics)).
 
-:- use_module(plHttp(parameter/http_media_type)).
+:- use_module(plHttp(header/content_negotiation/http_accept)).
 
 :- multifile(error:has_type/2).
 
@@ -61,7 +61,7 @@ error:has_type(rdf_format, Term):-
 
 
 
-%! rdf_accept_header_value(-Value:atom) is det.
+%! rdf_accept_header_value(-AcceptValue:atom) is det.
 % Returns a value that can be used for the Accept header of an HTTP request
 % in order to have a fair chance that RDF content -- if available --
 % will be returned.
@@ -71,18 +71,16 @@ error:has_type(rdf_format, Term):-
 %     as part of the rdf_serialization/4 predicate.
 %   - the most generic media type, i.e. `*/*`.
 
-rdf_accept_header_value(Value):-
+rdf_accept_header_value(AcceptValue):-
   findall(
-    MediaType,
+    accept(media_range(Type,Subtype,Parameters),QValue,[]),
     (
       rdf_serialization(_, _, MediaTypes, _),
-      member(MediaType, MediaTypes)
+      member(QValue-media_type(Type,Subtype,Parameters), MediaTypes)
     ),
-    MediaTypes
+    MediaRanges
   ),
-  dcg_with_output_to(atom(Value),
-    '*'('media-type', MediaTypes, [separator(atom(', '))])
-  ).
+  dcg_with_output_to(atom(AcceptValue), 'Accept'(MediaRanges)).
 
 
 
@@ -165,30 +163,26 @@ rdf_media_type_format(MediaType, Format):-
 rdf_serialization(
   nq,
   nquads,
-  [
-    media_type(application,'n-quads',[q(0.9)])
-  ],
+  [0.9-media_type(application,'n-quads',[])],
   'http://www.w3.org/ns/formats/N-Quads'
 ).
 rdf_serialization(
   nt,
   ntriples,
-  [
-    media_type(application,'n-triples',[q(0.9)])
-  ],
+  [0.9-media_type(application,'n-triples',[])],
   'http://www.w3.org/ns/formats/N-Triples'
 ).
 rdf_serialization(
   rdf,
   xml,
   [
-    media_type(text,'rdf+xml',[q(0.9)]),
-    media_type(application,'rdf+xml',[q(0.5)]),
-    media_type(text,rdf,[q(0.5)]),
-    media_type(text,xml,[q(0.5)]),
-    media_type(application,rdf,[q(0.5)]),
-    media_type(application,'rss+xml',[q(0.1)]),
-    media_type(application,xml,[q(0.1)])
+    0.9-media_type(text,'rdf+xml',[]),
+    0.5-media_type(application,'rdf+xml',[]),
+    0.5-media_type(text,rdf,[]),
+    0.5-media_type(text,xml,[]),
+    0.5-media_type(application,rdf,[]),
+    0.1-media_type(application,'rss+xml',[]),
+    0.1-media_type(application,xml,[])
   ],
   'http://www.w3.org/ns/formats/RDF_XML'
 ).
@@ -196,8 +190,8 @@ rdf_serialization(
   rdfa,
   rdfa,
   [
-    media_type(application,'xhtml+xml',[q(0.5)]),
-    media_type(text,html,[q(0.5)])
+    0.2-media_type(application,'xhtml+xml',[]),
+    0.1-media_type(text,html,[])
   ],
   'http://www.w3.org/ns/formats/RDFa'
 ).
@@ -205,8 +199,8 @@ rdf_serialization(
   trig,
   trig,
   [
-    media_type(application,trig,[q(0.9)]),
-    media_type(application,'x-trig',[q(0.5)])
+    0.9-media_type(application,trig,[]),
+    0.5-media_type(application,'x-trig',[])
   ],
   'http://www.w3.org/ns/formats/TriG'
 ).
@@ -214,19 +208,19 @@ rdf_serialization(
   ttl,
   turtle,
   [
-    media_type(text,turtle,[q(0.9)]),
-    media_type(application,turtle,[q(0.5)]),
-    media_type(application,'x-turtle',[q(0.5)]),
-    media_type(application,'rdf+turtle',[q(0.5)])
+    0.9-media_type(text,turtle,[]),
+    0.5-media_type(application,turtle,[]),
+    0.5-media_type(application,'x-turtle',[]),
+    0.5-media_type(application,'rdf+turtle',[])
   ],
   'http://www.w3.org/ns/formats/Turtle'
 ).
 rdf_serialization(
   n3,
-  turtle,
+  n3,
   [
-    media_type(text,n3,[q(0.9)]),
-    media_type(text,'rdf+n3',[q(0.5)])
+    0.9-media_type(text,n3,[]),
+    0.5-media_type(text,'rdf+n3',[])
   ],
   'http://www.w3.org/ns/formats/N3'
 ).

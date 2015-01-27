@@ -1,7 +1,11 @@
 :- module(
   ctriples_write_triples,
   [
-    ctriples_write_triples/3, % +Write:or([atom,stream])
+    ctriples_write_triple/4, % +Out:stream
+                             % +State:compound
+                             % +BNodePrefix:iri
+                             % +Triple:compound
+    ctriples_write_triples/3, % +Out:or([atom,stream])
                               % +Triples:list(compound)
                               % +Options:list(nvpair)
     ctriples_write_triples_to_stream/2 % +Triples:list(compound)
@@ -31,7 +35,7 @@ Simple literals are not emitted, the `xsd:string` datatype is made explicit.
 Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 @author Wouter Beek
-@version 2014/08-2014/09
+@version 2014/08-2014/09, 2015/01
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -48,6 +52,8 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 
 
+
+
 %! ctriples_write_triples(
 %!   +Source:or([atom,stream]),
 %!   +Triples:list(compound),
@@ -55,15 +61,15 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 %! ) is det.
 % Writes RDF data using the C-Triples/C-Quads serialization format.
 
-ctriples_write_triples(Write, Triples, Options):-
-  is_stream(Write), !,
-  with_output_to(Write, ctriples_write_triples_to_stream(Triples, Options)).
-ctriples_write_triples(Write, Triples, Options):-
+ctriples_write_triples(Out, Triples, Options):-
+  is_stream(Out), !,
+  with_output_to(Out, ctriples_write_triples_to_stream(Triples, Options)).
+ctriples_write_triples(Out, Triples, Options):-
   is_absolute_file_name(File), !,
   setup_call_cleanup(
-    open(File, write, Write),
-    with_output_to(Write, ctriples_write_triples_to_stream(Triples, Options)),
-    close(Write)
+    open(File, write, Out),
+    with_output_to(Out, ctriples_write_triples_to_stream(Triples, Options)),
+    close(Out)
   ).
 
 
@@ -87,7 +93,7 @@ ctriples_write_triples_to_stream(Triples1, Options):-
 %! ctriples_write_triple(
 %!   +State:compound,
 %!   +BNodePrefix:iri,
-%!   +Triple:list(compound)
+%!   +Triple:compound
 %! ) is det.
 
 ctriples_write_triple(State, BNodePrefix, Triple):-
@@ -95,7 +101,17 @@ ctriples_write_triple(State, BNodePrefix, Triple):-
   (   Triple = rdf(S,P,O)
   ->  write_triple(S, P, O, BNodePrefix)
   ;   Triple = rdf(S,P,O,G)
-  ->  write_quad(S, P, O, G, BNodePrefix)
+  ->  write_quadruple(S, P, O, G, BNodePrefix)
   ;   true
   ).
+
+%! ctriples_write_triple(
+%!   +Out:stream,
+%!   +State:compound,
+%!   +BNodePrefix:iri,
+%!   +Triple:compound
+%! ) is det.
+
+ctriples_write_triple(Out, State, BNodePrefix, Triple):-
+  with_output_to(Out, ctriples_write_triple(State, BNodePrefix, Triple)).
 

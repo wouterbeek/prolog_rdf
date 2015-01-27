@@ -1,6 +1,7 @@
 :- module(
   rdf_name,
   [
+    rdf_dataset_name//1, % +RdfDataset:atom
     rdf_graph_name//1, % +RdfGraph:atom
     rdf_term_name//1, % ?Term:rdf_term
     rdf_term_name//2, % +Options:list(nvpair)
@@ -28,6 +29,7 @@ Generates names for RDF terms and triples.
 :- use_module(pl(pl_log)).
 
 :- use_module(plDcg(dcg_abnf)).
+:- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_atom)).
 :- use_module(plDcg(dcg_code)).
 :- use_module(plDcg(dcg_content)).
@@ -54,7 +56,7 @@ Generates names for RDF terms and triples.
        with_all_literals,
        with_preferred_label
      ])),
-     language_preferences(+list(atom))
+     language_preferences(+list(list(atom)))
    ]).
 :- predicate_options(rdf_literal_name//2, 1, [
      pass_to(rdf_plain_literal_name//2, 1)
@@ -66,6 +68,7 @@ Generates names for RDF terms and triples.
      literal_ellipsis(+nonneg)
    ]).
 :- predicate_options(rdf_term_name//2, 1, [
+     collate_rdf_lists(+boolean),
      graph(+atom),
      pass_to(rdf_iri_name//2, 1),
      pass_to(rdf_literal_name//2, 1)
@@ -73,10 +76,20 @@ Generates names for RDF terms and triples.
 
 
 
+
+
 %! rdf_bnode_name(+BNode:bnode)// is det.
 
 rdf_bnode_name(BNode) -->
   atom(BNode).
+
+
+
+%! rdf_dataset_name(+Dataset:atom)// is det.
+
+rdf_dataset_name(Dataset) -->
+  atom(Dataset).
+
 
 
 %! rdf_graph_name(+Graph:atom)// is det.
@@ -93,14 +106,14 @@ rdf_graph_name(Graph) -->
 %!   +Term:rdf_term
 %! )// is det.
 % The following options are supported:
-%   * =|iri_description(+oneof([
+%   - `iri_description(+oneof([
 %         iri_only,
 %         only_all_literals,
 %         only_preferred_label,
 %         with_all_literals,
 %         with_preferred_label
-%     ]))|=
-%   * =|language_preferences(+list(atom))|=
+%     ]))`
+%   - `language_preferences(+list(atom))`
 
 % The options `only_preferred_label` and `with_preferred_label`.
 rdf_iri_name(Options1, Iri) -->
@@ -112,8 +125,8 @@ rdf_iri_name(Options1, Iri) -->
   ), !,
 
   % See whether a preferred label can be found.
-  ({    option(prferred_languages(LanguageTags), Options1, en),
-        rdfs_label(Iri, PreferredLabel, LanguageTags, _)
+  ({    option(prferred_languages(LanguageTags), Options1, [[en,'US']]),
+        rdfs_label_value(Iri, PreferredLabel, LanguageTags, _)
   } ->  atom(PreferredLabel)
   ;     ""
   ).
@@ -130,7 +143,7 @@ rdf_iri_name(Options1, Iri) -->
   {
     % Labels are treated specially: only the preferred label is included.
     option(language_preferences(LanguageTags), Options1, [en]),
-    rdfs_label(Iri, PreferredLabel, LanguageTags, _),
+    rdfs_label_value(Iri, PreferredLabel, LanguageTags, _),
 
     % All non-label literals are included.
     findall(
@@ -158,7 +171,7 @@ rdf_iri_name(Options1, Iri) -->
 % The IRI has at least one XML namespace prefix.
 rdf_iri_name(_, Iri) -->
   % We take the prefix that stands for the longest IRI substring.
-  {rdf_iri_to_prefix(Iri, LongestPrefix, ShortestLocalName)}, !,
+  {rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName)}, !,
   atom(LongestPrefix),
   ":",
   atom(ShortestLocalName).
@@ -202,7 +215,7 @@ rdf_plain_literal_name(Options1, literal(Value)) -->
 
 %! rdf_simple_literal_name(+Options:list(nvpair), +Value:atom)// is det.
 % The following options are supported:
-%   * =|literal_ellipsis(+or([oneof([inf]),positive_integer]))|=
+%   - `literal_ellipsis(+or([oneof([inf]),positive_integer]))`
 %     The maximum length of a literal before ellipsis s used.
 
 rdf_simple_literal_name(Options1, Value) -->
@@ -223,21 +236,25 @@ rdf_term_name(Term) -->
 % Returns a display name for the given RDF term.
 %
 % The following options are supported:
-%   * =|graph(+Graph:atom)|=
+%   - `collate_rdf_lists(+boolean)`
+%     Whether or not the name of an RDF list should consist of the names of
+%     its elements.
+%     Default: `true`.
+%   - `graph(+Graph:atom)`
 %     `TERM in GRAPH`
-%   * =|language(+Language:atom)|=
+%   - `language(+Language:atom)`
 %     The atomic language tag of the language that is preferred for
 %     use in the RDF term's name.
 %     The default value is `en`.
-%   * =|literal_ellipsis(+or([oneof([inf]),positive_integer]))|=
+%   - `literal_ellipsis(+or([oneof([inf]),positive_integer]))`
 %     The maximum length of a literal before ellipsis s used.
-%   * =|iri_description(+DescriptionMode:oneof([
+%   - `iri_description(+DescriptionMode:oneof([
 %       only_all_literals,
 %       only_preferred_label,
 %       iri_only,
 %       with_all_literals,
 %       with_preferred_label
-%     ]))|=
+%     ]))`
 %     Whether or not literals are included in the name of the RDF term.
 %     The default value is `iri_only`.
 
@@ -248,7 +265,10 @@ rdf_term_name(Options1, Term) -->
   rdf_graph_name(Graph).
 % RDF list.
 rdf_term_name(Options, RdfList) -->
-  {rdf_list(RdfList)}, !,
+  {
+    rdf_list(RdfList),
+    \+ option(collate_rdf_lists(false), Options)
+  }, !,
   % Recursively retrieve the contents of the RDF list.
   % This has to be done non-recursively, since the nested
   % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
@@ -297,7 +317,7 @@ rdf_typed_literal_name(literal(type(Datatype,LexicalForm))) -->
       with_output_to(atom(Value), write_canonical_blobs(Value0))
   ;   Value = LexicalForm
   )},
-  quoted(atom(Value)),
+  quoted(double_quote, atom(Value)),
   "^^",
   rdf_iri_name([], Datatype).
 

@@ -17,6 +17,8 @@
     rdf_equiv/3, % +Datatype:iri
                  % +Value1
                  % +Value2
+    rdf_lexical_map/2, % +Literal:compound
+                       % ?Value
     rdf_lexical_map/3 % +Datatype:iri
                       % +LexicalForm:atom
                       % ?Value
@@ -27,7 +29,7 @@
 
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
-@version 2014/11
+@version 2014/11-2014/12
 */
 
 :- use_module(library(memfile)).
@@ -142,8 +144,19 @@ rdf_equiv(D, V1, V2):-
 
 
 
+%! rdf_lexical_map(+Literal:compound, +Value) is semidet.
+%! rdf_lexical_map(+Literal:compound, -Value) is det.
+
+rdf_lexical_map(literal(type(Datatype,LexicalForm)), Value):- !,
+  rdf_lexical_map(Datatype, LexicalForm, Value).
+rdf_lexical_map(literal(lang(LangTag,LexicalForm)), LangTag-LexicalForm):- !.
+rdf_lexical_map(literal(LexicalForm), Value):-
+  rdf_lexical_map(xsd:string, LexicalForm, Value).
+
+
+
 %! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, +Value) is semidet.
-%! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, -Value) is nondet.
+%! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, -Value) is det.
 % Maps lexical forms onto the values they represent.
 %
 % Supports the following RDF datatypes:

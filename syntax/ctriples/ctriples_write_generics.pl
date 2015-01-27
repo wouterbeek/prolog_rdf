@@ -7,11 +7,11 @@
     ctriples_write_end/2, % +State:compound
                           % +Options:list(nvpair)
     inc_number_of_triples/1, % +State:compound
-    write_quad/5, % +Subject:or([bnode,iri])
-                  % +Predicate:iri
-                  % +Object:rdf_term
-                  % +Graph:atom
-                  % +BNodePrefix:atom
+    write_quadruple/5, % +Subject:or([bnode,iri])
+                       % +Predicate:iri
+                       % +Object:rdf_term
+                       % +Graph:atom
+                       % +BNodePrefix:atom
     write_triple/4 % +Subject:or([bnode,iri])
                    % +Predicate:iri
                    % +Object:rdf_term
@@ -27,7 +27,7 @@ Generic predicates for writing C-Triples.
 @author Jan Wielemaker
 @author Laurens Rietveld
 @compat http://www.w3.org/TR/2014/REC-n-triples-20140225/
-@version 2014/03-2014/06, 2014/08-2014/09
+@version 2014/03-2014/06, 2014/08-2014/09, 2015/01
 */
 
 :- use_module(library(option)).
@@ -88,7 +88,7 @@ inc_number_of_triples(State):-
 
 
 
-%! write_quad(
+%! write_quadruple(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
@@ -96,7 +96,7 @@ inc_number_of_triples(State):-
 %!   +BNodePrefix:atom
 %! ) is det.
 
-write_quad(S, P, O, G, BNodePrefix):-
+write_quadruple(S, P, O, G, BNodePrefix):-
   write_subject(S, BNodePrefix),
   put_char(' '),
   % Predicate terms are IRIs.

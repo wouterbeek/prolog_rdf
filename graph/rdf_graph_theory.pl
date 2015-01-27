@@ -5,8 +5,8 @@
                          % ?DirectedEdge:compound
                          % +Options:list(nvair)
     rdf_graph_to_srep/3, % +Graph:atom
-                           % -UGraph:ugraph
-                           % +Options:list(nvair)
+                         % -UGraph:ugraph
+                         % +Options:list(nvair)
     rdf_neighbor_vertex/4, % ?Graph:atom
                            % +Vertex
                            % -NeighborVertex
@@ -55,22 +55,22 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
      pass_to(rdf_vertex_filter/2, 2)
    ]).
 :- predicate_options(rdf_vertex_filter/2, 2, [
-     literal_filter(+boolean),
-     rdf_list_filter(+boolean)
+     exclude_literals(+boolean),
+     exclude_list_elements(+boolean)
    ]).
 
 
 
 %! rdf_directed_edge(
 %!   +Graph:atom,
-%!   ?DirectedEdge:pair(rdf_term),
+%!   ?DirectedEdge:compound,
 %!   +Options:list(nvpair)
 %! ) is nondet.
 
-rdf_directed_edge(Graph, FromV-ToV, Options):-
-  rdf(FromV, _, ToV, Graph),
-  rdf_vertex_filter(FromV, Options),
-  rdf_vertex_filter(ToV, Options).
+rdf_directed_edge(Graph, edge(S,P,O), Options):-
+  rdf(S, P, O, Graph),
+  rdf_vertex_filter(S, Options),
+  rdf_vertex_filter(O, Options).
 
 
 
@@ -85,13 +85,13 @@ rdf_directed_edge(Graph, FromV-ToV, Options):-
 
 rdf_graph_to_srep(Graph, UGraph, Options):-
   aggregate_all(
-    set(FromV-Ns),
+    set(V-Ws),
     (
-      rdf_vertex(Graph, FromV, Options),
+      rdf_vertex(Graph, V, Options),
       aggregate_all(
-        set(ToV),
-        rdf_directed_edge(Graph, FromV-ToV, Options),
-        Ns
+        set(W),
+        rdf_directed_edge(Graph, edge(V,_,W), Options),
+        Ws
       )
     ),
     UGraph
@@ -116,18 +116,17 @@ rdf_neighbor_vertex(Graph, V, N, Options):-
 
 %! rdf_undirected_edge(
 %!   ?Graph:atom,
-%!   ?UndirectedEdge:pair(rdf_term),
+%!   ?UndirectedEdge:compound,
 %!   +Options:list(nvpair)
 %! ) is nondet.
 
-rdf_undirected_edge(Graph, FromV-ToV, Options):-
-  rdf(FromV, _, ToV, Graph),
-  rdf_vertex_filter(FromV, Options),
-  rdf_vertex_filter(ToV, Options).
-rdf_undirected_edge(Graph, FromV-ToV, Options):-
-  rdf(ToV, _, FromV, Graph),
-  rdf_vertex_filter(ToV, Options),
-  rdf_vertex_filter(FromV, Options).
+rdf_undirected_edge(Graph, UndirectedEdge, Options):-
+  rdf(S, P, O, Graph),
+  rdf_vertex_filter(S, Options),
+  rdf_vertex_filter(O, Options),
+  (   UndirectedEdge = edge(S,P,O)
+  ;   UndirectedEdge = edge(O,P,S)
+  ).
 
 
 
@@ -137,12 +136,11 @@ rdf_undirected_edge(Graph, FromV-ToV, Options):-
 % RDF triple.
 %
 % The following options are supported:
-%   1. `literal_filter(+boolean)`
-%      Whether literals are considered vertices (`true`, default)
-%      or not (`false`).
-%   2. `rdf_list_filter(+boolean)`
-%      Whether vertices that occur within some RDF list should be included
-%      (`true`, default) or not (`false`).
+%   1. `exclude_list_elements(+boolean)`
+%      Whether vertices that occur within some RDF list should be excluded
+%      (`true`) or not (`false`, default).
+%   2. `exclude_literals(+boolean)`
+%      Whether literals are excluded (`true`) or not (`false`, default).
 
 rdf_vertex(Graph, Vertex, Options):-
   % Subject and object terms are vertices.
@@ -162,14 +160,15 @@ rdf_vertex(Graph, Vertex, Options):-
 rdf_vertex_filter(V, Options):-
   % Literal filtering.
   (   rdf_is_literal(V)
-  ->  option(literal_filter(true), Options, true)
+  ->  \+ option(exclude_literals(true), Options)
   ;   true
   ),
 
   % RDF list filtering.
-  (   option(rdf_list_filter(true), Options, true)
-  ->  true
-  ;   % Does not belong to an RDF list.
-      \+ rdf_list_member(V, _, _)
+  (   option(exclude_list_elements(true), Options)
+  ->  % Does not belong to an RDF list.
+      \+ rdf_has(_, rdf:first, V),
+      \+ rdf_has(_, rdf:rest, V)
+  ;   true
   ).
 

@@ -90,12 +90,12 @@ Takes axioms, rules, and the RDF index and performs materializations.
 % ### Options
 %
 % The following options are supported:
-%   * =|entailment_regimes(+list(atom))|=
+%   - `entailment_regimes(+list(atom))`
 %     Default: `[rdf,rdfs]`
-%   * =|max_enumerator(+nonneg)|=
+%   - `max_enumerator(+nonneg)`
 %     The maximum enumerator that is considered.
 %     Default: `inf`.
-%   * =|multiple_justifications(+boolean)|=
+%   - `multiple_justifications(+boolean)`
 %     Whether a single proposition can have more than one justification.
 %     Default: `false`.
 %
