@@ -251,7 +251,7 @@ rdf_is_lean_graph(Graph):-
 
 
 %! rdf_lean_graph(+Graph:atom, -NonleanTriple:compound) is nondet.
-% Graph leaning process, enumerates the non-lean triples in Graph.
+% Graph leaning process, enumerating the non-lean triples in Graph.
 
 rdf_lean_graph(Graph, rdf(S1,P,O1)):-
   rdf_triples(Graph, Triples),
