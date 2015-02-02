@@ -51,7 +51,7 @@ prolog_to_rdf(Graph, Module, Term, Individual):-
   rdf_assert_instance(Individual, Class, Graph),
 
   % Propositions.
-  Module:legend(Functor, _, ArgRequirements),
+  Module:legend(Functor, ArgRequirements),
   maplist(prolog_to_rdf(Graph, Module, Individual), ArgRequirements, Args).
 
 prolog_to_rdf(

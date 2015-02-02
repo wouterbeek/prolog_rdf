@@ -48,6 +48,8 @@
 
 
 
+
+
 %! rdf_fresh_graph(
 %!   +Graph:atom,
 %!   +FreshnessLifetime:between(0.0,inf)

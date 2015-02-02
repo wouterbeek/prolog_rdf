@@ -18,7 +18,7 @@ This requires a Prolog module whose name is also registered as
  the XML namespace that is used for the RDF vocabulary.
 
 @author Wouter Beek
-@version 2014/01-2014/03, 2014/12-2015/01
+@version 2014/01-2014/03, 2014/12-2015/02
 */
 
 :- use_module(library(aggregate)).
@@ -116,10 +116,14 @@ create_resource(SPrefix, DPrefix, Legend, G, Resource):-
 %      This will be converted to RDF.
 % @arg Resource An IRI denoting the RDF version of the JSON term.
 
+json_to_rdf(G, Mod, SPrefix, DPrefix, Dicts, Resources):-
+  is_list(Dicts), !,
+  maplist(json_to_rdf(G, Mod, SPrefix, DPrefix), Dicts, Resources).
 json_to_rdf(G, Mod, SPrefix, DPrefix, Dict, Resource):-
   % Make sure the RDF prefix has been registered.
   maplist(exists_rdf_prefix, [SPrefix,DPrefix]),
   % Find the legend to which this JSON object matches most closely.
+gtrace,
   find_matching_legend(Dict, Mod, Legend),
   json_to_rdf(G, Mod, SPrefix, DPrefix, Legend, Dict, Resource).
 
