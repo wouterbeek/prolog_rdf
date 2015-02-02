@@ -56,6 +56,7 @@ find_matching_legend(Dict, Mod, MatchingLegend):-
       pairs_keys(Pairs2, Keys2),
       list_to_set(Keys2, Keyset2),
       intersection(Keyset1, Keyset2, Shared),
+gtrace,
       length(Shared, Length)
     ),
     max(_, MatchingLegend)
@@ -123,7 +124,6 @@ json_to_rdf(G, Mod, SPrefix, DPrefix, Dict, Resource):-
   % Make sure the RDF prefix has been registered.
   maplist(exists_rdf_prefix, [SPrefix,DPrefix]),
   % Find the legend to which this JSON object matches most closely.
-gtrace,
   find_matching_legend(Dict, Mod, Legend),
   json_to_rdf(G, Mod, SPrefix, DPrefix, Legend, Dict, Resource).
 
