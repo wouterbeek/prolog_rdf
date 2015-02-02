@@ -51,6 +51,8 @@ Meta-callings on an RDF graph.
 
 
 
+
+
 %! rdf_setup_call_cleanup(
 %!   +FromFile:atom,
 %!   :Goal,
