@@ -1,11 +1,11 @@
 :- module(
   rdf_image,
   [
-    rdf_assert_image/5, % +Options:list(nvpair)
-                        % +Subject:or([bnode,iri])
+    rdf_assert_image/5, % +Subject:or([bnode,iri])
                         % +Predicate:iri
                         % +Object:rdf_term
                         % +Graph:atom
+                        % +Options:list(nvpair)
     rdf_image/3, % ?Subject:or([bnode,iri])
                  % ?Predicate:iri
                  % ?Object:rdf_term
@@ -28,7 +28,7 @@ When triples including images are read,
  (and an image resource is available online).
 
 @author Wouter Beek
-@version 2014/01, 2014/12
+@version 2014/01, 2014/12, 2015/02
 */
 
 :- use_module(library(option)).
@@ -46,7 +46,11 @@ When triples including images are read,
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(management/rdf_prefix)).
 
-:- rdf_meta(rdf_assert_image(+,r,r,r,+)).
+:- predicate_options(rdf_assert_image/5, 5, [
+     cache(+boolean)
+   ]).
+
+:- rdf_meta(rdf_assert_image(r,r,r,+,+)).
 :- rdf_meta(rdf_image(r,r,o)).
 :- rdf_meta(rdf_image(r,r,o,?)).
 
@@ -58,11 +62,14 @@ When triples including images are read,
 
 
 
-rdf_assert_image(O1, S, P, O, G):-
-  rdf_image(O1, O, _),
+rdf_assert_image(S, P, O, G, Options):-
   is_image_uri(O),
   rdf_assert_instance(O, dcmit:'Image', G),
-  rdf_assert(S, P, O, G).
+  rdf_assert(S, P, O, G),
+  (   option(cache(true), Options)
+  ->  download_to_file(O, _, [])
+  ;   true
+  ).
 
 
 

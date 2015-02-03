@@ -26,7 +26,7 @@
 Converts XML DOMs to RDF graphs.
 
 @author Wouter Beek
-@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11
+@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11, 2015/02
 */
 
 :- use_module(library(debug)).
