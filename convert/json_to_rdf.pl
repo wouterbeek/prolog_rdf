@@ -52,15 +52,16 @@ find_matching_legend(Dict, Mod, MatchingLegend):-
   aggregate_all(
     max(Length, Legend),
     (
-      Mod:legend(Legend, Pairs2),
-      pairs_keys(Pairs2, Keys2),
+      Mod:legend(Legend, Properties),
+      maplist(property_name, Properties, Keys2),
       list_to_set(Keys2, Keyset2),
       intersection(Keyset1, Keyset2, Shared),
-gtrace,
       length(Shared, Length)
     ),
     max(_, MatchingLegend)
   ), !.
+
+property_name(property(Name, _), Name).
 
 
 
@@ -171,7 +172,7 @@ assert_triples0(SchemaPrefix, G, S, P0, O):-
 %!   +Module:atom,
 %!   +SchemaPrefix:atom,
 %!   +DataPrefix:atom,
-%!   +ArgumentSpecifications:list(pair),
+%!   +ArgumentSpecifications:list(compound),
 %!   +Predicate:iri,
 %!   +Value,
 %!   -Object:rdf_term
@@ -179,13 +180,13 @@ assert_triples0(SchemaPrefix, G, S, P0, O):-
 % Make sure a property with the given name exists.
 % Also retrieve the type the value should adhere to.
 
-assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O):-
-  memberchk(P-Type, Specs), !,
-  assert_json_property(G, Mod, SPrefix, DPrefix, Type, Value, O).
+assert_json_property(G, Mod, SPrefix, DPrefix, Specs, Property, Value, O):-
+  memberchk(property(Property, Datatype), Specs), !,
+  assert_json_property(G, Mod, SPrefix, DPrefix, Datatype, Value, O).
 % Unrecognized JSON key / RDF property.
-assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O):-
+assert_json_property(G, Mod, SPrefix, DPrefix, Specs, Property, Value, O):-
   gtrace, %DEB
-  assert_json_property(G, Mod, SPrefix, DPrefix, Specs, P, Value, O).
+  assert_json_property(G, Mod, SPrefix, DPrefix, Specs, Property, Value, O).
 
 % We do not believe that empty values -- i.e. the empty string --
 % are very usefull, so we do not assert pairs with this value.
