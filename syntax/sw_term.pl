@@ -13,7 +13,7 @@
 Various grammar rules for SW terms.
 
 @author Wouter Beek
-@version 2014/12-2015/01
+@version 2014/12-2015/02
 */
 
 :- use_module(plRdf(syntax/sw_bnode)).
@@ -34,7 +34,7 @@ Various grammar rules for SW terms.
 graphLabel(Iri) -->
   'IRIREF'(Iri).
 graphLabel(BNode) -->
-  'BLANK_NODE_LABEL'(BNode)
+  'BLANK_NODE_LABEL'(BNode).
 
 
 
