@@ -63,6 +63,9 @@
 :- use_module(plRdf(management/rdf_guess_format)).
 :- use_module(plRdf(management/rdf_prefixes)).
 
+:- predicate_options(metadata_content_type/3, 3, [
+     media/2
+   ]).
 :- predicate_options(rdf_load_any/2, 2, [
      pass_to(rdf_load_any/3, 3)
    ]).
@@ -71,6 +74,8 @@
      pass_to(rdf_load_from_stream_nondet/3, 3)
    ]).
 :- predicate_options(rdf_load_from_stream_det/4, 4, [
+     filename(+atom),
+     pass_to(metadata_content_type/3, 3),
      pass_to(rdf_load/2, 2)
    ]).
 :- predicate_options(rdf_load_from_stream_nondet/3, 3, [
@@ -156,7 +161,7 @@ rdf_load_any(prefix(Prefix), M, Options):-
   rdf_current_prefix(Prefix, Uri), !,
   rdf_load_any(uri(Uri), M, Options).
 
-% 2. Load from a URL with reduced location.
+% 2. Load from a URI with reduced location.
 rdf_load_any(uri(Uri), M, Options1):-
   select_option(reduced_locations(true), Options1, Options2),
   rdf_reduced_location(Uri, ReducedUri), !,
@@ -204,13 +209,18 @@ rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
 %! ) is det.
 
 rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
-  % Return the file name extension as metadata.
   metadata_to_base(Metadata1, Base),
-  ignore(file_name_extension(_, FileExtension, Base)),
+
+  % Return the file name extension as metadata.
+  (   option(filename(FileName), Options1)
+  ->  true
+  ;   FileName = Base
+  ),
+  ignore(file_name_extension(_, FileExtension, FileName)),
 
   % Guess the RDF serialization format based on
   % the HTTP Content-Type header value and the file name extension.
-  ignore(metadata_content_type(Metadata1, ContentType)),
+  ignore(metadata_content_type(Metadata1, Options1, ContentType)),
   rdf_guess_format(In, FileExtension, ContentType, Format),
 
   % Store the guessed RDF serialization format as metadata.
@@ -279,7 +289,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
 
 
 
-% HELPERS
+% HELPERS %
 
 %! location_suffix(+EntryMetadata, -Suffix:atom) is det.
 
@@ -295,10 +305,16 @@ location_suffix([Archive|T], Suffix):-
   ).
 
 
-%! metadata_content_type(+Metadata:dict, -ContentType:compound) is semidet.
+%! metadata_content_type(
+%!   +Metadata:dict,
+%!   +Options:list(nvpair),
+%!   -ContentType:compound
+%! ) is semidet.
 % Extracts a content type term from the metadata object, if present.
 
-metadata_content_type(Metadata, media_type(Type,Subtype,Parameters)):-
+metadata_content_type(_, Options, media_type(Type,Subtype,Parameters)):-
+  option(media(Type/Subtype,Parameters), Options), !.
+metadata_content_type(Metadata, _, media_type(Type,Subtype,Parameters)):-
   _{type:Type, subtype:Subtype, parameters:Parameters} :< Metadata.'HTTP'.'Content-Type'.
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.

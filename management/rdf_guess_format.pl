@@ -16,7 +16,7 @@ Detect the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07-2014/08, 2014/10, 2015/01
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10, 2015/01-2015/02
 */
 
 :- use_module(library(dcg/basics)).
@@ -37,7 +37,7 @@ Detect the RDF serialization format of a given stream.
 
 
 
-%! rdf_guess_format(+File:atom, -Format:rdf_format) is semidet.
+%! rdf_guess_format(+File:atom, -Format:rdf_format) is det.
 % True when `Source` is thought to contain RDF data using the
 % indicated content type.
 %
@@ -49,6 +49,8 @@ Detect the RDF serialization format of a given stream.
 %     e.g. based on the media type and/or file name.
 %   - `look_ahead(+NumberOfBytes:nonneg)`
 %     Look ahead the indicated amount
+%
+% @throws no_rdf If no RDF serialization format can be recognized.
 
 rdf_guess_format(File0, Format):-
   % Make sure the file exists and we have read access to it.
@@ -66,7 +68,6 @@ rdf_guess_format(File0, Format):-
     rdf_guess_format(Stream, FileExtension, _, Format),
     close(Stream)
   ).
-
 
 %! rdf_guess_format0(
 %!   +Stream:stream,
@@ -131,8 +132,8 @@ rdf_guess_format0(Stream, Iteration, Format, Options):-
 %!   ?FileExtension:atom,
 %!   ?ContentType:atom,
 %!   -Format:rdf_format
-%! ) is semidet.
-% Fails if the RDF serialization format cannot be decided on.
+%! ) is det.
+% @throws no_rdf If no RDF serialization format can be recognized.
 
 % Use the file extensions as the RDF serialization format suggestion.
 rdf_guess_format(In, FileExtension, _, Format):-
@@ -147,7 +148,8 @@ rdf_guess_format(In, _, ContentType, Format):-
 % Use no RDF serialization format suggestion.
 rdf_guess_format(In, _, _, Format):-
   rdf_guess_format0(In, Format, []), !.
-
+rdf_guess_format(In, _, _, _):-
+  throw(error(no_rdf(In))).
 
 %! turtle_like(
 %!   -Format:oneof([nquads,ntriples,turtle,trig]),
