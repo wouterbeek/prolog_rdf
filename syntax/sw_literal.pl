@@ -7,6 +7,7 @@
     'NumericLiteral'//2, % ?Language:oneof([sparql,turtle])
                          % ?Literal:compound
     'NumericLiteralNegative'//1, % ?Value:number
+    'NumericLiteralPositive'//1, % ?Value:number
     'RDFLiteral'//2 % ?Language:oneof([sparql,turtle])
                     % ?Literal:compound
   ]
