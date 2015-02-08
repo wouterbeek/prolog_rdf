@@ -34,7 +34,7 @@ Various grammar rules for SW terms.
 graphLabel(Iri) -->
   'IRIREF'(Iri).
 graphLabel(BNode) -->
-  'BLANK_NODE_LABEL'(BNode).
+  'BLANK_NODE_LABEL'(n, BNode).
 
 
 

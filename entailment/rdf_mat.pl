@@ -11,10 +11,11 @@
 Takes axioms, rules, and the RDF index and performs materializations.
 
 @author Wouter Beek
-@version 2013/09-2013/10, 2013/12-2014/01, 2014/06-2014/07
+@version 2013/09-2013/10, 2013/12-2014/01, 2014/06-2014/07, 2015/02
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(debug)).
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(option)).
@@ -77,6 +78,8 @@ Takes axioms, rules, and the RDF index and performs materializations.
      entailment_regimes(+list(atom)),
      multiple_justifications(+boolean)
    ]).
+
+
 
 
 
@@ -147,13 +150,10 @@ rdf_materialize(Tms, Graph, Options):-
 
   % Only accept new justifications.
   % A proposition may have multiple justifications.
-  (
-    option(multiple_justifications(true), Options, false)
-  ->
-    % @tbd Checking for existing justifications does not work yet.
-    \+ tms_justification(Tms, Premises, Rule, rdf(S,P,O))
-  ;
-    \+ rdf(S, P, O, Graph)
+  (   option(multiple_justifications(true), Options, false)
+  ->  % @tbd Checking for existing justifications does not work yet.
+      \+ tms_justification(Tms, Premises, Rule, rdf(S,P,O))
+  ;   \+ rdf(S, P, O, Graph)
   ),
 
   % Add to TMS.
@@ -202,7 +202,7 @@ ensure_tms(Tms):-
 materialize_message(Tms, Justification) -->
   {flag(deductions, Id, Id + 1)},
   integer(Id),
-  `: `,
+  ": ",
   tms_print_justification(
     Tms,
     Justification,
