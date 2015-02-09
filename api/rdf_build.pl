@@ -1,6 +1,8 @@
 :- module(
   rdf_build,
   [
+    rdf_assert_instance/2, % +Instance:or([bnode,iri])
+                           % ?Class:iri
     rdf_assert_instance/3, % +Instance:or([bnode,iri])
                            % ?Class:iri
                            % ?Graph:atom
@@ -44,6 +46,10 @@
                                  % +Value
                                  % ?Graph:atom
                                  % -Triple:compound
+    rdf_assert_typed_literal/4, % +Term:rdf_term
+                                % +Predicate:iri
+                                % +Value
+                                % +Datatype:iri
     rdf_assert_typed_literal/5, % +Term:rdf_term
                                 % +Predicate:iri
                                 % +Value
@@ -95,7 +101,7 @@ Simple asserion and retraction predicates for RDF.
 Triples with literals are treated in dedicated modules.
 
 @author Wouter Beek
-@version 2014/11
+@version 2014/11, 2015/02
 */
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -111,6 +117,7 @@ Triples with literals are treated in dedicated modules.
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
+:- rdf_meta(rdf_assert_instance(o,r)).
 :- rdf_meta(rdf_assert_instance(o,r,?)).
 :- rdf_meta(rdf_assert_langstring(o,r,+,+)).
 :- rdf_meta(rdf_assert_langstring(o,r,+,+,-)).
@@ -121,6 +128,7 @@ Triples with literals are treated in dedicated modules.
 :- rdf_meta(rdf_assert_property(o,?)).
 :- rdf_meta(rdf_assert_simple_literal(o,r,+,?)).
 :- rdf_meta(rdf_assert_simple_literal(o,r,+,?,-)).
+:- rdf_meta(rdf_assert_typed_literal(o,r,+,r)).
 :- rdf_meta(rdf_assert_typed_literal(o,r,+,r,?)).
 :- rdf_meta(rdf_assert_typed_literal(o,r,+,r,?,-)).
 :- rdf_meta(rdf_assert2(o,r,o,?)).
@@ -134,6 +142,14 @@ Triples with literals are treated in dedicated modules.
 
 
 
+
+
+%! rdf_assert_instance(+Term:rdf_term, ?Class:iri) is det.
+% @see rdf_assert_instance/3
+
+rdf_assert_instance(Term, Class):-
+  rdf_assert_instance(Term, Class, user).
+
 %! rdf_assert_instance(+Term:rdf_term, ?Class:iri, ?Graph:graph) is det.
 % Asserts an instance/class relationship.
 %
@@ -145,7 +161,7 @@ Triples with literals are treated in dedicated modules.
 %
 % @arg Instance Required IRI or blank node.
 % @arg Class    Using `rdfs:Resource` when uninstantiated.
-% @arg Grapg    Using `user` when uninstantiated.
+% @arg Graph    Using `user` when uninstantiated.
 
 rdf_assert_instance(Term, Class, Graph):-
   default(rdfs:'Resource', Class),
@@ -289,6 +305,17 @@ rdf_assert_simple_literal(Term, P, Value, Graph, Triple):-
   rdf_assert_literal(Term, P, Value, xsd:string, Graph, Triple).
 
 
+
+%! rdf_assert_typed_literal(
+%!   +Term:rdf_term,
+%!   +Predicate:iri,
+%!   +Value,
+%!   +Datatype:iri
+%! ) is det.
+% @see rdf_assert_typed_literal/6
+
+rdf_assert_typed_literal(Term, P, Value, Datatype):-
+  rdf_assert_typed_literal(Term, P, Value, Datatype, user).
 
 %! rdf_assert_typed_literal(
 %!   +Term:rdf_term,
