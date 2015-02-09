@@ -77,12 +77,12 @@ rdf_save_any(File, Options):-
   % Make sure the contents of the graph were not changed.
   option(graph(Graph), Options),
   rdf_graph_property(Graph, modified(false)),
-  
+
   % Make sure the file is the same.
   rdf_graph_property(Graph, source(FromFile1)),
   uri_file_name(FromFile1, FromFile2),
   FromFile2 == File,
-  
+
   % The file was not modified after the graph was loaded.
   rdf_graph_property(Graph, source_last_modified(LastModified)),
   exists_file(File),
@@ -101,13 +101,13 @@ rdf_save_any(File, Options1):-
       ;   Format = nquads
       )
   ),
-  
+
   % Make sure the directory for the given file name exists.
   % A new file in an existing directory is created on the fly.
   create_file_directory(File),
-  
-  rdf_save_any(File, Format, Options2),
-  
+
+  rdf_save_any(file(File), Format, Options2),
+
   (   option(silent(true), Options2)
   ->  true
   ;   option(graph(Graph), Options2),
