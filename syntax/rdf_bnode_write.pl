@@ -48,7 +48,7 @@ rdf_bnode_map(BNodePrefix, BNode, MappedBNode):-
 
 %! rdf_bnode_prefix(-BNodePrefix:atom) is semidet.
 
-rdf_bnode_prefix('_:').
+rdf_bnode_prefix('_:x').
 
 
 %! rdf_bnode_prefix(
