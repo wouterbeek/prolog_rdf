@@ -25,11 +25,9 @@ Detect the RDF serialization format of a given stream.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(sgml)).
 
-:- use_module(plDcg(dcg_ascii)).
 :- use_module(plDcg(dcg_generics)).
 
 :- use_module(plRdf(management/rdf_file_db)).
-:- use_module(plRdf(syntax/sw_char)).
 
 :- meta_predicate(nt_string_codes(//,?,?)).
 
@@ -234,8 +232,13 @@ nt_iri_codes --> [].
 nt_iri_code --> ">", !, {fail}.
 nt_iri_code --> [_].
 
-nt_langtag --> "".
-nt_langtag --> [_], nt_langtag.
+nt_langtag --> nt_langtag_codes.
+
+nt_langtag_codes --> nt_langtag_code, !, nt_langtag_codes.
+nt_langtag_codes --> [].
+
+nt_langtag_code --> blank, !, {fail}.
+nt_langtag_code --> [_].
 
 nt_object --> nt_iriref, !.
 nt_object --> nt_bnode, !.
@@ -256,6 +259,8 @@ nt_string --> "'", !, nt_string_codes([39]).
 nt_string --> "\"\"\"", !, nt_string_codes([34,34,34]).
 nt_string --> "\"", !, nt_string_codes([34]).
 
+nt_string_codes(End) --> "\\\'", nt_string_codes(End).
+nt_string_codes(End) --> "\\\"", nt_string_codes(End).
 nt_string_codes(End) --> End, !.
 nt_string_codes(End) --> [_], !, nt_string_codes(End).
 nt_string_codes(_) --> [].
