@@ -296,7 +296,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
 location_suffix([filter(_)|T], Suffix):- !,
   location_suffix(T, Suffix).
 location_suffix([Archive|T], Suffix):-
-  json{name:data, format:raw} :< Archive, !,
+  archive_meta_data{name:data, format:raw} :< Archive, !,
   location_suffix(T, Suffix).
 location_suffix([Archive|T], Suffix):-
   (   location_suffix(T, Suffix0)
@@ -315,7 +315,7 @@ location_suffix([Archive|T], Suffix):-
 metadata_content_type(_, Options, media_type(Type,Subtype,Parameters)):-
   option(media(Type/Subtype,Parameters), Options), !.
 metadata_content_type(Metadata, _, media_type(Type,Subtype,Parameters)):-
-  _{type:Type, subtype:Subtype, parameters:Parameters} :< Metadata.'HTTP'.'Content-Type'.
+  _{type:Type, subtype:Subtype, parameters:Parameters} :< Metadata.get('HTTP').'Content-Type'.
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
 %  The base URI describes the location where the data is loaded from.

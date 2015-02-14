@@ -120,7 +120,6 @@ rdf_guess_format0(Stream, Iteration, Format, Options1):-
       )
   ), !.
 rdf_guess_format0(Stream, Iteration, Format, Options):-
-  Iteration < 3,
   NewIteration is Iteration + 1,
   rdf_guess_format0(Stream, NewIteration, Format, Options).
 
@@ -166,7 +165,8 @@ rdf_guess_format(In, _, _, _):-
 % Whenever the end-of-stream is reached we assume it is in a format
 % belonging to the Turtle family.
 % This e.g. allows Turtle files that consist of comments exclusively
-% to be classified as such.
+% to be classified as such (and an empty file is a Turtle file
+% as well).
 turtle_like(Format, Options) -->
   dcg_end,
   {option(eos(true), Options)}, !,
