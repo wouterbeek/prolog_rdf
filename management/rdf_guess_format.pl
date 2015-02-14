@@ -218,9 +218,11 @@ turtle_like(Format, Options) -->
 
 nt_bnode --> "_:", nt_bnode_codes.
 
-nt_bnode_codes --> blank, !, {fail}.
-nt_bnode_codes --> [_], !, nt_bnode_codes.
+nt_bnode_codes --> nt_bnode_code, !, nt_bnode_codes.
 nt_bnode_codes --> [].
+
+nt_bnode_code --> blank, !, {fail}.
+nt_bnode_code --> [_].
 
 nt_graph --> nt_iriref.
 
