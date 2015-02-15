@@ -136,7 +136,6 @@ rdf_load_any(In):-
 %     Default: `false`.
 
 rdf_load_any(In, Options):-
-gtrace,
   rdf_load_any(In, Metadata, Options),
   ignore(option(meta_data(Metadata), Options)).
 
