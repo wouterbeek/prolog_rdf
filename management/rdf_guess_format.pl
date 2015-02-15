@@ -74,7 +74,7 @@ rdf_guess_format(File0, Format):-
 %! ) is det.
 
 rdf_guess_format0(Stream, Format, Options):-
-  rdf_guess_format0(Stream, 1, Format, Options).
+  rdf_guess_format0(Stream, 0, Format, Options).
 
 %! rdf_guess_format0(
 %!   +Stream:stream,
@@ -86,7 +86,7 @@ rdf_guess_format0(Stream, Format, Options):-
 rdf_guess_format0(Stream, Iteration, Format, Options1):-
   % Peek a given number of bytes from stream.
   option(look_ahead(Bytes0), Options1, 1000),
-  Bytes is Iteration * Bytes0,
+  Bytes is Iteration * 2^Bytes0,
   peek_string(Stream, Bytes, String),
 
   % Do not backtrack if the whole stream has been peeked.
@@ -120,6 +120,7 @@ rdf_guess_format0(Stream, Iteration, Format, Options1):-
       )
   ), !.
 rdf_guess_format0(Stream, Iteration, Format, Options):-
+  Iteration < 4,
   NewIteration is Iteration + 1,
   rdf_guess_format0(Stream, NewIteration, Format, Options).
 
