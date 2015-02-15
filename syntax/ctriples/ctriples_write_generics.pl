@@ -12,6 +12,7 @@
                        % +Object:rdf_term
                        % +Graph:atom
                        % +BNodePrefix:atom
+    write_literal/1, % +Literal:compound
     write_triple/4 % +Subject:or([bnode,iri])
                    % +Predicate:iri
                    % +Object:rdf_term
@@ -134,9 +135,19 @@ write_triple(S, P, O, BNodePrefix):-
   put_code(10).
 
 
+% Object term: literal.
+write_object(Literal, _):-
+  write_literal(Literal), !.
+% Object term: blank node
+write_object(BNode, BNodePrefix):-
+  rdf_is_bnode(BNode), !,
+  rdf_bnode_write(BNodePrefix, BNode).
+% Object term: IRI
+write_object(Iri, _):-
+  turtle:turtle_write_uri(current_output, Iri).
 
 % Object term: typed literal.
-write_object(literal(type(Datatype,Value1)), _):- !,
+write_literal(literal(type(Datatype,Value1))):- !,
   % XSD XML literal.
   (   rdf_equal(Datatype, rdf:'XMLLiteral')
   ->  with_output_to(atom(Value2), xml_write(Value1, [header(false)]))
@@ -152,20 +163,12 @@ write_object(literal(type(Datatype,Value1)), _):- !,
   % Datatypes are IRIs.
   turtle:turtle_write_uri(current_output, Datatype).
 % Object term: language-tagged string.
-write_object(literal(lang(Language,Value)), _):- !,
+write_literal(literal(lang(Language,Value))):- !,
   turtle:turtle_write_quoted_string(current_output, Value),
   format(current_output, '@~w', [Language]).
 % Object term: string.
-write_object(literal(Value), _):- !,
+write_literal(literal(Value)):- !,
   turtle:turtle_write_quoted_string(current_output, Value).
-% Object term: blank node
-write_object(BNode, BNodePrefix):-
-  rdf_is_bnode(BNode), !,
-  rdf_bnode_write(BNodePrefix, BNode).
-% Object term: IRI
-write_object(Iri, _):-
-  turtle:turtle_write_uri(current_output, Iri).
-
 
 
 % Subject term: blank node
