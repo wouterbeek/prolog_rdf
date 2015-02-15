@@ -91,7 +91,7 @@ rdf_guess_format0(Stream, Iteration, Format, Options1):-
 
   % Do not backtrack if the whole stream has been peeked.
   string_length(String, Length),
-  (   Length < Bytes
+  (   Length =< Bytes
   ->  !,
       EoS = true
   ;   EoS = false

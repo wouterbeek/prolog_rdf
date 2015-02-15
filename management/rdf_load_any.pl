@@ -2,10 +2,7 @@
   rdf_load_any,
   [
     rdf_load_any/1, % +In
-    rdf_load_any/2, % +In
-                    % +Options:list(nvpair)
-    rdf_load_any/3 % +In
-                   % -Metadata:dict
+    rdf_load_any/2 % +In
                    % +Options:list(nvpair)
   ]
 ).
@@ -14,8 +11,10 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/06,
-         2013/08-2013/09, 2013/11, 2014/01-2014/04, 2014/07, 2014/10, 2014/12
+@version 2012/01, 2012/03, 2012/09, 2012/11,
+         2013/01-2013/06, 2013/08-2013/09, 2013/11,
+         2014/01-2014/04, 2014/07, 2014/10, 2014/12,
+         2015/02
 */
 
 :- use_module(library(aggregate)).
@@ -64,12 +63,10 @@
 :- use_module(plRdf(management/rdf_prefixes)).
 
 :- predicate_options(metadata_content_type/3, 3, [
-     media/2
+     media_type(+dict)
    ]).
 :- predicate_options(rdf_load_any/2, 2, [
-     pass_to(rdf_load_any/3, 3)
-   ]).
-:- predicate_options(rdf_load_any/3, 3, [
+     meta_data(-dict),
      pass_to(open_any/4, 4),
      pass_to(rdf_load_from_stream_nondet/3, 3)
    ]).
@@ -105,12 +102,6 @@ rdf_load_any(In):-
 
 
 %! rdf_load_any(+In, +Option:list(nvpair)) is det.
-
-rdf_load_any(In, Options):-
-  rdf_load_any(In, _, Options).
-
-
-%! rdf_load_any(+In, -Metadata:dict, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
 %
 % In can be one of the following:
@@ -121,40 +112,32 @@ rdf_load_any(In, Options):-
 %   - uri_components/5
 %
 % The following options are supported:
-%   - `format(+Format:oneof([ntriples,turtle,xml]))`
+%   - format(+Format:oneof([ntriples,turtle,xml]))
 %     The RDF serialization that has to be used for parsing.
 %     Default: @tbd
-%   - `graph(+Graph:atom)`
+%   - graph(+Graph:atom)
 %     The name of the RDF graph in which the parsed data is loaded.
 %     Default: `user`.
-%   - `keep_file(+Keep:boolean)`
+%   - keep_file(+Keep:boolean)
 %     If the given input is a URL, the remote document is first
 %     downloaded, and then kept available, locally.
 %     Default: `false`.
-%   - `reduced_locations(+Use:boolean)`
+%   - meta_data(-Metadata:dict)
+%   - reduced_locations(+Use:boolean)
 %     Whether reduced locations are used of not.
 %     See [rdf_prefixes].
 %     Default: `false`.
-%   - `silent(+boolean)`
+%   - silent(+boolean)
 %     Whether informational messages about loaded content are shown.
 %     Default: `true`.
-%   - `void(+Load:boolean)`
+%   - void(+Load:boolean)
 %     Whether the loaded data should be recursively closed under
 %     VoID descriptions that appear in that data.
 %     Default: `false`.
 
-/*
-% 4. Load all files from a given directory.
-rdf_load_any(file(Dir), Options):-
-  exists_directory(Dir), !,
-  directory_files(
-    [file_types([rdf]),include_directories(false),recursive(true)],
-    Dir,
-    Files
-  ),
-  maplist(file_term, Files, FileTerms),
-  rdf_load_any(FileTerms, Options).
-*/
+rdf_load_any(In, Options):-
+  rdf_load_any(In, Metadata, Options),
+  ignore(option(meta_data(Metadata), Options)).
 
 % 1. Load the URI denoted by a registered RDF prefix.
 rdf_load_any(prefix(Prefix), M, Options):-
@@ -177,6 +160,19 @@ rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
     EntryMetadatas
   ).
 
+/*
+% 4. Load all files from a given directory.
+rdf_load_any(file(Dir), Options):-
+  exists_directory(Dir), !,
+  directory_files(
+    [file_types([rdf]),include_directories(false),recursive(true)],
+    Dir,
+    Files
+  ),
+  maplist(file_term, Files, FileTerms),
+  rdf_load_any(FileTerms, Options).
+*/
+
 
 %! rdf_load_from_stream_nondet(
 %!   +In:stream,
@@ -191,7 +187,7 @@ rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
     rdf_load_from_stream_det(SubIn, OpenMetadata, RdfMetadata, Options),
     close_any(SubIn, CloseMetadata)
   ),
-  StreamMetadata = RdfMetadata.put(json{stream:CloseMetadata}),
+  StreamMetadata = RdfMetadata.put(stream, CloseMetadata),
 
   % Allow informational messages to be skipped in silent mode.
   (   option(silent(true), Options)
@@ -224,7 +220,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   rdf_guess_format(In, FileExtension, ContentType, Format),
 
   % Store the guessed RDF serialization format as metadata.
-  rdf_serialization(_, Format, _, Serialization),
+  rdf_serialization(_, Format, _, SerializationUri),
 
   % Set options: base URI, RDF serialization format, XML namespaces.
   set_stream(In, file_name(Base)),
@@ -253,13 +249,12 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
 
   % RDF metadata: dataset (default graph, named graphs), serialization format.
   aggregate_all(
-    set(NamedGraphMetadata),
+    set(named_graph{name:Graph,triples:Triples}),
     (
       rdf_graph_property(Graph, triples(Triples)),
-      Graph \== DefaultGraph,
-      dict_create(NamedGraphMetadata, json, [name-Graph,triples-Triples])
+      Graph \== DefaultGraph
     ),
-    NamedGraphMetadatas
+    NamedGraphDicts
   ),
   rdf_graph_property(DefaultGraph, triples(DefaultGraphTriples)),
   rdf_statistics(graphs(Graphs)),
@@ -268,19 +263,19 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   rdf_statistics(resources(Resources)),
   rdf_statistics(triples(Triples)),
   Metadata2 = Metadata1.put(
-    json{
+    _{
       'file-extension':FileExtension,
-      'RDF':json{
-        dataset:json{
-          'default-graph':json{triples:DefaultGraphTriples},
-          'named-graphs':NamedGraphMetadatas
-        },
-        'number-of-graphs':Graphs,
-        'number-of-unique-literals':Literals,
-        'number-of-unique-properties':Properties,
-        'number-of-unique-resources':Resources,
-        'number-of-unique-triples':Triples,
-        'serialization-format':Serialization
+      'RDF':'RDF'{
+          dataset:dataset{
+            'default-graph':'default-graph'{triples:DefaultGraphTriples},
+            'named-graphs':NamedGraphDicts
+          },
+          'number-of-graphs':Graphs,
+          'number-of-unique-literals':Literals,
+          'number-of-unique-properties':Properties,
+          'number-of-unique-resources':Resources,
+          'number-of-unique-triples':Triples,
+          'serialization-format':SerializationUri
       }
     }
   ).
@@ -308,14 +303,17 @@ location_suffix([Archive|T], Suffix):-
 %! metadata_content_type(
 %!   +Metadata:dict,
 %!   +Options:list(nvpair),
-%!   -ContentType:compound
+%!   -ContentType:dict
 %! ) is semidet.
 % Extracts a content type term from the metadata object, if present.
 
-metadata_content_type(_, Options, media_type(Type,Subtype,Parameters)):-
-  option(media(Type/Subtype,Parameters), Options), !.
-metadata_content_type(Metadata, _, media_type(Type,Subtype,Parameters)):-
-  _{type:Type, subtype:Subtype, parameters:Parameters} :< Metadata.get('HTTP').'Content-Type'.
+metadata_content_type(_, Options, MediaType):-
+  option(media_type(MediaType), Options), !.
+metadata_content_type(
+  Metadata,
+  _,
+  Metadata.get('HTTP').headers.get('Content-Type')
+).
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
 %  The base URI describes the location where the data is loaded from.
