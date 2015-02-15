@@ -5,13 +5,13 @@
     rdf_file_extension/1, % ?FileExtension:atom
     rdf_file_extension_format/2, % ?FileExtension:atom
                                  % ?Format:rdf_format
-    rdf_media_type/1, % ?MediaType:compound
-    rdf_media_type_format/2, % ?MediaType:compound
+    rdf_media_type/1, % ?MediaType:dict
+    rdf_media_type_format/2, % ?MediaType:dict
                              % ?Format:rdf_format
     rdf_serialization/4 % ?DefaultFileExtension:atom
                         % ?Format:rdf_format
-                        % ?MediaTypes:list(pair(between(0.0,1.0),compound))
-                        % ?Url:atom
+                        % ?MediaTypes:list(pair(between(0.0,1.0),dict))
+                        % ?Uri:atom
   ]
 ).
 
@@ -34,12 +34,13 @@ Basic facts about RDF serialization formats.
 @tbd Add support for SPARQL Results in JSON: http://www.w3.org/ns/formats/SPARQL_Results_JSON
 @tbd Add support for SPARQL Results in CSV: http://www.w3.org/ns/formats/SPARQL_Results_CSV
 @tbd Add support for SPARQL Results in TSV: http://www.w3.org/ns/formats/SPARQL_Results_TSV
-@version 2014/04-2014/05, 2014/07-2014/08, 2014/10-2014/12
+@version 2014/04-2014/05, 2014/07-2014/08, 2014/10-2014/12, 2015/02
 */
 
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 
 :- use_module(generics(db_ext)).
+:- use_module(generics(dict_ext)).
 
 :- use_module(plDcg(dcg_abnf)).
 :- use_module(plDcg(dcg_atom)). % Meta-option.
@@ -73,10 +74,15 @@ error:has_type(rdf_format, Term):-
 
 rdf_accept_header_value(AcceptValue):-
   findall(
-    accept(media_range(Type,Subtype,Parameters),QValue,[]),
+    'accept-value'{
+        'media-range':MediaRange,
+        weight:Weight,
+        'accept-exts':[]
+    },
     (
       rdf_serialization(_, _, MediaTypes, _),
-      member(QValue-media_type(Type,Subtype,Parameters), MediaTypes)
+      member(Weight-MediaType, MediaTypes),
+      dict_tag(MediaType, 'media-range', MediaRange)
     ),
     MediaRanges
   ),
@@ -104,8 +110,8 @@ rdf_file_extension_format(Ext, Format):-
 
 
 
-%! rdf_media_type(+MediaType:compound) is semidet.
-%! rdf_media_type(-MediaType:compound) is multi.
+%! rdf_media_type(+MediaType:dict) is semidet.
+%! rdf_media_type(-MediaType:dict) is multi.
 
 rdf_media_type(MediaType):-
   rdf_serialization(_, _, MediaTypes, _),
@@ -113,23 +119,24 @@ rdf_media_type(MediaType):-
 
 
 
-%! rdf_media_type_format(+MediaType:compound, +Format:rdf_format) is semidet.
-%! rdf_media_type_format(+MediaType:compound, -Format:rdf_format) is semidet.
-%! rdf_media_type_format(-MediaType:compound, +Format:rdf_format) is nondet.
-%! rdf_media_type_format(-MediaType:compound, -Format:rdf_format) is multi.
+%! rdf_media_type_format(+MediaType:dict, +Format:rdf_format) is semidet.
+%! rdf_media_type_format(+MediaType:dict, -Format:rdf_format) is semidet.
+%! rdf_media_type_format(-MediaType:dict, +Format:rdf_format) is nondet.
+%! rdf_media_type_format(-MediaType:dict, -Format:rdf_format) is multi.
 
-rdf_media_type_format(MediaType, Format):-
-  MediaType = media_type(Type,Subtype,_),
+rdf_media_type_format(MediaType1, Format):-
   rdf_serialization(_, Format, MediaTypes, _),
-  member(_-media_type(Type,Subtype,_), MediaTypes).
+  member(_-MediaType2, MediaTypes),
+  MediaType1.type == MediaType2.type,
+  MediaType1.subtype == MediaType2.subtype.
 
 
 
 %! rdf_serialization(
 %!   ?DefaultFileExtension:atom,
 %!   ?Format:rdf_format,
-%!   ?MediaTypes:list(pair(between(0.0,1.0),compound)),
-%!   ?Url:atom
+%!   ?MediaTypes:list(pair(between(0.0,1.0),dict)),
+%!   ?Uri:atom
 %! ) is nondet.
 %
 % ### Content types
@@ -157,33 +164,33 @@ rdf_media_type_format(MediaType, Format):-
 % @arg MediaTypes A list of content types.
 %      The first atom is the standardized content type
 %      according to the 1.1 recommendations.
-% @arg Url The URL at which the serialization is described, if any.
+% @arg Uri The URI at which the serialization is described.
 %
 % @see http://richard.cyganiak.de/blog/2008/03/what-is-your-rdf-browsers-accept-header/
 
 rdf_serialization(
   nq,
   nquads,
-  [0.9-media_type(application,'n-quads',[])],
+  [0.9-'media-type'{type:application, subtype:"n-quads", parameters:[]}],
   'http://www.w3.org/ns/formats/N-Quads'
 ).
 rdf_serialization(
   nt,
   ntriples,
-  [0.9-media_type(application,'n-triples',[])],
+  [0.9-'media-type'{type:application, subtype:"n-triples", parameters:[]}],
   'http://www.w3.org/ns/formats/N-Triples'
 ).
 rdf_serialization(
   rdf,
   xml,
   [
-    0.9-media_type(text,'rdf+xml',[]),
-    0.5-media_type(application,'rdf+xml',[]),
-    0.5-media_type(text,rdf,[]),
-    0.5-media_type(text,xml,[]),
-    0.5-media_type(application,rdf,[]),
-    0.1-media_type(application,'rss+xml',[]),
-    0.1-media_type(application,xml,[])
+    0.9-'media-type'{type:text, subtype:"rdf+xml", parameters:[]},
+    0.5-'media-type'{type:application, subtype:"rdf+xml", parameters:[]},
+    0.5-'media-type'{type:text, subtype:rdf, parameters:[]},
+    0.5-'media-type'{type:text, subtype:xml, parameters:[]},
+    0.5-'media-type'{type:application, subtype:rdf, parameters:[]},
+    0.1-'media-type'{type:application, subtype:"rss+xml", parameters:[]},
+    0.1-'media-type'{type:application, subtype:xml, parameters:[]}
   ],
   'http://www.w3.org/ns/formats/RDF_XML'
 ).
@@ -191,8 +198,8 @@ rdf_serialization(
   rdfa,
   rdfa,
   [
-    0.2-media_type(application,'xhtml+xml',[]),
-    0.1-media_type(text,html,[])
+    0.2-'media-type'{type:application, subtype:"xhtml+xml", parameters:[]},
+    0.1-'media-type'{type:text, subtype:html, parameters:[]}
   ],
   'http://www.w3.org/ns/formats/RDFa'
 ).
@@ -200,8 +207,8 @@ rdf_serialization(
   trig,
   trig,
   [
-    0.9-media_type(application,trig,[]),
-    0.5-media_type(application,'x-trig',[])
+    0.9-'media-type'{type:application, subtype:trig, parameters:[]},
+    0.5-'media-type'{type:application, subtype:"x-trig", parameters:[]}
   ],
   'http://www.w3.org/ns/formats/TriG'
 ).
@@ -209,10 +216,10 @@ rdf_serialization(
   ttl,
   turtle,
   [
-    0.9-media_type(text,turtle,[]),
-    0.5-media_type(application,turtle,[]),
-    0.5-media_type(application,'x-turtle',[]),
-    0.5-media_type(application,'rdf+turtle',[])
+    0.9-'media-type'{type:text, subtype:turtle, parameters:[]},
+    0.5-'media-type'{type:application, subtype:turtle, parameters:[]},
+    0.5-'media-type'{type:application, subtype:"x-turtle", parameters:[]},
+    0.5-'media-type'{type:application, subtype:"rdf+turtle", parameters:[]}
   ],
   'http://www.w3.org/ns/formats/Turtle'
 ).
@@ -220,8 +227,8 @@ rdf_serialization(
   n3,
   n3,
   [
-    0.9-media_type(text,n3,[]),
-    0.5-media_type(text,'rdf+n3',[])
+    0.9-'media-type'{type:text, subtype:n3, parameters:[]},
+    0.5-'media-type'{type:text, subtype:"rdf+n3", parameters:[]}
   ],
   'http://www.w3.org/ns/formats/N3'
 ).
