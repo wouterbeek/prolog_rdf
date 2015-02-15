@@ -86,7 +86,7 @@ rdf_guess_format0(Stream, Format, Options):-
 rdf_guess_format0(Stream, Iteration, Format, Options1):-
   % Peek a given number of bytes from stream.
   option(look_ahead(Bytes0), Options1, 1000),
-  Bytes is Iteration * 2^Bytes0,
+  Bytes is Bytes0 * 2^Iteration,
   peek_string(Stream, Bytes, String),
 
   % Do not backtrack if the whole stream has been peeked.
