@@ -119,8 +119,9 @@ rdf_media_type(MediaType):-
 %! rdf_media_type_format(-MediaType:compound, -Format:rdf_format) is multi.
 
 rdf_media_type_format(MediaType, Format):-
+  MediaType = media_type(Type,Subtype,_),
   rdf_serialization(_, Format, MediaTypes, _),
-  member(_-MediaType, MediaTypes).
+  member(_-media_type(Type,Subtype,_), MediaTypes).
 
 
 
