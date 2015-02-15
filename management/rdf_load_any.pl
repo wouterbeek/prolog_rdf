@@ -63,7 +63,7 @@
 :- use_module(plRdf(management/rdf_prefixes)).
 
 :- predicate_options(metadata_content_type/3, 3, [
-     media/2
+     media_type(+dict)
    ]).
 :- predicate_options(rdf_load_any/2, 2, [
      meta_data(-dict),
@@ -304,14 +304,17 @@ location_suffix([Archive|T], Suffix):-
 %! metadata_content_type(
 %!   +Metadata:dict,
 %!   +Options:list(nvpair),
-%!   -ContentType:compound
+%!   -ContentType:dict
 %! ) is semidet.
 % Extracts a content type term from the metadata object, if present.
 
-metadata_content_type(_, Options, media_type(Type,Subtype,Parameters)):-
-  option(media(Type/Subtype,Parameters), Options), !.
-metadata_content_type(Metadata, _, media_type(Type,Subtype,Parameters)):-
-  _{type:Type, subtype:Subtype, parameters:Parameters} :< Metadata.get('HTTP').'Content-Type'.
+metadata_content_type(_, Options, MediaType):-
+  option(media_type(MediaType), Options), !.
+metadata_content_type(
+  Metadata,
+  _,
+  Metadata.get('HTTP').headers.get('Content-Type')
+).
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
 %  The base URI describes the location where the data is loaded from.
