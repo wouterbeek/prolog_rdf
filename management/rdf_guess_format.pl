@@ -192,18 +192,21 @@ turtle_like(Format, Options) -->
 % Turtle triple.
 turtle_like(Format, Options) -->
   nt_subject,
-  nt_whites,
+  'WS*',
   nt_predicate,
-  nt_whites,
+  'WS*',
   nt_object,
-  nt_whites,
+  'WS*',
   (   "."
   ->  nt_end,
       nt_turtle_like(Format, Options)
   ;   ";"
   ->  nt_end,
       nt_turtle_or_trig(Format, Options)
-  ;   nt_graph, nt_whites, ".", nt_end
+  ;   nt_graph,
+      'WS*',
+      ".",
+      nt_end
   ->  {Format = nquads}
   ).
 % Turtle anonymous blank node.
@@ -269,14 +272,13 @@ nt_string_codes(_) --> [].
 nt_subject --> nt_iriref, !.
 nt_subject --> nt_bnode.
 
-nt_whites --> nt_white, !, nt_whites0.
-nt_whites0 --> nt_white, !, nt_whites0.
-nt_whites0 --> [].
+'WS*' --> 'WS', !, 'WS*'.
+'WS*' --> [].
 
-nt_white --> [10], !.
-nt_white --> [13], !.
-nt_white --> white, !.
-nt_white, " " -->
+'WS' --> [10], !.
+'WS' --> [13], !.
+'WS' --> white, !.
+'WS', " " -->
   "#",
   string(_),
   (   eol1
@@ -284,6 +286,7 @@ nt_white, " " -->
   ), !.
 
 nt_end -->
+  whites,
   (   eol
   ->  []
   ;   eos
