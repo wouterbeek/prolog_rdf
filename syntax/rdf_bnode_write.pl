@@ -1,5 +1,5 @@
 :- module(
-  rdf_bnode_prefix_write,
+  rdf_bnode_write,
   [
     rdf_bnode_prefix/1, % -BNodePrefix:atom
     rdf_bnode_prefix/4, % +Scheme:atom
