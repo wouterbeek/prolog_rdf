@@ -201,7 +201,7 @@ rdf_literal(S, P, Value, Datatype, LangPrefs, Graph):-
 %  in the lexical space.
 % The value space of `rdf:langString` is the set of all pairs
 %  of strings and language tags.
-rdf_literal(S, P, Value, rdf:langString, LangPrefs, Graph, rdf(Node,P,O)):-
+rdf_literal(S, P, Value, rdf:langString, LangPrefs, Graph, rdf(S,P,O)):-
   O = literal(lang(LangTag0,LexicalValue)),
   % Prioritize language-tagged strings based on the given language tag
   %  preferences, if any.
@@ -219,7 +219,7 @@ rdf_literal(S, P, Value, rdf:langString, LangPrefs, Graph, rdf(Node,P,O)):-
   rdf(S, P, O, Graph),
   Value = LexicalValue-LangTag.
 % Simple literals and (explicitly) typed literals.
-rdf_literal(S, P, Value, Datatype, _, Graph, rdf(Node,P,O)):-
+rdf_literal(S, P, Value, Datatype, _, Graph, rdf(S,P,O)):-
   (   O = literal(type(Datatype,LexicalForm)),
       rdf(S, P, O, Graph),
       % Possibly computationally intensive.

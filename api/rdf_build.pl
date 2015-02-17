@@ -105,10 +105,6 @@ Triples with literals are treated in dedicated modules.
 
 :- use_module(generics(meta_ext)).
 
-:- use_module(plDcg(dcg_generics)).
-
-:- use_module(plLangTag(language_tag)).
-
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
@@ -229,7 +225,7 @@ rdf_assert_literal(S, P, Value, Datatype, Graph, Triple):-
   var(Datatype), !,
   rdf_assert_literal(S, P, Value, xsd:string, Graph, Triple).
 % (Explicitly) typed literals.
-rdf_assert_literal(S, P, Value, Datatype, Graph, rdf(Node,P,O)):-
+rdf_assert_literal(S, P, Value, Datatype, Graph, rdf(S,P,O)):-
   rdf_canonical_map(Datatype, Value, LexicalForm),
   O = literal(type(Datatype,LexicalForm)),
   rdf_assert2(S, P, O, Graph).
