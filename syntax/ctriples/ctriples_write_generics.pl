@@ -55,7 +55,7 @@ Generic predicates for writing C-Triples.
 %! ) is det.
 
 ctriples_write_begin(State, BNodePrefix, Options):-
-  reset_bnode_admin,
+  reset_bnode_prefix_admin,
 
   % Keep track of the number of triples written.
   State = state(0),
@@ -141,7 +141,7 @@ write_object(Literal, _):-
 % Object term: blank node
 write_object(BNode, BNodePrefix):-
   rdf_is_bnode(BNode), !,
-  rdf_bnode_write(BNodePrefix, BNode).
+  rdf_bnode_prefix_write(BNodePrefix, BNode).
 % Object term: IRI
 write_object(Iri, _):-
   turtle:turtle_write_uri(current_output, Iri).
@@ -174,7 +174,7 @@ write_literal(literal(Value)):- !,
 % Subject term: blank node
 write_subject(BNode, BNodePrefix):-
   rdf_is_bnode(BNode), !,
-  rdf_bnode_write(BNodePrefix, BNode).
+  rdf_bnode_prefix_write(BNodePrefix, BNode).
 % Subject term: IRI
 write_subject(Iri, _):-
   turtle:turtle_write_uri(current_output, Iri).
