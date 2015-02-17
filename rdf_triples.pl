@@ -28,7 +28,7 @@ Support for RDF triple compound terms.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(term/rdf_term)).

@@ -75,10 +75,6 @@
                                 % ?Class:iri
                                 % ?Graph:atom
                                 % -Resource:iri
-    rdf_retractall2/4, % ?Subject:or([bnode,iri])
-                       % ?Predicate:iri
-                       % ?Object:rdf_term
-                       % ?Graph:atom
     rdf_retractall_literal/5, % ?Subject:or([bnode,iri])
                               % ?Predicate:iri
                               % ?Value
