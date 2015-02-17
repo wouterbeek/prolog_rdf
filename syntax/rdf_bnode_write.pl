@@ -1,46 +1,50 @@
 :- module(
-  rdf_bnode_write,
+  rdf_bnode_prefix_write,
   [
     rdf_bnode_prefix/1, % -BNodePrefix:atom
     rdf_bnode_prefix/4, % +Scheme:atom
                         % +Authority:atom
                         % +Hash:atom
                         % -BNodePrefix:atom
-    rdf_bnode_write/1, % +BNode
-    rdf_bnode_write/2, % +BNodePrefix:atom
-                       % +BNode
-    reset_bnode_admin/0
+    rdf_bnode_prefix_write/1, % +BNode
+    rdf_bnode_prefix_write/2, % +BNodePrefix:atom
+                              % +BNode
+    reset_bnode_prefix_admin/0
   ]
 ).
 
-/** <module> RDF Blank Node
+/** <module> RDF Blank Node Prefixes
 
-Additional Blank Node support.
+Support for writing blank node using set prefixes.
 
 @author Wouter Beek
 @compat Vistuoso does not accept a digit as the first character in
         a blank node label (going against the Turtle 1.1 specification).
-@version 2014/06, 2014/09, 2015/01
+@version 2014/06, 2014/09, 2015/01-2015/02
 */
 
 :- use_module(library(semweb/turtle)). % Private predicates.
 :- use_module(library(uri)).
 
-:- thread_local(bnode_counter/1).
-:- thread_local(bnode_map/2).
+:- thread_local(bnode_prefix_counter/1).
+:- thread_local(bnode_prefix_map/2).
 
 
 
 
 
-%! rdf_bnode_map(+BNodePrefix:atom, +BNode:atom, -MappedBNode:atom) is det.
+%! rdf_bnode_prefix_map(
+%!   +BNodePrefix:atom,
+%!   +BNode,
+%!   -MappedBNode:atom
+%! ) is det.
 
-rdf_bnode_map(BNodePrefix, BNode, MappedBNode):-
+rdf_bnode_prefix_map(BNodePrefix, BNode, MappedBNode):-
   % Retrieve (existing) or create (new) a numeric blank node identifier.
-  (   bnode_map(BNode, Id)
+  (   bnode_prefix_map(BNode, Id)
   ->  true
-  ;   increment_bnode_counter(Id),
-      assert(bnode_map(BNode, Id))
+  ;   increment_bnode_prefix_counter(Id),
+      assert(bnode_prefix_map(BNode, Id))
   ),
   
   atomic_list_concat([BNodePrefix,Id], MappedBNode).
@@ -64,18 +68,18 @@ rdf_bnode_prefix(Scheme, Authority, Hash1, BNodePrefix):-
   uri_components(BNodePrefix, uri_components(Scheme,Authority,Path,_,_)).
 
 
-%! rdf_bnode_write(+BNode:atom) is det.
-% Wrapper around rdf_bnode_write/2 using the default blank node prefix.
+%! rdf_bnode_prefix_write(+BNode) is det.
+% Wrapper around rdf_bnode_prefix_write/2 using the default blank node prefix.
 
-rdf_bnode_write(BNode):-
+rdf_bnode_prefix_write(BNode):-
   rdf_bnode_prefix(BNodePrefix),
-  rdf_bnode_write(BNodePrefix, BNode).
+  rdf_bnode_prefix_write(BNodePrefix, BNode).
 
 
-%! rdf_bnode_write(+BNodePrefix:atom, +BNode:atom) is det.
+%! rdf_bnode_prefix_write(+BNodePrefix:atom, +BNode) is det.
 
-rdf_bnode_write(BNodePrefix, BNode):-
-  rdf_bnode_map(BNodePrefix, BNode, MappedBNode),
+rdf_bnode_prefix_write(BNodePrefix, BNode):-
+  rdf_bnode_prefix_map(BNodePrefix, BNode, MappedBNode),
   
   % If the blank node is replaced by a well-known IRI,
   % then we use the predicate term writer.
@@ -88,20 +92,20 @@ rdf_bnode_write(BNodePrefix, BNode):-
 
 % Blank node administration.
 
-increment_bnode_counter(Id2):-
-  retract(bnode_counter(Id1)),
+increment_bnode_prefix_counter(Id2):-
+  retract(bnode_prefix_counter(Id1)),
   Id2 is Id1 + 1,
-  assert(bnode_counter(Id2)).
+  assert(bnode_prefix_counter(Id2)).
 
 
-reset_bnode_admin:-
-  reset_bnode_counter,
-  reset_bnode_map.
+reset_bnode_prefix_admin:-
+  reset_bnode_prefix_counter,
+  reset_bnode_prefix_map.
 
-reset_bnode_counter:-
-  retractall(bnode_counter(_)),
-  assert(bnode_counter(0)).
+reset_bnode_prefix_counter:-
+  retractall(bnode_prefix_counter(_)),
+  assert(bnode_prefix_counter(0)).
 
-reset_bnode_map:-
-  retractall(bnode_map(_,_)).
+reset_bnode_prefix_map:-
+  retractall(bnode_prefix_map(_,_)).
 

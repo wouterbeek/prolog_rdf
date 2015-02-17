@@ -80,7 +80,6 @@ Support for RDF lists.
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(entailment/rdf_bnode_map)).
 
 :- predicate_options(rdf_assert_list/4, 4, [
      datatype(+atom)
@@ -184,12 +183,6 @@ rdf_assert_list_items([H|T], RdfList, Graph, Options):-
 %
 % @tbd Solve syntax/semantics distinction as to what is an RDF list.
 
-rdf_list(List):-
-  nonvar(List), !,
-  (   bnode_to_term(_, List, List0)
-  ;   List0 = List
-  ),
-  rdfs_individual_of(List0, rdf:'List').
 rdf_list(List):-
   rdfs_individual_of(List, rdf:'List').
 

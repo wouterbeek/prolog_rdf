@@ -67,7 +67,6 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(api/rdfs_build)).
-:- use_module(plRdf(entailment/rdf_bnode_map)).
 :- use_module(plRdf(management/rdf_prefix)).
 :- use_module(plRdf(term/rdf_term)).
 
@@ -336,12 +335,12 @@ rdfs_retractall_class_term(Class):-
       % The transitive link is now a direct one.
       rdfs_assert_subclass(Subclass, Superclass, _),
       % Remove the link to a subclass.
-      rdf_retractall2(Subclass, rdfs:subClassOf, Class, _)
+      rdf_retractall(Subclass, rdfs:subClassOf, Class)
     )
   ),
 
   % [2] Remove the links to superclasses.
-  rdf_retractall2(Class, rdfs:subClassOf, _, _),
+  rdf_retractall(Class, rdfs:subClassOf, _),
 
   % [3] Remove other triples in which the class occurs.
   rdf_retractall_term(Class, _).
