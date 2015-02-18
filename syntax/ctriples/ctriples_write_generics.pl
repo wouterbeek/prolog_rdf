@@ -98,7 +98,7 @@ inc_number_of_triples(_State):-
 
 
 reset_number_of_triples(N):-
-  retract(number_of_triples(N)),
+  ignore(retract(number_of_triples(N))),
   assert(number_of_triples(0)).
 
 
