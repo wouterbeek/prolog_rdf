@@ -116,7 +116,7 @@ ctriples_write_triples_to_stream(Triples1, Options):-
   sort(Triples1, Triples2),
   forall(
     member(Triple, Triples2),
-    ctriples_write_triple(State, BNodePrefix, Triple)
+    ctriples_write_triple_to_stream(State, BNodePrefix, Triple)
   ),
 
   ctriples_write_end(State, Options).

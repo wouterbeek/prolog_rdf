@@ -28,7 +28,7 @@ Generic predicates for writing C-Triples.
 @author Jan Wielemaker
 @author Laurens Rietveld
 @compat http://www.w3.org/TR/2014/REC-n-triples-20140225/
-@version 2014/03-2014/06, 2014/08-2014/09, 2015/01
+@version 2014/03-2014/06, 2014/08-2014/09, 2015/01-2015/02
 */
 
 :- use_module(library(option)).
@@ -40,9 +40,11 @@ Generic predicates for writing C-Triples.
 :- predicate_options(ctriples_write_begin/3, 3, [
      bnode_base(+atom)
    ]).
-:- predicate_options(ctriples_write_begin/2, 2, [
+:- predicate_options(ctriples_write_begin/3, 3, [
      number_of_triples(-nonneg)
    ]).
+
+:- thread_local(number_of_triples/1).
 
 
 
@@ -54,11 +56,12 @@ Generic predicates for writing C-Triples.
 %!   +Options:list(nvpair)
 %! ) is det.
 
-ctriples_write_begin(State, BNodePrefix, Options):-
+ctriples_write_begin(_State, BNodePrefix, Options):-
   reset_bnode_prefix_admin,
 
   % Keep track of the number of triples written.
-  State = state(0),
+  reset_number_of_triples(_),
+  %%%%State = state(0),
 
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.
@@ -71,10 +74,11 @@ ctriples_write_begin(State, BNodePrefix, Options):-
 
 %! ctriples_write_end(+State:compound, +Options:list(nvpair)) is det.
 
-ctriples_write_end(State, Options):-
+ctriples_write_end(_State, Options):-
   % Statistics option: number of triples written.
-  (   option(number_of_triples(TripleCount), Options)
-  ->  arg(1, State, TripleCount)
+  (   option(number_of_triples(N), Options)
+  ->  reset_number_of_triples(N)
+      %%%%arg(1, State, N)
   ;   true
   ).
 
@@ -82,10 +86,20 @@ ctriples_write_end(State, Options):-
 
 %! inc_number_of_triples(+State:compound) is det.
 
-inc_number_of_triples(State):-
-  arg(1, State, C0),
-  C1 is C0 + 1,
-  nb_setarg(1, State, C1).
+inc_number_of_triples(_State):-
+  retract(number_of_triples(N0)),
+  N is N0 + 1,
+  assert(number_of_triples(N)).
+%%%%inc_number_of_triples(State):-
+%%%%  arg(1, State, N0),
+%%%%  N is N0 + 1,
+%%%%  nb_setarg(1, State, N).
+
+
+
+reset_number_of_triples(N):-
+  retract(number_of_triples(N)),
+  assert(number_of_triples(0)).
 
 
 
