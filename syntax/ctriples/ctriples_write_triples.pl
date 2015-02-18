@@ -1,9 +1,6 @@
 :- module(
   ctriples_write_triples,
   [
-    ctriples_write_triple/3, % +Out:stream
-                             % +BNodePrefix:iri
-                             % +Triple:compound
     ctriples_write_triple/4, % +Out:stream
                              % +State:compound
                              % +BNodePrefix:iri
@@ -59,42 +56,32 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 %! ctriples_write_triple(
 %!   +Out:stream,
-%!   +BNodePrefix:iri,
-%!   +Triple:compound
-%! ) is det.
-
-ctriples_write_triple(Out, BNodePrefix, Triple):-
-  with_output_to(Out, ctriples_write_triple0(BNodePrefix, Triple)).
-
-%! ctriples_write_triple(
-%!   +Out:stream,
 %!   +State:compound,
 %!   +BNodePrefix:iri,
 %!   +Triple:compound
 %! ) is det.
 
 ctriples_write_triple(Out, State, BNodePrefix, Triple):-
-  with_output_to(Out, ctriples_write_triple0(State, BNodePrefix, Triple)).
+  with_output_to(Out,
+    ctriples_write_triple_to_stream(State, BNodePrefix, Triple)
+  ).
 
-%! ctriples_write_triple0(+BNodePrefix:iri, +Triple:compound) is det.
 
-ctriples_write_triple0(BNodePrefix, Triple):-
+
+%! ctriples_write_triple_to_stream(
+%!   +State:compound,
+%!   +BNodePrefix:iri,
+%!   +Triple:compound
+%! ) is det.
+
+ctriples_write_triple_to_stream(State, BNodePrefix, Triple):-
+  inc_number_of_triples(State),
   (   Triple = rdf(S,P,O)
   ->  write_triple(S, P, O, BNodePrefix)
   ;   Triple = rdf(S,P,O,G)
   ->  write_quadruple(S, P, O, G, BNodePrefix)
   ;   true
   ).
-
-%! ctriples_write_triple0(
-%!   +State:compound,
-%!   +BNodePrefix:iri,
-%!   +Triple:compound
-%! ) is det.
-
-ctriples_write_triple0(State, BNodePrefix, Triple):-
-  inc_number_of_triples(State),
-  ctriples_write_triple0(BNodePrefix, Triple).
 
 
 
