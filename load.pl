@@ -12,7 +12,6 @@
      plHttp,
      plLangTag,
      plSet,
-     plTms,
      plTree,
      plUri,
      plXml,
