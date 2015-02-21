@@ -16,15 +16,15 @@
                       % ?Object:rdf_term
                       % ?Graph:atom
                       % -NumberOfDistinctSubjectTerms:nonneg
-    count_triples/5 % ?Subject:or([bnode,iri])
-                    % ?Predicate:iri
-                    % ?Object:rdf_term
-                    % ?Graph:atom
-                    % -NumberOfDistinctStatements:nonneg
+    count_triples/5, % ?Subject:or([bnode,iri])
+                     % ?Predicate:iri
+                     % ?Object:rdf_term
+                     % ?Graph:atom
+                     % -NumberOfDistinctStatements:nonneg
     description_size/2, % +Subject:or([bnode,iri])
                         % -NumberOfDistinctTriples:nonneg
-    iris_by_graph/2, % ?Graph:atom
-                     % -NumberOfDistinctIris:nonneg
+    iris_by_graph/2 % ?Graph:atom
+                    % -NumberOfDistinctIris:nonneg
   ]
 ).
 
@@ -39,11 +39,7 @@ Predicates for calculating simple statistics over RDF data.
 :- use_module(library(aggregate)).
 :- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs)).
 
-:- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(api/rdfs_read)).
-:- use_module(plRdf(graph/rdf_graph)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(count_datatype_triples(r,?,-)).
