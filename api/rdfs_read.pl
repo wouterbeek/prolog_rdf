@@ -77,20 +77,9 @@ rdfs_label_value(Term, Label, LangPrefs, Graph):-
 
 
 
-%! rdfs_reachable(
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term
-%! ) is nondet.
-
-rdfs_reachable(S, P, O):-
-  closure0(rdfs_has0(P), S, O).
 
 
-
-
-
-% HELPERS
+% HELPERS %
 
 %! is_membership_property(+Property:iri) is semidet
 % Succeeds if the given IRI denotes an RDF membership property.
@@ -143,17 +132,6 @@ rdfs_class_term(rdfs:'ContainerMembershipProperty').
 rdfs_class_term(rdfs:'Datatype').
 rdfs_class_term(rdfs:'Literal').
 rdfs_class_term(rdfs:'Resource').
-
-
-
-rdfs_has_backward0(P, S, O):-
-  rdfs_subproperty(P0, P),
-  rdf(O, P0, S).
-
-
-
-rdfs_has0(P, S, O):-
-  rdfs_has(S, P, O).
 
 
 
