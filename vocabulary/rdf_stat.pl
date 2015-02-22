@@ -23,6 +23,9 @@
                      % -NumberOfDistinctStatements:nonneg
     description_size/2, % +Subject:or([bnode,iri])
                         % -NumberOfDistinctTriples:nonneg
+    description_size/3, % +Subject:or([bnode,iri])
+                        % ?Graph:atom
+                        % -NumberOfDistinctTriples:nonneg
     iris_by_graph/2 % ?Graph:atom
                     % -NumberOfDistinctIris:nonneg
   ]
@@ -48,6 +51,7 @@ Predicates for calculating simple statistics over RDF data.
 :- rdf_meta(count_subjects(r,r,?,-)).
 :- rdf_meta(count_triples(r,r,o,?,-)).
 :- rdf_meta(description_size(r,-)).
+:- rdf_meta(description_size(r,?,-)).
 
 
 
@@ -143,14 +147,24 @@ count_triples(S, P, O, G, NumberOfDistinctStatements):-
 %!   +Subject:or([bnode,iri]),
 %!   -NumberOfDistinctTriples:nonneg
 %! ) is det.
+% @see description_size/3
 
 description_size(S, N):-
+  description_size(S, _, N).
+
+%! description_size(
+%!   +Subject:or([bnode,iri]),
+%!   ?Graph:atom,
+%!   -NumberOfDistinctTriples:nonneg
+%! ) is det.
+
+description_size(S, G, N):-
   rdf_global_id(owl:sameAs, P),
   aggregate_all(
     sum(N0),
     (
       rdf_reachable(S, P, S0),
-      count_triples(S0, _, _, _, N0)
+      count_triples(S0, _, _, G, N0)
     ),
     N
   ).
