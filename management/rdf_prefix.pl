@@ -7,6 +7,9 @@
                             % ?Predicate:iri
                             % ?Object:rdf_term
                             % ?Graph:atom
+    rdf_longest_prefix/3, % +Iri:iri
+                          % -LongestPrefix:atom
+                          % -ShortestLocalName:atom
     rdf_member/2, % ?Term:rdf_term
                   % +PrefixedTerms:list(rdf_term)
     rdf_memberchk/2, % ?Term:rdf_term
@@ -18,9 +21,8 @@
                     % ?Object:rdf_term
                     % ?Graph:atom
                     % -Prefixes:ordset(pair(atom,positive_integer))
-    rdf_longest_prefix/3 % +Iri:iri
-                        % -LongestPrefix:atom
-                        % -ShortestLocalName:atom
+    rdf_reset_prefix/2 % +Prefix:atom
+                       % +Uri:atom
   ]
 ).
 
@@ -29,7 +31,7 @@
 Namespace support for RDF(S), building on namespace prefix support for XML.
 
 @author Wouter Beek
-@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12
+@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12, 2015/02
 */
 
 :- use_module(library(aggregate)).
@@ -93,6 +95,26 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, Graph):-
 
 
 
+%! rdf_longest_prefix(
+%!   +Iri:iri,
+%!   -LongestPrefix:atom,
+%!   -ShortestLocalName:atom
+%! ) is det.
+
+rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
+  findall(
+    LocalNameLength-Prefix,
+    (
+      rdf_db:global(Prefix, LocalName, Iri),
+      atom_length(LocalName, LocalNameLength)
+    ),
+    Pairs
+  ),
+  keysort(Pairs, [_-LongestPrefix|_]),
+  rdf_global_id(LongestPrefix:ShortestLocalName, Iri).
+
+
+
 %! rdf_member(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
 %! rdf_member(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
 
@@ -148,21 +170,32 @@ rdf_prefixes(S, P, O, Graph, Pairs5):-
   reverse(Pairs4, Pairs5).
 
 
-%! rdf_longest_prefix(
-%!   +Iri:iri,
-%!   -LongestPrefix:atom,
-%!   -ShortestLocalName:atom
-%! ) is det.
 
-rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
-  findall(
-    LocalNameLength-Prefix,
-    (
-      rdf_db:global(Prefix, LocalName, Iri),
-      atom_length(LocalName, LocalNameLength)
-    ),
-    Pairs
-  ),
-  keysort(Pairs, [_-LongestPrefix|_]),
-  rdf_global_id(LongestPrefix:ShortestLocalName, Iri).
+%! rdf_reset_prefix(+Prefix:atom, +Uri:atom) is det.
+% Sets or resets RDF prefixes (whatever is needed to effectuate the mapping
+% from Prefix onto URI), but shows a warning in the case of resetting.
 
+rdf_reset_prefix(Prefix, Uri):-
+  with_mutex(rdf_reset_prefix, (
+    (   rdf_current_prefix(Prefix, Uri0)
+    ->  (   Uri0 == Uri
+        ->  true
+        ;   rdf_register_prefix(Prefix, Uri, [force(true)]),
+            print_message(warning, rdf_reset_prefix(Prefix,Uri0,Uri))
+        )
+    ;   rdf_register_prefix(Prefix, Uri)
+    )
+  )).
+
+
+
+
+
+% MESSAGES %
+
+:- multifile(prolog:message//1).
+
+prolog:message(rdf_reset_prefix(Prefix,From0,To0)) -->
+  % Circumvent prefix abbreviation in ClioPatria.
+  {maplist(atom_string, [From0,To0], [From,To])},
+  ['RDF prefix ~a was reset from ~s to ~s.'-[Prefix,From,To]].

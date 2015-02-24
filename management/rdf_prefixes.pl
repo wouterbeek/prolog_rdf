@@ -37,7 +37,7 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 
 @author Wouter Beek
 @tbd Add prefixes that occur in http://dbpedia.org/sparql?nsdecl
-@version 2014/06-2014/07, 2014/10, 2014/12-2015/01
+@version 2014/06-2014/07, 2014/10, 2014/12-2015/02
 */
 
 :- use_module(library(apply)).
@@ -46,6 +46,8 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 :- use_module(library(uri)).
 
 :- use_module(plHttp(download_to_file)).
+
+:- use_module(plRdf(management/rdf_prefix)).
 
 %! rdf_reduced_location_prefix(+Prefix:atom) is semidet.
 %! rdf_reduced_location_prefix(-Prefix:atom) is nondet.
@@ -63,7 +65,7 @@ assert_cc_prefixes:-
   maplist(assert_cc_prefix, Rows).
 
 assert_cc_prefix(row(Prefix, Uri)):-
-  rdf_register_prefix(Prefix, Uri, [force(true)]).
+  rdf_reset_prefix(Prefix, Uri).
 
 assert_data_prefixes:-
   assert_prefixes(data).
@@ -82,7 +84,7 @@ assert_prefixes(Type):-
   csv_read_file(File, Rows),
   forall(
     member(row(Uri,Prefix,Type), Rows),
-    rdf_register_prefix(Prefix, Uri)
+    rdf_reset_prefix(Prefix, Uri)
   ).
 
 assert_dbpedia_localizations:-
@@ -100,7 +102,7 @@ dbpedia_register(LangTag):-
     ResourcePrefix,
     uri_components(http,Authority,'/resource/',_,_)
   ),
-  rdf_register_prefix(ResourceNamespace, ResourcePrefix),
+  rdf_reset_prefix(ResourceNamespace, ResourcePrefix),
 
   % XML namespace for properties.
   atomic_list_concat([LangTag,dbp], '.', PropertyNamespace),
@@ -108,7 +110,7 @@ dbpedia_register(LangTag):-
     PropertyPrefix,
     uri_components(http,Authority,'/property/',_,_)
   ),
-  rdf_register_prefix(PropertyNamespace, PropertyPrefix).
+  rdf_reset_prefix(PropertyNamespace, PropertyPrefix).
 
 
 %! rdf_reduced_location(+FullUrl:atom, -ReducedUrl:atom) is semidet.
