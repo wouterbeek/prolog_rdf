@@ -60,9 +60,6 @@ But this is not the case either, since typed literals are mapped onto
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(generics(typecheck)).
-:- use_module(pl(pl_mode)).
-
-:- use_module(plRdf(term/rdf_literal)).
 
 :- rdf_meta(rdf_id(o,o)).
 :- rdf_meta(rdf_iri(r)).
