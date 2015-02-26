@@ -59,7 +59,7 @@ Predicates for asseritng RDFS statements in an easy way.
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/02, 2013/05-2013/06,
-         2014/03, 2014/08, 2014/11-2014/12
+         2014/03, 2014/08, 2014/11-2014/12, 2015/02
 */
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -70,24 +70,25 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(plRdf(management/rdf_prefix)).
 :- use_module(plRdf(term/rdf_term)).
 
-:- rdf_meta(rdfs_assert_class(o,?)).
-:- rdf_meta(rdfs_assert_comment(o,+,?)).
-:- rdf_meta(rdfs_assert_domain(o,r,?)).
-:- rdf_meta(rdfs_assert_domain_range(o,r,?)).
-:- rdf_meta(rdfs_assert_instance(o,?)).
-:- rdf_meta(rdfs_assert_isDefinedBy(o,+)).
-:- rdf_meta(rdfs_assert_isDefinedBy(o,?,?)).
-:- rdf_meta(rdfs_assert_label(o,+,?)).
-:- rdf_meta(rdfs_assert_label(o,+,?,-)).
-:- rdf_meta(rdfs_assert_property_class(o,?)).
-:- rdf_meta(rdfs_assert_range(o,r,?)).
-:- rdf_meta(rdfs_assert_seeAlso(o,+,?)).
-:- rdf_meta(rdfs_assert_subclass(o,r,?)).
+:- rdf_meta(rdfs_assert_class(r,?)).
+:- rdf_meta(rdfs_assert_comment(r,+,?)).
+:- rdf_meta(rdfs_assert_domain(r,r,?)).
+:- rdf_meta(rdfs_assert_domain_range(r,r,?)).
+:- rdf_meta(rdfs_assert_instance(r,?)).
+:- rdf_meta(rdfs_assert_isDefinedBy(r,+)).
+:- rdf_meta(rdfs_assert_isDefinedBy(r,?,?)).
+:- rdf_meta(rdfs_assert_label(r,+,?)).
+:- rdf_meta(rdfs_assert_label(r,+,?,-)).
+:- rdf_meta(rdfs_assert_property_class(r,?)).
+:- rdf_meta(rdfs_assert_range(r,r,?)).
+:- rdf_meta(rdfs_assert_seeAlso(r,+,?)).
+:- rdf_meta(rdfs_assert_string(r,r,+,?)).
+:- rdf_meta(rdfs_assert_subclass(r,r,?)).
 :- rdf_meta(rdfs_assert_subproperty(r,r,?)).
-%:- rdf_meta(rdfs_update_label(o,+,?,?,+)).
-:- rdf_meta(rdfs_retractall_class_resource(o)).
-:- rdf_meta(rdfs_retractall_class_term(o)).
-:- rdf_meta(rdfs_retractall_label(o,?,?)).
+%:- rdf_meta(rdfs_update_label(r,+,?,?,+)).
+:- rdf_meta(rdfs_retractall_class_resource(r)).
+:- rdf_meta(rdfs_retractall_class_term(r)).
+:- rdf_meta(rdfs_retractall_label(r,?,?)).
 
 
 
