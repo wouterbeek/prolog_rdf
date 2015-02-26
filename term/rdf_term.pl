@@ -59,7 +59,7 @@ But this is not the case either, since typed literals are mapped onto
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(typecheck)).
+:- use_module(plc(generics/typecheck)).
 
 :- rdf_meta(rdf_id(o,o)).
 :- rdf_meta(rdf_iri(r)).
@@ -79,6 +79,7 @@ But this is not the case either, since typed literals are mapped onto
 :- rdf_meta(rdf_subject(r,?)).
 :- rdf_meta(rdf_term(o)).
 :- rdf_meta(rdf_term(o,?)).
+
 
 
 

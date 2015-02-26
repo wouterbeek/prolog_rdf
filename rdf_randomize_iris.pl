@@ -17,13 +17,14 @@
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
-:- use_module(generics(meta_ext)).
-
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_cardinal)).
-:- use_module(plDcg(dcg_generics)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_cardinal)).
+:- use_module(plc(dcg/dcg_generics)).
+:- use_module(plc(generics/meta_ext)).
 
 :- use_module(plRdf(term/rdf_term)).
+
+
 
 
 

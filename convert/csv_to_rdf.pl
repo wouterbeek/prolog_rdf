@@ -23,14 +23,15 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(row_ext)).
-
-:- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_generics)).
-:- use_module(plDcg(dcg_unicode)).
+:- use_module(plc(dcg/dcg_ascii)).
+:- use_module(plc(dcg/dcg_generics)).
+:- use_module(plc(dcg/dcg_unicode)).
+:- use_module(plc(generics/row_ext)).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).
+
+
 
 
 

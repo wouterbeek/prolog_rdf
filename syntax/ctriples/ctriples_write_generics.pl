@@ -38,11 +38,11 @@ Generic predicates for writing C-Triples.
 :- use_module(plRdf(syntax/rdf_bnode_write)).
 
 :- predicate_options(ctriples_write_begin/3, 3, [
-     bnode_base(+atom)
-   ]).
+  bnode_base(+atom)
+]).
 :- predicate_options(ctriples_write_begin/3, 3, [
-     number_of_triples(-nonneg)
-   ]).
+  number_of_triples(-nonneg)
+]).
 
 :- thread_local(number_of_triples/1).
 

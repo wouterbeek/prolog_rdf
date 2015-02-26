@@ -30,24 +30,26 @@ Predicates for converting RDF data between different serialization formats.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(meta_ext)).
-:- use_module(os(file_ext)).
+:- use_module(plc(generics/meta_ext)).
+:- use_module(plc(io/file_ext)).
 
 :- use_module(plRdf(rdf_meta)).
 :- use_module(plRdf(management/rdf_file)).
 :- use_module(plRdf(management/rdf_file_db)).
 
 :- predicate_options(rdf_convert_directory/4, 4, [
-     pass_to(rdf_convert_directory/5, 5)
-   ]).
+  pass_to(rdf_convert_directory/5, 5)
+]).
 :- predicate_options(rdf_convert_directory/5, 5, [
-     pass_to(rdf_convert_file/5, 5)
-   ]).
+  pass_to(rdf_convert_file/5, 5)
+]).
 :- predicate_options(rdf_convert_file/5, 5, [
-     overwrite(+boolean),
-     pass_to(rdf_setup_call_cleanup/5, 4),
-     pass_to(rdf_setup_call_cleanup/5, 5)
-   ]).
+  overwrite(+boolean),
+  pass_to(rdf_setup_call_cleanup/5, 4),
+  pass_to(rdf_setup_call_cleanup/5, 5)
+]).
+
+
 
 
 

@@ -37,7 +37,7 @@ Support for RDF containers (sequence, bag, and alternatives).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(generics(typecheck)).
+:- use_module(plc(generics/typecheck)).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(term/rdf_term)).
@@ -51,6 +51,8 @@ Support for RDF containers (sequence, bag, and alternatives).
 :- rdf_meta(rdf_collection_nth(?,r,r,?)).
 :- rdf_meta(rdf_container_membership_property(r,?)).
 :- rdf_meta(rdf_seq(r,-,?)).
+
+
 
 
 

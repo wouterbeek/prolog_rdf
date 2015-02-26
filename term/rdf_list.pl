@@ -75,19 +75,19 @@ Support for RDF lists.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(generics(closure)).
-:- use_module(generics(lambda_meta)).
+:- use_module(plc(generics/closure)).
+:- use_module(plc(generics/lambda_meta)).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdf_read)).
 
 :- predicate_options(rdf_assert_list/4, 4, [
-     datatype(+atom)
-   ]).
+  datatype(+atom)
+]).
 :- predicate_options(rdf_list/4, 4, [
-     datatype(+atom),
-     recursive(+boolean)
-   ]).
+  datatype(+atom),
+  recursive(+boolean)
+]).
 
 :- rdf_meta(rdf_assert_list(o,r,?,+)).
 :- rdf_meta(rdf_list(r)).

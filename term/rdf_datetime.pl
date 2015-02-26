@@ -30,6 +30,8 @@ Support for RDF triples with a literal object term
 
 
 
+
+
 %! rdf_assert_now(+Term:rdf_term, +Predicate:iri, ?Graph:atom) is det.
 
 rdf_assert_now(Term, P, Graph):-

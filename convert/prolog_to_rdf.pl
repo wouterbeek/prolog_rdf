@@ -19,8 +19,8 @@ Automated conversion from Prolog terms to RDF triples.
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plDcg(dcg_atom)).
-:- use_module(plDcg(dcg_generics)).
+:- use_module(plc(dcg/dcg_atom)).
+:- use_module(plc(dcg/dcg_generics)).
 
 :- use_module(plXsd(xsd)).
 
@@ -28,6 +28,8 @@ Automated conversion from Prolog terms to RDF triples.
 :- use_module(plRdf(api/rdfs_build)).
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_literal)).
+
+
 
 
 

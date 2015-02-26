@@ -27,7 +27,7 @@
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(flag_ext)).
+:- use_module(plc(generics/flag_ext)).
 
 :- use_module(plRdf(graph/rdf_graph_theory)).
 
@@ -36,8 +36,10 @@
 :- rdf_meta(rdf_random_triple(r,r,o,?)).
 
 :- predicate_options(rdf_random_neighbor/4, 4, [
-     pass_to(rdf_neighbor_vertex/4, 4)
-   ]).
+  pass_to(rdf_neighbor_vertex/4, 4)
+]).
+
+
 
 
 

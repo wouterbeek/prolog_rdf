@@ -20,7 +20,7 @@ Graph-based garbage collection for RDF.
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(thread_ext)).
+:- use_module(plc(process/thread_ext)).
 
 :- use_module(plRdf(debug/rdf_deb)).
 
@@ -35,6 +35,8 @@ Graph-based garbage collection for RDF.
 :- dynamic(rdf_touched_graph/3).
 
 :- initialization(init_rdf_gc_graph).
+
+
 
 
 
@@ -79,17 +81,17 @@ rdf_gc_triples_by_graph(_):-
   ),
   keysort(Pairs1, Pairs2),
   pairs_values(Pairs2, [Graph|_]),
-  
+
   % Remove from administration.
   retract(rdf_touched_graph(_, Last, Graph)),
-  
+
   % Assemble information to be displayed in debug message.
   duration(Last, Duration),
   rdf_statistics(triples_by_graph(Graph,Triples)),
-  
+
   % Unload the graph and all of its contents.
   rdf_unload_graph_deb(Graph),
-  
+
   % Display the debug message.
   format(
     user_output,
@@ -97,7 +99,7 @@ rdf_gc_triples_by_graph(_):-
     [Triples,Duration,Graph]
   ),
   flush_output(user_output),
-  
+
   % See whether there is more work to do.
   rdf_gc_by_graph.
 

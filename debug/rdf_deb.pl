@@ -21,6 +21,8 @@ Debug tools for working with RDF.
 
 
 
+
+
 rdf_load_graph_deb(Graph):-
   var(Graph), !.
 rdf_load_graph_deb(Graph):-

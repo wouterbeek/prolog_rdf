@@ -36,13 +36,12 @@ Most standards allow IRIs to be abbreviated by splitting them in
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(atom_ext)). % Meta-option.
-:- use_module(generics(char_ext)).
-
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_bracket)).
-:- use_module(plDcg(dcg_meta)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_ascii)).
+:- use_module(plc(dcg/dcg_bracket)).
+:- use_module(plc(dcg/dcg_meta)).
+:- use_module(plc(generics/atom_ext)). % Meta-option.
+:- use_module(plc(generics/char_ext)).
 
 :- use_module(plUri(rfc3987), ['IRI'//1 as 'IRI_rdf3987']).
 

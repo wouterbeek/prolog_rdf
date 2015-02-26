@@ -43,12 +43,12 @@ Language-tagged strings are made explicit with datatype `rdf:langString`.
 :- use_module(plRdf(syntax/ctriples/ctriples_write_generics)).
 
 :- predicate_options(ctriples_write_triples/3, 3, [
-     pass_to(ctriples_write_triples_to_stream/2, 2)
-   ]).
+  pass_to(ctriples_write_triples_to_stream/2, 2)
+]).
 :- predicate_options(ctriples_write_triples_to_stream/2, 2, [
-     pass_to(ctriples_write_begin/3, 3),
-     pass_to(ctriples_write_end/2, 2)
-   ]).
+  pass_to(ctriples_write_begin/3, 3),
+  pass_to(ctriples_write_end/2, 2)
+]).
 
 
 

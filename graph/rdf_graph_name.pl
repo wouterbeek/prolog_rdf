@@ -18,7 +18,9 @@ Support for naming graphs.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
-:- use_module(generics(atom_ext)).
+:- use_module(plc(generics/atom_ext)).
+
+
 
 
 

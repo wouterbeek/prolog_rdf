@@ -90,7 +90,7 @@ Predicates for reading from RDF, customized for specific datatypes and
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(list_ext)).
+:- use_module(plc(generics/list_ext)).
 
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).

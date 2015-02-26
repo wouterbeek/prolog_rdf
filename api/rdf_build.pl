@@ -103,7 +103,7 @@ Triples with literals are treated in dedicated modules.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
-:- use_module(generics(meta_ext)).
+:- use_module(plc(generics/meta_ext)).
 
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).

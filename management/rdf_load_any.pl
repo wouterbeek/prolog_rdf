@@ -52,33 +52,32 @@
 % rdf_file_type(trig, trig  ).
 :- use_module(library(semweb/turtle)). % Serialization format support.
 
-:- use_module(generics(db_ext)).
-:- use_module(os(open_any)).
-
-:- use_module(plDcg(dcg_generics)).
-:- use_module(plDcg(dcg_pl_term)).
+:- use_module(plc(dcg/dcg_generics)).
+:- use_module(plc(dcg/dcg_pl_term)).
+:- use_module(plc(generics/db_ext)).
+:- use_module(plc(io/open_any)).
 
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(management/rdf_guess_format)).
 :- use_module(plRdf(management/rdf_prefixes)).
 
 :- predicate_options(metadata_content_type/3, 3, [
-     media_type(+dict)
-   ]).
+  media_type(+dict)
+]).
 :- predicate_options(rdf_load_any/2, 2, [
-     meta_data(-dict),
-     pass_to(open_any/4, 4),
-     pass_to(rdf_load_from_stream_nondet/3, 3)
-   ]).
+  meta_data(-dict),
+  pass_to(open_any/4, 4),
+  pass_to(rdf_load_from_stream_nondet/3, 3)
+]).
 :- predicate_options(rdf_load_from_stream_det/4, 4, [
-     filename(+atom),
-     pass_to(metadata_content_type/3, 3),
-     pass_to(rdf_load/2, 2)
-   ]).
+  filename(+atom),
+  pass_to(metadata_content_type/3, 3),
+  pass_to(rdf_load/2, 2)
+]).
 :- predicate_options(rdf_load_from_stream_nondet/3, 3, [
-     silent(+boolean),
-     pass_to(rdf_load_from_stream_det/4, 4)
-   ]).
+  silent(+boolean),
+  pass_to(rdf_load_from_stream_det/4, 4)
+]).
 
 :- initialization(assert_rdf_file_types).
 

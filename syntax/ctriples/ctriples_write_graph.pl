@@ -22,13 +22,13 @@ Writes the given graph (or all currently stored triples) to a source.
 :- use_module(plRdf(syntax/ctriples/ctriples_write_generics)).
 
 :- predicate_options(ctriples_write_graph/3, 3, [
-     pass_to(write_graph/2, 2)
-   ]).
+  pass_to(write_graph/2, 2)
+]).
 :- predicate_options(write_graph/2, 2, [
-     pass_to(ctriples_write_begin/3, 3),
-     pass_to(ctriples_write_end/2, 2),
-     format(+oneof([quadruples,triples]))
-   ]).
+  pass_to(ctriples_write_begin/3, 3),
+  pass_to(ctriples_write_end/2, 2),
+  format(+oneof([quadruples,triples]))
+]).
 
 
 

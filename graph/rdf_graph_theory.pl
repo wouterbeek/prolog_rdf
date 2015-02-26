@@ -39,25 +39,27 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 :- use_module(plRdf(term/rdf_term)).
 
 :- predicate_options(rdf_directed_edge/3, 3, [
-     pass_to(rdf_vertex_filter/2, 2)
-   ]).
+  pass_to(rdf_vertex_filter/2, 2)
+]).
 :- predicate_options(rdf_graph_to_srep/3, 3, [
-     pass_to(rdf_undirected_edge/3, 3),
-     pass_to(rdf_vertex/3, 3)
-   ]).
+  pass_to(rdf_undirected_edge/3, 3),
+  pass_to(rdf_vertex/3, 3)
+]).
 :- predicate_options(rdf_neighbor_vertex/4, 4, [
-     pass_to(rdf_vertex_filter/2, 2)
-   ]).
+  pass_to(rdf_vertex_filter/2, 2)
+]).
 :- predicate_options(rdf_undirected_edge/3, 3, [
-     pass_to(rdf_vertex_filter/2, 2)
-   ]).
+  pass_to(rdf_vertex_filter/2, 2)
+]).
 :- predicate_options(rdf_vertex/3, 3, [
-     pass_to(rdf_vertex_filter/2, 2)
-   ]).
+  pass_to(rdf_vertex_filter/2, 2)
+]).
 :- predicate_options(rdf_vertex_filter/2, 2, [
-     exclude_literals(+boolean),
-     exclude_list_elements(+boolean)
-   ]).
+  exclude_literals(+boolean),
+  exclude_list_elements(+boolean)
+]).
+
+
 
 
 

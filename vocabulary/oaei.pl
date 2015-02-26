@@ -113,13 +113,13 @@ Mismatch types:
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
 
-:- use_module(generics(db_ext)).
-:- use_module(generics(meta_ext)).
-:- use_module(generics(pair_ext)).
-:- use_module(math(statistics)).
-:- use_module(os(dir_ext)).
-:- use_module(os(file_ext)).
-:- use_module(pl(pl_mode)).
+:- use_module(plc(generics/db_ext)).
+:- use_module(plc(generics/meta_ext)).
+:- use_module(plc(generics/pair_ext)).
+:- use_module(plc(io/dir_ext)).
+:- use_module(plc(io/file_ext)).
+:- use_module(plc(math/statistics)).
+:- use_module(plc(prolog/pl_mode)).
 
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdf_build)).
@@ -133,14 +133,14 @@ Mismatch types:
 :- use_module(plRdf(term/rdf_literal)).
 
 :- rdf_register_prefix(
-     align,
-     'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
-   ).
+  align,
+  'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
+).
 
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
-   :- db_add_novel(user:prolog_file_type(owl, owl)).
-   :- db_add_novel(user:prolog_file_type(tsv, tsv)).
+:- db_add_novel(user:prolog_file_type(owl, owl)).
+:- db_add_novel(user:prolog_file_type(tsv, tsv)).
 
 :- rdf_meta(alignment(r,r,?)).
 :- rdf_meta(alignment(r,r,?,?,?)).
@@ -151,6 +151,8 @@ Mismatch types:
 :- db_add_novel(user:file_search_path(mapping2, alignment2(alignment))).
 :- db_add_novel(user:file_search_path(ontology2, alignment2(ontology))).
 :- db_add_novel(user:file_search_path(reference2, alignment2(reference))).
+
+
 
 
 

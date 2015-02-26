@@ -33,13 +33,10 @@ When triples including images are read,
 
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs)).
 
-:- use_module(generics(deb_ext)).
-:- use_module(os(image_ext)).
+:- use_module(plc(os/image_ext)).
 
 :- use_module(plUri(image_uri)).
-:- use_module(plUri(uri_ext)).
 
 :- use_module(plHttp(download_to_file)).
 
@@ -47,8 +44,8 @@ When triples including images are read,
 :- use_module(plRdf(management/rdf_prefix)).
 
 :- predicate_options(rdf_assert_image/5, 5, [
-     cache(+boolean)
-   ]).
+  cache(+boolean)
+]).
 
 :- rdf_meta(rdf_assert_image(r,r,r,+,+)).
 :- rdf_meta(rdf_image(r,r,o)).

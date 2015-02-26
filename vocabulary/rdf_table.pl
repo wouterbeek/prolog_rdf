@@ -21,12 +21,14 @@ A simple RDF vocabulary for representing tables.
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(row_ext)).
+:- use_module(plc(generics/row_ext)).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(term/rdf_list)).
 
 :- rdf_register_prefix(rdf_table, 'http://www.wouterbeek.com/rdf_table#').
+
+
 
 
 

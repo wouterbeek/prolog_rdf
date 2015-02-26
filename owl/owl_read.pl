@@ -36,13 +36,15 @@ Predicates for reading from OWL data.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(generics(meta_ext)).
+:- use_module(plc(generics/meta_ext)).
 
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(owl_class_equivalence(r,r)).
 :- rdf_meta(owl_disjointWith(+,r,r)).
 :- rdf_meta(owl_resource_identity(r,r)).
+
+
 
 
 

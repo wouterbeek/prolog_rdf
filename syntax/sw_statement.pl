@@ -24,8 +24,8 @@ Grammar rules for RDF statements (i.e., triples or quadruples).
 @version 2014/12-2015/01
 */
 
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_ascii)).
 
 :- use_module(plRdf(syntax/sw_char)).
 :- use_module(plRdf(syntax/sw_term)).

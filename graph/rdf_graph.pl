@@ -39,8 +39,8 @@
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(list_ext)).
-:- use_module(math(math_ext)).
+:- use_module(plc(generics/list_ext)).
+:- use_module(plc(math/math_ext)).
 
 :- use_module(plRdf(rdf_triples)).
 :- use_module(plRdf(term/rdf_instance)).

@@ -35,20 +35,19 @@ Converts XML DOMs to RDF graphs.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
-:- use_module(os(file_ext)).
-
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_generics)).
-:- use_module(plDcg(dcg_meta)).
-:- use_module(plDcg(dcg_peek)).
-:- use_module(plDcg(dcg_replace)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_ascii)).
+:- use_module(plc(dcg/dcg_generics)).
+:- use_module(plc(dcg/dcg_meta)).
+:- use_module(plc(dcg/dcg_peek)).
+:- use_module(plc(dcg/dcg_replace)).
+:- use_module(plc(io/file_ext)).
 
 :- use_module(plXml(syntax/xml_element), [
-     'EmptyElemTag'//3,
-     'ETag@xml'//1 as 'ETag',
-     'STag'//3
-   ]).
+  'EmptyElemTag'//3,
+  'ETag@xml'//1 as 'ETag',
+  'STag'//3
+]).
 :- use_module(plXml(syntax/xml_prolog)).
 
 :- use_module(plXsd(xsd)).
@@ -63,6 +62,8 @@ Converts XML DOMs to RDF graphs.
 
 :- rdf_meta(create_resource(+,+,:,r,+,-,-)).
 :- rdf_meta(create_triples(+,+,:,r,+,-)).
+
+
 
 
 

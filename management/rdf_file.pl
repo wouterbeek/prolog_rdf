@@ -24,18 +24,20 @@ Support for RDF files and file types.
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(os(dir_ext)).
-:- use_module(os(file_ext)).
+:- use_module(plc(io/dir_ext)).
+:- use_module(plc(io/file_ext)).
 
 :- use_module(plRdf(rdf_meta)).
 :- use_module(plRdf(management/rdf_file_db)).
 
 :- predicate_options(rdf_merge_directory/4, 3, [
-     pass_to(rdf_setup_call_cleanup/5, 4)
-   ]).
+  pass_to(rdf_setup_call_cleanup/5, 4)
+]).
 :- predicate_options(rdf_merge_directory/4, 4, [
-     pass_to(rdf_setup_call_cleanup/5, 5)
-   ]).
+  pass_to(rdf_setup_call_cleanup/5, 5)
+]).
+
+
 
 
 

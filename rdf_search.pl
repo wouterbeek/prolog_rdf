@@ -37,6 +37,8 @@ Searching through an RDF graph.
 
 
 
+
+
 %! rdf_beam(
 %!   +Options:list(nvpair),
 %!   +RootVertex,

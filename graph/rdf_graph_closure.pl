@@ -22,6 +22,8 @@
 
 
 
+
+
 rdf_graph_closure([], _, [], []):- !.
 rdf_graph_closure([H|T], Pred, VSol, PropsSol):-
   rdf_graph_closure([H|T], Pred, [H], VSol, [], PropsSol).

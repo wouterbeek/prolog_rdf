@@ -23,7 +23,7 @@ Meta-callings on an RDF graph.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(os(file_ext)).
+:- use_module(plc(io/file_ext)).
 
 :- use_module(plRdf(debug/rdf_deb)).
 :- use_module(plRdf(graph/rdf_graph_name)).
@@ -35,19 +35,19 @@ Meta-callings on an RDF graph.
 :- meta_predicate(rdf_setup_call_cleanup(+,1,?,+,+)).
 
 :- predicate_options(rdf_setup_call_cleanup/3, 3, [
-     pass_to(rdf_load_any/2, 2)
-   ]).
+  pass_to(rdf_load_any/2, 2)
+]).
 :- predicate_options(rdf_setup_call_cleanup/5, 5, [
-     pass_to(output_file_based_on_input_file/3, 3),
-     pass_to(rdf_load_any/2, 2),
-     pass_to(rdf_save/2, 2)
-   ]).
+  pass_to(output_file_based_on_input_file/3, 3),
+  pass_to(rdf_load_any/2, 2),
+  pass_to(rdf_save/2, 2)
+]).
 :- predicate_options(output_file_based_on_input_file/3, 3, [
-     pass_to(ensure_format/3, 3)
-   ]).
+  pass_to(ensure_format/3, 3)
+]).
 :- predicate_options(ensure_format/3, 3, [
-     format(+atom)
-   ]).
+  format(+atom)
+]).
 
 
 

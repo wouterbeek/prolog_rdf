@@ -18,10 +18,10 @@ Print reified RDF statements.
 
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(plDcg(dcg_atom)).
-:- use_module(plDcg(dcg_collection)).
-:- use_module(plDcg(dcg_content)).
-:- use_module(plDcg(dcg_generics)).
+:- use_module(plc(dcg/dcg_atom)).
+:- use_module(plc(dcg/dcg_collection)).
+:- use_module(plc(dcg/dcg_content)).
+:- use_module(plc(dcg/dcg_generics)).
 
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdfs_read)).

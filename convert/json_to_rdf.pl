@@ -27,8 +27,8 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plDcg(dcg_atom)). % DCG rule.
-:- use_module(plDcg(dcg_generics)).
+:- use_module(plc(dcg/dcg_atom)). % DCG rule.
+:- use_module(plc(dcg/dcg_generics)).
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).

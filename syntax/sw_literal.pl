@@ -44,14 +44,13 @@ Examples of literal syntax in SPARQL include:
 @version 2014/04-2014/05, 2014/08, 2014/11-2015/01
 */
 
-:- use_module(generics(atom_ext)). % Meta-option.
-:- use_module(generics(code_ext)). % Meta-option.
-
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_content)).
-:- use_module(plDcg(dcg_generics)).
-:- use_module(plDcg(language/sw_number)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_ascii)).
+:- use_module(plc(dcg/dcg_content)).
+:- use_module(plc(dcg/dcg_generics)).
+:- use_module(plc(dcg/language/sw_number)).
+:- use_module(plc(generics/atom_ext)). % Meta-option.
+:- use_module(plc(generics/code_ext)). % Meta-option.
 
 :- use_module(plLangTag(language_tag)).
 

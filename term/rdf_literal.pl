@@ -70,7 +70,7 @@ The **typed literals** used to be defined as the cartesian product of
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(typecheck)).
+:- use_module(plc(generics/typecheck)).
 
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
@@ -88,6 +88,8 @@ The **typed literals** used to be defined as the cartesian product of
 :- rdf_meta(rdf_typed_literal_data(?,o,r)).
 :- rdf_meta(rdf_typed_literal_term(o)).
 :- rdf_meta(rdf_typed_literal_term(o,?)).
+
+
 
 
 

@@ -57,9 +57,11 @@ pred(Converted2, AlsoConverted2, NotConvertedLabel):-
 
 :- use_module(library(lists), except([delete/3])).
 
-:- use_module(generics(db_ext)).
+:- use_module(plc(generics/db_ext)).
 
 :- dynamic(rdf_meta_expand_db/1).
+
+
 
 
 

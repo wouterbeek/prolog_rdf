@@ -33,13 +33,15 @@ e.g. freshness lifetime.
 :- meta_predicate(rdf_download(3,+,?,+)).
 
 :- predicate_options(rdf_download/3, 3, [
-     pass_to(rdf_download/4, 4)
-   ]).
+  pass_to(rdf_download/4, 4)
+]).
 :- predicate_options(rdf_download/4, 4, [
-     graph(+atom),
-     freshness_lifetime(+float),
-     pass_to(rdf_load_any/2, 2)
-   ]).
+  graph(+atom),
+  freshness_lifetime(+float),
+  pass_to(rdf_load_any/2, 2)
+]).
+
+
 
 
 

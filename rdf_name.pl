@@ -25,16 +25,15 @@ Generates names for RDF terms and triples.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(typecheck)).
-:- use_module(pl(pl_log)).
-
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_atom)).
-:- use_module(plDcg(dcg_code)).
-:- use_module(plDcg(dcg_content)).
-:- use_module(plDcg(dcg_collection)).
-:- use_module(plDcg(dcg_quote)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_ascii)).
+:- use_module(plc(dcg/dcg_atom)).
+:- use_module(plc(dcg/dcg_code)).
+:- use_module(plc(dcg/dcg_content)).
+:- use_module(plc(dcg/dcg_collection)).
+:- use_module(plc(dcg/dcg_quote)).
+:- use_module(plc(generics/typecheck)).
+:- use_module(plc(prolog/pl_log)).
 
 :- use_module(plXsd(xsd)).
 
@@ -49,30 +48,30 @@ Generates names for RDF terms and triples.
 :- rdf_meta(rdf_triple_name(t,+,?,?)).
 
 :- predicate_options(rdf_iri_name//2, 1, [
-     iri_description(+oneof([
-       iri_only,
-       only_all_literals,
-       only_preferred_label,
-       with_all_literals,
-       with_preferred_label
-     ])),
-     language_preferences(+list(list(atom)))
-   ]).
+  iri_description(+oneof([
+    iri_only,
+    only_all_literals,
+    only_preferred_label,
+    with_all_literals,
+    with_preferred_label
+  ])),
+  language_preferences(+list(list(atom)))
+]).
 :- predicate_options(rdf_literal_name//2, 1, [
-     pass_to(rdf_plain_literal_name//2, 1)
-   ]).
+  pass_to(rdf_plain_literal_name//2, 1)
+]).
 :- predicate_options(rdf_plain_literal_name//2, 1, [
-     pass_to(rdf_simple_literal_name//2, 1)
-   ]).
+  pass_to(rdf_simple_literal_name//2, 1)
+]).
 :- predicate_options(rdf_simple_literal_name//2, 1, [
-     literal_ellipsis(+nonneg)
-   ]).
+  literal_ellipsis(+nonneg)
+]).
 :- predicate_options(rdf_term_name//2, 1, [
-     collate_rdf_lists(+boolean),
-     graph(+atom),
-     pass_to(rdf_iri_name//2, 1),
-     pass_to(rdf_literal_name//2, 1)
-   ]).
+  collate_rdf_lists(+boolean),
+  graph(+atom),
+  pass_to(rdf_iri_name//2, 1),
+  pass_to(rdf_literal_name//2, 1)
+]).
 
 
 

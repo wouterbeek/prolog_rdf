@@ -47,6 +47,8 @@ Predicates for building higher-level RDFS constructs.
 
 
 
+
+
 %! rdfs_assert_class(
 %!   +Class:iri,
 %!   ?Superclass:iri,

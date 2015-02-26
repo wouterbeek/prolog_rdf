@@ -21,15 +21,14 @@ Grammar rules for strings in Semantic Web standards.
 @version 2014/04-2014/05, 2014/08, 2014/11-2015/01
 */
 
-:- use_module(generics(atom_ext)). % Meta-option.
-
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_bracket)).
-:- use_module(plDcg(dcg_code)).
-:- use_module(plDcg(dcg_generics)).
-:- use_module(plDcg(dcg_meta)).
-:- use_module(plDcg(dcg_quote)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_ascii)).
+:- use_module(plc(dcg/dcg_bracket)).
+:- use_module(plc(dcg/dcg_code)).
+:- use_module(plc(dcg/dcg_generics)).
+:- use_module(plc(dcg/dcg_meta)).
+:- use_module(plc(dcg/dcg_quote)).
+:- use_module(plc(generics/atom_ext)). % Meta-option.
 
 :- use_module(plRdf(syntax/sw_char)).
 

@@ -28,12 +28,12 @@ not as references to specific blank nodes in the data being queried.
 :- use_module(library(dif)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_ascii)).
-:- use_module(plDcg(dcg_bracket)).
-:- use_module(plDcg(dcg_code)).
-:- use_module(plDcg(dcg_content)).
-:- use_module(plDcg(dcg_meta)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_ascii)).
+:- use_module(plc(dcg/dcg_bracket)).
+:- use_module(plc(dcg/dcg_code)).
+:- use_module(plc(dcg/dcg_content)).
+:- use_module(plc(dcg/dcg_meta)).
 
 :- use_module(plRdf(syntax/sw_char)).
 

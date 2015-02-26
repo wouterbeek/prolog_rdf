@@ -91,6 +91,8 @@ Predicates for asseritng RDFS statements in an easy way.
 
 
 
+
+
 %! rdfs_assert_class(+Term:rdf_term, ?Graph:atom) is det.
 % Asserts the following propositions:
 %

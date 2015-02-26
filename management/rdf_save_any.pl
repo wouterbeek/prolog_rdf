@@ -19,24 +19,24 @@
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
 
-:- use_module(os(file_ext)).
+:- use_module(plc(io/file_ext)).
 
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(syntax/ctriples/ctriples_write_graph)).
 
 :- predicate_options(rdf_save_any/2, 2, [
-     format(+oneof([ntriples,rdf_xml,trig,triples,turtle])),
-     graph(+atom),
-     silent(+boolean),
-     pass_to(rdf_save_any/3, 3)
-   ]).
+  format(+oneof([ntriples,rdf_xml,trig,triples,turtle])),
+  graph(+atom),
+  silent(+boolean),
+  pass_to(rdf_save_any/3, 3)
+]).
 :- predicate_options(rdf_save_any/3, 3, [
-     compress(+oneof([deflate,gzip])),
-     pass_to(ctriples_write_graph/3, 3),
-     pass_to(rdf_save/2, 2),
-     pass_to(rdf_save_trig/2, 2),
-     pass_to(rdf_save_turtle/2, 2)
-   ]).
+  compress(+oneof([deflate,gzip])),
+  pass_to(ctriples_write_graph/3, 3),
+  pass_to(rdf_save/2, 2),
+  pass_to(rdf_save_trig/2, 2),
+  pass_to(rdf_save_turtle/2, 2)
+]).
 
 
 

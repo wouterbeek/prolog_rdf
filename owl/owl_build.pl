@@ -32,7 +32,7 @@ Predicates for building OWL ontologies.
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
-:- use_module(generics(lambda_meta)).
+:- use_module(plc(generics/lambda_meta)).
 
 :- rdf_meta(owl_assert_class_equivalence(r,r,+)).
 :- rdf_meta(owl_assert_disjointWith(t,+)).

@@ -39,12 +39,11 @@ Basic facts about RDF serialization formats.
 
 :- use_module(library(lists), except([delete/3,subset/2])).
 
-:- use_module(generics(db_ext)).
-:- use_module(generics(dict_ext)).
-
-:- use_module(plDcg(dcg_abnf)).
-:- use_module(plDcg(dcg_atom)). % Meta-option.
-:- use_module(plDcg(dcg_generics)).
+:- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_atom)). % Meta-option.
+:- use_module(plc(dcg/dcg_generics)).
+:- use_module(plc(generics/db_ext)).
+:- use_module(plc(generics/dict_ext)).
 
 :- use_module(plHttp(header/content_negotiation/http_accept)).
 

@@ -39,6 +39,8 @@ Support for RDF triple compound terms.
 
 
 
+
+
 %! rdf_ground_triple(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,

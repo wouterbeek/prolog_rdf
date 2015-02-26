@@ -43,6 +43,8 @@ Read support for reified triples.
 
 
 
+
+
 %! rdf_assert_literal_statement(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,

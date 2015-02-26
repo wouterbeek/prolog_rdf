@@ -49,7 +49,7 @@ Generally this means requiring white space except before and after
 @version 2014/12
 */
 
-:- use_module(plDcg(dcg_bracket)).
+:- use_module(plc(dcg/dcg_bracket)).
 
 :- use_module(plRdf(syntax/sw_bnode)).
 :- use_module(plRdf(syntax/sw_char)).
