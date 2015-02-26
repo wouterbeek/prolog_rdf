@@ -54,6 +54,13 @@
                           % ?Predicate:iri
                           % ?Value:atom
                           % ?Graph:atom
+    rdf_string/3, % ?Subject:or([bnode,iri])
+                  % ?Predicate:iri
+                  % ?String:atom
+    rdf_string/4, % ?Subject:or([bnode,iri])
+                  % ?Predicate:iri
+                  % ?String:atom
+                  % ?Graph:atom
     rdf_term_edge/4, % +Term:rdf_term
                      % -Predicate:iri
                      % -OtherTerm:rdf_term
@@ -106,6 +113,8 @@ Predicates for reading from RDF, customized for specific datatypes and
 :- rdf_meta(rdf_resource_outgoing_edge(t,r,t,?)).
 :- rdf_meta(rdf_simple_literal(r,r,?)).
 :- rdf_meta(rdf_simple_literal(r,r,?,?)).
+:- rdf_meta(rdf_string(r,r,?)).
+:- rdf_meta(rdf_string(r,r,?,?)).
 :- rdf_meta(rdf_term_edge(t,r,t,?)).
 :- rdf_meta(rdf_term_incoming_edge(t,r,t,?)).
 :- rdf_meta(rdf_term_outgoing_edge(t,r,t,?)).
@@ -322,6 +331,29 @@ rdf_simple_literal(S, P, Value):-
 
 rdf_simple_literal(S, P, Value, Graph):-
   rdf_literal(S, P, Value, xsd:string, _, Graph).
+
+
+
+%! rdf_string(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?String:atom
+%! ) is nondet.
+
+rdf_string(S, P, String):-
+  rdf_string(S, P, String, _).
+
+
+
+%! rdf_string(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?String:atom,
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_string(S, P, String, G):-
+  rdf_typed_literal(S, P, String, xsd:string, G).
 
 
 
