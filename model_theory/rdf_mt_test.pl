@@ -12,11 +12,12 @@ Tests for RDFS model theory.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plRdf(debug/rdf_deb)).
+:- use_module(plRdf(management/rdf_prefix)).
 :- use_module(plRdf(model_theory/rdf_mt_build)).
 :- use_module(plRdf(model_theory/rdf_mt_i)).
 :- use_module(plRdf(model_theory/rdf_mt_print)).
 
-:- rdf_register_prefix(ex, 'http://www.example.org/').
+:- rdf_reset_prefix(ex, 'http://www.example.org/').
 
 :- begin_tests(rdf_mt).
 
