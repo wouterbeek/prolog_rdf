@@ -46,6 +46,13 @@
                                  % +Value
                                  % ?Graph:atom
                                  % -Triple:compound
+    rdf_assert_string/3, % +Subject:or([bnode,iri])
+                         % +Predicate:iri
+                         % +String:atom
+    rdf_assert_string/4, % +Subject:or([bnode,iri])
+                         % +Predicate:iri
+                         % +String:atom
+                         % ?Graph:atom
     rdf_assert_typed_literal/4, % +Subject:or([bnode,iri])
                                 % +Predicate:iri
                                 % +Value
@@ -108,27 +115,27 @@ Triples with literals are treated in dedicated modules.
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
-:- rdf_meta(rdf_assert_instance(o,r)).
-:- rdf_meta(rdf_assert_instance(o,r,?)).
-:- rdf_meta(rdf_assert_langstring(o,r,+,+)).
-:- rdf_meta(rdf_assert_langstring(o,r,+,+,-)).
-:- rdf_meta(rdf_assert_literal(o,r,+,r,?)).
-:- rdf_meta(rdf_assert_literal(o,r,+,r,?,-)).
-:- rdf_meta(rdf_assert_plain_literal(o,r,+,?)).
-:- rdf_meta(rdf_assert_plain_literal(o,r,+,?,-)).
-:- rdf_meta(rdf_assert_property(o,?)).
-:- rdf_meta(rdf_assert_simple_literal(o,r,+,?)).
-:- rdf_meta(rdf_assert_simple_literal(o,r,+,?,-)).
-:- rdf_meta(rdf_assert_typed_literal(o,r,+,r)).
-:- rdf_meta(rdf_assert_typed_literal(o,r,+,r,?)).
-:- rdf_meta(rdf_assert_typed_literal(o,r,+,r,?,-)).
+:- rdf_meta(rdf_assert_instance(r,r)).
+:- rdf_meta(rdf_assert_instance(r,r,?)).
+:- rdf_meta(rdf_assert_langstring(r,r,+,+)).
+:- rdf_meta(rdf_assert_langstring(r,r,+,+,-)).
+:- rdf_meta(rdf_assert_literal(r,r,+,r,?)).
+:- rdf_meta(rdf_assert_literal(r,r,+,r,?,-)).
+:- rdf_meta(rdf_assert_plain_literal(r,r,+,?)).
+:- rdf_meta(rdf_assert_plain_literal(r,r,+,?,-)).
+:- rdf_meta(rdf_assert_property(r,?)).
+:- rdf_meta(rdf_assert_simple_literal(r,r,+,?)).
+:- rdf_meta(rdf_assert_simple_literal(r,r,+,?,-)).
+:- rdf_meta(rdf_assert_typed_literal(r,r,+,r)).
+:- rdf_meta(rdf_assert_typed_literal(r,r,+,r,?)).
+:- rdf_meta(rdf_assert_typed_literal(r,r,+,r,?,-)).
 :- rdf_meta(rdf_assert2(t,r,o,?)).
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
 :- rdf_meta(rdf_create_next_resource(+,+,r,?,-)).
-:- rdf_meta(rdf_retractall_literal(o,r,?,r,?)).
-:- rdf_meta(rdf_retractall_resource(o,?)).
-:- rdf_meta(rdf_retractall_simple_literal(o,r,?,?)).
-:- rdf_meta(rdf_retractall_term(o,?)).
+:- rdf_meta(rdf_retractall_literal(r,r,?,r,?)).
+:- rdf_meta(rdf_retractall_resource(r,?)).
+:- rdf_meta(rdf_retractall_simple_literal(r,r,?,?)).
+:- rdf_meta(rdf_retractall_term(r,?)).
 
 
 
@@ -220,6 +227,10 @@ rdf_assert_literal(S, P, LangTag-LexicalForm, rdf:langString, G, Triple):-
   O = literal(lang(LangTagString,LexicalForm)),
   rdf_assert2(S, P, O, G),
   Triple = rdf(S,P,O).
+% Language-tagged strings using the default language.
+rdf_assert_literal(S, P, LexicalForm, rdf:langString, G, Triple):-
+  atom(LexicalForm), !,
+  rdf_assert_literal(S, P, [en,'US']-LexicalForm, rdf:langString, G, Triple).
 % Simple literals.
 rdf_assert_literal(S, P, Value, Datatype, Graph, Triple):-
   var(Datatype), !,
@@ -297,6 +308,29 @@ rdf_assert_simple_literal(S, P, Value, Graph):-
 
 rdf_assert_simple_literal(S, P, Value, Graph, Triple):-
   rdf_assert_literal(S, P, Value, xsd:string, Graph, Triple).
+
+
+
+%! rdf_assert_string(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +String:atom
+%! ) is det.
+
+rdf_assert_string(S, P, String):-
+  rdf_assert_string(S, P, String, _).
+
+
+
+%! rdf_assert_string(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +String:atom,
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_assert_string(S, P, String, G):-
+  rdf_assert_typed_literal(S, P, String, xsd:string, G).
 
 
 
