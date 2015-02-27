@@ -1,53 +1,53 @@
 :- module(
   rdfs_build,
   [
-    rdfs_assert_class/2, % +Term:rdf_term
+    rdfs_assert_class/2, % +Subject:or([bnode,iri])
                          % ?Graph:atom
     rdfs_assert_comment/3, % +Resource:rdf_term
                            % +Comment:atom
                            % ?Graph:atom
-    rdfs_assert_domain/3, % +Property:iri
+    rdfs_assert_domain/3, % +Property:or([bnode,iri])
                           % ?Class:iri
                           % ?Graph:atom
-    rdfs_assert_domain_range/3, % +Property:iri
+    rdfs_assert_domain_range/3, % +Property:or([bnode,iri])
                                 % ?Class:iri
                                 % ?Graph:atom
-    rdfs_assert_instance/2, % +Instance:iri
+    rdfs_assert_instance/2, % +Instance:or([bnode,iri])
                             % ?Graph:atom
-    rdfs_assert_isDefinedBy/2, % +Term:rdf_term
+    rdfs_assert_isDefinedBy/2, % +Subject:or([bnode,iri])
                                % +Graph:atom
-    rdfs_assert_isDefinedBy/3, % +Term:rdf_term
+    rdfs_assert_isDefinedBy/3, % +Subject:or([bnode,iri])
                                % ?Uri:atom
                                % ?Graph:atom
-    rdfs_assert_label/3, % +Term:rdf_term
+    rdfs_assert_label/3, % +Subject:or([bnode,iri])
                          % +Label
                          % ?Graph:graph
-    rdfs_assert_label/4, % +Term:rdf_term
+    rdfs_assert_label/4, % +Subject:or([bnode,iri])
                          % +Label
                          % ?Graph:graph
                          % -Triple:compound
     rdfs_assert_property_class/2, % +PropertyClass:iri
                                   % ?Graph:atom
-    rdfs_assert_range/3, % +Property:iri
+    rdfs_assert_range/3, % +Property:or([bnode,iri])
                          % ?Class:iri
                          % ?Graph:atom
-    rdfs_assert_seeAlso/3, % +Term:rdf_term
+    rdfs_assert_seeAlso/3, % +Subject:or([bnode,iri])
                            % +Uri:atom
                            % +Graph:atom
-    rdfs_assert_subclass/3, % +Class:iri
+    rdfs_assert_subclass/3, % +Class:or([bnode,iri])
                             % ?Superclass:iri
                             % ?Graph:atom
-    rdfs_assert_subproperty/3, % +Subproperty:iri
+    rdfs_assert_subproperty/3, % +Subproperty:or([bnode,iri])
                                % +SuperProperty:iri
                                % ?Graph:atom
-    %rdfs_update_label/5, % +Term:rdf_term
+    %rdfs_update_label/5, % +Subject:or([bnode,iri])
     %                     % +Label:atom
     %                     % ?LangTag:list(atom)
     %                     % ?Graph:atom
     %                     % +Action:compound
     rdfs_retractall_class_resource/1, % +Class:iri
     rdfs_retractall_class_term/1, % +Class:iri
-    rdfs_retractall_label/3 % +Term:rdf_term
+    rdfs_retractall_label/3 % +Subject:or([bnode,iri])
                             % ?Value
                             % ?Graph:atom
   ]
@@ -94,7 +94,7 @@ Predicates for asseritng RDFS statements in an easy way.
 
 
 
-%! rdfs_assert_class(+Term:rdf_term, ?Graph:atom) is det.
+%! rdfs_assert_class(+Subject:or([bnode,iri]), ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -102,25 +102,33 @@ Predicates for asseritng RDFS statements in an easy way.
 % NODE  rdfs:subClassOf rdfs:Resource GRAPH .
 % ```
 
-rdfs_assert_class(Term, Graph):-
-  rdf_assert_instance(Term, rdfs:'Class', Graph),
-  rdfs_assert_subclass(Term, rdfs:'Resource', Graph).
+rdfs_assert_class(Class, G):-
+  rdf_assert_instance(Class, rdfs:'Class', G),
+  rdfs_assert_subclass(Class, rdfs:'Resource', G).
 
 
 
-%! rdfs_assert_comment(+Term:rdf_term, +Comment, ?Graph:atom) is det.
+%! rdfs_assert_comment(
+%!   +Subject:or([bnode,iri]),
+%!   +Comment,
+%!   ?Graph:atom
+%! ) is det.
 
 % Without a language tag the comment is asserted as XSD string.
-rdfs_assert_comment(Term, Value, Graph):-
+rdfs_assert_comment(S, Value, G):-
   Value = _-_, !,
-  rdf_assert_langstring(Term, rdfs:comment, Value, Graph).
+  rdf_assert_langstring(S, rdfs:comment, Value, G).
 % With a language tag the comment is asserted as RDF langString.
-rdfs_assert_comment(Term, Comment, Graph):-
-  rdf_assert_simple_literal(Term, rdfs:comment, Comment, Graph).
+rdfs_assert_comment(S, Comment, G):-
+  rdf_assert_simple_literal(S, rdfs:comment, Comment, G).
 
 
 
-%! rdfs_assert_domain(+Term:rdf_term, ?Class:iri, ?Graph:atom) is det.
+%! rdfs_assert_domain(
+%!   +Subject:or([bnode,iri]),
+%!   ?Class:iri,
+%!   ?Graph:atom
+%! ) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -129,42 +137,52 @@ rdfs_assert_comment(Term, Comment, Graph):-
 %
 % Default class: `rdfsResource`.
 
-rdfs_assert_domain(Term, Class, Graph):-
+rdfs_assert_domain(Property, Class, G):-
   (   var(Class)
   ->  rdf_equal(Class, rdfs:'Resource')
   ;   true
   ),
-  rdf_assert2(Term, rdfs:domain, Class, Graph).
+  rdf_assert2(Property, rdfs:domain, Class, G).
 
 
 
-%! rdfs_assert_domain_range(+Term:rdf_term, ?Class:iri, ?Graph:atom) is det.
+%! rdfs_assert_domain_range(
+%!   +Subject:or([bnode,iri]),
+%!   ?Class:iri,
+%!   ?Graph:atom
+%! ) is det.
 
-rdfs_assert_domain_range(Term, Class, Graph):-
-  rdfs_assert_domain(Term, Class, Graph),
-  rdfs_assert_range(Term, Class, Graph).
+rdfs_assert_domain_range(S, Class, G):-
+  rdfs_assert_domain(S, Class, G),
+  rdfs_assert_range(S, Class, G).
 
 
 
-%! rdfs_assert_instance(+Term:rdf_term, ?Graph:atom) is det.
+%! rdfs_assert_instance(+Subject:or([bnode,iri]), ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
 % NODE  rdf:type  rdfs:Resource GRAPH .
 % ```
 
-rdfs_assert_instance(Term, Graph):-
-  rdf_assert_instance(Term, rdfs:'Resource', Graph).
+rdfs_assert_instance(S, G):-
+  rdf_assert_instance(S, rdfs:'Resource', G).
 
 
 
-%! rdfs_assert_isDefinedBy(+Term:rdf_term, +Graph:atom) is det.
+%! rdfs_assert_isDefinedBy(+Subject:or([bnode,iri]), +Graph:atom) is det.
 
-rdfs_assert_isDefinedBy(Term, Graph):-
-  rdf_global_id(Prefix:_, Term),
-  rdfs_assert_isDefinedBy(Term, Prefix, Graph).
+rdfs_assert_isDefinedBy(S, G):-
+  rdf_global_id(Prefix:_, S),
+  rdfs_assert_isDefinedBy(S, Prefix, G).
 
-%! rdfs_assert_isDefinedBy(+Term:rdf_term, ?Uri:atom, ?Graph:atom) is det.
+
+
+%! rdfs_assert_isDefinedBy(
+%!   +Subject:or([bnode,iri]),
+%!   ?Uri:atom,
+%!   ?Graph:atom
+%! ) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -177,39 +195,42 @@ rdfs_assert_isDefinedBy(Term, Graph):-
 % If Uri is uninstantiated, the IRI denoted by the registered RDF prefix
 %  of Term is used, if any.
 
-rdfs_assert_isDefinedBy(Term, Uri, Graph):-
+rdfs_assert_isDefinedBy(S, Uri, G):-
   var(Uri), !,
-  rdf_prefix_iri(Term, Uri),
-  rdfs_assert_isDefinedBy(Term, Uri, Graph).
-rdfs_assert_isDefinedBy(Term, Uri, Graph):-
-  rdf_assert2(Term, rdfs:isDefinedBy, Uri, Graph).
+  rdf_prefix_iri(S, Uri),
+  rdfs_assert_isDefinedBy(S, Uri, G).
+rdfs_assert_isDefinedBy(S, Uri, G):-
+  rdf_assert2(S, rdfs:isDefinedBy, Uri, G).
 
 
 
-%! rdfs_assert_label(+Term:rdf_term, +Label, ?Graph:atom) is det.
+%! rdfs_assert_label(+Subject:or([bnode,iri]), +Label, ?Graph:atom) is det.
 
-rdfs_assert_label(Term, Label, Graph):-
-  rdfs_assert_label(Term, Label, Graph, _).
+rdfs_assert_label(S, Label, G):-
+  rdfs_assert_label(S, Label, G, _).
 
 %! rdfs_assert_label(
-%!   +Term:rdf_term,
+%!   +Subject:or([bnode,iri]),
 %!   +Label,
 %!   ?Graph:atom,
 %!   -Triple:compound
 %! ) is det.
 % Assigns an RDFS label to the resource denoted by the given RDF term.
+%
+% This predicate stores the label as an RDF language-tagged string.
+% The default language is `en-US`.
 
 % Labels without language tag are asserted as `xsd:string`.
-rdfs_assert_label(Term, Label, Graph, Triple):-
+rdfs_assert_label(S, Label, G, Triple):-
   Label = _-_, !,
-  rdf_assert_langstring(Term, rdfs:label, Label, Graph, Triple).
+  rdf_assert_langstring(S, rdfs:label, Label, G, Triple).
 % Labels with language tag are asserted as `rdf:langString`.
-rdfs_assert_label(Term, Label, Graph, Triple):-
-  rdf_assert_literal(Term, rdfs:label, Label, xsd:string, Graph, Triple).
+rdfs_assert_label(S, Label, G, Triple):-
+  rdfs_assert_label(S, [en,'US']-Label, G, Triple).
 
 
 
-%! rdfs_assert_property_class(+Term:rdf_term, ?Graph:atom) is det.
+%! rdfs_assert_property_class(+Subject:or([bnode,iri]), ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -217,14 +238,18 @@ rdfs_assert_label(Term, Label, Graph, Triple):-
 % NODE  rdfs:subClassOf rdf:Property  GRAPH.
 % ```
 
-rdfs_assert_property_class(Term, Graph):-
+rdfs_assert_property_class(S, G):-
   % Materialization would figure this one out as well.
-  rdf_assert_instance(Term, rdfs:'Class', Graph),
-  rdfs_assert_subclass(Term, rdf:'Property', Graph).
+  rdf_assert_instance(S, rdfs:'Class', G),
+  rdfs_assert_subclass(S, rdf:'Property', G).
 
 
 
-%! rdfs_assert_range(+Term:rdf_term, ?Class:iri, ?Graph:atom) is det.
+%! rdfs_assert_range(
+%!   +Subject:or([bnode,iri]),
+%!   ?Class:iri,
+%!   ?Graph:atom
+%! ) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -233,28 +258,36 @@ rdfs_assert_property_class(Term, Graph):-
 %
 % Default class: `rdfsResource`.
 
-rdfs_assert_range(Term, Class, Graph):-
+rdfs_assert_range(Instance, Class, G):-
   (   var(Class)
   ->  rdf_equal(Class, rdfs:'Resource')
   ;   true
   ),
-  rdf_assert2(Term, rdfs:range, Class, Graph).
+  rdf_assert2(Instance, rdfs:range, Class, G).
 
 
 
-%! rdfs_assert_seeAlso(+Term:rdf_term, +Uri:atom, ?Graph:atom) is det.
+%! rdfs_assert_seeAlso(
+%!   +Subject:or([bnode,iri]),
+%!   +Uri:atom,
+%!   ?Graph:atom
+%! ) is det.
 % The following propositions are asserted:
 %
 % ```nquads
 % NODE  rdfs:seeAlso  URI GRAPH .
 % ```
 
-rdfs_assert_seeAlso(Term, Uri, Graph):-
-  rdf_assert2(Term, rdfs:seeAlso, Uri, Graph).
+rdfs_assert_seeAlso(S, Uri, G):-
+  rdf_assert2(S, rdfs:seeAlso, Uri, G).
 
 
 
-%! rdfs_assert_subclass(+Term:rdf_term, ?Superclass:iri, ?Graph:atom) is det.
+%! rdfs_assert_subclass(
+%!   +Subject:or([bnode,iri]),
+%!   ?Superclass:iri,
+%!   ?Graph:atom
+%! ) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -263,13 +296,13 @@ rdfs_assert_seeAlso(Term, Uri, Graph):-
 %
 % If SuperClass is uninstantiated it defaults to `rdfs:Resource`.
 
-rdfs_assert_subclass(Term, Superclass, Graph):-
+rdfs_assert_subclass(S, Superclass, G):-
   % Allow the superclass to be uninstantiated.
   (   var(Superclass)
   ->  rdf_equal(Superclass, rdfs:'Resource')
   ;   true
   ),
-  rdf_assert2(Term, rdfs:subClassOf, Superclass, Graph).
+  rdf_assert2(S, rdfs:subClassOf, Superclass, G).
 
 
 
@@ -287,14 +320,14 @@ rdfs_assert_subclass(Term, Superclass, Graph):-
 % NODE  rdfs:subPropertyOf  SUPER-PROPERTY  GRAPH .
 % ```
 
-rdfs_assert_subproperty(Subproperty, SuperProperty, Graph):-
-  rdf_assert2(Subproperty, rdfs:subPropertyOf, SuperProperty, Graph).
+rdfs_assert_subproperty(Subproperty, SuperProperty, G):-
+  rdf_assert2(Subproperty, rdfs:subPropertyOf, SuperProperty, G).
 
 
 
 /*
 %! rdfs_update_label(
-%!   +Term:rdf_term,
+%!   +Subject:or([bnode,iri]),
 %!   +Label:atom,
 %!   ?LangTag:list(atom),
 %!   ?Graph:atom,
@@ -302,8 +335,8 @@ rdfs_assert_subproperty(Subproperty, SuperProperty, Graph):-
 %! ) is det.
 % @tbd
 
-rdfs_update_label(Term, Label, LangTag, Graph, Action):-
-  rdfs_update_literal(Term, Label, _, LangTag, Graph, Action).
+rdfs_update_label(S, Label, LangTag, G, Action):-
+  rdfs_update_literal(S, Label, _, LangTag, G, Action).
 */
 
 
@@ -350,8 +383,12 @@ rdfs_retractall_class_term(Class):-
 
 
 
-%! rdfs_retractall_label_term(+Term:rdf_term, ?Value, ?Graph:atom) is det.
+%! rdfs_retractall_label_term(
+%!   +Subject:or([bnode,iri]),
+%!   ?Value,
+%!   ?Graph:atom
+%! ) is det.
 
-rdfs_retractall_label(Term, Value, Graph):-
-  rdf_retractall_literal(Term, rdfs:label, Value, _, Graph).
+rdfs_retractall_label(S, Value, G):-
+  rdf_retractall_literal(S, rdfs:label, Value, _, G).
 
