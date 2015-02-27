@@ -67,14 +67,16 @@ rdf_save_any(Options):-
 % File name derived from graph.
 % This only works if a graph option is given
 % and the denoted graph was loaded from file.
-rdf_save_any(File2, Options):-
-  var(File2), !,
-  (   option(graph(Graph), Options),
-      rdf_graph_property(Graph, source(File1))
-  ->  uri_file_name(File1, File2),
-      create_file(File2),
-      rdf_save_any(File2, Options)
-  ;   instantiation_error(File2)
+rdf_save_any(File, Options):-
+  var(File), !,
+  (   option(graph(Graph), Options)
+  ->  (   rdf_graph_property(Graph, source(File0))
+      ->  uri_file_name(File0, File)
+      ;   absolute_file_name(data(Graph), File, [access(write)])
+      ),
+      create_file(File),
+      rdf_save_any(File, Options)
+  ;   instantiation_error(File)
   ).
 
 % 2. `Out` instantiated to a file name: No modifications.
