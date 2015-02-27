@@ -119,8 +119,8 @@ rdfs_assert_comment(S, Value, G):-
   Value = _-_, !,
   rdf_assert_langstring(S, rdfs:comment, Value, G).
 % With a language tag the comment is asserted as RDF langString.
-rdfs_assert_comment(S, Comment, G):-
-  rdf_assert_simple_literal(S, rdfs:comment, Comment, G).
+rdfs_assert_comment(S, Value, G):-
+  rdfs_assert_comment(S, [en,'US']-Value, G).
 
 
 
