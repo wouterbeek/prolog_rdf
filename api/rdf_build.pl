@@ -93,8 +93,16 @@
                                      % ?Predicate:iri
                                      % ?Value
                                      % ?Graph:atom
-    rdf_retractall_term/2 % +Term:rdf_term
-                          % ?Graph:atom
+    rdf_retractall_string/4, % ?Subject:or([bnode,iri])
+                             % ?Predicate:iri
+                             % ?String:atom
+                             % ?Graph:atom
+    rdf_retractall_term/2, % +Term:rdf_term
+                           % ?Graph:atom
+    rdf_retractall_typed_literal/5 % ?Subject:or([bnode,iri])
+                                   % ?Predicate:iri
+                                   % ?String:atom
+                                   % ?Graph:atom
   ]
 ).
 
@@ -126,6 +134,8 @@ Triples with literals are treated in dedicated modules.
 :- rdf_meta(rdf_assert_property(r,?)).
 :- rdf_meta(rdf_assert_simple_literal(r,r,+,?)).
 :- rdf_meta(rdf_assert_simple_literal(r,r,+,?,-)).
+:- rdf_meta(rdf_assert_string(r,r,+)).
+:- rdf_meta(rdf_assert_string(r,r,+,?)).
 :- rdf_meta(rdf_assert_typed_literal(r,r,+,r)).
 :- rdf_meta(rdf_assert_typed_literal(r,r,+,r,?)).
 :- rdf_meta(rdf_assert_typed_literal(r,r,+,r,?,-)).
@@ -135,7 +145,9 @@ Triples with literals are treated in dedicated modules.
 :- rdf_meta(rdf_retractall_literal(r,r,?,r,?)).
 :- rdf_meta(rdf_retractall_resource(r,?)).
 :- rdf_meta(rdf_retractall_simple_literal(r,r,?,?)).
+:- rdf_meta(rdf_retractall_string(r,r,?,?)).
 :- rdf_meta(rdf_retractall_term(r,?)).
+:- rdf_meta(rdf_retractall_typed_literal(r,r,?,r,?)).
 
 
 
@@ -512,6 +524,18 @@ rdf_retractall_simple_literal(S, Predicate, Value, Graph):-
 
 
 
+%! rdf_retractall_string(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?String:atom,
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_retractall_string(S, P, String, G):-
+  rdf_retractall_typed_literal(S, P, String, xsd:string, G).
+
+
+
 %! rdf_retractall_term(+Term:rdf_term, ?Graph:atom) is det.
 % Removes all triples in which the given RDF term occurs.
 
@@ -519,3 +543,28 @@ rdf_retractall_term(Term, Graph):-
   rdf_retractall(Term, _, _, Graph),
   rdf_retractall(_, Term, _, Graph),
   rdf_retractall(_, _, Term, Graph).
+
+
+
+%! rdf_retractall_typed_literal(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Value,
+%!   ?Datatype:iri,
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_retractall_typed_literal(S, P, Value0, rdf:langString, G):- !,
+  (   atomic(Value0)
+  ->  Value = Value0
+  ;   Value0 = LangTag0-Value,
+      atomic_list_concat(LangTag0, '-', LangTag)
+  ),
+  rdf_retractall(S, P, literal(lang(LangTag,Value)), G).
+rdf_retractall_typed_literal(S, P, Value, xsd:string, G):- !,
+  atomic(Value),
+  rdf_retractall(S, P, literal(Value), G),
+  rdf_retractall(S, P, literal(type(xsd:string,Value)), G).
+rdf_retractall_typed_literal(S, P, Value, Datatype, G):-
+  rdf_retractall(S, P, literal(type(Datatype,Value)), G).
+

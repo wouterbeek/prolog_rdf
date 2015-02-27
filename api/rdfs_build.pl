@@ -82,7 +82,6 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_assert_property_class(r,?)).
 :- rdf_meta(rdfs_assert_range(r,r,?)).
 :- rdf_meta(rdfs_assert_seeAlso(r,+,?)).
-:- rdf_meta(rdfs_assert_string(r,r,+,?)).
 :- rdf_meta(rdfs_assert_subclass(r,r,?)).
 :- rdf_meta(rdfs_assert_subproperty(r,r,?)).
 %:- rdf_meta(rdfs_update_label(r,+,?,?,+)).
