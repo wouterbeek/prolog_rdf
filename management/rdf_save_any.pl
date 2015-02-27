@@ -1,6 +1,7 @@
 :- module(
   rdf_save_any,
   [
+    rdf_save_any/1, % +Options:list(nvpair)
     rdf_save_any/2 % ?Out
                    % +Options:list(nvpair)
   ]
@@ -9,7 +10,7 @@
 /** <module> RDF Management: Save in any format
 
 @author Wouter Beek
-@version 2014/10-2014/12
+@version 2014/10-2014/12, 2015/02
 */
 
 :- use_module(library(debug)).
@@ -24,6 +25,9 @@
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(syntax/ctriples/ctriples_write_graph)).
 
+:- predicate_options(rdf_save_any/1, 1, [
+  pass_to(rdf_save_any/2, 2)
+]).
 :- predicate_options(rdf_save_any/2, 2, [
   format(+oneof([ntriples,rdf_xml,trig,triples,turtle])),
   graph(+atom),
@@ -41,6 +45,11 @@
 
 
 
+
+%! rdf_save_any(+Options:list(nvpair)) is det.
+
+rdf_save_any(Options):-
+  rdf_save_any(_, Options).
 
 %! rdf_save_any(?Out, +Options:list(nvpair)) is det.
 % If the file name is not given, then a file name is construed.
