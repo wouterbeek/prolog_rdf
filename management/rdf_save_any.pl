@@ -69,10 +69,21 @@ rdf_save_any(Options):-
 % and the denoted graph was loaded from file.
 rdf_save_any(File, Options):-
   var(File), !,
-  (   option(graph(Graph), Options)
-  ->  (   rdf_graph_property(Graph, source(File0))
-      ->  uri_file_name(File0, File)
-      ;   absolute_file_name(data(Graph), File, [access(write)])
+  (   option(graph(Graph0), Options)
+  ->  (   rdf_graph_property(Graph0, source(File0))
+      ->  % The given graph is associated with a file; reuse that file.
+          uri_file_name(File0, File)
+      ;   % The given graph is not associated with a file;
+          % try to construct a file name based on the graph name.
+
+          % In case a serialization format is specified,
+          % we use the appropriate file extension.
+          (   option(format(Format), Options)
+          ->  rdf_file_extension_format(Ext, Format),
+              file_name_extension(Graph0, Ext, Graph)
+          ;   Graph = Graph0
+          ),
+          absolute_file_name(data(Graph), File, [access(write)])
       ),
       create_file(File),
       rdf_save_any(File, Options)
