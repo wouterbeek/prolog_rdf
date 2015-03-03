@@ -103,12 +103,14 @@ rdf_load_any(In):-
 %! rdf_load_any(+In, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
 %
-% In can be one of the following:
-%   - List
-%   - file/1
-%   - prefix/1
-%   - url/1
-%   - uri_components/5
+% `In` can be one of the following:
+%   - file(+atom)
+%   - file_pattern(+atom)
+%   - file_spec(+compound)
+%   - prefix(+atom)
+%   - stream(+stream)
+%   - uri(+atom)
+%   - uri_components(+compound)
 %
 % The following options are supported:
 %   - format(+Format:oneof([ntriples,turtle,xml]))
@@ -143,13 +145,7 @@ rdf_load_any(prefix(Prefix), M, Options):-
   rdf_current_prefix(Prefix, Uri), !,
   rdf_load_any(uri(Uri), M, Options).
 
-% 2. Load from a URI with reduced location.
-rdf_load_any(uri(Uri), M, Options1):-
-  select_option(reduced_locations(true), Options1, Options2),
-  rdf_reduced_location(Uri, ReducedUri), !,
-  rdf_load_any(uri(ReducedUri), M, Options2).
-
-% 3. Reuse the versatile open_any/4.
+% 2. Reuse the versatile open_any/4.
 rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
   rdf_extra_headers(ExtraHeaders),
   merge_options(Options1, ExtraHeaders, Options2),

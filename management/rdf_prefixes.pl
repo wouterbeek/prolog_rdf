@@ -6,10 +6,7 @@
     assert_dbpedia_localizations/0,
     assert_prefixes/0,
     assert_schema_prefixes/0,
-    dbpedia_language_tag/1, % ?LangTag:atom
-    rdf_reduced_location/2, % +FullUrl:url
-                            % -ReducedUrl:url
-    rdf_reduced_location_prefix/1 % ?Prefix:atom
+    dbpedia_language_tag/1 % ?LangTag:atom
   ]
 ).
 
@@ -48,11 +45,6 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 :- use_module(plHttp(download_to_file)).
 
 :- use_module(plRdf(management/rdf_prefix)).
-
-%! rdf_reduced_location_prefix(+Prefix:atom) is semidet.
-%! rdf_reduced_location_prefix(-Prefix:atom) is nondet.
-
-:- dynamic(rdf_reduced_location_prefix/1).
 
 
 
@@ -111,21 +103,6 @@ dbpedia_register(LangTag):-
     uri_components(http,Authority,'/property/',_,_)
   ),
   rdf_reset_prefix(PropertyNamespace, PropertyPrefix).
-
-
-%! rdf_reduced_location(+FullUrl:atom, -ReducedUrl:atom) is semidet.
-
-rdf_reduced_location(Url1, Url2):-
-  rdf_global_id(Prefix:_, Url1),
-  rdf_reduced_location_prefix(Prefix), !,
-  rdf_current_prefix(Prefix, Url2).
-
-
-%! rdf_register_reduced_location_prefix(+Prefix:atom) is det.
-
-rdf_register_reduced_location_prefix(Prefix):-
-  assert(rdf_reduced_location_prefix(Prefix)).
-
 
 
 %! dbpedia_language_tag(+LanguageTag:atom) is semidet.
