@@ -63,7 +63,12 @@ rdf_save_any(Options):-
 % @throws instantiation_error If (1) File is uninstantiated and
 %         (2) there is no `graph` option that has a file associated to it.
 
-% 1. Uninstantiated `Out`; come up with a file name.
+% 1. File specification.
+rdf_save_any(file_spec(Spec), Options):- !,
+  absolute_file_name(Spec, File, [access(write)]),
+  rdf_save_any(File, Options).
+
+% 2. Uninstantiated `Out`; come up with a file name.
 % File name derived from graph.
 % This only works if a graph option is given
 % and the denoted graph was loaded from file.
@@ -90,7 +95,7 @@ rdf_save_any(File, Options):-
   ;   instantiation_error(File)
   ).
 
-% 2. `Out` instantiated to a file name: No modifications.
+% 3. `Out` instantiated to a file name: No modifications.
 rdf_save_any(File, Options):-
   % We do not need to save the graph if
   % (1) the contents of the graph did not change, and
@@ -111,7 +116,7 @@ rdf_save_any(File, Options):-
   time_file(File, LastModified), !,
   debug(rdf_save_any, 'No need to save graph ~w; no updates.', [Graph]).
 
-% 3. `Out` instantiated to a file name: There are modifications.
+% 4. `Out` instantiated to a file name: There are modifications.
 rdf_save_any(File, Options1):-
   % Derive the RDF output format.
   (   select_option(format(Format), Options1, Options2)
