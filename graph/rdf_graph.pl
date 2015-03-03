@@ -21,8 +21,9 @@
                            % +Graph:atom
     rdf_stale_graph/2, % ?Graph:atom
                        % +FreshnessLifetime:between(0.0,inf)
-    rdf_subgraph/2 % +ProperSubgraph:atom
-                   % +Graph:atom
+    rdf_subgraph/2, % +ProperSubgraph:atom
+                    % +Graph:atom
+    rdf_unload_graphs/0
   ]
 ).
 
@@ -30,7 +31,8 @@
 
 @author Wouter Beek
 @compat [RDF 1.1 Semantics](http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/)
-@version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05, 2014/11
+@version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05, 2014/11,
+         2015/03
 */
 
 :- use_module(library(ordsets)).
@@ -279,6 +281,14 @@ rdf_subgraph(G, H):-
     rdf(S, P, O, G),
     \+ rdf(S, P, O, H)
   )).
+
+
+
+rdf_unload_graphs:-
+  rdf_graph(G),
+  rdf_unload_graph(G),
+  fail.
+rdf_unload_graphs.
 
 
 
