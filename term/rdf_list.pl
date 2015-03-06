@@ -163,7 +163,7 @@ rdf_assert_list_items([H|T], RdfList, Graph, Options):-
 %! rdf_list(+List:or([bnode,iri])) is semidet.
 %! rdf_list(-List:or([bnode,iri])) is nondet.
 % Succeeds if the given RDF term is an RDF list
-%  or enumerates RDF lists.
+% or enumerates RDF lists.
 % Notice that every sublist of an RDF list is an RDF list.
 %
 % ### Tricky stuff
