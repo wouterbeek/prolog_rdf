@@ -1,10 +1,6 @@
 :- module(
   rdf_read,
   [
-    rdf_direction_triples/4, % +Resource:iri,
-                             % +Direction:oneof([backward,both,forward])
-                             % -Triples:ordset(compound)
-                             % ?Graph:atom
     rdf_instance/3, % ?Instance:or([bnode,iri])
                     % ?Class:iri
                     % ?Graph:atom
@@ -88,10 +84,10 @@
 /** <module> RDF API: Read
 
 Predicates for reading from RDF, customized for specific datatypes and
- literals.
+literals.
 
 @author Wouter Beek
-@version 2014/11-2014/12, 2015/02
+@version 2014/11-2014/12, 2015/02-2015/03
 */
 
 :- use_module(library(lists), except([delete/3])).
@@ -129,32 +125,6 @@ error:has_type(rdf_term, Term):-
   ).
 
 
-
-
-
-%! rdf_direction_triples(
-%!   +Resource:iri,
-%!   +Direction:oneof([backward,both,forward]),
-%!   -Triples:ordset(compound),
-%!   ?Graph:atom
-%! ) is det.
-
-rdf_direction_triples(Resource, forward, Triples, Graph):-
-  aggregate_all(
-    set(rdf(Resource,P,O)),
-    rdf_term_outgoing_edge(Resource, P, O, Graph),
-    Triples
-  ).
-rdf_direction_triples(Resource, backward, Triples, Graph):-
-  aggregate_all(
-    set(rdf(S,P,Resource)),
-    rdf_term_incoming_edge(S, P, Resource, Graph),
-    Triples
-  ).
-rdf_direction_triples(Resource, both, Triples, Graph):-
-  rdf_direction_triples(Resource, backward, Triples1, Graph),
-  rdf_direction_triples(Resource, forward, Triples2, Graph),
-  ord_union(Triples1, Triples2, Triples).
 
 
 

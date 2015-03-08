@@ -12,6 +12,9 @@
     rdf_is_triple/1, % @Triple
     rdf_triples/2, % +Graph:atom
                    % -Triples:ordset(compound)
+    rdf_triples/3, % +Resource:iri,
+                   % -Triples:ordset(compound)
+                   % ?Graph:atom
     rdf_triples_to_edges/2, % +Triples:list(compound)
                             % -Edges:ordset(pair(rdf_term))
     rdf_triples_to_terms/2 % +Triples:list(compound)
@@ -24,7 +27,7 @@
 Support for RDF triple compound terms.
 
 @author Wouter Beek
-@version 2014/11
+@version 2014/11, 2015/03
 */
 
 :- use_module(library(aggregate)).
@@ -36,6 +39,7 @@ Support for RDF triple compound terms.
 :- rdf_meta(rdf_ground_triple(r,r,o,?)).
 :- rdf_meta(rdf_is_ground_triple(t)).
 :- rdf_meta(rdf_is_triple(t)).
+:- rdf_meta(rdf_triples(r,-,?)).
 
 
 
@@ -113,6 +117,17 @@ rdf_triples(Graph, Triples):-
   aggregate_all(
     set(rdf(S,P,O)),
     rdf(S, P, O, Graph),
+    Triples
+  ).
+
+
+
+%! rdf_triples(+Resource:iri, -Triples:ordset(compound), ?Graph:atom) is det.
+
+rdf_triples(Resource, Triples, Graph):-
+  aggregate_all(
+    set(rdf(Resource,P,O)),
+    rdf_term_outgoing_edge(Resource, P, O, Graph),
     Triples
   ).
 
