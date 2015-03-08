@@ -14,7 +14,7 @@
 @version 2012/01, 2012/03, 2012/09, 2012/11,
          2013/01-2013/06, 2013/08-2013/09, 2013/11,
          2014/01-2014/04, 2014/07, 2014/10, 2014/12,
-         2015/02
+         2015/02-2015/03
 */
 
 :- use_module(library(aggregate)).
@@ -53,20 +53,22 @@
 :- use_module(library(semweb/turtle)). % Serialization format support.
 
 :- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_pl_term)).
+:- use_module(plc(dcg/dcg_pl_term)). % Meta-argument.
 :- use_module(plc(generics/db_ext)).
 :- use_module(plc(io/open_any)).
 
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(management/rdf_guess_format)).
-:- use_module(plRdf(management/rdf_prefixes)).
 
 :- predicate_options(metadata_content_type/3, 3, [
   media_type(+dict)
 ]).
 :- predicate_options(rdf_load_any/2, 2, [
   meta_data(-dict),
-  pass_to(open_any/4, 4),
+  pass_to(open_any/3, 3)
+]).
+:- predicate_options(rdf_load_any/3, 3, [
+  pass_to(rdf_load_any/3, 3),
   pass_to(rdf_load_from_stream_nondet/3, 3)
 ]).
 :- predicate_options(rdf_load_from_stream_det/4, 4, [
@@ -141,9 +143,10 @@ rdf_load_any(In, Options):-
   ignore(option(meta_data(Metadata), Options)).
 
 % 1. Load the URI denoted by a registered RDF prefix.
-rdf_load_any(prefix(Prefix), M, Options):-
+rdf_load_any(prefix(Prefix), M, Options1):-
+  merge_options(Options1, [graph(Prefix)], Options2),
   rdf_current_prefix(Prefix, Uri), !,
-  rdf_load_any(uri(Uri), M, Options).
+  rdf_load_any(uri(Uri), M, Options2).
 
 % 2. Reuse the versatile open_any/4.
 rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
@@ -154,20 +157,6 @@ rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
     rdf_load_from_stream_nondet(In, EntryMetadata, Options2),
     EntryMetadatas
   ).
-
-/*
-% 4. Load all files from a given directory.
-rdf_load_any(file(Dir), Options):-
-  exists_directory(Dir), !,
-  directory_files(
-    [file_types([rdf]),include_directories(false),recursive(true)],
-    Dir,
-    Files
-  ),
-  maplist(file_term, Files, FileTerms),
-  rdf_load_any(FileTerms, Options).
-*/
-
 
 %! rdf_load_from_stream_nondet(
 %!   +In:stream,

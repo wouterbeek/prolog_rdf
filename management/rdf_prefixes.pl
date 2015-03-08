@@ -24,7 +24,7 @@ all of whose reduced locations should be dereferenced as their prefix.
 Reduced locations often occur in vocabularies,
 where the file denoted by [1] contains the assertions for [2], [3], etc.
 
-```url
+```uri
 [1]   http://www.w3.org/1999/02/22-rdf-syntax-ns#
 [2]   http://www.w3.org/1999/02/22-rdf-syntax-ns#first
 [3]   http://www.w3.org/1999/02/22-rdf-syntax-ns#type
