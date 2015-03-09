@@ -32,6 +32,7 @@ This requires a Prolog module whose name is also registered as
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdfs_build)).
+:- use_module(plRdf(syntax/turtle_convert)).
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_list)).
 
@@ -162,7 +163,9 @@ assert_triples0(SchemaPrefix, G, S, P, Os):-
   is_list(Os), !,
   maplist(assert_triples0(SchemaPrefix, G, S, P), Os).
 assert_triples0(SchemaPrefix, G, S, P0, O):-
-  rdf_global_id(SchemaPrefix:P0, P),
+gtrace,
+  atom_to_pn_local(P0, PnLocal),
+  rdf_global_id(SchemaPrefix:PnLocal, P),
   rdf_assert(S, P, O, G).
 
 

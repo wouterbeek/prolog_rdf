@@ -255,8 +255,10 @@ end_of_comment --> line_feed.
 % @compat SPARQL 1.1 Query [165].
 % @compat Turtle 1.1 [164s].
 
-'PN_CHARS_U'(_, Code) --> 'PN_CHARS_BASE'(Code).
-'PN_CHARS_U'(_, Code) --> underscore(Code).
+'PN_CHARS_U'(_, Code) -->
+  'PN_CHARS_BASE'(Code).
+'PN_CHARS_U'(_, Code) -->
+  underscore(Code).
 'PN_CHARS_U'(Lang, Code) -->
   {dif(Lang, n)},
   colon(Code).
