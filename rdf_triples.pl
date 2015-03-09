@@ -36,6 +36,7 @@ Support for RDF triple compound terms.
 :- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
+:- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_ground_triple(r,r,o,?)).
@@ -156,7 +157,7 @@ rdf_triples_to_iris(Triples, Iris):-
     set(Iri),
     (
       member(Triple, Triples),
-      rdf_triples_to_term(Triples, Iri),
+      rdf_triple_to_term(Triple, Iri),
       \+ rdf_is_bnode(Iri),
       \+ rdf_is_literal(Iri)
     ),
