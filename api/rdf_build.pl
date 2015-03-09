@@ -82,6 +82,11 @@
                                 % ?Class:iri
                                 % ?Graph:atom
                                 % -Resource:iri
+    rdf_mv/5, % +FromGraph:atom
+              % ?Subject:or([bnode,iri])
+              % ?Predicate:iri
+              % ?Object:rdf_term
+              % +ToGraph:atom
     rdf_retractall_literal/5, % ?Subject:or([bnode,iri])
                               % ?Predicate:iri
                               % ?Value
@@ -112,7 +117,7 @@ Simple asserion and retraction predicates for RDF.
 Triples with literals are treated in dedicated modules.
 
 @author Wouter Beek
-@version 2014/11, 2015/02
+@version 2014/11, 2015/02-2015/03
 */
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -142,6 +147,7 @@ Triples with literals are treated in dedicated modules.
 :- rdf_meta(rdf_assert2(t,r,o,?)).
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
 :- rdf_meta(rdf_create_next_resource(+,+,r,?,-)).
+:- rdf_meta(rdf_mv(+,r,r,o,+)).
 :- rdf_meta(rdf_retractall_literal(r,r,?,r,?)).
 :- rdf_meta(rdf_retractall_resource(r,?)).
 :- rdf_meta(rdf_retractall_simple_literal(r,r,?,?)).
@@ -460,6 +466,21 @@ rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
   ->  rdf_assert_instance(Resource, Class, Graph)
   ;   true
   ).
+
+
+
+%! rdf_mv(
+%!   +FromGraph:atom,
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   +ToGraph:atom
+%! ) is det.
+% Move triples between graphs.
+
+rdf_mv(From, S, P, O, To):-
+  rdf_copy(From, S, P, O, To),
+  rdf_retractall(S, P, O, From).
 
 
 
