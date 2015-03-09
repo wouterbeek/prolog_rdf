@@ -163,7 +163,6 @@ assert_triples0(SchemaPrefix, G, S, P, Os):-
   is_list(Os), !,
   maplist(assert_triples0(SchemaPrefix, G, S, P), Os).
 assert_triples0(SchemaPrefix, G, S, P0, O):-
-gtrace,
   atom_to_pn_local(P0, PnLocal),
   rdf_global_id(SchemaPrefix:PnLocal, P),
   rdf_assert(S, P, O, G).

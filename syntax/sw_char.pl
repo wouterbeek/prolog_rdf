@@ -165,9 +165,9 @@ end_of_comment --> line_feed.
 
 'PN_CHARS'(Code) -->
   'PN_CHARS_U'(Lang, Code),
-  {\+ dif(Lang, n)}.
+  {Lang \== n}.
 'PN_CHARS'(Code) --> hyphen_minus(Code).
-'PN_CHARS'(Code) --> decimal_digit(Code).
+'PN_CHARS'(Code) --> decimal_digit(_, Code).
 'PN_CHARS'(Code) --> code_radix(hex('00B7'), Code).
 'PN_CHARS'(Code) --> between_code_radix(hex('0300'), hex('036F'), Code).
 'PN_CHARS'(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
