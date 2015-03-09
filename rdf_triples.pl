@@ -17,6 +17,8 @@
                    % ?Graph:atom
     rdf_triples_to_edges/2, % +Triples:list(compound)
                             % -Edges:ordset(pair(rdf_term))
+    rdf_triples_to_iris/2, % +Triples:list(compound)
+                           % -Iris:ordset(atom)
     rdf_triples_to_terms/2 % +Triples:list(compound)
                            % -Vertices:ordset(rdf_term)
   ]
@@ -147,9 +149,25 @@ rdf_triples_to_edges(Ts, Es):-
 
 
 
+%! rdf_triples_to_iris(+Triples:list(compound), -Iris:ordset(atom)) is det.
+
+rdf_triples_to_iris(Triples, Iris):-
+  aggregate_all(
+    set(Iri),
+    (
+      member(Triple, Triples),
+      rdf_triples_to_term(Triples, Iri),
+      \+ rdf_is_bnode(Iri),
+      \+ rdf_is_literal(Iri)
+    ),
+    Iris
+  ).
+
+
+
 %! rdf_triples_to_terms(
-%!   +Triples:list(rdf_term),
-%!   -Terms:ordset(rdf_term)
+%!   +Triples:list(compound),
+%!   -Terms:ordset(compound)
 %! ) is det.
 
 rdf_triples_to_terms(Triples, Terms):-
