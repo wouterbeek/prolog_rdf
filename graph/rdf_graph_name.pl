@@ -35,7 +35,7 @@ rdf_new_graph(Graph):-
 % No RDF graph with the given name exists, so it is safe to use.
 rdf_new_graph(Name, Graph2):-
   atomic_concat('/', Name, Path),
-  uri_components(Graph1, uri_components(http,'www.example.com',Path,_,_)),
+  uri_components(Graph1, uri_components(http,'example.com',Path,_,_)),
   
   % Make sure the RDF graph now exists,
   % since otherwise it will not exist until
