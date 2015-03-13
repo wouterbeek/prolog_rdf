@@ -1,6 +1,9 @@
 :- module(
   rdf_triples,
   [
+    rdf_assert_triple/1, % +Triple:compound
+    rdf_assert_triple/2, % +Triple:compound
+                         % +Graph:atom
     rdf_ground_triple/4, % ?Subject:or([bnode,iri])
                          % ?Predicate:iri
                          % ?Object:rdf_term
@@ -45,6 +48,20 @@ Support for RDF triple compound terms.
 :- rdf_meta(rdf_triples(r,-,?)).
 
 
+
+
+
+%! rdf_assert_triple(+Triple:compound) is det.
+
+rdf_assert_triple(rdf(S,P,O)):-
+  rdf_assert(S, P, O).
+
+
+
+%! rdf_assert_triple(+Triple:compound, +Graph:atom) is det.
+
+rdf_assert_triple(rdf(S,P,O), G):-
+  rdf_assert(S, P, O, G).
 
 
 
