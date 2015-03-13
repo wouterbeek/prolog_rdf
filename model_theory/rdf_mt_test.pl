@@ -17,7 +17,7 @@ Tests for RDFS model theory.
 :- use_module(plRdf(model_theory/rdf_mt_i)).
 :- use_module(plRdf(model_theory/rdf_mt_print)).
 
-:- rdf_reset_prefix(ex, 'http://www.example.org/').
+:- rdf_reset_prefix(ex, 'http://www.example.com/').
 
 :- begin_tests(rdf_mt).
 
