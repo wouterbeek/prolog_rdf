@@ -2,7 +2,7 @@
   rdf_save_any,
   [
     rdf_save_any/1, % +Options:list(nvpair)
-    rdf_save_any/2 % ?Out
+    rdf_save_any/2 % ?Spec:compound
                    % +Options:list(nvpair)
   ]
 ).
@@ -10,7 +10,7 @@
 /** <module> RDF Management: Save in any format
 
 @author Wouter Beek
-@version 2014/10-2014/12, 2015/02
+@version 2014/10-2014/12, 2015/02-2015/03
 */
 
 :- use_module(library(debug)).
@@ -66,13 +66,13 @@ rdf_save_any(Options):-
 % 1. File specification.
 rdf_save_any(file_spec(Spec), Options):- !,
   absolute_file_name(Spec, File, [access(write)]),
-  rdf_save_any(File, Options).
+  rdf_save_any(file(File), Options).
 
 % 2. Uninstantiated `Out`; come up with a file name.
 % File name derived from graph.
 % This only works if a graph option is given
 % and the denoted graph was loaded from file.
-rdf_save_any(File, Options):-
+rdf_save_any(file(File), Options):-
   var(File), !,
   (   option(graph(Graph0), Options)
   ->  (   rdf_graph_property(Graph0, source(File0))
@@ -91,12 +91,12 @@ rdf_save_any(File, Options):-
           absolute_file_name(data(Graph), File, [access(write)])
       ),
       create_file(File),
-      rdf_save_any(File, Options)
+      rdf_save_any(file(File), Options)
   ;   instantiation_error(File)
   ).
 
 % 3. `Out` instantiated to a file name: No modifications.
-rdf_save_any(File, Options):-
+rdf_save_any(file(File), Options):-
   % We do not need to save the graph if
   % (1) the contents of the graph did not change, and
   % (2) the serialization format of the graph did not change.
@@ -117,7 +117,7 @@ rdf_save_any(File, Options):-
   debug(rdf_save_any, 'No need to save graph ~w; no updates.', [Graph]).
 
 % 4. `Out` instantiated to a file name: There are modifications.
-rdf_save_any(File, Options1):-
+rdf_save_any(file(File), Options1):-
   % Derive the RDF output format.
   (   select_option(format(Format), Options1, Options2)
   ->  true
@@ -141,6 +141,14 @@ rdf_save_any(File, Options1):-
       print_message(informational, rdf_saved(Graph,Format,File))
   ).
 
+% 5. Heuristic: unspecified spec is a file.
+
+rdf_save_any(File, Options):-
+  rdf_save_any(file(File), Options).
+
+
+
+%! rdf_save_any(+Spec:compound, +Format:atom, +Options:list(nvpair)) is det.
 
 rdf_save_any(file(File), Format, Options):- !,
   (   option(compress(Compress), Options)
