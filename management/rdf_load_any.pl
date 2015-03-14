@@ -140,12 +140,31 @@ rdf_load_any(In):-
 
 rdf_load_any(In, Options):-
   rdf_load_any(In, Metadata, Options),
-  ignore(option(meta_data(Metadata), Options)).
+  ignore(option(meta_data(Metadata), Options)),
+  
+  % Process the format option.
+  (   option(format(Format), Options)
+  ->  [Entry|_] = Metadata.entries,
+      rdf_serialization(
+        _,
+        Format,
+        _,
+        Entry.'RDF'.'serialization-format'
+      )
+  ;   true
+  ),
+  
+  % Process the graph option.
+  (   option(graph(Graph), Options)
+  ->  Graph = Entry.'RDF'.dataset.'default-graph'.graph
+  ;   true
+  ).
 
 % 1. Load the URI denoted by a registered RDF prefix.
 rdf_load_any(prefix(Prefix), M, Options1):-
-  merge_options(Options1, [graph(Prefix)], Options2),
+  atom(Prefix),
   rdf_current_prefix(Prefix, Uri), !,
+  merge_options(Options1, [graph(Prefix)], Options2),
   rdf_load_any(uri(Uri), M, Options2).
 
 % 2. Reuse the versatile open_any/4.
@@ -198,25 +217,29 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   ),
   ignore(file_name_extension(_, FileExtension, FileName)),
 
-  % Guess the RDF serialization format based on
-  % the HTTP Content-Type header value and the file name extension.
-  ignore(metadata_content_type(Metadata1, Options1, ContentType)),
-  rdf_guess_format(In, FileExtension, ContentType, Format),
-
-  % Store the guessed RDF serialization format as metadata.
+  % Determine the RDF serialization format.
+  (   option(format(Format), Options1),
+      ground(Format)
+  ->  true
+  ;   % Guess the RDF serialization format based on
+      % the HTTP Content-Type header value and the file name extension.
+      ignore(metadata_content_type(Metadata1, Options1, ContentType)),
+      rdf_guess_format(In, FileExtension, ContentType, Format)
+  ),
+  
+  % Store the RDF serialization format as metadata.
   rdf_serialization(_, Format, _, SerializationUri),
-
+  
   % Set options: base URI, RDF serialization format, XML namespaces.
   set_stream(In, file_name(Base)),
   merge_options(
-    Options1,
     [
       base_uri(Base),
       format(Format),
-      graph(user),
       register_namespaces(false),
       silent(true)
     ],
+    Options1,
     Options2
   ),
 
@@ -228,12 +251,13 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
 
   % The actual loading of the RDF data.
   rdf_load(stream(In), Options3),
-  % Use the default graph as given by the calling context, otherwise `user`.
-  option(graph(DefaultGraph), Options3, user),
-
+  % Use the default graph as given by the calling context,
+  % otherwise use the base URI.
+  option(graph(DefaultGraph), Options3, Base),
+  
   % RDF metadata: dataset (default graph, named graphs), serialization format.
   aggregate_all(
-    set(named_graph{name:Graph,triples:Triples}),
+    set(named_graph{graph:Graph,name:Graph,triples:Triples}),
     (
       rdf_graph_property(Graph, triples(Triples)),
       Graph \== DefaultGraph
@@ -250,16 +274,19 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
     _{
       'file-extension':FileExtension,
       'RDF':'RDF'{
-          dataset:dataset{
-            'default-graph':'default-graph'{triples:DefaultGraphTriples},
-            'named-graphs':NamedGraphDicts
+        dataset:dataset{
+          'default-graph':'default-graph'{
+            graph:DefaultGraph,
+            triples:DefaultGraphTriples
           },
-          'number-of-graphs':Graphs,
-          'number-of-unique-literals':Literals,
-          'number-of-unique-properties':Properties,
-          'number-of-unique-resources':Resources,
-          'number-of-unique-triples':Triples,
-          'serialization-format':SerializationUri
+          'named-graphs':NamedGraphDicts
+        },
+        'number-of-graphs':Graphs,
+        'number-of-unique-literals':Literals,
+        'number-of-unique-properties':Properties,
+        'number-of-unique-resources':Resources,
+        'number-of-unique-triples':Triples,
+        'serialization-format':SerializationUri
       }
     }
   ).
