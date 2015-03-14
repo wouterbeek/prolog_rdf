@@ -97,6 +97,7 @@ rdf_save_any(file(File), Options):-
 
 % 3. `Out` instantiated to a file name: No modifications.
 rdf_save_any(file(File), Options):-
+  nonvar(File),
   % We do not need to save the graph if
   % (1) the contents of the graph did not change, and
   % (2) the serialization format of the graph did not change.
@@ -118,6 +119,7 @@ rdf_save_any(file(File), Options):-
 
 % 4. `Out` instantiated to a file name: There are modifications.
 rdf_save_any(file(File), Options1):-
+  nonvar(File), !,
   % Derive the RDF output format.
   (   select_option(format(Format), Options1, Options2)
   ->  true
