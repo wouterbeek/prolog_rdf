@@ -141,6 +141,7 @@ rdf_load_any(In):-
 rdf_load_any(In, Options):-
   rdf_load_any(In, Metadata, Options),
   ignore(option(meta_data(Metadata), Options)),
+  ignore(option(metadata(Metadata), Options)),
   
   % Process the format option.
   (   option(format(Format), Options)
@@ -190,13 +191,7 @@ rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
     rdf_load_from_stream_det(SubIn, OpenMetadata, RdfMetadata, Options),
     close_any(SubIn, CloseMetadata)
   ),
-  StreamMetadata = RdfMetadata.put(stream, CloseMetadata),
-
-  % Allow informational messages to be skipped in silent mode.
-  (   option(silent(true), Options)
-  ->  true
-  ;   print_message(informational, rdf_load_any(StreamMetadata))
-  ).
+  StreamMetadata = RdfMetadata.put(stream, CloseMetadata).
 
 
 
@@ -368,15 +363,3 @@ rdf_extra_headers([
   request_header('Accept'=AcceptValue)
 ]):-
   rdf_accept_header_value(AcceptValue).
-
-
-
-
-
-% MESSAGES %
-
-:- multifile(prolog:message//1).
-
-prolog:message(rdf_load_any(Metadata)) -->
-  {dcg_phrase(dcg_pl_term(Metadata), Atom)},
-  [Atom].
