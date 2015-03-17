@@ -42,6 +42,8 @@
     rdf_list_last/3, % ?List:or([bnode,iri])
                      % ?Last:rdf_term
                      % ?Graph:atom
+    rdf_list_length/2, % ?List:or([bnode,iri])
+                       % ?Length:number
     rdf_list_length/3, % ?List:or([bnode,iri])
                        % ?Length:number
                        % ?Graph:atom
@@ -68,7 +70,7 @@ Support for RDF lists.
 @compat [RDF Schema 1.1](http://www.w3.org/TR/2014/REC-rdf-schema-20140225/)
 @tbd Add RDF list retraction.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02, 2014/06, 2014/10-2015/01
+         2014/01-2014/02, 2014/06, 2014/10-2015/01, 2015/03
 */
 
 :- use_module(library(option)).
@@ -103,6 +105,7 @@ Support for RDF lists.
 :- rdf_meta(rdf_list_first(r,o,?)).
 :- rdf_meta(rdf_list_last(r,o)).
 :- rdf_meta(rdf_list_last(r,o,?)).
+:- rdf_meta(rdf_list_length(r,?)).
 :- rdf_meta(rdf_list_length(r,?,?)).
 :- rdf_meta(rdf_list_member(r,o)).
 :- rdf_meta(rdf_list_member(r,o,?)).
@@ -339,6 +342,13 @@ rdf_list_last(List, Last, Graph):-
 rdf_list_last(List, Last, Graph):-
   rdf(List, rdf:rest, Rest, Graph),
   rdf_list_last(Rest, Last, Graph).
+
+
+
+%! rdf_list_length(?List:or([bnode,iri]), ?Length:nonneg) is nondet.
+
+rdf_list_length(List, N):-
+  rdf_list_length(List, N, _).
 
 
 
