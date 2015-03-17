@@ -107,6 +107,7 @@ Support for RDF lists.
 :- rdf_meta(rdf_list_last(r,o,?)).
 :- rdf_meta(rdf_list_length(r,?)).
 :- rdf_meta(rdf_list_length(r,?,?)).
+:- rdf_meta(rdf_list_length(r,?,?,?)).
 :- rdf_meta(rdf_list_member(r,o)).
 :- rdf_meta(rdf_list_member(r,o,?)).
 :- rdf_meta(rdf_list_nth0(?,r,o,?)).
@@ -362,6 +363,7 @@ rdf_list_length(List, N):-
 rdf_list_length(List, N, Graph):-
   rdf_list_length(List, 0, N, Graph).
 
+rdf_list_length(rdf:nil, N, N, _):- !.
 rdf_list_length(List, N, N, Graph):-
   rdf(List, rdf:rest, rdf:nil, Graph), !.
 rdf_list_length(List, N1, N3, Graph):-
