@@ -4,6 +4,13 @@
     rdf_instance/3, % ?Instance:or([bnode,iri])
                     % ?Class:iri
                     % ?Graph:atom
+    rdf_langstring/3, % ?Subject:or([bnode,iri])
+                      % ?Predicate:iri
+                      % ?Value:pair(atom,list(atom))
+    rdf_langstring/4, % ?Subject:or([bnode,iri])
+                      % ?Predicate:iri
+                      % ?Value:pair(atom,list(atom))
+                      % ?LangTagPreference:list(list(atom))
     rdf_langstring/5, % ?Subject:or([bnode,iri])
                       % ?Predicate:iri
                       % ?Value:pair(atom,list(atom))
@@ -99,6 +106,8 @@ literals.
 :- use_module(plRdf(term/rdf_term)).
 
 :- rdf_meta(rdf_instance(r,r,?)).
+:- rdf_meta(rdf_langstring(r,r,?)).
+:- rdf_meta(rdf_langstring(r,r,?,?)).
 :- rdf_meta(rdf_langstring(r,r,?,?,?)).
 :- rdf_meta(rdf_literal(r,r,?,r,?,?)).
 :- rdf_meta(rdf_literal(r,r,?,r,?,?,-)).
@@ -134,6 +143,26 @@ rdf_instance(Instance, Class, Graph):-
   rdf(Instance, rdf:type, Class, Graph).
 
 
+
+%! rdf_langstring(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Value:pair(atom,list(atom))
+%! ) is nondet.
+
+rdf_langstring(S, P, Value):-
+  rdf_langstring(S, P, Value, _).
+
+%! rdf_langstring(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Value:pair(atom,list(atom)),
+%!   ?LangTagPreference:list(list(atom)),
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_langstring(S, P, Value, LangPrefs):-
+  rdf_langstring(S, P, Value, LangPrefs, _).
 
 %! rdf_langstring(
 %!   ?Subject:or([bnode,iri]),
