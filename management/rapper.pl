@@ -22,7 +22,7 @@ Rapper support.
 
 :- use_module(plc(dcg/dcg_content)).
 :- use_module(plc(os/cli_ext)).
-:- use_module(plc(process/run_ext)).
+:- use_module(plc(process/process_ext)).
 
 :- predicate_options(rapper/2, 2, [
   count(+boolean),
