@@ -56,9 +56,12 @@
                      % ?List:or([bnode,iri])
                      % ?Element:rdf_term
                      % ?Graph:atom
-    rdf_list_triples/3 % +PrologList:list
-                       % -RdfList:bnode
-                       % -Triples:list(compound)
+    rdf_list_triples/3, % +PrologList:list
+                        % -RdfList:bnode
+                        % -Triples:list(compound)
+    rdf_retractall_list/1, % +RdfList:or([bnode,iri])
+    rdf_retractall_list/2 % +RdfList:or([bnode,iri])
+                          % ?Graph:atom
   ]
 ).
 
@@ -112,6 +115,8 @@ Support for RDF lists.
 :- rdf_meta(rdf_list_member(r,o,?)).
 :- rdf_meta(rdf_list_nth0(?,r,o,?)).
 :- rdf_meta(rdf_list_triples(+,-,t)).
+:- rdf_meta(rdf_retractall_list(r)).
+:- rdf_meta(rdf_retractall_list(r,?)).
 
 
 
@@ -427,6 +432,26 @@ rdf_list_triples0([H], B, [rdf(B,rdf:first,H),rdf(B,rdf:rest,rdf:nil)]).
 rdf_list_triples0([H|T], B1, [rdf(B1,rdf:first,H),rdf(B1,rdf:rest,B2)|Ts]):-
   rdf_bnode(B2),
   rdf_list_triples0(T, B2, Ts).
+
+
+
+rdf_retractall_list(X):-
+  rdf_retractall_list(X, _).
+
+rdf_retractall_list(X, G):-
+  (   rdfs_individual_of(X, rdf:'List')
+  ->  rdf_retractall_list0(X, G)
+  ;   true
+  ).
+
+rdf_retractall_list0(X, G):-
+  rdfs_individual_of(X, rdf:'List'), !,
+  rdf(X, rdf:first, Y, G),
+  rdf_retractall_list0(Y, G),
+  rdf(X, rdf:rest, Z, G),
+  rdf_retractall_list0(Z, G).
+rdf_retractall_list0(X, G):-
+  rdf_retractall(X, _, _, G).
 
 
 
