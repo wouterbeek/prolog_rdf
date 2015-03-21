@@ -140,13 +140,13 @@ rdf_load_any(In):-
 
 rdf_load_any(In, Options):-
   rdf_load_any(In, Metadata, Options),
+  [Entry|_] = Metadata.entries,
   ignore(option(meta_data(Metadata), Options)),
   ignore(option(metadata(Metadata), Options)),
-  
+
   % Process the format option.
   (   option(format(Format), Options)
-  ->  [Entry|_] = Metadata.entries,
-      rdf_serialization(
+  ->  rdf_serialization(
         _,
         Format,
         _,
@@ -154,7 +154,7 @@ rdf_load_any(In, Options):-
       )
   ;   true
   ),
-  
+
   % Process the graph option.
   (   option(graph(Graph), Options)
   ->  Graph = Entry.'RDF'.dataset.'default-graph'.graph
@@ -221,10 +221,10 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
       ignore(metadata_content_type(Metadata1, Options1, ContentType)),
       rdf_guess_format(In, FileExtension, ContentType, Format)
   ),
-  
+
   % Store the RDF serialization format as metadata.
   rdf_serialization(_, Format, _, SerializationUri),
-  
+
   % Set options: base URI, RDF serialization format, XML namespaces.
   set_stream(In, file_name(Base)),
   merge_options(
@@ -249,7 +249,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   % Use the default graph as given by the calling context,
   % otherwise use the base URI.
   option(graph(DefaultGraph), Options3, Base),
-  
+
   % RDF metadata: dataset (default graph, named graphs), serialization format.
   aggregate_all(
     set(named_graph{graph:Graph,name:Graph,triples:Triples}),
