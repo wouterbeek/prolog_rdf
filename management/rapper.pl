@@ -51,6 +51,8 @@ Rapper support.
 %     The RDF serialization format of the input.
 %   - triples(-nonneg)
 %     The number of parsed triples.
+%
+% @tbd Why is all _output_ send to the standard _error_ stream?
 
 rapper(File, _):-
   var(File), !,
@@ -66,7 +68,7 @@ rapper(File, Options):-
   handle_process(
     rapper,
     [file(File)|Args],
-    [output_goal(rapper_result(Triples)),program(rapper)]
+    [error_goal(rapper_result(Triples)),program(rapper)]
   ),
   ignore(option(triples(Triples), Options)).
 
