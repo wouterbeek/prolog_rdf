@@ -1,9 +1,10 @@
 :- module(
   csv_to_rdf,
   [
-    csv_to_rdf/4 % +Input:stream
+    csv_to_rdf/5 % +Input:stream
                  % +Graph:atom
-                 % +Prefix:atom
+                 % +SchemePrefix:atom
+                 % +DataPrefix:atom
                  % +ClassName:atom
   ]
 ).
@@ -13,13 +14,12 @@
 Automatic conversion from CSV to RDF.
 
 @author Wouter Beek
-@version 2014/02, 2014/05, 2014/08, 2014/11
+@version 2014/02, 2014/05, 2014/08, 2014/11, 2015/03
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(debug)).
-:- use_module(library(error)).
 :- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
@@ -38,15 +38,12 @@ Automatic conversion from CSV to RDF.
 %! csv_to_rdf(
 %!   +Input:stream,
 %!   +Graph:atom,
-%!   +Prefix:atom,
+%!   +SchemaPrefix:atom,
+%!   +DataPrefix:atom,
 %!   +ClassName:atom
 %! ) is det.
-% @throws type_error if the given prefix is not a registered RDF prefix.
 
-csv_to_rdf(_, _, Prefix, _):-
-  \+ rdf_current_prefix(Prefix, _), !,
-  type_error(rdf_prefix, Prefix).
-csv_to_rdf(In, Graph, Prefix, ClassName):-
+csv_to_rdf(In, Graph, SchemaPrefix, DataPrefix, ClassName):-
   is_stream(In), !,
 
   % Parse the CSV data.
@@ -55,11 +52,11 @@ csv_to_rdf(In, Graph, Prefix, ClassName):-
   Rows2 = [Header|Rows3],
 
   % Convert the header row.
-  csv_header_to_rdf(Graph, Prefix, Header, Properties),
+  csv_header_to_rdf(Graph, SchemaPrefix, Header, Properties),
 
   % Convert data rows.
-  rdf_global_id(Prefix:ClassName, Class),
-  maplist(csv_row_to_rdf(Graph, Class, Properties), Rows3).
+  rdf_global_id(SchemaPrefix:ClassName, Class),
+  maplist(csv_row_to_rdf(DataPrefix, Graph, Class, Properties), Rows3).
 
 
 
@@ -67,7 +64,7 @@ csv_to_rdf(In, Graph, Prefix, ClassName):-
 
 %! csv_header_to_rdf(
 %!   +Graph:atom,
-%!   +Prefix:atom,
+%!   +SchemaPrefix:atom,
 %!   +Header:list,
 %!   -Properties
 %! ) is det.
@@ -76,9 +73,9 @@ csv_to_rdf(In, Graph, Prefix, ClassName):-
 %   1. the unnamed entity represented by a data row, and
 %   2. the value that appears in a specific cell of that data row.
 
-csv_header_to_rdf(Graph, Prefix, Header, Properties):-
+csv_header_to_rdf(Graph, SchemaPrefix, Header, Properties):-
   maplist(
-    csv_header_entry_to_rdf(Graph, Prefix),
+    csv_header_entry_to_rdf(Graph, SchemaPrefix),
     Header,
     Properties
   ).
@@ -87,14 +84,14 @@ csv_header_to_rdf(Graph, Prefix, Header, Properties):-
 
 %! csv_header_entry_to_rdf(
 %!   +Graph:atom,
-%!   +Prefix:atom,
+%!   +SchemaPrefix:atom,
 %!   +HeaderEntry,
 %!   -Property:iri
 %! ) is det.
 
-csv_header_entry_to_rdf(Graph, Prefix, HeaderEntry, Property):-
+csv_header_entry_to_rdf(Graph, SchemaPrefix, HeaderEntry, Property):-
   dcg_phrase(rdf_property_name, HeaderEntry, LocalName),
-  rdf_global_id(Prefix:LocalName, Property),
+  rdf_global_id(SchemaPrefix:LocalName, Property),
   rdfs_assert_domain(Property, rdfs:'Resource', Graph),
   rdfs_assert_range(Property, xsd:string, Graph).
 
@@ -128,6 +125,7 @@ rdf_property_name --> [].
 % CSV ROW TO RDF %
 
 %! csv_row_to_rdf(
+%!   +DataPrefix:atom,
 %!   +Graph:atom,
 %!   +Class:iri,
 %!   +Properties:list(iri),
@@ -136,11 +134,10 @@ rdf_property_name --> [].
 % Converts a CSV data row to RDF, using the RDF properties that were created
 %  based on the header row.
 
-csv_row_to_rdf(Graph, Class, Properties, Row):-
+csv_row_to_rdf(DataPrefix, Graph, Class, Properties, Row):-
   % A row is translated into an instance of the given class.
-  rdf_bnode(Entry),
-  rdf_assert_instance(Entry, Class, Graph),
-
+  rdf_create_next_resource(DataPrefix, [], Class, Graph, Entry),
+  
   % Assert each cell in the given row.
   maplist(csv_cell_to_rdf(Graph, Entry), Properties, Row).
 
