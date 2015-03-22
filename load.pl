@@ -16,4 +16,3 @@ user:project(plRdf, 'Web-based Qualitative Reasoning engine.').
   plXml,
   plXsd
 ]).
-

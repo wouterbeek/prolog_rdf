@@ -1,8 +1,8 @@
 :- module(
   rdf_save_any,
   [
-    rdf_save_any/1, % +Options:list(nvpair)
-    rdf_save_any/2 % ?Spec:compound
+    rdf_save_any/1, % +Spec:compound
+    rdf_save_any/2 % +Spec:compound
                    % +Options:list(nvpair)
   ]
 ).
@@ -20,6 +20,7 @@
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
 
+:- use_module(plc(io/dir_infra)).
 :- use_module(plc(io/file_ext)).
 
 :- use_module(plRdf(management/rdf_file_db)).
@@ -46,10 +47,10 @@
 
 
 
-%! rdf_save_any(+Options:list(nvpair)) is det.
+%! rdf_save_any(+Spec:compound) is det.
 
-rdf_save_any(Options):-
-  rdf_save_any(_, Options).
+rdf_save_any(Spec):-
+  rdf_save_any(Spec).
 
 %! rdf_save_any(?Out, +Options:list(nvpair)) is det.
 % If the file name is not given, then a file name is construed.
@@ -63,12 +64,7 @@ rdf_save_any(Options):-
 % @throws instantiation_error If (1) File is uninstantiated and
 %         (2) there is no `graph` option that has a file associated to it.
 
-% 1. File specification.
-rdf_save_any(file_spec(Spec), Options):- !,
-  absolute_file_name(Spec, File, [access(write)]),
-  rdf_save_any(file(File), Options).
-
-% 2. Uninstantiated `Out`; come up with a file name.
+% 1. Uninstantiated `Out`; come up with a file name.
 % File name derived from graph.
 % This only works if a graph option is given
 % and the denoted graph was loaded from file.
@@ -95,7 +91,7 @@ rdf_save_any(file(File), Options):-
   ;   instantiation_error(File)
   ).
 
-% 3. `Out` instantiated to a file name: No modifications.
+% 2. `Out` instantiated to a file name: No modifications.
 rdf_save_any(file(File), Options):-
   nonvar(File),
   % We do not need to save the graph if
@@ -117,7 +113,7 @@ rdf_save_any(file(File), Options):-
   time_file(File, LastModified), !,
   debug(rdf_save_any, 'No need to save graph ~w; no updates.', [Graph]).
 
-% 4. `Out` instantiated to a file name: There are modifications.
+% 3. `Out` instantiated to a file name: There are modifications.
 rdf_save_any(file(File), Options1):-
   nonvar(File), !,
   % Derive the RDF output format.
@@ -143,7 +139,20 @@ rdf_save_any(file(File), Options1):-
       print_message(informational, rdf_saved(Graph,Format,File))
   ).
 
-% 5. Heuristic: unspecified spec is a file.
+% 4. File specification.
+rdf_save_any(file_spec(Spec), Options):- !,
+  absolute_file_name(Spec, File, [access(write)]),
+  rdf_save_any(file(File), Options).
+
+% 5. Graph.
+rdf_save_any(graph(Graph), Options1):- !,
+  option(format(Format), Options1, turtle),
+  rdf_file_extension_format(Ext, Format),
+  absolute_file_name(data(Graph), File, [access(write),extensions([Ext])]),
+  merge_options(Options1, [graph(Graph)], Options2),
+  rdf_save_any(file(File), Options2).
+
+% 6. Heuristic: unspecified spec is a file.
 
 rdf_save_any(File, Options):-
   rdf_save_any(file(File), Options).

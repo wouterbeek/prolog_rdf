@@ -1,8 +1,8 @@
 :- module(
   rdf_load_any,
   [
-    rdf_load_any/1, % +In
-    rdf_load_any/2 % +In
+    rdf_load_any/1, % +Spec:compound
+    rdf_load_any/2 % +Spec:compound
                    % +Options:list(nvpair)
   ]
 ).
@@ -96,19 +96,20 @@ assert_rdf_file_types:-
 
 
 
-%! rdf_load_any(+In) is det.
+%! rdf_load_any(+Spec:compound) is det.
 
-rdf_load_any(In):-
-  rdf_load_any(In, []).
+rdf_load_any(Spec):-
+  rdf_load_any(Spec, []).
 
 
-%! rdf_load_any(+In, +Option:list(nvpair)) is det.
+%! rdf_load_any(+Spec:compound, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
 %
-% `In` can be one of the following:
+% `Spec` can be one of the following:
 %   - file(+atom)
 %   - file_pattern(+atom)
 %   - file_spec(+compound)
+%   - graph(+atom)
 %   - prefix(+atom)
 %   - stream(+stream)
 %   - uri(+atom)
