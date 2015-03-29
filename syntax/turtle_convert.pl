@@ -31,7 +31,7 @@ Predicates for converting Prolog to Turtle values.
 %! atom_to_pn_local(+Atom:atom, -PnLocal:atom) is det.
 
 atom_to_pn_local(Atom, PnLocal):-
-  once(dcg_phrase(to_pn_local(Codes), Atom)),
+  once(atom_phrase(to_pn_local(Codes), Atom)),
   atom_codes(PnLocal, Codes).
 
 to_pn_local(L) -->

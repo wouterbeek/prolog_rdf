@@ -44,7 +44,7 @@ prolog_to_rdf(Graph, Module, Term, Individual):-
 
   % Class.
   Term =.. [Functor|Args],
-  once(dcg_phrase(atom_capitalize, Functor, ClassName)),
+  once(atom_phrase(atom_capitalize, Functor, ClassName)),
   rdf_global_id(Module:ClassName, Class),
   rdfs_assert_class(Class, Graph),
 

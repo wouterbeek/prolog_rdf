@@ -75,7 +75,7 @@ property_name(property(Name, _), Name).
 
 create_resource(SPrefix, DPrefix, Legend, G, Resource):-
   % Create the class-denoting RDF term based on the legend name.
-  once(dcg_phrase(atom_capitalize, Legend, ClassName)),
+  once(atom_phrase(atom_capitalize, Legend, ClassName)),
   rdf_global_id(SPrefix:ClassName, Class),
 
   % Create the instance.

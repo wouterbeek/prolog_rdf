@@ -90,7 +90,7 @@ csv_header_to_rdf(Graph, SchemaPrefix, Header, Properties):-
 %! ) is det.
 
 csv_header_entry_to_rdf(Graph, SchemaPrefix, HeaderEntry, Property):-
-  dcg_phrase(rdf_property_name, HeaderEntry, LocalName),
+  atom_phrase(rdf_property_name, HeaderEntry, LocalName),
   rdf_global_id(SchemaPrefix:LocalName, Property),
   rdfs_assert_domain(Property, rdfs:'Resource', Graph),
   rdfs_assert_range(Property, xsd:string, Graph).
