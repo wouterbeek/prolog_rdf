@@ -102,6 +102,8 @@ literals.
 
 :- use_module(plc(generics/list_ext)).
 
+:- use_module(plLangTag(language_match)).
+
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
@@ -212,16 +214,12 @@ rdf_literal(S, P, Value, Datatype, LangPrefs, Graph):-
 rdf_literal(S, P, Value, rdf:langString, LangPrefs, Graph, rdf(S,P,O)):-
   O = literal(lang(LangTag0,LexicalValue)),
   % Prioritize language-tagged strings based on the given language tag
-  %  preferences, if any.
+  % preferences, if any.
   % Respect the order on preferences from left to right.
   % Notice that this merely prioritizes: every language-tagged string
   % is returned eventually.
-  (   is_list(LangPrefs),
-      member(LangTag, LangPrefs),
-      sublist(LangTagPrefix, LangTag),
-      prefix(LangTagPrefix, LangTag),
-      LangTagPrefix \== [],
-      atomic_list_concat(LangTagPrefix, '-', LangTag0)
+  (   langprefs_to_langtag(LangPrefs, LangTag),
+      atomic_list_concat(LangTag, '-', LangTag0)
   ;   true
   ),
   rdf(S, P, O, Graph),
