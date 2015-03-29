@@ -1,6 +1,9 @@
 :- module(
   rdfs_read,
   [
+    rdfs_label/3, % ??Subject:or([bnode,iri])
+                  % ?Value
+                  % ?LangTagPreference:list(list(atom))
     rdfs_label/4, % ??Subject:or([bnode,iri])
                   % ?Value
                   % ?LangTagPreference:list(list(atom))
@@ -29,12 +32,25 @@
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(term/rdf_term)).
 
+:- rdf_meta(rdfs_label(r,?,?)).
 :- rdf_meta(rdfs_label(r,?,?,?)).
 :- rdf_meta(rdfs_label_value(r,?)).
 :- rdf_meta(rdfs_label_value(r,?,?)).
 :- rdf_meta(rdfs_label_value(r,?,?,?)).
 
 
+
+
+
+%! rdfs_label(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Value,
+%!   ?LangTagPreference:list(list(atom))
+%! ) is nondet.
+% @see rdfs_label/4
+
+rdfs_label(S, Value, LangPrefs):-
+  rdfs_label(S, Value, LangPrefs, _).
 
 
 
