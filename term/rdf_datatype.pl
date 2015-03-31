@@ -34,7 +34,7 @@
 
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdfs), except([rdfs_label/3])).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 

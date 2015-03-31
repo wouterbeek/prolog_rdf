@@ -34,7 +34,7 @@ Predicates for reading from OWL data.
 
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdfs), except([rdfs_label/3])).
 
 :- use_module(plc(generics/meta_ext)).
 

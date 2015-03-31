@@ -110,7 +110,7 @@ Mismatch types:
 :- use_module(library(lists), except([delete/3])).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdfs), except([rdfs_label/3])).
 :- use_module(library(uri)).
 
 :- use_module(plc(generics/db_ext)).
