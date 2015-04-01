@@ -110,7 +110,7 @@ rdf_save_any(file(File), Options):-
   % The file was not modified after the graph was loaded.
   rdf_graph_property(Graph, source_last_modified(LastModified)),
   exists_file(File),
-  time_file(File, LastModified), !,
+  dateTime_file(File, LastModified), !,
   debug(rdf_save_any, 'No need to save graph ~w; no updates.', [Graph]).
 
 % 3. `Out` instantiated to a file name: There are modifications.
