@@ -25,7 +25,7 @@
 /** <module> RDFS Read API
 
 @author Wouter Beek
-@version 2014/11-2015/03
+@version 2014/11-2015/04
 */
 
 :- use_module(library(lists), except([delete/3,subset/2])).
@@ -36,6 +36,9 @@
 :- use_module(plRdf(rdf_name)).
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(term/rdf_term)).
+
+:- dynamic(user:language_preferences/1).
+:- multifile(user:language_preferences/1).
 
 :- rdf_meta(rdfs_label(r,?,?)).
 :- rdf_meta(rdfs_label(r,?,?,?)).

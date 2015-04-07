@@ -73,7 +73,7 @@ Support for RDF lists.
 @compat [RDF Schema 1.1](http://www.w3.org/TR/2014/REC-rdf-schema-20140225/)
 @tbd Add RDF list retraction.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02, 2014/06, 2014/10-2015/01, 2015/03
+         2014/01-2014/02, 2014/06, 2014/10-2015/01, 2015/03-2015/04
 */
 
 :- use_module(library(option)).
@@ -369,8 +369,6 @@ rdf_list_length(List, N, Graph):-
   rdf_list_length(List, 0, N, Graph).
 
 rdf_list_length(rdf:nil, N, N, _):- !.
-rdf_list_length(List, N, N, Graph):-
-  rdf(List, rdf:rest, rdf:nil, Graph), !.
 rdf_list_length(List, N1, N3, Graph):-
   rdf(List, rdf:rest, Rest, Graph),
   rdf_list_length(Rest, N1, N2, Graph),
