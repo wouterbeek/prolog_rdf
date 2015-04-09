@@ -190,9 +190,9 @@ assert_json_property(G, Mod, SPrefix, DPrefix, Specs, Property, Value, O):-
   gtrace, %DEB
   assert_json_property(G, Mod, SPrefix, DPrefix, Specs, Property, Value, O).
 
-% We do not believe that empty values -- i.e. the empty string --
-% are very usefull, so we do not assert pairs with this value.
-assert_json_property(_, _, _, _, _, "", _):- !, fail.
+%%%%% We do not believe that empty values -- i.e. the empty string --
+%%%%% are very usefull, so we do not assert pairs with this value.
+%%%%assert_json_property(_, _, _, _, _, "", _):- !, fail.
 % List: link every element individually.
 assert_json_property(G, Mod, SPrefix, DPrefix, list(Type), Values, Os):-
   is_list(Values), !,
