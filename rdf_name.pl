@@ -279,6 +279,10 @@ rdf_term_name(Term) -->
 %     Whether or not literals are included in the name of the RDF term.
 %     The default value is `iri_only`.
 
+% Graph.
+rdf_term_name(graph(Graph), _) -->
+  rdf_graph_name(Graph).
+% In graph.
 rdf_term_name(Term, Options1) -->
   {select_option(graph(Graph), Options1, Options2)}, !,
   rdf_term_name(Term, Options2),
