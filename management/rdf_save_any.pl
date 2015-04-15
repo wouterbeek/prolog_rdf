@@ -10,7 +10,7 @@
 /** <module> RDF Management: Save in any format
 
 @author Wouter Beek
-@version 2014/10-2014/12, 2015/02-2015/03
+@version 2014/10-2014/12, 2015/02-2015/04
 */
 
 :- use_module(library(debug)).
@@ -22,6 +22,7 @@
 
 :- use_module(plc(io/dir_infra)).
 :- use_module(plc(io/file_ext)).
+:- use_module(plc(io/io_dateTime)).
 
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(syntax/ctriples/ctriples_write_graph)).
