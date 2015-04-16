@@ -103,7 +103,9 @@ rdf_bnode_name(BNode) -->
 %! rdf_graph_name(+Graph:atom)// is det.
 
 rdf_graph_name(Graph) -->
-  {var(Graph)}, !, [].
+  {var(Graph)}, !,
+  {term_to_atom(Graph, Atom)},
+  atom(Atom).
 rdf_graph_name(Graph) -->
   atom(Graph).
 
@@ -279,8 +281,12 @@ rdf_term_name(Term) -->
 %     Whether or not literals are included in the name of the RDF term.
 %     The default value is `iri_only`.
 
+rdf_term_name(VAR, _) -->
+  {var(VAR)}, !,
+  {term_to_atom(VAR, Atom)},
+  atom(Atom).
 % Graph.
-rdf_term_name(graph(Graph), _) -->
+rdf_term_name(graph(Graph), _) --> !,
   rdf_graph_name(Graph).
 % In graph.
 rdf_term_name(Term, Options1) -->
