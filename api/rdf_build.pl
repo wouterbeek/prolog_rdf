@@ -450,12 +450,12 @@ rdf_copy(FromGraph, S, P, O, ToGraph):-
 
 rdf_create_next_resource(Prefix, SubPaths1, Class, Graph, Resource):-
   % A counter keeps track of the integer identifier of the IRI.
-  with_output_to(atom(FlagTerm), write_term([Prefix|SubPaths1], [])),
-  rdf_atom_md5(FlagTerm, 1, Flag),
-  flag(Flag, Id, Id + 1),
+  thread_self(ThreadId),
+  atomic_list_concat([ThreadId,Prefix|SubPaths1], ' ', Atom),
+  rdf_atom_md5(Atom, 1, Md5),
 
   % The identifier is appended to the IRI path.
-  append(SubPaths1, [Id], SubPaths2),
+  append(SubPaths1, [Md5], SubPaths2),
   atomic_list_concat(SubPaths2, '/', Path),
 
   % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
