@@ -207,18 +207,23 @@ iri(Iri) -->
 % @tbd What about DELETE (decimal 127)?
 
 'IRIREF'(Iri) -->
-  bracketed(angular, '*'('IRIREF_char', Iri, [convert1(codes_atom),mode(parse)])).
+  "<",
+  dcg_atom_codes('IRIREF_codes', Iri),
+  ">".
 
-'IRIREF_char'(_) --> control, !, {fail}.
-'IRIREF_char'(_) --> angular_bracket, !, {fail}.
-'IRIREF_char'(_) --> "\"", !, {fail}.
-'IRIREF_char'(_) --> curly_bracket, !, {fail}.
-'IRIREF_char'(_) --> "|", !, {fail}.
-'IRIREF_char'(_) --> "^", !, {fail}.
-'IRIREF_char'(_) --> "\`", !, {fail}.
-'IRIREF_char'(_) --> "\\", !, {fail}.
-'IRIREF_char'(Code) --> 'UCHAR'(Code).
-'IRIREF_char'(Code) --> [Code].
+'IRIREF_codes'([H|T]) --> 'IRIREF_code'(H), 'IRIREF_codes'(T).
+'IRIREF_codes'([]) --> "".
+
+'IRIREF_code'(_) --> control, !, {fail}.
+'IRIREF_code'(_) --> angular_bracket, !, {fail}.
+'IRIREF_code'(_) --> "\"", !, {fail}.
+'IRIREF_code'(_) --> curly_bracket, !, {fail}.
+'IRIREF_code'(_) --> "|", !, {fail}.
+'IRIREF_code'(_) --> "^", !, {fail}.
+'IRIREF_code'(_) --> "\`", !, {fail}.
+'IRIREF_code'(_) --> "\\", !, {fail}.
+'IRIREF_code'(Code) --> 'UCHAR'(Code).
+'IRIREF_code'(Code) --> [Code].
 
 
 
@@ -308,14 +313,15 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 
 'PN_PREFIX_codes'([H|T]) -->
   'PN_CHARS_BASE'(H),
-  (   '*'('PN_CHARS0', T0, []),
+  (   'PN_PREFIX_codes_middle*'(T0),
       'PN_CHARS'(Last),
       {append(T0, [Last], T)}
   ;   {T = []}
   ).
-
-'PN_CHARS0'(Code) --> 'PN_CHARS'(Code).
-'PN_CHARS0'(Code) --> dot(Code).
+'PN_PREFIX_codes_middle*'([]) --> [].
+'PN_PREFIX_codes_middle*'([H|T]) -->
+	('PN_CHARS'(H) ; dot(H)),
+  'PN_PREFIX_codes_middle*'(T).
 
 
 
@@ -353,9 +359,8 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % @compat SPARQL 1.1 Query [140].
 % @compat Turtle 1.1 [139s].
 
-'PNAME_NS'(Prefix) -->
-  '?'('PN_PREFIX', Prefix, [empty1('')]),
-  ":".
+'PNAME_NS'(Prefix) --> 'PN_PREFIX'(Prefix), ":".
+'PNAME_NS'('') --> ":".
 
 
 
