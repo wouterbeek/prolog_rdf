@@ -22,7 +22,7 @@ not as references to specific blank nodes in the data being queried.
 @compat SPARQL 1.0 Query.
 @compat SPARQL 1.1 Query.
 @compat Turtle 1.1.
-@version 2014/08-2014/10, 2014/12
+@version 2014/08-2014/10, 2014/12, 2015/04
 */
 
 :- use_module(library(dif)).
@@ -32,7 +32,6 @@ not as references to specific blank nodes in the data being queried.
 :- use_module(plc(dcg/dcg_ascii)).
 :- use_module(plc(dcg/dcg_bracket)).
 :- use_module(plc(dcg/dcg_code)).
-:- use_module(plc(dcg/dcg_content)).
 :- use_module(plc(dcg/dcg_meta)).
 
 :- use_module(plRdf(syntax/sw_char)).
@@ -89,21 +88,21 @@ not as references to specific blank nodes in the data being queried.
 
 'BLANK_NODE_LABEL_codes'(Lang, [H|T]) -->
   "_:",
-  
+
   % First character after colon.
-  (   'PN_CHARS_U'(Lang, H)
-  ;   decimal_digit(H)
-  ),
-  
+	('PN_CHARS_U'(Lang, H) ; decimal_digit(H)),
+
   % Non-first characters.
-  (   '*'('BLANK_NODE_LABEL_code', T0, []),
-      'PN_CHARS'(Last),
+  (   'BLANK_NODE_LABEL_inner*'(Lang, T0),
+      'PN_CHARS'(Lang, Last),
       {append(T0, [Last], T)}
   ;   {T = []}
   ).
 
-'BLANK_NODE_LABEL_code'(Code) --> 'PN_CHARS'(Code).
-'BLANK_NODE_LABEL_code'(Code) --> dot(Code).
+'BLANK_NODE_LABEL_inner*'(Lang, [H|T]) -->
+	('PN_CHARS'(Lang, H) ; dot(H)),
+	'BLANK_NODE_LABEL_inner*'(Lang, T).
+'BLANK_NODE_LABEL_inner*'(_, []) --> "".
 
 
 
@@ -172,7 +171,7 @@ nameChar(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
 %! nameStartChar(?Code:code)// .
 % ```ebnf
 % nameStartChar ::=   [A-Z]
-%                   | "_" 
+%                   | "_"
 %                   | [a-z]
 %                   | [#x00C0-#x00D6]
 %                   | [#x00D8-#x00F6]

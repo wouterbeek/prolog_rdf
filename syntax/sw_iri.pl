@@ -53,7 +53,7 @@ Most standards allow IRIs to be abbreviated by splitting them in
 
 
 
-%! abbreviatedIRI(?Iri:atom)// .
+%! abbreviatedIRI(?PrefixedIri:compound)// .
 % ```bnf
 % abbreviatedIRI := a finite sequence of characters matching the PNAME_LN
 %                   production of [SPARQL]
@@ -61,8 +61,8 @@ Most standards allow IRIs to be abbreviated by splitting them in
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-abbreviatedIRI(Iri) -->
-  'PNAME_LN'(Iri).
+abbreviatedIRI(PrefixedIri) -->
+  'PNAME_LN'(PrefixedIri).
 
 
 
@@ -149,7 +149,7 @@ individualIRI(Iri) --> 'IRI'(Iri).
 
 
 
-%! iri(?Iri:atom)// is det.
+%! iri(?Iri:or([atom,compound]))// is det.
 %
 % ```bnf
 % iri ::= IRIREF | PrefixedName
@@ -161,8 +161,8 @@ individualIRI(Iri) --> 'IRI'(Iri).
 
 iri(Iri) -->
   'IRIREF'(Iri).
-iri(Iri) -->
-  'PrefixedName'(Iri).
+iri(PrefixedIri) -->
+  'PrefixedName'(PrefixedIri).
 
 
 
@@ -236,7 +236,7 @@ iri(Iri) -->
 % @deprecated Use iri//1 instead.
 
 'IRIref'(Iri) --> 'IRI_REF'(Iri).
-'IRIref'(Iri) --> 'PrefixedName'(Iri).
+'IRIref'(PrefixedIri) --> 'PrefixedName'(PrefixedIri).
 
 
 
@@ -277,21 +277,17 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
   ;   {T = []}
   ).
 
-'PN_LOCAL_1'(Code) -->
-  'PN_CHARS_U'(Lang, Code),
-  {\+ dif(Lang, n)}.
+'PN_LOCAL_1'(Code) --> 'PN_CHARS_U'(sparql, Code).
 'PN_LOCAL_1'(Code) --> colon(Code).
 'PN_LOCAL_1'(Code) --> decimal_digit(Code).
 'PN_LOCAL_1'(Code) --> 'PLX'(Code).
 
-'PN_LOCAL_2'(Code) -->
-  'PN_CHARS_U'(Lang, Code),
-  {\+ dif(Lang, n)}.
+'PN_LOCAL_2'(Code) --> 'PN_CHARS_U'(sparql, Code).
 'PN_LOCAL_2'(Code) --> dot(Code).
 'PN_LOCAL_2'(Code) --> semi_colon(Code).
 'PN_LOCAL_2'(Code) --> 'PLX'(Code).
 
-'PN_LOCAL_3'(Code) --> 'PN_CHARS'(Code).
+'PN_LOCAL_3'(Code) --> 'PN_CHARS'(sparql, Code).
 'PN_LOCAL_3'(Code) --> colon(Code).
 'PN_LOCAL_3'(Code) --> 'PLX'(Code).
 
@@ -314,18 +310,19 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 'PN_PREFIX_codes'([H|T]) -->
   'PN_CHARS_BASE'(H),
   (   'PN_PREFIX_codes_middle*'(T0),
-      'PN_CHARS'(Last),
+      'PN_CHARS'(sparql, Last),
       {append(T0, [Last], T)}
   ;   {T = []}
   ).
-'PN_PREFIX_codes_middle*'([]) --> [].
+
 'PN_PREFIX_codes_middle*'([H|T]) -->
-	('PN_CHARS'(H) ; dot(H)),
+	('PN_CHARS'(sparql, H) ; dot(H)),
   'PN_PREFIX_codes_middle*'(T).
+'PN_PREFIX_codes_middle*'([]) --> [].
 
 
 
-%! 'PNAME_LN'(?Iri:atom)// .
+%! 'PNAME_LN'(?PrefixedIri:compound)// .
 % ```bnf
 % PNAME_LN ::= PNAME_NS PN_LOCAL
 % ```
@@ -334,13 +331,12 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % @compat SPARQL 1.1 Query [141].
 % @compat Turtle 1.1 [140s].
 
-'PNAME_LN'(Iri) -->
-  {var(Iri)}, !,
+'PNAME_LN'(PrefixedIri) -->
+  {var(PrefixedIri)}, !,
   'PNAME_NS'(Prefix),
   'PN_LOCAL'(Local),
-  {rdf_global_id(Prefix:Local, Iri)}.
-'PNAME_LN'(Iri) -->
-  {rdf_global_id(Prefix:Local, Iri)},
+  {PrefixedIri = Prefix:Local}.
+'PNAME_LN'(Prefix:Local) -->
   'PNAME_NS'(Prefix),
   'PN_LOCAL'(Local).
 
@@ -419,7 +415,7 @@ prefixName -->
 
 
 
-%! 'PrefixedName'(?Iri:iri)// is det.
+%! 'PrefixedName'(?PrefixedIri:compound)// is det.
 % A **prefixed name** is a *prefix label* and a *local part*,
 % separated by a colon.
 % The prefixed name is mapped to an IRI
@@ -434,11 +430,10 @@ prefixName -->
 % @compat SPARQL 1.1 Query [137].
 % @compat Turtle 1.1 [136s].
 
-'PrefixedName'(Iri) -->
-  'PNAME_LN'(Iri).
-'PrefixedName'(Iri) -->
-  'PNAME_NS'(Prefix),
-  {rdf_global_id(Prefix:'', Iri)}.
+'PrefixedName'(PrefixedIri) -->
+  'PNAME_LN'(PrefixedIri).
+'PrefixedName'(Prefix:'') -->
+  'PNAME_NS'(Prefix).
 
 
 

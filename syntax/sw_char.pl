@@ -5,9 +5,10 @@
     'EOL'//0,
     'PERCENT'//1, % ?Code:code
     'PLX'//1, % ?Code:code
-    'PN_CHARS'//1, % ?Code:code
+    'PN_CHARS'//2, % ?Language:oneof([nquads,ntriples,sparql,turtle])
+                   % ?Code:code
     'PN_CHARS_BASE'//1, % ?Code:code
-    'PN_CHARS_U'//2, % ?Language:oneof([n,sparql,turtle])
+    'PN_CHARS_U'//2, % ?Language:oneof([nquads,ntriples,sparql,turtle])
                      % ?Code:code
     'PN_LOCAL_ESC'//1, % ?Code:code
     'UCHAR'//1, % ?Code:code
@@ -148,7 +149,7 @@ end_of_comment --> line_feed.
 
 
 
-%! 'PN_CHARS'(?Code:code)// .
+%! 'PN_CHARS'(?Language:oneof([nquads,ntriple,sparql,turtle]), ?Code:code)// .
 % ```bnf
 % PN_CHARS ::=   PN_CHARS_U
 %              | '-'
@@ -163,14 +164,13 @@ end_of_comment --> line_feed.
 % @compat SPARQL 1.1 Query [167].
 % @compat Turtle 1.1 [166s].
 
-'PN_CHARS'(Code) -->
-  'PN_CHARS_U'(Lang, Code),
-  {Lang \== n}.
-'PN_CHARS'(Code) --> hyphen_minus(Code).
-'PN_CHARS'(Code) --> decimal_digit(_, Code).
-'PN_CHARS'(Code) --> code_radix(hex('00B7'), Code).
-'PN_CHARS'(Code) --> between_code_radix(hex('0300'), hex('036F'), Code).
-'PN_CHARS'(Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
+'PN_CHARS'(Lang, Code) -->
+  'PN_CHARS_U'(Lang, Code).
+'PN_CHARS'(_, Code) --> hyphen_minus(Code).
+'PN_CHARS'(_, Code) --> decimal_digit(_, Code).
+'PN_CHARS'(_, Code) --> code_radix(hex('00B7'), Code).
+'PN_CHARS'(_, Code) --> between_code_radix(hex('0300'), hex('036F'), Code).
+'PN_CHARS'(_, Code) --> between_code_radix(hex('203F'), hex('2040'), Code).
 
 
 
@@ -243,7 +243,7 @@ end_of_comment --> line_feed.
 
 
 
-%! 'PN_CHARS_U'(?Language:oneof([n,sparql,turtle]), ?Code:code)// .
+%! 'PN_CHARS_U'(?Language:oneof([nquads,ntriples,sparql,turtle]), ?Code:code)// .
 % ```bnf
 % [N-Quads,N-Triples]   PN_CHARS_U ::= PN_CHARS_BASE | '_' | ':'
 % [Turtle,SPARQL]       PN_CHARS_U ::= PN_CHARS_BASE | '_'
@@ -260,7 +260,7 @@ end_of_comment --> line_feed.
 'PN_CHARS_U'(_, Code) -->
   underscore(Code).
 'PN_CHARS_U'(Lang, Code) -->
-  {dif(Lang, n)},
+  {member(Lang, [nquads,ntriples])},
   colon(Code).
 
 
