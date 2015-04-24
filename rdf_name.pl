@@ -68,7 +68,7 @@ Generates names for RDF terms and triples.
 :- predicate_options(rdf_plain_literal_name//2, 2, [
   pass_to(rdf_simple_literal_name//2, 2)
 ]).
-:- predicate_options(rdf_quadruple_name/2, 2, [
+:- predicate_options(rdf_quadruple_name//2, 2, [
   pass_to(rdf_term_name0/2, 1)
 ]).
 :- predicate_options(rdf_simple_literal_name//2, 2, [
@@ -82,10 +82,10 @@ Generates names for RDF terms and triples.
   pass_to(rdf_term_name/2, 2),
   pass_to(rdf_term_name0/2, 1)
 ]).
-:- predicate_options(rdf_term_name0/2, 1, [
+:- predicate_options(rdf_term_name0//2, 1, [
   pass_to(rdf_term_name/2, 2)
 ]).
-:- predicate_options(rdf_triple_name/2, 2, [
+:- predicate_options(rdf_triple_name//2, 2, [
   pass_to(rdf_term_name0/2, 1)
 ]).
 
@@ -281,6 +281,9 @@ rdf_term_name(Term) -->
 %     Whether or not literals are included in the name of the RDF term.
 %     The default value is `iri_only`.
 
+rdf_term_name(var(Name,_), _) --> !,
+  "?",
+  atom(Name).
 rdf_term_name(VAR, _) -->
   {var(VAR)}, !,
   {term_to_atom(VAR, Atom)},
