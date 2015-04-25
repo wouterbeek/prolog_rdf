@@ -281,13 +281,15 @@ rdf_term_name(Term) -->
 %     Whether or not literals are included in the name of the RDF term.
 %     The default value is `iri_only`.
 
-rdf_term_name(var(Name,_), _) --> !,
-  "?",
-  atom(Name).
+% Prolog variable.
 rdf_term_name(VAR, _) -->
   {var(VAR)}, !,
   {term_to_atom(VAR, Atom)},
   atom(Atom).
+% SPARQL variable.
+rdf_term_name(var(Name,_), _) --> !,
+  "?",
+  atom(Name).
 % Graph.
 rdf_term_name(graph(Graph), _) --> !,
   rdf_graph_name(Graph).
