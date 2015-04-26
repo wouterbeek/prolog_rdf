@@ -299,19 +299,19 @@ rdf_term_name(Term, Options1) -->
   rdf_term_name(Term, Options2),
   " in ",
   rdf_graph_name(Graph).
-% RDF list.
-rdf_term_name(RdfList, Options) -->
-  {
-    rdf_list(RdfList),
-    \+ option(collate_rdf_lists(false), Options)
-  }, !,
-  % Recursively retrieve the contents of the RDF list.
-  % This has to be done non-recursively, since the nested
-  % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
-  % trouble when it comes accross `[b,c]`
-  % (which fails the check for RDF list).
-  {rdf_list(RdfList, PlList, _, [recursive(false)])},
-  list(rdf_term_name0(Options), PlList).
+%% RDF list.
+%rdf_term_name(RdfList, Options) -->
+%  {
+%    rdf_list(RdfList),
+%    \+ option(collate_rdf_lists(false), Options)
+%  }, !,
+%  % Recursively retrieve the contents of the RDF list.
+%  % This has to be done non-recursively, since the nested
+%  % Prolog list `[a,[b,c]]` would bring rdf_term_name//1 into
+%  % trouble when it comes accross `[b,c]`
+%  % (which fails the check for RDF list).
+%  {rdf_list(RdfList, PlList, _, [recursive(false)])},
+%  list(rdf_term_name0(Options), PlList).
 % Blank node.
 rdf_term_name(BNode, _) -->
   {rdf_is_bnode(BNode)}, !,
