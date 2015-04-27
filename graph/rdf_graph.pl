@@ -1,6 +1,8 @@
 :- module(
   rdf_graph,
   [
+    rdf_copy_graph/2, % +From:atom
+                      % +To:atom
     rdf_fresh_graph/2, % ?Graph:atom
                        % +FreshnessLifetime:between(0.0,inf)
     rdf_graph_age/2, % ?Graph:atom
@@ -32,7 +34,7 @@
 @author Wouter Beek
 @compat [RDF 1.1 Semantics](http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/)
 @version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05, 2014/11,
-         2015/03
+         2015/03-2015/04
 */
 
 :- use_module(library(ordsets)).
@@ -46,6 +48,14 @@
 :- use_module(plRdf(term/rdf_term)).
 
 
+
+%! rdf_copy_graph(+From:atom, +To:atom) is det.
+
+rdf_copy_graph(From, To):-
+  forall(
+    rdf(S, P, O, From),
+    rdf_assert(S, P, O, To)
+  ).
 
 
 
