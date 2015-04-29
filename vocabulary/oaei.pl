@@ -242,7 +242,7 @@ assert_alignments0(Pairs, Graph):-
 oaei_check_alignment(ReferenceAlignments, RawAlignments):-
   t1_error(ReferenceAlignments, RawAlignments, FalsePositives),
   t2_error(ReferenceAlignments, RawAlignments, FalseNegatives),
-  ord_intersect(ReferenceAlignments, RawAlignments, X),
+  ord_intersection(ReferenceAlignments, RawAlignments, X),
   length(X, Overlap),
   % Write the results to user output.
   format(
