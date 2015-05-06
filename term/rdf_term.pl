@@ -164,7 +164,8 @@ rdf_is_iri(IRI):-
 rdf_is_name(Name):-
   rdf_is_literal(Name).
 rdf_is_name(Name):-
-  rdf_is_resource(Name).
+  rdf_is_resource(Name),
+  \+ rdf_is_bnode(Name).
 
 
 
