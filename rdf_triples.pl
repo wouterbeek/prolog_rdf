@@ -7,15 +7,20 @@
     rdf_assert_triple/1, % +Triple:compound
     rdf_assert_triple/2, % +Triple:compound
                          % +Graph:atom
-    rdf_ground_triple/4, % ?Subject:or([bnode,iri])
+    rdf_ground_triple/4, % ?Subject:iri
                          % ?Predicate:iri
-                         % ?Object:rdf_term
+                         % ?Object:or([iri,literal])
                          % ?Graph:atom
-    rdf_is_ground_triple/1, % @Term
+    rdf_is_ground_triple/1, % @Triple
+    rdf_is_nonground_triple/1, % @Triple
     rdf_is_object/1, % @Term
     rdf_is_predicate/1, % @Term
     rdf_is_subject/1, % @Term
     rdf_is_triple/1, % @Triple
+    rdf_nonground_triple/4, % ?Subject:or([bnode,iri])
+                            % ?Predicate:iri
+                            % ?Object:rdf_term
+                            % ?Graph:atom
     rdf_triples/2, % +Graph:atom
                    % -Triples:ordset(compound)
     rdf_triples/3, % +Resource:iri,
@@ -35,7 +40,7 @@
 Support for RDF triple compound terms.
 
 @author Wouter Beek
-@version 2014/11, 2015/03
+@version 2014/11, 2015/03, 2015/05
 */
 
 :- use_module(library(aggregate)).
@@ -47,7 +52,9 @@ Support for RDF triple compound terms.
 
 :- rdf_meta(rdf_ground_triple(r,r,o,?)).
 :- rdf_meta(rdf_is_ground_triple(t)).
+:- rdf_meta(rdf_is_nonground_triple(t)).
 :- rdf_meta(rdf_is_triple(t)).
+:- rdf_meta(rdf_nonground_triple(r,r,o,?)).
 :- rdf_meta(rdf_triples(r,-,?)).
 
 
@@ -83,9 +90,9 @@ rdf_assert_triple(rdf(S,P,O), G):-
 
 
 %! rdf_ground_triple(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:iri,
 %!   ?Predicate:iri,
-%!   ?Object:rdf_term,
+%!   ?Object:or([iri,literal]),
 %!   ?Graph:atom
 %! ) is nondet.
 
@@ -95,13 +102,22 @@ rdf_ground_triple(S, P, O, G):-
 
 
 
-%! rdf_is_ground_triple(@Term) is semidet.
+%! rdf_is_ground_triple(@Triple) is semidet.
 % Succeeds if the given triple is ground, i.e., contains no blank node.
 
-rdf_is_ground_triple(rdf(S,P,O)):-
-  rdf_is_name(S),
-  rdf_is_resource(P),
-  rdf_is_name(O).
+rdf_is_ground_triple(rdf(S,_,O)):-
+  \+ rdf_is_bnode(S),
+  \+ rdf_is_bnode(O).
+
+
+
+%! rdf_is_nonground_triple(@Triple) is semidet.
+% Succeeds if the given triple is non-ground, i.e., contains a blank node.
+
+rdf_is_nonground_triple(rdf(S,_,_)):-
+  rdf_is_bnode(S), !.
+rdf_is_nonground_triple(rdf(_,_,O)):-
+  rdf_is_bnode(O).
 
 
 
@@ -130,13 +146,25 @@ rdf_is_subject(Term):-
 
 
 
-%! rdf_is_triple(@Term) is semidet.
-% Succeeds if the given triple is ground, i.e., contains no blank node.
+%! rdf_is_triple(@Triple) is semidet.
 
 rdf_is_triple(rdf(S,P,O)):-
   rdf_is_subject(S),
   rdf_is_predicate(P),
   rdf_is_object(O).
+
+
+
+%! rdf_nonground_triple(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_nonground_triple(S, P, O, G):-
+  rdf(S, P, O, G),
+  rdf_is_nonground_triple(rdf(S,P,O)).
 
 
 
