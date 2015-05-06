@@ -57,14 +57,14 @@ Support for blank node mappings in RDF.
 rdf_term_instance(Specific, Generic, NewMap):-
   rdf_term_instance(Specific, Generic, [], NewMap).
 
-% Generic is not a blank node so Specific cannot be more specific.
-rdf_term_instance(Name, Name, Map, Map):-
-  \+ rdf_is_bnode(Name), !.
+% Generic and Specific are the same and are possibly a blank node.
+rdf_term_instance(Name, Name, Map, Map):- !.
 % Generic is a known blank node, use the existing mapping.
 rdf_term_instance(Term, BNode, Map, Map):-
   ord_memberchk(BNode-Term, Map), !.
 % Generic is a new blank node, add it to the mapping.
 rdf_term_instance(Term, BNode, Map1, Map2):-
+  rdf_is_bnode(BNode),
   ord_add_element(Map1, BNode-Term, Map2).
 
 
