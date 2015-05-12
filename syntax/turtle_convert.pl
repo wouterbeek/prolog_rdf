@@ -58,7 +58,7 @@ to_pn_local_middles(L) -->
 to_pn_local_middles([]) --> [].
 
 to_pn_local_middle([Code]) -->
-  'PN_CHARS'(Code), !.
+  'PN_CHARS'(turtle, Code), !.
 to_pn_local_middle([Code]) -->
   dot(Code), !.
 to_pn_local_middle([Code]) -->
@@ -69,7 +69,7 @@ to_pn_local_middle(Codes) -->
   to_pn_local_escape(Codes).
 
 to_pn_local_last([Code]) -->
-  'PN_CHARS'(Code), !.
+  'PN_CHARS'(turtle, Code), !.
 to_pn_local_last([Code]) -->
   colon(Code), !.
 to_pn_local_last([Code]) -->
