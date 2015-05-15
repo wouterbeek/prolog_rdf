@@ -55,6 +55,12 @@ error:has_type(rdf_format, Term):-
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
 
+user:prolog_file_type(nq, nquads).
+user:prolog_file_type(nt, ntriples).
+user:prolog_file_type(owl, owl).
+user:prolog_file_type(ttl, turtle).
+user:prolog_file_type(xml, rdfxml).
+
 :- initialization(register_rdf_file_types).
 
 
