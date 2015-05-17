@@ -24,6 +24,7 @@ Generates names for RDF terms and triples.
 @version 2013/07-2013/09, 2014/01-2014/04, 2014/07, 2014/10-2014/11, 2015/03
 */
 
+:- use_module(library(dcg/basics)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 

@@ -16,6 +16,7 @@ Print reified RDF statements.
          2014/09-2014/10, 2014/12
 */
 
+:- use_module(library(dcg/basics)).
 :- use_module(library(semweb/rdfs), except([rdfs_label/3])).
 
 :- use_module(plc(dcg/dcg_atom)).

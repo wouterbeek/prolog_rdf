@@ -262,12 +262,8 @@ quotedString_codes([H|T]) -->
 
 'STRING_LITERAL'(Language, Quote, String) -->
   quoted(Quote,
-    '*'(
-      'STRING_LITERAL_char'(Language, Quote),
-      String,
-      [convert1(codes_atom),mode(parse)]
-    )
-  ), !.
+    dcg_atom('*'('STRING_LITERAL_char'(Language, Quote), []), String)
+  ).
 
 
 
@@ -295,12 +291,8 @@ quotedString_codes([H|T]) -->
 
 'STRING_LITERAL_LONG'(Language, Quote, String) -->
   quoted(3, Quote,
-    '*'(
-      'STRING_LITERAL_LONG_char'(Language, Quote),
-      String,
-      [convert1(codes_atom),mode(parse)]
-    )
-  ), !.
+    dcg_atom('*'('STRING_LITERAL_LONG_char'(Language, Quote), []), String)
+  ).
 
 
 
