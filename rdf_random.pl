@@ -23,7 +23,7 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 

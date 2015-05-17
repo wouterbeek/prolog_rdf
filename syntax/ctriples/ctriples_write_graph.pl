@@ -15,7 +15,7 @@ Writes the given graph (or all currently stored triples) to a source.
 @version 2014/03-2014/06, 2014/08-2014/09, 2015/01
 */
 
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 

@@ -26,7 +26,7 @@ Predicates for converting RDF data between different serialization formats.
 @version 2014/04-2014/05, 2014/07
 */
 
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 

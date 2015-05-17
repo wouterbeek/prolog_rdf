@@ -21,7 +21,7 @@ Sytax-to-semantics map printing.
 @version 2013/08, 2014/01, 2014/11
 */
 
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 
 :- use_module(plc(dcg/dcg_collection)).
 :- use_module(plc(dcg/dcg_generics)).

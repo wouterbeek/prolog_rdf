@@ -24,7 +24,7 @@ This requires a Prolog module whose name is also registered as
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plc(dcg/dcg_atom)). % DCG rule.

@@ -97,7 +97,7 @@ literals.
 @version 2014/11-2014/12, 2015/02-2015/03
 */
 
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plc(generics/list_ext)).

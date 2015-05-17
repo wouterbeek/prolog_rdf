@@ -33,7 +33,7 @@ Most standards allow IRIs to be abbreviated by splitting them in
 
 :- use_module(library(dif)).
 :- use_module(library(error)).
-:- use_module(library(lists), except([delete/3])).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plc(dcg/dcg_abnf)).
