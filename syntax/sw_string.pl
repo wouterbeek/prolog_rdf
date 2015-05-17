@@ -52,7 +52,7 @@ Grammar rules for strings in Semantic Web standards.
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
 quotedString(String) -->
-  bracketed(dcg_atom_codes(quotedString_codes, String)).
+  bracketed(dcg_atom(quotedString_codes, String)).
 
 quotedString_codes([H1,H2|T]) -->
   backslash(H1),

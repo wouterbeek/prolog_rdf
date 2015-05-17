@@ -208,7 +208,7 @@ iri(PrefixedIri) -->
 
 'IRIREF'(Iri) -->
   "<",
-  dcg_atom_codes('IRIREF_codes', Iri),
+  dcg_atom('IRIREF_codes', Iri),
   ">".
 
 'IRIREF_codes'([H|T]) --> 'IRIREF_code'(H), 'IRIREF_codes'(T).
@@ -267,7 +267,7 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % @compat Turtle 1.1 [168s].
 
 'PN_LOCAL'(LocalPart) -->
-  dcg_atom_codes('PN_LOCAL_codes', LocalPart).
+  dcg_atom('PN_LOCAL_codes', LocalPart).
 
 'PN_LOCAL_codes'([H|T]) -->
   'PN_LOCAL_1'(H),
@@ -305,7 +305,7 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % @compat Turtle 1.1 [167s].
 
 'PN_PREFIX'(Prefix) -->
-  dcg_atom_codes('PN_PREFIX_codes', Prefix).
+  dcg_atom('PN_PREFIX_codes', Prefix).
 
 'PN_PREFIX_codes'([H|T]) -->
   'PN_CHARS_BASE'(H),

@@ -83,7 +83,7 @@ not as references to specific blank nodes in the data being queried.
 % @compat Turtle 1.1 [141s]
 
 'BLANK_NODE_LABEL'(Lang, BNode) -->
-  dcg_atom_codes('BLANK_NODE_LABEL_codes'(Lang), BNodeLabel),
+  dcg_atom('BLANK_NODE_LABEL_codes'(Lang), BNodeLabel),
   {bnode_label(BNodeLabel, BNode)}.
 
 'BLANK_NODE_LABEL_codes'(Lang, [H|T]) -->

@@ -198,7 +198,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
 
   % Escape space (SPACE to `%20`) and grave accent (GRAVE-ACCENT -> `%60`).
   atom_phrase(
-    dcg_maplist(dcg_replace, [[32],[96]], [[37,50,48],[37,54,48]]),
+    '*'(dcg_replace, [[32],[96]], [[37,50,48],[37,54,48]], []),
     Name3,
     Name4
   ),
