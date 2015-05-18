@@ -106,7 +106,8 @@
                            % ?Graph:atom
     rdf_retractall_typed_literal/5 % ?Subject:or([bnode,iri])
                                    % ?Predicate:iri
-                                   % ?String:atom
+                                   % ?Value:atom
+                                   % ?Datatype:iri
                                    % ?Graph:atom
   ]
 ).
