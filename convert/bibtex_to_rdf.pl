@@ -1,7 +1,7 @@
 :- module(
   bibtex_to_rdf,
   [
-    bibtex_to_rdf/2 % +File:atom
+    bibtex_to_rdf/2 % +Input:compound
                     % +Graph:atom
   ]
 ).
@@ -30,8 +30,8 @@
 
 
 
-bibtex_to_rdf(File, Graph):-
-  bibtex(File, Entries),
+bibtex_to_rdf(Input, Graph):-
+  bibtex(Input, Entries),
   maplist(\Entry^assert_bibtex_entry(Entry, Graph), Entries).
 
 
