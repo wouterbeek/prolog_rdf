@@ -1,7 +1,6 @@
 :- module(
   rdf_file_db,
   [
-    rdf_accept_header_value/1, % -Value:atom
     rdf_file_extension/1, % ?FileExtension:atom
     rdf_file_extension_format/2, % ?FileExtension:atom
                                  % ?Format:rdf_format
@@ -64,34 +63,6 @@ user:prolog_file_type(xml, rdfxml).
 :- initialization(register_rdf_file_types).
 
 
-
-
-
-%! rdf_accept_header_value(-AcceptValue:atom) is det.
-% Returns a value that can be used for the Accept header of an HTTP request
-% in order to have a fair chance that RDF content -- if available --
-% will be returned.
-%
-% The media types that are considered are:
-%   - all the media types that are specified
-%     as part of the rdf_serialization/4 predicate.
-%   - the most generic media type, i.e. `*/*`.
-
-rdf_accept_header_value(AcceptValue):-
-  findall(
-    'accept-value'{
-        'media-range':MediaRange,
-        weight:Weight,
-        'accept-exts':[]
-    },
-    (
-      rdf_serialization(_, _, MediaTypes, _),
-      member(Weight-MediaType, MediaTypes),
-      dict_tag(MediaType, 'media-range', MediaRange)
-    ),
-    MediaRanges
-  ),
-  dcg_with_output_to(atom(AcceptValue), 'Accept'(MediaRanges)).
 
 
 

@@ -7,14 +7,10 @@
   ]
 ).
 
-/** <module> RDF: load any
+/** <module> RDF: Load any
 
 @author Wouter Beek
-@author Jan Wielemaker
-@version 2012/01, 2012/03, 2012/09, 2012/11,
-         2013/01-2013/06, 2013/08-2013/09, 2013/11,
-         2014/01-2014/04, 2014/07, 2014/10, 2014/12,
-         2015/02-2015/03
+@version 2012-2015
 */
 
 :- use_module(library(aggregate)).
@@ -68,7 +64,7 @@
   pass_to(open_any/3, 3)
 ]).
 :- predicate_options(rdf_load_any/3, 3, [
-  pass_to(rdf_load_any/3, 3),
+  pass_to(rdf_http_plugin:rdf_extra_headers/2, 2),
   pass_to(rdf_load_from_stream_nondet/3, 3)
 ]).
 :- predicate_options(rdf_load_from_stream_det/4, 4, [
@@ -106,35 +102,35 @@ rdf_load_any(Spec):-
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
 %
 % `Spec` can be one of the following:
-%   - file(+atom)
-%   - file_pattern(+atom)
-%   - file_spec(+compound)
-%   - graph(+atom)
-%   - prefix(+atom)
-%   - stream(+stream)
-%   - uri(+atom)
-%   - uri_components(+compound)
+%   * file(+atom)
+%   * file_pattern(+atom)
+%   * file_spec(+compound)
+%   * graph(+atom)
+%   * prefix(+atom)
+%   * stream(+stream)
+%   * uri(+atom)
+%   * uri_components(+compound)
 %
 % The following options are supported:
-%   - format(+Format:oneof([ntriples,turtle,xml]))
+%   * format(+Format:oneof([ntriples,turtle,xml]))
 %     The RDF serialization that has to be used for parsing.
 %     Default: @tbd
-%   - graph(+Graph:atom)
+%   * graph(+Graph:atom)
 %     The name of the RDF graph in which the parsed data is loaded.
 %     Default: `user`.
-%   - keep_file(+Keep:boolean)
+%   * keep_file(+Keep:boolean)
 %     If the given input is a URL, the remote document is first
 %     downloaded, and then kept available, locally.
 %     Default: `false`.
-%   - meta_data(-Metadata:dict)
-%   - reduced_locations(+Use:boolean)
+%   * meta_data(-Metadata:dict)
+%   * reduced_locations(+Use:boolean)
 %     Whether reduced locations are used of not.
 %     See [rdf_prefixes].
 %     Default: `false`.
-%   - silent(+boolean)
+%   * silent(+boolean)
 %     Whether informational messages about loaded content are shown.
 %     Default: `true`.
-%   - void(+Load:boolean)
+%   * void(+Load:boolean)
 %     Whether the loaded data should be recursively closed under
 %     VoID descriptions that appear in that data.
 %     Default: `false`.
@@ -171,7 +167,7 @@ rdf_load_any(prefix(Prefix), M, Options1):-
 
 % 2. Reuse the versatile open_any/4.
 rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
-  rdf_extra_headers(ExtraHeaders),
+  rdf_http_plugin:rdf_extra_headers(ExtraHeaders, Options1),
   merge_options(Options1, ExtraHeaders, Options2),
   findall(
     EntryMetadata,
@@ -355,12 +351,3 @@ metadata_to_base0(Metadata, Base):-
   ).
 metadata_to_base0(_Location, Base):-
   gensym('stream://', Base).
-
-
-%! rdf_extra_headers(-Headers:list(nvpair)) is det.
-
-rdf_extra_headers([
-  cert_verify_hook(ssl_verify),
-  request_header('Accept'=AcceptValue)
-]):-
-  rdf_accept_header_value(AcceptValue).
