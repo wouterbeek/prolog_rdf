@@ -143,12 +143,7 @@ rdf_load_any(In, Options):-
 
   % Process the format option.
   (   option(format(Format), Options)
-  ->  rdf_serialization(
-        _,
-        Format,
-        _,
-        Entry.'RDF'.'serialization-format'
-      )
+  ->  rdf_serialization_resource(Format, Entry.'RDF'.'serialization-format')
   ;   true
   ),
 
@@ -220,7 +215,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   ),
 
   % Store the RDF serialization format as metadata.
-  rdf_serialization(_, Format, _, SerializationUri),
+  rdf_serialization_resource(Format, SerializationUri),
 
   % Set options: base URI, RDF serialization format, XML namespaces.
   set_stream(In, file_name(Base)),

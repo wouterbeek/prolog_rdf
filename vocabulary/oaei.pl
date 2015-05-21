@@ -99,8 +99,7 @@ Mismatch types:
     * Data semantic transformation
 
 @author Wouter Beek
-@version 2013/04-2013/05, 2013/08-2013/09, 2013/12-2014/01, 2014/03, 2014/07,
-         2014/11
+@version 2013-2015
 */
 
 :- use_module(library(aggregate)).
@@ -291,7 +290,8 @@ tsv_convert_directory(FromDir, ToDir, ToMime, ToFiles):-
     ToFile,
     (
       member(FromFile, FromFiles),
-      once(rdf_serialization(ToExt, _, ToMime, _)),
+      rdf_media_type(ToMime, ToFormat),
+      rdf_file_extension(ToExt, ToFormat),
       file_alternative(FromFile, ToDir, _, ToExt, ToFile),
       tsv_file_to_oaei_file(FromFile, ToFile)
     ),

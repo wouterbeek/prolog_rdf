@@ -85,7 +85,7 @@ rdf_convert_directory(FromDir, ToDir, ToFormat, ToFiles, Options):-
   rdf_directory_files(FromDir, FromFiles),
 
   default(ntriples, ToFormat),
-  rdf_file_extension_format(ToExtension, ToFormat),
+  rdf_file_extension(ToExtension, ToFormat),
 
   findall(
     ToFile,

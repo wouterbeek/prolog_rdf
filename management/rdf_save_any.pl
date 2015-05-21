@@ -81,7 +81,7 @@ rdf_save_any(file(File), Options):-
           % In case a serialization format is specified,
           % we use the appropriate file extension.
           (   option(format(Format), Options)
-          ->  rdf_file_extension_format(Ext, Format),
+          ->  rdf_file_extension(Ext, Format),
               file_name_extension(Graph0, Ext, Graph)
           ;   Graph = Graph0
           ),
@@ -122,7 +122,7 @@ rdf_save_any(file(File), Options1):-
   ->  true
   ;   Options2 = Options1,
       (   file_name_extension(_, Extension, File),
-          rdf_file_extension_format(Extension, Format)
+          rdf_file_extension(Extension, Format)
       ->  true
       ;   Format = nquads
       )
@@ -148,7 +148,7 @@ rdf_save_any(file_spec(Spec), Options):- !,
 % 5. Graph.
 rdf_save_any(graph(Graph), Options1):- !,
   option(format(Format), Options1, turtle),
-  rdf_file_extension_format(Ext, Format),
+  rdf_file_extension(Ext, Format),
   absolute_file_name(data(Graph), File, [access(write),extensions([Ext])]),
   merge_options(Options1, [graph(Graph)], Options2),
   rdf_save_any(file(File), Options2).
