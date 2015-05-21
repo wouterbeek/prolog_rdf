@@ -134,10 +134,10 @@ rdf_save_any(file(File), Options1):-
 
   rdf_save_any(file(File), Format, Options2),
 
-  (   option(silent(true), Options2)
-  ->  true
-  ;   option(graph(Graph), Options2),
-      print_message(informational, rdf_saved(Graph,Format,File))
+  (   option(graph(Graph), Options2),
+      \+ option(silent(true), Options2)
+  ->  print_message(informational, rdf_saved(Graph,Format,File))
+  ;   true
   ).
 
 % 4. File specification.

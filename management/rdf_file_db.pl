@@ -3,10 +3,10 @@
   [
     rdf_file_extension/1, % ?Extension:atom
     rdf_file_extension/2, % ?Extension:atom
-                                 % ?Format:atom
+                          % ?Format:atom
     rdf_media_type/1, % ?MediaType:dict
     rdf_media_type/2, % ?MediaType:dict
-                             % ?Format:atom
+                      % ?Format:atom
     rdf_serialization_format/1, % ?Format:atom
     rdf_serialization_label/2, % ?Label:atom
                                % ?Format:atom
