@@ -31,7 +31,7 @@
   pass_to(rdf_save_any/2, 2)
 ]).
 :- predicate_options(rdf_save_any/2, 2, [
-  format(+oneof([ntriples,rdf_xml,trig,triples,turtle])),
+  format(+oneof([ntriples,trig,triples,turtle,xml])),
   graph(+atom),
   silent(+boolean),
   pass_to(rdf_save_any/3, 3)
@@ -177,7 +177,7 @@ rdf_save_any(file(File), Format, Options):- !,
   ).
 
 % Save to RDF/XML
-rdf_save_any(stream(Write), rdf_xml, Options):- !,
+rdf_save_any(Write, xml, Options):- !,
   rdf_save(Write, Options).
 % Save to N-Triples.
 rdf_save_any(stream(Write), Format, Options1):-

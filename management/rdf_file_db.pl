@@ -59,7 +59,7 @@ user:prolog_file_type(n3, n3).
 user:prolog_file_type(trig, trig).
 user:prolog_file_type(trix, trix).
 user:prolog_file_type(ttl, turtle).
-user:prolog_file_type(xml, rdfxml).
+user:prolog_file_type(rdf, xml).
 
 
 
