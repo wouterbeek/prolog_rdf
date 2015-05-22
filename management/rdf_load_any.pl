@@ -216,7 +216,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   ),
 
   % Store the RDF serialization format as metadata.
-  rdf_serialization_resource(SerializationUri, Format),
+  rdf_serialization_resource(Serialization, Format),
 
   % Set options: base URI, RDF serialization format, XML namespaces.
   set_stream(In, file_name(Base)),
@@ -255,7 +255,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   rdf_graph_property(DefaultGraph, triples(DefaultGraphTriples)),
   rdf_statistics(graphs(Graphs)),
   rdf_statistics(literals(Literals)),
-  rdf_statistics(properties(Properties)),
+  rdf_statistics(properties(Predicates)),
   rdf_statistics(resources(Resources)),
   rdf_statistics(triples(Triples)),
   Metadata2 = Metadata1.put(
@@ -271,10 +271,10 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
         },
         'number-of-graphs':Graphs,
         'number-of-unique-literals':Literals,
-        'number-of-unique-properties':Properties,
+        'number-of-unique-predicates':Predicates,
         'number-of-unique-resources':Resources,
         'number-of-unique-triples':Triples,
-        'serialization-format':SerializationUri
+        'serialization-format':Serialization
       }
     }
   ).
