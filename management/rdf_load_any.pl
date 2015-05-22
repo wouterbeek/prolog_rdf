@@ -140,11 +140,11 @@ rdf_load_any(In, Options):-
   [Entry|_] = Metadata.entries,
   ignore(option(meta_data(Metadata), Options)),
   ignore(option(metadata(Metadata), Options)),
-
+  
   % Process the format option.
   (   option(format(Format), Options),
       var(Format)
-  ->  rdf_serialization_resource(Format, Entry.'RDF'.'serialization-format')
+  ->  rdf_serialization_resource(Entry.'RDF'.'serialization-format', Format)
   ;   true
   ),
 
