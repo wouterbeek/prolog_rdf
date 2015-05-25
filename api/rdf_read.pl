@@ -1,6 +1,13 @@
 :- module(
   rdf_read,
   [
+    rdf_date/3, % ?Subject:or([bnode,iri])
+                % ?Predicate:iri
+                % ?Date:compound
+    rdf_date/4, % ?Subject:or([bnode,iri])
+                % ?Predicate:iri
+                % ?Date:compound
+                % ?Graph:atom
     rdf_instance/3, % ?Instance:or([bnode,iri])
                     % ?Class:iri
                     % ?Graph:atom
@@ -94,7 +101,7 @@ Predicates for reading from RDF, customized for specific datatypes and
 literals.
 
 @author Wouter Beek
-@version 2014/11-2014/12, 2015/02-2015/03
+@version 2014-2015
 */
 
 :- use_module(library(lists), except([delete/3,subset/2])).
@@ -107,6 +114,8 @@ literals.
 :- use_module(plRdf(term/rdf_datatype)).
 :- use_module(plRdf(term/rdf_term)).
 
+:- rdf_meta(rdf_date(r,r,?)).
+:- rdf_meta(rdf_date(r,r,?,?)).
 :- rdf_meta(rdf_instance(r,r,?)).
 :- rdf_meta(rdf_langstring(r,r,?)).
 :- rdf_meta(rdf_langstring(r,r,?,?)).
@@ -136,6 +145,41 @@ error:has_type(rdf_term, Term):-
   ).
 
 
+
+
+
+%! rdf_date(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Date:compound
+%! ) is nondet.
+
+rdf_date(S, P, D):-
+  rdf_date(S, P, D, _).
+
+%! rdf_date(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Date:compound,
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:date, G).
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:dateTime, G).
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:gDay, G).
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:gMonth, G).
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:gMonthDay, G).
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:gYear, G).
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:gYearMonth, G).
+rdf_date(S, P, D, G):-
+  rdf_typed_literal(S, P, D, xsd:time, G).
 
 
 

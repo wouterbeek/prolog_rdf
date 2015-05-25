@@ -44,7 +44,7 @@ Predicates for perfoming measurements represented in RDF.
 
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdf_datetime)).
+:- use_module(plRdf(term/rdf_date)).
 
 :- meta_predicate(assert_observation(+,+,1,+,-)).
 :- meta_predicate(assert_multimeasure_observation(+,+,1,+,-)).
