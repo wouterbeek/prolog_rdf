@@ -37,8 +37,8 @@ Turtle characters are a superset of SPARQL characters.
 
 :- use_module(library(dif)).
 
-:- use_module(plc(dcg/abnf_core_rules)).
 :- use_module(plc(dcg/dcg_abnf)).
+:- use_module(plc(dcg/dcg_abnf_rules)).
 :- use_module(plc(dcg/dcg_ascii)).
 :- use_module(plc(dcg/dcg_bracket)).
 :- use_module(plc(dcg/dcg_code)).
