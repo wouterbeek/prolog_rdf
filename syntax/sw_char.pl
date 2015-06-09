@@ -32,10 +32,8 @@ Turtle characters are a superset of SPARQL characters.
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/04-2014/05, 2014/09-2015/01
+@version 2014-2015
 */
-
-:- use_module(library(dif)).
 
 :- use_module(plc(dcg/dcg_abnf)).
 :- use_module(plc(dcg/dcg_abnf_rules)).
@@ -48,7 +46,7 @@ Turtle characters are a superset of SPARQL characters.
   zero_width_joiner//1,
   zero_width_non_joiner//1
 ]).
-:- use_module(plc(math/radix)).
+:- use_module(plc(math/positional)).
 
 
 
@@ -316,11 +314,11 @@ end_of_comment --> line_feed.
 'UCHAR'(Code) -->
   "\\u",
   '#'(4, 'HEX', Weights, []),
-  {weights_radix(Weights, Code)}.
+  {positional(Code, Weights)}.
 'UCHAR'(Code) -->
   "\\U",
   '#'(8, 'HEX', Weights, []),
-  {weights_radix(Weights, Code)}.
+  {positional(Code, Weights)}.
 
 
 
