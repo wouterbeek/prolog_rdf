@@ -34,11 +34,12 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 
 @author Wouter Beek
 @tbd Add prefixes that occur in http://dbpedia.org/sparql?nsdecl
-@version 2014/06-2014/07, 2014/10, 2014/12-2015/02
+@version 2014-2015
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
+:- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
 
@@ -53,7 +54,13 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 assert_cc_prefixes:-
   Uri = 'http://prefix.cc/popular/all.file.csv',
   download_to_file(Uri, File, []),
-  csv_read_file(File, Rows),
+  csv_read_file(File, Rows0),
+  % Since the more popular prefixes are stored towards the top of the file,
+  % we assert them in reverse order. This way the Semweb library will
+  % (1) be able to interpret all CC-registered prefixes,
+  % while at the same time
+  % (2) using only the most popular prefix in writing.
+  reverse(Rows0, Rows),
   maplist(assert_cc_prefix, Rows).
 
 assert_cc_prefix(row(Prefix, Uri)):-
