@@ -37,6 +37,8 @@
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(term/rdf_term)).
 
+:- dynamic(user:language_preferences/1).
+
 :- rdf_meta(rdfs_label(r,?,?)).
 :- rdf_meta(rdfs_label(r,?,?,?)).
 :- rdf_meta(rdfs_label_value(r,?)).
