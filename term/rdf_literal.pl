@@ -65,7 +65,7 @@ The **typed literals** used to be defined as the cartesian product of
 ---
 
 @author Wouter Beek
-@version 2014/11
+@version 2014-2015
 */
 
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
@@ -181,6 +181,11 @@ rdf_langstring_term(Literal, Graph):-
 %   - `lexical_form`
 %   - `value`
 
+rdf_literal_data(Field, _, _):-
+  nonvar(Field),
+  Domain = [datatype,langtag,lexical_form,value],
+  \+ memberchk(Field, Domain), !,
+  domain_error(oneof(Domain), Field).
 rdf_literal_data(datatype, literal(type(Datatype,_)), Datatype).
 rdf_literal_data(datatype, literal(lang(_,_)), rdf:langString).
 rdf_literal_data(datatype, literal(LexicalForm), xsd:string):-
