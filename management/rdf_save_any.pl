@@ -10,7 +10,7 @@
 /** <module> RDF Management: Save in any format
 
 @author Wouter Beek
-@version 2014/10-2014/12, 2015/02-2015/04
+@version 2014-2015
 */
 
 :- use_module(library(debug)).
@@ -37,7 +37,7 @@
   pass_to(rdf_save_any/3, 3)
 ]).
 :- predicate_options(rdf_save_any/3, 3, [
-  compress(+oneof([deflate,gzip])),
+  compression(+oneof([deflate,gzip,none])),
   pass_to(ctriples_write_graph/3, 3),
   pass_to(rdf_save/2, 2),
   pass_to(rdf_save_trig/2, 2),
@@ -153,7 +153,7 @@ rdf_save_any(graph(Graph), Options1):- !,
   merge_options(Options1, [graph(Graph)], Options2),
   rdf_save_any(file(File), Options2).
 
-% 6. Heuristic: unspecified spec is a file.
+% 6. Heuristic: Unspecified specifications are assumed to denote files.
 
 rdf_save_any(File, Options):-
   rdf_save_any(file(File), Options).
@@ -163,9 +163,10 @@ rdf_save_any(File, Options):-
 %! rdf_save_any(+Spec:compound, +Format:atom, +Options:list(nvpair)) is det.
 
 rdf_save_any(file(File), Format, Options):- !,
-  (   option(compress(Compress), Options)
+  (   option(compression(Compression), Options),
+      Compression \== none
   ->  setup_call_cleanup(
-        gzopen(File, write, Write, [format(Compress)]),
+        gzopen(File, write, Write, [format(Compression)]),
         rdf_save_any(stream(Write), Format, Options),
         close(Write)
       )
