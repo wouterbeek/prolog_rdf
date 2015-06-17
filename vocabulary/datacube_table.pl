@@ -21,7 +21,6 @@ Creates tables based on a Data Cube graph.
 :- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 
 :- use_module(plc(generics/pair_ext)).
-:- use_module(plc(generics/sort_ext)).
 
 :- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
 
