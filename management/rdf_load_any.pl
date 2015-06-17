@@ -1,6 +1,8 @@
 :- module(
   rdf_load_any,
   [
+    metadata_to_base/2, % +Metadata:dict
+                        % -Base:uri
     rdf_load_any/1, % +Spec:compound
     rdf_load_any/2 % +Spec:compound
                    % +Options:list(nvpair)
@@ -315,7 +317,7 @@ metadata_content_type(
 ).
 
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
-%  The base URI describes the location where the data is loaded from.
+% The base URI describes the location where the data is loaded from.
 
 metadata_to_base(Metadata, Base):-
   metadata_to_base0(Metadata, Base0),
