@@ -86,14 +86,12 @@ ctriples_write_end(_State, Options):-
 
 %! inc_number_of_triples(+State:compound) is det.
 
+inc_number_of_triples(State):-
+  var(State), !.
 inc_number_of_triples(_State):-
   retract(number_of_triples(N0)),
   N is N0 + 1,
   assert(number_of_triples(N)).
-%%%%inc_number_of_triples(State):-
-%%%%  arg(1, State, N0),
-%%%%  N is N0 + 1,
-%%%%  nb_setarg(1, State, N).
 
 
 
