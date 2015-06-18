@@ -51,12 +51,12 @@ or the complete document (for RDFa input).
 rdf_clean(In):-
   % Set the HTTP headers for RDF retrieval.
   rdf_http_plugin:rdf_extra_headers(HttpOpts, []),
-  
+
   forall(
     open_any(In, SubIn, M, HttpOpts),
     call_cleanup(
       rdf_transaction(
-        rdf_clean_stream(In, M),
+        rdf_clean_stream(SubIn, M),
         _,
         [snapshot(true)]
       ),
@@ -64,75 +64,38 @@ rdf_clean(In):-
     )
   ).
 
+%! rdf_clean_stream(In:stream) is det.
+
 rdf_clean_stream(In, M):-
+  % Format, base URI, wfu.
   absolute_file_name(data(.), Dir, [access(write),file_type(directory)]),
+  create_bases(BaseUri, BNodeBase),
+  set_stream(In, file_name(BaseUri)),
+  rdf_guess_format(In, M, InFormat),
   
-  % Extract the base URI.
-  uuid(Uuid0),
-  atomic_list_concat(UuidComps, '-', Uuid0),
-  atomic_list_concat(UuidComps, '', Uuid),
-  atomic_list_concat(['',Uuid], '/', Path),
-  uri_components(BaseUri, uri_components(http,'lodlaundromat.org',Path,_,_)),
-  
-  % Guess the RDF serialization format based on the file name extension.
-  ignore(file_name_extension(_, InExt, BaseUri)),
-  rdf_guess_format(In, InExt, _, InFormat),
-  
-  % Set options: base URI, RDF serialization format, XML namespaces.
-  set_stream(In, file_name(Base)),
-  InOpts = [
-    base_uri(BaseUri),
-    format(InFormat),
-    graph(user),
-    max_errors(-1),
-    register_namespaces(false),
-    silent(true),
-    syntax(style)
-  ],
-  OutOpts = [bnode_base(Scheme-Authority-Uuid)],
-  
-  absolute_file_name(data(cleaning), CleaningFile, [access(write)]),
-  (   InFormat == rdfa
-  ->  rdf_load(stream(In), InOpt3),
-      setup_call_cleanup(
-        open(CleaningFile, write, UnsortedOut),
-        ctriples_write_graph(UnsortedOut, _NoGraph, OutOpts),
-        close(UnsortedOut)
-      )
-  ;   setup_call_cleanup(
-        ctriples_write_begin(State, BNodePrefix, OutOpts),
-        setup_call_cleanup(
-          open(CleaningFile, write, UnsortedOut),
-          clean_triples(
-            InFormat,
-            In,
-            UnsortedOut,
-            State,
-            BNodePrefix,
-            InOpts3
-          ),
-          close(UnsortedOut)
-        ),
-        ctriples_write_end(State, OutOpts)
-      )
-  ),
-  
-  % Establish the file name extension.
-  (   retract(has_quadruples(true))
-  ->  Ext = nq
-  ;   Ext = nt
-  ),
-  
-  % Sort file.
-  sort_file(CleaningFile, Dir),
-
-  file_lines(CleaningFile, NumberOfUniqueTriples),
-  format(user_output, 'Unique triples:~t~D~n', [NumberOfUniqueTriples]),
-
-  % Compress file.
-  compress_file(Dir, Ext, CleaningFile),
-  
-  delete_file(CleaningFile).
+  % Cleaning.
+  call_cleanup(
+    (
+      absolute_file_name(data(cleaning), CleaningFile, [access(write)]),
+      rdf_clean_triples(In, BaseUri, InFormat, CleaningFile, BNodeBase),
+      
+      % Establish the file name extension.
+      (   retract(has_quadruples(true))
+      ->  Ext = nq
+      ;   Ext = nt
+      ),
+      
+      % Sort file.
+      sort_file(CleaningFile, Dir),
+      
+      file_lines(CleaningFile, NumberOfUniqueTriples),
+      format(user_output, 'Unique triples:~t~D~n', [NumberOfUniqueTriples]),
+      
+      % Compress file.
+      compress_file(Dir, Ext, CleaningFile)
+    ),
+    delete_file(CleaningFile)
+  ).
 
 
 
@@ -238,6 +201,82 @@ compress_file(Dir, Ext, CleaningFile):-
     ),
     close(CleanOut)
   ).
+
+
+
+%! create_bases(-BaseUri:atom, BNodeBase:compound) is det.
+
+create_bases(BaseUri, http-'lodlaundromat.org'-Uuid):-
+  uuid(Uuid0),
+  atomic_list_concat(UuidComps, '-', Uuid0),
+  atomic_list_concat(UuidComps, '', Uuid),
+  atomic_list_concat(['',Uuid], '/', Path),
+  uri_components(BaseUri, uri_components(http,'lodlaundromat.org',Path,_,_)).
+
+
+
+%! rdf_clean_triples(
+%!   +In:stream,
+%!   +BaseUri:uri,
+%!   +InFormat:atom,
+%!   +CleaningFile:atom,
+%!   +BNodeBase:compound
+%! ) is det.
+
+rdf_clean_triples(In, BaseUri, InFormat, CleaningFile, BNodeBase):-
+  InOpts = [
+    base_uri(BaseUri),
+    format(InFormat),
+    graph(user),
+    max_errors(-1),
+    register_namespaces(false),
+    silent(true),
+    syntax(style)
+  ],
+  OutOpts = [bnode_base(BNodeBase)],
+  rdf_clean_triples0(InFormat, In, InOpts, CleaningFile, OutOpts).
+
+%! rdf_clean_triples0(
+%!   +Format:oneof([nquads,ntriples,rdfa,trig,turtle,xml]),
+%!   +In:stream,
+%!   +InOpts:list(compound),
+%!   +CleaningFile:atom,
+%!   +OutOpts:list(compound)
+%! ) is det.
+
+rdf_clean_triples0(rdfa, In, InOpts, CleaningFile, OutOpts):-
+  rdf_load(stream(In), InOpts),
+  setup_call_cleanup(
+    open(CleaningFile, write, UnsortedOut),
+    ctriples_write_graph(UnsortedOut, _NoGraph, OutOpts),
+    close(UnsortedOut)
+  ).
+rdf_clean_triples0(Format, In, InOpts, CleaningFile, OutOpts):-
+  setup_call_cleanup(
+    ctriples_write_begin(State, BNodePrefix, OutOpts),
+    setup_call_cleanup(
+      open(CleaningFile, write, UnsortedOut),
+      clean_triples(
+        Format,
+        In,
+        UnsortedOut,
+        State,
+        BNodePrefix,
+        InOpts
+      ),
+      close(UnsortedOut)
+    ),
+    ctriples_write_end(State, OutOpts)
+  ).
+
+
+
+%! rdf_guess_format(+In:stream, +Metadata:dict, -Format:atom) is det.
+% Guesses the RDF serialization format based on the file name extension.
+
+rdf_guess_format(In, M, Format):-
+  ignore(file_name_extension(_, Ext, M.path)),
+  rdf_guess_format(In, Ext, _, Format).
 
 
 
