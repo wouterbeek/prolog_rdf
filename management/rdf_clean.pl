@@ -1,7 +1,9 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean/1 % +From:compound
+    rdf_clean/1, % +From:compound
+    rdf_clean/2 % +From:compound
+                % +To:atom
   ]
 ).
 
@@ -49,6 +51,12 @@ or the complete document (for RDFa input).
 %! rdf_clean(+In:compound) is det.
 
 rdf_clean(In):-
+  absolute_file_name(data(.), Dir, [access(write),file_type(directory)]),
+  rdf_clean(In, Dir).
+
+%! rdf_clean(+In:compound, +Directory:atom) is det.
+
+rdf_clean(In, Dir):-
   % Set the HTTP headers for RDF retrieval.
   rdf_http_plugin:rdf_extra_headers(HttpOpts, []),
 
@@ -56,7 +64,7 @@ rdf_clean(In):-
     open_any(In, SubIn, M, HttpOpts),
     call_cleanup(
       rdf_transaction(
-        rdf_clean_stream(SubIn, M),
+        rdf_clean_stream(SubIn, M, Dir),
         _,
         [snapshot(true)]
       ),
@@ -66,9 +74,8 @@ rdf_clean(In):-
 
 %! rdf_clean_stream(In:stream) is det.
 
-rdf_clean_stream(In, M):-
+rdf_clean_stream(In, M, Dir):-
   % Format, base URI, wfu.
-  absolute_file_name(data(.), Dir, [access(write),file_type(directory)]),
   create_bases(BaseUri, BNodeBase),
   set_stream(In, file_name(BaseUri)),
   rdf_guess_format(In, M, InFormat),
