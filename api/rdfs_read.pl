@@ -1,10 +1,10 @@
 :- module(
   rdfs_read,
   [
-    rdfs_label/3, % ??Subject:or([bnode,iri])
+    rdfs_label/3, % ?Subject:or([bnode,iri])
                   % ?Value
                   % ?LangTagPreference:list(list(atom))
-    rdfs_label/4, % ??Subject:or([bnode,iri])
+    rdfs_label/4, % ?Subject:or([bnode,iri])
                   % ?Value
                   % ?LangTagPreference:list(list(atom))
                   % ?Graph:atom
