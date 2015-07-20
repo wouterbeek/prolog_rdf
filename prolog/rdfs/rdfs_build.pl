@@ -51,6 +51,7 @@ Predicates for asseritng RDFS statements in an easy way.
 
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_default)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdfs_assert_comment(r,+,?)).
@@ -180,22 +181,6 @@ rdfs_assert_property(D, P, R, G):-
 
 rdfs_assert_range(P, R, G):-
   rdf_assert2(P, rdfs:range, R, G).
-
-
-
-%! rdfs_assert_seeAlso(
-%!   +Subject:or([bnode,iri]),
-%!   +Uri:atom,
-%!   ?Graph:atom
-%! ) is det.
-% The following propositions are asserted:
-%
-% ```nquads
-% NODE  rdfs:seeAlso  URI GRAPH .
-% ```
-
-rdfs_assert_seeAlso(S, Uri, G):-
-  rdf_assert2(S, rdfs:seeAlso, Uri, G).
 
 
 
