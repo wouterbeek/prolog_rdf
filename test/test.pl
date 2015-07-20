@@ -10,7 +10,7 @@
   :- use_module(library(rdf/rdf_read)).
   :- use_module(library(rdf/rdf_term)).
   :- use_module(library(rdf/rdf_update)).
-  :- use_module(library(rdf/rdf_view)).
+  :- use_module(library(rdf/rdf_print)).
   :- use_module(library(rdf/rdf_write)).
 %/rdfs
   :- use_module(library(rdfs/rdfs_read)).

@@ -18,6 +18,7 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 
 :- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
@@ -46,7 +47,7 @@ rdf_image(S, P, O):-
 rdf_image(S, P, O, G):-
   rdf_id(S, S0),
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
-      rdf(S0, P, O0, G)
+      rdf(S0, P, O, G)
   ;   rdf(S0, P, O, G),
-      rdfs_instance_of(O, dcmit:'Image')
+      rdfs_individual_of(O, dcmit:'Image')
   ).

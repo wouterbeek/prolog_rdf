@@ -1,7 +1,7 @@
 :- ensure_loaded(debug).
 
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_view)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_register_prefix(mh, 'http://moonhog.net/resource/').
