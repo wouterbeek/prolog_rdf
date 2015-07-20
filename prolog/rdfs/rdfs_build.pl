@@ -52,6 +52,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdfs_assert_comment(r,+,?)).

@@ -33,6 +33,7 @@ Higher-level update operations performed on RDF data.
 @version 2015/07
 */
 
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(xsd/xsd)).
