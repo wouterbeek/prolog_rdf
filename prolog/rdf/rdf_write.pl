@@ -9,10 +9,14 @@
     rdf_assert_instance/3, % +Instance:or([bnode,iri])
                            % ?Class:iri
                            % ?Graph:atom
+    rdf_assert_literal/4, % +Subject:or([bnode,iri])
+                          % +Predicate:iri
+                          % ?Datatype:iri
+                          % +LexicalForm:atom
     rdf_assert_literal/5, % +Subject:or([bnode,iri])
                           % +Predicate:iri
-                          % +LexicalForm:atom
                           % ?Datatype:iri
+                          % +LexicalForm:atom
                           % ?Graph:atom
     rdf_assert_now/3, % +Subject:iri
                       % +Predicate:iri
@@ -24,6 +28,10 @@
                    % +Predicate:iri
                    % +Object:rdf_term
                    % ?Graph:atom
+    rdf_retractall_literal/4, % ?Subject:or([bnode,iri])
+                              % ?Predicate:iri
+                              % ?Datatype:iri
+                              % ?Value
     rdf_retractall_literal/5, % ?Subject:or([bnode,iri])
                               % ?Predicate:iri
                               % ?Datatype:iri
@@ -52,16 +60,15 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(uuid_ext)).
 
 :- rdf_meta(rdf_assert_instance(r,r,?)).
-:- rdf_meta(rdf_assert_literal(r,r,+,r,?)).
+:- rdf_meta(rdf_assert_literal(r,r,r,+)).
+:- rdf_meta(rdf_assert_literal(r,r,r,+,?)).
 :- rdf_meta(rdf_assert_now(r,r,+)).
 :- rdf_meta(rdf_assert_property(r,r,?)).
-:- rdf_meta(rdf_assert2(t,r,o,?)).
+:- rdf_meta(rdf_assert2(r,r,o,?)).
+:- rdf_meta(rdf_retractall_literal(r,r,r,?)).
 :- rdf_meta(rdf_retractall_literal(r,r,r,?,?)).
 :- rdf_meta(rdf_retractall_resource(r,?)).
-:- rdf_meta(rdf_retractall_simple_literal(r,r,?,?)).
-:- rdf_meta(rdf_retractall_string(r,r,?,?)).
 :- rdf_meta(rdf_retractall_term(r,?)).
-:- rdf_meta(rdf_retractall_typed_literal(r,r,?,r,?)).
 
 
 
@@ -111,7 +118,7 @@ fresh_iri(Prefix, SubPaths0, Iri):-
 % @arg Graph    The atomic name of an RDF graph or `user` if uninstantiated.
 
 rdf_assert_instance(I, C, G):-
-  default(rdfs:'Resource', C),
+  rdf_defval(rdfs:'Resource', C),
   rdf_assert2(I, rdf:type, C, G).
 
 
@@ -119,21 +126,19 @@ rdf_assert_instance(I, C, G):-
 %! rdf_assert_literal(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
-%!   +Value,
 %!   ?Datatype:iri,
-%!   ?Graph:atom
+%!   +Value
 %! ) is det.
 
-rdf_assert_literal(S, P, D, V, G):-
-  rdf_assert_literal(S, P, D, V, G, _).
+rdf_assert_literal(S, P, D, V):-
+  rdf_assert_literal(S, P, D, V, _).
 
 %! rdf_assert_literal(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
-%!   +Value,
 %!   ?Datatype:iri,
-%!   ?Graph:atom,
-%!   -Triple:compound
+%!   +Value,
+%!   ?Graph:atom
 %! ) is det.
 % Asserts a triple with a literal object term.
 %
@@ -143,26 +148,19 @@ rdf_assert_literal(S, P, D, V, G):-
 % @compat XSD 1.1 Schema 2: Datatypes
 
 % Language-tagged strings.
-rdf_assert_literal(S, P, rdf:langString, LangTag0-LexicalForm, G, Triple):-
-  nonvar(LangTag), !,
+rdf_assert_literal(S, P, rdf:langString, LangTag0-Lex, G):-
   % @ tbd Use 'Language-Tag'//1.
-  atomic_list_concat(LangTag0, '-', LangTag),
-  O = literal(lang(LangTag,LexicalForm)),
-  rdf_assert2(S, P, O, G),
-  Triple = rdf(S,P,O).
-% Language-tagged strings using the default language.
-rdf_assert_literal(S, P, rdf:langString, LexicalForm, G, Triple):-
-  atom(LexicalForm), !,
-  rdf_assert_literal(S, P, rdf:langString, [en,'US']-LexicalForm, G, Triple).
-% Simple literals.
-rdf_assert_literal(S, P, D, V, G, Triple):-
-  var(Datatype), !,
-  rdf_assert_literal(S, P, xsd:string, V, G, Triple).
-% (Explicitly) typed literals.
-rdf_assert_literal(S, P, D, V, G, rdf(S,P,O)):-
-  rdf_canonical_map(D, V, LexicalForm),
-  O = literal(type(D,LexicalForm)),
-  rdf_assert2(S, P, O, G).
+  atomic_list_concat(LangTag0, -, LangTag),
+  rdf_assert2(S, P, literal(lang(LangTag,Lex)), G).
+% Simple literals (as per RDF 1.0 specification)
+% assumed to be of type `xsd:string` (as per RDF 1.1 specification).
+rdf_assert_literal(S, P, D, V, G):-
+  var(D), !,
+  rdf_assert_literal(S, P, xsd:string, V, G).
+% Typed literals (as per RDF 1.0 specification).
+rdf_assert_literal(S, P, D, V, G):-
+  rdf_canonical_map(D, V, Lex),
+  rdf_assert2(S, P, literal(type(D,Lex)), G).
 
 
 
@@ -188,7 +186,7 @@ rdf_assert_now(S, P, G):-
 % ```
 
 rdf_assert_property(P, Parent, G):-
-  default(rdf:'Property', Parent),
+  rdf_defval(rdf:'Property', Parent),
   rdf_assert_instance(P, Parent, G).
 
 
@@ -211,6 +209,26 @@ rdf_assert2(S, P, O, G):-
 
 
 
+%! rdf_retractall(+Triple:compound) is det.
+
+rdf_retractall(rdf(S,P,O)):- !,
+  rdf_retractall(S, P, O).
+rdf_retractall(rdf(S,P,O,G)):- !,
+  rdf_retractall(S, P, O, G).
+
+
+
+%! rdf_retractall_literal(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Datatype:iri,
+%!   ?Value
+%! ) is det.
+
+rdf_retractall_literal(S, P, D, V):-
+  rdf_retractall_literal(S, P, D, V, _).
+
+
 %! rdf_retractall_literal(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
@@ -228,38 +246,9 @@ rdf_assert2(S, P, O, G):-
 % If no RDF datatype is given we assume XSD string,
 % as specified by the RDF 1.1 standard.
 rdf_retractall_literal(S, P, D, V, G):-
-  var(D), !,
-  rdf_retractall_literal(S, P, xsd:string, V, G).
-% Retract RDF language-tagged string statements.
-rdf_retractall_typed_literal(S, P, rdf:langString, V0, G):- !,
-  (   atomic(V0)
-  ->  V = V0
-  ;   V0 = LangTag0-V,
-      atomic_list_concat(LangTag0, -, LangTag)
-  ),
-  rdf_retractall(S, P, literal(lang(LangTag,V)), G).
-% Retract XSD string statements.
-rdf_retractall_typed_literal(S, P, xsd:string, V, G):- !,
-  atomic(V),
-  % There are two ways to assert XSD strings in rdf_db:
-  % implicit and explicit.
-  rdf_retractall(S, P, literal(V), G),
-  rdf_retractall(S, P, literal(type(xsd:string,V)), G).
-rdf_retractall_literal(S, P, D, V, G):-
-  % Retract language-tagged strings only if:
-  %   1. Datatype is unifiable with `rdf:langString`, and
-  %   2. Value us unifiable with a value from the value space of
-  %       language-tagged strings.
-  rdf_retractall(S, P, literal(lang(LangTag,LexicalForm)), G),
-
-  % Retract all matching typed literals.
   forall(
-    (
-      rdf(S, P, literal(type(Datatype,LexicalForm)), Graph),
-      % Possibly computationally intensive!
-      rdf_lexical_map(Datatype, LexicalForm, Value)
-    ),
-    rdf_retractall(S, P, literal(type(Datatype,LexicalForm)), Graph)
+    rdf_literal(S, P, D, V, G, T),
+    rdf_retractall(T)
   ).
 
 
@@ -279,20 +268,7 @@ rdf_retractall_resource(Term, Graph):-
 %! rdf_retractall_term(+Term:rdf_term, ?Graph:atom) is det.
 % Removes all triples in which the given RDF term occurs.
 
-rdf_retractall_term(Term, Graph):-
-  rdf_retractall(Term, _, _, Graph),
-  rdf_retractall(_, Term, _, Graph),
-  rdf_retractall(_, _, Term, Graph).
-
-
-
-%! rdf_retractall_typed_literal(
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Value,
-%!   ?Datatype:iri,
-%!   ?Graph:atom
-%! ) is det.
-
-rdf_retractall_typed_literal(S, P, Value, Datatype, G):-
-  rdf_retractall(S, P, literal(type(Datatype,Value)), G).
+rdf_retractall_term(Term, G):-
+  rdf_retractall(Term, _, _, G),
+  rdf_retractall(_, Term, _, G),
+  rdf_retractall(_, _, Term, G).

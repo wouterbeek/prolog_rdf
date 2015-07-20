@@ -15,7 +15,7 @@
     rdf_name/1, % ?Name:or([iri,literal])
     rdf_name/2, % ?Name:or([iri,literal])
                 % ?Graph:atom
-    rdf_node/1, % ?Node:rdf_term
+    rdf_node2/1, % ?Node:rdf_term
     rdf_node/2, % ?Node:rdf_term
                 % ?Graph:atom
     rdf_object/1, % ?Object:rdf_term
@@ -67,7 +67,7 @@ But this is not the case either, since typed literals are mapped onto
 :- rdf_meta(rdf_is_term(o)).
 :- rdf_meta(rdf_name(o)).
 :- rdf_meta(rdf_name(o,?)).
-:- rdf_meta(rdf_node(o)).
+:- rdf_meta(rdf_node2(o)).
 :- rdf_meta(rdf_node(o,?)).
 :- rdf_meta(rdf_object(o)).
 :- rdf_meta(rdf_object(o,?)).
@@ -226,10 +226,10 @@ rdf_name(Name, Graph):-
 
 
 
-%! rdf_node(+Node:rdf_term) is semidet.
-%! rdf_node(-Node:rdf_term) is nondet.
+%! rdf_node2(+Node:rdf_term) is semidet.
+%! rdf_node2(-Node:rdf_term) is nondet.
 
-rdf_node(Node):-
+rdf_node2(Node):-
   rdf_resource(Node),
   once(
     (   rdf_subject2(Node)
@@ -340,7 +340,7 @@ rdf_subject(Subject, Graph):-
 %! rdf_term(-Term:rdf_term) is nondet.
 
 rdf_term(Term):-
-  rdf_node(Term).
+  rdf_node2(Term).
 rdf_term(Term):-
   rdf_predicate(Term).
 

@@ -149,7 +149,7 @@ rdfs_assert_label(S, V, G):-
   rdf_assert_literal(S, rdfs:label, rdf:langString, V, G).
 % Labels with language tag are asserted as `rdf:langString`.
 rdfs_assert_label(S, V, G):-
-  rdfs_assert_literal(S, rdfs:label, xsd:string, V, G).
+  rdf_assert_literal(S, rdfs:label, xsd:string, V, G).
 
 
 
@@ -247,7 +247,7 @@ rdfs_assert_subclass(C, D, G):-
 % If SuperProperty is uninstantiated it defaults to `rdf:Property`.
 
 rdfs_assert_subproperty(P, Q, G):-
-  rdf_defval(rdf:'Property', Q)
+  rdf_defval(rdf:'Property', Q),
   rdf_assert2(P, rdfs:subPropertyOf, Q, G).
 
 

@@ -17,11 +17,16 @@
     rdf_equiv/3, % +Datatype:iri
                  % +Value1
                  % +Value2
+    rdf_lexical_canonical_map/3, % +Datatype:iri
+                                 % +LexicalForm:atom
+                                 % ?CanonicalLexicalFrom:atom
     rdf_lexical_map/2, % +Literal:compound
                        % ?Value
-    rdf_lexical_map/3 % +Datatype:iri
-                      % +LexicalForm:atom
-                      % ?Value
+    rdf_lexical_map/3, % +Datatype:iri
+                       % +LexicalForm:atom
+                       % ?Value
+    rdf_subtype_of/2 % ?SubType:iri
+                     % ?SuperType:iri
   ]
 ).
 
@@ -32,12 +37,15 @@
 @version 2015/07
 */
 
+:- use_module(library(html/html_dom)).
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
+:- use_module(library(xml/xml_dom)).
 :- use_module(library(xsd/xsd)).
+:- use_module(library(xsd/xsd_update)).
 
 :- rdf_meta(rdf_canonical_map(r,+,?)).
 :- rdf_meta(rdf_compare(r,?,+,+)).
@@ -46,7 +54,9 @@
 :- rdf_meta(rdf_datatype_term(r)).
 :- rdf_meta(rdf_datatype_term(r,?)).
 :- rdf_meta(rdf_equiv(r,+,+)).
+:- rdf_meta(rdf_lexical_canonical_map(r,+,?)).
 :- rdf_meta(rdf_lexical_map(r,+,?)).
+:- rdf_meta(rdf_subtype_of(r,r)).
 
 
 
@@ -138,6 +148,17 @@ rdf_datatype_term(D, G):-
 
 rdf_equiv(D, V1, V2):-
   rdf_compare(D, =, V1, V2).
+
+
+
+%! rdf_lexical_canonical_map(
+%!   +Datatype:iri,
+%!   +LexicalForm:atom,
+%!   -CanonicalLexicalFrom:atom
+%! ) is det.
+
+rdf_lexical_canonical_map(D, Lex, CLex):-
+  xsd_lexical_canonical_map(D, Lex, CLex).
 
 
 

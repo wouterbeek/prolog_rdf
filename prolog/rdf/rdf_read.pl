@@ -1,9 +1,7 @@
 :- module(
   rdf_read,
   [
-    rdf_date/3, % ?Subject:or([bnode,iri])
-                % ?Predicate:iri
-                % ?Date:compound
+    rdf_date/3, % ?Subject, ?Predicate, ?Date
     rdf_date/4, % ?Subject:or([bnode,iri])
                 % ?Predicate:iri
                 % ?Date:compound
@@ -16,15 +14,14 @@
                    % ?Predicate:iri
                    % ?Datatype:iri
                    % ?Value
-    rdf_literal/4, % ?Subject:or([bnode,iri])
-                   % ?Predicate:iri
-                   % ?Datatype:iri
-                   % ?Value
-    rdf_literal/5 % ?Subject:or([bnode,iri])
+    rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
+    rdf_literal/5, % ?Subject, ?Predicate, ?Datatype, ?Value, ?Graph
+    rdf_literal/6 % ?Subject:or([bnode,iri])
                   % ?Predicate:iri
                   % ?Datatype:iri
                   % ?Value
                   % ?Graph:atom
+                  % -Triple:compound
   ]
 ).
 
@@ -46,6 +43,7 @@
 :- rdf_meta(rdf_instance(r,r,?)).
 :- rdf_meta(rdf_literal(r,r,r,?)).
 :- rdf_meta(rdf_literal(r,r,r,?,?)).
+:- rdf_meta(rdf_literal(r,r,r,?,?,-)).
 
 :- multifile(error:has_type/2).
 error:has_type(rdf_term, Term):-
@@ -87,21 +85,21 @@ rdf_date(S, P, V):-
 %   * xsd:time
 
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:date, V, G).
+  rdf_literal(S, P, xsd:date, V, G).
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:dateTime, V, G).
+  rdf_literal(S, P, xsd:dateTime, V, G).
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:gDay, V, G).
+  rdf_literal(S, P, xsd:gDay, V, G).
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:gMonth, V, G).
+  rdf_literal(S, P, xsd:gMonth, V, G).
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:gMonthDay, V, G).
+  rdf_literal(S, P, xsd:gMonthDay, V, G).
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:gYear, V, G).
+  rdf_literal(S, P, xsd:gYear, V, G).
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:gYearMonth, V, G).
+  rdf_literal(S, P, xsd:gYearMonth, V, G).
 rdf_date(S, P, V, G):-
-  rdf_typed_literal(S, P, xsd:time, V, G).
+  rdf_literal(S, P, xsd:time, V, G).
 
 
 
@@ -137,25 +135,40 @@ rdf_load_vocab(Uri, Graph):-
 rdf_literal(S, P, D, V):-
   rdf_literal(S, P, D, V, _).
 
+
 %! rdf_literal(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value,
-%!   ?Graph:graph
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_literal(S, P, D, V, G):-
+  rdf_literal(S, P, D, V, G, _).
+
+
+%! rdf_literal(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Datatype:iri,
+%!   ?Value,
+%!   ?Graph:graph,
+%!   -Triple:compound
 %! ) is nondet.
 
 % Language-tagged strings.
-rdf_literal(S, P, rdf:langString, V, G):-
+rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
   V = Lex-Lang,
+  O = literal(lang(Lang0,Lex)),
   (   ground(Lang)
   ->  atomic_list_concat(Lang, '-', Lang0), 
-      rdf(S, P, literal(lang(Lang0,Lex)), G)
-  ;   rdf(S, P, literal(lang(Lang0,Lex)), G),
+      rdf(S, P, O, G)
+  ;   rdf(S, P, O, G),
       atomic_list_concat(Lang, '-', Lang0)
   ).
 % Ground datatype and value.
-rdf_literal(S, P, D, V, G):-
+rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
   ground(D),
   ground(V), !,
   % Map to lexical form.
@@ -166,10 +179,12 @@ rdf_literal(S, P, D, V, G):-
   ),
   rdf(S, P, O, G).
 % Typed literal (as per RDF 1.0 specification).
-rdf_literal(S, P, D, V, G):-
-  rdf(S, P, literal(type(D,Lex)), G),
+rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
+  O = literal(type(D,Lex)),
+  rdf(S, P, O, G),
   rdf_lexical_map(D, Lex, V).
 % Simple literal (as per RDF 1.0 specification).
-rdf_literal(S, P, xsd:string, V, G):-
-  rdf(S, P, literal(Lex), G),
+rdf_literal(S, P, xsd:string, V, G, rdf(S,P,O,G)):-
+  O = literal(Lex),
+  rdf(S, P, O, G),
   rdf_lexical_map(xsd:string, Lex, V).

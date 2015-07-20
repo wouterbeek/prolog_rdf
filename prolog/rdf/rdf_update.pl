@@ -33,9 +33,9 @@ Higher-level update operations performed on RDF data.
 @version 2015/07
 */
 
+:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(xsd/xsd)).
-:- use_module(library(xsd/xsd_clean)).
 
 :- rdf_meta(rdf_canonize_triple(r,r,r,+,+)).
 :- rdf_meta(rdf_copy(+,r,r,o,+)).
@@ -76,7 +76,7 @@ rdf_canonize_triple(S, P, D, Lex, G):-
   forall(
     rdf(S, P, literal(type(D,Lex)), G),
     (
-      xsd_lexical_canonical_map(D, Lex, CLex),
+      rdf_lexical_canonical_map(D, Lex, CLex),
       
       % Only changes need to be written.
       Lex \== CLex,
