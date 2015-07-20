@@ -9,6 +9,9 @@
     rdf_print_term/1, % +Term
     rdf_print_term/2, % +Term:rdf_term
                       % +Options:list(compound)
+    rdf_print_term//1, % +Term
+    rdf_print_term//2, % +Term:rdf_term
+                       % +Options:list(compound)
     rdf_print_triple/4 % ?Subject:or([bnode,iri])
                        % ?Predicate:iri
                        % ?Object:rdf_term
@@ -43,6 +46,8 @@
 :- rdf_meta(rdf_print_quadruple(r,r,o,?)).
 :- rdf_meta(rdf_print_term(r)).
 :- rdf_meta(rdf_print_term(r,+)).
+:- rdf_meta(rdf_print_term(r,?,?)).
+:- rdf_meta(rdf_print_term(r,+,?,?)).
 :- rdf_meta(rdf_print_triple(r,r,o,?)).
 
 
