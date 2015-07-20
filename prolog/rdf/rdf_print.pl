@@ -1,21 +1,27 @@
 :- module(
   rdf_print,
   [
-    rdf_print_graph/1, % +Graph:atom
-    rdf_print_quadruple/4, % ?Subject:or([bnode,iri])
+    rdf_print_graph/1, % +Graph
+    rdf_print_graph/2, % +Graph:atom
+                       % +Options:list(compound)
+    rdf_print_quadruple/4, % ?Subject, ?Predicate, ?Object, ?Graph
+    rdf_print_quadruple/5, % ?Subject:or([bnode,iri])
                            % ?Predicate:iri
                            % ?Object:rdf_term
                            % ?Graph:atom
+                           % +Options:list(compound)
     rdf_print_term/1, % +Term
     rdf_print_term/2, % +Term:rdf_term
                       % +Options:list(compound)
     rdf_print_term//1, % +Term
     rdf_print_term//2, % +Term:rdf_term
                        % +Options:list(compound)
-    rdf_print_triple/4 % ?Subject:or([bnode,iri])
+    rdf_print_triple/4, % ?Subject, ?Predicate:iri, ?Object, ?Graph
+    rdf_print_triple/5 % ?Subject:or([bnode,iri])
                        % ?Predicate:iri
                        % ?Object:rdf_term
                        % ?Graph:atom
+                       % +Options:list(compound)
   ]
 ).
 
@@ -33,22 +39,40 @@
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
+:- predicate_options(rdf_print_graph/2, 2, [
+     pass_to(rdf_print_triple/5, 5)
+   ]).
+:- predicate_options(rdf_print_literal//2, 2, [
+     ellipsis(+nonneg)
+   ]).
+:- predicate_options(rdf_print_quadruple/5, 5, [
+     pass_to(rdf_print_statement/5, 5)
+   ]).
+:- predicate_options(rdf_print_statement/5, 5, [
+     indent(+nonneg),
+     pass_to(rdf_print_statement//5, 5)
+   ]).
+:- predicate_options(rdf_print_statement//5, 5, [
+     pass_to(rdf_print_term//2, 2)
+   ]).
 :- predicate_options(rdf_print_term/2, 2, [
      pass_to(rdf_print_term//2, 2)
    ]).
 :- predicate_options(rdf_print_term//2, 2, [
      pass_to(rdf_print_literal//2, 2)
    ]).
-:- predicate_options(rdf_print_literal//2, 2, [
-     ellipsis(+nonneg)
+:- predicate_options(rdf_print_triple/5, 5, [
+     pass_to(rdf_print_statement/5, 5)
    ]).
 
 :- rdf_meta(rdf_print_quadruple(r,r,o,?)).
+:- rdf_meta(rdf_print_quadruple(r,r,o,?,+)).
 :- rdf_meta(rdf_print_term(r)).
 :- rdf_meta(rdf_print_term(r,+)).
 :- rdf_meta(rdf_print_term(r,?,?)).
 :- rdf_meta(rdf_print_term(r,+,?,?)).
 :- rdf_meta(rdf_print_triple(r,r,o,?)).
+:- rdf_meta(rdf_print_triple(r,r,o,?,+)).
 
 
 
@@ -57,17 +81,46 @@
 %! rdf_print_graph(+Graph:atom) is det.
 
 rdf_print_graph(G):-
-  rdf_print_triple(_, _, _, G),
+  rdf_print_graph(G, []).
+
+
+%! rdf_print_graph(+Graph:atom, +Options:list(compound)) is det.
+% The following options are supported:
+%   * elipsis(+nonneg)
+%   * indent(+nonneg)
+
+rdf_print_graph(G, Opts):-
+  rdf_print_triple(_, _, _, G, Opts),
   fail.
-rdf_print_graph(_).
+rdf_print_graph(_, _).
 
 
 
-%! rdf_print_quadruple(?Subject, ?Predicate, ?Object, ?Graph) is nondet.
+%! rdf_print_quadruple(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:atom,
+%! ) is det.
 
 rdf_print_quadruple(S, P, O, G):-
+  rdf_print_quadruple(S, P, O, G, []).
+
+
+%! rdf_print_quadruple(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:atom,
+%!   +Options:list(compound)
+%! ) is nondet.
+% The following options are supported:
+%   * elipsis(+nonneg)
+%   * indent(+nonneg)
+
+rdf_print_quadruple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
-  rdf_print_statement(S, P, O, G).
+  rdf_print_statement(S, P, O, G, Opts).
 
 
 
@@ -78,35 +131,77 @@ rdf_print_term(T):-
 
 
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
+% The following options are supported:
+%   * elipsis(+nonneg)
 
 rdf_print_term(T, Opts):-
-  string_phrase(rdf_print_term(T, Opts), S),
-  writeln(S).
+  string_phrase(rdf_print_term(T, Opts), X),
+  writeln(X).
 
 
 
-%! rdf_print_triple(?Subject, ?Predicate, ?Object, ?Graph) is nondet.
+%! rdf_print_triple(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:atom
+%! ) is nondet.
 
 rdf_print_triple(S, P, O, G):-
+  rdf_print_triple(S, P, O, G, []).
+
+
+%! rdf_print_triple(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:atom,
+%!   +Options:list(compound)
+%! ) is nondet.
+% The following options are supported:
+%   * elipsis(+nonneg)
+%   * indent(+nonneg)
+
+rdf_print_triple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
-  rdf_print_statement(S, P, O, _).
+  rdf_print_statement(S, P, O, _, Opts).
 
 
 
-%! rdf_print_statement(+Subject, +Predicate, +Object, +Graph) is det.
+%! rdf_print_statement(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Object:rdf_term,
+%!   +Graph:atom,
+%!   +Options:list(compound)
+%! ) is det.
+% The following options are supported:
+%   * elipsis(+nonneg)
+%   * indent(+nonneg)
 
-rdf_print_statement(S, P, O, G):-
-  string_phrase(rdf_print_statement(S, P, O, G), S),
-  writeln(S).
+rdf_print_statement(S, P, O, G, Opts):-
+  option(indent(I), Opts, 0),
+  string_phrase(rdf_print_statement(S, P, O, G, Opts), X),
+  tab(I),
+  writeln(X).
 
-%! rdf_print_statement(+Subject, +Predicate, +Object, +Graph)// is det.
 
-rdf_print_statement(S, P, O, G) -->
+%! rdf_print_statement(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Object:rdf_term,
+%!   +Graph:atom,
+%!   +Options:list(compound)
+%! )// is det.
+% The following options are supported:
+%   * elipsis(+nonneg)
+
+rdf_print_statement(S, P, O, G, Opts) -->
   rdf_print_subject(S),
   " ",
   rdf_print_iri(P),
   " ",
-  rdf_print_term(O),
+  rdf_print_term(O, Opts),
   (   {ground(G)}
   ->  rdf_print_graph(G)
   ;   ""
@@ -144,6 +239,8 @@ rdf_print_iri(Global) -->
 
 
 %! rdf_print_lexical(+LexicalForm:atom, +Options:list(compound))// is det.
+% The following options are supported:
+%   * elipsis(+nonneg)
 
 rdf_print_lexical(Lex, Opts) -->
   {
@@ -155,6 +252,8 @@ rdf_print_lexical(Lex, Opts) -->
 
 
 %! rdf_print_literal(+Literal:comound, +Options:list(compound))// is det.
+% The following options are supported:
+%   * elipsis(+nonneg)
 
 rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
   rdf_print_lexical(Lex, Opts),
@@ -186,6 +285,8 @@ rdf_print_term(T) -->
 
 
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound))// is det.
+% The following options are supported:
+%   * elipsis(+nonneg)
 
 rdf_print_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
