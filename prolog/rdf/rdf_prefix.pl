@@ -1,6 +1,10 @@
 :- module(
   rdf_prefix,
   [
+    rdf_member/2, % ?Term:rdf_term
+                  % +Terms:list(rdf_term)
+    rdf_memberchk/2, % ?Term:rdf_term
+                     % +Terms:list(rdf_term)
     rdf_prefix_iri/2 % +Iri:atom
                      % -PrefixIri:atom
   ]
@@ -14,7 +18,26 @@
 
 :- use_module(library(semweb/rdf_db)).
 
+:- rdf_meta(rdf_member(r,t)).
+:- rdf_meta(rdf_memberchk(r,t)).
 
+
+
+
+
+%! rdf_member(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
+%! rdf_member(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
+
+rdf_member(X, L):-
+  member(X, L).
+
+
+
+%! rdf_memberchk(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
+%! rdf_memberchk(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
+
+rdf_memberchk(X, L):-
+  memberchk(X, L).
 
 
 
