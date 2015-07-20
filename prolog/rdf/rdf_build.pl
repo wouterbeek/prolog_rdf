@@ -1,5 +1,5 @@
 :- module(
-  rdf_write,
+  rdf_build,
   [
     fresh_iri/2, % +Prefix:atom
                  % -Iri:iri
@@ -44,7 +44,7 @@
   ]
 ).
 
-/** <module> RDF write
+/** <module> RDF build
 
 Simple asserion and retraction predicates for RDF.
 
