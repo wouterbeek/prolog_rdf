@@ -1,25 +1,23 @@
 :- module(
   rdf_build,
   [
-    fresh_iri/2, % +Prefix:atom
-                 % -Iri:iri
+    fresh_iri/2, % +Prefix, -Iri
     fresh_iri/3, % +Prefix:atom
                  % +SubPaths:list(atom)
                  % -Iri:iri
     rdf_assert_instance/3, % +Instance:or([bnode,iri])
                            % ?Class:iri
                            % ?Graph:atom
-    rdf_assert_literal/4, % +Subject:or([bnode,iri])
-                          % +Predicate:iri
-                          % ?Datatype:iri
-                          % +LexicalForm:atom
+    rdf_assert_literal/4, % +Subject, +Predicate, ?Datatype, +LexicalForm
     rdf_assert_literal/5, % +Subject:or([bnode,iri])
                           % +Predicate:iri
                           % ?Datatype:iri
                           % +LexicalForm:atom
                           % ?Graph:atom
-    rdf_assert_now/3, % +Subject:iri
+    rdf_assert_now/3, % +Subject, +Predicate, +Graph
+    rdf_assert_now/4, % +Subject:iri
                       % +Predicate:iri
+                      % +Datatype:iri
                       % +Graph:atom
     rdf_assert_property/3, % +Property:iri
                            % ?Parent:iri
@@ -28,10 +26,7 @@
                    % +Predicate:iri
                    % +Object:rdf_term
                    % ?Graph:atom
-    rdf_retractall_literal/4, % ?Subject:or([bnode,iri])
-                              % ?Predicate:iri
-                              % ?Datatype:iri
-                              % ?Value
+    rdf_retractall_literal/4, % ?Subject, ?Predicate:iri, ?Datatype, ?Value
     rdf_retractall_literal/5, % ?Subject:or([bnode,iri])
                               % ?Predicate:iri
                               % ?Datatype:iri
@@ -65,6 +60,7 @@ Simple asserion and retraction predicates for RDF.
 :- rdf_meta(rdf_assert_literal(r,r,r,+)).
 :- rdf_meta(rdf_assert_literal(r,r,r,+,?)).
 :- rdf_meta(rdf_assert_now(r,r,+)).
+:- rdf_meta(rdf_assert_now(r,r,r,+)).
 :- rdf_meta(rdf_assert_property(r,r,?)).
 :- rdf_meta(rdf_assert2(r,r,o,?)).
 :- rdf_meta(rdf_retractall_literal(r,r,r,?)).
@@ -96,7 +92,7 @@ fresh_iri(Prefix, SubPaths0, Iri):-
   uuid_no_hyphen(Id),
   append(SubPaths0, [Id], SubPaths),
   atomic_list_concat(SubPaths, /, LocalName),
-  
+
   % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
   rdf_global_id(Prefix:LocalName, Iri).
 
@@ -173,9 +169,27 @@ rdf_assert_literal(S, P, D, V, G):-
 %! ) is det.
 
 rdf_assert_now(S, P, G):-
-  get_time(Now),
-  rdf_assert_literal(S, P, xsd:dateTime, Now, G).
+  rdf_assert_now(S, P, xsd:dateTime, G).
 
+
+%! rdf_assert_now(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Datatype:iri,
+%!   +Graph:atom
+%! ) is det.
+
+rdf_assert_now(S, P, D, G):-
+  get_time(NowFloat),
+  stamp_date_time(NowFloat, Now0, 0),
+  timezone_offset_adjust(Now0, Now),
+  rdf_assert_literal(S, P, D, Now, G).
+
+timezone_offset_adjust(
+  date(Y,Mo,D,H,Mi,S0,Off,_TZ,_DST),
+  date(Y,Mo,D,H,Mi,S,Off,0,0)
+):-
+  S is rationalize(S0).
 
 
 %! rdf_assert_property(+Property:iri, ?Parent:iri, ?Graph:atom) is det.
