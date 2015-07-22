@@ -1,5 +1,5 @@
 :- module(
-  rdf_json,
+  rdf_json_build,
   [
     rdf_assert_json/3, % +Subject, +Predicate, +JsonTerm
     rdf_assert_json/4 % +Subject:or([bnode,iri])
@@ -9,7 +9,7 @@
   ]
 ).
 
-/** <module> RDF JSON
+/** <module> RDF JSON build
 
 @author Wouter Beek
 @version 2015/07

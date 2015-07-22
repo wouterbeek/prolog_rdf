@@ -7,7 +7,7 @@
   :- use_module(library(rdf/rdf_default)).
   :- use_module(library(rdf/rdf_graph_nav)).
   :- use_module(library(rdf/rdf_image)).
-  :- use_module(library(rdf/rdf_json)).
+  :- use_module(library(rdf/rdf_json_build)).
   :- use_module(library(rdf/rdf_list)).
   :- use_module(library(rdf/rdf_prefix)).
   :- use_module(library(rdf/rdf_read)).
