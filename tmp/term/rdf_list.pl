@@ -458,7 +458,7 @@ rdf_retractall_list0(X, G):-
 % HELPERS %
 
 %! add_list_individual(?List:or([bnode,iri]), ?Graph:atom) is det.
-% @arg List Defaults to a new;y created blank node.
+% @arg List Defaults to a newly created blank node.
 % @arg Graph Defaults to graph `user`.
 
 add_list_individual(List, Graph):-
