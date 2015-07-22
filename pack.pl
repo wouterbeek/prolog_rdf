@@ -6,4 +6,4 @@ name(plRdf).
 packager('Wouter Beek', 'me@wouterbeek.com').
 requires(plXsd).
 title('plRdf').
-version('0.0.14').
+version('0.0.15').

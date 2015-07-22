@@ -189,7 +189,7 @@ timezone_offset_adjust(
   date(Y,Mo,D,H,Mi,S0,Off,_TZ,_DST),
   date(Y,Mo,D,H,Mi,S,Off,0,0)
 ):-
-  S is rationalize(S0).
+  S is floor(S0).
 
 
 %! rdf_assert_property(+Property:iri, ?Parent:iri, ?Graph:atom) is det.
