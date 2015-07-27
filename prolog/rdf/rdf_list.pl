@@ -3,9 +3,14 @@
   [
     rdf_assert_list/2, % +PrologList:list
                        % ?RdfList:or([bnode,iri])
-    rdf_assert_list/3 % +PrologList:list
-                      % ?RdfList:or([bnode,iri])
-                      % ?Graph:atom
+    rdf_assert_list/3, % +PrologList:list
+                       % ?RdfList:or([bnode,iri])
+                       % ?Graph:atom
+    rdf_list/2, % +PrologList:list
+                % ?RdfList:or([bnode,iri])
+    rdf_list/3 % +PrologList:list
+               % ?RdfList:or([bnode,iri])
+               % ?Graph:atom
   ]
 ).
 
