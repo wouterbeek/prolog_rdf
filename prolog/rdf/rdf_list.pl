@@ -16,10 +16,15 @@
 */
 
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 
-:- rdf_meta(rdf_assert_list(r,r)).
-:- rdf_meta(rdf_assert_list(r,r,?)).
+:- rdf_meta(rdf_assert_list(+,r)).
+:- rdf_meta(rdf_assert_list(+,r,?)).
+:- rdf_meta(rdf_is_list(r)).
+:- rdf_meta(rdf_list(r,-)).
+:- rdf_meta(rdf_list(r,-,?)).
 
 
 
@@ -67,3 +72,38 @@ add_list_instance(L, G):-
   ;   true
   ),
   rdf_assert_instance(L, rdf:'List', G).
+
+
+
+%! rdf_is_list(@Term) is semidet.
+
+rdf_is_list(L):-
+  rdfs_individual_of(L, rdf:'List').
+
+
+
+%! rdf_list(+RdfList:or([bnode,iri]), +PrologList:list) is semidet.
+% @see rdf_list/3
+
+rdf_list(L1, L2):-
+  rdf_list(L1, L2, _).
+
+%! rdf_list(
+%!   +RdfList:or([bnode,iri]),
+%!   ?PrologList:list,
+%!   ?Graph:atom
+%! ) is semidet.
+
+rdf_list(rdf:nil, [], _):- !.
+rdf_list(L1, [H2|T2], G):-
+  % rdf:first
+  rdf2(L1, rdf:first, H1, G),
+  (   % Nested list
+      rdf_is_list(H1)
+  ->  rdf_list(H1, H2, G)
+  ;   % Non-nested list.
+      H2 = H1
+  ),
+  % rdf:rest
+  rdf2(L1, rdf:rest, T1, G),
+  rdf_list(T1, T2, G).

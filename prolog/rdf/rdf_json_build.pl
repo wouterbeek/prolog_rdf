@@ -29,6 +29,7 @@
 rdf_assert_json(S, P, T):-
   rdf_assert_json(S, P, T, _).
 
+% JSON array.
 rdf_assert_json(S, P, L1, G):-
   is_list(L1), !,
   rdf_assert_list(L1, L2, G),
@@ -37,11 +38,14 @@ rdf_assert_json(S, P, Json, G):-
   rdf_json_value(Json, D, Lex),
   rdf_assert2(S, P, literal(type(D,Lex)), G).
 
+% JSON float.
 rdf_json_value(X, xsd:float, Y):-
   float(X), !,
   atom_number(X, Y).
+% JSON integer.
 rdf_json_value(X, xsd:integer, Y):-
   integer(X), !,
   atom_number(X, Y).
+% JSON string.
 rdf_json_value(X, xsd:string, X):-
   string(X), !.

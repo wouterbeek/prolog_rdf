@@ -1,6 +1,7 @@
 :- module(
   rdf_read,
   [
+    rdf2/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf_date/3, % ?Subject, ?Predicate, ?Date
     rdf_date/4, % ?Subject:or([bnode,iri])
                 % ?Predicate:iri
@@ -38,6 +39,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
 
+:- rdf_meta(rdf2(r,r,o,?)).
 :- rdf_meta(rdf_date(r,r,?)).
 :- rdf_meta(rdf_date(r,r,?,?)).
 :- rdf_meta(rdf_instance(r,r,?)).
@@ -53,6 +55,17 @@ error:has_type(rdf_term, Term):-
   ).
 
 
+
+
+
+%! rdf2(?Subject, ?Predicate, ?Object, ?Graph) is nondet.
+% Variant of rdf/4 that does not bind Graph in case it is uninstantiated.
+
+rdf2(S, P, O, G):-
+  var(G), !,
+  rdf(S, P, O).
+rdf2(S, P, O, G):-
+  rdf(S, P, O, G).
 
 
 
