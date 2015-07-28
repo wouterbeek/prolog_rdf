@@ -42,8 +42,8 @@
 :- predicate_options(rdf_print_graph/2, 2, [
      pass_to(rdf_print_triple/5, 5)
    ]).
-:- predicate_options(rdf_print_literal//2, 2, [
-     ellipsis(+nonneg)
+:- predicate_options(rdf_print_iri//2, 2, [
+     abbr_iri(+boolean)
    ]).
 :- predicate_options(rdf_print_quadruple/5, 5, [
      pass_to(rdf_print_statement/5, 5)
@@ -53,7 +53,12 @@
      pass_to(rdf_print_statement//5, 5)
    ]).
 :- predicate_options(rdf_print_statement//5, 5, [
+     pass_to(rdf_print_iri//2, 2),
+     pass_to(rdf_print_subject//2, 2),
      pass_to(rdf_print_term//2, 2)
+   ]).
+:- predicate_options(rdf_print_subject//2, 2, [
+     pass_to(rdf_print_iri//2, 2)
    ]).
 :- predicate_options(rdf_print_term/2, 2, [
      pass_to(rdf_print_term//2, 2)
@@ -197,9 +202,9 @@ rdf_print_statement(S, P, O, G, Opts):-
 %   * elipsis(+nonneg)
 
 rdf_print_statement(S, P, O, G, Opts) -->
-  rdf_print_subject(S),
+  rdf_print_subject(S, Opts),
   " ",
-  rdf_print_iri(P),
+  rdf_print_iri(P, Opts),
   " ",
   rdf_print_term(O, Opts),
   (   {ground(G)}
@@ -226,14 +231,17 @@ rdf_print_graph(G) -->
 
 
 
-%! rdf_print_iri(+Iri:atom)// is det.
+%! rdf_print_iri(+Iri:atom, +Options:list(compound))// is det.
 
-rdf_print_iri(Global) -->
-  {rdf_global_id(Prefix:Local, Global)}, !,
+rdf_print_iri(Global, Opts) -->
+  {
+    option(abbr_iri(true), Opts),
+    rdf_global_id(Prefix:Local, Global)
+  }, !,
   atom(Prefix),
   ":",
   atom(Local).
-rdf_print_iri(Global) -->
+rdf_print_iri(Global, _) -->
   bracketed(angular, atom(Global)).
 
 
@@ -258,7 +266,7 @@ rdf_print_lexical(Lex, Opts) -->
 rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
   rdf_print_lexical(Lex, Opts),
   "^^",
-  rdf_print_iri(D).
+  rdf_print_iri(D, Opts).
 rdf_print_literal(literal(lang(LangTag,Lex)), Opts) --> !,
   rdf_print_lexical(Lex, Opts),
   "@",
@@ -268,13 +276,13 @@ rdf_print_literal(literal(Lex), Opts) -->
 
 
 
-%! rdf_print_subject(+Subject:or([bnode,iri]))// is det.
+%! rdf_print_subject(+Subject:or([bnode,iri]), +Options:list(compound))// is det.
 
-rdf_print_subject(S) -->
+rdf_print_subject(S, _) -->
   {rdf_is_bnode(S)}, !,
   rdf_print_bnode(S).
-rdf_print_subject(S) -->
-  rdf_print_iri(S).
+rdf_print_subject(S, Opts) -->
+  rdf_print_iri(S, Opts).
 
 
 
@@ -294,5 +302,5 @@ rdf_print_term(T, Opts) -->
 rdf_print_term(T, _) -->
   {rdf_is_bnode(T)}, !,
   rdf_print_bnode(T).
-rdf_print_term(T, _) -->
-  rdf_print_iri(T).
+rdf_print_term(T, Opts) -->
+  rdf_print_iri(T, Opts).
