@@ -4,6 +4,10 @@
     rdf_assert_list/2, % +PrologList:list
                        % ?RdfList:or([bnode,iri])
     rdf_assert_list/3, % +PrologList:list
+                       % ?Datatype:iri
+                       % ?RdfList:or([bnode,iri])
+    rdf_assert_list/4, % +PrologList:list
+                       % ?Datatype:iri
                        % ?RdfList:or([bnode,iri])
                        % ?Graph:atom
     rdf_list/2, % +PrologList:list
@@ -26,7 +30,8 @@
 :- use_module(library(semweb/rdfs)).
 
 :- rdf_meta(rdf_assert_list(+,r)).
-:- rdf_meta(rdf_assert_list(+,r,?)).
+:- rdf_meta(rdf_assert_list(+,r,r)).
+:- rdf_meta(rdf_assert_list(+,r,r,?)).
 :- rdf_meta(rdf_is_list(r)).
 :- rdf_meta(rdf_list(r,-)).
 :- rdf_meta(rdf_list(r,-,?)).
@@ -38,40 +43,56 @@
 %! rdf_assert_list(+PrologList:list, ?RdfList:or([bnode,iri])) is det.
 
 rdf_assert_list(L1, L2):-
-  rdf_assert_list(L1, L2, _).
+  rdf_assert_list(L1, _, L2).
 
 %! rdf_assert_list(
 %!   +PrologList:list,
+%!   ?Datatype:iri,
+%!   ?RdfList:or([bnode,iri])
+%! ) is det.
+
+rdf_assert_list(L1, D, L2):-
+  rdf_assert_list(L1, D, L2, _).
+
+%! rdf_assert_list(
+%!   +PrologList:list,
+%!   ?Datatype:iri,
 %!   ?RdfList:or([bnode,iri]),
 %!   ?Graph:atom
 %! ) is det.
 % Asserts the given, possibly nested, list into RDF.
 
-rdf_assert_list([], rdf:nil, _):- !.
-rdf_assert_list(L1, L2, G):-
-  add_list_instance(L2, G),
-  rdf_assert_list_items(L1, L2, G).
+rdf_assert_list(L1, D, L2, G):-
+  rdf_transaction(rdf_assert_list0(L1, D, L2, G)).
 
-rdf_assert_list_items([], rdf:nil, _).
-rdf_assert_list_items([H1|T1], L2, G):-
+rdf_assert_list0([], _, rdf:nil, _):- !.
+rdf_assert_list0(L1, D, L2, G):-
+  add_list_instance0(L2, G),
+  rdf_assert_list_items0(L1, D, L2, G).
+
+rdf_assert_list_items0([], _, rdf:nil, _).
+rdf_assert_list_items0([H1|T1], D, L2, G):-
   % rdf:first
   (   % Nested list.
       is_list(H1)
-  ->  rdf_assert_list(H1, H2, G)
+  ->  rdf_assert_list0(H1, D, H2, G)
   ;   % Non-nested list.
       H2 = H1
   ),
-  rdf_assert2(L2, rdf:first, H2, G),
+  (   nonvar(D)
+  ->  rdf_assert_literal(L2, rdf:first, D, H2, G)
+  ;   rdf_assert2(L2, rdf:first, H2, G)
+  ),
 
   % rdf:rest
   (   T1 == []
   ->  rdf_global_id(rdf:nil, T2)
-  ;   add_list_instance(T2, G),
-      rdf_assert_list_items(T1, T2, G)
+  ;   add_list_instance0(T2, G),
+      rdf_assert_list_items0(T1, D, T2, G)
   ),
   rdf_assert2(L2, rdf:rest, T2, G).
 
-add_list_instance(L, G):-
+add_list_instance0(L, G):-
   (   var(L)
   ->  rdf_bnode(L)
   ;   true
