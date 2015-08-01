@@ -122,6 +122,7 @@ rdf_print_quadruple(S, P, O, G):-
 %!   +Options:list(compound)
 %! ) is nondet.
 % The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elipsis(+nonneg)
 %   * indent(+nonneg)
 
@@ -139,6 +140,7 @@ rdf_print_term(T):-
 
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
 % The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elipsis(+nonneg)
 
 rdf_print_term(T, Opts):-
@@ -166,6 +168,7 @@ rdf_print_triple(S, P, O, G):-
 %!   +Options:list(compound)
 %! ) is nondet.
 % The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elipsis(+nonneg)
 %   * indent(+nonneg)
 
@@ -183,6 +186,7 @@ rdf_print_triple(S, P, O, G, Opts):-
 %!   +Options:list(compound)
 %! ) is det.
 % The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elipsis(+nonneg)
 %   * indent(+nonneg)
 
@@ -200,7 +204,7 @@ rdf_print_statement(S, P, O, G, Opts):-
 %!   +Graph:atom,
 %!   +Options:list(compound)
 %! )// is det.
-% The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elipsis(+nonneg)
 
 rdf_print_statement(S, P, O, G, Opts) -->
@@ -234,23 +238,30 @@ rdf_print_graph(G) -->
 
 
 %! rdf_print_iri(+Iri:atom, +Options:list(compound))// is det.
+% The following options are supported:
+%   * abbr_iri(+boolean)
+%     Whether IRIs should be abbreviated w.r.t.
+%     the currently registered RDF prefixes.
+%     Default is `true`.
 
 rdf_print_iri(Global, Opts) -->
-  {
-    option(abbr_iri(true), Opts),
-    rdf_global_id(Prefix:Local, Global)
-  }, !,
+  {option(abbr_iri(false), Opts)}, !,
+  bracketed(angular, atom(Global)).
+rdf_print_iri(Global, _) -->
+  {rdf_global_id(Prefix:Local, Global)},
   atom(Prefix),
   ":",
   atom(Local).
-rdf_print_iri(Global, _) -->
-  bracketed(angular, atom(Global)).
 
 
 
 %! rdf_print_lexical(+LexicalForm:atom, +Options:list(compound))// is det.
 % The following options are supported:
+% The following options are supported:
 %   * elipsis(+nonneg)
+%     Elipses lexical forms so that they are assured to be at most
+%     the given number of characters in length.
+%     Default is `inf` for no elipsis.
 
 rdf_print_lexical(Lex, Opts) -->
   {
@@ -263,6 +274,7 @@ rdf_print_lexical(Lex, Opts) -->
 
 %! rdf_print_literal(+Literal:comound, +Options:list(compound))// is det.
 % The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elipsis(+nonneg)
 
 rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
@@ -279,6 +291,8 @@ rdf_print_literal(literal(Lex), Opts) -->
 
 
 %! rdf_print_subject(+Subject:or([bnode,iri]), +Options:list(compound))// is det.
+% The following options are supported:
+%   * abbr_iri(+boolean)
 
 rdf_print_subject(S, _) -->
   {rdf_is_bnode(S)}, !,
@@ -296,6 +310,7 @@ rdf_print_term(T) -->
 
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound))// is det.
 % The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elipsis(+nonneg)
 
 rdf_print_term(T, Opts) -->
