@@ -11,9 +11,6 @@
     rdf_langstring_term/1, % ?Literal:compound
     rdf_langstring_term/2, % ?Literal:compound
                            % ?Graph:atom
-    rdf_literal_data/3, % ?Field:atom
-                        % +Literal:compound
-                        % ?Data
     rdf_literal_equiv/2, % +Literal1:compound
                          % +Literal2:compound
     rdf_literal_term/1, % ?Literal:compound
@@ -167,46 +164,6 @@ rdf_langstring_term(Literal, Graph):-
   Literal = literal(lang(_,_)),
   rdf_current_literal(Literal),
   rdf_object(Literal, Graph).
-
-
-
-%! rdf_literal_data(+Field:atom, +Literal:compound, +Data) is semidet.
-%! rdf_literal_data(+Field:atom, +Literal:compound, -Data) is det.
-%! rdf_literal_data(-Field:atom, +Literal:compound, -Data) is multi.
-% Decomposes literals.
-%
-% Field is one of:
-%   - `datatype`
-%   - `langtag`
-%   - `lexical_form`
-%   - `value`
-
-rdf_literal_data(Field, _, _):-
-  nonvar(Field),
-  Domain = [datatype,langtag,lexical_form,value],
-  \+ memberchk(Field, Domain), !,
-  domain_error(oneof(Domain), Field).
-rdf_literal_data(datatype, literal(type(Datatype,_)), Datatype).
-rdf_literal_data(datatype, literal(lang(_,_)), rdf:langString).
-rdf_literal_data(datatype, literal(LexicalForm), xsd:string):-
-  atom(LexicalForm).
-rdf_literal_data(langtag, literal(lang(LangTag0,_)), LangTag):-
-  atomic_list_concat(LangTag, '-', LangTag0).
-rdf_literal_data(lexical_form, Literal, LexicalForm):-
-  (   Literal = literal(lang(_,LexicalForm))
-  ->  true
-  ;   Literal = literal(type(_,LexicalForm))
-  ->  true
-  ;   Literal = literal(LexicalForm)
-  ).
-rdf_literal_data(value, Literal, Value):-
-  (   Literal = literal(lang(LangTag,LexicalForm))
-  ->  Value = LexicalForm-LangTag
-  ;   Literal = literal(type(Datatype,LexicalForm))
-  ->  rdf_lexical_map(Datatype, LexicalForm, Value)
-  ;   Literal = literal(LexicalForm)
-  ->  Value = LexicalForm
-  ).
 
 
 
