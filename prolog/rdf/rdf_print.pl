@@ -28,7 +28,7 @@
 /** <module> RDF print
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(atom_ext)).
@@ -38,6 +38,8 @@
 :- use_module(library(dcg/dcg_quoted)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
+
+:- set_prolog_flag(toplevel_print_anon, false).
 
 :- predicate_options(rdf_print_graph/2, 2, [
      pass_to(rdf_print_triple/5, 5)
@@ -105,7 +107,7 @@ rdf_print_graph(_, _).
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom,
+%!   ?Graph:atom
 %! ) is det.
 
 rdf_print_quadruple(S, P, O, G):-
