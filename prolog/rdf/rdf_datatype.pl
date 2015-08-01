@@ -17,6 +17,8 @@
     rdf_equiv/3, % +Datatype:iri
                  % +Value1
                  % +Value2
+    rdf_guess_datatype/2, % +Value
+                          % -Datatype:iri
     rdf_lexical_canonical_map/3, % +Datatype:iri
                                  % +LexicalForm:atom
                                  % ?CanonicalLexicalFrom:atom
@@ -34,9 +36,11 @@
 
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
-@version 2015/07
+@license MIT License
+@version 2015/07-2015/08
 */
 
+:- use_module(library(apply)).
 :- use_module(library(html/html_dom)).
 :- use_module(library(memfile)).
 :- use_module(library(rdf/rdf_term)).
@@ -149,6 +153,22 @@ rdf_datatype_term(D, G):-
 
 rdf_equiv(D, V1, V2):-
   rdf_compare(D, =, V1, V2).
+
+
+
+%! rdf_guess_datatype(+Value, -Datatype:iri) is semidet.
+
+rdf_guess_datatype([element(Root,_,_)], D):- !,
+  (   Root == html
+  ->  rdf_equal(rdf:'HTML', D)
+  ;   rdf_equal(rdf:'XMLLiteral', D)
+  ).
+rdf_guess_datatype(Lang-Lex, D):-
+  is_list(Lang),
+  maplist(atom, [Lex|Lang]), !,
+  rdf_equal(rdf:langString, D).
+rdf_guess_datatype(V, D):-
+  xsd_guess_datatype(V, D).
 
 
 

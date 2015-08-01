@@ -8,11 +8,16 @@
     rdf_assert_instance/3, % +Instance:or([bnode,iri])
                            % ?Class:iri
                            % ?Graph:atom
-    rdf_assert_literal/4, % +Subject, +Predicate, ?Datatype, +LexicalForm
+    rdf_assert_literal0/3, % +Subject, +Predicate, +Value
+    rdf_assert_literal0/4, % +Subject:or([bnode,iri])
+                           % +Predicate:iri
+                           % +Value
+                           % ?Graph:atom
+    rdf_assert_literal/4, % +Subject, +Predicate, ?Datatype, +Value
     rdf_assert_literal/5, % +Subject:or([bnode,iri])
                           % +Predicate:iri
                           % ?Datatype:iri
-                          % +LexicalForm:atom
+                          % +Value
                           % ?Graph:atom
     rdf_assert_now/3, % +Subject, +Predicate, +Graph
     rdf_assert_now/4, % +Subject:iri
@@ -44,7 +49,7 @@
 Simple asserion and retraction predicates for RDF.
 
 @author Wouter Beek
-@version 2017/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(default)).
@@ -55,8 +60,11 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 :- use_module(library(uuid_ext)).
+:- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
 
 :- rdf_meta(rdf_assert_instance(r,r,?)).
+:- rdf_meta(rdf_assert_literal0(r,r,+)).
+:- rdf_meta(rdf_assert_literal0(r,r,+,?)).
 :- rdf_meta(rdf_assert_literal(r,r,r,+)).
 :- rdf_meta(rdf_assert_literal(r,r,r,+,?)).
 :- rdf_meta(rdf_assert_now(r,r,+)).
@@ -121,6 +129,31 @@ rdf_assert_instance(I, C, G):-
 
 
 
+%! rdf_assert_literal0(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Value
+%! ) is det.
+
+rdf_assert_literal0(S, P, V):-
+  rdf_assert_literal0(S, P, V, _).
+
+%! rdf_assert_literal0(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Value,
+%!   ?Graph:atom
+%! ) is det.
+% Guess an appropriate RDF datatype for serializing Value.
+% Since RDF has a more granual datatype system than Prolog
+% this is only a fail guess.
+
+rdf_assert_literal0(S, P, V, G):-
+  rdf_guess_datatype(V, D),
+  rdf_assert_literal(S, P, D, V, G).
+
+
+
 %! rdf_assert_literal(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
@@ -182,14 +215,8 @@ rdf_assert_now(S, P, G):-
 rdf_assert_now(S, P, D, G):-
   get_time(NowFloat),
   stamp_date_time(NowFloat, Now0, 0),
-  timezone_offset_adjust(Now0, Now),
+  prolog_xsd_date(Now0, Now),
   rdf_assert_literal(S, P, D, Now, G).
-
-timezone_offset_adjust(
-  date(Y,Mo,D,H,Mi,S0,Off,_TZ,_DST),
-  date(Y,Mo,D,H,Mi,S,Off,0,0)
-):-
-  S is floor(S0).
 
 
 %! rdf_assert_property(+Property:iri, ?Parent:iri, ?Graph:atom) is det.
