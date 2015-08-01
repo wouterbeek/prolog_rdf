@@ -35,8 +35,8 @@ rdf_literal_data(Field, Literal, Data):-
   must_be(oneof([datatype,langtag,lexical_form,value]), Field),
   rdf_literal_data0(Field, Literal, Data).
 
-rdf_literal_data0(datatype, literal(type(Datatype,_)), Datatype).
-rdf_literal_data0(datatype, literal(lang(_,_)), rdf:langString).
+rdf_literal_data0(datatype, literal(type(Datatype,_)), Datatype):- !.
+rdf_literal_data0(datatype, literal(lang(_,_)), rdf:langString):- !.
 rdf_literal_data0(datatype, literal(LexicalForm), xsd:string):-
   atom(LexicalForm).
 rdf_literal_data0(langtag, literal(lang(LangTag0,_)), LangTag):-
