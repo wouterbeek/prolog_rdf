@@ -34,9 +34,9 @@ Authenticated read/write access to the RDF DB.
 %!   :Goal_0
 %! ) is semidet.
 
-rdf_user_transaction(User, Auth_2, Gs, Goal):-
+rdf_user_transaction(User, Auth_2, Gs, Goal_0):-
   maplist(authenticated_graph(Auth_2, User), Gs),
-  rdf_transaction(Goal).
+  rdf_transaction(Goal_0).
 
 authenticated_graph(Auth_2, User, G):-
   call(Auth_2, User, G).
