@@ -1,15 +1,13 @@
 :- module(
   rdf_bnode_write,
   [
-    rdf_bnode_prefix/1, % -BNodePrefix:atom
     rdf_bnode_prefix/4, % +Scheme:atom
                         % +Authority:atom
                         % +Hash:atom
                         % -BNodePrefix:atom
     rdf_bnode_prefix_write/1, % +BNode
-    rdf_bnode_prefix_write/2, % +BNodePrefix:atom
-                              % +BNode
-    reset_bnode_prefix_admin/0
+    rdf_bnode_prefix_write/2 % +BNodePrefix:atom
+                             % +BNode
   ]
 ).
 
@@ -18,41 +16,12 @@
 Support for writing blank node using set prefixes.
 
 @author Wouter Beek
-@compat Vistuoso does not accept a digit as the first character in
-        a blank node label (going against the Turtle 1.1 specification).
 @version 2014/06, 2014/09, 2015/01-2015/02
 */
 
 :- use_module(library(semweb/turtle)). % Private predicates.
 :- use_module(library(uri)).
 
-:- thread_local(bnode_prefix_counter/1).
-:- thread_local(bnode_prefix_map/2).
-
-
-
-
-
-%! rdf_bnode_prefix_map(
-%!   +BNodePrefix:atom,
-%!   +BNode,
-%!   -MappedBNode:atom
-%! ) is det.
-
-rdf_bnode_prefix_map(BNodePrefix, BNode, MappedBNode):-
-  % Retrieve (existing) or create (new) a numeric blank node identifier.
-  (   bnode_prefix_map(BNode, Id)
-  ->  true
-  ;   increment_bnode_prefix_counter(Id),
-      assert(bnode_prefix_map(BNode, Id))
-  ),
-  
-  atomic_list_concat([BNodePrefix,Id], MappedBNode).
-
-
-%! rdf_bnode_prefix(-BNodePrefix:atom) is semidet.
-
-rdf_bnode_prefix('_:x').
 
 
 %! rdf_bnode_prefix(
@@ -87,25 +56,3 @@ rdf_bnode_prefix_write(BNodePrefix, BNode):-
   ->  write(MappedBNode)
   ;   turtle:turtle_write_uri(current_output, MappedBNode)
   ).
-
-
-
-% Blank node administration.
-
-increment_bnode_prefix_counter(Id2):-
-  retract(bnode_prefix_counter(Id1)),
-  Id2 is Id1 + 1,
-  assert(bnode_prefix_counter(Id2)).
-
-
-reset_bnode_prefix_admin:-
-  reset_bnode_prefix_counter,
-  reset_bnode_prefix_map.
-
-reset_bnode_prefix_counter:-
-  retractall(bnode_prefix_counter(_)),
-  assert(bnode_prefix_counter(0)).
-
-reset_bnode_prefix_map:-
-  retractall(bnode_prefix_map(_,_)).
-
