@@ -1,5 +1,7 @@
 :- ensure_loaded(debug).
 
+%/owl
+  :- use_module(library(owl/owl_mat)).
 %/rdf
   :- use_module(library(rdf/rdf_auth)).
   :- use_module(library(rdf/rdf_bnode_name)).
