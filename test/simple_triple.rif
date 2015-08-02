@@ -1,0 +1,472 @@
+Document (
+ Prefix(rdf  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+ Prefix(rdfs <http://www.w3.org/2000/01/rdf-schema#>)
+ Prefix(owl  <http://www.w3.org/2002/07/owl#>)
+ Prefix(xsd  <http://www.w3.org/2001/XMLSchema#>)
+ Prefix(rif  <http://www.w3.org/2007/rif#>)
+ Prefix(func <http://www.w3.org/2007/rif-builtin-function#>)
+ Prefix(pred <http://www.w3.org/2007/rif-builtin-predicate#>)
+ Prefix(dc   <http://purl.org/dc/terms/>)
+ Group (
+
+(* <#eq-ref> *)
+Forall ?p ?o ?s (
+   ?s[owl:sameAs->?s] :- ?s[?p->?o])
+
+(* <#eq-ref1> *)
+Forall ?p ?o ?s (
+   ?p[owl:sameAs->?p] :- ?s[?p->?o])
+
+(* <#eq-ref2> *)
+Forall ?p ?o ?s (
+   ?o[owl:sameAs->?o] :- ?s[?p->?o])
+
+(* <#eq-sym> *)
+Forall ?x ?y (
+   ?y[owl:sameAs->?x] :- ?x[owl:sameAs->?y])
+
+(* <#eq-trans> *)
+Forall ?x ?z ?y (
+   ?x[owl:sameAs->?z] :- And(
+       ?x[owl:sameAs->?y]
+       ?y[owl:sameAs->?z]  ))
+
+(* <#eq-rep-s> *)
+Forall ?p ?o ?s ?s2 (
+   ?s2[?p->?o] :- And(
+       ?s[owl:sameAs->?s2]
+       ?s[?p->?o]  ))
+
+(* <#eq-rep-p> *)
+Forall ?p ?o ?s ?p2 (
+   ?s[?p2->?o] :- And(
+       ?p[owl:sameAs->?p2]
+       ?s[?p->?o]  ))
+
+(* <#eq-rep-o> *)
+Forall ?p ?o ?s ?o2 (
+   ?s[?p->?o2] :- And(
+       ?o[owl:sameAs->?o2]
+       ?s[?p->?o]  ))
+
+(* <#eq-diff1> *)
+Forall ?x ?y (
+   rif:error() :- And(
+       ?x[owl:sameAs->?y]
+       ?x[owl:differentFrom->?y]  ))
+
+(* <#prp-ap-label> *)
+    rdfs:label[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-ap-comment> *)
+   rdfs:comment[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-ap-seeAlso> *)
+   rdfs:seeAlso[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-ap-isDefinedBy> *)
+   rdfs:isDefinedBy[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-ap-deprecated> *)
+   owl:deprecated[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-ap-priorVersion> *)
+   owl:priorVersion[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-ap-backwardCompatibleWith> *)
+   owl:backwardCompatibleWith[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-ap-incompatibleWith> *)
+   owl:incompatibleWith[rdf:type->owl:AnnotationProperty]
+
+(* <#prp-dom> *)
+Forall ?p ?c ?x ?y (
+   ?x[rdf:type->?c] :- And(
+       ?p[rdfs:domain->?c]
+       ?x[?p->?y]  ))
+
+(* <#prp-rng> *)
+Forall ?p ?c ?x ?y (
+   ?y[rdf:type->?c] :- And(
+       ?p[rdfs:range->?c]
+       ?x[?p->?y]  ))
+
+(* <#prp-fp> *)
+Forall ?p ?y2 ?x ?y1 (
+   ?y1[owl:sameAs->?y2] :- And(
+       ?p[rdf:type->owl:FunctionalProperty]
+       ?x[?p->?y1]
+       ?x[?p->?y2]  ))
+
+(* <#prp-ifp> *)
+Forall ?p ?x1 ?x2 ?y (
+   ?x1[owl:sameAs->?x2] :- And(
+       ?p[rdf:type->owl:InverseFunctionalProperty]
+       ?x1[?p->?y]
+       ?x2[?p->?y]  ))
+
+(* <#prp-irp> *)
+Forall ?p ?x (
+   rif:error() :- And(
+       ?p[rdf:type->owl:IrreflexiveProperty]
+       ?x[?p->?x]  ))
+
+(* <#prp-symp> *)
+Forall ?p ?x ?y (
+   ?y[?p->?x] :- And(
+       ?p[rdf:type->owl:SymmetricProperty]
+       ?x[?p->?y]  ))
+
+(* <#prp-asyp> *)
+Forall ?p ?x ?y (
+   rif:error() :- And(
+       ?p[rdf:type->owl:AsymmetricProperty]
+       ?x[?p->?y]
+       ?y[?p->?x]  ))
+
+(* <#prp-trp> *)
+Forall ?p ?x ?z ?y (
+   ?x[?p->?z] :- And(
+       ?p[rdf:type->owl:TransitiveProperty]
+       ?x[?p->?y]
+       ?y[?p->?z]  ))
+
+(* <#prp-spo1> *)
+Forall ?x ?y ?p2 ?p1 (
+   ?x[?p2->?y] :- And(
+       ?p1[rdfs:subPropertyOf->?p2]
+       ?x[?p1->?y]  ))
+
+(* <#prp-eqp1> *)
+Forall ?x ?y ?p2 ?p1 (
+   ?x[?p2->?y] :- And(
+       ?p1[owl:equivalentProperty->?p2]
+       ?x[?p1->?y]  ))
+
+(* <#prp-eqp2> *)
+Forall ?x ?y ?p2 ?p1 (
+   ?x[?p1->?y] :- And(
+       ?p1[owl:equivalentProperty->?p2]
+       ?x[?p2->?y]  ))
+
+(* <#prp-pdw> *)
+Forall ?x ?y ?p2 ?p1 (
+   rif:error() :- And(
+       ?p1[owl:propertyDisjointWith->?p2]
+       ?x[?p1->?y]
+       ?x[?p2->?y]  ))
+
+(* <#prp-inv1> *)
+Forall ?x ?y ?p2 ?p1 (
+   ?y[?p2->?x] :- And(
+       ?p1[owl:inverseOf->?p2]
+       ?x[?p1->?y]  ))
+
+(* <#prp-inv2> *)
+Forall ?x ?y ?p2 ?p1 (
+   ?y[?p1->?x] :- And(
+       ?p1[owl:inverseOf->?p2]
+       ?x[?p2->?y]  ))
+
+(* <#cls-thing> *)
+   owl:Thing[rdf:type->owl:Class]
+
+(* <#cls-nothing1> *)
+    owl:Nothing[rdf:type->owl:Class]
+
+(* <#cls-nothing2> *)
+Forall ?x (
+   rif:error() :- ?x[rdf:type->owl:Nothing])
+
+(* <#cls-svf1> *)
+Forall ?p ?v ?u ?x ?y (
+   ?u[rdf:type->?x] :- And(
+       ?x[owl:someValuesFrom->?y]
+       ?x[owl:onProperty->?p]
+       ?u[?p->?v]
+       ?v[rdf:type->?y]  ))
+
+(* <#cls-svf2> *)
+Forall ?p ?v ?u ?x (
+   ?u[rdf:type->?x] :- And(
+       ?x[owl:someValuesFrom->owl:Thing]
+       ?x[owl:onProperty->?p]
+       ?u[?p->?v]  ))
+
+(* <#cls-avf> *)
+Forall ?p ?v ?u ?x ?y (
+   ?v[rdf:type->?y] :- And(
+       ?x[owl:allValuesFrom->?y]
+       ?x[owl:onProperty->?p]
+       ?u[rdf:type->?x]
+       ?u[?p->?v]  ))
+
+(* <#cls-hv1> *)
+Forall ?p ?u ?x ?y (
+   ?u[?p->?y] :- And(
+       ?x[owl:hasValue->?y]
+       ?x[owl:onProperty->?p]
+       ?u[rdf:type->?x]  ))
+
+(* <#cls-hv2> *)
+Forall ?p ?u ?x ?y (
+   ?u[rdf:type->?x] :- And(
+       ?x[owl:hasValue->?y]
+       ?x[owl:onProperty->?p]
+       ?u[?p->?y]  ))
+
+(* <#cls-maxc1> *)
+Forall ?p ?u ?x ?y (
+   rif:error() :- And(
+       ?x[owl:maxCardinality->0]
+       ?x[owl:onProperty->?p]
+       ?u[rdf:type->?x]
+       ?u[?p->?y]  ))
+
+(* <#cls-maxc2> *)
+Forall ?p ?y2 ?u ?x ?y1 (
+   ?y1[owl:sameAs->?y2] :- And(
+       ?x[owl:maxCardinality->1]
+       ?x[owl:onProperty->?p]
+       ?u[rdf:type->?x]
+       ?u[?p->?y1]
+       ?u[?p->?y2]  ))
+
+(* <#cls-maxqc1> *)
+Forall ?p ?c ?u ?x ?y (
+   rif:error() :- And(
+       ?x[owl:maxQualifiedCardinality->0]
+       ?x[owl:onProperty->?p]
+       ?x[owl:onClass->?c]
+       ?u[rdf:type->?x]
+       ?u[?p->?y]
+       ?y[rdf:type->?c]  ))
+
+(* <#cls-maxqc2> *)
+Forall ?p ?u ?x ?y (
+   rif:error() :- And(
+       ?x[owl:maxQualifiedCardinality->0]
+       ?x[owl:onProperty->?p]
+       ?x[owl:onClass->owl:Thing]
+       ?u[rdf:type->?x]
+       ?u[?p->?y]  ))
+
+(* <#cls-maxqc3> *)
+Forall ?p ?y2 ?c ?u ?x ?y1 (
+   ?y1[owl:sameAs->?y2] :- And(
+       ?x[owl:maxQualifiedCardinality->1]
+       ?x[owl:onProperty->?p]
+       ?x[owl:onClass->?c]
+       ?u[rdf:type->?x]
+       ?u[?p->?y1]
+       ?y1[rdf:type->?c]
+       ?u[?p->?y2]
+       ?y2[rdf:type->?c]  ))
+
+(* <#cls-maxqc4> *)
+Forall ?p ?y2 ?u ?x ?y1 (
+   ?y1[owl:sameAs->?y2] :- And(
+       ?x[owl:maxQualifiedCardinality->1]
+       ?x[owl:onProperty->?p]
+       ?x[owl:onClass->owl:Thing]
+       ?u[rdf:type->?x]
+       ?u[?p->?y1]
+       ?u[?p->?y2]  ))
+
+(* <#cax-sco> *)
+Forall ?x ?c1 ?c2 (
+   ?x[rdf:type->?c2] :- And(
+       ?c1[rdfs:subClassOf->?c2]
+       ?x[rdf:type->?c1]  ))
+
+(* <#cax-eqc1> *)
+Forall ?x ?c1 ?c2 (
+   ?x[rdf:type->?c2] :- And(
+       ?c1[owl:equivalentClass->?c2]
+       ?x[rdf:type->?c1]  ))
+
+(* <#cax-eqc2> *)
+Forall ?x ?c1 ?c2 (
+   ?x[rdf:type->?c1] :- And(
+       ?c1[owl:equivalentClass->?c2]
+       ?x[rdf:type->?c2]  ))
+
+(* <#cax-dw> *)
+Forall ?x ?c1 ?c2 (
+   rif:error() :- And(
+       ?c1[owl:disjointWith->?c2]
+       ?x[rdf:type->?c1]
+       ?x[rdf:type->?c2]  ))
+
+(* <#scm-cls> *)
+Forall ?c (
+   ?c[rdfs:subClassOf->?c] :- ?c[rdf:type->owl:Class])
+
+(* <#scm-cls1> *)
+Forall ?c (
+   ?c[owl:equivalentClass->?c] :- ?c[rdf:type->owl:Class])
+
+(* <#scm-cls2> *)
+Forall ?c (
+   ?c[rdfs:subClassOf->owl:Thing] :- ?c[rdf:type->owl:Class])
+
+(* <#scm-cls3> *)
+Forall ?c (
+   owl:Nothing[rdfs:subClassOf->?c] :- ?c[rdf:type->owl:Class])
+
+(* <#scm-sco> *)
+Forall ?c1 ?c2 ?c3 (
+   ?c1[rdfs:subClassOf->?c3] :- And(
+       ?c1[rdfs:subClassOf->?c2]
+       ?c2[rdfs:subClassOf->?c3]  ))
+
+(* <#scm-eqc1> *)
+Forall ?c1 ?c2 (
+   ?c1[rdfs:subClassOf->?c2] :- ?c1[owl:equivalentClass->?c2])
+
+(* <#scm-eqc11> *)
+Forall ?c1 ?c2 (
+   ?c2[rdfs:subClassOf->?c1] :- ?c1[owl:equivalentClass->?c2])
+
+(* <#scm-eqc2> *)
+Forall ?c1 ?c2 (
+   ?c1[owl:equivalentClass->?c2] :- And(
+       ?c1[rdfs:subClassOf->?c2]
+       ?c2[rdfs:subClassOf->?c1]  ))
+
+(* <#scm-op> *)
+Forall ?p (
+   ?p[rdfs:subPropertyOf->?p] :- ?p[rdf:type->owl:ObjectProperty])
+
+(* <#scm-op1> *)
+Forall ?p (
+   ?p[owl:equivalentProperty->?p] :- ?p[rdf:type->owl:ObjectProperty])
+
+(* <#scm-dp> *)
+Forall ?p (
+   ?p[rdfs:subPropertyOf->?p] :- ?p[rdf:type->owl:DatatypeProperty])
+
+(* <#scm-dp1> *)
+Forall ?p (
+   ?p[owl:equivalentProperty->?p] :- ?p[rdf:type->owl:DatatypeProperty])
+
+(* <#scm-spo> *)
+Forall ?p3 ?p2 ?p1 (
+   ?p1[rdfs:subPropertyOf->?p3] :- And(
+       ?p1[rdfs:subPropertyOf->?p2]
+       ?p2[rdfs:subPropertyOf->?p3]  ))
+
+(* <#scm-eqp1> *)
+Forall ?p2 ?p1 (
+   ?p1[rdfs:subPropertyOf->?p2] :- ?p1[owl:equivalentProperty->?p2])
+
+(* <#scm-eqp11> *)
+Forall ?p2 ?p1 (
+   ?p2[rdfs:subPropertyOf->?p1] :- ?p1[owl:equivalentProperty->?p2])
+
+(* <#scm-eqp2> *)
+Forall ?p2 ?p1 (
+   ?p1[owl:equivalentProperty->?p2] :- And(
+       ?p1[rdfs:subPropertyOf->?p2]
+       ?p2[rdfs:subPropertyOf->?p1]  ))
+
+(* <#scm-dom1> *)
+Forall ?p ?c1 ?c2 (
+   ?p[rdfs:domain->?c2] :- And(
+       ?p[rdfs:domain->?c1]
+       ?c1[rdfs:subClassOf->?c2]  ))
+
+(* <#scm-dom2> *)
+Forall ?c ?p2 ?p1 (
+   ?p1[rdfs:domain->?c] :- And(
+       ?p2[rdfs:domain->?c]
+       ?p1[rdfs:subPropertyOf->?p2]  ))
+
+(* <#scm-rng1> *)
+Forall ?p ?c1 ?c2 (
+   ?p[rdfs:range->?c2] :- And(
+       ?p[rdfs:range->?c1]
+       ?c1[rdfs:subClassOf->?c2]  ))
+
+(* <#scm-rng2> *)
+Forall ?c ?p2 ?p1 (
+   ?p1[rdfs:range->?c] :- And(
+       ?p2[rdfs:range->?c]
+       ?p1[rdfs:subPropertyOf->?p2]  ))
+
+(* <#scm-hv> *)
+Forall ?c1 ?c2 ?i ?p2 ?p1 (
+   ?c1[rdfs:subClassOf->?c2] :- And(
+       ?c1[owl:hasValue->?i]
+       ?c1[owl:onProperty->?p1]
+       ?c2[owl:hasValue->?i]
+       ?c2[owl:onProperty->?p2]
+       ?p1[rdfs:subPropertyOf->?p2]  ))
+
+(* <#scm-svf1> *)
+Forall ?p ?y2 ?c1 ?c2 ?y1 (
+   ?c1[rdfs:subClassOf->?c2] :- And(
+       ?c1[owl:someValuesFrom->?y1]
+       ?c1[owl:onProperty->?p]
+       ?c2[owl:someValuesFrom->?y2]
+       ?c2[owl:onProperty->?p]
+       ?y1[rdfs:subClassOf->?y2]  ))
+
+(* <#scm-svf2> *)
+Forall ?c1 ?c2 ?y ?p2 ?p1 (
+   ?c1[rdfs:subClassOf->?c2] :- And(
+       ?c1[owl:someValuesFrom->?y]
+       ?c1[owl:onProperty->?p1]
+       ?c2[owl:someValuesFrom->?y]
+       ?c2[owl:onProperty->?p2]
+       ?p1[rdfs:subPropertyOf->?p2]  ))
+
+(* <#scm-avf1> *)
+Forall ?p ?y2 ?c1 ?c2 ?y1 (
+   ?c1[rdfs:subClassOf->?c2] :- And(
+       ?c1[owl:allValuesFrom->?y1]
+       ?c1[owl:onProperty->?p]
+       ?c2[owl:allValuesFrom->?y2]
+       ?c2[owl:onProperty->?p]
+       ?y1[rdfs:subClassOf->?y2]  ))
+
+(* <#scm-avf2> *)
+Forall ?c1 ?c2 ?y ?p2 ?p1 (
+   ?c2[rdfs:subClassOf->?c1] :- And(
+       ?c1[owl:allValuesFrom->?y]
+       ?c1[owl:onProperty->?p1]
+       ?c2[owl:allValuesFrom->?y]
+       ?c2[owl:onProperty->?p2]
+       ?p1[rdfs:subPropertyOf->?p2]  ))
+
+(* <#prp-npa1> *)
+Forall ?x ?i1 ?p ?i2 (
+    rif:error() :- And(
+       ?x[owl:sourceIndividual->?i1]
+       ?x[owl:assertionProperty->?p]
+       ?x[owl:targetIndividual->?i2]
+       ?i1[?p->?i2] ))
+
+(* <#prp-npa2> *)
+Forall ?x ?i ?p ?lt (
+    rif:error() :- And(
+       ?x[owl:sourceIndividual->?i]
+       ?x[owl:assertionProperty->?p]
+       ?x[owl:targetValue->?lt]
+       ?i[?p->?lt] ))
+
+(* <#cax-dw> *)
+Forall ?c1 ?c2 ?x (
+    rif:error() :- And(
+       ?c1[owl:disjointWith->?c2]
+       ?x[rdf:type->?c1]
+       ?x[rdf:type->?c2] ))
+
+(* <#cls-com> *)
+Forall ?c1 ?c2 ?x (
+    rif:error() :- And(
+       ?c1[owl:complementOf->?c2]
+       ?x[rdf:type->?c1]
+       ?x[rdf:type->?c2] ))
+
+))
