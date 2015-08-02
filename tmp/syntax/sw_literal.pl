@@ -283,7 +283,7 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 %      as specified in the Semweb library:
 %        - `literal(<value>)`
 %        - `literal(lang(<langtag>,<value>))`
-%        - `literal(type(<datatype>,<lexical-expression>))`
+%        - `literal(type(<datatype>,<lexical-form>))`
 %
 % ```ebnf
 % RDFLiteral ::= String ( LANGTAG | ( '^^' iri ) )?

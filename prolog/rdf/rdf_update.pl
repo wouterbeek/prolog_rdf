@@ -49,7 +49,7 @@ Higher-level update operations performed on RDF data.
 
 %! rdf_canonize_graph(+Graph:atom) is det.
 % Make sure all typed literals in the graph with the given name
-% have a lexical value that is a canonical value for its datatype.
+% have a lexical form that is a canonical lexical form for its datatype.
 %
 % This check every RDF triple in the given graph
 % that contains a typed literal.
@@ -69,8 +69,9 @@ rdf_canonize_graph(G):-
 %!   ?LexicalForm:atom,
 %!   ?Graph:atom
 %! ) is det.
-% Converts from lexical to value,
-% and then from value to canonical lexical.
+% Updates a triple whose object term is an RDF literal
+% so as to ensure that the same value is denote,
+% but by the canonical lexical form for that value.
 
 rdf_canonize_triple(S, P, D, Lex, G):-
   xsd_datatype(D),
