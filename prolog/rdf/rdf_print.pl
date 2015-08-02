@@ -27,6 +27,10 @@
 
 /** <module> RDF print
 
+Easy printing of RDF data to the terminal.
+
+---
+
 @author Wouter Beek
 @version 2015/07-2015/08
 */
@@ -45,7 +49,14 @@
      pass_to(rdf_print_triple/5, 5)
    ]).
 :- predicate_options(rdf_print_iri//2, 2, [
-     abbr_iri(+boolean)
+     abbr_iri(+boolean),
+     elip_ln(+or([nonneg,oneof([inf])]))
+   ]).
+:- predicate_options(rdf_print_lexical//2, 2, [
+     elip_lit(+or([nonneg,oneof([inf])]))
+   ]).
+:- predicate_options(rdf_print_literal//2, 2, [
+     pass_to(rdf_print_lexical//2, 2)
    ]).
 :- predicate_options(rdf_print_quadruple/5, 5, [
      pass_to(rdf_print_statement/5, 5)
@@ -93,7 +104,7 @@ rdf_print_graph(G):-
 
 %! rdf_print_graph(+Graph:atom, +Options:list(compound)) is det.
 % The following options are supported:
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 
 rdf_print_graph(G, Opts):-
@@ -123,7 +134,7 @@ rdf_print_quadruple(S, P, O, G):-
 %! ) is nondet.
 % The following options are supported:
 %   * abbr_iri(+boolean)
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 
 rdf_print_quadruple(S, P, O, G, Opts):-
@@ -141,7 +152,7 @@ rdf_print_term(T):-
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
 
 rdf_print_term(T, Opts):-
   string_phrase(rdf_print_term(T, Opts), X),
@@ -169,7 +180,7 @@ rdf_print_triple(S, P, O, G):-
 %! ) is nondet.
 % The following options are supported:
 %   * abbr_iri(+boolean)
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 
 rdf_print_triple(S, P, O, G, Opts):-
@@ -187,7 +198,7 @@ rdf_print_triple(S, P, O, G, Opts):-
 %! ) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 
 rdf_print_statement(S, P, O, G, Opts):-
@@ -197,29 +208,8 @@ rdf_print_statement(S, P, O, G, Opts):-
   writeln(X).
 
 
-%! rdf_print_statement(
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Object:rdf_term,
-%!   +Graph:atom,
-%!   +Options:list(compound)
-%! )// is det.
-%   * abbr_iri(+boolean)
-%   * elipsis(+nonneg)
 
-rdf_print_statement(S, P, O, G, Opts) -->
-  rdf_print_subject(S, Opts),
-  " ",
-  rdf_print_iri(P, Opts),
-  " ",
-  rdf_print_term(O, Opts),
-  (   {ground(G)}
-  ->  rdf_print_graph(G)
-  ;   ""
-  ),
-  " .".
-
-
+% GRAMMAR %
 
 %! rdf_print_bnode(+BNode:bnode)// is det.
 
@@ -243,29 +233,38 @@ rdf_print_graph(G) -->
 %     Whether IRIs should be abbreviated w.r.t.
 %     the currently registered RDF prefixes.
 %     Default is `true`.
+%   * elip_ln(+or([nonneg,oneof([inf])]))
+%     Elipses IRI local names so that they are assued to be at most
+%     the given number of characters in length.
+%     This is only used when `abbr_iri=true`.
+%     Default is `inf` for no elipsis.
 
 rdf_print_iri(Global, Opts) -->
   {option(abbr_iri(false), Opts)}, !,
   bracketed(angular, atom(Global)).
-rdf_print_iri(Global, _) -->
-  {rdf_global_id(Prefix:Local, Global)},
+rdf_print_iri(Global, Opts) -->
+  {
+    rdf_global_id(Prefix:Local, Global),
+    option(elip_ln(N), Opts, inf),
+    atom_truncate(Local, N, Local0)
+  },
   atom(Prefix),
   ":",
-  atom(Local).
+  atom(Local0).
 
 
 
 %! rdf_print_lexical(+LexicalForm:atom, +Options:list(compound))// is det.
 % The following options are supported:
 % The following options are supported:
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
 %     Elipses lexical forms so that they are assured to be at most
 %     the given number of characters in length.
 %     Default is `inf` for no elipsis.
 
 rdf_print_lexical(Lex, Opts) -->
   {
-    option(elipsis(N), Opts, inf),
+    option(elip_lit(N), Opts, inf),
     atom_truncate(Lex, N, Lex0)
   },
   quoted(atom(Lex0)).
@@ -275,7 +274,8 @@ rdf_print_lexical(Lex, Opts) -->
 %! rdf_print_literal(+Literal:comound, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * elip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
   rdf_print_lexical(Lex, Opts),
@@ -290,9 +290,35 @@ rdf_print_literal(literal(Lex), Opts) -->
 
 
 
+%! rdf_print_statement(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Object:rdf_term,
+%!   +Graph:atom,
+%!   +Options:list(compound)
+%! )// is det.
+%   * abbr_iri(+boolean)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * elip_ln(+or([nonneg,oneof([inf])]))
+
+rdf_print_statement(S, P, O, G, Opts) -->
+  rdf_print_subject(S, Opts),
+  " ",
+  rdf_print_iri(P, Opts),
+  " ",
+  rdf_print_term(O, Opts),
+  (   {ground(G)}
+  ->  rdf_print_graph(G)
+  ;   ""
+  ),
+  " .".
+
+
+
 %! rdf_print_subject(+Subject:or([bnode,iri]), +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * elip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_subject(S, _) -->
   {rdf_is_bnode(S)}, !,
@@ -311,7 +337,8 @@ rdf_print_term(T) -->
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
-%   * elipsis(+nonneg)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * elip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
