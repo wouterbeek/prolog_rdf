@@ -41,6 +41,7 @@ Easy printing of RDF data to the terminal.
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_quoted)).
 :- use_module(library(option)).
+:- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(semweb/rdf_db)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
@@ -214,9 +215,8 @@ rdf_print_statement(S, P, O, G, Opts):-
 %! rdf_print_bnode(+BNode:bnode)// is det.
 
 rdf_print_bnode(B) -->
-  {atom_concat('__bnode', N, B)},
-  "_:",
-  atom(N).
+  {rdf_bnode_name(B, Name)},
+  atom(Name).
 
 
 
