@@ -240,17 +240,17 @@ rdf_print_graph(G) -->
 %     Default is `inf` for no elipsis.
 
 rdf_print_iri(Global, Opts) -->
-  {option(abbr_iri(false), Opts)}, !,
-  bracketed(angular, atom(Global)).
-rdf_print_iri(Global, Opts) -->
   {
-    rdf_global_id(Prefix:Local, Global),
+    option(abbr_iri(true), Opts, true),
+    rdf_global_id(Prefix:Local, Global), !,
     option(elip_ln(N), Opts, inf),
     atom_truncate(Local, N, Local0)
   },
   atom(Prefix),
   ":",
   atom(Local0).
+rdf_print_iri(Global, _) -->
+  bracketed(angular, atom(Global)).
 
 
 
