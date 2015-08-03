@@ -8,9 +8,19 @@
                        % ?Graph:atom
     rdf_list/2, % +PrologList:list
                 % ?RdfList:or([bnode,iri])
-    rdf_list/3 % +PrologList:list
-               % ?RdfList:or([bnode,iri])
-               % ?Graph:atom
+    rdf_list/3, % +PrologList:list
+                % ?RdfList:or([bnode,iri])
+                % ?Graph:atom
+    rdf_list_first/2, % ?List:or([bnode,iri])
+                      % ?First:rdf_term
+    rdf_list_first/3, % ?List:or([bnode,iri])
+                      % ?First:rdf_term
+                      % ?Graph:atom
+    rdf_list_member/2, % ?Element:rdf_term
+                       % ?List:or([bnode,iri])
+    rdf_list_member/3 % ?Element:rdf_term
+                      % ?List:or([bnode,iri])
+                      % ?Graph:atom
   ]
 ).
 
@@ -30,8 +40,12 @@
 :- rdf_meta(rdf_assert_list(+,r)).
 :- rdf_meta(rdf_assert_list(+,r,?)).
 :- rdf_meta(rdf_is_list(r)).
-:- rdf_meta(rdf_list(r,-)).
-:- rdf_meta(rdf_list(r,-,?)).
+:- rdf_meta(rdf_list(r,?)).
+:- rdf_meta(rdf_list(r,?,?)).
+:- rdf_meta(rdf_list_first(r,o)).
+:- rdf_meta(rdf_list_first(r,o,?)).
+:- rdf_meta(rdf_list_member(r,o)).
+:- rdf_meta(rdf_list_member(r,o,?)).
 
 
 
@@ -119,3 +133,40 @@ rdf_list(L1, [H2|T2], G):-
   % rdf:rest
   rdf2(L1, rdf:rest, T1, G),
   rdf_list(T1, T2, G).
+
+
+
+%! rdf_list_first(?List:or([bnode,iri]), ?First:rdf_term) is nondet.
+
+rdf_list_first(L, X):-
+  rdf_list_first(L, X, _).
+
+%! rdf_list_first(
+%!   ?List:or([bnode,iri]),
+%!   ?First:rdf_term,
+%!   ?Graph:atom
+%! ) is nondet.
+% Relates RDF lists to their first element.
+
+rdf_list_first(L, X, G):-
+  rdf(L, rdf:first, X, G).
+
+
+
+%! rdf_list_member(?Member:rdf_term, ?List:or([bnode,iri])) is nondet.
+
+rdf_list_member(X, L):-
+  rdf_list_member(X, L, _).
+
+%! rdf_list_member(
+%!   ?Member:rdf_term,
+%!   ?List:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is nondet.
+% Succeeds if Member occurs in List.
+
+rdf_list_member(X, L, G):-
+  rdf_list_first(L, X, G).
+rdf_list_member(X, L, G):-
+  rdf(L, rdf:rest, L0, G),
+  rdf_list_member(X, L0, G).

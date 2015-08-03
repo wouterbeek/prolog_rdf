@@ -75,7 +75,7 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_statement//5, 5)
    ]).
 :- predicate_options(rdf_print_statement//5, 5, [
-     style(+oneof([triple,turtle]),
+     style(+oneof([triple,turtle])),
      pass_to(rdf_print_object//2, 2),
      pass_to(rdf_print_predicate//2, 2),
      pass_to(rdf_print_subject//2, 2)

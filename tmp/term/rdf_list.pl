@@ -32,11 +32,6 @@
                                 % ?After:rdf_term
                                 % ?List:or([bnode,iri])
                                 % ?Graph:atom
-    rdf_list_first/2, % ?List:or([bnode,iri])
-                      % ?First:rdf_term
-    rdf_list_first/3, % ?List:or([bnode,iri])
-                      % ?First:rdf_term
-                      % ?Graph:atom
     rdf_list_last/2, % ?List:or([bnode,iri])
                      % ?Last:rdf_term
     rdf_list_last/3, % ?List:or([bnode,iri])
@@ -46,11 +41,6 @@
                        % ?Length:number
     rdf_list_length/3, % ?List:or([bnode,iri])
                        % ?Length:number
-                       % ?Graph:atom
-    rdf_list_member/2, % ?Element:rdf_term
-                       % ?List:or([bnode,iri])
-    rdf_list_member/3, % ?Element:rdf_term
-                       % ?List:or([bnode,iri])
                        % ?Graph:atom
     rdf_list_nth0/4, % ?Index:nonneg
                      % ?List:or([bnode,iri])
@@ -104,15 +94,11 @@ Support for RDF lists.
 :- rdf_meta(rdf_list_before(o,o,r,?)).
 :- rdf_meta(rdf_list_directly_after(o,o,r,?)).
 :- rdf_meta(rdf_list_directly_before(o,o,r,?)).
-:- rdf_meta(rdf_list_first(r,o)).
-:- rdf_meta(rdf_list_first(r,o,?)).
 :- rdf_meta(rdf_list_last(r,o)).
 :- rdf_meta(rdf_list_last(r,o,?)).
 :- rdf_meta(rdf_list_length(r,?)).
 :- rdf_meta(rdf_list_length(r,?,?)).
 :- rdf_meta(rdf_list_length(r,?,?,?)).
-:- rdf_meta(rdf_list_member(r,o)).
-:- rdf_meta(rdf_list_member(r,o,?)).
 :- rdf_meta(rdf_list_nth0(?,r,o,?)).
 :- rdf_meta(rdf_list_triples(+,-,t)).
 :- rdf_meta(rdf_retractall_list(r)).
@@ -313,23 +299,6 @@ rdf_list_directly_before(Before, After, List, Graph):-
 
 
 
-%! rdf_list_first(?List:or([bnode,iri]), ?First:rdf_term) is nondet.
-
-rdf_list_first(List, First):-
-  rdf_list_first(List, First, _).
-
-%! rdf_list_first(
-%!   ?List:or([bnode,iri]),
-%!   ?First:rdf_term,
-%!   ?Graph:atom
-%! ) is nondet.
-% Relates RDF lists to their first element.
-
-rdf_list_first(List, First, Graph):-
-  rdf(List, rdf:first, First, Graph).
-
-
-
 %! rdf_list_last(?List:or([bnode,iri]), ?Last:rdf_term) is det.
 
 rdf_list_last(List, Last):-
@@ -373,26 +342,6 @@ rdf_list_length(List, N1, N3, Graph):-
   rdf(List, rdf:rest, Rest, Graph),
   rdf_list_length(Rest, N1, N2, Graph),
   succ(N2, N3).
-
-
-
-%! rdf_list_member(?Member:rdf_term, ?List:or([bnode,iri])) is nondet.
-
-rdf_list_member(Member, List):-
-  rdf_list_member(Member, List, _).
-
-%! rdf_list_member(
-%!   ?Member:rdf_term,
-%!   ?List:or([bnode,iri]),
-%!   ?Graph:atom
-%! ) is nondet.
-% Succeeds if Member occurs in List.
-
-rdf_list_member(Member, List, Graph):-
-  rdf_list_first(List, Member, Graph).
-rdf_list_member(Member, List, Graph):-
-  rdf(List, rdf:rest, Rest, Graph),
-  rdf_list_member(Member, Rest, Graph).
 
 
 
