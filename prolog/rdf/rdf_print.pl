@@ -61,6 +61,12 @@ Easy printing of RDF data to the terminal.
 :- predicate_options(rdf_print_literal//2, 2, [
      pass_to(rdf_print_lexical//2, 2)
    ]).
+:- predicate_options(rdf_print_object//2, 2, [
+     pass_to(rdf_print_term//2, 2)
+   ]).
+:- predicate_options(rdf_print_predicate//2, 2, [
+     pass_to(rdf_print_term//2, 2)
+   ]).
 :- predicate_options(rdf_print_quadruple/5, 5, [
      pass_to(rdf_print_statement/5, 5)
    ]).
@@ -69,9 +75,10 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_statement//5, 5)
    ]).
 :- predicate_options(rdf_print_statement//5, 5, [
-     pass_to(rdf_print_iri//2, 2),
-     pass_to(rdf_print_subject//2, 2),
-     pass_to(rdf_print_term//2, 2)
+     style(+oneof([triple,turtle]),
+     pass_to(rdf_print_object//2, 2),
+     pass_to(rdf_print_predicate//2, 2),
+     pass_to(rdf_print_subject//2, 2)
    ]).
 :- predicate_options(rdf_print_subject//2, 2, [
      pass_to(rdf_print_iri//2, 2)
@@ -107,8 +114,11 @@ rdf_print_graph(G):-
 
 %! rdf_print_graph(+Graph:atom, +Options:list(compound)) is det.
 % The following options are supported:
+%   * abbr_iri(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
+%   * logic_sym(+boolean)
+%   * style(+oneof([triple,turtle])
 
 rdf_print_graph(G, Opts):-
   rdf_print_triple(_, _, _, G, Opts),
@@ -140,6 +150,7 @@ rdf_print_quadruple(S, P, O, G):-
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
+%   * style(+oneof([triple,turtle])
 
 rdf_print_quadruple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
@@ -188,6 +199,7 @@ rdf_print_triple(S, P, O, G):-
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
+%   * style(+oneof([triple,turtle])
 
 rdf_print_triple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
@@ -206,6 +218,7 @@ rdf_print_triple(S, P, O, G, Opts):-
 %   * abbr_iri(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
+%   * style(+oneof([triple,turtle])
 
 rdf_print_statement(S, P, O, G, Opts):-
   option(indent(I), Opts, 0),
@@ -312,6 +325,20 @@ rdf_print_literal(literal(Lex), Opts) -->
 
 
 
+%! rdf_print_object(+Object:rdf_term, +Options:list(compound))// is det.
+
+rdf_print_object(O, Opts) -->
+  rdf_print_term(O, Opts).
+
+
+
+%! rdf_print_predicate(+Predicate:iri, +Options:list(compound))// is det.
+
+rdf_print_predicate(P, Opts) -->
+  rdf_print_iri(P, Opts).
+
+
+
 %! rdf_print_statement(
 %!   +Subject:or([bnode,iri]),
 %!   +Predicate:iri,
@@ -323,18 +350,31 @@ rdf_print_literal(literal(Lex), Opts) -->
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * elip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
+%   * style(+oneof([triple,turtle])
+%     The style that is used for printing the statement.
+%     Style `turtle` is appropriate for enumerating multiple triples.
+%     Style `triple` is appropriate for singular triples.
+%     Default is `turtle`.
 
+rdf_print_statement(S, P, O, G, Opts) -->
+  {option(style(triple), Opts)}, !,
+  bracketed(langular, rdf_print_statement0(S, P, O, Opts)),
+  ({ground(G)} -> "@", rdf_print_graph(G) ; "").
 rdf_print_statement(S, P, O, G, Opts) -->
   rdf_print_subject(S, Opts),
   " ",
-  rdf_print_iri(P, Opts),
+  rdf_print_predicate(P, Opts),
   " ",
-  rdf_print_term(O, Opts),
-  (   {ground(G)}
-  ->  rdf_print_graph(G)
-  ;   ""
-  ),
+  rdf_print_object(O, Opts),
+  ({ground(G)} -> rdf_print_graph(G) ; ""),
   " .".
+
+rdf_print_statement0(S, P, O, Opts) -->
+  rdf_print_subject(S, Opts),
+  ", ",
+  rdf_print_predicate(P, Opts),
+  ", ",
+  rdf_print_object(O, Opts).
 
 
 

@@ -93,7 +93,7 @@ proof_node_color(X, Color):-
 % Statement label.
 proof_node_label(X, Label):-
   s(rdf(S,P,O), X), !,
-  with_output_to(atom(Label), rdf_print_triple(S, P, O, _, [logic_sym(true)])).
+  s_label(rdf(S,P,O), Label).
 % Justification label.
 proof_node_label(X, Label):-
   j(Rule, _, _, X), !,
@@ -118,8 +118,8 @@ proof_node_shape(X, Shape):-
 prove_triple(S, P, O):-
   md5(rdf(S,P,O), C),
   aggregate_all(set(E), find_edge(s(C), E), Es),
-  with_output_to(atom(Label), rdf_print_triple(S, P, O, _, [logic_sym(true)])),
-  format(atom(GLabel), 'Proof tree for ~a', [Label]),
+  s_label(rdf(S,P,O), SLabel),
+  format(atom(GLabel), 'Proof tree for ~a', [SLabel]),
   export_proof_graph(Es, GLabel).
 
 find_edge(X, E):-
@@ -161,3 +161,13 @@ store_s0(T, H):-
   s(T, H), !.
 store_s0(T, H):-
   assert(s(T,H)).
+
+
+
+% HELPERS %
+
+s_label(rdf(S,P,O), Label):-
+  with_output_to(
+    atom(Label),
+    rdf_print_triple(S, P, O, _, [logic_sym(true),style(triple)])
+  ).
