@@ -16,6 +16,7 @@
 :- use_module(library(apply)).
 :- use_module(library(chr)).
 :- use_module(library(error)).
+:- use_module(library(owl/j_db)).
 :- use_module(library(owl/owl_mat_deb)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
@@ -44,10 +45,14 @@ owl_mat(GIn):-
 
 owl_mat(GIn, GOut):-
   findall(rdf_chr(S,P,O), rdf(S,P,O,GIn), Ins),
+  maplist(store_j0(axiom, []), Ins),
   maplist(call, Ins),
   atomic_list_concat([GIn,mat], '_', GOut),
   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
   maplist(rdf_assert0(GOut), Outs).
+
+store_j0(Rule, Ps, rdf_chr(S,P,O)):-
+  store_j(Rule, Ps, rdf(S,P,O)).
 
 rdf_assert0(G, rdf(S,P,O)):-
   rdf_assert(S, P, O, G).
@@ -67,9 +72,9 @@ rdfs-9 @
       rdf_chr(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
       rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)
   ==> owl_mat_deb(rdfs(9), [
-        rdf_chr(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
-        rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
-        rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D))
+        rdf(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
+        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
+        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D))
       | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D).
 
 owl-cax-eqc1 @
