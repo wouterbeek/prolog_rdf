@@ -38,25 +38,35 @@ Easy printing of RDF data to the terminal.
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_quoted)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
+:- use_module(library(rdf/rdf_list)).
 :- use_module(library(semweb/rdf_db)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
+:- predicate_options(rdf_print_bnode/2, 2, [
+     pass_to(rdf_print_list//2, 2)
+   ]).
 :- predicate_options(rdf_print_graph/2, 2, [
      pass_to(rdf_print_triple/5, 5)
    ]).
 :- predicate_options(rdf_print_iri//2, 2, [
      abbr_iri(+boolean),
+     abbr_list(+boolean),
      elip_ln(+or([nonneg,oneof([inf])])),
-     logic_sym(+boolean)
+     logic_sym(+boolean),
+     pass_to(rdf_print_list//2, 2)
    ]).
 :- predicate_options(rdf_print_lexical//2, 2, [
      elip_lit(+or([nonneg,oneof([inf])]))
+   ]).
+:- predicate_options(rdf_print_list//2, 2, [
+     abbr_list(+boolean)
    ]).
 :- predicate_options(rdf_print_literal//2, 2, [
      pass_to(rdf_print_lexical//2, 2)
@@ -81,9 +91,11 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_subject//2, 2)
    ]).
 :- predicate_options(rdf_print_subject//2, 2, [
-     pass_to(rdf_print_iri//2, 2)
+     pass_to(rdf_print_iri//2, 2),
+     pass_to(rdf_print_list//2, 2)
    ]).
 :- predicate_options(rdf_print_term/2, 2, [
+     pass_to(rdf_print_list//2, 2),
      pass_to(rdf_print_term//2, 2)
    ]).
 :- predicate_options(rdf_print_term//2, 2, [
@@ -115,6 +127,7 @@ rdf_print_graph(G):-
 %! rdf_print_graph(+Graph:atom, +Options:list(compound)) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
@@ -147,6 +160,7 @@ rdf_print_quadruple(S, P, O, G):-
 %! ) is nondet.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
@@ -167,6 +181,7 @@ rdf_print_term(T):-
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
 
@@ -196,6 +211,7 @@ rdf_print_triple(S, P, O, G):-
 %! ) is nondet.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
@@ -216,6 +232,7 @@ rdf_print_triple(S, P, O, G, Opts):-
 %! ) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * style(+oneof([triple,turtle])
@@ -228,11 +245,17 @@ rdf_print_statement(S, P, O, G, Opts):-
 
 
 
+
+
 % GRAMMAR %
 
-%! rdf_print_bnode(+BNode:bnode)// is det.
+%! rdf_print_bnode(+BNode:bnode, +Options:list(compound))// is det.
+% The following options are supported:
+%   * abbr_list(+boolean)
 
-rdf_print_bnode(B) -->
+rdf_print_bnode(B, Opts) -->
+  rdf_print_list(B, Opts).
+rdf_print_bnode(B, _) -->
   {rdf_bnode_name(B, Name)},
   atom(Name).
 
@@ -251,6 +274,7 @@ rdf_print_graph(G) -->
 %     Whether IRIs should be abbreviated w.r.t.
 %     the currently registered RDF prefixes.
 %     Default is `true`.
+%   * abbr_list(+boolean)
 %   * elip_ln(+or([nonneg,oneof([inf])]))
 %     Elipses IRI local names so that they are assued to be at most
 %     the given number of characters in length.
@@ -260,9 +284,11 @@ rdf_print_graph(G) -->
 %     Whether logic symbols should be used i.o. IRIs.
 %     Default is `false`.
 
-rdf_print_iri(Global, Opts) -->
+rdf_print_iri(Iri, Opts) -->
+  rdf_print_list(Iri, Opts), !.
+rdf_print_iri(Iri, Opts) -->
   {option(logic_sym(true), Opts)},
-  rdf_print_iri_sym(Global), !.
+  rdf_print_iri_sym(Iri), !.
 rdf_print_iri(Global, Opts) -->
   {
     option(abbr_iri(true), Opts, true),
@@ -290,7 +316,6 @@ rdf_print_iri_sym(Iri) -->
 
 %! rdf_print_lexical(+LexicalForm:atom, +Options:list(compound))// is det.
 % The following options are supported:
-% The following options are supported:
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %     Elipses lexical forms so that they are assured to be at most
 %     the given number of characters in length.
@@ -302,6 +327,20 @@ rdf_print_lexical(Lex, Opts) -->
     atom_truncate(Lex, N, Lex0)
   },
   quoted(atom(Lex0)).
+
+
+
+%! rdf_print_list(+Term:or([bnode,iri]), +Options:list(compound))// is semidet.
+% The following options are supported:
+%   * abbr_list(+boolean)
+%     Whether or not RDF lists are displayed using Prolog list notation.
+%     Default is `false`.
+
+rdf_print_list(L0, Opts) -->
+  {option(abbr_list(true), Opts),
+   rdf_has(L0, rdf:first, _), !,
+   rdf_list(L0, L)},
+  pl_term(L).
 
 
 
@@ -326,6 +365,11 @@ rdf_print_literal(literal(Lex), Opts) -->
 
 
 %! rdf_print_object(+Object:rdf_term, +Options:list(compound))// is det.
+% The following options are supported:
+%   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * elip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_object(O, Opts) -->
   rdf_print_term(O, Opts).
@@ -333,6 +377,9 @@ rdf_print_object(O, Opts) -->
 
 
 %! rdf_print_predicate(+Predicate:iri, +Options:list(compound))// is det.
+%   * abbr_iri(+boolean)
+%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * logic_sym(+boolean)
 
 rdf_print_predicate(P, Opts) -->
   rdf_print_iri(P, Opts).
@@ -347,6 +394,7 @@ rdf_print_predicate(P, Opts) -->
 %!   +Options:list(compound)
 %! )// is det.
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * elip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
@@ -384,11 +432,12 @@ rdf_print_statement0(S, P, O, Opts) -->
 %! )// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_ln(+or([nonneg,oneof([inf])]))
 
-rdf_print_subject(S, _) -->
+rdf_print_subject(S, Opts) -->
   {rdf_is_bnode(S)}, !,
-  rdf_print_bnode(S).
+  rdf_print_bnode(S, Opts).
 rdf_print_subject(S, Opts) -->
   rdf_print_iri(S, Opts).
 
@@ -403,6 +452,7 @@ rdf_print_term(T) -->
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * elip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
@@ -410,8 +460,8 @@ rdf_print_term(T) -->
 rdf_print_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
   rdf_print_literal(T, Opts).
-rdf_print_term(T, _) -->
+rdf_print_term(T, Opts) -->
   {rdf_is_bnode(T)}, !,
-  rdf_print_bnode(T).
+  rdf_print_bnode(T, Opts).
 rdf_print_term(T, Opts) -->
   rdf_print_iri(T, Opts).

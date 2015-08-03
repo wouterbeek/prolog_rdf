@@ -167,7 +167,5 @@ store_s0(T, H):-
 % HELPERS %
 
 s_label(rdf(S,P,O), Label):-
-  with_output_to(
-    atom(Label),
-    rdf_print_triple(S, P, O, _, [logic_sym(true),style(triple)])
-  ).
+  Opts = [abbr_list(true),logic_sym(true),style(triple)],
+  with_output_to(atom(Label), rdf_print_triple(S, P, O, _, Opts)).
