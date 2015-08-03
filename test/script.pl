@@ -54,4 +54,6 @@ script2:-
   rdf_assert_list([R1,R2], Rs, G),
   rdf_assert(D, owl:intersectionOf, Rs, G),
   rdf_assert_instance(ex:japan, ex:'JapanEraRegion', G),
-  owl_mat(G).
+  rdf_print_graph(G, [abbr_list(true),logic_sym(true)]),
+  %owl_mat(G),
+  true.

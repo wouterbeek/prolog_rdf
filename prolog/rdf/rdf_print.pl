@@ -38,6 +38,7 @@ Easy printing of RDF data to the terminal.
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_phrase)).
@@ -338,9 +339,11 @@ rdf_print_lexical(Lex, Opts) -->
 
 rdf_print_list(L0, Opts) -->
   {option(abbr_list(true), Opts),
-   rdf_has(L0, rdf:first, _), !,
-   rdf_list(L0, L)},
-  pl_term(L).
+   rdf_is_list(L0), !,
+   rdf_list_raw(L0, L)},
+  list(rdf_print_term0(Opts), L).
+
+rdf_print_term0(Opts, T) --> rdf_print_term(T, Opts).
 
 
 
