@@ -1,6 +1,7 @@
 :- ensure_loaded(debug).
 
 %/owl
+  :- use_module(library(owl/j_db)).
   :- use_module(library(owl/owl_build)).
   :- use_module(library(owl/owl_mat)).
 %/rdf
