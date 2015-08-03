@@ -59,7 +59,8 @@ rdf_assert0(G, rdf(S,P,O)):-
 idempotence @
       rdf_chr(S, P, O)
   \   rdf_chr(S, P, O)
-  <=> owl_mat_deb(db(idempotence), 'Idempotence (~w,~w,~w)', [S,P,O])
+  <=> 
+      debug(db(idempotence), 'idempotence', rdf(S,P,O))
     | true.
 
 rdfs-9 @
