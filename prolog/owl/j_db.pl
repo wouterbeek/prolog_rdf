@@ -20,6 +20,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dif)).
 :- use_module(library(graph/build_export_graph)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(hash_ext)).
@@ -56,11 +57,18 @@ prove_all:-
     )),
     Es
   ),
-  export_proof_graph(Es).
+  export_proof_graph(Es, 'Materialization proof tree').
 
-export_proof_graph(Es):-
+export_proof_graph(Es, GLabel):-
   edges_to_vertices(Es, Vs),
-  build_export_graph(graph(Vs,Es), ExportG, [vertex_label(proof_label)]),
+  Opts = [
+    graph_directed(true),
+    graph_label(GLabel),
+    vertex_color(proof_node_color),
+    vertex_label(proof_node_label),
+    vertex_shape(proof_node_shape)
+  ],
+  build_export_graph(graph(Vs,Es), ExportG, Opts),
   gv_export(ExportG, 'j.pdf', [method(dot),output(pdf)]),
   handle_process(xpdf, [file('j.pdf')], [program('XPDF')]).
 
@@ -72,17 +80,31 @@ edges_to_vertices0([], []):- !.
 edges_to_vertices0([edge(X,Y)|T1], [X,Y|T2]):-
   edges_to_vertices0(T1, T2).
 
+
+% Statement color.
+proof_node_color(X, Color):-
+  s(_, X), !,
+  Color = blue.
+% Justification color.
+proof_node_color(X, Color):-
+  j(Rule, _, _, X), !,
+  (debugging(mat(Rule)) -> Color = red ; Color = green).
+
 % Statement label.
-proof_label(X, Label):-
+proof_node_label(X, Label):-
   s(rdf(S,P,O), X), !,
-  atom_phrase(
-    rdf_print:rdf_print_statement(S, P, O, _, [logic_sym(true)]),
-    Label
-  ).
+  with_output_to(atom(Label), rdf_print_triple(S, P, O, _, [logic_sym(true)])).
 % Justification label.
-proof_label(X, Label):-
+proof_node_label(X, Label):-
   j(Rule, _, _, X), !,
   owl_mat_deb:rule_label(Rule, Label).
+
+proof_node_shape(X, Shape):-
+  s(_, X), !,
+  Shape = rect.
+proof_node_shape(X, Shape):-
+  j(_, _, _, X), !,
+  Shape = octagon.
 
 
 
@@ -94,24 +116,24 @@ proof_label(X, Label):-
 % Exports proofs for the given conclusion.
 
 prove_triple(S, P, O):-
-  md5(rdf(S,P,O), HC),
-  j(_,_,HC,HJ),
-  prove_j(HJ).
+  md5(rdf(S,P,O), C),
+  aggregate_all(set(E), find_edge(s(C), E), Es),
+  with_output_to(atom(Label), rdf_print_triple(S, P, O, _, [logic_sym(true)])),
+  format(atom(GLabel), 'Proof tree for ~a', [Label]),
+  export_proof_graph(Es, GLabel).
 
-prove_j(J):-
-  collect_edges(J, Es),
-  export_proof_graph(Es).
+find_edge(X, E):-
+  find_edge(X, [], E).
 
-collect_edges(J, Es):-
-  collect_edges(J, [], Es0),
-  sort(Es0, Es).
-
-collect_edges(J1, Es0, Es):-
-  j(_, Ps1, _, J1),
-  member(C2, Ps1),
-  j(_, _, C2, J2),
-  collect_edges(J2, [edge(J1,J2)|Es0], Es).
-collect_edges(_, Es, Es).
+find_edge(j(J), T, E):-
+  j(_, Ps, _, J),
+  member(P, Ps),
+  maplist(dif(P), T),
+  (E = edge(P,J) ; find_edge(s(P), [P|T], E)).
+find_edge(s(S), T, E):-
+  j(_, _, S, J),
+  maplist(dif(J), T),
+  (E = edge(J,S) ; find_edge(j(J), [J|T], E)).
 
 
 
