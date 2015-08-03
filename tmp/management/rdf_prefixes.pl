@@ -51,21 +51,6 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 
 
 
-assert_cc_prefixes:-
-  Uri = 'http://prefix.cc/popular/all.file.csv',
-  download_to_file(Uri, File, []),
-  csv_read_file(File, Rows0),
-  % Since the more popular prefixes are stored towards the top of the file,
-  % we assert them in reverse order. This way the Semweb library will
-  % (1) be able to interpret all CC-registered prefixes,
-  % while at the same time
-  % (2) using only the most popular prefix in writing.
-  reverse(Rows0, Rows),
-  maplist(assert_cc_prefix, Rows).
-
-assert_cc_prefix(row(Prefix, Uri)):-
-  rdf_reset_prefix(Prefix, Uri).
-
 assert_data_prefixes:-
   assert_prefixes(data).
 
