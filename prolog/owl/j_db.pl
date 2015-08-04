@@ -1,6 +1,12 @@
 :- module(
   j_db,
   [
+    j/4, % ?Rule:atom
+         % ?Premises:list(atom)
+         % ?Conclusion:atom
+         % ?Hash:atom
+    s/2, % ?Triple:compound
+         % ?Hash:atom
     store_j/3 % +Rule:compound
               % +Predicates:list(compound)
               % +Conclusion:compound
@@ -18,7 +24,7 @@
 
 %! j(
 %!   ?Rule:atom,
-%!   ?Predicate:list(atom),
+%!   ?Premises:list(atom),
 %!   ?Conclusion:atom,
 %!   ?Hash:atom
 %! ) is nondet.

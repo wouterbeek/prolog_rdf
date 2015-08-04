@@ -1,7 +1,11 @@
 :- module(
   owl_mat_deb,
   [
-    owl_mat_deb/3
+    owl_mat_deb/3, % +Rule:compound
+                   % +Premises:list(compound)
+                   % +Conclusion:compound
+    rule_label/2 % +Rule:compound
+                 % -Label:atom
   ]
 ).
 
@@ -41,7 +45,7 @@ print_idle(Rule, rdf(S,P,O)) -->
 
 %! owl_mat_deb(
 %!   +Rule:compound,
-%!   +Predicates:list(compound),
+%!   +Premises:list(compound),
 %!   +Conclusion:compound
 %! ) is det.
 
@@ -53,6 +57,9 @@ owl_mat_deb(Rule, Ps, C):-
       debug(mat(Rule), '~s', S)
   ;   true
   ).
+
+
+%! rule_label(+Rule:compound, -Label:atom) is det.
 
 rule_label(Rule, Label):-
   unwind_compound(Rule, Label0),

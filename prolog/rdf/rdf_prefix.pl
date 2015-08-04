@@ -52,11 +52,11 @@ assert_cc_prefix(row(Prefix,Uri)):-
 
 assert_dbpedia_localizations:-
   forall(
-    dbpedia_language_tag(LangTag),
-    dbpedia_register(LangTag)
+    dbpedia_language_tag(Lang),
+    dbpedia_register(Lang)
   ).
 
-%! dbpedia_language_tag(-LanguageTag:atom) is multi.
+%! dbpedia_language_tag(-Language:atom) is multi.
 
 dbpedia_language_tag(ab).
 dbpedia_language_tag(ace).
@@ -263,13 +263,13 @@ dbpedia_language_tag(zh_min_nan).
 dbpedia_language_tag('zh-yue').
 dbpedia_language_tag(zh_yue).
 
-%! dbpedia_register(LangTag):-
+%! dbpedia_register(+Language:atom) is det.
 
-dbpedia_register(LangTag):-
-  atomic_list_concat([LangTag,dbpedia,org], ., Authority),
+dbpedia_register(Lang):-
+  atomic_list_concat([Lang,dbpedia,org], ., Authority),
 
   % XML namespace for resources.
-  atomic_list_concat([LangTag,dbr], ., ResourceNamespace),
+  atomic_list_concat([Lang,dbr], ., ResourceNamespace),
   uri_components(
     ResourcePrefix,
     uri_components(http,Authority,'/resource/',_,_)
@@ -277,7 +277,7 @@ dbpedia_register(LangTag):-
   rdf_reset_prefix(ResourceNamespace, ResourcePrefix),
 
   % XML namespace for properties.
-  atomic_list_concat([LangTag,dbp], ., PropertyNamespace),
+  atomic_list_concat([Lang,dbp], ., PropertyNamespace),
   uri_components(
     PropertyPrefix,
     uri_components(http,Authority,'/property/',_,_)
