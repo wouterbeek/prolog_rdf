@@ -1,12 +1,12 @@
 :- ensure_loaded(test).
 
 :- use_module(library(debug)).
-:- use_module(library(owl/owl_mat)).
+:- use_module(library(mat/mat)).
+:- use_module(library(owl/owl_build)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(owl/owl_build)).
-:- use_module(library(owl/owl_mat)).
+:- use_module(library(semweb/rdf_db)).
 
 :- debug(mat(rdfs(_))).
 :- debug(mat(owl(cax(_)))).
@@ -55,5 +55,4 @@ script2:-
   rdf_assert(D, owl:intersectionOf, Rs, G),
   rdf_assert_instance(ex:japan, ex:'JapanEraRegion', G),
   rdf_print_graph(G, [abbr_list(true),logic_sym(true)]),
-  %owl_mat(G),
-  true.
+  mat(G).

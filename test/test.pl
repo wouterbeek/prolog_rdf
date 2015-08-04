@@ -1,10 +1,11 @@
 :- ensure_loaded(debug).
 
+%/mat
+  :- use_module(library(mat/j_db)).
+  :- use_module(library(mat/mat)).
+  :- use_module(library(mat/mat_deb)).
 %/owl
-  :- use_module(library(owl/j_db)).
   :- use_module(library(owl/owl_build)).
-  :- use_module(library(owl/owl_mat)).
-  :- use_module(library(owl/owl_mat_deb)).
   :- use_module(library(owl/owl_read)).
 %/rdf
   :- use_module(library(rdf/rdf_auth)).

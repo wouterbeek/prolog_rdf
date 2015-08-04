@@ -1,9 +1,9 @@
 :- module(
-  owl_mat,
+  mat,
   [
-    owl_mat/1, % +InputGraph:atom
-    owl_mat/2 % +InputGraph:atom
-              % -OutputGraph:atom
+    mat/1, % +InputGraph:atom
+    mat/2 % +InputGraph:atom
+          % -OutputGraph:atom
   ]
 ).
 
@@ -16,8 +16,8 @@
 :- use_module(library(apply)).
 :- use_module(library(chr)).
 :- use_module(library(error)).
-:- use_module(library(owl/j_db)).
-:- use_module(library(owl/owl_mat_deb)).
+:- use_module(library(mat/j_db)).
+:- use_module(library(mat/mat_deb)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
@@ -27,9 +27,9 @@
 
 
 
-%! owl_mat(+InputGraph:atom) is det.
+%! mat(+InputGraph:atom) is det.
 
-owl_mat(GIn):-
+mat(GIn):-
   must_be(atom, GIn),
   (   rdf_graph(GIn)
   ->  true
@@ -37,14 +37,14 @@ owl_mat(GIn):-
   ),
   format(user_output, 'BEFORE MATERIALIZATION:\n', []),
   rdf_print_graph(GIn, [indent(1)]),
-  owl_mat(GIn, GOut),
+  mat(GIn, GOut),
   format(user_output, 'AFTER MATERIALIZATION:\n', []),
   rdf_print_graph(GOut, [indent(1)]).
 
 
-%! owl_mat(+InputGraph:atom, -OutputGraph:atom) is det.
+%! mat(+InputGraph:atom, -OutputGraph:atom) is det.
 
-owl_mat(GIn, GOut):-
+mat(GIn, GOut):-
   findall(rdf_chr(S,P,O), rdf(S,P,O,GIn), Ins),
   maplist(store_j0(axiom, []), Ins),
   maplist(call, Ins),
@@ -72,7 +72,7 @@ idempotence @
 rdfs-9 @
       rdf_chr(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
       rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)
-  ==> owl_mat_deb(rdfs(9), [
+  ==> mat_deb(rdfs(9), [
         rdf(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D))
@@ -81,7 +81,7 @@ rdfs-9 @
 owl-cax-eqc1 @
       rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2),
       rdf_chr(X, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C1)
-  ==> owl_mat_deb(owl(cax(eqc(1))), [
+  ==> mat_deb(owl(cax(eqc(1))), [
         rdf(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2),
         rdf(X, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C1)],
         rdf(X, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C2))
@@ -90,7 +90,7 @@ owl-cax-eqc1 @
 owl-cax-eqc2 @
       rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2),
       rdf_chr(X, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C2)
-  ==> owl_mat_deb(owl(cax(eqc(2))), [
+  ==> mat_deb(owl(cax(eqc(2))), [
         rdf(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2),
         rdf(X, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C2)],
         rdf(X, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C1))
@@ -98,7 +98,7 @@ owl-cax-eqc2 @
 
 owl-cls-1 @
       rdf_chr(C, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#Class')
-  ==> owl_mat_deb(owl(cls(1)), [
+  ==> mat_deb(owl(cls(1)), [
         rdf(C, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#Class')],
         rdf(C, 'http://www.w3.org/2002/07/owl#equivalentClass', C))
     | rdf_chr(C, 'http://www.w3.org/2002/07/owl#equivalentClass', C).
@@ -106,7 +106,7 @@ owl-cls-1 @
 owl-cls-int-1-1 @
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L),
       '_allTypes'(L, Y)
-  ==> owl_mat_deb(owl(cls(int(1))), [
+  ==> mat_deb(owl(cls(int(1))), [
         rdf(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L)],
         rdf(Y, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C))
     | rdf_chr(Y, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C).
@@ -116,7 +116,7 @@ owl-cls-int-1-2 @
       rdf_chr(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', TL),
       rdf_chr(Y, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TY),
       '_allTypes'(TL, Y)
-  ==> owl_mat_deb(owl(cls(int(1))), [
+  ==> mat_deb(owl(cls(int(1))), [
         rdf(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', TY),
         rdf(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', TL),
         rdf(Y, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TY),
@@ -128,7 +128,7 @@ owl-cls-int-1-3 @
       rdf_chr(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', TY),
       rdf_chr(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
       rdf_chr(Y, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TY)
-  ==> owl_mat_deb(owl(cls(int(1))), [
+  ==> mat_deb(owl(cls(int(1))), [
         rdf(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', TY),
         rdf(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
         rdf(Y, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TY)],
@@ -139,7 +139,7 @@ owl-cls-int-2 @
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L),
       rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)
   ==> rdf_list_member(D, L),
-      owl_mat_deb(owl(cls(int(2))), [
+      mat_deb(owl(cls(int(2))), [
         rdf(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L),
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D))
@@ -149,7 +149,7 @@ owl-cls-hv-1 @
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#hasValue', V),
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#onProperty', P),
       rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)
-  ==> owl_mat_deb(owl(cls(hv(1))), [
+  ==> mat_deb(owl(cls(hv(1))), [
         rdf(C, 'http://www.w3.org/2002/07/owl#hasValue', V),
         rdf(C, 'http://www.w3.org/2002/07/owl#onProperty', P),
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
@@ -160,7 +160,7 @@ owl-cls-hv-2 @
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#hasValue', V),
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#onProperty', P),
       rdf_chr(I, P, V)
-  ==> owl_mat_deb(owl(cls(hv(2))), [
+  ==> mat_deb(owl(cls(hv(2))), [
         rdf(C, 'http://www.w3.org/2002/07/owl#hasValue', V),
         rdf(C, 'http://www.w3.org/2002/07/owl#onProperty', P),
         rdf(I, P, V)],
@@ -169,14 +169,14 @@ owl-cls-hv-2 @
 
 owl-scm-eqc-1 @
       rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2)
-  ==> owl_mat_deb(owl(scm(eqc(1))), [
+  ==> mat_deb(owl(scm(eqc(1))), [
         rdf(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2)],
         rdf(C1, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C2))
     | rdf_chr(C1, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C2).
 
 owl-scm-eqc-11 @
       rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2)
-  ==> owl_mat_deb(owl(scm(eqc(11))), [
+  ==> mat_deb(owl(scm(eqc(11))), [
         rdf(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2)],
         rdf(C2, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C1))
     | rdf_chr(C2, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C1).
@@ -184,7 +184,7 @@ owl-scm-eqc-11 @
 owl-scm-eqc-2 @
       rdf_chr(C1, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C2),
       rdf_chr(C2, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C1)
-  ==> owl_mat_deb(owl(scm(eqc(2))), [
+  ==> mat_deb(owl(scm(eqc(2))), [
         rdf(C1, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C2),
         rdf(C2, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', C1)],
         rdf(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2))
@@ -193,7 +193,7 @@ owl-scm-eqc-2 @
 owl-scm-int @
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L)
   ==> rdf_list_member(D, L),
-      owl_mat_deb(owl(scm(int)), [
+      mat_deb(owl(scm(int)), [
         rdf(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L)],
         rdf(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D))
     | rdf_chr(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D).

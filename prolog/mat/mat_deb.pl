@@ -1,9 +1,9 @@
 :- module(
-  owl_mat_deb,
+  mat_deb,
   [
-    owl_mat_deb/3, % +Rule:compound
-                   % +Premises:list(compound)
-                   % +Conclusion:compound
+    mat_deb/3, % +Rule:compound
+               % +Premises:list(compound)
+               % +Conclusion:compound
     rule_label/2 % +Rule:compound
                  % -Label:atom
   ]
@@ -22,14 +22,14 @@ Debug tools for calculating a materialization.
 :- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
-:- use_module(library(owl/j_db)).
+:- use_module(library(mat/j_db)).
 :- use_module(library(rdf/rdf_print)).
 
 
 
-%! owl_mat_deb(+Rule:compound, +Conclusion:compound) is det.
+%! mat_deb(+Rule:compound, +Conclusion:compound) is det.
 
-owl_mat_deb(Rule, C):-
+mat_deb(Rule, C):-
   (   debugging(mat(Rule))
   ->  rule_label(Rule, Label),
       string_phrase(print_idle(Label, C), S),
@@ -43,13 +43,13 @@ print_idle(Rule, rdf(S,P,O)) -->
   rdf_print:rdf_print_statement(S, P, O, _, [logic_sym(true)]).
 
 
-%! owl_mat_deb(
+%! mat_deb(
 %!   +Rule:compound,
 %!   +Premises:list(compound),
 %!   +Conclusion:compound
 %! ) is det.
 
-owl_mat_deb(Rule, Ps, C):-
+mat_deb(Rule, Ps, C):-
   store_j(Rule, Ps, C),
   (   debugging(mat(Rule))
   ->  rule_label(Rule, Label),
