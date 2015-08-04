@@ -123,7 +123,7 @@ write_quadruple(S, P, O, G, BNodePrefix):-
   ;   turtle:turtle_write_uri(current_output, G)
   ),
   put_char(' '),
-  put_char('.'),
+  put_char(.),
   put_code(10).
 
 
@@ -143,7 +143,7 @@ write_triple(S, P, O, BNodePrefix):-
   put_char(' '),
   write_object(O, BNodePrefix),
   put_char(' '),
-  put_char('.'),
+  put_char(.),
   put_code(10).
 
 

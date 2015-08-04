@@ -331,7 +331,7 @@ metadata_to_base(Metadata, Base):-
         ),
         EntryNames
       ),
-      atomic_list_concat([Base0|EntryNames], '/', Base)
+      atomic_list_concat([Base0|EntryNames], /, Base)
   ;   Base = Base0
   ).
 

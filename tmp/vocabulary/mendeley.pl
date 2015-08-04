@@ -31,7 +31,7 @@ GET https://api.mendeley.com/documents?view=bib
 %! ) is det.
 
 mendeley_request(Category, Query0, Result):-
-  atomic_list_concat(['',Category], '/', Path),
+  atomic_list_concat(['',Category], /, Path),
   uri_query_components(Query, Query0),
   uri_components(Uri, uri_components(https,'api.mendeley.com',Path,Query,_)),
   service(mendeley, token(Token)),

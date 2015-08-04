@@ -197,7 +197,7 @@ set_has_quadruples:-
 %! compress_file(+Directory:atom, +Extension:atom, +CleaningFile:atom) is det.
 
 compress_file(Dir, Ext, CleaningFile):-
-  atomic_list_concat([clean,Ext,gz], '.', LocalName),
+  atomic_list_concat([clean,Ext,gz], ., LocalName),
   directory_file_path(Dir, LocalName, CleanFile),
   setup_call_cleanup(
     gzopen(CleanFile, write, CleanOut),
@@ -215,9 +215,9 @@ compress_file(Dir, Ext, CleaningFile):-
 
 create_bases(BaseUri, http-'lodlaundromat.org'-Uuid):-
   uuid(Uuid0),
-  atomic_list_concat(UuidComps, '-', Uuid0),
+  atomic_list_concat(UuidComps, -, Uuid0),
   atomic_list_concat(UuidComps, '', Uuid),
-  atomic_list_concat(['',Uuid], '/', Path),
+  atomic_list_concat(['',Uuid], /, Path),
   uri_components(BaseUri, uri_components(http,'lodlaundromat.org',Path,_,_)).
 
 

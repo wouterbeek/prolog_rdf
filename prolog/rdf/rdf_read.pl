@@ -11,10 +11,6 @@
                     % ?Class:iri
                     % ?Graph:atom
     rdf_load_vocab/1, % +Location:atom
-    rdf_literal/4, % ?Subject:iri
-                   % ?Predicate:iri
-                   % ?Datatype:iri
-                   % ?Value
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
     rdf_literal/5, % ?Subject, ?Predicate, ?Datatype, ?Value, ?Graph
     rdf_literal/6 % ?Subject:or([bnode,iri])
@@ -31,7 +27,7 @@
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/rdf11-concepts/)
 @license MIT License
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(error)).
@@ -175,10 +171,10 @@ rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
   V = Lex-Lang,
   O = literal(lang(Lang0,Lex)),
   (   ground(Lang)
-  ->  atomic_list_concat(Lang, '-', Lang0), 
+  ->  atomic_list_concat(Lang, -, Lang0), 
       rdf(S, P, O, G)
   ;   rdf(S, P, O, G),
-      atomic_list_concat(Lang, '-', Lang0)
+      atomic_list_concat(Lang, -, Lang0)
   ).
 % Ground datatype and value.
 rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-

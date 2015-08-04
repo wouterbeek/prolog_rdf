@@ -221,4 +221,4 @@ rdf_save_any(stream(Write), turtle, Options1):- !,
 :- multifile(prolog:message//1).
 
 prolog:message(rdf_saved(Graph,Format,File)) -->
-  ['Graph ',Graph,' was saved in ',Format,' serialization to file ',File,'.'].
+  ['Graph ',Graph,' was saved in ',Format,' serialization to file ',File,.].

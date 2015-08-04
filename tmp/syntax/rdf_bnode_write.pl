@@ -33,7 +33,7 @@ Support for writing blank node using set prefixes.
 
 rdf_bnode_prefix(Scheme, Authority, Hash1, BNodePrefix):-
   atomic_concat(Hash1, '#', Hash2),
-  atomic_list_concat(['','.well-known',genid,Hash2], '/', Path),
+  atomic_list_concat(['','.well-known',genid,Hash2], /, Path),
   uri_components(BNodePrefix, uri_components(Scheme,Authority,Path,_,_)).
 
 

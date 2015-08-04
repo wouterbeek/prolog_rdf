@@ -10,13 +10,11 @@
     rdf_longest_prefix/3, % +Iri:iri
                           % -LongestPrefix:atom
                           % -ShortestLocalName:atom
-    rdf_prefixes/5, % ?Subject:or([bnode,iri])
-                    % ?Predicate:iri
-                    % ?Object:rdf_term
-                    % ?Graph:atom
-                    % -Prefixes:ordset(pair(atom,positive_integer))
-    rdf_reset_prefix/2 % +Prefix:atom
-                       % +Uri:atom
+    rdf_prefixes/5 % ?Subject:or([bnode,iri])
+                   % ?Predicate:iri
+                   % ?Object:rdf_term
+                   % ?Graph:atom
+                   % -Prefixes:ordset(pair(atom,positive_integer))
   ]
 ).
 
@@ -131,34 +129,3 @@ rdf_prefixes(S, P, O, Graph, Pairs5):-
   pairs_keys_values(Pairs3, Sizes, Prefixes),
   keysort(Pairs3, Pairs4),
   reverse(Pairs4, Pairs5).
-
-
-
-%! rdf_reset_prefix(+Prefix:atom, +Uri:atom) is det.
-% Sets or resets RDF prefixes (whatever is needed to effectuate the mapping
-% from Prefix onto URI), but shows a warning in the case of resetting.
-
-rdf_reset_prefix(Prefix, Uri):-
-  with_mutex(rdf_reset_prefix, (
-    (   rdf_current_prefix(Prefix, Uri0)
-    ->  (   Uri0 == Uri
-        ->  true
-        ;   rdf_register_prefix(Prefix, Uri, [force(true)]),
-            print_message(warning, rdf_reset_prefix(Prefix,Uri0,Uri))
-        )
-    ;   rdf_register_prefix(Prefix, Uri)
-    )
-  )).
-
-
-
-
-
-% MESSAGES %
-
-:- multifile(prolog:message//1).
-
-prolog:message(rdf_reset_prefix(Prefix,From0,To0)) -->
-  % Circumvent prefix abbreviation in ClioPatria.
-  {maplist(atom_string, [From0,To0], [From,To])},
-  ['RDF prefix ~a was reset from ~s to ~s.'-[Prefix,From,To]].

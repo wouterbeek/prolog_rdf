@@ -5,5 +5,5 @@ maintainer('Wouter Beek', 'me@wouterbeek.com').
 name(plRdf).
 packager('Wouter Beek', 'me@wouterbeek.com').
 requires(plXsd).
-title('plRdf').
-version('0.0.23').
+title(plRdf).
+version('0.0.24').

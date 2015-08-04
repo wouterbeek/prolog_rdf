@@ -194,7 +194,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
     Values
   ),
   atomic_list_concat(Values, '_', Name2),
-  atomic_list_concat([Name1,Name2], '/', Name3),
+  atomic_list_concat([Name1,Name2], /, Name3),
 
   % Escape space (SPACE to `%20`) and grave accent (GRAVE-ACCENT -> `%60`).
   atom_phrase(

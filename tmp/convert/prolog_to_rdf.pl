@@ -38,7 +38,7 @@ prolog_to_rdf(Graph, Module, Term, Individual):-
   (
     rdf_current_prefix(Module, _), !
   ;
-    atomic_list_concat(['http://www.wouterbeek.com',Module,''], '/', URL),
+    atomic_list_concat(['http://www.wouterbeek.com',Module,''], /, URL),
     rdf_register_prefix(Module, URL)
   ),
 
