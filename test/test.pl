@@ -1,5 +1,7 @@
 :- ensure_loaded(debug).
 
+  %/html
+  :- use_module(library(html/rdf_html_meta)).
   %/mat
   :- use_module(library(mat/j_db)).
   :- use_module(library(mat/mat)).

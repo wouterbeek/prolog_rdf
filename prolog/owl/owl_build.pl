@@ -22,6 +22,8 @@ Predicates for asserting common OWL structures.
 
 
 
+
+
 %! owl_assert_value_restriction(
 %!   +Property:iri,
 %!   +Value:iri,
