@@ -36,7 +36,7 @@ Persistent store of SPARQL-related information.
 :- use_module(library(lists)).
 :- use_module(library(service_db)).
 :- use_module(library(typecheck)).
-:- use_module(library(uri_ext)).
+:- use_module(library(uit/uri_ext)).
 
 %! sparql_endpoint(?Endpoint:atom) is nondet.
 % Currently registered SPARQL endpoints.
