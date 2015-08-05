@@ -1,13 +1,13 @@
 :- ensure_loaded(debug).
 
-%/mat
+  %/mat
   :- use_module(library(mat/j_db)).
   :- use_module(library(mat/mat)).
   :- use_module(library(mat/mat_deb)).
-%/owl
+  %/owl
   :- use_module(library(owl/owl_build)).
   :- use_module(library(owl/owl_read)).
-%/rdf
+  %/rdf
   :- use_module(library(rdf/rdf_auth)).
   :- use_module(library(rdf/rdf_bnode_name)).
   :- use_module(library(rdf/rdf_build)).
@@ -23,5 +23,7 @@
   :- use_module(library(rdf/rdf_read)).
   :- use_module(library(rdf/rdf_term)).
   :- use_module(library(rdf/rdf_update)).
-%/rdfs
+  %/rdfs
   :- use_module(library(rdfs/rdfs_build)).
+  %/sparql
+  :- use_module(library(sparql/sparql_db)).
