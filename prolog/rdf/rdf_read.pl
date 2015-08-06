@@ -196,4 +196,5 @@ rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
 rdf_literal(S, P, xsd:string, V, G, rdf(S,P,O,G)):-
   O = literal(Lex),
   rdf(S, P, O, G),
+	atom(Lex),
   rdf_lexical_map(xsd:string, Lex, V).
