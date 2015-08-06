@@ -22,24 +22,36 @@
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
 
+:- set_prolog_flag(chr_toplevel_show_store, false).
+
 :- chr_constraint('_allTypes'/2).
 :- chr_constraint(rdf_chr/3).
+
+
 
 
 
 %! mat(+InputGraph:atom) is det.
 
 mat(GIn):-
+  PrintOpts = [
+    abbr_list(true),
+    elip_lit(20),
+    elip_ln(20),
+    indent(1),
+    logic_sym(true),
+    style(turtle)
+  ],
   must_be(atom, GIn),
   (   rdf_graph(GIn)
   ->  true
   ;   existence_error(rdf_graph, GIn)
   ),
   format(user_output, 'BEFORE MATERIALIZATION:\n', []),
-  rdf_print_graph(GIn, [indent(1)]),
+  rdf_print_graph(GIn, PrintOpts),
   mat(GIn, GOut),
   format(user_output, 'AFTER MATERIALIZATION:\n', []),
-  rdf_print_graph(GOut, [indent(1)]).
+  rdf_print_graph(GOut, PrintOpts).
 
 
 %! mat(+InputGraph:atom, -OutputGraph:atom) is det.

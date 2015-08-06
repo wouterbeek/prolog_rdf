@@ -125,7 +125,13 @@ add_list_instance0(L, G):-
 %! rdf_is_list(@Term) is semidet.
 
 rdf_is_list(L):-
-  rdfs_individual_of(L, rdf:'List').
+  rdf_equal(rdf:nil, L), !.
+rdf_is_list(L):-
+  rdfs_individual_of(L, rdf:'List'), !.
+rdf_is_list(L):-
+  rdf_has(L, rdf:first, _), !.
+rdf_is_list(L):-
+  rdf_has(L, rdf:rest, _), !.
 
 
 
