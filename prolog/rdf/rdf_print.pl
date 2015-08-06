@@ -255,7 +255,7 @@ rdf_print_statement(S, P, O, G, Opts):-
 %   * abbr_list(+boolean)
 
 rdf_print_bnode(B, Opts) -->
-  rdf_print_list(B, Opts).
+  rdf_print_list(B, Opts), !.
 rdf_print_bnode(B, _) -->
   {rdf_bnode_name(B, Name)},
   atom(Name).
