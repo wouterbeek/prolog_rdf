@@ -8,6 +8,7 @@
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
 
+:- debug(mat(rdf(_))).
 :- debug(mat(rdfs(_))).
 :- debug(mat(owl(cax(_)))).
 :- debug(mat(owl(cls(_)))).
@@ -50,10 +51,8 @@ script2:-
   rdf_bnode(D),
   rdf_assert(ex:'JapanEraRegion', owl:equivalentClass, D, G),
   owl_assert_value_restriction(ex:hasEra, ex:stageOne, G, R1),
-  %owl_assert_value_restriction(ex:hasEra, ex:stageTwo, G, R2),
-  %rdf_assert_list([R1,R2], Rs, G),
-  rdf_assert_list([R1], Rs, G),
+  owl_assert_value_restriction(ex:hasEra, ex:stageTwo, G, R2),
+  rdf_assert_list([R1,R2], Rs, G),
   rdf_assert(D, owl:intersectionOf, Rs, G),
   rdf_assert_instance(ex:japan, ex:'JapanEraRegion', G),
-  rdf_print_graph(G, [abbr_list(true),logic_sym(true)]),
   mat(G).
