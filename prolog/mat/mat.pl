@@ -3,7 +3,7 @@
   [
     mat/1, % +InputGraph:atom
     mat/2 % +InputGraph:atom
-          % -OutputGraph:atom
+          % ?OutputGraph:atom
   ]
 ).
 
@@ -36,6 +36,24 @@
 %! mat(+InputGraph:atom) is det.
 
 mat(GIn):-
+  mat(GIn, _).
+
+%! mat(+InputGraph:atom, +OutputGraph:atom) is det.
+%! mat(+InputGraph:atom, -OutputGraph:atom) is det.
+
+mat(GIn, GOut):-
+  var(GOut), !,
+  atomic_list_concat([GIn,mat], '_', GOut),
+  mat(GIn, GOut).
+mat(GIn, GOut):-
+  % Type checking.
+  must_be(atom, GIn),
+  (   rdf_graph(GIn)
+  ->  true
+  ;   existence_error(rdf_graph, GIn)
+  ),
+
+  % Debug message before.
   PrintOpts = [
     abbr_list(true),
     elip_lit(20),
@@ -44,27 +62,20 @@ mat(GIn):-
     logic_sym(true),
     style(turtle)
   ],
-  must_be(atom, GIn),
-  (   rdf_graph(GIn)
-  ->  true
-  ;   existence_error(rdf_graph, GIn)
-  ),
   debug(mat(_), 'BEFORE MATERIALIZATION:', []),
   if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
-  mat(GIn, GOut),
-  debug(mat(_), 'AFTER MATERIALIZATION:', []),
-  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
 
-
-%! mat(+InputGraph:atom, -OutputGraph:atom) is det.
-
-mat(GIn, GOut):-
+  % Perform materialization.
   findall(rdf_chr(S,P,O), rdf(S,P,O,GIn), Ins),
   maplist(store_j0(axiom, []), Ins),
   maplist(call, Ins),
-  atomic_list_concat([GIn,mat], '_', GOut),
   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
-  maplist(rdf_assert0(GOut), Outs), !.
+  maplist(rdf_assert0(GOut), Outs), !,
+
+  % Debug message after.
+  debug(mat(_), 'AFTER MATERIALIZATION:', []),
+  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
+  
 
 store_j0(Rule, Ps, rdf_chr(S,P,O)):-
   store_j(Rule, Ps, rdf(S,P,O)).
