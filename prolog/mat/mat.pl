@@ -15,6 +15,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(chr)).
+:- use_module(library(deb_ext)).
 :- use_module(library(error)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
@@ -48,11 +49,11 @@ mat(GIn):-
   ->  true
   ;   existence_error(rdf_graph, GIn)
   ),
-  format(user_output, 'BEFORE MATERIALIZATION:\n', []),
-  rdf_print_graph(GIn, PrintOpts),
+  debug(mat(_), 'BEFORE MATERIALIZATION:', []),
+  if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
   mat(GIn, GOut),
-  format(user_output, 'AFTER MATERIALIZATION:\n', []),
-  rdf_print_graph(GOut, PrintOpts).
+  debug(mat(_), 'AFTER MATERIALIZATION:', []),
+  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
 
 
 %! mat(+InputGraph:atom, -OutputGraph:atom) is det.

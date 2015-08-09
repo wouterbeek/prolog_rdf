@@ -27,7 +27,7 @@ script1:-
   rdf_print_graph(G),
   rdf_assert_literal(I, ex:age, xsd:nonNegativeInteger, 2, G),
   rdf_assert_now(I, ex:registrationDate, G),
-  rdf_print_graph(G).
+  mat(G).
 
 
 %! script2 is det.
