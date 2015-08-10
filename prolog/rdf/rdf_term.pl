@@ -6,6 +6,7 @@
     rdf_is_iri/1, % @Term
     rdf_is_name/1, % @Term
     rdf_is_term/1, % @Term
+    rdf_literal/1, % @Term
     rdf_name/1, % ?Name:or([iri,literal])
     rdf_node2/1, % ?Node:rdf_term
     rdf_object/1, % ?Object:rdf_term
@@ -46,6 +47,7 @@ But this is not the case either, since typed literals are mapped onto
 :- rdf_meta(rdf_is_iri(o)).
 :- rdf_meta(rdf_is_name(o)).
 :- rdf_meta(rdf_is_term(o)).
+:- rdf_meta(rdf_literal(o)).
 :- rdf_meta(rdf_name(o)).
 :- rdf_meta(rdf_node2(o)).
 :- rdf_meta(rdf_object(o)).
@@ -120,7 +122,7 @@ rdf_is_term(X):-
 
 
 
-%! rdf_literal(+Term) is semidet.
+%! rdf_literal(@Term) is semidet.
 %! rdf_literal(-Literal:literal) is nondet.
 
 rdf_literal(X):-
