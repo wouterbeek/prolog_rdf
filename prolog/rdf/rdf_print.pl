@@ -59,7 +59,7 @@ Easy printing of RDF data to the terminal.
 :- rdf_meta(rdf_print_triple(r,r,o,?)).
 :- rdf_meta(rdf_print_triple(r,r,o,?,+)).
 
-:- predicate_options(rdf_print_bnode/2, 2, [
+:- predicate_options(rdf_print_bnode//2, 2, [
      pass_to(rdf_print_list//2, 2)
    ]).
 :- predicate_options(rdf_print_graph/2, 2, [
@@ -366,7 +366,8 @@ rdf_print_literal(literal(lang(LangTag,Lex)), Opts) --> !,
   "@",
   atom(LangTag).
 rdf_print_literal(literal(Lex), Opts) -->
-  rdf_print_literal(literal(type(xsd:string,Lex)), Opts).
+  {rdf_global_id(xsd:string, D)},
+  rdf_print_literal(literal(type(D,Lex)), Opts).
 
 
 
