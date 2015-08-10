@@ -31,10 +31,11 @@
 rdf_randomize_iris(G):-
   rdf_graph(G),
   aggregate_all(
-    set(IRI1-IRI2),
+    set(X-X0),
     (
-      rdf_iri(IRI1, G),
-      once(randomize_iri(IRI1, IRI2))
+      rdf_iri(X),
+      rdf_term(X, G),
+      once(randomize_iri(X, X0))
     ),
     Dict
   ),

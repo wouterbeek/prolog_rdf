@@ -54,6 +54,7 @@ Simple asserion and retraction predicates for RDF.
 */
 
 :- use_module(library(default)).
+:- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_read)).
@@ -300,10 +301,10 @@ rdf_retractall_literal(S, P, D, V, G):-
 % Removes all triples in which the resource denoted by the given RDF term
 %  occurs.
 
-rdf_retractall_resource(Term, Graph):-
+rdf_retractall_resource(T, G):-
   forall(
-    rdf_id(Term, Term0),
-    rdf_retractall_term(Term0, Graph)
+    owl_id(T, T0),
+    rdf_retractall_term(T0, G)
   ).
 
 

@@ -34,13 +34,9 @@ Support for RDF containers (sequence, bag, and alternatives).
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs), except([rdfs_label/3])).
-
-:- use_module(plc(generics/typecheck)).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(term/rdf_term)).
+:- use_module(library(rdf/rdf_term)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 
 :- rdf_meta(rdf_alt(r,t,?)).
 :- rdf_meta(rdf_assert_collection_member(r,r,+)).
@@ -56,14 +52,19 @@ Support for RDF containers (sequence, bag, and alternatives).
 
 
 
-%! rdf_alt(?Alt:or([bnode,iri]), -Contents:list(uri), ?Graph:atom) is nondet.
+%! rdf_alt(
+%!   ?Alt:or([bnode,iri]),
+%!   -Contents:list(rdf_term),
+%!   ?Graph:atom
+%! ) is nondet.
 % Alternative collections.
 % No duplicates and unordered.
 
-rdf_alt(Alt, Contents, Graph):-
+rdf_alt(Alt, Contents, G):-
   rdfs_individual_of(Alt, rdf:'Alt'),
-  rdf_subject(Alt, Graph),
-  rdf_collection_contents(Alt, Contents, Graph).
+  rdf_subject(Alt),
+  rdf_term(Alt, G),
+  rdf_collection_contents(Alt, Contents, G).
 
 
 
@@ -92,10 +93,11 @@ rdf_assert_collection_member(Collection, Member, Graph):-
 % Returns bags and their contents in the given graph.
 % Unordered & duplicates allowed.
 
-rdf_bag(Bag, Contents, Graph):-
+rdf_bag(Bag, Contents, G):-
   rdfs_individual_of(Bag, rdf:'Bag'),
-  rdf_subject(Bag, Graph),
-  rdf_collection_contents(Bag, Contents, Graph).
+  rdf_subject(Bag),
+  rdf_term(Bag, G),
+  rdf_collection_contents(Bag, Contents, G).
 
 
 
@@ -205,8 +207,9 @@ rdf_container_membership_property(P, Index):-
 %! ) is nondet.
 % Ordered.
 
-rdf_seq(Seq, Contents, Graph):-
+rdf_seq(Seq, Contents, G):-
   rdfs_individual_of(Seq, rdf:'Seq'),
-  rdf_subject(Seq, Graph),
-  rdf_collection_contents(Seq, Contents, Graph).
+  rdf_subject(Seq),
+  rdf_term(Seq, G),
+  rdf_collection_contents(Seq, Contents, G).
 

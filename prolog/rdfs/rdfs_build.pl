@@ -46,9 +46,10 @@
 Predicates for asseritng RDFS statements in an easy way.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
+:- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -245,9 +246,9 @@ rdfs_assert_subproperty(P, Q, G):-
 %
 % @see rdfs_retractall_class_term/1 removes class terms.
 
-rdfs_retractall_class_resource(Class):-
-  rdf_id(Class, Class0),
-  rdfs_retractall_class_term(Class0).
+rdfs_retractall_class_resource(C):-
+  owl_id(C, C0),
+  rdfs_retractall_class_term(C0).
 
 
 
@@ -256,27 +257,27 @@ rdfs_retractall_class_resource(Class):-
 %
 % This connects all subclasses of Class to all superclasses of Class.
 
-rdfs_retractall_class_term(Class):-
+rdfs_retractall_class_term(C):-
   % [1] Remove the links to subclasses.
   %     Connect all subclasses of Class to all superclasses of Class.
   forall(
     (
-      rdf(Subclass, rdfs:subClassOf, Class),
-      rdf(Class, rdfs:subClassOf, Superclass)
+      rdf(SubC, rdfs:subClassOf, C),
+      rdf(C, rdfs:subClassOf, SuperC)
     ),
     (
       % The transitive link is now a direct one.
-      rdfs_assert_subclass(Subclass, Superclass, _),
+      rdfs_assert_subclass(SubC, SuperC, _),
       % Remove the link to a subclass.
-      rdf_retractall(Subclass, rdfs:subClassOf, Class)
+      rdf_retractall(SubC, rdfs:subClassOf, C)
     )
   ),
 
   % [2] Remove the links to superclasses.
-  rdf_retractall(Class, rdfs:subClassOf, _),
+  rdf_retractall(C, rdfs:subClassOf, _),
 
   % [3] Remove other triples in which the class occurs.
-  rdf_retractall_term(Class, _).
+  rdf_retractall_term(C, _).
 
 
 

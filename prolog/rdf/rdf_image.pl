@@ -45,7 +45,7 @@ rdf_image(S, P, O):-
 %! ) is nondet.
 
 rdf_image(S, P, O, G):-
-  rdf_id(S, S0),
+  owl_id(S, S0),
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
       rdf(S0, P, O, G)
   ;   rdf(S0, P, O, G),
