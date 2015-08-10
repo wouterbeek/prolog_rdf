@@ -13,6 +13,7 @@
   :- use_module(library(rdf/rdf_auth)).
   :- use_module(library(rdf/rdf_bnode_name)).
   :- use_module(library(rdf/rdf_build)).
+  :- use_module(library(rdf/rdf_container)).
   :- use_module(library(rdf/rdf_datatype)).
   :- use_module(library(rdf/rdf_default)).
   :- use_module(library(rdf/rdf_graph_nav)).

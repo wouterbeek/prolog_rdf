@@ -19,6 +19,8 @@
                  % +Value2
     rdf_guess_datatype/2, % +Value
                           % -Datatype:iri
+    rdf_interpreted_term/2, % +Term1:rdf_term
+                            % -Term2
     rdf_lexical_canonical_map/3, % +Datatype:iri
                                  % +LexicalForm:atom
                                  % ?CanonicalLexicalFrom:atom
@@ -48,6 +50,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
+:- use_module(library(typecheck)).
 :- use_module(library(xml/xml_dom)).
 :- use_module(library(xsd/xsd)).
 :- use_module(library(xsd/xsd_update)).
@@ -59,6 +62,7 @@
 :- rdf_meta(rdf_datatype_term(r)).
 :- rdf_meta(rdf_datatype_term(r,?)).
 :- rdf_meta(rdf_equiv(r,+,+)).
+:- rdf_meta(rdf_interpreted_term(o,-)).
 :- rdf_meta(rdf_lexical_canonical_map(r,+,?)).
 :- rdf_meta(rdf_lexical_map(r,+,?)).
 :- rdf_meta(rdf_subtype_of(r,r)).
@@ -169,6 +173,17 @@ rdf_guess_datatype(Lang-Lex, D):-
   rdf_equal(rdf:langString, D).
 rdf_guess_datatype(V, D):-
   xsd_guess_datatype(V, D).
+
+
+
+%! rdf_interpreted_term(+Term1:rdf_term, -Term2) is det.
+
+rdf_interpreted_term(X, X):-
+  is_uri(X), !.
+rdf_interpreted_term(X, X):-
+  rdf_is_bnode(X), !.
+rdf_interpreted_term(X, Y):-
+  rdf_lexical_map(X, Y).
 
 
 
