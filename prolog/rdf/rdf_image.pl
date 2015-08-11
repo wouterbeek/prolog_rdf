@@ -12,11 +12,11 @@
 /** <module> RDF image
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
+:- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -45,7 +45,7 @@ rdf_image(S, P, O):-
 %! ) is nondet.
 
 rdf_image(S, P, O, G):-
-  rdf_id(S, S0),
+  owl_id(S, S0),
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
       rdf(S0, P, O, G)
   ;   rdf(S0, P, O, G),
