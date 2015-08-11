@@ -14,7 +14,6 @@
                        % +MergedGraph:atom
     rdf_graph_same_size/2, % +Graph1:atom
                            % +Graph2:atom
-    rdf_is_graph/1, % @Term
     rdf_is_ground_graph/1, % +Graph:atom
     rdf_proper_graph_instance/3, % +Graph1:atom
                                  % +Graph2:atom
@@ -38,14 +37,9 @@
 */
 
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdf_db)).
 
-:- use_module(plc(generics/list_ext)).
-:- use_module(plc(math/math_ext)).
 
-:- use_module(plRdf(rdf_triples)).
-:- use_module(plRdf(term/rdf_instance)).
-:- use_module(plRdf(term/rdf_term)).
 
 
 
@@ -193,19 +187,6 @@ rdf_graph_merge(FromGs, ToG):-
 rdf_graph_same_size(G, H):-
   rdf_graph_property(G, triples(Count)),
   rdf_graph_property(H, triples(Count)).
-
-
-
-%! rdf_is_graph(@Term) is semidet.
-% rdf_graph/1 throws an exception for any non-atomic nonvar argument,
-% whereas this predicate fails silently.
-%
-% The name of this predicate is in line with rdf_is_bnode/1, rdf_is_literal/1,
-%  and rdf_is_resource/1 in [library(semweb/rdf_db)].
-
-rdf_is_graph(Graph):-
-  atom(Graph),
-  rdf_graph(Graph).
 
 
 

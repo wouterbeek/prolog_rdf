@@ -50,7 +50,16 @@ Easy printing of RDF data to the terminal.
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
-:- predicate_options(rdf_print_bnode/2, 2, [
+:- rdf_meta(rdf_print_quadruple(r,r,o,?)).
+:- rdf_meta(rdf_print_quadruple(r,r,o,?,+)).
+:- rdf_meta(rdf_print_term(r)).
+:- rdf_meta(rdf_print_term(r,+)).
+:- rdf_meta(rdf_print_term(r,?,?)).
+:- rdf_meta(rdf_print_term(r,+,?,?)).
+:- rdf_meta(rdf_print_triple(r,r,o,?)).
+:- rdf_meta(rdf_print_triple(r,r,o,?,+)).
+
+:- predicate_options(rdf_print_bnode//2, 2, [
      pass_to(rdf_print_list//2, 2)
    ]).
 :- predicate_options(rdf_print_graph/2, 2, [
@@ -86,7 +95,7 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_statement//5, 5)
    ]).
 :- predicate_options(rdf_print_statement//5, 5, [
-     style(+oneof([triple,turtle])),
+     style(+oneof([tuple,turtle])),
      pass_to(rdf_print_object//2, 2),
      pass_to(rdf_print_predicate//2, 2),
      pass_to(rdf_print_subject//2, 2)
@@ -106,15 +115,6 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_statement/5, 5)
    ]).
 
-:- rdf_meta(rdf_print_quadruple(r,r,o,?)).
-:- rdf_meta(rdf_print_quadruple(r,r,o,?,+)).
-:- rdf_meta(rdf_print_term(r)).
-:- rdf_meta(rdf_print_term(r,+)).
-:- rdf_meta(rdf_print_term(r,?,?)).
-:- rdf_meta(rdf_print_term(r,+,?,?)).
-:- rdf_meta(rdf_print_triple(r,r,o,?)).
-:- rdf_meta(rdf_print_triple(r,r,o,?,+)).
-
 
 
 
@@ -132,7 +132,7 @@ rdf_print_graph(G):-
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
-%   * style(+oneof([triple,turtle])
+%   * style(+oneof([tuple,turtle])
 
 rdf_print_graph(G, Opts):-
   rdf_print_triple(_, _, _, G, Opts),
@@ -165,7 +165,7 @@ rdf_print_quadruple(S, P, O, G):-
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
-%   * style(+oneof([triple,turtle])
+%   * style(+oneof([tuple,turtle])
 
 rdf_print_quadruple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
@@ -216,7 +216,7 @@ rdf_print_triple(S, P, O, G):-
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
-%   * style(+oneof([triple,turtle])
+%   * style(+oneof([tuple,turtle])
 
 rdf_print_triple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
@@ -236,7 +236,7 @@ rdf_print_triple(S, P, O, G, Opts):-
 %   * abbr_list(+boolean)
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
-%   * style(+oneof([triple,turtle])
+%   * style(+oneof([tuple,turtle])
 
 rdf_print_statement(S, P, O, G, Opts):-
   option(indent(I), Opts, 0),
@@ -257,8 +257,8 @@ rdf_print_statement(S, P, O, G, Opts):-
 rdf_print_bnode(B, Opts) -->
   rdf_print_list(B, Opts), !.
 rdf_print_bnode(B, _) -->
-  {rdf_bnode_name(B, Name)},
-  atom(Name).
+  {rdf_bnode_name(B, BName)},
+  atom(BName).
 
 
 
@@ -292,7 +292,7 @@ rdf_print_iri(Iri, Opts) -->
   rdf_print_iri_sym(Iri), !.
 rdf_print_iri(Global, Opts) -->
   {
-    option(abbr_iri(true), Opts, true),
+    \+ option(abbr_iri(false), Opts),
     rdf_global_id(Prefix:Local, Global), !,
     option(elip_ln(N), Opts, inf),
     atom_truncate(Local, N, Local0)
@@ -338,12 +338,15 @@ rdf_print_lexical(Lex, Opts) -->
 %     Default is `false`.
 
 rdf_print_list(L0, Opts) -->
-  {option(abbr_list(true), Opts),
-   rdf_is_list(L0), !,
-   rdf_list_raw(L0, L)},
+  {
+    option(abbr_list(true), Opts),
+    rdf_is_list(L0), !,
+    rdf_list_raw(L0, L)
+  },
   list(rdf_print_term0(Opts), L).
 
-rdf_print_term0(Opts, T) --> rdf_print_term(T, Opts).
+rdf_print_term0(Opts, T) -->
+  rdf_print_term(T, Opts).
 
 
 
@@ -363,7 +366,8 @@ rdf_print_literal(literal(lang(LangTag,Lex)), Opts) --> !,
   "@",
   atom(LangTag).
 rdf_print_literal(literal(Lex), Opts) -->
-  rdf_print_lexical(Lex, Opts).
+  {rdf_global_id(xsd:string, D)},
+  rdf_print_literal(literal(type(D,Lex)), Opts).
 
 
 
@@ -401,14 +405,14 @@ rdf_print_predicate(P, Opts) -->
 %   * elip_lit(+or([nonneg,oneof([inf])]))
 %   * elip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
-%   * style(+oneof([triple,turtle])
+%   * style(+oneof([tuple,turtle])
 %     The style that is used for printing the statement.
 %     Style `turtle` is appropriate for enumerating multiple triples.
-%     Style `triple` is appropriate for singular triples.
+%     Style `tuple` is appropriate for singular triples.
 %     Default is `turtle`.
 
 rdf_print_statement(S, P, O, G, Opts) -->
-  {option(style(triple), Opts)}, !,
+  {option(style(tuple), Opts)}, !,
   bracketed(langular, rdf_print_statement0(S, P, O, Opts)),
   ({ground(G)} -> "@", rdf_print_graph(G) ; "").
 rdf_print_statement(S, P, O, G, Opts) -->

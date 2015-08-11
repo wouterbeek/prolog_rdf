@@ -3,7 +3,7 @@
   [
     mat/1, % +InputGraph:atom
     mat/2 % +InputGraph:atom
-          % -OutputGraph:atom
+          % ?OutputGraph:atom
   ]
 ).
 
@@ -15,6 +15,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(chr)).
+:- use_module(library(deb_ext)).
 :- use_module(library(error)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
@@ -25,6 +26,7 @@
 :- set_prolog_flag(chr_toplevel_show_store, false).
 
 :- chr_constraint('_allTypes'/2).
+:- chr_constraint(inList/2).
 :- chr_constraint(rdf_chr/3).
 
 
@@ -34,6 +36,24 @@
 %! mat(+InputGraph:atom) is det.
 
 mat(GIn):-
+  mat(GIn, _).
+
+%! mat(+InputGraph:atom, +OutputGraph:atom) is det.
+%! mat(+InputGraph:atom, -OutputGraph:atom) is det.
+
+mat(GIn, GOut):-
+  var(GOut), !,
+  atomic_list_concat([GIn,mat], '_', GOut),
+  mat(GIn, GOut).
+mat(GIn, GOut):-
+  % Type checking.
+  must_be(atom, GIn),
+  (   rdf_graph(GIn)
+  ->  true
+  ;   existence_error(rdf_graph, GIn)
+  ),
+
+  % Debug message before.
   PrintOpts = [
     abbr_list(true),
     elip_lit(20),
@@ -42,27 +62,20 @@ mat(GIn):-
     logic_sym(true),
     style(turtle)
   ],
-  must_be(atom, GIn),
-  (   rdf_graph(GIn)
-  ->  true
-  ;   existence_error(rdf_graph, GIn)
-  ),
-  format(user_output, 'BEFORE MATERIALIZATION:\n', []),
-  rdf_print_graph(GIn, PrintOpts),
-  mat(GIn, GOut),
-  format(user_output, 'AFTER MATERIALIZATION:\n', []),
-  rdf_print_graph(GOut, PrintOpts).
+  debug(mat(_), 'BEFORE MATERIALIZATION:', []),
+  if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
 
-
-%! mat(+InputGraph:atom, -OutputGraph:atom) is det.
-
-mat(GIn, GOut):-
+  % Perform materialization.
   findall(rdf_chr(S,P,O), rdf(S,P,O,GIn), Ins),
   maplist(store_j0(axiom, []), Ins),
   maplist(call, Ins),
-  atomic_list_concat([GIn,mat], '_', GOut),
   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
-  maplist(rdf_assert0(GOut), Outs).
+  maplist(rdf_assert0(GOut), Outs), !,
+
+  % Debug message after.
+  debug(mat(_), 'AFTER MATERIALIZATION:', []),
+  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
+  
 
 store_j0(Rule, Ps, rdf_chr(S,P,O)):-
   store_j(Rule, Ps, rdf(S,P,O)).
@@ -80,15 +93,6 @@ idempotence @
   <=>
       debug(db(idempotence), 'idempotence', rdf(S,P,O))
     | true.
-
-rdfs-9 @
-      rdf_chr(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
-      rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)
-  ==> mat_deb(rdfs(9), [
-        rdf(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
-        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
-        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D))
-    | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D).
 
 owl-cax-eqc1 @
       rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2),
@@ -149,11 +153,12 @@ owl-cls-int-1-3 @
 
 owl-cls-int-2 @
       rdf_chr(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L),
-      rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)
-  ==> rdf_list_member(D, L),
-      mat_deb(owl(cls(int(2))), [
+      rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C),
+      inList(D, L)
+  ==> mat_deb(owl(cls(int(2))), [
         rdf(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L),
-        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
+        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C),
+        inList(D, L)],
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D))
     | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D).
 
@@ -203,9 +208,35 @@ owl-scm-eqc-2 @
     | rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2).
 
 owl-scm-int @
-      rdf_chr(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L)
-  ==> rdf_list_member(D, L),
-      mat_deb(owl(scm(int)), [
-        rdf(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L)],
+      rdf_chr(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L),
+      inList(D, L)
+  ==> mat_deb(owl(scm(int)), [
+        rdf(C, 'http://www.w3.org/2002/07/owl#intersectionOf', L),
+        inList(D, L)],
         rdf(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D))
     | rdf_chr(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D).
+
+rdf-list-1 @
+      rdf_chr(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', X)
+  ==> mat_deb(rdf(list(1)), [
+        rdf(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', X)],
+        inList(X, L))
+    | inList(X, L).
+
+rdf-list-2 @
+      rdf_chr(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', M),
+      inList(X, M)
+  ==> mat_deb(rdf(list(2)), [
+        rdf(L, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', M),
+        inList(X, M)],
+        inList(X, L))
+    | inList(X, L).
+
+rdfs-9 @
+      rdf_chr(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
+      rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)
+  ==> mat_deb(rdfs(9), [
+        rdf(C, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', D),
+        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C)],
+        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D))
+    | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', D).

@@ -10,6 +10,12 @@
     rdf_instance/3, % ?Instance:iri
                     % ?Class:iri
                     % ?Graph:atom
+    rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePreferences, ?Value
+    rdf_langstring/5, % ?Subject:or([bnode,iri])
+                      % ?Predicate:iri
+                      % +LanguagePreferences:list(list(atom))
+                      % ?Value:pair(atom,list(atom))
+                      % ?Graph:atom
     rdf_load_vocab/1, % +Location:atom
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
     rdf_literal/5, % ?Subject, ?Predicate, ?Datatype, ?Value, ?Graph
@@ -31,6 +37,7 @@
 */
 
 :- use_module(library(error)).
+:- use_module(library(langtag/langtag_match)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
@@ -39,6 +46,8 @@
 :- rdf_meta(rdf_date(r,r,?)).
 :- rdf_meta(rdf_date(r,r,?,?)).
 :- rdf_meta(rdf_instance(r,r,?)).
+:- rdf_meta(rdf_langstring(r,r,+,?)).
+:- rdf_meta(rdf_langstring(r,r,+,?,?)).
 :- rdf_meta(rdf_literal(r,r,r,?)).
 :- rdf_meta(rdf_literal(r,r,r,?,?)).
 :- rdf_meta(rdf_literal(r,r,r,?,?,-)).
@@ -119,6 +128,32 @@ rdf_instance(I, C, G):-
 
 
 
+%! rdf_langstring(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   +LanguagePreferences:list(list(atom)),
+%!   ?Value:pair(atom,list(atom))
+%! ) is nondet.
+
+rdf_langstring(S, P, Prefs, V):-
+  rdf_langstring(S, P, Prefs, V, _).
+
+%! rdf_langstring(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   +LanguagePreferences:list(list(atom)),
+%!   ?Value:pair(atom,list(atom)),
+%!   ?Graph:atom
+%! ) is nondet.
+
+rdf_langstring(S, P, Prefs, V, G):-
+  rdf_literal(S, P, rdf:langString, V, G),
+  V = _-Lang,
+  member(Pref, Prefs),
+  basic_filtering(Pref, Lang).
+
+
+
 %! rdf_load_vocab(+Location:atom) is det.
 % Succees by loading the vocabulary denoted with the given URI
 % or RDF namespace-denoting prefix into the RDF DB.
@@ -196,4 +231,5 @@ rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
 rdf_literal(S, P, xsd:string, V, G, rdf(S,P,O,G)):-
   O = literal(Lex),
   rdf(S, P, O, G),
+  atom(Lex),
   rdf_lexical_map(xsd:string, Lex, V).

@@ -34,6 +34,7 @@
 @version 2015/07
 */
 
+:- use_module(library(owl/owl_read)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdf_resource_edge(t,r,t,?)).
@@ -72,9 +73,9 @@ rdf_resource_edge(To, P, From, G):-
 % Returns incoming edges for the resource denoted by the given RDF term.
 
 rdf_resource_incoming_edge(To, P, From, G):-
-  rdf_id(To, To0),
+  owl_id(To, To0),
   rdf(From0, P, To0, G),
-  rdf_id(From, From0).
+  owl_id(From, From0).
 
 
 
@@ -87,9 +88,9 @@ rdf_resource_incoming_edge(To, P, From, G):-
 % Returns outgoing edges for the resource denoted by the given RDF term.
 
 rdf_resource_outgoing_edge(From, P, To, G):-
-  rdf_id(From, From0),
+  owl_id(From, From0),
   rdf(From0, P, To0, G),
-  rdf_id(To, To0).
+  owl_id(To, To0).
 
 
 

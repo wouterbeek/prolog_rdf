@@ -174,10 +174,9 @@ description_size(S, G, N):-
 %! iris_by_graph(?Graph:atom, -NumberOfDistinctIris:nonneg) is det.
 % Returns the numver of unique IRIs that occur in the given graph.
 
-iris_by_graph(Graph, NumberOfDistinctIris):-
+iris_by_graph(G, NXs):-
   aggregate_all(
-    set(Iri),
-    rdf_iri(Iri, Graph),
-    DistinctIris
-  ),
-  length(DistinctIris, NumberOfDistinctIris).
+    count,
+    (rdf_iri(X), rdf_term(X, G)),
+    NXs
+  ).

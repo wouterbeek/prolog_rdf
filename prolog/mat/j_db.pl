@@ -5,7 +5,7 @@
          % ?Premises:list(atom)
          % ?Conclusion:atom
          % ?Hash:atom
-    s/2, % ?Triple:compound
+    s/2, % ?Statement:compound
          % ?Hash:atom
     store_j/3 % +Rule:compound
               % +Predicates:list(compound)
@@ -31,7 +31,7 @@
 
 :- dynamic(j/4).
 
-%! s(?Triple:compound, ?Hash:atom) is nondet.
+%! s(?Statement:compound, ?Hash:atom) is nondet.
 
 :- dynamic(s/2).
 
@@ -55,11 +55,11 @@ store_j0(_, _, _, HJ):-
 store_j0(Rule, HPs, HC, HJ):-
   assert(j(Rule,HPs,HC,HJ)).
 
-store_s(T, H):-
-  md5(T, H),
-  store_s0(T, H).
+store_s(S, H):-
+  md5(S, H),
+  store_s0(S, H).
 
-store_s0(T, H):-
-  s(T, H), !.
-store_s0(T, H):-
-  assert(s(T,H)).
+store_s0(S, H):-
+  s(S, H), !.
+store_s0(S, H):-
+  assert(s(S,H)).

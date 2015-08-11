@@ -41,10 +41,10 @@ rdf_mt_print_graph(G):-
   format('GRAPH ~w\n', [G]),
   rdf_triples(G, Ts),
   forall(
-    member(T, Ts),
+    member(rdf(S,P,O), Ts),
     (
       tab,
-      dcg_with_output_to(current_output, rdf_triple_name(T)),
+      dcg_with_output_to(current_output, rdf_print_triple(S,P,O,_)),
       nl
     )
   ).

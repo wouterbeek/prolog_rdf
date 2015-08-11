@@ -124,7 +124,6 @@ Mismatch types:
 :- use_module(plRdf(api/rdf_build)).
 :- use_module(plRdf(api/rdf_read)).
 :- use_module(plRdf(debug/rdf_deb)).
-:- use_module(plRdf(graph/rdf_graph_name)).
 :- use_module(plRdf(management/rdf_file_db)).
 :- use_module(plRdf(management/rdf_load_any)).
 :- use_module(plRdf(management/rdf_save_any)).

@@ -19,6 +19,7 @@ Debug tools for calculating a materialization.
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
@@ -85,14 +86,21 @@ print_premises(N1, [H|T], Opts) -->
   {succ(N1, N2)},
   print_premises(N2, T, Opts).
 
-print_premise(N, rdf(S,P,O), Opts) -->
+print_premise(N, T, Opts) -->
   "P",
   integer(N),
   ": ",
-  rdf_print:rdf_print_statement(S, P, O, _, Opts).
+  print_statement0(T, Opts).
 
-print_conclusion(rdf(S, P, O), Opts) -->
+print_conclusion(T, Opts) -->
   "  ",
   provable,
   "   ",
+  print_statement0(T, Opts).
+
+% RDF statement.
+print_statement0(rdf(S,P,O), Opts) --> !,
   rdf_print:rdf_print_statement(S, P, O, _, Opts).
+% Non-RDF statement.
+print_statement0(T, _) -->
+  pl_term(T).

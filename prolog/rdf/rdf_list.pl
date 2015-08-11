@@ -6,9 +6,9 @@
                        % ?RdfList:or([bnode,iri])
                        % ?Graph:atom
     rdf_is_list/1, % @Term
-    rdf_list/2, % +PrologList, ?RdfList
-    rdf_list/3, % +PrologList:list
-                % ?RdfList:or([bnode,iri])
+    rdf_list/2, % +RdfList, ?PrologList
+    rdf_list/3, % ?RdfList:or([bnode,iri])
+                % +PrologList:list
                 % ?Graph:atom
     rdf_list_raw/2, % +PrologList, ?RdfList
     rdf_list_raw/3, % +PrologList:list
@@ -56,8 +56,8 @@ Support for reading/writing RDF lists.
 :- rdf_meta(rdf_is_list(r)).
 :- rdf_meta(rdf_list(r,?)).
 :- rdf_meta(rdf_list(r,?,?)).
-:- rdf_meta(rdf_list_raw(r,?)).
-:- rdf_meta(rdf_list_raw(r,?,?)).
+:- rdf_meta(rdf_list_raw(r,t)).
+:- rdf_meta(rdf_list_raw(r,t,?)).
 :- rdf_meta(rdf_list_first(r,o)).
 :- rdf_meta(rdf_list_first(r,o,?)).
 :- rdf_meta(rdf_list_first_raw(r,o)).
@@ -114,10 +114,7 @@ rdf_assert_list_items0([H1|T1], L2, G):-
   rdf_assert2(L2, rdf:rest, T2, G).
 
 add_list_instance0(L, G):-
-  (   var(L)
-  ->  rdf_bnode(L)
-  ;   true
-  ),
+  (var(L) -> rdf_bnode(L) ; true),
   rdf_assert_instance(L, rdf:'List', G).
 
 
@@ -136,6 +133,7 @@ rdf_is_list(L):-
 
 
 %! rdf_list(+RdfList:or([bnode,iri]), +PrologList:list) is semidet.
+%! rdf_list(+RdfList:or([bnode,iri]), -PrologList:list) is det.
 % @see rdf_list/3
 
 rdf_list(L1, L2):-
@@ -149,10 +147,11 @@ rdf_list(L1, L2):-
 
 rdf_list(L1, L2, G):-
   rdf_list_raw(L1, L0, G),
-  maplist(interpret_term0, L0, L2).
+  maplist(rdf_interpreted_term, L0, L2).
 
 
 %! rdf_list_raw(+RdfList:or([bnode,iri]), +PrologList:list) is semidet.
+%! rdf_list_raw(+RdfList:or([bnode,iri]), -PrologList:list) is det.
 % @see rdf_list_raw/3
 
 rdf_list_raw(L1, L2):-
@@ -194,7 +193,7 @@ rdf_list_first(L, X):-
 
 rdf_list_first(L, X, G):-
   rdf_list_first_raw(L, X0, G),
-  interpret_term0(X0, X).
+  rdf_interpreted_term(X0, X).
 
 
 %! rdf_list_first_raw(?List:or([bnode,iri]), ?First:rdf_term) is nondet.
@@ -228,7 +227,7 @@ rdf_list_member(X, L):-
 
 rdf_list_member(X, L, G):-
   rdf_list_member_raw(X0, L, G),
-  interpret_term0(X0, X).
+  rdf_interpreted_term(X0, X).
 
 
 %! rdf_list_member_raw(?Member:rdf_term, ?List:or([bnode,iri])) is nondet.
@@ -248,16 +247,3 @@ rdf_list_member_raw(X, L, G):-
 rdf_list_member_raw(X, L, G):-
   rdf(L, rdf:rest, L0, G),
   rdf_list_member_raw(X, L0, G).
-
-
-
-
-
-% HELPERS %
-
-interpret_term0(X, X):-
-  is_uri(X), !.
-interpret_term0(X, X):-
-  rdf_is_bnode(X), !.
-interpret_term0(X, Y):-
-  rdf_lexical_map(X, Y).
