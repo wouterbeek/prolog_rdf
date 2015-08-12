@@ -29,22 +29,30 @@ Consistent naming of blank nodes.
 
 
 
+
+
 %! rdf_bnode_name(+BlankNode:bnode, -Name:atom) is det.
 % Name is a blank node name for BlankNode that is compliant with
 % the Turtle grammar.
 %
 % It is assured that within one session the same blank node
 % will receive the same blank node name.
+%
+% The prefix `_:` is used.
 
 rdf_bnode_name(BNode, Name):-
+  rdf_bnode_name0('_:', BNode, Name).
+
+%! rdf_bnode_name0(+Prefix:atom, +BlankNode:bnode, -Name:atom) is det.
+
+rdf_bnode_name0(Prefix, BNode, Name):-
   % Retrieve (existing) or create (new) a numeric blank node identifier.
   (   bnode_name_map(BNode, Id)
   ->  true
   ;   increment_bnode_name_counter(Id),
       assert(bnode_name_map(BNode, Id))
   ),
-  atomic_concat('_:', Id, Name).
-
+  atomic_concat(Prefix, Id, Name).
 
 increment_bnode_name_counter(Id):-
   retract(bnode_name_counter(Id0)), !,

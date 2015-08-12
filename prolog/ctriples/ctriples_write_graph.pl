@@ -3,7 +3,7 @@
   [
     ctriples_write_graph/3 % +Write:or([atom,stream])
                            % ?Graph:atom
-                           % +Options:list(nvpair)
+                           % +Options:list(compound)
   ]
 ).
 
@@ -12,23 +12,23 @@
 Writes the given graph (or all currently stored triples) to a source.
 
 @author Wouter Beek
-@version 2014/03-2014/06, 2014/08-2014/09, 2015/01
+@version 2015/08
 */
 
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdf_db)).
 
-:- use_module(plRdf(syntax/ctriples/ctriples_write_generics)).
+:- use_module(library(ctriples/ctriples_write_generics)).
 
 :- predicate_options(ctriples_write_graph/3, 3, [
-  pass_to(write_graph/2, 2)
-]).
+     pass_to(write_graph/2, 2)
+   ]).
 :- predicate_options(write_graph/2, 2, [
-  pass_to(ctriples_write_begin/3, 3),
-  pass_to(ctriples_write_end/2, 2),
-  format(+oneof([quadruples,triples]))
-]).
+     pass_to(ctriples_write_begin/3, 3),
+     pass_to(ctriples_write_end/2, 2),
+     format(+oneof([quadruples,triples]))
+   ]).
 
 
 
@@ -37,7 +37,7 @@ Writes the given graph (or all currently stored triples) to a source.
 %! ctriples_write_graph(
 %!   +Source:or([atom,stream]),
 %!   ?Graph:atom,
-%!   +Options:list(nvpair)
+%!   +Options:list(compound)
 %! ) is det.
 % `Source` is either a file name or a write stream.
 %
@@ -53,29 +53,29 @@ Writes the given graph (or all currently stored triples) to a source.
 % @see http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/#section-skolemization
 
 % Input is a stream.
-ctriples_write_graph(Write, Graph, Options):-
+ctriples_write_graph(Write, G, Opts):-
   is_stream(Write), !,
-  with_output_to(Write, write_graph(Graph, Options)).
+  with_output_to(Write, write_graph(G, Opts)).
 % Input is a file.
 % Open a stream in `write` mode.
-ctriples_write_graph(File, Graph, Options):-
+ctriples_write_graph(File, G, Opts):-
   is_absolute_file_name(File), !,
   setup_call_cleanup(
     open(File, write, Write),
-    with_output_to(Write, write_graph(Graph, Options)),
+    with_output_to(Write, write_graph(G, Opts)),
     close(Write)
   ).
 
 
 
-%! write_graph(?Graph:atom, +Options:list(nvpair)) is det.
+%! write_graph(?Graph:atom, +Options:list(compound)) is det.
 % This assumes that we can write to current output.
 
-write_graph(Graph, Options):-
-  ctriples_write_begin(State, BNodePrefix, Options),
+write_graph(G, Opts):-
+  ctriples_write_begin(State, BPrefix, Opts),
 
   % Decide whether triples or quadruples are written.
-  (   option(format(CFormat), Options),
+  (   option(format(CFormat), Opts),
       nonvar(CFormat)
   ->  memberchk(CFormat, [quadruples,triples])
   ;   rdf_graph(G),
@@ -85,18 +85,14 @@ write_graph(Graph, Options):-
   ;   CFormat = triples
   ),
 
-  findall(
-    S,
-    rdf(S, _, _, Graph),
-    Ss1
-  ),
+  findall(S, rdf(S, _, _, G), Ss1),
   sort(Ss1, Ss2),
   forall(
     member(S, Ss2),
-    write_subject(State, BNodePrefix, Graph, CFormat, S)
+    write_subject(State, BPrefix, G, CFormat, S)
   ),
 
-  ctriples_write_end(State, Options).
+  ctriples_write_end(State, Opts).
 
 
 
@@ -114,33 +110,25 @@ write_graph(Graph, Options):-
 % Then processes each pairs -- and thus each triple -- separately.
 
 % Format: C-Quads
-write_subject(State, BNodePrefix, Graph, quadruples, S):-
-  findall(
-    P-O-Graph,
-    rdf(S, P, O, Graph:_),
-    POGTriples1
-  ),
+write_subject(State, BPrefix, G, quadruples, S):-
+  findall(P-O-G, rdf(S, P, O, G:_), POGTriples1),
   sort(POGTriples1, POGTriples2),
   forall(
     member(P-O-G, POGTriples2),
     (
       inc_number_of_triples(State),
-      write_quadruple(S, P, O, G, BNodePrefix)
+      write_quadruple(S, P, O, G, BPrefix)
     )
   ).
 % Format: C-Triples
-write_subject(State, BNodePrefix, Graph, triples, S):-
-  findall(
-    P-O,
-    rdf(S, P, O, Graph:_),
-    POPairs1
-  ),
+write_subject(State, BPrefix, G, triples, S):-
+  findall(P-O, rdf(S, P, O, G:_), POPairs1),
   sort(POPairs1, POPairs2),
   forall(
     member(P-O, POPairs2),
     (
       inc_number_of_triples(State),
-      write_triple(S, P, O, BNodePrefix)
+      write_triple(S, P, O, BPrefix)
     )
   ).
 

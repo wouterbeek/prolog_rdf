@@ -4,9 +4,6 @@
     rdf_file_extension/1, % ?Extension:atom
     rdf_file_extension/2, % ?Extension:atom
                           % ?Format:atom
-    rdf_media_type/1, % ?MediaType:atom
-    rdf_media_type/2, % ?MediaType:atom
-                      % ?Format:atom
     rdf_serialization_format/1, % ?Format:atom
     rdf_serialization_label/2, % ?Label:atom
                                % ?Format:atom
@@ -83,24 +80,6 @@ rdf_file_extension(Ext):-
 rdf_file_extension(Ext, Format):-
   rdf_http_plugin:rdf_content_type(_, _, Format),
   user:prolog_file_type(Ext, Format).
-
-
-
-%! rdf_media_type(+MediaType:atom) is semidet.
-%! rdf_media_type(-MediaType:atom) is multi.
-
-rdf_media_type(MediaType):-
-  distinct(MediaType, rdf_media_type(MediaType, _)).
-
-
-
-%! rdf_media_type(+MediaType:atom, +Format:atom) is semidet.
-%! rdf_media_type(+MediaType:atom, -Format:atom) is semidet.
-%! rdf_media_type(-MediaType:atom, +Format:atom) is nondet.
-%! rdf_media_type(-MediaType:atom, -Format:atom) is multi.
-
-rdf_media_type(MediaType, Format):-
-  rdf_http_plugin:rdf_content_type(MediaType, _, Format).
 
 
 

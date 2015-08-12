@@ -22,6 +22,7 @@ Debug tools for calculating a materialization.
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_pl_term)).
 :- use_module(library(debug)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(rdf/rdf_print)).

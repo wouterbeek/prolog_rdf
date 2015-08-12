@@ -1,19 +1,19 @@
 :- module(
   ctriples_write_triples,
   [
-    ctriples_write_triple/4, % +Out:stream
+    ctriples_write_triple/4, % +Write:stream
                              % +State:compound
                              % +BNodePrefix:iri
                              % +Triple:compound
-    ctriples_write_triples/3, % +Out:or([atom,stream])
+    ctriples_write_triples/3, % +Write:or([atom,stream])
                               % +Triples:list(compound)
-                              % +Options:list(nvpair)
+                              % +Options:list(compound)
     ctriples_write_triples_to_stream/2 % +Triples:list(compound)
-                                       % +Options:list(nvpair)
+                                       % +Options:list(compound)
   ]
 ).
 
-/** <module> C-Triples write: triples
+/** <module> C-Triples write: Triples
 
 Serialize RDF in the C-Triples and C-Quads format
 
@@ -35,36 +35,34 @@ Simple literals are not emitted, the `xsd:string` datatype is made explicit.
 Language-tagged strings are made explicit with datatype `rdf:langString`.
 
 @author Wouter Beek
-@version 2014/08-2014/09, 2015/01-2015/02
+@version 2015/08
 */
 
-:- use_module(library(lists), except([delete/3,subset/2])).
-
-:- use_module(plRdf(syntax/ctriples/ctriples_write_generics)).
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(ctriples/ctriples_write_generics)).
 
 :- predicate_options(ctriples_write_triples/3, 3, [
-  pass_to(ctriples_write_triples_to_stream/2, 2)
-]).
+     pass_to(ctriples_write_triples_to_stream/2, 2)
+   ]).
 :- predicate_options(ctriples_write_triples_to_stream/2, 2, [
-  pass_to(ctriples_write_begin/3, 3),
-  pass_to(ctriples_write_end/2, 2)
-]).
+     pass_to(ctriples_write_begin/3, 3),
+     pass_to(ctriples_write_end/2, 2)
+   ]).
 
 
 
 
 
 %! ctriples_write_triple(
-%!   +Out:stream,
+%!   +Write:stream,
 %!   +State:compound,
 %!   +BNodePrefix:iri,
 %!   +Triple:compound
 %! ) is det.
 
-ctriples_write_triple(Out, State, BNodePrefix, Triple):-
-  with_output_to(Out,
-    ctriples_write_triple_to_stream(State, BNodePrefix, Triple)
-  ).
+ctriples_write_triple(Write, State, BPrefix, T):-
+  with_output_to(Write, ctriples_write_triple_to_stream(State, BPrefix, T)).
 
 
 
@@ -74,12 +72,12 @@ ctriples_write_triple(Out, State, BNodePrefix, Triple):-
 %!   +Triple:compound
 %! ) is det.
 
-ctriples_write_triple_to_stream(State, BNodePrefix, Triple):-
+ctriples_write_triple_to_stream(State, BPrefix, T):-
   inc_number_of_triples(State),
-  (   Triple = rdf(S,P,O)
-  ->  write_triple(S, P, O, BNodePrefix)
-  ;   Triple = rdf(S,P,O,G)
-  ->  write_quadruple(S, P, O, G, BNodePrefix)
+  (   T = rdf(S,P,O)
+  ->  write_triple(S, P, O, BPrefix)
+  ;   T = rdf(S,P,O,G)
+  ->  write_quadruple(S, P, O, G, BPrefix)
   ;   true
   ).
 
@@ -88,35 +86,30 @@ ctriples_write_triple_to_stream(State, BNodePrefix, Triple):-
 %! ctriples_write_triples(
 %!   +Source:or([atom,stream]),
 %!   +Triples:list(compound),
-%!   +Options:list
+%!   +Options:list(compound)
 %! ) is det.
 % Writes RDF data using the C-Triples/C-Quads serialization format.
 
-ctriples_write_triples(Out, Triples, Options):-
-  is_stream(Out), !,
-  with_output_to(Out, ctriples_write_triples_to_stream(Triples, Options)).
-ctriples_write_triples(Out, Triples, Options):-
-  is_absolute_file_name(File), !,
+ctriples_write_triples(Write, Ts, Opts):-
+  is_stream(Write), !,
+  with_output_to(Write, ctriples_write_triples_to_stream(Ts, Opts)).
+ctriples_write_triples(Write, Ts, Opts):-
+  is_absolute_file_name(File),
   setup_call_cleanup(
-    open(File, write, Out),
-    with_output_to(Out, ctriples_write_triples_to_stream(Triples, Options)),
-    close(Out)
+    open(File, write, Write),
+    with_output_to(Write, ctriples_write_triples_to_stream(Ts, Opts)),
+    close(Write)
   ).
 
 
 
 %! ctriples_write_triples_to_stream(
 %!   +Triples:list(compound),
-%!   +Options:list(nvpair)
+%!   +Options:list(compound)
 %! ) is det.
 
-ctriples_write_triples_to_stream(Triples1, Options):-
-  ctriples_write_begin(State, BNodePrefix, Options),
-
-  sort(Triples1, Triples2),
-  forall(
-    member(Triple, Triples2),
-    ctriples_write_triple_to_stream(State, BNodePrefix, Triple)
-  ),
-
-  ctriples_write_end(State, Options).
+ctriples_write_triples_to_stream(Ts1, Opts):-
+  ctriples_write_begin(State, BPrefix, Opts),
+  sort(Ts1, Ts2),
+  maplist(ctriples_write_triple_to_stream(State, BPrefix), Ts2),
+  ctriples_write_end(State, Opts).
