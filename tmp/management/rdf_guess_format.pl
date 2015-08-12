@@ -10,26 +10,27 @@
   ]
 ).
 
-/** <module> RDF detect
+/** <module> RDF guess format
 
-Detect the RDF serialization format of a given stream.
+Guesses the RDF serialization format of a given stream.
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2014/04-2014/05, 2014/07-2014/08, 2014/10, 2015/01-2015/02
+@version 2015/08
 */
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(memfile)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml)).
 
-:- use_module(plc(dcg/dcg_generics)).
-
-:- use_module(plRdf(management/rdf_file_db)).
-
 :- meta_predicate(nt_string_codes(//,?,?)).
+
+:- multifile(error:has_type/2).
+
+error:has_type(rdf_format, T):-
+  error:has_type(oneof([nquads,ntriples,turtle,trig]), T).
 
 
 
@@ -42,10 +43,10 @@ Detect the RDF serialization format of a given stream.
 % `Source` is either a stream or a file name.
 %
 % The following options are processed:
-%   - `format(+Format)`
+%   * `format(+Format)`
 %     The guessed RDF serialization format,
 %     e.g. based on the media type and/or file name.
-%   - `look_ahead(+NumberOfBytes:nonneg)`
+%   * `look_ahead(+NumberOfBytes:nonneg)`
 %     Look ahead the indicated amount
 %
 % @throws no_rdf If no RDF serialization format can be recognized.
@@ -55,42 +56,39 @@ rdf_guess_format(File0, Format):-
   absolute_file_name(File0, File, [access(read)]),
 
   % Take the file extension into account, if any.
-  file_name_extension(_, FileExtension0, File),
-  (   FileExtension0 == ''
-  ->  true
-  ;   FileExtension = FileExtension0
-  ),
+  file_name_extension(_, FileExt0, File),
+  (FileExt0 == '' ->  true ; FileExt = FileExt0),
 
   setup_call_cleanup(
-    open(File, read, Stream),
-    rdf_guess_format(Stream, FileExtension, _, Format),
-    close(Stream)
+    open(File, read, Read),
+    rdf_guess_format(Read, FileExt, _, Format),
+    close(Read)
   ).
 
 %! rdf_guess_format0(
-%!   +Stream:stream,
+%!   +Read:stream,
 %!   -Format:rdf_format,
-%!   +Options:list(nvpair)
+%!   +Options:list(compound)
 %! ) is det.
 
-rdf_guess_format0(Stream, Format, Options):-
-  rdf_guess_format0(Stream, 0, Format, Options).
+rdf_guess_format0(Read, Format, Opts):-
+  rdf_guess_format0(Read, 0, Format, Opts).
 
 %! rdf_guess_format0(
-%!   +Stream:stream,
+%!   +Read:stream,
 %!   +Iteration:positive_integer,
 %!   -Format:rdf_format,
-%!   +Options:list(nvpair)
+%!   +Options:list(compound)
 %! ) is det.
 
-rdf_guess_format0(Stream, Iteration, Format, Options1):-
+rdf_guess_format0(Read, Iteration, Format, Opts0):-
   % Peek a given number of bytes from stream.
-  option(look_ahead(Bytes0), Options1, 1000),
+  option(look_ahead(Bytes0), Opts0, 1000),
   Bytes is Bytes0 * 2^Iteration,
-  peek_string(Stream, Bytes, String),
+  peek_string(Read, Bytes, S),
 
   % Do not backtrack if the whole stream has been peeked.
-  string_length(String, Length),
+  string_length(S, Length),
   (   (   Length =:= 0
       ;   Length < Bytes
       )
@@ -98,11 +96,11 @@ rdf_guess_format0(Stream, Iteration, Format, Options1):-
       EoS = true
   ;   EoS = false
   ),
-  merge_options([eos(EoS)], Options1, Options2),
+  merge_options([eos(EoS)], Opts0, Opts),
 
   % Try to parse the peeked string as Turtle- or XML-like.
-  (   string_codes(String, Codes),
-      phrase(turtle_like(Format, Options2), Codes, _)
+  (   string_codes(S, Cs),
+      phrase(turtle_like(Format, Opts), Cs, _)
   ->  true
   ;   setup_call_cleanup(
         new_memory_file(MemFile),
@@ -121,14 +119,14 @@ rdf_guess_format0(Stream, Iteration, Format, Options1):-
         free_memory_file(MemFile)
       )
   ), !.
-rdf_guess_format0(Stream, Iteration, Format, Options):-
+rdf_guess_format0(Read, Iteration, Format, Opts):-
   Iteration < 4,
   NewIteration is Iteration + 1,
-  rdf_guess_format0(Stream, NewIteration, Format, Options).
+  rdf_guess_format0(Read, NewIteration, Format, Opts).
 
 
 %! rdf_guess_format(
-%!   +In:stream,
+%!   +Read:stream,
 %!   ?FileExtension:atom,
 %!   ?ContentType:atom,
 %!   -Format:rdf_format
@@ -136,24 +134,24 @@ rdf_guess_format0(Stream, Iteration, Format, Options):-
 % @throws no_rdf If no RDF serialization format can be recognized.
 
 % Use the file extensions as the RDF serialization format suggestion.
-rdf_guess_format(In, FileExtension, _, Format):-
-  nonvar(FileExtension),
-  rdf_db:rdf_file_type(FileExtension, SuggestedFormat), !,
+rdf_guess_format(Read, FileExt, _, Format):-
+  nonvar(FileExt),
+  rdf_db:rdf_file_type(FileExt, SuggestedFormat), !,
   rdf_guess_format0(In, Format, [format(SuggestedFormat)]).
 % Use the HTTP content type header as the RDF serialization format suggestion.
 rdf_guess_format(In, _, ContentType, Format):-
   nonvar(ContentType),
   rdf_media_type(ContentType, SuggestedFormat), !,
-  rdf_guess_format0(In, Format, [format(SuggestedFormat)]).
+  rdf_guess_format0(Read, Format, [format(SuggestedFormat)]).
 % Use no RDF serialization format suggestion.
-rdf_guess_format(In, _, _, Format):-
-  rdf_guess_format0(In, Format, []), !.
-rdf_guess_format(In, _, _, _):-
-  throw(error(no_rdf(In))).
+rdf_guess_format(Read, _, _, Format):-
+  rdf_guess_format0(Read, Format, []), !.
+rdf_guess_format(Read, _, _, _):-
+  throw(error(no_rdf(Read))).
 
 %! turtle_like(
-%!   -Format:oneof([nquads,ntriples,turtle,trig]),
-%!   +Options:list(nvpair)
+%!   -Format:rdf_format,
+%!   +Options:list(compound)
 %! )// is semidet.
 % True if the start of the input matches a turtle-like language.
 % There are four of them:
@@ -459,4 +457,3 @@ alpha_to_lowers([H|T]) -->
   alpha_to_lowers(T).
 alpha_to_lowers([]) -->
   [].
-

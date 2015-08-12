@@ -34,6 +34,7 @@ Persistent store of SPARQL-related information.
 :- use_module(library(base64)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(rdf/rdf_prefix)). % Private
 :- use_module(library(service_db)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri/uri_ext)).
@@ -70,6 +71,40 @@ Persistent store of SPARQL-related information.
 % Individual endpoints can override these settings.
 
 :- dynamic(sparql_manufacturer_option0/3).
+
+:- initialization(sparql_init).
+
+sparql_init:-
+  dbpedia_init,
+  dbpedia_localizations_init.
+
+% DBpedia
+dbpedia_init:-
+  sparql_register_endpoint(
+    dbpedia,
+    ['http://dbpedia.org/','http://live.dbpedia.org'],
+    virtuoso
+  ).
+
+% DBpedia localizations
+dbpedia_localizations_init:-
+  forall(
+    rdf_prefix:dbpedia_language_tag(LangTag),
+    dbpedia_register(LangTag)
+  ).
+
+dbpedia_register(LangTag):-
+  % The generic DBpedia SPARQL endpoint can be used to query
+  % for any of the natural languages.
+  % Some languages, in addition, have their own SPARQL endpoint.
+  atomic_list_concat([LangTag,dbpedia], ., Endpoint),
+  atomic_list_concat([LangTag,dbpedia,org], ., Authority),
+  uri_components(Uri, uri_components(http,Authority,_,_,_)),
+  sparql_register_endpoint(
+    Endpoint,
+    [Uri,'http://dbpedia.org','http://live.dbpedia.org'],
+    virtuoso
+  ).
 
 
 
