@@ -7,11 +7,21 @@
 %/dcg
 :- use_module(library(dcg/langtag)).
 :- use_module(library(dcg/langtag_char)).
+:- use_module(library(dcg/rfc3987)).
 :- use_module(library(dcg/sw_char)).
 :- use_module(library(dcg/sw_iri)).
 :- use_module(library(dcg/sw_literal)).
 :- use_module(library(dcg/sw_number)).
 :- use_module(library(dcg/sw_string)).
+:- use_module(library(dcg/uri_authority)).
+:- use_module(library(dcg/uri_char)).
+:- use_module(library(dcg/uri_fragment)).
+:- use_module(library(dcg/uri_hier)).
+:- use_module(library(dcg/uri_host)).
+:- use_module(library(dcg/uri_port)).
+:- use_module(library(dcg/uri_query)).
+:- use_module(library(dcg/uri_relative)).
+:- use_module(library(dcg/uri_scheme)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
 %/mat

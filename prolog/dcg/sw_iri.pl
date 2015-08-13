@@ -31,9 +31,12 @@ Most standards allow IRIs to be abbreviated by splitting them in
 @version 2015/08
 */
 
+:- use_module(library(char_ext)).
 :- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/rfc3987), ['IRI'//1 as 'IRI_rfc3987']).
 :- use_module(library(dcg/sw_char)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
@@ -127,7 +130,7 @@ datatypeIRI(Iri) --> 'IRI'(Iri).
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
 fullIRI(Iri) -->
-  bracketed(angular, 'IRI_rdf3987'(Iri)).
+  bracketed(angular, 'IRI_rfc3987'(Iri)).
 
 
 

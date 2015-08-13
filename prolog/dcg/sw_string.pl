@@ -262,17 +262,17 @@ quotedString0([H|T]) -->
 %! )// .
 
 'STRING_LITERAL'(Lang, Quote, S) -->
-  quoted(Quote, dcg_atom('*'('STRING_LITERAL0'(Lang, Quote), []), S)).
+  quoted(Quote, dcg_atom('*'('STRING_LITERAL_char'(Lang, Quote), []), S)).
 
-%! 'STRING_LITERAL0'(+Language:oneof([sparql,turtle]), :Esc, ?Code:code)// .
+%! 'STRING_LITERAL_char'(+Language:oneof([sparql,turtle]), :Esc, ?Code:code)// .
 
-'STRING_LITERAL0'(_, Esc, _) --> Esc, !, {fail}.
-'STRING_LITERAL0'(_, _, C) --> 'ECHAR'(C).
-'STRING_LITERAL0'(_, _, _) --> code_radix(hex('5C')), !, {fail}.
-'STRING_LITERAL0'(_, _, _) --> code_radix(hex('A')), !, {fail}.
-'STRING_LITERAL0'(_, _, _) --> code_radix(hex('D')), !, {fail}.
-'STRING_LITERAL0'(turtle, _, C) --> 'UCHAR'(C).
-'STRING_LITERAL0'(_, _, C) --> [C].
+'STRING_LITERAL_char'(_, Esc, _) --> Esc, !, {fail}.
+'STRING_LITERAL_char'(_, _, C) --> 'ECHAR'(C).
+'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('5C')), !, {fail}.
+'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('A')), !, {fail}.
+'STRING_LITERAL_char'(_, _, _) --> code_radix(hex('D')), !, {fail}.
+'STRING_LITERAL_char'(turtle, _, C) --> 'UCHAR'(C).
+'STRING_LITERAL_char'(_, _, C) --> [C].
 
 
 
