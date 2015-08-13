@@ -4,6 +4,8 @@
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
+%/dcg
+:- use_module(library(dcg/sw_number)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
 %/mat
