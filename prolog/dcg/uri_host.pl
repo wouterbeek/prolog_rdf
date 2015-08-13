@@ -22,6 +22,7 @@ Grammar for URI hosts.
 :- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/uri_char)).
 :- use_module(library(math/positional)).
 
 
