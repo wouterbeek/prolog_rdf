@@ -14,7 +14,6 @@
 :- use_module(library(dcg/sw_number)).
 :- use_module(library(dcg/sw_string)).
 :- use_module(library(dcg/uri_authority)).
-:- use_module(library(dcg/uri_char)).
 :- use_module(library(dcg/uri_fragment)).
 :- use_module(library(dcg/uri_hier)).
 :- use_module(library(dcg/uri_host)).
