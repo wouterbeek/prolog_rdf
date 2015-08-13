@@ -48,6 +48,7 @@ Examples of literal syntax in SPARQL include:
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/langtag)).
+:- use_module(library(dcg/sw_iri)).
 :- use_module(library(dcg/sw_number)).
 :- use_module(library(dcg/sw_string)).
 :- use_module(library(semweb/rdf_db)).
