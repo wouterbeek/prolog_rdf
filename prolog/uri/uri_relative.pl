@@ -25,10 +25,10 @@ Grammar for relative URIs.
 */
 
 :- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/uri_authority)).
-:- use_module(library(dcg/uri_fragment)).
-:- use_module(library(dcg/uri_hier)).
-:- use_module(library(dcg/uri_query)).
+:- use_module(library(uri/uri_authority)).
+:- use_module(library(uri/uri_fragment)).
+:- use_module(library(uri/uri_hier)).
+:- use_module(library(uri/uri_query)).
 
 
 

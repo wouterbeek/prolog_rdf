@@ -57,13 +57,13 @@
 @version 2015/08
 */
 
-:- use_module(library(dcg/uri_char)).
-:- use_module(library(dcg/uri_fragment)).
-:- use_module(library(dcg/uri_hier)).
-:- use_module(library(dcg/uri_query)).
-:- use_module(library(dcg/uri_relative)).
-:- use_module(library(dcg/uri_scheme)).
 :- use_module(library(uri)).
+:- use_module(library(uri/uri_char)).
+:- use_module(library(uri/uri_fragment)).
+:- use_module(library(uri/uri_hier)).
+:- use_module(library(uri/uri_query)).
+:- use_module(library(uri/uri_relative)).
+:- use_module(library(uri/uri_scheme)).
 
 
 

@@ -18,7 +18,7 @@ Grammar for URI fragments.
 
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/uri_char)).
+:- use_module(library(uri/uri_char)).
 
 
 

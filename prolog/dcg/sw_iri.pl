@@ -36,12 +36,12 @@ Most standards allow IRIs to be abbreviated by splitting them in
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc3987), ['IRI'//1 as 'IRI_rfc3987']).
 :- use_module(library(dcg/sw_char)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri/rfc3987), ['IRI'//1 as 'IRI_rfc3987']).
 
 :- rdf_meta('Datatype'(r,?,?)).
 
