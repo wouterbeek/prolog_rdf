@@ -5,7 +5,13 @@
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
 %/dcg
+:- use_module(library(dcg/langtag)).
+:- use_module(library(dcg/langtag_char)).
+:- use_module(library(dcg/sw_char)).
+:- use_module(library(dcg/sw_iri)).
+:- use_module(library(dcg/sw_literal)).
 :- use_module(library(dcg/sw_number)).
+:- use_module(library(dcg/sw_string)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
 %/mat

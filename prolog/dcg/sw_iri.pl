@@ -15,7 +15,7 @@
   ]
 ).
 
-/** <module> SW grammar: IRIs
+/** <module> IRI definitions in Semantic Web grammars
 
 Various grammar rules for the use of IRIs in SW standards.
 
@@ -28,24 +28,17 @@ Most standards allow IRIs to be abbreviated by splitting them in
 @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/08-2014/12
+@version 2015/08
 */
 
+:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/sw_char)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
-:- use_module(library(lists), except([delete/3,subset/2])).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_bracket)).
-:- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(generics/atom_ext)). % Meta-option.
-:- use_module(plc(generics/char_ext)).
-
-:- use_module(plUri(rfc3987), ['IRI'//1 as 'IRI_rdf3987']).
-
-:- use_module(plRdf(syntax/sw_char)).
+:- use_module(library(lists)).
+:- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta('Datatype'(r,?,?)).
 
@@ -159,10 +152,8 @@ individualIRI(Iri) --> 'IRI'(Iri).
 % @compat SPARQL 1.1 Query [136]
 % @compat Turtle 1.1 [135a]
 
-iri(Iri) -->
-  'IRIREF'(Iri).
-iri(PrefixedIri) -->
-  'PrefixedName'(PrefixedIri).
+iri(Iri) --> 'IRIREF'(Iri).
+iri(PrefixedIri) --> 'PrefixedName'(PrefixedIri).
 
 
 
@@ -187,8 +178,7 @@ iri(PrefixedIri) -->
 % @compat SPARQL 1.0 [70]
 % @deprecated Use 'IRIREF'//1 instead.
 
-'IRI_REF'(Iri) -->
-  'IRIREF'(Iri).
+'IRI_REF'(Iri) --> 'IRIREF'(Iri).
 
 
 
@@ -207,12 +197,10 @@ iri(PrefixedIri) -->
 % @tbd What about DELETE (decimal 127)?
 
 'IRIREF'(Iri) -->
-  "<",
-  dcg_atom('IRIREF_codes', Iri),
-  ">".
+  bracketed(angular, dcg_atom('IRIREF_codes', Iri)).
 
 'IRIREF_codes'([H|T]) --> 'IRIREF_code'(H), 'IRIREF_codes'(T).
-'IRIREF_codes'([]) --> "".
+'IRIREF_codes'([]) --> [].
 
 'IRIREF_code'(_) --> control, !, {fail}.
 'IRIREF_code'(_) --> angular_bracket, !, {fail}.
@@ -222,8 +210,8 @@ iri(PrefixedIri) -->
 'IRIREF_code'(_) --> "^", !, {fail}.
 'IRIREF_code'(_) --> "\`", !, {fail}.
 'IRIREF_code'(_) --> "\\", !, {fail}.
-'IRIREF_code'(Code) --> 'UCHAR'(Code).
-'IRIREF_code'(Code) --> [Code].
+'IRIREF_code'(C) --> 'UCHAR'(C).
+'IRIREF_code'(C) --> [C].
 
 
 
@@ -266,10 +254,9 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % @compat SPARQL 1.1 Query [169].
 % @compat Turtle 1.1 [168s].
 
-'PN_LOCAL'(LocalPart) -->
-  dcg_atom('PN_LOCAL_codes', LocalPart).
+'PN_LOCAL'(LocalPart) --> dcg_atom('PN_LOCAL_code', LocalPart).
 
-'PN_LOCAL_codes'([H|T]) -->
+'PN_LOCAL_code'([H|T]) -->
   'PN_LOCAL_1'(H),
   (   '*'('PN_LOCAL_2',T0, []),
       'PN_LOCAL_3'(Last),
@@ -277,19 +264,19 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
   ;   {T = []}
   ).
 
-'PN_LOCAL_1'(Code) --> 'PN_CHARS_U'(sparql, Code).
-'PN_LOCAL_1'(Code) --> colon(Code).
-'PN_LOCAL_1'(Code) --> decimal_digit(Code).
-'PN_LOCAL_1'(Code) --> 'PLX'(Code).
+'PN_LOCAL_1'(C) --> 'PN_CHARS_U'(sparql, C).
+'PN_LOCAL_1'(C) --> colon(C).
+'PN_LOCAL_1'(C) --> decimal_digit(C).
+'PN_LOCAL_1'(C) --> 'PLX'(C).
 
-'PN_LOCAL_2'(Code) --> 'PN_CHARS_U'(sparql, Code).
-'PN_LOCAL_2'(Code) --> dot(Code).
-'PN_LOCAL_2'(Code) --> semi_colon(Code).
-'PN_LOCAL_2'(Code) --> 'PLX'(Code).
+'PN_LOCAL_2'(C) --> 'PN_CHARS_U'(sparql, C).
+'PN_LOCAL_2'(C) --> dot(C).
+'PN_LOCAL_2'(C) --> semi_colon(C).
+'PN_LOCAL_2'(C) --> 'PLX'(C).
 
-'PN_LOCAL_3'(Code) --> 'PN_CHARS'(sparql, Code).
-'PN_LOCAL_3'(Code) --> colon(Code).
-'PN_LOCAL_3'(Code) --> 'PLX'(Code).
+'PN_LOCAL_3'(C) --> 'PN_CHARS'(sparql, C).
+'PN_LOCAL_3'(C) --> colon(C).
+'PN_LOCAL_3'(C) --> 'PLX'(C).
 
 
 

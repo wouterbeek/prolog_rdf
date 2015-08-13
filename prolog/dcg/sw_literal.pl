@@ -41,22 +41,15 @@ Examples of literal syntax in SPARQL include:
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2014/04-2014/05, 2014/08, 2014/11-2015/01
+@version 2015/08
 */
 
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_content)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(dcg/language/sw_number)).
-:- use_module(plc(generics/atom_ext)). % Meta-option.
-:- use_module(plc(generics/code_ext)). % Meta-option.
-
-:- use_module(plLangTag(language_tag)).
-
-:- use_module(plRdf(syntax/sw_iri)).
-:- use_module(plRdf(syntax/sw_string)).
+:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_ascii)).
+:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/langtag)).
+:- use_module(library(dcg/sw_number)).
+:- use_module(library(dcg/sw_string)).
 
 :- rdf_meta('NumericLiteral'(+,o,?,?)).
 :- rdf_meta('NumericLiteralNegative'(o,?,?)).
@@ -100,7 +93,7 @@ Examples of literal syntax in SPARQL include:
   {LangTag = [Tag|Subtags]},
   tag(Tag),
   (   "-",
-      '+'(subtag, Subtags, [mode(parse),separator(hyphen)])
+      '+'(subtag, Subtags, [separator(hyphen)])
   ;   {Subtags = []}
   ).
 
@@ -160,24 +153,23 @@ lexicalValue(LexicalForm) --> quotedString(LexicalForm).
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 % @compat Turtle 1.1 [13].
 
-literal(manchester, Literal) --> typedLiteral(Literal).
-literal(manchester, Literal) --> stringLiteralNoLanguage(Literal).
-literal(manchester, Literal) --> stringLiteralWithLanguage(Literal).
-literal(manchester, Literal) --> integerLiteral(Literal).
-literal(manchester, Literal) --> decimalLiteral(Literal).
-literal(manchester, Literal) --> floatingPointLiteral(Literal).
-literal(n, Literal) -->
-  'STRING_LITERAL_QUOTE'(LexicalForm),
-  (   "^^",
-      'IRIREF'(Datatype)
-  ->  {Literal = literal(type(Datatype,LexicalForm))}
+literal(manchester, Lit) --> typedLiteral(Lit).
+literal(manchester, Lit) --> stringLiteralNoLanguage(Lit).
+literal(manchester, Lit) --> stringLiteralWithLanguage(Lit).
+literal(manchester, Lit) --> integerLiteral(Lit).
+literal(manchester, Lit) --> decimalLiteral(Lit).
+literal(manchester, Lit) --> floatingPointLiteral(Lit).
+literal(n, Lit) -->
+  'STRING_LITERAL_QUOTE'(Lex),
+  (   "^^", 'IRIREF'(Datatype)
+  ->  {Lit = literal(type(Datatype,Lex))}
   ;   'LANGTAG'(LangTag)
-  ->  {Literal = literal(lang(LangTag,LexicalForm))}
-  ;   {Literal = literal(LexicalForm)}
+  ->  {Lit = literal(lang(LangTag,Lex))}
+  ;   {Lit = literal(Lex)}
   ).
-literal(turtle, Literal) --> 'RDFLiteral'(turtle, Literal).
-literal(turtle, Literal) --> 'NumericLiteral'(turtle, Literal).
-literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
+literal(turtle, Lit) --> 'RDFLiteral'(turtle, Lit).
+literal(turtle, Lit) --> 'NumericLiteral'(turtle, Lit).
+literal(turtle, Lit) --> 'BooleanLiteral'(Lit).
 
 
 
@@ -203,56 +195,47 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat SPARQL 1.1 Query [130].
 % @compat Turtle 1.1 [16].
 
-'NumericLiteral'(turtle, literal(type(xsd:decimal,Value))) -->
-  'DECIMAL'(turtle, Value).
-'NumericLiteral'(turtle, literal(type(xsd:double,Value))) -->
-  'DOUBLE'(turtle, Value).
-'NumericLiteral'(turtle, literal(type(xsd:integer,Value))) -->
-  'INTEGER'(turtle, Value).
-'NumericLiteral'(sparql, Value) -->
-  'NumericLiteralNegative'(Value).
-'NumericLiteral'(sparql, Value) -->
-  'NumericLiteralPositive'(Value).
-'NumericLiteral'(sparql, Value) -->
-  'NumericLiteralUnsigned'(Value).
+'NumericLiteral'(turtle, literal(type(xsd:decimal,Lex))) -->
+  'DECIMAL'(turtle, Lex).
+'NumericLiteral'(turtle, literal(type(xsd:double,Lex))) -->
+  'DOUBLE'(turtle, Lex).
+'NumericLiteral'(turtle, literal(type(xsd:integer,Lex))) -->
+  'INTEGER'(turtle, Lex).
+'NumericLiteral'(sparql, V) --> 'NumericLiteralNegative'(V).
+'NumericLiteral'(sparql, V) --> 'NumericLiteralPositive'(V).
+'NumericLiteral'(sparql, V) --> 'NumericLiteralUnsigned'(V).
 
 
 
 %! 'NumericLiteralNegative'(?Value:number)// is det.
 % ```ebnf
-% NumericLiteralNegative ::=   INTEGER_NEGATIVE
-%                            | DECIMAL_NEGATIVE
-%                            | DOUBLE_NEGATIVE
+% NumericLiteralNegative ::= INTEGER_NEGATIVE
+%                          | DECIMAL_NEGATIVE
+%                          | DOUBLE_NEGATIVE
 % ```
 %
 % @compat SPARQL 1.0 [64].
 % @compat SPARQL 1.1 Query [133].
 
-'NumericLiteralNegative'(Value) -->
-  'DECIMAL_NEGATIVE'(Value).
-'NumericLiteralNegative'(Value) -->
-  'DOUBLE_NEGATIVE'(Value).
-'NumericLiteralNegative'(Value) -->
-  'INTEGER_NEGATIVE'(Value).
+'NumericLiteralNegative'(V) --> 'DECIMAL_NEGATIVE'(V).
+'NumericLiteralNegative'(V) --> 'DOUBLE_NEGATIVE'(V).
+'NumericLiteralNegative'(V) --> 'INTEGER_NEGATIVE'(V).
 
 
 
 %! 'NumericLiteralPositive'(?Value:number)// is det.
 % ```ebnf
-% NumericLiteralPositive ::=   INTEGER_POSITIVE
-%                            | DECIMAL_POSITIVE
-%                            | DOUBLE_POSITIVE
+% NumericLiteralPositive ::= INTEGER_POSITIVE
+%                          | DECIMAL_POSITIVE
+%                          | DOUBLE_POSITIVE
 % ```
 %
 % @compat SPARQL 1.0 [63].
 % @compat SPARQL 1.1 Query [132].
 
-'NumericLiteralPositive'(Value) -->
-  'DECIMAL_POSITIVE'(Value).
-'NumericLiteralPositive'(Value) -->
-  'DOUBLE_POSITIVE'(Value).
-'NumericLiteralPositive'(Value) -->
-  'INTEGER_POSITIVE'(Value).
+'NumericLiteralPositive'(V) --> 'DECIMAL_POSITIVE'(V).
+'NumericLiteralPositive'(V) --> 'DOUBLE_POSITIVE'(V).
+'NumericLiteralPositive'(V) --> 'INTEGER_POSITIVE'(V).
 
 
 
@@ -264,12 +247,9 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat SPARQL 1.0 [62].
 % @compat SPARQL 1.1 Update [131].
 
-'NumericLiteralUnsigned'(Value) -->
-  'DECIMAL'(sparql, Value).
-'NumericLiteralUnsigned'(Value) -->
-  'DOUBLE'(sparql, Value).
-'NumericLiteralUnsigned'(Value) -->
-  'INTEGER'(sparql, Value).
+'NumericLiteralUnsigned'(V) --> 'DECIMAL'(sparql, V).
+'NumericLiteralUnsigned'(V) --> 'DOUBLE'(sparql, V).
+'NumericLiteralUnsigned'(V) --> 'INTEGER'(sparql, V).
 
 
 
@@ -294,18 +274,18 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 % @compat Turtle 1.1 [128s] is the same, but uses a different `String`.
 
 % Typed literal.
-'RDFLiteral'(Language, literal(type(Datatype,LexicalExpression))) -->
-  'String'(Language, LexicalExpression),
+'RDFLiteral'(Lang, literal(type(D,Lex))) -->
+  'String'(Lang, Lex),
   "^^",
-  iri(Datatype).
+  iri(D).
 % Language-tagged string.
-'RDFLiteral'(Language, literal(lang(LangTag,LexicalExpression))) -->
-  'String'(Language, LexicalExpression),
+'RDFLiteral'(Lang, literal(lang(LangTag,Lex))) -->
+  'String'(Lang, Lex),
   'LANGTAG'(LangTag0),
-  {atomic_list_concat(LangTag0, '-', LangTag)}.
+  {atomic_list_concat(LangTag0, -, LangTag)}.
 % Simple literal.
-'RDFLiteral'(Language, literal(LexicalExpression)) -->
-  'String'(Language, LexicalExpression).
+'RDFLiteral'(Lang, literal(Lex)) -->
+  'String'(Lang, Lex).
 
 
 
@@ -316,7 +296,7 @@ literal(turtle, Literal) --> 'BooleanLiteral'(Literal).
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
-stringLiteralNoLanguage(String) --> quotedString(String).
+stringLiteralNoLanguage(S) --> quotedString(S).
 
 
 
@@ -327,8 +307,8 @@ stringLiteralNoLanguage(String) --> quotedString(String).
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
-stringLiteralWithLanguage(LangTag-LexicalForm) -->
-  quotedString(LexicalForm),
+stringLiteralWithLanguage(LangTag-Lex) -->
+  quotedString(Lex),
   languageTag(LangTag).
 
 
@@ -340,7 +320,7 @@ stringLiteralWithLanguage(LangTag-LexicalForm) -->
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition).
 
-typedLiteral(literal(type(Datatype,LexicalForm))) -->
-  lexicalValue(LexicalForm),
+typedLiteral(literal(type(D,Lex))) -->
+  lexicalValue(Lex),
   "^^",
-  'Datatype'(Datatype).
+  'Datatype'(D).

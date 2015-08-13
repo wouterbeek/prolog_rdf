@@ -192,11 +192,11 @@ turtle_like(Format, Options) -->
 % Turtle triple.
 turtle_like(Format, Options) -->
   nt_subject,
-  'WS*',
+  '*'('WS', []),
   nt_predicate,
-  'WS*',
+  '*'('WS', []),
   nt_object,
-  'WS*',
+  '*'('WS', []),
   (   "."
   ->  nt_end,
       nt_turtle_like(Format, Options)
@@ -204,7 +204,7 @@ turtle_like(Format, Options) -->
   ->  nt_end,
       nt_turtle_or_trig(Format, Options)
   ;   nt_graph,
-      'WS*',
+      '*'('WS', []),
       ".",
       nt_end
   ->  {Format = nquads}
@@ -271,9 +271,6 @@ nt_string_codes(_) --> [].
 
 nt_subject --> nt_iriref, !.
 nt_subject --> nt_bnode.
-
-'WS*' --> 'WS', !, 'WS*'.
-'WS*' --> [].
 
 'WS' --> [10], !.
 'WS' --> [13], !.
