@@ -26,6 +26,7 @@
 :- set_prolog_flag(chr_toplevel_show_store, false).
 
 :- chr_constraint('_allTypes'/2).
+:- chr_constraint(error/2).
 :- chr_constraint(inList/2).
 :- chr_constraint(rdf_chr/3).
 
@@ -69,13 +70,15 @@ mat(GIn, GOut):-
   findall(rdf_chr(S,P,O), rdf(S,P,O,GIn), Ins),
   maplist(store_j0(axiom, []), Ins),
   maplist(call, Ins),
-  findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
-  maplist(rdf_assert0(GOut), Outs), !,
-
-  % Debug message after.
-  debug(mat(_), 'AFTER MATERIALIZATION:', []),
-  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
-  
+  % Check whether an inconsistent state was reached.
+  (   find_chr_constraint(error(_,_))
+  ->  forall(find_chr_constraint(error(R,Ps)), print_j(R, Ps, _, _))
+  ;   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
+      maplist(rdf_assert0(GOut), Outs),
+      % Debug message after successful materialization.
+      debug(mat(_), 'AFTER MATERIALIZATION:', []),
+      if_debug(mat(_), rdf_print_graph(GOut, PrintOpts))
+  ).
 
 store_j0(Rule, Ps, rdf_chr(S,P,O)):-
   store_j(Rule, Ps, rdf(S,P,O)).
@@ -85,14 +88,91 @@ rdf_assert0(G, rdf(S,P,O)):-
 
 
 
+
+
 % RULES %
 
 idempotence @
       rdf_chr(S, P, O)
   \   rdf_chr(S, P, O)
-  <=>
-      debug(db(idempotence), 'idempotence', rdf(S,P,O))
+  <=> debug(db(idempotence), 'idempotence', rdf(S,P,O))
     | true.
+
+owl-eq-ref @
+      rdf_chr(S, P, O)
+  ==> mat_deb(owl(eq(ref)), [
+        rdf(S, P, O)],
+        rdf(S, 'http://www.w3.org/2002/07/owl#sameAs', S))
+    | rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', S).
+
+owl-eq-ref1 @
+      rdf_chr(S, P, O)
+  ==> mat_deb(owl(eq(ref1)), [
+        rdf(S, P, O)],
+        rdf(P, 'http://www.w3.org/2002/07/owl#sameAs', P))
+    | rdf_chr(P, 'http://www.w3.org/2002/07/owl#sameAs', P).
+
+owl-eq-ref2 @
+      rdf_chr(S, P, O)
+  ==> mat_deb(owl(eq(ref2)), [
+        rdf(S, P, O)],
+        rdf(O, 'http://www.w3.org/2002/07/owl#sameAs', O))
+    | rdf_chr(O, 'http://www.w3.org/2002/07/owl#sameAs', O).
+
+owl-eq-sym @
+      rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', O)
+  ==> mat_deb(owl(eq(sym)), [
+        rdf(S, 'http://www.w3.org/2002/07/owl#sameAs', O)],
+        rdf(O, 'http://www.w3.org/2002/07/owl#sameAs', S))
+    | rdf_chr(O, 'http://www.w3.org/2002/07/owl#sameAs', S).
+
+owl-eq-trans @
+      rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
+      rdf_chr(Y, 'http://www.w3.org/2002/07/owl#sameAs', Z)
+  ==> mat_deb(owl(eq(trans)), [
+        rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
+        rdf(Y, 'http://www.w3.org/2002/07/owl#sameAs', Z)],
+        rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Z))
+    | rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Z).
+
+owl-eq-rep-s @
+      rdf_chr(S1, 'http://www.w3.org/2002/07/owl#sameAs', S2),
+      rdf_chr(S1, P, O)
+  ==> mat_deb(owl(eq(rep(s))), [
+        rdf(S1, 'http://www.w3.org/2002/07/owl#sameAs', S2),
+        rdf(S1, P, O)],
+        rdf(S2, P, O))
+    | rdf_chr(S2, P, O).
+
+owl-eq-rep-p @
+      rdf_chr(P1, 'http://www.w3.org/2002/07/owl#sameAs', P2),
+      rdf_chr(S, P1, O)
+  ==> mat_deb(owl(eq(rep(s))), [
+        rdf(P1, 'http://www.w3.org/2002/07/owl#sameAs', P2),
+        rdf(S, P1, O)],
+        rdf(S, P2, O))
+    | rdf_chr(S, P2, O).
+
+owl-eq-rep-o @
+      rdf_chr(O1, 'http://www.w3.org/2002/07/owl#sameAs', O2),
+      rdf_chr(S, P, O1)
+  ==> mat_deb(owl(eq(rep(s))), [
+        rdf(O1, 'http://www.w3.org/2002/07/owl#sameAs', O2),
+        rdf(S, P, O1)],
+        rdf(S, P, O2))
+    | rdf_chr(S, P, O2).
+
+owl-eq-diff1 @
+      rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
+      rdf_chr(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)
+  ==> mat_deb(owl(eq(diff1)), [
+        rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
+        rdf(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)],
+	error)
+    | error(owl-eq-diff1, [
+        rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
+        rdf_chr(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)
+      ]).
 
 owl-cax-eqc1 @
       rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2),

@@ -18,6 +18,7 @@
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).
 :- use_module(library(mat/mat_deb)).
+:- use_module(library(mat/mat_print)).
 %/owl
 :- use_module(library(owl/owl_build)).
 :- use_module(library(owl/owl_read)).
