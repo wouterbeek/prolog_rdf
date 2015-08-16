@@ -98,19 +98,19 @@ idempotence @
   <=> debug(db(idempotence), 'idempotence', rdf(S,P,O))
     | true.
 
-owl-eq-ref @
-      rdf_chr(S, P, O)
-  ==> mat_deb(owl(eq(ref)), [
-        rdf(S, P, O)],
-        rdf(S, 'http://www.w3.org/2002/07/owl#sameAs', S))
-    | rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', S).
+%owl-eq-ref @
+%      rdf_chr(S, P, O)
+%  ==> mat_deb(owl(eq(ref)), [
+%        rdf(S, P, O)],
+%        rdf(S, 'http://www.w3.org/2002/07/owl#sameAs', S))
+%    | rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', S).
 
-owl-eq-ref1 @
-      rdf_chr(S, P, O)
-  ==> mat_deb(owl(eq(ref1)), [
-        rdf(S, P, O)],
-        rdf(P, 'http://www.w3.org/2002/07/owl#sameAs', P))
-    | rdf_chr(P, 'http://www.w3.org/2002/07/owl#sameAs', P).
+%owl-eq-ref1 @
+%      rdf_chr(S, P, O)
+%  ==> mat_deb(owl(eq(ref1)), [
+%        rdf(S, P, O)],
+%        rdf(P, 'http://www.w3.org/2002/07/owl#sameAs', P))
+%    | rdf_chr(P, 'http://www.w3.org/2002/07/owl#sameAs', P).
 
 %owl-eq-ref2 @
 %      rdf_chr(S, P, O)
@@ -170,8 +170,8 @@ owl-eq-diff1 @
         rdf(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)],
 	error)
     | error(owl-eq-diff1, [
-        rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
-        rdf_chr(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)
+        rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
+        rdf(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)
       ]).
 
 owl-cax-eqc1 @
