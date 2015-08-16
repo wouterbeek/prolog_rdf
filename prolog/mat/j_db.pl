@@ -59,7 +59,7 @@ var_or_md5(X, Y):- md5(X, Y).
 
 
 
-%! print_j
+%! print_j(
 %!   ?Rule:compound,
 %!   ?Predicates:list(compound),
 %!   ?Conclusion:compound,
