@@ -5,7 +5,6 @@
 :- use_module(library(owl/owl_build)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
 
 :- debug(mat(rdf(_))).
@@ -24,7 +23,6 @@ script1:-
   G = script1,
   fresh_iri(ex, I),
   rdf_assert_instance(I, ex:'C', G),
-  rdf_print_graph(G),
   rdf_assert_literal(I, ex:age, xsd:nonNegativeInteger, 2, G),
   rdf_assert_now(I, ex:registrationDate, G),
   mat(G).

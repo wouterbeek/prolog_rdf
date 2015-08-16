@@ -74,7 +74,7 @@ mat(GIn, GOut):-
   (   find_chr_constraint(error(_,_))
   ->  forall(find_chr_constraint(error(R,Ps)), print_j(R, Ps, _, _))
   ;   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
-      maplist(rdf_assert0(GOut), Outs),
+      maplist(rdf_assert0(GOut), Outs), !,
       % Debug message after successful materialization.
       debug(mat(_), 'AFTER MATERIALIZATION:', []),
       if_debug(mat(_), rdf_print_graph(GOut, PrintOpts))
@@ -112,12 +112,12 @@ owl-eq-ref1 @
         rdf(P, 'http://www.w3.org/2002/07/owl#sameAs', P))
     | rdf_chr(P, 'http://www.w3.org/2002/07/owl#sameAs', P).
 
-owl-eq-ref2 @
-      rdf_chr(S, P, O)
-  ==> mat_deb(owl(eq(ref2)), [
-        rdf(S, P, O)],
-        rdf(O, 'http://www.w3.org/2002/07/owl#sameAs', O))
-    | rdf_chr(O, 'http://www.w3.org/2002/07/owl#sameAs', O).
+%owl-eq-ref2 @
+%      rdf_chr(S, P, O)
+%  ==> mat_deb(owl(eq(ref2)), [
+%        rdf(S, P, O)],
+%        rdf(O, 'http://www.w3.org/2002/07/owl#sameAs', O))
+%    | rdf_chr(O, 'http://www.w3.org/2002/07/owl#sameAs', O).
 
 owl-eq-sym @
       rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', O)
