@@ -1,6 +1,11 @@
 :- module(
   rdfs_build,
   [
+    rdfs_assert_class/5, % +Class:or([bnode,iri])
+                         % +Label:or([atom,pair(list(atom),atom)])
+                         % +Comment:or([atom,pair(list(atom),atom)])
+                         % ?Parent:or([bnode,iri])
+                         % ?Graph:atom
     rdfs_assert_comment/3, % +Subject:or([bnode,iri])
                            % +Comment:atom
                            % ?Graph:atom
@@ -56,6 +61,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
 
+:- rdf_meta(rdfs_assert_class(r,+,+,r,?)).
 :- rdf_meta(rdfs_assert_comment(r,+,?)).
 :- rdf_meta(rdfs_assert_domain(r,r,+)).
 :- rdf_meta(rdfs_assert_isDefinedBy(r,?)).
@@ -72,6 +78,22 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_retractall_label(r,?,?)).
 
 
+
+
+
+%! rdfs_assert_class(
+%!   +Class:or([bnode,iri]),
+%!   +Label:or([atom,pair(list(atom),atom)]),
+%!   +Comment:or([atom,pair(list(atom),atom)]),
+%!   ?Parent:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is det.
+
+rdfs_assert_class(C, Lbl, Comm, SuperC, G):-
+  rdfs_assert_subclass(C, SuperC, G),
+  rdfs_assert_label(C, Lbl, G),
+  rdfs_assert_comment(C, Comm, G),
+  rdfs_assert_isDefinedBy(C, G).
 
 
 

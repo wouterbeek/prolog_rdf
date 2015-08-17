@@ -1,6 +1,11 @@
 :- module(
   rdf_print,
   [
+    rdf_print_describe/2, % +Subject:or([bnode,iri])
+                          % ?Graph:atom
+    rdf_print_describe/3, % +Subject:or([bnode,iri])
+                          % ?Graph:atom
+                          % +Options:list(compound)
     rdf_print_graph/1, % +Graph
     rdf_print_graph/2, % +Graph:atom
                        % +Options:list(compound)
@@ -50,6 +55,8 @@ Easy printing of RDF data to the terminal.
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
+:- rdf_meta(rdf_print_describe(r,?)).
+:- rdf_meta(rdf_print_describe(r,?,+)).
 :- rdf_meta(rdf_print_quadruple(r,r,o,?)).
 :- rdf_meta(rdf_print_quadruple(r,r,o,?,+)).
 :- rdf_meta(rdf_print_term(r)).
@@ -59,6 +66,9 @@ Easy printing of RDF data to the terminal.
 :- rdf_meta(rdf_print_triple(r,r,o,?)).
 :- rdf_meta(rdf_print_triple(r,r,o,?,+)).
 
+:- predicate_options(rdf_print_describe/3, 3, [
+     pass_to(rdf_print_statement/5, 5)
+   ]).
 :- predicate_options(rdf_print_bnode//2, 2, [
      pass_to(rdf_print_list//2, 2)
    ]).
@@ -119,6 +129,30 @@ Easy printing of RDF data to the terminal.
 
 
 
+%! rdf_print_describe(+Subject:or([bnode,iri]), ?Graph:atom) is det.
+% Wrapper around rdf_print_describe/3 with default options.
+
+rdf_print_describe(S, G):-
+  rdf_print_describe(S, G, []).
+
+%! rdf_print_describe(
+%!   +Subject:or([bnode,iri]),
+%!   ?Graph:atom,
+%!   +Options:list(compound)
+%! ) is det.
+
+% No graph is given: display quadruples.
+rdf_print_describe(S, G, Opts):-
+  var(G), !,
+  forall(rdf_print_quadruple(S, _, _, G, Opts), true).
+% A graph is given: display triples.
+rdf_print_describe(S, G, Opts):-
+  nonvar(G), !,
+  forall(rdf_print_triple(S, _, _, G, Opts), true).
+rdf_print_describe(_, _, _).
+
+
+
 %! rdf_print_graph(+Graph:atom) is det.
 
 rdf_print_graph(G):-
@@ -173,6 +207,28 @@ rdf_print_quadruple(S, P, O, G, Opts):-
 
 
 
+%! rdf_print_statement(
+%!   +Subject:or([bnode,iri]),
+%!   +Predicate:iri,
+%!   +Object:rdf_term,
+%!   +Graph:atom,
+%!   +Options:list(compound)
+%! ) is det.
+% The following options are supported:
+%   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * indent(+nonneg)
+%   * style(+oneof([tuple,turtle])
+
+rdf_print_statement(S, P, O, G, Opts):-
+  option(indent(I), Opts, 0),
+  string_phrase(rdf_print_statement(S, P, O, G, Opts), X),
+  tab(I),
+  writeln(X).
+
+
+
 %! rdf_print_term(+Term:rdf_term) is det.
 
 rdf_print_term(T):-
@@ -221,28 +277,6 @@ rdf_print_triple(S, P, O, G):-
 rdf_print_triple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
   rdf_print_statement(S, P, O, _, Opts).
-
-
-
-%! rdf_print_statement(
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Object:rdf_term,
-%!   +Graph:atom,
-%!   +Options:list(compound)
-%! ) is det.
-% The following options are supported:
-%   * abbr_iri(+boolean)
-%   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
-%   * indent(+nonneg)
-%   * style(+oneof([tuple,turtle])
-
-rdf_print_statement(S, P, O, G, Opts):-
-  option(indent(I), Opts, 0),
-  string_phrase(rdf_print_statement(S, P, O, G, Opts), X),
-  tab(I),
-  writeln(X).
 
 
 
