@@ -26,7 +26,7 @@
 :- set_prolog_flag(chr_toplevel_show_store, false).
 
 :- chr_constraint('_allTypes'/2).
-:- chr_constraint(error/2).
+:- chr_constraint(error/0).
 :- chr_constraint(inList/2).
 :- chr_constraint(rdf_chr/3).
 
@@ -70,15 +70,21 @@ mat(GIn, GOut):-
   findall(rdf_chr(S,P,O), rdf(S,P,O,GIn), Ins),
   maplist(store_j0(axiom, []), Ins),
   maplist(call, Ins),
+
   % Check whether an inconsistent state was reached.
-  (   find_chr_constraint(error(_,_))
-  ->  forall(find_chr_constraint(error(R,Ps)), print_j(R, Ps, _, _))
-  ;   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
-      maplist(rdf_assert0(GOut), Outs), !,
-      % Debug message after successful materialization.
-      debug(mat(_), 'AFTER MATERIALIZATION:', []),
-      if_debug(mat(_), rdf_print_graph(GOut, PrintOpts))
-  ).
+  (   find_chr_constraint(error)
+  ->  debug(mat(_), 'INCONSISTENT STATE', [])
+  ;   true
+  ),
+  findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
+  maplist(rdf_assert0(GOut), Outs), !,
+  
+  % Display all errors.
+  forall(print_j(R,Ps,error,H), true),
+  
+  % Debug message for successful materialization results.
+  debug(mat(_), 'AFTER MATERIALIZATION:', []),
+  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
 
 store_j0(Rule, Ps, rdf_chr(S,P,O)):-
   store_j(Rule, Ps, rdf(S,P,O)).
@@ -169,9 +175,7 @@ owl-eq-diff1 @
         rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
         rdf(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)],
 	error)
-    | error(owl(eq(diff1)), [
-        rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
-        rdf(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)]).
+    | error.
 
 owl-prp-ap-label @
       true
@@ -273,10 +277,7 @@ owl-prp-asyp @
         rdf(S, P, O),
         rdf(O, P, S)],
         error)
-    | error(owl(prp(symp)), [
-        rdf(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AsymmetricProperty'),
-        rdf(S, P, O),
-        rdf(O, P, S)]).
+    | error.
 
 owl-prp-trp @
       rdf_chr(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#TransitiveProperty'),
@@ -325,10 +326,7 @@ owl-prp-pdw @
         rdf(S, P1, O),
         rdf(S, P2, O)],
         error)
-    | error(owl(prp(pdw)), [
-        rdf(P1, 'http://www.w3.org/2002/07/owl#propertyDisjointWith', P2),
-        rdf(S, P1, O),
-        rdf(S, P2, O)]).
+    | error.
 
 owl-cax-eqc1 @
       rdf_chr(C1, 'http://www.w3.org/2002/07/owl#equivalentClass', C2),
