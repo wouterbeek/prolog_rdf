@@ -1,5 +1,3 @@
-:- ensure_loaded(test).
-
 :- use_module(library(debug)).
 :- use_module(library(mat/mat)).
 :- use_module(library(owl/owl_build)).
