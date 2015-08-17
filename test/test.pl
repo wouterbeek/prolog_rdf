@@ -1,5 +1,3 @@
-:- ensure_loaded(debug).
-
 %/ctriples
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
