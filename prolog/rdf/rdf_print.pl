@@ -201,6 +201,13 @@ rdf_print_quadruple(S, P, O, G):-
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
 
+% Ground quadruples are printing without them having to be present
+% in the RDF DB.
+rdf_print_quadruple(S, P, O, G, Opts):-
+  ground(rdf(S,P,O,G)), !,
+  rdf_print_statement(S, P, O, G, Opts).
+% Non-ground quadruples are non-deterministically matched
+% against the RDF DB.
 rdf_print_quadruple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
   rdf_print_statement(S, P, O, G, Opts).
@@ -274,6 +281,13 @@ rdf_print_triple(S, P, O, G):-
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
 
+% Ground triples are printing without them having to be present
+% in the RDF DB.
+rdf_print_triple(S, P, O, G, Opts):-
+  ground(rdf(S,P,O,G)), !,
+  rdf_print_statement(S, P, O, G, Opts).
+% Non-ground triples are non-deterministically matched
+% against the RDF DB.
 rdf_print_triple(S, P, O, G, Opts):-
   rdf(S, P, O, G),
   rdf_print_statement(S, P, O, _, Opts).
