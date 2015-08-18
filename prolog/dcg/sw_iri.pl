@@ -261,7 +261,7 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 
 'PN_LOCAL_code'([H|T]) -->
   'PN_LOCAL_1'(H),
-  (   '*'('PN_LOCAL_2',T0, []),
+  (   *('PN_LOCAL_2',T0, []),
       'PN_LOCAL_3'(Last),
       {append(T0, [Last], T)}
   ;   {T = []}

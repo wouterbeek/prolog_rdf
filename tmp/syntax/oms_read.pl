@@ -13,7 +13,7 @@ BNF notation in the OMS grammar is mapped onto dcg_abnf.pl
 
 | **Construct** | **Syntax**      | **`dcg_abnf`** |
 |:--------------|:----------------|:---------------|
-| zero or more  | curly braces    | `'*'(NT, [])`  |
+| zero or more  | curly braces    | `*(NT, [])`  |
 | zero or one   | square brackets | `'?'(NT, [])`  |
 | alternative   | vertical bar    | `(NT1 ; NT2)`  |
 | grouping      | parentheses     | ???            |

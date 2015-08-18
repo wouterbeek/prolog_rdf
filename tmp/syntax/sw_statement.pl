@@ -14,7 +14,7 @@ Grammar rules for RDF statements (i.e., triples or quadruples).
 # N-Triples 1.1
 
 ```prolog
-'*'(process_triple, [mode(parse),separator('EOL')]),
+*(process_triple, [mode(parse),separator('EOL')]),
 '?'('EOL', [mode(parse)]).
 ```
 

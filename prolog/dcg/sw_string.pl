@@ -262,7 +262,7 @@ quotedString0([H|T]) -->
 %! )// .
 
 'STRING_LITERAL'(Lang, Quote, S) -->
-  quoted(Quote, dcg_atom('*'('STRING_LITERAL_char'(Lang, Quote), []), S)).
+  quoted(Quote, dcg_atom(*('STRING_LITERAL_char'(Lang, Quote), []), S)).
 
 %! 'STRING_LITERAL_char'(+Language:oneof([sparql,turtle]), :Esc, ?Code:code)// .
 
@@ -283,7 +283,7 @@ quotedString0([H|T]) -->
 %! )// .
 
 'STRING_LITERAL_LONG'(Lang, Quote, S) -->
-  quoted(3, Quote, dcg_atom('*'('STRING_LITERAL_LONG0'(Lang, Quote), []), S)).
+  quoted(3, Quote, dcg_atom(*('STRING_LITERAL_LONG0'(Lang, Quote), []), S)).
 
 
 

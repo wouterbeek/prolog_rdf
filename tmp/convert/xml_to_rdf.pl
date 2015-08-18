@@ -99,7 +99,7 @@ xml_parse(ParserVersion, Prefix, Graph) -->
   {xml_version_map(ParserVersion, DocumentVersion)},
   'XMLDecl'(ParserVersion, xml_decl(DocumentVersion,_,_)),
   'STag'(ParserVersion, RootName, _),
-  '*'(ascii_white, []),
+  *(ascii_white, []),
   {
     rdf_global_id(Prefix:RootName, Class),
     rdf_create_next_resource(Prefix, [RootName], Class, Graph, Resource)
@@ -120,7 +120,7 @@ xml_parse(ParserVersion, Prefix, Graph) -->
 % Non-tag content.
 xml_parse(Version, Prefix, S, G) -->
   'STag'(Version, PTag, _), !,
-  '*'(ascii_white, []),
+  *(ascii_white, []),
   xml_content(Version, PTag, Codes),
   {
     atom_codes(O, Codes),
@@ -130,18 +130,18 @@ xml_parse(Version, Prefix, S, G) -->
 % Skip short tags.
 xml_parse(Version, _, _, _) -->
   'EmptyElemTag'(Version, _, _), !,
-  '*'(ascii_white, []).
+  *(ascii_white, []).
 % Nested tag.
 xml_parse(Version, Prefix, S, G) -->
   'STag'(Version, OTag, _), !,
-  '*'(ascii_white, []),
+  *(ascii_white, []),
   {
     rdf_global_id(Prefix:OTag, Class),
     rdf_create_next_resource(Prefix, [OTag], Class, G, O)
   },
   xml_parses(Version, Prefix, O, G),
   'ETag'(OTag),
-  '*'(ascii_white, []),
+  *(ascii_white, []),
   {
     rdf_assert_instance(S, rdf:'Bag', G),
     rdf_assert_collection_member(S, O, G)
@@ -160,7 +160,7 @@ xml_parses(_, _, _, _) -->
 % The tag closes: end of content codes.
 xml_content(_, Tag, []) -->
   'ETag'(Tag), !,
-  '*'(ascii_white, []).
+  *(ascii_white, []).
 % Another XML tag starts, this is not XML content.
 xml_content(Version, _, []) -->
   dcg_peek('STag'(Version, _, _)), !, {fail}.
@@ -198,7 +198,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
 
   % Escape space (SPACE to `%20`) and grave accent (GRAVE-ACCENT -> `%60`).
   atom_phrase(
-    '*'(dcg_replace, [[32],[96]], [[37,50,48],[37,54,48]], []),
+    *(dcg_replace, [[32],[96]], [[37,50,48],[37,54,48]], []),
     Name3,
     Name4
   ),

@@ -59,7 +59,7 @@ not as references to specific blank nodes in the data being queried.
 % @compat Turtle 1.1 [162s]
 
 'ANON'(BNode) -->
-  bracketed(square, '*'('WS', [])),
+  bracketed(square, *('WS', [])),
   {rdf_bnode(BNode)}.
 
 
@@ -137,12 +137,12 @@ not as references to specific blank nodes in the data being queried.
 name(Name) -->
   {var(Name)}, !,
   nameStartChar(H),
-  '*'(nameChar, T, []),
+  *(nameChar, T, []),
   {atom_codes(Name, [H|T])}.
 name(Name) -->
   {atom_codes(Name, [H|T])},
   nameStartChar(H),
-  '*'(nameChar, T, []).
+  *(nameChar, T, []).
 
 
 

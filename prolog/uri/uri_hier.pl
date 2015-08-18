@@ -122,7 +122,7 @@ path(I, Segments) --> 'path-empty'(I, Segments).
 % @compat RFC 3987
 
 'path-abempty'(Iri, Segments) -->
-  '*'(forwardslash_segment(Iri), Segments, []).
+  *(forwardslash_segment(Iri), Segments, []).
 
 
 
@@ -138,7 +138,7 @@ path(I, Segments) --> 'path-empty'(I, Segments).
 'path-absolute'(I, Segments) -->
   "/",
   (   'segment-nz'(I, H),
-      '*'(forwardslash_segment(I), T, []),
+      *(forwardslash_segment(I), T, []),
       {Segments = [H|T]}
   ;   {Segments = []}
   ).
@@ -169,7 +169,7 @@ path(I, Segments) --> 'path-empty'(I, Segments).
 
 'path-noscheme'(I, [H|T]) -->
   'segment-nz-nc'(I, H),
-  '*'(forwardslash_segment(I), T, []).
+  *(forwardslash_segment(I), T, []).
 
 
 
@@ -184,7 +184,7 @@ path(I, Segments) --> 'path-empty'(I, Segments).
 
 'path-rootless'(I, [H|T]) -->
   'segment-nz'(I, H),
-   '*'(forwardslash_segment(I), T, []).
+   *(forwardslash_segment(I), T, []).
 
 
 
@@ -198,7 +198,7 @@ path(I, Segments) --> 'path-empty'(I, Segments).
 % @compat RFC 3987
 
 segment(I, Segment) -->
-  '*'(pchar(I), Cs, []),
+  *(pchar(I), Cs, []),
   {atom_codes(Segment, Cs)}.
 
 

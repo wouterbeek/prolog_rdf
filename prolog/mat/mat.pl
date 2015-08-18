@@ -80,7 +80,7 @@ mat(GIn, GOut):-
   maplist(rdf_assert0(GOut), Outs), !,
   
   % Display all errors.
-  forall(print_j(R,Ps,error,H), true),
+  forall(print_j(_,_,error,_), true),
   
   % Debug message for successful materialization results.
   debug(mat(_), 'AFTER MATERIALIZATION:', []),

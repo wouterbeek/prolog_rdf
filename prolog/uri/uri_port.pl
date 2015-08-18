@@ -31,4 +31,4 @@ Grammar for port subcomponent of URI.
 
 port(Port) -->
   {clpfd_positional(Port, Ds)},
-  '*'('DIGIT', Ds, []).
+  *('DIGIT', Ds, []).

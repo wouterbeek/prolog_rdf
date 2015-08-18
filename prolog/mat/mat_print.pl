@@ -133,7 +133,7 @@ print_premises(N1, [H|T], Opts) -->
 
 print_rule(R) -->
   {unwind_compound(R, L)},
-  '*'(atom, L, [separator(colon)]).
+  *(atom, L, [separator(colon)]).
 
 unwind_compound(H, [H]):-
   atomic(H), !.

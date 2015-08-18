@@ -129,11 +129,11 @@ langtag(L) -->
   ;   {L3 = []}
   ),
   (   "-",
-      '*'(variant, L4, [separator(hyphen)])
+      *(variant, L4, [separator(hyphen)])
   ;   {L4 = []}
   ),
   (   "-",
-      '*'(extension, L5, [separator(hyphen)])
+      *(extension, L5, [separator(hyphen)])
   ;   {L5 = []}
   ),
   (   "-",
