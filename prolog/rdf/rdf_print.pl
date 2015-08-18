@@ -469,7 +469,7 @@ rdf_print_statement(S, P, O, G, Opts) -->
   rdf_print_predicate(P, Opts),
   " ",
   rdf_print_object(O, Opts),
-  ({ground(G)} -> rdf_print_graph(G) ; ""),
+  ({ground(G)} -> " ", rdf_print_graph(G) ; ""),
   " .".
 
 rdf_print_statement0(S, P, O, Opts) -->
