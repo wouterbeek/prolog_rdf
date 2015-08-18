@@ -1,8 +1,7 @@
 :- module(
   rdf_print,
   [
-    rdf_print_describe/2, % +Subject:or([bnode,iri])
-                          % ?Graph:atom
+    rdf_print_describe/2, % +Subject, ?Graph
     rdf_print_describe/3, % +Subject:or([bnode,iri])
                           % ?Graph:atom
                           % +Options:list(compound)
@@ -21,7 +20,7 @@
     rdf_print_term//1, % +Term
     rdf_print_term//2, % +Term:rdf_term
                        % +Options:list(compound)
-    rdf_print_triple/4, % ?Subject, ?Predicate:iri, ?Object, ?Graph
+    rdf_print_triple/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf_print_triple/5 % ?Subject:or([bnode,iri])
                        % ?Predicate:iri
                        % ?Object:rdf_term
@@ -140,16 +139,21 @@ rdf_print_describe(S, G):-
 %!   ?Graph:atom,
 %!   +Options:list(compound)
 %! ) is det.
+% The following options are supported:
+%   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
+%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * indent(+nonneg)
+%   * logic_sym(+boolean)
+%   * style(+oneof([tuple,turtle])
 
-% No graph is given: display quadruples.
 rdf_print_describe(S, G, Opts):-
-  var(G), !,
-  forall(rdf_print_quadruple(S, _, _, G, Opts), true).
-% A graph is given: display triples.
-rdf_print_describe(S, G, Opts):-
-  nonvar(G), !,
-  forall(rdf_print_triple(S, _, _, G, Opts), true).
-rdf_print_describe(_, _, _).
+  (   var(G)
+  ->  % No graph is given: display quadruples.
+      forall(rdf_print_quadruple(S, _, _, G, Opts), true)
+  ;   % A graph is given: display triples.
+      forall(rdf_print_triple(S, _, _, G, Opts), true)
+  ).
 
 
 
@@ -157,7 +161,6 @@ rdf_print_describe(_, _, _).
 
 rdf_print_graph(G):-
   rdf_print_graph(G, []).
-
 
 %! rdf_print_graph(+Graph:atom, +Options:list(compound)) is det.
 % The following options are supported:
@@ -184,7 +187,6 @@ rdf_print_graph(_, _).
 
 rdf_print_quadruple(S, P, O, G):-
   rdf_print_quadruple(S, P, O, G, []).
-
 
 %! rdf_print_quadruple(
 %!   ?Subject:or([bnode,iri]),
@@ -241,7 +243,6 @@ rdf_print_statement(S, P, O, G, Opts):-
 rdf_print_term(T):-
   rdf_print_term(T, []).
 
-
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
@@ -264,7 +265,6 @@ rdf_print_term(T, Opts):-
 
 rdf_print_triple(S, P, O, G):-
   rdf_print_triple(S, P, O, G, []).
-
 
 %! rdf_print_triple(
 %!   ?Subject:or([bnode,iri]),
