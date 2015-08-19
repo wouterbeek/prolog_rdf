@@ -51,7 +51,8 @@
 %! ) is nondet.
 
 find_j(Rule, Ps0, C0, G):-
-  maplist(var_or_md5, [C0|Ps0], [C|Ps]),
+  var_or_md5(C0, C),
+  (is_list(Ps0) -> maplist(var_or_md5, [C0|Ps0], [C|Ps]) ; true),
   j(Rule, Ps, C, G).
 
 var_or_md5(X, X):- var(X), !.
