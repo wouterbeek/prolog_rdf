@@ -33,7 +33,11 @@ Debug tools for calculating a materialization.
 mat_deb(R, Ps, C):-
   store_j(R, Ps, C),
   (   debugging(mat(R))
-  ->  dcg_with_output_to(string(S), print_deduction(R, Ps, C)),
+  ->  catch(
+dcg_with_output_to(string(S), print_deduction(R, Ps, C)),
+_,
+(gtrace,dcg_with_output_to(string(S), print_deduction(R, Ps, C)))
+),
       debug(mat(R), '~s', S)
   ;   true
   ).
