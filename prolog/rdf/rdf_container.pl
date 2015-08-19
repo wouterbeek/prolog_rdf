@@ -2,37 +2,37 @@
   rdf_container,
   [
     rdf_alt/2, % ?Alt, ?Contents
-    rdf_alt/3, % ?Alt:or([bnode,iri])
+    rdf_alt/3, % ?Alt:rdf_term
                % ?Contents:list
                % ?Graph:atom
     rdf_alt_raw/2, % ?Alt, ?Contents
-    rdf_alt_raw/3, % ?Alt:or([bnode,iri])
+    rdf_alt_raw/3, % ?Alt:rdf_term
                    % -Contents:list
                    % ?Graph:atom
     rdf_assert_alt/2, % +List, ?Alt
     rdf_assert_alt/3, % +List:list
-                      % ?Alt:or([bnode,iri])
+                      % ?Alt:rdf_term
                       % ?Graph:atom
     rdf_assert_bag/2, % +List, ?Bag
     rdf_assert_bag/3, % +List:list
-                      % ?Bag:or([bnode,iri])
+                      % ?Bag:rdf_term
                       % ?Graph:atom
     rdf_assert_seq/2, % +List, ?Seq
     rdf_assert_seq/3, % +List:list
-                      % ?Seq:or([bnode,iri])
+                      % ?Seq:rdf_term
                       % ?Graph:atom
     rdf_bag/2, % ?Bag, ?Content
-    rdf_bag/3, % ?Bag:or([bnode,iri])
+    rdf_bag/3, % ?Bag:rdf_term
                % ?Contents:list
                % ?Graph:atom
     rdf_bag_raw/2, % ?Bag, ?Content
-    rdf_bag_raw/3, % ?Bag:or([bnode,iri])
+    rdf_bag_raw/3, % ?Bag:rdf_term
                    % ?Contents:list
                    % ?Graph:atom
     rdf_container_membership_property/2, % +Predicate:iri
                                          % -Index:positive_integer
     rdf_seq/2, % ?Seq, ?Contents
-    rdf_seq/3 % ?Seq:or([bnode,iri])
+    rdf_seq/3 % ?Seq:rdf_term
               % ?Contents:list
               % ?Graph:atom
   ]
@@ -54,55 +54,56 @@ Support for RDF containers (sequence, bag, and alternatives).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-:- rdf_meta(rdf_alt(r,?)).
-:- rdf_meta(rdf_alt(r,?,?)).
-:- rdf_meta(rdf_alt_raw(r,t)).
-:- rdf_meta(rdf_alt_raw(r,t,?)).
-:- rdf_meta(rdf_assert_alt(+,r)).
-:- rdf_meta(rdf_assert_alt(+,r,?)).
-:- rdf_meta(rdf_assert_bag(+,r)).
-:- rdf_meta(rdf_assert_bag(+,r,?)).
-:- rdf_meta(rdf_assert_collection0(r,+,r,?)).
-:- rdf_meta(rdf_assert_seq(+,r)).
-:- rdf_meta(rdf_assert_seq(+,r,?)).
-:- rdf_meta(rdf_bag(r,?)).
-:- rdf_meta(rdf_bag(r,?,?)).
-:- rdf_meta(rdf_bag_raw(r,t)).
-:- rdf_meta(rdf_bag_raw(r,t,?)).
+:- rdf_meta(rdf_alt(o,?)).
+:- rdf_meta(rdf_alt(o,?,?)).
+:- rdf_meta(rdf_alt_raw(o,t)).
+:- rdf_meta(rdf_alt_raw(o,t,?)).
+:- rdf_meta(rdf_assert_alt(o,r)).
+:- rdf_meta(rdf_assert_alt(o,r,?)).
+:- rdf_meta(rdf_assert_bag(o,r)).
+:- rdf_meta(rdf_assert_bag(o,r,?)).
+:- rdf_meta(rdf_assert_collection0(o,+,r,?)).
+:- rdf_meta(rdf_assert_seq(o,r)).
+:- rdf_meta(rdf_assert_seq(o,r,?)).
+:- rdf_meta(rdf_bag(o,?)).
+:- rdf_meta(rdf_bag(o,?,?)).
+:- rdf_meta(rdf_bag_raw(o,t)).
+:- rdf_meta(rdf_bag_raw(o,t,?)).
 :- rdf_meta(rdf_container_membership_property(r,?)).
-:- rdf_meta(rdf_seq(r,?)).
-:- rdf_meta(rdf_seq(r,?,?)).
-:- rdf_meta(rdf_seq_raw(r,t)).
-:- rdf_meta(rdf_seq_raw(r,t,?)).
+:- rdf_meta(rdf_seq(o,?)).
+:- rdf_meta(rdf_seq(o,?,?)).
+:- rdf_meta(rdf_seq_raw(o,t)).
+:- rdf_meta(rdf_seq_raw(o,t,?)).
 
 
 
 
 
-%! rdf_alt(?Alt:or([bnode,iri]), ?Contents:list) is nondet.
+%! rdf_alt(?Alt:rdf_term, ?Contents:list) is nondet.
 
 rdf_alt(L1, L2):-
   rdf_alt(L1, L2, _).
 
 
-%! rdf_alt(?Alt:or([bnode,iri]), ?Contents:list, ?Graph:atom) is nondet.
+%! rdf_alt(?Alt:rdf_term, ?Contents:list, ?Graph:atom) is nondet.
 
 rdf_alt(L1, L2, G):-
   rdf_alt_raw(L1, L0, G),
   maplist(rdf_interpreted_term, L0, L2).
 
 
-%! rdf_alt_raw(?Alt:or([bnode,iri]), ?Contents:list(rdf_term)) is nondet.
+%! rdf_alt_raw(?Alt:rdf_term, ?Contents:list(rdf_term)) is nondet.
 
 rdf_alt_raw(L1, L2):-
   rdf_alt_raw(L1, L2, _).
 
 
 %! rdf_alt_raw(
-%!   ?Alt:or([bnode,iri]),
+%!   ?Alt:rdf_term,
 %!   ?Contents:list(rdf_term),
 %!   ?Graph:atom
 %! ) is nondet.
@@ -110,63 +111,63 @@ rdf_alt_raw(L1, L2):-
 % No duplicates and unordered.
 
 rdf_alt_raw(L1, L2, G):-
-  rdfs_individual_of(L1, rdf:'Alt'),
+  rdfs_instance(L1, rdf:'Alt'),
   % Satisfy graph restriction, if present.
   (ground(G) -> once(rdf_term(L1, G)) ; true),
   rdf_collection0(L1, L2, G).
 
 
 
-%! rdf_assert_alt(+List:list, ?Alt:or([bnode,iri])) is det.
+%! rdf_assert_alt(+List:list, ?Alt:rdf_term) is det.
 
 rdf_assert_alt(L1, L2):-
   rdf_assert_alt(L1, L2, _).
 
-%! rdf_assert_alt(+List:list, ?Alt:or([bnode,iri]), ?Graph:atom) is det.
+%! rdf_assert_alt(+List:list, ?Alt:rdf_term, ?Graph:atom) is det.
 
 rdf_assert_alt(L1, L2, G):-
   rdf_assert_collection0(rdf:'Alt', L1, L2, G).
 
 
 
-%! rdf_assert_bag(+List:list, ?Bag:or([bnode,iri])) is det.
+%! rdf_assert_bag(+List:list, ?Bag:rdf_term) is det.
 
 rdf_assert_bag(L1, L2):-
   rdf_assert_bag(L1, L2, _).
 
-%! rdf_assert_bag(+List:list, ?Bag:or([bnode,iri]), ?Graph:atom) is det.
+%! rdf_assert_bag(+List:list, ?Bag:rdf_term, ?Graph:atom) is det.
 
 rdf_assert_bag(L1, L2, G):-
   rdf_assert_collection0(rdf:'Bag', L1, L2, G).
 
 
 
-%! rdf_assert_seq(+List:list, ?Seq:or([bnode,iri])) is det.
+%! rdf_assert_seq(+List:list, ?Seq:rdf_term) is det.
 
 rdf_assert_seq(L1, L2):-
   rdf_assert_seq(L1, L2, _).
 
-%! rdf_assert_alt(+List:list, ?Seq:or([bnode,iri]), ?Graph:atom) is det.
+%! rdf_assert_alt(+List:list, ?Seq:rdf_term, ?Graph:atom) is det.
 
 rdf_assert_seq(L1, L2, G):-
   rdf_assert_collection0(rdf:'Seq', L1, L2, G).
 
 
 
-%! rdf_bag(?Bag:or([bnode,iri]), ?Contents:list) is nondet.
+%! rdf_bag(?Bag:rdf_term, ?Contents:list) is nondet.
 
 rdf_bag(L1, L2):-
   rdf_bag(L1, L2, _).
 
 
-%! rdf_bag(?Bag:or([bnode,iri]), ?Contents:list, ?Graph:atom) is nondet.
+%! rdf_bag(?Bag:rdf_term, ?Contents:list, ?Graph:atom) is nondet.
 
 rdf_bag(L1, L2, G):-
   rdf_bag_raw(L1, L0, G),
   maplist(rdf_interpreted_term, L0, L2).
 
 
-%! rdf_bag_raw(?Bag:or([bnode,iri]), ?Contents:list(rdf_term)) is nondet.
+%! rdf_bag_raw(?Bag:rdf_term, ?Contents:list(rdf_term)) is nondet.
 % Returns bags and their contents in the given graph.
 % No duplicates and unordered.
 
@@ -175,7 +176,7 @@ rdf_bag_raw(L1, L2):-
 
 
 %! rdf_bag_raw(
-%!   ?Bag:or([bnode,iri]),
+%!   ?Bag:rdf_term,
 %!   ?Contents:list(rdf_term),
 %!   ?Graph:atom
 %! ) is nondet.
@@ -183,7 +184,7 @@ rdf_bag_raw(L1, L2):-
 % Duplicates and ordered.
 
 rdf_bag_raw(L1, L2, G):-
-  rdfs_individual_of(L1, rdf:'Seq'),
+  rdfs_instance(L1, rdf:'Seq'),
   % Satisfy graph restriction, if present.
   (ground(G) -> once(rdf_term(L1, G)) ; true),
   rdf_collection0(L1, L2, G).
@@ -225,27 +226,27 @@ rdf_container_membership_property(P, N):-
 
 
 
-%! rdf_seq(?Seq:or([bnode,iri]), ?Contents:list) is nondet.
+%! rdf_seq(?Seq:rdf_term, ?Contents:list) is nondet.
 
 rdf_seq(L1, L2):-
   rdf_seq(L1, L2, _).
 
 
-%! rdf_seq(?Seq:or([bnode,iri]), ?Contents:list, ?Graph:atom) is nondet.
+%! rdf_seq(?Seq:rdf_term, ?Contents:list, ?Graph:atom) is nondet.
 
 rdf_seq(L1, L2, G):-
   rdf_seq_raw(L1, L0, G),
   maplist(rdf_interpreted_term, L0, L2).
 
 
-%! rdf_seq_raw(?Seq:or([bnode,iri]), ?Contents:list(rdf_term)) is nondet.
+%! rdf_seq_raw(?Seq:rdf_term, ?Contents:list(rdf_term)) is nondet.
 
 rdf_seq_raw(L1, L2):-
   rdf_seq_raw(L1, L2, _).
 
 
 %! rdf_seq_raw(
-%!   ?Seq:or([bnode,iri]),
+%!   ?Seq:rdf_term,
 %!   ?Contents:list(rdf_term),
 %!   ?Graph:atom
 %! ) is nondet.
@@ -253,7 +254,7 @@ rdf_seq_raw(L1, L2):-
 % Duplicates and ordered.
 
 rdf_seq_raw(L1, L2, G):-
-  rdfs_individual_of(L1, rdf:'Seq'),
+  rdfs_instance(L1, rdf:'Seq'),
   % Satisfy graph restriction, if present.
   (ground(G) -> once(rdf_term(L1, G)) ; true),
   rdf_collection0(L1, L2, G).
@@ -285,7 +286,7 @@ rdf_collection0(L1, L2, G):-
   aggregate_all(
     set(I-X),
     (
-      rdf(L1, P, X, G),
+      rdf2(L1, P, X, G),
       rdf_container_membership_property(P, I)
     ),
     Pairs

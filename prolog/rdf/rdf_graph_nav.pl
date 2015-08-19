@@ -31,18 +31,18 @@
 /** <module> RDF graph navigation
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(owl/owl_read)).
 :- use_module(library(semweb/rdf_db)).
 
-:- rdf_meta(rdf_resource_edge(t,r,t,?)).
-:- rdf_meta(rdf_resource_incoming_edge(t,r,r,?)).
-:- rdf_meta(rdf_resource_outgoing_edge(r,r,t,?)).
-:- rdf_meta(rdf_term_edge(t,r,t,?)).
-:- rdf_meta(rdf_term_incoming_edge(t,r,r,?)).
-:- rdf_meta(rdf_term_outgoing_edge(r,r,t,?)).
+:- rdf_meta(rdf_resource_edge(o,r,o,?)).
+:- rdf_meta(rdf_resource_incoming_edge(o,r,o,?)).
+:- rdf_meta(rdf_resource_outgoing_edge(o,r,o,?)).
+:- rdf_meta(rdf_term_edge(o,r,o,?)).
+:- rdf_meta(rdf_term_incoming_edge(o,r,o,?)).
+:- rdf_meta(rdf_term_outgoing_edge(o,r,o,?)).
 
 
 
@@ -74,7 +74,7 @@ rdf_resource_edge(To, P, From, G):-
 
 rdf_resource_incoming_edge(To, P, From, G):-
   owl_id(To, To0),
-  rdf(From0, P, To0, G),
+  rdf2(From0, P, To0, G),
   owl_id(From, From0).
 
 
@@ -89,7 +89,7 @@ rdf_resource_incoming_edge(To, P, From, G):-
 
 rdf_resource_outgoing_edge(From, P, To, G):-
   owl_id(From, From0),
-  rdf(From0, P, To0, G),
+  rdf2(From0, P, To0, G),
   owl_id(To, To0).
 
 
@@ -118,7 +118,7 @@ rdf_term_edge(O, P, S, G):-
 % Returns incoming edges for the given RDF term.
 
 rdf_term_incoming_edge(O, P, S, G):-
-  rdf(S, P, O, G).
+  rdf2(S, P, O, G).
 
 
 
@@ -131,4 +131,4 @@ rdf_term_incoming_edge(O, P, S, G):-
 % Returns outgoing edges for the given RDF term.
 
 rdf_term_outgoing_edge(S, P, O, G):-
-  rdf(S, P, O, G).
+  rdf2(S, P, O, G).

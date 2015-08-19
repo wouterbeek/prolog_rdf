@@ -59,7 +59,7 @@ increment_bnode_name_counter(Id):-
   Id is Id0 + 1,
   assert(bnode_name_counter(Id)).
 increment_bnode_name_counter(Id):-
-	reset_bnode_name_counter,
+  reset_bnode_name_counter,
   increment_bnode_name_counter(Id).
 
 reset_bnode_names:-

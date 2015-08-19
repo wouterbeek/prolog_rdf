@@ -19,9 +19,11 @@
 :- use_module(library(error)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(rdf/rdf_read)).
 
 :- set_prolog_flag(chr_toplevel_show_store, false).
 
@@ -49,7 +51,7 @@ mat(GIn, GOut):-
 mat(GIn, GOut):-
   % Type checking.
   must_be(atom, GIn),
-  (   rdf_graph(GIn)
+  (   rdf_graph2(GIn)
   ->  true
   ;   existence_error(rdf_graph, GIn)
   ),
@@ -67,7 +69,7 @@ mat(GIn, GOut):-
   if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
 
   % Perform materialization.
-  findall(rdf_chr(S,P,O), rdf(S,P,O,GIn), Ins),
+  findall(rdf_chr(S,P,O), rdf2(S,P,O,GIn), Ins),
   maplist(store_j0(axiom, []), Ins),
   maplist(call, Ins),
 
@@ -90,7 +92,7 @@ store_j0(Rule, Ps, rdf_chr(S,P,O)):-
   store_j(Rule, Ps, rdf(S,P,O)).
 
 rdf_assert0(G, rdf(S,P,O)):-
-  rdf_assert(S, P, O, G).
+  rdf_assert2(S, P, O, G).
 
 
 

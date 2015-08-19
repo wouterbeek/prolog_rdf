@@ -5,20 +5,20 @@
     fresh_iri/3, % +Prefix:atom
                  % +SubPaths:list(atom)
                  % -Iri:iri
-    rdf_assert_instance/3, % +Instance:or([bnode,iri])
+    rdf_assert_instance/3, % +Instance:rdf_term
                            % ?Class:iri
                            % ?Graph:atom
-    rdf_assert_literal0/3, % +Subject, +Predicate, +Value
-    rdf_assert_literal0/4, % +Subject:or([bnode,iri])
-                           % +Predicate:iri
-                           % +Value
-                           % ?Graph:atom
     rdf_assert_literal/4, % +Subject, +Predicate, ?Datatype, +Value
-    rdf_assert_literal/5, % +Subject:or([bnode,iri])
+    rdf_assert_literal/5, % +Subject:rdf_term
                           % +Predicate:iri
                           % ?Datatype:iri
                           % +Value
                           % ?Graph:atom
+    rdf_assert_literal0/3, % +Subject, +Predicate, +Value
+    rdf_assert_literal0/4, % +Subject:rdf_term
+                           % +Predicate:iri
+                           % +Value
+                           % ?Graph:atom
     rdf_assert_now/3, % +Subject, +Predicate, +Graph
     rdf_assert_now/4, % +Subject:iri
                       % +Predicate:iri
@@ -27,20 +27,29 @@
     rdf_assert_property/3, % +Property:iri
                            % ?Parent:iri
                            % ?Graph:atom
-    rdf_assert2/4, % +Subject:or([bnode,iri])
+    rdf_assert2/4, % +Subject:rdf_term
                    % +Predicate:iri
                    % +Object:rdf_term
                    % ?Graph:atom
     rdf_retractall_literal/4, % ?Subject, ?Predicate:iri, ?Datatype, ?Value
-    rdf_retractall_literal/5, % ?Subject:or([bnode,iri])
+    rdf_retractall_literal/5, % ?Subject:rdf_term
                               % ?Predicate:iri
                               % ?Datatype:iri
                               % ?Value
                               % ?Graph:atom
     rdf_retractall_resource/2, % +Resource:rdf_term
                                % ?Graph:atom
-    rdf_retractall_term/2 % +Term:rdf_term
-                          % ?Graph:atom
+    rdf_retractall_term/2, % +Term:rdf_term
+                           % ?Graph:atom
+    rdf_retractall2/3, % ?Subject:rdf_term
+                       % ?Predicate:iri
+                       % ?Object:rdf_term
+    rdf_retractall2/4, % ?Subject:rdf_term
+                       % ?Predicate:iri
+                       % ?Object:rdf_term
+                       % ?Graph:atom
+    subject_literal/2 % +Literal:literal
+                      % -Subject:bnode
   ]
 ).
 :- reexport(library(semweb/rdf_db)).
@@ -63,21 +72,35 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(uuid_ext)).
 :- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
 
-:- rdf_meta(rdf_assert_instance(r,r,?)).
-:- rdf_meta(rdf_assert_literal0(r,r,+)).
-:- rdf_meta(rdf_assert_literal0(r,r,+,?)).
-:- rdf_meta(rdf_assert_literal(r,r,r,+)).
-:- rdf_meta(rdf_assert_literal(r,r,r,+,?)).
-:- rdf_meta(rdf_assert_now(r,r,+)).
-:- rdf_meta(rdf_assert_now(r,r,r,+)).
-:- rdf_meta(rdf_assert_property(r,r,?)).
-:- rdf_meta(rdf_assert2(r,r,o,?)).
-:- rdf_meta(rdf_retractall_literal(r,r,r,?)).
-:- rdf_meta(rdf_retractall_literal(r,r,r,?,?)).
-:- rdf_meta(rdf_retractall_resource(r,?)).
-:- rdf_meta(rdf_retractall_term(r,?)).
+:- dynamic(subject_literal/2).
+
+:- rdf_meta(rdf_assert_instance(o,r,?)).
+:- rdf_meta(rdf_assert_literal(o,r,r,+)).
+:- rdf_meta(rdf_assert_literal(o,r,r,+,?)).
+:- rdf_meta(rdf_assert_literal0(o,r,+)).
+:- rdf_meta(rdf_assert_literal0(o,r,+,?)).
+:- rdf_meta(rdf_assert_now(o,r,+)).
+:- rdf_meta(rdf_assert_now(o,r,r,+)).
+:- rdf_meta(rdf_assert_property(o,r,?)).
+:- rdf_meta(rdf_assert2(o,r,o,?)).
+:- rdf_meta(rdf_retractall_literal(o,r,r,?)).
+:- rdf_meta(rdf_retractall_literal(o,r,r,?,?)).
+:- rdf_meta(rdf_retractall_resource(o,?)).
+:- rdf_meta(rdf_retractall_term(t,?)).
+:- rdf_meta(rdf_retractall2(o,r,o)).
+:- rdf_meta(rdf_retractall2(o,r,o,?)).
+:- rdf_meta(subject_literal(o,-)).
 
 
+
+
+
+%! assert_subject_literal(+Literal:literal, -Subject:bnode) is det.
+
+assert_subject_literal(Lit, S):-
+  subject_literal(Lit, S), !.
+assert_subject_literal(Lit, S):-
+  assert(subject_literal(Lit, S)).
 
 
 
@@ -107,11 +130,7 @@ fresh_iri(Prefix, SubPaths0, Iri):-
 
 
 
-%! rdf_assert_instance(
-%!   +Instance:or([bnode,iri]),
-%!   ?Class:iri,
-%!   ?Graph:atom
-%! ) is det.
+%! rdf_assert_instance(+Instance:rdf_term, ?Class:iri, ?Graph:atom) is det.
 % Asserts an instance/class relationship.
 %
 % The following triples are added to the database:
@@ -119,10 +138,6 @@ fresh_iri(Prefix, SubPaths0, Iri):-
 % ```nquads
 % <TERM,rdf:type,CLASS,GRAPH>
 % ```
-%
-% @arg Instance A resource-denoting subject term (IRI or blank node).
-% @arg Class    A class-denoting IRI or `rdfs:Resource` if uninstantiated.
-% @arg Graph    The atomic name of an RDF graph or `user` if uninstantiated.
 
 rdf_assert_instance(I, C, G):-
   rdf_defval(rdfs:'Resource', C),
@@ -130,33 +145,8 @@ rdf_assert_instance(I, C, G):-
 
 
 
-%! rdf_assert_literal0(
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Value
-%! ) is det.
-
-rdf_assert_literal0(S, P, V):-
-  rdf_assert_literal0(S, P, V, _).
-
-%! rdf_assert_literal0(
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Value,
-%!   ?Graph:atom
-%! ) is det.
-% Guess an appropriate RDF datatype for serializing Value.
-% Since RDF has a more granual datatype system than Prolog
-% this is only a fail guess.
-
-rdf_assert_literal0(S, P, V, G):-
-  rdf_guess_datatype(V, D),
-  rdf_assert_literal(S, P, D, V, G).
-
-
-
 %! rdf_assert_literal(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   ?Datatype:iri,
 %!   +Value
@@ -166,7 +156,7 @@ rdf_assert_literal(S, P, D, V):-
   rdf_assert_literal(S, P, D, V, _).
 
 %! rdf_assert_literal(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   ?Datatype:iri,
 %!   +Value,
@@ -196,18 +186,35 @@ rdf_assert_literal(S, P, D, V, G):-
 
 
 
-%! rdf_assert_now(
-%!   +Subject:or([bnode,iri]),
+%! rdf_assert_literal0(+Subject:rdf_term, +Predicate:iri, +Value) is det.
+
+rdf_assert_literal0(S, P, V):-
+  rdf_assert_literal0(S, P, V, _).
+
+%! rdf_assert_literal0(
+%!   +Subject:rdf_term,
 %!   +Predicate:iri,
-%!   +Graph:atom
+%!   +Value,
+%!   ?Graph:atom
 %! ) is det.
+% Guess an appropriate RDF datatype for serializing Value.
+% Since RDF has a more granual datatype system than Prolog
+% this is only a fair guess.
+
+rdf_assert_literal0(S, P, V, G):-
+  rdf_guess_datatype(V, D),
+  rdf_assert_literal(S, P, D, V, G).
+
+
+
+%! rdf_assert_now(+Subject:rdf_term, +Predicate:iri, +Graph:atom) is det.
 
 rdf_assert_now(S, P, G):-
   rdf_assert_now(S, P, xsd:dateTime, G).
 
 
 %! rdf_assert_now(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Datatype:iri,
 %!   +Graph:atom
@@ -236,7 +243,7 @@ rdf_assert_property(P, Parent, G):-
 
 
 %! rdf_assert2(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
 %!   ?Graph:atom
@@ -245,6 +252,10 @@ rdf_assert_property(P, Parent, G):-
 %
 % @see rdf_db:rdf/4
 
+rdf_assert2(S0, P, O, G):-
+  rdf_is_literal(S0), !,
+  assert_subject_literal(S0, S),
+  rdf_assert2(S, P, O, G).
 rdf_assert2(S, P, O, G):-
   var(G), !,
   rdf_assert(S, P, O).
@@ -253,17 +264,8 @@ rdf_assert2(S, P, O, G):-
 
 
 
-%! rdf_retractall(+Triple:compound) is det.
-
-rdf_retractall(rdf(S,P,O)):- !,
-  rdf_retractall(S, P, O).
-rdf_retractall(rdf(S,P,O,G)):- !,
-  rdf_retractall(S, P, O, G).
-
-
-
 %! rdf_retractall_literal(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value
@@ -274,7 +276,7 @@ rdf_retractall_literal(S, P, D, V):-
 
 
 %! rdf_retractall_literal(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value,
@@ -292,7 +294,7 @@ rdf_retractall_literal(S, P, D, V):-
 rdf_retractall_literal(S, P, D, V, G):-
   forall(
     rdf_literal(S, P, D, V, G, T),
-    rdf_retractall(T)
+    rdf_retractall_term(T, G)
   ).
 
 
@@ -312,7 +314,33 @@ rdf_retractall_resource(T, G):-
 %! rdf_retractall_term(+Term:rdf_term, ?Graph:atom) is det.
 % Removes all triples in which the given RDF term occurs.
 
-rdf_retractall_term(Term, G):-
-  rdf_retractall(Term, _, _, G),
-  rdf_retractall(_, Term, _, G),
-  rdf_retractall(_, _, Term, G).
+rdf_retractall_term(T, G):-
+  rdf_retractall2(T, _, _, G),
+  rdf_retractall2(_, T, _, G),
+  rdf_retractall2(_, _, T, G).
+
+
+
+%! rdf_retractall2(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
+
+rdf_retractall2(S0, P, O):-
+  rdf_is_literal(S0), !,
+  subject_literal(S0, S),
+  rdf_retractall2(S, P, O).
+rdf_retractall2(S, P, O):-
+  rdf_retractall(S, P, O).
+
+
+%! rdf_retractall2(
+%!   +Subject:rdf_term,
+%!   +Predicate:iri,
+%!   +Object:rdf_term,
+%!   ?Graph:atom
+%! ) is det.
+
+rdf_retractall2(S0, P, O, G):-
+  rdf_is_literal(S0), !,
+  subject_literal(S0, S),
+  rdf_retractall2(S, P, O, G).
+rdf_retractall2(S, P, O, G):-
+  rdf_retractall(S, P, O, G).

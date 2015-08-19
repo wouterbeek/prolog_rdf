@@ -6,20 +6,20 @@
                          % +Comment:or([atom,pair(list(atom),atom)])
                          % ?Parent:or([bnode,iri])
                          % ?Graph:atom
-    rdfs_assert_comment/3, % +Subject:or([bnode,iri])
+    rdfs_assert_comment/3, % +Subject:rdf_term
                            % +Comment:atom
                            % ?Graph:atom
     rdfs_assert_domain/3, % +Property:iri
                           % +Domain:iri
                           % ?Graph:atom
-    rdfs_assert_isDefinedBy/2, % +Subject:or([bnode,iri])
+    rdfs_assert_isDefinedBy/2, % +Subject:rdf_term
                                % ?Graph:atom
-    rdfs_assert_isDefinedBy/3, % +Subject:or([bnode,iri])
+    rdfs_assert_isDefinedBy/3, % +Subject:rdf_term
                                % ?Uri:atom
                                % ?Graph:atom
-    rdfs_assert_label/2, % +Subject:or([bnode,iri])
+    rdfs_assert_label/2, % +Subject:rdf_term
                          % +Label
-    rdfs_assert_label/3, % +Subject:or([bnode,iri])
+    rdfs_assert_label/3, % +Subject:rdf_term
                          % +Label
                          % ?Graph:atom
     rdfs_assert_property/4, % +Domain:iri
@@ -29,7 +29,7 @@
     rdfs_assert_range/3, % +Property:iri
                          % +Range:iri
                          % ?Graph:atom
-    rdfs_assert_seeAlso/3, % +Subject:or([bnode,iri])
+    rdfs_assert_seeAlso/3, % +Subject:rdf_term
                            % +Uri:atom
                            % +Graph:atom
     rdfs_assert_subclass/3, % +SubClass:iri
@@ -40,11 +40,12 @@
                                % ?Graph:atom
     rdfs_retractall_class_resource/1, % +Class:iri
     rdfs_retractall_class_term/1, % +Class:iri
-    rdfs_retractall_label/3 % +Subject:or([bnode,iri])
+    rdfs_retractall_label/3 % +Subject:rdf_term
                             % ?Value
                             % ?Graph:atom
   ]
 ).
+:- reexport(library(rdf/rdf_build)).
 
 /** <module> RDFS build
 
@@ -55,27 +56,25 @@ Predicates for asseritng RDFS statements in an easy way.
 */
 
 :- use_module(library(owl/owl_read)).
-:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdfs_assert_class(r,+,+,r,?)).
-:- rdf_meta(rdfs_assert_comment(r,+,?)).
+:- rdf_meta(rdfs_assert_comment(o,+,?)).
 :- rdf_meta(rdfs_assert_domain(r,r,+)).
-:- rdf_meta(rdfs_assert_isDefinedBy(r,?)).
-:- rdf_meta(rdfs_assert_isDefinedBy(r,?,?)).
-:- rdf_meta(rdfs_assert_label(r,+)).
-:- rdf_meta(rdfs_assert_label(r,+,?)).
+:- rdf_meta(rdfs_assert_isDefinedBy(o,?)).
+:- rdf_meta(rdfs_assert_isDefinedBy(o,?,?)).
+:- rdf_meta(rdfs_assert_label(o,+)).
+:- rdf_meta(rdfs_assert_label(o,+,?)).
 :- rdf_meta(rdfs_assert_property(r,r,r,+)).
 :- rdf_meta(rdfs_assert_range(r,r,+)).
-:- rdf_meta(rdfs_assert_seeAlso(r,+,?)).
+:- rdf_meta(rdfs_assert_seeAlso(o,+,?)).
 :- rdf_meta(rdfs_assert_subclass(r,r,+)).
 :- rdf_meta(rdfs_assert_subproperty(r,r,?)).
 :- rdf_meta(rdfs_retractall_class_resource(r)).
 :- rdf_meta(rdfs_retractall_class_term(r)).
-:- rdf_meta(rdfs_retractall_label(r,?,?)).
+:- rdf_meta(rdfs_retractall_label(o,?,?)).
 
 
 
@@ -98,7 +97,7 @@ rdfs_assert_class(C, Lbl, Comm, SuperC, G):-
 
 
 %! rdfs_assert_comment(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Comment:or([atom,pair(atom,list(atom))]),
 %!   ?Graph:atom
 %! ) is det.
@@ -125,14 +124,14 @@ rdfs_assert_domain(P, D, G):-
 
 
 
-%! rdfs_assert_isDefinedBy(+Subject:or([bnode,iri]), ?Graph:atom) is det.
+%! rdfs_assert_isDefinedBy(+Subject:rdf_term, ?Graph:atom) is det.
 
 rdfs_assert_isDefinedBy(S, G):-
   rdfs_assert_isDefinedBy(S, _, G).
 
 
 %! rdfs_assert_isDefinedBy(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   ?Uri:atom,
 %!   ?Graph:atom
 %! ) is det.
@@ -157,12 +156,12 @@ rdfs_assert_isDefinedBy(S, O, G):-
 
 
 
-%! rdfs_assert_label(+Subject:or([bnode,iri]), +Label, ?Graph:atom) is det.
+%! rdfs_assert_label(+Subject:rdf_term, +Label, ?Graph:atom) is det.
 
 rdfs_assert_label(S, V):-
   rdfs_assert_label(S, V, _).
 
-%! rdfs_assert_label(+Subject:or([bnode,iri]), +Label, ?Graph:atom) is det.
+%! rdfs_assert_label(+Subject:rdf_term, +Label, ?Graph:atom) is det.
 % Assigns an RDFS label to the resource denoted by the given RDF term.
 %
 % This predicate stores the label as an RDF language-tagged string.
@@ -209,7 +208,7 @@ rdfs_assert_range(P, R, G):-
 
 
 %! rdfs_assert_seeAlso(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Uri:atom,
 %!   ?Graph:atom
 %! ) is det.
@@ -284,30 +283,26 @@ rdfs_retractall_class_term(C):-
   %     Connect all subclasses of Class to all superclasses of Class.
   forall(
     (
-      rdf(SubC, rdfs:subClassOf, C),
-      rdf(C, rdfs:subClassOf, SuperC)
+      rdf2(SubC, rdfs:subClassOf, C),
+      rdf2(C, rdfs:subClassOf, SuperC)
     ),
     (
       % The transitive link is now a direct one.
       rdfs_assert_subclass(SubC, SuperC, _),
       % Remove the link to a subclass.
-      rdf_retractall(SubC, rdfs:subClassOf, C)
+      rdf_retractall2(SubC, rdfs:subClassOf, C)
     )
   ),
 
   % [2] Remove the links to superclasses.
-  rdf_retractall(C, rdfs:subClassOf, _),
+  rdf_retractall2(C, rdfs:subClassOf, _),
 
   % [3] Remove other triples in which the class occurs.
   rdf_retractall_term(C, _).
 
 
 
-%! rdfs_retractall_label_term(
-%!   +Subject:or([bnode,iri]),
-%!   ?Value,
-%!   ?Graph:atom
-%! ) is det.
+%! rdfs_retractall_label_term(+Subject:rdf_term, ?Value, ?Graph:atom) is det.
 
 rdfs_retractall_label(S, V, G):-
   (   ground(V)

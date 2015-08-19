@@ -30,12 +30,12 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(rdf_canonize_triple(r,r,r,+,+)).
@@ -56,7 +56,7 @@ Higher-level update operations performed on RDF data.
 
 rdf_canonize_graph(G):-
   forall(
-    rdf(S, P, literal(type(D,Lex)), G),
+    rdf2(S, P, literal(type(D,Lex)), G),
     rdf_canonize_triple(S, P, D, Lex, G)
   ).
 
@@ -85,8 +85,8 @@ rdf_canonize_triple(S, P, D, Lex, G):-
       
       % Perform the update.
       rdf_transaction((
-        rdf_retractall(S, P, literal(type(D,Lex)), G),
-        rdf_assert(S, P, literal(type(D,CLex)), G)
+        rdf_retractall2(S, P, literal(type(D,Lex)), G),
+        rdf_assert2(S, P, literal(type(D,CLex)), G)
       ))
     )
   ).
@@ -107,8 +107,8 @@ rdf_canonize_triple(S, P, D, Lex, G):-
 rdf_copy(FromGraph, S, P, O, ToGraph):-
   rdf_transaction((
     forall(
-      rdf(S, P, O, FromGraph),
-      rdf_assert(S, P, O, ToGraph)
+      rdf2(S, P, O, FromGraph),
+      rdf_assert2(S, P, O, ToGraph)
     )
   )).
 
@@ -150,5 +150,5 @@ rdf_increment(S, P, Old, G, New):-
 rdf_mv(From, S, P, O, To):-
   rdf_transaction((
     rdf_copy(From, S, P, O, To),
-    rdf_retractall(S, P, O, From)
+    rdf_retractall2(S, P, O, From)
   )).

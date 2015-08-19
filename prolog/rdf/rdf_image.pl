@@ -17,8 +17,7 @@
 
 :- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
+:- use_module(library(rdfs/rdfs_read)).
 
 :- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
@@ -47,7 +46,7 @@ rdf_image(S, P, O):-
 rdf_image(S, P, O, G):-
   owl_id(S, S0),
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
-      rdf(S0, P, O, G)
-  ;   rdf(S0, P, O, G),
-      rdfs_individual_of(O, dcmit:'Image')
+      rdf2(S0, P, O, G)
+  ;   rdf2(S0, P, O, G),
+      rdfs_instance(O, dcmit:'Image')
   ).

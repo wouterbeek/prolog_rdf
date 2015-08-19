@@ -2,14 +2,14 @@
   rdf_print,
   [
     rdf_print_describe/2, % +Subject, ?Graph
-    rdf_print_describe/3, % +Subject:or([bnode,iri])
+    rdf_print_describe/3, % +Subject:rdf_term
                           % ?Graph:atom
                           % +Options:list(compound)
     rdf_print_graph/1, % +Graph
     rdf_print_graph/2, % +Graph:atom
                        % +Options:list(compound)
     rdf_print_quadruple/4, % ?Subject, ?Predicate, ?Object, ?Graph
-    rdf_print_quadruple/5, % ?Subject:or([bnode,iri])
+    rdf_print_quadruple/5, % ?Subject:rdf_term
                            % ?Predicate:iri
                            % ?Object:rdf_term
                            % ?Graph:atom
@@ -21,7 +21,7 @@
     rdf_print_term//2, % +Term:rdf_term
                        % +Options:list(compound)
     rdf_print_triple/4, % ?Subject, ?Predicate, ?Object, ?Graph
-    rdf_print_triple/5 % ?Subject:or([bnode,iri])
+    rdf_print_triple/5 % ?Subject:rdf_term
                        % ?Predicate:iri
                        % ?Object:rdf_term
                        % ?Graph:atom
@@ -50,20 +50,20 @@ Easy printing of RDF data to the terminal.
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_list)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(rdf/rdf_read)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
-:- rdf_meta(rdf_print_describe(r,?)).
-:- rdf_meta(rdf_print_describe(r,?,+)).
-:- rdf_meta(rdf_print_quadruple(r,r,o,?)).
-:- rdf_meta(rdf_print_quadruple(r,r,o,?,+)).
-:- rdf_meta(rdf_print_term(r)).
-:- rdf_meta(rdf_print_term(r,+)).
-:- rdf_meta(rdf_print_term(r,?,?)).
-:- rdf_meta(rdf_print_term(r,+,?,?)).
-:- rdf_meta(rdf_print_triple(r,r,o,?)).
-:- rdf_meta(rdf_print_triple(r,r,o,?,+)).
+:- rdf_meta(rdf_print_describe(o,?)).
+:- rdf_meta(rdf_print_describe(o,?,+)).
+:- rdf_meta(rdf_print_quadruple(o,r,o,?)).
+:- rdf_meta(rdf_print_quadruple(o,r,o,?,+)).
+:- rdf_meta(rdf_print_term(o)).
+:- rdf_meta(rdf_print_term(o,+)).
+:- rdf_meta(rdf_print_term(o,?,?)).
+:- rdf_meta(rdf_print_term(o,+,?,?)).
+:- rdf_meta(rdf_print_triple(o,r,o,?)).
+:- rdf_meta(rdf_print_triple(o,r,o,?,+)).
 
 :- predicate_options(rdf_print_describe/3, 3, [
      pass_to(rdf_print_statement/5, 5)
@@ -128,14 +128,14 @@ Easy printing of RDF data to the terminal.
 
 
 
-%! rdf_print_describe(+Subject:or([bnode,iri]), ?Graph:atom) is det.
+%! rdf_print_describe(+Subject:rdf_term, ?Graph:atom) is det.
 % Wrapper around rdf_print_describe/3 with default options.
 
 rdf_print_describe(S, G):-
   rdf_print_describe(S, G, []).
 
 %! rdf_print_describe(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   ?Graph:atom,
 %!   +Options:list(compound)
 %! ) is det.
@@ -179,7 +179,7 @@ rdf_print_graph(_, _).
 
 
 %! rdf_print_quadruple(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom
@@ -189,7 +189,7 @@ rdf_print_quadruple(S, P, O, G):-
   rdf_print_quadruple(S, P, O, G, []).
 
 %! rdf_print_quadruple(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom,
@@ -211,13 +211,13 @@ rdf_print_quadruple(S, P, O, G, Opts):-
 % Non-ground quadruples are non-deterministically matched
 % against the RDF DB.
 rdf_print_quadruple(S, P, O, G, Opts):-
-  rdf(S, P, O, G),
+  rdf2(S, P, O, G),
   rdf_print_statement(S, P, O, G, Opts).
 
 
 
 %! rdf_print_statement(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
 %!   +Graph:atom,
@@ -257,7 +257,7 @@ rdf_print_term(T, Opts):-
 
 
 %! rdf_print_triple(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom
@@ -267,7 +267,7 @@ rdf_print_triple(S, P, O, G):-
   rdf_print_triple(S, P, O, G, []).
 
 %! rdf_print_triple(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom,
@@ -289,7 +289,7 @@ rdf_print_triple(S, P, O, G, Opts):-
 % Non-ground triples are non-deterministically matched
 % against the RDF DB.
 rdf_print_triple(S, P, O, G, Opts):-
-  rdf(S, P, O, G),
+  rdf2(S, P, O, G),
   rdf_print_statement(S, P, O, _, Opts).
 
 
@@ -379,7 +379,7 @@ rdf_print_lexical(Lex, Opts) -->
 
 
 
-%! rdf_print_list(+Term:or([bnode,iri]), +Options:list(compound))// is semidet.
+%! rdf_print_list(+Term:rdf_term, +Options:list(compound))// is semidet.
 % The following options are supported:
 %   * abbr_list(+boolean)
 %     Whether or not RDF lists are displayed using Prolog list notation.
@@ -442,7 +442,7 @@ rdf_print_predicate(P, Opts) -->
 
 
 %! rdf_print_statement(
-%!   +Subject:or([bnode,iri]),
+%!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
 %!   ?Graph:atom,
@@ -481,10 +481,7 @@ rdf_print_statement0(S, P, O, Opts) -->
 
 
 
-%! rdf_print_subject(
-%!   +Subject:or([bnode,iri]),
-%!   +Options:list(compound)
-%! )// is det.
+%! rdf_print_subject(+Subject:rdf_term, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)

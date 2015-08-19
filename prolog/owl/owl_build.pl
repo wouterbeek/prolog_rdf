@@ -20,8 +20,7 @@
                                    % -Restriction:bnode
   ]
 ).
-
-:- reexport(library(rdf/rdf_build)).
+:- reexport(library(rdfs/rdfs_build)).
 
 /** <module> OWL build
 
@@ -32,8 +31,6 @@ Predicates for asserting common OWL structures.
 */
 
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdfs/rdfs_build)).
 
 :- predicate_options(owl_assert_property/7, 7, [
      functional(+boolean)
@@ -94,7 +91,7 @@ owl_assert_property(P, Lbl, Comm, D, R, G, Opts):-
 
 
 %! owl_assert_value_restriction(
-%!   +Property:or([bnode,iri]),
+%!   +Property:iri,
 %!   +Value:or([bnode,iri]),
 %!   ?Graph:atom,
 %!   -Restriction:bnode

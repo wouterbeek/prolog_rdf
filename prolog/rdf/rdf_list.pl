@@ -46,7 +46,7 @@ Support for reading/writing RDF lists.
 :- use_module(library(apply)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(typecheck)).
@@ -124,7 +124,7 @@ add_list_instance0(L, G):-
 rdf_is_list(L):-
   rdf_equal(rdf:nil, L), !.
 rdf_is_list(L):-
-  rdfs_individual_of(L, rdf:'List'), !.
+  rdfs_instance(L, rdf:'List'), !.
 rdf_is_list(L):-
   rdf_has(L, rdf:first, _), !.
 rdf_is_list(L):-
@@ -209,7 +209,7 @@ rdf_list_first_raw(L, X):-
 % Relates RDF lists to their first element.
 
 rdf_list_first_raw(L, X, G):-
-  rdf(L, rdf:first, X, G).
+  rdf2(L, rdf:first, X, G).
 
 
 

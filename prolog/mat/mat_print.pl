@@ -59,7 +59,10 @@ Printing of materialization results.
 %! print_conclusion(+Conclusion:compound, +Options:list(compound))// is det.
 
 print_conclusion(T, Opts) -->
-  "  ", provable, "   ", print_expression0(T, Opts).
+  "  ",
+  provable,
+  "   ",
+  print_expression0(T, Opts).
 
 
 
@@ -82,7 +85,8 @@ print_deduction(R, Ps, C) -->
 %! )// is det.
 
 print_deduction(R, Ps, C, Opts) -->
-  bracketed(square, print_rule(R)), nl,
+  bracketed(square, print_rule(R)),
+  nl,
   print_premises(Ps, Opts),
   print_conclusion(C, Opts).
 
@@ -90,7 +94,8 @@ print_deduction(R, Ps, C, Opts) -->
 
 %! print_expression0(+Expression:compound, +Options:list(compound))// is det.
 
-print_expression0(error, _) --> !, falsum.
+print_expression0(error, _) --> !,
+  falsum.
 print_expression0(rdf(S,P,O), Opts) --> !,
   rdf_print:rdf_print_statement(S, P, O, _, Opts).
 print_expression0(T, _) -->
@@ -105,7 +110,10 @@ print_expression0(T, _) -->
 %! )// is det.
 
 print_premise(N, T, Opts) -->
-  "P", integer(N), ": ", print_expression0(T, Opts).
+  "P",
+  integer(N),
+  ": ",
+  print_expression0(T, Opts).
 
 
 
@@ -123,7 +131,9 @@ print_premises(Ps, Opts) -->
 
 print_premises(_, [], _) --> "", !.
 print_premises(N1, [H|T], Opts) -->
-  "  ", print_premise(N1, H, Opts), nl,
+  "  ",
+  print_premise(N1, H, Opts),
+  nl,
   {succ(N1, N2)},
   print_premises(N2, T, Opts).
 

@@ -1,17 +1,17 @@
 :- module(
   rdf_read,
   [
-    rdf2/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf_date/3, % ?Subject, ?Predicate, ?Date
-    rdf_date/4, % ?Subject:or([bnode,iri])
+    rdf_date/4, % ?Subject:rdf_term
                 % ?Predicate:iri
                 % ?Date:compound
                 % ?Graph:atom
+    rdf_instance/2, % ?Instance, ?Class
     rdf_instance/3, % ?Instance:iri
                     % ?Class:iri
                     % ?Graph:atom
     rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePreferences, ?Value
-    rdf_langstring/5, % ?Subject:or([bnode,iri])
+    rdf_langstring/5, % ?Subject:rdf_term
                       % ?Predicate:iri
                       % +LanguagePreferences:list(list(atom))
                       % ?Value:pair(atom,list(atom))
@@ -19,14 +19,20 @@
     rdf_load_vocab/1, % +Location:atom
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
     rdf_literal/5, % ?Subject, ?Predicate, ?Datatype, ?Value, ?Graph
-    rdf_literal/6 % ?Subject:or([bnode,iri])
-                  % ?Predicate:iri
-                  % ?Datatype:iri
-                  % ?Value
-                  % ?Graph:atom
-                  % -Triple:compound
+    rdf_literal/6, % ?Subject:rdf_term
+                   % ?Predicate:iri
+                   % ?Datatype:iri
+                   % ?Value
+                   % ?Graph:atom
+                   % -Triple:compound
+    rdf2/3, % ?Subject, ?Predicate, ?Object
+    rdf2/4 % ?Subject:rdf_term
+           % ?Predicate:iri
+	   % ?Object:rdf_term
+	   % ?Graph:atom
   ]
 ).
+:- reexport(library(semweb/rdf_db)).
 
 /** <module> RDF read
 
@@ -38,19 +44,21 @@
 
 :- use_module(library(error)).
 :- use_module(library(langtag/langtag_match)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
 
-:- rdf_meta(rdf2(r,r,o,?)).
-:- rdf_meta(rdf_date(r,r,?)).
-:- rdf_meta(rdf_date(r,r,?,?)).
-:- rdf_meta(rdf_instance(r,r,?)).
-:- rdf_meta(rdf_langstring(r,r,+,?)).
-:- rdf_meta(rdf_langstring(r,r,+,?,?)).
-:- rdf_meta(rdf_literal(r,r,r,?)).
-:- rdf_meta(rdf_literal(r,r,r,?,?)).
-:- rdf_meta(rdf_literal(r,r,r,?,?,-)).
+:- rdf_meta(rdf_date(o,r,?)).
+:- rdf_meta(rdf_date(o,r,?,?)).
+:- rdf_meta(rdf_instance(o,r)).
+:- rdf_meta(rdf_instance(o,r,?)).
+:- rdf_meta(rdf_langstring(o,r,+,?)).
+:- rdf_meta(rdf_langstring(o,r,+,?,?)).
+:- rdf_meta(rdf_literal(o,r,r,?)).
+:- rdf_meta(rdf_literal(o,r,r,?,?)).
+:- rdf_meta(rdf_literal(o,r,r,?,?,-)).
+:- rdf_meta(rdf2(o,r,o)).
+:- rdf_meta(rdf2(o,r,o,?)).
 
 :- multifile(error:has_type/2).
 error:has_type(rdf_term, Term):-
@@ -63,19 +71,8 @@ error:has_type(rdf_term, Term):-
 
 
 
-%! rdf2(?Subject, ?Predicate, ?Object, ?Graph) is nondet.
-% Variant of rdf/4 that does not bind Graph in case it is uninstantiated.
-
-rdf2(S, P, O, G):-
-  var(G), !,
-  rdf(S, P, O).
-rdf2(S, P, O, G):-
-  rdf(S, P, O, G).
-
-
-
 %! rdf_date(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Date:compound
 %! ) is nondet.
@@ -85,7 +82,7 @@ rdf_date(S, P, V):-
   rdf_date(S, P, V, _).
 
 %! rdf_date(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Date:compound,
 %!   ?Graph:atom
@@ -121,15 +118,20 @@ rdf_date(S, P, V, G):-
 
 
 
-%! rdf_instance(?Instance:or([bnode,iri]), ?Class:iri, ?Graph:atom) is nondet.
+%! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
+
+rdf_instance(I, C):-
+  rdf_instance(I, C, _).
+
+%! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
 
 rdf_instance(I, C, G):-
-  rdf(I, rdf:type, C, G).
+  rdf2(I, rdf:type, C, G).
 
 
 
 %! rdf_langstring(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   +LanguagePreferences:list(list(atom)),
 %!   ?Value:pair(atom,list(atom))
@@ -139,7 +141,7 @@ rdf_langstring(S, P, Prefs, V):-
   rdf_langstring(S, P, Prefs, V, _).
 
 %! rdf_langstring(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   +LanguagePreferences:list(list(atom)),
 %!   ?Value:pair(atom,list(atom)),
@@ -170,7 +172,7 @@ rdf_load_vocab(Uri, Graph):-
 
 
 %! rdf_literal(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value
@@ -181,7 +183,7 @@ rdf_literal(S, P, D, V):-
 
 
 %! rdf_literal(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value,
@@ -193,7 +195,7 @@ rdf_literal(S, P, D, V, G):-
 
 
 %! rdf_literal(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value,
@@ -207,8 +209,8 @@ rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
   O = literal(lang(Lang0,Lex)),
   (   ground(Lang)
   ->  atomic_list_concat(Lang, -, Lang0), 
-      rdf(S, P, O, G)
-  ;   rdf(S, P, O, G),
+      rdf2(S, P, O, G)
+  ;   rdf2(S, P, O, G),
       atomic_list_concat(Lang, -, Lang0)
   ).
 % Ground datatype and value.
@@ -221,15 +223,54 @@ rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
       O = literal(Lex)
   ;   O = literal(type(D,Lex))
   ),
-  rdf(S, P, O, G).
+  rdf2(S, P, O, G).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
   O = literal(type(D,Lex)),
-  rdf(S, P, O, G),
+  rdf2(S, P, O, G),
   rdf_lexical_map(D, Lex, V).
 % Simple literal (as per RDF 1.0 specification).
 rdf_literal(S, P, xsd:string, V, G, rdf(S,P,O,G)):-
   O = literal(Lex),
-  rdf(S, P, O, G),
+  rdf2(S, P, O, G),
   atom(Lex),
   rdf_lexical_map(xsd:string, Lex, V).
+
+
+
+%! rdf2(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
+% Variant of rdf/3 that allows literals in the subject position.
+
+rdf2(S0, P, O):-
+  rdf_is_literal(S0), !,
+  subject_literal(S0, S),
+  rdf2(S, P, O).
+rdf2(S, P, O):-
+  rdf(S, P, O).
+
+
+%! rdf2(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:atom
+%! ) is nondet.
+% Variant of rdf/4 that allows literals in the subject position
+% and that does not bind Graph in case it is uninstantiated.
+
+rdf2(S0, P, O, G):-
+  % Use a syntactic hack for the literal limitation.
+  rdf_is_literal(S0), !,
+  subject_literal(S0, S),
+  rdf2(S, P, O, G).
+rdf2(S, P, O, G):-
+  var(G), !,
+  rdf2(S, P, O).
+rdf2(S, P, O, G):-
+  rdf(S, P, O, G),
+  % Do not return blank nodes that are only used
+  % as syntactic hacks for literals.
+  (   rdf_is_bnode(S)
+  ->  \+ subject_literal(_ ,S)
+  ;   true
+  ).

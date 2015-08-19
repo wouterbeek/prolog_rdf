@@ -17,7 +17,6 @@
 
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_list)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdf_assert_json(r,r,+)).
 :- rdf_meta(rdf_assert_json(r,r,+,?)).

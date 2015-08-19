@@ -40,7 +40,7 @@ But this is not the case either, since typed literals are mapped onto
 @version 2015/07-2015/08
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_iri(r)).
@@ -52,7 +52,6 @@ But this is not the case either, since typed literals are mapped onto
 :- rdf_meta(rdf_node2(o)).
 :- rdf_meta(rdf_object(o)).
 :- rdf_meta(rdf_predicate(r)).
-:- rdf_meta(rdf_subject2(r)).
 :- rdf_meta(rdf_term(o)).
 :- rdf_meta(rdf_term(o,?)).
 
@@ -158,7 +157,7 @@ rdf_object(X):-
   rdf_current_literal(X).
 rdf_object(X):-
   rdf_resource(X),
-  rdf(_, _, X).
+  rdf2(_, _, X).
 
 
 
@@ -202,8 +201,8 @@ rdf_term(X, G):-
   rdf_term0(X, G).
 
 rdf_term0(X, G):-
-  rdf(X, _, _, G), !.
+  rdf2(X, _, _, G), !.
 rdf_term0(X, G):-
-  rdf(_, X, _, G), !.
+  rdf2(_, X, _, G), !.
 rdf_term0(X, G):-
-  rdf(_, _, X, G).
+  rdf2(_, _, X, G).
