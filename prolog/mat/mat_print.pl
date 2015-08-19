@@ -24,15 +24,15 @@ Printing of materialization results.
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_pl_term)).
-:- use_module(library(rdf/rdf_print)).
 
 :- predicate_options(print_conclusion//2, 2, [
      pass_to(print_expression0//2, 2)
    ]).
-:- predicate_options(print_deduction/4, 4, [
+:- predicate_options(print_deduction//3, 3, [
      pass_to(print_deduction//4, 4)
    ]).
 :- predicate_options(print_deduction//4, 4, [
@@ -144,7 +144,7 @@ print_premises(N1, [H|T], Opts) -->
 
 print_rule(R) -->
   {unwind_compound(R, L)},
-  *(atom, L, [separator(colon)]).
+  dcg_once(*(atom, L, [separator(colon)])).
 
 unwind_compound(H, [H]):-
   atomic(H), !.
