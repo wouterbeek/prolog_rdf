@@ -285,7 +285,7 @@ rdf_print_triple(S, P, O, G):-
 % Ground triples are printing without them having to be present
 % in the RDF DB.
 rdf_print_triple(S, P, O, G, Opts):-
-  ground(rdf(S,P,O,G)), !,
+  ground(rdf(S,P,O)), !,
   rdf_print_statement(S, P, O, G, Opts).
 % Non-ground triples are non-deterministically matched
 % against the RDF DB.
