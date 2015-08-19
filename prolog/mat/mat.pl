@@ -232,7 +232,7 @@ owl-prp-rng @
       rdf_chr(P, 'http://www.w3.org/2000/01/rdf-schema#range', C),
       rdf_chr(S, P, I)
   ==> mat_deb(owl(prp(dom)), [
-        rdf(P, 'http://www.w3.org/2000/01/rdf-schema#domain', C),
+        rdf(P, 'http://www.w3.org/2000/01/rdf-schema#range', C),
         rdf(S, P, I)],
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C))
     | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C).
