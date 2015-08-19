@@ -173,7 +173,7 @@ rdf_assert_literal(S, P, D, V):-
 % Language-tagged strings.
 rdf_assert_literal(S, P, rdf:langString, LangTag0-Lex, G):-
   % @ tbd Use 'Language-Tag'//1.
-  atomic_list_concat(LangTag0, -, LangTag),
+  atomic_list_concat(LangTag0, -, LangTag), !,
   rdf_assert2(S, P, literal(lang(LangTag,Lex)), G).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
