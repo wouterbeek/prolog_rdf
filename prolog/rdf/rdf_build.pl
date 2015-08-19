@@ -100,6 +100,7 @@ Simple asserion and retraction predicates for RDF.
 assert_subject_literal(Lit, S):-
   subject_literal(Lit, S), !.
 assert_subject_literal(Lit, S):-
+  rdf_bnode(S),
   assert(subject_literal(Lit, S)).
 
 

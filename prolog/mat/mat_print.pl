@@ -62,7 +62,8 @@ print_conclusion(T, Opts) -->
   "  ",
   provable,
   "   ",
-  print_expression0(T, Opts).
+  print_expression0(T, Opts),
+  nl.
 
 
 

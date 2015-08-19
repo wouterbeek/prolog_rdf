@@ -110,14 +110,15 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_subject//2, 2)
    ]).
 :- predicate_options(rdf_print_subject//2, 2, [
-     pass_to(rdf_print_iri//2, 2),
-     pass_to(rdf_print_list//2, 2)
+     pass_to(rdf_print_term//2, 2)
    ]).
 :- predicate_options(rdf_print_term/2, 2, [
      pass_to(rdf_print_list//2, 2),
      pass_to(rdf_print_term//2, 2)
    ]).
 :- predicate_options(rdf_print_term//2, 2, [
+     pass_to(rdf_print_bnode//2, 2),
+     pass_to(rdf_print_iri//2, 2),
      pass_to(rdf_print_literal//2, 2)
    ]).
 :- predicate_options(rdf_print_triple/5, 5, [
@@ -488,10 +489,7 @@ rdf_print_statement0(S, P, O, Opts) -->
 %   * elip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_subject(S, Opts) -->
-  {rdf_is_bnode(S)}, !,
-  rdf_print_bnode(S, Opts).
-rdf_print_subject(S, Opts) -->
-  rdf_print_iri(S, Opts).
+  rdf_print_term(S, Opts).
 
 
 

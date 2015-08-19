@@ -52,7 +52,7 @@
 
 find_j(Rule, Ps0, C0, G):-
   var_or_md5(C0, C),
-  (is_list(Ps0) -> maplist(var_or_md5, [C0|Ps0], [C|Ps]) ; true),
+  (is_list(Ps0) -> maplist(var_or_md5, [C0|Ps0], [C|Ps]) ; Ps0 = Ps),
   j(Rule, Ps, C, G).
 
 var_or_md5(X, X):- var(X), !.
@@ -67,9 +67,13 @@ var_or_md5(X, Y):- md5(X, Y).
 %!   ?Hash:atom
 %! ) is nondet.
 
-print_j(R, Ps, C, H):-
-  find_j(R, Ps, C, H),
+print_j(R, Ps0, C0, H):-
+  find_j(R, Ps0, C0, H),
+  maplist(s_or_error, [C|Ps], [C0|Ps0]),
   dcg_with_output_to(current_output, print_deduction(R, Ps, C)).
+
+s_or_error(error,error).
+s_or_error(X, Y):- s(X, Y).
 
 
 
