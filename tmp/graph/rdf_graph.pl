@@ -22,9 +22,8 @@
                            % +Graph:atom
     rdf_stale_graph/2, % ?Graph:atom
                        % +FreshnessLifetime:between(0.0,inf)
-    rdf_subgraph/2, % +ProperSubgraph:atom
-                    % +Graph:atom
-    rdf_unload_graphs/0
+    rdf_subgraph/2 % +ProperSubgraph:atom
+                   % +Graph:atom
   ]
 ).
 
@@ -272,14 +271,6 @@ rdf_subgraph(G, H):-
     rdf(S, P, O, G),
     \+ rdf(S, P, O, H)
   )).
-
-
-
-rdf_unload_graphs:-
-  rdf_graph(G),
-  rdf_unload_graph(G),
-  fail.
-rdf_unload_graphs.
 
 
 
