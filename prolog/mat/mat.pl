@@ -75,14 +75,12 @@ mat(GIn, GOut):-
 
   % Check whether an inconsistent state was reached.
   (   find_chr_constraint(error)
-  ->  debug(mat(_), 'INCONSISTENT STATE', [])
+  ->  debug(mat(_), 'INCONSISTENT STATE', []),
+      forall(print_j(_,_,error,_), true)
   ;   true
   ),
   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
   maplist(rdf_assert0(GOut), Outs), !,
-  
-  % Display all errors.
-  forall(print_j(_,_,error,_), true),
   
   % Debug message for successful materialization results.
   debug(mat(_), 'AFTER MATERIALIZATION:', []),
