@@ -40,6 +40,7 @@
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf/rdf_test)).
 :- use_module(library(rdf/rdf_update)).
 %/rdfs
 :- use_module(library(rdfs/rdfs_build)).
