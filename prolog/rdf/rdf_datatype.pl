@@ -177,6 +177,9 @@ rdf_guess_datatype(V, D):-
 
 %! rdf_interpreted_term(+Term1:rdf_term, -Term2) is det.
 
+rdf_interpreted_term(X, Y):-
+  is_list(X), !,
+  maplist(rdf_interpreted_term, X, Y).
 rdf_interpreted_term(X, X):-
   is_uri(X), !.
 rdf_interpreted_term(X, X):-
