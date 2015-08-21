@@ -21,14 +21,13 @@ Create a new resource
 Make sure your IRI prefix has been registered with `rdf_register_prefix/2`:
 
 ```prolog
-?- use_module(library(semweb/rdf_db)).
+?- [library(rdf/rdf_build)].
 ?- rdf_register_prefix(mh, 'http://moonhog.net/resource/').
 ```
 
 Create a fresh IRI that names the new resource:
 
 ```prolog
-?- [library(rdf/rdf_build)].
 ?- fresh_iri(mh, NewHog).
 ```
 
@@ -62,13 +61,31 @@ we can now state its age:
 Let's look at the contents of graph `hog_db`:
 
 ```prolog
-?- [library(rdf/rdf_print)].
 ?- rdf_print_graph(hog_db).
 mh:69d4a8902b9911e5bbbc18a905c4d41b rdf:type mh:Hog .
 mh:69d4a8902b9911e5bbbc18a905c4d41b mh:age "2"^^xsd:nonNegativeInteger .
 mh:69d4a8902b9911e5bbbc18a905c4d41b mh:registrationDate "2015-07-16T11:02:42+0200"^^xsd:dateTime .
 ```
 
+If you do not want to choose an RDF datatype (like `xsd:nonNegativeInteger` above)
+then you can do the following to let the library choose an appropriate type for you:
+
+```prolog
+?- rdf_assert_literal0(ex:hog, ex:test, 2.3, hob_db).
+?- rdf_assert_literal0(ex:hog, ex:test, 23 rdiv 10, hog_db).
+?- rdf_assert_literal0(ex:hog, rdfs:label, 'A fine hog', hog_db).
+```
+
+We now have:
+
+```prolog
+?- rdf_print_graph(test).
+ex:hog ex:age "2"^^xsd:nonNegativeInteger .
+ex:hog ex:registered "2015-08-21T11:51:56Z"^^xsd:dateTime .
+ex:hog ex:test "2.3"^^xsd:float .
+ex:hog ex:test "2.3"^^xsd:decimal .
+ex:hog rdfs:label "A fine hog"^^xsd:string .
+```
 
 RDF lists with members of mixed type
 ------------------------------------
@@ -94,7 +111,9 @@ the English language as spoken in the Uniterd States.
 
 As you can see this has used RDF's linked lists notation,
 RDF and XSD datatypes for the non-list elements,
-and nesting for the list elements:
+and nesting for the list elements.
+Since we did not give a graph name the list is asserted
+in the default graph called `user`:
 
 ```prolog
 ?- rdf_print_graph(user).
@@ -119,7 +138,7 @@ _:1 rdf:rest _:2 .
 true.
 ```
 
-The RDF list can be easily read back as Prolog list,
+The RDF list can be easily read back as a Prolog list,
 preserving both nesting and types:
 
 ```prolog
