@@ -1,9 +1,9 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_format/2, % +Read:stream
+    rdf_guess_format/2, % +Spec
                         % -Format:rdf_format
-    rdf_guess_format/3 % +Read:stream
+    rdf_guess_format/3 % +Spec
                        % ?DefaultFormat:rdf_format
                        % -Format:rdf_format
   ]
@@ -21,26 +21,28 @@
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(error)).
+:- use_module(library(iostream)).
 :- use_module(library(memfile)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml)).
 
 
 
 
 
-%! rdf_guess_format(+Read:stream, -Format:rdf_term) is det.
+%! rdf_guess_format(+Spec, -Format:rdf_term) is det.
 
-rdf_guess_format(Read, Format):-
-  rdf_guess_format(Read, _, Format).
+rdf_guess_format(Spec, Format):-
+  rdf_guess_format(Spec, _, Format).
 
-%! rdf_guess_format(
-%!   +Read:stream,
-%!   ?DefaultFormat:rdf_format,
-%!   -Format:rdf_format
-%! ) is det.
+%! rdf_guess_format(+Spec, ?DefaultFormat:rdf_format, -Format:rdf_format) is det.
 
-rdf_guess_format(Read, Format0, Format):-
-  rdf_guess_format(Read, 0, Format0, Format).
+rdf_guess_format(Spec, Format0, Format):-
+  setup_call_cleanup(
+    open_any(Spec, read, Read, Close, []),
+    rdf_guess_format(Read, 0, Format0, Format),
+    close_any(Close)
+  ).
 
 %! rdf_guess_format(
 %!   +Read:stream,
