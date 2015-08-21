@@ -1,7 +1,9 @@
 :- module(
   rdf_load,
   [
-    rdf_load_any/1 % +Spec
+    rdf_load_any/1, % +Spec
+    rdf_load_any/2 % +Spec
+		   % +Options:list(compound)
   ]
 ).
 
@@ -14,6 +16,7 @@
 :- use_module(library(archive)).
 :- use_module(library(option)).
 :- use_module(library(iostream)).
+:- use_module(library(rdf/rdf_guess)).
 
 
 
@@ -26,7 +29,7 @@ rdf_load_any(Spec, Opts0):-
   setup_call_cleanup(
     open_any(Spec, read, Read0, Close, []),
     setup_call_cleanup(
-      archive_open(Read0, Archive, [close_parent(Close),format(all),format(raw)]),
+      archive_open(Read0, Archive, [close_parent(false),format(all),format(raw)]),
       (
         % NONDET
         archive_data_stream(Archive, Read, [meta_data(M)]),
