@@ -266,16 +266,12 @@ rdf2(S, P, O):-
 %!   ?Object:rdf_term,
 %!   ?Graph:atom
 %! ) is nondet.
-% Variant of rdf/4 that allows literals in the subject position
-% and that does not bind Graph in case it is uninstantiated.
+% Variant of rdf/4 that allows literals in the subject position.
 
 rdf2(S0, P, O, G):-
   rdf_is_literal(S0),
   subject_literal(S0, S), !,
   rdf(S, P, O, G).
-rdf2(S, P, O, G):-
-  var(G), !,
-  rdf2(S, P, O).
 rdf2(S, P, O, G):-
   var(S), !,
   rdf(S0, P, O, G),
