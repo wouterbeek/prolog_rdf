@@ -33,6 +33,8 @@
                      % ?SuperType:iri
   ]
 ).
+:- reexport(library(semweb/rdf_db)).
+:- reexport(library(semweb/rdfs)).
 
 /** <module> RDF datatype
 
