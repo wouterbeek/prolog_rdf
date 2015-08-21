@@ -249,7 +249,7 @@ rdf2(S0, P, O):-
 % Variable subject terms may be blank nodes
 % that need to be related to literals.
 rdf2(S, P, O):-
-  var(S),
+  var(S), !,
   rdf(S0, P, O),
   (   rdf_is_bnode(S0),
       subject_literal(S, S0)
