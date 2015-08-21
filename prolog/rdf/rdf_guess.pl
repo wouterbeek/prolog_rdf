@@ -26,6 +26,8 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml)).
 
+:- meta_predicate(nt_string_codes(//,?,?)).
+
 
 
 
@@ -175,7 +177,12 @@ nt_bnode --> "_:", *(nonblank).
 nt_graph --> nt_iriref.
 
 nt_iriref --> "<", !, ..., ">", !.
-nt_iriref --> string_without(":"), ":", *(nonblank).
+nt_iriref --> nt_iriref_prefix, ":", *(nonblank).
+
+nt_iriref_prefix --> ":", !, {fail}.
+nt_iriref_prefix --> blank, !, {fail}.
+nt_iriref_prefix --> [_], nt_iriref_prefix.
+nt_iriref_prefix --> "".
 
 nt_langtag --> *(nonblank).
 
