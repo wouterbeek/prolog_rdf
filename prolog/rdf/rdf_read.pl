@@ -208,7 +208,7 @@ rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
   V = Lex-Lang,
   O = literal(lang(Lang0,Lex)),
   (   ground(Lang)
-  ->  atomic_list_concat(Lang, -, Lang0), 
+  ->  atomic_list_concat(Lang, -, Lang0),
       rdf2(S, P, O, G)
   ;   rdf2(S, P, O, G),
       atomic_list_concat(Lang, -, Lang0)
@@ -274,10 +274,10 @@ rdf2(S0, P, O, G):-
   subject_literal(S0, S), !,
   rdf(S, P, O, G).
 rdf2(S, P, O, G):-
-  var(G),
+  var(G), !,
   rdf2(S, P, O).
 rdf2(S, P, O, G):-
-  var(S),
+  var(S), !,
   rdf(S0, P, O, G),
   (   rdf_is_bnode(S0),
       subject_literal(S, S0)
