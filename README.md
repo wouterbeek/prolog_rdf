@@ -4,6 +4,7 @@ plRdf
 Additional support for RDF 1.1 support for SWI-Prolog.
 
 
+
 Installation
 ------------
 
@@ -15,131 +16,168 @@ Installation
      ```
 
 
-Create a new resource
----------------------
+
+Create resource and assert relations between them
+-------------------------------------------------
 
 Make sure your IRI prefix has been registered with `rdf_register_prefix/2`:
 
 ```prolog
 ?- [library(rdf/rdf_build)].
-?- rdf_register_prefix(mh, 'http://moonhog.net/resource/').
+?- rdf_register_prefix(ex, 'http://www.example.org/').
 ```
 
-Create a fresh IRI that names the new resource:
+Create fresh IRIs that name two resources:
 
 ```prolog
-?- fresh_iri(mh, NewHog).
+?- fresh_iri(ex, [animal,hog], Hog1).
+?- fresh_iri(ex, [animal,hog], Hog2).
 ```
 
-Assert that the new resource is a hog:
+Assert that the new resources are hogs:
 
 ```prolog
-?- rdf_assert_instance($NewHog, mh:'Hog', hog_db).
+?- rdf_assert_instance($Hog1, ex:'Hog').
+?- rdf_assert_instance($Hog2, ex:'Hog').
 ```
 
-Let's look at the content of graph `hog_db`:
+Assert that the two hogs know each other:
+
+```prolog
+?- rdf_assert($Hog1, foaf:knows, $Hog2).
+```
+
+Notice that we did not declare namespace `foaf` with `rdf_register_prefix/2` since it is auto-loaded.
+
+Let's look at the contents of our RDF graph:
 
 ```prolog
 ?- [library(rdf/rdf_print)].
-?- rdf_print_graph(hog_db).
-mh:69d4a8902b9911e5bbbc18a905c4d41b rdf:type mh:Hog .
+?- rdf_print_graph(user).
+〈ex:animal/hog/5b6151..., ∊, ex:Hog〉
+〈ex:animal/hog/5b6155..., ∊, ex:Hog〉
+〈ex:animal/hog/5b6151..., foaf:knows, ex:animal/hog/5b6155...〉
 ```
 
-
-
-Make data-typed assertions
--------------------------
-
-Assume that `NewHog` is bound to the IRI denoting a hog (see above),
-we can now state its age:
+The triple dots indicate that IRI local names were elipsed to ensure that every triple fits within an 80 character wide terminal.
+The appearance can be tweaked through options:
 
 ```prolog
-?- rdf_assert_literal($NewHog, mh:age, xsd:nonNegativeInteger, 2, hog_db).
-?- rdf_assert_now($NewHog, mh:registered, hog_db).
+?- rdf_print_graph(user, [ellip_ln(inf),logic_sym(false),style(turtle)]).
+ex:animal/hog/5b61515c486b11e58bcb002268684c92 rdf:type ex:Hog .
+ex:animal/hog/5b6155da486b11e5a357002268684c92 rdf:type ex:Hog .
+ex:animal/hog/5b61515c486b11e58bcb002268684c92 foaf:knows ex:animal/hog/5b6155da486b11e5a357002268684c92 .
 ```
 
-Let's look at the contents of graph `hog_db`:
+Option `ellip_ln(inf)` (elipsis localname) disables the use of ellipses for IRI local names.
+Option `logic_sym(false)` (logical symbols) disables the replacement of some often occurring properties with related logical symbolism.
+Option `style(turtle)` displays triples using a Turtle-like syntax i.o. the default tuple syntax.
+
+
+
+Data-typed assertions
+---------------------
+
+Continuing our example of the two hogs, we can now assert the first hog's age:
 
 ```prolog
-?- rdf_print_graph(hog_db).
-mh:69d4a8902b9911e5bbbc18a905c4d41b rdf:type mh:Hog .
-mh:69d4a8902b9911e5bbbc18a905c4d41b mh:age "2"^^xsd:nonNegativeInteger .
-mh:69d4a8902b9911e5bbbc18a905c4d41b mh:registrationDate "2015-07-16T11:02:42+0200"^^xsd:dateTime .
+?- rdf_assert_literal($Hog1, ex:age, xsd:nonNegativeInteger, 2).
+?- rdf_assert_now($Hog1, ex:registrationDate).
 ```
 
-If you do not want to choose an RDF datatype (like `xsd:nonNegativeInteger` above)
-then you can do the following to let the library choose an appropriate type for you:
+Let's look at the contents of our graph:
 
 ```prolog
-?- rdf_assert_literal0(ex:hog, ex:test, 2.3, hob_db).
-?- rdf_assert_literal0(ex:hog, ex:test, 23 rdiv 10, hog_db).
-?- rdf_assert_literal0(ex:hog, rdfs:label, 'A fine hog', hog_db).
+?- rdf_print_graph(user).
+〈ex:animal/hog/5b6151..., ∊, ex:Hog〉
+〈ex:animal/hog/5b6155..., ∊, ex:Hog〉
+〈ex:animal/hog/5b6151..., foaf:knows, ex:animal/hog/5b6155...〉
+〈ex:animal/hog/5b6151..., ex:age, "2"^^xsd:nonNegativeInteger〉
+〈ex:animal/hog/5b6151..., ex:registrationDate, "2015-08-22T01:16:03Z"^^xsd:dateTime〉
 ```
 
-We now have:
+If you do not want to choose an RDF datatype (like `xsd:nonNegativeInteger` above) then you can do the following to let the library choose an appropriate type for you:
 
 ```prolog
-?- rdf_print_graph(test).
-ex:hog ex:age "2"^^xsd:nonNegativeInteger .
-ex:hog ex:registered "2015-08-21T11:51:56Z"^^xsd:dateTime .
-ex:hog ex:test "2.3"^^xsd:float .
-ex:hog ex:test "2.3"^^xsd:decimal .
-ex:hog rdfs:label "A fine hog"^^xsd:string .
+?- rdf_assert_literal0($Hog2, ex:age, 2.3).
+?- rdf_assert_literal0($Hog2, ex:age, 23 rdiv 10).
+?- rdf_assert_literal0($Hog2, rdfs:comment, "This is a fine hog.").
 ```
+
+Our graph now has the following contents:
+
+```prolog
+?- rdf_print_graph(user).
+〈ex:animal/hog/4d5018..., ∊, ex:Hog〉
+〈ex:animal/hog/4d5020..., ∊, ex:Hog〉
+〈ex:animal/hog/4d5018..., foaf:knows, ex:animal/hog/4d5020...〉
+〈ex:animal/hog/4d5018..., ex:age, "2"^^xsd:nonNegativeInteger〉
+〈ex:animal/hog/4d5018..., ex:registrationDate, "2015-08-22T02:27:15Z"^^xsd:dateTime〉
+〈ex:animal/hog/4d5020..., ex:age, "2.3"^^xsd:float〉
+〈ex:animal/hog/4d5020..., ex:age, "2.3"^^xsd:decimal〉
+〈ex:animal/hog/4d5020..., rdfs:comment, "This is a fine hog."^^xsd:string〉
+```
+
+Notice that RDF datatype actually matter: `"2.3"^^xsd:float` and `"2.3"^^xsd:decimal` denote different RDF resources even though the lexical expressions are the same.
+This library comes with support for reading back literals as Prolog values:
+
+```prolog
+?- [library(rdf/rdf_read)].
+?- rdf_literal($Hog2, ex:age, D, V).
+D = http://www.w3.org/2001/XMLSchema#float,
+V = 2.3 ;
+D = http://www.w3.org/2001/XMLSchema#decimal,
+V = 23 rdiv 10
+```
+
+
 
 RDF lists with members of mixed type
 ------------------------------------
 
-RDF lists come in handy when we want to store a number of resources
-in a given order.
-However, the built-in predicates `rdfs_assert_list/[2,3]`
-and `rdfs_list_to_prolog_list/2` does not allow recursive lists
-to be asserted/read, nor do they allow easy assertion of
-typed list elements.
+RDF lists come in handy when we want to store a number of resources in a given order.
+However, the built-in predicates `rdfs_assert_list/[2,3]` and `rdfs_list_to_prolog_list/2` in `library(semweb/rdfs)` do not support recursive lists nor do they allow easy assertion of typed list elements.
 
-In the following we assert an RDF list consisting of
-(1) the integer `1`,
-(2) the list consisting of the list containing atom `a`
-and the floating point number `1.0`,
-(3) the atom `b` accompanied by the language tag denoting
-the English language as spoken in the Uniterd States.
+In the following we assert an RDF list consisting of the following element (in that order):
+
+  1. The integer `1`.
+  2. The list consisting of the list containing atom `a` and the floating point number `1.0`.
+  3. The atom `b` accompanied by the language tag denoting the English language as spoken in the Uniterd States.
+
+The last argument denotes the named graph (`list_test`) in which the RDF list is asserted.
+All RDF assertion predicates in this library come with variants with and without a graph argument.
 
 ```prolog
 ?- [library(rdf/rdf_list)].
-?- rdf_assert_list([1,[[a],1.0],[en,'US']-b], _X).
+?- rdf_assert_list([1,[[a],1.0],[en,'US']-b], _X, list_test).
 ```
 
-As you can see this has used RDF's linked lists notation,
-RDF and XSD datatypes for the non-list elements,
-and nesting for the list elements.
-Since we did not give a graph name the list is asserted
-in the default graph called `user`:
+The list has been asserted using the RDF linked lists notation.
+RDF and XSD datatypes are used for the non-list elements, and nesting for the list elements:
 
 ```prolog
-?- rdf_print_graph(user).
-_:1 rdf:type rdf:List .
-_:1 rdf:first "1"^^xsd:integer .
-_:2 rdf:type rdf:List .
-_:3 rdf:type rdf:List .
-_:4 rdf:type rdf:List .
-_:4 rdf:first "a"^^xsd:string .
-_:4 rdf:rest rdf:nil .
-_:3 rdf:first _:4 .
-_:5 rdf:type rdf:List .
-_:5 rdf:first "1.0"^^xsd:float .
-_:5 rdf:rest rdf:nil .
-_:3 rdf:rest _:5 .
-_:2 rdf:first _:3 .
-_:6 rdf:type rdf:List .
-_:6 rdf:first "b"@en-US .
-_:6 rdf:rest rdf:nil .
-_:2 rdf:rest _:6 .
-_:1 rdf:rest _:2 .
-true.
+?- rdf_print_graph(list_test, [abbr_list(false)]).
+〈_:2, ∊, rdf:List〉
+〈_:2, rdf:first, "1"^^xsd:integer〉
+〈_:3, ∊, rdf:List〉
+〈_:4, ∊, rdf:List〉
+〈_:5, ∊, rdf:List〉
+〈_:5, rdf:first, "a"^^xsd:string〉
+〈_:5, rdf:rest, rdf:nil〉
+〈_:4, rdf:first, _:5〉
+〈_:6, ∊, rdf:List〉
+〈_:6, rdf:first, "1.0"^^xsd:float〉
+〈_:6, rdf:rest, rdf:nil〉
+〈_:4, rdf:rest, _:6〉
+〈_:3, rdf:first, _:4〉
+〈_:7, ∊, rdf:List〉
+〈_:7, rdf:first, "b"@en-US〉
+〈_:7, rdf:rest, rdf:nil〉
+〈_:3, rdf:rest, _:7〉
+〈_:2, rdf:rest, _:3〉
 ```
 
-The RDF list can be easily read back as a Prolog list,
-preserving both nesting and types:
+Since the RDF linked list notation is rather verbose library **plRdf** allows RDF lists to be read back as Prolog lists, preserving both nesting and RDF datatypes:
 
 ```prolog
 ?- rdf_list($_X, Y).
@@ -148,5 +186,4 @@ Y = [1, [[a], 1.0], 'en-US'-b].
 
 ---
 
-This library was programmed by [Wouter Beek](http://www.wouterbeek.com)
-in 2015 and is distributed under the MIT License.
+This library was programmed by [Wouter Beek](http://www.wouterbeek.com) in 2015 and is distributed under the MIT License.
