@@ -57,14 +57,7 @@ mat(GIn, GOut):-
   ),
 
   % Debug message before.
-  PrintOpts = [
-    abbr_list(true),
-    elip_lit(20),
-    elip_ln(20),
-    indent(1),
-    logic_sym(true),
-    style(turtle)
-  ],
+  PrintOpts = [abbr_list(true),indent(1)],
   debug(mat(_), 'BEFORE MATERIALIZATION:', []),
   if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
 
