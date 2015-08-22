@@ -55,7 +55,7 @@ Generic predicates for writing C-Triples.
 %!   +Options:list(compound)
 %! ) is det.
 
-ctriples_write_begin(_, BPrefix, Opts):-
+ctriples_write_begin(_, BNPrefix, Opts):-
   reset_bnode_names,
 
   % Keep track of the number of triples written.
@@ -64,8 +64,8 @@ ctriples_write_begin(_, BPrefix, Opts):-
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.
   (   option(bnode_base(Scheme-Auth-Name0), Opts)
-  ->  rdf_well_known_bnode_prefix(Scheme, Auth, Name0, BPrefix)
-  ;   throw(missing_bnode_base)
+  ->  rdf_well_known_bnode_prefix(Scheme, Auth, Name0, BNPrefix)
+  ;   BNPrefix = '_:'
   ).
 
 

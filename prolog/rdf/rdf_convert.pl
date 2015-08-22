@@ -32,7 +32,7 @@ Covnerter between RDF serialization formats.
 :- thread_local(has_quadruples/1).
 
 :- predicate_options(rdf_convert/3, 3, [
-     compression(+oneof([deflate,gzip,none])),
+     compr(+oneof([deflate,gzip,none])),
      pass_to(rdf_stream/3, 3)
    ]).
 
@@ -40,12 +40,16 @@ Covnerter between RDF serialization formats.
 
 
 
-%! rdf_convert(+From, +To, +Options:list(compund)) is det.
+%! rdf_convert(+From, ?To:atom, +Options:list(compund)) is det.
 % The following options are supported:
-%    * compression(+oneof([deflate,gzip,none]))
+%    * compr(+oneof([deflate,gzip,none]))
+%      What type of compression is used on the output file.
 %      Default is `none`.
 %    * format(+rdf_format)
-%      Otherwise guessed heuristically.
+%      The RDF serialization format of the input.
+%      When absent this is guessed heuristically.
+%
+% @tbd What can we not specify `format(?rdf_format)`?
 
 rdf_convert(From, To, Opts0):-
   % Make sure we know what is the input serialization format
@@ -55,7 +59,7 @@ rdf_convert(From, To, Opts0):-
   ->  Opts = Opts0
   ;   merge_options([format(Format)], Opts0, Opts)
   ),
-  option(compress(Compr), Opts, gzip),
+  option(compr(Compr), Opts, none),
 
   % Convert to C-Triples.
   thread_file(tmp, Tmp),
@@ -75,17 +79,18 @@ rdf_convert(From, To, Opts0):-
       ),
       rdf_file_extension(Ext, Format),
       (   Compr == gzip
-      ->  ExtComps = [Ext,gz]
-      ;   ExtComps = [Ext]
+      ->  Exts = [Ext,gz]
+      ;   Exts = [Ext]
       ),
-      atomic_list_concat([out|ExtComps], '.', To)
+      thread_file(out, ThreadBase),
+      atomic_list_concat([ThreadBase|Exts], '.', To)
   ),
 
   % Sort unique, count, compress.
   sort_file(Tmp, Opts),
   file_lines(Tmp, N),
-  format(user_output, 'Unique triples:~t~D~n', [N]),
-  compress_file(Tmp, To).
+  debug(rdf(convert), 'Unique triples:~t~D~n', [N]),
+  compress_file(Tmp, Compr, To).
 
 rdf_convert0(Write, rdfa, Read):-
   rdf_load(Read, [
@@ -97,7 +102,7 @@ rdf_convert0(Write, rdfa, Read):-
   ]),
   ctriples_write_graph(Write, _, []).
 rdf_convert0(Write, Format, Read):-
-  ctriples_write_begin(State, BNPrefix, Opts),
+  ctriples_write_begin(State, BNPrefix, []),
   (   memberchk(Format, [nquads,ntriples])
   ->  rdf_process_ntriples(Read, clean_streamed_triples(Write, State, BNPrefix), [])
   ;   memberchk(Format, [trig,turtle])
@@ -105,7 +110,7 @@ rdf_convert0(Write, Format, Read):-
   ;   Format == xml
   ->  process_rdf(Read, clean_streamed_triples(Write, State, BNPrefix), [])
   ),
-  ctriples_write_end(State, Opts).
+  ctriples_write_end(State, []).
 
 %! clean_streamed_triples(
 %!   +Write:stream,
@@ -210,11 +215,17 @@ buffer_size_file(File, BufferSize):-
 
 
 
-%! compress_file(+From:atom, +To:atom) is det.
+%! compress_file(
+%!   +From:atom,
+%!   +Compress:oneof([deflate,gzip,none]),
+%!   +To:atom
+%! ) is det.
 
-compress_file(From, To):-
+compress_file(From, none, To):- !,
+  rename_file(From, To).
+compress_file(From, Compr, To):-
   setup_call_cleanup(
-    gzopen(To, write, Write),
+    gzopen(To, write, Write, [format(Compr)]),
     setup_call_cleanup(
       open(From, read, Read),
       copy_stream_data(Read, Write),

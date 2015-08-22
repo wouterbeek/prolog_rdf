@@ -1,5 +1,11 @@
 :- module(rdf_test, [load_manifest/0,run_rdf_tests/0]).
 
+/** <module> Run W3C tests for RDF
+
+@author Wouter Beek
+@version 2015/08
+*/
+
 :- use_module(library(apply)).
 :- use_module(library(io_ext)).
 :- use_module(library(rdf/rdf_convert)).
@@ -20,9 +26,7 @@ manifest_uri('http://www.w3.org/2013/TurtleTests/manifest.ttl').
 load_manifest:-
   clean_current_manifest,
   manifest_uri(Uri),
-  atom_concat('__', Uri, BNPrefix),
-  Opts = [anon_prefix(BNPrefix),base_uri(Uri),format(turtle),graph(manifest)],
-  rdf_load(Uri, Opts),
+  rdf_load(Uri, [base_uri(Uri),format(turtle),graph(manifest)]),
   assert(current_manifest(Uri)).
 
 clean_current_manifest:-
