@@ -5,8 +5,8 @@
     rdf_print_describe/3, % +Subject:rdf_term
                           % ?Graph:atom
                           % +Options:list(compound)
-    rdf_print_graph/1, % +Graph
-    rdf_print_graph/2, % +Graph:atom
+    rdf_print_graph/1, % ?Graph
+    rdf_print_graph/2, % ?Graph:atom
                        % +Options:list(compound)
     rdf_print_quadruple/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf_print_quadruple/5, % ?Subject:rdf_term
@@ -77,12 +77,12 @@ Easy printing of RDF data to the terminal.
 :- predicate_options(rdf_print_iri//2, 2, [
      abbr_iri(+boolean),
      abbr_list(+boolean),
-     elip_ln(+or([nonneg,oneof([inf])])),
+     ellip_ln(+or([nonneg,oneof([inf])])),
      logic_sym(+boolean),
      pass_to(rdf_print_list//2, 2)
    ]).
 :- predicate_options(rdf_print_lexical//2, 2, [
-     elip_lit(+or([nonneg,oneof([inf])]))
+     ellip_lit(+or([nonneg,oneof([inf])]))
    ]).
 :- predicate_options(rdf_print_list//2, 2, [
      abbr_list(+boolean)
@@ -143,7 +143,7 @@ rdf_print_describe(S, G):-
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
@@ -158,21 +158,22 @@ rdf_print_describe(S, G, Opts):-
 
 
 
-%! rdf_print_graph(+Graph:atom) is det.
+%! rdf_print_graph(?Graph:atom) is det.
 
 rdf_print_graph(G):-
   rdf_print_graph(G, []).
 
-%! rdf_print_graph(+Graph:atom, +Options:list(compound)) is det.
+%! rdf_print_graph(?Graph:atom, +Options:list(compound)) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
 
 rdf_print_graph(G, Opts):-
+  rdf_graph(G),
   rdf_print_triple(_, _, _, G, Opts),
   fail.
 rdf_print_graph(_, _).
@@ -199,7 +200,7 @@ rdf_print_quadruple(S, P, O, G):-
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
@@ -227,7 +228,7 @@ rdf_print_quadruple(S, P, O, G, Opts):-
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * style(+oneof([tuple,turtle])
 
@@ -248,7 +249,7 @@ rdf_print_term(T):-
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
 
 rdf_print_term(T, Opts):-
@@ -277,7 +278,7 @@ rdf_print_triple(S, P, O, G):-
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
@@ -325,25 +326,26 @@ rdf_print_graph(G) -->
 %     the currently registered RDF prefixes.
 %     Default is `true`.
 %   * abbr_list(+boolean)
-%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * ellip_ln(+or([nonneg,oneof([inf])]))
 %     Elipses IRI local names so that they are assued to be at most
 %     the given number of characters in length.
 %     This is only used when `abbr_iri=true`.
-%     Default is `inf` for no elipsis.
+%     Default is `20` to ensure that every triple fits within
+%     an 80 character wide terminal.
 %   * logic_sym(+boolean)
 %     Whether logic symbols should be used i.o. IRIs.
-%     Default is `false`.
+%     Default is `true`.
 
 rdf_print_iri(Iri, Opts) -->
   rdf_print_list(Iri, Opts), !.
 rdf_print_iri(Iri, Opts) -->
-  {option(logic_sym(true), Opts)},
+  {option(logic_sym(true), Opts, true)},
   rdf_print_iri_sym(Iri), !.
 rdf_print_iri(Global, Opts) -->
   {
     \+ option(abbr_iri(false), Opts),
     rdf_global_id(Prefix:Local, Global), !,
-    option(elip_ln(N), Opts, inf),
+    option(ellip_ln(N), Opts, 20),
     atom_truncate(Local, N, Local0)
   },
   atom(Prefix),
@@ -366,14 +368,15 @@ rdf_print_iri_sym(Iri) -->
 
 %! rdf_print_lexical(+LexicalForm:atom, +Options:list(compound))// is det.
 % The following options are supported:
-%   * elip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
 %     Elipses lexical forms so that they are assured to be at most
 %     the given number of characters in length.
-%     Default is `inf` for no elipsis.
+%     Default is `20` to ensure that every triple fits within
+%     an 80 character wide terminal.
 
 rdf_print_lexical(Lex, Opts) -->
   {
-    option(elip_lit(N), Opts, inf),
+    option(ellip_lit(N), Opts, 20),
     atom_truncate(Lex, N, Lex0)
   },
   quoted(atom(Lex0)).
@@ -384,11 +387,11 @@ rdf_print_lexical(Lex, Opts) -->
 % The following options are supported:
 %   * abbr_list(+boolean)
 %     Whether or not RDF lists are displayed using Prolog list notation.
-%     Default is `false`.
+%     Default is `true`.
 
 rdf_print_list(L0, Opts) -->
   {
-    option(abbr_list(true), Opts),
+    \+ option(abbr_list(false), Opts),
     rdf_is_list(L0), !,
     rdf_list_raw(L0, L)
   },
@@ -402,8 +405,8 @@ rdf_print_term0(Opts, T) -->
 %! rdf_print_literal(+Literal:comound, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
-%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
 
 rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
@@ -424,8 +427,8 @@ rdf_print_literal(literal(Lex), Opts) -->
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
-%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_object(O, Opts) -->
   rdf_print_term(O, Opts).
@@ -434,7 +437,7 @@ rdf_print_object(O, Opts) -->
 
 %! rdf_print_predicate(+Predicate:iri, +Options:list(compound))// is det.
 %   * abbr_iri(+boolean)
-%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
 
 rdf_print_predicate(P, Opts) -->
@@ -451,20 +454,17 @@ rdf_print_predicate(P, Opts) -->
 %! )// is det.
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
-%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
 %     The style that is used for printing the statement.
 %     Style `turtle` is appropriate for enumerating multiple triples.
 %     Style `tuple` is appropriate for singular triples.
-%     Default is `turtle`.
+%     Default is `tuple`.
 
 rdf_print_statement(S, P, O, G, Opts) -->
-  {option(style(tuple), Opts)}, !,
-  bracketed(langular, rdf_print_statement0(S, P, O, Opts)),
-  ({ground(G)} -> "@", rdf_print_graph(G) ; "").
-rdf_print_statement(S, P, O, G, Opts) -->
+  {option(style(turtle), Opts)}, !,
   rdf_print_subject(S, Opts),
   " ",
   rdf_print_predicate(P, Opts),
@@ -472,6 +472,9 @@ rdf_print_statement(S, P, O, G, Opts) -->
   rdf_print_object(O, Opts),
   ({ground(G)} -> " ", rdf_print_graph(G) ; ""),
   " .".
+rdf_print_statement(S, P, O, G, Opts) -->
+  bracketed(langular, rdf_print_statement0(S, P, O, Opts)),
+  ({ground(G)} -> "@", rdf_print_graph(G) ; "").
 
 rdf_print_statement0(S, P, O, Opts) -->
   rdf_print_subject(S, Opts),
@@ -486,7 +489,7 @@ rdf_print_statement0(S, P, O, Opts) -->
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * ellip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_subject(S, Opts) -->
   rdf_print_term(S, Opts).
@@ -503,8 +506,8 @@ rdf_print_term(T) -->
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
-%   * elip_lit(+or([nonneg,oneof([inf])]))
-%   * elip_ln(+or([nonneg,oneof([inf])]))
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
 
 rdf_print_term(T, Opts) -->
