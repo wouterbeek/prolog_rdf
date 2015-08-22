@@ -35,10 +35,10 @@
 :- use_module(library(rdf/rdf_json_build)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_literal)).
-:- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_test)).
 :- use_module(library(rdf/rdf_update)).
