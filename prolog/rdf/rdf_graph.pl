@@ -1,8 +1,7 @@
 :- module(
   rdf_graph,
   [
-    rdf_graph2/1, % @Term
-    rdf_unload_graphs/0
+    rdf_graph2/1 % @Term
   ]
 ).
 
@@ -30,13 +29,3 @@
 rdf_graph2(G):-
   atom(G),
   rdf_graph(G).
-
-
-
-%! rdf_unload_graphs is det.
-
-rdf_unload_graphs:-
-  rdf_graph(G),
-  rdf_unload_graph(G),
-  fail.
-rdf_unload_graphs.
