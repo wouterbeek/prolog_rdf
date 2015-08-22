@@ -2,7 +2,6 @@
 :- use_module(library(mat/mat)).
 :- use_module(library(owl/owl_build)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(semweb/rdf_db)).
 
@@ -19,16 +18,22 @@
 
 
 script1:-
-  rdf_unload_graphs,
+  rdf_reset_db,
   G = script1,
-  fresh_iri(ex, I),
-  rdf_assert_instance(I, ex:'C', G),
-  rdf_assert_literal(I, ex:age, xsd:nonNegativeInteger, 2, G),
-  rdf_assert_now(I, ex:registrationDate, G),
+  fresh_iri(ex, [animal,hog], Hog1),
+  fresh_iri(ex, [animal,hog], Hog2),
+  rdf_assert_instance(Hog1, ex:'Hog', G),
+  rdf_assert_instance(Hog2, ex:'Hog', G),
+  rdf_assert(Hog1, foaf:knows, Hog2, G),
+  rdf_assert_literal(Hog1, ex:age, xsd:nonNegativeInteger, 2, G),
+  rdf_assert_now(Hog1, ex:registrationDate, G),
+  rdf_assert_literal0(Hog2, ex:age, 2.3, G),
+  rdf_assert_literal0(Hog2, ex:age, 23 rdiv 10, G),
+  rdf_assert_literal0(Hog2, rdfs:comment, "This is a fine hog.", G),
   mat(G).
 
 script2:-
-  rdf_unload_graphs,
+  rdf_reset_db,
   G = script2,
   rdf_bnode(D),
   rdf_assert(ex:'A', owl:equivalentClass, D, G),
@@ -40,14 +45,14 @@ script2:-
   mat(G).
 
 script3:-
-  rdf_unload_graphs,
+  rdf_reset_db,
   G = script3,
   rdf_assert(ex:a, owl:sameAs, ex:b, G),
   rdf_assert(ex:b, owl:differentFrom, ex:a, G),
   mat(G).
 
 script4:-
-  rdf_unload_graphs,
+  rdf_reset_db,
   G = script4,
   rdfs_assert_range(ex:p, ex:c, G),
   rdf_assert_literal(ex:s, ex:p, xsd:string, o, G),
