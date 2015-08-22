@@ -202,9 +202,22 @@ rdf_assert_literal0(S, P, V):-
 % Since RDF has a more granual datatype system than Prolog
 % this is only a fair guess.
 
+% Specifically added support for SWI7 string.
+% Notice that library plXsd uses Prolog atoms
+% as the values of xsd:string literals.
+rdf_assert_literal0(S, P, V0, G):-
+  string(V0), !,
+  atom_string(V, V0),
+  rdf_assert_literal0(S, P, V, G).
 rdf_assert_literal0(S, P, V, G):-
-  rdf_guess_datatype(V, D),
+  rdf_guess_datatype(V, D), !,
   rdf_assert_literal(S, P, D, V, G).
+rdf_assert_literal0(_, _, V, _):-
+  format(
+    user_errror,
+    'Cannot determine RDF datatype for Prolog value ~q\n.',
+    [V]
+  ).
 
 
 
