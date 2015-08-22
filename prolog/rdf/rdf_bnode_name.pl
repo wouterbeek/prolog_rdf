@@ -18,14 +18,14 @@ Consistent naming of blank nodes.
 %! bnode_name_counter(+Id:nonneg) is semidet.
 %! bnode_name_counter(-Id:nonneg) is det.
 
-:- thread_local(bnode_name_counter/1).
+:- dynamic(bnode_name_counter/1).
 
 %! bnode_name_map(+BlankNode:bnode, +Id:nonneg) is semidet.
 %! bnode_name_map(+BlankNode:bnode, -Id:nonneg) is semidet.
 %! bnode_name_map(-BlankNode:bnode, +Id:nonneg) is semidet.
 %! bnode_name_map(-BlankNode:bnode, -Id:nonneg) is nondet.
 
-:- thread_local(bnode_name_map/2).
+:- dynamic(bnode_name_map/2).
 
 
 
@@ -33,12 +33,10 @@ Consistent naming of blank nodes.
 
 %! rdf_bnode_name(+BlankNode:bnode, -Name:atom) is det.
 % Name is a blank node name for BlankNode that is compliant with
-% the Turtle grammar.
+% the Turtle grammar (using prefix `_:`.
 %
 % It is assured that within one session the same blank node
 % will receive the same blank node name.
-%
-% The prefix `_:` is used.
 
 rdf_bnode_name(BNode, Name):-
   rdf_bnode_name0('_:', BNode, Name).
@@ -46,12 +44,14 @@ rdf_bnode_name(BNode, Name):-
 %! rdf_bnode_name0(+Prefix:atom, +BlankNode:bnode, -Name:atom) is det.
 
 rdf_bnode_name0(Prefix, BNode, Name):-
-  % Retrieve (existing) or create (new) a numeric blank node identifier.
-  (   bnode_name_map(BNode, Id)
-  ->  true
-  ;   increment_bnode_name_counter(Id),
-      assert(bnode_name_map(BNode, Id))
-  ),
+  with_mutex(rdf_bnode_name, (
+    % Retrieve (existing) or create (new) a numeric blank node identifier.
+    (   bnode_name_map(BNode, Id)
+    ->  true
+    ;   increment_bnode_name_counter(Id),
+        assert(bnode_name_map(BNode, Id))
+    )
+  )),
   atomic_concat(Prefix, Id, Name).
 
 increment_bnode_name_counter(Id):-
