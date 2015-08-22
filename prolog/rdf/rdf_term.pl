@@ -41,6 +41,7 @@ But this is not the case either, since typed literals are mapped onto
 */
 
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_iri(r)).

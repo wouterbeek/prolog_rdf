@@ -21,6 +21,7 @@
 :- use_module(library(option)).
 :- use_module(library(iostream)).
 :- use_module(library(rdf/rdf_guess)).
+:- use_module(library(semweb/rdf_db)).
 
 :- meta_predicate(rdf_stream(+,2)).
 :- meta_predicate(rdf_stream(+,2,+)).

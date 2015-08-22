@@ -32,7 +32,6 @@
 	   % ?Graph:atom
   ]
 ).
-:- reexport(library(semweb/rdf_db)).
 
 /** <module> RDF read
 
@@ -46,6 +45,7 @@
 :- use_module(library(langtag/langtag_match)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
 
 :- rdf_meta(rdf_date(o,r,?)).

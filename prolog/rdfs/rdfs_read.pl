@@ -7,8 +7,6 @@
                     % ?Class:or([bnode,iri])
   ]
 ).
-:- reexport(library(rdf/rdf_read)).
-:- reexport(library(semweb/rdfs)).
 
 /** <module> RDFS read
 
@@ -17,7 +15,9 @@
 */
 
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(owl/owl_read)).
+:- use_module(library(semweb/rdfs)).
 
 :- rdf_meta(rdfs_comment(o,?)).
 :- rdf_meta(rdfs_instance(o,r)).

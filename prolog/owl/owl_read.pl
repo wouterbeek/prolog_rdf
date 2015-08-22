@@ -10,13 +10,14 @@
              % ?Term2:iri
   ]
 ).
-:- reexport(library(rdf/rdf_read)).
 
 /** <module> OWL read
 
 @author Wouter Beek
 @version 2015/08
 */
+
+:- use_module(library(semweb/rdf_db)).
 
 :- meta_predicate(owl_call(1,+)).
 :- meta_predicate(owl_call(2,+,?)).

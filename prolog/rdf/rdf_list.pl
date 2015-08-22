@@ -46,13 +46,14 @@ Support for reading/writing RDF lists.
 :- use_module(library(apply)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(typecheck)).
 
-:- rdf_meta(rdf_assert_list(+,r)).
-:- rdf_meta(rdf_assert_list(+,r,?)).
+:- rdf_meta(rdf_assert_list(t,r)).
+:- rdf_meta(rdf_assert_list(t,r,?)).
 :- rdf_meta(rdf_is_list(r)).
 :- rdf_meta(rdf_list(r,?)).
 :- rdf_meta(rdf_list(r,?,?)).
