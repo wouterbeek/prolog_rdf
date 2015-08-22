@@ -110,6 +110,7 @@ rdf_convert0(Write, Format, Read):-
   ;   Format == xml
   ->  process_rdf(Read, clean_streamed_triples(Write, State, BNPrefix), [])
   ),
+  flush_output(Write),
   ctriples_write_end(State, []).
 
 %! clean_streamed_triples(
