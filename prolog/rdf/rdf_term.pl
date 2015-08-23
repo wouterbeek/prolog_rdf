@@ -11,6 +11,7 @@
     rdf_node2/1, % ?Node:rdf_term
     rdf_object/1, % ?Object:rdf_term
     rdf_predicate/1, % ?Predicate:iri
+    rdf_subject2/1, % ?Term:rdf_term
     rdf_term/1, % ?Term:rdf_term
     rdf_term/2 % ?Term:rdf_term
                % ?Graph:atom
@@ -40,6 +41,7 @@ But this is not the case either, since typed literals are mapped onto
 @version 2015/07-2015/08
 */
 
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(typecheck)).
@@ -168,6 +170,19 @@ rdf_object(X):-
 
 rdf_predicate(X):-
   rdf_current_predicate(X).
+
+
+
+%! rdf_subject2(@Term:rdf_term) is semidet.
+%! rdf_subject2(-Term:rdf_term) is nondet.
+
+rdf_subject2(S):-
+  rdf_subject(S0),
+  (   rdf_is_bnode(S0),
+      bnode_literal(S0, S)
+  ->  true
+  ;   S = S0
+  ).
 
 
 
