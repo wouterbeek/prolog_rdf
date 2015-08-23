@@ -103,7 +103,7 @@ rdf_assert_list_items0([H1|T1], L2, G):-
   ),
   (   (is_uri(H2) ; rdf_is_bnode(H2))
   ->  rdf_assert2(L2, rdf:first, H2, G)
-  ;   rdf_assert_literal0(L2, rdf:first, H2, G)
+  ;   rdf_assert_literal_pl(L2, rdf:first, H2, G)
   ),
 
   % rdf:rest

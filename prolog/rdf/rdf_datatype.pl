@@ -17,8 +17,9 @@
     rdf_equiv/3, % +Datatype:iri
                  % +Value1
                  % +Value2
-    rdf_guess_datatype/2, % +Value
+    rdf_guess_datatype/3, % +Value0
                           % -Datatype:iri
+                          % -Value
     rdf_interpreted_term/2, % +Term1:rdf_term
                             % -Term2
     rdf_lexical_canonical_map/3, % +Datatype:iri
@@ -161,19 +162,23 @@ rdf_equiv(D, V1, V2):-
 
 
 
-%! rdf_guess_datatype(+Value, -Datatype:iri) is semidet.
+%! rdf_guess_datatype(+Value0, -Datatype:iri, -Value) is semidet.
 
-rdf_guess_datatype([element(Root,_,_)], D):- !,
+rdf_guess_datatype(V, D, V):-
+  ground(V),
+  V = [element(Root,_,_)], !,
   (   Root == html
   ->  rdf_equal(rdf:'HTML', D)
   ;   rdf_equal(rdf:'XMLLiteral', D)
   ).
-rdf_guess_datatype(Lang-Lex, D):-
+rdf_guess_datatype(V, D, V):-
+  ground(V),
+  V = Lang-Lex,
   is_list(Lang),
   maplist(atom, [Lex|Lang]), !,
   rdf_equal(rdf:langString, D).
-rdf_guess_datatype(V, D):-
-  xsd_guess_datatype(V, D).
+rdf_guess_datatype(V0, D, V):-
+  xsd_guess_datatype(V0, D, V).
 
 
 

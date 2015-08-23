@@ -16,11 +16,11 @@
                           % ?Datatype:iri
                           % +Value
                           % ?Graph:atom
-    rdf_assert_literal0/3, % +Subject, +Predicate, +Value
-    rdf_assert_literal0/4, % +Subject:rdf_term
-                           % +Predicate:iri
-                           % +Value
-                           % ?Graph:atom
+    rdf_assert_literal_pl/3, % +Subject, +Predicate, +Value
+    rdf_assert_literal_pl/4, % +Subject:rdf_term
+                            % +Predicate:iri
+                            % +Value
+                            % ?Graph:atom
     rdf_assert_now/3, % +Subject, +Predicate, +Graph
     rdf_assert_now/4, % +Subject:iri
                       % +Predicate:iri
@@ -80,8 +80,8 @@ Simple asserion and retraction predicates for RDF.
 :- rdf_meta(rdf_assert_instance(o,r,?)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+,?)).
-:- rdf_meta(rdf_assert_literal0(o,r,+)).
-:- rdf_meta(rdf_assert_literal0(o,r,+,?)).
+:- rdf_meta(rdf_assert_literal_pl(o,r,+)).
+:- rdf_meta(rdf_assert_literal_pl(o,r,+,?)).
 :- rdf_meta(rdf_assert_now(o,r,+)).
 :- rdf_meta(rdf_assert_now(o,r,r,+)).
 :- rdf_meta(rdf_assert_property(o,r,?)).
@@ -189,12 +189,12 @@ rdf_assert_literal(S, P, D, V, G):-
 
 
 
-%! rdf_assert_literal0(+Subject:rdf_term, +Predicate:iri, +Value) is det.
+%! rdf_assert_literal_pl(+Subject:rdf_term, +Predicate:iri, +Value) is det.
 
-rdf_assert_literal0(S, P, V):-
-  rdf_assert_literal0(S, P, V, _).
+rdf_assert_literal_pl(S, P, V):-
+  rdf_assert_literal_pl(S, P, V, _).
 
-%! rdf_assert_literal0(
+%! rdf_assert_literal_pl(
 %!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Value,
@@ -203,23 +203,32 @@ rdf_assert_literal0(S, P, V):-
 % Guess an appropriate RDF datatype for serializing Value.
 % Since RDF has a more granual datatype system than Prolog
 % this is only a fair guess.
+%
+% This works for the following Prolog types:
+%   * atom
+%   * date-time compound terms date/3, date/9 and time/3
+%   * float
+%   * HTML DOM
+%   * integer
+%   * Pair of list of atoms and atom (in that order)
+%     The former denotes a language tag.
+%     The latter denotes a text string.
+%   * rational
+%   * string
+%   * XML DOM
 
 % Specifically added support for SWI7 string.
 % Notice that library plXsd uses Prolog atoms
 % as the values of xsd:string literals.
-rdf_assert_literal0(S, P, V0, G):-
+rdf_assert_literal_pl(S, P, V0, G):-
   string(V0), !,
   atom_string(V, V0),
-  rdf_assert_literal0(S, P, V, G).
-rdf_assert_literal0(S, P, V, G):-
-  rdf_guess_datatype(V, D), !,
+  rdf_assert_literal_pl(S, P, V, G).
+rdf_assert_literal_pl(S, P, V0, G):-
+  rdf_guess_datatype(V0, D, V), !,
   rdf_assert_literal(S, P, D, V, G).
-rdf_assert_literal0(_, _, V, _):-
-  format(
-    user_errror,
-    'Cannot determine RDF datatype for Prolog value ~q\n.',
-    [V]
-  ).
+rdf_assert_literal_pl(_, _, V, _):-
+  print_message(error, cannot_guess_rdf_datatype(V)).
 
 
 
@@ -360,3 +369,14 @@ rdf_retractall2(S0, P, O, G):-
   rdf_retractall2(S, P, O, G).
 rdf_retractall2(S, P, O, G):-
   rdf_retractall(S, P, O, G).
+
+
+
+
+
+% MESSAGES %
+
+:- multifile(prolog:message//1).
+
+prolog:message(cannot_guess_rdf_datatype(V)) -->
+  ['Cannot determine RDF datatype for Prolog value ~q~n.'-[V]].

@@ -90,7 +90,7 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_statement/5, 5)
    ]).
 :- predicate_options(rdf_print_bnode//2, 2, [
-     pass_to(rdf_print_list//2, 2)
+     abbr_list(+boolean)
    ]).
 :- predicate_options(rdf_print_graph/2, 2, [
      pass_to(rdf_print_triple/5, 5)
@@ -99,14 +99,10 @@ Easy printing of RDF data to the terminal.
      abbr_iri(+boolean),
      abbr_list(+boolean),
      ellip_ln(+or([nonneg,oneof([inf])])),
-     logic_sym(+boolean),
-     pass_to(rdf_print_list//2, 2)
+     logic_sym(+boolean)
    ]).
 :- predicate_options(rdf_print_lexical//2, 2, [
      ellip_lit(+or([nonneg,oneof([inf])]))
-   ]).
-:- predicate_options(rdf_print_list//2, 2, [
-     abbr_list(+boolean)
    ]).
 :- predicate_options(rdf_print_literal//2, 2, [
      pass_to(rdf_print_lexical//2, 2)
@@ -262,7 +258,8 @@ rdf_print_quadruples(Qs):-
 %!   +Options:list(compound)
 %! ) is det.
 
-rdf_print_quadruples(Qs, Opts):-
+rdf_print_quadruples(Qs, Opts0):-
+  merge_options([abbr_list(false)], Opts0, Opts),
   forall(member(rdf(S,P,O,G), Qs), rdf_print_statement(S, P, O, G, Opts)).
 
 
@@ -276,10 +273,12 @@ rdf_print_statement(T):-
 %! rdf_print_statement(+Statement:compound, +Options:list(compound)) is det.
 
 % Statement is a triple.
-rdf_print_statement(rdf(S,P,O), Opts):- !,
+rdf_print_statement(rdf(S,P,O), Opts0):- !,
+  merge_options([abbr_list(false)], Opts0, Opts),
   rdf_print_statement(S, P, O, _, Opts).
 % Statement is a quadruple.
-rdf_print_statement(rdf(S,P,O,G), Opts):-
+rdf_print_statement(rdf(S,P,O,G), Opts0):-
+  merge_options([abbr_list(false)], Opts0, Opts),
   rdf_print_statement(S, P, O, G, Opts).
 
 
@@ -388,7 +387,8 @@ rdf_print_triples(Ts):-
 
 %! rdf_print_triples(+Triples:list(compound), +Options:list(compound)) is det.
 
-rdf_print_triples(Ts, Opts):-
+rdf_print_triples(Ts, Opts0):-
+  merge_options([abbr_list(false)], Opts0, Opts),
   forall(member(rdf(S,P,O), Ts), rdf_print_statement(S, P, O, _, Opts)).
 
 
@@ -400,8 +400,13 @@ rdf_print_triples(Ts, Opts):-
 %! rdf_print_bnode(+BNode:bnode, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_list(+boolean)
+%     Whether RDF lists are shown in Prolog list notation.
+%     Default is `true` for statements in the RDF DB
+%     but `false` for RDF compound terms (since in the latter case
+%     we cannot check whether something is an RDF list or not).
 
 rdf_print_bnode(B, Opts) -->
+  {option(abbr_list(true), Opts)},
   rdf_print_list(B, Opts), !.
 rdf_print_bnode(B, _) -->
   {rdf_bnode_name(B, BName)},
@@ -423,6 +428,10 @@ rdf_print_graph(G) -->
 %     the currently registered RDF prefixes.
 %     Default is `true`.
 %   * abbr_list(+boolean)
+%     Whether RDF lists are shown in Prolog list notation.
+%     Default is `true` for statements in the RDF DB
+%     but `false` for RDF compound terms (since in the latter case
+%     we cannot check whether something is an RDF list or not).
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %     Elipses IRI local names so that they are assued to be at most
 %     the given number of characters in length.
@@ -434,6 +443,7 @@ rdf_print_graph(G) -->
 %     Default is `true`.
 
 rdf_print_iri(Iri, Opts) -->
+  {option(abbr_list(true), Opts)},
   rdf_print_list(Iri, Opts), !.
 rdf_print_iri(Iri, Opts) -->
   {option(logic_sym(true), Opts, true)},
@@ -491,8 +501,7 @@ rdf_print_lexical(Lex, Opts) -->
 
 rdf_print_list(L0, Opts) -->
   {
-    \+ option(abbr_list(false), Opts),
-    rdf_is_list(L0), !,
+    rdf_is_list(L0),
     rdf_list_raw(L0, L)
   },
   list(rdf_print_term0(Opts), L).
