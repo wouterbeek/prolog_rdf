@@ -448,8 +448,11 @@ rdf_print_iri(Global, Opts) -->
   atom(Prefix),
   ":",
   atom(Local0).
-rdf_print_iri(Global, _) -->
+rdf_print_iri(Global, Opts) -->
+  {option(style(turtle), Opts)}, !,
   bracketed(angular, atom(Global)).
+rdf_print_iri(Global, _) -->
+  atom(Global).
 
 rdf_print_iri_sym(Iri) -->
   {rdf_global_id(owl:equivalentClass, Iri)}, !,
@@ -506,14 +509,31 @@ rdf_print_term0(Opts, T) -->
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * logic_sym(+boolean)
 
-rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
-  rdf_print_lexical(Lex, Opts),
-  "^^",
-  rdf_print_iri(D, Opts).
+rdf_print_literal(literal(type(D,Lex)), Opts) -->
+  (   {option(style(turtle), Opts)}
+  ->  rdf_print_lexical(Lex, Opts),
+      "^^",
+      rdf_print_iri(D, Opts)
+  ;   bracketed(langular, (
+        rdf_print_iri(D, Opts),
+        ", ",
+        rdf_print_lexical(Lex, Opts)
+      ))
+  ).
 rdf_print_literal(literal(lang(LangTag,Lex)), Opts) --> !,
-  rdf_print_lexical(Lex, Opts),
-  "@",
-  atom(LangTag).
+  (   {option(style(turtle), Opts)}
+  ->  rdf_print_lexical(Lex, Opts),
+      "@",
+      atom(LangTag)
+  ;   bracketed(langular, (
+        "rdf:langString, ",
+        bracketed(langular, (
+          atom(LangTag),
+          ", ",
+          rdf_print_lexical(Lex, Opts)
+        ))
+      ))
+  ).
 rdf_print_literal(literal(Lex), Opts) -->
   {rdf_global_id(xsd:string, D)},
   rdf_print_literal(literal(type(D,Lex)), Opts).
