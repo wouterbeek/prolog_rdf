@@ -2,6 +2,14 @@
 
 /** <module> Test rdf_assert_literal_pl/[3,4]
 
+You can run this script in the following way:
+
+```prolog
+?- pack_install(plRdf).
+?- [library('../test/test_literal_pl')].
+?- run_tests.
+```
+
 After running the tests in this module you should be able to
 read the triples back in as follows:
 
