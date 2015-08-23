@@ -245,7 +245,7 @@ rdf_literal(S, P, xsd:string, V, G, rdf(S,P,O,G)):-
 % Literals may need to be related to blank nodes.
 rdf2(S0, P, O):-
   rdf_is_literal(S0),
-  subject_literal(S0, S), !,
+  bnode_literal(S, S0), !,
   rdf(S, P, O).
 % Variable subject terms may be blank nodes
 % that need to be related to literals.
@@ -253,7 +253,7 @@ rdf2(S, P, O):-
   var(S), !,
   rdf(S0, P, O),
   (   rdf_is_bnode(S0),
-      subject_literal(S, S0)
+      bnode_literal(S0, S)
   ->  true
   ;   S = S0
   ).
@@ -271,13 +271,13 @@ rdf2(S, P, O):-
 
 rdf2(S0, P, O, G):-
   rdf_is_literal(S0),
-  subject_literal(S0, S), !,
+  bnode_literal(S, S0), !,
   rdf(S, P, O, G).
 rdf2(S, P, O, G):-
   var(S), !,
   rdf(S0, P, O, G),
   (   rdf_is_bnode(S0),
-      subject_literal(S, S0)
+      bnode_literal(S0, S)
   ->  true
   ;   S = S0
   ).

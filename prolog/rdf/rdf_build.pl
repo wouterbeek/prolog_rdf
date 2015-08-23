@@ -1,6 +1,8 @@
 :- module(
   rdf_build,
   [
+    bnode_literal/2, % ?Subject:bnode
+                     % ?Literal:literal
     fresh_iri/2, % +Prefix, -Iri
     fresh_iri/3, % +Prefix:atom
                  % +SubPaths:list(atom)
@@ -44,12 +46,10 @@
     rdf_retractall2/3, % ?Subject:rdf_term
                        % ?Predicate:iri
                        % ?Object:rdf_term
-    rdf_retractall2/4, % ?Subject:rdf_term
-                       % ?Predicate:iri
-                       % ?Object:rdf_term
-                       % ?Graph:atom
-    subject_literal/2 % +Literal:literal
-                      % -Subject:bnode
+    rdf_retractall2/4 % ?Subject:rdf_term
+                      % ?Predicate:iri
+                      % ?Object:rdf_term
+                      % ?Graph:atom
   ]
 ).
 :- reexport(library(semweb/rdf_db)).
@@ -72,8 +72,11 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(uuid_ext)).
 :- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
 
-:- dynamic(subject_literal/2).
+%! bnode_literal(?Subject:bnode, ?Literal:compound) is nondet.
 
+:- dynamic(bnode_literal/2).
+
+:- rdf_meta(bnode_literal(?,o)).
 :- rdf_meta(rdf_assert_instance(o,r,?)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+,?)).
@@ -89,19 +92,18 @@ Simple asserion and retraction predicates for RDF.
 :- rdf_meta(rdf_retractall_term(t,?)).
 :- rdf_meta(rdf_retractall2(o,r,o)).
 :- rdf_meta(rdf_retractall2(o,r,o,?)).
-:- rdf_meta(subject_literal(o,-)).
 
 
 
 
 
-%! assert_subject_literal(+Literal:literal, -Subject:bnode) is det.
+%! assert_bnode_literal(-Subject:bnode, +Literal:literal) is det.
 
-assert_subject_literal(Lit, S):-
-  subject_literal(Lit, S), !.
-assert_subject_literal(Lit, S):-
+assert_bnode_literal(S, Lit):-
+  bnode_literal(S, Lit), !.
+assert_bnode_literal(S, Lit):-
   rdf_bnode(S),
-  assert(subject_literal(Lit, S)).
+  assert(bnode_literal(S, Lit)).
 
 
 
@@ -268,7 +270,7 @@ rdf_assert_property(P, Parent, G):-
 
 rdf_assert2(S0, P, O, G):-
   rdf_is_literal(S0), !,
-  assert_subject_literal(S0, S),
+  assert_bnode_literal(S, S0),
   rdf_assert2(S, P, O, G).
 rdf_assert2(S, P, O, G):-
   var(G), !,
@@ -339,7 +341,7 @@ rdf_retractall_term(T, G):-
 
 rdf_retractall2(S0, P, O):-
   rdf_is_literal(S0), !,
-  subject_literal(S0, S),
+  bnode_literal(S, S0),
   rdf_retractall2(S, P, O).
 rdf_retractall2(S, P, O):-
   rdf_retractall(S, P, O).
@@ -354,7 +356,7 @@ rdf_retractall2(S, P, O):-
 
 rdf_retractall2(S0, P, O, G):-
   rdf_is_literal(S0), !,
-  subject_literal(S0, S),
+  bnode_literal(S, S0),
   rdf_retractall2(S, P, O, G).
 rdf_retractall2(S, P, O, G):-
   rdf_retractall(S, P, O, G).

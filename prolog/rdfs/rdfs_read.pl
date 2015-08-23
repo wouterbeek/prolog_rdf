@@ -38,7 +38,7 @@ rdfs_comment(S, Comm):-
 
 rdfs_instance(I0, C):-
   rdf_is_literal(I0), !,
-  subject_literal(I0, I),
+  bnode_literal(I, I0),
   rdfs_instance(I, C).
 rdfs_instance(I, C):-
   rdfs_individual_of(I, C).
