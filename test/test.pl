@@ -12,6 +12,9 @@
 :- use_module(library(dcg/sw_string)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
+%/lodcache
+:- use_module(library(lodcache/lodcache)).
+:- use_module(library(lodcache/lodcache_egograph)).
 %/mat
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).
@@ -39,6 +42,7 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_test)).
