@@ -4,6 +4,7 @@ home('https://github.com/wouterbeek/plRdf').
 maintainer('Wouter Beek', 'me@wouterbeek.com').
 name(plRdf).
 packager('Wouter Beek', 'me@wouterbeek.com').
+requires(sparkle).
 requires(plXsd).
 title('Additional support for handling RDF data in SWI-Prolog.').
 version('0.0.39').
