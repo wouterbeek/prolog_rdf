@@ -1,6 +1,10 @@
 :- module(
   rdf_literal,
   [
+    rdf_literal_components/4, % +Literal:compound
+                              % -Datatype:iri
+                              % -Language:list(atom)
+                              % -Lexical:atom
     rdf_literal_data/3 % ?Field:atom
                        % +Literal:compound
                        % ?Data
@@ -14,6 +18,26 @@
 */
 
 :- use_module(library(error)).
+:- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(semweb/rdf_db)).
+
+:- rdf_meta(rdf_literal_components(o,-,-,-)).
+
+
+
+
+
+%! rdf_literal_components(
+%!   +Literal:compound,
+%!   -Datatype:iri,
+%!   -Language:list(atom),
+%!   -Lexical:atom
+%! ) is det.
+
+rdf_literal_components(literal(type(D,Lex)), D, _, Lex):- !.
+rdf_literal_components(literal(lang(Lang,Lex)), _, Lang, Lex):- !.
+rdf_literal_components(literal(Lex), D, _, Lex):-
+  rdf_global_id(xsd:string, D).
 
 
 
