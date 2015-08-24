@@ -178,7 +178,7 @@ rdf_guess_datatype(V, D, V):-
   maplist(atom, [Lex|Lang]), !,
   rdf_equal(rdf:langString, D).
 rdf_guess_datatype(V0, D, V):-
-  xsd_guess_datatype(V0, D, V).
+  xsd_guess_datatype(V0, D, V0).
 
 
 
