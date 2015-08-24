@@ -7,11 +7,11 @@
                            % +Datatype:iri
                            % +LexicalForm:atom
                            % +Graph:atom
-    rdf_copy/5, % +FromGraph:atom
-                % ?Subject:or([bnode,iri])
-                % ?Predicate:iri
-                % ?Object:rdf_term
-                % +ToGraph:atom
+    rdf_cp/5, % +FromGraph:atom
+              % ?Subject:or([bnode,iri])
+              % ?Predicate:iri
+              % ?Object:rdf_term
+              % +ToGraph:atom
     rdf_increment/5, % +Subject:or([bnode,iri])
                      % +Predicate:iri
                      % -Old:integer
@@ -39,7 +39,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(rdf_canonize_triple(r,r,r,+,+)).
-:- rdf_meta(rdf_copy(+,r,r,o,+)).
+:- rdf_meta(rdf_cp(+,r,r,o,+)).
 :- rdf_meta(rdf_increment(r,r,-,+,-)).
 :- rdf_meta(rdf_mv(+,r,r,o,+)).
 
@@ -93,7 +93,7 @@ rdf_canonize_triple(S, P, D, Lex, G):-
 
 
 
-%! rdf_copy(
+%! rdf_cp(
 %!   +FromGraph:atom,
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
@@ -104,11 +104,11 @@ rdf_canonize_triple(S, P, D, Lex, G):-
 %
 % @tbd Perform blank node renaming.
 
-rdf_copy(FromGraph, S, P, O, ToGraph):-
+rdf_cp(FromG, S, P, O, ToG):-
   rdf_transaction((
     forall(
-      rdf2(S, P, O, FromGraph),
-      rdf_assert2(S, P, O, ToGraph)
+      rdf2(S, P, O, FromG),
+      rdf_assert2(S, P, O, ToG)
     )
   )).
 
@@ -147,8 +147,8 @@ rdf_increment(S, P, Old, G, New):-
 %! ) is det.
 % Move triples between graphs.
 
-rdf_mv(From, S, P, O, To):-
+rdf_mv(FromG, S, P, O, ToG):-
   rdf_transaction((
-    rdf_copy(From, S, P, O, To),
-    rdf_retractall2(S, P, O, From)
+    rdf_cp(FromG, S, P, O, ToG),
+    rdf_retractall2(S, P, O, FromG)
   )).
