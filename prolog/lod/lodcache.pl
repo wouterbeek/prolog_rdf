@@ -2,7 +2,9 @@
   lodcache,
   [
     add_to_lod_pool/1, % +Resource:iri
-    load_file_as_egographs/1, % +Spec:compound
+    load_as_egographs/1, % +Spec
+    load_as_egographs/2, % +Spec:compound
+                         % +Options:list(compound)
     process_lod_pool/0
   ]
 ).
@@ -59,6 +61,10 @@ lodcache:triple_to_iri(rdf(_,_,literal(type(D,_))), D).
 lodcache:triple_to_iri(rdf(_,P,O), O):-
   rdf_memberchk(P, [owl:sameAs,rdf:type,rdfs:subClassOf,rdfs:subPropertyOf]).
 
+:- predicate_options(load_as_egographs/2, 2, [
+     pass_to(rdf_load_any/2)
+   ]).
+
 :- initialization((
      assert_cc_prefixes,
      forall(between(1, 5, _), process_lod_pool)
@@ -91,14 +97,33 @@ add_to_lod_pool(Iri):-
 
 
 
-%! load_file_as_egographs(+Spec:compound) is det.
-% Cache the contents of the given RDF file in terms of egographs.
+%! load_as_egographs(+Spec:compound) is det.
+% Wrapper around load_as_egographs/2 with default options.
 
-load_file_as_egographs(Spec):-
+load_as_egographs(Spec):-
+  load_as_egographs(Spec, [select(true)]).
+
+%! load_as_egographs(+Spec:compound, +Options:list(compound)) is det.
+% Cache the contents of the given RDF file in terms of egographs.
+%
+% Options are passed to rdf_load_any/2.
+
+load_as_egographs(Spec0, Opts0):-
+  ground(Spec0),
+
+  % Support for loading data based on a registered RDF prefix.
+  (   Spec0 = prefix(Prefix)
+  ->  rdf_current_prefix(Prefix, Spec)
+  ;   Spec = Spec0
+  ),
+
+  % Thread-specific RDF graph name.
   thread_self(Id),
   atomic_list_concat([tmp,Id], '_', G),
+  merge_options([graph(G)], Opts0, Opts),
+
   setup_call_cleanup(
-    rdf_load_any(Spec, [graph(G)]),
+    rdf_load_any(Spec, Opts),
     forall(
       distinct(S, rdf2(S, _, _)),
       rdf_mv(G, S, _, _, S)
@@ -121,7 +146,7 @@ process_lod_pool0:-
     retract(in_lod_pool(Iri)),
     assert(lod_caching(Iri))
   )), !,
-  
+
   % LOD Caching goes over HTTP, so this step takes a lot of time.
   cache_egograph(Iri, Ts),
   forall(
@@ -131,12 +156,12 @@ process_lod_pool0:-
 
   % Remove the caching status for the RDF IRI.
   with_mutex(lod_pool, retract(lod_caching(Iri))),
-  
+
   % Extract new RDF IRIs to be seed points in the LOD Pool.
   % This effectively executes traversal over the LOD Graph.
   triples_to_visit_iris(Ts, Iris),
   maplist(add_to_lod_pool, Iris),
-  
+
   dcg_debug(lodcache(pool), added_to_db(Iri, Ts)),
   process_lod_pool0.
 process_lod_pool0:-
