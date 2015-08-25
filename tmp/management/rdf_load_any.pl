@@ -3,60 +3,13 @@
   [
     metadata_to_base/2, % +Metadata:dict
                         % -Base:uri
-    rdf_load_any/1, % +Spec:compound
     rdf_load_any/2 % +Spec:compound
                    % +Options:list(nvpair)
   ]
 ).
 
-/** <module> RDF: Load any
-
-@author Wouter Beek
-@version 2012-2015
-*/
-
-:- use_module(library(aggregate)).
-:- use_module(library(http/http_ssl_plugin)).
-:- use_module(library(option)).
-% rdf_file_type(xml,   xml    ).
-% rdf_file_type(rdf,   xml    ).
-% rdf_file_type(rdfs,  xml    ).
-% rdf_file_type(owl,   xml    ).
-% rdf_file_type(htm,   xhtml  ).
-% rdf_file_type(html,  xhtml  ).
-% rdf_file_type(xhtml, xhtml  ).
-% rdf_file_type(trp,   triples).
-% rdf_storage_encoding('', plain).
-% url_protocol(file).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-% rdf_open_hook(http,  ...)
-% rdf_open_hook(https, ...)
-% rdf_storage_encoding(_, gzip).
-% url_protocol(http).
-% url_protocol(https).
 :- use_module(library(semweb/rdf_http_plugin)).
-% rdf_file_type(nt,       ntriples).
-% rdf_file_type(ntriples, ntriples).
-% rdf_file_type(nq,       nquads  ).
-% rdf_file_type(nquads,   nquads  ).
-:- use_module(library(semweb/rdf_ntriples)). % Serialization format support.
-% rdf_open_decode(gzip, ...)
-% rdf_storage_encoding(gz, gzip)
 :- use_module(library(semweb/rdf_zlib_plugin)).
-% rdf_file_type(html, rdfs).
-:- use_module(library(semweb/rdfa)). % Serialization format support.
-% rdf_file_type(ttl,  turtle).
-% rdf_file_type(n3,   turtle).
-% rdf_file_type(trig, trig  ).
-:- use_module(library(semweb/turtle)). % Serialization format support.
-
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_pl_term)). % Meta-argument.
-:- use_module(plc(generics/db_ext)).
-:- use_module(plc(io/open_any)).
-
-:- use_module(plRdf(management/rdf_file_db)).
-:- use_module(plRdf(management/rdf_guess_format)).
 
 :- predicate_options(metadata_content_type/3, 3, [
   media_type(+dict)
@@ -78,27 +31,6 @@
   silent(+boolean),
   pass_to(rdf_load_from_stream_det/4, 4)
 ]).
-
-:- initialization(assert_rdf_file_types).
-
-assert_rdf_file_types:-
-  forall(
-    rdf_db:rdf_file_type(FileExtension, FileType),
-    (
-      db_add_novel(user:prolog_file_type(FileExtension, FileType)),
-      db_add_novel(user:prolog_file_type(FileExtension, rdf))
-    )
-  ).
-
-
-
-
-
-%! rdf_load_any(+Spec:compound) is det.
-
-rdf_load_any(Spec):-
-  rdf_load_any(Spec, []).
-
 
 %! rdf_load_any(+Spec:compound, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.

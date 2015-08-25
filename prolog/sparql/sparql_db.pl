@@ -243,7 +243,8 @@ sparql_location_by_iri(Iri, Mode, Location):-
 
 sparql_register_endpoint(Endpoint, Locations, Manufacturer):-
   % Compatibility with library sparkle.
-  maplist(sparql_endpoint(Endpoint), Locations),
+  % @tbd Enable when fixed.
+  %maplist(sparql_endpoint(Endpoint), Locations),
   assert(sparql_endpoint(Endpoint)),
   forall(
     member(Location, Locations),

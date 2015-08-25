@@ -1,13 +1,10 @@
 :- module(
   rdf_stream,
   [
-    rdf_load_any/1, % +Spec
-    rdf_load_any/2, % +Spec
-                    % +Options:list(compound)
     rdf_stream/2, % +Spec, :Goal_2
     rdf_stream/3 % +Spec
                  % :Goal_2
-		 % +Options:list(compound)
+            		 % +Options:list(compound)
   ]
 ).
 
@@ -18,7 +15,7 @@
 */
 
 :- use_module(library(archive)).
-:- use_module(library(option)).
+:- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(iostream)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_db)).
@@ -27,22 +24,6 @@
 :- meta_predicate(rdf_stream(+,2,+)).
 
 
-
-
-
-%! rdf_load_any(+Spec) is det.
-
-rdf_load_any(Spec):-
-  rdf_load_any(Spec, []).
-
-%! rdf_load_any(+Spec, +Options:list(compound)) is det.
-% Options are passed to rdf_load/2.
-
-rdf_load_any(Spec, Opts):-
-  rdf_stream(Spec, rdf_load0(Opts), Opts).
-rdf_load0(Opts0, Format, Read):-
-  merge_options([format(Format)], Opts0, Opts),
-  rdf_load(Read, Opts).
 
 
 
