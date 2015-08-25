@@ -16,16 +16,6 @@
                       % ?Object:rdf_term
                       % ?Graph:atom
                       % -NumberOfDistinctSubjectTerms:nonneg
-    count_triples/5, % ?Subject:or([bnode,iri])
-                     % ?Predicate:iri
-                     % ?Object:rdf_term
-                     % ?Graph:atom
-                     % -NumberOfDistinctStatements:nonneg
-    description_size/2, % +Subject:or([bnode,iri])
-                        % -NumberOfDistinctTriples:nonneg
-    description_size/3, % +Subject:or([bnode,iri])
-                        % ?Graph:atom
-                        % -NumberOfDistinctTriples:nonneg
     iris_by_graph/2 % ?Graph:atom
                     % -NumberOfDistinctIris:nonneg
   ]
@@ -40,8 +30,8 @@ Predicates for calculating simple statistics over RDF data.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(lists), except([delete/3,subset/2])).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(lists)).
+:- use_module(library(semweb/rdf_db)).
 
 :- use_module(plRdf(term/rdf_term)).
 
@@ -49,9 +39,6 @@ Predicates for calculating simple statistics over RDF data.
 :- rdf_meta(count_objects(r,r,?,-)).
 :- rdf_meta(count_predicates(r,r,?,-)).
 :- rdf_meta(count_subjects(r,r,?,-)).
-:- rdf_meta(count_triples(r,r,o,?,-)).
-:- rdf_meta(description_size(r,-)).
-:- rdf_meta(description_size(r,?,-)).
 
 
 
@@ -123,51 +110,6 @@ count_subjects(P, O, G, NumberOfDistinctSubjectTerms):-
     DistinctSubjectTerms
   ),
   length(DistinctSubjectTerms, NumberOfDistinctSubjectTerms).
-
-
-
-%! count_triples(
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   ?Graph:atom,
-%!   -NumberOfDistinctStatements:nonneg
-%! ) is det.
-
-count_triples(S, P, O, G, NumberOfDistinctStatements):-
-  aggregate_all(
-    count,
-    rdf(S, P, O, G),
-    NumberOfDistinctStatements
-  ).
-
-
-
-%! description_size(
-%!   +Subject:or([bnode,iri]),
-%!   -NumberOfDistinctTriples:nonneg
-%! ) is det.
-% @see description_size/3
-
-description_size(S, N):-
-  description_size(S, _, N).
-
-%! description_size(
-%!   +Subject:or([bnode,iri]),
-%!   ?Graph:atom,
-%!   -NumberOfDistinctTriples:nonneg
-%! ) is det.
-
-description_size(S, G, N):-
-  rdf_global_id(owl:sameAs, P),
-  aggregate_all(
-    sum(N0),
-    (
-      rdf_reachable(S, P, S0),
-      count_triples(S0, _, _, G, N0)
-    ),
-    N
-  ).
 
 
 
