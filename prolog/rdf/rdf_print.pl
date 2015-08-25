@@ -203,6 +203,7 @@ rdf_print_graph(G):-
 
 rdf_print_graph(G, Opts):-
   rdf_graph(G),
+  rdf_is_graph(G), !,
   rdf_print_triple(_, _, _, G, Opts),
   fail.
 rdf_print_graph(_, _).

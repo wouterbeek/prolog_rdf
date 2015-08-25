@@ -51,7 +51,7 @@ mat(GIn, GOut):-
 mat(GIn, GOut):-
   % Type checking.
   must_be(atom, GIn),
-  (   rdf_graph2(GIn)
+  (   rdf_is_graph(GIn)
   ->  true
   ;   existence_error(rdf_graph, GIn)
   ),
