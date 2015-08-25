@@ -1,5 +1,5 @@
 :- module(
-  lodcache,
+  lod_cache,
   [
     add_to_lod_pool/1, % +Resource:iri
     load_as_egographs/1, % +Spec
@@ -51,14 +51,14 @@ datatype preferences in order to perform limited-scale crawling.
 
 :- rdf_meta(add_to_lod_pool(r)).
 
-%! lodcache:triple_to_iri(+Triples:compound, -Iri:atom) is nondet.
+%! lod_cache:triple_to_iri(+Triples:compound, -Iri:atom) is nondet.
 
-:- dynamic(lodcache:triple_to_iri/2).
-:- multifile(lodcache:triple_to_iri/2).
+:- dynamic(lod_cache:triple_to_iri/2).
+:- multifile(lod_cache:triple_to_iri/2).
 
-lodcache:triple_to_iri(rdf(_,P,_), P).
-lodcache:triple_to_iri(rdf(_,_,literal(type(D,_))), D).
-lodcache:triple_to_iri(rdf(_,P,O), O):-
+lod_cache:triple_to_iri(rdf(_,P,_), P).
+lod_cache:triple_to_iri(rdf(_,_,literal(type(D,_))), D).
+lod_cache:triple_to_iri(rdf(_,P,O), O):-
   rdf_memberchk(P, [owl:sameAs,rdf:type,rdfs:subClassOf,rdfs:subPropertyOf]).
 
 :- predicate_options(load_as_egographs/2, 2, [
@@ -91,7 +91,7 @@ add_to_lod_pool(Iri):-
     ->  true
     ;   % Add the RDF Name to the LOD Pool.
         assert(in_lod_pool(Iri)),
-        dcg_debug(lodcache(pool), added_to_pool(Iri))
+        dcg_debug(lod_cache(pool), added_to_pool(Iri))
     )
   )).
 
@@ -162,7 +162,7 @@ process_lod_pool0:-
   triples_to_visit_iris(Ts, Iris),
   maplist(add_to_lod_pool, Iris),
 
-  dcg_debug(lodcache(pool), added_to_db(Iri, Ts)),
+  dcg_debug(lod_cache(pool), added_to_db(Iri, Ts)),
   process_lod_pool0.
 process_lod_pool0:-
   % Pause for 5 seconds if there is nothing to process.
@@ -208,9 +208,9 @@ cache_egograph(Iri, Ts):-
     )
   ),
 
-  if_debug(lodcache, (
+  if_debug(lod_cache, (
     length(Ts, N),
-    debug(lodcache, 'Loaded ~D triples for IRI ~a', [N,Iri])
+    debug(lod_cache, 'Loaded ~D triples for IRI ~a', [N,Iri])
   )).
 
 
@@ -222,7 +222,7 @@ triples_to_visit_iris(Ts, Iris):-
     set(Iri),
     (
       member(T, Ts),
-      lodcache:triple_to_iri(T, Iri),
+      lod_cache:triple_to_iri(T, Iri),
       % Filter out already cached IRIs at an early stage.
       \+ rdf_graph(Iri)
     ),
