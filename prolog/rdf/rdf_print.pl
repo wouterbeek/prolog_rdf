@@ -8,6 +8,9 @@
     rdf_print_graph/1, % ?Graph
     rdf_print_graph/2, % ?Graph:atom
                        % +Options:list(compound)
+    rdf_print_quadruple/1, % +Quadruple
+    rdf_print_quadruple/2, % +Quadruple:compound
+                           % +Options:list(compound)
     rdf_print_quadruple/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf_print_quadruple/5, % ?Subject:rdf_term
                            % ?Predicate:iri
@@ -29,6 +32,9 @@
     rdf_print_term//1, % +Term
     rdf_print_term//2, % +Term:rdf_term
                        % +Options:list(compound)
+    rdf_print_triple/1, % +Triple
+    rdf_print_triple/2, % +Triple:compound
+                        % +Options:list(compound)
     rdf_print_triple/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf_print_triple/5, % ?Subject:rdf_term
                         % ?Predicate:iri
@@ -71,6 +77,8 @@ Easy printing of RDF data to the terminal.
 
 :- rdf_meta(rdf_print_describe(o,?)).
 :- rdf_meta(rdf_print_describe(o,?,+)).
+:- rdf_meta(rdf_print_quadruple(t)).
+:- rdf_meta(rdf_print_quadruple(t,+)).
 :- rdf_meta(rdf_print_quadruple(o,r,o,?)).
 :- rdf_meta(rdf_print_quadruple(o,r,o,?,+)).
 :- rdf_meta(rdf_print_quadruples(t)).
@@ -83,6 +91,8 @@ Easy printing of RDF data to the terminal.
 :- rdf_meta(rdf_print_term(o,+)).
 :- rdf_meta(rdf_print_term(o,?,?)).
 :- rdf_meta(rdf_print_term(o,+,?,?)).
+:- rdf_meta(rdf_print_triple(t)).
+:- rdf_meta(rdf_print_triple(t,+)).
 :- rdf_meta(rdf_print_triple(o,r,o,?)).
 :- rdf_meta(rdf_print_triple(o,r,o,?,+)).
 :- rdf_meta(rdf_print_triples(t)).
@@ -114,6 +124,9 @@ Easy printing of RDF data to the terminal.
    ]).
 :- predicate_options(rdf_print_predicate//2, 2, [
      pass_to(rdf_print_term//2, 2)
+   ]).
+:- predicate_options(rdf_print_quadruple/2, 2, [
+     pass_to(rdf_print_statement/5, 5)
    ]).
 :- predicate_options(rdf_print_quadruple/5, 5, [
      pass_to(rdf_print_statement/5, 5)
@@ -148,6 +161,9 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_bnode//2, 2),
      pass_to(rdf_print_iri//2, 2),
      pass_to(rdf_print_literal//2, 2)
+   ]).
+:- predicate_options(rdf_print_triple/2, 2, [
+     pass_to(rdf_print_statement/5, 5)
    ]).
 :- predicate_options(rdf_print_triple/5, 5, [
      pass_to(rdf_print_statement/5, 5)
@@ -218,6 +234,17 @@ rdf_print_graph(G, _):-
 
 
 
+%! rdf_print_quadruple(+Quadruple:compound) is det.
+% Wrapper around rdf_print_quadruple/2.
+
+rdf_print_quadruple(Q):-
+  rdf_print_quadruple(Q, []).
+
+%! rdf_print_quadruple(+Quadruple:compound, +Options:list(compound)) is det.
+
+rdf_print_quadruple(rdf(S,P,O,G), Opts):-
+  rdf_print_statement(S, P, O, G, Opts).
+
 %! rdf_print_quadruple(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
@@ -281,16 +308,15 @@ rdf_print_statement(T):-
 
 %! rdf_print_statement(+Statement:compound, +Options:list(compound)) is det.
 
-% Statement is a triple.
-rdf_print_statement(rdf(S,P,O), Opts0):- !,
+rdf_print_statement(T, Opts0):-
   merge_options([abbr_list(false)], Opts0, Opts),
-  rdf_print_statement(S, P, O, _, Opts).
-% Statement is a quadruple.
-rdf_print_statement(rdf(S,P,O,G), Opts0):-
-  merge_options([abbr_list(false)], Opts0, Opts),
-  rdf_print_statement(S, P, O, G, Opts).
-
-
+  (   % Statement is a triple.
+      T = rdf(_,_,_)
+  ->  rdf_print_triple(T, Opts)
+  ;   % Statement is a quadruple.
+      T = rdf(_,_,_,_)
+  ->  rdf_print_quadruple(T, Opts)
+  ).
 
 %! rdf_print_statement(
 %!   +Subject:rdf_term,
@@ -349,6 +375,16 @@ rdf_print_term(T, Opts):-
   writeln(X).
 
 
+
+%! rdf_print_triple(+Triple:compound) is det.
+
+rdf_print_triple(T):-
+  rdf_print_triple(T, []).
+
+%! rdf_print_triple(+Triple:compound, +Options:list(compound)) is det.
+
+rdf_print_triple(rdf(S,P,O), Opts):-
+  rdf_print_statement(S, P, O, _, Opts).
 
 %! rdf_print_triple(
 %!   ?Subject:rdf_term,
