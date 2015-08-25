@@ -2,6 +2,7 @@
   lodcache,
   [
     add_to_lod_pool/1, % +Resource:iri
+    load_file_as_egographs/1, % +Spec:compound
     process_lod_pool/0
   ]
 ).
@@ -29,13 +30,19 @@ datatype preferences in order to perform limited-scale crawling.
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_debug)).
-:- use_module(library(debug)).
-:- use_module(library(lodcache/lodcache_egograph)).
+:- use_module(library(deb_ext)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(ordsets)).
+:- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_statement)).
+:- use_module(library(rdf/rdf_update)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(solution_sequences)).
+:- use_module(library(uri)).
 
 :- dynamic(in_lod_pool/1).
 :- dynamic(lod_caching/1).
@@ -84,6 +91,23 @@ add_to_lod_pool(Iri):-
 
 
 
+%! load_file_as_egographs(+Spec:compound) is det.
+% Cache the contents of the given RDF file in terms of egographs.
+
+load_file_as_egographs(Spec):-
+  thread_self(Id),
+  atomic_list_concat([tmp,Id], '_', G),
+  setup_call_cleanup(
+    rdf_load_any(Spec, [graph(G)]),
+    forall(
+      distinct(S, rdf2(S, _, _)),
+      rdf_mv(G, S, _, _, S)
+    ),
+    rdf_unload_graph(G)
+  ).
+
+
+
 %! process_lod_pool is det.
 % Start processing the LOD Pool.
 
@@ -99,7 +123,7 @@ process_lod_pool0:-
   )), !,
   
   % LOD Caching goes over HTTP, so this step takes a lot of time.
-  lodcache_egograph(Iri, Ts),
+  cache_egograph(Iri, Ts),
   forall(
     member(rdf(Iri,P,O), Ts),
     rdf_assert(Iri, P, O, Iri)
@@ -122,15 +146,47 @@ process_lod_pool0:-
 
 
 
-%! lod_cache_iri(+Iri:iri, -Triples:ordset(compound)) is det.
-% A special case occurs where a resource exists with empty dereference.
-% An empty named graph indicates that this resource was processed.
+%! cache_egograph(+Iri:iri, -Triples:ordset(compound)) is det.
+% Retrieves the triples that encompass the ego-graph of the given RDF IRI.
+%
+% ### Definition
+%
+% An **ego-graph** is a graph with one vertex in the middle
+% (the aforementioned resource) and an arbitrary number of vertices
+% surrounding it.
+% The complete ego-graph of a resource gives the depth-1 description
+% of that resource.
+%
+% The complete ego-graph is stored in an RDF graph with name `Resource`.
+%
+% @see http://faculty.ucr.edu/~hanneman/nettext/C9_Ego_networks.html
 
-lod_cache_iri(Iri, Ts):-
+cache_egograph(Iri, Ts):-
   % By creating the graph up front we prevent other threads
   % from caching the same resource.
   with_mutex(lod_pool, rdf_create_graph(Iri)),
-  lodcache_egograph(Iri, Ts).
+
+  % Temporary graph name.
+  thread_self(Id),
+  atomic_list_concat([Iri,Id], '_', G),
+
+  catch(
+    setup_call_cleanup(
+      rdf_load_any(Iri, [graph(G)]),
+      aggregate_all(set(rdf(Iri,P,O)), rdf2(Iri,P,O,G), Ts),
+      rdf_unload_graph(G)
+    ),
+    E,
+    (   E = exception(Err)
+    ->  print_message(error, Err)
+    ;   rdf_unload_graph(G)
+    )
+  ),
+
+  if_debug(lodcache, (
+    length(Ts, N),
+    debug(lodcache, 'Loaded ~D triples for IRI ~a', [N,Iri])
+  )).
 
 
 
