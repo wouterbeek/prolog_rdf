@@ -59,8 +59,10 @@ Easy printing of RDF data to the terminal.
 :- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_quoted)).
+:- use_module(library(error)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(semweb/rdf_db)).
@@ -200,13 +202,19 @@ rdf_print_graph(G):-
 %   * indent(+nonneg)
 %   * logic_sym(+boolean)
 %   * style(+oneof([tuple,turtle])
+%
+% @throws existence_error
 
 rdf_print_graph(G, Opts):-
-  rdf_graph(G),
+  var(G), !,
+  rdf_print_quadruple(_, _, _, _, Opts),
+  fail.
+rdf_print_graph(G, Opts):-
   rdf_is_graph(G), !,
   rdf_print_triple(_, _, _, G, Opts),
   fail.
-rdf_print_graph(_, _).
+rdf_print_graph(G, _):-
+  existence_error(rdf_graph, G).
 
 
 
