@@ -19,6 +19,7 @@
 :- use_module(library(iostream)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_http_plugin)).
 
 :- meta_predicate(rdf_stream(+,2)).
 :- meta_predicate(rdf_stream(+,2,+)).
@@ -38,9 +39,10 @@ rdf_stream(Spec, Goal_1):-
 %    * format(?rdf_format)
 
 rdf_stream(Spec, Goal_2, Opts):-
+  rdf_http_plugin:rdf_extra_headers(HttpOpts, Opts),
   ArchOpts = [close_parent(false),format(all),format(raw)],
   setup_call_cleanup(
-    open_any(Spec, read, Read0, Close, []),
+    open_any(Spec, read, Read0, Close, HttpOpts),
     setup_call_cleanup(
       archive_open(Read0, Arch, ArchOpts),
       (
