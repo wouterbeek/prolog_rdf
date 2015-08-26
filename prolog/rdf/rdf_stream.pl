@@ -1,44 +1,40 @@
 :- module(
   rdf_stream,
   [
-    rdf_stream/2, % +Spec, :Goal_2
-    rdf_stream/3 % +Spec
-                 % :Goal_2
-            		 % +Options:list(compound)
+    rdf_stream_read/3, % +Spec
+                       % :Goal_2
+                       % +Options:list(compound)
+    rdf_stream_write/3 % +Spec
+                       % :Goal_1
+                       % +Options:list(compound)
   ]
 ).
 
-/** <module> RDF load
+/** <module> RDF stream
 
 @author Wouter Beek
 @version 2015/08
 */
 
 :- use_module(library(archive)).
+:- use_module(library(error)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(iostream)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
+:- use_module(library(zlib)).
 
-:- meta_predicate(rdf_stream(+,2)).
-:- meta_predicate(rdf_stream(+,2,+)).
-
-
-
+:- meta_predicate(rdf_stream_read(+,2,+)).
+:- meta_predicate(rdf_stream_write(+,1,+)).
 
 
-%! rdf_stream(+Spec, :Goal_2) is det.
-% Wrapper around rdf_stream/3 with default options.
 
-rdf_stream(Spec, Goal_1):-
-  rdf_stream(Spec, Goal_1, []).
 
-%! rdf_stream(+Spec, :Goal_2, +Options:list(compound)) is det.
-% The following options are supported:
-%    * format(?rdf_format)
 
-rdf_stream(Spec, Goal_2, Opts):-
+%! rdf_stream_read(+Spec, :Goal_2, +Options:list(compound)) is det.
+
+rdf_stream_read(Spec, Goal_2, Opts):-
   rdf_http_plugin:rdf_extra_headers(HttpOpts, Opts),
   ArchOpts = [close_parent(false),format(all),format(raw)],
   setup_call_cleanup(
@@ -57,6 +53,24 @@ rdf_stream(Spec, Goal_2, Opts):-
         )
       ),
       archive_close(Arch)
+    ),
+    close_any(Close)
+  ).
+
+
+
+%! rdf_stream_write(+Spec, :Goal_1, +Options:list(compound)) is det.
+
+rdf_stream_write(Spec, Goal_1, Opts):- !,
+  setup_call_cleanup(
+    open_any(Spec, write, Write0, Close, Opts),
+    (
+      (   option(compress(Comp), Opts),
+          must_be(oneof([deflate,gzip]), Comp)
+      ->  zopen(Write0, Write, [format(Comp)])
+      ;   Write = Write0
+      ),
+      call(Goal_1, Write)
     ),
     close_any(Close)
   ).

@@ -43,7 +43,7 @@ rdf_load_any(Spec, Opts0):-
   ;   true
   ),
   merge_options([graph(G)], Opts0, Opts),
-  rdf_stream(Spec, rdf_load0(Opts), Opts).
+  rdf_stream_read(Spec, rdf_load0(Opts), Opts).
 
 rdf_load0(Opts0, Format, Read):-
   merge_options([format(Format)], Opts0, Opts),

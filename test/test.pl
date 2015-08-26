@@ -46,6 +46,7 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_save)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
