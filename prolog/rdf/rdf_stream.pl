@@ -47,7 +47,7 @@ rdf_stream(Spec, Goal_2, Opts):-
       archive_open(Read0, Arch, ArchOpts),
       (
         % NONDET
-        archive_data_stream(Arch, Read, [meta_data(M)]),
+        archive_data_stream(Arch, Read, [meta_data(_)]),
         call_cleanup(
           (
             rdf_determine_format(Read, Opts, Format),

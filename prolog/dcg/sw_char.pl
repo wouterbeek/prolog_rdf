@@ -239,28 +239,28 @@ comment --> "#", string(_), 'EOL0'.
 % @compat SPARQL 1.1 Query [173].
 % @compat Turtle 1.1 [172s].
 
-'PN_LOCAL_ESC'(C) --> "\\", 'PN_LOCAL_ESC0'(C).
+'PN_LOCAL_ESC'(C) --> "\\", 'PN_LOCAL_ESC_char'(C).
 
-'PN_LOCAL_ESC0'(C) --> underscore(C).
-'PN_LOCAL_ESC0'(C) --> tilde(C).
-'PN_LOCAL_ESC0'(C) --> dot(C).
-'PN_LOCAL_ESC0'(C) --> hyphen_minus(C).
-'PN_LOCAL_ESC0'(C) --> exclamation_mark(C).
-'PN_LOCAL_ESC0'(C) --> dollar_sign(C).
-'PN_LOCAL_ESC0'(C) --> ampersand(C).
-'PN_LOCAL_ESC0'(C) --> apostrophe(C).
-'PN_LOCAL_ESC0'(C) --> opening_round_bracket(C).
-'PN_LOCAL_ESC0'(C) --> closing_round_bracket(C).
-'PN_LOCAL_ESC0'(C) --> asterisk(C).
-'PN_LOCAL_ESC0'(C) --> plus_sign(C).
-'PN_LOCAL_ESC0'(C) --> comma(C).
-'PN_LOCAL_ESC0'(C) --> semi_colon(C).
-'PN_LOCAL_ESC0'(C) --> equals_sign(C).
-'PN_LOCAL_ESC0'(C) --> slash(C).
-'PN_LOCAL_ESC0'(C) --> question_mark(C).
-'PN_LOCAL_ESC0'(C) --> number_sign(C).
-'PN_LOCAL_ESC0'(C) --> at_sign(C).
-'PN_LOCAL_ESC0'(C) --> percent_sign(C).
+'PN_LOCAL_ESC_char'(C) --> underscore(C).
+'PN_LOCAL_ESC_char'(C) --> tilde(C).
+'PN_LOCAL_ESC_char'(C) --> dot(C).
+'PN_LOCAL_ESC_char'(C) --> hyphen_minus(C).
+'PN_LOCAL_ESC_char'(C) --> exclamation_mark(C).
+'PN_LOCAL_ESC_char'(C) --> dollar_sign(C).
+'PN_LOCAL_ESC_char'(C) --> ampersand(C).
+'PN_LOCAL_ESC_char'(C) --> apostrophe(C).
+'PN_LOCAL_ESC_char'(C) --> opening_round_bracket(C).
+'PN_LOCAL_ESC_char'(C) --> closing_round_bracket(C).
+'PN_LOCAL_ESC_char'(C) --> asterisk(C).
+'PN_LOCAL_ESC_char'(C) --> plus_sign(C).
+'PN_LOCAL_ESC_char'(C) --> comma(C).
+'PN_LOCAL_ESC_char'(C) --> semi_colon(C).
+'PN_LOCAL_ESC_char'(C) --> equals_sign(C).
+'PN_LOCAL_ESC_char'(C) --> slash(C).
+'PN_LOCAL_ESC_char'(C) --> question_mark(C).
+'PN_LOCAL_ESC_char'(C) --> number_sign(C).
+'PN_LOCAL_ESC_char'(C) --> at_sign(C).
+'PN_LOCAL_ESC_char'(C) --> percent_sign(C).
 
 
 

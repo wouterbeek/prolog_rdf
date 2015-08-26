@@ -1,3 +1,5 @@
+%/conv
+:- use_module(library(conv/json_to_rdf)).
 %/ctriples
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
@@ -10,6 +12,7 @@
 :- use_module(library(dcg/sw_literal)).
 :- use_module(library(dcg/sw_number)).
 :- use_module(library(dcg/sw_string)).
+:- use_module(library(dcg/turtle_convert)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
 %/lod
