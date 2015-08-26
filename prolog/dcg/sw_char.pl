@@ -104,14 +104,14 @@ comment --> "#", string(_), 'EOL0'.
 % @compat Turtle 1.1 [170s].
 
 'PERCENT'(C) -->
+  {var(C)}, !,
+  'PERCENT'(C1, C2),
+  {C is C1 * 16 + C2}.
+'PERCENT'(C) -->
   {between(0, 256, C)},
   {C1 is C // 16},
   {C2 is C rem 16},
   'PERCENT'(C1, C2).
-'PERCENT'(C) -->
-  {var(C)},
-  'PERCENT'(C1, C2),
-  {C is C1 * 16 + C2}.
 
 'PERCENT'(C1, C2) --> "%", 'HEX'(C1), 'HEX'(C2).
 
