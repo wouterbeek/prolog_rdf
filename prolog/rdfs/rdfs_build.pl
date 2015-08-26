@@ -58,6 +58,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
 
 :- rdf_meta(rdfs_assert_class(r,+,+,r,?)).
