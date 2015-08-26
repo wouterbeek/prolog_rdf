@@ -222,15 +222,22 @@ rdf_print_graph(G):-
 % @throws existence_error
 
 rdf_print_graph(G, Opts):-
-  var(G), !,
+  (   var(G)
+  ->  rdf_print_graph0(Opts)
+  ;   rdf_is_graph(G)
+  ->  rdf_print_graph0(G, Opts)
+  ;   existence_error(rdf_graph, G)
+  ).
+
+rdf_print_graph0(Opts):-
   rdf_print_quadruple(_, _, _, _, Opts),
   fail.
-rdf_print_graph(G, Opts):-
-  rdf_is_graph(G), !,
+rdf_print_graph0(_).
+
+rdf_print_graph0(G, Opts):-
   rdf_print_triple(_, _, _, G, Opts),
   fail.
-rdf_print_graph(G, _):-
-  existence_error(rdf_graph, G).
+rdf_print_graph0(_, _).
 
 
 
