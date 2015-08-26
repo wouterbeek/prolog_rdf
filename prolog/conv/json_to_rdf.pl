@@ -26,6 +26,7 @@ the RDF prefix that is used for the RDF vocabulary.
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/turtle_conv)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_build)).
@@ -153,7 +154,7 @@ assert_triples0(SPrefix, G, S, P, Os):-
   is_list(Os), !,
   maplist(assert_triples0(SPrefix, G, S, P), Os).
 assert_triples0(SPrefix, G, S, P0, O):-
-  atom_to_pn_local(P0, PnLocal),
+  to_pn_local(P0, PnLocal),
   rdf_global_id(SPrefix:PnLocal, P),
   rdf_assert(S, P, O, G).
 
