@@ -57,3 +57,12 @@ script4:-
   rdfs_assert_range(ex:p, ex:c, G),
   rdf_assert_literal(ex:s, ex:p, xsd:string, o, G),
   mat(G).
+
+script5:-
+  rdf_reset_db,
+  G = script5,
+  owl_assert_functional_property(ex:p, G),
+  rdf_assert(ex:a, ex:p, ex:b, G),
+  rdf_assert(ex:a, ex:p, ex:c, G),
+  rdf_assert(ex:b, owl:differentFrom, ex:c, G),
+  mat(G).
