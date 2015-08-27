@@ -12,9 +12,10 @@
 :- use_module(library(dcg/sw_literal)).
 :- use_module(library(dcg/sw_number)).
 :- use_module(library(dcg/sw_string)).
-:- use_module(library(dcg/turtle_convert)).
+:- use_module(library(dcg/turtle_conv)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
+:- use_module(library(html/rdf_html_term)).
 %/lod
 :- use_module(library(lod/lod_cache)).
 :- use_module(library(lod/lod_stats)).
