@@ -192,6 +192,9 @@ assert_json_property(G, Mod, SPrefix, DPrefix, or(Types), Val, O):-
   % NONDET.
   member(Type, Types),
   assert_json_property(G, Mod, SPrefix, DPrefix, Type, Val, O), !.
+% RDF IRI (JSON-LD notation).
+assert_json_property(_, _, _, _, '@id', Val, O):- !,
+  atom_string(O, Val).
 % RDF list: mimic the list in RDF and link to the list.
 assert_json_property(G, Mod, SPrefix, DPrefix, rdf_list(Type), Vals, O):-
   is_list(Vals), !,
