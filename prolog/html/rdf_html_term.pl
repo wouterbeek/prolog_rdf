@@ -639,7 +639,7 @@ rdf_html_term(T) -->
 
 rdf_html_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
-  html(class=term, \rdf_html_literal(T, Opts)).
+  html(span(class=term, \rdf_html_literal(T, Opts))).
 rdf_html_term(T, Opts) -->
   {rdf_is_bnode(T)}, !,
   rdf_html_bnode(T, Opts).
