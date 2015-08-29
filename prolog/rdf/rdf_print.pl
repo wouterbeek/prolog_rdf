@@ -36,6 +36,7 @@
     rdf_print_triple/1, % +Triple
     rdf_print_triple/2, % +Triple:compound
                         % +Options:list(compound)
+    rdf_print_triple/3, % ?Subject, ?Predicate, ?Object
     rdf_print_triple/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf_print_triple/5, % ?Subject:rdf_term
                         % ?Predicate:iri
@@ -96,6 +97,7 @@ Easy printing of RDF data to the terminal.
 :- rdf_meta(rdf_print_term(o,+,?,?)).
 :- rdf_meta(rdf_print_triple(t)).
 :- rdf_meta(rdf_print_triple(t,+)).
+:- rdf_meta(rdf_print_triple(o,r,o)).
 :- rdf_meta(rdf_print_triple(o,r,o,?)).
 :- rdf_meta(rdf_print_triple(o,r,o,?,+)).
 :- rdf_meta(rdf_print_triples(t)).
@@ -367,7 +369,7 @@ rdf_print_statement(S, P, O, G, Opts):-
   option(indent(I), Opts, 0),
   string_phrase(rdf_print_statement(S, P, O, G, Opts), X),
   tab(I),
-  writeln(X).
+  write(X).
 
 
 
@@ -406,7 +408,7 @@ rdf_print_term(T):-
 
 rdf_print_term(T, Opts):-
   string_phrase(rdf_print_term(T, Opts), X),
-  writeln(X).
+  write(X).
 
 
 
@@ -424,8 +426,18 @@ rdf_print_triple(rdf(S,P,O), Opts):-
 %! rdf_print_triple(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
+%!   ?Object:rdf_term
+%! ) is nondet.
+% Wrapper around rdf_print_triple/4 with uninstantiated graph.
+
+rdf_print_triple(S, P, O):-
+  rdf_print_triple(S, P, O, _).
+
+%! rdf_print_triple(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   +Options:list(compound)
+%!   ?Graph:atom
 %! ) is nondet.
 % Wrapper around rdf_print_triple/5 with default options.
 
