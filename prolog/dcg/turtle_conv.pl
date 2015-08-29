@@ -18,6 +18,7 @@ Predicates for converting Prolog to Turtle values.
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/sw_char)).
+:- use_module(library(dlist)).
 :- use_module(library(math/radconv)).
 
 
@@ -81,13 +82,3 @@ to_pn_local_escape([37,C1,C2|H]-H) -->
     atom_chars(Hex, [Char1,Char2]),
     maplist(char_code, [Char1,Char2], [C1,C2])
   }.
-
-dappend([], []):- !.
-dappend([L-[]], L):- !.
-dappend([L1,L2], L):- !,
-  dappend(L1, L2, L-[]).
-dappend([L1,L2|T], L):-
-  dappend(L1, L2, L3),
-  dappend([L3|T], L).
-
-dappend(L1-H1, H1-H2, L1-H2).
