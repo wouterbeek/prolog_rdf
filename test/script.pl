@@ -27,9 +27,9 @@ script1:-
   rdf_assert(Hog1, foaf:knows, Hog2, G),
   rdf_assert_literal(Hog1, ex:age, xsd:nonNegativeInteger, 2, G),
   rdf_assert_now(Hog1, ex:registrationDate, G),
-  rdf_assert_literal0(Hog2, ex:age, 2.3, G),
-  rdf_assert_literal0(Hog2, ex:age, 23 rdiv 10, G),
-  rdf_assert_literal0(Hog2, rdfs:comment, "This is a fine hog.", G),
+  rdf_assert_literal_pl(Hog2, ex:age, 2.3, G),
+  rdf_assert_literal_pl(Hog2, ex:age, 23 rdiv 10, G),
+  rdf_assert_literal_pl(Hog2, rdfs:comment, "This is a fine hog.", G),
   mat(G).
 
 script2:-
