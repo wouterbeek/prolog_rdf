@@ -74,9 +74,12 @@ rdfs_label(S, Pref, Lang, Lbl):-
 %!   ?Graph:atom
 %! ) is nondet.
 
-% First look for language-tagged strings with matching language tag.
+
 rdfs_label(S, Pref, Lang, Lex, G):-
-  rdf_langstring(S, rdfs:label, Pref, Lang-Lex, G).
-% Secondly look for XSD strings with no language tag.
-rdfs_label(S, _, _, Lex, G):-
-  rdf_literal(S, rdfs:label, xsd:string, Lex, G).
+  rdf_global_id(rdfs:label, P),
+  (   % First look for language-tagged strings with matching language tag.
+      rdf_langstring(S, P, Pref, Lang-Lex, G)
+  ;   % Secondly look for XSD strings with no language tag.
+      rdf_global_id(xsd:string, D),
+      rdf_literal(S, P, D, Lex, G)
+  ).
