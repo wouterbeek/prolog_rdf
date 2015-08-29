@@ -151,6 +151,7 @@ rdf_langstring(S, P, Prefs, V):-
 rdf_langstring(S, P, Pref, V, G):-
   rdf_literal(S, P, rdf:langString, V, G),
   V = Lang-_,
+  atom(Lang),
   basic_filtering(Pref, Lang).
 
 
@@ -206,10 +207,8 @@ rdf_literal(S, P, D, V, G):-
 rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
   V = Lang-Lex,
   O = literal(lang(Lang,Lex)),
-  (   ground(Lang)
-  ->  rdf2(S, P, O, G)
-  ;   rdf2(S, P, O, G)
-  ).
+  rdf2(S, P, O, G),
+  atom(Lang).
 % Ground datatype and value.
 rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
   ground(D),
