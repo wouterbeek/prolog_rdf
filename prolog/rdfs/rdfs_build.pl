@@ -2,8 +2,8 @@
   rdfs_build,
   [
     rdfs_assert_class/5, % +Class:or([bnode,iri])
-                         % +Label:or([atom,pair(list(atom),atom)])
-                         % +Comment:or([atom,pair(list(atom),atom)])
+                         % +Label:or([atom,pair(atom)])
+                         % +Comment:or([atom,pair(atom)])
                          % ?Parent:or([bnode,iri])
                          % ?Graph:atom
     rdfs_assert_comment/3, % +Subject:rdf_term
@@ -83,8 +83,8 @@ Predicates for asseritng RDFS statements in an easy way.
 
 %! rdfs_assert_class(
 %!   +Class:or([bnode,iri]),
-%!   +Label:or([atom,pair(list(atom),atom)]),
-%!   +Comment:or([atom,pair(list(atom),atom)]),
+%!   +Label:or([atom,pair(atom)]),
+%!   +Comment:or([atom,pair(atom)]),
 %!   ?Parent:or([bnode,iri]),
 %!   ?Graph:atom
 %! ) is det.
@@ -99,7 +99,7 @@ rdfs_assert_class(C, Lbl, Comm, SuperC, G):-
 
 %! rdfs_assert_comment(
 %!   +Subject:rdf_term,
-%!   +Comment:or([atom,pair(atom,list(atom))]),
+%!   +Comment:or([atom,pair(atom)]),
 %!   ?Graph:atom
 %! ) is det.
 
@@ -131,11 +131,7 @@ rdfs_assert_isDefinedBy(S, G):-
   rdfs_assert_isDefinedBy(S, _, G).
 
 
-%! rdfs_assert_isDefinedBy(
-%!   +Subject:rdf_term,
-%!   ?Uri:atom,
-%!   ?Graph:atom
-%! ) is det.
+%! rdfs_assert_isDefinedBy(+Subject:rdf_term, ?Iri:atom, ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -208,11 +204,7 @@ rdfs_assert_range(P, R, G):-
 
 
 
-%! rdfs_assert_seeAlso(
-%!   +Subject:rdf_term,
-%!   +Uri:atom,
-%!   ?Graph:atom
-%! ) is det.
+%! rdfs_assert_seeAlso(+Subject:rdf_term, +Iri:atom, ?Graph:atom) is det.
 % The following propositions are asserted:
 %
 % ```nquads
