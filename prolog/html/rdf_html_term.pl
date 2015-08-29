@@ -64,6 +64,7 @@ Generates HTML representations of RDF data.
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_list)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
@@ -323,13 +324,23 @@ rdf_html_iri(Iri, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_html_list(Iri, Opts), !.
 rdf_html_iri(Iri, Opts) -->
-  {option(symbol_iri(true), Opts, true)},
-  html(span(class=[iri,'symbol-iri'], rdf_html_iri_sym(Iri))), !.
+  {option(symbol_iri(true), Opts, true),
+   Class = [iri,'symbol-iri']},
+  (   {rdf_memberchk(Iri, [owl:equivalentClass,owl:sameAs])}
+  ->  html(span(class=[equiv|Class], \equivalence))
+  ;   {rdf_global_id(rdfs:subClassOf, Iri)}
+  ->  html(span(class=[subclass|Class], \subclass))
+  ;   {rdf_global_id(rdf:type, Iri)}
+  ->  html(span(class=[in|Class], \set_membership))
+  ).
 rdf_html_iri(Global, Opts) -->
-  {option(label_iri(true), Opts), !,
+  {option(label_iri(true), Opts),
    option(lang_pref(Pref), Opts, 'en-US'),
-   once(rdfs_label(Global, Pref, Lang, Lbl))},
-  html(span([class=[iri,'label-iri'],lang=Lang], Lbl)).
+   once(rdfs_label(Global, Pref, Lang, Lbl))}, !,
+  (   {var(Lang)}
+  ->  html(span(class=[iri,'label-iri'], Lbl))
+  ;   html(span([class=[iri,'label-iri'],lang=Lang], Lbl))
+  ).
 rdf_html_iri(Global, Opts) -->
   {\+ option(abbr_iri(false), Opts),
    rdf_global_id(Prefix:Local, Global), !,
@@ -347,15 +358,6 @@ rdf_html_iri(Global, Opts) -->
   html(span(class=iri, [&(lang),Global,&(rang)])).
 rdf_html_iri(Global, _) -->
   html(span(class=iri, Global)).
-
-rdf_html_iri_sym(Iri) -->
-  (   {rdf_global_id(owl:equivalentClass, Iri)}
-  ->  html(span(class=[equiv,iri], \equivalence))
-  ;   {rdf_global_id(rdfs:subClassOf, Iri)}
-  ->  html(span(class=[iri,subclass], \subclass))
-  ;   {rdf_global_id(rdf:type, Iri)}
-  ->  html(span(class=[in,iri], \set_membership))
-  ).
 
 
 
@@ -410,7 +412,7 @@ rdf_html_term0(Opts, T) --> rdf_html_term(T, Opts).
 %   * lang_pref(+atom)
 %   * symbol_iri(+boolean)
 
-rdf_html_literal(literal(type(D,Lex)), Opts) -->
+rdf_html_literal(literal(type(D,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
   ->  html(
         span(class=literal, [
