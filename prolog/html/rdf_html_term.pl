@@ -2,7 +2,7 @@
   rdf_html,
   [
     rdf_html_describe//1, % +Subject
-    rdf_html_describe//2, % +Subject, ?Graph
+    rdf_html_describe//2, % +Subject, +Options
     rdf_html_describe//3, % +Subject:rdf_term
                           % ?Graph:atom
                           % +Options:list(compound)
@@ -65,11 +65,13 @@ Generates HTML representations of RDF data.
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
-:- rdf_meta(rdf_html_describe(o,?,?,?)).
+:- rdf_meta(rdf_html_describe(o,?,?)).
+:- rdf_meta(rdf_html_describe(o,+,?,?)).
 :- rdf_meta(rdf_html_describe(o,?,+,?,?)).
 :- rdf_meta(rdf_html_quadruple(t,?,?)).
 :- rdf_meta(rdf_html_quadruple(t,+,?,?)).
@@ -94,6 +96,12 @@ Generates HTML representations of RDF data.
      abbr_list(+boolean),
      pass_to(rdf_html_list//2)
    ]).
+:- predicate_options(rdf_html_datatype//2, 2, [
+     pass_to(rdf_html_iri//2, 2)
+   ]).
+:- predicate_options(rdf_html_describe//2, 2, [
+     pass_to(rdf_html_describe//3, 3)
+   ]).
 :- predicate_options(rdf_html_describe//3, 3, [
      pass_to(rdf_html_statement//5, 5)
    ]).
@@ -108,8 +116,13 @@ Generates HTML representations of RDF data.
      abbr_iri(+boolean),
      abbr_list(+boolean),
      ellip_ln(+or([nonneg,oneof([inf])])),
-     logic_sym(+boolean),
+     label_iri(+boolean),
+     lang_pref(+atom),
+     symbol_iri(+boolean),
      pass_to(rdf_html_list//2, 2)
+   ]).
+:- predicate_options(rdf_html_language_tag//2, 2, [
+     pass_to(rdf_html_language_subtags//2, 2)
    ]).
 :- predicate_options(rdf_html_lexical//2, 2, [
      ellip_lit(+or([nonneg,oneof([inf])]))
@@ -127,7 +140,7 @@ Generates HTML representations of RDF data.
      pass_to(rdf_html_term//2, 2)
    ]).
 :- predicate_options(rdf_html_predicate//2, 2, [
-     pass_to(rdf_html_term//2, 2)
+     pass_to(rdf_html_iri//2, 2)
    ]).
 :- predicate_options(rdf_html_quadruple//2, 2, [
      pass_to(rdf_html_statement//5, 5)
@@ -163,6 +176,9 @@ Generates HTML representations of RDF data.
    ]).
 :- predicate_options(rdf_html_triple//2, 2, [
      pass_to(rdf_html_statement//5, 5)
+   ]).
+:- predicate_options(rdf_html_triple//4, 4, [
+     pass_to(rdf_html_triple//5, 5)
    ]).
 :- predicate_options(rdf_html_triple//5, 5, [
      pass_to(rdf_html_statement//5, 5),
@@ -201,16 +217,16 @@ rdf_html_datatype(D, Opts) -->
 
 
 %! rdf_html_describe(+Subject:rdf_term)// is det.
-% Wrapper around rdf_html_describe//2 with uninstantiated graph.
+% Wrapper around rdf_html_describe//2 with default options.
 
 rdf_html_describe(S) -->
-  rdf_html_describe(S, _).
+  rdf_html_describe(S, []).
 
-%! rdf_html_describe(+Subject:rdf_term, ?Graph:atom)// is det.
-% Wrapper around rdf_html_describe//3 with default options.
+%! rdf_html_describe(+Subject:rdf_term, +Options:list(compound))// is det.
+% Wrapper around rdf_html_describe//3 with uninstantiated graph.
 
-rdf_html_describe(S, G) -->
-  rdf_html_describe(S, G, []).
+rdf_html_describe(S, Opts) -->
+  rdf_html_describe(S, _, Opts).
 
 %! rdf_html_describe(
 %!   +Subject:rdf_term,
@@ -221,9 +237,9 @@ rdf_html_describe(S, G) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * indent(+nonneg)
-%   * logic_sym(+boolean)
 %   * page_size(+nonneg)
+%   * lang_pref(+atom)
+%   * symbol_iri(+boolean)
 %   * style(+oneof([tuple,turtle])
 
 % No graph is given: display quadruples.
@@ -247,9 +263,9 @@ rdf_html_graph(G) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * indent(+nonneg)
-%   * logic_sym(+boolean)
+%   * lang_pref(+atom)
 %   * page_size(+nonneg)
+%   * symbol_iri(+boolean)
 %   * style(+oneof([tuple,turtle])
 %
 % @throws existence_error
@@ -289,12 +305,17 @@ rdf_html_graph_maybe(_, _) --> html([]).
 %     but `false` for RDF compound terms (since in the latter case
 %     we cannot check whether something is an RDF list or not).
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%     Elipses IRI local names so that they are assued to be at most
+%     Ellipses IRI local names so that they are assued to be at most
 %     the given number of characters in length.
 %     This is only used when `abbr_iri=true`.
 %     Default is `20` to ensure that every triple fits within
 %     an 80 character wide terminal.
-%   * logic_sym(+boolean)
+%   * label_iri(+boolean)
+%     Whether RDFS labels should be used i.o. IRIs.
+%     Default is `false`.
+%   * lang_pref(+atom)
+%     Default is `en-US`.
+%   * symbol_iri(+boolean)
 %     Whether logic symbols should be used i.o. IRIs.
 %     Default is `true`.
 
@@ -302,8 +323,13 @@ rdf_html_iri(Iri, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_html_list(Iri, Opts), !.
 rdf_html_iri(Iri, Opts) -->
-  {option(logic_sym(true), Opts, true)},
-  rdf_html_iri_sym(Iri), !.
+  {option(symbol_iri(true), Opts, true)},
+  html(span(class=[iri,'symbol-iri'], rdf_html_iri_sym(Iri))), !.
+rdf_html_iri(Global, Opts) -->
+  {option(label_iri(true), Opts), !,
+   option(lang_pref(Pref), Opts, 'en-US'),
+   once(rdfs_label(Global, Pref, Lang, Lbl))},
+  html(span([class=[iri,'label-iri'],lang=Lang], Lbl)).
 rdf_html_iri(Global, Opts) -->
   {\+ option(abbr_iri(false), Opts),
    rdf_global_id(Prefix:Local, Global), !,
@@ -323,21 +349,27 @@ rdf_html_iri(Global, _) -->
   html(span(class=iri, Global)).
 
 rdf_html_iri_sym(Iri) -->
-  {rdf_global_id(owl:equivalentClass, Iri)}, !,
-  html(span(class=[equiv,iri], \equivalence)).
-rdf_html_iri_sym(Iri) -->
-  {rdf_global_id(rdfs:subClassOf, Iri)}, !,
-  html(span(class=[iri,subclass], \subclass)).
-rdf_html_iri_sym(Iri) -->
-  {rdf_global_id(rdf:type, Iri)}, !,
-  html(span(class=[in,iri], \set_membership)).
+  (   {rdf_global_id(owl:equivalentClass, Iri)}
+  ->  html(span(class=[equiv,iri], \equivalence))
+  ;   {rdf_global_id(rdfs:subClassOf, Iri)}
+  ->  html(span(class=[iri,subclass], \subclass))
+  ;   {rdf_global_id(rdf:type, Iri)}
+  ->  html(span(class=[in,iri], \set_membership))
+  ).
 
 
 
 %! rdf_html_language_tag(+LanguageTag:atom, +Options:list(compound))// is det.
+% Options are passed to rdf_html_language_subtags//2.
 
-rdf_html_language_tag(Lang, _) -->
-  html(span(class='language-tag', Lang)).
+rdf_html_language_tag(Lang, Opts) -->
+  {atomic_list_concat(Subtags, -, Lang)},
+  html(span(class='language-tag', \rdf_html_language_subtags(Subtags, Opts))).
+
+rdf_html_language_subtags([], _) --> !, html([]).
+rdf_html_language_subtags([H|T], Opts) -->
+  html(span(class='language-subtag', H)),
+  rdf_html_language_subtags(T, Opts).
 
 
 
@@ -375,7 +407,8 @@ rdf_html_term0(Opts, T) --> rdf_html_term(T, Opts).
 %   * abbr_iri(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * logic_sym(+boolean)
+%   * lang_pref(+atom)
+%   * symbol_iri(+boolean)
 
 rdf_html_literal(literal(type(D,Lex)), Opts) -->
   (   {option(style(turtle), Opts)}
@@ -430,6 +463,7 @@ rdf_html_literal(literal(Lex), Opts) -->
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
+%   * label_iri(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 
@@ -441,7 +475,9 @@ rdf_html_object(O, Opts) -->
 %! rdf_html_predicate(+Predicate:iri, +Options:list(compound))// is det.
 %   * abbr_iri(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * logic_sym(+boolean)
+%   * label_iri(+boolean)
+%   * lang_pref(+atom)
+%   * symbol_iri(+boolean)
 
 rdf_html_predicate(P, Opts) -->
   html(span(class=predicate, \rdf_html_iri(P, Opts))).
@@ -481,8 +517,8 @@ rdf_html_quadruple(S, P, O, G) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * indent(+nonneg)
-%   * logic_sym(+boolean)
+%   * lang_pref(+atom)
+%   * symbol_iri(+boolean)
 %   * page_size(+nonneg)
 %   * style(+oneof([tuple,turtle])
 
@@ -553,13 +589,15 @@ rdf_html_statement(T, Opts0) -->
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * logic_sym(+boolean)
+%   * label_iri(+boolean)
+%   * lang_pref(+atom)
 %   * page_size(+nonneg)
 %   * style(+oneof([tuple,turtle])
 %     The style that is used for printing the statement.
 %     Style `turtle` is appropriate for enumerating multiple triples.
 %     Style `tuple` is appropriate for singular triples.
 %     Default is `tuple`.
+%   * symbol_iri(+boolean)
 
 rdf_html_statement(S, P, O, G, Opts) -->
   {option(style(turtle), Opts)}, !,
@@ -617,6 +655,7 @@ rdf_html_statements(Ss, Opts0) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
+%   * label_iri(+boolean)
 
 rdf_html_subject(S, Opts) -->
   html(span(class=subject, \rdf_html_term(S, Opts))).
@@ -635,7 +674,9 @@ rdf_html_term(T) -->
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * logic_sym(+boolean)
+%   * label_iri(+boolean)
+%   * lang_pref(+atom)
+%   * symbol_iri(+boolean)
 
 rdf_html_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
@@ -663,7 +704,7 @@ rdf_html_triple(rdf(S,P,O), Opts) -->
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom
+%!   +Options:list(compound)
 %! )// is nondet.
 % Wrapper around rdf_html_triple//5 with default options.
 
@@ -681,10 +722,11 @@ rdf_html_triple(S, P, O, G) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * indent(+nonneg)
-%   * logic_sym(+boolean)
+%   * label_iri(+boolean)
+%   * lang_pref(+atom)
 %   * page_size(+nonneg)
 %   * style(+oneof([tuple,turtle])
+%   * symbol_iri(+boolean)
 
 % Ground triples are printing without them having to be present
 % in the RDF DB.
