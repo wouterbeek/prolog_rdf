@@ -79,7 +79,7 @@ mat(GIn, GOut):-
 
       % Debug message for successful materialization results.
       debug(mat(_), 'AFTER MATERIALIZATION:', []),
-      if_debug(mat(_), rdf_print_graph(GOut, PrintOpts))
+      if_debug(mat(_), rdf_print_graph(GIn, PrintOpts))
   ).
 
 mat0(GIn, GOut):-
@@ -274,7 +274,7 @@ owl-prp-fp @
 owl-prp-rng @
       rdf_chr(P, 'http://www.w3.org/2000/01/rdf-schema#range', C, Gs1),
       rdf_chr(S, P, I, Gs2)
-  ==> gtrace,ord_union(Gs1, Gs2, Gs),
+  ==> ord_union(Gs1, Gs2, Gs),
       mat_deb(owl(prp(dom)), [
         rdf(P, 'http://www.w3.org/2000/01/rdf-schema#range', C, Gs1),
         rdf(S, P, I, Gs2)],
