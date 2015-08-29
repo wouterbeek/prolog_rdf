@@ -119,9 +119,6 @@ store_j0(R, HPs, HC, HJ):-
 %! store_s(+Statement:compound, -Hash:md5) is det.
 % Stores a given Statements and returns the Hash under which it can be found.
 
-store_s(rdf(S,P,O,L1a-L1b), H):- !,
-  dappend(L1a-L1b, []-[], L-[]),
-  store_s(rdf(S,P,O,L), H).
 store_s(S, H):-
   md5(S, H),
   store_s0(S, H).

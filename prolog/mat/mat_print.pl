@@ -96,8 +96,8 @@ print_deduction(R, Ps, C, Opts) -->
 
 print_expression0(error(_), _) --> !,
   falsum.
-print_expression0(rdf(S,P,O,_), Opts) --> !,
-  rdf_print:rdf_print_statement(S, P, O, _, Opts).
+print_expression0(rdf(S,P,O,Gs), Opts) --> !,
+  rdf_print:rdf_print_statement(S, P, O, Gs, Opts).
 print_expression0(T, _) -->
   pl_term(T).
 
