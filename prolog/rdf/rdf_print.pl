@@ -117,6 +117,9 @@ Easy printing of RDF data to the terminal.
      pass_to(rdf_print_quadruple/5, 5),
      pass_to(rdf_print_triple/5, 5)
    ]).
+:- predicate_options(rdf_print_graph_maybe//2, 2, [
+     style(+oneof([tuple,turtle]))
+   ]).
 :- predicate_options(rdf_print_iri//2, 2, [
      abbr_iri(+boolean),
      abbr_list(+boolean),
@@ -162,6 +165,7 @@ Easy printing of RDF data to the terminal.
    ]).
 :- predicate_options(rdf_print_statement//5, 5, [
      style(+oneof([tuple,turtle])),
+     pass_to(rdf_print_graph_maybe//2, 2),
      pass_to(rdf_print_object//2, 2),
      pass_to(rdf_print_predicate//2, 2),
      pass_to(rdf_print_subject//2, 2)
@@ -369,7 +373,7 @@ rdf_print_statement(S, P, O, G, Opts):-
   option(indent(I), Opts, 0),
   string_phrase(rdf_print_statement(S, P, O, G, Opts), X),
   tab(I),
-  write(X).
+  writeln(X).
 
 
 
@@ -517,10 +521,24 @@ rdf_print_datatype(D, Opts) -->
 
 
 
-%! rdf_print_graph(+Graph:atom)// is det.
 
-rdf_print_graph(G) -->
-  atom(G).
+%! rdf_print_graph_maybe(
+%!   ?Graph:or([atom,ordset(atom)]),
+%!   +Options:list(compound)
+%! )// is det.
+
+rdf_print_graph_maybe(G, _) -->
+  {var(G)}, !,
+  [].
+rdf_print_graph_maybe(G, Opts) -->
+  (   {option(style(turtle), Opts)}
+  ->  " "
+  ;   "@"
+  ),
+  (   {is_list(G)}
+  ->  set(atom, G)
+  ;   atom(G)
+  ).
 
 
 
@@ -723,7 +741,7 @@ rdf_print_statement(S, P, O, G, Opts) -->
   rdf_print_predicate(P, Opts),
   " ",
   rdf_print_object(O, Opts),
-  ({ground(G)} -> " ", rdf_print_graph(G) ; ""),
+  rdf_print_graph_maybe(G, Opts),
   " .".
 rdf_print_statement(S, P, O, G, Opts) -->
   lang,
@@ -733,7 +751,7 @@ rdf_print_statement(S, P, O, G, Opts) -->
     ", ",
     rdf_print_object(O, Opts),
   rang,
-  ({ground(G)} -> "@", rdf_print_graph(G) ; "").
+  rdf_print_graph_maybe(G, Opts).
 
 
 
