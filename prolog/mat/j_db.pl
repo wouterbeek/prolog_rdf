@@ -23,6 +23,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dlist)).
 :- use_module(library(hash_ext)).
 :- use_module(library(mat/mat_print)).
 :- use_module(library(ordsets)).
@@ -53,7 +54,7 @@
 %!   ?Conclusion:compound,
 %!   -Justification:md5
 %! ) is nondet.
-% Search for justifications based on 
+% Search for justifications based on
 
 find_j(Rule, Ps, C, J):-
   nonvar(J), !,
@@ -66,10 +67,10 @@ find_j(Rule, Ps0, C0, J):-
   ->  maplist(var_or_md5, Ps0, Ps1)
   ),
   list_to_ord_set(Ps1, Ps2),
-  
+
   % Lookup the conclusion in s/2 if it is instantiated.
   var_or_md5(C0, C),
-  
+
   % Performs subset matching on the predicates.
   j(Rule, Ps3, C, J),
   ord_subset(Ps2, Ps3).
@@ -118,6 +119,9 @@ store_j0(R, HPs, HC, HJ):-
 %! store_s(+Statement:compound, -Hash:md5) is det.
 % Stores a given Statements and returns the Hash under which it can be found.
 
+store_s(rdf(S,P,O,L1a-L1b), H):- !,
+  dappend(L1a-L1b, []-[], L-[]),
+  store_s(rdf(S,P,O,L), H).
 store_s(S, H):-
   md5(S, H),
   store_s0(S, H).

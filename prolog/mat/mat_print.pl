@@ -23,7 +23,6 @@ Printing of materialization results.
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
-:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_logic)).
@@ -86,7 +85,7 @@ print_deduction(R, Ps, C) -->
 %! )// is det.
 
 print_deduction(R, Ps, C, Opts) -->
-  bracketed(square, print_rule(R)),
+  "[", print_rule(R), "]",
   nl,
   print_premises(Ps, Opts),
   print_conclusion(C, Opts).
@@ -95,9 +94,9 @@ print_deduction(R, Ps, C, Opts) -->
 
 %! print_expression0(+Expression:compound, +Options:list(compound))// is det.
 
-print_expression0(error, _) --> !,
+print_expression0(error(_), _) --> !,
   falsum.
-print_expression0(rdf(S,P,O), Opts) --> !,
+print_expression0(rdf(S,P,O,_), Opts) --> !,
   rdf_print:rdf_print_statement(S, P, O, _, Opts).
 print_expression0(T, _) -->
   pl_term(T).
