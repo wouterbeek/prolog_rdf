@@ -75,7 +75,7 @@ print_conclusion(T, Opts) -->
 % Wrapper around print_deduction//4 with default options.
 
 print_deduction(R, Ps, C) -->
-  print_deduction(R, Ps, C, [logic_sym(true)]).
+  print_deduction(R, Ps, C, []).
 
 
 %! print_deduction(
