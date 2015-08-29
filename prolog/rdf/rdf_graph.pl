@@ -23,9 +23,12 @@
 % rdf_graph/1 throws an exception for any non-atomic nonvar argument,
 % whereas this predicate fails silently.
 %
+% rdf_graph/1 does not succeed for the default graph (called `user`)
+% if it is empty whereas this predicate does.
+%
 % The name of this predicate is in line with rdf_is_bnode/1, rdf_is_literal/1,
 % and rdf_is_resource/1 in [library(semweb/rdf_db)].
 
 rdf_is_graph(G):-
   atom(G),
-  rdf_graph(G).
+  (G == user ; rdf_graph(G)), !.
