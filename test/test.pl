@@ -40,6 +40,7 @@
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_image)).
+:- use_module(library(rdf/rdf_info)).
 :- use_module(library(rdf/rdf_json_build)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_list)).
