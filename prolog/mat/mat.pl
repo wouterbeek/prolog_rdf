@@ -1,6 +1,7 @@
 :- module(
   mat,
   [
+    mat/0,
     mat/1, % +InputGraph:atom
     mat/2 % +InputGraph:atom
           % ?OutputGraph:atom
@@ -36,13 +37,28 @@
 
 
 
+%! mat is det.
+% Performs materialization across graphs and stores the results
+% in the default graph (called `user`).
+
+mat:-
+  mat0(_, user).
+
 %! mat(+InputGraph:atom) is det.
+% Performs materialization on InputGraph and stores the results
+% in the same graph.
 
 mat(GIn):-
-  mat(GIn, _).
+  mat(GIn, GIn).
 
 %! mat(+InputGraph:atom, +OutputGraph:atom) is det.
 %! mat(+InputGraph:atom, -OutputGraph:atom) is det.
+% Performs materialization on InputGraph and stores the results
+% in OutputGraph.
+%
+% If OutputGraph is uninstantiated a new graph name is created.
+%
+% @tbd Ensure that OutputGraph is a new graph.
 
 mat(GIn, GOut):-
   var(GOut), !,
@@ -60,7 +76,14 @@ mat(GIn, GOut):-
   PrintOpts = [abbr_list(true),indent(1)],
   debug(mat(_), 'BEFORE MATERIALIZATION:', []),
   if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
+  
+  mat0(GIn, GOut),
+  
+  % Debug message for successful materialization results.
+  debug(mat(_), 'AFTER MATERIALIZATION:', []),
+  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
 
+mat0(GIn, GOut):-
   % Perform materialization.
   findall(rdf_chr(S,P,O), rdf2(S,P,O,GIn), Ins),
   maplist(store_j0(axiom, []), Ins),
@@ -73,11 +96,7 @@ mat(GIn, GOut):-
   ;   true
   ),
   findall(rdf(S,P,O), find_chr_constraint(rdf_chr(S,P,O)), Outs),
-  maplist(rdf_assert0(GOut), Outs), !,
-  
-  % Debug message for successful materialization results.
-  debug(mat(_), 'AFTER MATERIALIZATION:', []),
-  if_debug(mat(_), rdf_print_graph(GOut, PrintOpts)).
+  maplist(rdf_assert0(GOut), Outs), !.
 
 store_j0(Rule, Ps, rdf_chr(S,P,O)):-
   store_j(Rule, Ps, rdf(S,P,O)).
@@ -129,7 +148,8 @@ owl-eq-ref2 @
 
 owl-eq-sym @
       rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', O)
-  ==> mat_deb(owl(eq(sym)), [
+  ==> S \== O,
+      mat_deb(owl(eq(sym)), [
         rdf(S, 'http://www.w3.org/2002/07/owl#sameAs', O)],
         rdf(O, 'http://www.w3.org/2002/07/owl#sameAs', S))
     | rdf_chr(O, 'http://www.w3.org/2002/07/owl#sameAs', S).
