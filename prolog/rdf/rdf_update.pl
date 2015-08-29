@@ -105,11 +105,15 @@ rdf_canonize_triple(S, P, D, Lex, G):-
 % @tbd Perform blank node renaming.
 
 rdf_cp(FromG, S, P, O, ToG):-
-  rdf_transaction((
-    forall(
-      rdf2(S, P, O, FromG),
-      rdf_assert2(S, P, O, ToG)
-    )
+  rdf_transaction(rdf_cp0(copied, FromG, S, P, O, ToG)).
+
+rdf_cp0(Action, FromG, S, P, O, ToG):-
+  forall(rdf2(S, P, O, FromG), (
+    rdf_assert2(S, P, O, ToG),
+    if_debug(rdf(update), (
+      with_output_to(atom(T), rdf_print_triple(S, P, O)),
+      debug(rdf(update), '[~a] ~a   -----~a----->   ~a~n', [Action,FromG,T,ToG])
+    ))
   )).
 
 
@@ -149,6 +153,6 @@ rdf_increment(S, P, Old, G, New):-
 
 rdf_mv(FromG, S, P, O, ToG):-
   rdf_transaction((
-    rdf_cp(FromG, S, P, O, ToG),
+    rdf_cp0(moved, FromG, S, P, O, ToG),
     rdf_retractall2(S, P, O, FromG)
   )).
