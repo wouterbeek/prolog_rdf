@@ -12,6 +12,7 @@
 */
 
 :- use_module(library(ansi_ext)).
+:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 
@@ -35,11 +36,11 @@ rdf_info:-
   (   length(Prefix, 10),
       append(Prefix, _, Sorted)
   ->  true
-  ;   Prefix = []
+  ;   Prefix = Sorted
   ),
   forall(member(N-G, Prefix), (
-    with_output_to(atom(G0), rdf_print_term(G)),
+    dcg_with_output_to(atom(G0), rdf_print:rdf_print_term(G)),
     ansi_formatln([], '~D~25|~a', [N,G0])
   )),
-  
-  nl(user_output).
+
+  nl.
