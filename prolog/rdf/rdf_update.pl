@@ -33,6 +33,7 @@ Higher-level update operations performed on RDF data.
 @version 2015/07-2015/08
 */
 
+:- use_module(library(deb_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_read)).
@@ -79,10 +80,10 @@ rdf_canonize_triple(S, P, D, Lex, G):-
     rdf(S, P, literal(type(D,Lex)), G),
     (
       rdf_lexical_canonical_map(D, Lex, CLex),
-      
+
       % Only changes need to be written.
       Lex \== CLex,
-      
+
       % Perform the update.
       rdf_transaction((
         rdf_retractall2(S, P, literal(type(D,Lex)), G),
@@ -129,12 +130,12 @@ rdf_cp0(Action, FromG, S, P, O, ToG):-
 rdf_increment(S, P, Old, G, New):-
   rdf_transaction((
     rdf_literal(S, P, D, Old, G),
-    
+
     % Any integer datatype can be incremented.
     once(rdf_subtype_of(D, xsd:integer)),
     rdf_retractall_literal(S, P, D, Old, G),
     succ(Old, New),
-    
+
     % Make sure the new value belongs to the datatype's value space.
     rdf_canonical_map(D, New, _),
     rdf_assert_literal(D, P, D, New, G)
