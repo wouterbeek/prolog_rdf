@@ -1,6 +1,12 @@
 :- module(
-  rdf_html,
+  rdf_html_term,
   [
+    owl_html_id//2, % +SetId:uid
+                    % +Options:list(compound)
+    owl_html_triple//4, % +Subject:uid
+                        % +Predicate:uid
+                        % +Object:uid
+                        % +Options:list(compound)
     rdf_html_describe//1, % +Subject
     rdf_html_describe//2, % +Subject, +Options
     rdf_html_describe//3, % +Subject:rdf_term
@@ -60,7 +66,9 @@ Generates HTML representations of RDF data.
 :- use_module(library(html/content/html_collection)).
 :- use_module(library(html/content/html_symbol)).
 :- use_module(library(http/html_write)).
+:- use_module(library(lambda)).
 :- use_module(library(option)).
+:- use_module(library(owl/id_store)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_list)).
@@ -93,6 +101,12 @@ Generates HTML representations of RDF data.
 :- rdf_meta(rdf_html_triples(t,?,?)).
 :- rdf_meta(rdf_html_triples(t,+,?,?)).
 
+:- predicate_options(owl_html_id//2, 2, [
+     pass_to(rdf_html_term//2, 2)
+   ]).
+:- predicate_options(owl_html_triple//4, 4, [
+     pass_to(owl_html_id//2, 2)
+   ]).
 :- predicate_options(rdf_html_bnode//2, 2, [
      abbr_list(+boolean),
      pass_to(rdf_html_list//2)
@@ -190,6 +204,29 @@ Generates HTML representations of RDF data.
    ]).
 
 
+
+
+
+%! owl_html_id(+SetId:uid, +Options:list(compound))// is det.
+
+owl_html_id(Id, Opts) -->
+  {id_terms(Id, Ts)},
+  html_set(rdf_html_term0(Opts), Ts), !.
+owl_html_id(Id, Opts) -->{gtrace},
+  {id_terms(Id, Ts)},
+  html_set(rdf_html_term0(Opts), Ts).
+
+
+
+%! owl_html_triple(
+%!   +Subject:uid,
+%!   +Predicate:uid,
+%!   +Object:uid,
+%!   +Options:list(compound)
+%! )// is det.
+
+owl_html_triple(S, P, O, Opts) -->
+  html_triple(\T^owl_html_id(T, Opts), S, P, O).
 
 
 

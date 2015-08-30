@@ -2,8 +2,9 @@
   lod_cache,
   [
     add_to_lod_pool/1, % +Resource:iri
-    lod_cache_file/1, % +Spec
-    process_lod_pool/0
+    lod_cache_iri/1, % +Iri:atom
+    process_lod_pool/0,
+    show_cache/0
   ]
 ).
 
@@ -67,16 +68,19 @@ lod_cache:triple_to_iri(rdf(_,P,O), O):-
 
 
 
-
+show_cache:-
+  aggregate_all(count, lod_cached(_), N2),
+  aggregate_all(count, lod_caching(_), N3),
+  aggregate_all(count, in_lod_pool(_), N1),
+  format(user_output, 'LOD Pool~n  DONE:  ~D~n  DOING: ~D~n  TODO:  ~D~n', [N1,N2,N3]).
 
 %! add_to_lod_pool(+Iri:atom) is det.
 
 add_to_lod_pool(Iri):-
-  with_mutex(lod_pool, (
+  with_mutex(lod_cache, (
     (   lod_cached(Iri)
     ->  true
-    ;   % ???
-        in_lod_pool(Iri)
+    ;   in_lod_pool(Iri)
     ->  true
     ;   % The RDF Name is currently being cached,
         % so do not add it to the LOD Pool.
@@ -90,24 +94,21 @@ add_to_lod_pool(Iri):-
 
 
 
-%! lod_cache_file(+Spec:compound) is det.
+%! lod_cache_iri(+Iri:iri) is det.
 
-lod_cache_file(Spec0):-
-  must_be(ground, Spec0),
-
-  % Support for loading data based on a registered RDF prefix.
-  (Spec0 = prefix(Prefix) -> rdf_current_prefix(Prefix, Spec) ; Spec = Spec0),
-
-  (retract(count_triples(_)) ; true), assert(count_triples(0)),
-  rdf_load_triple(Spec, rdf_assert_triples0).
+lod_cache_iri(Iri):-
+  retractall(count_triples(_)), assert(count_triples(0)),
+  rdf_load_triple(Iri, rdf_assert_triples0).
 
 rdf_assert_triples0(Ts, _):-
   maplist(rdf_assert_triple0, Ts).
 
 rdf_assert_triple0(rdf(S,P,O)):-
-  retract(count_triples(Old)), succ(Old, New), assert(count_triples(New)),
-  forall(lod_cache:triple_to_iri(rdf(S,P,O), Iri), add_to_lod_pool(Iri)),
-  rdf_assert3(S, P, O).
+  catch((
+    retract(count_triples(Old)), succ(Old, New), assert(count_triples(New)),
+    forall(lod_cache:triple_to_iri(rdf(S,P,O), Iri), add_to_lod_pool(Iri)),
+    rdf_assert3(S, P, O)
+  ), E, format(user_error, '~q~n', [E])).
 
 
 
@@ -124,14 +125,20 @@ process_lod_pool:-
 % Process a seed point from the pool
 process_lod_pool0:-
   % Change the status of an RDF IRI to caching.
-  with_mutex(lod_pool, (retract(in_lod_pool(Iri)), assert(lod_caching(Iri)))), !,
+  with_mutex(lod_cache, (
+    retract(in_lod_pool(Iri)),
+    assert(lod_caching(Iri))
+  )), !,
 
-  lod_cache_file(Iri),
-  count_triples(N),
+  lod_cache_iri(Iri),
+  retract(count_triples(N)),
   dcg_debug(lod_cache(pool), added_to_db(Iri, N)),
 
   % Remove the caching status for the RDF IRI.
-  with_mutex(lod_pool, (retract(lod_caching(Iri)), assert(lod_cached(Iri)))),
+  with_mutex(lod_cache, (
+    retract(lod_caching(Iri)),
+    assert(lod_cached(Iri))
+  )),
 
   process_lod_pool0.
 % Pause for 5 seconds if there is nothing to process.

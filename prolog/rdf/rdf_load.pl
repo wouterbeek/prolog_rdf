@@ -25,6 +25,7 @@ Support for loading RDF data.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
+:- use_module(library(uuid_ext)).
 
 :- meta_predicate(rdf_load_triple(+,2)).
 
@@ -67,7 +68,9 @@ rdf_load_triple0(Goal_2, Format, Read):-
   rdf_process_ntriples(Read, Goal_2, []).
 rdf_load_triple0(Goal_2, Format, Read):-
   memberchk(Format, [trig,turtle]), !,
-  rdf_process_turtle(Read, Goal_2, []).
+  uuid_no_hyphen(Prefix0),
+  atomic_list_concat(['__',Prefix0,':'], Prefix),
+  rdf_process_turtle(Read, Goal_2, [anon_prefix(Prefix)]).
 rdf_load_triple0(Goal_2, xml, Read):- !,
   process_rdf(Read, Goal_2, []).
 rdf_load_triple0(_, Format, _):-

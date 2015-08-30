@@ -1,8 +1,10 @@
 :- module(
   id_store,
   [
-    id_term/2, % +SetId:uid
+    id_term/2, % +IdSet:uid
                % -Term:rdf_term
+    id_terms/2, % +IdSet:uid
+                % -Terms:ordset(rdf_term)
     rdf_assert3/3, % +Subject:rdf_term
                    % +Predicate:iri
                    % +Object:rdf_term
@@ -10,7 +12,7 @@
             % ?Predicate:iri
             % ?Object:rdf_term
     term_id/2 % +Term:rdf_term
-              % -SetId:uid
+              % -IdSet:uid
   ]
 ).
 
@@ -37,15 +39,26 @@
 
 :- dynamic(term_id0/2).
 
+:- predicate_options(print_id/2, 2, [
+     pass_to(print_term/2, 2)
+   ]).
 
 
 
 
-%! id_term(+SetId:uid, -Term:rdf_term) is multi.
 
-id_term(TId, T):-
-  id_terms0(TId, Ts),
+%! id_term(+IdSet:uid, -Term:rdf_term) is multi.
+
+id_term(Id, T):-
+  id_terms0(Id, Ts),
   member(T, Ts).
+
+
+
+%! id_terms(+IdSet:uid, -Terms:ordset(rdf_term)) is multi.
+
+id_terms(Id, Ts):-
+  id_terms0(Id, Ts).
 
 
 
@@ -55,7 +68,7 @@ rdf_assert3(S, P, O):-
   rdf_global_id(owl:sameAs, P), !,
   store_id(S, O).
 rdf_assert3(S, P, O):-
-  maplist(store_term, [S,P,O], [S0,P0,O0]),
+  maplist(term_id, [S,P,O], [S0,P0,O0]),
   rdf_assert(S0, P0, O0).
 
 
@@ -131,19 +144,14 @@ term_id(T, T):-
 term_id(T, TId):-
   term_id0(T, TId), !.
 term_id(T, TId):-
-  store_term(T, TId).
+  uuid_no_hyphen(TId),
+  with_mutex(store_id, store_term0(T, TId)).
 
 
 
 
 
 % HELPERS %
-
-%! store_term(+Term:rdf_term, -TermId:uri) is det.
-
-store_term(T, TId):-
-  uuid_no_hyphen(TId),
-  with_mutex(store_id, store_term0(T, TId)).
 
 %! store_term0(+Term:rdf_term, +TermId:uid) is det.
 
