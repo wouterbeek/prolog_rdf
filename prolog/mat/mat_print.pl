@@ -94,10 +94,10 @@ print_deduction(R, Ps, C, Opts) -->
 
 %! print_expression0(+Expression:compound, +Options:list(compound))// is det.
 
-print_expression0(error(_), _) --> !,
+print_expression0(error, _) --> !,
   falsum.
-print_expression0(rdf(S,P,O,Gs), Opts) --> !,
-  rdf_print:rdf_print_statement(S, P, O, Gs, Opts).
+print_expression0(rdf(S,P,O), Opts) --> !,
+  rdf_print:rdf_print_statement(S, P, O, _, Opts).
 print_expression0(T, _) -->
   pl_term(T).
 
