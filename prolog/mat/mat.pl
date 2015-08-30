@@ -94,7 +94,7 @@ mat0(GIn, GOut):-
       forall(print_j(_,_,error(_),_), true)
   ;   true
   ),
-  forall(find_chr_constraint(rdf_chr(S,P,O)), rdf_assert2(S, P, O, GOut)).
+  forall(find_chr_constraint(rdf_chr(S,P,O)), rdf_assert2(S, P, O, GOut)), !.
 
 
 
@@ -117,6 +117,8 @@ owl-eq-diff1 @
         error)
     | error.
 
+/*
+% Reflexivity of identity for subject terms.
 owl-eq-ref @
       rdf_chr(S, P, O)
   ==> mat_deb(owl(eq(ref)), [
@@ -124,6 +126,7 @@ owl-eq-ref @
         rdf(S, 'http://www.w3.org/2002/07/owl#sameAs', S))
     | rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', S).
 
+% Reflexivity of identity for predicate terms.
 owl-eq-ref1 @
       rdf_chr(S, P, O)
   ==> mat_deb(owl(eq(ref1)), [
@@ -131,6 +134,7 @@ owl-eq-ref1 @
         rdf(P, 'http://www.w3.org/2002/07/owl#sameAs', P))
     | rdf_chr(P, 'http://www.w3.org/2002/07/owl#sameAs', P).
 
+% Reflexivity of identity for object terms.
 owl-eq-ref2 @
       rdf_chr(S, P, O)
   ==> mat_deb(owl(eq(ref2)), [
@@ -138,6 +142,7 @@ owl-eq-ref2 @
         rdf(O, 'http://www.w3.org/2002/07/owl#sameAs', O))
     | rdf_chr(O, 'http://www.w3.org/2002/07/owl#sameAs', O).
 
+% Symmetry of identity.
 owl-eq-sym @
       rdf_chr(S, 'http://www.w3.org/2002/07/owl#sameAs', O)
   ==> mat_deb(owl(eq(sym)), [
@@ -145,6 +150,7 @@ owl-eq-sym @
         rdf(O, 'http://www.w3.org/2002/07/owl#sameAs', S))
     | rdf_chr(O, 'http://www.w3.org/2002/07/owl#sameAs', S).
 
+% Transitivity of identity.
 owl-eq-trans @
       rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
       rdf_chr(Y, 'http://www.w3.org/2002/07/owl#sameAs', Z)
@@ -154,6 +160,7 @@ owl-eq-trans @
         rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Z))
     | rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Z).
 
+% Replace identical subject term.
 owl-eq-rep-s @
       rdf_chr(S1, 'http://www.w3.org/2002/07/owl#sameAs', S2),
       rdf_chr(S1, P, O)
@@ -163,6 +170,7 @@ owl-eq-rep-s @
         rdf(S2, P, O))
     | rdf_chr(S2, P, O).
 
+% Replace identical predicate term.
 owl-eq-rep-p @
       rdf_chr(P1, 'http://www.w3.org/2002/07/owl#sameAs', P2),
       rdf_chr(S, P1, O)
@@ -172,6 +180,7 @@ owl-eq-rep-p @
         rdf(S, P2, O))
     | rdf_chr(S, P2, O).
 
+% Replace identical object term.
 owl-eq-rep-o @
       rdf_chr(O1, 'http://www.w3.org/2002/07/owl#sameAs', O2),
       rdf_chr(S, P, O1)
@@ -180,58 +189,58 @@ owl-eq-rep-o @
         rdf(S, P, O1)],
         rdf(S, P, O2))
     | rdf_chr(S, P, O2).
+*/
 
-owl-eq-diff1 @
-      rdf_chr(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
-      rdf_chr(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)
-  ==> mat_deb(owl(eq(diff1)), [
-        rdf(X, 'http://www.w3.org/2002/07/owl#sameAs', Y),
-        rdf(X, 'http://www.w3.org/2002/07/owl#differentFrom', Y)],
-	error)
-    | error.
-
+% RDFS label is an OWL annotation property.
 owl-prp-ap-label @
       true
   ==> mat_deb(owl(prp(ap(label))), [],
         rdf('http://www.w3.org/2000/01/rdf-schema#label', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H))
     | rdf_chr('http://www.w3.org/2000/01/rdf-schema#label', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H).
 
+% RDFS comment is an OWL annotation property.
 owl-prp-ap-comment @
       true
   ==> mat_deb(owl(prp(ap(comment))), [],
         rdf('http://www.w3.org/2000/01/rdf-schema#comment', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H))
     | rdf_chr('http://www.w3.org/2000/01/rdf-schema#comment', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H).
 
+% RDFS seeAlso is an OWL annotation property.
 owl-prp-ap-seeAlso @
       true
   ==> mat_deb(owl(prp(ap(seeAlso))), [],
         rdf('http://www.w3.org/2000/01/rdf-schema#seeAlso', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H))
     | rdf_chr('http://www.w3.org/2000/01/rdf-schema#seeAlso', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H).
 
+% OWL deprecated is an OWL annotation property.
 owl-prp-ap-deprecated @
       true
   ==> mat_deb(owl(prp(ap(deprecated))), [],
         rdf('http://www.w3.org/2002/07/owl#deprecated', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H))
     | rdf_chr('http://www.w3.org/2002/07/owl#deprecated', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H).
 
+% OWL prior version is an OWL annotation property.
 owl-prp-ap-priorVersion @
       true
   ==> mat_deb(owl(prp(ap(priorVersion))), [],
         rdf('http://www.w3.org/2002/07/owl#priorVersion', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H))
     | rdf_chr('http://www.w3.org/2002/07/owl#priorVersion', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H).
 
+% OWL backward compatible with is an OWL annotation property.
 owl-prp-ap-backwardCompatibleWith @
       true
   ==> mat_deb(owl(prp(ap(backwardCompatibleWith))), [],
         rdf('http://www.w3.org/2002/07/owl#backwardCompatibleWith', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H))
     | rdf_chr('http://www.w3.org/2002/07/owl#backwardCompatibleWith', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H).
 
+% OWL incompatible with is an OWL annotation property.
 owl-prp-ap-incompatibleWith @
       true
   ==> mat_deb(owl(prp(ap(incompatibleWith))), [],
         rdf('http://www.w3.org/2002/07/owl#incompatibleWith', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H))
     | rdf_chr('http://www.w3.org/2002/07/owl#incompatibleWith', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty', H-H).
 
+% Domain inference.
 owl-prp-dom @
       rdf_chr(P, 'http://www.w3.org/2000/01/rdf-schema#domain', C),
       rdf_chr(I, P, O)
@@ -241,6 +250,7 @@ owl-prp-dom @
         rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C))
     | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C).
 
+% Functional image.
 owl-prp-fp @
       rdf_chr(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#FunctionalProperty'),
       rdf_chr(X, P, Y1),
@@ -252,26 +262,7 @@ owl-prp-fp @
         rdf(Y1, 'http://www.w3.org/2002/07/owl#sameAs', Y2))
     | rdf_chr(Y1, 'http://www.w3.org/2002/07/owl#sameAs', Y2).
 
-owl-prp-rng @
-      rdf_chr(P, 'http://www.w3.org/2000/01/rdf-schema#range', C),
-      rdf_chr(S, P, I)
-  ==> mat_deb(owl(prp(dom)), [
-        rdf(P, 'http://www.w3.org/2000/01/rdf-schema#range', C),
-        rdf(S, P, I)],
-        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C))
-    | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C).
-
-owl-prp-fp @
-      rdf_chr(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#FunctionalProperty'),
-      rdf_chr(X, P, Y1),
-      rdf_chr(X, P, Y2)
-  ==> mat_deb(owl(prp(fp)), [
-        rdf(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#FunctionalProperty'),
-        rdf(X, P, Y1),
-        rdf(X, P, Y2)],
-        rdf(Y1, 'http://www.w3.org/2002/07/owl#sameAs', Y2))
-    | rdf_chr(Y1, 'http://www.w3.org/2002/07/owl#sameAs', Y2).
-
+% Inverse-functional image.
 owl-prp-ifp @
       rdf_chr(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#InverseFunctionalProperty'),
       rdf_chr(X1, P, Y),
@@ -283,6 +274,17 @@ owl-prp-ifp @
         rdf(X1, 'http://www.w3.org/2002/07/owl#sameAs', X2))
     | rdf_chr(X1, 'http://www.w3.org/2002/07/owl#sameAs', X2).
 
+% Range inference.
+owl-prp-rng @
+      rdf_chr(P, 'http://www.w3.org/2000/01/rdf-schema#range', C),
+      rdf_chr(S, P, I)
+  ==> mat_deb(owl(prp(dom)), [
+        rdf(P, 'http://www.w3.org/2000/01/rdf-schema#range', C),
+        rdf(S, P, I)],
+        rdf(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C))
+    | rdf_chr(I, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', C).
+
+% OWL symmetry.
 owl-prp-symp @
       rdf_chr(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#SymmetricProperty'),
       rdf_chr(S, P, O)
@@ -292,6 +294,7 @@ owl-prp-symp @
         rdf(O, P, S))
     | rdf_chr(O, P, S).
 
+% OWL asymmetry.
 owl-prp-asyp @
       rdf_chr(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AsymmetricProperty'),
       rdf_chr(S, P, O),
@@ -303,6 +306,7 @@ owl-prp-asyp @
         error)
     | error.
 
+% OWL transitivity.
 owl-prp-trp @
       rdf_chr(P, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#TransitiveProperty'),
       rdf_chr(X, P, Y),

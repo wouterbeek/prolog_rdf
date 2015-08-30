@@ -35,7 +35,6 @@ datatype preferences in order to perform limited-scale crawling.
 :- use_module(library(deb_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
@@ -64,11 +63,6 @@ lod_cache:triple_to_iri(rdf(_,P,O), O):-
 :- predicate_options(load_as_egographs/2, 2, [
      pass_to(rdf_load_any/2)
    ]).
-
-:- initialization((
-     assert_cc_prefixes,
-     forall(between(1, 5, _), process_lod_pool)
-   )).
 
 
 
@@ -137,41 +131,47 @@ load_as_egographs(Spec0, Opts0):-
 % Start processing the LOD Pool.
 
 process_lod_pool:-
-  thread_create(process_lod_pool0, _, [detached(true)]).
+  NumberOfThreads = 5,
+  forall(between(1, NumberOfThreads, N), (
+    format(atom(Alias), 'LOD Cache ~D', [N]),
+    thread_create(process_lod_pool0, _, [alias(Alias),detached(true)])
+  )).
 
+% Process a seed point from the pool
 process_lod_pool0:-
-  % Pick a seed point from the pool:
   % Change the status of an RDF IRI to caching.
   with_mutex(lod_pool, (
     retract(in_lod_pool(Iri)),
     assert(lod_caching(Iri))
   )), !,
 
-  % LOD Caching goes over HTTP, so this step takes a lot of time.
-  cache_egograph(Iri, Ts),
-  forall(
-    member(rdf(Iri,P,O), Ts),
-    rdf_assert(Iri, P, O, Iri)
-  ),
+  process_seed(Iri),
 
   % Remove the caching status for the RDF IRI.
   with_mutex(lod_pool, retract(lod_caching(Iri))),
+
+  process_lod_pool0.
+% Pause for 5 seconds if there is nothing to process.
+process_lod_pool0:-
+  sleep(5),
+  process_lod_pool0.
+
+process_seed(Iri):-
+  % LOD Caching goes over HTTP, so this step takes a lot of time.
+  cache_egograph(Iri, Ts),
+  forall(member(rdf(Iri,P,O), Ts), rdf_assert(Iri, P, O, Iri)),
 
   % Extract new RDF IRIs to be seed points in the LOD Pool.
   % This effectively executes traversal over the LOD Graph.
   triples_to_visit_iris(Ts, Iris),
   maplist(add_to_lod_pool, Iris),
 
-  dcg_debug(lod_cache(pool), added_to_db(Iri, Ts)),
-  process_lod_pool0.
-process_lod_pool0:-
-  % Pause for 5 seconds if there is nothing to process.
-  sleep(5),
-  process_lod_pool0.
+  % DEB
+  dcg_debug(lod_cache(pool), added_to_db(Iri, Ts)).
 
 
 
-%! cache_egograph(+Iri:iri, -Triples:ordset(compound)) is det.
+%! cache_egograph(+Iri:iri, -Triples:list(compound)) is det.
 % Retrieves the triples that encompass the ego-graph of the given RDF IRI.
 %
 % ### Definition
@@ -195,17 +195,19 @@ cache_egograph(Iri, Ts):-
   thread_self(Id),
   atomic_list_concat([Iri,Id], '_', G),
 
+  % @tbd WHY?
   catch(
-    setup_call_cleanup(
-      rdf_load_any(Iri, [graph(G)]),
-      aggregate_all(set(rdf(Iri,P,O)), rdf2(Iri,P,O,G), Ts),
-      rdf_unload_graph(G)
+    setup_call_catcher_cleanup(
+      rdf_load_any(Iri, [graph(G),silent(true)]),
+      findall(rdf(Iri,P,O), distinct(rdf(Iri,P,O), rdf2(Iri,P,O,G)), Ts),
+      Catcher,
+      (
+        (Catcher == exit ; format(user_error, '[LOD Cache]~w~n', [Catcher])), !,
+        rdf_unload_graph(G)
+      )
     ),
     E,
-    (   E = exception(Err)
-    ->  print_message(error, Err)
-    ;   rdf_unload_graph(G)
-    )
+    (Ts = [], format(user_error, '[LOD Cache] ~w~n', [E]))
   ),
 
   if_debug(lod_cache, (
@@ -215,17 +217,19 @@ cache_egograph(Iri, Ts):-
 
 
 
-%! triples_to_visit_iris(+Triples:list(compound), -Iris:ordset(atom)) is det.
+%! triples_to_visit_iris(+Triples:list(compound), -Iris:list(atom)) is det.
 
 triples_to_visit_iris(Ts, Iris):-
-  aggregate_all(
-    set(Iri),
-    (
+  findall(
+    Iri,
+    distinct(Iri, (
       member(T, Ts),
       lod_cache:triple_to_iri(T, Iri),
+      \+ rdf_is_literal(Iri),
+      \+ rdf_is_bnode(Iri),
       % Filter out already cached IRIs at an early stage.
       \+ rdf_graph(Iri)
-    ),
+    )),
     Iris
   ).
 
