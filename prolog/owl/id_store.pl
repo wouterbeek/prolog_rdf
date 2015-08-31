@@ -5,14 +5,14 @@
                % -Term:rdf_term
     id_terms/2, % +IdSet:uid
                 % -Terms:ordset(rdf_term)
-    rdf_assert3/3, % +Subject:rdf_term
-                   % +Predicate:iri
-                   % +Object:rdf_term
-    rdf3/3, % ?Subject:rdf_term
-            % ?Predicate:iri
-            % ?Object:rdf_term
-    term_id/2 % +Term:rdf_term
-              % -IdSet:uid
+    store_id/2, % +Term1:rdf_term
+                % +Term2:rdf_term
+    term_id/2, % +Term:rdf_term
+               % -IdSet:uid
+    term_term/2, % +Term1:rdf_term
+                 % -Term2:rdf_term
+    term_terms/2 % +Term:rdf_term
+                 % -Terms:ordset(rdf_term)
   ]
 ).
 
@@ -22,14 +22,16 @@
 @version 2015/08
 */
 
-:- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uuid_ext)).
 
-:- rdf_meta(rdf_assert3(o,r,o)).
-:- rdf_meta(rdf3(o,r,o)).
+:- rdf_meta(id_term(o,-)).
+:- rdf_meta(id_terms(o,-)).
+:- rdf_meta(term_id(o,-)).
+:- rdf_meta(term_term(o,-)).
+:- rdf_meta(term_terms(o,-)).
 
 %! id_terms0(?IdSet:uid, ?Terms:ordset(rdf_term)) is nondet.
 
@@ -39,16 +41,14 @@
 
 :- dynamic(term_id0/2).
 
-:- predicate_options(print_id/2, 2, [
-     pass_to(print_term/2, 2)
-   ]).
-
 
 
 
 
 %! id_term(+IdSet:uid, -Term:rdf_term) is multi.
 
+id_term(T, T):-
+  rdf_is_literal0(T), !.
 id_term(Id, T):-
   id_terms0(Id, Ts),
   member(T, Ts).
@@ -57,32 +57,10 @@ id_term(Id, T):-
 
 %! id_terms(+IdSet:uid, -Terms:ordset(rdf_term)) is multi.
 
+id_terms(T, [T]):-
+  rdf_is_literal0(T), !.
 id_terms(Id, Ts):-
   id_terms0(Id, Ts).
-
-
-
-%! rdf_assert3(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
-
-rdf_assert3(S, P, O):-
-  rdf_global_id(owl:sameAs, P), !,
-  store_id(S, O).
-rdf_assert3(S, P, O):-
-  maplist(term_id, [S,P,O], [S0,P0,O0]),
-  rdf_assert(S0, P0, O0).
-
-
-
-%! rdf3(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
-
-rdf3(S, P, O):-
-  term_id(S, SId),
-  term_id(P, PId),
-  term_id(O, OId),
-  rdf(SId, PId, OId),
-  (var(S) -> id_term(SId, S) ; true),
-  (var(P) -> id_term(PId, P) ; true),
-  (var(O) -> id_term(OId, O) ; true).
 
 
 
@@ -139,8 +117,10 @@ store_id(X, Y):-
 
 %! term_id(+Term:rdf_term, -IdentitySet:uri) is det.
 
-term_id(T, T):-
+term_id(T, _):-
   var(T), !.
+term_id(T, T):-
+  rdf_is_literal0(T), !.
 term_id(T, TId):-
   term_id0(T, TId), !.
 term_id(T, TId):-
@@ -148,10 +128,33 @@ term_id(T, TId):-
   with_mutex(store_id, store_term0(T, TId)).
 
 
+%! term_term(+Term1:rdf_term, -Term2:rdf_term) is multi.
+
+term_term(T1, T2):-
+  term_terms(T1, Ts),
+  member(T2, Ts).
+
+
+
+%! term_terms(+Term:rdf_term, -Terms:ordset(rdf_term)) is det.
+
+term_terms(T, Ts):-
+  term_id(T, Id),
+  id_terms(Id, Ts).
+
+
 
 
 
 % HELPERS %
+
+%! rdf_is_literal0(@Term) is semidet.
+
+rdf_is_literal0(T):-
+  nonvar(T),
+  T = literal(_).
+
+
 
 %! store_term0(+Term:rdf_term, +TermId:uid) is det.
 

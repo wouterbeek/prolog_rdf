@@ -535,10 +535,7 @@ rdf_print_graph_maybe(G, Opts) -->
   ->  " "
   ;   "@"
   ),
-  (   {is_list(G)}
-  ->  set(atom, G)
-  ;   atom(G)
-  ).
+  atom(G).
 
 
 
