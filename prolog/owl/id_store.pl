@@ -79,14 +79,18 @@ id_terms(Id, Ts):-
 
 
 %! print_id_store is det.
+% Wrapper around print_id_store/1 with default options.
 
 print_id_store:-
   print_id_store([]).
 
 %! print_id_store(+Options:list(compound)) is det.
+% The following options are supported:
+%   * indent(+nonneg)
+%     Default is 0.
 
 print_id_store(Opts):-
-  option(indent(N), Opts),
+  option(indent(N), Opts, 0),
   forall(
     id_terms0(Id, Ts),
     dcg_with_output_to(user_output, (

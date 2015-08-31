@@ -4,9 +4,9 @@
     rdf_description_size/2, % +Resource:rdf_term
                             % -Size:nonneg
     rdf_number_of_triples/4 % ?Subject:rdf_term
-                        % ?Predicate:iri
-                        % ?Object:rdf_term
-                        % -Size:nonneg
+                            % ?Predicate:iri
+                            % ?Object:rdf_term
+                            % -Size:nonneg
   ]
 ).
 
@@ -29,7 +29,7 @@
 %! rdf_description_size(+Resource:rdf_term, -Size:nonneg) is det.
 
 rdf_description_size(S, N):-
-  number_of_triples(S, _, _, N).
+  rdf_number_of_triples(S, _, _, N).
 
 
 
@@ -41,4 +41,4 @@ rdf_description_size(S, N):-
 %! ) is det.
 
 rdf_number_of_triples(S, P, O, N):-
-  aggregate_all(count, rdf3(S, P, O), N).
+  aggregate_all(count, rdf(S, P, O), N).

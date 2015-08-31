@@ -70,6 +70,7 @@
 :- use_module(library(html/rdf_html_term)).
 :- use_module(library(lambda)).
 :- use_module(library(langtag/langtag_match)).
+:- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(owl/id_store)).
 :- use_module(library(rdf/rdf_datatype)).
@@ -100,11 +101,9 @@
 :- rdf_meta(rdfs_label3(o,?,-,-)).
 
 :- predicate_options(rdf_print3/1, 1, [
-     indent(+nonneg),
      pass_to(rdf_print_triple3/4, 4)
    ]).
 :- predicate_options(rdf_print_triple3/4, 4, [
-     indent(+nonneg),
      pass_to(rdf_print_triple/5, 5)
    ]).
 
@@ -198,11 +197,20 @@ rdf_assert_literal3(S, P, D, V):-
 %! rdf3(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
 
 rdf3(S, P, O):-
-  (ground(S) -> term_id(S, SId) ; true),
-  (ground(P) -> term_id(P, PId) ; true),
-  (ground(O) -> term_id(O, OId) ; true),
+  rdf_global_id(owl:sameAs, P),
+  (   nonvar(S)
+  ->  term_term(S, O)
+  ;   nonvar(O)
+  ->  term_term(O, S)
+  ;   id_terms(_, Ts),
+      member(S, O, Ts)
+  ).
+rdf3(S, P, O):-
+  (nonvar(S) -> (S = id(SId) -> true ; term_id(S, SId)) ; true),
+  (nonvar(P) -> term_id(P, PId) ; true),
+  (nonvar(O) -> term_id(O, OId) ; true),
   rdf(SId, PId, OId),
-  id_term(SId, S),
+  (ground(S) -> true ; id_term(SId, S)),
   id_term(PId, P),
   id_term(OId, O).
 
