@@ -44,6 +44,11 @@
                               % ?Predicate:rdf_term
                               % ?Object:rdf_term
                               % ?Size:nonneg
+    rdf_print3/0,
+    rdf_print3/1, % +Options:list(compound)
+    rdf_print_triple3/3, % ?Subject:rdf_term
+                         % ?Predicate:rdf_term
+                         % ?Object:rdf_term
     rdf_print_triple3/4, % ?Subject:rdf_term
                          % ?Predicate:rdf_term
                          % ?Object:rdf_term
@@ -65,6 +70,7 @@
 :- use_module(library(html/rdf_html_term)).
 :- use_module(library(lambda)).
 :- use_module(library(langtag/langtag_match)).
+:- use_module(library(option)).
 :- use_module(library(owl/id_store)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -93,7 +99,12 @@
 :- rdf_meta(rdf_print_triple3(o,o,o,+)).
 :- rdf_meta(rdfs_label3(o,?,-,-)).
 
+:- predicate_options(rdf_print3/1, 1, [
+     indent(+nonneg),
+     pass_to(rdf_print_triple3/4, 4)
+   ]).
 :- predicate_options(rdf_print_triple3/4, 4, [
+     indent(+nonneg),
      pass_to(rdf_print_triple/5, 5)
    ]).
 
@@ -337,14 +348,39 @@ rdf_number_of_triples3(S, P, O, N):-
 
 
 
+%! rdf_print3 is det.
+
+rdf_print3:-
+  rdf_print3([]).
+
+%! rdf_print3(+Options:list(compound)).
+
+rdf_print3(Opts):-
+  rdf_print_triple3(_, _, _, Opts),
+  fail.
+rdf_print3(_).
+
+
+
+%! rdf_print_triple3(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:rdf_term,
+%!   ?Object:rdf_term
+%! ) is nondet
+% Wrapper around rdf_print_triple3/4 with default options.
+
+rdf_print_triple3(S, P, O):-
+  rdf_print_triple(S, P, O, []).
+
 %! rdf_print_triple3(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:rdf_term,
 %!   ?Object:rdf_term,
 %!   +Options:list(compound)
-%! ) is det.
+%! ) is nondet.
 
 rdf_print_triple3(S, P, O, Opts):-
+  % NONDET
   rdf3(S, P, O),
   rdf_print_triple(S, P, O, _, Opts).
 
