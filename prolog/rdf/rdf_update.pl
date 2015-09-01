@@ -36,6 +36,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(deb_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(xsd/xsd)).
 
