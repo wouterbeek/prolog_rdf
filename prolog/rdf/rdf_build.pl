@@ -41,6 +41,7 @@
                               % ?Graph:atom
     rdf_retractall_resource/2, % +Resource:rdf_term
                                % ?Graph:atom
+    rdf_retractall_term/1, % +Term:rdf_term
     rdf_retractall_term/2, % +Term:rdf_term
                            % ?Graph:atom
     rdf_retractall2/3, % ?Subject:rdf_term
@@ -59,16 +60,13 @@
 Simple asserion and retraction predicates for RDF.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
-:- use_module(library(default)).
 :- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(uri)).
 :- use_module(library(uuid_ext)).
 :- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
 
@@ -89,7 +87,8 @@ Simple asserion and retraction predicates for RDF.
 :- rdf_meta(rdf_retractall_literal(o,r,r,?)).
 :- rdf_meta(rdf_retractall_literal(o,r,r,?,?)).
 :- rdf_meta(rdf_retractall_resource(o,?)).
-:- rdf_meta(rdf_retractall_term(t,?)).
+:- rdf_meta(rdf_retractall_term(o)).
+:- rdf_meta(rdf_retractall_term(o,?)).
 :- rdf_meta(rdf_retractall2(o,r,o)).
 :- rdf_meta(rdf_retractall2(o,r,o,?)).
 
@@ -333,6 +332,12 @@ rdf_retractall_resource(T, G):-
   ).
 
 
+
+%! rdf_retractall_term(+Term:rdf_term) is det.
+% Wrapper around rdf_retractall_term/2 with uninstantiated graph.
+
+rdf_retractall_term(T):-
+  rdf_retractall_term(T, _).
 
 %! rdf_retractall_term(+Term:rdf_term, ?Graph:atom) is det.
 % Removes all triples in which the given RDF term occurs.

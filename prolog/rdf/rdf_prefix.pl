@@ -3,6 +3,8 @@
   [
     assert_cc_prefixes/0,
     assert_dbpedia_localizations/0,
+    rdf_maplist/2, % :Goal_1
+                   % +Arguments
     rdf_member/2, % ?Term:rdf_term
                   % +Terms:list(rdf_term)
     rdf_memberchk/2, % ?Term:rdf_term
@@ -17,7 +19,7 @@
 /** <module> RDF prefix
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
 :- use_module(library(apply)).
@@ -27,6 +29,9 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
+:- meta_predicate(rdf_maplist(1,+)).
+
+:- rdf_meta(rdf_maplist(:,t)).
 :- rdf_meta(rdf_member(r,t)).
 :- rdf_meta(rdf_memberchk(r,t)).
 
@@ -283,6 +288,13 @@ dbpedia_register(Lang):-
     uri_components(http,Authority,'/property/',_,_)
   ),
   rdf_reset_prefix(PropertyNamespace, PropertyPrefix).
+
+
+
+%! rdf_maplist(:Goal_1, +Arguments:list) is det.
+
+rdf_maplist(Goal_1, L):-
+  maplist(Goal_1, L).
 
 
 
