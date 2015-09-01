@@ -24,27 +24,18 @@ datatype preferences in order to perform limited-scale crawling.
 --
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_debug)).
-:- use_module(library(deb_ext)).
-:- use_module(library(error)).
-:- use_module(library(lists)).
-:- use_module(library(option)).
-:- use_module(library(owl/id_store)).
+:- use_module(library(owl/owl_api)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_statement)).
-:- use_module(library(rdf/rdf_update)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(solution_sequences)).
-:- use_module(library(uri)).
 
 :- dynamic(in_lod_pool/1).
 :- dynamic(lod_cached/1).

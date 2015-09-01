@@ -1,26 +1,24 @@
 :- module(
   rdfs_build,
   [
-    rdfs_assert_class/5, % +Class:or([bnode,iri])
-                         % +Label:or([atom,pair(atom)])
-                         % +Comment:or([atom,pair(atom)])
-                         % ?Parent:or([bnode,iri])
+    rdfs_assert_class/5, % +Class:iri
+                         % ?Parent:iri
+                         % ?Label:or([atom,pair(atom)])
+                         % ?Comment:or([atom,pair(atom)])
                          % ?Graph:atom
     rdfs_assert_comment/3, % +Subject:rdf_term
-                           % +Comment:atom
+                           % +Comment:or([atom,pair(atom)])
                            % ?Graph:atom
     rdfs_assert_domain/3, % +Property:iri
                           % +Domain:iri
                           % ?Graph:atom
-    rdfs_assert_isDefinedBy/2, % +Subject:rdf_term
-                               % ?Graph:atom
+    rdfs_assert_isDefinedBy/2, % +Subject, ?Graph
     rdfs_assert_isDefinedBy/3, % +Subject:rdf_term
                                % ?Uri:atom
                                % ?Graph:atom
-    rdfs_assert_label/2, % +Subject:rdf_term
-                         % +Label
+    rdfs_assert_label/2, % +Subject, +Label
     rdfs_assert_label/3, % +Subject:rdf_term
-                         % +Label
+                         % +Label:or([atom,pair(atom)])
                          % ?Graph:atom
     rdfs_assert_property/4, % +Domain:iri
                             % +Property:iri
@@ -32,16 +30,16 @@
     rdfs_assert_seeAlso/3, % +Subject:rdf_term
                            % +Uri:atom
                            % +Graph:atom
-    rdfs_assert_subclass/3, % +SubClass:iri
-                            % ?SuperClass:iri
+    rdfs_assert_subclass/3, % +Class:iri
+                            % ?ParentClass:iri
                             % ?Graph:atom
     rdfs_assert_subproperty/3, % +Subproperty:or([bnode,iri])
-                               % +SuperProperty:iri
+                               % +ParentProperty:iri
                                % ?Graph:atom
     rdfs_retractall_class_resource/1, % +Class:iri
     rdfs_retractall_class_term/1, % +Class:iri
     rdfs_retractall_label/3 % +Subject:rdf_term
-                            % ?Value
+                            % ?Label:or([atom,pair(atom)])
                             % ?Graph:atom
   ]
 ).
@@ -52,7 +50,7 @@
 Predicates for asseritng RDFS statements in an easy way.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
 :- use_module(library(owl/owl_read)).
@@ -61,7 +59,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
 
-:- rdf_meta(rdfs_assert_class(r,+,+,r,?)).
+:- rdf_meta(rdfs_assert_class(r,r,?,?,?)).
 :- rdf_meta(rdfs_assert_comment(o,+,?)).
 :- rdf_meta(rdfs_assert_domain(r,r,+)).
 :- rdf_meta(rdfs_assert_isDefinedBy(o,?)).
@@ -83,17 +81,15 @@ Predicates for asseritng RDFS statements in an easy way.
 
 %! rdfs_assert_class(
 %!   +Class:or([bnode,iri]),
-%!   +Label:or([atom,pair(atom)]),
-%!   +Comment:or([atom,pair(atom)]),
 %!   ?Parent:or([bnode,iri]),
+%!   ?Label:or([atom,pair(atom)]),
+%!   ?Comment:or([atom,pair(atom)]),
 %!   ?Graph:atom
 %! ) is det.
 
-rdfs_assert_class(C, Lbl, Comm, SuperC, G):-
-  rdfs_assert_subclass(C, SuperC, G),
-  rdfs_assert_label(C, Lbl, G),
-  rdfs_assert_comment(C, Comm, G),
-  rdfs_assert_isDefinedBy(C, G).
+rdfs_assert_class(C, Parent, Lbl, Comm, G):-
+  rdf_assert_instance(C, rdfs:'Class', G),
+  assert_class(C, Parent, Lbl, Comm, G).
 
 
 
@@ -131,7 +127,7 @@ rdfs_assert_isDefinedBy(S, G):-
   rdfs_assert_isDefinedBy(S, _, G).
 
 
-%! rdfs_assert_isDefinedBy(+Subject:rdf_term, ?Iri:atom, ?Graph:atom) is det.
+%! rdfs_assert_isDefinedBy(+Subject:rdf_term, ?Iri:iri, ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
@@ -153,22 +149,22 @@ rdfs_assert_isDefinedBy(S, O, G):-
 
 
 
-%! rdfs_assert_label(+Subject:rdf_term, +Label, ?Graph:atom) is det.
+%! rdfs_assert_label(+Subject:rdf_term, +Label:or([atom,pair(atom)]), ?Graph:atom) is det.
 
 rdfs_assert_label(S, V):-
   rdfs_assert_label(S, V, _).
 
-%! rdfs_assert_label(+Subject:rdf_term, +Label, ?Graph:atom) is det.
+%! rdfs_assert_label(+Subject:rdf_term, +Label:or([atom,pair(atom)]), ?Graph:atom) is det.
 % Assigns an RDFS label to the resource denoted by the given RDF term.
 %
 % This predicate stores the label as an RDF language-tagged string.
 % The default language is `en-US`.
 
-% Labels without language tag are asserted as `xsd:string`.
+% Labels with language tag are asserted as `rdf:langString`.
 rdfs_assert_label(S, V, G):-
   V = _-_, !,
   rdf_assert_literal(S, rdfs:label, rdf:langString, V, G).
-% Labels with language tag are asserted as `rdf:langString`.
+% Labels without language tag are asserted as `xsd:string`.
 rdfs_assert_label(S, V, G):-
   rdf_assert_literal(S, rdfs:label, xsd:string, V, G).
 
@@ -196,7 +192,7 @@ rdfs_assert_property(D, P, R, G):-
 % Asserts the following propositions:
 %
 % ```nquads
-% NODE  rdfs:range  CLASS GRAPH .
+% NODE rdfs:range CLASS GRAPH .
 % ```
 
 rdfs_assert_range(P, R, G):-
@@ -208,7 +204,7 @@ rdfs_assert_range(P, R, G):-
 % The following propositions are asserted:
 %
 % ```nquads
-% NODE  rdfs:seeAlso  URI GRAPH .
+% NODE rdfs:seeAlso URI GRAPH .
 % ```
 
 rdfs_assert_seeAlso(S, O, G):-
@@ -216,17 +212,17 @@ rdfs_assert_seeAlso(S, O, G):-
 
 
 
-%! rdfs_assert_subclass(+SubClass:iri, ?SuperClass:iri, ?Graph:atom) is det.
+%! rdfs_assert_subclass(+Class:iri, ?ParentClass:iri, ?Graph:atom) is det.
 % Asserts the following propositions:
 %
 % ```nquads
-% NODE  rdfs:subClassOf SUPERCLASS  GRAPH .
+% NODE rdfs:subClassOf PARENT  GRAPH .
 % ```
 %
-% If SuperClass is uninstantiated it defaults to `rdfs:Resource`.
+% If ParentClass is uninstantiated it defaults to `rdfs:Resource`.
 
 rdfs_assert_subclass(C, D, G):-
-  % Allow the superclass to be uninstantiated.
+  % Allow the parent class to be uninstantiated.
   rdf_defval(rdfs:'Resource', D),
   rdf_assert2(C, rdfs:subClassOf, D, G).
 
@@ -234,7 +230,7 @@ rdfs_assert_subclass(C, D, G):-
 
 %! rdfs_assert_subproperty(
 %!   +Subproperty:iri,
-%!   ?SuperProperty:iri,
+%!   ?ParentProperty:iri,
 %!   ?Graph:atom
 %! ) is det.
 % Creates a new property that is a subproperty of the given parent property.
@@ -242,10 +238,10 @@ rdfs_assert_subclass(C, D, G):-
 % The following propositions are asserted:
 %
 % ```nquads
-% NODE  rdfs:subPropertyOf  SUPER-PROPERTY  GRAPH .
+% NODE rdfs:subPropertyOf PARENT GRAPH .
 % ```
 %
-% If SuperProperty is uninstantiated it defaults to `rdf:Property`.
+% If ParentProperty is uninstantiated it defaults to `rdf:Property`.
 
 rdfs_assert_subproperty(P, Q, G):-
   rdf_defval(rdf:'Property', Q),
@@ -295,7 +291,11 @@ rdfs_retractall_class_term(C):-
 
 
 
-%! rdfs_retractall_label_term(+Subject:rdf_term, ?Value, ?Graph:atom) is det.
+%! rdfs_retractall_label_term(
+%!   +Subject:rdf_term,
+%!   ?Label:or([atom,pair(atom)]),
+%!   ?Graph:atom
+%! ) is det.
 
 rdfs_retractall_label(S, V, G):-
   (   ground(V)
@@ -306,3 +306,15 @@ rdfs_retractall_label(S, V, G):-
   ;   true
   ),
   rdf_retractall_literal(S, rdfs:label, D, V, G).
+
+
+
+
+
+% HELPERS %
+
+assert_class(C, Parent, Lbl, Comm, G):-
+  rdfs_assert_subclass(C, Parent, G),
+  (var(Lbl) -> true ; rdfs_assert_label(C, Lbl, G)),
+  (var(Comm) -> true ; rdfs_assert_comment(C, Comm, G)),
+  rdfs_assert_isDefinedBy(C, G).
