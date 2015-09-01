@@ -10,11 +10,11 @@
     rdf_instance/3, % ?Instance:iri
                     % ?Class:iri
                     % ?Graph:atom
-    rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePreferences, ?Value
+    rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePreference, ?Value
     rdf_langstring/5, % ?Subject:rdf_term
                       % ?Predicate:iri
-                      % +LanguagePreferences:list(list(atom))
-                      % ?Value:pair(atom,list(atom))
+                      % +LanguagePreference:atom
+                      % ?Value:pair(atom)
                       % ?Graph:atom
     rdf_load_vocab/1, % +Location:atom
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
@@ -143,15 +143,15 @@ rdf_langstring(S, P, Prefs, V):-
 %! rdf_langstring(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
-%!   +LanguagePreferences:list(list(atom)),
-%!   ?Value:pair(atom,list(atom)),
+%!   +LanguagePreference:atom,
+%!   ?Value:pair(atom),
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_langstring(S, P, Prefs, V, G):-
+rdf_langstring(S, P, Pref, V, G):-
   rdf_literal(S, P, rdf:langString, V, G),
-  V = _-Lang,
-  member(Pref, Prefs),
+  V = Lang-_,
+  atom(Lang),
   basic_filtering(Pref, Lang).
 
 
@@ -205,14 +205,10 @@ rdf_literal(S, P, D, V, G):-
 
 % Language-tagged strings.
 rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
-  V = Lex-Lang,
-  O = literal(lang(Lang0,Lex)),
-  (   ground(Lang)
-  ->  atomic_list_concat(Lang, -, Lang0),
-      rdf2(S, P, O, G)
-  ;   rdf2(S, P, O, G),
-      atomic_list_concat(Lang, -, Lang0)
-  ).
+  V = Lang-Lex,
+  O = literal(lang(Lang,Lex)),
+  rdf2(S, P, O, G),
+  atom(Lang).
 % Ground datatype and value.
 rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
   ground(D),

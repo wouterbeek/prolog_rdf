@@ -33,7 +33,7 @@ Covnerter between RDF serialization formats.
 
 :- predicate_options(rdf_convert/3, 3, [
      compr(+oneof([deflate,gzip,none])),
-     pass_to(rdf_stream/3, 3)
+     pass_to(rdf_stream_read/3, 3)
    ]).
 
 
@@ -65,7 +65,7 @@ rdf_convert(From, To, Opts0):-
   thread_file(tmp, Tmp),
   setup_call_cleanup(
     open(Tmp, write, Write),
-    rdf_stream(From, rdf_convert0(Write), Opts),
+    rdf_stream_read(From, rdf_convert0(Write), Opts),
     close(Write)
   ),
 

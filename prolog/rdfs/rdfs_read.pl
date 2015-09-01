@@ -3,8 +3,17 @@
   [
     rdfs_comment/2, % ?Subject:rdf_term
                     % ?Comment:atom
-    rdfs_instance/2 % ?Instance:rdf_term
-                    % ?Class:or([bnode,iri])
+    rdfs_instance/2, % ?Instance:rdf_term
+                     % ?Class:or([bnode,iri])
+    rdfs_label/4, % +Subject:rdf_term
+                  % ?LanguagePreference:atom
+                  % -Language:atom
+                  % -LexicalForm:atom
+    rdfs_label/5 % +Subject:rdf_term
+                 % ?LanguagePreference:atom
+                 % -Language:atom
+                 % -LexicalForm:atom
+		 % ?Graph:atom
   ]
 ).
 
@@ -21,6 +30,8 @@
 
 :- rdf_meta(rdfs_comment(o,?)).
 :- rdf_meta(rdfs_instance(o,r)).
+:- rdf_meta(rdfs_label(o,+,-,-)).
+:- rdf_meta(rdfs_label(o,+,-,-,?)).
 
 
 
@@ -42,3 +53,33 @@ rdfs_instance(I0, C):-
   rdfs_instance(I, C).
 rdfs_instance(I, C):-
   rdfs_individual_of(I, C).
+
+
+
+%! rdfs_label(
+%!   +Subject:rdf_term,
+%!   ?LanguagePreference:list(atom),
+%!   -Language:list(atom),
+%!   -LexicalForm:atom
+%! ) is nondet.
+
+rdfs_label(S, Pref, Lang, Lbl):-
+  rdfs_label(S, Pref, Lang, Lbl, _).
+
+%! rdfs_label(
+%!   +Subject:rdf_term,
+%!   ?LanguagePreference:atom,
+%!   -Language:atom,
+%!   -LexicalForm:atom,
+%!   ?Graph:atom
+%! ) is nondet.
+
+
+rdfs_label(S, Pref, Lang, Lex, G):-
+  rdf_global_id(rdfs:label, P),
+  (   % First look for language-tagged strings with matching language tag.
+      rdf_langstring(S, P, Pref, Lang-Lex, G)
+  ;   % Secondly look for XSD strings with no language tag.
+      rdf_global_id(xsd:string, D),
+      rdf_literal(S, P, D, Lex, G)
+  ).

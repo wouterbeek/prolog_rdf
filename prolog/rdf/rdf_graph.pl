@@ -1,7 +1,7 @@
 :- module(
   rdf_graph,
   [
-    rdf_graph2/1 % @Term
+    rdf_is_graph/1 % @Term
   ]
 ).
 
@@ -19,13 +19,16 @@
 
 
 
-%! rdf_graph2(@Term) is semidet.
+%! rdf_is_graph(@Term) is semidet.
 % rdf_graph/1 throws an exception for any non-atomic nonvar argument,
 % whereas this predicate fails silently.
 %
+% rdf_graph/1 does not succeed for the default graph (called `user`)
+% if it is empty whereas this predicate does.
+%
 % The name of this predicate is in line with rdf_is_bnode/1, rdf_is_literal/1,
-%  and rdf_is_resource/1 in [library(semweb/rdf_db)].
+% and rdf_is_resource/1 in [library(semweb/rdf_db)].
 
-rdf_graph2(G):-
+rdf_is_graph(G):-
   atom(G),
-  rdf_graph(G).
+  (G == user ; rdf_graph(G)), !.

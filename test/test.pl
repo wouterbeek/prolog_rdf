@@ -1,3 +1,5 @@
+%/conv
+:- use_module(library(conv/json_to_rdf)).
 %/ctriples
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
@@ -10,8 +12,13 @@
 :- use_module(library(dcg/sw_literal)).
 :- use_module(library(dcg/sw_number)).
 :- use_module(library(dcg/sw_string)).
+:- use_module(library(dcg/turtle_conv)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
+:- use_module(library(html/rdf_html_term)).
+%/lod
+:- use_module(library(lod/lod_cache)).
+:- use_module(library(lod/lod_stats)).
 %/mat
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).
@@ -33,12 +40,16 @@
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_image)).
+:- use_module(library(rdf/rdf_info)).
 :- use_module(library(rdf/rdf_json_build)).
+:- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_save)).
+:- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_test)).

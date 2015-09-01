@@ -92,6 +92,7 @@ rdf_assert_list0(L1, L2, G):-
   add_list_instance0(L2, G),
   rdf_assert_list_items0(L1, L2, G).
 
+% @tbd Add determinism?
 rdf_assert_list_items0([], rdf:nil, _).
 rdf_assert_list_items0([H1|T1], L2, G):-
   % rdf:first

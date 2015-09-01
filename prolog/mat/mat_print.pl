@@ -23,7 +23,6 @@ Printing of materialization results.
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
-:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_logic)).
@@ -75,7 +74,7 @@ print_conclusion(T, Opts) -->
 % Wrapper around print_deduction//4 with default options.
 
 print_deduction(R, Ps, C) -->
-  print_deduction(R, Ps, C, [logic_sym(true)]).
+  print_deduction(R, Ps, C, []).
 
 
 %! print_deduction(
@@ -86,7 +85,7 @@ print_deduction(R, Ps, C) -->
 %! )// is det.
 
 print_deduction(R, Ps, C, Opts) -->
-  bracketed(square, print_rule(R)),
+  "[", print_rule(R), "]",
   nl,
   print_premises(Ps, Opts),
   print_conclusion(C, Opts).

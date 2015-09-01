@@ -177,6 +177,12 @@ rdf_predicate(X):-
 %! rdf_subject2(-Term:rdf_term) is nondet.
 
 rdf_subject2(S):-
+  nonvar(S), !,
+  (   rdf_subject(S)
+  ;   bnode_literal(S0, S),
+      rdf_subject(S0)
+  ), !.
+rdf_subject2(S):-
   rdf_subject(S0),
   (   rdf_is_bnode(S0),
       bnode_literal(S0, S)

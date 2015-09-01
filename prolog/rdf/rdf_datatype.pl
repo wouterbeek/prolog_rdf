@@ -211,14 +211,14 @@ rdf_lexical_canonical_map(D, Lex, CLex):-
 %! rdf_lexical_map(+Literal:compound, -Value) is det.
 
 % Typed literal (as per RDF 1.0 specification).
-rdf_lexical_map(literal(type(D,LexicalForm)), V):- !,
-  rdf_lexical_map(D, LexicalForm, V).
+rdf_lexical_map(literal(type(D,Lex)), V):- !,
+  rdf_lexical_map(D, Lex, V).
 % Language-tagged string.
-rdf_lexical_map(literal(lang(LangTag,LexicalForm)), LangTag-LexicalForm):- !.
+rdf_lexical_map(literal(lang(Lang,Lex)), Lang-Lex):- !.
 % Simple literal (as per RDF 1.0 specification)
 % now assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-rdf_lexical_map(literal(LexicalForm), V):-
-  rdf_lexical_map(xsd:string, LexicalForm, V).
+rdf_lexical_map(literal(Lex), V):-
+  rdf_lexical_map(xsd:string, Lex, V).
 
 
 
@@ -233,12 +233,12 @@ rdf_lexical_map(literal(LexicalForm), V):-
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
-rdf_lexical_map(rdf:'HTML', LexicalForm, V):- !,
-  atom_to_html_dom(LexicalForm, V).
-rdf_lexical_map(rdf:'XMLLiteral', LexicalForm, V):- !,
-  atom_to_xml_dom(LexicalForm, V).
-rdf_lexical_map(D, LexicalForm, V):-
-  xsd_lexical_map(D, LexicalForm, V).
+rdf_lexical_map(rdf:'HTML', Lex, V):- !,
+  atom_to_html_dom(Lex, V).
+rdf_lexical_map(rdf:'XMLLiteral', Lex, V):- !,
+  atom_to_xml_dom(Lex, V).
+rdf_lexical_map(D, Lex, V):-
+  xsd_lexical_map(D, Lex, V).
 
 
 

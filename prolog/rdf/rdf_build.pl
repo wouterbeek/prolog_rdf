@@ -171,12 +171,11 @@ rdf_assert_literal(S, P, D, V):-
 %
 % @compat RDF 1.1 Concepts and Abstract Syntax
 % @compat XSD 1.1 Schema 2: Datatypes
+% @ tbd Use 'Language-Tag'//1.
 
 % Language-tagged strings.
-rdf_assert_literal(S, P, rdf:langString, LangTag0-Lex, G):-
-  % @ tbd Use 'Language-Tag'//1.
-  atomic_list_concat(LangTag0, -, LangTag), !,
-  rdf_assert2(S, P, literal(lang(LangTag,Lex)), G).
+rdf_assert_literal(S, P, rdf:langString, Lang-Lex, G):- !,
+  rdf_assert2(S, P, literal(lang(Lang,Lex)), G).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
 rdf_assert_literal(S, P, D, V, G):-
@@ -210,9 +209,8 @@ rdf_assert_literal_pl(S, P, V):-
 %   * float
 %   * HTML DOM
 %   * integer
-%   * Pair of list of atoms and atom (in that order)
-%     The former denotes a language tag.
-%     The latter denotes a text string.
+%   * Pair of two atoms where the former denotes a language tag
+%     and the latter denotes a text string.
 %   * rational
 %   * string
 %   * XML DOM

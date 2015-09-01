@@ -1,23 +1,23 @@
 :- module(
   sparql_db,
   [
-    sparql_endpoint_by_resource/2, % +Resource:iri
-                                   % -Endpoint:atom
+    sparql_endpoint_by_iri/2, % +Iri:iri
+                              % -Endpoint:atom
     sparql_endpoint_location/2, % +Endpoint:atom
                                 % -Location:atom
     sparql_endpoint_location/3, % +Endpoint:atom
                                 % ?Mode:oneof([http,query,update])
                                 % -Location:atom
-    sparql_location_by_resource/3, % +Resource:iri
-                                   % +Mode:oneof([http,query,update])
-                                   % -Location:atom
+    sparql_location_by_iri/3, % +Iri:iri
+                              % +Mode:oneof([http,query,update])
+                              % -Location:atom
 %%%%
     sparql_endpoint/1, % ?Endpoint:atom
     sparql_endpoint_option/3, % +Endpoint:atom
                               % ?Name:compound
                               % ?Value:compound
     sparql_register_endpoint/3, % +Endpoint:atom
-                                % +Locations:list(uri)
+                                % +Locations:list(iri)
                                 % +Manufacturer:atom
     sparql_remove_endpoint/1 % +SparqlRemote:atom
   ]
@@ -31,11 +31,13 @@ Persistent store of SPARQL-related information.
 @version 2015/08
 */
 
+:- use_module(library(apply)).
 :- use_module(library(base64)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_prefix)). % Private
 :- use_module(library(service_db)).
+:- use_module(library(sparkle)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri/uri_ext)).
 
@@ -86,7 +88,7 @@ dbpedia_init:-
     virtuoso
   ).
 
-% DBpedia localizations
+% DBpedia localizations.
 dbpedia_localizations_init:-
   forall(
     rdf_prefix:dbpedia_language_tag(LangTag),
@@ -110,11 +112,11 @@ dbpedia_register(LangTag):-
 
 
 
-%! sparql_endpoint_by_resource(+Resource:iri, -Endpoint:atom) is nondet.
+%! sparql_endpoint_by_iri(+Iri:iri, -Endpoint:atom) is nondet.
 % Endpoints that are associated with the prefix of the given resource.
 
-sparql_endpoint_by_resource(Resource, Endpoint):-
-  uri_component(Resource, host, Host),
+sparql_endpoint_by_iri(Iri, Endpoint):-
+  uri_component(Iri, host, Host),
   sparql_endpoint_option(Endpoint, location, Location),
   uri_component(Location, host, Host).
 
@@ -182,26 +184,26 @@ sparql_manufacturer_option0(virtuoso, path_suffix(update), '/update').
 
 
 
-%! sparql_endpoint_location(+Endpoint:atom, -Uri:atom) is nondet.
+%! sparql_endpoint_location(+Endpoint:atom, -Location:atom) is nondet.
 
-sparql_endpoint_location(Endpoint, Uri):-
-  sparql_endpoint_location(Endpoint, _, Uri).
+sparql_endpoint_location(Endpoint, Location):-
+  sparql_endpoint_location(Endpoint, _, Location).
 
 
 %! sparql_endpoint_location(
 %!   +Endpoint:atom,
 %!   ?Mode:oneof([http,query,update]),
-%!   -Uri:atom
+%!   -Location:iri
 %! ) is nondet.
 % Returns the URL locations that are associated with the given endpoint+mode.
 %
 % @throws existence_error If the given SPARQL endpoint
 %         is not available at any location.
 
-sparql_endpoint_location(Uri, Mode, Uri):-
-  is_uri(Uri), !,
-  \+ sparql_endpoint_option(Uri, Mode, _).
-sparql_endpoint_location(Endpoint, Mode, Uri):-
+sparql_endpoint_location(Endpoint, Mode, Location):-
+  is_uri(Endpoint), !,
+  \+ sparql_endpoint_option(Location, Mode, _).
+sparql_endpoint_location(Endpoint, Mode, Location):-
   % NONDET: There may be multiple locations registered with an endpoint.
   sparql_endpoint_option(Endpoint, location, Base),
 
@@ -210,26 +212,26 @@ sparql_endpoint_location(Endpoint, Mode, Uri):-
       % but not all registrations will contain every mode.
       sparql_endpoint_option(Endpoint, path_suffix(Mode), PathSuffix)
   ->  % Build the mode-specific location.
-      uri_normalized(PathSuffix, Base, Uri)
-  ;   Uri = Base
+      uri_normalized(PathSuffix, Base, Location)
+  ;   Location = Base
   ).
 
 
 
-%! sparql_location_by_resource(
-%!   +Resource:iri,
+%! sparql_location_by_iri(
+%!   +Iri:iri,
 %!   +Mode:oneof([http,query,update]),
-%!   -Uri:atom
+%!   -Location:iri
 %! ) is nondet.
 
-sparql_location_by_resource(Resource, Mode, Uri):-
+sparql_location_by_iri(Iri, Mode, Location):-
   % Find an endpoint that is associated with
   % (the prefix of) a given resource.
-  sparql_endpoint_by_resource(Resource, Endpoint),
+  sparql_endpoint_by_iri(Iri, Endpoint),
 
   % Find a location -- possibly different from the given resource! --
   % for the given endpoint.
-  sparql_endpoint_location(Endpoint, Mode, Uri).
+  sparql_endpoint_location(Endpoint, Mode, Location).
 
 
 
@@ -240,6 +242,9 @@ sparql_location_by_resource(Resource, Mode, Uri):-
 %! ) is det.
 
 sparql_register_endpoint(Endpoint, Locations, Manufacturer):-
+  % Compatibility with library sparkle.
+  % @tbd Enable when fixed.
+  %maplist(sparql_endpoint(Endpoint), Locations),
   assert(sparql_endpoint(Endpoint)),
   forall(
     member(Location, Locations),

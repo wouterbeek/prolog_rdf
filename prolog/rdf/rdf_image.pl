@@ -17,7 +17,9 @@
 
 :- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(semweb/rdf_db)).
 
 :- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
