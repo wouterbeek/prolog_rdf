@@ -2,28 +2,39 @@
   owl_build,
   [
     owl_assert_class/5, % +Class:iri
-                        % ?ParentClass:iri
+                        % ?ParentClass:or([iri,list(iri)])
                         % ?Label:or([atom,pair(atom)])
                         % ?Comment:or([atom,pair(atom)])
                         % ?Graph:atom
     owl_assert_data_property/2, % +Property:iri
                                 % ?Graph:atom
     owl_assert_data_property/8, % +Property:iri
-                                % ?ParentProperty:iri
+                                % ?ParentProperty:or([iri,list(iri)])
                                 % ?Label:or([atom,pair(atom)])
                                 % ?Comment:or([atom,pair(atom)])
                                 % ?Domain:or([bnode,iri])
                                 % ?Range:or([bnode,iri])
                                 % ?Graph:atom
                                 % +Options:list(compound)
+    owl_assert_equivalent_class/3, % +Class1:or([bnode,iri])
+                                   % +Class2:or([bnode,iri])
+                                   % ?Graph:atom
     owl_assert_functional_property/2, % +Property:iri
                                       % ?Graph:atom
+    owl_assert_intersection_of/3, % +Class:or([bnode,iri])
+                                  % +Classes:list(or([bnode,iri])
+                                  % ?Graph:atom
+    owl_assert_named_individual/5, % +Individual:iri
+                                   % ?Class:or([iri,list(iri)])
+                                   % ?Label:or([atom,pair(atom)])
+                                   % ?Comment:or([atom,pair(atom)])
+                                   % ?Graph:atom
     owl_assert_object_property/2, % +Property:iri
                                   % ?Graph:atom
     owl_assert_ontology/2, % +Ontology:or([bnode,iri])
                            % ?Graph:atom
     owl_assert_object_property/8, % +Property:iri
-                                  % ?ParentProperty:iri
+                                  % ?ParentProperty:or([iri,list(iri)])
                                   % ?Label:or([atom,pair(atom)])
                                   % ?Comment:or([atom,pair(atom)])
                                   % ?Domain:or([bnode,iri])
@@ -45,7 +56,12 @@ Predicates for asserting common OWL structures.
 @version 2015/08-2015/09
 */
 
+:- use_module(library(apply)).
+:- use_module(library(lambda)).
 :- use_module(library(option)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_list)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdfs/rdfs_build)).
 
 :- predicate_options(owl_assert_data_property/8, 8, [
@@ -58,12 +74,15 @@ Predicates for asserting common OWL structures.
      functional(+boolean)
    ]).
 
-:- rdf_meta(owl_assert_class(r,r,?,?,?)).
+:- rdf_meta(owl_assert_class(r,t,?,?,?)).
 :- rdf_meta(owl_assert_data_property(r,?)).
-:- rdf_meta(owl_assert_data_property(r,r,+,+,r,r,?,+)).
+:- rdf_meta(owl_assert_data_property(r,t,+,+,r,r,?,+)).
+:- rdf_meta(owl_assert_equivalent_class(r,r,?)).
 :- rdf_meta(owl_assert_functional_property(r,?)).
+:- rdf_meta(owl_assert_intersection_of(r,t,?)).
+:- rdf_meta(owl_assert_named_individual(r,t,?,?,?)).
 :- rdf_meta(owl_assert_object_property(r,?)).
-:- rdf_meta(owl_assert_object_property(r,r,+,+,r,r,?,+)).
+:- rdf_meta(owl_assert_object_property(r,t,+,+,r,r,?,+)).
 :- rdf_meta(owl_assert_ontology(r,?)).
 :- rdf_meta(owl_assert_value_restriction(r,r,?,-)).
 
@@ -73,7 +92,7 @@ Predicates for asserting common OWL structures.
 
 %! owl_assert_class(
 %!   +Class:iri,
-%!   ?Parent:iri,
+%!   ?Parent:or([iri,list(iri)]),
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   ?Graph:atom
@@ -92,7 +111,7 @@ owl_assert_data_property(I, G):-
 
 %! owl_assert_data_property(
 %!   +Property:iri,
-%!   ?ParentProperty:iri,
+%!   ?ParentProperty:or([iri,list(iri)]),
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   ?Domain:or([bnode,iri]),
@@ -109,10 +128,52 @@ owl_assert_data_property(P, Parent, Lbl, Comm, D, R, G, Opts):-
 
 
 
+%! owl_assert_equivalent_class(
+%!   +Class1:or([bnode,iri]),
+%!   +Class2:or([bnode,iri]),
+%!   ?Graph:atom
+%! ) is det.
+
+owl_assert_equivalent_class(C, D, G):-
+  rdf_assert2(C, owl:equivalentClass, D, G).
+
+
+
 %! owl_assert_functional_property(+Property:iri, ?Graph:atom) is det.
 
 owl_assert_functional_property(I, G):-
   rdf_assert_instance(I, owl:'FunctionalProperty', G).
+
+
+
+%! owl_assert_intersection_of(
+%!   ?Class:or([bnode,iri]),
+%!   +Classes:list(or([bnode,iri])),
+%!   ?Graph:atom
+%! ) is det.
+
+owl_assert_intersection_of(C, Ds, G):-
+  (var(C) -> rdf_bnode(C) ; true),
+  rdf_assert_instance(C, owl:'Class', G),
+  rdf_assert_list(Ds, Ds0, G),
+  rdf_assert2(C, owl:intersectionOf, Ds0, G).
+
+
+
+%! owl_assert_named_individual(
+%!   +Individual:iri,
+%!   ?Class:or([iri,list(iri)]),
+%!   ?Label:or([atom,pair(atom)]),
+%!   ?Comment:or([atom,pair(atom)]),
+%!   ?Graph:atom
+%! ) is det.
+
+owl_assert_named_individual(I, C, Lbl, Comm, G):-
+  rdf_assert_instance(I, owl:'NamedIndividual', G),
+  rdf_assert_instance(I, C, G),
+  (var(Lbl) -> true ; rdfs_assert_label(I, Lbl, G)),
+  (var(Comm) -> true ; rdfs_assert_comment(I, Comm, G)),
+  rdfs_assert_isDefinedBy(I, G).
 
 
 
@@ -123,7 +184,7 @@ owl_assert_object_property(I, G):-
 
 %! owl_assert_object_property(
 %!   +Property:iri,
-%!   ?ParentProperty:iri,
+%!   ?ParentProperty:or([iri,list(iri)]),
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   ?Domain:or([bnode,iri]),
@@ -168,7 +229,7 @@ owl_assert_value_restriction(P, V, G, R):-
 
 %! owl_assert_property(
 %!   +Property:iri,
-%!   ?ParentProperty:iri,
+%!   ?ParentProperty:or([iri,list(iri)]),
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   ?Domain:or([bnode,iri]),
@@ -182,7 +243,12 @@ owl_assert_property(P, Parent, Lbl, Comm, D, R, G, Opts):-
   ->  owl_assert_functional_property(P, G)
   ;   true
   ),
-  (var(Parent) -> true ; rdfs_assert_subproperty(P, Parent, G)),
+  (   var(Parent)
+  ->  true
+  ;   is_list(Parent)
+  ->  maplist(\Parent0^rdfs_assert_subproperty(P, Parent0, G), Parent)
+  ;   rdfs_assert_subproperty(P, Parent, G)
+  ),
   (var(Lbl) -> true ; rdfs_assert_label(P, Lbl, G)),
   (var(Comm) -> true ; rdfs_assert_comment(P, Comm, G)),
   (var(D) -> true ; rdfs_assert_domain(P, D, G)),

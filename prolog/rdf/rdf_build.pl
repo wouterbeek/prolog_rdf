@@ -8,7 +8,7 @@
                  % +SubPaths:list(atom)
                  % -Iri:iri
     rdf_assert_instance/3, % +Instance:rdf_term
-                           % ?Class:iri
+                           % ?Class:or([iri,list(iri)])
                            % ?Graph:atom
     rdf_assert_literal/4, % +Subject, +Predicate, ?Datatype, +Value
     rdf_assert_literal/5, % +Subject:rdf_term
@@ -41,7 +41,7 @@
                               % ?Graph:atom
     rdf_retractall_resource/2, % +Resource:rdf_term
                                % ?Graph:atom
-    rdf_retractall_term/1, % +Term:rdf_term
+    rdf_retractall_term/1, % +Term
     rdf_retractall_term/2, % +Term:rdf_term
                            % ?Graph:atom
     rdf_retractall2/3, % ?Subject:rdf_term
@@ -75,7 +75,7 @@ Simple asserion and retraction predicates for RDF.
 :- dynamic(bnode_literal/2).
 
 :- rdf_meta(bnode_literal(?,o)).
-:- rdf_meta(rdf_assert_instance(o,r,?)).
+:- rdf_meta(rdf_assert_instance(o,t,?)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+,?)).
 :- rdf_meta(rdf_assert_literal_pl(o,r,+)).
@@ -132,18 +132,26 @@ fresh_iri(Prefix, SubPaths0, Iri):-
 
 
 
-%! rdf_assert_instance(+Instance:rdf_term, ?Class:iri, ?Graph:atom) is det.
+%! rdf_assert_instance(
+%!   +Instance:rdf_term,
+%!   ?Class:or([iri,list(iri)]),
+%!   ?Graph:atom
+%! ) is det.
 % Asserts an instance/class relationship.
 %
 % The following triples are added to the database:
 %
 % ```nquads
-% <TERM,rdf:type,CLASS,GRAPH>
+% 〈TERM, rdf:type, CLASS, GRAPH〉
 % ```
 
 rdf_assert_instance(I, C, G):-
-  rdf_defval(rdfs:'Resource', C),
-  rdf_assert2(I, rdf:type, C, G).
+  (   var(C)
+  ->  rdf_assert2(I, rdf:type, rdfs:'Resource', G)
+  ;   is_list(C)
+  ->  forall(member(C0, C), rdf_assert2(I, rdf:type, C0, G))
+  ;   rdf_assert2(I, rdf:type, C, G)
+  ).
 
 
 
@@ -255,7 +263,7 @@ rdf_assert_now(S, P, D, G):-
 % The following triples are added to the database:
 %
 % ```nquads
-% <TERM,rdf:type,rdf:Property,GRAPH>
+% 〈TERM, rdf:type, rdf:Property, GRAPH〉
 % ```
 
 rdf_assert_property(P, Parent, G):-

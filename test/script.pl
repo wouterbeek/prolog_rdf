@@ -40,8 +40,7 @@ script2:-
   rdf_assert(ex:'A', owl:equivalentClass, D, G),
   owl_assert_value_restriction(ex:p, ex:v1, G, R1),
   owl_assert_value_restriction(ex:p, ex:v2, G, R2),
-  rdf_assert_list([R1,R2], Rs, G),
-  rdf_assert(D, owl:intersectionOf, Rs, G),
+  owl_assert_intersection_of(D, [R1,R2], G),
   rdf_assert_instance(ex:a, ex:'A', G),
   mat0(G).
 

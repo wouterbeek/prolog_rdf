@@ -1,4 +1,4 @@
-:- module(test_literal_pl, [run_tests/0]).
+:- module(literal_pl_test, [run_tests/0]).
 
 /** <module> Test rdf_assert_literal_pl/[3,4]
 
@@ -99,7 +99,7 @@ run_tests:-
   % integer
   rdf_assert_literal_pl(ex:s, ex:p, 1, G),
   % Pair denoting a language-tagged string.
-  rdf_assert_literal_pl(ex:s, ex:p, [en,'US']-one, G),
+  rdf_assert_literal_pl(ex:s, ex:p, 'en-US'-one, G),
   % rational
   rdf_assert_literal_pl(ex:s, ex:p, 111111111 rdiv 100000000, G),
   % string

@@ -2,7 +2,7 @@
   rdfs_build,
   [
     rdfs_assert_class/5, % +Class:iri
-                         % ?Parent:iri
+                         % ?Parent:or([iri,list(iri)])
                          % ?Label:or([atom,pair(atom)])
                          % ?Comment:or([atom,pair(atom)])
                          % ?Graph:atom
@@ -31,7 +31,7 @@
                            % +Uri:atom
                            % +Graph:atom
     rdfs_assert_subclass/3, % +Class:iri
-                            % ?ParentClass:iri
+                            % ?ParentClass:or([iri,list(iri)])
                             % ?Graph:atom
     rdfs_assert_subproperty/3, % +Subproperty:or([bnode,iri])
                                % +ParentProperty:iri
@@ -43,7 +43,6 @@
                             % ?Graph:atom
   ]
 ).
-:- reexport(library(rdf/rdf_build)).
 
 /** <module> RDFS build
 
@@ -54,12 +53,13 @@ Predicates for asseritng RDFS statements in an easy way.
 */
 
 :- use_module(library(owl/owl_read)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
 
-:- rdf_meta(rdfs_assert_class(r,r,?,?,?)).
+:- rdf_meta(rdfs_assert_class(r,t,?,?,?)).
 :- rdf_meta(rdfs_assert_comment(o,+,?)).
 :- rdf_meta(rdfs_assert_domain(r,r,+)).
 :- rdf_meta(rdfs_assert_isDefinedBy(o,?)).
@@ -69,7 +69,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_assert_property(r,r,r,+)).
 :- rdf_meta(rdfs_assert_range(r,r,+)).
 :- rdf_meta(rdfs_assert_seeAlso(o,+,?)).
-:- rdf_meta(rdfs_assert_subclass(r,r,+)).
+:- rdf_meta(rdfs_assert_subclass(r,t,+)).
 :- rdf_meta(rdfs_assert_subproperty(r,r,?)).
 :- rdf_meta(rdfs_retractall_class_resource(r)).
 :- rdf_meta(rdfs_retractall_class_term(r)).
@@ -80,8 +80,8 @@ Predicates for asseritng RDFS statements in an easy way.
 
 
 %! rdfs_assert_class(
-%!   +Class:or([bnode,iri]),
-%!   ?Parent:or([bnode,iri]),
+%!   +Class:iri,
+%!   ?Parent:or([iri,list(iri)]),
 %!   ?Label:or([atom,pair(atom)]),
 %!   ?Comment:or([atom,pair(atom)]),
 %!   ?Graph:atom
@@ -113,7 +113,7 @@ rdfs_assert_comment(S, V, G):-
 % Asserts the following propositions:
 %
 % ```nquads
-% NODE  rdfs:domain CLASS GRAPH .
+% 〈NODE, rdfs:domain, CLASS, GRAPH〉
 % ```
 
 rdfs_assert_domain(P, D, G):-
@@ -131,7 +131,7 @@ rdfs_assert_isDefinedBy(S, G):-
 % Asserts the following propositions:
 %
 % ```nquads
-% NODE  rdfs:isDefinedBy  NAMESPACE GRAPH .
+% 〈NODE, rdfs:isDefinedBy, NAMESPACE, GRAPH〉
 % ```
 %
 % If the given RDF term is a literal,
@@ -179,7 +179,7 @@ rdfs_assert_label(S, V, G):-
 % Asserts the following propositions:
 %
 % ```nquads
-% NODE  rdfs:range  CLASS GRAPH .
+% 〈NODE, rdfs:range, CLASS, GRAPH〉
 % ```
 
 rdfs_assert_property(D, P, R, G):-
@@ -192,7 +192,7 @@ rdfs_assert_property(D, P, R, G):-
 % Asserts the following propositions:
 %
 % ```nquads
-% NODE rdfs:range CLASS GRAPH .
+% 〈NODE, rdfs:range, CLASS, GRAPH〉
 % ```
 
 rdfs_assert_range(P, R, G):-
@@ -204,7 +204,7 @@ rdfs_assert_range(P, R, G):-
 % The following propositions are asserted:
 %
 % ```nquads
-% NODE rdfs:seeAlso URI GRAPH .
+% 〈NODE, rdfs:seeAlso, IRI, GRAPH〉
 % ```
 
 rdfs_assert_seeAlso(S, O, G):-
@@ -212,19 +212,27 @@ rdfs_assert_seeAlso(S, O, G):-
 
 
 
-%! rdfs_assert_subclass(+Class:iri, ?ParentClass:iri, ?Graph:atom) is det.
+%! rdfs_assert_subclass(
+%!   +Class:iri,
+%!   ?ParentClass:or([iri,list(iri)]),
+%!   ?Graph:atom
+%! ) is det.
 % Asserts the following propositions:
 %
 % ```nquads
-% NODE rdfs:subClassOf PARENT  GRAPH .
+% 〈NODE, rdfs:subClassOf, PARENT, GRAPH〉
 % ```
 %
 % If ParentClass is uninstantiated it defaults to `rdfs:Resource`.
 
 rdfs_assert_subclass(C, D, G):-
   % Allow the parent class to be uninstantiated.
-  rdf_defval(rdfs:'Resource', D),
-  rdf_assert2(C, rdfs:subClassOf, D, G).
+  (   var(D)
+  ->  rdf_assert2(C, rdfs:subClassOf, rdfs:'Resource', G)
+  ;   is_list(D)
+  ->  forall(member(D0, D), rdf_assert2(C, rdfs:subClassOf, D0, G))
+  ;   rdf_assert2(C, rdfs:subClassOf, D, G)
+  ).
 
 
 
@@ -238,7 +246,7 @@ rdfs_assert_subclass(C, D, G):-
 % The following propositions are asserted:
 %
 % ```nquads
-% NODE rdfs:subPropertyOf PARENT GRAPH .
+% 〈NODE, rdfs:subPropertyOf, PARENT, GRAPH〉
 % ```
 %
 % If ParentProperty is uninstantiated it defaults to `rdf:Property`.
