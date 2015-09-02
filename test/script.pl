@@ -4,6 +4,8 @@
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_info)).
 :- use_module(library(rdf/rdf_list)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdfs/rdfs_build)).
 :- use_module(library(semweb/rdf_db)).
 
 :- debug(mat(rdf(_))).
@@ -66,5 +68,10 @@ script5:-
   rdf_assert(ex:a, ex:p, ex:c, G),
   rdf_assert(ex:b, owl:differentFrom, ex:c, G),
   mat0(G).
-
 mat0(G):- atom_concat(G, '_mat', GMat), mat(G, GMat).
+
+script6:-
+  rdf_reset_db,
+  G = script6,
+  rdf_assert_now(ex:s, ex:p, G),
+  rdf_print_graph(G).

@@ -229,8 +229,8 @@ rdf_assert_literal_pl(S, P, V0, G):-
   string(V0), !,
   atom_string(V, V0),
   rdf_assert_literal_pl(S, P, V, G).
-rdf_assert_literal_pl(S, P, V0, G):-
-  rdf_guess_datatype(V0, D, V), !,
+rdf_assert_literal_pl(S, P, V, G):-
+  rdf_guess_datatype(V, D), !,
   rdf_assert_literal(S, P, D, V, G).
 rdf_assert_literal_pl(_, _, V, _):-
   print_message(error, cannot_guess_rdf_datatype(V)).
@@ -252,8 +252,7 @@ rdf_assert_now(S, P, G):-
 
 rdf_assert_now(S, P, D, G):-
   get_time(NowFloat),
-  stamp_date_time(NowFloat, Now0, 0),
-  prolog_xsd_date(Now0, Now),
+  stamp_date_time(NowFloat, Now, local),
   rdf_assert_literal(S, P, D, Now, G).
 
 
