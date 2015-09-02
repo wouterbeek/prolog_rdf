@@ -15,6 +15,7 @@
 :- use_module(library(dcg/turtle_conv)).
 %/html
 :- use_module(library(html/rdf_html_meta)).
+:- use_module(library(html/rdf_html_stmt)).
 :- use_module(library(html/rdf_html_term)).
 %/lod
 :- use_module(library(lod/lod_cache)).

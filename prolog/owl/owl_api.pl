@@ -63,10 +63,11 @@
 /** <module> OWL API
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(html/content/html_collection)).
+:- use_module(library(html/rdf_html_stmt)).
 :- use_module(library(html/rdf_html_term)).
 :- use_module(library(lambda)).
 :- use_module(library(langtag/langtag_match)).
