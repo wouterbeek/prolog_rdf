@@ -17,11 +17,11 @@
     rdf_print_statement/1, % +Statement
     rdf_print_statement/2, % +Statement:compoud
                            % +Options:list(compound)
-    rdf_print_statement//5, % +Subject:rdf_term,
-                            % +Predicate:iri,
-                            % +Object:rdf_term,
-                            % ?Graph:atom,
-                            % +Options:list(compound)
+    rdf_print_statement/5, % +Subject:rdf_term,
+                           % +Predicate:iri,
+                           % +Object:rdf_term,
+                           % ?Graph:atom,
+                           % +Options:list(compound)
     rdf_print_statements/1, % +Statements
     rdf_print_statements/2, % +Statements:list(compoud)
                             % +Options:list(compound)
@@ -51,6 +51,7 @@
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(semweb/rdf_db)).
 
