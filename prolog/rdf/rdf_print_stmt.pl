@@ -236,7 +236,8 @@ rdf_print_statement(T, Opts0):-
 rdf_print_statement(S, P, O, G, Opts):-
   option(indent(I), Opts, 0),
   tab(I),
-  dcg_with_output_to(current_output, rdf_print_statement(S, P, O, G, Opts)).
+  dcg_with_output_to(current_output, rdf_print_statement(S, P, O, G, Opts)),
+  nl.
 
 
 
