@@ -17,7 +17,7 @@
 Printing of materialization results.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(dcg/basics)).
@@ -25,8 +25,8 @@ Printing of materialization results.
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_logic)).
 :- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_unicode)).
 
 :- predicate_options(print_conclusion//2, 2, [
      pass_to(print_expression0//2, 2)
@@ -97,7 +97,7 @@ print_deduction(R, Ps, C, Opts) -->
 print_expression0(error, _) --> !,
   falsum.
 print_expression0(rdf(S,P,O), Opts) --> !,
-  rdf_print:rdf_print_statement(S, P, O, _, Opts).
+  rdf_print_statement(S, P, O, _, Opts).
 print_expression0(T, _) -->
   pl_term(T).
 

@@ -34,7 +34,7 @@ datatype preferences in order to perform limited-scale crawling.
 :- use_module(library(owl/owl_api)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(semweb/rdf_db)).
 
 :- dynamic(in_lod_pool/1).

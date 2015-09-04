@@ -8,12 +8,13 @@
 /** <module> Prints executive summaries about the RDF DB
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(ansi_ext)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(lists)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
 
 
@@ -39,7 +40,7 @@ rdf_info:-
   ;   Prefix = Sorted
   ),
   forall(member(N-G, Prefix), (
-    dcg_with_output_to(atom(G0), rdf_print:rdf_print_term(G)),
+    dcg_with_output_to(atom(G0), rdf_print_term(G)),
     ansi_formatln([], '~D~25|~a', [N,G0])
   )),
 
