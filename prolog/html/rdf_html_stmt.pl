@@ -56,6 +56,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdf_html_describe(o,?,?)).
