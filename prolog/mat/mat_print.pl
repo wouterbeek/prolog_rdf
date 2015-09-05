@@ -27,6 +27,7 @@ Printing of materialization results.
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_pl_term)).
 :- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(rdf/rdf_print_stmt)).
 
 :- predicate_options(print_conclusion//2, 2, [
      pass_to(print_expression0//2, 2)

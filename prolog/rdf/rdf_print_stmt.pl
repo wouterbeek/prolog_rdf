@@ -22,6 +22,11 @@
                            % +Object:rdf_term,
                            % ?Graph:atom,
                            % +Options:list(compound)
+    rdf_print_statement//5, % +Subject:rdf_term,
+                            % +Predicate:iri,
+                            % +Object:rdf_term,
+                            % ?Graph:atom,
+                            % +Options:list(compound)
     rdf_print_statements/1, % +Statements
     rdf_print_statements/2, % +Statements:list(compoud)
                             % +Options:list(compound)
