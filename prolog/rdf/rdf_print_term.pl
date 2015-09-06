@@ -3,6 +3,8 @@
   [
     rdf_print_graph//2, % ?Graph:atom
                         % +Options:list(compound)
+    rdf_print_literal//2, % +Literal:comound
+                          % +Options:list(compound)
     rdf_print_object//2, % +Object:rdf_term
                          % +Options:list(compound)
     rdf_print_predicate//2, % +Predicate:iri
@@ -39,6 +41,7 @@
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdf_print_graph(r,+,?,?)).
+:- rdf_meta(rdf_print_literal(o,+,?,?)).
 :- rdf_meta(rdf_print_object(o,+,?,?)).
 :- rdf_meta(rdf_print_predicate(r,+,?,?)).
 :- rdf_meta(rdf_print_subject(o,+,?,?)).
