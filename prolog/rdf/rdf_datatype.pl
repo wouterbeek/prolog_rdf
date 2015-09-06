@@ -83,12 +83,15 @@
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
-rdf_canonical_map(rdf:'HTML', Value, LexicalForm):- !,
-  with_output_to(atom(LexicalForm), html_write(current_output, Value, [])).
-rdf_canonical_map(rdf:'XMLLiteral', Value, LexicalForm):- !,
-  with_output_to(atom(LexicalForm), xml_write(current_output, Value, [])).
-rdf_canonical_map(Datatype, Value, LexicalForm):-
-  xsd_canonical_map(Datatype, Value, LexicalForm).
+rdf_canonical_map(rdf:langString, V, Lex):-
+  ground(V), !,
+  V = _-Lex.
+rdf_canonical_map(rdf:'HTML', V, Lex):- !,
+  with_output_to(atom(Lex), html_write(current_output, V, [])).
+rdf_canonical_map(rdf:'XMLLiteral', V, Lex):- !,
+  with_output_to(atom(Lex), xml_write(current_output, V, [])).
+rdf_canonical_map(D, V, Lex):-
+  xsd_canonical_map(D, V, Lex).
 
 
 
