@@ -3,32 +3,40 @@
   [
     rdf_assert_list/2, % +PrologList, ?RdfList
     rdf_assert_list/3, % +PrologList:list
-                       % ?RdfList:or([bnode,iri])
+                       % ?RdfList:rdf_term
                        % ?Graph:atom
     rdf_is_list/1, % @Term
     rdf_list/2, % +RdfList, ?PrologList
-    rdf_list/3, % ?RdfList:or([bnode,iri])
+    rdf_list/3, % ?RdfList:rdf_term
                 % +PrologList:list
                 % ?Graph:atom
     rdf_list_raw/2, % +PrologList, ?RdfList
     rdf_list_raw/3, % +PrologList:list
-                    % ?RdfList:or([bnode,iri])
+                    % ?RdfList:rdf_term
                     % ?Graph:atom
     rdf_list_first/2, % ?List, ?First
-    rdf_list_first/3, % ?List:or([bnode,iri])
+    rdf_list_first/3, % ?List:rdf_term
                       % ?First:rdf_term
                       % ?Graph:atom
     rdf_list_first_raw/2, % ?List, ?First
-    rdf_list_first_raw/3, % ?List:or([bnode,iri])
+    rdf_list_first_raw/3, % ?List:rdf_term
                           % ?First:rdf_term
                           % ?Graph:atom
+    rdf_list_length/2, % ?List:rdf_term
+                       % ?Length:nonneg
+    rdf_list_length/3, % ?List:rdf_term
+                       % ?Length:nonneg
+                       % ?Graph:atom
     rdf_list_member/2, % ?Element, ?List
     rdf_list_member/3, % ?Element:rdf_term
-                       % ?List:or([bnode,iri])
+                       % ?List:rdf_term
                        % ?Graph:atom
     rdf_list_member_raw/2, % ?Element, ?List
-    rdf_list_member_raw/3 % ?Element:rdf_term
-                          % ?List:or([bnode,iri])
+    rdf_list_member_raw/3, % ?Element:rdf_term
+                           % ?List:rdf_term
+                           % ?Graph:atom
+    rdf_retractall_list/1, % +List:rdf_term
+    rdf_retractall_list/2 % +List:rdf_term
                           % ?Graph:atom
   ]
 ).
@@ -40,7 +48,7 @@ Support for reading/writing RDF lists.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
 :- use_module(library(apply)).
@@ -63,25 +71,25 @@ Support for reading/writing RDF lists.
 :- rdf_meta(rdf_list_first(r,o,?)).
 :- rdf_meta(rdf_list_first_raw(r,o)).
 :- rdf_meta(rdf_list_first_raw(r,o,?)).
+:- rdf_meta(rdf_list_length(r,?)).
+:- rdf_meta(rdf_list_length(r,?,?)).
 :- rdf_meta(rdf_list_member(r,o)).
 :- rdf_meta(rdf_list_member(r,o,?)).
 :- rdf_meta(rdf_list_member_raw(r,o)).
 :- rdf_meta(rdf_list_member_raw(r,o,?)).
+:- rdf_meta(rdf_retractall_list(r)).
+:- rdf_meta(rdf_retractall_list(r,?)).
 
 
 
 
 
-%! rdf_assert_list(+PrologList:list, ?RdfList:or([bnode,iri])) is det.
+%! rdf_assert_list(+PrologList:list, ?RdfList:rdf_term) is det.
 
 rdf_assert_list(L1, L2):-
   rdf_assert_list(L1, L2, _).
 
-%! rdf_assert_list(
-%!   +PrologList:list,
-%!   ?RdfList:or([bnode,iri]),
-%!   ?Graph:atom
-%! ) is det.
+%! rdf_assert_list(+PrologList:list, ?RdfList:rdf_term, ?Graph:atom) is det.
 % Asserts the given, possibly nested, list into RDF.
 
 rdf_assert_list(L1, L2, G):-
@@ -134,15 +142,15 @@ rdf_is_list(L):-
 
 
 
-%! rdf_list(+RdfList:or([bnode,iri]), +PrologList:list) is semidet.
-%! rdf_list(+RdfList:or([bnode,iri]), -PrologList:list) is det.
+%! rdf_list(+RdfList:rdf_term, +PrologList:list) is semidet.
+%! rdf_list(+RdfList:rdf_term, -PrologList:list) is det.
 % @see rdf_list/3
 
 rdf_list(L1, L2):-
   rdf_list(L1, L2, _).
 
 %! rdf_list(
-%!   +RdfList:or([bnode,iri]),
+%!   +RdfList:rdf_term,
 %!   ?PrologList:list,
 %!   ?Graph:atom
 %! ) is semidet.
@@ -152,18 +160,14 @@ rdf_list(L1, L2, G):-
   maplist(rdf_interpreted_term, L0, L2).
 
 
-%! rdf_list_raw(+RdfList:or([bnode,iri]), +PrologList:list) is semidet.
-%! rdf_list_raw(+RdfList:or([bnode,iri]), -PrologList:list) is det.
+%! rdf_list_raw(+RdfList:rdf_term, +PrologList:list) is semidet.
+%! rdf_list_raw(+RdfList:rdf_term, -PrologList:list) is det.
 % @see rdf_list_raw/3
 
 rdf_list_raw(L1, L2):-
   rdf_list_raw(L1, L2, _).
 
-%! rdf_list_raw(
-%!   +RdfList:or([bnode,iri]),
-%!   ?PrologList:list,
-%!   ?Graph:atom
-%! ) is semidet.
+%! rdf_list_raw(+RdfList:rdf_term, ?PrologList:list, ?Graph:atom) is semidet.
 
 rdf_list_raw(rdf:nil, [], _):- !.
 rdf_list_raw(L1, [H2|T2], G):-
@@ -181,16 +185,12 @@ rdf_list_raw(L1, [H2|T2], G):-
 
 
 
-%! rdf_list_first(?List:or([bnode,iri]), ?First:rdf_term) is nondet.
+%! rdf_list_first(?List:rdf_term, ?First:rdf_term) is nondet.
 
 rdf_list_first(L, X):-
   rdf_list_first(L, X, _).
 
-%! rdf_list_first(
-%!   ?List:or([bnode,iri]),
-%!   ?First:rdf_term,
-%!   ?Graph:atom
-%! ) is nondet.
+%! rdf_list_first(?List:rdf_term, ?First:rdf_term, ?Graph:atom) is nondet.
 % Relates RDF lists to their first element.
 
 rdf_list_first(L, X, G):-
@@ -198,16 +198,12 @@ rdf_list_first(L, X, G):-
   rdf_interpreted_term(X0, X).
 
 
-%! rdf_list_first_raw(?List:or([bnode,iri]), ?First:rdf_term) is nondet.
+%! rdf_list_first_raw(?List:rdf_term, ?First:rdf_term) is nondet.
 
 rdf_list_first_raw(L, X):-
   rdf_list_first_raw(L, X, _).
 
-%! rdf_list_first_raw(
-%!   ?List:or([bnode,iri]),
-%!   ?First:rdf_term,
-%!   ?Graph:atom
-%! ) is nondet.
+%! rdf_list_first_raw(?List:rdf_term, ?First:rdf_term, ?Graph:atom) is nondet.
 % Relates RDF lists to their first element.
 
 rdf_list_first_raw(L, X, G):-
@@ -215,16 +211,30 @@ rdf_list_first_raw(L, X, G):-
 
 
 
-%! rdf_list_member(?Member:rdf_term, ?List:or([bnode,iri])) is nondet.
+%! rdf_list_length(+List:rdf_term, +Length:nonneg) is semidet.
+%! rdf_list_length(+List:rdf_term, -Length:nonneg) is det.
+
+rdf_list_length(L, N):-
+  rdf_list_length(L, N, _).
+
+%! rdf_list_length(+List:rdf_term, +Length:nonneg, ?Graph:atom) is semidet.
+%! rdf_list_length(+List:rdf_term, -Length:nonneg, ?Graph:atom) is det.
+
+rdf_list_length(L, 0, _):-
+  rdf_global_id(rdf:nil, L), !.
+rdf_list_length(L, N, G):-
+  rdf2(L, rdf:rest, T, G),
+  rdf_list_length(T, M, G),
+  succ(M, N).
+
+
+
+%! rdf_list_member(?Member:rdf_term, ?List:rdf_term) is nondet.
 
 rdf_list_member(X, L):-
   rdf_list_member(X, L, _).
 
-%! rdf_list_member(
-%!   ?Member:rdf_term,
-%!   ?List:or([bnode,iri]),
-%!   ?Graph:atom
-%! ) is nondet.
+%! rdf_list_member(?Member:rdf_term, ?List:rdf_term, ?Graph:atom) is nondet.
 % Succeeds if Member occurs in List.
 
 rdf_list_member(X, L, G):-
@@ -232,14 +242,14 @@ rdf_list_member(X, L, G):-
   rdf_interpreted_term(X0, X).
 
 
-%! rdf_list_member_raw(?Member:rdf_term, ?List:or([bnode,iri])) is nondet.
+%! rdf_list_member_raw(?Member:rdf_term, ?List:rdf_term) is nondet.
 
 rdf_list_member_raw(X, L):-
   rdf_list_member_raw(X, L, _).
 
 %! rdf_list_member_raw(
 %!   ?Member:rdf_term,
-%!   ?List:or([bnode,iri]),
+%!   ?List:rdf_term,
 %!   ?Graph:atom
 %! ) is nondet.
 % Succeeds if Member occurs in List.
@@ -249,3 +259,26 @@ rdf_list_member_raw(X, L, G):-
 rdf_list_member_raw(X, L, G):-
   rdf(L, rdf:rest, L0, G),
   rdf_list_member_raw(X, L0, G).
+
+
+
+%! rdf_retractall_list(+List:rdf_term) is det.
+
+rdf_retractall_list(L):-
+  rdf_retractall_list(L, _).
+
+%! rdf_retractall_list(+List:rdf_term, ?Graph:atom) is det.
+
+rdf_retractall_list(L, _):-
+  rdf_global_id(rdf:nil, L), !.
+rdf_retractall_list(L, G):-
+  % Remove the head.
+  rdf2(L, rdf:first, H, G),
+  rdf_retractall2(L, rdf:first, H, G),
+  % Recurse if the head is itself a list.
+  (rdf_is_list(H) -> rdf_retractall_list(H) ; true),
+  
+  % Remove the tail.
+  rdf2(L, rdf:rest, T, G),
+  rdf_retractall2(L, rdf:rest, T, G),
+  rdf_retractall_list(T).
