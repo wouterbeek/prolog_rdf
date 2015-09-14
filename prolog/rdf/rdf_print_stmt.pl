@@ -357,7 +357,7 @@ rdf_print_triple(S, P, O, G):-
 
 rdf_print_triple(S, P, O, G, Opts):-
   (ground(rdf(S,P,O)) -> true ; rdf2(S, P, O, G)),
-  rdf_print_statement(S, P, O, G, Opts).
+  rdf_print_statement(S, P, O, _, Opts).
 
 
 
