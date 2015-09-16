@@ -7,6 +7,7 @@
     fresh_iri/3, % +Prefix:atom
                  % +SubPaths:list(atom)
                  % -Iri:iri
+    rdf_assert_instance/2, % +Instance, ?Class
     rdf_assert_instance/3, % +Instance:rdf_term
                            % ?Class:or([iri,list(iri)])
                            % ?Graph:atom
@@ -75,6 +76,7 @@ Simple asserion and retraction predicates for RDF.
 :- dynamic(bnode_literal/2).
 
 :- rdf_meta(bnode_literal(?,o)).
+:- rdf_meta(rdf_assert_instance(o,t)).
 :- rdf_meta(rdf_assert_instance(o,t,?)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+,?)).
@@ -131,6 +133,14 @@ fresh_iri(Prefix, SubPaths0, Iri):-
   rdf_global_id(Prefix:LocalName, Iri).
 
 
+
+%! rdf_assert_instance(
+%!   +Instance:rdf_term,
+%!   ?Class:or([iri,list(iri)])
+%! ) is det.
+
+rdf_assert_instance(I, C):-
+  rdf_assert_instance(I, C, _).
 
 %! rdf_assert_instance(
 %!   +Instance:rdf_term,

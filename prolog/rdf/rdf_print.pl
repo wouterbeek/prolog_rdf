@@ -51,13 +51,13 @@ Printing of RDF statements to a text-based output stream.
 % Wrapper around rdf_print_describe/2 with default options.
 
 rdf_print_describe(S):-
-  rdf_print_describe(S, []).
+  rdf_print_describe(S, none, []).
 
 %! rdf_print_describe(+Subject:rdf_term, +Options:list(compound)) is det.
 % Wrapper around rdf_print_describe/3 with uninstantiated graph.
 
 rdf_print_describe(S, Opts):-
-  rdf_print_describe(S, _, Opts).
+  rdf_print_describe(S, none, Opts).
 
 %! rdf_print_describe(
 %!   +Subject:rdf_term,
@@ -75,7 +75,9 @@ rdf_print_describe(S, Opts):-
 %   * style(+oneof([tuple,turtle])
 
 rdf_print_describe(S, G, Opts):-
-  (   var(G)
+  (   G == none
+  ->  forall(rdf_print_triple(S, _, _, _, Opts), true)
+  ;   var(G)
   ->  % No graph is given: display quadruples.
       forall(rdf_print_quadruple(S, _, _, G, Opts), true)
   ;   % A graph is given: display triples.
