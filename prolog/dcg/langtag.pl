@@ -1,7 +1,7 @@
 :- module(
   langtag,
   [
-    'Language-Tag'//1 % ?LangTag:list(atom)
+    'Language-Tag'//1 % ?LanguageTag:atom
   ]
 ).
 
@@ -91,16 +91,19 @@ grandfathered(L) --> regular(L).
 
 
 
-%! 'Language-Tag'(?Subtags:list(atom))// .
+%! 'Language-Tag'(?LanguageTag:atom)// .
 % ```abnf
-% Language-Tag =   langtag / privateuse / grandfathered
+% Language-Tag = langtag / privateuse / grandfathered
 % ```
 %
 % @compat RFC 5646
 
-'Language-Tag'(L) --> langtag(L).
-'Language-Tag'(L) --> privateuse(L).
-'Language-Tag'(L) --> grandfathered(L).
+'Language-Tag'(LTag) -->
+  (   langtag(Subtags)
+  ;   privateuse(Subtags)
+  ;   grandfathered(Subtags)
+  ),
+  {atomic_list_concat(Subtags, -, LTag)}.
 
 
 
@@ -318,8 +321,7 @@ test_langtag('zh-Latn-CN-variant1-a-extend1').
 test_langtag('zh-Latn-CN-variant1-a-extend1-x-wadegile').
 test_langtag('zh-Latn-CN-variant1-a-extend1-x-wadegile-private1').
 
-test(dcg_langtag_parse, [forall(test_langtag(LangTag))]):-
-  once(atom_phrase('Language-Tag'(Subtags), LangTag)),
-  maplist(writeln, Subtags).
+test(dcg_langtag_parse, [forall(test_langtag(LTag))]):-
+  once(atom_phrase('Language-Tag'(LTag), _)).
 
 :- end_tests(dcg_langtag_test).

@@ -91,20 +91,20 @@ dbpedia_init:-
 % DBpedia localizations.
 dbpedia_localizations_init:-
   forall(
-    rdf_prefix:dbpedia_language_tag(LangTag),
-    dbpedia_register(LangTag)
+    rdf_prefix:dbpedia_language_tag(LTag),
+    dbpedia_register(LTag)
   ).
 
-dbpedia_register(LangTag):-
+dbpedia_register(LTag):-
   % The generic DBpedia SPARQL endpoint can be used to query
   % for any of the natural languages.
   % Some languages, in addition, have their own SPARQL endpoint.
-  atomic_list_concat([LangTag,dbpedia], ., Endpoint),
-  atomic_list_concat([LangTag,dbpedia,org], ., Authority),
-  uri_components(Uri, uri_components(http,Authority,_,_,_)),
+  atomic_list_concat([LTag,dbpedia], ., Endpoint),
+  atomic_list_concat([LTag,dbpedia,org], ., Auth),
+  uri_components(Iri, uri_components(http,Auth,_,_,_)),
   sparql_register_endpoint(
     Endpoint,
-    [Uri,'http://dbpedia.org','http://live.dbpedia.org'],
+    [Iri,'http://dbpedia.org','http://live.dbpedia.org'],
     virtuoso
   ).
 

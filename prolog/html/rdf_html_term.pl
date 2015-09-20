@@ -71,7 +71,7 @@ Generates HTML representations of RDF data.
      abbr_list(+boolean),
      ellip_ln(+or([nonneg,oneof([inf])])),
      label_iri(+boolean),
-     lang_pref(+atom),
+     language_priority_list(+list(atom)),
      symbol_iri(+boolean),
      pass_to(rdf_html_list//2, 2)
    ]).
@@ -153,7 +153,7 @@ rdf_html_datatype(D, Opts) -->
 %   * label_iri(+boolean)
 %     Whether RDFS labels should be used i.o. IRIs.
 %     Default is `false`.
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %     Default is `en-US`.
 %   * symbol_iri(+boolean)
 %     Whether logic symbols should be used i.o. IRIs.
@@ -174,11 +174,11 @@ rdf_html_iri(Iri, Opts) -->
   ).
 rdf_html_iri(Global, Opts) -->
   {option(label_iri(true), Opts),
-   option(lang_pref(Pref), Opts, 'en-US'),
-   once(rdfs_label(Global, Pref, Lang, Lbl))}, !,
-  (   {var(Lang)}
+   option(lang_priority_list(LRanges), Opts, ['en-US']),
+   once(rdfs_label(Global, LRanges, LTag, Lbl))}, !,
+  (   {var(LTag)}
   ->  html(span(class=[iri,'label-iri'], Lbl))
-  ;   html(span([class=[iri,'label-iri'],lang=Lang], Lbl))
+  ;   html(span([class=[iri,'label-iri'],lang=LTag], Lbl))
   ).
 rdf_html_iri(Global, Opts) -->
   {\+ option(abbr_iri(false), Opts),
@@ -203,8 +203,8 @@ rdf_html_iri(Global, _) -->
 %! rdf_html_language_tag(+LanguageTag:atom, +Options:list(compound))// is det.
 % Options are passed to rdf_html_language_subtags//2.
 
-rdf_html_language_tag(Lang, Opts) -->
-  {atomic_list_concat(Subtags, -, Lang)},
+rdf_html_language_tag(LTag, Opts) -->
+  {atomic_list_concat(Subtags, -, LTag)},
   html(span(class='language-tag', \rdf_html_language_subtags(Subtags, Opts))).
 
 rdf_html_language_subtags([], _) --> !, html([]).
@@ -248,7 +248,7 @@ rdf_html_term0(Opts, T) --> rdf_html_term(T, Opts).
 %   * abbr_iri(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_html_literal(literal(type(D,Lex)), Opts) --> !,
@@ -270,13 +270,13 @@ rdf_html_literal(literal(type(D,Lex)), Opts) --> !,
         ])
       )
   ).
-rdf_html_literal(literal(lang(Lang,Lex)), Opts) --> !,
+rdf_html_literal(literal(lang(LTag,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
   ->  html(
         span(class=['language-tagged-string',literal], [
           \rdf_html_lexical_form(Lex, Opts),
           '@',
-          \rdf_html_language_tag(Lang, Opts)
+          \rdf_html_language_tag(LTag, Opts)
         ])
       )
   ;   {rdf_global_id(rdf:langString, D)},
@@ -286,7 +286,7 @@ rdf_html_literal(literal(lang(Lang,Lex)), Opts) --> !,
           \rdf_html_datatype(D, Opts),
           ',',
           &(lang),
-          \rdf_html_language_tag(Lang, Opts),
+          \rdf_html_language_tag(LTag, Opts),
           ',',
           \rdf_html_lexical_form(Lex, Opts),
           &(rang),
@@ -317,7 +317,7 @@ rdf_html_object(O, Opts) -->
 %   * abbr_iri(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_html_predicate(P, Opts) -->
@@ -350,7 +350,7 @@ rdf_html_term(T) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_html_term(T, Opts) -->

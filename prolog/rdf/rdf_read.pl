@@ -10,10 +10,10 @@
     rdf_instance/3, % ?Instance:iri
                     % ?Class:iri
                     % ?Graph:atom
-    rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePreference, ?Value
+    rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePriorityList, ?Value
     rdf_langstring/5, % ?Subject:rdf_term
                       % ?Predicate:iri
-                      % +LanguagePreference:atom
+                      % +LanguagePriorityList:list(atom)
                       % ?Value:pair(atom)
                       % ?Graph:atom
     rdf_load_vocab/1, % +Location:atom
@@ -38,7 +38,7 @@
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/rdf11-concepts/)
 @license MIT License
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
 :- use_module(library(error)).
@@ -133,26 +133,26 @@ rdf_instance(I, C, G):-
 %! rdf_langstring(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
-%!   +LanguagePreferences:list(list(atom)),
+%!   +LanguagePriorityList:list(atom),
 %!   ?Value:pair(atom,list(atom))
 %! ) is nondet.
 
-rdf_langstring(S, P, Prefs, V):-
-  rdf_langstring(S, P, Prefs, V, _).
+rdf_langstring(S, P, LRanges, V):-
+  rdf_langstring(S, P, LRanges, V, _).
 
 %! rdf_langstring(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
-%!   +LanguagePreference:atom,
+%!   +LanguagePriorityList:list(atom),
 %!   ?Value:pair(atom),
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_langstring(S, P, Pref, V, G):-
+rdf_langstring(S, P, LRanges, V, G):-
   rdf_literal(S, P, rdf:langString, V, G),
-  V = Lang-_,
-  atom(Lang),
-  basic_filtering(Pref, Lang).
+  V = _-LTag,
+  atom(LTag),
+  basic_filtering(LRanges, LTag).
 
 
 
@@ -205,10 +205,10 @@ rdf_literal(S, P, D, V, G):-
 
 % Language-tagged strings.
 rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
-  V = Lang-Lex,
-  O = literal(lang(Lang,Lex)),
+  V = Lex-LTag,
+  O = literal(lang(LTag,Lex)),
   rdf2(S, P, O, G),
-  atom(Lang).
+  atom(LTag).
 % Ground datatype and value.
 rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
   ground(D),

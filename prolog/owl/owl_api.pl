@@ -30,7 +30,7 @@
                      % ?Class:rdf_term
     rdf_langstring3/4, % ?Subject:rdf_term
                        % ?Predicate:rdf_term
-                       % +LanguagePreference:atom
+                       % +LanguagePriorityList:list(atom)
                        % ?Value:pair(atom)
     rdf_list3/2, % ?RdfList:rdf_term
                  % -PrologList:list(rdf_term)
@@ -54,8 +54,8 @@
                          % ?Object:rdf_term
                          % +Options:list(compound)
     rdfs_label3/4 % +Subject:rdf_term
-                  % ?LanguagePreference:atom
-                  % -Language:atom
+                  % ?LanguagePriorityList:list(atom)
+                  % -LanguageTag:atom
                   % -LexicalForm:atom
   ]
 ).
@@ -181,8 +181,8 @@ add_list_instance0(L):-
 %! ) is det.
 
 % Language-tagged strings.
-rdf_assert_literal3(S, P, rdf:langString, Lang-Lex):- !,
-  rdf_assert3(S, P, literal(lang(Lang,Lex))).
+rdf_assert_literal3(S, P, rdf:langString, Lex-LTag):- !,
+  rdf_assert3(S, P, literal(lang(LTag,Lex))).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
 rdf_assert_literal3(S, P, D, V):-
@@ -266,15 +266,15 @@ rdf_instance3(I, C):-
 %! rdf_langstring3(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:rdf_term,
-%!   +LanguagePreference:atom,
+%!   +LanguagePriorityList:list(atom),
 %!   ?Value:pair(atom)
 %! ) is nondet.
 
-rdf_langstring3(S, P, Pref, V):-
+rdf_langstring3(S, P, LRanges, V):-
   rdf_literal3(S, P, rdf:langString, V),
-  V = Lang-_,
-  atom(Lang),
-  basic_filtering(Pref, Lang).
+  V = _-LTag,
+  atom(LTag),
+  basic_filtering(LRanges, LTag).
 
 
 
@@ -315,10 +315,10 @@ rdf_list_member3(X, L):-
 
 % Language-tagged strings.
 rdf_literal3(S, P, rdf:langString, V):-
-  V = Lang-Lex,
-  O = literal(lang(Lang,Lex)),
+  V = Lex-LTag,
+  O = literal(lang(LTag,Lex)),
   rdf3(S, P, O),
-  atom(Lang).
+  atom(LTag).
 % Ground datatype and value.
 rdf_literal3(S, P, D, V):-
   ground(D),
@@ -397,15 +397,15 @@ rdf_print_triple3(S, P, O, Opts):-
 
 %! rdfs_label3(
 %!   +Subject:rdf_term,
-%!   ?LanguagePreference:atom,
-%!   -Language:atom,
+%!   ?LanguagePriorityList:list(atom),
+%!   -LanguageTag:atom,
 %!   -LexicalForm:atom
 %! ) is nondet.
 
-rdfs_label3(S, Pref, Lang, Lex):-
+rdfs_label3(S, LRanges, LTag, Lex):-
   rdf_global_id(rdfs:label, P),
   (   % First look for language-tagged strings with matching language tag.
-      rdf_langstring3(S, P, Pref, Lang-Lex)
+      rdf_langstring3(S, P, LRanges, Lex-LTag)
   ;   % Secondly look for XSD strings with no language tag.
       rdf_global_id(xsd:string, D),
       rdf_literal3(S, P, D, Lex)

@@ -57,11 +57,11 @@ assert_cc_prefix(row(Prefix,Uri)):-
 
 assert_dbpedia_localizations:-
   forall(
-    dbpedia_language_tag(Lang),
-    dbpedia_register(Lang)
+    dbpedia_language_tag(LTag),
+    dbpedia_register(LTag)
   ).
 
-%! dbpedia_language_tag(-Language:atom) is multi.
+%! dbpedia_language_tag(-LanguageTag:atom) is multi.
 
 dbpedia_language_tag(ab).
 dbpedia_language_tag(ace).
@@ -268,13 +268,13 @@ dbpedia_language_tag(zh_min_nan).
 dbpedia_language_tag('zh-yue').
 dbpedia_language_tag(zh_yue).
 
-%! dbpedia_register(+Language:atom) is det.
+%! dbpedia_register(+LanguageTag:atom) is det.
 
-dbpedia_register(Lang):-
-  atomic_list_concat([Lang,dbpedia,org], ., Authority),
+dbpedia_register(LTag):-
+  atomic_list_concat([LTag,dbpedia,org], ., Authority),
 
   % XML namespace for resources.
-  atomic_list_concat([Lang,dbr], ., ResourceNamespace),
+  atomic_list_concat([LTag,dbr], ., ResourceNamespace),
   uri_components(
     ResourcePrefix,
     uri_components(http,Authority,'/resource/',_,_)
@@ -282,7 +282,7 @@ dbpedia_register(Lang):-
   rdf_reset_prefix(ResourceNamespace, ResourcePrefix),
 
   % XML namespace for properties.
-  atomic_list_concat([Lang,dbp], ., PropertyNamespace),
+  atomic_list_concat([LTag,dbp], ., PropertyNamespace),
   uri_components(
     PropertyPrefix,
     uri_components(http,Authority,'/property/',_,_)
@@ -327,19 +327,19 @@ rdf_prefix_iri(Iri, Iri).
 
 
 
-%! rdf_reset_prefix(+Prefix:atom, +Uri:atom) is det.
+%! rdf_reset_prefix(+Prefix:atom, +Iri:atom) is det.
 % Sets or resets RDF prefixes (whatever is needed to effectuate the mapping
 % from Prefix onto URI), but shows a warning in the case of resetting.
 
-rdf_reset_prefix(Prefix, Uri):-
+rdf_reset_prefix(Prefix, Iri):-
   with_mutex(rdf_reset_prefix, (
-    (   rdf_current_prefix(Prefix, Uri0)
-    ->  (   Uri0 == Uri
+    (   rdf_current_prefix(Prefix, Iri0)
+    ->  (   Iri0 == Iri
         ->  true
-        ;   rdf_register_prefix(Prefix, Uri, [force(true)]),
-            print_message(warning, rdf_reset_prefix(Prefix,Uri0,Uri))
+        ;   rdf_register_prefix(Prefix, Iri, [force(true)]),
+            print_message(warning, rdf_reset_prefix(Prefix,Iri0,Iri))
         )
-    ;   rdf_register_prefix(Prefix, Uri)
+    ;   rdf_register_prefix(Prefix, Iri)
     )
   )).
 

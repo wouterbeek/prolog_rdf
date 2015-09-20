@@ -1,13 +1,17 @@
 :- module(
   rdf_literal,
   [
+    rdf_is_language_tagged_string/1, % @Term
+    rdf_language_tagged_string/1, % -Literal:compound
     rdf_literal_components/4, % ?Literal:compound
                               % ?Datatype:iri
                               % ?LanguageTag:atom
                               % ?Lexical:atom
-    rdf_literal_data/3 % ?Field:atom
-                       % +Literal:compound
-                       % ?Data
+    rdf_literal_data/3, % ?Field:atom
+                        % +Literal:compound
+                        % ?Data
+    rdf_literal_equiv/2 % +Literal1:compound
+                        % +Literal2:compound
   ]
 ).
 
@@ -17,13 +21,36 @@
 @version 2015/08-2015/09
 */
 
+:- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(semweb/rdf_db)).
 
+:- rdf_meta(rdf_is_language_tagged_string(o)).
 :- rdf_meta(rdf_literal_components(o,r,-,-)).
+:- rdf_meta(rdf_literal_equiv(o,o)).
 
 
+
+
+
+%! rdf_is_language_tagged_string(@Term) is semidet.
+% Succeeds on language-tagged strings.
+%
+% The **language-tagged string**s are the cartesian product of the Unicode
+% strings in Normal Form C with the set of BCP 47 language tags.
+
+rdf_is_language_tagged_string(Lit):-
+  Lit = literal(lang(LTag,Lex)),
+  maplist(atom, [LTag,Lex]).
+
+
+
+%! rdf_language_tagged_string(-Literal:compound) is nondet.
+
+rdf_language_tagged_string(Lit):-
+  rdf_current_literal(Lit),
+  rdf_is_language_tagged_string(Lit).
 
 
 
@@ -52,22 +79,22 @@
 %!   +Lexical:atom
 %! ) is det.
 
-rdf_literal_components(Lit, D, Lang, Lex):-
+rdf_literal_components(Lit, D, LTag, Lex):-
   ground(Lit), !,
-  rdf_literal_components0(Lit, D, Lang, Lex).
-rdf_literal_components(Lit, D, Lang, Lex):-
+  rdf_literal_components0(Lit, D, LTag, Lex).
+rdf_literal_components(Lit, D, LTag, Lex):-
   rdf_global_id(rdf:langString, D),
-  ground(Lang), !,
-  Lit = literal(lang(Lang,Lex)).
+  atom(LTag), !,
+  Lit = literal(lang(LTag,Lex)).
 rdf_literal_components(Lit, D0, _, Lex):-
   ground(Lex), !,
   (ground(D0) -> D = D0 ; rdf_global_id(xsd:string, D)),
   Lit = literal(type(D,Lex)).
-rdf_literal_components(Lit, D, Lang, Lex):-
-  instantiation_error(rdf_literal_components(Lit, D, Lang, Lex)).
+rdf_literal_components(Lit, D, LTag, Lex):-
+  instantiation_error(rdf_literal_components(Lit, D, LTag, Lex)).
 
 rdf_literal_components0(literal(type(D,Lex)), D, _, Lex):- !.
-rdf_literal_components0(literal(lang(Lang,Lex)), D, Lang, Lex):- !,
+rdf_literal_components0(literal(lang(LTag,Lex)), D, LTag, Lex):- !,
   rdf_global_id(rdf:langString, D).
 rdf_literal_components0(literal(Lex), D, _, Lex):-
   rdf_global_id(xsd:string, D).
@@ -96,7 +123,7 @@ rdf_literal_data0(datatype, literal(type(D,_)), D):- !.
 rdf_literal_data0(datatype, literal(lang(_,_)), rdf:langString):- !.
 rdf_literal_data0(datatype, literal(Lex), xsd:string):-
   atom(Lex).
-rdf_literal_data0(langtag, literal(lang(Lang,_)), Lang).
+rdf_literal_data0(langtag, literal(lang(LTag,_)), LTag).
 rdf_literal_data0(lexical_form, Lit, Lex):-
   (   Lit = literal(lang(_,Lex))
   ->  true
@@ -105,10 +132,43 @@ rdf_literal_data0(lexical_form, Lit, Lex):-
   ;   Lit = literal(Lex)
   ).
 rdf_literal_data0(value, Lit, V):-
-  (   Lit = literal(lang(Lang,Lex))
-  ->  V = Lang-Lex
+  (   Lit = literal(lang(LTag,Lex))
+  ->  V = Lex-LTag
   ;   Lit = literal(type(D,Lex))
   ->  rdf_lexical_map(D, Lex, V)
   ;   Lit = literal(Lex)
   ->  V = Lex
   ).
+
+
+
+%! rdf_literal_equiv(+Literal1:compound, +Literal2:compound) is semidet.
+% Succeeds if the given literals are equivalent.
+%
+% Two literals are equivalent if:
+%   1. The strings of the two lexical forms compare equal,
+%      character by character.
+%   2. Either both or neither have language tags.
+%   3. The language tags, if any, compare equal.
+%   4. Either both or neither have datatype URIs.
+%   5. The two datatype URIs, if any, compare equal, character by character.
+%
+% @compat [RDF 1.0 Concepts and Abstract Syntax](http://www.w3.org/TR/2004/REC-rdf-concepts-20040210/)
+% @tbd Update to RDF 1.1.
+
+% Plain literals with the same language tag and value string.
+rdf_literal_equiv(
+  literal(lang(LTag,Lex)),
+  literal(lang(LTag,Lex))
+):- !.
+% Typed literals with the same Datatype and equivalent values
+%  in the datatype's value space.
+rdf_literal_equiv(
+  literal(type(D,Lex1)),
+  literal(type(D,Lex2))
+):- !,
+  rdf_lexical_map(D, Lex1, Val1),
+  rdf_lexical_map(D, Lex2, Val2),
+  rdf_equiv(D, Val1, Val2).
+% Simple literals that are the same.
+rdf_literal_equiv(literal(Lex), literal(Lex)).

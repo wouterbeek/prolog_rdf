@@ -43,6 +43,7 @@
 :- use_module(library(rdf/rdf_image)).
 :- use_module(library(rdf/rdf_info)).
 :- use_module(library(rdf/rdf_json_build)).
+:- use_module(library(rdf/rdf_legacy)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_literal)).

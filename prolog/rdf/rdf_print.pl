@@ -70,7 +70,7 @@ rdf_print_describe(S, Opts):-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %   * style(+oneof([tuple,turtle])
 
@@ -98,7 +98,7 @@ rdf_print_graph(G):-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %   * style(+oneof([tuple,turtle])
 %

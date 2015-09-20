@@ -191,8 +191,8 @@ rdf_assert_literal(S, P, D, V):-
 % @ tbd Use 'Language-Tag'//1.
 
 % Language-tagged strings.
-rdf_assert_literal(S, P, rdf:langString, Lang-Lex, G):- !,
-  rdf_assert2(S, P, literal(lang(Lang,Lex)), G).
+rdf_assert_literal(S, P, rdf:langString, Lex-LTag, G):- !,
+  rdf_assert2(S, P, literal(lang(LTag,Lex)), G).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
 rdf_assert_literal(S, P, D, V, G):-

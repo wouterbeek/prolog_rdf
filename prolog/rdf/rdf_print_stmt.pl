@@ -236,7 +236,7 @@ rdf_print_statement(T, Opts0):-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * style(+oneof([tuple,turtle])
 
 rdf_print_statement(S, P, O, G, Opts):-
@@ -259,7 +259,7 @@ rdf_print_statement(S, P, O, G, Opts):-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %   * style(+oneof([tuple,turtle])
 %     The style that is used for printing the statement.
@@ -351,7 +351,7 @@ rdf_print_triple(S, P, O, G):-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * style(+oneof([tuple,turtle])
 %   * symbol_iri(+boolean)
 

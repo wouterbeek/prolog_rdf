@@ -123,34 +123,34 @@ reset_number_of_triples(N):-
 
 
 % Object term: typed literal.
-write_literal(literal(type(Datatype,Value1))):- !,
+write_literal(literal(type(D,Lex1))):- !,
   % XSD XML literal.
-  (   rdf_equal(Datatype, rdf:'XMLLiteral')
-  ->  with_output_to(atom(Value2), xml_write(Value1, [header(false)]))
-  ;   Value2 = Value1
+  (   rdf_equal(D, rdf:'XMLLiteral')
+  ->  with_output_to(atom(Lex2), xml_write(Lex1, [header(false)]))
+  ;   Lex2 = Lex1
   ),
   % Convert numbers to atoms.
-  (   number(Value2)
-  ->  atom_number(Value3, Value2)
-  ;   Value3 = Value2
+  (   number(Lex2)
+  ->  atom_number(Lex3, Lex2)
+  ;   Lex3 = Lex2
   ),
-  turtle:turtle_write_quoted_string(current_output, Value3),
+  turtle:turtle_write_quoted_string(current_output, Lex3),
   write('^^'),
   % Datatypes are IRIs.
-  turtle:turtle_write_uri(current_output, Datatype).
+  turtle:turtle_write_uri(current_output, D).
 % Object term: language-tagged string.
-write_literal(literal(lang(Language,Value))):- !,
-  turtle:turtle_write_quoted_string(current_output, Value),
-  format(current_output, '@~w', [Language]).
+write_literal(literal(lang(LTag,Lex))):- !,
+  turtle:turtle_write_quoted_string(current_output, Lex),
+  format(current_output, '@~w', [LTag]).
 % Object term: string.
-write_literal(literal(Value)):- !,
-  turtle:turtle_write_quoted_string(current_output, Value).
+write_literal(literal(Lex)):- !,
+  turtle:turtle_write_quoted_string(current_output, Lex).
 
 
 
 % Object term: literal.
-write_object(Literal, _):-
-  write_literal(Literal), !.
+write_object(Lit, _):-
+  write_literal(Lit), !.
 % Object term: blank node
 write_object(BNode, BPrefix):-
   rdf_is_bnode(BNode), !,

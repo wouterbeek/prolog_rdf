@@ -111,7 +111,7 @@ rdf_print_term(T):-
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_term(T, Opts):-
@@ -171,7 +171,7 @@ rdf_print_graph(G, Opts) -->
 %     Default is `20` to ensure that every triple fits within
 %     an 80 character wide terminal.
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %     Whether logic symbols should be used i.o. IRIs.
 %     Default is `true`.
@@ -190,8 +190,8 @@ rdf_print_iri(Iri, Opts) -->
   ), !.
 rdf_print_iri(Global, Opts) -->
   {option(label_iri(true), Opts), !,
-   option(lang_pref(Pref), Opts, 'en-US'),
-   once(rdfs_label(Global, Pref, _, Lbl))},
+   option(language_priority_list(LRanges), Opts, ['en-US']),
+   once(rdfs_label(Global, LRanges, _, Lbl))},
   atom(Lbl).
 rdf_print_iri(Global, Opts) -->
   {\+ option(abbr_iri(false), Opts),
@@ -211,8 +211,8 @@ rdf_print_iri(Global, _) -->
 
 %! rdf_print_language_tag(+LanguageTag:atom, +Options:list(compound))// is det.
 
-rdf_print_language_tag(Lang, _) -->
-  atom(Lang).
+rdf_print_language_tag(LTag, _) -->
+  atom(LTag).
 
 
 
@@ -242,7 +242,7 @@ rdf_print_lexical(Lex, Opts) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_list(L0, Opts) -->
@@ -260,7 +260,7 @@ rdf_print_list(L0, Opts) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %   * symbol_iri(+boolean)
 
@@ -275,16 +275,16 @@ rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
         rdf_print_lexical(Lex, Opts)
       ))
   ).
-rdf_print_literal(literal(lang(Lang,Lex)), Opts) --> !,
+rdf_print_literal(literal(lang(LTag,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
   ->  rdf_print_lexical(Lex, Opts),
       "@",
-      rdf_print_language_tag(Lang, Opts)
+      rdf_print_language_tag(LTag, Opts)
   ;   {rdf_global_id(rdf:langString, D)},
       bracketed(langular, (
         rdf_print_datatype(D, Opts),
         bracketed(langular, (
-          rdf_print_language_tag(Lang, Opts),
+          rdf_print_language_tag(LTag, Opts),
           ", ",
           rdf_print_lexical(Lex, Opts)
         ))
@@ -303,7 +303,7 @@ rdf_print_literal(literal(Lex), Opts) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_object(O, Opts) -->
@@ -315,7 +315,7 @@ rdf_print_object(O, Opts) -->
 %   * abbr_iri(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_predicate(P, Opts) -->
@@ -353,7 +353,7 @@ rdf_print_term(T) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * lang_pref(+atom)
+%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_term(T, Opts) -->

@@ -3,8 +3,7 @@
   [
     assert_data_prefixes/0,
     assert_prefixes/0,
-    assert_schema_prefixes/0,
-    dbpedia_language_tag/1 % ?LangTag:atom
+    assert_schema_prefixes/0
   ]
 ).
 

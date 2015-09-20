@@ -39,7 +39,7 @@
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 @license MIT License
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
 :- use_module(library(apply)).
@@ -175,9 +175,8 @@ rdf_guess_datatype(V, D):-
   ).
 rdf_guess_datatype(V, D):-
   ground(V),
-  V = Lang-Lex,
-  is_list(Lang),
-  maplist(atom, [Lex|Lang]), !,
+  V = Lex-LTag,
+  maplist(atom, [Lex,LTag]), !,
   rdf_equal(rdf:langString, D).
 rdf_guess_datatype(V, D):-
   xsd_guess_datatype(V, D).
@@ -216,7 +215,7 @@ rdf_lexical_canonical_map(D, Lex, CLex):-
 rdf_lexical_map(literal(type(D,Lex)), V):- !,
   rdf_lexical_map(D, Lex, V).
 % Language-tagged string.
-rdf_lexical_map(literal(lang(Lang,Lex)), Lang-Lex):- !.
+rdf_lexical_map(literal(lang(LTag,Lex)), Lex-LTag):- !.
 % Simple literal (as per RDF 1.0 specification)
 % now assumed to be of type `xsd:string` (as per RDF 1.1 specification).
 rdf_lexical_map(literal(Lex), V):-
