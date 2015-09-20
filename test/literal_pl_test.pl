@@ -99,7 +99,7 @@ run_tests:-
   % integer
   rdf_assert_literal_pl(ex:s, ex:p, 1, G),
   % Pair denoting a language-tagged string.
-  rdf_assert_literal_pl(ex:s, ex:p, 'en-US'-one, G),
+  rdf_assert_literal_pl(ex:s, ex:p, one-'en-US', G),
   % rational
   rdf_assert_literal_pl(ex:s, ex:p, 111111111 rdiv 100000000, G),
   % string

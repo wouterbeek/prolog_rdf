@@ -283,10 +283,11 @@ rdf_print_literal(literal(lang(LTag,Lex)), Opts) --> !,
   ;   {rdf_global_id(rdf:langString, D)},
       bracketed(langular, (
         rdf_print_datatype(D, Opts),
+        ", ",
         bracketed(langular, (
-          rdf_print_language_tag(LTag, Opts),
+          rdf_print_lexical(Lex, Opts),
           ", ",
-          rdf_print_lexical(Lex, Opts)
+          rdf_print_language_tag(LTag, Opts)
         ))
       ))
   ).
