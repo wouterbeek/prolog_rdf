@@ -32,7 +32,7 @@ Covnerter between RDF serialization formats.
 :- thread_local(has_quadruples/1).
 
 :- predicate_options(rdf_convert/3, 3, [
-     compr(+oneof([deflate,gzip,none])),
+     compress(+oneof([deflate,gzip,none])),
      pass_to(rdf_stream_read/3, 3)
    ]).
 
@@ -42,7 +42,7 @@ Covnerter between RDF serialization formats.
 
 %! rdf_convert(+From, ?To:atom, +Options:list(compund)) is det.
 % The following options are supported:
-%    * compr(+oneof([deflate,gzip,none]))
+%    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
 %      Default is `none`.
 %    * format(+rdf_format)
@@ -59,7 +59,7 @@ rdf_convert(From, To, Opts0):-
   ->  Opts = Opts0
   ;   merge_options([format(Format)], Opts0, Opts)
   ),
-  option(compr(Compr), Opts, none),
+  option(compress(Compress), Opts, none),
 
   % Convert to C-Triples.
   thread_file(tmp, Tmp),
@@ -78,19 +78,27 @@ rdf_convert(From, To, Opts0):-
       ;   Ext = nt
       ),
       rdf_file_extension(Ext, Format),
-      (   Compr == gzip
+      (   Compress == gzip
       ->  Exts = [Ext,gz]
       ;   Exts = [Ext]
       ),
       thread_file(out, ThreadBase),
-      atomic_list_concat([ThreadBase|Exts], '.', To)
+      atomic_list_concat([ThreadBase|Exts], '.', To0)
   ),
 
   % Sort unique, count, compress.
   sort_file(Tmp, Opts),
   file_lines(Tmp, N),
   debug(rdf(convert), 'Unique triples:~t~D~n', [N]),
-  compress_file(Tmp, Compr, To).
+  compress_file(Tmp, Compress, To0),
+  delete_file(Tmp),
+  (   is_absolute_file_name(From)
+  ->  file_base_name(From, Base),
+      atomic_list_concat([Name|_], ., Base),
+      atomic_list_concat([Name|Exts], '.', To),
+      rename_file(To0, To)
+  ;   true
+  ).
 
 rdf_convert0(Write, rdfa, Read):-
   rdf_load(Read, [
@@ -224,9 +232,9 @@ buffer_size_file(File, BufferSize):-
 
 compress_file(From, none, To):- !,
   rename_file(From, To).
-compress_file(From, Compr, To):-
+compress_file(From, Compress, To):-
   setup_call_cleanup(
-    gzopen(To, write, Write, [format(Compr)]),
+    gzopen(To, write, Write, [format(Compress)]),
     setup_call_cleanup(
       open(From, read, Read),
       copy_stream_data(Read, Write),
