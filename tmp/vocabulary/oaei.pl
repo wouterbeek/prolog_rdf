@@ -106,39 +106,17 @@ Mismatch types:
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(debug)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(default)).
+:- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs), except([rdfs_label/3])).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
 
-:- use_module(plc(generics/db_ext)).
-:- use_module(plc(generics/meta_ext)).
-:- use_module(plc(generics/pair_ext)).
-:- use_module(plc(io/dir_ext)).
-:- use_module(plc(io/file_ext)).
-:- use_module(plc(math/statistics)).
-:- use_module(plc(prolog/pl_mode)).
-
-:- use_module(plRdf(rdf_name)).
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(debug/rdf_deb)).
-:- use_module(plRdf(management/rdf_file_db)).
-:- use_module(plRdf(management/rdf_load_any)).
-:- use_module(plRdf(management/rdf_save_any)).
-:- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdf_literal)).
-
 :- rdf_register_prefix(
-  align,
-  'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
-).
-
-:- dynamic(user:prolog_file_type/2).
-:- multifile(user:prolog_file_type/2).
-:- db_add_novel(user:prolog_file_type(owl, owl)).
-:- db_add_novel(user:prolog_file_type(tsv, tsv)).
+     align,
+     'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
+   ).
 
 :- rdf_meta(alignment(r,r,?)).
 :- rdf_meta(alignment(r,r,?,?,?)).
@@ -278,18 +256,17 @@ oaei_graph_to_alignments(Graph, Alignments):-
 %! tsv_convert_directory(
 %!   +FromDirectory:atom,
 %!   +ToDirectory:atom,
-%!   ?ToMime:compound,
+%!   ?ToFormat:atom,
 %!   -ToFiles:list(atom)
 %! ) is det.
 
-tsv_convert_directory(FromDir, ToDir, ToMime, ToFiles):-
-  default(mime_type(application,'x-turtle',[]), ToMime),
+tsv_convert_directory(FromDir, ToDir, ToFormat, ToFiles):-
+  defval(turtle, ToFormat),
   directory_files(FromDir, FromFiles, [file_types([tsv])]),
   findall(
     ToFile,
     (
       member(FromFile, FromFiles),
-      rdf_media_type(ToMime, ToFormat),
       rdf_file_extension(ToExt, ToFormat),
       file_alternative(FromFile, ToDir, _, ToExt, ToFile),
       tsv_file_to_oaei_file(FromFile, ToFile)

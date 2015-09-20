@@ -2,8 +2,6 @@
   rdf_file_db,
   [
     rdf_serialization_format/1, % ?Format:atom
-    rdf_serialization_label/2, % ?Label:atom
-                               % ?Format:atom
     rdf_serialization_resource/2 % ?Format:atom
                                  % ?Resource:iri
   ]
@@ -44,18 +42,6 @@ Basic facts about RDF serialization formats.
 :- use_module(plHttp(header/content_negotiation/http_accept)).
 
 
-
-
-
-%! rdf_serialization_label(?Label:atom, ?Format:atom) is multi.
-
-rdf_serialization_label('N3', n3).
-rdf_serialization_label('N-Quads', nquads).
-rdf_serialization_label('N-Triples', ntriples).
-rdf_serialization_label('RDFa', rdfa).
-rdf_serialization_label('TriG', trig).
-rdf_serialization_label('Turtle', turtle).
-rdf_serialization_label('RDF/XML', xml).
 
 
 
