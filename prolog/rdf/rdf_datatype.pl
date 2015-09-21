@@ -4,19 +4,19 @@
     rdf_canonical_map/3, % +Datatype:iri
                          % +Value
                          % ?Literal:compound
-    rdf_compare/4, % +Datatype:iri
-                   % -Order:oneof([incomparable,<,=,>])
-                   % +Value1
-                   % +Value2
+    rdf_compare_value/4, % +Datatype:iri
+                         % -Order:oneof([incomparable,<,=,>])
+                         % +Value1
+                         % +Value2
     rdf_datatype/1, % ?Datatype:iri
     rdf_datatype/2, % ?Datatype:iri
                     % ?PrologType
     rdf_datatype_term/1, % ?Datatype:iri
     rdf_datatype_term/2, % ?Datatype:iri
                          % ?Graph:atom
-    rdf_equiv/3, % +Datatype:iri
-                 % +Value1
-                 % +Value2
+    rdf_equiv_value/3, % +Datatype:iri
+                       % +Value1
+                       % +Value2
     rdf_guess_datatype/2, % +Value
                           % -Datatype:iri
     rdf_interpreted_term/2, % +Term1:rdf_term
@@ -43,6 +43,7 @@
 :- use_module(library(html/html_dom)).
 :- use_module(library(ltag/ltag)).
 :- use_module(library(memfile)).
+:- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
@@ -55,12 +56,12 @@
 :- use_module(library(xsd/xsd_update)).
 
 :- rdf_meta(rdf_canonical_map(r,+,?)).
-:- rdf_meta(rdf_compare(r,?,+,+)).
+:- rdf_meta(rdf_compare_value(r,?,+,+)).
 :- rdf_meta(rdf_datatype(r)).
 :- rdf_meta(rdf_datatype(r,?)).
 :- rdf_meta(rdf_datatype_term(r)).
 :- rdf_meta(rdf_datatype_term(r,?)).
-:- rdf_meta(rdf_equiv(r,+,+)).
+:- rdf_meta(rdf_equiv_value(r,+,+)).
 :- rdf_meta(rdf_interpreted_term(o,-)).
 :- rdf_meta(rdf_lexical_canonical_map(o,?)).
 :- rdf_meta(rdf_lexical_map(o,?)).
@@ -95,26 +96,26 @@ rdf_canonical_map(D, Val, literal(type(D,Lex))):-
 
 
 
-%! rdf_compare(
+%! rdf_compare_value(
 %!   +Datatype:iri,
 %!   +Order:oneof([incomparable,<,=,>]),
 %!   +Value1,
 %!   +Value2
 %! ) is semidet.
-%! rdf_compare(
+%! rdf_compare_value(
 %!   +Datatype:iri,
 %!   -Order:oneof([incomparable,<,=,>]),
 %!   +Value1,
 %!   +Value2
 %! ) is semidet.
 
-rdf_compare(D, Order, V1, V2):-
+rdf_compare_value(D, Order, V1, V2):-
   (   rdf_equal(D, rdf:'HTML')
   ;   rdf_equal(D, rdf:'XMLLiteral')
   ), !,
   compare(Order, V1, V2).
-rdf_compare(D, Order, V1, V2):-
-  xsd_compare(D, Order, V1, V2).
+rdf_compare_value(D, Order, V1, V2):-
+  xsd_compare_value(D, Order, V1, V2).
 
 
 
@@ -156,11 +157,11 @@ rdf_datatype_term(D, G):-
 
 
 
-%! rdf_equiv(+Datatype:iri, +Value1, +Value2) is semidet.
+%! rdf_equiv_value(+Datatype:iri, +Value1, +Value2) is semidet.
 % RDF typed literal value equivalence w.r.t. a datatype.
 
-rdf_equiv(D, V1, V2):-
-  rdf_compare(D, =, V1, V2).
+rdf_equiv_value(D, Val1, Val2):-
+  rdf_compare_value(D, =, Val1, Val2).
 
 
 
@@ -198,13 +199,14 @@ rdf_interpreted_term(X, Y):-
 
 
 %! rdf_lexical_canonical_map(
-%!   +Datatype:iri,
-%!   +LexicalForm:atom,
-%!   -CanonicalLexicalFrom:atom
+%!   +Literal:compound,
+%!   -CanonicalLiteral:compound
 %! ) is det.
 
 rdf_lexical_canonical_map(Lit1, Lit2):-
-  xsd_lexical_canonical_map(Lit1, Lit2).
+  rdf_lexical_map(Lit1, Val),
+  rdf_literal_data(datatype, Lit1, D),
+  rdf_canonical_map(D, Val, Lit2).
 
 
 
@@ -220,20 +222,21 @@ rdf_lexical_canonical_map(Lit1, Lit2):-
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
 % Typed literal (as per RDF 1.0 specification).
-rdf_lexical_map(literal(type(D,Lex)), V):- !,
+rdf_lexical_map(literal(type(D,Lex)), Val):- !,
   (   rdf_global_id(rdf:'HTML', D)
-  ->  atom_to_html_dom(Lex, V)
+  ->  atom_to_html_dom(Lex, Val)
   ;   rdf_global_id(rdf:'XMLLiteral', D)
-  ->  atom_to_xml_dom(Lex, V)
-  ;   xsd_lexical_map(D, Lex, V)
+  ->  atom_to_xml_dom(Lex, Val)
+  ;   xsd_lexical_map(D, Lex, Val)
   ).
 % Language-tagged string.
 rdf_lexical_map(literal(lang(LTag0,Lex)), Lex-LTag):- !,
   downcase_atom(LTag0, LTag).
 % Simple literal (as per RDF 1.0 specification)
 % now assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-rdf_lexical_map(literal(Lex), V):-
-  rdf_lexical_map(xsd:string, Lex, V).
+rdf_lexical_map(literal(Lex), Val):-
+  rdf_global_id(xsd:string, D),
+  rdf_lexical_map(literal(type(D,Lex)), Val).
 
 
 

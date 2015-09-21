@@ -222,7 +222,7 @@ rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
   rdf2(S, P, O, G).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal(S, P, D, Val, G, rdf(S,P,Lit,G)):-
-  Lit = literal(type(D,Lex)),
+  Lit = literal(type(D,_)),
   rdf2(S, P, Lit, G),
   rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).

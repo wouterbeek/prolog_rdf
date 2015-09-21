@@ -131,13 +131,13 @@ rdf_literal_data0(lexical_form, Lit, Lex):-
   ->  true
   ;   Lit = literal(Lex)
   ).
-rdf_literal_data0(value, Lit, V):-
-  (   Lit = literal(lang(LTag,Lex))
-  ->  V = Lex-LTag
-  ;   Lit = literal(type(D,Lex))
-  ->  rdf_lexical_map(D, Lex, V)
+rdf_literal_data0(value, Lit, Val):-
+  (   Lit = literal(type(_,_))
+  ->  rdf_lexical_map(Lit, Val)
+  ;   Lit = literal(lang(LTag,Lex))
+  ->  Val = Lex-LTag
   ;   Lit = literal(Lex)
-  ->  V = Lex
+  ->  rdf_literal_data0(value, literal(type(xsd:string,Lex)), Val)
   ).
 
 
@@ -156,19 +156,23 @@ rdf_literal_data0(value, Lit, V):-
 % @compat [RDF 1.0 Concepts and Abstract Syntax](http://www.w3.org/TR/2004/REC-rdf-concepts-20040210/)
 % @tbd Update to RDF 1.1.
 
-% Plain literals with the same language tag and value string.
-rdf_literal_equiv(
-  literal(lang(LTag,Lex)),
-  literal(lang(LTag,Lex))
-):- !.
-% Typed literals with the same Datatype and equivalent values
-%  in the datatype's value space.
-rdf_literal_equiv(
-  literal(type(D,Lex1)),
-  literal(type(D,Lex2))
-):- !,
-  rdf_lexical_map(D, Lex1, Val1),
-  rdf_lexical_map(D, Lex2, Val2),
-  rdf_equiv(D, Val1, Val2).
-% Simple literals that are the same.
-rdf_literal_equiv(literal(Lex), literal(Lex)).
+% Equivalent language-tagged strings.
+rdf_literal_equiv(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))):- !,
+  downcase_atom(LTag1, LTag0),
+  downcase_atom(LTag2, LTag0).
+% Equivalent typed literals have the same datatype and
+% have equivalent values in the datatype's value space.
+rdf_literal_equiv(Lit1, Lit2):-
+  Lit1 = literal(type(D,_)),
+  Lit2 = literal(type(D,_)), !,
+  rdf_lexical_map(Lit1, Val1),
+  rdf_lexical_map(Lit2, Val2),
+  rdf_equiv_value(D, Val1, Val2).
+% Simple literal on left hand side.
+rdf_literal_equiv(literal(Lex), Lit2):- !,
+  rdf_global_id(xsd:string, D),
+  rdf_literal_equiv(literal(type(D,Lex)), Lit2).
+% Simple literal on right hand side.
+rdf_literal_equiv(Lit1, literal(Lex)):- !,
+  rdf_global_id(xsd:string, D),
+  rdf_literal_equiv(Lit1, literal(type(D,Lex))).

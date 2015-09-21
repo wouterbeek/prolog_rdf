@@ -324,7 +324,7 @@ rdf_literal3(S, P, D, Val):-
   ground(D),
   ground(Val), !,
   % Map to lexical form.
-  rdf_canonical_map(D, V, literal(type(D,Lex))),
+  rdf_canonical_map(D, Val, literal(type(D,Lex))),
   (   rdf_equal(D, xsd:string),
       Lit = literal(Lex)
   ;   Lit = literal(type(D,Lex))
@@ -332,7 +332,7 @@ rdf_literal3(S, P, D, Val):-
   rdf3(S, P, Lit).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal3(S, P, D, Val):-
-  Lit = literal(type(D,Lex)),
+  Lit = literal(type(D,_)),
   rdf3(S, P, Lit),
   rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).
