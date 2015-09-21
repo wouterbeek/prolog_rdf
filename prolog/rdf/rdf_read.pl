@@ -42,7 +42,7 @@
 */
 
 :- use_module(library(error)).
-:- use_module(library(langtag/langtag_match)).
+:- use_module(library(ltag/ltag_match)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(semweb/rdf_db)).

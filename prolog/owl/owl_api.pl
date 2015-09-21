@@ -70,8 +70,8 @@
 :- use_module(library(html/rdf_html_stmt)).
 :- use_module(library(html/rdf_html_term)).
 :- use_module(library(lambda)).
-:- use_module(library(langtag/langtag_match)).
 :- use_module(library(list_ext)).
+:- use_module(library(ltag/ltag_match)).
 :- use_module(library(option)).
 :- use_module(library(owl/id_store)).
 :- use_module(library(rdf/rdf_datatype)).

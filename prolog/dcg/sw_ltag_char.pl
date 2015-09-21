@@ -1,5 +1,5 @@
 :- module(
-  language_tag_char,
+  sw_ltag_char,
   [
     alphanum//1, % ?Code:code
     singleton//1 % ?Code:code
@@ -12,7 +12,7 @@ Language subtags are case-insensitive.
 
 @author Wouter Beek
 @compat RFC 5646
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(dcg/dcg_abnf_rules)).

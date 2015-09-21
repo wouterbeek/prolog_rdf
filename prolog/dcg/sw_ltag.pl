@@ -1,5 +1,5 @@
 :- module(
-  langtag,
+  sw_ltag,
   [
     'Language-Tag'//1 % ?LanguageTag:atom
   ]
@@ -22,7 +22,7 @@ Subtags are case-insensitive, but there are conventions for case:
 
 @author Wouter Beek
 @compat RFC 5646
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(apply)).
@@ -31,7 +31,7 @@ Subtags are case-insensitive, but there are conventions for case:
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/langtag_char)).
+:- use_module(library(dcg/sw_ltag_char)).
 :- use_module(library(lists)).
 :- use_module(library(plunit)).
 
@@ -311,17 +311,17 @@ variant(X) -->
 
 % UNIT TESTS
 
-:- begin_tests(dcg_langtag_test).
+:- begin_tests(dcg_ltag_test).
 
-test_langtag('zh').
-test_langtag('zh-Latn').
-test_langtag('zh-Latn-CN').
-test_langtag('zh-Latn-CN-variant1').
-test_langtag('zh-Latn-CN-variant1-a-extend1').
-test_langtag('zh-Latn-CN-variant1-a-extend1-x-wadegile').
-test_langtag('zh-Latn-CN-variant1-a-extend1-x-wadegile-private1').
+test_ltag('zh').
+test_ltag('zh-Latn').
+test_ltag('zh-Latn-CN').
+test_ltag('zh-Latn-CN-variant1').
+test_ltag('zh-Latn-CN-variant1-a-extend1').
+test_ltag('zh-Latn-CN-variant1-a-extend1-x-wadegile').
+test_ltag('zh-Latn-CN-variant1-a-extend1-x-wadegile-private1').
 
-test(dcg_langtag_parse, [forall(test_langtag(LTag))]):-
+test(dcg_ltag_parse, [forall(test_ltag(LTag))]):-
   once(atom_phrase('Language-Tag'(LTag), _)).
 
-:- end_tests(dcg_langtag_test).
+:- end_tests(dcg_ltag_test).

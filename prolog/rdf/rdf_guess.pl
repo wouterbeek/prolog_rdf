@@ -184,11 +184,11 @@ nt_iriref_prefix --> blank, !, {fail}.
 nt_iriref_prefix --> [_], nt_iriref_prefix.
 nt_iriref_prefix --> "".
 
-nt_langtag --> *(nonblank).
+nt_ltag --> *(nonblank).
 
 nt_object --> nt_iriref, !.
 nt_object --> nt_bnode, !.
-nt_object --> nt_string, ("^^" -> nt_iriref ; "@" -> nt_langtag ; "").
+nt_object --> nt_string, ("^^" -> nt_iriref ; "@" -> nt_ltag ; "").
 
 nt_predicate --> nt_iriref, !.
 nt_predicate --> "a".
