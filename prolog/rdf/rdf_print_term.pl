@@ -62,7 +62,7 @@
      abbr_list(+boolean),
      ellip_ln(+or([nonneg,oneof([inf])])),
      label_iri(+boolean),
-     lang_perf(+atom),
+     language_priority_list(+list(atom)),
      symbol_iri(+boolean),
      pass_to(rdf_print_list//2, 2)
    ]).
