@@ -78,9 +78,9 @@ rdf_canonize_graph(G):-
 rdf_canonize_triple(S, P, D, Lex, G):-
   xsd_datatype(D),
   forall(
-    rdf(S, P, literal(type(D,Lex)), G),
+    rdf(S, P, literal(Lit0), G),
     (
-      rdf_lexical_canonical_map(D, Lex, CLex),
+      rdf_lexical_canonical_map(literal(Lit0), CLex),
 
       % Only changes need to be written.
       Lex \== CLex,

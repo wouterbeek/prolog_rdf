@@ -199,9 +199,9 @@ rdf_assert_literal(S, P, D, V, G):-
   var(D), !,
   rdf_assert_literal(S, P, xsd:string, V, G).
 % Typed literals (as per RDF 1.0 specification).
-rdf_assert_literal(S, P, D, V, G):-
-  rdf_canonical_map(D, V, Lex),
-  rdf_assert2(S, P, literal(type(D,Lex)), G).
+rdf_assert_literal(S, P, D, Val, G):-
+  rdf_canonical_map(D, Val, Lit),
+  rdf_assert2(S, P, Lit, G).
 
 
 

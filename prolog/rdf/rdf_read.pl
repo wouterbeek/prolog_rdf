@@ -204,34 +204,34 @@ rdf_literal(S, P, D, V, G):-
 %! ) is nondet.
 
 % Language-tagged strings.
-rdf_literal(S, P, rdf:langString, V, G, rdf(S,P,O,G)):-
-  V = Lex-LTag,
+rdf_literal(S, P, rdf:langString, Val, G, rdf(S,P,O,G)):-
+  Val = Lex-LTag,
   O = literal(lang(LTag,Lex)),
   rdf2(S, P, O, G),
   atom(LTag).
 % Ground datatype and value.
-rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
+rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
   ground(D),
-  ground(V), !,
+  ground(Val), !,
   % Map to lexical form.
-  rdf_canonical_map(D, V, Lex),
+  rdf_canonical_map(D, Val, literal(type(D,Lex))),
   (   rdf_equal(D, xsd:string),
       O = literal(Lex)
   ;   O = literal(type(D,Lex))
   ),
   rdf2(S, P, O, G).
 % Typed literal (as per RDF 1.0 specification).
-rdf_literal(S, P, D, V, G, rdf(S,P,O,G)):-
-  O = literal(type(D,Lex)),
-  rdf2(S, P, O, G),
-  rdf_lexical_map(D, Lex, V).
+rdf_literal(S, P, D, Val, G, rdf(S,P,Lit,G)):-
+  Lit = literal(type(D,Lex)),
+  rdf2(S, P, Lit, G),
+  rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).
-rdf_literal(S, P, xsd:string, V, G, rdf(S,P,O,G)):-
+rdf_literal(S, P, xsd:string, Val, G, rdf(S,P,O,G)):-
   O = literal(Lex),
   rdf2(S, P, O, G),
   atom(Lex),
   rdf_global_id(xsd:string, D),
-  rdf_lexical_map(D, Lex, V).
+  rdf_lexical_map(literal(type(D,Lex)), Val).
 
 
 

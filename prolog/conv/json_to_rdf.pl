@@ -233,10 +233,9 @@ assert_json_property(G, Mod, SPrefix, DPrefix, Type, Val, O):-
   is_dict(Val), !,
   json_to_rdf(G, Mod, SPrefix, DPrefix, Val, O).
 % Typed literals.
-assert_json_property(_, _, _, _, Datatype0, Val1, O):-
-  rdf_global_id(Datatype0, Datatype),
+assert_json_property(_, _, _, _, D0, Val1, Lit):-
+  rdf_global_id(D0, D),
   % Remember that SWI dictionaries contain SWI strings, not atoms.
   atom_string(Val2, Val1),
-  rdf_lexical_map(Datatype, Val2, Val3),
-  rdf_canonical_map(Datatype, Val3, Lex),
-  O = literal(type(Datatype,Lex)).
+  rdf_lexical_map(literal(type(D,Val2)), Val3),
+  rdf_canonical_map(D, Val3, Lit).

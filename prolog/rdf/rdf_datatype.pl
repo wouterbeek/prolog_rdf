@@ -3,7 +3,7 @@
   [
     rdf_canonical_map/3, % +Datatype:iri
                          % +Value
-                         % ?LexicalForm:atom
+                         % ?Literal:compound
     rdf_compare/4, % +Datatype:iri
                    % -Order:oneof([incomparable,<,=,>])
                    % +Value1
@@ -21,13 +21,9 @@
                           % -Datatype:iri
     rdf_interpreted_term/2, % +Term1:rdf_term
                             % -Term2
-    rdf_lexical_canonical_map/3, % +Datatype:iri
-                                 % +LexicalForm:atom
+    rdf_lexical_canonical_map/2, % +Literal:compound
                                  % ?CanonicalLexicalFrom:atom
     rdf_lexical_map/2, % +Literal:compound
-                       % ?Value
-    rdf_lexical_map/3, % +Datatype:iri
-                       % +LexicalForm:atom
                        % ?Value
     rdf_subtype_of/2 % ?SubType:iri
                      % ?SuperType:iri
@@ -43,7 +39,9 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(html/html_dom)).
+:- use_module(library(ltag/ltag)).
 :- use_module(library(memfile)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_read)).
@@ -64,16 +62,15 @@
 :- rdf_meta(rdf_datatype_term(r,?)).
 :- rdf_meta(rdf_equiv(r,+,+)).
 :- rdf_meta(rdf_interpreted_term(o,-)).
-:- rdf_meta(rdf_lexical_canonical_map(r,+,?)).
-:- rdf_meta(rdf_lexical_map(r,+,?)).
+:- rdf_meta(rdf_lexical_canonical_map(o,?)).
+:- rdf_meta(rdf_lexical_map(o,?)).
 :- rdf_meta(rdf_subtype_of(r,r)).
 
 
 
 
 
-%! rdf_canonical_map(+Datatype:iri, +Value, +LexicalForm:atom) is semidet.
-%! rdf_canonical_map(+Datatype:iri, +Value, -LexicalForm:atom) is det.
+%! rdf_canonical_map(+Datatype:iri, +Value, -Literal:compound) is det.
 % Maps RDF datatyped values onto a unique / canonical lexical form.
 %
 % Supports the following RDF datatypes:
@@ -83,15 +80,18 @@
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
-rdf_canonical_map(rdf:langString, V, Lex):-
-  ground(V), !,
-  V = _-Lex.
-rdf_canonical_map(rdf:'HTML', V, Lex):- !,
-  with_output_to(atom(Lex), html_write(current_output, V, [])).
-rdf_canonical_map(rdf:'XMLLiteral', V, Lex):- !,
-  with_output_to(atom(Lex), xml_write(current_output, V, [])).
-rdf_canonical_map(D, V, Lex):-
-  xsd_canonical_map(D, V, Lex).
+rdf_canonical_map(D, Val, literal(lang(LTag,Lex))):-
+  rdf_equal(rdf:langString, D), !,
+  ground(Val),
+  Val = Lex-LTag0,
+  atom_phrase('obs-language-tag'(LTag), LTag0).
+rdf_canonical_map(D, Val, literal(type(D,Lex))):-
+  (   rdf_equal(rdf:'HTML', D)
+  ->  with_output_to(atom(Lex), html_write(current_output, Val, []))
+  ;   rdf_equal(rdf:'XMLLiteral', D)
+  ->  with_output_to(atom(Lex), xml_write(current_output, Val, []))
+  ;   xsd_canonical_map(D, Val, Lex)
+  ).
 
 
 
@@ -203,28 +203,13 @@ rdf_interpreted_term(X, Y):-
 %!   -CanonicalLexicalFrom:atom
 %! ) is det.
 
-rdf_lexical_canonical_map(D, Lex, CLex):-
-  xsd_lexical_canonical_map(D, Lex, CLex).
+rdf_lexical_canonical_map(Lit1, Lit2):-
+  xsd_lexical_canonical_map(Lit1, Lit2).
 
 
 
 %! rdf_lexical_map(+Literal:compound, +Value) is semidet.
 %! rdf_lexical_map(+Literal:compound, -Value) is det.
-
-% Typed literal (as per RDF 1.0 specification).
-rdf_lexical_map(literal(type(D,Lex)), V):- !,
-  rdf_lexical_map(D, Lex, V).
-% Language-tagged string.
-rdf_lexical_map(literal(lang(LTag,Lex)), Lex-LTag):- !.
-% Simple literal (as per RDF 1.0 specification)
-% now assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-rdf_lexical_map(literal(Lex), V):-
-  rdf_lexical_map(xsd:string, Lex, V).
-
-
-
-%! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, +Value) is semidet.
-%! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, -Value) is det.
 % Maps lexical forms onto the values they represent.
 %
 % Supports the following RDF datatypes:
@@ -234,12 +219,21 @@ rdf_lexical_map(literal(Lex), V):-
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
-rdf_lexical_map(rdf:'HTML', Lex, V):- !,
-  atom_to_html_dom(Lex, V).
-rdf_lexical_map(rdf:'XMLLiteral', Lex, V):- !,
-  atom_to_xml_dom(Lex, V).
-rdf_lexical_map(D, Lex, V):-
-  xsd_lexical_map(D, Lex, V).
+% Typed literal (as per RDF 1.0 specification).
+rdf_lexical_map(literal(type(D,Lex)), V):- !,
+  (   rdf_global_id(rdf:'HTML', D)
+  ->  atom_to_html_dom(Lex, V)
+  ;   rdf_global_id(rdf:'XMLLiteral', D)
+  ->  atom_to_xml_dom(Lex, V)
+  ;   xsd_lexical_map(D, Lex, V)
+  ).
+% Language-tagged string.
+rdf_lexical_map(literal(lang(LTag0,Lex)), Lex-LTag):- !,
+  downcase_atom(LTag0, LTag).
+% Simple literal (as per RDF 1.0 specification)
+% now assumed to be of type `xsd:string` (as per RDF 1.1 specification).
+rdf_lexical_map(literal(Lex), V):-
+  rdf_lexical_map(xsd:string, Lex, V).
 
 
 
