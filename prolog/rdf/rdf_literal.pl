@@ -120,18 +120,20 @@ rdf_literal_data(Field, Lit, Data):-
   rdf_literal_data0(Field, Lit, Data).
 
 rdf_literal_data0(datatype, literal(type(D,_)), D):- !.
-rdf_literal_data0(datatype, literal(lang(_,_)), rdf:langString):- !.
-rdf_literal_data0(datatype, literal(Lex), xsd:string):-
-  atom(Lex).
-rdf_literal_data0(langtag, literal(lang(LTag,_)), LTag).
-rdf_literal_data0(lexical_form, Lit, Lex):-
+rdf_literal_data0(datatype, literal(lang(_,_)), D):- !,
+  rdf_global_id(rdf:langString, D).
+rdf_literal_data0(datatype, literal(Lex), D):-
+  atom(Lex), !,
+  rdf_global_id(xsd:string, D).
+rdf_literal_data0(langtag, literal(lang(LTag,_)), LTag):- !.
+rdf_literal_data0(lexical_form, Lit, Lex):- !,
   (   Lit = literal(lang(_,Lex))
   ->  true
   ;   Lit = literal(type(_,Lex))
   ->  true
   ;   Lit = literal(Lex)
   ).
-rdf_literal_data0(value, Lit, Val):-
+rdf_literal_data0(value, Lit, Val):- !,
   (   Lit = literal(type(_,_))
   ->  rdf_lexical_map(Lit, Val)
   ;   Lit = literal(lang(LTag,Lex))
