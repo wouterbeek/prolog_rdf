@@ -75,16 +75,25 @@
 % Maps RDF datatyped values onto a unique / canonical lexical form.
 %
 % Supports the following RDF datatypes:
+%   - `rdf:langString`
 %   - `rdf:HTML`
 %   - `rdf:XMLLiteral`
 %   - The XSD datatypes as defined by xsd.pl.
+%
+% Since the RDF value → lexical form mapping
+% cannot be formulated for language-tagged strings,
+% this mapping is defined onto literal compound terms.
+%
+% Literal will never be the legacy compound term `literal(LexicalForm:atom)`.
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
 rdf_canonical_map(D, Val, literal(lang(LTag,Lex))):-
   rdf_equal(rdf:langString, D), !,
+  % First check value for groundness, otherwise the pair term is instantiated.
   ground(Val),
   Val = Lex-LTag0,
+  % Make sure the language-tag is valid as per BCP 47.
   atom_phrase('obs-language-tag'(LTag), LTag0).
 rdf_canonical_map(D, Val, literal(type(D,Lex))):-
   (   rdf_equal(rdf:'HTML', D)
@@ -130,9 +139,9 @@ rdf_datatype(D):-
 %! rdf_datatype(-Datatype:iri, +PrologType) is nondet.
 %! rdf_datatype(-Datatype:iri, -PrologType) is nondet.
 
+rdf_datatype(rdf:langString, pair).
 rdf_datatype(rdf:'HTML', compound).
 rdf_datatype(rdf:'XMLLiteral', compound).
-rdf_datatype(rdf:langString, pair).
 rdf_datatype(D, Type):-
   xsd_datatype(D, Type).
 
@@ -167,20 +176,22 @@ rdf_equiv_value(D, Val1, Val2):-
 
 %! rdf_guess_datatype(+Value, -Datatype:iri) is semidet.
 
-rdf_guess_datatype(V, D):-
-  ground(V),
-  V = [element(Root,_,_)], !,
+rdf_guess_datatype(Val, D):-
+  % First checkout for groundness.
+  ground(Val),
+  Val = [element(Root,_,_)], !,
   (   Root == html
   ->  rdf_equal(rdf:'HTML', D)
   ;   rdf_equal(rdf:'XMLLiteral', D)
   ).
-rdf_guess_datatype(V, D):-
-  ground(V),
-  V = Lex-LTag,
+rdf_guess_datatype(Val, D):-
+  % First checkout for groundness.
+  ground(Val),
+  Val = Lex-LTag,
   maplist(atom, [Lex,LTag]), !,
   rdf_equal(rdf:langString, D).
-rdf_guess_datatype(V, D):-
-  xsd_guess_datatype(V, D).
+rdf_guess_datatype(Val, D):-
+  xsd_guess_datatype(Val, D).
 
 
 
@@ -202,6 +213,9 @@ rdf_interpreted_term(X, Y):-
 %!   +Literal:compound,
 %!   -CanonicalLiteral:compound
 %! ) is det.
+% Since the RDF lexical form → canonical lexical form mapping
+% cannot be formulated for language-tagged strings,
+% this mapping is defined between literal compound terms.
 
 rdf_lexical_canonical_map(Lit1, Lit2):-
   rdf_lexical_map(Lit1, Val),
@@ -218,6 +232,10 @@ rdf_lexical_canonical_map(Lit1, Lit2):-
 %   - `rdf:HTML`
 %   - `rdf:XMLLiteral`
 %   - The XSD datatypes as defined by xsd.pl.
+%
+% Since the RDF lexical form → canonical lexical form mapping
+% cannot be formulated for language-tagged strings,
+% this mapping is defined from literal compound terms.
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
