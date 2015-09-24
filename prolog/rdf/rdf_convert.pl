@@ -54,12 +54,12 @@ Covnerter between RDF serialization formats.
 % @tbd What can we not specify `format(?rdf_format)`?
 
 rdf_convert(From, To, Opts0):-
-  % Make sure we know what is the input serialization format
+  % Make sure we know what is the input serialization format, if any,
   % and what is the output compression.
   (   option(format(Format), Opts0),
       ground(Format)
   ->  Opts = Opts0
-  ;   merge_options([format(Format)], Opts0, Opts)
+  ;   merge_options([format(_)], Opts0, Opts)
   ),
   option(compress(Compress), Opts, none),
 
@@ -79,7 +79,6 @@ rdf_convert(From, To, Opts0):-
       ->  Ext = nq
       ;   Ext = nt
       ),
-      rdf_file_extension(Ext, Format),
       (   Compress == gzip
       ->  Exts = [Ext,gz]
       ;   Exts = [Ext]
@@ -96,10 +95,10 @@ rdf_convert(From, To, Opts0):-
   (   is_absolute_file_name(From)
   ->  file_base_name(From, Base),
       file_with_new_extensions(Base, Exts, To)
-  ;   is_uri(From),
-      uri_components(From, uri_components(_,_,Path,_,_)),
+  ;   is_uri(From)
+  ->  uri_components(From, uri_components(_,Auth,Path,_,_)),
       atomic_list_concat(Subpaths, /, Path),
-      last(Subpaths, Base),
+      (last(Subpaths, Base), Base \== '' -> true ; Base = Auth),
       file_with_new_extensions(Base, Exts, To)
   ;   To = To0
   ),
@@ -107,6 +106,7 @@ rdf_convert(From, To, Opts0):-
 
 rdf_convert0(Write, Format, Read):-
   ctriples_write_begin(State, BNPrefix, []),
+  Opts = [anon_prefix(BNPrefix),format(Format)],
   (   Format == rdfa
   ->  read_rdfa(Read, Ts, []),
       clean_streamed_triples(Write, State, BNPrefix, Ts, _)
@@ -114,13 +114,13 @@ rdf_convert0(Write, Format, Read):-
   ->  rdf_process_ntriples(
         Read,
         clean_streamed_triples(Write, State, BNPrefix),
-        [anon_prefix(BNPrefix),format(Format)]
+        Opts
       )
   ;   memberchk(Format, [trig,turtle])
   ->  rdf_process_turtle(
         Read,
         clean_streamed_triples(Write, State, BNPrefix),
-        []
+        Opts
       )
   ;   Format == xml
   ->  process_rdf(Read, clean_streamed_triples(Write, State, BNPrefix), [])

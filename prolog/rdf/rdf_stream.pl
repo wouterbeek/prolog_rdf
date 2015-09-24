@@ -28,6 +28,8 @@
 :- meta_predicate(rdf_stream_read(+,2,+)).
 :- meta_predicate(rdf_stream_write(+,1,+)).
 
+http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
+
 
 
 
