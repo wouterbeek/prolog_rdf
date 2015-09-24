@@ -6,5 +6,5 @@ name(plRdf).
 packager('Wouter Beek', 'me@wouterbeek.com').
 requires(sparkle).
 requires(plXsd).
-title('Additional support for handling RDF data in SWI-Prolog.').
-version('0.0.40').
+title('Extended support for handling RDF data in SWI-Prolog.').
+version('0.1.0').

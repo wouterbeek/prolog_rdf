@@ -7,7 +7,7 @@
 Let's do this!
 
 @author Wouter Beek
-@version 2015/09/23
+@version 2015/09/23-2015/09/24
 */
 
 :- use_module(library(filesex)).
@@ -113,6 +113,8 @@ install(_, _, _):-
 %! ) is det.
 
 % Developer's delight: library already available from parent directory.
+% This presumes the developer was clever enough to perform `ln -s LibName`
+% in `~/lib/swipl/packs`.
 install_required(AppDir, LibName, Opts):-
   option(parent(true), Opts),
 
@@ -129,13 +131,15 @@ install_required(_, LibName, Opts):-
 
   prolog_pack:query_pack_server(search(LibName), Result,[]),
   Result = true([pack(LibName,_,_,_,_)]), !,
+  
   pack_install(LibName).
 % Install through Github.
 install_required(AppDir, LibName, Opts):-
   option(github(true), Opts),
 
   % Remove the old version of the library.
-  append_directories(AppDir, LibName, LibDir),
+  prolog_pack:pack_install_dir(PackDir, []),
+  append_directories(PackDir, LibName, LibDir),
   (exists_directory(LibDir) -> delete_directory_and_contents(LibDir) ; true),
 
   % Git clone the new version of the library.
