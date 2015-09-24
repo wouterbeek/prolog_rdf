@@ -25,9 +25,11 @@ Covnerter between RDF serialization formats.
 :- use_module(library(os/gnu_wc)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
+:- use_module(library(typecheck)).
 
 :- thread_local(has_quadruples/1).
 
@@ -91,30 +93,35 @@ rdf_convert(From, To, Opts0):-
   file_lines(Tmp, N),
   debug(rdf(convert), 'Unique triples:~t~D~n', [N]),
   compress_file(Tmp, Compress, To0),
-  delete_file(Tmp),
   (   is_absolute_file_name(From)
   ->  file_base_name(From, Base),
-      atomic_list_concat([Name|_], ., Base),
-      atomic_list_concat([Name|Exts], '.', To),
-      rename_file(To0, To)
-  ;   true
-  ).
+      file_with_new_extensions(Base, Exts, To)
+  ;   is_uri(From),
+      uri_components(From, uri_components(_,_,Path,_,_)),
+      atomic_list_concat(Subpaths, /, Path),
+      last(Subpaths, Base),
+      file_with_new_extensions(Base, Exts, To)
+  ;   To = To0
+  ),
+  rename_file(To0, To).
 
-rdf_convert0(Write, rdfa, Read):-
-  rdf_load(Read, [
-    graph(user),
-    max_errors(-1),
-    register_namespaces(false),
-    silent(true),
-    syntax(false)
-  ]),
-  ctriples_write_graph(Write, _, []).
 rdf_convert0(Write, Format, Read):-
   ctriples_write_begin(State, BNPrefix, []),
-  (   memberchk(Format, [nquads,ntriples])
-  ->  rdf_process_ntriples(Read, clean_streamed_triples(Write, State, BNPrefix), [])
+  (   Format == rdfa
+  ->  read_rdfa(Read, Ts, []),
+      clean_streamed_triples(Write, State, BNPrefix, Ts, _)
+  ;   memberchk(Format, [nquads,ntriples])
+  ->  rdf_process_ntriples(
+        Read,
+        clean_streamed_triples(Write, State, BNPrefix),
+        [anon_prefix(BNPrefix),format(Format)]
+      )
   ;   memberchk(Format, [trig,turtle])
-  ->  rdf_process_turtle(Read, clean_streamed_triples(Write, State, BNPrefix), [])
+  ->  rdf_process_turtle(
+        Read,
+        clean_streamed_triples(Write, State, BNPrefix),
+        []
+      )
   ;   Format == xml
   ->  process_rdf(Read, clean_streamed_triples(Write, State, BNPrefix), [])
   ),
@@ -242,3 +249,15 @@ compress_file(From, Compress, To):-
     ),
     close(Write)
   ).
+
+
+
+%! file_with_new_extensions(
+%!   +File1:atom,
+%!   +Extensions:list(atom),
+%!   -File2:atom
+%! ) is det.
+
+file_with_new_extensions(File1, Exts, File2):-
+  atomic_list_concat([Name|_], ., File1),
+  atomic_list_concat([Name|Exts], '.', File2).
