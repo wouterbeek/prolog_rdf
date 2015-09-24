@@ -22,11 +22,12 @@
                             % +Predicate:iri
                             % +Value
                             % ?Graph:atom
-    rdf_assert_now/3, % +Subject, +Predicate, +Graph
+    rdf_assert_now/2, % +Subject, +Predicate
+    rdf_assert_now/3, % +Subject, +Predicate, ?Graph
     rdf_assert_now/4, % +Subject:iri
                       % +Predicate:iri
                       % +Datatype:iri
-                      % +Graph:atom
+                      % ?Graph:atom
     rdf_assert_property/3, % +Property:iri
                            % ?Parent:iri
                            % ?Graph:atom
@@ -82,6 +83,7 @@ Simple asserion and retraction predicates for RDF.
 :- rdf_meta(rdf_assert_literal(o,r,r,+,?)).
 :- rdf_meta(rdf_assert_literal_pl(o,r,+)).
 :- rdf_meta(rdf_assert_literal_pl(o,r,+,?)).
+:- rdf_meta(rdf_assert_now(o,r)).
 :- rdf_meta(rdf_assert_now(o,r,+)).
 :- rdf_meta(rdf_assert_now(o,r,r,+)).
 :- rdf_meta(rdf_assert_property(o,r,?)).
@@ -247,7 +249,13 @@ rdf_assert_literal_pl(_, _, V, _):-
 
 
 
-%! rdf_assert_now(+Subject:rdf_term, +Predicate:iri, +Graph:atom) is det.
+%! rdf_assert_now(+Subject:rdf_term, +Predicate:iri) is det.
+
+rdf_assert_now(S, P):-
+  rdf_assert_now(S, P, _).
+
+
+%! rdf_assert_now(+Subject:rdf_term, +Predicate:iri, ?Graph:atom) is det.
 
 rdf_assert_now(S, P, G):-
   rdf_assert_now(S, P, xsd:dateTime, G).
@@ -257,7 +265,7 @@ rdf_assert_now(S, P, G):-
 %!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Datatype:iri,
-%!   +Graph:atom
+%!   ?Graph:atom
 %! ) is det.
 
 rdf_assert_now(S, P, D, G):-
@@ -332,7 +340,7 @@ rdf_retractall_literal(S, P, D, V):-
 % as specified by the RDF 1.1 standard.
 rdf_retractall_literal(S, P, D, V, G):-
   forall(
-    rdf_literal(S, P, D, V, G, T),
+    rdf_read:rdf_literal(S, P, D, V, G, T),
     rdf_retractall_term(T, G)
   ).
 
