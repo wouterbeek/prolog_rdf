@@ -13,13 +13,14 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(iostream)).
 :- use_module(library(memfile)).
@@ -56,12 +57,14 @@ rdf_guess_format(Spec, Format0, Format):-
 rdf_guess_format(Read, Iteration, Format0, Format):-
   N is 1000 * 2 ^ Iteration,
   peek_string(Read, N, S),
+  debug(rdf_guess, '[RDF-GUESS] ~s~n', [S]),
 
   % Try to parse the peeked string as Turtle- or XML-like.
   (   rdf_guess_turtle(Format0, S, N, Format)
   ->  true
   ;   rdf_guess_xml(S, Format)
-  ), !.
+  ), !,
+  debug(rdf_guess, '[RDF-GUESSED] ~a~n', [Format]).
 rdf_guess_format(Read, Iteration, Format0, Format):-
   Iteration < 4,
   NewIteration is Iteration + 1,
