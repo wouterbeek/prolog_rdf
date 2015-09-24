@@ -23,9 +23,10 @@
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(iostream)).
+:- use_module(library(lambda)).
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(sgml)).
+:- use_module(library(sgml/sgml_ext)).
 
 :- meta_predicate(nt_string_codes(//,?,?)).
 
@@ -263,68 +264,57 @@ guess_turtle_family(Format0, Format):-
 % If the toplevel element is detected as =HTML=, we pass =rdfa= as type.
 
 guess_xml_type(Read, Format):-
-  xml_doctype(Read, Dialect, DocType, Attributes),
-  once(doc_content_type(Dialect, DocType, Attributes, Format)).
+  xml_doctype(Read, Dialect, DocType, Attrs),
+  once(doc_content_type(Dialect, DocType, Attrs, Format)).
 
-doc_content_type(_,   html, _, rdfa).
-doc_content_type(html,   _,    _, rdfa).
-doc_content_type(xhtml,   _,    _, rdfa).
-doc_content_type(html5,   _,    _, rdfa).
-doc_content_type(xhtml5, _,    _, rdfa).
-doc_content_type(Dialect, Top, Attributes, xml):-
+doc_content_type(_     , html, _, rdfa).
+doc_content_type(html  , _   , _, rdfa).
+doc_content_type(xhtml , _   , _, rdfa).
+doc_content_type(html5 , _   , _, rdfa).
+doc_content_type(xhtml5, _   , _, rdfa).
+doc_content_type(Dialect, Top, Attrs, xml):-
   (   Dialect == sgml
   ->  atomic_list_concat([NS,rdf], :, Top)
   ;   Dialect == xml
   ->  atomic_list_concat([NS,'RDF'], :, Top)
   ),
   atomic_list_concat([xmlns,NS], :, Attr),
-  memberchk(Attr=RDFNS, Attributes),
+  memberchk(Attr=RDFNS, Attrs),
   rdf_current_prefix(rdf, RDFNS).
 
 %! xml_doctype(+Read:stream, -Dialect, -DocType, -Attributes) is semidet.
-% Parse a _repositional_ stream and get the  name of the first XML
-% element *and* demand that this   element defines XML namespaces.
+% Parse a _repositional_ stream and get the name of the first XML
+% element *and* demand that this element defines XML namespaces.
 % Fails if the document is illegal XML before the first element.
 %
-% Note that it is not  possible   to  define valid RDF/XML without
-% namespaces, while it is not possible  to define a valid absolute
-% Turtle URI (using <URI>) with a valid xmlns declaration.
+% Note that it is not possible to define valid RDF/XML without
+% namespaces, while it is not possible to define a valid absolute
+% Turtle IRI (using `<...>`-notation) with a valid xmlns declaration.
 
-xml_doctype(Stream, Dialect, DocType, Attributes):-
+xml_doctype(Read, Dialect, DocType, Attrs):-
   catch(
-    setup_call_cleanup(
-      make_parser(Stream, Parser, State),
-      (
-        sgml_parse(
-          Parser,
-          [
-            call(begin, on_begin),
-            call(cdata, on_cdata),
-            max_errors(-1),
-            source(Stream),
-            syntax_errors(quiet)
-          ]
-        )
-      ),
-      cleanup_parser(Stream, Parser, State)
+    sgml_parser(
+      Read,
+      \Parser^sgml_parser(
+        Parser,
+        [
+          call(begin, on_begin),
+          call(cdata, on_cdata),
+          max_errors(-1),
+          source(Read),
+          syntax_errors(quiet)
+        ]
+      )
     ),
     E,
     true
   ),
   nonvar(E),
-  E = tag(Dialect, DocType, Attributes).
+  E = tag(Dialect, DocType, Attrs).
 
-make_parser(Stream, Parser, state(Pos)):-
-  stream_property(Stream, position(Pos)),
-  new_sgml_parser(Parser, []).
-
-cleanup_parser(Stream, Parser, state(Pos)):-
-  free_sgml_parser(Parser),
-  set_stream_position(Stream, Pos).
-
-on_begin(Tag, Attributes, Parser):-
+on_begin(Tag, Attrs, Parser):-
   get_sgml_parser(Parser, dialect(Dialect)),
-  throw(tag(Dialect, Tag, Attributes)).
+  throw(tag(Dialect, Tag, Attrs)).
 
-on_cdata(_CDATA, _Parser):-
+on_cdata(_, _):-
   throw(error(cdata)).
