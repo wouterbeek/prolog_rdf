@@ -54,16 +54,21 @@ Covnerter between RDF serialization formats.
 % @tbd What can we not specify `format(?rdf_format)`?
 
 rdf_convert(From, To, Opts0):-
-  % Make sure we know what is the input serialization format, if any,
-  % and what is the output compression.
-  (   option(format(Format), Opts0),
+  % Process output RDF serialization option.
+  (   % The output RDF serialization format is given: take it into account.
+      option(format(Format), Opts0),
       ground(Format)
   ->  Opts = Opts0
-  ;   merge_options([format(_)], Opts0, Opts)
+  ;   % Allow the output RDF serialization format to be returned
+      % to the calling context through an option.
+      merge_options([format(_)], Opts0, Opts)
   ),
+  
+  % Process data compression option.
   option(compress(Compress), Opts, none),
 
-  % Convert to C-Triples.
+  % Convert to the RDF input stream into C-Triples
+  % on a triple-by-triple basis.
   thread_file(tmp, Tmp),
   setup_call_cleanup(
     open(Tmp, write, Write),
