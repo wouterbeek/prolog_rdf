@@ -128,6 +128,7 @@ rdf_convert0(Write, Format, Read):-
   flush_output(Write),
   ctriples_write_end(State, []).
 
+
 %! clean_streamed_triples(
 %!   +Write:stream,
 %!   +State:compound,
@@ -136,16 +137,10 @@ rdf_convert0(Write, Format, Read):-
 %!   +LinePosition:compound
 %! ) is det.
 
-clean_streamed_triples(Write, State, BNPrefix, Ts0, G0):-
-  graph_without_line(G0, G),
-  maplist(fix_triple(G), Ts0, Ts),
+clean_streamed_triples(Write, State, BNPrefix, Ts0, _):-
+  maplist(fix_triple, Ts0, Ts),
   maplist(ctriples_write_triple(Write, State, BNPrefix), Ts).
 
-%! graph_without_line(+WonkyGraph:compound, -Graph:atom) is det.
-% Remove file line numbers from the graph name.
-
-graph_without_line(G:_, G):- !.
-graph_without_line(G, G).
 
 %! fix_triple(
 %!   +Graph:atom,
@@ -154,15 +149,8 @@ graph_without_line(G, G).
 %! ) is det.
 %
 
-fix_triple(G, rdf(S,P,O), T):- !,
+fix_triple(rdf(S,P,O,G), T):- !,
   (   is_named_graph(G)
-  ->  set_has_quadruples,
-      T = rdf(S,P,O,G)
-  ;   T = rdf(S,P,O)
-  ).
-fix_triple(G, rdf(S,P,O,G0), T):-
-  (   graph_without_line(G0, G),
-      is_named_graph(G)
   ->  set_has_quadruples,
       T = rdf(S,P,O,G)
   ;   is_named_graph(G)
@@ -170,6 +158,8 @@ fix_triple(G, rdf(S,P,O,G0), T):-
       T = rdf(S,P,O,G)
   ;   T = rdf(S,P,O)
   ).
+fix_triple(T, T).
+
 
 %! is_named_graph(+Graph:atom) is semidet.
 % Succeeds for all and only named graphs.
@@ -177,6 +167,7 @@ fix_triple(G, rdf(S,P,O,G0), T):-
 is_named_graph(G):-
   ground(G),
   G \== user.
+
 
 %! set_has_quadruples is det.
 % Store the fact that a quadruple occurred in the parser stream

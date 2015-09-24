@@ -88,10 +88,10 @@ rdf_stream_write(Spec, Goal_1, Opts):- !,
 %! ) is det.
 
 rdf_determine_format(Read, Opts, Format):-
-  option(format(Format), Opts),
-  (   ground(Format)
-  ->  true
+  (   option(format(Format), Opts)
+  ->  (   ground(Format)
+      ->  true
+      ;   rdf_guess_format(Read, Format)
+      )
   ;   rdf_guess_format(Read, Format)
   ).
-rdf_determine_format(Read, _, Format):-
-  rdf_guess_format(Read, Format).
