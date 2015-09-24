@@ -17,19 +17,25 @@
                       % ?Value:pair(atom)
                       % ?Graph:atom
     rdf_load_vocab/1, % +Location:atom
+    rdf_literal/3, % ?Subject, ?Predicate, ?Value
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
-    rdf_literal/5, % ?Subject, ?Predicate, ?Datatype, ?Value, ?Graph
-    rdf_literal/6, % ?Subject:rdf_term
+    rdf_literal/5, % ?Subject:rdf_term
                    % ?Predicate:iri
                    % ?Datatype:iri
                    % ?Value
                    % ?Graph:atom
-                   % -Triple:compound
+    rdf_literal_pl/3, % ?Subject, ?Predicate, ?Value
+    rdf_literal_pl/4, % ?Subject, ?Predicate, ?Datatype, ?Value
+    rdf_literal_pl/5, % ?Subject:rdf_term
+                      % ?Predicate:iri
+                      % ?Datatype:iri
+                      % ?Value
+                      % ?Graph:atom
     rdf2/3, % ?Subject, ?Predicate, ?Object
     rdf2/4 % ?Subject:rdf_term
            % ?Predicate:iri
-	   % ?Object:rdf_term
-	   % ?Graph:atom
+           % ?Object:rdf_term
+           % ?Graph:atom
   ]
 ).
 
@@ -47,6 +53,8 @@
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
+:- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
+:- use_module(library(xsd/xsd)).
 
 :- rdf_meta(rdf_date(o,r,?)).
 :- rdf_meta(rdf_date(o,r,?,?)).
@@ -54,9 +62,12 @@
 :- rdf_meta(rdf_instance(o,r,?)).
 :- rdf_meta(rdf_langstring(o,r,+,?)).
 :- rdf_meta(rdf_langstring(o,r,+,?,?)).
+:- rdf_meta(rdf_literal(o,r,r)).
 :- rdf_meta(rdf_literal(o,r,r,?)).
 :- rdf_meta(rdf_literal(o,r,r,?,?)).
-:- rdf_meta(rdf_literal(o,r,r,?,?,-)).
+:- rdf_meta(rdf_literal_pl(o,r,r)).
+:- rdf_meta(rdf_literal_pl(o,r,r,?)).
+:- rdf_meta(rdf_literal_pl(o,r,r,?,?)).
 :- rdf_meta(rdf2(o,r,o)).
 :- rdf_meta(rdf2(o,r,o,?)).
 
@@ -171,12 +182,20 @@ rdf_load_vocab(Uri, Graph):-
 
 
 
+%! rdf_literal(?Subject:rdf_term, ?Predicate:iri, ?Value) is nondet.
+% Wrapper around rdf_literal/4 where the datatype is uninstantiated.
+
+rdf_literal(S, P, V):-
+  rdf_literal(S, P, _, V, _).
+
+
 %! rdf_literal(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value
 %! ) is nondet.
+% Wrapper around rdf_literal/4 where the graph is uninstantiated.
 
 rdf_literal(S, P, D, V):-
   rdf_literal(S, P, D, V, _).
@@ -189,6 +208,8 @@ rdf_literal(S, P, D, V):-
 %!   ?Value,
 %!   ?Graph:atom
 %! ) is nondet.
+% @see See rdf_literal_pl/[3-5] that allows native Prolog terms
+%      to be returned in more situations, at the cost of correctness.
 
 rdf_literal(S, P, D, V, G):-
   rdf_literal(S, P, D, V, G, _).
@@ -232,6 +253,54 @@ rdf_literal(S, P, xsd:string, Val, G, rdf(S,P,O,G)):-
   atom(Lex),
   rdf_global_id(xsd:string, D),
   rdf_lexical_map(literal(type(D,Lex)), Val).
+
+
+
+%! rdf_literal_pl(?Subject:rdf_term, ?Predicate:iri, ?Value) is nondet.
+% Wrapper around rdf_literal_pl/4 where the datatype in uninstantiated.
+
+rdf_literal_pl(S, P, V):-
+  rdf_literal_pl(S, P, _, V, _).
+
+
+%! rdf_literal_pl(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Datatype:iri,
+%!   ?Value
+%! ) is nondet.
+% Wrapper around rdf_literal_pl/5 where the graph in uninstantiated.
+
+rdf_literal_pl(S, P, D, V):-
+  rdf_literal_pl(S, P, D, V, _).
+
+
+%! rdf_literal_pl(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Datatype:iri,
+%!   ?Value,
+%!   ?Graph:atom
+%! ) is nondet.
+% rdf_literal/[3-5] seeks to interpret the lexical form of an RDF datatype
+% according to an RDF datatype.
+%
+% Sometimes this interpretation cannot be represented in a native Prolog term.
+% It may then, for certain use cases, still be useful to return
+% the native Prolog term which most closely matches the correct interpretation.
+%
+% For example, in XSD's dateTime/7 seconds are represented by a decimal,
+% but in Prolog's date/9 and time/6 seconds are represented by a float.
+% The latter comes quite close to the former, but will generally
+% be a tiny bit less precise.
+%
+% In short: for correctness use rdf_literal/[3-5];
+% for convencience at the cost of a little bit of correctness
+% use rdf_literal_pl/[3-5].
+
+rdf_literal_pl(S, P, D, V, G):-
+  rdf_literal(S, P, D, V0, G),
+  (xsd_datatype(D, date) -> xsd_date_to_prolog_term(V0, V) ; V = V0).
 
 
 
