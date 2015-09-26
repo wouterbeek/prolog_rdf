@@ -76,13 +76,13 @@ Predicates for asserting common OWL structures.
 
 :- rdf_meta(owl_assert_class(r,t,?,?,?)).
 :- rdf_meta(owl_assert_data_property(r,?)).
-:- rdf_meta(owl_assert_data_property(r,t,+,+,r,r,?,+)).
+:- rdf_meta(owl_assert_data_property(r,t,?,?,r,r,?,+)).
 :- rdf_meta(owl_assert_equivalent_class(r,r,?)).
 :- rdf_meta(owl_assert_functional_property(r,?)).
 :- rdf_meta(owl_assert_intersection_of(r,t,?)).
 :- rdf_meta(owl_assert_named_individual(r,t,?,?,?)).
 :- rdf_meta(owl_assert_object_property(r,?)).
-:- rdf_meta(owl_assert_object_property(r,t,+,+,r,r,?,+)).
+:- rdf_meta(owl_assert_object_property(r,t,?,?,r,r,?,+)).
 :- rdf_meta(owl_assert_ontology(r,?)).
 :- rdf_meta(owl_assert_value_restriction(r,r,?,-)).
 
