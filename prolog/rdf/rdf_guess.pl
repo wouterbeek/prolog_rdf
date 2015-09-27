@@ -312,8 +312,8 @@ xml_doctype(Read, Dialect, DocType, Attrs):-
   nonvar(E),
   E = tag(Dialect, DocType, Attrs).
 
-sgml_parser0(Opts, Read):-
-  sgml_parser(Read, Opts).
+sgml_parser0(Opts, Parser):-
+  sgml_parse(Parser, Opts).
 
 on_begin(Tag, Attrs, Parser):-
   get_sgml_parser(Parser, dialect(Dialect)),
