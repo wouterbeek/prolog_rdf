@@ -1,15 +1,13 @@
 :- module(
-  rdf_convert,
+  rdf_clean,
   [
-    rdf_convert/3 % +From
-		  % ?To:atom
-                  % +Options:list(compound)
+    rdf_clean/3 % +From
+	        % ?To:atom
+                % +Options:list(compound)
   ]
 ).
 
-/** <module> LOD Tools: Convert
-
-Covnerter between RDF serialization formats.
+/** <module> RDF cleaning
 
 @author Wouter Beek
 @version 2015/08-2015/09
@@ -19,7 +17,10 @@ Covnerter between RDF serialization formats.
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
+:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
+:- use_module(library(hash_ext)).
+:- use_module(library(http/http_header)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
@@ -34,8 +35,9 @@ Covnerter between RDF serialization formats.
 
 :- thread_local(has_quadruples/1).
 
-:- predicate_options(rdf_convert/3, 3, [
+:- predicate_options(rdf_clean/3, 3, [
      compress(+oneof([deflate,gzip,none])),
+     meta_data(-dict),
      pass_to(rdf_stream_read/3, 3)
    ]).
 
@@ -43,7 +45,7 @@ Covnerter between RDF serialization formats.
 
 
 
-%! rdf_convert(+From, ?To:atom, +Options:list(compund)) is det.
+%! rdf_clean(+From, ?To:atom, +Options:list(compund)) is det.
 % The following options are supported:
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
@@ -51,10 +53,11 @@ Covnerter between RDF serialization formats.
 %    * format(+rdf_format)
 %      The RDF serialization format of the input.
 %      When absent this is guessed heuristically.
+%    * meta_data(-dict)
 %
 % @tbd What can we not specify `format(?rdf_format)`?
 
-rdf_convert(From, To, Opts0):-
+rdf_clean(From, To, Opts0):-
   % Process output RDF serialization option.
   (   % The output RDF serialization format is given: take it into account.
       option(format(Format), Opts0),
@@ -73,47 +76,55 @@ rdf_convert(From, To, Opts0):-
   thread_file(tmp, Tmp),
   setup_call_cleanup(
     open(Tmp, write, Write),
-    rdf_stream_read(From, rdf_convert0(Write), Opts),
+    rdf_stream_read(From, rdf_clean0(Write), Opts),
     close(Write)
   ),
+  option(meta_data(M), Opts),
+  
+  % Succeed without writing an output file: HTTP error code.
+  (   M.input_type == iri,
+      HttpStatusCode = M.http.status_code,
+      between(400, 599, HttpStatusCode)
+  ->  http_header:status_number_fact(Fact0, HttpStatusCode),
+      atom_phrase(http_header:status_comment(Fact0), Label),
+      throw(
+	error(
+	  permission_error(url,From),
+	  context(_,status(M.http.status_code,Label))
+	)
+      )
+  ;   (   ground(To)
+      ->  true
+      ;   % Determine output file's base name.
+          (   % For IRIs the output file name is the MD5 of the IRI.
+              M.input_type == iri
+          ->  md5(From, Base)
+          ;   % For non-IRIs the output file's base name is related to
+              % the input file's base name.
+              is_absolute_file_name(From)
+          ->  file_base_name(From, Base)
+          ),
 
-  % Set the file name.
-  (   ground(To)
-  ->  true
-  ;   % Establish the file name extension.
-      (   retract(has_quadruples(true))
-      ->  Ext = nq
-      ;   Ext = nt
+	  % Determine the extensions of the output file name.
+          (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
+          (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
+          
+	  % Construct the temporary output file's name.
+	  atomic_list_concat([Base|Exts], '.', To)
       ),
-      (   Compress == gzip
-      ->  Exts = [Ext,gz]
-      ;   Exts = [Ext]
-      ),
-      thread_file(out, ThreadBase),
-      atomic_list_concat([ThreadBase|Exts], '.', To0)
-  ),
-
-  % Sort unique, count, compress.
-  sort_file(Tmp, Opts),
-  file_lines(Tmp, N),
-  debug(rdf(convert), 'Unique triples: ~D', [N]),
-  compress_file(Tmp, Compress, To0),
-  (   is_absolute_file_name(From)
-  ->  file_base_name(From, Base),
-      file_with_new_extensions(Base, Exts, To)
-  ;   is_uri(From)
-  ->  uri_components(From, uri_components(_,Auth,Path,_,_)),
-      atomic_list_concat(Subpaths, /, Path),
-      (last(Subpaths, Base), Base \== '' -> true ; Base = Auth),
-      file_with_new_extensions(Base, Exts, To)
-  ;   To = To0
-  ),
-  (   To0 == To
-  ->  true
-  ;   rename_file(To0, To)
+      
+      % Sort unique, count, compress.
+      sort_file(Tmp, Opts),
+      
+      % Count the number of triples.
+      file_lines(Tmp, N),
+      debug(rdf(clean), 'Unique triples: ~D', [N]),
+      
+      % Compress the file, according to user option.
+      compress_file(Tmp, Compress, To)
   ).
 
-rdf_convert0(Write, Format, Read):-
+rdf_clean0(Write, Format, Read):-
   ctriples_write_begin(State, BNPrefix, []),
   Opts = [anon_prefix(BNPrefix),format(Format)],
   (   Format == rdfa

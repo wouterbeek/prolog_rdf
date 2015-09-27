@@ -8,7 +8,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(io_ext)).
-:- use_module(library(rdf/rdf_convert)).
+:- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
@@ -45,7 +45,7 @@ run_rdf_test(Test):-
   announce_test(Test), !,
   rdf(Test, mf:action, Uri, manifest),
   print_input(Uri, [indent(2)]),
-  rdf_convert(Uri, To, []),
+  rdf_clean(Uri, To, []),
   print_input(To, [indent(2)]).
 
 announce_test(Test):-
