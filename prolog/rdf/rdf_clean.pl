@@ -17,10 +17,8 @@
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
-:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
 :- use_module(library(hash_ext)).
-:- use_module(library(http/http_header)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
@@ -55,7 +53,7 @@
 %      When absent this is guessed heuristically.
 %    * meta_data(-dict)
 %
-% @tbd What can we not specify `format(?rdf_format)`?
+% @tbd Why can we not specify `format(?rdf_format)`?
 
 rdf_clean(From, To, Opts0):-
   % Process output RDF serialization option.
@@ -67,62 +65,52 @@ rdf_clean(From, To, Opts0):-
       % to the calling context through an option.
       merge_options([format(_)], Opts0, Opts)
   ),
-  
+
   % Process data compression option.
   option(compress(Compress), Opts, none),
 
   % Convert to the RDF input stream into C-Triples
   % on a triple-by-triple basis.
   thread_file(tmp, Tmp),
+  
   setup_call_cleanup(
     open(Tmp, write, Write),
     rdf_stream_read(From, rdf_clean0(Write), Opts),
     close(Write)
   ),
   option(meta_data(M), Opts),
-  
-  % Succeed without writing an output file: HTTP error code.
-  (   M.input_type == iri,
-      HttpStatusCode = M.http.status_code,
-      between(400, 599, HttpStatusCode)
-  ->  http_header:status_number_fact(Fact0, HttpStatusCode),
-      atom_phrase(http_header:status_comment(Fact0), Label),
-      throw(
-	error(
-	  permission_error(url,From),
-	  context(_,status(M.http.status_code,Label))
-	)
-      )
-  ;   (   ground(To)
-      ->  true
-      ;   % Determine output file's base name.
-          (   % For IRIs the output file name is the MD5 of the IRI.
-              M.input_type == iri
-          ->  md5(From, Base)
-          ;   % For non-IRIs the output file's base name is related to
-              % the input file's base name.
-              is_absolute_file_name(From)
-          ->  file_base_name(From, Base)
-          ),
 
-	  % Determine the extensions of the output file name.
-          (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
-          (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
-          
-	  % Construct the temporary output file's name.
-	  atomic_list_concat([Base|Exts], '.', To)
+  % Determine output file name.
+  (   ground(To)
+  ->  true
+  ;   % Determine output file's base name.
+      (   % For IRIs the output file name is the MD5 of the IRI.
+          M.input_type == iri
+      ->  md5(From, Base)
+      ;   % For non-IRIs the output file's base name is related to
+          % the input file's base name.
+          atomic_list_concat(Path, /, From),
+          last(Path, Local),
+          atomic_list_concat([Base|_], ., Local)
       ),
-      
-      % Sort unique, count, compress.
-      sort_file(Tmp, Opts),
-      
-      % Count the number of triples.
-      file_lines(Tmp, N),
-      debug(rdf(clean), 'Unique triples: ~D', [N]),
-      
-      % Compress the file, according to user option.
-      compress_file(Tmp, Compress, To)
-  ).
+
+      % Determine the extensions of the output file name.
+      (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
+      (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
+
+      % Construct the temporary output file's name.
+      atomic_list_concat([Base|Exts], '.', To)
+  ),
+
+  % Sort unique.
+  sort_file(Tmp, Opts),
+
+  % Count the number of triples.
+  file_lines(Tmp, N),
+  debug(rdf(clean), 'Unique triples: ~D', [N]),
+
+  % Compress the file, according to user option.
+  compress_file(Tmp, Compress, To).
 
 rdf_clean0(Write, Format, Read):-
   ctriples_write_begin(State, BNPrefix, []),

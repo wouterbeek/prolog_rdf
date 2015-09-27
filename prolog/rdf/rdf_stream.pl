@@ -18,8 +18,10 @@
 
 :- use_module(library(apply)).
 :- use_module(library(archive)).
+:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(error)).
 :- use_module(library(http/http_cookie)).
+:- use_module(library(http/http_header)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(iostream)).
 :- use_module(library(rdf/rdf_guess)).
@@ -68,7 +70,15 @@ rdf_stream_read(Spec, Goal_2, Opts):-
   setup_call_cleanup(
     open_any(Spec, read, Read0, Close, HttpOpts),
     (   is_http_error0(HttpOpts)
-    ->  MCompress = []
+    ->  memberchk(status_code(HttpStatusCode), HttpOpts),
+        http_header:status_number_fact(Fact0, HttpStatusCode),
+        atom_phrase(http_header:status_comment(Fact0), Label),
+        throw(
+	  error(
+	    permission_error(url,Spec),
+	    context(_,status(M.http.status_code,Label))
+	  )
+        )
     ;   setup_call_cleanup(
           archive_open(Read0, Arch, ArchOpts),
           (
@@ -91,6 +101,7 @@ rdf_stream_read(Spec, Goal_2, Opts):-
 
 is_http_error0(HttpOpts):-
   option(status_code(HttpStatusCode), HttpOpts),
+  nonvar(HttpStatusCode),
   between(400, 599, HttpStatusCode), !.
 
 what_is0(X, stream):-
@@ -102,9 +113,11 @@ what_is0(Iri, iri):-
   maplist(atom, [Scheme,Auth]), !.
 what_is0(_, file).
 
-meta_data0(InputType, HttpOpts, MCompress, M):-
+meta_data0(iri, HttpOpts, MCompress, M):- !,
   http_meta_data0(HttpOpts, MHttp),
-  M = meta_data{compression: MCompress, input_type: InputType, http: MHttp}.
+  M = meta_data{compression: MCompress, input_type: iri, http: MHttp}.
+meta_data0(InputType, _, MCompress, M):- !,
+  M = meta_data{compression: MCompress, input_type: InputType}.
 
 http_meta_data0(HttpOpts, HttpM):-
   HttpOpts = [
