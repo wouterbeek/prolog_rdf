@@ -112,9 +112,11 @@ rdf_clean(From, To, Opts0):-
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, To).
 
-rdf_clean0(Write, Format, Read):-
+%! rdf_clean0(+Write:stream, +BaseIri:atom, +Format:atom, +Read:stream) is det.
+
+rdf_clean0(Write, BaseIri, Format, Read):-
   ctriples_write_begin(State, BNPrefix, []),
-  Opts = [anon_prefix(BNPrefix),format(Format)],
+  Opts = [anon_prefix(BNPrefix),base_uri(BaseIri),format(Format)],
   (   Format == rdfa
   ->  read_rdfa(Read, Ts, []),
       clean_streamed_triples(Write, State, BNPrefix, Ts, _)

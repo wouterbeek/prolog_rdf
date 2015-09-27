@@ -52,8 +52,8 @@ rdf_load_file(Spec, Opts0):-
   merge_options([graph(G)], Opts0, Opts),
   rdf_stream_read(Spec, rdf_load_file0(Opts), Opts).
 
-rdf_load_file0(Opts0, Format, Read):-
-  merge_options([format(Format)], Opts0, Opts),
+rdf_load_file0(Opts0, BaseIri, Format, Read):-
+  merge_options([base_iri(BaseIri),format(Format)], Opts0, Opts),
   rdf_load(Read, Opts).
 
 
@@ -63,15 +63,17 @@ rdf_load_file0(Opts0, Format, Read):-
 rdf_load_triple(Spec, Goal_2):-
   rdf_stream_read(Spec, rdf_load_triple0(Goal_2), []).
 
-rdf_load_triple0(Goal_2, Format, Read):-
+%! rdf_load_triple0(:Goal_2, +BaseIri:atom, +Format:atom, +Read:stream) is det.
+
+rdf_load_triple0(Goal_2, BaseIri, Format, Read):-
   memberchk(Format, [nquads,ntriples]), !,
-  rdf_process_ntriples(Read, Goal_2, []).
-rdf_load_triple0(Goal_2, Format, Read):-
+  rdf_process_ntriples(Read, Goal_2, [base_uri(BaseIri)]).
+rdf_load_triple0(Goal_2, BaseIri, Format, Read):-
   memberchk(Format, [trig,turtle]), !,
   uuid_no_hyphen(Prefix0),
   atomic_list_concat(['__',Prefix0,':'], Prefix),
-  rdf_process_turtle(Read, Goal_2, [anon_prefix(Prefix)]).
-rdf_load_triple0(Goal_2, xml, Read):- !,
-  process_rdf(Read, Goal_2, []).
-rdf_load_triple0(_, Format, _):-
+  rdf_process_turtle(Read, Goal_2, [anon_prefix(Prefix),base_uri(BaseIri)]).
+rdf_load_triple0(Goal_2, BaseIri, xml, Read):- !,
+  process_rdf(Read, Goal_2, [base_uri(BaseIri)]).
+rdf_load_triple0(_, _, Format, _):-
   format(user_error, 'Unrecognized RDF serialization format: ~a~n', [Format]).

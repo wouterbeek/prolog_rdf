@@ -2,7 +2,7 @@
   rdf_stream,
   [
     rdf_stream_read/3, % +Spec
-                       % :Goal_2
+                       % :Goal_3
                        % +Options:list(compound)
     rdf_stream_write/3 % +Spec
                        % :Goal_1
@@ -27,15 +27,17 @@
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
+:- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
-:- meta_predicate(rdf_stream_read(+,2,+)).
+:- meta_predicate(rdf_stream_read(+,3,+)).
 :- meta_predicate(rdf_stream_write(+,1,+)).
 
 http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 
 :- predicate_options(rdf_stream_read/3, 3, [
+     base_iri(+atom),
      format(+atom),
      meta_data(-dict)
    ]).
@@ -44,15 +46,18 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 
 
 
-%! rdf_stream_read(+Spec, :Goal_2, +Options:list(compound)) is det.
+%! rdf_stream_read(+Spec, :Goal_3, +Options:list(compound)) is det.
 % The following options are supported:
+%   * base_iri(+atom)
 %   * format(+atom)
 %   * meta_data(-dict)
 
-rdf_stream_read(Spec, Goal_2, Opts):-
+rdf_stream_read(Spec, Goal_3, Opts):-
+  % Determine the base IRI.
+  rdf_base_iri(Spec, BaseIri, Opts),
+  
   % Allow meta-data to be returned.
   ignore(option(meta_data(M), Opts)),
-  what_is0(Spec, InputType),
 
   % HTTP options.
   rdf_http_plugin:rdf_extra_headers(HttpOpts1, Opts),
@@ -87,7 +92,7 @@ rdf_stream_read(Spec, Goal_2, Opts):-
             call_cleanup(
               (
                 rdf_determine_format(Read, Opts, Format),
-                call(Goal_2, Format, Read)
+                call(Goal_3, BaseIri, Format, Read)
               ),
               close(Read)
             )
@@ -97,27 +102,37 @@ rdf_stream_read(Spec, Goal_2, Opts):-
     ),
     close_any(Close)
   ),
-  meta_data0(InputType, HttpOpts2, MCompress, M).
+  meta_data0(BaseIri, HttpOpts2, MCompress, M).
+
+% Explicitly specified option takes precedence.
+rdf_base_iri(_, BaseIri, Opts):-
+  option(base_iri(BaseIri), Opts), !.
+% Stream without option throws warning.
+rdf_base_iri(Stream, _, _):-
+  is_stream(Stream), !,
+  existence_error(base_iri, Stream).
+% The IRI that is read from, sans the fragment component.
+rdf_base_iri(Iri, BaseIri, _):-
+  is_uri(Iri), !,
+  % Remove the fragment part, if any.
+  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
+  uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)).
+% The file is treated as an IRI.
+rdf_base_iri(File, BaseIri, Opts):-
+  uri_file_name(Iri, File),
+  rdf_base_iri(Iri, BaseIri, Opts).
 
 is_http_error0(HttpOpts):-
   option(status_code(HttpStatusCode), HttpOpts),
   nonvar(HttpStatusCode),
   between(400, 599, HttpStatusCode), !.
 
-what_is0(X, stream):-
-  is_stream(X), !.
-what_is0(stream(_), stream):- !.
-what_is0(file(_), file):- !.
-what_is0(Iri, iri):-
-  uri_components(Iri, uri_components(Scheme,Auth,_,_,_)),
-  maplist(atom, [Scheme,Auth]), !.
-what_is0(_, file).
-
-meta_data0(iri, HttpOpts, MCompress, M):- !,
+meta_data0(BaseIri, _, MCompress, M):-
+  is_file_iri(BaseIri), !,
+  M = meta_data{base_iri: BaseIri, compression: MCompress, input_type: file}.
+meta_data0(BaseIri, HttpOpts, MCompress, M):-
   http_meta_data0(HttpOpts, MHttp),
-  M = meta_data{compression: MCompress, input_type: iri, http: MHttp}.
-meta_data0(InputType, _, MCompress, M):- !,
-  M = meta_data{compression: MCompress, input_type: InputType}.
+  M = meta_data{base_iri: BaseIri, compression: MCompress, http: MHttp, input_type: iri}.
 
 http_meta_data0(HttpOpts, HttpM):-
   HttpOpts = [
@@ -158,6 +173,13 @@ rdf_stream_write(Spec, Goal_1, Opts):- !,
 
 
 % HELPERS %
+
+%! is_file_iri(+Iri:atom) is semidet.
+
+is_file_iri(Iri):-
+  uri_components(Iri, uri_components(file,_,_,_,_)).
+
+
 
 %! rdf_determine_format(
 %!   +Read:stream,
