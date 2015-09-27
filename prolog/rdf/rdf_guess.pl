@@ -58,14 +58,18 @@ rdf_guess_format(Spec, Format0, Format):-
 rdf_guess_format(Read, Iteration, Format0, Format):-
   N is 1000 * 2 ^ Iteration,
   peek_string(Read, N, S),
-  debug(rdf_guess, '[RDF-GUESS] ~s~n', [S]),
+  debug(rdf(guess), '[RDF-GUESS] ~s', [S]),
 
   % Try to parse the peeked string as Turtle- or XML-like.
   (   rdf_guess_turtle(Format0, S, N, Format)
   ->  true
   ;   rdf_guess_xml(S, Format)
   ), !,
-  debug(rdf_guess, '[RDF-GUESSED] ~a~n', [Format]).
+
+  % User message.
+  msg_normal('Assuming '),
+  msg_success(Format),
+  msg_normal(' based on heuristics.'), nl.
 rdf_guess_format(Read, Iteration, Format0, Format):-
   Iteration < 4,
   NewIteration is Iteration + 1,
@@ -233,8 +237,7 @@ guess_turtle_or_trig(Format0, Format) -->
        Format = Format0}
   ;   ..., "{"
   ->  {Format = trig}
-  ;   {debug(rdf_guess, 'Assuming Turtle based on heuristics.', []),
-       Format = turtle}
+  ;   {Format = turtle}
   ).
 
 %! guess_turtle_family(?DefaultFormat:rdf_format, -Format:rdf_format)// is det.
@@ -245,7 +248,7 @@ guess_turtle_family(Format0, Format):-
   (   ground(Format0)
   ->  must_be(oneof([nquads,ntriples,trig,turtle]), Format0),
       Format = Format0
-  ;   debug(rdf_guess, 'Assuming N-Triples based on heuristics.', []),
+  ;   debug(rdf(guess), 'Assuming N-Triples based on heuristics.', []),
       Format = ntriples
   ).
 
@@ -295,22 +298,22 @@ xml_doctype(Read, Dialect, DocType, Attrs):-
   catch(
     sgml_parser(
       Read,
-      \Parser^sgml_parser(
-        Parser,
-        [
-          call(begin, on_begin),
-          call(cdata, on_cdata),
-          max_errors(-1),
-          source(Read),
-          syntax_errors(quiet)
-        ]
-      )
+      sgml_parser0([
+        call(begin, on_begin),
+        call(cdata, on_cdata),
+        max_errors(-1),
+        source(Read),
+        syntax_errors(quiet)
+      ])
     ),
     E,
     true
   ),
   nonvar(E),
   E = tag(Dialect, DocType, Attrs).
+
+sgml_parser0(Opts, Read):-
+  sgml_parser(Read, Opts).
 
 on_begin(Tag, Attrs, Parser):-
   get_sgml_parser(Parser, dialect(Dialect)),

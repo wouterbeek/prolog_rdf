@@ -12,13 +12,14 @@
 Covnerter between RDF serialization formats.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(apply)).
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
+:- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
@@ -95,7 +96,7 @@ rdf_convert(From, To, Opts0):-
   % Sort unique, count, compress.
   sort_file(Tmp, Opts),
   file_lines(Tmp, N),
-  debug(rdf(convert), 'Unique triples:~t~D~n', [N]),
+  debug(rdf(convert), 'Unique triples: ~D', [N]),
   compress_file(Tmp, Compress, To0),
   (   is_absolute_file_name(From)
   ->  file_base_name(From, Base),
@@ -107,7 +108,10 @@ rdf_convert(From, To, Opts0):-
       file_with_new_extensions(Base, Exts, To)
   ;   To = To0
   ),
-  rename_file(To0, To).
+  (   To0 == To
+  ->  true
+  ;   rename_file(To0, To)
+  ).
 
 rdf_convert0(Write, Format, Read):-
   ctriples_write_begin(State, BNPrefix, []),
