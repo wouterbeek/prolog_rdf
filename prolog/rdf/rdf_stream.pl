@@ -2,7 +2,7 @@
   rdf_stream,
   [
     rdf_stream_read/3, % +Spec
-                       % :Goal_3
+                       % :Goal_2
                        % +Options:list(compound)
     rdf_stream_write/3 % +Spec
                        % :Goal_1
@@ -31,7 +31,7 @@
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
-:- meta_predicate(rdf_stream_read(+,3,+)).
+:- meta_predicate(rdf_stream_read(+,2,+)).
 :- meta_predicate(rdf_stream_write(+,1,+)).
 
 http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
@@ -46,13 +46,13 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 
 
 
-%! rdf_stream_read(+Spec, :Goal_3, +Options:list(compound)) is det.
+%! rdf_stream_read(+Spec, :Goal_2, +Options:list(compound)) is det.
 % The following options are supported:
 %   * base_iri(+atom)
 %   * format(+atom)
 %   * meta_data(-dict)
 
-rdf_stream_read(Spec, Goal_3, Opts):-
+rdf_stream_read(Spec, Goal_2, Opts):-
   % Determine the base IRI.
   rdf_base_iri(Spec, BaseIri, Opts),
   
@@ -65,7 +65,8 @@ rdf_stream_read(Spec, Goal_3, Opts):-
     final_url(_FinalIri),
     headers(_HttpHeaders),
     version(_HttpVersion),
-    status_code(_HttpStatusCode)
+    status_code(_HttpStatusCode),
+    user_agent(plRdf)
   ],
   merge_options(HttpOpts1, HttpOpts2, HttpOpts),
 
@@ -86,13 +87,13 @@ rdf_stream_read(Spec, Goal_3, Opts):-
         )
     ;   setup_call_cleanup(
           archive_open(Read0, Arch, ArchOpts),
-          (
-            % NONDET
+          forall(
             archive_data_stream(Arch, Read, [meta_data(MCompress)]),
             call_cleanup(
               (
                 rdf_determine_format(Read, Opts, Format),
-                call(Goal_3, BaseIri, Format, Read)
+                meta_data0(BaseIri, HttpOpts2, MCompress, Format, M),
+                call(Goal_2, Read, M)
               ),
               close(Read)
             )
@@ -101,8 +102,7 @@ rdf_stream_read(Spec, Goal_3, Opts):-
         )
     ),
     close_any(Close)
-  ),
-  meta_data0(BaseIri, HttpOpts2, MCompress, M).
+  ).
 
 % Explicitly specified option takes precedence.
 rdf_base_iri(_, BaseIri, Opts):-
@@ -127,12 +127,12 @@ is_http_error0(HttpOpts):-
   nonvar(HttpStatusCode),
   between(400, 599, HttpStatusCode), !.
 
-meta_data0(BaseIri, _, MCompress, M):-
+meta_data0(BaseIri, _, MCompress, Format, M):-
   is_file_iri(BaseIri), !,
-  M = meta_data{base_iri: BaseIri, compression: MCompress, input_type: file}.
-meta_data0(BaseIri, HttpOpts, MCompress, M):-
+  M = meta_data{base_iri: BaseIri, compression: MCompress, input_type: file, rdf_format: Format}.
+meta_data0(BaseIri, HttpOpts, MCompress, Format, M):-
   http_meta_data0(HttpOpts, MHttp),
-  M = meta_data{base_iri: BaseIri, compression: MCompress, http: MHttp, input_type: iri}.
+  M = meta_data{base_iri: BaseIri, compression: MCompress, http: MHttp, input_type: iri, rdf_format: Format}.
 
 http_meta_data0(HttpOpts, HttpM):-
   HttpOpts = [

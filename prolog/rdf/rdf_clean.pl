@@ -18,6 +18,7 @@
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
 :- use_module(library(debug)).
+:- use_module(library(filesex)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
@@ -55,16 +56,31 @@
 %
 % @tbd Why can we not specify `format(?rdf_format)`?
 
-rdf_clean(From, To, Opts0):-
+rdf_clean(From, To, Opts):-
   % Process output RDF serialization option.
   (   % The output RDF serialization format is given: take it into account.
-      option(format(Format), Opts0),
+      select_option(format(Format), Opts, RdfCleanOpts),
       ground(Format)
-  ->  Opts = Opts0
+  ->  RdfStreamOpts = [format(Format)]
   ;   % Allow the output RDF serialization format to be returned
       % to the calling context through an option.
-      merge_options([format(_)], Opts0, Opts)
+      merge_options([format(_)], Opts, RdfStreamOpts),
+      RdfCleanOpts = RdfStreamOpts
   ),
+
+  rdf_stream_read(From, rdf_clean0(From, To, RdfCleanOpts), RdfStreamOpts).
+
+
+%! rdf_clean0(
+%!   +From:atom,
+%!   ?To:atom,
+%!   +Options:list(compound),
+%!   +Read:stream,
+%!   +MetaData:dict
+%! ) is det.
+
+rdf_clean0(From, Base, Opts, Read, M):-
+  ignore(option(meta_data(M), Opts)),
 
   % Process data compression option.
   option(compress(Compress), Opts, none),
@@ -72,35 +88,41 @@ rdf_clean(From, To, Opts0):-
   % Convert to the RDF input stream into C-Triples
   % on a triple-by-triple basis.
   thread_file(tmp, Tmp),
-  
+
   setup_call_cleanup(
     open(Tmp, write, Write),
-    rdf_stream_read(From, rdf_clean0(Write), Opts),
+    rdf_clean0(Read, M, Write),
     close(Write)
   ),
-  option(meta_data(M), Opts),
 
-  % Determine output file name.
-  (   ground(To)
+  % Determine output file's base name.
+  (   ground(Base)
   ->  true
-  ;   % Determine output file's base name.
-      (   % For IRIs the output file name is the MD5 of the IRI.
-          M.input_type == iri
-      ->  md5(From, Base)
-      ;   % For non-IRIs the output file's base name is related to
-          % the input file's base name.
-          atomic_list_concat(Path, /, From),
-          last(Path, Local),
-          atomic_list_concat([Base|_], ., Local)
-      ),
-
-      % Determine the extensions of the output file name.
-      (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
-      (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
-
-      % Construct the temporary output file's name.
-      atomic_list_concat([Base|Exts], '.', To)
+  ;   % For IRIs the output file name is the MD5 of the IRI.
+      M.input_type == iri
+  ->  md5(From, Base)
+  ;   % For non-IRIs the output file's base name is related to
+      % the input file's base name.
+      M.input_type == file
+  ->  atomic_list_concat(Paths, /, From),
+      last(Paths, LastPath),
+      atomic_list_concat([Base|_], ., LastPath)
   ),
+
+  absolute_file_name(Base, Dir0),
+
+  % Modify the output file name for the current archive entry.
+  archive_entry_name(Dir0, M.compression, Path0),
+  directory_file_path(Dir, File0, Path0),
+  atomic_list_concat([Local|_], ., File0),
+
+  % Set the extensions of the output file name.
+  (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
+  (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
+  atomic_list_concat([Local|Exts], ., File),
+
+  % Construct the output file's name.
+  directory_file_path(Dir, File, Path),
 
   % Sort unique.
   sort_file(Tmp, Opts),
@@ -110,33 +132,47 @@ rdf_clean(From, To, Opts0):-
   debug(rdf(clean), 'Unique triples: ~D', [N]),
 
   % Compress the file, according to user option.
-  compress_file(Tmp, Compress, To).
+  compress_file(Tmp, Compress, Path).
 
-%! rdf_clean0(+Write:stream, +BaseIri:atom, +Format:atom, +Read:stream) is det.
 
-rdf_clean0(Write, BaseIri, Format, Read):-
+%! rdf_clean0(+Read:stream, +MetaData:dict, +Write:stream) is det.
+
+rdf_clean0(Read, M, Write):-
   ctriples_write_begin(State, BNPrefix, []),
-  Opts = [anon_prefix(BNPrefix),base_uri(BaseIri),format(Format)],
-  (   Format == rdfa
+  Opts = [anon_prefix(BNPrefix),base_uri(M.base_iri),format(M.rdf_format)],
+  
+  (   M.rdf_format == rdfa
   ->  read_rdfa(Read, Ts, []),
       clean_streamed_triples(Write, State, BNPrefix, Ts, _)
-  ;   memberchk(Format, [nquads,ntriples])
+  ;   memberchk(M.rdf_format, [nquads,ntriples])
   ->  rdf_process_ntriples(
         Read,
         clean_streamed_triples(Write, State, BNPrefix),
         Opts
       )
-  ;   memberchk(Format, [trig,turtle])
+  ;   memberchk(M.rdf_format, [trig,turtle])
   ->  rdf_process_turtle(
         Read,
         clean_streamed_triples(Write, State, BNPrefix),
         Opts
       )
-  ;   Format == xml
+  ;   M.rdf_format == xml
   ->  process_rdf(Read, clean_streamed_triples(Write, State, BNPrefix), [])
   ),
   flush_output(Write),
   ctriples_write_end(State, []).
+
+
+
+%! archive_entry_name(+To:atom, +Compression:list(dict), -ToEntry:atom) is det.
+
+archive_entry_name(To, [H], To):-
+  is_unarchived(H), !.
+archive_entry_name(Dir, [H|T], ToEntry):-
+  make_directory_path(Dir),
+  directory_file_path(Dir, H.name, Path),
+  archive_entry_name(Path, T, ToEntry).
+
 
 
 %! clean_streamed_triples(
@@ -150,6 +186,7 @@ rdf_clean0(Write, BaseIri, Format, Read):-
 clean_streamed_triples(Write, State, BNPrefix, Ts0, _):-
   maplist(fix_triple, Ts0, Ts),
   maplist(ctriples_write_triple(Write, State, BNPrefix), Ts).
+
 
 
 %! fix_triple(
@@ -171,12 +208,22 @@ fix_triple(rdf(S,P,O,G), T):- !,
 fix_triple(T, T).
 
 
+
 %! is_named_graph(+Graph:atom) is semidet.
 % Succeeds for all and only named graphs.
 
 is_named_graph(G):-
   ground(G),
   G \== user.
+
+
+
+%! is_unarchived(+Dict:dict) is semidet.
+
+is_unarchived(D):-
+  D.name == data,
+  D.format == raw, !.
+
 
 
 %! set_has_quadruples is det.
