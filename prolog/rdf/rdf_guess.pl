@@ -16,17 +16,18 @@
 @version 2015/08-2015/09
 */
 
+:- use_module(library(apply)).
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(debug)).
+:- use_module(library(deb_ext)).
 :- use_module(library(error)).
 :- use_module(library(iostream)).
-:- use_module(library(lambda)).
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml/sgml_ext)).
+:- use_module(library(typecheck)).
 
 :- meta_predicate(nt_string_codes(//,?,?)).
 
@@ -150,15 +151,16 @@ rdf_guess_turtle(Format0, _, Format) -->
   guess_turtle_or_trig(Format0, Format).
 % Turtle triple.
 rdf_guess_turtle(Format0, _, Format) -->
-  nt_subject,
+  nt_subject(SFormat),
   *('WS'),
-  nt_predicate,
+  nt_predicate(PFormat),
   *('WS'),
-  nt_object,
+  nt_object(OFormat),
   *('WS'),
   (   % End of triple.
       "."
-  ->  {guess_turtle_family(Format0, Format)}
+  ->  {exclude(var, [SFormat,PFormat,OFormat], Formats),
+       guess_turtle_family(Format0, Formats, Format)}
   ;   % Object list notation.
       ";"
   ->  guess_turtle_or_trig(Format0, Format)
@@ -182,10 +184,13 @@ rdf_guess_turtle(Format0, _, Format) -->
 
 nt_bnode --> "_:", *(nonblank).
 
-nt_graph --> nt_iriref.
+nt_graph --> nt_iriref(_).
 
-nt_iriref --> "<", !, ..., ">", !.
-nt_iriref --> nt_iriref_prefix, ":", *(nonblank).
+nt_iriref(Format) -->
+  "<", !, ...(Cs), ">", !,
+  {atom_codes(Iri, Cs), (is_uri(Iri) -> true ; Format = turtleOrTrig)}.
+nt_iriref(_) -->
+  nt_iriref_prefix, ":", *(nonblank).
 
 nt_iriref_prefix --> ":", !, {fail}.
 nt_iriref_prefix --> blank, !, {fail}.
@@ -194,12 +199,12 @@ nt_iriref_prefix --> "".
 
 nt_ltag --> *(nonblank).
 
-nt_object --> nt_iriref, !.
-nt_object --> nt_bnode, !.
-nt_object --> nt_string, ("^^" -> nt_iriref ; "@" -> nt_ltag ; "").
+nt_object(OFormat) --> nt_iriref(OFormat), !.
+nt_object(_) --> nt_bnode, !.
+nt_object(_) --> nt_string, ("^^" -> nt_iriref(_) ; "@" -> nt_ltag ; "").
 
-nt_predicate --> nt_iriref, !.
-nt_predicate --> "a".
+nt_predicate(PFormat) --> nt_iriref(PFormat), !.
+nt_predicate(turtleOrTrig) --> "a".
 
 nt_string --> "'''", !, nt_string_codes([39,39,39]).
 nt_string --> "'", !, nt_string_codes([39]).
@@ -212,8 +217,8 @@ nt_string_codes(End) --> End, !.
 nt_string_codes(End) --> [_], !, nt_string_codes(End).
 nt_string_codes(_) --> "".
 
-nt_subject --> nt_iriref, !.
-nt_subject --> nt_bnode.
+nt_subject(SFormat) --> nt_iriref(SFormat), !.
+nt_subject(_) --> nt_bnode.
 
 'WS' --> blank, !.
 'WS', " " --> "#", ..., (eol ; eos), !.
@@ -240,11 +245,23 @@ guess_turtle_or_trig(Format0, Format) -->
   ;   {Format = turtle}
   ).
 
-%! guess_turtle_family(?DefaultFormat:rdf_format, -Format:rdf_format)// is det.
+%! guess_turtle_family(
+%!   ?DefaultFormat:rdf_format,
+%!   +Formats:list(oneof([nquads,ntriples,trig,turtle])),
+%!   -Format:rdf_format
+%! )// is det.
 % We found a fully qualified triple.
 % This still can be Turtle, TriG, N-Triples or N-Quads.
 
-guess_turtle_family(Format0, Format):-
+guess_turtle_family(Format0, Formats, Format):-
+  memberchk(turtleOrTrig, Formats), !,
+  (   ground(Format0)
+  ->  must_be(oneof([trig,turtle]), Format0),
+      Format = Format0
+  ;   debug(rdf(guess), 'Assuming Turtle based on heuristics.', []),
+      Format = turtle
+  ).
+guess_turtle_family(Format0, _, Format):-
   (   ground(Format0)
   ->  must_be(oneof([nquads,ntriples,trig,turtle]), Format0),
       Format = Format0
