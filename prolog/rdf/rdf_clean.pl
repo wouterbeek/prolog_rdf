@@ -68,18 +68,17 @@ rdf_clean(From, To, Opts):-
       RdfCleanOpts = RdfStreamOpts
   ),
 
-  rdf_stream_read(From, rdf_clean0(From, To, RdfCleanOpts), RdfStreamOpts).
+  rdf_stream_read(From, rdf_clean0(To, RdfCleanOpts), RdfStreamOpts).
 
 
 %! rdf_clean0(
-%!   +From:atom,
 %!   ?To:atom,
 %!   +Options:list(compound),
 %!   +Read:stream,
 %!   +MetaData:dict
 %! ) is det.
 
-rdf_clean0(From, Base, Opts, Read, M):-
+rdf_clean0(To, Opts, Read, M):-
   ignore(option(meta_data(M), Opts)),
 
   % Process data compression option.
@@ -95,41 +94,32 @@ rdf_clean0(From, Base, Opts, Read, M):-
     close(Write)
   ),
 
-  % Determine output file's base name.
-  (   ground(Base)
-  ->  true
-  ;   % For IRIs the output file name is the MD5 of the IRI.
-      M.input_type == iri
-  ->  md5(From, Base)
-  ;   % For non-IRIs the output file's base name is related to
-      % the input file's base name.
-      M.input_type == file
-  ->  atomic_list_concat(Paths, /, From),
-      last(Paths, LastPath),
-      atomic_list_concat([Base|_], ., LastPath)
-  ),
-
-  absolute_file_name(Base, Dir0),
-
-  % Modify the output file name for the current archive entry.
-  archive_entry_name(Dir0, M.compression, Path0),
-  directory_file_path(Dir, File0, Path0),
-  atomic_list_concat([Local|_], ., File0),
-
-  % Set the extensions of the output file name.
-  (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
-  (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
-  atomic_list_concat([Local|Exts], ., File),
-
-  % Construct the output file's name.
-  directory_file_path(Dir, File, Path),
-
   % Sort unique.
   sort_file(Tmp, Opts),
 
   % Count the number of triples.
   file_lines(Tmp, N),
   debug(rdf(clean), 'Unique triples: ~D', [N]),
+
+  % Determine output file name.
+  (   ground(To)
+  ->  % Strip file extensions.
+      atomic_list_concat([Local|Exts], ., To)
+  ;   Local = out
+  ),
+      
+  absolute_file_name(Local, Dir0),
+
+  % Modify the output file name for the current archive entry.
+  archive_entry_name(Dir0, M.compression, Path0),
+
+  % Set the extensions of the output file name.
+  (   var(Exts)
+  ->  (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
+      (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext])
+  ;   true
+  ),
+  atomic_list_concat([Path0|Exts], ., Path),
 
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, Path).
