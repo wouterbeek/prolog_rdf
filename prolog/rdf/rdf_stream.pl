@@ -80,10 +80,10 @@ rdf_stream_read(Spec, Goal_2, Opts):-
         http_header:status_number_fact(Fact0, HttpStatusCode),
         atom_phrase(http_header:status_comment(Fact0), Label),
         throw(
-	  error(
-	    permission_error(url,Spec),
-	    context(_,status(M.http.status_code,Label))
-	  )
+          error(
+            permission_error(url,Spec),
+            context(_,status(M.http.status_code,Label))
+          )
         )
     ;   setup_call_cleanup(
           archive_open(Read0, Arch, ArchOpts),

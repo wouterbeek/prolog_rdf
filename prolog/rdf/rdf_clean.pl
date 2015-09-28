@@ -78,7 +78,7 @@ rdf_clean(From, To, Opts):-
 %!   +MetaData:dict
 %! ) is det.
 
-rdf_clean0(To, Opts, Read, M):-
+rdf_clean0(Local0, Opts, Read, M):-
   ignore(option(meta_data(M), Opts)),
 
   % Process data compression option.
@@ -102,24 +102,18 @@ rdf_clean0(To, Opts, Read, M):-
   debug(rdf(clean), 'Unique triples: ~D', [N]),
 
   % Determine output file name.
-  (   ground(To)
-  ->  % Strip file extensions.
-      atomic_list_concat([Local|Exts], ., To)
-  ;   Local = out
-  ),
-      
-  absolute_file_name(Local, Dir0),
+  (ground(Local0) -> true ; Local0 = out),
 
   % Modify the output file name for the current archive entry.
+  absolute_file_name(Local0, Dir0),
   archive_entry_name(Dir0, M.compression, Path0),
-
-  % Set the extensions of the output file name.
-  (   var(Exts)
-  ->  (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
-      (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext])
-  ;   true
-  ),
-  atomic_list_concat([Path0|Exts], ., Path),
+  atomic_list_concat([Local|_], ., Path0),
+  
+  % Strip outdated file extensions from the output file name
+  % and set the extensions of the output file name.
+  (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
+  (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
+  atomic_list_concat([Local|Exts], ., Path),
 
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, Path).
