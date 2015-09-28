@@ -55,7 +55,7 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 rdf_stream_read(Spec, Goal_2, Opts):-
   % Determine the base IRI.
   rdf_base_iri(Spec, BaseIri, Opts),
-  
+
   % Allow meta-data to be returned.
   ignore(option(meta_data(M), Opts)),
 
@@ -82,7 +82,7 @@ rdf_stream_read(Spec, Goal_2, Opts):-
         throw(
           error(
             permission_error(url,Spec),
-            context(_,status(M.http.status_code,Label))
+            context(_,status(HttpStatusCode,Label))
           )
         )
     ;   setup_call_cleanup(
@@ -139,7 +139,8 @@ http_meta_data0(HttpOpts, HttpM):-
     final_url(FinalIri),
     headers(HttpHeaders1),
     version(HttpVersion),
-    status_code(HttpStatusCode)
+    status_code(HttpStatusCode),
+    user_agent(_)
   ],
   sort(HttpHeaders1, HttpHeaders2),
   group_pairs_by_key(HttpHeaders2, HttpHeaders3),

@@ -18,6 +18,7 @@
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(filesex)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
@@ -116,7 +117,14 @@ rdf_clean0(Local0, Opts, Read, M):-
   atomic_list_concat([Local|Exts], ., Path),
 
   % Compress the file, according to user option.
-  compress_file(Tmp, Compress, Path).
+  compress_file(Tmp, Compress, Path),
+
+  % Print metadata.
+  (   option(metadata(true), Opts)
+  ->  with_output_to(atom(A), print_dict(M)),
+      msg_notification(A), nl
+  ;   true
+  ).
 
 
 %! rdf_clean0(+Read:stream, +MetaData:dict, +Write:stream) is det.
