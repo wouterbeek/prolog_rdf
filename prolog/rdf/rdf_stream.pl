@@ -13,7 +13,7 @@
 /** <module> RDF stream
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(apply)).
@@ -21,7 +21,7 @@
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(error)).
 :- use_module(library(http/http_cookie)).
-:- use_module(library(http/http_header)).
+:- use_module(library(http/http_deb)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(iostream)).
 :- use_module(library(rdf/rdf_guess)).
@@ -77,8 +77,7 @@ rdf_stream_read(Spec, Goal_2, Opts):-
     open_any(Spec, read, Read0, Close, HttpOpts),
     (   is_http_error0(HttpOpts)
     ->  memberchk(status_code(HttpStatusCode), HttpOpts),
-        http_header:status_number_fact(Fact0, HttpStatusCode),
-        atom_phrase(http_header:status_comment(Fact0), Label),
+        http_status_label(HttpStatusCode, Label),
         throw(
           error(
             permission_error(url,Spec),
