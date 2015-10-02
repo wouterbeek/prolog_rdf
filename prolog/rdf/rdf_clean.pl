@@ -10,7 +10,7 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(apply)).
@@ -25,6 +25,7 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
+:- use_module(library(rdf/rdf_clean_metadata)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
