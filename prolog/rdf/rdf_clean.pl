@@ -21,7 +21,7 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(filesex)).
 :- use_module(library(hash_ext)).
-:- use_module(library(option)).
+:- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
@@ -120,11 +120,7 @@ rdf_clean0(Local0, Opts, Read, M):-
   compress_file(Tmp, Compress, Path),
 
   % Print metadata.
-  (   option(metadata(true), Opts)
-  ->  with_output_to(atom(A), print_dict(M)),
-      msg_notification(A), nl
-  ;   true
-  ).
+  if_option(metadata(true), Opts, rdf_clean_metadata(M)).
 
 
 %! rdf_clean0(+Read:stream, +MetaData:dict, +Write:stream) is det.
