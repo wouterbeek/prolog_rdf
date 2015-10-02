@@ -71,7 +71,7 @@ metadata_iri(I1, M) -->
   "IRI metadata:", nl,
   {I2 #= I1 + 1},
   indent(I2), nvpair("Base IRI", iri(M.base_iri)), nl.
-  
+
 
 
 metadata_rdf(I1, M) -->
