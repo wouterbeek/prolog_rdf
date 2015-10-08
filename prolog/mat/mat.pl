@@ -1,17 +1,19 @@
 :- module(
   mat,
   [
-    mat/0,
     mat/1, % +InputGraph:atom
-    mat/2 % +InputGraph:atom
+    mat/2, % +InputGraph:atom
+           % ?OutputGraph:atom
+    mat/3 % +InputGraph:atom
           % ?OutputGraph:atom
+          % +Options:list(compound)
   ]
 ).
 
 /** <module> OWL materialization
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(apply)).
@@ -27,6 +29,14 @@
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_read)).
 
+:- predicate_options(mat/3, 3, [
+     pass_to(mat0/3, 3)
+   ]).
+:- predicate_options(mat0/3, 3, [
+     bnode_results(+boolean),
+     justifications(+boolean)
+   ]).
+
 :- set_prolog_flag(chr_toplevel_show_store, false).
 
 :- chr_constraint('_allTypes'/2).
@@ -38,32 +48,42 @@
 
 
 
-%! mat is det.
-% Wrapper around mat(-,-).
+%! mat(+InputGraph:atom, +OutputGraph:atom) is det.
+% Wrapper around mat/2 that asserts materialization results
+% into the input graph.
 
-mat:-
-  mat(_, _).
-
-%! mat(+InputGraph:atom) is det.
-% Wrapper around mat(+,-).
-
-mat(GIn):-
-  mat(GIn, _).
+mat(G):-
+  mat(G, G).
 
 %! mat(+InputGraph:atom, +OutputGraph:atom) is det.
+% Wrapper around mat/3 with default options.
+
+mat(InG, OutG):-
+  mat(InG, OutG, []).
+
+%! mat(+InputGraph:atom, +OutputGraph:atom, +Options:list(compound)) is det.
 % Materializes the contents of InputGraph into OutputGraph.
-%! mat(+InputGraph:atom, -OutputGraph:atom) is det.
+%! mat(+InputGraph:atom, -OutputGraph:atom, +Options:list(compound)) is det.
 % Materializes the contents of InputGraph into the default graph
 % (called `user`).
-%! mat(-InputGraph:atom, +OutputGraph:atom) is det.
+%! mat(-InputGraph:atom, +OutputGraph:atom, +Options:list(compound)) is det.
 % Materializes all contents into OutputGraph.
 %! mat(-InputGraph:atom, -OutputGraph:atom) is det.
 % Materializes all contents into the default graph (called `user`).
+%
+% The following options are supported:
+%   * generalized_rdf(+boolean)
+%     Whether results should be stored in generalized RDF.
+%     @see http://www.w3.org/TR/rdf11-concepts/#section-generalized-rdf
+%     Default is `false`.
+%   * justifications(+boolean)
+%     Whether justifications for deductions are stored.
+%     Default is `false`.
 
-mat(GIn, GOut):-
+mat(GIn, GOut, Opts):-
   defval(user, GOut),
   (   var(GIn)
-  ->  mat0(GIn, GOut)
+  ->  mat0(GIn, GOut, Opts)
   ;   must_be(atom, GIn),
       (   rdf_is_graph(GIn)
       ->  true
@@ -75,17 +95,20 @@ mat(GIn, GOut):-
       debug(mat(_), 'BEFORE MATERIALIZATION:', []),
       if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
 
-      once(mat0(GIn, GOut)),
+      once(mat0(GIn, GOut, Opts)),
 
       % Debug message for successful materialization results.
       debug(mat(_), 'AFTER MATERIALIZATION:', []),
       if_debug(mat(_), rdf_print_graph(GIn, PrintOpts))
   ).
 
-mat0(GIn, GOut):-
+mat0(GIn, GOut, Opts):-
   % Perform materialization.
   findall(rdf_chr(S,P,O), rdf2(S,P,O,GIn), Ins),
+
+  % Store justifications.
   forall(member(rdf_chr(S,P,O), Ins), store_j(axiom, [], rdf(S,P,O))),
+  
   maplist(call, Ins),
 
   % Check whether an inconsistent state was reached.
@@ -94,7 +117,24 @@ mat0(GIn, GOut):-
       forall(print_j(_,_,error(_),_), true)
   ;   true
   ),
-  forall(find_chr_constraint(rdf_chr(S,P,O)), rdf_assert2(S, P, O, GOut)), !.
+
+  % Results are either stored in (plain) RDF or in generalized RDF.
+  option(generalized_rdf(GenRdf), Opts, false),
+  forall(find_chr_constraint(rdf_chr(S,P,O)),
+    rdf_assert_mat_result0(GenRdf, S, P, O, GOut)
+  ),
+
+  (   option(justifications(true), Opts)
+  ->  true
+  ;   clear_j
+  ).
+
+rdf_assert_mat_result0(true, S, P, O, GOut):- !,
+  rdf_assert2(S, P, O, GOut).
+rdf_assert_mat_result0(false, S, _, _, _):-
+  rdf_is_literal(S), !.
+rdf_assert_mat_result0(false, S, P, O, GOut):-
+  rdf_assert(S, P, O, GOut).
 
 
 

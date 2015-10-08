@@ -1,6 +1,7 @@
 :- module(
   j_db,
   [
+    clear_j/0,
     find_j/4, % ?Rule:compound
               % ?Premises:list(compound)
               % ?Conclusion:compound
@@ -18,7 +19,7 @@
 /** <module> Justification database
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(apply)).
@@ -45,6 +46,14 @@
 :- dynamic(s/2).
 
 
+
+
+
+%! clear_j is det.
+
+clear_j:-
+  retractall(j(_,_,_,_)),
+  retractall(s(_,_)).
 
 
 
