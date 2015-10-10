@@ -18,7 +18,10 @@
 
 :- use_module(library(apply)).
 :- use_module(library(archive)).
+:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_debug)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(http/http_cookie)).
 :- use_module(library(http/http_deb)).
@@ -36,8 +39,11 @@
 
 http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 
+:- predicate_options(rdf_base_iri/3, 3, [
+     base_iri(+atom)
+   ]).
 :- predicate_options(rdf_stream_read/3, 3, [
-     base_iri(+atom),
+     pass_to(rdf_base_iri/3, 3),
      format(+atom),
      meta_data(-dict)
    ]).
@@ -103,9 +109,22 @@ rdf_stream_read(Spec, Goal_2, Opts):-
     close_any(Close)
   ).
 
+
+
+%! rdf_base_iri(+Input,  -BaseIri:atom, +Options:list(compound)) is det.
+% Succeeds if BaseIri is the base IRI of Input.
+%
+% The base IRI can be determined in the following ways:
+%   * The user sets the base IRI in Options.
+%
+% The following options are supported:
+%   * base_iri(+atom)
+%     The base IRI that is explicitly set by the user.
+
 % Explicitly specified option takes precedence.
 rdf_base_iri(_, BaseIri, Opts):-
-  option(base_iri(BaseIri), Opts), !.
+  option(base_iri(BaseIri), Opts), !,
+  dcg_debug(rdf_stream, base_iri("Explicitly set by user", BaseIri)).
 % Stream without option throws warning.
 rdf_base_iri(Stream, _, _):-
   is_stream(Stream), !,
@@ -115,11 +134,21 @@ rdf_base_iri(Iri, BaseIri, _):-
   is_uri(Iri), !,
   % Remove the fragment part, if any.
   uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
-  uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)).
+  uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)),
+  dcg_debug(rdf_stream, base_iri("Based on input IRI", BaseIri)).
 % The file is treated as an IRI.
 rdf_base_iri(File, BaseIri, Opts):-
   uri_file_name(Iri, File),
   rdf_base_iri(Iri, BaseIri, Opts).
+
+%! base_iri(+Message:string, +BaseIri:atom)// is det.
+
+base_iri(Msg, BaseIri) -->
+  "[Base IRI] ",
+  Msg,
+  ": ",
+  iri(BaseIri).
+
 
 is_http_error0(HttpOpts):-
   option(status_code(HttpStatusCode), HttpOpts),

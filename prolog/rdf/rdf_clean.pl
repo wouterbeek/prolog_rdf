@@ -17,7 +17,7 @@
 :- use_module(library(ctriples/ctriples_write_generics)).
 :- use_module(library(ctriples/ctriples_write_graph)).
 :- use_module(library(ctriples/ctriples_write_triples)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(filesex)).
 :- use_module(library(hash_ext)).
@@ -32,6 +32,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
+:- use_module(library(stream_ext)).
 :- use_module(library(typecheck)).
 
 :- thread_local(has_quadruples/1).
@@ -80,8 +81,8 @@ rdf_clean(From, To, Opts):-
 %!   +MetaData:dict
 %! ) is det.
 
-rdf_clean0(Local0, Opts, Read, M):-
-  ignore(option(meta_data(M), Opts)),
+rdf_clean0(Local0, Opts, Read, M0):-
+  ignore(option(meta_data(M0), Opts)),
 
   % Process data compression option.
   option(compress(Compress), Opts, none),
@@ -89,19 +90,33 @@ rdf_clean0(Local0, Opts, Read, M):-
   % Convert to the RDF input stream into C-Triples
   % on a triple-by-triple basis.
   thread_file(tmp, Tmp),
+  debug(rdf(clean), 'Going to temporarily store clean triples in file ~a', [Tmp]),
 
-  setup_call_cleanup(
-    open(Tmp, write, Write),
-    rdf_clean0(Read, M, Write),
-    close(Write)
+  % Read and write all triples.
+  verbose(
+    rdf(clean),
+    setup_call_cleanup(
+      open(Tmp, write, Write),
+      rdf_clean0(Read, M0, Write),
+      close(Write)
+    ),
+    "Cleaning triples one-by-one"
   ),
 
+  % Store input stream properties.
+  stream_metadata(Read, MStream),
+  M = M0.put(stream, MStream),
+
   % Sort unique.
-  sort_file(Tmp, Opts),
+  verbose(
+    rdf(clean),
+    sort_file(Tmp, Opts),
+    "Sorting cleaned triples file"
+  ),
 
   % Count the number of triples.
   file_lines(Tmp, N),
-  debug(rdf(clean), 'Unique triples: ~D', [N]),
+  debug(rdf(clean), "Unique triples: ~D", [N]),
 
   % Determine output file name.
   (ground(Local0) -> true ; Local0 = out),
@@ -118,7 +133,11 @@ rdf_clean0(Local0, Opts, Read, M):-
   atomic_list_concat([Local|Exts], ., Path),
 
   % Compress the file, according to user option.
-  compress_file(Tmp, Compress, Path),
+  verbose(
+    rdf(clean),
+    compress_file(Tmp, Compress, Path),
+    "Compressing sorted triple file."
+  ),
 
   % Print metadata.
   if_option(metadata(true), Opts, rdf_clean_metadata(M)).
