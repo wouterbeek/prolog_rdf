@@ -37,6 +37,12 @@
 
 :- thread_local(has_quadruples/1).
 
+:- predicate_options(determine_sort_buffer_size/3, 3, [
+     max_sort_buffer_size(+float)
+   ]).
+:- predicate_options(determine_sort_buffer_threads/3, 3, [
+     max_sort_threads(+nonneg)
+   ]).
 :- predicate_options(rdf_clean/3, 3, [
      fromat(+atom),
      pass_to(rdf_clean0/4, 2),
@@ -49,8 +55,9 @@
      pass_to(sort_file/2, 2)
    ]).
 :- predicate_options(sort_file/2, 2, [
-     max_sort_buffer(+float),
-     sort_dir(+atom)
+     sort_dir(+atom),
+     pass_to(determine_sort_buffer_size/3, 3),
+     pass_to(determine_sort_buffer_threads/3, 3)
    ]).
 
 
@@ -268,7 +275,7 @@ set_has_quadruples:-
 
 %! sort_file(+File:atom, +Options:list(compound)) is det.
 % The following options are supported:
-%   * max_sort_buffer(+float)
+%   * max_sort_buffer_size(+float)
 %     The maximum size of the sort buffer in Gigabytes.
 %     Default is 1.0 GB.
 %   * sort_dir(+atom)
@@ -283,21 +290,10 @@ sort_file(File, Opts):-
   debug(rdf(clean), "Using directory ~a for disk-based softing.", [Dir]),
 
   % Determine the buffer size that is used for sorting.
-  sort_file_buffer_size(File, Calc),
-  option(max_sort_buffer(Max), Opts, 1.0),
-  BufferSize is min(round(Max * (1024 ** 3)), Calc),
-  BufferSize0 is BufferSize / (1024 ** 3),
-  debug(rdf(clean), "Using buffer size ~2f GB for sorting.", [BufferSize0]),
+  determine_sort_buffer_size(File, BufferSize, Opts),
 
   % Determine the number of threads that is used for sorting.
-  % @tbd Check whether there are any threads.
-  (   BufferSize > 6 * (1024 ** 3) % >6GB
-  ->  Threads = 3
-  ;   BufferSize > 3 * (1024 ** 3) % >3GB
-  ->  Threads = 2
-  ;   Threads = 1 % =<3GB
-  ),
-  debug(rdf(clean), "Using ~D threads for sorting.", [Threads]),
+  determine_sort_threads(BufferSize, Threads, Opts),
 
   % Perform the actual sort.
   gnu_sort(
@@ -314,11 +310,61 @@ sort_file(File, Opts):-
 
 
 
-%! sort_file_buffer_size(+File:atom, -BufferSize:nonneg) is det.
+%! determine_sort_buffer_size(
+%!   +File:atom,
+%!   -BufferSize:nonneg,
+%!   +Options:list(compound)
+%! ) is det.
+% The following options are supported:
+%   * max_sort_buffer_size(+float)
+%     The maximum size of the buffer used for sorting.
+%     Default is `1.0'.
+
+determine_sort_buffer_size(File, BufferSize, Opts):-
+  calc_sort_buffer_size(File, Calc),
+  option(max_sort_buffer_size(Max), Opts, 1.0),
+  BufferSize is min(round(Max * (1024 ** 3)), Calc),
+  BufferSize0 is BufferSize / (1024 ** 3),
+  debug(rdf(clean), "Using buffer size ~2f GB for sorting.", [BufferSize0]).
+
+
+
+%! determine_sort_buffer_threads(
+%!   +BufferSize:nonneg,
+%!   -Threads:nonneg,
+%!   +Options:list(compound)
+%! ) is det.
+% The following options are supported:
+%   * max_sort_threads(+nonneg)
+%     The maximum number of threads that is allowed to be used.
+%     Default is the value of `current_prolog_flag(cpu_count, X)'.
+
+determine_sort_threads(BufferSize, Threads, Opts):-
+  calc_sort_threads(BufferSize, Calc),
+  current_prolog_flag(cpu_count, Default),
+  option(max_sort_threads(Max), Opts, Default),
+  Threads is min(Max, Calc),
+  debug(rdf(clean), "Using ~D threads for sorting.", [Threads]).
+
+  
+
+%! calc_sort_threads(+BufferSize:nonneg, -Threads:nonneg) is det.
+% Heuristically determine the number of threads to use for sorting
+% a file with the given BufferSize.
+
+calc_sort_threads(BufferSize, 3):- % 6GB<x
+  BufferSize > 6 * (1024 ** 3), !.
+calc_sort_threads(BufferSize, 2):- % 3GB<x=<6GB
+  BufferSize > 3 * (1024 ** 3), !.
+calc_sort_threads(_, 1). % x=<3GB
+
+
+
+%! calc_sort_buffer_size(+File:atom, -BufferSize:nonneg) is det.
 % Determines the BufferSize that will be used for sorting File
 % according to a simple heuristic.
 
-sort_file_buffer_size(File, BufferSize):-
+calc_sort_buffer_size(File, BufferSize):-
   size_file(File, FileSize),
   (   FileSize =:= 0
   ->  BufferSize = 1024
