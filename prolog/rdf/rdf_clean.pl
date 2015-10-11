@@ -38,9 +38,18 @@
 :- thread_local(has_quadruples/1).
 
 :- predicate_options(rdf_clean/3, 3, [
+     fromat(+atom),
+     pass_to(rdf_clean0/4, 2),
+     pass_to(rdf_stream_read/3, 3)
+   ]).
+:- predicate_options(rdf_clean0/4, 2, [
      compress(+oneof([deflate,gzip,none])),
      meta_data(-dict),
-     pass_to(rdf_stream_read/3, 3)
+     metadata(+boolean),
+     pass_to(sort_file/2, 2)
+   ]).
+:- predicate_options(sort_file/2, 2, [
+     sort_dir(+atom)
    ]).
 
 
@@ -61,7 +70,8 @@
 
 rdf_clean(From, To, Opts):-
   % Process output RDF serialization option.
-  (   % The output RDF serialization format is given: take it into account.
+  (   % The output RDF serialization format is given: take it into account
+      % by relaying it to a different options list.
       select_option(format(Format), Opts, RdfCleanOpts),
       ground(Format)
   ->  RdfStreamOpts = [format(Format)]
@@ -100,7 +110,7 @@ rdf_clean0(Local0, Opts, Read, M0):-
       rdf_clean0(Read, M0, Write),
       close(Write)
     ),
-    "Cleaning triples one-by-one"
+    "Cleaning triples on a one-by-one basis"
   ),
 
   % Store input stream properties.
@@ -172,14 +182,23 @@ rdf_clean0(Read, M, Write):-
 
 
 
-%! archive_entry_name(+To:atom, +Compression:list(dict), -ToEntry:atom) is det.
+%! archive_entry_name(
+%!   +PathPrefix:atom,
+%!   +Compression:list(dict),
+%!   -EntryPath:atom
+%! ) is det.
+% Succeeds if EntryPath describes the file path of
+% the nested archive entry described in Compression
+% that uses the given PathPrefix.
 
-archive_entry_name(To, [H], To):-
+% The raw archive entry's path is the prefix path.
+archive_entry_name(Path, [H], Path):-
   is_unarchived(H), !.
-archive_entry_name(Dir, [H|T], ToEntry):-
-  make_directory_path(Dir),
-  directory_file_path(Dir, H.name, Path),
-  archive_entry_name(Path, T, ToEntry).
+% A non-raw archive entry: add its name to the prefix path.
+archive_entry_name(Prefix, [H|T], EntryPath):-
+  make_directory_path(Prefix),
+  directory_file_path(Prefix, H.name, Path),
+  archive_entry_name(Path, T, EntryPath).
 
 
 
@@ -202,7 +221,6 @@ clean_streamed_triples(Write, State, BNPrefix, Ts0, _):-
 %!   +WonkyStatement:compound,
 %!   -Statement:compound
 %! ) is det.
-%
 
 fix_triple(rdf(S,P,O,G), T):- !,
   (   is_named_graph(G)
@@ -226,7 +244,9 @@ is_named_graph(G):-
 
 
 
-%! is_unarchived(+Dict:dict) is semidet.
+%! is_unarchived(+CompressionNode:dict) is semidet.
+% Succeed if CompressionNode descibes a leaf node in a compression tree.
+% A leaf node in a compression tree describes an unarchived or raw file.
 
 is_unarchived(D):-
   D.name == data,
@@ -235,8 +255,8 @@ is_unarchived(D):-
 
 
 %! set_has_quadruples is det.
-% Store the fact that a quadruple occurred in the parser stream
-% as a thread-local global Prolog fact.
+% Assert the fact that a quadruple occurred in the parser stream.
+% This is a thread-local global Prolog fact.
 
 set_has_quadruples:-
   has_quadruples(true), !.
@@ -246,22 +266,33 @@ set_has_quadruples:-
 
 
 %! sort_file(+File:atom, +Options:list(compound)) is det.
+% The following options are supported:
+%   * sort_dir(+atom)
+%     The directory that is used for disk-based sorting.
 
 sort_file(File, Opts):-
-  % Sort directory.
+  % Determine the directory that is used for disk-based sorting.
   (   option(sort_dir(Dir), Opts)
   ->  access_file(Dir, write)
   ;   absolute_file_name(., Dir, [access(write),file_type(directory)])
   ),
+  debug(rdf(clean), "Using directory ~a for disk-based softing.", [Dir]),
 
-  % Buffer size for sorting.
-  buffer_size_file(File, BufferSize),
+  % Determine the buffer size that is used for sorting.
+  sort_file_buffer_size(File, BufferSize),
+  debug(rdf(clean), "Using buffer size ~w for sorting.", [BufferSize]),
+
+  % Determine the number of threads that is used for sorting.
+  % @tbd Check whether there are any threads.
   (   BufferSize > 6 * (1024 ** 3) % >6GB
   ->  Threads = 3
   ;   BufferSize > 3 * (1024 ** 3) % >3GB
   ->  Threads = 2
   ;   Threads = 1 % =<3GB
   ),
+  debug(rdf(clean), "Using ~D threads for sorting.", [Threads]),
+
+  % Perform the actual sort.
   gnu_sort(
     File,
     [
@@ -276,9 +307,11 @@ sort_file(File, Opts):-
 
 
 
-%! buffer_size_file(+File:atom, -BufferSize:nonneg) is det.
+%! sort_file_buffer_size(+File:atom, -BufferSize:nonneg) is det.
+% Determines the BufferSize that will be used for sorting File
+% according to a simple heuristic.
 
-buffer_size_file(File, BufferSize):-
+sort_file_buffer_size(File, BufferSize):-
   size_file(File, FileSize),
   (   FileSize =:= 0
   ->  BufferSize = 1024
