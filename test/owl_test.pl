@@ -1,4 +1,4 @@
-:- use_module(library(deb_ext)).
+:- use_module(library(debug_ext)).
 :- use_module(library(owl/id_store)).
 :- use_module(library(owl/owl_api)).
 :- use_module(library(rdf/rdf_print)).

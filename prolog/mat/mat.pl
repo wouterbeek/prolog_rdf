@@ -18,7 +18,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(chr)).
-:- use_module(library(deb_ext)).
+:- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(mat/j_db)).
