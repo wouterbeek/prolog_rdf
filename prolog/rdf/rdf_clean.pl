@@ -49,6 +49,7 @@
      pass_to(sort_file/2, 2)
    ]).
 :- predicate_options(sort_file/2, 2, [
+     max_sort_buffer(+float),
      sort_dir(+atom)
    ]).
 
@@ -267,6 +268,9 @@ set_has_quadruples:-
 
 %! sort_file(+File:atom, +Options:list(compound)) is det.
 % The following options are supported:
+%   * max_sort_buffer(+float)
+%     The maximum size of the sort buffer in Gigabytes.
+%     Default is 1.0 GB.
 %   * sort_dir(+atom)
 %     The directory that is used for disk-based sorting.
 
@@ -279,8 +283,11 @@ sort_file(File, Opts):-
   debug(rdf(clean), "Using directory ~a for disk-based softing.", [Dir]),
 
   % Determine the buffer size that is used for sorting.
-  sort_file_buffer_size(File, BufferSize),
-  debug(rdf(clean), "Using buffer size ~w for sorting.", [BufferSize]),
+  sort_file_buffer_size(File, Calc),
+  option(max_sort_buffer(Max), Opts, 1.0),
+  BufferSize is min(round(Max * (1024 ** 3)), Calc),
+  BufferSize0 is BufferSize / (1024 ** 3),
+  debug(rdf(clean), "Using buffer size ~2f GB for sorting.", [BufferSize0]),
 
   % Determine the number of threads that is used for sorting.
   % @tbd Check whether there are any threads.
