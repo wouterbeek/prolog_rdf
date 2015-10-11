@@ -295,7 +295,8 @@ rdf_assert_property(P, Parent, G):-
 %!   +Object:rdf_term,
 %!   ?Graph:atom
 %! ) is det.
-% Alternative of rdf/4 that allows Graph to be uninstantiated.
+% Alternative of rdf/4 that allows Graph to be uninstantiated
+% and that allows literals to appear in the subject positions.
 %
 % @see rdf_db:rdf/4
 
