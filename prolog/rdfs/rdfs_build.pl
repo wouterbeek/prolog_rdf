@@ -30,6 +30,7 @@
     rdfs_assert_seeAlso/3, % +Subject:rdf_term
                            % +Uri:atom
                            % +Graph:atom
+    rdfs_assert_subclass/2, % +Class, ?Graph
     rdfs_assert_subclass/3, % +Class:iri
                             % ?ParentClass:or([iri,list(iri)])
                             % ?Graph:atom
@@ -69,6 +70,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- rdf_meta(rdfs_assert_property(r,r,r,+)).
 :- rdf_meta(rdfs_assert_range(r,r,+)).
 :- rdf_meta(rdfs_assert_seeAlso(o,+,?)).
+:- rdf_meta(rdfs_assert_subclass(r,+)).
 :- rdf_meta(rdfs_assert_subclass(r,t,+)).
 :- rdf_meta(rdfs_assert_subproperty(r,r,?)).
 :- rdf_meta(rdfs_retractall_class_resource(r)).
@@ -211,6 +213,11 @@ rdfs_assert_seeAlso(S, O, G):-
   rdf_assert2(S, rdfs:seeAlso, O, G).
 
 
+
+%! rdfs_assert_subclass(+Class:iri, ?Graph:atom) is det.
+
+rdfs_assert_subclass(C, G):-
+  rdfs_assert_subclass(C, _, G).
 
 %! rdfs_assert_subclass(
 %!   +Class:iri,
