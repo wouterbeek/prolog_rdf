@@ -1,8 +1,6 @@
 :- module(
   rdf_graph,
   [
-    rdf_copy_graph/2, % +From:atom
-                      % +To:atom
     rdf_fresh_graph/2, % ?Graph:atom
                        % +FreshnessLifetime:between(0.0,inf)
     rdf_graph_age/2, % ?Graph:atom
@@ -39,16 +37,6 @@
 :- use_module(library(semweb/rdf_db)).
 
 
-
-
-
-%! rdf_copy_graph(+From:atom, +To:atom) is det.
-
-rdf_copy_graph(From, To):-
-  forall(
-    rdf(S, P, O, From),
-    rdf_assert(S, P, O, To)
-  ).
 
 
 
