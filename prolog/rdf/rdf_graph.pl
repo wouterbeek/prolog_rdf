@@ -1,6 +1,8 @@
 :- module(
   rdf_graph,
   [
+    rdf_copy_graph/2, % +From:atom
+                      % +To:atom
     rdf_is_graph/1 % @Term
   ]
 ).
@@ -16,6 +18,16 @@
 :- use_module(library(semweb/rdf_db)).
 
 
+
+
+
+%! rdf_copy_graph(+From:atom, +To:atom) is det.
+
+rdf_copy_graph(From, To):-
+  forall(
+    rdf(S, P, O, From),
+    rdf_assert(S, P, O, To)
+  ).
 
 
 
