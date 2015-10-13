@@ -1,7 +1,7 @@
 :- module(
   rdf_update,
   [
-    rdf_canonize_graph/1, % +Graph:atom
+    rdf_canonize_graph/1, % ?Graph:atom
     rdf_canonize_triple/5, % +Subject:or([bnode,iri])
                            % +Predicate:iri
                            % +Datatype:iri

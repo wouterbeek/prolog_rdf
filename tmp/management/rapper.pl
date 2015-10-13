@@ -18,18 +18,15 @@ Rapper support.
 :- use_module(library(dcg/basics)).
 :- use_module(library(error)).
 :- use_module(library(option)).
+:- use_module(library(os/process_ext)).
 :- use_module(library(readutil)).
 
-:- use_module(plc(dcg/dcg_content)).
-:- use_module(plc(os/cli_ext)).
-:- use_module(plc(process/process_ext)).
-
 :- predicate_options(rapper/2, 2, [
-  count(+boolean),
-  guess(+boolean),
-  ignore_errors(+boolean),
-  input(+oneof([ntriples,rdfxml,'rss-tag-soup',turtle]))
-]).
+     count(+boolean),
+     guess(+boolean),
+     ignore_errors(+boolean),
+     input(+oneof([ntriples,rdfxml,'rss-tag-soup',turtle]))
+   ]).
 
 
 
