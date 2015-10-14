@@ -14,8 +14,7 @@
 Support for loading RDF data.
 
 @author Wouter Beek
-@tbd Make rdf_load_triple/2 simply return triples non-deterministically.
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(option)).
@@ -29,31 +28,39 @@ Support for loading RDF data.
 
 :- meta_predicate(rdf_load_triple(+,2)).
 
+:- predicate_options(rdf_load_file/2, 2, [
+     pass_to(rdf_load_file0/4, 1),
+     pass_to(rdf_stream_read/3, 3)
+   ]).
+:- predicate_options(rdf_load_file0/4, 1, [
+     pass_to(rdf_load/2, 2)
+   ]).
+
 
 
 
 
 %! rdf_load_file(+Spec) is det.
+% Wrapper around rdf_load_file/2 with default options.
 
 rdf_load_file(Spec):-
   rdf_load_file(Spec, []).
 
+
 %! rdf_load_file(+Spec, +Options:list(compound)) is det.
-% Options are passed to rdf_load/2.
 
-rdf_load_file(Spec, Opts0):-
-  % Set the graph name.
-  option(graph(G), Opts0, _VAR),
-  (   var(G),
-      atom(Spec)
-  ->  G = Spec
-  ;   true
-  ),
-  merge_options([graph(G)], Opts0, Opts),
-  rdf_stream_read(Spec, rdf_load_file0(Opts), Opts).
+rdf_load_file(Spec, Opts1):-
+  % Handle the graph name option.
+  select_option(graph(G), Opts1, Opts2, _VAR),
 
-rdf_load_file0(Opts0, BaseIri, Format, Read):-
-  merge_options([base_iri(BaseIri),format(Format)], Opts0, Opts),
+  % In the absence of a graph name use the base IRI.
+  (var(G), base_iri(Spec, BaseIri) -> G = BaseIri ; true),
+  
+  merge_options([graph(G)], Opts2, Opts3),
+  rdf_stream_read(Spec, rdf_load_file0(Opts3), Opts2).
+
+rdf_load_file0(Opts0, Read, M):-
+  merge_options([base_iri(M.base_iri),format(M.rdf.format)], Opts0, Opts),
   rdf_load(Read, Opts).
 
 
