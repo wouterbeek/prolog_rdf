@@ -1,10 +1,6 @@
 :- module(
   rdf_graph,
   [
-    rdf_fresh_graph/2, % ?Graph:atom
-                       % +FreshnessLifetime:between(0.0,inf)
-    rdf_graph_age/2, % ?Graph:atom
-                     % -Age:between(0.0,inf)
     rdf_graph_instance/3, % +Instance:atom
                           % +Graph:atom
                           % -Map:list(pair(bnode,rdf_term))
@@ -18,8 +14,6 @@
                                  % -BNodeMap:list(pair(bnode,or([iri,literal])))
     rdf_proper_subgraph/2, % +ProperSubgraph:atom
                            % +Graph:atom
-    rdf_stale_graph/2, % ?Graph:atom
-                       % +FreshnessLifetime:between(0.0,inf)
     rdf_subgraph/2 % +ProperSubgraph:atom
                    % +Graph:atom
   ]
@@ -37,37 +31,6 @@
 :- use_module(library(semweb/rdf_db)).
 
 
-
-
-
-%! rdf_fresh_graph(
-%!   +Graph:atom,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is semidet.
-% Succeeds if the age of the given RDF graph is under the given freshness
-%  lifetime.
-%! rdf_fresh_graph(
-%!   -Graph:atom,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is nondet.
-% Enumerates the RDF graphs that are fresh w.r.t. the given freshness
-%  lifetime.
-
-rdf_fresh_graph(Graph, FreshnessLifetime):-
-  rdf_graph_age(Graph, Age),
-  is_fresh_age(Age, FreshnessLifetime).
-
-
-
-%! rdf_graph_age(+Graph:atom, -Age:between(0.0,inf)) is det.
-% Returns the age of the RDF graph with the given name in seconds.
-%! rdf_graph_age(-Graph:atom, -Age:between(0.0,inf)) is nondet.
-% Enumerates the currently loaded RDF graphs and their age in seconds.
-
-rdf_graph_age(Graph, Age):-
-  rdf_graph_property(Graph, source_last_modified(LastModified)),
-  get_time(Now),
-  Age is Now - LastModified.
 
 
 
@@ -227,25 +190,6 @@ rdf_proper_graph_instance_map(Map):-
 rdf_proper_subgraph(G, H):-
   rdf_subgraph(G, H),
   \+ rdf_graph_same_size(G, H).
-
-
-
-%! rdf_stale_graph(
-%!   +Graph:atom,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is semidet.
-% Succeeds if the age of the given RDF graph is over the given freshness
-%  lifetime.
-%! rdf_stale_graph(
-%!   -Graph:atom,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is nondet.
-% Enumerates the RDF graphs that are stale w.r.t. the given freshness
-%  lifetime.
-
-rdf_stale_graph(Graph, FreshnessLifetime):-
-  rdf_graph_age(Graph, Age),
-  is_stale_age(Age, FreshnessLifetime).
 
 
 
