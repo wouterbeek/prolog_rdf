@@ -44,13 +44,13 @@
      max_sort_threads(+nonneg)
    ]).
 :- predicate_options(rdf_clean/3, 3, [
-     fromat(+atom),
+     format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml]),
      pass_to(rdf_clean0/4, 2),
      pass_to(rdf_stream_read/3, 3)
    ]).
 :- predicate_options(rdf_clean0/4, 2, [
      compress(+oneof([deflate,gzip,none])),
-     meta_data(-dict),
+     metadata(-dict),
      metadata(+boolean),
      pass_to(sort_file/2, 2)
    ]).
@@ -69,12 +69,10 @@
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
 %      Default is `none`.
-%    * format(+rdf_format)
+%    * format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml]))
 %      The RDF serialization format of the input.
 %      When absent this is guessed heuristically.
-%    * meta_data(-dict)
-%
-% @tbd Why can we not specify `format(?rdf_format)`?
+%    * metadata(-dict)
 
 rdf_clean(From, To, Opts):-
   % Process output RDF serialization option.
@@ -100,7 +98,7 @@ rdf_clean(From, To, Opts):-
 %! ) is det.
 
 rdf_clean0(Local0, Opts, Read, M0):-
-  ignore(option(meta_data(M0), Opts)),
+  ignore(option(metadata(M0), Opts)),
 
   % Process data compression option.
   option(compress(Compress), Opts, none),
@@ -108,7 +106,11 @@ rdf_clean0(Local0, Opts, Read, M0):-
   % Convert to the RDF input stream into C-Triples
   % on a triple-by-triple basis.
   thread_file(tmp, Tmp),
-  debug(rdf(clean), 'Going to temporarily store clean triples in file ~a', [Tmp]),
+  debug(
+    rdf(clean),
+    "Going to temporarily store clean triples in file ~a.",
+    [Tmp]
+  ),
 
   % Read and write all triples.
   verbose(
@@ -165,24 +167,28 @@ rdf_clean0(Local0, Opts, Read, M0):-
 
 rdf_clean0(Read, M, Write):-
   ctriples_write_begin(State, BNPrefix, []),
-  Opts = [anon_prefix(BNPrefix),base_uri(M.base_iri),format(M.rdf_format)],
+  Opts = [
+    anon_prefix(BNPrefix),
+    base_uri(M.base_iri),
+    format(M.rdf.format)
+  ],
   
-  (   M.rdf_format == rdfa
-  ->  read_rdfa(Read, Ts, []),
+  (   M.rdf.format == rdfa
+  ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
       clean_streamed_triples(Write, State, BNPrefix, Ts, _)
-  ;   memberchk(M.rdf_format, [nquads,ntriples])
+  ;   memberchk(M.rdf.format, [nquads,ntriples])
   ->  rdf_process_ntriples(
         Read,
         clean_streamed_triples(Write, State, BNPrefix),
         Opts
       )
-  ;   memberchk(M.rdf_format, [trig,turtle])
+  ;   memberchk(M.rdf.format, [trig,turtle])
   ->  rdf_process_turtle(
         Read,
         clean_streamed_triples(Write, State, BNPrefix),
         Opts
       )
-  ;   M.rdf_format == xml
+  ;   M.rdf.format == xml
   ->  process_rdf(Read, clean_streamed_triples(Write, State, BNPrefix), [])
   ),
   flush_output(Write),
@@ -223,7 +229,6 @@ clean_streamed_triples(Write, State, BNPrefix, Ts0, _):-
   maplist(ctriples_write_triple(Write, State, BNPrefix), Ts).
 
 
-
 %! fix_triple(
 %!   +Graph:atom,
 %!   +WonkyStatement:compound,
@@ -232,9 +237,6 @@ clean_streamed_triples(Write, State, BNPrefix, Ts0, _):-
 
 fix_triple(rdf(S,P,O,G), T):- !,
   (   is_named_graph(G)
-  ->  set_has_quadruples,
-      T = rdf(S,P,O,G)
-  ;   is_named_graph(G)
   ->  set_has_quadruples,
       T = rdf(S,P,O,G)
   ;   T = rdf(S,P,O)
