@@ -12,8 +12,8 @@
 @version 2015/10
 */
 
-:- use_module(library(debug_ext)).
 :- use_module(library(ordsets)).
+:- use_module(library(msg_ext)).
 
 
 

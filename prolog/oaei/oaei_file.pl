@@ -1,17 +1,17 @@
 :- module(
   oaei_file,
   [
-    oaei_convert_rdf_to_tsv/2, % +FromFile:atom
-                               % +ToFile:atom
-    oaei_convert_tsv_to_rdf/2, % +FromFile:atom
-                               % +ToFile:atom
-    oaei_load_rdf/2, % +File:atom
+    oaei_convert_rdf_to_tsv/2, % +In
+                               % +Out
+    oaei_convert_tsv_to_rdf/2, % +In
+                               % +Out
+    oaei_load_rdf/2, % +In
                      % -Alignments:ordset(pair(iri))
-    oaei_load_tsv/2, % +File:atom
+    oaei_load_tsv/2, % +In
                      % -Alignments:ordset(pair(iri))
-    oaei_save_rdf/2, % +In
+    oaei_save_rdf/2, % +Out
                      % +Alignments:list(pair))
-    oaei_save_tsv/2 % +In
+    oaei_save_tsv/2 % +Out
                     % +Alignments:list(pair))
   ]
 ).
@@ -33,7 +33,7 @@
 
 
 
-%! oaei_convert_rdf_to_tsv(+FromFile:atom, +ToFile:atom) is det.
+%! oaei_convert_rdf_to_tsv(+In, +Out) is det.
 
 oaei_convert_rdf_to_tsv(FromFile, ToFile):-
   oaei_load_rdf(FromFile, As),
@@ -41,7 +41,7 @@ oaei_convert_rdf_to_tsv(FromFile, ToFile):-
 
 
 
-%! oaei_convert_tsv_to_rdf(+FromFile:atom, +ToFile:atom) is det.
+%! oaei_convert_tsv_to_rdf(+In, +Out) is det.
 
 oaei_convert_tsv_to_rdf(FromFile, ToFile):-
   oaei_load_tsv(FromFile, As),
@@ -59,7 +59,7 @@ oaei_load_rdf0(As, G):-
 
 
 
-%! oaei_load_tsv(+File:atom, -Alignments:ordset(pair(iri))) is det.
+%! oaei_load_tsv(+In, -Alignments:ordset(pair(iri))) is det.
 
 oaei_load_tsv(File, As):-
   tsv_read_file(File, Rows, [arity(2)]),
@@ -67,14 +67,14 @@ oaei_load_tsv(File, As):-
 
 
 
-%! oaei_save_rdf(+In, +Alignments:list(pair)) is det.
+%! oaei_save_rdf(+Out, +Alignments:list(pair)) is det.
 
 oaei_save_rdf(In, As):-
   rdf_write_to_graph(In, oaei_assert_alignments(As)).
 
 
 
-%! oaei_save_tsv(+In, +Alignments:list(pair)) is det.
+%! oaei_save_tsv(+Out, +Alignments:list(pair)) is det.
 
 oaei_save_tsv(In, As):-
   setup_call_cleanup(

@@ -140,7 +140,7 @@ rdf_stream_read(In, Goal_2, Opts):-
   merge_options(HttpOpts1, HttpOpts2, HttpOpts),
 
   % Set archive options.
-  ArchOpts = [close_parent(false),format(all),format(raw)],
+  ArchOpts = [close_parent(false),filter(all),format(all),format(raw)],
 
   setup_call_cleanup(
     open_any(In, read, Read0, Close, HttpOpts),
