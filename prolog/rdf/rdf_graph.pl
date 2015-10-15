@@ -8,8 +8,11 @@
     rdf_graph_age/2, % ?Graph:atom
                      % -Age:between(0.0,inf)
     rdf_is_graph/1, % @Term
-    rdf_stale_graph/2 % ?Graph:atom
-                      % +FreshnessLifetime:between(0.0,inf)
+    rdf_new_graph/2, % +Name:atom
+                     % -Graph:atom
+    rdf_stale_graph/2, % ?Graph:atom
+                       % +FreshnessLifetime:between(0.0,inf)
+    rdf_tmp_graph/1 % -Graph:atom
   ]
 ).
 
@@ -21,8 +24,10 @@
 @version 2015/08, 2015/10
 */
 
+:- use_module(library(atom_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri)).
 
 
 
@@ -79,6 +84,28 @@ rdf_is_graph(G):-
 
 
 
+%! rdf_new_graph(+Base:atom, -Graph:atom) is det.
+
+rdf_new_graph(Base, G):-
+  atomic_concat(/, Base, Path),
+  uri_components(GPrefix, uri_components(http,'example.com',Path,_,_)),
+  with_mutex(rdf_graph, (
+    rdf_new_graph_iri(GPrefix, G),
+    rdf_create_graph(G)
+  )).
+
+
+% The graph name is new.
+rdf_new_graph_iri(G, G):-
+  \+ rdf_graph(G), !.
+% An RDF graph with the same name already exists,
+% so come up with another name.
+rdf_new_graph_iri(GPrefix, G):-
+  new_atom(GPrefix, GTmp),
+  rdf_new_graph_iri(GTmp, G).
+
+
+
 %! rdf_stale_graph(
 %!   +Graph:atom,
 %!   +FreshnessLifetime:between(0.0,inf)
@@ -93,3 +120,10 @@ rdf_is_graph(G):-
 rdf_stale_graph(G, FLT):-
   rdf_graph_age(G, Age),
   is_stale_age(Age, FLT).
+
+
+
+%! rdf_tmp_graph(-Graph:atom) is det.
+
+rdf_tmp_graph(G):-
+  rdf_new_graph(tmp, G).
