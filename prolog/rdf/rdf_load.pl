@@ -1,11 +1,13 @@
 :- module(
   rdf_load,
   [
-    rdf_load_file/1, % +Spec
-    rdf_load_file/2, % +Spec
+    rdf_load_file/1, % +In
+    rdf_load_file/2, % +In
                      % +Options:list(compound)
-    rdf_load_triple/2 % +Spec
-                      % :Goal_2
+    rdf_load_triple/2, % +In
+                       % :Goal_2
+    rdf_read_from_graph/2 % +In
+                          % :Goal_1
   ]
 ).
 
@@ -21,6 +23,7 @@ Support for loading RDF data.
 :- use_module(library(option)).
 :- use_module(library(lists)).
 :- use_module(library(rdf)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).
@@ -41,24 +44,24 @@ Support for loading RDF data.
 
 
 
-%! rdf_load_file(+Spec) is det.
+%! rdf_load_file(+In) is det.
 % Wrapper around rdf_load_file/2 with default options.
 
-rdf_load_file(Spec):-
-  rdf_load_file(Spec, []).
+rdf_load_file(In):-
+  rdf_load_file(In, []).
 
 
-%! rdf_load_file(+Spec, +Options:list(compound)) is det.
+%! rdf_load_file(+In, +Options:list(compound)) is det.
 
-rdf_load_file(Spec, Opts1):-
+rdf_load_file(In, Opts1):-
   % Handle the graph name option.
   select_option(graph(G), Opts1, Opts2, _VAR),
 
   % In the absence of a graph name use the base IRI.
-  (var(G), base_iri(Spec, BaseIri) -> G = BaseIri ; true),
+  (var(G), base_iri(In, BaseIri) -> G = BaseIri ; true),
   
   merge_options([graph(G)], Opts2, Opts3),
-  rdf_stream_read(Spec, rdf_load_file0(Opts3), Opts2).
+  rdf_stream_read(In, rdf_load_file0(Opts3), Opts2).
 
 rdf_load_file0(Opts0, Read, M):-
   merge_options([base_iri(M.base_iri),format(M.rdf.format)], Opts0, Opts),
@@ -66,10 +69,10 @@ rdf_load_file0(Opts0, Read, M):-
 
 
 
-%! rdf_load_triple(+Spec, :Goal_2) is nondet.
+%! rdf_load_triple(+In, :Goal_2) is nondet.
 
-rdf_load_triple(Spec, Goal_2):-
-  rdf_stream_read(Spec, rdf_load_triple0(Goal_2), []).
+rdf_load_triple(In, Goal_2):-
+  rdf_stream_read(In, rdf_load_triple0(Goal_2), []).
 
 
 %! rdf_load_triple0(:Goal_2, +Metadata:dict, +Read:stream) is det.
@@ -88,3 +91,18 @@ rdf_load_triple0(Goal_2, M, Read):-
   process_rdf(Read, Goal_2, [base_uri(M.base_iri)]).
 rdf_load_triple0(_, _, M):-
   msg_warning("Unrecognized RDF serialization format: ~a~n", [M.format]).
+
+
+
+
+%! rdf_read_from_graph(+In, :Goal_1) is det.
+
+rdf_read_from_graph(In, Goal_1):-
+  setup_call_cleanup(
+    rdf_tmp_graph(G),
+    (
+      rdf_load_file(In, [graph(G)]),
+      call(Goal_1, G)
+    ),
+    rdf_unload_graph(G)
+  ).
