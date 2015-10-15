@@ -17,6 +17,7 @@ Support for loading RDF data.
 @version 2015/08, 2015/10
 */
 
+:- use_module(library(debug_ext)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
 :- use_module(library(rdf)).
@@ -70,17 +71,20 @@ rdf_load_file0(Opts0, Read, M):-
 rdf_load_triple(Spec, Goal_2):-
   rdf_stream_read(Spec, rdf_load_triple0(Goal_2), []).
 
-%! rdf_load_triple0(:Goal_2, +BaseIri:atom, +Format:atom, +Read:stream) is det.
 
-rdf_load_triple0(Goal_2, BaseIri, Format, Read):-
-  memberchk(Format, [nquads,ntriples]), !,
-  rdf_process_ntriples(Read, Goal_2, [base_uri(BaseIri)]).
-rdf_load_triple0(Goal_2, BaseIri, Format, Read):-
-  memberchk(Format, [trig,turtle]), !,
-  uuid_no_hyphen(Prefix0),
-  atomic_list_concat(['__',Prefix0,':'], Prefix),
-  rdf_process_turtle(Read, Goal_2, [anon_prefix(Prefix),base_uri(BaseIri)]).
-rdf_load_triple0(Goal_2, BaseIri, xml, Read):- !,
-  process_rdf(Read, Goal_2, [base_uri(BaseIri)]).
-rdf_load_triple0(_, _, Format, _):-
-  format(user_error, 'Unrecognized RDF serialization format: ~a~n', [Format]).
+%! rdf_load_triple0(:Goal_2, +Metadata:dict, +Read:stream) is det.
+
+rdf_load_triple0(Goal_2, M, Read):-
+  memberchk(M.rdf.format, [nquads,ntriples]), !,
+  rdf_process_ntriples(Read, Goal_2, [base_uri(M.base_iri)]).
+rdf_load_triple0(Goal_2, M, Read):-
+  memberchk(M.rdf.format, [trig,turtle]), !,
+  uuid_no_hyphen(UniqueId),
+  atomic_list_concat(['__',UniqueId,:], BNodePrefix),
+  Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri)],
+  rdf_process_turtle(Read, Goal_2, Opts).
+rdf_load_triple0(Goal_2, M, Read):-
+  xml == M.rdf.format, !,
+  process_rdf(Read, Goal_2, [base_uri(M.base_iri)]).
+rdf_load_triple0(_, _, M):-
+  msg_warning("Unrecognized RDF serialization format: ~a~n", [M.format]).
