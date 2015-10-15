@@ -44,7 +44,7 @@
      max_sort_threads(+nonneg)
    ]).
 :- predicate_options(rdf_clean/3, 3, [
-     format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml]),
+     format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml])),
      pass_to(rdf_clean0/4, 2),
      pass_to(rdf_stream_read/3, 3)
    ]).
