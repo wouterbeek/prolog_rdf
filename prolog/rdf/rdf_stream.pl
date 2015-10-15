@@ -3,10 +3,12 @@
   [
     base_iri/2, % +Input:atom
                 % -BaseIri:atom
-    rdf_stream_read/3, % +Spec
+    rdf_stream_read/3, % +In
                        % :Goal_2
                        % +Options:list(compound)
-    rdf_stream_write/3 % +Spec
+    rdf_stream_write/2, % +Out
+                        % :Goal_1
+    rdf_stream_write/3 % +Out
                        % :Goal_1
                        % +Options:list(compound)
   ]
@@ -38,6 +40,7 @@
 :- use_module(library(zlib)).
 
 :- meta_predicate(rdf_stream_read(+,2,+)).
+:- meta_predicate(rdf_stream_write(+,1)).
 :- meta_predicate(rdf_stream_write(+,1,+)).
 
 http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
@@ -47,15 +50,19 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
    ]).
 :- predicate_options(rdf_stream_read/3, 3, [
      pass_to(base_iri/3, 3),
-     format(+atom),
+     format(+oneof([nquads,ntriples,trig,triples,turtle,xml])),
      metadata(-dict)
+   ]).
+:- predicate_options(rdf_stream_write/3, 3, [
+     compress(+oneof([deflate,gzip])),
+     pass_to(open_any/5, 5)
    ]).
 
 
 
 
 
-%! rdf_stream_read(+Spec, :Goal_2, +Options:list(compound)) is det.
+%! rdf_stream_read(+In, :Goal_2, +Options:list(compound)) is det.
 % Goal_2 is applied to a read stream and a metadata dictionary.
 % The metadata dictionary consists of:
 %   * base_iri: atom
@@ -111,12 +118,12 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 %
 % The following options are supported:
 %   * base_iri(+atom)
-%   * format(+atom)
+%   * format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
 %   * metadata(-dict)
 
-rdf_stream_read(Spec, Goal_2, Opts):-
+rdf_stream_read(In, Goal_2, Opts):-
   % Determine the base IRI.
-  base_iri(Spec, BaseIri, Opts),
+  base_iri0(In, BaseIri, Opts),
 
   % Allow meta-data to be returned by this predicate.
   ignore(option(metadata(M), Opts)),
@@ -136,13 +143,13 @@ rdf_stream_read(Spec, Goal_2, Opts):-
   ArchOpts = [close_parent(false),format(all),format(raw)],
 
   setup_call_cleanup(
-    open_any(Spec, read, Read0, Close, HttpOpts),
+    open_any(In, read, Read0, Close, HttpOpts),
     (   is_http_error0(HttpOpts)
     ->  memberchk(status_code(StatusCode), HttpOpts),
         http_status_label(StatusCode, Label),
         throw(
           error(
-            permission_error(url,Spec),
+            permission_error(url,In),
             context(_,status(StatusCode,Label))
           )
         )
@@ -262,11 +269,18 @@ create_http_metadata0(Opts, M):-
 
 
 
-%! rdf_stream_write(+Spec, :Goal_1, +Options:list(compound)) is det.
+%! rdf_stream_write(+Out, :Goal_1) is det.
+% Wrapper around rdf_stream_write/3 with default options.
 
-rdf_stream_write(Spec, Goal_1, Opts):- !,
+rdf_stream_write(Out, Goal_1):-
+  rdf_stream_write(Out, Goal_1, []).
+
+  
+%! rdf_stream_write(+Out, :Goal_1, +Options:list(compound)) is det.
+
+rdf_stream_write(Out, Goal_1, Opts):- !,
   setup_call_cleanup(
-    open_any(Spec, write, Write0, Close, Opts),
+    open_any(Out, write, Write0, Close, Opts),
     (
       (   option(compress(Comp), Opts),
           must_be(oneof([deflate,gzip]), Comp)
