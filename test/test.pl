@@ -25,6 +25,11 @@
 :- use_module(library(mat/mat)).
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(mat/mat_print)).
+%/oaei
+:- use_module(library(oaei/oaei_build)).
+:- use_module(library(oaei/oaei_check)).
+:- use_module(library(oaei/oaei_file)).
+:- use_module(library(oaei/oaei_read)).
 %/owl
 :- use_module(library(owl/owl_build)).
 :- use_module(library(owl/owl_read)).
