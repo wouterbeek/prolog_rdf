@@ -22,6 +22,7 @@ Support for loading RDF data.
 :- use_module(library(debug_ext)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
+:- use_module(library(msg_ext)).
 :- use_module(library(rdf)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
