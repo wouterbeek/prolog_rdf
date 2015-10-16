@@ -32,6 +32,7 @@
 
 :- meta_predicate(rdf_write_to_graph(+,1)).
 :- meta_predicate(rdf_write_to_graph(+,1,+)).
+:- meta_predicate(rdf_write_to_graph0(1,+,+)).
 
 :- predicate_options(rdf_save_any/2, 2, [
      format(+oneof([cquads,ctriples,nquads,ntriples,trig,triples,turtle,xml])),

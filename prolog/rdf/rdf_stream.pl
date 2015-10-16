@@ -203,7 +203,7 @@ base_iri0(Input, BaseIri, _):-
 
 base_iri0(Msg, BaseIri) -->
   "[Base IRI] ",
-  Msg,
+  atom(Msg),
   ": ",
   iri(BaseIri).
 

@@ -32,6 +32,7 @@ Support for loading RDF data.
 :- use_module(library(uuid_ext)).
 
 :- meta_predicate(rdf_load_triple(+,2)).
+:- meta_predicate(rdf_read_from_graph(+,1)).
 
 :- predicate_options(rdf_load_file/2, 2, [
      pass_to(rdf_load_file0/4, 1),

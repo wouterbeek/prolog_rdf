@@ -113,7 +113,7 @@ rdf_clean0(Local0, Opts, Read, M0):-
   ),
 
   % Read and write all triples.
-  verbose(
+  debug_verbose(
     rdf(clean),
     setup_call_cleanup(
       open(Tmp, write, Write),
@@ -128,7 +128,7 @@ rdf_clean0(Local0, Opts, Read, M0):-
   M = M0.put(stream, MStream),
 
   % Sort unique.
-  verbose(
+  debug_verbose(
     rdf(clean),
     sort_file(Tmp, Opts),
     "Sorting cleaned triples file"
@@ -153,7 +153,7 @@ rdf_clean0(Local0, Opts, Read, M0):-
   atomic_list_concat([Local|Exts], ., Path),
 
   % Compress the file, according to user option.
-  verbose(
+  debug_verbose(
     rdf(clean),
     compress_file(Tmp, Compress, Path),
     "Compressing sorted triple file."
