@@ -7,6 +7,9 @@
                                % +Out
     oaei_load_rdf/2, % +In
                      % -Alignments:ordset(pair(iri))
+    oaei_load_rdf/3, % +In
+                     % -Alignments:ordset(pair(iri))
+                     % +Options:list(compound)
     oaei_load_tsv/2, % +In
                      % -Alignments:ordset(pair(iri))
     oaei_save_rdf/2, % +Out
@@ -31,6 +34,10 @@
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_save)).
 
+:- predicate_options(oaei_load_rdf/3, 3, [
+     pass_to(rdf_read_from_graph/3, 3)
+   ]).
+
 
 
 
@@ -54,7 +61,13 @@ oaei_convert_tsv_to_rdf(FromFile, ToFile):-
 %! oaei_load_rdf(+In, -Alignments:ordset(pair(iri))) is det.
 
 oaei_load_rdf(In, As):-
-  rdf_read_from_graph(In, oaei_load_rdf0(As)).
+  oaei_load_rdf(In, As, []).
+
+
+%! oaei_load_rdf(+In, -Alignments:ordset(pair(iri)), +Options:list(compound)) is det.
+
+oaei_load_rdf(In, As, Opts):-
+  rdf_read_from_graph(In, oaei_load_rdf0(As), Opts).
 
 oaei_load_rdf0(As, G):-
   aggregate_all(set(From-To), oaei_alignment(From, To, G), As).

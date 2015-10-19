@@ -6,8 +6,11 @@
                      % +Options:list(compound)
     rdf_load_triple/2, % +In
                        % :Goal_2
-    rdf_read_from_graph/2 % +In
+    rdf_read_from_graph/2, % +In
+                           % :Goal_1
+    rdf_read_from_graph/3 % +In
                           % :Goal_1
+                          % +Options:list(compound)
   ]
 ).
 
@@ -23,6 +26,7 @@ Support for loading RDF data.
 :- use_module(library(option)).
 :- use_module(library(lists)).
 :- use_module(library(msg_ext)).
+:- use_module(library(option)).
 :- use_module(library(rdf)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
@@ -33,6 +37,7 @@ Support for loading RDF data.
 
 :- meta_predicate(rdf_load_triple(+,2)).
 :- meta_predicate(rdf_read_from_graph(+,1)).
+:- meta_predicate(rdf_read_from_graph(+,1,+)).
 
 :- predicate_options(rdf_load_file/2, 2, [
      pass_to(rdf_load_file0/4, 1),
@@ -40,6 +45,9 @@ Support for loading RDF data.
    ]).
 :- predicate_options(rdf_load_file0/4, 1, [
      pass_to(rdf_load/2, 2)
+   ]).
+:- predicate_options(rdf_read_from_graph/3, 3, [
+     pass_to(rdf_load_file/2)
    ]).
 
 
@@ -98,12 +106,20 @@ rdf_load_triple0(_, _, M):-
 
 
 %! rdf_read_from_graph(+In, :Goal_1) is det.
+% Wrapper around rdf_read_from_graph/3 with default options.
 
 rdf_read_from_graph(In, Goal_1):-
+  rdf_read_from_graph(In, Goal_1, []).
+
+
+%! rdf_read_from_graph(+In, :Goal_1, +Options:list(compound)) is det.
+
+rdf_read_from_graph(In, Goal_1, Opts0):-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
-      rdf_load_file(In, [graph(G)]),
+      merge_options([graph(G)], Opts0, Opts),
+      rdf_load_file(In, Opts),
       call(Goal_1, G)
     ),
     rdf_unload_graph(G)
