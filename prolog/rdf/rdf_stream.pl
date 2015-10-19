@@ -48,10 +48,14 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 :- predicate_options(base_iri/3, 3, [
      base_iri(+atom)
    ]).
+:- predicate_options(base_iri0/3, 3, [
+     archive_entry(+dict),
+     pass_to(base_iri/3, 3)
+   ]).
 :- predicate_options(rdf_stream_read/3, 3, [
-     pass_to(base_iri/3, 3),
      format(+oneof([nquads,ntriples,trig,triples,turtle,xml])),
-     metadata(-dict)
+     metadata(-dict),
+     pass_to(base_iri0/3, 3)
    ]).
 :- predicate_options(rdf_stream_write/3, 3, [
      compress(+oneof([deflate,gzip])),
@@ -117,6 +121,7 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 %     * format: atom
 %
 % The following options are supported:
+%   * archive_entry(+dict)
 %   * base_iri(+atom)
 %   * format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
 %   * metadata(-dict)
@@ -189,6 +194,9 @@ rdf_stream_read(In, Goal_2, Opts):-
 %
 % @throws existence_error if no base IRI can be determined.
 
+base_iri0(_, BaseIri, Opts):-
+  option(archive_entry(M), Opts), !,
+  TODO!!!!!
 % Explicitly specified option takes precedence.
 base_iri0(_, BaseIri, Opts):-
   option(base_iri(BaseIri), Opts), !,
