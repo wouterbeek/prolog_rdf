@@ -32,13 +32,13 @@
 
 :- meta_predicate(rdf_write_to_graph(+,1)).
 :- meta_predicate(rdf_write_to_graph(+,1,+)).
-:- meta_predicate(rdf_write_to_graph0(1,+,+,+)).
+:- meta_predicate(rdf_write_to_graph(1,+,+,+)).
 
 :- predicate_options(rdf_save_any/2, 2, [
      format(+oneof([cquads,ctriples,nquads,ntriples,trig,triples,turtle,xml])),
      graph(+atom),
      pass_to(rdf_save_any0/4, 2),
-     pass_to(rdf_stream_write/3,3)
+     pass_to(rdf_call_on_stream/4, 4)
    ]).
 :- predicate_options(rdf_save_any0/4, 2, [
      pass_to(ctriples_write_graph/3, 3),
@@ -47,10 +47,10 @@
      pass_to(rdf_save_turtle/2, 2)
    ]).
 :- predicate_options(rdf_write_to_graph/3, 3, [
-     pass_to(rdf_stream_write/3, 3),
-     pass_to(rdf_write_to_graph0/3, 2)
+     pass_to(rdf_call_on_stream/4, 4),
+     pass_to(rdf_write_to_graph/4, 2)
    ]).
-:- predicate_options(rdf_write_to_graph0/3, 2, [
+:- predicate_options(rdf_write_to_graph/4, 2, [
      pass_to(rdf_save_any/2, 2)
    ]).
 
@@ -128,7 +128,7 @@ rdf_save_any(Out, Opts):-
   % Make sure the directory exists.
   (is_absolute_file_name(Out) -> create_file_directory(Out) ; true),
   
-  rdf_stream_write(Out, rdf_save_any0(Format, Opts), Opts).
+  rdf_call_on_stream(Out, write, rdf_save_any0(Format, Opts), Opts).
 
 
 % XML/RDF.
@@ -191,15 +191,15 @@ rdf_write_to_graph(Out, Goal_1):-
 %     Default is `cquads`.
 
 rdf_write_to_graph(Out, Goal_1, Opts):-
-  rdf_stream_write(Out, rdf_write_to_graph0(Goal_1, Opts), Opts).
+  rdf_call_on_stream(Out, write, rdf_write_to_graph(Goal_1, Opts), Opts).
 
-rdf_write_to_graph0(Goal_1, Opts0, _, Write):-
+rdf_write_to_graph(Goal_1, Opts1, _, Write):-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
       call(Goal_1, G),
-      merge_options([graph(G)], Opts0, Opts),
-      rdf_save_any(stream(Write), Opts)
+      merge_options([graph(G)], Opts1, Opts2),
+      rdf_save_any(stream(Write), Opts2)
     ),
     rdf_unload_graph(G)
   ).

@@ -31,7 +31,7 @@
 :- use_module(library(lists)).
 :- use_module(library(oaei/oaei_build)).
 :- use_module(library(oaei/oaei_read)).
-:- use_module(library(open_any2)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_save)).
 

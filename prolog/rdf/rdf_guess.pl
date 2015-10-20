@@ -25,7 +25,7 @@
 :- use_module(library(error)).
 :- use_module(library(memfile)).
 :- use_module(library(msg_ext)).
-:- use_module(library(open_any2)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml/sgml_ext)).
 :- use_module(library(typecheck)).

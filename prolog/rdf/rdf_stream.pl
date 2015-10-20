@@ -1,16 +1,10 @@
 :- module(
   rdf_stream,
   [
-    rdf_stream_read/2, % +In
-                       % :Goal_2
-    rdf_stream_read/3, % +In
-                       % :Goal_2
-                       % +Options:list(compound)
-    rdf_stream_write/2, % +Out
-                        % :Goal_2
-    rdf_stream_write/3 % +Out
-                       % :Goal_2
-                       % +Options:list(compound)
+    rdf_call_on_stream/4 % +In
+                         % +Mode:oneof([append,read,write])
+                         % :Goal_2
+                         % +Options:list(compound)
   ]
 ).
 
@@ -27,8 +21,10 @@
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(open_any2)).
+:- use_module(library(option)).
 :- use_module(library(os/archive_ext)).
+:- use_module(library(os/call_on_stream)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
@@ -36,36 +32,31 @@
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
-:- meta_predicate(rdf_stream_read(+,2)).
-:- meta_predicate(rdf_stream_read(+,2,+)).
-:- meta_predicate(rdf_stream_read0(2,+,+,+)).
-:- meta_predicate(rdf_stream_write(+,2)).
-:- meta_predicate(rdf_stream_write(+,2,+)).
+:- meta_predicate(rdf_call_on_stream(+,+,2,+)).
+:- meta_predicate(rdf_call_on_read_stream(2,+,+,+)).
+:- meta_predicate(rdf_call_on_write_stream(2,+,+)).
 
-:- predicate_options(rdf_stream_read/3, 3, [
+:- predicate_options(rdf_call_on_stream/4, 4, [
+     pass_to(call_on_stream/4, 4),
+     pass_to(rdf_call_on_read_stream/4, 2),
+     pass_to(rdf_http_plugin:rdf_extra_headers/2, 2)
+   ]).
+:- predicate_options(rdf_call_on_stream0/4, 2, [
+     pass_to(rdf_determine_format/3, 2)
+   ]).
+:- predicate_options(rdf_determine_format/3, 2, [
      format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
    ]).
-:- predicate_options(rdf_stream_write/3, 3, [
-     compress(+oneof([deflate,gzip])),
-     pass_to(open_any/5, 5)
-   ]).
 
 
 
 
 
-%! rdf_stream_read(+In, :Goal_2, +Options:list(compound)) is det.
-% Wrapper around rdf_stream_read/3 with default options.
-
-rdf_stream_read(In, Goal_2):-
-  rdf_stream_read(In, Goal_2, []).
-
-
-%! rdf_stream_read(+In, :Goal_2, +Options:list(compound)) is det.
+%! rdf_call_on_stream(+In, +Mode:oneof([append,read,write]), :Goal_2, +Options:list(compound)) is det.
 % Goal_2 is applied to a read stream and a metadata dictionary.
 % The metadata dictionary consists of:
 %   * base_iri: atom
-%   * compression:
+%   * compress:
 %     * filetype: oneof([block_device,
 %                        character_device,
 %                        directory,
@@ -120,46 +111,24 @@ rdf_stream_read(In, Goal_2):-
 %   * base_iri(+atom)
 %   * format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
 
-rdf_stream_read(In, Goal_2, Opts):-
-  rdf_http_plugin:rdf_extra_headers(RdfOpts, Opts),
-  setup_call_cleanup(
-    open_any2(In, read, Read, Close_0, [metadata(M)|RdfOpts]),
-    call_archive_entry(Read, rdf_stream_read0(Goal_2, [metadata(M)|Opts])),
-    close_any2(Close_0)
-  ).
-
-rdf_stream_read0(Goal_2, Opts, MCompress, Read):-
-  rdf_determine_format(Read, Opts, RdfFormat),
-  M = metadata{compression: MCompress, rdf: metadata{format: RdfFormat}},
-  call(Goal_2, M, Read).
-
-
-
-%! rdf_stream_write(+Out, :Goal_2) is det.
-% Wrapper around rdf_stream_write/3 with default options.
-
-rdf_stream_write(Out, Goal_2):-
-  rdf_stream_write(Out, Goal_2, []).
-
+rdf_call_on_stream(In, Mode, Goal_2, Opts1):-
+  read_mode(Mode), !,
+  rdf_http_plugin:rdf_extra_headers(Opts0, Opts1),
+  merge_options(Opts0, Opts1, Opts2),
+  call_on_stream(In, Mode, rdf_call_on_read_stream(Goal_2, Opts2), Opts1).
+rdf_call_on_stream(In, Mode, Goal_2, Opts):-
+  write_mode(Mode), !,
+  call_on_stream(In, Mode, rdf_call_on_write_stream(Goal_2), Opts).
+rdf_call_on_stream(_, Mode, _, _):-
+  domain_error(oneof([append,read,write]), Mode).
   
-%! rdf_stream_write(+Out, :Goal_2, +Options:list(compound)) is det.
+rdf_call_on_read_stream(Goal_2, Opts, M1, Read):-
+  rdf_determine_format(Read, Opts, Format),
+  M2 = metadata{compression: M1, rdf: metadata{format: Format}},
+  call(Goal_2, M2, Read).
 
-rdf_stream_write(Out, Goal_2, Opts0):- !,
-  merge_options([metadata(M1)], Opts0, Opts),
-  setup_call_cleanup(
-    open_any2(Out, write, Write0, Close_0, Opts),
-    (
-      (   option(compress(Comp), Opts),
-          must_be(oneof([deflate,gzip]), Comp)
-      ->  zopen(Write0, Write, [format(Comp)]),
-          put_dict(compress, M1, Comp, M2)
-      ;   Write = Write0,
-          M2 = M1
-      ),
-      call(Goal_2, M2, Write)
-    ),
-    close_any(Close_0)
-  ).
+rdf_call_on_write_stream(Goal_2, M, Write):-
+  call(Goal_2, M, Write).
 
 
 

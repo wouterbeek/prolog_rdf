@@ -7,7 +7,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(io_ext)).
+:- use_module(library(os/io_ext)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_read)).

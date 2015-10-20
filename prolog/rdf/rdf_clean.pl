@@ -87,7 +87,7 @@ rdf_clean(From, To, Opts):-
       RdfCleanOpts = RdfStreamOpts
   ),
 
-  rdf_stream_read(From, rdf_clean0(To, RdfCleanOpts), RdfStreamOpts).
+  rdf_call_on_stream(From, read, rdf_clean0(To, RdfCleanOpts), RdfStreamOpts).
 
 
 %! rdf_clean0(
