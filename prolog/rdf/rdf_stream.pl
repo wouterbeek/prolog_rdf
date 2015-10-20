@@ -124,7 +124,7 @@ rdf_call_on_stream(_, Mode, _, _):-
   
 rdf_call_on_read_stream(Goal_2, Opts, M1, Read):-
   rdf_determine_format(Read, Opts, Format),
-  M2 = metadata{compression: M1, rdf: metadata{format: Format}},
+  put_dict(rdf, M1, metadata{format: Format}, M2),
   call(Goal_2, M2, Read).
 
 rdf_call_on_write_stream(Goal_2, M, Write):-
