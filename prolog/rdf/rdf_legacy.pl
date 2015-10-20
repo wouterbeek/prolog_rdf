@@ -28,7 +28,7 @@ The **typed literals** used to be defined as the cartesian product of
 the Unicode strings in Normal Form C with the set of datatype URIs.
 
 @author Wouter Beek
-@version 2015/09
+@version 2015/09-2015/10
 */
 
 :- use_module(library(rdf/rdf_literal)).
@@ -64,7 +64,7 @@ rdf_is_simple_literal(T):-
 
 rdf_is_typed_literal(Lit):-
   Lit = literal(type(D,Lex)),
-  is_uri(D),
+  is_iri(D),
   atom(Lex).
 
 

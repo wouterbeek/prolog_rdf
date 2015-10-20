@@ -27,10 +27,11 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(csv_ext)).
-:- use_module(library(iostream)).
+:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(oaei/oaei_build)).
 :- use_module(library(oaei/oaei_read)).
+:- use_module(library(open_any2)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_save)).
 
@@ -85,7 +86,7 @@ oaei_load_tsv(File, As):-
 %! oaei_save_rdf(+Out, +Alignments:list(pair)) is det.
 
 oaei_save_rdf(In, As):-
-  rdf_write_to_graph(In, oaei_assert_alignments(As)).
+  rdf_write_to_graph(In, \G^oaei_assert_alignments(As, G)).
 
 
 
@@ -93,7 +94,7 @@ oaei_save_rdf(In, As):-
 
 oaei_save_tsv(In, As):-
   setup_call_cleanup(
-    open_any(In, write, Write, Close, []),
+    open_any2(In, write, Write, Close),
     forall(member(From-To, As), tsv_write_stream(Write, [row(From,To)])),
     close_any(Close)
   ).

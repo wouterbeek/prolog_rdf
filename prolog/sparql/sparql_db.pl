@@ -28,7 +28,7 @@
 Persistent store of SPARQL-related information.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(apply)).
@@ -201,7 +201,7 @@ sparql_endpoint_location(Endpoint, Location):-
 %         is not available at any location.
 
 sparql_endpoint_location(Endpoint, Mode, Location):-
-  is_uri(Endpoint), !,
+  is_iri(Endpoint), !,
   \+ sparql_endpoint_option(Location, Mode, _).
 sparql_endpoint_location(Endpoint, Mode, Location):-
   % NONDET: There may be multiple locations registered with an endpoint.

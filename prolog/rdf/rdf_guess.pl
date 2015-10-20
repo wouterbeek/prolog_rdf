@@ -23,9 +23,9 @@
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug_ext)).
 :- use_module(library(error)).
-:- use_module(library(iostream)).
 :- use_module(library(memfile)).
 :- use_module(library(msg_ext)).
+:- use_module(library(open_any2)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml/sgml_ext)).
 :- use_module(library(typecheck)).
@@ -45,7 +45,7 @@ rdf_guess_format(Spec, Format):-
 
 rdf_guess_format(Spec, Format0, Format):-
   setup_call_cleanup(
-    open_any(Spec, read, Read, Close, []),
+    open_any2(Spec, read, Read, Close),
     rdf_guess_format(Read, 0, Format0, Format),
     close_any(Close)
   ).
@@ -189,7 +189,7 @@ nt_graph --> nt_iriref(_).
 
 nt_iriref(Format) -->
   "<", !, ...(Cs), ">", !,
-  {atom_codes(Iri, Cs), (is_uri(Iri) -> true ; Format = turtleOrTrig)}.
+  {atom_codes(Iri, Cs), (is_iri(Iri) -> true ; Format = turtleOrTrig)}.
 nt_iriref(_) -->
   nt_iriref_prefix, ":", *(nonblank).
 

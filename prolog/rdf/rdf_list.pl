@@ -48,7 +48,7 @@ Support for reading/writing RDF lists.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/09
+@version 2015/07-2015/10
 */
 
 :- use_module(library(apply)).
@@ -110,7 +110,7 @@ rdf_assert_list_items0([H1|T1], L2, G):-
   ;   % Non-nested list.
       H2 = H1
   ),
-  (   (is_uri(H2) ; rdf_is_bnode(H2))
+  (   (is_iri(H2) ; rdf_is_bnode(H2))
   ->  rdf_assert2(L2, rdf:first, H2, G)
   ;   rdf_assert_literal_pl(L2, rdf:first, H2, G)
   ),

@@ -68,7 +68,7 @@ rdf_load_file(In, Opts1):-
   select_option(graph(G), Opts1, Opts2, _VAR),
 
   % In the absence of a graph name use the base IRI.
-  (var(G), base_iri(In, BaseIri) -> G = BaseIri ; true),
+  (var(G), option(base_iri(BaseIri), Opts1) -> G = BaseIri ; true),
   
   merge_options([graph(G)], Opts2, Opts3),
   rdf_stream_read(In, rdf_load_file0(Opts3), Opts2).

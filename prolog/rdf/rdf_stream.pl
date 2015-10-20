@@ -1,15 +1,15 @@
 :- module(
   rdf_stream,
   [
-    base_iri/2, % +Input:atom
-                % -BaseIri:atom
+    rdf_stream_read/2, % +In
+                       % :Goal_2
     rdf_stream_read/3, % +In
                        % :Goal_2
                        % +Options:list(compound)
     rdf_stream_write/2, % +Out
-                        % :Goal_1
+                        % :Goal_2
     rdf_stream_write/3 % +Out
-                       % :Goal_1
+                       % :Goal_2
                        % +Options:list(compound)
   ]
 ).
@@ -21,17 +21,14 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(archive)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(http/http_cookie)).
-:- use_module(library(http/http_deb)).
-:- use_module(library(http/http_ssl_plugin)).
-:- use_module(library(iostream)).
+:- use_module(library(open_any2)).
+:- use_module(library(os/archive_ext)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
@@ -39,23 +36,14 @@
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
+:- meta_predicate(rdf_stream_read(+,2)).
 :- meta_predicate(rdf_stream_read(+,2,+)).
-:- meta_predicate(rdf_stream_write(+,1)).
-:- meta_predicate(rdf_stream_write(+,1,+)).
+:- meta_predicate(rdf_stream_read0(2,+,+,+)).
+:- meta_predicate(rdf_stream_write(+,2)).
+:- meta_predicate(rdf_stream_write(+,2,+)).
 
-http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
-
-:- predicate_options(base_iri/3, 3, [
-     base_iri(+atom)
-   ]).
-:- predicate_options(base_iri0/3, 3, [
-     archive_entry(+dict),
-     pass_to(base_iri/3, 3)
-   ]).
 :- predicate_options(rdf_stream_read/3, 3, [
-     format(+oneof([nquads,ntriples,trig,triples,turtle,xml])),
-     metadata(-dict),
-     pass_to(base_iri0/3, 3)
+     format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
    ]).
 :- predicate_options(rdf_stream_write/3, 3, [
      compress(+oneof([deflate,gzip])),
@@ -64,6 +52,13 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 
 
 
+
+
+%! rdf_stream_read(+In, :Goal_2, +Options:list(compound)) is det.
+% Wrapper around rdf_stream_read/3 with default options.
+
+rdf_stream_read(In, Goal_2):-
+  rdf_stream_read(In, Goal_2, []).
 
 
 %! rdf_stream_read(+In, :Goal_2, +Options:list(compound)) is det.
@@ -124,180 +119,46 @@ http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 %   * archive_entry(+dict)
 %   * base_iri(+atom)
 %   * format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
-%   * metadata(-dict)
 
 rdf_stream_read(In, Goal_2, Opts):-
-  % Determine the base IRI.
-  base_iri0(In, BaseIri, Opts),
-
-  % Allow meta-data to be returned by this predicate.
-  ignore(option(metadata(M), Opts)),
-
-  % Set HTTP options.
-  rdf_http_plugin:rdf_extra_headers(HttpOpts1, Opts),
-  HttpOpts2 = [
-    final_url(_FinalIri),
-    headers(_HttpHeaders),
-    version(_HttpVersion),
-    status_code(_HttpStatusCode),
-    user_agent(plRdf)
-  ],
-  merge_options(HttpOpts1, HttpOpts2, HttpOpts),
-
-  % Set archive options.
-  ArchOpts = [close_parent(false),filter(all),format(all),format(raw)],
-
+  rdf_http_plugin:rdf_extra_headers(RdfOpts, Opts),
   setup_call_cleanup(
-    open_any(In, read, Read0, Close, HttpOpts),
-    (   is_http_error0(HttpOpts)
-    ->  memberchk(status_code(StatusCode), HttpOpts),
-        http_status_label(StatusCode, Label),
-        throw(
-          error(
-            permission_error(url,In),
-            context(_,status(StatusCode,Label))
-          )
-        )
-    ;   setup_call_cleanup(
-          archive_open(Read0, Arch, ArchOpts),
-          forall(
-            archive_data_stream(Arch, Read, [meta_data(MCompress)]),
-            call_cleanup(
-              (
-                rdf_determine_format(Read, Opts, Format),
-                create_metadata0(BaseIri, HttpOpts2, MCompress, Format, M),
-                call(Goal_2, Read, M)
-              ),
-              close(Read)
-            )
-          ),
-          archive_close(Arch)
-        )
-    ),
-    close_any(Close)
+    open_any2(In, read, Read, Close_0, [metadata(M)|RdfOpts]),
+    call_archive_entry(Read, rdf_stream_read0(Goal_2, [metadata(M)|Opts])),
+    close_any2(Close_0)
   ).
 
-
-
-%! base_iri0(+Input, -BaseIri:atom, +Options:list(compound)) is det.
-% Succeeds if BaseIri is the base IRI of Input.
-%
-% The base IRI can be determined in the following ways:
-%   1. The user sets the base IRI in Options.
-%   2. Input if it is an IRI, without the fragment component.
-%   3. Input if it is a file name, in which case it is converted
-%      to an IRI of scheme `file'.
-%
-% The following options are supported:
-%   * base_iri(+atom)
-%     The base IRI that is explicitly set by the user.
-%
-% @throws existence_error if no base IRI can be determined.
-
-base_iri0(_, BaseIri, Opts):-
-  option(archive_entry(M), Opts), !,
-  TODO!!!!!
-% Explicitly specified option takes precedence.
-base_iri0(_, BaseIri, Opts):-
-  option(base_iri(BaseIri), Opts), !,
-  dcg_debug(rdf_stream, base_iri0("Explicitly set by user", BaseIri)).
-% Stream without option throws warning.
-base_iri0(Stream, _, _):-
-  is_stream(Stream), !,
-  existence_error(base_iri, Stream).
-base_iri0(Input, BaseIri, _):-
-  base_iri(Input, BaseIri),
-  dcg_debug(rdf_stream, base_iri0("Based on input IRI", BaseIri)).
-
-base_iri0(Msg, BaseIri) -->
-  "[Base IRI] ",
-  atom(Msg),
-  ": ",
-  iri(BaseIri).
+rdf_stream_read0(Goal_2, Opts, MCompress, Read):-
+  rdf_determine_format(Read, Opts, RdfFormat),
+  M = metadata{compression: MCompress, rdf: metadata{format: RdfFormat}},
+  call(Goal_2, M, Read).
 
 
 
-%! is_http_error0(+Options:list(compound)) is semidet.
-% Succeeds if Options contains an HTTP status code
-% that describes an error condition.
-
-is_http_error0(Opts):-
-  option(status_code(StatusCode), Opts),
-  ground(StatusCode),
-  between(400, 599, StatusCode).
-
-
-
-%! create_metadata(
-%!   +BaseIri:atom,
-%!   +HttpOptions:list(compound),
-%!   +CompressionMetadata:dict,
-%!   +RdfFormat:atom,
-%!   -Metadata:dict
-%! ) is det.
-
-% Metadata for an input file.
-create_metadata0(BaseIri, _, MCompress, Format, M):-
-  is_file_iri(BaseIri), !,
-  M = metadata{
-	base_iri: BaseIri,
-	compression: MCompress,
-	input_type: file,
-	rdf: metadata{format: Format}
-      }.
-% Metadata for an input IRI.
-create_metadata0(BaseIri, HttpOpts, MCompress, Format, M):-
-  create_http_metadata0(HttpOpts, MHttp),
-  M = metadata{
-	base_iri: BaseIri,
-	compression: MCompress,
-	http: MHttp,
-	input_type: iri,
-	rdf: metadata{format: Format}
-      }.
-
-
-%! create_http_metadata0(+Options:list(compound), -Metadata:dict) is det.
-
-create_http_metadata0(Opts, M):-
-  Opts = [
-    final_url(FinalIri),
-    headers(Headers),
-    version(Version),
-    status_code(StatusCode),
-    user_agent(_)
-  ],
-  create_grouped_sorted_dict(Headers, http_headers, MHeaders),
-  M = metadata{
-	final_iri: FinalIri,
-	headers: MHeaders,
-	status_code: StatusCode,
-	version: Version
-      }.
-
-
-
-%! rdf_stream_write(+Out, :Goal_1) is det.
+%! rdf_stream_write(+Out, :Goal_2) is det.
 % Wrapper around rdf_stream_write/3 with default options.
 
-rdf_stream_write(Out, Goal_1):-
-  rdf_stream_write(Out, Goal_1, []).
+rdf_stream_write(Out, Goal_2):-
+  rdf_stream_write(Out, Goal_2, []).
 
   
-%! rdf_stream_write(+Out, :Goal_1, +Options:list(compound)) is det.
+%! rdf_stream_write(+Out, :Goal_2, +Options:list(compound)) is det.
 
-rdf_stream_write(Out, Goal_1, Opts):- !,
+rdf_stream_write(Out, Goal_2, Opts0):- !,
+  merge_options([metadata(M1)], Opts0, Opts),
   setup_call_cleanup(
-    open_any(Out, write, Write0, Close, Opts),
+    open_any2(Out, write, Write0, Close_0, Opts),
     (
       (   option(compress(Comp), Opts),
           must_be(oneof([deflate,gzip]), Comp)
-      ->  zopen(Write0, Write, [format(Comp)])
-      ;   Write = Write0
+      ->  zopen(Write0, Write, [format(Comp)]),
+          put_dict(compress, M1, Comp, M2)
+      ;   Write = Write0,
+          M2 = M1
       ),
-      call(Goal_1, Write)
+      call(Goal_2, M2, Write)
     ),
-    close_any(Close)
+    close_any(Close_0)
   ).
 
 
@@ -305,29 +166,6 @@ rdf_stream_write(Out, Goal_1, Opts):- !,
 
 
 % HELPERS %
-
-%! base_iri(+Input:atom, -BaseIri:atom) is det.
-
-% The IRI that is read from, sans the fragment component.
-base_iri(Iri, BaseIri):-
-  is_uri(Iri), !,
-  % Remove the fragment part, if any.
-  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
-  uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)).
-% The file is treated as an IRI.
-base_iri(File, BaseIri):-
-  uri_file_name(Iri, File),
-  base_iri(Iri, BaseIri).
-
-
-
-%! is_file_iri(+Iri:atom) is semidet.
-% Succeeds if Iri is syntactically an IRI that denotes a file.
-
-is_file_iri(Iri):-
-  uri_components(Iri, uri_components(file,_,_,_,_)).
-
-
 
 %! rdf_determine_format(
 %!   +Read:stream,

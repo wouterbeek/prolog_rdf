@@ -224,7 +224,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
 location_suffix([filter(_)|T], Suffix):- !,
   location_suffix(T, Suffix).
 location_suffix([Archive|T], Suffix):-
-  archive_meta_data{name:data, format:raw} :< Archive, !,
+  metadata{name:data, format:raw} :< Archive, !,
   location_suffix(T, Suffix).
 location_suffix([Archive|T], Suffix):-
   (   location_suffix(T, Suffix0)

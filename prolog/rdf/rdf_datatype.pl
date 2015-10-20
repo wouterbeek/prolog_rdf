@@ -201,7 +201,7 @@ rdf_interpreted_term(X, Y):-
   is_list(X), !,
   maplist(rdf_interpreted_term, X, Y).
 rdf_interpreted_term(X, X):-
-  is_uri(X), !.
+  is_iri(X), !.
 rdf_interpreted_term(X, X):-
   rdf_is_bnode(X), !.
 rdf_interpreted_term(X, Y):-

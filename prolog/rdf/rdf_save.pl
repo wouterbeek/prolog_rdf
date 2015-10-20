@@ -1,12 +1,12 @@
 :- module(
   rdf_save,
   [
-    rdf_save_any/1, % ?Out
-    rdf_save_any/2, % ?Out
+    rdf_save_any/1, % ?Output
+    rdf_save_any/2, % ?Output
                     % +Options:list(compound)
-    rdf_write_to_graph/2, % +Out
+    rdf_write_to_graph/2, % +Output
                           % :Goal_1
-    rdf_write_to_graph/3 % +Out
+    rdf_write_to_graph/3 % +Output
                          % :Goal_1
                          % +Options:list(compound)
   ]
@@ -32,15 +32,15 @@
 
 :- meta_predicate(rdf_write_to_graph(+,1)).
 :- meta_predicate(rdf_write_to_graph(+,1,+)).
-:- meta_predicate(rdf_write_to_graph0(1,+,+)).
+:- meta_predicate(rdf_write_to_graph0(1,+,+,+)).
 
 :- predicate_options(rdf_save_any/2, 2, [
      format(+oneof([cquads,ctriples,nquads,ntriples,trig,triples,turtle,xml])),
      graph(+atom),
-     pass_to(rdf_save_any0/3, 2),
+     pass_to(rdf_save_any0/4, 2),
      pass_to(rdf_stream_write/3,3)
    ]).
-:- predicate_options(rdf_save_any0/3, 2, [
+:- predicate_options(rdf_save_any0/4, 2, [
      pass_to(ctriples_write_graph/3, 3),
      pass_to(rdf_save/2, 2),
      pass_to(rdf_save_trig/2, 2),
@@ -58,14 +58,14 @@
 
 
 
-%! rdf_save_any(+Out) is det.
+%! rdf_save_any(+Output) is det.
 % Wrapper around rdf_save_any/2 with default options.
 
 rdf_save_any(Out):-
   rdf_save_any(Out, []).
 
 
-%! rdf_save_any(+Out, +Options:list(compound)) is det.
+%! rdf_save_any(+Output, +Options:list(compound)) is det.
 % The following options are supported:
 %   * format(+oneof([cquads,ctriples,nquads,ntriples,trig,triples,turtle,xml]))
 %   * graph(+atom)
@@ -132,16 +132,16 @@ rdf_save_any(Out, Opts):-
 
 
 % XML/RDF.
-rdf_save_any0(xml, Opts, Write):- !,
+rdf_save_any0(xml, Opts, _, Write):- !,
   rdf_save(Write, Opts).
 % N-Triples.
-rdf_save_any0(ntriples, Opts, Write):- !,
-  rdf_save_any0(ctriples, Opts, Write).
+rdf_save_any0(ntriples, Opts, M, Write):- !,
+  rdf_save_any0(ctriples, Opts, M, Write).
 % N-Quads.
-rdf_save_any0(nquads, Opts, Write):- !,
-  rdf_save_any0(cquads, Opts, Write).
+rdf_save_any0(nquads, Opts, M, Write):- !,
+  rdf_save_any0(cquads, Opts, M, Write).
 % C-Triples / C-Quads
-rdf_save_any0(Format, Opts0, Write):-
+rdf_save_any0(Format, Opts0, _, Write):-
   (   Format == ctriples
   ->  CFormat = triples
   ;   Format == cquads
@@ -152,16 +152,16 @@ rdf_save_any0(Format, Opts0, Write):-
   merge_options([format(CFormat)], Opts0, Opts),
   ctriples_write_graph(Write, G, Opts).
 % TriG.
-rdf_save_any0(trig, Opts, Write):- !,
+rdf_save_any0(trig, Opts, _, Write):- !,
   rdf_save_trig(Write, Opts).
 % Binary storage format.
-rdf_save_any0(triples, Opts, Write):- !,
+rdf_save_any0(triples, Opts, _, Write):- !,
   (   option(graph(G), Opts)
   ->  rdf_save_db(Write, G)
   ;   rdf_save_db(Write)
   ).
 % Turtle.
-rdf_save_any0(turtle, Opts0, Write):- !,
+rdf_save_any0(turtle, Opts0, _, Write):- !,
   merge_options(
     [only_known_prefixes(true),tab_distance(0),user_prefixes(true)],
     Opts0,
@@ -193,10 +193,7 @@ rdf_write_to_graph(Out, Goal_1):-
 rdf_write_to_graph(Out, Goal_1, Opts):-
   rdf_stream_write(Out, rdf_write_to_graph0(Goal_1, Opts), Opts).
 
-
-%! rdf_write_to_graph0(:Goal_1, +Options:list(compound), +Write:stream) is det.
-
-rdf_write_to_graph0(Goal_1, Opts0, Write):-
+rdf_write_to_graph0(Goal_1, Opts0, _, Write):-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
