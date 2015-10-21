@@ -1,14 +1,14 @@
 :- module(
   rdf_load,
   [
-    rdf_load_file/1, % +In
-    rdf_load_file/2, % +In
+    rdf_load_file/1, % +Input
+    rdf_load_file/2, % +Input
                      % +Options:list(compound)
-    rdf_load_triple/2, % +In
+    rdf_load_triple/2, % +Input
                        % :Goal_2
-    rdf_read_from_graph/2, % +In
+    rdf_read_from_graph/2, % +Input
                            % :Goal_1
-    rdf_read_from_graph/3 % +In
+    rdf_read_from_graph/3 % +Input
                           % :Goal_1
                           % +Options:list(compound)
   ]
@@ -55,14 +55,14 @@ Support for loading RDF data.
 
 
 
-%! rdf_load_file(+In) is det.
+%! rdf_load_file(+Input) is det.
 % Wrapper around rdf_load_file/2 with default options.
 
 rdf_load_file(In):-
   rdf_load_file(In, []).
 
 
-%! rdf_load_file(+In, +Options:list(compound)) is det.
+%! rdf_load_file(+Input, +Options:list(compound)) is det.
 
 rdf_load_file(In, Opts1):-
   % Handle the graph name option.
@@ -80,7 +80,7 @@ rdf_load_file(M, Read, Opts0):-
 
 
 
-%! rdf_load_triple(+In, :Goal_2) is nondet.
+%! rdf_load_triple(+Input, :Goal_2) is nondet.
 
 rdf_load_triple(In, Goal_2):-
   rdf_call_on_stream(In, read, rdf_load_triple(Goal_2), []).
@@ -106,14 +106,14 @@ rdf_load_triple(_, _, M):-
 
 
 
-%! rdf_read_from_graph(+In, :Goal_1) is det.
+%! rdf_read_from_graph(+Input, :Goal_1) is det.
 % Wrapper around rdf_read_from_graph/3 with default options.
 
 rdf_read_from_graph(In, Goal_1):-
   rdf_read_from_graph(In, Goal_1, []).
 
 
-%! rdf_read_from_graph(+In, :Goal_1, +Options:list(compound)) is det.
+%! rdf_read_from_graph(+Input, :Goal_1, +Options:list(compound)) is det.
 
 rdf_read_from_graph(In, Goal_1, Opts0):-
   setup_call_cleanup(
