@@ -71,7 +71,7 @@
 
 
 
-%! rdf_canonical_map(+Datatype:iri, +Value, -Literal:compound) is det.
+%! rdf_canonical_map(+Datatype:iri, +Value, -CanonicalLiteral:compound) is det.
 % Maps RDF datatyped values onto a unique / canonical lexical form.
 %
 % Supports the following RDF datatypes:
@@ -218,14 +218,21 @@ rdf_interpreted_term(X, Y):-
 % this mapping is defined between literal compound terms.
 
 rdf_lexical_canonical_map(Lit1, Lit2):-
-  rdf_lexical_map(Lit1, Val),
-  rdf_literal_data(datatype, Lit1, D),
+  rdf_lexical_map(Lit1, D, Val),
   rdf_canonical_map(D, Val, Lit2).
 
 
 
-%! rdf_lexical_map(+Literal:compound, +Value) is semidet.
-%! rdf_lexical_map(+Literal:compound, -Value) is det.
+%! rdf_lexical_map(+Literal:compound, +Datatype:iri, +Value) is semidet.
+%! rdf_lexical_map(+Literal:compound, -Datatype:iri, -Value) is det.
+% Wrapper around rdf_lexical_map/3.
+
+rdf_lexical_map(Lit, Val):-
+  rdf_lexical_map(Lit, _, Val).
+
+
+%! rdf_lexical_map(+Literal:compound, +Datatype:iri, +Value) is semidet.
+%! rdf_lexical_map(+Literal:compound, -Datatype:iri, -Value) is det.
 % Maps lexical forms onto the values they represent.
 %
 % Supports the following RDF datatypes:
@@ -240,7 +247,7 @@ rdf_lexical_canonical_map(Lit1, Lit2):-
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
 % Typed literal (as per RDF 1.0 specification).
-rdf_lexical_map(literal(type(D,Lex)), Val):- !,
+rdf_lexical_map(literal(type(D,Lex)), D, Val):- !,
   (   rdf_global_id(rdf:'HTML', D)
   ->  atom_to_html_dom(Lex, Val)
   ;   rdf_global_id(rdf:'XMLLiteral', D)
@@ -248,11 +255,12 @@ rdf_lexical_map(literal(type(D,Lex)), Val):- !,
   ;   xsd_lexical_map(D, Lex, Val)
   ).
 % Language-tagged string.
-rdf_lexical_map(literal(lang(LTag0,Lex)), Lex-LTag):- !,
+rdf_lexical_map(literal(lang(LTag0,Lex)), D, Lex-LTag):- !,
+  rdf_global_id(rdf:langString, D),
   downcase_atom(LTag0, LTag).
 % Simple literal (as per RDF 1.0 specification)
 % now assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-rdf_lexical_map(literal(Lex), Val):-
+rdf_lexical_map(literal(Lex), D, Val):-
   rdf_global_id(xsd:string, D),
   rdf_lexical_map(literal(type(D,Lex)), Val).
 
