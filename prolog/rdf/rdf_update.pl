@@ -2,11 +2,10 @@
   rdf_update,
   [
     rdf_canonize_graph/1, % ?Graph:atom
-    rdf_canonize_triple/5, % +Subject:or([bnode,iri])
-                           % +Predicate:iri
-                           % +Datatype:iri
-                           % +LexicalForm:atom
-                           % +Graph:atom
+    rdf_canonize_triple/4, % ?Subject:or([bnode,iri])
+                           % ?Predicate:iri
+                           % ?Object:rdf_term
+                           % ?Graph:atom
     rdf_cp/5, % +FromGraph:atom
               % ?Subject:or([bnode,iri])
               % ?Predicate:iri
@@ -30,9 +29,11 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/08, 2015/10
 */
 
+:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_debug)).
 :- use_module(library(debug_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
@@ -40,7 +41,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(xsd/xsd)).
 
-:- rdf_meta(rdf_canonize_triple(r,r,r,+,+)).
+:- rdf_meta(rdf_canonize_triple(r,r,o,?)).
 :- rdf_meta(rdf_cp(+,r,r,o,+)).
 :- rdf_meta(rdf_increment(r,r,-,+,-)).
 :- rdf_meta(rdf_mv(+,r,r,o,+)).
@@ -58,8 +59,8 @@ Higher-level update operations performed on RDF data.
 
 rdf_canonize_graph(G):-
   forall(
-    rdf2(S, P, literal(type(D,Lex)), G),
-    rdf_canonize_triple(S, P, D, Lex, G)
+    (rdf(S, P, O, G), rdf_is_literal(O)),
+    rdf_canonize_triple(S, P, O, G)
   ).
 
 
@@ -67,30 +68,25 @@ rdf_canonize_graph(G):-
 %! rdf_canonize_triple(
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
-%!   ?Datatype:iri,
-%!   ?LexicalForm:atom,
+%!   ?Object:rdf_term,
 %!   ?Graph:atom
-%! ) is det.
+%! ) is nondet.
 % Updates a triple whose object term is an RDF literal
 % so as to ensure that the same value is denote,
 % but by the canonical lexical form for that value.
 
-rdf_canonize_triple(S, P, D, Lex, G):-
-  xsd_datatype(D),
-  forall(
-    rdf(S, P, literal(Lit0), G),
-    (
-      rdf_lexical_canonical_map(literal(Lit0), CLex),
-
-      % Only changes need to be written.
-      Lex \== CLex,
-
-      % Perform the update.
-      rdf_transaction((
-        rdf_retractall2(S, P, literal(type(D,Lex)), G),
-        rdf_assert2(S, P, literal(type(D,CLex)), G)
+rdf_canonize_triple(S, P, O1, G):-
+  rdf(S, P, O1, G),
+  rdf_is_literal(O1),
+  rdf_lexical_canonical_map(O1, O2),
+  (   O1 \== O2
+  ->  rdf_update(S, P, O1, G, object(O2)),
+      dcg_debug(rdf(update), (
+        rdf_print_statement(S, P, O1, G, []), nl,
+        "====>", nl,
+        rdf_print_statement(S, P, O2, G, []), nl
       ))
-    )
+  ;   true
   ).
 
 
