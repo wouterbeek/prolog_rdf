@@ -51,7 +51,7 @@
 :- predicate_options(rdf_clean0/4, 2, [
      compress(+oneof([deflate,gzip,none])),
      metadata(-dict),
-     metadata(+boolean),
+     show_metadata(+boolean),
      pass_to(sort_file/2, 2)
    ]).
 :- predicate_options(sort_file/2, 2, [
@@ -73,6 +73,7 @@
 %      The RDF serialization format of the input.
 %      When absent this is guessed heuristically.
 %    * metadata(-dict)
+%    * show_metadata(+boolean)
 
 rdf_clean(From, To, Opts):-
   % Process output RDF serialization option.
@@ -98,6 +99,7 @@ rdf_clean(From, To, Opts):-
 %! ) is det.
 
 rdf_clean0(Local0, Opts, M0, Read):-
+  gtrace,
   ignore(option(metadata(M0), Opts)),
 
   % Process data compression option.
@@ -160,7 +162,7 @@ rdf_clean0(Local0, Opts, M0, Read):-
   ),
 
   % Print metadata.
-  if_option(metadata(true), Opts, rdf_clean_metadata(M)).
+  if_option(show_metadata(true), Opts, rdf_clean_metadata(M)).
 
 
 %! rdf_clean0(+Read:stream, +MetaData:dict, +Write:stream) is det.
