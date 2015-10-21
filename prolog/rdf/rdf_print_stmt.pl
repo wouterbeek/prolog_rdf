@@ -69,6 +69,7 @@
 :- rdf_meta(rdf_print_quadruples(t,+)).
 :- rdf_meta(rdf_print_statement(t)).
 :- rdf_meta(rdf_print_statement(t,+)).
+:- rdf_meta(rdf_print_statement(t,r,r,?,+,?,?)).
 :- rdf_meta(rdf_print_statements(t)).
 :- rdf_meta(rdf_print_statements(t,+)).
 :- rdf_meta(rdf_print_triple(t)).

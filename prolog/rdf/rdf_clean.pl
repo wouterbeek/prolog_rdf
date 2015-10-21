@@ -2,7 +2,7 @@
   rdf_clean,
   [
     rdf_clean/3 % +From
-	        % ?To:atom
+                % ?To:atom
                 % +Options:list(compound)
   ]
 ).
@@ -93,11 +93,11 @@ rdf_clean(From, To, Opts):-
 %! rdf_clean0(
 %!   ?To:atom,
 %!   +Options:list(compound),
-%!   +Read:stream,
-%!   +MetaData:dict
+%!   +MetaData:dict,
+%!   +Read:stream
 %! ) is det.
 
-rdf_clean0(Local0, Opts, Read, M0):-
+rdf_clean0(Local0, Opts, M0, Read):-
   ignore(option(metadata(M0), Opts)),
 
   % Process data compression option.
