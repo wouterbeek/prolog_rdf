@@ -336,12 +336,6 @@ rdf_print_subject(S, Opts) -->
 
 
 %! rdf_print_term(+Term:rdf_term)// is det.
-
-rdf_print_term(T) -->
-  rdf_print_term(T, []).
-
-
-%! rdf_print_term(+Term:rdf_term)// is det.
 % Wrapper around rdf_print_term//2 with default options.
 
 rdf_print_term(T) -->
