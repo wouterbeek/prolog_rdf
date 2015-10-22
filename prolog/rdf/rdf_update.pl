@@ -32,12 +32,14 @@ Higher-level update operations performed on RDF data.
 @version 2015/07-2015/08, 2015/10
 */
 
+:- use_module(library(dcg/dcg_arrow)).
+:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(debug_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_print_stmt)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(xsd/xsd)).
 
@@ -82,9 +84,10 @@ rdf_canonize_triple(S, P, O1, G):-
   (   O1 \== O2
   ->  rdf_update(S, P, O1, G, object(O2)),
       dcg_debug(rdf(update), (
-        rdf_print_statement(S, P, O1, G, []), nl,
-        "====>", nl,
-        rdf_print_statement(S, P, O2, G, []), nl
+        transition(
+          rdf_print_statement(S, P, O1, G, []),
+          rdf_print_statement(S, P, O2, G, [])
+        )
       ))
   ;   true
   ).
@@ -108,9 +111,13 @@ rdf_cp(FromG, S, P, O, ToG):-
 rdf_cp0(Action, FromG, S, P, O, ToG):-
   forall(rdf2(S, P, O, FromG), (
     rdf_assert2(S, P, O, ToG),
-    if_debug(rdf(update), (
-      with_output_to(atom(T), rdf_print_triple(S, P, O)),
-      debug(rdf(update), '[~a] ~a   -----~a----->   ~a~n', [Action,FromG,T,ToG])
+    dcg_debug(rdf(update), (
+      bracketed(square, atom(Action)),
+      " ",
+      transition(
+        rdf_print_statement(S, P, O, FromG, []),
+        rdf_print_statement(S, P, O, ToG, [])
+      )
     ))
   )).
 
