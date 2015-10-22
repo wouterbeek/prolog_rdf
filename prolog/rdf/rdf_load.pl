@@ -112,7 +112,6 @@ rdf_call_on_triple(_, _, M):-
 
 
 
-
 %! rdf_read_from_graph(+Input, :Goal_1) is det.
 % Wrapper around rdf_read_from_graph/3 with default options.
 
