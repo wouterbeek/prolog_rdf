@@ -4,8 +4,8 @@
     rdf_load_file/1, % +Input
     rdf_load_file/2, % +Input
                      % +Options:list(compound)
-    rdf_load_triple/2, % +Input
-                       % :Goal_2
+    rdf_call_on_triple/2, % +Input
+                          % :Goal_2
     rdf_read_from_graph/2, % +Input
                            % :Goal_1
     rdf_read_from_graph/3 % +Input
@@ -31,12 +31,14 @@ Support for loading RDF data.
 :- use_module(library(rdf)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
 :- use_module(library(uuid_ext)).
 
-:- meta_predicate(rdf_load_triple(+,2)).
+:- meta_predicate(rdf_call_on_triple(+,2)).
+:- meta_predicate(rdf_call_on_triple(2,+,+)).
 :- meta_predicate(rdf_read_from_graph(+,1)).
 :- meta_predicate(rdf_read_from_graph(+,1,+)).
 
@@ -80,28 +82,33 @@ rdf_load_file(M, Read, Opts0):-
 
 
 
-%! rdf_load_triple(+Input, :Goal_2) is nondet.
+%! rdf_call_on_triple(+Input, :Goal_2) is nondet.
 
-rdf_load_triple(In, Goal_2):-
-  rdf_call_on_stream(In, read, rdf_load_triple(Goal_2), []).
+rdf_call_on_triple(In, Goal_2):-
+  rdf_call_on_stream(In, read, rdf_call_on_triple(Goal_2), []).
 
 
-%! rdf_load_triple(:Goal_2, +Metadata:dict, +Read:stream) is det.
+%! rdf_call_on_triple(:Goal_2, +Metadata:dict, +Read:stream) is det.
+% call(:Goal_2, +Statements:list(compound), ?Graph:atom)
 
-rdf_load_triple(Goal_2, M, Read):-
+rdf_call_on_triple(Goal_2, M, Read):-
   memberchk(M.rdf.format, [nquads,ntriples]), !,
   rdf_process_ntriples(Read, Goal_2, [base_uri(M.base_iri)]).
-rdf_load_triple(Goal_2, M, Read):-
+rdf_call_on_triple(Goal_2, M, Read):-
   memberchk(M.rdf.format, [trig,turtle]), !,
   uuid_no_hyphen(UniqueId),
   atomic_list_concat(['__',UniqueId,:], BNodePrefix),
   Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri)],
   rdf_process_turtle(Read, Goal_2, Opts).
-rdf_load_triple(Goal_2, M, Read):-
+rdf_call_on_triple(Goal_2, M, Read):-
   xml == M.rdf.format, !,
   process_rdf(Read, Goal_2, [base_uri(M.base_iri)]).
-rdf_load_triple(_, _, M):-
-  msg_warning("Unrecognized RDF serialization format: ~a~n", [M.format]).
+rdf_call_on_triple(Goal_2, M, Read):-
+  rdfa == M.rdf.format, !,
+  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
+  call(Goal_2, Ts, _).
+rdf_call_on_triple(_, _, M):-
+  msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
 
 
 
