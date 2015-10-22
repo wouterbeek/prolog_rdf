@@ -24,14 +24,16 @@ datatype preferences in order to perform limited-scale crawling.
 --
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(count_ext)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_debug)).
-:- use_module(library(owl/owl_api)).
+:- use_module(library(debug_ext)).
+:- use_module(library(msg_ext)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
@@ -55,7 +57,7 @@ lod_cache:triple_to_iri(rdf(_,P,O), O):-
   \+ rdf_is_literal(O),
   \+ rdf_is_bnode(O).
 
-:- thread_local(count_triples/1).
+
 
 
 
@@ -63,7 +65,9 @@ show_cache:-
   aggregate_all(count, lod_cached(_), N2),
   aggregate_all(count, lod_caching(_), N3),
   aggregate_all(count, in_lod_pool(_), N1),
-  format(user_output, 'LOD Pool~n  DONE:  ~D~n  DOING: ~D~n  TODO:  ~D~n', [N1,N2,N3]).
+  msg_normal("LOD Pool~n  DONE:  ~D~n  DOING: ~D~n  TODO:  ~D~n", [N1,N2,N3]).
+
+
 
 %! add_to_lod_pool(+Iri:atom) is det.
 
@@ -79,7 +83,7 @@ add_to_lod_pool(Iri):-
     ->  true
     ;   % Add the RDF Name to the LOD Pool.
         assert(in_lod_pool(Iri)),
-        dcg_debug(lod_cache(pool), added_to_pool(Iri))
+        dcg_debug(lod(cache), added_to_pool(Iri))
     )
   )).
 
@@ -88,19 +92,22 @@ add_to_lod_pool(Iri):-
 %! lod_cache_iri(+Iri:iri) is det.
 
 lod_cache_iri(Iri):-
-  retractall(count_triples(_)), assert(count_triples(0)),
-  rdf_load_triple(Iri, rdf_assert_triples0).
+  call_collect_messages(rdf_call_on_triple(Iri, rdf_cache_triples)).
 
-rdf_assert_triples0(Ts, _):-
-  maplist(rdf_assert_triple0, Ts).
+rdf_cache_triples(Ts, _):-
+  maplist(rdf_cache_triple, Ts).
 
-rdf_assert_triple0(rdf(S,P,O)):-
-  catch((
-    retract(count_triples(Old)), succ(Old, New), assert(count_triples(New)),
-    forall(lod_cache:triple_to_iri(rdf(S,P,O), Iri), add_to_lod_pool(Iri)),
-    rdf_assert3(S, P, O)
-  ), E, format(user_error, '~q~n', [E])).
-
+rdf_cache_triple(rdf(S,P,O)):- !,
+  rdf_assert(S, P, O, lod_cache),
+  (   thread_self(I),
+      exists_counter(count_triples(I))
+  ->  increment_counter(count_triples(I))
+  ;   true
+  ),
+  forall(lod_cache:triple_to_iri(rdf(S,P,O), Iri), add_to_lod_pool(Iri)).
+rdf_cache_triple(rdf(S,P,O,_)):-
+  rdf_cache_triple(rdf(S,P,O)).
+  
 
 
 %! process_lod_pool is det.
@@ -109,21 +116,24 @@ rdf_assert_triple0(rdf(S,P,O)):-
 process_lod_pool:-
   NumberOfThreads = 5,
   forall(between(1, NumberOfThreads, N), (
-    format(atom(Alias), 'LOD Cache ~D', [N]),
-    thread_create(process_lod_pool0, _, [alias(Alias),detached(true)])
+    format(string(Alias), "LOD Cache ~D", [N]),
+    thread_create(process_lod_pool_thread, _, [alias(Alias),detached(true)])
   )).
 
 % Process a seed point from the pool
-process_lod_pool0:-
+process_lod_pool_thread:-
   % Change the status of an RDF IRI to caching.
   with_mutex(lod_cache, (
     retract(in_lod_pool(Iri)),
     assert(lod_caching(Iri))
   )), !,
 
+  thread_self(I), create_counter(count_triples(I)),
   lod_cache_iri(Iri),
-  retract(count_triples(N)),
-  dcg_debug(lod_cache(pool), added_to_db(Iri, N)),
+  thread_self(I), delete_counter(count_triples(I), N),
+
+  % DEB
+  dcg_debug(lod(cache), added_to_db(Iri, N)),
 
   % Remove the caching status for the RDF IRI.
   with_mutex(lod_cache, (
@@ -131,11 +141,11 @@ process_lod_pool0:-
     assert(lod_cached(Iri))
   )),
 
-  process_lod_pool0.
+  process_lod_pool_thread.
 % Pause for 5 seconds if there is nothing to process.
-process_lod_pool0:-
+process_lod_pool_thread:-
   sleep(5),
-  process_lod_pool0.
+  process_lod_pool_thread.
 
 
 
