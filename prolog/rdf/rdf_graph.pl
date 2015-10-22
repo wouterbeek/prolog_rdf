@@ -1,13 +1,15 @@
 :- module(
   rdf_graph,
   [
-    rdf_copy_graph/2, % +From:atom
-                      % +To:atom
+    rdf_cp_graph/2, % +From:atom
+                    % +To:atom
     rdf_fresh_graph/2, % ?Graph:atom
                           % +FreshnessLifetime:between(0.0,inf)
     rdf_graph_age/2, % ?Graph:atom
                      % -Age:between(0.0,inf)
     rdf_is_graph/1, % @Term
+    rdf_mv_graph/2, % +From:atom
+                    % +To:atom
     rdf_new_graph/2, % +Name:atom
                      % -Graph:atom
     rdf_stale_graph/2, % ?Graph:atom
@@ -26,6 +28,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(rdf/rdf_update)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
@@ -33,10 +36,11 @@
 
 
 
-%! rdf_copy_graph(+From:atom, +To:atom) is det.
+%! rdf_cp_graph(+From:atom, +To:atom) is det.
 
-rdf_copy_graph(From, To):-
-  forall(rdf(S, P, O, From), rdf_assert(S, P, O, To)).
+rdf_cp_graph(From, From):- !.
+rdf_cp_graph(From, To):-
+  rdf_cp(From, _, _, _, To).
 
 
 
@@ -81,6 +85,14 @@ rdf_graph_age(G, Age):-
 rdf_is_graph(G):-
   atom(G),
   (G == user ; rdf_graph(G)), !.
+
+
+
+%! rdf_mv_graph(+From:atom, +To:atom) is det.
+
+rdf_mv_graph(From, To):-
+  rdf_mv(From, _, _, _, To),
+  rdf_unload_graph(From).
 
 
 
