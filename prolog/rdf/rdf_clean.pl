@@ -99,7 +99,6 @@ rdf_clean(From, To, Opts):-
 %! ) is det.
 
 rdf_clean0(Local0, Opts, M0, Read):-
-  gtrace,
   ignore(option(metadata(M0), Opts)),
 
   % Process data compression option.
