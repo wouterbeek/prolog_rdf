@@ -92,13 +92,16 @@ add_to_lod_pool(Iri):-
 %! lod_cache_iri(+Iri:iri) is det.
 
 lod_cache_iri(Iri):-
-  call_collect_messages(rdf_call_on_triple(Iri, rdf_cache_triples)).
+  % Already cached before.
+  rdf_graph(Iri), !.
+lod_cache_iri(Iri):-
+  call_collect_messages(rdf_call_on_triple(Iri, rdf_cache_triples(Iri))).
 
-rdf_cache_triples(Ts, _):-
-  maplist(rdf_cache_triple, Ts).
+rdf_cache_triples(Iri, Ts, _):-
+  maplist(rdf_cache_triple(Iri), Ts).
 
-rdf_cache_triple(rdf(S,P,O)):- !,
-  rdf_assert(S, P, O, lod_cache),
+rdf_cache_triple(Iri, rdf(S,P,O)):- !,
+  rdf_assert(S, P, O, Iri),
   (   thread_self(I),
       exists_counter(count_triples(I))
   ->  increment_counter(count_triples(I))
@@ -116,7 +119,7 @@ rdf_cache_triple(rdf(S,P,O,_)):-
 process_lod_pool:-
   NumberOfThreads = 5,
   forall(between(1, NumberOfThreads, N), (
-    format(string(Alias), "LOD Cache ~D", [N]),
+    format(atom(Alias), 'LOD Cache ~D', [N]),
     thread_create(process_lod_pool_thread, _, [alias(Alias),detached(true)])
   )).
 
