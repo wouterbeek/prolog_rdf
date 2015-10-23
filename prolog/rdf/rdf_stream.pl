@@ -115,7 +115,9 @@ rdf_call_on_stream(In, Mode, Goal_2, Opts1):-
   read_mode(Mode), !,
   rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
   merge_options(DefaultRdfOpts, Opts1, Opts2),
-  call_on_stream(In, Mode, rdf_call_on_read_stream(Goal_2, Opts2), Opts2).
+  % Option format/1 will confuse archive_open/3.
+  select_option(format(_), Opts2, Opts3),
+  call_on_stream(In, Mode, rdf_call_on_read_stream(Goal_2, Opts2), Opts3).
 rdf_call_on_stream(In, Mode, Goal_2, Opts):-
   write_mode(Mode), !,
   call_on_stream(In, Mode, rdf_call_on_write_stream(Goal_2), Opts).
