@@ -45,10 +45,10 @@
    ]).
 :- predicate_options(rdf_clean/3, 3, [
      format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml])),
-     pass_to(rdf_clean0/4, 2),
+     pass_to(rdf_clean_stream/4, 2),
      pass_to(rdf_stream_read/3, 3)
    ]).
-:- predicate_options(rdf_clean0/4, 2, [
+:- predicate_options(rdf_clean_stream/4, 2, [
      compress(+oneof([deflate,gzip,none])),
      metadata(-dict),
      show_metadata(+boolean),
@@ -88,17 +88,22 @@ rdf_clean(From, To, Opts):-
       RdfCleanOpts = RdfStreamOpts
   ),
 
-  rdf_call_on_stream(From, read, rdf_clean0(To, RdfCleanOpts), RdfStreamOpts).
+  rdf_call_on_stream(
+    From,
+    read,
+    rdf_clean_stream(To, RdfCleanOpts),
+    RdfStreamOpts
+  ).
 
 
-%! rdf_clean0(
+%! rdf_clean_stream(
 %!   ?To:atom,
 %!   +Options:list(compound),
 %!   +MetaData:dict,
 %!   +Read:stream
 %! ) is det.
 
-rdf_clean0(Local0, Opts, M0, Read):-
+rdf_clean_stream(Local0, Opts, M0, Read):-
   ignore(option(metadata(M0), Opts)),
 
   % Process data compression option.
@@ -118,10 +123,10 @@ rdf_clean0(Local0, Opts, M0, Read):-
     rdf(clean),
     setup_call_cleanup(
       open(Tmp, write, Write),
-      rdf_clean0(Read, M0, Write),
+      rdf_clean_stream(Read, M0, Write),
       close(Write)
     ),
-    "Cleaning triples on a one-by-one basis"
+    "Cleaning triples on a one-by-one basis."
   ),
 
   % Store input stream properties.
@@ -132,7 +137,7 @@ rdf_clean0(Local0, Opts, M0, Read):-
   debug_verbose(
     rdf(clean),
     sort_file(Tmp, Opts),
-    "Sorting cleaned triples file"
+    "Sorting cleaned triples file."
   ),
 
   % Count the number of triples.
@@ -144,7 +149,7 @@ rdf_clean0(Local0, Opts, M0, Read):-
 
   % Modify the output file name for the current archive entry.
   absolute_file_name(Local0, Dir0),
-  archive_entry_name(Dir0, M.compression, Path0),
+  archive_entry_name(Dir0, M.archive_entry, Path0),
   atomic_list_concat([Local|_], ., Path0),
   
   % Strip outdated file extensions from the output file name
@@ -164,9 +169,9 @@ rdf_clean0(Local0, Opts, M0, Read):-
   if_option(show_metadata(true), Opts, rdf_clean_metadata(M)).
 
 
-%! rdf_clean0(+Read:stream, +MetaData:dict, +Write:stream) is det.
+%! rdf_clean_stream(+Read:stream, +Metadata:dict, +Write:stream) is det.
 
-rdf_clean0(Read, M, Write):-
+rdf_clean_stream(Read, M, Write):-
   ctriples_write_begin(State, BNPrefix, []),
   Opts = [
     anon_prefix(BNPrefix),
