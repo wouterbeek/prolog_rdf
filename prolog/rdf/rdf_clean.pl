@@ -128,7 +128,7 @@ rdf_clean_stream(Local0, Opts, M0, Read):-
     ),
     "Cleaning triples on a one-by-one basis."
   ),
-
+  
   % Store input stream properties.
   stream_metadata(Read, MStream),
   M = M0.put(stream, MStream),
