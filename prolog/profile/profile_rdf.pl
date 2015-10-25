@@ -28,8 +28,7 @@
 %! ) is nondet.
 
 user:rdf(S, P, O):-
-  maplist(rdf_normalize, [S,P,O], [SNorm,PNorm,ONorm]),
-  rdf_db:rdf(SNorm, PNorm, ONorm).
+  rdf_db:rdf(S, P, O).
   
 
 %! user:rdf(
@@ -40,8 +39,7 @@ user:rdf(S, P, O):-
 %! ) is nondet.
 
 user:rdf(S, P, O, G):-
-  maplist(rdf_normalize, [S,P,O,G], [SNorm,PNorm,ONorm,GNorm]),
-  rdf_db:rdf(SNorm, PNorm, ONorm, GNorm).
+  rdf_db:rdf(S, P, O, G).
   
 
 

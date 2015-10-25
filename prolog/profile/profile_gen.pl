@@ -12,7 +12,10 @@
 @version 2015/10
 */
 
+:- use_module(library(apply)).
+:- use_mdoule(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri)).
 
 :- rdf_meta(bnode_literal(?,o)).
 :- rdf_meta(user:rdf(o,r,o)).
@@ -82,9 +85,9 @@ user:rdf(S, P, O, G):-
 % Wrapper around user:rdf_assert/[3,4] for terms `rdf/[3,4]`.
 
 user:rdf_assert(rdf(S,P,O)):- !,
-  rdf_db:rdf_assert(S, P, O).
+  user:rdf_assert(S, P, O).
 user:rdf_assert(rdf(S,P,O,G)):-
-  rdf_db:rdf_assert(S, P, O, G).
+  user:rdf_assert(S, P, O, G).
 
 
 %! user:rdf_assert(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
@@ -109,9 +112,11 @@ user:rdf_assert(Lit, P, O, G):-
   user:rdf_assert(BNode, P, O, G).
 user:rdf_assert(S, P, O, G):-
   var(G), !,
-  rdf_db:rdf_assert(S, P, O).
+  maplist(rdf_normalize, [S,P,O], [SNorm,PNorm,ONorm]),
+  rdf_db:rdf_assert(SNorm, PNorm, ONorm).
 user:rdf_assert(S, P, O, G):-
-  rdf_db:rdf_assert(S, P, O, G).
+  maplist(rdf_normalize, [S,P,O,G], [SNorm,PNorm,ONorm,GNorm]),
+  rdf_db:rdf_assert(SNorm, PNorm, ONorm, GNorm).
 
 
 
@@ -173,3 +178,10 @@ assert_bnode_literal(S, Lit):-
 assert_bnode_literal(S, Lit):-
   rdf_bnode(S),
   assert(bnode_literal(S, Lit)).
+
+
+
+rdf_normalize(X, Y):-
+  rdf_is_iri(X), !,
+  iri_normalized(X, Y).
+rdf_normalize(X, X).

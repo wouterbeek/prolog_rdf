@@ -6,9 +6,12 @@
 @version 2015/10
 */
 
+:- use_module(library(apply)).
 :- use_module(library(list_ext)).
 :- use_module(library(owl/id_store)).
+:- use_mdoule(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri)).
 
 :- rdf_meta(user:rdf(o,r,o)).
 :- rdf_meta(user:rdf(o,r,o,?)).
@@ -62,9 +65,9 @@ user:rdf(S, P, O, G):-
 % Wrapper around user:rdf_assert/[3,4] for terms `rdf/[3,4]`.
 
 user:rdf_assert(rdf(S,P,O)):- !,
-  rdf_db:rdf_assert(S, P, O).
+  user:rdf_assert(S, P, O).
 user:rdf_assert(rdf(S,P,O,G)):-
-  rdf_db:rdf_assert(S, P, O, G).
+  user:rdf_assert(S, P, O, G).
 
 
 %! user:rdf_assert(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
@@ -85,13 +88,18 @@ user:rdf_assert(S, P, O):-
 
 user:rdf_assert(S, P, O, _):-
   rdf_equal(P, owl:sameAs), !,
-  store_id(S, O).
+  maplist(rdf_normalize, [S,O], [SNorm,ONorm]),
+  maplist(term_id, [SNorm,ONorm], [SId,OId]),
+  store_id(SId, OId).
 user:rdf_assert(S, P, O, G):-
-  maplist(term_id, [S,P,O], [SId,PId,OId]),
-  (   var(G)
-  ->  rdf_db:rdf_assert(SId, PId, OId)
-  ;   rdf_db:rdf_assert(SId, PId, OId, G)
-  ).
+  var(G), !,
+  maplist(rdf_normalize, [S,P,O], [SNorm,PNorm,ONorm]),
+  maplist(term_id, [SNorm,PNorm,ONorm], [SId,PId,OId]),
+  rdf_db:rdf_assert(SId, PId, OId).
+user:rdf_assert(S, P, O, G):-
+  maplist(rdf_normalize, [S,P,O,G], [SNorm,PNorm,ONorm,GNorm]),
+  maplist(term_id, [SNorm,PNorm,ONorm,GNorm], [SId,PId,OId,GId]),
+  rdf_db:rdf_assert(SId, PId, OId, GId).
 
 
 
@@ -128,3 +136,14 @@ user:rdf_subject(S):-
 user:rdf_subject(S):-
   rdf_db:rdf_subject(SId),
   id_term(SId, S).
+
+
+
+
+
+% HELPERS %
+
+rdf_normalize(X, Y):-
+  rdf_is_iri(X), !,
+  iri_normalized(X, Y).
+rdf_normalize(X, X).
