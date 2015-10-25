@@ -17,8 +17,8 @@ Installation
 
 
 
-Create resource and assert relations between them
--------------------------------------------------
+Create resources and assert relations between them
+--------------------------------------------------
 
 Make sure your IRI prefix has been registered with `rdf_register_prefix/2`:
 
@@ -99,9 +99,9 @@ Let's look at the contents of our graph:
 If you do not want to choose an RDF datatype (like `xsd:nonNegativeInteger` above) then you can do the following to let the library choose an appropriate type for you:
 
 ```prolog
-?- rdf_assert_literal0($Hog2, ex:age, 2.3).
-?- rdf_assert_literal0($Hog2, ex:age, 23 rdiv 10).
-?- rdf_assert_literal0($Hog2, rdfs:comment, "This is a fine hog.").
+?- rdf_assert_literal_pl($Hog2, ex:age, 2.3).
+?- rdf_assert_literal_pl($Hog2, ex:age, 23 rdiv 10).
+?- rdf_assert_literal_pl($Hog2, rdfs:comment, "This is a fine hog.").
 ```
 
 Our graph now has the following contents:
@@ -118,7 +118,7 @@ Our graph now has the following contents:
 〈ex:animal/hog/4d5020..., rdfs:comment, "This is a fine hog."^^xsd:string〉
 ```
 
-Notice that RDF datatype actually matter: `"2.3"^^xsd:float` and `"2.3"^^xsd:decimal` denote different RDF resources even though the lexical expressions are the same.
+Notice that the RDF datatypes actually matter: `"2.3"^^xsd:float` and `"2.3"^^xsd:decimal` denote different RDF resources even though their lexical expressions are the same.
 This library comes with support for reading back literals as Prolog values:
 
 ```prolog
@@ -138,14 +138,14 @@ RDF lists with members of mixed type
 RDF lists come in handy when we want to store a number of resources in a given order.
 However, the built-in predicates `rdfs_assert_list/[2,3]` and `rdfs_list_to_prolog_list/2` in `library(semweb/rdfs)` do not support recursive lists nor do they allow easy assertion of typed list elements.
 
-In the following we assert an RDF list consisting of the following element (in that order):
+In the following we assert an RDF list consisting of the following elements (in the order indicated):
 
   1. The integer `1`.
   2. The list consisting of the list containing atom `a` and the floating point number `1.0`.
-  3. The atom `b` accompanied by the language tag denoting the English language as spoken in the Uniterd States.
+  3. The atom `b` accompanied by the language tag denoting the English language as spoken in the United States.
 
 The last argument denotes the named graph (`list_test`) in which the RDF list is asserted.
-All RDF assertion predicates in this library come with variants with and without a graph argument.
+All RDF assertion predicates in `library(rdf/rdf_list)` come with variants with and without a graph argument.
 
 ```prolog
 ?- [library(rdf/rdf_list)].
@@ -153,7 +153,7 @@ All RDF assertion predicates in this library come with variants with and without
 ```
 
 The list has been asserted using the RDF linked lists notation.
-RDF and XSD datatypes are used for the non-list elements, and nesting for the list elements:
+RDF and XSD datatypes are used for the non-list elements and nesting is used for the list elements:
 
 ```prolog
 ?- rdf_print_graph(list_test, [abbr_list(false)]).
@@ -177,7 +177,7 @@ RDF and XSD datatypes are used for the non-list elements, and nesting for the li
 〈_:2, rdf:rest, _:3〉
 ```
 
-Since the RDF linked list notation is rather verbose library **plRdf** allows RDF lists to be read back as Prolog lists, preserving both nesting and RDF datatypes:
+Since the RDF linked list notation is rather verbose library **plRdf** allows RDF lists to be read back as Prolog lists, preserving both nesting and taking the RDF datatypes into account:
 
 ```prolog
 ?- rdf_list($_X, Y).
@@ -185,21 +185,43 @@ Y = [1, [[a], 1.0], 'en-US'-b].
 ```
 
 
-Advanced triple storage
------------------------
+Triple store profiles
+---------------------
 
-### Simple RDF assertion
+**plRdf** comes with different profiles for storing triples.
 
-Use `rdf_assert2/[1,3,4]` for asserting triples and quadruples:
-  * `rdf_assert2/1` allows triples of the form `rdf/3` and quadruples of the form `rdf/4` to be asserted.
-  * `rdf_assert2/3` is the same as `rdf_assert/3`.
-  * `rdf_assert2/4` does not given an error in mode `(+,+,+,-)` but calls `rdf_assert2/3`.
+
+### Plain RDF assertion
+
+Load the 'plain' RDF profile in the following way:
+
+```prolog
+?- [library(profile/profile_rdf)].
+```
+
+This profile is similar to `library(semweb/rdf_db)`, allowing plain triples to be asserted/retrieved/retracted.  The only difference is that `rdf_assert/4` does not given an error in mode `(+,+,+,-)` but calls `rdf_assert/3`.
 
 
 ### Generalized RDF assertion
 
-Use `gen_assert/[1,3,4]` for asserting generalized triples and quadruples.
+Load the generalized RDF profile in the following way:
 
+```profile
+?- [library(profile/profile_gen)].
+```
+
+This profile extends the plain profile by allowing literals to appear in the subject position.  This allows all RDF(S) and OWL entailment to be expressed in terms of RDF (something which is not possible in the plain profile).
+
+
+### OWL assertion
+
+Load the OWL profile in the following way:
+
+```profile
+?- [library(profile/profile_owl)].
+```
+
+This profile extends the generalized RDF profile by storing relations between identity sets i.o. individual resources.  This significantly speeds up calculating the identity closure (`owl:sameAs`) and avoids OWL entailment to store the identity closure in an exponential way.
 
 ---
 
