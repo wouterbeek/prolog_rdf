@@ -1,21 +1,27 @@
 :- module(
   id_store,
   [
-    id_term/2, % +IdSet:uid
-               % -Term:rdf_term
-    id_terms/2, % +IdSet:uid
-                % -Terms:ordset(rdf_term)
+    assign_term_id/2, % ?Term:rdf_term
+                      % ?IdSet:uri
+    id_terms/1, % ?Terms:ordset(rdf_term)
+    id_to_term/2, % +IdSet:uid
+                  % -Term:rdf_term
+    id_to_terms/2, % +IdSet:uid
+                   % -Terms:ordset(rdf_term)
     print_id_store/0,
     print_id_store/1, % +Options:list(compound)
     remove_id/1, % +IdSet:uid
+    store_id/1, % +Terms:list(rdf_term)
     store_id/2, % +Term1:rdf_term
                 % +Term2:rdf_term
-    term_id/2, % +Term:rdf_term
-               % -IdSet:uid
-    term_term/2, % +Term1:rdf_term
-                 % -Term2:rdf_term
-    term_terms/2 % +Term:rdf_term
-                 % -Terms:ordset(rdf_term)
+    term_to_id/2, % +Term:rdf_term
+                  % -IdSet:uri
+    term_to_term/2, % +Term1:rdf_term
+                    % -Term2:rdf_term
+    term_to_terms/2, % +Term:rdf_term
+                     % -Terms:ordset(rdf_term)
+    var_or_term_to_id/2 % ?Term:rdf_term
+                        % ?IdSet:uid
   ]
 ).
 
@@ -29,17 +35,21 @@
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(error)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
 
-:- rdf_meta(id_term(o,-)).
-:- rdf_meta(id_terms(o,-)).
-:- rdf_meta(term_id(o,-)).
-:- rdf_meta(term_term(o,-)).
-:- rdf_meta(term_terms(o,-)).
+:- rdf_meta(assign_term_id(o,?)).
+:- rdf_meta(id_terms(t)).
+:- rdf_meta(store_id(t)).
+:- rdf_meta(store_id(o,o)).
+:- rdf_meta(term_to_id(o,-)).
+:- rdf_meta(term_to_term(o,-)).
+:- rdf_meta(term_to_terms(o,-)).
+:- rdf_meta(var_or_term_to_id(o,?)).
 
 %! id_terms0(?IdSet:uid, ?Terms:ordset(rdf_term)) is nondet.
 
@@ -60,17 +70,47 @@ id_counter(0).
 
 
 
-%! id_term(+IdSet:uid, -Term:rdf_term) is multi.
+%! assign_term_id(?Term:rdf_term, -IdSet:uid) is det.
 
-id_term(Id, T):-
-  id_terms(Id, Ts),
+assign_term_id(T, TId):-
+  var_or_term_to_id(T, TId), !.
+assign_term_id(T, TId):-
+  fresh_id(TId),
+  with_mutex(store_id, store_term0(T, TId)).
+
+
+
+%! id_terms(+Terms:ordset(rdf_term)) is semidet.
+%! id_terms(-Terms:ordset(rdf_term)) is nondet.
+
+id_terms(Ts1):-
+  nonvar(Ts1), !,
+  memberchr(T, Ts1),
+  term_id(T, TId),
+  id_terms(TId, Ts2),
+  ord_subset(Ts1, Ts2).
+id_terms(Ts):-
+  id_terms0(_, Ts).
+
+
+
+%! id_to_term(+IdSet:uid, +Term:rdf_term) is multi.
+
+id_to_term(Id, T):-
+  nonvar(Id), !,
+  id_to_terms(Id, Ts),
   member(T, Ts).
+id_to_term(Id, T):-
+  nonvar(T), !,
+  term_id0(T, Id).
+id_to_term(Id, T):-
+  instantiation_error(id_term(Id,T)).
 
 
 
-%! id_terms(+IdSet:uid, -Terms:ordset(rdf_term)) is multi.
+%! id_to_terms(+IdSet:uid, -Terms:ordset(rdf_term)) is multi.
 
-id_terms(Id, Ts):-
+id_to_terms(Id, Ts):-
   id_terms0(Id, Ts).
 
 
@@ -110,6 +150,16 @@ remove_id(Id):-
     retractall(term_id0(_,Id))
   )).
 
+
+
+
+%! store_id(+Terms:list(rdf_term)) is det.
+
+store_id([H1,H2|T]):-
+  store_id(H1, H2), !,
+  store_id([H2|T]).
+store_id([_]):- !.
+store_id([]).
 
 
 %! store_id(+X:rdf_term, +Y:rdf_term) is det.
@@ -165,30 +215,35 @@ store_id(X, Y):-
 
 
 
-%! term_id(+Term:rdf_term, -IdentitySet:uid) is det.
+%! term_to_id(+Term:rdf_term, -IdSet:uid) is det.
 
-term_id(T, _):-
-  var(T), !.
-term_id(T, TId):-
-  term_id0(T, TId), !.
-term_id(T, TId):-
-  fresh_id(TId),
-  with_mutex(store_id, store_term0(T, TId)).
+term_to_id(T, Id):-
+  term_id0(T, Id).
 
 
-%! term_term(+Term1:rdf_term, -Term2:rdf_term) is multi.
 
-term_term(T1, T2):-
-  term_terms(T1, Ts),
+%! term_to_term(+Term1:rdf_term, -Term2:rdf_term) is multi.
+
+term_to_term(T1, T2):-
+  term_to_terms(T1, Ts),
   member(T2, Ts).
 
 
 
-%! term_terms(+Term:rdf_term, -Terms:ordset(rdf_term)) is det.
+%! term_to_terms(+Term:rdf_term, -Terms:ordset(rdf_term)) is det.
 
-term_terms(T, Ts):-
-  term_id(T, Id),
-  id_terms(Id, Ts).
+term_to_terms(T, Ts):-
+  term_to_id(T, Id),
+  id_to_terms(Id, Ts).
+
+
+
+%! var_or_term_to_id(?Term:rdf_term, ?IdSet:uid) is det.
+
+var_or_term_to_id(T, _):-
+  var(T), !.
+var_or_term_to_id(T, TId):-
+  term_to_id(T, TId).
 
 
 

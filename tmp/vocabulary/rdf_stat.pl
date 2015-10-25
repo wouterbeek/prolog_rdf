@@ -46,6 +46,6 @@ count_datatype_triples(Datatype, Graph, N):-
 iris_by_graph(G, NXs):-
   aggregate_all(
     count,
-    (rdf_iri(X), rdf_term(X, G)),
+    (user:rdf_iri(X), rdf_term(X, G)),
     NXs
   ).

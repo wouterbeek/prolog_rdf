@@ -33,7 +33,7 @@ rdf_randomize_iris(G):-
   aggregate_all(
     set(X-X0),
     (
-      rdf_iri(X),
+      user:rdf_iri(X),
       rdf_term(X, G),
       once(randomize_iri(X, X0))
     ),

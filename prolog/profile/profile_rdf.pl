@@ -78,6 +78,19 @@ user:rdf_assert(S, P, O, G):-
 
 
 
+user:rdf_iri(T):-
+  nonvar(T), !,
+  rdf_is_iri(T),
+  (rdf_current_predicate(T) ; rdf_resource(T)), !.
+user:rdf_iri(P):-
+  rdf_current_predicate(P).
+user:rdf_iri(N):-
+  rdf_resource(N),
+  \+ rdf_is_bnode(N),
+  \+ rdf_current_predicate(N).
+
+
+
 user:rdf_retractall(S, P, O, G):-
   maplist(rdf_normalize, [S,P,O,G], [SNorm,PNorm,ONorm,GNorm]),
   rdf_db:rdf_retractall(SNorm, PNorm, ONorm, GNorm).

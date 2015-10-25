@@ -2,7 +2,6 @@
   rdf_term,
   [
     rdf_bnode2/1, % ?BNode:bnode
-    rdf_iri/1, % ?Iri:iri
     rdf_is_iri/1, % @Term
     rdf_is_name/1, % @Term
     rdf_is_term/1, % @Term
@@ -37,7 +36,7 @@ But this is not the case either, since typed literals are mapped onto
 
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
-@version 2015/07-2015/08
+@version 2015/07-2015/08, 2015/10
 */
 
 :- use_module(library(rdf/rdf_build)).
@@ -45,7 +44,6 @@ But this is not the case either, since typed literals are mapped onto
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(typecheck)).
 
-:- rdf_meta(rdf_iri(r)).
 :- rdf_meta(rdf_is_iri(o)).
 :- rdf_meta(rdf_is_name(o)).
 :- rdf_meta(rdf_is_term(o)).
@@ -74,22 +72,6 @@ rdf_bnode2(B):-
 
 
 
-%! rdf_iri(+Iri:iri) is semidet.
-% Succeeds if the given RDF term is an IRI.
-%! rdf_iri(+Iri:iri) is nondet.
-% Enumerates the IRIs in the RDF store.
-% May contain duplicates!
-
-rdf_iri(X):-
-  rdf_current_predicate(X).
-rdf_iri(X):-
-  rdf_resource(X),
-  \+ rdf_is_bnode(X),
-  \+ rdf_is_literal(X),
-  \+ rdf_current_predicate(X).
-
-
-
 %! rdf_is_iri(@Term) is semidet.
 % Succeeds for atoms that conform to the syntactic requirement of being
 % an IRI RDF term.
@@ -97,7 +79,7 @@ rdf_iri(X):-
 % This does not imply that the term occurs in an actual triple or graph.
 
 rdf_is_iri(X):-
-  is_of_type(uri, X).
+  is_iri(X).
 
 
 
@@ -135,7 +117,7 @@ rdf_literal(X):-
 %! rdf_name(-Name:or([iri,literal])) is nondet.
 
 rdf_name(X):-
-  rdf_iri(X).
+  user:rdf_iri(X).
 rdf_name(X):-
   rdf_literal(X).
 

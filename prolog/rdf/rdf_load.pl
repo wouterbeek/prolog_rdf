@@ -37,9 +37,7 @@ Support for loading RDF data.
 :- use_module(library(semweb/turtle)).
 :- use_module(library(uuid_ext)).
 
-:- meta_predicate(rdf_call_on_triple(+,2)).
-:- meta_predicate(rdf_call_on_triple(2,+,+)).
-:- meta_predicate(rdf_call_on_graph(+,1)).
+:- meta_predicate(rdf_call_on_triple(+,2,+)).
 :- meta_predicate(rdf_call_on_graph(+,1,+)).
 
 :- predicate_options(rdf_load_file/2, 2, [
@@ -100,13 +98,6 @@ rdf_call_on_triple0(Goal_2, M, Read):-
 rdf_call_on_triple0(_, _, M):-
   msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
 
-
-
-%! rdf_call_on_graph(+Input, :Goal_1) is det.
-% Wrapper around rdf_call_on_graph/3 with default options.
-
-rdf_call_on_graph(In, Goal_1):-
-  rdf_call_on_graph(In, Goal_1, []).
 
 
 %! rdf_call_on_graph(+Input, :Goal_1, +Options:list(compound)) is det.

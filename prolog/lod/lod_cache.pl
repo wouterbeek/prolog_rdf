@@ -38,6 +38,7 @@ datatype preferences in order to perform limited-scale crawling.
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri)).
 
 :- dynamic(in_lod_pool/1).
 :- dynamic(lod_cached/1).
@@ -92,11 +93,14 @@ add_to_lod_pool(Iri):-
 %! lod_cache_iri(+Iri:iri) is det.
 
 lod_cache_iri(Iri):-
-  % Already cached before.
-  rdf_graph(Iri), !.
-lod_cache_iri(Iri):-
-  call_collect_messages(
-    rdf_call_on_triple(Iri, lod_cache_triples(Iri), [])
+  gtrace,
+  iri_normalized(Iri, IriEnc),
+  (   % Already cached before.
+      rdf_graph(IriEnc)
+  ->  true
+  ;   call_collect_messages(
+       rdf_call_on_triple(IriEnc, lod_cache_triples(IriEnc), [])
+      )
   ).
 
 lod_cache_triples(Iri, Ts, _):-
