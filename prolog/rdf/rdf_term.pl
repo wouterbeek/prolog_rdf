@@ -11,7 +11,6 @@
     rdf_node2/1, % ?Node:rdf_term
     rdf_object/1, % ?Object:rdf_term
     rdf_predicate/1, % ?Predicate:iri
-    rdf_subject2/1, % ?Term:rdf_term
     rdf_term/1, % ?Term:rdf_term
     rdf_term/2 % ?Term:rdf_term
                % ?Graph:atom
@@ -146,10 +145,10 @@ rdf_name(X):-
 %! rdf_node2(-Node:rdf_term) is nondet.
 
 rdf_node2(X):-
-  rdf_subject(X).
+  user:rdf_subject(X).
 rdf_node2(X):-
   rdf_object(X),
-  \+ rdf_subject(X).
+  \+ user:rdf_subject(X).
 
 
 
@@ -160,7 +159,7 @@ rdf_object(X):-
   rdf_current_literal(X).
 rdf_object(X):-
   rdf_resource(X),
-  rdf2(_, _, X).
+  user:rdf(_, _, X).
 
 
 
@@ -170,25 +169,6 @@ rdf_object(X):-
 
 rdf_predicate(X):-
   rdf_current_predicate(X).
-
-
-
-%! rdf_subject2(@Term:rdf_term) is semidet.
-%! rdf_subject2(-Term:rdf_term) is nondet.
-
-rdf_subject2(S):-
-  nonvar(S), !,
-  (   rdf_subject(S)
-  ;   bnode_literal(S0, S),
-      rdf_subject(S0)
-  ), !.
-rdf_subject2(S):-
-  rdf_subject(S0),
-  (   rdf_is_bnode(S0),
-      bnode_literal(S0, S)
-  ->  true
-  ;   S = S0
-  ).
 
 
 
@@ -223,8 +203,8 @@ rdf_term(X, G):-
   rdf_term0(X, G).
 
 rdf_term0(X, G):-
-  rdf2(X, _, _, G), !.
+  user:rdf(X, _, _, G), !.
 rdf_term0(X, G):-
-  rdf2(_, X, _, G), !.
+  user:rdf(_, X, _, G), !.
 rdf_term0(X, G):-
-  rdf2(_, _, X, G).
+  user:rdf(_, _, X, G).

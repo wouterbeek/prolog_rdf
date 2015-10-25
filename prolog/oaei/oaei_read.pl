@@ -49,7 +49,7 @@ oaei_alignment(From, To, G):-
 %! ) is nondet.
 
 oaei_alignment(From, To, Rel, Measure, G):-
-  rdf(X, align:entity1, From, G),
-  rdf(X, align:entity2, To, G),
+  user:rdf(X, align:entity1, From, G),
+  user:rdf(X, align:entity2, To, G),
   rdf_literal(X, align:relation, xsd:string, Rel, G),
   rdf_literal(X, align:measure, xsd:float, Measure, G).

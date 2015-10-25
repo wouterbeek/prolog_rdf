@@ -53,7 +53,7 @@
 Predicates for asserting common OWL structures.
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(apply)).
@@ -63,16 +63,6 @@ Predicates for asserting common OWL structures.
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdfs/rdfs_build)).
-
-:- predicate_options(owl_assert_data_property/8, 8, [
-     pass_to(owl_assert_property/8, 8)
-   ]).
-:- predicate_options(owl_assert_object_property/8, 8, [
-     pass_to(owl_assert_property/8, 8)
-   ]).
-:- predicate_options(owl_assert_property/8, 8, [
-     functional(+boolean)
-   ]).
 
 :- rdf_meta(owl_assert_class(r,t,?,?,?)).
 :- rdf_meta(owl_assert_data_property(r,?)).
@@ -85,6 +75,16 @@ Predicates for asserting common OWL structures.
 :- rdf_meta(owl_assert_object_property(r,t,?,?,r,r,?,+)).
 :- rdf_meta(owl_assert_ontology(r,?)).
 :- rdf_meta(owl_assert_value_restriction(r,r,?,-)).
+
+:- predicate_options(owl_assert_data_property/8, 8, [
+     pass_to(owl_assert_property/8, 8)
+   ]).
+:- predicate_options(owl_assert_object_property/8, 8, [
+     pass_to(owl_assert_property/8, 8)
+   ]).
+:- predicate_options(owl_assert_property/8, 8, [
+     functional(+boolean)
+   ]).
 
 
 
@@ -135,7 +135,7 @@ owl_assert_data_property(P, Parent, Lbl, Comm, D, R, G, Opts):-
 %! ) is det.
 
 owl_assert_equivalent_class(C, D, G):-
-  rdf_assert2(C, owl:equivalentClass, D, G).
+  user:rdf_assert(C, owl:equivalentClass, D, G).
 
 
 
@@ -156,7 +156,7 @@ owl_assert_intersection_of(C, Ds, G):-
   (var(C) -> rdf_bnode(C) ; true),
   rdf_assert_instance(C, owl:'Class', G),
   rdf_assert_list(Ds, Ds0, G),
-  rdf_assert2(C, owl:intersectionOf, Ds0, G).
+  user:rdf_assert(C, owl:intersectionOf, Ds0, G).
 
 
 
@@ -218,8 +218,8 @@ owl_assert_ontology(I, G):-
 owl_assert_value_restriction(P, V, G, R):-
   rdf_bnode(R),
   rdf_assert_instance(R, owl:'Restriction', G),
-  rdf_assert2(R, owl:onProperty, P, G),
-  rdf_assert2(R, owl:hasValue, V, G).
+  user:rdf_assert(R, owl:onProperty, P, G),
+  user:rdf_assert(R, owl:hasValue, V, G).
 
 
 

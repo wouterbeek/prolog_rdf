@@ -95,22 +95,27 @@ lod_cache_iri(Iri):-
   % Already cached before.
   rdf_graph(Iri), !.
 lod_cache_iri(Iri):-
-  call_collect_messages(rdf_call_on_triple(Iri, rdf_cache_triples(Iri))).
+  call_collect_messages(
+    rdf_call_on_triple(Iri, lod_cache_triples(Iri), [])
+  ).
 
-rdf_cache_triples(Iri, Ts, _):-
-  maplist(rdf_cache_triple(Iri), Ts).
+lod_cache_triples(Iri, Ts, _):-
+  maplist(lod_cache_triple(Iri), Ts).
 
-rdf_cache_triple(Iri, rdf(S,P,O)):- !,
+lod_cache_triple(Iri, rdf(S,P,O)):- !,
   rdf_assert(S, P, O, Iri),
   (   thread_self(I),
       exists_counter(count_triples(I))
   ->  increment_counter(count_triples(I))
   ;   true
   ),
-  forall(lod_cache:triple_to_iri(rdf(S,P,O), Iri), add_to_lod_pool(Iri)).
-rdf_cache_triple(rdf(S,P,O,_)):-
-  rdf_cache_triple(rdf(S,P,O)).
-  
+  forall(
+    lod_cache:triple_to_iri(rdf(S,P,O), Iri),
+    add_to_lod_pool(Iri)
+  ).
+lod_cache_triple(rdf(S,P,O,_)):-
+  lod_cache_triple(rdf(S,P,O)).
+
 
 
 %! process_lod_pool is det.
@@ -120,7 +125,11 @@ process_lod_pool:-
   NumberOfThreads = 5,
   forall(between(1, NumberOfThreads, N), (
     format(atom(Alias), 'LOD Cache ~D', [N]),
-    thread_create(process_lod_pool_thread, _, [alias(Alias),detached(true)])
+    thread_create(
+      process_lod_pool_thread,
+      _,
+      [alias(Alias),detached(true)]
+    )
   )).
 
 % Process a seed point from the pool

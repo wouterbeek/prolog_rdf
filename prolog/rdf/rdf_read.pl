@@ -26,16 +26,11 @@
                    % ?Graph:atom
     rdf_literal_pl/3, % ?Subject, ?Predicate, ?Value
     rdf_literal_pl/4, % ?Subject, ?Predicate, ?Datatype, ?Value
-    rdf_literal_pl/5, % ?Subject:rdf_term
-                      % ?Predicate:iri
-                      % ?Datatype:iri
-                      % ?Value
-                      % ?Graph:atom
-    rdf2/3, % ?Subject, ?Predicate, ?Object
-    rdf2/4 % ?Subject:rdf_term
-           % ?Predicate:iri
-           % ?Object:rdf_term
-           % ?Graph:atom
+    rdf_literal_pl/5 % ?Subject:rdf_term
+                     % ?Predicate:iri
+                     % ?Datatype:iri
+                     % ?Value
+                     % ?Graph:atom
   ]
 ).
 
@@ -44,7 +39,7 @@
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/rdf11-concepts/)
 @license MIT License
-@version 2015/07-2015/09
+@version 2015/07-2015/10
 */
 
 :- use_module(library(error)).
@@ -68,8 +63,6 @@
 :- rdf_meta(rdf_literal_pl(o,r,r)).
 :- rdf_meta(rdf_literal_pl(o,r,r,?)).
 :- rdf_meta(rdf_literal_pl(o,r,r,?,?)).
-:- rdf_meta(rdf2(o,r,o)).
-:- rdf_meta(rdf2(o,r,o,?)).
 
 :- multifile(error:has_type/2).
 error:has_type(rdf_term, Term):-
@@ -91,6 +84,7 @@ error:has_type(rdf_term, Term):-
 
 rdf_date(S, P, V):-
   rdf_date(S, P, V, _).
+
 
 %! rdf_date(
 %!   ?Subject:rdf_term,
@@ -137,7 +131,7 @@ rdf_instance(I, C):-
 %! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
 
 rdf_instance(I, C, G):-
-  rdf2(I, rdf:type, C, G).
+  user:rdf(I, rdf:type, C, G).
 
 
 
@@ -229,7 +223,7 @@ rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
   rdf_equal(D, rdf:langString),
   Val = Lex-LTag,
   O = literal(lang(LTag,Lex)),
-  rdf2(S, P, O, G),
+  user:rdf(S, P, O, G),
   atom(LTag).
 % Ground datatype and value.
 rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
@@ -242,17 +236,17 @@ rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
       O = literal(Lex)
   ;   O = literal(type(D,Lex))
   ),
-  rdf2(S, P, O, G).
+  user:rdf(S, P, O, G).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal(S, P, D, Val, G, rdf(S,P,Lit,G)):-
   (ground(D) -> \+ rdf_equal(D, rdf:langString) ; true),
   Lit = literal(type(D,_)),
-  rdf2(S, P, Lit, G),
+  user:rdf(S, P, Lit, G),
   rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).
 rdf_literal(S, P, xsd:string, Val, G, rdf(S,P,O,G)):-
   O = literal(Lex),
-  rdf2(S, P, O, G),
+  user:rdf(S, P, O, G),
   atom(Lex),
   rdf_global_id(xsd:string, D),
   rdf_lexical_map(literal(type(D,Lex)), Val).
@@ -304,50 +298,3 @@ rdf_literal_pl(S, P, D, V):-
 rdf_literal_pl(S, P, D, V, G):-
   rdf_literal(S, P, D, V0, G),
   (xsd_datatype(D, date) -> xsd_date_to_prolog_term(V0, V) ; V = V0).
-
-
-
-%! rdf2(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
-% Variant of rdf/3 that allows literals in the subject position.
-
-% Literals may need to be related to blank nodes.
-rdf2(S0, P, O):-
-  rdf_is_literal(S0),
-  bnode_literal(S, S0), !,
-  rdf(S, P, O).
-% Variable subject terms may be blank nodes
-% that need to be related to literals.
-rdf2(S, P, O):-
-  var(S), !,
-  rdf(S0, P, O),
-  (   rdf_is_bnode(S0),
-      bnode_literal(S0, S)
-  ->  true
-  ;   S = S0
-  ).
-rdf2(S, P, O):-
-  rdf(S, P, O).
-
-
-%! rdf2(
-%!   ?Subject:rdf_term,
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   ?Graph:atom
-%! ) is nondet.
-% Variant of rdf/4 that allows literals in the subject position.
-
-rdf2(S0, P, O, G):-
-  rdf_is_literal(S0),
-  bnode_literal(S, S0), !,
-  rdf(S, P, O, G).
-rdf2(S, P, O, G):-
-  var(S), !,
-  rdf(S0, P, O, G),
-  (   rdf_is_bnode(S0),
-      bnode_literal(S0, S)
-  ->  true
-  ;   S = S0
-  ).
-rdf2(S, P, O, G):-
-  rdf(S, P, O, G).

@@ -7,6 +7,7 @@
                 % -Terms:ordset(rdf_term)
     print_id_store/0,
     print_id_store/1, % +Options:list(compound)
+    remove_id/1, % +IdSet:uid
     store_id/2, % +Term1:rdf_term
                 % +Term2:rdf_term
     term_id/2, % +Term:rdf_term
@@ -21,7 +22,7 @@
 /** <module> Identity store
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(dcg/basics)).
@@ -61,18 +62,14 @@ id_counter(0).
 
 %! id_term(+IdSet:uid, -Term:rdf_term) is multi.
 
-id_term(T, T):-
-  rdf_is_literal0(T), !.
 id_term(Id, T):-
-  id_terms0(Id, Ts),
+  id_terms(Id, Ts),
   member(T, Ts).
 
 
 
 %! id_terms(+IdSet:uid, -Terms:ordset(rdf_term)) is multi.
 
-id_terms(T, [T]):-
-  rdf_is_literal0(T), !.
 id_terms(Id, Ts):-
   id_terms0(Id, Ts).
 
@@ -83,6 +80,7 @@ id_terms(Id, Ts):-
 
 print_id_store:-
   print_id_store([]).
+
 
 %! print_id_store(+Options:list(compound)) is det.
 % The following options are supported:
@@ -101,6 +99,16 @@ print_id_store(Opts):-
       nl
    ))
   ).
+
+
+
+%! remove_id(+Id:uid) is det.
+
+remove_id(Id):-
+  with_mutex(id_store, (
+    retractall(id_terms0(Id,_)),
+    retractall(term_id0(_,Id))
+  )).
 
 
 
@@ -157,12 +165,10 @@ store_id(X, Y):-
 
 
 
-%! term_id(+Term:rdf_term, -IdentitySet:uri) is det.
+%! term_id(+Term:rdf_term, -IdentitySet:uid) is det.
 
 term_id(T, _):-
   var(T), !.
-term_id(T, T):-
-  rdf_is_literal0(T), !.
 term_id(T, TId):-
   term_id0(T, TId), !.
 term_id(T, TId):-
@@ -202,23 +208,15 @@ fresh_id(Id):-
 
 
 
-%! rdf_is_literal0(@Term) is semidet.
-
-rdf_is_literal0(T):-
-  nonvar(T),
-  T = literal(_).
-
-
-
 %! rdf_rename_term(+From, +To) is det.
 
 rdf_rename_term(X, Y):-
-  forall(rdf(X, P, O), rdf_assert(Y, P, O)),
-  rdf_retractall(X, _, _),
-  forall(rdf(S, X, O), rdf_assert(S, Y, O)),
-  rdf_retractall(_, X, _),
-  forall(rdf(S, P, X), rdf_assert(S, P, Y)),
-  rdf_retractall(_, _, X).
+  forall(rdf_db:rdf(X, P, O), rdf_db:rdf_assert(Y, P, O)),
+  rdf_db:rdf_retractall(X, _, _),
+  forall(rdf_db:rdf(S, X, O), rdf_db:rdf_assert(S, Y, O)),
+  rdf_db:rdf_retractall(_, X, _),
+  forall(rdf_db:rdf(S, P, X), rdf_db:rdf_assert(S, P, Y)),
+  rdf_db:rdf_retractall(_, _, X).
   
 
 

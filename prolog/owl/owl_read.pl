@@ -77,7 +77,7 @@ owl_id(S1, P1, O1, G, T):-
     (var(S1) -> true ; owl_id(S1, S2)),
     (var(P1) -> true ; owl_id(P1, P2)),
     (var(O1) -> true ; owl_id(O1, O2)),
-    rdf2(S2, P2, O2, G),
+    user:rdf(S2, P2, O2, G),
     owl_id(S2, S3),
     owl_id(P2, P3),
     owl_id(O2, O3),

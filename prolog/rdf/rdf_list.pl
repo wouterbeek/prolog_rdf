@@ -101,7 +101,8 @@ rdf_assert_list0(L1, L2, G):-
   rdf_assert_list_items0(L1, L2, G).
 
 % @tbd Add determinism?
-rdf_assert_list_items0([], rdf:nil, _).
+rdf_assert_list_items0([], L, _):-
+  rdf_equal(rdf:nil, L), !.
 rdf_assert_list_items0([H1|T1], L2, G):-
   % rdf:first
   (   % Nested list.
@@ -111,17 +112,17 @@ rdf_assert_list_items0([H1|T1], L2, G):-
       H2 = H1
   ),
   (   (is_iri(H2) ; rdf_is_bnode(H2))
-  ->  rdf_assert2(L2, rdf:first, H2, G)
+  ->  user:rdf_assert(L2, rdf:first, H2, G)
   ;   rdf_assert_literal_pl(L2, rdf:first, H2, G)
   ),
 
   % rdf:rest
   (   T1 == []
-  ->  rdf_global_id(rdf:nil, T2)
+  ->  rdf_equal(rdf:nil, T2)
   ;   add_list_instance0(T2, G),
       rdf_assert_list_items0(T1, T2, G)
   ),
-  rdf_assert2(L2, rdf:rest, T2, G).
+  user:rdf_assert(L2, rdf:rest, T2, G).
 
 add_list_instance0(L, G):-
   (var(L) -> rdf_bnode(L) ; true),
@@ -149,6 +150,7 @@ rdf_is_list(L):-
 rdf_list(L1, L2):-
   rdf_list(L1, L2, _).
 
+
 %! rdf_list(
 %!   +RdfList:rdf_term,
 %!   ?PrologList:list,
@@ -160,6 +162,7 @@ rdf_list(L1, L2, G):-
   maplist(rdf_interpreted_term, L0, L2).
 
 
+
 %! rdf_list_raw(+RdfList:rdf_term, +PrologList:list) is semidet.
 %! rdf_list_raw(+RdfList:rdf_term, -PrologList:list) is det.
 % @see rdf_list_raw/3
@@ -167,12 +170,14 @@ rdf_list(L1, L2, G):-
 rdf_list_raw(L1, L2):-
   rdf_list_raw(L1, L2, _).
 
+
 %! rdf_list_raw(+RdfList:rdf_term, ?PrologList:list, ?Graph:atom) is semidet.
 
-rdf_list_raw(rdf:nil, [], _):- !.
+rdf_list_raw(L, [], _):-
+  rdf_equal(rdf:nil, L), !.
 rdf_list_raw(L1, [H2|T2], G):-
   % rdf:first
-  rdf2(L1, rdf:first, H1, G),
+  user:rdf(L1, rdf:first, H1, G),
   (   % Nested list
       rdf_is_list(H1)
   ->  rdf_list_raw(H1, H2, G)
@@ -180,7 +185,7 @@ rdf_list_raw(L1, [H2|T2], G):-
       H2 = H1
   ),
   % rdf:rest
-  rdf2(L1, rdf:rest, T1, G),
+  user:rdf(L1, rdf:rest, T1, G),
   rdf_list_raw(T1, T2, G).
 
 
@@ -190,6 +195,7 @@ rdf_list_raw(L1, [H2|T2], G):-
 rdf_list_first(L, X):-
   rdf_list_first(L, X, _).
 
+
 %! rdf_list_first(?List:rdf_term, ?First:rdf_term, ?Graph:atom) is nondet.
 % Relates RDF lists to their first element.
 
@@ -198,16 +204,18 @@ rdf_list_first(L, X, G):-
   rdf_interpreted_term(X0, X).
 
 
+
 %! rdf_list_first_raw(?List:rdf_term, ?First:rdf_term) is nondet.
 
 rdf_list_first_raw(L, X):-
   rdf_list_first_raw(L, X, _).
 
+
 %! rdf_list_first_raw(?List:rdf_term, ?First:rdf_term, ?Graph:atom) is nondet.
 % Relates RDF lists to their first element.
 
 rdf_list_first_raw(L, X, G):-
-  rdf2(L, rdf:first, X, G).
+  user:rdf(L, rdf:first, X, G).
 
 
 
@@ -217,13 +225,14 @@ rdf_list_first_raw(L, X, G):-
 rdf_list_length(L, N):-
   rdf_list_length(L, N, _).
 
+
 %! rdf_list_length(+List:rdf_term, +Length:nonneg, ?Graph:atom) is semidet.
 %! rdf_list_length(+List:rdf_term, -Length:nonneg, ?Graph:atom) is det.
 
 rdf_list_length(L, 0, _):-
-  rdf_global_id(rdf:nil, L), !.
+  rdf_equal(rdf:nil, L), !.
 rdf_list_length(L, N, G):-
-  rdf2(L, rdf:rest, T, G),
+  user:rdf(L, rdf:rest, T, G),
   rdf_list_length(T, M, G),
   succ(M, N).
 
@@ -257,7 +266,7 @@ rdf_list_member_raw(X, L):-
 rdf_list_member_raw(X, L, G):-
   rdf_list_first_raw(L, X, G).
 rdf_list_member_raw(X, L, G):-
-  rdf(L, rdf:rest, L0, G),
+  user:rdf(L, rdf:rest, L0, G),
   rdf_list_member_raw(X, L0, G).
 
 
@@ -267,18 +276,19 @@ rdf_list_member_raw(X, L, G):-
 rdf_retractall_list(L):-
   rdf_retractall_list(L, _).
 
+
 %! rdf_retractall_list(+List:rdf_term, ?Graph:atom) is det.
 
 rdf_retractall_list(L, _):-
-  rdf_global_id(rdf:nil, L), !.
+  rdf_equal(rdf:nil, L), !.
 rdf_retractall_list(L, G):-
   % Remove the head.
-  rdf2(L, rdf:first, H, G),
-  rdf_retractall2(L, rdf:first, H, G),
+  user:rdf(L, rdf:first, H, G),
+  user:rdf_retractall(L, rdf:first, H, G),
   % Recurse if the head is itself a list.
   (rdf_is_list(H) -> rdf_retractall_list(H) ; true),
   
   % Remove the tail.
-  rdf2(L, rdf:rest, T, G),
-  rdf_retractall2(L, rdf:rest, T, G),
+  user:rdf(L, rdf:rest, T, G),
+  user:rdf_retractall(L, rdf:rest, T, G),
   rdf_retractall_list(T).

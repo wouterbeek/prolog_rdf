@@ -46,13 +46,10 @@ rdfs_comment(S, Comm):-
 
 
 %! rdfs_instance(?Instance:rdf_term, ?Class:or([bnode,iri])) is nondet.
+% @tbd
 
-rdfs_instance(I0, C):-
-  rdf_is_literal(I0), !,
-  bnode_literal(I, I0),
-  rdfs_instance(I, C).
 rdfs_instance(I, C):-
-  rdfs_individual_of(I, C).
+  user:rdf(I, rdf:type, C).
 
 
 
@@ -65,6 +62,7 @@ rdfs_instance(I, C):-
 
 rdfs_label(S, LRanges, LTag, Lbl):-
   rdfs_label(S, LRanges, LTag, Lbl, _).
+
 
 %! rdfs_label(
 %!   +Subject:rdf_term,

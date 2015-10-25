@@ -276,7 +276,7 @@ rdf_assert_collection0(N, C, L1, L2, G):-
 rdf_assert_collection_items0(_, [], _, _):- !.
 rdf_assert_collection_items0(N1, [H1|T1], L2, G):-
   rdf_container_membership_property(P, N1),
-  rdf_assert2(L2, P, H1, G),
+  user:rdf_assert(L2, P, H1, G),
   N2 is N1 + 1,
   rdf_assert_collection_items0(N2, T1, L2, G).
 
@@ -286,7 +286,7 @@ rdf_collection0(L1, L2, G):-
   aggregate_all(
     set(I-X),
     (
-      rdf2(L1, P, X, G),
+      user:rdf(L1, P, X, G),
       rdf_container_membership_property(P, I)
     ),
     Pairs

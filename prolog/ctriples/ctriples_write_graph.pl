@@ -12,9 +12,10 @@
 Writes the given graph (or all currently stored triples) to a source.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
+:- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
@@ -80,17 +81,14 @@ write_graph(G, Opts):-
   ->  memberchk(CFormat, [quadruples,triples])
   ;   rdf_graph(G),
       G \== user,
-      rdf(_, _, _, G:_)
+      rdf_db:rdf(_, _, _, G:_)
   ->  CFormat = quadruples
   ;   CFormat = triples
   ),
 
-  findall(S, rdf(S, _, _, G), Ss1),
+  findall(S, rdf_db:rdf(S, _, _, G), Ss1),
   sort(Ss1, Ss2),
-  forall(
-    member(S, Ss2),
-    write_subject(State, BPrefix, G, CFormat, S)
-  ),
+  maplist(write_subject(State, BPrefix, G, CFormat), Ss2),
 
   ctriples_write_end(State, Opts).
 
@@ -111,7 +109,7 @@ write_graph(G, Opts):-
 
 % Format: C-Quads
 write_subject(State, BPrefix, G, quadruples, S):-
-  findall(P-O-G, rdf(S, P, O, G:_), POGTriples1),
+  findall(P-O-G, rdf_db:rdf(S, P, O, G:_), POGTriples1),
   sort(POGTriples1, POGTriples2),
   forall(
     member(P-O-G, POGTriples2),
@@ -122,7 +120,7 @@ write_subject(State, BPrefix, G, quadruples, S):-
   ).
 % Format: C-Triples
 write_subject(State, BPrefix, G, triples, S):-
-  findall(P-O, rdf(S, P, O, G:_), POPairs1),
+  findall(P-O, rdf_db:rdf(S, P, O, G:_), POPairs1),
   sort(POPairs1, POPairs2),
   forall(
     member(P-O, POPairs2),

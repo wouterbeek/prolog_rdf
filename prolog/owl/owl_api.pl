@@ -1,21 +1,14 @@
 :- module(
   owl_api,
   [
-    rdf_assert3/1, % +Triple:compound
-    rdf_assert3/3, % +Subject:rdf_term
-                   % +Predicate:iri
-                   % +Object:rdf_term
-    rdf_assert_instance3/2, % +Instance:rdf_term
-                            % +Class:rdf_term
-    rdf_assert_list3/2, % +PrologList:list(rdf_term)
-                        % ?RdfList:rdf_term
-    rdf_assert_literal3/4, % +Subject:rdf_term
+    owl_assert_instance/2, % +Instance:rdf_term
+                           % +Class:rdf_term
+    owl_assert_list/2, % +PrologList:list(rdf_term)
+                       % ?RdfList:rdf_term
+    owl_assert_literal3/4, % +Subject:rdf_term
                            % +Predicate:rdf_term
                            % ?Datatype:rdf_term
                            % +Value
-    rdf3/3, % ?Subject:rdf_term
-            % ?Predicate:iri
-            % ?Object:rdf_term
     rdf_description_size3/2, % +Resource:rdf_term
                              % ?Size:nonneg
     rdf_html_term3//2, % +Term:rdf_term
@@ -63,7 +56,7 @@
 /** <module> OWL API
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(html/content/html_collection)).
@@ -82,12 +75,9 @@
 :- assert_cc_prefixes.
 :- assert_dbpedia_localizations.
 
-:- rdf_meta(rdf_assert3(t)).
-:- rdf_meta(rdf_assert3(o,r,o)).
-:- rdf_meta(rdf_assert_instance3(o,o)).
-:- rdf_meta(rdf_assert_list3(t,o)).
-:- rdf_meta(rdf_assert_literal3(o,o,o,+)).
-:- rdf_meta(rdf3(o,r,o)).
+:- rdf_meta(owl_assert_instance(o,o)).
+:- rdf_meta(owl_assert_list(t,o)).
+:- rdf_meta(owl_assert_literal(o,o,o,+)).
 :- rdf_meta(rdf_description_size3(o,?)).
 :- rdf_meta(rdf_html_term3(o,+,?,?)).
 :- rdf_meta(rdf_html_triple3(o,o,o,+,?,?)).
@@ -112,35 +102,17 @@
 
 
 
-%! rdf_assertt3(+Triple:compound) is det.
+%! owl_assert_instance(+Instance:rdf_term, +Class:rdf_term) is det.
 
-rdf_assert3(rdf(S,P,O)):-
-  rdf_assert3(S, P, O).
-
-
-
-%! rdf_assert3(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
-
-rdf_assert3(S, P, O):-
-  rdf_global_id(owl:sameAs, P), !,
-  store_id(S, O).
-rdf_assert3(S, P, O):-
-  maplist(term_id, [S,P,O], [S0,P0,O0]),
-  rdf_assert(S0, P0, O0).
+owl_assert_instance(I, C):-
+  owl_assert(I, rdf:type, C).
 
 
 
-%! rdf_assert_instance3(+Instance:rdf_term, +Class:rdf_term) is det.
-
-rdf_assert_instance3(I, C):-
-  rdf_assert3(I, rdf:type, C).
-
-
-
-%! rdf_assert_list3(+PrologList:list, ?RdfList:or([bnode,iri])) is det.
+%! owl_assert_list(+PrologList:list, ?RdfList:or([bnode,iri])) is det.
 % Asserts the given, possibly nested, list into RDF.
 
-rdf_assert_list3(L1, L2):-
+owl_assert_list(L1, L2):-
   rdf_transaction(rdf_assert_list0(L1, L2)).
 
 rdf_assert_list0([], rdf:nil):- !.
@@ -173,7 +145,7 @@ add_list_instance0(L):-
 
 
 
-%! rdf_assert_literal3(
+%! owl_assert_literal(
 %!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   ?Datatype:iri,
@@ -181,39 +153,17 @@ add_list_instance0(L):-
 %! ) is det.
 
 % Language-tagged strings.
-rdf_assert_literal3(S, P, rdf:langString, Lex-LTag):- !,
-  rdf_assert3(S, P, literal(lang(LTag,Lex))).
+owl_assert_literal(S, P, rdf:langString, Lex-LTag):- !,
+  owl_assert(S, P, literal(lang(LTag,Lex))).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-rdf_assert_literal3(S, P, D, Val):-
+owl_assert_literal(S, P, D, Val):-
   var(D), !,
-  rdf_assert_literal3(S, P, xsd:string, Val).
+  owl_assert_literal(S, P, xsd:string, Val).
 % Typed literals (as per RDF 1.0 specification).
-rdf_assert_literal3(S, P, D, Val):-
+owl_assert_literal(S, P, D, Val):-
   rdf_canonical_map(D, Val, Lit),
-  rdf_assert3(S, P, Lit).
-
-
-
-%! rdf3(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
-
-rdf3(S, P, O):-
-  rdf_global_id(owl:sameAs, P),
-  (   nonvar(S)
-  ->  term_term(S, O)
-  ;   nonvar(O)
-  ->  term_term(O, S)
-  ;   id_terms(_, Ts),
-      member(S, O, Ts)
-  ).
-rdf3(S, P, O):-
-  (nonvar(S) -> (S = id(SId) -> true ; term_id(S, SId)) ; true),
-  (nonvar(P) -> term_id(P, PId) ; true),
-  (nonvar(O) -> term_id(O, OId) ; true),
-  rdf(SId, PId, OId),
-  (ground(S) -> true ; id_term(SId, S)),
-  id_term(PId, P),
-  id_term(OId, O).
+  owl_assert(S, P, Lit).
 
 
 

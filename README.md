@@ -184,6 +184,23 @@ Since the RDF linked list notation is rather verbose library **plRdf** allows RD
 Y = [1, [[a], 1.0], 'en-US'-b].
 ```
 
+
+Advanced triple storage
+-----------------------
+
+### Simple RDF assertion
+
+Use `rdf_assert2/[1,3,4]` for asserting triples and quadruples:
+  * `rdf_assert2/1` allows triples of the form `rdf/3` and quadruples of the form `rdf/4` to be asserted.
+  * `rdf_assert2/3` is the same as `rdf_assert/3`.
+  * `rdf_assert2/4` does not given an error in mode `(+,+,+,-)` but calls `rdf_assert2/3`.
+
+
+### Generalized RDF assertion
+
+Use `gen_assert/[1,3,4]` for asserting generalized triples and quadruples.
+
+
 ---
 
 This library was programmed by [Wouter Beek](http://www.wouterbeek.com) in 2015 and is distributed under the MIT License.

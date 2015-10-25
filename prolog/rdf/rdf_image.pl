@@ -48,7 +48,7 @@ rdf_image(S, P, O):-
 rdf_image(S, P, O, G):-
   owl_id(S, S0),
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
-      rdf2(S0, P, O, G)
-  ;   rdf2(S0, P, O, G),
+      user:rdf(S0, P, O, G)
+  ;   user:rdf(S0, P, O, G),
       rdfs_instance(O, dcmit:'Image')
   ).

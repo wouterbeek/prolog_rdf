@@ -61,7 +61,7 @@ Higher-level update operations performed on RDF data.
 
 rdf_canonize_graph(G):-
   forall(
-    (rdf(S, P, O, G), rdf_is_literal(O)),
+    (user:rdf(S, P, O, G), rdf_is_literal(O)),
     rdf_canonize_triple(S, P, O, G)
   ).
 
@@ -78,7 +78,7 @@ rdf_canonize_graph(G):-
 % but by the canonical lexical form for that value.
 
 rdf_canonize_triple(S, P, O1, G):-
-  rdf(S, P, O1, G),
+  user:rdf(S, P, O1, G),
   rdf_is_literal(O1),
   rdf_lexical_canonical_map(O1, O2),
   (   O1 \== O2
@@ -109,8 +109,8 @@ rdf_cp(FromG, S, P, O, ToG):-
   rdf_transaction(rdf_cp0(copied, FromG, S, P, O, ToG)).
 
 rdf_cp0(Action, FromG, S, P, O, ToG):-
-  forall(rdf2(S, P, O, FromG), (
-    rdf_assert2(S, P, O, ToG),
+  forall(user:rdf(S, P, O, FromG), (
+    user:rdf_assert(S, P, O, ToG),
     dcg_debug(rdf(update), (
       bracketed(square, atom(Action)),
       " ",
@@ -159,5 +159,5 @@ rdf_increment(S, P, Old, G, New):-
 rdf_mv(FromG, S, P, O, ToG):-
   rdf_transaction((
     rdf_cp0(moved, FromG, S, P, O, ToG),
-    rdf_retractall2(S, P, O, FromG)
+    user:rdf_retractall(S, P, O, FromG)
   )).

@@ -30,12 +30,12 @@ load_manifest:-
   assert(current_manifest(Uri)).
 
 clean_current_manifest:-
-  rdf_retractall(_, _, _, manifest),
+  user:rdf_retractall(_, _, _, manifest),
   retractall(current_manifest(_)).
 
 mf_test(Test):-
   rdf_instance(MF, mf:'Manifest', manifest),
-  rdf(MF, mf:entries, Entries, manifest),
+  user:rdf(MF, mf:entries, Entries, manifest),
   rdf_list_member_raw(Test, Entries, manifest).
 
 run_rdf_tests:-
@@ -43,7 +43,7 @@ run_rdf_tests:-
 
 run_rdf_test(Test):-
   announce_test(Test), !,
-  rdf(Test, mf:action, Uri, manifest),
+  user:rdf(Test, mf:action, Uri, manifest),
   print_input(Uri, [indent(2)]),
   rdf_clean(Uri, To, []),
   print_input(To, [indent(2)]).

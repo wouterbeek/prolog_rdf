@@ -159,7 +159,7 @@ rdf_datatype_term(D):-
 %! rdf_datatype_term(-Datatype:iri, -Graph:atom) is nondet.
 
 rdf_datatype_term(D, G):-
-  rdf(_, _, literal(type(D,_)), G).
+  user:rdf(_, _, literal(type(D,_)), G).
 rdf_datatype_term(D, G):-
   rdfs_instance(D, rdfs:'Datatype'),
   rdf_term(D, G).

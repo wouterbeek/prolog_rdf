@@ -30,11 +30,11 @@ rdf_assert_json(S, P, T):-
 rdf_assert_json(S, P, L1, G):-
   is_list(L1), !,
   rdf_assert_list(L1, L2, G),
-  rdf_assert2(S, P, L2, G).
+  user:rdf_assert(S, P, L2, G).
 % JSON value.
 rdf_assert_json(S, P, Json, G):-
   rdf_json_value(Json, D, Lex),
-  rdf_assert2(S, P, literal(type(D,Lex)), G).
+  user:rdf_assert(S, P, literal(type(D,Lex)), G).
 
 % JSON number.
 rdf_json_value(X, D, Y):-

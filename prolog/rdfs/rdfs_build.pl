@@ -119,7 +119,7 @@ rdfs_assert_comment(S, V, G):-
 % ```
 
 rdfs_assert_domain(P, D, G):-
-  rdf_assert2(P, rdfs:domain, D, G).
+  user:rdf_assert(P, rdfs:domain, D, G).
 
 
 
@@ -145,9 +145,9 @@ rdfs_assert_isDefinedBy(S, G):-
 rdfs_assert_isDefinedBy(S, O, G):-
   var(O), !,
   rdf_prefix_iri(S, O),
-  rdf_assert2(S, rdfs:isDefinedBy, O, G).
+  user:rdf_assert(S, rdfs:isDefinedBy, O, G).
 rdfs_assert_isDefinedBy(S, O, G):-
-  rdf_assert2(S, rdfs:isDefinedBy, O, G).
+  user:rdf_assert(S, rdfs:isDefinedBy, O, G).
 
 
 
@@ -198,7 +198,7 @@ rdfs_assert_property(D, P, R, G):-
 % ```
 
 rdfs_assert_range(P, R, G):-
-  rdf_assert2(P, rdfs:range, R, G).
+  user:rdf_assert(P, rdfs:range, R, G).
 
 
 
@@ -210,7 +210,7 @@ rdfs_assert_range(P, R, G):-
 % ```
 
 rdfs_assert_seeAlso(S, O, G):-
-  rdf_assert2(S, rdfs:seeAlso, O, G).
+  user:rdf_assert(S, rdfs:seeAlso, O, G).
 
 
 
@@ -235,10 +235,10 @@ rdfs_assert_subclass(C, G):-
 rdfs_assert_subclass(C, D, G):-
   % Allow the parent class to be uninstantiated.
   (   var(D)
-  ->  rdf_assert2(C, rdfs:subClassOf, rdfs:'Resource', G)
+  ->  user:rdf_assert(C, rdfs:subClassOf, rdfs:'Resource', G)
   ;   is_list(D)
-  ->  forall(member(D0, D), rdf_assert2(C, rdfs:subClassOf, D0, G))
-  ;   rdf_assert2(C, rdfs:subClassOf, D, G)
+  ->  forall(member(D0, D), user:rdf_assert(C, rdfs:subClassOf, D0, G))
+  ;   user:rdf_assert(C, rdfs:subClassOf, D, G)
   ).
 
 
@@ -260,7 +260,7 @@ rdfs_assert_subclass(C, D, G):-
 
 rdfs_assert_subproperty(P, Q, G):-
   rdf_defval(rdf:'Property', Q),
-  rdf_assert2(P, rdfs:subPropertyOf, Q, G).
+  user:rdf_assert(P, rdfs:subPropertyOf, Q, G).
 
 
 
@@ -287,19 +287,19 @@ rdfs_retractall_class_term(C):-
   %     Connect all subclasses of Class to all superclasses of Class.
   forall(
     (
-      rdf2(SubC, rdfs:subClassOf, C),
-      rdf2(C, rdfs:subClassOf, SuperC)
+      user:rdf(SubC, rdfs:subClassOf, C),
+      user:rdf(C, rdfs:subClassOf, SuperC)
     ),
     (
       % The transitive link is now a direct one.
       rdfs_assert_subclass(SubC, SuperC, _),
       % Remove the link to a subclass.
-      rdf_retractall2(SubC, rdfs:subClassOf, C)
+      user:rdf_retractall(SubC, rdfs:subClassOf, C)
     )
   ),
 
   % [2] Remove the links to superclasses.
-  rdf_retractall2(C, rdfs:subClassOf, _),
+  user:rdf_retractall(C, rdfs:subClassOf, _),
 
   % [3] Remove other triples in which the class occurs.
   rdf_retractall_term(C, _).

@@ -74,7 +74,7 @@ rdf_resource_edge(To, P, From, G):-
 
 rdf_resource_incoming_edge(To, P, From, G):-
   owl_id(To, To0),
-  rdf2(From0, P, To0, G),
+  user:rdf(From0, P, To0, G),
   owl_id(From, From0).
 
 
@@ -89,7 +89,7 @@ rdf_resource_incoming_edge(To, P, From, G):-
 
 rdf_resource_outgoing_edge(From, P, To, G):-
   owl_id(From, From0),
-  rdf2(From0, P, To0, G),
+  user:rdf(From0, P, To0, G),
   owl_id(To, To0).
 
 
@@ -118,7 +118,7 @@ rdf_term_edge(O, P, S, G):-
 % Returns incoming edges for the given RDF term.
 
 rdf_term_incoming_edge(O, P, S, G):-
-  rdf2(S, P, O, G).
+  user:rdf(S, P, O, G).
 
 
 
@@ -131,4 +131,4 @@ rdf_term_incoming_edge(O, P, S, G):-
 % Returns outgoing edges for the given RDF term.
 
 rdf_term_outgoing_edge(S, P, O, G):-
-  rdf2(S, P, O, G).
+  user:rdf(S, P, O, G).
