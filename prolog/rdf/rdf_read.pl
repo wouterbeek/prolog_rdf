@@ -16,7 +16,6 @@
                       % +LanguagePriorityList:list(atom)
                       % ?Value:pair(atom)
                       % ?Graph:atom
-    rdf_load_vocab/1, % +Location:atom
     rdf_literal/3, % ?Subject, ?Predicate, ?Value
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
     rdf_literal/5, % ?Subject:rdf_term
@@ -128,6 +127,7 @@ rdf_date(S, P, V, G):-
 rdf_instance(I, C):-
   rdf_instance(I, C, _).
 
+
 %! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
 
 rdf_instance(I, C, G):-
@@ -145,6 +145,7 @@ rdf_instance(I, C, G):-
 rdf_langstring(S, P, LRanges, V):-
   rdf_langstring(S, P, LRanges, V, _).
 
+
 %! rdf_langstring(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
@@ -158,21 +159,6 @@ rdf_langstring(S, P, LRanges, V, G):-
   V = _-LTag,
   atom(LTag),
   basic_filtering(LRanges, LTag).
-
-
-
-%! rdf_load_vocab(+Location:atom) is det.
-% Succees by loading the vocabulary denoted with the given URI
-% or RDF namespace-denoting prefix into the RDF DB.
-
-rdf_load_vocab(Prefix):-
-  rdf_current_prefix(Prefix, Uri), !,
-  rdf_load_vocab(Uri, Prefix).
-rdf_load_vocab(Uri):-
-  rdf_load_vocab(Uri, Uri).
-
-rdf_load_vocab(Uri, Graph):-
-  rdf_load(Uri, [graph(Graph)]).
 
 
 
