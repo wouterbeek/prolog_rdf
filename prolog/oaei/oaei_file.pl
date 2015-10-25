@@ -36,7 +36,7 @@
 :- use_module(library(rdf/rdf_save)).
 
 :- predicate_options(oaei_load_rdf/3, 3, [
-     pass_to(rdf_read_from_graph/3, 3)
+     pass_to(rdf_call_on_graph/3, 3)
    ]).
 
 
@@ -68,7 +68,7 @@ oaei_load_rdf(In, As):-
 %! oaei_load_rdf(+In, -Alignments:ordset(pair(iri)), +Options:list(compound)) is det.
 
 oaei_load_rdf(In, As, Opts):-
-  rdf_read_from_graph(In, oaei_load_rdf0(As), Opts).
+  rdf_call_on_graph(In, oaei_load_rdf0(As), Opts).
 
 oaei_load_rdf0(As, G):-
   aggregate_all(set(From-To), oaei_alignment(From, To, G), As).
