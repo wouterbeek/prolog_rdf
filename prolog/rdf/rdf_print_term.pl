@@ -18,12 +18,13 @@
     rdf_print_term//2 % +Term:rdf_term
                       % +Options:list(compound)
   ]
-     ).
+).
 
 /** <module> RDF term printing
 
 @author Wouter Beek
-@version 2015/07-2015/09
+@license MIT license
+@version 2015/07-2015/10
 */
 
 :- use_module(library(atom_ext)).
@@ -149,7 +150,15 @@ rdf_print_datatype(D, Opts) -->
 
 rdf_print_graph(G, Opts) -->
   ({option(style(turtle), Opts)} -> " " ; "@"),
-  atom(G).
+  ({  rdf_global_id(Prefix:Local, G),
+      \+ option(abbr_iri(false), Opts)}
+  -> {option(ellip_ln(N), Opts, 20),
+      atom_truncate(Local, N, Local0)},
+      atom(Prefix),
+      ":",
+      atom(Local0)
+  ;   atom(G)
+  ).
 
 
 
@@ -181,7 +190,10 @@ rdf_print_iri(Iri, Opts) -->
   rdf_print_list(Iri, Opts), !.
 rdf_print_iri(Iri, Opts) -->
   {option(symbol_iri(true), Opts, true)},
-  (   {rdf_global_id(owl:equivalentClass, Iri)}
+  (   (   {rdf_global_id(owl:equivalentClass, Iri)}
+      ;   {rdf_global_id(owl:equivalentProperty, Iri)}
+      ;   {rdf_global_id(owl:sameAs, Iri)}
+      )
   ->  equivalence
   ;   {rdf_global_id(rdfs:subClassOf, Iri)}
   ->  subclass
