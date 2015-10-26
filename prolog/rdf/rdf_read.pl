@@ -163,7 +163,7 @@ rdf_langstring(S, P, LRanges, V, G):-
 
 
 %! rdf_literal(?Subject:rdf_term, ?Predicate:iri, ?Value) is nondet.
-% Wrapper around rdf_literal/4 where the datatype is uninstantiated.
+% Wrapper around rdf_literal/4 with uninstantiated datatype.
 
 rdf_literal(S, P, V):-
   rdf_literal(S, P, _, V, _).
@@ -175,7 +175,7 @@ rdf_literal(S, P, V):-
 %!   ?Datatype:iri,
 %!   ?Value
 %! ) is nondet.
-% Wrapper around rdf_literal/4 where the graph is uninstantiated.
+% Wrapper around rdf_literal/4 with uninstantiated graph.
 
 rdf_literal(S, P, D, V):-
   rdf_literal(S, P, D, V, _).
@@ -188,8 +188,7 @@ rdf_literal(S, P, D, V):-
 %!   ?Value,
 %!   ?Graph:atom
 %! ) is nondet.
-% @see See rdf_literal_pl/[3-5] that allows native Prolog terms
-%      to be returned in more situations, at the cost of correctness.
+% Reads statements with literal object term.
 
 rdf_literal(S, P, D, V, G):-
   rdf_literal(S, P, D, V, G, _).
@@ -240,7 +239,7 @@ rdf_literal(S, P, xsd:string, Val, G, rdf(S,P,O,G)):-
 
 
 %! rdf_literal_pl(?Subject:rdf_term, ?Predicate:iri, ?Value) is nondet.
-% Wrapper around rdf_literal_pl/4 where the datatype in uninstantiated.
+% Wrapper around rdf_literal_pl/4 with uninstantiated datatype.
 
 rdf_literal_pl(S, P, V):-
   rdf_literal_pl(S, P, _, V, _).
@@ -252,7 +251,7 @@ rdf_literal_pl(S, P, V):-
 %!   ?Datatype:iri,
 %!   ?Value
 %! ) is nondet.
-% Wrapper around rdf_literal_pl/5 where the graph in uninstantiated.
+% Wrapper around rdf_literal_pl/5 with uninstantiated graph.
 
 rdf_literal_pl(S, P, D, V):-
   rdf_literal_pl(S, P, D, V, _).

@@ -49,6 +49,7 @@
 Simple asserion and retraction predicates for RDF.
 
 @author Wouter Beek
+@license MIT License
 @version 2015/07-2015/10
 */
 
@@ -86,6 +87,7 @@ Simple asserion and retraction predicates for RDF.
 fresh_iri(Prefix, Iri):-
   fresh_iri(Prefix, [], Iri).
 
+
 %! fresh_iri(+Prefix:atom, +SubPaths:list(atom), -Iri:atom) is det.
 % Succeeds with a fresh IRI within the RDF namespace denoted by Prefix
 % and the given SubPaths.
@@ -109,6 +111,7 @@ fresh_iri(Prefix, SubPaths0, Iri):-
 %!   +Instance:rdf_term,
 %!   ?Class:or([iri,list(iri)])
 %! ) is det.
+% Wrapper around rdf_assert_instance/3 with uninstantiated graph.
 
 rdf_assert_instance(I, C):-
   rdf_assert_instance(I, C, _).
@@ -144,6 +147,7 @@ rdf_assert_instance(I, C, G):-
 %!   ?Datatype:iri,
 %!   +Value
 %! ) is det.
+% Wrapper around rdf_assert_literal/5 with uninstantiated graph.
 
 rdf_assert_literal(S, P, D, V):-
   rdf_assert_literal(S, P, D, V, _).
@@ -180,6 +184,7 @@ rdf_assert_literal(S, P, D, Val, G):-
 
 
 %! rdf_assert_literal_pl(+Subject:rdf_term, +Predicate:iri, +Value) is det.
+% Wrapper around rdf_assert_literal_pl/4 with uninstantiated graph.
 
 rdf_assert_literal_pl(S, P, V):-
   rdf_assert_literal_pl(S, P, V, _).
@@ -223,12 +228,14 @@ rdf_assert_literal_pl(_, _, V, _):-
 
 
 %! rdf_assert_now(+Subject:rdf_term, +Predicate:iri) is det.
+% Wrapper around rdf_assert_now/3 with uninstantiated graph.
 
 rdf_assert_now(S, P):-
   rdf_assert_now(S, P, _).
 
 
 %! rdf_assert_now(+Subject:rdf_term, +Predicate:iri, ?Graph:atom) is det.
+% Wrapper around rdf_assert_now/4 with datatype `xsd:dateTime`.
 
 rdf_assert_now(S, P, G):-
   rdf_assert_now(S, P, xsd:dateTime, G).
@@ -240,6 +247,9 @@ rdf_assert_now(S, P, G):-
 %!   +Datatype:iri,
 %!   ?Graph:atom
 %! ) is det.
+% Asserts the triple `〈Subject, Predicate, 〈Datatype,Lex〉〉@Graph`
+% where `Lex` denotes the date-time point of assertion
+% under the given Datatype.
 
 rdf_assert_now(S, P, D, G):-
   get_time(NowFloat),
@@ -249,13 +259,9 @@ rdf_assert_now(S, P, D, G):-
 
 
 %! rdf_assert_property(+Property:iri, ?Parent:iri, ?Graph:atom) is det.
-% Asserts an RDF property.
+% Asserts an RDF Property that belongs to a class of properties called Parent.
 %
-% The following triples are added to the database:
-%
-% ```nquads
-% 〈TERM, rdf:type, rdf:Property, GRAPH〉
-% ```
+% Parent defaults to `rdf:Property`.
 
 rdf_assert_property(P, Parent, G):-
   rdf_defval(rdf:'Property', Parent),
@@ -269,6 +275,7 @@ rdf_assert_property(P, Parent, G):-
 %!   ?Datatype:iri,
 %!   ?Value
 %! ) is det.
+% Wrapper around rdf_retractall_literal/5 with uninstantiated graph.
 
 rdf_retractall_literal(S, P, D, V):-
   rdf_retractall_literal(S, P, D, V, _).
@@ -281,17 +288,21 @@ rdf_retractall_literal(S, P, D, V):-
 %!   ?Value,
 %!   ?Graph:atom
 %! ) is det.
-% Retracts all matching RDF triples that have literal object terms.
+% Retracts all matching RDF triples that have a literal object term
+% with the given Datatype and/or Value.
 %
-% Implementation note: this assumes that simple literals are always
+% This assumes that simple literals are always
 % asserted with datatype IRI `xsd:string`.
 % We do not retract literal compound terms of the form
 % `literal(LexicalForm:atom)`.
-
+%
 % If no RDF datatype is given we assume XSD string,
 % as specified by the RDF 1.1 standard.
+
 rdf_retractall_literal(S, P, D, V, G):-
   forall(
+    % Use a private predicate that returns the matched quadruple
+    % as a compound term.
     rdf_read:rdf_literal(S, P, D, V, G, T),
     rdf_retractall_term(T, G)
   ).

@@ -12,7 +12,8 @@
 Consistent naming of blank nodes.
 
 @author Wouter Beek
-@version 2015/08
+@license MIT License
+@version 2015/08, 2015/10
 */
 
 %! bnode_name_counter(+Id:nonneg) is semidet.
