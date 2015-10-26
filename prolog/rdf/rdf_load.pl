@@ -75,8 +75,13 @@ rdf_call_on_triples(In, Goal_2, Opts):-
   option(graph(G), Opts, _),
   rdf_call_on_stream(In, read, rdf_call_on_triples_stream(G, Goal_2), Opts).
 
-%! rdf_call_on_triples_stream(?Graph:atom, :Goal_2, +Metadata:dict, +Read:stream) is det.
-% call(:Goal_2, +Statements:list(compound), ?Graph:atom)
+%! rdf_call_on_triples_stream(
+%!   ?Graph:atom,
+%!   :Goal_2,
+%!   +Metadata:dict,
+%!   +Read:stream
+%! ) is det.
+% The following call is made: `call(:Goal_2, +Statements:list(compound), ?Graph:atom)`.
 
 rdf_call_on_triples_stream(G, Goal_2, M, Read):-
   memberchk(M.rdf.format, [nquads,ntriples]), !,
