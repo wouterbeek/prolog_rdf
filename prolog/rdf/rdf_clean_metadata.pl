@@ -16,8 +16,6 @@
 :- use_module(library(clpfd)).
 :- use_module(library(http/http_deb)).
 
-:- meta_predicate(section(+,+,//,?,?)).
-
 
 
 
@@ -108,11 +106,3 @@ nvpairs(I, N, [H|T]) -->
   indent_nl(I, nvpair(N-H)), !,
   nvpairs(I, N, T).
 nvpairs(_, _, []) --> "".
-
-
-
-%! section(+Indent:nonneg, +Message:string, :Dcg_2)// is det.
-
-section(I, Msg, Dcg_2) -->
-  indent_nl(I, atom(Msg)),
-  Dcg_2.
