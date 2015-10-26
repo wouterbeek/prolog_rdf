@@ -1,14 +1,14 @@
 :- module(
   rdf_load,
   [
-    rdf_load_file/2, % +Input
-                     % +Options:list(compound)
-    rdf_call_on_triple/3, % +Input
-                          % :Goal_2
-                          % +Options:list(compound)
-    rdf_call_on_graph/3 % +Input
-                          % :Goal_1
-                          % +Options:list(compound)
+    rdf_call_on_graph/3, % +Input
+                         % :Goal_1
+                         % +Options:list(compound)
+    rdf_call_on_triples/3, % +Input
+                           % :Goal_2
+                           % +Options:list(compound)
+    rdf_load_file/2 % +Input
+                    % +Options:list(compound)
   ]
 ).
 
@@ -17,14 +17,13 @@
 Support for loading RDF data.
 
 @author Wouter Beek
+@license MIT license
 @version 2015/08, 2015/10
 */
 
 :- use_module(library(apply)).
-:- use_module(library(debug_ext)).
+:- use_module(library(count_ext)).
 :- use_module(library(option)).
-:- use_module(library(lambda)).
-:- use_module(library(lists)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option)).
 :- use_module(library(rdf)).
@@ -37,66 +36,21 @@ Support for loading RDF data.
 :- use_module(library(semweb/turtle)).
 :- use_module(library(uuid_ext)).
 
-:- meta_predicate(rdf_call_on_triple(+,2,+)).
+:- meta_predicate(rdf_call_on_triples(+,2,+)).
 :- meta_predicate(rdf_call_on_graph(+,1,+)).
 
+:- predicate_options(rdf_call_on_graph/3, 3, [
+     pass_to(rdf_load_file/2)
+   ]).
+:- predicate_options(rdf_call_on_triples/3, 3, [
+     pass_to(rdf_call_on_stream/4, 4)
+   ]).
 :- predicate_options(rdf_load_file/2, 2, [
      pass_to(rdf_load_file/3, 3),
      pass_to(rdf_call_on_stream/4, 4)
    ]).
-:- predicate_options(rdf_load_file/3, 3, [
-     pass_to(rdf_load/2, 2)
-   ]).
-:- predicate_options(rdf_call_on_triple/3, 3, [
-     pass_to(rdf_call_on_stream/4, 4)
-   ]).
-:- predicate_options(rdf_call_on_graph/3, 3, [
-     pass_to(rdf_load_file/2)
-   ]).
 
 
-
-
-
-%! rdf_load_file(+Input, +Options:list(compound)) is det.
-
-rdf_load_file(In, Opts):-
-  option(graph(G), Opts, _VAR),
-  % In the absence of a graph name use the base IRI.
-  (var(G), option(base_iri(BaseIri), Opts) -> G = BaseIri ; true),
-  rdf_call_on_triple(In, rdf_load_triple0, Opts).
-
-rdf_load_triple0(Stmts, _):-
-  maplist(user:rdf_assert, Stmts).  
-
-
-
-%! rdf_call_on_triple(+Input, :Goal_2, +Options:list(compound)) is nondet.
-
-rdf_call_on_triple(In, Goal_2, Opts):-
-  rdf_call_on_stream(In, read, rdf_call_on_triple0(Goal_2), Opts).
-
-%! rdf_call_on_triple0(:Goal_2, +Metadata:dict, +Read:stream) is det.
-% call(:Goal_2, +Statements:list(compound), ?Graph:atom)
-
-rdf_call_on_triple0(Goal_2, M, Read):-
-  memberchk(M.rdf.format, [nquads,ntriples]), !,
-  rdf_process_ntriples(Read, Goal_2, [base_uri(M.base_iri)]).
-rdf_call_on_triple0(Goal_2, M, Read):-
-  memberchk(M.rdf.format, [trig,turtle]), !,
-  uuid_no_hyphen(UniqueId),
-  atomic_list_concat(['__',UniqueId,:], BNodePrefix),
-  Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri)],
-  rdf_process_turtle(Read, Goal_2, Opts).
-rdf_call_on_triple0(Goal_2, M, Read):-
-  xml == M.rdf.format, !,
-  process_rdf(Read, Goal_2, [base_uri(M.base_iri)]).
-rdf_call_on_triple0(Goal_2, M, Read):-
-  rdfa == M.rdf.format, !,
-  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
-  call(Goal_2, Ts, _).
-rdf_call_on_triple0(_, _, M):-
-  msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
 
 
 
@@ -112,3 +66,73 @@ rdf_call_on_graph(In, Goal_1, Opts0):-
     ),
     rdf_unload_graph(G)
   ).
+
+
+
+%! rdf_call_on_triples(+Input, :Goal_2, +Options:list(compound)) is nondet.
+
+rdf_call_on_triples(In, Goal_2, Opts):-
+  rdf_call_on_stream(In, read, rdf_call_on_triples_stream(Goal_2), Opts).
+
+%! rdf_call_on_triples_stream(:Goal_2, +Metadata:dict, +Read:stream) is det.
+% call(:Goal_2, +Statements:list(compound), ?Graph:atom)
+
+rdf_call_on_triples_stream(Goal_2, M, Read):-
+  memberchk(M.rdf.format, [nquads,ntriples]), !,
+  rdf_process_ntriples(Read, Goal_2, [base_uri(M.base_iri)]).
+rdf_call_on_triples_stream(Goal_2, M, Read):-
+  memberchk(M.rdf.format, [trig,turtle]), !,
+  uuid_no_hyphen(UniqueId),
+  atomic_list_concat(['__',UniqueId,:], BNodePrefix),
+  Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri)],
+  rdf_process_turtle(Read, Goal_2, Opts).
+rdf_call_on_triples_stream(Goal_2, M, Read):-
+  xml == M.rdf.format, !,
+  process_rdf(Read, Goal_2, [base_uri(M.base_iri)]).
+rdf_call_on_triples_stream(Goal_2, M, Read):-
+  rdfa == M.rdf.format, !,
+  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
+  call(Goal_2, Ts, _).
+rdf_call_on_triples_stream(_, _, M):-
+  msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
+
+
+
+%! rdf_load_file(+Input, +Options:list(compound)) is det.
+
+rdf_load_file(In, Opts):-
+  option(graph(G), Opts, _),
+  option(triples(N1), Opts, _),
+  option(quadruples(N2), Opts, _),
+  option(statements(N3), Opts, _),
+  % In the absence of a graph name use the base IRI.
+  (var(G), option(base_iri(BaseIri), Opts) -> G = BaseIri ; true),
+  setup_call_cleanup(
+    (
+      create_thread_counter(number_of_triples,    C1),
+      create_thread_counter(number_of_quadruples, C2)
+    ),
+    rdf_call_on_triples(In, rdf_load_triples(C1, C2), Opts),
+    (
+      delete_counter(C1, N1),
+      delete_counter(C2, N2),
+      N3 is N1 + N2,
+      msg_notification(
+        "Loaded ~D statements from ~w (~D triples and ~D quadruples).~n",
+        [N3,In,N1,N2]
+      )
+    )
+  ).
+
+% C1:  Number of triples.
+% C2:  Number of quadruples.
+
+rdf_load_triples(C1, C2, Stmts, _):-
+  maplist(rdf_load_triple(C1, C2), Stmts).
+
+rdf_load_triple(C1, _, rdf(S,P,O)):- !,
+  increment_counter(C1),
+  user:rdf_assert(S, P, O).
+rdf_load_triple(_, C2, rdf(S,P,O,G)):- !,
+  increment_counter(C2),
+  user:rdf_assert(S, P, O, G).
