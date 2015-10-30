@@ -16,6 +16,8 @@
 :- rdf_meta(user:rdf_assert(t)).
 :- rdf_meta(user:rdf_assert(o,r,o)).
 :- rdf_meta(user:rdf_assert(o,r,o,?)).
+:- rdf_meta(user:rdf_retractall(o,r,o)).
+:- rdf_meta(user:rdf_retractall(o,r,o,?)).
 
 
 
@@ -90,6 +92,9 @@ user:rdf_iri(N):-
   \+ rdf_current_predicate(N).
 
 
+
+user:rdf_retractall(S, P, O):-
+  user:rdf_retractall(S, P, O, _).
 
 user:rdf_retractall(S, P, O, G):-
   maplist(rdf_normalize, [S,P,O,G], [SNorm,PNorm,ONorm,GNorm]),
