@@ -131,7 +131,8 @@ rdf_instance(I, C):-
 %! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
 
 rdf_instance(I, C, G):-
-  user:rdf(I, rdf:type, C, G).
+  rdf_equal(rdf:type, P),
+  user:rdf(I, P, C, G).
 
 
 

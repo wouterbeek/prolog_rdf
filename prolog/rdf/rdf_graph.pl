@@ -10,6 +10,7 @@
     rdf_is_graph/1, % @Term
     rdf_mv_graph/2, % +From:atom
                     % +To:atom
+    rdf_new_graph/1, % -Graph:atom
     rdf_new_graph/2, % +Name:atom
                      % -Graph:atom
     rdf_stale_graph/2, % ?Graph:atom
@@ -94,6 +95,12 @@ rdf_mv_graph(From, To):-
   rdf_mv(From, _, _, _, To),
   rdf_unload_graph(From).
 
+
+
+%! rdf_new_graph(-Graph:atom) is det.
+
+rdf_new_graph(G):-
+  rdf_new_graph(noname, G).
 
 
 %! rdf_new_graph(+Base:atom, -Graph:atom) is det.

@@ -137,7 +137,8 @@ rdf_assert_instance(I, Cs, G):-
   is_list(Cs), !,
   maplist(\C^(user:rdf_assert(I, rdf:type, C, G)), Cs).
 rdf_assert_instance(I, C, G):-
-  user:rdf_assert(I, rdf:type, C, G).
+  rdf_equal(rdf:type, P),
+  user:rdf_assert(I, P, C, G).
 
 
 
