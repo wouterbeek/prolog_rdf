@@ -6,12 +6,12 @@
     oaei_convert_tsv_to_rdf/2, % +In
                                % +Out
     oaei_load_rdf/2, % +In
-                     % -Alignments:ordset(pair(iri))
+                     % -Alignments:ugraph
     oaei_load_rdf/3, % +In
-                     % -Alignments:ordset(pair(iri))
+                     % -Alignments:ugraph
                      % +Options:list(compound)
     oaei_load_tsv/2, % +In
-                     % -Alignments:ordset(pair(iri))
+                     % -Alignments:ugraph
     oaei_save_rdf/2, % +Out
                      % +Alignments:list(pair))
     oaei_save_tsv/2 % +Out
