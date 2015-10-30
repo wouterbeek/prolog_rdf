@@ -34,8 +34,6 @@
 %! rdf_fca_test_context(+Id:positive_integer, -Context:compound) is det.
 
 rdf_fca_test_context(N, Context):-
-  atomic_list_concat([fca,N], /, G0),
-  rdf_new_graph(G0, G),
   rdf_fca_test_graph(N, G),
   rdf_fca_context(G, Context).
 
@@ -43,7 +41,12 @@ rdf_fca_test_context(N, Context):-
 
 %! rdf_fca_test_graph(+Id:positive_integer, -Graph:atom) is det.
 
-rdf_fca_test_graph(1, G):-
+rdf_fca_test_graph(N, G):-
+  atomic_list_concat([fca,N], /, G0),
+  rdf_new_graph(G0, G),
+  rdf_fca_test_graph0(N, G).
+
+rdf_fca_test_graph0(1, G):-
   forall(between(1, 10, N), rdf_assert_number(N, G)),
   rdf_assert(ex:'1',  rdf:type, ex:'Odd',       G),
   rdf_assert(ex:'1',  rdf:type, ex:'Square',    G),
