@@ -120,7 +120,8 @@ rdf_clean_stream(Local0, Opts, M0, Read):-
 
   % Convert to the RDF input stream into C-Triples
   % on a triple-by-triple basis.
-  thread_file(tmp, Tmp),
+  absolute_file_name(tmp, Tmp0, [access(write)]),
+  thread_file(Tmp0, Tmp),
   debug(
     rdf(clean),
     "Going to temporarily store clean triples in file ~a.",
