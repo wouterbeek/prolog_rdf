@@ -1,6 +1,7 @@
 :- module(
   rdf_stream,
   [
+    rdf_call_on_stream/3, % +In, +Mode, :Goal_2
     rdf_call_on_stream/4 % +In
                          % +Mode:oneof([append,read,write])
                          % :Goal_2
@@ -32,6 +33,7 @@
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
+:- meta_predicate(rdf_call_on_stream(+,+,2)).
 :- meta_predicate(rdf_call_on_stream(+,+,2,+)).
 :- meta_predicate(rdf_call_on_read_stream(2,+,+,+)).
 :- meta_predicate(rdf_call_on_write_stream(2,+,+)).
@@ -41,10 +43,7 @@
      pass_to(rdf_call_on_read_stream/4, 2),
      pass_to(rdf_http_plugin:rdf_extra_headers/2, 2)
    ]).
-:- predicate_options(rdf_call_on_stream0/4, 2, [
-     pass_to(rdf_determine_format/3, 2)
-   ]).
-:- predicate_options(rdf_determine_format/3, 2, [
+:- predicate_options(rdf_call_on_read_stream/4, 2, [
      format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
    ]).
 
@@ -52,7 +51,19 @@
 
 
 
-%! rdf_call_on_stream(+In, +Mode:oneof([append,read,write]), :Goal_2, +Options:list(compound)) is det.
+%! rdf_call_on_stream(+In, +Mode:oneof([append,read,write]), :Goal_2) is det.
+% Wrapper around rdf_call_on_stream/4.
+
+rdf_call_on_stream(In, Mode, Goal_2):-
+  rdf_call_on_stream(In, Mode, Goal_2, []).
+
+
+%! rdf_call_on_stream(
+%!   +In,
+%!   +Mode:oneof([append,read,write]),
+%!   :Goal_2,
+%!   +Options:list(compound)
+%! ) is det.
 % Goal_2 is applied to a read stream and a metadata dictionary.
 % The metadata dictionary consists of:
 %   * base_iri: atom
@@ -111,47 +122,38 @@
 %   * base_iri(+atom)
 %   * format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
 
+% Read mode.
 rdf_call_on_stream(In, Mode, Goal_2, Opts1):-
   read_mode(Mode), !,
+  % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.
   rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
   merge_options(DefaultRdfOpts, Opts1, Opts2),
-  % Option format/1 will confuse archive_open/3.
+  
+  % Remove option format/1 as it will confuse archive_open/3.
+  % Archive format ↔ RDF serialization format
   (select_option(format(_), Opts2, Opts3) -> true ; Opts3 = Opts2),
+  
   call_on_stream(In, Mode, rdf_call_on_read_stream(Goal_2, Opts2), Opts3).
+% Write mode.
 rdf_call_on_stream(In, Mode, Goal_2, Opts):-
   write_mode(Mode), !,
   call_on_stream(In, Mode, rdf_call_on_write_stream(Goal_2), Opts).
 rdf_call_on_stream(_, Mode, _, _):-
   domain_error(oneof([append,read,write]), Mode).
   
+
 rdf_call_on_read_stream(Goal_2, Opts, M1, Read):-
-  rdf_determine_format(Read, Opts, Format),
+  % Guess the RDF serialization format in case option `format(+)'
+  % is not given.
+  (   option(format(Format), Opts),
+      ground(Format)
+  ->  true
+  ;   rdf_guess_format(Read, Format)
+  ),
+  % `Format' is now instantiated.
   put_dict(rdf, M1, metadata{format: Format}, M2),
   call(Goal_2, M2, Read).
 
+
 rdf_call_on_write_stream(Goal_2, M, Write):-
   call(Goal_2, M, Write).
-
-
-
-
-
-% HELPERS %
-
-%! rdf_determine_format(
-%!   +Read:stream,
-%!   +Options:list(compound),
-%!   -Format:rdf_format
-%! ) is det.
-% Succeeds if Format is either supplied in Options
-% or is heuristically detected in the Read stream
-% and then also optionally returned as an option.
-
-rdf_determine_format(Read, Opts, Format):-
-  (   option(format(Format), Opts)
-  ->  (   ground(Format)
-      ->  true
-      ;   rdf_guess_format(Read, Format)
-      )
-  ;   rdf_guess_format(Read, Format)
-  ).
