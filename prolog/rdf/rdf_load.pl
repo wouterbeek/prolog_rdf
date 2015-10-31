@@ -1,12 +1,15 @@
 :- module(
   rdf_load,
   [
+    rdf_call_on_graph/2, % +Input, :Goal_1
     rdf_call_on_graph/3, % +Input
                          % :Goal_1
                          % +Options:list(compound)
+    rdf_call_on_triples/2, % +Input, :Goal_2
     rdf_call_on_triples/3, % +Input
                            % :Goal_2
                            % +Options:list(compound)
+    rdf_load_file/1, % +Input
     rdf_load_file/2 % +Input
                     % +Options:list(compound)
   ]
@@ -36,8 +39,11 @@ Support for loading RDF data.
 :- use_module(library(semweb/turtle)).
 :- use_module(library(uuid_ext)).
 
-:- meta_predicate(rdf_call_on_triples(+,2,+)).
+:- meta_predicate(rdf_call_on_graph(+,1)).
 :- meta_predicate(rdf_call_on_graph(+,1,+)).
+:- meta_predicate(rdf_call_on_triples(+,2)).
+:- meta_predicate(rdf_call_on_triples(+,2,+)).
+:- meta_predicate(rdf_call_on_triples_stream(+,2,+,+)).
 
 :- predicate_options(rdf_call_on_graph/3, 3, [
      pass_to(rdf_load_file/2)
@@ -46,12 +52,18 @@ Support for loading RDF data.
      pass_to(rdf_call_on_stream/4, 4)
    ]).
 :- predicate_options(rdf_load_file/2, 2, [
-     pass_to(rdf_load_file/3, 3),
-     pass_to(rdf_call_on_stream/4, 4)
+     pass_to(rdf_call_on_triples/3, 3)
    ]).
 
 
 
+
+
+%! rdf_call_on_graph(+Input, :Goal_1) is det.
+% Wrapper around rdf_call_on_graph/3 with default options.
+
+rdf_call_on_graph(In, Goal_1):-
+  rdf_call_on_graph(In, Goal_1, []).
 
 
 %! rdf_call_on_graph(+Input, :Goal_1, +Options:list(compound)) is det.
@@ -69,11 +81,19 @@ rdf_call_on_graph(In, Goal_1, Opts0):-
 
 
 
+%! rdf_call_on_triples(+Input, :Goal_2) is nondet.
+% Wrapper around rdf_call_on_triples/3 with default options.
+
+rdf_call_on_triples(In, Goal_2):-
+  rdf_call_on_triples(In, Goal_2, []).
+
+
 %! rdf_call_on_triples(+Input, :Goal_2, +Options:list(compound)) is nondet.
 
 rdf_call_on_triples(In, Goal_2, Opts):-
   option(graph(G), Opts, _),
   rdf_call_on_stream(In, read, rdf_call_on_triples_stream(G, Goal_2), Opts).
+
 
 %! rdf_call_on_triples_stream(
 %!   ?Graph:atom,
@@ -81,7 +101,8 @@ rdf_call_on_triples(In, Goal_2, Opts):-
 %!   +Metadata:dict,
 %!   +Read:stream
 %! ) is det.
-% The following call is made: `call(:Goal_2, +Statements:list(compound), ?Graph:atom)`.
+% The following call is made:
+% `call(:Goal_2, +Statements:list(compound), ?Graph:atom)'
 
 rdf_call_on_triples_stream(G, Goal_2, M, Read):-
   memberchk(M.rdf.format, [nquads,ntriples]), !,
@@ -104,9 +125,23 @@ rdf_call_on_triples_stream(_, _, _, M):-
 
 
 
+%! rdf_load_file(+Input) is det.
+% Wrapper around rdf_load_file/2 with default options.
+
+rdf_load_file(In):-
+  rdf_load_file(In, []).
+
+
 %! rdf_load_file(+Input, +Options:list(compound)) is det.
+% The following options are supported:
+%   * base_iri(+atom)
+%   * graph(+atom)
+%   * triples(-nonneg)
+%   * quadruples(-nonneg)
+%   * statements(-nonneg)
 
 rdf_load_file(In, Opts):-
+  % Allow statistics about the number of statements to be returned.
   option(triples(N1), Opts, _),
   option(quadruples(N2), Opts, _),
   option(statements(N3), Opts, _),

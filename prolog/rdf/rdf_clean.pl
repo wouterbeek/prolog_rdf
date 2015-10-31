@@ -1,6 +1,8 @@
 :- module(
   rdf_clean,
   [
+    rdf_clean/2, % +From
+                 % ?To:atom
     rdf_clean/3 % +From
                 % ?To:atom
                 % +Options:list(compound)
@@ -45,8 +47,8 @@
    ]).
 :- predicate_options(rdf_clean/3, 3, [
      format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml])),
-     pass_to(rdf_clean_stream/4, 2),
-     pass_to(rdf_stream_read/3, 3)
+     pass_to(rdf_call_on_stream/4, 4),
+     pass_to(rdf_clean_read/4, 2)
    ]).
 :- predicate_options(rdf_clean_stream/4, 2, [
      compress(+oneof([deflate,gzip,none])),
@@ -62,6 +64,13 @@
 
 
 
+
+
+%! rdf_clean(+From, ?To:atom) is det.
+% Wrapper rdf_clean/3 with default options.
+
+rdf_clean(From, To):-
+  rdf_clean(From, To, []).
 
 
 %! rdf_clean(+From, ?To:atom, +Options:list(compund)) is det.
