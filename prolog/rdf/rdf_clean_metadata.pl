@@ -75,9 +75,12 @@ metadata_iri(I1, M) -->
 
 
 metadata_rdf(I1, M) -->
-  {succ(I1, I2)},
+  {succ(I1, I2), succ(I2, I3)},
   section(I1, "RDF metadata:", (
-    indent_nl(I2, nvpair("Serialization format", atom(M.format)))
+    indent_nl(I2, nvpair("Serialization format", atom(M.format))),
+    indent_nl(I2, nvpair("Number of statements", atom(M.statements))),
+    indent_nl(I3, nvpair("Number of quadruples", atom(M.quadruples))),
+    indent_nl(I3, nvpair("Number of triples", atom(M.triples)))
   )).
 
 

@@ -142,9 +142,9 @@ rdf_load_file(In):-
 
 rdf_load_file(In, Opts):-
   % Allow statistics about the number of statements to be returned.
-  option(triples(N1), Opts, _),
-  option(quadruples(N2), Opts, _),
-  option(statements(N3), Opts, _),
+  option(quadruples(NQ), Opts, _),
+  option(triples(NT), Opts, _),
+  option(statements(NS), Opts, _),
 
   % In the absence of a graph name use the base IRI.
   (   option(graph(G), Opts, _),
@@ -156,17 +156,17 @@ rdf_load_file(In, Opts):-
 
   setup_call_cleanup(
     (
-      create_thread_counter(number_of_triples,    C1),
-      create_thread_counter(number_of_quadruples, C2)
+      create_thread_counter(number_of_triples, CT),
+      create_thread_counter(number_of_quadruples, CQ)
     ),
-    rdf_call_on_triples(In, rdf_load_triples(C1, C2), Opts),
+    rdf_call_on_triples(In, rdf_load_triples(CT, CQ), Opts),
     (
-      delete_counter(C1, N1),
-      delete_counter(C2, N2),
-      N3 is N1 + N2,
+      delete_counter(CT, NT),
+      delete_counter(CQ, NQ),
+      NS is NT + NQ,
       msg_notification(
         "Loaded ~D statements from ~w (~D triples and ~D quadruples).~n",
-        [N3,In,N1,N2]
+        [NS,In,NT,NQ]
       )
     )
   ).

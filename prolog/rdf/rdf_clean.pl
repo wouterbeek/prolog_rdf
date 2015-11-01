@@ -16,29 +16,21 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(ctriples/ctriples_write_generics)).
-:- use_module(library(ctriples/ctriples_write_graph)).
-:- use_module(library(ctriples/ctriples_write_triples)).
 :- use_module(library(debug_ext)).
-:- use_module(library(dict_ext)).
 :- use_module(library(filesex)).
-:- use_module(library(hash_ext)).
+:- use_module(library(msg_ext)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
 :- use_module(library(rdf/rdf_clean_metadata)).
 :- use_module(library(rdf/rdf_clean_msg)).
-:- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
+:- use_module(library(simple/write_SimpleRDF)).
 :- use_module(library(stream_ext)).
-:- use_module(library(typecheck)).
-
-:- thread_local(has_quadruples/1).
 
 :- predicate_options(determine_sort_buffer_size/3, 3, [
      max_sort_buffer_size(+float)
@@ -68,7 +60,7 @@
 
 
 %! rdf_clean(+From, ?To:atom) is det.
-% Wrapper rdf_clean/3 with default options.
+% Wrapper for rdf_clean/3 with default options.
 
 rdf_clean(From, To):-
   rdf_clean(From, To, []).
@@ -113,11 +105,11 @@ rdf_clean(From, To, Opts):-
 %!   +Read:stream
 %! ) is det.
 
-rdf_clean_stream(Local0, Opts, M0, Read):-
-  ignore(option(metadata(M0), Opts)),
+rdf_clean_stream(Local0, Opts1, M1, Read):-
+  option(metadata(M5), Opts1, _),
 
   % Process data compression option.
-  option(compress(Compress), Opts, none),
+  option(compress(Compress), Opts1, none),
 
   % Convert to the RDF input stream into C-Triples
   % on a triple-by-triple basis.
@@ -130,19 +122,28 @@ rdf_clean_stream(Local0, Opts, M0, Read):-
   ),
 
   % Read and write all triples.
+  merge_options([quadruples(NQ),statements(NS),triples(NT)], Opts1, Opts2),
   debug_verbose(
     rdf(clean),
     setup_call_cleanup(
       open(Tmp, write, Write),
-      rdf_clean_stream(Read, M0, Write),
+      rdf_write_clean_stream(Read, M1, Write, Opts2),
       close(Write)
     ),
     "Cleaning triples on a one-by-one basis."
   ),
+  msg_notification(
+    "Wrote ~D statements (~D triples and ~D quadruples).~n",
+    [NS,NT,NQ]
+  ),
+  M2 = M1.put(rdf/quadruples, NQ),
+  M3 = M2.put(rdf/statements, NS),
+  M4 = M3.put(rdf/triples, NT),
+  
   
   % Store input stream properties.
   stream_metadata(Read, MStream),
-  M = M0.put(stream, MStream),
+  M5 = M4.put(stream, MStream),
 
   % Sort unique.
   debug_verbose(
@@ -152,20 +153,20 @@ rdf_clean_stream(Local0, Opts, M0, Read):-
   ),
 
   % Count the number of triples.
-  file_lines(Tmp, N),
-  debug(rdf(clean), "Unique triples: ~D", [N]),
+  file_lines(Tmp, NS2),
+  debug(rdf(clean), "Unique statements: ~D", [NS2]),
 
   % Determine output file name.
   (ground(Local0) -> true ; Local0 = out),
 
   % Modify the output file name for the current archive entry.
   absolute_file_name(Local0, Dir0),
-  archive_entry_name(Dir0, M.archive_entry, Path0),
+  archive_entry_name(Dir0, M5.archive_entry, Path0),
   atomic_list_concat([Local|_], ., Path0),
   
   % Strip outdated file extensions from the output file name
   % and set the extensions of the output file name.
-  (retract(has_quadruples(true)) -> Ext = nq ; Ext = nt),
+  (NQ > 0 -> Ext = nq ; Ext = nt),
   (Compress == gzip -> Exts = [Ext,gz] ; Exts = [Ext]),
   atomic_list_concat([Local|Exts], ., Path),
 
@@ -177,39 +178,50 @@ rdf_clean_stream(Local0, Opts, M0, Read):-
   ),
 
   % Print metadata.
-  if_option(show_metadata(true), Opts, rdf_clean_metadata(M)).
+  if_option(show_metadata(true), Opts, rdf_clean_metadata(M5)).
 
 
-%! rdf_clean_stream(+Read:stream, +Metadata:dict, +Write:stream) is det.
+%! rdf_write_clean_stream(
+%!   +Read:stream,
+%!   +Metadata:dict,
+%!   +Write:stream,
+%!   +Options:list(compound)
+%! ) is det.
 
-rdf_clean_stream(Read, M, Write):-
-  ctriples_write_begin(State, BNPrefix, []),
-  Opts = [
-    anon_prefix(BNPrefix),
-    base_uri(M.base_iri),
-    format(M.rdf.format)
-  ],
+rdf_write_clean_stream(Read, M, Write, Opts1):-
+  % Library Semweb uses option base_uri/1.  We use option base_iri/1.
+  merge_options([base_iri(M.base_iri)], Opts1, Opts2),
+  write_simple_begin(BNodePrefix, C1, C2, Opts2),
+  merge_options(
+    [anon_prefix(BNodePrefix),base_uri(M.base_iri),format(M.rdf.format)],
+    Opts2,
+    Opts3
+  ),
   
   (   M.rdf.format == rdfa
   ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
-      clean_streamed_triples(Write, State, BNPrefix, Ts, _)
+      clean_streamed_triples(Write, BNodePrefix, C1, C2, Ts, _)
   ;   memberchk(M.rdf.format, [nquads,ntriples])
   ->  rdf_process_ntriples(
         Read,
-        clean_streamed_triples(Write, State, BNPrefix),
-        Opts
+        clean_streamed_triples(Write, BNodePrefix, C1, C2),
+        Opts3
       )
   ;   memberchk(M.rdf.format, [trig,turtle])
   ->  rdf_process_turtle(
         Read,
-        clean_streamed_triples(Write, State, BNPrefix),
-        Opts
+        clean_streamed_triples(Write, BNodePrefix, C1, C2),
+        Opts3
       )
   ;   M.rdf.format == xml
-  ->  process_rdf(Read, clean_streamed_triples(Write, State, BNPrefix), [])
+  ->  process_rdf(
+        Read,
+        clean_streamed_triples(Write, BNodePrefix, C1, C2),
+        Opts3
+      )
   ),
   flush_output(Write),
-  ctriples_write_end(State, []).
+  write_simple_end(C1, C2, Opts3).
 
 
 
@@ -235,39 +247,18 @@ archive_entry_name(Prefix, [H|T], EntryPath):-
 
 %! clean_streamed_triples(
 %!   +Write:stream,
-%!   +State:compound,
-%!   +BNPrefix:atom,
+%!   +BNodePrefix:atom,
+%!   +TripleCounter:compound,
+%!   +QuadrupleCounter:compound,
 %!   +Triples:list(compound),
 %!   +LinePosition:compound
 %! ) is det.
 
-clean_streamed_triples(Write, State, BNPrefix, Ts0, _):-
-  maplist(fix_triple, Ts0, Ts),
-  maplist(ctriples_write_triple(Write, State, BNPrefix), Ts).
-
-
-%! fix_triple(
-%!   +Graph:atom,
-%!   +WonkyStatement:compound,
-%!   -Statement:compound
-%! ) is det.
-
-fix_triple(rdf(S,P,O,G), T):- !,
-  (   is_named_graph(G)
-  ->  set_has_quadruples,
-      T = rdf(S,P,O,G)
-  ;   T = rdf(S,P,O)
+clean_streamed_triples(Write, BNodePrefix, C1, C2, Stmts, _):-
+  with_output_to(
+    Write,
+    maplist(write_simple_statement(BNodePrefix, C1, C2), Stmts)
   ).
-fix_triple(T, T).
-
-
-
-%! is_named_graph(+Graph:atom) is semidet.
-% Succeeds for all and only named graphs.
-
-is_named_graph(G):-
-  ground(G),
-  G \== user.
 
 
 
@@ -278,17 +269,6 @@ is_named_graph(G):-
 is_unarchived(D):-
   D.name == data,
   D.format == raw, !.
-
-
-
-%! set_has_quadruples is det.
-% Assert the fact that a quadruple occurred in the parser stream.
-% This is a thread-local global Prolog fact.
-
-set_has_quadruples:-
-  has_quadruples(true), !.
-set_has_quadruples:-
-  assert(has_quadruples(true)).
 
 
 
