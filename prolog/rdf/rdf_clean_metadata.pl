@@ -13,6 +13,7 @@
 
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(clpfd)).
 :- use_module(library(http/http_deb)).
 
@@ -52,7 +53,7 @@ metadata_http(I1, M) -->
   {dict_pairs(M.headers, _, L)},
   section(I1, "HTTP metadata:", (
     indent_nl(I2, http_status_code(M.status_code)),
-    indent_nl(I2, nvpair("Version", nvpair(M.version))),
+    indent_nl(I2, nvpair("Version", pl_pair(M.version))),
     indent_nl(I2, nvpair("Final IRI", iri(M.final_iri))),
     indent_nl(I2, atom("Headers:")),
     http_headers(I3, L)

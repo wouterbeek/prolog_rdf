@@ -28,6 +28,7 @@
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
 :- use_module(library(rdf/rdf_clean_metadata)).
+:- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
