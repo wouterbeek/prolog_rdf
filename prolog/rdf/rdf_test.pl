@@ -3,6 +3,7 @@
 /** <module> Run W3C tests for RDF
 
 @author Wouter Beek
+@tbd Check out ClioPatria's test_manifest.pl
 @version 2015/08
 */
 
