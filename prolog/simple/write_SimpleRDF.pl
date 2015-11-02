@@ -52,6 +52,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(count_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -98,7 +99,7 @@ write_simple_begin(BNodePrefix, CT, CQ, Opts):-
   % establishing the prefix for each blank node.
   (   option(base_iri(BaseIri), Opts)
   ->  uri_components(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
-      atomic_concat(Path0, '#', Suffix),
+      atom_ending_in(Path0, '#', Suffix),
       atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
       uri_components(BNodePrefix, uri_components(Scheme,Auth,Path,_,_))
   ;   BNodePrefix = '_:'
