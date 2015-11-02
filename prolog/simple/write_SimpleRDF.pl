@@ -2,18 +2,29 @@
   write_SimpleRDF,
   [
     write_simple_begin/4, % -BNodePrefix:atom
-                          % -TripleCounter
-                          % -QuadrupleCounter
+                          % -TripleCounter:compound
+                          % -QuadrupleCounter:compound
                           % +Options:list(compound)
-    write_simple_end/3, % +TripleCounter
-                        % +QuadrupleCounter
+    write_simple_end/3, % +TripleCounter:compound
+                        % +QuadrupleCounter:compound
                         % +Options:list(compound)
     write_simple_graph/2, % ?Graph:atom
                           % +Options:list(compound)
-    write_simple_statement/4 % +BNodePrefix:atom
-                             % +TripleCounter
-                             % +QuadrupleCounter
-                             % +Statement:compound
+    write_simple_quadruple/6, % +BNodePrefix:atom
+                              % +QuadrupleCounter:compound
+                              % +Subject:iri
+                              % +Predicate:iri
+                              % +Object:or([iri,literal])
+                              % +Graph:iri
+    write_simple_statement/4, % +BNodePrefix:atom
+                              % +TripleCounter:compound
+                              % +QuadrupleCounter:compound
+                              % +Statement:compound
+    write_simple_triple/5 % +BNodePrefix:atom
+                          % +TripleCounter:compound
+                          % +Subject:iri
+                          % +Predicate:iri
+                          % +Object:or([iri,literal])
   ]
 ).
 
@@ -44,11 +55,14 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(count_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_bnode_name)). % Private predicates.
+:- use_module(library(rdf/rdf_bnode_name)). % Private
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/turtle)). % Private predicates.
+:- use_module(library(semweb/turtle)). % Private
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
+
+:- rdf_meta(write_simple_quadruple(+,+,r,r,o,+)).
+:- rdf_meta(write_simple_triple(+,+,r,r,o)).
 
 :- predicate_options(write_simple_begin/4, 4, [
      base_iri(+atom)
@@ -63,7 +77,6 @@ assuming `xsd:string` in case no datatype IRI is given.
      pass_to(write_simple_begin/4, 4),
      pass_to(write_simple_end/3, 3)
    ]).
-
 
 
 
