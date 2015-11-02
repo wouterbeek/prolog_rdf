@@ -106,7 +106,11 @@ rdf_call_on_triples(In, Goal_2, Opts):-
 
 rdf_call_on_triples_stream(G, Goal_2, M, Read):-
   memberchk(M.rdf.format, [nquads,ntriples]), !,
-  rdf_process_ntriples(Read, Goal_2, [base_uri(M.base_iri),graph(G)]).
+  rdf_process_ntriples(
+    Read,
+    Goal_2,
+    [base_uri(M.base_iri),format(M.rdf.format),graph(G)]
+  ).
 rdf_call_on_triples_stream(G, Goal_2, M, Read):-
   memberchk(M.rdf.format, [trig,turtle]), !,
   uuid_no_hyphen(UniqueId),
@@ -156,8 +160,8 @@ rdf_load_file(In, Opts):-
 
   setup_call_cleanup(
     (
-      create_thread_counter(number_of_triples, CT),
-      create_thread_counter(number_of_quadruples, CQ)
+      create_thread_counter(triples, CT),
+      create_thread_counter(quadruples, CQ)
     ),
     rdf_call_on_triples(In, rdf_load_triples(CT, CQ), Opts),
     (
@@ -171,15 +175,14 @@ rdf_load_file(In, Opts):-
     )
   ).
 
-% C1:  Number of triples.
-% C2:  Number of quadruples.
 
-rdf_load_triples(C1, C2, Stmts, G):-
-  maplist(rdf_load_triple(C1, C2, G), Stmts).
+rdf_load_triples(CT, CQ, Stmts, G):-
+  maplist(rdf_load_triple(CT, CQ, G), Stmts).
 
-rdf_load_triple(C1, _, G:_, rdf(S,P,O)):- !,
-  increment_counter(C1),
+
+rdf_load_triple(CT, _, G:_, rdf(S,P,O)):- !,
+  increment_counter(CT),
   user:rdf_assert(S, P, O, G).
-rdf_load_triple(_, C2, _, rdf(S,P,O,G)):- !,
-  increment_counter(C2),
+rdf_load_triple(_, CQ, _, rdf(S,P,O,G)):- !,
+  increment_counter(CQ),
   user:rdf_assert(S, P, O, G).
