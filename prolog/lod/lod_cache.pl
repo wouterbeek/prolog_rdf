@@ -99,7 +99,7 @@ lod_cache_iri(Iri):-
       rdf_graph(IriEnc)
   ->  true
   ;   call_collect_messages(
-       rdf_call_on_triples(IriEnc, lod_cache_triples(IriEnc), [])
+       rdf_call_on_statements(IriEnc, lod_cache_triples(IriEnc), [])
       )
   ).
 

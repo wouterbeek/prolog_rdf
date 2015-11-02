@@ -5,8 +5,8 @@
     rdf_call_on_graph/3, % +Input
                          % :Goal_1
                          % +Options:list(compound)
-    rdf_call_on_triples/2, % +Input, :Goal_2
-    rdf_call_on_triples/3, % +Input
+    rdf_call_on_statements/2, % +Input, :Goal_2
+    rdf_call_on_statements/3, % +Input
                            % :Goal_2
                            % +Options:list(compound)
     rdf_load_file/1, % +Input
@@ -41,18 +41,21 @@ Support for loading RDF data.
 
 :- meta_predicate(rdf_call_on_graph(+,1)).
 :- meta_predicate(rdf_call_on_graph(+,1,+)).
-:- meta_predicate(rdf_call_on_triples(+,2)).
-:- meta_predicate(rdf_call_on_triples(+,2,+)).
-:- meta_predicate(rdf_call_on_triples_stream(+,2,+,+)).
+:- meta_predicate(rdf_call_on_statements(+,2)).
+:- meta_predicate(rdf_call_on_statements(+,2,+)).
+:- meta_predicate(rdf_call_on_statements_stream(+,2,+,+)).
 
 :- predicate_options(rdf_call_on_graph/3, 3, [
      pass_to(rdf_load_file/2)
    ]).
-:- predicate_options(rdf_call_on_triples/3, 3, [
+:- predicate_options(rdf_call_on_statements/3, 3, [
      pass_to(rdf_call_on_stream/4, 4)
    ]).
 :- predicate_options(rdf_load_file/2, 2, [
-     pass_to(rdf_call_on_triples/3, 3)
+     quadruples(-nonneg),
+     statements(-nonneg),
+     triples(-nonneg),
+     pass_to(rdf_call_on_statements/3, 3)
    ]).
 
 
@@ -81,21 +84,21 @@ rdf_call_on_graph(In, Goal_1, Opts0):-
 
 
 
-%! rdf_call_on_triples(+Input, :Goal_2) is nondet.
-% Wrapper around rdf_call_on_triples/3 with default options.
+%! rdf_call_on_statements(+Input, :Goal_2) is nondet.
+% Wrapper around rdf_call_on_statements/3 with default options.
 
-rdf_call_on_triples(In, Goal_2):-
-  rdf_call_on_triples(In, Goal_2, []).
+rdf_call_on_statements(In, Goal_2):-
+  rdf_call_on_statements(In, Goal_2, []).
 
 
-%! rdf_call_on_triples(+Input, :Goal_2, +Options:list(compound)) is nondet.
+%! rdf_call_on_statements(+Input, :Goal_2, +Options:list(compound)) is nondet.
 
-rdf_call_on_triples(In, Goal_2, Opts):-
+rdf_call_on_statements(In, Goal_2, Opts):-
   option(graph(G), Opts, _),
-  rdf_call_on_stream(In, read, rdf_call_on_triples_stream(G, Goal_2), Opts).
+  rdf_call_on_stream(In, read, rdf_call_on_statements_stream(G, Goal_2), Opts).
 
 
-%! rdf_call_on_triples_stream(
+%! rdf_call_on_statements_stream(
 %!   ?Graph:atom,
 %!   :Goal_2,
 %!   +Metadata:dict,
@@ -104,27 +107,27 @@ rdf_call_on_triples(In, Goal_2, Opts):-
 % The following call is made:
 % `call(:Goal_2, +Statements:list(compound), ?Graph:atom)'
 
-rdf_call_on_triples_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read):-
   memberchk(M.rdf.format, [nquads,ntriples]), !,
   rdf_process_ntriples(
     Read,
     Goal_2,
     [base_uri(M.base_iri),format(M.rdf.format),graph(G)]
   ).
-rdf_call_on_triples_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read):-
   memberchk(M.rdf.format, [trig,turtle]), !,
   uuid_no_hyphen(UniqueId),
   atomic_list_concat(['__',UniqueId,:], BNodePrefix),
   Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri),graph(G)],
   rdf_process_turtle(Read, Goal_2, Opts).
-rdf_call_on_triples_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read):-
   xml == M.rdf.format, !,
   process_rdf(Read, Goal_2, [base_uri(M.base_iri),graph(G)]).
-rdf_call_on_triples_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read):-
   rdfa == M.rdf.format, !,
   read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
   call(Goal_2, Ts, G).
-rdf_call_on_triples_stream(_, _, _, M):-
+rdf_call_on_statements_stream(_, _, _, M):-
   msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
 
 
@@ -163,7 +166,7 @@ rdf_load_file(In, Opts):-
       create_thread_counter(triples, CT),
       create_thread_counter(quadruples, CQ)
     ),
-    rdf_call_on_triples(In, rdf_load_triples(CT, CQ), Opts),
+    rdf_call_on_statements(In, rdf_load_statements(CT, CQ), Opts),
     (
       delete_counter(CT, NT),
       delete_counter(CQ, NQ),
@@ -176,13 +179,15 @@ rdf_load_file(In, Opts):-
   ).
 
 
-rdf_load_triples(CT, CQ, Stmts, G):-
-  maplist(rdf_load_triple(CT, CQ, G), Stmts).
+rdf_load_statements(CT, CQ, Stmts, G):-
+  maplist(rdf_load_statement(CT, CQ, G), Stmts).
 
 
-rdf_load_triple(CT, _, G:_, rdf(S,P,O)):- !,
+% Load a triple.
+rdf_load_statement(CT, _, G:_, rdf(S,P,O)):- !,
   increment_counter(CT),
   user:rdf_assert(S, P, O, G).
-rdf_load_triple(_, CQ, _, rdf(S,P,O,G)):- !,
+% Load a quadruple.
+rdf_load_statement(_, CQ, _, rdf(S,P,O,G)):- !,
   increment_counter(CQ),
   user:rdf_assert(S, P, O, G).
