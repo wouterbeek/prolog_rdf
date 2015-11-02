@@ -37,7 +37,6 @@ Persistent store of SPARQL-related information.
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_prefix)). % Private
 :- use_module(library(service_db)).
-:- use_module(library(sparkle)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri/uri_ext)).
 
