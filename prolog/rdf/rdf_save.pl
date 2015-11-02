@@ -18,7 +18,7 @@
 @version 2015/08, 2015/10
 */
 
-:- use_module(library(ctriples/ctriples_write_graph)).
+:- use_module(library('SimpleRDF/write_SimpleRDF')).
 :- use_module(library(debug)).
 :- use_module(library(iostream)).
 :- use_module(library(option)).
@@ -35,13 +35,13 @@
 :- meta_predicate(rdf_write_to_graph(1,+,+,+)).
 
 :- predicate_options(rdf_save_any/2, 2, [
-     format(+oneof([cquads,ctriples,nquads,ntriples,trig,triples,turtle,xml])),
+     format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml])),
      graph(+atom),
      pass_to(rdf_save_any0/4, 2),
      pass_to(rdf_call_on_stream/4, 4)
    ]).
 :- predicate_options(rdf_save_any0/4, 2, [
-     pass_to(ctriples_write_graph/3, 3),
+     pass_to(write_simple_graph/2, 2),
      pass_to(rdf_save/2, 2),
      pass_to(rdf_save_trig/2, 2),
      pass_to(rdf_save_turtle/2, 2)
@@ -67,7 +67,7 @@ rdf_save_any(Out):-
 
 %! rdf_save_any(+Output, +Options:list(compound)) is det.
 % The following options are supported:
-%   * format(+oneof([cquads,ctriples,nquads,ntriples,trig,triples,turtle,xml]))
+%   * format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml]))
 %   * graph(+atom)
 
 % The file name can be derived from the graph.
@@ -128,40 +128,47 @@ rdf_save_any(Out, Opts):-
   % Make sure the directory exists.
   (is_absolute_file_name(Out) -> create_file_directory(Out) ; true),
   
-  rdf_call_on_stream(Out, write, rdf_save_any0(Format, Opts), Opts).
+  rdf_call_on_stream(Out, write, rdf_save_any_to_stream(Format, Opts), Opts).
 
+
+%! rdf_save_any_to_stream(
+%!   +Format:oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml]),
+%!   +Options:list(comound),
+%!   +Metadata:dict,
+%!   +Write:stream
+%! ) is det.
 
 % XML/RDF.
-rdf_save_any0(xml, Opts, _, Write):- !,
+rdf_save_any_to_stream(xml, Opts, _, Write):- !,
   rdf_save(Write, Opts).
 % N-Triples.
-rdf_save_any0(ntriples, Opts, M, Write):- !,
-  rdf_save_any0(ctriples, Opts, M, Write).
+rdf_save_any_to_stream(ntriples, Opts, M, Write):- !,
+  rdf_save_any_to_stream(simpleTriples, Opts, M, Write).
 % N-Quads.
-rdf_save_any0(nquads, Opts, M, Write):- !,
-  rdf_save_any0(cquads, Opts, M, Write).
+rdf_save_any_to_stream(nquads, Opts, M, Write):- !,
+  rdf_save_any_to_stream(simpleQuads, Opts, M, Write).
 % C-Triples / C-Quads
-rdf_save_any0(Format, Opts0, _, Write):-
-  (   Format == ctriples
-  ->  CFormat = triples
-  ;   Format == cquads
-  ->  CFormat = quadruples
+rdf_save_any_to_stream(Format, Opts0, _, Write):-
+  (   Format == simpleTriples
+  ->  SimpleFormat = triples
+  ;   Format == simpleQuads
+  ->  SimpleFormat = quadruples
   ), !,
   option(graph(G), Opts0, _NO_GRAPH),
   % Overwrite the format option.
-  merge_options([format(CFormat)], Opts0, Opts),
-  ctriples_write_graph(Write, G, Opts).
+  merge_options([format(SimpleFormat)], Opts0, Opts),
+  with_output_to(Write, write_simple_graph(G, Opts)).
 % TriG.
-rdf_save_any0(trig, Opts, _, Write):- !,
+rdf_save_any_to_stream(trig, Opts, _, Write):- !,
   rdf_save_trig(Write, Opts).
 % Binary storage format.
-rdf_save_any0(triples, Opts, _, Write):- !,
+rdf_save_any_to_stream(triples, Opts, _, Write):- !,
   (   option(graph(G), Opts)
   ->  rdf_save_db(Write, G)
   ;   rdf_save_db(Write)
   ).
 % Turtle.
-rdf_save_any0(turtle, Opts0, _, Write):- !,
+rdf_save_any_to_stream(turtle, Opts0, _, Write):- !,
   merge_options(
     [only_known_prefixes(true),tab_distance(0),user_prefixes(true)],
     Opts0,
@@ -186,7 +193,7 @@ rdf_write_to_graph(Out, Goal_1):-
 %   * compress(+oneof([deflate,gzip,none]))
 %     Whether, and if so which, compression is used.
 %     By default no compression is used.
-%   * format(+oneof([cquads,ctriples,nquads,ntriples,trig,triples,turtle,xml]))
+%   * format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml]))
 %     The output format that is used for writing.
 %     Default is `cquads`.
 

@@ -17,7 +17,7 @@
 Printing of materialization results.
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(dcg/basics)).
@@ -25,7 +25,7 @@ Printing of materialization results.
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(rdf/rdf_print_stmt)).
 
