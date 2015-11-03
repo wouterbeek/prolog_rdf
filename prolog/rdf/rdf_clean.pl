@@ -113,7 +113,7 @@ rdf_clean_stream(Local0, Opts1, M1, Read):-
 
   % Convert to the RDF input stream into C-Triples
   % on a triple-by-triple basis.
-  absolute_file_name(tmp, Tmp0, [access(write)]),
+  absolute_file_name(cleaning, Tmp0, [access(write)]),
   thread_file(Tmp0, Tmp),
   debug(
     rdf(clean),
