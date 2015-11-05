@@ -1,7 +1,9 @@
 :- module(
   rdf_fca_test,
   [
-    rdf_fca_test/1 % ?Id:positive_integer
+    rdf_fca_test/1, % ?Name:atom
+    rdf_fca_test_file/1, % +File:atom
+    rdf_fca_test_graph/1 % +Graph:atom
   ]
    ).
 :- reexport(library(fca/fca)).
@@ -13,6 +15,7 @@
 @version 2015/11
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(fca/fca_export)).
 :- use_module(library(fca/rdf_fca)).
 :- use_module(library(os/external_program)).
@@ -20,6 +23,7 @@
 :- use_module(library(profile/profile_rdf)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdfs/rdfs_build)).
 
@@ -31,36 +35,40 @@
 
 
 
-%! rdf_fca_test(+Id:positive_integer) is semidet.
-%! rdf_fca_test(-Id:positive_integer) is multi.
+%! rdf_fca_test(+Name:atom) is semidet.
+%! rdf_fca_test(-Name:atom) is multi.
 
-rdf_fca_test(N):-
-  between(1, 1, N),
-  rdf_fca_assert_graph(N, G),
-  rdf_fca_context(G, Context),
+rdf_fca_test(dc):-
+  absolute_file_name(library('semweb/dc.rdfs'), File, [access(read)]),
+  rdf_fca_test_file(File).
+rdf_fca_test(Name):-
+  rdf_fca_assert_graph(Name, G),
+  rdf_fca_test_graph(G).
+
+
+
+%! rdf_fca_test_file(+File:atom) is det.
+
+rdf_fca_test_file(File):-
+  rdf_fca_from_file(File, Context),
+  format(string(GLbl), "FCA for RDF file ~a", [File]),
+  fca_export0(Context, GLbl).
+
+
+
+%! rdf_fca_test_graph(+Graph:atom) is semidet.
+
+rdf_fca_test_graph(G):-
+  rdf_fca_from_graph(G, Context),
   format(string(GLbl), "FCA for RDF graph ~a", [G]),
-  fca_export(
-    Context,
-    File,
-    [
-      attribute_label(rdf_print_term),
-      concept_label(both),
-      graph_label(GLbl),
-      object_label(rdf_print_term)
-    ]
-  ),
-  open_pdf(File).
+  fca_export0(Context, GLbl).
 
 
 
-%! rdf_fca_assert_graph(+Id:positive_integer, -Graph:atom) is det.
+%! rdf_fca_assert_graph(+Name:atom, -Graph:atom) is det.
 
-rdf_fca_assert_graph(N, G):-
-  atomic_list_concat([fca,N], /, G0),
-  rdf_new_graph(G0, G),
-  rdf_fca_assert_graph0(N, G).
-
-rdf_fca_assert_graph0(1, G):-
+rdf_fca_assert_graph(number, G):-
+  rdf_new_graph(number, G),
   forall(between(1, 10, N), rdf_assert_number(N, G)),
   rdf_assert(ex:'1',  rdf:type, ex:'Odd',       G),
   rdf_assert(ex:'1',  rdf:type, ex:'Square',    G),
@@ -90,6 +98,21 @@ rdf_fca_assert_graph0(1, G):-
 
 
 % HELPERS %
+
+fca_export0(Context, GLbl):-
+  fca_export(
+    Context,
+    File,
+    [
+      attribute_label(rdf_print_term),
+      concept_label(both),
+      graph_label(GLbl),
+      object_label(rdf_print_term)
+    ]
+  ),
+  open_pdf(File).
+
+
 
 rdf_assert_number(N, G):-
   atom_number(A, N),

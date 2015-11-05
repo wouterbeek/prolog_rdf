@@ -7,8 +7,8 @@
                          % +Options:list(compound)
     rdf_call_on_statements/2, % +Input, :Goal_2
     rdf_call_on_statements/3, % +Input
-                           % :Goal_2
-                           % +Options:list(compound)
+                              % :Goal_2
+                              % +Options:list(compound)
     rdf_load_file/1, % +Input
     rdf_load_file/2 % +Input
                     % +Options:list(compound)
@@ -21,7 +21,7 @@ Support for loading RDF data.
 
 @author Wouter Beek
 @license MIT license
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10-2015/11
 */
 
 :- use_module(library(apply)).
