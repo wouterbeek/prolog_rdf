@@ -41,6 +41,15 @@
 rdf_fca_test(dc):-
   absolute_file_name(library('semweb/dc.rdfs'), File, [access(read)]),
   rdf_fca_test_file(File).
+rdf_fca_test(eor):-
+  absolute_file_name(library('semweb/eor.rdfs'), File, [access(read)]),
+  rdf_fca_test_file(File).
+rdf_fca_test(owl):-
+  absolute_file_name(library('semweb/owl.owl'), File, [access(read)]),
+  rdf_fca_test_file(File).
+rdf_fca_test(rdfs):-
+  absolute_file_name(library('semweb/rdfs.rdfs'), File, [access(read)]),
+  rdf_fca_test_file(File).
 rdf_fca_test(Name):-
   rdf_fca_assert_graph(Name, G),
   rdf_fca_test_graph(G).
