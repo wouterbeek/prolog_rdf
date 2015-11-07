@@ -4,8 +4,7 @@
     rdf_save_any/1, % ?Output
     rdf_save_any/2, % ?Output
                     % +Options:list(compound)
-    rdf_write_to_graph/2, % +Output
-                          % :Goal_1
+    rdf_write_to_graph/2, % +Output, :Goal_1
     rdf_write_to_graph/3 % +Output
                          % :Goal_1
                          % +Options:list(compound)
@@ -15,7 +14,7 @@
 /** <module> RDF save
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10-2015/11
 */
 
 :- use_module(library('SimpleRDF/write_SimpleRDF')).
@@ -38,7 +37,7 @@
      format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml])),
      graph(+atom),
      pass_to(rdf_save_any0/4, 2),
-     pass_to(rdf_call_on_stream/4, 4)
+     pass_to(rdf_write_to_stream/3, 3)
    ]).
 :- predicate_options(rdf_save_any0/4, 2, [
      pass_to(write_simple_graph/2, 2),
@@ -47,7 +46,7 @@
      pass_to(rdf_save_turtle/2, 2)
    ]).
 :- predicate_options(rdf_write_to_graph/3, 3, [
-     pass_to(rdf_call_on_stream/4, 4),
+     pass_to(rdf_write_to_stream/3, 3),
      pass_to(rdf_write_to_graph/4, 2)
    ]).
 :- predicate_options(rdf_write_to_graph/4, 2, [
@@ -128,7 +127,7 @@ rdf_save_any(Out, Opts):-
   % Make sure the directory exists.
   (is_absolute_file_name(Out) -> create_file_directory(Out) ; true),
   
-  rdf_call_on_stream(Out, write, rdf_save_any_to_stream(Format, Opts), Opts).
+  rdf_write_to_stream(Out, rdf_save_any_to_stream(Format, Opts), Opts).
 
 
 %! rdf_save_any_to_stream(
@@ -198,7 +197,7 @@ rdf_write_to_graph(Out, Goal_1):-
 %     Default is `cquads`.
 
 rdf_write_to_graph(Out, Goal_1, Opts):-
-  rdf_call_on_stream(Out, write, rdf_write_to_graph(Goal_1, Opts), Opts).
+  rdf_write_to_stream(Out, rdf_write_to_graph(Goal_1, Opts), Opts).
 
 rdf_write_to_graph(Goal_1, Opts1, _, Write):-
   setup_call_cleanup(

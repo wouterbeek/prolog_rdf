@@ -8,14 +8,14 @@
 /** <module> RDF Clean: Metadata
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10-2015/11
 */
 
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(clpfd)).
-:- use_module(library(http/http_deb)).
+:- use_module(library(http/http_info)).
 
 
 

@@ -41,6 +41,7 @@
 :- use_module(library(rdf/rdf_container)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
+:- use_module(library(rdf/rdf_download)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_graph_nav)).

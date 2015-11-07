@@ -53,11 +53,13 @@ Printing of RDF statements to a text-based output stream.
 rdf_print_describe(S):-
   rdf_print_describe(S, none, []).
 
+
 %! rdf_print_describe(+Subject:rdf_term, +Options:list(compound)) is det.
 % Wrapper around rdf_print_describe/3 with uninstantiated graph.
 
 rdf_print_describe(S, Opts):-
   rdf_print_describe(S, none, Opts).
+
 
 %! rdf_print_describe(
 %!   +Subject:rdf_term,
@@ -90,6 +92,7 @@ rdf_print_describe(S, G, Opts):-
 
 rdf_print_graph(G):-
   rdf_print_graph(G, []).
+
 
 %! rdf_print_graph(?Graph:atom, +Options:list(compound)) is det.
 % The following options are supported:

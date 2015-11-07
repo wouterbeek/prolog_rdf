@@ -49,7 +49,7 @@ Support for loading RDF data.
      pass_to(rdf_load_file/2)
    ]).
 :- predicate_options(rdf_call_on_statements/3, 3, [
-     pass_to(rdf_call_on_stream/4, 4)
+     pass_to(rdf_read_from_stream/3, 3)
    ]).
 :- predicate_options(rdf_load_file/2, 2, [
      quadruples(-nonneg),
@@ -95,7 +95,7 @@ rdf_call_on_statements(In, Goal_2):-
 
 rdf_call_on_statements(In, Goal_2, Opts):-
   option(graph(G), Opts, _),
-  rdf_call_on_stream(In, read, rdf_call_on_statements_stream(G, Goal_2), Opts).
+  rdf_read_from_stream(In, rdf_call_on_statements_stream(G, Goal_2), Opts).
 
 
 %! rdf_call_on_statements_stream(

@@ -12,7 +12,7 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@version 2015/08-2015/10
+@version 2015/08-2015/11
 */
 
 :- use_module(library(apply)).
@@ -40,7 +40,7 @@
    ]).
 :- predicate_options(rdf_clean/3, 3, [
      format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml])),
-     pass_to(rdf_call_on_stream/4, 4),
+     pass_to(rdf_read_from_stream/3, 3),
      pass_to(rdf_clean_read/4, 2)
    ]).
 :- predicate_options(rdf_clean_stream/4, 2, [
@@ -81,21 +81,16 @@ rdf_clean(From, To, Opts):-
   % Process output RDF serialization option.
   (   % The output RDF serialization format is given: take it into account
       % by relaying it to a different options list.
-      select_option(format(Format), Opts, RdfCleanOpts),
+      select_option(format(Format), Opts, CleanOpts),
       ground(Format)
-  ->  RdfStreamOpts = [format(Format)]
+  ->  StreamOpts = [format(Format)]
   ;   % Allow the output RDF serialization format to be returned
       % to the calling context through an option.
-      merge_options([format(_)], Opts, RdfStreamOpts),
-      RdfCleanOpts = RdfStreamOpts
+      merge_options([format(_)], Opts, StreamOpts),
+      CleanOpts = StreamOpts
   ),
 
-  rdf_call_on_stream(
-    From,
-    read,
-    rdf_clean_stream(To, RdfCleanOpts),
-    RdfStreamOpts
-  ).
+  rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts).
 
 
 %! rdf_clean_stream(

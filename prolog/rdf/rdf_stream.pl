@@ -1,18 +1,21 @@
 :- module(
   rdf_stream,
   [
-    rdf_call_on_stream/3, % +In, +Mode, :Goal_2
-    rdf_call_on_stream/4 % +In
-                         % +Mode:oneof([append,read,write])
-                         % :Goal_2
-                         % +Options:list(compound)
+    rdf_read_from_stream/2, % +Source, :Goal_2
+    rdf_read_from_stream/3 % +Source
+                           % :Goal_2
+                           % +Options:list(compound)
+    rdf_write_to_stream/2, % +Source, :Goal_2
+    rdf_write_to_stream/3 % +Source
+                          % :Goal_2
+                          % +Options:list(compound)    
   ]
 ).
 
 /** <module> RDF stream
 
 @author Wouter Beek
-@version 2015/08-2015/10
+@version 2015/08-2015/11
 */
 
 :- use_module(library(apply)).
@@ -33,98 +36,38 @@
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
-:- meta_predicate(rdf_call_on_stream(+,+,2)).
-:- meta_predicate(rdf_call_on_stream(+,+,2,+)).
-:- meta_predicate(rdf_call_on_read_stream(2,+,+,+)).
-:- meta_predicate(rdf_call_on_write_stream(2,+,+)).
+:- meta_predicate(rdf_read_from_stream(+,2)).
+:- meta_predicate(rdf_read_from_stream(+,2,+)).
+:- meta_predicate(rdf_write_to_stream(+,2)).
+:- meta_predicate(rdf_write_to_stream(+,2,+)).
 
-:- predicate_options(rdf_call_on_stream/4, 4, [
-     pass_to(call_on_stream/4, 4),
-     pass_to(rdf_call_on_read_stream/4, 2),
-     pass_to(rdf_http_plugin:rdf_extra_headers/2, 2)
+:- predicate_options(rdf_read_from_stream/3, 3, [
+     pass_to(rdf_read_from_stream0/4, 2),
+     pass_to(rdf_http_plugin:rdf_extra_headers/2, 2),
+     pass_to(read_from_stream/4, 4)
    ]).
-:- predicate_options(rdf_call_on_read_stream/4, 2, [
+:- predicate_options(rdf_read_from_stream0/4, 2, [
      format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
    ]).
+:- predicate_options(rdf_write_to_stream/3, 3, [
+     pass_to(write_to_stream/3, 3)
+   ]).
 
 
 
 
 
-%! rdf_call_on_stream(+In, +Mode:oneof([append,read,write]), :Goal_2) is det.
-% Wrapper around rdf_call_on_stream/4.
+%! rdf_read_from_stream(+In, :Goal_2) is det.
+% Wrapper around rdf_read_from_stream/3 with default options.
 
-rdf_call_on_stream(In, Mode, Goal_2):-
-  rdf_call_on_stream(In, Mode, Goal_2, []).
+rdf_read_from_stream(In, Goal_2):-
+  rdf_read_from_stream(In, Goal_2, []).
 
 
-%! rdf_call_on_stream(
-%!   +In,
-%!   +Mode:oneof([append,read,write]),
-%!   :Goal_2,
-%!   +Options:list(compound)
-%! ) is det.
-% Goal_2 is applied to a read stream and a metadata dictionary.
-% The metadata dictionary consists of:
-%   * base_iri: atom
-%   * compress:
-%     * filetype: oneof([block_device,
-%                        character_device,
-%                        directory,
-%                        file,
-%                        fifo,
-%                        link,
-%                        socket])
-%     * filters: list(oneof([all,
-%                            bzip2,
-%                            compress,
-%                            gzip,
-%                            grzip,
-%                            lrzip,
-%                            lzip,
-%                            lzma,
-%                            lzop,
-%                            none,
-%                            rpm,
-%                            uu,
-%                            xz]))
-%     * format: oneof(['7zip',
-%                      all,
-%                      ar,
-%                      cab,
-%                      cpio,
-%                      empty,
-%                      gnutar,
-%                      iso9660,
-%                      lha,
-%                      mtree,
-%                      rar,
-%                      raw,
-%                      tar,
-%                      xar,
-%                      zip])
-%     * link_target: atom
-%     * mtime: float
-%     * name: atom
-%     * size: nonneg
-%   * http:
-%      * final_iri: atom
-%      * headers:
-%        * ...
-%      * status_code: between(100,599)
-%      * version: pair(nonneg)
-%   * input_type: oneof([file,iri])
-%   * rdf:
-%     * format: atom
-%
-% The following options are supported:
-%   * archive_entry(+dict)
-%   * base_iri(+atom)
-%   * format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
+%! rdf_read_from_stream(+In, :Goal_2, +Options:list(compound)) is det.
+% Goal_2 is applied to a metadata dictionary and a stream (in that order).
 
-% Read mode.
-rdf_call_on_stream(In, Mode, Goal_2, Opts1):-
-  read_mode(Mode), !,
+rdf_read_from_stream(In, Goal_2, Opts1):-
   % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.
   rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
   merge_options(DefaultRdfOpts, Opts1, Opts2),
@@ -133,16 +76,10 @@ rdf_call_on_stream(In, Mode, Goal_2, Opts1):-
   % Archive format ↔ RDF serialization format
   (select_option(format(_), Opts2, Opts3) -> true ; Opts3 = Opts2),
   
-  call_on_stream(In, Mode, rdf_call_on_read_stream(Goal_2, Opts2), Opts3).
-% Write mode.
-rdf_call_on_stream(In, Mode, Goal_2, Opts):-
-  write_mode(Mode), !,
-  call_on_stream(In, Mode, rdf_call_on_write_stream(Goal_2), Opts).
-rdf_call_on_stream(_, Mode, _, _):-
-  domain_error(oneof([append,read,write]), Mode).
-  
+  read_from_stream(Source, Mode, rdf_from_from_stream0(Goal_2, Opts2), Opts3).
 
-rdf_call_on_read_stream(Goal_2, Opts, M1, Read):-
+
+rdf_read_from_stream0(Goal_2, Opts, M1, Read):-
   % Guess the RDF serialization format in case option `format(+)'
   % is not given.
   (   option(format(Format), Opts),
@@ -155,5 +92,15 @@ rdf_call_on_read_stream(Goal_2, Opts, M1, Read):-
   call(Goal_2, M2, Read).
 
 
-rdf_call_on_write_stream(Goal_2, M, Write):-
-  call(Goal_2, M, Write).
+
+%! rdf_write_to_stream(+Out, :Goal_2, +Options:list(compound)) is det.
+% Wrapper around rdf_write_to_stream/3 with default options.
+
+rdf_write_to_stream(Out, Goal_2):-
+  rdf_write_to_stream(Out, Goal_2, []).
+
+
+%! rdf_write_to_stream(+Out, :Goal_2, +Options:list(compound)) is det.
+
+rdf_write_to_stream(Out, Goal_2, Opts):-
+  write_to_stream(Out, Goal_2, Opts).
