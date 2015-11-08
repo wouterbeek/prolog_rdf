@@ -57,17 +57,17 @@
 
 
 
-%! rdf_read_from_stream(+In, :Goal_2) is det.
+%! rdf_read_from_stream(+Source, :Goal_2) is det.
 % Wrapper around rdf_read_from_stream/3 with default options.
 
-rdf_read_from_stream(In, Goal_2):-
-  rdf_read_from_stream(In, Goal_2, []).
+rdf_read_from_stream(Source, Goal_2):-
+  rdf_read_from_stream(Source, Goal_2, []).
 
 
-%! rdf_read_from_stream(+In, :Goal_2, +Options:list(compound)) is det.
+%! rdf_read_from_stream(+Source, :Goal_2, +Options:list(compound)) is det.
 % Goal_2 is applied to a metadata dictionary and a stream (in that order).
 
-rdf_read_from_stream(In, Goal_2, Opts1):-
+rdf_read_from_stream(Source, Goal_2, Opts1):-
   % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.
   rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
   merge_options(DefaultRdfOpts, Opts1, Opts2),
@@ -76,7 +76,7 @@ rdf_read_from_stream(In, Goal_2, Opts1):-
   % Archive format ↔ RDF serialization format
   (select_option(format(_), Opts2, Opts3) -> true ; Opts3 = Opts2),
   
-  read_from_stream(Source, Mode, rdf_from_from_stream0(Goal_2, Opts2), Opts3).
+  read_from_stream(Source, Mode, rdf_read_from_stream0(Goal_2, Opts2), Opts3).
 
 
 rdf_read_from_stream0(Goal_2, Opts, M1, Read):-
