@@ -48,7 +48,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 @author Wouter Beek
 @author Jan Wielemaker
 @author Laurens Rietveld
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10-2015/11
 */
 
 :- use_module(library(apply)).
@@ -277,7 +277,10 @@ write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S):-
 write_simple_subject(BNodePrefix, CT, _, G, triple, S):-
   findall(P-O, rdf_db:rdf(S, P, O, G:_), POs),
   sort(POs, SortedPOs),
-  forall(member(P-O, SortedPOs), write_triple(BNodePrefix, CT, S, P, O)).
+  forall(
+    member(P-O, SortedPOs),
+    write_simple_triple(BNodePrefix, CT, S, P, O)
+  ).
 
 
 

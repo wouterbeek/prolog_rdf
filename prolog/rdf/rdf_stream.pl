@@ -2,9 +2,9 @@
   rdf_stream,
   [
     rdf_read_from_stream/2, % +Source, :Goal_2
-    rdf_read_from_stream/3 % +Source
-                           % :Goal_2
-                           % +Options:list(compound)
+    rdf_read_from_stream/3, % +Source
+                            % :Goal_2
+                            % +Options:list(compound)
     rdf_write_to_stream/2, % +Source, :Goal_2
     rdf_write_to_stream/3 % +Source
                           % :Goal_2
@@ -76,7 +76,7 @@ rdf_read_from_stream(Source, Goal_2, Opts1):-
   % Archive format ↔ RDF serialization format
   (select_option(format(_), Opts2, Opts3) -> true ; Opts3 = Opts2),
   
-  read_from_stream(Source, Mode, rdf_read_from_stream0(Goal_2, Opts2), Opts3).
+  read_from_stream(Source, rdf_read_from_stream0(Goal_2, Opts2), Opts3).
 
 
 rdf_read_from_stream0(Goal_2, Opts, M1, Read):-

@@ -85,9 +85,9 @@ assign_term_id(T, TId):-
 
 id_terms(Ts1):-
   nonvar(Ts1), !,
-  memberchr(T, Ts1),
-  term_id(T, TId),
-  id_terms(TId, Ts2),
+  memberchk(T, Ts1),
+  term_id0(T, TId),
+  id_terms0(TId, Ts2),
   ord_subset(Ts1, Ts2).
 id_terms(Ts):-
   id_terms0(_, Ts).

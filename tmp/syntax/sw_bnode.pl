@@ -2,8 +2,6 @@
   sw_bnode,
   [
     'ANON'//1, % -BNode:bnode
-    'BLANK_NODE_LABEL'//2, % ?Language:oneof([n,sparql,turtle])
-                           % -BNode:bnode
     'BlankNode'//1, % ?BNode:bnode
     nodeID//2 % ?Language:oneof([manchester,turtle10])
               % ?BNode:bnode
@@ -61,48 +59,6 @@ not as references to specific blank nodes in the data being queried.
 'ANON'(BNode) -->
   bracketed(square, *('WS', [])),
   {rdf_bnode(BNode)}.
-
-
-
-%! 'BLANK_NODE_LABEL'(?Language:oneof([n,sparql,turtle]), -BNode:bnode)// .
-% Blank node labels are written as `_:abc` for a blank node with label `abc`.
-%
-% The same blank node label cannot be used
-% in two different basic graph patterns in the same query.
-%
-% ```ebnf
-% BLANK_NODE_LABEL ::= '_:'
-%                      ( PN_CHARS_U | [0-9] )
-%                      ( ( PN_CHARS | '.' )* PN_CHARS )?
-% ```
-%
-% @compat N-Quads 1.1 [141s].
-% @compat N-Triples 1.1 [141s].
-% @compat SPARQL 1.0 [73]
-% @compat SPARQL 1.1 Query [142]
-% @compat Turtle 1.1 [141s]
-
-'BLANK_NODE_LABEL'(Lang, BNode) -->
-  dcg_atom('BLANK_NODE_LABEL_codes'(Lang), BNodeLabel),
-  {bnode_label(BNodeLabel, BNode)}.
-
-'BLANK_NODE_LABEL_codes'(Lang, [H|T]) -->
-  "_:",
-
-  % First character after colon.
-	('PN_CHARS_U'(Lang, H) ; decimal_digit(H)),
-
-  % Non-first characters.
-  (   'BLANK_NODE_LABEL_inner*'(Lang, T0),
-      'PN_CHARS'(Lang, Last),
-      {append(T0, [Last], T)}
-  ;   {T = []}
-  ).
-
-'BLANK_NODE_LABEL_inner*'(Lang, [H|T]) -->
-	('PN_CHARS'(Lang, H) ; dot(H)),
-	'BLANK_NODE_LABEL_inner*'(Lang, T).
-'BLANK_NODE_LABEL_inner*'(_, []) --> "".
 
 
 

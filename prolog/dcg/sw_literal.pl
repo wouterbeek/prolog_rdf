@@ -41,16 +41,16 @@ Examples of literal syntax in SPARQL include:
 @compat SPARQL 1.0
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2015/08-2015/09
+@version 2015/08-2015/09, 2015/11
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/sw_iri)).
-:- use_module(library(dcg/sw_ltag)).
 :- use_module(library(dcg/sw_number)).
 :- use_module(library(dcg/sw_string)).
+:- use_module(library(ltag/rfc5646)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta('NumericLiteral'(+,o,?,?)).

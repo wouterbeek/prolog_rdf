@@ -35,13 +35,13 @@
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 @license MIT License
-@version 2015/07-2015/09
+@version 2015/07-2015/09, 2015/11
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(html/html_dom)).
-:- use_module(library(ltag/ltag)).
+:- use_module(library(ltag/rfc5646)).
 :- use_module(library(memfile)).
 :- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_term)).

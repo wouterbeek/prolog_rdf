@@ -5,10 +5,10 @@
                            % +Class:rdf_term
     owl_assert_list/2, % +PrologList:list(rdf_term)
                        % ?RdfList:rdf_term
-    owl_assert_literal3/4, % +Subject:rdf_term
-                           % +Predicate:rdf_term
-                           % ?Datatype:rdf_term
-                           % +Value
+    owl_assert_literal/4, % +Subject:rdf_term
+                          % +Predicate:rdf_term
+                          % ?Datatype:rdf_term
+                          % +Value
     rdf_description_size3/2, % +Resource:rdf_term
                              % ?Size:nonneg
     rdf_html_term3//2, % +Term:rdf_term
@@ -105,7 +105,7 @@
 %! owl_assert_instance(+Instance:rdf_term, +Class:rdf_term) is det.
 
 owl_assert_instance(I, C):-
-  owl_assert(I, rdf:type, C).
+  user:rdf_assert(I, rdf:type, C).
 
 
 
@@ -129,7 +129,7 @@ rdf_assert_list_items0([H1|T1], L2):-
   ;   % Non-nested list.
       H2 = H1
   ),
-  rdf_assert3(L2, rdf:first, H2),
+  user:rdf_assert(L2, rdf:first, H2),
 
   % rdf:rest
   (   T1 == []
@@ -137,11 +137,11 @@ rdf_assert_list_items0([H1|T1], L2):-
   ;   add_list_instance0(T2),
       rdf_assert_list_items0(T1, T2)
   ),
-  rdf_assert3(L2, rdf:rest, T2).
+  user:rdf_assert(L2, rdf:rest, T2).
 
 add_list_instance0(L):-
   (var(L) -> rdf_bnode(L) ; true),
-  rdf_assert_instance3(L, rdf:'List').
+  rdf_assert_instance(L, rdf:'List').
 
 
 
@@ -154,7 +154,7 @@ add_list_instance0(L):-
 
 % Language-tagged strings.
 owl_assert_literal(S, P, rdf:langString, Lex-LTag):- !,
-  owl_assert(S, P, literal(lang(LTag,Lex))).
+  user:rdf_assert(S, P, literal(lang(LTag,Lex))).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
 owl_assert_literal(S, P, D, Val):-
@@ -163,7 +163,7 @@ owl_assert_literal(S, P, D, Val):-
 % Typed literals (as per RDF 1.0 specification).
 owl_assert_literal(S, P, D, Val):-
   rdf_canonical_map(D, Val, Lit),
-  owl_assert(S, P, Lit).
+  user:rdf_assert(S, P, Lit).
 
 
 
@@ -177,7 +177,7 @@ rdf_description_size3(S, N):-
 %! rdf_html_term3(+Term:rdf_term, +Options:list(compound))// is det.
 
 rdf_html_term3(T, Opts) -->
-  {term_terms(T, Ts)},
+  {term_to_terms(T, Ts)},
   html_set(\T^rdf_html_term(T, Opts), Ts).
 
 
@@ -197,11 +197,11 @@ rdf_html_triple3(S, P, O, Opts) -->
 %! rdf_image3(?Subject:rdf_term, ?Image:iri) is nondet.
 
 rdf_image3(S, Img):-
-  rdf3(S, dbo:thumbnail, Img).
+  user:rdf(S, dbo:thumbnail, Img).
 rdf_image3(S, Img):-
-  rdf3(S, foaf:depiction, Img).
+  user:rdf(S, foaf:depiction, Img).
 rdf_image3(S, Img):-
-  rdf3(S, _, Img),
+  user:rdf(S, _, Img),
   rdf_instance3(Img, dcmit:'Image').
 
 
@@ -209,7 +209,7 @@ rdf_image3(S, Img):-
 % rdf_instance3(?Instance:rdf_term, ?Class:rdf_term) is nondet.
 
 rdf_instance3(I, C):-
-  rdf3(I, rdf:type, C).
+  user:rdf(I, rdf:type, C).
 
 
 
@@ -233,7 +233,7 @@ rdf_langstring3(S, P, LRanges, V):-
 rdf_list3(rdf:nil, []):- !.
 rdf_list3(L1, [H2|T2]):-
   % rdf:first
-  rdf3(L1, rdf:first, H1),
+  user:rdf(L1, rdf:first, H1),
   (   % Nested list
       rdf_instance3(H1, rdf:'List')
   ->  rdf_list3(H1, H2)
@@ -241,7 +241,7 @@ rdf_list3(L1, [H2|T2]):-
       H2 = H1
   ),
   % rdf:rest
-  rdf3(L1, rdf:rest, T1),
+  user:rdf(L1, rdf:rest, T1),
   rdf_list3(T1, T2).
 
 
@@ -249,9 +249,9 @@ rdf_list3(L1, [H2|T2]):-
 %! rdf_list_member3(?Member:rdf_term, ?List:rdf_term) is nondet.
 
 rdf_list_member3(X, L):-
-  rdf3(L, rdf:first, X).
+  user:rdf(L, rdf:first, X).
 rdf_list_member3(X, L):-
-  rdf3(L, rdf:rest, L0),
+  user:rdf(L, rdf:rest, L0),
   rdf_list_member3(X, L0).
 
 
@@ -267,7 +267,7 @@ rdf_list_member3(X, L):-
 rdf_literal3(S, P, rdf:langString, Val):-
   Val = Lex-LTag,
   O = literal(lang(LTag,Lex)),
-  rdf3(S, P, O),
+  user:rdf(S, P, O),
   atom(LTag).
 % Ground datatype and value.
 rdf_literal3(S, P, D, Val):-
@@ -279,16 +279,16 @@ rdf_literal3(S, P, D, Val):-
       Lit = literal(Lex)
   ;   Lit = literal(type(D,Lex))
   ),
-  rdf3(S, P, Lit).
+  user:rdf(S, P, Lit).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal3(S, P, D, Val):-
   Lit = literal(type(D,_)),
-  rdf3(S, P, Lit),
+  user:rdf(S, P, Lit),
   rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).
 rdf_literal3(S, P, xsd:string, Val):-
   O = literal(Lex),
-  rdf3(S, P, O),
+  user:rdf(S, P, O),
   atom(Lex),
   rdf_global_id(xsd:string, D),
   rdf_lexical_map(literal(type(D,Lex)), Val).
@@ -303,7 +303,7 @@ rdf_literal3(S, P, xsd:string, Val):-
 %! ) is det.
 
 rdf_number_of_triples3(S, P, O, N):-
-  aggregate_all(count, rdf3(S, P, O), N).
+  aggregate_all(count, user:rdf(S, P, O), N).
 
 
 
@@ -340,7 +340,7 @@ rdf_print_triple3(S, P, O):-
 
 rdf_print_triple3(S, P, O, Opts):-
   % NONDET
-  rdf3(S, P, O),
+  user:rdf(S, P, O),
   rdf_print_triple(S, P, O, _, Opts).
 
 

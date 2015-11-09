@@ -41,7 +41,7 @@ Most standards allow IRIs to be abbreviated by splitting them in
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(uri/rfc3987), ['IRI'//1 as 'IRI_rfc3987']).
+:- use_module(library(iri/rfc3987)).
 
 :- rdf_meta('Datatype'(r,?,?)).
 
@@ -130,7 +130,7 @@ datatypeIRI(Iri) --> 'IRI'(Iri).
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
 fullIRI(Iri) -->
-  bracketed(angular, 'IRI_rfc3987'(Iri)).
+  bracketed(angular, 'IRI'(Iri)).
 
 
 
@@ -242,47 +242,6 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 
 
 
-%! 'PN_LOCAL'(?LocalPart:atom)// is det.
-% The **local part** of a prefixed name.
-%
-% ```bnf
-% PN_LOCAL ::= ( PN_CHARS_U | ':' | [0-9] | PLX )
-%              (
-%                ( PN_CHARS | '.' | ':' | PLX )*
-%                ( PN_CHARS | ':' | PLX )
-%              )?
-% ```
-%
-% @compat SPARQL 1.0 [168].
-% @compat SPARQL 1.1 Query [169].
-% @compat Turtle 1.1 [168s].
-
-'PN_LOCAL'(LocalPart) --> dcg_atom('PN_LOCAL_code', LocalPart).
-
-'PN_LOCAL_code'([H|T]) -->
-  'PN_LOCAL_1'(H),
-  (   *('PN_LOCAL_2',T0, []),
-      'PN_LOCAL_3'(Last),
-      {append(T0, [Last], T)}
-  ;   {T = []}
-  ).
-
-'PN_LOCAL_1'(C) --> 'PN_CHARS_U'(sparql, C).
-'PN_LOCAL_1'(C) --> colon(C).
-'PN_LOCAL_1'(C) --> decimal_digit(C).
-'PN_LOCAL_1'(C) --> 'PLX'(C).
-
-'PN_LOCAL_2'(C) --> 'PN_CHARS_U'(sparql, C).
-'PN_LOCAL_2'(C) --> dot(C).
-'PN_LOCAL_2'(C) --> semi_colon(C).
-'PN_LOCAL_2'(C) --> 'PLX'(C).
-
-'PN_LOCAL_3'(C) --> 'PN_CHARS'(sparql, C).
-'PN_LOCAL_3'(C) --> colon(C).
-'PN_LOCAL_3'(C) --> 'PLX'(C).
-
-
-
 %! 'PN_PREFIX'(?Prefix:atom)// .
 % The **prefix label** used in *prefixed names*.
 %
@@ -293,24 +252,6 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % @compat SPARQL 1.0 [167].
 % @compat SPARQL 1.1 Query [168].
 % @compat Turtle 1.1 [167s].
-
-'PN_PREFIX'(Prefix) -->
-  dcg_atom('PN_PREFIX_codes', Prefix).
-
-'PN_PREFIX_codes'([H|T]) -->
-  'PN_CHARS_BASE'(H),
-  (   'PN_PREFIX_codes_middle*'(T0),
-      'PN_CHARS'(sparql, Last),
-      {append(T0, [Last], T)}
-  ;   {T = []}
-  ).
-
-'PN_PREFIX_codes_middle*'([H|T]) -->
-	('PN_CHARS'(sparql, H) ; dot(H)),
-  'PN_PREFIX_codes_middle*'(T).
-'PN_PREFIX_codes_middle*'([]) --> [].
-
-
 
 %! 'PNAME_LN'(?PrefixedIri:compound)// .
 % ```bnf

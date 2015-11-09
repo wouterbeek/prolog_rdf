@@ -17,7 +17,7 @@
 @version 2015/08, 2015/10-2015/11
 */
 
-:- use_module(library('SimpleRDF/write_SimpleRDF')).
+:- use_module(library(simple/write_SimpleRDF)).
 :- use_module(library(debug)).
 :- use_module(library(iostream)).
 :- use_module(library(option)).

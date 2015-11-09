@@ -13,7 +13,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_mdoule(library(rdf/rdf_term)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
