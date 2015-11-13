@@ -47,7 +47,8 @@
      pass_to(read_from_stream/4, 4)
    ]).
 :- predicate_options(rdf_read_from_stream0/4, 2, [
-     format(+oneof([nquads,ntriples,trig,triples,turtle,xml]))
+     format(+oneof([nquads,ntriples,trig,triples,turtle,xml])),
+     pass_to(rdf_guess_format/3, 3)
    ]).
 :- predicate_options(rdf_write_to_stream/3, 3, [
      pass_to(write_to_stream/3, 3)
@@ -85,7 +86,7 @@ rdf_read_from_stream0(Goal_2, Opts, M1, Read):-
   (   option(format(Format), Opts),
       ground(Format)
   ->  true
-  ;   rdf_guess_format(Read, Format)
+  ;   rdf_guess_format(Read, Format, Opts)
   ),
   % `Format' is now instantiated.
   put_dict(rdf, M1, metadata{format: Format}, M2),

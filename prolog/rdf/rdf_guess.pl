@@ -1,11 +1,10 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_format/2, % +Spec
-                        % -Format:rdf_format
+    rdf_guess_format/2, % +Spec, -Format
     rdf_guess_format/3 % +Spec
-                       % ?DefaultFormat:rdf_format
                        % -Format:rdf_format
+                       % +Options:list(compound)
   ]
 ).
 
@@ -13,7 +12,7 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/08-2015/10
+@version 2015/08-2015/11
 */
 
 :- use_module(library(apply)).
@@ -25,6 +24,7 @@
 :- use_module(library(error)).
 :- use_module(library(memfile)).
 :- use_module(library(msg_ext)).
+:- use_module(library(option_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml/sgml_ext)).
@@ -32,52 +32,67 @@
 
 :- meta_predicate(nt_string_codes(//,?,?)).
 
+:- predicate_options(rdf_guess_format/3, 3, [
+     default_format(+rdf_format),
+     silent(+boolean)
+   ]).
 
 
 
 
-%! rdf_guess_format(+Spec, -Format:rdf_term) is det.
+
+%! rdf_guess_format(+Spec, -Format:rdf_term, +Options:list(compound)) is det.
+% Wrapper around rdf_guess_format/3 with default options.
 
 rdf_guess_format(Spec, Format):-
-  rdf_guess_format(Spec, _, Format).
+  rdf_guess_format(Spec, Format, []).
 
-%! rdf_guess_format(+Spec, ?DefaultFormat:rdf_format, -Format:rdf_format) is det.
 
-rdf_guess_format(Spec, Format0, Format):-
+%! rdf_guess_format(+Spec, -Format:rdf_term, +Options:list(compound)) is det.
+% The following options are supported:
+%   * default_format(+rdf_format)
+%   * silent(+boolean)
+%     Default is `false'.
+
+rdf_guess_format(Spec, Format, Opts):-
   setup_call_cleanup(
     open_any2(Spec, read, Read, Close),
-    rdf_guess_format(Read, 0, Format0, Format),
+    rdf_guess_format(Read, 0, Format, Opts),
     close_any(Close)
   ).
+
 
 %! rdf_guess_format(
 %!   +Read:stream,
 %!   +Iteration:nonneg,
-%!   ?DefaultFormat:rdf_format,
-%!   -Format:rdf_format
+%!   -Format:rdf_format,
+%!   +Options:list(compound)
 %! ) is det.
 
-rdf_guess_format(Read, Iteration, Format0, Format):-
+rdf_guess_format(Read, Iteration, Format, Opts):-
   N is 1000 * 2 ^ Iteration,
   peek_string(Read, N, S),
-  debug(rdf(guess), '[RDF-GUESS] ~s', [S]),
+  debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
 
   % Try to parse the peeked string as Turtle- or XML-like.
-  (   rdf_guess_turtle(Format0, S, N, Format)
+  (   rdf_guess_turtle(S, N, Format, Opts)
   ->  true
   ;   rdf_guess_xml(S, Format)
   ), !,
 
   % User message.
-  msg_normal('Assuming '),
-  msg_success(Format),
-  msg_normal(' based on heuristics.'), nl.
-rdf_guess_format(Read, Iteration, Format0, Format):-
+  if_option(silent(false), Opts, false, (
+    msg_normal("Assuming "),
+    msg_success(Format),
+    msg_normal(" based on heuristics."),
+    nl
+  )).
+rdf_guess_format(Read, Iteration, Format, Opts):-
   Iteration < 4,
   NewIteration is Iteration + 1,
-  rdf_guess_format(Read, NewIteration, Format0, Format).
+  rdf_guess_format(Read, NewIteration, Format, Opts).
 
-rdf_guess_turtle(Format0, S, N, Format):-
+rdf_guess_turtle(S, N, Format, Opts):-
   % Do not backtrack if the whole stream has been peeked.
   string_length(S, M),
   (   (   M =:= 0
@@ -87,7 +102,7 @@ rdf_guess_turtle(Format0, S, N, Format):-
       EoS = true
   ;   EoS = false
   ),
-  string_phrase(rdf_guess_turtle(Format0, EoS, Format), S, _).
+  string_phrase(rdf_guess_turtle(EoS, Format, Opts), S, _).
 
 rdf_guess_xml(S, Format):-
   setup_call_cleanup(
@@ -110,9 +125,9 @@ rdf_guess_xml(S, Format):-
 
 
 %! rdf_guess_turtle(
-%!   ?DefaultFormat:rdf_format,
 %!   +EoS:boolean,
-%!   -Format:rdf_format
+%!   -Format:rdf_format,
+%!   +Options:list(compound)
 %! )// is semidet.
 % True if the start of the input matches a turtle-like language.
 % There are four of them:
@@ -129,29 +144,29 @@ rdf_guess_xml(S, Format):-
 % This e.g. allows empty files or files that only consist of Turtle comments
 % to be classified as such.
 % as well).
-rdf_guess_turtle(Format0, true, Format) -->
+rdf_guess_turtle(true, Format, Opts) -->
   eos, !,
-  guess_turtle_or_trig(Format0, Format).
+  guess_turtle_or_trig(Format, Opts).
 % Skip blanks.
-rdf_guess_turtle(Format0, EoS, Format) -->
+rdf_guess_turtle(EoS, Format, Opts) -->
   blank, !, blanks,
-  rdf_guess_turtle(Format0, EoS, Format).
+  rdf_guess_turtle(EoS, Format, Opts).
 % Turtle comment.
-rdf_guess_turtle(Format0, EoS, Format) -->
+rdf_guess_turtle(EoS, Format, Opts) -->
   "#", !, skip_line,
-  rdf_guess_turtle(Format0, EoS, Format).
+  rdf_guess_turtle(EoS, Format, Opts).
 % @BASE
 % @PREFIX
-rdf_guess_turtle(Format0, _, Format) -->
+rdf_guess_turtle(_, Format, Opts) -->
   "@", turtle_keyword, !,
-  guess_turtle_or_trig(Format0, Format).
+  guess_turtle_or_trig(Format, Opts).
 % BASE
 % PREFIX
-rdf_guess_turtle(Format0, _, Format) -->
+rdf_guess_turtle(_, Format, Opts) -->
   turtle_keyword, blank, !,
-  guess_turtle_or_trig(Format0, Format).
+  guess_turtle_or_trig(Format, Opts).
 % Turtle triple.
-rdf_guess_turtle(Format0, _, Format) -->
+rdf_guess_turtle(_, Format, Opts) -->
   nt_subject(SFormat),
   *('WS'),
   nt_predicate(PFormat),
@@ -161,13 +176,13 @@ rdf_guess_turtle(Format0, _, Format) -->
   (   % End of triple.
       "."
   ->  {exclude(var, [SFormat,PFormat,OFormat], Formats),
-       guess_turtle_family(Format0, Formats, Format)}
+       guess_turtle_family(Formats, Format, Opts)}
   ;   % Object list notation.
       ";"
-  ->  guess_turtle_or_trig(Format0, Format)
+  ->  guess_turtle_or_trig(Format, Opts)
   ;   % Predicate-Object pairs list notation.
       ","
-  ->  guess_turtle_or_trig(Format0, Format)
+  ->  guess_turtle_or_trig(Format, Opts)
   ;   % End of quadruple.
       nt_graph,
       *('WS'),
@@ -175,13 +190,13 @@ rdf_guess_turtle(Format0, _, Format) -->
   ->  {Format = nquads}
   ).
 % Anonymous blank node.
-rdf_guess_turtle(Format0, _, Format) -->
+rdf_guess_turtle(_, Format, Opts) -->
   "[", !,
-  guess_turtle_or_trig(Format0, Format).
+  guess_turtle_or_trig(Format, Opts).
 % RDF collection.
-rdf_guess_turtle(Format0, _, Format) -->
+rdf_guess_turtle(_, Format, Opts) -->
   "(", !,
-  guess_turtle_or_trig(Format0, Format).
+  guess_turtle_or_trig(Format, Opts).
 
 nt_bnode --> "_:", *(nonblank).
 
@@ -231,39 +246,44 @@ turtle_keyword -->
 turtle_keyword(base).
 turtle_keyword(prefix).
 
-%! guess_turtle_or_trig(?DefaultFormat:rdf_format, -Format:rdf_format)// is det.
+
+%! guess_turtle_or_trig(-Format:rdf_format, +Options:list(compound))// is det.
 % The file starts with a Turtle construct.
 % It can still be TriG.
 % We trust the content type and otherwise we assume TriG if there
 % is a "{" in the first section of the file.
 
-guess_turtle_or_trig(Format0, Format) -->
-  (   {ground(Format0)}
-  ->  {must_be(oneof([trig,turtle]), Format0),
-       Format = Format0}
+guess_turtle_or_trig(Format, Opts) -->
+  (  {option(default_format(Format0), Opts),
+      ground(Format0)}
+  -> {must_be(oneof([trig,turtle]), Format0),
+      Format = Format0}
   ;   ..., "{"
-  ->  {Format = trig}
-  ;   {Format = turtle}
+  -> {Format = trig}
+  ;  {Format = turtle}
   ).
 
+
 %! guess_turtle_family(
-%!   ?DefaultFormat:rdf_format,
 %!   +Formats:list(oneof([nquads,ntriples,trig,turtle])),
-%!   -Format:rdf_format
+%!   -Format:rdf_format,
+%!   +Options:list(compound)
 %! )// is det.
 % We found a fully qualified triple.
 % This still can be Turtle, TriG, N-Triples or N-Quads.
 
-guess_turtle_family(Format0, Formats, Format):-
+guess_turtle_family(Formats, Format, Opts):-
   memberchk(turtleOrTrig, Formats), !,
-  (   ground(Format0)
+  (   option(default_format(Format0), Opts),
+      ground(Format0)
   ->  must_be(oneof([trig,turtle]), Format0),
       Format = Format0
   ;   debug(rdf(guess), 'Assuming Turtle based on heuristics.', []),
       Format = turtle
   ).
-guess_turtle_family(Format0, _, Format):-
-  (   ground(Format0)
+guess_turtle_family(_, Format, Opts):-
+  (   option(default_format(Format0), Opts),
+      ground(Format0)
   ->  must_be(oneof([nquads,ntriples,trig,turtle]), Format0),
       Format = Format0
   ;   debug(rdf(guess), 'Assuming N-Triples based on heuristics.', []),
