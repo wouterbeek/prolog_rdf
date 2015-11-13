@@ -5,21 +5,10 @@
     'EOL'//0,
     'PERCENT'//1, % ?Code:code
     'PLX'//1, % ?Code:code
-    'PN_CHARS'//2, % ?Language:oneof([nquads,ntriples,sparql,turtle])
-                   % ?Code:code
-    'PN_CHARS_BASE'//1, % ?Code:code
-    'PN_CHARS_U'//2, % ?Language:oneof([nquads,ntriples,sparql,turtle])
-                     % ?Code:code
     'PN_LOCAL_ESC'//1, % ?Code:code
     'UCHAR'//1, % ?Code:code
     white_space//1, % ?Language:oneof([manchester,n])
     'WS'//0
-  ]
-).
-:- reexport(
-  literal(url/rfc1738_code),
-  [
-    escape//1 as 'PERCENT' % ?Code:code
   ]
 ).
 
@@ -46,6 +35,7 @@ Turtle characters are a superset of SPARQL characters.
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(lists)).
 :- use_module(library(math/positional)).
+:- use_module(library(url/rfc1738_code), [escape//1 as 'PERCENT']).
 
 
 
@@ -86,6 +76,7 @@ comment --> "#", string(_), 'EOL0'.
 
 
 %! 'EOL'// .
+%! 'EOL'(?Codes:list(code))// .
 % ```abnf
 % EOL ::= [#xD#xA]+
 % ```
@@ -93,6 +84,7 @@ comment --> "#", string(_), 'EOL0'.
 % @compat N-Quads [8].
 % @compat N-Triples [7].
 
+'EOL' --> 'EOL'(_).
 'EOL'(L) --> +(eol_code, L, []).
 eol_code(C) --> 'CR'(C).
 eol_code(C) --> 'LF'(C).
@@ -169,7 +161,7 @@ pn_local_esc_code(0'%) --> "%".
 % @compat N-Triples 1.1 [10].
 % @compat Turtle 1.1 [26].
 
-'UCHAR'(C) --> "\\u", '#'(4, 'HEX', C, [convert1(positional)])..
+'UCHAR'(C) --> "\\u", '#'(4, 'HEX', C, [convert1(positional)]).
 'UCHAR'(C) --> "\\U", '#'(8, 'HEX', C, [convert1(positional)]).
 
 

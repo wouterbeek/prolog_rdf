@@ -28,7 +28,7 @@ Most standards allow IRIs to be abbreviated by splitting them in
 @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 @compat SPARQL 1.1 Query
 @compat Turtle 1.1
-@version 2015/08
+@version 2015/08, 2015/11
 */
 
 :- use_module(library(char_ext)).
