@@ -40,7 +40,7 @@
 
 
 assert_cc_prefixes:-
-  file_download('http://prefix.cc/popular/all.file.csv', File),
+  absolute_file_name(library(rdf/prefixes), File, [access(read),extensions([csv])]),
   csv_read_file(File, Rows0),
   % Since the more popular prefixes are stored towards the top of the file,
   % we assert them in reverse order. This way the Semweb library will
