@@ -94,7 +94,8 @@ rdf_canonical_map(D, Val, literal(lang(LTag,Lex))):-
   ground(Val),
   Val = Lex-LTag0,
   % Make sure the language-tag is valid as per BCP 47.
-  atom_phrase('obs-language-tag'(LTag), LTag0).
+  atom_phrase('obs-language-tag'(LTagStrings), LTag0),
+  atomic_list_concat(LTagStrings, -, LTag).
 rdf_canonical_map(D, Val, literal(type(D,Lex))):-
   (   rdf_equal(rdf:'HTML', D)
   ->  with_output_to(atom(Lex), html_write(current_output, Val, []))
