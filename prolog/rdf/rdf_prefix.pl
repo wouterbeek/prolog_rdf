@@ -19,12 +19,11 @@
 /** <module> RDF prefix
 
 @author Wouter Beek
-@version 2015/07-2015/09
+@version 2015/07-2015/09, 2015/11
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
-:- use_module(library(http/http_download)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
