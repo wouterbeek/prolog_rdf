@@ -4,9 +4,9 @@
     rdf_is_language_tagged_string/1, % @Term
     rdf_language_tagged_string/1, % -Literal:compound
     rdf_literal_components/4, % ?Literal:compound
-                              % ?Datatype:iri
+                              % ?DatatypeIri:atom
+                              % ?LexicalExpression:atom
                               % ?LanguageTag:atom
-                              % ?Lexical:atom
     rdf_literal_data/3, % ?Field:atom
                         % +Literal:compound
                         % ?Data
@@ -18,7 +18,7 @@
 /** <module> RDF literal
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/09, 2015/11
 */
 
 :- use_module(library(apply)).
@@ -56,47 +56,47 @@ rdf_language_tagged_string(Lit):-
 
 %! rdf_literal_components(
 %!   +Literal:compound,
-%!   -Datatype:iri,
-%!   -LanguageTag:atom,
-%!   -Lexical:atom
+%!   -DatatypeIri:atom,
+%!   -LexicalExpression:atom,
+%!   -LanguageTag:atom
 %! ) is det.
 %! rdf_literal_components(
 %!   -Literal:compound,
-%!   +Datatype:iri,
-%!   +LanguageTag:atom,
-%!   +Lexical:atom
+%!   +DatatypeIri:atom,
+%!   +LexicalExpression:atom,
+%!   +LanguageTag:atom
 %! ) is det.
 %! rdf_literal_components(
 %!   +Literal:compound,
-%!   +Datatype:iri,
-%!   -LanguageTag:atom,
-%!   +Lexical:atom
+%!   +DatatypeIri:atom,
+%!   +LexicalExpression:atom,
+%!   -LanguageTag:atom
 %! ) is det.
 %! rdf_literal_components(
 %!   +Literal:compound,
-%!   -Datatype:iri,
-%!   -LanguageTag:atom,
-%!   +Lexical:atom
+%!   -DatatypeIri:atom,
+%!   +LexicalExpression:atom,
+%!   -LanguageTag:atom
 %! ) is det.
 
-rdf_literal_components(Lit, D, LTag, Lex):-
+rdf_literal_components(Lit, D, Lex, LTag):-
   ground(Lit), !,
-  rdf_literal_components0(Lit, D, LTag, Lex).
-rdf_literal_components(Lit, D, LTag, Lex):-
+  rdf_literal_components0(Lit, D, Lex, LTag).
+rdf_literal_components(Lit, D, Lex, LTag):-
   rdf_global_id(rdf:langString, D),
   atom(LTag), !,
   Lit = literal(lang(LTag,Lex)).
-rdf_literal_components(Lit, D0, _, Lex):-
+rdf_literal_components(Lit, D0, Lex, _):-
   ground(Lex), !,
   (ground(D0) -> D = D0 ; rdf_global_id(xsd:string, D)),
   Lit = literal(type(D,Lex)).
-rdf_literal_components(Lit, D, LTag, Lex):-
-  instantiation_error(rdf_literal_components(Lit, D, LTag, Lex)).
+rdf_literal_components(Lit, D, Lex, LTag):-
+  instantiation_error(rdf_literal_components(Lit, D, Lex, LTag)).
 
-rdf_literal_components0(literal(type(D,Lex)), D, _, Lex):- !.
-rdf_literal_components0(literal(lang(LTag,Lex)), D, LTag, Lex):- !,
+rdf_literal_components0(literal(type(D,Lex)), D, Lex, _):- !.
+rdf_literal_components0(literal(lang(LTag,Lex)), D, Lex, LTag):- !,
   rdf_global_id(rdf:langString, D).
-rdf_literal_components0(literal(Lex), D, _, Lex):-
+rdf_literal_components0(literal(Lex), D, Lex, _):-
   rdf_global_id(xsd:string, D).
 
 
