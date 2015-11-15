@@ -237,5 +237,5 @@ assert_json_property(_, _, _, _, D0, Lex0, Lit):-
   rdf_global_id(D0, D),
   % Remember that SWI dictionaries contain SWI strings, not atoms.
   atom_string(Lex, Lex0),
-  rdf_lexical_map(literal(type(D,Lex)), Val),
+  rdf_lexical_map(D, Lex, Val),
   rdf_canonical_map(D, Val, Lit).

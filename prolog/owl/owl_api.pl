@@ -291,7 +291,7 @@ rdf_literal3(S, P, xsd:string, Val):-
   user:rdf(S, P, O),
   atom(Lex),
   rdf_global_id(xsd:string, D),
-  rdf_lexical_map(literal(type(D,Lex)), Val).
+  rdf_lexical_map(D, Lex, Val).
 
 
 

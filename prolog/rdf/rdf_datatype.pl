@@ -3,7 +3,11 @@
   [
     rdf_canonical_map/3, % +Datatype:iri
                          % +Value
-                         % ?Literal:compound
+                         % -CanonicalLiteral:compound
+    rdf_canonical_map/4, % +Datatype:iri
+                         % +Value
+                         % -CanonicalLexicalExpression:atom
+                         % -CanonicalLanguageTag:atom
     rdf_compare_value/4, % +Datatype:iri
                          % -Order:oneof([incomparable,<,=,>])
                          % +Value1
@@ -23,8 +27,20 @@
                             % -Term2
     rdf_lexical_canonical_map/2, % +Literal:compound
                                  % ?CanonicalLexicalFrom:atom
+    rdf_lexical_canonical_map/5, % +Datatype:iri
+                                 % +LexicalExpression:atom
+                                 % +LanguageTag:atom
+                                 % -CanonicalLexicalExpression:atom
+                                 % -CanonicalLanguageTag:atom
     rdf_lexical_map/2, % +Literal:compound
-                       % ?Value
+                       % -Value
+    rdf_lexical_map/3, % +Datatype:iri
+                       % +LexicalExpression:atom
+                       % -Value
+    rdf_lexical_map/4, % +Datatype:iri
+                       % +LexicalExpression:atom
+                       % +LanguageTag:atom
+                       % -Value
     rdf_subtype_of/2 % ?SubType:iri
                      % ?SuperType:iri
   ]
@@ -55,7 +71,8 @@
 :- use_module(library(xsd/xsd)).
 :- use_module(library(xsd/xsd_update)).
 
-:- rdf_meta(rdf_canonical_map(r,+,?)).
+:- rdf_meta(rdf_canonical_map(r,+,-)).
+:- rdf_meta(rdf_canonical_map(r,+,-,-)).
 :- rdf_meta(rdf_compare_value(r,?,+,+)).
 :- rdf_meta(rdf_datatype(r)).
 :- rdf_meta(rdf_datatype(r,?)).
@@ -63,8 +80,11 @@
 :- rdf_meta(rdf_datatype_term(r,?)).
 :- rdf_meta(rdf_equiv_value(r,+,+)).
 :- rdf_meta(rdf_interpreted_term(o,-)).
-:- rdf_meta(rdf_lexical_canonical_map(o,?)).
-:- rdf_meta(rdf_lexical_map(o,?)).
+:- rdf_meta(rdf_lexical_canonical_map(o,-)).
+:- rdf_meta(rdf_lexical_canonical_map(r,+,+,-,-)).
+:- rdf_meta(rdf_lexical_map(o,-)).
+:- rdf_meta(rdf_lexical_map(r,+,-)).
+:- rdf_meta(rdf_lexical_map(r,+,+,-)).
 :- rdf_meta(rdf_subtype_of(r,r)).
 
 
@@ -88,21 +108,34 @@
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
-rdf_canonical_map(D, Val, literal(lang(LTag,Lex))):-
+rdf_canonical_map(D, Val, CLit):-
+  rdf_canonical_map(D, Val, CLex, CLTags),
+  rdf_literal_components(CLit, D, CLex, CLTags).
+
+
+%! rdf_canonical_map(
+%!   +Datatype:iri,
+%!   +Value,
+%!   -CanonicalLexicalExpression:atom,
+%!   -CanonicalLanguageTag:atom
+%! ) is det.
+
+rdf_canonical_map(D, Val, CLex, CLTag):-
   rdf_equal(rdf:langString, D), !,
   % First check value for groundness, otherwise the pair term is instantiated.
   ground(Val),
-  Val = Lex-LTag0,
+  Val = CLex-LTag,
   % Make sure the language-tag is valid as per BCP 47.
-  atom_phrase('obs-language-tag'(LTagStrings), LTag0),
-  atomic_list_concat(LTagStrings, -, LTag).
-rdf_canonical_map(D, Val, literal(type(D,Lex))):-
-  (   rdf_equal(rdf:'HTML', D)
-  ->  with_output_to(atom(Lex), html_write(current_output, Val, []))
-  ;   rdf_equal(rdf:'XMLLiteral', D)
-  ->  with_output_to(atom(Lex), xml_write(current_output, Val, []))
-  ;   xsd_canonical_map(D, Val, Lex)
-  ).
+  atom_phrase('obs-language-tag'(CLTag0), LTag),
+  atomic_list_concat(CLTag0, -, CLTag).
+rdf_canonical_map(D, Val, CLex, _):-
+  rdf_equal(rdf:'HTML', D), !,
+  with_output_to(atom(CLex), html_write(current_output, Val, [])).
+rdf_canonical_map(D, Val, CLex, _):-
+  rdf_equal(rdf:'XMLLiteral', D), !,
+  with_output_to(atom(CLex), xml_write(current_output, Val, [])).
+rdf_canonical_map(D, Val, CLex, _):-
+  xsd_canonical_map(D, Val, CLex).
 
 
 
@@ -218,22 +251,48 @@ rdf_interpreted_term(X, Y):-
 % cannot be formulated for language-tagged strings,
 % this mapping is defined between literal compound terms.
 
-rdf_lexical_canonical_map(Lit1, Lit2):-
-  rdf_lexical_map(Lit1, D, Val),
-  rdf_canonical_map(D, Val, Lit2).
+rdf_lexical_canonical_map(Lit, CLit):-
+  rdf_literal_components(Lit, D, Lex, LTag),
+  rdf_lexical_map(D, Lex, LTag, Val),
+  rdf_canonical_map(D, Val, CLit).
 
 
+%! rdf_lexical_canonical_map(
+%!   +Datatype:iri,
+%!   +LexicalExpression:atom,
+%!   +LanguageTag:atom,
+%!   +CanonicalLexicalExpression:atom,
+%!   +CanonicalLanguageTag:atom
+%! ) is det.
 
-%! rdf_lexical_map(+Literal:compound, +Datatype:iri, +Value) is semidet.
-%! rdf_lexical_map(+Literal:compound, -Datatype:iri, -Value) is det.
-% Wrapper around rdf_lexical_map/3.
+rdf_lexical_canonical_map(D, Lex, LTag, CLex, CLTag):-
+  rdf_lexical_map(D, Lex, LTag, Val),
+  rdf_canonical_map(D, Val, CLex, CLTag).
+
+
+    
+%! rdf_lexical_map(+Literal:compound, -Value) is det.
+% Wrapper around rdf_lexical_map/4.
 
 rdf_lexical_map(Lit, Val):-
-  rdf_lexical_map(Lit, _, Val).
+  rdf_literal_components(Lit, D, Lex, LTag),
+  rdf_lexical_map(D, Lex, LTag, Val).
 
 
-%! rdf_lexical_map(+Literal:compound, +Datatype:iri, +Value) is semidet.
-%! rdf_lexical_map(+Literal:compound, -Datatype:iri, -Value) is det.
+%! rdf_lexical_map(+Datatype:iri, +LexicalExpression:atom, -Value) is det.
+% Wrapper around rdf_lexical_map/4 that works for all RDF datatype IRIs
+% except `rdf:langString'.
+
+rdf_lexical_map(D, Lex, Val):-
+  rdf_lexical_map(D, Lex, _, Val).
+
+
+%! rdf_lexical_map(
+%!   +Datatype:iri,
+%!   +LexicalExpression:atom,
+%!   +LanguageTag:atom,
+%!   -Value
+%! ) is det.
 % Maps lexical forms onto the values they represent.
 %
 % Supports the following RDF datatypes:
@@ -247,23 +306,19 @@ rdf_lexical_map(Lit, Val):-
 %
 % @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 
-% Typed literal (as per RDF 1.0 specification).
-rdf_lexical_map(literal(type(D,Lex)), D, Val):- !,
-  (   rdf_global_id(rdf:'HTML', D)
-  ->  atom_to_html_dom(Lex, Val)
-  ;   rdf_global_id(rdf:'XMLLiteral', D)
-  ->  atom_to_xml_dom(Lex, Val)
-  ;   xsd_lexical_map(D, Lex, Val)
-  ).
 % Language-tagged string.
-rdf_lexical_map(literal(lang(LTag0,Lex)), D, Lex-LTag):- !,
-  rdf_global_id(rdf:langString, D),
+rdf_lexical_map(D, Lex, LTag0, Lex-LTag):-
+  rdf_equal(rdf:langString, D), !,
   downcase_atom(LTag0, LTag).
-% Simple literal (as per RDF 1.0 specification)
-% now assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-rdf_lexical_map(literal(Lex), D, Val):-
-  rdf_global_id(xsd:string, D),
-  rdf_lexical_map(literal(type(D,Lex)), Val).
+% Typed literal (as per RDF 1.0 specification).
+rdf_lexical_map(D, Lex, _, Val):-
+  rdf_equal(rdf:'HTML', D), !,
+  atom_to_html_dom(Lex, Val).
+rdf_lexical_map(D, Lex, _, Val):-
+  rdf_equal(rdf:'XMLLiteral', D), !,
+  atom_to_xml_dom(Lex, Val).
+rdf_lexical_map(D, Lex, _, Val):-
+  xsd_lexical_map(D, Lex, Val).
 
 
 
