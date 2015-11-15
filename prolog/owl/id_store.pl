@@ -132,7 +132,7 @@ print_id_store(Opts):-
   forall(
     id_terms0(Id, Ts),
     dcg_with_output_to(user_output, (
-      indent(N),
+      tab(N),
       atom(Id),
       "\t",
       set(\T^rdf_print_term(T, Opts), Ts),

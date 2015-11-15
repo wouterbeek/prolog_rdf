@@ -52,10 +52,10 @@ metadata_http(I1, M) -->
   {succ(I2, I3)},
   {dict_pairs(M.headers, _, L)},
   section(I1, "HTTP metadata:", (
-    indent_nl(I2, http_status_code(M.status_code)),
-    indent_nl(I2, nvpair("Version", pl_pair(M.version))),
-    indent_nl(I2, nvpair("Final IRI", iri(M.final_iri))),
-    indent_nl(I2, atom("Headers:")),
+    tab_nl(I2, http_status_code(M.status_code)),
+    tab_nl(I2, nvpair("Version", pl_pair(M.version))),
+    tab_nl(I2, nvpair("Final IRI", iri(M.final_iri))),
+    tab_nl(I2, atom("Headers:")),
     http_headers(I3, L)
   )).
 
@@ -69,7 +69,7 @@ http_headers(I, [N-Vs|T]) -->
 metadata_iri(I1, M) -->
   {succ(I1, I2)},
   section(I1, "IRI metadata:", (
-    indent_nl(I2, nvpair("Base IRI", iri(M.base_iri)))
+    tab_nl(I2, nvpair("Base IRI", iri(M.base_iri)))
   )).
 
 
@@ -77,10 +77,10 @@ metadata_iri(I1, M) -->
 metadata_rdf(I1, M) -->
   {succ(I1, I2), succ(I2, I3)},
   section(I1, "RDF metadata:", (
-    indent_nl(I2, nvpair("Serialization format", atom(M.format))),
-    indent_nl(I2, nvpair("Number of statements", atom(M.statements))),
-    indent_nl(I3, nvpair("Number of quadruples", atom(M.quadruples))),
-    indent_nl(I3, nvpair("Number of triples", atom(M.triples)))
+    tab_nl(I2, nvpair("Serialization format", atom(M.format))),
+    tab_nl(I2, nvpair("Number of statements", atom(M.statements))),
+    tab_nl(I3, nvpair("Number of quadruples", atom(M.quadruples))),
+    tab_nl(I3, nvpair("Number of triples", atom(M.triples)))
   )).
 
 
@@ -97,7 +97,7 @@ metadata_stream(I1, M) -->
 %! nvpairs(+Indent:nonneg, +Pairs:list(pair(string)))// is det.
 
 nvpairs(I, [N-V|T]) -->
-  indent_nl(I, nvpair(N-V)), !,
+  tab_nl(I, nvpair(N-V)), !,
   nvpairs(I, T).
 nvpairs(_, []) --> "".
 
@@ -107,6 +107,6 @@ nvpairs(_, []) --> "".
 %! nvpairs(+Indent:nonneg, +Name:string, +Pairs:list(pair(string)))// is det.
 
 nvpairs(I, N, [H|T]) -->
-  indent_nl(I, nvpair(N-H)), !,
+  tab_nl(I, nvpair(N-H)), !,
   nvpairs(I, N, T).
 nvpairs(_, _, []) --> "".
