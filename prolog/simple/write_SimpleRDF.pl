@@ -53,9 +53,9 @@ assuming `xsd:string` in case no datatype IRI is given.
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
-:- use_module(library(count_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_bnode_name)). % Private
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/turtle)). % Private
@@ -126,10 +126,10 @@ write_simple_bnode(BNodePrefix, BNode):-
 %   * triples(-nonneg)
 
 write_simple_end(CT, CQ, Opts):-
-  delete_counter(CT, NT),
+  delete_thread_counter(CT, NT),
   option(triples(NT), Opts, _),
 
-  delete_counter(CQ, NQ),
+  delete_thread_counter(CQ, NQ),
   option(quadruples(NQ), Opts, _),
   
   NS is NT + NQ,
@@ -223,7 +223,7 @@ write_simple_quadruple(BNodePrefix, CQ, S, P, O, G):-
   put_char(' '),
   put_char(.),
   put_code(10),
-  increment_counter(CQ).
+  increment_thread_counter(CQ).
 
 
 
@@ -302,4 +302,4 @@ write_simple_triple(BNodePrefix, C, S, P, O):-
   put_char(' '),
   put_char(.),
   put_code(10),
-  increment_counter(C).
+  increment_thread_counter(C).

@@ -25,10 +25,10 @@ Support for loading RDF data.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(count_ext)).
 :- use_module(library(option)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option)).
+:- use_module(library(os/thread_counter)).
 :- use_module(library(rdf)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph)).
@@ -168,8 +168,8 @@ rdf_load_file(In, Opts):-
     ),
     rdf_call_on_statements(In, rdf_load_statements(CT, CQ), Opts),
     (
-      delete_counter(CT, NT),
-      delete_counter(CQ, NQ),
+      delete_thread_counter(CT, NT),
+      delete_thread_counter(CQ, NQ),
       NS is NT + NQ,
       msg_notification(
         "Loaded ~D statements from ~w (~D triples and ~D quadruples).~n",
@@ -185,9 +185,9 @@ rdf_load_statements(CT, CQ, Stmts, G):-
 
 % Load a triple.
 rdf_load_statement(CT, _, G:_, rdf(S,P,O)):- !,
-  increment_counter(CT),
+  increment_thread_counter(CT),
   user:rdf_assert(S, P, O, G).
 % Load a quadruple.
 rdf_load_statement(_, CQ, _, rdf(S,P,O,G)):- !,
-  increment_counter(CQ),
+  increment_thread_counter(CQ),
   user:rdf_assert(S, P, O, G).

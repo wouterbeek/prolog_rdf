@@ -24,12 +24,12 @@ datatype preferences in order to perform limited-scale crawling.
 --
 
 @author Wouter Beek
-@version 2015/08-2015/10
+@version 2015/08-2015/11
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(count_ext)).
+:- use_module(library(counter)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(debug_ext)).
