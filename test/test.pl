@@ -79,13 +79,3 @@
 :- use_module(library(sparql/sparql_db)).
 :- use_module(library(sparql/sparql10_code)).
 :- use_module(library(sparql/sparql10_helpers)).
-%/uri
-:- use_module(library(iri/rfc3987)).
-:- use_module(library(uri/uri_authority)).
-:- use_module(library(uri/uri_fragment)).
-:- use_module(library(uri/uri_hier)).
-:- use_module(library(uri/uri_host)).
-:- use_module(library(uri/uri_port)).
-:- use_module(library(uri/uri_query)).
-:- use_module(library(uri/uri_relative)).
-:- use_module(library(uri/uri_scheme)).
