@@ -24,7 +24,7 @@
 
 @author Wouter Beek
 @license MIT license
-@version 2015/07-2015/10
+@version 2015/07-2015/11
 */
 
 :- use_module(library(atom_ext)).
@@ -32,6 +32,7 @@
 :- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_quoted)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(lambda)).
@@ -40,6 +41,7 @@
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_print_graph(r,+,?,?)).
 :- rdf_meta(rdf_print_literal(o,+,?,?)).
@@ -217,6 +219,7 @@ rdf_print_iri(Global, Opts) -->
   {option(style(turtle), Opts)}, !,
   bracketed(langular, atom(Global)).
 rdf_print_iri(Global, _) -->
+  {is_http_iri(Global)},
   atom(Global).
 
 
@@ -370,4 +373,6 @@ rdf_print_term(T, Opts) -->
   {rdf_is_bnode(T)}, !,
   rdf_print_bnode(T, Opts).
 rdf_print_term(T, Opts) -->
-  rdf_print_iri(T, Opts).
+  rdf_print_iri(T, Opts), !.
+rdf_print_term(T, _) -->
+  pl_term(T).
