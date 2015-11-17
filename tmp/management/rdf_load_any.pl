@@ -28,7 +28,6 @@
   pass_to(rdf_load/2, 2)
 ]).
 :- predicate_options(rdf_load_from_stream_nondet/3, 3, [
-  silent(+boolean),
   pass_to(rdf_load_from_stream_det/4, 4)
 ]).
 
@@ -61,9 +60,6 @@
 %     Whether reduced locations are used of not.
 %     See [rdf_prefixes].
 %     Default: `false`.
-%   * silent(+boolean)
-%     Whether informational messages about loaded content are shown.
-%     Default: `true`.
 %   * void(+Load:boolean)
 %     Whether the loaded data should be recursively closed under
 %     VoID descriptions that appear in that data.
@@ -155,12 +151,7 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   % Set options: base URI, RDF serialization format, XML namespaces.
   set_stream(In, file_name(Base)),
   merge_options(
-    [
-      base_uri(Base),
-      format(Format),
-      register_namespaces(false),
-      silent(true)
-    ],
+    [base_uri(Base),format(Format),register_namespaces(false)],
     Options1,
     Options2
   ),

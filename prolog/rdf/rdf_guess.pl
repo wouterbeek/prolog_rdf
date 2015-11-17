@@ -33,8 +33,7 @@
 :- meta_predicate(nt_string_codes(//,?,?)).
 
 :- predicate_options(rdf_guess_format/3, 3, [
-     default_format(+rdf_format),
-     silent(+boolean)
+     default_format(+rdf_format)
    ]).
 
 
@@ -51,8 +50,6 @@ rdf_guess_format(Spec, Format):-
 %! rdf_guess_format(+Spec, -Format:rdf_term, +Options:list(compound)) is det.
 % The following options are supported:
 %   * default_format(+rdf_format)
-%   * silent(+boolean)
-%     Default is `false'.
 
 rdf_guess_format(Spec, Format, Opts):-
   setup_call_cleanup(
@@ -80,13 +77,7 @@ rdf_guess_format(Read, Iteration, Format, Opts):-
   ;   rdf_guess_xml(S, Format)
   ), !,
 
-  % User message.
-  if_option(silent(false), Opts, false, (
-    msg_normal("Assuming "),
-    msg_success(Format),
-    msg_normal(" based on heuristics."),
-    nl
-  )).
+  debug(rdf(guess), "Assuming ~a based on heuristics.", [Format]).
 rdf_guess_format(Read, Iteration, Format, Opts):-
   Iteration < 4,
   NewIteration is Iteration + 1,
