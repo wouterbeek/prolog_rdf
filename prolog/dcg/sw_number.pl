@@ -12,8 +12,7 @@
     'DOUBLE_POSITIVE'//1, % ?Double:float
     'EXPONENT'//1, % ?Value:integer
     floatingPointLiteral//1, % ?Float:float
-    'INTEGER'//2, % +Language:oneof([sparql,turtle])
-                  % ?Integer:integer
+    'INTEGER'//1, % ?Integer:integer
     integerLiteral//1, % ?Integer:integer
     'INTEGER_NEGATIVE'//1, % ?Integer:integer
     'INTEGER_POSITIVE'//1 % ?Integer:integer
@@ -156,9 +155,7 @@ decimalLiteral(N) -->
 % @compat SPARQL 1.0 [81]
 % @compat SPARQL 1.1 Query [149]
 
-'DECIMAL_POSITIVE'(N) -->
-  "+",
-  'INTEGER'(sparql, N).
+'DECIMAL_POSITIVE'(N) --> "+", 'INTEGER'(N).
 
 
 
@@ -350,7 +347,7 @@ floatingPointLiteral(N) -->
 
 
 
-%! 'INTEGER'(?Language:oneof([sparql,turtle]), ?Integer:integer)// .
+%! 'INTEGER'(?Integer:integer)// .
 % ```ebnf
 % [SPARQL]   INTEGER ::= [0-9]+
 % [Turtle]   INTEGER ::= [+-]? [0-9]+
@@ -360,24 +357,7 @@ floatingPointLiteral(N) -->
 % @compat SPARQL 1.1 Query [146]
 % @compat Turtle 1.1 [19]
 
-'INTEGER'(sparql, N) -->
-  (   {ground(N)}
-  ->  {positional(Ds, N)},
-      '[0-9]+'(Ds)
-  ;   '[0-9]+'(Ds),
-      {positional(Ds, N)}
-  ).
-'INTEGER'(turtle, N) -->
-  (   {ground(N)}
-  ->  '[+-]?'(N),
-      {N0 is abs(N)},
-      {positional(Ds, N0)},
-      '[0-9]+'(Ds)
-  ;   '[+-]?'(Sg),
-      '[0-9]+'(Ds),
-      {positional(Ds, N0)},
-      {N is copysign(N0, Sg)}
-  ).
+'INTEGER'(N) --> integer(N).
 
 
 
@@ -410,9 +390,7 @@ integerLiteral(N) -->
 % @compat SPARQL 1.0 [80]
 % @compat SPARQL 1.1 Query [149]
 
-'INTEGER_POSITIVE'(N) -->
-  "+",
-  'INTEGER'(sparql, N).
+'INTEGER_POSITIVE'(N) --> "+", 'INTEGER'(N).
 
 
 
@@ -429,8 +407,8 @@ integerLiteral(N) -->
   (   {ground(N)}
   ->  {N < 0},
       {N0 is abs(N)},
-      'INTEGER'(sparql, N0)
-  ;   'INTEGER'(sparql, N0),
+      'INTEGER'(N0)
+  ;   'INTEGER'(N0),
       {N is copysign(N0, -1)}
   ).
 

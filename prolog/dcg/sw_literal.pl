@@ -213,13 +213,10 @@ literal(turtle, Lit) -->
 'NumericLiteral'(turtle, literal(type(xsd:double,Lex))) -->
   'DOUBLE'(turtle, Lex).
 'NumericLiteral'(turtle, literal(type(xsd:integer,Lex))) -->
-  'INTEGER'(turtle, Lex).
-'NumericLiteral'(sparql, V) -->
-  'NumericLiteralNegative'(V).
-'NumericLiteral'(sparql, V) -->
-  'NumericLiteralPositive'(V).
-'NumericLiteral'(sparql, V) -->
-  'NumericLiteralUnsigned'(V).
+  'INTEGER'(Lex).
+'NumericLiteral'(sparql, V) --> 'NumericLiteralNegative'(V).
+'NumericLiteral'(sparql, V) --> 'NumericLiteralPositive'(V).
+'NumericLiteral'(sparql, V) --> 'NumericLiteralUnsigned'(V).
 
 
 
@@ -233,12 +230,9 @@ literal(turtle, Lit) -->
 % @compat SPARQL 1.0 [64].
 % @compat SPARQL 1.1 Query [133].
 
-'NumericLiteralNegative'(V) -->
-  'DECIMAL_NEGATIVE'(V).
-'NumericLiteralNegative'(V) -->
-  'DOUBLE_NEGATIVE'(V).
-'NumericLiteralNegative'(V) -->
-  'INTEGER_NEGATIVE'(V).
+'NumericLiteralNegative'(V) --> 'DECIMAL_NEGATIVE'(V).
+'NumericLiteralNegative'(V) --> 'DOUBLE_NEGATIVE'(V).
+'NumericLiteralNegative'(V) --> 'INTEGER_NEGATIVE'(V).
 
 
 
@@ -252,12 +246,9 @@ literal(turtle, Lit) -->
 % @compat SPARQL 1.0 [63].
 % @compat SPARQL 1.1 Query [132].
 
-'NumericLiteralPositive'(V) -->
-  'DECIMAL_POSITIVE'(V).
-'NumericLiteralPositive'(V) -->
-  'DOUBLE_POSITIVE'(V).
-'NumericLiteralPositive'(V) -->
-  'INTEGER_POSITIVE'(V).
+'NumericLiteralPositive'(V) --> 'DECIMAL_POSITIVE'(V).
+'NumericLiteralPositive'(V) --> 'DOUBLE_POSITIVE'(V).
+'NumericLiteralPositive'(V) --> 'INTEGER_POSITIVE'(V).
 
 
 
@@ -269,12 +260,9 @@ literal(turtle, Lit) -->
 % @compat SPARQL 1.0 [62].
 % @compat SPARQL 1.1 Update [131].
 
-'NumericLiteralUnsigned'(V) -->
-  'DECIMAL'(sparql, V).
-'NumericLiteralUnsigned'(V) -->
-  'DOUBLE'(sparql, V).
-'NumericLiteralUnsigned'(V) -->
-  'INTEGER'(sparql, V).
+'NumericLiteralUnsigned'(V) --> 'DECIMAL'(sparql, V).
+'NumericLiteralUnsigned'(V) --> 'DOUBLE'(sparql, V).
+'NumericLiteralUnsigned'(V) --> 'INTEGER'(V).
 
 
 
