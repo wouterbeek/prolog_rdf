@@ -38,9 +38,10 @@
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/rdf11-concepts/)
 @license MIT License
-@version 2015/07-2015/10
+@version 2015/07-2015/11
 */
 
+:- use_module(library(date_ext)).
 :- use_module(library(error)).
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(rdf/rdf_build)).
@@ -282,4 +283,4 @@ rdf_literal_pl(S, P, D, V):-
 
 rdf_literal_pl(S, P, D, V, G):-
   rdf_literal(S, P, D, V0, G),
-  (xsd_datatype(D, date) -> xsd_date_to_prolog_term(V0, V) ; V = V0).
+  (xsd_datatype(D, date) -> dateTime_date(V0, V) ; V = V0).
