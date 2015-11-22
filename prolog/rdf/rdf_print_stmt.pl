@@ -49,10 +49,10 @@
 /** <module> RDF statement printing
 
 @author Wouter Beek
-@version 2015/07-2015/09
+@version 2015/07-2015/09, 2015/11
 */
 
-:- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_bracket)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(lists)).
 :- use_module(library(option)).

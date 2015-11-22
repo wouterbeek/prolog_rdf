@@ -4,6 +4,7 @@
     abbreviatedIRI//1, % ?Iri:atom
     annotationPropertyIRI//1, % ?Iri:atom
     classIRI//1, % ?Iri:atom
+    comment//0,
     'Datatype'//1, % ?Iri:atom
     datatypeIRI//1, % ?Iri:atom
     dataPropertyIRI//1, % ?Iri:atom
@@ -71,7 +72,7 @@ annotated_list(_) --> "".
 %                   production of [SPARQL]
 % ```
 
-abbreviatedIRI(S) --> dcg_string('PNAME_LN', S).
+abbreviatedIRI(Iri) --> 'PNAME_LN'(Iri).
 
 
 
@@ -90,6 +91,19 @@ annotationPropertyIRI(Iri) --> 'IRI'(Iri).
 % ```
 
 classIRI(Iri) --> 'IRI'(Iri).
+
+
+
+% comment// .
+% Comments are maximal sequences of Unicode characters starting with a `#`
+% and not containing a line feed or a carriage return.
+%
+% Note that comments are only recognized where white space is allowed,
+% and thus not inside the above non-terminals.
+%
+% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+
+comment --> "#", string(_), 'EOL0'.
 
 
 
@@ -259,7 +273,7 @@ individualIRI(Iri) --> 'IRI'(Iri).
 
 %! integerLiteral(?Literal:compound)// .
 % ```
-% integerLiteral ::= ['+' | '-'] digits
+% integerLiteral ::= [ '+' | '-' ] digits
 % ```
 
 integerLiteral(literal(type(xsd:integer,I))) -->
@@ -275,7 +289,9 @@ integerLiteral(literal(type(xsd:integer,I))) -->
 %                matching the langtag production from [BCP 47]
 % ```
 
-languageTag(LTag) --> "@", 'Language-Tag'(LTag).
+languageTag(LTag) -->
+  "@", 'Language-Tag'(LTag0),
+  {maplist(atom_string, LTag, LTag0)}.
 
 
 
@@ -322,7 +338,7 @@ nodeID(BlankNodeLabel) --> dcg_atom('BLANK_NODE_LABEL', BlankNodeLabel).
 % nonNegativeInteger ::= zero | positiveInteger
 % ```
 
-nonNegativeInteger(N) --> zero(N).
+nonNegativeInteger(N) --> zero(N), !.
 nonNegativeInteger(N) --> positiveInteger(N).
 
 
@@ -333,7 +349,7 @@ nonNegativeInteger(N) --> positiveInteger(N).
 % nonZero := '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 % ```
 
-nonZero(D)      --> nonZero(D, _).
+nonZero(D) --> nonZero(D, _).
 nonZero(1, 0'1) --> "1".
 nonZero(2, 0'2) --> "2".
 nonZero(3, 0'3) --> "3".
@@ -364,7 +380,7 @@ positiveInteger(I) --> nonZero(H), *(digit, T), {posnum([H|T], I)}.
 
 
 
-%! prefixName(?Prefix:string)// .
+%! prefixName(?Prefix:atom)// .
 % ```
 % prefixName := a finite sequence of characters matching the PNAME_NS
 %               production of [SPARQL] and not matching any of the keyword
@@ -384,7 +400,7 @@ prefixName(Prefix) -->
 
 
 
-%! quotedString(?String:string)// .
+%! quotedString(?String:atom)// .
 % ```
 % quotedString := a finite sequence of characters in which
 %                 " (U+22) and \ (U+5C) occur only in pairs
@@ -392,7 +408,7 @@ prefixName(Prefix) -->
 %                 enclosed in a pair of " (U+22) characters
 % ```
 
-quotedString(S) --> "\"", dcg_string(quoted_string_codes, S), "\"".
+quotedString(A) --> "\"", dcg_atom(quoted_string_codes, A), "\"".
 quoted_string_codes([0'\\,0'\"|T]) --> "\\\"", !, quoted_string_codes(T).
 quoted_string_codes([0'\",0'\"|T]) --> "\"\"", !, quoted_string_codes(T).
 quoted_string_codes([H|T]) -->
@@ -411,9 +427,9 @@ quoted_string_codes([H|T]) -->
 % Local parts with no prefix are expanded as if they had an initial colon
 % and must not match any keyword of this syntax.
 
-simpleIRI(S) -->
-  dcg_string('PN_LOCAL', S),
-  {throw_if_machester_keyword(S), rdf_global_id('':S, Iri)}.
+simpleIRI(Iri) -->
+  dcg_string('PN_LOCAL', LocalName),
+  {throw_if_machester_keyword(S), rdf_global_id('':LocalName, Iri)}.
 
 
 %! stringLiteralNoLanguage(?Literal:compound)// .

@@ -29,11 +29,11 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10
+@version 2015/07-2015/08, 2015/10-2015/11
 */
 
 :- use_module(library(dcg/dcg_arrow)).
-:- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_bracket)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(debug_ext)).
