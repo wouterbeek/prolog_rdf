@@ -23,9 +23,7 @@ Grammar rules for strings in Semantic Web standards.
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
-:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_code)).
-:- use_module(library(dcg/dcg_quoted)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/sw_char)).
 
@@ -48,26 +46,13 @@ Grammar rules for strings in Semantic Web standards.
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-quotedString(S) -->
-  bracketed(dcg_atom(quotedString0, S)).
-
-quotedString0([H1,H2|T]) -->
-  backslash(H1),
-  double_quote(H2), !,
-  quotedString0(T).
-quotedString0([H1,H2|T]) -->
-  backslash(H1),
-  backslash(H2), !,
-  quotedString0(T).
-quotedString0(_) -->
-  "\\", !,
-  {fail}.
-quotedString0(_) -->
-  "\"", !,
-  {fail}.
-quotedString0([H|T]) -->
-  [H],
-  quotedString0(T).
+quotedString(S) --> "(", dcg_string(quotedString0, S), ")".
+quotedString0([0'\\,0'"|T])  --> "\\\"", !, quotedString0(T).   %"
+quotedString0([0'\\,0'\\|T]) --> "\\\\", !, quotedString0(T).
+quotedString0(_)             --> "\\",   !, {fail}.
+quotedString0(_)             --> "\"",   !, {fail}.
+quotedString0([H|T])         --> [H],    !, quotedString0(T).
+quotedString0([])            --> "".
 
 
 
@@ -87,22 +72,14 @@ quotedString0([H|T]) -->
 % @compat SPARQL 1.1 Query [135].
 % @compat Turtle 1.1 [17].
 
-'String'(sparql, Literal) -->
-  'STRING_LITERAL1'(Literal).
-'String'(sparql, Literal) -->
-  'STRING_LITERAL2'(Literal).
-'String'(sparql, Literal) -->
-  'STRING_LITERAL_LONG1'(Literal).
-'String'(sparql, Literal) -->
-  'STRING_LITERAL_LONG2'(Literal).
-'String'(turtle, S) -->
-  'STRING_LITERAL_QUOTE'(S).
-'String'(turtle, S) -->
-  'STRING_LITERAL_SINGLE_QUOTE'(S).
-'String'(turtle, S) -->
-  'STRING_LITERAL_LONG_SINGLE_QUOTE'(S).
-'String'(turtle, S) -->
-  'STRING_LITERAL_LONG_QUOTE'(S).
+'String'(sparql, Lit) --> 'STRING_LITERAL1'(Lit).
+'String'(sparql, Lit) --> 'STRING_LITERAL2'(Lit).
+'String'(sparql, Lit) --> 'STRING_LITERAL_LONG1'(Lit).
+'String'(sparql, Lit) --> 'STRING_LITERAL_LONG2'(Lit).
+'String'(turtle, S)   --> 'STRING_LITERAL_QUOTE'(S).
+'String'(turtle, S)   --> 'STRING_LITERAL_SINGLE_QUOTE'(S).
+'String'(turtle, S)   --> 'STRING_LITERAL_LONG_SINGLE_QUOTE'(S).
+'String'(turtle, S)   --> 'STRING_LITERAL_LONG_QUOTE'(S).
 
 
 
@@ -121,8 +98,7 @@ quotedString0([H|T]) -->
 %         escape sequences for Unicode characters
 %         are allowed to occur.
 
-'STRING_LITERAL_LONG1'(S) -->
-  'STRING_LITERAL_LONG'(sparql, single_quote, S).
+'STRING_LITERAL_LONG1'(S) --> 'STRING_LITERAL_LONG'(sparql, single_quote, S).
 
 
 
@@ -141,8 +117,7 @@ quotedString0([H|T]) -->
 %         escape sequences for Unicode characters
 %         are allowed to occur.
 
-'STRING_LITERAL_LONG2'(S) -->
-  'STRING_LITERAL_LONG'(sparql, double_quote, S).
+'STRING_LITERAL_LONG2'(S) --> 'STRING_LITERAL_LONG'(sparql, double_quote, S).
 
 
 
@@ -158,8 +133,7 @@ quotedString0([H|T]) -->
 % @compat This different from SPARQL 1.0 [88] and SPARQL 1.1 [157]
 %         in that escape sequences for Unicode characters are allowed here.
 
-'STRING_LITERAL_QUOTE'(S) -->
-  'STRING_LITERAL'(turtle, double_quote, S).
+'STRING_LITERAL_QUOTE'(S) --> 'STRING_LITERAL'(turtle, double_quote, S).
 
 
 
@@ -176,8 +150,7 @@ quotedString0([H|T]) -->
 % @compat This different from SPARQL 1.0 [87] and SPARQL 1.1 [156]
 %         in that escape sequences for Unicode characters are allowed here.
 
-'STRING_LITERAL_SINGLE_QUOTE'(S) -->
-  'STRING_LITERAL'(turtle, single_quote, S).
+'STRING_LITERAL_SINGLE_QUOTE'(S) --> 'STRING_LITERAL'(turtle, single_quote, S).
 
 
 
@@ -214,8 +187,7 @@ quotedString0([H|T]) -->
 % @compat This different from SPARQL 1.0 [90] and SPARQL 1.1 [159]
 %         in that escape sequences for Unicode characters are allowed here.
 
-'STRING_LITERAL_LONG_QUOTE'(S) -->
-  'STRING_LITERAL_LONG'(turtle, double_quote, S).
+'STRING_LITERAL_LONG_QUOTE'(S) --> 'STRING_LITERAL_LONG'(turtle, double_quote, S).
 
 
 
@@ -230,8 +202,7 @@ quotedString0([H|T]) -->
 %         escape sequences for Unicode characters
 %         are allowed to occur.
 
-'STRING_LITERAL1'(S) -->
-  'STRING_LITERAL'(sparql, single_quote, S).
+'STRING_LITERAL1'(S) --> 'STRING_LITERAL'(sparql, single_quote, S).
 
 
 
@@ -246,8 +217,7 @@ quotedString0([H|T]) -->
 %         escape sequences for Unicode characters
 %         are allowed to occur.
 
-'STRING_LITERAL2'(S) -->
-  'STRING_LITERAL'(sparql, double_quote, S).
+'STRING_LITERAL2'(S) --> 'STRING_LITERAL'(sparql, double_quote, S).
 
 
 
@@ -297,4 +267,3 @@ quotedString0([H|T]) -->
 'STRING_LITERAL_LONG0'(_, Esc, _) --> Esc, Esc, Esc, !, {fail}.
 'STRING_LITERAL_LONG0'(_, _, C) --> 'ECHAR'(C).
 'STRING_LITERAL_LONG0'(turtle, _, C) --> 'UCHAR'(C).
-

@@ -53,11 +53,11 @@ annotated_list(_) --> "".
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_peek)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(iri/rfc3987)).
 :- use_module(library(ltag/rfc5646)).
-:- use_module(library(math/positional)).
 :- use_module(library(math/rational_ext)).
 :- use_module(library(sparql/sparql10_code)).
 
@@ -98,11 +98,11 @@ classIRI(Iri) --> 'IRI'(Iri).
 % Datatype ::= datatypeIRI | 'integer' | 'decimal' | 'float' | 'string'
 % ```
 
-'Datatype'(Iri) --> datatypeIRI(Iri).
+'Datatype'(Iri)         --> datatypeIRI(Iri).
 'Datatype'(xsd:integer) --> "integer".
 'Datatype'(xsd:decimal) --> "decimal".
-'Datatype'(xsd:float) --> "float".
-'Datatype'(xsd:string) --> "string".
+'Datatype'(xsd:float)   --> "float".
+'Datatype'(xsd:string)  --> "string".
 
 
 
@@ -129,14 +129,16 @@ dataPropertyIRI(Iri) --> 'IRI'(Iri).
 % decimalLiteral ::= ['+' | '-'] digits '.' digits
 % ```
 
-decimalLiteral(literal(type(xsd:decimal,N))) -->
-  ("+", {Sg = 1} ; "-", {Sg = -1}),
-  digits(N1),
+decimalLiteral(literal(type(xsd:decimal,Rat))) -->
+  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
+  digits(Ds1),
   ".",
-  digits(N2),
+  digits(Ds2),
   {
-    rational_parts_weights(N0, N1, N2),
-    N is Sg * N0
+    possum(Ds1, I),
+    posfrac(Ds2, Frac),
+    rational_parts(Rat0, I, Frac)
+    Rat is Sg * Rat0
   }.
 
 
@@ -151,12 +153,12 @@ digit(D) --> nonZero(D).
 
 
 
-%! digits(?N:nonneg)// .
+%! digits(?Digits:list(between(0,9)))// .
 % ```
 % digits ::= digit { digit }
 % ```
 
-digits(N) --> +(digit, N, [convert1(clpfd_positional)]).
+digits(Ds) --> +(digit, Ds).
 
 
 
@@ -170,12 +172,12 @@ digits(N) --> +(digit, N, [convert1(clpfd_positional)]).
 %          | 'NamedIndividual' '(' individualIRI ')'
 % ```
 
-entity(Iri) --> "Datatype(", 'Datatype'(Iri), ")".
-entity(Iri) --> "Class(", classIRI(Iri), ")".
-entity(Iri) --> "ObjectProperty(", objectPropertyIRI(Iri), ")".
-entity(Iri) --> "DataProperty(", dataPropertyIRI(Iri), ")".
+entity(Iri) --> "Datatype(",           'Datatype'(Iri),            ")".
+entity(Iri) --> "Class(",              classIRI(Iri),              ")".
+entity(Iri) --> "ObjectProperty(",     objectPropertyIRI(Iri),     ")".
+entity(Iri) --> "DataProperty(",       dataPropertyIRI(Iri),       ")".
 entity(Iri) --> "AnnotationProperty(", annotationPropertyIRI(Iri), ")".
-entity(Iri) --> "NamedIndividual(", individualIRI(Iri), ")".		  
+entity(Iri) --> "NamedIndividual(",    individualIRI(Iri),         ")".		  
 
 
 
@@ -186,9 +188,9 @@ entity(Iri) --> "NamedIndividual(", individualIRI(Iri), ")".
 
 exponent(Exp) -->
   ("e" ; "E"),
-  ("+", {Sg = 1} ; "-", {Sg = -1}),
-  digits(N0),
-  {Exp is Sg * N0}.
+  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
+  digits(Ds),
+  {possum(Ds, I), Exp is Sg * 10 ^ I}.
 
 
 
@@ -199,16 +201,18 @@ exponent(Exp) -->
 %                          ( 'f' | 'F' )
 % ```
 
-floatingPointLiteral(N) -->
-  ("+", {Sg = 1} ; "-", {Sg = -1}),
-  (   digits(N1), (".", digits(N2) ; {N2 = 0})
-  ;   {N1 = 0}, ".", digits(N2)
+floatingPointLiteral(Rat) -->
+  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
+  (   digits(Ds1),
+      (".", digits(Ds2) ; {Ds2 = []})
+  ;   {Ds1 = []}, ".", digits(Ds2)
   ),
   (exponent(Exp) ; {Exp = 0}),
   ("f" ; "F"),
   {
-    rational_parts_weights(N0, N1, N2),
-    N is Sg * N0 * 10 ^ Exp
+    possum(Ds1, I),
+    posfrac(Ds2, Frac),
+    Rat is Sg * float(I + Frac) * Exp
   }.
 
 
@@ -258,10 +262,10 @@ individualIRI(Iri) --> 'IRI'(Iri).
 % integerLiteral ::= ['+' | '-'] digits
 % ```
 
-integerLiteral(literal(type(xsd:integer,N))) -->
-  ("+", {Sg = 1} ; "-", {Sg = -1}),
-  digits(N0),
-  {N is Sg * N0}.
+integerLiteral(literal(type(xsd:integer,I))) -->
+  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
+  digits(Ds),
+  {possum(Ds, I0, I is Sg * I0}.
 
 
 
@@ -329,7 +333,7 @@ nonNegativeInteger(N) --> positiveInteger(N).
 % nonZero := '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 % ```
 
-nonZero(D) --> nonZero(D, _).
+nonZero(D)      --> nonZero(D, _).
 nonZero(1, 0'1) --> "1".
 nonZero(2, 0'2) --> "2".
 nonZero(3, 0'3) --> "3".
@@ -356,10 +360,7 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % positiveInteger ::= nonZero { digit }
 % ```
 
-positiveInteger(N) -->
-  {clpfd_positional([H|T], N)},
-  nonZero(H),
-  *(digit, T, []).
+positiveInteger(I) --> nonZero(H), *(digit, T), {posnum([H|T], I)}.
 
 
 
@@ -369,8 +370,17 @@ positiveInteger(N) -->
 %               production of [SPARQL] and not matching any of the keyword
 %               terminals of the syntax
 % ```
+%
+% Prefixes in abbreviated IRIs must not match any of the keywords of
+% this syntax.
+%
+% Prefixes should begin with lower case letters so that they do not clash
+% with colon-terminated keywords introduced in future versions of this syntax.
 
-prefixName(Prefix) --> dcg_string('PNAME_NS', Prefix).
+prefixName(Prefix) -->
+  dcg_peek_code(C), {between(0'a, 0'z, C)},
+  dcg_string('PNAME_NS', Prefix),
+  {throw_if_manchester_name(S)}.
 
 
 
@@ -382,12 +392,12 @@ prefixName(Prefix) --> dcg_string('PNAME_NS', Prefix).
 %                 enclosed in a pair of " (U+22) characters
 % ```
 
-quotedString(S) --> "\"", dcg_string(quoted_string_codes1, S), "\"".
-quoted_string_codes1([0'\\,0'\"|T]) --> "\\\"", !, quoted_string_codes1(T).
-quoted_string_codes1([0'\",0'\"|T]) --> "\"\"", !, quoted_string_codes1(T).
-quoted_string_codes1([H|T]) -->
+quotedString(S) --> "\"", dcg_string(quoted_string_codes, S), "\"".
+quoted_string_codes([0'\\,0'\"|T]) --> "\\\"", !, quoted_string_codes(T).
+quoted_string_codes([0'\",0'\"|T]) --> "\"\"", !, quoted_string_codes(T).
+quoted_string_codes([H|T]) -->
   [H], {H \== 0'\\, H \== 0'\"}, !,
-  quoted_string_codes1(T).
+  quoted_string_codes(T).
 
 
 
@@ -397,9 +407,13 @@ quoted_string_codes1([H|T]) -->
 %              production of [SPARQL] and not matching any of the keyword
 %              terminals of the syntax
 % ```
+%
+% Local parts with no prefix are expanded as if they had an initial colon
+% and must not match any keyword of this syntax.
 
-simpleIRI(S) --> dcg_string('PN_LOCAL', S).
-
+simpleIRI(S) -->
+  dcg_string('PN_LOCAL', S),
+  {throw_if_machester_keyword(S), rdf_global_id('':S, Iri)}.
 
 
 %! stringLiteralNoLanguage(?Literal:compound)// .
@@ -439,3 +453,51 @@ typedLiteral(literal(type(D,Lex))) --> lexicalValue(Lex), "^^", 'Datatype'(D).
 
 zero(W) --> (W, _).
 zero(0, 0'0) --> "0".
+
+
+
+
+
+% HELPERS %
+
+throw_if_manchester_keyword(S):-
+  oms_current_keyword(S), !,
+  syntax_error(oms_current_keyword(LocalPart)).
+throw_if_manchester_keyword(_).
+
+manchester_keyword("AnnotationProperty").
+manchester_keyword("Annotations").
+manchester_keyword("Asymmetric").
+manchester_keyword("Characteristics").
+manchester_keyword("Class").
+manchester_keyword("DataProperty").
+manchester_keyword("Datatype").
+manchester_keyword("DifferentFrom").
+manchester_keyword("DifferentIndividuals").
+manchester_keyword("DisjointClasses").
+manchester_keyword("DisjointProperties").
+manchester_keyword("DisjointUnionOf").
+manchester_keyword("DisjointWith").
+manchester_keyword("Domain").
+manchester_keyword("EquivalentProperties").
+manchester_keyword("EquivalentTo").
+manchester_keyword("Facts").
+manchester_keyword("Functional").
+manchester_keyword("HasKey").
+manchester_keyword("Import").
+manchester_keyword("Individual").
+manchester_keyword("InverseFunctional").
+manchester_keyword("Irreflexive").
+manchester_keyword("ObjectProperty").
+manchester_keyword("Ontology").
+manchester_keyword("Prefix").
+manchester_keyword("Range").
+manchester_keyword("Reflexive").
+manchester_keyword("SameAs").
+manchester_keyword("SameIndividual").
+manchester_keyword("SubClassOf").
+manchester_keyword("SubPropertyChain").
+manchester_keyword("SubPropertyOf").
+manchester_keyword("Symmetric").
+manchester_keyword("Transitive").
+manchester_keyword("Types").

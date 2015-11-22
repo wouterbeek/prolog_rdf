@@ -29,11 +29,9 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(dcg/dcg_quoted)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(lambda)).
 :- use_module(library(option)).
@@ -52,6 +50,7 @@
 :- rdf_meta(rdf_print_term(o,+)).
 :- rdf_meta(rdf_print_term(o,?,?)).
 :- rdf_meta(rdf_print_term(o,+,?,?)).
+:- rdf_meta(rdf_symbol_iri(r)).
 
 :- predicate_options(rdf_print_bnode//2, 2, [
      abbr_list(+boolean),
@@ -105,8 +104,8 @@
 %! rdf_print_term(+Term:rdf_term) is det.
 % Wrapper around rdf_print_term/2 with default options.
 
-rdf_print_term(T):-
-  rdf_print_term(T, []).
+rdf_print_term(T):- rdf_print_term(T, []).
+
 
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
 % The following options are supported:
@@ -142,9 +141,7 @@ rdf_print_bnode(B, _) -->
 %! rdf_print_datatype(+Datatype:iri, +Options:list(compound))// is det.
 % Options are passed to rdf_print_iri//2.
 
-rdf_print_datatype(D, Opts) -->
-  rdf_print_iri(D, Opts).
-
+rdf_print_datatype(D, Opts) --> rdf_print_iri(D, Opts).
 
 
 
@@ -192,16 +189,7 @@ rdf_print_iri(Iri, Opts) -->
   rdf_print_list(Iri, Opts), !.
 rdf_print_iri(Iri, Opts) -->
   {option(symbol_iri(true), Opts, true)},
-  (   (   {rdf_global_id(owl:equivalentClass, Iri)}
-      ;   {rdf_global_id(owl:equivalentProperty, Iri)}
-      ;   {rdf_global_id(owl:sameAs, Iri)}
-      )
-  ->  equivalence
-  ;   {rdf_global_id(rdfs:subClassOf, Iri)}
-  ->  subclass
-  ;   {rdf_global_id(rdf:type, Iri)}
-  ->  set_membership
-  ), !.
+  symbol_iri(Iri).
 rdf_print_iri(Global, Opts) -->
   {option(label_iri(true), Opts), !,
    option(language_priority_list(LRanges), Opts, ['en-US']),
@@ -244,7 +232,7 @@ rdf_print_lexical(Lex, Opts) -->
     option(ellip_lit(N), Opts, 20),
     atom_truncate(Lex, N, Lex0)
   },
-  quoted(atom(Lex0)).
+  "\"", atom(Lex0), "\"".
 
 
 
@@ -261,10 +249,7 @@ rdf_print_lexical(Lex, Opts) -->
 %   * symbol_iri(+boolean)
 
 rdf_print_list(L0, Opts) -->
-  {
-    rdf_is_list(L0),
-    rdf_list_raw(L0, L)
-  },
+  {rdf_is_list(L0), rdf_list_raw(L0, L)},
   list(\T^rdf_print_term(T, Opts), L).
 
 
@@ -284,11 +269,11 @@ rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
   ->  rdf_print_lexical(Lex, Opts),
       "^^",
       rdf_print_datatype(D, Opts)
-  ;   bracketed(langular, (
+  ;   "〈",
         rdf_print_datatype(D, Opts),
         ", ",
         rdf_print_lexical(Lex, Opts)
-      ))
+      "〉"
   ).
 rdf_print_literal(literal(lang(LTag,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
@@ -296,15 +281,15 @@ rdf_print_literal(literal(lang(LTag,Lex)), Opts) --> !,
       "@",
       rdf_print_language_tag(LTag, Opts)
   ;   {rdf_global_id(rdf:langString, D)},
-      bracketed(langular, (
+      "〈",
         rdf_print_datatype(D, Opts),
         ", ",
-        bracketed(langular, (
+        "〈",
           rdf_print_lexical(Lex, Opts),
           ", ",
           rdf_print_language_tag(LTag, Opts)
-        ))
-      ))
+        "〉"
+      "〉"
   ).
 rdf_print_literal(literal(Lex), Opts) -->
   {rdf_global_id(xsd:string, D)},
@@ -322,8 +307,7 @@ rdf_print_literal(literal(Lex), Opts) -->
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_print_object(O, Opts) -->
-  rdf_print_term(O, Opts).
+rdf_print_object(O, Opts) --> rdf_print_term(O, Opts).
 
 
 
@@ -334,8 +318,7 @@ rdf_print_object(O, Opts) -->
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_print_predicate(P, Opts) -->
-  rdf_print_iri(P, Opts).
+rdf_print_predicate(P, Opts) --> rdf_print_iri(P, Opts).
 
 
 
@@ -345,16 +328,15 @@ rdf_print_predicate(P, Opts) -->
 %   * abbr_list(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 
-rdf_print_subject(S, Opts) -->
-  rdf_print_term(S, Opts).
+rdf_print_subject(S, Opts) --> rdf_print_term(S, Opts).
 
 
 
 %! rdf_print_term(+Term:rdf_term)// is det.
 % Wrapper around rdf_print_term//2 with default options.
 
-rdf_print_term(T) -->
-  rdf_print_term(T, []).
+rdf_print_term(T) --> rdf_print_term(T, []).
+
 
 %! rdf_print_term(+Term:rdf_term, +Options:list(compound))// is det.
 % The following options are supported:
@@ -366,13 +348,18 @@ rdf_print_term(T) -->
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_print_term(T, Opts) -->
-  {rdf_is_literal(T)}, !,
-  rdf_print_literal(T, Opts).
-rdf_print_term(T, Opts) -->
-  {rdf_is_bnode(T)}, !,
-  rdf_print_bnode(T, Opts).
-rdf_print_term(T, Opts) -->
-  rdf_print_iri(T, Opts), !.
-rdf_print_term(T, _) -->
-  pl_term(T).
+rdf_print_term(T, Opts) --> {rdf_is_literal(T)}, !, rdf_print_literal(T, Opts).
+rdf_print_term(T, Opts) --> {rdf_is_bnode(T)},   !, rdf_print_bnode(T, Opts).
+rdf_print_term(T, Opts) --> rdf_print_iri(T, Opts), !.
+rdf_print_term(T, _)    --> pl_term(T).
+
+
+
+%! rdf_symbol_iri(+Iri:iri)// is det.
+% Writes a symbolic representation for the given IRI.
+
+rdf_symbol_iri(owl:equivalentClass)    --> "≡".
+rdf_symbol_iri(owl:equivalentProperty) --> "≡".
+rdf_symbol_iri(owl:sameAs)             --> "≡".
+rdf_symbol_iri(rdfs:subClassOf)        --> "⊆".
+rdf_symbol_iri(rdf:type)               --> "∈".
