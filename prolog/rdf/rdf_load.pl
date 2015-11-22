@@ -163,13 +163,13 @@ rdf_load_file(In, Opts):-
 
   setup_call_cleanup(
     (
-      create_thread_counter(triples, CT),
-      create_thread_counter(quadruples, CQ)
+      create_thread_counter(triples),
+      create_thread_counter(quadruples)
     ),
-    rdf_call_on_statements(In, rdf_load_statements(CT, CQ), Opts),
+    rdf_call_on_statements(In, rdf_load_statements(triples, quadruples), Opts),
     (
-      delete_thread_counter(CT, NT),
-      delete_thread_counter(CQ, NQ),
+      delete_thread_counter(triples, NT),
+      delete_thread_counter(quadruples, NQ),
       NS is NT + NQ,
       msg_notification(
         "Loaded ~D statements from ~w (~D triples and ~D quadruples).~n",

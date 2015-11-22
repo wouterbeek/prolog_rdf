@@ -6,9 +6,12 @@
 ).
 :- reexport(library(dcg/sparql10_code), [
      'ECHAR'//1, % ?Code:code
+     'WS'//0
+   ]).
+:- reexport(library(dcg/sparql11_code), [
      'PERCENT'//1, % ?Code:code
      'PLX'//1, % ?Code:code
-     'WS'//0
+     'PN_LOCAL_ESC'//1 % ?Code:code
    ]).
 
 /** <module> Turtle 1.1: Codes

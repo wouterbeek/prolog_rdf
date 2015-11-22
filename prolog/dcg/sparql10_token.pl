@@ -26,14 +26,14 @@
     'PN_LOCAL'//1, % ?LocalPart:atom
     'PN_PREFIX'//1, % ?Prefix:atom
     'PNAME_LN'//1, % ?Iri:atom
-    'PNAME_NS'//1 % ?Prefix:atom
+    'PNAME_NS'//1, % ?Prefix:atom
     'PrefixedName'//1, % ?Iri:atom
     'RDFLiteral'//1, % ?Literal:compound
     'String'//1, % ?String:atom
     'STRING_LITERAL_LONG1'//1, % ?String:atom
     'STRING_LITERAL_LONG2'//1, % ?String:atom
     'STRING_LITERAL1'//1, % ?String:atom
-    'STRING_LITERAL2'//1, % ?String:atom
+    'STRING_LITERAL2'//1 % ?String:atom
   ]
 ).
 
@@ -45,8 +45,12 @@
 */
 
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_quote)).
+:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/rfc2234)).
+:- use_module(library(math/rational_ext)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta('NumericLiteral'(o,?,?)).
@@ -68,7 +72,7 @@
 % ANON ::= '[' WS* ']'
 % ```
 
-'ANON'(BNode) --> "[", *('WS') "]", {rdf_bnode(BNode)}.
+'ANON'(BNode) --> "[", *('WS'), "]", {rdf_bnode(BNode)}.
 
 
 
@@ -77,7 +81,7 @@
 % BLANK_NODE_LABEL ::= '_:' PN_LOCAL
 % ```
 
-'BLANK_NODE_LABEL'(A) --> "_:", 'PL_LOCAL'.
+'BLANK_NODE_LABEL'(A) --> "_:", 'PN_LOCAL'(A).
 
 
 
@@ -342,13 +346,13 @@ subtags([]) --> "".
 % NumericLiteralUnsigned ::= INTEGER | DECIMAL | DOUBLE
 % ```
 
-'NumericLiteralUnsigned'(literal(type(xsd:,CLex))) -->
+'NumericLiteralUnsigned'(literal(type(xsd:integer,CLex))) -->
   'INTEGER'(N), !,
   {rdf_canonical_map(xsd:decimal, N, CLex)}.
-'NumericLiteralUnsigned'(literal(type(xsd:,CLex))) -->
+'NumericLiteralUnsigned'(literal(type(xsd:decimal,CLex))) -->
   'DECIMAL'(N), !,
   {rdf_canonical_map(xsd:decimal, N, CLex)}.
-'NumericLiteralUnsigned'(literal(type(xsd:,CLex))) -->
+'NumericLiteralUnsigned'(literal(type(xsd:double,CLex))) -->
   'DOUBLE'(N),
   {rdf_canonical_map(xsd:decimal, N, CLex)}.
 
@@ -364,7 +368,7 @@ subtags([]) --> "".
 
 'PN_LOCAL'(A) --> dcg_atom(pn_local_codes1, A).
 pn_local_codes1([H|T])   --> 'PN_CHARS_U'(H), !, pn_local_codes2(T).
-pn_local_codes1([H|T])   --> '[0-9]'(_, H),   !, pn_local_codes2(T).
+pn_local_codes1([H|T])   --> 'DIGIT'(_, H),   !, pn_local_codes2(T).
 pn_local_codes2([H|T])   --> 'PN_CHARS'(H),   !, pn_local_codes3(T).
 pn_local_codes2([0'.|T]) --> ".",             !, pn_local_codes4(T).
 pn_local_codes2([])      --> "".
@@ -540,13 +544,14 @@ string_literal_codes(Q, _)     --> Q,          !, {fail}.
 string_literal_codes(_, _)     --> [0x5C],     !, {fail}.
 string_literal_codes(_, _)     --> [0xA],      !, {fail}.
 string_literal_codes(_, _)     --> [0xD],      !, {fail}.
-string_literal_codes(_, [H|T]) --> 'ECHAR'(H), !, string_literal_codes(T).
-string_literal_codes(_, [H|T]) --> [H],        !, string_literal_codes(T).
+string_literal_codes(Q, [H|T]) --> 'ECHAR'(H), !, string_literal_codes(Q, T).
+string_literal_codes(Q, [H|T]) --> [H],        !, string_literal_codes(Q, T).
 string_literal_codes(_, [])    --> "".
 
 
 'STRING_LITERAL_LONG'(Q, A) --> quoted(3, Q, dcg_atom(string_literal_long_codes(Q), A)).
 string_literal_long_codes(_, _)     --> "\\",       !, {fail}.
 string_literal_long_codes(Q, _)     --> Q, Q, Q,    !, {fail}.
-string_literal_long_codes(_, [H|T]) --> 'ECHAR'(C), !, string_literal_long_codes(T).
-string_literal_long_codes(_, [H|T]) --> [H],        !, string_literal_long_codes(T).
+string_literal_long_codes(Q, [H|T]) --> 'ECHAR'(H), !, string_literal_long_codes(Q, T).
+string_literal_long_codes(Q, [H|T]) --> [H],        !, string_literal_long_codes(Q, T).
+string_literal_long_codes(_, [])    --> "".

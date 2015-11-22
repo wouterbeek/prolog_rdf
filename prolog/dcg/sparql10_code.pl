@@ -4,7 +4,8 @@
     'ECHAR'//1, % ?Code:code
     'PN_CHARS'//1, % ?Code:code
     'PN_CHARS_BASE'//1, % ?Code:code
-    'PN_CHARS_U'//1 % ?Code:code
+    'PN_CHARS_U'//1, % ?Code:code
+    'WS'//0
   ]
 ).
 
@@ -82,18 +83,18 @@ echar_code(0'\\) --> "\\".
 %      but without colon and underscore.
 
 'PN_CHARS_BASE'(C) --> ascii_alpha(C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x00C0,  0x00D6,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x00D8,  0x00F6,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x00F8,  0x02FF,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x0370,  0x037D,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x037F,  0x1FFF,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x200C,  0x200D,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x2070,  0x218F,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x2C00,  0x2FEF,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x3001,  0xD7FF,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0xF900,  0xFDCF,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0xFDF0,  0xFFFD,  C).
-'PN_CHARS_BASE'(C) --> [C], {between(0x10000, 0xEFFFF, C).
+'PN_CHARS_BASE'(C) --> [C], {between(0x00C0,  0x00D6,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x00D8,  0x00F6,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x00F8,  0x02FF,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x0370,  0x037D,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x037F,  0x1FFF,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x200C,  0x200D,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x2070,  0x218F,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x2C00,  0x2FEF,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x3001,  0xD7FF,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0xF900,  0xFDCF,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0xFDF0,  0xFFFD,  C)}.
+'PN_CHARS_BASE'(C) --> [C], {between(0x10000, 0xEFFFF, C)}.
 
 
 

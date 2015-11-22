@@ -56,7 +56,7 @@
 /** <module> OWL API
 
 @author Wouter Beek
-@version 2015/08-2015/10
+@version 2015/08-2015/11
 */
 
 :- use_module(library(html/content/html_collection)).
@@ -71,6 +71,8 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf_db)).
+
+:- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
 
 :- assert_cc_prefixes.
 :- assert_dbpedia_localizations.

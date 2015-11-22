@@ -18,13 +18,15 @@
   ]
 ).
 :- reexport(library(dcg/sparql10_token), [
-     'BooleanLiteral'//1 % ?Boolean:boolean
+     'BooleanLiteral'//1, % ?Boolean:boolean
      iri//1, % ?Iri:atom
      'LANGTAG'//1, % ?LanguageTag:list(atom)
-     nodeID//1, % ?BlankNode:bnode
      'PNAME_LN'//1, % ?Iri:atom
      'PNAME_NS'//1, % ?Prefix:atom
      'PrefixedName'//1 % ?Iri:atom
+   ]).
+:- reexport(library(dcg/turtle10_token), [
+     nodeID//1 % ?BlankNode:bnode
    ]).
 
 /** <module> Turtle 1.1: Tokens
@@ -34,9 +36,12 @@
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_quote)).
 :- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/turtle11_code)).
+:- use_module(library(math/rational_ext)).
 :- use_module(library(semweb/rdf_db)).
 
 
@@ -101,7 +106,7 @@ iriref_code(C) --> [C].
 % ```
 
 literal(Lit) --> 'RDFLiteral'(Lit).
-literal(Lit) --> 'NumericalLiteral'(Lit).
+literal(Lit) --> 'NumericLiteral'(Lit).
 literal(Lit) --> 'BooleanLiteral'(Lit).
 
 
@@ -250,14 +255,14 @@ string_literal_codes(Q, _)     --> Q,          !, {fail}.
 string_literal_codes(_, _)     --> [0x5C],     !, {fail}.
 string_literal_codes(_, _)     --> [0xA],      !, {fail}.
 string_literal_codes(_, _)     --> [0xD],      !, {fail}.
-string_literal_codes(_, [H|T]) --> 'ECHAR'(H), !, string_literal_codes(T).
-string_literal_codes(_, [H|T]) --> 'UCHAR'(H), !, string_literal_codes(T).
+string_literal_codes(Q, [H|T]) --> 'ECHAR'(H), !, string_literal_codes(Q, T).
+string_literal_codes(Q, [H|T]) --> 'UCHAR'(H), !, string_literal_codes(Q, T).
 string_literal_codes(_, [])    --> "".
 
 
 'STRING_LITERAL_LONG'(Q, A) --> quoted(3, Q, dcg_atom(string_literal_long_codes(Q), A)).
 string_literal_long_codes(_, _)     --> "\\",       !, {fail}.
 string_literal_long_codes(Q, _)     --> Q, Q, Q,    !, {fail}.
-string_literal_long_codes(_, [H|T]) --> 'ECHAR'(H), !, string_literal_long_codes(T).
-string_literal_long_codes(_, [H|T]) --> 'UCHAR'(H), !, string_literal_long_codes(T).
+string_literal_long_codes(Q, [H|T]) --> 'ECHAR'(H), !, string_literal_long_codes(Q, T).
+string_literal_long_codes(Q, [H|T]) --> 'UCHAR'(H), !, string_literal_long_codes(Q, T).
 string_literal_long_codes(_, [])    --> "".

@@ -1,14 +1,12 @@
 :- module(
-  turtle10,
+  turtle10_code,
   [
-    name//1, % ?Name:string
     nameChar//1, % ?Code:code
-    nameStartChar//1, % ?Code:code
-    nodeID//1 % ?BlankNode:bnode
+    nameStartChar//1 % ?Code:code
   ]
 ).
 
-/** <module> Turtle 1.0
+/** <module> Turtle 1.0: Tokens
 
 @author Wouter Beek
 @compat Turtle 1,0
@@ -16,21 +14,9 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234)).
 
 
-
-
-
-%! name(?Name:string)// .
-% ```ebnf
-% name ::= nameStartChar nameChar*
-% ```
-
-name(Name) --> dcg_string(name_codes, S).
-name_codes([H|T]) --> nameStartChar(H), *(nameChar, T).
 
 
 
@@ -44,12 +30,12 @@ name_codes([H|T]) --> nameStartChar(H), *(nameChar, T).
 %            | [#x203F-#x2040]
 % ```
 
-nameChar(C)   --> nameStartChar(C).
-nameChar(0'-) --> "-".
-nameChar(C)   --> 'DIGIT'(C).
-nameChar(183) --> [183].
-nameChar(C)   --> [C], {(between(768, 879, C)}.
-nameChar(C)   --> [C], {(between(8255, 8256, C)}.
+nameChar(C)      --> nameStartChar(C).
+nameChar(0'-)    --> "-".
+nameChar(C)      --> 'DIGIT'(C).
+nameChar(0x00B7) --> [0x00B7].
+nameChar(C)      --> [C], {between(0x0300, 0x036F, C)}.
+nameChar(C)      --> [C], {between(0x203F, 0x2040, C)}.
 
 
 
@@ -87,12 +73,3 @@ nameStartChar(C)   --> [C], {between(0x3001,  0xD7FF,  C)}.
 nameStartChar(C)   --> [C], {between(0xF900,  0xFDCF,  C)}.
 nameStartChar(C)   --> [C], {between(0xFDF0,  0xFFFD,  C)}.
 nameStartChar(C)   --> [C], {between(0x10000, 0xEFFFF, C)}.
-
-
-
-%! nodeID(?BlankNode:bnode)// .
-% ```bnf
-% nodeID ::= '_:' name
-% ```
-
-nodeID(BNodeLabel) --> "_:", name(BNodeLabel).

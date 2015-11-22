@@ -2,7 +2,12 @@
   ntriples11,
   [
     'EOL'//0,
-    literal//1 % ?Literal:compound
+    literal//1, % ?Literal:compound
+    object//1, % ?Object:rdf_term
+    predicate//1, % ?Predicate:iri
+    subject//1, % ?Subject:or([bnode,iri])
+    triple//1, % ?Triple:compound
+    ws//0
   ]
 ).
 :- reexport(library(dcg/turtle11_code), [
@@ -27,14 +32,13 @@
 
 
 %! 'EOL'// .
-%! 'EOL'(?Codes:list(code))// .
 % ```abnf
 % EOL ::= [#xD#xA]+
 % ```
 
-'EOL' --> +(eol_code).
-eol_code --> [0xD].
-eol_code --> [0xA].
+'EOL' --> +(eol).
+eol --> [0xD].
+eol --> [0xA].
 
 
 
@@ -53,58 +57,57 @@ literal(Lit) -->
 
 
 
-%! 'PN_LOCAL_ESC'(?Code:code)// .
-% ```bnf
-% PN_LOCAL_ESC ::= '\'
-%                  ( '_' | '~' | '.' | '-' | '!' | '$' | '&' |
-%                    "'" | '(' | ')' | * | '+' | ',' | ';' |
-%                    '=' | '/' | '?' | '#' | '@' | '%'
-%                  )
+%! object(?Object:rdf_term)// .
+% ```abnf
+% object ::= IRIREF | BLANK_NODE_LABEL | literal
+% ```
+
+object(Iri)   --> 'IRIREF'(Iri).
+object(BNode) --> 'BLANK_NODE_LABEL'(BNode).
+object(Lit)   --> literal(Lit).
+
+
+
+%! predicate(?Predicate:iri)// .
+% ```abnf
+% predicate ::= IRIREF
+% ```
+
+predicate(Iri) --> 'IRIREF'(Iri).
+
+
+
+%! subject(?Subject:or([bnode,iri])) .
+% ```abnf
+% subject ::= IRIREF | BLANK_NODE_LABEL
+% ```
+
+subject(Iri)   --> 'IRIREF'(Iri).
+subject(BNode) --> 'BLANK_NODE_LABEL'(BNode).
+
+
+
+%! triple(?Triple:compound)// .
+% ```abnf
+% triple ::= subject predicate object '.'
 % ```
 %
-% @compat SPARQL 1.1 Query [173].
-% @compat Turtle 1.1 [172s].
+% @compat N-Triples 1.1 [2].
 
-'PN_LOCAL_ESC'(C) --> "\\", pn_local_esc_code(C).
-pn_local_esc_code(0'_) --> "_".
-pn_local_esc_code(0'~) --> "~".
-pn_local_esc_code(0'.) --> ".".
-pn_local_esc_code(0'-) --> "-".
-pn_local_esc_code(0'!) --> "!".
-pn_local_esc_code(0'$) --> "$".
-pn_local_esc_code(0'&) --> "&".
-pn_local_esc_code(0'') --> "'".
-pn_local_esc_code(0'() --> "(".
-pn_local_esc_code(0')) --> ")".
-pn_local_esc_code(0'*) --> "*".
-pn_local_esc_code(0'+) --> "+".
-pn_local_esc_code(0',) --> ",".
-pn_local_esc_code(0';) --> ";".
-pn_local_esc_code(0'=) --> "=".
-pn_local_esc_code(0'/) --> "/".
-pn_local_esc_code(0'?) --> "?".
-pn_local_esc_code(0'#) --> "#".
-pn_local_esc_code(0'@) --> "@".
-pn_local_esc_code(0'%) --> "%".
+triple(rdf(S,P,O)) -->
+  subject(S), +(ws), predicate(P), +(ws), object(O), +(ws), ".".
 
 
 
-%! white_space// .
-%! white_space(?Codes:list(code))// .
+%! ws// .
 % White space is a sequence of:
-%   - N-Quads 1.1, N-Triples 1.1
-%   - OWL 2 Web Ontology Language Manchester Syntax (Second Edition):
-%     - blanks (U+20)
-%     - tabs (U+9)
-%     - line feeds (U+A)
-%     - carriage returns (U+D)
-%     - comments
-%
-% @compat N-Triples 1.1
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+%   - blanks (U+20)
+%   - tabs (U+9)
+%   - line feeds (U+A)
+%   - carriage returns (U+D)
+%   - comments
 
-white_space --> white_space(_).
-white_space([C]) --> 'WS'(C).
-white_space(Cs) --> comment(Cs).
-white_space([0'\t]) --> "\t".
-white_space([0' ]) --> " ".
+ws --> 'WS'.
+ws --> comment.
+ws --> "\t".
+ws --> " ".

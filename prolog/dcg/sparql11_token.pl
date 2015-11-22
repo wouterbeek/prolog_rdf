@@ -29,13 +29,12 @@
      'NumericLiteralUnsigned'//1, % ?Literal:compound
      'PNAME_LN'//1, % ?Iri:atom
      'PNAME_NS'//1, % ?Prefix:atom
-     'PrefixName'//1, % ?Iri:atom
      'RDFLiteral'//1, % ?Literal:compound
      'String'//1, % ?String:atom
      'STRING_LITERAL_LONG1'//1, % ?String:atom
      'STRING_LITERAL_LONG2'//1, % ?String:atom
      'STRING_LITERAL1'//1, % ?String:atom
-     'STRING_LITERAL2'//1, % ?String:atom
+     'STRING_LITERAL2'//1 % ?String:atom
    ]).
 
 /** <module> SPARQL 1.1: Tokens
@@ -47,6 +46,7 @@
 */
 
 :- use_module(library(dcg/basics)).
+:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/sparql11_code)).
 
 
@@ -89,15 +89,15 @@ blank_node_label_codes4([])      --> "".
 'IRIREF'(Iri) --> "<", dcg_atom(iriref_codes, Iri), ">".
 iriref_codes([H|T]) --> iriref_code(H), !, iriref_codes(T).
 iriref_codes([])    --> "".
-iriref_code(_) --> 'CTL', !, {fail}.
-iriref_code(_) --> "<",   !, {fail}.
-iriref_code(_) --> ">",   !, {fail}.
-iriref_code(_) --> "\"",  !, {fail}.
-iriref_code(_) --> "{",   !, {fail}.
-iriref_code(_) --> "}",   !, {fail}.
-iriref_code(_) --> "|",   !, {fail}.
-iriref_code(_) --> "^",   !, {fail}.
-iriref_code(_) --> "\`",  !, {fail}.
-iriref_code(_) --> "\\",  !, {fail}.
+iriref_code(C) --> [C], {between(0x00, 0x20, C)}, !, {fail}.
+iriref_code(_) --> "<",                           !, {fail}.
+iriref_code(_) --> ">",                           !, {fail}.
+iriref_code(_) --> "\"",                          !, {fail}.
+iriref_code(_) --> "{",                           !, {fail}.
+iriref_code(_) --> "}",                           !, {fail}.
+iriref_code(_) --> "|",                           !, {fail}.
+iriref_code(_) --> "^",                           !, {fail}.
+iriref_code(_) --> "\`",                          !, {fail}.
+iriref_code(_) --> "\\",                          !, {fail}.
 iriref_code(C) --> 'UCHAR'(C).
 iriref_code(C) --> [C].

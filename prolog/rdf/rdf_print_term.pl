@@ -189,23 +189,27 @@ rdf_print_iri(Iri, Opts) -->
   rdf_print_list(Iri, Opts), !.
 rdf_print_iri(Iri, Opts) -->
   {option(symbol_iri(true), Opts, true)},
-  symbol_iri(Iri).
+  rdf_symbol_iri(Iri).
 rdf_print_iri(Global, Opts) -->
-  {option(label_iri(true), Opts), !,
-   option(language_priority_list(LRanges), Opts, ['en-US']),
-   once(rdfs_label(Global, LRanges, _, Lbl))},
+  {
+    option(label_iri(true), Opts), !,
+    option(language_priority_list(LRanges), Opts, ['en-US']),
+    once(rdfs_label(Global, LRanges, _, Lbl))
+  },
   atom(Lbl).
 rdf_print_iri(Global, Opts) -->
-  {\+ option(abbr_iri(false), Opts),
-   rdf_global_id(Prefix:Local, Global), !,
-   option(ellip_ln(N), Opts, 20),
-   atom_truncate(Local, N, Local0)},
+  {
+    \+ option(abbr_iri(false), Opts),
+    rdf_global_id(Prefix:Local, Global), !,
+    option(ellip_ln(N), Opts, 20),
+    atom_truncate(Local, N, Local0)
+  },
   atom(Prefix),
   ":",
   atom(Local0).
 rdf_print_iri(Global, Opts) -->
   {option(style(turtle), Opts)}, !,
-  bracketed(langular, atom(Global)).
+  "〈", atom(Global), "〉".
 rdf_print_iri(Global, _) -->
   {is_http_iri(Global)},
   atom(Global).
@@ -266,30 +270,16 @@ rdf_print_list(L0, Opts) -->
 
 rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
-  ->  rdf_print_lexical(Lex, Opts),
-      "^^",
-      rdf_print_datatype(D, Opts)
-  ;   "〈",
-        rdf_print_datatype(D, Opts),
-        ", ",
-        rdf_print_lexical(Lex, Opts)
-      "〉"
+  ->  rdf_print_lexical(Lex, Opts), "^^", rdf_print_datatype(D, Opts)
+  ;   "〈", rdf_print_datatype(D, Opts), ", ", rdf_print_lexical(Lex, Opts), "〉"
   ).
 rdf_print_literal(literal(lang(LTag,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
-  ->  rdf_print_lexical(Lex, Opts),
-      "@",
-      rdf_print_language_tag(LTag, Opts)
+  ->  rdf_print_lexical(Lex, Opts), "@", rdf_print_language_tag(LTag, Opts)
   ;   {rdf_global_id(rdf:langString, D)},
-      "〈",
-        rdf_print_datatype(D, Opts),
-        ", ",
-        "〈",
-          rdf_print_lexical(Lex, Opts),
-          ", ",
-          rdf_print_language_tag(LTag, Opts)
-        "〉"
-      "〉"
+      "〈", rdf_print_datatype(D, Opts), ", ",
+      "〈", rdf_print_lexical(Lex, Opts), ", ",
+      rdf_print_language_tag(LTag, Opts), "〉", "〉"
   ).
 rdf_print_literal(literal(Lex), Opts) -->
   {rdf_global_id(xsd:string, D)},

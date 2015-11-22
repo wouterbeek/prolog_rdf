@@ -89,11 +89,11 @@ assuming `xsd:string` in case no datatype IRI is given.
 %!   +Options:list(compound)
 %! ) is det.
 
-write_simple_begin(BNodePrefix, CT, CQ, Opts):-
+write_simple_begin(BNodePrefix, triples, quadruples, Opts):-
   reset_bnode_names,
   
-  create_thread_counter(triples, CT),
-  create_thread_counter(quadruples, CQ),
+  create_thread_counter(triples),
+  create_thread_counter(quadruples),
 
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.

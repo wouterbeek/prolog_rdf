@@ -1,11 +1,17 @@
 :- module(
   sparql11_code,
   [
+    'PERCENT'//1, % ?Code:code
+    'PLX'//1, % ?Code:code
+    'PN_LOCAL_ESC'//1 % ?Code:code
   ]
 ).
 :- reexport(library(dcg/sparql10_code), [
      'ECHAR'//1, % ?Code:code
      'WS'//0
+   ]).
+:- reexport(library(url/rfc1738_code), [
+     hex//1 as 'HEX' % ?Weight:between(0,15)
    ]).
 
 /** <module> SPARQL 1.1
@@ -22,6 +28,13 @@
 
 
 
+%! 'HEX'(?Weight:between(0,15))// .
+% ```abnf
+% HEX ::= [0-9] | [A-F] | [a-f]
+% ```
+
+
+
 %! 'PERCENT'(?Code:code)// .
 % RFC 1738 (URL) defines the same thing under the name escape//1.
 %
@@ -29,7 +42,7 @@
 % PERCENT ::= '%' HEX HEX
 % ```
 
-'PERCENT'(C) --> "%", 'HEX'(H1), 'HEX'(H2), {posnum([H1,H2], 16, C)}.
+'PERCENT'(C) --> "%", 'HEX'(H1), 'HEX'(H2), {possum([H1,H2], 16, C)}.
 
 
 
@@ -40,3 +53,36 @@
 
 'PLX'(C) --> 'PERCENT'(C).
 'PLX'(C) --> 'PN_LOCAL_ESC'(C).
+
+
+
+%! 'PN_LOCAL_ESC'(?Code:code)// .
+% ```bnf
+% PN_LOCAL_ESC ::= '\'
+%                  ( '_' | '~' | '.' | '-' | '!' | '$' | '&' |
+%                    "'" | '(' | ')' | * | '+' | ',' | ';' |
+%                    '=' | '/' | '?' | '#' | '@' | '%'
+%                  )
+% ```
+
+'PN_LOCAL_ESC'(C) --> "\\", pn_local_esc_code(C).
+pn_local_esc_code(0'_) --> "_".
+pn_local_esc_code(0'~) --> "~".
+pn_local_esc_code(0'.) --> ".".
+pn_local_esc_code(0'-) --> "-".
+pn_local_esc_code(0'!) --> "!".
+pn_local_esc_code(0'$) --> "$".
+pn_local_esc_code(0'&) --> "&".
+pn_local_esc_code(0'') --> "'".
+pn_local_esc_code(0'() --> "(".
+pn_local_esc_code(0')) --> ")".
+pn_local_esc_code(0'*) --> "*".
+pn_local_esc_code(0'+) --> "+".
+pn_local_esc_code(0',) --> ",".
+pn_local_esc_code(0';) --> ";".
+pn_local_esc_code(0'=) --> "=".
+pn_local_esc_code(0'/) --> "/".
+pn_local_esc_code(0'?) --> "?".
+pn_local_esc_code(0'#) --> "#".
+pn_local_esc_code(0'@) --> "@".
+pn_local_esc_code(0'%) --> "%".

@@ -57,10 +57,9 @@ annotated_list(_) --> "".
 :- use_module(library(dcg/dcg_peek)).
 :- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(iri/rfc3987)).
+:- use_module(library(dcg/sparql10_code)).
 :- use_module(library(ltag/rfc5646)).
 :- use_module(library(math/rational_ext)).
-:- use_module(library(sparql/sparql10_code)).
 
 
 
@@ -103,7 +102,7 @@ classIRI(Iri) --> 'IRI'(Iri).
 %
 % @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
 
-comment --> "#", string(_), 'EOL0'.
+comment --> "#", string(_), ("\n" ; "\r"), !.
 
 
 
@@ -151,7 +150,7 @@ decimalLiteral(literal(type(xsd:decimal,Rat))) -->
   {
     possum(Ds1, I),
     posfrac(Ds2, Frac),
-    rational_parts(Rat0, I, Frac)
+    rational_parts(Rat0, I, Frac),
     Rat is Sg * Rat0
   }.
 
@@ -279,7 +278,7 @@ individualIRI(Iri) --> 'IRI'(Iri).
 integerLiteral(literal(type(xsd:integer,I))) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
   digits(Ds),
-  {possum(Ds, I0, I is Sg * I0}.
+  {possum(Ds, I0), I is Sg * I0}.
 
 
 
@@ -376,7 +375,7 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % positiveInteger ::= nonZero { digit }
 % ```
 
-positiveInteger(I) --> nonZero(H), *(digit, T), {posnum([H|T], I)}.
+positiveInteger(I) --> nonZero(H), *(digit, T), {possum([H|T], I)}.
 
 
 
@@ -396,7 +395,7 @@ positiveInteger(I) --> nonZero(H), *(digit, T), {posnum([H|T], I)}.
 prefixName(Prefix) -->
   dcg_peek_code(C), {between(0'a, 0'z, C)},
   dcg_string('PNAME_NS', Prefix),
-  {throw_if_manchester_name(S)}.
+  {throw_if_manchester_keyword(Prefix)}.
 
 
 
@@ -429,7 +428,7 @@ quoted_string_codes([H|T]) -->
 
 simpleIRI(Iri) -->
   dcg_string('PN_LOCAL', LocalName),
-  {throw_if_machester_keyword(S), rdf_global_id('':LocalName, Iri)}.
+  {throw_if_manchester_keyword(LocalName), rdf_global_id('':LocalName, Iri)}.
 
 
 %! stringLiteralNoLanguage(?Literal:compound)// .
@@ -477,8 +476,8 @@ zero(0, 0'0) --> "0".
 % HELPERS %
 
 throw_if_manchester_keyword(S):-
-  oms_current_keyword(S), !,
-  syntax_error(oms_current_keyword(LocalPart)).
+  manchester_keyword(S), !,
+  syntax_error(manchester_keyword(S)).
 throw_if_manchester_keyword(_).
 
 manchester_keyword("AnnotationProperty").

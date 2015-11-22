@@ -11,13 +11,13 @@
 Predicates for converting Prolog to Turtle values.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/11
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(dcg/sw_char)).
+:- use_module(library(dcg/sparql11_code)).
 :- use_module(library(dlist)).
 :- use_module(library(math/radconv)).
 
@@ -60,12 +60,12 @@ to_pn_local_last([C  |H]-H) --> 'PLX'(C),      !.
 to_pn_local_last(L)         --> to_pn_local_escape(L).
 
 % Escape by backslash.
-to_pn_local_escape([92,C|H]-H) --> sw_char:'PN_LOCAL_ESC_char'(C), !.
+to_pn_local_escape([0'\\,C|H]-H) --> sparql11_code:pn_local_esc_code(C), !.
 % Escape by hexadecimal.
-to_pn_local_escape([37,C1,C2|H]-H) -->
-  [C],
+to_pn_local_escape([0'%,Code1,Code2|H]-H) -->
+  [Code],
   {
-    radconv(dec(C), hex(Hex)),
+    radconv(dec(Code), hex(Hex)),
     atom_chars(Hex, [Char1,Char2]),
-    maplist(char_code, [Char1,Char2], [C1,C2])
+    maplist(char_code, [Char1,Char2], [Code1,Code2])
   }.

@@ -2,12 +2,16 @@
 :- use_module(library(conv/json_to_rdf)).
 %/dcg
 :- use_module(library(dcg/manchester)).
-:- use_module(library(dcg/sw_char)).
-:- use_module(library(dcg/sw_iri)).
-:- use_module(library(dcg/sw_literal)).
-:- use_module(library(dcg/sw_number)).
-:- use_module(library(dcg/sw_string)).
-:- use_module(library(dcg/turtle_conv)).
+:- use_module(library(dcg/nquads11)).
+:- use_module(library(dcg/ntriples11)).
+:- use_module(library(dcg/sparql10_code)).
+:- use_module(library(dcg/sparql10_token)).
+:- use_module(library(dcg/sparql11_code)).
+:- use_module(library(dcg/sparql11_token)).
+:- use_module(library(dcg/turtle10_code)).
+:- use_module(library(dcg/turtle10_token)).
+:- use_module(library(dcg/turtle11_code)).
+:- use_module(library(dcg/turtle11_token)).
 %/fca
 :- use_module(library(fca/rdf_fca)).
 %/html
@@ -77,5 +81,3 @@
 :- use_module(library(simple/write_SimpleRDF)).
 %/sparql
 :- use_module(library(sparql/sparql_db)).
-:- use_module(library(sparql/sparql10_code)).
-:- use_module(library(sparql/sparql10_helpers)).
