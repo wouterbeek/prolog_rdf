@@ -207,7 +207,8 @@
 % INTEGER ::= [0-9]+
 % ```
 
-'INTEGER'(I) --> '+digit'(I).
+'INTEGER'(I) --> {var(I)}, !, '+digit'(I).
+'INTEGER'(I) --> {pos(I, Ds)}, +(digit, Ds).
 
 
 
