@@ -218,8 +218,7 @@ rdf_print_iri(Global, _) -->
 
 %! rdf_print_language_tag(+LanguageTag:atom, +Options:list(compound))// is det.
 
-rdf_print_language_tag(LTag, _) -->
-  atom(LTag).
+rdf_print_language_tag(LTag, _) --> atom(LTag).
 
 
 
