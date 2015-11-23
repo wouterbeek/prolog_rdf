@@ -30,8 +30,8 @@ datatype preferences in order to perform limited-scale crawling.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(counter)).
-:- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_debug)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(msg_ext)).
 :- use_module(library(rdf/rdf_load)).

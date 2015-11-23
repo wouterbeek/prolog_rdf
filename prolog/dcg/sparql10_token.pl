@@ -44,11 +44,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_ascii)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_quote)).
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/rational_ext)).
 :- use_module(library(semweb/rdf_db)).
@@ -118,7 +115,7 @@
 % ```
 
 'DECIMAL'(Rat) -->
-  *(digit, Ds1), {possum(Ds1, I)},
+  '*digit'(I),
   ".",
   +(digit, Ds2), {posfrac(Ds2, Frac)},
   {rational_parts(Rat, I, Frac)}.
@@ -158,14 +155,14 @@
 % @compat Turtle 1.1 [21]
 
 'DOUBLE'(F) -->
-  +(digit, Ds1), !, {possum(Ds1, I)},
+  '+digit'(I), !,
   ".", *(digit, Ds2), {posfrac(Ds2, Frac)},
   'EXPONENT'(Exp), {F is float(I + Frac) * 10 ^ Exp}.
 'DOUBLE'(F) -->
   ".", !, +(digit, Ds), {posfrac(Ds, Frac)},
   'EXPONENT'(Exp), {F is float(Frac) * 10 ^ Exp}.
 'DOUBLE'(F) -->
-  +(digit, Ds), {possum(Ds, I)},
+  '+digit'(I),
   'EXPONENT'(Exp), {F is float(I) * 10 ^ Exp}.
 
 
@@ -200,7 +197,7 @@
 'EXPONENT'(Exp) -->
   ("e", ! ; "E"),
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  +(digit, Ds), {possum(Ds, Exp0)},
+  '+digit'(Exp0),
   {Exp is Sg * Exp0}.
 
 
@@ -210,7 +207,7 @@
 % INTEGER ::= [0-9]+
 % ```
 
-'INTEGER'(I) --> +(digit, Ds), {possum(Ds, I)}.
+'INTEGER'(I) --> '+digit'(I).
 
 
 
@@ -272,11 +269,11 @@ iri(Iri) --> 'PrefixedName'(Iri).
 
 'LANGTAG'([H|T]) -->
   "@",
-  +(ascii_alpha, Cs), {atom_codes(H, Cs)}, !,
+  +(alpha, Cs), {atom_codes(H, Cs)}, !,
   subtags(T).
 subtags([H|T]) -->
   "-", !,
-  +(ascii_alpha_num, Cs), {atom_codes(H, Cs)},
+  +(alphadigit, Cs), {atom_codes(H, Cs)},
   subtags(T).
 subtags([]) --> "".
 
@@ -366,18 +363,13 @@ subtags([]) --> "".
 %              (( PN_CHARS | '.')* PN_CHARS)?
 % ```
 
-'PN_LOCAL'(A) --> dcg_atom(pn_local_codes1, A).
-pn_local_codes1([H|T])   --> 'PN_CHARS_U'(H), !, pn_local_codes2(T).
-pn_local_codes1([H|T])   --> 'DIGIT'(_, H),   !, pn_local_codes2(T).
-pn_local_codes2([H|T])   --> 'PN_CHARS'(H),   !, pn_local_codes3(T).
-pn_local_codes2([0'.|T]) --> ".",             !, pn_local_codes4(T).
-pn_local_codes2([])      --> "".
-pn_local_codes3([0'.|T]) --> ".",             !, pn_local_codes4(T).
-pn_local_codes3([H|T])   --> 'PN_CHARS'(H),   !, pn_local_codes4(T).
-pn_local_codes3([])      --> "".
-pn_local_codes4([0'.|T]) --> ".",             !, pn_local_codes4(T).
-pn_local_codes4([H|T])   --> 'PN_CHARS'(H),   !, pn_local_codes4(T).
-pn_local_codes4([])      --> "".
+'PN_LOCAL'(A) -->
+  ('PN_CHARS_U'(H), ! ; digit(_, H)),
+  (   *(pn_chars_dot, T), 'PN_CHARS'(X)
+  ->  {append([H|T], [X], Cs)}
+  ;   {Cs = [H]}
+  ),
+  {atom_codes(A, Cs)}.
 
 
 
@@ -386,16 +378,10 @@ pn_local_codes4([])      --> "".
 % PN_PREFIX ::= PN_CHARS_BASE ( ( PN_CHARS | '.' )* PN_CHARS )?
 % ```
 
-'PN_PREFIX'(A) --> dcg_atom(pn_prefix_codes1, A).
-pn_prefix_codes1([H|T])   --> 'PN_CHARS_BASE'(H), !, pn_prefix_codes2(T).
-pn_prefix_codes2([0'.|T]) --> ".",                !, pn_prefix_codes3(T).
-pn_prefix_codes2([H|T])   --> 'PN_CHARS'(H),      !, pn_prefix_codes4(T).
-pn_prefix_codes2([])      --> "".
-pn_prefix_codes3([0'.|T]) --> ".",                !, pn_prefix_codes4(T).
-pn_prefix_codes3([H|T])   --> 'PN_CHARS'(H),      !, pn_prefix_codes4(T).
-pn_prefix_codes4([0'.|T]) --> ".",                !, pn_prefix_codes4(T).
-pn_prefix_codes4([H|T])   --> 'PN_CHARS'(H),      !, pn_prefix_codes4(T).
-pn_prefix_codes4([])      --> "".
+'PN_PREFIX'(A) -->
+  'PN_CHARS_BASE'(H),
+  (*(pn_chars_dot, T), 'PN_CHARS'(X) -> {append([H|T], [X], Cs)} ; {Cs = [H]}),
+  {atom_codes(A, Cs)}.
 
 
 
@@ -470,9 +456,9 @@ pn_prefix_codes4([])      --> "".
 %          | STRING_LITERAL_LONG2
 % ```
 
-'String'(S) --> 'STRING_LITERAL1'(S).
-'String'(S) --> 'STRING_LITERAL2'(S).
-'String'(S) --> 'STRING_LITERAL_LONG1'(S).
+'String'(S) --> 'STRING_LITERAL1'(S),      !.
+'String'(S) --> 'STRING_LITERAL2'(S),      !.
+'String'(S) --> 'STRING_LITERAL_LONG1'(S), !.
 'String'(S) --> 'STRING_LITERAL_LONG2'(S).
 
 
@@ -538,6 +524,10 @@ pn_prefix_codes4([])      --> "".
 
 
 % HELPERS %
+
+pn_chars_dot(C)   --> 'PN_CHARS'(C).
+pn_chars_dot(0'.) --> ".".
+
 
 'STRING_LITERAL'(Q, A) --> quoted(Q, dcg_atom(string_literal_codes(Q), A)).
 string_literal_codes(Q, _)     --> Q,          !, {fail}.

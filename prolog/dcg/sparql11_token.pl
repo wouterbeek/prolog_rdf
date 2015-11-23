@@ -45,8 +45,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/sparql11_code)).
 
 
@@ -65,17 +64,11 @@
 %                      ( ( PN_CHARS | '.' )* PN_CHARS )?
 % ```
 
-'BLANK_NODE_LABEL'(A) --> "_:", !, dcg_atom(blank_node_label_codes1, A).
-blank_node_label_codes1([H|T])   --> 'PN_CHARS_U'(H), !, blank_node_label_codes2(T).
-blank_node_label_codes1([H|T])   --> digit(H),        !, blank_node_label_codes2(T).
-blank_node_label_codes2([0'.|T]) --> ".",             !, blank_node_label_codes3(T).
-blank_node_label_codes2([H|T])   --> 'PN_CHARS_U'(H), !, blank_node_label_codes4(T).
-blank_node_label_codes2([])      --> "".
-blank_node_label_codes3([0'.|T]) --> ".",             !, blank_node_label_codes4(T).
-blank_node_label_codes3([H|T])   --> 'PN_CHARS_U'(H), !, blank_node_label_codes4(T).
-blank_node_label_codes4([0'.|T]) --> ".",             !, blank_node_label_codes4(T).
-blank_node_label_codes4([H|T])   --> 'PN_CHARS'(H),   !, blank_node_label_codes4(T).
-blank_node_label_codes4([])      --> "".
+'BLANK_NODE_LABEL'(A) -->
+  "_:",
+  ('PN_CHARS_U'(H), ! ; digit(_, H)),
+  (*(pn_chars_dot, T), 'PN_CHARS'(X) -> {append([H|T], [X], Cs)} ; {Cs = [H]}),
+  {atom_codes(A, Cs)}.
 
 
 
@@ -86,9 +79,7 @@ blank_node_label_codes4([])      --> "".
 %
 % @tbd What about DELETE (decimal 127)?
 
-'IRIREF'(Iri) --> "<", dcg_atom(iriref_codes, Iri), ">".
-iriref_codes([H|T]) --> iriref_code(H), !, iriref_codes(T).
-iriref_codes([])    --> "".
+'IRIREF'(A) --> "<", *(iriref_code, Cs), ">", {atom_codes(A, Cs)}.
 iriref_code(C) --> [C], {between(0x00, 0x20, C)}, !, {fail}.
 iriref_code(_) --> "<",                           !, {fail}.
 iriref_code(_) --> ">",                           !, {fail}.

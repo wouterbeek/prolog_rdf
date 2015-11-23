@@ -17,16 +17,12 @@
 Printing of materialization results.
 
 @author Wouter Beek
-@version 2015/08-2015/10
+@version 2015/08-2015/11
 */
 
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(rdf/rdf_print_stmt)).
 
 :- predicate_options(print_conclusion//2, 2, [
@@ -74,8 +70,7 @@ print_conclusion(T, Opts) -->
 %! )// is det.
 % Wrapper around print_deduction//4 with default options.
 
-print_deduction(R, Ps, C) -->
-  print_deduction(R, Ps, C, []).
+print_deduction(R, Ps, C) --> print_deduction(R, Ps, C, []).
 
 
 %! print_deduction(
@@ -119,9 +114,9 @@ print_premise(N, T, Opts) -->
 
 
 %! print_premises(+Premises:list(compound), +Options:list(compound))// is det.
+% Wrapper around print_premises//3.
 
-print_premises(Ps, Opts) -->
-  print_premises(1, Ps, Opts).
+print_premises(Ps, Opts) --> print_premises(1, Ps, Opts).
 
 
 %! print_premises(
@@ -130,13 +125,13 @@ print_premises(Ps, Opts) -->
 %!   +Options:list(compound)
 %! )// is det.
 
-print_premises(_, [], _) --> "", !.
-print_premises(N1, [H|T], Opts) -->
+print_premises(N1, [H|T], Opts) --> !,
   "  ",
   print_premise(N1, H, Opts),
   nl,
   {succ(N1, N2)},
   print_premises(N2, T, Opts).
+print_premises(_, [], _) --> "".
 
 
 
@@ -144,10 +139,7 @@ print_premises(N1, [H|T], Opts) -->
 
 print_rule(R) -->
   {unwind_compound(R, L)},
-  dcg_once(*(atom, L, [separator(colon)])).
-
-unwind_compound(H, [H]):-
-  atomic(H), !.
-unwind_compound(H0, [H|T]):-
-  H0 =.. [H,T0],
-  unwind_compound(T0, T).
+  ({L == []} -> "" ; {L = [H|T]}, atom(H), +(sep_atom, T).
+unwind_compound(H, [H]):- atomic(H), !.
+unwind_compound(H0, [H|T]):- H0 =.. [H,T0], unwind_compound(T0, T).
+sep_atom(X) --> ",", atom(X).

@@ -28,11 +28,10 @@
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_collection)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(lambda)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
@@ -97,6 +96,7 @@
      pass_to(rdf_print_iri//2, 2),
      pass_to(rdf_print_literal//2, 2)
    ]).
+
 
 
 

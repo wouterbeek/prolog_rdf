@@ -37,8 +37,8 @@
 */
 
 :- use_module(library(dcg/dcg_ascii)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_quote)).
-:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/turtle11_code)).
 :- use_module(library(math/rational_ext)).
