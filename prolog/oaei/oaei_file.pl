@@ -94,7 +94,7 @@ oaei_save_rdf(In, As):-
 
 oaei_save_tsv(In, As):-
   setup_call_cleanup(
-    open_any2(In, write, Write, Close),
+    open_any2(In, write, Write, Close_0),
     forall(member(From-To, As), tsv_write_stream(Write, [row(From,To)])),
-    close_any(Close)
+    close_any2(Close_0)
   ).
