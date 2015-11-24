@@ -61,6 +61,7 @@
 :- use_module(library(memfile)).
 :- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf/w3c_dtf)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -134,6 +135,8 @@ rdf_canonical_map(D, Val, CLex, _):-
 rdf_canonical_map(D, Val, CLex, _):-
   rdf_equal(rdf:'XMLLiteral', D), !,
   with_output_to(atom(CLex), xml_write(current_output, Val, [])).
+rdf_canonical_map('http://purl.org/dc/terms/W3CDTF', DT, CLex, _):- !,
+  atom_phrase(cdtf(DT), CLex).
 rdf_canonical_map(D, Val, CLex, _):-
   xsd_canonical_map(D, Val, CLex).
 
@@ -176,6 +179,7 @@ rdf_datatype(D):-
 rdf_datatype(rdf:langString, pair).
 rdf_datatype(rdf:'HTML', compound).
 rdf_datatype(rdf:'XMLLiteral', compound).
+rdf_datatype('http://purl.org/dc/terms/W3CDTF', dateTime).
 rdf_datatype(D, Type):-
   xsd_datatype(D, Type).
 
@@ -317,6 +321,8 @@ rdf_lexical_map(D, Lex, _, Val):-
 rdf_lexical_map(D, Lex, _, Val):-
   rdf_equal(rdf:'XMLLiteral', D), !,
   atom_to_xml_dom(Lex, Val).
+rdf_lexical_map('http://purl.org/dc/terms/W3CDTF', Lex, _, DT):- !,
+  atom_phrase(ldtf(DT), Lex).
 rdf_lexical_map(D, Lex, _, Val):-
   xsd_lexical_map(D, Lex, Val).
 
