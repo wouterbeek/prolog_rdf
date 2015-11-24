@@ -22,7 +22,7 @@
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
