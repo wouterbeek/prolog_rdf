@@ -317,10 +317,10 @@ rdf_lexical_map(D, Lex, LTag0, Lex-LTag):-
 % Typed literal (as per RDF 1.0 specification).
 rdf_lexical_map(D, Lex, _, Val):-
   rdf_equal(rdf:'HTML', D), !,
-  atom_to_html_dom(Lex, Val).
+  catch(atom_to_html_dom(Lex, Val), E, (print_message(warning, E), fail)).
 rdf_lexical_map(D, Lex, _, Val):-
   rdf_equal(rdf:'XMLLiteral', D), !,
-  atom_to_xml_dom(Lex, Val).
+  catch(atom_to_xml_dom(Lex, Val), E, (print_message(warning, E), fail)).
 rdf_lexical_map('http://purl.org/dc/terms/W3CDTF', Lex, _, DT):- !,
   atom_phrase(ldtf(DT), Lex).
 rdf_lexical_map(D, Lex, _, Val):-
