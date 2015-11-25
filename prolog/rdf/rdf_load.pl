@@ -95,7 +95,11 @@ rdf_call_on_statements(In, Goal_2):-
 
 rdf_call_on_statements(In, Goal_2, Opts):-
   option(graph(G), Opts, _),
-  rdf_read_from_stream(In, rdf_call_on_statements_stream(G, Goal_2), Opts).
+  catch(
+    rdf_read_from_stream(In, rdf_call_on_statements_stream(G, Goal_2), Opts),
+    E,
+    writeln(Goal_2), print_message(warning, E)
+  ).
 
 
 %! rdf_call_on_statements_stream(
