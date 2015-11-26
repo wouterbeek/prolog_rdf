@@ -135,6 +135,10 @@ rdf_canonical_map(D, Val, CLex, _):-
 rdf_canonical_map(D, Val, CLex, _):-
   rdf_equal(rdf:'XMLLiteral', D), !,
   with_output_to(atom(CLex), xml_write(current_output, Val, [])).
+%rdf_canonical_map('http://purl.org/dc/terms/RFC4646', LTag, CLex, _):- !,
+%  maplist(string_atom, LTag, Subtags),
+%  maplist(downcase_atom, Subtags, CSubtags),
+%  atomic_list_concat(CSubtags, -, CLex).
 rdf_canonical_map('http://purl.org/dc/terms/W3CDTF', DT, CLex, _):- !,
   atom_phrase(cdtf(DT), CLex).
 rdf_canonical_map(D, Val, CLex, _):-
@@ -323,6 +327,9 @@ rdf_lexical_map(D, Lex, _, Val):-
   catch(atom_to_xml_dom(Lex, Val), E, (print_message(warning, E), fail)).
 rdf_lexical_map('http://purl.org/dc/terms/W3CDTF', Lex, _, DT):- !,
   atom_phrase(ldtf(DT), Lex).
+%rdf_canonical_map('http://purl.org/dc/terms/RFC4646', Lex, _, LTag):- !,
+%  gtrace,
+%  atom_phrase('Language-Tag'(LTag), Lex).
 rdf_lexical_map(D, Lex, _, Val):-
   xsd_lexical_map(D, Lex, Val).
 
