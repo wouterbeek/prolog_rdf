@@ -56,6 +56,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(debug_ext)).
 :- use_module(library(html/html_dom)).
 :- use_module(library(ltag/rfc5646)).
 :- use_module(library(memfile)).
@@ -317,10 +318,10 @@ rdf_lexical_map(D, Lex, LTag0, Lex-LTag):-
 % Typed literal (as per RDF 1.0 specification).
 rdf_lexical_map(D, Lex, _, Val):-
   rdf_equal(rdf:'HTML', D), !,
-  catch(atom_to_html_dom(Lex, Val), _, fail).
+  call_collect_messages(atom_to_html_dom(Lex, Val)).
 rdf_lexical_map(D, Lex, _, Val):-
   rdf_equal(rdf:'XMLLiteral', D), !,
-  catch(atom_to_xml_dom(Lex, Val), _, fail).
+  call_collect_messages(atom_to_xml_dom(Lex, Val)).
 rdf_lexical_map('http://purl.org/dc/terms/W3CDTF', Lex, _, DT):- !,
   atom_phrase(ldtf(DT), Lex).
 rdf_lexical_map(D, Lex, _, Val):-
