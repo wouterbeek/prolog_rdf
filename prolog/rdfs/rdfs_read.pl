@@ -72,7 +72,6 @@ rdfs_label(S, LRanges, LTag, Lbl):-
 %!   ?Graph:atom
 %! ) is nondet.
 
-
 rdfs_label(S, LRanges, LTag, Lex, G):-
   rdf_global_id(rdfs:label, P),
   (   % First look for language-tagged strings with matching language tag.

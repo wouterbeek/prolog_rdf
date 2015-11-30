@@ -71,7 +71,6 @@ rdf_assert_dataset(DG, NGMap):-
   rdf_dataset(DG, NGMap0), !,
   (   NGMap0 \== NGMap
   ->  % You are trying to redefined DG.
-      gtrace % DEB
   ;   % Fail silently
       fail
   ).

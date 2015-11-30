@@ -329,7 +329,6 @@ rdf_lexical_map(D, Lex, _, Val):-
 rdf_lexical_map('http://purl.org/dc/terms/W3CDTF', Lex, _, DT):- !,
   atom_phrase(ldtf(DT), Lex).
 %rdf_canonical_map('http://purl.org/dc/terms/RFC4646', Lex, _, LTag):- !,
-%  gtrace,
 %  atom_phrase('Language-Tag'(LTag), Lex).
 rdf_lexical_map(D, Lex, _, Val):-
   xsd_lexical_map(D, Lex, Val).

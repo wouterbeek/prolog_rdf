@@ -93,7 +93,6 @@ add_to_lod_pool(Iri):-
 %! lod_cache_iri(+Iri:iri) is det.
 
 lod_cache_iri(Iri):-
-  gtrace,
   iri_normalized(Iri, IriEnc),
   (   % Already cached before.
       rdf_graph(IriEnc)
