@@ -11,11 +11,10 @@
               % ?Predicate:iri
               % ?Object:rdf_term
               % +ToGraph:atom
-    rdf_increment/5, % +Subject:or([bnode,iri])
+    rdf_increment/2, % +Subject, +Predicate
+    rdf_increment/3, % +Subject:or([bnode,iri])
                      % +Predicate:iri
-                     % -Old:integer
                      % +Graph:atom
-                     % -New:integer
     rdf_mv/5 % +FromGraph:atom
              % ?Subject:or([bnode,iri])
              % ?Predicate:iri
@@ -45,7 +44,8 @@ Higher-level update operations performed on RDF data.
 
 :- rdf_meta(rdf_canonize_triple(r,r,o,?)).
 :- rdf_meta(rdf_cp(+,r,r,o,+)).
-:- rdf_meta(rdf_increment(r,r,-,+,-)).
+:- rdf_meta(rdf_increment(r,r)).
+:- rdf_meta(rdf_increment(r,r,+)).
 :- rdf_meta(rdf_mv(+,r,r,o,+)).
 
 
@@ -122,16 +122,17 @@ rdf_cp0(Action, FromG, S, P, O, ToG):-
   )).
 
 
+ 
+%! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri) is det.
+% Wrapper around rdf_increment/5.
 
-%! rdf_increment(
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   -Old:integer,
-%!   +Graph:atom,
-%!   -New:integer
-%! ) is det.
+rdf_increment(S, P):-
+  rdf_increment(S, P, _, _, _).
 
-rdf_increment(S, P, Old, G, New):-
+
+%! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri, +Graph:atom) is det.
+
+rdf_increment(S, P, G):-
   rdf_transaction((
     rdf_literal(S, P, D, Old, G),
 
