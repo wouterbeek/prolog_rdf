@@ -127,7 +127,7 @@ rdf_cp0(Action, FromG, S, P, O, ToG):-
 % Wrapper around rdf_increment/5.
 
 rdf_increment(S, P):-
-  rdf_increment(S, P, _, _, _).
+  rdf_increment(S, P, _).
 
 
 %! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri, +Graph:atom) is det.
