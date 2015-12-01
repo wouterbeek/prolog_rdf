@@ -5,10 +5,13 @@
                         % +Options:list(compound)
     rdf_print_literal//2, % +Literal:comound
                           % +Options:list(compound)
+    rdf_print_object//1, % +Object:rdf_term
     rdf_print_object//2, % +Object:rdf_term
                          % +Options:list(compound)
+    rdf_print_predicate//1, % +Predicate:iri
     rdf_print_predicate//2, % +Predicate:iri
                             % +Options:list(compound)
+    rdf_print_subject//1, % +Subject:rdf_term
     rdf_print_subject//2, % +Subject:rdf_term
                           % +Options:list(compound)
     rdf_print_term/1, % +Term
@@ -286,6 +289,12 @@ rdf_print_literal(literal(Lex), Opts) -->
 
 
 
+%! rdf_print_object(+Object:iri, +Options:list(compound))// is det.
+% Wrapper around rdf_print_object//2 with default options.
+
+rdf_print_object(O) --> rdf_print_object(O, []).
+
+
 %! rdf_print_object(+Object:rdf_term, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
@@ -301,6 +310,12 @@ rdf_print_object(O, Opts) --> rdf_print_term(O, Opts).
 
 
 %! rdf_print_predicate(+Predicate:iri, +Options:list(compound))// is det.
+% Wrapper around rdf_print_predicate//2 with default options.
+
+rdf_print_predicate(P) --> rdf_print_predicate(P, []).
+
+
+%! rdf_print_predicate(+Predicate:iri, +Options:list(compound))// is det.
 %   * abbr_iri(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
@@ -309,6 +324,12 @@ rdf_print_object(O, Opts) --> rdf_print_term(O, Opts).
 
 rdf_print_predicate(P, Opts) --> rdf_print_iri(P, Opts).
 
+
+
+%! rdf_print_subject(+Subject:iri, +Options:list(compound))// is det.
+% Wrapper around rdf_print_subject//2 with default options.
+
+rdf_print_subject(S) --> rdf_print_subject(S, []).
 
 
 %! rdf_print_subject(+Subject:rdf_term, +Options:list(compound))// is det.
