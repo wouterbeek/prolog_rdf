@@ -122,7 +122,7 @@ rdf_cp0(Action, FromG, S, P, O, ToG):-
   )).
 
 
- 
+
 %! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri) is det.
 % Wrapper around rdf_increment/5.
 
@@ -139,11 +139,11 @@ rdf_increment(S, P, G):-
     % Any integer datatype can be incremented.
     once(rdf_subtype_of(D, xsd:integer)),
     rdf_retractall_literal(S, P, D, Old, G),
-    succ(Old, New),
+    New is Old + 1,
 
     % Make sure the new value belongs to the datatype's value space.
     rdf_canonical_map(D, New, _),
-    rdf_assert_literal(D, P, D, New, G)
+    rdf_assert_literal(S, P, D, New, G)
   )).
 
 

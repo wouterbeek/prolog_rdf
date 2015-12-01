@@ -220,7 +220,7 @@ rdf_literal(S, P, V):-
 %!   ?Datatype:iri,
 %!   ?Value
 %! ) is nondet.
-% Wrapper around rdf_literal/4 with uninstantiated graph.
+% Wrapper around rdf_literal/5 with uninstantiated graph.
 
 rdf_literal(S, P, D, V):-
   rdf_literal(S, P, D, V, _).
@@ -233,7 +233,7 @@ rdf_literal(S, P, D, V):-
 %!   ?Value,
 %!   ?Graph:atom
 %! ) is nondet.
-% Reads statements with literal object term.
+% Wrapper around rdf_literal/6 that does not instantiate the quadruple.
 
 rdf_literal(S, P, D, V, G):-
   rdf_literal(S, P, D, V, G, _).
@@ -245,7 +245,7 @@ rdf_literal(S, P, D, V, G):-
 %!   ?Datatype:iri,
 %!   ?Value,
 %!   ?Graph:graph,
-%!   -Triple:compound
+%!   -Quadruple:compound
 %! ) is nondet.
 
 % Language-tagged strings.

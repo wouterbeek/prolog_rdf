@@ -29,6 +29,7 @@
     rdf_assert_property/3, % +Property:iri
                            % ?Parent:iri
                            % ?Graph:atom
+    rdf_retractall/1, % +Statement:compound
     rdf_retractall_literal/4, % ?Subject, ?Predicate:iri, ?Datatype, ?Value
     rdf_retractall_literal/5, % ?Subject:rdf_term
                               % ?Predicate:iri
@@ -50,7 +51,7 @@ Simple asserion and retraction predicates for RDF.
 
 @author Wouter Beek
 @license MIT License
-@version 2015/07-2015/10
+@version 2015/07-2015/10, 2015/12
 */
 
 :- use_module(library(lambda)).
@@ -71,6 +72,7 @@ Simple asserion and retraction predicates for RDF.
 :- rdf_meta(rdf_assert_now(o,r,+)).
 :- rdf_meta(rdf_assert_now(o,r,r,+)).
 :- rdf_meta(rdf_assert_property(o,r,?)).
+:- rdf_meta(rdf_retractall(t)).
 :- rdf_meta(rdf_retractall_literal(o,r,r,?)).
 :- rdf_meta(rdf_retractall_literal(o,r,r,?,?)).
 :- rdf_meta(rdf_retractall_resource(o,?)).
@@ -270,6 +272,15 @@ rdf_assert_property(P, Parent, G):-
 
 
 
+%! rdf_retractall(+Statement:compound) is det.
+
+rdf_retractall(rdf(S,P,O)):- !,
+  user:rdf_retractall(S, P, O).
+rdf_retractall(rdf(S,P,O,G)):-
+  user:rdf_retractall(S, P, O, G).
+
+
+
 %! rdf_retractall_literal(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
@@ -304,8 +315,8 @@ rdf_retractall_literal(S, P, D, V, G):-
   forall(
     % Use a private predicate that returns the matched quadruple
     % as a compound term.
-    rdf_read:rdf_literal(S, P, D, V, G, T),
-    rdf_retractall_term(T, G)
+    rdf_read:rdf_literal(S, P, D, V, G, Quad),
+    rdf_retractall(Quad)
   ).
 
 
