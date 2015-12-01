@@ -177,15 +177,15 @@ test_case(g1, 1).
 test_case(g2, 2).
 
 rdf_assert_graph(g1):-
-  rdf_assert(rdf:s1, rdf:p1, rdf:o1, g1).
+  user:rdf_assert(rdf:s1, rdf:p1, rdf:o1, g1).
 rdf_assert_graph(g2):-
   % Same subject, different predicate/object.
-  rdf_assert(rdf:s1, rdf:p1, rdf:o1, g2),
-  rdf_assert(rdf:s1, rdf:p2, rdf:o1, g2),
-  rdf_assert(rdf:s1, rdf:p1, rdf:o2, g2),
-  rdf_assert(rdf:s1, rdf:p2, rdf:o2, g2),
+  user:rdf_assert(rdf:s1, rdf:p1, rdf:o1, g2),
+  user:rdf_assert(rdf:s1, rdf:p2, rdf:o1, g2),
+  user:rdf_assert(rdf:s1, rdf:p1, rdf:o2, g2),
+  user:rdf_assert(rdf:s1, rdf:p2, rdf:o2, g2),
   % The same triple twice.
-  rdf_assert(rdf:s2, rdf:p1, rdf:o1, g2),
-  rdf_assert(rdf:s2, rdf:p1, rdf:o1, g2).
+  user:rdf_assert(rdf:s2, rdf:p1, rdf:o1, g2),
+  user:rdf_assert(rdf:s2, rdf:p1, rdf:o1, g2).
 
 :- end_tests(lod_stats).

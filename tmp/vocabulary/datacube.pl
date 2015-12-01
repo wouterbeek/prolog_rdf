@@ -82,7 +82,7 @@ assert_dataset(DataStructureDefinition, Graph, DataSet):-
     Graph,
     DataSet
   ),
-  rdf_assert(DataSet, qb:structure, DataStructureDefinition, Graph).
+  user:rdf_assert(DataSet, qb:structure, DataStructureDefinition, Graph).
 
 
 %! assert_datastructure_definition(
@@ -149,7 +149,7 @@ assert_datastructure_definition(
   % qb:component
   forall(
     member(Component, Components),
-    rdf_assert(DataStructureDefinition, qb:component, Component, Graph)
+    user:rdf_assert(DataStructureDefinition, qb:component, Component, Graph)
   ).
 
 
@@ -165,15 +165,15 @@ assert_measure_property(MeasureProperty, Concept, Range, Graph):-
   rdf_assert_instance(MeasureProperty, qb:'MeasureProperty', Graph),
 
   % qb:concept
-  rdf_assert(MeasureProperty, qb:concept, Concept, Graph),
+  user:rdf_assert(MeasureProperty, qb:concept, Concept, Graph),
 
   % rdfs:range
-  rdf_assert(MeasureProperty, rdfs:range, Range, Graph),
+  user:rdf_assert(MeasureProperty, rdfs:range, Range, Graph),
 
   % rdfs:isDefinedBy
   (   rdf_global_id(Prefix:_, MeasureProperty),
       rdf_current_prefix(Prefix, Url)
-  ->  rdf_assert(MeasureProperty, rdfs:isDefinedBy, Url, Graph)
+  ->  user:rdf_assert(MeasureProperty, rdfs:isDefinedBy, Url, Graph)
   ;   true
   ).
 
@@ -198,7 +198,7 @@ assert_multimeasure_observation(
   assert_observation(Dataset, Property, Goal, Graph, Observation),
 
   % qb:measureType
-  rdf_assert(Observation, qb:measureType, Property, Graph).
+  user:rdf_assert(Observation, qb:measureType, Property, Graph).
 
 
 %! assert_observation(
@@ -211,7 +211,7 @@ assert_multimeasure_observation(
 
 assert_observation(Dataset, Property, Goal, Graph, Observation):-
   % Extract the datatype.
-  rdf(Property, rdfs:range, Datatype),
+  user:rdf(Property, rdfs:range, Datatype),
   rdf_datatype_term(Datatype),
 
   % Create the observation.
@@ -224,7 +224,7 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
   ),
 
   % qb:dataSet
-  rdf_assert(Observation, qb:dataSet, Dataset, Graph),
+  user:rdf_assert(Observation, qb:dataSet, Dataset, Graph),
 
   % Assert the measurement value.
   call(Goal, Value),
@@ -238,11 +238,13 @@ assert_observation(Dataset, Property, Goal, Graph, Observation):-
 
 assert_slice(DataSet, Graph, Slice):-
   rdf_create_next_resource(slice, ['Slice'], qb:'Slice', Graph, Slice),
-  rdf_assert(DataSet, qb:slice, Slice, Graph).
+  user:rdf_assert(DataSet, qb:slice, Slice, Graph).
 
 
 
-% Helpers
+
+
+% HELPERS %
 
 %! assert_relation(
 %!   -Component:or([bnode,iri]),
@@ -252,8 +254,7 @@ assert_slice(DataSet, Graph, Slice):-
 %! ) is det.
 
 assert_relation(Component, Relation, Dimension, Graph):-
-  rdf(Component, Relation, Dimension,  Graph), !.
+  user:rdf(Component, Relation, Dimension,  Graph), !.
 assert_relation(Component, Relation, Dimension, Graph):-
   rdf_bnode(Component),
-  rdf_assert(Component, Relation, Dimension, Graph).
-
+  user:rdf_assert(Component, Relation, Dimension, Graph).

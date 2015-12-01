@@ -69,7 +69,7 @@ rdf_assert_literal_statement(S, P, Value, Datatype, G, Statement):-
 %! ) is det.
 
 rdf_assert_object(Statement, O, Graph):-
-  rdf_assert(Statement, rdf:object, O, Graph).
+  user:rdf_assert(Statement, rdf:object, O, Graph).
 
 
 
@@ -80,7 +80,7 @@ rdf_assert_object(Statement, O, Graph):-
 %! ) is det.
 
 rdf_assert_predicate(Statement, P, Graph):-
-  rdf_assert(Statement, rdf:predicate, P, Graph).
+  user:rdf_assert(Statement, rdf:predicate, P, Graph).
 
 
 
@@ -95,16 +95,13 @@ rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
 rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
   % Make sure the statement parameter is instantiated.
   % Use a new blank node if this is not yet the case.
-  (   var(Statement)
-  ->  rdf_bnode(Statement)
-  ;   true
-  ),
+  (var(Statement) -> rdf_bnode(Statement) ; true),
 
   rdf_assert_instance(Statement, rdf:'Statement', Graph),
   rdf_assert_subject(Statement, S, Graph),
   rdf_assert_predicate(Statement, P, Graph),
   rdf_assert_object(Statement, O, Graph),
-  rdf_assert(S, P, O, Graph).
+  user:rdf_assert(S, P, O, Graph).
 
 
 
@@ -115,5 +112,4 @@ rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
 %! ) is det.
 
 rdf_assert_subject(Statement, S, Graph):-
-  rdf_assert(Statement, rdf:subject, S, Graph).
-
+  user:rdf_assert(Statement, rdf:subject, S, Graph).

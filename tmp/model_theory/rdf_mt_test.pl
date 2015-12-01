@@ -78,23 +78,23 @@ build_test_model(G, M):-
 
 build_test_syntax(G):-
   G = rdf_mt_graph_1,
-  rdf_assert(ex:a, ex:b, ex:c, G),
-  rdf_assert(ex:c, ex:a, ex:a, G),
-  rdf_assert(ex:c, ex:b, ex:a, G),
-  rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
+  user:rdf_assert(ex:a, ex:b, ex:c, G),
+  user:rdf_assert(ex:c, ex:a, ex:a, G),
+  user:rdf_assert(ex:c, ex:b, ex:a, G),
+  user:rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
 build_test_syntax(G):-
   G = rdf_mt_graph_2,
-  rdf_assert(ex:a, ex:c, ex:b, G),
-  rdf_assert(ex:a, ex:b, ex:b, G),
-  rdf_assert(ex:c, ex:a, ex:c, G),
-  rdf_assert(ex:a, ex:b, literal(whatever), G).
+  user:rdf_assert(ex:a, ex:c, ex:b, G),
+  user:rdf_assert(ex:a, ex:b, ex:b, G),
+  user:rdf_assert(ex:c, ex:a, ex:c, G),
+  user:rdf_assert(ex:a, ex:b, literal(whatever), G).
 build_test_syntax(G):-
   G = rdf_mt_graph_3,
   rdf_bnode(X),
-  rdf_assert(   X, ex:b, ex:c, G),
-  rdf_assert(ex:c, ex:a, ex:a, G),
-  rdf_assert(ex:c, ex:b, ex:a, G),
-  rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
+  user:rdf_assert(   X, ex:b, ex:c, G),
+  user:rdf_assert(ex:c, ex:a, ex:a, G),
+  user:rdf_assert(ex:c, ex:b, ex:a, G),
+  user:rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
 
 clean_test(G, M):-
   rdf_unload_model(M),

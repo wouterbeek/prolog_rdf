@@ -157,7 +157,7 @@ assert_triples0(SPrefix, G, S, P, Os):-
 assert_triples0(SPrefix, G, S, P0, O):-
   to_pn_local(P0, PnLocal),
   rdf_global_id(SPrefix:PnLocal, P),
-  rdf_assert(S, P, O, G).
+  user:rdf_assert(S, P, O, G).
 
 
 
