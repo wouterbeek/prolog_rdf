@@ -34,11 +34,10 @@ Generates HTML representations of RDF data.
 ---
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/09, 2015/12
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(html/content/html_symbol)).
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
@@ -166,11 +165,11 @@ rdf_html_iri(Iri, Opts) -->
   {option(symbol_iri(true), Opts, true),
    Class = [iri,'symbol-iri']},
   (   {rdf_memberchk(Iri, [owl:equivalentClass,owl:sameAs])}
-  ->  html(span(class=[equiv|Class], \equivalence))
+  ->  html(span(class=[equiv|Class], &(equiv)))
   ;   {rdf_global_id(rdfs:subClassOf, Iri)}
-  ->  html(span(class=[subclass|Class], \subclass))
+  ->  html(span(class=[subclass|Class], &(sube)))
   ;   {rdf_global_id(rdf:type, Iri)}
-  ->  html(span(class=[in|Class], \set_membership))
+  ->  html(span(class=[in|Class], &(isin)))
   ).
 rdf_html_iri(Global, Opts) -->
   {option(label_iri(true), Opts),
