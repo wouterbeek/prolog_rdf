@@ -98,7 +98,7 @@ rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
   rdf_assert_typed_literal(Cell, rdf:value, Value, xsd:float, G),
   
   % Relate cell to table.
-  rdf_assert(Table, rdf_table:cell, Cell, G).
+  user:rdf_assert(Table, rdf_table:cell, Cell, G).
 
 
 %! rdf_assert_column_headers(
@@ -138,5 +138,5 @@ rdf_assert_row_headers(Graph, Table, RowHeaders, RowList):-
 
 rdf_assert_headers(Graph, Table, Predicate, Headers, HeaderList):-
   rdf_assert_list(Headers, HeaderList, Graph, [datatype(xsd:string)]),
-  rdf_assert(Table, Predicate, HeaderList, Graph).
+  user:rdf_assert(Table, Predicate, HeaderList, Graph).
 
