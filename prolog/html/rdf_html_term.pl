@@ -43,6 +43,7 @@ Generates HTML representations of RDF data.
 */
 
 :- use_module(library(atom_ext)).
+:- use_module(library(html/content/html_pl)).
 :- use_module(library(html/element/html_link)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
@@ -52,6 +53,7 @@ Generates HTML representations of RDF data.
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_html_datatype(r,+,?,?)).
 :- rdf_meta(rdf_html_iri(r,+,?,?)).
@@ -153,7 +155,16 @@ rdf_html_datatype(D, Opts) -->
 %! rdf_html_graph(+Graph:atom, +Options:list(compound))// is det.
 
 rdf_html_graph(G, Opts) -->
-  html(span(class=graph, \rdf_html_link(G, graph, Opts))).
+  html(
+    span(class=graph,
+      \html_link(G, rdf_html_graph0(G, Opts), [query(graph)|Opts])
+    )
+  ).
+
+rdf_html_graph0(G, Opts) -->
+  html_global_iri(G, Opts), !.
+rdf_html_graph0(G, Opts) -->
+  html_pl_term(G, Opts).
 
 
 
@@ -187,8 +198,10 @@ rdf_html_iri(Iri, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_html_list(Iri, Opts), !.
 rdf_html_iri(Iri, Opts) -->
-  {option(symbol_iri(true), Opts, true),
-   Class = [iri,'symbol-iri']},
+  {
+    option(symbol_iri(true), Opts, true),
+    Class = [iri,'symbol-iri']
+  },
   (   {rdf_memberchk(Iri, [owl:equivalentClass,owl:sameAs])}
   ->  html(span(class=[equiv|Class], &(equiv)))
   ;   {rdf_global_id(rdfs:subClassOf, Iri)}
@@ -197,30 +210,18 @@ rdf_html_iri(Iri, Opts) -->
   ->  html(span(class=[in|Class], &(isin)))
   ).
 rdf_html_iri(Global, Opts) -->
-  {option(label_iri(true), Opts),
-   option(lang_priority_list(LRanges), Opts, ['en-US']),
-   once(rdfs_label(Global, LRanges, LTag, Lbl))}, !,
+  {
+    option(label_iri(true), Opts),
+    option(lang_priority_list(LRanges), Opts, ['en-US']),
+    once(rdfs_label(Global, LRanges, LTag, Lbl))
+  }, !,
   (   {var(LTag)}
   ->  html(span(class=[iri,'label-iri'], Lbl))
   ;   html(span([class=[iri,'label-iri'],lang=LTag], Lbl))
   ).
 rdf_html_iri(Global, Opts) -->
-  {\+ option(abbr_iri(false), Opts),
-   rdf_global_id(Prefix:Local, Global), !,
-   option(ellip_ln(N), Opts, 20),
-   atom_truncate(Local, N, Local0)},
-  html(
-    span(class=['compact-iri',iri],[
-      span(class='iri-prefix',Prefix),
-      ':',
-      span(class='iri-local',Local0)
-    ])
-  ).
-rdf_html_iri(Global, Opts) -->
-  {option(style(turtle), Opts)}, !,
-  html(span(class=iri, [&(lang),Global,&(rang)])).
-rdf_html_iri(Global, _) -->
-  html(span(class=iri, Global)).
+  {is_iri(Global)}, !,
+  html_link(Global, html_global_iri(Global, Opts), [query(iri)|Opts]).
 
 
 
@@ -247,8 +248,10 @@ rdf_html_language_subtags([H|T], Opts) -->
 %     an 80 character wide terminal.
 
 rdf_html_lexical_form(Lex, Opts) -->
- {option(ellip_lit(N), Opts, 20),
-  atom_truncate(Lex, N, Lex0)},
+  {
+    option(ellip_lit(N), Opts, 20),
+    atom_truncate(Lex, N, Lex0)
+  },
   html(span(class='lexical-form', ['"',Lex0,'"'])).
 
 
@@ -260,8 +263,10 @@ rdf_html_lexical_form(Lex, Opts) -->
 %     Default is `true`.
 
 rdf_html_list(L0, Opts) -->
-  {rdf_is_list(L0),
-   rdf_list_raw(L0, L)},
+  {
+    rdf_is_list(L0),
+    rdf_list_raw(L0, L)
+  },
   html(class=list, \list(rdf_html_term0(Opts), L)).
 rdf_html_term0(Opts, T) --> rdf_html_term(T, Opts).
 
@@ -275,7 +280,10 @@ rdf_html_term0(Opts, T) --> rdf_html_term(T, Opts).
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_html_literal(literal(type(D,Lex)), Opts) --> !,
+rdf_html_literal(Lit, Opts) -->
+  html_link(Lit, rdf_html_literal0(Lit, Opts), [query(literal)|Opts]).
+
+rdf_html_literal0(literal(type(D,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
   ->  html(
         span(class=literal, [
@@ -294,7 +302,7 @@ rdf_html_literal(literal(type(D,Lex)), Opts) --> !,
         ])
       )
   ).
-rdf_html_literal(literal(lang(LTag,Lex)), Opts) --> !,
+rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
   ->  html(
         span(class=['language-tagged-string',literal], [
@@ -318,9 +326,9 @@ rdf_html_literal(literal(lang(LTag,Lex)), Opts) --> !,
         ])
       )
   ).
-rdf_html_literal(literal(Lex), Opts) -->
+rdf_html_literal0(literal(Lex), Opts) -->
   {rdf_global_id(xsd:string, D)},
-  rdf_html_literal(literal(type(D,Lex)), Opts).
+  rdf_html_literal0(literal(type(D,Lex)), Opts).
 
 
 
@@ -367,6 +375,7 @@ rdf_html_subject(S, Opts) -->
 rdf_html_term(T) -->
   rdf_html_term(T, []).
 
+
 %! rdf_html_term(+Term:rdf_term, +Options:list(compound))// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
@@ -380,15 +389,17 @@ rdf_html_term(T) -->
 rdf_html_term(graph(G), Opts) --> !,
   rdf_html_graph(G, Opts).
 rdf_html_term(link(Link,Label), _) --> !,
-  html_link(Link, Label).
+  html_link(Link, html(Label)).
 rdf_html_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
-  html(span(class=term, \rdf_html_literal(T, Opts))).
+  rdf_html_literal(T, Opts).
 rdf_html_term(T, Opts) -->
   {rdf_is_bnode(T)}, !,
   rdf_html_bnode(T, Opts).
 rdf_html_term(T, Opts) -->
-  rdf_html_iri(T, Opts).
+  rdf_html_iri(T, Opts), !.
+rdf_html_term(T, Opts) -->
+  html_pl_term(T, Opts).
 
 
 
@@ -411,10 +422,32 @@ rdf_html_term_in_graph(T, G, Opts) -->
 
 % HELPERS %
 
-rdf_html_link(Term, Name, Opts) -->
+html_compact_iri(Global, Opts) -->
   {
-    option(location(LocationId), Opts), !,
-    Opt =.. [Name,Term],
-    http_link_to_id(LocationId, [Opt], Location)
+    \+ option(abbr_iri(false), Opts),
+    rdf_global_id(Prefix:Local, Global)
+  }, !,
+  {
+    option(ellip_ln(N), Opts, 20),
+    atom_truncate(Local, N, Local0)
   },
-  html_link(Location, Term).
+  html([
+    span(class='iri-prefix', Prefix),
+    ':',
+    span(class='iri-local',Local0)
+  ]).
+
+
+
+html_full_iri(Global, Opts) -->
+  {option(style(turtle), Opts)}, !,
+  html(span(class=iri, [&(lang),Global,&(rang)])).
+html_full_iri(Global, _) -->
+  html(span(class=iri, Global)).
+
+
+
+html_global_iri(Global, Opts) -->
+  html_compact_iri(Global, Opts), !.
+html_global_iri(Global, Opts) -->
+  html_full_iri(Global, Opts).
