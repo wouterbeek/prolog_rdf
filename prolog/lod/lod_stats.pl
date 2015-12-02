@@ -44,6 +44,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(plunit)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(solution_sequences)).
@@ -66,20 +67,6 @@
 
 rdf_description_size(S, N):-
   rdf_number_of_triples(S, _, _, N).
-
-
-
-rdf_number_of_bnodes(N):-
-  aggregate_all(count, rdf_bnode2(_), N).
-
-
-%! rdf_number_of_bnodes(+Graph:atom, -Count:nonneg) is det.
-%! rdf_number_of_bnodes(-Graph:atom, -Count:nonneg) is nondet.
-% @throws existence_error
-
-rdf_number_of_bnodes(G, N):-
-  rdf_expect_graph(G),
-  aggregate_all(count, rdf_bnode2(G, _), N).
 
 
 
@@ -203,8 +190,7 @@ rdf_number_of_triples(N):-
 % @throws existence_error
 
 rdf_number_of_triples(G, N):-
-  rdf_expect_graph(G),
-  rdf_statistics(triples_by_graph(N,G)).
+  rdf_statistics(triples_by_graph(G,N)).
 
 
 %! rdf_number_of_triples(
@@ -268,7 +254,7 @@ rdf_number_of_terms0(Witness, S, P, O, G, N):-
 test(rdf_number_of_subject_terms, [forall(test_case(G,N))]):-
   setup_call_cleanup(
     rdf_assert_graph(G),
-    rdf_number_of_subject_terms(_, _, N0),
+    rdf_number_of_subject_terms(_, _, G, N0),
     rdf_unload_graph(G)
   ),
   writeln(N0),
