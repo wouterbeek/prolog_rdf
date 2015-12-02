@@ -49,7 +49,8 @@ rdfs_comment(S, Comm):-
 % @tbd
 
 rdfs_instance(I, C):-
-  user:rdf(I, rdf:type, C).
+  rdf_global_id(rdf:type, P),
+  user:rdf(I, P, C).
 
 
 
