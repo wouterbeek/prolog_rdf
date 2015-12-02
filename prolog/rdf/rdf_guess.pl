@@ -231,8 +231,8 @@ nt_subject(_) --> nt_bnode.
 'WS', " " --> "#", ..., (eol ; eos), !.
 
 turtle_keyword -->
-  atom_lower(A),
-  {turtle_keyword(A)}, !.
+  atom_lower(A), !,
+  {turtle_keyword(A)}.
 
 turtle_keyword(base).
 turtle_keyword(prefix).

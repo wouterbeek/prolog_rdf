@@ -50,12 +50,12 @@
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta(rdf_description_size(o,-)).
-:- rdf_meta(rdf_number_of_objects(o,r,-)).
-:- rdf_meta(rdf_number_of_objects(o,r,?,-)).
-:- rdf_meta(rdf_number_of_predicates(o,o,-)).
-:- rdf_meta(rdf_number_of_predicates(o,o,?,-)).
-:- rdf_meta(rdf_number_of_subjects(r,o,-)).
-:- rdf_meta(rdf_number_of_subjects(r,o,?,-)).
+:- rdf_meta(rdf_number_of_object_terms(o,r,-)).
+:- rdf_meta(rdf_number_of_object_terms(o,r,?,-)).
+:- rdf_meta(rdf_number_of_predicate_terms(o,o,-)).
+:- rdf_meta(rdf_number_of_predicate_terms(o,o,?,-)).
+:- rdf_meta(rdf_number_of_subject_terms(r,o,-)).
+:- rdf_meta(rdf_number_of_subject_terms(r,o,?,-)).
 :- rdf_meta(rdf_number_of_triples(o,r,o,-)).
 :- rdf_meta(rdf_number_of_triples(o,r,o,?,-)).
 
