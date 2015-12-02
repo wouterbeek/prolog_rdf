@@ -45,6 +45,7 @@ Generates HTML representations of RDF data.
 :- use_module(library(atom_ext)).
 :- use_module(library(html/element/html_link)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_list)).
@@ -72,6 +73,9 @@ Generates HTML representations of RDF data.
 :- predicate_options(rdf_html_datatype//2, 2, [
      pass_to(rdf_html_iri//2, 2)
    ]).
+:- predicate_options(rdf_html_graph//2, 2, [
+     pass_to(rdf_html_link//3, 3)
+   ]).
 :- predicate_options(rdf_html_iri//2, 2, [
      abbr_iri(+boolean),
      abbr_list(+boolean),
@@ -86,6 +90,9 @@ Generates HTML representations of RDF data.
    ]).
 :- predicate_options(rdf_html_lexical_form//2, 2, [
      ellip_lit(+or([nonneg,oneof([inf])]))
+   ]).
+:- predicate_options(rdf_html_link//3, 3, [
+     location(+atom)
    ]).
 :- predicate_options(rdf_html_list//2, 2, [
      pass_to(rdf_html_term//2, 2)
@@ -145,8 +152,8 @@ rdf_html_datatype(D, Opts) -->
 
 %! rdf_html_graph(+Graph:atom, +Options:list(compound))// is det.
 
-rdf_html_graph(G, _) -->
-  html(span(class=graph, G)).
+rdf_html_graph(G, Opts) -->
+  html(span(class=graph, \rdf_html_link(G, graph, Opts))).
 
 
 
@@ -397,3 +404,17 @@ rdf_html_term_in_graph(T, G, Opts) -->
 rdf_html_term_in_graph(T, G, Opts) -->
   rdf_html_term(T, Opts),
   rdf_html_graph(G, Opts).
+
+
+
+
+
+% HELPERS %
+
+rdf_html_link(Term, Name, Opts) -->
+  {
+    option(location(LocationId), Opts), !,
+    Opt =.. [Name,Term],
+    http_link_to_id(LocationId, [Opt], Location)
+  },
+  html_link(Location, Term).

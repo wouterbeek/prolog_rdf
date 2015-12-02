@@ -92,7 +92,6 @@ rdf_html_quadruple_table(S, P, O, G, Opts1) -->
 %     the here enumerated characters,
 %     where the characters correspond to columns,
 %     in the order in which they occur.
-%   * `location(Location:iri)`
 %   * Other options are passed on to wl_table//2.
 %
 % The following characters are supported for
@@ -114,7 +113,7 @@ rdf_html_table(Rows0, Opts1) -->
 rdf_html_term0(Opts, T) -->
   rdf_html_term(T, Opts).
 
-  
+
 
 %! rdf_html_triple_table(
 %!   ?Subject:or([bnode,iri]),
@@ -160,12 +159,17 @@ header_spec( t , 'Term'     ).
 
 
 rdf_html_statement_table(S, P, O, G, Rows, Opts1) -->
-  merge_options([graph(G)], Opts1, Opts2),
-  rdf_html_table(
-    rdf_html_statement_table_caption(S, P, O, G, Opts1),
-    Rows,
-    Opts2
-  ).
+  {
+    merge_options(
+      [
+        caption(rdf_html_statement_table_caption(S, P, O, G, Opts1)),
+        graph(G)
+      ],
+      Opts1,
+      Opts2
+    )
+  },
+  rdf_html_table(Rows, Opts2).
 
 rdf_html_statement_table_caption(S, P, O, G, Opts) -->
   {

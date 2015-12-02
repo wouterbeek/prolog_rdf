@@ -169,7 +169,13 @@ rdf_is_term(X):-
 %! rdf_literal(-Literal:compound) is nondet.
 
 rdf_literal(Lit):-
-  rdf_current_literal(Lit).
+  var(Lit), !,
+  rdf_current_literal(Lit0),
+  Lit = literal(Lit0).
+rdf_literal(Lit):-
+  Lit = literal(Lit0),
+  rdf_current_literal(Lit0).
+
 
 
 %! rdf_literal(+Graph:atom, +Literal:compound) is semidet.
@@ -231,7 +237,7 @@ rdf_node2(G, O):-
 %! rdf_object(-Object:rdf_term) is nondet.
 
 rdf_object(O):-
-  rdf_current_literal(O),
+  rdf_literal(O),
   % Excludes cases in which a literal only appears in deleted statements.
   user:rdf(_, _, O).
 rdf_object(O):-
@@ -245,7 +251,7 @@ rdf_object(O):-
 %! rdf_graph(-Graph:atom, -Object:rdf_term) is nondet.
 
 rdf_object(G, O):-
-  rdf_current_literal(O),
+  rdf_literal(O),
   % Also excludes cases in which a literal only appears in deleted statements.
   user:rdf(_, _, O, G).
 rdf_object(G, O):-
