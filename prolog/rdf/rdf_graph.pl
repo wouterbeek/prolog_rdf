@@ -22,8 +22,9 @@
 /** <module> RDF graph
 
 @author Wouter Beek
-@compat [RDF 1.1 Semantics](http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/)
+@compat RDF 1.1 Semantics
 @license MIT
+@see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
 @version 2015/08, 2015/10
 */
 

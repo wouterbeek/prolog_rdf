@@ -6,9 +6,6 @@
     rdf_html_describe//3, % +Subject:rdf_term
                           % ?Graph:atom
                           % +Options:list(compound)
-    rdf_html_graph//1, % ?Graph
-    rdf_html_graph//2, % ?Graph:atom
-                       % +Options:list(compound)
     rdf_html_quadruple//1, % +Quadruple
     rdf_html_quadruple//2, % +Quadruple:compound
                            % +Options:list(compound)
@@ -86,10 +83,6 @@
    ]).
 :- predicate_options(rdf_html_describe//3, 3, [
      pass_to(rdf_html_statement//5, 5)
-   ]).
-:- predicate_options(rdf_html_graph//2, 2, [
-     pass_to(rdf_html_quadruple//5, 5),
-     pass_to(rdf_html_triple//5, 5)
    ]).
 :- predicate_options(rdf_html_graph_maybe//2, 2, [
      style(+oneof([tuple,turtle]))
@@ -169,47 +162,6 @@ rdf_html_describe(S, G, Opts) -->
 % A graph is given: display triples.
 rdf_html_describe(S, G, Opts) -->
   rdf_html_triple(S, _, _, G, Opts).
-
-
-
-%! rdf_html_graph(?Graph:atom)// is det.
-% Wrapper around rdf_html_graph//2 with default options.
-
-rdf_html_graph(G) -->
-  rdf_html_graph(G, []).
-
-%! rdf_html_graph(?Graph:atom, +Options:list(compound))// is det.
-% The following options are supported:
-%   * abbr_iri(+boolean)
-%   * abbr_list(+boolean)
-%   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * language_priority_list(+list(atom))
-%   * page_size(+nonneg)
-%   * symbol_iri(+boolean)
-%   * style(+oneof([tuple,turtle])
-%
-% @throws existence_error
-
-rdf_html_graph(G, Opts) -->
-  {var(G)}, !,
-  rdf_html_quadruple(_, _, _, _, Opts).
-rdf_html_graph(G, Opts) -->
-  {rdf_is_graph(G)}, !,
-  rdf_html_triple(_, _, _, G, Opts).
-rdf_html_graph(G, _) -->
-  {existence_error(rdf_graph, G)}.
-
-
-
-%! rdf_html_graph_maybe(+Graph:atom, +Options:list(compound))// is det.
-
-rdf_html_graph_maybe(G, Opts) -->
-  {ground(G)}, !,
-  (   {option(style(turtle), Opts)}
-  ->  html([' ',span(class=graph, G)])
-  ;   html(['@',span(class=graph, G)])
-  ).
-rdf_html_graph_maybe(_, _) --> html([]).
 
 
 
@@ -363,6 +315,7 @@ rdf_html_statement(S, P, O, G, Opts) -->
 rdf_html_statements(Ss) -->
   rdf_html_statement(Ss, []).
 
+
 %! rdf_html_statements(
 %!   +Statements:list(compound),
 %!   +Options:list(compound)
@@ -385,10 +338,12 @@ rdf_html_statements(Ss, Opts0) -->
 rdf_html_triple(T) -->
   rdf_html_triple(T, []).
 
+
 %! rdf_html_triple(+Triple:compound, +Options:list(compound))// is det.
 
 rdf_html_triple(rdf(S,P,O), Opts) -->
   rdf_html_statement(S, P, O, _, Opts).
+
 
 %! rdf_html_triple(
 %!   ?Subject:rdf_term,
@@ -400,6 +355,7 @@ rdf_html_triple(rdf(S,P,O), Opts) -->
 
 rdf_html_triple(S, P, O, G) -->
   rdf_html_triple(S, P, O, G, []).
+
 
 %! rdf_html_triple(
 %!   ?Subject:rdf_term,
@@ -438,8 +394,25 @@ rdf_html_triple(S, P, O, G, Opts) -->
 rdf_html_triples(Ts) -->
   rdf_html_triples(Ts, []).
 
+
 %! rdf_html_triples(+Triples:list(compound), +Options:list(compound))// is det.
 
 rdf_html_triples(Ts, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   'rdf_html_statement*'(Ts, Opts).
+
+
+
+
+
+% HELPERS %
+
+%! rdf_html_graph_maybe(+Graph:atom, +Options:list(compound))// is det.
+
+rdf_html_graph_maybe(G, Opts) -->
+  {ground(G)}, !,
+  (   {option(style(turtle), Opts)}
+  ->  html([' ',span(class=graph, G)])
+  ;   html(['@',span(class=graph, G)])
+  ).
+rdf_html_graph_maybe(_, _) --> html([]).

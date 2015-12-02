@@ -2,39 +2,49 @@
   lod_stats,
   [
     rdf_description_size/2, % +Resource:rdf_term
-                            % -Size:nonneg
-    rdf_number_of_objects/3, % ?Subject, ?Predicate, -Size
-    rdf_number_of_objects/4, % ?Subject:rdf_term
-                             % ?Predicate:iri
-                             % ?Graph:atom
-                             % -Size:nonneg
-    rdf_number_of_predicates/3, % ?Subject, ?Object, -Size
-    rdf_number_of_predicates/4, % ?Subject:rdf_term
-                                % ?Object:rdf_term
-                                % ?Graph:atom
-                                % -Size:nonneg
-    rdf_number_of_subjects/3, % ?Predicate, ?Object, -Size
-    rdf_number_of_subjects/4, % ?Predicate:iri
-                              % ?Object:rdf_term
-                              % ?Graph:atom
-                              % -Size:nonneg
-    rdf_number_of_triples/4, % ?Subject, ?Predicate, ?Object, -Size
+                            % -Count:nonneg
+    rdf_number_of_object_terms/1, % -Count
+    rdf_number_of_object_terms/2, % ?Graph, -Count
+    rdf_number_of_object_terms/3, % ?Subject, ?Predicate, -Count
+    rdf_number_of_object_terms/4, % ?Subject:rdf_term
+                                  % ?Predicate:iri
+                                  % ?Graph:atom
+                                  % -Count:nonneg
+    rdf_number_of_predicate_terms/1, % -Count
+    rdf_number_of_predicate_terms/2, % ?Graph, -Count
+    rdf_number_of_predicate_terms/3, % ?Subject, ?Object, -Count
+    rdf_number_of_predicate_terms/4, % ?Subject:rdf_term
+                                     % ?Object:rdf_term
+                                     % ?Graph:atom
+                                     % -Count:nonneg
+    rdf_number_of_subject_terms/1, % -Count
+    rdf_number_of_subject_terms/2, % ?Graph, -Count
+    rdf_number_of_subject_terms/3, % ?Predicate, ?Object, -Count
+    rdf_number_of_subject_terms/4, % ?Predicate:iri
+                                   % ?Object:rdf_term
+                                   % ?Graph:atom
+                                   % -Count:nonneg
+    rdf_number_of_triples/1, % -Count
+    rdf_number_of_triples/2, % ?Graph, -Count
+    rdf_number_of_triples/4, % ?Subject, ?Predicate, ?Object, -Count
     rdf_number_of_triples/5 % ?Subject:rdf_term
                             % ?Predicate:iri
                             % ?Object:rdf_term
                             % ?Graph:atom
-                            % -Size:nonneg
+                            % -Count:nonneg
   ]
 ).
 
 /** <module> LOD statistics
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2015/12
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(error)).
 :- use_module(library(plunit)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(solution_sequences)).
 
@@ -52,84 +62,156 @@
 
 
 
-%! rdf_description_size(+Resource:rdf_term, -Size:nonneg) is det.
+%! rdf_description_size(+Resource:rdf_term, -Count:nonneg) is det.
 
 rdf_description_size(S, N):-
   rdf_number_of_triples(S, _, _, N).
 
 
 
-%! rdf_number_of_objects(
+rdf_number_of_bnodes(N):-
+  aggregate_all(count, rdf_bnode2(_), N).
+
+
+%! rdf_number_of_bnodes(+Graph:atom, -Count:nonneg) is det.
+%! rdf_number_of_bnodes(-Graph:atom, -Count:nonneg) is nondet.
+% @throws existence_error
+
+rdf_number_of_bnodes(G, N):-
+  rdf_expect_graph(G),
+  aggregate_all(count, rdf_bnode2(G, _), N).
+
+
+
+%! rdf_number_of_object_terms(-Count:nonneg) is det.
+
+rdf_number_of_object_terms(N):-
+  aggregate_all(count, rdf_object(_), N).
+
+
+%! rdf_number_of_object_terms(+Graph:atom, -Count:nonneg) is det.
+%! rdf_number_of_object_terms(-Graph:atom, -Count:nonneg) is nondet.
+% @throws exitence_error
+
+rdf_number_of_object_terms(G, N):-
+  rdf_expect_graph(G),
+  rdf_number_of_object_terms(_, _, G, N).
+
+
+%! rdf_number_of_object_terms(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
-rdf_number_of_objects(S, P, N):-
-  rdf_number_of_objects(S, P, _, N).
+rdf_number_of_object_terms(S, P, N):-
+  rdf_number_of_object_terms(S, P, _, N).
 
 
-%! rdf_number_of_objects(
+%! rdf_number_of_object_terms(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Graph:atom,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
-rdf_number_of_objects(S, P, G, N):-
-  rdf_number_of0(O, S, P, O, G, N).
+rdf_number_of_object_terms(S, P, G, N):-
+  rdf_number_of_terms0(O, S, P, O, G, N).
 
 
 
-%! rdf_number_of_predicates(
+%! rdf_number_of_predicate_terms(-Count:nonneg) is det.
+
+rdf_number_of_predicate_terms(N):-
+  aggregate_all(count, rdf_predicate(_), N).
+
+
+%! rdf_number_of_predicate_terms(+Graph:atom, -Count:nonneg) is det.
+%! rdf_number_of_predicate_terms(-Graph:atom, -Count:nonneg) is nondet.
+
+rdf_number_of_predicate_terms(G, N):-
+  rdf_expect_graph(G),
+  rdf_number_of_predicate_terms(_, _, G, N).
+
+
+%! rdf_number_of_predicate_terms(
 %!   ?Subject:rdf_term,
 %!   ?Object:rdf_term,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
-rdf_number_of_predicates(S, O, N):-
-  rdf_number_of_predicates(S, O, _, N).
+rdf_number_of_predicate_terms(S, O, N):-
+  rdf_number_of_predicate_terms(S, O, _, N).
 
 
-%! rdf_number_of_predicates(
+%! rdf_number_of_predicate_terms(
 %!   ?Subject:rdf_term,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
-rdf_number_of_predicates(S, O, G, N):-
-  rdf_number_of0(P, S, P, O, G, N).
+rdf_number_of_predicate_terms(S, O, G, N):-
+  rdf_number_of_terms0(P, S, P, O, G, N).
 
 
 
-%! rdf_number_of_subjects(
+%! rdf_number_of_subject_terms(-Count:nonneg) is det.
+
+rdf_number_of_subject_terms(N):-
+  aggregate_all(count, rdf_subject(_), N).
+
+
+%! rdf_number_of_subject_terms(+Graph:atom, -Count:nonneg) is det.
+%! rdf_number_of_subject_terms(-Graph:atom, -Count:nonneg) is nondet.
+
+rdf_number_of_subject_terms(G, N):-
+  rdf_expect_graph(G),
+  rdf_number_of_subject_terms(_, _, G, N).
+
+
+%! rdf_number_of_subject_terms(
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
-rdf_number_of_subjects(P, O, N):-
-  rdf_number_of_subjects(P, O, _, N).
+rdf_number_of_subject_terms(P, O, N):-
+  rdf_number_of_subject_terms(P, O, _, N).
 
 
-%! rdf_number_of_subjects(
+%! rdf_number_of_subject_terms(
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
-rdf_number_of_subjects(P, O, G, N):-
-  rdf_number_of0(S, S, P, O, G, N).
+rdf_number_of_subject_terms(P, O, G, N):-
+  rdf_number_of_terms0(S, S, P, O, G, N).
 
+
+
+%! rdf_number_of_triples(-Count:nonneg) is det.
+
+rdf_number_of_triples(N):-
+  rdf_statistics(triples(N)).
+
+
+%! rdf_number_of_triples(+Graph:atom, -Count:nonneg) is det.
+%! rdf_number_of_triples(-Graph:atom, -Count:nonneg) is nondet.
+% @throws existence_error
+
+rdf_number_of_triples(G, N):-
+  rdf_expect_graph(G),
+  rdf_statistics(triples_by_graph(N,G)).
 
 
 %! rdf_number_of_triples(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
 rdf_number_of_triples(S, P, O, N):-
@@ -141,11 +223,11 @@ rdf_number_of_triples(S, P, O, N):-
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom,
-%!   -Size:nonneg
+%!   -Count:nonneg
 %! ) is det.
 
 rdf_number_of_triples(S, P, O, G, N):-
-  rdf_number_of0(rdf(S,P,O), S, P, O, G, N).
+  rdf_number_of_terms0(rdf(S,P,O), S, P, O, G, N).
 
 
 
@@ -153,7 +235,26 @@ rdf_number_of_triples(S, P, O, G, N):-
 
 % HELPERS %
 
-rdf_number_of0(Witness, S, P, O, G, N):-
+%! rdf_expect_graph(@Term) is nondet.
+% If Term is uninstantiated it is non-deterministically
+% instantiated to RDF graphs.
+% If Term is instantiated and does not denote an existing RDF graph
+% this results in an exception.
+%
+% @throws existence_error
+
+rdf_expect_graph(G):-
+  var(G), !,
+  % NONDET.
+  rdf_graph(G).
+rdf_expect_graph(G):-
+  rdf_is_graph(G), !.
+rdf_expect_graph(G):-
+  existence_error(rdf_graph, G).
+
+
+
+rdf_number_of_terms0(Witness, S, P, O, G, N):-
   aggregate_all(count, distinct(Witness, rdf(S, P, O, G)), N).
 
 
@@ -164,10 +265,10 @@ rdf_number_of0(Witness, S, P, O, G, N):-
 
 :- begin_tests(lod_stats).
 
-test(rdf_number_of_subjects, [forall(test_case(G,N))]):-
+test(rdf_number_of_subject_terms, [forall(test_case(G,N))]):-
   setup_call_cleanup(
     rdf_assert_graph(G),
-    rdf_number_of_subjects(_, _, N0),
+    rdf_number_of_subject_terms(_, _, N0),
     rdf_unload_graph(G)
   ),
   writeln(N0),

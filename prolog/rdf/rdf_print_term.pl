@@ -27,7 +27,7 @@
 
 @author Wouter Beek
 @license MIT license
-@version 2015/07-2015/11
+@version 2015/07-2015/12
 */
 
 :- use_module(library(atom_ext)).
@@ -101,26 +101,6 @@
    ]).
 
 
-
-
-
-%! rdf_print_term(+Term:rdf_term) is det.
-% Wrapper around rdf_print_term/2 with default options.
-
-rdf_print_term(T):- rdf_print_term(T, []).
-
-
-%! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
-% The following options are supported:
-%   * abbr_iri(+boolean)
-%   * abbr_list(+boolean)
-%   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
-%   * symbol_iri(+boolean)
-
-rdf_print_term(T, Opts):-
-  dcg_with_output_to(current_output, rdf_print_term(T, Opts)).
 
 
 
@@ -339,6 +319,27 @@ rdf_print_subject(S) --> rdf_print_subject(S, []).
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 
 rdf_print_subject(S, Opts) --> rdf_print_term(S, Opts).
+
+
+
+%! rdf_print_term(+Term:rdf_term) is det.
+% Wrapper around rdf_print_term/2 with default options.
+
+rdf_print_term(T):-
+  rdf_print_term(T, []).
+
+
+%! rdf_print_term(+Term:rdf_term, +Options:list(compound)) is det.
+% The following options are supported:
+%   * abbr_iri(+boolean)
+%   * abbr_list(+boolean)
+%   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * label_iri(+boolean)
+%   * language_priority_list(+list(atom))
+%   * symbol_iri(+boolean)
+
+rdf_print_term(T, Opts):-
+  dcg_with_output_to(current_output, rdf_print_term(T, Opts)).
 
 
 

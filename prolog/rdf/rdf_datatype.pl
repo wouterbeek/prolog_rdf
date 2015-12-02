@@ -15,9 +15,6 @@
     rdf_datatype/1, % ?Datatype:iri
     rdf_datatype/2, % ?Datatype:iri
                     % ?PrologType
-    rdf_datatype_term/1, % ?Datatype:iri
-    rdf_datatype_term/2, % ?Datatype:iri
-                         % ?Graph:atom
     rdf_equiv_value/3, % +Datatype:iri
                        % +Value1
                        % +Value2
@@ -51,7 +48,7 @@
 @author Wouter Beek
 @compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/)
 @license MIT License
-@version 2015/07-2015/09, 2015/11
+@version 2015/07-2015/09, 2015/11-2015/12
 */
 
 :- use_module(library(apply)).
@@ -187,25 +184,6 @@ rdf_datatype(rdf:'XMLLiteral', compound).
 rdf_datatype('http://purl.org/dc/terms/W3CDTF', dateTime).
 rdf_datatype(D, Type):-
   xsd_datatype(D, Type).
-
-
-
-%! rdf_datatype_term(+Datatype:iri) is semidet.
-%! rdf_datatype_term(-Datatype:iri) is nondet.
-
-rdf_datatype_term(D):-
-  rdf_datatype_term(D, _).
-
-%! rdf_datatype_term(+Datatype:iri, +Graph:atom) is semidet.
-%! rdf_datatype_term(+Datatype:iri, -Graph:atom) is nondet.
-%! rdf_datatype_term(-Datatype:iri, +Graph:atom) is nondet.
-%! rdf_datatype_term(-Datatype:iri, -Graph:atom) is nondet.
-
-rdf_datatype_term(D, G):-
-  user:rdf(_, _, literal(type(D,_)), G).
-rdf_datatype_term(D, G):-
-  rdfs_instance(D, rdfs:'Datatype'),
-  rdf_term(D, G).
 
 
 

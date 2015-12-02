@@ -5,6 +5,8 @@
                        % +Options:list(compound)
     rdf_html_datatype//2, % +Datatype:iri
                           % +Options:list(compound)
+    rdf_html_graph//2, % +Graph:atom
+                       % +Options:list(compound)
     rdf_html_iri//2, % +Iri:iri
                      % +Options:list(compound)
     rdf_html_language_tag//2, % +LanguageTag:atom
@@ -22,8 +24,11 @@
     rdf_html_subject//2, % +Subject:rdf_term
                          % +Options:list(compound)
     rdf_html_term//1, % +Term:rdf_term
-    rdf_html_term//2 % +Term:rdf_term
-                     % +Options:list(compound)
+    rdf_html_term//2, % +Term:rdf_term
+                      % +Options:list(compound)
+    rdf_html_term_in_graph//3 % +Term:rdf_term
+                              % ?Graph:atom
+                              % +Options:list(compound)
   ]
 ).
 
@@ -57,6 +62,7 @@ Generates HTML representations of RDF data.
 :- rdf_meta(rdf_html_subject(r,+,?,?)).
 :- rdf_meta(rdf_html_term(o,?,?)).
 :- rdf_meta(rdf_html_term(o,+,?,?)).
+:- rdf_meta(rdf_html_term_in_graph(o,?,+,?,?)).
 
 :- predicate_options(rdf_html_bnode//2, 2, [
      abbr_list(+boolean),
@@ -65,6 +71,9 @@ Generates HTML representations of RDF data.
 :- predicate_options(rdf_html_datatype//2, 2, [
      pass_to(rdf_html_iri//2, 2)
    ]).
+:- predicate_options(rdf_html_graph//2, 2, [
+     style(+oneof([tuple,turtle]))
+   ]).     
 :- predicate_options(rdf_html_iri//2, 2, [
      abbr_iri(+boolean),
      abbr_list(+boolean),
@@ -103,6 +112,10 @@ Generates HTML representations of RDF data.
      pass_to(rdf_html_iri//2, 2),
      pass_to(rdf_html_literal//2, 2)
    ]).
+:- predicate_options(rdf_html_term_in_graph//3, 3, [
+     pass_to(rdf_html_graph//2, 2),
+     pass_to(rdf_html_term//2, 2)
+   ]).
 
 
 
@@ -129,6 +142,18 @@ rdf_html_bnode(B, _) -->
 
 rdf_html_datatype(D, Opts) -->
   html(span(class=datatype, \rdf_html_iri(D, Opts))).
+
+
+
+%! rdf_html_graph(+Graph:atom, +Options:list(compound))// is det.
+% The following options are supported:
+%   * style(+oneof([tuple,turtle]))
+
+rdf_html_graph(G, Opts) -->
+  {option(style(turtle), Opts)}, !,
+  html([' ',span(class=graph, G)]).
+rdf_html_graph(G, _) -->
+  html(['@',span(class=graph, G)]).
 
 
 
@@ -360,3 +385,18 @@ rdf_html_term(T, Opts) -->
   rdf_html_bnode(T, Opts).
 rdf_html_term(T, Opts) -->
   rdf_html_iri(T, Opts).
+
+
+
+%! rdf_html_term_in_graph(
+%!   +Term:rdf_term,
+%!   ?Graph:atom,
+%!   +Options:list(compound)
+%! )// is det.
+
+rdf_html_term_in_graph(T, G, Opts) -->
+  {var(G)}, !,
+  rdf_html_term(T, Opts).
+rdf_html_term_in_graph(T, G, Opts) -->
+  rdf_html_term(T, Opts),
+  rdf_html_graph(G, Opts).

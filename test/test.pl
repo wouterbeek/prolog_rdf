@@ -17,6 +17,7 @@
 %/html
 :- use_module(library(html/rdf_html_meta)).
 :- use_module(library(html/rdf_html_stmt)).
+:- use_module(library(html/rdf_html_table)).
 :- use_module(library(html/rdf_html_term)).
 %/lod
 :- use_module(library(lod/lod_cache)).
