@@ -43,6 +43,7 @@ Generates HTML representations of RDF data.
 */
 
 :- use_module(library(atom_ext)).
+:- use_module(library(html/element/html_link)).
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
@@ -71,9 +72,6 @@ Generates HTML representations of RDF data.
 :- predicate_options(rdf_html_datatype//2, 2, [
      pass_to(rdf_html_iri//2, 2)
    ]).
-:- predicate_options(rdf_html_graph//2, 2, [
-     style(+oneof([tuple,turtle]))
-   ]).     
 :- predicate_options(rdf_html_iri//2, 2, [
      abbr_iri(+boolean),
      abbr_list(+boolean),
@@ -146,14 +144,9 @@ rdf_html_datatype(D, Opts) -->
 
 
 %! rdf_html_graph(+Graph:atom, +Options:list(compound))// is det.
-% The following options are supported:
-%   * style(+oneof([tuple,turtle]))
 
-rdf_html_graph(G, Opts) -->
-  {option(style(turtle), Opts)}, !,
-  html([' ',span(class=graph, G)]).
 rdf_html_graph(G, _) -->
-  html(['@',span(class=graph, G)]).
+  html(span(class=graph, G)).
 
 
 
@@ -377,6 +370,10 @@ rdf_html_term(T) -->
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
+rdf_html_term(graph(G), Opts) --> !,
+  rdf_html_graph(G, Opts).
+rdf_html_term(link(Link,Label), _) --> !,
+  html_link(Link, Label).
 rdf_html_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
   html(span(class=term, \rdf_html_literal(T, Opts))).
