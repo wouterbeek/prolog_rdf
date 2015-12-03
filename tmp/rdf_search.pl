@@ -1,11 +1,11 @@
 :- module(
   rdf_search,
   [
-    rdf_beam/5, % +Options:list(nvpair)
-                % +RootVertex:vertex
+    rdf_beam/5, % +RootVertex:vertex
                 % +Predicates:list
                 % -Vertices:ordset(vertex)
                 % -Edges:ordset(edge)
+                % +Options:list(compound)
     rdf_breadth_first/5 % +Set:oneof([ground,list,ordset])
                         % +R1:iri
                         % +R2:iri
@@ -19,17 +19,13 @@
 Searching through an RDF graph.
 
 @author Wouter Beek
-@version 2013/05, 2014/07
+@version 2013/05, 2014/07, 2015/12
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plGraph(s_graph/s_graph)).
-
-:- use_module(plRdf(graph/rdf_graph_theory)).
+:- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta(rdf_beam(+,r,+,-,-)).
 :- rdf_meta(rdf_breadth_first(+,r,r,-,-)).
@@ -40,19 +36,19 @@ Searching through an RDF graph.
 
 
 %! rdf_beam(
-%!   +Options:list(nvpair),
 %!   +RootVertex,
 %!   +Predicates:list,
-%!   -Vertices:ordset(vertex),
-%!   -Edges:ordset(edge)
+%!   -Vertices:ordset,
+%!   -Edges:ordset(edge),
+%!   +Options:list(compound)
 %! ) is det.
 
-rdf_beam(O, V, Ps, Vs, Es):-
-  rdf_beam(O, [V], Ps, Vs, [], Es).
+rdf_beam(V, Ps, Vs, Es, Opts):-
+  rdf_beam([V], Ps, Vs, [], Es, Opts).
 
-rdf_beam(_O, [], _Ps, AllVs, AllEs, AllEs):-
+rdf_beam([], _Ps, AllVs, AllEs, AllEs, _):-
   s_edges_vertices(AllEs, AllVs), !.
-rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
+rdf_beam(Vs, Ps, AllVs, Es, AllEs, Opts):-
   aggregate_all(
     set(V-NextV),
     (
@@ -65,7 +61,9 @@ rdf_beam(O, Vs, Ps, AllVs, Es, AllEs):-
   ),
   ord_union(Es, NextEs, NewEs),
   s_edges_vertices(NextEs, NextVs),
-  rdf_beam(O, NextVs, Ps, AllVs, NewEs, AllEs).
+  rdf_beam(NextVs, Ps, AllVs, NewEs, AllEs, Opts).
+
+
 
 %! rdf_breadth_first(
 %!   +As:or([iri,list(iri),ordset(iri)]),
@@ -96,7 +94,7 @@ rdf_breadth_first(A1, R_AB, R_BA, HistA1, HistB1, SolA, SolB):-
     set(B),
     (
       member(A, A1),
-      rdf_has(B, R_AB, A),
+      grdf_has(B, R_AB, A),
       \+ member(B, HistB1)
     ),
     B2
@@ -106,7 +104,7 @@ rdf_breadth_first(A1, R_AB, R_BA, HistA1, HistB1, SolA, SolB):-
     set(A),
     (
       member(B, B2),
-      rdf_has(B, R_BA, A),
+      grdf_has(B, R_BA, A),
       \+ member(A, HistA1)
     ),
     A2
@@ -117,4 +115,3 @@ rdf_breadth_first(A1, R_AB, R_BA, HistA1, HistB1, SolA, SolB):-
   ord_union(HistB1, B2, HistB2),
 
   rdf_breadth_first(A2, R_AB, R_BA, HistA2, HistB2, SolA, SolB).
-

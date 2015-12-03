@@ -40,7 +40,6 @@
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdfs/rdfs_read)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_print_graph(r,+,?,?)).

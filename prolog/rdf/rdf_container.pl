@@ -44,7 +44,7 @@ Support for RDF containers (sequence, bag, and alternatives).
 
 @author Wouter Beek
 @tbd Add predicates for building containers.
-@version 2015/08
+@version 2015/08, 2015/12
 */
 
 :- use_module(library(aggregate)).
@@ -55,8 +55,6 @@ Support for RDF containers (sequence, bag, and alternatives).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_read)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 
 :- rdf_meta(rdf_alt(o,?)).
 :- rdf_meta(rdf_alt(o,?,?)).
@@ -113,7 +111,7 @@ rdf_alt_raw(L1, L2):-
 rdf_alt_raw(L1, L2, G):-
   rdfs_instance(L1, rdf:'Alt'),
   % Satisfy graph restriction, if present.
-  (ground(G) -> once(rdf_term(L1, G)) ; true),
+  (ground(G) -> once(grdf_term(G, L1)) ; true),
   rdf_collection0(L1, L2, G).
 
 
@@ -186,7 +184,7 @@ rdf_bag_raw(L1, L2):-
 rdf_bag_raw(L1, L2, G):-
   rdfs_instance(L1, rdf:'Seq'),
   % Satisfy graph restriction, if present.
-  (ground(G) -> once(rdf_term(L1, G)) ; true),
+  (ground(G) -> once(grdf_term(G, L1)) ; true),
   rdf_collection0(L1, L2, G).
 
 
@@ -256,7 +254,7 @@ rdf_seq_raw(L1, L2):-
 rdf_seq_raw(L1, L2, G):-
   rdfs_instance(L1, rdf:'Seq'),
   % Satisfy graph restriction, if present.
-  (ground(G) -> once(rdf_term(L1, G)) ; true),
+  (ground(G) -> once(grdf_term(G, L1)) ; true),
   rdf_collection0(L1, L2, G).
 
 

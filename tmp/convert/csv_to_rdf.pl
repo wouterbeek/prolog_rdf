@@ -14,22 +14,14 @@
 Automatic conversion from CSV to RDF.
 
 @author Wouter Beek
-@version 2014/02, 2014/05, 2014/08, 2014/11, 2015/03
+@version 2014/02, 2014/05, 2014/08, 2014/11, 2015/03, 2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(debug)).
 :- use_module(library(pure_input)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_unicode)).
-:- use_module(plc(generics/row_ext)).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(api/rdfs_build)).
+:- use_module(library(rdf/rdf_build)).
 
 
 

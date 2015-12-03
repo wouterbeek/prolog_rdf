@@ -9,19 +9,12 @@
 /** <module> BibTeX to RDF converter
 
 @author Wouter Beek
-@version 2015/05
+@version 2015/05, 2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(lambda)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(dcg/dcg_atom)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/language/bibtex)).
-:- use_module(plc(generics/hash)).
-
-:- use_module(plRdf(api/rdf_build)).
+:- use_module(library(rdf/rdf_build)).
 
 :- rdf_register_prefix(lobo, 'http://linkedopenbibtex.org/ontology/').
 :- rdf_register_prefix(lobr, 'http://linkedopenbibtex.org/resource/').

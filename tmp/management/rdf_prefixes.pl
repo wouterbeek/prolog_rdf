@@ -31,18 +31,14 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 
 @author Wouter Beek
 @tbd Add prefixes that occur in http://dbpedia.org/sparql?nsdecl
-@version 2014-2015
+@version 2014-2015, 2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
-:- use_module(library(lists), except([delete/3,subset/2])).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(lists)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(uri)).
-
-:- use_module(plHttp(download_to_file)).
-
-:- use_module(plRdf(management/rdf_prefix)).
 
 
 

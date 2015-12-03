@@ -45,7 +45,7 @@
 /** <module> Generate HTML representations of RDF statements
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/09, 2015/12
 */
 
 :- use_module(library(error)).
@@ -54,7 +54,6 @@
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_read)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdf_html_describe(o,?,?)).
 :- rdf_meta(rdf_html_describe(o,+,?,?)).

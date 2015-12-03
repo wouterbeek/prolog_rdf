@@ -1,21 +1,22 @@
 :- module(
   rdf_graph,
   [
-    rdf_cp_graph/2, % +From:atom
-                    % +To:atom
-    rdf_fresh_graph/2, % ?Graph:atom
-                          % +FreshnessLifetime:between(0.0,inf)
-    rdf_graph_age/2, % ?Graph:atom
+    grdf_graph/1, % ?Graph:rdf_graph
+    rdf_cp_graph/2, % +From:rdf_graph
+                    % +To:rdf_graph
+    rdf_fresh_graph/2, % ?Graph:rdf_graph
+                       % +FreshnessLifetime:between(0.0,inf)
+    rdf_graph_age/2, % ?Graph:rdf_graph
                      % -Age:between(0.0,inf)
     rdf_is_graph/1, % @Term
-    rdf_mv_graph/2, % +From:atom
-                    % +To:atom
-    rdf_new_graph/1, % -Graph:atom
-    rdf_new_graph/2, % +Name:atom
-                     % -Graph:atom
-    rdf_stale_graph/2, % ?Graph:atom
+    rdf_mv_graph/2, % +From:rdf_graph
+                    % +To:rdf_graph
+    rdf_new_graph/1, % -Graph:rdf_graph
+    rdf_new_graph/2, % +Name:rdf_graph
+                     % -Graph:rdf_graph
+    rdf_stale_graph/2, % ?Graph:rdf_graph
                        % +FreshnessLifetime:between(0.0,inf)
-    rdf_tmp_graph/1 % -Graph:atom
+    rdf_tmp_graph/1 % -Graph:rdf_graph
   ]
 ).
 
@@ -25,20 +26,35 @@
 @compat RDF 1.1 Semantics
 @license MIT
 @see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2015/12
 */
 
 :- use_module(library(atom_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(rdf/rdf_update)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
+:- rdf_meta(grdf_graph(r)).
+:- rdf_meta(rdf_cp_graph(r,r)).
+:- rdf_meta(rdf_fresh_graph(r,+)).
+:- rdf_meta(rdf_graph_age(r,-)).
+:- rdf_meta(rdf_mv_graph(r,r)).
+:- rdf_meta(rdf_new_graph(r,-)).
+:- rdf_meta(rdf_stale_graph(r,?)).
 
 
 
 
-%! rdf_cp_graph(+From:atom, +To:atom) is det.
+
+%! grdf_graph(+Graph:rdf_graph) is semidet.
+%! grdf_graph(-Graph:rdf_graph) is multi.
+
+grdf_graph(G):-
+  rdf_graph(G).
+
+
+
+%! rdf_cp_graph(+From:rdf_graph, +To:rdf_graph) is det.
 
 rdf_cp_graph(From, From):- !.
 rdf_cp_graph(From, To):-
@@ -47,11 +63,11 @@ rdf_cp_graph(From, To):-
 
 
 %! rdf_fresh_graph(
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   +FreshnessLifetime:between(0.0,inf)
 %! ) is semidet.
 %! rdf_fresh_graph(
-%!   -Graph:atom,
+%!   -Graph:rdf_graph,
 %!   +FreshnessLifetime:between(0.0,inf)
 %! ) is nondet.
 % Succeeds for currently loaded RDF graphs whose age is below
@@ -63,8 +79,8 @@ rdf_fresh_graph(G, FLT):-
 
 
 
-%! rdf_graph_age(+Graph:atom, -Age:between(0.0,inf)) is det.
-%! rdf_graph_age(-Graph:atom, -Age:between(0.0,inf)) is nondet.
+%! rdf_graph_age(+Graph:rdf_graph, -Age:between(0.0,inf)) is det.
+%! rdf_graph_age(-Graph:rdf_graph, -Age:between(0.0,inf)) is nondet.
 % Succeeds if Age is the age (in seconds) of a currently loaded RDF Graph.
 
 rdf_graph_age(G, Age):-
@@ -86,11 +102,11 @@ rdf_graph_age(G, Age):-
 
 rdf_is_graph(G):-
   atom(G),
-  (G == user ; rdf_graph(G)), !.
+  (G == default, ! ; rdf_graph(G)).
 
 
 
-%! rdf_mv_graph(+From:atom, +To:atom) is det.
+%! rdf_mv_graph(+From:rdf_graph, +To:rdf_graph) is det.
 
 rdf_mv_graph(From, To):-
   rdf_mv(From, _, _, _, To),
@@ -98,40 +114,44 @@ rdf_mv_graph(From, To):-
 
 
 
-%! rdf_new_graph(-Graph:atom) is det.
+%! rdf_new_graph(-Graph:rdf_graph) is det.
 
 rdf_new_graph(G):-
-  rdf_new_graph(noname, G).
+  rdf_new_graph(ex:unnamed, G).
 
 
-%! rdf_new_graph(+Base:atom, -Graph:atom) is det.
+%! rdf_new_graph(+Base:rdf_graph, -Graph:rdf_graph) is det.
 
-rdf_new_graph(Base, G):-
-  atomic_concat(/, Base, Path),
-  uri_components(GPrefix, uri_components(http,'example.com',Path,_,_)),
+rdf_new_graph(G1, G):-
+  rdf_global_id(Prefix:Local, G1), !,
+  (rdf_new_graph_try(G1, G), ! ; new_atom(G1, G2), rdf_new_graph(G2, G)).
+rdf_new_graph(G1, G):-
+  uri_components(G1, uri_components(Scheme,Auth,Path1,_,_)),
+  % Remove the query and fragment parts, if any.
+  uri_components(G2, uri_components(Scheme,Auth,Path1,_,_)),
+  (   rdf_new_graph_try(G2, G), !
+  ;   new_atom(Path1, Path2),
+      uri_components(G2, uri_components(Scheme,Auth,Path2,_,_)),
+      rdf_new_graph(G2, G)
+  ).
+rdf_new_graph(G1, G):-
+  rdf_global_id(ex:G1, G2),
+  rdf_new_graph(G2, G).
+
+rdf_new_graph_try(G):-
   with_mutex(rdf_graph, (
-    rdf_new_graph_iri(GPrefix, G),
+    \+ grdf_graph(G),
     rdf_create_graph(G)
   )).
 
 
-% The graph name is new.
-rdf_new_graph_iri(G, G):-
-  \+ rdf_graph(G), !.
-% An RDF graph with the same name already exists,
-% so come up with another name.
-rdf_new_graph_iri(GPrefix, G):-
-  new_atom(GPrefix, GTmp),
-  rdf_new_graph_iri(GTmp, G).
-
-
 
 %! rdf_stale_graph(
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   +FreshnessLifetime:between(0.0,inf)
 %! ) is semidet.
 %! rdf_stale_graph(
-%!   -Graph:atom,
+%!   -Graph:rdf_graph,
 %!   +FreshnessLifetime:between(0.0,inf)
 %! ) is nondet.
 % Succeeds for currently loaded graphs whose age is over the given
@@ -143,7 +163,7 @@ rdf_stale_graph(G, FLT):-
 
 
 
-%! rdf_tmp_graph(-Graph:atom) is det.
+%! rdf_tmp_graph(-Graph:rdf_graph) is det.
 
 rdf_tmp_graph(G):-
-  rdf_new_graph(tmp, G).
+  rdf_new_graph(ex:tmp, G).

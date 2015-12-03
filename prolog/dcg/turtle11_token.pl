@@ -33,7 +33,7 @@
 
 @author Wouter Beek
 @compat Turtle 1.1
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ascii)).
@@ -42,7 +42,6 @@
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/turtle11_code)).
 :- use_module(library(math/rational_ext)).
-:- use_module(library(semweb/rdf_db)).
 
 
 

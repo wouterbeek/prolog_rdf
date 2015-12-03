@@ -48,7 +48,7 @@ Support for reading/writing RDF lists.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/10
+@version 2015/07-2015/10, 2015/12
 */
 
 :- use_module(library(apply)).
@@ -56,8 +56,6 @@ Support for reading/writing RDF lists.
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_assert_list(t,r)).

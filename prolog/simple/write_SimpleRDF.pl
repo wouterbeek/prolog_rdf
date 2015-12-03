@@ -48,7 +48,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 @author Wouter Beek
 @author Jan Wielemaker
 @author Laurens Rietveld
-@version 2015/08, 2015/10-2015/11
+@version 2015/08, 2015/10-2015/12
 */
 
 :- use_module(library(apply)).
@@ -57,7 +57,6 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_bnode_name)). % Private
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/turtle)). % Private
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
@@ -153,15 +152,15 @@ write_simple_graph(G, Opts):-
   option(format(Format), Opts, _),
   (   nonvar(Format)
   ->  must_be(oneof([quadruples,triples]), Format)
-  ;   rdf_graph(G),
+  ;   grdf_graph(G),
       G \== user,
-      user:rdf(_, _, _, G:_)
+      grdf(_, _, _, G:_)
   ->  must_be(iri, G),
       Format = quadruples
   ;   Format = triples
   ),
 
-  findall(S, rdf_db:rdf(S, _, _, G), Ss),
+  findall(S, grdf(S, _, _, G), Ss),
   sort(Ss, SortedSs),
   maplist(write_simple_subject(BNodePrefix, CT, CQ, G, Format), SortedSs),
 
@@ -267,7 +266,7 @@ write_simple_subject(Iri, _):-
 
 % Format: Quadruples.
 write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S):-
-  findall(P-O-G, rdf_db:rdf(S, P, O, G:_), POGs),
+  findall(P-O-G, grdf(S, P, O, G:_), POGs),
   sort(POGs, SortedPOGs),
   forall(
     member(P-O-G, SortedPOGs),
@@ -275,7 +274,7 @@ write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S):-
   ).
 % Format: Triples.
 write_simple_subject(BNodePrefix, CT, _, G, triple, S):-
-  findall(P-O, rdf_db:rdf(S, P, O, G:_), POs),
+  findall(P-O, grdf(S, P, O, G:_), POs),
   sort(POs, SortedPOs),
   forall(
     member(P-O, SortedPOs),

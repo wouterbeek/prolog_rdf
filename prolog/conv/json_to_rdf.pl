@@ -2,12 +2,12 @@
   json_to_rdf,
   [
     json_to_rdf/5, % +Graph, +Module, +Prefix, +Json, ?Resource
-    json_to_rdf/6 % +Graph:atom
+    json_to_rdf/6 % +Graph:rdf_graph
                   % +Module:atom
                   % +SchemaPrefix:atom
                   % +DataPrefix:atom
                   % +Json:dict
-                  % ?Resource:or([iri,list(iri)])
+                  % ?Resources:or([rdf_term,list(rdf_term)])
   ]
 ).
 
@@ -19,7 +19,7 @@ This requires a Prolog module whose name is also registered as
 the RDF prefix that is used for the RDF vocabulary.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/12
 */
 
 :- use_module(library(aggregate)).
@@ -33,7 +33,6 @@ the RDF prefix that is used for the RDF vocabulary.
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdfs/rdfs_build)).
-:- use_module(library(semweb/rdf_db)).
 
 
 
@@ -65,7 +64,7 @@ property_name(property(Name, _), Name).
 %!   +SchemaPrefix:atom,
 %!   +DataPrefix:atom,
 %!   +Legend:atom,
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   ?Resource:iri
 %! ) is det.
 

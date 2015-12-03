@@ -13,21 +13,11 @@
 Automated conversion from Prolog terms to RDF triples.
 
 @author Wouter Beek
-@version 2014/01, 2014/11
+@version 2014/01, 2014/11, 2015/12
 */
 
 :- use_module(library(apply)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(dcg/dcg_atom)).
-:- use_module(plc(dcg/dcg_generics)).
-
-:- use_module(plXsd(xsd)).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(api/rdfs_build)).
-:- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdf_literal)).
+:- use_module(library(rdf/rdf_build)).
 
 
 

@@ -26,35 +26,14 @@
 Converts XML DOMs to RDF graphs.
 
 @author Wouter Beek
-@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11, 2015/02
+@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11, 2015/02, 2015/12
 */
 
 :- use_module(library(debug)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(pure_input)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(uri)).
-
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(dcg/dcg_peek)).
-:- use_module(plc(dcg/dcg_replace)).
-:- use_module(plc(io/file_ext)).
-
-:- use_module(plXml(syntax/xml_element), [
-  'EmptyElemTag'//3,
-  'ETag@xml'//1 as 'ETag',
-  'STag'//3
-]).
-:- use_module(plXml(syntax/xml_prolog)).
-
-:- use_module(plXsd(xsd)).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(debug/rdf_deb)).
-:- use_module(plRdf(term/rdf_container)).
 
 :- meta_predicate(create_resource(+,+,3,+,+,-,-)).
 :- meta_predicate(create_triples(+,+,3,+,+,-)).

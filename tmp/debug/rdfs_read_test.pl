@@ -4,9 +4,7 @@
 
 :- begin_tests(rdfs_read).
 
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])). % rdf_meta/1
-
-:- use_module(plRdf(api/rdfs_read)).
+:- use_module(library(rdf/rdf_build)).
 
 :- rdf_meta(test_triple(?,r,r,o)).
 
@@ -16,9 +14,9 @@ test(rdf_query, [forall(test_triple(M, S, P, O))]):-
 
 %! test_triple(
 %!   ?Mode:compound,
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
-%!   ?Object:or([bnode,literal,iri])
+%!   ?Object:rdf_term
 %! ) is nondet.
 
 test_triple(m(t,f,f), rdfs:'Resource',    rdf:type, rdfs:'Class'  ).
@@ -45,4 +43,3 @@ test_triple(m(t,f,f), rdfs:comment,       rdf:type, rdf:'Property').
 test_triple(m(t,f,f), rdfs:label,         rdf:type, rdf:'Property').
 
 :- end_tests(rdfs_read).
-

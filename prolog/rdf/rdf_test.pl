@@ -4,16 +4,16 @@
 
 @author Wouter Beek
 @tbd Check out ClioPatria's test_manifest.pl
-@version 2015/08
+@version 2015/08, 2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(os/io_ext)).
 :- use_module(library(rdf/rdf_clean)).
+:- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(semweb/turtle)).
 

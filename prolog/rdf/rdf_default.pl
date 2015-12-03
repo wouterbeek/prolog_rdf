@@ -9,10 +9,10 @@
 /** <module> RDF default
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/12
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(rdf/rdf_prefix)).
 
 :- rdf_meta(rdf_defval(r,-)).
 

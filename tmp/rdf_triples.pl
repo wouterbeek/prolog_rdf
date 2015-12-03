@@ -36,15 +36,12 @@
 Support for RDF triple compound terms.
 
 @author Wouter Beek
-@version 2014/11, 2015/03, 2015/05
+@version 2014/11, 2015/03, 2015/05, 2015/12
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(lists), except([delete/3,subset/2])).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(term/rdf_term)).
+:- use_module(library(lists)).
+:- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta(rdf_ground_triple(r,r,o,?)).
 :- rdf_meta(rdf_is_ground_triple(t)).
@@ -74,14 +71,14 @@ rdf_assert(T, G):-
 %! rdf_assert_triple(+Triple:compound) is det.
 
 rdf_assert_triple(rdf(S,P,O)):-
-  rdf_assert(S, P, O).
+  grdf_assert(S, P, O).
 
 
 
 %! rdf_assert_triple(+Triple:compound, +Graph:atom) is det.
 
 rdf_assert_triple(rdf(S,P,O), G):-
-  rdf_assert(S, P, O, G).
+  grdf_assert(S, P, O, G).
 
 
 
@@ -93,7 +90,7 @@ rdf_assert_triple(rdf(S,P,O), G):-
 %! ) is nondet.
 
 rdf_ground_triple(S, P, O, G):-
-  user:rdf(S, P, O, G),
+  grdf(S, P, O, G),
   rdf_is_ground_triple(rdf(S,P,O)).
 
 
@@ -159,7 +156,7 @@ rdf_is_triple(rdf(S,P,O)):-
 %! ) is nondet.
 
 rdf_nonground_triple(S, P, O, G):-
-  user:rdf(S, P, O, G),
+  grdf(S, P, O, G),
   rdf_is_nonground_triple(rdf(S,P,O)).
 
 
@@ -169,7 +166,7 @@ rdf_nonground_triple(S, P, O, G):-
 rdf_triples(Graph, Triples):-
   aggregate_all(
     set(rdf(S,P,O)),
-    user:rdf(S, P, O, Graph),
+    grdf(S, P, O, Graph),
     Triples
   ).
 

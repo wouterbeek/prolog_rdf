@@ -28,7 +28,6 @@
 */
 
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf_db)).
 
 
 

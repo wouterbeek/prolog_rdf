@@ -15,7 +15,7 @@
 /** <module> RDF stream
 
 @author Wouter Beek
-@version 2015/08-2015/11
+@version 2015/08-2015/12
 */
 
 :- use_module(library(apply)).
@@ -32,7 +32,6 @@
 :- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_guess)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri/uri_ext)).

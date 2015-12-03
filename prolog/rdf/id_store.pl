@@ -1,34 +1,50 @@
 :- module(
   id_store,
   [
-    assign_term_id/2, % ?Term:rdf_term
-                      % ?IdSet:uri
+    id_assign_literal/2, % ?Literal:rdf_literal
+                         % ?Id:uid
+    id_assign_term/2, % ?Term:rdf_term
+                      % ?Id:or([rdf_literal,uid])
+    id_to_literal/2, % ?Id:uid
+                     % ?Literal:rdf_literal
     id_terms/1, % ?Terms:ordset(rdf_term)
-    id_to_term/2, % +IdSet:uid
+    id_to_term/2, % +Id:or([rdf_literal,uid])
                   % -Term:rdf_term
-    id_to_terms/2, % +IdSet:uid
+    id_to_terms/2, % +Id:or([rdf_literal,uid])
                    % -Terms:ordset(rdf_term)
-    print_id_store/0,
-    print_id_store/1, % +Options:list(compound)
-    remove_id/1, % +IdSet:uid
-    store_id/1, % +Terms:list(rdf_term)
-    store_id/2, % +Term1:rdf_term
+    id_print_store/0,
+    id_print_store/1, % +Options:list(compound)
+    id_remove/1, % +Id:or([rdf_literal,uid])
+    id_store/1, % +Terms:list(rdf_term)
+    id_store/2, % +Term1:rdf_term
                 % +Term2:rdf_term
+    literal_to_id/2, % +Literal:rdf_literal
+                     % -Id:or([rdf_literal,uid])
     term_to_id/2, % +Term:rdf_term
-                  % -IdSet:uri
+                  % -Id:or([rdf_literal,uid])
     term_to_term/2, % +Term1:rdf_term
                     % -Term2:rdf_term
     term_to_terms/2, % +Term:rdf_term
                      % -Terms:ordset(rdf_term)
     var_or_term_to_id/2 % ?Term:rdf_term
-                        % ?IdSet:uid
+                        % ?Id:or([rdf_literal,uid])
   ]
 ).
 
 /** <module> Identity store
 
+RDF terms are mapped to/from identity set identifiers.
+
+RDF terms are either blank nodes, IRIs or literals.
+
+Identity set identifiers are either UIDs or literals.
+
+A UID identity set identifier denotes a set of blank nodes and/or IRIs.
+
+A literal identity set identifier denotes itself.
+
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2015/12
 */
 
 :- use_module(library(dcg/dcg_collection)).
@@ -38,28 +54,31 @@
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(semweb/rdf_db)).
 
-:- rdf_meta(assign_term_id(o,?)).
+:- rdf_meta(id_assign_term(o,?)).
 :- rdf_meta(id_terms(t)).
-:- rdf_meta(store_id(t)).
-:- rdf_meta(store_id(o,o)).
+:- rdf_meta(id_to_literal(+,-)).
+:- rdf_meta(id_store(t)).
+:- rdf_meta(id_store(o,o)).
+:- rdf_meta(literal_to_id(o,-)).
 :- rdf_meta(term_to_id(o,-)).
 :- rdf_meta(term_to_term(o,-)).
 :- rdf_meta(term_to_terms(o,-)).
 :- rdf_meta(var_or_term_to_id(o,?)).
 
-%! id_terms0(?IdSet:uid, ?Terms:ordset(rdf_term)) is nondet.
+%! id_to_literal(?Literal:rdf_literal, ?Id:uid) is nondet.
+
+:- dynamic(id_to_literal/2).
+
+%! id_terms0(?Id:uid, ?Terms:ordset(or([rdf_bnode,iri]))) is nondet.
 
 :- dynamic(id_terms0/2).
 
-%! term_id0(?Term:rdf_term, IdSet:uid) is nondet.
+%! term_id0(?Term:or([rdf_bnode,iri]), Id:uid) is nondet.
 
 :- dynamic(term_id0/2).
-
-:- dynamic(id_counter/1).
-id_counter(0).
 
 :- predicate_options(print_id_store/1, 1, [
      pass_to(rdf_print_term//2, 2)
@@ -69,13 +88,24 @@ id_counter(0).
 
 
 
-%! assign_term_id(?Term:rdf_term, -IdSet:uid) is det.
+%! id_assign_literal(+Literal:rdf_literal, -Id:uid) is det.
 
-assign_term_id(T, TId):-
+id_assign_literal(Lit, Id):-
+  id_to_literal(Lit, Id), !.
+id_assign_literal(Lit, Id):-
+  rdf_bnode(BNode),
+  id_assign_term(BNode, Id),
+  assert(id_literal(Lit, Id)).
+
+
+
+%! id_assign_term(?Term:rdf_term, -Id:uid) is det.
+
+id_assign_term(T, TId):-
   var_or_term_to_id(T, TId), !.
-assign_term_id(T, TId):-
+id_assign_term(T, TId):-
   fresh_id(TId),
-  with_mutex(store_id, store_term0(T, TId)).
+  with_mutex(id_store, store_term0(T, TId)).
 
 
 
@@ -93,7 +123,7 @@ id_terms(Ts):-
 
 
 
-%! id_to_term(+IdSet:uid, +Term:rdf_term) is multi.
+%! id_to_term(+Id:uid, +Term:rdf_term) is multi.
 
 id_to_term(Id, T):-
   nonvar(Id), !,
@@ -107,26 +137,26 @@ id_to_term(Id, T):-
 
 
 
-%! id_to_terms(+IdSet:uid, -Terms:ordset(rdf_term)) is multi.
+%! id_to_terms(+Id:uid, -Terms:ordset(rdf_term)) is multi.
 
 id_to_terms(Id, Ts):-
   id_terms0(Id, Ts).
 
 
 
-%! print_id_store is det.
-% Wrapper around print_id_store/1 with default options.
+%! id_print_store is det.
+% Wrapper around id_print_store/1 with default options.
 
-print_id_store:-
-  print_id_store([]).
+id_print_store:-
+  id_print_store([]).
 
 
-%! print_id_store(+Options:list(compound)) is det.
+%! id_print_store(+Options:list(compound)) is det.
 % The following options are supported:
 %   * indent(+nonneg)
 %     Default is 0.
 
-print_id_store(Opts):-
+id_print_store(Opts):-
   option(indent(N), Opts, 0),
   forall(
     id_terms0(Id, Ts),
@@ -141,9 +171,9 @@ print_id_store(Opts):-
 
 
 
-%! remove_id(+Id:uid) is det.
+%! id_remove(+Id:uid) is det.
 
-remove_id(Id):-
+id_remove(Id):-
   with_mutex(id_store, (
     retractall(id_terms0(Id,_)),
     retractall(term_id0(_,Id))
@@ -152,18 +182,20 @@ remove_id(Id):-
 
 
 
-%! store_id(+Terms:list(rdf_term)) is det.
+%! id_store(+Terms:list(rdf_term)) is det.
 
-store_id([H1,H2|T]):-
-  store_id(H1, H2), !,
-  store_id([H2|T]).
-store_id([_]):- !.
-store_id([]).
+id_store([H1,H2|T]):-
+  id_store(H1, H2), !,
+  id_store([H2|T]).
+id_store([_]):- !.
+id_store([]).
 
 
-%! store_id(+X:rdf_term, +Y:rdf_term) is det.
+%! id_store(+X:rdf_term, +Y:rdf_term) is det.
 
-store_id(X, Y):-
+id_store(X, X):-
+  rdf_is_literal(X).
+id_store(X, Y):-
   (   term_id0(X, XId)
   ->  (   term_id0(Y, YId)
       ->  (   % X and Y already belong to the same identity set.
@@ -174,7 +206,7 @@ store_id(X, Y):-
               id_terms0(YId, Ys),
               ord_union(Xs, Ys, Zs),
               fresh_id(ZId),
-              with_mutex(store_id, (
+              with_mutex(id_store, (
                 retract(term_id0(X, XId)),
                 retract(id_terms0(XId, Xs)),
                 retract(term_id0(Y, YId)),
@@ -189,7 +221,7 @@ store_id(X, Y):-
       ;   % Add Y to the identity set of X.
           id_terms0(XId, Xs1),
           ord_add_element(Xs1, Y, Xs2),
-          with_mutex(store_id, (
+          with_mutex(id_store, (
             retract(id_terms0(XId, Xs1)),
             assert(id_terms0(XId, Xs2)),
             assert(term_id0(Y, XId))
@@ -199,14 +231,14 @@ store_id(X, Y):-
   ->  % Add X to the identity set of Y.
       id_terms0(YId, Ys1),
       ord_add_element(Ys1, X, Ys2),
-      with_mutex(store_id, (
+      with_mutex(id_store, (
         retract(id_terms0(YId, Ys1)),
         assert(id_terms0(YId, Ys2)),
         assert(term_id0(X, YId))
       ))
   ;   fresh_id(XId),
       fresh_id(YId),
-      with_mutex(store_id, (
+      with_mutex(id_store, (
         store_term0(X, XId),
         store_term0(Y, YId)
       ))
@@ -214,8 +246,15 @@ store_id(X, Y):-
 
 
 
-%! term_to_id(+Term:rdf_term, -IdSet:uid) is det.
+literal_to_id(Lit, Id):-
+  id_to_literal(Id, Lit).
 
+
+
+%! term_to_id(+Term:rdf_term, -Id:or([rdf_literal,uid])) is det.
+
+term_to_id(Lit, Lit):-
+  rdf_is_literal(Lit), !.
 term_to_id(T, Id):-
   term_id0(T, Id).
 
@@ -237,7 +276,7 @@ term_to_terms(T, Ts):-
 
 
 
-%! var_or_term_to_id(?Term:rdf_term, ?IdSet:uid) is det.
+%! var_or_term_to_id(?Term:rdf_term, ?Id:or([rdf_literal,uid])) is det.
 
 var_or_term_to_id(T, _):-
   var(T), !.
@@ -253,28 +292,24 @@ var_or_term_to_id(T, TId):-
 %! fresh_id(-Id:nonneg) is det.
 
 fresh_id(Id):-
-  with_mutex(store_id, (
-    retract(id_counter(M)),
-    succ(M, N),
-    assert(id_counter(N))
-  )),
-  atom_number(Id, M).
+  flag(id_counter, N, N + 1),
+  atom_number(Id, N).
 
 
 
 %! rdf_rename_term(+From, +To) is det.
 
 rdf_rename_term(X, Y):-
-  forall(rdf_db:rdf(X, P, O), rdf_db:rdf_assert(Y, P, O)),
-  rdf_db:rdf_retractall(X, _, _),
-  forall(rdf_db:rdf(S, X, O), rdf_db:rdf_assert(S, Y, O)),
-  rdf_db:rdf_retractall(_, X, _),
-  forall(rdf_db:rdf(S, P, X), rdf_db:rdf_assert(S, P, Y)),
-  rdf_db:rdf_retractall(_, _, X).
+  forall(rdf(X, P, O), rdf_assert(Y, P, O)),
+  grdf_retractall(X, _, _),
+  forall(rdf(S, X, O), rdf_assert(S, Y, O)),
+  grdf_retractall(_, X, _),
+  forall(rdf(S, P, X), rdf_assert(S, P, Y)),
+  grdf_retractall(_, _, X).
   
 
 
-%! store_term0(+Term:rdf_term, +TermId:uid) is det.
+%! store_term0(+Term:or([rdf_bnode,iri]), +Id:uid) is det.
 
 store_term0(T, TId):-
   assert(term_id0(T, TId)),

@@ -1,6 +1,8 @@
 :- module(
   rdfs_read,
   [
+    rdfs_class/2, % ?Class:rdf_term
+                  % ?Graph:atom
     rdfs_comment/2, % ?Subject:rdf_term
                     % ?Comment:atom
     rdfs_instance/2, % ?Instance:rdf_term
@@ -13,27 +15,45 @@
                  % ?LanguagePriorityList:or([atom,list(atom)])
                  % -LanguageTag:atom
                  % -LexicalForm:atom
-		 % ?Graph:atom
+                 % ?Graph:atom
   ]
 ).
 
 /** <module> RDFS read
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/09, 2015/12
 */
 
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_read)).
-:- use_module(library(owl/owl_read)).
 :- use_module(library(semweb/rdfs)).
 
+:- rdf_meta(rdfs_class(o,?)).
 :- rdf_meta(rdfs_comment(o,?)).
 :- rdf_meta(rdfs_instance(o,r)).
 :- rdf_meta(rdfs_label(o,+,-,-)).
 :- rdf_meta(rdfs_label(o,+,-,-,?)).
 
 
+
+
+
+%! rdfs_class(?Class:rdf_term, ?Graph:atom) is nondet.
+% @tbd
+
+rdfs_class(C, G):-
+  user:rdf(C, rdf:type, rdfs:'Class', G).
+rdfs_class(C, G):-
+  user:rdf(_, rdf:type, C, G).
+rdfs_class(C, G):-
+  user:rdf(_, rdfs:domain, C, G).
+rdfs_class(C, G):-
+  user:rdf(_, rdfs:range, C, G).
+rdfs_class(C, G):-
+  user:rdf(C, rdfs:subClassOf, _, G).
+rdfs_class(C, G):-
+  user:rdf(_, rdfs:subClassOf, C, G).
 
 
 

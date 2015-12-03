@@ -12,7 +12,7 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/08-2015/11
+@version 2015/08-2015/12
 */
 
 :- use_module(library(apply)).
@@ -26,7 +26,6 @@
 :- use_module(library(msg_ext)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/open_any2)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(sgml/sgml_ext)).
 :- use_module(library(typecheck)).
 

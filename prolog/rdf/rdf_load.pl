@@ -21,7 +21,7 @@ Support for loading RDF data.
 
 @author Wouter Beek
 @license MIT license
-@version 2015/08, 2015/10-2015/11
+@version 2015/08, 2015/10-2015/12
 */
 
 :- use_module(library(apply)).
@@ -34,7 +34,6 @@ Support for loading RDF data.
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
 :- use_module(library(uuid_ext)).

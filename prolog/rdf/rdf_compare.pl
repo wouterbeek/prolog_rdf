@@ -16,12 +16,11 @@
 /** <module> RDF compare
 
 @author Wouter Beek
-@version 2015/10-2015/11
+@version 2015/10-2015/12
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(owl/owl_api)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta(rdf_compare(o,o,+)).
 :- rdf_meta(rdf_compare(o,o,+,-,-,-)).
@@ -63,8 +62,8 @@ rdf_compare(X, Y, Rel, XOnly, XYDiff, YOnly):-
   ).
 
 rdf_compare0(X, Y, XOnly, XYDiff, YOnly):-
-  aggregate_all(set(rdf(X,P,O)), user:rdf(X, P, O), Xs),
-  aggregate_all(set(rdf(Y,P,O)), user:rdf(Y, P, O), Ys),
+  aggregate_all(set(rdf(X,P,O)), grdf(X, P, O), Xs),
+  aggregate_all(set(rdf(Y,P,O)), grdf(Y, P, O), Ys),
   rdf_compare_split0(Xs, Ys, XOnly, XYDiff, YOnly).
 
 % Y must be ahead of X.
@@ -73,7 +72,7 @@ rdf_compare_split0([X|Xs], [Y|Ys], XOnly, XYDiff, YOnly):-
   rdf_compare_split0([Y|Ys], [X|Xs], YOnly, XYDiff, XOnly).
 % Y is ahead of X.
 rdf_compare_split0([_X|_Xs], [Y|Ys], _XOnly, _XYDiff, _YOnly):-
-  selectchk(rdf(Y,_P,_O), Ys, Ys0).
+  selectchk(rdf(Y,_P,_O), Ys, _Ys0).
 
 rdf_ahead_of0(rdf(_,P1,_), rdf(_,P2,_)):- P1 @> P2, !.
 rdf_ahead_of0(rdf(_,P1,O1), rdf(_,P2,O2)):- P1 =@= P2, O1 @> O2.

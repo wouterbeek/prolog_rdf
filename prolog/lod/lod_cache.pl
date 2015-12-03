@@ -24,7 +24,7 @@ datatype preferences in order to perform limited-scale crawling.
 --
 
 @author Wouter Beek
-@version 2015/08-2015/11
+@version 2015/08-2015/12
 */
 
 :- use_module(library(aggregate)).
@@ -37,7 +37,6 @@ datatype preferences in order to perform limited-scale crawling.
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
 :- dynamic(in_lod_pool/1).
@@ -98,7 +97,7 @@ lod_cache_iri(Iri):-
       rdf_graph(IriEnc)
   ->  true
   ;   call_collect_messages(
-       rdf_call_on_statements(IriEnc, lod_cache_triples(IriEnc), [])
+        rdf_call_on_statements(IriEnc, lod_cache_triples(IriEnc), [])
       )
   ).
 

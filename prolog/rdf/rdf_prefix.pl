@@ -15,17 +15,25 @@
                        % +Uri:atom
   ]
 ).
+:- reexport(library(semweb/rdf_db), [
+     rdf_current_prefix/2,
+     rdf_equal/2,
+     rdf_global_id/2 as rdf_iri,
+     rdf_global_term/2 as rdf_global_term,
+     rdf_global_term/2 as rdf_global_compound,
+     rdf_register_prefix/2,
+     rdf_register_prefix/3
+   ]).
 
 /** <module> RDF prefix
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11
+@version 2015/07-2015/09, 2015/11-2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
 :- meta_predicate(rdf_maplist(1,+)).

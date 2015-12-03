@@ -12,14 +12,12 @@
 /** <module> RDF image
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/08, 2015/12
 */
 
-:- use_module(library(owl/owl_read)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
@@ -48,7 +46,7 @@ rdf_image(S, P, O):-
 rdf_image(S, P, O, G):-
   owl_id(S, S0),
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
-      user:rdf(S0, P, O, G)
-  ;   user:rdf(S0, P, O, G),
+      grdf(S0, P, O, G)
+  ;   grdf(S0, P, O, G),
       rdfs_instance(O, dcmit:'Image')
   ).

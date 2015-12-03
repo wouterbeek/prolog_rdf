@@ -68,13 +68,12 @@ strings*.
 ---
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/12
 */
 
 :- use_module(library(rdf/rdf_build)).
 :- reexport(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_register_prefix(ex, 'http://www.example.org/').
 
@@ -83,7 +82,7 @@ strings*.
 
 
 run_tests:-
-  G = test_literal_pl,
+  rdf_global_id(ex:'test-literal-pl', G),
   % Atom
   rdf_assert_literal_pl(ex:s, ex:p, '1000', G),
   % date/3

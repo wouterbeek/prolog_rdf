@@ -15,7 +15,6 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(profile/profile_rdf)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_read)).
@@ -41,16 +40,3 @@ rdf_fca_from_graph(G, context(Os,As,rdf_fca:rdf_instance0(G))):-
   
 rdf_instance0(G, O, A):-
   rdf_instance(O, A, G).
-
-rdfs_class(C, G):-
-  user:rdf(C, rdf:type, rdfs:'Class', G).
-rdfs_class(C, G):-
-  user:rdf(_, rdf:type, C, G).
-rdfs_class(C, G):-
-  user:rdf(_, rdfs:domain, C, G).
-rdfs_class(C, G):-
-  user:rdf(_, rdfs:range, C, G).
-rdfs_class(C, G):-
-  user:rdf(C, rdfs:subClassOf, _, G).
-rdfs_class(C, G):-
-  user:rdf(_, rdfs:subClassOf, C, G).

@@ -9,7 +9,6 @@
     datatypeIRI//1, % ?Iri:atom
     dataPropertyIRI//1, % ?Iri:atom
     decimalLiteral//1, % ?Literal:compound
-    digit//1, % ?Digit:between(0,9)
     digits//1, % ?N:nonneg
     entity//1, % ?Iri:atom
     exponent//1, % ?Exponent:integer
@@ -35,6 +34,12 @@
     zero//1 % ?Digit:between(0,0)
   ]
 ).
+:- reexport(
+     library(dcg/dcg_ext),
+     [
+       digit//1 % ?Digit:between(0,9)
+     ]
+   ).
 
 /** <module> OWL 2 Web Ontology Language: Manchester Syntax (Second Edition)
 
@@ -51,7 +56,7 @@ annotated_list(_) --> "".
 ```
 
 @author Wouter Beek
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -160,9 +165,6 @@ decimalLiteral(literal(type(xsd:decimal,Rat))) -->
 % ```
 % digit ::= zero | nonZero
 % ```
-
-digit(D) --> zero(D).
-digit(D) --> nonZero(D).
 
 
 

@@ -11,11 +11,11 @@
 /** <module> RDF Graph Closure
 
 @author Wouter Beek
-@version 2014/01
+@version 2014/01, 2015/12
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(ordsets)).
 
 :- meta_predicate(rdf_graph_closure(+,3,-,-)).

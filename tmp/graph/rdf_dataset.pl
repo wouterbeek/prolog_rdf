@@ -19,14 +19,11 @@
 @compat RDF 1.1 Concepts and Format Syntax
 @tbd RDF dataset merge.
 @tbd Named graphs in an RDF dataset may share blank nodes.
-@version 2013/09-2013/10, 2014/03, 2014/11
+@version 2013/09-2013/10, 2014/03, 2014/11, 2015/12
 */
 
 :- use_module(library(error)).
-:- use_module(library(lists), except([delete/3,subset/2])).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(generics/db_ext)).
+:- use_module(library(lists)).
 
 %! rdf_dataset(
 %!   ?DefaultGraph:atom,

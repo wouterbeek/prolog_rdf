@@ -49,7 +49,7 @@
 /** <module> RDF statement printing
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11
+@version 2015/07-2015/09, 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_bracket)).
@@ -58,7 +58,6 @@
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdf/rdf_read)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta(rdf_print_quadruple(t)).
 :- rdf_meta(rdf_print_quadruple(t,+)).

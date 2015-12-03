@@ -48,7 +48,6 @@
 :- use_module(library(dcg/dcg_quote)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/rational_ext)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_meta('NumericLiteral'(o,?,?)).
 :- rdf_meta('NumericLiteralNegative'(o,?,?)).

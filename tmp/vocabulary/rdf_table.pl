@@ -15,16 +15,11 @@
 A simple RDF vocabulary for representing tables.
 
 @author Wouter Beek
-@version 2014/02-2014/03
+@version 2014/02-2014/03, 2015/12
 */
 
-:- use_module(library(lists), except([delete/3,subset/2])).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(generics/row_ext)).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(term/rdf_list)).
+:- use_module(library(lists)).
+:- use_module(library(rdf/rdf_build)).
 
 :- rdf_register_prefix(rdf_table, 'http://www.wouterbeek.com/rdf_table#').
 

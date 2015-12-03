@@ -1,83 +1,160 @@
 :- module(
   rdf_read,
   [
+    grdf/3, % ?Subject, ?Predicate, ?Object
+    grdf/4, % ?Subject:gid
+            % ?Predicate:gid
+            % ?Object:gid
+            % ?Graph:rdf_graph
     rdf_date/3, % ?Subject, ?Predicate, ?Date
     rdf_date/4, % ?Subject:rdf_term
                 % ?Predicate:iri
                 % ?Date:compound
-                % ?Graph:atom
+                % ?Graph:rdf_graph
     rdf_instance/2, % ?Instance, ?Class
-    rdf_instance/3, % ?Instance:iri
-                    % ?Class:iri
-                    % ?Graph:atom
+    rdf_instance/3, % ?Instance:rdf_term
+                    % ?Class:rdf_term
+                    % ?Graph:rdf_graph
     rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePriorityList, ?Value
     rdf_langstring/5, % ?Subject:rdf_term
                       % ?Predicate:iri
                       % +LanguagePriorityList:list(atom)
                       % ?Value:pair(atom)
-                      % ?Graph:atom
+                      % ?Graph:rdf_graph
     rdf_langstring_pref/4, % ?Subject, ?Predicate, +LanguagePriorityList, ?Value
     rdf_langstring_pref/5, % ?Subject:rdf_term
                            % ?Predicate:iri
                            % +LanguagePriorityList:list(atom)
                            % ?Value:pair(atom)
-                           % ?Graph:atom
+                           % ?Graph:rdf_graph
     rdf_literal/3, % ?Subject, ?Predicate, ?Value
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
     rdf_literal/5, % ?Subject:rdf_term
                    % ?Predicate:iri
                    % ?Datatype:iri
                    % ?Value
-                   % ?Graph:atom
+                   % ?Graph:rdf_graph
     rdf_literal_pl/3, % ?Subject, ?Predicate, ?Value
     rdf_literal_pl/4, % ?Subject, ?Predicate, ?Datatype, ?Value
     rdf_literal_pl/5 % ?Subject:rdf_term
                      % ?Predicate:iri
                      % ?Datatype:iri
                      % ?Value
-                     % ?Graph:atom
+                     % ?Graph:rdf_graph
   ]
 ).
+:- reexport(library(semweb/rdf_db), []).
 
-/** <module> RDF read
+/** <module> Generalized RDF reading
 
 @author Wouter Beek
-@compat [RDF 1.1 Concepts and Abstract Syntax](http://www.w3.org/TR/rdf11-concepts/)
+@compat RDF 1.1 Concepts and Abstract Syntax
 @license MIT License
-@version 2015/07-2015/11
+@see http://www.w3.org/TR/rdf11-concepts/
+@version 2015/07-2015/12
 */
 
 :- use_module(library(datetime/date_ext)).
+:- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
+:- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(xsd/xsd)).
 
+:- rdf_meta(grdf(o,?,o)).
+:- rdf_meta(grdf(o,?,o,r)).
 :- rdf_meta(rdf_date(o,r,?)).
-:- rdf_meta(rdf_date(o,r,?,?)).
+:- rdf_meta(rdf_date(o,r,?,r)).
 :- rdf_meta(rdf_instance(o,r)).
-:- rdf_meta(rdf_instance(o,r,?)).
+:- rdf_meta(rdf_instance(o,r,r)).
 :- rdf_meta(rdf_langstring(o,r,+,?)).
-:- rdf_meta(rdf_langstring(o,r,+,?,?)).
+:- rdf_meta(rdf_langstring(o,r,+,?,r)).
 :- rdf_meta(rdf_langstring_pref(o,r,+,?)).
-:- rdf_meta(rdf_langstring_pref(o,r,+,?,?)).
-:- rdf_meta(rdf_literal(o,r,r)).
+:- rdf_meta(rdf_langstring_pref(o,r,+,?,r)).
+:- rdf_meta(rdf_literal(o,r,?)).
 :- rdf_meta(rdf_literal(o,r,r,?)).
-:- rdf_meta(rdf_literal(o,r,r,?,?)).
-:- rdf_meta(rdf_literal_pl(o,r,r)).
+:- rdf_meta(rdf_literal(o,r,r,?,r)).
+:- rdf_meta(rdf_literal_pl(o,r,?)).
 :- rdf_meta(rdf_literal_pl(o,r,r,?)).
-:- rdf_meta(rdf_literal_pl(o,r,r,?,?)).
+:- rdf_meta(rdf_literal_pl(o,r,r,?,r)).
 
 :- multifile(error:has_type/2).
-error:has_type(rdf_term, Term):-
-  (   rdf_is_bnode(Term)
-  ;   rdf_is_literal(Term)
-  ;   rdf_is_resource(Term)
+error:has_type(rdf_bnode, Term):-
+  rdf_is_bnode(Term).
+error:has_type(rdf_graph, Term):-
+  (   Term == default
+  ;   error:has_type(iri, Term)
   ).
+error:has_type(rdf_literal, Term):-
+  rdf_is_literal(Term).
+error:has_type(rdf_name, Term):-
+  (   error:has_type(iri, Term)
+  ;   error:has_type(rdf_literal, Term)
+  ).
+error:has_type(rdf_stmt, Term):-
+  (   error:has_type(rdf_triple, Term)
+  ;   error:has_type(rdf_quadruple, Term)
+  ).
+error:has_type(rdf_quadruple, Term):-
+  Term = rdf(S,P,O,G),
+  error:has_type(rdf_term, S),
+  error:has_type(iri, P),
+  error:has_type(rdf_term, O),
+  error:has_type(iri, G).
+error:has_type(rdf_term, Term):-
+  (   error:has_type(rdf_bnode, Term)
+  ;   error:has_type(rdf_literal, Term)
+  ;   error:has_type(iri, Term)
+  ).
+error:has_type(rdf_triple, Term):-
+  Term = rdf(S,P,O),
+  error:has_type(rdf_term, S),
+  error:has_type(iri, P),
+  error:has_type(rdf_term, O).
 
 
+
+
+
+%! grdf(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
+
+grdf(S, P, O):-
+  grdf(S, P, O, '*').
+
+
+%! grdf(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:rdf_graph
+%! ) is nondet.
+
+% 1. Identity statement.
+grdf(S, P, O, _):-
+  rdf_equal(P, owl:sameAs), !,
+  (   nonvar(S)
+  ->  term_to_term(S, O)
+  ;   nonvar(O)
+  ->  term_to_term(O, S)
+  ;   % Enumerate identical terms.
+      % NONDET
+      id_terms(Ts),
+      member(S, O, Ts)
+  ).
+% 2. Statements other than identity statements.
+grdf(S, P, O, G):-
+  % (Only) in the subject position, literals may be represented by blank nodes.
+  (rdf_is_literal(S) -> id_literal(Sid, S) ; nonvar(S) -> term_to_id(S, Sid) ; true),
+  (nonvar(P) -> term_to_id(P, Pid) ; true),
+  (nonvar(O) -> term_to_id(O, Oid) ; true),
+  (G == '*' -> rdf(Sid, Pid, Oid) ; rdf(Sid, Pid, Oid, G)),
+  % Variable subject terms may be blank nodes that need to be
+  % related to literals.
+  (ground(S), ! ; id_literal(Sid, S), ! ; id_to_term(Sid, S)),
+  (ground(P), ! ; id_to_term(Pid, P)),
+  (ground(O), ! ; id_to_term(Oid, O)).
 
 
 
@@ -86,7 +163,7 @@ error:has_type(rdf_term, Term):-
 %!   ?Predicate:iri,
 %!   ?Date:compound
 %! ) is nondet.
-% Wrapper around rdf_date/4.
+% Wrapper around rdf_date/4 with uninstantiated graph.
 
 rdf_date(S, P, V):-
   rdf_date(S, P, V, _).
@@ -96,7 +173,7 @@ rdf_date(S, P, V):-
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Date:compound,
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 % Read some date-time value.
 %
@@ -129,13 +206,14 @@ rdf_date(S, P, V, G):-
 
 
 
-%! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
+%! rdf_instance(?Instance:rdf_term, ?Class:iri) is nondet.
+% Wrapper around rdf_instance/3 with uninstantiated graph.
 
 rdf_instance(I, C):-
   rdf_instance(I, C, _).
 
 
-%! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:atom) is nondet.
+%! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:rdf_graph) is nondet.
 
 rdf_instance(I, C, G):-
   rdf_equal(rdf:type, P),
@@ -147,7 +225,7 @@ rdf_instance(I, C, G):-
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   +LanguagePriorityList:list(atom),
-%!   ?Value:pair(atom,list(atom))
+%!   ?Value:pair(atom)
 %! ) is nondet.
 % Wrapper around rdf_langstring/5 with uninstantiated graph.
 
@@ -160,7 +238,7 @@ rdf_langstring(S, P, LRanges, V):-
 %!   ?Predicate:iri,
 %!   +LanguagePriorityList:list(atom),
 %!   ?Value:pair(atom),
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 
 rdf_langstring(S, P, LRanges, V, G):-
@@ -175,7 +253,7 @@ rdf_langstring(S, P, LRanges, V, G):-
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   +LanguagePriorityList:list(atom),
-%!   ?Value:pair(atom,list(atom))
+%!   ?Value:pair(atom)
 %! ) is nondet.
 % Wrapper around rdf_langstring_pref/5 with uninstantiated graph.
 
@@ -188,7 +266,7 @@ rdf_langstring_pref(S, P, LRanges, V):-
 %!   ?Predicate:iri,
 %!   +LanguagePriorityList:list(atom),
 %!   ?Value:pair(atom),
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 % Returns, in this exact order:
 %   1. The language-tagged strings that match the given
@@ -211,7 +289,7 @@ rdf_langstring_pref(S, P, _, V, G):-
 % Wrapper around rdf_literal/4 with uninstantiated datatype.
 
 rdf_literal(S, P, V):-
-  rdf_literal(S, P, _, V, _).
+  rdf_literal(S, P, _, V).
 
 
 %! rdf_literal(
@@ -231,9 +309,8 @@ rdf_literal(S, P, D, V):-
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value,
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
-% Wrapper around rdf_literal/6 that does not instantiate the quadruple.
 
 rdf_literal(S, P, D, V, G):-
   rdf_literal(S, P, D, V, G, _).
@@ -244,9 +321,11 @@ rdf_literal(S, P, D, V, G):-
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value,
-%!   ?Graph:graph,
-%!   -Quadruple:compound
+%!   ?Graph:rdf_graph,
+%!   -Quadruple:rdf_quadruple
 %! ) is nondet.
+% This predicate is only used internally, by other predicates in rdf_read,
+% since it makes available the RDF statement in Quadruple.
 
 % Language-tagged strings.
 rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
@@ -286,7 +365,7 @@ rdf_literal(S, P, xsd:string, Val, G, rdf(S,P,O,G)):-
 % Wrapper around rdf_literal_pl/4 with uninstantiated datatype.
 
 rdf_literal_pl(S, P, V):-
-  rdf_literal_pl(S, P, _, V, _).
+  rdf_literal_pl(S, P, _, V).
 
 
 %! rdf_literal_pl(
@@ -306,7 +385,7 @@ rdf_literal_pl(S, P, D, V):-
 %!   ?Predicate:iri,
 %!   ?Datatype:iri,
 %!   ?Value,
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 % rdf_literal/[3-5] seeks to interpret the lexical form of an RDF datatype
 % according to an RDF datatype.

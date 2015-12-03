@@ -3,17 +3,17 @@
   [
     rdf_convert_prefixes/6, % +FromPrefix:atom
                             % +ToPrefix:atom
-                            % ?Subject:or([bnode,iri])
+                            % ?Subject:rdf_term
                             % ?Predicate:iri
                             % ?Object:rdf_term
-                            % ?Graph:atom
+                            % ?Graph:rdf_graph
     rdf_longest_prefix/3, % +Iri:iri
                           % -LongestPrefix:atom
                           % -ShortestLocalName:atom
     rdf_prefixes/5 % ?Subject:or([bnode,iri])
                    % ?Predicate:iri
                    % ?Object:rdf_term
-                   % ?Graph:atom
+                   % ?Graph:rdf_graph
                    % -Prefixes:ordset(pair(atom,positive_integer))
   ]
 ).
@@ -23,16 +23,14 @@
 Namespace support for RDF(S), building on namespace prefix support for XML.
 
 @author Wouter Beek
-@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12, 2015/02
+@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12, 2015/02, 2015/12
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plRdf(term/rdf_term)).
+:- use_module(library(rdf/rdf_build)).
 
 :- rdf_meta(rdf_prefixe_iri(r,-)).
 :- rdf_meta(rdf_prefixes(r,r,o,?,-)).
@@ -57,29 +55,30 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
   rdf_global_id(FromPrefix:LocalName, FromIri),
   rdf_global_id(ToPrefix:LocalName, ToIri).
 
+
 %! rdf_convert_prefixes(
 %!   +FromPrefix:atom,
 %!   +ToPrefix:atom,
 %!   ?Subject:or([bnode,iri]),
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is det.
 % Converts all resources that occur in the given patterns
 % with the given namespace to similar resources that have another namespace.
 %
 % The namespaces must be registered with module [xml_namespace].
 
-rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, Graph):-
+rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, G):-
   forall(
-    rdf_retractall(S1, P1, O1, Graph),
+    grdf_retractall(S1, P1, O1, G),
     (
       maplist(
         rdf_convert_prefixes(FromPrefix, ToPrefix),
         [S1,P1,O1],
         [S2,P2,O2]
       ),
-      rdf_assert(S2, P2, O2, Graph)
+      grdf_assert(S2, P2, O2, G)
     )
   ).
 
@@ -106,18 +105,18 @@ rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
 
 
 %! rdf_prefixes(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   -Prefixes:ordset(pair(atom,positive_integer))
 %! ) is det.
 
-rdf_prefixes(S, P, O, Graph, Pairs5):-
+rdf_prefixes(S, P, O, G, Pairs5):-
   aggregate_all(
     set(Prefix-Term),
     (
-      rdf(S, P, O, Graph),
+      erdf(S, P, O, G),
       member(Term, [S,P,O]),
       rdf_global_id(Prefix:_, Term)
     ),

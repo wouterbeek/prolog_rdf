@@ -11,10 +11,10 @@
 API access to terms in the RDFS vocabulary.
 
 @author Wouter Beek
-@version 2015/02
+@version 2015/02, 2015/12
 */
 
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta(rdfs_class_term(r)).
 :- rdf_meta(rdfs_property_term(r)).

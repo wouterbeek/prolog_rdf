@@ -25,7 +25,6 @@
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
 

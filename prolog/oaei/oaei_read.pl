@@ -1,14 +1,14 @@
 :- module(
   oaei_read,
   [
-    oaei_alignment/3, % ?From:iri
-                      % ?To:iri
+    oaei_alignment/3, % ?From:rdf_term
+                      % ?To:rdf_term
                       % ?Graph:atom
-    oaei_alignment/5 % ?From:iri
-                     % ?To:iri
+    oaei_alignment/5 % ?From:rdf_term
+                     % ?To:rdf_term
                      % ?Relation:atom
                      % ?Measure:between(0.0,1.0)
-                     % ?Graph:atom
+                     % ?Graph:rdf_graph
   ]    
 ).
 
@@ -19,7 +19,6 @@
 */
 
 :- use_module(library(rdf/rdf_read)).
-:- use_module(library(semweb/rdf_db)).
 
 :- rdf_register_prefix(
      align,
@@ -34,22 +33,22 @@
 
 
 
-%! oaei_alignment(?From:iri, ?To:iri, ?Graph:atom) is nondet.
+%! oaei_alignment(?From:rdf_term, ?To:rdf_term, ?Graph:rdf_graph) is nondet.
 
 oaei_alignment(From, To, G):-
   oaei_alignment(From, To, =, 1.0, G).
 
 
 %! oaei_alignment(
-%!   ?From:iri,
-%!   ?To:iri,
+%!   ?From:rdf_term,
+%!   ?To:rdf_term,
 %!   ?Relation:atom,
 %!   ?Measure:between(0.0,1.0),
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 
 oaei_alignment(From, To, Rel, Measure, G):-
-  user:rdf(X, align:entity1, From, G),
-  user:rdf(X, align:entity2, To, G),
+  grdf(X, align:entity1, From, G),
+  grdf(X, align:entity2, To, G),
   rdf_literal(X, align:relation, xsd:string, Rel, G),
   rdf_literal(X, align:measure, xsd:float, Measure, G).

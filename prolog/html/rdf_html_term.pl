@@ -52,7 +52,6 @@ Generates HTML representations of RDF data.
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdfs/rdfs_read)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_html_datatype(r,+,?,?)).

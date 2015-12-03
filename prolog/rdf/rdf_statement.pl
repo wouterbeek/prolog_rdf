@@ -17,12 +17,11 @@
 Predicates that perform simple operations on RDF triples/quadruples.
 
 @author Wouter Beek
-@version 2015/08, 2015/11
+@version 2015/08, 2015/11-2015/12
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf_db)).
 
 
 

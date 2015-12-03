@@ -1,16 +1,6 @@
 :- module(
   owl_api,
   [
-    owl_assert_instance/2, % +Instance:rdf_term
-                           % +Class:rdf_term
-    owl_assert_list/2, % +PrologList:list(rdf_term)
-                       % ?RdfList:rdf_term
-    owl_assert_literal/4, % +Subject:rdf_term
-                          % +Predicate:rdf_term
-                          % ?Datatype:rdf_term
-                          % +Value
-    rdf_description_size3/2, % +Resource:rdf_term
-                             % ?Size:nonneg
     rdf_html_term3//2, % +Term:rdf_term
                        % +Options:list(compound)
     rdf_html_triple3//4, % +Subject:rdf_term
@@ -53,33 +43,9 @@
   ]
 ).
 
-/** <module> OWL API
-
-@author Wouter Beek
-@version 2015/08-2015/11
-*/
-
-:- use_module(library(html/content/html_collection)).
-:- use_module(library(html/rdf_html_stmt)).
-:- use_module(library(html/rdf_html_term)).
-:- use_module(library(lambda)).
-:- use_module(library(list_ext)).
-:- use_module(library(ltag/ltag_match)).
-:- use_module(library(option)).
-:- use_module(library(owl/id_store)).
-:- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(semweb/rdf_db)).
-
-:- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
-
 :- assert_cc_prefixes.
 :- assert_dbpedia_localizations.
 
-:- rdf_meta(owl_assert_instance(o,o)).
-:- rdf_meta(owl_assert_list(t,o)).
-:- rdf_meta(owl_assert_literal(o,o,o,+)).
 :- rdf_meta(rdf_description_size3(o,?)).
 :- rdf_meta(rdf_html_term3(o,+,?,?)).
 :- rdf_meta(rdf_html_triple3(o,o,o,+,?,?)).
@@ -101,78 +67,6 @@
    ]).
 
 
-
-
-
-%! owl_assert_instance(+Instance:rdf_term, +Class:rdf_term) is det.
-
-owl_assert_instance(I, C):-
-  user:rdf_assert(I, rdf:type, C).
-
-
-
-%! owl_assert_list(+PrologList:list, ?RdfList:or([bnode,iri])) is det.
-% Asserts the given, possibly nested, list into RDF.
-
-owl_assert_list(L1, L2):-
-  rdf_transaction(rdf_assert_list0(L1, L2)).
-
-rdf_assert_list0([], rdf:nil):- !.
-rdf_assert_list0(L1, L2):-
-  add_list_instance0(L2),
-  rdf_assert_list_items0(L1, L2).
-
-rdf_assert_list_items0([], rdf:nil):- !.
-rdf_assert_list_items0([H1|T1], L2):-
-  % rdf:first
-  (   % Nested list.
-      is_list(H1)
-  ->  rdf_assert_list0(H1, H2)
-  ;   % Non-nested list.
-      H2 = H1
-  ),
-  user:rdf_assert(L2, rdf:first, H2),
-
-  % rdf:rest
-  (   T1 == []
-  ->  rdf_global_id(rdf:nil, T2)
-  ;   add_list_instance0(T2),
-      rdf_assert_list_items0(T1, T2)
-  ),
-  user:rdf_assert(L2, rdf:rest, T2).
-
-add_list_instance0(L):-
-  (var(L) -> rdf_bnode(L) ; true),
-  rdf_assert_instance(L, rdf:'List').
-
-
-
-%! owl_assert_literal(
-%!   +Subject:rdf_term,
-%!   +Predicate:iri,
-%!   ?Datatype:iri,
-%!   +Value
-%! ) is det.
-
-% Language-tagged strings.
-owl_assert_literal(S, P, rdf:langString, Lex-LTag):- !,
-  user:rdf_assert(S, P, literal(lang(LTag,Lex))).
-% Simple literals (as per RDF 1.0 specification)
-% assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-owl_assert_literal(S, P, D, Val):-
-  var(D), !,
-  owl_assert_literal(S, P, xsd:string, Val).
-% Typed literals (as per RDF 1.0 specification).
-owl_assert_literal(S, P, D, Val):-
-  rdf_canonical_map(D, Val, Lit),
-  user:rdf_assert(S, P, Lit).
-
-
-
-%! rdf_description_size3(+Resource:rdf_term, -Size:nonneg) is det.
-
-rdf_description_size3(S, N):-
-  rdf_number_of_triples3(S, _, _, N).
 
 
 

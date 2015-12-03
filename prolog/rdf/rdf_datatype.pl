@@ -61,8 +61,6 @@
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/w3c_dtf)).
 :- use_module(library(rdfs/rdfs_read)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 :- use_module(library(typecheck)).

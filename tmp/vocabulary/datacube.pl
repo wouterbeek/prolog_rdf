@@ -37,14 +37,7 @@ Predicates for perfoming measurements represented in RDF.
 @version 2014/09-2014/11, 2015/01
 */
 
-:- use_module(library(lists), except([delete/3,subset/2])).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plXsd(xsd)).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(term/rdf_datatype)).
-:- use_module(plRdf(term/rdf_date)).
+:- use_module(library(lists)).
 
 :- meta_predicate(assert_observation(+,+,1,+,-)).
 :- meta_predicate(assert_multimeasure_observation(+,+,1,+,-)).
