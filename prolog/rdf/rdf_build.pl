@@ -5,14 +5,14 @@
     fresh_iri/3, % +Prefix:atom
                  % +SubPaths:list(atom)
                  % -Iri:iri
-    grdf_assert/3, % +Subject, +Predicate, +Object
-    grdf_assert/4, % +Subject:gid
+    rdf_assert/3, % +Subject, +Predicate, +Object
+    rdf_assert/4, % +Subject:gid
                    % +Predicate:gid
                    % +Object:gid
                    % ?Graph:rdf_graph
-    grdf_retractall/1, % +Statement:rdf_stmt
-    grdf_retractall/3, % ?Subject, ?Predicate, ?Object
-    grdf_retractall/4, % ?Subject:gid
+    rdf_retractall/1, % +Statement:rdf_stmt
+    rdf_retractall/3, % ?Subject, ?Predicate, ?Object
+    rdf_retractall/4, % ?Subject:gid
                        % ?Predicate:gid
                        % ?Object:gid
                        % ?Graph:rdf_graph
@@ -51,7 +51,12 @@
                           % ?Graph:rdf_graph
   ]
 ).
-:- reexport(library(semweb/rdf_db), except([rdf/3,rdf/4])).
+:- reexport(library(semweb/rdf_db), [
+     rdf_assert/3 as rdf_assert0,
+     rdf_assert/4 as rdf_assert0,
+     rdf_retractall/3 as rdf_retractall0,
+     rdf_retractall/3 as rdf_retractall0
+   ]).
 
 /** <module> Generalized RDF building
 
@@ -62,6 +67,7 @@ Simple asserion and retraction predicates for RDF.
 @version 2015/07-2015/10, 2015/12
 */
 
+:- use_module(library(rdf/io_store)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_read)).
@@ -69,11 +75,11 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(uuid_ext)).
 :- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
 
-:- rdf_meta(grdf_assert(o,+,o)).
-:- rdf_meta(grdf_assert(o,+,o,r)).
-:- rdf_meta(grdf_retractall(t)).
-:- rdf_meta(grdf_retractall(o,+,o)).
-:- rdf_meta(grdf_retractall(o,+,o,r)).
+:- rdf_meta(rdf_assert(o,+,o)).
+:- rdf_meta(rdf_assert(o,+,o,r)).
+:- rdf_meta(rdf_retractall(t)).
+:- rdf_meta(rdf_retractall(o,+,o)).
+:- rdf_meta(rdf_retractall(o,+,o,r)).
 :- rdf_meta(rdf_assert_instance(o,t)).
 :- rdf_meta(rdf_assert_instance(o,t,r)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+)).
@@ -119,24 +125,24 @@ fresh_iri(Prefix, SubPaths0, Iri):-
 
 
 
-%! grdf_assert(+Statement:rdf_stmt) is det.
-% Wrapper around grdf_assert/[3,4].
+%! rdf_assert(+Statement:rdf_stmt) is det.
+% Wrapper around rdf_assert/[3,4].
 % Statement is of the form `rdf/[3,4]`.
 
-grdf_assert(rdf(S,P,O)):- !,
-  grdf_assert(S, P, O).
-grdf_assert(rdf(S,P,O,G)):-
-  grdf_assert(S, P, O, G).
+rdf_assert(rdf(S,P,O)):- !,
+  rdf_assert(S, P, O).
+rdf_assert(rdf(S,P,O,G)):-
+  rdf_assert(S, P, O, G).
 
 
-%! grdf_assert(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
-% Wrapper around grdf_assert/4 with uninstantiated graph.
+%! rdf_assert(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
+% Wrapper around rdf_assert/4 with uninstantiated graph.
 
-grdf_assert(S, P, O):-
-  grdf_assert(S, P, O, _).
+rdf_assert(S, P, O):-
+  rdf_assert(S, P, O, _).
 
 
-%! grdf_assert(
+%! rdf_assert(
 %!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
@@ -145,60 +151,53 @@ grdf_assert(S, P, O):-
 % Alternative of Semweb's rdf_assert/4 that allows literals to appear
 % in the subject positions.
 
-grdf_assert(S, P, O, G):-
-  maplist(rdf_normalize, [S,P,O], [SNorm,PNorm,ONorm]),
-  maplist(id_assign_term, [SNorm,PNorm,ONorm], [Sid,Pid,Oid]),
-  grdf_assert_id(Sid, Pid, Oid, G).
-
 % 1. Identity statements.
-grdf_assert_id(Sid1, Pid, Oid, _):-
-  term_to_id(owl:sameAs, Pid), !,
-  (rdf_is_literal(Sid1) -> id_assign_literal(Sid1, Sid2), Lit = true ; true),
-  (rdf_is_literal(Oid) -> Lit = true ; true),
-  % Literals are not in the identity store.  They are stored directly.
-  (Lit == true -> rdf_assert(Sid2, Pid, Oid) ; id_store(Sid1, Oid)).
+rdf_assert(S, P, O, G):-
+  term_to_id(owl:sameAs, P), !,
+  store_id(S, O).
 % 2. Statements other than the identity statement:
 % 2a. In generalized RDF a literal may appear in the subject position.
-grdf_assert_id(Lit, Pid, Oid, G):-
+rdf_assert(Lit, P, O, G):-
   rdf_is_literal(Lit), !,
-  id_assign_literal(Lit, Sid),
-  rdf_assert(Sid, Pid, Oid, G).
+  assign_literal_id(Lit, Sid),
+  maplist(assign_term_id, [P,O], [Pid,Oid]),
+  rdf_assert0(Sid, Pid, Oid, G).
 % 2b. Non-generalized triple.
-grdf_assert_id(Sid, Pid, Oid, G):-
-  var(G), !,
-  rdf_assert(Sid, Pid, Oid).
 % 2c. Non-generalized quadruple.
-grdf_assert_id(Sid, Pid, Oid, G):-
-  rdf_assert(Sid, Pid, Oid, G).
+rdf_assert_id(S, P, O, G):-
+  maplist(assign_term_id, [S,P,O], [Sid,Pid,Oid]),
+  (var(G) -> rdf_assert0(Sid, Pid, Oid) ; rdf_assert0(Sid, Pid, Oid, G)).
+  
 
 
+%! rdf_retractall(+Statement:rdf_stmt) is det.
 
-%! grdf_retractall(+Statement:rdf_stmt) is det.
-
-grdf_retractall(rdf(S,P,O)):- !,
-  grdf_retractall(S, P, O).
-grdf_retractall(rdf(S,P,O,G)):-
-  grdf_retractall(S, P, O, G).
-
-
-%! grdf_retractall(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is det.
-
-grdf_retractall(S, P, O):-
-  grdf_retractall(S, P, O, _).
+rdf_retractall(rdf(S,P,O)):- !,
+  rdf_retractall(S, P, O).
+rdf_retractall(rdf(S,P,O,G)):-
+  rdf_retractall(S, P, O, G).
 
 
-%! grdf_retractall(
+%! rdf_retractall(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is det.
+
+rdf_retractall(S, P, O):-
+  rdf_retractall(S, P, O, _).
+
+
+%! rdf_retractall(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
 %!   ?Graph:atom
 %! ) is det.
 
-grdf_retractall(S, P, O, G):-
-  (rdf_is_literal(S) -> id_to_literal(Sid, S) ; var_or_term_to_id(S, Sid)),
-  maplist(var_or_term_to_id, [P,O], [Pid,Oid]),
+rdf_retractall(S, P, O, G):-
+  (rdf_is_literal(S) -> id_to_literal(Sid, S) ; term_to_id0(S, Sid)),
+  maplist(term_to_id0, [P,O], [Pid,Oid]),
   rdf_retractall(Sid, Pid, Oid, G),
   maplist(id_remove, [Sid,Pid,Oid]).
+term_to_id0(T, _):- var(T), !.
+term_to_id0(T, TId):- term_to_id(T, TId).
 
 
 
@@ -227,10 +226,10 @@ rdf_assert_instance(I, C):-
 
 rdf_assert_instance(I, C, G):-
   var(C), !,
-  grdf_assert(I, rdf:type, rdfs:'Resource', G).
+  rdf_assert(I, rdf:type, rdfs:'Resource', G).
 rdf_assert_instance(I, Cs, G):-
   is_list(Cs), !,
-  forall(member(C, Cs), grdf_assert(I, rdf:type, C, G)).
+  forall(member(C, Cs), rdf_assert(I, rdf:type, C, G)).
 rdf_assert_instance(I, C, G):-
   rdf_assert_instance(I, [C], G).
 
@@ -265,7 +264,7 @@ rdf_assert_literal(S, P, D, V):-
 
 % Language-tagged strings.
 rdf_assert_literal(S, P, rdf:langString, Lex-LTag, G):- !,
-  grdf_assert(S, P, literal(lang(LTag,Lex)), G).
+  rdf_assert(S, P, literal(lang(LTag,Lex)), G).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
 rdf_assert_literal(S, P, D, V, G):-
@@ -274,7 +273,7 @@ rdf_assert_literal(S, P, D, V, G):-
 % Typed literals (as per RDF 1.0 specification).
 rdf_assert_literal(S, P, D, Val, G):-
   rdf_canonical_map(D, Val, Lit),
-  grdf_assert(S, P, Lit, G).
+  rdf_assert(S, P, Lit, G).
 
 
 
@@ -399,7 +398,7 @@ rdf_retractall_literal(S, P, D, V, G):-
     % Use a private predicate that returns the matched quadruple
     % as a compound term.
     rdf_read:rdf_literal(S, P, D, V, G, Quad),
-    grdf_retractall(Quad)
+    rdf_retractall(Quad)
   ).
 
 
@@ -415,9 +414,9 @@ rdf_retractall_term(T):-
 % Removes all triples in which the given RDF term occurs.
 
 rdf_retractall_term(T, G):-
-  grdf_retractall(T, _, _, G),
-  grdf_retractall(_, T, _, G),
-  grdf_retractall(_, _, T, G).
+  rdf_retractall(T, _, _, G),
+  rdf_retractall(_, T, _, G),
+  rdf_retractall(_, _, T, G).
 
 
 

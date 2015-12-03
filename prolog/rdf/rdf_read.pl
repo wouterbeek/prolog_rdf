@@ -43,7 +43,9 @@
                      % ?Graph:rdf_graph
   ]
 ).
-:- reexport(library(semweb/rdf_db), []).
+:- reexport(library(semweb/rdf_db), [
+     
+   ]).
 
 /** <module> Generalized RDF reading
 
@@ -60,7 +62,6 @@
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(grdf(o,?,o)).

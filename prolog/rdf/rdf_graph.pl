@@ -19,6 +19,9 @@
     rdf_tmp_graph/1 % -Graph:rdf_graph
   ]
 ).
+:- reexport(library(semweb/rdf_db), [
+     rdf_graph/1 as rdf_graph0
+   ]).
 
 /** <module> RDF graph
 
