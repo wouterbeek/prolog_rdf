@@ -1,8 +1,6 @@
 :- module(
   rdf_prefix,
   [
-    assert_cc_prefixes/0,
-    assert_dbpedia_localizations/0,
     rdf_maplist/2, % :Goal_1
                    % +Arguments
     rdf_member/2, % ?Term:rdf_term
@@ -12,7 +10,7 @@
     rdf_prefix_iri/2, % +Iri:atom
                       % -PrefixIri:atom
     rdf_reset_prefix/2 % +Prefix:atom
-                       % +Uri:atom
+                       % +Iri:atom
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
@@ -24,6 +22,7 @@
                                        % ?Iri:atom
      rdf_global_object/2 as rdf_expand_term, % ?PrefixedTerm:compound
                                              % ?ExpandedTerm:compound
+     rdf_meta/1, % +Heads:compound
      rdf_register_prefix/2, % +Alias, Iri
      rdf_register_prefix/3 % +Alias:atom
                            % +Iri:atom
@@ -41,7 +40,7 @@
 :- use_module(library(lists)).
 :- use_module(library(uri)).
 
-:- rdf_register_prefix(ex, 'http://www.example.org/', [keep(true)]).
+:- initialization((assert_cc_prefixes,assert_dbpedia_localizations)).
 
 :- meta_predicate(rdf_maplist(1,+)).
 
@@ -64,8 +63,8 @@ assert_cc_prefixes:-
   reverse(Rows0, Rows),
   maplist(assert_cc_prefix, Rows).
 
-assert_cc_prefix(row(Prefix,Uri)):-
-  rdf_reset_prefix(Prefix, Uri).
+assert_cc_prefix(row(Prefix,Iri)):-
+  rdf_reset_prefix(Prefix, Iri).
 
 
 
