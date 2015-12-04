@@ -55,7 +55,7 @@
 @version 2015/07-2015/12
 */
 
-:- use_module(library(datetime/date_ext)).
+:- use_module(library(datetime/datetime)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(rdf/id_store)).

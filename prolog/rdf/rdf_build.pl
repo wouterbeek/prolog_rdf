@@ -315,7 +315,7 @@ rdf_assert_now(S, P, G):-
 % under the given Datatype.
 
 rdf_assert_now(S, P, D, G):-
-  get_date_time(Now),
+  get_datetime(Now),
   rdf_assert_literal(S, P, D, Now, G).
 
 
