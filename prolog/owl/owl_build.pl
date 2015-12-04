@@ -67,7 +67,10 @@ Predicates for asserting common OWL structures.
 
 :- use_module(library(apply)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_database)).
+:- use_module(library(rdf/rdf_list)).
+:- use_module(library(rdfs/rdfs_build)).
 
 :- rdf_meta(owl_assert_class(r,t,?,?,?)).
 :- rdf_meta(owl_assert_data_property(r,?)).
@@ -108,7 +111,7 @@ Predicates for asserting common OWL structures.
 
 owl_assert_class(C, Parent, Lbl, Comm, G):-
   rdf_assert_instance(C, owl:'Class', G),
-  rdfs_build:assert_class(C, Parent, Lbl, Comm, G).
+  rdfs_build:rdfs_assert_class0(C, Parent, Lbl, Comm, G).
 
 
 
@@ -295,7 +298,7 @@ owl_assert_ontology(I, G):-
 %! ) is det.
 
 owl_assert_value_restriction(P, V, G, R):-
-  rdf_bnode(R),
+  rdf_create_bnode(R),
   rdf_assert_instance(R, owl:'Restriction', G),
   rdf_assert(R, owl:onProperty, P, G),
   rdf_assert(R, owl:hasValue, V, G).

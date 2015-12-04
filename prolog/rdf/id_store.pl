@@ -46,11 +46,13 @@ A literal identity set identifier denotes itself.
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(error)).
-:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_print)).
+:- use_module(library(semweb/rdf_db), [
+     rdf/3 as rdf0,
+     rdf_assert/3 as rdf_assert0,
+     rdf_retractall/3 as rdf_retractall0
+   ]).
 
 :- rdf_meta(assign_literal_id(o,-)).
 :- rdf_meta(assign_term_id(o,?)).
@@ -147,10 +149,11 @@ print_store(Opts):-
       tab(N),
       atom(Id),
       "\t",
-      set(\T^rdf_print_term(T, Opts), Ts),
+      set(rdf_print_term0(Opts), Ts),
       nl
    ))
   ).
+rdf_print_term0(Opts, T) --> rdf_print_term(T, Opts).
 
 
 
@@ -199,8 +202,8 @@ id_store(X, Y):-
                 assert(term_to_id0(X, ZId)),
                 assert(term_to_id0(Y, ZId)),
                 assert(id_to_terms0(ZId, Zs)),
-                rdf_rename_term(XId, ZId),
-                rdf_rename_term(YId, ZId)
+                rdf_rename_term0(XId, ZId),
+                rdf_rename_term0(YId, ZId)
              ))
           )
       ;   % Add Y to the identity set of X.
@@ -268,15 +271,15 @@ create_id(Id):-
 
 
 
-%! rdf_rename_term(+From, +To) is det.
+%! rdf_rename_term0(+From, +To) is det.
 
-rdf_rename_term(X, Y):-
-  forall(rdf(X, P, O), rdf_assert(Y, P, O)),
-  rdf_retractall(X, _, _),
-  forall(rdf(S, X, O), rdf_assert(S, Y, O)),
-  rdf_retractall(_, X, _),
-  forall(rdf(S, P, X), rdf_assert(S, P, Y)),
-  rdf_retractall(_, _, X).
+rdf_rename_term0(X, Y):-
+  forall(rdf0(X, P, O), rdf_assert0(Y, P, O)),
+  rdf_retractall0(X, _, _),
+  forall(rdf0(S, X, O), rdf_assert0(S, Y, O)),
+  rdf_retractall0(_, X, _),
+  forall(rdf0(S, P, X), rdf_assert0(S, P, Y)),
+  rdf_retractall0(_, _, X).
   
 
 

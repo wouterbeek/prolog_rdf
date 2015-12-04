@@ -23,7 +23,8 @@
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_term)).
 
 :- rdf_meta(rdf_is_language_tagged_string(o)).
 :- rdf_meta(rdf_literal_components(o,r,-,-)).

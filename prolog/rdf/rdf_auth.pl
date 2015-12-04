@@ -18,7 +18,7 @@ Authenticated read/write access to the RDF DB.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_database)).
 
 :- meta_predicate(authenticated_graph(2,+,+)).
 :- meta_predicate(rdf_user_transaction(+,2,+,0)).

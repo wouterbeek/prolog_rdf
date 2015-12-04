@@ -52,7 +52,7 @@ Predicates for asseritng RDFS statements in an easy way.
 @version 2015/07-2015/09, 2015/12
 */
 
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
 
 :- rdf_meta(rdfs_assert_class(r,t,?,?,r)).
 :- rdf_meta(rdfs_assert_comment(o,+,r)).
@@ -84,7 +84,7 @@ Predicates for asseritng RDFS statements in an easy way.
 
 rdfs_assert_class(C, Parent, Lbl, Comm, G):-
   rdf_assert_instance(C, rdfs:'Class', G),
-  assert_class(C, Parent, Lbl, Comm, G).
+  rdfs_assert_class0(C, Parent, Lbl, Comm, G).
 
 
 
@@ -327,7 +327,7 @@ rdfs_retractall_label(S, V, G):-
 
 % HELPERS %
 
-assert_class(C, Parent, Lbl, Comm, G):-
+rdfs_assert_class0(C, Parent, Lbl, Comm, G):-
   rdfs_assert_subclass(C, Parent, G),
   (var(Lbl) -> true ; rdfs_assert_label(C, Lbl, G)),
   (var(Comm) -> true ; rdfs_assert_comment(C, Comm, G)),

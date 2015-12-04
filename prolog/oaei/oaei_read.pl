@@ -18,7 +18,8 @@
 @version 2015/10, 2015/12
 */
 
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).
 
 :- rdf_register_prefix(
      align,

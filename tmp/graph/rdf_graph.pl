@@ -2,20 +2,20 @@
   rdf_graph,
   [
     rdf_graph_instance/3, % +Instance:atom
-                          % +Graph:atom
+                          % +Graph:rdf_graph
                           % -Map:list(pair(bnode,rdf_term))
     rdf_graph_merge/2, % +MergingGraphs:list(atom)
-                       % +MergedGraph:atom
+                       % +MergedGraph:rdf_graph
     rdf_graph_same_size/2, % +Graph1:atom
                            % +Graph2:atom
-    rdf_is_ground_graph/1, % +Graph:atom
+    rdf_is_ground_graph/1, % +Graph:rdf_graph
     rdf_proper_graph_instance/3, % +Graph1:atom
                                  % +Graph2:atom
                                  % -BNodeMap:list(pair(bnode,or([iri,literal])))
     rdf_proper_subgraph/2, % +ProperSubgraph:atom
-                           % +Graph:atom
+                           % +Graph:rdf_graph
     rdf_subgraph/2 % +ProperSubgraph:atom
-                   % +Graph:atom
+                   % +Graph:rdf_graph
   ]
 ).
 
@@ -29,7 +29,9 @@
 
 :- use_module(library(error)).
 :- use_module(library(ordsets)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_term)).
 
 
 
@@ -37,7 +39,7 @@
 
 %! rdf_graph_instance(
 %!   +Instance:atom,
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   -Map:list(pair(bnode,rdf_term))
 %! ) is semidet.
 % Suppose that M is a functional mapping from a set of blank nodes to
@@ -72,7 +74,7 @@ bnode_to_var(Term, Term).
 
 
 
-%! rdf_graph_merge(+MergingGraphs:list(atom), +MergedGraph:atom) is det.
+%! rdf_graph_merge(+MergingGraphs:list(atom), +MergedGraph:rdf_graph) is det.
 % The operation fo **merging** takes the union after forcing any shared
 %  blank nodes, which occur in more than one graph, to be distinct in each
 %  graph.
@@ -93,19 +95,19 @@ rdf_graph_merge(FromGs, ToG):-
         FromG1 @< FromG3,
         FromG3 @< FromG2
       ),
-      rdf_bnode(SharedBNode, FromG1),
-      rdf_bnode(SharedBNode, FromG2)
+      rdf_bnode(FromG1, SharedBNode),
+      rdf_bnode(FromG2, SharedBNode)
     ),
     SharedBNodes
   ),
 
   % From the shared blank nodes that will be replaced per graph
-  %  to the actual blank node mapping.
+  % to the actual blank node mapping.
   findall(
     bnode_map(FromG, SharedBNode-NewBNode),
     (
       member(FromG-SharedBNode, SharedBNodes),
-      rdf_bnode(NewBNode)
+      rdf_create_bnode(NewBNode)
     ),
     Map
   ),
@@ -141,24 +143,24 @@ rdf_graph_same_size(G, H):-
 
 
 
-%! rdf_is_ground_graph(+Graph:atom) is semidet.
+%! rdf_is_ground_graph(+Graph:rdf_graph) is semidet.
 % Succeeds if the given RDF graph is ground, i.e., contains no blank node.
-%! rdf_is_ground_graph(-Graph:atom) is nondet.
+%! rdf_is_ground_graph(-Graph:rdf_graph) is nondet.
 % Enumerates RDF graphs that are ground.
 %
 % A **ground** RDF graph is one that contains no blank nodes.
 %
 % @compat RDF 1.1 Semantics
 
-rdf_is_ground_graph(Graph):-
-  rdf_graph(Graph),
-  \+ rdf_bnode(_, Graph).
+rdf_is_ground_graph(G):-
+  rdf_graph(G),
+  \+ rdf_bnode(G, _).
 
 
 
 %! rdf_proper_graph_instance(
 %!   +ProperInstance:atom,
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   -Map:list(pair(bnode,rdf_term))
 %! ) is semidet.
 % A **proper instance** of a graph is an instance in which a blank node
@@ -194,7 +196,7 @@ rdf_proper_subgraph(G, H):-
 
 
 
-%! rdf_subgraph(+Subgraph:atom, +Graph:atom) is semidet.
+%! rdf_subgraph(+Subgraph:atom, +Graph:rdf_graph) is semidet.
 % A **subgraph** of an RDF graph is a subset of the triples in the graph.
 %
 % @compat RDF 1.1 Semantics

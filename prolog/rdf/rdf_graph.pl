@@ -36,7 +36,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_update)).
 :- use_module(library(semweb/rdf_db), [
      rdf_create_graph/1 as rdf_create_graph0,
      rdf_graph/1 as rdf_graph0,

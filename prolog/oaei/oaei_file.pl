@@ -32,7 +32,7 @@
 :- use_module(library(oaei/oaei_build)).
 :- use_module(library(oaei/oaei_read)).
 :- use_module(library(os/open_any2)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_load)).
 
 :- predicate_options(oaei_load_rdf/3, 3, [
      pass_to(rdf_call_on_graph/3, 3)

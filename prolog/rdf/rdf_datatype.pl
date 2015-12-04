@@ -57,9 +57,8 @@
 :- use_module(library(html/html_dom)).
 :- use_module(library(ltag/rfc5646)).
 :- use_module(library(memfile)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/w3c_dtf)).
-:- use_module(library(rdfs/rdfs_api)).
 :- use_module(library(semweb/rdfs), [rdfs_subclass_of/2]).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
@@ -222,7 +221,7 @@ rdf_interpreted_term(X, Y):-
 rdf_interpreted_term(X, X):-
   is_iri(X), !.
 rdf_interpreted_term(X, X):-
-  rdf_is_bnode(X), !.
+  is_of_type(rdf_bnode, X), !.
 rdf_interpreted_term(X, Y):-
   rdf_lexical_map(X, Y).
 

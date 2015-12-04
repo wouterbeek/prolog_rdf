@@ -29,7 +29,7 @@ the RDF prefix that is used for the RDF vocabulary.
 :- use_module(library(dcg/turtle_conv)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_prefix)).
 
 
 

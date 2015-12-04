@@ -21,7 +21,6 @@ Conditional HTML content generation using RDF prefix expansion.
 
 :- use_module(library(apply)).
 :- use_module(library(http/html_write)).
-:- use_module(library(rdf/rdf_api)).
 :- use_module(library(semweb/rdf_db), [rdf_global_term/2]).
 
 :- html_meta(rdf_html(html,?,?)).

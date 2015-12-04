@@ -38,7 +38,7 @@
 :- use_module(library(lambda)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_print_graph(r,+,?,?)).

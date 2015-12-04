@@ -38,7 +38,7 @@
 :- use_module(library(owl/owl_build)).
 %/rdf
 :- use_module(library(rdf/id_store)).
-:- use_module(library(rdf/rdf_api)).
+%:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_auth)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_build)).

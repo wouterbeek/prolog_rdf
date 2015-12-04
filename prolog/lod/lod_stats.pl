@@ -44,7 +44,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(plunit)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(semweb/rdf_db), [rdf_statistics/1]).
 :- use_module(library(solution_sequences)).
 

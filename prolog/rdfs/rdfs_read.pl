@@ -25,7 +25,8 @@
 @version 2015/08-2015/09, 2015/12
 */
 
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta(rdfs_class(o,?)).
 :- rdf_meta(rdfs_comment(o,?)).

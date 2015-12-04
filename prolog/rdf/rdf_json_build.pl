@@ -15,7 +15,9 @@
 @version 2015/07, 2015/12
 */
 
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_list)).
+:- use_module(library(rdf/rdf_prefix)).
 
 :- rdf_meta(rdf_assert_json(r,r,+)).
 :- rdf_meta(rdf_assert_json(r,r,+,?)).

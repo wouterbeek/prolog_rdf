@@ -51,7 +51,8 @@ Support for RDF containers (sequence, bag, and alternatives).
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(pairs)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdfs/rdfs_read)).
 
 :- rdf_meta(rdf_alt(o,?)).
 :- rdf_meta(rdf_alt(o,?,?)).

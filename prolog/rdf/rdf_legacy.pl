@@ -31,7 +31,7 @@ the Unicode strings in Normal Form C with the set of datatype URIs.
 @version 2015/09-2015/10, 2015/12
 */
 
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_is_typed_literal(o)).

@@ -1,11 +1,11 @@
 :- module(
   mat,
   [
-    mat/1, % +InputGraph:atom
-    mat/2, % +InputGraph:atom
-           % ?OutputGraph:atom
-    mat/3 % +InputGraph:atom
-          % ?OutputGraph:atom
+    mat/1, % +InputGraph:rdf_graph
+    mat/2, % +InputGraph:rdf_graph
+           % ?OutputGraph:rdf_graph
+    mat/3 % +InputGraph:rdf_graph
+          % ?OutputGraph:rdf_graph
           % +Options:list(compound)
   ]
 ).
@@ -23,7 +23,13 @@
 :- use_module(library(error)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(option_ext)).
+:- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_read)).
+
+:- rdf_meta(mat(r)).
+:- rdf_meta(mat(r,r)).
+:- rdf_meta(mat(r,r,+)).
 
 :- predicate_options(mat/3, 3, [
      pass_to(mat0/3, 3)
@@ -44,34 +50,32 @@
 
 
 
-%! mat(+InputGraph:atom, +OutputGraph:atom) is det.
+%! mat(+InputGraph:rdf_graph, +OutputGraph:rdf_graph) is det.
 % Wrapper around mat/2 that asserts materialization results
 % into the input graph.
 
 mat(G):-
   mat(G, G).
 
-%! mat(+InputGraph:atom, +OutputGraph:atom) is det.
+
+%! mat(+InputGraph:rdf_graph, +OutputGraph:rdf_graph) is det.
 % Wrapper around mat/3 with default options.
 
 mat(InG, OutG):-
   mat(InG, OutG, []).
 
-%! mat(+InputGraph:atom, +OutputGraph:atom, +Options:list(compound)) is det.
+
+%! mat(+InputGraph:rdf_graph, +OutputGraph:rdf_graph, +Options:list(compound)) is det.
 % Materializes the contents of InputGraph into OutputGraph.
-%! mat(+InputGraph:atom, -OutputGraph:atom, +Options:list(compound)) is det.
+%! mat(+InputGraph:rdf_graph, -OutputGraph:rdf_graph, +Options:list(compound)) is det.
 % Materializes the contents of InputGraph into the default graph
 % (called `user`).
-%! mat(-InputGraph:atom, +OutputGraph:atom, +Options:list(compound)) is det.
+%! mat(-InputGraph:rdf_graph, +OutputGraph:rdf_graph, +Options:list(compound)) is det.
 % Materializes all contents into OutputGraph.
-%! mat(-InputGraph:atom, -OutputGraph:atom) is det.
+%! mat(-InputGraph:rdf_graph, -OutputGraph:rdf_graph) is det.
 % Materializes all contents into the default graph (called `user`).
 %
 % The following options are supported:
-%   * generalized_rdf(+boolean)
-%     Whether results should be stored in generalized RDF.
-%     @see http://www.w3.org/TR/rdf11-concepts/#section-generalized-rdf
-%     Default is `false`.
 %   * justifications(+boolean)
 %     Whether justifications for deductions are stored.
 %     Default is `false`.
@@ -114,16 +118,9 @@ mat0(GIn, GOut, Opts):-
   ;   true
   ),
 
-  % Results are either stored in (plain) RDF or in generalized RDF.
-  option(generalized_rdf(_GenRdf), Opts, false),
-  forall(find_chr_constraint(rdf_chr(S,P,O)),
-    rdf_assert(S, P, O, GOut)
-  ),
+  forall(find_chr_constraint(rdf_chr(S,P,O)), rdf_assert(S, P, O, GOut)),
 
-  (   option(justifications(true), Opts)
-  ->  true
-  ;   clear_j
-  ).
+  if_option(justifications(true), Opts, clear_j).
 
 
 
