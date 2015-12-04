@@ -29,10 +29,7 @@ the RDF prefix that is used for the RDF vocabulary.
 :- use_module(library(dcg/turtle_conv)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdfs/rdfs_build)).
+:- use_module(library(rdf/rdf_api)).
 
 
 
@@ -71,7 +68,7 @@ property_name(property(Name, _), Name).
 create_resource(SPrefix, DPrefix, Legend, G, R):-
   % Create the class-denoting RDF term based on the legend name.
   once(atom_phrase(atom_capitalize, Legend, CName)),
-  rdf_global_id(SPrefix:CName, C),
+  rdf_expand_rt(SPrefix:CName, C),
 
   % Create the instance.
   fresh_iri(DPrefix, [Legend], R),
@@ -155,7 +152,7 @@ assert_triples0(SPrefix, G, S, P, Os):-
   maplist(assert_triples0(SPrefix, G, S, P), Os).
 assert_triples0(SPrefix, G, S, P0, O):-
   to_pn_local(P0, PnLocal),
-  rdf_global_id(SPrefix:PnLocal, P),
+  rdf_expand_rt(SPrefix:PnLocal, P),
   user:rdf_assert(S, P, O, G).
 
 
@@ -233,7 +230,7 @@ assert_json_property(G, Mod, SPrefix, DPrefix, Type, Val, O):-
   json_to_rdf(G, Mod, SPrefix, DPrefix, Val, O).
 % Typed literals.
 assert_json_property(_, _, _, _, D0, Lex0, Lit):-
-  rdf_global_id(D0, D),
+  rdf_expand_rt(D0, D),
   % Remember that SWI dictionaries contain SWI strings, not atoms.
   atom_string(Lex, Lex0),
   rdf_lexical_map(D, Lex, Val),

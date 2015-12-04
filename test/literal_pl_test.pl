@@ -82,7 +82,7 @@ strings*.
 
 
 run_tests:-
-  rdf_global_id(ex:'test-literal-pl', G),
+  rdf_expand_ct(ex:'test-literal-pl', G),
   % Atom
   rdf_assert_literal_pl(ex:s, ex:p, '1000', G),
   % date/3

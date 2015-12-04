@@ -52,11 +52,7 @@ Predicates for asseritng RDFS statements in an easy way.
 @version 2015/07-2015/09, 2015/12
 */
 
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_default)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta(rdfs_assert_class(r,t,?,?,r)).
 :- rdf_meta(rdfs_assert_comment(o,+,r)).
@@ -318,8 +314,8 @@ rdfs_retractall_class(C):-
 rdfs_retractall_label(S, V, G):-
   (   ground(V)
   ->  (   V = _-_
-      ->  rdf_equal(D, rdf:langString)
-      ;   rdf_equal(D, xsd:string)
+      ->  rdf_expand_ct(rdf:langString, D)
+      ;   rdf_expand_ct(xsd:string, D)
       )
   ;   true
   ),

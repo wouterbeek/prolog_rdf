@@ -65,6 +65,7 @@ annotated_list(_) --> "".
 :- use_module(library(dcg/sparql10_code)).
 :- use_module(library(ltag/rfc5646)).
 :- use_module(library(math/rational_ext)).
+:- use_module(library(rdf/rdf_api)).
 
 
 
@@ -430,7 +431,7 @@ quoted_string_codes([H|T]) -->
 
 simpleIRI(Iri) -->
   dcg_string('PN_LOCAL', LocalName),
-  {throw_if_manchester_keyword(LocalName), rdf_global_id('':LocalName, Iri)}.
+  {throw_if_manchester_keyword(LocalName), rdf_expand_rt('':LocalName, Iri)}.
 
 
 %! stringLiteralNoLanguage(?Literal:compound)// .

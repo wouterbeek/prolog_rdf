@@ -23,14 +23,15 @@
 Namespace support for RDF(S), building on namespace prefix support for XML.
 
 @author Wouter Beek
-@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12, 2015/02, 2015/12
+@version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12, 2015/02,
+         2015/12
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta(rdf_prefixe_iri(r,-)).
 :- rdf_meta(rdf_prefixes(r,r,o,?,-)).
@@ -52,8 +53,8 @@ rdf_convert_prefixes(_, _, BNode, BNode):-
 rdf_convert_prefixes(_, _, Literal, Literal):-
   rdf_is_literal(Literal), !.
 rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
-  rdf_global_id(FromPrefix:LocalName, FromIri),
-  rdf_global_id(ToPrefix:LocalName, ToIri).
+  rdf_expand_rt(FromPrefix:LocalName, FromIri),
+  rdf_expand_rt(ToPrefix:LocalName, ToIri).
 
 
 %! rdf_convert_prefixes(
@@ -100,7 +101,7 @@ rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
     Pairs
   ),
   keysort(Pairs, [_-LongestPrefix|_]),
-  rdf_global_id(LongestPrefix:ShortestLocalName, Iri).
+  rdf_expand_rt(LongestPrefix:ShortestLocalName, Iri).
 
 
 
@@ -118,7 +119,7 @@ rdf_prefixes(S, P, O, G, Pairs5):-
     (
       erdf(S, P, O, G),
       member(Term, [S,P,O]),
-      rdf_global_id(Prefix:_, Term)
+      rdf_expand_rt(Prefix:_, Term)
     ),
     Pairs1
   ),

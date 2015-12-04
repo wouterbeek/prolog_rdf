@@ -41,13 +41,14 @@
 
 @author Wouter Beek
 @compat SPARQL 1.0
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_quote)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/rational_ext)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta('NumericLiteral'(o,?,?)).
 :- rdf_meta('NumericLiteralNegative'(o,?,?)).
@@ -393,7 +394,7 @@ subtags([]) --> "".
 'PNAME_LN'(Iri) -->
   'PNAME_NS'(Prefix),
   'PN_LOCAL'(Local),
-  {rdf_global_id(Prefix:Local, Iri)}.
+  {rdf_expand_rt(Prefix:Local, Iri)}.
 
 
 
@@ -423,7 +424,7 @@ subtags([]) --> "".
 % ```
 
 'PrefixedName'(Iri) --> 'PNAME_LN'(Iri), !.
-'PrefixedName'(Iri) --> 'PNAME_NS'(Prefix), {rdf_global_id(Prefix:'', Iri)}.
+'PrefixedName'(Iri) --> 'PNAME_NS'(Prefix), {rdf_expand_rt(Prefix:'', Iri)}.
 
 
 

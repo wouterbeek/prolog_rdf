@@ -13,8 +13,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lambda)).
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_register_prefix(lobo, 'http://linkedopenbibtex.org/ontology/').
 :- rdf_register_prefix(lobr, 'http://linkedopenbibtex.org/resource/').
@@ -23,28 +22,26 @@
 
 
 
-bibtex_to_rdf(Input, Graph):-
+bibtex_to_rdf(Input, G):-
   bibtex(Input, Entries),
-  maplist(\Entry^assert_bibtex_entry(Entry, Graph), Entries).
+  maplist(assert_bibtex_entry(G), Entries).
 
 
-
-assert_bibtex_entry(Entry0, Graph):-
+assert_bibtex_entry(G, Entry0):-
   % Resource.
   md5(Entry0, Hash),
   Entry0 = entry(ClassName,Name,Pairs),
-  rdf_global_id(lobr:Hash, Entry),
+  rdf_expand_ct(lobr:Hash, Entry),
   
   % Class.
-  rdf_global_id(lobo:ClassName, Class),
-  rdf_assert_instance(Entry, Class, Graph),
+  rdf_expand_ct(lobo:ClassName, Class),
+  rdf_assert_instance(Entry, Class, G),
   
   % Properties.
-  rdf_assert_string(Entry, lobo:name, Name, Graph),
-  maplist(\Pair^assert_bibtex_property(Entry, Pair, Graph), Pairs).
+  rdf_assert_string(Entry, lobo:name, Name, G),
+  maplist(assert_bibtex_property(Entry, G), Pairs).
 
 
-
-assert_bibtex_property(Entry, Key-Value, Graph):-
-  rdf_global_id(lobo:Key, P),
-  rdf_assert_string(Entry, P, Value, Graph).
+assert_bibtex_property(Entry, G, Key-Value):-
+  rdf_expand_ct(lobo:Key, P),
+  rdf_assert_string(Entry, P, Value, G).

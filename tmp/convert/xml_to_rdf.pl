@@ -4,19 +4,19 @@
     parse_file/4, % +File:atom
                   % +ParserVersion:oneof(['1.0','1.1'])
                   % +Namespace:atom
-                  % ?Graph:atom
+                  % ?Graph:rdf_graph
     create_resource/7, % +XML_DOM:list
                        % +XML_PrimaryProperties:list(atom)
                        % :XML2RDF_Translation
                        % +Class:iri
-                       % +Graph:atom
+                       % +Graph:rdf_graph
                        % -Subject:or([bnode,iri])
                        % -XML_RemainingDOM:list
-    create_triples/6 % +XML_DOM:list,
-                     % +XML_Properties:list(atom),
-                     % :XML2RDF_Translation,
-                     % +RDF_Subject:or([bnode,iri]),
-                     % +RDF_Graph:atom,
+    create_triples/6 % +XML_DOM:list
+                     % +XML_Properties:list(atom)
+                     % :XML2RDF_Translation
+                     % +Subject:or([bnode,iri])
+                     % +Graph:rdf_graph
                      % -XML_RemainingDOM:list
   ]
 ).
@@ -26,32 +26,33 @@
 Converts XML DOMs to RDF graphs.
 
 @author Wouter Beek
-@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11, 2015/02, 2015/12
+@version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11, 2015/02,
+         2015/12
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(pure_input)).
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(uri)).
 
 :- meta_predicate(create_resource(+,+,3,+,+,-,-)).
 :- meta_predicate(create_triples(+,+,3,+,+,-)).
 :- meta_predicate(get_dom_value(+,3,+,-)).
 
-:- rdf_meta(create_resource(+,+,:,r,+,-,-)).
-:- rdf_meta(create_triples(+,+,:,r,+,-)).
+:- rdf_meta(parse_file(+,+,+,r)).
 
 
 
 
 
-%! ensure_graph_name(+File:atom, ?Graph:atom) is det.
+%! ensure_graph_name(+File:atom, ?Graph:rdf_graph) is det.
 
-ensure_graph_name(_, Graph):-
-  nonvar(Graph), !.
-ensure_graph_name(File, Graph):-
-  uri_file_name(File, Graph).
+ensure_graph_name(_, G):-
+  nonvar(G), !.
+ensure_graph_name(File, G):-
+  uri_file_name(File, G).
 
 
 parse_file(File1, Version, Prefix, G):-
@@ -70,20 +71,21 @@ parse_file(File1, Version, Prefix, G):-
 %! xml_parse(
 %!   +Version:oneof(['1.0','1.1']),
 %!   +Prefix:atom,
-%!   +Graph:atom
+%!   +Graph:rdf_graph
 %! )// is det.
 % Parses the root tag.
 
-xml_parse(ParserVersion, Prefix, Graph) -->
+xml_parse(ParserVersion, Prefix, G) -->
   {xml_version_map(ParserVersion, DocumentVersion)},
   'XMLDecl'(ParserVersion, xml_decl(DocumentVersion,_,_)),
   'STag'(ParserVersion, RootName, _),
   *(ascii_white, []),
   {
-    rdf_global_id(Prefix:RootName, Class),
-    rdf_create_next_resource(Prefix, [RootName], Class, Graph, Resource)
+    rdf_expand_rt(Prefix:RootName, C),
+    rdf_create_iri(Prefix, [RootName], I),
+    rdf_assert_instance(I, C, G)
   },
-  xml_parses(ParserVersion, Prefix, Resource, Graph),
+  xml_parses(ParserVersion, Prefix, Resource, G),
   'ETag'(RootName),
   dcg_done.
 
@@ -93,29 +95,29 @@ xml_parse(ParserVersion, Prefix, Graph) -->
 %!   +Version:oneof(['1.0','1.1']),
 %!   +Prefix:atom,
 %!   +Resource:iri,
-%!   +Graph:atom
+%!   +Graph:rdf_graph
 %! )// is det.
 
 % Non-tag content.
 xml_parse(Version, Prefix, S, G) -->
   'STag'(Version, PTag, _), !,
   *(ascii_white, []),
-  xml_content(Version, PTag, Codes),
+  xml_content(Version, PTag, Cs),
   {
-    atom_codes(O, Codes),
-    rdf_global_id(Prefix:PTag, P),
-    rdf_assert_simple_literal(S, P, O, G)
+    atom_codes(O, Cs),
+    rdf_expand_rt(Prefix:PTag, P),
+    rdf_assert_literal(S, P, xsd:string, O, G)
   }.
 % Skip short tags.
 xml_parse(Version, _, _, _) -->
   'EmptyElemTag'(Version, _, _), !,
-  *(ascii_white, []).
+  *(ascii_white).
 % Nested tag.
 xml_parse(Version, Prefix, S, G) -->
   'STag'(Version, OTag, _), !,
-  *(ascii_white, []),
+  *(ascii_white),
   {
-    rdf_global_id(Prefix:OTag, Class),
+    rdf_expand_rt(Prefix:OTag, Class),
     rdf_create_next_resource(Prefix, [OTag], Class, G, O)
   },
   xml_parses(Version, Prefix, O, G),
@@ -163,7 +165,7 @@ xml_content(Version, Tag, [H|T]) -->
 %! ) is det.
 
 create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
-  rdf_global_id(Ns:Name1, C),
+  rdf_expand_rt(Ns:Name1, C),
   findall(
     Value,
     (
@@ -182,7 +184,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
     Name4
   ),
 
-  rdf_global_id(Ns:Name4, S),
+  rdf_expand_rt(Ns:Name4, S),
 
   rdf_assert_instance(S, C, G),
 

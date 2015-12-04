@@ -16,13 +16,18 @@
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
-     rdf_current_prefix/2,
-     rdf_equal/2,
-     rdf_global_id/2 as rdf_iri,
-     rdf_global_term/2 as rdf_global_term,
-     rdf_global_term/2 as rdf_global_compound,
-     rdf_register_prefix/2,
-     rdf_register_prefix/3
+     rdf_current_prefix/2, % ?Alias:atom
+                           % ?Iri:atom
+     rdf_equal/2 as rdf_expand_ct, % ?Iri1:compound
+                                   % ?Iri2:compound
+     rdf_global_id/2 as rdf_expand_rt, % ?Prefixed:compound
+                                       % ?Iri:atom
+     rdf_global_object/2 as rdf_expand_term, % ?PrefixedTerm:compound
+                                             % ?ExpandedTerm:compound
+     rdf_register_prefix/2, % +Alias, Iri
+     rdf_register_prefix/3 % +Alias:atom
+                           % +Iri:atom
+                           % +Options:list(compound)
    ]).
 
 /** <module> RDF prefix
@@ -323,12 +328,11 @@ rdf_memberchk(X, L):-
 
 %! rdf_prefix_iri(+Iri:atom, -PrefixIri:atom) is det.
 % Returns the prefix of the given IRI that is abbreviated with a registered
-%  RDF prefix, if any.
-%
-% If no registered RDF prefix occurs in Iri, then the full IRI is returned.
+% RDF prefix, if any.  If no registered RDF prefix occurs in Iri the full IRI
+% is returned.
 
 rdf_prefix_iri(Iri, PrefixIri):-
-  rdf_global_id(Prefix:_, Iri), !,
+  rdf_expand_rt(Prefix:_, Iri), !,
   rdf_current_prefix(Prefix, PrefixIri).
 rdf_prefix_iri(Iri, Iri).
 
@@ -336,7 +340,7 @@ rdf_prefix_iri(Iri, Iri).
 
 %! rdf_reset_prefix(+Prefix:atom, +Iri:atom) is det.
 % Sets or resets RDF prefixes (whatever is needed to effectuate the mapping
-% from Prefix onto URI), but shows a warning in the case of resetting.
+% from Prefix onto IRI), but shows a warning in the case of resetting.
 
 rdf_reset_prefix(Prefix, Iri):-
   with_mutex(rdf_reset_prefix, (

@@ -51,10 +51,7 @@ Support for RDF containers (sequence, bag, and alternatives).
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(pairs)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta(rdf_alt(o,?)).
 :- rdf_meta(rdf_alt(o,?,?)).
@@ -206,7 +203,7 @@ rdf_bag_raw(L1, L2, G):-
 % (+,?)
 rdf_container_membership_property(P, N):-
   ground(P), !,
-  rdf_global_id(rdf:Local, P),
+  rdf_expand_rt(rdf:Local, P),
   atom_concat('_', N0, Local),
   atom_number(N0, N),
   must_be(nonneg, N).
@@ -216,7 +213,7 @@ rdf_container_membership_property(P, N):-
   must_be(positive_integer, N),
   atom_number(N0, N),
   atom_concat('_', N0, Local),
-  rdf_global_id(rdf:Local, P).
+  rdf_expand_rt(rdf:Local, P).
 % (?,?)
 rdf_container_membership_property(P, N):-
   between(1, inf, N),

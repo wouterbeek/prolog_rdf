@@ -63,26 +63,20 @@ Support for RDF lists.
 @compat [RDF Schema 1.1](http://www.w3.org/TR/2014/REC-rdf-schema-20140225/)
 @tbd Add RDF list retraction.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05, 2013/07-2013/09,
-         2014/01-2014/02, 2014/06, 2014/10-2015/01, 2015/03-2015/04
+         2014/01-2014/02, 2014/06, 2014/10-2015/01, 2015/03-2015/04, 2015/12
 */
 
 :- use_module(library(option)).
 :- use_module(library(lambda)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-:- use_module(library(semweb/rdfs), except([rdfs_label/3])).
-
-:- use_module(plc(generics/closure)).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(api/rdf_read)).
+:- use_module(library(rdf/rdf_api).
 
 :- predicate_options(rdf_assert_list/4, 4, [
-  datatype(+atom)
-]).
+     datatype(+atom)
+   ]).
 :- predicate_options(rdf_list/4, 4, [
-  datatype(+atom),
-  recursive(+boolean)
-]).
+     datatype(+atom),
+     recursive(+boolean)
+   ]).
 
 :- rdf_meta(rdf_assert_list(o,r,?,+)).
 :- rdf_meta(rdf_list(r)).
@@ -147,7 +141,7 @@ rdf_assert_list_items([H|T], RdfList, Graph, Options):-
 
   % rdf:rest
   (   T == []
-  ->  rdf_global_id(rdf:nil, Rest)
+  ->  rdf_expand_ct(rdf:nil, Rest)
   ;   add_list_individual(Rest, Graph),
       rdf_assert_list_items(T, Rest, Graph, Options)
   ),

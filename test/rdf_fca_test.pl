@@ -124,6 +124,6 @@ fca_export0(Context, GLbl):-
 
 rdf_assert_number(N, G):-
   atom_number(A, N),
-  rdf_global_id(ex:A, Iri),
+  rdf_expand_rt(ex:A, Iri),
   rdf_assert_instance(Iri, ex:'Number', G),
   rdfs_assert_label(Iri, A, G).

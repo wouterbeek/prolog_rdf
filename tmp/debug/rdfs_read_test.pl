@@ -4,12 +4,12 @@
 
 :- begin_tests(rdfs_read).
 
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta(test_triple(?,r,r,o)).
 
 test(rdf_query, [forall(test_triple(M, S, P, O))]):-
-  rdf_global_id(rdf:type, P),
+  rdf_expand_ct(rdf:type, P),
   rdfs_individual(M, S, O, _).
 
 %! test_triple(

@@ -1,21 +1,11 @@
 :- module(
   rdf_build,
   [
-    fresh_iri/2, % +Prefix, -Iri
-    fresh_iri/3, % +Prefix:atom
-                 % +SubPaths:list(atom)
-                 % -Iri:iri
     rdf_assert/3, % +Subject, +Predicate, +Object
     rdf_assert/4, % +Subject:gid
-                   % +Predicate:gid
-                   % +Object:gid
-                   % ?Graph:rdf_graph
-    rdf_retractall/1, % +Statement:rdf_stmt
-    rdf_retractall/3, % ?Subject, ?Predicate, ?Object
-    rdf_retractall/4, % ?Subject:gid
-                       % ?Predicate:gid
-                       % ?Object:gid
-                       % ?Graph:rdf_graph
+                  % +Predicate:gid
+                  % +Object:gid
+                  % ?Graph:rdf_graph
     rdf_assert_instance/2, % +Instance, ?Class
     rdf_assert_instance/3, % +Instance:rdf_term
                            % ?Classes:or([rdf_term,list(rdf_term)])
@@ -28,9 +18,9 @@
                           % ?Graph:rdf_graph
     rdf_assert_literal_pl/3, % +Subject, +Predicate, +Value
     rdf_assert_literal_pl/4, % +Subject:rdf_term
-                            % +Predicate:iri
-                            % +Value
-                            % ?Graph:rdf_graph
+                             % +Predicate:iri
+                             % +Value
+                             % ?Graph:rdf_graph
     rdf_assert_now/2, % +Subject, +Predicate
     rdf_assert_now/3, % +Subject, +Predicate, ?Graph
     rdf_assert_now/4, % +Subject:rdf_term
@@ -40,6 +30,16 @@
     rdf_assert_property/3, % +Property:iri
                            % ?Parent:iri
                            % ?Graph:rdf_graph
+    rdf_create_iri/2, % +Prefix, -Iri
+    rdf_create_iri/3, % +Prefix:atom
+                      % +SubPaths:list(atom)
+                      % -Iri:atom
+    rdf_retractall/1, % +Statement:rdf_stmt
+    rdf_retractall/3, % ?Subject, ?Predicate, ?Object
+    rdf_retractall/4, % ?Subject:gid
+                      % ?Predicate:gid
+                      % ?Object:gid
+                      % ?Graph:rdf_graph
     rdf_retractall_literal/4, % ?Subject, ?Predicate:iri, ?Datatype, ?Value
     rdf_retractall_literal/5, % ?Subject:rdf_term
                               % ?Predicate:iri
@@ -52,10 +52,7 @@
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
-     rdf_assert/3 as rdf_assert0,
-     rdf_assert/4 as rdf_assert0,
-     rdf_retractall/3 as rdf_retractall0,
-     rdf_retractall/3 as rdf_retractall0
+     rdf_bnode/1 as rdf_create_bnode % -BlankNode:rdf_bnode
    ]).
 
 /** <module> Generalized RDF building
@@ -63,6 +60,7 @@
 Simple asserion and retraction predicates for RDF.
 
 @author Wouter Beek
+@compat RDF 1.1
 @license MIT License
 @version 2015/07-2015/10, 2015/12
 */
@@ -70,16 +68,26 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(rdf/io_store)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(semweb/rdf_db), [
+     rdf_assert/3 as rdf_assert0, % +Subject, +Predicate, +Object
+     rdf_assert/4 as rdf_assert0, % +Subject:or([rdf_bnode,iri])
+                                  % +Predicate:iri
+                                  % +Object:rdf_term
+                                  % +Graph:atom
+     rdf_retractall/3 as rdf_retractall0, % ?Subject, ?Predicate, ?Object
+     rdf_retractall/4 as rdf_retractall0 % ?Subject:or([rdf_bnode,iri])
+                                         % ?Predicate:iri
+                                         % ?Object:rdf_term
+                                         % ?Graph:atom
+   ]).
 :- use_module(library(typecheck)).
 :- use_module(library(uuid_ext)).
 :- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
 
 :- rdf_meta(rdf_assert(o,+,o)).
 :- rdf_meta(rdf_assert(o,+,o,r)).
-:- rdf_meta(rdf_retractall(t)).
-:- rdf_meta(rdf_retractall(o,+,o)).
-:- rdf_meta(rdf_retractall(o,+,o,r)).
 :- rdf_meta(rdf_assert_instance(o,t)).
 :- rdf_meta(rdf_assert_instance(o,t,r)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+)).
@@ -90,38 +98,15 @@ Simple asserion and retraction predicates for RDF.
 :- rdf_meta(rdf_assert_now(o,r,r)).
 :- rdf_meta(rdf_assert_now(o,r,r,r)).
 :- rdf_meta(rdf_assert_property(o,r,r)).
+:- rdf_meta(rdf_retractall(t)).
+:- rdf_meta(rdf_retractall(o,+,o)).
+:- rdf_meta(rdf_retractall(o,+,o,r)).
 :- rdf_meta(rdf_retractall_literal(o,r,r,?)).
 :- rdf_meta(rdf_retractall_literal(o,r,r,?,r)).
 :- rdf_meta(rdf_retractall_term(o)).
 :- rdf_meta(rdf_retractall_term(o,r)).
 
 
-
-
-
-%! fresh_iri(+Prefix:atom, -Iri:atom) is det.
-% Wrapper around fresh_iri/3 using no subpaths.
-
-fresh_iri(Prefix, Iri):-
-  fresh_iri(Prefix, [], Iri).
-
-
-%! fresh_iri(+Prefix:atom, +SubPaths:list(atom), -Iri:atom) is det.
-% Succeeds with a fresh IRI within the RDF namespace denoted by Prefix
-% and the given SubPaths.
-%
-% IRI freshness is guaranteed by the UUID that is used as the path suffix.
-%
-% @arg Prefix   A registered RDF prefix name.
-% @arg SubPaths A list of path names that prefix the UUID.
-% @arg Iri      A fresh IRI.
-
-fresh_iri(Prefix, SubPaths0, Iri):-
-  uuid_no_hyphen(Id),
-  append(SubPaths0, [Id], SubPaths),
-  atomic_list_concat(SubPaths, /, LocalName),
-  % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
-  rdf_global_id(Prefix:LocalName, Iri).
 
 
 
@@ -168,6 +153,32 @@ rdf_assert_id(S, P, O, G):-
   maplist(assign_term_id, [S,P,O], [Sid,Pid,Oid]),
   (var(G) -> rdf_assert0(Sid, Pid, Oid) ; rdf_assert0(Sid, Pid, Oid, G)).
   
+
+
+%! rdf_create_iri(+Prefix:atom, -Iri:atom) is det.
+% Wrapper around fresh_iri/3 using no subpaths.
+
+rdf_create_iri(Prefix, Iri):-
+  rdf_create_iri(Prefix, [], Iri).
+
+
+%! rdf_create_iri(+Prefix:atom, +SubPaths:list(atom), -Iri:atom) is det.
+% Succeeds with a fresh IRI within the RDF namespace denoted by Prefix
+% and the given SubPaths.
+%
+% IRI freshness is guaranteed by the UUID that is used as the path suffix.
+%
+% @arg Prefix   A registered RDF prefix name.
+% @arg SubPaths A list of path names that prefix the UUID.
+% @arg Iri      A fresh IRI.
+
+rdf_create_iri(Prefix, SubPaths0, Iri):-
+  uuid_no_hyphen(Id),
+  append(SubPaths0, [Id], SubPaths),
+  atomic_list_concat(SubPaths, /, LocalName),
+  % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
+  rdf_expand_iri(Prefix:LocalName, Iri).
+
 
 
 %! rdf_retractall(+Statement:rdf_stmt) is det.

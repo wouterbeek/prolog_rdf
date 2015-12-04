@@ -49,11 +49,10 @@ Generates HTML representations of RDF data.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(typecheck)).
 
+:- rdf_meta(html_entry(r,-)).
 :- rdf_meta(rdf_html_datatype(r,+,?,?)).
 :- rdf_meta(rdf_html_iri(r,+,?,?)).
 :- rdf_meta(rdf_html_language_tag(+,+,?,?)).
@@ -199,15 +198,11 @@ rdf_html_iri(Iri, Opts) -->
 rdf_html_iri(Iri, Opts) -->
   {
     option(symbol_iri(true), Opts, true),
-    Class = [iri,'symbol-iri']
+    html_entry(Iri, Name),
+    ClassT = [iri,'symbol-iri'],
   },
-  (   {rdf_memberchk(Iri, [owl:equivalentClass,owl:sameAs])}
-  ->  html(span(class=[equiv|Class], &(equiv)))
-  ;   {rdf_global_id(rdfs:subClassOf, Iri)}
-  ->  html(span(class=[subclass|Class], &(sube)))
-  ;   {rdf_global_id(rdf:type, Iri)}
-  ->  html(span(class=[in|Class], &(isin)))
-  ).
+  html(span(class=[Name|ClassT], &(Name))).
+
 rdf_html_iri(Global, Opts) -->
   {
     option(label_iri(true), Opts),
@@ -310,7 +305,7 @@ rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
           \rdf_html_language_tag(LTag, Opts)
         ])
       )
-  ;   {rdf_global_id(rdf:langString, D)},
+  ;   {rdf_expand_ct(rdf:langString, D)},
       html(
         span(class=['language-tagged-string',literal], [
           &(lang),
@@ -326,7 +321,7 @@ rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
       )
   ).
 rdf_html_literal0(literal(Lex), Opts) -->
-  {rdf_global_id(xsd:string, D)},
+  {rdf_expand_ct(xsd:string, D)},
   rdf_html_literal0(literal(type(D,Lex)), Opts).
 
 
@@ -424,7 +419,7 @@ rdf_html_term_in_graph(T, G, Opts) -->
 html_compact_iri(Global, Opts) -->
   {
     \+ option(abbr_iri(false), Opts),
-    rdf_global_id(Prefix:Local, Global)
+    rdf_expand_rt(Prefix:Local, Global)
   }, !,
   {
     option(ellip_ln(N), Opts, 20),
@@ -435,6 +430,13 @@ html_compact_iri(Global, Opts) -->
     ':',
     span(class='iri-local',Local0)
   ]).
+
+
+
+html_entry(owl:equivalentClass, equiv).
+html_entry(owl:sameAs,          equiv).
+html_entry(rdf:type,            isin).
+html_entry(rdfs:subClassOf,     sube).
 
 
 

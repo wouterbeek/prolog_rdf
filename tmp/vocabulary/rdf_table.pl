@@ -1,7 +1,7 @@
 :- module(
   rdf_table,
   [
-    rdf_assert_table/6 % +Graph:atom
+    rdf_assert_table/6 % +Graph:rdf_graph
                        % +Caption:atom
                        % +ColumnHeaders:list(atom)
                        % +RowHeaders:list(atom)
@@ -19,16 +19,18 @@ A simple RDF vocabulary for representing tables.
 */
 
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_register_prefix(rdf_table, 'http://www.wouterbeek.com/rdf_table#').
+
+:- rdf_meta(rdf_assert_table(r,+,+,+,+,-)).
 
 
 
 
 
 %! rdf_assert_table(
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   +Caption:atom,
 %!   +ColumnHeaders:list(atom),
 %!   +RowHeaders:list(atom),
@@ -105,7 +107,7 @@ rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
 % Asserts the column headers of a table.
 
 rdf_assert_column_headers(Graph, Table, ColumnHeaders, ColumnList):-
-  rdf_global_id(rdf_table:columns, Predicate),
+  rdf_expand_ct(rdf_table:columns, Predicate),
   rdf_assert_headers(Graph, Table, Predicate, ColumnHeaders, ColumnList).
 
 
@@ -118,7 +120,7 @@ rdf_assert_column_headers(Graph, Table, ColumnHeaders, ColumnList):-
 % Asserts the row headers of a table.
 
 rdf_assert_row_headers(Graph, Table, RowHeaders, RowList):-
-  rdf_global_id(rdf_table:rows, Predicate),
+  rdf_expand_ct(rdf_table:rows, Predicate),
   rdf_assert_headers(Graph, Table, Predicate, RowHeaders, RowList).
 
 
@@ -134,4 +136,3 @@ rdf_assert_row_headers(Graph, Table, RowHeaders, RowList):-
 rdf_assert_headers(Graph, Table, Predicate, Headers, HeaderList):-
   rdf_assert_list(Headers, HeaderList, Graph, [datatype(xsd:string)]),
   user:rdf_assert(Table, Predicate, HeaderList, Graph).
-

@@ -15,7 +15,7 @@ API access to terms in the RDF vocabulary.
 @version 2015/02, 2015/12
 */
 
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta(rdf_class_term(r)).
 :- rdf_meta(rdf_membership_property_term(r)).
@@ -44,9 +44,9 @@ rdf_membership_property_term(MembershipProperty):-
   var(MembershipProperty), !,
   between(1, inf, N),
   atom_concat('_', N, LocalName),
-  rdf_global_id(rdf:LocalName, MembershipProperty).
+  rdf_expand_rt(rdf:LocalName, MembershipProperty).
 rdf_membership_property_term(MembershipProperty):-
-  rdf_global_id(rdf:LocalName, MembershipProperty),
+  rdf_expand_rt(rdf:LocalName, MembershipProperty),
   atom_concat('_', N, LocalName),
   between(1, inf, N).
 

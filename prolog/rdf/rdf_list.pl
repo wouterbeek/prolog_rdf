@@ -52,10 +52,8 @@ Support for reading/writing RDF lists.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdfs/rdfs_api)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_assert_list(t,r)).
@@ -100,7 +98,7 @@ rdf_assert_list0(L1, L2, G):-
 
 % @tbd Add determinism?
 rdf_assert_list_items0([], L, _):-
-  rdf_equal(rdf:nil, L), !.
+  rdf_expand_ct(rdf:nil, L), !.
 rdf_assert_list_items0([H1|T1], L2, G):-
   % rdf:first
   (   % Nested list.
@@ -116,7 +114,7 @@ rdf_assert_list_items0([H1|T1], L2, G):-
 
   % rdf:rest
   (   T1 == []
-  ->  rdf_equal(rdf:nil, T2)
+  ->  rdf_expand_ct(rdf:nil, T2)
   ;   add_list_instance0(T2, G),
       rdf_assert_list_items0(T1, T2, G)
   ),
@@ -131,7 +129,7 @@ add_list_instance0(L, G):-
 %! rdf_is_list(@Term) is semidet.
 
 rdf_is_list(L):-
-  rdf_equal(rdf:nil, L), !.
+  rdf_expand_ct(rdf:nil, L), !.
 rdf_is_list(L):-
   rdfs_instance(L, rdf:'List'), !.
 rdf_is_list(L):-
@@ -172,7 +170,7 @@ rdf_list_raw(L1, L2):-
 %! rdf_list_raw(+RdfList:rdf_term, ?PrologList:list, ?Graph:atom) is semidet.
 
 rdf_list_raw(L, [], _):-
-  rdf_equal(rdf:nil, L), !.
+  rdf_expand_ct(rdf:nil, L), !.
 rdf_list_raw(L1, [H2|T2], G):-
   % rdf:first
   user:rdf(L1, rdf:first, H1, G),
@@ -228,7 +226,7 @@ rdf_list_length(L, N):-
 %! rdf_list_length(+List:rdf_term, -Length:nonneg, ?Graph:atom) is det.
 
 rdf_list_length(L, 0, _):-
-  rdf_equal(rdf:nil, L), !.
+  rdf_expand_ct(rdf:nil, L), !.
 rdf_list_length(L, N, G):-
   user:rdf(L, rdf:rest, T, G),
   rdf_list_length(T, M, G),
@@ -278,7 +276,7 @@ rdf_retractall_list(L):-
 %! rdf_retractall_list(+List:rdf_term, ?Graph:atom) is det.
 
 rdf_retractall_list(L, _):-
-  rdf_equal(rdf:nil, L), !.
+  rdf_expand_ct(rdf:nil, L), !.
 rdf_retractall_list(L, G):-
   % Remove the head.
   user:rdf(L, rdf:first, H, G),

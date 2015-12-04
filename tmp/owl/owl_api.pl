@@ -43,6 +43,8 @@
   ]
 ).
 
+:- use_module(library(rdf/rdf_api)).
+
 :- assert_cc_prefixes.
 :- assert_dbpedia_localizations.
 
@@ -171,7 +173,7 @@ rdf_literal3(S, P, D, Val):-
   ground(Val), !,
   % Map to lexical form.
   rdf_canonical_map(D, Val, literal(type(D,Lex))),
-  (   rdf_equal(D, xsd:string),
+  (   rdf_expand_ct(xsd:string, D),
       Lit = literal(Lex)
   ;   Lit = literal(type(D,Lex))
   ),
@@ -186,7 +188,7 @@ rdf_literal3(S, P, xsd:string, Val):-
   O = literal(Lex),
   user:rdf(S, P, O),
   atom(Lex),
-  rdf_global_id(xsd:string, D),
+  rdf_expand_ct(xsd:string, D),
   rdf_lexical_map(D, Lex, Val).
 
 
@@ -199,7 +201,7 @@ rdf_literal3(S, P, xsd:string, Val):-
 %! ) is det.
 
 rdf_number_of_triples3(S, P, O, N):-
-  aggregate_all(count, user:rdf(S, P, O), N).
+  aggregate_all(count, rdf(S, P, O), N).
 
 
 
@@ -236,7 +238,7 @@ rdf_print_triple3(S, P, O):-
 
 rdf_print_triple3(S, P, O, Opts):-
   % NONDET
-  user:rdf(S, P, O),
+  rdf(S, P, O),
   rdf_print_triple(S, P, O, _, Opts).
 
 
@@ -249,10 +251,10 @@ rdf_print_triple3(S, P, O, Opts):-
 %! ) is nondet.
 
 rdfs_label3(S, LRanges, LTag, Lex):-
-  rdf_global_id(rdfs:label, P),
+  rdf_expand_ct(rdfs:label, P),
   (   % First look for language-tagged strings with matching language tag.
       rdf_langstring3(S, P, LRanges, Lex-LTag)
   ;   % Secondly look for XSD strings with no language tag.
-      rdf_global_id(xsd:string, D),
+      rdf_expand_ct(xsd:string, D),
       rdf_literal3(S, P, D, Lex)
   ).

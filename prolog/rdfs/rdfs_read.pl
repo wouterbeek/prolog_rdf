@@ -25,9 +25,7 @@
 @version 2015/08-2015/09, 2015/12
 */
 
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(semweb/rdfs)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta(rdfs_class(o,?)).
 :- rdf_meta(rdfs_comment(o,?)).
@@ -69,7 +67,7 @@ rdfs_comment(S, Comm):-
 % @tbd
 
 rdfs_instance(I, C):-
-  rdf_global_id(rdf:type, P),
+  rdf_expand_ct(rdf:type, P),
   user:rdf(I, P, C).
 
 
@@ -94,10 +92,10 @@ rdfs_label(S, LRanges, LTag, Lbl):-
 %! ) is nondet.
 
 rdfs_label(S, LRanges, LTag, Lex, G):-
-  rdf_global_id(rdfs:label, P),
+  rdf_expand_ct(rdfs:label, P),
   (   % First look for language-tagged strings with matching language tag.
       rdf_langstring(S, P, LRanges, LTag-Lex, G)
   ;   % Secondly look for XSD strings with no language tag whatsoever.
-      rdf_global_id(xsd:string, D),
+      rdf_expand_ct(xsd:string, D),
       rdf_literal(S, P, D, Lex, G)
   ).

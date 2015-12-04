@@ -1,11 +1,11 @@
 :- module(
   rdf_read,
   [
-    grdf/3, % ?Subject, ?Predicate, ?Object
-    grdf/4, % ?Subject:gid
-            % ?Predicate:gid
-            % ?Object:gid
-            % ?Graph:rdf_graph
+    rdf/3, % ?Subject, ?Predicate, ?Object
+    rdf/4, % ?Subject:gid
+           % ?Predicate:gid
+           % ?Object:gid
+           % ?Graph:rdf_graph
     rdf_date/3, % ?Subject, ?Predicate, ?Date
     rdf_date/4, % ?Subject:rdf_term
                 % ?Predicate:iri
@@ -15,6 +15,8 @@
     rdf_instance/3, % ?Instance:rdf_term
                     % ?Class:rdf_term
                     % ?Graph:rdf_graph
+    rdf_is_id/2, % +Term1:rdf_term
+                 % +Term2:rdf_term
     rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePriorityList, ?Value
     rdf_langstring/5, % ?Subject:rdf_term
                       % ?Predicate:iri
@@ -43,9 +45,6 @@
                      % ?Graph:rdf_graph
   ]
 ).
-:- reexport(library(semweb/rdf_db), [
-     
-   ]).
 
 /** <module> Generalized RDF reading
 
@@ -64,12 +63,13 @@
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(xsd/xsd)).
 
-:- rdf_meta(grdf(o,?,o)).
-:- rdf_meta(grdf(o,?,o,r)).
+:- rdf_meta(rdf(o,?,o)).
+:- rdf_meta(rdf(o,?,o,r)).
 :- rdf_meta(rdf_date(o,r,?)).
 :- rdf_meta(rdf_date(o,r,?,r)).
 :- rdf_meta(rdf_instance(o,r)).
 :- rdf_meta(rdf_instance(o,r,r)).
+:- rdf_meta(rdf_is_id(r,r)).
 :- rdf_meta(rdf_langstring(o,r,+,?)).
 :- rdf_meta(rdf_langstring(o,r,+,?,r)).
 :- rdf_meta(rdf_langstring_pref(o,r,+,?)).
@@ -119,13 +119,13 @@ error:has_type(rdf_triple, Term):-
 
 
 
-%! grdf(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
+%! rdf(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
 
-grdf(S, P, O):-
-  grdf(S, P, O, '*').
+rdf(S, P, O):-
+  rdf(S, P, O, '*').
 
 
-%! grdf(
+%! rdf(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
@@ -133,8 +133,8 @@ grdf(S, P, O):-
 %! ) is nondet.
 
 % 1. Identity statement.
-grdf(S, P, O, _):-
-  rdf_equal(P, owl:sameAs), !,
+rdf(S, P, O, _):-
+  rdf_is_id(P, owl:sameAs), !,
   (   nonvar(S)
   ->  term_to_term(S, O)
   ;   nonvar(O)
@@ -145,7 +145,7 @@ grdf(S, P, O, _):-
       member(S, O, Ts)
   ).
 % 2. Statements other than identity statements.
-grdf(S, P, O, G):-
+rdf(S, P, O, G):-
   % (Only) in the subject position, literals may be represented by blank nodes.
   (rdf_is_literal(S) -> id_literal(Sid, S) ; nonvar(S) -> term_to_id(S, Sid) ; true),
   (nonvar(P) -> term_to_id(P, Pid) ; true),
@@ -217,8 +217,16 @@ rdf_instance(I, C):-
 %! rdf_instance(?Instance:rdf_term, ?Class:iri, ?Graph:rdf_graph) is nondet.
 
 rdf_instance(I, C, G):-
-  rdf_equal(rdf:type, P),
+  rdf_expand_ct(rdf:type, P),
   user:rdf(I, P, C, G).
+
+
+
+%! rdf_is_id(+Term1:rdf_term, +Term2:rdf_term) is semidet.
+
+rdf_is_id(T1, T2):-
+  term_to_terms(T1, Ts),
+  memberchk(T2, Ts).
 
 
 
@@ -330,7 +338,7 @@ rdf_literal(S, P, D, V, G):-
 
 % Language-tagged strings.
 rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
-  rdf_equal(D, rdf:langString),
+  rdf_expand_ct(rdf:langString, D),
   Val = Lex-LTag,
   O = literal(lang(LTag,Lex)),
   user:rdf(S, P, O, G),
@@ -338,18 +346,18 @@ rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
 % Ground datatype and value.
 rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
   ground(D),
-  \+ rdf_equal(D, rdf:langString),
+  \+ rdf_expand_ct(rdf:langString, D),
   ground(Val), !,
   % Map to lexical form.
   rdf_canonical_map(D, Val, literal(type(D,Lex))),
-  (   rdf_equal(D, xsd:string),
+  (   rdf_expand_ct(xsd:string, D),
       O = literal(Lex)
   ;   O = literal(type(D,Lex))
   ),
   user:rdf(S, P, O, G).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal(S, P, D, Val, G, rdf(S,P,Lit,G)):-
-  (ground(D) -> \+ rdf_equal(D, rdf:langString) ; true),
+  (ground(D) -> \+ rdf_expand_ct(rdf:langString, D) ; true),
   Lit = literal(type(D,_)),
   user:rdf(S, P, Lit, G),
   rdf_lexical_map(Lit, Val).

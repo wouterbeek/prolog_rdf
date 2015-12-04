@@ -1,11 +1,9 @@
 :- use_module(library(debug)).
 :- use_module(library(mat/mat)).
 :- use_module(library(owl/owl_build)).
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_info)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdfs/rdfs_build)).
+:- use_module(library(rdfs/rdfs_api)).
 
 :- debug(mat(rdf(_))).
 :- debug(mat(rdfs(_))).
@@ -21,7 +19,7 @@
 
 script1:-
   rdf_reset_db,
-  rdf_global_id(ex:script1, G),
+  rdf_expand_ct(ex:script1, G),
   fresh_iri(ex, [animal,hog], Hog1),
   fresh_iri(ex, [animal,hog], Hog2),
   rdf_assert_instance(Hog1, ex:'Hog', G),
@@ -36,7 +34,7 @@ script1:-
 
 script2:-
   rdf_reset_db,
-  rdf_global_id(ex:script2, G),
+  rdf_expand_ct(ex:script2, G),
   G = script2,
   rdf_bnode(D),
   grdf_assert(ex:'A', owl:equivalentClass, D, G),
@@ -48,21 +46,21 @@ script2:-
 
 script3:-
   rdf_reset_db, 
-  rdf_global_id(ex:script3, G),
+  rdf_expand_ct(ex:script3, G),
   grdf_assert(ex:a, owl:sameAs, ex:b, G),
   grdf_assert(ex:b, owl:differentFrom, ex:a, G),
   mat0(G).
 
 script4:-
   rdf_reset_db,
-  rdf_global_id(ex:script4, G),
+  rdf_expand_ct(ex:script4, G),
   rdfs_assert_range(ex:p, ex:c, G),
   rdf_assert_literal(ex:s, ex:p, xsd:string, o, G),
   mat0(G).
 
 script5:-
   rdf_reset_db,
-  rdf_global_id(ex:script5, G),
+  rdf_expand_ct(ex:script5, G),
   owl_assert_functional_property(ex:p, G),
   grdf_assert(ex:a, ex:p, ex:b, G),
   grdf_assert(ex:a, ex:p, ex:c, G),
@@ -72,6 +70,6 @@ mat0(G):- atom_concat(G, '_mat', GMat), mat(G, GMat).
 
 script6:-
   rdf_reset_db,
-  rdf_global_id(ex:script6, G),
+  rdf_expand_ct(ex:script6, G),
   rdf_assert_now(ex:s, ex:p, G),
   rdf_print_graph(G).

@@ -38,8 +38,7 @@
 :- use_module(library(lambda)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_bnode_name)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_print_graph(r,+,?,?)).
@@ -131,7 +130,7 @@ rdf_print_datatype(D, Opts) --> rdf_print_iri(D, Opts).
 
 rdf_print_graph(G, Opts) -->
   ({option(style(turtle), Opts)} -> " " ; "@"),
-  ({  rdf_global_id(Prefix:Local, G),
+  ({  rdf_expand_rt(Prefix:Local, G),
       \+ option(abbr_iri(false), Opts)}
   -> {option(ellip_ln(N), Opts, 20),
       atom_truncate(Local, N, Local0)},
@@ -182,7 +181,7 @@ rdf_print_iri(Global, Opts) -->
 rdf_print_iri(Global, Opts) -->
   {
     \+ option(abbr_iri(false), Opts),
-    rdf_global_id(Prefix:Local, Global), !,
+    rdf_expand_rt(Prefix:Local, Global), !,
     option(ellip_ln(N), Opts, 20),
     atom_truncate(Local, N, Local0)
   },
@@ -257,13 +256,13 @@ rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
 rdf_print_literal(literal(lang(LTag,Lex)), Opts) --> !,
   (   {option(style(turtle), Opts)}
   ->  rdf_print_lexical(Lex, Opts), "@", rdf_print_language_tag(LTag, Opts)
-  ;   {rdf_global_id(rdf:langString, D)},
+  ;   {rdf_expand_ct(rdf:langString, D)},
       "〈", rdf_print_datatype(D, Opts), ", ",
       "〈", rdf_print_lexical(Lex, Opts), ", ",
       rdf_print_language_tag(LTag, Opts), "〉", "〉"
   ).
 rdf_print_literal(literal(Lex), Opts) -->
-  {rdf_global_id(xsd:string, D)},
+  {rdf_expand_ct(xsd:string, D)},
   rdf_print_literal(literal(type(D,Lex)), Opts).
 
 

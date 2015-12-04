@@ -32,6 +32,11 @@
                % ?Term:rdf_term
   ]
 ).
+:- reexport(library(semweb/rdf_db), [
+     rdf_is_bnode/1, % +Id
+     rdf_is_literal/1, % @Term
+     rdf_is_resource/1 % @Term
+   ]).
 
 /** <module> Generalized RDF terms
 

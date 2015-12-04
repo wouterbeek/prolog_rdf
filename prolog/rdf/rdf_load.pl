@@ -9,11 +9,16 @@
     rdf_call_on_statements/3, % +Input
                               % :Goal_2
                               % +Options:list(compound)
-    rdf_load_file/1, % +Input
-    rdf_load_file/2 % +Input
-                    % +Options:list(compound)
+    rdf_load/1, % +Input
+    rdf_load/2 % +Input
+               % +Options:list(compound)
   ]
 ).
+:- reexport(library(semweb/rdf_db), [
+     rdf_make/0,
+     rdf_source_location/2 % +Subject
+                           % -Location
+   ]).
 
 /** <module> RDF load
 

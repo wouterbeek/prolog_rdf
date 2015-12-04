@@ -67,10 +67,7 @@ Predicates for asserting common OWL structures.
 
 :- use_module(library(apply)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdfs/rdfs_build)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta(owl_assert_class(r,t,?,?,?)).
 :- rdf_meta(owl_assert_data_property(r,?)).
@@ -207,7 +204,7 @@ owl_assert_list_items0([H1|T1], L2):-
 
   % rdf:rest
   (   T1 == []
-  ->  rdf_global_id(rdf:nil, T2)
+  ->  rdf_expand_ct(rdf:nil, T2)
   ;   owl_add_list_instance0(T2),
       owl_assert_list_items0(T1, T2)
   ),

@@ -10,13 +10,13 @@
                   % -Term:rdf_term
     id_to_terms/2, % +Id:or([rdf_literal,uid])
                    % -Terms:ordset(rdf_term)
+    literal_id/2, % ?Literal:rdf_literal
+                  % ?Id:uid
     print_store/0,
     print_store/1, % +Options:list(compound)
     remove_id/1, % +Id:or([rdf_literal,uid])
     store_id/2, % +Id1:or([rdf_literal,uid])
                 % +Id2:or([rdf_literal,uid])
-    literal_id/2, % ?Literal:rdf_literal
-                  % ?Id:uid
     term_to_id/2, % +Term:rdf_term
                   % -Id:or([rdf_literal,uid])
     term_to_term/2, % +Term1:rdf_term
@@ -54,8 +54,8 @@ A literal identity set identifier denotes itself.
 
 :- rdf_meta(assign_literal_id(o,-)).
 :- rdf_meta(assign_term_id(o,?)).
-:- rdf_meta(store_id(o,o)).
 :- rdf_meta(literal_id(o,-)).
+:- rdf_meta(store_id(o,o)).
 :- rdf_meta(term_to_id(o,-)).
 :- rdf_meta(term_to_term(o,-)).
 :- rdf_meta(term_to_terms(o,-)).

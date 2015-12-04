@@ -4,7 +4,7 @@
     prolog_to_rdf/4 % +Graph:atom
                     % +Module:atom
                     % +Term:term
-                    % -Individual:iri
+                    % -Instance:iri
   ]
 ).
 
@@ -17,59 +17,61 @@ Automated conversion from Prolog terms to RDF triples.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(dcg/dcg_atom)).
+:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdfs/rdfs_api)).
+:- use_module(library(uri)).
 
 
 
 
 
-prolog_to_rdf(Graph, Module, Term, Individual):-
+prolog_to_rdf(G, Mod, Term, I):-
   % Namespace.
-  (
-    rdf_current_prefix(Module, _), !
-  ;
-    atomic_list_concat(['http://www.wouterbeek.com',Module,''], /, URL),
-    rdf_register_prefix(Module, URL)
+  (   rdf_current_prefix(Mod, _), !
+  ;   atomic_list_concat([Mod,''], /, Path),
+      uri_components(Iri, uri_components(http,'www.wouterbeek.com',Path,_,_)),
+      rdf_register_prefix(Mod, Iri)
   ),
 
   % Class.
   Term =.. [Functor|Args],
   once(atom_phrase(atom_capitalize, Functor, ClassName)),
-  rdf_global_id(Module:ClassName, Class),
-  rdfs_assert_class(Class, Graph),
+  rdf_expand_rt(Mod:ClassName, Class),
+  rdfs_assert_class(Class, G),
 
-  % Individual.
-  rdf_bnode(Individual),
-  rdf_assert_instance(Individual, Class, Graph),
+  % Instance.
+  rdf_create_bnode(I),
+  rdf_assert_instance(I, Class, G),
 
   % Propositions.
-  Module:legend(Functor, ArgRequirements),
-  maplist(prolog_to_rdf(Graph, Module, Individual), ArgRequirements, Args).
+  Mod:legend(Functor, ArgRequirements),
+  maplist(prolog_to_rdf(G, Mod, I), ArgRequirements, Args).
 
 prolog_to_rdf(
-  Graph,
-  Module,
-  Individual1,
-  PredicateName-PrologType-Optional,
-  Value
+  G,
+  Mod,
+  I1,
+  PName-PrologType-Optional,
+  Val
 ):-
-  rdf_global_id(Module:PredicateName, Predicate),
+  rdf_expand_ct(Mod:PName, P),
   (   PrologType =.. [list,InnerPrologType]
-  ->  is_list(Value),
+  ->  is_list(Val),
       maplist(
         prolog_to_rdf(
-          Graph,
-          Module,
-          Individual1,
-          PredicateName-InnerPrologType-Optional
+          G,
+          Mod,
+          I1,
+          PName-InnerPrologType-Optional
         ),
-        Value
+        Val
       )
   ;   PrologType = _/_
-  ->  prolog_to_rdf(Graph, Module, Value, Individual2),
-      rdf_assert(Individual1, Predicate, Individual2, Graph)
-  ;   rdf_datatype(Datatype, PrologType)
-  ->  rdf_assert_typed_literal(Individual1, Predicate, Value, Datatype, Graph)
+  ->  prolog_to_rdf(G, Mod, Val, I2),
+      rdf_assert(I1, P, I2, G)
+  ;   rdf_datatype(D, PrologType)
+  ->  rdf_assert_literal(I1, P, D, Val, G)
   ;   Optional = true
   ).
-
