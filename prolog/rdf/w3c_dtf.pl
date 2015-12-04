@@ -1,8 +1,8 @@
 :- module(
   w3c_dtf,
   [
-    cdtf//1, % +DateTime:compound
-    ldtf//1 % +DateTime:compound
+    cdtf//1, % +Datetime:datetime
+    ldtf//1 % +Datetime:datetime
   ]
 ).
 
@@ -34,18 +34,19 @@ where:
 @author Wouter Beek
 @compart NOTE-datetime
 @see http://www.w3.org/TR/NOTE-datetime
-@version 2015/11
+@version 2015/11-2015/12
 */
 
+:- use_module(library(datetime/datetime)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(xsd/dateTime/xsd_dateTime_fragments)).
+:- use_module(library(xsd/datetime/xsd_datetime_fragments)).
 :- use_module(library(xsd/number/xsd_number_fragments)).
 
 
 
 
 
-cdtf(dateTime(Y, Mo, D, H, Mi, S, Off)) -->
+cdtf(datetime(Y, Mo, D, H, Mi, S, Off)) -->
   cYYYY(Y),
   (   {var(Mo)}, !
   ;   "-", cMM(Mo),
@@ -92,7 +93,7 @@ lTZD(Off) -->
   lhh(H), ":", lmm(Mi),
   {Off is Sg * ((H * 60) + Mi)}.
 
-ldtf(dateTime(Y, Mo, D, H, Mi, S, Off)) -->
+ldtf(datetime(Y, Mo, D, H, Mi, S, Off)) -->
   lYYYY(Y),
   (   "-"
   ->  lMM(Mo),

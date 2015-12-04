@@ -56,6 +56,7 @@
 */
 
 :- use_module(library(datetime/datetime)).
+:- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(rdf/id_store)).
@@ -412,6 +413,10 @@ rdf_literal_pl(S, P, D, V):-
 % for convencience at the cost of a little bit of correctness
 % use rdf_literal_pl/[3-5].
 
-rdf_literal_pl(S, P, D, V, G):-
-  rdf_literal(S, P, D, V0, G),
-  (xsd_datatype(D, date) -> dateTime_date(V0, V) ; V = V0).
+rdf_literal_pl(S, P, D, V1, G):-
+  is_of_type(date, V1), !,
+  date_to_datetime(V1, V2),
+  rdf_literal(S, P, D, V2, G).
+rdf_literal_pl(S, P, D, V1, G):-
+  rdf_literal(S, P, D, V2, G),
+  (xsd_datatype(D, datetime) -> datetime_to_date(V2, V1) ; V1 = V2).

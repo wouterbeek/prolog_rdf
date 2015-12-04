@@ -65,6 +65,7 @@ Simple asserion and retraction predicates for RDF.
 @version 2015/07-2015/10, 2015/12
 */
 
+:- use_module(library(datetime/datetime)).
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf_db), [
@@ -80,7 +81,7 @@ Simple asserion and retraction predicates for RDF.
    ]).
 :- use_module(library(typecheck)).
 :- use_module(library(uuid_ext)).
-:- use_module(library(xsd/dateTime/xsd_dateTime_functions)).
+:- use_module(library(xsd/datetime/xsd_datetime_functions)).
 
 :- rdf_meta(rdf_assert(o,+,o)).
 :- rdf_meta(rdf_assert(o,+,o,r)).
