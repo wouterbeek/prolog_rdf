@@ -62,8 +62,8 @@ rdf_compare(X, Y, Rel, XOnly, XYDiff, YOnly):-
   ).
 
 rdf_compare0(X, Y, XOnly, XYDiff, YOnly):-
-  aggregate_all(set(rdf(X,P,O)), grdf(X, P, O), Xs),
-  aggregate_all(set(rdf(Y,P,O)), grdf(Y, P, O), Ys),
+  aggregate_all(set(rdf(X,P,O)), rdf(X, P, O), Xs),
+  aggregate_all(set(rdf(Y,P,O)), rdf(Y, P, O), Ys),
   rdf_compare_split0(Xs, Ys, XOnly, XYDiff, YOnly).
 
 % Y must be ahead of X.

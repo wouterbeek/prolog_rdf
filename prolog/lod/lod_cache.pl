@@ -105,7 +105,7 @@ lod_cache_triples(Iri, Ts, _):-
   maplist(lod_cache_triple(Iri), Ts).
 
 lod_cache_triple(Iri, rdf(S,P,O)):- !,
-  user:rdf_assert(S, P, O, Iri),
+  rdf_assert(S, P, O, Iri),
   (   thread_self(I),
       exists_counter(count_triples(I))
   ->  increment_counter(count_triples(I))

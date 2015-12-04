@@ -30,7 +30,7 @@ Generates HTML tables with RDF content.
 :- use_module(library(html/element/html_table)).
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(typecheck)).
 
 :- rdf_register_prefix(rdf_table, 'http://rdf_table.org/').
@@ -73,7 +73,7 @@ Generates HTML tables with RDF content.
 rdf_html_quadruple_table(S, P, O, G, Opts1) -->
   {
     option(max_rows(Max), Opts1, 100),
-    findnsols(Max, [S,P,O,graph(G)], user:rdf(S, P, O, G), Rows0),
+    findnsols(Max, [S,P,O,graph(G)], rdf(S, P, O, G), Rows0),
     sort(Rows0, Rows),
     merge_options([header_spec([s,p,o,g])], Opts1, Opts2)
   },
@@ -128,7 +128,7 @@ rdf_html_term0(Opts, T) -->
 rdf_html_triple_table(S, P, O, G, Opts1) -->
   {
     option(max_rows(Max), Opts1, 100),
-    findnsols(Max, [S,P,O], user:rdf(S, P, O, G), Rows0),
+    findnsols(Max, [S,P,O], rdf(S, P, O, G), Rows0),
     sort(Rows0, Rows),
     merge_options([header_spec([s,p,o])], Opts1, Opts2)
   },

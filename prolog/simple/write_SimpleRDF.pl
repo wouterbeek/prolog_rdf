@@ -152,15 +152,15 @@ write_simple_graph(G, Opts):-
   option(format(Format), Opts, _),
   (   nonvar(Format)
   ->  must_be(oneof([quadruples,triples]), Format)
-  ;   grdf_graph(G),
+  ;   rdf_graph(G),
       G \== user,
-      grdf(_, _, _, G:_)
+      rdf(_, _, _, G:_)
   ->  must_be(iri, G),
       Format = quadruples
   ;   Format = triples
   ),
 
-  findall(S, grdf(S, _, _, G), Ss),
+  findall(S, rdf(S, _, _, G), Ss),
   sort(Ss, SortedSs),
   maplist(write_simple_subject(BNodePrefix, CT, CQ, G, Format), SortedSs),
 
@@ -266,7 +266,7 @@ write_simple_subject(Iri, _):-
 
 % Format: Quadruples.
 write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S):-
-  findall(P-O-G, grdf(S, P, O, G:_), POGs),
+  findall(P-O-G, rdf(S, P, O, G:_), POGs),
   sort(POGs, SortedPOGs),
   forall(
     member(P-O-G, SortedPOGs),
@@ -274,7 +274,7 @@ write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S):-
   ).
 % Format: Triples.
 write_simple_subject(BNodePrefix, CT, _, G, triple, S):-
-  findall(P-O, grdf(S, P, O, G:_), POs),
+  findall(P-O, rdf(S, P, O, G:_), POs),
   sort(POs, SortedPOs),
   forall(
     member(P-O, SortedPOs),

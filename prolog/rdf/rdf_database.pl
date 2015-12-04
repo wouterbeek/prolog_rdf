@@ -1,4 +1,4 @@
-:- module(rdf_db, []).
+:- module(rdf_database, []).
 :- reexport(library(semweb/rdf_db), [
      rdf_active_transaction/1, % ?Id
      rdf_current_snapshot/1, % ?Term

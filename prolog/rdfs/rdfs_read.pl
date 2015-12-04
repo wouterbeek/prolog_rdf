@@ -41,25 +41,24 @@
 % @tbd
 
 rdfs_class(C, G):-
-  user:rdf(C, rdf:type, rdfs:'Class', G).
+  rdf(C, rdf:type, rdfs:'Class', G).
 rdfs_class(C, G):-
-  user:rdf(_, rdf:type, C, G).
+  rdf(_, rdf:type, C, G).
 rdfs_class(C, G):-
-  user:rdf(_, rdfs:domain, C, G).
+  rdf(_, rdfs:domain, C, G).
 rdfs_class(C, G):-
-  user:rdf(_, rdfs:range, C, G).
+  rdf(_, rdfs:range, C, G).
 rdfs_class(C, G):-
-  user:rdf(C, rdfs:subClassOf, _, G).
+  rdf(C, rdfs:subClassOf, _, G).
 rdfs_class(C, G):-
-  user:rdf(_, rdfs:subClassOf, C, G).
+  rdf(_, rdfs:subClassOf, C, G).
 
 
 
 %! rdfs_comment(?Subject:rdf_term, ?Comment:atom) is nondet.
 
 rdfs_comment(S, Comm):-
-  rdf_literal(S0, rdfs:comment, xsd:string, Comm),
-  owl_id(S, S0).
+  rdf_literal(S, rdfs:comment, xsd:string, Comm).
 
 
 
@@ -68,7 +67,7 @@ rdfs_comment(S, Comm):-
 
 rdfs_instance(I, C):-
   rdf_expand_ct(rdf:type, P),
-  user:rdf(I, P, C).
+  rdf(I, P, C).
 
 
 

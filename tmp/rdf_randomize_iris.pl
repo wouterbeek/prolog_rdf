@@ -14,15 +14,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(random)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uri)).
-
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_cardinal)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(generics/meta_ext)).
-
-:- use_module(plRdf(term/rdf_term)).
 
 
 
@@ -33,7 +25,7 @@ rdf_randomize_iris(G):-
   aggregate_all(
     set(X-X0),
     (
-      user:rdf_iri(X),
+      rdf_iri(X),
       rdf_term(X, G),
       once(randomize_iri(X, X0))
     ),
@@ -61,7 +53,7 @@ randomize_iri(IRI1, IRI2):-
 randomize_triple(Graph, Dict, S1-P1-O1):-
   rdf_retractall(S1, P1, O1, Graph),
   maplist(iri_lookup(Dict), [S1,P1,O1], [S2,P2,O2]),
-  user:rdf_assert(S2, P2, O2, Graph).
+  rdf_assert(S2, P2, O2, Graph).
 
 iri_lookup(Dict, X, Y):-
   memberchk(X-Y, Dict), !.

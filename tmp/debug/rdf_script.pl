@@ -47,5 +47,5 @@ assert_visum(G):-
 
   % Interrelations
   owl_assert_class_equivalence(ch:capital, nl:capital, G),
-  grdf_assert(dbr:'Amsterdam', owl:sameAs, ch:'Amsterdam', G),
-  grdf_assert(dbr:'Amsterdam', owl:sameAs, nl:'Amsterdam', G).
+  rdf_assert(dbr:'Amsterdam', owl:sameAs, ch:'Amsterdam', G),
+  rdf_assert(dbr:'Amsterdam', owl:sameAs, nl:'Amsterdam', G).

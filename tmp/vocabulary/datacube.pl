@@ -50,7 +50,6 @@ Predicates for perfoming measurements represented in RDF.
 :- rdf_meta(assert_multimeasure_observation(r,r,:,+,-)).
 :- rdf_meta(assert_relation(-,r,+,+)).
 :- rdf_meta(assert_relation0(r,+,+,-)).
-:- rdf_meta(rdf_assert0(r,r,+,o)).
 
 :- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
 :- rdf_register_prefix(
@@ -76,7 +75,7 @@ assert_dataset(DataStructureDefinition, G, DataSet):-
     G,
     DataSet
   ),
-  user:rdf_assert(DataSet, qb:structure, DataStructureDefinition, G).
+  rdf_assert(DataSet, qb:structure, DataStructureDefinition, G).
 
 
 %! assert_datastructure_definition(
@@ -143,7 +142,7 @@ assert_datastructure_definition(
   % qb:component
   forall(
     member(Component, Components),
-    user:rdf_assert(DataStructureDefinition, qb:component, Component, G)
+    rdf_assert(DataStructureDefinition, qb:component, Component, G)
   ).
 
 
@@ -159,10 +158,10 @@ assert_measure_property(MeasureProperty, Concept, Range, G):-
   rdf_assert_instance(MeasureProperty, qb:'MeasureProperty', G),
 
   % qb:concept
-  user:rdf_assert(MeasureProperty, qb:concept, Concept, G),
+  rdf_assert(MeasureProperty, qb:concept, Concept, G),
 
   % rdfs:range
-  user:rdf_assert(MeasureProperty, rdfs:range, Range, G),
+  rdf_assert(MeasureProperty, rdfs:range, Range, G),
 
   % rdfs:isDefinedBy
   (   rdf_expand_ct(Prefix:_, MeasureProperty),
@@ -192,7 +191,7 @@ assert_multimeasure_observation(
   assert_observation(Dataset, Property, Goal, G, Observation),
 
   % qb:measureType
-  user:rdf_assert(Observation, qb:measureType, Property, G).
+  rdf_assert(Observation, qb:measureType, Property, G).
 
 
 %! assert_observation(
@@ -205,7 +204,7 @@ assert_multimeasure_observation(
 
 assert_observation(Dataset, Property, Goal, G, Observation):-
   % Extract the datatype.
-  user:rdf(Property, rdfs:range, Datatype),
+  rdf(Property, rdfs:range, Datatype),
   rdf_datatype_term(Datatype),
 
   % Create the observation.
@@ -218,7 +217,7 @@ assert_observation(Dataset, Property, Goal, G, Observation):-
   ),
 
   % qb:dataSet
-  user:rdf_assert(Observation, qb:dataSet, Dataset, G),
+  rdf_assert(Observation, qb:dataSet, Dataset, G),
 
   % Assert the measurement value.
   call(Goal, Value),
@@ -232,7 +231,7 @@ assert_observation(Dataset, Property, Goal, G, Observation):-
 
 assert_slice(DataSet, G, Slice):-
   rdf_create_next_resource(slice, ['Slice'], qb:'Slice', G, Slice),
-  user:rdf_assert(DataSet, qb:slice, Slice, G).
+  rdf_assert(DataSet, qb:slice, Slice, G).
 
 
 

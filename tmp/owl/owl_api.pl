@@ -95,11 +95,11 @@ rdf_html_triple3(S, P, O, Opts) -->
 %! rdf_image3(?Subject:rdf_term, ?Image:iri) is nondet.
 
 rdf_image3(S, Img):-
-  user:rdf(S, dbo:thumbnail, Img).
+  rdf(S, dbo:thumbnail, Img).
 rdf_image3(S, Img):-
-  user:rdf(S, foaf:depiction, Img).
+  rdf(S, foaf:depiction, Img).
 rdf_image3(S, Img):-
-  user:rdf(S, _, Img),
+  rdf(S, _, Img),
   rdf_instance3(Img, dcmit:'Image').
 
 
@@ -107,7 +107,7 @@ rdf_image3(S, Img):-
 % rdf_instance3(?Instance:rdf_term, ?Class:rdf_term) is nondet.
 
 rdf_instance3(I, C):-
-  user:rdf(I, rdf:type, C).
+  rdf(I, rdf:type, C).
 
 
 
@@ -131,7 +131,7 @@ rdf_langstring3(S, P, LRanges, V):-
 rdf_list3(rdf:nil, []):- !.
 rdf_list3(L1, [H2|T2]):-
   % rdf:first
-  user:rdf(L1, rdf:first, H1),
+  rdf(L1, rdf:first, H1),
   (   % Nested list
       rdf_instance3(H1, rdf:'List')
   ->  rdf_list3(H1, H2)
@@ -139,7 +139,7 @@ rdf_list3(L1, [H2|T2]):-
       H2 = H1
   ),
   % rdf:rest
-  user:rdf(L1, rdf:rest, T1),
+  rdf(L1, rdf:rest, T1),
   rdf_list3(T1, T2).
 
 
@@ -147,9 +147,9 @@ rdf_list3(L1, [H2|T2]):-
 %! rdf_list_member3(?Member:rdf_term, ?List:rdf_term) is nondet.
 
 rdf_list_member3(X, L):-
-  user:rdf(L, rdf:first, X).
+  rdf(L, rdf:first, X).
 rdf_list_member3(X, L):-
-  user:rdf(L, rdf:rest, L0),
+  rdf(L, rdf:rest, L0),
   rdf_list_member3(X, L0).
 
 
@@ -165,7 +165,7 @@ rdf_list_member3(X, L):-
 rdf_literal3(S, P, rdf:langString, Val):-
   Val = Lex-LTag,
   O = literal(lang(LTag,Lex)),
-  user:rdf(S, P, O),
+  rdf(S, P, O),
   atom(LTag).
 % Ground datatype and value.
 rdf_literal3(S, P, D, Val):-
@@ -177,16 +177,16 @@ rdf_literal3(S, P, D, Val):-
       Lit = literal(Lex)
   ;   Lit = literal(type(D,Lex))
   ),
-  user:rdf(S, P, Lit).
+  rdf(S, P, Lit).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal3(S, P, D, Val):-
   Lit = literal(type(D,_)),
-  user:rdf(S, P, Lit),
+  rdf(S, P, Lit),
   rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).
 rdf_literal3(S, P, xsd:string, Val):-
   O = literal(Lex),
-  user:rdf(S, P, O),
+  rdf(S, P, O),
   atom(Lex),
   rdf_expand_ct(xsd:string, D),
   rdf_lexical_map(D, Lex, Val).

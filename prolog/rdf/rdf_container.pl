@@ -108,7 +108,7 @@ rdf_alt_raw(L1, L2):-
 rdf_alt_raw(L1, L2, G):-
   rdfs_instance(L1, rdf:'Alt'),
   % Satisfy graph restriction, if present.
-  (ground(G) -> once(grdf_term(G, L1)) ; true),
+  (ground(G) -> once(rdf_term(G, L1)) ; true),
   rdf_collection0(L1, L2, G).
 
 
@@ -181,7 +181,7 @@ rdf_bag_raw(L1, L2):-
 rdf_bag_raw(L1, L2, G):-
   rdfs_instance(L1, rdf:'Seq'),
   % Satisfy graph restriction, if present.
-  (ground(G) -> once(grdf_term(G, L1)) ; true),
+  (ground(G) -> once(rdf_term(G, L1)) ; true),
   rdf_collection0(L1, L2, G).
 
 
@@ -251,7 +251,7 @@ rdf_seq_raw(L1, L2):-
 rdf_seq_raw(L1, L2, G):-
   rdfs_instance(L1, rdf:'Seq'),
   % Satisfy graph restriction, if present.
-  (ground(G) -> once(grdf_term(G, L1)) ; true),
+  (ground(G) -> once(rdf_term(G, L1)) ; true),
   rdf_collection0(L1, L2, G).
 
 
@@ -271,7 +271,7 @@ rdf_assert_collection0(N, C, L1, L2, G):-
 rdf_assert_collection_items0(_, [], _, _):- !.
 rdf_assert_collection_items0(N1, [H1|T1], L2, G):-
   rdf_container_membership_property(P, N1),
-  user:rdf_assert(L2, P, H1, G),
+  rdf_assert(L2, P, H1, G),
   N2 is N1 + 1,
   rdf_assert_collection_items0(N2, T1, L2, G).
 
@@ -281,7 +281,7 @@ rdf_collection0(L1, L2, G):-
   aggregate_all(
     set(I-X),
     (
-      user:rdf(L1, P, X, G),
+      rdf(L1, P, X, G),
       rdf_container_membership_property(P, I)
     ),
     Pairs

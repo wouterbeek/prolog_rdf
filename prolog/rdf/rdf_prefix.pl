@@ -41,6 +41,8 @@
 :- use_module(library(lists)).
 :- use_module(library(uri)).
 
+:- rdf_register_prefix(ex, 'http://www.example.org/', [keep(true)]).
+
 :- meta_predicate(rdf_maplist(1,+)).
 
 :- rdf_meta(rdf_maplist(:,t)).

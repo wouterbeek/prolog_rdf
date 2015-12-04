@@ -71,14 +71,14 @@ rdf_assert(T, G):-
 %! rdf_assert_triple(+Triple:compound) is det.
 
 rdf_assert_triple(rdf(S,P,O)):-
-  grdf_assert(S, P, O).
+  rdf_assert(S, P, O).
 
 
 
 %! rdf_assert_triple(+Triple:compound, +Graph:atom) is det.
 
 rdf_assert_triple(rdf(S,P,O), G):-
-  grdf_assert(S, P, O, G).
+  rdf_assert(S, P, O, G).
 
 
 
@@ -90,7 +90,7 @@ rdf_assert_triple(rdf(S,P,O), G):-
 %! ) is nondet.
 
 rdf_ground_triple(S, P, O, G):-
-  grdf(S, P, O, G),
+  rdf(S, P, O, G),
   rdf_is_ground_triple(rdf(S,P,O)).
 
 
@@ -156,7 +156,7 @@ rdf_is_triple(rdf(S,P,O)):-
 %! ) is nondet.
 
 rdf_nonground_triple(S, P, O, G):-
-  grdf(S, P, O, G),
+  rdf(S, P, O, G),
   rdf_is_nonground_triple(rdf(S,P,O)).
 
 
@@ -166,7 +166,7 @@ rdf_nonground_triple(S, P, O, G):-
 rdf_triples(Graph, Triples):-
   aggregate_all(
     set(rdf(S,P,O)),
-    grdf(S, P, O, Graph),
+    rdf(S, P, O, Graph),
     Triples
   ).
 

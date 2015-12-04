@@ -13,11 +13,10 @@
 
 @author Wouter Beek
 @compat SPARQL 1.1 Query
-@version 2015/11
+@version 2015/11-2015/12
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_code)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(lists)).
 
@@ -82,7 +81,7 @@ echar_code(0'\\) --> "\\".
 % @see Almost the same as XML 1.0.5 and 1.1.2,
 %      but without colon and underscore.
 
-'PN_CHARS_BASE'(C) --> ascii_alpha(C).
+'PN_CHARS_BASE'(C) --> alpha(C).
 'PN_CHARS_BASE'(C) --> [C], {between(0x00C0,  0x00D6,  C)}.
 'PN_CHARS_BASE'(C) --> [C], {between(0x00D8,  0x00F6,  C)}.
 'PN_CHARS_BASE'(C) --> [C], {between(0x00F8,  0x02FF,  C)}.

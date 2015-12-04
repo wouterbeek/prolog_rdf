@@ -44,9 +44,8 @@
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(plunit)).
-:- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(semweb/rdf_db), [rdf_statistics/1]).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta(rdf_description_size(o,-)).
@@ -73,7 +72,7 @@ rdf_description_size(S, N):-
 %! rdf_number_of_object_terms(-Count:nonneg) is det.
 
 rdf_number_of_object_terms(N):-
-  aggregate_all(count, grdf_object(_), N).
+  aggregate_all(count, rdf_object(_), N).
 
 
 %! rdf_number_of_object_terms(+Graph:atom, -Count:nonneg) is det.
@@ -110,7 +109,7 @@ rdf_number_of_object_terms(S, P, G, N):-
 %! rdf_number_of_predicate_terms(-Count:nonneg) is det.
 
 rdf_number_of_predicate_terms(N):-
-  aggregate_all(count, grdf_predicate(_), N).
+  aggregate_all(count, rdf_predicate(_), N).
 
 
 %! rdf_number_of_predicate_terms(+Graph:atom, -Count:nonneg) is det.
@@ -146,7 +145,7 @@ rdf_number_of_predicate_terms(S, O, G, N):-
 %! rdf_number_of_subject_terms(-Count:nonneg) is det.
 
 rdf_number_of_subject_terms(N):-
-  aggregate_all(count, grdf_subject(_), N).
+  aggregate_all(count, rdf_subject(_), N).
 
 
 %! rdf_number_of_subject_terms(+Graph:atom, -Count:nonneg) is det.
@@ -241,7 +240,7 @@ rdf_expect_graph(G):-
 
 
 rdf_number_of_terms0(Witness, S, P, O, G, N):-
-  aggregate_all(count, distinct(Witness, grdf(S, P, O, G)), N).
+  aggregate_all(count, distinct(Witness, rdf(S, P, O, G)), N).
 
 
 
@@ -264,15 +263,15 @@ test_case(ex:g1, 1).
 test_case(ex:g2, 2).
 
 rdf_assert_graph(g1):-
-  grdf_assert(rdf:s1, rdf:p1, rdf:o1, ex:g1).
+  rdf_assert(rdf:s1, rdf:p1, rdf:o1, ex:g1).
 rdf_assert_graph(g2):-
   % Same subject, different predicate/object.
-  grdf_assert(rdf:s1, rdf:p1, rdf:o1, ex:g2),
-  grdf_assert(rdf:s1, rdf:p2, rdf:o1, ex:g2),
-  grdf_assert(rdf:s1, rdf:p1, rdf:o2, ex:g2),
-  grdf_assert(rdf:s1, rdf:p2, rdf:o2, ex:g2),
+  rdf_assert(rdf:s1, rdf:p1, rdf:o1, ex:g2),
+  rdf_assert(rdf:s1, rdf:p2, rdf:o1, ex:g2),
+  rdf_assert(rdf:s1, rdf:p1, rdf:o2, ex:g2),
+  rdf_assert(rdf:s1, rdf:p2, rdf:o2, ex:g2),
   % The same triple twice.
-  grdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2),
-  grdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2).
+  rdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2),
+  rdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2).
 
 :- end_tests(lod_stats).

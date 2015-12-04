@@ -56,7 +56,7 @@
 rdf_index(I, S, P, O, G):-
   state_init(State),
   repeat,
-  (grdf(S, P, O, G) ; !),
+  (rdf(S, P, O, G) ; !),
   state_tick(State, I0),
   I0 == I, !.
 
@@ -105,6 +105,6 @@ rdf_random_triple(rdf(S,P,O), G):-
 % Returns a random triple from the given graph.
 
 rdf_random_triple(S, P, O, G):-
-  rdf_graph_property(G, triples(N)),
+  rdf_graph_get_property(G, triples(N)),
   random_between(1, N, RndI),
   rdf_index(RndI, S, P, O, G).

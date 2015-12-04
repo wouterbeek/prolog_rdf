@@ -94,7 +94,7 @@ rdf_breadth_first(A1, R_AB, R_BA, HistA1, HistB1, SolA, SolB):-
     set(B),
     (
       member(A, A1),
-      grdf_has(B, R_AB, A),
+      rdf_has(B, R_AB, A),
       \+ member(B, HistB1)
     ),
     B2
@@ -104,7 +104,7 @@ rdf_breadth_first(A1, R_AB, R_BA, HistA1, HistB1, SolA, SolB):-
     set(A),
     (
       member(B, B2),
-      grdf_has(B, R_BA, A),
+      rdf_has(B, R_BA, A),
       \+ member(A, HistA1)
     ),
     A2

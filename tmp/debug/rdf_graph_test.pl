@@ -19,10 +19,10 @@ Unit testing for RDF graph support.
 test(rdf_graph_instance, []):-
   maplist(rdf_unload_graph_deb, [ex:'test-graph',ex:'test-graph-instance']),
   maplist(rdf_bnode, [X1,X2,X3,X4]),
-  grdf_assert(X1, rdf:p, X2, ex:'test-graph'),
-  grdf_assert(X3, rdf:p, X4, ex:'test-graph'),
-  grdf_assert(rdf:a, rdf:p, rdf:b, ex:'test-graph-instance'),
-  grdf_assert(rdf:c, rdf:p, rdf:d, ex:'test-graph-instance'),
+  rdf_assert(X1, rdf:p, X2, ex:'test-graph'),
+  rdf_assert(X3, rdf:p, X4, ex:'test-graph'),
+  rdf_assert(rdf:a, rdf:p, rdf:b, ex:'test-graph-instance'),
+  rdf_assert(rdf:c, rdf:p, rdf:d, ex:'test-graph-instance'),
   findall(
     Map,
     (

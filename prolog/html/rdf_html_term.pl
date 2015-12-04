@@ -199,7 +199,7 @@ rdf_html_iri(Iri, Opts) -->
   {
     option(symbol_iri(true), Opts, true),
     html_entry(Iri, Name),
-    ClassT = [iri,'symbol-iri'],
+    ClassT = [iri,'symbol-iri']
   },
   html(span(class=[Name|ClassT], &(Name))).
 

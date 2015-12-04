@@ -18,11 +18,6 @@ Graph-based garbage collection for RDF.
 */
 
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(process/thread_ext)).
-
-:- use_module(plRdf(debug/rdf_deb)).
 
 %! rdf_graph_exlcuded_from_gc(?Graph:atom) is nondet.
 

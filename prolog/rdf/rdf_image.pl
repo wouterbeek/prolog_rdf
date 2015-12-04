@@ -24,29 +24,28 @@
 :- rdf_register_prefix(foaf, 'http://xmlns.com/foaf/0.1/').
 
 :- rdf_meta(rdf_image(r,r,o)).
-:- rdf_meta(rdf_image(r,r,o,?)).
+:- rdf_meta(rdf_image(r,r,o,r)).
 
 
 
 
 
-%! rdf_image(?Subject:or([bnode,iri]), ?Predicate:iri, ?Image:iri) is nondet.
+%! rdf_image(?Subject:rdf_term, ?Predicate:iri, ?Image:iri) is nondet.
 
 rdf_image(S, P, O):-
   rdf_image(S, P, O, _).
 
 
 %! rdf_image(
-%!   ?Subject:or([bnode,iri]),
+%!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Image:iri,
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 
 rdf_image(S, P, O, G):-
-  owl_id(S, S0),
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
-      grdf(S0, P, O, G)
-  ;   grdf(S0, P, O, G),
+      rdf(S, P, O, G)
+  ;   rdf(S, P, O, G),
       rdfs_instance(O, dcmit:'Image')
   ).

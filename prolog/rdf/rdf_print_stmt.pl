@@ -177,7 +177,7 @@ rdf_print_quadruple(S, P, O, G):-
 % Options are passed to rdf_print_statement/5.
 
 rdf_print_quadruple(S, P, O, G, Opts):-
-  (ground(rdf(S,P,O,G)) -> true ; user:rdf(S, P, O, G)),
+  (ground(rdf(S,P,O,G)) -> true ; rdf(S, P, O, G)),
   rdf_print_statement(S, P, O, G, Opts).
 
 
@@ -356,7 +356,7 @@ rdf_print_triple(S, P, O, G):-
 %   * symbol_iri(+boolean)
 
 rdf_print_triple(S, P, O, G, Opts):-
-  (ground(rdf(S,P,O)) -> true ; user:rdf(S, P, O, G)),
+  (ground(rdf(S,P,O)) -> true ; rdf(S, P, O, G)),
   rdf_print_statement(S, P, O, _, Opts).
 
 

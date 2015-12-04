@@ -24,10 +24,12 @@
 @author Wouter Beek
 @compat [RDF 1.1 Semantics](http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/)
 @version 2012/01-2013/05, 2013/07-2013/08, 2013/11, 2014/04-2014/05, 2014/11,
-         2015/03-2015/04
+         2015/03-2015/04, 2015/12
 */
 
+:- use_module(library(error)).
 :- use_module(library(ordsets)).
+:- use_module(library(rdf/rdf_api)).
 
 
 
@@ -134,8 +136,8 @@ rdf_graph_merge(FromGs, ToG):-
 %  number of triples.
 
 rdf_graph_same_size(G, H):-
-  rdf_graph_property(G, triples(Count)),
-  rdf_graph_property(H, triples(Count)).
+  rdf_graph_get_property(G, triples(Count)),
+  rdf_graph_get_property(H, triples(Count)).
 
 
 
@@ -172,7 +174,7 @@ rdf_proper_graph_instance(G, H, Map):-
 % A blank node is mapped onto an RDF name.
 rdf_proper_graph_instance_map(Map):-
   ord_memberchk(_-Name, Map),
-  rdf_is_name(Name), !.
+  is_of_type(rdf_name, Name), !.
 % Two different blank nodes are mapped onto the same blank node.
 rdf_proper_graph_instance_map(Map):-
   member(BNode1-BNode3, Map),

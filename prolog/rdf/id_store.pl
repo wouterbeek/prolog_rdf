@@ -89,16 +89,16 @@ assign_literal_id(Lit, Id):-
 assign_literal_id(Lit, Id):-
   rdf_bnode(BNode),
   assign_term_id(BNode, Id),
-  assert(id_literal(Lit, Id)).
+  assert(literal_id(Lit, Id)).
 
 
 
 %! assign_term_id(+Term:rdf_term, -Id:uid) is det.
 
 assign_term_id(T, TId):-
-  term_id(T, TId), !.
+  term_to_id0(T, TId), !.
 assign_term_id(T, TId):-
-  fresh_id(TId),
+  create_id(TId),
   with_mutex(id_store, store_new_id(T, TId)).
 
 
@@ -178,11 +178,11 @@ store_id(X, Y1):-
   ->  Y2 = Y1
   ;   assign_term_id(Y1, Y2)
   ),
-  rdf_assert0(XId, owl:sameAs, Y2).
+  rdf_assert(XId, owl:sameAs, Y2).
 % Neither term is a literal.
 id_store(X, Y):-
-  (   term_id0(X, XId)
-  ->  (   term_id0(Y, YId)
+  (   term_to_id0(X, XId)
+  ->  (   term_to_id0(Y, YId)
       ->  (   % X and Y already belong to the same identity set.
               XId == YId
           ->  true
@@ -190,7 +190,7 @@ id_store(X, Y):-
               id_to_terms0(XId, Xs),
               id_to_terms0(YId, Ys),
               ord_union(Xs, Ys, Zs),
-              fresh_id(ZId),
+              create_id(ZId),
               with_mutex(id_store, (
                 retract(term_to_id0(X, XId)),
                 retract(id_to_terms0(XId, Xs)),
@@ -220,11 +220,12 @@ id_store(X, Y):-
         retract(id_to_terms0(YId, Ys1)),
         assert(id_to_terms0(YId, Ys2)),
         assert(term_to_id0(X, YId))
-  ;   fresh_id(XId),
-      fresh_id(YId),
+      ))
+  ;   create_id(XId),
+      create_id(YId),
       with_mutex(id_store, (
-        store_term0(X, XId),
-        store_term0(Y, YId)
+        store_new_id(X, XId),
+        store_new_id(Y, YId)
       ))
   ).
 
@@ -259,9 +260,9 @@ term_to_terms(T, Ts):-
 
 % HELPERS %
 
-%! fresh_id(-Id:nonneg) is det.
+%! create_id(-Id:nonneg) is det.
 
-fresh_id(Id):-
+create_id(Id):-
   flag(id_counter, N, N + 1),
   atom_number(Id, N).
 
@@ -271,11 +272,11 @@ fresh_id(Id):-
 
 rdf_rename_term(X, Y):-
   forall(rdf(X, P, O), rdf_assert(Y, P, O)),
-  grdf_retractall(X, _, _),
+  rdf_retractall(X, _, _),
   forall(rdf(S, X, O), rdf_assert(S, Y, O)),
-  grdf_retractall(_, X, _),
+  rdf_retractall(_, X, _),
   forall(rdf(S, P, X), rdf_assert(S, P, Y)),
-  grdf_retractall(_, _, X).
+  rdf_retractall(_, _, X).
   
 
 

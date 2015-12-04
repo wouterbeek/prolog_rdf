@@ -71,7 +71,7 @@ create_resource(SPrefix, DPrefix, Legend, G, R):-
   rdf_expand_rt(SPrefix:CName, C),
 
   % Create the instance.
-  fresh_iri(DPrefix, [Legend], R),
+  rdf_create_iri(DPrefix, [Legend], R),
   rdf_assert_instance(R, C, G).
 
 
@@ -153,7 +153,7 @@ assert_triples0(SPrefix, G, S, P, Os):-
 assert_triples0(SPrefix, G, S, P0, O):-
   to_pn_local(P0, PnLocal),
   rdf_expand_rt(SPrefix:PnLocal, P),
-  user:rdf_assert(S, P, O, G).
+  rdf_assert(S, P, O, G).
 
 
 

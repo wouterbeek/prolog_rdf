@@ -28,8 +28,6 @@
 
 :- initialization(list_external_programs).
 
-:- rdf_register_prefix(ex, 'http://www.example.org/', [keep(true)]).
-
 
 
 

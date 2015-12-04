@@ -19,12 +19,6 @@ Support for RDF triples with a literal object term
 @version 2014-2015
 */
 
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plc(os/date_ext)).
-
-:- use_module(plRdf(api/rdf_build)).
-
 :- rdf_meta(rdf_assert_date(r,r,r,?)).
 :- rdf_meta(rdf_assert_now(r,r,?)).
 :- rdf_meta(rdf_assert_today(r,r,?)).

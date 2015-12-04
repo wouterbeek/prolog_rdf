@@ -211,7 +211,7 @@ rdf_html_quadruple(S, P, O, G, Opts) -->
 % against the RDF DB.
 rdf_html_quadruple(S, P, O, G, Opts) -->
   {option(page_size(N), Opts, 10),
-   findnsols(N, rdf(S,P,O,G), user:rdf(S, P, O, G), Ts)},
+   findnsols(N, rdf(S,P,O,G), rdf(S, P, O, G), Ts)},
   'rdf_html_quadruple*'(Ts, Opts).
 
 
@@ -382,7 +382,7 @@ rdf_html_triple(S, P, O, G, Opts) -->
 % against the RDF DB.
 rdf_html_triple(S, P, O, G, Opts) -->
   {option(page_size(N), Opts, 10),
-   findnsols(N, rdf(S,P,O), user:rdf(S, P, O, G), Ts)},
+   findnsols(N, rdf(S,P,O), rdf(S, P, O, G), Ts)},
   rdf_html_triples(Ts, Opts).
 
 

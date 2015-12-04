@@ -13,7 +13,7 @@
 /** <module> OWL materialization
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2015/12
 */
 
 :- use_module(library(apply)).
@@ -23,11 +23,7 @@
 :- use_module(library(error)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_api)).
 
 :- predicate_options(mat/3, 3, [
      pass_to(mat0/3, 3)
@@ -104,7 +100,7 @@ mat(GIn, GOut, Opts):-
 
 mat0(GIn, GOut, Opts):-
   % Perform materialization.
-  findall(rdf_chr(S,P,O), rdf_db:rdf(S, P, O, GIn), Ins),
+  findall(rdf_chr(S,P,O), rdf(S, P, O, GIn), Ins),
 
   % Store justifications.
   forall(member(rdf_chr(S,P,O), Ins), store_j(axiom, [], rdf(S,P,O))),
@@ -121,7 +117,7 @@ mat0(GIn, GOut, Opts):-
   % Results are either stored in (plain) RDF or in generalized RDF.
   option(generalized_rdf(_GenRdf), Opts, false),
   forall(find_chr_constraint(rdf_chr(S,P,O)),
-    user:rdf_assert(S, P, O, GOut)
+    rdf_assert(S, P, O, GOut)
   ),
 
   (   option(justifications(true), Opts)

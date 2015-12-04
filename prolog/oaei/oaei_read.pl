@@ -15,10 +15,10 @@
 /** <module> Ontology Alignment Evaluation Initiative (OAEI): Read
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2015/12
 */
 
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_register_prefix(
      align,
@@ -48,7 +48,7 @@ oaei_alignment(From, To, G):-
 %! ) is nondet.
 
 oaei_alignment(From, To, Rel, Measure, G):-
-  grdf(X, align:entity1, From, G),
-  grdf(X, align:entity2, To, G),
+  rdf(X, align:entity1, From, G),
+  rdf(X, align:entity2, To, G),
   rdf_literal(X, align:relation, xsd:string, Rel, G),
   rdf_literal(X, align:measure, xsd:float, Measure, G).

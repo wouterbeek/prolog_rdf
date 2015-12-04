@@ -147,13 +147,13 @@ rdf(S, P, O, _):-
 % 2. Statements other than identity statements.
 rdf(S, P, O, G):-
   % (Only) in the subject position, literals may be represented by blank nodes.
-  (rdf_is_literal(S) -> id_literal(Sid, S) ; nonvar(S) -> term_to_id(S, Sid) ; true),
+  (rdf_is_literal(S) -> literal_id(S, Sid) ; nonvar(S) -> term_to_id(S, Sid) ; true),
   (nonvar(P) -> term_to_id(P, Pid) ; true),
   (nonvar(O) -> term_to_id(O, Oid) ; true),
   (G == '*' -> rdf(Sid, Pid, Oid) ; rdf(Sid, Pid, Oid, G)),
   % Variable subject terms may be blank nodes that need to be
   % related to literals.
-  (ground(S), ! ; id_literal(Sid, S), ! ; id_to_term(Sid, S)),
+  (ground(S), ! ; literal_id(S, Sid), ! ; id_to_term(Sid, S)),
   (ground(P), ! ; id_to_term(Pid, P)),
   (ground(O), ! ; id_to_term(Oid, O)).
 
@@ -218,7 +218,7 @@ rdf_instance(I, C):-
 
 rdf_instance(I, C, G):-
   rdf_expand_ct(rdf:type, P),
-  user:rdf(I, P, C, G).
+  rdf(I, P, C, G).
 
 
 
@@ -341,7 +341,7 @@ rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
   rdf_expand_ct(rdf:langString, D),
   Val = Lex-LTag,
   O = literal(lang(LTag,Lex)),
-  user:rdf(S, P, O, G),
+  rdf(S, P, O, G),
   atom(LTag).
 % Ground datatype and value.
 rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
@@ -354,17 +354,17 @@ rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
       O = literal(Lex)
   ;   O = literal(type(D,Lex))
   ),
-  user:rdf(S, P, O, G).
+  rdf(S, P, O, G).
 % Typed literal (as per RDF 1.0 specification).
 rdf_literal(S, P, D, Val, G, rdf(S,P,Lit,G)):-
   (ground(D) -> \+ rdf_expand_ct(rdf:langString, D) ; true),
   Lit = literal(type(D,_)),
-  user:rdf(S, P, Lit, G),
+  rdf(S, P, Lit, G),
   rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).
 rdf_literal(S, P, xsd:string, Val, G, rdf(S,P,O,G)):-
   O = literal(Lex),
-  user:rdf(S, P, O, G),
+  rdf(S, P, O, G),
   atom(Lex),
   rdf_lexical_map(xsd:string, Lex, Val).
 

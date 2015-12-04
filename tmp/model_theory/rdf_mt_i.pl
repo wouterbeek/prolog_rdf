@@ -47,12 +47,6 @@ Interpretation function `I`:
 */
 
 :- use_module(library(apply)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plRdf(rdf_triples)).
-:- use_module(plRdf(graph/rdf_graph)).
-:- use_module(plRdf(model_theory/rdf_mt)).
-:- use_module(plRdf(term/rdf_term)).
 
 % The overarching interpretation plus assignment function.
 :- rdf_meta(mt_i(r,-,+,-)).
@@ -154,6 +148,6 @@ mt_i(G, M, TypedLiteral, Resource, A, A):-
 % IRIs. These map onto properties and resources.
 mt_i(G, M, IRI, ResourceOrProperty, A, A):-
   % Checking for resources is not that good.
-  user:rdf_iri(IRI), !,
+  rdf_iri(IRI), !,
   once(i_s(G, IRI, M, ResourceOrProperty)).
 

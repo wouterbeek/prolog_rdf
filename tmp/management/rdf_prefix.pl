@@ -72,14 +72,14 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
 
 rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, G):-
   forall(
-    grdf_retractall(S1, P1, O1, G),
+    rdf_retractall(S1, P1, O1, G),
     (
       maplist(
         rdf_convert_prefixes(FromPrefix, ToPrefix),
         [S1,P1,O1],
         [S2,P2,O2]
       ),
-      grdf_assert(S2, P2, O2, G)
+      rdf_assert(S2, P2, O2, G)
     )
   ).
 
@@ -95,7 +95,7 @@ rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
   findall(
     LocalNameLength-Prefix,
     (
-      rdf_db:global(Prefix, LocalName, Iri),
+      global(Prefix, LocalName, Iri),
       atom_length(LocalName, LocalNameLength)
     ),
     Pairs

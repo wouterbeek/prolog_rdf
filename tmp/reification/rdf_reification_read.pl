@@ -32,12 +32,6 @@ Read support for reified triples.
 @version 2014/09-2014/10
 */
 
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plXsd(xsd)).
-
-:- use_module(plRdf(api/rdf_read)).
-
 :- rdf_meta(rdf_literal_statement(r,r,?,r,?,r)).
 :- rdf_meta(rdf_object(r,o,?)).
 :- rdf_meta(rdf_predicate(r,r,?)).

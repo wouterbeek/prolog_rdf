@@ -13,10 +13,10 @@ Print reified RDF statements.
 
 @author Wouter Beek
 @version 2013/02, 2013/07, 2013/09-2013/10, 2013/12-2014/01, 2014/03, 2014/06,
-         2014/09-2014/10, 2014/12
+         2014/09-2014/10, 2014/12, 2015/12
 */
 
-:- use_module(library(semweb/rdfs)).
+:- use_module(library(rdfs/rdfs_api)).
 
 
 

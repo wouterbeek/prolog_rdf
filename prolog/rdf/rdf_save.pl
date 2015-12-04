@@ -73,7 +73,7 @@ rdf_save(Out):-
 rdf_save(Out, Opts):-
   var(Out),
   option(graph(G0), Opts),
-  rdf_graph_property(G0, source(File0)), !,
+  rdf_graph_get_property(G0, source(File0)), !,
   uri_file_name(File0, File),
   rdf_save(File, Opts).
 % A new file name is created based on graph and format.
@@ -98,14 +98,14 @@ rdf_save(File, Opts):-
   option(graph(G), Opts),
   
   % The graph was not modified after the last save operation.
-  rdf_graph_property(G, modified(false)),
+  rdf_graph_get_property(G, modified(false)),
   
   % The given file is the source of the given graph.
-  rdf_graph_property(G, source(File0)),
+  rdf_graph_get_property(G, source(File0)),
   uri_file_name(File0, File),
   
   % The file was not modified after the graph was loaded.
-  rdf_graph_property(G, source_last_modified(LMod)),
+  rdf_graph_get_property(G, source_last_modified(LMod)),
   exists_file(File),
   time_file(File, LMod), !,
   debug(rdf(save), "No need to save graph ~w; no updates.", [G]).

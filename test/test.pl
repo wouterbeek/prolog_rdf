@@ -47,8 +47,8 @@
 :- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_container)).
+:- use_module(library(rdf/rdf_database)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_db)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_download)).
 :- use_module(library(rdf/rdf_file)).

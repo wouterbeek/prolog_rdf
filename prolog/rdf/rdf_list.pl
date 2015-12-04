@@ -108,7 +108,7 @@ rdf_assert_list_items0([H1|T1], L2, G):-
       H2 = H1
   ),
   (   (is_iri(H2) ; rdf_is_bnode(H2))
-  ->  user:rdf_assert(L2, rdf:first, H2, G)
+  ->  rdf_assert(L2, rdf:first, H2, G)
   ;   rdf_assert_literal_pl(L2, rdf:first, H2, G)
   ),
 
@@ -118,7 +118,7 @@ rdf_assert_list_items0([H1|T1], L2, G):-
   ;   add_list_instance0(T2, G),
       rdf_assert_list_items0(T1, T2, G)
   ),
-  user:rdf_assert(L2, rdf:rest, T2, G).
+  rdf_assert(L2, rdf:rest, T2, G).
 
 add_list_instance0(L, G):-
   (var(L) -> rdf_bnode(L) ; true),
@@ -133,9 +133,9 @@ rdf_is_list(L):-
 rdf_is_list(L):-
   rdfs_instance(L, rdf:'List'), !.
 rdf_is_list(L):-
-  rdf_has(L, rdf:first, _), !.
+  rdf(L, rdf:first, _), !.
 rdf_is_list(L):-
-  rdf_has(L, rdf:rest, _), !.
+  rdf(L, rdf:rest, _), !.
 
 
 
@@ -173,7 +173,7 @@ rdf_list_raw(L, [], _):-
   rdf_expand_ct(rdf:nil, L), !.
 rdf_list_raw(L1, [H2|T2], G):-
   % rdf:first
-  user:rdf(L1, rdf:first, H1, G),
+  rdf(L1, rdf:first, H1, G),
   (   % Nested list
       rdf_is_list(H1)
   ->  rdf_list_raw(H1, H2, G)
@@ -181,7 +181,7 @@ rdf_list_raw(L1, [H2|T2], G):-
       H2 = H1
   ),
   % rdf:rest
-  user:rdf(L1, rdf:rest, T1, G),
+  rdf(L1, rdf:rest, T1, G),
   rdf_list_raw(T1, T2, G).
 
 
@@ -211,7 +211,7 @@ rdf_list_first_raw(L, X):-
 % Relates RDF lists to their first element.
 
 rdf_list_first_raw(L, X, G):-
-  user:rdf(L, rdf:first, X, G).
+  rdf(L, rdf:first, X, G).
 
 
 
@@ -228,7 +228,7 @@ rdf_list_length(L, N):-
 rdf_list_length(L, 0, _):-
   rdf_expand_ct(rdf:nil, L), !.
 rdf_list_length(L, N, G):-
-  user:rdf(L, rdf:rest, T, G),
+  rdf(L, rdf:rest, T, G),
   rdf_list_length(T, M, G),
   succ(M, N).
 
@@ -262,7 +262,7 @@ rdf_list_member_raw(X, L):-
 rdf_list_member_raw(X, L, G):-
   rdf_list_first_raw(L, X, G).
 rdf_list_member_raw(X, L, G):-
-  user:rdf(L, rdf:rest, L0, G),
+  rdf(L, rdf:rest, L0, G),
   rdf_list_member_raw(X, L0, G).
 
 
@@ -279,12 +279,12 @@ rdf_retractall_list(L, _):-
   rdf_expand_ct(rdf:nil, L), !.
 rdf_retractall_list(L, G):-
   % Remove the head.
-  user:rdf(L, rdf:first, H, G),
-  user:rdf_retractall(L, rdf:first, H, G),
+  rdf(L, rdf:first, H, G),
+  rdf_retractall(L, rdf:first, H, G),
   % Recurse if the head is itself a list.
   (rdf_is_list(H) -> rdf_retractall_list(H) ; true),
   
   % Remove the tail.
-  user:rdf(L, rdf:rest, T, G),
-  user:rdf_retractall(L, rdf:rest, T, G),
+  rdf(L, rdf:rest, T, G),
+  rdf_retractall(L, rdf:rest, T, G),
   rdf_retractall_list(T).

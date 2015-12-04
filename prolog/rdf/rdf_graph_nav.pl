@@ -57,7 +57,7 @@ rdf_edge(To, P, From, G):-
 % Returns incoming edges for the resource denoted by the given RDF term.
 
 rdf_incoming_edge(To, P, From, G):-
-  grdf(From, P, To, G).
+  rdf(From, P, To, G).
 
 
 
@@ -70,4 +70,4 @@ rdf_incoming_edge(To, P, From, G):-
 % Returns outgoing edges for the resource denoted by the given RDF term.
 
 rdf_outgoing_edge(From, P, To, G):-
-  grdf(From, P, To, G).
+  rdf(From, P, To, G).

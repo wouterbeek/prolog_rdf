@@ -1,5 +1,5 @@
 :- module(
-  rdf_load_any,
+  rdf_load,
   [
     metadata_to_base/2, % +Metadata:dict
                         % -Base:uri
@@ -12,24 +12,24 @@
 :- use_module(library(semweb/rdf_zlib_plugin)).
 
 :- predicate_options(metadata_content_type/3, 3, [
-  media_type(+dict)
-]).
+     media_type(+dict)
+   ]).
 :- predicate_options(rdf_load_any/2, 2, [
-  meta_data(-dict),
-  pass_to(open_any/3, 3)
-]).
+     meta_data(-dict),
+     pass_to(open_any/3, 3)
+   ]).
 :- predicate_options(rdf_load_any/3, 3, [
-  pass_to(rdf_http_plugin:rdf_extra_headers/2, 2),
-  pass_to(rdf_load_from_stream_nondet/3, 3)
-]).
+     pass_to(rdf_http_plugin:rdf_extra_headers/2, 2),
+     pass_to(rdf_load_from_stream_nondet/3, 3)
+   ]).
 :- predicate_options(rdf_load_from_stream_det/4, 4, [
-  filename(+atom),
-  pass_to(metadata_content_type/3, 3),
-  pass_to(rdf_load/2, 2)
-]).
+     filename(+atom),
+     pass_to(metadata_content_type/3, 3),
+     pass_to(rdf_load/2, 2)
+   ]).
 :- predicate_options(rdf_load_from_stream_nondet/3, 3, [
-  pass_to(rdf_load_from_stream_det/4, 4)
-]).
+     pass_to(rdf_load_from_stream_det/4, 4)
+   ]).
 
 %! rdf_load_any(+Spec:compound, +Option:list(nvpair)) is det.
 % Load RDF from a stream, a URL, a file, a list of files, or a file directory.
@@ -172,12 +172,12 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
   aggregate_all(
     set(named_graph{graph:Graph,name:Graph,triples:Triples}),
     (
-      rdf_graph_property(Graph, triples(Triples)),
+      rdf_graph_get_property(Graph, triples(Triples)),
       Graph \== DefaultGraph
     ),
     NamedGraphDicts
   ),
-  rdf_graph_property(DefaultGraph, triples(DefaultGraphTriples)),
+  rdf_graph_get_property(DefaultGraph, triples(DefaultGraphTriples)),
   rdf_statistics(graphs(Graphs)),
   rdf_statistics(literals(Literals)),
   rdf_statistics(properties(Predicates)),

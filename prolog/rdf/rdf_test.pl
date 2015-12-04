@@ -27,16 +27,16 @@ manifest_uri('http://www.w3.org/2013/TurtleTests/manifest.ttl').
 load_manifest:-
   clean_current_manifest,
   manifest_uri(Uri),
-  rdf_load(Uri, [base_uri(Uri),format(turtle),graph(manifest)]),
+  rdf_load_file(Uri, [base_uri(Uri),format(turtle),graph(manifest)]),
   assert(current_manifest(Uri)).
 
 clean_current_manifest:-
-  user:rdf_retractall(_, _, _, manifest),
+  rdf_retractall(_, _, _, manifest),
   retractall(current_manifest(_)).
 
 mf_test(Test):-
   rdf_instance(MF, mf:'Manifest', manifest),
-  user:rdf(MF, mf:entries, Entries, manifest),
+  rdf(MF, mf:entries, Entries, manifest),
   rdf_list_member_raw(Test, Entries, manifest).
 
 run_rdf_tests:-
@@ -44,7 +44,7 @@ run_rdf_tests:-
 
 run_rdf_test(Test):-
   announce_test(Test), !,
-  user:rdf(Test, mf:action, Uri, manifest),
+  rdf(Test, mf:action, Uri, manifest),
   print_input(Uri, [indent(2)]),
   rdf_clean(Uri, To, []),
   print_input(To, [indent(2)]).

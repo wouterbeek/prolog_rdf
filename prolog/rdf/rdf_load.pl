@@ -1,17 +1,17 @@
 :- module(
   rdf_load,
   [
-    rdf_call_on_graph/2, % +Input, :Goal_1
-    rdf_call_on_graph/3, % +Input
+    rdf_call_on_graph/2, % +Source, :Goal_1
+    rdf_call_on_graph/3, % +Source
                          % :Goal_1
                          % +Options:list(compound)
-    rdf_call_on_statements/2, % +Input, :Goal_2
-    rdf_call_on_statements/3, % +Input
+    rdf_call_on_statements/2, % +Source, :Goal_2
+    rdf_call_on_statements/3, % +Source
                               % :Goal_2
                               % +Options:list(compound)
-    rdf_load/1, % +Input
-    rdf_load/2 % +Input
-               % +Options:list(compound)
+    rdf_load_file/1, % +Source
+    rdf_load_file/2 % +Source
+                    % +Options:list(compound)
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
@@ -35,9 +35,7 @@ Support for loading RDF data.
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_stream)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
@@ -66,14 +64,14 @@ Support for loading RDF data.
 
 
 
-%! rdf_call_on_graph(+Input, :Goal_1) is det.
+%! rdf_call_on_graph(+Source, :Goal_1) is det.
 % Wrapper around rdf_call_on_graph/3 with default options.
 
 rdf_call_on_graph(In, Goal_1):-
   rdf_call_on_graph(In, Goal_1, []).
 
 
-%! rdf_call_on_graph(+Input, :Goal_1, +Options:list(compound)) is det.
+%! rdf_call_on_graph(+Source, :Goal_1, +Options:list(compound)) is det.
 
 rdf_call_on_graph(In, Goal_1, Opts0):-
   setup_call_cleanup(
@@ -88,14 +86,14 @@ rdf_call_on_graph(In, Goal_1, Opts0):-
 
 
 
-%! rdf_call_on_statements(+Input, :Goal_2) is nondet.
+%! rdf_call_on_statements(+Source, :Goal_2) is nondet.
 % Wrapper around rdf_call_on_statements/3 with default options.
 
 rdf_call_on_statements(In, Goal_2):-
   rdf_call_on_statements(In, Goal_2, []).
 
 
-%! rdf_call_on_statements(+Input, :Goal_2, +Options:list(compound)) is nondet.
+%! rdf_call_on_statements(+Source, :Goal_2, +Options:list(compound)) is nondet.
 
 rdf_call_on_statements(In, Goal_2, Opts):-
   option(graph(G), Opts, _),
@@ -140,14 +138,14 @@ rdf_call_on_statements_stream(_, _, _, M):-
 
 
 
-%! rdf_load_file(+Input) is det.
+%! rdf_load_file(+Source) is det.
 % Wrapper around rdf_load_file/2 with default options.
 
 rdf_load_file(In):-
   rdf_load_file(In, []).
 
 
-%! rdf_load_file(+Input, +Options:list(compound)) is det.
+%! rdf_load_file(+Source, +Options:list(compound)) is det.
 % The following options are supported:
 %   * base_iri(+atom)
 %   * graph(+atom)
@@ -194,8 +192,8 @@ rdf_load_statements(CT, CQ, Stmts, G):-
 % Load a triple.
 rdf_load_statement(CT, _, G:_, rdf(S,P,O)):- !,
   increment_thread_counter(CT),
-  user:rdf_assert(S, P, O, G).
+  rdf_assert(S, P, O, G).
 % Load a quadruple.
 rdf_load_statement(_, CQ, _, rdf(S,P,O,G)):- !,
   increment_thread_counter(CQ),
-  user:rdf_assert(S, P, O, G).
+  rdf_assert(S, P, O, G).

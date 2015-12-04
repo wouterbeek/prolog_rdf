@@ -18,7 +18,7 @@
 /** <module> RDF literal
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/11
+@version 2015/08-2015/09, 2015/11-2015/12
 */
 
 :- use_module(library(apply)).
@@ -48,7 +48,7 @@ rdf_is_language_tagged_string(Lit):-
 %! rdf_language_tagged_string(-Literal:compound) is nondet.
 
 rdf_language_tagged_string(Lit):-
-  rdf_current_literal(Lit),
+  rdf_literal(Lit),
   rdf_is_language_tagged_string(Lit).
 
 

@@ -20,11 +20,10 @@
                      % -Graph:rdf_graph
     rdf_stale_graph/2, % ?Graph:rdf_graph
                        % +FreshnessLifetime:between(0.0,inf)
-    rdf_tmp_graph/1 % -Graph:rdf_graph
+    rdf_tmp_graph/1, % -Graph:rdf_graph
+    rdf_unload_graph/1 % +Graph:rdf_graph
   ]
 ).
-:- reexport(library(semweb/rdf_db), [
-   ]).
 
 /** <module> RDF graph
 
@@ -41,7 +40,7 @@
 :- use_module(library(semweb/rdf_db), [
      rdf_create_graph/1 as rdf_create_graph0,
      rdf_graph/1 as rdf_graph0,
-     rdf_graph_property/2,
+     rdf_graph_property/2 as rdf_graph_property0,
      rdf_set_graph/2,
      rdf_unload_graph/1 as rdf_unload_graph0
    ]).
@@ -111,7 +110,7 @@ rdf_graph(G):-
 % Succeeds if Age is the age (in seconds) of a currently loaded RDF Graph.
 
 rdf_graph_age(G, Age):-
-  rdf_graph_property(G, source_last_modified(LastMod)),
+  rdf_graph_get_property(G, source_last_modified(LastMod)),
   get_time(Now),
   Age is Now - LastMod.
 
@@ -122,7 +121,7 @@ rdf_graph_age(G, Age):-
 % on the graph.
 
 rdf_graph_get_property(G, Property):-
-  rdf_graph_property(G, Property).
+  rdf_graph_property0(G, Property).
 
 
 
@@ -142,8 +141,8 @@ rdf_graph_set_property(G, Property):-
 % rdf_graph/1 does not succeed for the default graph (called `user`)
 % if it is empty whereas this predicate does.
 %
-% The name of this predicate is in line with rdf_is_bnode/1, rdf_is_literal/1,
-% and rdf_is_resource/1 in [library(semweb/rdf_db)].
+% The name of this predicate is in line with Semweb's rdf_is_bnode/1,
+% rdf_is_literal/1 and rdf_is_resource/1.
 
 rdf_is_graph(G):-
   atom(G),
@@ -168,13 +167,19 @@ rdf_new_graph(G):-
 %! rdf_new_graph(+Base:rdf_graph, -Graph:rdf_graph) is det.
 
 rdf_new_graph(G1, G):-
-  rdf_expand_rt(Prefix:Local, G1), !,
-  (rdf_new_graph_try(G1, G), ! ; new_atom(G1, G2), rdf_new_graph(G2, G)).
+  rdf_expand_rt(Prefix:Local1, G1), !,
+  (   rdf_new_graph_try(G1)
+  ->  G = G1
+  ;   new_atom(Local1, Local2),
+      rdf_expand_rt(Prefix:Local2, G2),
+      rdf_new_graph(G2, G)
+  ).
 rdf_new_graph(G1, G):-
   uri_components(G1, uri_components(Scheme,Auth,Path1,_,_)),
   % Remove the query and fragment parts, if any.
   uri_components(G2, uri_components(Scheme,Auth,Path1,_,_)),
-  (   rdf_new_graph_try(G2, G), !
+  (   rdf_new_graph_try(G2)
+  ->  G = G2
   ;   new_atom(Path1, Path2),
       uri_components(G2, uri_components(Scheme,Auth,Path2,_,_)),
       rdf_new_graph(G2, G)
@@ -215,8 +220,8 @@ rdf_tmp_graph(G):-
 
 
 
-%! rdf_create_graph(+Graph:rdf_graph) is semidet.
-% Extends Semweb's rdf_create_graph/1 by applying RDF prefix expansion.
+%! rdf_unload_graph(+Graph:rdf_graph) is semidet.
+% Extends Semweb's rdf_unload_graph/1 by applying RDF prefix expansion.
 
-rdf_create_graph(G):-
-  rdf_create_graph0(G).
+rdf_unload_graph(G):-
+  rdf_unload_graph0(G).

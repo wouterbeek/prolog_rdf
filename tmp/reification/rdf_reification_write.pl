@@ -30,11 +30,6 @@ Read support for reified triples.
 @version 2014/09, 2014/11
 */
 
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plRdf(api/rdf_build)).
-:- use_module(plRdf(reification/rdf_reification_read)).
-
 :- rdf_meta(rdf_assert_datatype_statement(r,r,+,r,?,r)).
 :- rdf_meta(rdf_assert_object(r,o,?)).
 :- rdf_meta(rdf_assert_predicate(r,r,?)).
@@ -69,7 +64,7 @@ rdf_assert_literal_statement(S, P, Value, Datatype, G, Statement):-
 %! ) is det.
 
 rdf_assert_object(Statement, O, Graph):-
-  user:rdf_assert(Statement, rdf:object, O, Graph).
+  rdf_assert(Statement, rdf:object, O, Graph).
 
 
 
@@ -80,7 +75,7 @@ rdf_assert_object(Statement, O, Graph):-
 %! ) is det.
 
 rdf_assert_predicate(Statement, P, Graph):-
-  user:rdf_assert(Statement, rdf:predicate, P, Graph).
+  rdf_assert(Statement, rdf:predicate, P, Graph).
 
 
 
@@ -101,7 +96,7 @@ rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
   rdf_assert_subject(Statement, S, Graph),
   rdf_assert_predicate(Statement, P, Graph),
   rdf_assert_object(Statement, O, Graph),
-  user:rdf_assert(S, P, O, Graph).
+  rdf_assert(S, P, O, Graph).
 
 
 
@@ -112,4 +107,4 @@ rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
 %! ) is det.
 
 rdf_assert_subject(Statement, S, Graph):-
-  user:rdf_assert(Statement, rdf:subject, S, Graph).
+  rdf_assert(Statement, rdf:subject, S, Graph).

@@ -9,13 +9,6 @@ Tests for RDFS model theory.
 */
 
 :- use_module(library(plunit)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
-
-:- use_module(plRdf(debug/rdf_deb)).
-:- use_module(plRdf(management/rdf_prefix)).
-:- use_module(plRdf(model_theory/rdf_mt_build)).
-:- use_module(plRdf(model_theory/rdf_mt_i)).
-:- use_module(plRdf(model_theory/rdf_mt_print)).
 
 :- rdf_reset_prefix(ex, 'http://example.com/').
 
@@ -78,23 +71,23 @@ build_test_model(G, M):-
 
 build_test_syntax(G):-
   G = rdf_mt_graph_1,
-  user:rdf_assert(ex:a, ex:b, ex:c, G),
-  user:rdf_assert(ex:c, ex:a, ex:a, G),
-  user:rdf_assert(ex:c, ex:b, ex:a, G),
-  user:rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
+  rdf_assert(ex:a, ex:b, ex:c, G),
+  rdf_assert(ex:c, ex:a, ex:a, G),
+  rdf_assert(ex:c, ex:b, ex:a, G),
+  rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
 build_test_syntax(G):-
   G = rdf_mt_graph_2,
-  user:rdf_assert(ex:a, ex:c, ex:b, G),
-  user:rdf_assert(ex:a, ex:b, ex:b, G),
-  user:rdf_assert(ex:c, ex:a, ex:c, G),
-  user:rdf_assert(ex:a, ex:b, literal(whatever), G).
+  rdf_assert(ex:a, ex:c, ex:b, G),
+  rdf_assert(ex:a, ex:b, ex:b, G),
+  rdf_assert(ex:c, ex:a, ex:c, G),
+  rdf_assert(ex:a, ex:b, literal(whatever), G).
 build_test_syntax(G):-
   G = rdf_mt_graph_3,
   rdf_bnode(X),
-  user:rdf_assert(   X, ex:b, ex:c, G),
-  user:rdf_assert(ex:c, ex:a, ex:a, G),
-  user:rdf_assert(ex:c, ex:b, ex:a, G),
-  user:rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
+  rdf_assert(   X, ex:b, ex:c, G),
+  rdf_assert(ex:c, ex:a, ex:a, G),
+  rdf_assert(ex:c, ex:b, ex:a, G),
+  rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
 
 clean_test(G, M):-
   rdf_unload_model(M),

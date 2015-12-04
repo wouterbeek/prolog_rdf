@@ -22,7 +22,7 @@
 @version 2015/10, 2015/12
 */
 
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_register_prefix(
      align,
@@ -59,8 +59,8 @@ oaei_assert_alignment(From, To, G):-
 
 oaei_assert_alignment(From, To, Rel, Measure, G):-
   rdf_bnode(BNode),
-  grdf_assert(BNode, align:entity1, From, G),
-  grdf_assert(BNode, align:entity2, To, G),
+  rdf_assert(BNode, align:entity1, From, G),
+  rdf_assert(BNode, align:entity2, To, G),
   rdf_assert_literal(BNode, align:relation, xsd:string, Rel, G),
   rdf_assert_literal(BNode, align:measure, xsd:float, Measure, G).
 

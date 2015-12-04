@@ -75,8 +75,6 @@ strings*.
 :- reexport(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_print)).
 
-:- rdf_register_prefix(ex, 'http://www.example.org/').
-
 
 
 

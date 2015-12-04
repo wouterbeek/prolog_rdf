@@ -144,7 +144,7 @@ owl_assert_data_property(P, Parent, Lbl, Comm, D, R, G, Opts):-
 %! ) is det.
 
 owl_assert_disjointWith(C1, C2, G):-
-  grdf_assert(C1, owl:disjointWith, C2, G).
+  rdf_assert(C1, owl:disjointWith, C2, G).
 
 
 
@@ -155,7 +155,7 @@ owl_assert_disjointWith(C1, C2, G):-
 %! ) is det.
 
 owl_assert_equivalent_class(C, D, G):-
-  grdf_assert(C, owl:equivalentClass, D, G).
+  rdf_assert(C, owl:equivalentClass, D, G).
 
 
 
@@ -176,7 +176,7 @@ owl_assert_intersection_of(C, Ds, G):-
   (var(C) -> rdf_bnode(C) ; true),
   rdf_assert_instance(C, owl:'Class', G),
   rdf_assert_list(Ds, Ds0, G),
-  user:rdf_assert(C, owl:intersectionOf, Ds0, G).
+  rdf_assert(C, owl:intersectionOf, Ds0, G).
 
 
 
@@ -200,7 +200,7 @@ owl_assert_list_items0([H1|T1], L2):-
   ;   % Non-nested list.
       H2 = H1
   ),
-  grdf_assert(L2, rdf:first, H2),
+  rdf_assert(L2, rdf:first, H2),
 
   % rdf:rest
   (   T1 == []
@@ -208,7 +208,7 @@ owl_assert_list_items0([H1|T1], L2):-
   ;   owl_add_list_instance0(T2),
       owl_assert_list_items0(T1, T2)
   ),
-  grdf_assert(L2, rdf:rest, T2).
+  rdf_assert(L2, rdf:rest, T2).
 
 owl_add_list_instance0(L):-
   (var(L) -> rdf_bnode(L) ; true),
@@ -225,7 +225,7 @@ owl_add_list_instance0(L):-
 
 % Language-tagged strings.
 owl_assert_literal(S, P, rdf:langString, Lex-LTag):- !,
-  grdf_assert(S, P, literal(lang(LTag,Lex))).
+  rdf_assert(S, P, literal(lang(LTag,Lex))).
 % Simple literals (as per RDF 1.0 specification)
 % assumed to be of type `xsd:string` (as per RDF 1.1 specification).
 owl_assert_literal(S, P, D, Val):-
@@ -234,7 +234,7 @@ owl_assert_literal(S, P, D, Val):-
 % Typed literals (as per RDF 1.0 specification).
 owl_assert_literal(S, P, D, Val):-
   rdf_canonical_map(D, Val, Lit),
-  grdf_assert(S, P, Lit).
+  rdf_assert(S, P, Lit).
 
 
 
@@ -297,8 +297,8 @@ owl_assert_ontology(I, G):-
 owl_assert_value_restriction(P, V, G, R):-
   rdf_bnode(R),
   rdf_assert_instance(R, owl:'Restriction', G),
-  user:rdf_assert(R, owl:onProperty, P, G),
-  user:rdf_assert(R, owl:hasValue, V, G).
+  rdf_assert(R, owl:onProperty, P, G),
+  rdf_assert(R, owl:hasValue, V, G).
 
 
 

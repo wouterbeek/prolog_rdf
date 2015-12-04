@@ -28,10 +28,10 @@ The **typed literals** used to be defined as the cartesian product of
 the Unicode strings in Normal Form C with the set of datatype URIs.
 
 @author Wouter Beek
-@version 2015/09-2015/10
+@version 2015/09-2015/10, 2015/12
 */
 
-:- use_module(library(rdf/rdf_literal)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_is_typed_literal(o)).
@@ -72,7 +72,7 @@ rdf_is_typed_literal(Lit):-
 %! rdf_plain_literal(-Literal:compound) is nondet.
 
 rdf_plain_literal(Lit):-
-  rdf_current_literal(Lit),
+  rdf_literal(Lit),
   rdf_is_plain_literal(Lit).
 
 
@@ -80,7 +80,7 @@ rdf_plain_literal(Lit):-
 %! rdf_simple_literal(-Literal:compound) is nondet.
 
 rdf_simple_literal(Lit):-
-  rdf_current_literal(Lit),
+  rdf_literal(Lit),
   rdf_is_simple_literal(Lit).
 
 
@@ -88,5 +88,5 @@ rdf_simple_literal(Lit):-
 %! rdf_typed_literal(-Literal:compound) is nondet.
 
 rdf_typed_literal(Lit):-
-  rdf_current_literal(Lit),
+  rdf_literal(Lit),
   rdf_is_typed_literal(Lit).

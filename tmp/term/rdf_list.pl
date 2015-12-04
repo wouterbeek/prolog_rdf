@@ -137,7 +137,7 @@ rdf_assert_list_items([H|T], RdfList, Graph, Options):-
       rdf_assert_typed_literal(First, rdf:value, H, Datatype, Graph)
   ;   First = H
   ),
-  user:rdf_assert(RdfList, rdf:first, First, Graph),
+  rdf_assert(RdfList, rdf:first, First, Graph),
 
   % rdf:rest
   (   T == []
@@ -145,7 +145,7 @@ rdf_assert_list_items([H|T], RdfList, Graph, Options):-
   ;   add_list_individual(Rest, Graph),
       rdf_assert_list_items(T, Rest, Graph, Options)
   ),
-  user:rdf_assert(RdfList, rdf:rest, Rest, Graph).
+  rdf_assert(RdfList, rdf:rest, Rest, Graph).
 
 
 

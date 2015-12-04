@@ -7,8 +7,6 @@
     rdf_datatype_iri/1, % ?Datatype
     rdf_datatype_iri/2, % ?Graph:rdf_graph
                         % ?Datatype:iri
-    rdf_is_name/1, % @Term
-    rdf_is_term/1, % @Term
     rdf_literal/1, % ?Literal
     rdf_literal/2, % ?Graph:rdf_graph
                    % ?Literal:rdf_literal
@@ -44,7 +42,7 @@ Support for RDF 1.1 terms.
 
 ### rdf_is_resource/1
 
-The predicate rdf_is_resource/1 in library(semweb/rdf_db) is quite misleading.
+Semweb's rdf_is_resource/1 is quite misleading.
 A first mistake one may make is to think that this predicate is about
 semantics (resources being objects) while it actually is about syntax
 (RDF terms that are either IRIs or blank nodes).
@@ -68,8 +66,8 @@ resources as well.
 :- use_module(library(semweb/rdf_db), [
      rdf_subject/1 as rdf_subject_id,
      rdf_resource/1 as rdf_non_literal_node_id,
-     rdf_current_predicate/1 as rdf_predicate_id,
-     rdf_current_literal/1 as rdf_literal_part
+     rdf_current_literal/1 as rdf_literal_part,
+     rdf_current_predicate/1 as rdf_predicate_id
    ]).
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
@@ -90,8 +88,6 @@ resources as well.
 :- rdf_meta(rdf_predicate(r,r)).
 :- rdf_meta(rdf_term(o)).
 :- rdf_meta(rdf_term(r,o)).
-:- rdf_meta(rdf_is_name(o)).
-:- rdf_meta(rdf_is_term(o)).
 
 
 
@@ -101,8 +97,6 @@ resources as well.
 %! rdf_bnode(-BNode:bnode) is nondet.
 % Enumerates the current blank node terms.
 % Ensures that no blank node occurs twice.
-%
-% @bug Unfortunate naming due to conflict with rdf_bnode/1 in rdf_db.pl.
 
 rdf_bnode(B):-
   rdf_node(B),
@@ -180,11 +174,16 @@ rdf_literal(Lit):-
 
 % Literals that appear in some object position.
 rdf_literal(G, Lit):-
-  rdf_object(G, Lit),
+  rdf(_, _, Lit, G),
   rdf_is_literal(Lit).
 % Literals that only appear in the subject position.
 rdf_literal(G, Lit):-
-  
+  literal_id(Lit, Id),
+  % Exclude duplicates.
+  \+ rdf_object(Lit),
+  % Ensure that it currently appears in some statement.
+  % Relate literal to graph.
+  rdf(Id, _, _, G).
 
 
 
@@ -209,8 +208,6 @@ rdf_name(G, Name):-
 
 %! rdf_node(+Node:rdf_node) is semidet.
 %! rdf_node(-Node:rdf_node) is nondet.
-%
-% @bug Naming conflict with Semweb's rdf_node/1.
 
 rdf_node(S):-
   rdf_subject(S).
@@ -238,19 +235,20 @@ rdf_node(G, O):-
 %! rdf_object(-Object:rdf_term) is nondet.
 
 rdf_object(O):-
+  nonvar(O), !,
+  (   rdf_literal(O), !
+  ;   term_to_id(O, Oid),
+      rdf_non_literal_node_id(Oid)
+  ).
+rdf_object(O):-
+  % NONDET.
   rdf_literal(O),
-  % Excludes cases in which a literal only appears in deleted statements.
+  % Ensure the literal appears in the object position of some statement.
   rdf(_, _, O).
 rdf_object(O):-
-  var(O), !,
-  rdf_non_literal_node(Oid),
-  \+ rdf_is_literal(Oid),
-  rdf(_, _, Oid),
+  rdf_non_literal_node_id(Oid),
+  \+ rdf_literal(Oid),
   id_to_term(Oid, O).
-rdf_object(O):-
-  term_to_id(O, Oid),
-  rdf_non_literal_node(Oid),
-  \+ rdf_is_literal(Oid).
   
 
 %! rdf_object(+Graph:rdf_graph, +Object:rdf_term) is semidet.
@@ -259,9 +257,8 @@ rdf_object(O):-
 %! rdf_object(-Graph:rdf_graph, -Object:rdf_term) is nondet.
 
 rdf_object(G, O):-
-  var(O), !,
-  rdf(_, _, O, G),
-  rdf_object(O).
+  nonvar(O), !,
+  rdf(_, _, O, G).
 rdf_object(G, O):-
   rdf_object(O),
   % Also excludes cases in which a literal only appears in deleted statements.
@@ -271,15 +268,24 @@ rdf_object(G, O):-
 
 %! rdf_predicate(+Predicate:iri) is semidet.
 %! rdf_predicate(-Predicate:iri) is nondet.
-% @bug Terminologically more consistent than Semweb's rdf_current_predicate/1.
 
 rdf_predicate(P):-
-  rdf_current_predicate(P).
+  nonvar(P), !,
+  term_to_id(P, Pid),
+  rdf_predicate_id(Pid).
+rdf_predicate(P):-
+  % NONDET
+  rdf_predicate_id(Pid),
+  % MULTI
+  id_to_term(Pid, P).
 
 
 %! rdf_predicate(+Graph:rdf_graph, +Predicate:iri) is semidet.
 %! rdf_predicate(+Graph:rdf_graph, -Predicate:iri) is nondet.
 
+rdf_predicate(G, P):-
+  nonvar(P), !,
+  rdf(_, P, _, G).
 rdf_predicate(G, P):-
   rdf_predicate(P),
   rdf(_, P, _, G).
@@ -293,14 +299,14 @@ rdf_subject(S):-
   nonvar(S), !,
   (   rdf_is_literal(S)
   ->  literal_id(S, Sid),
-      rdf_subject(Sid)
+      rdf_subject_id(Sid)
   ;   term_to_id(S, Sid),
-      rdf_subject(Sid)
+      rdf_subject_id(Sid)
   ).
 rdf_subject(S):-
   % NONDET
-  rdf_subject(Sid),
-  (   id_to_literal(Sid, S), !
+  rdf_subject_id(Sid),
+  (   literal_id(S, Sid), !
       % NONDET
   ;   id_to_term(Sid, S)
   ).
@@ -313,7 +319,6 @@ rdf_subject(S):-
 
 rdf_subject(G, S):-
   nonvar(S), !,
-  rdf_subject(S),
   rdf(S, _, G).
 rdf_subject(G, S):-
   rdf(S, _, G),

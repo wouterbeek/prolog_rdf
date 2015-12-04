@@ -8,6 +8,7 @@
 ).
 :- reexport(library(dcg/sparql10_code), [
      'ECHAR'//1, % ?Code:code
+     'PN_CHARS_U'//1, % ?Code:code
      'WS'//0
    ]).
 :- reexport(library(url/rfc1738_code), [
@@ -19,7 +20,7 @@
 @author Wouter Beek
 @compat SPARQL 1.1
 @see http://www.w3.org/TR/sparql11-query/#grammar
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -42,7 +43,7 @@
 % PERCENT ::= '%' HEX HEX
 % ```
 
-'PERCENT'(C) --> "%", 'HEX'(H1), 'HEX'(H2), {possum([H1,H2], 16, C)}.
+'PERCENT'(C) --> "%", 'HEX'(H1), 'HEX'(H2), {pos_sum([H1,H2], 16, C)}.
 
 
 
