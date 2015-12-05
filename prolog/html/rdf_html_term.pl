@@ -7,7 +7,7 @@
                           % +Options:list(compound)
     rdf_html_graph//2, % +Graph:atom
                        % +Options:list(compound)
-    rdf_html_id//2, % +Term:rdf_term
+    rdf_html_id//2, % +Id:uid
                     % +Options:list(compound)
     rdf_html_iri//2, % +Iri:iri
                      % +Options:list(compound)
@@ -59,7 +59,6 @@ Generates HTML representations of RDF data.
 :- rdf_meta(html_entry(r,-)).
 :- rdf_meta(rdf_html_datatype(r,+,?,?)).
 :- rdf_meta(rdf_html_graph(r,+,?,?)).
-:- rdf_meta(rdf_html_id(o,+,?,?)).
 :- rdf_meta(rdf_html_iri(r,+,?,?)).
 :- rdf_meta(rdf_html_language_tag(+,+,?,?)).
 :- rdf_meta(rdf_html_lexical_form(+,+,?,?)).
@@ -74,8 +73,6 @@ Generates HTML representations of RDF data.
 
 :- predicate_options(rdf_html_bnode//2, 2, [
      abbr_list(+boolean),
-     id_closure(+boolean),
-     pass_to(rdf_html_id//2),
      pass_to(rdf_html_list//2)
    ]).
 :- predicate_options(rdf_html_datatype//2, 2, [
@@ -91,11 +88,9 @@ Generates HTML representations of RDF data.
      abbr_iri(+boolean),
      abbr_list(+boolean),
      ellip_ln(+or([nonneg,oneof([inf])])),
-     id_closure(+boolean),
      label_iri(+boolean),
      language_priority_list(+list(atom)),
      symbol_iri(+boolean),
-     pass_to(rdf_html_id//2),
      pass_to(rdf_html_list//2, 2)
    ]).
 :- predicate_options(rdf_html_language_tag//2, 2, [
@@ -111,10 +106,7 @@ Generates HTML representations of RDF data.
      pass_to(rdf_html_term//2, 2)
    ]).
 :- predicate_options(rdf_html_literal//2, 2, [
-     id_closure(+boolean),
-     style(+oneof([tuple,turtle])),
      pass_to(rdf_html_datatype//2, 2),
-     pass_to(rdf_html_id//2),
      pass_to(rdf_html_language_tag//2, 2),
      pass_to(rdf_html_lexical_form//2, 2)
    ]).
@@ -148,11 +140,7 @@ Generates HTML representations of RDF data.
 %     Default is `true` for statements in the RDF DB
 %     but `false` for RDF compound terms (since in the latter case
 %     we cannot check whether something is an RDF list or not).
-%  * id_closure(+boolean)
 
-rdf_html_bnode(B, Opts) -->
-  {option(id_close(true), Opts)}, !,
-  rdf_html_id(B, Opts).
 rdf_html_bnode(B, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_html_list(B, Opts), !.
@@ -185,10 +173,10 @@ rdf_html_graph0(G, Opts) -->
 
 
 
-%! rdf_html_id(+Term:rdf_term, +Options:list(compound))// is det.
+%! rdf_html_id(+Id:uid, +Options:list(compound))// is det.
 
-rdf_html_id(T, Opts) -->
-  {term_to_terms(T, Ts)},
+rdf_html_id(Id, Opts) -->
+  {id_to_terms(Id, Ts)},
   html(span(class='rdf-id', \html_set(rdf_html_term0(Opts), Ts))).
 
 
@@ -210,7 +198,6 @@ rdf_html_id(T, Opts) -->
 %     This is only used when `abbr_iri=true`.
 %     Default is `20` to ensure that every triple fits within
 %     an 80 character wide terminal.
-%   * id_closure(+boolean)
 %   * label_iri(+boolean)
 %     Whether RDFS labels should be used i.o. IRIs.
 %     Default is `false`.
@@ -220,9 +207,6 @@ rdf_html_id(T, Opts) -->
 %     Whether logic symbols should be used i.o. IRIs.
 %     Default is `true`.
 
-rdf_html_iri(Iri, Opts) -->
-  {option(id_closure(true), Opts)}, !,
-  rdf_html_id(Iri, Opts).
 rdf_html_iri(Iri, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_html_list(Iri, Opts), !.
@@ -302,58 +286,36 @@ rdf_html_term0(Opts, T) --> rdf_html_term(T, Opts).
 %   * abbr_iri(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * id_closure(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_html_literal(Lit, Opts) -->
-  {option(id_closure(true), Opts)}, !,
-  rdf_html_id(Lit, Opts).
-rdf_html_literal(Lit, Opts) -->
   html_link(Lit, rdf_html_literal0(Lit, Opts), [query(literal)|Opts]).
 
 rdf_html_literal0(literal(type(D,Lex)), Opts) --> !,
-  (   {option(style(turtle), Opts)}
-  ->  html(
-        span(class='rdf-literal', [
-          \rdf_html_lexical_form(Lex, Opts),
-          "^^",
-          \rdf_html_datatype(D, Opts)
-        ])
-      )
-  ;   html(
-        span(class='rdf-literal', [
-          &(lang),
-          \rdf_html_datatype(D, Opts),
-          ',',
-          \rdf_html_lexical_form(Lex, Opts),
-          &(rang)
-        ])
-      )
+  html(
+    span(class='rdf-literal', [
+      &(lang),
+      \rdf_html_datatype(D, Opts),
+      ',',
+      \rdf_html_lexical_form(Lex, Opts),
+      &(rang)
+    ])
   ).
 rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
-  (   {option(style(turtle), Opts)}
-  ->  html(
-        span(class=['language-tagged-string','rdf-literal'], [
-          \rdf_html_lexical_form(Lex, Opts),
-          '@',
-          \rdf_html_language_tag(LTag, Opts)
-        ])
-      )
-  ;   {rdf_expand_ct(rdf:langString, D)},
-      html(
-        span(class=['language-tagged-string','rdf-literal'], [
-          &(lang),
-          \rdf_html_datatype(D, Opts),
-          ',',
-          &(lang),
-          \rdf_html_language_tag(LTag, Opts),
-          ',',
-          \rdf_html_lexical_form(Lex, Opts),
-          &(rang),
-          &(rang)
-        ])
-      )
+  {rdf_expand_ct(rdf:langString, D)},
+  html(
+    span(class=['language-tagged-string','rdf-literal'], [
+      &(lang),
+      \rdf_html_datatype(D, Opts),
+      ',',
+      &(lang),
+      \rdf_html_language_tag(LTag, Opts),
+      ',',
+      \rdf_html_lexical_form(Lex, Opts),
+      &(rang),
+      &(rang)
+    ])
   ).
 rdf_html_literal0(literal(Lex), Opts) -->
   {rdf_expand_ct(xsd:string, D)},
@@ -475,9 +437,6 @@ html_entry(rdfs:subClassOf,     sube).
 
 
 
-html_full_iri(Global, Opts) -->
-  {option(style(turtle), Opts)}, !,
-  html(span(class=iri, [&(lang),Global,&(rang)])).
 html_full_iri(Global, _) -->
   html(span(class=iri, Global)).
 

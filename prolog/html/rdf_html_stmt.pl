@@ -84,9 +84,6 @@
 :- predicate_options(rdf_html_describe//3, 3, [
      pass_to(rdf_html_statement//5, 5)
    ]).
-:- predicate_options(rdf_html_graph_maybe//2, 2, [
-     style(+oneof([tuple,turtle]))
-   ]).
 :- predicate_options(rdf_html_quadruple//2, 2, [
      pass_to(rdf_html_statement//5, 5)
    ]).
@@ -103,8 +100,6 @@
    ]).
 :- predicate_options(rdf_html_statement//5, 5, [
      id_closure(+boolean),
-     style(+oneof([tuple,turtle])),
-     pass_to(rdf_html_graph_maybe//2, 2),
      pass_to(rdf_html_object//2, 2),
      pass_to(rdf_html_predicate//2, 2),
      pass_to(rdf_html_subject//2, 2)
@@ -153,10 +148,10 @@ rdf_html_describe(S, Opts) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * id_closure(+boolean)
 %   * page_size(+nonneg)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
-%   * style(+oneof([tuple,turtle])
 
 % No graph is given: display quadruples.
 rdf_html_describe(S, G, Opts) -->
@@ -204,10 +199,10 @@ rdf_html_quadruple(S, P, O, G) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * id_closure(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %   * page_size(+nonneg)
-%   * style(+oneof([tuple,turtle])
 
 % Ground quadruples are printed without them having to be present
 % in the RDF DB.
@@ -281,40 +276,29 @@ rdf_html_statement(T, Opts0) -->
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * page_size(+nonneg)
-%   * style(+oneof([tuple,turtle])
-%     The style that is used for printing the statement.
-%     Style `turtle` is appropriate for enumerating multiple triples.
-%     Style `tuple` is appropriate for singular triples.
-%     Default is `tuple`.
 %   * symbol_iri(+boolean)
 
-rdf_html_statement(S, P, O, G, Opts) -->
-  {option(style(turtle), Opts)}, !,
-  html(
-    span(class='rdf-stmt', [
-      \rdf_html_subject(S, Opts),
-      ' ',
-      \rdf_html_predicate(P, Opts),
-      ' ',
-      \rdf_html_object(O, Opts),
-      \rdf_html_graph_maybe(G, Opts),
-      ' .'
-    ])
-  ).
 rdf_html_statement(S, P, O, G, Opts) -->
   html(
     span(class='rdf-stmt', [
       &(lang),
-      \rdf_html_subject(S, Opts),
+      \rdf_html_statement_subject0(S, Opts),
       ', ',
-      \rdf_html_predicate(P, Opts),
+      \rdf_html_statement_predicate0(P, Opts),
       ', ',
-      \rdf_html_object(O, Opts),
-      \rdf_html_graph_maybe(G, Opts),
+      \rdf_html_statement_object0(O, Opts),
+      \rdf_html_statement_graph0(G, Opts),
       &(rang)
     ])
   ).
-
+rdf_html_statement_graph0(G, Opts) --> {var(G)}, !, html([]).
+rdf_html_statement_graph0(G, Opts) --> html(['@',span(class='rdf-graph', G)]).
+rdf_html_statement_subject0(S, Opts) --> {option(id_closure(true), Opts)} !, rdf_html_id(S, Opts).
+rdf_html_statement_subject0(S, Opts) --> rdf_html_subject(S, Opts),
+rdf_html_statement_predicate0(P, Opts) --> {option(id_closure(true), Opts)} !, rdf_html_id(P, Opts).
+rdf_html_statement_predicate0(P, Opts) --> rdf_html_predicate(P, Opts),
+rdf_html_statement_object0(O, Opts) --> {option(id_closure(true), Opts)} !, rdf_html_id(O, Opts).
+rdf_html_statement_object0(O, Opts) --> rdf_html_object(O, Opts),
 
 
 %! rdf_html_statements(+Statements:list(compound))// is det.
@@ -379,7 +363,6 @@ rdf_html_triple(S, P, O, G) -->
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * page_size(+nonneg)
-%   * style(+oneof([tuple,turtle])
 %   * symbol_iri(+boolean)
 
 % Ground triples are printing without them having to be present
@@ -408,19 +391,3 @@ rdf_html_triples(Ts) -->
 rdf_html_triples(Ts, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   'rdf_html_statement*'(Ts, Opts).
-
-
-
-
-
-% HELPERS %
-
-%! rdf_html_graph_maybe(+Graph:rdf_graph, +Options:list(compound))// is det.
-
-rdf_html_graph_maybe(G, Opts) -->
-  {ground(G)}, !,
-  (   {option(style(turtle), Opts)}
-  ->  html([' ',span(class='rdf-graph', G)])
-  ;   html(['@',span(class='rdf-graph', G)])
-  ).
-rdf_html_graph_maybe(_, _) --> html([]).

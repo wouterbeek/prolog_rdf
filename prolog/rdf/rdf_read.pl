@@ -2,10 +2,15 @@
   rdf_read,
   [
     rdf/3, % ?Subject, ?Predicate, ?Object
-    rdf/4, % ?Subject:gid
+    rdf/4, % ?Subject, ?Predicate, ?Object, ?Graph
+    rdf/6, % ?Subject, ?Predicate, ?Object, -Sid, -Pid, -Oid
+    rdf/7, % ?Subject:gid
            % ?Predicate:gid
            % ?Object:gid
            % ?Graph:rdf_graph
+           % -Sid:uid
+           % -Pid:uid
+           % -Oid:uid
     rdf_date/3, % ?Subject, ?Predicate, ?Date
     rdf_date/4, % ?Subject:rdf_term
                 % ?Predicate:iri
@@ -54,6 +59,7 @@
 */
 
 :- use_module(library(datetime/datetime)).
+:- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
@@ -62,14 +68,13 @@
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf_db), [
-     rdf/3 as rdf0,
-     rdf/4 as rdf0
-   ]).
+:- use_module(library(semweb/rdf_db), [rdf/4 as rdf_id]).
 :- use_module(library(xsd/xsd)).
 
-:- rdf_meta(rdf(o,?,o)).
-:- rdf_meta(rdf(o,?,o,r)).
+:- rdf_meta(rdf(o,r,o)).
+:- rdf_meta(rdf(o,r,o,r)).
+:- rdf_meta(rdf(o,r,o,-,-,-)).
+:- rdf_meta(rdf(o,r,o,r,-,-,-)).
 :- rdf_meta(rdf_date(o,r,?)).
 :- rdf_meta(rdf_date(o,r,?,r)).
 :- rdf_meta(rdf_instance(o,r)).
@@ -90,9 +95,10 @@
 
 
 %! rdf(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
+% Wrapper around rdf/4 reading from the default graph.
 
 rdf(S, P, O):-
-  rdf(S, P, O, '*').
+  rdf(S, P, O, default).
 
 
 %! rdf(
@@ -104,6 +110,7 @@ rdf(S, P, O):-
 
 % 1. Identity statement.
 rdf(S, P, O, _):-
+  ground(P),
   rdf_is_id(P, owl:sameAs), !,
   (   nonvar(S)
   ->  term_to_term(S, O)
@@ -116,16 +123,45 @@ rdf(S, P, O, _):-
   ).
 % 2. Statements other than identity statements.
 rdf(S, P, O, G):-
-  % (Only) in the subject position, literals may be represented by blank nodes.
-  (rdf_is_literal(S) -> literal_id(S, Sid) ; nonvar(S) -> term_to_id(S, Sid) ; true),
-  (nonvar(P) -> term_to_id(P, Pid) ; true),
-  (nonvar(O) -> term_to_id(O, Oid) ; true),
-  (G == '*' -> rdf0(Sid, Pid, Oid) ; rdf0(Sid, Pid, Oid, G)),
+  rdf(S, P, O, G, Sid, Pid, Oid),
   % Variable subject terms may be blank nodes that need to be
   % related to literals.
   (ground(S), ! ; literal_id(S, Sid), ! ; id_to_term(Sid, S)),
   (ground(P), ! ; id_to_term(Pid, P)),
   (ground(O), ! ; id_to_term(Oid, O)).
+
+
+%! rdf(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   -Sid:uid,
+%!   -Pid:uid,
+%!   -Oid:uid
+%! ) is nondet.
+
+
+rdf(S, P, O, Sid, Pid, Oid):-
+  rdf(S, P, O, '*', Sid, Pid, Oid).
+
+
+%! rdf(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:rdf_graph,
+%!   -Sid:uid,
+%!   -Pid:uid,
+%!   -Oid:uid
+%! ) is nondet.
+
+rdf(S, P, O, G, Sid, Pid, Oid):-
+  % (Only) in the subject position, literals may be represented by blank nodes.
+  (rdf_is_literal(S) -> literal_id(S, Sid) ; nonvar(S) -> term_to_id(S, Sid) ; true),
+  (nonvar(P) -> term_to_id(P, Pid) ; true),
+  (nonvar(O) -> term_to_id(O, Oid) ; true),
+  defval(default, G),
+  rdf_id(Sid, Pid, Oid, G).
 
 
 

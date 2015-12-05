@@ -76,7 +76,6 @@ rdf_print_describe(S, Opts):-
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
-%   * style(+oneof([tuple,turtle])
 
 rdf_print_describe(S, G, Opts):-
   (   G == none
@@ -106,7 +105,6 @@ rdf_print_graph(G):-
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
-%   * style(+oneof([tuple,turtle])
 %
 % @throws existence_error
 

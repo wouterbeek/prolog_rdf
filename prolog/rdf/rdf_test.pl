@@ -21,7 +21,6 @@ Various tests for RDF predicates,
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_database)).
-:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdfs/rdfs_build)).
@@ -42,10 +41,11 @@ rdf_test(database(identity)):-
     rdf_assert(ex:a, owl:sameAs, ex:c),
     rdf_assert(ex:d, owl:sameAs, ex:c)
   ),(
-    Opts = [id_closure(true),indent(2)],
+    Opts = [indent(2)],
     format("Graph:~n"),
-    rdf_print_graph(default, Opts),
+    rdf_print_graph(default, [id_closure(true)|Opts]),
     format("Identity store:~n"),
+    print_raw_graph(default, Opts),
     print_store(Opts)
   )).
 

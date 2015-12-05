@@ -3,6 +3,7 @@
   [
     assign_literal_id/2, % +Literal:rdf_literal
                          % ?Id:uid
+    assign_term_id/1, % +Term
     assign_term_id/2, % +Term:rdf_term
                       % ?Id:or([rdf_literal,uid])
     id_terms/1, % -Terms:ordset(rdf_term)
@@ -12,6 +13,15 @@
                    % -Terms:ordset(rdf_term)
     literal_id/2, % ?Literal:rdf_literal
                   % ?Id:uid
+    print_raw_graph/1, % ?Graph, +Options
+    print_raw_graph/2, % ?Graph:rdf_graph
+                       % +Options:list(compound)
+    print_raw_statement/4, % ?Subject, ?Predicate, ?Object, ?Graph
+    print_raw_statement/5, % ?Subject:rdf_term
+                           % ?Predicate:iri
+                           % ?Object:rdf_term
+                           % ?Graph:rdf_graph
+                           % +Options:list(compound)
     print_store/0,
     print_store/1, % +Options:list(compound)
     rdf_is_id/2, % +Term1:rdf_term
@@ -47,14 +57,17 @@ A literal identity set identifier denotes itself.
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), [
      rdf/3 as rdf0,
+     rdf/4 as rdf0,
      rdf_assert/3 as rdf_assert0,
      rdf_retractall/3 as rdf_retractall0
    ]).
@@ -62,6 +75,10 @@ A literal identity set identifier denotes itself.
 :- rdf_meta(assign_literal_id(o,-)).
 :- rdf_meta(assign_term_id(o,?)).
 :- rdf_meta(literal_id(o,-)).
+:- rdf_meta(print_raw_graph(r)).
+:- rdf_meta(print_raw_graph(r,+)).
+:- rdf_meta(print_raw_statement(o,r,o,r)).
+:- rdf_meta(print_raw_statement(o,r,o,r,+)).
 :- rdf_meta(rdf_is_id(r,r)).
 :- rdf_meta(store_id(o,o)).
 :- rdf_meta(term_to_id(o,-)).
@@ -80,9 +97,17 @@ A literal identity set identifier denotes itself.
 
 :- dynamic(term_to_id0/2).
 
+:- predicate_options(print_raw_graph/2, 2, [
+     pass_to(print_raw_statement/5, 5)
+   ]).
+:- predicate_options(print_raw_statement/5, 5, [
+     indent(+nonneg)
+   ]).
 :- predicate_options(print_store/1, 1, [
      pass_to(rdf_print_term//2, 2)
    ]).
+
+:- initialization((rdf_expand_ct(owl:sameAs, P), assign_term_id(P))).
 
 
 
@@ -99,6 +124,13 @@ assign_literal_id(Lit, Id):-
   assign_term_id(B, Id),
   assert(literal_id(Lit, Id)).
 
+
+
+%! assign_term_id(+Term:rdf_term) is det.
+% Wrapper around assign_term_id/2 that does not return the identifier.
+
+assign_term_id(T):-
+  assign_term_id(T, _).
 
 
 %! assign_term_id(+Term:rdf_term, -Id:uid) is det.
@@ -140,6 +172,61 @@ id_to_terms(Id, Ts):-
 
 print_store:-
   print_store([]).
+
+
+
+%! print_raw_graph(?Graph:rdf_graph) is det.
+% Wrapper around print_raw_graph/2 with default options.
+
+print_raw_graph(G):-
+  print_raw_graph(G, []).
+
+
+%! print_raw_graph(?Graph:rdf_graph, +Options:list(compound)) is det.
+
+print_raw_graph(G, Opts):-
+  defval(default, G),
+  print_raw_statement(_, _, _, _, Opts),
+  fail.
+print_raw_graph(_, _).
+
+
+
+%! print_raw_statement(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:rdf_graph
+%! ) is nondet.
+% Wrapper around print_raw_statement/5 with default options.
+
+print_raw_statement(S, P, O, G):-
+  print_raw_statement(S, P, O, G, []).
+
+
+%! print_raw_statement(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:rdf_graph,
+%!   +Options:list(compound)
+%! ) is nondet.
+
+print_raw_statement(S, P, O, G, Opts):-
+  rdf0(S, P, O, G),
+  option(indent(I), Opts, 0), tab(I),
+  dcg_with_output_to(current_output, print_raw_statement(S, P, O, G)),
+  nl.
+
+
+print_raw_statement(S, P, O, G) -->
+  "〈", atom(S), ", ", atom(P), ", ", print_raw_object(O), "〉",
+  ({var(G)} -> "" ; rdf_print_graph(G)).
+
+
+print_raw_object(Lit) --> {rdf_is_literal(Lit)}, !, rdf_print_literal(Lit).
+print_raw_object(O) --> atom(O).
+
 
 
 %! print_store(+Options:list(compound)) is det.

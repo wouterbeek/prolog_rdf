@@ -9,7 +9,7 @@
     rdf_print_quadruple/5, % ?Subject:rdf_term
                            % ?Predicate:iri
                            % ?Object:rdf_term
-                           % ?Graph:atom
+                           % ?Graph:rdf_graph
                            % +Options:list(compound)
     rdf_print_quadruples/1, % +Quadruples
     rdf_print_quadruples/2, % +Quadruples:list(compoud)
@@ -20,12 +20,12 @@
     rdf_print_statement/5, % +Subject:rdf_term,
                            % +Predicate:iri,
                            % +Object:rdf_term,
-                           % ?Graph:atom,
+                           % ?Graph:rdf_graph,
                            % +Options:list(compound)
     rdf_print_statement//5, % +Subject:rdf_term,
                             % +Predicate:iri,
                             % +Object:rdf_term,
-                            % ?Graph:atom,
+                            % ?Graph:rdf_graph,
                             % +Options:list(compound)
     rdf_print_statements/1, % +Statements
     rdf_print_statements/2, % +Statements:list(compoud)
@@ -38,7 +38,7 @@
     rdf_print_triple/5, % ?Subject:rdf_term
                         % ?Predicate:iri
                         % ?Object:rdf_term
-                        % ?Graph:atom
+                        % ?Graph:rdf_graph
                         % +Options:list(compound)
     rdf_print_triples/1, % +Triples
     rdf_print_triples/2 % +Triples:list(compoud)
@@ -52,7 +52,6 @@
 @version 2015/07-2015/09, 2015/11-2015/12
 */
 
-:- use_module(library(dcg/dcg_bracket)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -96,7 +95,7 @@
      pass_to(rdf_print_statement//5, 5)
    ]).
 :- predicate_options(rdf_print_statement//5, 5, [
-     style(+oneof([tuple,turtle])),
+     id_closure(+boolean),
      pass_to(rdf_print_graph_maybe//2, 2),
      pass_to(rdf_print_object//2, 2),
      pass_to(rdf_print_predicate//2, 2),
@@ -125,6 +124,7 @@
 rdf_print_quadruple(Q):-
   rdf_print_quadruple(Q, []).
 
+
 %! rdf_print_quadruple(+Quadruple:compound, +Options:list(compound)) is det.
 % Deterministically prints the given ground Quadruple in plain text.
 %
@@ -132,6 +132,7 @@ rdf_print_quadruple(Q):-
 
 rdf_print_quadruple(rdf(S,P,O,G), Opts):-
   rdf_print_statement(S, P, O, G, Opts).
+
 
 %! rdf_print_quadruple(
 %!   ?Subject:rdf_term,
@@ -143,29 +144,31 @@ rdf_print_quadruple(rdf(S,P,O,G), Opts):-
 rdf_print_quadruple(S, P, O):-
   rdf_print_quadruple(S, P, O, _).
 
+
 %! rdf_print_quadruple(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is det.
 % Wrapper around rdf_print_quadruple/5 with default options.
 
 rdf_print_quadruple(S, P, O, G):-
   rdf_print_quadruple(S, P, O, G, []).
 
+
 %! rdf_print_quadruple(
 %!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   +Options:list(compound)
 %! ) is det.
 %! rdf_print_quadruple(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   +Options:list(compound)
 %! ) is nondet.
 % If the simple quadruple pattern 〈Subject,Predicate,Object,Graph〉 is ground
@@ -176,8 +179,16 @@ rdf_print_quadruple(S, P, O, G):-
 %
 % Options are passed to rdf_print_statement/5.
 
+% Allow ground statements to be printed without being in the database.
 rdf_print_quadruple(S, P, O, G, Opts):-
-  (ground(rdf(S,P,O,G)) -> true ; rdf(S, P, O, G)),
+  ground(rdf(S,P,O,G)), !,
+  rdf_print_statement(S, P, O, G, Opts).
+rdf_print_quadruple(S, P, O, G, Opts):-
+  option(id_closure(true), Opts), !,
+  rdf(S, P, O, G, Sid, Pid, Oid),
+  rdf_print_statement(Sid, Pid, Oid, G, Opts).
+rdf_print_quadruple(S, P, O, G, Opts):-
+  rdf(S, P, O, G),
   rdf_print_statement(S, P, O, G, Opts).
 
 
@@ -187,6 +198,7 @@ rdf_print_quadruple(S, P, O, G, Opts):-
 
 rdf_print_quadruples(Qs):-
   rdf_print_quadruples(Qs, []).
+
 
 %! rdf_print_quadruples(
 %!   +Quadruples:list(compound),
@@ -211,6 +223,7 @@ rdf_print_quadruples(Qs, Opts0):-
 rdf_print_statement(T):-
   rdf_print_statement(T, []).
 
+
 %! rdf_print_statement(+Statement:compound, +Options:list(compound)) is det.
 
 rdf_print_statement(T, Opts0):-
@@ -223,25 +236,25 @@ rdf_print_statement(T, Opts0):-
   ->  rdf_print_quadruple(T, Opts)
   ).
 
+
 %! rdf_print_statement(
 %!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   +Options:list(compound)
 %! ) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * id_closure(+boolean)
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
-%   * style(+oneof([tuple,turtle])
 
 rdf_print_statement(S, P, O, G, Opts):-
-  option(indent(I), Opts, 0),
-  tab(I),
+  option(indent(I), Opts, 0), tab(I),
   dcg_with_output_to(current_output, rdf_print_statement(S, P, O, G, Opts)),
   nl.
 
@@ -251,39 +264,26 @@ rdf_print_statement(S, P, O, G, Opts):-
 %!   +Subject:rdf_term,
 %!   +Predicate:iri,
 %!   +Object:rdf_term,
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   +Options:list(compound)
 %! )// is det.
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
+%   * id_closure(+boolean)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
-%   * style(+oneof([tuple,turtle])
-%     The style that is used for printing the statement.
-%     Style `turtle` is appropriate for enumerating multiple triples.
-%     Style `tuple` is appropriate for singular triples.
-%     Default is `tuple`.
 
 rdf_print_statement(S, P, O, G, Opts) -->
-  {option(style(turtle), Opts)}, !,
-  rdf_print_subject(S, Opts),
-  " ",
-  rdf_print_predicate(P, Opts),
-  " ",
-  rdf_print_object(O, Opts),
-  ({var(G)} -> "" ; rdf_print_graph(G, Opts)),
-  " .".
-rdf_print_statement(S, P, O, G, Opts) -->
-  bracketed(langular, (
-    rdf_print_subject(S, Opts),
-    ", ",
-    rdf_print_predicate(P, Opts),
-    ", ",
-    rdf_print_object(O, Opts)
-  )),
+  "〈",
+  ({option(id_closure(true), Opts)} -> rdf_print_id(S, Opts) ; rdf_print_subject(S, Opts)),
+  ", ",
+  ({option(id_closure(true), Opts)} -> rdf_print_id(P, Opts) ; rdf_print_predicate(P, Opts)),
+  ", ",
+  ({option(id_closure(true), Opts)} -> rdf_print_id(O, Opts) ; rdf_print_object(O, Opts)),
+  "〉",
   ({var(G)} -> "" ; rdf_print_graph(G, Opts)).
 
 
@@ -293,6 +293,7 @@ rdf_print_statement(S, P, O, G, Opts) -->
 
 rdf_print_statements(L):-
   rdf_print_statements(L, []).
+
 
 %! rdf_print_statements(
 %!   +Statements:list(compound),
@@ -312,10 +313,12 @@ rdf_print_statements([H|T], Opts):-
 rdf_print_triple(T):-
   rdf_print_triple(T, []).
 
+
 %! rdf_print_triple(+Triple:compound, +Options:list(compound)) is det.
 
 rdf_print_triple(rdf(S,P,O), Opts):-
   rdf_print_statement(S, P, O, _, Opts).
+
 
 %! rdf_print_triple(
 %!   ?Subject:rdf_term,
@@ -327,36 +330,46 @@ rdf_print_triple(rdf(S,P,O), Opts):-
 rdf_print_triple(S, P, O):-
   rdf_print_triple(S, P, O, _).
 
+
 %! rdf_print_triple(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 % Wrapper around rdf_print_triple/5 with default options.
 
 rdf_print_triple(S, P, O, G):-
   rdf_print_triple(S, P, O, G, []).
 
+
 %! rdf_print_triple(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   ?Object:rdf_term,
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   +Options:list(compound)
 %! ) is nondet.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * id_closure(+boolean)
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
-%   * style(+oneof([tuple,turtle])
 %   * symbol_iri(+boolean)
 
+% Allow ground statements to be printed without being in the database.
+rdf_print_triple(S, P, O, _, Opts):-
+  ground(rdf(S,P,O)), !,
+  rdf_print_statement(S, P, O, _, Opts).
 rdf_print_triple(S, P, O, G, Opts):-
-  (ground(rdf(S,P,O)) -> true ; rdf(S, P, O, G)),
+  option(id_closure(true), Opts), !,
+  rdf(S, P, O, G, Sid, Pid, Oid),
+  rdf_print_statement(Sid, Pid, Oid, _, Opts).
+rdf_print_triple(S, P, O, G, Opts):-
+  rdf(S, P, O, G),
   rdf_print_statement(S, P, O, _, Opts).
 
 
@@ -366,6 +379,7 @@ rdf_print_triple(S, P, O, G, Opts):-
 
 rdf_print_triples(Ts):-
   rdf_print_triples(Ts, []).
+
 
 %! rdf_print_triples(+Triples:list(compound), +Options:list(compound)) is det.
 

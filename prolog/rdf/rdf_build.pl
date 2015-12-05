@@ -1,6 +1,7 @@
 :- module(
   rdf_build,
   [
+    rdf_assert/1, % +Statement:rdf_stmt
     rdf_assert/3, % +Subject, +Predicate, +Object
     rdf_assert/4, % +Subject:gid
                   % +Predicate:gid
@@ -87,8 +88,9 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(uuid_ext)).
 :- use_module(library(xsd/datetime/xsd_datetime_functions)).
 
-:- rdf_meta(rdf_assert(o,+,o)).
-:- rdf_meta(rdf_assert(o,+,o,r)).
+:- rdf_meta(rdf_assert(t)).
+:- rdf_meta(rdf_assert(o,r,o)).
+:- rdf_meta(rdf_assert(o,r,o,r)).
 :- rdf_meta(rdf_assert_instance(o,t)).
 :- rdf_meta(rdf_assert_instance(o,t,r)).
 :- rdf_meta(rdf_assert_literal(o,r,r,+)).
@@ -111,6 +113,7 @@ Simple asserion and retraction predicates for RDF.
 
 
 
+
 %! rdf_assert(+Statement:rdf_stmt) is det.
 % Wrapper around rdf_assert/[3,4].
 % Statement is of the form `rdf/[3,4]`.
@@ -122,10 +125,10 @@ rdf_assert(rdf(S,P,O,G)):-
 
 
 %! rdf_assert(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is det.
-% Wrapper around rdf_assert/4 with uninstantiated graph.
+% Wrapper around rdf_assert/4 that asserts in the default graph.
 
 rdf_assert(S, P, O):-
-  rdf_assert(S, P, O, _).
+  rdf_assert(S, P, O, default).
 
 
 %! rdf_assert(
@@ -139,7 +142,7 @@ rdf_assert(S, P, O):-
 
 % 1. Identity statements.
 rdf_assert(S, P, O, _):-
-  term_to_id(owl:sameAs, P), !,
+  rdf_is_id(owl:sameAs, P), !,
   store_id(S, O).
 % 2. Statements other than the identity statement.
 rdf_assert(S, P, O, G):-

@@ -44,6 +44,7 @@
 
 :- meta_predicate(rdf_maplist(1,+)).
 
+:- rdf_meta(rdf_expand_ct(r,r)).
 :- rdf_meta(rdf_maplist(:,t)).
 :- rdf_meta(rdf_member(r,t)).
 :- rdf_meta(rdf_memberchk(r,t)).
