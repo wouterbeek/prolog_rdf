@@ -27,12 +27,6 @@
     owl_assert_intersection_of/3, % +Class:rdf_term
                                   % +Classes:list(rdf_term
                                   % ?Graph:rdf_graph
-    owl_assert_list/2, % +PrologList:list(rdf_term)
-                       % ?RdfList:rdf_term
-    owl_assert_literal/4, % +Subject:rdf_term
-                          % +Predicate:rdf_term
-                          % ?Datatype:iri
-                          % +Value
     owl_assert_named_individual/5, % +Individual:iri
                                    % ?Class:or([iri,list(iri)])
                                    % ?Label:or([atom,pair(atom)])
@@ -176,68 +170,10 @@ owl_assert_functional_property(I, G):-
 %! ) is det.
 
 owl_assert_intersection_of(C, Ds, G):-
-  (var(C) -> rdf_bnode(C) ; true),
+  (var(C) -> rdf_create_bnode(C) ; true),
   rdf_assert_instance(C, owl:'Class', G),
   rdf_assert_list(Ds, Ds0, G),
   rdf_assert(C, owl:intersectionOf, Ds0, G).
-
-
-
-%! owl_assert_list(+PrologList:list(rdf_term), ?RdfList:rdf_term) is det.
-% Asserts the given, possibly nested, list into RDF.
-
-owl_assert_list(L1, L2):-
-  rdf_transaction(owl_assert_list0(L1, L2)).
-
-owl_assert_list0([], rdf:nil):- !.
-owl_assert_list0(L1, L2):-
-  owl_add_list_instance0(L2),
-  owl_assert_list_items0(L1, L2).
-
-owl_assert_list_items0([], rdf:nil):- !.
-owl_assert_list_items0([H1|T1], L2):-
-  % rdf:first
-  (   % Nested list.
-      is_list(H1)
-  ->  owl_assert_list0(H1, H2)
-  ;   % Non-nested list.
-      H2 = H1
-  ),
-  rdf_assert(L2, rdf:first, H2),
-
-  % rdf:rest
-  (   T1 == []
-  ->  rdf_expand_ct(rdf:nil, T2)
-  ;   owl_add_list_instance0(T2),
-      owl_assert_list_items0(T1, T2)
-  ),
-  rdf_assert(L2, rdf:rest, T2).
-
-owl_add_list_instance0(L):-
-  (var(L) -> rdf_bnode(L) ; true),
-  rdf_assert_instance(L, rdf:'List').
-
-
-
-%! owl_assert_literal(
-%!   +Subject:rdf_term,
-%!   +Predicate:iri,
-%!   ?Datatype:iri,
-%!   +Value
-%! ) is det.
-
-% Language-tagged strings.
-owl_assert_literal(S, P, rdf:langString, Lex-LTag):- !,
-  rdf_assert(S, P, literal(lang(LTag,Lex))).
-% Simple literals (as per RDF 1.0 specification)
-% assumed to be of type `xsd:string` (as per RDF 1.1 specification).
-owl_assert_literal(S, P, D, Val):-
-  var(D), !,
-  rdf_assert_literal(S, P, xsd:string, Val).
-% Typed literals (as per RDF 1.0 specification).
-owl_assert_literal(S, P, D, Val):-
-  rdf_canonical_map(D, Val, Lit),
-  rdf_assert(S, P, Lit).
 
 
 

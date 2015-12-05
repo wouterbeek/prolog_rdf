@@ -23,6 +23,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
 

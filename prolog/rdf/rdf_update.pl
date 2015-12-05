@@ -42,7 +42,11 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(debug_ext)).
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_database)).
+:- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_print_stmt)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(rdf_canonize_triple(r,r,o,?)).

@@ -53,6 +53,7 @@ Generates HTML representations of RDF data.
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(html_entry(r,-)).
@@ -244,7 +245,7 @@ rdf_html_iri(Global, Opts) -->
   ;   html(span([class=[iri,'label-iri'],lang=LTag], Lbl))
   ).
 rdf_html_iri(Global, Opts) -->
-  {is_of_type(iri, Global)}, !,
+  {rdf_is_iri(Global)}, !,
   html_link(Global, html_global_iri(Global, Opts), [query(iri)|Opts]).
 
 
@@ -419,7 +420,7 @@ rdf_html_term(graph(G), Opts) --> !,
 rdf_html_term(link(Link,Label), _) --> !,
   html_link(Link, html(Label)).
 rdf_html_term(T, Opts) -->
-  {rdf_is_literal(T)}, !,
+  {rdf_is_literal, T)}, !,
   rdf_html_literal(T, Opts).
 rdf_html_term(T, Opts) -->
   {rdf_is_bnode(T)}, !,

@@ -14,6 +14,8 @@
                   % ?Id:uid
     print_store/0,
     print_store/1, % +Options:list(compound)
+    rdf_is_id/2, % +Term1:rdf_term
+                 % +Term2:rdf_term
     remove_id/1, % +Id:or([rdf_literal,uid])
     store_id/2, % +Id1:or([rdf_literal,uid])
                 % +Id2:or([rdf_literal,uid])
@@ -48,6 +50,9 @@ A literal identity set identifier denotes itself.
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_print_term)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), [
      rdf/3 as rdf0,
      rdf_assert/3 as rdf_assert0,
@@ -57,6 +62,7 @@ A literal identity set identifier denotes itself.
 :- rdf_meta(assign_literal_id(o,-)).
 :- rdf_meta(assign_term_id(o,?)).
 :- rdf_meta(literal_id(o,-)).
+:- rdf_meta(rdf_is_id(r,r)).
 :- rdf_meta(store_id(o,o)).
 :- rdf_meta(term_to_id(o,-)).
 :- rdf_meta(term_to_term(o,-)).
@@ -89,8 +95,8 @@ assign_literal_id(Lit, Id):-
   literal_id(Lit, Id), !.
 % Literal is assigned a new identifier.
 assign_literal_id(Lit, Id):-
-  rdf_bnode(BNode),
-  assign_term_id(BNode, Id),
+  rdf_create_bnode(B),
+  assign_term_id(B, Id),
   assert(literal_id(Lit, Id)).
 
 
@@ -157,6 +163,14 @@ rdf_print_term0(Opts, T) --> rdf_print_term(T, Opts).
 
 
 
+%! rdf_is_id(+Term1:rdf_term, +Term2:rdf_term) is semidet.
+
+rdf_is_id(T1, T2):-
+  term_to_terms(T1, Ts),
+  memberchk(T2, Ts).
+
+
+
 %! remove_id(+Id:uid) is det.
 
 remove_id(Id):-
@@ -181,9 +195,9 @@ store_id(X, Y1):-
   ->  Y2 = Y1
   ;   assign_term_id(Y1, Y2)
   ),
-  rdf_assert(XId, owl:sameAs, Y2).
+  rdf_assert0(XId, owl:sameAs, Y2).
 % Neither term is a literal.
-id_store(X, Y):-
+store_id(X, Y):-
   (   term_to_id0(X, XId)
   ->  (   term_to_id0(Y, YId)
       ->  (   % X and Y already belong to the same identity set.

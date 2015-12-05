@@ -15,8 +15,6 @@
     rdf_instance/3, % ?Instance:rdf_term
                     % ?Class:rdf_term
                     % ?Graph:rdf_graph
-    rdf_is_id/2, % +Term1:rdf_term
-                 % +Term2:rdf_term
     rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePriorityList, ?Value
     rdf_langstring/5, % ?Subject:rdf_term
                       % ?Predicate:iri
@@ -62,6 +60,12 @@
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_term)).
+:- use_module(library(semweb/rdf_db), [
+     rdf/3 as rdf0,
+     rdf/4 as rdf0
+   ]).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(rdf(o,?,o)).
@@ -70,7 +74,6 @@
 :- rdf_meta(rdf_date(o,r,?,r)).
 :- rdf_meta(rdf_instance(o,r)).
 :- rdf_meta(rdf_instance(o,r,r)).
-:- rdf_meta(rdf_is_id(r,r)).
 :- rdf_meta(rdf_langstring(o,r,+,?)).
 :- rdf_meta(rdf_langstring(o,r,+,?,r)).
 :- rdf_meta(rdf_langstring_pref(o,r,+,?)).
@@ -81,40 +84,6 @@
 :- rdf_meta(rdf_literal_pl(o,r,?)).
 :- rdf_meta(rdf_literal_pl(o,r,r,?)).
 :- rdf_meta(rdf_literal_pl(o,r,r,?,r)).
-
-:- multifile(error:has_type/2).
-error:has_type(rdf_bnode, Term):-
-  rdf_is_bnode(Term).
-error:has_type(rdf_graph, Term):-
-  (   Term == default
-  ;   error:has_type(iri, Term)
-  ).
-error:has_type(rdf_literal, Term):-
-  rdf_is_literal(Term).
-error:has_type(rdf_name, Term):-
-  (   error:has_type(iri, Term)
-  ;   error:has_type(rdf_literal, Term)
-  ).
-error:has_type(rdf_stmt, Term):-
-  (   error:has_type(rdf_triple, Term)
-  ;   error:has_type(rdf_quadruple, Term)
-  ).
-error:has_type(rdf_quadruple, Term):-
-  Term = rdf(S,P,O,G),
-  error:has_type(rdf_term, S),
-  error:has_type(iri, P),
-  error:has_type(rdf_term, O),
-  error:has_type(iri, G).
-error:has_type(rdf_term, Term):-
-  (   error:has_type(rdf_bnode, Term)
-  ;   error:has_type(rdf_literal, Term)
-  ;   error:has_type(iri, Term)
-  ).
-error:has_type(rdf_triple, Term):-
-  Term = rdf(S,P,O),
-  error:has_type(rdf_term, S),
-  error:has_type(iri, P),
-  error:has_type(rdf_term, O).
 
 
 
@@ -151,7 +120,7 @@ rdf(S, P, O, G):-
   (rdf_is_literal(S) -> literal_id(S, Sid) ; nonvar(S) -> term_to_id(S, Sid) ; true),
   (nonvar(P) -> term_to_id(P, Pid) ; true),
   (nonvar(O) -> term_to_id(O, Oid) ; true),
-  (G == '*' -> rdf(Sid, Pid, Oid) ; rdf(Sid, Pid, Oid, G)),
+  (G == '*' -> rdf0(Sid, Pid, Oid) ; rdf0(Sid, Pid, Oid, G)),
   % Variable subject terms may be blank nodes that need to be
   % related to literals.
   (ground(S), ! ; literal_id(S, Sid), ! ; id_to_term(Sid, S)),
@@ -220,14 +189,6 @@ rdf_instance(I, C):-
 rdf_instance(I, C, G):-
   rdf_expand_ct(rdf:type, P),
   rdf(I, P, C, G).
-
-
-
-%! rdf_is_id(+Term1:rdf_term, +Term2:rdf_term) is semidet.
-
-rdf_is_id(T1, T2):-
-  term_to_terms(T1, Ts),
-  memberchk(T2, Ts).
 
 
 

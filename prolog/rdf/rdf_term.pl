@@ -7,6 +7,8 @@
     rdf_datatype_iri/1, % ?Datatype
     rdf_datatype_iri/2, % ?Graph:rdf_graph
                         % ?Datatype:iri
+    rdf_is_iri/1, % @Term
+    rdf_is_name/1, % @Term
     rdf_literal/1, % ?Literal
     rdf_literal/2, % ?Graph:rdf_graph
                    % ?Literal:rdf_literal
@@ -31,9 +33,8 @@
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
-     rdf_is_bnode/1, % +Id
-     rdf_is_literal/1, % @Term
-     rdf_is_resource/1 % @Term
+     rdf_is_bnode/1, % @Term
+     rdf_is_literal/1 % @Term
    ]).
 
 /** <module> Generalized RDF terms
@@ -60,6 +61,7 @@ resources as well.
 @version 2015/07-2015/08, 2015/10, 2015/12
 */
 
+:- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_read)).
@@ -88,6 +90,40 @@ resources as well.
 :- rdf_meta(rdf_predicate(r,r)).
 :- rdf_meta(rdf_term(o)).
 :- rdf_meta(rdf_term(r,o)).
+
+:- multifile(error:has_type/2).
+error:has_type(rdf_bnode, B):-
+  rdf_is_bnode(B).
+error:has_type(rdf_graph, G):-
+  (   G == default
+  ;   error:has_type(iri, G)
+  ).
+error:has_type(rdf_literal, Lit):-
+  rdf_is_literal(Lit).
+error:has_type(rdf_name, N):-
+  (   error:has_type(iri, N)
+  ;   error:has_type(rdf_literal, N)
+  ).
+error:has_type(rdf_stmt, Stmt):-
+  (   error:has_type(rdf_triple, Stmt)
+  ;   error:has_type(rdf_quadruple, Stmt)
+  ).
+error:has_type(rdf_quadruple, T):-
+  T = rdf(S,P,O,G),
+  error:has_type(rdf_term, S),
+  error:has_type(iri, P),
+  error:has_type(rdf_term, O),
+  error:has_type(iri, G).
+error:has_type(rdf_term, T):-
+  (   error:has_type(rdf_bnode, T)
+  ;   error:has_type(rdf_literal, T)
+  ;   error:has_type(iri, T)
+  ).
+error:has_type(rdf_triple, T):-
+  T = rdf(S,P,O),
+  error:has_type(rdf_term, S),
+  error:has_type(iri, P),
+  error:has_type(rdf_term, O).
 
 
 
@@ -151,6 +187,20 @@ rdf_iri(N):-
   is_iri(N),
   % Avoid duplicates.
   \+ rdf_predicate(N).
+
+
+
+%! rdf_is_iri(@Term) is semidet.
+
+rdf_is_iri(T):-
+  is_iri(T).
+
+
+
+%! rdf_is_name(@Term) is semidet.
+
+rdf_is_name(N):- rdf_is_iri(N), !.
+rdf_is_name(N):- rdf_is_literal(N).
 
 
 

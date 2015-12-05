@@ -18,10 +18,13 @@ Various tests for RDF predicates,
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(owl/owl_build)).
+:- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_database)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdfs/rdfs_build)).
 
 :- rdf_register_prefix(ch, 'http://www.wouterbeek.com/ch.owl#' ).
 :- rdf_register_prefix(nl, 'http://www.wouterbeek.com/nl.owl#' ).
@@ -29,6 +32,22 @@ Various tests for RDF predicates,
 :- meta_predicate(rdf_test(0,0)).
 
 
+
+
+rdf_test(database(identity)):-
+  rdf_test((
+    rdf_assert_literal(ex:a, rdfs:label, xsd:string, a),
+    rdf_assert_literal(ex:b, rdfs:label, xsd:string, b),
+    rdf_assert(ex:a, owl:sameAs, ex:b),
+    rdf_assert(ex:a, owl:sameAs, ex:c),
+    rdf_assert(ex:d, owl:sameAs, ex:c)
+  ),(
+    Opts = [id_closure(true),indent(2)],
+    format("Graph:~n"),
+    rdf_print_graph(default, Opts),
+    format("Identity store:~n"),
+    print_store(Opts)
+  )).
 
 
 
@@ -53,7 +72,7 @@ rdf_test(modeling(visum)):-
   rdf_assert(dbr:'Amsterdam', owl:sameAs, nl:'Amsterdam', G).
 
 
-
+/*
 rdf_test(semantics(graph_instance)):-
   rdf_test((
     maplist(rdf_unload_graph, [ex:'test-graph',ex:'test-graph-instance']),
@@ -68,6 +87,7 @@ rdf_test(semantics(graph_instance)):-
       dcg_with_output_to(user_output, (list(pl_term, Map), nl))
     )
   )).
+*/
 
 rdf_test(Setup_0, Test_0):-
   rdf_transaction((Setup_0, Test_0)).

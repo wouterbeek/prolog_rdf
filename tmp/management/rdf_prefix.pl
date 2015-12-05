@@ -31,7 +31,8 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_term)).
 
 :- rdf_meta(rdf_prefixe_iri(r,-)).
 :- rdf_meta(rdf_prefixes(r,r,o,?,-)).
@@ -48,10 +49,10 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 %!   +ToTerm:rdf_term
 %! ) is det.
 
-rdf_convert_prefixes(_, _, BNode, BNode):-
-  rdf_is_bnode(BNode), !.
-rdf_convert_prefixes(_, _, Literal, Literal):-
-  rdf_is_literal(Literal), !.
+rdf_convert_prefixes(_, _, B, B):-
+  rdf_is_bnode(B), !.
+rdf_convert_prefixes(_, _, Lit, Lit):-
+  rdf_is_literal(Lit), !.
 rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
   rdf_expand_rt(FromPrefix:LocalName, FromIri),
   rdf_expand_rt(ToPrefix:LocalName, ToIri).

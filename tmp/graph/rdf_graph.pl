@@ -176,7 +176,7 @@ rdf_proper_graph_instance(G, H, Map):-
 % A blank node is mapped onto an RDF name.
 rdf_proper_graph_instance_map(Map):-
   ord_memberchk(_-Name, Map),
-  is_of_type(rdf_name, Name), !.
+  rdf_is_name(Name), !.
 % Two different blank nodes are mapped onto the same blank node.
 rdf_proper_graph_instance_map(Map):-
   member(BNode1-BNode3, Map),

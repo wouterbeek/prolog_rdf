@@ -4,10 +4,10 @@
     rdf_print_describe/1, % +Subject
     rdf_print_describe/2, % +Subject, +Options
     rdf_print_describe/3, % +Subject:rdf_term
-                          % ?Graph:atom
+                          % ?Graph:rdf_graph
                           % +Options:list(compound)
     rdf_print_graph/1, % ?Graph
-    rdf_print_graph/2 % ?Graph:atom
+    rdf_print_graph/2 % ?Graph:rdf_graph
                       % +Options:list(compound)
   ]
 ).
@@ -29,7 +29,9 @@ Printing of RDF statements to a text-based output stream.
 
 :- rdf_meta(rdf_print_describe(o)).
 :- rdf_meta(rdf_print_describe(o,+)).
-:- rdf_meta(rdf_print_describe(o,?,+)).
+:- rdf_meta(rdf_print_describe(o,r,+)).
+:- rdf_meta(rdf_print_graph(r)).
+:- rdf_meta(rdf_print_graph(r,+)).
 
 :- predicate_options(rdf_print_describe/2, 2, [
      pass_to(rdf_print_describe/3, 3)
@@ -62,13 +64,14 @@ rdf_print_describe(S, Opts):-
 
 %! rdf_print_describe(
 %!   +Subject:rdf_term,
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   +Options:list(compound)
 %! ) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * id_closure(+boolean)
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
@@ -87,17 +90,18 @@ rdf_print_describe(S, G, Opts):-
 
 
 
-%! rdf_print_graph(?Graph:atom) is det.
+%! rdf_print_graph(?Graph:rdf_graph) is det.
 
 rdf_print_graph(G):-
   rdf_print_graph(G, []).
 
 
-%! rdf_print_graph(?Graph:atom, +Options:list(compound)) is det.
+%! rdf_print_graph(?Graph:rdf_graph, +Options:list(compound)) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
+%   * id_closure(+boolean)
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))

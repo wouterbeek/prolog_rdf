@@ -66,8 +66,12 @@ Simple asserion and retraction predicates for RDF.
 */
 
 :- use_module(library(datetime/datetime)).
+:- use_module(library(default)).
 :- use_module(library(rdf/id_store)).
+:- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), [
      rdf_assert/3 as rdf_assert_id, % +Subject, +Predicate, +Object
      rdf_assert/4 as rdf_assert_id, % +Subject:or([rdf_bnode,iri])
@@ -141,7 +145,8 @@ rdf_assert(S, P, O, _):-
 rdf_assert(S, P, O, G):-
   (rdf_is_literal(S) -> assign_literal_id(S, Sid) ; assign_term_id(S, Sid)),
   maplist(assign_term_id, [P,O], [Pid,Oid]),
-  (var(G) -> rdf_assert_id(Sid, Pid, Oid) ; rdf_assert_id(Sid, Pid, Oid, G)).
+  defval(default, G),
+  rdf_assert_id(Sid, Pid, Oid, G).
   
 
 

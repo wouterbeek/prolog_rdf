@@ -69,8 +69,11 @@ i.e., it occurs in the subject position of a triple with predicate
 :- use_module(library(apply)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_database)).
+:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_assert_list(t,r)).
@@ -138,7 +141,7 @@ rdf_assert_list_items0([H1|T1], L2, G):-
   rdf_assert(L2, rdf:rest, T2, G).
 
 add_list_instance0(L, G):-
-  (var(L) -> rdf_bnode(L) ; true),
+  (var(L) -> rdf_create_bnode(L) ; true),
   rdf_assert_instance(L, rdf:'List', G).
 
 

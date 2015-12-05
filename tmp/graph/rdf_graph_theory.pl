@@ -25,7 +25,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
  operations of RDF data must be redefined.
 
 @author Wouter Beek
-@version 2012/01-2013/03, 2013/08, 2014/03, 2014/07, 2014/11
+@version 2012/01-2013/03, 2013/08, 2014/03, 2014/07, 2014/11, 2015/12
 */
 
 :- use_module(library(aggregate)).
