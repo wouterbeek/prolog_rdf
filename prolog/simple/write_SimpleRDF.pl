@@ -153,7 +153,7 @@ write_simple_graph(G, Opts):-
   (   nonvar(Format)
   ->  must_be(oneof([quadruples,triples]), Format)
   ;   rdf_graph(G),
-      G \== user,
+      G \== default,
       rdf(_, _, _, G:_)
   ->  must_be(iri, G),
       Format = quadruples
@@ -215,7 +215,7 @@ write_simple_quadruple(BNodePrefix, CQ, S, P, O, G):-
   write_simple_object(O, BNodePrefix),
   put_char(' '),
   % Named graphs are IRIs.
-  (   G == user
+  (   G == default
   ->  true
   ;   turtle:turtle_write_uri(current_output, G)
   ),

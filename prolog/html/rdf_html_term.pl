@@ -382,7 +382,7 @@ rdf_html_term(graph(G), Opts) --> !,
 rdf_html_term(link(Link,Label), _) --> !,
   html_link(Link, html(Label)).
 rdf_html_term(T, Opts) -->
-  {rdf_is_literal, T)}, !,
+  {rdf_is_literal(T)}, !,
   rdf_html_literal(T, Opts).
 rdf_html_term(T, Opts) -->
   {rdf_is_bnode(T)}, !,

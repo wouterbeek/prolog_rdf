@@ -9,6 +9,7 @@
                         % ?Datatype:iri
     rdf_is_iri/1, % @Term
     rdf_is_name/1, % @Term
+    rdf_is_term/1, % @Term
     rdf_literal/1, % ?Literal
     rdf_literal/2, % ?Graph:rdf_graph
                    % ?Literal:rdf_literal
@@ -201,6 +202,13 @@ rdf_is_iri(T):-
 
 rdf_is_name(N):- rdf_is_iri(N), !.
 rdf_is_name(N):- rdf_is_literal(N).
+
+
+
+%! rdf_is_term(@Term) is semidet.
+
+rdf_is_term(N):- rdf_is_name(N), !.
+rdf_is_term(N):- rdf_is_bnode(N).
 
 
 

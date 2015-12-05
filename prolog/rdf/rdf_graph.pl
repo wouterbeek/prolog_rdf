@@ -136,11 +136,8 @@ rdf_graph_set_property(G, Property):-
 
 
 %! rdf_is_graph(@Term) is semidet.
-% rdf_graph/1 throws an exception for any non-atomic nonvar argument,
-% whereas this predicate fails silently.
-%
-% rdf_graph/1 does not succeed for the default graph (called `user`)
-% if it is empty whereas this predicate does.
+% Fails silently for non-existing graphs, can handle non-atoms
+% and always succeeds for the default graph.
 %
 % The name of this predicate is in line with Semweb's rdf_is_bnode/1,
 % rdf_is_literal/1 and rdf_is_resource/1.

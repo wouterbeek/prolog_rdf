@@ -69,11 +69,11 @@ mat(InG, OutG):-
 % Materializes the contents of InputGraph into OutputGraph.
 %! mat(+InputGraph:rdf_graph, -OutputGraph:rdf_graph, +Options:list(compound)) is det.
 % Materializes the contents of InputGraph into the default graph
-% (called `user`).
+% (called `default`).
 %! mat(-InputGraph:rdf_graph, +OutputGraph:rdf_graph, +Options:list(compound)) is det.
 % Materializes all contents into OutputGraph.
 %! mat(-InputGraph:rdf_graph, -OutputGraph:rdf_graph) is det.
-% Materializes all contents into the default graph (called `user`).
+% Materializes all contents into the default graph (called `default`).
 %
 % The following options are supported:
 %   * justifications(+boolean)
@@ -81,7 +81,7 @@ mat(InG, OutG):-
 %     Default is `false`.
 
 mat(GIn, GOut, Opts):-
-  defval(user, GOut),
+  defval(default, GOut),
   (   var(GIn)
   ->  mat0(GIn, GOut, Opts)
   ;   must_be(atom, GIn),

@@ -3,6 +3,8 @@
   [
     rdf_description_size/2, % +Resource:rdf_term
                             % -Count:nonneg
+    rdf_graph_property/2, % ?Graph:rdf_graph
+                          % ?Property:compound
     rdf_number_of_object_terms/1, % -Count
     rdf_number_of_object_terms/2, % ?Graph, -Count
     rdf_number_of_object_terms/3, % ?Subject, ?Predicate, -Count
@@ -44,11 +46,16 @@
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(plunit)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_read)).
-:- use_module(library(semweb/rdf_db), [rdf_statistics/1]).
+:- use_module(library(semweb/rdf_db), [
+     rdf_graph_property/2 as rdf_graph_property0,
+     rdf_statistics/1 as rdf_statistics0
+   ]).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta(rdf_description_size(o,-)).
+:- rdf_meta(rdf_graph_property(r,?)).
 :- rdf_meta(rdf_number_of_object_terms(o,r,-)).
 :- rdf_meta(rdf_number_of_object_terms(o,r,?,-)).
 :- rdf_meta(rdf_number_of_predicate_terms(o,o,-)).
@@ -66,6 +73,13 @@
 
 rdf_description_size(S, N):-
   rdf_number_of_triples(S, _, _, N).
+
+
+
+%! rdf_graph_property(?Graph:rdf_graph, ?Property:compound) is nondet.
+
+rdf_graph_property(G, P):-
+  rdf_graph_property0(G, P).
 
 
 
@@ -181,7 +195,7 @@ rdf_number_of_subject_terms(P, O, G, N):-
 %! rdf_number_of_triples(-Count:nonneg) is det.
 
 rdf_number_of_triples(N):-
-  rdf_statistics(triples(N)).
+  rdf_statistics0(triples(N)).
 
 
 %! rdf_number_of_triples(+Graph:atom, -Count:nonneg) is det.
@@ -189,7 +203,7 @@ rdf_number_of_triples(N):-
 % @throws existence_error
 
 rdf_number_of_triples(G, N):-
-  rdf_statistics(triples_by_graph(G,N)).
+  rdf_statistics0(triples_by_graph(G,N)).
 
 
 %! rdf_number_of_triples(

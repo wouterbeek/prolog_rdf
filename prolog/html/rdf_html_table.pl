@@ -31,6 +31,7 @@ Generates HTML tables with RDF content.
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(typecheck)).
 
 :- rdf_register_prefix(rdf_table, 'http://rdf_table.org/').

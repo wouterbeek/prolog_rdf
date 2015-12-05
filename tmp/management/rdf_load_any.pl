@@ -48,9 +48,9 @@
 %   * format(+Format:oneof([ntriples,turtle,xml]))
 %     The RDF serialization that has to be used for parsing.
 %     Default: @tbd
-%   * graph(+Graph:atom)
+%   * graph(+Graph:rdf_graph)
 %     The name of the RDF graph in which the parsed data is loaded.
-%     Default: `user`.
+%     Default: `default`.
 %   * keep_file(+Keep:boolean)
 %     If the given input is a URL, the remote document is first
 %     downloaded, and then kept available, locally.
