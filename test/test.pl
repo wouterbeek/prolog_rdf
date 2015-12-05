@@ -1,4 +1,5 @@
 %/conv
+:- use_module(library(conv/bibtex_to_rdf)).
 :- use_module(library(conv/json_to_rdf)).
 /*
 %/dcg
