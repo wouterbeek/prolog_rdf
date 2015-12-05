@@ -72,17 +72,17 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).%
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), [
-     rdf_assert/3 as rdf_assert_id, % +Subject, +Predicate, +Object
-     rdf_assert/4 as rdf_assert_id, % +Subject:or([rdf_bnode,iri])
-                                    % +Predicate:iri
-                                    % +Object:rdf_term
-                                    % +Graph:atom
-     rdf_retractall/4 as rdf_retractall_id % ?Subject:or([rdf_bnode,iri])
-                                           % ?Predicate:iri
-                                           % ?Object:rdf_term
-                                           % ?Graph:atom
+     rdf_assert/4 as rdf_assert0, % +Subject:or([rdf_bnode,iri])
+                                  % +Predicate:iri
+                                  % +Object:rdf_term
+                                  % +Graph:atom
+     rdf_retractall/4 as rdf_retractall0 % ?Subject:or([rdf_bnode,iri])
+                                         % ?Predicate:iri
+                                         % ?Object:rdf_term
+                                         % ?Graph:atom
    ]).
 :- use_module(library(typecheck)).
 :- use_module(library(uuid_ext)).
@@ -149,7 +149,7 @@ rdf_assert(S, P, O, G):-
   (rdf_is_literal(S) -> assign_literal_id(S, Sid) ; assign_term_id(S, Sid)),
   maplist(assign_term_id, [P,O], [Pid,Oid]),
   defval(default, G),
-  rdf_assert_id(Sid, Pid, Oid, G).
+  rdf_assert0(Sid, Pid, Oid, G).
   
 
 
@@ -364,7 +364,7 @@ rdf_retractall(S, P, O):-
 rdf_retractall(S, P, O, G):-
   (rdf_is_literal(S) -> literal_id(S, Sid) ; term_to_id0(S, Sid)),
   maplist(term_to_id0, [P,O], [Pid,Oid]),
-  rdf_retractall_id(Sid, Pid, Oid, G),
+  rdf_retractall0(Sid, Pid, Oid, G),
   maplist(remove_id, [Sid,Pid,Oid]).
 term_to_id0(T, _):- var(T), !.
 term_to_id0(T, TId):- term_to_id(T, TId).

@@ -34,12 +34,12 @@ Support for loading RDF data.
 :- use_module(library(msg_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
-:- use_module(library(rdf)).
+:- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_stream)).
-:- use_module(library(semweb/rdfa)).
-:- use_module(library(semweb/rdf_ntriples)).
-:- use_module(library(semweb/turtle)).
+:- use_module(library(semweb/rdfa), [read_rdfa/3]).
+:- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
+:- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
 :- use_module(library(uuid_ext)).
 
 :- meta_predicate(rdf_call_on_graph(+,1)).
@@ -97,7 +97,7 @@ rdf_call_on_statements(In, Goal_2):-
 %! rdf_call_on_statements(+Source, :Goal_2, +Options:list(compound)) is nondet.
 
 rdf_call_on_statements(In, Goal_2, Opts):-
-  option(graph(G), Opts, _),
+  option(graph(G), Opts, default),
   catch(
     rdf_read_from_stream(In, rdf_call_on_statements_stream(G, Goal_2), Opts),
     E,
@@ -191,7 +191,7 @@ rdf_load_statements(CT, CQ, Stmts, G):-
 
 
 % Load a triple.
-rdf_load_statement(CT, _, G:_, rdf(S,P,O)):- !,
+rdf_load_statement(CT, _, G, rdf(S,P,O)):- !,
   increment_thread_counter(CT),
   rdf_assert(S, P, O, G).
 % Load a quadruple.
