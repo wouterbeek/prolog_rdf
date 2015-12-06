@@ -19,6 +19,7 @@
 :- use_module(library(hash_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(semweb/rdf_db), [rdf_global_id/2]).
 
 :- rdf_register_prefix(lobo, 'http://linkedopenbibtex.org/ontology/').
 :- rdf_register_prefix(lobr, 'http://linkedopenbibtex.org/resource/').
@@ -47,10 +48,10 @@ assert_bibtex_entry(G, Entry0):-
   % Resource.
   md5(Entry0, Hash),
   Entry0 = entry(ClassName,Name,Pairs),
-  rdf_expand_ct(lobr:Hash, Entry),
+  rdf_global_id(lobr:Hash, Entry),
   
   % Class.
-  rdf_expand_ct(lobo:ClassName, Class),
+  rdf_global_id(lobo:ClassName, Class),
   rdf_assert_instance(Entry, Class, G),
   
   % Properties.
@@ -59,5 +60,5 @@ assert_bibtex_entry(G, Entry0):-
 
 
 assert_bibtex_property(Entry, G, Key-Val):-
-  rdf_expand_ct(lobo:Key, P),
+  rdf_global_id(lobo:Key, P),
   rdf_assert_literal(Entry, P, xsd:string, Val, G).

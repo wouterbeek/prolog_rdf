@@ -1,7 +1,7 @@
 :- module(
   rdf_build,
   [
-    rdf_assert/1, % +Statement:rdf_stmt
+    rdf_assert/1, % +Statement:rdf_statement
     rdf_assert/3, % +Subject, +Predicate, +Object
     rdf_assert/4, % +Subject:gid
                   % +Predicate:gid
@@ -35,7 +35,7 @@
     rdf_create_iri/3, % +Prefix:atom
                       % +SubPaths:list(atom)
                       % -Iri:atom
-    rdf_retractall/1, % +Statement:rdf_stmt
+    rdf_retractall/1, % +Statement:rdf_statement
     rdf_retractall/3, % ?Subject, ?Predicate, ?Object
     rdf_retractall/4, % ?Subject:gid
                       % ?Predicate:gid
@@ -114,7 +114,7 @@ Simple asserion and retraction predicates for RDF.
 
 
 
-%! rdf_assert(+Statement:rdf_stmt) is det.
+%! rdf_assert(+Statement:rdf_statement) is det.
 % Wrapper around rdf_assert/[3,4].
 % Statement is of the form `rdf/[3,4]`.
 
@@ -340,7 +340,7 @@ rdf_assert_property(P, Parent, G):-
 
 
 
-%! rdf_retractall(+Statement:rdf_stmt) is det.
+%! rdf_retractall(+Statement:rdf_statement) is det.
 
 rdf_retractall(rdf(S,P,O)):- !,
   rdf_retractall(S, P, O).

@@ -34,6 +34,7 @@ datatype preferences in order to perform limited-scale crawling.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(msg_ext)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).

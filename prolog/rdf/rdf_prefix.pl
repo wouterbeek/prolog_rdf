@@ -9,6 +9,7 @@
                      % +Terms:list(rdf_term)
     rdf_prefix_iri/2, % +Iri:atom
                       % -PrefixIri:atom
+    rdf_prefixes/1, % -Prefixes:ordset(atom)
     rdf_reset_prefix/2 % +Prefix:atom
                        % +Iri:atom
   ]
@@ -35,6 +36,7 @@
 @version 2015/07-2015/09, 2015/11-2015/12
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(lists)).
@@ -337,6 +339,13 @@ rdf_prefix_iri(Iri, PrefixIri):-
   rdf_expand_rt(Prefix:_, Iri), !,
   rdf_current_prefix(Prefix, PrefixIri).
 rdf_prefix_iri(Iri, Iri).
+
+
+
+%! rdf_prefixes(-Prefixes:ordset(atom)) is det.
+
+rdf_prefixes(Prefixes):-
+  aggregate_all(set(Prefix), rdf_current_prefix(Prefix, _), Prefixes).
 
 
 

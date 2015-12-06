@@ -16,8 +16,8 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(fca/fca_export)).
 :- use_module(library(fca/rdf_fca)).
+:- use_module(library(fca/rdf_fca_viz)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 :- use_module(library(rdf/rdf_build)).
@@ -58,7 +58,7 @@ rdf_fca_test(Name):-
 rdf_fca_test_file(File):-
   rdf_fca_from_file(File, Context),
   format(string(GLbl), "FCA for RDF file ~a", [File]),
-  fca_export0(Context, GLbl).
+  fca_viz0(Context, GLbl).
 
 
 
@@ -67,7 +67,7 @@ rdf_fca_test_file(File):-
 rdf_fca_test_graph(G):-
   rdf_fca_from_graph(G, Context),
   format(string(GLbl), "FCA for RDF graph ~a", [G]),
-  fca_export0(Context, GLbl).
+  fca_viz0(Context, GLbl).
 
 
 
@@ -105,8 +105,8 @@ rdf_fca_assert_graph(number, G):-
 
 % HELPERS %
 
-fca_export0(Context, GLbl):-
-  fca_export(
+fca_viz0(Context, GLbl):-
+  fca_viz(
     Context,
     File,
     [

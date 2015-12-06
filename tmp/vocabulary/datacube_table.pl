@@ -101,7 +101,7 @@ tree_headers([_-Pairs|_], [HeaderRow]):-
   ->  HeaderRow = []
   ;   Pairs = [_-Measure|_],
       \+ is_list(Measure)
-  ->  maplist(pair_second, Pairs, HeaderRow)
+  ->  maplist(pair_value, Pairs, HeaderRow)
   ;   fail
   ).
 tree_headers(Trees, [HeaderRow|HeaderRows]):-

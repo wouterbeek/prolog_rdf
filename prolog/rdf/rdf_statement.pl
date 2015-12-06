@@ -1,14 +1,18 @@
 :- module(
   rdf_statement,
   [
-    rdf_statement_terms/4, % +Statement:compound
+    rdf_graph_triples/2, % ?Graph;rdf_graph
+                         % -Triples:ordset(rdf_triple)
+    rdf_statement_terms/4, % +Statement:rdf_statement
                            % ?Subject:rdf_term
                            % ?Predocate:iri
                            % ?Object:rdf_term
-    rdf_triples_to_iris/2, % +Triples:list(compound)
-                           % -Iris:ordset(atom)
-    rdf_triples_to_terms/2 % +Triples:list(compound)
-                           % -Terms:ordset(rdf_term)
+    rdf_triples_iris/2, % +Triples:list(compound)
+                        % -Iris:ordset(atom)
+    rdf_triples_subjects/2, % +Triples:list(compound)
+                            % -Subjects:ordset(rdf_term)
+    rdf_triples_terms/2 % +Triples:list(compound)
+                        % -Terms:ordset(rdf_term)
   ]
 ).
 
@@ -22,13 +26,24 @@ Predicates that perform simple operations on RDF triples/quadruples.
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
+:- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_term)).
 
 
+
+
+
+%! rdf_graph_triples(?Graph;rdf_graph, -Triples:ordset(rdf_triple)) is det.
+
+rdf_graph_triples(G, Ts):-
+  rdf_expect_graph(G),
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Ts).
 
 
 
 %! rdf_statement_terms(
-%!   +Statement:compound,
+%!   +Statement:rdf_statement,
 %!   -Subject:rdf_term,
 %!   -Predicate:iri,
 %!   -Object:rdf_term
@@ -39,30 +54,44 @@ rdf_statement_terms(rdf(S,P,O,_), S, P, O).
 
 
 
-%! rdf_triples_to_iris(+Triples:list(compound), -Iris:ordset(atom)) is det.
+%! rdf_triple_iri(+Triple:rdf_triple, -Iri:iri) is nondet.
 
-rdf_triples_to_iris(Ts, Iris):-
-  aggregate_all(set(Iri), (member(T, Ts), rdf_triple_to_iri(T, Iri)), Iris).
-
-%! rdf_triples_to_terms(
-%!   +Triples:list(compound),
-%!   -Terms:ordset(compound)
-%! ) is det.
-
-rdf_triples_to_terms(Ts, Xs):-
-  aggregate_all(set(X), (member(T, Ts), rdf_triple_to_term(T, X)), Xs).
-
-
-%! rdf_triple_to_iri(+Triple:compound, -Iri:iri) is nondet.
-
-rdf_triple_to_iri(T, X):-
-  rdf_triple_to_term(T, X),
+rdf_triple_iri(T, X):-
+  rdf_triple_term(T, X),
   \+ rdf_is_bnode(X),
   \+ rdf_is_literal(X).
 
 
-%! rdf_triple_to_term(+Triple:compound, -Term:rdf_term) is nondet.
 
-rdf_triple_to_term(rdf(S,_,_), S).
-rdf_triple_to_term(rdf(_,P,_), P).
-rdf_triple_to_term(rdf(_,_,O), O).
+%! rdf_triple_term(+Triple:rdf_triple, -Term:rdf_term) is nondet.
+
+rdf_triple_term(rdf(S,_,_), S).
+rdf_triple_term(rdf(_,P,_), P).
+rdf_triple_term(rdf(_,_,O), O).
+
+
+
+%! rdf_triples_iris(+Triples:list(rdf_triple), -Iris:ordset(iri)) is det.
+
+rdf_triples_iris(Ts, Iris):-
+  aggregate_all(set(Iri), (member(T, Ts), rdf_triple_iri(T, Iri)), Iris).
+
+
+
+%! rdf_triples_subjects(
+%!   +Triples:list(rdf_triple),
+%!   -Subjects:ordset(rdf_term)
+%! ) is det.
+
+rdf_triples_subjects(Ts, Ss):-
+  aggregate_all(set(S), member(rdf(S,_,_), Ts), Ss).
+
+
+
+%! rdf_triples_terms(
+%!   +Triples:list(rdf_triple),
+%!   -Terms:ordset(rdf_term)
+%! ) is det.
+
+rdf_triples_terms(Ts1, Ts2):-
+  aggregate_all(set(T2), (member(T1, Ts1), rdf_triple_term(T1, T2)), Ts2).

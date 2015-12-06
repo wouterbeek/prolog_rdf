@@ -16,6 +16,14 @@
 
 /** <module> RDF graph theory
 
+THIS MODULES HAS A FUNDAMENTAL PROBLEM: IT DOES NOT DEFINE WHAT HAPPENS
+WITH PATHS THAT DO NOT EXIST IN THE NON-AGGREGATED GRAPH BUT THAT DO EXIST
+IN THE AGGREGATED GRAPH.
+
+      |
+    --*--*--
+         |
+
 Graph theory support for RDF.
 
 Graph theoretic insights cannot be directly applied to RDF graphs because
@@ -55,7 +63,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 
 
 %! rdf_graph_to_srep(
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   -UGraph:ugraph,
 %!   +Options:list(compound)
 %! ) is det.
@@ -63,7 +71,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 %
 % Options are passed to rdf_vertex/3 and rdf_undirected_edge/3.
 
-rdf_graph_to_srep(G, UG, Opts):-
+rdf_graph_s_edges(G, UG, Opts):-
   aggregate_all(
     set(V-Ws),
     (
@@ -76,7 +84,7 @@ rdf_graph_to_srep(G, UG, Opts):-
 
 
 %! rdf_neighbor_vertex(
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   +Vertex:rdf_term,
 %!   -Neighbor:rdf_term,
 %!   +Options:list(compound)
@@ -84,37 +92,42 @@ rdf_graph_to_srep(G, UG, Opts):-
 
 rdf_neighbor_vertex(G, V, N, Opts):-
   rdf(V, _, N, G),
-  rdf_vertex_filter(N, Opts).
+  rdf_term_is_vertex(N, Opts).
 rdf_neighbor_vertex(G, V, N, Opts):-
   rdf(N, _, V, G),
-  rdf_vertex_filter(N, Opts).
+  rdf_term_is_vertex(N, Opts).
 
 
 
 %! rdf_undirected_edge(
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   ?UndirectedEdge:compound,
-%!   +Options:list(nvpair)
+%!   +Options:list(compound)
 %! ) is nondet.
 
-rdf_undirected_edge(G, UndirectedE, Opts):-
+rdf_undirected_edge(G, E, Opts):-
   rdf(S, P, O, G),
-  rdf_vertex_filter(S, Opts),
+  rdf_term_is_vertex(S, Opts),
   rdf_vertex_filter(O, Opts),
-  (   UndirectedE = edge(S,P,O)
-  ;   UndirectedE = edge(O,P,S)
-  ).
+  (E = edge(S,P,O) ; E = edge(O,P,S)).
 
 
 
 %! rdf_vertex(
-%!   +Graph:atom,
+%!   +Graph:rdf_graph,
 %!   ?Vertex:rdf_term,
 %!   +Options:list(compound)
 %! ) is nondet.
-% Pairs of graphs and nodes that occur in that graph.
-% A node is either a subject or an object term in an
-% RDF triple.
+
+rdf_vertex(G, V, Opts):-
+  rdf_node(G, V),
+  rdf_term_is_vertex(V, Opts).
+
+
+
+%! rdf_term_is_vertex(+Term:rdf_term, +Options:list(compound)) is semidet.
+% Succeeds if the given Term is considered a vertex
+% according to the given Options.
 %
 % The following options are supported:
 %   * `exclude_list_elements(+boolean)`
@@ -123,30 +136,6 @@ rdf_undirected_edge(G, UndirectedE, Opts):-
 %   * `exclude_literals(+boolean)`
 %     Whether literals are excluded (`true`) or not (`false`, default).
 
-rdf_vertex(G, V, Opts):-
-  rdf_node2(V),
-  rdf_term(V, G),
-  rdf_vertex_filter(V, Opts).
-
-
-
-
-
-% HELPERS %
-
-%! rdf_vertex_filter(+Vertex:rdf_term, +Options:list(compound)) is semidet.
-
-rdf_vertex_filter(V, Opts):-
-  % Literal filtering.
-  (   rdf_is_literal(V)
-  ->  \+ option(exclude_literals(true), Opts)
-  ;   true
-  ),
-
-  % RDF list filtering.
-  (   option(exclude_list_elements(true), Opts)
-  ->  % Does not belong to an RDF list.
-      \+ rdf_has(_, rdf:first, V),
-      \+ rdf_has(_, rdf:rest, V)
-  ;   true
-  ).
+rdf_term_is_vertex(V, Opts):-
+  (option(exclude_literals(true), Opts) -> \+ rdf_is_literal(V) ; true),
+  (option(exclude_list_elements(true), Opts) -> \+ rdf_is_list(V) ; true).

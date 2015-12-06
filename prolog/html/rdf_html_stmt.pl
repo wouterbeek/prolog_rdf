@@ -19,10 +19,10 @@
     rdf_html_quadruples//2, % +Quadruples:list(rdf_quadruple)
                             % +Options:list(compound)
     rdf_html_statement//1, % +Statement
-    rdf_html_statement//2, % +Statement:rdf_stmt
+    rdf_html_statement//2, % +Statement:rdf_statement
                            % +Options:list(compound)
     rdf_html_statements//1, % +Statements
-    rdf_html_statements//2, % +Statements:list(rdf_stmt)
+    rdf_html_statements//2, % +Statements:list(rdf_statement)
                             % +Options:list(compound)
     rdf_html_term//1, % +Term
     rdf_html_term//2, % +Term:rdf_term
@@ -291,14 +291,14 @@ rdf_html_statement(S, P, O, G, Opts) -->
       &(rang)
     ])
   ).
-rdf_html_statement_graph0(G, Opts) --> {var(G)}, !, html([]).
-rdf_html_statement_graph0(G, Opts) --> html(['@',span(class='rdf-graph', G)]).
-rdf_html_statement_subject0(S, Opts) --> {option(id_closure(true), Opts)} !, rdf_html_id(S, Opts).
-rdf_html_statement_subject0(S, Opts) --> rdf_html_subject(S, Opts),
-rdf_html_statement_predicate0(P, Opts) --> {option(id_closure(true), Opts)} !, rdf_html_id(P, Opts).
-rdf_html_statement_predicate0(P, Opts) --> rdf_html_predicate(P, Opts),
-rdf_html_statement_object0(O, Opts) --> {option(id_closure(true), Opts)} !, rdf_html_id(O, Opts).
-rdf_html_statement_object0(O, Opts) --> rdf_html_object(O, Opts),
+rdf_html_statement_graph0(G, _) --> {var(G)}, !, html([]).
+rdf_html_statement_graph0(G, _) --> html(['@',span(class='rdf-graph', G)]).
+rdf_html_statement_subject0(S, Opts) --> {option(id_closure(true), Opts)}, !, rdf_html_id(S, Opts).
+rdf_html_statement_subject0(S, Opts) --> rdf_html_subject(S, Opts).
+rdf_html_statement_predicate0(P, Opts) --> {option(id_closure(true), Opts)}, !, rdf_html_id(P, Opts).
+rdf_html_statement_predicate0(P, Opts) --> rdf_html_predicate(P, Opts).
+rdf_html_statement_object0(O, Opts) --> {option(id_closure(true), Opts)}, !, rdf_html_id(O, Opts).
+rdf_html_statement_object0(O, Opts) --> rdf_html_object(O, Opts).
 
 
 %! rdf_html_statements(+Statements:list(compound))// is det.

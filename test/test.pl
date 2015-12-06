@@ -17,7 +17,9 @@
 */
 %/fca
 :- use_module(library(fca/rdf_fca)).
+:- use_module(library(fca/rdf_fca_viz)).
 %/html
+:- use_module(library(html/rdf_html_graph_viz)).
 :- use_module(library(html/rdf_html_meta)).
 :- use_module(library(html/rdf_html_stmt)).
 :- use_module(library(html/rdf_html_table)).
@@ -30,6 +32,7 @@
 :- use_module(library(mat/mat)).
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(mat/mat_print)).
+:- use_module(library(mat/mat_viz)).
 %/oaei
 :- use_module(library(oaei/oaei_build)).
 :- use_module(library(oaei/oaei_check)).
@@ -50,11 +53,13 @@
 :- use_module(library(rdf/rdf_container)).
 :- use_module(library(rdf/rdf_database)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_download)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_graph_nav)).
+:- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_image)).
 :- use_module(library(rdf/rdf_info)).

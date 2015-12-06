@@ -273,25 +273,6 @@ rdf_number_of_triples(S, P, O, G, N):-
 
 % HELPERS %
 
-%! rdf_expect_graph(@Term) is nondet.
-% If Term is uninstantiated it is non-deterministically
-% instantiated to RDF graphs.
-% If Term is instantiated and does not denote an existing RDF graph
-% this results in an exception.
-%
-% @throws existence_error
-
-rdf_expect_graph(G):-
-  var(G), !,
-  % NONDET.
-  rdf_graph(G).
-rdf_expect_graph(G):-
-  rdf_is_graph(G), !.
-rdf_expect_graph(G):-
-  existence_error(rdf_graph, G).
-
-
-
 rdf_number_ofs0(Witness, S, P, O, G, N):-
   aggregate_all(count, distinct(Witness, rdf(S, P, O, G)), N).
 

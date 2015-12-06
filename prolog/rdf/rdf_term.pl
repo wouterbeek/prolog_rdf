@@ -105,7 +105,7 @@ error:has_type(rdf_name, N):-
   (   error:has_type(iri, N)
   ;   error:has_type(rdf_literal, N)
   ).
-error:has_type(rdf_stmt, Stmt):-
+error:has_type(rdf_statement, Stmt):-
   (   error:has_type(rdf_triple, Stmt)
   ;   error:has_type(rdf_quadruple, Stmt)
   ).

@@ -1,11 +1,13 @@
 :- module(
   rdf_graph,
   [
-    rdf_graph/1, % ?Graph:rdf_graph
+    rdf_create_graph/1, % ?Graph:rdf_graph
     rdf_cp_graph/2, % +From:rdf_graph
                     % +To:rdf_graph
+    rdf_expect_graph/1, % @Term
     rdf_fresh_graph/2, % ?Graph:rdf_graph
                        % +FreshnessLifetime:between(0.0,inf)
+    rdf_graph/1, % ?Graph:rdf_graph
     rdf_graph_age/2, % ?Graph:rdf_graph
                      % -Age:between(0.0,inf)
     rdf_graph_get_property/2, % ?Graph:rdf_graph
@@ -49,6 +51,7 @@
 
 :- rdf_meta(rdf_create_graph(r)).
 :- rdf_meta(rdf_cp_graph(r,r)).
+:- rdf_meta(rdf_expect_graph(r)).
 :- rdf_meta(rdf_fresh_graph(r,+)).
 :- rdf_meta(rdf_graph(r)).
 :- rdf_meta(rdf_graph_age(r,-)).
@@ -77,6 +80,25 @@ rdf_create_graph(G):-
 rdf_cp_graph(From, From):- !.
 rdf_cp_graph(From, To):-
   rdf_cp(From, _, _, _, To).
+
+
+
+%! rdf_expect_graph(@Term) is nondet.
+% If Term is uninstantiated it is non-deterministically
+% instantiated to existing RDF graphs.
+% If Term is instantiated and does not denote an existing RDF graph
+% this results in an exception.
+%
+% @throws existence_error
+
+rdf_expect_graph(G):-
+  var(G), !,
+  % NONDET.
+  rdf_graph(G).
+rdf_expect_graph(G):-
+  rdf_is_graph(G), !.
+rdf_expect_graph(G):-
+  existence_error(rdf_graph, G).
 
 
 
