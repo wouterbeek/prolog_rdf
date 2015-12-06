@@ -5,7 +5,7 @@
                        % +Options:list(compound)
     rdf_html_datatype//2, % +Datatype:iri
                           % +Options:list(compound)
-    rdf_html_graph//2, % +Graph:atom
+    rdf_html_graph//2, % +Graph:rdf_graph
                        % +Options:list(compound)
     rdf_html_id//2, % +Id:uid
                     % +Options:list(compound)
@@ -29,7 +29,7 @@
     rdf_html_term//2, % +Term:rdf_term
                       % +Options:list(compound)
     rdf_html_term_in_graph//3 % +Term:rdf_term
-                              % ?Graph:atom
+                              % ?Graph:rdf_graph
                               % +Options:list(compound)
   ]
 ).
@@ -159,7 +159,7 @@ rdf_html_datatype(D, Opts) -->
 
 
 
-%! rdf_html_graph(+Graph:atom, +Options:list(compound))// is det.
+%! rdf_html_graph(+Graph:rdf_graph, +Options:list(compound))// is det.
 
 rdf_html_graph(G, Opts) -->
   html(
@@ -398,7 +398,7 @@ rdf_html_term(T, Opts) -->
 
 %! rdf_html_term_in_graph(
 %!   +Term:rdf_term,
-%!   ?Graph:atom,
+%!   ?Graph:rdf_graph,
 %!   +Options:list(compound)
 %! )// is det.
 
