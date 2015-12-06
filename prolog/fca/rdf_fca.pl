@@ -18,6 +18,7 @@
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_read)).
 
 

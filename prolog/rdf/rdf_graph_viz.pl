@@ -35,13 +35,13 @@ handled by plGraphViz.
 :- use_module(library(typecheck)).
 
 :- dynamic
-     rdf:rdf_class_color/3,
-     rdf:rdf_edge_style/3,
-     rdf:rdf_predicate_label/3.
+     rdf:rdf_class_color/2,
+     rdf:rdf_edge_style/2,
+     rdf:rdf_predicate_label/2.
 :- multifile
-     rdf:rdf_class_color/3,
-     rdf:rdf_edge_style/3,
-     rdf:rdf_predicate_label/3.
+     rdf:rdf_class_color/2,
+     rdf:rdf_edge_style/2,
+     rdf:rdf_predicate_label/2.
 
 :- rdf_meta(rdf_term_to_export_graph(r,-,+)).
 
@@ -133,7 +133,7 @@ rdf_edges_to_export_graph(Es, ExportG, Opts1):-
       graph_directed(true),
       vertex_color(rdf_vertex_color(Colorscheme,Map)),
       vertex_image(rdf_vertex_image),
-      vertex_label(rdf_vertex_label),
+      vertex_label(rdf_vertex_label(Opts1)),
       vertex_peripheries(rdf_vertex_peripheries),
       vertex_shape(rdf_vertex_shape)
     ],
@@ -208,102 +208,100 @@ rdf_edge_arrowhead(_, normal).
 %! rdf_edge_color(
 %!   +Colorscheme:oneof([none,svg,x11]),
 %!   +PrefixColors:list(pair),
-%!   +Graph:rdf_graph,
 %!   +Edge:compound,
 %!   -Color:atom
 %! ) is det.
 
 % Disable colorization.
-rdf_edge_color(none, _, _, _, black):- !.
+rdf_edge_color(none, _, _, black):- !.
 % The edge color is based on the predicate term.
-rdf_edge_color(Colorscheme, Map, G, edge(_,P,_), EColor):-
-  rdf_vertex_color(Colorscheme, Map, G, P, EColor), !.
+rdf_edge_color(Colorscheme, Map, edge(_,P,_), EColor):-
+  rdf_vertex_color(Colorscheme, Map, P, EColor), !.
 % If the edge color is not specified, then see whether its vertices
 % agree on their color.
-rdf_edge_color(Colorscheme, Map, G, edge(FromV,_,ToV), EColor):-
-  rdf_vertex_color(Colorscheme, Map, G, FromV, FromVColor),
-  rdf_vertex_color(Colorscheme, Map, G, ToV, ToVColor),
+rdf_edge_color(Colorscheme, Map, edge(FromV,_,ToV), EColor):-
+  rdf_vertex_color(Colorscheme, Map, FromV, FromVColor),
+  rdf_vertex_color(Colorscheme, Map, ToV, ToVColor),
   FromVColor == ToVColor, !,
   EColor = FromVColor.
 % Others.
-rdf_edge_color(_, _, _, _, black).
+rdf_edge_color(_, _, _, black).
 
 
 
-%! rdf_edge_label(+Graph:rdf_graph, +Edge:compound, -Label:atom) is det.
+%! rdf_edge_label(+Edge:compound, -Label:atom) is det.
 
 % User-supplied customization.
-rdf_edge_label(G, edge(_,P,_), ELabel):-
-  rdf:rdf_predicate_label(G, P, ELabel), !.
+rdf_edge_label(edge(_,P,_), ELabel):-
+  rdf:rdf_predicate_label(P, ELabel), !.
 % Some edge labels are not displayed.
-rdf_edge_label(_, edge(_,P,_), ''):-
+rdf_edge_label(edge(_,P,_), ''):-
   (   rdf_expand_ct(rdf:type, P)
   ;   rdf_expand_ct(rdfs:label, P)
   ;   rdf_expand_ct(rdfs:subClassOf, P)
   ;   rdf_expand_ct(rdfs:subPropertyOf, P)
   ), !.
 % Others: the edge name is the predicate term.
-rdf_edge_label(_, edge(_,P,_), ELabel):-
+rdf_edge_label(edge(_,P,_), ELabel):-
   dcg_with_output_to(atom(ELabel), rdf_print_term(P)).
 
 
 
-%! rdf_edge_style(+Graph:rdf_graph, +Edge:compound, -Style:atom) is det.
+%! rdf_edge_style(+Edge:compound, -Style:atom) is det.
 
 % User-supplied customization.
-rdf_edge_style(G, E, EStyle):-
-  rdf:rdf_edge_style(G, E, EStyle), !.
+rdf_edge_style(E, EStyle):-
+  rdf:rdf_edge_style(E, EStyle), !.
 % Certain RDFS schema terms.
-rdf_edge_style(_, edge(_,P,_), solid):-
+rdf_edge_style(edge(_,P,_), solid):-
   (   rdf_expand_ct(rdf:type, P)
   ;   rdf_expand_ct(rdfs:subClassOf, P)
   ;   rdf_expand_ct(rdfs:subPropertyOf, P)
   ), !.
 % RDFS label.
-rdf_edge_style(_, edge(_,P,_), dotted):-
+rdf_edge_style(edge(_,P,_), dotted):-
   rdf_expand_ct(rdfs:label, P), !.
 % Others.
-rdf_edge_style(_, _, solid).
+rdf_edge_style(_, solid).
 
 
 
 %! rdf_vertex_color(
 %!   +Colorscheme:oneof([none,svg,x11]),
 %!   +PrefixColors:list(pair),
-%!   +Graph:rdf_graph,
 %!   +Term:rdf_term,
 %!   -Color:atom
 %! ) is det.
 % Returns a color name for the given vertex.
 
 % No color scheme.
-rdf_vertex_color(none, _, _, _, black):- !.
+rdf_vertex_color(none, _, _, black):- !.
 % Literal
-rdf_vertex_color(_, _, _, T, blue):-
+rdf_vertex_color(_, _, T, blue):-
   rdf_is_literal(T), !.
 % Blank node
-rdf_vertex_color(_, _, _, T, purple):-
+rdf_vertex_color(_, _, T, purple):-
   rdf_is_bnode(T), !.
 % Individual or subclass of a color-registered class.
-rdf_vertex_color(_, _, G, V, VColor):-
+rdf_vertex_color(_, _, V, VColor):-
   (   rdfs_individual_of(V, C)
   ;   rdfs_subclass_of(V, C)
   ),
-  rdf:rdf_class_color(G, C, VColor), !.
+  rdf:rdf_class_color(C, VColor), !.
 % IRI with a colored namespace.
-rdf_vertex_color(_, Map, _, T, VColor):-
+rdf_vertex_color(_, Map, T, VColor):-
   rdf_expand_rt(Prefix:_, T),
   memberchk(Prefix-VColor, Map), !.
 % Other IRI.
-rdf_vertex_color(_, _, _, _, black).
+rdf_vertex_color(_, _, _, black).
 
 
 
-%! rdf_vertex_image(+Graph:rdf_graph, +Term:rdf_term, -ImageFile:atom) is det.
+%! rdf_vertex_image(+Term:rdf_term, -ImageFile:atom) is det.
 % Only display the first picture that is found for Term.
 
-rdf_vertex_image(G, V, VImage):-
-  once(rdf_image(V, _, VImage, G)).
+rdf_vertex_image(V, VImage):-
+  once(rdf_image(V, _, VImage)).
 
 
 

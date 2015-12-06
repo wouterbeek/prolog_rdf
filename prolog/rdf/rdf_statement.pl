@@ -1,7 +1,7 @@
 :- module(
   rdf_statement,
   [
-    rdf_graph_triples/2, % ?Graph;rdf_graph
+    rdf_graph_triples/2, % ?Graph:rdf_graph
                          % -Triples:ordset(rdf_triple)
     rdf_statement_terms/4, % +Statement:rdf_statement
                            % ?Subject:rdf_term
@@ -34,7 +34,7 @@ Predicates that perform simple operations on RDF triples/quadruples.
 
 
 
-%! rdf_graph_triples(?Graph;rdf_graph, -Triples:ordset(rdf_triple)) is det.
+% ! rdf_graph_triples(?Graph:rdf_graph, -Triples:ordset(rdf_triple)) is det.
 
 rdf_graph_triples(G, Ts):-
   rdf_expect_graph(G),
