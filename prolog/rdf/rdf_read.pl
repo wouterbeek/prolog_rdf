@@ -59,7 +59,6 @@
 */
 
 :- use_module(library(datetime/datetime)).
-:- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
@@ -98,7 +97,7 @@
 % Wrapper around rdf/4 reading from the default graph.
 
 rdf(S, P, O):-
-  rdf(S, P, O, default).
+  rdf(S, P, O, _).
 
 
 %! rdf(
@@ -126,9 +125,9 @@ rdf(S, P, O, G):-
   rdf(S, P, O, G, Sid, Pid, Oid),
   % Variable subject terms may be blank nodes that need to be
   % related to literals.
-  (ground(S), ! ; literal_id(S, Sid), ! ; id_to_term(Sid, S)),
-  (ground(P), ! ; id_to_term(Pid, P)),
-  (ground(O), ! ; id_to_term(Oid, O)).
+  (ground(S) -> true ; literal_id(S, Sid) -> true ; id_to_term(Sid, S)),
+  (ground(P) -> true ; id_to_term(Pid, P)),
+  (ground(O) -> true ; id_to_term(Oid, O)).
 
 
 %! rdf(
@@ -142,7 +141,7 @@ rdf(S, P, O, G):-
 
 
 rdf(S, P, O, Sid, Pid, Oid):-
-  rdf(S, P, O, '*', Sid, Pid, Oid).
+  rdf(S, P, O, _, Sid, Pid, Oid).
 
 
 %! rdf(
@@ -160,7 +159,6 @@ rdf(S, P, O, G, Sid, Pid, Oid):-
   (rdf_is_literal(S) -> literal_id(S, Sid) ; nonvar(S) -> term_to_id(S, Sid) ; true),
   (nonvar(P) -> term_to_id(P, Pid) ; true),
   (nonvar(O) -> term_to_id(O, Oid) ; true),
-  defval(default, G),
   rdf_id(Sid, Pid, Oid, G).
 
 

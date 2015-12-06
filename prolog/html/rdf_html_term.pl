@@ -144,9 +144,11 @@ Generates HTML representations of RDF data.
 rdf_html_bnode(B, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_html_list(B, Opts), !.
-rdf_html_bnode(B, _) -->
+rdf_html_bnode(B, Opts) -->
   {rdf_bnode_name(B, BName)},
-  html(span(class='rdf-bnode', BName)).
+  html(span(class='rdf-bnode',
+    \html_link(BName, html([BName]), [query(bnode)|Opts]))
+  ).
 
 
 

@@ -1,4 +1,9 @@
-:- module(rdf_database, []).
+:- module(rdf_database, [
+     rdf_estimate_complexity/4 % ?Subject:rdf_term
+                               % ?Predicate:iri
+                               % ?Object:rdf_term
+                               % -Complexity:nonneg
+   ]).
 :- reexport(library(semweb/rdf_db), [
      rdf_active_transaction/1, % ?Id
      rdf_current_snapshot/1, % ?Term
@@ -16,3 +21,32 @@
                         % +Options:list(compound)
      rdf_update_duplicates/0
    ]).
+
+/** <module> RDF database
+
+@author Wouter Beek
+@version 2015/12
+*/
+
+:- use_module(library(rdf/rdf_read)).
+:- use_module(library(semweb/rdf_db), [
+     rdf_estimate_complexity/4 as rdf_estimate_complexity0
+   ]).
+
+:- rdf_meta(rdf_estimate_complexity(o,r,o,-)).
+
+
+
+
+
+%! rdf_estimate_complexity(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   -Complexity:nonneg
+%! ) is det.
+
+rdf_estimate_complexity(S, P, O, N):-
+  rdf(S, P, O, Sid, Pid, Oid),
+  rdf_estimate_complexity0(Sid, Pid, Oid, N), !.
+rdf_estimate_complexity(_, _, _, 0).
