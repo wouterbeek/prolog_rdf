@@ -6,7 +6,7 @@
                          % -CanonicalLiteral:compound
     rdf_canonical_map/4, % +Datatype:iri
                          % +Value
-                         % -CanonicalLexicalExpression:atom
+                         % -CanonicalLexicalForm:atom
                          % -CanonicalLanguageTag:atom
     rdf_compare_value/4, % +Datatype:iri
                          % -Order:oneof([incomparable,<,=,>])
@@ -25,17 +25,17 @@
     rdf_lexical_canonical_map/2, % +Literal:compound
                                  % ?CanonicalLexicalFrom:atom
     rdf_lexical_canonical_map/5, % +Datatype:iri
-                                 % +LexicalExpression:atom
+                                 % +LexicalForm:atom
                                  % +LanguageTag:atom
-                                 % -CanonicalLexicalExpression:atom
+                                 % -CanonicalLexicalForm:atom
                                  % -CanonicalLanguageTag:atom
     rdf_lexical_map/2, % +Literal:compound
                        % -Value
     rdf_lexical_map/3, % +Datatype:iri
-                       % +LexicalExpression:atom
+                       % +LexicalForm:atom
                        % -Value
     rdf_lexical_map/4, % +Datatype:iri
-                       % +LexicalExpression:atom
+                       % +LexicalForm:atom
                        % +LanguageTag:atom
                        % -Value
     rdf_subtype_of/2 % ?SubType:iri
@@ -115,7 +115,7 @@ rdf_canonical_map(D, Val, CLit):-
 %! rdf_canonical_map(
 %!   +Datatype:iri,
 %!   +Value,
-%!   -CanonicalLexicalExpression:atom,
+%!   -CanonicalLexicalForm:atom,
 %!   -CanonicalLanguageTag:atom
 %! ) is det.
 
@@ -246,9 +246,9 @@ rdf_lexical_canonical_map(Lit, CLit):-
 
 %! rdf_lexical_canonical_map(
 %!   +Datatype:iri,
-%!   +LexicalExpression:atom,
+%!   +LexicalForm:atom,
 %!   +LanguageTag:atom,
-%!   +CanonicalLexicalExpression:atom,
+%!   +CanonicalLexicalForm:atom,
 %!   +CanonicalLanguageTag:atom
 %! ) is det.
 
@@ -266,7 +266,7 @@ rdf_lexical_map(Lit, Val):-
   rdf_lexical_map(D, Lex, LTag, Val).
 
 
-%! rdf_lexical_map(+Datatype:iri, +LexicalExpression:atom, -Value) is det.
+%! rdf_lexical_map(+Datatype:iri, +LexicalForm:atom, -Value) is det.
 % Wrapper around rdf_lexical_map/4 that works for all RDF datatype IRIs
 % except `rdf:langString'.
 
@@ -276,7 +276,7 @@ rdf_lexical_map(D, Lex, Val):-
 
 %! rdf_lexical_map(
 %!   +Datatype:iri,
-%!   +LexicalExpression:atom,
+%!   +LexicalForm:atom,
 %!   +LanguageTag:atom,
 %!   -Value
 %! ) is det.

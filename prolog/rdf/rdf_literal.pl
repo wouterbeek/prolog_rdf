@@ -5,7 +5,7 @@
     rdf_language_tagged_string/1, % -Literal:compound
     rdf_literal_components/4, % ?Literal:compound
                               % ?DatatypeIri:atom
-                              % ?LexicalExpression:atom
+                              % ?LexicalForm:atom
                               % ?LanguageTag:atom
     rdf_literal_data/3, % ?Field:atom
                         % +Literal:compound
@@ -58,25 +58,25 @@ rdf_language_tagged_string(Lit):-
 %! rdf_literal_components(
 %!   +Literal:compound,
 %!   -DatatypeIri:atom,
-%!   -LexicalExpression:atom,
+%!   -LexicalForm:atom,
 %!   -LanguageTag:atom
 %! ) is det.
 %! rdf_literal_components(
 %!   -Literal:compound,
 %!   +DatatypeIri:atom,
-%!   +LexicalExpression:atom,
+%!   +LexicalForm:atom,
 %!   +LanguageTag:atom
 %! ) is det.
 %! rdf_literal_components(
 %!   +Literal:compound,
 %!   +DatatypeIri:atom,
-%!   +LexicalExpression:atom,
+%!   +LexicalForm:atom,
 %!   -LanguageTag:atom
 %! ) is det.
 %! rdf_literal_components(
 %!   +Literal:compound,
 %!   -DatatypeIri:atom,
-%!   +LexicalExpression:atom,
+%!   +LexicalForm:atom,
 %!   -LanguageTag:atom
 %! ) is det.
 
