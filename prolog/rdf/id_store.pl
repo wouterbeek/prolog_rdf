@@ -3,9 +3,9 @@
   [
     assign_literal_id/2, % +Literal:rdf_literal
                          % ?Id:uid
-    assign_term_id/1, % +Term
-    assign_term_id/2, % +Term:rdf_term
-                      % ?Id:or([rdf_literal,uid])
+    assign_nonliteral_id/1, % +NonLiteral
+    assign_nonliteral_id/2, % +NonLiteral:or([bnode,iri])
+                            % ?Id:or([rdf_literal,uid])
     id_terms/1, % -Terms:ordset(rdf_term)
     id_to_term/2, % +Id:or([rdf_literal,uid])
                   % -Term:rdf_term
@@ -73,7 +73,7 @@ A literal identity set identifier denotes itself.
    ]).
 
 :- rdf_meta(assign_literal_id(o,-)).
-:- rdf_meta(assign_term_id(o,?)).
+:- rdf_meta(assign_nonliteral_id(o,?)).
 :- rdf_meta(literal_id(o,-)).
 :- rdf_meta(print_raw_graph(r)).
 :- rdf_meta(print_raw_graph(r,+)).
@@ -107,7 +107,7 @@ A literal identity set identifier denotes itself.
      pass_to(rdf_print_term//2, 2)
    ]).
 
-:- initialization((rdf_expand_ct(owl:sameAs, P), assign_term_id(P))).
+:- initialization((rdf_expand_ct(owl:sameAs, P), assign_nonliteral_id(P))).
 
 
 
@@ -121,23 +121,23 @@ assign_literal_id(Lit, Id):-
 % Literal is assigned a new identifier.
 assign_literal_id(Lit, Id):-
   rdf_create_bnode(B),
-  assign_term_id(B, Id),
+  assign_nonliteral_id(B, Id),
   assert(literal_id(Lit, Id)).
 
 
 
-%! assign_term_id(+Term:rdf_term) is det.
-% Wrapper around assign_term_id/2 that does not return the identifier.
+%! assign_nonliteral_id(+Term:oneof([bnode,iri])) is det.
+% Wrapper around assign_nonliteral_id/2 that does not return the identifier.
 
-assign_term_id(T):-
-  assign_term_id(T, _).
+assign_nonliteral_id(T):-
+  assign_nonliteral_id(T, _).
 
 
-%! assign_term_id(+Term:rdf_term, -Id:uid) is det.
+%! assign_nonliteral_id(+Term:or([bnode,iri]), -Id:uid) is det.
 
-assign_term_id(T, TId):-
+assign_nonliteral_id(T, TId):-
   term_to_id0(T, TId), !.
-assign_term_id(T, TId):-
+assign_nonliteral_id(T, TId):-
   create_id(TId),
   with_mutex(id_store, store_new_id(T, TId)).
 
@@ -274,14 +274,8 @@ remove_id(Id):-
 % At least one of the terms is a literal.
 store_id(X, Y1):-
   (rdf_is_literal(X) ; rdf_is_literal(Y1)), !,
-  (   rdf_is_literal(X)
-  ->  assign_literal_id(X, XId)
-  ;   assign_term_id(X, XId)
-  ),
-  (   rdf_is_literal(Y1)
-  ->  Y2 = Y1
-  ;   assign_term_id(Y1, Y2)
-  ),
+  (rdf_is_literal(X) -> assign_literal_id(X, XId) ; assign_nonliteral_id(X, XId)),
+  (rdf_is_literal(Y1) -> Y2 = Y1 ; assign_nonliteral_id(Y1, Y2)),
   rdf_assert0(XId, owl:sameAs, Y2).
 % Neither term is a literal.
 store_id(X, Y):-
@@ -381,7 +375,7 @@ rdf_rename_term0(X, Y):-
   rdf_retractall0(_, X, _),
   forall(rdf0(S, P, X), rdf_assert0(S, P, Y)),
   rdf_retractall0(_, _, X).
-  
+
 
 
 %! store_new_id(+Term:rdf_term, +Id:uid) is det.

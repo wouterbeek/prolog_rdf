@@ -111,9 +111,9 @@ rdf(S, P, O):-
 rdf(S, P, O, _):-
   ground(P),
   rdf_is_id(P, owl:sameAs), !,
-  (   nonvar(S)
+  (   ground(S)
   ->  term_to_term(S, O)
-  ;   nonvar(O)
+  ;   ground(O)
   ->  term_to_term(O, S)
   ;   % Enumerate identical terms.
       % NONDET
@@ -156,9 +156,9 @@ rdf(S, P, O, Sid, Pid, Oid):-
 
 rdf(S, P, O, G, Sid, Pid, Oid):-
   % (Only) in the subject position, literals may be represented by blank nodes.
-  (rdf_is_literal(S) -> literal_id(S, Sid) ; nonvar(S) -> term_to_id(S, Sid) ; true),
-  (nonvar(P) -> term_to_id(P, Pid) ; true),
-  (nonvar(O) -> term_to_id(O, Oid) ; true),
+  (rdf_is_literal(S) -> literal_id(S, Sid) ; ground(S) -> term_to_id(S, Sid) ; true),
+  (ground(P) -> term_to_id(P, Pid) ; true),
+  (ground(O) -> term_to_id(O, Oid) ; true),
   rdf_id(Sid, Pid, Oid, G).
 
 
@@ -358,11 +358,12 @@ rdf_literal(S, P, D, Val, G, rdf(S,P,Lit,G)):-
   rdf(S, P, Lit, G),
   rdf_lexical_map(Lit, Val).
 % Simple literal (as per RDF 1.0 specification).
-rdf_literal(S, P, xsd:string, Val, G, rdf(S,P,O,G)):-
+rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)):-
+  rdf_expand_ct(xsd:string, D),
   O = literal(Lex),
   rdf(S, P, O, G),
   atom(Lex),
-  rdf_lexical_map(xsd:string, Lex, Val).
+  rdf_lexical_map(D, Lex, Val).
 
 
 

@@ -146,8 +146,9 @@ rdf_assert(S, P, O, _):-
   store_id(S, O).
 % 2. Statements other than the identity statement.
 rdf_assert(S, P, O, G):-
-  (rdf_is_literal(S) -> assign_literal_id(S, Sid) ; assign_term_id(S, Sid)),
-  maplist(assign_term_id, [P,O], [Pid,Oid]),
+  (rdf_is_literal(S) -> assign_literal_id(S, Sid) ; assign_nonliteral_id(S, Sid)),
+  assign_nonliteral_id(P, Pid),
+  (rdf_is_literal(O) -> rdf_lexical_canonical_map(O, Oid) ; assign_nonliteral_id(O, Oid)),
   defval(default, G),
   rdf_assert0(Sid, Pid, Oid, G).
   
