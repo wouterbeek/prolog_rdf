@@ -25,8 +25,8 @@
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_print_term)).
 
-:- rdf_meta(rdf_fca_export(r,-)).
-:- rdf_meta(rdf_fca_export(r,-,:)).
+:- rdf_meta(rdf_fca_export_graph(r,-)).
+:- rdf_meta(rdf_fca_export_graph(r,-,:)).
 :- rdf_meta(rdf_fca_viz(r,+)).
 :- rdf_meta(rdf_fca_viz(r,+,:)).
 

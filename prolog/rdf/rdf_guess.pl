@@ -64,7 +64,7 @@ rdf_guess_format(Read, I, Format, Opts):-
   debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
 
   % Try to parse the peeked string as Turtle- or XML-like.
-  (rdf_guess_turtle(S, N, Format, Opts), ! ; rdf_guess_xml(S, Format)),
+  (rdf_guess_turtle(S, N, Format, Opts) ; rdf_guess_xml(S, Format)), !,
 
   debug(rdf(guess), "Assuming ~a based on heuristics.", [Format]).
 rdf_guess_format(Read, I1, Format, Opts):-
@@ -73,6 +73,8 @@ rdf_guess_format(Read, I1, Format, Opts):-
   rdf_guess_format(Read, I2, Format, Opts).
 
 
+% For Turtle-family formats it matters whether or not
+% end of stream has been reached.
 rdf_guess_turtle(S, N, Format, Opts):-
   % Do not backtrack if the whole stream has been peeked.
   string_length(S, M),

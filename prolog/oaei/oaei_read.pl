@@ -21,12 +21,6 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 
-:- rdf_register_prefix(
-     align,
-     'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#',
-     [keep(true)]
-   ).
-
 :- rdf_meta(oaei_alignment(o,o,?)).
 :- rdf_meta(oaei_alignment(o,o,?,?,?)).
 

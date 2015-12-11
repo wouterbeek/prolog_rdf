@@ -12,16 +12,16 @@
 Creates tables based on a Data Cube graph.
 
 @author Wouter Beek
-@version 2014/10
+@version 2014/10, 2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
+:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_prefix)). % RDF prefix registration.
 
 :- use_module(plc(generics/pair_ext)).
-
-:- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
 
 
 

@@ -15,13 +15,8 @@
 @version 2015/07-2015/08, 2015/12
 */
 
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
-
-:- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
-:- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
-:- rdf_register_prefix(foaf, 'http://xmlns.com/foaf/0.1/').
 
 :- rdf_meta(rdf_image(r,r,o)).
 :- rdf_meta(rdf_image(r,r,o,r)).
