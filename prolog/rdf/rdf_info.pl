@@ -14,8 +14,8 @@
 :- use_module(library(ansi_ext)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(list_ext)).
-:- use_module(library(lod/lod_stats)).
 :- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_stats)).
 
 
 

@@ -1,5 +1,5 @@
 :- module(
-  lod_stats,
+  rdf_stats,
   [
     rdf_description_size/2, % +Resource:rdf_term
                             % -Count:nonneg
@@ -11,8 +11,6 @@
     rdf_number_of_datatype_iris/1, % -Count
     rdf_number_of_datatype_iris/2, % ?Graph:rdf_graph
                                    % -Count:nonneg
-    rdf_number_of_instances/2, % +Class:rdf_term
-                               % -Count:nonneg
     rdf_number_of_objects/1, % -Count
     rdf_number_of_objects/2, % ?Graph, -Count
     rdf_number_of_objects/3, % ?Subject, ?Predicate, -Count
@@ -45,7 +43,7 @@
   ]
 ).
 
-/** <module> LOD statistics
+/** <module> RDF statistics
 
 @author Wouter Beek
 @version 2015/08, 2015/10, 2015/12
@@ -61,7 +59,6 @@
      rdf_graph_property/2 as rdf_graph_property0,
      rdf_statistics/1 as rdf_statistics0
    ]).
-:- use_module(library(semweb/rdfs), [rdfs_individual_of/2]).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta(rdf_description_size(o,-)).
@@ -122,13 +119,6 @@ rdf_number_of_datatype_iris(N):-
 rdf_number_of_datatype_iris(G, N):-
   rdf_expect_graph(G),
   aggregate_all(count, rdf_datatype_iri(G, _), N).
-
-
-
-%! rdf_number_of_instances(+Class:rdf_term, -Count:nonneg) is det.
-
-rdf_number_of_instances(C, N):-
-  aggregate_all(count, rdfs_individual_of(_, C), N).
 
 
 
@@ -292,7 +282,7 @@ rdf_number_ofs0(Witness, S, P, O, G, N):-
 
 % TESTS %
 
-:- begin_tests(lod_stats).
+:- begin_tests(rdf_stats).
 
 test(rdf_number_of_subjects, [forall(test_case(G,N))]):-
   setup_call_cleanup(
@@ -318,4 +308,4 @@ rdf_assert_graph(g2):-
   rdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2),
   rdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2).
 
-:- end_tests(lod_stats).
+:- end_tests(rdf_stats).

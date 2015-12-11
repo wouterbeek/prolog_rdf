@@ -26,7 +26,6 @@
 :- use_module(library(html/rdf_html_term)).
 %/lod
 :- use_module(library(lod/lod_cache)).
-:- use_module(library(lod/lod_stats)).
 %/mat
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).
@@ -42,7 +41,6 @@
 :- use_module(library(owl/owl_build)).
 %/rdf
 :- use_module(library(rdf/id_store)).
-%:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_auth)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_build)).
@@ -75,6 +73,7 @@
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_save)).
 :- use_module(library(rdf/rdf_statement)).
+:- use_module(library(rdf/rdf_stats)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_test)).
@@ -84,6 +83,7 @@
 :- use_module(library(rdfs/rdfs_api)).
 :- use_module(library(rdfs/rdfs_build)).
 :- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdfs/rdfs_stats)).
 %/simple
 :- use_module(library(simple/write_SimpleRDF)).
 %/sparql
