@@ -364,10 +364,10 @@ rdf_subject(S):-
 
 rdf_subject(G, S):-
   nonvar(S), !,
-  once(rdf(S, _, G)).
+  once(rdf(S, _, _, G)).
 rdf_subject(G, S):-
   rdf_subject(S),
-  once(rdf(S, _, G)).
+  once(rdf(S, _, _, G)).
 
 
 

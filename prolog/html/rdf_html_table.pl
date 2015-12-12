@@ -27,11 +27,13 @@ Generates HTML tables with RDF content.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(html/rdf_html_term)).
+:- use_module(library(html/content/html_pl)).
 :- use_module(library(html/element/html_table)).
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_stats)).
 :- use_module(library(typecheck)).
 
 :- rdf_register_prefix(rdf_table, 'http://rdf_table.org/').
@@ -162,16 +164,17 @@ header_spec( t , 'Term'     ).
 rdf_html_statement_table(S, P, O, G, Rows, Opts1) -->
   {
     merge_options(
+      Opts1,
       [
         caption(rdf_html_statement_table_caption(S, P, O, G, Opts1)),
         graph(G)
       ],
-      Opts1,
       Opts2
     )
   },
   rdf_html_table(Rows, Opts2).
 
+% Exactly one term.
 rdf_html_statement_table_caption(S, P, O, G, Opts) -->
   {
     include(nonvar, [S,P,O], [Term]),
@@ -184,9 +187,26 @@ rdf_html_statement_table_caption(S, P, O, G, Opts) -->
     )
   },
   html([
-    'RDF triples in which ',
+    'Triples in which ',
     \rdf_html_term_in_graph(Term, G, Opts),
     ' occurs in the ',Pos,' position.'
   ]).
+% No term, only a graph.
+rdf_html_statement_table_caption(_, _, _, G, Opts) -->
+  {nonvar(G)}, !,
+  {
+    option(max_rows(Max), Opts, 100),
+    rdf_number_of_triples(G, N)
+  },
+  html([
+    'Triples in graph ',
+    \rdf_html_graph(G, Opts),
+    ' (showing ',
+    \html_pl_term(thousands_integer(Max)),
+    ' out of ',
+    \html_pl_term(thousands_integer(N)),
+    'results).'
+  ]).
+% Neither term nor graph.
 rdf_html_statement_table_caption(_, _, _, _, _) -->
-  html('RDF triples').
+  html('Triples').

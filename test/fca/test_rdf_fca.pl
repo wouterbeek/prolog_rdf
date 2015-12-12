@@ -12,7 +12,7 @@
 /** <module> RDF FCA Test
 
 @author Wouter Beek
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(aggregate)).
@@ -56,7 +56,7 @@ rdf_fca_test(Name):-
 %! rdf_fca_test_file(+File:atom) is det.
 
 rdf_fca_test_file(File):-
-  rdf_fca_from_file(File, Context),
+  rdf_call_on_graph(File, rdf_fca_context(Context)),
   format(string(GLbl), "FCA for RDF file ~a", [File]),
   fca_viz0(Context, GLbl).
 
@@ -65,9 +65,9 @@ rdf_fca_test_file(File):-
 %! rdf_fca_test_graph(+Graph:atom) is semidet.
 
 rdf_fca_test_graph(G):-
-  rdf_fca_from_graph(G, Context),
+  rdf_fca_context(Con, G),
   format(string(GLbl), "FCA for RDF graph ~a", [G]),
-  fca_viz0(Context, GLbl).
+  fca_viz0(Con, GLbl).
 
 
 

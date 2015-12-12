@@ -43,6 +43,7 @@
 
 
 %! rdf_fca_export_graph(+Graph:rdf_graph, -ExportGraph:compound) is det.
+% Wrapper around rdf_fca_export_graph/3 with default options.
 
 rdf_fca_export_graph(G, ExportG):-
   rdf_fca_export_graph(G, ExportG, []).
