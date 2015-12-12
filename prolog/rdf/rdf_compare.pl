@@ -1,15 +1,10 @@
 :- module(
   rdf_compare,
   [
-    rdf_compare/3, % +X:rdf_term
-                   % +Y:rdf_term
-                   % +Relation:oneof([<,=,>])
-    rdf_compare/6 % +X:rdf_term
+    rdf_compare/2, % +X, +Y
+    rdf_compare/3 % +X:rdf_term
                   % +Y:rdf_term
-                  % +Relation:oneof([<,=,>])
-                  % -XOnly:ordset(compound)
-                  % -XYDiff:ordset(compound)
-                  % -YOnly:ordset(compound)
+                  % +Pairs:ordset(pair(iri,list(ordset(rdf_term))))
   ]
 ).
 
@@ -20,59 +15,74 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
+:- use_module(library(dcg/dcg_collection)).
+:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_table)).
+:- use_module(library(default)).
+:- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdf/rdf_read)).
+:- use_module(library(solution_sequences)).
 
-:- rdf_meta(rdf_compare(o,o,+)).
-:- rdf_meta(rdf_compare(o,o,+,-,-,-)).
-
-
-
+:- rdf_meta(rdf_compare(o,o)).
+:- rdf_meta(rdf_compare(o,o,-)).
 
 
-%! rdf_compare(+X:rdf_term, +Y:rdf_term, +Relation:oneof([<,=,>])) is semidet.
 
-rdf_compare(X, Y, Rel):-
-  rdf_compare(X, Y, Rel, _, _, _).
+
+
+%! rdf_compare(+X:rdf_term, +Y:rdf_term) is det.
+
+rdf_compare(X, Y):-
+  rdf_compare(X, Y, Pairs),
+  pairs_rows(Pairs, DataRows),
+  HeadRow = head(['Predicate','XY','X','Y']),
+  Opts = [caption(rdf_compare_caption0(X,Y)),cell(rdf_compare_cell0)],
+  dcg_with_output_to(user_output, dcg_table([HeadRow|DataRows], Opts)).
+
+pairs_rows(L1, L2):-
+  pairs_rows(L1, [], L2).
+
+pairs_rows([H|T], L1, L):- !,
+  pair_rows(H, L2),
+  append(L1, L2, L3),
+  pairs_rows(T, L3, L).
+pairs_rows([], L, L).
+
+pair_rows(P-[XYs,Xs,Ys], L):-
+  pair_rows(P, XYs, Xs, Ys, L).
+
+pair_rows(_, [], [], [], []):- !.
+pair_rows(P, XYs1, Xs1, Ys1, [[P,XY,X,Y]|T]):-
+  defval('', P),
+  (selectchk(XY, XYs1, XYs2) -> true ; XY = '', XYs2 = XYs1),
+  (selectchk(X, Xs1, Xs2)    -> true ; X  = '', Xs2  = Xs1 ),
+  (selectchk(Y, Ys1, Ys2)    -> true ; Y  = '', Ys2  = Ys1 ),
+  pair_rows(_, XYs2, Xs2, Ys2, T).
+
+rdf_compare_caption0(X, Y) -->
+  "Comparing terms ",
+  rdf_print_term(X),
+  " and ",
+  rdf_print_term(Y).
+rdf_compare_cell0(L) -->
+  {is_list(L)}, !,
+  set(rdf_print_term, L).
+rdf_compare_cell0(T) -->
+  rdf_print_term(T).
 
 
 %! rdf_compare(
 %!   +X:rdf_term,
 %!   +Y:rdf_term,
-%!   +Relation:oneof([<,=,>]),
-%!   -XOnly:ordset(compound),
-%!   -XYDiff:ordset(compound),
-%!   -YOnly:ordset(compound)
+%!   -Pairs:ordset(pair(iri,list(ordset(rdf_term))))
 %! ) is det.
 
-rdf_compare(X, Y, Rel, XOnly, XYDiff, YOnly):-
-  rdf_compare0(X, Y, XOnly, XYDiff, YOnly),
-  (   XYDiff == []
-  ->  (   XOnly == [],
-          YOnly \== []
-      ->  Rel = <
-      ;   XOnly \== [],
-          YOnly == []
-      ->  Rel = >
-      ;   XOnly == [],
-          YOnly == []
-      ->  Rel = =
-      ;   true
-      )
-  ;   true
-  ).
+rdf_compare(X, Y, SortedPairs):-
+  aggregate_all(set(Pair), rdf_xy(X, Y, Pair), SortedPairs).
 
-rdf_compare0(X, Y, XOnly, XYDiff, YOnly):-
-  aggregate_all(set(rdf(X,P,O)), rdf(X, P, O), Xs),
-  aggregate_all(set(rdf(Y,P,O)), rdf(Y, P, O), Ys),
-  rdf_compare_split0(Xs, Ys, XOnly, XYDiff, YOnly).
-
-% Y must be ahead of X.
-rdf_compare_split0([X|Xs], [Y|Ys], XOnly, XYDiff, YOnly):-
-  rdf_ahead_of0(X, Y), !,
-  rdf_compare_split0([Y|Ys], [X|Xs], YOnly, XYDiff, XOnly).
-% Y is ahead of X.
-rdf_compare_split0([_X|_Xs], [Y|Ys], _XOnly, _XYDiff, _YOnly):-
-  selectchk(rdf(Y,_P,_O), Ys, _Ys0).
-
-rdf_ahead_of0(rdf(_,P1,_), rdf(_,P2,_)):- P1 @> P2, !.
-rdf_ahead_of0(rdf(_,P1,O1), rdf(_,P2,O2)):- P1 =@= P2, O1 @> O2.
+rdf_xy(X, Y, P-[XYs,Xs,Ys]):-
+  distinct(P, (rdf(X, P, _) ; rdf(Y, P, _))),
+  aggregate_all(set(O), (rdf(X, P, O),    rdf(Y, P, O)), XYs),
+  aggregate_all(set(O), (rdf(X, P, O), \+ rdf(Y, P, O)), Xs),
+  aggregate_all(set(O), (rdf(Y, P, O), \+ rdf(X, P, O)), Ys).
