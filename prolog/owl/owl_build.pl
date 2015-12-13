@@ -24,6 +24,7 @@
                                    % ?Graph:rdf_graph
     owl_assert_functional_property/2, % +Property:iri
                                       % ?Graph:rdf_graph
+    owl_assert_identity/1, % +Pair:pair(rdf_term)
     owl_assert_intersection_of/3, % +Class:rdf_term
                                   % +Classes:list(rdf_term
                                   % ?Graph:rdf_graph
@@ -160,6 +161,14 @@ owl_assert_equivalent_class(C, D, G):-
 
 owl_assert_functional_property(I, G):-
   rdf_assert_instance(I, owl:'FunctionalProperty', G).
+
+
+
+%! owl_assert_identity(+Pair:pair(rdf_term)) is det.
+
+owl_assert_identity(X-Y):-
+  (X == 'http://oaei.ontologymatching.org/2012/IIMBDATA/en/english' -> gtrace ; true),
+  rdf_assert(X, owl:sameAs, Y).
 
 
 

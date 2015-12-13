@@ -23,7 +23,8 @@
     rdf_stale_graph/2, % ?Graph:rdf_graph
                        % +FreshnessLifetime:between(0.0,inf)
     rdf_tmp_graph/1, % -Graph:rdf_graph
-    rdf_unload_graph/1 % +Graph:rdf_graph
+    rdf_unload_graph/1, % +Graph:rdf_graph
+    rdf_unload_graphs/0
   ]
 ).
 
@@ -38,6 +39,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(semweb/rdf_db), [
@@ -242,6 +244,17 @@ rdf_tmp_graph(G):-
 
 %! rdf_unload_graph(+Graph:rdf_graph) is semidet.
 % Extends Semweb's rdf_unload_graph/1 by applying RDF prefix expansion.
+%
+% @tbd This does not unload the identity store.
 
 rdf_unload_graph(G):-
+  rdf_expect_graph(G),
   rdf_unload_graph0(G).
+
+
+
+%! rdf_unload_graphs is det.
+
+rdf_unload_graphs:-
+  forall(true, rdf_unload_graph(_)),
+  unload_id_store.

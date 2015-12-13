@@ -33,8 +33,9 @@
                   % -Id:or([rdf_literal,uid])
     term_to_term/2, % +Term1:rdf_term
                     % -Term2:rdf_term
-    term_to_terms/2 % +Term:rdf_term
-                    % -Terms:ordset(rdf_term)
+    term_to_terms/2, % +Term:rdf_term
+                     % -Terms:ordset(rdf_term)
+    unload_id_store/0
   ]
 ).
 
@@ -351,6 +352,15 @@ term_to_term(T1, T2):-
 term_to_terms(T, Ts):-
   term_to_id(T, Id),
   id_to_terms(Id, Ts).
+
+
+
+%! unload_id_store is det.
+
+unload_id_store:-
+  retractall(id_to_terms0(_,_,_)),
+  retractall(literal_id(_,_)),
+  retractall(term_to_id0(_,_)).
 
 
 

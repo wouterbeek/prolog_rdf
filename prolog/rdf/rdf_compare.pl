@@ -1,10 +1,23 @@
 :- module(
   rdf_compare,
   [
-    rdf_compare/2, % +X, +Y
-    rdf_compare/3 % +X:rdf_term
-                  % +Y:rdf_term
-                  % +Pairs:ordset(pair(iri,list(ordset(rdf_term))))
+    rdf_compare/3, % +X, +Y, +Pairs
+    rdf_compare/5, % +X:rdf_term
+                   % ?XGraph:rdf_graph
+                   % +Y:rdf_term
+                   % ?YGraph:rdf_graph
+                   % +Pairs:ordset(pair(iri,list(ordset(rdf_term))))
+    rdf_print_compare/2, % +X, +Y
+    rdf_print_compare/4, % +X:rdf_term
+                         % ?XGraph:rdf_graph
+                         % +Y:rdf_term
+                         % ?YGraph:rdf_graph
+    rdf_shared_predicate/3, % +X, +Y, -Predicate
+    rdf_shared_predicate/5 % +X:rdf_term
+                           % +XGraph:rdf_graph
+                           % +Y:rdf_term
+                           % +YGraph:rdf_graph
+                           % -Predicate:iri
   ]
 ).
 
@@ -24,17 +37,64 @@
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(solution_sequences)).
 
-:- rdf_meta(rdf_compare(o,o)).
+
 :- rdf_meta(rdf_compare(o,o,-)).
+:- rdf_meta(rdf_compare(o,r,o,r,-)).
+:- rdf_meta(rdf_print_compare(o,o)).
+:- rdf_meta(rdf_print_compare(o,r,o,r)).
+:- rdf_meta(rdf_shared_predicate(o,o,r)).
+:- rdf_meta(rdf_shared_predicate(o,r,o,r,r)).
 
 
 
 
 
-%! rdf_compare(+X:rdf_term, +Y:rdf_term) is det.
+%! rdf_compare(
+%!   +X:rdf_term,
+%!   +XGraph:rdf_graph,
+%!   +Y:rdf_term,
+%!   +YGraph:rdf_graph,
+%!   -Pairs:ordset(pair(iri,list(ordset(rdf_term))))
+%! ) is det.
 
-rdf_compare(X, Y):-
-  rdf_compare(X, Y, Pairs),
+rdf_compare(X, Y, Pairs):-
+  rdf_compare(X, _, Y, _, Pairs).
+
+
+%! rdf_compare(
+%!   +X:rdf_term,
+%!   +XGraph:rdf_graph,
+%!   +Y:rdf_term,
+%!   +YGraph:rdf_graph,
+%!   -Pairs:ordset(pair(iri,list(ordset(rdf_term))))
+%! ) is det.
+
+rdf_compare(X, XG, Y, YG, SortedPairs):-
+  aggregate_all(set(Pair), rdf_xy(X, XG, Y, YG, Pair), SortedPairs).
+
+rdf_xy(X, XG, Y, YG, P-[XYs,Xs,Ys]):-
+  distinct(P, (rdf(X, P, _, XG) ; rdf(Y, P, _, YG))),
+  aggregate_all(set(O), (rdf(X, P, O, XG),    rdf(Y, P, O, YG)), XYs),
+  aggregate_all(set(O), (rdf(X, P, O, XG), \+ rdf(Y, P, O, YG)), Xs),
+  aggregate_all(set(O), (rdf(Y, P, O, YG), \+ rdf(X, P, O, XG)), Ys).
+
+
+
+%! rdf_print_compare(+X:rdf_term, +Y:rdf_term) is det.
+
+rdf_print_compare(X, Y):-
+  rdf_print_compare(X, _, Y, _).
+
+
+%! rdf_print_compare(
+%!   +X:rdf_term,
+%!   ?XGraph:rdf_graph,
+%!   +Y:rdf_term,
+%!   ?YGraph:rdf_graph
+%! ) is det.
+
+rdf_print_compare(X, XG, Y, YG):-
+  rdf_compare(X, XG, Y, YG, Pairs),
   pairs_rows(Pairs, DataRows),
   HeadRow = head(['Predicate','XY','X','Y']),
   Opts = [caption(rdf_compare_caption0(X,Y)),cell(rdf_compare_cell0)],
@@ -72,17 +132,21 @@ rdf_compare_cell0(T) -->
   rdf_print_term(T).
 
 
-%! rdf_compare(
+
+%! rdf_shared_predicate(+X:rdf_term, +Y:rdf_term, -Predicate:iri) is nondet.
+
+rdf_shared_predicate(X, Y, P):-
+  rdf_shared_predicate(X, _, Y, _, P).
+
+
+%! rdf_shared_predicate(
 %!   +X:rdf_term,
+%!   +XGraph:rdf_graph,
 %!   +Y:rdf_term,
-%!   -Pairs:ordset(pair(iri,list(ordset(rdf_term))))
-%! ) is det.
+%!   +YGraph:rdf_graph,
+%!   -Predicate:iri
+%! ) is nondet.
 
-rdf_compare(X, Y, SortedPairs):-
-  aggregate_all(set(Pair), rdf_xy(X, Y, Pair), SortedPairs).
-
-rdf_xy(X, Y, P-[XYs,Xs,Ys]):-
-  distinct(P, (rdf(X, P, _) ; rdf(Y, P, _))),
-  aggregate_all(set(O), (rdf(X, P, O),    rdf(Y, P, O)), XYs),
-  aggregate_all(set(O), (rdf(X, P, O), \+ rdf(Y, P, O)), Xs),
-  aggregate_all(set(O), (rdf(Y, P, O), \+ rdf(X, P, O)), Ys).
+rdf_shared_predicate(X, GX, Y, GY, P):-
+  rdf(X, P, Z, GX),
+  rdf(Y, P, Z, GY).
