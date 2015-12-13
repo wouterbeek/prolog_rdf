@@ -13,11 +13,17 @@
                          % +Y:rdf_term
                          % ?YGraph:rdf_graph
     rdf_shared_predicate/3, % +X, +Y, -Predicate
-    rdf_shared_predicate/5 % +X:rdf_term
-                           % +XGraph:rdf_graph
-                           % +Y:rdf_term
-                           % +YGraph:rdf_graph
-                           % -Predicate:iri
+    rdf_shared_predicate/5, % +X:rdf_term
+                            % +XGraph:rdf_graph
+                            % +Y:rdf_term
+                            % +YGraph:rdf_graph
+                            % -Predicate:iri
+    rdf_shared_predicates/3, % -X, -Y, +Predicates
+    rdf_shared_predicates/5 % -X:rdf_term
+                            % +XGraph:rdf_graph
+                            % -Y:rdf_term
+                            % +YGraph:rdf_graph
+                            % +Predicates:ordset(iri)
   ]
 ).
 
@@ -44,6 +50,8 @@
 :- rdf_meta(rdf_print_compare(o,r,o,r)).
 :- rdf_meta(rdf_shared_predicate(o,o,r)).
 :- rdf_meta(rdf_shared_predicate(o,r,o,r,r)).
+:- rdf_meta(rdf_shared_predicates(o,o,t)).
+:- rdf_meta(rdf_shared_predicates(o,r,o,r,t)).
 
 
 
@@ -141,12 +149,32 @@ rdf_shared_predicate(X, Y, P):-
 
 %! rdf_shared_predicate(
 %!   +X:rdf_term,
-%!   +XGraph:rdf_graph,
+%!   ?XGraph:rdf_graph,
 %!   +Y:rdf_term,
-%!   +YGraph:rdf_graph,
+%!   ?YGraph:rdf_graph,
 %!   -Predicate:iri
 %! ) is nondet.
 
 rdf_shared_predicate(X, GX, Y, GY, P):-
   rdf(X, P, Z, GX),
   rdf(Y, P, Z, GY).
+
+
+
+%! rdf_shared_predicates(-X:rdf_term, -Y:rdf_term, +Predicates:ordset(iri)) is nondet.
+
+rdf_shared_predicates(X, Y, Ps):-
+  rdf_shared_predicates(X, _, Y, _, Ps).
+
+
+%! rdf_shared_predicates(
+%!   -X:rdf_term,
+%!   ?XGraph:rdf_graph,
+%!   -Y:rdf_term,
+%!   ?YGraph:rdf_graph,
+%!   +Predicates:ordset(iri)
+%! ) is nondet.
+
+rdf_shared_predicates(X, GX, Y, GY, [P1|Ps]):-
+  rdf(X, P1, Z1, GX), findall(Z2, (member(P2, Ps), rdf(X, P2, Z2)), Zs),
+  rdf(Y, P1, Z1, GY), findall(Z2, (member(P2, Ps), rdf(Y, P2, Z2)), Zs).
