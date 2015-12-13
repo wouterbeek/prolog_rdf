@@ -109,7 +109,7 @@ rdf(S, P, O):-
 
 % 1. Identity statement.
 rdf(S, P, O, _):-
-  rdf_is_id(P, owl:sameAs),
+  rdf_expand_ct(owl:sameAs, P),
   (   ground(S)
   ->  term_to_term(S, O)
   ;   ground(O)
@@ -122,11 +122,7 @@ rdf(S, P, O, _):-
 % 2. Statements other than identity statements.
 rdf(S, P, O, G):-
   rdf(S, P, O, G, Sid, Pid, Oid),
-  % Variable subject terms may be blank nodes that need to be
-  % related to literals.
-  (ground(S) -> true ; literal_id(S, Sid) -> true ; id_to_term(Sid, S)),
-  (ground(P) -> true ; id_to_term(Pid, P)),
-  (ground(O) -> true ; rdf_is_literal(Oid) -> O = Oid ; id_to_term(Oid, O)).
+  maplist(id_to_term, [Sid,Pid,Oid], [S,P,O]).
 
 
 %! rdf(
@@ -154,11 +150,10 @@ rdf(S, P, O, Sid, Pid, Oid):-
 %! ) is nondet.
 
 rdf(S, P, O, G, Sid, Pid, Oid):-
-  % (Only) in the subject position, literals may be represented by blank nodes.
-  (rdf_is_literal(S) -> literal_id(S, Sid) ; ground(S) -> term_to_id(S, Sid) ; true),
-  (ground(P) -> term_to_id(P, Pid) ; true),
-  (ground(O) -> term_to_id(O, Oid) ; true),
+  maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
   rdf_id(Sid, Pid, Oid, G).
+matching_term(X, Xid):- ground(X), !, term_to_id(X, Xid).
+matching_term(_X, _Y).
 
 
 

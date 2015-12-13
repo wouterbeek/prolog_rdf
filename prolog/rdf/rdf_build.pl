@@ -146,12 +146,10 @@ rdf_assert(S, P, O, _):-
   store_id(S, O).
 % 2. Statements other than the identity statement.
 rdf_assert(S, P, O, G):-
-  (rdf_is_literal(S) -> assign_literal_id(S, Sid) ; assign_nonliteral_id(S, Sid)),
-  assign_nonliteral_id(P, Pid),
-  (rdf_is_literal(O) -> rdf_lexical_canonical_map(O, Oid) ; assign_nonliteral_id(O, Oid)),
+  maplist(assign_id, [S,P,O], [Sid,Pid,Oid]),
   defval(default, G),
   rdf_assert0(Sid, Pid, Oid, G).
-  
+
 
 
 %! rdf_create_iri(+Prefix:atom, -Iri:atom) is det.
@@ -363,8 +361,7 @@ rdf_retractall(S, P, O):-
 %! ) is det.
 
 rdf_retractall(S, P, O, G):-
-  (rdf_is_literal(S) -> literal_id(S, Sid) ; term_to_id0(S, Sid)),
-  maplist(term_to_id0, [P,O], [Pid,Oid]),
+  maplist(term_to_id0, [S,P,O], [Sid,Pid,Oid]),
   rdf_retractall0(Sid, Pid, Oid, G),
   maplist(remove_id, [Sid,Pid,Oid]).
 term_to_id0(T, _):- var(T), !.

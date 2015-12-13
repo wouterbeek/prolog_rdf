@@ -155,20 +155,14 @@ rdf_bnode(G, B):-
 %! rdf_datatype_iri(-Datatype:iri) is nondet.
 
 rdf_datatype_iri(D):-
-  distinct(D, (
-    rdf_literal(Lit),
-    rdf_literal_data(datatype, Lit, D)
-  )).
+  distinct(D, (rdf_literal(Lit), rdf_literal_data(datatype, Lit, D))).
 
 
 %! rdf_datatype_iri(+Graph:rdf_graph, +Datatype:iri) is semidet.
 %! rdf_datatype_iri(+Graph:rdf_graph, -Datatype:iri) is nondet.
 
 rdf_datatype_iri(G, D):-
-  distinct(D, (
-    rdf_literal(G, Lit),
-    rdf_literal_data(datatype, Lit, D)
-  )).
+  distinct(D, (rdf_literal(G, Lit), rdf_literal_data(datatype, Lit, D))).
 
 
 
@@ -179,7 +173,7 @@ rdf_iri(T):-
   nonvar(T), !,
   is_iri(T),
   term_to_id(T, Tid),
-  (rdf_predicate_id(Tid), ! ; rdf_non_literal_node_id(Tid)).
+  once((rdf_predicate_id(Tid) ; rdf_non_literal_node_id(Tid))).
 rdf_iri(P):-
   rdf_predicate(P).
 rdf_iri(N):-
@@ -192,8 +186,7 @@ rdf_iri(N):-
 
 %! rdf_is_iri(@Term) is semidet.
 
-rdf_is_iri(T):-
-  is_iri(T).
+rdf_is_iri(T):- is_iri(T).
 
 
 
@@ -229,29 +222,20 @@ rdf_literal(Lit):-
 
 rdf_literal(G, Lit):-
   rdf_literal(Lit),
-  (   % Literals that appear in some object position.
-      rdf(_, _, Lit, G), !
-  ;   % Literals that only appear in subject positions.
-      literal_id(Lit, Id),
-      once(rdf(Id, _, _, G))
-  ).
+  once((rdf(_, _, Lit, G) ; rdf(Lit, _, _, G) ; rdf(_, Lit, _))).
 
 
 
 %! rdf_name(+Name:rdf_name) is semidet.
 %! rdf_name(-Name:rdf_name) is nondet.
 
-rdf_name(Name):-
-  rdf_term(Name),
-  \+ rdf_is_bnode(Name).
+rdf_name(Name):- rdf_term(Name), \+ rdf_is_bnode(Name).
 
 
 %! rdf_name(+Graph:rdf_graph, +Name:rdf_name) is semidet.
 %! rdf_name(+Graph:rdf_graph, -Name:rdf_name) is nondet.
 
-rdf_name(G, Name):-
-  rdf_term(G, Name),
-  \+ rdf_is_bnode(Name).
+rdf_name(G, Name):- rdf_term(G, Name), \+ rdf_is_bnode(Name).
 
 
 
@@ -344,19 +328,11 @@ rdf_predicate(G, P):-
 
 rdf_subject(S):-
   nonvar(S), !,
-  (   rdf_is_literal(S)
-  ->  literal_id(S, Sid),
-      rdf_subject_id(Sid)
-  ;   term_to_id(S, Sid),
-      rdf_subject_id(Sid)
-  ).
+  term_to_id(S, Sid),
+  rdf_subject_id(Sid).
 rdf_subject(S):-
-  % NONDET
   rdf_subject_id(Sid),
-  (   literal_id(S, Sid), !
-      % NONDET
-  ;   id_to_term(Sid, S)
-  ).
+  id_to_term(Sid, S).
 
 
 %! rdf_subject(+Graph:rdf_graph, +Subject:rdf_term) is semidet.
