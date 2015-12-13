@@ -61,7 +61,7 @@ mat_viz(S):-
   md5(S, C),
   % Find all edges.
   findall(E, distinct(E, find_edge(s(C), E)), Es),
-  s_label(S, SLabel),
+  string_phrase(s_label(S), SLabel),
   format(atom(GLabel), 'Proof tree for ~a', [SLabel]),
   mat_viz0(Es, GLabel).
 
@@ -122,13 +122,9 @@ proof_node_color(X, JColor):-
 
 
 % Statement label.
-proof_node_label(X, SLabel):-
-  j_db:s(S, X), !,
-  s_label(S, SLabel).
+proof_node_label(X) --> {j_db:s(S, X)}, !, s_label(S, SLabel).
 % Justification label.
-proof_node_label(X, JLabel):-
-  j_db:j(R, _, _, X), !,
-  dcg_with_output_to(atom(JLabel), print_rule(R)).
+proof_node_label(X) --> {j_db:j(R, _, _, X)}, !, print_rule(R).
 
 
 proof_node_shape(X, SShape):-
@@ -139,14 +135,5 @@ proof_node_shape(X, SShape):-
   SShape = octagon.
 
 
-s_label(rdf(S,P,O), Label):- !,
-  PrintOpts = [
-    abbr_list(true),
-    elip_lit(20),
-    elip_ln(20),
-    logic_sym(true),
-    style(triple)
-  ],
-  with_output_to(atom(Label), rdf_print_triple(S, P, O, _, PrintOpts)).
-s_label(S, Label):-
-  with_output_to(atom(Label), write_term(S)).
+s_label(rdf(S,P,O)) !, --> rdf_print_triple(S, P, O).
+s_label(T)             --> rdf_print_term(T).

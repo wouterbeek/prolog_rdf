@@ -37,11 +37,11 @@ handled by plGraphViz.
 :- dynamic
      rdf:rdf_class_color/2,
      rdf:rdf_edge_style/2,
-     rdf:rdf_predicate_label/2.
+     rdf:rdf_predicate_label//1.
 :- multifile
      rdf:rdf_class_color/2,
      rdf:rdf_edge_style/2,
-     rdf:rdf_predicate_label/2.
+     rdf:rdf_predicate_label//1.
 
 :- rdf_meta(rdf_term_to_export_graph(r,-,+)).
 
@@ -229,21 +229,20 @@ rdf_edge_color(_, _, _, black).
 
 
 
-%! rdf_edge_label(+Edge:compound, -Label:atom) is det.
+%! rdf_edge_label(+Edge:compound)// is det.
 
 % User-supplied customization.
-rdf_edge_label(edge(_,P,_), ELabel):-
-  rdf:rdf_predicate_label(P, ELabel), !.
+rdf_edge_label(edge(_,P,_)) --> rdf:rdf_predicate_label(P), !.
 % Some edge labels are not displayed.
-rdf_edge_label(edge(_,P,_), ''):-
-  (   rdf_expand_ct(rdf:type, P)
-  ;   rdf_expand_ct(rdfs:label, P)
-  ;   rdf_expand_ct(rdfs:subClassOf, P)
-  ;   rdf_expand_ct(rdfs:subPropertyOf, P)
-  ), !.
+rdf_edge_label(edge(_,P,_)) -->
+  {(  rdf_expand_ct(rdf:type, P)
+   ;  rdf_expand_ct(rdfs:label, P)
+   ;  rdf_expand_ct(rdfs:subClassOf, P)
+   ;  rdf_expand_ct(rdfs:subPropertyOf, P)
+   )}, !,
+  "".
 % Others: the edge name is the predicate term.
-rdf_edge_label(edge(_,P,_), ELabel):-
-  dcg_with_output_to(atom(ELabel), rdf_print_term(P)).
+rdf_edge_label(edge(_,P,_)) --> rdf_print_term(P).
 
 
 
@@ -311,9 +310,9 @@ rdf_vertex_image(V, VImage):-
 %!   -Label:atom
 %! ) is det.
 
-rdf_vertex_label(Opts1, V, VLabel):-
-  merge_options(Opts1, [literal_ellipsis(50)], Opts2),
-  dcg_with_output_to(atom(VLabel), rdf_print_term(V, Opts2)).
+rdf_vertex_label(Opts1, V) -->
+  {merge_options(Opts1, [literal_ellipsis(50)], Opts2)},
+  rdf_print_term(V, Opts2).
 
 
 
