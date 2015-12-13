@@ -167,7 +167,6 @@ owl_assert_functional_property(I, G):-
 %! owl_assert_identity(+Pair:pair(rdf_term)) is det.
 
 owl_assert_identity(X-Y):-
-  (X == 'http://oaei.ontologymatching.org/2012/IIMBDATA/en/english' -> gtrace ; true),
   rdf_assert(X, owl:sameAs, Y).
 
 
