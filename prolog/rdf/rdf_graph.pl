@@ -46,6 +46,7 @@
      rdf_create_graph/1 as rdf_create_graph0,
      rdf_graph/1 as rdf_graph0,
      rdf_graph_property/2 as rdf_graph_property0,
+     rdf_retractall/4 as rdf_retractall0,
      rdf_set_graph/2,
      rdf_unload_graph/1 as rdf_unload_graph0
    ]).
@@ -256,5 +257,5 @@ rdf_unload_graph(G):-
 %! rdf_unload_graphs is det.
 
 rdf_unload_graphs:-
-  forall(true, rdf_unload_graph(_)),
+  rdf_retractall0(_, _, _, _),
   unload_id_store.

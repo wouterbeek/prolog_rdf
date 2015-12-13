@@ -69,8 +69,8 @@ A literal identity set identifier denotes itself.
 :- use_module(library(semweb/rdf_db), [
      rdf/3 as rdf0,
      rdf/4 as rdf0,
-     rdf_assert/3 as rdf_assert0,
-     rdf_retractall/3 as rdf_retractall0
+     rdf_assert/4 as rdf_assert0,
+     rdf_retractall/4 as rdf_retractall0
    ]).
 
 :- rdf_meta(assign_literal_id(o,-)).
@@ -273,58 +273,59 @@ remove_id(Id):-
 %! store_id(+X:rdf_term, +Y:rdf_term) is det.
 
 % At least one of the terms is a literal.
-store_id(X, Y1):-
-  (rdf_is_literal(X) ; rdf_is_literal(Y1)), !,
-  (rdf_is_literal(X) -> assign_literal_id(X, XId) ; assign_nonliteral_id(X, XId)),
-  (rdf_is_literal(Y1) -> Y2 = Y1 ; assign_nonliteral_id(Y1, Y2)),
-  rdf_assert0(XId, owl:sameAs, Y2).
+store_id(X, Y):-
+  (rdf_is_literal(X) ; rdf_is_literal(Y)), !,
+  (rdf_is_literal(X) -> assign_literal_id(X, Xid) ; assign_nonliteral_id(X, Xid)),
+  (rdf_is_literal(Y) -> Yid = Y ; assign_nonliteral_id(Y, Yid)),
+  assign_nonliteral_id(owl:sameAs, Pid),
+  rdf_assert0(Xid, Pid, Yid, default).
 % Neither term is a literal.
 store_id(X, Y):-
-  (   term_to_id0(X, XId)
-  ->  (   term_to_id0(Y, YId)
+  (   term_to_id0(X, Xid)
+  ->  (   term_to_id0(Y, Yid)
       ->  (   % X and Y already belong to the same identity set.
-              XId == YId
+              Xid == Yid
           ->  true
           ;   % Merge the identity sets of X and Y.
-              id_to_terms0(XId, Xs),
-              id_to_terms0(YId, Ys),
+              id_to_terms0(Xid, Xs),
+              id_to_terms0(Yid, Ys),
               ord_union(Xs, Ys, Zs),
-              create_id(ZId),
+              create_id(Zid),
               with_mutex(id_store, (
-                retract(term_to_id0(X, XId)),
-                retract(id_to_terms0(XId, Xs)),
-                retract(term_to_id0(Y, YId)),
-                retract(id_to_terms0(YId, Ys)),
-                assert(term_to_id0(X, ZId)),
-                assert(term_to_id0(Y, ZId)),
-                assert(id_to_terms0(ZId, Zs)),
-                rdf_rename_term0(XId, ZId),
-                rdf_rename_term0(YId, ZId)
+                retract(term_to_id0(X, Xid)),
+                retract(id_to_terms0(Xid, Xs)),
+                retract(term_to_id0(Y, Yid)),
+                retract(id_to_terms0(Yid, Ys)),
+                assert(term_to_id0(X, Zid)),
+                assert(term_to_id0(Y, Zid)),
+                assert(id_to_terms0(Zid, Zs)),
+                rdf_rename_term0(Xid, Zid),
+                rdf_rename_term0(Yid, Zid)
              ))
           )
       ;   % Add Y to the identity set of X.
-          id_to_terms0(XId, Xs1),
+          id_to_terms0(Xid, Xs1),
           ord_add_element(Xs1, Y, Xs2),
           with_mutex(id_store, (
-            retract(id_to_terms0(XId, Xs1)),
-            assert(id_to_terms0(XId, Xs2)),
-            assert(term_to_id0(Y, XId))
+            retract(id_to_terms0(Xid, Xs1)),
+            assert(id_to_terms0(Xid, Xs2)),
+            assert(term_to_id0(Y, Xid))
           ))
       )
-  ;   term_to_id0(Y, YId)
+  ;   term_to_id0(Y, Yid)
   ->  % Add X to the identity set of Y.
-      id_to_terms0(YId, Ys1),
+      id_to_terms0(Yid, Ys1),
       ord_add_element(Ys1, X, Ys2),
       with_mutex(id_store, (
-        retract(id_to_terms0(YId, Ys1)),
-        assert(id_to_terms0(YId, Ys2)),
-        assert(term_to_id0(X, YId))
+        retract(id_to_terms0(Yid, Ys1)),
+        assert(id_to_terms0(Yid, Ys2)),
+        assert(term_to_id0(X, Yid))
       ))
-  ;   create_id(XId),
-      create_id(YId),
+  ;   create_id(Xid),
+      create_id(Yid),
       with_mutex(id_store, (
-        store_new_id(X, XId),
-        store_new_id(Y, YId)
+        store_new_id(X, Xid),
+        store_new_id(Y, Yid)
       ))
   ).
 
@@ -379,12 +380,12 @@ create_id(Id):-
 %! rdf_rename_term0(+From, +To) is det.
 
 rdf_rename_term0(X, Y):-
-  forall(rdf0(X, P, O), rdf_assert0(Y, P, O)),
-  rdf_retractall0(X, _, _),
-  forall(rdf0(S, X, O), rdf_assert0(S, Y, O)),
-  rdf_retractall0(_, X, _),
-  forall(rdf0(S, P, X), rdf_assert0(S, P, Y)),
-  rdf_retractall0(_, _, X).
+  forall(rdf0(X, P, O, G), rdf_assert0(Y, P, O, G)),
+  rdf_retractall0(X, _, _, _),
+  forall(rdf0(S, X, O, G), rdf_assert0(S, Y, O, G)),
+  rdf_retractall0(_, X, _, _),
+  forall(rdf0(S, P, X, G), rdf_assert0(S, P, Y, G)),
+  rdf_retractall0(_, _, X, _).
 
 
 

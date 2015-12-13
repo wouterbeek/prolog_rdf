@@ -109,8 +109,7 @@ rdf(S, P, O):-
 
 % 1. Identity statement.
 rdf(S, P, O, _):-
-  ground(P),
-  rdf_is_id(P, owl:sameAs), !,
+  rdf_is_id(P, owl:sameAs),
   (   ground(S)
   ->  term_to_term(S, O)
   ;   ground(O)
@@ -127,7 +126,7 @@ rdf(S, P, O, G):-
   % related to literals.
   (ground(S) -> true ; literal_id(S, Sid) -> true ; id_to_term(Sid, S)),
   (ground(P) -> true ; id_to_term(Pid, P)),
-  (ground(O) -> true ; id_to_term(Oid, O)).
+  (ground(O) -> true ; rdf_is_literal(Oid) -> O = Oid ; id_to_term(Oid, O)).
 
 
 %! rdf(
