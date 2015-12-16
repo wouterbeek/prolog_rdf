@@ -175,6 +175,7 @@ sparql_manufacturer_option0(cliopatria, method(update), direct).
 sparql_manufacturer_option0(cliopatria, path_suffix(query), '/sparql/').
 sparql_manufacturer_option0(cliopatria, path_suffix(update), '/sparql/update').
 sparql_manufacturer_option0(virtuoso, default_graph(http), graph).
+sparql_manufacturer_option0(virtuoso, default_graph(query), 'default-graph-uri').
 sparql_manufacturer_option0(virtuoso, method(update), url_encoded).
 sparql_manufacturer_option0(virtuoso, named_graph(http), 'graph-uri').
 sparql_manufacturer_option0(virtuoso, path_suffix(http), '/sparql-graph-crud').
