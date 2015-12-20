@@ -3,11 +3,9 @@
   [
     sparql_endpoint_by_iri/2, % +Iri:iri
                               % -Endpoint:atom
-    sparql_endpoint_location/2, % +Endpoint:atom
-                                % -Location:atom
     sparql_endpoint_location/3, % +Endpoint:atom
-                                % ?Mode:oneof([http,query,update])
-                                % -Location:atom
+                                % +Mode:oneof([http,query,update])
+                                % -Iri:atom
     sparql_location_by_iri/3, % +Iri:iri
                               % +Mode:oneof([http,query,update])
                               % -Location:atom
@@ -184,16 +182,10 @@ sparql_manufacturer_option0(virtuoso, path_suffix(update), '/update').
 
 
 
-%! sparql_endpoint_location(+Endpoint:atom, -Location:atom) is nondet.
-
-sparql_endpoint_location(Endpoint, Location):-
-  sparql_endpoint_location(Endpoint, _, Location).
-
-
 %! sparql_endpoint_location(
 %!   +Endpoint:atom,
-%!   ?Mode:oneof([http,query,update]),
-%!   -Location:iri
+%!   +Mode:oneof([http,query,update]),
+%!   -Iri:atom
 %! ) is nondet.
 % Returns the URL locations that are associated with the given endpoint+mode.
 %
@@ -204,8 +196,9 @@ sparql_endpoint_location(Endpoint, Mode, Location):-
   is_iri(Endpoint), !,
   \+ sparql_endpoint_option(Location, Mode, _).
 sparql_endpoint_location(Endpoint, Mode, Location):-
-  % NONDET: There may be multiple locations registered with an endpoint.
-  sparql_endpoint_option(Endpoint, location, Base),
+  % Make sure that this is deterministic: if multiple locations are registered
+  % with an endpoint we take the first one.
+  once(sparql_endpoint_option(Endpoint, location, Base)),
 
   (   % Slight optimization by first looking for the mode part,
       % since every registration will have a location,
