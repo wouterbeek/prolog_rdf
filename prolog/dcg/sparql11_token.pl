@@ -19,7 +19,6 @@
      'INTEGER'//1, % ?Integer:integer
      'INTEGER_NEGATIVE'//1, % ?Integer:negative_integer
      'INTEGER_POSITIVE'//1, % ?Integer:positive_integer
-     iri//1, % ?Iri:atom
      'IRI_REF'//1, % ?Iri:atom
      'IRIref'//1, % ?Iri:atom
      'LANGTAG'//1, % ?LanguageTag:list(atom)
@@ -42,7 +41,7 @@
 @author Wouter Beek
 @compat SPARQL 1.1
 @see http://www.w3.org/TR/sparql11-query/#grammar
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).

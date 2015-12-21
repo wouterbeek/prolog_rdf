@@ -15,7 +15,6 @@
     'INTEGER'//1, % ?Integer:integer
     'INTEGER_NEGATIVE'//1, % ?Integer:negative_integer
     'INTEGER_POSITIVE'//1, % ?Integer:positive_integer
-    iri//1, % ?Iri:atom
     'IRI_REF'//1, % ?Iri:atom
     'IRIref'//1, % ?Iri:atom
     'LANGTAG'//1, % ?LanguageTag:list(atom)
@@ -41,6 +40,7 @@
 
 @author Wouter Beek
 @compat SPARQL 1.0
+@deprecated
 @version 2015/11-2015/12
 */
 
@@ -66,7 +66,7 @@
 % A unique blank node will be used to form the triple pattern.
 %
 % ```ebnf
-% ANON ::= '[' WS* ']'
+% [94]   ANON ::= '[' WS* ']'
 % ```
 
 'ANON'(BNode) --> "[", *('WS'), "]", {rdf_bnode(BNode)}.
@@ -75,7 +75,7 @@
 
 %! 'BLANK_NODE_LABEL'(?BlankNodeLabel:atom)// .
 % ```ebnf
-% BLANK_NODE_LABEL ::= '_:' PN_LOCAL
+% [73]   BLANK_NODE_LABEL ::= '_:' PN_LOCAL
 % ```
 
 'BLANK_NODE_LABEL'(A) --> "_:", 'PN_LOCAL'(A).
@@ -87,7 +87,7 @@
 % such as `_:abc`, or the abbreviated form `[]`.
 %
 % ```ebnf
-% BlankNode ::= BLANK_NODE_LABEL | ANON
+% [69]   BlankNode ::= BLANK_NODE_LABEL | ANON
 % ```
 
 'BlankNode'(BNode) --> 'BLANK_NODE_LABEL'(BNode), !.
@@ -101,7 +101,7 @@
 % (without quotation marks and an explicit datatype IRI).
 %
 % ```ebnf
-% BooleanLiteral ::= 'true' | 'false'
+% [65]   BooleanLiteral ::= 'true' | 'false'
 % ```
 
 'BooleanLiteral'(literal(type(xsd:boolean,false))) --> "false", !.
@@ -111,7 +111,7 @@
 
 %! 'DECIMAL'(?Decimal:rational)// .
 % ```ebnf
-% DECIMAL ::= [0-9]* '.' [0-9]+
+% [78]   DECIMAL ::= [0-9]* '.' [0-9]+
 % ```
 
 'DECIMAL'(Rat) -->
@@ -124,7 +124,7 @@
 
 %! 'DECIMAL_NEGATIVE'(?Decimal:rational)// .
 % ```bnf
-% DECIMAL_NEGATIVE ::= '-' DECIMAL
+% [84]   DECIMAL_NEGATIVE ::= '-' DECIMAL
 % ```
 
 'DECIMAL_NEGATIVE'(Rat) --> "-", 'DECIMAL'(Rat0), {Rat is -Rat0}.
@@ -133,7 +133,7 @@
 
 %! 'DECIMAL_POSITIVE'(?Decimal:rational)// .
 % ```bnf
-% DECIMAL_POSITIVE ::= '+' INTEGER
+% [81]   DECIMAL_POSITIVE ::= '+' INTEGER
 % ```
 
 'DECIMAL_POSITIVE'(Rat) --> "+", 'INTEGER'(Rat).
@@ -142,14 +142,9 @@
 
 %! 'DOUBLE'(?Double:float)// .
 % ```ebnf
-% DOUBLE ::= [0-9]+ '.' [0-9]* EXPONENT
-%          | '.' [0-9]+ EXPONENT
-%          | [0-9]+ EXPONENT
-% [Turtle]   DOUBLE ::= [+-]?
-%                       ( [0-9]+ '.' [0-9]* EXPONENT
-%                       | '.' [0-9]+ EXPONENT
-%                        | [0-9]+ EXPONENT
-%                       )
+% [79]   DOUBLE ::= [0-9]+ '.' [0-9]* EXPONENT
+%                 | '.' [0-9]+ EXPONENT
+%                 | [0-9]+ EXPONENT
 % ```
 %
 % @compat Turtle 1.1 [21]
@@ -169,7 +164,7 @@
 
 %! 'DOUBLE_NEGATIVE'(?Double:float)// .
 % ```bnf
-% DOUBLE_NEGATIVE ::= '-' DOUBLE
+% [85]   DOUBLE_NEGATIVE ::= '-' DOUBLE
 % ```
 
 'DOUBLE_NEGATIVE'(F) --> "-", 'DOUBLE'(F0), {F is -F0}.
@@ -178,7 +173,7 @@
 
 %! 'DOUBLE_POSITIVE'(?Double:float)// .
 % ```bnf
-% DOUBLE_POSITIVE ::= '+' DOUBLE
+% [82]   DOUBLE_POSITIVE ::= '+' DOUBLE
 % ```
 
 'DOUBLE_POSITIVE'(F) --> "+", 'DOUBLE'(F).
@@ -187,7 +182,7 @@
 
 %! 'EXPONENT'(?Exponent:integer)// .
 % ```ebnf
-% EXPONENT ::= [eE] [+-]? [0-9]+
+% [86]   EXPONENT ::= [eE] [+-]? [0-9]+
 % ```
 %
 % @compat SPARQL 1.0 [86]
@@ -204,7 +199,7 @@
 
 %! 'INTEGER'(?Integer:integer)// .
 % ```ebnf
-% INTEGER ::= [0-9]+
+% [77]   INTEGER ::= [0-9]+
 % ```
 
 'INTEGER'(I) --> {var(I)}, !, '+digit'(I).
@@ -214,7 +209,7 @@
 
 %! 'INTEGER_NEGATIVE'(?Integer:negative_integer)// .
 % ```bnf
-% INTEGER_NEGATIVE ::= '-' INTEGER
+% [83]   INTEGER_NEGATIVE ::= '-' INTEGER
 % ```
 
 'INTEGER_NEGATIVE'(I) --> "-", 'INTEGER'(I0), {I is -I0}.
@@ -223,26 +218,16 @@
 
 %! 'INTEGER_POSITIVE'(?Integer:positive_integer)// .
 % ```bnf
-% INTEGER_POSITIVE ::= '+' INTEGER
+% [80]   INTEGER_POSITIVE ::= '+' INTEGER
 % ```
 
 'INTEGER_POSITIVE'(I) --> "+", 'INTEGER'(I).
 
 
 
-%! iri(?Iri:atom)// is det.
-% ```ebnf
-% iri ::= IRIREF | PrefixedName
-% ```
-
-iri(Iri) --> 'IRIREF'(Iri), !.
-iri(Iri) --> 'PrefixedName'(Iri).
-
-
-
 %! 'IRI_REF'(?Iri:atom)// .
 % ```ebnf
-% IRI_REF ::=  '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
+% [70]   IRI_REF ::=  '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
 % ```
 %
 % @deprecated Use 'IRIREF'//1 instead.
@@ -253,7 +238,7 @@ iri(Iri) --> 'PrefixedName'(Iri).
 
 %! 'IRIref'(?Iri:atom)// .
 % ```ebnf
-% IRIref ::= IRI_REF | PrefixedName
+% [67]   IRIref ::= IRI_REF | PrefixedName
 % ```
 %
 % @deprecated Use iri//1 instead.
@@ -265,7 +250,7 @@ iri(Iri) --> 'PrefixedName'(Iri).
 
 %! 'LANGTAG'(?LanguageTag:list(atom))// .
 % ```ebnf
-% LANGTAG ::= '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)*
+% [76]   LANGTAG ::= '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)*
 % ```
 
 'LANGTAG'([H|T]) -->
@@ -282,7 +267,7 @@ subtags([]) --> "".
 
 %! 'NumericLiteral'(?Literal:compound)// .
 % ```ebnf
-% NumericLiteral ::= INTEGER | DECIMAL | DOUBLE
+% [61]   NumericLiteral ::= INTEGER | DECIMAL | DOUBLE
 % ```
 %
 % As a convenience, integers / decimal numbers can be written directly
@@ -303,9 +288,9 @@ subtags([]) --> "".
 
 %! 'NumericLiteralNegative'(?Literal:compound)// is det.
 % ```ebnf
-% NumericLiteralNegative ::= INTEGER_NEGATIVE
-%                          | DECIMAL_NEGATIVE
-%                          | DOUBLE_NEGATIVE
+% [64]   NumericLiteralNegative ::= INTEGER_NEGATIVE
+%                                 | DECIMAL_NEGATIVE
+%                                 | DOUBLE_NEGATIVE
 % ```
 
 'NumericLiteralNegative'(literal(type(xsd:integer,CLex))) -->
@@ -322,9 +307,9 @@ subtags([]) --> "".
 
 %! 'NumericLiteralPositive'(?Literal:compound)// is det.
 % ```ebnf
-% NumericLiteralPositive ::= INTEGER_POSITIVE
-%                          | DECIMAL_POSITIVE
-%                          | DOUBLE_POSITIVE
+% [63]   NumericLiteralPositive ::= INTEGER_POSITIVE
+%                                 | DECIMAL_POSITIVE
+%                                 | DOUBLE_POSITIVE
 % ```
 
 'NumericLiteralPositive'(literal(type(xsd:integer,CLex))) -->
@@ -341,7 +326,7 @@ subtags([]) --> "".
 
 %! 'NumericLiteralUnsigned'(?Value:number)// is det.
 % ```ebnf
-% NumericLiteralUnsigned ::= INTEGER | DECIMAL | DOUBLE
+% [62]   NumericLiteralUnsigned ::= INTEGER | DECIMAL | DOUBLE
 % ```
 
 'NumericLiteralUnsigned'(literal(type(xsd:integer,CLex))) -->
@@ -360,8 +345,8 @@ subtags([]) --> "".
 % The **local part** of a prefixed name.
 %
 % ```ebnf
-% PN_LOCAL ::= ( PN_CHARS_U | [0-9] )
-%              (( PN_CHARS | '.')* PN_CHARS)?
+% [100]   PN_LOCAL ::= ( PN_CHARS_U | [0-9] )
+%                      (( PN_CHARS | '.')* PN_CHARS)?
 % ```
 
 'PN_LOCAL'(A) -->
@@ -376,7 +361,7 @@ subtags([]) --> "".
 
 %! 'PN_PREFIX'(?Prefix:atom)// .
 % ```ebnf
-% PN_PREFIX ::= PN_CHARS_BASE ( ( PN_CHARS | '.' )* PN_CHARS )?
+% [99]   PN_PREFIX ::= PN_CHARS_BASE ( ( PN_CHARS | '.' )* PN_CHARS )?
 % ```
 
 'PN_PREFIX'(A) -->
@@ -388,7 +373,7 @@ subtags([]) --> "".
 
 %! 'PNAME_LN'(?Iri:atom)// .
 % ```ebnf
-% PNAME_LN ::= PNAME_NS PN_LOCAL
+% [72]   PNAME_LN ::= PNAME_NS PN_LOCAL
 % ```
 
 'PNAME_LN'(Iri) -->
@@ -404,7 +389,7 @@ subtags([]) --> "".
 % Notice that the empty string is also a prefix label.
 %
 % ```ebnf
-% PNAME_NS ::= PN_PREFIX? ':'
+% [71]   PNAME_NS ::= PN_PREFIX? ':'
 % ```
 
 'PNAME_NS'(Prefix) --> 'PN_PREFIX'(Prefix), !, ":".
@@ -420,7 +405,7 @@ subtags([]) --> "".
 % and the local part.
 %
 % ```ebnf
-% PrefixedName ::= PNAME_LN | PNAME_NS
+% [68]   PrefixedName ::= PNAME_LN | PNAME_NS
 % ```
 
 'PrefixedName'(Iri) --> 'PNAME_LN'(Iri), !.
@@ -435,13 +420,13 @@ subtags([]) --> "".
 % or an optional datatype IRI or prefixed name (introduced by `^^`).
 %
 % ```ebnf
-% RDFLiteral ::= String ( LANGTAG | ( '^^' iri ) )?
+% [60]   RDFLiteral ::= String ( LANGTAG | ( '^^' IRIref ) )?
 % ```
 
 'RDFLiteral'(Lit) -->
   'String'(Lex),
   (   "^^"
-  ->  iri(D), {Lit = literal(type(D,Lex))}
+  ->  'IRIref'(D), {Lit = literal(type(D,Lex))}
   ;   'LANGTAG'(LTag),
       {atomic_list_concat(LTag, -, LTag0), Lit = literal(lang(LTag0,Lex))}
   ;   {Lit = literal(type(xsd:string,Lex))}
@@ -451,10 +436,10 @@ subtags([]) --> "".
 
 %! 'String'(?String:atom)// .
 % ```ebnf
-% String ::= STRING_LITERAL1
-%          | STRING_LITERAL2
-%          | STRING_LITERAL_LONG1
-%          | STRING_LITERAL_LONG2
+% [66]   String ::= STRING_LITERAL1
+%                 | STRING_LITERAL2
+%                 | STRING_LITERAL_LONG1
+%                 | STRING_LITERAL_LONG2
 % ```
 
 'String'(S) --> 'STRING_LITERAL1'(S),      !.
@@ -468,9 +453,9 @@ subtags([]) --> "".
 % A literal that can contain unescaped single quotes and newlines.
 %
 % ```ebnf
-% STRING_LITERAL_LONG1 ::= "'''"
-%                          ( ( "'" | "''" )? ( [^'\] | ECHAR ) )*
-%                          "'''"
+% [89]   STRING_LITERAL_LONG1 ::= "'''"
+%                                 ( ( "'" | "''" )? ( [^'\] | ECHAR ) )*
+%                                 "'''"
 % ```
 %
 % This differs from Turtle 1.1 [24] in which escape sequences
@@ -484,9 +469,9 @@ subtags([]) --> "".
 % A literal that can contain unescaped single quotes and newlines.
 %
 % ```ebnf
-% STRING_LITERAL_LONG2 ::= '"""'
-%                          ( ( '"' | '""' )? ( [^"\] | ECHAR ) )*
-%                          '"""'
+% [90]   STRING_LITERAL_LONG2 ::= '"""'
+%                                 ( ( '"' | '""' )? ( [^"\] | ECHAR ) )*
+%                                 '"""'
 % ```
 %
 % This differs from Turtle 1.1 [25] in which escape sequences
@@ -498,7 +483,7 @@ subtags([]) --> "".
 
 %! 'STRING_LITERAL1'(?String:atom)// .
 % ```ebnf
-% STRING_LITERAL1 ::= "'" ( ([^#x27#x5C#xA#xD]) | ECHAR )* "'"
+% [87]   STRING_LITERAL1 ::= "'" ( ([^#x27#x5C#xA#xD]) | ECHAR )* "'"
 % ```
 %
 % @compat SPARQL 1.1 Query [156]
@@ -511,7 +496,7 @@ subtags([]) --> "".
 
 %! 'STRING_LITERAL2'(?String:atom)// .
 % ```ebnf
-% STRING_LITERAL2 ::= '"' ( ([^#x22#x5C#xA#xD]) | ECHAR )* '"'
+% [88]   STRING_LITERAL2 ::= '"' ( ([^#x22#x5C#xA#xD]) | ECHAR )* '"'
 % ```
 %
 % @compat SPARQL 1.1 Query [157]
