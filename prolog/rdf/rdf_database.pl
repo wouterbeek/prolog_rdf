@@ -19,7 +19,9 @@
      rdf_transaction/3, % :Goal_0
                         % +Id
                         % +Options:list(compound)
-     rdf_update_duplicates/0
+     rdf_update_duplicates/0,
+     rdf_warm_indexes/0,
+     rdf_warm_indexes/1 % +Indexes
    ]).
 
 /** <module> RDF database

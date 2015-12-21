@@ -30,6 +30,7 @@ Support for loading RDF data.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option)).
@@ -179,7 +180,8 @@ rdf_load_file(In, Opts):-
       delete_thread_counter(triples, NT),
       delete_thread_counter(quadruples, NQ),
       NS is NT + NQ,
-      msg_notification(
+      debug(
+        rdf(load),
         "Loaded ~D statements from ~w (~D triples and ~D quadruples).~n",
         [NS,In,NT,NQ]
       )
