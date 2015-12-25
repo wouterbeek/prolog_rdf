@@ -11,9 +11,6 @@
      'PN_CHARS_U'//1, % ?Code:code
      'WS'//0
    ]).
-:- reexport(library(url/rfc1738_code), [
-     hex//1 as 'HEX' % ?Weight:between(0,15)
-   ]).
 
 /** <module> SPARQL 1.1
 
