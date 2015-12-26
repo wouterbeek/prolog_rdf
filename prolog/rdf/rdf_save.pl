@@ -1,9 +1,9 @@
 :- module(
   rdf_save,
   [
-    rdf_save/1, % ?Sink
-    rdf_save/2, % ?Sink
-                % +Options:list(compound)
+    rdf_save_file/1, % ?Sink
+    rdf_save_file/2, % ?Sink
+                     % +Options:list(compound)
     rdf_write_to_graph/2, % +Sink, :Goal_1
     rdf_write_to_graph/3 % +Sink
                          % :Goal_1
@@ -11,7 +11,7 @@
   ]
 ).
 
-/** <module> RDF save
+/** <module> RDF: Save data
 
 @author Wouter Beek
 @version 2015/08, 2015/10-2015/12
@@ -57,27 +57,27 @@
 
 
 
-%! rdf_save(+Sink) is det.
-% Wrapper around rdf_save/2 with default options.
+%! rdf_save_file(+Sink) is det.
+% Wrapper around rdf_save_file/2 with default options.
 
-rdf_save(Out):-
-  rdf_save(Out, []).
+rdf_save_file(Out):-
+  rdf_save_file(Out, []).
 
 
-%! rdf_save(+Sink, +Options:list(compound)) is det.
+%! rdf_save_file(+Sink, +Options:list(compound)) is det.
 % The following options are supported:
 %   * format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml]))
 %   * graph(+atom)
 
 % The file name can be derived from the graph.
-rdf_save(Out, Opts):-
+rdf_save_file(Out, Opts):-
   var(Out),
   option(graph(G0), Opts),
   rdf_graph_get_property(G0, source(File0)), !,
   uri_file_name(File0, File),
-  rdf_save(File, Opts).
+  rdf_save_file(File, Opts).
 % A new file name is created based on graph and format.
-rdf_save(Out, Opts):-
+rdf_save_file(Out, Opts):-
   var(Out), !,
   option(graph(Base), Opts, out),
   % In case a serialization format is specified,
@@ -88,12 +88,12 @@ rdf_save(Out, Opts):-
   ;   Local = Base
   ),
   absolute_file_name(Local, File, [access(write)]),
-  rdf_save(File, Opts).
+  rdf_save_file(File, Opts).
 % We do not need to save the graph if:
 %   1. the contents of the graph did not change, and
 %   2. the serialization format of the graph did not change, and
 %   3. the output file is the same.
-rdf_save(File, Opts):-
+rdf_save_file(File, Opts):-
   is_absolute_file_name(File),
   option(graph(G), Opts),
   
@@ -110,7 +110,7 @@ rdf_save(File, Opts):-
   time_file(File, LMod), !,
   debug(rdf(save), "No need to save graph ~w; no updates.", [G]).
 % "If you know how to do it and you can do it... DO IT!"
-rdf_save(Out, Opts):-
+rdf_save_file(Out, Opts):-
   % Determine the RDF output format:
   %   1. By option.
   %   2. By the file name extension.
