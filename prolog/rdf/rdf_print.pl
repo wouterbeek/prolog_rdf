@@ -7,8 +7,9 @@
                           % ?Graph:rdf_graph
                           % +Options:list(compound)
     rdf_print_graph/1, % ?Graph
-    rdf_print_graph/2 % ?Graph:rdf_graph
-                      % +Options:list(compound)
+    rdf_print_graph/2, % ?Graph:rdf_graph
+                       % +Options:list(compound)
+    rdf_print_graphs/0
   ]
 ).
 :- reexport(library(rdf/rdf_print_stmt)).
@@ -22,8 +23,15 @@ Printing of RDF statements to a text-based output stream.
 @version 2015/07-2015/09, 2015/12
 */
 
+:- use_module(library(aggregate)).
+:- use_module(library(apply)).
+:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_table)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
+:- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_stats)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
@@ -118,3 +126,15 @@ rdf_print_graph(G, Opts):-
   ;   existence_error(rdf_graph, G)
   ).
 rdf_print_graph(_, _).
+
+
+
+rdf_print_graphs:-
+  aggregate_all(set(N-G), rdf_number_of_triples(G, N), Pairs1),
+  reverse(Pairs1, Pairs2),
+  maplist(inverse_pair, Pairs2, Pairs3),
+  maplist(pair_list, Pairs3, DataRows),
+  dcg_with_output_to(
+    user_output,
+    dcg_table([head(['Graph','Number of statements'])|DataRows])
+  ).
