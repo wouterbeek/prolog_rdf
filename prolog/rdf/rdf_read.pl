@@ -20,18 +20,22 @@
     rdf_instance/3, % ?Instance:rdf_term
                     % ?Class:rdf_term
                     % ?Graph:rdf_graph
+    rdf_langstring/3, % ?Subject, ?Predicate, ?Value
     rdf_langstring/4, % ?Subject, ?Predicate, +LanguagePriorityList, ?Value
     rdf_langstring/5, % ?Subject:rdf_term
                       % ?Predicate:iri
                       % +LanguagePriorityList:list(atom)
                       % ?Value:pair(atom)
                       % ?Graph:rdf_graph
-    rdf_langstring_pref/4, % ?Subject, ?Predicate, +LanguagePriorityList, ?Value
-    rdf_langstring_pref/5, % ?Subject:rdf_term
-                           % ?Predicate:iri
-                           % +LanguagePriorityList:list(atom)
-                           % ?Value:pair(atom)
-                           % ?Graph:rdf_graph
+    rdf_pref_string/3, % ?Subject, ?Predicate, -LexicalForm
+    rdf_pref_string/4, % ?Subject, ?Predicate, +LanguagePriorityList, -LexicalForm
+    rdf_pref_string/5, % ?Subject, ?Predicate, +LanguagePriorityList, -LanguageTag, -LexicalForm
+    rdf_pref_string/6, % ?Subject:rdf_term
+                       % ?Predicate:iri
+                       % +LanguagePriorityList:list(atom)
+                       % -LanguageTag:atom
+                       % -LexicalForm:atom
+                       % ?Graph:rdf_graph
     rdf_literal/3, % ?Subject, ?Predicate, ?Value
     rdf_literal/4, % ?Subject, ?Predicate, ?Datatype, ?Value
     rdf_literal/5, % ?Subject:rdf_term
@@ -78,10 +82,13 @@
 :- rdf_meta(rdf_date(o,r,?,r)).
 :- rdf_meta(rdf_instance(o,r)).
 :- rdf_meta(rdf_instance(o,r,r)).
+:- rdf_meta(rdf_langstring(o,r,?)).
 :- rdf_meta(rdf_langstring(o,r,+,?)).
 :- rdf_meta(rdf_langstring(o,r,+,?,r)).
-:- rdf_meta(rdf_langstring_pref(o,r,+,?)).
-:- rdf_meta(rdf_langstring_pref(o,r,+,?,r)).
+:- rdf_meta(rdf_pref_string(o,r,-)).
+:- rdf_meta(rdf_pref_string(o,r,+,-)).
+:- rdf_meta(rdf_pref_string(o,r,+,-,-)).
+:- rdf_meta(rdf_pref_string(o,r,+,-,-,r)).
 :- rdf_meta(rdf_literal(o,r,?)).
 :- rdf_meta(rdf_literal(o,r,r,?)).
 :- rdf_meta(rdf_literal(o,r,r,?,r)).
@@ -223,6 +230,19 @@ rdf_instance(I, C, G):-
 %! rdf_langstring(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
+%!   ?Value:pair(atom)
+%! ) is nondet.
+% Wrapper around rdf_langstring/4 using the global language priority
+% list setting.
+
+rdf_langstring(S, P, V):-
+  user:setting(language_priority_list, LRanges),
+  rdf_langstring(S, P, LRanges, V).
+
+
+%! rdf_langstring(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
 %!   +LanguagePriorityList:list(atom),
 %!   ?Value:pair(atom)
 %! ) is nondet.
@@ -248,23 +268,51 @@ rdf_langstring(S, P, LRanges, V, G):-
 
 
 
-%! rdf_langstring_pref(
+%! rdf_pref_string(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
-%!   +LanguagePriorityList:list(atom),
-%!   ?Value:pair(atom)
+%!   -LexicalForm:atom
 %! ) is nondet.
-% Wrapper around rdf_langstring_pref/5 with uninstantiated graph.
+% Wrapper around rdf_pref_string/4 using the global language priority
+% list setting.
 
-rdf_langstring_pref(S, P, LRanges, V):-
-  rdf_langstring_pref(S, P, LRanges, V, _).
+rdf_pref_string(S, P, Lex):-
+  user:setting(language_priority_list, LRanges),
+  rdf_pref_string(S, P, LRanges, Lex).
 
 
-%! rdf_langstring_pref(
+%! rdf_pref_string(
 %!   ?Subject:rdf_term,
 %!   ?Predicate:iri,
 %!   +LanguagePriorityList:list(atom),
-%!   ?Value:pair(atom),
+%!   -LexicalForm:atom
+%! ) is nondet.
+% Wrapper around rdf_pref_string/5 that does not return the language tag,
+% if any.
+
+rdf_pref_string(S, P, LRanges, Lex):-
+  rdf_pref_string(S, P, LRanges, _, Lex).
+
+
+%! rdf_pref_string(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   +LanguagePriorityList:list(atom),
+%!   -LanguageTag:atom,
+%!   -LexicalForm:atom
+%! ) is nondet.
+% Wrapper around rdf_pref_string/6 with uninstantiated graph.
+
+rdf_pref_string(S, P, LRanges, LTag, Lex):-
+  rdf_pref_string(S, P, LRanges, LTag, Lex, _).
+
+
+%! rdf_pref_string(
+%!   ?Subject:rdf_term,
+%!   ?Predicate:iri,
+%!   +LanguagePriorityList:list(atom),
+%!   -LanguageTag:atom,
+%!   -LexicalForm:atom,
 %!   ?Graph:rdf_graph
 %! ) is nondet.
 % Returns, in this exact order:
@@ -274,13 +322,17 @@ rdf_langstring_pref(S, P, LRanges, V):-
 %      language priority list.
 %   3. XSD strings.
 
-rdf_langstring_pref(S, P, LRanges, V, G):-
-  rdf_langstring(S, P, LRanges, V, G).
-rdf_langstring_pref(S, P, LRanges, V, G):-
-  rdf_literal(S, P, rdf:langString, V, G),
-  \+ rdf_langstring(S, P, LRanges, V, G).
-rdf_langstring_pref(S, P, _, V, G):-
-  rdf_literal(S, P, xsd:string, V, G).
+% Language priority list matches.
+rdf_pref_string(S, P, LRanges, LTag, Lex, G):-
+  rdf_langstring(S, P, LRanges, Lex-LTag, G).
+% Other language-tagged strings.
+rdf_pref_string(S, P, LRanges, LTag, Lex, G):-
+  rdf_literal(S, P, rdf:langString, Lex-LTag, G),
+  % Avoid duplicates.
+  \+ basic_filtering(LRanges, LTag).
+% Plain XSD strings.
+rdf_pref_string(S, P, _, _, Lex, G):-
+  rdf_literal(S, P, xsd:string, Lex, G).
 
 
 

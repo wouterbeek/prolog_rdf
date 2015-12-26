@@ -2,24 +2,23 @@
   rdfs_read,
   [
     rdfs_class/2, % ?Class:rdf_term
-                  % ?Graph:atom
+                  % ?Graph:iri
     rdfs_comment/2, % ?Subject:rdf_term
                     % ?Comment:atom
     rdfs_instance/2, % ?Instance:rdf_term
                      % ?Class:or([bnode,iri])
-    rdfs_label/4, % +Subject:rdf_term
-                  % ?LanguagePriorityList:or([atom,list(atom)])
-                  % -LanguageTag:atom
-                  % -LexicalForm:atom
+    rdfs_label/2, % +Subject, -Label
+    rdfs_label/3, % +Subject, +LanguagePriorityList, -Label
+    rdfs_label/4, % +Subject, +LanguagePriorityList, -LanguageTag, -Label
     rdfs_label/5 % +Subject:rdf_term
-                 % ?LanguagePriorityList:or([atom,list(atom)])
+                 % +LanguagePriorityList:or([atom,list(atom)])
                  % -LanguageTag:atom
-                 % -LexicalForm:atom
-                 % ?Graph:atom
+                 % -Label:atom
+                 % ?Graph:iri
   ]
 ).
 
-/** <module> RDFS read
+/** <module> RDFS Read
 
 @author Wouter Beek
 @version 2015/08-2015/09, 2015/12
@@ -28,17 +27,19 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 
-:- rdf_meta(rdfs_class(o,?)).
+:- rdf_meta(rdfs_class(o,r)).
 :- rdf_meta(rdfs_comment(o,?)).
 :- rdf_meta(rdfs_instance(o,r)).
+:- rdf_meta(rdfs_label(o,-)).
+:- rdf_meta(rdfs_label(o,+,-)).
 :- rdf_meta(rdfs_label(o,+,-,-)).
-:- rdf_meta(rdfs_label(o,+,-,-,?)).
+:- rdf_meta(rdfs_label(o,+,-,-,r)).
 
 
 
 
 
-%! rdfs_class(?Class:rdf_term, ?Graph:atom) is nondet.
+%! rdfs_class(?Class:rdf_term, ?Graph:iri) is nondet.
 % @tbd
 
 rdfs_class(C, G):-
@@ -72,12 +73,32 @@ rdfs_instance(I, C):-
 
 
 
+%! rdfs_label(+Subject:rdf_term, -Label:atom) is nondet.
+% Wrapper around rdfs_label/3 using the global language priority list setting.
+
+rdfs_label(S, Lbl):-
+  user:setting(language_priority_list, LRanges),
+  rdfs_label(S, LRanges, Lbl).
+
+
 %! rdfs_label(
 %!   +Subject:rdf_term,
-%!   ?LanguagePriorityList:or([atom,list(atom)]),
-%!   -LanguageTag:atom,
-%!   -LexicalForm:atom
+%!   +LanguagePriorityList:list(atom),
+%!   -Label:atom
 %! ) is nondet.
+% Wrapper around rdfs_label/4 not returning the language tag, if any.
+
+rdfs_label(S, LRanges, Lbl):-
+  rdfs_label(S, LRanges, _, Lbl).
+
+
+%! rdfs_label(
+%!   +Subject:rdf_term,
+%!   +LanguagePriorityList:list(atom),
+%!   -LanguageTag:atom,
+%!   -Label:atom
+%! ) is nondet.
+% Wrapper around rdfs_label/5 with uninstantiated graph.
 
 rdfs_label(S, LRanges, LTag, Lbl):-
   rdfs_label(S, LRanges, LTag, Lbl, _).
@@ -85,17 +106,11 @@ rdfs_label(S, LRanges, LTag, Lbl):-
 
 %! rdfs_label(
 %!   +Subject:rdf_term,
-%!   ?LanguagePriorityList:or([atom,list(atom)]),
+%!   +LanguagePriorityList:list(atom),
 %!   -LanguageTag:atom,
-%!   -LexicalForm:atom,
-%!   ?Graph:atom
+%!   -Label:atom,
+%!   ?Graph:iri
 %! ) is nondet.
 
 rdfs_label(S, LRanges, LTag, Lex, G):-
-  rdf_expand_ct(rdfs:label, P),
-  (   % First look for language-tagged strings with matching language tag.
-      rdf_langstring(S, P, LRanges, LTag-Lex, G)
-  ;   % Secondly look for XSD strings with no language tag whatsoever.
-      rdf_expand_ct(xsd:string, D),
-      rdf_literal(S, P, D, Lex, G)
-  ).
+  rdf_pref_string(S, rdfs:label, LRanges, LTag, Lex, G).
