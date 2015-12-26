@@ -446,7 +446,7 @@ rdf_literal_pl(S, P, D, V):-
 % It may then, for certain use cases, still be useful to return
 % the native Prolog term which most closely matches the correct interpretation.
 %
-% For example, in XSD's dateTime/7 seconds are represented by a decimal,
+% For example, in XSD's datetime/7 seconds are represented by a decimal,
 % but in Prolog's date/9 and time/6 seconds are represented by a float.
 % The latter comes quite close to the former, but will generally
 % be a tiny bit less precise.

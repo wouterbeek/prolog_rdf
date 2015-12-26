@@ -76,9 +76,9 @@ rdfs_instance(I, C):-
 %! rdfs_label(+Subject:rdf_term, -Label:atom) is nondet.
 % Wrapper around rdfs_label/3 using the global language priority list setting.
 
-rdfs_label(S, Lbl):-
+rdfs_label(S, Lex):-
   user:setting(language_priority_list, LRanges),
-  rdfs_label(S, LRanges, Lbl).
+  rdfs_label(S, LRanges, Lex).
 
 
 %! rdfs_label(
@@ -88,8 +88,8 @@ rdfs_label(S, Lbl):-
 %! ) is nondet.
 % Wrapper around rdfs_label/4 not returning the language tag, if any.
 
-rdfs_label(S, LRanges, Lbl):-
-  rdfs_label(S, LRanges, _, Lbl).
+rdfs_label(S, LRanges, Lex):-
+  rdfs_label(S, LRanges, _, Lex).
 
 
 %! rdfs_label(
@@ -100,8 +100,8 @@ rdfs_label(S, LRanges, Lbl):-
 %! ) is nondet.
 % Wrapper around rdfs_label/5 with uninstantiated graph.
 
-rdfs_label(S, LRanges, LTag, Lbl):-
-  rdfs_label(S, LRanges, LTag, Lbl, _).
+rdfs_label(S, LRanges, LTag, Lex):-
+  rdfs_label(S, LRanges, LTag, Lex, _).
 
 
 %! rdfs_label(

@@ -15,6 +15,7 @@
 @version 2015/07-2015/08, 2015/12
 */
 
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdfs/rdfs_read)).
 

@@ -181,7 +181,7 @@ rdf_datatype(D):-
 rdf_datatype(rdf:langString, pair).
 rdf_datatype(rdf:'HTML', compound).
 rdf_datatype(rdf:'XMLLiteral', compound).
-rdf_datatype('http://purl.org/dc/terms/W3CDTF', dateTime).
+rdf_datatype('http://purl.org/dc/terms/W3CDTF', datetime).
 rdf_datatype(D, Type):-
   xsd_datatype(D, Type).
 
