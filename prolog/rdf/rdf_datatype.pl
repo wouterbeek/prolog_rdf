@@ -125,7 +125,7 @@ rdf_canonical_map(D, Val, CLex, CLTag):-
   ground(Val),
   Val = CLex-LTag,
   % Make sure the language-tag is valid as per BCP 47.
-  atom_phrase('obs-language-tag'(CLTag0), LTag),
+  atom_phrase('Language-Tag'(CLTag0), LTag),
   atomic_list_concat(CLTag0, -, CLTag).
 rdf_canonical_map(D, Val, CLex, _):-
   rdf_expand_ct(rdf:'HTML', D), !,

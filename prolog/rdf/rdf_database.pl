@@ -23,6 +23,10 @@
      rdf_warm_indexes/0,
      rdf_warm_indexes/1 % +Indexes
    ]).
+:- reexport(library(semweb/rdf_persistency), [
+     rdf_attach_db/2 % +Directory:atom
+                     % +Options:list(compound)
+   ]).
 
 /** <module> RDF database
 

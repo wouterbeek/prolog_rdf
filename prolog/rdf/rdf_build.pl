@@ -68,6 +68,7 @@ Simple asserion and retraction predicates for RDF.
 
 :- use_module(library(datetime/datetime)).
 :- use_module(library(default)).
+:- use_module(library(error)).
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
@@ -290,6 +291,11 @@ rdf_assert_literal_pl(S, P, V0, G):-
   string(V0), !,
   atom_string(V, V0),
   rdf_assert_literal_pl(S, P, V, G).
+% Prolog's date/3, date/9 and time/3 are first converted to datetime/7.
+rdf_assert_literal_pl(S, P, V1, G):-
+  (is_of_type(date, V1) ; is_of_type(time, V1)), !,
+  date_to_datetime(V1, V2),
+  rdf_assert_literal_pl(S, P, V2, G).
 rdf_assert_literal_pl(S, P, V, G):-
   rdf_guess_datatype(V, D), !,
   rdf_assert_literal(S, P, D, V, G).
