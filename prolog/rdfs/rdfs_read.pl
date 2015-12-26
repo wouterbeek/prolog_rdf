@@ -2,7 +2,7 @@
   rdfs_read,
   [
     rdfs_class/2, % ?Class:rdf_term
-                  % ?Graph:iri
+                  % ?Graph:rdf_graph
     rdfs_comment/2, % ?Subject:rdf_term
                     % ?Comment:atom
     rdfs_instance/2, % ?Instance:rdf_term
@@ -14,7 +14,7 @@
                  % +LanguagePriorityList:or([atom,list(atom)])
                  % -LanguageTag:atom
                  % -Label:atom
-                 % ?Graph:iri
+                 % ?Graph:rdf_graph
   ]
 ).
 
@@ -39,7 +39,7 @@
 
 
 
-%! rdfs_class(?Class:rdf_term, ?Graph:iri) is nondet.
+%! rdfs_class(?Class:rdf_term, ?Graph:rdf_graph) is nondet.
 % @tbd
 
 rdfs_class(C, G):-
@@ -109,7 +109,7 @@ rdfs_label(S, LRanges, LTag, Lex):-
 %!   +LanguagePriorityList:list(atom),
 %!   -LanguageTag:atom,
 %!   -Label:atom,
-%!   ?Graph:iri
+%!   ?Graph:rdf_graph
 %! ) is nondet.
 
 rdfs_label(S, LRanges, LTag, Lex, G):-
