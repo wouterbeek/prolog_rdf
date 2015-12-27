@@ -24,6 +24,7 @@
 @version 2015/08-2015/09, 2015/12
 */
 
+:- use_module(library(rdf/rdf_closure)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 
@@ -67,9 +68,9 @@ rdfs_comment(S, Comm):-
 %! rdfs_instance(?Instance:rdf_term, ?Class:or([bnode,iri])) is nondet.
 % @tbd
 
-rdfs_instance(I, C):-
-  rdf_expand_ct(rdf:type, P),
-  rdf(I, P, C).
+rdfs_instance(I, D):-
+  rdf(I, rdf:type, C),
+  rdf_closure0(C, rdfs:subClassOf, D).
 
 
 
