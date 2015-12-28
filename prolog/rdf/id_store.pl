@@ -89,9 +89,9 @@ A literal identity set identifier denotes itself.
 
 :- dynamic(id_to_terms/2).
 
-%! term_to_id0(+Term:or([rdf_bnode,iri]), -Id:uid) is nondet.
+%! term_to_id(+Term:or([rdf_bnode,iri]), -Id:uid) is nondet.
 
-:- dynamic(term_to_id0/2).
+:- dynamic(term_to_id/2).
 
 :- predicate_options(print_raw_graph/2, 2, [
      pass_to(print_raw_statement/5, 5)
@@ -249,7 +249,7 @@ rdf_is_id(T1, T2):-
 remove_id(Id):-
   with_mutex(id_store, (
     retractall(id_to_terms(Id,_)),
-    retractall(term_to_id0(_,Id))
+    retractall(term_to_id(_,Id))
   )).
 
 
@@ -269,12 +269,12 @@ store_id(X, Y):-
               ord_union(Xs, Ys, Zs),
               create_id(Zid),
               with_mutex(id_store, (
-                retract(term_to_id0(X, Xid)),
+                retract(term_to_id(X, Xid)),
                 retract(id_to_terms(Xid, Xs)),
-                retract(term_to_id0(Y, Yid)),
+                retract(term_to_id(Y, Yid)),
                 retract(id_to_terms(Yid, Ys)),
-                assert(term_to_id0(X, Zid)),
-                assert(term_to_id0(Y, Zid)),
+                assert(term_to_id(X, Zid)),
+                assert(term_to_id(Y, Zid)),
                 assert(id_to_terms(Zid, Zs)),
                 rdf_rename_term0(Xid, Zid),
                 rdf_rename_term0(Yid, Zid)
@@ -286,7 +286,7 @@ store_id(X, Y):-
           with_mutex(id_store, (
             retract(id_to_terms(Xid, Xs1)),
             assert(id_to_terms(Xid, Xs2)),
-            assert(term_to_id0(Y, Xid))
+            assert(term_to_id(Y, Xid))
           ))
       )
   ;   term_to_id(Y, Yid)
@@ -296,7 +296,7 @@ store_id(X, Y):-
       with_mutex(id_store, (
         retract(id_to_terms(Yid, Ys1)),
         assert(id_to_terms(Yid, Ys2)),
-        assert(term_to_id0(X, Yid))
+        assert(term_to_id(X, Yid))
       ))
   ;   create_id(Xid),
       create_id(Yid),
@@ -305,13 +305,6 @@ store_id(X, Y):-
         store_new_id(Y, Yid)
       ))
   ).
-
-
-
-%! term_to_id(+Term:rdf_term, -Id:atom) is det.
-
-term_to_id(T, Id):-
-  term_to_id0(T, Id).
 
 
 
@@ -331,7 +324,7 @@ term_to_terms(T, Ts):- term_to_id(T, Id), id_to_terms(Id, Ts).
 
 unload_id_store:-
   retractall(id_to_terms(_,_,_)),
-  retractall(term_to_id0(_,_)).
+  retractall(term_to_id(_,_)).
 
 
 
@@ -362,5 +355,5 @@ rdf_rename_term0(X, Y):-
 %! store_new_id(+Term:rdf_term, +Id:uid) is det.
 
 store_new_id(T, TId):-
-  assert(term_to_id0(T, TId)),
+  assert(term_to_id(T, TId)),
   assert(id_to_terms(TId, [T])).

@@ -149,6 +149,7 @@ rdf_assert(S, P, O, _):-
 rdf_assert(S, P, O, G):-
   maplist(assign_id, [S,P,O], [Sid,Pid,Oid]),
   defval(default, G),
+  format(user_output, "~a\t~a\t~a~n", [Sid,Pid,Oid]),
   rdf_assert0(Sid, Pid, Oid, G).
 
 
