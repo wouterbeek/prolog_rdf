@@ -22,8 +22,7 @@
     rdf_list_first_raw/3, % ?List:rdf_term
                           % ?First:rdf_term
                           % ?Graph:rdf_graph
-    rdf_list_length/2, % ?List:rdf_term
-                       % ?Length:nonneg
+    rdf_list_length/2, % ?List, ?Length
     rdf_list_length/3, % ?List:rdf_term
                        % ?Length:nonneg
                        % ?Graph:rdf_graph
@@ -35,7 +34,7 @@
     rdf_list_member_raw/3, % ?Element:rdf_term
                            % ?List:rdf_term
                            % ?Graph:rdf_graph
-    rdf_retractall_list/1, % +List:rdf_term
+    rdf_retractall_list/1, % +List
     rdf_retractall_list/2 % +List:rdf_term
                           % ?Graph:rdf_graph
   ]

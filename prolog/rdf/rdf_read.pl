@@ -71,7 +71,7 @@
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf_db), [rdf/4 as rdf_id]).
+:- use_module(library(semweb/rdf_db), [rdf/4 as rdf0]).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(rdf(o,r,o)).
@@ -158,7 +158,7 @@ rdf(S, P, O, Sid, Pid, Oid):-
 
 rdf(S, P, O, G, Sid, Pid, Oid):-
   maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
-  rdf_id(Sid, Pid, Oid, G).
+  rdf0(Sid, Pid, Oid, G).
 matching_term(X, Xid):- ground(X), !, term_to_id(X, Xid).
 matching_term(_X, _Y).
 
