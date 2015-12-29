@@ -24,6 +24,8 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
 :- use_module(library(semweb/rdf_turtle_write)).
@@ -33,9 +35,11 @@
 :- meta_predicate(rdf_write_to_graph(+,1,+)).
 :- meta_predicate(rdf_write_to_graph(1,+,+,+)).
 
-:- predicate_options(rdf_save/2, 2, [
+:- rdf_meta(rdf_save_file(+,t)).
+
+:- predicate_options(rdf_save_file/2, 2, [
      format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml])),
-     graph(+atom),
+     graph(+iri),
      pass_to(rdf_save_to_stream/4, 2),
      pass_to(rdf_write_to_stream/3, 3)
    ]).
@@ -50,7 +54,7 @@
      pass_to(rdf_write_to_graph/4, 2)
    ]).
 :- predicate_options(rdf_write_to_graph/4, 2, [
-     pass_to(rdf_save/2, 2)
+     pass_to(rdf_save_file/2, 2)
    ]).
 
 
@@ -67,7 +71,7 @@ rdf_save_file(Out):-
 %! rdf_save_file(+Sink, +Options:list(compound)) is det.
 % The following options are supported:
 %   * format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml]))
-%   * graph(+atom)
+%   * graph(+iri)
 
 % The file name can be derived from the graph.
 rdf_save_file(Out, Opts):-
@@ -121,7 +125,7 @@ rdf_save_file(Out, Opts):-
       file_name_extension(_, Ext, Out),
       rdf_file_extension(Ext, Format)
   ->  true
-  ;   Format = cquads
+  ;   Format = simpleQuads
   ),
 
   % Make sure the directory exists.
@@ -163,11 +167,26 @@ rdf_save_to_stream(trig, Opts, _, Write):- !,
 % Turtle.
 rdf_save_to_stream(turtle, Opts0, _, Write):- !,
   merge_options(
-    [only_known_prefixes(true),tab_distance(0),user_prefixes(true)],
+    [
+      a(true),
+      align_prefixes(true),
+      comment(true),
+      expand(non_reflexive_rdf_petty),
+      group(true),
+      indent(4),
+      only_known_prefixes(true),
+      subject_white_lines(1),
+      tab_distance(0),
+      user_prefixes(true)
+    ],
     Opts0,
     Opts
   ),
   rdf_save_turtle(Write, Opts).
+non_reflexive_rdf_petty(S, P, O, G):-
+  rdf_expand_ct(owl:sameAs, P0),
+  rdf_petty(S, P, O, G),
+  (P == P0 -> S \== O ; true).
 
 
 
@@ -188,7 +207,7 @@ rdf_write_to_graph(Out, Goal_1):-
 %     By default no compression is used.
 %   * format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml]))
 %     The output format that is used for writing.
-%     Default is `cquads`.
+%     Default is `simpleQuads`.
 
 rdf_write_to_graph(Out, Goal_1, Opts):-
   rdf_write_to_stream(Out, rdf_write_to_graph(Goal_1, Opts), Opts).
@@ -199,7 +218,7 @@ rdf_write_to_graph(Goal_1, Opts1, _, Write):-
     (
       call(Goal_1, G),
       merge_options([graph(G)], Opts1, Opts2),
-      rdf_save(stream(Write), Opts2)
+      rdf_save_file(stream(Write), Opts2)
     ),
     rdf_unload_graph(G)
   ).

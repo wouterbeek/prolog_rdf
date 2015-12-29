@@ -4,9 +4,9 @@
     rdf/3, % ?Subject, ?Predicate, ?Object
     rdf/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf/6, % ?Subject, ?Predicate, ?Object, -Sid, -Pid, -Oid
-    rdf/7, % ?Subject:gid
-           % ?Predicate:gid
-           % ?Object:gid
+    rdf/7, % ?Subject:rdf_term
+           % ?Predicate:iri
+           % ?Object:rdf_term
            % ?Graph:rdf_graph
            % -Sid:uid
            % -Pid:uid
@@ -45,11 +45,16 @@
                    % ?Graph:rdf_graph
     rdf_literal_pl/3, % ?Subject, ?Predicate, ?Value
     rdf_literal_pl/4, % ?Subject, ?Predicate, ?Datatype, ?Value
-    rdf_literal_pl/5 % ?Subject:rdf_term
-                     % ?Predicate:iri
-                     % ?Datatype:iri
-                     % ?Value
-                     % ?Graph:rdf_graph
+    rdf_literal_pl/5, % ?Subject:rdf_term
+                      % ?Predicate:iri
+                      % ?Datatype:iri
+                      % ?Value
+                      % ?Graph:rdf_graph
+    rdf_petty/3, % ?Subject, ?Predicate, ?Object
+    rdf_petty/4 % ?Subject:or([bnode,iri])
+                % ?Predicate:iri
+                % ?Object:rdf_term
+                % ?Graph:rdf_graph
   ]
 ).
 
@@ -95,7 +100,8 @@
 :- rdf_meta(rdf_literal_pl(o,r,?)).
 :- rdf_meta(rdf_literal_pl(o,r,r,?)).
 :- rdf_meta(rdf_literal_pl(o,r,r,?,r)).
-
+:- rdf_meta(rdf_petty(r,r,o)).
+:- rdf_meta(rdf_petty(r,r,o,r)).
 
 
 
@@ -259,6 +265,10 @@ rdf_langstring(S, P, LRanges, V):-
 %!   ?Value:pair(atom),
 %!   ?Graph:rdf_graph
 %! ) is nondet.
+% Matches RDF statements whose object term is a language-tagged string
+% that mathes the given language priory list.
+% Notice that results for each of the prioritized languages are given
+% in arbitrary order.
 
 rdf_langstring(S, P, LRanges, V, G):-
   rdf_literal(S, P, rdf:langString, V, G),
@@ -317,14 +327,16 @@ rdf_pref_string(S, P, LRanges, LTag, Lex):-
 %! ) is nondet.
 % Returns, in this exact order:
 %   1. The language-tagged strings that match the given
-%      language priority list.
+%      language priority list; returning results for higher
+%      priority language earlier.
 %   2. The language-tagged strings that do not match the given
 %      language priority list.
 %   3. XSD strings.
 
 % Language priority list matches.
 rdf_pref_string(S, P, LRanges, LTag, Lex, G):-
-  rdf_langstring(S, P, LRanges, Lex-LTag, G).
+  member(LRange, LRanges),
+  rdf_langstring(S, P, [LRange], Lex-LTag, G).
 % Other language-tagged strings.
 rdf_pref_string(S, P, LRanges, LTag, Lex, G):-
   rdf_literal(S, P, rdf:langString, Lex-LTag, G),
@@ -462,3 +474,28 @@ rdf_literal_pl(S, P, D, V1, G):-
 rdf_literal_pl(S, P, D, V1, G):-
   rdf_literal(S, P, D, V2, G),
   (xsd_datatype(D, datetime) -> datetime_to_date(V2, V1) ; V1 = V2).
+
+
+
+%! rdf_petty(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term
+%! ) is nondet.
+% Wrapper around rdf_petty/4 with uninstantiated graph.
+
+rdf_petty(S, P, O):-
+  rdf_petty(S, P, O, _).
+
+
+%! rdf_petty(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:rdf_graph
+%! ) is nondet.
+% Enumerates RDF statements whose subject term is not a literal.
+
+rdf_petty(S, P, O, G):-
+  rdf(S, P, O, G),
+  \+ rdf_is_literal(S).

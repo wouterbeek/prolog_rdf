@@ -38,6 +38,7 @@ Support for loading RDF data.
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
@@ -99,7 +100,8 @@ rdf_call_on_statements(In, Goal_2):-
 %! rdf_call_on_statements(+Source, :Goal_2, +Options:list(compound)) is nondet.
 
 rdf_call_on_statements(In, Goal_2, Opts):-
-  option(graph(G), Opts, default),
+  option(graph(G0), Opts, default),
+  rdf_expand_rt(G0, G),
   catch(
     rdf_read_from_stream(In, rdf_call_on_statements_stream(G, Goal_2), Opts),
     E,
@@ -108,7 +110,7 @@ rdf_call_on_statements(In, Goal_2, Opts):-
 
 
 %! rdf_call_on_statements_stream(
-%!   ?Graph:atom,
+%!   ?Graph:iri,
 %!   :Goal_2,
 %!   +Metadata:dict,
 %!   +Read:stream
@@ -151,7 +153,7 @@ rdf_load_file(In):-
 %! rdf_load_file(+Source, +Options:list(compound)) is det.
 % The following options are supported:
 %   * base_iri(+atom)
-%   * graph(+atom)
+%   * graph(+rdf_graph)
 %   * triples(-nonneg)
 %   * quadruples(-nonneg)
 %   * statements(-nonneg)
