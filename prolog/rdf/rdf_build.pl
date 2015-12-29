@@ -434,19 +434,6 @@ rdf_retractall_term(T, G):-
 
 
 
-% HELPERS %
-
-%! rdf_normalize(+Term:rdf_term, -NormalizedTerm:rdf_term) is det.
-
-rdf_normalize(X, Y):-
-  is_iri(X), !,
-  iri_normalized(X, Y).
-rdf_normalize(X, X).
-
-
-
-
-
 % MESSAGES %
 
 :- multifile(prolog:message//1).

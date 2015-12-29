@@ -72,6 +72,8 @@ A literal identity set identifier denotes itself.
      rdf_assert/4 as rdf_assert0,
      rdf_retractall/4 as rdf_retractall0
    ]).
+:- use_module(library(typecheck)).
+:- use_module(library(uri)).
 
 :- rdf_meta(assign_id(o)).
 :- rdf_meta(assign_id(o,-)).
@@ -129,7 +131,10 @@ assign_id(T, TId):-
 canonical_form(Lit, CLit):-
   rdf_is_literal(Lit), !,
   rdf_lexical_canonical_map(Lit, CLit).
-canonical_form(T, T).
+canonical_form(Iri, Norm):-
+  is_iri(Iri), !,
+  iri_normalized(Iri, Norm).
+canonical_form(BNode, BNode).
 
 
 
