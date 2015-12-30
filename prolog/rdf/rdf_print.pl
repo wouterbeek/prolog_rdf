@@ -12,7 +12,8 @@
     rdf_print_graph/1, % ?Graph
     rdf_print_graph/2, % ?Graph:rdf_graph
                        % +Options:list(compound)
-    rdf_print_graphs/0
+    rdf_print_graphs/0,
+    rdf_print_graphs/1 % +Options:list(compound)
   ]
 ).
 :- reexport(library(rdf/rdf_print_stmt)).
@@ -59,6 +60,9 @@ Printing of RDF statements to a text-based output stream.
 :- predicate_options(rdf_print_graph/2, 2, [
      pass_to(rdf_print_quadruple/5, 5),
      pass_to(rdf_print_triple/5, 5)
+   ]).
+:- predicate_options(rdf_print_graphs/1, 1, [
+     pass_to(dcg_table//2, 2)
    ]).
 
 
@@ -152,12 +156,22 @@ rdf_print_graph(_, _).
 
 
 
+%! rdf_print_graphs is det.
+% Wrapper around rdf_print_graphs/1 with default options.
+
 rdf_print_graphs:-
+  rdf_print_graphs([maximum_number_of_rows(50)]).
+
+
+%! rdf_print_graphs(+Options:list(compound)) is det.
+% Options are passed to dcg_table//2.
+
+rdf_print_graphs(Opts):-
   aggregate_all(set(N-G), rdf_number_of_triples(G, N), Pairs1),
   reverse(Pairs1, Pairs2),
   maplist(inverse_pair, Pairs2, Pairs3),
   maplist(pair_list, Pairs3, DataRows),
   dcg_with_output_to(
     user_output,
-    dcg_table([head(['Graph','Number of statements'])|DataRows])
+    dcg_table([head(['Graph','Number of statements'])|DataRows], Opts)
   ).
