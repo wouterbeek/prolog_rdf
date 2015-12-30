@@ -51,10 +51,15 @@
                       % ?Value
                       % ?Graph:rdf_graph
     rdf_petty/3, % ?Subject, ?Predicate, ?Object
-    rdf_petty/4 % ?Subject:or([bnode,iri])
-                % ?Predicate:iri
-                % ?Object:rdf_term
-                % ?Graph:rdf_graph
+    rdf_petty/4, % ?Subject:or([bnode,iri])
+                 % ?Predicate:iri
+                 % ?Object:rdf_term
+                 % ?Graph:rdf_graph
+    rdf_petty_min/3, % ?Subject, ?Predicate, ?Object
+    rdf_petty_min/4 % ?Subject:or([bnode,iri])
+                    % ?Predicate:iri
+                    % ?Object:rdf_term
+                    % ?Graph:rdf_graph
   ]
 ).
 
@@ -102,6 +107,9 @@
 :- rdf_meta(rdf_literal_pl(o,r,r,?,r)).
 :- rdf_meta(rdf_petty(r,r,o)).
 :- rdf_meta(rdf_petty(r,r,o,r)).
+:- rdf_meta(rdf_petty_min(r,r,o)).
+:- rdf_meta(rdf_petty_min(r,r,o,r)).
+
 
 
 
@@ -499,3 +507,29 @@ rdf_petty(S, P, O):-
 rdf_petty(S, P, O, G):-
   rdf(S, P, O, G),
   \+ rdf_is_literal(S).
+
+
+
+%! rdf_petty_min(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term
+%! ) is nondet.
+% Wrapper around rdf_petty_min/4 with uninstantiated graph.
+
+rdf_petty_min(S, P, O):-
+  rdf_petty_min(S, P, O, _).
+
+
+%! rdf_petty_min(
+%!   ?Subject:or([bnode,iri]),
+%!   ?Predicate:iri,
+%!   ?Object:rdf_term,
+%!   ?Graph:rdf_graph
+%! ) is nondet.
+% Enumerates RDF statements whose subject term is not a literal.
+
+rdf_petty_min(S, P, O, G):-
+  rdf_expand_ct(owl:sameAs, P0),
+  rdf_petty(S, P, O, G),
+  (P == P0 -> S \== O ; true).

@@ -171,7 +171,7 @@ rdf_save_to_stream(turtle, Opts0, _, Write):- !,
       a(true),
       align_prefixes(true),
       comment(true),
-      expand(non_reflexive_rdf_petty),
+      expand(rdf_petty_min),
       group(true),
       indent(4),
       only_known_prefixes(true),
@@ -183,10 +183,6 @@ rdf_save_to_stream(turtle, Opts0, _, Write):- !,
     Opts
   ),
   rdf_save_turtle(Write, Opts).
-non_reflexive_rdf_petty(S, P, O, G):-
-  rdf_expand_ct(owl:sameAs, P0),
-  rdf_petty(S, P, O, G),
-  (P == P0 -> S \== O ; true).
 
 
 

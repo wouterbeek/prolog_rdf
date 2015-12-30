@@ -7,6 +7,7 @@
     rdf_datatype_iri/1, % ?Datatype
     rdf_datatype_iri/2, % +Graph:rdf_graph
                         % ?Datatype:iri
+    rdf_iri/1, % ?Term:rdf_term
     rdf_is_iri/1, % @Term
     rdf_is_name/1, % @Term
     rdf_is_term/1, % @Term
@@ -81,6 +82,7 @@ resources as well.
 :- rdf_meta(rdf_subject(r,o)).
 :- rdf_meta(rdf_datatype_iri(r)).
 :- rdf_meta(rdf_datatype_iri(r,r)).
+:- rdf_meta(rdf_iri(r)).
 :- rdf_meta(rdf_literal(o)).
 :- rdf_meta(rdf_literal(r,o)).
 :- rdf_meta(rdf_name(o)).
@@ -167,7 +169,7 @@ rdf_datatype_iri(G, D):-
 
 
 %! rdf_iri(@Term) is semidet.
-%! rdf_iri(-Term) is semidet.
+%! rdf_iri(-Term) is nondet.
 
 rdf_iri(T):-
   nonvar(T), !,

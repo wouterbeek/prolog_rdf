@@ -1,6 +1,9 @@
 :- module(
   rdf_print,
   [
+    rdf_print_deref/1, % +Subject
+    rdf_print_deref/2, % +Subject:iri
+                       % +Options:list(compound)
     rdf_print_describe/1, % +Subject
     rdf_print_describe/2, % +Subject, +Options
     rdf_print_describe/3, % +Subject:rdf_term
@@ -30,17 +33,23 @@ Printing of RDF statements to a text-based output stream.
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
+:- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stats)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
+:- rdf_meta(rdf_print_deref(r)).
+:- rdf_meta(rdf_print_deref(r,+)).
 :- rdf_meta(rdf_print_describe(o)).
 :- rdf_meta(rdf_print_describe(o,+)).
 :- rdf_meta(rdf_print_describe(o,r,+)).
 :- rdf_meta(rdf_print_graph(r)).
 :- rdf_meta(rdf_print_graph(r,+)).
 
+:- predicate_options(rdf_print_deref/2, 2, [
+     pass_to(rdf_print_triple/5, 5)
+   ]).
 :- predicate_options(rdf_print_describe/2, 2, [
      pass_to(rdf_print_describe/3, 3)
    ]).
@@ -53,6 +62,20 @@ Printing of RDF statements to a text-based output stream.
    ]).
 
 
+
+
+
+%! rdf_print_deref(+Subject:iri) is det.
+% Wrapper around rdf_print_deref/2 with default options.
+
+rdf_print_deref(S):-
+  rdf_print_deref(S, []).
+
+
+%! rdf_print_deref(+Subject:iri, +Options:list(compound)) is det.
+
+rdf_print_deref(S, Opts):-
+  forall(rdf_deref(S, P, O), rdf_print_triple(S, P, O, _, Opts)).
 
 
 
