@@ -67,6 +67,13 @@
                       % ?Graph:rdf_graph
   ]
 ).
+:- reexport(library(semweb/rdf_db), [
+     rdf/3 as rdf_id, % ?Sid, ?Pid, Oid
+     rdf/4 as rdf_id % ?Sid:atom
+                     % ?Pid:atom
+                     % ?Oid:atom
+                     % ?Graph:atom
+   ]).
 
 /** <module> Generalized RDF reading
 
@@ -86,7 +93,6 @@
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf_db), [rdf/4 as rdf0]).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(rdf(t,r)).
@@ -186,7 +192,7 @@ rdf(S, P, O, Sid, Pid, Oid):-
 
 rdf(S, P, O, G, Sid, Pid, Oid):-
   maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
-  rdf0(Sid, Pid, Oid, G).
+  rdf_id(Sid, Pid, Oid, G).
 matching_term(X, Xid):- ground(X), !, term_to_id(X, Xid).
 matching_term(_X, _Y).
 
