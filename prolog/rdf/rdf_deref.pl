@@ -3,8 +3,8 @@
   [
     rdf_cache/0,
     rdf_cache/1, % +Options:list(compound)
-    rdf_deref/1, % +Source
-    rdf_deref/2, % +Source, -Graph
+    rdf_deref/1, % +Subject
+    rdf_deref/2, % +Subject, -Graph
     rdf_deref/3 % +Subject:iri
                 % -Predicate:iri
                 % -Object:rdf_term
@@ -34,8 +34,6 @@
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(uri)).
 
-:- debug(rdf_deref).
-
 :- rdf_meta(rdf_deref(r)).
 :- rdf_meta(rdf_deref(r,-)).
 :- rdf_meta(rdf_deref(r,-,-)).
@@ -60,7 +58,7 @@ rdf_cache:triple_to_iri(rdf(_,_,O), D):-
   rdf_is_literal(O),
   rdf_literal_data(datatype, O, D).
 rdf_cache:triple_to_iri(rdf(_,P,O), O):-
-  rdf_memberchk(P, [owl:sameAs,rdf:type,rdfs:subClassOf,rdfs:subPropertyOf]),
+  rdf_memberchk(P, [owl:equivalentClass,owl:sameAs,rdf:type,rdfs:subClassOf,rdfs:subPropertyOf]),
   rdf_is_iri(O).
 
 
@@ -92,18 +90,29 @@ rdf_cache(Opts1):-
 
 rdf_cache_worker(Opts, S, Ys):-
   option(excluded_authorities(ExclAuths), Opts, []),
-  rdf_iri(S),
-  uri_components(S, uri_components(Scheme,Auth,_,_,_)),
-  http_scheme(Scheme),
-  (   memberchk(Auth, ExclAuths)
-  ->  Ys = []
-  ;   rdf_deref(S, G),gtrace,
-      aggregate(set(Y), (rdf(T, G), rdf_cache:triple_to_iri(T, Y)), Ys)
+  (   rdf_is_iri(S)
+  ->  (   uri_components(S, uri_components(Scheme,Auth,_,_,_)),
+          http_scheme(Scheme)
+      ->  (   memberchk(Auth, ExclAuths)
+          ->  Ys = [],
+              debug(rdf_deref, "Skipping because of excluded authority: ~a", [S])
+          ;   rdf_deref(S, G),
+              aggregate_all(
+                set(Y),
+                (rdf(S, P, O, G), rdf_cache:triple_to_iri(rdf(S,P,O), Y)),
+                Ys
+              )
+          )
+      ;   Ys = [],
+          debug(rdf_deref, "Skipping non-HTTP IRI: ~a", [S])
+      )
+  ;   Ys = [],
+      debug(rdf_deref, "Skipping non-IRI: ~w", [S])
   ).
 
 
 
-%! rdf_deref(+Source) is det.
+%! rdf_deref(+Subject:iri) is det.
 % Wrapper around rdf_deref/2 that does not return the graph.
 
 rdf_deref(S):-

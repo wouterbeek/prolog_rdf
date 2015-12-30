@@ -10,11 +10,13 @@
     rdfs_label/2, % +Subject, -Label
     rdfs_label/3, % +Subject, +LanguagePriorityList, -Label
     rdfs_label/4, % +Subject, +LanguagePriorityList, -LanguageTag, -Label
-    rdfs_label/5 % +Subject:rdf_term
-                 % +LanguagePriorityList:or([atom,list(atom)])
-                 % -LanguageTag:atom
-                 % -Label:atom
-                 % ?Graph:rdf_graph
+    rdfs_label/5, % +Subject:rdf_term
+                  % +LanguagePriorityList:or([atom,list(atom)])
+                  % -LanguageTag:atom
+                  % -Label:atom
+                  % ?Graph:rdf_graph
+    rdfs_one_label/2 % +Subject:rdf_term
+                     % -Label:atom
   ]
 ).
 
@@ -35,6 +37,7 @@
 :- rdf_meta(rdfs_label(o,+,-)).
 :- rdf_meta(rdfs_label(o,+,-,-)).
 :- rdf_meta(rdfs_label(o,+,-,-,r)).
+:- rdf_meta(rdfs_one_label(o,-)).
 
 
 
@@ -115,3 +118,11 @@ rdfs_label(S, LRanges, LTag, Lex):-
 
 rdfs_label(S, LRanges, LTag, Lex, G):-
   rdf_pref_string(S, rdfs:label, LRanges, LTag, Lex, G).
+
+
+
+%! rdfs_one_label(+Subject:rdf_term, -Label:atom) is det.
+
+rdfs_one_label(S, Lex):-
+  rdfs_label(S, Lex), !.
+rdfs_one_label(_, '∅').
