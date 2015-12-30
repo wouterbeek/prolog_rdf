@@ -143,7 +143,9 @@ rdf_assert(S, P, O):-
 
 % 1. Identity statements.
 rdf_assert(S, P, O, _):-
-  rdf_is_id(owl:sameAs, P), !,
+  % @tbd RDF prefix expansion breaks at random places.
+  rdf_expand_ct(owl:sameAs, P0),
+  rdf_is_id(P0, P), !,
   store_id(S, O).
 % 2. Statements other than the identity statement.
 rdf_assert(S, P, O, G):-
