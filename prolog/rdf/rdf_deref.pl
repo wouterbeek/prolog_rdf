@@ -58,7 +58,7 @@ rdf_cache:triple_to_iri(rdf(_,_,O), D):-
   rdf_is_literal(O),
   rdf_literal_data(datatype, O, D).
 rdf_cache:triple_to_iri(rdf(_,P,O), O):-
-  rdf_memberchk(P, [owl:equivalentClass,owl:sameAs,rdf:type,rdfs:subClassOf,rdfs:subPropertyOf]),
+  rdf_memberchk(P, [owl:equivalentClass,owl:sameAs]),
   rdf_is_iri(O).
 
 
@@ -132,6 +132,10 @@ rdf_deref(S, G):-
 
 
 %! rdf_deref(+Subject:iri, -Predicate:iri, -Object:rdf_term) is nondet.
+% @tbd Simplify?
 
 rdf_deref(S, P, O):-
-  rdf_call_on_graph(S, rdf_petty_min(S, P, O)).
+  rdf_call_on_graph(S, rdf_petty_mins0(Ts)),
+  member(rdf(S,P,O), Ts).
+rdf_petty_mins0(Ts, G):-
+  aggregate_all(set(rdf(S,P,O)), rdf_petty_min(S, P, O, G), Ts).
