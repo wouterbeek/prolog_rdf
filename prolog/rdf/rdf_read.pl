@@ -1,6 +1,8 @@
 :- module(
   rdf_read,
   [
+    rdf/2, % ?Triple:rdf_triple
+           % ?Graph:rdf_graph
     rdf/3, % ?Subject, ?Predicate, ?Object
     rdf/4, % ?Subject, ?Predicate, ?Object, ?Graph
     rdf/6, % ?Subject, ?Predicate, ?Object, -Sid, -Pid, -Oid
@@ -84,6 +86,7 @@
 :- use_module(library(semweb/rdf_db), [rdf/4 as rdf0]).
 :- use_module(library(xsd/xsd)).
 
+:- rdf_meta(rdf(t,r)).
 :- rdf_meta(rdf(o,r,o)).
 :- rdf_meta(rdf(o,r,o,r)).
 :- rdf_meta(rdf(o,r,o,-,-,-)).
@@ -112,6 +115,13 @@
 
 
 
+
+
+%! rdf(?Triple:rdf_triple, ?Graph:rdf_graph) is nondet.
+% Wrapper around rdf/4 that uses a compound term to represent an RDF triple.
+
+rdf(rdf(S,P,O), G):-
+  rdf(S, P, O, G).
 
 
 %! rdf(?Subject:rdf_term, ?Predicate:iri, ?Object:rdf_term) is nondet.
@@ -530,6 +540,5 @@ rdf_petty_min(S, P, O):-
 % Enumerates RDF statements whose subject term is not a literal.
 
 rdf_petty_min(S, P, O, G):-
-  rdf_expand_ct(owl:sameAs, P0),
   rdf_petty(S, P, O, G),
-  (P == P0 -> S \== O ; true).
+  (rdf_expand_ct(owl:sameAs, P) -> S \== O ; true).

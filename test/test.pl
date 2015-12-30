@@ -24,8 +24,6 @@
 :- use_module(library(html/rdf_html_stmt)).
 :- use_module(library(html/rdf_html_table)).
 :- use_module(library(html/rdf_html_term)).
-%/lod
-:- use_module(library(lod/lod_cache)).
 %/mat
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).
@@ -53,6 +51,7 @@
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_default)).
+:- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_download)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).

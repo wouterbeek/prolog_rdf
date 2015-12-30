@@ -68,14 +68,14 @@ Support for loading RDF data.
 
 
 
-%! rdf_call_on_graph(+Source, :Goal_1) is det.
+%! rdf_call_on_graph(+Source, :Goal_1) .
 % Wrapper around rdf_call_on_graph/3 with default options.
 
 rdf_call_on_graph(In, Goal_1):-
   rdf_call_on_graph(In, Goal_1, []).
 
 
-%! rdf_call_on_graph(+Source, :Goal_1, +Options:list(compound)) is det.
+%! rdf_call_on_graph(+Source, :Goal_1, +Options:list(compound)) .
 
 rdf_call_on_graph(In, Goal_1, Opts0):-
   setup_call_cleanup(
