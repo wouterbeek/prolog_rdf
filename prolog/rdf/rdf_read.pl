@@ -175,7 +175,6 @@ rdf(S, P, O, G):-
 %!   -Oid:uid
 %! ) is nondet.
 
-
 rdf(S, P, O, Sid, Pid, Oid):-
   rdf(S, P, O, _, Sid, Pid, Oid).
 

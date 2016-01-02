@@ -48,15 +48,18 @@ assuming `xsd:string` in case no datatype IRI is given.
 @author Wouter Beek
 @author Jan Wielemaker
 @author Laurens Rietveld
-@version 2015/08, 2015/10-2015/12
+@version 2015/08, 2015/10-2016/01
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_bnode_name)). % Private
+:- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(semweb/turtle)). % Private
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
@@ -90,7 +93,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 
 write_simple_begin(BNodePrefix, triples, quadruples, Opts):-
   reset_bnode_names,
-  
+
   create_thread_counter(triples),
   create_thread_counter(quadruples),
 
@@ -130,10 +133,10 @@ write_simple_end(CT, CQ, Opts):-
 
   delete_thread_counter(CQ, NQ),
   option(quadruples(NQ), Opts, _),
-  
+
   NS is NT + NQ,
   option(statements(NS), Opts, _),
-  
+
   reset_bnode_names.
 
 
@@ -154,15 +157,14 @@ write_simple_graph(G, Opts):-
   ->  must_be(oneof([quadruples,triples]), Format)
   ;   rdf_graph(G),
       G \== default,
-      rdf(_, _, _, G:_)
+      rdf(_, _, _, G)
   ->  must_be(iri, G),
       Format = quadruples
   ;   Format = triples
   ),
 
-  findall(S, rdf(S, _, _, G), Ss),
-  sort(Ss, SortedSs),
-  maplist(write_simple_subject(BNodePrefix, CT, CQ, G, Format), SortedSs),
+  aggregate_all(set(S), rdf(S, _, _, G), Ss),
+  maplist(write_simple_subject(BNodePrefix, CT, CQ, G, Format), Ss),
 
   write_simple_end(CT, CQ, Opts).
 
@@ -266,20 +268,12 @@ write_simple_subject(Iri, _):-
 
 % Format: Quadruples.
 write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S):-
-  findall(P-O-G, rdf(S, P, O, G:_), POGs),
-  sort(POGs, SortedPOGs),
-  forall(
-    member(P-O-G, SortedPOGs),
-    write_simple_quadruple(BNodePrefix, CQ, S, P, O, G)
-  ).
+  aggregate_all(set(P-O-G), rdf(S, P, O, G), POGs),
+  forall(member(P-O-G, POGs), write_simple_quadruple(BNodePrefix, CQ, S, P, O, G)).
 % Format: Triples.
 write_simple_subject(BNodePrefix, CT, _, G, triple, S):-
-  findall(P-O, rdf(S, P, O, G:_), POs),
-  sort(POs, SortedPOs),
-  forall(
-    member(P-O, SortedPOs),
-    write_simple_triple(BNodePrefix, CT, S, P, O)
-  ).
+  aggregate_all(set(P-O), rdf(S, P, O, G), POs),
+  forall(member(P-O, POs), write_simple_triple(BNodePrefix, CT, S, P, O)).
 
 
 
@@ -291,7 +285,7 @@ write_simple_subject(BNodePrefix, CT, _, G, triple, S):-
 %!   +Object:rdf_term
 %! ) is det.
 
-write_simple_triple(BNodePrefix, C, S, P, O):-
+write_simple_triple(BNodePrefix, Counter, S, P, O):-
   write_simple_subject(S, BNodePrefix),
   put_char(' '),
   % Predicate terms are IRIs.
@@ -301,4 +295,4 @@ write_simple_triple(BNodePrefix, C, S, P, O):-
   put_char(' '),
   put_char(.),
   put_code(10),
-  increment_thread_counter(C).
+  increment_thread_counter(Counter).

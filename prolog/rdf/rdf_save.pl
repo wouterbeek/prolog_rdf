@@ -14,10 +14,9 @@
 /** <module> RDF: Save data
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12
+@version 2015/08, 2015/10-2016/01
 */
 
-:- use_module(library(simple/write_SimpleRDF)).
 :- use_module(library(debug)).
 :- use_module(library(iostream)).
 :- use_module(library(option)).
@@ -29,6 +28,7 @@
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
 :- use_module(library(semweb/rdf_turtle_write)).
+:- use_module(library(simple/write_SimpleRDF)).
 :- use_module(library(uri)).
 
 :- meta_predicate(rdf_write_to_graph(+,1)).

@@ -24,7 +24,7 @@
 Printing of RDF statements to a text-based output stream.
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/12
+@version 2015/07-2015/09, 2015/12-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -79,7 +79,8 @@ rdf_print_deref(S):-
 %! rdf_print_deref(+Subject:iri, +Options:list(compound)) is det.
 
 rdf_print_deref(S, Opts):-
-  forall(rdf_deref(S, P, O), rdf_print_triple(S, P, O, _, Opts)).
+  rdf_deref(S),
+  rdf_print_triple(S, _, _, _, Opts).
 
 
 

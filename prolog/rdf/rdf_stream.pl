@@ -41,6 +41,7 @@
 :- meta_predicate(rdf_read_from_stream(+,2,+)).
 :- meta_predicate(rdf_write_to_stream(+,2)).
 :- meta_predicate(rdf_write_to_stream(+,2,+)).
+:- meta_predicate(rdf_read_from_stream0(2,+,+,+)).
 
 :- predicate_options(rdf_read_from_stream/3, 3, [
      pass_to(rdf_read_from_stream0/4, 2),
