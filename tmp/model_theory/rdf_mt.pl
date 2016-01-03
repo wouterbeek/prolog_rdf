@@ -34,10 +34,6 @@ The data structures for RDFS model theory.
 @version 2013/08, 2014/11
 */
 
-:- use_module(plRdf(api/rdf_read)).
-:- use_module(plRdf(term/rdf_literal)).
-
-
 
 
 

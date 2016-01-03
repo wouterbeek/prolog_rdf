@@ -72,7 +72,7 @@ rdfs_comment(S, Comm) :-
 % @tbd
 
 rdfs_instance(I, D) :-
-  rdf(I, rdf:type, C),
+  rdf_has(I, rdf:type, C),
   rdf_closure0(C, rdfs:subClassOf, D).
 
 

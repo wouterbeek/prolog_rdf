@@ -1,12 +1,6 @@
 :- module(
   rdf_reification_read,
   [
-    rdf_literal_statement/6, % ?Subject:or([bnode,iri])
-                              % ?Predicate:iri
-                              % ?Value
-                              % ?Datatype:iri
-                              % ?Graph:graph
-                              % ?Statement:or([bnode,iri])
     rdf_object/3, % ?Statement:or([bnode,iri])
                   % ?Object:rdf_term
                   % ?Graph:graph
@@ -32,31 +26,12 @@ Read support for reified triples.
 @version 2014/09-2014/10
 */
 
-:- rdf_meta(rdf_literal_statement(r,r,?,r,?,r)).
 :- rdf_meta(rdf_object(r,o,?)).
 :- rdf_meta(rdf_predicate(r,r,?)).
 :- rdf_meta(rdf_statement(r,r,o,?,r)).
 :- rdf_meta(rdf_subject(r,r,?)).
 
 
-
-
-
-%! rdf_literal_statement(
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Value,
-%!   ?Datatype:iri,
-%!   ?Graph:atom,
-%!   ?Statement:or([bnode,iri])
-%! ) is nondet.
-% Reads statements with datatyped literals converted to proper values.
-
-rdf_literal_statement(S, P, Value, Datatype, Graph, Statement) :-
-  rdf_subject(Statement, S, Graph),
-  rdf_predicate(Statement, P, Graph),
-  rdf_literal(S, P, Value, Datatype, _, Graph, rdf(S,P,O)),
-  rdf_object(Statement, O, Graph).
 
 
 

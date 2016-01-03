@@ -15,7 +15,7 @@
 /** <module> Ontology Alignment Evaluation Initiative (OAEI): Read
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(rdf/rdf_prefix)).
@@ -45,5 +45,5 @@ oaei_alignment(From, To, G) :-
 oaei_alignment(From, To, Rel, Measure, G) :-
   rdf(X, align:entity1, From, G),
   rdf(X, align:entity2, To, G),
-  rdf_literal(X, align:relation, xsd:string, Rel, G),
-  rdf_literal(X, align:measure, xsd:float, Measure, G).
+  rdf(X, align:relation, Rel^^xsd:string, G),
+  rdf(X, align:measure, Measure^^xsd:float, G).

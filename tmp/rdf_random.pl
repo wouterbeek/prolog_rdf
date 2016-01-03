@@ -27,10 +27,6 @@
 :- use_module(library(random)).
 :- use_module(library(rdf/rdf_read)).
 
-:- use_module(plc(generics/flag_ext)).
-
-:- use_module(plRdf(graph/rdf_graph_theory)).
-
 :- rdf_meta(rdf_index(?,r,r,o,?)).
 :- rdf_meta(rdf_random_neighbor(+,r,r)).
 :- rdf_meta(rdf_random_triple(r,r,o,?)).

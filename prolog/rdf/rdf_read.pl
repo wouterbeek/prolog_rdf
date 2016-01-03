@@ -22,14 +22,10 @@
     rdf_literal_pl/4,	% ?S, ?P, ?D, ?Value
     rdf_literal_pl/5,	% ?S, ?P, ?D, ?V, ?G
     rdf_one_string/3,	% +S, +P, -V:atom
-    rdf_petty/3,	% ?S, ?P, ?O
-    rdf_petty/4,	% ?S, ?P, ?O, ?G
-    rdf_petty_min/3,	% ?S, ?P, ?O
-    rdf_petty_min/4,	% ?S, ?P, ?O, ?G
     rdf_pref_string/3,	% ?S, ?P, -Lex
     rdf_pref_string/4,	% ?S, ?P, +LanguagePriorityList, -Lex
     rdf_pref_string/5,	% ?S, ?P, +LanguagePriorityList, -LTag, -Lex
-    rdf_pref_string/6	% ?S, ?P, +LanguagePriorityList:list(atom), -LTag, -Lex, ?G
+    rdf_pref_string/6	% ?S, ?P, +LanguagePriorityList, -LTag, -Lex, ?G
   ]
 ).
 :- reexport(library(rdf11/rdf11), [
@@ -82,10 +78,6 @@
 	rdf_literal_pl(o, r, r, ?),
 	rdf_literal_pl(o, r, r, ?, r),
 	rdf_one_string(o, r, -),
-	rdf_petty(r, r, o),
-	rdf_petty(r, r, o, r),
-	rdf_petty_min(r, r, o),
-	rdf_petty_min(r, r, o, r),
 	rdf_pref_string(o, r, -),
 	rdf_pref_string(o, r, +, -),
 	rdf_pref_string(o, r, +, -, -),
@@ -365,38 +357,6 @@ rdf_literal_pl(S, P, D, V1, G) :-
 rdf_one_string(S, P, X) :-
   rdf_pref_string(S, P, X), !.
 rdf_one_string(_, _, '∅').
-
-
-
-%! rdf_petty(?S, ?P, ?O) is nondet.
-% Wrapper around rdf_petty/4 with uninstantiated graph.
-
-rdf_petty(S, P, O) :-
-  rdf_petty(S, P, O, _).
-
-
-%! rdf_petty(?S, ?P, ?O, ?G) is nondet.
-% Enumerates RDF statements whose subject term is not a literal.
-
-rdf_petty(S, P, O, G) :-
-  rdf(S, P, O, G),
-  \+ rdf_is_literal(S).
-
-
-
-%! rdf_petty_min(?S, ?P, ?O) is nondet.
-% Wrapper around rdf_petty_min/4 with uninstantiated graph.
-
-rdf_petty_min(S, P, O) :-
-  rdf_petty_min(S, P, O, _).
-
-
-%! rdf_petty_min(?S, ?P, ?O, ?G) is nondet.
-% Enumerates RDF statements whose subject term is not a literal.
-
-rdf_petty_min(S, P, O, G) :-
-  rdf_petty(S, P, O, G),
-  (rdf_equal(owl:sameAs, P) -> S \== O ; true).
 
 
 

@@ -118,7 +118,7 @@ rdf_prefixes(S, P, O, G, Pairs5) :-
   aggregate_all(
     set(Prefix-Term),
     (
-      erdf(S, P, O, G),
+      rdf(S, P, O, G),
       member(Term, [S,P,O]),
       rdf_global_id(Prefix:_, Term)
     ),

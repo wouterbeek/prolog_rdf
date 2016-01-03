@@ -139,9 +139,9 @@ rdf_graph_age(G, Age) :-
 rdf_graph_get_property(G, Property) :-
   var(G), !,
   rdf_graph_id_get_property(Gid, Property),
-  assign_graph_id(G, Gid).
+  graph_id_to_term(Gid, G).
 rdf_graph_get_property(G, Property) :-
-  assign_graph_id(G, Gid),
+  graph_id_to_term(Gid, G),
   rdf_graph_id_get_property(Gid, Property).
 
 

@@ -21,16 +21,6 @@ Sytax-to-semantics map printing.
 @version 2013/08, 2014/01, 2014/11
 */
 
-:- use_module(library(lists), except([delete/3,subset/2])).
-
-:- use_module(plc(dcg/dcg_collection)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(generics/print_ext)).
-
-:- use_module(plRdf(rdf_name)).
-:- use_module(plRdf(rdf_triples)).
-:- use_module(plRdf(model_theory/rdf_mt)).
-
 
 
 
