@@ -143,8 +143,12 @@ rdf_print_quadruple(S, P, O, G, Opts) :-
   ground(rdf(S,P,O,G)), !,
   rdf_print_statement(S, P, O, G, Opts).
 rdf_print_quadruple(S, P, O, G, Opts) :-
-  rdf(S, P, O, G, Sid, Pid, Oid, Gid),
-  dcg_with_output_to(current_output, rdf_print_statement_id(Sid, Pid, Oid, Gid, Opts)),
+  (   option(id_closure(false), Opts)
+  ->  rdf(S, P, O, G),
+      dcg_with_output_to(current_output, rdf_print_statement_id(S, P, O, G, Opts))
+  ;   rdf(S, P, O, G, Sid, Pid, Oid, Gid),
+      dcg_with_output_to(current_output, rdf_print_statement_id(Sid, Pid, Oid, Gid, Opts))
+  ),
   nl.
 
 
@@ -262,61 +266,51 @@ rdf_print_statements([H|T], Opts) :-
 %! rdf_print_triple(+Trip) is det.
 % Wrapper around rdf_print_triple/2 with default options.
 
-rdf_print_triple(T) :-
-  rdf_print_triple(T, []).
 
 
 %! rdf_print_triple(+Trip, +Opts) is det.
-
-rdf_print_triple(rdf(S,P,O), Opts) :-
-  rdf_print_statement(S, P, O, _, Opts).
-
-
 %! rdf_print_triple(?S, ?P, ?O) is nondet.
-% Wrapper around rdf_print_triple/4 with uninstantiated graph.
-
-rdf_print_triple(S, P, O) :-
-  rdf_print_triple(S, P, O, _).
-
-
 %! rdf_print_triple(?S, ?P, ?O, ?G) is nondet.
-% Wrapper around rdf_print_triple/5 with default options.
-
-rdf_print_triple(S, P, O, G) :-
-  rdf_print_triple(S, P, O, G, []).
-
-
 %! rdf_print_triple(?S, ?P, ?O, ?G, +Opts) is nondet.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * id_closure(+boolean)
+%     Default is true.
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
+rdf_print_triple(T) :-
+  rdf_print_triple(T, []).
+rdf_print_triple(rdf(S,P,O), Opts) :-
+  rdf_print_statement(S, P, O, _, Opts).
+rdf_print_triple(S, P, O) :-
+  rdf_print_triple(S, P, O, _).
+rdf_print_triple(S, P, O, G) :-
+  rdf_print_triple(S, P, O, G, []).
 % Allow ground statements to be printed without being in the database.
 rdf_print_triple(S, P, O, _, Opts) :-
   ground(rdf(S,P,O)), !,
   rdf_print_statement(S, P, O, _, Opts).
 rdf_print_triple(S, P, O, G, Opts) :-
-  rdf(S, P, O, G, Sid, Pid, Oid, _),
-  dcg_with_output_to(current_output, rdf_print_statement_id(Sid, Pid, Oid, _, Opts)),
+  (   option(id_closure(false), Opts)
+  ->  rdf(S, P, O, G),
+      dcg_with_output_to(current_output, rdf_print_statement(S, P, O, _, Opts))
+  ;   rdf(S, P, O, G, Sid, Pid, Oid, _),
+      dcg_with_output_to(current_output, rdf_print_statement_id(Sid, Pid, Oid, _, Opts))
+  ),
   nl.
 
 
 
-%! rdf_print_triples(+Trips:list) is det.
-% Wrapper around rdf_print_triples/2 with default options.
+%! rdf_print_triples(+Trips) is det.
+%! rdf_print_triples(+Trips, +Opts) is det.
 
 rdf_print_triples(Trips) :-
   rdf_print_triples(Trips, []).
-
-
-%! rdf_print_triples(+Trips:list, +Opts) is det.
-
 rdf_print_triples(Trips, Opts0) :-
   merge_options([abbr_list(false)], Opts0, Opts),
   forall(member(rdf(S,P,O), Trips), rdf_print_statement(S, P, O, _, Opts)).

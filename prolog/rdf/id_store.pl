@@ -11,12 +11,6 @@
     id_terms/1,			% -Ts:ordset
     id_to_term/2,		% +Tid, -T
     id_to_terms/2,		% +Tid, -Ts:ordset
-    print_raw_describe/1,	% +Sid
-    print_raw_describe/2,	% +Sid, +Opts
-    print_raw_graph/1,		% ?Gid
-    print_raw_graph/2,		% ?Gid, +Opts
-    print_raw_statement/4,	% ?Sid, ?Pid, ?Oid, ?Gid
-    print_raw_statement/5,	% ?Sid, ?Pid, ?Oid, ?Gid, +Opts
     print_store/0,
     print_store/1,		% +Opts
     rdf_is_id/2,		% +T1, +T2
@@ -77,10 +71,6 @@ Identifiers are atoms.
 	assign_id(o),
 	assign_id(o, -),
 	graph_term_to_id(r, -),
-	print_raw_graph(r),
-	print_raw_graph(r, +),
-	print_raw_statement(o, r, o, r),
-	print_raw_statement(o, r, o, r, +),
 	rdf_is_id(r, r),
 	store_id(o, o),
 	term_to_id(o, -),
@@ -95,12 +85,6 @@ Identifiers are atoms.
 
 :- dynamic(term_to_id0/2).
 
-:- predicate_options(print_raw_graph/2, 2, [
-     pass_to(print_raw_statement/5, 5)
-   ]).
-:- predicate_options(print_raw_statement/5, 5, [
-     indent(+nonneg)
-   ]).
 :- predicate_options(print_store/1, 1, [
      pass_to(rdf_print_term//2, 2)
    ]).
@@ -204,59 +188,6 @@ id_to_term(Id, T) :-
 
 id_to_terms(Tid, Ts) :-
   id_to_terms0(Tid, Ts).
-
-
-
-%! print_raw_describe(+Sid) is det.
-% Wrapper around print_raw_describe/2 with default options.
-
-print_raw_describe(Sid) :-
-  print_raw_describe(Sid, []).
-
-
-%! print_raw_describe(+Sid, +Opts) is det.
-
-print_raw_describe(Sid, Opts) :-
-  print_raw_statement(Sid, _, _, _, Opts),
-  fail.
-print_raw_describe(_, _).
-
-
-%! print_raw_graph(?Gid) is det.
-% Wrapper around print_raw_graph/2 with default options.
-
-print_raw_graph(Gid) :-
-  print_raw_graph(Gid, []).
-
-
-%! print_raw_graph(?Gid, +Opts) is det.
-
-print_raw_graph(Gid, Opts) :-
-  defval(default, Gid),
-  print_raw_statement(_, _, _, Gid, Opts),
-  fail.
-print_raw_graph(_, _).
-
-
-
-%! print_raw_statement(?Sid, ?Pid, ?Oid, ?Gid) is nondet.
-% Wrapper around print_raw_statement/5 with default options.
-
-print_raw_statement(Sid, Pid, Oid, Gid) :-
-  print_raw_statement(Sid, Pid, Oid, Gid, []).
-
-
-%! print_raw_statement(?Sid, ?Pid, ?Oid, ?Gid, +Opts) is nondet.
-
-print_raw_statement(Sid, Pid, Oid, Gid, Opts) :-
-  rdf_id(Sid, Pid, Oid, Gid),
-  option(indent(I), Opts, 0), tab(I),
-  dcg_with_output_to(current_output, print_raw_statement(Sid, Pid, Oid, Gid)),
-  nl.
-
-print_raw_statement(Sid, Pid, Oid, Gid) -->
-  tuple(atom, [Sid,Pid,Oid]),
-  ({var(Gid)} -> "" ; rdf_print_graph(Gid)).
 
 
 
