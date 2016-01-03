@@ -123,7 +123,6 @@ rdf_deref_statements(S, Stmts, _) :- maplist(rdf_deref_statement(S), Stmts).
 
 rdf_deref_statement(S1, T) :-
   (T = rdf(S2,P,O) ; T = rdf(S2,P,O,_)),
-  format(user_output, "~a\t~a~n", [S1,S2]),
   (is_same_iri(S1, S2, S3) -> rdf_assert(S3, P, O, S2) ; true).
 
 is_same_iri(X, Y, Z) :- iri_normalized(X, Z), iri_normalized(Y, Z).

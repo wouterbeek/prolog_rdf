@@ -122,6 +122,8 @@ assign_id(T, Tid) :-
     )
   )).
 
+canonical_form(B, B) :-
+  rdf_is_bnode(B), !.
 canonical_form(Lit, CLit) :-
   rdf_is_literal(Lit), !,
   rdf_lexical_canonical_map(Lit, CLit).

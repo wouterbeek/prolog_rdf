@@ -39,7 +39,9 @@
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf11/rdf11), []).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
@@ -170,8 +172,7 @@ rdf_print_id(Tid) -->
   rdf_print_id(Tid, []).
 rdf_print_id(Tid, Opts) -->
   {id_to_terms(Tid, Ts)},
-  set(rdf_print_term0(Opts), Ts).
-rdf_print_term0(Opts, T) --> rdf_print_term(T, Opts).
+  set([T]>>rdf_print_term(T, Opts), Ts).
 
 
 
@@ -282,16 +283,14 @@ rdf_print_list(L1, Opts) -->
 
 rdf_print_literal(Lit) -->
   rdf_print_literal(Lit, []).
-rdf_print_literal(literal(type(D,Lex)), Opts) --> !,
+rdf_print_literal(V^^D, Opts) --> !,
+  {format(atom(Lex), "~w", [V])},
   "〈", rdf_print_datatype(D, Opts), ", ", rdf_print_lexical(Lex, Opts), "〉".
-rdf_print_literal(literal(lang(LTag,Lex)), Opts) --> !,
+rdf_print_literal(Lex@LTag, Opts) -->
   {rdf_equal(rdf:langString, D)},
   "〈", rdf_print_datatype(D, Opts), ", ",
   "〈", rdf_print_lexical(Lex, Opts), ", ",
   rdf_print_language_tag(LTag, Opts), "〉", "〉".
-rdf_print_literal(literal(Lex), Opts) -->
-  {rdf_equal(xsd:string, D)},
-  rdf_print_literal(literal(type(D,Lex)), Opts).
 
 
 %! rdf_print_object(+O, +Opts)// is det.
@@ -371,15 +370,18 @@ rdf_print_term(T, Opts) :-
 
 rdf_print_term(T) -->
   rdf_print_term(T, []).
-rdf_print_term(T, Opts) -->
+rdf_print_term(T1, Opts) -->
+  {rdf11:post_object(T2, T1)},
+  rdf_print_term0(T2, Opts).
+rdf_print_term0(T, Opts) -->
   {rdf_is_literal(T)}, !,
   rdf_print_literal(T, Opts).
-rdf_print_term(T, Opts) -->
+rdf_print_term0(T, Opts) -->
   {rdf_is_bnode(T)}, !,
   rdf_print_bnode(T, Opts).
-rdf_print_term(T, Opts) -->
+rdf_print_term0(T, Opts) -->
   rdf_print_iri(T, Opts), !.
-rdf_print_term(T, _) -->
+rdf_print_term0(T, _) -->
   pl_term(T).
 
 

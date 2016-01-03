@@ -7,9 +7,6 @@
     rdf_datatype_iri/2,	% +G, ?D
     rdf_iri/1,		% ?T
     rdf_iri/2,		% +G, ?Iri
-    rdf_is_iri/1,	% @Term
-    rdf_is_name/1,	% @Term
-    rdf_is_term/1,	% @Term
     rdf_literal/1,	% ?Lit
     rdf_literal/2,	% +G, ?Lit
     rdf_name/1,		% ?Name:rdf_name
@@ -26,9 +23,15 @@
     rdf_term/2		% +G, ?T
   ]
 ).
-:- reexport(library(semweb/rdf_db), [
-     rdf_is_bnode/1,	% @Term
-     rdf_is_literal/1	% @Term
+:- reexport(library(rdf11/rdf11), [
+     rdf_is_bnode/1,		% @Term
+     rdf_is_iri/1,		% @Term
+     rdf_is_literal/1,		% @Term
+     rdf_is_name/1,		% @Term
+     rdf_is_object/1,		% @Term
+     rdf_is_predicate/1,	% @Term
+     rdf_is_subject/1,		% @Term
+     rdf_is_term/1		% @Term
    ]).
 
 /** <module> Generalized RDF terms
@@ -186,26 +189,6 @@ rdf_iri(Iri) :-
 rdf_iri(G, Iri) :-
   rdf_iri(Iri),
   once(rdf_term(G, Iri)).
-
-
-
-%! rdf_is_iri(@Term) is semidet.
-
-rdf_is_iri(T) :- is_iri(T).
-
-
-
-%! rdf_is_name(@Term) is semidet.
-
-rdf_is_name(N) :- rdf_is_iri(N), !.
-rdf_is_name(N) :- rdf_is_literal(N).
-
-
-
-%! rdf_is_term(@Term) is semidet.
-
-rdf_is_term(N) :- rdf_is_name(N), !.
-rdf_is_term(N) :- rdf_is_bnode(N).
 
 
 
