@@ -43,9 +43,9 @@ the Unicode strings in Normal Form C with the set of datatype URIs.
 %! rdf_is_plain_literal(@Term) is semidet.
 % Succeeds if the given Term denotes a plain literal.
 
-rdf_is_plain_literal(T):-
+rdf_is_plain_literal(T) :-
   rdf_is_simple_literal(T).
-rdf_is_plain_literal(T):-
+rdf_is_plain_literal(T) :-
   rdf_is_language_tagged_string(T).
 
 
@@ -53,7 +53,7 @@ rdf_is_plain_literal(T):-
 %! rdf_is_simple_literal(@Term) is semidet.
 % Succeeds if the given Term denotes a plain literal.
 
-rdf_is_simple_literal(T):-
+rdf_is_simple_literal(T) :-
   T = literal(Lex),
   atom(Lex).
 
@@ -62,7 +62,7 @@ rdf_is_simple_literal(T):-
 %! rdf_is_typed_literal(@Term) is semidet.
 % Succeeds if the given Term denotes a typed literal.
 
-rdf_is_typed_literal(Lit):-
+rdf_is_typed_literal(Lit) :-
   Lit = literal(type(D,Lex)),
   is_iri(D),
   atom(Lex).
@@ -71,7 +71,7 @@ rdf_is_typed_literal(Lit):-
 
 %! rdf_plain_literal(-Literal:compound) is nondet.
 
-rdf_plain_literal(Lit):-
+rdf_plain_literal(Lit) :-
   rdf_literal(Lit),
   rdf_is_plain_literal(Lit).
 
@@ -79,7 +79,7 @@ rdf_plain_literal(Lit):-
 
 %! rdf_simple_literal(-Literal:compound) is nondet.
 
-rdf_simple_literal(Lit):-
+rdf_simple_literal(Lit) :-
   rdf_literal(Lit),
   rdf_is_simple_literal(Lit).
 
@@ -87,6 +87,6 @@ rdf_simple_literal(Lit):-
 
 %! rdf_typed_literal(-Literal:compound) is nondet.
 
-rdf_typed_literal(Lit):-
+rdf_typed_literal(Lit) :-
   rdf_literal(Lit),
   rdf_is_typed_literal(Lit).

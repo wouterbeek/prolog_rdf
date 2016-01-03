@@ -188,7 +188,7 @@ guess_turtle_or_trig(Format, Opts) -->
 % We found a fully qualified triple.
 % This still can be Turtle, TriG, N-Triples or N-Quads.
 
-guess_turtle_family(Formats, Format, Opts):-
+guess_turtle_family(Formats, Format, Opts) :-
   memberchk(turtleOrTrig, Formats), !,
   (   option(default_format(Format0), Opts),
       ground(Format0)
@@ -197,7 +197,7 @@ guess_turtle_family(Formats, Format, Opts):-
   ;   debug(rdf(guess), 'Assuming Turtle based on heuristics.', []),
       Format = turtle
   ).
-guess_turtle_family(_, Format, Opts):-
+guess_turtle_family(_, Format, Opts) :-
   (   option(default_format(Format0), Opts),
       ground(Format0)
   ->  must_be(oneof([nquads,ntriples,trig,turtle]), Format0),

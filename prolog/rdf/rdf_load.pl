@@ -71,13 +71,13 @@ Support for loading RDF data.
 %! rdf_call_on_graph(+Source, :Goal_1) .
 % Wrapper around rdf_call_on_graph/3 with default options.
 
-rdf_call_on_graph(In, Goal_1):-
+rdf_call_on_graph(In, Goal_1) :-
   rdf_call_on_graph(In, Goal_1, []).
 
 
 %! rdf_call_on_graph(+Source, :Goal_1, +Options:list(compound)) .
 
-rdf_call_on_graph(In, Goal_1, Opts0):-
+rdf_call_on_graph(In, Goal_1, Opts0) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
@@ -93,13 +93,13 @@ rdf_call_on_graph(In, Goal_1, Opts0):-
 %! rdf_call_on_statements(+Source, :Goal_2) is nondet.
 % Wrapper around rdf_call_on_statements/3 with default options.
 
-rdf_call_on_statements(In, Goal_2):-
+rdf_call_on_statements(In, Goal_2) :-
   rdf_call_on_statements(In, Goal_2, []).
 
 
 %! rdf_call_on_statements(+Source, :Goal_2, +Options:list(compound)) is nondet.
 
-rdf_call_on_statements(In, Goal_2, Opts):-
+rdf_call_on_statements(In, Goal_2, Opts) :-
   option(graph(G0), Opts, default),
   rdf_global_id(G0, G),
   catch(
@@ -118,27 +118,27 @@ rdf_call_on_statements(In, Goal_2, Opts):-
 % The following call is made:
 % `call(:Goal_2, +Statements:list(compound), ?Graph:atom)'
 
-rdf_call_on_statements_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   memberchk(M.rdf.format, [nquads,ntriples]), !,
   rdf_process_ntriples(
     Read,
     Goal_2,
     [base_uri(M.base_iri),format(M.rdf.format),graph(G)]
   ).
-rdf_call_on_statements_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   memberchk(M.rdf.format, [trig,turtle]), !,
   uuid_no_hyphen(UniqueId),
   atomic_list_concat(['__',UniqueId,:], BNodePrefix),
   Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri),graph(G)],
   rdf_process_turtle(Read, Goal_2, Opts).
-rdf_call_on_statements_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   xml == M.rdf.format, !,
   process_rdf(Read, Goal_2, [base_uri(M.base_iri),graph(G)]).
-rdf_call_on_statements_stream(G, Goal_2, M, Read):-
+rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   rdfa == M.rdf.format, !,
   read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
   call(Goal_2, Ts, G).
-rdf_call_on_statements_stream(_, _, _, M):-
+rdf_call_on_statements_stream(_, _, _, M) :-
   msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
 
 
@@ -146,7 +146,7 @@ rdf_call_on_statements_stream(_, _, _, M):-
 %! rdf_load_file(+Source) is det.
 % Wrapper around rdf_load_file/2 with default options.
 
-rdf_load_file(In):-
+rdf_load_file(In) :-
   rdf_load_file(In, []).
 
 
@@ -158,7 +158,7 @@ rdf_load_file(In):-
 %   * quadruples(-nonneg)
 %   * statements(-nonneg)
 
-rdf_load_file(In, Opts):-
+rdf_load_file(In, Opts) :-
   % Allow statistics about the number of statements to be returned.
   option(quadruples(NQ), Opts, _),
   option(triples(NT), Opts, _),
@@ -191,15 +191,15 @@ rdf_load_file(In, Opts):-
   ).
 
 
-rdf_load_statements(CT, CQ, Stmts, G:_):-
+rdf_load_statements(CT, CQ, Stmts, G:_) :-
   maplist(rdf_load_statement(CT, CQ, G), Stmts).
 
 
 % Load a triple.
-rdf_load_statement(CT, _, G, rdf(S,P,O)):- !,
+rdf_load_statement(CT, _, G, rdf(S,P,O)) :- !,
   increment_thread_counter(CT),
   rdf_assert(S, P, O, G).
 % Load a quadruple.
-rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)):- !,
+rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)) :- !,
   increment_thread_counter(CQ),
   rdf_assert(S, P, O, G).

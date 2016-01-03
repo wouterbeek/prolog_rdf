@@ -41,7 +41,7 @@ A simple RDF vocabulary for representing tables.
 %! ) is det.
 % Asserts a table in a simple RDF vocabulary.
 
-rdf_assert_table(G, Caption, ColumnHeaders, RowHeaders, Rows, Table):-
+rdf_assert_table(G, Caption, ColumnHeaders, RowHeaders, Rows, Table) :-
   % Assert caption.
   rdf_assert(Table, rdf_table:caption, Caption, G),
   
@@ -65,7 +65,7 @@ rdf_assert_table(G, Caption, ColumnHeaders, RowHeaders, Rows, Table):-
 %! ) is det.
 % Asserts a table row in a simple RDF vocabulary.
 
-rdf_assert_row(G, Table, ColumnList, Y-RowList, Row):-
+rdf_assert_row(G, Table, ColumnList, Y-RowList, Row) :-
   forall(
     nth0_column(X, Row, Value),
     rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value)
@@ -81,7 +81,7 @@ rdf_assert_row(G, Table, ColumnList, Y-RowList, Row):-
 %! ) is det.
 % Asserts a table cell in a simple RDF vocabulary.
 
-rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
+rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value) :-
   % A table cell is a blank node.
   rdf_create_bnode(Cell),
   
@@ -108,7 +108,7 @@ rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
 %! ) is det.
 % Asserts the column headers of a table.
 
-rdf_assert_column_headers(G, Table, ColumnHeaders, ColumnList):-
+rdf_assert_column_headers(G, Table, ColumnHeaders, ColumnList) :-
   rdf_equal(rdf_table:columns, Predicate),
   rdf_assert_headers(G, Table, Predicate, ColumnHeaders, ColumnList).
 
@@ -121,7 +121,7 @@ rdf_assert_column_headers(G, Table, ColumnHeaders, ColumnList):-
 %! ) is det.
 % Asserts the row headers of a table.
 
-rdf_assert_row_headers(G, Table, RowHeaders, RowList):-
+rdf_assert_row_headers(G, Table, RowHeaders, RowList) :-
   rdf_equal(rdf_table:rows, Predicate),
   rdf_assert_headers(G, Table, Predicate, RowHeaders, RowList).
 
@@ -135,6 +135,6 @@ rdf_assert_row_headers(G, Table, RowHeaders, RowList):-
 %! ) is det.
 % Asserts either column or row headers of a table, depending on `Predicate`.
 
-rdf_assert_headers(G, Table, Predicate, Headers, HeaderList):-
+rdf_assert_headers(G, Table, Predicate, Headers, HeaderList) :-
   rdf_assert_list(Headers, HeaderList, G),
   rdf_assert(Table, Predicate, HeaderList, G).

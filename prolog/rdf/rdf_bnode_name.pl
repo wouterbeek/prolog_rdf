@@ -40,15 +40,15 @@ Consistent naming of blank nodes.
 % It is assured that within one session the same blank node
 % will receive the same blank node name.
 
-rdf_bnode_name(BNode, Name):-
+rdf_bnode_name(BNode, Name) :-
   nonvar(Name), !,
   bnode_name_map(BNode, Name).
-rdf_bnode_name(BNode, Name):-
+rdf_bnode_name(BNode, Name) :-
   rdf_bnode_name0('_:', BNode, Name).
 
 %! rdf_bnode_name0(+Prefix:atom, +BlankNode:bnode, -Name:atom) is det.
 
-rdf_bnode_name0(Prefix, BNode, Name):-
+rdf_bnode_name0(Prefix, BNode, Name) :-
   with_mutex(rdf_bnode_name, (
     % Retrieve (existing) or create (new) a numeric blank node identifier.
     (   bnode_name_map(BNode, Id)
@@ -59,11 +59,11 @@ rdf_bnode_name0(Prefix, BNode, Name):-
   )),
   atomic_concat(Prefix, Id, Name).
 
-increment_bnode_name_counter(Id):-
+increment_bnode_name_counter(Id) :-
   retract(bnode_name_counter(Id0)), !,
   Id is Id0 + 1,
   assert(bnode_name_counter(Id)).
-increment_bnode_name_counter(Id):-
+increment_bnode_name_counter(Id) :-
   reset_bnode_name_counter,
   increment_bnode_name_counter(Id).
 

@@ -49,13 +49,13 @@ Converts XML DOMs to RDF graphs.
 
 %! ensure_graph_name(+File:atom, ?Graph:rdf_graph) is det.
 
-ensure_graph_name(_, G):-
+ensure_graph_name(_, G) :-
   nonvar(G), !.
-ensure_graph_name(File, G):-
+ensure_graph_name(File, G) :-
   uri_file_name(File, G).
 
 
-parse_file(File1, Version, Prefix, G):-
+parse_file(File1, Version, Prefix, G) :-
   ensure_graph_name(File1, G),
   phrase_from_file(xml_parse(Version, Prefix, G), File1),
   debug(xml_to_rdf, 'Done parsing file ~w', [File1]), %DEB
@@ -164,7 +164,7 @@ xml_content(Version, Tag, [H|T]) -->
 %!   -XML_RemainingDOM:list
 %! ) is det.
 
-create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
+create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2) :-
   rdf_global_id(Ns:Name1, C),
   findall(
     Value,
@@ -201,14 +201,14 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
 %! ) is det.
 
 % Simple literal.
-create_triple(S, P, literal, Content, G):- !,
+create_triple(S, P, literal, Content, G) :- !,
   rdf_assert_simple_literal(S, P, Content, G).
 % Typed literal.
-create_triple(S, P, D1, Content, G):-
+create_triple(S, P, D1, Content, G) :-
   xsd_datatype(D1, D2), !,
   rdf_assert_typed_literal(S, P, D2, Content, G).
 % IRI.
-create_triple(S, P, _, Content, G):-
+create_triple(S, P, _, Content, G) :-
   % Spaces are not allowed in IRIs.
   rdf_assert(S, P, Content, G).
 
@@ -224,11 +224,11 @@ create_triple(S, P, _, Content, G):-
 %! ) is nondet.
 
 % The XML DOM is fully processed.
-create_triples([], _Ps, _Trans, _S, _G, []):- !.
+create_triples([], _Ps, _Trans, _S, _G, []) :- !.
 % The XML properties are all processed.
-create_triples(DOM, [], _Trans, _S, _G, DOM):- !.
+create_triples(DOM, [], _Trans, _S, _G, DOM) :- !.
 % Process an XML element.
-create_triples(DOM1, Ps1, Trans, S, G, RestDOM):-
+create_triples(DOM1, Ps1, Trans, S, G, RestDOM) :-
   % Process only properties that are allowed according to the filter.
   select(element(XML_P, _, Content1), DOM1, DOM2),
   update_property_filter(Ps1, XML_P, Ps2), !,
@@ -254,7 +254,7 @@ create_triples(DOM, _Ps, _Trans, _S, _G, DOM).
 %!   -Value
 %! ) is det.
 
-get_dom_value(DOM, Trans, XML_P, Value):-
+get_dom_value(DOM, Trans, XML_P, Value) :-
   memberchk(element(XML_P, _, [LexicalForm]), DOM),
   call(Trans, XML_P, _, O_Type),
   (   O_Type == literal
@@ -264,9 +264,9 @@ get_dom_value(DOM, Trans, XML_P, Value):-
   ;   Value = LexicalForm
   ).
 
-update_property_filter(Ps1, _, _):-
+update_property_filter(Ps1, _, _) :-
   var(Ps1), !.
-update_property_filter(Ps1, XML_P, Ps2):-
+update_property_filter(Ps1, XML_P, Ps2) :-
   selectchk(XML_P, Ps1, Ps2).
 
 

@@ -63,7 +63,7 @@ Predicates for perfoming measurements represented in RDF.
 %!   -DataSet:iri
 %! ) is det.
 
-assert_dataset(DataStructureDefinition, G, DataSet):-
+assert_dataset(DataStructureDefinition, G, DataSet) :-
   rdf_create_iri(data_set, ['DataSet'], Dataset),
   rdf_assert_instance(Dataset, [qb:'DataSet'], G),
   rdf_assert(DataSet, qb:structure, DataStructureDefinition, G).
@@ -86,7 +86,7 @@ assert_datastructure_definition(
   Attributes,
   G,
   DataStructureDefinition
-):-
+) :-
   % Create the data structure definition resource if it is not given.
   (   var(DataStructureDefinition)
   ->  rdf_create_iri(
@@ -147,7 +147,7 @@ assert_datastructure_definition(
 %!   +Graph:rdf_graph
 %! ) is det.
 
-assert_measure_property(MeasureProperty, Concept, Range, G):-
+assert_measure_property(MeasureProperty, Concept, Range, G) :-
   % rdf:type
   rdf_assert_instance(MeasureProperty, qb:'MeasureProperty', G),
 
@@ -181,7 +181,7 @@ assert_multimeasure_observation(
   Goal_1,
   G,
   Observation
-):-
+) :-
   assert_observation(Dataset, Property, Goal_1, G, Observation),
 
   % qb:measureType
@@ -196,7 +196,7 @@ assert_multimeasure_observation(
 %!   -Observation:iri
 %! ) is det.
 
-assert_observation(Dataset, Property, Goal_1, G, Observation):-
+assert_observation(Dataset, Property, Goal_1, G, Observation) :-
   % Extract the datatype.
   rdf(Property, rdfs:range, Datatype),
   rdf_datatype_term(Datatype),
@@ -218,7 +218,7 @@ assert_observation(Dataset, Property, Goal_1, G, Observation):-
 
 %! assert_slice(+DataSet:iri, +Graph:rdf_graph, -Slice:iri) is det.
 
-assert_slice(DataSet, G, Slice):-
+assert_slice(DataSet, G, Slice) :-
   rdf_create_iri(slice, ['Slice'], Slice),
   rdf_assert_instance(Slice, [qb:'Slice'], G),
   rdf_assert(DataSet, qb:slice, Slice, G).
@@ -236,8 +236,8 @@ assert_slice(DataSet, G, Slice):-
 %!   +Graph:rdf_graph
 %! ) is det.
 
-assert_relation(Component, Relation, Dimension, G):-
+assert_relation(Component, Relation, Dimension, G) :-
   rdf(Component, Relation, Dimension,  G), !.
-assert_relation(Component, Relation, Dimension, G):-
+assert_relation(Component, Relation, Dimension, G) :-
   rdf_create_bnode(Component),
   rdf_assert(Component, Relation, Dimension, G).

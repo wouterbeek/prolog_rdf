@@ -33,7 +33,7 @@ Various tests for RDF predicates,
 
 
 
-rdf_test(database(identity)):-
+rdf_test(database(identity)) :-
   rdf_test((
     rdfs_assert_label(ex:a, "a"),
     rdfs_assert_label(ex:b, "b"),
@@ -45,13 +45,13 @@ rdf_test(database(identity)):-
     format("Graph:~n"),
     rdf_print_graph(default, [id_closure(true)|Opts]),
     format("Identity store:~n"),
-    print_raw_graph(default, Opts),
+    rdf_print_graph(default, Opts),
     print_store(Opts)
   )).
 
 
 
-rdf_test(modeling(visum)):-
+rdf_test(modeling(visum)) :-
   % Use a default graph name if none is given.
   rdf_equal(ex:visum, G),
 
@@ -73,7 +73,7 @@ rdf_test(modeling(visum)):-
 
 
 /*
-rdf_test(semantics(graph_instance)):-
+rdf_test(semantics(graph_instance)) :-
   rdf_test((
     maplist(rdf_unload_graph, [ex:'test-graph',ex:'test-graph-instance']),
     maplist(rdf_create_bnode, [X1,X2,X3,X4]),
@@ -89,5 +89,5 @@ rdf_test(semantics(graph_instance)):-
   )).
 */
 
-rdf_test(Setup_0, Test_0):-
+rdf_test(Setup_0, Test_0) :-
   rdf_transaction((Setup_0, Test_0)).

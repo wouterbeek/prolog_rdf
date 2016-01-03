@@ -35,19 +35,19 @@
 %! rdf_fca_test(+Name:atom) is semidet.
 %! rdf_fca_test(-Name:atom) is multi.
 
-rdf_fca_test(dc):-
+rdf_fca_test(dc) :-
   absolute_file_name(library('semweb/dc.rdfs'), File, [access(read)]),
   rdf_fca_test_file(File).
-rdf_fca_test(eor):-
+rdf_fca_test(eor) :-
   absolute_file_name(library('semweb/eor.rdfs'), File, [access(read)]),
   rdf_fca_test_file(File).
-rdf_fca_test(owl):-
+rdf_fca_test(owl) :-
   absolute_file_name(library('semweb/owl.owl'), File, [access(read)]),
   rdf_fca_test_file(File).
-rdf_fca_test(rdfs):-
+rdf_fca_test(rdfs) :-
   absolute_file_name(library('semweb/rdfs.rdfs'), File, [access(read)]),
   rdf_fca_test_file(File).
-rdf_fca_test(Name):-
+rdf_fca_test(Name) :-
   rdf_fca_assert_graph(Name, G),
   rdf_fca_test_graph(G).
 
@@ -55,7 +55,7 @@ rdf_fca_test(Name):-
 
 %! rdf_fca_test_file(+File:atom) is det.
 
-rdf_fca_test_file(File):-
+rdf_fca_test_file(File) :-
   rdf_call_on_graph(File, rdf_fca_context(Context)),
   format(string(GLbl), "FCA for RDF file ~a", [File]),
   fca_viz0(Context, GLbl).
@@ -64,7 +64,7 @@ rdf_fca_test_file(File):-
 
 %! rdf_fca_test_graph(+Graph:atom) is semidet.
 
-rdf_fca_test_graph(G):-
+rdf_fca_test_graph(G) :-
   rdf_fca_context(Con, G),
   format(string(GLbl), "FCA for RDF graph ~a", [G]),
   fca_viz0(Con, GLbl).
@@ -73,7 +73,7 @@ rdf_fca_test_graph(G):-
 
 %! rdf_fca_assert_graph(+Name:atom, -Graph:atom) is det.
 
-rdf_fca_assert_graph(number, G):-
+rdf_fca_assert_graph(number, G) :-
   rdf_new_graph(number, G),
   forall(between(1, 10, N), rdf_assert_number(N, G)),
   rdf_assert(ex:'1',  rdf:type, ex:'Odd',       G),
@@ -105,7 +105,7 @@ rdf_fca_assert_graph(number, G):-
 
 % HELPERS %
 
-fca_viz0(Context, GLbl):-
+fca_viz0(Context, GLbl) :-
   fca_viz(
     Context,
     File,
@@ -120,7 +120,7 @@ fca_viz0(Context, GLbl):-
 
 
 
-rdf_assert_number(N, G):-
+rdf_assert_number(N, G) :-
   atom_number(A, N),
   rdf_global_id(ex:A, Iri),
   rdf_assert_instance(Iri, ex:'Number', G),

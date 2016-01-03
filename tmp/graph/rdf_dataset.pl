@@ -41,11 +41,11 @@
 %!   +NamedGraphMap:pair(or([bnode,iri]),atom)
 %! ) is det.
 
-rdf_add_named_graph(DG, Name-NG):- !,
+rdf_add_named_graph(DG, Name-NG) :- !,
   retract(rdf_dataset(DG, Map1)),
   keysort([Name-NG|Map1], Map2),
   assert(rdf_dataset(DG, Map2)).
-rdf_add_named_graph(DG, NG):-
+rdf_add_named_graph(DG, NG) :-
   rdf_add_named_graph(DG, NG-NG).
 
 
@@ -57,28 +57,28 @@ rdf_add_named_graph(DG, NG):-
 % @throws existence_error If the DefaultGraph or one of the named graphs
 %                         does not exist.
 
-rdf_assert_dataset(DG, _):-
+rdf_assert_dataset(DG, _) :-
   \+ rdf_graph(DG), !,
   existence_error(rdf_graph, DG).
-rdf_assert_dataset(_, NGMap):-
+rdf_assert_dataset(_, NGMap) :-
   member(_-NG, NGMap),
   \+ rdf_graph(NG), !,
   existence_error(rdf_graph, NG).
-rdf_assert_dataset(DG, NGMap):-
+rdf_assert_dataset(DG, NGMap) :-
   rdf_dataset(DG, NGMap0), !,
   (   NGMap0 \== NGMap
   ->  % You are trying to redefined DG.
   ;   % Fail silently
       fail
   ).
-rdf_assert_dataset(DG, NGMap):-
+rdf_assert_dataset(DG, NGMap) :-
   assert(rdf_dataset(DG, NGMap)).
 
 
 
 %! rdf_dataset(?DefaultGraph:atom) is semidet.
 
-rdf_dataset(DG):-
+rdf_dataset(DG) :-
   rdf_dataset(DG, _).
 
 
@@ -89,9 +89,9 @@ rdf_dataset(DG):-
 % Succeeds if Graph is part of Dataset.
 
 % Default graph.
-rdf_dataset_member(G, G):-
+rdf_dataset_member(G, G) :-
   rdf_dataset(G, _).
 % Named graph.
-rdf_dataset_member(G, DG):-
+rdf_dataset_member(G, DG) :-
   rdf_dataset(DG, Map),
   memberchk(_-G, Map).

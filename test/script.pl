@@ -72,7 +72,7 @@ script5:-
   rdf_assert(ex:b, owl:differentFrom, ex:c, G),
   rdf_print_graph(G).
   %mat0(G).
-%mat0(G):- atom_concat(G, '_mat', GMat), mat(G, GMat).
+%mat0(G) :- atom_concat(G, '_mat', GMat), mat(G, GMat).
 
 script6:-
   rdf_reset_db,

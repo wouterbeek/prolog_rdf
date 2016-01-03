@@ -36,13 +36,13 @@ Show RDF data structures during modeling/development.
 %! rdf_show_graph(+Graph:rdf_graph) is det.
 % Wrapper around rdf_show_graph/2 with default options.
 
-rdf_show_graph(G):-
+rdf_show_graph(G) :-
   rdf_show_graph(G, []).
 
 
 %! rdf_show_graph(+Graph:rdf_graph, +Options:list(compound)) is det.
 
-rdf_show_graph(G, Opts1):-
+rdf_show_graph(G, Opts1) :-
   rdf_graph_to_export_graph(G, ExportG, Opts1),
   file_name_extension(G, pdf, File),
   gv_export(ExportG, File, Opts1),

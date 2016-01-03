@@ -34,13 +34,13 @@
 
 %! oaei_assert_alignment(+Alignment:pair(iri), ?Graph:rdf_graph) is det.
 
-oaei_assert_alignment(From-To, G):-
+oaei_assert_alignment(From-To, G) :-
   oaei_assert_alignment(From, To, G).
 
 
 %! oaei_assert_alignment(+From:iri, +To:iri, ?Graph:rdf_graph) is det.
 
-oaei_assert_alignment(From, To, G):-
+oaei_assert_alignment(From, To, G) :-
   oaei_assert_alignment(From, To, =, 1.0, G).
 
 
@@ -52,7 +52,7 @@ oaei_assert_alignment(From, To, G):-
 %!   ?Graph:rdf_graph
 %! ) is det.
 
-oaei_assert_alignment(From, To, Rel, Measure, G):-
+oaei_assert_alignment(From, To, Rel, Measure, G) :-
   rdf_create_bnode(B),
   rdf_assert(B, align:entity1, From, G),
   rdf_assert(B, align:entity2, To, G),
@@ -63,5 +63,5 @@ oaei_assert_alignment(From, To, Rel, Measure, G):-
 
 %! oaei_assert_alignments(+Alignments:list(pair), ?Graph:rdf_graph) is det.
 
-oaei_assert_alignments(As, G):-
+oaei_assert_alignments(As, G) :-
   forall(member(A, As), oaei_assert_alignment(A, G)).

@@ -67,7 +67,7 @@ Higher-level update operations performed on RDF data.
 % This check every RDF triple in the given graph
 % that contains a typed literal.
 
-rdf_canonize_graph(G):-
+rdf_canonize_graph(G) :-
   forall(
     (rdf(S, P, O, G), rdf_is_literal(O)),
     rdf_canonize_triple(S, P, O, G)
@@ -85,7 +85,7 @@ rdf_canonize_graph(G):-
 % so as to ensure that the same value is denote,
 % but by the canonical lexical form for that value.
 
-rdf_canonize_triple(S, P, O1, G):-
+rdf_canonize_triple(S, P, O1, G) :-
   rdf(S, P, O1, G),
   rdf_is_literal(O1),
   rdf_lexical_canonical_map(O1, O2),
@@ -113,10 +113,10 @@ rdf_canonize_triple(S, P, O1, G):-
 %
 % @tbd Perform blank node renaming.
 
-rdf_cp(FromG, S, P, O, ToG):-
+rdf_cp(FromG, S, P, O, ToG) :-
   rdf_transaction(rdf_cp0(copied, FromG, S, P, O, ToG)).
 
-rdf_cp0(Action, FromG, S, P, O, ToG):-
+rdf_cp0(Action, FromG, S, P, O, ToG) :-
   forall(rdf(S, P, O, FromG), (
     rdf_assert(S, P, O, ToG),
     dcg_debug(rdf(update), (
@@ -134,13 +134,13 @@ rdf_cp0(Action, FromG, S, P, O, ToG):-
 %! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri) is det.
 % Wrapper around rdf_increment/5.
 
-rdf_increment(S, P):-
+rdf_increment(S, P) :-
   rdf_increment(S, P, _).
 
 
 %! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri, +Graph:atom) is det.
 
-rdf_increment(S, P, G):-
+rdf_increment(S, P, G) :-
   rdf_transaction((
     rdf(S, P, Old^^D, G),
 
@@ -165,7 +165,7 @@ rdf_increment(S, P, G):-
 %! ) is det.
 % Move triples between graphs.
 
-rdf_mv(FromG, S, P, O, ToG):-
+rdf_mv(FromG, S, P, O, ToG) :-
   rdf_transaction((
     rdf_cp0(moved, FromG, S, P, O, ToG),
     rdf_retractall(S, P, O, FromG)
@@ -181,7 +181,7 @@ rdf_mv(FromG, S, P, O, ToG):-
 %!   +Action:compound
 %! ) is det.
 
-rdf_update(S1, P1, O1, G1, Act):-
+rdf_update(S1, P1, O1, G1, Act) :-
   rdf_update_action(S1, P1, O1, G1, Act, S2, P2, O2, G2),
   rdf_transaction(
     rdf_retractall(S1, P1, O1, G1),

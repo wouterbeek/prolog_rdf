@@ -93,34 +93,34 @@ resources as well.
 :- rdf_meta(rdf_term(r,o)).
 
 :- multifile(error:has_type/2).
-error:has_type(rdf_bnode, B):-
+error:has_type(rdf_bnode, B) :-
   rdf_is_bnode(B).
-error:has_type(rdf_graph, G):-
+error:has_type(rdf_graph, G) :-
   (   G == default
   ;   error:has_type(iri, G)
   ).
-error:has_type(rdf_literal, Lit):-
+error:has_type(rdf_literal, Lit) :-
   rdf_is_literal(Lit).
-error:has_type(rdf_name, N):-
+error:has_type(rdf_name, N) :-
   (   error:has_type(iri, N)
   ;   error:has_type(rdf_literal, N)
   ).
-error:has_type(rdf_statement, Stmt):-
+error:has_type(rdf_statement, Stmt) :-
   (   error:has_type(rdf_triple, Stmt)
   ;   error:has_type(rdf_quadruple, Stmt)
   ).
-error:has_type(rdf_quadruple, T):-
+error:has_type(rdf_quadruple, T) :-
   T = rdf(S,P,O,G),
   error:has_type(rdf_term, S),
   error:has_type(iri, P),
   error:has_type(rdf_term, O),
   error:has_type(iri, G).
-error:has_type(rdf_term, T):-
+error:has_type(rdf_term, T) :-
   (   error:has_type(rdf_bnode, T)
   ;   error:has_type(rdf_literal, T)
   ;   error:has_type(iri, T)
   ).
-error:has_type(rdf_triple, T):-
+error:has_type(rdf_triple, T) :-
   T = rdf(S,P,O),
   error:has_type(rdf_term, S),
   error:has_type(iri, P),
@@ -135,7 +135,7 @@ error:has_type(rdf_triple, T):-
 % Enumerates the current blank node terms.
 % Ensures that no blank node occurs twice.
 
-rdf_bnode(BN):-
+rdf_bnode(BN) :-
   (   var(BN)
   ->  rdf_bnode_id(BNid),
       id_to_term(BNid, BN)
@@ -147,7 +147,7 @@ rdf_bnode(BN):-
 %! rdf_bnode(+G, +BN) is semidet.
 %! rdf_bnode(+G, -BN) is nondet.
 
-rdf_bnode(G, BN):-
+rdf_bnode(G, BN) :-
   rdf_bnode(BN),
   once(rdf_node(G, BN)).
 
@@ -156,14 +156,14 @@ rdf_bnode(G, BN):-
 %! rdf_datatype_iri(+D) is semidet.
 %! rdf_datatype_iri(-D) is nondet.
 
-rdf_datatype_iri(D):-
+rdf_datatype_iri(D) :-
   distinct(D, (rdf_literal(Lit), rdf_literal_data(datatype, Lit, D))).
 
 
 %! rdf_datatype_iri(+G, +D) is semidet.
 %! rdf_datatype_iri(+G, -D) is nondet.
 
-rdf_datatype_iri(G, D):-
+rdf_datatype_iri(G, D) :-
   distinct(D, (rdf_literal(G, Lit), rdf_literal_data(datatype, Lit, D))).
 
 
@@ -171,7 +171,7 @@ rdf_datatype_iri(G, D):-
 %! rdf_iri(@Term) is semidet.
 %! rdf_iri(-Term) is nondet.
 
-rdf_iri(Iri):-
+rdf_iri(Iri) :-
   (   var(Iri)
   ->  rdf_iri_id(Iriid),
       id_to_term(Iriid, Iri)
@@ -183,7 +183,7 @@ rdf_iri(Iri):-
 %! rdf_iri(+G, +Iri) is semidet.
 %! rdf_iri(+G, -Iri) is nondet.
 
-rdf_iri(G, Iri):-
+rdf_iri(G, Iri) :-
   rdf_iri(Iri),
   once(rdf_term(G, Iri)).
 
@@ -191,28 +191,28 @@ rdf_iri(G, Iri):-
 
 %! rdf_is_iri(@Term) is semidet.
 
-rdf_is_iri(T):- is_iri(T).
+rdf_is_iri(T) :- is_iri(T).
 
 
 
 %! rdf_is_name(@Term) is semidet.
 
-rdf_is_name(N):- rdf_is_iri(N), !.
-rdf_is_name(N):- rdf_is_literal(N).
+rdf_is_name(N) :- rdf_is_iri(N), !.
+rdf_is_name(N) :- rdf_is_literal(N).
 
 
 
 %! rdf_is_term(@Term) is semidet.
 
-rdf_is_term(N):- rdf_is_name(N), !.
-rdf_is_term(N):- rdf_is_bnode(N).
+rdf_is_term(N) :- rdf_is_name(N), !.
+rdf_is_term(N) :- rdf_is_bnode(N).
 
 
 
 %! rdf_literal(@Term) is semidet.
 %! rdf_literal(-Lit) is nondet.
 
-rdf_literal(Lit):-
+rdf_literal(Lit) :-
   (   var(Lit)
   ->  rdf_literal_id(Litid),
       id_to_term(Litid, Lit)
@@ -224,7 +224,7 @@ rdf_literal(Lit):-
 %! rdf_literal(+G, +Lit) is semidet.
 %! rdf_literal(+G, -Lit) is nondet.
 
-rdf_literal(G, Lit):-
+rdf_literal(G, Lit) :-
   rdf_literal(Lit),
   once(rdf_node(G, Lit)).
 
@@ -233,7 +233,7 @@ rdf_literal(G, Lit):-
 %! rdf_name(+Name:rdf_name) is semidet.
 %! rdf_name(-Name:rdf_name) is nondet.
 
-rdf_name(Name):-
+rdf_name(Name) :-
   rdf_term(Name),
   \+ rdf_is_bnode(Name).
 
@@ -241,7 +241,7 @@ rdf_name(Name):-
 %! rdf_name(+G, +Name:rdf_name) is semidet.
 %! rdf_name(+G, -Name:rdf_name) is nondet.
 
-rdf_name(G, Name):-
+rdf_name(G, Name) :-
   rdf_term(G, Name),
   \+ rdf_is_bnode(Name).
 
@@ -250,9 +250,9 @@ rdf_name(G, Name):-
 %! rdf_node(+Node:rdf_node) is semidet.
 %! rdf_node(-Node:rdf_node) is nondet.
 
-rdf_node(S):-
+rdf_node(S) :-
   rdf_subject(S).
-rdf_node(O):-
+rdf_node(O) :-
   rdf_object(O),
   % Make sure there are no duplicates.
   \+ rdf_subject(O).
@@ -261,9 +261,9 @@ rdf_node(O):-
 %! rdf_node(+G, +Node:rdf_node) is semidet.
 %! rdf_node(+G, -Node:rdf_node) is nondet.
 
-rdf_node(G, S):-
+rdf_node(G, S) :-
   rdf_subject(G, S).
-rdf_node(G, O):-
+rdf_node(G, O) :-
   rdf_object(G, O),
   % Make sure there are no duplicates.
   \+ rdf_subject(G, O).
@@ -273,7 +273,7 @@ rdf_node(G, O):-
 %! rdf_object(+O) is semidet.
 %! rdf_object(-O) is nondet.
 
-rdf_object(O):-
+rdf_object(O) :-
   (   var(O)
   ->  rdf_object_id(Oid),
       id_to_term(Oid, O)
@@ -285,7 +285,7 @@ rdf_object(O):-
 %! rdf_object(+G, +O) is semidet.
 %! rdf_object(+G, -O) is nondet.
 
-rdf_object(G, O):-
+rdf_object(G, O) :-
   graph_term_to_id(G, Gid),
   (   var(O)
   ->  rdf_object_id(Oid),
@@ -300,7 +300,7 @@ rdf_object(G, O):-
 %! rdf_predicate(+P) is semidet.
 %! rdf_predicate(-P) is nondet.
 
-rdf_predicate(P):-
+rdf_predicate(P) :-
   (   var(P)
   ->  rdf_predicate_id(Pid),
       id_to_term(Pid, P)
@@ -312,7 +312,7 @@ rdf_predicate(P):-
 %! rdf_predicate(+G, +P) is semidet.
 %! rdf_predicate(+G, -P) is nondet.
 
-rdf_predicate(G, P):-
+rdf_predicate(G, P) :-
   graph_term_to_id(G, Gid),
   (   var(P)
   ->  rdf_predicate_id(Pid),
@@ -327,7 +327,7 @@ rdf_predicate(G, P):-
 %! rdf_subject(+S) is semidet.
 %! rdf_subject(-S) is nondet.
 
-rdf_subject(S):-
+rdf_subject(S) :-
   (   var(S)
   ->  rdf_subject_id(Sid),
       id_to_term(Sid, S)
@@ -339,7 +339,7 @@ rdf_subject(S):-
 %! rdf_subject(+G, +S) is semidet.
 %! rdf_subject(+G, -S) is nondet.
 
-rdf_subject(G, S):-
+rdf_subject(G, S) :-
   graph_term_to_id(G, Gid),
   (   var(S)
   ->  rdf_subject_id(Sid),
@@ -354,9 +354,9 @@ rdf_subject(G, S):-
 %! rdf_term(@Term) is semidet.
 %! rdf_term(-Term:rdf_term) is nondet.
 
-rdf_term(P):-
+rdf_term(P) :-
   rdf_predicate(P).
-rdf_term(N):-
+rdf_term(N) :-
   rdf_node(N),
   % Ensure there are no duplicates.
   \+ rdf_predicate(N).
@@ -365,9 +365,9 @@ rdf_term(N):-
 %! rdf_term(+G, +T) is semidet.
 %! rdf_term(+G, -T) is nondet.
 
-rdf_term(G, P):-
+rdf_term(G, P) :-
   rdf_predicate(G, P).
-rdf_term(G, N):-
+rdf_term(G, N) :-
   rdf_node(G, N),
   % Ensure there are no duplicates.
   \+ rdf_predicate(N).

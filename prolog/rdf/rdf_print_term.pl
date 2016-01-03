@@ -42,6 +42,7 @@
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(typecheck)).
+:- use_module(library(yall)).
 
 :- rdf_meta
 	rdf_print_graph(r, ?, ?),
@@ -250,7 +251,7 @@ rdf_print_lexical(Lex, Opts) -->
 
 
 
-%! rdf_print_list(+T, +Opts)// is semidet.
+%! rdf_print_list(+RdfList, +Opts)// is semidet.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -262,9 +263,9 @@ rdf_print_lexical(Lex, Opts) -->
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_print_list(L0, Opts) -->
-  {rdf_is_list(L0), rdf_list_raw(L0, L)},
-  list(\T^rdf_print_term(T, Opts), L).
+rdf_print_list(L1, Opts) -->
+  {rdf_list(L1, L2)},
+  list([T]>>rdf_print_term(T, Opts), L2).
 
 
 
@@ -350,9 +351,9 @@ rdf_print_subject(S, Opts) -->
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_print_term(T):-
+rdf_print_term(T) :-
   rdf_print_term(T, []).
-rdf_print_term(T, Opts):-
+rdf_print_term(T, Opts) :-
   dcg_with_output_to(current_output, rdf_print_term(T, Opts)).
 
 

@@ -53,7 +53,7 @@
 % Returns the rdf triple that has the given index in the arbitrary sequence
 % in which SWI-Prolog returns its triples.
 
-rdf_index(I, S, P, O, G):-
+rdf_index(I, S, P, O, G) :-
   state_init(State),
   repeat,
   (rdf(S, P, O, G) ; !),
@@ -70,7 +70,7 @@ rdf_index(I, S, P, O, G):-
 %! ) is det.
 % Options are passed to rdf_neighbor_vertex/4.
 
-rdf_random_neighbor(V, RndN, Graph, Opts):-
+rdf_random_neighbor(V, RndN, Graph, Opts) :-
   aggregate_all(
     set(N),
     rdf_neighbor_vertex(V, N, Graph, Opts),
@@ -82,7 +82,7 @@ rdf_random_neighbor(V, RndN, Graph, Opts):-
 
 %! rdf_random_term(-Term:rdf_term, +Graph:rdf_graph) is det.
 
-rdf_random_term(Term, Graph):-
+rdf_random_term(Term, Graph) :-
   rdf_random_triple(S, P, O, Graph),
   random_member(Term, [S,P,O]).
 
@@ -91,7 +91,7 @@ rdf_random_term(Term, Graph):-
 %! rdf_random_triple(-Triple:rdf_triple, +Graph:rdf_graph) is det.
 % Wrapper around rdf_random_triple/4.
 
-rdf_random_triple(rdf(S,P,O), G):-
+rdf_random_triple(rdf(S,P,O), G) :-
   rdf_random_triple(S, P, O, G).
 
 
@@ -104,7 +104,7 @@ rdf_random_triple(rdf(S,P,O), G):-
 %! ) is det.
 % Returns a random triple from the given graph.
 
-rdf_random_triple(S, P, O, G):-
+rdf_random_triple(S, P, O, G) :-
   rdf_graph_get_property(G, triples(N)),
   random_between(1, N, RndI),
   rdf_index(RndI, S, P, O, G).

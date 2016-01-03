@@ -17,6 +17,7 @@
      rdf_global_id/2,		% ?Prefixed, ?Expanded
      % @tbd Rename to `rdf_expand_term/2'.
      rdf_global_object/2,	% ?Prefixed, ?Expanded
+     rdf_global_term/2,		% ?Prefixed, ?Expanded
      rdf_meta/1,		% +Heads
      op(1150, fx, (rdf_meta)),
      rdf_register_prefix/2,	% +Prefix, +IriPrefix
@@ -82,7 +83,7 @@ assert_cc_prefixes:-
   reverse(Rows0, Rows),
   maplist(assert_cc_prefix, Rows).
 
-assert_cc_prefix(row(Alias,Prefix)):-
+assert_cc_prefix(row(Alias,Prefix)) :-
   rdf_reset_prefix(Alias, Prefix).
 
 
@@ -302,7 +303,7 @@ dbpedia_language_tag(zh_yue).
 
 %! dbpedia_register(+LanguageTag:atom) is det.
 
-dbpedia_register(LTag):-
+dbpedia_register(LTag) :-
   atomic_list_concat([LTag,dbpedia,org], ., Authority),
 
   % XML namespace for resources.
@@ -326,14 +327,14 @@ dbpedia_register(LTag):-
 %! rdf_current_prefix(+Prefix:atom) is semidet.
 %! rdf_current_prefix(-Prefix:atom) is det.
 
-rdf_current_prefix(Prefix):-
+rdf_current_prefix(Prefix) :-
   rdf_current_prefix(Prefix, _).
 
 
 
 %! rdf_maplist(:Goal_1, +Ts:list) is det.
 
-rdf_maplist(Goal_1, Ts):-
+rdf_maplist(Goal_1, Ts) :-
   maplist(Goal_1, Ts).
 
 
@@ -341,7 +342,7 @@ rdf_maplist(Goal_1, Ts):-
 %! rdf_member(+T, +Ts) is semidet.
 %! rdf_member(-T, +Ts) is nondet.
 
-rdf_member(T, Ts):-
+rdf_member(T, Ts) :-
   member(T, Ts).
 
 
@@ -349,7 +350,7 @@ rdf_member(T, Ts):-
 %! rdf_memberchk(+T, +Ts) is semidet.
 %! rdf_memberchk(-T, +Ts) is semidet.
 
-rdf_memberchk(T, Ts):-
+rdf_memberchk(T, Ts) :-
   memberchk(T, Ts).
 
 
@@ -359,7 +360,7 @@ rdf_memberchk(T, Ts):-
 % RDF prefix, if any.  If no registered RDF prefix occurs in Iri the full IRI
 % is returned.
 
-rdf_prefix_iri(Iri, IriPrefix):-
+rdf_prefix_iri(Iri, IriPrefix) :-
   rdf_global_id(Prefix;_, Iri), !,
   rdf_current_prefix(Prefix, IriPrefix).
 rdf_prefix_iri(Iri, Iri).
@@ -370,7 +371,7 @@ rdf_prefix_iri(Iri, Iri).
 % Sets or resets RDF prefixes (whatever is needed to effectuate the mapping
 % from Prefix onto IRI), but shows a warning in the case of resetting.
 
-rdf_reset_prefix(Prefix, IriPrefix):-
+rdf_reset_prefix(Prefix, IriPrefix) :-
   with_mutex(rdf_reset_prefix, (
     (   rdf_current_prefix(Prefix, OldIriPrefix)
     ->  (   OldIriPrefix == IriPrefix

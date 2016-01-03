@@ -48,20 +48,20 @@
 % Returns incoming and outgoing edges for the resource denoted by
 % the given RDF term.
 
-rdf_edge(From, P, To, G):-
+rdf_edge(From, P, To, G) :-
   rdf_outgoing_edge(From, P, To, G).
-rdf_edge(To, P, From, G):-
+rdf_edge(To, P, From, G) :-
   rdf_incoming_edge(To, P, From, G).
 
 
 
 %! rdf_ego(+Term:rdf_term, +Depth:nonneg, -Triples:ordset(rdf_triple)) is det.
 
-rdf_ego(T, N, Ts):-
+rdf_ego(T, N, Ts) :-
   rdf_ego([T], N, [], Ts).
 
-rdf_ego([], _, Ts, Ts):- !.
-rdf_ego([S|Ss1], N1, Ts1, Ts):-
+rdf_ego([], _, Ts, Ts) :- !.
+rdf_ego([S|Ss1], N1, Ts1, Ts) :-
   aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Ts0),
   rdf_triples_subjects(Ts0, Ss0),
   ord_union(Ts1, Ts0, Ts2),
@@ -79,7 +79,7 @@ rdf_ego([S|Ss1], N1, Ts1, Ts):-
 %! ) is nondet.
 % Returns incoming edges for the resource denoted by the given RDF term.
 
-rdf_incoming_edge(To, P, From, G):-
+rdf_incoming_edge(To, P, From, G) :-
   rdf(From, P, To, G).
 
 
@@ -92,5 +92,5 @@ rdf_incoming_edge(To, P, From, G):-
 %! ) is nondet.
 % Returns outgoing edges for the resource denoted by the given RDF term.
 
-rdf_outgoing_edge(From, P, To, G):-
+rdf_outgoing_edge(From, P, To, G) :-
   rdf(From, P, To, G).

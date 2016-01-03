@@ -52,15 +52,15 @@
 % If H is an instance of G then every triple in H is an instance of
 %  at least one triple in G.
 
-rdf_graph_instance(H, G, Map):-
+rdf_graph_instance(H, G, Map) :-
   rdf_triples(G, GTriples),
   partition(rdf_is_ground_triple, GTriples, GGround, GNonground),
   rdf_triples(H, HTriples),
   ord_subtract(HTriples, GGround, HInstance),
   rdf_graph_instance(HInstance, GNonground, [], Map).
 
-rdf_graph_instance([], [], Map, Map):- !.
-rdf_graph_instance0(L1, [rdf(S2,P,O2)|T2], Map1, Map):-
+rdf_graph_instance([], [], Map, Map) :- !.
+rdf_graph_instance0(L1, [rdf(S2,P,O2)|T2], Map1, Map) :-
   % Find an instance, i.e., Specific of Generic.
   maplist(bnode_to_var, [S2,O2], [S3,O3]),
   select(rdf(S3,P,O3), L1, NewL1),
@@ -68,7 +68,7 @@ rdf_graph_instance0(L1, [rdf(S2,P,O2)|T2], Map1, Map):-
   rdf_term_instance(O3, O2, Map2, Map3),
   rdf_graph_instance0(NewL1, T2, Map3, Map).
 
-bnode_to_var(BNode, _):-
+bnode_to_var(BNode, _) :-
   rdf_is_bnode(BNode), !.
 bnode_to_var(Term, Term).
 
@@ -80,7 +80,7 @@ bnode_to_var(Term, Term).
 %  graph.
 % The resulting graph is called the **merge**.
 
-rdf_graph_merge(FromGs, ToG):-
+rdf_graph_merge(FromGs, ToG) :-
   % Collect the shared blank nodes.
   aggregate_all(
     set(FromG1-SharedBNode),
@@ -137,7 +137,7 @@ rdf_graph_merge(FromGs, ToG):-
 % Succeds if the RDF graphs denoted by the given names have the same
 %  number of triples.
 
-rdf_graph_same_size(G, H):-
+rdf_graph_same_size(G, H) :-
   rdf_graph_get_property(G, triples(Count)),
   rdf_graph_get_property(H, triples(Count)).
 
@@ -152,7 +152,7 @@ rdf_graph_same_size(G, H):-
 %
 % @compat RDF 1.1 Semantics
 
-rdf_is_ground_graph(G):-
+rdf_is_ground_graph(G) :-
   rdf_graph(G),
   \+ rdf_bnode(G, _).
 
@@ -169,16 +169,16 @@ rdf_is_ground_graph(G):-
 %
 % @compat RDF 1.1 Semantics
 
-rdf_proper_graph_instance(G, H, Map):-
+rdf_proper_graph_instance(G, H, Map) :-
   rdf_graph_instance(G, H, Map),
   rdf_proper_graph_instance_map(Map).
 
 % A blank node is mapped onto an RDF name.
-rdf_proper_graph_instance_map(Map):-
+rdf_proper_graph_instance_map(Map) :-
   ord_memberchk(_-Name, Map),
   rdf_is_name(Name), !.
 % Two different blank nodes are mapped onto the same blank node.
-rdf_proper_graph_instance_map(Map):-
+rdf_proper_graph_instance_map(Map) :-
   member(BNode1-BNode3, Map),
   member(BNode2-BNode3, Map),
   BNode1 \== BNode2, !.
@@ -190,7 +190,7 @@ rdf_proper_graph_instance_map(Map):-
 %
 % @compat RDF 1.1 Semantics
 
-rdf_proper_subgraph(G, H):-
+rdf_proper_subgraph(G, H) :-
   rdf_subgraph(G, H),
   \+ rdf_graph_same_size(G, H).
 
@@ -201,7 +201,7 @@ rdf_proper_subgraph(G, H):-
 %
 % @compat RDF 1.1 Semantics
 
-rdf_subgraph(G, H):-
+rdf_subgraph(G, H) :-
   \+ ((
     rdf(S, P, O, G),
     \+ rdf(S, P, O, H)
@@ -235,7 +235,7 @@ rdf_subgraph(G, H):-
 %
 % @compat RDF 1.1 Semantics
 
-rdf_graph_equiv(G1, G2):-
+rdf_graph_equiv(G1, G2) :-
   rdf_graph_entails(G1, G2),
   rdf_graph_entails(G2, G1).
 */

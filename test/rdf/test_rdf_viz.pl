@@ -15,8 +15,6 @@
 
 
 
-
-
 script1:-
   rdf_reset_db,
   G = script1,

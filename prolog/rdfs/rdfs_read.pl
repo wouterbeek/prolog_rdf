@@ -46,24 +46,24 @@
 %! rdfs_class(?Class:rdf_term, ?Graph:rdf_graph) is nondet.
 % @tbd
 
-rdfs_class(C, G):-
+rdfs_class(C, G) :-
   rdf(C, rdf:type, rdfs:'Class', G).
-rdfs_class(C, G):-
+rdfs_class(C, G) :-
   rdf(_, rdf:type, C, G).
-rdfs_class(C, G):-
+rdfs_class(C, G) :-
   rdf(_, rdfs:domain, C, G).
-rdfs_class(C, G):-
+rdfs_class(C, G) :-
   rdf(_, rdfs:range, C, G).
-rdfs_class(C, G):-
+rdfs_class(C, G) :-
   rdf(C, rdfs:subClassOf, _, G).
-rdfs_class(C, G):-
+rdfs_class(C, G) :-
   rdf(_, rdfs:subClassOf, C, G).
 
 
 
 %! rdfs_comment(?Subject:rdf_term, ?Comment:atom) is nondet.
 
-rdfs_comment(S, Comm):-
+rdfs_comment(S, Comm) :-
   rdf_literal(S, rdfs:comment, xsd:string, Comm).
 
 
@@ -71,7 +71,7 @@ rdfs_comment(S, Comm):-
 %! rdfs_instance(?Instance:rdf_term, ?Class:or([bnode,iri])) is nondet.
 % @tbd
 
-rdfs_instance(I, D):-
+rdfs_instance(I, D) :-
   rdf(I, rdf:type, C),
   rdf_closure0(C, rdfs:subClassOf, D).
 
@@ -80,7 +80,7 @@ rdfs_instance(I, D):-
 %! rdfs_label(+Subject:rdf_term, -Label:atom) is nondet.
 % Wrapper around rdfs_label/3 using the global language priority list setting.
 
-rdfs_label(S, Lex):-
+rdfs_label(S, Lex) :-
   user:setting(language_priority_list, LRanges),
   rdfs_label(S, LRanges, Lex).
 
@@ -92,7 +92,7 @@ rdfs_label(S, Lex):-
 %! ) is nondet.
 % Wrapper around rdfs_label/4 not returning the language tag, if any.
 
-rdfs_label(S, LRanges, Lex):-
+rdfs_label(S, LRanges, Lex) :-
   rdfs_label(S, LRanges, _, Lex).
 
 
@@ -104,7 +104,7 @@ rdfs_label(S, LRanges, Lex):-
 %! ) is nondet.
 % Wrapper around rdfs_label/5 with uninstantiated graph.
 
-rdfs_label(S, LRanges, LTag, Lex):-
+rdfs_label(S, LRanges, LTag, Lex) :-
   rdfs_label(S, LRanges, LTag, Lex, _).
 
 
@@ -116,13 +116,13 @@ rdfs_label(S, LRanges, LTag, Lex):-
 %!   ?Graph:rdf_graph
 %! ) is nondet.
 
-rdfs_label(S, LRanges, LTag, Lex, G):-
+rdfs_label(S, LRanges, LTag, Lex, G) :-
   rdf_pref_string(S, rdfs:label, LRanges, LTag, Lex, G).
 
 
 
 %! rdfs_one_label(+Subject:rdf_term, -Label:atom) is det.
 
-rdfs_one_label(S, Lex):-
+rdfs_one_label(S, Lex) :-
   rdfs_label(S, Lex), !.
 rdfs_one_label(_, '∅').

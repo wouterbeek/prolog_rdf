@@ -29,7 +29,7 @@
 %! rdf_image(?Subject:rdf_term, ?Predicate:iri, ?Image:atom) is nondet.
 % Wrapper around rdf_image/4 with uninstantiated graph.
 
-rdf_image(S, P, O):-
+rdf_image(S, P, O) :-
   rdf_image(S, P, O, _).
 
 
@@ -40,7 +40,7 @@ rdf_image(S, P, O):-
 %!   ?Graph:rdf_graph
 %! ) is nondet.
 
-rdf_image(S, P, V, G):-
+rdf_image(S, P, V, G) :-
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
       rdf_literal(S, P, xsd:anyURI, V, G)
   ;   rdf_literal(S, P, xsd:anyURI, V, G),

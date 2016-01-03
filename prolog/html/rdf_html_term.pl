@@ -1,36 +1,21 @@
 :- module(
   rdf_html_term,
   [
-    rdf_html_bnode//2, % +BNode:bnode
-                       % +Options:list(compound)
-    rdf_html_datatype//2, % +Datatype:iri
-                          % +Options:list(compound)
-    rdf_html_graph//2, % +Graph:rdf_graph
-                       % +Options:list(compound)
-    rdf_html_id//2, % +Id:uid
-                    % +Options:list(compound)
-    rdf_html_iri//2, % +Iri:iri
-                     % +Options:list(compound)
-    rdf_html_language_tag//2, % +LanguageTag:atom
-                              % +Options:list(compound)
-    rdf_html_lexical_form//2, % +LexicalForm:atom
-                              % +Options:list(compound)
-    rdf_html_list//2, % +Term:rdf_term
-                      % +Options:list(compound)
-    rdf_html_literal//2, % +Literal:compound
-                         % +Options:list(compound)
-    rdf_html_object//2, % +Object:rdf_term
-                        % +Options:list(compound)
-    rdf_html_predicate//2, % +Predicate:iri
-                           % +Options:list(compound)
-    rdf_html_subject//2, % +Subject:rdf_term
-                         % +Options:list(compound)
-    rdf_html_term//1, % +Term:rdf_term
-    rdf_html_term//2, % +Term:rdf_term
-                      % +Options:list(compound)
-    rdf_html_term_in_graph//3 % +Term:rdf_term
-                              % ?Graph:rdf_graph
-                              % +Options:list(compound)
+    rdf_html_bnode//2,		% +B, +Opts
+    rdf_html_datatype//2,	% +D, +Opts
+    rdf_html_graph//2,		% +G, +Opts
+    rdf_html_id//2,		% +Tid, +Opts
+    rdf_html_iri//2,		% +Iri, +Opts
+    rdf_html_language_tag//2,	% +LTag, +Opts
+    rdf_html_lexical_form//2,	% +Lex, +Opts
+    rdf_html_list//2,		% +T, +Opts
+    rdf_html_literal//2,	% +Lit, +Opts
+    rdf_html_object//2,		% +O, +Opts
+    rdf_html_predicate//2,	% +P, +Opts
+    rdf_html_subject//2,	% +S, +Opts
+    rdf_html_term//1,		% +T
+    rdf_html_term//2,		% +T, +Opts
+    rdf_html_term_in_graph//3	% +T, ?G, +Opts
   ]
 ).
 
@@ -39,13 +24,13 @@
 Generates HTML representations of RDF data.
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/12
+@version 2015/08-2015/09, 2015/12-2016/01
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(html/content/html_collection)).
-:- use_module(library(html/content/html_pl)).
-:- use_module(library(html/element/html_link)).
+:- use_module(library(html/html_collection)).
+:- use_module(library(html/html_link)).
+:- use_module(library(html/html_pl)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(option)).
@@ -55,21 +40,23 @@ Generates HTML representations of RDF data.
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(typecheck)).
+:- use_module(library(yall)).
 
-:- rdf_meta(html_entry(r,-)).
-:- rdf_meta(rdf_html_datatype(r,+,?,?)).
-:- rdf_meta(rdf_html_graph(r,+,?,?)).
-:- rdf_meta(rdf_html_iri(r,+,?,?)).
-:- rdf_meta(rdf_html_language_tag(+,+,?,?)).
-:- rdf_meta(rdf_html_lexical_form(+,+,?,?)).
-:- rdf_meta(rdf_html_list(o,+,?,?)).
-:- rdf_meta(rdf_html_literal(o,+,?,?)).
-:- rdf_meta(rdf_html_object(o,+,?,?)).
-:- rdf_meta(rdf_html_predicate(r,+,?,?)).
-:- rdf_meta(rdf_html_subject(r,+,?,?)).
-:- rdf_meta(rdf_html_term(o,?,?)).
-:- rdf_meta(rdf_html_term(o,+,?,?)).
-:- rdf_meta(rdf_html_term_in_graph(o,?,+,?,?)).
+:- rdf_meta
+	html_entry(r, -),
+	rdf_html_datatype(r, +, ?, ?),
+	rdf_html_graph(r, +, ?, ?),
+	rdf_html_iri(r, +, ?, ?),
+	rdf_html_language_tag(+, +, ?, ?),
+	rdf_html_lexical_form(+, +, ?, ?),
+	rdf_html_list(o, +, ?, ?),
+	rdf_html_literal(o, +, ?, ?),
+	rdf_html_object(o, +, ?, ?),
+	rdf_html_predicate(r, +, ?, ?),
+	rdf_html_subject(r, +, ?, ?),
+	rdf_html_term(o, ?, ?),
+	rdf_html_term(o, +, ?, ?),
+	rdf_html_term_in_graph(o, ?, +, ?, ?).
 
 :- predicate_options(rdf_html_bnode//2, 2, [
      abbr_list(+boolean),
@@ -133,7 +120,7 @@ Generates HTML representations of RDF data.
 
 
 
-%! rdf_html_bnode(+BNode:bnode, +Options:list(compound))// is det.
+%! rdf_html_bnode(+B, +Opts)// is det.
 % The following options are supported:
 %   * abbr_list(+boolean)
 %     Whether RDF lists are shown in Prolog list notation.
@@ -152,14 +139,14 @@ rdf_html_bnode(B, Opts) -->
 
 
 
-%! rdf_html_datatype(+Datatype:iri, +Options:list(compound))// is det.
+%! rdf_html_datatype(+Datatype:iri, +Opts)// is det.
 
 rdf_html_datatype(D, Opts) -->
   html(span(class='datatype-iri', \rdf_html_iri(D, Opts))).
 
 
 
-%! rdf_html_graph(+Graph:rdf_graph, +Options:list(compound))// is det.
+%! rdf_html_graph(+G, +Opts)// is det.
 
 rdf_html_graph(G, Opts) -->
   html(
@@ -175,15 +162,15 @@ rdf_html_graph0(G, Opts) -->
 
 
 
-%! rdf_html_id(+Id:uid, +Options:list(compound))// is det.
+%! rdf_html_id(+Id:uid, +Opts)// is det.
 
 rdf_html_id(Id, Opts) -->
   {id_to_terms(Id, Ts)},
-  html(span(class='rdf-id', \html_set(rdf_html_term0(Opts), Ts))).
+  html(span(class='rdf-id', \html_set([T]>>rdf_html_term(T, Opts), Ts))).
 
 
 
-%! rdf_html_iri(+Iri:atom, +Options:list(compound))// is det.
+%! rdf_html_iri(+Iri:atom, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %     Whether IRIs should be abbreviated w.r.t.
@@ -236,7 +223,7 @@ rdf_html_iri(Global, Opts) -->
 
 
 
-%! rdf_html_language_tag(+LanguageTag:atom, +Options:list(compound))// is det.
+%! rdf_html_language_tag(+LanguageTag:atom, +Opts)// is det.
 % Options are passed to rdf_html_language_subtags//2.
 
 rdf_html_language_tag(LTag, Opts) -->
@@ -250,7 +237,7 @@ rdf_html_language_subtags([H|T], Opts) -->
 
 
 
-%! rdf_html_lexical_form(+LexicalForm:atom, +Options:list(compound))// is det.
+%! rdf_html_lexical_form(+LexicalForm:atom, +Opts)// is det.
 % The following options are supported:
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %     Elipses lexical forms so that they are assured to be at most
@@ -267,23 +254,19 @@ rdf_html_lexical_form(Lex, Opts) -->
 
 
 
-%! rdf_html_list(+List:rdf_term, +Options:list(compound))// is semidet.
+%! rdf_html_list(+List:rdf_term, +Opts)// is semidet.
 % The following options are supported:
 %   * abbr_list(+boolean)
 %     Whether or not RDF lists are displayed using Prolog list notation.
 %     Default is `true`.
 
-rdf_html_list(L0, Opts) -->
-  {
-    rdf_is_list(L0),
-    rdf_list_raw(L0, L)
-  },
-  html(class='rdf-list', \list(rdf_html_term0(Opts), L)).
-rdf_html_term0(Opts, T) --> rdf_html_term(T, Opts).
+rdf_html_list(L1, Opts) -->
+  {rdf_list(L1, L2)},
+  html(class='rdf-list', \list([T]>>rdf_html_term(T, Opts), L2)).
 
 
 
-%! rdf_html_literal(+Literal:comound, +Options:list(compound))// is det.
+%! rdf_html_literal(+Literal:comound, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
@@ -325,7 +308,7 @@ rdf_html_literal0(literal(Lex), Opts) -->
 
 
 
-%! rdf_html_object(+Object:rdf_term, +Options:list(compound))// is det.
+%! rdf_html_object(+Object:rdf_term, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -338,7 +321,7 @@ rdf_html_object(O, Opts) -->
 
 
 
-%! rdf_html_predicate(+Predicate:iri, +Options:list(compound))// is det.
+%! rdf_html_predicate(+Predicate:iri, +Opts)// is det.
 %   * abbr_iri(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
@@ -350,7 +333,7 @@ rdf_html_predicate(P, Opts) -->
 
 
 
-%! rdf_html_subject(+Subject:rdf_term, +Options:list(compound))// is det.
+%! rdf_html_subject(+Subject:rdf_term, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -362,14 +345,14 @@ rdf_html_subject(S, Opts) -->
 
 
 
-%! rdf_html_term(+Term:rdf_term)// is det.
+%! rdf_html_term(+T)// is det.
 % Wrapper around rdf_html_term//2 with default options.
 
 rdf_html_term(T) -->
   rdf_html_term(T, []).
 
 
-%! rdf_html_term(+Term:rdf_term, +Options:list(compound))// is det.
+%! rdf_html_term(+T, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -396,11 +379,7 @@ rdf_html_term(T, Opts) -->
 
 
 
-%! rdf_html_term_in_graph(
-%!   +Term:rdf_term,
-%!   ?Graph:rdf_graph,
-%!   +Options:list(compound)
-%! )// is det.
+%! rdf_html_term_in_graph(+T, ?G, +Opts)// is det.
 
 rdf_html_term_in_graph(T, G, Opts) -->
   {var(G)}, !,

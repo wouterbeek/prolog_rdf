@@ -27,7 +27,7 @@
 %! rdf_graph_edges(?Graph:rdf_graph, -Edges:ordset(rdf_triple)) is det.
 % Edges are the labeled edges in Graph.
 
-rdf_graph_edges(G, Es):-
+rdf_graph_edges(G, Es) :-
   rdf_graph_triples(G, Ts),
   maplist(rdf_triple_edge, Ts, Es).
 

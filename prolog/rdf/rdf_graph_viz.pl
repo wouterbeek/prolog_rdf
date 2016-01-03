@@ -68,9 +68,9 @@ handled by plGraphViz.
 %!   -PrefixColors:list(pair)
 %! ) is det.
 
-create_namespace_map(Scheme, Map):-
-  aggregate_all(set(Alias), rdf_alias(Alias), Aliases),
-  create_namespace_map(Aliases, Scheme, Map).
+create_namespace_map(Scheme, Map) :-
+  aggregate_all(set(Prefix), rdf_current_prefix(Prefix), Prefixes),
+  create_namespace_map(Prefixes, Scheme, Map).
 
 
 
@@ -80,7 +80,7 @@ create_namespace_map(Scheme, Map):-
 %!   -PrefixColors:list(pair)
 %! ) is det.
 
-create_namespace_map(Prefixes, Scheme, Map):-
+create_namespace_map(Prefixes, Scheme, Map) :-
   length(Prefixes, NP),
   aggregate_all(set(C), gv_color(Scheme, C), Cs),
   length(Cs, NC),
@@ -113,7 +113,7 @@ create_namespace_map(Prefixes, Scheme, Map):-
 %   * prefix_colors(+list(pair))
 %     Default is [].
 
-rdf_edges_to_export_graph(Es, ExportG, Opts1):-
+rdf_edges_to_export_graph(Es, ExportG, Opts1) :-
   % Options `colorscheme' and `namespace_colors' are special
   % since their values are reused by other options.
   select_option(colorscheme(Colorscheme), Opts1, Opts2, x11),
@@ -147,7 +147,7 @@ rdf_edges_to_export_graph(Es, ExportG, Opts1):-
 %! rdf_graph_to_export_graph(+Graph:rdf_graph, -ExportGraph:compound) is det.
 % Wrapper around rdf_graph_to_export_graph/3 with default options.
 
-rdf_graph_to_export_graph(G, ExportG):-
+rdf_graph_to_export_graph(G, ExportG) :-
   rdf_graph_to_export_graph(G, ExportG, []).
 
 
@@ -157,7 +157,7 @@ rdf_graph_to_export_graph(G, ExportG):-
 %!   +Options:list(compound)
 %! ) is det.
 
-rdf_graph_to_export_graph(G, ExportG, Opts):-
+rdf_graph_to_export_graph(G, ExportG, Opts) :-
   rdf_graph_edges(G, Es),
   rdf_edges_to_export_graph(Es, ExportG, Opts).
 
@@ -174,7 +174,7 @@ rdf_graph_to_export_graph(G, ExportG, Opts):-
 %     Default is 1.
 %   * Other options are passed to rdf_graph_to_export_graph/4.
 
-rdf_term_to_export_graph(T, ExportG, Opts1):-
+rdf_term_to_export_graph(T, ExportG, Opts1) :-
   select_option(depth(Depth), Opts1, Opts2, 1),
   rdf_ego(T, Depth, Ts),
   maplist(rdf_triple_edge, Ts, Es),
@@ -189,16 +189,16 @@ rdf_term_to_export_graph(T, ExportG, Opts1):-
 %! rdf_edge_arrowhead(+Edge:compound, -ArrowHead:atom) is det.
 
 % RDFS subclass.
-rdf_edge_arrowhead(edge(_,P,_), box):-
+rdf_edge_arrowhead(edge(_,P,_), box) :-
   rdf_equal(P, rdfs:subClassOf), !.
 % RDFS subproperty.
-rdf_edge_arrowhead(edge(_,P,_), diamond):-
+rdf_edge_arrowhead(edge(_,P,_), diamond) :-
   rdf_equal(P, rdfs:subPropertyOf), !.
 % RDF type.
-rdf_edge_arrowhead(edge(_,P,_), empty):-
+rdf_edge_arrowhead(edge(_,P,_), empty) :-
   rdf_equal(P, rdf:type), !.
 % RDFS label.
-rdf_edge_arrowhead(edge(_,P,_), none):-
+rdf_edge_arrowhead(edge(_,P,_), none) :-
   rdf_equal(P, rdfs:label), !.
 % Others.
 rdf_edge_arrowhead(_, normal).
@@ -213,13 +213,13 @@ rdf_edge_arrowhead(_, normal).
 %! ) is det.
 
 % Disable colorization.
-rdf_edge_color(none, _, _, black):- !.
+rdf_edge_color(none, _, _, black) :- !.
 % The edge color is based on the predicate term.
-rdf_edge_color(Colorscheme, Map, edge(_,P,_), EColor):-
+rdf_edge_color(Colorscheme, Map, edge(_,P,_), EColor) :-
   rdf_vertex_color(Colorscheme, Map, P, EColor), !.
 % If the edge color is not specified, then see whether its vertices
 % agree on their color.
-rdf_edge_color(Colorscheme, Map, edge(FromV,_,ToV), EColor):-
+rdf_edge_color(Colorscheme, Map, edge(FromV,_,ToV), EColor) :-
   rdf_vertex_color(Colorscheme, Map, FromV, FromVColor),
   rdf_vertex_color(Colorscheme, Map, ToV, ToVColor),
   FromVColor == ToVColor, !,
@@ -249,16 +249,16 @@ rdf_edge_label(edge(_,P,_)) --> rdf_print_term(P).
 %! rdf_edge_style(+Edge:compound, -Style:atom) is det.
 
 % User-supplied customization.
-rdf_edge_style(E, EStyle):-
+rdf_edge_style(E, EStyle) :-
   rdf:rdf_edge_style(E, EStyle), !.
 % Certain RDFS schema terms.
-rdf_edge_style(edge(_,P,_), solid):-
+rdf_edge_style(edge(_,P,_), solid) :-
   (   rdf_equal(rdf:type, P)
   ;   rdf_equal(rdfs:subClassOf, P)
   ;   rdf_equal(rdfs:subPropertyOf, P)
   ), !.
 % RDFS label.
-rdf_edge_style(edge(_,P,_), dotted):-
+rdf_edge_style(edge(_,P,_), dotted) :-
   rdf_equal(rdfs:label, P), !.
 % Others.
 rdf_edge_style(_, solid).
@@ -274,21 +274,21 @@ rdf_edge_style(_, solid).
 % Returns a color name for the given vertex.
 
 % No color scheme.
-rdf_vertex_color(none, _, _, black):- !.
+rdf_vertex_color(none, _, _, black) :- !.
 % Literal
-rdf_vertex_color(_, _, T, blue):-
+rdf_vertex_color(_, _, T, blue) :-
   rdf_is_literal(T), !.
 % Blank node
-rdf_vertex_color(_, _, T, purple):-
+rdf_vertex_color(_, _, T, purple) :-
   rdf_is_bnode(T), !.
 % Individual or subclass of a color-registered class.
-rdf_vertex_color(_, _, V, VColor):-
+rdf_vertex_color(_, _, V, VColor) :-
   (   rdfs_individual_of(V, C)
   ;   rdfs_subclass_of(V, C)
   ),
   rdf:rdf_class_color(C, VColor), !.
 % IRI with a colored namespace.
-rdf_vertex_color(_, Map, T, VColor):-
+rdf_vertex_color(_, Map, T, VColor) :-
   rdf_global_id(Prefix:_, T),
   memberchk(Prefix-VColor, Map), !.
 % Other IRI.
@@ -299,7 +299,7 @@ rdf_vertex_color(_, _, _, black).
 %! rdf_vertex_image(+Term:rdf_term, -ImageFile:atom) is det.
 % Only display the first picture that is found for Term.
 
-rdf_vertex_image(V, VImage):-
+rdf_vertex_image(V, VImage) :-
   once(rdf_image(V, _, VImage)).
 
 
@@ -319,15 +319,15 @@ rdf_vertex_label(Opts1, V) -->
 %! rdf_vertex_peripheries(+Term:rdf_term, -Peripheries:nonnneg) is det.
 
 % Literal
-rdf_vertex_peripheries(literal(_), 0):- !.
+rdf_vertex_peripheries(literal(_), 0) :- !.
 % Blank node
-rdf_vertex_peripheries(Term, 1):-
+rdf_vertex_peripheries(Term, 1) :-
   rdf_is_bnode(Term), !.
 % Class
-rdf_vertex_peripheries(Term, 2):-
+rdf_vertex_peripheries(Term, 2) :-
   rdfs_individual_of(Term, rdfs:'Class'), !.
 % Property
-rdf_vertex_peripheries(Term, 1):-
+rdf_vertex_peripheries(Term, 1) :-
   rdfs_individual_of(Term, rdf:'Property'), !.
 % IRIs that are not classes or properties.
 rdf_vertex_peripheries(_, 1).
@@ -337,15 +337,15 @@ rdf_vertex_peripheries(_, 1).
 %! rdf_vertex_shape(+Term:rdf_term, -Shape:atom) is det.
 
 % Literal
-rdf_vertex_shape(literal(_), plaintext):- !.
+rdf_vertex_shape(literal(_), plaintext) :- !.
 % Blank node
-rdf_vertex_shape(T, circle):-
+rdf_vertex_shape(T, circle) :-
   rdf_is_bnode(T), !.
 % Class
-rdf_vertex_shape(T, octagon):-
+rdf_vertex_shape(T, octagon) :-
   rdfs_individual_of(T, rdfs:'Class'), !.
 % Property
-rdf_vertex_shape(T, hexagon):-
+rdf_vertex_shape(T, hexagon) :-
   rdfs_individual_of(T, rdf:'Property'), !.
 % IRIs that are not classes or properties.
 rdf_vertex_shape(_, ellipse).

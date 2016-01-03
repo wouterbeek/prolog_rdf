@@ -54,10 +54,10 @@
 :- multifile(rdf_cache:triple_to_iri/2).
 
 rdf_cache:triple_to_iri(rdf(_,P,_), P).
-rdf_cache:triple_to_iri(rdf(_,_,O), D):-
+rdf_cache:triple_to_iri(rdf(_,_,O), D) :-
   rdf_is_literal(O),
   rdf_literal_data(datatype, O, D).
-rdf_cache:triple_to_iri(rdf(_,P,O), O):-
+rdf_cache:triple_to_iri(rdf(_,P,O), O) :-
   rdf_memberchk(P, [owl:equivalentClass,owl:sameAs]),
   rdf_is_iri(O).
 
@@ -80,14 +80,14 @@ rdf_cache:-
 %     Default is `1'.
 %   * Other options are passed to add_worker/3.
 
-rdf_cache(Opts1):-
+rdf_cache(Opts1) :-
   Pool = rdf_cache,
   forall(distinct(X, rdf_iri(X)), add_resource(Pool, X)),
   select_option(number_of_workers(N), Opts1, Opts2, 1),
   forall(between(1, N, _), add_worker(Pool, rdf_cache_worker(Opts2), Opts2)).
 
 
-rdf_cache_worker(Opts, S, Ys):-
+rdf_cache_worker(Opts, S, Ys) :-
   option(excluded_authorities(ExclAuths), Opts, []),
   (   rdf_is_iri(S)
   ->  (   uri_components(S, uri_components(Scheme,Auth,_,_,_)),
@@ -114,16 +114,16 @@ rdf_cache_worker(Opts, S, Ys):-
 
 %! rdf_deref(+Subject:iri) is det.
 
-rdf_deref(S):-
+rdf_deref(S) :-
   debug(rdf_deref(request), "Dereferencing ~a", [S]),
   call_collect_messages(rdf_call_on_statements(S, rdf_deref_statements(S))),
   if_debug(rdf_deref(result), rdf_print_graph(S, [id_closure(true)])).
 
-rdf_deref_statements(S, Stmts, _):- maplist(rdf_deref_statement(S), Stmts).
+rdf_deref_statements(S, Stmts, _) :- maplist(rdf_deref_statement(S), Stmts).
 
-rdf_deref_statement(S1, T):-
+rdf_deref_statement(S1, T) :-
   (T = rdf(S2,P,O) ; T = rdf(S2,P,O,_)),
   format(user_output, "~a\t~a~n", [S1,S2]),
   (is_same_iri(S1, S2, S3) -> rdf_assert(S3, P, O, S2) ; true).
 
-is_same_iri(X, Y, Z):- iri_normalized(X, Z), iri_normalized(Y, Z).
+is_same_iri(X, Y, Z) :- iri_normalized(X, Z), iri_normalized(Y, Z).

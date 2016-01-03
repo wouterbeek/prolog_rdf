@@ -33,7 +33,7 @@ Creates tables based on a Data Cube graph.
 %!   -DataRows:list(list)
 %! ) is det.
 
-datacube_table(DataSet, HeaderRows, DataRows):-
+datacube_table(DataSet, HeaderRows, DataRows) :-
   datacube_tree(DataSet-DataSet, Tree),
   Tree = _-Subtrees,
   tree_headers(Subtrees, HeaderRows),
@@ -42,7 +42,7 @@ datacube_table(DataSet, HeaderRows, DataRows):-
 
 %! datacube_tree(+Root:pair, -Tree:compound) is det.
 
-datacube_tree(Root1-Root2, Root2-Trees):-
+datacube_tree(Root1-Root2, Root2-Trees) :-
   findall(
     Slice-DimensionValue,
     (
@@ -54,7 +54,7 @@ datacube_tree(Root1-Root2, Root2-Trees):-
   ),
   Pairs \== [], !,
   maplist(datacube_tree, Pairs, Trees).
-datacube_tree(Root1-Root2, Root2-Pairs):-
+datacube_tree(Root1-Root2, Root2-Pairs) :-
   findall(
     DimensionValue-MeasureValue,
     (
@@ -70,16 +70,16 @@ datacube_tree(Root1-Root2, Root2-Pairs):-
 
 %! leaf_node(+Tree:compound, -DimensionValue, -MeasureValue) is nondet.
 
-leaf_node(DimensionValue-MeasureValue, DimensionValue, MeasureValue):-
+leaf_node(DimensionValue-MeasureValue, DimensionValue, MeasureValue) :-
   \+ is_list(MeasureValue), !.
-leaf_node(_-Trees, DimensionValue, MeasureValue):-
+leaf_node(_-Trees, DimensionValue, MeasureValue) :-
   member(Tree, Trees),
   leaf_node(Tree, DimensionValue, MeasureValue).
 
 
 %! tree_data(+Tree:compound, DataRows:list(list)) is det.
 
-tree_data(Tree, DataRows):-
+tree_data(Tree, DataRows) :-
   findall(
     DimensionValue-MeasureValue,
     leaf_node(Tree, DimensionValue, MeasureValue),
@@ -96,7 +96,7 @@ tree_data(Tree, DataRows):-
 %! ) is det.
 
 tree_headers([], []).
-tree_headers([_-Pairs|_], [HeaderRow]):-
+tree_headers([_-Pairs|_], [HeaderRow]) :-
   (   Pairs == []
   ->  HeaderRow = []
   ;   Pairs = [_-Measure|_],
@@ -104,7 +104,7 @@ tree_headers([_-Pairs|_], [HeaderRow]):-
   ->  maplist(pair_value, Pairs, HeaderRow)
   ;   fail
   ).
-tree_headers(Trees, [HeaderRow|HeaderRows]):-
+tree_headers(Trees, [HeaderRow|HeaderRows]) :-
   pairs_keys_values(Trees, Roots, Subtrees),
   maplist(length, Subtrees, NumberOfColumns),
   pairs_keys_values(HeaderRow, Roots, NumberOfColumns),

@@ -11,13 +11,13 @@
 Predicates for converting Prolog to Turtle values.
 
 @author Wouter Beek
-@version 2015/08, 2015/11
+@version 2015/08, 2015/11, 2016/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(dcg/sparql11_code)).
+:- use_module(library(dcg/sparql10_code)).
 :- use_module(library(dlist)).
 :- use_module(library(math/radconv)).
 
@@ -27,7 +27,7 @@ Predicates for converting Prolog to Turtle values.
 
 %! to_pn_local(+Atom:atom, -PnLocal:atom) is det.
 
-to_pn_local(A1, A2):-
+to_pn_local(A1, A2) :-
   atom_phrase(to_pn_local(A2), A1).
 
 to_pn_local(A) -->

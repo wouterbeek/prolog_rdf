@@ -23,7 +23,7 @@
 
 %! rdf_clean_metadata(+Metadata:dict) is det.
 
-rdf_clean_metadata(M):-
+rdf_clean_metadata(M) :-
   dcg_with_output_to(user_output, metadata(M)).
 
 metadata(M) -->

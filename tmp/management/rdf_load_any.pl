@@ -65,7 +65,7 @@
 %     VoID descriptions that appear in that data.
 %     Default: `false`.
 
-rdf_load_any(In, Options):-
+rdf_load_any(In, Options) :-
   rdf_load_any(In, Metadata, Options),
   [Entry|_] = Metadata.entries,
   ignore(option(meta_data(Metadata), Options)),
@@ -85,14 +85,14 @@ rdf_load_any(In, Options):-
   ).
 
 % 1. Load the URI denoted by a registered RDF prefix.
-rdf_load_any(prefix(Prefix), M, Options1):-
+rdf_load_any(prefix(Prefix), M, Options1) :-
   atom(Prefix),
   rdf_current_prefix(Prefix, Uri), !,
   merge_options(Options1, [graph(Prefix)], Options2),
   rdf_load_any(uri(Uri), M, Options2).
 
 % 2. Reuse the versatile open_any/4.
-rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
+rdf_load_any(In, json{entries:EntryMetadatas}, Options1) :-
   rdf_http_plugin:rdf_extra_headers(ExtraHeaders, Options1),
   merge_options(Options1, ExtraHeaders, Options2),
   findall(
@@ -107,7 +107,7 @@ rdf_load_any(In, json{entries:EntryMetadatas}, Options1):-
 %!   +Options:list(nvpair)
 %! ) is det.
 
-rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
+rdf_load_from_stream_nondet(In, StreamMetadata, Options) :-
   % NONDET: iterates over archive substreams recursively.
   open_any(In, SubIn, OpenMetadata, Options),
   call_cleanup(
@@ -125,7 +125,7 @@ rdf_load_from_stream_nondet(In, StreamMetadata, Options):-
 %!   +Options:list(nvpair)
 %! ) is det.
 
-rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
+rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1) :-
   metadata_to_base(Metadata1, Base),
 
   % Return the file name extension as metadata.
@@ -212,12 +212,12 @@ rdf_load_from_stream_det(In, Metadata1, Metadata2, Options1):-
 
 %! location_suffix(+EntryMetadata, -Suffix:atom) is det.
 
-location_suffix([filter(_)|T], Suffix):- !,
+location_suffix([filter(_)|T], Suffix) :- !,
   location_suffix(T, Suffix).
-location_suffix([Archive|T], Suffix):-
+location_suffix([Archive|T], Suffix) :-
   metadata{name:data, format:raw} :< Archive, !,
   location_suffix(T, Suffix).
-location_suffix([Archive|T], Suffix):-
+location_suffix([Archive|T], Suffix) :-
   (   location_suffix(T, Suffix0)
   ->  atomic_list_concat([Archive.name, Suffix0], /, Suffix)
   ;   Suffix = Archive.name
@@ -231,7 +231,7 @@ location_suffix([Archive|T], Suffix):-
 %! ) is semidet.
 % Extracts a content type term from the metadata object, if present.
 
-metadata_content_type(_, Options, MediaType):-
+metadata_content_type(_, Options, MediaType) :-
   option(media_type(MediaType), Options), !.
 metadata_content_type(
   Metadata,
@@ -242,7 +242,7 @@ metadata_content_type(
 %! metadata_to_base(+Metadata:dict, -Base:uri) is det.
 % The base URI describes the location where the data is loaded from.
 
-metadata_to_base(Metadata, Base):-
+metadata_to_base(Metadata, Base) :-
   metadata_to_base0(Metadata, Base0),
   (   location_suffix(Metadata.archive, EntryMetadatas)
   ->  findall(
@@ -261,14 +261,14 @@ metadata_to_base(Metadata, Base):-
 
 %! metadata_to_base0(+Metadata:dict, -Base0:atom) is det.
 
-metadata_to_base0(Metadata, Metadata.get('URI')):- !.
-metadata_to_base0(Metadata, Base):-
+metadata_to_base0(Metadata, Metadata.get('URI')) :- !.
+metadata_to_base0(Metadata, Base) :-
   uri_file_name(Base, Metadata.get(path)), !.
-metadata_to_base0(Metadata, Base):-
+metadata_to_base0(Metadata, Base) :-
   stream_property(Metadata.get(stream), file_name(FileName)), !,
   (   uri_is_global(FileName)
   ->  Base = FileName
   ;   uri_file_name(Base, FileName)
   ).
-metadata_to_base0(_Location, Base):-
+metadata_to_base0(_Location, Base) :-
   gensym('stream://', Base).

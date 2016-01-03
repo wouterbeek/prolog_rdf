@@ -478,7 +478,7 @@ zero(0, 0'0) --> "0".
 
 % HELPERS %
 
-throw_if_manchester_keyword(S):-
+throw_if_manchester_keyword(S) :-
   manchester_keyword(S), !,
   syntax_error(manchester_keyword(S)).
 throw_if_manchester_keyword(_).

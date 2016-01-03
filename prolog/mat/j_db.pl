@@ -65,10 +65,10 @@ clear_j:-
 %! ) is nondet.
 % Search for justifications based on
 
-find_j(Rule, Ps, C, J):-
+find_j(Rule, Ps, C, J) :-
   nonvar(J), !,
   j(Rule, Ps, C, J).
-find_j(Rule, Ps0, C0, J):-
+find_j(Rule, Ps0, C0, J) :-
   % Lookup the predicates in s/2 to the extent that they are instantiated.
   (   var(Ps0)
   ->  Ps1 = []
@@ -84,8 +84,8 @@ find_j(Rule, Ps0, C0, J):-
   j(Rule, Ps3, C, J),
   ord_subset(Ps2, Ps3).
 
-var_or_md5(X, X):- var(X), !.
-var_or_md5(X, Y):- md5(X, Y).
+var_or_md5(X, X) :- var(X), !.
+var_or_md5(X, Y) :- md5(X, Y).
 
 
 
@@ -96,7 +96,7 @@ var_or_md5(X, Y):- md5(X, Y).
 %!   ?Justification:md5
 %! ) is nondet.
 
-print_j(Rule0, Ps0, C0, J):-
+print_j(Rule0, Ps0, C0, J) :-
   % NONDET
   find_j(Rule0, Ps0, C0, J),
   j(Rule, Ps, C, J),
@@ -111,16 +111,16 @@ print_j(Rule0, Ps0, C0, J):-
 %! ) is det.
 % Stores a justification.
 
-store_j(R, Ps, C):-
+store_j(R, Ps, C) :-
   % Hash all statements in dictionary s/2.
   maplist(store_s, [C|Ps], [HC|HPs]),
   % Hash the justification.
   md5(j(R, HPs, HC), HJ),
   store_j0(R, HPs, HC, HJ).
 
-store_j0(_, _, _, HJ):-
+store_j0(_, _, _, HJ) :-
   j(_, _, _, HJ), !.
-store_j0(R, HPs, HC, HJ):-
+store_j0(R, HPs, HC, HJ) :-
   assert(j(R,HPs,HC,HJ)).
 
 
@@ -128,11 +128,11 @@ store_j0(R, HPs, HC, HJ):-
 %! store_s(+Statement:compound, -Hash:md5) is det.
 % Stores a given Statements and returns the Hash under which it can be found.
 
-store_s(S, H):-
+store_s(S, H) :-
   md5(S, H),
   store_s0(S, H).
 
-store_s0(S, H):-
+store_s0(S, H) :-
   s(S, H), !.
-store_s0(S, H):-
+store_s0(S, H) :-
   assert(s(S,H)).

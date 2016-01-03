@@ -49,11 +49,11 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 %!   +ToTerm:rdf_term
 %! ) is det.
 
-rdf_convert_prefixes(_, _, B, B):-
+rdf_convert_prefixes(_, _, B, B) :-
   rdf_is_bnode(B), !.
-rdf_convert_prefixes(_, _, Lit, Lit):-
+rdf_convert_prefixes(_, _, Lit, Lit) :-
   rdf_is_literal(Lit), !.
-rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
+rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri) :-
   rdf_global_id(FromPrefix:LocalName, FromIri),
   rdf_global_id(ToPrefix:LocalName, ToIri).
 
@@ -71,7 +71,7 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
 %
 % The namespaces must be registered with module [xml_namespace].
 
-rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, G):-
+rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, G) :-
   forall(
     rdf_retractall(S1, P1, O1, G),
     (
@@ -92,7 +92,7 @@ rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, G):-
 %!   -ShortestLocalName:atom
 %! ) is det.
 
-rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
+rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName) :-
   findall(
     LocalNameLength-Prefix,
     (
@@ -114,7 +114,7 @@ rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
 %!   -Prefixes:ordset(pair(atom,positive_integer))
 %! ) is det.
 
-rdf_prefixes(S, P, O, G, Pairs5):-
+rdf_prefixes(S, P, O, G, Pairs5) :-
   aggregate_all(
     set(Prefix-Term),
     (

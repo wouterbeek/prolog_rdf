@@ -18,7 +18,7 @@
 
 
 
-user:message_hook(Msg1, _, _):-
+user:message_hook(Msg1, _, _) :-
   Msg1 = message(Msg2, _, _),
   Msg2 =.. [error|_],
   string_phrase(dcg_error(Msg2), S),

@@ -91,7 +91,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 %!   +Options:list(compound)
 %! ) is det.
 
-write_simple_begin(BNodePrefix, triples, quadruples, Opts):-
+write_simple_begin(BNodePrefix, triples, quadruples, Opts) :-
   reset_bnode_names,
 
   create_thread_counter(triples),
@@ -111,7 +111,7 @@ write_simple_begin(BNodePrefix, triples, quadruples, Opts):-
 
 %! write_simple_bnode(+BNodePrefix:uri, +BNode:atom) is det.
 
-write_simple_bnode(BNodePrefix, BNode):-
+write_simple_bnode(BNodePrefix, BNode) :-
   rdf_bnode_name:rdf_bnode_name0(BNodePrefix, BNode, BNodeName),
   turtle:turtle_write_uri(current_output, BNodeName).
 
@@ -127,7 +127,7 @@ write_simple_bnode(BNodePrefix, BNode):-
 %   * statements(-nonneg)
 %   * triples(-nonneg)
 
-write_simple_end(CT, CQ, Opts):-
+write_simple_end(CT, CQ, Opts) :-
   delete_thread_counter(CT, NT),
   option(triples(NT), Opts, _),
 
@@ -148,7 +148,7 @@ write_simple_end(CT, CQ, Opts):-
 %   * statements(-nonneg)
 %   * triples(-nonneg)
 
-write_simple_graph(G, Opts):-
+write_simple_graph(G, Opts) :-
   write_simple_begin(BNodePrefix, CT, CQ, Opts),
 
   % Decide whether triples or quadruples are written.
@@ -171,30 +171,30 @@ write_simple_graph(G, Opts):-
 
 
 % Object term: typed literal.
-write_simple_literal(literal(type(D,Lex))):- !,
+write_simple_literal(literal(type(D,Lex))) :- !,
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   % Datatypes are IRIs.
   turtle:turtle_write_uri(current_output, D).
 % Object term: language-tagged string.
-write_simple_literal(literal(lang(LTag,Lex))):- !,
+write_simple_literal(literal(lang(LTag,Lex))) :- !,
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
 % Object term: string.
-write_simple_literal(literal(Lex)):- !,
+write_simple_literal(literal(Lex)) :- !,
   turtle:turtle_write_quoted_string(current_output, Lex).
 
 
 
 % Object term: literal.
-write_simple_object(Lit, _):-
+write_simple_object(Lit, _) :-
   write_simple_literal(Lit), !.
 % Object term: blank node
-write_simple_object(BNode, BNodePrefix):-
+write_simple_object(BNode, BNodePrefix) :-
   rdf_is_bnode(BNode), !,
   write_simple_bnode(BNodePrefix, BNode).
 % Object term: IRI
-write_simple_object(Iri, _):-
+write_simple_object(Iri, _) :-
   turtle:turtle_write_uri(current_output, Iri).
 
 
@@ -208,7 +208,7 @@ write_simple_object(Iri, _):-
 %!   +Graph:atom
 %! ) is det.
 
-write_simple_quadruple(BNodePrefix, CQ, S, P, O, G):-
+write_simple_quadruple(BNodePrefix, CQ, S, P, O, G) :-
   write_simple_subject(S, BNodePrefix),
   put_char(' '),
   % Predicate terms are IRIs.
@@ -235,19 +235,19 @@ write_simple_quadruple(BNodePrefix, CQ, S, P, O, G):-
 %!   +Statement:compound
 %! ) is det.
 
-write_simple_statement(BNodePrefix, CT, _, rdf(S,P,O)):- !,
+write_simple_statement(BNodePrefix, CT, _, rdf(S,P,O)) :- !,
   write_simple_triple(BNodePrefix, CT, S, P, O).
-write_simple_statement(BNodePrefix, _, CQ, rdf(S,P,O,G)):-
+write_simple_statement(BNodePrefix, _, CQ, rdf(S,P,O,G)) :-
   write_simple_quadruple(BNodePrefix, CQ, S, P, O, G).
 
 
 
 % Subject term: blank node
-write_simple_subject(BNode, BNodePrefix):-
+write_simple_subject(BNode, BNodePrefix) :-
   rdf_is_bnode(BNode), !,
   write_simple_bnode(BNodePrefix, BNode).
 % Subject term: IRI
-write_simple_subject(Iri, _):-
+write_simple_subject(Iri, _) :-
   turtle:turtle_write_uri(current_output, Iri).
 
 
@@ -267,11 +267,11 @@ write_simple_subject(Iri, _):-
 % Then processes each pairs -- and thus each triple -- separately.
 
 % Format: Quadruples.
-write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S):-
+write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S) :-
   aggregate_all(set(P-O-G), rdf(S, P, O, G), POGs),
   forall(member(P-O-G, POGs), write_simple_quadruple(BNodePrefix, CQ, S, P, O, G)).
 % Format: Triples.
-write_simple_subject(BNodePrefix, CT, _, G, triple, S):-
+write_simple_subject(BNodePrefix, CT, _, G, triple, S) :-
   aggregate_all(set(P-O), rdf(S, P, O, G), POs),
   forall(member(P-O, POs), write_simple_triple(BNodePrefix, CT, S, P, O)).
 
@@ -285,7 +285,7 @@ write_simple_subject(BNodePrefix, CT, _, G, triple, S):-
 %!   +Object:rdf_term
 %! ) is det.
 
-write_simple_triple(BNodePrefix, Counter, S, P, O):-
+write_simple_triple(BNodePrefix, Counter, S, P, O) :-
   write_simple_subject(S, BNodePrefix),
   put_char(' '),
   % Predicate terms are IRIs.

@@ -23,7 +23,7 @@
 
 %! rdf_guess_xml(+Snippet:string, -Format:rdf_format) is det.
 
-rdf_guess_xml(S, Format):-
+rdf_guess_xml(S, Format) :-
   setup_call_cleanup(
     new_memory_file(MFile),
     (
@@ -55,7 +55,7 @@ rdf_guess_xml(S, Format):-
 %
 % If the toplevel element is detected as =HTML=, we pass =rdfa= as type.
 
-guess_xml_type(Read, Format):-
+guess_xml_type(Read, Format) :-
   xml_doctype(Read, Dialect, DocType, Attrs),
   doc_content_type(Dialect, DocType, Attrs, Format).
 
@@ -75,7 +75,7 @@ guess_xml_type(Read, Format):-
 % namespaces, while it is not possible to define a valid absolute
 % Turtle IRI (using `<...>`-notation) with a valid xmlns declaration.
 
-xml_doctype(Read, Dialect, DocType, Attrs):-
+xml_doctype(Read, Dialect, DocType, Attrs) :-
   catch(
     sgml_parser(
       Read,
@@ -93,14 +93,14 @@ xml_doctype(Read, Dialect, DocType, Attrs):-
   nonvar(E),
   E = tag(Dialect, DocType, Attrs).
 
-sgml_parser0(Opts, Parser):-
+sgml_parser0(Opts, Parser) :-
   sgml_parse(Parser, Opts).
 
-on_begin(Tag, Attrs, Parser):-
+on_begin(Tag, Attrs, Parser) :-
   get_sgml_parser(Parser, dialect(Dialect)),
   throw(tag(Dialect, Tag, Attrs)).
 
-on_cdata(_, _):-
+on_cdata(_, _) :-
   throw(error(cdata)).
 
 
@@ -112,12 +112,12 @@ on_cdata(_, _):-
 %!   -Format:rdf_format
 %! ) is det.
 
-doc_content_type(_,       html, _,     rdfa):- !.
-doc_content_type(html,    _,    _,     rdfa):- !.
-doc_content_type(xhtml,   _,    _,     rdfa):- !.
-doc_content_type(html5,   _,    _,     rdfa):- !.
-doc_content_type(xhtml5,  _,    _,     rdfa):- !.
-doc_content_type(Dialect, Top,  Attrs, xml):-
+doc_content_type(_,       html, _,     rdfa) :- !.
+doc_content_type(html,    _,    _,     rdfa) :- !.
+doc_content_type(xhtml,   _,    _,     rdfa) :- !.
+doc_content_type(html5,   _,    _,     rdfa) :- !.
+doc_content_type(xhtml5,  _,    _,     rdfa) :- !.
+doc_content_type(Dialect, Top,  Attrs, xml) :-
   % Extract the namespace from the doctype.
   (Dialect == sgml -> LocalName = rdf ; Dialect == xml -> LocalName = 'RDF'),
   atomic_list_concat([NS,LocalName], :, Top),

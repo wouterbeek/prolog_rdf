@@ -36,7 +36,7 @@ Predicates that perform simple operations on RDF triples/quadruples.
 
 % ! rdf_graph_triples(?Graph:rdf_graph, -Triples:ordset(rdf_triple)) is det.
 
-rdf_graph_triples(G, Ts):-
+rdf_graph_triples(G, Ts) :-
   rdf_expect_graph(G),
   aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Ts).
 
@@ -49,14 +49,14 @@ rdf_graph_triples(G, Ts):-
 %!   -Object:rdf_term
 %! ) is det.
 
-rdf_statement_terms(rdf(S,P,O), S, P, O):- !.
+rdf_statement_terms(rdf(S,P,O), S, P, O) :- !.
 rdf_statement_terms(rdf(S,P,O,_), S, P, O).
 
 
 
 %! rdf_triple_iri(+Triple:rdf_triple, -Iri:iri) is nondet.
 
-rdf_triple_iri(T, X):-
+rdf_triple_iri(T, X) :-
   rdf_triple_term(T, X),
   \+ rdf_is_bnode(X),
   \+ rdf_is_literal(X).
@@ -73,7 +73,7 @@ rdf_triple_term(rdf(_,_,O), O).
 
 %! rdf_triples_iris(+Triples:list(rdf_triple), -Iris:ordset(iri)) is det.
 
-rdf_triples_iris(Ts, Iris):-
+rdf_triples_iris(Ts, Iris) :-
   aggregate_all(set(Iri), (member(T, Ts), rdf_triple_iri(T, Iri)), Iris).
 
 
@@ -83,7 +83,7 @@ rdf_triples_iris(Ts, Iris):-
 %!   -Subjects:ordset(rdf_term)
 %! ) is det.
 
-rdf_triples_subjects(Ts, Ss):-
+rdf_triples_subjects(Ts, Ss) :-
   aggregate_all(set(S), member(rdf(S,_,_), Ts), Ss).
 
 
@@ -93,5 +93,5 @@ rdf_triples_subjects(Ts, Ss):-
 %!   -Terms:ordset(rdf_term)
 %! ) is det.
 
-rdf_triples_terms(Ts1, Ts2):-
+rdf_triples_terms(Ts1, Ts2) :-
   aggregate_all(set(T2), (member(T1, Ts1), rdf_triple_term(T1, T2)), Ts2).

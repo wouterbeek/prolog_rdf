@@ -52,7 +52,7 @@
 %!   -Complexity:nonneg
 %! ) is det.
 
-rdf_estimate_complexity(S, P, O, N):-
+rdf_estimate_complexity(S, P, O, N) :-
   rdf(S, P, O, Sid, Pid, Oid),
   rdf_estimate_complexity0(Sid, Pid, Oid, N), !.
 rdf_estimate_complexity(_, _, _, 0).

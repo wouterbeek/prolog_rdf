@@ -56,7 +56,7 @@ assert_prefixes:-
 
 %! assert_prefixes(+Type:oneof([data,schema])) is det.
 
-assert_prefixes(Type):-
+assert_prefixes(Type) :-
   absolute_file_name(plRdf('prefixes.csv'), File, [access(read)]),
   csv_read_file(File, Rows),
   forall(

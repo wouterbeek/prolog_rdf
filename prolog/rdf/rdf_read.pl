@@ -9,6 +9,7 @@
     rdf/8,		% ?S, ?P, ?O, ?G, -Sid, -Pid, -Oid, -Gid
     rdf_date/3,		% ?S, ?P, ?Date
     rdf_date/4,		% ?S, ?P, ?Date, ?G
+    rdf_has/3,		% ?S, ?P, ?O
     rdf_instance/2,	% ?I, ?C
     rdf_instance/3,	% ?I, ?C, ?G
     rdf_langstring/3,	% ?S, ?P, ?V
@@ -32,8 +33,9 @@
   ]
 ).
 :- reexport(library(rdf11/rdf11), [
-     rdf/3 as rdf_id,	% ?Sid, ?Pid, Oid
-     rdf/4 as rdf_id,	% ?Sid, ?Pid, ?Oid, ?Gid
+     rdf/3 as rdf_id,		% ?Sid, ?Pid, Oid
+     rdf/4 as rdf_id,		% ?Sid, ?Pid, ?Oid, ?Gid
+     rdf_has/3 as rdf_has_id,	% ?Sid, ?Pid, ?Oid
      op(100, xfx, @),
      op(650, xfx, ^^)
    ]).
@@ -67,6 +69,7 @@
 	rdf(o, r, o, r, -, -, -, -),
 	rdf_date(o, r, ?),
 	rdf_date(o, r, ?, r),
+	rdf_has(o, r, o),
 	rdf_instance(o, r),
 	rdf_instance(o, r, r),
 	rdf_langstring(o, r, ?),
@@ -151,8 +154,6 @@ rdf(S, P, O, G, Sid, Pid, Oid, Gid) :-
   maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
   matching_graph_term(G, Gid),
   rdf_id(Sid, Pid, Oid, Gid).
-matching_term(T, Tid) :- (ground(T) -> term_to_id(T, Tid) ; true).
-matching_graph_term(G, Gid) :- (ground(G) -> graph_term_to_id(G, Gid) ; true).
 
 
 
@@ -192,6 +193,25 @@ rdf_date(S, P, V, G) :-
   rdf_literal(S, P, xsd:gYearMonth, V, G).
 rdf_date(S, P, V, G) :-
   rdf_literal(S, P, xsd:time, V, G).
+
+
+
+%! rdf_has(?S, ?P, ?O) is nondet.
+
+rdf_has(S, P, O) :-
+  rdf_equal(owl:sameAs, P),
+  (   ground(S)
+  ->  term_to_term(S, O)
+  ;   ground(O)
+  ->  term_to_term(O, S)
+  ;   % Enumerate identical terms in general.
+      id_terms(Ts),
+      member(S, O, Ts)
+  ).
+rdf_has(S, P, O) :-
+  maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
+  rdf_has_id(Sid, Pid, Oid),
+  maplist(id_to_term, [Sid,Pid,Oid], [S,P,O]).
 
 
 
@@ -425,3 +445,12 @@ rdf_pref_string(S, P, LRanges, LTag, Lex, G) :-
 % Plain XSD strings.
 rdf_pref_string(S, P, _, _, Lex, G) :-
   rdf_literal(S, P, xsd:string, Lex, G).
+
+
+
+
+
+% HELPERS %
+
+matching_term(T, Tid) :- (ground(T) -> term_to_id(T, Tid) ; true).
+matching_graph_term(G, Gid) :- (ground(G) -> graph_term_to_id(G, Gid) ; true).

@@ -20,6 +20,6 @@
 
 
 
-rdf_defval(_, X):-
+rdf_defval(_, X) :-
   nonvar(X), !.
 rdf_defval(X, X).

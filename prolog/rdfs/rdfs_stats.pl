@@ -23,5 +23,5 @@
 
 %! rdfs_number_of_instances(+Class:rdf_term, -Count:nonneg) is det.
 
-rdfs_number_of_instances(C, N):-
+rdfs_number_of_instances(C, N) :-
   aggregate_all(count, rdfs_individual_of(_, C), N).

@@ -65,7 +65,7 @@
 %!   -Pairs:ordset(pair(iri,list(ordset(rdf_term))))
 %! ) is det.
 
-rdf_compare(X, Y, Pairs):-
+rdf_compare(X, Y, Pairs) :-
   rdf_compare(X, _, Y, _, Pairs).
 
 
@@ -77,10 +77,10 @@ rdf_compare(X, Y, Pairs):-
 %!   -Pairs:ordset(pair(iri,list(ordset(rdf_term))))
 %! ) is det.
 
-rdf_compare(X, XG, Y, YG, SortedPairs):-
+rdf_compare(X, XG, Y, YG, SortedPairs) :-
   aggregate_all(set(Pair), rdf_xy(X, XG, Y, YG, Pair), SortedPairs).
 
-rdf_xy(X, XG, Y, YG, P-[XYs,Xs,Ys]):-
+rdf_xy(X, XG, Y, YG, P-[XYs,Xs,Ys]) :-
   distinct(P, (rdf(X, P, _, XG) ; rdf(Y, P, _, YG))),
   aggregate_all(set(O), (rdf(X, P, O, XG),    rdf(Y, P, O, YG)), XYs),
   aggregate_all(set(O), (rdf(X, P, O, XG), \+ rdf(Y, P, O, YG)), Xs),
@@ -90,7 +90,7 @@ rdf_xy(X, XG, Y, YG, P-[XYs,Xs,Ys]):-
 
 %! rdf_print_compare(+X:rdf_term, +Y:rdf_term) is det.
 
-rdf_print_compare(X, Y):-
+rdf_print_compare(X, Y) :-
   rdf_print_compare(X, _, Y, _).
 
 
@@ -101,27 +101,27 @@ rdf_print_compare(X, Y):-
 %!   ?YGraph:rdf_graph
 %! ) is det.
 
-rdf_print_compare(X, XG, Y, YG):-
+rdf_print_compare(X, XG, Y, YG) :-
   rdf_compare(X, XG, Y, YG, Pairs),
   pairs_rows(Pairs, DataRows),
   HeadRow = head(['Predicate','XY','X','Y']),
   Opts = [caption(rdf_compare_caption0(X,Y)),cell(rdf_compare_cell0)],
   dcg_with_output_to(user_output, dcg_table([HeadRow|DataRows], Opts)).
 
-pairs_rows(L1, L2):-
+pairs_rows(L1, L2) :-
   pairs_rows(L1, [], L2).
 
-pairs_rows([H|T], L1, L):- !,
+pairs_rows([H|T], L1, L) :- !,
   pair_rows(H, L2),
   append(L1, L2, L3),
   pairs_rows(T, L3, L).
 pairs_rows([], L, L).
 
-pair_rows(P-[XYs,Xs,Ys], L):-
+pair_rows(P-[XYs,Xs,Ys], L) :-
   pair_rows(P, XYs, Xs, Ys, L).
 
-pair_rows(_, [], [], [], []):- !.
-pair_rows(P, XYs1, Xs1, Ys1, [[P,XY,X,Y]|T]):-
+pair_rows(_, [], [], [], []) :- !.
+pair_rows(P, XYs1, Xs1, Ys1, [[P,XY,X,Y]|T]) :-
   defval('', P),
   (selectchk(XY, XYs1, XYs2) -> true ; XY = '', XYs2 = XYs1),
   (selectchk(X, Xs1, Xs2)    -> true ; X  = '', Xs2  = Xs1 ),
@@ -143,7 +143,7 @@ rdf_compare_cell0(T) -->
 
 %! rdf_shared_predicate(+X:rdf_term, +Y:rdf_term, -Predicate:iri) is nondet.
 
-rdf_shared_predicate(X, Y, P):-
+rdf_shared_predicate(X, Y, P) :-
   rdf_shared_predicate(X, _, Y, _, P).
 
 
@@ -155,7 +155,7 @@ rdf_shared_predicate(X, Y, P):-
 %!   -Predicate:iri
 %! ) is nondet.
 
-rdf_shared_predicate(X, GX, Y, GY, P):-
+rdf_shared_predicate(X, GX, Y, GY, P) :-
   rdf(X, P, Z, GX),
   rdf(Y, P, Z, GY).
 
@@ -163,7 +163,7 @@ rdf_shared_predicate(X, GX, Y, GY, P):-
 
 %! rdf_shared_predicates(-X:rdf_term, -Y:rdf_term, +Predicates:ordset(iri)) is nondet.
 
-rdf_shared_predicates(X, Y, Ps):-
+rdf_shared_predicates(X, Y, Ps) :-
   rdf_shared_predicates(X, _, Y, _, Ps).
 
 
@@ -175,6 +175,6 @@ rdf_shared_predicates(X, Y, Ps):-
 %!   +Predicates:ordset(iri)
 %! ) is nondet.
 
-rdf_shared_predicates(X, GX, Y, GY, [P1|Ps]):-
+rdf_shared_predicates(X, GX, Y, GY, [P1|Ps]) :-
   rdf(X, P1, Z1, GX), findall(Z2, (member(P2, Ps), rdf(X, P2, Z2)), Zs),
   rdf(Y, P1, Z1, GY), findall(Z2, (member(P2, Ps), rdf(Y, P2, Z2)), Zs).

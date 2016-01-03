@@ -64,7 +64,7 @@
 %! rdf_save_file(+Sink) is det.
 % Wrapper around rdf_save_file/2 with default options.
 
-rdf_save_file(Out):-
+rdf_save_file(Out) :-
   rdf_save_file(Out, []).
 
 
@@ -74,14 +74,14 @@ rdf_save_file(Out):-
 %   * graph(+iri)
 
 % The file name can be derived from the graph.
-rdf_save_file(Out, Opts):-
+rdf_save_file(Out, Opts) :-
   var(Out),
   option(graph(G0), Opts),
   rdf_graph_get_property(G0, source(File0)), !,
   uri_file_name(File0, File),
   rdf_save_file(File, Opts).
 % A new file name is created based on graph and format.
-rdf_save_file(Out, Opts):-
+rdf_save_file(Out, Opts) :-
   var(Out), !,
   option(graph(Base), Opts, out),
   % In case a serialization format is specified,
@@ -97,7 +97,7 @@ rdf_save_file(Out, Opts):-
 %   1. the contents of the graph did not change, and
 %   2. the serialization format of the graph did not change, and
 %   3. the output file is the same.
-rdf_save_file(File, Opts):-
+rdf_save_file(File, Opts) :-
   is_absolute_file_name(File),
   option(graph(G), Opts),
   
@@ -114,7 +114,7 @@ rdf_save_file(File, Opts):-
   time_file(File, LMod), !,
   debug(rdf(save), "No need to save graph ~w; no updates.", [G]).
 % "If you know how to do it and you can do it... DO IT!"
-rdf_save_file(Out, Opts):-
+rdf_save_file(Out, Opts) :-
   % Determine the RDF output format:
   %   1. By option.
   %   2. By the file name extension.
@@ -142,16 +142,16 @@ rdf_save_file(Out, Opts):-
 %! ) is det.
 
 % XML/RDF.
-rdf_save_to_stream(xml, Opts, _, Write):- !,
+rdf_save_to_stream(xml, Opts, _, Write) :- !,
   rdf_save_xmlrdf(Write, Opts).
 % N-Triples.
-rdf_save_to_stream(ntriples, Opts, M, Write):- !,
+rdf_save_to_stream(ntriples, Opts, M, Write) :- !,
   rdf_save_to_stream(simpleTriples, Opts, M, Write).
 % N-Quads.
-rdf_save_to_stream(nquads, Opts, M, Write):- !,
+rdf_save_to_stream(nquads, Opts, M, Write) :- !,
   rdf_save_to_stream(simpleQuads, Opts, M, Write).
 % C-Triples / C-Quads
-rdf_save_to_stream(Format, Opts0, _, Write):-
+rdf_save_to_stream(Format, Opts0, _, Write) :-
   (   Format == simpleTriples
   ->  SimpleFormat = triples
   ;   Format == simpleQuads
@@ -162,10 +162,10 @@ rdf_save_to_stream(Format, Opts0, _, Write):-
   merge_options([format(SimpleFormat)], Opts0, Opts),
   with_output_to(Write, write_simple_graph(G, Opts)).
 % TriG.
-rdf_save_to_stream(trig, Opts, _, Write):- !,
+rdf_save_to_stream(trig, Opts, _, Write) :- !,
   rdf_save_trig(Write, Opts).
 % Turtle.
-rdf_save_to_stream(turtle, Opts0, _, Write):- !,
+rdf_save_to_stream(turtle, Opts0, _, Write) :- !,
   merge_options(
     [
       a(true),
@@ -189,7 +189,7 @@ rdf_save_to_stream(turtle, Opts0, _, Write):- !,
 %! rdf_write_to_graph(+Out, :Goal_1) is det.
 % Wrapper around rdf_write_to_graph/3 with default options.
 
-rdf_write_to_graph(Out, Goal_1):-
+rdf_write_to_graph(Out, Goal_1) :-
   rdf_write_to_graph(Out, Goal_1, []).
 
 
@@ -205,10 +205,10 @@ rdf_write_to_graph(Out, Goal_1):-
 %     The output format that is used for writing.
 %     Default is `simpleQuads`.
 
-rdf_write_to_graph(Out, Goal_1, Opts):-
+rdf_write_to_graph(Out, Goal_1, Opts) :-
   rdf_write_to_stream(Out, rdf_write_to_graph(Goal_1, Opts), Opts).
 
-rdf_write_to_graph(Goal_1, Opts1, _, Write):-
+rdf_write_to_graph(Goal_1, Opts1, _, Write) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (

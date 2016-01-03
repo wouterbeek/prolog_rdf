@@ -21,15 +21,15 @@
 Generates HTML tables with RDF content.
 
 @author Wouter Beek
-@version 2015/08, 2015/12
+@version 2015/08, 2015/12-2016/01
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(html/rdf_html_term)).
-:- use_module(library(html/content/html_pl)).
-:- use_module(library(html/element/html_table)).
+:- use_module(library(html/html_pl)).
+:- use_module(library(html/html_table)).
 :- use_module(library(http/html_write)).
+:- use_module(library(html/rdf_html_term)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
@@ -143,7 +143,7 @@ rdf_html_triple_table(S, P, O, G, Opts1) -->
 
 % HELPERS %
 
-process_header_row(T, [head(H)|T], Opts):-
+process_header_row(T, [head(H)|T], Opts) :-
   T \= [head(_)|_],
   option(header_spec(Spec), Opts), !,
   maplist(header_spec, Spec, H).

@@ -28,17 +28,17 @@
 
 
 
-rdf_closure(X, P, Z):-
+rdf_closure(X, P, Z) :-
   rdf(X, P, Y),
   rdf_closure0(Y, P, Z).
 
 
 
-rdf_closure0(X0, P, X):-
+rdf_closure0(X0, P, X) :-
   rdf_closure0(X0, P, X, [X0]).
 
 rdf_closure0(X, _, X, _).
-rdf_closure0(X1, P, X, Hist):-
+rdf_closure0(X1, P, X, Hist) :-
   rdf(X1, P, X2),
   maplist(dif(X2), Hist),
   rdf_closure0(X2, P, X, [X1|Hist]).

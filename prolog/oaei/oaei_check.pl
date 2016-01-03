@@ -25,7 +25,7 @@
 %! ) is det.
 % Tests the quality of a raw alignment relative to the given reference.
 
-oaei_check(RefAs, RawAs):-
+oaei_check(RefAs, RawAs) :-
   t1_error(RefAs, RawAs, FalsePos),
   t2_error(RefAs, RawAs, FalseNeg),
   ord_intersection(RefAs, RawAs, X),
@@ -50,7 +50,7 @@ oaei_check(RefAs, RawAs):-
 %     * false hit
 
 
-t1_error(HypothesisTrue, HypothesisVerified, T1_Error):-
+t1_error(HypothesisTrue, HypothesisVerified, T1_Error) :-
   ord_subtract(HypothesisVerified, HypothesisTrue, X),
   length(X, T1_Error).
 
@@ -65,6 +65,6 @@ t1_error(HypothesisTrue, HypothesisVerified, T1_Error):-
 %     * failing to assert what is present
 %     * miss
 
-t2_error(HypothesisTrue, HypothesisVerified, T2_Error):-
+t2_error(HypothesisTrue, HypothesisVerified, T2_Error) :-
   ord_subtract(HypothesisTrue, HypothesisVerified, X),
   length(X, T2_Error).

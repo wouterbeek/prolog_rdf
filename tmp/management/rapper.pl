@@ -50,10 +50,10 @@ Rapper support.
 %
 % @tbd Why is all _output_ send to the standard _error_ stream?
 
-rapper(File, _):- var(File), !, instantiation_error(File).
-rapper(File, _):- \+ exists_file(File), !, existence_error(file, File).
-rapper(File, _):- \+ access_file(File, read), !, permission_error(read, file, File).
-rapper(File, Opts):-
+rapper(File, _) :- var(File), !, instantiation_error(File).
+rapper(File, _) :- \+ exists_file(File), !, existence_error(file, File).
+rapper(File, _) :- \+ access_file(File, read), !, permission_error(read, file, File).
+rapper(File, Opts) :-
   rapper_args(Opts, Args),
   handle_process(
     rapper,
@@ -62,17 +62,17 @@ rapper(File, Opts):-
   ),
   ignore(option(triples(Ts), Opts)).
 
-rapper_args([], []):- !.
-rapper_args([count(true)|T1], ['--count'|T2]):- !, rapper_args(T1, T2).
-rapper_args([guess(true)|T1], ['--guess'|T2]):- !, rapper_args(T1, T2).
-rapper_args([ignore_errors(true)|T1], ['--ignore-errors'|T2]):- !,
+rapper_args([], []) :- !.
+rapper_args([count(true)|T1], ['--count'|T2]) :- !, rapper_args(T1, T2).
+rapper_args([guess(true)|T1], ['--guess'|T2]) :- !, rapper_args(T1, T2).
+rapper_args([ignore_errors(true)|T1], ['--ignore-errors'|T2]) :- !,
   rapper_args(T1, T2).
-rapper_args([input(Format)|T1], [Arg|T2]):- !,
+rapper_args([input(Format)|T1], [Arg|T2]) :- !,
   cli_long_flag(input, Format, Arg),
   rapper_args(T1, T2).
-rapper_args([_|T1], T2):- rapper_args(T1, T2).
+rapper_args([_|T1], T2) :- rapper_args(T1, T2).
 
-rapper_result(Ts, Out):-
+rapper_result(Ts, Out) :-
   read_stream_to_codes(Out, Cs),
   atom_codes(A, Cs), writeln(A), %DEB
   phrase(rapper_result(Ts), Cs).

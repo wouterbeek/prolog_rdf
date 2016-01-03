@@ -71,7 +71,7 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 %
 % Options are passed to rdf_vertex/3 and rdf_undirected_edge/3.
 
-rdf_graph_s_edges(G, UG, Opts):-
+rdf_graph_s_edges(G, UG, Opts) :-
   aggregate_all(
     set(V-Ws),
     (
@@ -90,10 +90,10 @@ rdf_graph_s_edges(G, UG, Opts):-
 %!   +Options:list(compound)
 %! ) is nondet.
 
-rdf_neighbor_vertex(G, V, N, Opts):-
+rdf_neighbor_vertex(G, V, N, Opts) :-
   rdf(V, _, N, G),
   rdf_term_is_vertex(N, Opts).
-rdf_neighbor_vertex(G, V, N, Opts):-
+rdf_neighbor_vertex(G, V, N, Opts) :-
   rdf(N, _, V, G),
   rdf_term_is_vertex(N, Opts).
 
@@ -105,7 +105,7 @@ rdf_neighbor_vertex(G, V, N, Opts):-
 %!   +Options:list(compound)
 %! ) is nondet.
 
-rdf_undirected_edge(G, E, Opts):-
+rdf_undirected_edge(G, E, Opts) :-
   rdf(S, P, O, G),
   rdf_term_is_vertex(S, Opts),
   rdf_vertex_filter(O, Opts),
@@ -119,7 +119,7 @@ rdf_undirected_edge(G, E, Opts):-
 %!   +Options:list(compound)
 %! ) is nondet.
 
-rdf_vertex(G, V, Opts):-
+rdf_vertex(G, V, Opts) :-
   rdf_node(G, V),
   rdf_term_is_vertex(V, Opts).
 
@@ -136,6 +136,6 @@ rdf_vertex(G, V, Opts):-
 %   * `exclude_literals(+boolean)`
 %     Whether literals are excluded (`true`) or not (`false`, default).
 
-rdf_term_is_vertex(V, Opts):-
+rdf_term_is_vertex(V, Opts) :-
   (option(exclude_literals(true), Opts) -> \+ rdf_is_literal(V) ; true),
-  (option(exclude_list_elements(true), Opts) -> \+ rdf_is_list(V) ; true).
+  (option(exclude_list_elements(true), Opts) -> \+ rdf_list(V) ; true).

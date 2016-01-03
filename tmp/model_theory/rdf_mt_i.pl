@@ -62,7 +62,7 @@ Interpretation function `I`:
 %! ) is nondet.
 % @see mt_i/3.
 
-mt_i(G, M, A):-
+mt_i(G, M, A) :-
   mt_i(G, M, [], A).
 
 %! mt_i(
@@ -86,7 +86,7 @@ mt_i(G, M, A):-
 %                       from blank nodes to resources.
 
 % Satisfaction for an RDF graph.
-mt_i(G, M, A1, A2):-
+mt_i(G, M, A1, A2) :-
   rdf_graph(G),
   model(M), !,
   rdf_triples(G, Ts),
@@ -101,13 +101,13 @@ mt_i(G, M, A1, A2):-
 %! ) is nondet.
 
 % Satisfaction for a list of RDF triples.
-mt_i(G, M, Ts, A1, An):-
+mt_i(G, M, Ts, A1, An) :-
   is_list(Ts), !,
   % Notice that the assignments should be consistent accross
   % the meaning that is assigned to the list of triples.
   foldl(mt_i(G, M), Ts, A1, An).
 % Satisfaction for an RDF triple.
-mt_i(G, M, rdf(SYN_S1,SYN_P1,SYN_O1), A1, A4):-
+mt_i(G, M, rdf(SYN_S1,SYN_P1,SYN_O1), A1, A4) :-
   maplist(
     % This works for subject and predicate terms as well...
     rdf_global_object,
@@ -130,7 +130,7 @@ mt_i(G, M, rdf(SYN_S1,SYN_P1,SYN_O1), A1, A4):-
 % The interpretation function for subsentential components.
 
 % Blank nodes.
-mt_i(_, M, BNode, Resource, A1, A2):-
+mt_i(_, M, BNode, Resource, A1, A2) :-
   rdf_is_bnode(BNode), !,
   (   memberchk(BNode-Resource, A1)
   ->  A2 = A1
@@ -140,13 +140,13 @@ mt_i(_, M, BNode, Resource, A1, A2):-
       A2 = [BNode-Resource|A1]
   ).
 % Plain literals. There map onto themselves.
-mt_i(G, M, PlainLit, PlainLit, A, A):-
+mt_i(G, M, PlainLit, PlainLit, A, A) :-
   once(lv(G, M, PlainLit)), !.
 % Typed literals. These map onto resources.
-mt_i(G, M, TypedLiteral, Resource, A, A):-
+mt_i(G, M, TypedLiteral, Resource, A, A) :-
   once(i_l(G, TypedLiteral, M, Resource)), !.
 % IRIs. These map onto properties and resources.
-mt_i(G, M, IRI, ResourceOrProperty, A, A):-
+mt_i(G, M, IRI, ResourceOrProperty, A, A) :-
   % Checking for resources is not that good.
   rdf_iri(IRI), !,
   once(i_s(G, IRI, M, ResourceOrProperty)).

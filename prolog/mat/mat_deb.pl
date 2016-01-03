@@ -30,7 +30,7 @@ Debug tools for calculating a materialization.
 %!   +Conclusion:compound
 %! ) is det.
 
-mat_deb(R, Ps, C):-
+mat_deb(R, Ps, C) :-
   store_j(R, Ps, C),
   (   debugging(mat(R))
   ->  dcg_with_output_to(string(S), print_deduction(R, Ps, C)),

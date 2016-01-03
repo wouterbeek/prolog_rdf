@@ -30,7 +30,7 @@
 
 %! oaei_alignment(?From:rdf_term, ?To:rdf_term, ?Graph:rdf_graph) is nondet.
 
-oaei_alignment(From, To, G):-
+oaei_alignment(From, To, G) :-
   oaei_alignment(From, To, =, 1.0, G).
 
 
@@ -42,7 +42,7 @@ oaei_alignment(From, To, G):-
 %!   ?Graph:rdf_graph
 %! ) is nondet.
 
-oaei_alignment(From, To, Rel, Measure, G):-
+oaei_alignment(From, To, Rel, Measure, G) :-
   rdf(X, align:entity1, From, G),
   rdf(X, align:entity2, To, G),
   rdf_literal(X, align:relation, xsd:string, Rel, G),

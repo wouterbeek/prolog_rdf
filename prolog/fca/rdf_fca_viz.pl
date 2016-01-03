@@ -1,21 +1,17 @@
 :- module(
   rdf_fca_viz,
   [
-    rdf_fca_export_graph/2, % +Graph, -ExportGraph
-    rdf_fca_export_graph/3, % +Graph:rdf_graph
-                            % -ExportGraph:compound
-                            % :Options:list(compound)
-    rdf_fca_viz/2, % +Graph, +File
-    rdf_fca_viz/3 % +Graph:rdf_graph
-                  % ?File:atom
-                  % :Options:list(compound)
+    rdf_fca_export_graph/2,	% +G, -ExportG
+    rdf_fca_export_graph/3,	% +G, -ExportG, :Opts
+    rdf_fca_viz/2,		% +G, +File
+    rdf_fca_viz/3		% +G, ?File, :Opts
   ]
 ).
 
 /** <module> RDF FCA vizualization
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -25,10 +21,11 @@
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_print_term)).
 
-:- rdf_meta(rdf_fca_export_graph(r,-)).
-:- rdf_meta(rdf_fca_export_graph(r,-,:)).
-:- rdf_meta(rdf_fca_viz(r,+)).
-:- rdf_meta(rdf_fca_viz(r,+,:)).
+:- rdf_meta
+	rdf_fca_export_graph(r, -),
+	rdf_fca_export_graph(r, -, :),
+	rdf_fca_viz(r, +),
+	rdf_fca_viz(r, +, :).
 
 :- predicate_options(rdf_fca_export_graph/3, 3, [
      pass_to(fca_export_graph/3, 3)
@@ -42,21 +39,13 @@
 
 
 
-%! rdf_fca_export_graph(+Graph:rdf_graph, -ExportGraph:compound) is det.
-% Wrapper around rdf_fca_export_graph/3 with default options.
+%! rdf_fca_export_graph(+G, -ExportG) is det.
+%! rdf_fca_export_graph(+G, -ExportG, :Opts) is det.
 
-rdf_fca_export_graph(G, ExportG):-
+rdf_fca_export_graph(G, ExportG) :-
   rdf_fca_export_graph(G, ExportG, []).
-
-
-%! rdf_fca_export_graph(
-%!   +Graph:rdf_graph,
-%!   -ExportGraph:compound,
-%!   +Options:list(compound)
-%! ) is det.
-
-rdf_fca_export_graph(G, ExportG, Opts1):-
-  rdf_fca_from_graph(G, Context),
+rdf_fca_export_graph(G, ExportG, Opts1) :-
+  rdf_fca_context(G, Context),
   merge_options(
     [
       attribute_label(rdf_attribute_label),
@@ -71,16 +60,12 @@ rdf_fca_export_graph(G, ExportG, Opts1):-
 
 
 
-%! rdf_fca_viz(+Graph:rdf_graph, +File:atom) is det.
-% Wrapper around rdf_fca_viz/3 with default options.
+%! rdf_fca_viz(+G, +File) is det.
+%! rdf_fca_viz(+G, +File, +Opts) is det.
 
-rdf_fca_viz(G, File):-
+rdf_fca_viz(G, File) :-
   rdf_fca_viz(G, File, []).
-
-
-%! rdf_fca_viz(+Graph:rdf_graph, +File:atom, +Options:list(compound)) is det.
-
-rdf_fca_viz(G, File, Opts):-
+rdf_fca_viz(G, File, Opts) :-
   rdf_fca_export_graph(G, ExportG, Opts),
   gv_export(ExportG, File, Opts).
 

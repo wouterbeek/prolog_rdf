@@ -27,7 +27,7 @@ Automated conversion from Prolog terms to RDF triples.
 
 
 
-prolog_to_rdf(G, Mod, Term, I):-
+prolog_to_rdf(G, Mod, Term, I) :-
   % Namespace.
   (   rdf_current_prefix(Mod, _), !
   ;   atomic_list_concat([Mod,''], /, Path),
@@ -55,7 +55,7 @@ prolog_to_rdf(
   I1,
   PName-PrologType-Optional,
   Val
-):-
+) :-
   rdf_equal(Mod:PName, P),
   (   PrologType =.. [list,InnerPrologType]
   ->  is_list(Val),

@@ -35,27 +35,27 @@ Graph-based garbage collection for RDF.
 
 
 
-rdf_graph_exclude_from_gc(Graph):-
+rdf_graph_exclude_from_gc(Graph) :-
   rdf_graph_exlcuded_from_gc(Graph), !.
-rdf_graph_exclude_from_gc(Graph):-
+rdf_graph_exclude_from_gc(Graph) :-
   with_mutex(rdf_gc,
     assert(rdf_graph_exlcuded_from_gc(Graph))
   ).
 
 
 % Can't touch this!
-rdf_graph_touch(Graph):-
+rdf_graph_touch(Graph) :-
   rdf_graph_exlcuded_from_gc(Graph).
-rdf_graph_touch(Graph):-
+rdf_graph_touch(Graph) :-
   with_mutex(rdf_gc,
     rdf_graph_touch_sync(Graph)
   ).
 
-rdf_graph_touch_sync(Graph):-
+rdf_graph_touch_sync(Graph) :-
   retract(rdf_touched_graph(First, _, Graph)), !,
   get_time(Last),
   assert(rdf_touched_graph(First, Last, Graph)).
-rdf_graph_touch_sync(Graph):-
+rdf_graph_touch_sync(Graph) :-
   get_time(Now),
   assert(rdf_touched_graph(Now, Now, Graph)).
 
@@ -65,10 +65,10 @@ rdf_gc_by_graph:-
   rdf_statistics(triples(Triples)),
   rdf_gc_triples_by_graph(Triples).
 
-rdf_gc_triples_by_graph(Triples):-
+rdf_gc_triples_by_graph(Triples) :-
   % 10,000,000
   Triples =< 10000000, !.
-rdf_gc_triples_by_graph(_):-
+rdf_gc_triples_by_graph(_) :-
   findall(
     Time-Graph,
     rdf_touched_graph(_, Time, Graph),
@@ -98,7 +98,7 @@ rdf_gc_triples_by_graph(_):-
   % See whether there is more work to do.
   rdf_gc_by_graph.
 
-duration(Timestamp, Duration):-
+duration(Timestamp, Duration) :-
   get_time(Now),
   Delta is Now - Timestamp,
   stamp_date_time(Delta, date(Y1,MM1,D1,H1,M1,S1,_,_,_), 'UTC'),

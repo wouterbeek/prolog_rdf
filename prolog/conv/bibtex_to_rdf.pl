@@ -32,19 +32,19 @@
 %! bibtex_to_rdf(+Source, +Graph:rdf_graph) is det.
 % Wrapper around bibtex_to_rdf/3 with default options.
 
-bibtex_to_rdf(Source, G):-
+bibtex_to_rdf(Source, G) :-
   bibtex_to_rdf(Source, G, []).
 
 
 %! bibtex_to_rdf(+Source, +Graph:rdf_graph, +Options:list(compound)) is det.
 
-bibtex_to_rdf(Source, G, Opts):-
+bibtex_to_rdf(Source, G, Opts) :-
   bibtex_load(Source, Entries, Opts),
   maplist(assert_bibtex_entry(G), Entries).
 
 
 
-assert_bibtex_entry(G, Entry0):-
+assert_bibtex_entry(G, Entry0) :-
   % Resource.
   md5(Entry0, Hash),
   Entry0 = entry(ClassName,Name,Pairs),
@@ -59,6 +59,6 @@ assert_bibtex_entry(G, Entry0):-
   maplist(assert_bibtex_property(Entry, G), Pairs).
 
 
-assert_bibtex_property(Entry, G, Key-Val):-
+assert_bibtex_property(Entry, G, Key-Val) :-
   rdf_global_id(lobo:Key, P),
   rdf_assert(Entry, P, Val, G).

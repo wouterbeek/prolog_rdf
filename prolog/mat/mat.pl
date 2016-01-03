@@ -53,14 +53,14 @@
 % Wrapper around mat/2 that asserts materialization results
 % into the input graph.
 
-mat(G):-
+mat(G) :-
   mat(G, G).
 
 
 %! mat(+InputG, +OutputG) is det.
 % Wrapper around mat/3 with default options.
 
-mat(InG, OutG):-
+mat(InG, OutG) :-
   mat(InG, OutG, []).
 
 
@@ -82,7 +82,7 @@ mat(InG, OutG):-
 %     Whether justifications for deductions are stored.
 %     Default is `false`.
 
-mat(GIn, GOut, Opts):-
+mat(GIn, GOut, Opts) :-
   defval(default, GOut),
   (   var(GIn)
   ->  mat0(GIn, GOut, Opts)
@@ -104,7 +104,7 @@ mat(GIn, GOut, Opts):-
       if_debug(mat(_), rdf_print_graph(GIn, PrintOpts))
   ).
 
-mat0(GIn, GOut, Opts):-
+mat0(GIn, GOut, Opts) :-
   % Perform materialization.
   findall(rdf_chr(S,P,O), rdf(S, P, O, GIn), Ins),
 

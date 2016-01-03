@@ -52,7 +52,7 @@ Read support for reified triples.
 %! ) is nondet.
 % Reads statements with datatyped literals converted to proper values.
 
-rdf_literal_statement(S, P, Value, Datatype, Graph, Statement):-
+rdf_literal_statement(S, P, Value, Datatype, Graph, Statement) :-
   rdf_subject(Statement, S, Graph),
   rdf_predicate(Statement, P, Graph),
   rdf_literal(S, P, Value, Datatype, _, Graph, rdf(S,P,O)),
@@ -67,7 +67,7 @@ rdf_literal_statement(S, P, Value, Datatype, Graph, Statement):-
 %! ) is nondet.
 
 % Literals are treated specially.
-rdf_object(Statement, O, Graph):-
+rdf_object(Statement, O, Graph) :-
   rdf(Statement, rdf:object, O, Graph).
 
 
@@ -78,7 +78,7 @@ rdf_object(Statement, O, Graph):-
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_predicate(Statement, P, Graph):-
+rdf_predicate(Statement, P, Graph) :-
   rdf(Statement, rdf:predicate, P, Graph).
 
 
@@ -94,7 +94,7 @@ rdf_predicate(Statement, P, Graph):-
 % where the object term is treated as a plain literal,
 % i.e. not interpreted.
 
-rdf_statement(S, P, O, Graph, Statement):-
+rdf_statement(S, P, O, Graph, Statement) :-
   rdf_subject(Statement, S, Graph),
   rdf_predicate(Statement, P, Graph),
   rdf_object(Statement, O, Graph).
@@ -107,6 +107,6 @@ rdf_statement(S, P, O, Graph, Statement):-
 %!   ?Graph:atom
 %! ) is nondet.
 
-rdf_subject(Statement, S, Graph):-
+rdf_subject(Statement, S, Graph) :-
   rdf(Statement, rdf:subject, S, Graph).
 

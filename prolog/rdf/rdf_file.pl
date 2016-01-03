@@ -37,7 +37,7 @@ user:prolog_file_type(rdf, xml).
 %! rdf_file_extension(-Extension:atom) is multi.
 % Enumerates file extensions RDF serializations.
 
-rdf_file_extension(Ext):-
+rdf_file_extension(Ext) :-
   distinct(Ext, rdf_file_extension(Ext, _)).
 
 
@@ -47,6 +47,6 @@ rdf_file_extension(Ext):-
 %! rdf_file_extension(-Extension:atom, +Format:atom) is det.
 %! rdf_file_extension(-Extension:atom, -Format:atom) is multi.
 
-rdf_file_extension(Ext, Format):-
+rdf_file_extension(Ext, Format) :-
   rdf_http_plugin:rdf_content_type(_, _, Format),
   user:prolog_file_type(Ext, Format).

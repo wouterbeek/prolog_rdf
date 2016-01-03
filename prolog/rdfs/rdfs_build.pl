@@ -53,7 +53,7 @@ Predicates for asseritng RDFS statements in an easy way.
 
 %! rdfs_assert_class(+C, ?D, ?Label, ?Comment, ?G) is det.
 
-rdfs_assert_class(C, Parent, Lbl, Comm, G):-
+rdfs_assert_class(C, Parent, Lbl, Comm, G) :-
   rdf_assert_instance(C, rdfs:'Class', G),
   rdfs_assert_class0(C, Parent, Lbl, Comm, G).
 
@@ -61,7 +61,7 @@ rdfs_assert_class(C, Parent, Lbl, Comm, G):-
 
 %! rdfs_assert_comment(+S, +Comment, ?G) is det.
 
-rdfs_assert_comment(S, Comment, G):-
+rdfs_assert_comment(S, Comment, G) :-
   rdf_assert(S, rdfs:comment, Comment, G).
 
 
@@ -73,14 +73,14 @@ rdfs_assert_comment(S, Comment, G):-
 % 〈P, rdfs:domain, C, G〉
 % ```
 
-rdfs_assert_domain(P, D, G):-
+rdfs_assert_domain(P, D, G) :-
   rdf_assert(P, rdfs:domain, D, G).
 
 
 
 %! rdfs_assert_isDefinedBy(+S, ?G) is det.
 
-rdfs_assert_isDefinedBy(S, G):-
+rdfs_assert_isDefinedBy(S, G) :-
   rdfs_assert_isDefinedBy(S, _, G).
 
 
@@ -97,11 +97,11 @@ rdfs_assert_isDefinedBy(S, G):-
 % If Uri is uninstantiated, the IRI denoted by the registered RDF prefix
 % of Term is used, if any.
 
-rdfs_assert_isDefinedBy(S, Iri, G):-
+rdfs_assert_isDefinedBy(S, Iri, G) :-
   var(Iri), !,
   rdf_prefix_iri(S, Iri),
   rdf_assert(S, rdfs:isDefinedBy, Iri, G).
-rdfs_assert_isDefinedBy(S, Iri, G):-
+rdfs_assert_isDefinedBy(S, Iri, G) :-
   rdf_assert(S, rdfs:isDefinedBy, Iri, G).
 
 
@@ -109,7 +109,7 @@ rdfs_assert_isDefinedBy(S, Iri, G):-
 %! rdfs_assert_label(+S, +Label) is det.
 % Wrapper around rdfs_assert_label/3 with uninstantiated graph.
 
-rdfs_assert_label(S, Label):-
+rdfs_assert_label(S, Label) :-
   rdfs_assert_label(S, Label, _).
 
 
@@ -119,14 +119,14 @@ rdfs_assert_label(S, Label):-
 % This predicate stores the label as an RDF language-tagged string.
 % The default language is `en-US`.
 
-rdfs_assert_label(S, Label, G):-
+rdfs_assert_label(S, Label, G) :-
   rdf_assert(S, rdfs:label, Label, G).
 
 
 
 %! rdfs_assert_property(+C, +P, +D, ?G) is det.
 
-rdfs_assert_property(C, P, D, G):-
+rdfs_assert_property(C, P, D, G) :-
   rdfs_assert_domain(P, C, G),
   rdfs_assert_range(P, D, G).
 
@@ -134,14 +134,14 @@ rdfs_assert_property(C, P, D, G):-
 
 %! rdfs_assert_range(+P, +C, ?G) is det.
 
-rdfs_assert_range(P, C, G):-
+rdfs_assert_range(P, C, G) :-
   rdf_assert(P, rdfs:range, C, G).
 
 
 
 %! rdfs_assert_seeAlso(+S, +Iri, ?G) is det.
 
-rdfs_assert_seeAlso(S, Iri, G):-
+rdfs_assert_seeAlso(S, Iri, G) :-
   rdf_assert(S, rdfs:seeAlso, Iri, G).
 
 
@@ -150,9 +150,9 @@ rdfs_assert_seeAlso(S, Iri, G):-
 %! rdfs_assert_subclass(+C, ?D, ?G) is det.
 % If D is uninstantiated it defaults to `rdfs:Resource`.
 
-rdfs_assert_subclass(C, G):-
+rdfs_assert_subclass(C, G) :-
   rdfs_assert_subclass(C, _, G).
-rdfs_assert_subclass(C, D, G):-
+rdfs_assert_subclass(C, D, G) :-
   % Allow the parent class to be uninstantiated.
   (   var(D)
   ->  rdf_assert(C, rdfs:subClassOf, rdfs:'Resource', G)
@@ -168,10 +168,10 @@ rdfs_assert_subclass(C, D, G):-
 %
 % If Q is uninstantiated it defaults to `rdf:Property`.
 
-rdfs_assert_subproperty(P, Qs, G):-
+rdfs_assert_subproperty(P, Qs, G) :-
   is_list(Qs), !,
   forall(member(Q, Qs), rdfs_assert_subproperty(P, Q, G)).
-rdfs_assert_subproperty(P, Q, G):-
+rdfs_assert_subproperty(P, Q, G) :-
   rdf_defval(rdf:'Property', Q),
   rdf_assert(P, rdfs:subPropertyOf, Q, G).
 
@@ -184,7 +184,7 @@ rdfs_assert_subproperty(P, Q, G):-
 %
 % This connects all subclasses of Class to all superclasses of Class.
 
-rdfs_retractall_class(C):-
+rdfs_retractall_class(C) :-
   % [1] Remove the links to subclasses.
   %     Connect all subclasses of Class to all superclasses of Class.
   forall(
@@ -212,7 +212,7 @@ rdfs_retractall_class(C):-
 
 % HELPERS %
 
-rdfs_assert_class0(C, Parent, Lbl, Comm, G):-
+rdfs_assert_class0(C, Parent, Lbl, Comm, G) :-
   rdfs_assert_subclass(C, Parent, G),
   (var(Lbl) -> true ; rdfs_assert_label(C, Lbl, G)),
   (var(Comm) -> true ; rdfs_assert_comment(C, Comm, G)),

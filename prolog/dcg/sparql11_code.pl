@@ -17,7 +17,7 @@
 @author Wouter Beek
 @compat SPARQL 1.1
 @see http://www.w3.org/TR/sparql11-query/#grammar
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -30,6 +30,29 @@
 % ```abnf
 % HEX ::= [0-9] | [A-F] | [a-f]
 % ```
+
+'HEX'(0)  --> "0".
+'HEX'(1)  --> "1".
+'HEX'(2)  --> "2".
+'HEX'(3)  --> "3".
+'HEX'(4)  --> "4".
+'HEX'(5)  --> "5".
+'HEX'(6)  --> "6".
+'HEX'(7)  --> "7".
+'HEX'(8)  --> "8".
+'HEX'(9)  --> "9".
+'HEX'(10) --> "a".
+'HEX'(10) --> "a".
+'HEX'(11) --> "B".
+'HEX'(11) --> "b".
+'HEX'(12) --> "C".
+'HEX'(12) --> "c".
+'HEX'(13) --> "D".
+'HEX'(13) --> "d".
+'HEX'(14) --> "E".
+'HEX'(14) --> "e".
+'HEX'(15) --> "F".
+'HEX'(15) --> "f".
 
 
 

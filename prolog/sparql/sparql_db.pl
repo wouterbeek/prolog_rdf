@@ -92,7 +92,7 @@ dbpedia_localizations_init:-
     dbpedia_register(LTag)
   ).
 
-dbpedia_register(LTag):-
+dbpedia_register(LTag) :-
   % The generic DBpedia SPARQL endpoint can be used to query
   % for any of the natural languages.
   % Some languages, in addition, have their own SPARQL endpoint.
@@ -112,7 +112,7 @@ dbpedia_register(LTag):-
 %! sparql_endpoint_by_iri(+Iri:iri, -Endpoint:atom) is nondet.
 % Endpoints that are associated with the prefix of the given resource.
 
-sparql_endpoint_by_iri(Iri, Endpoint):-
+sparql_endpoint_by_iri(Iri, Endpoint) :-
   uri_component(Iri, host, Host),
   sparql_endpoint_option(Endpoint, location, Location),
   uri_component(Location, host, Host).
@@ -142,7 +142,7 @@ sparql_endpoint_mode(update).
 
 % The authentication option is special,
 % since it requires access to the service database.
-sparql_endpoint_option(Endpoint, authentication(Mode), Value):-
+sparql_endpoint_option(Endpoint, authentication(Mode), Value) :-
   % Retrieve a user registration for the given SPARQL endpoint.
   service(Endpoint, login(User,Password)),
 
@@ -155,7 +155,7 @@ sparql_endpoint_option(Endpoint, authentication(Mode), Value):-
   atomic_list_concat(['Basic',Encoded], ' ', Authentication),
   Value = request_header('Authorization'=Authentication).
 % Options that are set on the manufacturer level.
-sparql_endpoint_option(Endpoint, Name, Value):-
+sparql_endpoint_option(Endpoint, Name, Value) :-
   % Optimization: locations are always set for specific endpoints,
   % never generically, i.e. for endpoint manufacturers.
   Name \== location,
@@ -166,7 +166,7 @@ sparql_endpoint_option(Endpoint, Name, Value):-
   % Individual endpoints can override manufacturer settings!
   \+ sparql_endpoint_option0(Endpoint, Name, _).
 % Options that are set at the endpoint-specific level.
-sparql_endpoint_option(Endpoint, Name, Value):-
+sparql_endpoint_option(Endpoint, Name, Value) :-
   sparql_endpoint_option0(Endpoint, Name, Value).
 
 sparql_manufacturer_option0(cliopatria, method(update), direct).
@@ -192,10 +192,10 @@ sparql_manufacturer_option0(virtuoso, path_suffix(update), '/update').
 % @throws existence_error If the given SPARQL endpoint
 %         is not available at any location.
 
-sparql_endpoint_location(Endpoint, Mode, Location):-
+sparql_endpoint_location(Endpoint, Mode, Location) :-
   is_iri(Endpoint), !,
   \+ sparql_endpoint_option(Location, Mode, _).
-sparql_endpoint_location(Endpoint, Mode, Location):-
+sparql_endpoint_location(Endpoint, Mode, Location) :-
   % Make sure that this is deterministic: if multiple locations are registered
   % with an endpoint we take the first one.
   once(sparql_endpoint_option(Endpoint, location, Base)),
@@ -217,7 +217,7 @@ sparql_endpoint_location(Endpoint, Mode, Location):-
 %!   -Location:iri
 %! ) is nondet.
 
-sparql_location_by_iri(Iri, Mode, Location):-
+sparql_location_by_iri(Iri, Mode, Location) :-
   % Find an endpoint that is associated with
   % (the prefix of) a given resource.
   sparql_endpoint_by_iri(Iri, Endpoint),
@@ -234,7 +234,7 @@ sparql_location_by_iri(Iri, Mode, Location):-
 %!   +Manufacturer:atom
 %! ) is det.
 
-sparql_register_endpoint(Endpoint, Locations, Manufacturer):-
+sparql_register_endpoint(Endpoint, Locations, Manufacturer) :-
   % Compatibility with library sparkle.
   % @tbd Enable when fixed.
   %maplist(sparql_endpoint(Endpoint), Locations),
@@ -250,8 +250,8 @@ sparql_register_endpoint(Endpoint, Locations, Manufacturer):-
 %! sparql_remove_endpoint(+Endpoint:atom) is det.
 % Removes all modes for the given SPARQL endpoint registration.
 
-sparql_remove_endpoint(Endpoint):-
+sparql_remove_endpoint(Endpoint) :-
   retractall(sparql_endpoint(Endpoint)),
   retractall(sparql_endpoint_option0(Endpoint, _, _)).
-sparql_remove_endpoint(Endpoint):-
+sparql_remove_endpoint(Endpoint) :-
   existence_error(sparql_endpoint, Endpoint).

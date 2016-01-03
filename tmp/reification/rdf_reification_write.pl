@@ -40,7 +40,7 @@ Read support for reified triples.
 %!   ?Graph:atom
 %! ) is det.
 
-rdf_assert_object(Statement, O, Graph):-
+rdf_assert_object(Statement, O, Graph) :-
   rdf_assert(Statement, rdf:object, O, Graph).
 
 
@@ -51,7 +51,7 @@ rdf_assert_object(Statement, O, Graph):-
 %!   ?Graph:atom
 %! ) is det.
 
-rdf_assert_predicate(Statement, P, Graph):-
+rdf_assert_predicate(Statement, P, Graph) :-
   rdf_assert(Statement, rdf:predicate, P, Graph).
 
 
@@ -62,9 +62,9 @@ rdf_assert_predicate(Statement, P, Graph):-
 %!   ?Statement:or([bnode,iri])
 %! ) is det.
 
-rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
+rdf_assert_statement(rdf(S,P,O), Graph, Statement) :-
   rdf_statement(S, P, O, Graph, Statement), !.
-rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
+rdf_assert_statement(rdf(S,P,O), Graph, Statement) :-
   % Make sure the statement parameter is instantiated.
   % Use a new blank node if this is not yet the case.
   (var(Statement) -> rdf_bnode(Statement) ; true),
@@ -83,5 +83,5 @@ rdf_assert_statement(rdf(S,P,O), Graph, Statement):-
 %!   +Graph:atom
 %! ) is det.
 
-rdf_assert_subject(Statement, S, Graph):-
+rdf_assert_subject(Statement, S, Graph) :-
   rdf_assert(Statement, rdf:subject, S, Graph).

@@ -142,6 +142,6 @@ print_premises(_, [], _) --> "".
 print_rule(R) -->
   {unwind_compound(R, L)},
   ({L == []} -> "" ; {L = [H|T]}, atom(H), +(sep_atom, T)).
-unwind_compound(H, [H]):- atomic(H), !.
-unwind_compound(H0, [H|T]):- H0 =.. [H,T0], unwind_compound(T0, T).
+unwind_compound(H, [H]) :- atomic(H), !.
+unwind_compound(H0, [H|T]) :- H0 =.. [H,T0], unwind_compound(T0, T).
 sep_atom(X) --> ",", atom(X).

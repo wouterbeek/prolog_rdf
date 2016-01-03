@@ -70,9 +70,9 @@ Printing of RDF statements to a text-based output stream.
 %! rdf_print_deref(+S) is det.
 %! rdf_print_deref(+S, +Opts) is det.
 
-rdf_print_deref(S):-
+rdf_print_deref(S) :-
   rdf_print_deref(S, []).
-rdf_print_deref(S, Opts):-
+rdf_print_deref(S, Opts) :-
   rdf_deref(S),
   rdf_print_triple(S, _, _, _, Opts).
 
@@ -91,11 +91,11 @@ rdf_print_deref(S, Opts):-
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_print_descr(S):-
+rdf_print_descr(S) :-
   rdf_print_descr(S, none, []).
-rdf_print_descr(S, Opts):-
+rdf_print_descr(S, Opts) :-
   rdf_print_descr(S, none, Opts).
-rdf_print_descr(S, G, Opts):-
+rdf_print_descr(S, G, Opts) :-
   (   G == none
   ->  forall(rdf_print_triple(S, _, _, _, Opts), true)
   ;   var(G)
@@ -121,9 +121,9 @@ rdf_print_descr(S, G, Opts):-
 %
 % @throws existence_error
 
-rdf_print_graph(G):-
+rdf_print_graph(G) :-
   rdf_print_graph(G, []).
-rdf_print_graph(G, Opts):-
+rdf_print_graph(G, Opts) :-
   (   var(G)
   ->  rdf_print_quadruple(_, _, _, _, Opts),
       fail
@@ -142,7 +142,7 @@ rdf_print_graph(_, _).
 
 rdf_print_graphs:-
   rdf_print_graphs([maximum_number_of_rows(50)]).
-rdf_print_graphs(Opts):-
+rdf_print_graphs(Opts) :-
   aggregate_all(set(N-G), rdf_number_of_triples(G, N), Pairs1),
   reverse(Pairs1, Pairs2),
   maplist(inverse_pair, Pairs2, Pairs3),

@@ -62,7 +62,7 @@
 %! rdf_clean(+From, ?To:atom) is det.
 % Wrapper for rdf_clean/3 with default options.
 
-rdf_clean(From, To):-
+rdf_clean(From, To) :-
   rdf_clean(From, To, []).
 
 
@@ -77,7 +77,7 @@ rdf_clean(From, To):-
 %    * metadata(-dict)
 %    * show_metadata(+boolean)
 
-rdf_clean(From, To, Opts):-
+rdf_clean(From, To, Opts) :-
   % Process output RDF serialization option.
   (   % The output RDF serialization format is given: take it into account
       % by relaying it to a different options list.
@@ -100,7 +100,7 @@ rdf_clean(From, To, Opts):-
 %!   +Read:stream
 %! ) is det.
 
-rdf_clean_stream(Local0, Opts1, M1, Read):-
+rdf_clean_stream(Local0, Opts1, M1, Read) :-
   option(metadata(M5), Opts1, _),
 
   % Process data compression option.
@@ -183,7 +183,7 @@ rdf_clean_stream(Local0, Opts1, M1, Read):-
 %!   +Options:list(compound)
 %! ) is det.
 
-rdf_write_clean_stream(Read, M, Write, Opts1):-
+rdf_write_clean_stream(Read, M, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
   merge_options([base_iri(M.base_iri)], Opts1, Opts2),
   write_simple_begin(BNodePrefix, C1, C2, Opts2),
@@ -230,10 +230,10 @@ rdf_write_clean_stream(Read, M, Write, Opts1):-
 % that uses the given PathPrefix.
 
 % The raw archive entry's path is the prefix path.
-archive_entry_name(Path, [H], Path):-
+archive_entry_name(Path, [H], Path) :-
   is_unarchived(H), !.
 % A non-raw archive entry: add its name to the prefix path.
-archive_entry_name(Prefix, [H|T], EntryPath):-
+archive_entry_name(Prefix, [H|T], EntryPath) :-
   make_directory_path(Prefix),
   directory_file_path(Prefix, H.name, Path),
   archive_entry_name(Path, T, EntryPath).
@@ -249,7 +249,7 @@ archive_entry_name(Prefix, [H|T], EntryPath):-
 %!   +LinePosition:compound
 %! ) is det.
 
-clean_streamed_triples(Write, BNodePrefix, C1, C2, Stmts, _):-
+clean_streamed_triples(Write, BNodePrefix, C1, C2, Stmts, _) :-
   with_output_to(
     Write,
     maplist(write_simple_statement(BNodePrefix, C1, C2), Stmts)
@@ -261,7 +261,7 @@ clean_streamed_triples(Write, BNodePrefix, C1, C2, Stmts, _):-
 % Succeed if CompressionNode descibes a leaf node in a compression tree.
 % A leaf node in a compression tree describes an unarchived or raw file.
 
-is_unarchived(D):-
+is_unarchived(D) :-
   D.name == data,
   D.format == raw, !.
 
@@ -275,7 +275,7 @@ is_unarchived(D):-
 %   * sort_dir(+atom)
 %     The directory that is used for disk-based sorting.
 
-sort_file(File, Opts):-
+sort_file(File, Opts) :-
   % Determine the directory that is used for disk-based sorting.
   (   option(sort_dir(Dir), Opts)
   ->  access_file(Dir, write)
@@ -314,7 +314,7 @@ sort_file(File, Opts):-
 %     The maximum size of the buffer used for sorting.
 %     Default is `1.0'.
 
-determine_sort_buffer_size(File, BufferSize, Opts):-
+determine_sort_buffer_size(File, BufferSize, Opts) :-
   calc_sort_buffer_size(File, Calc),
   option(max_sort_buffer_size(Max), Opts, 1.0),
   BufferSize is min(round(Max * (1024 ** 3)), Calc),
@@ -333,7 +333,7 @@ determine_sort_buffer_size(File, BufferSize, Opts):-
 %     The maximum number of threads that is allowed to be used.
 %     Default is the value of `current_prolog_flag(cpu_count, X)'.
 
-determine_sort_threads(BufferSize, Threads, Opts):-
+determine_sort_threads(BufferSize, Threads, Opts) :-
   calc_sort_threads(BufferSize, Calc),
   current_prolog_flag(cpu_count, Default),
   option(max_sort_threads(Max), Opts, Default),
@@ -346,9 +346,9 @@ determine_sort_threads(BufferSize, Threads, Opts):-
 % Heuristically determine the number of threads to use for sorting
 % a file with the given BufferSize.
 
-calc_sort_threads(BufferSize, 3):- % 6GB<x
+calc_sort_threads(BufferSize, 3) :- % 6GB<x
   BufferSize > 6 * (1024 ** 3), !.
-calc_sort_threads(BufferSize, 2):- % 3GB<x=<6GB
+calc_sort_threads(BufferSize, 2) :- % 3GB<x=<6GB
   BufferSize > 3 * (1024 ** 3), !.
 calc_sort_threads(_, 1). % x=<3GB
 
@@ -358,7 +358,7 @@ calc_sort_threads(_, 1). % x=<3GB
 % Determines the BufferSize that will be used for sorting File
 % according to a simple heuristic.
 
-calc_sort_buffer_size(File, BufferSize):-
+calc_sort_buffer_size(File, BufferSize) :-
   size_file(File, FileSize),
   (   FileSize =:= 0
   ->  BufferSize = 1024
@@ -373,9 +373,9 @@ calc_sort_buffer_size(File, BufferSize):-
 %!   +To:atom
 %! ) is det.
 
-compress_file(From, none, To):- !,
+compress_file(From, none, To) :- !,
   rename_file(From, To).
-compress_file(From, Compress, To):-
+compress_file(From, Compress, To) :-
   setup_call_cleanup(
     gzopen(To, write, Write, [format(Compress)]),
     setup_call_cleanup(
@@ -394,6 +394,6 @@ compress_file(From, Compress, To):-
 %!   -File2:atom
 %! ) is det.
 
-file_with_new_extensions(File1, Exts, File2):-
+file_with_new_extensions(File1, Exts, File2) :-
   atomic_list_concat([Name|_], ., File1),
   atomic_list_concat([Name|Exts], '.', File2).

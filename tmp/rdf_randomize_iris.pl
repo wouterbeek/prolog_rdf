@@ -20,7 +20,7 @@
 
 
 
-rdf_randomize_iris(G):-
+rdf_randomize_iris(G) :-
   rdf_graph(G),
   aggregate_all(
     set(X-X0),
@@ -42,7 +42,7 @@ random_character -->
   {random_between(97, 122, X)},
   [X].
 
-randomize_iri(IRI1, IRI2):-
+randomize_iri(IRI1, IRI2) :-
   uri_components(IRI1, uri_components(_, _, _, _, _)),
   dcg_with_output_to(atom(Path1),
     '#'(15, random_character, [copy_term(true)])
@@ -50,12 +50,12 @@ randomize_iri(IRI1, IRI2):-
   atomic_concat(/, Path1, Path2),
   uri_components(IRI2, uri_components(http, 'vu.nl', Path2, _, _)).
 
-randomize_triple(Graph, Dict, S1-P1-O1):-
+randomize_triple(Graph, Dict, S1-P1-O1) :-
   rdf_retractall(S1, P1, O1, Graph),
   maplist(iri_lookup(Dict), [S1,P1,O1], [S2,P2,O2]),
   rdf_assert(S2, P2, O2, Graph).
 
-iri_lookup(Dict, X, Y):-
+iri_lookup(Dict, X, Y) :-
   memberchk(X-Y, Dict), !.
 iri_lookup(_, X, X).
 

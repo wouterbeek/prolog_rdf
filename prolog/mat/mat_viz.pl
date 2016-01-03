@@ -57,23 +57,23 @@ mat_viz:-
 %! mat_viz(+Statement:compound) is nondet.
 % Non-deterministically exports proofs for Statement.
 
-mat_viz(S):-
+mat_viz(S) :-
   md5(S, C),
   % Find all edges.
   findall(E, distinct(E, find_edge(s(C), E)), Es),
   string_phrase(s_label(S), SLabel),
-  format(atom(GLabel), 'Proof tree for ~a', [SLabel]),
+  format(atom(GLabel), "Proof tree for ~a", [SLabel]),
   mat_viz0(Es, GLabel).
 
 
 %! mat_export(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is nondet.
 % Non-deterministically exports proofs for statement <S,P,O>.
 
-mat_viz(S, P, O):-
+mat_viz(S, P, O) :-
   mat_viz(rdf(S,P,O)).
 
 
-mat_viz0(Es, GLabel):-
+mat_viz0(Es, GLabel) :-
   findall(V, distinct(V, (member(edge(X,Y), Es), (V = X ; V = Y))), Vs),
   Opts = [
     graph_directed(true),
@@ -92,48 +92,48 @@ mat_viz0(Es, GLabel):-
 %
 % Node is either `j(MD5)` for justifications or `s(MD5)` for statements.
 
-find_edge(X, E):-
+find_edge(X, E) :-
   find_edge(X, [], [], E).
 
 % Edge `P -> J` from premise to justification.
-find_edge(j(J), Js, Ss, E):-
+find_edge(j(J), Js, Ss, E) :-
   j_db:j(_, Ps, _, J),
   member(P, Ps),
   maplist(dif(P), Ss),
   (E = edge(P,J) ; find_edge(s(P), Js, [P|Ss], E)).
 % Edge `J -> C` from justification to conclusion.
-find_edge(s(C), Js, Ss, E):-
+find_edge(s(C), Js, Ss, E) :-
   j_db:j(_, _, C, J),
   maplist(dif(J), Js),
   (E = edge(J,C) ; find_edge(j(J), [J|Js], Ss, E)).
 
 
 % Statement color.
-proof_node_color(X, SColor):-
+proof_node_color(X, SColor) :-
   j_db:s(S, X), !,
   (   S == error
   ->  SColor = red
   ;   SColor = blue
   ).
 % Justification color.
-proof_node_color(X, JColor):-
+proof_node_color(X, JColor) :-
   j_db:j(R, _, _, X), !,
   (debugging(mat(R)) -> JColor = red ; JColor = green).
 
 
 % Statement label.
-proof_node_label(X) --> {j_db:s(S, X)}, !, s_label(S, SLabel).
+proof_node_label(X) --> {j_db:s(S, X)}, !, s_label(S).
 % Justification label.
 proof_node_label(X) --> {j_db:j(R, _, _, X)}, !, print_rule(R).
 
 
-proof_node_shape(X, SShape):-
+proof_node_shape(X, SShape) :-
   j_db:s(_, X), !,
   SShape = rect.
-proof_node_shape(X, SShape):-
+proof_node_shape(X, SShape) :-
   j_db:j(_, _, _, X), !,
   SShape = octagon.
 
 
-s_label(rdf(S,P,O)) !, --> rdf_print_triple(S, P, O).
-s_label(T)             --> rdf_print_term(T).
+s_label(rdf(S,P,O)) --> !, rdf_print_triple(S, P, O).
+s_label(T) --> rdf_print_term(T).

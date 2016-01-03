@@ -9,8 +9,12 @@
 /** <module> RDF read table
 
 @author Wouter Beek
-@version 2015/12
+@version 2015/12-2016/01
 */
+
+:- use_module(library(option)).
+:- use_module(library(rdf/rdf_list)).
+:- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta(rdf_html_read_table(o,+,?,?)).
 
@@ -27,11 +31,11 @@ rdf_html_read_table(Table, Opts) -->
   {
     option(header_column(HasHeaderColumn), Opts),
     option(header_row(HasHeaderRow), Opts),
-    rdf_literal(Table, rdf_table:caption, xsd:string, Caption),
-    rdf(Table, rdf_table:columns, Columns),
-    rdf_list_raw(Columns, ColumnHeaders),
+    rdf_has(Table, rdf_table:caption, Caption),
+    rdf_has(Table, rdf_table:columns, Columns),
+    rdf_list(Columns, ColumnHeaders),
     rdf_has(Table, rdf_table:rows, Rows),
-    rdf_list_raw(Rows, RowHeaders),
+    rdf_list(Rows, RowHeaders),
     rdf_table_get_rows(
       Table,
       HasHeaderColumn,
@@ -48,21 +52,21 @@ rdf_html_read_table(Table, Opts) -->
 
 
 %! rdf_table_get_rows(
-%!   +Table:or([bnode,iri]),
+%!   +Table:rdf_term,
 %!   +HasHeaderColumn:boolean,
 %!   +ColumnHeaders:list(iri),
 %!   +RowHeaders:list(iri),
 %!   -Rows:list(list(ground))
 %! ) is det.
 
-rdf_table_get_rows(_, _, _, [], []):- !.
+rdf_table_get_rows(_, _, _, [], []) :- !.
 rdf_table_get_rows(
   Table,
   HasHeaderColumn,
   ColumnHeaders,
   [RowHeader|RowHeaders],
   [Row2|Rows]
-):-
+) :-
   rdf_table_get_row(Table, ColumnHeaders, RowHeader, Row1),
   (   HasHeaderColumn == true
   ->  Row2 = [RowHeader|Row1]
@@ -78,10 +82,10 @@ rdf_table_get_rows(
 %!   -Row:list(ground)
 %! ) is det.
 
-rdf_table_get_row(_, [], _, []):- !.
-rdf_table_get_row(Table, [ColumnHeader|ColumnHeaders], RowHeader, [H|T]):-
+rdf_table_get_row(_, [], _, []) :- !.
+rdf_table_get_row(Table, [ColumnHeader|ColumnHeaders], RowHeader, [H|T]) :-
   rdf_has(Table, rdf_table:cell, Cell),
-  rdf_literal(Cell, rdf_table:column, xsd:strin, ColumnHeader),
-  rdf_literal(Cell, rdf_table:row, xsd:string, RowHeader),
+  rdf_has(Cell, rdf_table:column, ColumnHeader),
+  rdf_has(Cell, rdf_table:row, RowHeader),
   rdf_has(Cell, rdf:value, H), !,
   rdf_table_get_row(Table, ColumnHeaders, RowHeader, T).

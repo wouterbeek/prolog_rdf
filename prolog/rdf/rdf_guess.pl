@@ -35,7 +35,7 @@
 %! rdf_guess_format(+Spec, -Format:rdf_term, +Options:list(compound)) is det.
 % Wrapper around rdf_guess_format/3 with default options.
 
-rdf_guess_format(Spec, Format):-
+rdf_guess_format(Spec, Format) :-
   rdf_guess_format(Spec, Format, []).
 
 
@@ -43,7 +43,7 @@ rdf_guess_format(Spec, Format):-
 % The following options are supported:
 %   * default_format(+rdf_format)
 
-rdf_guess_format(Spec, Format, Opts):-
+rdf_guess_format(Spec, Format, Opts) :-
   setup_call_cleanup(
     open_any2(Spec, read, Read, Close_0),
     rdf_guess_format(Read, 0, Format, Opts),
@@ -58,7 +58,7 @@ rdf_guess_format(Spec, Format, Opts):-
 %!   +Options:list(compound)
 %! ) is det.
 
-rdf_guess_format(Read, I, Format, Opts):-
+rdf_guess_format(Read, I, Format, Opts) :-
   N is 1000 * 2 ^ I,
   peek_string(Read, N, S),
   debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
@@ -67,7 +67,7 @@ rdf_guess_format(Read, I, Format, Opts):-
   (rdf_guess_turtle(S, N, Format, Opts) ; rdf_guess_xml(S, Format)), !,
 
   debug(rdf(guess), "Assuming ~a based on heuristics.", [Format]).
-rdf_guess_format(Read, I1, Format, Opts):-
+rdf_guess_format(Read, I1, Format, Opts) :-
   I1 < 4,
   I2 is I1 + 1,
   rdf_guess_format(Read, I2, Format, Opts).
@@ -75,7 +75,7 @@ rdf_guess_format(Read, I1, Format, Opts):-
 
 % For Turtle-family formats it matters whether or not
 % end of stream has been reached.
-rdf_guess_turtle(S, N, Format, Opts):-
+rdf_guess_turtle(S, N, Format, Opts) :-
   % Do not backtrack if the whole stream has been peeked.
   string_length(S, M),
   ((M =:= 0 ; M < N) -> !, EoS = true ; EoS = false),

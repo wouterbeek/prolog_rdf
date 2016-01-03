@@ -43,12 +43,12 @@ Searching through an RDF graph.
 %!   +Options:list(compound)
 %! ) is det.
 
-rdf_beam(V, Ps, Vs, Es, Opts):-
+rdf_beam(V, Ps, Vs, Es, Opts) :-
   rdf_beam([V], Ps, Vs, [], Es, Opts).
 
-rdf_beam([], _Ps, AllVs, AllEs, AllEs, _):-
+rdf_beam([], _Ps, AllVs, AllEs, AllEs, _) :-
   s_edges_vertices(AllEs, AllVs), !.
-rdf_beam(Vs, Ps, AllVs, Es, AllEs, Opts):-
+rdf_beam(Vs, Ps, AllVs, Es, AllEs, Opts) :-
   aggregate_all(
     set(V-NextV),
     (
@@ -74,21 +74,21 @@ rdf_beam(Vs, Ps, AllVs, Es, AllEs, Opts):-
 %! ) is det.
 
 % Make sure we start out with an ordered set.
-rdf_breadth_first(Set, R1, R2, Sol1, Sol2):-
+rdf_breadth_first(Set, R1, R2, Sol1, Sol2) :-
   is_ordset(Set), !,
   rdf_breadth_first(Set, R1, R2, Set, [], Sol1, Sol2).
 % Lists are converted to ordered sets.
-rdf_breadth_first(List, R1, R2, Sol1, Sol2):-
+rdf_breadth_first(List, R1, R2, Sol1, Sol2) :-
   is_list(List), !,
   list_to_ord_set(List, Set),
   rdf_breadth_first(Set, R1, R2, Sol1, Sol2).
 % Single elements are placed inside a list.
-rdf_breadth_first(Element, R1, R2, Sol1, Sol2):-
+rdf_breadth_first(Element, R1, R2, Sol1, Sol2) :-
   ground(Element), !,
   rdf_breadth_first([Element], R1, R2, Sol1, Sol2).
 
-rdf_breadth_first([], _R_AB, _R_BA, SolA, SolB, SolA, SolB):- !.
-rdf_breadth_first(A1, R_AB, R_BA, HistA1, HistB1, SolA, SolB):-
+rdf_breadth_first([], _R_AB, _R_BA, SolA, SolB, SolA, SolB) :- !.
+rdf_breadth_first(A1, R_AB, R_BA, HistA1, HistB1, SolA, SolB) :-
   % Find all Bs that can be reached from some A using the former relation.
   aggregate_all(
     set(B),

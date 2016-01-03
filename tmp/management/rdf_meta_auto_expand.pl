@@ -28,7 +28,7 @@ by either:
 ```prolog}
 :- rdf_meta_expand pred(e,e,i).
 
-pred(Converted, AlsoConverted, NotConvertedLabel):-
+pred(Converted, AlsoConverted, NotConvertedLabel) :-
   rdf(Converted, rdf:type, rdfs:Class),
   rdf(Converted, rdf:type, rdfs:Class),
   writeln(NotConvertedLabel).
@@ -39,7 +39,7 @@ pred(Converted, AlsoConverted, NotConvertedLabel):-
 The resulting listing of pred/3 will be:
 
 ```prolog}
-pred(Converted2, AlsoConverted2, NotConvertedLabel):-
+pred(Converted2, AlsoConverted2, NotConvertedLabel) :-
   rdf_global_id(Converted2, Converted),
   rdf_global_id(AlsoConverted2, AlsoConverted),
   rdf(Converted, rdf:type, rdfs:Class),
@@ -65,7 +65,7 @@ pred(Converted2, AlsoConverted2, NotConvertedLabel):-
 
 
 
-rdf_meta_expand(Term):-
+rdf_meta_expand(Term) :-
   db_add_novel(rdf_meta_expand_db(Term)).
 
 %! expand_body(+Expansions, +Body, -ExpandedBody)
@@ -74,7 +74,7 @@ rdf_meta_expand(Term):-
 % a conjunction using the '=|,`' operator.
 
 expand_body([], Body, Body).
-expand_body([Expansion|Expansions], Body, (Expansion, ExpandedBody)):-
+expand_body([Expansion|Expansions], Body, (Expansion, ExpandedBody)) :-
   expand_body(Expansions, Body, ExpandedBody).
 
 %! rdf_meta_expand_all(
@@ -90,7 +90,7 @@ expand_body([Expansion|Expansions], Body, (Expansion, ExpandedBody)):-
 
 rdf_meta_expand_all([], [], [], []).
 % Non-variables do not need expansion.
-rdf_meta_expand_all([e|ArgTypes], [Arg|Args], [Arg|NewArgs], Expansions):-
+rdf_meta_expand_all([e|ArgTypes], [Arg|Args], [Arg|NewArgs], Expansions) :-
   nonvar(Arg), !,
   rdf_meta_expand_all(ArgTypes, Args, NewArgs, Expansions).
 rdf_meta_expand_all(
@@ -98,13 +98,13 @@ rdf_meta_expand_all(
   [Arg|Args],
   [NewArg|NewArgs],
   [rdf_global_id(NewArg,Arg)|Expansions]
-):-
+) :-
   rdf_meta_expand_all(ArgTypes, Args, NewArgs, Expansions).
 % Anything that is not `e` does not have to be expanded.
-rdf_meta_expand_all([i|ArgTypes], [Arg|Args], [Arg|NewArgs], Expansions):-
+rdf_meta_expand_all([i|ArgTypes], [Arg|Args], [Arg|NewArgs], Expansions) :-
   rdf_meta_expand_all(ArgTypes, Args, NewArgs, Expansions).
 
-system:term_expansion(TermIn, TermOut):-
+system:term_expansion(TermIn, TermOut) :-
   (
     % If `TermIn` is a predicate...
     TermIn =.. [:-,Head,Body],

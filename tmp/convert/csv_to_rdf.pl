@@ -38,7 +38,7 @@ Automatic conversion from CSV to RDF.
 %!   +ClassName:atom
 %! ) is det.
 
-csv_to_rdf(Source, G, SchemaPrefix, DataPrefix, CName):-
+csv_to_rdf(Source, G, SchemaPrefix, DataPrefix, CName) :-
   is_stream(Source), !,
 
   % Parse the CSV data.
@@ -66,7 +66,7 @@ csv_to_rdf(Source, G, SchemaPrefix, DataPrefix, CName):-
 %   1. the unnamed entity represented by a data row, and
 %   2. the value that appears in a specific cell of that data row.
 
-csv_header_to_rdf(G, SchemaPrefix, Header, Ps):-
+csv_header_to_rdf(G, SchemaPrefix, Header, Ps) :-
   maplist(csv_header_entry_to_rdf(G, SchemaPrefix), Header, Ps).
 
 
@@ -78,7 +78,7 @@ csv_header_to_rdf(G, SchemaPrefix, Header, Ps):-
 %!   -Property:iri
 %! ) is det.
 
-csv_header_entry_to_rdf(G, SchemaPrefix, HeaderEntry, P):-
+csv_header_entry_to_rdf(G, SchemaPrefix, HeaderEntry, P) :-
   atom_phrase(rdf_property_name, HeaderEntry, LocalName),
   rdf_global_id(SchemaPrefix:LocalName, P),
   rdfs_assert_domain(P, rdfs:'Resource', G),
@@ -121,7 +121,7 @@ rdf_property_name --> [].
 % Converts a CSV data row to RDF, using the RDF properties that were created
 %  based on the header row.
 
-csv_row_to_rdf(DataPrefix, G, C, Ps, Row):-
+csv_row_to_rdf(DataPrefix, G, C, Ps, Row) :-
   % A row is translated into an instance of the given class.
   rdf_create_next_resource(DataPrefix, [], C, G, Entry),
   
@@ -139,14 +139,14 @@ csv_row_to_rdf(DataPrefix, G, C, Ps, Row):-
 % Converts a CSV cell value to RDF.
 
 % Only graphic values are converted.
-csv_cell_to_rdf(G, Entry, P, V):-
+csv_cell_to_rdf(G, Entry, P, V) :-
   atom_chars(V, Cs),
   member(C, Cs),
   graphic(C, _, _), !,
   {string_codes(S, Cs)},
   rdf_assert(Entry, P, S, G).
 % Non-graphic values are ignored.
-csv_cell_to_rdf(_, _, _, Val):-
+csv_cell_to_rdf(_, _, _, Val) :-
   debug(
     csv_to_rdf,
     "Will not convert non-graphic value \"~w\" to RDF.",

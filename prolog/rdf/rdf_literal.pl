@@ -41,7 +41,7 @@
 % The **language-tagged string**s are the cartesian product of the Unicode
 % strings in Normal Form C with the set of BCP 47 language tags.
 
-rdf_is_language_tagged_string(Lit):-
+rdf_is_language_tagged_string(Lit) :-
   Lit = literal(lang(LTag,Lex)),
   maplist(atom, [LTag,Lex]).
 
@@ -49,7 +49,7 @@ rdf_is_language_tagged_string(Lit):-
 
 %! rdf_language_tagged_string(-Literal:compound) is nondet.
 
-rdf_language_tagged_string(Lit):-
+rdf_language_tagged_string(Lit) :-
   rdf_literal(Lit),
   rdf_is_language_tagged_string(Lit).
 
@@ -80,24 +80,24 @@ rdf_language_tagged_string(Lit):-
 %!   -LanguageTag:atom
 %! ) is det.
 
-rdf_literal_components(Lit, D, Lex, LTag):-
+rdf_literal_components(Lit, D, Lex, LTag) :-
   ground(Lit), !,
   rdf_literal_components0(Lit, D, Lex, LTag).
-rdf_literal_components(Lit, D, Lex, LTag):-
+rdf_literal_components(Lit, D, Lex, LTag) :-
   rdf_equal(rdf:langString, D),
   atom(LTag), !,
   Lit = literal(lang(LTag,Lex)).
-rdf_literal_components(Lit, D0, Lex, _):-
+rdf_literal_components(Lit, D0, Lex, _) :-
   ground(Lex), !,
   (ground(D0) -> D = D0 ; rdf_equal(xsd:string, D)),
   Lit = literal(type(D,Lex)).
-rdf_literal_components(Lit, D, Lex, LTag):-
+rdf_literal_components(Lit, D, Lex, LTag) :-
   instantiation_error(rdf_literal_components(Lit, D, Lex, LTag)).
 
-rdf_literal_components0(literal(type(D,Lex)), D, Lex, _):- !.
-rdf_literal_components0(literal(lang(LTag,Lex)), D, Lex, LTag):- !,
+rdf_literal_components0(literal(type(D,Lex)), D, Lex, _) :- !.
+rdf_literal_components0(literal(lang(LTag,Lex)), D, Lex, LTag) :- !,
   rdf_equal(rdf:langString, D).
-rdf_literal_components0(literal(Lex), D, Lex, _):-
+rdf_literal_components0(literal(Lex), D, Lex, _) :-
   rdf_equal(xsd:string, D).
 
 
@@ -116,25 +116,25 @@ rdf_literal_components0(literal(Lex), D, Lex, _):-
 % @throws domain_error
 % @throws type_error
 
-rdf_literal_data(Field, Lit, Data):-
+rdf_literal_data(Field, Lit, Data) :-
   must_be(oneof([datatype,langtag,lexical_form,value]), Field),
   rdf_literal_data0(Field, Lit, Data).
 
-rdf_literal_data0(datatype, literal(type(D,_)), D):- !.
-rdf_literal_data0(datatype, literal(lang(_,_)), D):- !,
+rdf_literal_data0(datatype, literal(type(D,_)), D) :- !.
+rdf_literal_data0(datatype, literal(lang(_,_)), D) :- !,
   rdf_equal(rdf:langString, D).
-rdf_literal_data0(datatype, literal(Lex), D):-
+rdf_literal_data0(datatype, literal(Lex), D) :-
   atom(Lex), !,
   rdf_equal(xsd:string, D).
-rdf_literal_data0(langtag, literal(lang(LTag,_)), LTag):- !.
-rdf_literal_data0(lexical_form, Lit, Lex):- !,
+rdf_literal_data0(langtag, literal(lang(LTag,_)), LTag) :- !.
+rdf_literal_data0(lexical_form, Lit, Lex) :- !,
   (   Lit = literal(lang(_,Lex))
   ->  true
   ;   Lit = literal(type(_,Lex))
   ->  true
   ;   Lit = literal(Lex)
   ).
-rdf_literal_data0(value, Lit, Val):- !,
+rdf_literal_data0(value, Lit, Val) :- !,
   (   Lit = literal(type(_,_))
   ->  rdf_lexical_map(Lit, Val)
   ;   Lit = literal(lang(LTag,Lex))
@@ -160,22 +160,22 @@ rdf_literal_data0(value, Lit, Val):- !,
 % @tbd Update to RDF 1.1.
 
 % Equivalent language-tagged strings.
-rdf_literal_equiv(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))):- !,
+rdf_literal_equiv(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
   downcase_atom(LTag1, LTag0),
   downcase_atom(LTag2, LTag0).
 % Equivalent typed literals have the same datatype and
 % have equivalent values in the datatype's value space.
-rdf_literal_equiv(Lit1, Lit2):-
+rdf_literal_equiv(Lit1, Lit2) :-
   Lit1 = literal(type(D,_)),
   Lit2 = literal(type(D,_)), !,
   rdf_lexical_map(Lit1, Val1),
   rdf_lexical_map(Lit2, Val2),
   rdf_equiv_value(D, Val1, Val2).
 % Simple literal on left hand side.
-rdf_literal_equiv(literal(Lex), Lit2):- !,
+rdf_literal_equiv(literal(Lex), Lit2) :- !,
   rdf_equal(xsd:string, D),
   rdf_literal_equiv(literal(type(D,Lex)), Lit2).
 % Simple literal on right hand side.
-rdf_literal_equiv(Lit1, literal(Lex)):- !,
+rdf_literal_equiv(Lit1, literal(Lex)) :- !,
   rdf_equal(xsd:string, D),
   rdf_literal_equiv(Lit1, literal(type(D,Lex))).

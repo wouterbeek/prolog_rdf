@@ -1,51 +1,34 @@
 :- module(
   rdf_html_stmt,
   [
-    rdf_html_describe//1, % +Subject
-    rdf_html_describe//2, % +Subject, +Options
-    rdf_html_describe//3, % +Subject:rdf_term
-                          % ?Graph:rdf_graph
-                          % +Options:list(compound)
-    rdf_html_quadruple//1, % +Quadruple
-    rdf_html_quadruple//2, % +Quadruple:rdf_quadruple
-                           % +Options:list(compound)
-    rdf_html_quadruple//4, % ?Subject, ?Predicate, ?Object, ?Graph
-    rdf_html_quadruple//5, % ?Subject:rdf_term
-                           % ?Predicate:iri
-                           % ?Object:rdf_term
-                           % ?Graph:rdf_graph
-                           % +Options:list(compound)
-    rdf_html_quadruples//1, % +Quadruples
-    rdf_html_quadruples//2, % +Quadruples:list(rdf_quadruple)
-                            % +Options:list(compound)
-    rdf_html_statement//1, % +Statement
-    rdf_html_statement//2, % +Statement:rdf_statement
-                           % +Options:list(compound)
-    rdf_html_statements//1, % +Statements
-    rdf_html_statements//2, % +Statements:list(rdf_statement)
-                            % +Options:list(compound)
-    rdf_html_term//1, % +Term
-    rdf_html_term//2, % +Term:rdf_term
-                      % +Options:list(compound)
-    rdf_html_triple//1, % +Triple
-    rdf_html_triple//2, % +Triple:rdf_triple
-                        % +Options:list(rdf_triple)
-    rdf_html_triple//4, % ?Subject, ?Predicate, ?Object, ?Graph
-    rdf_html_triple//5, % ?Subject:rdf_term
-                        % ?Predicate:iri
-                        % ?Object:rdf_term
-                        % ?Graph:rdf_graph
-                        % +Options:list(compound)
-    rdf_html_triples//1, % +Triples
-    rdf_html_triples//2 % +Triples:list(rdf_triple)
-                        % +Options:list(compound)
+    rdf_html_describe//1,	% +S
+    rdf_html_describe//2,	% +S, +Opts
+    rdf_html_describe//3,	% +S, ?G, +Opts
+    rdf_html_quadruple//1,	% +Quad
+    rdf_html_quadruple//2,	% +Quad, +Opts
+    rdf_html_quadruple//4,	% ?S, ?P, ?O, ?G
+    rdf_html_quadruple//5,	% ?S, ?P, ?O, ?G, +Opts
+    rdf_html_quadruples//1,	% +Quads
+    rdf_html_quadruples//2,	% +Quads, +Opts
+    rdf_html_statement//1,	% +Stmt
+    rdf_html_statement//2,	% +Stmt, +Opts
+    rdf_html_statements//1,	% +Stmts
+    rdf_html_statements//2,	% +Stmts, +Opts
+    rdf_html_term//1,		% +T
+    rdf_html_term//2,		% +T, +Opts
+    rdf_html_triple//1,		% +Trip
+    rdf_html_triple//2,		% +Trip, +Opts
+    rdf_html_triple//4,		% ?S, ?P, ?O, ?G
+    rdf_html_triple//5,		% ?S, ?P, ?O, ?G, +Opts
+    rdf_html_triples//1,	% +Trips
+    rdf_html_triples//2		% +Trips, +Opts
   ]
 ).
 
 /** <module> Generate HTML representations of RDF statements
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/12
+@version 2015/08-2015/09, 2015/12-2016/01
 */
 
 :- use_module(library(error)).
@@ -56,27 +39,28 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 
-:- rdf_meta(rdf_html_describe(o,?,?)).
-:- rdf_meta(rdf_html_describe(o,+,?,?)).
-:- rdf_meta(rdf_html_describe(o,?,r,?,?)).
-:- rdf_meta(rdf_html_quadruple(t,?,?)).
-:- rdf_meta(rdf_html_quadruple(t,+,?,?)).
-:- rdf_meta(rdf_html_quadruple(o,r,o,r,?,?)).
-:- rdf_meta(rdf_html_quadruple(o,r,o,r,+,?,?)).
-:- rdf_meta(rdf_html_quadruples(t,?,?)).
-:- rdf_meta(rdf_html_quadruples(t,+,?,?)).
-:- rdf_meta(rdf_html_statement(t,?,?)).
-:- rdf_meta(rdf_html_statement(t,+,?,?)).
-:- rdf_meta(rdf_html_statements(t,?,?)).
-:- rdf_meta(rdf_html_statements(t,+,?,?)).
-:- rdf_meta(rdf_html_term(o,?,?)).
-:- rdf_meta(rdf_html_term(o,+,?,?)).
-:- rdf_meta(rdf_html_triple(t,?,?)).
-:- rdf_meta(rdf_html_triple(t,+,?,?)).
-:- rdf_meta(rdf_html_triple(o,r,o,r,?,?)).
-:- rdf_meta(rdf_html_triple(o,r,o,r,+,?,?)).
-:- rdf_meta(rdf_html_triples(t,?,?)).
-:- rdf_meta(rdf_html_triples(t,+,?,?)).
+:- rdf_meta
+	rdf_html_describe(o, ?, ?),
+	rdf_html_describe(o, +, ?, ?),
+	rdf_html_describe(o, ?, r, ?, ?),
+	rdf_html_quadruple(t, ?, ?),
+	rdf_html_quadruple(t, +, ?, ?),
+	rdf_html_quadruple(o, r, o, r, ?, ?),
+	rdf_html_quadruple(o, r, o, r ,+, ?, ?),
+	rdf_html_quadruples(t, ?, ?),
+	rdf_html_quadruples(t, +, ?, ?),
+	rdf_html_statement(t, ?, ?),
+	rdf_html_statement(t, +, ?, ?),
+	rdf_html_statements(t, ?, ?),
+	rdf_html_statements(t, +, ?, ?),
+	rdf_html_term(o, ?, ?),
+	rdf_html_term(o, +, ?, ?),
+	rdf_html_triple(t, ?, ?),
+	rdf_html_triple(t, +, ?, ?),
+	rdf_html_triple(o, r, o, r, ?, ?),
+	rdf_html_triple(o, r, o, r, +, ?, ?),
+	rdf_html_triples(t, ?, ?),
+	rdf_html_triples(t, +, ?, ?).
 
 :- predicate_options(rdf_html_describe//2, 2, [
      pass_to(rdf_html_describe//3, 3)
@@ -125,25 +109,9 @@
 
 
 
-%! rdf_html_describe(+Subject:rdf_term)// is det.
-% Wrapper around rdf_html_describe//2 with default options.
-
-rdf_html_describe(S) -->
-  rdf_html_describe(S, []).
-
-
-%! rdf_html_describe(+Subject:rdf_term, +Options:list(compound))// is det.
-% Wrapper around rdf_html_describe//3 with uninstantiated graph.
-
-rdf_html_describe(S, Opts) -->
-  rdf_html_describe(S, _, Opts).
-
-
-%! rdf_html_describe(
-%!   +Subject:rdf_term,
-%!   ?Graph:rdf_graph,
-%!   +Options:list(compound)
-%! )// is det.
+%! rdf_html_describe(+S)// is det.
+%! rdf_html_describe(+S, +Opts)// is det.
+%! rdf_html_describe(+S, ?G, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -153,6 +121,10 @@ rdf_html_describe(S, Opts) -->
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
+rdf_html_describe(S) -->
+  rdf_html_describe(S, []).
+rdf_html_describe(S, Opts) -->
+  rdf_html_describe(S, _, Opts).
 % No graph is given: display quadruples.
 rdf_html_describe(S, G, Opts) -->
   {var(G)}, !,
@@ -163,38 +135,10 @@ rdf_html_describe(S, G, Opts) -->
 
 
 
-%! rdf_html_quadruple(+Quadruple:compound)// is det.
-% Wrapper around rdf_html_quadruple//2 with default options.
-
-rdf_html_quadruple(Q) -->
-  rdf_html_quadruple(Q, []).
-
-
-%! rdf_html_quadruple(+Quadruple:compound, +Options:list(compound))// is det.
-
-rdf_html_quadruple(rdf(S,P,O,G), Opts) -->
-  rdf_html_statement(S, P, O, G, Opts).
-
-
-%! rdf_html_quadruple(
-%!   ?Subject:rdf_term,
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   ?Graph:rdf_graph
-%! )// is det.
-% Wrapper around rdf_html_quadruples//5 with default options.
-
-rdf_html_quadruple(S, P, O, G) -->
-  rdf_html_quadruple(S, P, O, G, []).
-
-
-%! rdf_html_quadruple(
-%!   ?Subject:rdf_term,
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   ?Graph:rdf_graph,
-%!   +Options:list(compound)
-%! )// is det.
+%! rdf_html_quadruple(+Quad)// is det.
+%! rdf_html_quadruple(+Quad, +Opts)// is det.
+%! rdf_html_quadruple(?S, ?P, ?O, ?G)// is det.
+%! rdf_html_quadruple(?S, ?P, ?O, ?G, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -204,6 +148,12 @@ rdf_html_quadruple(S, P, O, G) -->
 %   * symbol_iri(+boolean)
 %   * page_size(+nonneg)
 
+rdf_html_quadruple(Q) -->
+  rdf_html_quadruple(Q, []).
+rdf_html_quadruple(rdf(S,P,O,G), Opts) -->
+  rdf_html_statement(S, P, O, G, Opts).
+rdf_html_quadruple(S, P, O, G) -->
+  rdf_html_quadruple(S, P, O, G, []).
 % Ground quadruples are printed without them having to be present
 % in the RDF DB.
 rdf_html_quadruple(S, P, O, G, Opts) -->
@@ -218,18 +168,11 @@ rdf_html_quadruple(S, P, O, G, Opts) -->
 
 
 
-%! rdf_html_quadruples(+Quadruples:list(compound))// is det.
-% Wrapper around rdf_html_quadruples//2 with default options.
+%! rdf_html_quadruples(+Quads)// is det.
+%! rdf_html_quadruples(+Quads, +Opts)// is det.
 
 rdf_html_quadruples(Qs) -->
   rdf_html_quadruples(Qs, []).
-
-
-%! rdf_html_quadruples(
-%!   +Quadruples:list(compound),
-%!   +Options:list(compound)
-%! )// is det.
-
 rdf_html_quadruples(Qs, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   'rdf_html_quadruple*'(Qs, Opts).
@@ -241,15 +184,11 @@ rdf_html_quadruples(Qs, Opts0) -->
 
 
 
-%! rdf_html_statement(+Statement:compound)// is det.
-% Wrapper around rdf_html_statement//2 with default options.
+%! rdf_html_statement(+Stmt)// is det.
+%! rdf_html_statement(+Stmt, +Opts)// is det.
 
 rdf_html_statement(T) -->
   rdf_html_statement(T, []).
-
-
-%! rdf_html_statement(+Statement:compound, +Options:list(compound))// is det.
-
 rdf_html_statement(T, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   (   % Statement is a triple.
@@ -261,13 +200,7 @@ rdf_html_statement(T, Opts0) -->
   ).
 
 
-%! rdf_html_statement(
-%!   +Subject:rdf_term,
-%!   +Predicate:iri,
-%!   +Object:rdf_term,
-%!   ?Graph:rdf_graph,
-%!   +Options:list(compound)
-%! )// is det.
+%! rdf_html_statement(+S, +P, +O, ?G, +Opts)// is det.
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
@@ -301,18 +234,11 @@ rdf_html_statement_object0(O, Opts) --> {option(id_closure(true), Opts)}, !, rdf
 rdf_html_statement_object0(O, Opts) --> rdf_html_object(O, Opts).
 
 
-%! rdf_html_statements(+Statements:list(compound))// is det.
-% Wrapper around rdf_html_statements//2 with default options.
+%! rdf_html_statements(+Stmts)// is det.
+%! rdf_html_statements(+Stmts, +Opts)// is det.
 
 rdf_html_statements(Ss) -->
   rdf_html_statement(Ss, []).
-
-
-%! rdf_html_statements(
-%!   +Statements:list(compound),
-%!   +Options:list(compound)
-%! )// is det.
-
 rdf_html_statements(Ss, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   'rdf_html_statement*'(Ss, Opts).
@@ -324,38 +250,17 @@ rdf_html_statements(Ss, Opts0) -->
 
 
 
-%! rdf_html_triple(+Triple:compound)// is det.
-% Wrapper around rdf_html_triple//2 with default options.
+%! rdf_html_triple(+Trip)// is det.
+%! rdf_html_triple(+Trip, +Opts)// is det.
 
 rdf_html_triple(T) -->
   rdf_html_triple(T, []).
-
-
-%! rdf_html_triple(+Triple:compound, +Options:list(compound))// is det.
-
 rdf_html_triple(rdf(S,P,O), Opts) -->
   rdf_html_statement(S, P, O, _, Opts).
 
 
-%! rdf_html_triple(
-%!   ?Subject:rdf_term,
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   +Options:list(compound)
-%! )// is nondet.
-% Wrapper around rdf_html_triple//5 with default options.
-
-rdf_html_triple(S, P, O, G) -->
-  rdf_html_triple(S, P, O, G, []).
-
-
-%! rdf_html_triple(
-%!   ?Subject:rdf_term,
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   ?Graph:rdf_graph,
-%!   +Options:list(compound)
-%! )// is det.
+%! rdf_html_triple(?S, ?P, ?O, +Opts)// is nondet.
+%! rdf_html_triple(?S, ?P, ?O, ?G, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -365,6 +270,8 @@ rdf_html_triple(S, P, O, G) -->
 %   * page_size(+nonneg)
 %   * symbol_iri(+boolean)
 
+rdf_html_triple(S, P, O, G) -->
+  rdf_html_triple(S, P, O, G, []).
 % Ground triples are printing without them having to be present
 % in the RDF DB.
 rdf_html_triple(S, P, O, G, Opts) -->
@@ -379,15 +286,11 @@ rdf_html_triple(S, P, O, G, Opts) -->
 
 
 
-%! rdf_html_triples(+Triples:list(compound))// is det.
-% Wrapper around rdf_html_triples//2 with default options.
+%! rdf_html_triples(+Trips)// is det.
+%! rdf_html_triples(+Trips, +Opts)// is det.
 
 rdf_html_triples(Ts) -->
   rdf_html_triples(Ts, []).
-
-
-%! rdf_html_triples(+Triples:list(compound), +Options:list(compound))// is det.
-
 rdf_html_triples(Ts, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   'rdf_html_statement*'(Ts, Opts).

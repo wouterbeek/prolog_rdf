@@ -32,18 +32,18 @@ Download RDF data to file.
 %! rdf_download(+Iri, ?File:atom) is det.
 % Wrapper around rdf_download/3 with default options.
 
-rdf_download(Iri, File):-
+rdf_download(Iri, File) :-
   rdf_download(Iri, File, []).
 
 
 %! rdf_download(+Iri, ?File:atom, +Options:list(compound)) is det.
 
-rdf_download(Iri, File, Opts):-
+rdf_download(Iri, File, Opts) :-
   option(metadata(M), Opts, _),
   (var(File) -> nested_uri_file_name(Iri, File) ; true),
   thread_file(File, TmpFile),
   rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile, M), Opts),
   rename_file(TmpFile, File).
 
-write_stream_to_file0(File, M, M, Read):-
+write_stream_to_file0(File, M, M, Read) :-
   write_stream_to_file(Read, File).
