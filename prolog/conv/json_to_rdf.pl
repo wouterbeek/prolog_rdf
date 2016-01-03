@@ -68,7 +68,7 @@ property_name(property(Name, _), Name).
 create_resource(SPrefix, DPrefix, Legend, G, R):-
   % Create the class-denoting RDF term based on the legend name.
   once(atom_phrase(atom_capitalize, Legend, CName)),
-  rdf_expand_rt(SPrefix:CName, C),
+  rdf_global_id(SPrefix:CName, C),
 
   % Create the instance.
   rdf_create_iri(DPrefix, [Legend], R),
@@ -152,7 +152,7 @@ assert_triples0(SPrefix, G, S, P, Os):-
   maplist(assert_triples0(SPrefix, G, S, P), Os).
 assert_triples0(SPrefix, G, S, P0, O):-
   to_pn_local(P0, PnLocal),
-  rdf_expand_rt(SPrefix:PnLocal, P),
+  rdf_global_id(SPrefix:PnLocal, P),
   rdf_assert(S, P, O, G).
 
 
@@ -230,7 +230,7 @@ assert_json_property(G, Mod, SPrefix, DPrefix, Type, Val, O):-
   json_to_rdf(G, Mod, SPrefix, DPrefix, Val, O).
 % Typed literals.
 assert_json_property(_, _, _, _, D0, Lex0, Lit):-
-  rdf_expand_rt(D0, D),
+  rdf_global_id(D0, D),
   % Remember that SWI dictionaries contain SWI strings, not atoms.
   atom_string(Lex, Lex0),
   rdf_lexical_map(D, Lex, Val),

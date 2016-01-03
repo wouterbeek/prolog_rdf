@@ -2,16 +2,15 @@
   rdf_deref,
   [
     rdf_cache/0,
-    rdf_cache/1, % +Options:list(compound)
-    rdf_deref/1, % +Subject
-    rdf_deref/2 % +Subject, -Graph
+    rdf_cache/1, % +Opts
+    rdf_deref/1 % +S
   ]
 ).
 
 /** <module> RDF: Synchronization
 
 @author Wouter Beek
-@tbd ?- rdf_deref('http://d-nb.info/gnd/132522136/about/rdf').
+@tbd Fix IRI normalization,
 @version 2015/12-2016/01
 */
 
@@ -33,11 +32,11 @@
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
+:- debug(rdf_deref(overview)).
 :- debug(rdf_deref(request)).
 %:- debug(rdf_deref(result)).
 
 :- rdf_meta(rdf_deref(r)).
-:- rdf_meta(rdf_deref(r,-)).
 
 :- predicate_options(rdf_cache/1, 1, [
      number_of_workers(+nonneg),
@@ -84,7 +83,6 @@ rdf_cache:-
 rdf_cache(Opts1):-
   Pool = rdf_cache,
   forall(distinct(X, rdf_iri(X)), add_resource(Pool, X)),
-  print_pool(Pool),
   select_option(number_of_workers(N), Opts1, Opts2, 1),
   forall(between(1, N, _), add_worker(Pool, rdf_cache_worker(Opts2), Opts2)).
 
@@ -97,10 +95,11 @@ rdf_cache_worker(Opts, S, Ys):-
       ->  (   memberchk(Auth, ExclAuths)
           ->  Ys = [],
               debug(rdf_deref, "Skipping because of excluded authority: ~a", [S])
-          ;   rdf_deref(S, G),
+          ;   rdf_deref(S),
+              if_debug(rdf_deref(overview), print_pool(rdf_cache)),
               aggregate_all(
                 set(Y),
-                (rdf(S, P, O, G), rdf_cache:triple_to_iri(rdf(S,P,O), Y)),
+                (rdf(S, P, O, S), rdf_cache:triple_to_iri(rdf(S,P,O), Y)),
                 Ys
               )
           )
@@ -114,22 +113,17 @@ rdf_cache_worker(Opts, S, Ys):-
 
 
 %! rdf_deref(+Subject:iri) is det.
-% Wrapper around rdf_deref/2 that does not return the graph.
 
 rdf_deref(S):-
-  rdf_deref(S, _).
-
-
-%! rdf_deref(+Subject:iri, -Graph:rdf_graph) is det.
-
-rdf_deref(S, G):-
-  iri_normalized(S, G),
   debug(rdf_deref(request), "Dereferencing ~a", [S]),
-  rdf_call_on_statements(S, rdf_deref_statements(S)),
-  if_debug(rdf_deref(result), rdf_print_graph(G, [id_closure(true)])).
+  call_collect_messages(rdf_call_on_statements(S, rdf_deref_statements(S))),
+  if_debug(rdf_deref(result), rdf_print_graph(S, [id_closure(true)])).
 
 rdf_deref_statements(S, Stmts, _):- maplist(rdf_deref_statement(S), Stmts).
 
-rdf_deref_statement(S, rdf(S,P,O)):- !, rdf_assert(S, P, O, S).
-rdf_deref_statement(S, rdf(S,P,O,_)):- !, rdf_assert(S, P, O, S).
-rdf_deref_statement(_, _).
+rdf_deref_statement(S1, T):-
+  (T = rdf(S2,P,O) ; T = rdf(S2,P,O,_)),
+  format(user_output, "~a\t~a~n", [S1,S2]),
+  (is_same_iri(S1, S2, S3) -> rdf_assert(S3, P, O, S2) ; true).
+
+is_same_iri(X, Y, Z):- iri_normalized(X, Z), iri_normalized(Y, Z).

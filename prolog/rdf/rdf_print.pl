@@ -1,25 +1,21 @@
 :- module(
   rdf_print,
   [
-    rdf_print_deref/1, % +Subject
-    rdf_print_deref/2, % +Subject:iri
-                       % +Options:list(compound)
-    rdf_print_describe/1, % +Subject
-    rdf_print_describe/2, % +Subject, +Options
-    rdf_print_describe/3, % +Subject:rdf_term
-                          % ?Graph:rdf_graph
-                          % +Options:list(compound)
-    rdf_print_graph/1, % ?Graph
-    rdf_print_graph/2, % ?Graph:rdf_graph
-                       % +Options:list(compound)
+    rdf_print_deref/1,	% +S
+    rdf_print_deref/2,	% +S, +Opts
+    rdf_print_descr/1,	% +S
+    rdf_print_descr/2,	% +S, +Opts
+    rdf_print_descr/3,	% +S, ?G, +Opts
+    rdf_print_graph/1,	% ?G
+    rdf_print_graph/2,	% ?G, +Opts
     rdf_print_graphs/0,
-    rdf_print_graphs/1 % +Options:list(compound)
+    rdf_print_graphs/1	% +Opts
   ]
 ).
 :- reexport(library(rdf/rdf_print_stmt)).
 :- reexport(library(rdf/rdf_print_term)).
 
-/** <module> RDF print
+/** <module> RDF: Printing
 
 Printing of RDF statements to a text-based output stream.
 
@@ -36,25 +32,27 @@ Printing of RDF statements to a text-based output stream.
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_stats)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
-:- rdf_meta(rdf_print_deref(r)).
-:- rdf_meta(rdf_print_deref(r,+)).
-:- rdf_meta(rdf_print_describe(o)).
-:- rdf_meta(rdf_print_describe(o,+)).
-:- rdf_meta(rdf_print_describe(o,r,+)).
-:- rdf_meta(rdf_print_graph(r)).
-:- rdf_meta(rdf_print_graph(r,+)).
+:- rdf_meta
+	rdf_print_deref(r),
+	rdf_print_deref(r, +),
+	rdf_print_descr(o),
+	rdf_print_descr(o, +),
+	rdf_print_descr(o, r, +),
+	rdf_print_graph(r),
+	rdf_print_graph(r, +).
 
 :- predicate_options(rdf_print_deref/2, 2, [
      pass_to(rdf_print_triple/5, 5)
    ]).
-:- predicate_options(rdf_print_describe/2, 2, [
-     pass_to(rdf_print_describe/3, 3)
+:- predicate_options(rdf_print_descr/2, 2, [
+     pass_to(rdf_print_descr/3, 3)
    ]).
-:- predicate_options(rdf_print_describe/3, 3, [
+:- predicate_options(rdf_print_descr/3, 3, [
      pass_to(rdf_print_statement/5, 5)
    ]).
 :- predicate_options(rdf_print_graph/2, 2, [
@@ -69,40 +67,20 @@ Printing of RDF statements to a text-based output stream.
 
 
 
-%! rdf_print_deref(+Subject:iri) is det.
-% Wrapper around rdf_print_deref/2 with default options.
+%! rdf_print_deref(+S) is det.
+%! rdf_print_deref(+S, +Opts) is det.
 
 rdf_print_deref(S):-
   rdf_print_deref(S, []).
-
-
-%! rdf_print_deref(+Subject:iri, +Options:list(compound)) is det.
-
 rdf_print_deref(S, Opts):-
   rdf_deref(S),
   rdf_print_triple(S, _, _, _, Opts).
 
 
 
-%! rdf_print_describe(+Subject:rdf_term) is det.
-% Wrapper around rdf_print_describe/2 with default options.
-
-rdf_print_describe(S):-
-  rdf_print_describe(S, none, []).
-
-
-%! rdf_print_describe(+Subject:rdf_term, +Options:list(compound)) is det.
-% Wrapper around rdf_print_describe/3 with uninstantiated graph.
-
-rdf_print_describe(S, Opts):-
-  rdf_print_describe(S, none, Opts).
-
-
-%! rdf_print_describe(
-%!   +Subject:rdf_term,
-%!   ?Graph:rdf_graph,
-%!   +Options:list(compound)
-%! ) is det.
+%! rdf_print_descr(+S) is det.
+%! rdf_print_descr(+S, +Opts) is det.
+%! rdf_print_descr(+S, ?G, +Opts) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -113,7 +91,11 @@ rdf_print_describe(S, Opts):-
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
-rdf_print_describe(S, G, Opts):-
+rdf_print_descr(S):-
+  rdf_print_descr(S, none, []).
+rdf_print_descr(S, Opts):-
+  rdf_print_descr(S, none, Opts).
+rdf_print_descr(S, G, Opts):-
   (   G == none
   ->  forall(rdf_print_triple(S, _, _, _, Opts), true)
   ;   var(G)
@@ -125,13 +107,8 @@ rdf_print_describe(S, G, Opts):-
 
 
 
-%! rdf_print_graph(?Graph:rdf_graph) is det.
-
-rdf_print_graph(G):-
-  rdf_print_graph(G, []).
-
-
-%! rdf_print_graph(?Graph:rdf_graph, +Options:list(compound)) is det.
+%! rdf_print_graph(?G) is det.
+%! rdf_print_graph(?G, +Opts) is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -144,6 +121,8 @@ rdf_print_graph(G):-
 %
 % @throws existence_error
 
+rdf_print_graph(G):-
+  rdf_print_graph(G, []).
 rdf_print_graph(G, Opts):-
   (   var(G)
   ->  rdf_print_quadruple(_, _, _, _, Opts),
@@ -158,15 +137,11 @@ rdf_print_graph(_, _).
 
 
 %! rdf_print_graphs is det.
-% Wrapper around rdf_print_graphs/1 with default options.
+%! rdf_print_graphs(+Opts) is det.
+% Options are passed to dcg_table//2.
 
 rdf_print_graphs:-
   rdf_print_graphs([maximum_number_of_rows(50)]).
-
-
-%! rdf_print_graphs(+Options:list(compound)) is det.
-% Options are passed to dcg_table//2.
-
 rdf_print_graphs(Opts):-
   aggregate_all(set(N-G), rdf_number_of_triples(G, N), Pairs1),
   reverse(Pairs1, Pairs2),

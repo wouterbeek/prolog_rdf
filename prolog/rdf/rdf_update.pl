@@ -142,16 +142,16 @@ rdf_increment(S, P):-
 
 rdf_increment(S, P, G):-
   rdf_transaction((
-    rdf_literal(S, P, D, Old, G),
+    rdf(S, P, Old^^D, G),
 
     % Any integer datatype can be incremented.
     once(rdf_subtype_of(D, xsd:integer)),
-    rdf_retractall_literal(S, P, D, Old, G),
+    rdf_retractall(S, P, Old^^Old, G),
     New is Old + 1,
 
     % Make sure the new value belongs to the datatype's value space.
     rdf_canonical_map(D, New, _),
-    rdf_assert_literal(S, P, D, New, G)
+    rdf_assert(S, P, New^^D, G)
   )).
 
 

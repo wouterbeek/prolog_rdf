@@ -38,7 +38,7 @@ prolog_to_rdf(G, Mod, Term, I):-
   % Class.
   Term =.. [Functor|Args],
   once(atom_phrase(atom_capitalize, Functor, ClassName)),
-  rdf_expand_rt(Mod:ClassName, Class),
+  rdf_global_id(Mod:ClassName, Class),
   rdfs_assert_class(Class, G),
 
   % Instance.
@@ -56,7 +56,7 @@ prolog_to_rdf(
   PName-PrologType-Optional,
   Val
 ):-
-  rdf_expand_ct(Mod:PName, P),
+  rdf_equal(Mod:PName, P),
   (   PrologType =.. [list,InnerPrologType]
   ->  is_list(Val),
       maplist(
@@ -72,6 +72,6 @@ prolog_to_rdf(
   ->  prolog_to_rdf(G, Mod, Val, I2),
       rdf_assert(I1, P, I2, G)
   ;   rdf_datatype(D, PrologType)
-  ->  rdf_assert_literal(I1, P, D, Val, G)
+  ->  rdf_assert(I1, P, Val^^D, G)
   ;   Optional = true
   ).

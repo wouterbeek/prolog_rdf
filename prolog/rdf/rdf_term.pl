@@ -1,42 +1,34 @@
 :- module(
   rdf_term,
   [
-    rdf_bnode/1, % ?BlankNode
-    rdf_bnode/2, % +Graph:rdf_graph
-                 % ?BlankNode:bnode
-    rdf_datatype_iri/1, % ?Datatype
-    rdf_datatype_iri/2, % +Graph:rdf_graph
-                        % ?Datatype:iri
-    rdf_iri/1, % ?Term:rdf_term
-    rdf_is_iri/1, % @Term
-    rdf_is_name/1, % @Term
-    rdf_is_term/1, % @Term
-    rdf_literal/1, % ?Literal
-    rdf_literal/2, % +Graph:rdf_graph
-                   % ?Literal:rdf_literal
-    rdf_name/1, % ?Name
-    rdf_name/2, % +Graph:rdf_graph
-                % ?Name:rdf_name
-    rdf_node/1, % ?Node
-    rdf_node/2, % +Graph:rdf_graph
-                % ?Node:rdf_term
-    rdf_object/1, % ?Object
-    rdf_object/2, % +Graph:rdf_graph
-                  % ?Object:rdf_term
-    rdf_predicate/1, % ?Predicate
-    rdf_predicate/2, % +Graph:rdf_graph
-                     % ?Predicate:iri
-    rdf_subject/1, % ?Subject
-    rdf_subject/2, % +Graph:rdf_graph
-                   % ?Subject:rdf_term
-    rdf_term/1, % ?Term
-    rdf_term/2 % +Graph:rdf_graph
-               % ?Term:rdf_term
+    rdf_bnode/1,	% ?BN
+    rdf_bnode/2,	% +G, ?BN
+    rdf_datatype_iri/1,	% ?D
+    rdf_datatype_iri/2,	% +G, ?D
+    rdf_iri/1,		% ?T
+    rdf_iri/2,		% +G, ?Iri
+    rdf_is_iri/1,	% @Term
+    rdf_is_name/1,	% @Term
+    rdf_is_term/1,	% @Term
+    rdf_literal/1,	% ?Lit
+    rdf_literal/2,	% +G, ?Lit
+    rdf_name/1,		% ?Name:rdf_name
+    rdf_name/2,		% +G, ?Name:rdf_name
+    rdf_node/1,		% ?Node:rdf_term
+    rdf_node/2,		% +G, ?Node:rdf_term
+    rdf_object/1,	% ?O
+    rdf_object/2,	% +G, ?O
+    rdf_predicate/1,	% ?P
+    rdf_predicate/2,	% +G, ?P
+    rdf_subject/1,	% ?S
+    rdf_subject/2,	% +G, ?S
+    rdf_term/1,		% ?T
+    rdf_term/2		% +G, ?T
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
-     rdf_is_bnode/1, % @Term
-     rdf_is_literal/1 % @Term
+     rdf_is_bnode/1,	% @Term
+     rdf_is_literal/1	% @Term
    ]).
 
 /** <module> Generalized RDF terms
@@ -60,18 +52,23 @@ resources as well.
 @author Wouter Beek
 @compat RDF 1.1 Concepts and Abstract Syntax
 @see http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/
-@version 2015/07-2015/08, 2015/10, 2015/12
+@version 2015/07-2015/08, 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_read)).
-:- use_module(library(semweb/rdf_db), [
+:- use_module(library(rdf11/rdf11), [
+     rdf_bnode/1 as rdf_bnode_id,
+     rdf_iri/1 as rdf_iri_id,
+     rdf_literal/1 as rdf_literal_id,
+     rdf_name/1 as rdf_name_id,
+     rdf_node/1 as rdf_node_id,
+     rdf_object/1 as rdf_object_id,
+     rdf_predicate/1 as rdf_predicate_id,
      rdf_subject/1 as rdf_subject_id,
-     rdf_resource/1 as rdf_non_literal_node_id,
-     rdf_current_literal/1 as rdf_literal_part,
-     rdf_current_predicate/1 as rdf_predicate_id
+     rdf_term/1 as rdf_term_id
    ]).
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
@@ -83,6 +80,7 @@ resources as well.
 :- rdf_meta(rdf_datatype_iri(r)).
 :- rdf_meta(rdf_datatype_iri(r,r)).
 :- rdf_meta(rdf_iri(r)).
+:- rdf_meta(rdf_iri(r,r)).
 :- rdf_meta(rdf_literal(o)).
 :- rdf_meta(rdf_literal(r,o)).
 :- rdf_meta(rdf_name(o)).
@@ -132,36 +130,38 @@ error:has_type(rdf_triple, T):-
 
 
 
-%! rdf_bnode(+BNode:bnode) is semidet.
-%! rdf_bnode(-BNode:bnode) is nondet.
+%! rdf_bnode(+BN) is semidet.
+%! rdf_bnode(-BN) is nondet.
 % Enumerates the current blank node terms.
 % Ensures that no blank node occurs twice.
 
-rdf_bnode(N):-
-  rdf_non_literal_node_id(Nid),
-  id_to_term(Nid, N),
-  rdf_is_bnode(N).
+rdf_bnode(BN):-
+  (   var(BN)
+  ->  rdf_bnode_id(BNid),
+      id_to_term(BNid, BN)
+  ;   term_to_id(BN, BNid),
+      rdf_bnode_id(BNid)
+  ).
+
+
+%! rdf_bnode(+G, +BN) is semidet.
+%! rdf_bnode(+G, -BN) is nondet.
+
+rdf_bnode(G, BN):-
+  rdf_bnode(BN),
+  once(rdf_node(G, BN)).
 
 
 
-%! rdf_bnode(+Graph:rdf_graph, +BNode:bnode) is semidet.
-%! rdf_bnode(+Graph:rdf_graph, -BNode:bnode) is nondet.
-
-rdf_bnode(G, B):-
-  rdf_bnode(B),
-  once(rdf(B, _, _, G) ; rdf(_, _, B, G)).
-
-
-
-%! rdf_datatype_iri(+Datatype:iri) is semidet.
-%! rdf_datatype_iri(-Datatype:iri) is nondet.
+%! rdf_datatype_iri(+D) is semidet.
+%! rdf_datatype_iri(-D) is nondet.
 
 rdf_datatype_iri(D):-
   distinct(D, (rdf_literal(Lit), rdf_literal_data(datatype, Lit, D))).
 
 
-%! rdf_datatype_iri(+Graph:rdf_graph, +Datatype:iri) is semidet.
-%! rdf_datatype_iri(+Graph:rdf_graph, -Datatype:iri) is nondet.
+%! rdf_datatype_iri(+G, +D) is semidet.
+%! rdf_datatype_iri(+G, -D) is nondet.
 
 rdf_datatype_iri(G, D):-
   distinct(D, (rdf_literal(G, Lit), rdf_literal_data(datatype, Lit, D))).
@@ -171,18 +171,21 @@ rdf_datatype_iri(G, D):-
 %! rdf_iri(@Term) is semidet.
 %! rdf_iri(-Term) is nondet.
 
-rdf_iri(T):-
-  nonvar(T), !,
-  is_iri(T),
-  term_to_id(T, Tid),
-  once((rdf_predicate_id(Tid) ; rdf_non_literal_node_id(Tid))).
-rdf_iri(P):-
-  rdf_predicate(P).
-rdf_iri(N):-
-  rdf_node(N),
-  is_iri(N),
-  % Avoid duplicates.
-  \+ rdf_predicate(N).
+rdf_iri(Iri):-
+  (   var(Iri)
+  ->  rdf_iri_id(Iriid),
+      id_to_term(Iriid, Iri)
+  ;   term_to_id(Iri, Iriid),
+      rdf_iri_id(Iriid)
+  ).
+
+
+%! rdf_iri(+G, +Iri) is semidet.
+%! rdf_iri(+G, -Iri) is nondet.
+
+rdf_iri(G, Iri):-
+  rdf_iri(Iri),
+  once(rdf_term(G, Iri)).
 
 
 
@@ -207,37 +210,40 @@ rdf_is_term(N):- rdf_is_bnode(N).
 
 
 %! rdf_literal(@Term) is semidet.
-%! rdf_literal(-Literal:rdf_literal) is nondet.
+%! rdf_literal(-Lit) is nondet.
 
 rdf_literal(Lit):-
-  nonvar(Lit), !,
-  Lit = literal(LitPart),
-  rdf_literal_part(LitPart).
-rdf_literal(Lit):-
-  rdf_literal_part(LitPart),
-  Lit = literal(LitPart).
+  (   var(Lit)
+  ->  rdf_literal_id(Litid),
+      id_to_term(Litid, Lit)
+  ;   term_to_id(Lit, Litid),
+      rdf_literal_id(Litid)
+  ).
 
 
-
-%! rdf_literal(+Graph:rdf_graph, +Literal:compound) is semidet.
-%! rdf_literal(+Graph:rdf_graph, -Literal:compound) is nondet.
+%! rdf_literal(+G, +Lit) is semidet.
+%! rdf_literal(+G, -Lit) is nondet.
 
 rdf_literal(G, Lit):-
   rdf_literal(Lit),
-  once((rdf(_, _, Lit, G) ; rdf(Lit, _, _, G) ; rdf(_, Lit, _))).
+  once(rdf_node(G, Lit)).
 
 
 
 %! rdf_name(+Name:rdf_name) is semidet.
 %! rdf_name(-Name:rdf_name) is nondet.
 
-rdf_name(Name):- rdf_term(Name), \+ rdf_is_bnode(Name).
+rdf_name(Name):-
+  rdf_term(Name),
+  \+ rdf_is_bnode(Name).
 
 
-%! rdf_name(+Graph:rdf_graph, +Name:rdf_name) is semidet.
-%! rdf_name(+Graph:rdf_graph, -Name:rdf_name) is nondet.
+%! rdf_name(+G, +Name:rdf_name) is semidet.
+%! rdf_name(+G, -Name:rdf_name) is nondet.
 
-rdf_name(G, Name):- rdf_term(G, Name), \+ rdf_is_bnode(Name).
+rdf_name(G, Name):-
+  rdf_term(G, Name),
+  \+ rdf_is_bnode(Name).
 
 
 
@@ -252,8 +258,8 @@ rdf_node(O):-
   \+ rdf_subject(O).
 
 
-%! rdf_node(+Graph:rdf_graph, +Node:rdf_node) is semidet.
-%! rdf_node(+Graph:rdf_graph, -Node:rdf_node) is nondet.
+%! rdf_node(+G, +Node:rdf_node) is semidet.
+%! rdf_node(+G, -Node:rdf_node) is nondet.
 
 rdf_node(G, S):-
   rdf_subject(G, S).
@@ -264,88 +270,84 @@ rdf_node(G, O):-
 
 
 
-%! rdf_object(+Object:rdf_term) is semidet.
-%! rdf_object(-Object:rdf_term) is nondet.
+%! rdf_object(+O) is semidet.
+%! rdf_object(-O) is nondet.
 
 rdf_object(O):-
-  nonvar(O), !,
-  (   rdf_literal(O), !
+  (   var(O)
+  ->  rdf_object_id(Oid),
+      id_to_term(Oid, O)
   ;   term_to_id(O, Oid),
-      rdf_non_literal_node_id(Oid)
+      rdf_object_id(Oid)
   ).
-rdf_object(O):-
-  % NONDET.
-  rdf_literal(O),
-  % Ensure the literal appears in the object position of some statement.
-  once(rdf(_, _, O)).
-rdf_object(O):-
-  % NONDET
-  rdf_non_literal_node_id(Oid),
-  \+ rdf_literal(Oid),
-  % MULTI
-  id_to_term(Oid, O).
   
 
-%! rdf_object(+Graph:rdf_graph, +Object:rdf_term) is semidet.
-%! rdf_object(+Graph:rdf_graph, -Object:rdf_term) is nondet.
+%! rdf_object(+G, +O) is semidet.
+%! rdf_object(+G, -O) is nondet.
 
 rdf_object(G, O):-
-  nonvar(O), !,
-  once(rdf(_, _, O, G)).
-rdf_object(G, O):-
-  rdf_object(O),
-  % Also excludes cases in which a literal only appears in deleted statements.
-  once(rdf(_, _, O, G)).
+  graph_term_to_id(G, Gid),
+  (   var(O)
+  ->  rdf_object_id(Oid),
+      once(rdf_id(_, _, Oid, Gid)),
+      id_to_term(Oid, O)
+  ;   term_to_id(O, Oid),
+      once(rdf_id(_, _, Oid, Gid))
+  ).
 
 
 
-%! rdf_predicate(+Predicate:iri) is semidet.
-%! rdf_predicate(-Predicate:iri) is nondet.
+%! rdf_predicate(+P) is semidet.
+%! rdf_predicate(-P) is nondet.
 
 rdf_predicate(P):-
-  nonvar(P), !,
-  term_to_id(P, Pid),
-  rdf_predicate_id(Pid).
-rdf_predicate(P):-
-  % NONDET
-  rdf_predicate_id(Pid),
-  % MULTI
-  id_to_term(Pid, P).
+  (   var(P)
+  ->  rdf_predicate_id(Pid),
+      id_to_term(Pid, P)
+  ;   term_to_id(P, Pid),
+      rdf_predicate_id(Pid)
+  ).
 
 
-%! rdf_predicate(+Graph:rdf_graph, +Predicate:iri) is semidet.
-%! rdf_predicate(+Graph:rdf_graph, -Predicate:iri) is nondet.
+%! rdf_predicate(+G, +P) is semidet.
+%! rdf_predicate(+G, -P) is nondet.
 
 rdf_predicate(G, P):-
-  nonvar(P), !,
-  once(rdf(_, P, _, G)).
-rdf_predicate(G, P):-
-  rdf_predicate(P),
-  once(rdf(_, P, _, G)).
+  graph_term_to_id(G, Gid),
+  (   var(P)
+  ->  rdf_predicate_id(Pid),
+      once(rdf_id(_, Pid, _, Gid)),
+      id_to_term(Pid, P)
+  ;   term_to_id(P, Pid),
+      once(rdf_id(_, Pid, _, Gid))
+  ).
 
 
 
-%! rdf_subject(+Subject:rdf_term) is semidet.
-%! rdf_subject(-Subject:rdf_term) is nondet.
+%! rdf_subject(+S) is semidet.
+%! rdf_subject(-S) is nondet.
 
 rdf_subject(S):-
-  nonvar(S), !,
-  term_to_id(S, Sid),
-  rdf_subject_id(Sid).
-rdf_subject(S):-
-  rdf_subject_id(Sid),
-  id_to_term(Sid, S).
+  (   var(S)
+  ->  rdf_subject_id(Sid),
+      id_to_term(Sid, S)
+  ;   term_to_id(S, Sid),
+      rdf_subject_id(Sid)
+  ).
 
 
-%! rdf_subject(+Graph:rdf_graph, +Subject:rdf_term) is semidet.
-%! rdf_subject(+Graph:rdf_graph, -Subject:rdf_term) is nondet.
+%! rdf_subject(+G, +S) is semidet.
+%! rdf_subject(+G, -S) is nondet.
 
 rdf_subject(G, S):-
-  nonvar(S), !,
-  once(rdf(S, _, _, G)).
-rdf_subject(G, S):-
-  rdf_subject(S),
-  once(rdf(S, _, _, G)).
+  graph_term_to_id(G, Gid),
+  (   var(S)
+  ->  rdf_subject_id(Sid),
+      once(rdf_id(Sid, _, _, Gid)),
+      id_to_term(Sid, S)
+  ;   term_to_id(S, Sid),
+      once(rdf_id(Sid, _, _, Gid))
+  ).
 
 
 
@@ -360,8 +362,8 @@ rdf_term(N):-
   \+ rdf_predicate(N).
 
 
-%! rdf_term(+Graph:rdf_graph, +Term:rdf_term) is semidet.
-%! rdf_term(+Graph:rdf_graph, -Term:rdf_term) is nondet.
+%! rdf_term(+G, +T) is semidet.
+%! rdf_term(+G, -T) is nondet.
 
 rdf_term(G, P):-
   rdf_predicate(G, P).

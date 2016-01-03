@@ -54,8 +54,8 @@ rdf_convert_prefixes(_, _, B, B):-
 rdf_convert_prefixes(_, _, Lit, Lit):-
   rdf_is_literal(Lit), !.
 rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri):-
-  rdf_expand_rt(FromPrefix:LocalName, FromIri),
-  rdf_expand_rt(ToPrefix:LocalName, ToIri).
+  rdf_global_id(FromPrefix:LocalName, FromIri),
+  rdf_global_id(ToPrefix:LocalName, ToIri).
 
 
 %! rdf_convert_prefixes(
@@ -102,7 +102,7 @@ rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName):-
     Pairs
   ),
   keysort(Pairs, [_-LongestPrefix|_]),
-  rdf_expand_rt(LongestPrefix:ShortestLocalName, Iri).
+  rdf_global_id(LongestPrefix:ShortestLocalName, Iri).
 
 
 
@@ -120,7 +120,7 @@ rdf_prefixes(S, P, O, G, Pairs5):-
     (
       erdf(S, P, O, G),
       member(Term, [S,P,O]),
-      rdf_expand_rt(Prefix:_, Term)
+      rdf_global_id(Prefix:_, Term)
     ),
     Pairs1
   ),

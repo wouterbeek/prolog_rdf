@@ -379,7 +379,7 @@ subtags([]) --> "".
 'PNAME_LN'(Iri) -->
   'PNAME_NS'(Prefix),
   'PN_LOCAL'(Local),
-  {rdf_expand_rt(Prefix:Local, Iri)}.
+  {rdf_global_id(Prefix:Local, Iri)}.
 
 
 
@@ -409,7 +409,7 @@ subtags([]) --> "".
 % ```
 
 'PrefixedName'(Iri) --> 'PNAME_LN'(Iri), !.
-'PrefixedName'(Iri) --> 'PNAME_NS'(Prefix), {rdf_expand_rt(Prefix:'', Iri)}.
+'PrefixedName'(Iri) --> 'PNAME_NS'(Prefix), {rdf_global_id(Prefix:'', Iri)}.
 
 
 

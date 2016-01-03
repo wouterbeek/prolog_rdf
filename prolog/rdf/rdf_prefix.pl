@@ -1,39 +1,53 @@
 :- module(
   rdf_prefix,
   [
-    rdf_maplist/2, % :Goal_1
-                   % +Arguments
-    rdf_member/2, % ?Term:rdf_term
-                  % +Terms:list(rdf_term)
-    rdf_memberchk/2, % ?Term:rdf_term
-                     % +Terms:list(rdf_term)
-    rdf_prefix_iri/2, % +Iri:atom
-                      % -PrefixIri:atom
-    rdf_prefixes/1, % -Prefixes:ordset(atom)
-    rdf_reset_prefix/2 % +Prefix:atom
-                       % +Iri:atom
+    rdf_current_prefix/1,	% ?Prefix
+    rdf_maplist/2,		% :Goal_1, +Ts
+    rdf_member/2,		% ?T, +Ts
+    rdf_memberchk/2,		% ?T, +Ts
+    rdf_prefix_iri/2,		% +Iri, -IriPrefix
+    rdf_reset_prefix/2		% +Prefix, +IriPrefix
   ]
 ).
-:- reexport(library(semweb/rdf_db), [
-     rdf_current_prefix/2, % ?Alias:atom
-                           % ?Iri:atom
-     rdf_equal/2 as rdf_expand_ct, % ?Iri1:compound
-                                   % ?Iri2:compound
-     rdf_global_id/2 as rdf_expand_rt, % ?Prefixed:compound
-                                       % ?Iri:atom
-     rdf_global_object/2 as rdf_expand_term, % ?PrefixedTerm:compound
-                                             % ?ExpandedTerm:compound
-     rdf_meta/1, % +Heads:compound
-     rdf_register_prefix/2, % +Alias, Iri
-     rdf_register_prefix/3 % +Alias:atom
-                           % +Iri:atom
-                           % +Options:list(compound)
+:- reexport(library(rdf11/rdf11), [
+     rdf_current_prefix/2,	% ?Prefix, ?IriPrefix
+     % @tbd Rename to `rdf_expand_ct/2'.
+     rdf_equal/2,		% ?Prefixed, ?Expanded
+     % @tbd Rename to `rdf_expand_rt/2'.
+     rdf_global_id/2,		% ?Prefixed, ?Expanded
+     % @tbd Rename to `rdf_expand_term/2'.
+     rdf_global_object/2,	% ?Prefixed, ?Expanded
+     rdf_meta/1,		% +Heads
+     op(1150, fx, (rdf_meta)),
+     rdf_register_prefix/2,	% +Prefix, +IriPrefix
+     rdf_register_prefix/3	% +Prefix, +IriPrefix, +Opts
    ]).
 
-/** <module> RDF prefix
+/** <module> RDF Prefix
+
+The following terminology is (mis-)used in the field:
+
+  * **IRI prefix**
+    The prefix of an IRI that is abbreviated by a *Prefix*.
+    (I would have prefered the name "prefix".)
+  * **Local Name**
+    For a prefixed IRI, the suffix that is not covered by the IRI-prefix.
+  * **Prefix**
+    The custom string that stands for an *IRI prefix*.
+    (I would have prefered the name "alias".)
+
+This allows the following two IRI notations to be distinguished:
+
+  * **Expanded**
+    IRI notation where no prefix is used.
+  * **Prefixed**
+    IRI notation where a prefix alias is used.
+    Prefixed IRIs have the form `Alias:LocalName'.
+
+---
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11-2015/12
+@version 2015/07-2015/09, 2015/11-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -46,10 +60,12 @@
 
 :- meta_predicate(rdf_maplist(1,+)).
 
-:- rdf_meta(rdf_expand_ct(r,r)).
-:- rdf_meta(rdf_maplist(:,t)).
-:- rdf_meta(rdf_member(r,t)).
-:- rdf_meta(rdf_memberchk(r,t)).
+:- rdf_meta
+	rdf_equal(r, r),
+	rdf_global_id(r, r),
+	rdf_maplist(:, t),
+	rdf_member(r, t),
+	rdf_memberchk(r, t).
 
 
 
@@ -66,8 +82,8 @@ assert_cc_prefixes:-
   reverse(Rows0, Rows),
   maplist(assert_cc_prefix, Rows).
 
-assert_cc_prefix(row(Prefix,Iri)):-
-  rdf_reset_prefix(Prefix, Iri).
+assert_cc_prefix(row(Alias,Prefix)):-
+  rdf_reset_prefix(Alias, Prefix).
 
 
 
@@ -307,61 +323,62 @@ dbpedia_register(LTag):-
 
 
 
-%! rdf_maplist(:Goal_1, +Arguments:list) is det.
+%! rdf_current_prefix(+Prefix:atom) is semidet.
+%! rdf_current_prefix(-Prefix:atom) is det.
 
-rdf_maplist(Goal_1, L):-
-  maplist(Goal_1, L).
-
-
-
-%! rdf_member(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
-%! rdf_member(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
-
-rdf_member(X, L):-
-  member(X, L).
+rdf_current_prefix(Prefix):-
+  rdf_current_prefix(Prefix, _).
 
 
 
-%! rdf_memberchk(+Term:rdf_term, +PrefixedTerms:list(rdf_term)) is semidet.
-%! rdf_memberchk(-Term:rdf_term, +PrefixedTerms:list(rdf_term)) is det.
+%! rdf_maplist(:Goal_1, +Ts:list) is det.
 
-rdf_memberchk(X, L):-
-  memberchk(X, L).
-
+rdf_maplist(Goal_1, Ts):-
+  maplist(Goal_1, Ts).
 
 
-%! rdf_prefix_iri(+Iri:atom, -PrefixIri:atom) is det.
+
+%! rdf_member(+T, +Ts) is semidet.
+%! rdf_member(-T, +Ts) is nondet.
+
+rdf_member(T, Ts):-
+  member(T, Ts).
+
+
+
+%! rdf_memberchk(+T, +Ts) is semidet.
+%! rdf_memberchk(-T, +Ts) is semidet.
+
+rdf_memberchk(T, Ts):-
+  memberchk(T, Ts).
+
+
+
+%! rdf_prefix_iri(+Iri:iri, -IriPrefix:iri) is det.
 % Returns the prefix of the given IRI that is abbreviated with a registered
 % RDF prefix, if any.  If no registered RDF prefix occurs in Iri the full IRI
 % is returned.
 
-rdf_prefix_iri(Iri, PrefixIri):-
-  rdf_expand_rt(Prefix:_, Iri), !,
-  rdf_current_prefix(Prefix, PrefixIri).
+rdf_prefix_iri(Iri, IriPrefix):-
+  rdf_global_id(Prefix;_, Iri), !,
+  rdf_current_prefix(Prefix, IriPrefix).
 rdf_prefix_iri(Iri, Iri).
 
 
 
-%! rdf_prefixes(-Prefixes:ordset(atom)) is det.
-
-rdf_prefixes(Prefixes):-
-  aggregate_all(set(Prefix), rdf_current_prefix(Prefix, _), Prefixes).
-
-
-
-%! rdf_reset_prefix(+Prefix:atom, +Iri:atom) is det.
+%! rdf_reset_prefix(+Prefix:atom, +IriPrefix:iri) is det.
 % Sets or resets RDF prefixes (whatever is needed to effectuate the mapping
 % from Prefix onto IRI), but shows a warning in the case of resetting.
 
-rdf_reset_prefix(Prefix, Iri):-
+rdf_reset_prefix(Prefix, IriPrefix):-
   with_mutex(rdf_reset_prefix, (
-    (   rdf_current_prefix(Prefix, Iri0)
-    ->  (   Iri0 == Iri
+    (   rdf_current_prefix(Prefix, OldIriPrefix)
+    ->  (   OldIriPrefix == IriPrefix
         ->  true
-        ;   rdf_register_prefix(Prefix, Iri, [force(true)]),
-            print_message(warning, rdf_reset_prefix(Prefix,Iri0,Iri))
+        ;   rdf_register_prefix(Prefix, IriPrefix, [force(true)]),
+            print_message(warning, rdf_reset_prefix(Prefix,OldIriPrefix,IriPrefix))
         )
-    ;   rdf_register_prefix(Prefix, Iri)
+    ;   rdf_register_prefix(Prefix, IriPrefix)
     )
   )).
 
@@ -373,7 +390,6 @@ rdf_reset_prefix(Prefix, Iri):-
 
 :- multifile(prolog:message//1).
 
-prolog:message(rdf_reset_prefix(Prefix,From0,To0)) -->
+prolog:message(rdf_reset_prefix(Alias,FromPrefix,ToPrefix)) -->
   % Circumvent prefix abbreviation in ClioPatria.
-  {maplist(atom_string, [From0,To0], [From,To])},
-  ['RDF prefix ~a was reset from ~s to ~s.'-[Prefix,From,To]].
+  ['Alias ~a was reset from prefix ~a to prefix ~a.'-[Alias,FromPrefix,ToPrefix]].

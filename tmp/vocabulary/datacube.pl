@@ -158,7 +158,7 @@ assert_measure_property(MeasureProperty, Concept, Range, G):-
   rdf_assert(MeasureProperty, rdfs:range, Range, G),
 
   % rdfs:isDefinedBy
-  (   rdf_expand_ct(Prefix:_, MeasureProperty),
+  (   rdf_equal(Prefix:_, MeasureProperty),
       rdf_current_prefix(Prefix, Url)
   ->  rdf_assert(MeasureProperty, rdfs:isDefinedBy, Url, G)
   ;   true

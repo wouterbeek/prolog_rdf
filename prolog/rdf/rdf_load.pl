@@ -101,7 +101,7 @@ rdf_call_on_statements(In, Goal_2):-
 
 rdf_call_on_statements(In, Goal_2, Opts):-
   option(graph(G0), Opts, default),
-  rdf_expand_rt(G0, G),
+  rdf_global_id(G0, G),
   catch(
     rdf_read_from_stream(In, rdf_call_on_statements_stream(G, Goal_2), Opts),
     E,
@@ -191,7 +191,7 @@ rdf_load_file(In, Opts):-
   ).
 
 
-rdf_load_statements(CT, CQ, Stmts, G):-
+rdf_load_statements(CT, CQ, Stmts, G:_):-
   maplist(rdf_load_statement(CT, CQ, G), Stmts).
 
 
@@ -200,6 +200,6 @@ rdf_load_statement(CT, _, G, rdf(S,P,O)):- !,
   increment_thread_counter(CT),
   rdf_assert(S, P, O, G).
 % Load a quadruple.
-rdf_load_statement(_, CQ, _, rdf(S,P,O,G)):- !,
+rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)):- !,
   increment_thread_counter(CQ),
   rdf_assert(S, P, O, G).

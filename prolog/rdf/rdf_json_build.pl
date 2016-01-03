@@ -41,14 +41,14 @@ rdf_assert_json(S, P, Json, G):-
 rdf_json_value(X, D, Y):-
   (   % JSON float.
       float(X)
-  ->  rdf_expand_ct(xsd:float, D),
+  ->  rdf_equal(xsd:float, D),
       atom_number(Y, X)
   ;   % JSON integer.
       integer(X)
-  ->  rdf_expand_ct(xsd:integer, D),
+  ->  rdf_equal(xsd:integer, D),
       atom_number(Y, X)
   ), !.
 % JSON string.
 rdf_json_value(X, D, X):-
   string(X), !,
-  rdf_expand_ct(xsd:string, D).
+  rdf_equal(xsd:string, D).

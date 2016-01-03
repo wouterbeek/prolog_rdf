@@ -2,9 +2,9 @@
   rdf_table,
   [
     rdf_assert_table/6 % +Graph:rdf_graph
-                       % +Caption:atom
-                       % +ColumnHeaders:list(atom)
-                       % +RowHeaders:list(atom)
+                       % +Caption:string
+                       % +ColumnHeaders:list(string)
+                       % +RowHeaders:list(string)
                        % +Rows:list(compound)
                        % -Table:iri
   ]
@@ -33,9 +33,9 @@ A simple RDF vocabulary for representing tables.
 
 %! rdf_assert_table(
 %!   +Graph:rdf_graph,
-%!   +Caption:atom,
-%!   +ColumnHeaders:list(atom),
-%!   +RowHeaders:list(atom),
+%!   +Caption:string,
+%!   +ColumnHeaders:list(string),
+%!   +RowHeaders:list(string),
 %!   +Rows:list(compound),
 %!   -Table:iri
 %! ) is det.
@@ -43,7 +43,7 @@ A simple RDF vocabulary for representing tables.
 
 rdf_assert_table(G, Caption, ColumnHeaders, RowHeaders, Rows, Table):-
   % Assert caption.
-  rdf_assert_literal(Table, rdf_table:caption, xsd:string, Caption, G),
+  rdf_assert(Table, rdf_table:caption, Caption, G),
   
   % Assert headers.
   rdf_assert_column_headers(G, Table, ColumnHeaders, ColumnList),
@@ -87,14 +87,14 @@ rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
   
   % Assert the column header.
   rdf_list_nth0(X, ColumnList, ColumnHeader, G),
-  rdf_assert_simple_literal(Cell, rdf_table:column, ColumnHeader, G),
+  rdf_assert(Cell, rdf_table:column, ColumnHeader, G),
   
   % Assert the row header.
   rdf_list_nth0(Y, RowList, RowHeader, G),
-  rdf_assert_simple_literal(Cell, rdf_table:row, RowHeader, G),
+  rdf_assert(Cell, rdf_table:row, RowHeader, G),
   
   % Assert the cell value.
-  rdf_assert_typed_literal(Cell, rdf:value, Value, xsd:float, G),
+  rdf_assert(Cell, rdf:value, Value, G),
   
   % Relate cell to table.
   rdf_assert(Table, rdf_table:cell, Cell, G).
@@ -103,26 +103,26 @@ rdf_assert_cell(G, Table, X-ColumnList, Y-RowList, Value):-
 %! rdf_assert_column_headers(
 %!   +Graph:rdf_graph,
 %!   +Table:iri,
-%!   +ColumnHeaders:list(atom),
+%!   +ColumnHeaders:list(string),
 %!   -ColumnHeadersList:iri
 %! ) is det.
 % Asserts the column headers of a table.
 
 rdf_assert_column_headers(G, Table, ColumnHeaders, ColumnList):-
-  rdf_expand_ct(rdf_table:columns, Predicate),
+  rdf_equal(rdf_table:columns, Predicate),
   rdf_assert_headers(G, Table, Predicate, ColumnHeaders, ColumnList).
 
 
 %! rdf_assert_row_headers(
 %!   +Graph:rdf_graph,
 %!   +Table:iri,
-%!   +RowHeaders:list(atom),
+%!   +RowHeaders:list(string),
 %!   -RowHeadersList:iri
 %! ) is det.
 % Asserts the row headers of a table.
 
 rdf_assert_row_headers(G, Table, RowHeaders, RowList):-
-  rdf_expand_ct(rdf_table:rows, Predicate),
+  rdf_equal(rdf_table:rows, Predicate),
   rdf_assert_headers(G, Table, Predicate, RowHeaders, RowList).
 
 
@@ -130,11 +130,11 @@ rdf_assert_row_headers(G, Table, RowHeaders, RowList):-
 %!   +Graph:rdf_graph,
 %!   +Table:iri,
 %!   +Predicate:iri,
-%!   +RowHeaders:list(atom),
+%!   +RowHeaders:list(string),
 %!   -HeaderList:iri
 %! ) is det.
 % Asserts either column or row headers of a table, depending on `Predicate`.
 
 rdf_assert_headers(G, Table, Predicate, Headers, HeaderList):-
-  rdf_assert_list(Headers, HeaderList, G, [datatype(xsd:string)]),
+  rdf_assert_list(Headers, HeaderList, G),
   rdf_assert(Table, Predicate, HeaderList, G).

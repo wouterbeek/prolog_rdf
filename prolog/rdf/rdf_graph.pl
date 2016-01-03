@@ -1,29 +1,21 @@
 :- module(
   rdf_graph,
   [
-    rdf_create_graph/1, % ?Graph:rdf_graph
-    rdf_cp_graph/2, % +From:rdf_graph
-                    % +To:rdf_graph
-    rdf_expect_graph/1, % @Term
-    rdf_fresh_graph/2, % ?Graph:rdf_graph
-                       % +FreshnessLifetime:between(0.0,inf)
-    rdf_graph/1, % ?Graph:rdf_graph
-    rdf_graph_age/2, % ?Graph:rdf_graph
-                     % -Age:between(0.0,inf)
-    rdf_graph_get_property/2, % ?Graph:rdf_graph
-                              % ?Property:compound
-    rdf_graph_set_property/2, % +Graph:rdf_graph
-                              % +Property:compound
-    rdf_is_graph/1, % @Term
-    rdf_mv_graph/2, % +From:rdf_graph
-                    % +To:rdf_graph
-    rdf_new_graph/1, % -Graph:rdf_graph
-    rdf_new_graph/2, % +Name:rdf_graph
-                     % -Graph:rdf_graph
-    rdf_stale_graph/2, % ?Graph:rdf_graph
-                       % +FreshnessLifetime:between(0.0,inf)
-    rdf_tmp_graph/1, % -Graph:rdf_graph
-    rdf_unload_graph/1, % +Graph:rdf_graph
+    rdf_create_graph/1,		% ?G
+    rdf_cp_graph/2,		% +FromG, +ToG
+    rdf_expect_graph/1,		% @Term
+    rdf_fresh_graph/2,		% ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_graph/1,		% ?G
+    rdf_graph_age/2,		% ?G, -Age:between(0.0,inf)
+    rdf_graph_get_property/2,	% ?G, ?Property:compound
+    rdf_graph_set_property/2,	% +G, +Property:compound
+    rdf_is_graph/1,		% @Term
+    rdf_mv_graph/2,		% +FromG, +ToG
+    rdf_new_graph/1,		% -G
+    rdf_new_graph/2,		% +Name, -G
+    rdf_stale_graph/2,		% ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_tmp_graph/1,		% -G
+    rdf_unload_graph/1,		% +G
     rdf_unload_graphs/0
   ]
 ).
@@ -32,23 +24,22 @@
 
 @author Wouter Beek
 @compat RDF 1.1 Semantics
-@license MIT
 @see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
-@version 2015/08, 2015/10, 2015/12
+@version 2015/08, 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(atom_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(rdf/id_store)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(semweb/rdf_db), [
-     rdf_create_graph/1 as rdf_create_graph0,
-     rdf_graph/1 as rdf_graph0,
-     rdf_graph_property/2 as rdf_graph_property0,
-     rdf_retractall/4 as rdf_retractall0,
-     rdf_set_graph/2,
-     rdf_unload_graph/1 as rdf_unload_graph0
+     rdf_create_graph/1 as rdf_create_graph_id,
+     rdf_graph/1 as rdf_graph_id,
+     rdf_graph_property/2 as rdf_graph_id_get_property,
+     rdf_set_graph/2 as rdf_graph_id_set_property,
+     rdf_unload_graph/1 as rdf_unload_graph_id
    ]).
 :- use_module(library(uri)).
 
@@ -70,19 +61,20 @@
 
 
 
-%! rdf_create_graph(+Graph:rdf_graph) is semidet.
+%! rdf_create_graph(+G) is det.
 % Extends Semweb's rdf_create_graph/1 by applying RDF prefix expansion.
 
 rdf_create_graph(G):-
-  rdf_create_graph0(G).
+  assign_graph_id(G, Gid),
+  rdf_create_graph_id(Gid).
 
 
 
-%! rdf_cp_graph(+From:rdf_graph, +To:rdf_graph) is det.
+%! rdf_cp_graph(+FromG, +ToG) is det.
 
-rdf_cp_graph(From, From):- !.
-rdf_cp_graph(From, To):-
-  rdf_cp(From, _, _, _, To).
+rdf_cp_graph(FromG, FromG):- !.
+rdf_cp_graph(FromG, ToG):-
+  rdf_cp(FromG, _, _, _, ToG).
 
 
 
@@ -105,14 +97,8 @@ rdf_expect_graph(G):-
 
 
 
-%! rdf_fresh_graph(
-%!   +Graph:rdf_graph,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is semidet.
-%! rdf_fresh_graph(
-%!   -Graph:rdf_graph,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is nondet.
+%! rdf_fresh_graph(+G, +FreshnessLifetime:between(0.0,inf)) is semidet.
+%! rdf_fresh_graph(-G, +FreshnessLifetime:between(0.0,inf)) is nondet.
 % Succeeds for currently loaded RDF graphs whose age is below
 % the given FreshnessLifetime.
 
@@ -122,17 +108,21 @@ rdf_fresh_graph(G, FLT):-
 
 
 
-%! rdf_graph(+Graph:rdf_graph) is semidet.
-%! rdf_graph(-Graph:rdf_graph) is multi.
-% Extends Semweb's rdf_graph/1 by applying RDF prefix expansion.
+%! rdf_graph(+G) is semidet.
+%! rdf_graph(-G) is multi.
 
 rdf_graph(G):-
-  rdf_graph0(G).
+  var(G), !,
+  rdf_graph_id(Gid),
+  assign_graph_id(G, Gid).
+rdf_graph(G):-
+  assign_graph_id(G, Gid),
+  rdf_graph_id(Gid).
 
 
 
-%! rdf_graph_age(+Graph:rdf_graph, -Age:between(0.0,inf)) is det.
-%! rdf_graph_age(-Graph:rdf_graph, -Age:between(0.0,inf)) is nondet.
+%! rdf_graph_age(+G, -Age:between(0.0,inf)) is det.
+%! rdf_graph_age(-G, -Age:between(0.0,inf)) is nondet.
 % Succeeds if Age is the age (in seconds) of a currently loaded RDF Graph.
 
 rdf_graph_age(G, Age):-
@@ -142,21 +132,27 @@ rdf_graph_age(G, Age):-
 
 
 
-%! rdf_graph_get_property(?Graph:rdf_graph, ?Property:compound) is semidet.
+%! rdf_graph_get_property(?G, ?Property:compound) is semidet.
 % Extends Semweb's rdf_graph_property/2 by applying RDF prefix expansion
 % on the graph.
 
 rdf_graph_get_property(G, Property):-
-  rdf_graph_property0(G, Property).
+  var(G), !,
+  rdf_graph_id_get_property(Gid, Property),
+  assign_graph_id(G, Gid).
+rdf_graph_get_property(G, Property):-
+  assign_graph_id(G, Gid),
+  rdf_graph_id_get_property(Gid, Property).
 
 
 
-%! rdf_graph_set_property(+Graph:rdf_graph, +Property:compound) is semidet.
+%! rdf_graph_set_property(+G, +Property:compound) is semidet.
 % Extends Semweb's rdf_set_graph/2 by applying RDF prefix expansion
 % on the graph.
 
 rdf_graph_set_property(G, Property):-
-  rdf_set_graph(G, Property).
+  assign_graph_id(G, Gid),
+  rdf_graph_id_set_property(Gid, Property).
 
 
 
@@ -173,28 +169,28 @@ rdf_is_graph(G):-
 
 
 
-%! rdf_mv_graph(+From:rdf_graph, +To:rdf_graph) is det.
+%! rdf_mv_graph(+FromG, +ToG) is det.
 
-rdf_mv_graph(From, To):-
-  rdf_mv(From, _, _, _, To),
-  rdf_unload_graph(From).
+rdf_mv_graph(FromG, ToG):-
+  rdf_mv(FromG, _, _, _, ToG),
+  rdf_unload_graph(FromG).
 
 
 
-%! rdf_new_graph(-Graph:rdf_graph) is det.
+%! rdf_new_graph(-G) is det.
 
 rdf_new_graph(G):-
   rdf_new_graph(ex:unnamed, G).
 
 
-%! rdf_new_graph(+Base:rdf_graph, -Graph:rdf_graph) is det.
+%! rdf_new_graph(+Base:rdf_graph, -G) is det.
 
 rdf_new_graph(G1, G):-
-  rdf_expand_rt(Prefix:Local1, G1), !,
+  rdf_global_id(Prefix:Local1, G1), !,
   (   rdf_new_graph_try(G1)
   ->  G = G1
   ;   new_atom(Local1, Local2),
-      rdf_expand_rt(Prefix:Local2, G2),
+      rdf_global_id(Prefix:Local2, G2),
       rdf_new_graph(G2, G)
   ).
 rdf_new_graph(G1, G):-
@@ -208,7 +204,7 @@ rdf_new_graph(G1, G):-
       rdf_new_graph(G2, G)
   ).
 rdf_new_graph(G1, G):-
-  rdf_expand_rt(ex:G1, G2),
+  rdf_global_id(ex:G1, G2),
   rdf_new_graph(G2, G).
 
 rdf_new_graph_try(G):-
@@ -219,14 +215,8 @@ rdf_new_graph_try(G):-
 
 
 
-%! rdf_stale_graph(
-%!   +Graph:rdf_graph,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is semidet.
-%! rdf_stale_graph(
-%!   -Graph:rdf_graph,
-%!   +FreshnessLifetime:between(0.0,inf)
-%! ) is nondet.
+%! rdf_stale_graph(+G, +FreshnessLifetime:between(0.0,inf)) is semidet.
+%! rdf_stale_graph(-G, +FreshnessLifetime:between(0.0,inf)) is nondet.
 % Succeeds for currently loaded graphs whose age is over the given
 % FreshnessLifetime.
 
@@ -236,26 +226,27 @@ rdf_stale_graph(G, FLT):-
 
 
 
-%! rdf_tmp_graph(-Graph:rdf_graph) is det.
+%! rdf_tmp_graph(-G) is det.
 
 rdf_tmp_graph(G):-
   rdf_new_graph(ex:tmp, G).
 
 
 
-%! rdf_unload_graph(+Graph:rdf_graph) is semidet.
+%! rdf_unload_graph(+G) is semidet.
 % Extends Semweb's rdf_unload_graph/1 by applying RDF prefix expansion.
 %
 % @tbd This does not unload the identity store.
 
 rdf_unload_graph(G):-
   rdf_expect_graph(G),
-  rdf_unload_graph0(G).
+  assign_graph_id(G, Gid),
+  rdf_unload_graph_id(Gid).
 
 
 
 %! rdf_unload_graphs is det.
 
 rdf_unload_graphs:-
-  rdf_retractall0(_, _, _, _),
+  rdf_retractall_id(_, _, _, _),
   unload_id_store.

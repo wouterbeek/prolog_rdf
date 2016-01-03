@@ -1,19 +1,16 @@
 :- module(
   mat,
   [
-    mat/1, % +InputGraph:rdf_graph
-    mat/2, % +InputGraph:rdf_graph
-           % ?OutputGraph:rdf_graph
-    mat/3 % +InputGraph:rdf_graph
-          % ?OutputGraph:rdf_graph
-          % +Options:list(compound)
+    mat/1,	% +InputG
+    mat/2,	% +InputG, ?OutputG
+    mat/3	% +InputG, ?OutputG, +Opts
   ]
 ).
 
 /** <module> OWL materialization
 
 @author Wouter Beek
-@version 2015/08, 2015/10, 2015/12
+@version 2015/08, 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(apply)).
@@ -27,9 +24,10 @@
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_read)).
 
-:- rdf_meta(mat(r)).
-:- rdf_meta(mat(r,r)).
-:- rdf_meta(mat(r,r,+)).
+:- rdf_meta
+	mat(r),
+	mat(r, r),
+	mat(r, r, r).
 
 :- predicate_options(mat/3, 3, [
      pass_to(mat0/3, 3)
@@ -41,16 +39,17 @@
 
 :- set_prolog_flag(chr_toplevel_show_store, false).
 
-:- chr_constraint('_allTypes'/2).
-:- chr_constraint(error/0).
-:- chr_constraint(inList/2).
-:- chr_constraint(rdf_chr/3).
+:- chr_constraint
+	'_allTypes'/2,
+	error/0,
+	inList/2,
+	rdf_chr/3.
 
 
 
 
 
-%! mat(+InputGraph:rdf_graph, +OutputGraph:rdf_graph) is det.
+%! mat(+InputG) is det.
 % Wrapper around mat/2 that asserts materialization results
 % into the input graph.
 
@@ -58,21 +57,24 @@ mat(G):-
   mat(G, G).
 
 
-%! mat(+InputGraph:rdf_graph, +OutputGraph:rdf_graph) is det.
+%! mat(+InputG, +OutputG) is det.
 % Wrapper around mat/3 with default options.
 
 mat(InG, OutG):-
   mat(InG, OutG, []).
 
 
-%! mat(+InputGraph:rdf_graph, +OutputGraph:rdf_graph, +Options:list(compound)) is det.
+%! mat(+InputG, +OutputG, +Opts) is det.
 % Materializes the contents of InputGraph into OutputGraph.
-%! mat(+InputGraph:rdf_graph, -OutputGraph:rdf_graph, +Options:list(compound)) is det.
+%
+%! mat(+InputG, -OutputG, +Optns) is det.
 % Materializes the contents of InputGraph into the default graph
 % (called `default`).
-%! mat(-InputGraph:rdf_graph, +OutputGraph:rdf_graph, +Options:list(compound)) is det.
+%
+%! mat(-InputG, +OutputG, +Opts) is det.
 % Materializes all contents into OutputGraph.
-%! mat(-InputGraph:rdf_graph, -OutputGraph:rdf_graph) is det.
+%
+%! mat(-InputG, -OutputG, +Opts) is det.
 % Materializes all contents into the default graph (called `default`).
 %
 % The following options are supported:
@@ -131,7 +133,7 @@ mat0(GIn, GOut, Opts):-
 idempotence @
       rdf_chr(S, P, O)
   \   rdf_chr(S, P, O)
-  <=> debug(db(idempotence), 'idempotence', rdf(S,P,O))
+  <=> debug(db(idempotence), "Idempotence: ~w", [rdf(S,P,O)])
     | true.
 
 owl-eq-diff1 @

@@ -1,12 +1,6 @@
 :- module(
   rdf_reification_write,
   [
-    rdf_assert_literal_statement/6, % +Subject:or([bnode,iri])
-                                    % +Predicate:iri
-                                    % +Value
-                                    % +Datatype:iri
-                                    % ?Graph:atom
-                                    % ?Statement:or([bnode,iri])
     rdf_assert_object/3, % +Statement:or([bnode,iri])
                          % +Object:oneof([literal,iri])
                          % +Graph:atom
@@ -37,23 +31,6 @@ Read support for reified triples.
 :- rdf_meta(rdf_assert_subject(r,r,?)).
 
 
-
-
-
-%! rdf_assert_literal_statement(
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Value,
-%!   +Datatype:iri,
-%!   ?Graph:graph,
-%!   ?Statement:or([bnode,iri])
-%! ) is det.
-% Asserts a datatyped statement, automatically converting the given value
-%  to its corresponding lexical form.
-
-rdf_assert_literal_statement(S, P, Value, Datatype, G, Statement):-
-  rdf_assert_literal(S, P, Value, Datatype, G, Triple),
-  rdf_assert_statement(Triple, G, Statement).
 
 
 

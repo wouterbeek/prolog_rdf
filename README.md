@@ -223,6 +223,28 @@ Load the OWL profile in the following way:
 
 This profile extends the generalized RDF profile by storing relations between identity sets i.o. individual resources.  This significantly speeds up calculating the identity closure (`owl:sameAs`) and avoids OWL entailment to store the identity closure in an exponential way.
 
+
+# Variable names
+
+We use the following variable names to denote often occurring concepts.
+
+| **Variable name** | **Intended expansion** |
+|:-----------------:|:----------------------:|
+| `BN`              | Blank node             |
+| `C`               | Class                  |
+| `D`               | Datatype               |
+| `G`               | Graph                  |
+| `I`               | Instance               |
+| `Lit`             | Literal                |
+| `Lex`             | Lexical expression     |
+| `O`               | Object term            |
+| `P`               | Predicate term         |
+| `P`               | Property               |
+| `S`               | Subject term           |
+| `T`               | RDF term               |
+| `V`               | Value                  |
+
+
 ---
 
 This library was programmed by [Wouter Beek](http://www.wouterbeek.com) in 2015 and is distributed under the MIT License.

@@ -56,7 +56,7 @@ script4:-
   rdf_reset_db,
   G = script4,
   rdfs_assert_range(ex:p, ex:c, G),
-  rdf_assert_literal(ex:s, ex:p, xsd:string, o, G),
+  rdf_assert(ex:s, ex:p, "o", G),
   mat(G),
   mat_viz.
 

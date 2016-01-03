@@ -204,7 +204,7 @@ rdf_bag_raw(L1, L2, G):-
 % (+,?)
 rdf_container_membership_property(P, N):-
   ground(P), !,
-  rdf_expand_rt(rdf:Local, P),
+  rdf_global_id(rdf:Local, P),
   atom_concat('_', N0, Local),
   atom_number(N0, N),
   must_be(nonneg, N).
@@ -214,7 +214,7 @@ rdf_container_membership_property(P, N):-
   must_be(positive_integer, N),
   atom_number(N0, N),
   atom_concat('_', N0, Local),
-  rdf_expand_rt(rdf:Local, P).
+  rdf_global_id(rdf:Local, P).
 % (?,?)
 rdf_container_membership_property(P, N):-
   between(1, inf, N),

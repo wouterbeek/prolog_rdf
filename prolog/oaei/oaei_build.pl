@@ -8,7 +8,7 @@
                              % ?Graph:rdf_graph
     oaei_assert_alignment/5, % +From:iri
                              % +To:iri
-                             % +Relation:atom
+                             % +Relation:string
                              % +Measure:between(0.0,1.0)
                              % ?Graph:rdf_graph
     oaei_assert_alignments/2 % +Alignments:ordset(iri)
@@ -47,7 +47,7 @@ oaei_assert_alignment(From, To, G):-
 %! oaei_assert_alignment(
 %!   +From:rdf_term,
 %!   +To:rdf_term,
-%!   +Relation:atom,
+%!   +Relation:string,
 %!   +Measure:between(0.0,1.0),
 %!   ?Graph:rdf_graph
 %! ) is det.
@@ -56,8 +56,8 @@ oaei_assert_alignment(From, To, Rel, Measure, G):-
   rdf_create_bnode(B),
   rdf_assert(B, align:entity1, From, G),
   rdf_assert(B, align:entity2, To, G),
-  rdf_assert_literal(B, align:relation, xsd:string, Rel, G),
-  rdf_assert_literal(B, align:measure, xsd:float, Measure, G).
+  rdf_assert(B, align:relation, Rel, G),
+  rdf_assert(B, align:measure, Measure, G).
 
 
 

@@ -14,7 +14,7 @@ Predicates for exporting RDF graphs to the graph export format
 handled by plGraphViz.
 
 @author Wouter Beek
-@version 2015/07, 2015/10, 2015/12
+@version 2015/07, 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -69,8 +69,8 @@ handled by plGraphViz.
 %! ) is det.
 
 create_namespace_map(Scheme, Map):-
-  rdf_prefixes(Prefixes),
-  create_namespace_map(Prefixes, Scheme, Map).
+  aggregate_all(set(Alias), rdf_alias(Alias), Aliases),
+  create_namespace_map(Aliases, Scheme, Map).
 
 
 
@@ -190,16 +190,16 @@ rdf_term_to_export_graph(T, ExportG, Opts1):-
 
 % RDFS subclass.
 rdf_edge_arrowhead(edge(_,P,_), box):-
-  rdf_expand_ct(P, rdfs:subClassOf), !.
+  rdf_equal(P, rdfs:subClassOf), !.
 % RDFS subproperty.
 rdf_edge_arrowhead(edge(_,P,_), diamond):-
-  rdf_expand_ct(P, rdfs:subPropertyOf), !.
+  rdf_equal(P, rdfs:subPropertyOf), !.
 % RDF type.
 rdf_edge_arrowhead(edge(_,P,_), empty):-
-  rdf_expand_ct(P, rdf:type), !.
+  rdf_equal(P, rdf:type), !.
 % RDFS label.
 rdf_edge_arrowhead(edge(_,P,_), none):-
-  rdf_expand_ct(P, rdfs:label), !.
+  rdf_equal(P, rdfs:label), !.
 % Others.
 rdf_edge_arrowhead(_, normal).
 
@@ -235,10 +235,10 @@ rdf_edge_color(_, _, _, black).
 rdf_edge_label(edge(_,P,_)) --> rdf:rdf_predicate_label(P), !.
 % Some edge labels are not displayed.
 rdf_edge_label(edge(_,P,_)) -->
-  {(  rdf_expand_ct(rdf:type, P)
-   ;  rdf_expand_ct(rdfs:label, P)
-   ;  rdf_expand_ct(rdfs:subClassOf, P)
-   ;  rdf_expand_ct(rdfs:subPropertyOf, P)
+  {(  rdf_equal(rdf:type, P)
+   ;  rdf_equal(rdfs:label, P)
+   ;  rdf_equal(rdfs:subClassOf, P)
+   ;  rdf_equal(rdfs:subPropertyOf, P)
    )}, !,
   "".
 % Others: the edge name is the predicate term.
@@ -253,13 +253,13 @@ rdf_edge_style(E, EStyle):-
   rdf:rdf_edge_style(E, EStyle), !.
 % Certain RDFS schema terms.
 rdf_edge_style(edge(_,P,_), solid):-
-  (   rdf_expand_ct(rdf:type, P)
-  ;   rdf_expand_ct(rdfs:subClassOf, P)
-  ;   rdf_expand_ct(rdfs:subPropertyOf, P)
+  (   rdf_equal(rdf:type, P)
+  ;   rdf_equal(rdfs:subClassOf, P)
+  ;   rdf_equal(rdfs:subPropertyOf, P)
   ), !.
 % RDFS label.
 rdf_edge_style(edge(_,P,_), dotted):-
-  rdf_expand_ct(rdfs:label, P), !.
+  rdf_equal(rdfs:label, P), !.
 % Others.
 rdf_edge_style(_, solid).
 
@@ -289,7 +289,7 @@ rdf_vertex_color(_, _, V, VColor):-
   rdf:rdf_class_color(C, VColor), !.
 % IRI with a colored namespace.
 rdf_vertex_color(_, Map, T, VColor):-
-  rdf_expand_rt(Prefix:_, T),
+  rdf_global_id(Prefix:_, T),
   memberchk(Prefix-VColor, Map), !.
 % Other IRI.
 rdf_vertex_color(_, _, _, black).

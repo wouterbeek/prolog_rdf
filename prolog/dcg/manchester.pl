@@ -431,7 +431,7 @@ quoted_string_codes([H|T]) -->
 
 simpleIRI(Iri) -->
   dcg_string('PN_LOCAL', LocalName),
-  {throw_if_manchester_keyword(LocalName), rdf_expand_rt('':LocalName, Iri)}.
+  {throw_if_manchester_keyword(LocalName), rdf_global_id('':LocalName, Iri)}.
 
 
 %! stringLiteralNoLanguage(?Literal:compound)// .

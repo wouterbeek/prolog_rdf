@@ -305,7 +305,7 @@ rdf_html_literal0(literal(type(D,Lex)), Opts) --> !,
     ])
   ).
 rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
-  {rdf_expand_ct(rdf:langString, D)},
+  {rdf_equal(rdf:langString, D)},
   html(
     span(class=['language-tagged-string','rdf-literal'], [
       &(lang),
@@ -320,7 +320,7 @@ rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
     ])
   ).
 rdf_html_literal0(literal(Lex), Opts) -->
-  {rdf_expand_ct(xsd:string, D)},
+  {rdf_equal(xsd:string, D)},
   rdf_html_literal0(literal(type(D,Lex)), Opts).
 
 
@@ -418,7 +418,7 @@ rdf_html_term_in_graph(T, G, Opts) -->
 html_compact_iri(Global, Opts) -->
   {
     \+ option(abbr_iri(false), Opts),
-    rdf_expand_rt(Prefix:Local, Global)
+    rdf_global_id(Prefix:Local, Global)
   }, !,
   {
     option(ellip_ln(N), Opts, 20),

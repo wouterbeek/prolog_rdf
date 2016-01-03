@@ -50,7 +50,7 @@ csv_to_rdf(Source, G, SchemaPrefix, DataPrefix, CName):-
   csv_header_to_rdf(G, SchemaPrefix, Header, Ps),
 
   % Convert data rows.
-  rdf_expand_rt(SchemaPrefix:CName, C),
+  rdf_global_id(SchemaPrefix:CName, C),
   maplist(csv_row_to_rdf(DataPrefix, G, C, Ps), Rows3).
 
 
@@ -80,7 +80,7 @@ csv_header_to_rdf(G, SchemaPrefix, Header, Ps):-
 
 csv_header_entry_to_rdf(G, SchemaPrefix, HeaderEntry, P):-
   atom_phrase(rdf_property_name, HeaderEntry, LocalName),
-  rdf_expand_rt(SchemaPrefix:LocalName, P),
+  rdf_global_id(SchemaPrefix:LocalName, P),
   rdfs_assert_domain(P, rdfs:'Resource', G),
   rdfs_assert_range(P, xsd:string, G).
 
@@ -139,11 +139,12 @@ csv_row_to_rdf(DataPrefix, G, C, Ps, Row):-
 % Converts a CSV cell value to RDF.
 
 % Only graphic values are converted.
-csv_cell_to_rdf(G, Entry, P, Val):-
-  atom_chars(Value, Cs),
+csv_cell_to_rdf(G, Entry, P, V):-
+  atom_chars(V, Cs),
   member(C, Cs),
   graphic(C, _, _), !,
-  rdf_assert_literal(Entry, P, xsd:string, Val, G).
+  {string_codes(S, Cs)},
+  rdf_assert(Entry, P, S, G).
 % Non-graphic values are ignored.
 csv_cell_to_rdf(_, _, _, Val):-
   debug(

@@ -84,21 +84,21 @@ rdf_literal_components(Lit, D, Lex, LTag):-
   ground(Lit), !,
   rdf_literal_components0(Lit, D, Lex, LTag).
 rdf_literal_components(Lit, D, Lex, LTag):-
-  rdf_expand_ct(rdf:langString, D),
+  rdf_equal(rdf:langString, D),
   atom(LTag), !,
   Lit = literal(lang(LTag,Lex)).
 rdf_literal_components(Lit, D0, Lex, _):-
   ground(Lex), !,
-  (ground(D0) -> D = D0 ; rdf_expand_ct(xsd:string, D)),
+  (ground(D0) -> D = D0 ; rdf_equal(xsd:string, D)),
   Lit = literal(type(D,Lex)).
 rdf_literal_components(Lit, D, Lex, LTag):-
   instantiation_error(rdf_literal_components(Lit, D, Lex, LTag)).
 
 rdf_literal_components0(literal(type(D,Lex)), D, Lex, _):- !.
 rdf_literal_components0(literal(lang(LTag,Lex)), D, Lex, LTag):- !,
-  rdf_expand_ct(rdf:langString, D).
+  rdf_equal(rdf:langString, D).
 rdf_literal_components0(literal(Lex), D, Lex, _):-
-  rdf_expand_ct(xsd:string, D).
+  rdf_equal(xsd:string, D).
 
 
 
@@ -122,10 +122,10 @@ rdf_literal_data(Field, Lit, Data):-
 
 rdf_literal_data0(datatype, literal(type(D,_)), D):- !.
 rdf_literal_data0(datatype, literal(lang(_,_)), D):- !,
-  rdf_expand_ct(rdf:langString, D).
+  rdf_equal(rdf:langString, D).
 rdf_literal_data0(datatype, literal(Lex), D):-
   atom(Lex), !,
-  rdf_expand_ct(xsd:string, D).
+  rdf_equal(xsd:string, D).
 rdf_literal_data0(langtag, literal(lang(LTag,_)), LTag):- !.
 rdf_literal_data0(lexical_form, Lit, Lex):- !,
   (   Lit = literal(lang(_,Lex))
@@ -173,9 +173,9 @@ rdf_literal_equiv(Lit1, Lit2):-
   rdf_equiv_value(D, Val1, Val2).
 % Simple literal on left hand side.
 rdf_literal_equiv(literal(Lex), Lit2):- !,
-  rdf_expand_ct(xsd:string, D),
+  rdf_equal(xsd:string, D),
   rdf_literal_equiv(literal(type(D,Lex)), Lit2).
 % Simple literal on right hand side.
 rdf_literal_equiv(Lit1, literal(Lex)):- !,
-  rdf_expand_ct(xsd:string, D),
+  rdf_equal(xsd:string, D),
   rdf_literal_equiv(Lit1, literal(type(D,Lex))).

@@ -55,10 +55,10 @@ assert_bibtex_entry(G, Entry0):-
   rdf_assert_instance(Entry, Class, G),
   
   % Properties.
-  rdf_assert_literal(Entry, lobo:name, xsd:string, Name, G),
+  rdf_assert(Entry, lobo:name, Name, G),
   maplist(assert_bibtex_property(Entry, G), Pairs).
 
 
 assert_bibtex_property(Entry, G, Key-Val):-
   rdf_global_id(lobo:Key, P),
-  rdf_assert_literal(Entry, P, xsd:string, Val, G).
+  rdf_assert(Entry, P, Val, G).

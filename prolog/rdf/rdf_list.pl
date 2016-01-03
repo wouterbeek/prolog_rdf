@@ -117,7 +117,7 @@ rdf_assert_list0(L1, L2, G):-
   rdf_assert_list_items0(L1, L2, G).
 
 rdf_assert_list_items0([], L, _):-
-  rdf_expand_ct(rdf:nil, L), !.
+  rdf_equal(rdf:nil, L), !.
 rdf_assert_list_items0([H1|T1], L2, G):-
   % rdf:first
   (   % Nested list.
@@ -128,12 +128,12 @@ rdf_assert_list_items0([H1|T1], L2, G):-
   ),
   (   (is_iri(H2) ; rdf_is_bnode(H2))
   ->  rdf_assert(L2, rdf:first, H2, G)
-  ;   rdf_assert_literal_pl(L2, rdf:first, H2, G)
+  ;   rdf_assert(L2, rdf:first, H2, G)
   ),
 
   % rdf:rest
   (   T1 == []
-  ->  rdf_expand_ct(rdf:nil, T2)
+  ->  rdf_equal(rdf:nil, T2)
   ;   add_list_instance0(T2, G),
       rdf_assert_list_items0(T1, T2, G)
   ),
@@ -148,7 +148,7 @@ add_list_instance0(L, G):-
 %! rdf_is_list(@Term) is semidet.
 
 rdf_is_list(L):-
-  rdf_expand_ct(rdf:nil, L), !.
+  rdf_equal(rdf:nil, L), !.
 rdf_is_list(L):-
   rdfs_instance(L, rdf:'List'), !.
 rdf_is_list(L):-
@@ -189,7 +189,7 @@ rdf_list_raw(L1, L2):-
 %! rdf_list_raw(+List:rdf_term, ?PrologList:list, ?Graph:rdf_graph) is semidet.
 
 rdf_list_raw(L, [], _):-
-  rdf_expand_ct(rdf:nil, L), !.
+  rdf_equal(rdf:nil, L), !.
 rdf_list_raw(L1, [H2|T2], G):-
   % rdf:first
   rdf(L1, rdf:first, H1, G),
@@ -248,7 +248,7 @@ rdf_list_length(L, N):-
 %! rdf_list_length(+List:rdf_term, -Length:nonneg, ?Graph:rdf_graph) is det.
 
 rdf_list_length(L, 0, _):-
-  rdf_expand_ct(rdf:nil, L), !.
+  rdf_equal(rdf:nil, L), !.
 rdf_list_length(L, N, G):-
   rdf(L, rdf:rest, T, G),
   rdf_list_length(T, M, G),
@@ -304,7 +304,7 @@ rdf_retractall_list(L):-
 %! rdf_retractall_list(+List:rdf_term, ?Graph:rdf_graph) is det.
 
 rdf_retractall_list(L, _):-
-  rdf_expand_ct(rdf:nil, L), !.
+  rdf_equal(rdf:nil, L), !.
 rdf_retractall_list(L, G):-
   % Remove the head.
   rdf(L, rdf:first, H, G),

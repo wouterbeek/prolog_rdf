@@ -1,41 +1,30 @@
 :- module(
   id_store,
   [
-    assign_id/1, % +Term
-    assign_id/2, % +Term:rdf_term
-                 % -Id:atom
+    assign_graph_id/2,		% +G, -Gid
+    assign_id/1,		% +T
+    assign_id/2,		% +T, -Tid
     check_id_store/0,
-    dangling_id/1, % ?Id:atom
-    id_terms/1, % -Terms:ordset(rdf_term)
-    id_to_term/2, % +Id:or([rdf_literal,uid])
-                  % -Term:rdf_term
-    id_to_terms/2, % +Id:or([rdf_literal,uid])
-                   % -Terms:ordset(rdf_term)
-    print_raw_describe/1, % +SubjectId
-    print_raw_describe/2, % +SubjectId:atom
-                          % +Options:list(compound)
-    print_raw_graph/1, % ?Graph
-    print_raw_graph/2, % ?Graph:rdf_graph
-                       % +Options:list(compound)
-    print_raw_statement/4, % ?Subject, ?Predicate, ?Object, ?Graph
-    print_raw_statement/5, % ?Subject:rdf_term
-                           % ?Predicate:iri
-                           % ?Object:rdf_term
-                           % ?Graph:rdf_graph
-                           % +Options:list(compound)
+    dangling_id/1,		% ?Tid
+    graph_id_to_term/2,		% +Gid, -G
+    graph_term_to_id/2,		% +G, -Gid
+    id_terms/1,			% -Ts:ordset
+    id_to_term/2,		% +Tid, -T
+    id_to_terms/2,		% +Tid, -Ts:ordset
+    print_raw_describe/1,	% +Sid
+    print_raw_describe/2,	% +Sid, +Opts
+    print_raw_graph/1,		% ?Gid
+    print_raw_graph/2,		% ?Gid, +Opts
+    print_raw_statement/4,	% ?Sid, ?Pid, ?Oid, ?Gid
+    print_raw_statement/5,	% ?Sid, ?Pid, ?Oid, ?Gid, +Opts
     print_store/0,
-    print_store/1, % +Options:list(compound)
-    rdf_is_id/2, % +Term1:rdf_term
-                 % +Term2:rdf_term
-    remove_id/1, % +Id:or([rdf_literal,uid])
-    store_id/2, % +Id1:or([rdf_literal,uid])
-                % +Id2:or([rdf_literal,uid])
-    term_to_id/2, % +Term:rdf_term
-                  % -Id:or([rdf_literal,uid])
-    term_to_term/2, % +Term1:rdf_term
-                    % -Term2:rdf_term
-    term_to_terms/2, % +Term:rdf_term
-                     % -Terms:ordset(rdf_term)
+    print_store/1,		% +Opts
+    rdf_is_id/2,		% +T1, +T2
+    remove_id/1,		% +Tid
+    store_id/2,			% +Tid1, +Tid2
+    term_to_id/2,		% +T, -Tid
+    term_to_term/2,		% +T1, -T2
+    term_to_terms/2,		% +T, -Ts
     unload_id_store/0
   ]
 ).
@@ -52,8 +41,18 @@ A UID identity set identifier denotes a set of blank nodes and/or IRIs.
 
 A literal identity set identifier denotes itself.
 
+Term identifiers are denoted `Tid'.
+Subject term identifiers are denoted `Sid'.
+Predicate term identifiers are denoted `Pid'.
+Object term identifiers are denoted `Oid'.
+Graph identifiers are defnoted `Gif'.
+Arbitrary identifiers are denoted `Xid', `Yid' and `Zid'.
+Identifiers are atoms.
+
+---
+
 @author Wouter Beek
-@version 2015/08, 2015/10, 2015/12
+@version 2015/08, 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(dcg/dcg_collection)).
@@ -65,35 +64,34 @@ A literal identity set identifier denotes itself.
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf_db), [
-     rdf/3 as rdf0,
-     rdf/4 as rdf0,
-     rdf_assert/4 as rdf_assert0,
-     rdf_retractall/4 as rdf_retractall0
-   ]).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 
-:- rdf_meta(assign_id(o)).
-:- rdf_meta(assign_id(o,-)).
-:- rdf_meta(print_raw_graph(r)).
-:- rdf_meta(print_raw_graph(r,+)).
-:- rdf_meta(print_raw_statement(o,r,o,r)).
-:- rdf_meta(print_raw_statement(o,r,o,r,+)).
-:- rdf_meta(rdf_is_id(r,r)).
-:- rdf_meta(store_id(o,o)).
-:- rdf_meta(term_to_id(o,-)).
-:- rdf_meta(term_to_term(o,-)).
-:- rdf_meta(term_to_terms(o,-)).
+:- rdf_meta
+	assign_graph_id(r, -),
+	assign_id(o),
+	assign_id(o, -),
+	graph_term_to_id(r, -),
+	print_raw_graph(r),
+	print_raw_graph(r, +),
+	print_raw_statement(o, r, o, r),
+	print_raw_statement(o, r, o, r, +),
+	rdf_is_id(r, r),
+	store_id(o, o),
+	term_to_id(o, -),
+	term_to_term(o, -),
+	term_to_terms(o, -).
 
-%! id_to_terms0(+Id:uid, -Terms:ordset(or([rdf_bnode,iri]))) is nondet.
+%! id_to_terms0(+Tid, -Ts:ordset) is nondet.
 
 :- dynamic(id_to_terms0/2).
 
-%! term_to_id0(+Term:or([rdf_bnode,iri]), -Id:uid) is nondet.
+%! term_to_id0(+T, -Tid) is nondet.
 
 :- dynamic(term_to_id0/2).
 
@@ -107,38 +105,46 @@ A literal identity set identifier denotes itself.
      pass_to(rdf_print_term//2, 2)
    ]).
 
-:- initialization((rdf_expand_ct(owl:sameAs, P), assign_id(P))).
+:- initialization((rdf_equal(owl:sameAs, P), assign_id(P))).
 
 
 
 
 
-%! assign_id(+Term:rdf_term) is det.
+%! assign_graph_id(+G, -Gid) is det.
+
+assign_graph_id(default, default) :- !.
+assign_graph_id(G, Gid) :-
+  assign_id(G, Gid).
+
+
+
+%! assign_id(+T) is det.
 % Wrapper around assign_id/2 that does not return the identifier.
 
-assign_id(T):-
+assign_id(T) :-
   assign_id(T, _).
 
 
-%! assign_id(+Term:rdf_term, -Id:atom) is det.
+%! assign_id(+T, -Tid) is det.
 
-assign_id(T, TId):-
+assign_id(T, Tid) :-
   canonical_form(T, CT),
   with_mutex(id_store, (
-    (   term_to_id0(CT, TId)
+    (   term_to_id0(CT, Tid)
     ->  true
-    ;   create_id(TId),
-        store_new_id0(CT, TId)
+    ;   create_id(Tid),
+        store_new_id0(CT, Tid)
     )
   )).
 
-canonical_form(Lit, CLit):-
+canonical_form(Lit, CLit) :-
   rdf_is_literal(Lit), !,
   rdf_lexical_canonical_map(Lit, CLit).
-canonical_form(Iri, Norm):-
-  is_iri(Iri), !,
+canonical_form(Iri, Norm) :-
+  rdf_is_iri(Iri), !,
   iri_normalized(Iri, Norm).
-canonical_form(BNode, BNode).
+canonical_form(BN, BN).
 
 
 
@@ -148,105 +154,109 @@ check_id_store:-
   \+ dangling_id(_), !.
 check_id_store:-
   format(user_output, "Dangling IDs:~n", []),
-  forall(distinct(Id, dangling_id(Id)), format(user_error, "  ~a~n", [Id])),
+  forall(distinct(Tid, dangling_id(Tid)), format(user_error, "  ~a~n", [Tid])),
   fail.
 
 
 
-%! dangling_id(+Id:atom) is semidet.
-%! dangling_id(-Id:atom) is nondet.
+%! dangling_id(+Tid) is semidet.
+%! dangling_id(-Tid) is nondet.
 
-dangling_id(Id):-  
+dangling_id(Id) :-  
   term_to_id(_, Id),
   \+ id_to_terms(Id, _).
 
 
 
-%! id_terms(-Terms:ordset(rdf_term)) is nondet.
+%! graph_id_to_term(+Gid, -G) is det.
+
+graph_id_to_term(default, default) :- !.
+graph_id_to_term(Gid, G) :-
+  id_to_term(Gid, G).
+
+
+
+%! graph_term_to_id(+G, -Gid) is det.
+
+graph_term_to_id(default, default) :- !.
+graph_term_to_id(G, Gid) :-
+  term_to_id(G, Gid).
+
+
+
+%! id_terms(-Ts:ordset) is nondet.
 % Allows identical terms to be enumerated.
 
-id_terms(Ts):-
+id_terms(Ts) :-
   id_to_terms(_, Ts).
 
 
 
-%! id_to_term(+Id:uid, +Term:rdf_term) is multi.
+%! id_to_term(+Tid, -T) is multi.
 
-id_to_term(Id, T):-
+id_to_term(Id, T) :-
   id_to_terms(Id, Ts),
   member(T, Ts).
 
 
 
-%! id_to_terms(+Id:atom, -Terms:ordset(rdf_term)) is det.
+%! id_to_terms(+Tid, -Ts:ordset) is det.
 
-id_to_terms(Id, Ts):-
-  id_to_terms0(Id, Ts).
+id_to_terms(Tid, Ts) :-
+  id_to_terms0(Tid, Ts).
 
 
 
-%! print_raw_describe(+SubjectId:atom) is det.
+%! print_raw_describe(+Sid) is det.
 % Wrapper around print_raw_describe/2 with default options.
 
-print_raw_describe(S):-
-  print_raw_describe(S, []).
+print_raw_describe(Sid) :-
+  print_raw_describe(Sid, []).
 
 
-%! print_raw_describe(+SubjectId:atom, +Options:list(compound)) is det.
+%! print_raw_describe(+Sid, +Opts) is det.
 
-print_raw_describe(S, Opts):-
-  print_raw_statement(S, _, _, _, Opts),
+print_raw_describe(Sid, Opts) :-
+  print_raw_statement(Sid, _, _, _, Opts),
   fail.
 print_raw_describe(_, _).
 
 
-%! print_raw_graph(?Graph:rdf_graph) is det.
+%! print_raw_graph(?Gid) is det.
 % Wrapper around print_raw_graph/2 with default options.
 
-print_raw_graph(G):-
-  print_raw_graph(G, []).
+print_raw_graph(Gid) :-
+  print_raw_graph(Gid, []).
 
 
-%! print_raw_graph(?Graph:rdf_graph, +Options:list(compound)) is det.
+%! print_raw_graph(?Gid, +Opts) is det.
 
-print_raw_graph(G, Opts):-
-  defval(default, G),
-  print_raw_statement(_, _, _, _, Opts),
+print_raw_graph(Gid, Opts) :-
+  defval(default, Gid),
+  print_raw_statement(_, _, _, Gid, Opts),
   fail.
 print_raw_graph(_, _).
 
 
 
-%! print_raw_statement(
-%!   ?SubjectId:atom,
-%!   ?PredicateId:atom,
-%!   ?ObjectId:atom,
-%!   ?Graph:rdf_graph
-%! ) is nondet.
+%! print_raw_statement(?Sid, ?Pid, ?Oid, ?Gid) is nondet.
 % Wrapper around print_raw_statement/5 with default options.
 
-print_raw_statement(S, P, O, G):-
-  print_raw_statement(S, P, O, G, []).
+print_raw_statement(Sid, Pid, Oid, Gid) :-
+  print_raw_statement(Sid, Pid, Oid, Gid, []).
 
 
-%! print_raw_statement(
-%!   ?SubjectId:atom,
-%!   ?PredicateId:atom,
-%!   ?ObjectId:atom,
-%!   ?Graph:rdf_graph,
-%!   +Options:list(compound)
-%! ) is nondet.
+%! print_raw_statement(?Sid, ?Pid, ?Oid, ?Gid, +Opts) is nondet.
 
-print_raw_statement(S, P, O, G, Opts):-
-  rdf0(S, P, O, G),
+print_raw_statement(Sid, Pid, Oid, Gid, Opts) :-
+  rdf_id(Sid, Pid, Oid, Gid),
   option(indent(I), Opts, 0), tab(I),
-  dcg_with_output_to(current_output, print_raw_statement(S, P, O, G)),
+  dcg_with_output_to(current_output, print_raw_statement(Sid, Pid, Oid, Gid)),
   nl.
 
-
-print_raw_statement(S, P, O, G) -->
-  tuple(atom, [S,P,O]),
-  ({var(G)} -> "" ; rdf_print_graph(G)).
+print_raw_statement(Sid, Pid, Oid, Gid) -->
+  tuple(atom, [Sid,Pid,Oid]),
+  ({var(Gid)} -> "" ; rdf_print_graph(Gid)).
 
 
 
@@ -257,18 +267,18 @@ print_store:-
   print_store([]).
 
 
-%! print_store(+Options:list(compound)) is det.
+%! print_store(+Opts) is det.
 % The following options are supported:
 %   * indent(+nonneg)
 %     Default is 0.
 
-print_store(Opts):-
+print_store(Opts) :-
   option(indent(N), Opts, 0),
   forall(
-    id_to_terms(Id, Ts),
+    id_to_terms(Tid, Ts),
     dcg_with_output_to(user_output, (
       tab(N),
-      atom(Id),
+      atom(Tid),
       "\t",
       set(rdf_print_term0(Opts), Ts),
       nl
@@ -278,30 +288,30 @@ rdf_print_term0(Opts, T) --> rdf_print_term(T, Opts).
 
 
 
-%! rdf_is_id(+Term1:rdf_term, +Term2:rdf_term) is semidet.
+%! rdf_is_id(+T1, +T2) is semidet.
 
-rdf_is_id(T1, T2):-
+rdf_is_id(T1, T2) :-
   term_to_terms(T1, Ts),
   memberchk(T2, Ts).
 
 
 
-%! remove_id(+Id:uid) is det.
+%! remove_id(+Tid) is det.
 
-remove_id(Id):-
+remove_id(Tid) :-
   with_mutex(id_store, (
-    retractall(id_to_terms0(Id,_)),
-    retractall(term_to_id0(_,Id))
+    retractall(id_to_terms0(Tid,_)),
+    retractall(term_to_id0(_,Tid))
   )).
 
 
 
 
-%! store_id(+X:rdf_term, +Y:rdf_term) is det.
+%! store_id(+X, +Y) is det.
 
-store_id(X, Y):-
+store_id(X, Y) :-
   with_mutex(id_store, store_id0(X, Y)).
-store_id0(X, Y):-
+store_id0(X, Y) :-
   (   term_to_id0(X, Xid)
   ->  (   term_to_id0(Y, Yid)
       ->  (   % X and Y already belong to the same identity set.
@@ -344,26 +354,28 @@ store_id0(X, Y):-
 
 
 
-%! term_to_id(+Term:rdf_term, -Id:atom) is semidet.
+%! term_to_id(+T, -Tid) is semidet.
 
-term_to_id(T, Id):-
-  term_to_id0(T, Id).
+term_to_id(default, default) :- !.
+term_to_id(T1, Tid) :-
+  (rdf_is_iri(T1) -> iri_normalized(T1, T2) ; T2 = T1),
+  term_to_id0(T2, Tid).
 
 
 
-%! term_to_term(+Term1:rdf_term, -Term2:rdf_term) is multi.
+%! term_to_term(+T1, -T2) is multi.
 
-term_to_term(T1, T2):-
+term_to_term(T1, T2) :-
   term_to_terms(T1, Ts),
   member(T2, Ts).
 
 
 
-%! term_to_terms(+Term:rdf_term, -Terms:ordset(rdf_term)) is det.
+%! term_to_terms(+T, -Ts:ordset) is det.
 
-term_to_terms(T, Ts):-
-  term_to_id(T, Id),
-  id_to_terms(Id, Ts).
+term_to_terms(T, Ts) :-
+  term_to_id(T, Tid),
+  id_to_terms(Tid, Ts).
 
 
 
@@ -381,28 +393,37 @@ unload_id_store:-
 
 % HELPERS %
 
-%! create_id(-Id:nonneg) is det.
+%! create_id(-Tid:nonneg) is det.
 
-create_id(Id):-
+create_id(Tid) :-
   flag(id_counter, N, N + 1),
-  atom_number(Id, N).
+  atom_number(Tid, N).
 
 
 
-%! rdf_rename_term0(+From, +To) is det.
+%! rdf_rename_term0(+Xid, +Yid) is det.
 
-rdf_rename_term0(X, Y):-
-  forall(rdf0(X, P, O, G), rdf_assert0(Y, P, O, G)),
-  rdf_retractall0(X, _, _, _),
-  forall(rdf0(S, X, O, G), rdf_assert0(S, Y, O, G)),
-  rdf_retractall0(_, X, _, _),
-  forall(rdf0(S, P, X, G), rdf_assert0(S, P, Y, G)),
-  rdf_retractall0(_, _, X, _).
+rdf_rename_term0(Xid, Yid) :-
+  % Firstly. rename the graph `Xid', if it exists.
+  (   rdf_is_graph(Xid)
+  ->  forall(rdf_id(Sid, Pid, Oid, Xid), rdf_assert_id(Sid, Pid, Oid, Yid)),
+      rdf_unload_graph(Xid)
+  ;   true
+  ),
+
+  % Secondly, rename statements containing term X
+  % in the subject, predicate and object position.
+  forall(rdf_id(Xid, Pid, Oid, Gid), rdf_assert_id(Yid, Pid, Oid, Gid)),
+  rdf_retractall_id(Xid, _, _, _),
+  forall(rdf_id(Sid, Xid, Oid, Gid), rdf_assert_id(Sid, Yid, Oid, Gid)),
+  rdf_retractall_id(_, Xid, _, _),
+  forall(rdf_id(Sid, Pid, Xid, Gid), rdf_assert_id(Sid, Pid, Yid, Gid)),
+  rdf_retractall_id(_, _, Xid, _).
 
 
 
-%! store_new_id0(+Term:rdf_term, +Id:uid) is det.
+%! store_new_id0(+T, +Tid) is det.
 
-store_new_id0(T, TId):-
-  assert(term_to_id0(T, TId)),
-  assert(id_to_terms0(TId, [T])).
+store_new_id0(T, Tid) :-
+  assert(term_to_id0(T, Tid)),
+  assert(id_to_terms0(Tid, [T])).

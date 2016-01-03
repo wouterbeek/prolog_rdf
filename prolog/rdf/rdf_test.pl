@@ -35,8 +35,8 @@ Various tests for RDF predicates,
 
 rdf_test(database(identity)):-
   rdf_test((
-    rdf_assert_literal(ex:a, rdfs:label, xsd:string, a),
-    rdf_assert_literal(ex:b, rdfs:label, xsd:string, b),
+    rdfs_assert_label(ex:a, "a"),
+    rdfs_assert_label(ex:b, "b"),
     rdf_assert(ex:a, owl:sameAs, ex:b),
     rdf_assert(ex:a, owl:sameAs, ex:c),
     rdf_assert(ex:d, owl:sameAs, ex:c)
@@ -53,7 +53,7 @@ rdf_test(database(identity)):-
 
 rdf_test(modeling(visum)):-
   % Use a default graph name if none is given.
-  rdf_expand_ct(ex:visum, G),
+  rdf_equal(ex:visum, G),
 
   % Chinese namespace
   rdfs_assert_subclass(ch:capital, ch:cityWithAirport, G),

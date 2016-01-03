@@ -120,7 +120,7 @@ rdf_canonical_map(D, Val, CLit):-
 %! ) is det.
 
 rdf_canonical_map(D, Val, CLex, CLTag):-
-  rdf_expand_ct(rdf:langString, D), !,
+  rdf_equal(rdf:langString, D), !,
   % First check value for groundness, otherwise the pair term is instantiated.
   ground(Val),
   Val = CLex-LTag,
@@ -128,10 +128,10 @@ rdf_canonical_map(D, Val, CLex, CLTag):-
   atom_phrase('Language-Tag'(CLTag0), LTag),
   atomic_list_concat(CLTag0, -, CLTag).
 rdf_canonical_map(D, Val, CLex, _):-
-  rdf_expand_ct(rdf:'HTML', D), !,
+  rdf_equal(rdf:'HTML', D), !,
   with_output_to(atom(CLex), html_write(current_output, Val, [])).
 rdf_canonical_map(D, Val, CLex, _):-
-  rdf_expand_ct(rdf:'XMLLiteral', D), !,
+  rdf_equal(rdf:'XMLLiteral', D), !,
   with_output_to(atom(CLex), xml_write(current_output, Val, [])).
 %rdf_canonical_map('http://purl.org/dc/terms/RFC4646', LTag, CLex, _):- !,
 %  maplist(string_atom, LTag, Subtags),
@@ -158,8 +158,8 @@ rdf_canonical_map(D, Val, CLex, _):-
 %! ) is semidet.
 
 rdf_compare_value(D, Order, V1, V2):-
-  (   rdf_expand_ct(rdf:'HTML', D)
-  ;   rdf_expand_ct(rdf:'XMLLiteral', D)
+  (   rdf_equal(rdf:'HTML', D)
+  ;   rdf_equal(rdf:'XMLLiteral', D)
   ), !,
   compare(Order, V1, V2).
 rdf_compare_value(D, Order, V1, V2):-
@@ -202,15 +202,15 @@ rdf_guess_datatype(Val, D):-
   ground(Val),
   Val = [element(Root,_,_)], !,
   (   Root == html
-  ->  rdf_expand_ct(rdf:'HTML', D)
-  ;   rdf_expand_ct(rdf:'XMLLiteral', D)
+  ->  rdf_equal(rdf:'HTML', D)
+  ;   rdf_equal(rdf:'XMLLiteral', D)
   ).
 rdf_guess_datatype(Val, D):-
   % First checkout for groundness.
   ground(Val),
   Val = Lex-LTag,
   maplist(atom, [Lex,LTag]), !,
-  rdf_expand_ct(rdf:langString, D).
+  rdf_equal(rdf:langString, D).
 rdf_guess_datatype(Val, D):-
   xsd_guess_datatype(Val, D).
 
@@ -295,14 +295,14 @@ rdf_lexical_map(D, Lex, Val):-
 
 % Language-tagged string.
 rdf_lexical_map(D, Lex, LTag0, Lex-LTag):-
-  rdf_expand_ct(rdf:langString, D), !,
+  rdf_equal(rdf:langString, D), !,
   downcase_atom(LTag0, LTag).
 % Typed literal (as per RDF 1.0 specification).
 rdf_lexical_map(D, Lex, _, Val):-
-  rdf_expand_ct(rdf:'HTML', D), !,
+  rdf_equal(rdf:'HTML', D), !,
   call_collect_messages(atom_to_html_dom(Lex, Val)).
 rdf_lexical_map(D, Lex, _, Val):-
-  rdf_expand_ct(rdf:'XMLLiteral', D), !,
+  rdf_equal(rdf:'XMLLiteral', D), !,
   call_collect_messages(atom_to_xml_dom(Lex, Val)).
 rdf_lexical_map('http://purl.org/dc/terms/W3CDTF', Lex, _, DT):- !,
   atom_phrase(ldtf(DT), Lex).

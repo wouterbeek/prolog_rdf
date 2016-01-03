@@ -81,7 +81,7 @@ xml_parse(ParserVersion, Prefix, G) -->
   'STag'(ParserVersion, RootName, _),
   *(ascii_white, []),
   {
-    rdf_expand_rt(Prefix:RootName, C),
+    rdf_global_id(Prefix:RootName, C),
     rdf_create_iri(Prefix, [RootName], I),
     rdf_assert_instance(I, C, G)
   },
@@ -104,9 +104,9 @@ xml_parse(Version, Prefix, S, G) -->
   *(ascii_white, []),
   xml_content(Version, PTag, Cs),
   {
-    atom_codes(O, Cs),
-    rdf_expand_rt(Prefix:PTag, P),
-    rdf_assert_literal(S, P, xsd:string, O, G)
+    string_codes(O, Cs),
+    rdf_global_id(Prefix:PTag, P),
+    rdf_assert(S, P, O, G)
   }.
 % Skip short tags.
 xml_parse(Version, _, _, _) -->
@@ -117,7 +117,7 @@ xml_parse(Version, Prefix, S, G) -->
   'STag'(Version, OTag, _), !,
   *(ascii_white),
   {
-    rdf_expand_rt(Prefix:OTag, Class),
+    rdf_global_id(Prefix:OTag, Class),
     rdf_create_next_resource(Prefix, [OTag], Class, G, O)
   },
   xml_parses(Version, Prefix, O, G),
@@ -165,7 +165,7 @@ xml_content(Version, Tag, [H|T]) -->
 %! ) is det.
 
 create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
-  rdf_expand_rt(Ns:Name1, C),
+  rdf_global_id(Ns:Name1, C),
   findall(
     Value,
     (
@@ -184,7 +184,7 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2):-
     Name4
   ),
 
-  rdf_expand_rt(Ns:Name4, S),
+  rdf_global_id(Ns:Name4, S),
 
   rdf_assert_instance(S, C, G),
 
