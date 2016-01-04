@@ -1,8 +1,9 @@
 :- module(
   rdfs_stats,
   [
-    rdfs_number_of_instances/2 % +Class:rdf_term
-                               % -Count:nonneg
+    rdfs_number_of_classes/2, % -N
+    rdfs_number_of_instances/2, % +C, -N
+    rdfs_number_of_properties/1 % -N
   ]
 ).
 
@@ -21,7 +22,21 @@
 
 
 
+%! rdfs_number_of_classes(-Count:nonneg) is det.
+
+rdfs_number_of_classes(N) :-
+  aggregate_all(count, rdfs_class(_), N).
+
+
+
 %! rdfs_number_of_instances(+Class:rdf_term, -Count:nonneg) is det.
 
 rdfs_number_of_instances(C, N) :-
   aggregate_all(count, rdfs_individual_of(_, C), N).
+
+
+
+%! rdfs_number_of_properties(-Count:nonneg) is det.
+
+rdfs_number_of_properties(N) :-
+  aggregate_all(count, rdfs_property(_), N).
