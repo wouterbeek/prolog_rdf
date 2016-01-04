@@ -1,9 +1,8 @@
 :- module(
   rdf_debug,
   [
-    rdf_show_graph/1, % +Graph
-    rdf_show_graph/2 % +Graph:rdf_graph
-                     % +Options:list(compound)
+    rdf_show_graph/1, % +G
+    rdf_show_graph/2  % +G, +Opts
   ]
 ).
 
@@ -12,7 +11,7 @@
 Show RDF data structures during modeling/development.
 
 @author Wouter Beek
-@version 2015/08, 2015/12
+@version 2015/08, 2015/12-2016/01
 */
 
 :- use_module(library(gv/gv_file)).
@@ -25,26 +24,20 @@ Show RDF data structures during modeling/development.
 
 :- predicate_options(rdf_show_graph/2, 2, [
      pass_to(rdf_graph_to_export_graph/3, 3),
-     pass_to(gv_export/3, 3),
+     pass_to(graph_viz/3, 3),
      pass_to(run_process/3, 3)
    ]).
 
 
 
-
-
-%! rdf_show_graph(+Graph:rdf_graph) is det.
-% Wrapper around rdf_show_graph/2 with default options.
+%! rdf_show_graph(+G) is det.
+%! rdf_show_graph(+G, +Opts) is det.
 
 rdf_show_graph(G) :-
   rdf_show_graph(G, []).
-
-
-%! rdf_show_graph(+Graph:rdf_graph, +Options:list(compound)) is det.
-
 rdf_show_graph(G, Opts1) :-
   rdf_graph_to_export_graph(G, ExportG, Opts1),
   file_name_extension(G, pdf, File),
-  gv_export(ExportG, File, Opts1),
+  graph_viz(ExportG, File, Opts1),
   merge_options([detached(true),program('XPDF')], Opts1, Opts2),
   run_process(xpdf, [file(File)], Opts2).

@@ -83,7 +83,7 @@ mat_viz0(Es, GLabel) :-
     vertex_shape(proof_node_shape)
   ],
   build_export_graph(graph(Vs,Es), ExportG, Opts),
-  gv_export(ExportG, 'j.pdf', [method(dot),output(pdf)]),
+  graph_viz(ExportG, 'j.pdf', [method(dot),output(pdf)]),
   run_process(xpdf, [file('j.pdf')], [program('XPDF')]).
 
 

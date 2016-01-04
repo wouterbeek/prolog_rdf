@@ -1,10 +1,10 @@
 :- module(
   rdf_fca_viz,
   [
-    rdf_fca_export_graph/2,	% +G, -ExportG
-    rdf_fca_export_graph/3,	% +G, -ExportG, :Opts
-    rdf_fca_viz/2,		% +G, +File
-    rdf_fca_viz/3		% +G, ?File, :Opts
+    rdf_fca_export_graph/2, % +G, -ExportG
+    rdf_fca_export_graph/3, % +G, -ExportG, :Opts
+    rdf_fca_viz/2,          % +G, +File
+    rdf_fca_viz/3           % +G, ?File, :Opts
   ]
 ).
 
@@ -32,7 +32,7 @@
    ]).
 :- predicate_options(rdf_fca_viz/3, 3, [
      pass_to(rdf_fca_export_graph/3, 3),
-     pass_to(gv_export/3, 3)
+     pass_to(graph_viz/3, 3)
    ]).
 
 
@@ -67,7 +67,7 @@ rdf_fca_viz(G, File) :-
   rdf_fca_viz(G, File, []).
 rdf_fca_viz(G, File, Opts) :-
   rdf_fca_export_graph(G, ExportG, Opts),
-  gv_export(ExportG, File, Opts).
+  graph_viz(ExportG, File, Opts).
 
 
 
