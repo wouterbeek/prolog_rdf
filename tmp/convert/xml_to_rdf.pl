@@ -87,7 +87,7 @@ xml_parse(ParserVersion, Prefix, G) -->
   },
   xml_parses(ParserVersion, Prefix, Resource, G),
   'ETag'(RootName),
-  dcg_done.
+  done.
 
 
 

@@ -149,13 +149,13 @@ dataPropertyIRI(Iri) --> 'IRI'(Iri).
 % ```
 
 decimalLiteral(literal(type(xsd:decimal,Rat))) -->
-  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
+  ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
   digits(Ds1),
+  {pos_sum(Ds1, I)},
   ".",
   digits(Ds2),
   {
-    possum(Ds1, I),
-    posfrac(Ds2, Frac),
+    pos_frac(Ds2, Frac),
     rational_parts(Rat0, I, Frac),
     Rat is Sg * Rat0
   }.
@@ -218,16 +218,18 @@ exponent(Exp) -->
 % ```
 
 floatingPointLiteral(Rat) -->
-  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
-  (   digits(Ds1),
-      (".", digits(Ds2) ; {Ds2 = []})
-  ;   {Ds1 = []}, ".", digits(Ds2)
+  ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
+  (   digits(Ds1)
+  ->  ("." -> digits(Ds2) ; {Ds2 = []})
+  ;   {Ds1 = []},
+      ".",
+      digits(Ds2)
   ),
-  (exponent(Exp) ; {Exp = 0}),
-  ("f" ; "F"),
+  def(exponent, Exp, 0),
+  ("f" ; "F"), !,
   {
-    possum(Ds1, I),
-    posfrac(Ds2, Frac),
+    pos_sum(Ds1, I),
+    pos_frac(Ds2, Frac),
     Rat is Sg * float(I + Frac) * Exp
   }.
 

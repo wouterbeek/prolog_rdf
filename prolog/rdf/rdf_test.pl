@@ -46,7 +46,7 @@ rdf_test(database(identity)) :-
     rdf_print_graph(default, [id_closure(true)|Opts]),
     format("Identity store:~n"),
     rdf_print_graph(default, Opts),
-    print_store(Opts)
+    print_id_store(Opts)
   )).
 
 

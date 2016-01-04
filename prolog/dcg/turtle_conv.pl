@@ -17,7 +17,9 @@ Predicates for converting Prolog to Turtle values.
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(dcg/sparql10_code)).
+:- use_module(library(dcg/turtle11), []).
+:- use_module(library(dcg/sparql10), ['PN_CHARS'//1,'PN_CHARS_U'//1]).
+:- use_module(library(dcg/sparql11), ['PLX'//1]).
 :- use_module(library(dlist)).
 :- use_module(library(math/radconv)).
 
@@ -60,7 +62,7 @@ to_pn_local_last([C  |H]-H) --> 'PLX'(C),      !.
 to_pn_local_last(L)         --> to_pn_local_escape(L).
 
 % Escape by backslash.
-to_pn_local_escape([0'\\,C|H]-H) --> sparql11_code:pn_local_esc_code(C), !.
+to_pn_local_escape([0'\\,C|H]-H) --> sparql11:pn_local_esc_code(C), !.
 % Escape by hexadecimal.
 to_pn_local_escape([0'%,Code1,Code2|H]-H) -->
   [Code],

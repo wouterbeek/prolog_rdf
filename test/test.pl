@@ -6,19 +6,16 @@
 :- use_module(library(dcg/manchester)).
 :- use_module(library(dcg/nquads11)).
 :- use_module(library(dcg/ntriples11)).
-:- use_module(library(dcg/sparql10_code)).
-:- use_module(library(dcg/sparql10_token)).
-:- use_module(library(dcg/sparql11_code)).
-:- use_module(library(dcg/sparql11_token)).
-:- use_module(library(dcg/turtle10_code)).
-:- use_module(library(dcg/turtle10_token)).
-:- use_module(library(dcg/turtle11_code)).
-:- use_module(library(dcg/turtle11_token)).
+:- use_module(library(dcg/sparql10)).
+:- use_module(library(dcg/sparql11)).
+:- use_module(library(dcg/turtle10)).
+:- use_module(library(dcg/turtle11)).
 */
 %/fca
 :- use_module(library(fca/rdf_fca)).
 :- use_module(library(fca/rdf_fca_viz)).
 %/html
+:- use_module(library(html/rdf_html_fca_viz)).
 :- use_module(library(html/rdf_html_graph_viz)).
 :- use_module(library(html/rdf_html_meta)).
 :- use_module(library(html/rdf_html_stmt)).
@@ -46,7 +43,6 @@
 :- use_module(library(rdf/rdf_clean_metadata)).
 :- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_compare)).
-:- use_module(library(rdf/rdf_container)).
 :- use_module(library(rdf/rdf_database)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_debug)).
@@ -55,13 +51,17 @@
 :- use_module(library(rdf/rdf_download)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_graph_theory)).
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_guess)).
+:- use_module(library(rdf/rdf_guess_turtle)).
+:- use_module(library(rdf/rdf_guess_xml)).
 :- use_module(library(rdf/rdf_image)).
 :- use_module(library(rdf/rdf_info)).
 :- use_module(library(rdf/rdf_json_build)).
 :- use_module(library(rdf/rdf_legacy)).
+:- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -78,7 +78,6 @@
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdf/w3c_dtf)).
 %/rdfs
-:- use_module(library(rdfs/rdfs_api)).
 :- use_module(library(rdfs/rdfs_build)).
 :- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(rdfs/rdfs_stats)).
@@ -86,3 +85,5 @@
 :- use_module(library(simple/write_SimpleRDF)).
 %/sparql
 :- use_module(library(sparql/sparql_db)).
+%/void
+:- use_module(library(void/void_build)).

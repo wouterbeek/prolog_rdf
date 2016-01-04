@@ -22,6 +22,7 @@
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(option_ext)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta

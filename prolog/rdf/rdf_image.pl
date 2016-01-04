@@ -44,5 +44,5 @@ rdf_image(S, P, V, G) :-
   (   rdf_member(P, [dbo:thumbnail,foaf:depiction]),
       rdf_literal(S, P, xsd:anyURI, V, G)
   ;   rdf_literal(S, P, xsd:anyURI, V, G),
-      rdfs_instance(V, dcmit:'Image')
+      rdfs_instance0(V, dcmit:'Image')
   ).

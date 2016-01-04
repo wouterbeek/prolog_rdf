@@ -19,6 +19,7 @@
 :- use_module(library(fca/rdf_fca)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(option)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
 
 :- rdf_meta

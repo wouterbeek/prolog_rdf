@@ -14,10 +14,10 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdf11/rdf11_mt)).
 
 :- rdf_meta
-	rdf_fca_context(-, r).
+   rdf_fca_context(-, r).
 
 
 
@@ -28,10 +28,8 @@
 rdf_fca_context(
   context(
     rdf_term:rdf_subject(G),
-    rdf_fca:rdfs_class0(G),
-    rdf_fca:rdf_instance0(G)
+    rdf_fca:rdfs_class,
+    rdf_fca:rdf_instance
   ),
   G
 ).
-rdfs_class0(G, A) :- rdfs_class(A, G).
-rdf_instance0(G, O, A) :- rdf_instance(O, A, G).

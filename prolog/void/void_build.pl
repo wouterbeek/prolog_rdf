@@ -14,14 +14,14 @@ Automatically generate VoID descriptions.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(maplist)).
+:- use_module(library(apply)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_save)).
 :- use_module(library(rdf/rdf_stats)).
-:- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdf11/rdf11_mt)).
 :- use_module(library(rdfs/rdfs_stats)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
@@ -31,7 +31,7 @@ Automatically generate VoID descriptions.
 void_gen(In):-
   G = void,
   setup_call_cleanup(
-    rdf_load_any(Input, [metadata(M)]),
+    rdf_load_file(In, [metadata(M)]),
     (
       [E|_] = M.entries,
       void_gen(In, E.'RDF'.'serialization-format', G),
@@ -58,7 +58,7 @@ void_gen(In, Format, G):-
     (
       vocabulary_term(T),
       rdf_is_iri(T),
-      rdf_prefix_iri(Iri, IriPrefix)
+      rdf_prefix_iri(T, IriPrefix)
     ),
     Vocabs
   ),
@@ -82,7 +82,7 @@ void_gen(In, Format, G):-
   % void:triples
   rdf_assert(Dataset, void:triples, NT^^xsd:nonNegativeInteger, G),
   % void:vocabulary
-  maplist([Vocab]>>rdf_asssert(Dataset, void:vocabulary, Vocab, G), Vocabs).
+  maplist([Vocab]>>rdf_assert(Dataset, void:vocabulary, Vocab, G), Vocabs).
 
 
 vocabulary_term(C):- rdfs_class(C).

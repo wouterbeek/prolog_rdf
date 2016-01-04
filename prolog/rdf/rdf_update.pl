@@ -36,7 +36,6 @@ Higher-level update operations performed on RDF data.
 @version 2015/07-2015/08, 2015/10-2015/12
 */
 
-:- use_module(library(dcg/dcg_arrow)).
 :- use_module(library(dcg/dcg_bracket)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_debug)).
@@ -92,10 +91,9 @@ rdf_canonize_triple(S, P, O1, G) :-
   (   O1 \== O2
   ->  rdf_update(S, P, O1, G, object(O2)),
       dcg_debug(rdf(update), (
-        transition(
-          rdf_print_statement(S, P, O1, G, []),
-          rdf_print_statement(S, P, O2, G, [])
-        )
+        rdf_print_statement(S, P, O1, G, []),
+        " → ",
+        rdf_print_statement(S, P, O2, G, [])
       ))
   ;   true
   ).
@@ -122,10 +120,9 @@ rdf_cp0(Action, FromG, S, P, O, ToG) :-
     dcg_debug(rdf(update), (
       bracketed(square, atom(Action)),
       " ",
-      transition(
-        rdf_print_statement(S, P, O, FromG, []),
-        rdf_print_statement(S, P, O, ToG, [])
-      )
+      rdf_print_statement(S, P, O, FromG, []),
+      " → ",
+      rdf_print_statement(S, P, O, ToG, [])
     ))
   )).
 
