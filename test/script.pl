@@ -79,3 +79,13 @@ script6:-
   rdf_equal(ex:script6, G),
   rdf_assert_now(ex:s, ex:p, G),
   rdf_print_graph(G).
+
+
+script7:-
+  rdf_assert(ex:s, ex:p, 01^^xsd:integer, ex:g),
+  print_id_store,
+  forall(rdf_print_triple(_, _, _, _), true),
+
+  rdf_assert(ex:s, owl:sameAs, 1^^xsd:integer, ex:g),
+  print_id_store,
+  forall(rdf_print_triple(_, _, _, _), true).
