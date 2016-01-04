@@ -1,41 +1,40 @@
 :- module(
   rdf_build,
   [
-    rdf_assert/1,		% +Stmt
-    rdf_assert/3,		% +S, +P, +O
-    rdf_assert/4,		% +S, +P, +O, ?G
-    rdf_assert_instance/2,	% +I, ?C
-    rdf_assert_instance/3,	% +I, ?C, ?G
-    rdf_assert_now/2,		% +S, +P
-    rdf_assert_now/3,		% +S, +P, ?G
-    rdf_assert_now/4,		% +S, +P, +D, ?G
-    rdf_assert_property/3,	% +P, ?Q, ?G
-    rdf_create_iri/2,		% +Prefix:atom, -Iri:atom
-    rdf_create_iri/3,		% +Prefix:atom, +SubPaths:list(atom), -Iri:atom
-    rdf_retractall/1,		% +Stmt
-    rdf_retractall/3,		% ?S, ?P, ?O
-    rdf_retractall/4,		% ?S, ?P, ?O, ?G
-    rdf_retractall_term/1,	% +T
-    rdf_retractall_term/2	% +T, ?G
+    rdf_assert/1,          % +Stmt
+    rdf_assert/3,          % +S, +P, +O
+    rdf_assert/4,          % +S, +P, +O, ?G
+    rdf_assert_instance/2, % +I, ?C
+    rdf_assert_instance/3, % +I, ?C, ?G
+    rdf_assert_now/2,      % +S, +P
+    rdf_assert_now/3,      % +S, +P, ?G
+    rdf_assert_now/4,      % +S, +P, +D, ?G
+    rdf_assert_property/3, % +P, ?Q, ?G
+    rdf_create_iri/2,      % +Prefix:atom, -Iri:atom
+    rdf_create_iri/3,      % +Prefix:atom, +SubPaths:list(atom), -Iri:atom
+    rdf_retractall/1,      % +Stmt
+    rdf_retractall/3,      % ?S, ?P, ?O
+    rdf_retractall/4,      % ?S, ?P, ?O, ?G
+    rdf_retractall_term/1, % +T
+    rdf_retractall_term/2  % +T, ?G
   ]
 ).
 :- reexport(library(rdf11/rdf11), [
-     rdf_create_bnode/1,			% -B
-     rdf_assert/3 as rdf_assert_id,		% +Sid, +Pid, +Oid
-     rdf_assert/4 as rdf_assert_id,		% +Sid, +Pid, +Oid, +Gid
-     rdf_retractall/3 as rdf_retractall_id,	% ?Sid, ?Pid, ?Oid
-     rdf_retractall/4 as rdf_retractall_id,	% ?Sid, ?Pid, ?Oid, ?Gid
+     rdf_create_bnode/1, % -B
      op(100, xfx, @),
      op(650, xfx, ^^)
+   ]).
+:- reexport(library(semweb/rdf_db), [
+     rdf_assert/3 as rdf_assert_id,         % +Sid, +Pid, +Oid
+     rdf_assert/4 as rdf_assert_id,         % +Sid, +Pid, +Oid, +Gid
+     rdf_retractall/3 as rdf_retractall_id, % ?Sid, ?Pid, ?Oid
+     rdf_retractall/4 as rdf_retractall_id  % ?Sid, ?Pid, ?Oid, ?Gid
    ]).
 
 /** <module> Generalized RDF building
 
-Simple asserion and retraction predicates for RDF.
-
 @author Wouter Beek
 @compat RDF 1.1
-@license MIT License
 @version 2015/07-2015/10, 2015/12-2016/01
 */
 
@@ -46,7 +45,7 @@ Simple asserion and retraction predicates for RDF.
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).%
+:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(typecheck)).
 :- use_module(library(uuid_ext)).
@@ -94,17 +93,17 @@ rdf_assert(S, P, O) :-
 % and closes under identity.
 
 % 1. Identity statements.
-rdf_assert(S, P, O, _) :-
-  % @tbd RDF prefix expansion breaks at seemingly random places.
-  rdf_equal(owl:sameAs, P0),
-  rdf_is_id(P0, P), !,
-  store_id(S, O).
-% 2. Statements other than the identity statement.
 rdf_assert(S, P, O, G) :-
-  maplist(assign_id, [S,P,O], [Sid,Pid,Oid]),
-  defval(default, G),
-  assign_graph_id(G, Gid),
-  rdf_assert_id(Sid, Pid, Oid, Gid).
+  % @tbd RDF prefix expansion breaks at seemingly random places.
+  (   rdf_equal(owl:sameAs, P0),
+      rdf_is_id(P0, P)
+  ->  store_id(S, O)
+  ;   % 2. Statements other than the identity statement.
+      maplist(assign_id, [S,P,O], [Sid,Pid,Oid]),
+      defval(default, G),
+      assign_graph_id(G, Gid),
+      rdf_assert_id(Sid, Pid, Oid, Gid)
+  ).
 
 
 

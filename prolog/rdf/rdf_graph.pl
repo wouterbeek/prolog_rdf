@@ -1,21 +1,21 @@
 :- module(
   rdf_graph,
   [
-    rdf_create_graph/1,		% ?G
-    rdf_cp_graph/2,		% +FromG, +ToG
-    rdf_expect_graph/1,		% @Term
-    rdf_fresh_graph/2,		% ?G, +FreshnessLifetime:between(0.0,inf)
-    rdf_graph/1,		% ?G
-    rdf_graph_age/2,		% ?G, -Age:between(0.0,inf)
-    rdf_graph_get_property/2,	% ?G, ?Property:compound
-    rdf_graph_set_property/2,	% +G, +Property:compound
-    rdf_is_graph/1,		% @Term
-    rdf_mv_graph/2,		% +FromG, +ToG
-    rdf_new_graph/1,		% -G
-    rdf_new_graph/2,		% +Name, -G
-    rdf_stale_graph/2,		% ?G, +FreshnessLifetime:between(0.0,inf)
-    rdf_tmp_graph/1,		% -G
-    rdf_unload_graph/1,		% +G
+    rdf_create_graph/1,       % ?G
+    rdf_cp_graph/2,           % +FromG, +ToG
+    rdf_expect_graph/1,       % @Term
+    rdf_fresh_graph/2,        % ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_graph/1,              % ?G
+    rdf_graph_age/2,          % ?G, -Age:between(0.0,inf)
+    rdf_graph_get_property/2, % ?G, ?Property:compound
+    rdf_graph_set_property/2, % +G, +Property:compound
+    rdf_is_graph/1,           % @Term
+    rdf_mv_graph/2,           % +FromG, +ToG
+    rdf_new_graph/1,          % -G
+    rdf_new_graph/2,          % +Name, -G
+    rdf_stale_graph/2,        % ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_tmp_graph/1,          % -G
+    rdf_unload_graph/1,       % +G
     rdf_unload_graphs/0
   ]
 ).

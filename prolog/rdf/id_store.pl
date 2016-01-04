@@ -1,24 +1,24 @@
 :- module(
   id_store,
   [
-    assign_graph_id/2,		% +G, -Gid
-    assign_id/1,		% +T
-    assign_id/2,		% +T, -Tid
+    assign_graph_id/2,  % +G, -Gid
+    assign_id/1,        % +T
+    assign_id/2,        % +T, -Tid
     check_id_store/0,
-    dangling_id/1,		% ?Tid
-    graph_id_to_term/2,		% +Gid, -G
-    graph_term_to_id/2,		% +G, -Gid
-    id_terms/1,			% -Ts:ordset
-    id_to_term/2,		% +Tid, -T
-    id_to_terms/2,		% +Tid, -Ts:ordset
-    print_store/0,
-    print_store/1,		% +Opts
-    rdf_is_id/2,		% +T1, +T2
-    remove_id/1,		% +Tid
-    store_id/2,			% +Tid1, +Tid2
-    term_to_id/2,		% +T, -Tid
-    term_to_term/2,		% +T1, -T2
-    term_to_terms/2,		% +T, -Ts
+    dangling_id/1,      % ?Tid
+    graph_id_to_term/2, % +Gid, -G
+    graph_term_to_id/2, % +G, -Gid
+    id_terms/1,         % -Ts:ordset
+    id_to_term/2,       % +Tid, -T
+    id_to_terms/2,      % +Tid, -Ts:ordset
+    print_id_store/0,
+    print_id_store/1,   % +Opts
+    rdf_is_id/2,        % +T1, +T2
+    remove_id/1,        % +Tid
+    store_id/2,         % +Tid1, +Tid2
+    term_to_id/2,       % +T, -Tid
+    term_to_term/2,     % +T1, -T2
+    term_to_terms/2,    % +T, -Ts
     unload_id_store/0
   ]
 ).
@@ -58,13 +58,17 @@ Identifiers are atoms.
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf11/rdf11), [
+     rdf_graph/1 as rdf_graph_id,
+     rdf_unload_graph/1 as rdf_unload_graph_id
+   ]).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
+:- use_module(library(yall)).
 
 :- rdf_meta
 	assign_graph_id(r, -),
@@ -85,7 +89,7 @@ Identifiers are atoms.
 
 :- dynamic(term_to_id0/2).
 
-:- predicate_options(print_store/1, 1, [
+:- predicate_options(print_id_store/1, 1, [
      pass_to(rdf_print_term//2, 2)
    ]).
 
@@ -122,15 +126,9 @@ assign_id(T, Tid) :-
     )
   )).
 
-canonical_form(B, B) :-
-  rdf_is_bnode(B), !.
-canonical_form(Lit, CLit) :-
-  rdf_is_literal(Lit), !,
-  rdf_lexical_canonical_map(Lit, CLit).
-canonical_form(Iri, Norm) :-
-  rdf_is_iri(Iri), !,
-  iri_normalized(Iri, Norm).
-canonical_form(BN, BN).
+canonical_form(T1, T3) :-
+  rdf11:pre_object(T1, T2),
+  rdf11:post_object(T3, T2).
 
 
 
@@ -193,19 +191,20 @@ id_to_terms(Tid, Ts) :-
 
 
 
-%! print_store is det.
-% Wrapper around print_store/1 with default options.
+%! print_id_store is det.
+% Wrapper around print_id_store/1 with default options.
 
-print_store:-
-  print_store([]).
+print_id_store:-
+  print_id_store([]).
 
 
-%! print_store(+Opts) is det.
+%! print_id_store(+Opts) is det.
 % The following options are supported:
 %   * indent(+nonneg)
 %     Default is 0.
 
-print_store(Opts) :-
+print_id_store(Opts) :-
+  check_id_store,
   option(indent(N), Opts, 0),
   forall(
     id_to_terms(Tid, Ts),
@@ -213,11 +212,10 @@ print_store(Opts) :-
       tab(N),
       atom(Tid),
       "\t",
-      set(rdf_print_term0(Opts), Ts),
+      set([T]>>rdf_print_term(T, Opts), Ts),
       nl
    ))
   ).
-rdf_print_term0(Opts, T) --> rdf_print_term(T, Opts).
 
 
 
@@ -255,7 +253,7 @@ store_id0(X, Y) :-
               id_to_terms0(Yid, Ys),
               ord_union(Xs, Ys, Zs),
               create_id(Zid),
-	      forall(member(X0, Xs), retract(term_to_id0(X0, Xid))),
+              forall(member(X0, Xs), retract(term_to_id0(X0, Xid))),
               retract(id_to_terms0(Xid, Xs)),
               forall(member(Y0, Ys), retract(term_to_id0(Y0, Yid))),
               retract(id_to_terms0(Yid, Ys)),
@@ -289,7 +287,6 @@ store_id0(X, Y) :-
 
 %! term_to_id(+T, -Tid) is semidet.
 
-term_to_id(default, default) :- !.
 term_to_id(T1, Tid) :-
   (rdf_is_iri(T1) -> iri_normalized(T1, T2) ; T2 = T1),
   term_to_id0(T2, Tid).
@@ -338,9 +335,9 @@ create_id(Tid) :-
 
 rdf_rename_term0(Xid, Yid) :-
   % Firstly. rename the graph `Xid', if it exists.
-  (   rdf_is_graph(Xid)
+  (   rdf_graph_id(Xid)
   ->  forall(rdf_id(Sid, Pid, Oid, Xid), rdf_assert_id(Sid, Pid, Oid, Yid)),
-      rdf_unload_graph(Xid)
+      rdf_unload_graph_id(Xid)
   ;   true
   ),
 

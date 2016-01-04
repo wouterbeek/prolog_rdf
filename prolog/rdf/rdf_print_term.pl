@@ -370,18 +370,15 @@ rdf_print_term(T, Opts) :-
 
 rdf_print_term(T) -->
   rdf_print_term(T, []).
-rdf_print_term(T1, Opts) -->
-  {rdf11:post_object(T2, T1)},
-  rdf_print_term0(T2, Opts).
-rdf_print_term0(T, Opts) -->
+rdf_print_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
   rdf_print_literal(T, Opts).
-rdf_print_term0(T, Opts) -->
+rdf_print_term(T, Opts) -->
   {rdf_is_bnode(T)}, !,
   rdf_print_bnode(T, Opts).
-rdf_print_term0(T, Opts) -->
+rdf_print_term(T, Opts) -->
   rdf_print_iri(T, Opts), !.
-rdf_print_term0(T, _) -->
+rdf_print_term(T, _) -->
   pl_term(T).
 
 
