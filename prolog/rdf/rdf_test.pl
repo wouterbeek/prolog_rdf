@@ -1,7 +1,7 @@
 :- module(
   rdf_test,
   [
-    rdf_test/1 % +Name:compound
+    rdf_test/2 % +Name:compound, -G
   ]
 ).
 
@@ -10,7 +10,7 @@
 Various tests for RDF predicates,
 
 @author Wouter Beek
-@version 2015/12
+@version 2015/12-2016/01
 */
 
 :- use_module(library(dcg/dcg_collection)).
@@ -33,13 +33,14 @@ Various tests for RDF predicates,
 
 
 
-rdf_test(database(identity)) :-
+rdf_test(database(identity), G) :-
+  rdf_equal(ex:identity, G),
   rdf_test((
-    rdfs_assert_label(ex:a, "a"),
-    rdfs_assert_label(ex:b, "b"),
-    rdf_assert(ex:a, owl:sameAs, ex:b),
-    rdf_assert(ex:a, owl:sameAs, ex:c),
-    rdf_assert(ex:d, owl:sameAs, ex:c)
+    rdfs_assert_label(ex:a, "a", G),
+    rdfs_assert_label(ex:b, "b", G),
+    rdf_assert(ex:a, owl:sameAs, ex:b, G),
+    rdf_assert(ex:a, owl:sameAs, ex:c, G),
+    rdf_assert(ex:d, owl:sameAs, ex:c, G)
   ),(
     Opts = [indent(2)],
     format("Graph:~n"),
@@ -51,7 +52,7 @@ rdf_test(database(identity)) :-
 
 
 
-rdf_test(modeling(visum)) :-
+rdf_test(modeling(visum), G) :-
   % Use a default graph name if none is given.
   rdf_equal(ex:visum, G),
 
@@ -73,7 +74,7 @@ rdf_test(modeling(visum)) :-
 
 
 /*
-rdf_test(semantics(graph_instance)) :-
+rdf_test(semantics(graph_instance), _) :-
   rdf_test((
     maplist(rdf_unload_graph, [ex:'test-graph',ex:'test-graph-instance']),
     maplist(rdf_create_bnode, [X1,X2,X3,X4]),
