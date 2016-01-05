@@ -1,6 +1,7 @@
 :- module(
   rdf_legacy,
   [
+    rdf_is_legacy_literal/1, % @Term
     rdf_is_plain_literal/1, % @Term
     rdf_is_simple_literal/1, % @Term
     rdf_is_typed_literal/1, % @Term
@@ -28,15 +29,24 @@ The **typed literals** used to be defined as the cartesian product of
 the Unicode strings in Normal Form C with the set of datatype URIs.
 
 @author Wouter Beek
-@version 2015/09-2015/10, 2015/12
+@version 2015/09-2015/10, 2015/12-2016/01
 */
 
+:- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta(rdf_is_typed_literal(o)).
 
 
+
+
+
+%! rdf_is_legacy_literal(@Term) is semidet.
+
+rdf_is_legacy_literal(literal(type(_,_))) :- !.
+rdf_is_legacy_literal(literal(lang(_,_))) :- !.
+rdf_is_legacy_literal(literal(_)).
 
 
 

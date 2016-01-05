@@ -18,9 +18,6 @@
     rdf_literal/3,     % ?S, ?P, ?V
     rdf_literal/4,     % ?S, ?P, ?D, ?V
     rdf_literal/5,     % ?S, ?P, ?D, ?V, ?G
-    rdf_literal_pl/3,  % ?S, ?P, ?Value
-    rdf_literal_pl/4,  % ?S, ?P, ?D, ?Value
-    rdf_literal_pl/5,  % ?S, ?P, ?D, ?V, ?G
     rdf_one_string/3,  % +S, +P, -V:atom
     rdf_pref_string/3, % ?S, ?P, -Lex
     rdf_pref_string/4, % ?S, ?P, +LanguagePriorityList, -Lex
@@ -76,9 +73,6 @@
 	rdf_literal(o, r, ?),
 	rdf_literal(o, r, r, ?),
 	rdf_literal(o, r, r, ?, r),
-	rdf_literal_pl(o, r, ?),
-	rdf_literal_pl(o, r, r, ?),
-	rdf_literal_pl(o, r, r, ?, r),
 	rdf_one_string(o, r, -),
 	rdf_pref_string(o, r, -),
 	rdf_pref_string(o, r, +, -),
@@ -153,14 +147,8 @@ rdf(S, P, O, G, Sid, Pid, Oid, Gid) :-
 
 
 
-%! rdf_date(?S, ?P, ?Date:compound) is nondet.
-% Wrapper around rdf_date/4 with uninstantiated graph.
-
-rdf_date(S, P, V) :-
-  rdf_date(S, P, V, _).
-
-
-%! rdf_date(?S, ?P, ?Date:compound, ?G) is nondet.
+%! rdf_date(?S, ?P, ?Datetime:datetime) is nondet.
+%! rdf_date(?S, ?P, ?Datetime:datetime, ?G) is nondet.
 % Read some date-time value.
 %
 % Supports the following RDF datatypes:
@@ -173,22 +161,32 @@ rdf_date(S, P, V) :-
 %   * xsd:gYearMonth
 %   * xsd:time
 
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:date, V, G).
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:dateTime, V, G).
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:gDay, V, G).
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:gMonth, V, G).
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:gMonthDay, V, G).
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:gYear, V, G).
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:gYearMonth, V, G).
-rdf_date(S, P, V, G) :-
-  rdf_literal(S, P, xsd:time, V, G).
+rdf_date(S, P, V) :-
+  rdf_date(S, P, V, _).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:date, V1, G),
+  date_to_datetime(V1, V2).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:dateTime, V1, G),
+  date_to_datetime(V1, V2).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:gDay, V1, G),
+  date_to_datetime(V1, V2).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:gMonth, V1, G),
+  date_to_datetime(V1, V2).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:gMonthDay, V1, G),
+  date_to_datetime(V1, V2).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:gYear, V1, G),
+  date_to_datetime(V1, V2).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:gYearMonth, V1, G),
+  date_to_datetime(V1, V2).
+rdf_date(S, P, V2, G) :-
+  rdf_literal(S, P, xsd:time, V1, G),
+  date_to_datetime(V1, V2).
 
 
 
@@ -248,9 +246,8 @@ rdf_langstring(S, P, LRanges, V) :-
 % Notice that results for each of the prioritized languages are given
 % in arbitrary order.
 
-rdf_langstring(S, P, LRanges, V, G) :-
-  rdf_literal(S, P, rdf:langString, V, G),
-  V = _-LTag,
+rdf_langstring(S, P, LRanges, Lex-LTag, G) :-
+  rdf(S, P, Lex@LTag, G),
   atom(LTag),
   basic_filtering(LRanges, LTag).
 
@@ -271,89 +268,16 @@ rdf_literal(S, P, D, V) :-
 
 
 %! rdf_literal(?S, ?P, ?D, ?V, ?G) is nondet.
-
-rdf_literal(S, P, D, V, G) :-
-  rdf_literal(S, P, D, V, G, _).
-
-
-%! rdf_literal(?S, ?P, ?D, ?V, ?G, -Quad) is nondet.
 % This predicate is only used internally, by other predicates in rdf_read,
 % since it makes available the RDF statement in Quadruple.
 
 % Language-tagged strings.
-rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)) :-
+rdf_literal(S, P, D, Lex-LTag, G) :-
   rdf_equal(rdf:langString, D),
-  Val = Lex-LTag,
-  O = literal(lang(LTag,Lex)),
-  rdf(S, P, O, G),
-  atom(LTag).
-% Ground datatype and value.
-rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)) :-
-  ground(D),
-  \+ rdf_equal(rdf:langString, D),
-  ground(Val), !,
-  % Map to lexical form.
-  rdf_canonical_map(D, Val, literal(type(D,Lex))),
-  (   rdf_equal(xsd:string, D),
-      O = literal(Lex)
-  ;   O = literal(type(D,Lex))
-  ),
-  rdf(S, P, O, G).
-% Typed literal (as per RDF 1.0 specification).
-rdf_literal(S, P, D, Val, G, rdf(S,P,Lit,G)) :-
-  (ground(D) -> \+ rdf_equal(rdf:langString, D) ; true),
-  Lit = literal(type(D,_)),
-  rdf(S, P, Lit, G),
-  rdf_lexical_map(Lit, Val).
-% Simple literal (as per RDF 1.0 specification).
-rdf_literal(S, P, D, Val, G, rdf(S,P,O,G)) :-
-  rdf_equal(xsd:string, D),
-  O = literal(Lex),
-  rdf(S, P, O, G),
-  atom(Lex),
-  rdf_lexical_map(D, Lex, Val).
-
-
-
-%! rdf_literal_pl(?S, ?P, ?V) is nondet.
-% Wrapper around rdf_literal_pl/4 with uninstantiated datatype.
-
-rdf_literal_pl(S, P, V) :-
-  rdf_literal_pl(S, P, _, V).
-
-
-%! rdf_literal_pl(?S, ?P, ?D, ?V) is nondet.
-% Wrapper around rdf_literal_pl/5 with uninstantiated graph.
-
-rdf_literal_pl(S, P, D, V) :-
-  rdf_literal_pl(S, P, D, V, _).
-
-
-%! rdf_literal_pl(?S, ?P, ?D, ?V, ?G) is nondet.
-% rdf_literal/[3-5] seeks to interpret the lexical form of an RDF datatype
-% according to an RDF datatype.
-%
-% Sometimes this interpretation cannot be represented in a native Prolog term.
-% It may then, for certain use cases, still be useful to return
-% the native Prolog term which most closely matches the correct interpretation.
-%
-% For example, in XSD's datetime/7 seconds are represented by a decimal,
-% but in Prolog's date/9 and time/6 seconds are represented by a float.
-% The latter comes quite close to the former, but will generally
-% be a tiny bit less precise.
-%
-% In short: for correctness use rdf_literal/[3-5];
-% for convencience at the cost of a little bit of correctness
-% use rdf_literal_pl/[3-5].
-
-rdf_literal_pl(S, P, D, V1, G) :-
-  is_of_type(date, V1), !,
-  date_to_datetime(V1, V2),
-  rdf_literal(S, P, D, V2, G).
-rdf_literal_pl(S, P, D, V1, G) :-
-  rdf_literal(S, P, D, V2, G),
-  (xsd_datatype(D, datetime) -> datetime_to_date(V2, V1) ; V1 = V2).
-
+  rdf(S, P, Lex@LTag, G).
+% Other datatypes.
+rdf_literal(S, P, D, V, G) :-
+  rdf(S, P, V^^D, G).
 
 
 %! rdf_one_string(+S, +P, -V:atom) is det.

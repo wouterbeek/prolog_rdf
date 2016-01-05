@@ -58,6 +58,7 @@ Identifiers are atoms.
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_legacy)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdf/rdf_read)).
@@ -126,6 +127,8 @@ assign_id(T, Tid) :-
     )
   )).
 
+canonical_form(T, T) :-
+  rdf_is_legacy_literal(T), !.
 canonical_form(T1, T3) :-
   rdf11:pre_object(T1, T2),
   rdf11:post_object(T3, T2).
