@@ -32,6 +32,7 @@
      'NumericLiteralPositive'//1, % ?Literal:compound
      'NumericLiteralUnsigned'//1, % ?Literal:compound
      'PN_CHARS'//1, % ?Code:code
+     'PN_CHARS_U'//1, % ?Code:code
      'PNAME_LN'//1, % ?Iri:atom
      'PNAME_NS'//1, % ?Prefix:atom
      'PrefixedName'//1, % -Iri:atom

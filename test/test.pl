@@ -50,6 +50,7 @@
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_download)).
 :- use_module(library(rdf/rdf_file)).
+:- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_graph_theory)).
 :- use_module(library(rdf/rdf_graph_nav)).

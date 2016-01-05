@@ -1,27 +1,27 @@
 :- module(
   rdf_stats,
   [
-    rdf_descr_size/2,			% +T, -Count:nonneg
-    rdf_number_of_bnodes/1,		% -Count
-    rdf_number_of_bnodes/2,		% ?G, -Count:nonneg
-    rdf_number_of_datatype_iris/1,	% -Count
-    rdf_number_of_datatype_iris/2,	% ?G, -Count:nonneg
-    rdf_number_of_objects/1,		% -Count
-    rdf_number_of_objects/2,		% ?G, -Count
-    rdf_number_of_objects/3,		% ?S, ?P, -Count
-    rdf_number_of_objects/4,		% ?S, ?P, ?G, -Count:nonneg
-    rdf_number_of_predicates/1, 	% -Count
-    rdf_number_of_predicates/2,		% ?G, -Count
-    rdf_number_of_predicates/3,		% ?S, ?O, -Count
-    rdf_number_of_predicates/4,		% ?S, ?O, ?G, -Count:nonneg
-    rdf_number_of_subjects/1,		% -Count
-    rdf_number_of_subjects/2,		% ?G, -Count
-    rdf_number_of_subjects/3,		% ?P, ?O, -Count
-    rdf_number_of_subjects/4,		% ?P, ?O, ?G, -Count:nonneg
-    rdf_number_of_triples/1,		% -Count
-    rdf_number_of_triples/2,		% ?G, -Count
-    rdf_number_of_triples/4,		% ?S, ?P, ?O, -Count
-    rdf_number_of_triples/5		% ?S, ?P, ?O, ?G, -Count:nonneg
+    rdf_descr_size/2,              % +T, -Count
+    rdf_number_of_bnodes/1,        % -Count
+    rdf_number_of_bnodes/2,        % ?G, -Count
+    rdf_number_of_datatype_iris/1, % -Count
+    rdf_number_of_datatype_iris/2, % ?G, -Count
+    rdf_number_of_objects/1,       % -Count
+    rdf_number_of_objects/2,       % ?G, -Count
+    rdf_number_of_objects/3,       % ?S, ?P, -Count
+    rdf_number_of_objects/4,       % ?S, ?P, ?G, -Count
+    rdf_number_of_predicates/1,    % -Count
+    rdf_number_of_predicates/2,    % ?G, -Count
+    rdf_number_of_predicates/3,    % ?S, ?O, -Count
+    rdf_number_of_predicates/4,    % ?S, ?O, ?G, -Count
+    rdf_number_of_subjects/1,      % -Count
+    rdf_number_of_subjects/2,      % ?G, -Count
+    rdf_number_of_subjects/3,      % ?P, ?O, -Count
+    rdf_number_of_subjects/4,      % ?P, ?O, ?G, -Count
+    rdf_number_of_triples/1,       % -Count
+    rdf_number_of_triples/2,       % ?G, -Count
+    rdf_number_of_triples/4,       % ?S, ?P, ?O, -Count
+    rdf_number_of_triples/5        % ?S, ?P, ?O, ?G, -Count
   ]
 ).
 
@@ -35,24 +35,24 @@
 :- use_module(library(error)).
 :- use_module(library(plunit)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf_db), [
-     rdf_statistics/1 as rdf_statistics0
-   ]).
+:- use_module(library(semweb/rdf_db), [rdf_statistics/1 as rdf_statistics0]).
 :- use_module(library(solution_sequences)).
 
-:- rdf_meta(rdf_descr_size(o,-)).
-:- rdf_meta(rdf_number_of_bnodes(r,-)).
-:- rdf_meta(rdf_number_of_datatype_iris(r,-)).
-:- rdf_meta(rdf_number_of_objects(o,r,-)).
-:- rdf_meta(rdf_number_of_objects(o,r,?,-)).
-:- rdf_meta(rdf_number_of_predicates(o,o,-)).
-:- rdf_meta(rdf_number_of_predicates(o,o,?,-)).
-:- rdf_meta(rdf_number_of_subjects(r,o,-)).
-:- rdf_meta(rdf_number_of_subjects(r,o,?,-)).
-:- rdf_meta(rdf_number_of_triples(o,r,o,-)).
-:- rdf_meta(rdf_number_of_triples(o,r,o,?,-)).
+:- rdf_meta
+   rdf_descr_size(o, -),
+   rdf_number_of_bnodes(r, -),
+   rdf_number_of_datatype_iris(r, -),
+   rdf_number_of_objects(o, r, -),
+   rdf_number_of_objects(o, r, ?, -),
+   rdf_number_of_predicates(o, o, -),
+   rdf_number_of_predicates(o, o, ?, -),
+   rdf_number_of_subjects(r, o, -),
+   rdf_number_of_subjects(r, o, ?, -),
+   rdf_number_of_triples(o, r, o, -),
+   rdf_number_of_triples(o, r, o, ?, -).
 
 
 
