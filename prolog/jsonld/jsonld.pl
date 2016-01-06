@@ -31,17 +31,7 @@
 %! jsonld_deref(+S, -Dict) is det.
 
 jsonld_deref(S1, D):-
-  % Prefixes
   rdf_deref_terms(S1, Ts),
-  aggregate_all(
-    set(Alias-Prefix),
-    (
-      member(T, Ts),
-      rdf_iri_alias_prefix_local(T, Alias, Prefix, _)
-    ),
-    Abbrs
-  ),
-
   % '@id'
   abbreviate(S1, S2),
   (rdf_is_bnode(S1) -> Pairs1 = Pairs2 ; Pairs1 = ['@id'-S2|Pairs2]),
@@ -54,19 +44,32 @@ jsonld_deref(S1, D):-
       Pairs2 = ['@type'-Cs2|Pairs3]
   ),
 
-  % Predicate definitions.
-  aggregate_all(set(P), (rdf(S1, P, _, _, _, _), \+ rdf_equal(rdf:type, P)), Ps),
-  p_defs(Ps, PDefs),
-
-  % Predicate-object pairs.
+  % Subject: Predicate-object pairs.
   aggregate_all(set(P-O), rdf(S1, P, O, _, _, _), Pairs4),
   maplist(jsonld_pair(PDefs), Pairs4, Pairs3),
 
+  % JSON-LD: Pairs → dict.
+  dict_pairs(D, json_ld, ['@context'-Context|Pairs1]).
+
+
+json_context(Stmts, Context):-
+  % Prefixes.
+  aggregate_all(
+    set(Alias-Prefix),
+    (
+      member(T, Ts),
+      rdf_iri_alias_prefix_local(T, Alias, Prefix, _)
+    ),
+    Abbrs
+  ),
+
+  % Context: Predicate definitions.
+  aggregate_all(set(P), (rdf(S1, P, _, _, _, _), \+ rdf_equal(rdf:type, P)), Ps),
+  p_defs(Ps, PDefs),
+
+  % Context: pairs → dict.
   append(Abbrs, PDefs, Pairs5),
   dict_pairs(Context, context, Pairs5),
-
-  % Pairs → dict.
-  dict_pairs(D, json_ld, ['@context'-Context|Pairs1]).
 
 
 %! jsonld_pair(+PredicateDefinitions, +Pair, -Pair) is det.
