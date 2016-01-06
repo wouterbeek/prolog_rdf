@@ -129,9 +129,8 @@ assign_id(T, Tid) :-
 
 canonical_form(T, T) :-
   rdf_is_legacy_literal(T), !.
-canonical_form(T1, T3) :-
-  rdf11:pre_object(T1, T2),
-  rdf11:post_object(T3, T2).
+canonical_form(T1, T2) :-
+  rdf11:pre_object(T1, T2).
 
 
 

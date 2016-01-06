@@ -60,12 +60,12 @@ resources as well.
 
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_legacy)).
 :- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf11/rdf11), [
      rdf_bnode/1 as rdf_bnode_id,
      rdf_iri/1 as rdf_iri_id,
-     rdf_literal/1 as rdf_literal_id,
      rdf_name/1 as rdf_name_id,
      rdf_node/1 as rdf_node_id,
      rdf_object/1 as rdf_object_id,
@@ -197,10 +197,10 @@ rdf_iri(G, Iri) :-
 
 rdf_literal(Lit) :-
   (   var(Lit)
-  ->  rdf_literal_id(Litid),
-      id_to_term(Litid, Lit)
-  ;   term_to_id(Lit, Litid),
-      rdf_literal_id(Litid)
+  ->  term_to_id(Lit0, _),
+      rdf_is_legacy_literal(Lit0),
+      rdf11:post_object(Lit, Lit0)
+  ;   rdf_is_literal(Lit)
   ).
 
 

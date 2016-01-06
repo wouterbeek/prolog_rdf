@@ -8,6 +8,9 @@
     rdf_literal_equiv/2 % +Lit1, +Lit2
   ]
 ).
+:- reexport(library(rdf11/rdf11), [
+     rdf_lexical_form/2 % +Lit, -Lex
+   ]).
 
 /** <module> RDF literal
 
@@ -82,10 +85,8 @@ rdf_literal_components(V^^D,   D,              V, LTag) :-
 rdf_literal_data(datatype, _^^D, D) :- !.
 rdf_literal_data(datatype, _@_, rdf:langString) :- !.
 rdf_literal_data(langtag, _@LTag, LTag) :- !.
-%rdf_literal_data(lexical_form, Lit, Lex) :-
-%  rdf_literal_data(datatype, Lit, D),
-%  rdf_literal_data(value, Lit, V),
-%  rdf_canonical_value_to_lexical_map(D, V, Lex).
+rdf_literal_data(lexical_form, Lit, Lex) :- !,
+  rdf_lexical_form(Lit, Lex).
 rdf_literal_data(value, V^^_, V) :- !.
 rdf_literal_data(value, V@_, V).
 rdf_literal_data(Field, _, _) :-

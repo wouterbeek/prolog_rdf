@@ -27,7 +27,6 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf11/rdf11), [rdf_literal_value/2]).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 
