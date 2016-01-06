@@ -2,8 +2,9 @@
   rdf_file,
   [
     rdf_file_extension/1, % ?Extension:atom
-    rdf_file_extension/2 % ?Extension:atom
-                         % ?Format:atom
+    rdf_file_extension/2, % ?Extension:atom
+                          % ?Format:atom
+    rdf_format/2 % ?Mediatype:atom, ?Format:atom
   ]
 ).
 
@@ -50,3 +51,8 @@ rdf_file_extension(Ext) :-
 rdf_file_extension(Ext, Format) :-
   rdf_http_plugin:rdf_content_type(_, _, Format),
   user:prolog_file_type(Ext, Format).
+
+
+
+rdf_format(MT, Format) :-
+  rdf_http_plugin:rdf_content_type(MT, _, Format).
