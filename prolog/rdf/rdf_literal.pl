@@ -8,9 +8,6 @@
     rdf_literal_equiv/2 % +Lit1, +Lit2
   ]
 ).
-:- reexport(library(rdf11/rdf11), [
-     rdf_lexical_form/2 % +Lit, -Lex
-   ]).
 
 /** <module> RDF literal
 

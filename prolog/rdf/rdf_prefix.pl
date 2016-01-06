@@ -1,27 +1,27 @@
 :- module(
   rdf_prefix,
   [
-    rdf_current_prefix/1,	% ?Prefix
-    rdf_maplist/2,		% :Goal_1, +Ts
-    rdf_member/2,		% ?T, +Ts
-    rdf_memberchk/2,		% ?T, +Ts
-    rdf_prefix_iri/2,		% +Iri, -IriPrefix
-    rdf_reset_prefix/2		% +Prefix, +IriPrefix
+    rdf_current_prefix/1,         % ?Prefix
+    rdf_maplist/2,                % :Goal_1, +Ts
+    rdf_member/2,                 % ?T, +Ts
+    rdf_memberchk/2,              % ?T, +Ts
+    rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
+    rdf_reset_prefix/2            % +Prefix, +IriPrefix
   ]
 ).
-:- reexport(library(rdf11/rdf11), [
-     rdf_current_prefix/2,	% ?Prefix, ?IriPrefix
+:- reexport(library(semweb/rdf_db), [
+     rdf_current_prefix/2,     % ?Prefix, ?IriPrefix
      % @tbd Rename to `rdf_expand_ct/2'.
-     rdf_equal/2,		% ?Prefixed, ?Expanded
+     rdf_equal/2,              % ?Prefixed, ?Expanded
      % @tbd Rename to `rdf_expand_rt/2'.
-     rdf_global_id/2,		% ?Prefixed, ?Expanded
+     rdf_global_id/2,          % ?Prefixed, ?Expanded
      % @tbd Rename to `rdf_expand_term/2'.
-     rdf_global_object/2,	% ?Prefixed, ?Expanded
-     rdf_global_term/2,		% ?Prefixed, ?Expanded
-     rdf_meta/1,		% +Heads
+     rdf_global_object/2,      % ?Prefixed, ?Expanded
+     rdf_global_term/2,        % ?Prefixed, ?Expanded
+     %rdf_meta/1,               % Head
      op(1150, fx, (rdf_meta)),
-     rdf_register_prefix/2,	% +Prefix, +IriPrefix
-     rdf_register_prefix/3	% +Prefix, +IriPrefix, +Opts
+     rdf_register_prefix/2,    % +Prefix, +IriPrefix
+     rdf_register_prefix/3     % +Prefix, +IriPrefix, +Opts
    ]).
 
 /** <module> RDF Prefix
@@ -355,15 +355,19 @@ rdf_memberchk(T, Ts) :-
 
 
 
-%! rdf_prefix_iri(+Iri:iri, -IriPrefix:iri) is det.
+%! rdf_iri_alias_prefix_local(
+%!   +Iri:iri,
+%!   -Alias:atom,
+%!   -Prefix:iri,
+%!   -Local:atom
+%! ) is det.
 % Returns the prefix of the given IRI that is abbreviated with a registered
 % RDF prefix, if any.  If no registered RDF prefix occurs in Iri the full IRI
 % is returned.
 
-rdf_prefix_iri(Iri, IriPrefix) :-
-  rdf_global_id(Prefix;_, Iri), !,
-  rdf_current_prefix(Prefix, IriPrefix).
-rdf_prefix_iri(Iri, Iri).
+rdf_iri_alias_prefix_local(Iri, Alias, Prefix, Local) :-
+  rdf_db:rdf_global_id(Alias:Local, Iri),
+  rdf_current_prefix(Alias, Prefix).
 
 
 

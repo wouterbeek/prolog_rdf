@@ -54,11 +54,11 @@ void_gen(In, Format, G):-
   rdf_number_of_triples(NT),
   % vocabularies
   aggregate_all(
-    set(IriPrefix),
+    set(Prefix),
     (
-      vocabulary_term(T),
-      rdf_is_iri(T),
-      rdf_prefix_iri(T, IriPrefix)
+      vocabulary_term(Iri),
+      rdf_is_iri(Iri),
+      rdf_iri_alias_prefix(Iri, _, Prefix, _)
     ),
     Vocabs
   ),

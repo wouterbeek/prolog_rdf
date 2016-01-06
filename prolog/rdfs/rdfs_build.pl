@@ -5,7 +5,7 @@
     rdfs_assert_comment/3,	% +S, +Comment, ?G
     rdfs_assert_domain/3,	% +P, +C, ?G
     rdfs_assert_isDefinedBy/2,	% +S, ?G
-    rdfs_assert_isDefinedBy/3,	% +S, ?Uri, ?G
+    rdfs_assert_isDefinedBy/3,	% +S, ?Iri, ?G
     rdfs_assert_label/2,	% +S, +Label
     rdfs_assert_label/3,	% +S, +Label, ?G
     rdfs_assert_property/4,	% +C, +P, +D, ?G
@@ -36,7 +36,7 @@ Predicates for asseritng RDFS statements in an easy way.
 	rdfs_assert_comment(o, +, r),
 	rdfs_assert_domain(r, r, r),
 	rdfs_assert_isDefinedBy(o, r),
-	rdfs_assert_isDefinedBy(o, ?, r),
+	rdfs_assert_isDefinedBy(o, r, r),
 	rdfs_assert_label(o, +),
 	rdfs_assert_label(o, +, r),
 	rdfs_assert_property(r, r, r, r),
@@ -97,10 +97,10 @@ rdfs_assert_isDefinedBy(S, G) :-
 % If Uri is uninstantiated, the IRI denoted by the registered RDF prefix
 % of Term is used, if any.
 
-rdfs_assert_isDefinedBy(S, Iri, G) :-
-  var(Iri), !,
-  rdf_prefix_iri(S, Iri),
-  rdf_assert(S, rdfs:isDefinedBy, Iri, G).
+rdfs_assert_isDefinedBy(S, Prefix, G) :-
+  var(Prefix), !,
+  rdf_iri_alias_prefix(S, _, Prefix, _),
+  rdf_assert(S, rdfs:isDefinedBy, Prefix, G).
 rdfs_assert_isDefinedBy(S, Iri, G) :-
   rdf_assert(S, rdfs:isDefinedBy, Iri, G).
 

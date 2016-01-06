@@ -125,11 +125,7 @@ rdf(S, P, O, G) :-
   ).
 % 2. Statements other than identity statements.
 rdf(S, P, O, G) :-
-  rdf11:pre_object(O, O0),
-  rdf(S, P, O0, G, Sid, Pid, Oid, Gid),
-  maplist(id_to_term, [Sid,Pid,Oid], [S,P,O0]),
-  graph_id_to_term(Gid, G),
-  rdf11:post_object(O, O0).
+  rdf(S, P, O, G, _, _, _, _).
 
 
 %! rdf(?S, ?P, ?O, -Sid, -Pid, -Oid) is nondet.
@@ -141,9 +137,13 @@ rdf(S, P, O, Sid, Pid, Oid) :-
 %! rdf(?S, ?P, ?O, ?G, -Sid, -Pid, -Oid, -Gid) is nondet.
 
 rdf(S, P, O, G, Sid, Pid, Oid, Gid) :-
-  maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
+  rdf11:pre_object(O, O0),
+  maplist(matching_term, [S,P,O0], [Sid,Pid,Oid]),
   matching_graph_term(G, Gid),
-  rdf_id(Sid, Pid, Oid, Gid).
+  rdf_id(Sid, Pid, Oid, Gid),
+  maplist(id_to_term, [Sid,Pid,Oid], [S,P,O0]),
+  graph_id_to_term(Gid, G),
+  rdf11:post_object(O, O0).
 
 
 
