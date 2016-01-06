@@ -24,6 +24,7 @@
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_database)).
+:- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
@@ -124,7 +125,7 @@ rdf_list(L1, [H2|T2]) :-
   (   rdf_list(H1)
   ->  rdf_list(H1, H2)
   ;   rdf_is_literal(H1)
-  ->  rdf_literal_value(H1, H2)
+  ->  rdf_literal_data(value, H1, H2)
   ;   H2 = H1
   ),
   rdf_has(L1, rdf:rest, T1),

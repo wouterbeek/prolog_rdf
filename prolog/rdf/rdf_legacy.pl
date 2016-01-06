@@ -5,6 +5,7 @@
     rdf_is_plain_literal/1, % @Term
     rdf_is_simple_literal/1, % @Term
     rdf_is_typed_literal/1, % @Term
+    rdf_legacy_literal_components/4, % +Literal, -D, -Lex, -LTag
     rdf_plain_literal/1, % -Literal:compound
     rdf_simple_literal/1, % -Literal:compound
     rdf_typed_literal/1 % -Literal:compound
@@ -36,7 +37,9 @@ the Unicode strings in Normal Form C with the set of datatype URIs.
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(typecheck)).
 
-:- rdf_meta(rdf_is_typed_literal(o)).
+:- rdf_meta
+   rdf_is_typed_literal(o),
+   rdf_legacy_literal_components(o, -, -, -).
 
 
 
@@ -76,6 +79,14 @@ rdf_is_typed_literal(Lit) :-
   Lit = literal(type(D,Lex)),
   is_iri(D),
   atom(Lex).
+
+
+
+%! rdf_legacy_literal_components(+Literal, -D, -Lex, -LTag) is det.
+
+rdf_legacy_literal_components(literal(type(D,Lex)), D, Lex, _) :- !.
+rdf_legacy_literal_components(literal(lang(LTag,Lex)), rdf:langString, Lex, LTag) :- !.
+rdf_legacy_literal_components(literal(Lex), xsd:string, Lex, _).
 
 
 

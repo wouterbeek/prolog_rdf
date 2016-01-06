@@ -21,6 +21,7 @@
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_legacy)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
@@ -86,7 +87,8 @@ rdf_literal_data(datatype, _^^D, D) :- !.
 rdf_literal_data(datatype, _@_, rdf:langString) :- !.
 rdf_literal_data(langtag, _@LTag, LTag) :- !.
 rdf_literal_data(lexical_form, Lit, Lex) :- !,
-  rdf_lexical_form(Lit, Lex).
+  rdf11:pre_object(Lit, Lit0),
+  rdf_legacy_literal_components(Lit0, _, Lex, _).
 rdf_literal_data(value, V^^_, V) :- !.
 rdf_literal_data(value, V@_, V).
 rdf_literal_data(Field, _, _) :-
