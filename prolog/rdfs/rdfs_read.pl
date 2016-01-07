@@ -18,7 +18,6 @@
 @version 2015/08-2015/09, 2015/12-2016/01
 */
 
-:- use_module(library(rdf/rdf_closure)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 
@@ -64,7 +63,7 @@ rdfs_comment(S, Comm) :-
 
 rdfs_instance0(I, D) :-
   rdf_instance(I, C),
-  rdf_closure0(C, rdfs:subClassOf, D).
+  rdf_reachable(C, rdfs:subClassOf, D).
 
 
 
