@@ -21,7 +21,6 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_statement)).

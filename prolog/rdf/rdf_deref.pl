@@ -23,7 +23,6 @@
 :- use_module(library(pool)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).

@@ -57,7 +57,6 @@ Identifiers are atoms.
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_legacy)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).

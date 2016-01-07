@@ -42,7 +42,6 @@
 :- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(rdf/id_store)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).

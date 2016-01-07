@@ -1,28 +1,29 @@
 :- module(
   rdf_read,
   [
-    rdf/1,             % ?Stmt
-    rdf/2,             % ?Trip, ?G
-    rdf/3,             % ?S, ?P, ?O
-    rdf/4,             % ?S, ?P, ?O, ?G
-    rdf/6,             % ?S, ?P, ?O, -Sid, -Pid, -Oid
-    rdf/8,             % ?S, ?P, ?O, ?G, -Sid, -Pid, -Oid, -Gid
-    rdf_date/3,        % ?S, ?P, ?Date
-    rdf_date/4,        % ?S, ?P, ?Date, ?G
-    rdf_has/3,         % ?S, ?P, ?O
-    rdf_instance/2,    % ?I, ?C
-    rdf_instance/3,    % ?I, ?C, ?G
-    rdf_langstring/3,  % ?S, ?P, ?V
-    rdf_langstring/4,  % ?S, ?P, +LanguagePriorityList, ?V
-    rdf_langstring/5,  % ?S, ?P, +LanguagePriorityList, ?V, ?G
-    rdf_literal/3,     % ?S, ?P, ?V
-    rdf_literal/4,     % ?S, ?P, ?D, ?V
-    rdf_literal/5,     % ?S, ?P, ?D, ?V, ?G
-    rdf_one_string/3,  % +S, +P, -V:atom
-    rdf_pref_string/3, % ?S, ?P, -Lex
-    rdf_pref_string/4, % ?S, ?P, +LanguagePriorityList, -Lex
-    rdf_pref_string/5, % ?S, ?P, +LanguagePriorityList, -LTag, -Lex
-    rdf_pref_string/6  % ?S, ?P, +LanguagePriorityList, -LTag, -Lex, ?G
+    rdf/1,              % ?Stmt
+    rdf/2,              % ?Trip, ?G
+    rdf/3,              % ?S, ?P, ?O
+    rdf/4,              % ?S, ?P, ?O, ?G
+    rdf/6,              % ?S, ?P, ?O, -Sid, -Pid, -Oid
+    rdf/8,              % ?S, ?P, ?O, ?G, -Sid, -Pid, -Oid, -Gid
+    rdf_date/3,         % ?S, ?P, ?Date
+    rdf_date/4,         % ?S, ?P, ?Date, ?G
+    rdf_has/3,          % ?S, ?P, ?O
+    rdf_instance/2,     % ?I, ?C
+    rdf_instance/3,     % ?I, ?C, ?G
+    rdf_langstring/3,   % ?S, ?P, ?V
+    rdf_langstring/4,   % ?S, ?P, +LanguagePriorityList, ?V
+    rdf_langstring/5,   % ?S, ?P, +LanguagePriorityList, ?V, ?G
+    rdf_literal/3,      % ?S, ?P, ?V
+    rdf_literal/4,      % ?S, ?P, ?D, ?V
+    rdf_literal/5,      % ?S, ?P, ?D, ?V, ?G
+    rdf_one_string/3,   % +S, +P, -V:atom
+    rdf_pref_string/3,  % ?S, ?P, -Lex
+    rdf_pref_string/4,  % ?S, ?P, +LanguagePriorityList, -Lex
+    rdf_pref_string/5,  % ?S, ?P, +LanguagePriorityList, -LTag, -Lex
+    rdf_pref_string/6,  % ?S, ?P, +LanguagePriorityList, -LTag, -Lex, ?G
+    rdf_reachable/3     % ?S, ?P, ?O
   ]
 ).
 :- reexport(library(rdf11/rdf11), [
@@ -30,9 +31,10 @@
      op(650, xfx, ^^)
    ]).
 :- reexport(library(semweb/rdf_db), [
-     rdf/3 as rdf_id,        % ?Sid, ?Pid, Oid
-     rdf/4 as rdf_id,        % ?Sid, ?Pid, ?Oid, ?Gid
-     rdf_has/3 as rdf_has_id % ?Sid, ?Pid, ?Oid
+     rdf/3 as rdf_id,                     % ?Sid, ?Pid, Oid
+     rdf/4 as rdf_id,                     % ?Sid, ?Pid, ?Oid, ?Gid
+     rdf_has/3 as rdf_has_id,             % ?Sid, ?Pid, ?Oid
+     rdf_reachable/3 as rdf_reachable_id  % ?Sid, ?Pid, ?Oid
    ]).
 
 /** <module> Generalized RDF reading
@@ -50,34 +52,34 @@
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta
-	rdf(t),
-	rdf(t, r),
-	rdf(o, r, o),
-	rdf(o, r, o, r),
-	rdf(o, r, o, -, -, -),
-	rdf(o, r, o, r, -, -, -, -),
-	rdf_date(o, r, ?),
-	rdf_date(o, r, ?, r),
-	rdf_has(o, r, o),
-	rdf_instance(o, r),
-	rdf_instance(o, r, r),
-	rdf_langstring(o, r, ?),
-	rdf_langstring(o, r, +, ?),
-	rdf_langstring(o, r, +, ?, r),
-	rdf_literal(o, r, ?),
-	rdf_literal(o, r, r, ?),
-	rdf_literal(o, r, r, ?, r),
-	rdf_one_string(o, r, -),
-	rdf_pref_string(o, r, -),
-	rdf_pref_string(o, r, +, -),
-	rdf_pref_string(o, r, +, -, -),
-	rdf_pref_string(o, r, +, -, -, r).
+   rdf(t),
+   rdf(t, r),
+   rdf(o, r, o),
+   rdf(o, r, o, r),
+   rdf(o, r, o, -, -, -),
+   rdf(o, r, o, r, -, -, -, -),
+   rdf_date(o, r, ?),
+   rdf_date(o, r, ?, r),
+   rdf_has(o, r, o),
+   rdf_instance(o, r),
+   rdf_instance(o, r, r),
+   rdf_langstring(o, r, ?),
+   rdf_langstring(o, r, +, ?),
+   rdf_langstring(o, r, +, ?, r),
+   rdf_literal(o, r, ?),
+   rdf_literal(o, r, r, ?),
+   rdf_literal(o, r, r, ?, r),
+   rdf_one_string(o, r, -),
+   rdf_pref_string(o, r, -),
+   rdf_pref_string(o, r, +, -),
+   rdf_pref_string(o, r, +, -, -),
+   rdf_pref_string(o, r, +, -, -, r),
+   rdf_reachable(o, r, o).
 
 
 
@@ -333,6 +335,15 @@ rdf_pref_string(S, P, LRanges, LTag, Lex, G) :-
 % Plain XSD strings.
 rdf_pref_string(S, P, _, _, Lex, G) :-
   rdf_literal(S, P, xsd:string, Lex, G).
+
+
+
+%! rdf_reachable(?S, ?P, ?O) is nondet.
+
+rdf_reachable(S, P, O) :-
+  maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
+  rdf_reachable_id(Sid, Pid, Oid),
+  maplist(id_to_term, [Sid,Pid,Oid], [S,P,O]).
 
 
 
