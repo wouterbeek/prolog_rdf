@@ -4,6 +4,7 @@
     rdf_graph_triples/2,      % ?G, -Trips
     rdf_statement_terms/4,    % +Stmt, ?S, ?P, ?O
     rdf_subject_triples/2,    % +S, -Trips
+    rdf_triples/4,            % ?S, ?P, ?O, -Trips
     rdf_triples_iris/2,       % +Trips, -Iris
     rdf_triples_predicates/2, % +Trips, -Ps
     rdf_triples_subjects/2,   % +Trips, -Ss
@@ -22,12 +23,14 @@ Predicates that perform simple operations on RDF triples/quadruples.
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
 
 :- rdf_meta
    rdf_graph_triples(r, -),
-   rdf_subject_triples(r, -).
+   rdf_subject_triples(r, -),
+   rdf_triples(o, r, o, -).
 
 
 
@@ -69,6 +72,13 @@ rdf_triple_iri(Trip, T) :-
 rdf_triple_term(rdf(S,_,_), S).
 rdf_triple_term(rdf(_,P,_), P).
 rdf_triple_term(rdf(_,_,O), O).
+
+
+
+%! rdf_triples(?S, ?P, ?O, -Trips) is det.
+
+rdf_triples(S, P, O, Trips):-
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Trips).
 
 
 
