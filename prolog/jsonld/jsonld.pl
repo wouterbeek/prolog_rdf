@@ -48,20 +48,21 @@ jsonld_triples(Trips, Json):-
   jsonld_triples_context(Trips, PDefs, Context),
   jsonld_triples_tree(Trips, Tree),
   assoc_to_keys(Tree, Ss),
-  maplist(jsonld_stree(PDefs, Context, Tree), Ss, Ds),
-  (Ds = [D] -> Json = D ; Json = Ds).
-
+  maplist(jsonld_stree(PDefs, Tree), Ss, Ds),
+  (   Ds = [D]
+  ->  Json = D.put('@context', Context)
+  ;   dict_pairs(Json, json, ['@context'-Context,'@graph'-Ds])
+  ).
 
 
 %! jsonld_stree(
 %!   +PredicateDefintions:list(pair),
-%!   +Context:dict,
 %!   +Tree,
 %!   +S,
 %!   -Json:dict
 %! ) is det.
 
-jsonld_stree(PDefs, Context, Tree, S1, D):-
+jsonld_stree(PDefs, Tree, S1, D):-
   get_assoc(S1, Tree, Subtree),
 
   % '@id'
@@ -82,7 +83,7 @@ jsonld_stree(PDefs, Context, Tree, S1, D):-
   maplist(jsonld_ptree(PDefs, Subtree), Ps, Pairs3),
 
   % Pairs → dict.
-  dict_pairs(D, jsonld, ['@context'-Context|Pairs1]).
+  dict_pairs(D, jsonld, Pairs1).
 
 
 
