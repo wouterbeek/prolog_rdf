@@ -26,6 +26,7 @@
 :- rdf_meta
    rdf_language_tagged_string(o),
    rdf_literal_components(o, r, -, -),
+   rdf_literal_data(?, o, r),
    rdf_literal_equiv(o, o).
 
 
@@ -81,7 +82,8 @@ rdf_literal_components(V^^D,   D,              V, LTag) :-
 % @throws type_error
 
 rdf_literal_data(datatype, _^^D, D) :- !.
-rdf_literal_data(datatype, _@_, rdf:langString) :- !.
+rdf_literal_data(datatype, _@_, D) :- !,
+  rdf_equal(rdf:langString, D).
 rdf_literal_data(langtag, _@LTag, LTag) :- !.
 rdf_literal_data(lexical_form, Lit, Lex) :- !,
   rdf11:pre_object(Lit, Lit0),
