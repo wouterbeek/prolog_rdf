@@ -13,6 +13,7 @@
     rdf_literal/1,                   % ?Lit
     rdf_literal/2,                   % +G, ?Lit
     rdf_literal_datatype/2,          % +Lit, ?D
+    rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?V
     rdf_name/1,                      % ?Name
     rdf_name/2,                      % +G, ?Name
@@ -93,6 +94,7 @@ resources as well.
    rdf_literal(o),
    rdf_literal(r,o),
    rdf_literal_datatype(o,r),
+   rdf_literal_lexical_form(o,?),
    rdf_literal_value(o,?),
    rdf_name(o),
    rdf_name(r,o),
@@ -253,6 +255,15 @@ rdf_literal(G, Lit) :-
 
 rdf_literal_datatype(_^^D, D).
 rdf_literal_datatype(_@_, D):- rdf_equal(rdf:langString, D).
+
+
+
+%! rdf_literal_lexical_form(+Lit, +Lex) is semidet.
+%! rdf_literal_lexical_form(+Lit, -Lex) is det.
+
+rdf_literal_lexical_form(Lit, Lex) :-
+  rdf11:pre_object(Lit, Lit0),
+  rdf_legacy_literal_components(Lit0, _, Lex, _).
 
 
 
