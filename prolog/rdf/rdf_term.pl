@@ -1,37 +1,42 @@
 :- module(
   rdf_term,
   [
-    rdf_bnode/1,	% ?BN
-    rdf_bnode/2,	% +G, ?BN
-    rdf_datatype_iri/1,	% ?D
-    rdf_datatype_iri/2,	% +G, ?D
-    rdf_iri/1,		% ?T
-    rdf_iri/2,		% +G, ?Iri
-    rdf_literal/1,	% ?Lit
-    rdf_literal/2,	% +G, ?Lit
-    rdf_name/1,		% ?Name:rdf_name
-    rdf_name/2,		% +G, ?Name:rdf_name
-    rdf_node/1,		% ?Node:rdf_term
-    rdf_node/2,		% +G, ?Node:rdf_term
-    rdf_object/1,	% ?O
-    rdf_object/2,	% +G, ?O
-    rdf_predicate/1,	% ?P
-    rdf_predicate/2,	% +G, ?P
-    rdf_subject/1,	% ?S
-    rdf_subject/2,	% +G, ?S
-    rdf_term/1,		% ?T
-    rdf_term/2		% +G, ?T
+    rdf_bnode/1,                     % ?B
+    rdf_bnode/2,                     % +G, ?B
+    rdf_datatype_iri/1,              % ?D
+    rdf_datatype_iri/2,              % +G, ?D
+    rdf_iri/1,                       % ?T
+    rdf_iri/2,                       % +G, ?Iri
+    rdf_is_language_tagged_string/1, % @T
+    rdf_language_tagged_string/1,    % ?Lit
+    rdf_language_tagged_string/1,    % +G, ?Lit
+    rdf_literal/1,                   % ?Lit
+    rdf_literal/2,                   % +G, ?Lit
+    rdf_literal_datatype/2,          % +Lit, ?D
+    rdf_literal_value/2,             % +Lit, ?V
+    rdf_name/1,                      % ?Name
+    rdf_name/2,                      % +G, ?Name
+    rdf_node/1,                      % ?Node
+    rdf_node/2,                      % +G, ?Node
+    rdf_object/1,                    % ?O
+    rdf_object/2,                    % +G, ?O
+    rdf_predicate/1,                 % ?P
+    rdf_predicate/2,                 % +G, ?P
+    rdf_subject/1,                   % ?S
+    rdf_subject/2,                   % +G, ?S
+    rdf_term/1,                      % ?T
+    rdf_term/2                       % +G, ?T
   ]
 ).
 :- reexport(library(rdf11/rdf11), [
-     rdf_is_bnode/1,		% @Term
-     rdf_is_iri/1,		% @Term
-     rdf_is_literal/1,		% @Term
-     rdf_is_name/1,		% @Term
-     rdf_is_object/1,		% @Term
-     rdf_is_predicate/1,	% @Term
-     rdf_is_subject/1,		% @Term
-     rdf_is_term/1		% @Term
+     rdf_is_bnode/1,     % @Term
+     rdf_is_iri/1,       % @Term
+     rdf_is_literal/1,   % @Term
+     rdf_is_name/1,      % @Term
+     rdf_is_object/1,    % @Term
+     rdf_is_predicate/1, % @Term
+     rdf_is_subject/1,   % @Term
+     rdf_is_term/1       % @Term
    ]).
 
 /** <module> Generalized RDF terms
@@ -61,7 +66,7 @@ resources as well.
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_legacy)).
-:- use_module(library(rdf/rdf_literal)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf11/rdf11), [
      rdf_bnode/1 as rdf_bnode_id,
@@ -76,24 +81,27 @@ resources as well.
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
 
-:- rdf_meta(rdf_node(o)).
-:- rdf_meta(rdf_node(r,o)).
-:- rdf_meta(rdf_subject(o)).
-:- rdf_meta(rdf_subject(r,o)).
-:- rdf_meta(rdf_datatype_iri(r)).
-:- rdf_meta(rdf_datatype_iri(r,r)).
-:- rdf_meta(rdf_iri(r)).
-:- rdf_meta(rdf_iri(r,r)).
-:- rdf_meta(rdf_literal(o)).
-:- rdf_meta(rdf_literal(r,o)).
-:- rdf_meta(rdf_name(o)).
-:- rdf_meta(rdf_name(r,o)).
-:- rdf_meta(rdf_object(o)).
-:- rdf_meta(rdf_object(r,o)).
-:- rdf_meta(rdf_predicate(r)).
-:- rdf_meta(rdf_predicate(r,r)).
-:- rdf_meta(rdf_term(o)).
-:- rdf_meta(rdf_term(r,o)).
+:- rdf_meta
+   rdf_node(o),
+   rdf_node(r,o),
+   rdf_subject(o),
+   rdf_subject(r,o),
+   rdf_datatype_iri(r),
+   rdf_datatype_iri(r,r),
+   rdf_iri(r),
+   rdf_iri(r,r),
+   rdf_literal(o),
+   rdf_literal(r,o),
+   rdf_literal_datatype(o,r),
+   rdf_literal_value(o,?),
+   rdf_name(o),
+   rdf_name(r,o),
+   rdf_object(o),
+   rdf_object(r,o),
+   rdf_predicate(r),
+   rdf_predicate(r,r),
+   rdf_term(o),
+   rdf_term(r,o).
 
 :- multifile(error:has_type/2).
 error:has_type(rdf_bnode, B) :-
@@ -160,14 +168,14 @@ rdf_bnode(G, BN) :-
 %! rdf_datatype_iri(-D) is nondet.
 
 rdf_datatype_iri(D) :-
-  distinct(D, (rdf_literal(Lit), rdf_literal_data(datatype, Lit, D))).
+  distinct(D, (rdf_literal(Lit), rdf_literal_datatype(Lit, D))).
 
 
 %! rdf_datatype_iri(+G, +D) is semidet.
 %! rdf_datatype_iri(+G, -D) is nondet.
 
 rdf_datatype_iri(G, D) :-
-  distinct(D, (rdf_literal(G, Lit), rdf_literal_data(datatype, Lit, D))).
+  distinct(D, (rdf_literal(G, Lit), rdf_literal_datatype(Lit, D))).
 
 
 
@@ -192,6 +200,33 @@ rdf_iri(G, Iri) :-
 
 
 
+%! rdf_is_language_tagged_string(@T) is semidet.
+
+rdf_is_language_tagged_string(T) :-
+  ground(T),
+  T = _@_.
+
+
+
+%! rdf_language_tagged_string(+Lit) is semidet.
+%! rdf_language_tagged_string(-Lit) is nondet.
+% The **language-tagged string**s are the cartesian product of the Unicode
+% strings in Normal Form C with the set of BCP 47 language tags.
+
+rdf_language_tagged_string(Lit) :-
+  rdf_literal(Lit),
+  Lit = _@_.
+
+
+%! rdf_language_tagged_string(+G, +Lit) is semidet.
+%! rdf_language_tagged_string(+G, -Lit) is nondet.
+
+rdf_language_tagged_string(G, Lit) :-
+  rdf_literal(G, Lit),
+  Lit = _@_.
+
+
+
 %! rdf_literal(@Term) is semidet.
 %! rdf_literal(-Lit) is nondet.
 
@@ -210,6 +245,22 @@ rdf_literal(Lit) :-
 rdf_literal(G, Lit) :-
   rdf_literal(Lit),
   once(rdf_node(G, Lit)).
+
+
+
+%! rdf_literal_datatype(+Lit, +D) is semidet.
+%! rdf_literal_datatype(+Lit, -D) is det.
+
+rdf_literal_datatype(_^^D, D).
+rdf_literal_datatype(_@_, D):- rdf_equal(rdf:langString, D).
+
+
+
+%! rdf_literal_value(+Lit, +V) is semidet.
+%! rdf_literal_value(+Lit, -V) is nondet.
+
+rdf_literal_value(V^^_, V).
+rdf_literal_value(V@_, V).
 
 
 

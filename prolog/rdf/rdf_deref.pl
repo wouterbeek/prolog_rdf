@@ -23,7 +23,6 @@
 :- use_module(library(pool)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_literal)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
@@ -56,12 +55,10 @@
 rdf_cache:triple_to_iri(rdf(_,P,_), P).
 rdf_cache:triple_to_iri(rdf(_,_,O), D) :-
   rdf_is_literal(O),
-  rdf_literal_data(datatype, O, D).
+  rdf_literal_datatype(O, D).
 rdf_cache:triple_to_iri(rdf(_,P,O), O) :-
   rdf_memberchk(P, [owl:equivalentClass,owl:sameAs]),
   rdf_is_iri(O).
-
-
 
 
 

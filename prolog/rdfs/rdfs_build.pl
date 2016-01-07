@@ -32,20 +32,20 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta
-	rdfs_assert_class(r, t, ?, ?, r),
-	rdfs_assert_comment(o, +, r),
-	rdfs_assert_domain(r, r, r),
-	rdfs_assert_isDefinedBy(o, r),
-	rdfs_assert_isDefinedBy(o, r, r),
-	rdfs_assert_label(o, +),
-	rdfs_assert_label(o, +, r),
-	rdfs_assert_property(r, r, r, r),
-	rdfs_assert_range(r, r, r),
-	rdfs_assert_seeAlso(o, +, r),
-	rdfs_assert_subclass(r, r),
-	rdfs_assert_subclass(r, t, r),
-	rdfs_assert_subproperty(r, t, r),
-	rdfs_retractall_class(o).
+   rdfs_assert_class(r, t, ?, ?, r),
+   rdfs_assert_comment(o, +, r),
+   rdfs_assert_domain(r, r, r),
+   rdfs_assert_isDefinedBy(o, r),
+   rdfs_assert_isDefinedBy(o, r, r),
+   rdfs_assert_label(o, +),
+   rdfs_assert_label(o, +, r),
+   rdfs_assert_property(r, r, r, r),
+   rdfs_assert_range(r, r, r),
+   rdfs_assert_seeAlso(o, +, r),
+   rdfs_assert_subclass(r, r),
+   rdfs_assert_subclass(r, t, r),
+   rdfs_assert_subproperty(r, t, r),
+   rdfs_retractall_class(o).
 
 
 
@@ -99,7 +99,7 @@ rdfs_assert_isDefinedBy(S, G) :-
 
 rdfs_assert_isDefinedBy(S, Prefix, G) :-
   var(Prefix), !,
-  rdf_iri_alias_prefix(S, _, Prefix, _),
+  rdf_iri_alias_prefix_local(S, _, Prefix, _),
   rdf_assert(S, rdfs:isDefinedBy, Prefix, G).
 rdfs_assert_isDefinedBy(S, Iri, G) :-
   rdf_assert(S, rdfs:isDefinedBy, Iri, G).

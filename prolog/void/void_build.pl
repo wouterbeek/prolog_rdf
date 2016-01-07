@@ -58,7 +58,7 @@ void_gen(In, Format, G):-
     (
       vocabulary_term(Iri),
       rdf_is_iri(Iri),
-      rdf_iri_alias_prefix(Iri, _, Prefix, _)
+      rdf_iri_alias_prefix_local(Iri, _, Prefix, _)
     ),
     Vocabs
   ),
