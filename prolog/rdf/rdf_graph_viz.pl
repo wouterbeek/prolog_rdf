@@ -25,12 +25,8 @@ handled by plGraphViz.
 :- use_module(library(gv/gv_color)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_graph_theory)).
-:- use_module(library(rdf/rdf_image)).
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_statement)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdfs), [rdfs_individual_of/2,rdfs_subclass_of/2]).
 :- use_module(library(typecheck)).
 
@@ -300,7 +296,7 @@ rdf_vertex_color(_, _, _, black).
 % Only display the first picture that is found for Term.
 
 rdf_vertex_image(V, VImage) :-
-  once(rdf_image(V, _, VImage)).
+  once(rdf_image(V, VImage)).
 
 
 

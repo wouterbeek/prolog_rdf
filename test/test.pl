@@ -29,53 +29,41 @@
 :- use_module(library(oaei/oaei_check)).
 :- use_module(library(oaei/oaei_file)).
 :- use_module(library(oaei/oaei_read)).
-%/owl
-:- use_module(library(owl/owl_build)).
 %/rdf
-:- use_module(library(rdf/id_store)).
-:- use_module(library(rdf/rdf_auth)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_clean_metadata)).
 :- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_compare)).
-:- use_module(library(rdf/rdf_database)).
 :- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_download)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
-:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_graph_theory)).
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
-:- use_module(library(rdf/rdf_image)).
 :- use_module(library(rdf/rdf_info)).
-:- use_module(library(rdf/rdf_json_build)).
-:- use_module(library(rdf/rdf_legacy)).
 :- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_print_stmt)).
 :- use_module(library(rdf/rdf_print_term)).
-:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_save)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stats)).
 :- use_module(library(rdf/rdf_stream)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_test)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdf/w3c_dtf)).
 %/rdfs
-:- use_module(library(rdfs/rdfs_build)).
-:- use_module(library(rdfs/rdfs_read)).
 :- use_module(library(rdfs/rdfs_stats)).
 %/simple
 :- use_module(library(simple/write_SimpleRDF)).

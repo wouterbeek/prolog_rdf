@@ -31,8 +31,7 @@ Generates HTML tables with RDF content.
 :- use_module(library(http/html_write)).
 :- use_module(library(html/rdf_html_term)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(rdf/rdf_stats)).
 :- use_module(library(typecheck)).
 
@@ -55,9 +54,10 @@ Generates HTML tables with RDF content.
      pass_to(rdf_html_statement_table//5, 5)
    ]).
 
-:- rdf_meta(rdf_html_quadruple_table(r,r,o,?,+,?,?)).
-:- rdf_meta(rdf_html_table(+,+,?,?)).
-:- rdf_meta(rdf_html_triple_table(r,r,o,?,+,?,?)).
+:- rdf_meta
+   rdf_html_quadruple_table(r,r,o,?,+,?,?),
+   rdf_html_table(+,+,?,?),
+   rdf_html_triple_table(r,r,o,?,+,?,?).
 
 
 

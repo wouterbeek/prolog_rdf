@@ -2,27 +2,10 @@
   rdf_prefix,
   [
     rdf_current_prefix/1,         % ?Prefix
-    rdf_maplist/2,                % :Goal_1, +Ts
-    rdf_member/2,                 % ?T, +Ts
-    rdf_memberchk/2,              % ?T, +Ts
     rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
     rdf_reset_prefix/2            % +Prefix, +IriPrefix
   ]
 ).
-:- reexport(library(semweb/rdf_db), [
-     rdf_current_prefix/2,     % ?Prefix, ?IriPrefix
-     % @tbd Rename to `rdf_expand_ct/2'.
-     rdf_equal/2,              % ?Prefixed, ?Expanded
-     % @tbd Rename to `rdf_expand_rt/2'.
-     rdf_global_id/2,          % ?Prefixed, ?Expanded
-     % @tbd Rename to `rdf_expand_term/2'.
-     rdf_global_object/2,      % ?Prefixed, ?Expanded
-     rdf_global_term/2,        % ?Prefixed, ?Expanded
-     %rdf_meta/1,               % Head
-     op(1150, fx, (rdf_meta)),
-     rdf_register_prefix/2,    % +Prefix, +IriPrefix
-     rdf_register_prefix/3     % +Prefix, +IriPrefix, +Opts
-   ]).
 
 /** <module> RDF Prefix
 
@@ -55,18 +38,10 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(lists)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(uri)).
 
 :- initialization((assert_cc_prefixes,assert_dbpedia_localizations)).
-
-:- meta_predicate(rdf_maplist(1,+)).
-
-:- rdf_meta
-	rdf_equal(r, r),
-	rdf_global_id(r, r),
-	rdf_maplist(:, t),
-	rdf_member(r, t),
-	rdf_memberchk(r, t).
 
 
 
@@ -329,29 +304,6 @@ dbpedia_register(LTag) :-
 
 rdf_current_prefix(Prefix) :-
   rdf_current_prefix(Prefix, _).
-
-
-
-%! rdf_maplist(:Goal_1, +Ts:list) is det.
-
-rdf_maplist(Goal_1, Ts) :-
-  maplist(Goal_1, Ts).
-
-
-
-%! rdf_member(+T, +Ts) is semidet.
-%! rdf_member(-T, +Ts) is nondet.
-
-rdf_member(T, Ts) :-
-  member(T, Ts).
-
-
-
-%! rdf_memberchk(+T, +Ts) is semidet.
-%! rdf_memberchk(-T, +Ts) is semidet.
-
-rdf_memberchk(T, Ts) :-
-  memberchk(T, Ts).
 
 
 

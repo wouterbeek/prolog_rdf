@@ -38,7 +38,6 @@ This means that the definitions 'edge' and 'vertex' for graph theoretic
 
 :- use_module(library(aggregate)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_term)).
 
 :- predicate_options(rdf_graph_to_srep/3, 3, [
      pass_to(rdf_undirected_edge/3, 3),

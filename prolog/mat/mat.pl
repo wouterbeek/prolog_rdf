@@ -21,14 +21,12 @@
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(option_ext)).
-:- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
-	mat(r),
-	mat(r, r),
-	mat(r, r, r).
+   mat(r),
+   mat(r, r),
+   mat(r, r, r).
 
 :- predicate_options(mat/3, 3, [
      pass_to(mat0/3, 3)
@@ -88,10 +86,7 @@ mat(GIn, GOut, Opts) :-
   (   var(GIn)
   ->  mat0(GIn, GOut, Opts)
   ;   must_be(atom, GIn),
-      (   rdf_is_graph(GIn)
-      ->  true
-      ;   existence_error(rdf_graph, GIn)
-      ),
+      (rdf_graph(GIn) -> true ; existence_error(rdf_graph, GIn)),
 
       % Debug message before.
       PrintOpts = [abbr_list(true),indent(1)],

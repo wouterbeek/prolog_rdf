@@ -23,19 +23,20 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(simple/write_SimpleRDF)).
 :- use_module(library(uri)).
 
-:- meta_predicate(rdf_write_to_graph(+,1)).
-:- meta_predicate(rdf_write_to_graph(+,1,+)).
-:- meta_predicate(rdf_write_to_graph(1,+,+,+)).
+:- meta_predicate
+    rdf_write_to_graph(+, 1),
+    rdf_write_to_graph(+, 1, +),
+    rdf_write_to_graph(1, +, +, +).
 
-:- rdf_meta(rdf_save_file(+,t)).
+:- rdf_meta
+   rdf_save_file(+, t).
 
 :- predicate_options(rdf_save_file/2, 2, [
      format(+oneof([simpleQuads,simpleTriples,nquads,ntriples,trig,triples,turtle,xml])),
@@ -77,7 +78,7 @@ rdf_save_file(Out) :-
 rdf_save_file(Out, Opts) :-
   var(Out),
   option(graph(G0), Opts),
-  rdf_graph_get_property(G0, source(File0)), !,
+  rdf_graph_property(G0, source(File0)), !,
   uri_file_name(File0, File),
   rdf_save_file(File, Opts).
 % A new file name is created based on graph and format.
@@ -102,14 +103,14 @@ rdf_save_file(File, Opts) :-
   option(graph(G), Opts),
   
   % The graph was not modified after the last save operation.
-  rdf_graph_get_property(G, modified(false)),
+  rdf_graph_property(G, modified(false)),
   
   % The given file is the source of the given graph.
-  rdf_graph_get_property(G, source(File0)),
+  rdf_graph_property(G, source(File0)),
   uri_file_name(File0, File),
   
   % The file was not modified after the graph was loaded.
-  rdf_graph_get_property(G, source_last_modified(LMod)),
+  rdf_graph_property(G, source_last_modified(LMod)),
   exists_file(File),
   time_file(File, LMod), !,
   debug(rdf(save), "No need to save graph ~w; no updates.", [G]).

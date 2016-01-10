@@ -1,26 +1,26 @@
 :- module(
   rdf_print_stmt,
   [
-    rdf_print_quadruple/1,	% +Quad
-    rdf_print_quadruple/2,	% +Quad, +Opts
-    rdf_print_quadruple/3,	% ?S, ?P, ?O
-    rdf_print_quadruple/4,	% ?S, ?P, ?O, ?G
-    rdf_print_quadruple/5,	% ?S, ?P, ?O, ?G, +Opts
-    rdf_print_quadruples/1,	% +Quads:list
-    rdf_print_quadruples/2,	% +Quads:list, +Opts
-    rdf_print_statement/1,	% +Stmt
-    rdf_print_statement/2,	% +Stmt, +Opts
-    rdf_print_statement/5,	% +S, +P, +O, ?G, +Opts
-    rdf_print_statement//5,	% +S, +P, +O, ?G, +Opts
-    rdf_print_statements/1,	% +Stmts:list
-    rdf_print_statements/2,	% +Stmts:list, +Opts
-    rdf_print_triple/1,		% +Trip
-    rdf_print_triple/2,		% +Trip, +Opts
-    rdf_print_triple/3,		% ?S, ?P, ?O
-    rdf_print_triple/4,		% ?S, ?P, ?O, ?G
-    rdf_print_triple/5,		% ?S, ?P, ?O, ?G, +Opts
-    rdf_print_triples/1,	% +Trips:list
-    rdf_print_triples/2		% +Trips:list, +Opts
+    rdf_print_quadruple/1,  % +Quad
+    rdf_print_quadruple/2,  % +Quad, +Opts
+    rdf_print_quadruple/3,  % ?S, ?P, ?O
+    rdf_print_quadruple/4,  % ?S, ?P, ?O, ?G
+    rdf_print_quadruple/5,  % ?S, ?P, ?O, ?G, +Opts
+    rdf_print_quadruples/1, % +Quads:list
+    rdf_print_quadruples/2, % +Quads:list, +Opts
+    rdf_print_statement/1,  % +Stmt
+    rdf_print_statement/2,  % +Stmt, +Opts
+    rdf_print_statement/5,  % +S, +P, +O, ?G, +Opts
+    rdf_print_statement//5, % +S, +P, +O, ?G, +Opts
+    rdf_print_statements/1, % +Stmts:list
+    rdf_print_statements/2, % +Stmts:list, +Opts
+    rdf_print_triple/1,     % +Trip
+    rdf_print_triple/2,     % +Trip, +Opts
+    rdf_print_triple/3,     % ?S, ?P, ?O
+    rdf_print_triple/4,     % ?S, ?P, ?O, ?G
+    rdf_print_triple/5,     % ?S, ?P, ?O, ?G, +Opts
+    rdf_print_triples/1,    % +Trips:list
+    rdf_print_triples/2     % +Trips:list, +Opts
   ]
 ).
 
@@ -33,30 +33,29 @@
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
-	rdf_print_quadruple(t),
-	rdf_print_quadruple(t, +),
-	rdf_print_quadruple(o, r, o),
-	rdf_print_quadruple(o, r, o, ?),
-	rdf_print_quadruple(o, r, o, ?, +),
-	rdf_print_quadruples(t),
-	rdf_print_quadruples(t, +),
-	rdf_print_statement(t),
-	rdf_print_statement(t, +),
-	rdf_print_statement(t, r, r, ?, +, ?, ?),
-	rdf_print_statements(t),
-	rdf_print_statements(t, +),
-	rdf_print_triple(t),
-	rdf_print_triple(t, +),
-	rdf_print_triple(o, r, o),
-	rdf_print_triple(o, r, o, ?),
-	rdf_print_triple(o, r, o, ?, +),
-	rdf_print_triples(t),
-	rdf_print_triples(t, +).
+   rdf_print_quadruple(t),
+   rdf_print_quadruple(t, +),
+   rdf_print_quadruple(r, r, o),
+   rdf_print_quadruple(r, r, o, ?),
+   rdf_print_quadruple(r, r, o, ?, +),
+   rdf_print_quadruples(t),
+   rdf_print_quadruples(t, +),
+   rdf_print_statement(t),
+   rdf_print_statement(t, +),
+   rdf_print_statement(t, r, r, ?, +, ?, ?),
+   rdf_print_statements(t),
+   rdf_print_statements(t, +),
+   rdf_print_triple(t),
+   rdf_print_triple(t, +),
+   rdf_print_triple(r, r, o),
+   rdf_print_triple(r, r, o, ?),
+   rdf_print_triple(r, r, o, ?, +),
+   rdf_print_triples(t),
+   rdf_print_triples(t, +).
 
 :- predicate_options(rdf_print_quadruple/2, 2, [
      pass_to(rdf_print_statement/5, 5)
@@ -75,7 +74,6 @@
      pass_to(rdf_print_statement//5, 5)
    ]).
 :- predicate_options(rdf_print_statement//5, 5, [
-     id_closure(+boolean),
      pass_to(rdf_print_graph_maybe//2, 2),
      pass_to(rdf_print_object//2, 2),
      pass_to(rdf_print_predicate//2, 2),
@@ -143,12 +141,8 @@ rdf_print_quadruple(S, P, O, G, Opts) :-
   ground(rdf(S,P,O,G)), !,
   rdf_print_statement(S, P, O, G, Opts).
 rdf_print_quadruple(S, P, O, G, Opts) :-
-  (   option(id_closure(false), Opts)
-  ->  rdf(S, P, O, G),
-      dcg_with_output_to(current_output, rdf_print_statement_id(S, P, O, G, Opts))
-  ;   rdf(S, P, O, G, Sid, Pid, Oid, Gid),
-      dcg_with_output_to(current_output, rdf_print_statement_id(Sid, Pid, Oid, Gid, Opts))
-  ),
+  rdf(S, P, O, G),
+  dcg_with_output_to(current_output, rdf_print_statement(S, P, O, G, Opts)),
   nl.
 
 
@@ -199,7 +193,6 @@ rdf_print_statement(T, Opts0) :-
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * id_closure(+boolean)
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
@@ -216,7 +209,6 @@ rdf_print_statement(S, P, O, G, Opts) :-
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * id_closure(+boolean)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
@@ -230,20 +222,6 @@ rdf_print_statement(S, P, O, G, Opts) -->
   rdf_print_object(O, Opts),
   "〉",
   ({var(G)} -> "" ; rdf_print_graph(G, Opts)).
-
-
-
-%! rdf_print_statement_id(+Sid, +Pid, +Oid, ?Gid, +Opts) is det.
-
-rdf_print_statement_id(Sid, Pid, Oid, Gid, Opts) -->
-  "〈",
-  rdf_print_id(Sid, Opts),
-  ", ",
-  rdf_print_id(Pid, Opts),
-  ", ",
-  rdf_print_id(Oid, Opts),
-  "〉",
-  ({var(Gid)} -> "" ; rdf_print_graph_id(Gid, Opts)).
 
 
 
@@ -276,8 +254,6 @@ rdf_print_statements([H|T], Opts) :-
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * id_closure(+boolean)
-%     Default is true.
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
@@ -296,12 +272,8 @@ rdf_print_triple(S, P, O, _, Opts) :-
   ground(rdf(S,P,O)), !,
   rdf_print_statement(S, P, O, _, Opts).
 rdf_print_triple(S, P, O, G, Opts) :-
-  (   option(id_closure(false), Opts)
-  ->  rdf(S, P, O, G),
-      dcg_with_output_to(current_output, rdf_print_statement(S, P, O, _, Opts))
-  ;   rdf(S, P, O, G, Sid, Pid, Oid, _),
-      dcg_with_output_to(current_output, rdf_print_statement_id(Sid, Pid, Oid, _, Opts))
-  ),
+  rdf(S, P, O, G),
+  dcg_with_output_to(current_output, rdf_print_statement(S, P, O, _, Opts)),
   nl.
 
 

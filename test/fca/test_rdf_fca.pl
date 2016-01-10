@@ -12,7 +12,7 @@
 /** <module> RDF FCA Test
 
 @author Wouter Beek
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -21,10 +21,8 @@
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_print_term)).
-:- use_module(library(rdfs/rdfs_build)).
 
 :- initialization(list_external_programs).
 
@@ -76,28 +74,16 @@ rdf_fca_test_graph(G) :-
 rdf_fca_assert_graph(number, G) :-
   rdf_new_graph(number, G),
   forall(between(1, 10, N), rdf_assert_number(N, G)),
-  rdf_assert(ex:'1',  rdf:type, ex:'Odd',       G),
-  rdf_assert(ex:'1',  rdf:type, ex:'Square',    G),
-  rdf_assert(ex:'2',  rdf:type, ex:'Even',      G),
-  rdf_assert(ex:'2',  rdf:type, ex:'Prime',     G),
-  rdf_assert(ex:'3',  rdf:type, ex:'Odd',       G),
-  rdf_assert(ex:'3',  rdf:type, ex:'Prime',     G),
-  rdf_assert(ex:'4',  rdf:type, ex:'Composite', G),
-  rdf_assert(ex:'4',  rdf:type, ex:'Even',      G),
-  rdf_assert(ex:'4',  rdf:type, ex:'Quare',     G),
-  rdf_assert(ex:'5',  rdf:type, ex:'Odd',       G),
-  rdf_assert(ex:'5',  rdf:type, ex:'Prime',     G),
-  rdf_assert(ex:'6',  rdf:type, ex:'Composite', G),
-  rdf_assert(ex:'6',  rdf:type, ex:'Even',      G),
-  rdf_assert(ex:'7',  rdf:type, ex:'Odd',       G),
-  rdf_assert(ex:'7',  rdf:type, ex:'Prime',     G),
-  rdf_assert(ex:'8',  rdf:type, ex:'Composite', G),
-  rdf_assert(ex:'8',  rdf:type, ex:'Even',      G),
-  rdf_assert(ex:'9',  rdf:type, ex:'Composite', G),
-  rdf_assert(ex:'9',  rdf:type, ex:'Odd',       G),
-  rdf_assert(ex:'9',  rdf:type, ex:'Square',    G),
-  rdf_assert(ex:'10', rdf:type, ex:'Composite', G),
-  rdf_assert(ex:'10', rdf:type, ex:'Even',      G).
+  rdf_assert_instance(ex:'1',  [ex:'Odd',ex:'Square'],                 G),
+  rdf_assert_instance(ex:'2',  [ex:'Even',ex:'Prime'],                 G),
+  rdf_assert_instance(ex:'3',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instance(ex:'4',  [ex:'Composite',ex:'Even',ex:'Square'], G),
+  rdf_assert_instance(ex:'5',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instance(ex:'6',  [ex:'Composite',ex:'Even'],             G),
+  rdf_assert_instance(ex:'7',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instance(ex:'8',  [ex:'Composite',ex:'Even'],             G),
+  rdf_assert_instance(ex:'9',  [ex:'Composite',ex:'Odd',ex:'Square'],  G),
+  rdf_assert_instance(ex:'10', [ex:'Composite',ex:'Even'],             G).
 
 
 

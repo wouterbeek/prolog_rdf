@@ -31,20 +31,19 @@ Printing of RDF statements to a text-based output stream.
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_deref)).
-:- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_stats)).
+:- use_module(library(rdf11/rdf11)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
 :- rdf_meta
-	rdf_print_deref(r),
-	rdf_print_deref(r, +),
-	rdf_print_descr(o),
-	rdf_print_descr(o, +),
-	rdf_print_descr(o, r, +),
-	rdf_print_graph(r),
-	rdf_print_graph(r, +).
+   rdf_print_deref(r),
+   rdf_print_deref(r, +),
+   rdf_print_descr(r),
+   rdf_print_descr(r, +),
+   rdf_print_descr(r, r, +),
+   rdf_print_graph(r),
+   rdf_print_graph(r, +).
 
 :- predicate_options(rdf_print_deref/2, 2, [
      pass_to(rdf_print_triple/5, 5)
@@ -127,7 +126,7 @@ rdf_print_graph(G, Opts) :-
   (   var(G)
   ->  rdf_print_quadruple(_, _, _, _, Opts),
       fail
-  ;   rdf_is_graph(G)
+  ;   rdf_graph(G)
   ->  rdf_print_triple(_, _, _, G, Opts),
       fail
   ;   existence_error(rdf_graph, G)

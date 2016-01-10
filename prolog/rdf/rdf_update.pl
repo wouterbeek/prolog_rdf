@@ -1,25 +1,12 @@
 :- module(
   rdf_update,
   [
-    rdf_cp/5, % +FromGraph:atom
-              % ?Subject:or([bnode,iri])
-              % ?Predicate:iri
-              % ?Object:rdf_term
-              % +ToGraph:atom
-    rdf_increment/2, % +Subject, +Predicate
-    rdf_increment/3, % +Subject:or([bnode,iri])
-                     % +Predicate:iri
-                     % +Graph:atom
-    rdf_mv/5, % +FromGraph:atom
-              % ?Subject:or([bnode,iri])
-              % ?Predicate:iri
-              % ?Object:rdf_term
-              % +ToGraph:atom
-    rdf_update/5 % +Subject:rdf_term
-                 % +Predicate:iri
-                 % +Object:rdf_term
-                 % +Graph:rdf_graph
-                 % +Action:compound
+    rdf_cp/5,        % +FromG, ?S, ?P, ?O, +ToG
+    rdf_cp_graph/2,  % +FromG, +ToG
+    rdf_increment/2, % +S, +P
+    rdf_increment/3, % +S, +P, +G
+    rdf_mv/5,        % +FromG, ?S, ?P, ?O, +ToG
+    rdf_mv_graph/2   % +FromG, +ToG
   ]
 ).
 
@@ -35,21 +22,17 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(debug_ext)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_database)).
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_print_stmt)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf11/rdf11), []).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta
-   rdf_cp(+,r,r,o,+),
-   rdf_increment(r,r),
-   rdf_increment(r,r,+),
-   rdf_mv(+,r,r,o,+),
-   rdf_update(o,r,o,r,+).
+   rdf_cp(r, r, r, o, r),
+   rdf_cp_graph(r, r),
+   rdf_increment(r, r),
+   rdf_increment(r, r, +),
+   rdf_mv(r, r, r, o, r),
+   rdf_mv_graph(r, r).
 
 
 
@@ -80,6 +63,14 @@ rdf_cp0(Action, FromG, S, P, O, ToG) :-
       rdf_print_statement(S, P, O, ToG, [])
     ))
   )).
+
+
+
+%! rdf_cp_graph(+FromG, +ToG) is det.
+
+rdf_cp_graph(FromG, FromG) :- !.
+rdf_cp_graph(FromG, ToG) :-
+  rdf_cp(FromG, _, _, _, ToG).
 
 
 
@@ -125,22 +116,8 @@ rdf_mv(FromG, S, P, O, ToG) :-
 
 
 
-%! rdf_update(
-%!   +Subject:rdf_term,
-%!   +Predicate:iri,
-%!   +Object:rdf_term,
-%!   +Graph:rdf_graph,
-%!   +Action:compound
-%! ) is det.
+%! rdf_mv_graph(+FromG, +ToG) is det.
 
-rdf_update(S1, P1, O1, G1, Act) :-
-  rdf_update_action(S1, P1, O1, G1, Act, S2, P2, O2, G2),
-  rdf_transaction(
-    rdf_retractall(S1, P1, O1, G1),
-    rdf_assert(S2, P2, O2, G2)
-  ).
-
-rdf_update_action(S, P, O, _, graph(G2),     S,  P,  O,  G2).
-rdf_update_action(S, P, _, G, object(O2),    S,  P,  O2, G ).
-rdf_update_action(S, _, O, G, predicate(P2), S,  P2, O,  G ).
-rdf_update_action(_, P, O, G, subject(S2),   S2, P,  O,  G ).
+rdf_mv_graph(FromG, ToG) :-
+  rdf_mv(FromG, _, _, _, ToG),
+  rdf_unload_graph(FromG).

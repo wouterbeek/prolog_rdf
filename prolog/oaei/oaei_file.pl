@@ -69,8 +69,8 @@ oaei_load_rdf(In, As) :-
 oaei_load_rdf(In, As, Opts) :-
   rdf_call_on_graph(In, oaei_load_rdf0(As), Opts).
 
-oaei_load_rdf0(As, G) :-
-  aggregate_all(set(From-To), oaei_alignment(From, To, G), As).
+oaei_load_rdf0(As, _) :-
+  aggregate_all(set(From-To), oaei_alignment(From, To), As).
 
 
 

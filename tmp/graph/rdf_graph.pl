@@ -29,9 +29,6 @@
 
 :- use_module(library(error)).
 :- use_module(library(ordsets)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
 
 
 

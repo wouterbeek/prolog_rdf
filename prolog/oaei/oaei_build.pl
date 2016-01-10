@@ -19,11 +19,10 @@
 /** <module> Ontology Alignment Evaluation Initiative (OAEI): Build
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12-2016/01
 */
 
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta(oaei_assert_alignment(o,o,?)).
 :- rdf_meta(oaei_assert_alignment(o,o,+,+,?)).

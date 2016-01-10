@@ -19,12 +19,8 @@
 :- use_module(library(assoc_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf/id_store)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_statement)).
-:- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf11/rdf11)).
+:- use_module(library(rdf11/rdf11_collections)).
 
 :- rdf_meta
    jsonld_subject(r, -).

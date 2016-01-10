@@ -1,7 +1,7 @@
 :- module(
   rdf_stats,
   [
-    rdf_descr_size/2,              % +T, -Count
+    rdf_descr_size/2,              % +S, -Count
     rdf_number_of_bnodes/1,        % -Count
     rdf_number_of_bnodes/2,        % ?G, -Count
     rdf_number_of_datatype_iris/1, % -Count
@@ -35,30 +35,28 @@
 :- use_module(library(error)).
 :- use_module(library(plunit)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf_db), [rdf_statistics/1 as rdf_statistics0]).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
-   rdf_descr_size(o, -),
+   rdf_descr_size(r, -),
    rdf_number_of_bnodes(r, -),
    rdf_number_of_datatype_iris(r, -),
-   rdf_number_of_objects(o, r, -),
-   rdf_number_of_objects(o, r, ?, -),
-   rdf_number_of_predicates(o, o, -),
-   rdf_number_of_predicates(o, o, ?, -),
+   rdf_number_of_objects(r, r, -),
+   rdf_number_of_objects(r, r, ?, -),
+   rdf_number_of_predicates(r, o, -),
+   rdf_number_of_predicates(r, o, ?, -),
    rdf_number_of_subjects(r, o, -),
    rdf_number_of_subjects(r, o, ?, -),
-   rdf_number_of_triples(o, r, o, -),
-   rdf_number_of_triples(o, r, o, ?, -).
+   rdf_number_of_triples(r, r, o, -),
+   rdf_number_of_triples(r, r, o, ?, -).
 
 
 
 
 
-%! rdf_descr_size(+Resource:rdf_term, -Count:nonneg) is det.
+%! rdf_descr_size(+S, -Count:nonneg) is det.
 
 rdf_descr_size(S, N) :-
   rdf_number_of_triples(S, _, _, N).
@@ -119,7 +117,7 @@ rdf_number_of_objects(S, P, N) :-
 %! rdf_number_of_objects(?S, ?P, ?G, -Count:nonneg) is det.
 
 rdf_number_of_objects(S, P, G, N) :-
-  rdf_number_ofs0(O, S, P, O, G, N).
+  rdf_number_ofs(O, S, P, O, G, N).
 
 
 
@@ -146,7 +144,7 @@ rdf_number_of_predicates(S, O, N) :-
 %! rdf_number_of_predicates(?S, ?O, ?G, -Count:nonneg) is det.
 
 rdf_number_of_predicates(S, O, G, N) :-
-  rdf_number_ofs0(P, S, P, O, G, N).
+  rdf_number_ofs(P, S, P, O, G, N).
 
 
 
@@ -173,14 +171,14 @@ rdf_number_of_subjects(P, O, N) :-
 %! rdf_number_of_subjects(?P, ?O, ?G, -Count:nonneg) is det.
 
 rdf_number_of_subjects(P, O, G, N) :-
-  rdf_number_ofs0(S, S, P, O, G, N).
+  rdf_number_ofs(S, S, P, O, G, N).
 
 
 
 %! rdf_number_of_triples(-Count:nonneg) is det.
 
 rdf_number_of_triples(N) :-
-  rdf_statistics0(triples(N)).
+  rdf_statistics(triples(N)).
 
 
 %! rdf_number_of_triples(+G, -Count:nonneg) is det.
@@ -188,7 +186,7 @@ rdf_number_of_triples(N) :-
 % @throws existence_error
 
 rdf_number_of_triples(G, N) :-
-  rdf_graph_get_property(G, triples(N)).
+  rdf_graph_property(G, triples(N)).
 
 
 %! rdf_number_of_triples(?S, ?P, ?O, -Count:nonneg) is det.
@@ -200,7 +198,7 @@ rdf_number_of_triples(S, P, O, N) :-
 %! rdf_number_of_triples(?S, ?P, ?O, ?G, -Count:nonneg) is det.
 
 rdf_number_of_triples(S, P, O, G, N) :-
-  rdf_number_ofs0(rdf(S,P,O), S, P, O, G, N).
+  rdf_number_ofs(rdf(S,P,O), S, P, O, G, N).
 
 
 
@@ -208,7 +206,7 @@ rdf_number_of_triples(S, P, O, G, N) :-
 
 % HELPERS %
 
-rdf_number_ofs0(Witness, S, P, O, G, N) :-
+rdf_number_ofs(Witness, S, P, O, G, N) :-
   aggregate_all(count, distinct(Witness, rdf(S, P, O, G)), N).
 
 
@@ -219,7 +217,7 @@ rdf_number_ofs0(Witness, S, P, O, G, N) :-
 
 :- begin_tests(rdf_stats).
 
-:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_api)).
 
 test(rdf_number_of_subjects, [forall(test_case(G,N))]) :-
   setup_call_cleanup(

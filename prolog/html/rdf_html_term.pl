@@ -4,7 +4,6 @@
     rdf_html_bnode//2,		% +B, +Opts
     rdf_html_datatype//2,	% +D, +Opts
     rdf_html_graph//2,		% +G, +Opts
-    rdf_html_id//2,		% +Tid, +Opts
     rdf_html_iri//2,		% +Iri, +Opts
     rdf_html_language_tag//2,	% +LTag, +Opts
     rdf_html_lexical_form//2,	% +Lex, +Opts
@@ -34,29 +33,27 @@ Generates HTML representations of RDF data.
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(option)).
-:- use_module(library(rdf/id_store)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_bnode_name)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf11/rdf11_collections)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
 :- rdf_meta
-	html_entry(r, -),
-	rdf_html_datatype(r, +, ?, ?),
-	rdf_html_graph(r, +, ?, ?),
-	rdf_html_iri(r, +, ?, ?),
-	rdf_html_language_tag(+, +, ?, ?),
-	rdf_html_lexical_form(+, +, ?, ?),
-	rdf_html_list(o, +, ?, ?),
-	rdf_html_literal(o, +, ?, ?),
-	rdf_html_object(o, +, ?, ?),
-	rdf_html_predicate(r, +, ?, ?),
-	rdf_html_subject(r, +, ?, ?),
-	rdf_html_term(o, ?, ?),
-	rdf_html_term(o, +, ?, ?),
-	rdf_html_term_in_graph(o, ?, +, ?, ?).
+   html_entry(r, -),
+   rdf_html_datatype(r, +, ?, ?),
+   rdf_html_graph(r, +, ?, ?),
+   rdf_html_iri(r, +, ?, ?),
+   rdf_html_language_tag(+, +, ?, ?),
+   rdf_html_lexical_form(+, +, ?, ?),
+   rdf_html_list(o, +, ?, ?),
+   rdf_html_literal(o, +, ?, ?),
+   rdf_html_object(o, +, ?, ?),
+   rdf_html_predicate(r, +, ?, ?),
+   rdf_html_subject(r, +, ?, ?),
+   rdf_html_term(o, ?, ?),
+   rdf_html_term(o, +, ?, ?),
+   rdf_html_term_in_graph(o, ?, +, ?, ?).
 
 :- predicate_options(rdf_html_bnode//2, 2, [
      abbr_list(+boolean),
@@ -67,9 +64,6 @@ Generates HTML representations of RDF data.
    ]).
 :- predicate_options(rdf_html_graph//2, 2, [
      pass_to(rdf_html_link//3, 3)
-   ]).
-:- predicate_options(rdf_html_id//2, 2, [
-     pass_to(rdf_html_term//2, 2)
    ]).
 :- predicate_options(rdf_html_iri//2, 2, [
      abbr_iri(+boolean),
@@ -159,14 +153,6 @@ rdf_html_graph0(G, Opts) -->
   html_global_iri(G, Opts), !.
 rdf_html_graph0(G, Opts) -->
   html_pl_term(G, Opts).
-
-
-
-%! rdf_html_id(+Id:uid, +Opts)// is det.
-
-rdf_html_id(Id, Opts) -->
-  {id_to_terms(Id, Ts)},
-  html(span(class='rdf-id', \html_set([T]>>rdf_html_term(T, Opts), Ts))).
 
 
 

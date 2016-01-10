@@ -21,13 +21,8 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pool)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_load)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
@@ -57,7 +52,7 @@ rdf_cache:triple_to_iri(rdf(_,_,O), D) :-
   rdf_is_literal(O),
   rdf_literal_datatype(O, D).
 rdf_cache:triple_to_iri(rdf(_,P,O), O) :-
-  rdf_memberchk(P, [owl:equivalentClass,owl:sameAs]),
+  (rdf_equal(owl:equivalentClass, P), ! ; rdf_equal(owl:sameAs, P)),
   rdf_is_iri(O).
 
 

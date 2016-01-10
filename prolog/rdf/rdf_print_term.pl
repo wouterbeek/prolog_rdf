@@ -3,10 +3,6 @@
   [
     rdf_print_graph//1,		% ?G
     rdf_print_graph//2,		% ?G, +Opts
-    rdf_print_graph_id//1,	% ?Gid
-    rdf_print_graph_id//2,	% ?Gid, +Opts
-    rdf_print_id//1,		% +Tid
-    rdf_print_id//2,		% +Tid, +Opts
     rdf_print_literal//1,	% +Lit
     rdf_print_literal//2,	% +Lit, +Opts
     rdf_print_object//1,	% +O
@@ -35,37 +31,29 @@
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(lambda)).
 :- use_module(library(option)).
-:- use_module(library(rdf/id_store)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_bnode_name)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf11/rdf11), []).
-:- use_module(library(rdfs/rdfs_read)).
+:- use_module(library(rdf11/rdf11_collections)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
 :- rdf_meta
-	rdf_print_graph(r, ?, ?),
-	rdf_print_graph(r, +, ?, ?),
-	rdf_print_literal(o, ?, ?),
-	rdf_print_literal(o, +, ?, ?),
-	rdf_print_object(o, +, ?, ?),
-	rdf_print_predicate(r, +, ?, ?),
-	rdf_print_subject(o, +, ?, ?),
-	rdf_print_term(o),
-	rdf_print_term(o, +),
-	rdf_print_term(o, ?, ?),
-	rdf_print_term(o, +, ?, ?),
-	rdf_symbol_iri(r).
+   rdf_print_graph(r, ?, ?),
+   rdf_print_graph(r, +, ?, ?),
+   rdf_print_literal(o, ?, ?),
+   rdf_print_literal(o, +, ?, ?),
+   rdf_print_object(o, +, ?, ?),
+   rdf_print_predicate(r, +, ?, ?),
+   rdf_print_subject(r, +, ?, ?),
+   rdf_print_term(o),
+   rdf_print_term(o, +),
+   rdf_print_term(o, ?, ?),
+   rdf_print_term(o, +, ?, ?),
+   rdf_symbol_iri(r).
 
 :- predicate_options(rdf_print_bnode//2, 2, [
      abbr_list(+boolean),
      pass_to(rdf_print_list//2, 2)
-   ]).
-:- predicate_options(rdf_print_id//2, 2, [
-     pass_to(rdf_print_term//2, 2)
    ]).
 :- predicate_options(rdf_print_iri//2, 2, [
      abbr_iri(+boolean),
@@ -153,29 +141,6 @@ rdf_print_graph(G, Opts) -->
 
 
 
-%! rdf_print_graph_id(+Gid)// is det.
-%! rdf_print_graph_id(+Gid, +Opts)// is det.
-
-rdf_print_graph_id(Gid) -->
-  rdf_print_graph_id(Gid, []).
-rdf_print_graph_id(default, _) --> !,
-  "default".
-rdf_print_graph_id(Gid, Opts) -->
-  rdf_print_id(Gid, Opts).
-
-
-
-%! rdf_print_id(+Tid)// is det.
-%! rdf_print_id(+Tid, +Opts)// is det.
-
-rdf_print_id(Tid) -->
-  rdf_print_id(Tid, []).
-rdf_print_id(Tid, Opts) -->
-  {id_to_terms(Tid, Ts)},
-  set([T]>>rdf_print_term(T, Opts), Ts).
-
-
-
 %! rdf_print_iri(+Iri, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
@@ -204,12 +169,11 @@ rdf_print_iri(Iri, Opts) -->
   rdf_print_list(Iri, Opts), !.
 rdf_print_iri(Iri, Opts) -->
   {option(symbol_iri(true), Opts, true)},
-  rdf_symbol_iri(Iri).
+  rdf_symbol_iri(Iri), !.
 rdf_print_iri(Global, Opts) -->
   {
-    option(label_iri(true), Opts), !,
-    option(language_priority_list(LRanges), Opts, ['en-US']),
-    once(rdfs_label(Global, LRanges, _, Lbl))
+    option(label_iri(true), Opts),
+    rdfs_label(Global, Lbl), !
   },
   atom(Lbl).
 rdf_print_iri(Global, Opts) -->

@@ -27,13 +27,13 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(ordsets)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_statement)).
+:- use_module(library(rdf11/rdf11)).
 
-:- rdf_meta(rdf_edge(o,r,o,?)).
-:- rdf_meta(rdf_ego(o,+,-)).
-:- rdf_meta(rdf_incoming_edge(o,r,o,?)).
-:- rdf_meta(rdf_outgoing_edge(o,r,o,?)).
+:- rdf_meta
+   rdf_edge(o,r,o,?),
+   rdf_ego(o,+,-),
+   rdf_incoming_edge(o,r,o,?),
+   rdf_outgoing_edge(o,r,o,?).
 
 
 

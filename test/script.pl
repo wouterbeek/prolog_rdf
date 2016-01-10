@@ -1,13 +1,8 @@
 :- use_module(library(debug)).
 %:- use_module(library(mat/mat)).
-:- use_module(library(owl/owl_build)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_database)).
 :- use_module(library(rdf/rdf_info)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdfs/rdfs_api)).
 
 :- debug(mat(rdf(_))).
 :- debug(mat(rdfs(_))).

@@ -11,9 +11,7 @@
 @version 2015/11-2016/01
 */
 
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_read)).
-:- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(rdf11/rdf11_mt)).
 
 :- rdf_meta
@@ -29,7 +27,7 @@ rdf_fca_context(
   context(
     rdf_term:rdf_subject(G),
     rdf_fca:rdfs_class,
-    rdf_fca:rdf_instance
+    rdf_fca:rdfs_instance
   ),
   G
 ).
