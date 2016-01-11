@@ -23,6 +23,7 @@
 :- use_module(library(pool)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_load)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
@@ -40,6 +41,9 @@
 :- predicate_options(rdf_cache_worker/3, 1, [
      excluded_authorities(+list(atom))
    ]).
+
+
+
 
 
 %! rdf_cache:triple_to_iri(+Triple:rdf_triple, -Iri:iri) is nondet.

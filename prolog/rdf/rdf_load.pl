@@ -195,10 +195,12 @@ rdf_load_statements(CT, CQ, Stmts, G:_) :-
 
 
 % Load a triple.
-rdf_load_statement(CT, _, G, rdf(S,P,O)) :- !,
+rdf_load_statement(CT, _, G, rdf(S,P,O0)) :- !,
   increment_thread_counter(CT),
+  rdf11:post_object(O, O0),
   rdf_assert(S, P, O, G).
 % Load a quadruple.
-rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)) :- !,
+rdf_load_statement(_, CQ, _, rdf(S,P,O0,G:_)) :- !,
   increment_thread_counter(CQ),
+  rdf11:post_object(O, O0),
   rdf_assert(S, P, O, G).

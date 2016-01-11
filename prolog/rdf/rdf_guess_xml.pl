@@ -14,7 +14,7 @@
 */
 
 :- use_module(library(memfile)).
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(sgml/sgml_ext)).
 
 
