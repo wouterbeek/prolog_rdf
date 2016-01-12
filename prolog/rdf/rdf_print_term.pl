@@ -168,7 +168,7 @@ rdf_print_iri(Iri, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_print_list(Iri, Opts), !.
 rdf_print_iri(Iri, Opts) -->
-  {option(symbol_iri(true), Opts, true)},
+  {option(symbol_iri(true), Opts)},
   rdf_symbol_iri(Iri), !.
 rdf_print_iri(Global, Opts) -->
   {
