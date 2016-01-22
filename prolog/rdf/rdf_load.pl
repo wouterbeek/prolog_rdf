@@ -170,7 +170,6 @@ rdf_load_file(In, Opts) :-
   ->  G = BaseIri
   ;   true
   ),
-
   setup_call_cleanup(
     (
       create_thread_counter(triples),
