@@ -169,19 +169,30 @@ write_simple_graph(G, Opts) :-
 
 
 
-% Object term: typed literal.
+% Typed literal: current representation.
+write_simple_literal(V^^D) :- !,
+  rdf11:in_type(D, V, Lex),
+  turtle:turtle_write_quoted_string(current_output, Lex),
+  write('^^'),
+  turtle:turtle_write_uri(current_output, D).
+% Typed literal: legacy representation.
 write_simple_literal(literal(type(D,Lex))) :- !,
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
-  % Datatypes are IRIs.
   turtle:turtle_write_uri(current_output, D).
-% Object term: language-tagged string.
+% Language-tagged string: current representation.
+write_simple_literal(Lex0@LTag) :- !,
+  atom_string(Lex, Lex0),
+  turtle:turtle_write_quoted_string(current_output, Lex),
+  format(current_output, '@~w', [LTag]).
+% Language-tagged string: legacy representation.
 write_simple_literal(literal(lang(LTag,Lex))) :- !,
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
-% Object term: string.
-write_simple_literal(literal(Lex)) :- !,
-  turtle:turtle_write_quoted_string(current_output, Lex).
+% Implicit XSD string literal.
+write_simple_literal(literal(Lex)) :-
+  rdf_equal(xsd:string, D),
+  write_simple_literal(literal(type(D,Lex))).
 
 
 

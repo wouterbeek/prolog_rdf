@@ -2,6 +2,7 @@
   rdf_statement,
   [
     rdf_graph_triples/2,      % ?G, -Trips
+    rdf_statement/1,          % -Stmt
     rdf_statement_terms/4,    % +Stmt, ?S, ?P, ?O
     rdf_subject_triples/2,    % +S, -Trips
     rdf_triples_iris/2,       % +Trips, -Iris
@@ -38,6 +39,14 @@ rdf_graph_triples(G, Trips) :-
   rdf_expect_graph(G),
   aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Trips).
 
+
+
+%! rdf_statement(-Stmt) is det.
+
+rdf_statement(Stmt) :-
+  rdf(S, P, O, G),
+  (G == default -> Stmt = rdf(S,P,O) ; Stmt = rdf(S,P,O,G)).
+  
 
 
 %! rdf_statement_terms(+Stmt, -S, -P, -O) is det.

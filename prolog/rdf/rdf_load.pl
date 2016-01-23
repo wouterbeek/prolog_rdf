@@ -1,23 +1,19 @@
 :- module(
   rdf_load,
   [
-    rdf_call_on_graph/2, % +Source, :Goal_1
-    rdf_call_on_graph/3, % +Source
-                         % :Goal_1
-                         % +Options:list(compound)
+    rdf_call_on_graph/2,      % +Source, :Goal_1
+    rdf_call_on_graph/3,      % +Source, :Goal_1, +Opts
     rdf_call_on_statements/2, % +Source, :Goal_2
-    rdf_call_on_statements/3, % +Source
-                              % :Goal_2
-                              % +Options:list(compound)
-    rdf_load_file/1, % +Source
-    rdf_load_file/2 % +Source
-                    % +Options:list(compound)
+    rdf_call_on_statements/3, % +Source, :Goal_2, +Opts
+    rdf_load_file/1,          % +Source
+    rdf_load_file/2,          % +Source, +Opts
+    rdf_load_statements/2,    % +Source, -Stmts
+    rdf_load_statements/3     % +Source, -Stmts, +Opts
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
      rdf_make/0,
-     rdf_source_location/2 % +Subject
-                           % -Location
+     rdf_source_location/2 % +Subject, -Location
    ]).
 
 /** <module> RDF load
@@ -25,10 +21,10 @@
 Support for loading RDF data.
 
 @author Wouter Beek
-@license MIT license
-@version 2015/08, 2015/10-2015/12
+@version 2015/08, 2015/10-2016/01
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
@@ -61,6 +57,9 @@ Support for loading RDF data.
      statements(-nonneg),
      triples(-nonneg),
      pass_to(rdf_call_on_statements/3, 3)
+   ]).
+:- predicate_options(rdf_load_statements/3, 3, [
+     pass_to(rdf_load_file/2, 2)
    ]).
 
 
@@ -203,3 +202,21 @@ rdf_load_statement(_, CQ, _, rdf(S,P,O0,G:_)) :- !,
   increment_thread_counter(CQ),
   rdf11:post_object(O, O0),
   rdf_assert(S, P, O, G).
+
+
+
+%! rdf_load_statements(+Source, -Stmts) is det.
+% Wrapper around rdf_load_statements/3 using default options.
+
+rdf_load_statements(Source, Stmts) :-
+  rdf_load_statements(Source, Stmts, []).
+
+
+%! rdf_load_statements(+Source, -Stmts, +Opts) is det.
+
+rdf_load_statements(Source, Stmts, Opts) :-
+  rdf_snap((
+    rdf_retractall(_, _, _),
+    rdf_load_file(Source, Opts),
+    aggregate_all(set(Stmt), rdf_statement(Stmt), Stmts)
+  )).

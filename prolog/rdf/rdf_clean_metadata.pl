@@ -30,7 +30,7 @@ metadata(M) -->
   metadata(0, M).
 
 metadata(I, M) -->
-  {M.input_type == http_iri}, !,
+  {M.source_type == http_iri}, !,
   metadata_iri(I, M),
   metadata_http(I, M.http),
   metadata_archive(I, M.archive_entry),
@@ -106,7 +106,9 @@ nvpairs(_, []) --> "".
 
 %! nvpairs(+Indent:nonneg, +Name:string, +Pairs:list(pair(string)))// is det.
 
-nvpairs(I, N, [H|T]) -->
-  tab_nl(I, nvpair(N-H)), !,
+nvpairs(I, N, [H|T]) --> !,
+  tab_nl(I, nvpair(N-H)),
   nvpairs(I, N, T).
-nvpairs(_, _, []) --> "".
+nvpairs(_, _, []) --> !, "".
+nvpairs(I, N, V) -->
+  nvpairs(I, N, [V]).

@@ -1,18 +1,15 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean/2, % +From
-                 % ?To:atom
-    rdf_clean/3 % +From
-                % ?To:atom
-                % +Options:list(compound)
+    rdf_clean/2, % +From, ?To:atom
+    rdf_clean/3  % +From, ?To:atom, +Opts
   ]
 ).
 
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@version 2015/08-2015/11
+@version 2015/08-2015/11, 2016/01
 */
 
 :- use_module(library(apply)).
@@ -66,7 +63,7 @@ rdf_clean(From, To) :-
   rdf_clean(From, To, []).
 
 
-%! rdf_clean(+From, ?To:atom, +Options:list(compund)) is det.
+%! rdf_clean(+From, ?To:atom, +Opts) is det.
 % The following options are supported:
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
@@ -93,12 +90,7 @@ rdf_clean(From, To, Opts) :-
   rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts).
 
 
-%! rdf_clean_stream(
-%!   ?To:atom,
-%!   +Options:list(compound),
-%!   +MetaData:dict,
-%!   +Read:stream
-%! ) is det.
+%! rdf_clean_stream(?To:atom, +Opts, +Metadata, +Read) is det.
 
 rdf_clean_stream(Local0, Opts1, M1, Read) :-
   option(metadata(M5), Opts1, _),
@@ -176,12 +168,7 @@ rdf_clean_stream(Local0, Opts1, M1, Read) :-
   if_option(show_metadata(true), Opts, rdf_clean_metadata(M5)).
 
 
-%! rdf_write_clean_stream(
-%!   +Read:stream,
-%!   +Metadata:dict,
-%!   +Write:stream,
-%!   +Options:list(compound)
-%! ) is det.
+%! rdf_write_clean_stream(+Read, +Metadata, +Write, +Opts) is det.
 
 rdf_write_clean_stream(Read, M, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
