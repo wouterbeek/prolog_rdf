@@ -178,37 +178,42 @@ rdf_clean_stream(Local0, Opts1, M1, Read) :-
 rdf_write_clean_stream(Read, M, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
   merge_options([base_iri(M.base_iri)], Opts1, Opts2),
-  write_simple_begin(BNodePrefix, C1, C2, Opts2),
-  merge_options(
-    [anon_prefix(BNodePrefix),base_uri(M.base_iri),format(M.rdf.format)],
-    Opts2,
-    Opts3
-  ),
-  
-  (   M.rdf.format == rdfa
-  ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
-      clean_streamed_triples(Write, BNodePrefix, C1, C2, Ts, _)
-  ;   memberchk(M.rdf.format, [nquads,ntriples])
-  ->  rdf_process_ntriples(
-        Read,
-        clean_streamed_triples(Write, BNodePrefix, C1, C2),
+  setup_call_cleanup(
+    write_simple_begin(BNodePrefix, C1, C2, Opts2),
+    (
+      merge_options(
+        [anon_prefix(BNodePrefix),base_uri(M.base_iri),format(M.rdf.format)],
+        Opts2,
         Opts3
+      ),
+      (   M.rdf.format == rdfa
+      ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
+          clean_streamed_triples(Write, BNodePrefix, C1, C2, Ts, _)
+      ;   memberchk(M.rdf.format, [nquads,ntriples])
+      ->  rdf_process_ntriples(
+            Read,
+            clean_streamed_triples(Write, BNodePrefix, C1, C2),
+            Opts3
+          )
+      ;   memberchk(M.rdf.format, [trig,turtle])
+      ->  rdf_process_turtle(
+            Read,
+            clean_streamed_triples(Write, BNodePrefix, C1, C2),
+            Opts3
+          )
+      ;   M.rdf.format == xml
+      ->  process_rdf(
+            Read,
+            clean_streamed_triples(Write, BNodePrefix, C1, C2),
+            Opts3
+          )
       )
-  ;   memberchk(M.rdf.format, [trig,turtle])
-  ->  rdf_process_turtle(
-        Read,
-        clean_streamed_triples(Write, BNodePrefix, C1, C2),
-        Opts3
-      )
-  ;   M.rdf.format == xml
-  ->  process_rdf(
-        Read,
-        clean_streamed_triples(Write, BNodePrefix, C1, C2),
-        Opts3
-      )
-  ),
-  flush_output(Write),
-  write_simple_end(C1, C2, Opts3).
+    ),
+    (
+      flush_output(Write),
+      write_simple_end(C1, C2, Opts3)
+    )
+  ).
 
 
 

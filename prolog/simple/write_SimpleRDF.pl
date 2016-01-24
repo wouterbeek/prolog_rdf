@@ -62,6 +62,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(semweb/turtle)). % Private
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
+:- use_module(library(iri/rfc3987_gen)).
 
 :- rdf_meta(write_simple_quadruple(+,+,r,r,o,+)).
 :- rdf_meta(write_simple_triple(+,+,r,r,o)).
@@ -169,6 +170,15 @@ write_simple_graph(G, Opts) :-
 
 
 
+%! write_simple_iri(+Iri) is det.
+
+write_simple_iri(Iri1) :-
+  iri_norm(Iri1, Iri2),
+  (Iri1 == Iri2 -> true ; format(user_output, "~a → ~a~n", [Iri1,Iri2])),
+  turtle:turtle_write_uri(current_output, Iri2).
+
+
+
 % Typed literal: current representation.
 write_simple_literal(V^^D) :- !,
   rdf11:in_type(D, V, Lex),
@@ -205,7 +215,14 @@ write_simple_object(BNode, BNodePrefix) :-
   write_simple_bnode(BNodePrefix, BNode).
 % Object term: IRI
 write_simple_object(Iri, _) :-
-  turtle:turtle_write_uri(current_output, Iri).
+  write_simple_iri(Iri).
+
+
+
+%! write_simple_predicate(+Predicate) is det.
+
+write_simple_predicate(P) :-
+  write_simple_iri(P).
 
 
 
@@ -222,15 +239,12 @@ write_simple_quadruple(BNodePrefix, CQ, S, P, O, G) :-
   write_simple_subject(S, BNodePrefix),
   put_char(' '),
   % Predicate terms are IRIs.
-  turtle:turtle_write_uri(current_output, P),
+  write_simple_predicate(P),
   put_char(' '),
   write_simple_object(O, BNodePrefix),
   put_char(' '),
   % Named graphs are IRIs.
-  (   G == default
-  ->  true
-  ;   turtle:turtle_write_uri(current_output, G)
-  ),
+  (G == default -> true ; write_simple_iri(G)),
   put_char(' '),
   put_char(.),
   put_code(10),
@@ -258,7 +272,7 @@ write_simple_subject(BNode, BNodePrefix) :-
   write_simple_bnode(BNodePrefix, BNode).
 % Subject term: IRI
 write_simple_subject(Iri, _) :-
-  turtle:turtle_write_uri(current_output, Iri).
+  write_simple_iri(Iri).
 
 
 
@@ -299,7 +313,7 @@ write_simple_triple(BNodePrefix, Counter, S, P, O) :-
   write_simple_subject(S, BNodePrefix),
   put_char(' '),
   % Predicate terms are IRIs.
-  turtle:turtle_write_uri(current_output, P),
+  write_simple_predicate(P),
   put_char(' '),
   write_simple_object(O, BNodePrefix),
   put_char(' '),

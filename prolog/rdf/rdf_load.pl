@@ -27,14 +27,15 @@ Support for loading RDF data.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
-:- use_module(library(option)).
+:- use_module(library(iri/rfc3987_gen)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf), [process_rdf/3]).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stream)).
-:- use_module(library(rdf11/rdf11)).
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
@@ -205,15 +206,22 @@ rdf_load_statements(CT, CQ, Stmts, G:_) :-
 
 
 % Load a triple.
-rdf_load_statement(CT, _, G, rdf(S,P,O0)) :- !,
+rdf_load_statement(CT, _, G, rdf(S,P,O)) :- !,
   increment_thread_counter(CT),
-  rdf11:post_object(O, O0),
-  rdf_assert(S, P, O, G).
+  rdf_load_statement0(S, P, O, G).
 % Load a quadruple.
-rdf_load_statement(_, CQ, _, rdf(S,P,O0,G:_)) :- !,
+rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)) :- !,
   increment_thread_counter(CQ),
-  rdf11:post_object(O, O0),
-  rdf_assert(S, P, O, G).
+  rdf_load_statement0(S, P, O, G).
+
+rdf_load_statement0(S1, P1, O0, G1) :-
+  rdf11:post_object(O1, O0),
+  maplist(term_norm, [S1,P1,O1,G1], [S2,P2,O2,G2]),
+  with_output_to(user_output, rdf_print_triple(S2, P2, O2, G2)),
+  rdf_assert(S2, P2, O2, G2).
+
+term_norm(T1, T2) :- rdf_is_iri(T1), !, iri_norm(T1, T2).
+term_norm(T, T).
 
 
 

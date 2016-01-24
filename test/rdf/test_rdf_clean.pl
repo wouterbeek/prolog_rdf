@@ -42,7 +42,6 @@ test_rdf_clean(From, To):-
 
 % HELPERS %
 
-test_source('https://www.dropbox.com/s/okzyej25j2aypkg/BEL2RDFexample.owl?dl=1').
 test_source(Source):-
   document(Doc),
   metadata(Doc, llo:url, Source).

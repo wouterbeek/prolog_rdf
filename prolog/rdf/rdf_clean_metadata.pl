@@ -26,30 +26,25 @@
 
 %! http_header(+Indent, +Header:pair)// is det.
 
-http_header(I, _-Vs) -->
-  {is_list(Vs)}, !,
-  http_header_values(I, Vs).
-http_header(I, N-V) -->
-  http_header(I, N-[V]).
+http_header(I, Key-Values) -->
+  *(http_header_value(I, Key), Values).
 
 
 
 http_header_status(_-Vs, Comp) :-
-  (Vs = [V|_] ; Vs = V),
+  (Vs = [V|_] -> true ; Vs = V),
   http_header_status_comparator(V.status, Comp).
 
 
 
-http_header_status_comparator(unrecognized, <).
-http_header_status_comparator(invalid,      =).
+http_header_status_comparator(unrecognized, <) :- !.
+http_header_status_comparator(invalid,      =) :- !.
 http_header_status_comparator(valid,        >).
 
 
 
-http_header_values(I, [H|T]) --> !,
-  tab(I), {string_codes(H.raw, Cs)}, string(Cs), nl,
-  http_header_values(I, T).
-http_header_values(_, []) --> "".
+http_header_value(I, Key, Value) -->
+  tab(I), atom(Key), ": ", {string_codes(Value.raw, Cs)}, string(Cs), nl.
 
 
 
@@ -131,15 +126,15 @@ metadata_http_iri(I, M) -->
 
 
 metadata_iri(I1, M) -->
-  {succ(I1, I2)},
+  {I2 is I1 + 1},
   section(I1, "IRI metadata:", tab_nl(I2, nvpair("Base IRI", iri(M.base_iri)))).
 
 
 
 metadata_rdf(I1, M) -->
   {
-    succ(I1, I2),
-    succ(I2, I3)
+    I2 is I1 + 1,
+    I3 is I2 + 1
   },
   section(I1, "RDF metadata:", (
     tab_nl(I2, nvpair("Serialization format", atom(M.format))),
@@ -152,7 +147,7 @@ metadata_rdf(I1, M) -->
 
 metadata_stream(I1, M) -->
   {
-    succ(I1, I2),
+    I2 is I1 + 1,
     dict_pairs(M, _, L)
   },
   section(I1, "Stream metadata:", nvpairs(I2, L)).
