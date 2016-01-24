@@ -58,6 +58,8 @@
 
 %! rdf_clean(+From, ?To:atom) is det.
 % Wrapper for rdf_clean/3 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_clean(From, To) :-
   rdf_clean(From, To, []).
@@ -73,6 +75,8 @@ rdf_clean(From, To) :-
 %      When absent this is guessed heuristically.
 %    * metadata(-dict)
 %    * show_metadata(+boolean)
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_clean(From, To, Opts) :-
   % Process output RDF serialization option.
@@ -129,6 +133,7 @@ rdf_clean_stream(Local0, Opts1, M1, Read) :-
   
   
   % Store input stream properties.
+  % @tbd Why does the stream not have any properties?
   stream_metadata(Read, MStream),
   M5 = M4.put(stream, MStream),
 

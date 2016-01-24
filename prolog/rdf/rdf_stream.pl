@@ -62,6 +62,8 @@
 
 %! rdf_read_from_stream(+Source, :Goal_2) is det.
 % Wrapper around rdf_read_from_stream/3 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_read_from_stream(Source, Goal_2) :-
   rdf_read_from_stream(Source, Goal_2, []).
@@ -69,6 +71,8 @@ rdf_read_from_stream(Source, Goal_2) :-
 
 %! rdf_read_from_stream(+Source, :Goal_2, +Options:list(compound)) is det.
 % Goal_2 is applied to a metadata dictionary and a stream (in that order).
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_read_from_stream(Source, Goal_2, Opts1) :-
   % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.

@@ -68,12 +68,16 @@ Support for loading RDF data.
 
 %! rdf_call_on_graph(+Source, :Goal_1) .
 % Wrapper around rdf_call_on_graph/3 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_graph(In, Goal_1) :-
   rdf_call_on_graph(In, Goal_1, []).
 
 
 %! rdf_call_on_graph(+Source, :Goal_1, +Options:list(compound)) .
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_graph(In, Goal_1, Opts0) :-
   setup_call_cleanup(
@@ -90,12 +94,16 @@ rdf_call_on_graph(In, Goal_1, Opts0) :-
 
 %! rdf_call_on_statements(+Source, :Goal_2) is nondet.
 % Wrapper around rdf_call_on_statements/3 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_statements(In, Goal_2) :-
   rdf_call_on_statements(In, Goal_2, []).
 
 
 %! rdf_call_on_statements(+Source, :Goal_2, +Options:list(compound)) is nondet.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_statements(In, Goal_2, Opts) :-
   option(graph(G0), Opts, default),
@@ -143,6 +151,8 @@ rdf_call_on_statements_stream(_, _, _, M) :-
 
 %! rdf_load_file(+Source) is det.
 % Wrapper around rdf_load_file/2 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_file(In) :-
   rdf_load_file(In, []).
@@ -155,6 +165,8 @@ rdf_load_file(In) :-
 %   * triples(-nonneg)
 %   * quadruples(-nonneg)
 %   * statements(-nonneg)
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_file(In, Opts) :-
   % Allow statistics about the number of statements to be returned.
@@ -207,12 +219,16 @@ rdf_load_statement(_, CQ, _, rdf(S,P,O0,G:_)) :- !,
 
 %! rdf_load_statements(+Source, -Stmts) is det.
 % Wrapper around rdf_load_statements/3 using default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_statements(Source, Stmts) :-
   rdf_load_statements(Source, Stmts, []).
 
 
 %! rdf_load_statements(+Source, -Stmts, +Opts) is det.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_statements(Source, Stmts, Opts) :-
   rdf_snap((
