@@ -172,10 +172,11 @@ write_simple_graph(G, Opts) :-
 
 %! write_simple_iri(+Iri) is det.
 
-write_simple_iri(Iri1) :-
-  iri_norm(Iri1, Iri2),
-  (Iri1 == Iri2 -> true ; format(user_output, "~a → ~a~n", [Iri1,Iri2])),
-  turtle:turtle_write_uri(current_output, Iri2).
+write_simple_iri(Iri) :-
+  % @tbd Add IRI normalization.
+  %iri_norm(Iri1, Iri2),
+  %(Iri1 == Iri2 -> true ; format(user_output, "~a → ~a~n", [Iri1,Iri2])),
+  turtle:turtle_write_uri(current_output, Iri).
 
 
 

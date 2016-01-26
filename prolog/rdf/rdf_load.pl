@@ -38,6 +38,7 @@ Support for loading RDF data.
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
