@@ -41,8 +41,11 @@ rdf_download(Iri, File) :-
 % @throws existence_error if an HTTP request returns an error code.
 
 rdf_download(Iri, File, Opts) :-
-  option(metadata(M), Opts, _),
-  (var(File) -> nested_uri_file_name(Iri, File) ; true),
+  option(metadata(_), Opts, _),
+  (var(File) -> uri_file_name_nested(Iri, File) ; true),
   thread_file(File, TmpFile),
-  rdf_read_from_stream(Iri, [_M,Read]>>write_stream_to_file0(Read, TmpFile), Opts),
+  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile), Opts),
   rename_file(TmpFile, File).
+
+write_stream_to_file0(TmpFile, _, Read) :-
+  write_stream_to_file(Read, TmpFile).

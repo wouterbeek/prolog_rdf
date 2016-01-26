@@ -130,8 +130,8 @@ rdf_clean_stream(Local0, Opts1, M1, Read) :-
   M2 = M1.put(rdf/quadruples, NQ),
   M3 = M2.put(rdf/statements, NS),
   M4 = M3.put(rdf/triples, NT),
-  
-  
+
+
   % Store input stream properties.
   % @tbd Why does the stream not have any properties?
   stream_metadata(Read, MStream),
@@ -140,7 +140,7 @@ rdf_clean_stream(Local0, Opts1, M1, Read) :-
   % Sort unique.
   debug_verbose(
     rdf(clean),
-    sort_file(Tmp, Opts),
+    sort_file(Tmp, Opts1),
     "Sorting cleaned triples file."
   ),
 
@@ -155,7 +155,7 @@ rdf_clean_stream(Local0, Opts1, M1, Read) :-
   absolute_file_name(Local0, Dir0),
   archive_entry_name(Dir0, M5.archive_entry, Path0),
   atomic_list_concat([Local|_], ., Path0),
-  
+
   % Strip outdated file extensions from the output file name
   % and set the extensions of the output file name.
   (NQ > 0 -> Ext = nq ; Ext = nt),
@@ -170,7 +170,7 @@ rdf_clean_stream(Local0, Opts1, M1, Read) :-
   ),
 
   % Print metadata.
-  if_option(show_metadata(true), Opts, rdf_clean_metadata(M5)).
+  if_option(show_metadata(true), Opts1, rdf_clean_metadata(M5)).
 
 
 %! rdf_write_clean_stream(+Read, +Metadata, +Write, +Opts) is det.
@@ -337,7 +337,7 @@ determine_sort_threads(BufferSize, Threads, Opts) :-
   Threads is min(Max, Calc),
   debug(rdf(clean), "Using ~D threads for sorting.", [Threads]).
 
-  
+
 
 %! calc_sort_threads(+BufferSize:nonneg, -Threads:nonneg) is det.
 % Heuristically determine the number of threads to use for sorting

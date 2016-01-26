@@ -41,11 +41,12 @@ Support for loading RDF data.
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
 :- use_module(library(uuid_ext)).
 
-:- meta_predicate(rdf_call_on_graph(+,1)).
-:- meta_predicate(rdf_call_on_graph(+,1,+)).
-:- meta_predicate(rdf_call_on_statements(+,2)).
-:- meta_predicate(rdf_call_on_statements(+,2,+)).
-:- meta_predicate(rdf_call_on_statements_stream(+,2,+,+)).
+:- meta_predicate
+    rdf_call_on_graph(+,1),
+    rdf_call_on_graph(+,1,+),
+    rdf_call_on_statements(+,2),
+    rdf_call_on_statements(+,2,+),
+    rdf_call_on_statements_stream(+,2,+,+).
 
 :- predicate_options(rdf_call_on_graph/3, 3, [
      pass_to(rdf_load_file/2)
