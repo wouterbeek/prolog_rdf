@@ -5,6 +5,8 @@
     rdf_call_on_graph/3,      % +Source, :Goal_1, +Opts
     rdf_call_on_statements/2, % +Source, :Goal_2
     rdf_call_on_statements/3, % +Source, :Goal_2, +Opts
+    rdf_download_to_file/2,   % +Iri, +File
+    rdf_download_to_file/3,   % +Iri, +File, +Opts
     rdf_load_file/1,          % +Source
     rdf_load_file/2,          % +Source, +Opts
     rdf_load_statements/2,    % +Source, -Stmts
@@ -30,6 +32,8 @@ Support for loading RDF data.
 :- use_module(library(iri/rfc3987_gen)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option)).
+:- use_module(library(os/file_ext)).
+:- use_module(library(os/io_ext)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_api)).
@@ -52,6 +56,9 @@ Support for loading RDF data.
      pass_to(rdf_load_file/2)
    ]).
 :- predicate_options(rdf_call_on_statements/3, 3, [
+     pass_to(rdf_read_from_stream/3, 3)
+   ]).
+:- predicate_options(rdf_download_to_file/3, 3, [
      pass_to(rdf_read_from_stream/3, 3)
    ]).
 :- predicate_options(rdf_load_file/2, 2, [
@@ -148,6 +155,23 @@ rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   call(Goal_2, Ts, G).
 rdf_call_on_statements_stream(_, _, _, M) :-
   msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
+
+
+
+%! rdf_download_to_file(+Iri, +File:atom) is det.
+%! rdf_download_to_file(+Iri, ?File:atom, +Opts) is det.
+% @throws existence_error if an HTTP request returns an error code.
+
+rdf_download_to_file(Iri, File) :-
+  rdf_download_to_file(Iri, File, []).
+
+rdf_download_to_file(Iri, File, Opts) :-
+  thread_file(File, TmpFile),
+  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile), Opts),
+  rename_file(TmpFile, File).
+
+write_stream_to_file0(TmpFile, _, Read) :-
+  write_stream_to_file(Read, TmpFile).
 
 
 
