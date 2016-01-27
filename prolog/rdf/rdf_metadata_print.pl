@@ -38,18 +38,19 @@ rdf_metadata(I, M) -->
   ({get_dict(rdf, M, MRdf)} -> rdf_metadata0(I, MRdf) ; "").
 
 rdf_metadata0(I1, M) -->
-  {
-    I2 is I1 + 1,
-    I3 is I2 + 1
-  },
+  {I2 is I1 + 1, I3 is I2 + 1},
   section(I1, "RDF metadata:", (
     tab_nl(I2, nvpair("Serialization format", atom(M.format))),
-    tab_nl(I2, nvpair("Number of statements", thousands_integer(M.statements))),
-    tab_nl(I3, nvpair("Number of quadruples", thousands_integer(M.quadruples))),
-    tab_nl(I3, nvpair("Number of triples", thousands_integer(M.triples)))
+    section(I2, "Cleaned:", (
+      tab_nl(I3, nvpair("Number of unique statements", thousands_integer(M.unique_statements))),
+      tab_nl(I3, nvpair("Number of duplicate statements", thousands_integer(M.duplicate_statements)))
+    )),
+    section(I2, "Processed:", (
+      tab_nl(I3, nvpair("Number of statements", thousands_integer(M.processed.statements))),
+      tab_nl(I3, nvpair("Number of quadruples", thousands_integer(M.processed.quadruples))),
+      tab_nl(I3, nvpair("Number of triples", thousands_integer(M.processed.triples)))
+    ))
   )).
-
-
 
 stream_metadata(I1, M) -->
   {
@@ -57,7 +58,5 @@ stream_metadata(I1, M) -->
     dict_pairs(M, _, L)
   },
   section(I1, "Stream metadata:", *(nvpair0(I2), L)).
-
-
 
 nvpair0(I, X) --> indent(I, nvpair(X)).

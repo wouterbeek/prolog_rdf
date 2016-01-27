@@ -46,7 +46,7 @@ test_rdf_clean(From, To, N):-
   ),
   md5(From, Hash),
   catch_metadata(rdf_download_to_file(From, Hash)),
-  catch_metadata((rdf_clean(From, To, [metadata(M)]),rdf_metadata_print(M))).
+  catch_metadata(rdf_clean(From, To)).
 
 test_source(Source):-
   document(Doc),

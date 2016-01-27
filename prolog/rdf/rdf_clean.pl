@@ -21,7 +21,9 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_clean_msg)).
+:- use_module(library(rdf/rdf_metadata_assert)).
 :- use_module(library(rdf/rdf_metadata_print)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
@@ -82,7 +84,7 @@ rdf_clean(From, To, Opts) :-
 %! rdf_clean_stream(-To, +Opts, +Metadata, +Read) is det.
 
 rdf_clean_stream(To, Opts1, M1, Read) :-
-  option(metadata(M5), Opts1, _),
+  option(metadata(M7), Opts1, _),
 
   % Data compression option.  By default no compression is used.
   option(compress(Compress), Opts1, none),
@@ -109,9 +111,9 @@ rdf_clean_stream(To, Opts1, M1, Read) :-
     "Processed ~D statements (~D triples and ~D quadruples).",
     [NS1,NT,NQ]
   ),
-  M2 = M1.put(rdf/quadruples, NQ),
-  M3 = M2.put(rdf/statements, NS1),
-  M4 = M3.put(rdf/triples, NT),
+  M2 = M1.put(rdf/processed/quadruples, NQ),
+  M3 = M2.put(rdf/processed/statements, NS1),
+  M4 = M3.put(rdf/processed/triples, NT),
 
   % Store input stream properties.
   % @tbd Why does the stream not have any properties?
@@ -127,12 +129,14 @@ rdf_clean_stream(To, Opts1, M1, Read) :-
 
   % Count the number of unique statements.
   file_lines(Tmp, NS2),
-  NS3 is NS2 - NS1,
+  NS3 is NS1 - NS2,
   debug(
     rdf(clean),
     "Wrote ~D unique statements (skipped ~D duplicates).",
     [NS2,NS3]
   ),
+  M6 = M5.put(rdf/unique_statements, NS2),
+  M7 = M6.put(rdf/duplicate_statements, NS3),
 
   % Determine output file name.
   Base = clean,
@@ -148,7 +152,11 @@ rdf_clean_stream(To, Opts1, M1, Read) :-
   ),
 
   % Show metadata.
-  if_debug(rdf(clean), rdf_metadata_print(M5)).
+  if_debug(rdf(clean), rdf_metadata_print(M7)),
+
+  % Assert metadata.
+  rdf_create_iri(llr, X),
+  rdf_metadata_assert(X, M7).
 
 
 %! rdf_write_clean_stream(+Read, +Metadata, +Write, +Opts) is det.
