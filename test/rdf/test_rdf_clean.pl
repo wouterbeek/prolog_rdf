@@ -22,15 +22,11 @@
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_clean)).
-:- use_module(library(rdf/rdf_clean_metadata)).
 :- use_module(library(rdf/rdf_load)).
-:- use_module(library(swi_ide)).
+:- use_module(library(rdf/rdf_metadata_print)).
 
 :- meta_predicate
     catch_metadata(0).
-
-:- guitracer.
-%:- prolog_ide(debug_monitor).
 
 :- debug(http(parse)).
 :- debug(rdf(clean)).
@@ -50,11 +46,11 @@ test_rdf_clean(From, To, N):-
   ),
   md5(From, Hash),
   catch_metadata(rdf_download_to_file(From, Hash)),
-  catch_metadata((rdf_clean(From, To, [metadata(M)]),rdf_clean_metadata(M))).
+  catch_metadata((rdf_clean(From, To, [metadata(M)]),rdf_metadata_print(M))).
 
 test_source(Source):-
   document(Doc),
   metadata(Doc, llo:url, Source).
 
 catch_metadata(Goal_0) :-
-  catch(Goal_0, error(existence_error(open_any2,M),_), rdf_clean_metadata(M)).
+  catch(Goal_0, error(existence_error(open_any2,M),_), rdf_metadata_print(M)).

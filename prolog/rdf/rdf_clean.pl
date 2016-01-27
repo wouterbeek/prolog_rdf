@@ -21,8 +21,8 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
-:- use_module(library(rdf/rdf_clean_metadata)).
 :- use_module(library(rdf/rdf_clean_msg)).
+:- use_module(library(rdf/rdf_metadata_print)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_ntriples)).
@@ -148,7 +148,7 @@ rdf_clean_stream(To, Opts1, M1, Read) :-
   ),
 
   % Show metadata.
-  if_debug(rdf(clean), rdf_clean_metadata(M5)).
+  if_debug(rdf(clean), rdf_metadata_print(M5)).
 
 
 %! rdf_write_clean_stream(+Read, +Metadata, +Write, +Opts) is det.

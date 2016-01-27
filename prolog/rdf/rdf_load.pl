@@ -169,8 +169,11 @@ rdf_download_to_file(Iri, File) :-
 
 rdf_download_to_file(Iri, File, Opts) :-
   thread_file(File, TmpFile),
-  rdf_read_from_stream(Iri, [_,Read]>>write_stream_to_file(Read, TmpFile), Opts),
+  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile), Opts),
   rename_file(TmpFile, File).
+
+write_stream_to_file0(TmpFile, _, Read) :-
+  write_stream_to_file(Read, TmpFile).
 
 
 
