@@ -45,6 +45,7 @@ Support for loading RDF data.
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
 :- use_module(library(uuid_ext)).
+:- use_module(library(yall)).
 
 :- meta_predicate
     rdf_call_on_graph(+,1),
@@ -168,11 +169,8 @@ rdf_download_to_file(Iri, File) :-
 
 rdf_download_to_file(Iri, File, Opts) :-
   thread_file(File, TmpFile),
-  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile), Opts),
+  rdf_read_from_stream(Iri, [_,Read]>>write_stream_to_file(Read, TmpFile), Opts),
   rename_file(TmpFile, File).
-
-write_stream_to_file0(TmpFile, _, Read) :-
-  write_stream_to_file(Read, TmpFile).
 
 
 
