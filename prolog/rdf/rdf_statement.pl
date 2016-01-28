@@ -5,7 +5,9 @@
     rdf_statement/1,          % -Stmt
     rdf_statement_terms/4,    % +Stmt, ?S, ?P, ?O
     rdf_subject_triples/2,    % +S, -Trips
+    rdf_triples_datatypes/2,  % +Trips, -Ds
     rdf_triples_iris/2,       % +Trips, -Iris
+    rdf_triples_iri_terms/2,  % +Trips, -Iris
     rdf_triples_predicates/2, % +Trips, -Ps
     rdf_triples_subjects/2,   % +Trips, -Ss
     rdf_triples_terms/2       % +Trips, -Ts
@@ -63,9 +65,26 @@ rdf_subject_triples(S, Trips) :-
 
 
 
+%! rdf_triple_datatype(+Trip, -D) is semidet.
+
+rdf_triple_datatype(rdf(_,_,O), D) :-
+  rdf_literal_datatype(O, D).
+
+
+
 %! rdf_triple_iri(+Trip, -Iri) is nondet.
 
-rdf_triple_iri(Trip, T) :-
+rdf_triple_iri(Trip, Iri) :-
+  rdf_triple_iri_term(Trip, Iri).
+rdf_triple_iri(Trip, D) :-
+  rdf_triple_datatype(Trip, D),
+  \+ rdf_triple_iri_term(Trip, D).
+
+
+
+%! rdf_triple_iri_term(+Trip, -Iri) is nondet.
+
+rdf_triple_iri_term(Trip, T) :-
   rdf_triple_term(Trip, T),
   \+ rdf_is_bnode(T),
   \+ rdf_is_literal(T).
@@ -80,9 +99,30 @@ rdf_triple_term(rdf(_,_,O), O).
 
 
 
+%! rdf_triples_datatypes(+Trips, -Ds) is det.
+
+rdf_triples_Datatypes(Trips, Ds) :-
+  aggregate_all(set(D), (member(Trip, Trips), rdf_triple_datatype(Trip, D)), Ds).
+
+
+
 %! rdf_triples_iris(+Trips, -Iris) is det.
 
-rdf_triples_iris(Trips, Ts) :-
+rdf_triples_iris(Trips, Iris) :-
+  aggregate_all(
+    set(Iri),
+    (
+      member(Trip, Trips),
+      (rdf_triple_iri(Trip, Iri) ; rdf_triple_datatype(Trip, Iri))
+    ),
+    Iris
+  ).
+
+
+
+%! rdf_triples_iri_terms(+Trips, -Iris) is det.
+
+rdf_triples_iri_terms(Trips, Ts) :-
   aggregate_all(set(T), (member(Trip, Trips), rdf_triple_iri(Trip, T)), Ts).
 
 
