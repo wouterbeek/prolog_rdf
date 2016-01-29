@@ -29,14 +29,15 @@ Support for loading RDF data.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
+:- use_module(library(error)).
 :- use_module(library(iri/rfc3987_gen)).
-:- use_module(library(msg_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_statement)).
@@ -78,17 +79,12 @@ Support for loading RDF data.
 
 
 %! rdf_call_on_graph(+Source, :Goal_1) .
-% Wrapper around rdf_call_on_graph/3 with default options.
+%! rdf_call_on_graph(+Source, :Goal_1, +Opts) .
 %
 % @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_graph(In, Goal_1) :-
   rdf_call_on_graph(In, Goal_1, []).
-
-
-%! rdf_call_on_graph(+Source, :Goal_1, +Options:list(compound)) .
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_graph(In, Goal_1, Opts0) :-
   setup_call_cleanup(
@@ -104,17 +100,12 @@ rdf_call_on_graph(In, Goal_1, Opts0) :-
 
 
 %! rdf_call_on_statements(+Source, :Goal_2) is nondet.
-% Wrapper around rdf_call_on_statements/3 with default options.
+%! rdf_call_on_statements(+Source, :Goal_2, +Opts) is nondet.
 %
 % @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_statements(In, Goal_2) :-
   rdf_call_on_statements(In, Goal_2, []).
-
-
-%! rdf_call_on_statements(+Source, :Goal_2, +Options:list(compound)) is nondet.
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_statements(In, Goal_2, Opts) :-
   option(graph(G0), Opts, default),
@@ -126,37 +117,28 @@ rdf_call_on_statements(In, Goal_2, Opts) :-
   ).
 
 
-%! rdf_call_on_statements_stream(
-%!   ?Graph:iri,
-%!   :Goal_2,
-%!   +Metadata:dict,
-%!   +Read:stream
-%! ) is det.
+%! rdf_call_on_statements_stream(?Graph, :Goal_2, +Metadata, +Read) is det.
 % The following call is made:
 % `call(:Goal_2, +Statements:list(compound), ?Graph:atom)'
 
 rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  memberchk(M.rdf.format, [nquads,ntriples]), !,
-  rdf_process_ntriples(
-    Read,
-    Goal_2,
-    [base_uri(M.base_iri),format(M.rdf.format),graph(G)]
+  BaseIri = M.'llo:base-iri',
+  rdf_equal(M.'llo:serialization-format', Format1),
+  rdf_format_iri(Format2, Format1),
+  (   memberchk(Format2, [nquads,ntriples])
+  ->  rdf_process_ntriples(Read, Goal_2, [base_uri(BaseIri),format(Format2),graph(G)])
+  ;   memberchk(Format2, [trig,turtle])
+  ->  uuid_no_hyphen(UniqueId),
+      atomic_list_concat(['__',UniqueId,:], BNodePrefix),
+      Opts = [anon_prefix(BNodePrefix),base_uri(BaseIri),graph(G)],
+      rdf_process_turtle(Read, Goal_2, Opts)
+  ;   Format2 == xml
+  ->  process_rdf(Read, Goal_2, [base_uri(BaseIri),graph(G)])
+  ;   Format2 == rdfa
+  ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
+      call(Goal_2, Ts, G)
+  ;   existence_error(serialization_format, [Format1])
   ).
-rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  memberchk(M.rdf.format, [trig,turtle]), !,
-  uuid_no_hyphen(UniqueId),
-  atomic_list_concat(['__',UniqueId,:], BNodePrefix),
-  Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri),graph(G)],
-  rdf_process_turtle(Read, Goal_2, Opts).
-rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  xml == M.rdf.format, !,
-  process_rdf(Read, Goal_2, [base_uri(M.base_iri),graph(G)]).
-rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  rdfa == M.rdf.format, !,
-  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
-  call(Goal_2, Ts, G).
-rdf_call_on_statements_stream(_, _, _, M) :-
-  msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
 
 
 
@@ -178,15 +160,7 @@ write_stream_to_file0(TmpFile, _, Read) :-
 
 
 %! rdf_load_file(+Source) is det.
-% Wrapper around rdf_load_file/2 with default options.
-%
-% @throws existence_error if an HTTP request returns an error code.
-
-rdf_load_file(In) :-
-  rdf_load_file(In, []).
-
-
-%! rdf_load_file(+Source, +Options:list(compound)) is det.
+%! rdf_load_file(+Source, +Opts) is det.
 % The following options are supported:
 %   * base_iri(+atom)
 %   * graph(+rdf_graph)
@@ -195,6 +169,9 @@ rdf_load_file(In) :-
 %   * statements(-nonneg)
 %
 % @throws existence_error if an HTTP request returns an error code.
+
+rdf_load_file(In) :-
+  rdf_load_file(In, []).
 
 rdf_load_file(In, Opts) :-
   % Allow statistics about the number of statements to be returned.
@@ -227,10 +204,8 @@ rdf_load_file(In, Opts) :-
     )
   ).
 
-
 rdf_load_statements(CT, CQ, Stmts, G:_) :-
   maplist(rdf_load_statement(CT, CQ, G), Stmts).
-
 
 % Load a triple.
 rdf_load_statement(CT, _, G, rdf(S,P,O)) :- !,
@@ -253,17 +228,12 @@ term_norm(T, T).
 
 
 %! rdf_load_statements(+Source, -Stmts) is det.
-% Wrapper around rdf_load_statements/3 using default options.
+%! rdf_load_statements(+Source, -Stmts, +Opts) is det.
 %
 % @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_statements(Source, Stmts) :-
   rdf_load_statements(Source, Stmts, []).
-
-
-%! rdf_load_statements(+Source, -Stmts, +Opts) is det.
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_statements(Source, Stmts, Opts) :-
   rdf_snap((

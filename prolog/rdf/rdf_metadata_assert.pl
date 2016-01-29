@@ -48,23 +48,23 @@ assert_http_headers(X, Key-Values) :-
 
 assert_http_header(X, Key, Value) :-
   assert_dict_as_rdf(Value, B),
-  rdf_global_id(llh:Key, P),
+  rdf_global_id(llo:Key, P),
   rdf_assert(X, P, B).
 
 assert_http_iri(X, M) :-
-  rdf_assert(X, llo:base_iri, M.base_iri^^xsd:anyURI),
+  rdf_assert(X, llo:base_iri, M.'llo:base-iri'^^xsd:anyURI),
   assert_http(X, M.http).
 
 assert_http_status_code(X, Code) :-
   http_status_label(Code, Label),
-  rdf_assert(X, llh:status_code, Code^^xsd:nonNegativeInteger),
-  rdf_assert(X, llh:status_label, Label@'en-US').
+  rdf_assert(X, llo:status_code, Code^^xsd:nonNegativeInteger),
+  rdf_assert(X, llo:status_label, Label@'en-US').
 
 assert_http_version(X, Major-Minor) :-
   rdf_create_bnode(B),
-  rdf_assert(X, llh:version, B),
-  rdf_assert(B, llh:major, Major^^xsd:nonNegativeInteger),
-  rdf_assert(B, llh:minor, Minor^^xsd:nonNegativeInteger).
+  rdf_assert(X, llo:version, B),
+  rdf_assert(B, llo:major, Major^^xsd:nonNegativeInteger),
+  rdf_assert(B, llo:minor, Minor^^xsd:nonNegativeInteger).
 
 assert_rdf(X, M) :-
   rdf_assert(X, llo:serialization_format, M.format^^xsd:string),
@@ -92,7 +92,7 @@ assert_dict_as_rdf(D, B) :-
 
 assert_pair_as_rdf(X, K-V) :-
   gtrace,
-  rdf_global_id(llh:K, P),
+  rdf_global_id(llo:K, P),
   (   is_dict(V) -> assert_dict_as_rdf(V, O), rdf_assert(X, P, O)
   ;   is_list(V) -> rdf_assert_list(V, O), rdf_assert(X, P, O, default)
   ;                 rdf_assert(X, P, V^^xsd:string)
@@ -100,7 +100,7 @@ assert_pair_as_rdf(X, K-V) :-
 
 /* @tbd Why?
 assert_pair_as_rdf(X, K-V) :-
-  rdf_global_id(llh:K, P),
+  rdf_global_id(llo:K, P),
   (   is_dict(V)
   ->  assert_dict_as_rdf(V, O)
   ;   is_list(V)

@@ -1,9 +1,9 @@
 :- module(
   rdf_datatype,
   [
-    rdf_datatype_supremum/2 % +Datatypes, -Supremum
-    rdf_subdatatype_of/2,   % ?Subtype, ?Supertype
-    xsd_subtype_of/2        % ?Subtype, ?Supertype
+    rdf_datatype_supremum/2, % +Datatypes, -Supremum
+    rdf_subdatatype_of/2,    % ?Subtype, ?Supertype
+    xsd_subtype_of/2         % ?Subtype, ?Supertype
   ]
 ).
 
@@ -14,8 +14,9 @@
 */
 
 :- use_module(library(error)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(sgml/xsdp_type)).
+:- use_module(library(xsdp_types)).
 
 :- rdf_meta
    rdf_datatype_supremum(t, t),
@@ -44,7 +45,7 @@ rdf_subdatatype_of(X, Y) :-
   rdfs_subclass_of(X, Y),
   \+ xsd_subtype_of(X, Y).
 
-   
+
 %! xsd_subtype_of(?Subtype:iri, ?Supertype:iri) is nondet.
 
 xsd_subtype_of(XGlobal, YGlobal) :-

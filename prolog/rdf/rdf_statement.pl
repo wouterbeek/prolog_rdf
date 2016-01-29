@@ -25,6 +25,7 @@ Predicates that perform simple operations on RDF triples/quadruples.
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
@@ -101,7 +102,7 @@ rdf_triple_term(rdf(_,_,O), O).
 
 %! rdf_triples_datatypes(+Trips, -Ds) is det.
 
-rdf_triples_Datatypes(Trips, Ds) :-
+rdf_triples_datatypes(Trips, Ds) :-
   aggregate_all(set(D), (member(Trip, Trips), rdf_triple_datatype(Trip, D)), Ds).
 
 

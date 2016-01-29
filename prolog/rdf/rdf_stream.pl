@@ -21,6 +21,7 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
+:- use_module(library(jsonld/jsonld)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/archive_ext)).
@@ -77,21 +78,23 @@ rdf_read_from_stream(Source, Goal_2, Opts1) :-
   
   read_from_stream(Source, rdf_read_from_stream0(Goal_2, Opts2), Opts3).
 
-rdf_read_from_stream0(Goal_2, Opts1, M1, Read) :-
+rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
   % Guess the RDF serialization format in case option `format(+)'
   % is not given.
-  (   option(format(Format), Opts1),
-      ground(Format)
+  (   option(format(Format1), Opts1),
+      ground(Format1)
   ->  true
-  ;   rdf_guess_format_options0(M1, Opts1, Opts2),
-      rdf_guess_format(Read, Format, Opts2)
+  ;   rdf_guess_format_options0(D1, Opts1, Opts2),
+      rdf_guess_format(Read, Format1, Opts2)
   ),
   % `Format' is now instantiated.
-  put_dict(rdf, M1, metadata{format: Format}, M2),
-  call(Goal_2, M2, Read).
+  rdf_format_iri(Format1, Format2),
+  jsonld_abbreviate(Format2, Format3),
+  D2 = D1.put(_{'llo:serialization-format': Format3}),
+  call(Goal_2, D2, Read).
 
-rdf_guess_format_options0(M, Opts1, Opts2) :-
-  uri_file_extensions(M.base_iri, Exts1),
+rdf_guess_format_options0(D, Opts1, Opts2) :-
+  uri_file_extensions(D.'llo:base-iri', Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, DefFormat), !,

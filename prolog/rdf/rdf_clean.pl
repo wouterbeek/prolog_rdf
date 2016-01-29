@@ -14,17 +14,19 @@
 
 :- use_module(library(apply)).
 :- use_module(library(debug_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(filesex)).
+:- use_module(library(jsonld/jsonld)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/compress_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_clean_msg)).
-:- use_module(library(rdf/rdf_metadata_assert)).
-:- use_module(library(rdf/rdf_metadata_print)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_ntriples)).
@@ -77,14 +79,13 @@ rdf_clean(From, To, Opts) :-
       merge_options([format(_)], Opts, StreamOpts),
       CleanOpts = Opts
   ),
-
   rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts).
 
 
 %! rdf_clean_stream(-To, +Opts, +Metadata, +Read) is det.
 
-rdf_clean_stream(To, Opts1, M1, Read) :-
-  option(metadata(M7), Opts1, _),
+rdf_clean_stream(To, Opts1, D1, Read) :-
+  option(metadata(D4), Opts1, _),
 
   % Data compression option.  By default no compression is used.
   option(compress(Compress), Opts1, none),
@@ -101,42 +102,27 @@ rdf_clean_stream(To, Opts1, M1, Read) :-
     rdf(clean),
     setup_call_cleanup(
       open(Tmp, write, Write),
-      rdf_write_clean_stream(Read, M1, Write, Opts2),
+      rdf_write_clean_stream(Read, D1, Write, Opts2),
       close(Write)
     ),
     "Cleaning triples on a one-by-one basis."
   ),
-  debug(
-    rdf(clean),
-    "Processed ~D statements (~D triples and ~D quadruples).",
-    [NS1,NT,NQ]
-  ),
-  M2 = M1.put(rdf/processed/quadruples, NQ),
-  M3 = M2.put(rdf/processed/statements, NS1),
-  M4 = M3.put(rdf/processed/triples, NT),
+  debug(rdf(clean), "Processed ~D statements (~D triples and ~D quadruples).", [NS1,NT,NQ]),
+  D2 = D1.put(_{'llo:processed_quadruples': NQ, 'llo:processed_statements': NS1, 'llo:processed_triples': NT}),
 
   % Store input stream properties.
   % @tbd Why does the stream not have any properties?
-  stream_metadata(Read, MStream),
-  M5 = M4.put(stream, MStream),
+  stream_metadata(Read, DStream),
+  D3 = D2.put(DStream),
 
   % Sort unique.
-  debug_verbose(
-    rdf(clean),
-    sort_file(Tmp, Opts1),
-    "Sorting cleaned triples file."
-  ),
+  debug_verbose(rdf(clean), sort_file(Tmp, Opts1), "Sorting cleaned triples file."),
 
   % Count the number of unique statements.
   file_lines(Tmp, NS2),
   NS3 is NS1 - NS2,
-  debug(
-    rdf(clean),
-    "Wrote ~D unique statements (skipped ~D duplicates).",
-    [NS2,NS3]
-  ),
-  M6 = M5.put(rdf/unique_statements, NS2),
-  M7 = M6.put(rdf/duplicate_statements, NS3),
+  debug(rdf(clean), "Wrote ~D unique statements (skipped ~D duplicates).", [NS2,NS3]),
+  D4 = D3.put(_{'llo:unique_statements': NS2, 'llo:duplicate_statements': NS3}),
 
   % Determine output file name.
   Base = clean,
@@ -145,51 +131,34 @@ rdf_clean_stream(To, Opts1, M1, Read) :-
   absolute_file_name(Name, To, [access(write)]),
 
   % Compress the file, according to user option.
-  debug_verbose(
-    rdf(clean),
-    compress_file(Tmp, Compress, To),
-    "Compressing sorted triple file."
-  ),
+  debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted triple file."),
 
   % Show metadata.
-  if_debug(rdf(clean), rdf_metadata_print(M7)),
-
-  % Assert metadata.
-  rdf_create_iri(llr, X),
-  rdf_metadata_assert(X, M7).
+  if_debug(rdf(clean), print_dict(D4)).
 
 
 %! rdf_write_clean_stream(+Read, +Metadata, +Write, +Opts) is det.
 
-rdf_write_clean_stream(Read, M, Write, Opts1) :-
+rdf_write_clean_stream(Read, D, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
-  merge_options([base_iri(M.base_iri)], Opts1, Opts2),
-  merge_options([base_uri(M.base_iri),format(M.rdf.format)], Opts2, Opts3),
+  BaseIri = D.'llo:base-iri',
+  rdf_equal(D.'llo:serialization-format', Format1),
+  rdf_format_iri(Format2, Format1),
+  merge_options([base_iri(BaseIri)], Opts1, Opts2),
+  merge_options([base_uri(BaseIri),format(Format2)], Opts2, Opts3),
   setup_call_cleanup(
     write_simple_begin(BNodePrefix, C1, C2, Opts2),
     (
       merge_options([anon_prefix(BNodePrefix)], Opts3, Opts4),
-      (   M.rdf.format == rdfa
+      (   Format2 == rdfa
       ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
           clean_streamed_triples(Write, BNodePrefix, C1, C2, Ts, _)
-      ;   memberchk(M.rdf.format, [nquads,ntriples])
-      ->  rdf_process_ntriples(
-            Read,
-            clean_streamed_triples(Write, BNodePrefix, C1, C2),
-            Opts4
-          )
-      ;   memberchk(M.rdf.format, [trig,turtle])
-      ->  rdf_process_turtle(
-            Read,
-            clean_streamed_triples(Write, BNodePrefix, C1, C2),
-            Opts4
-          )
-      ;   M.rdf.format == xml
-      ->  process_rdf(
-            Read,
-            clean_streamed_triples(Write, BNodePrefix, C1, C2),
-            Opts4
-          )
+      ;   memberchk(Format2, [nquads,ntriples])
+      ->  rdf_process_ntriples(Read, clean_streamed_triples(Write, BNodePrefix, C1, C2), Opts4)
+      ;   memberchk(Format2, [trig,turtle])
+      ->  rdf_process_turtle(Read, clean_streamed_triples(Write, BNodePrefix, C1, C2), Opts4)
+      ;   Format2 == xml
+      ->  process_rdf(Read, clean_streamed_triples(Write, BNodePrefix, C1, C2), Opts4)
       )
     ),
     (
@@ -209,7 +178,4 @@ rdf_write_clean_stream(Read, M, Write, Opts1) :-
 %! ) is det.
 
 clean_streamed_triples(Write, BNodePrefix, C1, C2, Stmts, _) :-
-  with_output_to(
-    Write,
-    maplist(write_simple_statement(BNodePrefix, C1, C2), Stmts)
-  ).
+  with_output_to(Write, maplist(write_simple_statement(BNodePrefix, C1, C2), Stmts)).

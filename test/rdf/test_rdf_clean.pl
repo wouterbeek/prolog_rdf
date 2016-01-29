@@ -53,4 +53,4 @@ test_source(Source):-
   metadata(Doc, llo:url, Source).
 
 catch_metadata(Goal_0) :-
-  catch(Goal_0, error(existence_error(open_any2,M),_), rdf_metadata_print(M)).
+  catch(Goal_0, error(existence_error(open_any2,M),_), print_dict(M)).
