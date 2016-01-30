@@ -21,7 +21,7 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(jsonld/jsonld)).
+:- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/archive_ext)).
@@ -89,7 +89,7 @@ rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
   ),
   % `Format' is now instantiated.
   rdf_format_iri(Format1, Format2),
-  jsonld_abbreviate(Format2, Format3),
+  jsonld_metadata_abbreviate_iri(Format2, Format3),
   D2 = D1.put(_{'llo:serialization-format': Format3}),
   call(Goal_2, D2, Read).
 

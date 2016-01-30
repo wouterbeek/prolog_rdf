@@ -16,7 +16,8 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(filesex)).
-:- use_module(library(jsonld/jsonld)).
+:- use_module(library(json_ext)).
+:- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/compress_ext)).
@@ -131,10 +132,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   absolute_file_name(Name, To, [access(write)]),
 
   % Compress the file, according to user option.
-  debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted triple file."),
-
-  % Show metadata.
-  if_debug(rdf(clean), print_dict(D4)).
+  debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted triple file.").
 
 
 %! rdf_write_clean_stream(+Read, +Metadata, +Write, +Opts) is det.
@@ -142,7 +140,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
 rdf_write_clean_stream(Read, D, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
   BaseIri = D.'llo:base-iri',
-  rdf_equal(D.'llo:serialization-format', Format1),
+  jsonld_metadata_expand_iri(D.'llo:serialization-format', Format1),
   rdf_format_iri(Format2, Format1),
   merge_options([base_iri(BaseIri)], Opts1, Opts2),
   merge_options([base_uri(BaseIri),format(Format2)], Opts2, Opts3),
