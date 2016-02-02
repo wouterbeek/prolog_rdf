@@ -26,6 +26,7 @@
 :- use_module(library(os/gnu_wc)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_stream)).
@@ -80,7 +81,12 @@ rdf_clean(From, To, Opts) :-
       merge_options([format(_)], Opts, StreamOpts),
       CleanOpts = Opts
   ),
-  rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts).
+  rdf_assert_messages(
+    rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts),
+    S,
+    G,
+    Result
+  ).
 
 
 %! rdf_clean_stream(-To, +Opts, +Metadata, +Read) is det.

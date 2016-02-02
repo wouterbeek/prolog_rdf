@@ -1,8 +1,8 @@
 :- module(
   test_rdf_clean,
   [
-    test_rdf_clean/2, % -From, -To
-    test_rdf_clean/3  % -From, -To, +Skip:nonneg
+    test_rdf_clean/1, % -From
+    test_rdf_clean/2  % -From, +Skip:nonneg
   ]
 ).
 
@@ -38,10 +38,10 @@
 
 
 
-test_rdf_clean(From, To):-
-  test_rdf_clean(From, To, _).
+test_rdf_clean(From):-
+  test_rdf_clean(From, _).
 
-test_rdf_clean(From, To, N):-
+test_rdf_clean(From, N):-
   (   var(N)
   ->  test_source(From)
   ;   findnsols(N, From, test_source(From), Froms),
@@ -49,7 +49,7 @@ test_rdf_clean(From, To, N):-
   ),
   md5(From, Hash),
   catch_metadata(rdf_download_to_file(From, Hash)),
-  catch_metadata(rdf_clean(From, To, [metadata(M)])),
+  catch_metadata(rdf_clean(From, [metadata(M)])),
   (var(M) -> true ; print_metadata(M)).
 
 test_source(Source):-

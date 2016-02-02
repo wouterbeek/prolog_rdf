@@ -22,11 +22,12 @@
 /** <module> RDF graph navigation
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/12
+@version 2015/07-2015/08, 2015/12, 2016/02
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(ordsets)).
+:- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
