@@ -144,6 +144,8 @@ rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
 
 %! rdf_download_to_file(+Iri, +File:atom) is det.
 %! rdf_download_to_file(+Iri, ?File:atom, +Opts) is det.
+% Options are passed to rdf_read_from_stream/3 and write_stream_to_file/3.
+%
 % @throws existence_error if an HTTP request returns an error code.
 
 rdf_download_to_file(Iri, File) :-
@@ -151,11 +153,11 @@ rdf_download_to_file(Iri, File) :-
 
 rdf_download_to_file(Iri, File, Opts) :-
   thread_file(File, TmpFile),
-  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile), Opts),
+  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile, Opts), Opts),
   rename_file(TmpFile, File).
 
-write_stream_to_file0(TmpFile, _, Read) :-
-  write_stream_to_file(Read, TmpFile).
+write_stream_to_file0(TmpFile, Opts, _, Read) :-
+  write_stream_to_file(Read, TmpFile, Opts).
 
 
 
