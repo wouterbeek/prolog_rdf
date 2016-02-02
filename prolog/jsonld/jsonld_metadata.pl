@@ -23,6 +23,7 @@
 
 
 %! jsonld_metadata(+Metadata, -Jsonld) is det.
+%! jsonld_metadata(+S, +Metadata, -Jsonld) is det.
 
 jsonld_metadata(D1, D3) :-
   jsonld_metadata_context(Context),

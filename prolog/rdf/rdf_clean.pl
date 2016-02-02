@@ -1,8 +1,8 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean/2, % +From, -To
-    rdf_clean/3  % +From, -To, +Opts
+    rdf_clean/2, % +From, +To
+    rdf_clean/3  % +From, +To, +Opts
   ]
 ).
 
@@ -51,8 +51,8 @@
 
 
 
-%! rdf_clean(+From, -To) is det.
-%! rdf_clean(+From, -To, +Opts) is det.
+%! rdf_clean(+From, +To) is det.
+%! rdf_clean(+From, +To, +Opts) is det.
 % The following options are supported:
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
@@ -81,15 +81,10 @@ rdf_clean(From, To, Opts) :-
       merge_options([format(_)], Opts, StreamOpts),
       CleanOpts = Opts
   ),
-  rdf_assert_messages(
-    rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts),
-    S,
-    G,
-    Result
-  ).
+  rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts).
 
 
-%! rdf_clean_stream(-To, +Opts, +Metadata, +Read) is det.
+%! rdf_clean_stream(+To, +Opts, +Metadata, +Read) is det.
 
 rdf_clean_stream(To, Opts1, D1, Read) :-
   option(metadata(D4), Opts1, _),
@@ -130,13 +125,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   NS3 is NS1 - NS2,
   debug(rdf(clean), "Wrote ~D unique statements (skipped ~D duplicates).", [NS2,NS3]),
   D4 = D3.put(_{'llo:unique_statements': NS2, 'llo:duplicate_statements': NS3}),
-
-  % Determine output file name.
-  Base = clean,
-  (Compress == gzip -> Ext = 'nq.gz' ; Ext = nq),
-  file_name_extension(Base, Ext, Name),
-  absolute_file_name(Name, To, [access(write)]),
-
+  
   % Compress the file, according to user option.
   debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted triple file.").
 

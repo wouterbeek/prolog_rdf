@@ -1,30 +1,16 @@
 :- module(
   write_SimpleRDF,
   [
-    write_simple_begin/4, % -BNodePrefix:atom
-                          % -TripleCounter:compound
-                          % -QuadrupleCounter:compound
-                          % +Options:list(compound)
-    write_simple_end/3, % +TripleCounter:compound
-                        % +QuadrupleCounter:compound
-                        % +Options:list(compound)
-    write_simple_graph/2, % ?Graph:atom
-                          % +Options:list(compound)
-    write_simple_quadruple/6, % +BNodePrefix:atom
-                              % +QuadrupleCounter:compound
-                              % +Subject:iri
-                              % +Predicate:iri
-                              % +Object:or([iri,literal])
-                              % +Graph:iri
-    write_simple_statement/4, % +BNodePrefix:atom
-                              % +TripleCounter:compound
-                              % +QuadrupleCounter:compound
-                              % +Statement:compound
-    write_simple_triple/5 % +BNodePrefix:atom
-                          % +TripleCounter:compound
-                          % +Subject:iri
-                          % +Predicate:iri
-                          % +Object:or([iri,literal])
+    write_simple_begin/4,     % -BPrefix, -TripCounter:compound, -QuadCounter:compound, +Opts
+    write_simple_end/3,       % +TripCounter:compound, +QuadCounter:compound, +Opts
+    write_simple_graph/2,     % ?G, +Opts
+    write_simple_quadruple/4, % +S, +P, +O, +G
+    write_simple_quadruple/5, % +BPrefix, +S, +P, +O, +G
+    write_simple_quadruple/6, % +BPrefix, +QuadCounter:compound, +S, +P, +O, +G
+    write_simple_statement/4, % +BPrefix, +TripCounter:compound, +QuadCounter:compound, +Statement
+    write_simple_triple/3,    % +S, +P, +O
+    write_simple_triple/4,    % +BPrefix, +S, +P, +O
+    write_simple_triple/5     % +BPrefix, +TripCounter:compound, +S, +P, +O
   ]
 ).
 
@@ -48,7 +34,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 @author Wouter Beek
 @author Jan Wielemaker
 @author Laurens Rietveld
-@version 2015/08, 2015/10-2016/01
+@version 2015/08, 2015/10-2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -64,8 +50,13 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(uri)).
 :- use_module(library(iri/rfc3987_gen)).
 
-:- rdf_meta(write_simple_quadruple(+,+,r,r,o,+)).
-:- rdf_meta(write_simple_triple(+,+,r,r,o)).
+:- rdf_meta
+   write_simple_quadruple(r,r,o,+),
+   write_simple_quadruple(+,r,r,o,+),
+   write_simple_quadruple(+,+,r,r,o,+),
+   write_simple_triple(r,r,o),
+   write_simple_triple(+,r,r,o),
+   write_simple_triple(+,+,r,r,o).
 
 :- predicate_options(write_simple_begin/4, 4, [
      base_iri(+atom)
@@ -85,13 +76,13 @@ assuming `xsd:string` in case no datatype IRI is given.
 
 
 %! write_simple_begin(
-%!   -BNodePrefix:atom,
+%!   -BPrefix:atom,
 %!   -TripleCounter:compound,
 %!   -QuadrupleCounter:compound,
 %!   +Options:list(compound)
 %! ) is det.
 
-write_simple_begin(BNodePrefix, triples, quadruples, Opts) :-
+write_simple_begin(BPrefix, triples, quadruples, Opts) :-
   reset_bnode_names,
 
   create_thread_counter(triples),
@@ -103,17 +94,17 @@ write_simple_begin(BNodePrefix, triples, quadruples, Opts) :-
   ->  uri_components(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
       atom_ending_in(Path0, '#', Suffix),
       atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
-      uri_components(BNodePrefix, uri_components(Scheme,Auth,Path,_,_))
-  ;   BNodePrefix = '_:'
+      uri_components(BPrefix, uri_components(Scheme,Auth,Path,_,_))
+  ;   BPrefix = '_:'
   ).
 
 
 
-%! write_simple_bnode(+BNodePrefix:uri, +BNode:atom) is det.
+%! write_simple_bnode(+BPrefix:uri, +B:atom) is det.
 
-write_simple_bnode(BNodePrefix, BNode) :-
-  rdf_bnode_name:rdf_bnode_name0(BNodePrefix, BNode, BNodeName),
-  turtle:turtle_write_uri(current_output, BNodeName).
+write_simple_bnode(BPrefix, B) :-
+  rdf_bnode_name:rdf_bnode_name0(BPrefix, B, BName),
+  turtle:turtle_write_uri(current_output, BName).
 
 
 
@@ -149,7 +140,7 @@ write_simple_end(CT, CQ, Opts) :-
 %   * triples(-nonneg)
 
 write_simple_graph(G, Opts) :-
-  write_simple_begin(BNodePrefix, CT, CQ, Opts),
+  write_simple_begin(BPrefix, CT, CQ, Opts),
 
   % Decide whether triples or quadruples are written.
   option(format(Format), Opts, _),
@@ -164,9 +155,16 @@ write_simple_graph(G, Opts) :-
   ),
 
   aggregate_all(set(S), rdf(S, _, _, G), Ss),
-  maplist(write_simple_subject(BNodePrefix, CT, CQ, G, Format), Ss),
+  maplist(write_simple_subject(BPrefix, CT, CQ, G, Format), Ss),
 
   write_simple_end(CT, CQ, Opts).
+
+
+
+%! write_simple_graph_term(+G) is det.
+
+write_simple_graph_term(default) :- !.
+write_simple_graph_term(G)       :- write_simple_iri(G).
 
 
 
@@ -211,9 +209,9 @@ write_simple_literal(literal(Lex)) :-
 write_simple_object(Lit, _) :-
   write_simple_literal(Lit), !.
 % Object term: blank node
-write_simple_object(BNode, BNodePrefix) :-
-  rdf_is_bnode(BNode), !,
-  write_simple_bnode(BNodePrefix, BNode).
+write_simple_object(B, BPrefix) :-
+  rdf_is_bnode(B), !,
+  write_simple_bnode(BPrefix, B).
 % Object term: IRI
 write_simple_object(Iri, _) :-
   write_simple_iri(Iri).
@@ -227,50 +225,49 @@ write_simple_predicate(P) :-
 
 
 
-%! write_simple_quadruple(
-%!   +BNodePrefix:atom,
-%!   +Counter:compound,
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Object:rdf_term,
-%!   +Graph:atom
-%! ) is det.
+%! write_simple_quadruple(+S, +P, +O, +G) is det.
+%! write_simple_quadruple(+Counter:compound, +S, +P, +O, +G) is det.
+%! write_simple_quadruple(+BPrefix, +Counter:compound, +S, +P, +O, +G) is det.
 
-write_simple_quadruple(BNodePrefix, CQ, S, P, O, G) :-
-  write_simple_subject(S, BNodePrefix),
+write_simple_quadruple(S, P, O, G) :-
+  write_simple_quadruple('_:', S, P, O, G).
+
+write_simple_quadruple(BPrefix, S, P, O, G) :-
+  write_simple_subject(S, BPrefix),
   put_char(' '),
-  % Predicate terms are IRIs.
   write_simple_predicate(P),
   put_char(' '),
-  write_simple_object(O, BNodePrefix),
+  write_simple_object(O, BPrefix),
   put_char(' '),
-  % Named graphs are IRIs.
-  (G == default -> true ; write_simple_iri(G)),
+  write_simple_graph_term(G),
   put_char(' '),
   put_char(.),
-  put_code(10),
-  increment_thread_counter(CQ).
+  put_code(10).
+
+write_simple_quadruple(BPrefix, C, S, P, O, G) :-
+  write_simple_quadruple(BPrefix, S, P, O, G),
+  increment_thread_counter(C).
 
 
 
 %! write_simple_statement(
-%!   +BNodePrefix:atom,
+%!   +BPrefix:atom,
 %!   +TripleCounter:compound,
 %!   +QuadrupleCounter:compound,
 %!   +Statement:compound
 %! ) is det.
 
-write_simple_statement(BNodePrefix, CT, _, rdf(S,P,O)) :- !,
-  write_simple_triple(BNodePrefix, CT, S, P, O).
-write_simple_statement(BNodePrefix, _, CQ, rdf(S,P,O,G)) :-
-  write_simple_quadruple(BNodePrefix, CQ, S, P, O, G).
+write_simple_statement(BPrefix, CT, _, rdf(S,P,O)) :- !,
+  write_simple_triple(BPrefix, CT, S, P, O).
+write_simple_statement(BPrefix, _, CQ, rdf(S,P,O,G)) :-
+  write_simple_quadruple(BPrefix, CQ, S, P, O, G).
 
 
 
 % Subject term: blank node
-write_simple_subject(BNode, BNodePrefix) :-
-  rdf_is_bnode(BNode), !,
-  write_simple_bnode(BNodePrefix, BNode).
+write_simple_subject(B, BPrefix) :-
+  rdf_is_bnode(B), !,
+  write_simple_bnode(BPrefix, B).
 % Subject term: IRI
 write_simple_subject(Iri, _) :-
   write_simple_iri(Iri).
@@ -278,7 +275,7 @@ write_simple_subject(Iri, _) :-
 
 
 %! write_simple_subject(
-%!   +BNodePrefix:atom,
+%!   +BPrefix:atom,
 %!   +TripleCounter:compound,
 %!   +QuadrupleCounter:compound,
 %!   ?Graph:atom,
@@ -292,32 +289,33 @@ write_simple_subject(Iri, _) :-
 % Then processes each pairs -- and thus each triple -- separately.
 
 % Format: Quadruples.
-write_simple_subject(BNodePrefix, _, CQ, G, quadruple, S) :-
+write_simple_subject(BPrefix, _, CQ, G, quadruple, S) :-
   aggregate_all(set(P-O-G), rdf(S, P, O, G), POGs),
-  forall(member(P-O-G, POGs), write_simple_quadruple(BNodePrefix, CQ, S, P, O, G)).
+  forall(member(P-O-G, POGs), write_simple_quadruple(BPrefix, CQ, S, P, O, G)).
 % Format: Triples.
-write_simple_subject(BNodePrefix, CT, _, G, triple, S) :-
+write_simple_subject(BPrefix, CT, _, G, triple, S) :-
   aggregate_all(set(P-O), rdf(S, P, O, G), POs),
-  forall(member(P-O, POs), write_simple_triple(BNodePrefix, CT, S, P, O)).
+  forall(member(P-O, POs), write_simple_triple(BPrefix, CT, S, P, O)).
 
 
 
-%! write_simple_triple(
-%!   +BNodePrefix:atom,
-%!   +Counter:compound,
-%!   +Subject:or([bnode,iri]),
-%!   +Predicate:iri,
-%!   +Object:rdf_term
-%! ) is det.
+%! write_simple_triple(+S, +P, +O) is det.
+%! write_simple_triple(+BPrefix:atom, +S, +P, +O) is det.
+%! write_simple_triple(+BPrefix:atom, +Counter:compound, +S, +P, +O) is det.
 
-write_simple_triple(BNodePrefix, Counter, S, P, O) :-
-  write_simple_subject(S, BNodePrefix),
+write_simple_triple(S, P, O) :-
+  write_simple_triple('_:', S, P, O).
+
+write_simple_triple(BPrefix, S, P, O) :-
+  write_simple_subject(S, BPrefix),
   put_char(' '),
-  % Predicate terms are IRIs.
   write_simple_predicate(P),
   put_char(' '),
-  write_simple_object(O, BNodePrefix),
+  write_simple_object(O, BPrefix),
   put_char(' '),
   put_char(.),
-  put_code(10),
+  put_code(10).
+
+write_simple_triple(BPrefix, Counter, S, P, O) :-
+  write_simple_triple(BPrefix, S, P, O),
   increment_thread_counter(Counter).

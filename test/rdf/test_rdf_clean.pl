@@ -9,7 +9,7 @@
 /* <module> Test RDF clean
 
 @author Wouter Beek
-@version 2016/01
+@version 2016/01-2016/02
 */
 
 :- use_module(library(debug_ext)).
@@ -21,10 +21,12 @@
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(lodapi/lodapi_document)).
+:- use_module(library(lodapi/lodapi_generics)).
 :- use_module(library(lodapi/lodapi_metadata)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_clean)).
+:- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_print)).
 
@@ -48,9 +50,24 @@ test_rdf_clean(From, N):-
       last(Froms, From)
   ),
   md5(From, Hash),
-  catch_metadata(rdf_download_to_file(From, Hash)),
-  catch_metadata(rdf_clean(From, [metadata(M)])),
-  (var(M) -> true ; print_metadata(M)).
+  document_name(Doc, Hash),
+  document_path(Doc, Dir),
+  make_directory_path(Dir),
+  Opts = [access(write),relative_to(Dir)],
+  absolute_file_name(dirty, DTo, Opts),
+  absolute_file_name('clean.nq', CTo, Opts),
+  absolute_file_name('metadata.nq', MTo, Opts),
+  rdf_download_to_file(From, DTo),
+  setup_call_cleanup(
+    open_any2(MTo, append, Write, Close_0),
+    with_output_to(Write,
+      rdf_store_messages(Doc, (
+        rdf_clean(From, CTo, [metadata(M)]),
+        rdf_store_metadata(Doc, M)
+      ))
+    ),
+    close_any2(Close_0)
+  ).
 
 test_source(Source):-
   document(Doc),

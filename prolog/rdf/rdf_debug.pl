@@ -1,9 +1,10 @@
 :- module(
   rdf_debug,
   [
-    rdf_assert_messages/4, % :Goal_0, +S, ?G, -Result
-    rdf_show_graph/1,      % +G
-    rdf_show_graph/2       % +G, +Opts
+    rdf_store_messages/2, % +S, :Goal_0
+    rdf_store_metadata/2, % +S, +M
+    rdf_show_graph/1,     % +G
+    rdf_show_graph/2      % +G, +Opts
   ]
 ).
 
@@ -17,19 +18,23 @@ Show RDF data structures during modeling/development.
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
+:- use_module(library(debug)).
 :- use_module(library(gv/gv_file)).
+:- use_module(library(jsonld/jsonld_metadata)).
+:- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
 :- use_module(library(os/process_ext)).
+:- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_api)).
-:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_graph_viz)).
+:- use_module(library(rdf/rdf_store)).
 :- use_module(library(xml/xml_dom)).
 
 :- meta_predicate
-    rdf_assert_messages(0,+,?,-).
+    rdf_store_messages(+,0).
 
 :- rdf_meta
-   rdf_assert_messages(:,r,r,-),
+   rdf_store_messages(r,:),
    rdf_show_graph(r),
    rdf_show_graph(r,+).
 
@@ -43,70 +48,70 @@ Show RDF data structures during modeling/development.
 
 
 
-%! rdf_assert_message(+S, +Kind, +Term, +Lines, +G) is det.
+%! rdf_store_message(+S, +Kind, +Term, +Lines, +G) is det.
 
 % Archive error
-rdf_assert_message(S, Kind, error(archive_error(C,_),_), _, G) :- !,
+rdf_store_message(S, Kind, error(archive_error(C,_),_), _) :- !,
   (   C == 2
   ->  I = missingTypeKeywordInMtreeSpec
   ;   C == 25
   ->  I = invalidCentralDirectorySignature
   ),
-  rdf_assert_prefixed(S, llo:Kind, llo:I, G).
+  rdf_store(S, llo-Kind, llo-I).
 
 % Encoding: character
-rdf_assert_message(S, Kind, error(type_error(character,Char),context(_Pred,_Var)), _, G) :- !,
+rdf_store_message(S, Kind, error(type_error(character,Char),context(_Pred,_Var)), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'CharacterEncodingError', G),
-  rdf_assert(B, llo:object, Char^^xsd:integer, G).
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'CharacterEncodingError'),
+  rdf_store(B, llo:object, Char^^xsd:integer).
 
-% Existence llo: directory
-rdf_assert_message(S, Kind, error(existence_error(directory,Dir),context(_Pred,Msg)), _, G) :- !,
+% Existence: directory
+rdf_store_message(S, Kind, error(existence_error(directory,Dir),context(_Pred,Msg)), _) :- !,
   (   Msg == 'File exists'
   ->  C = 'DirectoryExistenceError'
   ),
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert_prefixed(B, rdf:type, llo:C, G),
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo-C),
   uri_file_name(Uri, Dir),
-  rdf_assert(B, llo:object, Uri^^xsd:anyURI, G).
+  rdf_store(B, llo:object, Uri^^xsd:anyURI).
 
-% Existence llo: file
-rdf_assert_message(S, Kind, error(existence_error(file,File),context(_Pred,Msg)), _, G) :- !,
+% Existence: file
+rdf_store_message(S, Kind, error(existence_error(file,File),context(_Pred,Msg)), _) :- !,
   (   Msg == 'Directory not empty'
   ->  C = 'DirectoryNotEmpty'
   ;   Msg == 'No such file or directory'
   ->  C = 'FileExistenceError'
   ),
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert_prefixed(B, rdf:type, llo:C, G),
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo-C),
   uri_file_name(Uri, File),
-  rdf_assert(B, llo:object, Uri^^xsd:anyURI, G).
+  rdf_store(B, llo:object, Uri^^xsd:anyURI).
 
-% Existence llo: source sink?
-rdf_assert_message(S, Kind, error(existence_error(source_sink,Path),context(_Pred,Msg)), _, G) :- !,
+% Existence: source sink?
+rdf_store_message(S, Kind, error(existence_error(source_sink,Path),context(_Pred,Msg)), _) :- !,
   (   Msg == 'Is a directory'
   ->  C = 'IsADirectoryError'
   ),
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert_prefixed(B, rdf:type, llo:C, G),
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo-C),
   uri_file_name(Uri, Path),
-  rdf_assert(B, llo:object, Uri^^xsd:anyURI, G).
+  rdf_store(B, llo:object, Uri^^xsd:anyURI).
 
 
 % HTTP status
-rdf_assert_message(S, Kind, error(http_status(Status),_), _, G) :- !,
+rdf_store_message(S, Kind, error(http_status(Status),_), _) :- !,
   (   between(400, 499, Status)
-  ->  rdf_assert_prefixed(S, llo:Kind, httpo-'4xxHttpError', G)
+  ->  rdf_store(S, llo-Kind, httpo-'4xxHttpError')
   ;   between(500, 599, Status)
-  ->  rdf_assert_prefixed(S, llo:Kind, httpo-'5xxHttpError', G)
+  ->  rdf_store(S, llo-Kind, httpo-'5xxHttpError')
   ).
 
-% IO llo: read
-rdf_assert_message(S, Kind, error(io_error(read,_Stream),context(_Pred,Msg)), _, G) :- !,
+% IO: read
+rdf_store_message(S, Kind, error(io_error(read,_Stream),context(_Pred,Msg)), _) :- !,
   (   Msg == 'Connection reset by peer'
   ->  I = connectionResetByPeer
   ;   Msg == 'Inappropriate ioctl for device'
@@ -114,69 +119,69 @@ rdf_assert_message(S, Kind, error(io_error(read,_Stream),context(_Pred,Msg)), _,
   ;   Msg = 'Is a directory'
   ->  I = isADirectory
   ),
-  rdf_assert_prefixed(S, llo:Kind, llo:I, G).
+  rdf_store(S, llo-Kind, llo-I).
 
-% IO llo: write
-rdf_assert_message(S, Kind, error(io_error(write,_Stream),context(_Pred,Msg)), _, G) :- !,
+% IO: write
+rdf_store_message(S, Kind, error(io_error(write,_Stream),context(_Pred,Msg)), _) :- !,
   (   Msg == 'Encoding cannot represent character'
   ->  I = encodingError
   ),
-  rdf_assert_prefixed(S, llo:Kind, llo:I, G).
+  rdf_store(S, llo-Kind, llo-I).
 
 % IO warning
-rdf_assert_message(S, Kind, io_warning(_Stream,Msg), _, G) :- !,
+rdf_store_message(S, Kind, io_warning(_Stream,Msg), _) :- !,
   (   Msg == 'Illegal UTF-8 continuation'
   ->  I = illegalUtf8Continuation
   ;   Msg == 'Illegal UTF-8 start'
   ->  I = illegalUtf8Start
   ),
-  rdf_assert_prefixed(S, llo:Kind, llo:I, G).
+  rdf_store(S, llo-Kind, llo-I).
 
 % Malformed URL
-rdf_assert_message(S, Kind, error(domain_error(url,Url),_), _, G) :- !,
+rdf_store_message(S, Kind, error(domain_error(url,Url),_), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert(B, rdf:type, llo:'MalformedUrl', G),
-  rdf_assert(B, llo:object, Url^^xsd:anyURI, G),
-  rdf_assert_prefixed(S, llo:Kind, B, G).
+  rdf_store(B, rdf:type, llo:'MalformedUrl'),
+  rdf_store(B, llo:object, Url^^xsd:anyURI),
+  rdf_store(S, llo-Kind, B).
 
 % No RDF
-rdf_assert_message(S, _Kind, error(no_rdf(_File)), _, G) :- !,
-  rdf_assert(S, llo:serializationFormat, llo:unrecognizedFormat, G).
+rdf_store_message(S, _Kind, error(no_rdf(_File)), _) :- !,
+  rdf_store(S, llo:serializationFormat, llo:unrecognizedFormat).
 
-% Permission llo: redirect
-rdf_assert_message(S, Kind, error(permission_error(Action0,Type,Object),context(_,Msg1)), _, G) :- !,
+% Permission: redirect
+rdf_store_message(S, Kind, error(permission_error(Action0,Type,Object),context(_,Msg1)), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'PermissionError', G),
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'PermissionError'),
   atom_truncate(Msg1, 500, Msg2),
-  rdf_assert(B, llo:message, Msg2^^xsd:string, G),
+  rdf_store(B, llo:message, Msg2^^xsd:string),
 
   % Action
   (   Action0 == redirect
   ->  Action = redirectAction
   ),
-  rdf_assert_prefixed(B, llo:action, llo:Action, G),
+  rdf_store(B, llo:action, llo-Action),
 
   % Object
-  rdf_assert(B, llo:object, Object, G),
+  rdf_store(B, llo:object, Object),
 
   % Type
   (   Type == http
   ->  ObjectClass = 'HttpUri'
   ),
-  rdf_assert_prefixed(Object, llo:object, llo:ObjectClass, G).
+  rdf_store(Object, llo:object, llo-ObjectClass).
 
 % SGML parser
-rdf_assert_message(S, Kind, sgml(sgml_parser(_Parser),_File,Line,Msg1), _, G) :- !,
+rdf_store_message(S, Kind, sgml(sgml_parser(_Parser),_File,Line,Msg1), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'SgmlParserError', G),
-  rdf_assert(B, llo:sourceLine, Line^^xsd:nonNegativeInteger, G),
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'SgmlParserError'),
+  rdf_store(B, llo:sourceLine, Line^^xsd:nonNegativeInteger),
   atom_truncate(Msg1, 500, Msg2),
-  rdf_assert(B, llo:message, Msg2^^xsd:string, G).
+  rdf_store(B, llo:message, Msg2^^xsd:string).
 
 % Socket error
-rdf_assert_message(S, Kind, error(socket_error(Msg),_), _, G) :- !,
+rdf_store_message(S, Kind, error(socket_error(Msg),_), _) :- !,
   (   Msg == 'Connection timed out'
   ->  I = connectionTimedOut
   ;   Msg == 'Connection refused'
@@ -190,80 +195,103 @@ rdf_assert_message(S, Kind, error(socket_error(Msg),_), _, G) :- !,
   ;   Msg == 'Try Again'
   ->  I = tryAgain
   ),
-  rdf_assert_prefixed(S, llo:Kind, llo:I, G).
+  rdf_store(S, llo-Kind, llo-I).
 
-% SSL llo: SSL verify
-rdf_assert_message(S, Kind, error(ssl_error(ssl_verify),_), _, G) :- !,
-  rdf_assert_prefixed(S, llo:Kind, llo:sslError, G).
+% SSL: SSL verify
+rdf_store_message(S, Kind, error(ssl_error(ssl_verify),_), _) :- !,
+  rdf_store(S, llo-Kind, llo:sslError).
 
 % Syntax error
-rdf_assert_message(S, Kind, error(syntax_error(Msg1),stream(_Stream,Line,Col,Char)), _, G) :- !,
+rdf_store_message(S, Kind, error(syntax_error(Msg1),stream(_Stream,Line,Col,Char)), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'SyntaxError', G),
-  store_position(B, Line, Col, Char, G),
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'SyntaxError'),
+  rdf_store_position(B, Line, Col, Char),
   atom_truncate(Msg1, 500, Msg2),
-  rdf_assert(B, llo:message, Msg2^^xsd:string, G).
+  rdf_store(B, llo:message, Msg2^^xsd:string).
 
-% Timeout llo: read
-rdf_assert_message(S, Kind, error(timeout_error(read,_Stream),context(_Pred,_)), _, G) :- !,
-  rdf_assert_prefixed(S, llo:Kind, llo:readTimeoutError, G).
+% Timeout: read
+rdf_store_message(S, Kind, error(timeout_error(read,_Stream),context(_Pred,_)), _) :- !,
+  rdf_store(S, llo-Kind, llo:readTimeoutError).
 
 % Turtle: undefined prefix
-rdf_assert_message(S, Kind, error(existence_error(turtle_prefix,Prefix), stream(_Stream,Line,Col,Char)), _, G) :- !,
+rdf_store_message(S, Kind, error(existence_error(turtle_prefix,Prefix), stream(_Stream,Line,Col,Char)), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'MissingTurtlePrefixDefintion', G),
-  rdf_assert(B, llo:prefix, Prefix^^xsd:string, G),
-  store_position(B, Line, Col, Char, G).
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'MissingTurtlePrefixDefintion'),
+  rdf_store(B, llo:prefix, Prefix^^xsd:string),
+  rdf_store_position(B, Line, Col, Char).
 
 % RDF/XML: multiple definitions
-rdf_assert_message(S, Kind, rdf(redefined_id(Uri)), _, G) :- !,
+rdf_store_message(S, Kind, rdf(redefined_id(Uri)), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'RedefinedRdfId', G),
-  rdf_assert(B, llo:object, Uri, G).
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'RedefinedRdfId'),
+  rdf_store(B, llo:object, Uri).
 
 % RDF/XML: name
-rdf_assert_message(S, Kind, rdf(not_a_name(XmlName)), _, G) :- !,
+rdf_store_message(S, Kind, rdf(not_a_name(XmlName)), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'XmlNameError', G),
-  rdf_assert(B, llo:object, XmlName^^xsd:string, G).
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'XmlNameError'),
+  rdf_store(B, llo:object, XmlName^^xsd:string).
 
 % RDF/XML: unparsable
-rdf_assert_message(S, Kind, rdf(unparsed(Dom)), _, G) :- !,
+rdf_store_message(S, Kind, rdf(unparsed(Dom)), _) :- !,
   rdf_create_bnode(B),
-  rdf_assert_prefixed(S, llo:Kind, B, G),
-  rdf_assert(B, rdf:type, llo:'RdfXmlParserError', G),
+  rdf_store(S, llo-Kind, B),
+  rdf_store(B, rdf:type, llo:'RdfXmlParserError'),
   xml_dom_to_atom(Dom, Atom1),
   atom_truncate(Atom1, 500, Atom2),
-  rdf_assert(B, llo:dom, Atom2^^xsd:string, G).
+  rdf_store(B, llo:dom, Atom2^^xsd:string).
 
 
 
-%! rdf_assert_messages(:Goal_0, +S, ?G, -Result) is det.
+%! rdf_store_messages(+S, :Goal_0) is det.
 % Run Goal, unify Result with `true`, `false` or `exception(Error)`
 % and messages with a list of generated error and warning messages.
 % Each message is a term `message(Term,Kind,Lines)`.
 
-rdf_assert_messages(Goal_0, S, G, Result) :-
-  (var(G) -> rdf_tmp_graph(G) ; true),
+rdf_store_messages(S, Goal_0) :-
   setup_call_cleanup(
-    asserta((
-      user:thread_message_hook(Term,Kind,Lines) :-
-        error_kind(Kind),
-        rdf_assert_message(S, Kind, Term, Lines, G)
-    )),
-    (   catch(Goal_0, E, true)
-    ->  (var(E) -> Result = true ; Result = exception(E))
-    ;   Result = false
+    (
+      create_thread_counter(rdf_debug),
+      asserta((
+        user:thread_message_hook(Term,Kind,Lines) :-
+          error_kind(Kind),
+          rdf_store_message(S, Kind, Term, Lines),
+          increment_thread_counter(rdf_debug)
+      ))
     ),
-    rdf_unload_graph(G)
+    (   catch(Goal_0, E, true)
+    ->  (   var(E)
+        ->  Result = true
+        ;   E = error(existence_error(open_any2,M),_)
+        ->  rdf_store_metadata(S, M)
+        ;   Result = exception(E),
+            rdf_store_message(S, exception, Result, [])
+        ),
+        debug(rdf(debug), '[RESULT] ~w ~w', [Result,Goal_0])
+    ;   debug(rdf(debug), '[FAILED] ~w', [Goal_0])
+    ),
+    (
+      delete_thread_counter(rdf_debug, N),
+      rdf_store(S, llo:number_of_warnings, N^^xsd:nonNegativeInteger)
+    )
   ).
 
 error_kind(warning).
 error_kind(error).
+
+
+
+%! rdf_store_metadata(+S, +M) is det.
+
+rdf_store_metadata(S1, M) :-
+  jsonld_metadata(M, Jsonld1),
+  atom_string(S1, S2),
+  Jsonld2 = Jsonld1.put(_{'@id': S2}),
+  forall(jsonld_to_triple(Jsonld2, rdf(S,P,O)), rdf_store(S, P, O)).
 
 
 
@@ -285,20 +313,12 @@ rdf_show_graph(G, Opts1) :-
 
 % HELPERS %
 
-%! rdf_assert_prefixed(+S, +P, +O, +G) is det.
+%! rdf_store_position(+S, +Line, +Col, +Char, +G) is det.
 
-rdf_assert_prefixed(S1, P1, O1, G1) :-
-  maplist(rdf_global_id, [S1,P1,O1,G1], [S2,P2,O2,G2]),
-  rdf_assert(S2, P2, O2, G2).
-
-
-
-%! store_position(+S, +Line, +Col, +Char, +G) is det.
-
-store_position(S, Line, Col, Char, G) :-
+rdf_store_position(S, Line, Col, Char) :-
   rdf_create_bnode(B),
-  rdf_assert(S, llo:streamPosition, B, G),
-  rdf_assert(B, rdf:type, llo:'StreamPosition', G),
-  rdf_assert(B, llo:line, Line^^xsd:nonNegativeInteger, G),
-  rdf_assert(B, llo:linePosition, Col^^xsd:nonNegativeInteger, G),
-  rdf_assert(B, llo:character, Char^^xsd:nonNegativeInteger, G).
+  rdf_store(S, llo:streamPosition, B),
+  rdf_store(B, rdf:type, llo:'StreamPosition'),
+  rdf_store(B, llo:line, Line^^xsd:nonNegativeInteger),
+  rdf_store(B, llo:linePosition, Col^^xsd:nonNegativeInteger),
+  rdf_store(B, llo:character, Char^^xsd:nonNegativeInteger).
