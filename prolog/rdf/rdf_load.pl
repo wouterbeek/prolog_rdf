@@ -1,23 +1,21 @@
 :- module(
   rdf_load,
   [
-    rdf_call_on_graph/2, % +Source, :Goal_1
-    rdf_call_on_graph/3, % +Source
-                         % :Goal_1
-                         % +Options:list(compound)
+    rdf_call_on_graph/2,      % +Source, :Goal_1
+    rdf_call_on_graph/3,      % +Source, :Goal_1, +Opts
     rdf_call_on_statements/2, % +Source, :Goal_2
-    rdf_call_on_statements/3, % +Source
-                              % :Goal_2
-                              % +Options:list(compound)
-    rdf_load_file/1, % +Source
-    rdf_load_file/2 % +Source
-                    % +Options:list(compound)
+    rdf_call_on_statements/3, % +Source, :Goal_2, +Opts
+    rdf_download_to_file/2,   % +Iri, +File
+    rdf_download_to_file/3,   % +Iri, +File, +Opts
+    rdf_load_file/1,          % +Source
+    rdf_load_file/2,          % +Source, +Opts
+    rdf_load_statements/2,    % +Source, -Stmts
+    rdf_load_statements/3     % +Source, -Stmts, +Opts
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
      rdf_make/0,
-     rdf_source_location/2 % +Subject
-                           % -Location
+     rdf_source_location/2 % +Subject, -Location
    ]).
 
 /** <module> RDF load
@@ -25,35 +23,45 @@
 Support for loading RDF data.
 
 @author Wouter Beek
-@license MIT license
-@version 2015/08, 2015/10-2015/12
+@version 2015/08, 2015/10-2016/01
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
+:- use_module(library(error)).
+:- use_module(library(iri/rfc3987_gen)).
 :- use_module(library(option)).
-:- use_module(library(msg_ext)).
-:- use_module(library(option)).
+:- use_module(library(os/file_ext)).
+:- use_module(library(os/io_ext)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf), [process_rdf/3]).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stream)).
-:- use_module(library(rdf11/rdf11)).
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
 :- use_module(library(uuid_ext)).
+:- use_module(library(yall)).
 
-:- meta_predicate(rdf_call_on_graph(+,1)).
-:- meta_predicate(rdf_call_on_graph(+,1,+)).
-:- meta_predicate(rdf_call_on_statements(+,2)).
-:- meta_predicate(rdf_call_on_statements(+,2,+)).
-:- meta_predicate(rdf_call_on_statements_stream(+,2,+,+)).
+:- meta_predicate
+    rdf_call_on_graph(+,1),
+    rdf_call_on_graph(+,1,+),
+    rdf_call_on_statements(+,2),
+    rdf_call_on_statements(+,2,+),
+    rdf_call_on_statements_stream(+,2,+,+).
 
 :- predicate_options(rdf_call_on_graph/3, 3, [
      pass_to(rdf_load_file/2)
    ]).
 :- predicate_options(rdf_call_on_statements/3, 3, [
+     pass_to(rdf_read_from_stream/3, 3)
+   ]).
+:- predicate_options(rdf_download_to_file/3, 3, [
      pass_to(rdf_read_from_stream/3, 3)
    ]).
 :- predicate_options(rdf_load_file/2, 2, [
@@ -62,19 +70,21 @@ Support for loading RDF data.
      triples(-nonneg),
      pass_to(rdf_call_on_statements/3, 3)
    ]).
+:- predicate_options(rdf_load_statements/3, 3, [
+     pass_to(rdf_load_file/2, 2)
+   ]).
 
 
 
 
 
 %! rdf_call_on_graph(+Source, :Goal_1) .
-% Wrapper around rdf_call_on_graph/3 with default options.
+%! rdf_call_on_graph(+Source, :Goal_1, +Opts) .
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_graph(In, Goal_1) :-
   rdf_call_on_graph(In, Goal_1, []).
-
-
-%! rdf_call_on_graph(+Source, :Goal_1, +Options:list(compound)) .
 
 rdf_call_on_graph(In, Goal_1, Opts0) :-
   setup_call_cleanup(
@@ -90,13 +100,12 @@ rdf_call_on_graph(In, Goal_1, Opts0) :-
 
 
 %! rdf_call_on_statements(+Source, :Goal_2) is nondet.
-% Wrapper around rdf_call_on_statements/3 with default options.
+%! rdf_call_on_statements(+Source, :Goal_2, +Opts) is nondet.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_statements(In, Goal_2) :-
   rdf_call_on_statements(In, Goal_2, []).
-
-
-%! rdf_call_on_statements(+Source, :Goal_2, +Options:list(compound)) is nondet.
 
 rdf_call_on_statements(In, Goal_2, Opts) :-
   option(graph(G0), Opts, default),
@@ -108,54 +117,63 @@ rdf_call_on_statements(In, Goal_2, Opts) :-
   ).
 
 
-%! rdf_call_on_statements_stream(
-%!   ?Graph:iri,
-%!   :Goal_2,
-%!   +Metadata:dict,
-%!   +Read:stream
-%! ) is det.
+%! rdf_call_on_statements_stream(?Graph, :Goal_2, +Metadata, +Read) is det.
 % The following call is made:
 % `call(:Goal_2, +Statements:list(compound), ?Graph:atom)'
 
 rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  memberchk(M.rdf.format, [nquads,ntriples]), !,
-  rdf_process_ntriples(
-    Read,
-    Goal_2,
-    [base_uri(M.base_iri),format(M.rdf.format),graph(G)]
+  BaseIri = M.'llo:base-iri',
+  rdf_equal(M.'llo:serialization-format', Format1),
+  rdf_format_iri(Format2, Format1),
+  (   memberchk(Format2, [nquads,ntriples])
+  ->  rdf_process_ntriples(Read, Goal_2, [base_uri(BaseIri),format(Format2),graph(G)])
+  ;   memberchk(Format2, [trig,turtle])
+  ->  uuid_no_hyphen(UniqueId),
+      atomic_list_concat(['__',UniqueId,:], BNodePrefix),
+      Opts = [anon_prefix(BNodePrefix),base_uri(BaseIri),graph(G)],
+      rdf_process_turtle(Read, Goal_2, Opts)
+  ;   Format2 == xml
+  ->  process_rdf(Read, Goal_2, [base_uri(BaseIri),graph(G)])
+  ;   Format2 == rdfa
+  ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
+      call(Goal_2, Ts, G)
+  ;   existence_error(serialization_format, [Format1])
   ).
-rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  memberchk(M.rdf.format, [trig,turtle]), !,
-  uuid_no_hyphen(UniqueId),
-  atomic_list_concat(['__',UniqueId,:], BNodePrefix),
-  Opts = [anon_prefix(BNodePrefix),base_uri(M.base_iri),graph(G)],
-  rdf_process_turtle(Read, Goal_2, Opts).
-rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  xml == M.rdf.format, !,
-  process_rdf(Read, Goal_2, [base_uri(M.base_iri),graph(G)]).
-rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  rdfa == M.rdf.format, !,
-  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
-  call(Goal_2, Ts, G).
-rdf_call_on_statements_stream(_, _, _, M) :-
-  msg_warning("Unrecognized RDF serialization format: ~a~n", [M.rdf.format]).
+
+
+
+%! rdf_download_to_file(+Iri, +File:atom) is det.
+%! rdf_download_to_file(+Iri, ?File:atom, +Opts) is det.
+% Options are passed to rdf_read_from_stream/3 and write_stream_to_file/3.
+%
+% @throws existence_error if an HTTP request returns an error code.
+
+rdf_download_to_file(Iri, File) :-
+  rdf_download_to_file(Iri, File, []).
+
+rdf_download_to_file(Iri, File, Opts) :-
+  thread_file(File, TmpFile),
+  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile, Opts), Opts),
+  rename_file(TmpFile, File).
+
+write_stream_to_file0(TmpFile, Opts, _, Read) :-
+  write_stream_to_file(Read, TmpFile, Opts).
 
 
 
 %! rdf_load_file(+Source) is det.
-% Wrapper around rdf_load_file/2 with default options.
-
-rdf_load_file(In) :-
-  rdf_load_file(In, []).
-
-
-%! rdf_load_file(+Source, +Options:list(compound)) is det.
+%! rdf_load_file(+Source, +Opts) is det.
 % The following options are supported:
 %   * base_iri(+atom)
 %   * graph(+rdf_graph)
 %   * triples(-nonneg)
 %   * quadruples(-nonneg)
 %   * statements(-nonneg)
+%
+% @throws existence_error if an HTTP request returns an error code.
+
+rdf_load_file(In) :-
+  rdf_load_file(In, []).
 
 rdf_load_file(In, Opts) :-
   % Allow statistics about the number of statements to be returned.
@@ -188,18 +206,40 @@ rdf_load_file(In, Opts) :-
     )
   ).
 
-
 rdf_load_statements(CT, CQ, Stmts, G:_) :-
   maplist(rdf_load_statement(CT, CQ, G), Stmts).
 
-
 % Load a triple.
-rdf_load_statement(CT, _, G, rdf(S,P,O0)) :- !,
+rdf_load_statement(CT, _, G, rdf(S,P,O)) :- !,
   increment_thread_counter(CT),
-  rdf11:post_object(O, O0),
-  rdf_assert(S, P, O, G).
+  rdf_load_statement0(S, P, O, G).
 % Load a quadruple.
-rdf_load_statement(_, CQ, _, rdf(S,P,O0,G:_)) :- !,
+rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)) :- !,
   increment_thread_counter(CQ),
-  rdf11:post_object(O, O0),
-  rdf_assert(S, P, O, G).
+  rdf_load_statement0(S, P, O, G).
+
+rdf_load_statement0(S1, P1, O0, G1) :-
+  rdf11:post_object(O1, O0),
+  maplist(term_norm, [S1,P1,O1,G1], [S2,P2,O2,G2]),
+  with_output_to(user_output, rdf_print_triple(S2, P2, O2, G2)),
+  rdf_assert(S2, P2, O2, G2).
+
+term_norm(T1, T2) :- rdf_is_iri(T1), !, iri_norm(T1, T2).
+term_norm(T, T).
+
+
+
+%! rdf_load_statements(+Source, -Stmts) is det.
+%! rdf_load_statements(+Source, -Stmts, +Opts) is det.
+%
+% @throws existence_error if an HTTP request returns an error code.
+
+rdf_load_statements(Source, Stmts) :-
+  rdf_load_statements(Source, Stmts, []).
+
+rdf_load_statements(Source, Stmts, Opts) :-
+  rdf_snap((
+    rdf_retractall(_, _, _),
+    rdf_load_file(Source, Opts),
+    aggregate_all(set(Stmt), rdf_statement(Stmt), Stmts)
+  )).

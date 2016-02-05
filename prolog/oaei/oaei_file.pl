@@ -22,17 +22,17 @@
 /** <module> Ontology Alignment Evaluation Initiative (OAEI)
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(csv_ext)).
-:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(oaei/oaei_build)).
 :- use_module(library(oaei/oaei_read)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_load)).
+:- use_module(library(yall)).
 
 :- predicate_options(oaei_load_rdf/3, 3, [
      pass_to(rdf_call_on_graph/3, 3)
@@ -85,7 +85,7 @@ oaei_load_tsv(File, As) :-
 %! oaei_save_rdf(+Out, +Alignments:list(pair)) is det.
 
 oaei_save_rdf(In, As) :-
-  rdf_write_to_graph(In, \G^oaei_assert_alignments(As, G)).
+  rdf_write_to_graph(In, [G]>>oaei_assert_alignments(As, G)).
 
 
 

@@ -8,6 +8,7 @@
     rdf_pref_string/3,   % ?S, ?P, -Lex
     rdf_pref_string/4,   % ?S, ?P, +LanguagePriorityList, -Lex
     rdf_pref_string/5,   % ?S, ?P, +LanguagePriorityList, -LTag, -Lex
+    rdf_snap/1,          % :Goal_0
     rdf_triples/4,       % ?S, ?P. ?O, -Triples:ordset(rdf_triple)
     rdfs_instance0/2,    % ?I, ?C
     rdfs_label/2,        % +S, -LexicalForm
@@ -28,6 +29,9 @@
 :- use_module(library(aggregate)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
 :- use_module(library(uuid)).
+
+:- meta_predicate
+    rdf_snap(0).
 
 :- rdf_meta
    rdf_image(o, -),
@@ -118,6 +122,13 @@ rdf_pref_string(S, P, LRanges, LTag, Lex) :-
 % Plain XSD strings.
 rdf_pref_string(S, P, _, _, Lex) :-
   rdf_has(S, P, Lex^^xsd:string).
+
+
+
+%! rdf_snap(:Goal_0) .
+
+rdf_snap(Goal_0) :-
+  rdf_transaction(Goal_0, _, [snapshot(true)]).
 
 
 

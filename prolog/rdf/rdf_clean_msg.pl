@@ -9,10 +9,11 @@
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(http/http_info)).
+:- use_module(library(http/http_print)).
 :- use_module(library(msg_ext)).
 
-:- multifile(user:message_hook/3).
+:- multifile
+    user:message_hook/3.
 
 
 

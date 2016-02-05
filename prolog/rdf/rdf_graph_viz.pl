@@ -14,7 +14,7 @@ Predicates for exporting RDF graphs to the graph export format
 handled by plGraphViz.
 
 @author Wouter Beek
-@version 2015/07, 2015/10, 2015/12-2016/01
+@version 2015/07, 2015/10, 2015/12-2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -26,8 +26,14 @@ handled by plGraphViz.
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_graph_nav)).
+:- use_module(library(rdf/rdf_graph_theory)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(semweb/rdfs), [rdfs_individual_of/2,rdfs_subclass_of/2]).
+:- use_module(library(semweb/rdfs), [
+     rdfs_individual_of/2,
+     rdfs_subclass_of/2
+   ]).
 :- use_module(library(typecheck)).
 
 :- dynamic
