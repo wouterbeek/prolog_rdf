@@ -11,7 +11,7 @@
 /** <module> RDF stream
 
 @author Wouter Beek
-@version 2015/08-2016/01
+@version 2015/08-2016/02
 */
 
 :- use_module(library(apply)).
@@ -27,7 +27,7 @@
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/call_on_stream)).
 :- use_module(library(os/open_any2)).
-:- use_module(library(rdf/rdf_file)).
+:- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(typecheck)).
@@ -47,7 +47,7 @@
      pass_to(read_from_stream/4, 4)
    ]).
 :- predicate_options(rdf_read_from_stream0/4, 2, [
-     format(+oneof([nquads,ntriples,trig,triples,turtle,xml])),
+     rdf_format(+rdf_format),
      pass_to(rdf_guess_format/3, 3)
    ]).
 :- predicate_options(rdf_write_to_stream/3, 3, [
@@ -71,17 +71,12 @@ rdf_read_from_stream(Source, Goal_2, Opts1) :-
   % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.
   rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
   merge_options(DefaultRdfOpts, Opts1, Opts2),
-  
-  % Remove option format/1 as it will confuse archive_open/3.
-  % Archive format ↔ RDF serialization format
-  (select_option(format(_), Opts2, Opts3) -> true ; Opts3 = Opts2),
-  
-  read_from_stream(Source, rdf_read_from_stream0(Goal_2, Opts2), Opts3).
+  read_from_stream(Source, rdf_read_from_stream0(Goal_2, Opts2), Opts2).
 
 rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
-  % Guess the RDF serialization format in case option `format(+)'
+  % Guess the RDF serialization format in case option `rdf_format/1'
   % is not given.
-  (   option(format(Format1), Opts1),
+  (   option(rdf_format(Format1), Opts1),
       ground(Format1)
   ->  true
   ;   rdf_guess_format_options0(D1, Opts1, Opts2),
@@ -98,7 +93,7 @@ rdf_guess_format_options0(D, Opts1, Opts2) :-
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, DefFormat), !,
-  merge_options(Opts1, [default_format(DefFormat)], Opts2).
+  merge_options(Opts1, [default_serialization_format(DefFormat)], Opts2).
 rdf_guess_format_options0(_, Opts, Opts).
 
 

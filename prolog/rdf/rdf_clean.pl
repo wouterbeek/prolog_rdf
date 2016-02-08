@@ -27,7 +27,7 @@
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_debug)).
-:- use_module(library(rdf/rdf_file)).
+:- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
@@ -37,7 +37,6 @@
 :- use_module(library(stream_ext)).
 
 :- predicate_options(rdf_clean/3, 3, [
-     format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml])),
      pass_to(rdf_read_from_stream/3, 3),
      pass_to(rdf_clean_read/4, 2)
    ]).
@@ -57,11 +56,11 @@
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
 %      Default is `none`.
-%    * format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml]))
-%      The RDF serialization format of the input.
-%      When absent this is guessed heuristically.
 %    * metadata(-dict)
 %      Returns the metadata for cleaning the From source.
+%    * rdf_format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml]))
+%      The RDF serialization format of the input.
+%      When absent this is guessed heuristically.
 %
 % @throws existence_error If an HTTP request returns an error code.
 
@@ -69,19 +68,7 @@ rdf_clean(From, To) :-
   rdf_clean(From, To, []).
 
 rdf_clean(From, To, Opts) :-
-  % Be careful with the `format/1' option.  It either denotes the RDF
-  % serialization format or the archive format.
-  (   % The output RDF serialization format is given: take it into account
-      % during the streaming process (not needed in the cleaning process).
-      select_option(format(Format), Opts, CleanOpts),
-      ground(Format)
-  ->  StreamOpts = [format(Format)]
-  ;   % The output RDF serialization format is not given: allow it to be returned
-      % to the calling context through an option.
-      merge_options([format(_)], Opts, StreamOpts),
-      CleanOpts = Opts
-  ),
-  rdf_read_from_stream(From, rdf_clean_stream(To, CleanOpts), StreamOpts).
+  rdf_read_from_stream(From, rdf_clean_stream(To, Opts), Opts).
 
 
 %! rdf_clean_stream(+To, +Opts, +Metadata, +Read) is det.
@@ -163,7 +150,7 @@ rdf_write_clean_stream(Read, D, Write, Opts1) :-
 
 %! clean_streamed_triples(
 %!   +Write,
-%!   +BNodePrefix:atom,
+%!   +BPrefix:atom,
 %!   +TripleCounter:compound,
 %!   +QuadrupleCounter:compound,
 %!   +Triples:list(compound),

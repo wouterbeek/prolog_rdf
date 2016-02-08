@@ -34,8 +34,6 @@
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_clean)).
-:- use_module(library(rdf/rdf_clean_metadata)).
-:- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_default)).

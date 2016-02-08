@@ -67,7 +67,7 @@ assuming `xsd:string` in case no datatype IRI is given.
      triples(-nonneg)
    ]).
 :- predicate_options(write_simple_graph/2, 2, [
-     format(+oneof([quadruples,triples])),
+     rdf_format(+oneof([quadruples,triples])),
      pass_to(write_simple_begin/4, 4),
      pass_to(write_simple_end/3, 3)
    ]).
@@ -134,29 +134,25 @@ write_simple_end(CT, CQ, Opts) :-
 
 %! write_simple_graph(?Graph:atom, +Options:list(compound)) is det.
 % The following options are supported:
-%   * format(?oneof([quadruples,triples]))
 %   * quadruples(-nonneg)
+%   * rdf_format(?oneof([nquads,ntriples]))
 %   * statements(-nonneg)
 %   * triples(-nonneg)
 
 write_simple_graph(G, Opts) :-
   write_simple_begin(BPrefix, CT, CQ, Opts),
-
-  % Decide whether triples or quadruples are written.
-  option(format(Format), Opts, _),
-  (   nonvar(Format)
-  ->  must_be(oneof([quadruples,triples]), Format)
+  option(rdf_format(F), Opts, _),
+  (   ground(F)
+  ->  must_be(oneof([nquads,ntriples]), Format)
   ;   rdf_graph(G),
       G \== default,
       rdf(_, _, _, G)
   ->  must_be(iri, G),
-      Format = quadruples
-  ;   Format = triples
+      F = nquads
+  ;   F = ntriples
   ),
-
   aggregate_all(set(S), rdf(S, _, _, G), Ss),
-  maplist(write_simple_subject(BPrefix, CT, CQ, G, Format), Ss),
-
+  maplist(write_simple_subject(BPrefix, CT, CQ, G, F), Ss),
   write_simple_end(CT, CQ, Opts).
 
 
@@ -171,12 +167,11 @@ write_simple_graph_term(G)       :- write_simple_iri(G).
 %! write_simple_iri(+Iri) is det.
 
 write_simple_iri(Iri) :-
-  % @tbd Add IRI normalization.
-  %iri_norm(Iri1, Iri2),
-  %(Iri1 == Iri2 -> true ; format(user_output, "~a → ~a~n", [Iri1,Iri2])),
   turtle:turtle_write_uri(current_output, Iri).
 
 
+
+%! write_simple_literal(+Lit) is det.
 
 % Typed literal: current representation.
 write_simple_literal(V^^D) :- !,
@@ -205,6 +200,8 @@ write_simple_literal(literal(Lex)) :-
 
 
 
+%! write_simple_object(+O, +BPrefix) is det.
+
 % Object term: literal.
 write_simple_object(Lit, _) :-
   write_simple_literal(Lit), !.
@@ -218,7 +215,7 @@ write_simple_object(Iri, _) :-
 
 
 
-%! write_simple_predicate(+Predicate) is det.
+%! write_simple_predicate(+P) is det.
 
 write_simple_predicate(P) :-
   write_simple_iri(P).
@@ -264,6 +261,8 @@ write_simple_statement(BPrefix, _, CQ, rdf(S,P,O,G)) :-
 
 
 
+%! write_simple_subject(+S, +BPrefix) is det.
+
 % Subject term: blank node
 write_simple_subject(B, BPrefix) :-
   rdf_is_bnode(B), !,
@@ -275,12 +274,12 @@ write_simple_subject(Iri, _) :-
 
 
 %! write_simple_subject(
-%!   +BPrefix:atom,
-%!   +TripleCounter:compound,
-%!   +QuadrupleCounter:compound,
-%!   ?Graph:atom,
-%!   +Format:oneof([quadruple,triple]),
-%!   +Subject:or([bnode,iri])
+%!   +BPrefix,
+%!   +TripCounter:compound,
+%!   +QuadCounter:compound,
+%!   ?Graph,
+%!   +Format:oneof([nquads,ntriples]),
+%!   +S
 %! ) is det.
 % Writes all triples that occur with the given subject term,
 % possibly restricted to a given graph.

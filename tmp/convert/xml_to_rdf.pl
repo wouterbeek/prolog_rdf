@@ -61,8 +61,7 @@ parse_file(File1, Version, Prefix, G) :-
   debug(xml_to_rdf, 'Done parsing file ~w', [File1]), %DEB
   file_kind_alternative(File1, turtle, File2),
   prolog_stack_property(global, limit(Limit)),
-  debug(xml_to_rdf, 'About to save triples to file with ~:d global stack.',
-      [Limit]),
+  debug(xml_to_rdf, 'About to save triples to file with ~:d global stack.', [Limit]),
   rdf_save(File2, [format(turtle),graph(G)]),
   rdf_unload_graph_deb(G).
 

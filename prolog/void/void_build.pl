@@ -10,7 +10,7 @@
 Automatically generate VoID descriptions.
 
 @author Wouter Beek
-@version 2016/01
+@version 2016/01-2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -34,7 +34,7 @@ void_gen(In):-
     (
       [E|_] = M.entries,
       void_gen(In, E.'llo:serialization-format', G),
-      rdf_save_file('VoID.ttl', [format(turtle),graph(G)])
+      rdf_save_file('VoID.ttl', [graph(G),rdf_format(turtle)])
     ),
     rdf_reset_db
   ).

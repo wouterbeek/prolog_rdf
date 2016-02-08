@@ -1,8 +1,7 @@
 :- module(
   rdf_guess_xml,
   [
-    rdf_guess_xml/2 % +Snippet:string
-                    % -Format:rdf_format
+    rdf_guess_xml/2 % +Snippet:string, -Format:rdf_format
   ]
 ).
 
@@ -43,7 +42,7 @@ rdf_guess_xml(S, Format) :-
 
 
 
-%! guess_xml_type(+Read:stream, -Format:rdf_format) is semidet.
+%! guess_xml_type(+Read, -Format:rdf_format) is semidet.
 % Try to see whether the document is some form of HTML or XML and in particular
 % whether it is  RDF/XML.
 % The latter is basically impossible because it is not obligatory for
@@ -62,10 +61,10 @@ guess_xml_type(Read, Format) :-
 
 
 %! xml_doctype(
-%!   +Read:stream,
+%!   +Read,
 %!   -Dialect:atom,
 %!   -DocType:atom,
-%!   -Attributes:list(nvpair)
+%!   -Attributes:list(compound)
 %! ) is semidet.
 % Parse a _repositional_ stream and get the name of the first XML
 % element *and* demand that this element defines XML namespaces.

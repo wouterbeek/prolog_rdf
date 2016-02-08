@@ -23,7 +23,7 @@
 Support for loading RDF data.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/01
+@version 2015/08, 2015/10-2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -37,7 +37,7 @@ Support for loading RDF data.
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_api)).
-:- use_module(library(rdf/rdf_file)).
+:- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_statement)).
@@ -108,10 +108,10 @@ rdf_call_on_statements(In, Goal_2) :-
   rdf_call_on_statements(In, Goal_2, []).
 
 rdf_call_on_statements(In, Goal_2, Opts) :-
-  option(graph(G0), Opts, default),
-  rdf_global_id(G0, G),
+  option(graph(G1), Opts, default),
+  rdf_global_id(G1, G2),
   catch(
-    rdf_read_from_stream(In, rdf_call_on_statements_stream(G, Goal_2), Opts),
+    rdf_read_from_stream(In, rdf_call_on_statements_stream(G2, Goal_2), Opts),
     E,
     (writeln(Goal_2), print_message(warning, E))
   ).
@@ -126,11 +126,15 @@ rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   rdf_equal(M.'llo:serialization-format', Format1),
   rdf_format_iri(Format2, Format1),
   (   memberchk(Format2, [nquads,ntriples])
-  ->  rdf_process_ntriples(Read, Goal_2, [base_uri(BaseIri),format(Format2),graph(G)])
+  ->  rdf_process_ntriples(
+        Read,
+        Goal_2,
+        [base_uri(BaseIri),graph(G),serialization_format(Format2)]
+      )
   ;   memberchk(Format2, [trig,turtle])
   ->  uuid_no_hyphen(UniqueId),
-      atomic_list_concat(['__',UniqueId,:], BNodePrefix),
-      Opts = [anon_prefix(BNodePrefix),base_uri(BaseIri),graph(G)],
+      atomic_list_concat(['__',UniqueId,:], BPrefix),
+      Opts = [anon_prefix(BPrefix),base_uri(BaseIri),graph(G)],
       rdf_process_turtle(Read, Goal_2, Opts)
   ;   Format2 == xml
   ->  process_rdf(Read, Goal_2, [base_uri(BaseIri),graph(G)])
