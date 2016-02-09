@@ -11,6 +11,7 @@
     rdf_print_statement/1,  % +Stmt
     rdf_print_statement/2,  % +Stmt, +Opts
     rdf_print_statement/5,  % +S, +P, +O, ?G, +Opts
+    rdf_print_statement//4, % +S, +P, +O, ?G
     rdf_print_statement//5, % +S, +P, +O, ?G, +Opts
     rdf_print_statements/1, % +Stmts:list
     rdf_print_statements/2, % +Stmts:list, +Opts
@@ -27,7 +28,7 @@
 /** <module> RDF statement printing
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11-2016/01
+@version 2015/07-2015/09, 2015/11-2016/02
 */
 
 :- use_module(library(dcg/dcg_phrase)).
@@ -46,6 +47,7 @@
    rdf_print_quadruples(t, +),
    rdf_print_statement(t),
    rdf_print_statement(t, +),
+   rdf_print_statement(t, r, r, ?, ?, ?),
    rdf_print_statement(t, r, r, ?, +, ?, ?),
    rdf_print_statements(t),
    rdf_print_statements(t, +),
@@ -204,6 +206,7 @@ rdf_print_statement(S, P, O, G, Opts) :-
 
 
 
+%! rdf_print_statement(+S, +P, +O, ?G)// is det.
 %! rdf_print_statement(+S, +P, +O, ?G, +Opts)// is det.
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
@@ -212,6 +215,9 @@ rdf_print_statement(S, P, O, G, Opts) :-
 %   * label_iri(+boolean)
 %   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
+
+rdf_print_statement(S, P, O, G) -->
+  rdf_print_statement(S, P, O, G, []).
 
 rdf_print_statement(S, P, O, G, Opts) -->
   "〈",
