@@ -213,7 +213,7 @@ rdf_load_file(In, Opts) :-
     )
   ).
 
-rdf_load_statements(CT, CQ, Stmts, G:_) :-
+rdf_load_statements(CT, CQ, Stmts, G) :-
   maplist(rdf_load_statement(CT, CQ, G), Stmts).
 
 % Load a triple.
