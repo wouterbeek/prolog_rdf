@@ -32,6 +32,7 @@ Support for loading RDF data.
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(iri/rfc3987_gen)).
+:- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
@@ -125,21 +126,22 @@ rdf_call_on_statements(In, Goal_2, Opts) :-
 rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   BaseIri = M.'llo:base-iri',
   rdf_equal(M.'llo:serialization-format', Format1),
-  rdf_format_iri(Format2, Format1),
-  (   memberchk(Format2, [nquads,ntriples])
+  jsonld_metadata_expand_iri(Format1, Format2),
+  rdf_format_iri(Format3, Format2),
+  (   memberchk(Format3, [nquads,ntriples])
   ->  rdf_process_ntriples(
         Read,
         Goal_2,
         [base_uri(BaseIri),graph(G),serialization_format(Format2)]
       )
-  ;   memberchk(Format2, [trig,turtle])
+  ;   memberchk(Format3, [trig,turtle])
   ->  uuid_no_hyphen(UniqueId),
       atomic_list_concat(['__',UniqueId,:], BPrefix),
       Opts = [anon_prefix(BPrefix),base_uri(BaseIri),graph(G)],
       rdf_process_turtle(Read, Goal_2, Opts)
-  ;   Format2 == xml
+  ;   Format3 == xml
   ->  process_rdf(Read, Goal_2, [base_uri(BaseIri),graph(G)])
-  ;   Format2 == rdfa
+  ;   Format3 == rdfa
   ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
       call(Goal_2, Ts, G)
   ;   existence_error(serialization_format, [Format1])
