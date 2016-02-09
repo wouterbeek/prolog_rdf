@@ -104,7 +104,7 @@ write_simple_begin(BPrefix, triples, quadruples, Opts) :-
 
 write_simple_bnode(BPrefix, B) :-
   rdf_bnode_name:rdf_bnode_name0(BPrefix, B, BName),
-  turtle:turtle_write_uri(current_output, BName).
+  write(BName).
 
 
 
