@@ -143,7 +143,7 @@ write_simple_graph(G, Opts) :-
   write_simple_begin(BPrefix, CT, CQ, Opts),
   option(rdf_format(F), Opts, _),
   (   ground(F)
-  ->  must_be(oneof([nquads,ntriples]), Format)
+  ->  must_be(oneof([nquads,ntriples]), F)
   ;   rdf_graph(G),
       G \== default,
       rdf(_, _, _, G)
@@ -287,11 +287,11 @@ write_simple_subject(Iri, _) :-
 % Collects a sorted list of predicate-object pairs.
 % Then processes each pairs -- and thus each triple -- separately.
 
-% Format: Quadruples.
+% N-Quads
 write_simple_subject(BPrefix, _, CQ, G, quadruple, S) :-
   aggregate_all(set(P-O-G), rdf(S, P, O, G), POGs),
   forall(member(P-O-G, POGs), write_simple_quadruple(BPrefix, CQ, S, P, O, G)).
-% Format: Triples.
+% N-Triples
 write_simple_subject(BPrefix, CT, _, G, triple, S) :-
   aggregate_all(set(P-O), rdf(S, P, O, G), POs),
   forall(member(P-O, POs), write_simple_triple(BPrefix, CT, S, P, O)).
