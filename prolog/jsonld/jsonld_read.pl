@@ -64,7 +64,6 @@ jsonld_to_triple_goto(Context, Data1, Triple) :-
 %! jsonld_to_triple(+Context, +S, +Pair, -Triple) is nondet.
 
 jsonld_to_triple(Context, S, Key-Value, Triple) :-
-  %%%%flag(something, X, X + 1), writeln(X), (X >= 100 -> gtrace ; true),
   jsonld_to_predicate(Context, Key, P, ODef, LTag),
   jsonld_to_triple(Context, S, P, ODef, LTag, Value, Triple).
 
