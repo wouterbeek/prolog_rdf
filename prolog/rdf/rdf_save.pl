@@ -38,10 +38,10 @@
 :- predicate_options(rdf_save_file/2, 2, [
      rdf_format(+rdf_format),
      graph(+iri),
-     pass_to(rdf_save_to_stream/4, 2),
+     pass_to(rdf_save_to_stream/3, 2),
      pass_to(rdf_write_to_stream/3, 3)
    ]).
-:- predicate_options(rdf_save_to_stream/4, 2, [
+:- predicate_options(rdf_save_to_stream/3, 2, [
      pass_to(write_simple_graph/2, 2),
      pass_to(rdf_save_trig/2, 2),
      pass_to(rdf_save_turtle/2, 2),
@@ -126,22 +126,24 @@ rdf_save_file(Out, Opts) :-
   % Make sure the directory exists.
   (is_absolute_file_name(Out) -> create_file_directory(Out) ; true),
   
-  rdf_write_to_stream(Out, rdf_save_to_stream(Format, Opts), Opts).
+  rdf_write_to_stream(Out, rdf_save_to_stream0(Format, Opts), Opts).
+
+rdf_save_to_stream0(F, Opts, _, Write) :- rdf_save_to_stream(F, Opts, Write).
 
 
-%! rdf_save_to_stream(+Format:rdf_format, +Opts, +Metadata, +Write) is det.
+%! rdf_save_to_stream(+Format:rdf_format, +Opts, +Write) is det.
 
 % N-Quads or N-Triples
-rdf_save_to_stream(F, Opts1, M, Write) :-
+rdf_save_to_stream(F, Opts1, Write) :-
   memberchk(F, [nquads,ntriples]), !,
   option(graph(G), Opts1, _NO_GRAPH),
   merge_options([format(F)], Opts1, Opts2),
   with_output_to(Write, write_simple_graph(G, Opts2)).
 % TriG
-rdf_save_to_stream(trig, Opts, _, Write) :- !,
+rdf_save_to_stream(trig, Opts, Write) :- !,
   rdf_save_trig(Write, Opts).
 % Turtle
-rdf_save_to_stream(turtle, Opts0, _, Write) :- !,
+rdf_save_to_stream(turtle, Opts0, Write) :- !,
   merge_options(
     [
       a(true),
@@ -159,7 +161,7 @@ rdf_save_to_stream(turtle, Opts0, _, Write) :- !,
   ),
   rdf_save_turtle(Write, Opts).
 % XML/RDF
-rdf_save_to_stream(xml, Opts, _, Write) :- !,
+rdf_save_to_stream(xml, Opts, Write) :- !,
   rdf_save_xmlrdf(Write, Opts).
 
 
