@@ -8,7 +8,7 @@
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_show)).
-:- use_module(library(rdf11/rdf11_collections)).
+:- use_module(library(rdf11/rdf11)).
 
 
 

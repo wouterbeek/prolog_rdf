@@ -25,7 +25,7 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf11/rdf11_collections)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta

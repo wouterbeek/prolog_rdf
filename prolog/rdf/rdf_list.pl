@@ -4,7 +4,7 @@
     rdf_nextto/3 % ?X, ?Y, ?RdfList
   ]
 ).
-:- reexport(library(rdf11/rdf11_collections)).
+:- reexport(library(rdf11/rdf11)).
 
 /** <module> RDF lists
 

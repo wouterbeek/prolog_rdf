@@ -32,7 +32,7 @@
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_bnode_name)).
-:- use_module(library(rdf11/rdf11_collections)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
