@@ -12,7 +12,7 @@
 @version 2015/10, 2015/12-2016/01
 */
 
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
    oaei_alignment(o, o),

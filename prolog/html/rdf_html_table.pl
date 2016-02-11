@@ -31,7 +31,7 @@ Generates HTML tables with RDF content.
 :- use_module(library(http/html_write)).
 :- use_module(library(html/rdf_html_term)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(rdf/rdf_stats)).
 :- use_module(library(typecheck)).
 

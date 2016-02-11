@@ -28,7 +28,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_statement)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
    rdf_edge(o,r,o,?),

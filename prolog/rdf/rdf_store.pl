@@ -13,7 +13,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(simple/write_SimpleRDF)).
 
 :- rdf_meta

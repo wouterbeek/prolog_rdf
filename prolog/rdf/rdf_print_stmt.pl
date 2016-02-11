@@ -35,7 +35,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_print_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
    rdf_print_quadruple(t),

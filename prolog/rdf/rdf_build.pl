@@ -53,7 +53,7 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(yall)).
 
 :- predicate_options(owl_assert_data_property/8, 8, [

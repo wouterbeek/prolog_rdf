@@ -32,7 +32,7 @@ Printing of RDF statements to a text-based output stream.
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_stats)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf11/rdf11)).
 
 :- set_prolog_flag(toplevel_print_anon, false).
 
