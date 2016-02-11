@@ -17,7 +17,7 @@
     rdfs_one_label/2     % +S, -LexicalForm
   ]
 ).
-:- reexport(library(rdf11/rdf11)).
+:- reexport(library(semweb/rdf11)).
 
 /** <module> RDF: API
 

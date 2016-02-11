@@ -44,7 +44,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_bnode_name)). % Private
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).

@@ -38,7 +38,7 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(lists)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
 :- initialization((assert_cc_prefixes,assert_dbpedia_localizations)).

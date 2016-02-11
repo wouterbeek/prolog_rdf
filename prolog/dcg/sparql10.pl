@@ -54,7 +54,7 @@
 :- use_module(library(dcg/dcg_quote)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/rational_ext)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
     'STRING_LITERAL'(//, -, ?, ?),

@@ -17,7 +17,7 @@
     rdf_retractall_id/4    % ?S, ?P, ?O, ?G
   ]
 ).
-:- reexport(library(rdf11/rdf11), [
+:- reexport(library(semweb/rdf11), [
      op(100, xfx, @),
      op(650, xfx, ^^)
    ]).

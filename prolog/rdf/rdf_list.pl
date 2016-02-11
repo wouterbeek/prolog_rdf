@@ -4,7 +4,7 @@
     rdf_nextto/3 % ?X, ?Y, ?RdfList
   ]
 ).
-:- reexport(library(rdf11/rdf11)).
+:- reexport(library(semweb/rdf11)).
 
 /** <module> RDF lists
 
@@ -13,7 +13,7 @@
 */
 
 :- use_module(library(closure)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
 :- rdf_meta
