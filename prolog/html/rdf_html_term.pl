@@ -23,7 +23,7 @@
 Generates HTML representations of RDF data.
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/12-2016/01
+@version 2015/08-2015/09, 2015/12-2016/02
 */
 
 :- use_module(library(atom_ext)).
@@ -63,7 +63,7 @@ Generates HTML representations of RDF data.
      pass_to(rdf_html_iri//2, 2)
    ]).
 :- predicate_options(rdf_html_graph//2, 2, [
-     pass_to(rdf_html_link//3, 3)
+     pass_to(html_link//3, 3)
    ]).
 :- predicate_options(rdf_html_iri//2, 2, [
      abbr_iri(+boolean),
@@ -80,13 +80,11 @@ Generates HTML representations of RDF data.
 :- predicate_options(rdf_html_lexical_form//2, 2, [
      ellip_lit(+or([nonneg,oneof([inf])]))
    ]).
-:- predicate_options(rdf_html_link//3, 3, [
-     location(+atom)
-   ]).
 :- predicate_options(rdf_html_list//2, 2, [
      pass_to(rdf_html_term//2, 2)
    ]).
 :- predicate_options(rdf_html_literal//2, 2, [
+     location(+atom),
      pass_to(rdf_html_datatype//2, 2),
      pass_to(rdf_html_language_tag//2, 2),
      pass_to(rdf_html_lexical_form//2, 2)
@@ -142,6 +140,7 @@ rdf_html_datatype(D, Opts) -->
 
 %! rdf_html_graph(+G, +Opts)// is det.
 
+rdf_html_graph(G, _) --> {var(G)}, !, [].
 rdf_html_graph(G, Opts) -->
   html(
     span(class='rdf-graph',
@@ -223,7 +222,7 @@ rdf_html_language_subtags([H|T], Opts) -->
 
 
 
-%! rdf_html_lexical_form(+LexicalForm:atom, +Opts)// is det.
+%! rdf_html_lexical_form(+Value, +Opts)// is det.
 % The following options are supported:
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %     Elipses lexical forms so that they are assured to be at most
@@ -231,8 +230,9 @@ rdf_html_language_subtags([H|T], Opts) -->
 %     Default is `20` to ensure that every triple fits within
 %     an 80 character wide terminal.
 
-rdf_html_lexical_form(Lex, Opts) -->
+rdf_html_lexical_form(V, Opts) -->
   {
+    rdf_lexical_form(V, Lex),
     option(ellip_lit(N), Opts, 20),
     atom_truncate(Lex, N, Lex0)
   },
@@ -258,22 +258,26 @@ rdf_html_list(L1, Opts) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * language_priority_list(+list(atom))
+%   * location(+atom)
 %   * symbol_iri(+boolean)
 
 rdf_html_literal(Lit, Opts) -->
+  {option(location(_), Opts)}, !,
   html_link(Lit, rdf_html_literal0(Lit, Opts), [query(literal)|Opts]).
+rdf_html_literal(Lit, Opts) -->
+  rdf_html_literal0(Lit, Opts).
 
-rdf_html_literal0(literal(type(D,Lex)), Opts) --> !,
+rdf_html_literal0(V^^D, Opts) --> !,
   html(
     span(class='rdf-literal', [
       &(lang),
       \rdf_html_datatype(D, Opts),
       ',',
-      \rdf_html_lexical_form(Lex, Opts),
+      \rdf_html_lexical_form(V, Opts),
       &(rang)
     ])
   ).
-rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
+rdf_html_literal0(V@LTag, Opts) --> !,
   {rdf_equal(rdf:langString, D)},
   html(
     span(class=['language-tagged-string','rdf-literal'], [
@@ -283,15 +287,11 @@ rdf_html_literal0(literal(lang(LTag,Lex)), Opts) --> !,
       &(lang),
       \rdf_html_language_tag(LTag, Opts),
       ',',
-      \rdf_html_lexical_form(Lex, Opts),
+      \rdf_html_lexical_form(V, Opts),
       &(rang),
       &(rang)
     ])
   ).
-rdf_html_literal0(literal(Lex), Opts) -->
-  {rdf_equal(xsd:string, D)},
-  rdf_html_literal0(literal(type(D,Lex)), Opts).
-
 
 
 %! rdf_html_object(+Object:rdf_term, +Opts)// is det.
