@@ -17,10 +17,10 @@
 :- use_module(library(http/http_download)).
 :- use_module(library(jsonld/jsonld_generics)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_statement)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(typecheck)).
 
 %! bnode_map(?Name, ?B) is nondet.
@@ -79,15 +79,14 @@ jsonld_to_bnode(B1, B2) :-
 
 %! jsonld_dict_to_triple(+Context, +S, +P, +Dicts, -Triple) is nondet.
 
-jsonld_dict_to_triple(Context, S1, P, D, Triple) :-
+jsonld_dict_to_triple(Context, S1, P, D, T) :-
   dict_pairs(D, Pairs),
-  findall(Triple, jsonld_to_triple_goto(Context, Pairs, Triple), Triples),
+  findall(T, jsonld_to_triple_goto(Context, Pairs, T), Ts),
   (   % The triple connecting to the parent object to the child object.
-      Triples = [rdf(S2,_,_)|_],
-      Triple = rdf(S1,P,S2)
+      Ts = [rdf(S2,_,_)|_], T = rdf(S1,P,S2)
   ;   % The triples that constitute the child object.
       % NONDET
-      member(Triple, Triples)
+      member(T, Ts)
   ).
 
 
@@ -169,11 +168,12 @@ jsonld_to_triple(Context, S, P, _, _, _{'@set': L}, T) :- !,
   % NONDET
   jsonld_to_list_triple(Context, S, P, L, T).
 % Object is an RDF language-tagged string.
-jsonld_to_triple(_, S, P, _, _, _{'@language':Lang,'@value':Lex}, T) :- !,
+jsonld_to_triple(_, S, P, _, _, _{'@language':Lang, '@value':Lex}, T) :- !,
   statement_term(S, P, Lex@Lang, T).
 % Object is an RDF literal with explicitly supplied RDF datatype.
-jsonld_to_triple(_, S, P, _, _, _{'@type':D,'@value':Lex}, T) :- !,
-  statement_term(S, P, Lex^^D, T).
+jsonld_to_triple(Context, S, P, _, _, _{'@type':D0, '@value':V}, T) :- !,
+  jsonld_term(n, Context, D0, D, _, _),
+  statement_term(S, P, V^^D, T).
 % Object is an IRI.
 jsonld_to_triple(Context, S, P, _, _, _{'@id':O0}, T) :- !,
   jsonld_term(n, Context, O0, O, _, _),
@@ -182,14 +182,15 @@ jsonld_to_triple(Context, S, P, _, _, _{'@id':O0}, T) :- !,
 jsonld_to_triple(_, S, P, _, _, _{'@value':Lex}, T) :- !,
   rdf_equal(xsd:string, D), statement_term(S, P, Lex^D, T).
 % Object is a JSON-LD object (nesting).
-jsonld_to_triple(Context, S, P, _, _, O1, T) :-
+jsonld_to_triple(Context, S1, P, _, _, O1, T) :-
   is_dict(O1), !,
   dict_pairs(O1, Data1),
-  jsonld_to_subject(Context, Data1, O2, Data2),
-  (   statement_term(S, P, O2, T)
-  ;   % NONDET
-      member(Pair, Data2),
-      jsonld_to_triple(Context, O2, Pair, T)
+  findall(T, jsonld_to_triple_goto(Context, Data1, T), Ts),
+  (   % The triple connecting to the parent object to the child object.
+      Ts = [rdf(S2,_,_)|_], T = rdf(S1,P,S2)
+  ;   % The triples that constitute the child object.
+      % NONDET
+      member(T, Ts)
   ).
 % Object is a compact IRI.
 jsonld_to_triple(Context, S, P, _, _, O1, T) :-
