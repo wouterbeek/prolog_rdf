@@ -33,7 +33,7 @@ void_gen(In):-
     rdf_load_file(In, [metadata(M)]),
     (
       [E|_] = M.entries,
-      void_gen(In, E.'llo:serialization-format', G),
+      void_gen(In, E.'llo:RDF-serialization-format', G),
       rdf_save_file('VoID.ttl', [graph(G),rdf_format(turtle)])
     ),
     rdf_reset_db

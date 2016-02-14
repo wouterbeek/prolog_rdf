@@ -125,7 +125,7 @@ rdf_call_on_statements(In, Goal_2, Opts) :-
 
 rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   BaseIri = M.'llo:base-iri',
-  rdf_equal(M.'llo:serialization-format', Format1),
+  rdf_equal(M.'llo:RDF-serialization-format', Format1),
   jsonld_metadata_expand_iri(Format1, Format2),
   rdf_format_iri(Format3, Format2),
   (   memberchk(Format3, [nquads,ntriples])

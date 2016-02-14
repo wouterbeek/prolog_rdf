@@ -85,7 +85,7 @@ rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
   % `Format' is now instantiated.
   rdf_format_iri(Format1, Format2),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
-  D2 = D1.put(_{'llo:serialization-format': Format3}),
+  D2 = D1.put(_{'llo:RDF-serialization-format': Format3}),
   call(Goal_2, D2, Read).
 
 rdf_guess_format_options0(D, Opts1, Opts2) :-

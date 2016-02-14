@@ -97,7 +97,11 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
     "Cleaning triples on a one-by-one basis."
   ),
   debug(rdf(clean), "Processed ~D statements (~D triples and ~D quadruples).", [NS1,NT,NQ]),
-  D2 = D1.put(_{'llo:processed_quadruples': NQ, 'llo:processed_statements': NS1, 'llo:processed_triples': NT}),
+  D2 = D1.put(_{
+    'llo:processed-quadruples': NQ,
+    'llo:processed-statements': NS1,
+    'llo:processed-triples': NT
+  }),
 
   % Store input stream properties.
   % @tbd Why does the stream not have any properties?
@@ -111,7 +115,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   file_lines(Tmp, NS2),
   NS3 is NS1 - NS2,
   debug(rdf(clean), "Wrote ~D unique statements (skipped ~D duplicates).", [NS2,NS3]),
-  D4 = D3.put(_{'llo:unique_statements': NS2, 'llo:duplicate_statements': NS3}),
+  D4 = D3.put(_{'llo:unique-statements': NS2, 'llo:duplicate-statements': NS3}),
   
   % Compress the file, according to user option.
   debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted triple file.").
@@ -122,7 +126,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
 rdf_write_clean_stream(Read, D, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
   BaseIri = D.'llo:base-iri',
-  jsonld_metadata_expand_iri(D.'llo:serialization-format', Format1),
+  jsonld_metadata_expand_iri(D.'llo:RDF-serialization-format', Format1),
   rdf_format_iri(Format2, Format1),
   merge_options([base_iri(BaseIri)], Opts1, Opts2),
   merge_options([base_uri(BaseIri),format(Format2)], Opts2, Opts3),
