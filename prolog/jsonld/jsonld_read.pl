@@ -233,10 +233,6 @@ jsonld_term0(p, _, X, X, []) :- jsonld_keyword(X), !.
 jsonld_term0(n, _, X, X, []) :- rdf_is_bnode(X), !.
 % RDF literals are fine.
 jsonld_term0(n, _, X, X, []) :- rdf_is_literal(X), !.
-% Compact IRI notation.
-jsonld_term0(Mode, Context, X1, Y, [X1|T]) :-
-  jsonld_expand_iri(Context, X1, X2), !,
-  jsonld_term0(Mode, Context, X2, Y, T).
 % Names that can be expanded by the JSON-LD context.
 jsonld_term0(Mode, Context, X1, Y, [X1|T]) :-
   jsonld_expand_iri(Context, X1, X2), !,
