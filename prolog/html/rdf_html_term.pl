@@ -20,7 +20,7 @@
 
 /** <module> RDF HTML term
 
-Generates HTML representations of RDF data.
+Generates developer-oriented HTML representations of RDF data.
 
 @author Wouter Beek
 @version 2015/08-2015/09, 2015/12-2016/02
@@ -121,8 +121,11 @@ Generates HTML representations of RDF data.
 %     we cannot check whether something is an RDF list or not).
 
 rdf_html_bnode(B, Opts) -->
-  {option(abbr_list(true), Opts)},
-  rdf_html_list(B, Opts), !.
+  {
+    option(abbr_list(true), Opts),
+    rdf_list(B)
+  }, !,
+  rdf_html_list(B, Opts).
 rdf_html_bnode(B, Opts) -->
   {rdf_bnode_name(B, BName)},
   html(span(class='rdf-bnode',
@@ -182,8 +185,11 @@ rdf_html_graph0(G, Opts) -->
 %     Default is `true`.
 
 rdf_html_iri(Iri, Opts) -->
-  {option(abbr_list(true), Opts)},
-  rdf_html_list(Iri, Opts), !.
+  {
+    option(abbr_list(true), Opts),
+    rdf_list(Iri)
+  }, !,
+  rdf_html_list(Iri, Opts).
 rdf_html_iri(Iri, Opts) -->
   {
     option(symbol_iri(true), Opts),
@@ -191,11 +197,10 @@ rdf_html_iri(Iri, Opts) -->
     ClassT = [iri,'symbol-iri']
   },
   html(span(class=[Name|ClassT], &(Name))).
-
 rdf_html_iri(Global, Opts) -->
   {
     option(label_iri(true), Opts),
-    option(lang_priority_list(LRanges), Opts, ['en-US']),
+    option(language_priority_list(LRanges), Opts, ['en-US']),
     once(rdfs_label(Global, LRanges, LTag, Lbl))
   }, !,
   (   {var(LTag)}
@@ -241,10 +246,6 @@ rdf_html_lexical_form(V, Opts) -->
 
 
 %! rdf_html_list(+List:rdf_term, +Opts)// is semidet.
-% The following options are supported:
-%   * abbr_list(+boolean)
-%     Whether or not RDF lists are displayed using Prolog list notation.
-%     Default is `true`.
 
 rdf_html_list(L1, Opts) -->
   {rdf_list(L1, L2)},
