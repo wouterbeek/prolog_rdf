@@ -61,6 +61,13 @@ rdf_chr(_, P, S)
 <=>
 result(5, http_header(Status, P, Raw)).
 
+% RDF processed statements counter.
+rdf_chr(S, 'http://lodlaundromat.org/ontology/processed-quadruples', NQuads),
+rdf_chr(S, 'http://lodlaundromat.org/ontology/processed-statements', NStmts),
+rdf_chr(S, 'http://lodlaundromat.org/ontology/processed-triples',    NTrips)
+<=>
+result(3, rdf_processed_stmts(NQuads,NStmts,NTrips)).
+
 % Label in a preferred language.
 rdf_chr(S, P, Lbl@LTag),
 rdf_chr(S, P, ___@____)
