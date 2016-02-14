@@ -52,6 +52,7 @@ jsonld_metadata_context(
     'llo:access-control-allow-origin': _{'@container': '@list'},
     'llo:base-iri': _{'@type': '@id'},
     'llo:connection': _{'@container': '@list'},
+    'llo:content-length': _{'@type': 'xsd:nonNegativeInteger'},
     'llo:content-type': _{'@container': '@list'},
     'llo:date': _{'@container': '@list'},
     'llo:duplicate-statements': _{'@type': 'xsd:nonNegativeInteger'},
