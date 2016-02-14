@@ -18,8 +18,10 @@ Show RDF data structures during modeling/development.
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
+:- use_module(library(dcg/dcg_debug)).
 :- use_module(library(debug)).
 :- use_module(library(gv/gv_file)).
+:- use_module(library(http/json)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
@@ -27,6 +29,7 @@ Show RDF data structures during modeling/development.
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_graph_viz)).
+:- use_module(library(rdf/rdf_print_stmt)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(xml/xml_dom)).
 
@@ -291,7 +294,11 @@ rdf_store_metadata(S1, M) :-
   jsonld_metadata(M, Jsonld1),
   atom_string(S1, S2),
   Jsonld2 = Jsonld1.put(_{'@id': S2}),
-  forall(jsonld_to_triple(Jsonld2, rdf(S,P,O)), rdf_store(S, P, O)).
+  (debugging(rdf(debug)) -> json_write_dict(user_error, Jsonld2) ; true),
+  forall(jsonld_to_triple(Jsonld2, rdf(S,P,O)), (
+    dcg_debug(rdf(debug), rdf_print_statement(S, P, O, _)),
+    rdf_store(S, P, O)
+  )).
 
 
 
