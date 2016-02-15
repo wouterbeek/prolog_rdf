@@ -247,7 +247,7 @@ rdf_print_list(L1, Opts) -->
 rdf_print_literal(Lit) -->
   rdf_print_literal(Lit, []).
 rdf_print_literal(V^^D, Opts) --> !,
-  {format(atom(Lex), "~w", [V])},
+  {rdf_lexical_form(V^^D, Lex)},
   "〈", rdf_print_datatype(D, Opts), ", ", rdf_print_lexical(Lex, Opts), "〉".
 rdf_print_literal(Lex@LTag, Opts) -->
   {rdf_equal(rdf:langString, D)},
