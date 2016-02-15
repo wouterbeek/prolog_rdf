@@ -1,20 +1,15 @@
 :- module(
   rdf_api,
   [
-    rdf_image/2,         % +S, -Image
-    rdf_langstring/3,    % ?S, ?P, ?V
-    rdf_langstring/4,    % ?S, ?P, +LanguagePriorityList, ?V
-    rdf_one_string/3,    % +S, +P, -V:atom
-    rdf_pref_string/3,   % ?S, ?P, -Lex
-    rdf_pref_string/4,   % ?S, ?P, +LanguagePriorityList, -Lex
-    rdf_pref_string/5,   % ?S, ?P, +LanguagePriorityList, -LTag, -Lex
+    rdf_image/2,         % +S, -Img
+    rdf_langstring/3,    % ?S, ?P, -Lit
+    rdf_one_string/3,    % +S, +P, -Lit
+    rdf_pref_string/3,   % ?S, ?P, -Lit
     rdf_snap/1,          % :Goal_0
-    rdf_triples/4,       % ?S, ?P. ?O, -Triples:ordset(rdf_triple)
+    rdf_triples/4,       % ?S, ?P. ?O, -Trips:ordset
     rdfs_instance0/2,    % ?I, ?C
-    rdfs_label/2,        % +S, -LexicalForm
-    rdfs_label/3,        % +S, +LanguagePriorityList, -LexicalForm
-    rdfs_label/4,        % +S, +LanguagePriorityList, -LanguageTag, -LexicalForm
-    rdfs_one_label/2     % +S, -LexicalForm
+    rdfs_label/2,        % +S, -Lit
+    rdfs_one_label/2     % +S, -Lit
   ]
 ).
 :- reexport(library(rdf11/rdf11)).
@@ -35,19 +30,15 @@
 
 :- rdf_meta
    rdf_image(o, -),
-   rdf_langstring(o, r, ?),
-   rdf_langstring(o, r, +, ?),
-   rdf_langstring(o, r, +, ?, r),
+   rdf_langstring(o, r, -),
    rdf_one_string(o, r, -),
    rdf_pref_string(o, r, -),
-   rdf_pref_string(o, r, +, -),
-   rdf_pref_string(o, r, +, -, -),
-   rdf_pref_string(o, r, +, -, -, r),
+   rdf_pref_string(o, r, -, -),
+   rdf_pref_string(o, r, -, -, r),
    rdf_triples(o, r, o, -),
    rdfs_instance0(o, r),
    rdfs_label(o, -),
    rdfs_label(o, +, -),
-   rdfs_label(o, +, -, -),
    rdfs_one_label(o, -).
 
 
@@ -67,7 +58,6 @@ rdf_image(S, V) :-
 
 
 %! rdf_langstring(?S, ?P, -Lit) is nondet.
-%! rdf_langstring(?S, ?P, +LanguagePriorityList:list(atom), -Lit) is nondet.
 % Matches RDF statements whose object term is a language-tagged string
 % that mathes the given language priory list.
 % Notice that results for each of the prioritized languages are given
@@ -77,24 +67,22 @@ rdf_langstring(S, P, Lit) :-
   user:setting(language_priority_list, LRanges),
   rdf_langstring(S, P, LRanges, Lit).
 
-rdf_langstring(S, P, LRanges, Lex@LTag) :-
-  rdf_has(S, P, Lex@LTag),
-  atom(LTag),
-  basic_filtering(LRanges, LTag).
+rdf_langstring(S, P, LRanges, Lit) :-
+  rdf_has(S, P, S@LTag),
+  basic_filtering(LRanges, LTag),
+  Lit = S@LTag.
 
 
 
-%! rdf_one_string(+S, +P, -LexicalForm:atom) is det.
+%! rdf_one_string(+S, +P, -Lit) is det.
 
-rdf_one_string(S, P, Lex) :-
-  rdf_pref_string(S, P, Lex), !.
-rdf_one_string(_, _, '∅').
+rdf_one_string(S, P, Lit) :-
+  rdf_pref_string(S, P, Lit), !.
+rdf_one_string(_, _, '∅'^^xsd:string).
 
 
 
-%! rdf_pref_string(?S, ?P, -LexicalForm:atom) is nondet.
-%! rdf_pref_string(?S, ?P, +LanguagePriorityList:list(atom), -LexicalFrom:atom) is nondet.
-%! rdf_pref_string(?S, ?P, +LanguagePriorityList:list(atom), -LanguageTag:atom, -LexicalFrom:atom) is nondet.
+%! rdf_pref_string(?S, ?P, -Lit) is nondet.
 % Returns, in this exact order:
 %   1. The language-tagged strings that match the given
 %      language priority list; returning results for higher
@@ -103,25 +91,22 @@ rdf_one_string(_, _, '∅').
 %      language priority list.
 %   3. XSD strings.
 
-rdf_pref_string(S, P, Lex) :-
+rdf_pref_string(S, P, Lit) :-
   user:setting(language_priority_list, LRanges),
-  rdf_pref_string(S, P, LRanges, Lex).
-
-rdf_pref_string(S, P, LRanges, Lex) :-
-  rdf_pref_string(S, P, LRanges, _, Lex).
+  rdf_pref_string(S, P, LRanges, Lit).
 
 % Matching language-tagged strings.
-rdf_pref_string(S, P, LRanges, LTag, Lex) :-
-  member(LRange, LRanges),
-  rdf_langstring(S, P, [LRange], Lex@LTag).
+rdf_pref_string(S, P, LRanges, Lit) :-
+  rdf_langstring(S, P, LRanges, Lit).
 % Non-matching language-tagged strings.
-rdf_pref_string(S, P, LRanges, LTag, Lex) :-
-  rdf_has(S, P, Lex@LTag),
+rdf_pref_string(S, P, LRanges, Lit) :-
+  rdf_has(S, P, S@LTag),
   % Avoid duplicates.
-  \+ basic_filtering(LRanges, LTag).
+  \+ basic_filtering(LRanges, LTag),
+  Lit = S@LTag.
 % Plain XSD strings.
-rdf_pref_string(S, P, _, _, Lex) :-
-  rdf_has(S, P, Lex^^xsd:string).
+rdf_pref_string(S, P, _, S^^xsd:string) :-
+  rdf_has(S, P, S^^xsd:string).
 
 
 
@@ -147,26 +132,18 @@ rdfs_instance0(I, D) :-
 
 
 
-%! rdfs_label(+S, -Label) is nondet.
-%! rdfs_label(+S, +LanguagePriorityList, -Label) is nondet.
-%! rdfs_label(+S, +LanguagePriorityList, -LTag, -Label) is nondet.
+%! rdfs_label(+S, -Lit) is nondet.
 
-rdfs_label(S, Lex) :-
-  rdf_pref_string(S, rdfs:label, Lex).
-
-rdfs_label(S, LRanges, Lex) :-
-  rdf_pref_string(S, rdfs:lalbel, LRanges, Lex).
-
-rdfs_label(S, LRanges, LTag, Lex) :-
-  rdf_pref_string(S, rdfs:label, LRanges, LTag, Lex).
+rdfs_label(S, Lit) :-
+  rdf_pref_string(S, rdfs:label, Lit).
 
 
 
 %! rdfs_one_label(+S, -Label) is det.
 
-rdfs_one_label(S, Lex) :-
-  rdfs_label(S, Lex), !.
-rdfs_one_label(_, '∅').
+rdfs_one_label(S, Lit) :-
+  rdfs_label(S, Lit), !.
+rdfs_one_label(_, '∅'^^xsd:string).
 
 
 
