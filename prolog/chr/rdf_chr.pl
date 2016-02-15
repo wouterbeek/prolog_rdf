@@ -90,7 +90,7 @@ x(N2, _, rdf(S, 'http://lodlaundromat.org/ontology/processed-statements', NStmts
 x(N3, _, rdf(S, 'http://lodlaundromat.org/ontology/processed-triples',    NTrips))
 <=>
 sum_list([N1,N2,N3], N) |
-x(N, 1-1, rdf_processed_stmts([
+x(N, 2-2, rdf_processed_stmts([
   'http://lodlaundromat.org/ontology/processed-quadruples'-NQuads,
   'http://lodlaundromat.org/ontology/processed-statements'-NStmts,
   'http://lodlaundromat.org/ontology/processed-triples'-NTrips
