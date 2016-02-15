@@ -226,6 +226,10 @@ jsonld_term(Mode, Context, ODef, Term, D, LTag) :-
   jsonld_datatype_mapping(Context, Keys, D),
   jsonld_language_mapping(Context, Keys, LTag).
 
+jsonld_term0(Mode, Context, X1, Y, Keys) :-
+  string(X1), !,
+  atom_string(X2, X1),
+  jsonld_term0(Mode, Context, X2, Y, Keys).
 % IRIs are fine.
 jsonld_term0(p, _, X, X, [X]) :- is_http_iri(X), !.
 % JSON-LD keywords are fine.
