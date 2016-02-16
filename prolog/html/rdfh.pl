@@ -87,6 +87,9 @@ rdfh_literal0(V1^^D) -->
   {rdf11:xsd_date_time_type(D)}, !,
   {date_time_datetime(V1, V2)},
   html_datetime(V2).
+rdfh_literal0(V^^D) -->
+  {rdf_subdatatype_of(D, xsd:anyURI)}, !,
+  common_link(V).
 
 
 
@@ -134,6 +137,10 @@ rdfh_subject0(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode(S).
 
 date_time_datetime(date_time(Y,Mo,D,H,Mi,S), datetime(Y,Mo,D,H,Mi,S,0)).
 
+
+
+common_link(I) -->
+  html([a(href=I,I),span(['aria-hidden'=true,class=[glyphicon,'glyphicon-link']],[])]).
 
 
 external_link(I) -->
