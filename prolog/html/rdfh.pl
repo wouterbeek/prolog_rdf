@@ -6,6 +6,7 @@
     rdfh_iri//1,       % +Iri
     rdfh_literal//1,   % +Lit
     rdfh_object//1,    % +O
+    rdfh_po_row//1,    % +Pair
     rdfh_po_table//1,  % +Pairs
     rdfh_predicate//1, % +P
     rdfh_property//1,  % +Prop
@@ -97,16 +98,18 @@ rdfh_object0(O) --> {rdf_is_bnode(O)}, !, rdfh_bnode(O).
 
 
 
+rdfh_po_row(P-O) -->
+  html(tr([td(\rdfh_predicate(P)),td(\rdfh_object(O))])).
+
+
+
 rdfh_po_table(L) -->
   html(
     table(class=[table,'table-striped'], [
       thead(tr([th('Key'),th('Value')])),
-      tbody(\'*'(rdfh_po_row, L))
+      tbody(\'html*'(rdfh_po_row, L)) %'
     ])
-  ). %'
-
-rdfh_po_row(P-O) -->
-  html(tr([td(\rdfh_predicate(P)),td(\rdfh_object(O))])).
+  ).
 
 
 
@@ -128,15 +131,6 @@ rdfh_subject0(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode(S).
 
 
 % HELPERS %
-
-'*'([]) --> [].
-'*'([H|T]) --> html_call(H), '*'(T).
-
-
-'*'(_, []) --> [].
-'*'(Goal, [H|T]) --> html_call(Goal, H), '*'(Goal, T).
-
-
 
 date_time_datetime(date_time(Y,Mo,D,H,Mi,S), datetime(Y,Mo,D,H,Mi,S,0)).
 
