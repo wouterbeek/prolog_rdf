@@ -48,28 +48,7 @@ jsonld_metadata_context(
     formats: 'http://www.w3.org/ns/formats/',
     llo: 'http://lodlaundromat.org/ontology/',
     rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    xsd: 'http://www.w3.org/2001/XMLSchema#',
-    'llo:base-iri': _{'@type': '@id'},
-    'llo:duplicate-statements': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:filetype': _{'@type': 'xsd:string'},
-    'llo:filters': _{'@container': '@list'},
-    'llo:final-iri': _{'@type': '@id'},
-    'llo:major': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:minor': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:mode': _{'@type': 'xsd:string'},
-    'llo:mtime': _{'@type': 'xsd:float'},
-    'llo:name': _{'@type': 'xsd:string'},
-    'llo:parser': _{'@type': 'xsd:string'},
-    'llo:processed-quadruples': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:processed-statements': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:processed-triples': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:raw': _{'@type': 'xsd:string'},
-    'llo:RDF-serialization-format': _{'@type': '@id'},
-    'llo:size': _{'@container': '@list'},
-    'llo:HTTP-status-code': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:source-type': _{'@type': 'xsd:string'},
-    'llo:type': _{'@type': 'xsd:string'},
-    'llo:unique-statements': _{'@type': 'xsd:nonNegativeInteger'}
+    xsd: 'http://www.w3.org/2001/XMLSchema#'
   }
 ).
 

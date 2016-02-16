@@ -28,7 +28,6 @@
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
-:- use_module(library(rdf/rdf_clean_msg)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_ntriples)).
@@ -98,9 +97,9 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   ),
   debug(rdf(clean), "Processed ~D statements (~D triples and ~D quadruples).", [NS1,NT,NQ]),
   D2 = D1.put(_{
-    'llo:processed-quadruples': NQ,
-    'llo:processed-statements': NS1,
-    'llo:processed-triples': NT
+    'llo:processed_quadruples': _{'@type': 'xsd:nonNegativeInteger', '@value': NQ},
+    'llo:processed_statements': _{'@type': 'xsd:nonNegativeInteger', '@value': NS1},
+    'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger', '@value': NT}
   }),
 
   % Store input stream properties.
@@ -115,7 +114,10 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   file_lines(Tmp, NS2),
   NS3 is NS1 - NS2,
   debug(rdf(clean), "Wrote ~D unique statements (skipped ~D duplicates).", [NS2,NS3]),
-  D4 = D3.put(_{'llo:unique-statements': NS2, 'llo:duplicate-statements': NS3}),
+  D4 = D3.put(_{
+    'llo:unique_statements': _{'@type': 'xsd:nonNegativeInteger', '@value': NS2},
+    'llo:duplicate_statements': _{'@type': 'xsd:nonNegativeInteger', '@value': NS3}
+  }),
   
   % Compress the file, according to user option.
   debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted triple file.").
@@ -125,8 +127,8 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
 
 rdf_write_clean_stream(Read, D, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
-  BaseIri = D.'llo:base-iri',
-  jsonld_metadata_expand_iri(D.'llo:RDF-serialization-format', Format1),
+  BaseIri = D.'llo:base_iri'.'@value',
+  jsonld_metadata_expand_iri(D.'llo:rdf_serialization_format', Format1),
   rdf_format_iri(Format2, Format1),
   merge_options([base_iri(BaseIri)], Opts1, Opts2),
   merge_options([base_uri(BaseIri),format(Format2)], Opts2, Opts3),

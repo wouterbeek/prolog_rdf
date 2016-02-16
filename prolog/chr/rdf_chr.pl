@@ -43,6 +43,16 @@ rdf_chr_assert(rdf(S,P,O)) :- call(edge(1,1-1,[S,P,O])).
 edge(N, Dim, L)     \ edge(N, Dim, L)     <=> true.
 graph(N, Dim, C, G) \ graph(N, Dim, C, G) <=> true.
 
+/*
+% Qualified blank node.
+edge(N1, _, [S,P,B]),
+graph(N2, _, _, [B-POs])
+<=>
+rdf_is_bnode(B),
+sum_list([N1,N2], N) |
+graph(N, 2-2, P, [S-POs]).
+*/
+
 % Media type
 edge(N1, _, [S,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/MediaType']),
 edge(N2, _, [S,'http://lodlaundromat.org/ontology/type',Type]),
@@ -55,7 +65,7 @@ graph(N, 2-2, 'http://lodlaundromat.org/ontology/MediaType', [S-[
 ]]).
 
 % Product.
-edge(N1, _, [S,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/product']),
+edge(N1, _, [S,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/Product']),
 edge(N2, _, [S,'http://lodlaundromat.org/ontology/name',Name]),
 edge(N3, _, [S,'http://lodlaundromat.org/ontology/version',Version])
 <=>
@@ -70,9 +80,10 @@ edge(N1, _, [S,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaun
 edge(N2, _, [S,'http://lodlaundromat.org/ontology/filetype',Filetype]),
 edge(N3, _, [S,'http://lodlaundromat.org/ontology/format',Format]),
 edge(N4, _, [S,'http://lodlaundromat.org/ontology/mtime',ModifiedTime]),
-edge(N5, _, [S,'http://lodlaundromat.org/ontology/name',Name])
+edge(N5, _, [S,'http://lodlaundromat.org/ontology/name',Name]),
+edge(N6, _, [_,_,S])
 <=>
-sum_list([N1,N2,N3,N4,N5], N) |
+sum_list([N1,N2,N3,N4,N5,N6], N) |
 graph(N, 2-2, 'http://lodlaundromat.org/ontology/ArchiveEntry', [S-[
   'http://lodlaundromat.org/ontology/filetype'-Filetype,
   'http://lodlaundromat.org/ontology/format'-Format,
@@ -81,73 +92,72 @@ graph(N, 2-2, 'http://lodlaundromat.org/ontology/ArchiveEntry', [S-[
 ]]).
 
 % HTTP version.
-edge(N1, _, [S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/HTTP-version']),
+edge(N1, _, [S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/Version']),
 edge(N2, _, [S, 'http://lodlaundromat.org/ontology/major', Major]),
 edge(N3, _, [S, 'http://lodlaundromat.org/ontology/minor', Minor]),
-edge(N4, _, [_, 'http://lodlaundromat.org/ontology/HTTP-version', S])
+edge(N4, _, [_, 'http://lodlaundromat.org/ontology/version', S])
 <=>
 sum_list([N1,N2,N3,N4], N) |
-graph(N, 1-1, 'http://lodlaundromat.org/ontology/HTTP-version', [S-[
+graph(N, 1-1, 'http://lodlaundromat.org/ontology/Version', [S-[
   'http://lodlaundromat.org/ontology/major'-Major,
   'http://lodlaundromat.org/ontology/minor'-Minor
 ]]).
 
 % HTTP header: bad.
-edge(N1, _, [S,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/HTTP-header']),
-edge(N2, _, [S,'http://lodlaundromat.org/ontology/parser',"invalid"^^'http://www.w3.org/2001/XMLSchema#string']),
-edge(N3, _, [S,'http://lodlaundromat.org/ontology/raw',O]),
-edge(N4, _, [_,P,S])
+edge(N1, _, [S,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/InvalidHttpHeader']),
+edge(N2, _, [S,'http://lodlaundromat.org/ontology/raw',O]),
+edge(N3, _, [_,P,S])
 <=>
-sum_list([N1,N2,N3,N4], N) |
-graph(N, 1-1, 'http://lodlaundromat.org/ontology/Invalid-HTTP-header', [S-[P-O]]).
+sum_list([N1,N2,N3], N) |
+graph(N, 1-1, 'http://lodlaundromat.org/ontology/InvalidHttpHeader', [S-[P-O]]).
 
 % HTTP header: good.
-edge(N1, _, [O,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/HTTP-header']),
-edge(N2, _, [O,'http://lodlaundromat.org/ontology/parser',"valid"^^'http://www.w3.org/2001/XMLSchema#string']),
-edge(N3, _, [O,'http://lodlaundromat.org/ontology/raw',_]),
-edge(N4, _, [O,'http://lodlaundromat.org/ontology/value',V]),
-edge(N5, _, [S,P,O])
+edge(N1, _, [O,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/ValidHttpHeader']),
+edge(N2, _, [O,'http://lodlaundromat.org/ontology/raw',_]),
+edge(N3, _, [O,'http://lodlaundromat.org/ontology/value',V]),
+edge(N4, _, [S,P,O])
 <=>
 rdf_is_literal(V),
-sum_list([N1,N2,N3,N4,N5], N) |
-graph(N, 1-1, 'http://lodlaundromat.org/ontology/Valid-HTTP-header', [S-[P-V]]).
+sum_list([N1,N2,N3,N4], N) |
+graph(N, 1-1, 'http://lodlaundromat.org/ontology/ValidHttpHeader', [S-[P-V]]).
 % HTTP header: good.
-edge(N1, _, [O,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/HTTP-header']),
-edge(N2, _, [O,'http://lodlaundromat.org/ontology/parser',"valid"^^'http://www.w3.org/2001/XMLSchema#string']),
-edge(N3, _, [O,'http://lodlaundromat.org/ontology/raw',_]),
-edge(N4, _, [O,'http://lodlaundromat.org/ontology/value',V]),
+edge(N1, _, [O,'http://www.w3.org/1999/02/22-rdf-syntax-ns#type','http://lodlaundromat.org/ontology/ValidHttpHeader']),
+edge(N2, _, [O,'http://lodlaundromat.org/ontology/raw',_]),
+edge(N3, _, [O,'http://lodlaundromat.org/ontology/value',V]),
 edge(N4, _, [S,P,O]),
 graph(N5, Dim5, C, [V-VL])
 <=>
 sum_list([N1,N2,N3,N4,N5], N) |
-graph(N, 1-1, 'http://lodlaundromat.org/ontology/Valid-HTTP-header', [S-[P-graph(N5,Dim5,C,[V-VL])]]).
+graph(N, 1-1, 'http://lodlaundromat.org/ontology/ValidHttpHeader', [S-[P-graph(N5,Dim5,C,[V-VL])]]).
 
 % HTTP headers: base case.
-graph(N1, _, 'http://lodlaundromat.org/ontology/Valid-HTTP-header', [S-POs1]),
-graph(N2, _, 'http://lodlaundromat.org/ontology/Valid-HTTP-header', [S-POs2])
+graph(N1, _, 'http://lodlaundromat.org/ontology/ValidHttpHeader', [S-POs1]),
+graph(N2, _, 'http://lodlaundromat.org/ontology/ValidHttpHeader', [S-POs2])
 <=>
 sum_list([N1,N2], N),
-append(POs1, POs2, POs3) |
-graph(N, 3-3, valid_http_headers, [S-POs3]).
+append(POs1, POs2, POs3),
+sort(POs3, POs4) |
+graph(N, 3-3, valid_http_headers, [S-POs4]).
 
 % HTTP headers: recursive case.
-graph(N1, _, 'http://lodlaundromat.org/ontology/Valid-HTTP-header', [S-POs1]),
+graph(N1, _, 'http://lodlaundromat.org/ontology/ValidHttpHeader', [S-POs1]),
 graph(N2, _, valid_http_headers, [S-POs2])
 <=>
 sum_list([N1,N2], N),
-append(POs1, POs2, POs3) |
-graph(N, 3-3, valid_http_headers, [S-POs3]).
+append(POs1, POs2, POs3),
+sort(POs3, POs4) |
+graph(N, 3-3, valid_http_headers, [S-POs4]).
 
 % RDF processed statements counter.
-edge(N1, _, [S,'http://lodlaundromat.org/ontology/processed-quadruples',NQuads]),
-edge(N2, _, [S,'http://lodlaundromat.org/ontology/processed-statements',NStmts]),
-edge(N3, _, [S,'http://lodlaundromat.org/ontology/processed-triples',NTrips])
+edge(N1, _, [S,'http://lodlaundromat.org/ontology/processed_quadruples',NQuads]),
+edge(N2, _, [S,'http://lodlaundromat.org/ontology/processed_statements',NStmts]),
+edge(N3, _, [S,'http://lodlaundromat.org/ontology/processed_triples',NTrips])
 <=>
 sum_list([N1,N2,N3], N) |
 graph(N, 2-2, rdf_processed_stmts, [S-[
-  'http://lodlaundromat.org/ontology/processed-quadruples'-NQuads,
-  'http://lodlaundromat.org/ontology/processed-statements'-NStmts,
-  'http://lodlaundromat.org/ontology/processed-triples'-NTrips
+  'http://lodlaundromat.org/ontology/processed_quadruples'-NQuads,
+  'http://lodlaundromat.org/ontology/processed_statements'-NStmts,
+  'http://lodlaundromat.org/ontology/processed_triples'-NTrips
 ]]).
 
 % Label in a preferred language.

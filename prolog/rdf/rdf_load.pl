@@ -124,8 +124,8 @@ rdf_call_on_statements(In, Goal_2, Opts) :-
 % `call(:Goal_2, +Statements:list(compound), ?Graph:atom)'
 
 rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
-  BaseIri = M.'llo:base-iri',
-  rdf_equal(M.'llo:RDF-serialization-format', Format1),
+  BaseIri = M.'llo:base_iri'.'@value',
+  rdf_equal(M.'llo:rdf_serialization_format', Format1),
   jsonld_metadata_expand_iri(Format1, Format2),
   rdf_format_iri(Format3, Format2),
   (   memberchk(Format3, [nquads,ntriples])
