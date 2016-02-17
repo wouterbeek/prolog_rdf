@@ -1,20 +1,22 @@
 :- module(
   rdf_print_term,
   [
-    rdf_print_graph//1,		% ?G
-    rdf_print_graph//2,		% ?G, +Opts
-    rdf_print_literal//1,	% +Lit
-    rdf_print_literal//2,	% +Lit, +Opts
-    rdf_print_object//1,	% +O
-    rdf_print_object//2,	% +O, +Opts
-    rdf_print_predicate//1,	% +P
-    rdf_print_predicate//2,	% +P, +Opts
-    rdf_print_subject//1,	% +S
-    rdf_print_subject//2,	% +S, +Opts
-    rdf_print_term/1,		% +T
-    rdf_print_term/2,		% +T, +Opts
-    rdf_print_term//1,		% +T
-    rdf_print_term//2		% +T, +Opts
+    rdf_print_bnode//1,     % +B
+    rdf_print_bnode//2,     % +B, +Opts
+    rdf_print_graph//1,     % ?G
+    rdf_print_graph//2,     % ?G, +Opts
+    rdf_print_literal//1,   % +Lit
+    rdf_print_literal//2,   % +Lit, +Opts
+    rdf_print_object//1,    % +O
+    rdf_print_object//2,    % +O, +Opts
+    rdf_print_predicate//1, % +P
+    rdf_print_predicate//2, % +P, +Opts
+    rdf_print_subject//1,   % +S
+    rdf_print_subject//2,   % +S, +Opts
+    rdf_print_term/1,       % +T
+    rdf_print_term/2,       % +T, +Opts
+    rdf_print_term//1,      % +T
+    rdf_print_term//2       % +T, +Opts
   ]
 ).
 
@@ -31,7 +33,6 @@
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_api)).
-:- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf11/rdf11)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
@@ -96,6 +97,7 @@
 
 
 
+%! rdf_print_bnode(+B)// is det.
 %! rdf_print_bnode(+B, +Opts)// is det.
 % The following options are supported:
 %   * abbr_list(+boolean)
@@ -104,12 +106,14 @@
 %     but `false` for RDF compound terms (since in the latter case
 %     we cannot check whether something is an RDF list or not).
 
+rdf_print_bnode(B) -->
+  rdf_print_bnode(B, []).
+
 rdf_print_bnode(B, Opts) -->
   {option(abbr_list(true), Opts)},
   rdf_print_list(B, Opts), !.
 rdf_print_bnode(B, _) -->
-  {rdf_bnode_name(B, BName)},
-  atom(BName).
+  atom(B).
 
 
 

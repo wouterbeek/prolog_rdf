@@ -1,16 +1,18 @@
 :- module(
   rdfh,
   [
-    rdfh_alias//1,     % +Alias
-    rdfh_bnode//1,     % +B
-    rdfh_iri//1,       % +Iri
-    rdfh_literal//1,   % +Lit
-    rdfh_object//1,    % +O
-    rdfh_po_row//1,    % +Pair
-    rdfh_po_table//1,  % +Pairs
-    rdfh_predicate//1, % +P
-    rdfh_property//1,  % +Prop
-    rdfh_subject//1    % +S
+    rdfh_alias//1,         % +Alias
+    rdfh_bnode//1,         % +B
+    rdfh_iri//1,           % +Iri
+    rdfh_literal//1,       % +Lit
+    rdfh_object//1,        % +O
+    rdfh_objects//1,       % +Os
+    rdfh_po_row//1,        % +Pair
+    rdfh_po_table//1,      % +Pairs
+    rdfh_property//1,      % +Prop
+    rdfh_property_path//1, % +Props
+    rdfh_subject//1,       % +S
+    rdfh_term//1           % +T
   ]
 ).
 
@@ -23,6 +25,7 @@ Generates end user-oriented HTML representations of RDF data.
 */
 
 :- use_module(library(html/html_datetime)).
+:- use_module(library(html/html_list)).
 :- use_module(library(html/html_meta)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
@@ -36,7 +39,6 @@ Generates end user-oriented HTML representations of RDF data.
    rdfh_iri(r, ?, ?),
    rdfh_literal(o, ?, ?),
    rdfh_object(o, ?, ?),
-   rdfh_predicate(r, ?, ?),
    rdfh_property(r, ?, ?),
    rdfh_subject(r, ?, ?).
 
@@ -92,18 +94,18 @@ rdfh_literal0(V^^D) -->
   common_link(V).
 
 
-
 rdfh_object(O) --> html(span(class=object, \rdfh_object0(O))).
 
 rdfh_object0(O) --> {rdf_is_iri(O)}, !, rdfh_iri(O).
 rdfh_object0(O) --> {rdf_is_literal(O)}, !, rdfh_literal(O).
 rdfh_object0(O) --> {rdf_is_bnode(O)}, !, rdfh_bnode(O).
 
+rdfh_objects([]) --> [].
+rdfh_objects([H|T]) --> html(div(\rdfh_object(H))), rdfh_objects(T).
 
 
-rdfh_po_row(P-O) -->
-  html(tr([td(\rdfh_predicate(P)),td(\rdfh_object(O))])).
-
+rdfh_po_row(Ps-Os) -->
+  html(tr([td(\rdfh_property_path(Ps)),td(\rdfh_objects(Os))])).
 
 
 rdfh_po_table(L) -->
@@ -115,13 +117,11 @@ rdfh_po_table(L) -->
   ).
 
 
-
-rdfh_predicate(P) --> html(span(class=predicate, \rdfh_iri(P))).
-
-
-
 rdfh_property(Prop) --> html(span(class=property, \rdfh_iri(Prop))).
 
+rdfh_property_path([]) --> [].
+rdfh_property_path([H]) --> rdfh_property(H).
+rdfh_property_path([H|T]) --> html([\rdfh_property(H),/,\rdfh_property_path(T)]).
 
 
 rdfh_subject(S) --> html(span(class=subject, \rdfh_subject0(S))).
@@ -130,6 +130,9 @@ rdfh_subject0(S) --> {rdf_is_iri(S)}, !, rdfh_iri(S).
 rdfh_subject0(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode(S).
 
 
+rdfh_term(B) --> {rdf_is_bnode(B)}, !, rdfh_bnode(B).
+rdfh_term(L) --> {rdf_is_literal(L)}, !, rdfh_literal(L).
+rdfh_term(I) --> {rdf_is_iri(I)}, !, rdfh_iri(I).
 
 
 
