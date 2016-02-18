@@ -55,7 +55,7 @@ triples_to_jsonld(Triples, Jsonld) :-
   ->  Jsonld = D.put('@context', Context)
   ;   dict_pairs(Jsonld, ['@context'-Context,'@graph'-Ds])
   ).
-  
+
 
 
 %! jsonld_subject_tree(+PDefintions:list(pair), ?DefLang, +Tree, +S, -Jsonld) is det.
@@ -70,7 +70,7 @@ jsonld_subject_tree(PDefs, DefLang, Tree, S1, D) :-
   % '@type'
   rdf_equal(rdf:type, RdfType),
   (   get_assoc(RdfType, Subtree, Cs1),
-      maplist(jsonld_abbreviate_iri, Cs1, Cs2)
+      maplist(jsonld_abbreviate_iri0, Cs1, Cs2)
   ->  (Cs2 = [Cs3] -> true ; Cs3 = Cs2),
       Pairs2 = ['@type'-Cs3|Pairs3]
   ;   Pairs2 = Pairs3
@@ -154,7 +154,7 @@ jsonld_triples_tree([], Assoc, Assoc).
 %! jsonld_ptree(+PDefs, ?DefLang, +Tree, +P, -POs) is det.
 
 jsonld_ptree(PDefs, DefLang, Tree, P1, P2-O2) :-
-  jsonld_abbreviate_iri(P1, P2),
+  jsonld_abbreviate_iri0(P1, P2),
   get_assoc(P1, Tree, Os1),
   maplist(jsonld_oterm(PDefs, DefLang, P2), Os1, Os2),
   (Os2 = [O2] -> true ; O2 = Os2).
@@ -164,11 +164,12 @@ jsonld_ptree(PDefs, DefLang, Tree, P1, P2-O2) :-
 %! jsonld_oterm(+PDefs, ?DefLang, +P, +O, -JsonldO) is det.
 
 jsonld_oterm(PDefs, _, P2, O1, Elems2) :-
+  rdf_is_subject(O1),
   rdf_list(O1),
   memberchk(P2-PDef, PDefs),
   '@list' == PDef.get('@container'), !,
   rdf_list(O1, Elems1),
-  maplist(jsonld_abbreviate_iri, Elems1, Elems2).
+  maplist(jsonld_abbreviate_iri0, Elems1, Elems2).
 jsonld_oterm(PDefs, _DefLang, P2, O1, O2) :-
   O1 = Lex@LTag, !,
   (   memberchk(P2-PDef, PDefs),
@@ -185,11 +186,11 @@ jsonld_oterm(PDefs, _, P2, O1, O2) :-
       _ = PDef.get('@type')
   ->  O2 = Lex
   ;   rdf_literal_datatype(O1, D1),
-      jsonld_abbreviate_iri(D1, D2),
+      jsonld_abbreviate_iri0(D1, D2),
       O2 = literal{'@type':D2,'@value':Lex}
   ).
 jsonld_oterm(_, _, _, O1, O2) :-
-  jsonld_abbreviate_iri(O1, O2).
+  jsonld_abbreviate_iri0(O1, O2).
 
 
 
@@ -197,20 +198,20 @@ jsonld_oterm(_, _, _, O1, O2) :-
 
 p_defs(Triples, [P1|Ps1], [P2-odef{'@container': '@list'}|Ps2]) :-
   p_container(Triples, P1), !,
-  jsonld_abbreviate_iri(P1, P2),
+  jsonld_abbreviate_iri0(P1, P2),
   p_defs(Triples, Ps1, Ps2).
 p_defs(Triples, [P1|Ps1], [P2-odef{'@language':LTag}|Ps2]) :-
   p_ltag(Triples, P1, LTag), !,
-  jsonld_abbreviate_iri(P1, P2),
+  jsonld_abbreviate_iri0(P1, P2),
   p_defs(Triples, Ps1, Ps2).
 p_defs(Triples, [P1|Ps1], [P2-odef{'@type':'@id'}|Ps2]) :-
   p_iri(Triples, P1), !,
-  jsonld_abbreviate_iri(P1, P2),
+  jsonld_abbreviate_iri0(P1, P2),
   p_defs(Triples, Ps1, Ps2).
 p_defs(Triples, [P1|Ps1], [P2-odef{'@type':D2}|Ps2]) :-
   p_datatype(Triples, P1, D1), !,
-  jsonld_abbreviate_iri(P1, P2),
-  jsonld_abbreviate_iri(D1, D2),
+  jsonld_abbreviate_iri0(P1, P2),
+  jsonld_abbreviate_iri0(D1, D2),
   p_defs(Triples, Ps1, Ps2).
 p_defs(Triples, [_|T1], T2) :- !,
   p_defs(Triples, T1, T2).
@@ -223,13 +224,14 @@ p_defs(_, [], []).
 
 p_container(Triples, P) :-
   memberchk(rdf(_,P,O), Triples),
+  rdf_is_subject(O),
   rdf_list(O),
   forall(member(rdf(_,P,O), Triples), rdf_list(O)).
 
 
 
 %! p_datatype(+Triples, +P, -D) is semidet.
-% 
+%
 
 p_datatype(Triples, P, Sup) :-
   memberchk(rdf(_,P,O), Triples),

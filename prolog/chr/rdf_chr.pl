@@ -1,118 +1,123 @@
 :- module(
   rdf_chr,
   [
-    rdf_chr/2 % +Trips, -SortedPairs
+    rdf_chr/2 % +S, -Widgets
   ]
 ).
 
 /** <module> RDF CHR
 
-http://lodlaundromat.org/ontology/
-
 @author Wouter Beek
 @version 2016/02
 */
 
-:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(chr)).
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_debug)).
-:- use_module(library(dcg/dcg_tree)).
-:- use_module(library(debug_ext)).
-:- use_module(library(list_ext)).
-:- use_module(library(ltag/ltag_match)).
-:- use_module(library(ordsets)).
+:- use_module(library(closure)).
+:- use_module(library(debug)).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(rdf11/rdf11)).
-:- use_module(library(settings)).
+:- use_module(library(solution_sequences)).
 
-:- chr_constraint
-   bnode/1,
-   edge/4,
-   tree/2.
+:- chr_constraint triple/4, widget/3.
 
-rdf_chr(Trips, SortedPairs) :-
-  length(Trips, Len0),
-  debug_maplist(rdf(chr), rdf_chr_assert, Trips),
-  findall(N-tree(T), find_chr_constraint(tree(N,T)), Pairs1),
-  length(Pairs1, Len1),
-  findall(N-edge(S,P,O), find_chr_constraint(edge(N,S,P,O)), Pairs2),
-  length(Pairs2, Len2),
-  append(Pairs1, Pairs2, Pairs3),
-  sort(1, @>=, Pairs3, SortedPairs),
-  debug(rdf(chr), "~D triples → ~D trees & ~D edges", [Len0,Len1,Len2]).
+:- dynamic rdf_chr:is_well_known_entity/1.
 
-rdf_chr_assert(rdf(S,P,O)) :- call(edge(1, S, P, O)).
+rdf_chr(S, Widgets3) :-
+  findall(Trip, distinct(Trip, s_triple(S, Trip)), Trips),
+  maplist(rdf_chr_assert_triple, Trips),
 
-% Remove redundancies.
-edge(N1, S, P, O) \ edge(N2, S, P, O) <=> N1 >= N2 | true.
+  % Widgets.
+  findall(N-widget(N,S,W), find_chr_constraint(widget(N,S,W)), KVPairs),
+  top_pairs(KVPairs, SortedKVPairs),
+  pairs_values(SortedKVPairs, Widgets1),
+
+  % The remaining triples are widgets as well.
+  findall(widget(N,S,po_pair(P,O)), find_chr_constraint(triple(N, S, P, O)), Widgets2),
+  append(Widgets1, Widgets2, Widgets3).
+
+rdf_chr_is_seed(_, S) :- rdf_is_bnode(S), !.
+rdf_chr_is_seed(1, S) :- rdf_chr:is_well_known_entity(S).
+
+rdf_chr_assert_triple(rdf(S,P,O)) :- call(triple(1,S,P,O)).
 
 
-%% STEP 1: REMOVE REDUNDANCIES AT THE TRIPLE LEVEL %%
+%% STEP 1: LOAD SEEDS %%
+% ```chr
+% seed(S, D1, false)
+% <=>
+% forall(rdf(S,P,O), (
+%   call(triple(1, S, P, O)),
+%   (rdf_chr_is_seed(O) -> D2 is D1 + 1, call(seed(O, D2, false)) ; true)
+% ))
+% | seed(S, D1, true).
+% ```
 
-% Remove strings the user understands less.
-edge(N1, S, P, Lbl1@LTag1),
-edge(N2, S, P, ____@LTag2)
+s_triple(S, Trip) :- s_triple(0, S, Trip).
+
+s_triple(_, S, rdf(S,P,O)) :- rdf(S, P, O).
+s_triple(D1, S, Trip) :- rdf(S, _, O), rdf_chr_is_seed(D1, O), D2 is D1 + 1, s_triple(D2, O, Trip).
+
+
+widget(N1, S, http_header(P1-W1)),
+widget(N2, S, http_header(P2-W2))
 <=>
-setting(user:language_priority_list, LRange),
-basic_filtering(LRange, LTag1),
-debug(rdf(chr1), "Prefering language-tag ~a over ~a.", [LTag1,LTag2]),
+sum_list([N1,N2], N),
+bot_pairs([P1-W1,P2-W2], L)
+| widget(N, S, http_headers(L)).
+
+widget(N1, S, http_headers(T)),
+triple(N2, S, P, O),
+widget(N3, O, http_header(H))
+<=>
+sum_list([N1,N2,N3], N),
+bot_pairs([P-H|T], L)
+| widget(N, S, http_headers(L)).
+
+widget(N1, O, http_header(W)),
+triple(N2, S, P, O)
+<=>
 sum_list([N1,N2], N)
-| edge(N, S, P, Lbl1@LTag1).
+| widget(N, S, http_header(P-W)).
 
-
-%% STEP 2: REPLACE TERMS WITH LABELS %%
-
-% Labels for predicate terms.
-edge(N1, S, P, O),
-edge(N2, P, 'http://www.w3.org/2000/01/rdf-schema#label', Lbl)
+triple(N1, S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/ValidHttpHeader'),
+triple(N2, S, 'http://lodlaundromat.org/ontology/value', O),
+widget(N3, O, W)
 <=>
-debug(rdf(chr2), "Labeled predicate term ~w → ~w", [P,Lbl]),
-sum_list([N1,N2], N)
-| edge(N, S, Lbl, O).
+sum_list([N1,N2,N3], N)
+| widget(N, S, http_header(W)).
 
-
-%% STEP 3: REMOVE BLANK NODES %%
-
-edge(N, B, P, O)
+triple(N1, S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/EntityTag'),
+triple(N2, S, 'http://lodlaundromat.org/ontology/opaque_tag', Tag),
+triple(N3, S, 'http://lodlaundromat.org/ontology/weak', Weak)
 <=>
-rdf_is_bnode(B),
-\+ rdf_is_bnode(O),
-debug(rdf(chr3a), "Initial tree ~w", [B-[P-[O-[]]]])
-| tree(N, B-[P-[O-[]]]).
+sum_list([N1,N2,N3], N)
+| widget(N, S, etag(Tag,Weak)).
 
-tree(N1, S-[P-Trees1]),
-tree(N2, S-[P-Trees2])
+triple(N1, S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/MediaType'),
+triple(N2, S, 'http://lodlaundromat.org/ontology/type', Type),
+triple(N3, S, 'http://lodlaundromat.org/ontology/subtype', Subtype)
 <=>
-ord_union(Trees1, Trees2, Trees3),
-debug(rdf(chr3b), "Merged children ~w", [S-[P-Trees3]]),
-sum_list([N1,N2], N)
-| tree(N, S-[P-Trees3]).
+sum_list([N1,N2,N3], N)
+| widget(N, S, media_type(Type,Subtype)).
 
-tree(N1, S-[P1-Trees1]),
-tree(N2, S-Trees2)
+triple(N1, S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/Product'),
+triple(N2, S, 'http://lodlaundromat.org/ontology/name', Name),
+triple(N3, S, 'http://lodlaundromat.org/ontology/version', Version)
 <=>
-\+ memberchk(P1-_, Trees2),
-list_to_ord_set([P1-Trees1|Trees2], Trees3),
-debug(rdf(chr3c), "Added child to tree ~w", [S-Trees3]),
-sum_list([N1,N2], N)
-| tree(N, S-Trees3).
+sum_list([N1,N2,N3], N)
+| widget(N, S, product(Name,Version)).
 
 
-%% STEP 4: DOMAIN-SPECIFIC SKIPPING OF EDGES %%
 
-edge(N1, S, P, B),
-tree(N2, B-Trees)
-<=>
-rdf_is_bnode(B),
-dcg_debug(rdf(chr4), (
-  atom('Removed blank node '),
-  rdf_print_bnode(B),
-  nl,
-  dcg_tree(rdf_print_term,S-Trees)
-)),
-sum_list([N1,N2], N)
-| tree(N, S-[P-Trees]).
+% HELPERS %
+
+chr_debug(Flag, Format, Args) :-
+  with_output_to(user_output, chr_show_store(rdf_chr)),
+  debug(Flag, Format, Args).
+
+bot_pairs(L1, L2) :- keysort(L1, L2).
+top_pairs(L1, L2) :- sort(1, @>=, L1, L2).
+
+pairs_to_assoc(A, [], A) :- !.
+pairs_to_assoc(A1, [kv(K,V)|T], A) :- put_assoc(K, A1, V, A2), pairs_to_assoc(A2, T, A).

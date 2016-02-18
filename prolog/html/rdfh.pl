@@ -3,16 +3,19 @@
   [
     rdfh_alias//1,         % +Alias
     rdfh_bnode//1,         % +B
+    rdfh_class//1,         % +C
     rdfh_iri//1,           % +Iri
     rdfh_literal//1,       % +Lit
     rdfh_object//1,        % +O
     rdfh_objects//1,       % +Os
     rdfh_po_row//1,        % +Pair
     rdfh_po_table//1,      % +Pairs
+    rdfh_predicate//1,     % +P
     rdfh_property//1,      % +Prop
     rdfh_property_path//1, % +Props
     rdfh_subject//1,       % +S
-    rdfh_term//1           % +T
+    rdfh_term//1,          % +T
+    rdfh_tree//1           % +Tree
   ]
 ).
 
@@ -35,18 +38,10 @@ Generates end user-oriented HTML representations of RDF data.
 
 :- setting(rdfh:handle_id, atom, root, '').
 
-:- rdf_meta
-   rdfh_iri(r, ?, ?),
-   rdfh_literal(o, ?, ?),
-   rdfh_object(o, ?, ?),
-   rdfh_property(r, ?, ?),
-   rdfh_subject(r, ?, ?).
-
 
 
 rdfh_alias(Alias) -->
-  {rdf_current_prefix(Alias, Prefix)},
-  html(a([class=alias,href=Prefix], Alias)).
+  html(span(class=alias, Alias)).
 
 
 
@@ -55,16 +50,20 @@ rdfh_bnode(B) -->
 
 
 
+rdfh_class(C) -->
+  html(span=class, \rdfh_iri(C)).
+
+
+
 rdfh_iri(I) -->
-  {internal_link(I, I0)},
-  html(a([class=iri,href=I0], [\rdfh_iri0(I),' ',\external_link(I)])).
+  html(span(class=iri,\rdfh_iri0(I))).
 
 rdfh_iri0(I) -->
-  {rdfs_label(I, Lbl)}, !,
-  html([\rdfh_literal(Lbl)]).
+  {rdfs_label(I, Lbl)},
+  html(Lbl).
 rdfh_iri0(I) -->
   {rdf_global_id(Alias:Local, I)}, !,
-  html([span(class=alias,Alias),:,span(class=local,Local)]).
+  html([\rdfh_alias(Alias),:,span(class=local,Local)]).
 rdfh_iri0(I) -->
   html(I).
 
@@ -91,7 +90,7 @@ rdfh_literal0(V1^^D) -->
   html_datetime(V2).
 rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
-  common_link(V).
+  html(V).
 
 
 rdfh_object(O) --> html(span(class=object, \rdfh_object0(O))).
@@ -104,8 +103,8 @@ rdfh_objects([]) --> [].
 rdfh_objects([H|T]) --> html(div(\rdfh_object(H))), rdfh_objects(T).
 
 
-rdfh_po_row(Ps-Os) -->
-  html(tr([td(\rdfh_property_path(Ps)),td(\rdfh_objects(Os))])).
+rdfh_po_row(P-Os) -->
+  html(tr([td(\rdfh_property(P)),td(\rdfh_objects(Os))])).
 
 
 rdfh_po_table(L) -->
@@ -115,6 +114,9 @@ rdfh_po_table(L) -->
       tbody(\'html*'(rdfh_po_row, L)) %'
     ])
   ).
+
+
+rdfh_predicate(P) --> html(span(class=predicate, \rdfh_iri(P))).
 
 
 rdfh_property(Prop) --> html(span(class=property, \rdfh_iri(Prop))).
@@ -130,9 +132,46 @@ rdfh_subject0(S) --> {rdf_is_iri(S)}, !, rdfh_iri(S).
 rdfh_subject0(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode(S).
 
 
-rdfh_term(B) --> {rdf_is_bnode(B)}, !, rdfh_bnode(B).
-rdfh_term(L) --> {rdf_is_literal(L)}, !, rdfh_literal(L).
-rdfh_term(I) --> {rdf_is_iri(I)}, !, rdfh_iri(I).
+rdfh_term(T) --> html(span(class=term, \rdfh_term0(T))).
+
+rdfh_term0(B) --> {rdf_is_bnode(B)}, !, rdfh_bnode(B).
+rdfh_term0(L) --> {rdf_is_literal(L)}, !, rdfh_literal(L).
+rdfh_term0(I) --> {rdf_is_iri(I)}, !, rdfh_iri(I).
+
+
+rdfh_tree(Tree) -->
+  html([
+    \check_all,
+    div(class=treeview, div(class=tree,\rdfh_trees([0], [Tree])))
+  ]).
+
+rdfh_trees(_, []) --> !, [].
+rdfh_trees(Ns, [P-[Leaf-[]]|Trees]) --> !,
+  html([
+    div(class=node, [\rdfh_predicate(P),' ',\rdfh_object(Leaf)]),
+    \rdfh_trees(Ns, Trees)
+  ]).
+rdfh_trees(Ns, [Leaf-[]|Trees]) --> !,
+  html([
+    div(class=node, \rdfh_object(Leaf)),
+    \rdfh_trees(Ns, Trees)
+  ]).
+rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
+  {
+    atomic_list_concat([item|Ns1], -, Id),
+    append(Ns, [N1], Ns1),
+    N2 is N1 + 1,
+    append(Ns, [N2], Ns2),
+    append(Ns1, [0], Ns3)
+  },
+  html([
+    div(class=node, [
+      input([id=Id,type=checkbox], []),
+      label(for=Id, \rdfh_predicate(Root)),
+      div(class=tree, \rdfh_trees(Ns3, Subtrees))
+    ]),
+    \rdfh_trees(Ns2, Trees)
+  ]).
 
 
 
