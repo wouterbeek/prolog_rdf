@@ -67,7 +67,7 @@ rdf_gc_by_graph :-
 
 rdf_gc_by_graph0 :-
   findall(Time-G, rdf_touched_graph(_, Time, G), Pairs),
-  pairs_sorted_values(Pairs, @=<, [G|_]),
+  desc_pairs_values(Pairs, [G|_]),
   retract(rdf_touched_graph(_, Last, G)),
   rdf_unload_graph(G),
   duration(Last, Duration),

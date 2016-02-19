@@ -124,7 +124,7 @@ jsonld_default_language(Triples, LTag) :-
   aggregate_all(set(LTag), member(rdf(_,_,_@LTag), Triples), LTags),
   maplist(language_occurrences(Triples), LTags, Ns),
   pairs_keys_values(Pairs, Ns, LTags),
-  pairs_sorted_values(Pairs, @>=, [LTag|_]).
+  desc_pairs_values(Pairs, [LTag|_]).
 
 
 

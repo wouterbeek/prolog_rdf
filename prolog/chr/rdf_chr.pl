@@ -16,7 +16,6 @@
 :- use_module(library(closure)).
 :- use_module(library(debug_ext)).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf11/rdf11)).
 :- use_module(library(solution_sequences)).
 
@@ -30,8 +29,7 @@ rdf_chr(S, Widgets3) :-
 
   % Widgets.
   findall(N-widget(N,S,W), find_chr_constraint(widget(N,S,W)), KVPairs),
-  top_pairs(KVPairs, SortedKVPairs),
-  pairs_values(SortedKVPairs, Widgets1),
+  desc_pairs_values(KVPairs, Widgets1),
 
   % The remaining triples are widgets as well.
   findall(widget(N,S,po_pair(P,O)), find_chr_constraint(triple(N, S, P, O)), Widgets2),
@@ -62,7 +60,6 @@ s_triple(_, S, rdf(S,P,O)) :-
 s_triple(D1, S, Trip) :-
   catch(rdf(S, P, O), _, fail),
   rdf_chr_is_seed(D1, P, O),
-  catch(rdf_load(O), _, fail),
   D2 is D1 + 1,
   s_triple(D2, O, Trip).
 
@@ -114,7 +111,7 @@ widget(N1, S, http_headers(T)),
 widget(N2, S, http_header(P,H))
 <=>
 sum_list([N1,N2], N),
-bot_pairs([P-H|T], L)
+asc_pairs([P-H|T], L)
 | widget(N, S, http_headers(L)).
 
 % HTTP headers: base case.
@@ -122,7 +119,7 @@ widget(N1, S, http_header(P1,W1)),
 widget(N2, S, http_header(P2,W2))
 <=>
 sum_list([N1,N2], N),
-bot_pairs([P1-W1,P2-W2], L)
+asc_pairs([P1-W1,P2-W2], L)
 | widget(N, S, http_headers(L)).
 
 % HTTP info.
@@ -189,9 +186,6 @@ sum_list([N1,N2], N)
 chr_debug(Flag, Format, Args) :-
   with_output_to(user_output, chr_show_store(rdf_chr)),
   debug(Flag, Format, Args).
-
-bot_pairs(L1, L2) :- keysort(L1, L2).
-top_pairs(L1, L2) :- sort(1, @>=, L1, L2).
 
 pairs_to_assoc(A, [], A) :- !.
 pairs_to_assoc(A1, [kv(K,V)|T], A) :- put_assoc(K, A1, V, A2), pairs_to_assoc(A2, T, A).
