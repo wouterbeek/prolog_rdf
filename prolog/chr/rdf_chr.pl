@@ -68,7 +68,7 @@ s_triple(D1, S, Trip) :-
 triple(N1, S, P, Lbl@LTag),
 triple(N2, S, P, ___@____)
 <=>
-setting(user:language_priority_list, LRange),
+user:setting(language_priority_list, LRange),
 basic_filtering(LRange, LTag),
 sum_list([N1,N2], N)
 | triple(N, S, P, Lbl@LTag).

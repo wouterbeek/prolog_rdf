@@ -87,7 +87,6 @@ rdf_print_deref(S, Opts) :-
 %   * id_closure(+boolean)
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_descr(S) :-
@@ -115,7 +114,6 @@ rdf_print_descr(S, G, Opts) :-
 %   * id_closure(+boolean)
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %
 % @throws existence_error

@@ -70,7 +70,6 @@ Generates developer-oriented HTML representations of RDF data.
      abbr_list(+boolean),
      ellip_ln(+or([nonneg,oneof([inf])])),
      label_iri(+boolean),
-     language_priority_list(+list(atom)),
      symbol_iri(+boolean),
      pass_to(rdf_html_list//2, 2)
    ]).
@@ -178,8 +177,6 @@ rdf_html_graph0(G, Opts) -->
 %   * label_iri(+boolean)
 %     Whether RDFS labels should be used i.o. IRIs.
 %     Default is `false`.
-%   * language_priority_list(+list(atom))
-%     Default is `en-US`.
 %   * symbol_iri(+boolean)
 %     Whether logic symbols should be used i.o. IRIs.
 %     Default is `true`.
@@ -200,8 +197,7 @@ rdf_html_iri(Iri, Opts) -->
 rdf_html_iri(Global, Opts) -->
   {
     option(label_iri(true), Opts),
-    option(language_priority_list(LRanges), Opts, ['en-US']),
-    once(rdfs_label(Global, LRanges, LTag, Lbl))
+    once(rdfs_label(Global, Lbl@LTag))
   }, !,
   (   {var(LTag)}
   ->  html(span(class=[iri,'label-iri'], Lbl))
@@ -258,7 +254,6 @@ rdf_html_list(L1, Opts) -->
 %   * abbr_iri(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
-%   * language_priority_list(+list(atom))
 %   * location(+atom)
 %   * symbol_iri(+boolean)
 
@@ -312,7 +307,6 @@ rdf_html_object(O, Opts) -->
 %   * abbr_iri(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_html_predicate(P, Opts) -->
@@ -346,7 +340,6 @@ rdf_html_term(T) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_html_term(graph(G), Opts) --> !,

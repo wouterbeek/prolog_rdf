@@ -114,7 +114,6 @@
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * page_size(+nonneg)
-%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_html_describe(S) -->
@@ -141,7 +140,6 @@ rdf_html_describe(S, G, Opts) -->
 %   * abbr_iri(+boolean)
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
-%   * language_priority_list(+list(atom))
 %   * symbol_iri(+boolean)
 %   * page_size(+nonneg)
 
@@ -193,7 +191,6 @@ rdf_html_quadruples(Qs, Opts0) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
 %   * page_size(+nonneg)
 %   * symbol_iri(+boolean)
 
@@ -259,7 +256,6 @@ rdf_html_triple(rdf(S,P,O), Opts) -->
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
 %   * page_size(+nonneg)
 %   * symbol_iri(+boolean)
 

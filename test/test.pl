@@ -59,7 +59,6 @@
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_test)).
 :- use_module(library(rdf/rdf_update)).
-:- use_module(library(rdf/w3c_dtf)).
 %/rdfs
 :- use_module(library(rdfs/rdfs_stats)).
 %/simple
