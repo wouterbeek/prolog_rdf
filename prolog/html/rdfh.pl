@@ -191,5 +191,5 @@ external_link(I) -->
 
 
 internal_link(T, I) :-
-  setting(handle_id, HandleId),
+  setting(rdfh:handle_id, HandleId),
   http_link_to_id(HandleId, [term(T)], I).
