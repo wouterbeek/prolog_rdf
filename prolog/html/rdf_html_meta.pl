@@ -43,7 +43,7 @@ rdf_html(Content0) -->
 %! rdf_html_if_then(:If, :Then)// is det.
 
 rdf_html_if_then(If, Then) -->
-  rdf_html_if_then_else(If, Then, html([])).
+  rdf_html_if_then_else(If, Then, []).
 
 
 
@@ -51,15 +51,11 @@ rdf_html_if_then(If, Then) -->
 
 rdf_html_if_then_else(If0, Then0, Else0) -->
   {maplist(rdf_global_term, [If0,Then0,Else0], [If,Then,Else])},
-  (   {call(If)}
-  ->  Then
-  ;   Else
-  ).
+  ({call(If)} -> Then ; Else).
 
 
 
 %! rdf_html_ignore(:Content)// is det.
 
-rdf_html_ignore(Content) -->
-  html(Content), !.
+rdf_html_ignore(Content) --> html(Content), !.
 rdf_html_ignore(_) --> [].

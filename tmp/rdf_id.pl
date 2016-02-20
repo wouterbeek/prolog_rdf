@@ -38,10 +38,10 @@
 @compat RDF 1.1 Concepts and Abstract Syntax
 @license MIT License
 @see http://www.w3.org/TR/rdf11-concepts/
-@version 2015/07-2016/01
+@version 2015/07-2016/02
 */
 
-:- use_module(library(datetime/datetime)).
+:- use_module(library(date_time/date_time)).
 :- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(list_ext)).

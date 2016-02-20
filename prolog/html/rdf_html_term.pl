@@ -220,7 +220,7 @@ rdf_html_language_tag(LTag, Opts) -->
   {atomic_list_concat(Subtags, -, LTag)},
   html(span(class='language-tag', \rdf_html_language_subtags(Subtags, Opts))).
 
-rdf_html_language_subtags([], _) --> !, html([]).
+rdf_html_language_subtags([], _) --> [].
 rdf_html_language_subtags([H|T], Opts) -->
   html(span(class='language-subtag', H)),
   rdf_html_language_subtags(T, Opts).

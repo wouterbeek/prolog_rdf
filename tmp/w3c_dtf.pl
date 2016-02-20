@@ -1,12 +1,12 @@
 :- module(
   w3c_dtf,
   [
-    cdtf//1, % +Datetime:datetime
-    ldtf//1 % +Datetime:datetime
+    cdtf//1, % +DT
+    ldtf//1  % +DT
   ]
 ).
 
-/** <module> W3C date-time format note
+/** <module> W3C date/time format note
 
 Year:
     YYYY (eg 1997)
@@ -34,19 +34,17 @@ where:
 @author Wouter Beek
 @compart NOTE-datetime
 @see http://www.w3.org/TR/NOTE-datetime
-@version 2015/11-2015/12
+@version 2015/11-2015/12, 2016/02
 */
 
-:- use_module(library(datetime/datetime)).
+:- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(xsd/datetime/xsd_datetime_fragments)).
-:- use_module(library(xsd/number/xsd_number_fragments)).
 
 
 
 
 
-cdtf(datetime(Y, Mo, D, H, Mi, S, Off)) -->
+cdtf(date_time(Y,Mo,D,H,Mi,S,Off)) -->
   cYYYY(Y),
   (   {var(Mo)}, !
   ;   "-", cMM(Mo),
@@ -93,7 +91,7 @@ lTZD(Off) -->
   lhh(H), ":", lmm(Mi),
   {Off is Sg * ((H * 60) + Mi)}.
 
-ldtf(datetime(Y, Mo, D, H, Mi, S, Off)) -->
+ldtf(date_time(Y,Mo,D,H,Mi,S,Off)) -->
   lYYYY(Y),
   (   "-"
   ->  lMM(Mo),

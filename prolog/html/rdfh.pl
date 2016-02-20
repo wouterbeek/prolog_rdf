@@ -27,7 +27,7 @@ Generates end user-oriented HTML representations of RDF data.
 @version 2016/02
 */
 
-:- use_module(library(html/html_datetime)).
+:- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_list)).
 :- use_module(library(html/html_meta)).
 :- use_module(library(http/html_write)).
@@ -84,10 +84,9 @@ rdfh_literal0(V^^D) -->
 rdfh_literal0(V^^D) -->
   {(rdf_subdatatype_of(D, xsd:float) ; rdf_subdatatype_of(D, xsd:double))}, !,
   html(span(class=D,'~G'-[V])).
-rdfh_literal0(V1^^D) -->
+rdfh_literal0(V^^D) -->
   {rdf11:xsd_date_time_type(D)}, !,
-  {date_time_datetime(V1, V2)},
-  html_datetime(V2).
+  html_date_time(V).
 rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
@@ -176,10 +175,6 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
 
 
 % HELPERS %
-
-date_time_datetime(date_time(Y,Mo,D,H,Mi,S), datetime(Y,Mo,D,H,Mi,S,0)).
-
-
 
 common_link(I) -->
   html([a(href=I,I),span(['aria-hidden'=true,class=[glyphicon,'glyphicon-link']],[])]).

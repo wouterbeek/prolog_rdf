@@ -1,5 +1,6 @@
 *#
 *~
+.#*
+.tramp_history
 *.db
 data/
-.#*

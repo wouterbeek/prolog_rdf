@@ -178,7 +178,7 @@ rdf_html_quadruples(Qs, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   'rdf_html_quadruple*'(Qs, Opts).
 
-'rdf_html_quadruple*'([], _) --> !, html([]).
+'rdf_html_quadruple*'([], _) --> [].
 'rdf_html_quadruple*'([H|T], Opts) -->
   rdf_html_quadruple(H, Opts),
   'rdf_html_quadruple*'(T, Opts).
@@ -235,7 +235,7 @@ rdf_html_statements(Ss, Opts0) -->
   {merge_options([abbr_list(false)], Opts0, Opts)},
   'rdf_html_statement*'(Ss, Opts).
 
-'rdf_html_statement*'([], _) --> !, html([]).
+'rdf_html_statement*'([], _) --> [].
 'rdf_html_statement*'([H|T], Opts) -->
   rdf_html_statement(H, Opts),
   'rdf_html_statement*'(T, Opts).
