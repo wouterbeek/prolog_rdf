@@ -1,6 +1,7 @@
 :- module(
   rdf_api,
   [
+    rdf_aggregate_all/3,   % +Template, :Goal, -Result
     rdf_image/2,           % +S, -Img
     rdf_langstring/3,      % ?S, ?P, -Lit
     rdf_langstring_lex/3,  % ?S, ?P, -Lex
@@ -31,9 +32,11 @@
 :- use_module(library(uuid)).
 
 :- meta_predicate
+    rdf_aggregate_all(+, 0, -),
     rdf_snap(0).
 
 :- rdf_meta
+   rdf_aggregate_all(+, t, -),
    rdf_image(r, -),
    rdf_langstring(r, r, o),
    rdf_langstring_lex(r, r, -),
@@ -51,6 +54,13 @@
    rdfs_one_label_lex(r, -).
 
 
+
+
+
+%! rdf_aggregate_all(+Template, :Goal, -Result) is det.
+
+rdf_aggregate_all(Template, Goal, Result) :-
+  aggregate_all(Template, Goal, Result).
 
 
 
