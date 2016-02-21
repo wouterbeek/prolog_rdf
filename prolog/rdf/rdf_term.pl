@@ -11,6 +11,7 @@
     rdf_language_tagged_string/2,    % +G, ?Lit
     rdf_legacy_literal_components/4, % +Literal, -D, -Lex, -LTag) is det.
     rdf_literal/2,                   % +G, ?Lit
+    rdf_literal_components/4,        % ?Lit, ?D, ?Lex, ?LTag
     rdf_literal_datatype/2,          % +Lit, ?D
     rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?V
@@ -63,7 +64,7 @@ resources as well.
 @author Wouter Beek
 @compat RDF 1.1 Concepts and Abstract Syntax
 @see http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/
-@version 2015/07-2015/08, 2015/10, 2015/12-2016/01
+@version 2015/07-2015/08, 2015/10, 2015/12-2016/02
 */
 
 :- use_module(library(rdf11/rdf11)).
@@ -76,6 +77,7 @@ resources as well.
    rdf_iri(r, r),
    rdf_legacy_literal_components(o, r, -, -),
    rdf_literal(r, o),
+   rdf_literal_components(o, r, ?, ?),
    rdf_literal_datatype(o, r),
    rdf_literal_lexical_form(o, ?),
    rdf_literal_value(o, ?),
@@ -207,6 +209,14 @@ rdf_literal(G, Lit) :-
   rdf_literal(Lit),
   once(rdf_node(G, Lit)).
 
+
+
+%! rdf_literal_components(?Lit, ?D, ?Lex, ?LTag) .
+
+rdf_literal_components(V^^D, D, Lex, _) :- !,
+  rdf_lexical_form(V^^D, Lex).
+rdf_literal_components(V@LTag, rdf:langString, Lex, LTag) :-
+  rdf_lexical_form(V@LTag, Lex).
 
 
 %! rdf_literal_datatype(+Lit, +D) is semidet.
