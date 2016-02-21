@@ -1,16 +1,17 @@
 :- module(
   rdf_datatype,
   [
-    rdf_datatype_supremum/2, % +Datatypes, -Supremum
-    rdf_subdatatype_of/2,    % ?Subtype, ?Supertype
-    xsd_subtype_of/2         % ?Subtype, ?Supertype
+    rdf_datatype_supremum/2,  % +Datatypes, -Supremum
+    rdf_subdatatype_of/2,     % ?Subtype, ?Supertype
+    xsd_date_time_datatype/2, % +DT, -D
+    xsd_subtype_of/2          % ?Subtype, ?Supertype
   ]
 ).
 
 /** <module> RDF datatype
 
 @author Wouter Beek
-@version 2016/01
+@version 2016/01-2016/02
 */
 
 :- use_module(library(error)).
@@ -21,6 +22,7 @@
 :- rdf_meta
    rdf_datatype_supremum(t, t),
    rdf_subdatatype_of(r, r),
+   xsd_date_time_datatype(o, r),
    xsd_subtype_of(r, r).
 
 
@@ -44,6 +46,35 @@ rdf_subdatatype_of(X, Y) :-
 rdf_subdatatype_of(X, Y) :-
   rdfs_subclass_of(X, Y),
   \+ xsd_subtype_of(X, Y).
+
+
+
+%! xsd_date_time_datatype(+DT, -D) is det.
+
+xsd_date_time_datatype(datetime(Y,Mo,D,H,Mi,S,_), D):-
+  (   % xsd:dateTime
+      ground(date(Y,Mo,D,H,Mi,S))
+  ->  rdf_equal(xsd:dateTime, D)
+  ;   % xsd:date
+      ground(date(Y,Mo,D))
+  ->  rdf_equal(xsd:date, D)
+  ;   % xsd:time
+      ground(date(H,Mi,S))
+  ->  rdf_equal(xsd:time, D)
+  ;   % xsd:gMonthDay
+      ground(date(Mo,D))
+  ->  rdf_equal(xsd:gMonthDay, D)
+  ;   % xsd:gYearMonth
+      ground(date(Y,Mo))
+  ->  rdf_equal(xsd:gYearMonth, D)
+  ;   % xsd:gMonth
+      ground(date(Mo))
+  ->  rdf_equal(xsd:gMonth, D)
+  ;   % xsd:gYear
+      ground(date(Y))
+  ->  rdf_equal(xsd:gYear, D)
+  ).
+
 
 
 %! xsd_subtype_of(?Subtype:iri, ?Supertype:iri) is nondet.
