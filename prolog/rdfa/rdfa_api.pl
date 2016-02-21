@@ -1,8 +1,9 @@
 :- module(
   rdfa_api,
   [
-    rdfa_date_time//3, % +P, +O, +Masks
-    rdfa_prefixes/2    % +Aliases:list(atom), -Prefixes:atom
+    rdfa_date_time//3,   % +P, +O, +Masks
+    rdfa_prefixed_iri/2, % +Iri, -PrefixedIri
+    rdfa_prefixes/2      % +Aliases:list(atom), -Prefixes:atom
   ]
 ).
 
@@ -55,4 +56,4 @@ rdfa_prefixes(Aliases, Defs) :-
   atomic_list_concat(Defs0, ' ', Defs).
 
 pair_to_prefix(Alias-Prefix, Def) :-
-  atomic_list_concat([Alias,Prefix], ' ', Def).
+  atomic_list_concat([Alias,Prefix], ': ', Def).

@@ -27,6 +27,7 @@ Generates end user-oriented HTML representations of RDF data.
 @version 2016/02
 */
 
+:- use_module(library(bs/bs_icon)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_list)).
 :- use_module(library(html/html_meta)).
@@ -177,11 +178,11 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
 % HELPERS %
 
 common_link(I) -->
-  html([a(href=I,I),span(['aria-hidden'=true,class=[glyphicon,'glyphicon-link']],[])]).
+  html([a(href=I, I), \bs_link_icon]).
 
 
 external_link(I) -->
-  html(a(href=I,span(['aria-hidden'=true,class=[glyphicon,'glyphicon-link']],[]))).
+  html(a(href=I,\bs_link_icon)).
 
 
 
