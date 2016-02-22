@@ -11,13 +11,13 @@
 
 @author Wouter Beek
 @tbd Fix IRI normalization,
-@version 2015/12-2016/01
+@version 2015/12-2016/02
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug_ext)).
-:- use_module(library(http/http_info)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pool)).
