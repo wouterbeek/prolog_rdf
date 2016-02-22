@@ -15,6 +15,7 @@
 :- use_module(library(chr)).
 :- use_module(library(closure)).
 :- use_module(library(debug_ext)).
+:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf11/rdf11)).
 :- use_module(library(solution_sequences)).
@@ -68,7 +69,7 @@ s_triple(D1, S, Trip) :-
 triple(N1, S, P, Lbl@LTag),
 triple(N2, S, P, ___@____)
 <=>
-user:setting(language_priority_list, LRange),
+current_lrange(LRange),
 basic_filtering(LRange, LTag),
 sum_list([N1,N2], N)
 | triple(N, S, P, Lbl@LTag).

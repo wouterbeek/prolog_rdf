@@ -60,7 +60,7 @@
      abbr_list(+boolean),
      ellip_ln(+or([nonneg,oneof([inf])])),
      label_iri(+boolean),
-     language_priority_list(+list(atom)),
+     lrange(+list(atom)),
      symbol_iri(+boolean),
      pass_to(rdf_print_list//2, 2)
    ]).
@@ -162,7 +162,7 @@ rdf_print_graph(G, Opts) -->
 %     Default is `20` to ensure that every triple fits within
 %     an 80 character wide terminal.
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 %     Whether logic symbols should be used i.o. IRIs.
 %     Default is `true`.
@@ -228,7 +228,7 @@ rdf_print_lexical(Lex, Opts) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_list(L1, Opts) -->
@@ -244,7 +244,7 @@ rdf_print_list(L1, Opts) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 %   * symbol_iri(+boolean)
 
@@ -268,7 +268,7 @@ rdf_print_literal(Lex@LTag, Opts) -->
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_object(O) -->
@@ -283,7 +283,7 @@ rdf_print_object(O, Opts) -->
 %   * abbr_iri(+boolean)
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_predicate(P) -->
@@ -314,7 +314,7 @@ rdf_print_subject(S, Opts) -->
 %   * abbr_list(+boolean)
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_term(T) :-
@@ -332,7 +332,7 @@ rdf_print_term(T, Opts) :-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_term(T) -->

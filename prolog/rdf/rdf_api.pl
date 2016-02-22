@@ -83,12 +83,12 @@ rdf_image(S, V) :-
 % in arbitrary order.
 
 rdf_langstring(S, P, Lit) :-
-  user:setting(language_priority_list, LRanges),
-  rdf_langstring(S, P, LRanges, Lit).
+  current_lrange(LRange),
+  rdf_langstring(S, P, LRange, Lit).
 
-rdf_langstring(S, P, LRanges, Lit) :-
+rdf_langstring(S, P, LRange, Lit) :-
   rdf_has(S, P, String@LTag),
-  basic_filtering(LRanges, LTag),
+  basic_filtering(LRange, LTag),
   Lit = String@LTag.
 
 
@@ -125,17 +125,17 @@ rdf_one_string_lex(S, P, Lex) :-
 %   3. XSD strings.
 
 rdf_pref_string(S, P, Lit) :-
-  user:setting(language_priority_list, LRanges),
-  rdf_pref_string(S, P, LRanges, Lit).
+  current_lrange(LRange),
+  rdf_pref_string(S, P, LRange, Lit).
 
 % Matching language-tagged strings.
-rdf_pref_string(S, P, LRanges, Lit) :-
-  rdf_langstring(S, P, LRanges, Lit).
+rdf_pref_string(S, P, LRange, Lit) :-
+  rdf_langstring(S, P, LRange, Lit).
 % Non-matching language-tagged strings.
-rdf_pref_string(S, P, LRanges, Lit) :-
+rdf_pref_string(S, P, LRange, Lit) :-
   rdf_has(S, P, S@LTag),
   % Avoid duplicates.
-  \+ basic_filtering(LRanges, LTag),
+  \+ basic_filtering(LRange, LTag),
   Lit = S@LTag.
 % Plain XSD strings.
 rdf_pref_string(S, P, _, S^^xsd:string) :-
