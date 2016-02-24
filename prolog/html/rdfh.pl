@@ -27,7 +27,7 @@ Generates end user-oriented HTML representations of RDF data.
 @version 2016/02
 */
 
-:- use_module(library(bs/bs_icon)).
+:- use_module(library(bs/bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_list)).
 :- use_module(library(html/html_meta)).
