@@ -213,7 +213,7 @@ rdf_assert_action(ActionClass, Actor, Action, G):-
   rdf_create_iri(vzm, [action], Action),
   rdf_assert(Action, rdf:type, ActionClass, G),
   rdf_assert_now(Action, prov:atTime, G),
-  rdf_assert(Actor, vzmo:performed, Action, G).
+  rdf_assert(Actor, sbo:performed, Action, G).
 
 
 

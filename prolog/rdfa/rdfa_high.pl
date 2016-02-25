@@ -7,6 +7,7 @@
     agent_name//1     % +Agent
   ]
 ).
+:- reexport(library(rdfa/rdfa_api)).
 :- reexport(library(rdfa/rdfa_low)).
 
 /** <module> RDFa high-level structures

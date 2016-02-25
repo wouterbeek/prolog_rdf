@@ -5,17 +5,13 @@
     rdf_image/2,           % +S, -Img
     rdf_langstring/3,      % ?S, ?P, -Lit
     rdf_langstring_lex/3,  % ?S, ?P, -Lex
-    rdf_one_string/3,      % +S, +P, -Lit
-    rdf_one_string_lex/3,  % +S, +P, -Lex
     rdf_pref_string/3,     % ?S, ?P, -Lit
     rdf_pref_string_lex/3, % ?S, ?P, -Lex
     rdf_snap/1,            % :Goal_0
     rdf_triples/4,         % ?S, ?P. ?O, -Trips:ordset
     rdfs_instance0/2,      % ?I, ?C
     rdfs_label/2,          % +S, -Lit
-    rdfs_label_lex/2,      % +S, -Lex
-    rdfs_one_label/2,      % +S, -Lit
-    rdfs_one_label_lex/2   % +S, -Lex
+    rdfs_label_lex/2       % +S, -Lex
   ]
 ).
 :- reexport(library(rdf11/rdf11)).
@@ -41,8 +37,6 @@
    rdf_image(r, -),
    rdf_langstring(r, r, o),
    rdf_langstring_lex(r, r, -),
-   rdf_one_string(r, r, o),
-   rdf_one_string_lex(r, r, -),
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
@@ -50,9 +44,7 @@
    rdf_triples(r, r, o, -),
    rdfs_instance0(o, r),
    rdfs_label(r, o),
-   rdfs_label_lex(r, -),
-   rdfs_one_label(r, o),
-   rdfs_one_label_lex(r, -).
+   rdfs_label_lex(r, -).
 
 
 
@@ -97,21 +89,6 @@ rdf_langstring(S, P, LRange, Lit) :-
 
 rdf_langstring_lex(S, P, Lex) :-
   rdf_langstring(S, P, Lit),
-  rdf_lexical_form(Lit, Lex).
-
-
-
-%! rdf_one_string(+S, +P, -Lit) is det.
-
-rdf_one_string(S, P, Lit) :-
-  rdf_pref_string(S, P, Lit), !.
-rdf_one_string(_, _, '∅'^^xsd:string).
-
-
-%! rdf_one_string_lex(+S, +P, -Lex) is det.
-
-rdf_one_string_lex(S, P, Lex) :-
-  rdf_one_string(S, P, Lit),
   rdf_lexical_form(Lit, Lex).
 
 
@@ -183,21 +160,6 @@ rdfs_label(S, Lit) :-
 
 rdfs_label_lex(S, Lex) :-
   rdfs_label(S, Lit),
-  rdf_lexical_form(Lit, Lex).
-
-
-
-%! rdfs_one_label(+S, -Lit) is det.
-
-rdfs_one_label(S, Lit) :-
-  rdfs_label(S, Lit), !.
-rdfs_one_label(_, '∅'^^xsd:string).
-
-
-%! rdfs_one_label_lex(+S, -Lex) is det.
-
-rdfs_one_label_lex(S, Lex) :-
-  rdfs_one_label(S, Lit),
   rdf_lexical_form(Lit, Lex).
 
 

@@ -1,14 +1,15 @@
 :- module(
   rdfa_low,
   [
-    'bs:subtitle'/2,      % +Article, -Subtitle
-    'bs:subtitle'//1,     % +Article
+    'bf:subtitle'/2,      % +Article, -Subtitle
+    'bf:subtitle'//1,     % +Article
     'dc:abstract'//1,     % +Resource
     'dc:created'/2,       % +Resource, -DT
     'dc:created'//1,      % +Resource
     'dc:creator'/2,       % +Resource, -Agent
     'dc:creator'//1,      % +Resource
     'dc:subject'/2,       % +Resource, -Subject
+    'dc:title'/2,         % +Resource, -Title
     'dc:title'//1,        % +Resource
     'foaf:depiction'/2,   % +Agent, -Uri
     'foaf:depiction'//1,  % +Agent
@@ -24,6 +25,7 @@
     'foaf:name'//1        % +Agent
   ]
 ).
+:- reexport(library(rdfa/rdfa_api)).
 
 /** <module> RDFa low-level structures
 
@@ -34,22 +36,21 @@
 :- use_module(library(html/html_bs)).
 :- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_api)).
-:- use_module(library(rdfa/rdfa_api)).
 
 
 
 
 
-%! 'bs:subtitle'(+Article, -Subtitle)// is det.
+%! 'bf:subtitle'(+Article, -Subtitle)// is det.
 
-'bs:subtitle'(Article, Subtitle) :-
+'bf:subtitle'(Article, Subtitle) :-
   rdf_pref_string_lex(Article, bf:subtitle, Subtitle).
 
 
-%! 'bs:subtitle'(+Article)// is det.
+%! 'bf:subtitle'(+Article)// is det.
 
-'bs:subtitle'(Article) -->
-  {'bs:subtitle'(Article, Subtitle)},
+'bf:subtitle'(Article) -->
+  {'bf:subtitle'(Article, Subtitle)},
   html(h2(span(property='bf:subtitle', Subtitle))).
 
 
@@ -100,10 +101,16 @@
 
 
 
+%! 'dc:title'(+Resource, -Title) is det.
+
+'dc:title'(Res, Title) :-
+  rdf_pref_string_lex(Res, dc:title, Title).
+
+
 %! 'dc:title'(+Resource)// is det.
 
 'dc:title'(Res) -->
-  {rdf_pref_string_lex(Res, dc:title, Title)},
+  {'dc:title'(Res, Title)},
   html(h1(property='dc:title', Title)).
 
 
