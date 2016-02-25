@@ -197,7 +197,7 @@ rdf_print_statement(T, Opts0) :-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 
 rdf_print_statement(S, P, O, G, Opts) :-
   option(indent(I), Opts, 0), tab(I),
@@ -213,7 +213,7 @@ rdf_print_statement(S, P, O, G, Opts) :-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * ellip_ln(+or([nonneg,oneof([inf])]))
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_statement(S, P, O, G) -->
@@ -262,7 +262,7 @@ rdf_print_statements([H|T], Opts) :-
 %   * ellip_lit(+or([nonneg,oneof([inf])]))
 %   * indent(+nonneg)
 %   * label_iri(+boolean)
-%   * language_priority_list(+list(atom))
+%   * lrange(+list(atom))
 %   * symbol_iri(+boolean)
 
 rdf_print_triple(T) :-

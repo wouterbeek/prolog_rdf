@@ -18,6 +18,7 @@
 :- use_module(library(html/html_date_time_human)).
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(http/html_write)).
+:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdfa/rdfa_api)).
@@ -31,7 +32,8 @@ rdfa_date_time(P1, Something^^D1, Masks) -->
   {
     something_to_date_time(Something, DT),
     date_time_masks(Masks, DT, MaskedDT),
-    html_human_date_time(MaskedDT, HumanString),
+    current_ltag(LTag),
+    html_human_date_time(MaskedDT, HumanString, _{ltag: LTag, masks: Masks}),
     html_machine_date_time(MaskedDT, MachineString),
     maplist(rdfa_prefixed_iri, [P1,D1], [P2,D2])
   },

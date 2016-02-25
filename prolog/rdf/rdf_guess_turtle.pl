@@ -193,14 +193,12 @@ guess_turtle_family(Fs, F, Opts) :-
       ground(F0)
   ->  must_be(oneof([trig,turtle]), F0),
       F = F0
-  ;   debug(rdf(guess), 'Assuming Turtle based on heuristics.', []),
-      F = turtle
+  ;   F = turtle
   ).
 guess_turtle_family(_, F, Opts) :-
   (   option(default_rdf_format(F0), Opts),
       ground(F0)
   ->  must_be(oneof([nquads,ntriples,trig,turtle]), F0),
       F = F0
-  ;   debug(rdf(guess), 'Assuming N-Triples based on heuristics.', []),
-      F = ntriples
+  ;   F = ntriples
   ).
