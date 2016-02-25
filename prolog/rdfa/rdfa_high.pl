@@ -15,7 +15,9 @@
 @version 2016/02
 */
 
-:- use_module(library(has_ext)).
+:- use_module(library(hash_ext)).
+:- use_module(library(http/html_write)).
+:- use_module(library(string_ext)).
 :- use_module(library(uri)).
 
 
@@ -25,10 +27,10 @@
 %! agent_gravatar(+Agent, -Uri) is det.
 
 agent_gravatar(Agent, Uri) :-
-  once('foaf:mbox'(Agent, EMail),
+  once('foaf:mbox'(Agent, EMail)),
   downcase_atom(EMail, CanonicalEMail),
   md5(CanonicalEMail, Hash),
-  atomic_list_concat(['',avatar,Hash], '/', Path),
+  atomic_list_concat(['',avatar,Hash], /, Path),
   uri_components(Uri, uri_components(http,'www.gravatar.com',Path,_,_)).
 
 
@@ -75,5 +77,4 @@ agent_name(Agent) -->
     ])
   ), !.
 agent_name(Agent) -->
-  'foaf:name'(Agent).{rdf_pref_string_lex(Agent, foaf:name, Name)},
-  html(a([href=Agent,rel='foaf:name'], Name)).
+  'foaf:name'(Agent).

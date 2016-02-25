@@ -28,6 +28,7 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
 :- use_module(library(uuid)).
 

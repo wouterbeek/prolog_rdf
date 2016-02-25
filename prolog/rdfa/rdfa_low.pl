@@ -31,7 +31,7 @@
 @version 2016/02
 */
 
-:- use_module(library(bs/bs)).
+:- use_module(library(html/html_bs)).
 :- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdfa/rdfa_api)).
@@ -79,20 +79,23 @@
 %! 'dc:creator'(+Resource, -Agent) is det.
 
 'dc:creator'(Res, Agent) :-
-  rdf_has(Res, dc:created, Agent).
+  rdf_has(Res, dc:creator, Agent).
 
 
 %! 'dc:creator'(+Resource)// is det.
 
 'dc:creator'(Res) -->
-  {once('dc:creator'(Res, Agent))},
-  rdfa_date_time(dc:created, O, [offset]).
+  {
+    once('dc:creator'(Res, Agent)),
+    rdfa_prefixed_iri(Agent, Agent0)
+  },
+  html(a([href=Agent0,property='dc:creator'], \agent_name(Agent))).
 
 
 
 %! 'dc:subject'(+Resource, -Subject) is det.
 
-'dc:subject'(Res, Subj) :-
+'dc:subject'(Res, Tag) :-
   rdf_has(Res, dc:subject, Tag).
 
 
@@ -108,7 +111,7 @@
 %! 'foaf:depiction'(+Agent, -Uri)// is det.
 
 'foaf:depiction'(Agent, Uri) :-
-  rdf_has(Res, foaf:depiction, Uri^^xsd:anyURI).
+  rdf_has(Agent, foaf:depiction, Uri^^xsd:anyURI).
 
 
 %! 'foaf:depiction'(+Agent)// is det.
@@ -181,11 +184,11 @@
 %! 'foaf:name'(+Agent, -Name) is det.
 
 'foaf:name'(Agent, Name) :-
-  rdf_pref_string_lex(User, foaf:name, Name).
+  rdf_pref_string_lex(Agent, foaf:name, Name).
 
 
 %! 'foaf:name'(+Agent)// is det.
 
-'foaf:name'(Agent, Name) :-
+'foaf:name'(Agent) -->
   {'foaf:name'(Agent, Name)},
   html(span(property='foaf:name', Name)).

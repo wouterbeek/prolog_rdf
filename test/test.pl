@@ -59,6 +59,10 @@
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_test)).
 :- use_module(library(rdf/rdf_update)).
+%/rdfa
+:- use_module(library(rdfa/rdfa_api)).
+:- use_module(library(rdfa/rdfa_high)).
+:- use_module(library(rdfa/rdfa_low)).
 %/rdfs
 :- use_module(library(rdfs/rdfs_stats)).
 %/simple
