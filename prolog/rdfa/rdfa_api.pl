@@ -1,7 +1,7 @@
 :- module(
   rdfa_api,
   [
-    rdfa_date_time//3,   % +P, +O, +Masks
+    rdfa_date_time//3,   % +P, +Something, +Masks
     rdfa_prefixed_iri/2, % +Iri, -PrefixedIri
     rdfa_prefixes/2      % +Aliases:list(atom), -Prefixes:atom
   ]
@@ -21,6 +21,7 @@
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdfa/rdfa_api)).
 
 :- rdf_meta
@@ -28,13 +29,14 @@
 
 
 
-rdfa_date_time(P1, Something^^D1, Masks) -->
+rdfa_date_time(P1, Something, Masks) -->
   {
     something_to_date_time(Something, DT),
     date_time_masks(Masks, DT, MaskedDT),
     current_ltag(LTag),
     html_human_date_time(MaskedDT, HumanString, _{ltag: LTag, masks: Masks}),
     html_machine_date_time(MaskedDT, MachineString),
+    xsd_date_time_datatype(DT, D1),
     maplist(rdfa_prefixed_iri, [P1,D1], [P2,D2])
   },
   html(time([datatype=D2,datetime=MachineString,property=P2], HumanString)).

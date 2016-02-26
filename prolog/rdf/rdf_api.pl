@@ -145,6 +145,10 @@ rdf_triples(S, P, O, Trips):-
 %! rdfs_instance0(?I, ?C) is nondet.
 
 rdfs_instance0(I, D) :-
+  nonvar(D), !,
+  rdf_reachable(C, rdfs:subClassOf, D),
+  rdf_has(I, rdf:type, C).
+rdfs_instance0(I, D) :-
   rdf_has(I, rdf:type, C),
   rdf_reachable(C, rdfs:subClassOf, D).
 

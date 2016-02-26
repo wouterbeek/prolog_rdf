@@ -3,6 +3,7 @@
   [
     'bf:subtitle'/2,      % +Article, -Subtitle
     'bf:subtitle'//1,     % +Article
+    'dc:abstract'/2,      % +Resource, -Abstract
     'dc:abstract'//1,     % +Resource
     'dc:created'/2,       % +Resource, -DT
     'dc:created'//1,      % +Resource
@@ -55,10 +56,16 @@
 
 
 
+%! 'dc:abstract'(+Resource, -Abstract) is det.
+
+'dc:abstract'(Res, Abstract) :-
+  rdf_pref_string_lex(Res, dc:abstract, Abstract).
+
+
 %! 'dc:abstract'(+Resource)// is det.
 
 'dc:abstract'(Res) -->
-  {once(rdf_has(Res, dc:abstract, Abstract))},
+  {once('dc:abstract'(Res, Abstract))},
   html(p(property='dc:abstract', Abstract)).
 
 
@@ -66,7 +73,7 @@
 %! 'dc:created'(+Resource, -DateTime) is det.
 
 'dc:created'(Res, DT) :-
-  rdf_has(Res, dc:created, DT^xsd:date).
+  rdf_has(Res, dc:created, DT^^xsd:date).
 
 
 %! 'dc:created'(+Resource)// is det.
