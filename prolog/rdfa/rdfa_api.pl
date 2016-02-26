@@ -29,17 +29,24 @@
 
 
 
+
+
+%! rdfa_date_time(+P, +Something, +Masks)// is det.
+
 rdfa_date_time(P1, Something, Masks) -->
   {
     something_to_date_time(Something, DT),
     date_time_masks(Masks, DT, MaskedDT),
     current_ltag(LTag),
-    html_human_date_time(MaskedDT, HumanString, _{ltag: LTag, masks: Masks}),
     html_machine_date_time(MaskedDT, MachineString),
     xsd_date_time_datatype(DT, D1),
     maplist(rdfa_prefixed_iri, [P1,D1], [P2,D2])
   },
-  html(time([datatype=D2,datetime=MachineString,property=P2], HumanString)).
+  html(
+    time([datatype=D2,datetime=MachineString,property=P2],
+      \html_human_date_time(MaskedDT, _{ltag: LTag, masks: Masks})
+    )
+  ).
 
 
 
