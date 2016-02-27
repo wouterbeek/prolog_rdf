@@ -116,8 +116,8 @@ rdf_pref_string(S, P, LRange, Lit) :-
   \+ basic_filtering(LRange, LTag),
   Lit = S@LTag.
 % Plain XSD strings.
-rdf_pref_string(S, P, _, S^^xsd:string) :-
-  rdf_has(S, P, S^^xsd:string).
+rdf_pref_string(S, P, _, String^^xsd:string) :-
+  rdf_has(S, P, String^^xsd:string).
 
 
 %! rdf_pref_string_lex(?S, ?P, -Lex) is nondet.
