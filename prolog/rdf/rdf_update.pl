@@ -67,7 +67,8 @@ rdf_cp0(Action, FromG, S, P, O, ToG) :-
 
 %! rdf_cp_graph(+FromG, +ToG) is det.
 
-rdf_cp_graph(FromG, FromG) :- !.
+rdf_cp_graph(FromG, ToG) :-
+  FromG == ToG, !.
 rdf_cp_graph(FromG, ToG) :-
   rdf_cp(FromG, _, _, _, ToG).
 
