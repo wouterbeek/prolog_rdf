@@ -15,7 +15,8 @@
     rdfh_property_path//1, % +Props
     rdfh_subject//1,       % +S
     rdfh_term//1,          % +T
-    rdfh_tree//1           % +Tree
+    rdfh_tree//1,          % +Tree
+    rdfh_triple//3         % +S, +P, +O
   ]
 ).
 
@@ -172,6 +173,21 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
     ]),
     \rdfh_trees(Ns2, Trees)
   ]).
+
+
+
+rdfh_triple(S, P, O) -->
+  html([
+    "〈",
+    \rdfh_subject(S),
+    ", ",
+    \rdfh_predicate(P),
+    ", ",
+    \rdfh_object(O),
+    "〉"
+  ]).
+
+
 
 
 

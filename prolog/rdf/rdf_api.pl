@@ -7,6 +7,7 @@
     rdf_langstring_lex/3,  % ?S, ?P, -Lex
     rdf_pref_string/3,     % ?S, ?P, -Lit
     rdf_pref_string_lex/3, % ?S, ?P, -Lex
+    rdf_retractall/1,      % +Trip
     rdf_snap/1,            % :Goal_0
     rdf_triples/4,         % ?S, ?P. ?O, -Trips:ordset
     rdfs_instance0/2,      % ?I, ?C
@@ -41,6 +42,7 @@
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
    rdf_pref_string_lex(r, r, -),
+   rdf_retractall(t),
    rdf_triples(r, r, o, -),
    rdfs_instance0(o, r),
    rdfs_label(r, o),
@@ -125,6 +127,13 @@ rdf_pref_string(S, P, _, String^^xsd:string) :-
 rdf_pref_string_lex(S, P, Lex) :-
   rdf_pref_string(S, P, Lit),
   rdf_lexical_form(Lit, Lex).
+
+
+
+%! rdf_retractall(+Trip) is det.
+
+rdf_retractall(rdf(S,P,O)) :-
+  rdf_retractall(S, P, O).
 
 
 
