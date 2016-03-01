@@ -56,13 +56,12 @@ jsonld_to_triple(D, Triple, Opts) :-
   jsonld_to_context_and_data(D, Context, Data, Opts),
   jsonld_to_triple_goto(Context, Data, Triple).
 
-
+% GOTO point for recursive structures (see below).
 jsonld_to_triple_goto(Context, Data1, Triple) :-
   jsonld_to_subject(Context, Data1, S, Data2),
   % NONDET
   member(Pair, Data2),
   jsonld_to_triple(Context, S, Pair, Triple).
-
 
 %! jsonld_to_triple(+Context, +S, +Pair, -Triple) is nondet.
 
@@ -112,29 +111,30 @@ jsonld_to_list_triple(Context, S, P, L, T) :-
       )
   ).
 
-jsonld_to_list_triple0(Context, B, [X1], T):- !,
-  jsonld_object(Context, X1, X2),
-  (   rdf_equal(rdf:first, P),
-      statement_term(B, P, X2, T)
-  ;   rdf_equal(rdf:rest, P),
-      rdf_equal(rdf:nil, O),
-      statement_term(B, P, O, T)
+jsonld_to_list_triple0(Context, B, [H0], T):- !,
+  jsonld_object(Context, H0, H),
+  (   rdf_equal(rdf:first, First),
+      statement_term(B, First, H, T)
+  ;   rdf_equal(rdf:rest, Rest),
+      rdf_equal(rdf:nil, Nil),
+      statement_term(B, Rest, Nil, T)
   ).
-jsonld_to_list_triple0(Context, B1, [X1|_], T):-
-  jsonld_object(Context, X1, X2),
+jsonld_to_list_triple0(Context, B1, [H1|_], T):-
+  jsonld_object(Context, H1, H2),
   rdf_equal(rdf:first, P),
-  statement_term(B1, P, X2, T).
-jsonld_to_list_triple0(Context, B1, [_,X2|L], T):-
+  statement_term(B1, P, H2, T).
+jsonld_to_list_triple0(Context, B1, [_,H|L], T):-
   rdf_create_bnode(B2),
   (   rdf_equal(rdf:rest, P),
       statement_term(B1, P, B2, T)
-  ;   jsonld_to_list_triple0(Context, B2, [X2|L], T)
+  ;   jsonld_to_list_triple0(Context, B2, [H|L], T)
   ).
 
 jsonld_object(_, O, O) :-
   jsonld_is_bnode(O), !.
 jsonld_object(Context, O1, O2) :-
-  jsonld_expand_iri(Context, O1, O2).
+  jsonld_expand_iri(Context, O1, O2), !.
+jsonld_object(_, O, O).
 
 
 
@@ -173,12 +173,7 @@ jsonld_predicate(Context, P1, Q, [P1|T]) :-
 
 
 
-%! jsonld_to_subject(
-%!   +Context,
-%!   +Data1:list(pair),
-%!   -S,
-%!   -Data2:list(pair)
-%! ) is det.
+%! jsonld_to_subject(+Context, +Data1:list(pair), -S, -Data2:list(pair)) is det.
 % Extract or create the subject term from the JSON-LD data.
 
 % Case 1: An explicit subject term.
@@ -247,26 +242,24 @@ jsonld_to_triple(Context, S1, P, _, _, O1, T) :-
       % NONDET
       member(T, Ts)
   ).
-% Object is a compact IRI.
-jsonld_to_triple(Context, S, P, _, _, O1, T) :-
-  jsonld_expand_iri(Context, O1, O2), !,
-  statement_term(S, P, O2, T).
-% ???
+% Object is an IRI; try to expand it.
 jsonld_to_triple(Context, S, P, ODef, _, O1, T) :-
   ODef == '@id', !,
   jsonld_expand_iri(Context, O1, O2),
   statement_term(S, P, O2, T).
-% ???
+% Explicitly typed literal.
 jsonld_to_triple(_, S, P, D, _, Lex, T) :-
   ground(D), !,
   statement_term(S, P, Lex^^D, T).
-% ???
+% Language-tagged string ‘rdf:langString’.
 jsonld_to_triple(Context, S, P, _, LTag, Lex, T) :-
-  (   (nonvar(LTag) ; get_dict('@language', Context, LTag)),
-      LTag \== null
-  ->  statement_term(S, P, Lex@LTag, T)
-  ;   rdf_equal(xsd:string, D), statement_term(S, P, Lex^^D, T)
-  ).
+  (nonvar(LTag) ; get_dict('@language', Context, LTag)),
+  LTag \== null, !,
+  statement_term(S, P, Lex@LTag, T).
+% String ‘xsd:string’.
+jsonld_to_triple(_, S, P, _, _, Lex, T) :-
+  rdf_equal(xsd:string, D),
+  statement_term(S, P, Lex^^D, T).
 
 
 

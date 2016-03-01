@@ -50,8 +50,7 @@ Identifiers are atoms.
 */
 
 :- use_module(library(dcg/dcg_collection)).
-:- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(lists)).

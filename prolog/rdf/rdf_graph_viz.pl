@@ -19,7 +19,7 @@ handled by plGraphViz.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(graph/build_export_graph)).
 :- use_module(library(graph/l/l_graph)).
 :- use_module(library(gv/gv_color)).

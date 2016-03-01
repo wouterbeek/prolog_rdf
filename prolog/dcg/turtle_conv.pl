@@ -16,7 +16,6 @@ Predicates for converting Prolog to Turtle values.
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/turtle11), []).
 :- use_module(library(dcg/sparql10), ['PN_CHARS'//1,'PN_CHARS_U'//1]).
 :- use_module(library(dcg/sparql11), ['PLX'//1]).

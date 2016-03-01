@@ -18,7 +18,7 @@ Automated conversion from Prolog terms to RDF triples.
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdfs/rdfs_api)).
 :- use_module(library(uri)).

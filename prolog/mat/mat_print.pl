@@ -20,8 +20,6 @@ Printing of materialization results.
 @version 2015/08-2015/12
 */
 
-:- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).

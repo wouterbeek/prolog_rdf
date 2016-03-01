@@ -51,7 +51,6 @@
 
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_quote)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/rational_ext)).
 :- use_module(library(rdf11/rdf11)).

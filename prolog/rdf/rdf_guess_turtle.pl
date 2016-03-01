@@ -13,7 +13,6 @@
 */
 
 :- use_module(library(dcg/dcg_atom)).
-:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(option_ext)).
 :- use_module(library(typecheck)).

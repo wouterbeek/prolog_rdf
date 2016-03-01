@@ -18,7 +18,7 @@ Show RDF data structures during modeling/development.
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
-:- use_module(library(dcg/dcg_debug)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(http/json)).

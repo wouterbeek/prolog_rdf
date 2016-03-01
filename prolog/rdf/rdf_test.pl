@@ -14,8 +14,7 @@ Various tests for RDF predicates,
 */
 
 :- use_module(library(dcg/dcg_collection)).
-:- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).

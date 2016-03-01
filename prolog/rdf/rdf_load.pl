@@ -28,7 +28,7 @@ Support for loading RDF data.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_debug)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(iri/rfc3987_gen)).
