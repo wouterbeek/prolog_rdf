@@ -52,7 +52,7 @@ rdf_cp(FromG, S, P, O, ToG) :-
 rdf_cp0(Action, FromG, S, P, O, ToG) :-
   forall(rdf(S, P, O, FromG), (
     rdf_assert(S, P, O, ToG),
-    dcg_debug(rdf(update), (
+    debug(rdf(update), (
       bracketed(square, atom(Action)),
       " ",
       rdf_print_statement(S, P, O, FromG, []),

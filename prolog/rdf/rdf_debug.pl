@@ -296,7 +296,7 @@ rdf_store_metadata(S1, M) :-
   Jsonld2 = Jsonld1.put(_{'@id': S2}),
   (debugging(rdf(debug)) -> json_write_dict(user_error, Jsonld2) ; true),
   forall(jsonld_to_triple(Jsonld2, rdf(S,P,O)), (
-    dcg_debug(rdf(debug), rdf_print_statement(S, P, O, _)),
+    debug(rdf(debug), rdf_print_statement(S, P, O, _)),
     rdf_store(S, P, O)
   )).
 

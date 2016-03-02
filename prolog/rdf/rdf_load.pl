@@ -228,7 +228,7 @@ rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)) :- !,
 rdf_load_statement0(S1, P1, O0, G1) :-
   rdf11:post_object(O1, O0),
   maplist(term_norm, [S1,P1,O1,G1], [S2,P2,O2,G2]),
-  dcg_debug(rdf(load), rdf_print_statement(S2, P2, O2, G2)),
+  debug(rdf(load), rdf_print_statement(S2, P2, O2, G2)),
   rdf_assert(S2, P2, O2, G2).
 
 term_norm(T1, T2) :- rdf_is_iri(T1), !, iri_norm(T1, T2).

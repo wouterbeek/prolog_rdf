@@ -28,6 +28,7 @@ Generates end user-oriented HTML representations of RDF data.
 @version 2016/02
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_list)).
@@ -112,7 +113,7 @@ rdfh_po_table(L) -->
   html(
     table(class=[table,'table-striped'], [
       thead(tr([th('Key'),th('Value')])),
-      tbody(\'html*'(rdfh_po_row, L)) %'
+      tbody(\html_maplist(rdfh_po_row, L))
     ])
   ).
 
@@ -194,11 +195,11 @@ rdfh_triple(S, P, O) -->
 % HELPERS %
 
 common_link(I) -->
-  html([a(href=I, I), \bs_link_icon]).
+  html([a(href=I, I), \bs_icon(link)]).
 
 
 external_link(I) -->
-  html(a(href=I,\bs_link_icon)).
+  html(a(href=I,\bs_icon(link))).
 
 
 
