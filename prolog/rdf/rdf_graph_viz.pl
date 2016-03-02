@@ -1,10 +1,8 @@
 :- module(
   rdf_graph_viz,
   [
-    rdf_graph_to_export_graph/2, % +Graph, -ExportGraph
-    rdf_graph_to_export_graph/3 % +Graph:rdf_graph
-                                % -ExportGraph:compound
-                                % +Options:list(compound)
+    rdf_graph_to_export_graph/2, % +G, -ExportG
+    rdf_graph_to_export_graph/3  % +G, -ExportG, +Opts
   ]
 ).
 
@@ -14,7 +12,7 @@ Predicates for exporting RDF graphs to the graph export format
 handled by plGraphViz.
 
 @author Wouter Beek
-@version 2015/07, 2015/10, 2015/12-2016/02
+@version 2015/07, 2015/10, 2015/12-2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -40,12 +38,14 @@ handled by plGraphViz.
      rdf:rdf_class_color/2,
      rdf:rdf_edge_style/2,
      rdf:rdf_predicate_label//1.
+
 :- multifile
      rdf:rdf_class_color/2,
      rdf:rdf_edge_style/2,
      rdf:rdf_predicate_label//1.
 
-:- rdf_meta(rdf_term_to_export_graph(r,-,+)).
+:- rdf_meta
+   rdf_term_to_export_graph(r, -, +).
 
 :- predicate_options(rdf_edges_to_export_graph/3, 3, [
      colorscheme(+oneof([none,svg,x11])),
@@ -102,11 +102,7 @@ create_namespace_map(Prefixes, Scheme, Map) :-
 
 
 
-%! rdf_edges_to_export_graph(
-%!   +Triples:list(compound),
-%!   -ExportGraph:compound,
-%!   +Options:list(compound)
-%! ) is det.
+%! rdf_edges_to_export_graph(+Trips, -ExportG, +Opts) is det.
 % The following options are supported:
 %   * colorscheme(+oneof([none,svg,x11]))
 %     The colorscheme for the colors assigned to vertices and edges.
@@ -146,18 +142,14 @@ rdf_edges_to_export_graph(Es, ExportG, Opts1) :-
 
 
 
-%! rdf_graph_to_export_graph(+Graph:rdf_graph, -ExportGraph:compound) is det.
+%! rdf_graph_to_export_graph(+Graph, -ExportG) is det.
 % Wrapper around rdf_graph_to_export_graph/3 with default options.
 
 rdf_graph_to_export_graph(G, ExportG) :-
   rdf_graph_to_export_graph(G, ExportG, []).
 
 
-%! rdf_graph_to_export_graph(
-%!   +Graph:rdf_graph,
-%!   -ExportGraph:compound,
-%!   +Options:list(compound)
-%! ) is det.
+%! rdf_graph_to_export_graph(+G, -ExportG, +Opts) is det.
 
 rdf_graph_to_export_graph(G, ExportG, Opts) :-
   rdf_graph_edges(G, Es),
@@ -165,11 +157,7 @@ rdf_graph_to_export_graph(G, ExportG, Opts) :-
 
 
 
-%! rdf_term_to_export_graph(
-%!   +Term:rdf_term,
-%!   -ExportGraph:compound,
-%!   +Options:list(compound)
-%! ) is det.
+%! rdf_term_to_export_graph(+T, -ExportG, +Opts) is det.
 % The following options are supported:
 %   * depth(+nonneg)
 %     How much context is taken into account when exporting an RDF term.

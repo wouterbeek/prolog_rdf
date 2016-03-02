@@ -41,7 +41,8 @@ Persistent store of SPARQL-related information.
 %! sparql_endpoint(?Endpoint:atom) is nondet.
 % Currently registered SPARQL endpoints.
 
-:- dynamic(sparql_endpoint/1).
+:- dynamic
+    sparql_endpoint/1.
 
 %! sparql_endpoint_option0(
 %!   ?Endpoint:atom,
@@ -56,8 +57,11 @@ Persistent store of SPARQL-related information.
 % which uses a compound term to denote a location for the given endpoint.
 % An endpoint has at least one location.
 
-:- dynamic(sparql_endpoint_option0/3).
-:- multifile(sparql_endpoint_option0/3).
+:- dynamic
+    sparql_endpoint_option0/3.
+
+:- multifile
+    sparql_endpoint_option0/3.
 
 %! sparql_manufacturer_option0(
 %!   ?Endpoint:atom,
@@ -69,7 +73,8 @@ Persistent store of SPARQL-related information.
 %
 % Individual endpoints can override these settings.
 
-:- dynamic(sparql_manufacturer_option0/3).
+:- dynamic
+    sparql_manufacturer_option0/3.
 
 :- initialization(sparql_init).
 
