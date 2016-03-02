@@ -36,6 +36,11 @@ jsonld_abbreviate_iri(Context, Full, Compact) :-
 
 %! jsonld_expand_iri(+Context, +Compact, -Full) is det.
 
+% Case 0; IRIs are stored as strings in JSON-LD, so first turn them into atoms.
+jsonld_expand_iri(Content, Compact1, Full) :-
+  string(Compact1), !,
+  atom_string(Compact2, Compact1),
+  jsonld_expand_iri(Content, Compact2, Full).
 % Case 1: Names that can be expanded by the JSON-LD context.
 jsonld_expand_iri(Context, Compact, Full) :-
   atomic_list_concat([Alias,Local], :, Compact),

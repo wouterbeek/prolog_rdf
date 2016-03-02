@@ -52,74 +52,78 @@ rdfh_alias(Alias) --> html(Alias).
 
 
 
-rdfh_bnode(B) --> rdfh_link(bnode(B)).
+rdfh_bnode(B) --> rdfh_link(bnode(B), B).
 
 
 
-rdfh_class(C) --> rdfh_link(class(C)).
+rdfh_class(C) --> rdfh_link(class(C), \rdfh_iri(C)).
 
 
 
-rdfh_datatype(D) --> rdfh_link(datatype(D)).
+rdfh_datatype(D) --> rdfh_link(datatype(D), \rdfh_iri(D)).
 
 
 
-rdfh_graph(G) --> rdfh_link(graph(G)).
+rdfh_graph(G) --> rdfh_link(graph(G), \rdfh_iri(G)).
 
 
 
 % Abbreviated notation for IRI.
 rdfh_iri(Iri) -->
   {rdf_global_id(Alias:Local, Iri)}, !,
-  html([\rdfh_alias(Alias),":",Local]).
+  external_link(Iri, [\rdfh_alias(Alias),":",Local]).
 % RDFS label replacing IRI or plain IRI.
 rdfh_iri(Iri) -->
   {(rdfs_label(Iri, Lbl) -> true ; Lbl = Iri)},
-  html(Lbl).
+  external_link(Iri, Lbl).
 
 
+
+rdfh_literal(Lit) --> rdfh_link(literal(Lit), rdfh_literal0(Lit)).
 
 % RDF language-tagged string.
-rdfh_literal(S@LTag) --> !,
+rdfh_literal0(S@LTag) --> !,
   html(span(lang=LTag, S)).
 % XSD string.
-rdfh_literal(V^^D) -->
+rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
   html(V).
 % XSD integer.
-rdfh_literal(V^^D) -->
+rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:integer)}, !,
   html('~D'-[V]).
 % XSD float or double.
-rdfh_literal(V^^D) -->
+rdfh_literal0(V^^D) -->
   {(  rdf_subdatatype_of(D, xsd:float)
   ;   rdf_subdatatype_of(D, xsd:double)
   )}, !,
   html('~G'-[V]).
 % XSD date/time.
-rdfh_literal(V^^D) -->
+rdfh_literal0(V^^D) -->
   {rdf11:xsd_date_time_type(D)}, !,
   html_date_time(V).
 % XSD URI
-rdfh_literal(V^^D) -->
+rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
 
 
 
+rdfh_object(O) --> rdfh_link(O, rdfh_object0(O)).
+
 % IRI.
-rdfh_object(O) --> {rdf_is_iri(O)}, !, rdfh_iri(O).
+rdfh_object0(O) --> {rdf_is_iri(O)}, !, rdfh_iri(O).
 % Literal.
-rdfh_object(O) --> {rdf_is_literal(O)}, !, rdfh_literal(O).
+rdfh_object0(O) --> {rdf_is_literal(O)}, !, rdfh_literal0(O).
 % Blank node.
-rdfh_object(O) --> {rdf_is_bnode(O)}, !, rdfh_bnode(O).
+rdfh_object0(O) --> {rdf_is_bnode(O)}, !, rdfh_bnode0(O).
 
 
 
 %! rdfh_po_row(+Pair)// is det.
 
 rdfh_po_row(P-Os) -->
-  html(tr([td(\rdfh_property(P)),td(\html_seplist(rdfh_object, Os))])).
+  html(tr([td(\rdfh_property(P)),td(\seplist(rdfh_object, Os))])).
 
 
 
@@ -133,30 +137,33 @@ rdfh_po_table(L) -->
 
 
 
-rdfh_predicate(P) -->
-  html(span(class=predicate, \rdfh_link(predicate(P)))).
+rdfh_predicate(P) --> rdfh_link(P, rdfh_iri(P)).
 
 
 
-rdfh_property(Prop) --> rdfh_link(property(Prop)).
+rdfh_property(Prop) --> rdfh_link(Prop, rdfh_iri(Prop)).
 
 
 
-rdfh_property_path(L) --> html_seplist(rdfh_property, L).
+rdfh_property_path(L) --> seplist(rdfh_property, L).
 
 
 
-rdfh_subject(S) --> {rdf_is_iri(S)}, !, rdfh_iri(S).
-rdfh_subject(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode(S).
+rdfh_subject(S) --> rdfh_link(S, rdfh_subject0(S)).
+
+rdfh_subject0(S) --> {rdf_is_iri(S)}, !, rdfh_iri(S).
+rdfh_subject0(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode0(S).
 
 
+
+rdfh_term(T) --> rdfh_link(term(T), rdfh_term0(T)).
 
 % Blank node
-rdfh_term(B) --> {rdf_is_bnode(B)}, !, rdfh_bnode(B).
+rdfh_term0(B) --> {rdf_is_bnode(B)}, !, rdfh_bnode0(B).
 % Literal
-rdfh_term(L) --> {rdf_is_literal(L)}, !, rdfh_literal(L).
+rdfh_term0(L) --> {rdf_is_literal(L)}, !, rdfh_literal0(L).
 % IRI
-rdfh_term(I) --> {rdf_is_iri(I)}, !, rdfh_iri(I).
+rdfh_term0(I) --> {rdf_is_iri(I)}, !, rdfh_iri(I).
 
 
 
@@ -198,13 +205,13 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
 
 rdfh_triple(S, P, O) -->
   html([
-    "〈",
+    &(lang),
     \rdfh_subject(S),
     ", ",
     \rdfh_predicate(P),
     ", ",
     \rdfh_object(O),
-    "〉"
+    &(rang)
   ]).
 
 
@@ -214,5 +221,10 @@ rdfh_triple(S, P, O) -->
 % HELPERS %
 
 rdfh_link(Query, Content_2) -->
-  {http_link_to_id(rdfh, [Query], Uri)},
+  {
+    http_current_handler(_, rdfh), !,
+    http_link_to_id(rdfh, [Query], Uri)
+  },
   internal_link(Uri, Content_2).
+rdfh_link(_, Content_2) -->
+  Content_2.

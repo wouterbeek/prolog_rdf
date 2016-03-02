@@ -13,7 +13,7 @@
 
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/html_grid)).
-:- use_module(library(html/rdf_html_stmt)).
+:- use_module(library(html/rdfh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_grid)).
 :- use_module(library(rdf11/rdf11)).
@@ -30,7 +30,7 @@
 
 rdf_html_grid(G) -->
   {rdf_grid(G, Widgets)},
-  html_grid(Widgets).
+  html_grid(rdf_html_grid:Widgets).
 
 
 %! http_header(+S, +P, +O)// is det.
@@ -41,7 +41,7 @@ http_header(S, P, O) -->
 
 http_header_value(L) -->
   {is_list(L)}, !,
-  rdfh_list(L).
+  list(rdfh_literal, L).
 http_header_value(O) -->
   {rdf_is_literal(O)}, !,
   rdfh_literal(O).
@@ -51,7 +51,7 @@ http_header_value(media_type(Type,Subtype,Params)) --> !,
     "/",
     \rdfh_literal(Subtype),
     "; ",
-    \html_seplist(http_parameter, Params)
+    \seplist(http_parameter, Params)
   ]).
 http_header_value(product(Name,Version)) -->
   html([\rdfh_literal(Name),": ",\rdfh_literal(Version)]).

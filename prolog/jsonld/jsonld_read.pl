@@ -83,7 +83,7 @@ jsonld_to_bnode(B1, B2) :-
 
 
 
-%! jsonld_dict_to_triple(+Context, +S, +P, +Dicts, -Triple) is nondet.
+%! jsonld_dict_to_triple(+Context, +S, +P, +Dict, -Triple) is nondet.
 
 jsonld_dict_to_triple(Context, S1, P, D, T) :-
   dict_pairs(D, Pairs),
@@ -97,37 +97,35 @@ jsonld_dict_to_triple(Context, S1, P, D, T) :-
 
 
 
-%! jsonld_to_list_triple(+Context, +S, +P, +List, -Triple) is nondet.
+%! jsonld_to_list_triple(+Context, +S, +P, +ODef, _LTag,  +L, -Trip) is nondet.
 
-jsonld_to_list_triple(Context, S, P, L, T) :-
-  L \== [],
-  (   maplist(is_dict, L)
-  ->  % NONDET
-      member(D, L),
-      jsonld_dict_to_triple(Context, S, P, D, T)
-  ;   rdf_create_bnode(B),
-      (   statement_term(S, P, B, T)
-      ;   gtrace,jsonld_to_list_triple0(Context, B, L, T)
-      )
+jsonld_to_list_triple(_, _, _, _, _, [], _) :- !, fail.
+jsonld_to_list_triple(Context, S, P, _, _, Ds, T) :-
+  maplist(is_dict, Ds), !,
+  % NONDET
+  member(D, Ds),
+  jsonld_dict_to_triple(Context, S, P, D, T).
+jsonld_to_list_triple(Context, S, P, ODef, LTag, L, T) :-
+  rdf_create_bnode(B),
+  (   statement_term(S, P, B, T)
+  ;   jsonld_to_list_triple0(Context, B, ODef, LTag, L, T)
   ).
 
-jsonld_to_list_triple0(Context, B, [H0], T):- !,
-  jsonld_object(Context, H0, H),
+jsonld_to_list_triple0(Context, B, ODef, LTag, [H], T):- !,
   (   rdf_equal(rdf:first, First),
-      statement_term(B, First, H, T)
+      jsonld_to_triple(Context, B, First, ODef, LTag, H, T)
   ;   rdf_equal(rdf:rest, Rest),
       rdf_equal(rdf:nil, Nil),
-      statement_term(B, Rest, Nil, T)
+      jsonld_to_triple(Context, B, Rest, ODef, LTag, Nil, T)
   ).
-jsonld_to_list_triple0(Context, B1, [H1|_], T):-
-  jsonld_object(Context, H1, H2),
-  rdf_equal(rdf:first, P),
-  statement_term(B1, P, H2, T).
-jsonld_to_list_triple0(Context, B1, [_,H|L], T):-
+jsonld_to_list_triple0(Context, B1, ODef, LTag, [H1|_], T):-
+  rdf_equal(rdf:first, First),
+  jsonld_to_triple(Context, B1, First, ODef, LTag, H1, T).
+jsonld_to_list_triple0(Context, B1, ODef, LTag, [_,H|L], T):-
   rdf_create_bnode(B2),
-  (   rdf_equal(rdf:rest, P),
-      statement_term(B1, P, B2, T)
-  ;   jsonld_to_list_triple0(Context, B2, [H|L], T)
+  (   rdf_equal(rdf:rest, Rest),
+      jsonld_to_triple(Context, B1, Rest, ODef, LTag, B2, T)
+  ;   jsonld_to_list_triple0(Context, B2, ODef, LTag, [H|L], T)
   ).
 
 jsonld_object(_, O, O) :-
@@ -197,11 +195,11 @@ jsonld_to_triple(_, S, P, _, _, _{'@id': O1}, T) :-
   jsonld_to_bnode(O1, O2),
   statement_term(S, P, O2, T).
 % RDF container.
-jsonld_to_triple(Context, S, P, ODef, _, Os, T) :-
+jsonld_to_triple(Context, S, P, ODef, LTag, Os, T) :-
   (ODef == '@list' ; ODef == '@set'), !,
   is_list(Os),
   % NONDET
-  jsonld_to_list_triple(Context, S, P, Os, T).
+  jsonld_to_list_triple(Context, S, P, ODef, LTag, Os, T).
 % Abbreviated object list.
 jsonld_to_triple(Context, S, P, ODef, LTag, Os, T) :-
   is_list(Os), !,
@@ -209,12 +207,12 @@ jsonld_to_triple(Context, S, P, ODef, LTag, Os, T) :-
   member(O, Os),
   jsonld_to_triple(Context, S, P, ODef, LTag, O, T).
 % Object is an RDF container.
-jsonld_to_triple(Context, S, P, _, _, _{'@list': L}, T) :- !,
+jsonld_to_triple(Context, S, P, ODef, LTag, _{'@list': L}, T) :- !,
   % NONDET
-  jsonld_to_list_triple(Context, S, P, L, T).
-jsonld_to_triple(Context, S, P, _, _, _{'@set': L}, T) :- !,
+  jsonld_to_list_triple(Context, S, P, ODef, LTag, L, T).
+jsonld_to_triple(Context, S, P, ODef, LTag, _{'@set': L}, T) :- !,
   % NONDET
-  jsonld_to_list_triple(Context, S, P, L, T).
+  jsonld_to_list_triple(Context, S, P, ODef, LTag, L, T).
 % Object is an RDF language-tagged string.
 jsonld_to_triple(_, S, P, _, _, _{'@language': LTag, '@value': Lex}, T) :- !,
   statement_term(S, P, Lex@LTag, T).
@@ -272,7 +270,7 @@ jsonld_to_triple(_, S, P, _, _, Lex, T) :-
 
 jsonld_datatype_mapping(_, [], _) :- !.
 jsonld_datatype_mapping(Context, [Key|_], D2) :-
-  memberchk(Key-ODef, Context.map),
+  get_dict(Key, Context, ODef),
   is_dict(ODef),
   (   get_dict('@type', ODef, D1)
   ->  jsonld_expand_iri(Context, D1, D2)

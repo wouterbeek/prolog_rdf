@@ -45,7 +45,7 @@ graph_to_widgets(G, [H|T]) :-
 graph_to_widgets(_, []).
 
 % Widget for an HTTP header.
-graph_to_widget(G, header(S, P, V2)) :-
+graph_to_widget(G, http_header(S, P, V2)) :-
   rdf(O, rdf:type, llo:'ValidHttpHeader', G),
   rdf(O, llo:value, V1, G), !,
   http_header_value(V1, V2, G),
