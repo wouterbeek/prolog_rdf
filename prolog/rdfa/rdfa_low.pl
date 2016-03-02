@@ -3,6 +3,7 @@
   [
     'bf:subtitle'/2,      % +Article, -Subtitle
     'bf:subtitle'//1,     % +Article
+    'dc:abstract'/2,      % +Resource, -Abstract
     'dc:abstract'//1,     % +Resource
     'dc:created'/2,       % +Resource, -DT
     'dc:created'//1,      % +Resource
@@ -22,7 +23,8 @@
     'foaf:mbox'/2,        % +Agent, -Uri
     'foaf:mbox'//1,       % +Agent
     'foaf:name'/2,        % +Agent, -Name
-    'foaf:name'//1        % +Agent
+    'foaf:name'//1,       % +Agent
+    'org:memberOf'//1     % +Agent
   ]
 ).
 :- reexport(library(rdfa/rdfa_api)).
@@ -36,6 +38,32 @@
 :- use_module(library(html/html_bs)).
 :- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_api)).
+
+:- rdf_meta
+   'bf:subtitle'(r, -),
+   'bf:subtitle'(r, ?, ?),
+   'dc:abstract'(r, -),
+   'dc:abstract'(r, ?, ?),
+   'dc:created'(r, -),
+   'dc:created'(r, ?, ?),
+   'dc:creator'(r, -),
+   'dc:creator'(r, ?, ?),
+   'dc:subject'(r, -),
+   'dc:title'(r, -),
+   'dc:title'(r, ?, ?),
+   'foaf:depiction'(r, -),
+   'foaf:depiction'(r, ?, ?),
+   'foaf:familyName'(r, -),
+   'foaf:familyName'(r, ?, ?),
+   'foaf:givenName'(r, -),
+   'foaf:givenName'(r, ?, ?),
+   'foaf:homepage'(r, -),
+   'foaf:homepage'(r, ?, ?),
+   'foaf:mbox'(r, -),
+   'foaf:mbox'(r, ?, ?),
+   'foaf:name'(r, -),
+   'foaf:name'(r, ?, ?),
+   'org:memberOf'(r, ?, ?).
 
 
 
@@ -55,10 +83,16 @@
 
 
 
+%! 'dc:abstract'(+Resource, -Abstract) is det.
+
+'dc:abstract'(Res, Abstract) :-
+  rdf_pref_string_lex(Res, dc:abstract, Abstract).
+
+
 %! 'dc:abstract'(+Resource)// is det.
 
 'dc:abstract'(Res) -->
-  {once(rdf_has(Res, dc:abstract, Abstract))},
+  {once('dc:abstract'(Res, Abstract))},
   html(p(property='dc:abstract', Abstract)).
 
 
@@ -66,7 +100,7 @@
 %! 'dc:created'(+Resource, -DateTime) is det.
 
 'dc:created'(Res, DT) :-
-  rdf_has(Res, dc:created, DT^xsd:date).
+  rdf_has(Res, dc:created, DT^^xsd:date).
 
 
 %! 'dc:created'(+Resource)// is det.
@@ -167,7 +201,7 @@
 
 'foaf:homepage'(Agent) -->
   {once('foaf:homepage'(Agent, Uri))},
-  html(a([href=Uri,rel='foaf:homepage'], [\bs_icon(web),code(Uri)])).
+  html(a([href=Uri,rel='foaf:homepage'], [\bs_icon(web)," ",code(Uri)])).
 
 
 
@@ -184,7 +218,7 @@
     once('foaf:mbox'(Agent, Uri)),
     atomic_list_concat([mailto,Local], ':', Uri)
   },
-  html(a([href=Uri,property='foaf:mbox'], [\bs_icon(mail), code(Local)])).
+  html(a([href=Uri,property='foaf:mbox'], [\bs_icon(mail)," ",code(Local)])).
 
 
 
@@ -199,3 +233,15 @@
 'foaf:name'(Agent) -->
   {'foaf:name'(Agent, Name)},
   html(span(property='foaf:name', Name)).
+
+
+
+%! 'org:memberOf'(+Agent)// is det.
+
+'org:memberOf'(Agent) -->
+  {
+    once(rdf_has(Agent, org:memberOf, Organization)),
+    once(rdfs_label_lex(Organization, Label)),
+    rdfa_prefixed_iri(Organization, Organization0)
+  },
+  html(span(property=Organization0, Label)).

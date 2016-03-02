@@ -4,10 +4,11 @@
     rdfh_alias//1,         % +Alias
     rdfh_bnode//1,         % +B
     rdfh_class//1,         % +C
+    rdfh_datatype//1,      % +D
+    rdfh_graph//1,         % +G
     rdfh_iri//1,           % +Iri
     rdfh_literal//1,       % +Lit
     rdfh_object//1,        % +O
-    rdfh_objects//1,       % +Os
     rdfh_po_row//1,        % +Pair
     rdfh_po_table//1,      % +Pairs
     rdfh_predicate//1,     % +P
@@ -15,7 +16,8 @@
     rdfh_property_path//1, % +Props
     rdfh_subject//1,       % +S
     rdfh_term//1,          % +T
-    rdfh_tree//1           % +Tree
+    rdfh_tree//1,          % +Tree
+    rdfh_triple//3         % +S, +P, +O
   ]
 ).
 
@@ -23,10 +25,13 @@
 
 Generates end user-oriented HTML representations of RDF data.
 
+This assumes that an HTTP handler with id `rdfh` is defined.
+
 @author Wouter Beek
-@version 2016/02
+@version 2016/02-2016/03
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_list)).
@@ -37,106 +42,123 @@ Generates end user-oriented HTML representations of RDF data.
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(settings)).
 
-:- setting(rdfh:handle_id, atom, root, '').
+:- html_meta
+   rdfh_link(+, html, ?, ?).
 
 
 
-rdfh_alias(Alias) -->
-  html(span(class=alias, Alias)).
+
+
+rdfh_alias(Alias) --> html(Alias).
 
 
 
-rdfh_bnode(B) -->
-  html(span(class=bnode, B)).
+rdfh_bnode(B) --> rdfh_link(bnode(B)).
 
 
 
-rdfh_class(C) -->
-  html(span=class, \rdfh_iri(C)).
+rdfh_class(C) --> rdfh_link(class(C)).
 
 
 
-rdfh_iri(I) -->
-  html(span(class=iri,\rdfh_iri0(I))).
+rdfh_datatype(D) --> rdfh_link(datatype(D)).
 
-rdfh_iri0(I) -->
-  {rdfs_label(I, Lbl)},
+
+
+rdfh_graph(G) --> rdfh_link(graph(G)).
+
+
+
+% Abbreviated notation for IRI.
+rdfh_iri(Iri) -->
+  {rdf_global_id(Alias:Local, Iri)}, !,
+  html([\rdfh_alias(Alias),":",Local]).
+% RDFS label replacing IRI or plain IRI.
+rdfh_iri(Iri) -->
+  {(rdfs_label(Iri, Lbl) -> true ; Lbl = Iri)},
   html(Lbl).
-rdfh_iri0(I) -->
-  {rdf_global_id(Alias:Local, I)}, !,
-  html([\rdfh_alias(Alias),:,span(class=local,Local)]).
-rdfh_iri0(I) -->
-  html(I).
 
 
 
-rdfh_literal(Lit) -->
-  html(span(class=literal, \rdfh_literal0(Lit))).
-
-rdfh_literal0(S@LTag) --> !,
-  {rdf_equal(rdf:langString, D)},
-  html(span([class=D,lang=LTag], S)).
-rdfh_literal0(V^^D) -->
+% RDF language-tagged string.
+rdfh_literal(S@LTag) --> !,
+  html(span(lang=LTag, S)).
+% XSD string.
+rdfh_literal(V^^D) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
-  html(span(class=D,V)).
-rdfh_literal0(V^^D) -->
+  html(V).
+% XSD integer.
+rdfh_literal(V^^D) -->
   {rdf_subdatatype_of(D, xsd:integer)}, !,
-  html(span(class=D,'~D'-[V])).
-rdfh_literal0(V^^D) -->
-  {(rdf_subdatatype_of(D, xsd:float) ; rdf_subdatatype_of(D, xsd:double))}, !,
-  html(span(class=D,'~G'-[V])).
-rdfh_literal0(V^^D) -->
+  html('~D'-[V]).
+% XSD float or double.
+rdfh_literal(V^^D) -->
+  {(  rdf_subdatatype_of(D, xsd:float)
+  ;   rdf_subdatatype_of(D, xsd:double)
+  )}, !,
+  html('~G'-[V]).
+% XSD date/time.
+rdfh_literal(V^^D) -->
   {rdf11:xsd_date_time_type(D)}, !,
   html_date_time(V).
-rdfh_literal0(V^^D) -->
+% XSD URI
+rdfh_literal(V^^D) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
 
 
-rdfh_object(O) --> html(span(class=object, \rdfh_object0(O))).
 
-rdfh_object0(O) --> {rdf_is_iri(O)}, !, rdfh_iri(O).
-rdfh_object0(O) --> {rdf_is_literal(O)}, !, rdfh_literal(O).
-rdfh_object0(O) --> {rdf_is_bnode(O)}, !, rdfh_bnode(O).
+% IRI.
+rdfh_object(O) --> {rdf_is_iri(O)}, !, rdfh_iri(O).
+% Literal.
+rdfh_object(O) --> {rdf_is_literal(O)}, !, rdfh_literal(O).
+% Blank node.
+rdfh_object(O) --> {rdf_is_bnode(O)}, !, rdfh_bnode(O).
 
-rdfh_objects([]) --> [].
-rdfh_objects([H|T]) --> html(div(\rdfh_object(H))), rdfh_objects(T).
 
+
+%! rdfh_po_row(+Pair)// is det.
 
 rdfh_po_row(P-Os) -->
-  html(tr([td(\rdfh_property(P)),td(\rdfh_objects(Os))])).
+  html(tr([td(\rdfh_property(P)),td(\html_seplist(rdfh_object, Os))])).
+
 
 
 rdfh_po_table(L) -->
   html(
     table(class=[table,'table-striped'], [
       thead(tr([th('Key'),th('Value')])),
-      tbody(\'html*'(rdfh_po_row, L)) %'
+      tbody(\html_maplist(rdfh_po_row, L))
     ])
   ).
 
 
-rdfh_predicate(P) --> html(span(class=predicate, \rdfh_iri(P))).
+
+rdfh_predicate(P) -->
+  html(span(class=predicate, \rdfh_link(predicate(P)))).
 
 
-rdfh_property(Prop) --> html(span(class=property, \rdfh_iri(Prop))).
 
-rdfh_property_path([]) --> [].
-rdfh_property_path([H]) --> rdfh_property(H).
-rdfh_property_path([H|T]) --> html([\rdfh_property(H),/,\rdfh_property_path(T)]).
+rdfh_property(Prop) --> rdfh_link(property(Prop)).
 
 
-rdfh_subject(S) --> html(span(class=subject, \rdfh_subject0(S))).
 
-rdfh_subject0(S) --> {rdf_is_iri(S)}, !, rdfh_iri(S).
-rdfh_subject0(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode(S).
+rdfh_property_path(L) --> html_seplist(rdfh_property, L).
 
 
-rdfh_term(T) --> html(span(class=term, \rdfh_term0(T))).
 
-rdfh_term0(B) --> {rdf_is_bnode(B)}, !, rdfh_bnode(B).
-rdfh_term0(L) --> {rdf_is_literal(L)}, !, rdfh_literal(L).
-rdfh_term0(I) --> {rdf_is_iri(I)}, !, rdfh_iri(I).
+rdfh_subject(S) --> {rdf_is_iri(S)}, !, rdfh_iri(S).
+rdfh_subject(S) --> {rdf_is_bnode(S)}, !, rdfh_bnode(S).
+
+
+
+% Blank node
+rdfh_term(B) --> {rdf_is_bnode(B)}, !, rdfh_bnode(B).
+% Literal
+rdfh_term(L) --> {rdf_is_literal(L)}, !, rdfh_literal(L).
+% IRI
+rdfh_term(I) --> {rdf_is_iri(I)}, !, rdfh_iri(I).
+
 
 
 rdfh_tree(Tree) -->
@@ -175,17 +197,23 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
 
 
 
+rdfh_triple(S, P, O) -->
+  html([
+    "〈",
+    \rdfh_subject(S),
+    ", ",
+    \rdfh_predicate(P),
+    ", ",
+    \rdfh_object(O),
+    "〉"
+  ]).
+
+
+
+
+
 % HELPERS %
 
-common_link(I) -->
-  html([a(href=I, I), \bs_link_icon]).
-
-
-external_link(I) -->
-  html(a(href=I,\bs_link_icon)).
-
-
-
-internal_link(T, I) :-
-  setting(rdfh:handle_id, HandleId),
-  http_link_to_id(HandleId, [term(T)], I).
+rdfh_link(Query, Content_2) -->
+  {http_link_to_id(rdfh, [Query], Uri)},
+  internal_link(Uri, Content_2).

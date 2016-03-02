@@ -18,6 +18,7 @@
     rdf_html_term//2,		% +T, +Opts
     rdf_html_triple//1,		% +Trip
     rdf_html_triple//2,		% +Trip, +Opts
+    rdf_html_triple//3,		% ?S, ?P, ?O
     rdf_html_triple//4,		% ?S, ?P, ?O, ?G
     rdf_html_triple//5,		% ?S, ?P, ?O, ?G, +Opts
     rdf_html_triples//1,	% +Trips
@@ -55,6 +56,7 @@
    rdf_html_term(o, +, ?, ?),
    rdf_html_triple(t, ?, ?),
    rdf_html_triple(t, +, ?, ?),
+   rdf_html_triple(r, r, o, ?, ?),
    rdf_html_triple(r, r, o, r, ?, ?),
    rdf_html_triple(r, r, o, r, +, ?, ?),
    rdf_html_triples(t, ?, ?),
@@ -249,7 +251,8 @@ rdf_html_triple(rdf(S,P,O), Opts) -->
   rdf_html_statement(S, P, O, _, Opts).
 
 
-%! rdf_html_triple(?S, ?P, ?O, +Opts)// is nondet.
+%! rdf_html_triple(?S, ?P, ?O)// is nondet.
+%! rdf_html_triple(?S, ?P, ?O, ?G)// is nondet.
 %! rdf_html_triple(?S, ?P, ?O, ?G, +Opts)// is det.
 % The following options are supported:
 %   * abbr_iri(+boolean)
@@ -258,6 +261,9 @@ rdf_html_triple(rdf(S,P,O), Opts) -->
 %   * label_iri(+boolean)
 %   * page_size(+nonneg)
 %   * symbol_iri(+boolean)
+
+rdf_html_triple(S, P, O) -->
+  rdf_html_triple(S, P, O, _).
 
 rdf_html_triple(S, P, O, G) -->
   rdf_html_triple(S, P, O, G, []).

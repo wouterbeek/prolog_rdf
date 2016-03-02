@@ -18,9 +18,7 @@ Higher-level update operations performed on RDF data.
 @version 2015/07-2015/08, 2015/10-2016/01
 */
 
-:- use_module(library(dcg/dcg_bracket)).
-:- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_debug)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_print_stmt)).
@@ -54,7 +52,7 @@ rdf_cp(FromG, S, P, O, ToG) :-
 rdf_cp0(Action, FromG, S, P, O, ToG) :-
   forall(rdf(S, P, O, FromG), (
     rdf_assert(S, P, O, ToG),
-    dcg_debug(rdf(update), (
+    debug(rdf(update), (
       bracketed(square, atom(Action)),
       " ",
       rdf_print_statement(S, P, O, FromG, []),
@@ -67,7 +65,8 @@ rdf_cp0(Action, FromG, S, P, O, ToG) :-
 
 %! rdf_cp_graph(+FromG, +ToG) is det.
 
-rdf_cp_graph(FromG, FromG) :- !.
+rdf_cp_graph(FromG, ToG) :-
+  FromG == ToG, !.
 rdf_cp_graph(FromG, ToG) :-
   rdf_cp(FromG, _, _, _, ToG).
 

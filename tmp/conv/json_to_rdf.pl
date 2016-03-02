@@ -25,7 +25,7 @@ the RDF prefix that is used for the RDF vocabulary.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/turtle_conv)).
 :- use_module(library(error)).
 :- use_module(library(lists)).

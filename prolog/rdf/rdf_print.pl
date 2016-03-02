@@ -25,7 +25,7 @@ Printing of RDF statements to a text-based output stream.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(error)).
 :- use_module(library(lists)).

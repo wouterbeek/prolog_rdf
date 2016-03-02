@@ -51,18 +51,18 @@ rdf_subdatatype_of(X, Y) :-
 
 %! xsd_date_time_datatype(+DT, -D) is det.
 
-xsd_date_time_datatype(datetime(Y,Mo,D,H,Mi,S,_), D):-
+xsd_date_time_datatype(date_time(Y,Mo,Da,H,Mi,S,_), D) :-
   (   % xsd:dateTime
-      ground(date(Y,Mo,D,H,Mi,S))
+      ground(date(Y,Mo,Da,H,Mi,S))
   ->  rdf_equal(xsd:dateTime, D)
   ;   % xsd:date
-      ground(date(Y,Mo,D))
+      ground(date(Y,Mo,Da))
   ->  rdf_equal(xsd:date, D)
   ;   % xsd:time
       ground(date(H,Mi,S))
   ->  rdf_equal(xsd:time, D)
   ;   % xsd:gMonthDay
-      ground(date(Mo,D))
+      ground(date(Mo,Da))
   ->  rdf_equal(xsd:gMonthDay, D)
   ;   % xsd:gYearMonth
       ground(date(Y,Mo))

@@ -13,7 +13,7 @@
 @version 2015/08-2015/12, 2016/02
 */
 
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_guess_turtle)).

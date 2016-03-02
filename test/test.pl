@@ -14,10 +14,12 @@
 %/html
 :- use_module(library(html/rdf_html_fca_viz)).
 :- use_module(library(html/rdf_html_graph_viz)).
+:- use_module(library(html/rdf_html_grid)).
 :- use_module(library(html/rdf_html_meta)).
 :- use_module(library(html/rdf_html_stmt)).
 :- use_module(library(html/rdf_html_table)).
 :- use_module(library(html/rdf_html_term)).
+:- use_module(library(html/rdfh)).
 %/mat
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).

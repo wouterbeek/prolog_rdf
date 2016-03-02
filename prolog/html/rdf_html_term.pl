@@ -23,12 +23,12 @@
 Generates developer-oriented HTML representations of RDF data.
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/12-2016/02
+@version 2015/08-2015/09, 2015/12-2016/03
 */
 
 :- use_module(library(atom_ext)).
 :- use_module(library(html/html_collection)).
-:- use_module(library(html/html_link)).
+:- use_module(library(html/html_ext)).
 :- use_module(library(html/html_pl)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
@@ -61,9 +61,6 @@ Generates developer-oriented HTML representations of RDF data.
    ]).
 :- predicate_options(rdf_html_datatype//2, 2, [
      pass_to(rdf_html_iri//2, 2)
-   ]).
-:- predicate_options(rdf_html_graph//2, 2, [
-     pass_to(html_link//3, 3)
    ]).
 :- predicate_options(rdf_html_iri//2, 2, [
      abbr_iri(+boolean),
@@ -125,11 +122,12 @@ rdf_html_bnode(B, Opts) -->
     rdf_list(B)
   }, !,
   rdf_html_list(B, Opts).
-rdf_html_bnode(B, Opts) -->
-  {rdf_bnode_name(B, BName)},
-  html(span(class='rdf-bnode',
-    \html_link(BName, html([BName]), [query(bnode)|Opts]))
-  ).
+rdf_html_bnode(B, _) -->
+  {
+    rdf_bnode_name(B, BName),
+    http_link_to_id(root, [bnode(B)], Uri)
+  },
+  html(span(class='rdf-bnode', \internal_link(Uri, BName))).
 
 
 
@@ -144,10 +142,9 @@ rdf_html_datatype(D, Opts) -->
 
 rdf_html_graph(G, _) --> {var(G)}, !, [].
 rdf_html_graph(G, Opts) -->
+  {http_link_to_id(root, [graph(G)], Uri)},
   html(
-    span(class='rdf-graph',
-      \html_link(G, rdf_html_graph0(G, Opts), [query(graph)|Opts])
-    )
+    span(class='rdf-graph', \internal_link(Uri, rdf_html_graph0(G, Opts)))
   ).
 
 rdf_html_graph0(G, Opts) -->
@@ -204,8 +201,11 @@ rdf_html_iri(Global, Opts) -->
   ;   html(span([class=[iri,'label-iri'],lang=LTag], Lbl))
   ).
 rdf_html_iri(Global, Opts) -->
-  {rdf_is_iri(Global)}, !,
-  html_link(Global, html_global_iri(Global, Opts), [query(iri)|Opts]).
+  {
+    rdf_is_iri(Global),
+    http_link_to_id(root, [iri(Global)], Uri)
+  }, !,
+  internal_link(Uri, html_global_iri(Global, Opts)).
 
 
 
@@ -258,8 +258,8 @@ rdf_html_list(L1, Opts) -->
 %   * symbol_iri(+boolean)
 
 rdf_html_literal(Lit, Opts) -->
-  {option(location(_), Opts)}, !,
-  html_link(Lit, rdf_html_literal0(Lit, Opts), [query(literal)|Opts]).
+  {http_link_to_id(root, [literal(Lit)], Uri)}, !,
+  internal_link(Uri, rdf_html_literal0(Lit, Opts)).
 rdf_html_literal(Lit, Opts) -->
   rdf_html_literal0(Lit, Opts).
 
@@ -344,8 +344,6 @@ rdf_html_term(T) -->
 
 rdf_html_term(graph(G), Opts) --> !,
   rdf_html_graph(G, Opts).
-rdf_html_term(link(Link,Label), _) --> !,
-  html_link(Link, html(Label)).
 rdf_html_term(T, Opts) -->
   {rdf_is_literal(T)}, !,
   rdf_html_literal(T, Opts).

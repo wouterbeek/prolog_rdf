@@ -31,7 +31,7 @@
 @version 2015/07-2015/09, 2015/11-2016/02
 */
 
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_print_term)).

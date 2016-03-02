@@ -61,7 +61,6 @@ annotated_list(_) --> "".
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_peek)).
-:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/sparql10_code)).
 :- use_module(library(ltag/rfc5646)).
 :- use_module(library(math/rational_ext)).
