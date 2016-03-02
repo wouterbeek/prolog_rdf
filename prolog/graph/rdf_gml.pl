@@ -1,8 +1,8 @@
 :- module(
   rdf_gml,
   [
-    rdf_load_gml/1, % +Source
-    rdf_load_gml/2  % +Source, +BaseOut
+    rdf_gml/1, % +Source
+    rdf_gml/2  % +Source, +BaseOut
   ]
 ).
 
@@ -23,7 +23,9 @@
 :- use_module(library(rdf11/rdf11)).
 
 :- meta_predicate
-    gml_label(4, +, -, +).
+    gml_cleanup(+, +, +, +, +, +),
+    gml_label(4, +, -, +),
+    gml_setup(+, -, -, -, -, -, -, -, +).
 
 :- predicate_options(gml_edge/5, 5, [
      edge_label_writer(+callable),
@@ -38,20 +40,16 @@
 
 
 
-%! rdf_load_gml(+Source) is det.
-% Wrapper around rdf_load_gml/2 with default options.
+%! rdf_gml(+Source) is det.
+% Wrapper around rdf_gml/2 with default options.
 
-rdf_load_gml(Source) :-
-  rdf_load_gml(Source, []).
+rdf_gml(Source) :-
+  rdf_gml(Source, []).
 
 
-%! rdf_load_gml(+Source, +Opts) is det.
-% The following options are supported:
-%   - out_base(+atom)
-%     The base name of the output files and the name of the graph.
+%! rdf_gml(+Source, +Opts) is det.
 
-rdf_load_gml(Source, Opts) :-
-  option(out_base(Base), Opts, out),
+rdf_gml(Source, Opts) :-
   setup_call_cleanup(
     gml_setup(
       Base,
@@ -155,6 +153,8 @@ gml_node(NOut, Opts, N, NId) :-
 %!   +Opts
 %! ) is det.
 % The following options are supported:
+%   - out_base(+atom)
+%     The base name of the output files and the name of the graph.
 %   - prefixes(+list(pair))
 
 gml_setup(
@@ -164,6 +164,8 @@ gml_setup(
   GFile,
   Opts
 ) :-
+  option(out_base(Base), Opts, out),
+  
   % Register prefixes.
   option(prefixes(Pairs), Opts, []),
   pairs_keys_values(Pairs, Keys, Vals),
