@@ -272,8 +272,7 @@ jsonld_to_triple(_, S, P, _, _, Lex, T) :-
 
 jsonld_datatype_mapping(_, [], _) :- !.
 jsonld_datatype_mapping(Context, [Key|_], D2) :-
-  get_dict(map, Context, Map),
-  memberchk(Key-ODef, Map),
+  memberchk(Key-ODef, Context.map),
   is_dict(ODef),
   (   get_dict('@type', ODef, D1)
   ->  jsonld_expand_iri(Context, D1, D2)
@@ -298,15 +297,6 @@ jsonld_language_mapping(Context, [_|Keys], LTag) :-
 
 
 
-%! jsonld_to_base_iri(+Pairs1, -BaseIri, -Pairs2) is det.
-% Extracts the base IRI from a JSON-LD context, if any.
-
-jsonld_to_base_iri(Pairs1, BaseIri, Pairs2) :-
-  selectchk('@base'-BaseIri, Pairs1, Pairs2), !.
-jsonld_to_base_iri(Pairs, _, Pairs).
-
-
-
 %! jsonld_to_context_and_data(
 %!   +JsonLd,
 %!   -Context,
@@ -315,8 +305,8 @@ jsonld_to_base_iri(Pairs, _, Pairs).
 %! ) is det.
 
 jsonld_to_context_and_data(D, Context3, Data, Opts) :-
-  dict_pairs(D, Pairs),
-  (   selectchk('@context'-Context1, Pairs, Data)
+  dict_pairs(D, Pairs1),
+  (   selectchk('@context'-Context1, Pairs1, Data)
   ->  % Splits context from data and parses the context into:
       %   1. a fully qualitied base IRI
       %   2. a prefix map
@@ -328,38 +318,36 @@ jsonld_to_context_and_data(D, Context3, Data, Opts) :-
       ->  json_download(Context1, Context2)
       ;   Context2 = Context1
       ),
-      dict_pairs(Context2, Pairs1),
-      jsonld_to_base_iri(Pairs1, BaseIri1, Pairs2),
-      jsonld_to_ltag(Pairs2, LTag, Pairs3),
-      jsonld_to_vocab(Pairs3, Voc, Map)
-  ;   Data = Pairs
+      % Extract the base IRI, if any.
+      (   del_dict('@base', Context2, BaseIri1, Context3)
+      ->  true
+      ;   Context3 = Context2
+      ),
+      % Extract the default language tag, if any.
+      (   del_dict('@language', Context3, LTag, Context4)
+      ->  true
+      ;   Context4 = Context3
+      ),
+      % Extract the default vocabular, if any.
+      (   del_dict('@vocab', Context4, Voc1, Context5)
+      ->  jsonld_expand_iri(Context5, Voc1, Voc2)
+      ;   Context5 = Context4
+      ),
+      dict_pairs(Context5, Map)
+  ;   Map = [],
+      Data = Pairs1
   ),
   % The base IRI that was set outside of the JSON-LD context
   % takes precedence over the one that is set inside the JSON-LD context.
   option(base_iri(BaseIri2), Opts, BaseIri1),
   % Return the extracted context properties into a dictionary
   % since that is easy to pass around.
-  include(pair_with_nonvar_value, ['@base'-BaseIri2,'@language'-LTag,map-Map,'@vocab'-Voc], L2),
-  dict_pairs(Context3, L2).
-
-
-
-%! jsonld_to_ltag(+Pairs1, -LTag, -Pairs2) is det.
-% Extracts the default natural language from a JSON-LD context, if any.
-
-jsonld_to_ltag(Pairs1, LTag, Pairs2) :-
-  selectchk('@language'-LTag, Pairs1, Pairs2), !.
-jsonld_to_ltag(Pairs, _, Pairs).
-
-
-
-%! jsonld_to_vocab(+Pairs1, -Vocabulary, -Map) is det.
-% Extracts the vocabulary IRI from a JSON-LD context, if any.
-
-jsonld_to_vocab(Pairs, Voc2, Map) :-
-  selectchk('@vocab'-Voc1, Pairs, Map), !,
-  jsonld_expand_iri(_{map: Map}, Voc1, Voc2).
-jsonld_to_vocab(Pairs, _, Pairs).
+  include(
+    pair_with_nonvar_value,
+    ['@base'-BaseIri2,'@language'-LTag,'@vocab'-Voc2|Map],
+    Pairs2
+  ),
+  dict_pairs(Context3, Pairs2).
 
 pair_with_nonvar_value(_-V) :- nonvar(V).
 

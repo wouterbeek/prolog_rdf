@@ -27,9 +27,8 @@
 %! jsonld_abbreviate_iri(+Context, +Full, -Compact) is det.
 
 jsonld_abbreviate_iri(Context, Full, Compact) :-
-  get_dict(map, Context, Map),
   is_iri(Full),
-  member(Alias-Prefix, Map),
+  get_dict(Alias, Context, Prefix),
   atom_concat(Prefix, Local, Full), !,
   atomic_list_concat([Alias,Local], :, Compact).
 
@@ -41,8 +40,7 @@ jsonld_abbreviate_iri(Context, Full, Compact) :-
 jsonld_expand_iri(Context, Compact, Full) :-
   atomic_list_concat([Alias,Local], :, Compact),
   \+ atom_prefix(Local, '//'),
-  get_dict(map, Context, Map),
-  memberchk(Alias-Prefix, Map), !,
+  get_dict(Alias, Context, Prefix), !,
   atomic_concat(Prefix, Local, Full).
 % Case 2: Names that cannot be expanded belong to a vocabulary IRI, if present.
 %         This excludes names that are explicitly mapped to ‘null’ by the

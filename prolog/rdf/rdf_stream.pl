@@ -4,7 +4,7 @@
     rdf_read_from_stream/2, % +Source, :Goal_2
     rdf_read_from_stream/3, % +Source, :Goal_2, +Opts
     rdf_write_to_stream/2,  % +Source, :Goal_2
-    rdf_write_to_stream/3   % +Source, :Goal_2, +Opts    
+    rdf_write_to_stream/3   % +Source, :Goal_2, +Opts
   ]
 ).
 
