@@ -39,15 +39,12 @@ rdf_html_grid(G) -->
 http_header(S, P, O) -->
   html(div(about=S, [h1(\rdfh_predicate(P)), p(\http_header_value(O))])).
 
+http_header_value(L) -->
+  {is_list(L)}, !,
+  rdfh_list(L).
 http_header_value(O) -->
   {rdf_is_literal(O)}, !,
   rdfh_literal(O).
-http_header_value(access_control_allow_headers(L)) --> !,
-  html_seplist(rdfh_literal, L).
-http_header_value(access_control_allow_methods(L)) --> !,
-  html_seplist(rdfh_literal, L).
-http_header_value(access_control_allow_origin(H)) --> !,
-  rdfh_literal(H).
 http_header_value(media_type(Type,Subtype,Params)) --> !,
   html([
     \rdfh_literal(Type),
@@ -61,6 +58,3 @@ http_header_value(product(Name,Version)) -->
 
 http_parameter(param(Key,Value)) -->
   html([\rdfh_literal(Key),"=",\rdfh_literal(Value)]).
-
-triple(S, P, O) -->
-  html(p(\rdfh_triple(S, P, O))).

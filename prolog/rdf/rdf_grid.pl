@@ -65,22 +65,13 @@ graph_to_widget(G, triple(S, P, O)) :-
 % RDF literal.
 http_header_value(V, V, _) :-
   rdf_is_literal(V), !.
+% List of RDF literals.
+http_header_value(S, L, G) :-
+  pop_list(S, L, G).
 % HTTP cache directive.
 http_header_value(S, O, G) :-
   pop_triple(S, rdf:type, llo:'CacheDirective', G), !,
   pop_triple(S, llo:key, O, G).
-% CORS Access Control Allow Headers.
-http_header_value(S, access_control_allow_headers(L), G) :-
-  rdf(_, llo:'access-control-allow-headers', S, G), !,
-  pop_triples(S, llo:value, _, G, o(L)).
-% CORS Access Control Allow Methods.
-http_header_value(S, access_control_allow_methods(L), G) :-
-  rdf(_, llo:'access-control-allow-methods', S, G), !,
-  pop_triples(S, llo:value, _, G, o(L)).
-% CORS Access Control Allow Origin.
-http_header_value(S, access_control_allow_origin(H), G) :-
-  rdf(_, llo:'access-control-allow-origin', S, G), !,
-  pop_triple(S, llo:value, H, G).
 % Internet Media Type.
 http_header_value(S, media_type(Type,Subtype,[Param]), G) :-
   pop_triple(S, rdf:type, llo:'MediaType', G), !,
@@ -107,6 +98,17 @@ http_parameter(S, param(Key,Value), G) :-
 
 
 % HELPERS %
+
+%! pop_list(+S, -L, +G) is det.
+
+pop_list(S, [], _) :-
+  rdf_equal(rdf:nil, S), !.
+pop_list(S, [H|T], G) :-
+  pop_triple(S, rdf:first, H, G),
+  pop_triple(S, rdf:rest, O, G),
+  pop_list(O, T, G).
+  
+
 
 %! pop_triple(+S, +P, +O, +G) is det.
 % Consume the first triple instantiation of 〈S,P,O〉.

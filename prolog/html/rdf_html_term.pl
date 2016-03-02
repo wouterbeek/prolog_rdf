@@ -27,10 +27,8 @@ Generates developer-oriented HTML representations of RDF data.
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(html/html_collection)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/html_pl)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_api)).
