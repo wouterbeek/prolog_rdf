@@ -10,12 +10,13 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/08-2015/12, 2016/02
+@version 2015/08-2015/12, 2016/02-2016/03
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(os/open_any2)).
+:- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
 
@@ -30,8 +31,8 @@
 
 
 
-%! rdf_guess_format(+Source, -Format:rdf_term, +Opts) is det.
-%! rdf_guess_format(+Source, -Format:rdf_term, +Opts) is det.
+%! rdf_guess_format(+Source, -Format:rdf_format) is det.
+%! rdf_guess_format(+Source, -Format:rdf_format, +Opts) is det.
 % The following options are supported:
 %   * default_serialization_format(+rdf_format)
 
@@ -54,7 +55,11 @@ rdf_guess_format(Read, I, F, Opts) :-
   debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
 
   % Try to parse the peeked string as Turtle- or XML-like.
-  (rdf_guess_turtle(S, N, F, Opts) ; rdf_guess_xml(S, F)), !,
+  (   rdf_guess_turtle(S, N, F, Opts)
+  ;   rdf_guess_xml(S, F)
+  ;   rdf_guess_jsonld(S, N),
+      F = jsonld
+  ), !,
 
   debug(rdf(guess), "Assuming ~a based on heuristics.", [F]).
 rdf_guess_format(Read, I1, F, Opts) :-

@@ -1,16 +1,18 @@
 :- module(
   rdf_statement,
   [
-    rdf_graph_triples/2,      % ?G, -Trips
-    rdf_statement/1,          % -Stmt
-    rdf_statement_terms/4,    % +Stmt, ?S, ?P, ?O
-    rdf_subject_triples/2,    % +S, -Trips
-    rdf_triples_datatypes/2,  % +Trips, -Ds
-    rdf_triples_iris/2,       % +Trips, -Iris
-    rdf_triples_iri_terms/2,  % +Trips, -Iris
-    rdf_triples_predicates/2, % +Trips, -Ps
-    rdf_triples_subjects/2,   % +Trips, -Ss
-    rdf_triples_terms/2       % +Trips, -Ts
+    rdf_graph_triples/2,       % ?G, -Trips
+    rdf_is_ground_quadruple/1, % @Quad
+    rdf_is_ground_triple/1,    % @Trip
+    rdf_statement/1,           % -Stmt
+    rdf_statement_terms/4,     % +Stmt, ?S, ?P, ?O
+    rdf_subject_triples/2,     % +S, -Trips
+    rdf_triples_datatypes/2,   % +Trips, -Ds
+    rdf_triples_iris/2,        % +Trips, -Iris
+    rdf_triples_iri_terms/2,   % +Trips, -Iris
+    rdf_triples_predicates/2,  % +Trips, -Ps
+    rdf_triples_subjects/2,    % +Trips, -Ss
+    rdf_triples_terms/2        % +Trips, -Ts
   ]
 ).
 
@@ -19,7 +21,7 @@
 Predicates that perform simple operations on RDF triples/quadruples.
 
 @author Wouter Beek
-@version 2015/08, 2015/11-2016/01
+@version 2015/08, 2015/11-2016/01, 2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -41,6 +43,23 @@ Predicates that perform simple operations on RDF triples/quadruples.
 rdf_graph_triples(G, Trips) :-
   rdf_expect_graph(G),
   aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Trips).
+
+
+
+%! rdf_is_ground_quadruple(@Quad) is semidet.
+% Succeeds if the given triple is ground, i.e., contains no blank node.
+
+rdf_is_ground_quadruple(rdf(S,P,O,_)) :-
+  rdf_is_ground_triple(rdf(S,P,O)).
+
+
+
+%! rdf_is_ground_triple(@Trip) is semidet.
+% Succeeds if the given triple is ground, i.e., contains no blank node.
+
+rdf_is_ground_triple(rdf(S,_,O)) :-
+  \+ rdf_is_bnode(S),
+  \+ rdf_is_bnode(O).
 
 
 

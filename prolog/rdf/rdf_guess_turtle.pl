@@ -68,11 +68,11 @@ rdf_guess_turtle(_, F, Opts) -->
 % Turtle triple.
 rdf_guess_turtle(_, F, Opts) -->
   turtle_subject(SF),
-  *('WS'),
+  *(ws),
   turtle_predicate(PF),
-  *('WS'),
+  *(ws),
   turtle_object(OF),
-  *('WS'),
+  *(ws),
   (   % End of triple.
       "."
   ->  {
@@ -87,7 +87,7 @@ rdf_guess_turtle(_, F, Opts) -->
   ->  guess_turtle_or_trig(F, Opts)
   ;   % End of quadruple.
       turtle_graph,
-      *('WS'),
+      *(ws),
       "."
   ->  {F = nquads}
   ).
@@ -120,8 +120,8 @@ turtle_ltag --> *(nonblank).
 turtle_object(OF) --> turtle_iriref(OF), !.
 turtle_object(_) --> turtle_bnode, !.
 turtle_object(_) -->
-  turtle_string, *('WS'),
-  ("^^" -> *('WS'), turtle_iriref(_) ; "@" -> turtle_ltag ; "").
+  turtle_string, *(ws),
+  ("^^" -> *(ws), turtle_iriref(_) ; "@" -> turtle_ltag ; "").
 
 turtle_predicate(PF)      --> turtle_iriref(PF), !.
 turtle_predicate(turtleOrTrig) --> "a".
@@ -149,8 +149,8 @@ turtle_string_codes(_)   --> "".
 turtle_subject(SF) --> turtle_iriref(SF), !.
 turtle_subject(_)       --> turtle_bnode.
 
-'WS'      --> blank, !.
-'WS', " " --> "#", ..., (eol ; eos), !.
+ws      --> blank, !.
+ws, " " --> "#", ..., (eol ; eos), !.
 
 turtle_keyword --> atom_lower(A), !, {turtle_keyword(A)}.
 turtle_keyword(base).

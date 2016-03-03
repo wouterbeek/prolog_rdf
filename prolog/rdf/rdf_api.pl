@@ -2,6 +2,8 @@
   rdf_api,
   [
     rdf_aggregate_all/3,   % +Template, :Goal, -Result
+    rdf_assert/1,          % +Stmt
+    rdf_assert/2,          % +Stmt, +G
     rdf_image/2,           % +S, -Img
     rdf_langstring/3,      % ?S, ?P, -Lit
     rdf_langstring_lex/3,  % ?S, ?P, -Lex
@@ -35,6 +37,8 @@
 
 :- rdf_meta
    rdf_aggregate_all(+, t, -),
+   rdf_assert(t),
+   rdf_assert(t, r),
    rdf_image(r, -),
    rdf_langstring(r, r, o),
    rdf_langstring_lex(r, r, -),
@@ -56,6 +60,22 @@
 
 rdf_aggregate_all(Template, Goal, Result) :-
   aggregate_all(Template, Goal, Result).
+
+
+
+%! rdf_assert(+Stmt) is det.
+
+rdf_assert(rdf(S,P,O)) :- !,
+  rdf_assert(S, P, O).
+rdf_assert(rdf(S,P,O,G)) :-
+  rdf_assert(S, P, O, G).
+
+
+
+%! rdf_assert(+Trip, +G) is det.
+
+rdf_assert(rdf(S,P,O), G) :-
+  rdf_assert(S, P, O, G).
 
 
 

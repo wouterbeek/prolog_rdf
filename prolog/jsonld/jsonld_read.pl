@@ -1,15 +1,15 @@
 :- module(
   jsonld_read,
   [
-    jsonld_to_triple/2, % +JsonLd, -Triple
-    jsonld_to_triple/3  % +JsonLd, -Triple, +Opts
+    jsonld_to_triple/2, % +D, -T
+    jsonld_to_triple/3  % +D, -T, +Opts
   ]
 ).
 
 /** <module> JSON-LD read
 
 @author Wouter Beek
-@version 2016/01-2016/02
+@version 2016/01-2016/03
 */
 
 :- use_module(library(dict_ext)).
@@ -28,6 +28,9 @@
 :- thread_local
    bnode_map/2.
 
+:- predicate_options(jsonld_load/2, 2, [
+     pass_to(open_any2/5, 5)
+   ]).
 :- predicate_options(jsonld_to_triple/3, 3, [
      pass_to(jsonld_to_context_and_data/4, 4)
    ]).
@@ -39,35 +42,35 @@
 
 
 
-%! jsonld_to_triple(+Jsonld, -Triple) is det.
-%! jsonld_to_triple(+Jsonld, -Triple, +Opts) is det.
+%! jsonld_to_triple(+D, -T) is det.
+%! jsonld_to_triple(+D, -T, +Opts) is det.
 
-jsonld_to_triple(D, Triple) :-
-  jsonld_to_triple(D, Triple, []).
+jsonld_to_triple(D, T) :-
+  jsonld_to_triple(D, T, []).
 
 
 % Case 1: An array of dictionaries.
-jsonld_to_triple(Ds, Triple, Opts) :-
+jsonld_to_triple(Ds, T, Opts) :-
   is_list(Ds), !,
   member(D, Ds),
-  jsonld_to_triple(D, Triple, Opts).
+  jsonld_to_triple(D, T, Opts).
 % Case 2: A dictionary.
-jsonld_to_triple(D, Triple, Opts) :-
+jsonld_to_triple(D, T, Opts) :-
   jsonld_to_context_and_data(D, Context, Data, Opts),
-  jsonld_to_triple_goto(Context, Data, Triple).
+  jsonld_to_triple_goto(Context, Data, T).
 
 % GOTO point for recursive structures (see below).
-jsonld_to_triple_goto(Context, Data1, Triple) :-
+jsonld_to_triple_goto(Context, Data1, T) :-
   jsonld_to_subject(Context, Data1, S, Data2),
   % NONDET
   member(Pair, Data2),
-  jsonld_to_triple(Context, S, Pair, Triple).
+  jsonld_to_triple(Context, S, Pair, T).
 
-%! jsonld_to_triple(+Context, +S, +Pair, -Triple) is nondet.
+%! jsonld_to_triple(+Context, +S, +Pair, -T) is nondet.
 
-jsonld_to_triple(Context, S, Key-Value, Triple) :-
+jsonld_to_triple(Context, S, Key-Value, T) :-
   jsonld_to_predicate(Context, Key, P, ODef, LTag),
-  jsonld_to_triple(Context, S, P, ODef, LTag, Value, Triple).
+  jsonld_to_triple(Context, S, P, ODef, LTag, Value, T).
 
 
 
@@ -83,7 +86,7 @@ jsonld_to_bnode(B1, B2) :-
 
 
 
-%! jsonld_dict_to_triple(+Context, +S, +P, +Dict, -Triple) is nondet.
+%! jsonld_dict_to_triple(+Context, +S, +P, +Dict, -T) is nondet.
 
 jsonld_dict_to_triple(Context, S1, P, D, T) :-
   dict_pairs(D, Pairs),
@@ -97,7 +100,7 @@ jsonld_dict_to_triple(Context, S1, P, D, T) :-
 
 
 
-%! jsonld_to_list_triple(+Context, +S, +P, +ODef, _LTag,  +L, -Trip) is nondet.
+%! jsonld_to_list_triple(+Context, +S, +P, +ODef, _LTag,  +L, -T) is nondet.
 
 jsonld_to_list_triple(_, _, _, _, _, [], _) :- !, fail.
 jsonld_to_list_triple(Context, S, P, _, _, Ds, T) :-
@@ -116,7 +119,7 @@ jsonld_to_list_triple0(Context, B, ODef, LTag, [H], T):- !,
       jsonld_to_triple(Context, B, First, ODef, LTag, H, T)
   ;   rdf_equal(rdf:rest, Rest),
       rdf_equal(rdf:nil, Nil),
-      jsonld_to_triple(Context, B, Rest, ODef, LTag, Nil, T)
+      jsonld_to_triple(Context, B, Rest, '@id', LTag, Nil, T)
   ).
 jsonld_to_list_triple0(Context, B1, ODef, LTag, [H1|_], T):-
   rdf_equal(rdf:first, First),
@@ -124,16 +127,9 @@ jsonld_to_list_triple0(Context, B1, ODef, LTag, [H1|_], T):-
 jsonld_to_list_triple0(Context, B1, ODef, LTag, [_,H|L], T):-
   rdf_create_bnode(B2),
   (   rdf_equal(rdf:rest, Rest),
-      jsonld_to_triple(Context, B1, Rest, ODef, LTag, B2, T)
+      jsonld_to_triple(Context, B1, Rest, ODef, LTag, _{'@id': B2}, T)
   ;   jsonld_to_list_triple0(Context, B2, ODef, LTag, [H|L], T)
   ).
-
-jsonld_object(_, O, O) :-
-  jsonld_is_bnode(O), !.
-jsonld_object(Context, O1, O2) :-
-  jsonld_expand_iri(Context, O1, O2), !.
-jsonld_object(_, O, O).
-
 
 
 %! jsonld_to_predicate(+Context, +Key, -P, -D, -LTag) is det.
@@ -170,7 +166,6 @@ jsonld_predicate(Context, P1, Q, [P1|T]) :-
   ).
 
 
-
 %! jsonld_to_subject(+Context, +Data1:list(pair), -S, -Data2:list(pair)) is det.
 % Extract or create the subject term from the JSON-LD data.
 
@@ -186,8 +181,7 @@ jsonld_to_subject(_, L, S, L) :-
   rdf_create_bnode(S).
 
 
-
-%! jsonld_to_triple(+Context, +S, +P, +ODef, +LTag, +Value, -Triple) is det.
+%! jsonld_to_triple(+Context, +S, +P, +ODef, +LTag, +Value, -T) is det.
 
 % RDF blank node.
 jsonld_to_triple(_, S, P, _, _, _{'@id': O1}, T) :-
@@ -302,7 +296,7 @@ jsonld_language_mapping(Context, [_|Keys], LTag) :-
 %!   +Opts
 %! ) is det.
 
-jsonld_to_context_and_data(D, Context3, Data, Opts) :-
+jsonld_to_context_and_data(D, Context6, Data, Opts) :-
   dict_pairs(D, Pairs1),
   (   selectchk('@context'-Context1, Pairs1, Data)
   ->  % Splits context from data and parses the context into:
@@ -345,7 +339,7 @@ jsonld_to_context_and_data(D, Context3, Data, Opts) :-
     ['@base'-BaseIri2,'@language'-LTag,'@vocab'-Voc2|Map],
     Pairs2
   ),
-  dict_pairs(Context3, Pairs2).
+  dict_pairs(Context6, Pairs2).
 
 pair_with_nonvar_value(_-V) :- nonvar(V).
 

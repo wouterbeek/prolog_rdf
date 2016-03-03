@@ -11,7 +11,7 @@
 /** <module> RDF file
 
 @author Wouter Beek
-@version 2015/08, 2016/01-2016/02
+@version 2015/08, 2016/01-2016/03
 */
 
 :- use_module(library(error)). % Hook.
@@ -40,9 +40,12 @@ error:has_type(turtle_format, F) :-
   memberchk(F, [nquads,ntriples,trig,turtle]).
 
 :- dynamic
-    user:prolog_file_type/2.
+    user:prolog_file_type/2,
+    rdf_http_plugin:rdf_content_type/2.
+
 :- multifile
-    user:prolog_file_type/2.
+    user:prolog_file_type/2,
+    rdf_http_plugin:rdf_content_type/2.
 
 user:prolog_file_type(nq,     nquads).
 user:prolog_file_type(nt,     ntriples).
@@ -52,6 +55,8 @@ user:prolog_file_type(jsonld, jsonld).
 user:prolog_file_type(trig,   trig).
 user:prolog_file_type(ttl,    turtle).
 user:prolog_file_type(rdf,    xml).
+
+rdf_http_plugin:rdf_content_type('application/ld+json', 0.99, jsonld). %ABC
 
 
 

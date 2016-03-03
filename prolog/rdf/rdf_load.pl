@@ -23,7 +23,7 @@
 Support for loading RDF data.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02
+@version 2015/08, 2015/10-2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -31,8 +31,10 @@ Support for loading RDF data.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
+:- use_module(library(http/json)).
 :- use_module(library(iri/rfc3987_gen)).
 :- use_module(library(jsonld/jsonld_metadata)).
+:- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
@@ -85,15 +87,15 @@ Support for loading RDF data.
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-rdf_call_on_graph(In, Goal_1) :-
-  rdf_call_on_graph(In, Goal_1, []).
+rdf_call_on_graph(Source, Goal_1) :-
+  rdf_call_on_graph(Source, Goal_1, []).
 
-rdf_call_on_graph(In, Goal_1, Opts0) :-
+rdf_call_on_graph(Source, Goal_1, Opts0) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
       merge_options([graph(G)], Opts0, Opts),
-      rdf_load_file(In, Opts),
+      rdf_load_file(Source, Opts),
       call(Goal_1, G)
     ),
     rdf_unload_graph(G)
@@ -106,22 +108,22 @@ rdf_call_on_graph(In, Goal_1, Opts0) :-
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-rdf_call_on_statements(In, Goal_2) :-
-  rdf_call_on_statements(In, Goal_2, []).
+rdf_call_on_statements(Source, Goal_2) :-
+  rdf_call_on_statements(Source, Goal_2, []).
 
-rdf_call_on_statements(In, Goal_2, Opts) :-
+rdf_call_on_statements(Source, Goal_2, Opts) :-
   option(graph(G1), Opts, default),
   rdf_global_id(G1, G2),
   catch(
-    rdf_read_from_stream(In, rdf_call_on_statements_stream(G2, Goal_2), Opts),
+    rdf_read_from_stream(Source, rdf_call_on_statements_stream(G2, Goal_2), Opts),
     E,
     (writeln(Goal_2), print_message(warning, E))
   ).
 
 
-%! rdf_call_on_statements_stream(?Graph, :Goal_2, +Metadata, +Read) is det.
+%! rdf_call_on_statements_stream(?G, :Goal_2, +Metadata, +Read) is det.
 % The following call is made:
-% `call(:Goal_2, +Statements:list(compound), ?Graph:atom)'
+% `call(:Goal_2, +Statements:list(compound), ?Graph:atom)`
 
 rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
   BaseIri = M.'llo:base_iri'.'@value',
@@ -139,6 +141,9 @@ rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
       atomic_list_concat(['__',UniqueId,:], BPrefix),
       Opts = [anon_prefix(BPrefix),base_uri(BaseIri),graph(G)],
       rdf_process_turtle(Read, Goal_2, Opts)
+  ;   Format3 == jsonld
+  ->  json_read_dict(Read, D),
+      forall(jsonld_to_triple(D, T, [base_iri(BaseIri)]), call(Goal_2, [T], G))
   ;   Format3 == xml
   ->  process_rdf(Read, Goal_2, [base_uri(BaseIri),graph(G)])
   ;   Format3 == rdfa
@@ -179,10 +184,10 @@ write_stream_to_file0(TmpFile, Opts, _, Read) :-
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-rdf_load_file(In) :-
-  rdf_load_file(In, []).
+rdf_load_file(Source) :-
+  rdf_load_file(Source, []).
 
-rdf_load_file(In, Opts) :-
+rdf_load_file(Source, Opts) :-
   % Allow statistics about the number of statements to be returned.
   option(quadruples(NQ), Opts, _),
   option(triples(NT), Opts, _),
@@ -200,7 +205,7 @@ rdf_load_file(In, Opts) :-
       create_thread_counter(triples),
       create_thread_counter(quadruples)
     ),
-    rdf_call_on_statements(In, rdf_load_statements(triples, quadruples), Opts),
+    rdf_call_on_statements(Source, rdf_load_statements(triples, quadruples), Opts),
     (
       delete_thread_counter(triples, NT),
       delete_thread_counter(quadruples, NQ),
@@ -208,7 +213,7 @@ rdf_load_file(In, Opts) :-
       debug(
         rdf(load),
         "Loaded ~D statements from ~w (~D triples and ~D quadruples).~n",
-        [NS,In,NT,NQ]
+        [NS,Source,NT,NQ]
       )
     )
   ).
@@ -225,14 +230,15 @@ rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)) :- !,
   increment_thread_counter(CQ),
   rdf_load_statement0(S, P, O, G).
 
-rdf_load_statement0(S1, P1, O0, G1) :-
-  rdf11:post_object(O1, O0),
-  maplist(term_norm, [S1,P1,O1,G1], [S2,P2,O2,G2]),
-  debug(rdf(load), rdf_print_statement(S2, P2, O2, G2)),
-  rdf_assert(S2, P2, O2, G2).
+rdf_load_statement0(S, P, O0, G) :-
+  (rdf_is_term(O0) -> O = O0 ; rdf11:post_object(O, O0)),
+  %maplist(term_norm, [S1,P1,O1,G1], [S2,P2,O2,G2]),
+  debug(rdf(load), rdf_print_statement(S, P, O, G)),
+  rdf_assert(S, P, O, G).
 
-term_norm(T1, T2) :- rdf_is_iri(T1), !, iri_norm(T1, T2).
-term_norm(T, T).
+% @tbd
+%term_norm(T1, T2) :- rdf_is_iri(T1), !, iri_norm(T1, T2).
+%term_norm(T, T).
 
 
 

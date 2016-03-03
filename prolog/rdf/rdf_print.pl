@@ -91,8 +91,10 @@ rdf_print_deref(S, Opts) :-
 
 rdf_print_descr(S) :-
   rdf_print_descr(S, none, []).
+
 rdf_print_descr(S, Opts) :-
   rdf_print_descr(S, none, Opts).
+
 rdf_print_descr(S, G, Opts) :-
   (   G == none
   ->  forall(rdf_print_triple(S, _, _, _, Opts), true)
@@ -120,6 +122,7 @@ rdf_print_descr(S, G, Opts) :-
 
 rdf_print_graph(G) :-
   rdf_print_graph(G, []).
+
 rdf_print_graph(G, Opts) :-
   (   var(G)
   ->  rdf_print_quadruple(_, _, _, _, Opts),
