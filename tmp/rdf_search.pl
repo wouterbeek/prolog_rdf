@@ -25,7 +25,6 @@ Searching through an RDF graph.
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(rdf/rdf_read)).
 
 :- rdf_meta(rdf_beam(+,r,+,-,-)).
 :- rdf_meta(rdf_breadth_first(+,r,r,-,-)).

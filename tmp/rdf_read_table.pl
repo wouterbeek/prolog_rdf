@@ -13,10 +13,10 @@
 */
 
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_list)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_api)).
 
-:- rdf_meta(rdf_html_read_table(o,+,?,?)).
+:- rdf_meta
+   rdf_html_read_table(o, +, ?, ?).
 
 
 
@@ -48,7 +48,7 @@ rdf_html_read_table(Table, Opts) -->
     ;   Rows2 = Rows1
     )
   },
-  rdf_html_table(rdf_html_term(Caption, Opts), Rows2, Opts).
+  rdf_html_table(rdfh_term(Caption), Rows2, Opts).
 
 
 %! rdf_table_get_rows(

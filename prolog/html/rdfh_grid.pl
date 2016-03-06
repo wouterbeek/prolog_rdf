@@ -1,7 +1,7 @@
 :- module(
-  rdf_html_grid,
+  rdfh_grid,
   [
-    rdf_html_grid//1 % +G
+    rdfh_grid//1 % +G
   ]
 ).
 
@@ -14,23 +14,22 @@
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/html_grid)).
 :- use_module(library(html/rdfh)).
-:- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_grid)).
 :- use_module(library(rdf11/rdf11)).
 
 :- rdf_meta
-   rdf_html_grid(r, ?, ?).
+   rdfh_grid(r, ?, ?).
 
 
 
 
 
-%! rdf_html_grid(+G)// is det.
+%! rdfh_grid(+G)// is det.
 % Generates an HTML DOM grid whose widgets show aspects of the data in G.
 
-rdf_html_grid(G) -->
+rdfh_grid(G) -->
   {rdf_grid(G, Widgets)},
-  html_grid(rdf_html_grid:Widgets).
+  html_grid(rdfh_grid:Widgets).
 
 
 %! http_header(+S, +P, +O)// is det.

@@ -15,9 +15,10 @@
 :- use_module(library(chr)).
 :- use_module(library(closure)).
 :- use_module(library(debug_ext)).
+:- use_module(library(html/rdfh)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(solution_sequences)).
 
 :- chr_constraint triple/4, widget/3.
@@ -302,7 +303,7 @@ tree(Tree) -->
   rdfh_tree(Tree).
 
 triple(S, P, O) -->
-  rdf_html_triple(S, P, O).
+  rdfh_triple(S, P, O).
 
 widget(N,S,W) -->
   html(

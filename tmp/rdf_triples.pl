@@ -29,13 +29,14 @@ Support for RDF triple compound terms.
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_read)).
+:- use_module(library(rdf/rdf_api)).
 
-:- rdf_meta(rdf_ground_triple(r,r,o,?)).
-:- rdf_meta(rdf_is_nonground_triple(t)).
-:- rdf_meta(rdf_is_triple(t)).
-:- rdf_meta(rdf_nonground_triple(r,r,o,?)).
-:- rdf_meta(rdf_triples(r,-,?)).
+:- rdf_meta
+   rdf_ground_triple(r,r,o,?),
+   rdf_is_nonground_triple(t),
+   rdf_is_triple(t),
+   rdf_nonground_triple(r,r,o,?),
+   rdf_triples(r,-,?).
 
 
 

@@ -1,4 +1,3 @@
-/*
 %/dcg
 :- use_module(library(dcg/manchester)).
 :- use_module(library(dcg/nquads11)).
@@ -7,19 +6,17 @@
 :- use_module(library(dcg/sparql11)).
 :- use_module(library(dcg/turtle10)).
 :- use_module(library(dcg/turtle11)).
-*/
+:- use_module(library(dcg/turtle_conv)).
 %/fca
 :- use_module(library(fca/rdf_fca)).
 :- use_module(library(fca/rdf_fca_viz)).
+%/graph
+:- use_module(library(graph/rdf_gml)).
 %/html
-:- use_module(library(html/rdf_html_fca_viz)).
-:- use_module(library(html/rdf_html_graph_viz)).
-:- use_module(library(html/rdf_html_grid)).
-:- use_module(library(html/rdf_html_meta)).
-:- use_module(library(html/rdf_html_stmt)).
-:- use_module(library(html/rdf_html_table)).
-:- use_module(library(html/rdf_html_term)).
 :- use_module(library(html/rdfh)).
+:- use_module(library(html/rdfh_fca)).
+:- use_module(library(html/rdfh_grid)).
+:- use_module(library(html/rdfh_gv)).
 %/mat
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).

@@ -2,27 +2,24 @@
   ntriples11,
   [
     'EOL'//0,
-    literal//1, % ?Literal:compound
-    object//1, % ?Object:rdf_term
-    predicate//1, % ?Predicate:iri
-    subject//1, % ?Subject:or([bnode,iri])
-    triple//1, % ?Triple:compound
+    literal//1, % ?Lit
+    object//1, % ?O
+    predicate//1, % ?P
+    subject//1, % ?S
+    triple//1, % ?Trip
     ws//0
   ]
 ).
-:- reexport(library(dcg/turtle11_code), [
-     'UCHAR'//1 % ?Code:code
-   ]).
-:- reexport(library(dcg/turtle11_token), [
-     'IRIREF'//1, % ?Iri:atom
+:- reexport(library(dcg/turtle11), [
+     'IRIREF'//1, % ?Iri
      'STRING_LITERAL_QUOTE'//1 % ?String:atom
    ]).
 
-/** <module> N-Triples 1.1: Codes
+/** <module> N-Triples 1.1
 
 @author Wouter Beek
 @compat N-Triples 1.1
-@version 2015/11
+@version 2015/11, 2016/03
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -36,9 +33,9 @@
 % EOL ::= [#xD#xA]+
 % ```
 
-'EOL' --> +(eol).
-eol --> [0xD].
-eol --> [0xA].
+'EOL' --> +(eol_code).
+eol_code --> [0xD].
+eol_code --> [0xA].
 
 
 

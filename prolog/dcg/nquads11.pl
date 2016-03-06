@@ -1,28 +1,27 @@
 :- module(
   nquads11,
   [
-    graphLabel//1, % ?Graph:atom
-    statement//1 % ?Statement:compound
+    graphLabel//1, % ?G
+    statement//1 % ?Stmt
   ]
 ).
 :- reexport(library(dcg/ntriples11), [
      'EOL'//0,
-     object//1, % ?Object:rdf_term
-     predicate//1, % ?Predicate:iri
-     subject//1, % ?Subject:or([bnode,iri])
-     'UCHAR'//1, % ?Code:code
+     object//1, % ?O
+     predicate//1, % ?P
+     subject//1, % ?S
      ws//0
    ]).
-:- reexport(library(dcg/turtle11_token), [
-     'IRIREF'//1, % ?Iri:atom
+:- reexport(library(dcg/turtle11), [
+     'IRIREF'//1, % ?Iri
      'STRING_LITERAL_QUOTE'//1 % ?String:atom
    ]).
 
-/** <module> N-Quads 1.1: Codes
+/** <module> N-Quads 1.1
 
 @author Wouter Beek
 @compat N-Quads 1.1
-@version 2015/11
+@version 2015/11, 2016/03
 */
 
 :- use_module(library(dcg/dcg_ext)).

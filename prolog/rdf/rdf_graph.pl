@@ -27,7 +27,6 @@
 :- rdf_meta
    rdf_expect_graph(r),
    rdf_fresh_graph(r, +),
-   rdf_graph(r),
    rdf_graph_age(r, -),
    rdf_new_graph(r, -),
    rdf_stale_graph(r, ?),
