@@ -245,7 +245,7 @@ rdfh_subject0(S) -->
   rdfh_iri(S).
 rdfh_subject0(S) -->
   {rdf_is_bnode(S)}, !,
-  rdfh_bnode0(S).
+  rdfh_bnode(S).
 
 
 
