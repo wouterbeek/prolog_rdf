@@ -36,7 +36,7 @@
 :- use_module(library(plunit)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta

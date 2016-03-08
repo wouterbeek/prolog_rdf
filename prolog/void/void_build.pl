@@ -15,13 +15,12 @@ Automatically generate VoID descriptions.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_save)).
 :- use_module(library(rdf/rdf_stats)).
 :- use_module(library(rdfs/rdfs_stats)).
-:- use_module(library(rdf11/rdf11_mt)).
+:- use_module(library(semweb/rdf11_mt)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 

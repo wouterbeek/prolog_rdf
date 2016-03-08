@@ -20,7 +20,7 @@
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_statement)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 
 %! bnode_map(?Name, ?B) is nondet.

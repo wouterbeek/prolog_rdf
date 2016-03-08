@@ -40,12 +40,12 @@ Support for loading RDF data.
 :- use_module(library(os/io_ext)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf), [process_rdf/3]).
-:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).

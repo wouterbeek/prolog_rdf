@@ -31,8 +31,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_api)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 

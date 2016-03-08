@@ -21,7 +21,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
 :- rdf_meta

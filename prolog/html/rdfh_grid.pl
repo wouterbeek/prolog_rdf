@@ -15,7 +15,7 @@
 :- use_module(library(html/html_grid)).
 :- use_module(library(html/rdfh)).
 :- use_module(library(rdf/rdf_grid)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdfh_grid(r, ?, ?).

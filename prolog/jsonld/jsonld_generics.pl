@@ -16,7 +16,7 @@
 
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 

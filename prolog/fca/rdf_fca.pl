@@ -8,11 +8,10 @@
 /** <module> FCA for RDF
 
 @author Wouter Beek
-@version 2015/11-2016/01
+@version 2015/11-2016/01, 2016/03
 */
 
-:- use_module(library(rdf11/rdf11)).
-:- use_module(library(rdf11/rdf11_mt)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdf_fca_context(-, r).

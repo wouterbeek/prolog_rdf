@@ -23,7 +23,7 @@
     rdf_term/2                       % +G, ?T
   ]
 ).
-:- reexport(library(rdf11/rdf11), [
+:- reexport(library(semweb/rdf11), [
      rdf_is_bnode/1,     % @Term
      rdf_is_iri/1,       % @Term
      rdf_is_literal/1,   % @Term
@@ -67,7 +67,7 @@ resources as well.
 @version 2015/07-2015/08, 2015/10, 2015/12-2016/02
 */
 
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
 

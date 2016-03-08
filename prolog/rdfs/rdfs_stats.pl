@@ -14,7 +14,6 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(rdf11/rdf11_mt)).
 
 :- rdf_meta(rdf_number_of_instances(r,-)).
 

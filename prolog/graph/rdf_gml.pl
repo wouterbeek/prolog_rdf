@@ -20,7 +20,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_print_term)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
     gml_cleanup(+, +, +, +, +, +),

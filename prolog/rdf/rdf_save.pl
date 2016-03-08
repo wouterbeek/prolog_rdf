@@ -21,7 +21,7 @@
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(simple/write_SimpleRDF)).

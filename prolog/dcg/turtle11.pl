@@ -42,7 +42,7 @@
 
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 
 
 

@@ -15,7 +15,7 @@
 */
 
 :- use_module(library(error)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(xsdp_types)).
 
