@@ -205,7 +205,7 @@ exponent(Exp) -->
   ("e" ; "E"),
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
   digits(Ds),
-  {possum(Ds, I), Exp is Sg * 10 ^ I}.
+  {pos_sum(Ds, I), Exp is Sg * 10 ^ I}.
 
 
 
@@ -282,7 +282,7 @@ individualIRI(Iri) --> 'IRI'(Iri).
 integerLiteral(literal(type(xsd:integer,I))) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
   digits(Ds),
-  {possum(Ds, I0), I is Sg * I0}.
+  {pos_sum(Ds, I0), I is Sg * I0}.
 
 
 
@@ -379,7 +379,7 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % positiveInteger ::= nonZero { digit }
 % ```
 
-positiveInteger(I) --> nonZero(H), *(digit, T), {possum([H|T], I)}.
+positiveInteger(I) --> nonZero(H), *(digit, T), {pos_sum([H|T], I)}.
 
 
 
