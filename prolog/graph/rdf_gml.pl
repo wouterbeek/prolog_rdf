@@ -9,10 +9,12 @@
 /** <module> RDF GML
 
 @author Wouter Beek
-@version 2016/02
+@version 2016/02-2016/03
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/open_any2)).
