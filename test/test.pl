@@ -46,7 +46,6 @@
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
 :- use_module(library(rdf/rdf_info)).
-:- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).

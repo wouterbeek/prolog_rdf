@@ -7,6 +7,7 @@
     rdf_image/2,           % +S, -Img
     rdf_langstring/3,      % ?S, ?P, -Lit
     rdf_langstring_lex/3,  % ?S, ?P, -Lex
+    rdf_nextto/3,          % ?X, ?Y, ?RdfList
     rdf_pref_string/3,     % ?S, ?P, -Lit
     rdf_pref_string_lex/3, % ?S, ?P, -Lex
     rdf_retractall/1,      % +Trip
@@ -23,13 +24,15 @@
 
 @author Wouter Beek
 @compat RDF 1.1
-@version 2015/12-2016/02
+@version 2015/12-2016/03
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(closure)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
 :- use_module(library(uuid)).
+:- use_module(library(yall)).
 
 :- meta_predicate
     rdf_aggregate_all(+, 0, -),
@@ -42,6 +45,7 @@
    rdf_image(r, -),
    rdf_langstring(r, r, o),
    rdf_langstring_lex(r, r, -),
+   rdf_nextto(o, o, r),
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
@@ -112,6 +116,18 @@ rdf_langstring(S, P, LRange, Lit) :-
 rdf_langstring_lex(S, P, Lex) :-
   rdf_langstring(S, P, Lit),
   rdf_lexical_form(Lit, Lex).
+
+
+
+%! rdf_nextto(?X, ?Y, ?RdfList) is nondet.
+
+rdf_nextto(X, Y, L) :-
+  closure([X,Y]>>rdf_directly_nextto(X, Y, L), X, Y).
+
+rdf_directly_nextto(X, Y, L) :-
+  rdf_has(L, rdf:first, X),
+  rdf_has(L, rdf:rest, T),
+  rdf_has(T, rdf:first, Y).
 
 
 

@@ -2,12 +2,7 @@
   json_to_rdf,
   [
     json_to_rdf/5, % +Graph, +Module, +Prefix, +Json, ?Resource
-    json_to_rdf/6 % +Graph:rdf_graph
-                  % +Module:atom
-                  % +SchemaPrefix:atom
-                  % +DataPrefix:atom
-                  % +Json:dict
-                  % ?Resources:or([rdf_term,list(rdf_term)])
+    json_to_rdf/6  % +Graph, +Module, +SchemaPrefix, +DataPrefix, +Json, ?Resource
   ]
 ).
 
@@ -29,7 +24,6 @@ the RDF prefix that is used for the RDF vocabulary.
 :- use_module(library(dcg/turtle_conv)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_list)).
 :- use_module(library(rdf/rdf_prefix)).
 
 
