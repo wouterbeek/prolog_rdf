@@ -55,7 +55,7 @@ Printing of RDF statements to a text-based output stream.
      pass_to(rdf_print_statement/5, 5)
    ]).
 :- predicate_options(rdf_print_graph/2, 2, [
-     pass_to(rdf_print_quadruple/5, 5),
+     pass_to(rdf_print_quad/5, 5),
      pass_to(rdf_print_triple/5, 5)
    ]).
 :- predicate_options(rdf_print_graphs/1, 1, [
@@ -99,8 +99,8 @@ rdf_print_descr(S, G, Opts) :-
   (   G == none
   ->  forall(rdf_print_triple(S, _, _, _, Opts), true)
   ;   var(G)
-  ->  % No graph is given: display quadruples.
-      forall(rdf_print_quadruple(S, _, _, G, Opts), true)
+  ->  % No graph is given: display quads.
+      forall(rdf_print_quad(S, _, _, G, Opts), true)
   ;   % A graph is given: display triples.
       forall(rdf_print_triple(S, _, _, G, Opts), true)
   ).
@@ -125,7 +125,7 @@ rdf_print_graph(G) :-
 
 rdf_print_graph(G, Opts) :-
   (   var(G)
-  ->  rdf_print_quadruple(_, _, _, _, Opts),
+  ->  rdf_print_quad(_, _, _, _, Opts),
       fail
   ;   rdf_graph(G)
   ->  rdf_print_triple(_, _, _, G, Opts),

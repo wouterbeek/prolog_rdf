@@ -60,7 +60,7 @@ rdf_gml(Source, Opts) :-
       GFile,
       Opts
     ),
-    rdf_call_on_statements(Source, gml_statements(EOut, NOut, Opts)),
+    rdf_call_on_tuples(Source, gml_tuples(EOut, NOut, Opts)),
     gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile)
   ).
 
@@ -182,9 +182,9 @@ gml_setup(
 
 
 
-%! gml_statement(+EOut, +NOut, +Opts, +Stmt) is det.
+%! gml_tuple(+EOut, +NOut, +Opts, +Stmt) is det.
 
-gml_statement(EOut, NOut, Opts, Stmt) :-
+gml_tuple(EOut, NOut, Opts, Stmt) :-
   call_collect_messages((
     (Stmt = rdf(S,P,O0), ! ; Stmt = rdf(S,P,O0,_)),
     rdf11:post_object(O, O0),
@@ -193,10 +193,10 @@ gml_statement(EOut, NOut, Opts, Stmt) :-
 
 
 
-%! gml_statements(+EOut, +NOut, +Opts, +Stmts, ?G) is det.
+%! gml_tuples(+EOut, +NOut, +Opts, +Tuples, ?G) is det.
 
-gml_statements(EOut, NOut, Opts, Stmts, _) :-
-  maplist(gml_statement(EOut, NOut, Opts), Stmts).
+gml_tuples(EOut, NOut, Opts, Tuples, _) :-
+  maplist(gml_tuple(EOut, NOut, Opts), Tuples).
 
 
 

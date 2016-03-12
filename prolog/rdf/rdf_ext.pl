@@ -1,24 +1,29 @@
 :- module(
   rdf_ext,
   [
-    rdf_aggregate_all/3,   % +Template, :Goal, -Result
-    rdf_assert/1,          % +Stmt
-    rdf_assert/2,          % +Stmt, +G
-    rdf_image/2,           % +S, -Img
-    rdf_langstring/3,      % ?S, ?P, -Lit
-    rdf_langstring_lex/3,  % ?S, ?P, -Lex
-    rdf_nextto/3,          % ?X, ?Y, ?RdfList
-    rdf_pref_string/3,     % ?S, ?P, -Lit
-    rdf_pref_string_lex/3, % ?S, ?P, -Lex
-    rdf_print/1.           % +Stmts
-    rdf_print/4,           % ?S, ?P, ?O, ?G
-    rdf_retractall/1,      % +Trip
-    rdf_snap/1,            % :Goal_0
-    rdf_triples/4,         % ?S, ?P. ?O, -Trips:ordset
+    rdf_aggregate_all/3,    % +Template, :Goal, -Result
+    rdf_assert/1,           % +Tuple
+    rdf_assert/2,           % +Triple, +G
+    rdf_expect_graph/1,     % ?G
+    rdf_graph_to_triples/2, % ?G, -Triples
+    rdf_image/2,            % +S, -Img
+    rdf_is_ground_quad/1,   % @Term
+    rdf_is_ground_triple/1, % @Term
+    rdf_langstring/3,       % ?S, ?P, -Lit
+    rdf_langstring_lex/3,   % ?S, ?P, -Lex
+    rdf_nextto/3,           % ?X, ?Y, ?RdfList
+    rdf_pref_string/3,      % ?S, ?P, -Lit
+    rdf_pref_string_lex/3,  % ?S, ?P, -Lex
+    rdf_print/1,            % +Tuples
+    rdf_print/4,            % ?S, ?P, ?O, ?G
+    rdf_retractall/1,       % +Triple
+    rdf_snap/1,             % :Goal_0
+    rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
+    rdf_tuple/1,            % -Tuple
     rdf_unload_db/0,
-    rdfs_instance0/2,      % ?I, ?C
-    rdfs_label/2,          % +S, -Lit
-    rdfs_label_lex/2       % +S, -Lex
+    rdfs_instance0/2,       % ?I, ?C
+    rdfs_label/2,           % +S, -Lit
+    rdfs_label_lex/2        % +S, -Lex
   ]
 ).
 :- reexport(library(semweb/rdf11)).
@@ -33,6 +38,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(closure)).
+:- use_module(library(error)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
@@ -47,6 +53,8 @@
    rdf_aggregate_all(+, t, -),
    rdf_assert(t),
    rdf_assert(t, r),
+   rdf_expect_graph(r),
+   rdf_graph_to_triples(r, -),
    rdf_image(r, -),
    rdf_langstring(r, r, o),
    rdf_langstring_lex(r, r, -),
@@ -73,7 +81,7 @@ rdf_aggregate_all(Template, Goal, Result) :-
 
 
 
-%! rdf_assert(+Stmt) is det.
+%! rdf_assert(+Tuple) is det.
 
 rdf_assert(rdf(S,P,O)) :- !,
   rdf_assert(S, P, O).
@@ -82,10 +90,34 @@ rdf_assert(rdf(S,P,O,G)) :-
 
 
 
-%! rdf_assert(+Trip, +G) is det.
+%! rdf_assert(+Triple, +G) is det.
 
 rdf_assert(rdf(S,P,O), G) :-
   rdf_assert(S, P, O, G).
+
+
+
+%! rdf_expect_graph(+G) is semidet.
+%! rdf_expect_graph(-G) is nondet.
+% If Term is uninstantiated it is non-deterministically
+% instantiated to existing RDF graphs.
+% If Term is instantiated and does not denote an existing RDF graph
+% this results in an exception.
+%
+% @throws existence_error
+
+rdf_expect_graph(G) :-
+  rdf_graph(G), !.
+rdf_expect_graph(G) :-
+  existence_error(rdf_graph, G).
+
+
+
+% ! rdf_graph_to_triples(?G, -Triples) is det.
+
+rdf_graph_to_triples(G, Triples) :-
+  rdf_expect_graph(G),
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Triples).
 
 
 
@@ -98,6 +130,23 @@ rdf_image(S, V) :-
 rdf_image(S, V) :-
   rdf(S, _, V),
   rdfs_instance0(V, dcmit:'Image').
+
+
+
+%! rdf_is_ground_quad(@Term) is semidet.
+% Succeeds if the given triple is ground, i.e., contains no blank node.
+
+rdf_is_ground_quad(rdf(S,P,O,_)) :-
+  rdf_is_ground_triple(rdf(S,P,O)).
+
+
+
+%! rdf_is_ground_triple(@Term) is semidet.
+% Succeeds if the given triple is ground, i.e., contains no blank node.
+
+rdf_is_ground_triple(rdf(S,_,O)) :-
+  \+ rdf_is_bnode(S),
+  \+ rdf_is_bnode(O).
 
 
 
@@ -172,11 +221,11 @@ rdf_pref_string_lex(S, P, Lex) :-
 
 
 
-%! rdf_print(+Stmts) is det.
+%! rdf_print(+Tuples) is det.
 
-rdf_print(Stmts) :-
+rdf_print(Tuples) :-
   rdf_snap((
-    maplist(rdf_assert, Stmts),
+    maplist(rdf_assert, Tuples),
     rdf_print(_, _, _, _)
   )).
 
@@ -214,9 +263,9 @@ rdf_print_for_subject(I1, S, P, O, G) :-
   tab0(I1),
   rdf_print_subject(S),
   aggregate_all(set(P), rdf(S, P, O, G), Ps),
-  (   Ps = [P]
+  (   Ps = [P0]
   ->  write(" "),
-      rdf_print_for_predicate(S, P, O, G),
+      rdf_print_for_predicate(S, P0, O, G),
       writeln(" .")
   ;   nl,
       I2 is I1 + 1,
@@ -258,16 +307,17 @@ rdf_print_literal(V^^D) :-
   (   rdf_equal(xsd:boolean, D)
   ;   rdf_equal(xsd:string, D)
   ), !,
-  atom_string(Lex, V),
-  write(Lex).
+  rdf_lexical_form(V^^D, Lex^^D),
+  turtle:turtle_write_quoted_string(current_output, Lex).
 rdf_print_literal(V^^D) :-
   (   rdf_equal(xsd:integer, D)
   ;   rdf_equal(xsd:decimal, D)
   ;   rdf_equal(xsd:double, D)
   ), !,
-  write(V).
+  rdf_lexical_form(V^^D, Lex^^D),
+  turtle:turtle_write_quoted_string(current_output, Lex).
 rdf_print_literal(V^^D) :- !,
-  rdf11:in_type(D, V, Lex),
+  rdf_lexical_form(V^^D, Lex^^D),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write("^^"),
   rdf_print_iri(D).
@@ -305,7 +355,7 @@ tab0(N1) :- N2 is N1 * 4, tab(N2).
 
 
 
-%! rdf_retractall(+Trip) is det.
+%! rdf_retractall(+Triple) is det.
 
 rdf_retractall(rdf(S,P,O)) :-
   rdf_retractall(S, P, O).
@@ -319,10 +369,18 @@ rdf_snap(Goal_0) :-
 
 
 
-%! rdf_triples(?S, ?P, ?O, -Trips) is det.
+%! rdf_tuple(-Tuple) is det.
 
-rdf_triples(S, P, O, Trips):-
-  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Trips).
+rdf_tuple(Tuple) :-
+  rdf(S, P, O, G),
+  (G == default -> Tuple = rdf(S,P,O) ; Tuple = rdf(S,P,O,G)).
+  
+
+
+%! rdf_triples(?S, ?P, ?O, -Triples) is det.
+
+rdf_triples(S, P, O, Triples):-
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Triples).
 
 
 

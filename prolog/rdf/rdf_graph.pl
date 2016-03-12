@@ -1,7 +1,6 @@
 :- module(
   rdf_graph,
   [
-    rdf_expect_graph/1, % @Term
     rdf_fresh_graph/2,  % ?G, +FreshnessLifetime:between(0.0,inf)
     rdf_graph_age/2,    % ?G, -Age:between(0.0,inf)
     rdf_new_graph/1,    % -G
@@ -25,7 +24,6 @@
 :- use_module(library(uri)).
 
 :- rdf_meta
-   rdf_expect_graph(r),
    rdf_fresh_graph(r, +),
    rdf_graph_age(r, -),
    rdf_new_graph(r, -),
@@ -34,25 +32,6 @@
    rdf_unload_graph(r).
 
 
-
-
-
-%! rdf_expect_graph(@Term) is nondet.
-% If Term is uninstantiated it is non-deterministically
-% instantiated to existing RDF graphs.
-% If Term is instantiated and does not denote an existing RDF graph
-% this results in an exception.
-%
-% @throws existence_error
-
-rdf_expect_graph(G) :-
-  var(G), !,
-  % NONDET.
-  rdf_graph(G).
-rdf_expect_graph(G) :-
-  rdf_graph(G), !.
-rdf_expect_graph(G) :-
-  existence_error(rdf_graph, G).
 
 
 

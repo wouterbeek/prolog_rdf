@@ -1,16 +1,16 @@
 :- module(
   write_SimpleRDF,
   [
-    write_simple_begin/4,     % -BPrefix, -TripCounter:compound, -QuadCounter:compound, +Opts
-    write_simple_end/3,       % +TripCounter:compound, +QuadCounter:compound, +Opts
+    write_simple_begin/4,     % -BPrefix, -TripleCounter:compound, -QuadCounter:compound, +Opts
+    write_simple_end/3,       % +TripleCounter:compound, +QuadCounter:compound, +Opts
     write_simple_graph/2,     % ?G, +Opts
-    write_simple_quadruple/4, % +S, +P, +O, +G
-    write_simple_quadruple/5, % +BPrefix, +S, +P, +O, +G
-    write_simple_quadruple/6, % +BPrefix, +QuadCounter:compound, +S, +P, +O, +G
-    write_simple_statement/4, % +BPrefix, +TripCounter:compound, +QuadCounter:compound, +Statement
+    write_simple_quad/4,      % +S, +P, +O, +G
+    write_simple_quad/5,      % +BPrefix, +S, +P, +O, +G
+    write_simple_quad/6,      % +BPrefix, +QuadCounter:compound, +S, +P, +O, +G
+    write_simple_statement/4, % +BPrefix, +TripleCounter:compound, +QuadCounter:compound, +Statement
     write_simple_triple/3,    % +S, +P, +O
     write_simple_triple/4,    % +BPrefix, +S, +P, +O
-    write_simple_triple/5     % +BPrefix, +TripCounter:compound, +S, +P, +O
+    write_simple_triple/5     % +BPrefix, +TripleCounter:compound, +S, +P, +O
   ]
 ).
 
@@ -34,7 +34,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 @author Wouter Beek
 @author Jan Wielemaker
 @author Laurens Rietveld
-@version 2015/08, 2015/10-2016/02
+@version 2015/08, 2015/10-2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -51,23 +51,23 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(iri/rfc3987_gen)).
 
 :- rdf_meta
-   write_simple_quadruple(r,r,o,+),
-   write_simple_quadruple(+,r,r,o,+),
-   write_simple_quadruple(+,+,r,r,o,+),
-   write_simple_triple(r,r,o),
-   write_simple_triple(+,r,r,o),
-   write_simple_triple(+,+,r,r,o).
+   write_simple_quad(r, r, o, +),
+   write_simple_quad(+, r, r, o, +),
+   write_simple_quad(+, +, r, r, o, +),
+   write_simple_triple(r, r, o),
+   write_simple_triple(+, r, r, o),
+   write_simple_triple(+, +, r, r, o).
 
 :- predicate_options(write_simple_begin/4, 4, [
      base_iri(+atom)
    ]).
 :- predicate_options(write_simple_end/3, 3, [
-     quadruples(-nonneg),
+     quads(-nonneg),
      statements(-nonneg),
      triples(-nonneg)
    ]).
 :- predicate_options(write_simple_graph/2, 2, [
-     rdf_format(+oneof([quadruples,triples])),
+     rdf_format(+oneof([quads,triples])),
      pass_to(write_simple_begin/4, 4),
      pass_to(write_simple_end/3, 3)
    ]).
@@ -76,17 +76,17 @@ assuming `xsd:string` in case no datatype IRI is given.
 
 
 %! write_simple_begin(
-%!   -BPrefix:atom,
-%!   -TripleCounter:compound,
-%!   -QuadrupleCounter:compound,
-%!   +Options:list(compound)
+%!   -BPrefix,
+%!   -TripleleCounter:compound,
+%!   -QuadCounter:compound,
+%!   +Opts
 %! ) is det.
 
-write_simple_begin(BPrefix, triples, quadruples, Opts) :-
+write_simple_begin(BPrefix, triples, quads, Opts) :-
   reset_bnode_names,
 
   create_thread_counter(triples),
-  create_thread_counter(quadruples),
+  create_thread_counter(quads),
 
   % Process the option for replacing blank nodes with IRIs,
   % establishing the prefix for each blank node.
@@ -100,7 +100,7 @@ write_simple_begin(BPrefix, triples, quadruples, Opts) :-
 
 
 
-%! write_simple_bnode(+BPrefix:uri, +B:atom) is det.
+%! write_simple_bnode(+BPrefix, +B) is det.
 
 write_simple_bnode(BPrefix, B) :-
   rdf_bnode_name:rdf_bnode_name0(BPrefix, B, BName),
@@ -108,13 +108,9 @@ write_simple_bnode(BPrefix, B) :-
 
 
 
-%! write_simple_end(
-%!   +TripleCounter:compound,
-%!   +QuadrupleCounter:compound,
-%!   +Options:list(compound)
-%! ) is det.
+%! write_simple_end(+TripleCounter:compound, +QuadCounter:compound, +Opts) is det.
 % The following options are supported:
-%   * quadruples(-nonneg)
+%   * quads(-nonneg)
 %   * statements(-nonneg)
 %   * triples(-nonneg)
 
@@ -123,7 +119,7 @@ write_simple_end(CT, CQ, Opts) :-
   option(triples(NT), Opts, _),
 
   delete_thread_counter(CQ, NQ),
-  option(quadruples(NQ), Opts, _),
+  option(quads(NQ), Opts, _),
 
   NS is NT + NQ,
   option(statements(NS), Opts, _),
@@ -132,9 +128,9 @@ write_simple_end(CT, CQ, Opts) :-
 
 
 
-%! write_simple_graph(?Graph:atom, +Options:list(compound)) is det.
+%! write_simple_graph(?G, +Opts) is det.
 % The following options are supported:
-%   * quadruples(-nonneg)
+%   * quads(-nonneg)
 %   * rdf_format(?oneof([nquads,ntriples]))
 %   * statements(-nonneg)
 %   * triples(-nonneg)
@@ -222,14 +218,14 @@ write_simple_predicate(P) :-
 
 
 
-%! write_simple_quadruple(+S, +P, +O, +G) is det.
-%! write_simple_quadruple(+Counter:compound, +S, +P, +O, +G) is det.
-%! write_simple_quadruple(+BPrefix, +Counter:compound, +S, +P, +O, +G) is det.
+%! write_simple_quad(+S, +P, +O, +G) is det.
+%! write_simple_quad(+Counter:compound, +S, +P, +O, +G) is det.
+%! write_simple_quad(+BPrefix, +Counter:compound, +S, +P, +O, +G) is det.
 
-write_simple_quadruple(S, P, O, G) :-
-  write_simple_quadruple('_:', S, P, O, G).
+write_simple_quad(S, P, O, G) :-
+  write_simple_quad('_:', S, P, O, G).
 
-write_simple_quadruple(BPrefix, S, P, O, G) :-
+write_simple_quad(BPrefix, S, P, O, G) :-
   write_simple_subject(S, BPrefix),
   put_char(' '),
   write_simple_predicate(P),
@@ -241,23 +237,23 @@ write_simple_quadruple(BPrefix, S, P, O, G) :-
   put_char(.),
   put_code(10).
 
-write_simple_quadruple(BPrefix, C, S, P, O, G) :-
-  write_simple_quadruple(BPrefix, S, P, O, G),
+write_simple_quad(BPrefix, C, S, P, O, G) :-
+  write_simple_quad(BPrefix, S, P, O, G),
   increment_thread_counter(C).
 
 
 
 %! write_simple_statement(
-%!   +BPrefix:atom,
-%!   +TripleCounter:compound,
-%!   +QuadrupleCounter:compound,
-%!   +Statement:compound
+%!   +BPrefix,
+%!   +TripleleCounter:compound,
+%!   +QuadCounter:compound,
+%!   +Tuple
 %! ) is det.
 
 write_simple_statement(BPrefix, CT, _, rdf(S,P,O)) :- !,
   write_simple_triple(BPrefix, CT, S, P, O).
 write_simple_statement(BPrefix, _, CQ, rdf(S,P,O,G)) :-
-  write_simple_quadruple(BPrefix, CQ, S, P, O, G).
+  write_simple_quad(BPrefix, CQ, S, P, O, G).
 
 
 
@@ -275,9 +271,9 @@ write_simple_subject(Iri, _) :-
 
 %! write_simple_subject(
 %!   +BPrefix,
-%!   +TripCounter:compound,
+%!   +TripleCounter:compound,
 %!   +QuadCounter:compound,
-%!   ?Graph,
+%!   ?G,
 %!   +Format:oneof([nquads,ntriples]),
 %!   +S
 %! ) is det.
@@ -287,11 +283,9 @@ write_simple_subject(Iri, _) :-
 % Collects a sorted list of predicate-object pairs.
 % Then processes each pairs -- and thus each triple -- separately.
 
-% N-Quads
-write_simple_subject(BPrefix, _, CQ, G, quadruple, S) :-
+write_simple_subject(BPrefix, _, CQ, G, quad, S) :-
   aggregate_all(set(P-O-G), rdf(S, P, O, G), POGs),
-  forall(member(P-O-G, POGs), write_simple_quadruple(BPrefix, CQ, S, P, O, G)).
-% N-Triples
+  forall(member(P-O-G, POGs), write_simple_quad(BPrefix, CQ, S, P, O, G)).
 write_simple_subject(BPrefix, CT, _, G, triple, S) :-
   aggregate_all(set(P-O), rdf(S, P, O, G), POs),
   forall(member(P-O, POs), write_simple_triple(BPrefix, CT, S, P, O)).

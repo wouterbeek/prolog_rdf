@@ -3,7 +3,7 @@
   [
     rdf_cache/0,
     rdf_cache/1, % +Opts
-    rdf_deref/1 % +S
+    rdf_deref/1  % +S
   ]
 ).
 
@@ -112,12 +112,12 @@ rdf_cache_worker(Opts, S, Ys) :-
 
 rdf_deref(S) :-
   debug(rdf_deref(request), "Dereferencing ~a", [S]),
-  call_collect_messages(rdf_call_on_statements(S, rdf_deref_statements(S))),
+  call_collect_messages(rdf_call_on_tuples(S, rdf_deref_tuples(S))),
   if_debug(rdf_deref(result), rdf_print_graph(S, [id_closure(true)])).
 
-rdf_deref_statements(S, Stmts, _) :- maplist(rdf_deref_statement(S), Stmts).
+rdf_deref_tuples(S, Stmts, _) :- maplist(rdf_deref_tuple(S), Stmts).
 
-rdf_deref_statement(S1, T) :-
+rdf_deref_tuple(S1, T) :-
   (T = rdf(S2,P,O) ; T = rdf(S2,P,O,_)),
   (is_same_iri(S1, S2, S3) -> rdf_assert(S3, P, O, S2) ; true).
 

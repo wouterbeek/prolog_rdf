@@ -34,6 +34,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(plunit)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).

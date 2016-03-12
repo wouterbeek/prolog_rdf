@@ -5,11 +5,11 @@
     rdf_datatype_iri/1,              % ?D
     rdf_datatype_iri/2,              % +G, ?D
     rdf_iri/2,                       % +G, ?Iri
-    rdf_is_language_tagged_string/1, % @T
-    rdf_is_legacy_literal/1,         % @T
+    rdf_is_language_tagged_string/1, % @Term
+    rdf_is_legacy_literal/1,         % @Term
     rdf_language_tagged_string/1,    % ?Lit
     rdf_language_tagged_string/2,    % +G, ?Lit
-    rdf_legacy_literal_components/4, % +Literal, -D, -Lex, -LTag) is det.
+    rdf_legacy_literal_components/4, % +Lit, -D, -Lex, -LTag) is det.
     rdf_literal/2,                   % +G, ?Lit
     rdf_literal_components/4,        % ?Lit, ?D, ?Lex, ?LTag
     rdf_literal_datatype/2,          % +Lit, ?D
@@ -20,7 +20,7 @@
     rdf_object/2,                    % +G, ?O
     rdf_predicate/2,                 % +G, ?P
     rdf_subject/2,                   % +G, ?S
-    rdf_term/2                       % +G, ?T
+    rdf_term/2                       % +G, ?Term
   ]
 ).
 :- reexport(library(semweb/rdf11), [
@@ -40,7 +40,7 @@
      rdf_object/1,       % ?O
      rdf_predicate/1,    % ?P
      rdf_subject/1,      % ?S
-     rdf_term/1          % ?T
+     rdf_term/1          % ?Term
    ]).
 
 /** <module> RDF: Terms
@@ -64,7 +64,7 @@ resources as well.
 @author Wouter Beek
 @compat RDF 1.1 Concepts and Abstract Syntax
 @see http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/
-@version 2015/07-2015/08, 2015/10, 2015/12-2016/02
+@version 2015/07-2015/08, 2015/10, 2015/12-2016/03
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -97,27 +97,27 @@ error:has_type(rdf_graph, G) :-
   ).
 error:has_type(rdf_literal, Lit) :-
   rdf_is_literal(Lit).
-error:has_type(rdf_name, N) :-
-  (   error:has_type(iri, N)
-  ;   error:has_type(rdf_literal, N)
+error:has_type(rdf_name, Name) :-
+  (   error:has_type(iri, Name)
+  ;   error:has_type(rdf_literal, Name)
   ).
-error:has_type(rdf_statement, Stmt) :-
-  (   error:has_type(rdf_triple, Stmt)
-  ;   error:has_type(rdf_quadruple, Stmt)
+error:has_type(rdf_tuple, Tuple) :-
+  (   error:has_type(rdf_triple, Tuple)
+  ;   error:has_type(rdf_quad, Tuple)
   ).
-error:has_type(rdf_quadruple, T) :-
-  T = rdf(S,P,O,G),
+error:has_type(rdf_quad, Quad) :-
+  Quad = rdf(S,P,O,G),
   error:has_type(rdf_term, S),
   error:has_type(iri, P),
   error:has_type(rdf_term, O),
   error:has_type(iri, G).
-error:has_type(rdf_term, T) :-
-  (   error:has_type(rdf_bnode, T)
-  ;   error:has_type(rdf_literal, T)
-  ;   error:has_type(iri, T)
+error:has_type(rdf_term, Term) :-
+  (   error:has_type(rdf_bnode, Term)
+  ;   error:has_type(rdf_literal, Term)
+  ;   error:has_type(iri, Term)
   ).
-error:has_type(rdf_triple, T) :-
-  T = rdf(S,P,O),
+error:has_type(rdf_triple, Triple) :-
+  Triple = rdf(S,P,O),
   error:has_type(rdf_term, S),
   error:has_type(iri, P),
   error:has_type(rdf_term, O).
@@ -126,12 +126,12 @@ error:has_type(rdf_triple, T) :-
 
 
 
-%! rdf_bnode(+G, +BN) is semidet.
-%! rdf_bnode(+G, -BN) is nondet.
+%! rdf_bnode(+G, +B) is semidet.
+%! rdf_bnode(+G, -B) is nondet.
 
-rdf_bnode(G, BN) :-
-  rdf_bnode(BN),
-  once(rdf_node(G, BN)).
+rdf_bnode(G, B) :-
+  rdf_bnode(B),
+  once(rdf_node(G, B)).
 
 
 
@@ -159,11 +159,11 @@ rdf_iri(G, Iri) :-
 
 
 
-%! rdf_is_language_tagged_string(@T) is semidet.
+%! rdf_is_language_tagged_string(@Term) is semidet.
 
-rdf_is_language_tagged_string(T) :-
-  ground(T),
-  T = _@_.
+rdf_is_language_tagged_string(Term) :-
+  ground(Term),
+  Term = _@_.
 
 
 
@@ -244,8 +244,8 @@ rdf_literal_value(V@_, V).
 
 
 
-%! rdf_name(+G, +Name:rdf_name) is semidet.
-%! rdf_name(+G, -Name:rdf_name) is nondet.
+%! rdf_name(+G, +Name) is semidet.
+%! rdf_name(+G, -Name) is nondet.
 
 rdf_name(G, Name) :-
   rdf_term(G, Name),
@@ -253,8 +253,8 @@ rdf_name(G, Name) :-
 
 
 
-%! rdf_node(+G, +Node:rdf_node) is semidet.
-%! rdf_node(+G, -Node:rdf_node) is nondet.
+%! rdf_node(+G, +Node) is semidet.
+%! rdf_node(+G, -Node) is nondet.
 
 rdf_node(G, S) :-
   rdf_subject(G, S).
@@ -301,12 +301,12 @@ rdf_subject(G, S) :-
 
 
 
-%! rdf_term(+G, +T) is semidet.
-%! rdf_term(+G, -T) is nondet.
+%! rdf_term(+G, +Term) is semidet.
+%! rdf_term(+G, -Term) is nondet.
 
 rdf_term(G, P) :-
   rdf_predicate(G, P).
-rdf_term(G, N) :-
-  rdf_node(G, N),
+rdf_term(G, Node) :-
+  rdf_node(G, Node),
   % Ensure there are no duplicates.
-  \+ rdf_predicate(N).
+  \+ rdf_predicate(Node).

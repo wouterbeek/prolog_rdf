@@ -1,8 +1,8 @@
 :- module(
   jsonld_read,
   [
-    jsonld_statement/2, % +Json, -Stmt
-    jsonld_statement/3  % +Json, -Stmt, +Opts
+    jsonld_tuple/2, % +Json, -Tuple
+    jsonld_tuple/3  % +Json, -Tuple, +Opts
   ]
 ).
 
@@ -23,81 +23,81 @@
 
 
 
-%! jsonld_statement(+Json, -Stmt) is det.
+%! jsonld_tuple(+Json, -Tuple) is det.
 
-jsonld_statement(Json, Stmt) :-
-  jsonld_statement(Json, Stmt, []).
+jsonld_tuple(Json, Tuple) :-
+  jsonld_tuple(Json, Tuple, []).
 
-jsonld_statement(Json, Stmt, Opts) :-
+jsonld_tuple(Json, Tuple, Opts) :-
   % The base IRI that was set outside of the JSON-LD context
   % takes precedence over the one that is set inside the JSON-LD context.
   (   option(base_iri(BaseIri), Opts)
-  ->  Context = _{'base': BaseIri}
+  ->  Context = _{'@base': BaseIri}
   ;   Context = _{}
   ),
-  jsonld_statement0(Context, Json, Stmt).
+  jsonld_tuple0(Context, Json, Tuple).
 
 % Case 1: An array of dictionaries.
-jsonld_statement0(Context, Array, Stmt) :-
+jsonld_tuple0(Context, Array, Tuple) :-
   is_list(Array), !,
   member(Obj, Array),
-  jsonld_statement0(Context, Obj, Stmt).
+  jsonld_tuple0(Context, Obj, Tuple).
 % Case 2: A dictionary.
-jsonld_statement0(Context1, Obj, Stmt) :-
+jsonld_tuple0(Context1, Obj, Tuple) :-
   jsonld_context_and_data(Obj, Context2, Data),
   merge_contexts(Context1, Context2, Context3),
-  jsonld_statement_goto(Context3, Data, Stmt).
+  jsonld_tuple_goto(Context3, Data, Tuple).
 
 % GOTO point for recursive structures (see below).
-jsonld_statement_goto(Context, Data1, Stmt) :-
+jsonld_tuple_goto(Context, Data1, Tuple) :-
   jsonld_to_subject(Context, Data1, S, Data2),
   % NONDET
   member(Key-Value, Data2),
   jsonld_to_predicate(Context, Key, P, ODef, LTag),
-  jsonld_statement(Context, S, P, ODef, LTag, Value, Stmt).
+  jsonld_tuple(Context, S, P, ODef, LTag, Value, Tuple).
 
 
 
-%! jsonld_dict_statement(+Context, +S, +P, +Dict, -Stmt) is nondet.
+%! jsonld_dict_tuple(+Context, +S, +P, +Dict, -Tuple) is nondet.
 
-jsonld_dict_statement(Context, S1, P, D, Stmt) :-
+jsonld_dict_tuple(Context, S1, P, D, Tuple) :-
   dict_pairs(D, Pairs),
-  findall(Stmt, jsonld_statement_goto(Context, Pairs, Stmt), Stmts),
+  findall(Tuple, jsonld_tuple_goto(Context, Pairs, Tuple), Tuples),
   (   % The triple connecting the parent object to the child object.
-      Stmts = [rdf(S2,_,_)|_],
-      Stmt = rdf(S1,P,S2)
+      Tuples = [rdf(S2,_,_)|_],
+      Tuple = rdf(S1,P,S2)
   ;   % The triples that constitute the child object.
       % NONDET
-      member(Stmt, Stmts)
+      member(Tuple, Tuples)
   ).
 
 
 
-%! jsonld_to_list_triple(+Context, +S, +P, +ODef, _LTag,  +L, -Stmt) is nondet.
+%! jsonld_to_list_triple(+Context, +S, +P, +ODef, _LTag,  +L, -Tuple) is nondet.
 
-jsonld_to_list_triple(Context, S, P, _, _, [], Stmt) :- !,
+jsonld_to_list_triple(Context, S, P, _, _, [], Tuple) :- !,
   rdf_equal(rdf:nil, Nil),
-  statement_term(Context, S, P, Nil, Stmt).
-jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Stmt) :-
+  tuple_term(Context, S, P, Nil, Tuple).
+jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Tuple) :-
   rdf_create_bnode(B),
-  (   statement_term(Context, S, P, B, Stmt)
-  ;   jsonld_to_list_triple(Context, B, ODef, LTag, L, Stmt)
+  (   tuple_term(Context, S, P, B, Tuple)
+  ;   jsonld_to_list_triple(Context, B, ODef, LTag, L, Tuple)
   ).
 
-jsonld_to_list_triple(Context, S, ODef, LTag, [H], Stmt) :- !,
+jsonld_to_list_triple(Context, S, ODef, LTag, [H], Tuple) :- !,
   (   rdf_equal(rdf:first, First),
-      jsonld_statement(Context, S, First, ODef, LTag, H, Stmt)
+      jsonld_tuple(Context, S, First, ODef, LTag, H, Tuple)
   ;   rdf_equal(rdf:rest, Rest),
       rdf_equal(rdf:nil, Nil),
-      statement_term(Context, S, Rest, Nil, Stmt)
+      tuple_term(Context, S, Rest, Nil, Tuple)
   ).
-jsonld_to_list_triple(Context, S, ODef, LTag, [H|T], Stmt) :-
+jsonld_to_list_triple(Context, S, ODef, LTag, [H|T], Tuple) :-
   (   rdf_equal(rdf:first, First),
-      jsonld_statement(Context, S, First, ODef, LTag, H, Stmt)
+      jsonld_tuple(Context, S, First, ODef, LTag, H, Tuple)
   ;   rdf_equal(rdf:rest, Rest),
       rdf_create_bnode(B),
-      (   statement_term(Context, S, Rest, B, Stmt)
-      ;   jsonld_to_list_triple(Context, B, ODef, LTag, T, Stmt)
+      (   tuple_term(Context, S, Rest, B, Tuple)
+      ;   jsonld_to_list_triple(Context, B, ODef, LTag, T, Tuple)
       )
   ).
 
@@ -144,95 +144,95 @@ jsonld_to_subject(_, L, S, L) :-
   rdf_create_bnode(S).
 
 
-%! jsonld_statement(+Context, +S, +P, +ODef, +LTag, +Value, -Stmt) is det.
+%! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
 
 % Named graph.
-jsonld_statement(Context1, S, '@graph', _, _, Array, Stmt) :- !,
+jsonld_tuple(Context1, S, '@graph', _, _, Array, Tuple) :- !,
   put_dict('@graph', Context1, S, Context2),
-  jsonld_statement0(Context2, Array, Stmt).
+  jsonld_tuple0(Context2, Array, Tuple).
 % Blank node.
-jsonld_statement(Context, S, P, _, _, _{'@id': O}, Stmt) :-
+jsonld_tuple(Context, S, P, _, _, _{'@id': O}, Tuple) :-
   jsonld_is_bnode(O), !,
-  statement_term(Context, S, P, O, Stmt).
+  tuple_term(Context, S, P, O, Tuple).
 % Container.
-jsonld_statement(Context, S, P, ODef, LTag, Os, Stmt) :-
+jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
   (ODef == '@list' ; ODef == '@set'), !,
   is_list(Os),
   % NONDET
-  jsonld_to_list_triple(Context, S, P, _, LTag, Os, Stmt).
+  jsonld_to_list_triple(Context, S, P, _, LTag, Os, Tuple).
 % Abbreviated object list.
-jsonld_statement(Context, S, P, ODef, LTag, Os, Stmt) :-
+jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
   is_list(Os), !,
   % NONDET
   member(O, Os),
-  jsonld_statement(Context, S, P, ODef, LTag, O, Stmt).
+  jsonld_tuple(Context, S, P, ODef, LTag, O, Tuple).
 % Object is an RDF container.
-jsonld_statement(Context, S, P, ODef, LTag, _{'@list': L}, Stmt) :- !,
+jsonld_tuple(Context, S, P, ODef, LTag, _{'@list': L}, Tuple) :- !,
   % NONDET
-  jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Stmt).
-jsonld_statement(Context, S, P, ODef, LTag, _{'@set': L}, Stmt) :- !,
+  jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Tuple).
+jsonld_tuple(Context, S, P, ODef, LTag, _{'@set': L}, Tuple) :- !,
   % NONDET
-  jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Stmt).
+  jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Tuple).
 % Object is an RDF language-tagged string.
-jsonld_statement(Context, S, P, _, _, _{'@language': LTag, '@value': Lex}, Stmt) :- !,
-  statement_term(Context, S, P, Lex@LTag, Stmt).
+jsonld_tuple(Context, S, P, _, _, _{'@language': LTag, '@value': Lex}, Tuple) :- !,
+  tuple_term(Context, S, P, Lex@LTag, Tuple).
 % Object is an RDF literal with explicitly supplied RDF datatype.
-jsonld_statement(Context, S, P, _, _, _{'@type': D1, '@value': V}, Stmt) :- !,
+jsonld_tuple(Context, S, P, _, _, _{'@type': D1, '@value': V}, Tuple) :- !,
   jsonld_expand_term(Context, D1, D2),
-  statement_term(Context, S, P, V^^D2, Stmt).
+  tuple_term(Context, S, P, V^^D2, Tuple).
 % Object is an IRI.
-jsonld_statement(Context, S, P, _, _, _{'@id': O1}, Stmt) :- !,
+jsonld_tuple(Context, S, P, _, _, _{'@id': O1}, Tuple) :- !,
   jsonld_expand_term(Context, O1, O2),
-  statement_term(Context, S, P, O2, Stmt).
+  tuple_term(Context, S, P, O2, Tuple).
 % Object is a string without explicitly supplied datatype.
-jsonld_statement(Context, S, P, _, _, _{'@value': Lex}, Stmt) :- !,
+jsonld_tuple(Context, S, P, _, _, _{'@value': Lex}, Tuple) :- !,
   rdf_equal(xsd:string, D),
-  statement_term(Context, S, P, Lex^D, Stmt).
+  tuple_term(Context, S, P, Lex^D, Tuple).
 % Object is a JSON-LD object (nesting).
-jsonld_statement(Context, S1, P, _, _, O1, Stmt) :-
+jsonld_tuple(Context, S1, P, _, _, O1, Tuple) :-
   is_dict(O1), !,
   dict_pairs(O1, Data1),
-  findall(Stmt, jsonld_statement_goto(Context, Data1, Stmt), Stmts),
+  findall(Tuple, jsonld_tuple_goto(Context, Data1, Tuple), Tuples),
   (   % The triple connecting to the parent object to the child object.
-      Stmts = [rdf(S2,_,_)|_],
-      Stmt = rdf(S1,P,S2)
+      Tuples = [rdf(S2,_,_)|_],
+      Tuple = rdf(S1,P,S2)
   ;   % The triples that constitute the child object.
       % NONDET
-      member(Stmt, Stmts)
+      member(Tuple, Tuples)
   ).
 % Object is an IRI; try to expand it.
-jsonld_statement(Context, S, P, ODef, _, O1, Stmt) :-
+jsonld_tuple(Context, S, P, ODef, _, O1, Tuple) :-
   ODef == '@id', !,
   jsonld_expand_term(Context, O1, O2),
-  statement_term(Context, S, P, O2, Stmt).
+  tuple_term(Context, S, P, O2, Tuple).
 % Explicitly typed literal.
-jsonld_statement(Context, S, P, D, _, Lex, Stmt) :-
+jsonld_tuple(Context, S, P, D, _, Lex, Tuple) :-
   ground(D), !,
-  statement_term(Context, S, P, Lex^^D, Stmt).
+  tuple_term(Context, S, P, Lex^^D, Tuple).
 % Language-tagged string ‘rdf:langString’.
-jsonld_statement(Context, S, P, _, LTag, V, Stmt) :-
+jsonld_tuple(Context, S, P, _, LTag, V, Tuple) :-
   (nonvar(LTag) ; get_dict('@language', Context, LTag)),
   LTag \== null, !,
-  statement_term(Context, S, P, V@LTag, Stmt).
+  tuple_term(Context, S, P, V@LTag, Tuple).
 % Boolean strings default to ‘xsd:boolean’.
-jsonld_statement(Context, S, P, _, _, V, Stmt) :-
+jsonld_tuple(Context, S, P, _, _, V, Tuple) :-
   memberchk(V, [false,true]), !,
   rdf_equal(xsd:boolean, D),
-  statement_term(Context, S, P, V^^D, Stmt).
+  tuple_term(Context, S, P, V^^D, Tuple).
 % Integers default to ‘xsd:integer’.
-jsonld_statement(Context, S, P, _, _, V, Stmt) :-
+jsonld_tuple(Context, S, P, _, _, V, Tuple) :-
   integer(V), !,
   rdf_equal(xsd:integer, D),
-  statement_term(Context, S, P, V^^D, Stmt).
+  tuple_term(Context, S, P, V^^D, Tuple).
 % Decimal numbers default to ‘xsd:double’.
-jsonld_statement(Context, S, P, _, _, V, Stmt) :-
+jsonld_tuple(Context, S, P, _, _, V, Tuple) :-
   float(V), !,
   rdf_equal(xsd:double, D),
-  statement_term(Context, S, P, V^^D, Stmt).
+  tuple_term(Context, S, P, V^^D, Tuple).
 % Strings default to ‘xsd:string’.
-jsonld_statement(Context, S, P, _, _, V, Stmt) :-
+jsonld_tuple(Context, S, P, _, _, V, Tuple) :-
   rdf_equal(xsd:string, D),
-  statement_term(Context, S, P, V^^D, Stmt).
+  tuple_term(Context, S, P, V^^D, Tuple).
 
 
 
@@ -288,9 +288,9 @@ pair_with_nonvar_value(_-V) :- nonvar(V).
 
 
 
-statement_term(Context, S, P, O, rdf(S,P,O,G)) :-
+tuple_term(Context, S, P, O, rdf(S,P,O,G)) :-
   get_dict('@graph', Context, G), !.
-statement_term(_, S, P, O, rdf(S,P,O)).
+tuple_term(_, S, P, O, rdf(S,P,O)).
 
 
 

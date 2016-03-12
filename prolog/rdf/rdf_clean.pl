@@ -9,7 +9,7 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01
+@version 2015/08-2015/11, 2016/01, 2016/03
 */
 
 :- use_module(library(apply)).
@@ -85,7 +85,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
 
   % Read and write all triples.
-  merge_options([quadruples(NQ),statements(NS1),triples(NT)], Opts1, Opts2),
+  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts1, Opts2),
   debug_verbose(
     rdf(clean),
     setup_call_cleanup(
@@ -93,13 +93,13 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
       rdf_write_clean_stream(Read, D1, Write, Opts2),
       close(Write)
     ),
-    "Cleaning triples on a one-by-one basis."
+    "Cleaning tuples on a one-by-one basis."
   ),
-  debug(rdf(clean), "Processed ~D statements (~D triples and ~D quadruples).", [NS1,NT,NQ]),
+  debug(rdf(clean), "Processed ~D tuples (~D triples and ~D quads).", [NoTuples,NoTriples,NoQuads]),
   D2 = D1.put(_{
-    'llo:processed_quadruples': _{'@type': 'xsd:nonNegativeInteger', '@value': NQ},
-    'llo:processed_statements': _{'@type': 'xsd:nonNegativeInteger', '@value': NS1},
-    'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger', '@value': NT}
+    'llo:processed_quads': _{'@type': 'xsd:nonNegativeInteger', '@value': NoQuads},
+    'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTriples},
+    'llo:processed_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NTuples}
   }),
 
   % Store input stream properties.
@@ -108,19 +108,19 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   D3 = D2.put(DStream),
 
   % Sort unique.
-  debug_verbose(rdf(clean), sort_file(Tmp, Opts1), "Sorting cleaned triples file."),
+  debug_verbose(rdf(clean), sort_file(Tmp, Opts1), "Sorting cleaned tuples file."),
 
-  % Count the number of unique statements.
-  file_lines(Tmp, NS2),
-  NS3 is NS1 - NS2,
-  debug(rdf(clean), "Wrote ~D unique statements (skipped ~D duplicates).", [NS2,NS3]),
+  % Count the number of unique tuples.
+  file_lines(Tmp, NoLines),
+  NoDuplicates is NoTuples - NoLines,
+  debug(rdf(clean), "Wrote ~D unique tuples (skipping ~D duplicates).", [NoTuples,NoDuplicates]),
   D4 = D3.put(_{
-    'llo:unique_statements': _{'@type': 'xsd:nonNegativeInteger', '@value': NS2},
-    'llo:duplicate_statements': _{'@type': 'xsd:nonNegativeInteger', '@value': NS3}
+    'llo:unique_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTuples},
+    'llo:duplicate_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoDuplicates}
   }),
   
   % Compress the file, according to user option.
-  debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted triple file.").
+  debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted tuple file.").
 
 
 %! rdf_write_clean_stream(+Read, +Metadata, +Write, +Opts) is det.
@@ -128,40 +128,51 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
 rdf_write_clean_stream(Read, D, Write, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
   BaseIri = D.'llo:base_iri'.'@value',
-  jsonld_metadata_expand_iri(D.'llo:rdf_serialization_format', Format1),
+  jsonld_metadata_expand_iri(D.'llo:rdf_format', Format1),
   rdf_format_iri(Format2, Format1),
   merge_options([base_iri(BaseIri)], Opts1, Opts2),
   merge_options([base_uri(BaseIri),format(Format2)], Opts2, Opts3),
   setup_call_cleanup(
-    write_simple_begin(BNodePrefix, C1, C2, Opts2),
+    write_simple_begin(BPrefix, TripleCounter, QuadCounter, Opts2),
     (
-      merge_options([anon_prefix(BNodePrefix)], Opts3, Opts4),
+      merge_options([anon_prefix(BPrefix)], Opts3, Opts4),
       (   Format2 == rdfa
-      ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
-          clean_streamed_triples(Write, BNodePrefix, C1, C2, Ts, _)
+      ->  read_rdfa(Read, Tuples, [max_errors(-1),syntax(style)]),
+          clean_streamed_tuples(Write, BPrefix, TripleCounter, QuadCounter, Tuples, _)
       ;   memberchk(Format2, [nquads,ntriples])
-      ->  rdf_process_ntriples(Read, clean_streamed_triples(Write, BNodePrefix, C1, C2), Opts4)
+      ->  rdf_process_ntriples(Read,
+            clean_streamed_tuples(Write, BPrefix, TripleCounter, QuadCounter),
+            Opts4
+          )
       ;   memberchk(Format2, [trig,turtle])
-      ->  rdf_process_turtle(Read, clean_streamed_triples(Write, BNodePrefix, C1, C2), Opts4)
+      ->  rdf_process_turtle(Read,
+            clean_streamed_tuples(Write, BPrefix, TripleCounter, QuadCounter),
+            Opts4
+          )
       ;   Format2 == xml
-      ->  process_rdf(Read, clean_streamed_triples(Write, BNodePrefix, C1, C2), Opts4)
+      ->  process_rdf(Read,
+            clean_streamed_tuples(Write, BPrefix, TripleCounter, QuadCounter),
+            Opts4
+          )
       )
     ),
     (
       flush_output(Write),
-      write_simple_end(C1, C2, Opts4)
+      write_simple_end(TripleCounter, QuadCounter, Opts4)
     )
   ).
 
 
-%! clean_streamed_triples(
+%! clean_streamed_tuples(
 %!   +Write,
-%!   +BPrefix:atom,
+%!   +BPrefix,
 %!   +TripleCounter:compound,
-%!   +QuadrupleCounter:compound,
-%!   +Triples:list(compound),
+%!   +QuadCounter:compound,
+%!   +Tuples,
 %!   +LinePosition:compound
 %! ) is det.
 
-clean_streamed_triples(Write, BNodePrefix, C1, C2, Stmts, _) :-
-  with_output_to(Write, maplist(write_simple_statement(BNodePrefix, C1, C2), Stmts)).
+clean_streamed_tuples(Write, BPrefix, TripleCounter, QuadCounter, Tuples, _) :-
+  with_output_to(Write,
+    maplist(write_simple_statement(BPrefix, TripleCounter, QuadCounter), Tuples)
+  ).

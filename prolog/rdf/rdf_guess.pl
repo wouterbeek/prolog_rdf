@@ -34,7 +34,7 @@
 %! rdf_guess_format(+Source, -Format:rdf_format) is det.
 %! rdf_guess_format(+Source, -Format:rdf_format, +Opts) is det.
 % The following options are supported:
-%   * default_serialization_format(+rdf_format)
+%   * default_rdf_format(+rdf_format)
 
 rdf_guess_format(Spec, F) :-
   rdf_guess_format(Spec, F, []).

@@ -106,11 +106,11 @@ error:has_type(rdf_name, N) :-
   (   error:has_type(iri, N)
   ;   error:has_type(rdf_literal, N)
   ).
-error:has_type(rdf_statement, Stmt) :-
-  (   error:has_type(rdf_triple, Stmt)
-  ;   error:has_type(rdf_quadruple, Stmt)
+error:has_type(rdf_statement, Tuple) :-
+  (   error:has_type(rdf_triple, Tuple)
+  ;   error:has_type(rdf_quad, Tuple)
   ).
-error:has_type(rdf_quadruple, T) :-
+error:has_type(rdf_quad, T) :-
   T = rdf(S,P,O,G),
   error:has_type(rdf_term, S),
   error:has_type(iri, P),

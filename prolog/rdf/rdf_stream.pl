@@ -85,15 +85,15 @@ rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
   % `Format' is now instantiated.
   rdf_format_iri(Format1, Format2),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
-  D2 = D1.put(_{'llo:rdf_serialization_format': Format3}),
+  D2 = D1.put(_{'llo:rdf_format': Format3}),
   call(Goal_2, D2, Read).
 
 rdf_guess_format_options0(D, Opts1, Opts2) :-
   uri_file_extensions(D.'llo:base_iri'.'@value', Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
-  rdf_file_extension(Ext, DefFormat), !,
-  merge_options(Opts1, [default_serialization_format(DefFormat)], Opts2).
+  rdf_file_extension(Ext, Format), !,
+  merge_options(Opts1, [default_rdf_format(Format)], Opts2).
 rdf_guess_format_options0(_, Opts, Opts).
 
 

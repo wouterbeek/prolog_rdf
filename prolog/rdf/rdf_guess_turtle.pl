@@ -73,7 +73,7 @@ rdf_guess_turtle(_, F, Opts) -->
   *(ws),
   turtle_object(OF),
   *(ws),
-  (   % End of triple.
+  (   % End of a triple.
       "."
   ->  {
         exclude(var, [SF,PF,OF], Fs),
@@ -85,7 +85,7 @@ rdf_guess_turtle(_, F, Opts) -->
   ;   % Predicate-Object pairs list notation.
       ","
   ->  guess_turtle_or_trig(F, Opts)
-  ;   % End of quadruple.
+  ;   % End of a quad.
       turtle_graph,
       *(ws),
       "."

@@ -26,8 +26,8 @@
 :- dynamic rdf_chr:is_well_known_entity/1.
 
 rdf_chr(S, L) :-
-  findall(Trip, distinct(Trip, s_triple(S, Trip)), Trips),
-  maplist(rdf_chr_assert_triple, Trips),
+  findall(Triple, distinct(Triple, s_triple(S, Triple)), Triples),
+  maplist(rdf_chr_assert_triple, Triples),
 
   % Batch 1: Widgets.
   findall(N-widget(N,SS,W), find_chr_constraint(widget(N,SS,W)), KVPairs),
@@ -58,15 +58,15 @@ rdf_chr_assert_triple(rdf(S,P,O)) :- call(triple(1,S,P,O)).
 % | seed(S, D1, true).
 % ```
 
-s_triple(S, Trip) :- s_triple(0, S, Trip).
+s_triple(S, Triple) :- s_triple(0, S, Triple).
 
 s_triple(_, S, rdf(S,P,O)) :-
   catch(rdf(S, P, O), _, fail).
-s_triple(D1, S, Trip) :-
+s_triple(D1, S, Triple) :-
   catch(rdf(S, P, O), _, fail),
   rdf_chr_is_seed(D1, P, O),
   D2 is D1 + 1,
-  s_triple(D2, O, Trip).
+  s_triple(D2, O, Triple).
 
 
 % Label in a preferred language.
@@ -94,13 +94,13 @@ widget(_, _, archive_entry(_,"raw"^^_,_,_))
 <=>
 true.
 
-% RDF processed statements counter.
-triple(N1, S, 'http://lodlaundromat.org/ontology/processed_quadruples', NQuads),
-triple(N2, S, 'http://lodlaundromat.org/ontology/processed_statements', NStmts),
-triple(N3, S, 'http://lodlaundromat.org/ontology/processed_triples', NTrips)
+% RDF processed tuples counter.
+triple(N1, S, 'http://lodlaundromat.org/ontology/processed_quads', NoQuads),
+triple(N2, S, 'http://lodlaundromat.org/ontology/processed_tuples', NoTuples),
+triple(N3, S, 'http://lodlaundromat.org/ontology/processed_triples', NoTriples)
 <=>
 sum_list([N1,N2,N3], N)
-| widget(N, S, rdf_counter(NQuads,NStmts,NTrips)).
+| widget(N, S, rdf_counter(NoQuads,NoTuples,NoTriples)).
 
 % HTTP version.
 triple(N1, O, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/Version'),
@@ -289,13 +289,13 @@ po_pair(P, O) -->
 product(Name, Version) -->
   html(p([\rdfh_literal(Name),": ",\rdfh_literal(Version)])).
 
-rdf_counter(NQuads, NStmts, NTrips) -->
+rdf_counter(NoQuads, NoTuples, NoTriples) -->
   html([
-    h1("Processed RDF statements"),
+    h1("Processed RDF tuples"),
     main([
-      div([h1("Statements"),p(\rdfh_literal(NStmts))]),
-      div([h1("Triples"),p(\rdfh_literal(NTrips))]),
-      div([h1("Quadruples"),p(\rdfh_literal(NQuads))])
+      div([h1("Tuples"),p(\rdfh_literal(NoTuples))]),
+      div([h1("Triples"),p(\rdfh_literal(NoTriples))]),
+      div([h1("Quads"),p(\rdfh_literal(NoQuads))])
     ])
   ]).
 

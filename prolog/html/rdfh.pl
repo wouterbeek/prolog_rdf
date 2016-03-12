@@ -1,27 +1,27 @@
 :- module(
   rdfh,
   [
-    rdfh_alias//1,            % +Alias
-    rdfh_bnode//1,            % +B
-    rdfh_class//1,            % +C
-    rdfh_datatype//1,         % +D
-    rdfh_describe//1,         % +S
-    rdfh_graph//1,            % +G
-    rdfh_iri//1,              % +Iri
-    rdfh_list//1,             % +List
-    rdfh_literal//1,          % +Lit
-    rdfh_object//1,           % +O
-    rdfh_predicate//1,        % +P
-    rdfh_property//1,         % +Prop
-    rdfh_property_path//1,    % +Props
-    rdfh_quadruple//4,        % +S, P, +O, +G
-    rdfh_quadruple_panels//4, % ?S, ?P, ?O, ?G
-    rdfh_quadruple_table//4,  % ?S, ?P, ?O, ?G
-    rdfh_subject//1,          % +S
-    rdfh_term//1,             % +T
-    rdfh_tree//1,             % +Tree
-    rdfh_triple//3,           % +S, +P, +O
-    rdfh_triple_table//4      % ?S, ?P, ?O, ?G
+    rdfh_alias//1,         % +Alias
+    rdfh_bnode//1,         % +B
+    rdfh_class//1,         % +C
+    rdfh_datatype//1,      % +D
+    rdfh_describe//1,      % +S
+    rdfh_graph//1,         % +G
+    rdfh_iri//1,           % +Iri
+    rdfh_list//1,          % +List
+    rdfh_literal//1,       % +Lit
+    rdfh_object//1,        % +O
+    rdfh_predicate//1,     % +P
+    rdfh_property//1,      % +Prop
+    rdfh_property_path//1, % +Props
+    rdfh_quad//4,          % +S, P, +O, +G
+    rdfh_quad_panels//4,   % ?S, ?P, ?O, ?G
+    rdfh_quad_table//4,    % ?S, ?P, ?O, ?G
+    rdfh_subject//1,       % +S
+    rdfh_term//1,          % +Term
+    rdfh_tree//1,          % +Tree
+    rdfh_triple//3,        % +S, +P, +O
+    rdfh_triple_table//4   % ?S, ?P, ?O, ?G
   ]
 ).
 
@@ -119,9 +119,9 @@ rdfh_iri(Iri) -->
 
 %! rdfh_list(+List)// is det.
 
-rdfh_list(List) -->
-  {rdf_list(List, Ts)},
-  list(rdfh_term0, Ts).
+rdfh_list(L) -->
+  {rdf_list(L, Terms)},
+  list(rdfh_term0, Terms).
 
 
 
@@ -181,21 +181,21 @@ rdfh_property(Prop) -->
 
 %! rdfh_property_path(+Props)// is det.
 
-rdfh_property_path(L) -->
-  seplist(rdfh_property, L).
+rdfh_property_path(Props) -->
+  seplist(rdfh_property, Props).
 
 
 
-%! rdfh_quadruple(+S, +P, +O, +G)// is det.
+%! rdfh_quad(+S, +P, +O, +G)// is det.
 
-rdfh_quadruple(S, P, O, G) -->
+rdfh_quad(S, P, O, G) -->
   html([&(lang),\rdfh_triple0(S, P, O),", ",\rdfh_graph(G),&(rang)]).
 
 
 
-%! rdfh_quadruple_panels(?S, ?P, ?O, ?G)// is det.
+%! rdfh_quad_panels(?S, ?P, ?O, ?G)// is det.
 
-rdfh_quadruple_panels(S, P, O, G) -->
+rdfh_quad_panels(S, P, O, G) -->
   {
     findall(G-rdf(S,P,O), rdf(S, P, O, G), Pairs),
     group_pairs_by_key(Pairs, Groups)
@@ -204,9 +204,9 @@ rdfh_quadruple_panels(S, P, O, G) -->
 
 
 
-%! rdfh_quadruple_row(+Quad)// is det.
+%! rdfh_quad_row(+Quad)// is det.
 
-rdfh_quadruple_row(rdf(S,P,O,G)) -->
+rdfh_quad_row(rdf(S,P,O,G)) -->
   html(
     tr([
       td(\rdfh_subject(S)),
@@ -218,20 +218,20 @@ rdfh_quadruple_row(rdf(S,P,O,G)) -->
 
 
 
-%! rdfh_quadruple_table(+Quads)// is det.
+%! rdfh_quad_table(+Quads)// is det.
 
-rdfh_quadruple_table(L) -->
+rdfh_quad_table(Quads) -->
   bs_table(
     bs_table_header(["Subject","Predicate","Object","Graph"]),
-    html_maplist(rdfh_quadruple_row, L)
+    html_maplist(rdfh_quad_row, Quads)
   ).
 
 
-%! rdfh_quadruple_table(?S, ?P, ?O, ?G)// is det.
+%! rdfh_quad_table(?S, ?P, ?O, ?G)// is det.
 
-rdfh_quadruple_table(S, P, O, G) -->
+rdfh_quad_table(S, P, O, G) -->
   {findall(rdf(S,P,O,G), rdf(S, P, O, G), L)},
-  rdfh_quadruple_table(L).
+  rdfh_quad_table(L).
 
 
 
@@ -249,14 +249,14 @@ rdfh_subject0(S) -->
 
 
 
-%! rdfh_term(+T)// is det.
+%! rdfh_term(+Term)// is det.
 
-rdfh_term(T) -->
-  rdfh_link(term(T), rdfh_term0(T)).
+rdfh_term(Term) -->
+  rdfh_link(term(Term), rdfh_term0(Term)).
 
-rdfh_term0(L) -->
-  {rdf_is_literal(L)}, !,
-  rdfh_literal0(L).
+rdfh_term0(Lit) -->
+  {rdf_is_literal(Lit)}, !,
+  rdfh_literal0(Lit).
 rdfh_term0(S) -->
   rdfh_subject0(S).
 
@@ -310,7 +310,7 @@ rdfh_triple0(S, P, O) -->
 
 
 
-%! rdfh_triple_row(+Trip)// is det.
+%! rdfh_triple_row(+Triple)// is det.
 
 rdfh_triple_row(rdf(S,P,O)) -->
   html(
