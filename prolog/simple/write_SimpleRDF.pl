@@ -1,16 +1,16 @@
 :- module(
   write_SimpleRDF,
   [
-    write_simple_begin/4,     % -BPrefix, -TripleCounter:compound, -QuadCounter:compound, +Opts
-    write_simple_end/3,       % +TripleCounter:compound, +QuadCounter:compound, +Opts
-    write_simple_graph/2,     % ?G, +Opts
-    write_simple_quad/4,      % +S, +P, +O, +G
-    write_simple_quad/5,      % +BPrefix, +S, +P, +O, +G
-    write_simple_quad/6,      % +BPrefix, +QuadCounter:compound, +S, +P, +O, +G
-    write_simple_statement/4, % +BPrefix, +TripleCounter:compound, +QuadCounter:compound, +Statement
-    write_simple_triple/3,    % +S, +P, +O
-    write_simple_triple/4,    % +BPrefix, +S, +P, +O
-    write_simple_triple/5     % +BPrefix, +TripleCounter:compound, +S, +P, +O
+    write_simple_begin/4,  % -BPrefix, -TripleCounter:compound, -QuadCounter:compound, +Opts
+    write_simple_end/3,    % +TripleCounter:compound, +QuadCounter:compound, +Opts
+    write_simple_graph/2,  % ?G, +Opts
+    write_simple_quad/4,   % +S, +P, +O, +G
+    write_simple_quad/5,   % +BPrefix, +S, +P, +O, +G
+    write_simple_quad/6,   % +BPrefix, +QuadCounter:compound, +S, +P, +O, +G
+    write_simple_tuple/4,  % +BPrefix, +TripleCounter:compound, +QuadCounter:compound, +Tuple
+    write_simple_triple/3, % +S, +P, +O
+    write_simple_triple/4, % +BPrefix, +S, +P, +O
+    write_simple_triple/5  % +BPrefix, +TripleCounter:compound, +S, +P, +O
   ]
 ).
 
@@ -63,8 +63,8 @@ assuming `xsd:string` in case no datatype IRI is given.
    ]).
 :- predicate_options(write_simple_end/3, 3, [
      quads(-nonneg),
-     statements(-nonneg),
-     triples(-nonneg)
+     triples(-nonneg),
+     tuples(-nonneg)
    ]).
 :- predicate_options(write_simple_graph/2, 2, [
      rdf_format(+oneof([quads,triples])),
@@ -110,19 +110,19 @@ write_simple_bnode(BPrefix, B) :-
 
 %! write_simple_end(+TripleCounter:compound, +QuadCounter:compound, +Opts) is det.
 % The following options are supported:
-%   * quads(-nonneg)
-%   * statements(-nonneg)
-%   * triples(-nonneg)
+%   - quads(-nonneg)
+%   - triples(-nonneg)
+%   - tuples(-nonneg)
 
-write_simple_end(CT, CQ, Opts) :-
-  delete_thread_counter(CT, NT),
-  option(triples(NT), Opts, _),
+write_simple_end(CTriples, CQuads, Opts) :-
+  delete_thread_counter(CTriples, NTriples),
+  option(triples(NTriples), Opts, _),
 
-  delete_thread_counter(CQ, NQ),
-  option(quads(NQ), Opts, _),
+  delete_thread_counter(CQuads, NQuads),
+  option(quads(NQuads), Opts, _),
 
-  NS is NT + NQ,
-  option(statements(NS), Opts, _),
+  NTuples is NTriples + NQuads,
+  option(tuples(NTuples), Opts, _),
 
   reset_bnode_names.
 
@@ -130,10 +130,10 @@ write_simple_end(CT, CQ, Opts) :-
 
 %! write_simple_graph(?G, +Opts) is det.
 % The following options are supported:
-%   * quads(-nonneg)
-%   * rdf_format(?oneof([nquads,ntriples]))
-%   * statements(-nonneg)
-%   * triples(-nonneg)
+%   - quads(-nonneg)
+%   - rdf_format(?oneof([nquads,ntriples]))
+%   - triples(-nonneg)
+%   - tuples(-nonneg)
 
 write_simple_graph(G, Opts) :-
   write_simple_begin(BPrefix, CT, CQ, Opts),
@@ -243,16 +243,16 @@ write_simple_quad(BPrefix, C, S, P, O, G) :-
 
 
 
-%! write_simple_statement(
+%! write_simple_tuple(
 %!   +BPrefix,
 %!   +TripleleCounter:compound,
 %!   +QuadCounter:compound,
 %!   +Tuple
 %! ) is det.
 
-write_simple_statement(BPrefix, CT, _, rdf(S,P,O)) :- !,
+write_simple_tuple(BPrefix, CT, _, rdf(S,P,O)) :- !,
   write_simple_triple(BPrefix, CT, S, P, O).
-write_simple_statement(BPrefix, _, CQ, rdf(S,P,O,G)) :-
+write_simple_tuple(BPrefix, _, CQ, rdf(S,P,O,G)) :-
   write_simple_quad(BPrefix, CQ, S, P, O, G).
 
 
