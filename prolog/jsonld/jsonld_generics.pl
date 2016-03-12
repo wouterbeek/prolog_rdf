@@ -50,16 +50,18 @@ jsonld_expand_term(_, B, B) :-
 % Case 3: Do not expand JSON-LD keywords.
 jsonld_expand_term(_, Keyword, Keyword) :-
   jsonld_keyword(Keyword), !.
-% Case 4: Names that can be expanded by a ‘simple’ alias.
+% Case 4: Aliased names must be expanded using the context.
 jsonld_expand_term(Context, Compact, Full) :-
   atomic_list_concat([Alias,Local], :, Compact),
   \+ atom_prefix(Local, '//'),
   get_dict(Alias, Context, Prefix), !,
   atomic_concat(Prefix, Local, Full).
-% Case 5: Names that can be expanded by a ‘complex’ alias.
+% Case 5: Non-aliased names that can be expanded using the context:
+%         Either an IRI string or an object describing the IRI string
+%         in addition to type coersion.
 jsonld_expand_term(Context, Alias, Full) :-
   get_dict(Alias, Context, Def),
-  get_dict('@id', Def, Full), !.
+  (string(Def) -> Full = Def ; get_dict('@id', Def, Full)), !.
 % Case 6: Names that cannot be expanded belong to a vocabulary IRI, if present.
 %         This excludes names that are explicitly mapped to ‘null’ by the
 %         context.
