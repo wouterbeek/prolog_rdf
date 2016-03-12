@@ -235,7 +235,7 @@ rdf_load_tuple(_, CQ, _, rdf(S,P,O,G0)) :- !,
 rdf_load_tuple0(S, P, O0, G) :-
   (rdf_is_term(O0) -> O = O0 ; rdf11:post_object(O, O0)),
   %maplist(term_norm, [S1,P1,O1,G1], [S2,P2,O2,G2]),
-  debug(rdf(load), rdf_print_tuple(S, P, O, G)),
+  (debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
   rdf_assert(S, P, O, G).
 
 % @tbd
