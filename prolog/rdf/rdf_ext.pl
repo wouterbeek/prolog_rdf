@@ -16,7 +16,7 @@
     rdf_pref_string_lex/3,  % ?S, ?P, -Lex
     rdf_print/1,            % +Tuples
     rdf_print/4,            % ?S, ?P, ?O, ?G
-    rdf_retractall/1,       % +Triple
+    rdf_retractall/1,       % +Tuple
     rdf_snap/1,             % :Goal_0
     rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
     rdf_tuple/1,            % -Tuple
@@ -355,10 +355,12 @@ tab0(N1) :- N2 is N1 * 4, tab(N2).
 
 
 
-%! rdf_retractall(+Triple) is det.
+%! rdf_retractall(+Tuple) is det.
 
-rdf_retractall(rdf(S,P,O)) :-
+rdf_retractall(rdf(S,P,O)) :- !,
   rdf_retractall(S, P, O).
+rdf_retractall(rdf(S,P,O,G)) :-
+  rdf_retractall(S, P, O, G).
 
 
 

@@ -84,7 +84,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   thread_file(Tmp0, Tmp),
   debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
 
-  % Read and write all triples.
+  % Read and write all tuples.
   merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts1, Opts2),
   debug_verbose(
     rdf(clean),

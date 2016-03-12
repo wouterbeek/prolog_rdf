@@ -15,9 +15,9 @@ Build grid compound terms based on RDF data.
 
 :- use_module(library(apply)).
 :- use_module(library(debug)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_update)).
-:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    pop_triple(r, r, o, r),
@@ -44,16 +44,35 @@ graph_to_widgets(G, [H|T]) :-
   graph_to_widgets(G, T).
 graph_to_widgets(_, []).
 
-% Widget for an HTTP header.
-graph_to_widget(G, http_header(S, P, V2)) :-
-  rdf(O, rdf:type, llo:'ValidHttpHeader', G),
-  rdf(O, llo:value, V1, G), !,
-  http_header_value(V1, V2, G),
+% Archive entry.
+graph_to_widget(G, archive_entry(S, P, Pairs)) :-
+  rdf(O, rdf:type, llo:'ArchiveEntry', G),
+  pop_triple(S, P, O, G), !,
+  pop_triples(O, _, _, G, po(Pairs)),
+  rdf_retractall(O, rdf:type, llo:'ArchiveEntry', G).
+% HTTP header.
+graph_to_widget(G, http_header(S, P, L)) :-
+  rdf(O, rdf:type, llo:'ValidHttpHeader', G), !,
   pop_triple(S, P, O, G),
+  findall(
+    V2,
+    (
+      rdf(O, llo:value, V1, G),
+      http_header_value(V1, V2, G)
+    ),
+    L
+  ),
+  rdf_retractall(O, llo:value, _, G),
   rdf_retractall(O, rdf:type, llo:'ValidHttpHeader', G),
-  rdf_retractall(O, llo:value, V1, G),
   rdf_retractall(O, llo:raw, _, G).
-% Widget for a triple.
+% HTTP version.
+graph_to_widget(G, http_version(S, P, version(Major,Minor))) :-
+  rdf(O, rdf:type, llo:'Version', G),
+  pop_triple(S, P, O, G), !,
+  pop_triple(O, llo:major, Major, G),
+  pop_triple(O, llo:minor, Minor, G),
+  rdf_retractall(O, rdf:type, llo:'Version', G).
+% Triple.
 graph_to_widget(G, rdfh_triple(S, P, O)) :-
   pop_triple(S, P, O, G).
 
@@ -84,6 +103,18 @@ http_header_value(S, product(Name,Version), G) :-
   pop_triple(S, rdf:type, llo:'Product', G), !,
   pop_triple(S, llo:name, Name, G),
   pop_triple(S, llo:version, Version, G).
+% URI.
+http_header_value(S, uri(Scheme,Host,Path), G) :-
+  pop_triple(S, rdf:type, llo:'URI', G), !,
+  pop_triple(S, llo:scheme, Scheme, G),
+  pop_triple(S, llo:'hier-part', Hier0, G),
+  pop_triple(Hier0, rdf:type, llo:'hier-part', G),
+  pop_triple(Hier0, llo:authority, Auth0, G),
+  pop_triple(Hier0, llo:'path-abempty', Path, G),
+  pop_triple(Auth0, rdf:type, llo:authority, G),
+  pop_triple(Auth0, llo:host, Host0, G),
+  pop_triple(Host0, rdf:type, llo:host, G),
+  pop_triple(Host0, llo:'reg-name', Host, G).
 
 
 % http_parameter(+Res, -Param, +G) .
@@ -107,7 +138,7 @@ pop_list(S, [H|T], G) :-
   pop_triple(S, rdf:first, H, G),
   pop_triple(S, rdf:rest, O, G),
   pop_list(O, T, G).
-  
+
 
 
 %! pop_triple(+S, +P, +O, +G) is det.
@@ -126,14 +157,17 @@ pop_triple(S, P, O, G) :-
 %
 % Return is either of the following:
 %   - o(-list)
-%     The list of objects term that match O.
+%     The list of objects.
+%   - po(-list)
+%     The list of predicate/object pairs
 
 pop_triples(S, P, O, G, Return) :-
-  findall(rdf(S,P,O), rdf(S, P, O, G), Trips),
+  findall(rdf(S,P,O,G), rdf(S, P, O, G), Quads),
   Return =.. [Mode,L],
-  maplist(triple_return(Mode), Trips, L),
-  maplist(rdf_retractall, Trips).
+  maplist(quad_return(Mode), Quads, L),
+  maplist(rdf_retractall, Quads).
 
-triple_return(s, rdf(S,_,_), S).
-triple_return(p, rdf(_,P,_), P).
-triple_return(o, rdf(_,_,O), O).
+quad_return(s,  rdf(S,_,_,_), S).
+quad_return(p,  rdf(_,P,_,_), P).
+quad_return(po, rdf(_,P,O,_), P-O).
+quad_return(o,  rdf(_,_,O,_), O).
