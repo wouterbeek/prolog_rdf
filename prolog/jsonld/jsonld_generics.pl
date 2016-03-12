@@ -61,7 +61,10 @@ jsonld_expand_term(Context, Compact, Full) :-
 %         in addition to type coersion.
 jsonld_expand_term(Context, Alias, Full) :-
   get_dict(Alias, Context, Def),
-  (string(Def) -> Full = Def ; get_dict('@id', Def, Full)), !.
+  (   string(Def)
+  ->  jsonld_expand_term(Context, Def, Full)
+  ;   get_dict('@id', Def, Full)
+  ), !.
 % Case 6: Names that cannot be expanded belong to a vocabulary IRI, if present.
 %         This excludes names that are explicitly mapped to ‘null’ by the
 %         context.
