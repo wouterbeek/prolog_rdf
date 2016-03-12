@@ -65,6 +65,7 @@
 rdf_read_from_stream(Source, Goal_2) :-
   rdf_read_from_stream(Source, Goal_2, []).
 
+
 rdf_read_from_stream(Source, Goal_2, Opts1) :-
   % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.
   rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
@@ -80,6 +81,7 @@ rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
   ;   rdf_guess_format_options0(D1, Opts1, Opts2),
       rdf_guess_format(Read, Format1, Opts2)
   ),
+  (Format1 == jsonld -> set_stream(Read, encoding(utf8)) ; true),
   % `Format' is now instantiated.
   rdf_format_iri(Format1, Format2),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
