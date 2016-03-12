@@ -30,10 +30,14 @@ Largely derived from the JSON-LD 1.0 specification (W3C).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(terms)).
 
-:- rdf_meta
-   isomorphic_graphs(r, r).
 
 
+
+
+run_test(I) :-
+  var(I), !,
+  between(1, inf, I),
+  run_test(I).
 run_test(I) :-
   format_integer(I, 4, Id0),
   atomic_list_concat([toRdf,Id0,in], -, Base),
@@ -59,9 +63,6 @@ run_tests :-
 %! run_test0(+D) is det.
 
 run_test0(D):-
-  % Stage setting.
-  rdf_unload_db,
-
   % Metadata.
   formatln("Id: ~s", [D.'@id']),
   write("Type: "), forall(member(Type, D.'@type'), write(Type)), nl,
