@@ -17,6 +17,35 @@ Installation
 
 
 
+Abbreviations
+-------------
+
+We use the following RDF-specific abbreviations for often occurring variable
+names:
+
+| **Variable name** | **Expansion**  |
+|:-----------------:|:--------------:|
+| `B`               | Blank node     |
+| `C`               | Class          |
+| `D`               | Datatype       |
+| `G`               | Graph          |
+| `I`               | Instance       |
+| `Lit`             | Literal        |
+| `Lex`             | Lexical form   |
+| `Name`            | Name           |
+| `Node`            | Node           |
+| `O`               | Object term    |
+| `P`               | Predicate term |
+| `Prop`            | Property       |
+| `Quad`            | Quadruple      |
+| `S`               | Subject term   |
+| `Term`            | Term           |
+| `Triple`          | Triple         |
+| `Tuple`           | Tuple          |
+| `V`               | Value          |
+
+
+
 Create resources and assert relations between them
 --------------------------------------------------
 
