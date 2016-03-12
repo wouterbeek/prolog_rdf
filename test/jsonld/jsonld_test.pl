@@ -72,18 +72,17 @@ run_test0(D):-
   % Print JSON-LD.
   json_read_any(D.input, DIn),
   print_dict(DIn), nl,
+  rdf_load_tuples(D.expect, Stmts2),
 
   % Read RDF from JSON-LD.
   atomic_concat('http://json-ld.org/test-suite/tests/', D.input, Base),
   rdf_unload_db,
-  rdf_load_tuples(D.input, Stmts1, [base_iri(Base)]),
-  formatln("Parsed tuples:"),
-  rdf_print(Stmts1),
-
-  % Compare to RDF from N-Quads.
-  rdf_unload_db,
-  rdf_load_tuples(D.expect, Stmts2),
-  (   isomorphic_tuples(Stmts1, Stmts2)
+  (   rdf_load_tuples(D.input, Stmts1, [base_iri(Base)]),
+      formatln("Parsed tuples:"),
+      rdf_print(Stmts1),
+      
+      % Compare to RDF from N-Quads.
+      isomorphic_tuples(Stmts1, Stmts2)
   ->  true
   ;   ansi_formatln([fg(red)], "Expected tuples:", []),
       rdf_print(Stmts2)
@@ -135,166 +134,3 @@ replace_bnode_with_var0(B, Map, Var, Map) :-
 replace_bnode_with_var0(B, Map, Var, [B-Var|Map]) :-
   rdf_is_bnode(B), !.
 replace_bnode_with_var0(T, Map, T, Map).
-
-/*
-% Test 0001: Plain literal with URIs
-% Tests generation of a triple using full URIs and a plain literal.
-%
-% ```ntriples
-% <http://greggkellogg.net/foaf#me> <http://xmlns.com/foaf/0.1/name> "Gregg Kellogg" .
-% ```
-
-test(1, _{
-  '@id': 'http://greggkellogg.net/foaf#me',
-  'http://xmlns.com/foaf/0.1/name': 'Gregg Kellogg'
-}).
-
-% Test 0002: Plain literal with CURIE from default context
-% Tests generation of a triple using a CURIE defined in the default context.
-%
-% ```nquads
-% <http://greggkellogg.net/foaf#me> <http://xmlns.com/foaf/0.1/name> "Gregg Kellogg" .
-% ```
-
-test(2, _{
-  '@context': _{'foaf': 'http://xmlns.com/foaf/0.1/'},
-  '@id': 'http://greggkellogg.net/foaf#me',
-  'foaf:name': "Gregg Kellogg"
-}).
-
-% Test 0003: Default subject is BNode
-% Tests that a BNode is created if no explicit subject is set.
-%
-% ```nquads
-% _:b0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
-% ```
-
-test(3, _{
-  '@context': _{'foaf': 'http://xmlns.com/foaf/0.1/'},
-  '@type': 'foaf:Person'
-}).
-
-% Test 0004: Literal with language tag
-% Tests that a plain literal is created with a language tag.
-%
-% ```nquads
-% _:b0 <http://www.w3.org/2000/01/rdf-schema#label> "A plain literal with a lang tag."@en-us .
-% ```
-
-test(4, _{
-  'http://www.w3.org/2000/01/rdf-schema#label': _{
-    '@value': "A plain literal with a lang tag.",
-    '@language': 'en-us'
-  }
-}).
-
-% Test 0005: Extended character set literal
-% Tests that a literal may be created using extended characters.
-%
-% ```nquads
-% <http://greggkellogg.net/foaf#me> <http://xmlns.com/foaf/0.1/knows> _:b0 .
-% _:b0 <http://xmlns.com/foaf/0.1/name> "Herman Iván"@hu .
-% ```
-
-test(5, _{
-  '@id': 'http://greggkellogg.net/foaf#me',
-  'http://xmlns.com/foaf/0.1/knows': _{
-    'http://xmlns.com/foaf/0.1/name': _{
-      '@value': "Herman Iván",
-      '@language': hu
-    }
-  }
-        }).
-
-% Test 0006: Typed literal
-% Tests creation of a literal with a datatype.
-%
-% ```nquads
-% <http://greggkellogg.net/foaf#me> <http://purl.org/dc/terms/created> "1957-02-27"^^<http://www.w3.org/2001/XMLSchema#date> .
-% ```
-
-test(6, _{
-  '@id':  'http://greggkellogg.net/foaf#me',
-  'http://purl.org/dc/terms/created': _{
-    '@value': "1957-02-27",
-    '@type': 'http://www.w3.org/2001/XMLSchema#date'
-  }
-}).
-
-% Test 0007: Tests 'a' generates rdf:type and object is implicit IRI
-% Verify that 'a' is an alias for rdf:type, and the object is created as an IRI.
-%
-% ```nquads
-% <http://greggkellogg.net/foaf#me> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
-% ```
-
-test(7, _{
-  '@id': 'http://greggkellogg.net/foaf#me',
-  '@type': 'http://xmlns.com/foaf/0.1/Person'
-}).
-
-% Test 0008: Test prefix defined in @context
-% Generate an IRI using a prefix defined within an @context.
-%
-% ```nquads
-% _:b0 <http://example.com/default#foo> "bar" .
-% ```
-
-test(8, _{
-  '@context': _{
-    d: 'http://example.com/default#'
-  },
-  'd:foo': "bar"
-}).
-
-% Test 0009: Test using an empty suffix
-% An empty suffix may be used.
-%
-% ```
-% _:b0 <http://example.com/default#> "bar" .
-% ```
-
-test(9, _{
-  '@context': _{
-    foo: 'http://example.com/default#'
-  },
-  'foo:': "bar"
-}).
-
-% Test 0010: Test object processing defines object
-% A property referencing an associative array gets object from subject of array.
-%
-% ```nquads
-% <http://greggkellogg.net/foaf#me> <http://xmlns.com/foaf/0.1/knows> <http://manu.sporny.org/#me> .
-% <http://manu.sporny.org/#me> <http://xmlns.com/foaf/0.1/name> "Manu Sporny" .
-% ```
-
-test(10, _{
-  '@context': _{
-    foaf: 'http://xmlns.com/foaf/0.1/'
-  },
-  '@id': 'http://greggkellogg.net/foaf#me',
-  'foaf:knows': _{
-    '@id': 'http://manu.sporny.org/#me',
-    'foaf:name': "Manu Sporny"
-  }
-}).
-
-% Test 0011: Test object processing defines object with implicit BNode
-% If no @ is specified, a BNode is created, and will be used as the object of an enclosing property.
-%
-% ```nquads
-% <http://greggkellogg.net/foaf#me> <http://xmlns.com/foaf/0.1/knows> _:b0 .
-% _:b0 <http://xmlns.com/foaf/0.1/name> "Dave Longley" .
-% ```
-
-test(11, _{
-  '@context': _{
-    foaf: 'http://xmlns.com/foaf/0.1/'
-  },
-  '@id': 'http://greggkellogg.net/foaf#me',
-  'foaf:knows': _{
-    'foaf:name': "Dave Longley"
-  }
-}).
-*/
