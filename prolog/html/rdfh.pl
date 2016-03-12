@@ -133,24 +133,28 @@ rdfh_literal(Lit) -->
 % RDF language-tagged string.
 rdfh_literal0(S@LTag) --> !,
   html(span(lang=LTag, S)).
-% XSD string.
+% XSD boolean.
 rdfh_literal0(V^^D) -->
-  {rdf_subdatatype_of(D, xsd:string)}, !,
-  html(V).
-% XSD integer.
-rdfh_literal0(V^^D) -->
-  {rdf_subdatatype_of(D, xsd:integer)}, !,
-  html('~D'-[V]).
-% XSD float or double.
-rdfh_literal0(V^^D) -->
-  {(  rdf_subdatatype_of(D, xsd:float)
-  ;   rdf_subdatatype_of(D, xsd:double)
-  )}, !,
-  html('~G'-[V]).
+  {rdf_subdatatype_of(D, xsd:boolean)}, !,
+  html("~a"-[V]).
 % XSD date/time.
 rdfh_literal0(V^^D) -->
   {rdf11:xsd_date_time_type(D)}, !,
   html_date_time(V).
+% XSD float & XSD double.
+rdfh_literal0(V^^D) -->
+  {(  rdf_subdatatype_of(D, xsd:float)
+  ;   rdf_subdatatype_of(D, xsd:double)
+  )}, !,
+  html("~G"-[V]).
+% XSD integer.
+rdfh_literal0(V^^D) -->
+  {rdf_subdatatype_of(D, xsd:integer)}, !,
+  html("~D"-[V]).
+% XSD string.
+rdfh_literal0(V^^D) -->
+  {rdf_subdatatype_of(D, xsd:string)}, !,
+  html(V).
 % XSD URI
 rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
@@ -273,7 +277,7 @@ rdfh_tree(Tree) -->
 rdfh_trees(_, []) --> !, [].
 rdfh_trees(Ns, [P-[Leaf-[]]|Trees]) --> !,
   html([
-    div(class=node, [\rdfh_predicate(P),' ',\rdfh_object(Leaf)]),
+    div(class=node, [\rdfh_predicate(P)," ",\rdfh_object(Leaf)]),
     \rdfh_trees(Ns, Trees)
   ]).
 rdfh_trees(Ns, [Leaf-[]|Trees]) --> !,
