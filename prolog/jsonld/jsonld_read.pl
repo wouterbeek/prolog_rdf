@@ -146,6 +146,10 @@ jsonld_to_subject(_, L, S, L) :-
 
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
 
+% Default graph.
+jsonld_tuple(Context, B, '@graph', _, _, Array, Tuple) :-
+  rdf_is_bnode(B), !,
+  jsonld_tuple0(Context, Array, Tuple).
 % Named graph.
 jsonld_tuple(Context1, S, '@graph', _, _, Array, Tuple) :- !,
   put_dict('@graph', Context1, S, Context2),
