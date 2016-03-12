@@ -49,6 +49,10 @@ jsonld_tuple0(Context1, Obj, Tuple, S) :-
   jsonld_tuple_goto(Context3, Data, Tuple, S).
 
 % GOTO point for recursive structures (see below).
+jsonld_tuple_goto(Context1, Data1, Tuple, S) :-
+  selectchk('@context'-Context2, Data1, Data2), !,
+  merge_contexts(Context1, Context2, Context3),
+  jsonld_tuple_goto(Context3, Data2, Tuple, S).
 jsonld_tuple_goto(Context, Data1, Tuple, S) :-
   jsonld_to_subject(Context, Data1, S, Data2),
   % NONDET
@@ -161,6 +165,9 @@ jsonld_to_subject(_, L, S, L) :-
 
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
 
+jsonld_tuple(_, _, _, _, _, null, _) :- !,
+  fail.
+% Reverse property.
 jsonld_tuple(Context, O, '@reverse'(P), _, _, V, Tuple) :-
   ground(P), !,
   findall(S-STuple, jsonld_tuple0(Context, V, STuple, S), Pairs),
@@ -178,9 +185,10 @@ jsonld_tuple(Context1, S, '@graph', _, _, Array, Tuple) :- !,
   put_dict('@graph', Context1, S, Context2),
   jsonld_tuple0(Context2, Array, Tuple, _).
 % Blank node.
-jsonld_tuple(Context, S, P, _, _, _{'@id': O}, Tuple) :-
-  jsonld_is_bnode(O), !,
-  tuple_term(Context, S, P, O, Tuple).
+jsonld_tuple(Context, S, P, _, _, _{'@id': O1}, Tuple) :-
+  jsonld_is_bnode(O1), !,
+  atom_string(O2, O1),
+  tuple_term(Context, S, P, O2, Tuple).
 % Container.
 jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
   (ODef == '@list' ; ODef == '@set'), !,
