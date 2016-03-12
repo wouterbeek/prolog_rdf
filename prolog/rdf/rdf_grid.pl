@@ -54,7 +54,7 @@ graph_to_widget(G, http_header(S, P, V2)) :-
   rdf_retractall(O, llo:value, V1, G),
   rdf_retractall(O, llo:raw, _, G).
 % Widget for a triple.
-graph_to_widget(G, triple(S, P, O)) :-
+graph_to_widget(G, rdfh_triple(S, P, O)) :-
   pop_triple(S, P, O, G).
 
 
@@ -80,7 +80,7 @@ http_header_value(S, media_type(Type,Subtype,[Param]), G) :-
   pop_triple(S, llo:subtype, Subtype, G),
   pop_triple(S, llo:type, Type, G).
 % HTTP product.
-http_header_value(S, product(Name,Version), G) :-gtrace,
+http_header_value(S, product(Name,Version), G) :-
   pop_triple(S, rdf:type, llo:'Product', G), !,
   pop_triple(S, llo:name, Name, G),
   pop_triple(S, llo:version, Version, G).

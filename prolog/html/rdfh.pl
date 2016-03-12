@@ -61,7 +61,7 @@ rdfh_alias(Alias) -->
 %! rdfh_bnode(+BNode)// is det.
 
 rdfh_bnode(B) -->
-  rdfh_link([bnode(B)], B).
+  rdfh_link([bnode(B)], html(B)).
 
 
 
