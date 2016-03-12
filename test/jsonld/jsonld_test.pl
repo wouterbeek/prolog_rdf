@@ -85,7 +85,7 @@ run_test0(D):-
   rdf_load_tuples(D.expect, Stmts2),
   (   isomorphic_tuples(Stmts1, Stmts2)
   ->  true
-  ;   ansi_formatln([fg(red)], "Expected tuples:", []),gtrace,
+  ;   ansi_formatln([fg(red)], "Expected tuples:", []),
       rdf_print(Stmts2)
   ), !.
 run_test0(D) :-

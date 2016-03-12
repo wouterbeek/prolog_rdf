@@ -35,21 +35,21 @@ jsonld_tuple(Json, Tuple, Opts) :-
   ->  Context = _{'@base': BaseIri}
   ;   Context = _{}
   ),
-  jsonld_tuple0(Context, Json, Tuple).
+  jsonld_tuple0(Context, Json, Tuple, _).
 
 % Case 1: An array of dictionaries.
-jsonld_tuple0(Context, Array, Tuple) :-
+jsonld_tuple0(Context, Array, Tuple, S) :-
   is_list(Array), !,
   member(Obj, Array),
-  jsonld_tuple0(Context, Obj, Tuple).
+  jsonld_tuple0(Context, Obj, Tuple, S).
 % Case 2: A dictionary.
-jsonld_tuple0(Context1, Obj, Tuple) :-
+jsonld_tuple0(Context1, Obj, Tuple, S) :-
   jsonld_context_and_data(Obj, Context2, Data),
   merge_contexts(Context1, Context2, Context3),
-  jsonld_tuple_goto(Context3, Data, Tuple).
+  jsonld_tuple_goto(Context3, Data, Tuple, S).
 
 % GOTO point for recursive structures (see below).
-jsonld_tuple_goto(Context, Data1, Tuple) :-
+jsonld_tuple_goto(Context, Data1, Tuple, S) :-
   jsonld_to_subject(Context, Data1, S, Data2),
   % NONDET
   member(Key-Value, Data2),
@@ -62,7 +62,7 @@ jsonld_tuple_goto(Context, Data1, Tuple) :-
 
 jsonld_dict_tuple(Context, S1, P, D, Tuple) :-
   dict_pairs(D, Pairs),
-  findall(Tuple, jsonld_tuple_goto(Context, Pairs, Tuple), Tuples),
+  findall(Tuple, jsonld_tuple_goto(Context, Pairs, Tuple, _), Tuples),
   (   % The triple connecting the parent object to the child object.
       Tuples = [rdf(S2,_,_)|_],
       Tuple = rdf(S1,P,S2)
@@ -113,9 +113,24 @@ jsonld_to_list_triple(Context, S, ODef, LTag, [H|T], Tuple) :-
 jsonld_to_predicate(_, '@type', P, '@id', _) :- !,
   rdf_equal(rdf:type, P).
 % Case 2: Other predicates.
-jsonld_to_predicate(Context, P, Q, ODef, LTag) :-
-  jsonld_predicate(Context, P, Q, Keys),
-  jsonld_datatype_mapping(Context, Keys, ODef),
+jsonld_to_predicate(Context, P1, P5, ODef2, LTag) :-
+  jsonld_predicate(Context, P1, P2, Keys),
+  (  member(Key, Keys),
+     atom(Key),
+     get_dict(Key, Context, ODef1),
+     is_dict(ODef1),
+     (   get_dict('@type', ODef1, D)
+     ->  jsonld_expand_term(Context, D, ODef2),
+         P5 = P2
+     ;   get_dict('@container', ODef1, D)
+     ->  atom_string(ODef2, D),
+         P5 = P2
+     ;   get_dict('@reverse', ODef1, P3)
+     ->  jsonld_to_predicate(Context, P3, P4, ODef2, LTag),
+         P5 = '@reverse'(P4)
+     ), !
+  ;  P5 = P2
+  ),
   jsonld_language_mapping(Context, Keys, LTag).
 
 
@@ -146,14 +161,22 @@ jsonld_to_subject(_, L, S, L) :-
 
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
 
+jsonld_tuple(Context, O, '@reverse'(P), _, _, V, Tuple) :-
+  ground(P), !,
+  findall(S-STuple, jsonld_tuple0(Context, V, STuple, S), Pairs),
+  group_pairs_by_key(Pairs, Groups),
+  Groups = [S-STuples],
+  (   member(Tuple, STuples)
+  ;   tuple_term(Context, S, P, O, Tuple)
+  ).
 % Default graph.
 jsonld_tuple(Context, B, '@graph', _, _, Array, Tuple) :-
   rdf_is_bnode(B), !,
-  jsonld_tuple0(Context, Array, Tuple).
+  jsonld_tuple0(Context, Array, Tuple, _).
 % Named graph.
 jsonld_tuple(Context1, S, '@graph', _, _, Array, Tuple) :- !,
   put_dict('@graph', Context1, S, Context2),
-  jsonld_tuple0(Context2, Array, Tuple).
+  jsonld_tuple0(Context2, Array, Tuple, _).
 % Blank node.
 jsonld_tuple(Context, S, P, _, _, _{'@id': O}, Tuple) :-
   jsonld_is_bnode(O), !,
@@ -196,7 +219,7 @@ jsonld_tuple(Context, S, P, _, _, _{'@value': Lex}, Tuple) :- !,
 jsonld_tuple(Context, S1, P, _, _, O1, Tuple) :-
   is_dict(O1), !,
   dict_pairs(O1, Data1),
-  findall(Tuple, jsonld_tuple_goto(Context, Data1, Tuple), Tuples),
+  findall(Tuple, jsonld_tuple_goto(Context, Data1, Tuple, _), Tuples),
   (   % The triple connecting to the parent object to the child object.
       Tuples = [rdf(S2,_,_)|_],
       Tuple = rdf(S1,P,S2)
@@ -295,24 +318,6 @@ pair_with_nonvar_value(_-V) :- nonvar(V).
 tuple_term(Context, S, P, O, rdf(S,P,O,G)) :-
   get_dict('@graph', Context, G), !.
 tuple_term(_, S, P, O, rdf(S,P,O)).
-
-
-
-%! jsonld_datatype_mapping(+Context, +Keys, -D) is det.
-% Returns the datatype for the given Key
-
-jsonld_datatype_mapping(_, [], _) :- !.
-jsonld_datatype_mapping(Context, [Key|_], D2) :-
-  get_dict(Key, Context, ODef),
-  is_dict(ODef),
-  (   get_dict('@type', ODef, D1)
-  ->  jsonld_expand_term(Context, D1, D2)
-  ;   get_dict('@container', ODef, D1),
-      atom_string(D2, D1)
-  ->  true
-  ), !.
-jsonld_datatype_mapping(Context, [_|Keys], D) :-
-  jsonld_datatype_mapping(Context, Keys, D).
 
 
 
