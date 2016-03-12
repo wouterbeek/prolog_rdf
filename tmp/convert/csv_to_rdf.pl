@@ -21,7 +21,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(csv)).
 :- use_module(library(debug)).
 :- use_module(library(pure_input)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdfs/rdfs_api)).
 
 :- rdf_meta(csv_to_rdf(+,r,+,+,+)).

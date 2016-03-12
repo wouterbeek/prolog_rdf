@@ -29,7 +29,6 @@
 :- use_module(library(oaei/oaei_file)).
 :- use_module(library(oaei/oaei_read)).
 %/rdf
-:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_bnode_name)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_clean)).
@@ -37,6 +36,7 @@
 :- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_deref)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph_theory)).

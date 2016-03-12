@@ -41,7 +41,7 @@ This assumes that an HTTP handler with id `rdfh` is defined.
 :- use_module(library(html/html_ext)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(settings)).
 
 :- html_meta

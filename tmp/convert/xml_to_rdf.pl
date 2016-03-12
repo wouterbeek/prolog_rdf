@@ -34,7 +34,7 @@ Converts XML DOMs to RDF graphs.
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(pure_input)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(uri)).
 
 :- meta_predicate(create_resource(+,+,3,+,+,-,-)).

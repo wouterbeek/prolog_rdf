@@ -12,7 +12,7 @@
 */
 
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_ext)).
 
 :- rdf_meta
    rdfh_read_table(o, +, ?, ?).

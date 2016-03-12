@@ -142,6 +142,7 @@ rdf_print_graph(_, _).
 
 rdf_print_graphs:-
   rdf_print_graphs([maximum_number_of_rows(50)]).
+
 rdf_print_graphs(Opts) :-
   aggregate_all(set(N-G), rdf_number_of_triples(G, N), Pairs1),
   reverse(Pairs1, Pairs2),

@@ -24,9 +24,9 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
-:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_debug)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdfa)).

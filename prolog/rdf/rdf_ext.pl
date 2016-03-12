@@ -1,5 +1,5 @@
 :- module(
-  rdf_api,
+  rdf_ext,
   [
     rdf_aggregate_all/3,   % +Template, :Goal, -Result
     rdf_assert/1,          % +Stmt
@@ -10,9 +10,12 @@
     rdf_nextto/3,          % ?X, ?Y, ?RdfList
     rdf_pref_string/3,     % ?S, ?P, -Lit
     rdf_pref_string_lex/3, % ?S, ?P, -Lex
+    rdf_print/1.           % +Stmts
+    rdf_print/4,           % ?S, ?P, ?O, ?G
     rdf_retractall/1,      % +Trip
     rdf_snap/1,            % :Goal_0
     rdf_triples/4,         % ?S, ?P. ?O, -Trips:ordset
+    rdf_unload_db/0,
     rdfs_instance0/2,      % ?I, ?C
     rdfs_label/2,          % +S, -Lit
     rdfs_label_lex/2       % +S, -Lex
@@ -20,7 +23,7 @@
 ).
 :- reexport(library(semweb/rdf11)).
 
-/** <module> RDF: API
+/** <module> RDF extensions
 
 @author Wouter Beek
 @compat RDF 1.1
@@ -28,8 +31,10 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(closure)).
 :- use_module(library(nlp/nlp_lang)).
+:- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
@@ -50,6 +55,7 @@
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
    rdf_pref_string_lex(r, r, -),
+   rdf_print(r, r, o, r),
    rdf_retractall(t),
    rdf_triples(r, r, o, -),
    rdfs_instance0(o, r),
@@ -166,6 +172,139 @@ rdf_pref_string_lex(S, P, Lex) :-
 
 
 
+%! rdf_print(+Stmts) is det.
+
+rdf_print(Stmts) :-
+  rdf_snap((
+    maplist(rdf_assert, Stmts),
+    rdf_print(_, _, _, _)
+  )).
+
+
+%! rdf_print(?S, ?P, ?O, ?G) is det.
+
+rdf_print(S, P, O, G) :-
+  aggregate_all(set(G), rdf_graph(G), Gs),
+  maplist(rdf_print_for_graph(S, P, O), Gs).
+
+rdf_print_bnode(B) :-
+  write(B).
+
+%! rdf_print_for_graph(?S, ?P, ?O, +G) is det.
+
+rdf_print_for_graph(S, P, O, G) :-
+  (   rdf_default_graph(G)
+  ->  I = 0
+  ;   rdf_print_graph(G),
+      write(" {\n"),
+      I = 1
+  ),
+  aggregate_all(set(S), rdf(S, P, O, G), Ss),
+  rdf_print_subjects(I, Ss, P, O, G),
+  (rdf_default_graph(G) -> true ; write("}\n")).
+
+rdf_print_subjects(I, [H|T], P, O, G) :- !,
+  rdf_print_for_subject(I, H, P, O, G),
+  rdf_print_subjects(I, T, P, O, G).
+rdf_print_subjects(_, [], _, _, _).
+
+%! rdf_print_for_subject(+I, +S, ?P, ?O, +G) is det.
+
+rdf_print_for_subject(I1, S, P, O, G) :-
+  tab0(I1),
+  rdf_print_subject(S),
+  aggregate_all(set(P), rdf(S, P, O, G), Ps),
+  (   Ps = [P]
+  ->  write(" "),
+      rdf_print_for_predicate(S, P, O, G),
+      writeln(" .")
+  ;   nl,
+      I2 is I1 + 1,
+      rdf_print_predicates(I2, S, Ps, O, G)
+  ).
+
+rdf_print_predicates(I, S, [H], O, G) :-
+  tab0(I),
+  rdf_print_for_predicate(S, H, O, G),
+  writeln(" .").
+rdf_print_predicates(I, S, [H|T], O, G) :-
+  tab0(I),
+  rdf_print_for_predicate(S, H, O, G),
+  writeln(" ;"),
+  rdf_print_predicates(I, S, T, O, G).
+
+%! rdf_print_for_predicate(+S, +P, ?O, +G) is det.
+
+rdf_print_for_predicate(S, P, O, G) :-
+  rdf_print_predicate(P),
+  write(" "),
+  aggregate_all(set(O), rdf(S, P, O, G), Os),
+  rdf_print_objects(Os).
+
+rdf_print_graph(G) :-
+  rdf_print_iri(G).
+
+rdf_print_iri(Full) :-
+  rdf_global_id(Alias:Local, Full), !,
+  write(Alias),
+  write(":"),
+  write(Local).
+rdf_print_iri(Full) :-
+  write("<"),
+  write(Full),
+  write(">").
+
+rdf_print_literal(V^^D) :-
+  (   rdf_equal(xsd:boolean, D)
+  ;   rdf_equal(xsd:string, D)
+  ), !,
+  atom_string(Lex, V),
+  write(Lex).
+rdf_print_literal(V^^D) :-
+  (   rdf_equal(xsd:integer, D)
+  ;   rdf_equal(xsd:decimal, D)
+  ;   rdf_equal(xsd:double, D)
+  ), !,
+  write(V).
+rdf_print_literal(V^^D) :- !,
+  rdf11:in_type(D, V, Lex),
+  turtle:turtle_write_quoted_string(current_output, Lex),
+  write("^^"),
+  rdf_print_iri(D).
+rdf_print_literal(V@LTag) :- !,
+  atom_string(Lex, V),
+  turtle:turtle_write_quoted_string(current_output, Lex),
+  write("@"),
+  write(LTag).
+rdf_print_literal(V) :-
+  rdf_print_literal(V^^xsd:string).
+
+rdf_print_object(O) :-
+  rdf_is_literal(O), !,
+  rdf_print_literal(O).
+rdf_print_object(O) :-
+  rdf_print_subject(O).
+
+rdf_print_objects([H]) :- !,
+  rdf_print_object(H).
+rdf_print_objects([H|T]) :-
+  rdf_print_object(H),
+  write(", "),
+  rdf_print_objects(T).
+
+rdf_print_predicate(P) :-
+  rdf_print_iri(P).
+
+rdf_print_subject(S) :-
+  rdf_is_bnode(S), !,
+  rdf_print_bnode(S).
+rdf_print_subject(S) :-
+  rdf_print_iri(S).
+
+tab0(N1) :- N2 is N1 * 4, tab(N2).
+
+
+
 %! rdf_retractall(+Trip) is det.
 
 rdf_retractall(rdf(S,P,O)) :-
@@ -184,6 +323,16 @@ rdf_snap(Goal_0) :-
 
 rdf_triples(S, P, O, Trips):-
   aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Trips).
+
+
+
+%! rdf_unload_db is det.
+
+rdf_unload_db :-
+  rdf_graph(G), !,
+  rdf_unload_graph(G),
+  rdf_unload_db.
+rdf_unload_db.
 
 
 

@@ -37,7 +37,7 @@
 
 :- use_module(library(html/html_bs)).
 :- use_module(library(http/html_write)).
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_ext)).
 
 :- rdf_meta
    'bf:subtitle'(r, -),

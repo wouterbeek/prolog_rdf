@@ -16,8 +16,8 @@ Various tests for RDF predicates,
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_print)).
 
 :- rdf_register_prefix(ch, 'http://www.wouterbeek.com/ch.owl#' ).

@@ -217,7 +217,7 @@ rdf_number_ofs(Witness, S, P, O, G, N) :-
 
 :- begin_tests(rdf_stats).
 
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_ext)).
 
 test(rdf_number_of_subjects, [forall(test_case(G,N))]) :-
   setup_call_cleanup(

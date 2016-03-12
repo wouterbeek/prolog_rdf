@@ -15,7 +15,7 @@ Support for RESTful interfaces to RDF data.
 @version 2016/02
 */
 
-:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(yall)).
 
 :- meta_predicate
