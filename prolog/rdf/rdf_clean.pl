@@ -99,7 +99,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   D2 = D1.put(_{
     'llo:processed_quads': _{'@type': 'xsd:nonNegativeInteger', '@value': NoQuads},
     'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTriples},
-    'llo:processed_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NTuples}
+    'llo:processed_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTuples}
   }),
 
   % Store input stream properties.

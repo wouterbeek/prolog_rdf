@@ -52,7 +52,7 @@ Printing of RDF statements to a text-based output stream.
      pass_to(rdf_print_descr/3, 3)
    ]).
 :- predicate_options(rdf_print_descr/3, 3, [
-     pass_to(rdf_print_statement/5, 5)
+     pass_to(rdf_print_quad/5, 5)
    ]).
 :- predicate_options(rdf_print_graph/2, 2, [
      pass_to(rdf_print_quad/5, 5),

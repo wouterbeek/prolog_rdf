@@ -15,13 +15,12 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10-2016/01
+@version 2015/07-2015/08, 2015/10-2016/01, 2016/03
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_print_stmt)).
 
 :- rdf_meta
    rdf_cp(r, r, r, o, r),
@@ -52,13 +51,13 @@ rdf_cp(FromG, S, P, O, ToG) :-
 rdf_cp0(Action, FromG, S, P, O, ToG) :-
   forall(rdf(S, P, O, FromG), (
     rdf_assert(S, P, O, ToG),
-    debug(rdf(update), (
-      bracketed(square, atom(Action)),
-      " ",
-      rdf_print_statement(S, P, O, FromG, []),
-      " → ",
-      rdf_print_statement(S, P, O, ToG, [])
-    ))
+    (   debugging(rdf(update))
+    ->  format("[~a] ", [Action]),
+        rdf_print(S, P, O, FromG),
+        write(" → "),
+        rdf_print(S, P, O, ToG)
+    ;   true
+    )
   )).
 
 

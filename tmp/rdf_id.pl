@@ -177,9 +177,9 @@ rdf_print_id(Tid, Opts) -->
 
 
 
-%! rdf_print_statement_id(+Sid, +Pid, +Oid, ?Gid, +Opts) is det.
+%! rdf_print_tuple_id(+Sid, +Pid, +Oid, ?Gid, +Opts) is det.
 
-rdf_print_statement_id(Sid, Pid, Oid, Gid, Opts) -->
+rdf_print_tuple_id(Sid, Pid, Oid, Gid, Opts) -->
   "〈",
   rdf_print_id(Sid, Opts),
   ", ",

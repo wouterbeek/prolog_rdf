@@ -45,7 +45,7 @@ Printing of materialization results.
      pass_to(print_premise//3, 3)
    ]).
 :- predicate_options(print_expression0//2, 2, [
-     pass_to(rdf_print_statement//5, 5)
+     pass_to(rdf_print_tuple//5, 5)
    ]).
 
 
@@ -93,7 +93,7 @@ print_deduction(R, Ps, C, Opts) -->
 print_expression0(error, _) --> !,
   falsum.
 print_expression0(rdf(S,P,O), Opts) --> !,
-  rdf_print_statement(S, P, O, _, Opts).
+  rdf_print_tuple(S, P, O, _, Opts).
 print_expression0(T, _) -->
   pl_term(T).
 
