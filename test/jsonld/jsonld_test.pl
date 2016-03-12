@@ -1,7 +1,7 @@
 :- module(
   jsonld_test,
   [
-    run_test/1, % +Number:positive_integer
+    run_test/1, % ?Number:positive_integer
     run_tests/0
   ]
 ).
@@ -15,6 +15,8 @@ Largely derived from the JSON-LD 1.0 specification (W3C).
 */
 
 :- use_module(library(apply)).
+:- use_module(library(ansi_ext)).
+:- use_module(library(atom_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
@@ -34,11 +36,18 @@ Largely derived from the JSON-LD 1.0 specification (W3C).
 
 
 run_test(I) :-
-  json_read_any('toRdf-manifest.jsonld', Manf),
-  length(Manf.sequence, Len),
-  must_be(between(1, Len), I),
-  nth1(I, Manf.sequence, D),
-  run_test0(D).
+  format_integer(I, 4, Id0),
+  atomic_list_concat([toRdf,Id0,in], -, Base),
+  file_name_extension(Base, jsonld, Local),
+  (   access_file(Local, read)
+  ->  string_concat("#t", Id0, Id),
+      json_read_any('toRdf-manifest.jsonld', Manf),
+      Ds = Manf.sequence,
+      member(D, Ds),
+      D.'@id' == Id, !,
+      run_test0(D)
+  ;   formatln("Test ~D does not exist.", [I])
+  ).
 
 run_tests :-
   catch(
@@ -51,40 +60,52 @@ run_tests :-
 %! run_test0(+D) is det.
 
 run_test0(D):-
-  rdf_equal(ex:input, G1),
-  rdf_equal(ex:expect, G2),
-  maplist(rdf_unload_graph, [G1,G2]),
+  % Stage setting.
+  rdf_unload_db,
+
+  % Metadata.
   formatln("Id: ~s", [D.'@id']),
   write("Type: "), forall(member(Type, D.'@type'), write(Type)), nl,
   formatln("Name: ~s", [D.name]),
   formatln("Purpose: ~s", [D.purpose]),
-  maplist(rdf_create_graph, [G1,G2]),
+
+  % Print JSON-LD.
   json_read_any(D.input, DIn),
   print_dict(DIn), nl,
-  rdf_load_file(D.input, [graph(G1)]),
+
+  % Read RDF from JSON-LD.
+  atomic_concat('http://json-ld.org/test-suite/tests/', D.input, Base),
+  rdf_load_statements(D.input, Stmts1, [base_iri(Base)]),
   formatln("Parsed statements:"),
-  rdf_print_graph(G1),
-  rdf_load_file(D.expect, [graph(G2)]),
-  (   isomorphic_graphs(G1, G2)
-  ->  true
-  ;   formatln("Expected statements:"),
-      rdf_print_graph(G2)
-  ).
+  rdf_print(Stmts1),
+
+  % Compare to RDF from N-Quads.
+  rdf_load_statements(D.expect, Stmts2),
+  isomorphic_statements(Stmt1, Stmt2),
+  ansi_formatln([fg(red)], "Expected statements:", []),
+  rdf_print(Stmts2), !.
+run_test0(D) :-
+  ansi_formatln([fg(red)], "Test ~w failed.", [D]).
 
 %! isomorphic_graphs(+G1, +G2) is semidet.
-% Is true if there is a consistent mapping between the blank nodes in G1
-% and the blank nodes in G2 that makes both graphs equal.  This maps to
+%! isomorphic_statements(+Stmts1, +Stmts2) is semidet.
+% Is true if there is a consistent mapping between the blank nodes in 1
+% and the blank nodes in 2 that makes both structures equal.  This maps to
 % the Prolog notion of *variant* if there was a canonical ordering of triples.
 
 isomorphic_graphs(G1, G2) :-
-  once(graph_permutation(G1, Ordered1)),
-  graph_permutation(G2, Ordered2),
-  variant(Ordered1, Ordered2), !.
+  maplist(rdf_graph_triples, [G1,G2], [Trips1,Trips2]),
+  isomorphic_statements(Trips1, Trips2).
 
-graph_permutation(G, GPerm) :-
-  rdf_graph_triples(G, Trips1),
-  replace_bnodes_with_vars(Trips1, Trips2),
-  partition(ground, Trips2, Ground, NonGround),
+isomorphic_statements(Stmts1, Stmts2) :-
+  once(statements_permutation(Stmts1, Perm1)),
+  % NONDET.
+  statements_permutation(Stmts2, Perm2),
+  variant(Perm1, Perm2), !.
+
+statements_permutation(Stmts1, Perm) :-
+  replace_bnodes_with_vars(Stmts1, Stmts2),
+  partition(ground, Stmts2, Ground, NonGround),
   sort(Ground, Sorted),
   append(Sorted, NonGroundPermutation, GPerm),
   permutation(NonGround, NonGroundPermutation).
@@ -97,7 +118,10 @@ replace_bnodes_with_vars([H1|T1], Map1, [H2|T2]) :-
   replace_bnodes_with_vars0(H1, Map1, H2, Map2),
   replace_bnodes_with_vars(T1, Map2, T2).
 
-replace_bnodes_with_vars0(rdf(S1,P,O1), Map1, rdf(S2,P,O2), Map3) :-
+replace_bnodes_with_vars0(rdf(S1,P,O1), Map1, rdf(S2,P,O2), Map3) :- !,
+  replace_bnode_with_var0(S1, Map1, S2, Map2),
+  replace_bnode_with_var0(O1, Map2, O2, Map3).
+replace_bnodes_with_vars0(rdf(S1,P,O1,G), Map1, rdf(S2,P,O2,G), Map3) :-
   replace_bnode_with_var0(S1, Map1, S2, Map2),
   replace_bnode_with_var0(O1, Map2, O2, Map3).
 
