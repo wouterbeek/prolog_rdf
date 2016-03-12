@@ -58,4 +58,4 @@ jsonld_metadata_context(
 
 jsonld_metadata_expand_iri(Compact, Full) :-
   jsonld_metadata_context(Context),
-  jsonld_expand_iri(Context, Compact, Full).
+  jsonld_expand_term(Context, Compact, Full).

@@ -143,8 +143,11 @@ rdf_call_on_statements_stream(G, Goal_2, M, Read) :-
       Opts = [anon_prefix(BPrefix),base_uri(BaseIri),graph(G)],
       rdf_process_turtle(Read, Goal_2, Opts)
   ;   Format3 == jsonld
-  ->  json_read_dict(Read, D),
-      forall(jsonld_to_triple(D, T, [base_iri(BaseIri)]), call(Goal_2, [T], G))
+  ->  json_read_dict(Read, Json),
+      forall(
+        jsonld_statement(Json, Stmt, [base_iri(BaseIri)]),
+        call(Goal_2, [Stmt], G)
+      )
   ;   Format3 == xml
   ->  process_rdf(Read, Goal_2, [base_uri(BaseIri),graph(G)])
   ;   Format3 == rdfa
@@ -227,7 +230,8 @@ rdf_load_statement(CT, _, G, rdf(S,P,O)) :- !,
   increment_thread_counter(CT),
   rdf_load_statement0(S, P, O, G).
 % Load a quadruple.
-rdf_load_statement(_, CQ, _, rdf(S,P,O,G:_)) :- !,
+rdf_load_statement(_, CQ, _, rdf(S,P,O,G0)) :- !,
+  rdf11:post_graph(G, G0),
   increment_thread_counter(CQ),
   rdf_load_statement0(S, P, O, G).
 

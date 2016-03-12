@@ -2,7 +2,7 @@
   jsonld_generics,
   [
     jsonld_abbreviate_iri/3, % +Context, +Full, -Compact
-    jsonld_expand_iri/3,     % +Context, +Compact, -Full
+    jsonld_expand_term/3,     % +Context, +Compact, -Full
     jsonld_is_bnode/1,       % +Term
     jsonld_keyword/1         % ?Keyword
   ]
@@ -34,32 +34,42 @@ jsonld_abbreviate_iri(Context, Full, Compact) :-
 
 
 
-%! jsonld_expand_iri(+Context, +Compact, -Full) is det.
+%! jsonld_expand_term(+Context, +Compact, -Full) is det.
 
 % Case 0; IRIs are stored as strings in JSON-LD, so first turn them into atoms.
-jsonld_expand_iri(Content, Compact1, Full) :-
+jsonld_expand_term(Content, Compact1, Full) :-
   string(Compact1), !,
   atom_string(Compact2, Compact1),
-  jsonld_expand_iri(Content, Compact2, Full).
-% Case 1: Names that can be expanded by the JSON-LD context.
-jsonld_expand_iri(Context, Compact, Full) :-
+  jsonld_expand_term(Content, Compact2, Full).
+% Case 1: Do not expand blank nodes.
+jsonld_expand_term(_, B, B) :-
+  rdf_is_bnode(B).
+% Case 2: Do not expand JSON-LD keywords.
+jsonld_expand_term(_, Keyword, Keyword) :-
+  jsonld_keyword(Keyword), !.
+% Case 3: Names that can be expanded by a ‘simple’ alias.
+jsonld_expand_term(Context, Compact, Full) :-
   atomic_list_concat([Alias,Local], :, Compact),
   \+ atom_prefix(Local, '//'),
   get_dict(Alias, Context, Prefix), !,
   atomic_concat(Prefix, Local, Full).
-% Case 2: Names that cannot be expanded belong to a vocabulary IRI, if present.
+% Case 4: Names that can be expanded by a ‘complex’ alias.
+jsonld_expand_term(Context, Alias, Full) :-
+  get_dict(Alias, Context, Def),
+  get_dict('@id', Def, Full), !.
+% Case 5: Names that cannot be expanded belong to a vocabulary IRI, if present.
 %         This excludes names that are explicitly mapped to ‘null’ by the
 %         context.
-jsonld_expand_iri(Context, Compact, Full) :-
+jsonld_expand_term(Context, Compact, Full) :-
   get_dict('@vocab', Context, Vocab),
   \+ jsonld_is_null(Context, Compact), !,
   atomic_concat(Vocab, Compact, Full).
-% Case 3: Resolve relative IRIs WRT the base IRI.
-jsonld_expand_iri(Context, Compact, Full) :-
+% Case 6: Resolve relative IRIs WRT the base IRI.
+jsonld_expand_term(Context, Compact, Full) :-
   get_dict('@base', Context, Base), !,
   uri_resolve(Compact, Base, Full).
-% Case 4: No expansion / already a full IRI.
-jsonld_expand_iri(_, Full, Full) :-
+% Case 7: No expansion / already a full IRI.
+jsonld_expand_term(_, Full, Full) :-
   is_http_iri(Full), !.
 
 
@@ -84,6 +94,7 @@ jsonld_is_null(Context, X) :-
 
 jsonld_keyword('@base').
 jsonld_keyword('@context').
+jsonld_keyword('@graph').
 jsonld_keyword('@id').
 jsonld_keyword('@type').
 jsonld_keyword('@value').
