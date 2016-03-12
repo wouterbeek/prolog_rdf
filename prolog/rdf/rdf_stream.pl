@@ -70,7 +70,7 @@ rdf_read_from_stream(Source, Goal_2, Opts1) :-
   % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.
   rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
   merge_options(DefaultRdfOpts, Opts1, Opts2),
-  read_from_stream(Source, rdf_read_from_stream0(Goal_2, Opts2), Opts2).
+  ignore(read_from_stream(Source, rdf_read_from_stream0(Goal_2, Opts2), Opts2)).
 
 rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
   % Guess the RDF serialization format in case option `rdf_format/1'
