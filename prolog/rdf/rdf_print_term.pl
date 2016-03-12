@@ -23,7 +23,7 @@
 /** <module> RDF print term
 
 @author Wouter Beek
-@version 2015/07-2016/01
+@version 2015/07-2016/01, 2016/03
 */
 
 :- use_module(library(atom_ext)).
@@ -32,6 +32,7 @@
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
@@ -128,12 +129,17 @@ rdf_print_datatype(D, Opts) -->
 
 rdf_print_graph(G) -->
   rdf_print_graph(G, []).
+
 rdf_print_graph(G, Opts) -->
   "@",
-  ({  rdf_global_id(Prefix:Local, G),
-      \+ option(abbr_iri(false), Opts)}
-  -> {option(ellip_ln(N), Opts, 20),
-      atom_truncate(Local, N, Local0)},
+  (   {
+        rdf_global_id(Prefix:Local, G),
+        \+ option(abbr_iri(false), Opts)
+      }
+  ->  {
+        option(ellip_ln(N), Opts, 20),
+        atom_truncate(Local, N, Local0)
+      },
       atom(Prefix),
       ":",
       atom(Local0)
@@ -211,7 +217,7 @@ rdf_print_language_tag(LTag, _) -->
 rdf_print_lexical(Lex, Opts) -->
   {
     option(ellip_lit(N), Opts, 20),
-    atom_truncate(Lex, N, Lex0)
+    string_truncate(Lex, N, Lex0)
   },
   "\"", atom(Lex0), "\"".
 
@@ -249,7 +255,7 @@ rdf_print_list(L1, Opts) -->
 rdf_print_literal(Lit) -->
   rdf_print_literal(Lit, []).
 rdf_print_literal(V^^D, Opts) --> !,
-  {rdf_lexical_form(V^^D, Lex)},
+  {rdf_lexical_form(V^^D, Lex^^_)},
   "〈", rdf_print_datatype(D, Opts), ", ", rdf_print_lexical(Lex, Opts), "〉".
 rdf_print_literal(Lex@LTag, Opts) -->
   {rdf_equal(rdf:langString, D)},
