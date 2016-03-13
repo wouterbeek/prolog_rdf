@@ -1,9 +1,9 @@
 :- module(
   rdfa_high,
   [
-    agent_image/2,    % +Agent, -Img
+    agent_image/2,    % +Agent, -Img:iri
     agent_image//1,   % +Agent
-    agent_name/2,     % +Agent, -Name
+    agent_name/2,     % +Agent, -Name:string
     agent_name//1     % +Agent
   ]
 ).
@@ -13,7 +13,7 @@
 /** <module> RDFa high-level structures
 
 @author Wouter Beek
-@version 2016/02
+@version 2016/02-2016/03
 */
 
 :- use_module(library(hash_ext)).
@@ -80,7 +80,7 @@ agent_name(Agent, String) :-
 
 agent_name(Agent) -->
   html(
-    a([href=Agent], [
+    a(href=Agent, [
       \'foaf:givenName'(Agent), %'
       " ",
       \'foaf:familyName'(Agent) %'
