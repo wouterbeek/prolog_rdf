@@ -130,6 +130,10 @@ rdfh_list(L) -->
 rdfh_literal(Lit) -->
   rdfh_link(literal(Lit), rdfh_literal0(Lit)).
 
+% RDF HTML
+rdfh_literal0(V^^D) -->
+  {rdf_subdatatype_of(D, rdf:'HTML')}, !,
+  html(\[V]).
 % RDF language-tagged string.
 rdfh_literal0(S@LTag) --> !,
   html(span(lang=LTag, S)).

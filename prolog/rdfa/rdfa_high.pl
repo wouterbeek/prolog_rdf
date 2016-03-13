@@ -55,22 +55,24 @@ agent_image(Agent, Img) :-
 
 agent_image(Agent) -->
   {
-    rdfa_prefixed_iri(Agent, Agent0),
     agent_name(Agent, Name),
     agent_image(Agent, Img)
   },
-  html(a(href=Agent0, img([alt=Name,property='foaf:depiction',src=Img], []))).
+  html(a(href=Agent, img([alt=Name,property='foaf:depiction',src=Img], []))).
 
 
 
 %! agent_name(+Agent, -Name) is det.
 
-agent_name(Agent, Name) :-
+agent_name(Agent, String) :-
   'foaf:givenName'(Agent, GivenName),
   'foaf:familyName'(Agent, FamilyName), !,
-  string_list_concat([GivenName,FamilyName], " ", Name).
-agent_name(Agent, Name) :-
-  'foaf:name'(Agent, Name).
+  rdf_string(GivenName, String1),
+  rdf_string(FamilyName, String2),
+  string_list_concat([String1,String2], " ", String).
+agent_name(Agent, String) :-
+  'foaf:name'(Agent, Name),
+  rdf_string(Name, String).
 
 
 
