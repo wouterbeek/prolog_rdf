@@ -13,6 +13,7 @@
     rdf_nextto/3,           % ?X, ?Y, ?RdfList
     rdf_pref_string/3,      % ?S, ?P, -Lit
     rdf_print/1,            % +Tuples
+    rdf_print/3,            % ?S, ?P, ?O
     rdf_print/4,            % ?S, ?P, ?O, ?G
     rdf_retractall/1,       % +Tuple
     rdf_snap/1,             % :Goal_0
@@ -40,6 +41,7 @@
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
 
@@ -59,6 +61,7 @@
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
+   rdf_print(r, r, o),
    rdf_print(r, r, o, r),
    rdf_retractall(t),
    rdf_string(r, -),
@@ -211,64 +214,71 @@ rdf_print(Tuples) :-
   )).
 
 
+%! rdf_print(?S, ?P, ?O) is det.
+
+rdf_print(S, P, O) :-
+  ground(rdf(S,P,O)), !,
+  rdf_print_triples(0, [rdf(S,P,O)]).
+rdf_print(S, P, O) :-
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Triples),
+  rdf_print_triples(0, Triples).
+
+
 %! rdf_print(?S, ?P, ?O, ?G) is det.
 
 rdf_print(S, P, O, G) :-
-  aggregate_all(set(G), rdf_graph(G), Gs),
-  maplist(rdf_print_for_graph(S, P, O), Gs).
+  aggregate_all(set(rdf(S,P,O,G)), rdf(S, P, O, G), Quads),
+  findall(G-rdf(S,P,O), member(rdf(S,P,O,G), Quads), Pairs),
+  group_pairs_by_key(Pairs, Groups),
+  forall(member(G-Tuples, Groups), rdf_print_graph(Tuples, G)).
 
 rdf_print_bnode(B) :-
   write(B).
 
-%! rdf_print_for_graph(?S, ?P, ?O, +G) is det.
+%! rdf_print_graph(+Triples, +G) is det.
 
-rdf_print_for_graph(S, P, O, G) :-
+rdf_print_graph(Triples, G) :-
   (   rdf_default_graph(G)
   ->  I = 0
   ;   rdf_print_graph(G),
       write(" {\n"),
       I = 1
   ),
-  aggregate_all(set(S), rdf(S, P, O, G), Ss),
-  rdf_print_subjects(I, Ss, P, O, G),
+  rdf_print_triples(I, Triples),
   (rdf_default_graph(G) -> true ; write("}\n")).
 
-rdf_print_subjects(I, [H|T], P, O, G) :- !,
-  rdf_print_for_subject(I, H, P, O, G),
-  rdf_print_subjects(I, T, P, O, G).
-rdf_print_subjects(_, [], _, _, _).
+rdf_print_triples(I, Triples) :-
+  findall(S-po(P,O), member(rdf(S,P,O), Triples), Pairs),
+  group_pairs_by_key(Pairs, Groups),
+  forall(member(S-POs, Groups), rdf_print_subject(I, S, POs)).
 
-%! rdf_print_for_subject(+I, +S, ?P, ?O, +G) is det.
-
-rdf_print_for_subject(I1, S, P, O, G) :-
+rdf_print_subject(I1, S, POs) :-
   tab0(I1),
   rdf_print_subject(S),
-  aggregate_all(set(P), rdf(S, P, O, G), Ps),
-  (   Ps = [P0]
+  findall(P-O, member(po(P,O), POs), Pairs),
+  group_pairs_by_key(Pairs, Groups),
+  (   Groups = [P-Os]
   ->  write(" "),
-      rdf_print_for_predicate(S, P0, O, G),
+      rdf_print_predicate(P, Os),
       writeln(" .")
   ;   nl,
       I2 is I1 + 1,
-      rdf_print_predicates(I2, S, Ps, O, G)
+      rdf_print_predicates(I2, Groups)
   ).
 
-rdf_print_predicates(I, S, [H], O, G) :-
+rdf_print_predicates(I, [P-Os]) :-
   tab0(I),
-  rdf_print_for_predicate(S, H, O, G),
+  rdf_print_predicate(P, Os),
   writeln(" .").
-rdf_print_predicates(I, S, [H|T], O, G) :-
+rdf_print_predicates(I, [P-Os|T]) :-
   tab0(I),
-  rdf_print_for_predicate(S, H, O, G),
+  rdf_print_predicate(P, Os),
   writeln(" ;"),
-  rdf_print_predicates(I, S, T, O, G).
+  rdf_print_predicates(I, T).
 
-%! rdf_print_for_predicate(+S, +P, ?O, +G) is det.
-
-rdf_print_for_predicate(S, P, O, G) :-
+rdf_print_predicate(P, Os) :-
   rdf_print_predicate(P),
   write(" "),
-  aggregate_all(set(O), rdf(S, P, O, G), Os),
   rdf_print_objects(Os).
 
 rdf_print_graph(G) :-
@@ -284,21 +294,22 @@ rdf_print_iri(Full) :-
   write(Full),
   write(">").
 
+rdf_print_literal(Lex^^D) :-
+  rdf_equal(xsd:boolean, D), !,
+  turtle:turtle_write_quoted_string(current_output, Lex).
 rdf_print_literal(V^^D) :-
-  (   rdf_equal(xsd:boolean, D)
-  ;   rdf_equal(xsd:string, D)
-  ), !,
-  rdf_lexical_form(V^^D, Lex^^D),
+  rdf_equal(xsd:string, D), !,
+  atom_string(Lex, V),
   turtle:turtle_write_quoted_string(current_output, Lex).
 rdf_print_literal(V^^D) :-
   (   rdf_equal(xsd:integer, D)
   ;   rdf_equal(xsd:decimal, D)
   ;   rdf_equal(xsd:double, D)
   ), !,
-  rdf_lexical_form(V^^D, Lex^^D),
+  atom_number(Lex, V),
   turtle:turtle_write_quoted_string(current_output, Lex).
 rdf_print_literal(V^^D) :- !,
-  rdf_lexical_form(V^^D, Lex^^D),
+  rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write("^^"),
   rdf_print_iri(D).
