@@ -24,7 +24,9 @@
     'foaf:mbox'//1,       % +Agent
     'foaf:name'/2,        % +Agent, -Name
     'foaf:name'//1,       % +Agent
-    'org:memberOf'//1     % +Agent
+    'org:memberOf'//1,    % +Agent
+    'sbo:commentOf'//1,   % +Comment
+    'sbo:content'//1      % +Article
   ]
 ).
 :- reexport(library(rdfa/rdfa_api)).
@@ -32,10 +34,11 @@
 /** <module> RDFa low-level structures
 
 @author Wouter Beek
-@version 2016/02
+@version 2016/02-2016/03
 */
 
 :- use_module(library(html/html_bs)).
+:- use_module(library(html/rdfh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_ext)).
 
@@ -63,7 +66,9 @@
    'foaf:mbox'(r, ?, ?),
    'foaf:name'(r, -),
    'foaf:name'(r, ?, ?),
-   'org:memberOf'(r, ?, ?).
+   'org:memberOf'(r, ?, ?),
+   'sbo:commentOf'(r, ?, ?),
+   'sbo:content'(r, ?, ?).
 
 
 
@@ -72,28 +77,28 @@
 %! 'bf:subtitle'(+Article, -Subtitle)// is det.
 
 'bf:subtitle'(Article, Subtitle) :-
-  rdf_pref_string_lex(Article, bf:subtitle, Subtitle).
+  rdf_pref_string(Article, bf:subtitle, Subtitle).
 
 
 %! 'bf:subtitle'(+Article)// is det.
 
 'bf:subtitle'(Article) -->
   {'bf:subtitle'(Article, Subtitle)},
-  html(h2(span(property='bf:subtitle', Subtitle))).
+  html(h2(span(property='bf:subtitle', \rdfh_literal(Subtitle)))).
 
 
 
 %! 'dc:abstract'(+Resource, -Abstract) is det.
 
 'dc:abstract'(Res, Abstract) :-
-  rdf_pref_string_lex(Res, dc:abstract, Abstract).
+  rdf_pref_string(Res, dc:abstract, Abstract).
 
 
 %! 'dc:abstract'(+Resource)// is det.
 
 'dc:abstract'(Res) -->
   {once('dc:abstract'(Res, Abstract))},
-  html(p(property='dc:abstract', Abstract)).
+  html(p(property='dc:abstract', \rdfh_literal(Abstract))).
 
 
 
@@ -120,11 +125,8 @@
 %! 'dc:creator'(+Resource)// is det.
 
 'dc:creator'(Res) -->
-  {
-    once('dc:creator'(Res, Agent)),
-    rdfa_prefixed_iri(Agent, Agent0)
-  },
-  html(a([href=Agent0,property='dc:creator'], \agent_name(Agent))).
+  {once('dc:creator'(Res, Agent))},
+  html(a([href=Agent,property='dc:creator'], \agent_name(Agent))).
 
 
 
@@ -138,14 +140,14 @@
 %! 'dc:title'(+Resource, -Title) is det.
 
 'dc:title'(Res, Title) :-
-  rdf_pref_string_lex(Res, dc:title, Title).
+  rdf_pref_string(Res, dc:title, Title).
 
 
 %! 'dc:title'(+Resource)// is det.
 
 'dc:title'(Res) -->
   {'dc:title'(Res, Title)},
-  html(h1(property='dc:title', Title)).
+  html(h1(property='dc:title', \rdfh_literal(Title))).
 
 
 
@@ -166,28 +168,28 @@
 %! 'foaf:familyName'(+Agent, -FamilyName) is det.
 
 'foaf:familyName'(Agent, FamilyName) :-
-  rdf_pref_string_lex(Agent, foaf:familyName, FamilyName).
+  rdf_pref_string(Agent, foaf:familyName, FamilyName).
 
 
 %! 'foaf:familyName'(+Agent)// is det.
 
 'foaf:familyName'(Agent) -->
   {once('foaf:familyName'(Agent, FamilyName))},
-  html(span(property='foaf:familyName', FamilyName)).
+  html(span(property='foaf:familyName', \rdfh_literal(FamilyName))).
 
 
 
 %! 'foaf:givenName'(+Agent, -GivenName) is det.
 
 'foaf:givenName'(Agent, GivenName) :-
-  rdf_pref_string_lex(Agent, foaf:givenName, GivenName).
+  rdf_pref_string(Agent, foaf:givenName, GivenName).
 
 
 %! 'foaf:givenName'(+Agent)// is det.
 
 'foaf:givenName'(Agent) -->
   {'foaf:givenName'(Agent, GivenName)}, !,
-  html(span(property='foaf:givenName', GivenName)).
+  html(span(property='foaf:givenName', \rdfh_literal(GivenName))).
 
 
 
@@ -225,14 +227,14 @@
 %! 'foaf:name'(+Agent, -Name) is det.
 
 'foaf:name'(Agent, Name) :-
-  rdf_pref_string_lex(Agent, foaf:name, Name).
+  rdf_pref_string(Agent, foaf:name, Name).
 
 
 %! 'foaf:name'(+Agent)// is det.
 
 'foaf:name'(Agent) -->
   {'foaf:name'(Agent, Name)},
-  html(span(property='foaf:name', Name)).
+  html(span(property='foaf:name', \rdfh_literal(Name))).
 
 
 
@@ -241,7 +243,19 @@
 'org:memberOf'(Agent) -->
   {
     once(rdf_has(Agent, org:memberOf, Organization)),
-    once(rdfs_label_lex(Organization, Label)),
+    once(rdfs_label(Organization, Label)),
     rdfa_prefixed_iri(Organization, Organization0)
   },
-  html(span(property=Organization0, Label)).
+  html(span(property=Organization0, \rdfh_literal(Label))).
+
+
+
+'sbo:commentOf'(Comment) -->
+  {once(rdf_has(Comment, sbo:commentOf, Article))},
+  html(span(rel='sbo:commentOf', \'dc:title'(Article))). %'
+
+
+
+'sbo:content'(Article) -->
+  {once(rdf_has(Article, sbo:content, Content))},
+  html(a(href=Article, div(property='sbo:content', \rdfh_literal(Content)))).

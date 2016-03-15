@@ -17,6 +17,7 @@
     rdfh_quad//4,          % +S, P, +O, +G
     rdfh_quad_panels//4,   % ?S, ?P, ?O, ?G
     rdfh_quad_table//4,    % ?S, ?P, ?O, ?G
+    rdfh_string//1,        % +Lit
     rdfh_subject//1,       % +S
     rdfh_term//1,          % +Term
     rdfh_tree//1,          % +Tree
@@ -130,6 +131,10 @@ rdfh_list(L) -->
 rdfh_literal(Lit) -->
   rdfh_link(literal(Lit), rdfh_literal0(Lit)).
 
+% RDF HTML
+rdfh_literal0(V^^D) -->
+  {rdf_subdatatype_of(D, rdf:'HTML')}, !,
+  html(\[V]).
 % RDF language-tagged string.
 rdfh_literal0(S@LTag) --> !,
   html(span(lang=LTag, S)).
@@ -236,6 +241,14 @@ rdfh_quad_table(Quads) -->
 rdfh_quad_table(S, P, O, G) -->
   {findall(rdf(S,P,O,G), rdf(S, P, O, G), L)},
   rdfh_quad_table(L).
+
+
+
+%! rdfh_string(+Lit)// is det.
+
+rdfh_string(Lit) -->
+  {rdf_string(Lit, String)},
+  html(String).
 
 
 

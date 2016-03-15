@@ -10,20 +10,18 @@
     rdf_is_ground_quad/1,   % @Term
     rdf_is_ground_triple/1, % @Term
     rdf_langstring/3,       % ?S, ?P, -Lit
-    rdf_langstring_lex/3,   % ?S, ?P, -Lex
     rdf_nextto/3,           % ?X, ?Y, ?RdfList
     rdf_pref_string/3,      % ?S, ?P, -Lit
-    rdf_pref_string_lex/3,  % ?S, ?P, -Lex
     rdf_print/1,            % +Tuples
     rdf_print/4,            % ?S, ?P, ?O, ?G
     rdf_retractall/1,       % +Tuple
     rdf_snap/1,             % :Goal_0
+    rdf_string/2,           % +Lit, -String
     rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
     rdf_tuple/1,            % -Tuple
     rdf_unload_db/0,
     rdfs_instance0/2,       % ?I, ?C
-    rdfs_label/2,           % +S, -Lit
-    rdfs_label_lex/2        % +S, -Lex
+    rdfs_label/2           % +S, -Lit
   ]
 ).
 :- reexport(library(semweb/rdf11)).
@@ -57,18 +55,16 @@
    rdf_graph_to_triples(r, -),
    rdf_image(r, -),
    rdf_langstring(r, r, o),
-   rdf_langstring_lex(r, r, -),
    rdf_nextto(o, o, r),
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
-   rdf_pref_string_lex(r, r, -),
    rdf_print(r, r, o, r),
    rdf_retractall(t),
+   rdf_string(r, -),
    rdf_triples(r, r, o, -),
    rdfs_instance0(o, r),
-   rdfs_label(r, o),
-   rdfs_label_lex(r, -).
+   rdfs_label(r, o).
 
 
 
@@ -161,16 +157,9 @@ rdf_langstring(S, P, Lit) :-
   rdf_langstring(S, P, LRange, Lit).
 
 rdf_langstring(S, P, LRange, Lit) :-
-  rdf_has(S, P, String@LTag),
+  rdf_has(S, P, V@LTag),
   basic_filtering(LRange, LTag),
-  Lit = String@LTag.
-
-
-%! rdf_langstring_lex(?S, ?P, -Lex) is nondet.
-
-rdf_langstring_lex(S, P, Lex) :-
-  rdf_langstring(S, P, Lit),
-  rdf_lexical_form(Lit, Lex).
+  Lit = V@LTag.
 
 
 
@@ -204,21 +193,13 @@ rdf_pref_string(S, P, LRange, Lit) :-
   rdf_langstring(S, P, LRange, Lit).
 % Non-matching language-tagged strings.
 rdf_pref_string(S, P, LRange, Lit) :-
-  rdf_has(S, P, S@LTag),
+  rdf_has(S, P, V@LTag),
   % Avoid duplicates.
   \+ basic_filtering(LRange, LTag),
-  Lit = S@LTag.
+  Lit = V@LTag.
 % Plain XSD strings.
-rdf_pref_string(S, P, _, String^^xsd:string) :-
-  rdf_has(S, P, String^^xsd:string).
-
-
-%! rdf_pref_string_lex(?S, ?P, -Lex) is nondet.
-
-rdf_pref_string_lex(S, P, Lex) :-
-  rdf_pref_string(S, P, Lit),
-  rdf_lexical_form(Lit, Lex).
-
+rdf_pref_string(S, P, _, V^^xsd:string) :-
+  rdf_has(S, P, V^^xsd:string).
 
 
 %! rdf_print(+Tuples) is det.
@@ -371,6 +352,13 @@ rdf_snap(Goal_0) :-
 
 
 
+%! rdf_string(+Lit, -String) is det.
+
+rdf_string(V^^xsd:string, V) :- !.
+rdf_string(V@_, V).
+
+
+
 %! rdf_tuple(-Tuple) is det.
 
 rdf_tuple(Tuple) :-
@@ -412,13 +400,6 @@ rdfs_instance0(I, D) :-
 
 rdfs_label(S, Lit) :-
   rdf_pref_string(S, rdfs:label, Lit).
-
-
-%! rdfs_label_lex(+S, -Lex) is nondet.
-
-rdfs_label_lex(S, Lex) :-
-  rdfs_label(S, Lit),
-  rdf_lexical_form(Lit, Lex).
 
 
 
