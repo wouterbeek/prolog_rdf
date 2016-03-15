@@ -1,8 +1,8 @@
 :- module(
   rdf_gml,
   [
-    rdf_gml/1, % +Source
-    rdf_gml/2  % +Source, +BaseOut
+    rdf_load_gml/1, % +Source
+    rdf_load_gml/2  % +Source, +BaseOut
   ]
 ).
 
@@ -42,16 +42,16 @@
 
 
 
-%! rdf_gml(+Source) is det.
-% Wrapper around rdf_gml/2 with default options.
+%! rdf_load_gml(+Source) is det.
+% Wrapper around rdf_load_gml/2 with default options.
 
-rdf_gml(Source) :-
-  rdf_gml(Source, []).
+rdf_load_gml(Source) :-
+  rdf_load_gml(Source, []).
 
 
-%! rdf_gml(+Source, +Opts) is det.
+%! rdf_load_gml(+Source, +Opts) is det.
 
-rdf_gml(Source, Opts) :-
+rdf_load_gml(Source, Opts) :-
   setup_call_cleanup(
     gml_setup(
       Base,
