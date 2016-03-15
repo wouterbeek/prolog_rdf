@@ -17,6 +17,7 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
+:- use_module(library(os/gnu_sort)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(pairs)).
@@ -52,6 +53,7 @@ rdf_load_gml(Source) :-
 %! rdf_load_gml(+Source, +Opts) is det.
 
 rdf_load_gml(Source, Opts) :-
+  option(out_base(Base), Opts, out),
   setup_call_cleanup(
     gml_setup(
       Base,
@@ -76,10 +78,9 @@ rdf_load_gml(Source, Opts) :-
 gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile) :-
   close_any2(NClose_0),
   close_any2(EClose_0),
-  
+
   % Sort the nodes to ensure there are no duplicates.
-  format(atom(OutArg), "--output=~a", [NFile]),
-  run_process(path(sort), [file(NFile),'--unique',OutArg]),
+  sort_file(NFile),
 
   % Concatenate the nodes and edges into one file.
   setup_call_cleanup(
@@ -88,13 +89,13 @@ gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile) :-
     close(In2)
   ),
   format(atom(CatCmd), "cat ~a ~a >> ~a", [NFile,EFile,GFile]),
-  run_process(path(sh), ['-c',CatCmd]),
+  run_process(sh, ['-c',CatCmd]),
   setup_call_cleanup(
     open(GFile, append, In3),
     format(In3, "]~n", []),
     close(In3)
   ),
-  run_process(path(gzip), [file(GFile)]),
+  run_process(gzip, [file(GFile)]),
   maplist(delete_file, [EFile,NFile]).
 
 
@@ -166,13 +167,11 @@ gml_setup(
   GFile,
   Opts
 ) :-
-  option(out_base(Base), Opts, out),
-  
   % Register prefixes.
   option(prefixes(Pairs), Opts, []),
   pairs_keys_values(Pairs, Keys, Vals),
   maplist(rdf_register_prefix, Keys, Vals),
-  
+
   atomic_list_concat([Base,gml], ., GFile),
   atomic_list_concat([Base,edges,tmp], ., EFile),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
