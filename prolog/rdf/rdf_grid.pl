@@ -72,6 +72,13 @@ graph_to_widget(G, http_version(S, P, version(Major,Minor))) :-
   pop_triple(O, llo:major, Major, G),
   pop_triple(O, llo:minor, Minor, G),
   rdf_retractall(O, rdf:type, llo:'Version', G).
+% RDF tuples.
+graph_to_widget(G, rdf_tuples(S,Quads,Triples,Duplicates)) :-
+  pop_triple(S, llo:duplicate_tuples, Duplicates^^xsd:nonNegativeInteger, G), !,
+  pop_triple(S, llo:processed_quads, Quads^^xsd:nonNegativeInteger, G),
+  pop_triple(S, llo:processed_triples, Triples^^xsd:nonNegativeInteger, G),
+  pop_triple(S, llo:processed_tuples, _, G),
+  pop_triple(S, llo:unique_tuples, _^^xsd:nonNegativeInteger, G).
 % Triple.
 graph_to_widget(G, rdfh_triple(S, P, O)) :-
   pop_triple(S, P, O, G).

@@ -109,3 +109,10 @@ po_pair0(P-O) -->
       span(property=P, \rdfh_object(O))
     ])
   ).
+
+rdf_tuples(_, Quads, Triples, Duplicates) -->
+  html([
+    p(["Triples: ",\thousands(Triples)]),
+    p(["Quads: ",\thousands(Quads)]),
+    p(["Duplicates: ",\thousands(Duplicates)])
+  ]).
