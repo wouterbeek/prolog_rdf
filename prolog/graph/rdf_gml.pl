@@ -17,6 +17,7 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
+:- use_module(library(os/compress_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(os/process_ext)).
@@ -95,7 +96,7 @@ gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile) :-
     format(In3, "]~n", []),
     close(In3)
   ),
-  run_process(gzip, [file(GFile)]),
+  compress_file(GFile),
   maplist(delete_file, [EFile,NFile]).
 
 
