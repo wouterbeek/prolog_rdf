@@ -45,6 +45,7 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_bnode_name)). % Private
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
 :- use_module(library(typecheck)).
@@ -201,16 +202,15 @@ write_simple_literal(Pos, Lit0) :-
 
 %! write_simple_object(+BPrefix, ?Pos, +O) is det.
 
-% Object term: literal.
-write_simple_object(_, Pos, Lit) :-
-  write_simple_literal(Pos, Lit), !.
-% Object term: blank node
 write_simple_object(BPrefix, _, B) :-
   rdf_is_bnode(B), !,
   write_simple_bnode(BPrefix, B).
-% Object term: IRI
 write_simple_object(_, _, Iri) :-
+  rdf_is_iri(Iri), !,
   write_simple_iri(Iri).
+% Literal term comes last to support modern and legacy formats.
+write_simple_object(_, Pos, Lit) :-
+  write_simple_literal(Pos, Lit), !.
 
 
 
