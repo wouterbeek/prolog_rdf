@@ -36,6 +36,7 @@
 :- use_module(library(stream_ext)).
 
 :- predicate_options(rdf_clean/3, 3, [
+     pass_to(absolute_file_name/3, 3),
      pass_to(rdf_read_from_stream/3, 3),
      pass_to(rdf_clean_read/4, 2)
    ]).
@@ -72,25 +73,26 @@ rdf_clean(From, To, Opts) :-
 
 %! rdf_clean_stream(+To, +Opts, +Metadata, +Read) is det.
 
-rdf_clean_stream(To, Opts1, D1, Read) :-
-  option(metadata(D4), Opts1, _),
+rdf_clean_stream(To, Opts, D1, Read) :-
+  option(metadata(D4), Opts, _),
 
   % Data compression option.  By default no compression is used.
-  option(compress(Compress), Opts1, none),
+  option(compress(Compress), Opts, none),
 
   % Convert the RDF input stream into Simple-Triples.
   % This is done on a per triple basis.
-  absolute_file_name(cleaning, Tmp0, [access(write)]),
+  merge_options([access(write)], Opts, FileOpts),
+  absolute_file_name(cleaning, Tmp0, FileOpts),
   thread_file(Tmp0, Tmp),
   debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
 
   % Read and write all tuples.
-  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts1, Opts2),
+  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts, WriteOpts),
   debug_verbose(
     rdf(clean),
     setup_call_cleanup(
       open(Tmp, write, Write),
-      rdf_write_clean_stream(Read, D1, Write, Opts2),
+      rdf_write_clean_stream(Read, D1, Write, WriteOpts),
       close(Write)
     ),
     "Cleaning tuples on a one-by-one basis."
@@ -107,8 +109,7 @@ rdf_clean_stream(To, Opts1, D1, Read) :-
   stream_metadata(Read, DStream),
   D3 = D2.put(DStream),
 
-  % Sort unique.
-  debug_verbose(rdf(clean), sort_file(Tmp, Opts1), "Sorting cleaned tuples file."),
+  debug_verbose(rdf(clean), sort_file(Tmp, Opts), "Sorting cleaned tuples file."),
 
   % Count the number of unique tuples.
   file_lines(Tmp, NoLines),
