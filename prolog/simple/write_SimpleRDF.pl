@@ -3,14 +3,15 @@
   [
     write_simple_begin/4,  % -BPrefix, -TripleCounter:compound, -QuadCounter:compound, +Opts
     write_simple_end/3,    % +TripleCounter:compound, +QuadCounter:compound, +Opts
-    write_simple_graph/2,  % ?G, +Opts
-    write_simple_quad/4,   % +S, +P, +O, +G
-    write_simple_quad/5,   % +BPrefix, +S, +P, +O, +G
-    write_simple_quad/6,   % +BPrefix, +QuadCounter:compound, +S, +P, +O, +G
-    write_simple_tuple/4,  % +BPrefix, +TripleCounter:compound, +QuadCounter:compound, +Tuple
+    write_simple_graph/3,  % ?Pos, ?G, +Opts
+    write_simple_quad/5,   % ?Pos, +S, +P, +O, +G
+    write_simple_quad/6,   % +BPrefix, ?Pos, +S, +P, +O, +G
+    write_simple_quad/7,   % +BPrefix, +QuadCounter:compound, ?Pos, +S, +P, +O, +G
+    write_simple_tuple/5,  % +BPrefix, +TripleCounter:compound, +QuadCounter:compound, ?Pos, +Tuple
     write_simple_triple/3, % +S, +P, +O
-    write_simple_triple/4, % +BPrefix, +S, +P, +O
-    write_simple_triple/5  % +BPrefix, +TripleCounter:compound, +S, +P, +O
+    write_simple_triple/4, % ?Pos, +S, +P, +O
+    write_simple_triple/5, % +BPrefix, ?Pos, +S, +P, +O
+    write_simple_triple/6  % +BPrefix, ?Pos, +TripleCounter:compound, +S, +P, +O
   ]
 ).
 
@@ -51,12 +52,13 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(iri/rfc3987_gen)).
 
 :- rdf_meta
-   write_simple_quad(r, r, o, +),
-   write_simple_quad(+, r, r, o, +),
-   write_simple_quad(+, +, r, r, o, +),
+   write_simple_quad(?, r, r, o, +),
+   write_simple_quad(+, ?, r, r, o, +),
+   write_simple_quad(+, +, ?, r, r, o, +),
    write_simple_triple(r, r, o),
-   write_simple_triple(+, r, r, o),
-   write_simple_triple(+, +, r, r, o).
+   write_simple_triple(?, r, r, o),
+   write_simple_triple(+, ?, r, r, o),
+   write_simple_triple(+, +, ?, r, r, o).
 
 :- predicate_options(write_simple_begin/4, 4, [
      base_iri(+atom)
@@ -66,7 +68,7 @@ assuming `xsd:string` in case no datatype IRI is given.
      triples(-nonneg),
      tuples(-nonneg)
    ]).
-:- predicate_options(write_simple_graph/2, 2, [
+:- predicate_options(write_simple_graph/3, 3, [
      rdf_format(+oneof([quads,triples])),
      pass_to(write_simple_begin/4, 4),
      pass_to(write_simple_end/3, 3)
@@ -128,14 +130,14 @@ write_simple_end(CTriples, CQuads, Opts) :-
 
 
 
-%! write_simple_graph(?G, +Opts) is det.
+%! write_simple_graph(?Pos, ?G, +Opts) is det.
 % The following options are supported:
 %   - quads(-nonneg)
 %   - rdf_format(?oneof([nquads,ntriples]))
 %   - triples(-nonneg)
 %   - tuples(-nonneg)
 
-write_simple_graph(G, Opts) :-
+write_simple_graph(Pos, G, Opts) :-
   write_simple_begin(BPrefix, CT, CQ, Opts),
   option(rdf_format(F), Opts, _),
   (   ground(F)
@@ -148,7 +150,7 @@ write_simple_graph(G, Opts) :-
   ;   F = ntriples
   ),
   aggregate_all(set(S), rdf(S, _, _, G), Ss),
-  maplist(write_simple_subject(BPrefix, CT, CQ, G, F), Ss),
+  maplist(write_simple_subject(BPrefix, CT, CQ, Pos, G, F), Ss),
   write_simple_end(CT, CQ, Opts).
 
 
@@ -167,46 +169,47 @@ write_simple_iri(Iri) :-
 
 
 
-%! write_simple_literal(+Lit) is det.
+%! write_simple_literal(?Pos, +Lit) is det.
 
-% Typed literal: current representation.
-write_simple_literal(V^^D) :- !,
-  rdf11:in_type(D, V, Lex),
+write_simple_literal(_, V^^D) :- !,
+  rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   turtle:turtle_write_uri(current_output, D).
-% Typed literal: legacy representation.
-write_simple_literal(literal(type(D,Lex))) :- !,
-  turtle:turtle_write_quoted_string(current_output, Lex),
-  write('^^'),
-  turtle:turtle_write_uri(current_output, D).
-% Language-tagged string: current representation.
-write_simple_literal(Lex0@LTag) :- !,
-  atom_string(Lex, Lex0),
+write_simple_literal(_, V@LTag) :- !,
+  rdf_literal_lexical_form(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
-% Language-tagged string: legacy representation.
-write_simple_literal(literal(lang(LTag,Lex))) :- !,
-  turtle:turtle_write_quoted_string(current_output, Lex),
-  format(current_output, '@~w', [LTag]).
-% Implicit XSD string literal.
-write_simple_literal(literal(Lex)) :-
-  rdf_equal(xsd:string, D),
-  write_simple_literal(literal(type(D,Lex))).
+% Literal legacy representations.
+write_simple_literal(Pos, Lit0) :-
+  rdf_legacy_literal_components(Lit0, D, Lex0, LTag0),
+  rdf11:pre_object(Lit, Lit0),
+  rdf_literal_components(Lit, D, Lex, LTag),
+  (   Lex == Lex0
+  ->  true
+  ;   increment_thread_counter(rdf_warning),
+      writeln(msg, error(non_canonical_lex(D,Lex),Pos))
+  ),
+  (   LTag == LTag0
+  ->  true
+  ;   increment_thread_counter(rdf_warning),
+      writeln(msg, error(non_canonical_ltag(LTag),Pos))
+  ),
+  write_simple_literal(Lit).
 
 
 
-%! write_simple_object(+O, +BPrefix) is det.
+%! write_simple_object(+BPrefix, ?Pos, +O) is det.
 
 % Object term: literal.
-write_simple_object(Lit, _) :-
-  write_simple_literal(Lit), !.
+write_simple_object(_, Pos, Lit) :-
+  write_simple_literal(Pos, Lit), !.
 % Object term: blank node
-write_simple_object(B, BPrefix) :-
+write_simple_object(BPrefix, _, B) :-
   rdf_is_bnode(B), !,
   write_simple_bnode(BPrefix, B).
 % Object term: IRI
-write_simple_object(Iri, _) :-
+write_simple_object(_, _, Iri) :-
   write_simple_iri(Iri).
 
 
@@ -218,27 +221,27 @@ write_simple_predicate(P) :-
 
 
 
-%! write_simple_quad(+S, +P, +O, +G) is det.
-%! write_simple_quad(+Counter:compound, +S, +P, +O, +G) is det.
-%! write_simple_quad(+BPrefix, +Counter:compound, +S, +P, +O, +G) is det.
+%! write_simple_quad(?Pos, +S, +P, +O, +G) is det.
+%! write_simple_quad(+BPrefix, ?Pos, +S, +P, +O, +G) is det.
+%! write_simple_quad(+BPrefix, +Counter:compound, ?Pos, +S, +P, +O, +G) is det.
 
-write_simple_quad(S, P, O, G) :-
-  write_simple_quad('_:', S, P, O, G).
+write_simple_quad(Pos, S, P, O, G) :-
+  write_simple_quad('_:', Pos, S, P, O, G).
 
-write_simple_quad(BPrefix, S, P, O, G) :-
-  write_simple_subject(S, BPrefix),
+write_simple_quad(BPrefix, Pos, S, P, O, G) :-
+  write_simple_subject(BPrefix, S),
   put_char(' '),
   write_simple_predicate(P),
   put_char(' '),
-  write_simple_object(O, BPrefix),
+  write_simple_object(BPrefix, Pos, O),
   put_char(' '),
   write_simple_graph_term(G),
   put_char(' '),
   put_char(.),
   put_code(10).
 
-write_simple_quad(BPrefix, C, S, P, O, G) :-
-  write_simple_quad(BPrefix, S, P, O, G),
+write_simple_quad(BPrefix, C, Pos, S, P, O, G) :-
+  write_simple_quad(BPrefix, Pos, S, P, O, G),
   increment_thread_counter(C).
 
 
@@ -247,24 +250,25 @@ write_simple_quad(BPrefix, C, S, P, O, G) :-
 %!   +BPrefix,
 %!   +TripleleCounter:compound,
 %!   +QuadCounter:compound,
+%!   ?Pos,
 %!   +Tuple
 %! ) is det.
 
-write_simple_tuple(BPrefix, CT, _, rdf(S,P,O)) :- !,
-  write_simple_triple(BPrefix, CT, S, P, O).
-write_simple_tuple(BPrefix, _, CQ, rdf(S,P,O,G)) :-
-  write_simple_quad(BPrefix, CQ, S, P, O, G).
+write_simple_tuple(BPrefix, CT, _, Pos, rdf(S,P,O)) :- !,
+  write_simple_triple(BPrefix, CT, Pos, S, P, O).
+write_simple_tuple(BPrefix, _, CQ, Pos, rdf(S,P,O,G)) :-
+  write_simple_quad(BPrefix, CQ, Pos, S, P, O, G).
 
 
 
-%! write_simple_subject(+S, +BPrefix) is det.
+%! write_simple_subject(+BPrefix, +S) is det.
 
 % Subject term: blank node
-write_simple_subject(B, BPrefix) :-
+write_simple_subject(BPrefix, B) :-
   rdf_is_bnode(B), !,
   write_simple_bnode(BPrefix, B).
 % Subject term: IRI
-write_simple_subject(Iri, _) :-
+write_simple_subject(_, Iri) :-
   write_simple_iri(Iri).
 
 
@@ -273,6 +277,7 @@ write_simple_subject(Iri, _) :-
 %!   +BPrefix,
 %!   +TripleCounter:compound,
 %!   +QuadCounter:compound,
+%!   ?Pos,
 %!   ?G,
 %!   +Format:oneof([nquads,ntriples]),
 %!   +S
@@ -283,32 +288,36 @@ write_simple_subject(Iri, _) :-
 % Collects a sorted list of predicate-object pairs.
 % Then processes each pairs -- and thus each triple -- separately.
 
-write_simple_subject(BPrefix, _, CQ, G, quad, S) :-
+write_simple_subject(BPrefix, _, CQ, Pos, G, quad, S) :-
   aggregate_all(set(P-O-G), rdf(S, P, O, G), POGs),
-  forall(member(P-O-G, POGs), write_simple_quad(BPrefix, CQ, S, P, O, G)).
-write_simple_subject(BPrefix, CT, _, G, triple, S) :-
+  forall(member(P-O-G, POGs), write_simple_quad(BPrefix, CQ, Pos, S, P, O, G)).
+write_simple_subject(BPrefix, CT, _, Pos, G, triple, S) :-
   aggregate_all(set(P-O), rdf(S, P, O, G), POs),
-  forall(member(P-O, POs), write_simple_triple(BPrefix, CT, S, P, O)).
+  forall(member(P-O, POs), write_simple_triple(BPrefix, CT, Pos, S, P, O)).
 
 
 
 %! write_simple_triple(+S, +P, +O) is det.
-%! write_simple_triple(+BPrefix:atom, +S, +P, +O) is det.
-%! write_simple_triple(+BPrefix:atom, +Counter:compound, +S, +P, +O) is det.
+%! write_simple_triple(?Pos, +S, +P, +O) is det.
+%! write_simple_triple(+BPrefix:atom, ?Pos, +S, +P, +O) is det.
+%! write_simple_triple(+BPrefix:atom, +Counter:compound, ?Pos, +S, +P, +O) is det.
 
 write_simple_triple(S, P, O) :-
-  write_simple_triple('_:', S, P, O).
+  write_simple_triple(_, S, P, O).
 
-write_simple_triple(BPrefix, S, P, O) :-
-  write_simple_subject(S, BPrefix),
+write_simple_triple(Pos, S, P, O) :-
+  write_simple_triple('_:', Pos, S, P, O).
+
+write_simple_triple(BPrefix, Pos, S, P, O) :-
+  write_simple_subject(BPrefix, S),
   put_char(' '),
   write_simple_predicate(P),
   put_char(' '),
-  write_simple_object(O, BPrefix),
+  write_simple_object(BPrefix, Pos, O),
   put_char(' '),
   put_char(.),
   put_code(10).
 
-write_simple_triple(BPrefix, Counter, S, P, O) :-
-  write_simple_triple(BPrefix, S, P, O),
+write_simple_triple(BPrefix, Counter, Pos, S, P, O) :-
+  write_simple_triple(BPrefix, Pos, S, P, O),
   increment_thread_counter(Counter).

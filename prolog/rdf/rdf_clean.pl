@@ -170,10 +170,10 @@ rdf_write_clean_stream(Read, D, Write, Opts1) :-
 %!   +TripleCounter:compound,
 %!   +QuadCounter:compound,
 %!   +Tuples,
-%!   +LinePosition:compound
+%!   +Pos
 %! ) is det.
 
-clean_streamed_tuples(Write, BPrefix, TripleCounter, QuadCounter, Tuples, _) :-
+clean_streamed_tuples(Write, BPrefix, TripleCounter, QuadCounter, Tuples, Pos) :-
   with_output_to(Write,
-    maplist(write_simple_tuple(BPrefix, TripleCounter, QuadCounter), Tuples)
+    maplist(write_simple_tuple(BPrefix, TripleCounter, QuadCounter, Pos), Tuples)
   ).

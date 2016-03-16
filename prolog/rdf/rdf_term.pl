@@ -230,9 +230,10 @@ rdf_literal_datatype(_@_, D):- rdf_equal(rdf:langString, D).
 %! rdf_literal_lexical_form(+Lit, +Lex) is semidet.
 %! rdf_literal_lexical_form(+Lit, -Lex) is det.
 
-rdf_literal_lexical_form(Lit, Lex) :-
-  rdf11:pre_object(Lit, Lit0),
-  rdf_legacy_literal_components(Lit0, _, Lex, _).
+rdf_literal_lexical_form(V^^D, Lex) :- !,
+  rdf11:in_type(D, V, Lex).
+rdf_literal_lexical_form(V@_, Lex) :-
+  atom_string(Lex, V).
 
 
 
