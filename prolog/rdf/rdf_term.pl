@@ -214,9 +214,9 @@ rdf_literal(G, Lit) :-
 %! rdf_literal_components(?Lit, ?D, ?Lex, ?LTag) .
 
 rdf_literal_components(V^^D, D, Lex, _) :- !,
-  rdf_lexical_form(V^^D, Lex).
+  rdf_literal_lexical_form(V^^D, Lex).
 rdf_literal_components(V@LTag, rdf:langString, Lex, LTag) :-
-  rdf_lexical_form(V@LTag, Lex).
+  rdf_literal_lexical_form(V@LTag, Lex).
 
 
 %! rdf_literal_datatype(+Lit, +D) is semidet.

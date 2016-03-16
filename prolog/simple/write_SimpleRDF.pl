@@ -45,9 +45,11 @@ assuming `xsd:string` in case no datatype IRI is given.
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(rdf/rdf_bnode_name)). % Private
+:- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
+:- use_module(library(stream_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(iri/rfc3987_gen)).
@@ -184,19 +186,20 @@ write_simple_literal(_, V@LTag) :- !,
 % Literal legacy representations.
 write_simple_literal(Pos, Lit0) :-
   rdf_legacy_literal_components(Lit0, D, Lex0, LTag0),
-  rdf11:pre_object(Lit, Lit0),
+  rdf11:post_object(Lit, Lit0),
   rdf_literal_components(Lit, D, Lex, LTag),
-  (   Lex == Lex0
-  ->  true
-  ;   increment_thread_counter(rdf_warning),
-      writeln(msg, error(non_canonical_lex(D,Lex),Pos))
+  (   Lex \== Lex0
+  ->  increment_thread_counter(rdf_warning),
+      write_message_term(error(non_canonical_lex(D,Lex),Pos))
+  ;   true
   ),
-  (   LTag == LTag0
-  ->  true
-  ;   increment_thread_counter(rdf_warning),
-      writeln(msg, error(non_canonical_ltag(LTag),Pos))
+  (   ground(LTag0),
+      LTag \== LTag0
+  ->  increment_thread_counter(rdf_warning),
+      write_message_term(error(non_canonical_ltag(LTag),Pos))
+  ;   true
   ),
-  write_simple_literal(Lit).
+  write_simple_literal(Pos, Lit).
 
 
 

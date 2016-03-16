@@ -4,7 +4,8 @@
     rdf_store_messages/2, % +S, :Goal_0
     rdf_store_metadata/2, % +S, +M
     rdf_show_graph/1,     % +G
-    rdf_show_graph/2      % +G, +Opts
+    rdf_show_graph/2,     % +G, +Opts
+    write_message_term/1  % +Term
   ]
 ).
 
@@ -24,6 +25,7 @@ Show RDF data structures during modeling/development.
 :- use_module(library(http/json)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(jsonld/jsonld_read)).
+:- use_module(library(msg_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/gnu_wc)).
 :- use_module(library(os/process_ext)).
@@ -32,6 +34,8 @@ Show RDF data structures during modeling/development.
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_print_stmt)).
+:- use_module(library(simple/write_SimpleRDF)).
+:- use_module(library(stream_ext)).
 :- use_module(library(xml/xml_dom)).
 
 :- meta_predicate
@@ -39,6 +43,7 @@ Show RDF data structures during modeling/development.
 
 :- rdf_meta
    rdf_store(r, r, o),
+   rdf_store(r, r, o, +),
    rdf_store_message(r, r, +),
    rdf_store_messages(r, :),
    rdf_show_graph(r),
@@ -75,12 +80,12 @@ rdf_store_message(S, P, error(type_error(character,Char),context(_Pred,_Var))) :
 
 % Existence: directory
 rdf_store_message(S, P, error(existence_error(directory,Dir),context(_Pred,Msg))) :- !,
-  (   Msg == 'File exists'
-  ->  C = 'DirectoryExistenceError'
-  ),
+  Msg == 'File exists',
+  C0 = 'DirectoryExistenceError',
+  rdf_global_id(llo:C0, C),
   rdf_create_bnode(B),
   rdf_store(S, P, B),
-  rdf_store(B, rdf:type, llo-C),
+  rdf_store(B, rdf:type, C),
   uri_file_name(Uri, Dir),
   rdf_store(B, llo:object, Uri^^xsd:anyURI).
 
@@ -267,7 +272,7 @@ rdf_store_messages(S, Goal_0) :-
       asserta((
         user:thread_message_hook(Term,Kind,_) :-
           error_kind(Kind),
-          writeln(msg, Term),
+          write_message_term(Term),
           increment_thread_counter(rdf_warning)
       ))
     ),
@@ -280,7 +285,7 @@ rdf_store_messages(S, Goal_0) :-
           ->  rdf_store_metadata(S, M),
               End0 = "No stream"
           ;   Result = exception(E),
-              writeln(msg, Result),
+              write_message_term(Result),
               End0 = E
           ),
           debug(rdf(debug), "[RESULT] ~w ~w", [Result,Goal_0])
@@ -288,7 +293,7 @@ rdf_store_messages(S, Goal_0) :-
           End0 = fail
       ),
       with_output_to(string(End), write_term(End0)),
-      rdf_store(S, llo-end, End^^xsd:string, meta)
+      rdf_store(S, llo:end, End^^xsd:string, meta)
     ),
     (
       delete_thread_counter(rdf_warning, N),
@@ -326,6 +331,14 @@ rdf_show_graph(G, Opts1) :-
   graph_viz(ExportG, File, Opts1),
   merge_options([detached(true),program('XPDF')], Opts1, Opts2),
   run_process(xpdf, [file(File)], Opts2).
+
+
+
+write_message_term(Term) :-
+  exists_stream_alias(msg), !,
+  format(msg, "~w~n", [Term]).
+write_message_term(Term) :-
+  msg_warning("~w~n", [Term]).
 
 
 
