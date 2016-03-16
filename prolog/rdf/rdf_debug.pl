@@ -13,7 +13,7 @@
 Show RDF data structures during modeling/development.
 
 @author Wouter Beek
-@version 2015/08, 2015/12-2016/02
+@version 2015/08, 2015/12-2016/03
 */
 
 :- use_module(library(apply)).
@@ -27,6 +27,7 @@ Show RDF data structures during modeling/development.
 :- use_module(library(option)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(os/thread_counter)).
+:- use_module(library(pl/pl_term)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_print_stmt)).
@@ -266,16 +267,24 @@ rdf_store_messages(S, Goal_0) :-
           increment_thread_counter(rdf_debug)
       ))
     ),
-    (   catch(Goal_0, E, true)
-    ->  (   var(E)
-        ->  Result = true
-        ;   E = error(existence_error(open_any2,M),_)
-        ->  rdf_store_metadata(S, M)
-        ;   Result = exception(E),
-            rdf_store_message(S, exception, Result, [])
-        ),
-        debug(rdf(debug), '[RESULT] ~w ~w', [Result,Goal_0])
-    ;   debug(rdf(debug), '[FAILED] ~w', [Goal_0])
+    (
+      (   catch(Goal_0, E, true)
+      ->  (   var(E)
+          ->  Result = true,
+              End0 = true
+          ;   E = error(existence_error(open_any2,M),_)
+          ->  rdf_store_metadata(S, M),
+              End0 = "No stream"
+          ;   Result = exception(E),
+              rdf_store_message(S, exception, Result, []),
+              End0 = E
+          ),
+          debug(rdf(debug), "[RESULT] ~w ~w", [Result,Goal_0])
+      ;   ansi_formatln([fg(red)], "[FAILED] ~w", [Goal_0]),
+          End0 = fail
+      ),
+      with_output_to(string(End), write_term(End0)),
+      rdf_store(S, llo-end, End^^xsd:string)
     ),
     (
       delete_thread_counter(rdf_debug, N),
