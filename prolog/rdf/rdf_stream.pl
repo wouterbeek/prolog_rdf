@@ -72,24 +72,24 @@ rdf_read_from_stream(Source, Goal_2, Opts1) :-
   merge_options(DefaultRdfOpts, Opts1, Opts2),
   ignore(read_from_stream(Source, rdf_read_from_stream0(Goal_2, Opts2), Opts2)).
 
-rdf_read_from_stream0(Goal_2, Opts1, D1, Read) :-
+rdf_read_from_stream0(Goal_2, Opts1, M1, Source) :-
   % Guess the RDF serialization format in case option `rdf_format/1'
   % is not given.
   (   option(rdf_format(Format1), Opts1),
       ground(Format1)
   ->  true
-  ;   rdf_guess_format_options0(D1, Opts1, Opts2),
-      rdf_guess_format(Read, Format1, Opts2)
+  ;   rdf_guess_format_options0(M1, Opts1, Opts2),
+      rdf_guess_format(Source, Format1, Opts2)
   ),
-  (Format1 == jsonld -> set_stream(Read, encoding(utf8)) ; true),
+  (Format1 == jsonld -> set_stream(Source, encoding(utf8)) ; true),
   % `Format' is now instantiated.
   rdf_format_iri(Format1, Format2),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
-  D2 = D1.put(_{'llo:rdf_format': Format3}),
-  call(Goal_2, D2, Read).
+  M2 = M1.put(_{'llo:rdf_format': Format3}),
+  call(Goal_2, M2, Source).
 
-rdf_guess_format_options0(D, Opts1, Opts2) :-
-  uri_file_extensions(D.'llo:base_iri'.'@value', Exts1),
+rdf_guess_format_options0(M, Opts1, Opts2) :-
+  uri_file_extensions(M.'llo:base_iri'.'@value', Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, Format), !,

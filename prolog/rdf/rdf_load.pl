@@ -3,8 +3,8 @@
   [
     rdf_call_on_graph/2,    % +Source, :Goal_1
     rdf_call_on_graph/3,    % +Source, :Goal_1, +Opts
-    rdf_call_on_tuples/2,   % +Source, :Goal_2
-    rdf_call_on_tuples/3,   % +Source, :Goal_2, +Opts
+    rdf_call_on_tuples/2,   % +Source, :Goal_4
+    rdf_call_on_tuples/3,   % +Source, :Goal_4, +Opts
     rdf_download_to_file/2, % +Iri, +File
     rdf_download_to_file/3, % +Iri, +File, +Opts
     rdf_load_file/1,        % +Source
@@ -55,9 +55,12 @@ Support for loading RDF data.
 :- meta_predicate
     rdf_call_on_graph(+,1),
     rdf_call_on_graph(+,1,+),
-    rdf_call_on_tuples(+,2),
-    rdf_call_on_tuples(+,2,+),
-    rdf_call_on_tuples_stream(+,2,+,+).
+    rdf_call_on_quad(4, +),
+    rdf_call_on_quads(4, +),
+    rdf_call_on_quads(4, +, +),
+    rdf_call_on_tuples(+,4),
+    rdf_call_on_tuples(+,4,+),
+    rdf_call_on_tuples_stream(4,+,+,+).
 
 :- predicate_options(rdf_call_on_graph/3, 3, [
      pass_to(rdf_load_file/2)
@@ -103,57 +106,74 @@ rdf_call_on_graph(Source, Goal_1, Opts0) :-
 
 
 
-%! rdf_call_on_tuples(+Source, :Goal_2) is nondet.
-%! rdf_call_on_tuples(+Source, :Goal_2, +Opts) is nondet.
+%! rdf_call_on_tuples(+Source, :Goal_4) is nondet.
+%! rdf_call_on_tuples(+Source, :Goal_4, +Opts) is nondet.
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-rdf_call_on_tuples(Source, Goal_2) :-
-  rdf_call_on_tuples(Source, Goal_2, []).
+rdf_call_on_tuples(Source, Goal_4) :-
+  rdf_call_on_tuples(Source, Goal_4, []).
 
-rdf_call_on_tuples(Source, Goal_2, Opts) :-
-  option(graph(G1), Opts, default),
-  rdf_global_id(G1, G2),
+rdf_call_on_tuples(Source, Goal_4, Opts) :-
   catch(
-    rdf_read_from_stream(Source, rdf_call_on_tuples_stream(G2, Goal_2), Opts),
-    E,
-    (writeln(Goal_2), print_message(warning, E))
+    rdf_read_from_stream(Source, rdf_call_on_tuples_stream(Goal_4, Opts), Opts),
+    E, (writeln(Goal_4), print_message(warning, E))
   ).
 
 
-%! rdf_call_on_tuples_stream(?G, :Goal_2, +Metadata, +Read) is det.
-% The following call is made:
-% `call(:Goal_2, +Tuples:list(compound), ?Graph:atom)`
+%! rdf_call_on_tuples_stream(:Goal_4, +Opts, +Metadata, +Source) is det.
+% The following call is made: `call(:Goal_4, +S, +P, +O, +G)`.
 
-rdf_call_on_tuples_stream(G, Goal_2, M, Read) :-
+rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
+  % Library Semweb uses option base_uri/1.  We use option base_iri/1.
   BaseIri = M.'llo:base_iri'.'@value',
-  rdf_equal(M.'llo:rdf_format', Format1),
-  jsonld_metadata_expand_iri(Format1, Format2),
-  rdf_format_iri(Format3, Format2),
-  (   memberchk(Format3, [nquads,ntriples])
-  ->  rdf_process_ntriples(
-        Read,
-        Goal_2,
-        [base_uri(BaseIri),format(Format3),graph(G)]
-      )
-  ;   memberchk(Format3, [trig,turtle])
-  ->  uuid_no_hyphen(UniqueId),
-      atomic_list_concat(['__',UniqueId,:], BPrefix),
-      Opts = [anon_prefix(BPrefix),base_uri(BaseIri),graph(G)],
-      rdf_process_turtle(Read, Goal_2, Opts)
-  ;   Format3 == jsonld
-  ->  json_read_dict(Read, Json),
-      forall(
-        jsonld_tuple(Json, Tuple, [base_iri(BaseIri)]),
-        call(Goal_2, [Tuple], G)
-      )
-  ;   Format3 == xml
-  ->  process_rdf(Read, Goal_2, [base_uri(BaseIri),graph(G)])
-  ;   Format3 == rdfa
-  ->  read_rdfa(Read, Ts, [max_errors(-1),syntax(style)]),
-      call(Goal_2, Ts, G)
-  ;   existence_error(rdf_format, [Format1])
+  jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
+  rdf_format_iri(Format, FormatIri),
+  %%%%uuid_no_hyphen(UniqueId),
+  %%%%atomic_list_concat(['_:',UniqueId,-], BPrefix),
+  Opts2 = [
+    annon_prefix('_:'),
+    base(BaseIri),
+    base_iri(BaseIri),
+    base_uri(BaseIri),
+    format(Format),
+    max_errors(-1),
+    syntax(style)
+  ],
+  merge_options(Opts1, Opts2, Opts3),
+  (   % N-Quads & N-Triples.
+      memberchk(Format, [nquads,ntriples])
+  ->  rdf_process_ntriples(Source, rdf_call_on_quads(Goal_4), Opts3)
+  ;   % Trig & Turtle.
+      memberchk(Format, [trig,turtle])
+  ->  rdf_process_turtle(Source, rdf_call_on_quads(Goal_4), Opts3)
+  ;   % JSON-LD.
+      Format == jsonld
+  ->  json_read_dict(Source, Json),
+      forall(jsonld_tuple(Json, Tuple, Opts3), rdf_call_on_quad(Goal_4, Tuple))
+  ;   % RDF/XML.
+      Format == xml
+  ->  process_rdf(Source, rdf_call_on_quads(Goal_4), Opts3)
+  ;   % RDFa.
+      Format == rdfa
+  ->  read_rdfa(Source, Triples, Opts3),
+      rdf_call_on_quads(Goal_4, Triples)
+  ;   existence_error(rdf_format, [Format])
   ).
+
+rdf_call_on_quad(Goal_4, rdf(S,P,O0,G0)) :- !,
+  (rdf_is_term(O0) -> O = O0 ; rdf11:post_object(O, O0)),
+  rdf11:post_graph(G, G0),
+  call(Goal_4, S, P, O, G).
+rdf_call_on_quad(Goal_4, rdf(S,P,O)) :-
+  rdf_default_graph(G),
+  rdf_call_on_quad(Goal_4, rdf(S,P,O,G)).
+
+rdf_call_on_quads(Goal_4, Tuples) :-
+  maplist(rdf_call_on_quad(Goal_4), Tuples).
+
+rdf_call_on_quads(Goal_4, Tuples, _) :-
+  rdf_call_on_quads(Goal_4, Tuples).
 
 
 
@@ -171,8 +191,8 @@ rdf_download_to_file(Iri, File, Opts) :-
   rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile, Opts), Opts),
   rename_file(TmpFile, File).
 
-write_stream_to_file0(TmpFile, Opts, _, Read) :-
-  write_stream_to_file(Read, TmpFile, Opts).
+write_stream_to_file0(TmpFile, Opts, _, Source) :-
+  write_stream_to_file(Source, TmpFile, Opts).
 
 
 
@@ -189,6 +209,7 @@ write_stream_to_file0(TmpFile, Opts, _, Read) :-
 
 rdf_load_file(Source) :-
   rdf_load_file(Source, []).
+
 
 rdf_load_file(Source, Opts) :-
   % Allow statistics about the number of tuples to be returned.
@@ -208,7 +229,7 @@ rdf_load_file(Source, Opts) :-
       create_thread_counter(triples),
       create_thread_counter(quads)
     ),
-    rdf_call_on_tuples(Source, rdf_load_tuples(triples, quads), Opts),
+    rdf_call_on_tuples(Source, rdf_load_tuple(triples, quads), Opts),
     (
       delete_thread_counter(triples, NoTriples),
       delete_thread_counter(quads, NoQuads),
@@ -221,26 +242,12 @@ rdf_load_file(Source, Opts) :-
     )
   ).
 
-rdf_load_tuples(CT, CQ, Tuples, G) :-
-  maplist(rdf_load_tuple(CT, CQ, G), Tuples).
-
-rdf_load_tuple(CT, _, G, rdf(S,P,O)) :- !,
-  increment_thread_counter(CT),
-  rdf_load_tuple0(S, P, O, G).
-rdf_load_tuple(_, CQ, _, rdf(S,P,O,G0)) :- !,
-  rdf11:post_graph(G, G0),
-  increment_thread_counter(CQ),
-  rdf_load_tuple0(S, P, O, G).
-
-rdf_load_tuple0(S, P, O0, G) :-
-  (rdf_is_term(O0) -> O = O0 ; rdf11:post_object(O, O0)),
-  %maplist(term_norm, [S1,P1,O1,G1], [S2,P2,O2,G2]),
+% @tbd IRI normalization.
+rdf_load_tuple(CT, CQ, S, P, O, G) :-
   (debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
-  rdf_assert(S, P, O, G).
-
-% @tbd
-%term_norm(T1, T2) :- rdf_is_iri(T1), !, iri_norm(T1, T2).
-%term_norm(T, T).
+  rdf_assert(S, P, O, G),
+  (rdf_default_graph(G) -> C = CT ; C = CQ),
+  increment_thread_counter(C).
 
 
 

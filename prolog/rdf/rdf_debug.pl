@@ -21,6 +21,7 @@ Show RDF data structures during modeling/development.
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(http/json)).
 :- use_module(library(jsonld/jsonld_metadata)).
@@ -34,7 +35,6 @@ Show RDF data structures during modeling/development.
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_print_stmt)).
-:- use_module(library(simple/write_SimpleRDF)).
 :- use_module(library(stream_ext)).
 :- use_module(library(xml/xml_dom)).
 
@@ -354,7 +354,7 @@ rdf_store(S, P, O) :-
 
 
 rdf_store(S, P, O, Alias) :-
-  with_output_to(Alias, write_simple_triple(S, P, O)).
+  with_output_to(Alias, gen_ntriple(S, P, O)).
 
 
 

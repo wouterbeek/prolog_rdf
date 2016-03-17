@@ -63,7 +63,7 @@ rdf_load_gml(Source, Opts) :-
       GFile,
       Opts
     ),
-    rdf_call_on_tuples(Source, gml_tuples(EOut, NOut, Opts)),
+    rdf_call_on_tuples(Source, gml_tuple(EOut, NOut, Opts)),
     gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile)
   ).
 
@@ -182,27 +182,9 @@ gml_setup(
 
 
 
-%! gml_tuple(+EOut, +NOut, +Opts, +Stmt) is det.
+%! gml_tuple(+EOut, +NOut, +Opts, +S, +P, +O, +G) is det.
 
-gml_tuple(EOut, NOut, Opts, Stmt) :-
-  call_collect_messages((
-    (Stmt = rdf(S,P,O0), ! ; Stmt = rdf(S,P,O0,_)),
-    rdf11:post_object(O, O0),
-    gml_triple(EOut, NOut, Opts, S, P, O)
-  )).
-
-
-
-%! gml_tuples(+EOut, +NOut, +Opts, +Tuples, ?G) is det.
-
-gml_tuples(EOut, NOut, Opts, Tuples, _) :-
-  maplist(gml_tuple(EOut, NOut, Opts), Tuples).
-
-
-
-%! gml_triple(+EOut, +NOut, +Opts, +S, +P, +O) is det.
-
-gml_triple(EOut, NOut, Opts, S, P, O) :-
+gml_tuple(EOut, NOut, Opts, S, P, O, _) :-
   maplist(gml_node(NOut, Opts), [S,O], [NId1,NId2]),
   gml_edge(EOut, NId1, P, NId2, Opts).
 

@@ -15,6 +15,7 @@
 */
 
 :- use_module(library(debug)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(iostream)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
@@ -24,7 +25,6 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
 :- use_module(library(semweb/rdf_turtle_write)).
-:- use_module(library(simple/write_SimpleRDF)).
 :- use_module(library(uri)).
 
 :- meta_predicate
@@ -42,7 +42,7 @@
      pass_to(rdf_write_to_stream/3, 3)
    ]).
 :- predicate_options(rdf_save_to_stream/3, 2, [
-     pass_to(write_simple_graph/2, 2),
+     pass_to(gen_ntuples/2, 2),
      pass_to(rdf_save_trig/2, 2),
      pass_to(rdf_save_turtle/2, 2),
      pass_to(rdf_save_xmlrdf/2, 2)
@@ -134,11 +134,10 @@ rdf_save_to_stream0(F, Opts, _, Write) :- rdf_save_to_stream(F, Opts, Write).
 %! rdf_save_to_stream(+Format:rdf_format, +Opts, +Write) is det.
 
 % N-Quads or N-Triples
-rdf_save_to_stream(F, Opts1, Write) :-
-  memberchk(F, [nquads,ntriples]), !,
-  option(graph(G), Opts1, _NO_GRAPH),
-  merge_options([format(F)], Opts1, Opts2),
-  with_output_to(Write, write_simple_graph(G, Opts2)).
+rdf_save_to_stream(Format, Opts, Write) :-
+  memberchk(Format, [nquads,ntriples]), !,
+  option(graph(G), Opts, _NO_GRAPH),
+  with_output_to(Write, gen_ntuples(_, _, _, G, Opts)).
 % TriG
 rdf_save_to_stream(trig, Opts, Write) :- !,
   rdf_save_trig(Write, Opts).
