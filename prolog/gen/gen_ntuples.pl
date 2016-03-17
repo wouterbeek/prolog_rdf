@@ -212,14 +212,19 @@ gen_literal(Lit0) :-
   rdf11:post_object(Lit, Lit0),
   rdf_literal_components(Lit, D, Lex, LTag),
   (   Lex \== Lex0
-  ->  increment_thread_counter(rdf_warning),
-      threadsafe_format(warn, "~w~n", [error(non_canonical_lex(D,Lex),gen_ntuples)])
+  ->  threadsafe_warning(error(non_canonical_lex(D,Lex),gen_ntuples))
   ;   true
   ),
   (   ground(LTag0),
       LTag \== LTag0
-  ->  increment_thread_counter(rdf_warning),
-      threadsafe_format(warn, "~w~n", [error(non_canonical_ltag(LTag),gen_ntuples)])
+  ->  threadsafe_warning(error(non_canonical_ltag(LTag),gen_ntuples))
   ;   true
   ),
   gen_literal(Lit).
+
+threadsafe_warning(Term) :-
+  threadsafe_alias(warn, TAlias), !,
+  increment_thread_counter(rdf_warning),
+  format(TAlias, "~w~n", [Term]).
+threadsafe_warning(Term) :-
+  msg_warning("~w~n", [Term]).
