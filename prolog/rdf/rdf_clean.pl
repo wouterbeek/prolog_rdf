@@ -74,10 +74,10 @@ rdf_clean(From, To, Opts) :-
 %! rdf_clean_stream(+To, +Opts, +Metadata, +Source) is det.
 
 rdf_clean_stream(To, Opts, M1, Source) :-
-  option(metadata(M4), Opts, _),
+  option(metadata(M4), Opts1, _),
 
   % Data compression option.  By default no compression is used.
-  option(compress(Compress), Opts, none),
+  option(compress(Compress), Opts1, none),
 
   % Convert the RDF input stream into Simple-Triples.
   % This is done on a per triple basis.
@@ -87,24 +87,20 @@ rdf_clean_stream(To, Opts, M1, Source) :-
   debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
 
   % Read&write all tuples.
-  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts, WriteOpts),
+  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts1, Opts2),
 
+  gtrace,
   debug_verbose(
     rdf(clean),
     setup_call_cleanup(
       (
         open(Tmp, write, Sink),
-        gen_ntuples:gen_ntuples_begin(BPrefix, TC, QC, Opts)
+        gen_ntuples:gen_ntuples_begin(BPrefix, TC, QC, Opts2)
       ),
-      rdf_load:rdf_call_on_tuples_stream(
-        clean_streamed_tuples0(Sink, BPrefix, TC, QC),
-        M1,
-        Source,
-        WriteOpts
-      ),
+      rdf_load:rdf_call_on_tuples_stream(clean_streamed_tuples0(Sink, BPrefix, TC, QC), M1, Source, Opts1),
       (
         flush_output(Sink),
-        gen_ntuples:gen_ntuples_end(TC, QC, Opts),
+        gen_ntuples:gen_ntuples_end(TC, QC, Opts2),
         close(Sink)
       )
     ),

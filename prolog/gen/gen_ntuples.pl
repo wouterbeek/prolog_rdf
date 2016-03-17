@@ -18,6 +18,9 @@
 :- use_module(library(apply)).
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
+:- use_module(library(pl/pl_term)).
+:- use_module(library(rdf/rdf_debug)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
 :- use_module(library(uri)).
@@ -199,13 +202,13 @@ gen_literal(Pos, Lit0) :-
   rdf_literal_components(Lit, D, Lex, LTag),
   (   Lex \== Lex0
   ->  increment_thread_counter(rdf_warning),
-      write_message_term(error(non_canonical_lex(D,Lex),Pos))
+      threadsafe_format(warn, "~w~n", [error(non_canonical_lex(D,Lex),Pos)])
   ;   true
   ),
   (   ground(LTag0),
       LTag \== LTag0
   ->  increment_thread_counter(rdf_warning),
-      write_message_term(error(non_canonical_ltag(LTag),Pos))
+      threadsafe_format(warn, "~w~n", [error(non_canonical_ltag(LTag),Pos)])
   ;   true
   ),
   gen_literal(Pos, Lit).

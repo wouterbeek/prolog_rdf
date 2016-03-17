@@ -4,8 +4,7 @@
     rdf_store_messages/2, % +S, :Goal_0
     rdf_store_metadata/2, % +S, +M
     rdf_show_graph/1,     % +G
-    rdf_show_graph/2,     % +G, +Opts
-    write_message_term/1  % +Term
+    rdf_show_graph/2      % +G, +Opts
   ]
 ).
 
@@ -30,6 +29,7 @@ Show RDF data structures during modeling/development.
 :- use_module(library(option)).
 :- use_module(library(os/gnu_wc)).
 :- use_module(library(os/process_ext)).
+:- use_module(library(os/thread_ext)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(pl/pl_term)).
 :- use_module(library(rdf/rdf_ext)).
@@ -272,7 +272,7 @@ rdf_store_messages(S, Goal_0) :-
       asserta((
         user:thread_message_hook(Term,Kind,_) :-
           error_kind(Kind),
-          write_message_term(Term),
+          threadsafe_format(warn, "~w~n", [Term]),
           increment_thread_counter(rdf_warning)
       ))
     ),
@@ -285,7 +285,6 @@ rdf_store_messages(S, Goal_0) :-
           ->  rdf_store_metadata(S, M),
               End0 = "No stream"
           ;   Result = exception(E),
-              write_message_term(Result),
               End0 = E
           ),
           debug(rdf(debug), "[RESULT] ~w ~w", [Result,Goal_0])
@@ -331,14 +330,6 @@ rdf_show_graph(G, Opts1) :-
   graph_viz(ExportG, File, Opts1),
   merge_options([detached(true),program('XPDF')], Opts1, Opts2),
   run_process(xpdf, [file(File)], Opts2).
-
-
-
-write_message_term(Term) :-
-  exists_stream_alias(msg), !,
-  format(msg, "~w~n", [Term]).
-write_message_term(Term) :-
-  msg_warning("~w~n", [Term]).
 
 
 
