@@ -25,11 +25,11 @@
 
 rdf_info:-
   % Table header.
-  ansi_formatln([bold], 'Number of triples~30|Graph', []),
+  ansi_format(user_output, [bold], 'Number of triples~30|Graph~n', []),
 
   % First row: all triples.
   rdf_number_of_triples(T),
-  ansi_formatln([], '~D~25|All', [T]),
+  format(user_output, '~D~25|All~n', [T]),
 
   % Consective rows: one for each named graph.
   findall(N-G, rdf_number_of_triples(G, N), Pairs),
@@ -37,6 +37,6 @@ rdf_info:-
   list_truncate(SortedPairs, 10, TopSortedPairs),
   forall(member(N-G, TopSortedPairs), (
     dcg_with_output_to(atom(A), rdf_print_term(G)),
-    ansi_formatln([], '~D~25|~a', [N,A])
+    format(user_output, '~D~25|~a~n', [N,A])
   )),
   nl.

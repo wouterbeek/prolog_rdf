@@ -73,23 +73,14 @@ rdf_clean(From, To, Opts) :-
 
 %! rdf_clean_stream(+To, +Opts, +Metadata, +Source) is det.
 
-rdf_clean_stream(To, Opts, M1, Source) :-
+rdf_clean_stream(To, Opts1, M1, Source) :-
+  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts1, Opts2),
   option(metadata(M4), Opts1, _),
-
-  % Data compression option.  By default no compression is used.
   option(compress(Compress), Opts1, none),
-
-  % Convert the RDF input stream into Simple-Triples.
-  % This is done on a per triple basis.
-  merge_options([access(write)], Opts, FileOpts),
-  absolute_file_name(cleaning, Tmp0, FileOpts),
+  
+  absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),
   thread_file(Tmp0, Tmp),
   debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
-
-  % Read&write all tuples.
-  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts1, Opts2),
-
-  gtrace,
   debug_verbose(
     rdf(clean),
     setup_call_cleanup(
@@ -97,7 +88,7 @@ rdf_clean_stream(To, Opts, M1, Source) :-
         open(Tmp, write, Sink),
         gen_ntuples:gen_ntuples_begin(BPrefix, TC, QC, Opts2)
       ),
-      rdf_load:rdf_call_on_tuples_stream(clean_streamed_tuples0(Sink, BPrefix, TC, QC), M1, Source, Opts1),
+      rdf_load:rdf_call_on_tuples_stream(gen_tuples:gen_ntuple(Sink, BPrefix, TC, QC), Opts1, M1, Source),
       (
         flush_output(Sink),
         gen_ntuples:gen_ntuples_end(TC, QC, Opts2),
@@ -106,6 +97,7 @@ rdf_clean_stream(To, Opts, M1, Source) :-
     ),
     "Cleaning tuples on a one-by-one basis."
   ),
+  gtrace,
   debug(rdf(clean), "Processed ~D tuples (~D triples and ~D quads).", [NoTuples,NoTriples,NoQuads]),
   M2 = M1.put(_{
     'llo:processed_quads': _{'@type': 'xsd:nonNegativeInteger', '@value': NoQuads},
@@ -118,7 +110,7 @@ rdf_clean_stream(To, Opts, M1, Source) :-
   stream_metadata(Source, MStream),
   M3 = M2.put(MStream),
 
-  debug_verbose(rdf(clean), sort_file(Tmp, Opts), "Sorting cleaned tuples file."),
+  debug_verbose(rdf(clean), sort_file(Tmp, Opts1), "Sorting cleaned tuples file."),
 
   % Count the number of unique tuples.
   file_lines(Tmp, NoLines),
@@ -131,6 +123,3 @@ rdf_clean_stream(To, Opts, M1, Source) :-
   
   % Compress the file, according to user option.
   debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted tuple file.").
-
-clean_streamed_tuples0(Sink, BPrefix, TC, QC, Pos, S, P, O, G) :-
-  with_output_to(Sink, gen_ntuple(BPrefix, TC, QC, Pos, S, P, O, G)).

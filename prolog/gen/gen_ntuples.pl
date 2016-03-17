@@ -3,7 +3,8 @@
   [
     gen_nquad/4,   % +S, +P, +O, +G
     gen_ntriple/3, % +S, +P, +O
-    gen_ntuple/8,  % +BPrefix, +CT, +CQ, ?Pos, +S, +P, +O, +G
+    gen_ntuple/7,  % +BPrefix, +CT, +CQ, +S, +P, +O, +G
+    gen_ntuple/8,  % +Sink, +BPrefix, +CT, +CQ, +S, +P, +O, +G
     gen_ntuples/5  % ?S, ?P, ?O, ?G, +Opts
   ]
 ).
@@ -41,12 +42,12 @@ gen_ntriple(S, P, O) :-
 
 
 
-gen_ntuple(BPrefix, TC, QC, Pos, S, P, O, G) :-
+gen_ntuple(BPrefix, TC, QC, S, P, O, G) :-
   gen_subject(BPrefix, S),
   put_char(' '),
   gen_predicate(P),
   put_char(' '),
-  gen_object(BPrefix, Pos, O),
+  gen_object(BPrefix, O),
   put_char(' '),
   (   rdf_default_graph(G)
   ->  increment_thread_counter(TC)
@@ -59,9 +60,13 @@ gen_ntuple(BPrefix, TC, QC, Pos, S, P, O, G) :-
 
 
 
+gen_ntuple(Sink, BPrefix, TC, QC, S, P, O, G) :-
+  with_output_to(Sink, gen_ntuple(BPrefix, TC, QC, S, P, O, G)).
+
+
+
 %! gen_ntuples(?S, ?P, ?O, ?G, +Opts) is det.
 % The following options are supported:
-%   - position(+compound)
 %   - quads(-nonneg)
 %   - triples(-nonneg)
 %   - tuples(-nonneg)
@@ -69,8 +74,7 @@ gen_ntuple(BPrefix, TC, QC, Pos, S, P, O, G) :-
 gen_ntuples(S, P, O, G, Opts) :-
   gen_ntuples_begin(BPrefix, TC, QC, Opts),
   aggregate_all(set(S), rdf(S, P, O, G), Ss),
-  option(position(Pos), Opts, _),
-  maplist(gen_ntuples_for_subject(BPrefix, TC, QC, Pos, P, O, G), Ss),
+  maplist(gen_ntuples_for_subject(BPrefix, TC, QC, P, O, G), Ss),
   gen_ntuples_end(TC, QC, Opts).
 
 
@@ -102,6 +106,7 @@ gen_ntuples_begin(BPrefix, triples, quads, Opts) :-
 %   - tuples(-nonneg)
 
 gen_ntuples_end(TC, QC, Opts) :-
+  gtrace,
   % Triples.
   delete_thread_counter(TC, NoTriples),
   option(triples(NoTriples), Opts, _),
@@ -120,19 +125,19 @@ gen_ntuples_end(TC, QC, Opts) :-
 
 % AGGRREGATION %
 
-gen_ntuples_for_subject(BPrefix, TC, QC, Pos, P, O, G, S) :-
+gen_ntuples_for_subject(BPrefix, TC, QC, P, O, G, S) :-
   aggregate_all(set(P), rdf(S, P, O, G), Ps),
-  maplist(gen_ntuples_for_predicate(BPrefix, TC, QC, Pos, O, G, S), Ps).
+  maplist(gen_ntuples_for_predicate(BPrefix, TC, QC, O, G, S), Ps).
 
 
-gen_ntuples_for_predicate(BPrefix, TC, QC, Pos, O, G, S, P) :-
+gen_ntuples_for_predicate(BPrefix, TC, QC, O, G, S, P) :-
   aggregate_all(set(O), rdf(S, P, O, G), Os),
-  maplist(gen_ntuples_for_object(BPrefix, TC, QC, Pos, G, S, P), Os).
+  maplist(gen_ntuples_for_object(BPrefix, TC, QC, G, S, P), Os).
 
 
-gen_ntuples_for_object(BPrefix, TC, QC, Pos, G, S, P, O) :-
+gen_ntuples_for_object(BPrefix, TC, QC, G, S, P, O) :-
   aggregate_all(set(G), rdf(S, P, O, G), Gs),
-  maplist(gen_ntuple(BPrefix, TC, QC, Pos, S, P, O), Gs).
+  maplist(gen_ntuple(BPrefix, TC, QC, S, P, O), Gs).
 
 
 
@@ -150,15 +155,15 @@ gen_predicate(P) :-
   gen_iri(P).
 
 
-gen_object(BPrefix, _, B) :-
+gen_object(BPrefix, B) :-
   rdf_is_bnode(B), !,
   gen_bnode(BPrefix, B).
-gen_object(_, _, Iri) :-
+gen_object(_, Iri) :-
   rdf_is_iri(Iri), !,
   gen_iri(Iri).
 % Literal term comes last to support modern and legacy formats.
-gen_object(_, Pos, Lit) :-
-  gen_literal(Pos, Lit), !.
+gen_object(_, Lit) :-
+  gen_literal(Lit), !.
 
 
 gen_graph(G) :-
@@ -186,29 +191,29 @@ gen_iri(Iri) :-
   turtle:turtle_write_uri(current_output, Iri).
 
 
-gen_literal(_, V^^D) :- !,
+gen_literal(V^^D) :- !,
   rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   turtle:turtle_write_uri(current_output, D).
-gen_literal(_, V@LTag) :- !,
+gen_literal(V@LTag) :- !,
   rdf_literal_lexical_form(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
 % Literal legacy representations.
-gen_literal(Pos, Lit0) :-
+gen_literal(Lit0) :-
   rdf_legacy_literal_components(Lit0, D, Lex0, LTag0),
   rdf11:post_object(Lit, Lit0),
   rdf_literal_components(Lit, D, Lex, LTag),
   (   Lex \== Lex0
   ->  increment_thread_counter(rdf_warning),
-      threadsafe_format(warn, "~w~n", [error(non_canonical_lex(D,Lex),Pos)])
+      threadsafe_format(warn, "~w~n", [error(non_canonical_lex(D,Lex),gen_ntuples)])
   ;   true
   ),
   (   ground(LTag0),
       LTag \== LTag0
   ->  increment_thread_counter(rdf_warning),
-      threadsafe_format(warn, "~w~n", [error(non_canonical_ltag(LTag),Pos)])
+      threadsafe_format(warn, "~w~n", [error(non_canonical_ltag(LTag),gen_ntuples)])
   ;   true
   ),
-  gen_literal(Pos, Lit).
+  gen_literal(Lit).

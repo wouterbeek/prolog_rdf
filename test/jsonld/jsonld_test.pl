@@ -84,11 +84,11 @@ run_test0(D):-
       % Compare to RDF from N-Quads.
       isomorphic_tuples(Stmts1, Stmts2)
   ->  true
-  ;   ansi_formatln([fg(red)], "Expected tuples:", []),
+  ;   ansi_format(user_output, [fg(red)], "Expected tuples:~n", []),
       rdf_print(Stmts2)
   ), !.
 run_test0(D) :-
-  ansi_formatln([fg(red)], "Test ~w failed.", [D]).
+  ansi_format(user_output, [fg(red)], "Test ~w failed.~n", [D]).
 
 %! isomorphic_graphs(+G1, +G2) is semidet.
 %! isomorphic_tuples(+Stmts1, +Stmts2) is semidet.

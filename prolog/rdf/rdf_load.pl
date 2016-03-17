@@ -13,10 +13,6 @@
     rdf_load_tuples/3       % +Source, -Tuples, +Opts
   ]
 ).
-:- reexport(library(semweb/rdf_db), [
-     rdf_make/0,
-     rdf_source_location/2 % +Subject, -Location
-   ]).
 
 /** <module> RDF load
 
@@ -28,11 +24,9 @@ Support for loading RDF data.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(http/json)).
-:- use_module(library(iri/rfc3987_gen)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
@@ -43,14 +37,11 @@ Support for loading RDF data.
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
-:- use_module(library(uuid_ext)).
-:- use_module(library(yall)).
 
 :- meta_predicate
     rdf_call_on_graph(+,1),

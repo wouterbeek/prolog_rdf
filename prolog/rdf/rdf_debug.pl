@@ -288,7 +288,7 @@ rdf_store_messages(S, Goal_0) :-
               End0 = E
           ),
           debug(rdf(debug), "[RESULT] ~w ~w", [Result,Goal_0])
-      ;   ansi_formatln([fg(red)], "[FAILED] ~w", [Goal_0]),
+      ;   msg_warning("[FAILED] ~w", [Goal_0]),
           End0 = fail
       ),
       with_output_to(string(End), write_term(End0)),
