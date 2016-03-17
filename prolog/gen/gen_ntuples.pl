@@ -20,7 +20,6 @@
 :- use_module(library(option)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(pl/pl_term)).
-:- use_module(library(rdf/rdf_debug)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
@@ -79,17 +78,21 @@ gen_ntuple(Sink, BPrefix, TC, QC, S, P, O, G) :-
 %   - tuples(-nonneg)
 
 gen_ntuples(S, P, O, G, Opts) :-
-  gen_ntuples_begin(BPrefix, TC, QC, Opts),
-  aggregate_all(set(S), rdf(S, P, O, G), Ss),
-  maplist(gen_ntuples_for_subject(BPrefix, TC, QC, P, O, G), Ss),
-  gen_ntuples_end(TC, QC, Opts).
+  setup_call_cleanup(
+    gen_ntuples_begin(BPrefix, TC, QC, Opts),
+    (
+      aggregate_all(set(S), rdf(S, P, O, G), Ss),
+      maplist(gen_ntuples_for_subject(BPrefix, TC, QC, P, O, G), Ss)
+    ),
+    gen_ntuples_end(TC, QC, Opts)
+  ).
 
 
 
 
 % STAGE SETTING %
 
-%! gen_ntuples_begin(-BPrefix, -TripleleCounter, -QuadCounter, +Opts) is det.
+%! gen_ntuples_begin(-BPrefix, -TripleCounter, -QuadCounter, +Opts) is det.
 
 gen_ntuples_begin(BPrefix, triples, quads, Opts) :-
   create_thread_counter(triples),
