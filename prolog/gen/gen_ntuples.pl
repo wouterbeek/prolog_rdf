@@ -26,6 +26,13 @@
 :- use_module(library(semweb/turtle)). % Private
 :- use_module(library(uri)).
 
+:- rdf_meta
+   gen_nquad(r, r, o, r),
+   gen_ntriple(r, r, o),
+   gen_ntuple(+, +, +, r, r, o, r),
+   gen_ntuple(+, +, +, +, r, r, o, r),
+   gen_ntuples(r, r, o, r, +).
+
 :- thread_local
    bnode_map/2.
 
@@ -33,7 +40,7 @@
 
 
 gen_nquad(S, P, O, G) :-
-  gen_ntuple('_:', _, _, _, S, P, O, G).
+  gen_ntuple('_:', _, _, S, P, O, G).
 
 
 
