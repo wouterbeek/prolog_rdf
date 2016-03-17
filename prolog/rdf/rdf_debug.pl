@@ -1,10 +1,8 @@
 :- module(
   rdf_debug,
   [
-    rdf_store_messages/2, % +S, :Goal_0
-    rdf_store_metadata/2, % +S, +M
-    rdf_show_graph/1,     % +G
-    rdf_show_graph/2      % +G, +Opts
+    rdf_show_graph/1, % +G
+    rdf_show_graph/2  % +G, +Opts
   ]
 ).
 
@@ -23,8 +21,6 @@ Show RDF data structures during modeling/development.
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(http/json)).
-:- use_module(library(jsonld/jsonld_metadata)).
-:- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(msg_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/gnu_wc)).
@@ -38,14 +34,10 @@ Show RDF data structures during modeling/development.
 :- use_module(library(stream_ext)).
 :- use_module(library(xml/xml_dom)).
 
-:- meta_predicate
-    rdf_store_messages(+, 0).
-
 :- rdf_meta
    rdf_store(r, r, o),
    rdf_store(r, r, o, +),
    rdf_store_message(r, r, +),
-   rdf_store_messages(r, :),
    rdf_show_graph(r),
    rdf_show_graph(r, +).
 
@@ -260,65 +252,6 @@ rdf_store_message(S, P, rdf(unparsed(Dom))) :- !,
 
 
 
-%! rdf_store_messages(+S, :Goal_0) is det.
-% Run Goal, unify Result with `true`, `false` or `exception(Error)`
-% and messages with a list of generated error and warning messages.
-% Each message is a term `message(Term,Kind,Lines)`.
-
-rdf_store_messages(S, Goal_0) :-
-  setup_call_cleanup(
-    (
-      create_thread_counter(rdf_warning),
-      asserta((
-        user:thread_message_hook(Term,Kind,_) :-
-          error_kind(Kind),
-          threadsafe_format(warn, "~w~n", [Term]),
-          increment_thread_counter(rdf_warning)
-      ))
-    ),
-    (
-      (   catch(Goal_0, E, true)
-      ->  (   var(E)
-          ->  Result = true,
-              End0 = true
-          ;   E = error(existence_error(open_any2,M),_)
-          ->  rdf_store_metadata(S, M),
-              End0 = "No stream"
-          ;   Result = exception(E),
-              End0 = E
-          ),
-          debug(rdf(debug), "[RESULT] ~w ~w", [Result,Goal_0])
-      ;   msg_warning("[FAILED] ~w", [Goal_0]),
-          End0 = fail
-      ),
-      with_output_to(string(End), write_term(End0)),
-      rdf_store(S, llo:end, End^^xsd:string, meta)
-    ),
-    (
-      delete_thread_counter(rdf_warning, N),
-      rdf_store(S, llo:number_of_warnings, N^^xsd:nonNegativeInteger, meta)
-    )
-  ).
-
-error_kind(warning).
-error_kind(error).
-
-
-
-%! rdf_store_metadata(+S, +M) is det.
-
-rdf_store_metadata(S1, M) :-
-  jsonld_metadata(M, Jsonld1),
-  atom_string(S1, S2),
-  Jsonld2 = Jsonld1.put(_{'@id': S2}),
-  (debugging(rdf(debug)) -> json_write_dict(user_error, Jsonld2) ; true),
-  forall(jsonld_tuple(Jsonld2, rdf(S,P,O)), (
-    (debugging(rdf(debug)) -> rdf_print(S, P, O, _) ; true),
-    rdf_store(S, P, O, meta)
-  )).
-
-
-
 %! rdf_show_graph(+G) is det.
 %! rdf_show_graph(+G, +Opts) is det.
 
@@ -337,15 +270,10 @@ rdf_show_graph(G, Opts1) :-
 
 % HELPERS %
 
-%! rdf_store(+S, +P, +O) is det.
-%! rdf_store(+S, +P, +O, +Alias) is det.
+%! rdf_store(+S, +P, +O, +Output) is det.
 
-rdf_store(S, P, O) :-
-  rdf_store(S, P, O, msg).
-
-
-rdf_store(S, P, O, Alias) :-
-  with_output_to(Alias, gen_ntriple(S, P, O)).
+rdf_store(S, P, O, Output) :-
+  with_output_to(Output, gen_ntriple(S, P, O)).
 
 
 

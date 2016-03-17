@@ -88,7 +88,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
         open(Tmp, write, Sink),
         gen_ntuples:gen_ntuples_begin(BPrefix, TC, QC, Opts2)
       ),
-      rdf_load:rdf_call_on_tuples_stream(gen_tuples:gen_ntuple(Sink, BPrefix, TC, QC), Opts1, M1, Source),
+      rdf_load:rdf_call_on_tuples_stream(gen_ntuples:gen_ntuple(Sink, BPrefix, TC, QC), Opts1, M1, Source),
       (
         flush_output(Sink),
         gen_ntuples:gen_ntuples_end(TC, QC, Opts2),
@@ -97,7 +97,6 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
     ),
     "Cleaning tuples on a one-by-one basis."
   ),
-  gtrace,
   debug(rdf(clean), "Processed ~D tuples (~D triples and ~D quads).", [NoTuples,NoTriples,NoQuads]),
   M2 = M1.put(_{
     'llo:processed_quads': _{'@type': 'xsd:nonNegativeInteger', '@value': NoQuads},

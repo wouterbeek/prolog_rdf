@@ -106,7 +106,6 @@ gen_ntuples_begin(BPrefix, triples, quads, Opts) :-
 %   - tuples(-nonneg)
 
 gen_ntuples_end(TC, QC, Opts) :-
-  gtrace,
   % Triples.
   delete_thread_counter(TC, NoTriples),
   option(triples(NoTriples), Opts, _),

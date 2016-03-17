@@ -31,7 +31,7 @@ rdf_chr(S, L) :-
 
   % Batch 1: Widgets.
   findall(N-widget(N,SS,W), find_chr_constraint(widget(N,SS,W)), KVPairs),
-  desc_pairs_values(KVPairs, L1),gtrace,
+  desc_pairs_values(KVPairs, L1),
 
   % Batch 2: Triples about S.
   findall(widget(N,S,po_pair(P,O)), find_chr_constraint(triple(N, S, P, O)), L2),
