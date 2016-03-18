@@ -50,17 +50,17 @@ gen_ntriple(S, P, O) :-
 
 
 gen_ntuple(State, S, P, O, G) :-
-  gen_subject(State.bprefix, S),
+  gen_subject(State, S),
   put_char(' '),
   gen_predicate(P),
   put_char(' '),
   gen_object(State, O),
   put_char(' '),
   (   rdf_default_graph(G)
-  ->  dict_inc(State, triples)
+  ->  dict_inc(triples, State)
   ;   gen_graph(G),
       put_char(' '),
-      dict_inc(State, quads)
+      dict_inc(quads, State)
   ),
   put_char(.),
   put_code(10).
@@ -151,9 +151,9 @@ gen_ntuples_for_object(State, G, S, P, O) :-
 
 % TERMS BY POSITION %
 
-gen_subject(BPrefix, B) :-
+gen_subject(State, B) :-
   rdf_is_bnode(B), !,
-  gen_bnode(BPrefix, B).
+  gen_bnode(State, B).
 gen_subject(_, Iri) :-
   gen_iri(Iri).
 
@@ -183,7 +183,7 @@ gen_graph(G) :-
 
 gen_bnode(State, B) :-
   % Retrieve (existing) or create (new) a numeric blank node identifier.
-  (bnode_map(B, Id) -> true ; dict_inc(State, bnode, Id)),
+  (bnode_map(B, Id) -> true ; dict_inc(bnode, State, Id)),
   atomic_concat(State.bprefix, Id, Name),
   write(Name).
 

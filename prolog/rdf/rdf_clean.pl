@@ -80,7 +80,6 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),
   thread_file(Tmp0, Tmp),
   debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
-  gtrace,
   setup_call_cleanup(
     (
       open(Tmp, write, Sink),
@@ -114,7 +113,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   M4 = M3.put(_{
     'llo:unique_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTuples},
     'llo:duplicate_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoDuplicates}
-  }),
+  }),gtrace,
   
   % Compress the file, according to user option.
   debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted tuple file.").
