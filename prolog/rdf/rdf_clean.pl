@@ -104,7 +104,8 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   stream_metadata(Source, MStream),
   M3 = M2.put(MStream),
 
-  debug_verbose(rdf(clean), sort_file(Tmp, Opts1), "Sorting cleaned tuples file."),
+  sort_file(Tmp, Opts1),
+  debug(rdf(clean), "Sorting cleaned tuples file.", []),
 
   % Count the number of unique tuples.
   file_lines(Tmp, NoLines),
@@ -116,4 +117,5 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   }),gtrace,
   
   % Compress the file, according to user option.
-  debug_verbose(rdf(clean), compress_file(Tmp, Compress, To), "Compressing sorted tuple file.").
+  compress_file(Tmp, Compress, To),
+  debug(rdf(clean), "Compressed sorted tuple file.", []).
