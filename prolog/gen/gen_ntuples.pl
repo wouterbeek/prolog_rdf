@@ -3,8 +3,7 @@
   [
     gen_nquad/4,   % +S, +P, +O, +G
     gen_ntriple/3, % +S, +P, +O
-    gen_ntuple/7,  % +BPrefix, +CT, +CQ, +S, +P, +O, +G
-    gen_ntuple/8,  % +Sink, +BPrefix, +CT, +CQ, +S, +P, +O, +G
+    gen_ntuples/4, % ?S, ?P, ?O, ?G
     gen_ntuples/5  % ?S, ?P, ?O, ?G, +Opts
   ]
 ).
@@ -18,8 +17,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(option)).
-:- use_module(library(os/thread_counter)).
-:- use_module(library(pl/pl_term)).
+:- use_module(library(msg_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
@@ -28,8 +26,8 @@
 :- rdf_meta
    gen_nquad(r, r, o, r),
    gen_ntriple(r, r, o),
-   gen_ntuple(+, +, +, r, r, o, r),
-   gen_ntuple(+, +, +, +, r, r, o, r),
+   gen_ntuple(+, r, r, o, r),
+   gen_ntuple(+, +, r, r, o, r),
    gen_ntuples(r, r, o, r, +).
 
 :- thread_local
@@ -39,7 +37,8 @@
 
 
 gen_nquad(S, P, O, G) :-
-  gen_ntuple('_:', _, _, S, P, O, G).
+  gen_empty_state(State),
+  gen_ntuple(State, S, P, O, G).
 
 
 
@@ -48,43 +47,47 @@ gen_ntriple(S, P, O) :-
 
 
 
-gen_ntuple(BPrefix, TC, QC, S, P, O, G) :-
-  gen_subject(BPrefix, S),
+gen_ntuple(State, S, P, O, G) :-
+  gen_subject(State.bprefix, S),
   put_char(' '),
   gen_predicate(P),
   put_char(' '),
-  gen_object(BPrefix, O),
+  gen_object(State, O),
   put_char(' '),
   (   rdf_default_graph(G)
-  ->  increment_thread_counter(TC)
+  ->  dict_inc(State, triples)
   ;   gen_graph(G),
       put_char(' '),
-      increment_thread_counter(QC)
+      dict_inc(State, quads)
   ),
   put_char(.),
   put_code(10).
 
 
-
-gen_ntuple(Sink, BPrefix, TC, QC, S, P, O, G) :-
-  with_output_to(Sink, gen_ntuple(BPrefix, TC, QC, S, P, O, G)).
-
+gen_ntuple(Sink, State, S, P, O, G) :-
+  with_output_to(Sink, gen_ntuple(State, S, P, O, G)).
 
 
+
+%! gen_ntuples(?S, ?P, ?O, ?G) is det.
 %! gen_ntuples(?S, ?P, ?O, ?G, +Opts) is det.
 % The following options are supported:
 %   - quads(-nonneg)
 %   - triples(-nonneg)
 %   - tuples(-nonneg)
+%   - warn(+stream)
+
+gen_ntuples(S, P, O, G) :-
+  gen_ntuples(S, P, O, G, []).
 
 gen_ntuples(S, P, O, G, Opts) :-
   setup_call_cleanup(
-    gen_ntuples_begin(BPrefix, TC, QC, Opts),
+    gen_ntuples_begin(State, Opts),
     (
       aggregate_all(set(S), rdf(S, P, O, G), Ss),
-      maplist(gen_ntuples_for_subject(BPrefix, TC, QC, P, O, G), Ss)
+      maplist(gen_ntuples_for_subject(State, P, O, G), Ss)
     ),
-    gen_ntuples_end(TC, QC, Opts)
+    gen_ntuples_end(State, Opts)
   ).
 
 
@@ -92,63 +95,54 @@ gen_ntuples(S, P, O, G, Opts) :-
 
 % STAGE SETTING %
 
-%! gen_ntuples_begin(-BPrefix, -TripleCounter, -QuadCounter, +Opts) is det.
+gen_empty_state(_{bnode: 0, bprefix: '_:', quads: 0, triples: 0}).
 
-gen_ntuples_begin(BPrefix, triples, quads, Opts) :-
-  create_thread_counter(triples),
-  create_thread_counter(quads),
-  % Process the option for replacing blank nodes with IRIs,
-  % establishing the prefix for each blank node.
+
+%! gen_ntuples_begin(-State, +Opts) is det.
+
+gen_ntuples_begin(State, Opts) :-
+  (option(warn(Warn), Opts) -> nb_set_dict(warn, State, Warn)),
   (   option(base_iri(BaseIri), Opts)
   ->  uri_components(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
       atom_ending_in(Path0, '#', Suffix),
       atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
-      uri_components(BPrefix, uri_components(Scheme,Auth,Path,_,_))
-  ;   BPrefix = '_:'
-  ),
-  create_thread_counter(bnode_map),
-  format(user_output, "BNODE MAP ON~n", []).
+      uri_components(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
+      gen_empty_state(State),
+      nb_set_dict(bprefix, State, BPrefix)
+  ;   gen_empty_state(State)
+  ).
 
 
-%! gen_ntuples_end(+TripleCounter, +QuadCounter, +Opts) is det.
+%! gen_ntuples_end(+State, +Opts) is det.
 % The following options are supported:
 %   - quads(-nonneg)
 %   - triples(-nonneg)
 %   - tuples(-nonneg)
 
-gen_ntuples_end(TC, QC, Opts) :-
-  % Triples.
-  delete_thread_counter(TC, NoTriples),
-  option(triples(NoTriples), Opts, _),
-  % Quads.
-  delete_thread_counter(QC, NoQuads),
-  option(quads(NoQuads), Opts, _),
-  % Tuples.
-  NoTuples is NoTriples + NoQuads,
-  option(tuples(NoTuples), Opts, _),
-  % Blank node map.
-  retractall(bnode_map(_,_)),
-  delete_thread_counter(bnode_map),
-  format(user_output, "BNODE MAP OFF~n", []).
+gen_ntuples_end(State, Opts) :-
+  option(quads(State.quads), Opts, _),
+  option(triples(State.triples), Opts, _),
+  NoTuples is State.triples + State.quads,
+  option(tuples(NoTuples), Opts, _).
 
 
 
 
 % AGGRREGATION %
 
-gen_ntuples_for_subject(BPrefix, TC, QC, P, O, G, S) :-
+gen_ntuples_for_subject(State, P, O, G, S) :-
   aggregate_all(set(P), rdf(S, P, O, G), Ps),
-  maplist(gen_ntuples_for_predicate(BPrefix, TC, QC, O, G, S), Ps).
+  maplist(gen_ntuples_for_predicate(State, O, G, S), Ps).
 
 
-gen_ntuples_for_predicate(BPrefix, TC, QC, O, G, S, P) :-
+gen_ntuples_for_predicate(State, O, G, S, P) :-
   aggregate_all(set(O), rdf(S, P, O, G), Os),
-  maplist(gen_ntuples_for_object(BPrefix, TC, QC, G, S, P), Os).
+  maplist(gen_ntuples_for_object(State, G, S, P), Os).
 
 
-gen_ntuples_for_object(BPrefix, TC, QC, G, S, P, O) :-
+gen_ntuples_for_object(State, G, S, P, O) :-
   aggregate_all(set(G), rdf(S, P, O, G), Gs),
-  maplist(gen_ntuple(BPrefix, TC, QC, S, P, O), Gs).
+  maplist(gen_ntuple(State, S, P, O), Gs).
 
 
 
@@ -166,15 +160,15 @@ gen_predicate(P) :-
   gen_iri(P).
 
 
-gen_object(BPrefix, B) :-
+gen_object(State, B) :-
   rdf_is_bnode(B), !,
-  gen_bnode(BPrefix, B).
+  gen_bnode(State, B).
 gen_object(_, Iri) :-
   rdf_is_iri(Iri), !,
   gen_iri(Iri).
 % Literal term comes last to support modern and legacy formats.
-gen_object(_, Lit) :-
-  gen_literal(Lit), !.
+gen_object(State, Lit) :-
+  gen_literal(State, Lit), !.
 
 
 gen_graph(G) :-
@@ -185,16 +179,10 @@ gen_graph(G) :-
 
 % TERMS BY KIND %
 
-gen_bnode(Prefix, B) :-
-  with_mutex(bnode_map, (
-    % Retrieve (existing) or create (new) a numeric blank node identifier.
-    (   bnode_map(B, Id)
-    ->  true
-    ;   increment_thread_counter(bnode_map, Id),
-        assert(bnode_map(B, Id))
-    )
-  )),
-  atomic_concat(Prefix, Id, Name),
+gen_bnode(State, B) :-
+  % Retrieve (existing) or create (new) a numeric blank node identifier.
+  (bnode_map(B, Id) -> true ; dict_inc(State, bnode, Id)),
+  atomic_concat(State.bprefix, Id, Name),
   write(Name).
 
 
@@ -202,34 +190,26 @@ gen_iri(Iri) :-
   turtle:turtle_write_uri(current_output, Iri).
 
 
-gen_literal(V^^D) :- !,
+gen_literal(_, V^^D) :- !,
   rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   turtle:turtle_write_uri(current_output, D).
-gen_literal(V@LTag) :- !,
+gen_literal(_, V@LTag) :- !,
   rdf_literal_lexical_form(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
 % Literal legacy representations.
-gen_literal(Lit0) :-
+gen_literal(State, Lit0) :-
   rdf_legacy_literal_components(Lit0, D, Lex0, LTag0),
   rdf11:post_object(Lit, Lit0),
   rdf_literal_components(Lit, D, Lex, LTag),
-  (   Lex \== Lex0
-  ->  threadsafe_warning(error(non_canonical_lex(D,Lex),gen_ntuples))
-  ;   true
-  ),
-  (   ground(LTag0),
-      LTag \== LTag0
-  ->  threadsafe_warning(error(non_canonical_ltag(LTag),gen_ntuples))
-  ;   true
-  ),
-  gen_literal(Lit).
+  (Lex \== Lex0 -> print_warning(State, non_canonical_lex(D,Lex)) ; true),
+  (ground(LTag0), LTag \== LTag0 -> print_warning(State, non_canonical_ltag(LTag)) ; true),
+  gen_literal(State, Lit).
 
-threadsafe_warning(Term) :-
-  threadsafe_alias(warn, TAlias), !,
-  increment_thread_counter(rdf_warning),
-  format(TAlias, "~w~n", [Term]).
-threadsafe_warning(Term) :-
+print_warning(State, Term) :-
+  get_dict(warn, State, Warn), !,
+  format(Warn, "~w~n", [Term]).
+print_warning(_, Term) :-
   msg_warning("~w~n", [Term]).

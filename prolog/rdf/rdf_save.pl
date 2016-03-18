@@ -137,7 +137,7 @@ rdf_save_to_stream0(F, Opts, _, Write) :- rdf_save_to_stream(F, Opts, Write).
 rdf_save_to_stream(Format, Opts, Write) :-
   memberchk(Format, [nquads,ntriples]), !,
   option(graph(G), Opts, _NO_GRAPH),
-  with_output_to(Write, gen_ntuples(_, _, _, G, Opts)).
+  with_output_to(Write, gen_ntuples(_, _, _, G)).
 % TriG
 rdf_save_to_stream(trig, Opts, Write) :- !,
   rdf_save_trig(Write, Opts).
