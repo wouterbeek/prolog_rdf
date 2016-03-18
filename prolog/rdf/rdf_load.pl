@@ -78,8 +78,6 @@ Support for loading RDF data.
 
 %! rdf_call_on_graph(+Source, :Goal_1) .
 %! rdf_call_on_graph(+Source, :Goal_1, +Opts) .
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_graph(Source, Goal_1) :-
   rdf_call_on_graph(Source, Goal_1, []).
@@ -99,17 +97,12 @@ rdf_call_on_graph(Source, Goal_1, Opts0) :-
 
 %! rdf_call_on_tuples(+Source, :Goal_4) is nondet.
 %! rdf_call_on_tuples(+Source, :Goal_4, +Opts) is nondet.
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_call_on_tuples(Source, Goal_4) :-
   rdf_call_on_tuples(Source, Goal_4, []).
 
 rdf_call_on_tuples(Source, Goal_4, Opts) :-
-  catch(
-    rdf_read_from_stream(Source, rdf_call_on_tuples_stream(Goal_4, Opts), Opts),
-    E, (writeln(Goal_4), print_message(warning, E))
-  ).
+  rdf_read_from_stream(Source, rdf_call_on_tuples_stream(Goal_4, Opts), Opts).
 
 
 %! rdf_call_on_tuples_stream(:Goal_4, +Opts, +Metadata, +Source) is det.
@@ -120,6 +113,7 @@ rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
   BaseIri = M.'llo:base_iri'.'@value',
   jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
   rdf_format_iri(Format, FormatIri),
+  % @tbd Globally unique blank nodes?
   %%%%uuid_no_hyphen(UniqueId),
   %%%%atomic_list_concat(['_:',UniqueId,-], BPrefix),
   Opts2 = [
@@ -171,8 +165,6 @@ rdf_call_on_quads(Goal_4, Tuples, _) :-
 %! rdf_download_to_file(+Iri, +File) is det.
 %! rdf_download_to_file(+Iri, ?File, +Opts) is det.
 % Options are passed to rdf_read_from_stream/3 and write_stream_to_file/3.
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_download_to_file(Iri, File) :-
   rdf_download_to_file(Iri, File, []).
@@ -192,11 +184,11 @@ write_stream_to_file0(TmpFile, Opts, _, Source) :-
 % The following options are supported:
 %   * base_iri(+atom)
 %   * graph(+rdf_graph)
+%     The default graph.
+%     Default is `default'.
 %   * quads(-nonneg)
 %   * triples(-nonneg)
 %   * tuples(-nonneg)
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_file(Source) :-
   rdf_load_file(Source, []).
@@ -207,20 +199,14 @@ rdf_load_file(Source, Opts) :-
   option(quads(NoQuads), Opts, _),
   option(triples(NoTriples), Opts, _),
   option(tuples(NoTuples), Opts, _),
-
-  % In the absence of a graph name use the base IRI.
-  (   option(graph(G), Opts, _),
-      var(G),
-      option(base_iri(BaseIri), Opts)
-  ->  G = BaseIri
-  ;   true
-  ),
+  rdf_default_graph(DefG),
+  option(graph(ToG), Opts, DefG),
   setup_call_cleanup(
     (
       create_thread_counter(triples),
       create_thread_counter(quads)
     ),
-    rdf_call_on_tuples(Source, rdf_load_tuple(triples, quads), Opts),
+    rdf_call_on_tuples(Source, rdf_load_tuple(triples, quads, ToG), Opts),
     (
       delete_thread_counter(triples, NoTriples),
       delete_thread_counter(quads, NoQuads),
@@ -234,18 +220,17 @@ rdf_load_file(Source, Opts) :-
   ).
 
 % @tbd IRI normalization.
-rdf_load_tuple(CT, CQ, S, P, O, G) :-
+rdf_load_tuple(CT, CQ, ToG, S, P, O, FromG) :-
+  gtrace,
   (debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
+  (rdf_default_graph(FromG) -> G = ToG, C = CT ; G = FromG, C = CQ),
   rdf_assert(S, P, O, G),
-  (rdf_default_graph(G) -> C = CT ; C = CQ),
   increment_thread_counter(C).
 
 
 
 %! rdf_load_tuples(+Source, -Tuples) is det.
 %! rdf_load_tuples(+Source, -Tuples, +Opts) is det.
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 rdf_load_tuples(Source, Tuples) :-
   rdf_load_tuples(Source, Tuples, []).

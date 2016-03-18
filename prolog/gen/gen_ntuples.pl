@@ -106,7 +106,8 @@ gen_ntuples_begin(BPrefix, triples, quads, Opts) :-
       uri_components(BPrefix, uri_components(Scheme,Auth,Path,_,_))
   ;   BPrefix = '_:'
   ),
-  create_thread_counter(bnode_map).
+  create_thread_counter(bnode_map),
+  format(user_output, "BNODE MAP ON~n", []).
 
 
 %! gen_ntuples_end(+TripleCounter, +QuadCounter, +Opts) is det.
@@ -127,7 +128,8 @@ gen_ntuples_end(TC, QC, Opts) :-
   option(tuples(NoTuples), Opts, _),
   % Blank node map.
   retractall(bnode_map(_,_)),
-  delete_thread_counter(bnode_map).
+  delete_thread_counter(bnode_map),
+  format(user_output, "BNODE MAP OFF~n", []).
 
 
 
