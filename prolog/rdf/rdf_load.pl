@@ -221,7 +221,6 @@ rdf_load_file(Source, Opts) :-
 
 % @tbd IRI normalization.
 rdf_load_tuple(CT, CQ, ToG, S, P, O, FromG) :-
-  gtrace,
   (debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
   (rdf_default_graph(FromG) -> G = ToG, C = CT ; G = FromG, C = CQ),
   rdf_assert(S, P, O, G),
