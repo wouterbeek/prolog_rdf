@@ -25,6 +25,7 @@ Support for loading RDF data.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/json)).
 :- use_module(library(jsonld/jsonld_metadata)).
@@ -32,7 +33,6 @@ Support for loading RDF data.
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
-:- use_module(library(os/thread_counter)).
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
@@ -196,35 +196,30 @@ rdf_load_file(Source) :-
 
 rdf_load_file(Source, Opts) :-
   % Allow statistics about the number of tuples to be returned.
-  option(quads(NoQuads), Opts, _),
-  option(triples(NoTriples), Opts, _),
-  option(tuples(NoTuples), Opts, _),
   rdf_default_graph(DefG),
   option(graph(ToG), Opts, DefG),
-  setup_call_cleanup(
-    (
-      create_thread_counter(triples),
-      create_thread_counter(quads)
-    ),
-    rdf_call_on_tuples(Source, rdf_load_tuple(triples, quads, ToG), Opts),
-    (
-      delete_thread_counter(triples, NoTriples),
-      delete_thread_counter(quads, NoQuads),
-      NoTuples is NoTriples + NoQuads,
-      debug(
-        rdf(load),
-        "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
-        [NoTuples,Source,NoTriples,NoQuads]
-      )
-    )
+  State = _{quads: 0, triples: 0},
+  rdf_call_on_tuples(Source, rdf_load_tuple(State, ToG), Opts),
+  NoTuples is State.triples + State.quads,
+  option(quads(State.quads), Opts, _),
+  option(triples(State.triples), Opts, _),
+  option(tuples(NoTuples), Opts, _),
+  debug(
+    rdf(load),
+    "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
+    [NoTuples,Source,State.triples,State.quads]
   ).
 
 % @tbd IRI normalization.
-rdf_load_tuple(CT, CQ, ToG, S, P, O, FromG) :-
+rdf_load_tuple(State, ToG, S, P, O, FromG) :-
   (debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
-  (rdf_default_graph(FromG) -> G = ToG, C = CT ; G = FromG, C = CQ),
-  rdf_assert(S, P, O, G),
-  increment_thread_counter(C).
+  (   rdf_default_graph(FromG)
+  ->  G = ToG,
+      dict_inc(triples, State)
+  ;   G = FromG,
+      dict_inc(quads, State)
+  ),
+  rdf_assert(S, P, O, G).
 
 
 

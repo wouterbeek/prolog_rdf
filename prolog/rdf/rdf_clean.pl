@@ -87,7 +87,6 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
     ),
     rdf_load:rdf_call_on_tuples_stream(gen_ntuples:gen_ntuple(Sink, State), Opts1, M1, Source),
     (
-      flush_output(Sink),
       gen_ntuples:gen_ntuples_end(State, Opts2),
       close(Sink)
     )
@@ -114,7 +113,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   M4 = M3.put(_{
     'llo:unique_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTuples},
     'llo:duplicate_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoDuplicates}
-  }),gtrace,
+  }),
   
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, To),
