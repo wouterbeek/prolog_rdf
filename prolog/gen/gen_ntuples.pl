@@ -16,6 +16,8 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(option)).
 :- use_module(library(msg_ext)).
 :- use_module(library(rdf/rdf_term)).
@@ -100,16 +102,16 @@ gen_empty_state(_{bnode: 0, bprefix: '_:', quads: 0, triples: 0}).
 
 %! gen_ntuples_begin(-State, +Opts) is det.
 
-gen_ntuples_begin(State, Opts) :-
-  (option(warn(Warn), Opts) -> nb_set_dict(warn, State, Warn)),
+gen_ntuples_begin(State2, Opts) :-
+  gen_empty_state(State1),
+  (option(warn(Warn), Opts) -> put_dict(warn, State1, Warn, State2) ; State2 = State1),
   (   option(base_iri(BaseIri), Opts)
   ->  uri_components(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
       atom_ending_in(Path0, '#', Suffix),
       atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
       uri_components(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
-      gen_empty_state(State),
-      nb_set_dict(bprefix, State, BPrefix)
-  ;   gen_empty_state(State)
+      nb_set_dict(bprefix, State2, BPrefix)
+  ;   true
   ).
 
 

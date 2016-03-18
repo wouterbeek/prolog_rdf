@@ -80,23 +80,20 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),
   thread_file(Tmp0, Tmp),
   debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
-  debug_verbose(
-    rdf(clean),
-    setup_call_cleanup(
-      (
-        open(Tmp, write, Sink),
-        gen_ntuples:gen_ntuples_begin(State, Opts2)
-      ),
-      rdf_load:rdf_call_on_tuples_stream(gen_ntuples:gen_ntuple(Sink, State), Opts1, M1, Source),
-      (
-        flush_output(Sink),
-        gen_ntuples:gen_ntuples_end(State, Opts2),
-        close(Sink)
-      )
+  gtrace,
+  setup_call_cleanup(
+    (
+      open(Tmp, write, Sink),
+      gen_ntuples:gen_ntuples_begin(State, Opts2)
     ),
-    "Cleaning tuples on a one-by-one basis."
+    rdf_load:rdf_call_on_tuples_stream(gen_ntuples:gen_ntuple(Sink, State), Opts1, M1, Source),
+    (
+      flush_output(Sink),
+      gen_ntuples:gen_ntuples_end(State, Opts2),
+      close(Sink)
+    )
   ),
-  debug(rdf(clean), "Processed ~D tuples (~D triples and ~D quads).", [NoTuples,NoTriples,NoQuads]),
+  debug(rdf(clean), "Cleaned ~D tuples (~D triples and ~D quads).", [NoTuples,NoTriples,NoQuads]),
   M2 = M1.put(_{
     'llo:processed_quads': _{'@type': 'xsd:nonNegativeInteger', '@value': NoQuads},
     'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTriples},
