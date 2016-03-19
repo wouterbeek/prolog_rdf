@@ -204,7 +204,8 @@ gen_literal(_, V@LTag) :- !,
 % Literal legacy representations.
 gen_literal(State, Lit0) :-
   rdf_legacy_literal_components(Lit0, D, Lex0, LTag0),
-  rdf11:post_object(Lit, Lit0),
+  catch(rdf11:post_object(Lit, Lit0), E, true),
+  (var(E) -> true ; print_warning(State, E)),
   rdf_literal_components(Lit, D, Lex, LTag),
   (Lex \== Lex0 -> print_warning(State, non_canonical_lex(D,Lex)) ; true),
   (ground(LTag0), LTag \== LTag0 -> print_warning(State, non_canonical_ltag(LTag)) ; true),

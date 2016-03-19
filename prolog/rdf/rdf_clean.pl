@@ -79,7 +79,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   
   absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),
   thread_file(Tmp0, Tmp),
-  debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
+  %debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
   setup_call_cleanup(
     (
       open(Tmp, write, Sink),
@@ -104,7 +104,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   M3 = M2.put(MStream),
 
   sort_file(Tmp, Opts1),
-  debug(rdf(clean), "Sorting cleaned tuples file.", []),
+  %debug(rdf(clean), "Sorting cleaned tuples file.", []),
 
   % Count the number of unique tuples.
   file_lines(Tmp, NoLines),
@@ -117,4 +117,5 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, To),
-  debug(rdf(clean), "Compressed sorted tuple file.", []).
+  %debug(rdf(clean), "Compressed sorted tuple file.", []),
+  true.
