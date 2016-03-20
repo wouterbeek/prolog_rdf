@@ -15,7 +15,6 @@ Largely derived from the JSON-LD 1.0 specification (W3C).
 */
 
 :- use_module(library(apply)).
-:- use_module(library(ansi_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
@@ -71,7 +70,7 @@ run_test0(D):-
 
   % Print JSON-LD.
   json_read_any(D.input, DIn),
-  print_dict(DIn), nl,
+  print_dict(DIn),
   rdf_load_tuples(D.expect, Stmts2),
 
   % Read RDF from JSON-LD.

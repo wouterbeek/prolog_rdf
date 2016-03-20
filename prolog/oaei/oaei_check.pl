@@ -13,7 +13,7 @@
 */
 
 :- use_module(library(ordsets)).
-:- use_module(library(msg_ext)).
+:- use_module(library(print_ext)).
 
 
 

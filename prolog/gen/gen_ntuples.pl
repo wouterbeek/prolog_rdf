@@ -19,7 +19,7 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(option)).
-:- use_module(library(msg_ext)).
+:- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private

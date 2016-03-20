@@ -19,12 +19,12 @@
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_metadata)).
-:- use_module(library(msg_ext)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/compress_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/gnu_wc)).
+:- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
