@@ -107,7 +107,7 @@ on_cdata(_, _) :-
 %! doc_content_type(
 %!   +Dialect:atom,
 %!   +Doctype:atom,
-%!   +Attributes:list(nvpair),
+%!   +Attrs,
 %!   -Format:rdf_format
 %! ) is det.
 

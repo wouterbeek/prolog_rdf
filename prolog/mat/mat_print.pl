@@ -95,7 +95,7 @@ print_expression0(error, _) --> !,
 print_expression0(rdf(S,P,O), Opts) --> !,
   rdf_print_tuple(S, P, O, _, Opts).
 print_expression0(T, _) -->
-  pl_term(T).
+  term(T).
 
 
 

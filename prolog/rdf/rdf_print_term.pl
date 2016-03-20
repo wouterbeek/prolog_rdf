@@ -350,7 +350,7 @@ rdf_print_term(T, Opts) -->
 rdf_print_term(T, Opts) -->
   rdf_print_iri(T, Opts), !.
 rdf_print_term(T, _) -->
-  pl_term(T).
+  term(T).
 
 
 

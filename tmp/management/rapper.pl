@@ -1,8 +1,7 @@
 :- module(
   rapper,
   [
-    rapper/2 % +File:atom
-             % +Options:list(nvpair)
+    rapper/2 % +File, +Opts
   ]
 ).
 
@@ -31,7 +30,7 @@ Rapper support.
 
 
 
-%! rapper(+File:atom, +Options:list(nvpair)) is det.
+%! rapper(+File, +Opts) is det.
 % The following options are supported:
 %   - count(+boolean)
 %     Only count the triples and produce no other output.

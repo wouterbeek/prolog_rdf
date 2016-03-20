@@ -79,7 +79,7 @@ rdf_test(semantics(graph_instance), _) :-
   ),(
     forall(
       rdf_graph_instance(ex:'test-graph-instance', ex:'test-graph', Map),
-      dcg_with_output_to(user_output, (list(pl_term, Map), nl))
+      dcg_with_output_to(user_output, (list(term, Map), nl))
     )
   )).
 */
