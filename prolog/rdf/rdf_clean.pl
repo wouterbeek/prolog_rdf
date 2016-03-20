@@ -57,7 +57,7 @@
 %      Default is `none`.
 %    * metadata(-dict)
 %      Returns the metadata for cleaning the From source.
-%    * rdf_format(+oneof([ntriples,nquads,rdfa,trig,trix,turtle,xml]))
+%    * rdf_format(+oneof([jsonld,ntriples,nquads,rdfa,trig,trix,turtle,xml]))
 %      The RDF serialization format of the input.
 %      When absent this is guessed heuristically.
 %

@@ -46,7 +46,7 @@
 % as well).
 rdf_guess_turtle(true, F, Opts) -->
   eos, !,
-  guess_turtle_or_trig(F, Opts).
+  guess_turtle_family(F, Opts).
 % Skip blanks.
 rdf_guess_turtle(EoS, F, Opts) -->
   blank, !, blanks,
