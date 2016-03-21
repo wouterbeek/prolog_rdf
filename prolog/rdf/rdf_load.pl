@@ -118,7 +118,7 @@ rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
   %%%%uuid_no_hyphen(UniqueId),
   %%%%atomic_list_concat(['_:',UniqueId,-], BPrefix),
   Opts2 = [
-    annon_prefix('_:'),
+    anon_prefix('_:'),
     base(BaseIri),
     base_iri(BaseIri),
     base_uri(BaseIri),
