@@ -84,22 +84,20 @@ rdf_guess_turtle(_, F, Opts) -->
   *(ws),
   (   % End of a triple.
       "."
-  ->  {
-        ord_union([Fs1,Fs2,Fs3], Fs),
-        guess_turtle_format(Fs, F, Opts)
-      }
+  ->  {ord_union([Fs1,Fs2,Fs3], Fs)}
   ;   % Object list notation.
       ";"
-  ->  {guess_turtle_format([nquads,ntriples], F, Opts)}
+  ->  {ord_union([Fs1,Fs2,Fs3,[nquads,ntriples]], Fs)}
   ;   % Predicate-Object pairs list notation.
       ","
-  ->  {guess_turtle_format([nquads,ntriples], F, Opts)}
+  ->  {ord_union([Fs1,Fs2,Fs3,[nquads,ntriples]], Fs)}
   ;   % End of a quad.
-      turtle_graph,
+      turtle_graph(Fs4),
       *(ws),
       "."
-  ->  {guess_turtle_format([ntriples,turtle], F, Opts)}
-  ).
+  ->  {ord_union([Fs1,Fs2,Fs3,Fs4,[ntriples,turtle]], Fs)}
+  ),
+  {guess_turtle_format(Fs, F, Opts)}.
 % Anonymous blank node.
 rdf_guess_turtle(_, F, Opts) -->
   "[", !,
@@ -177,7 +175,7 @@ turtle_keyword(prefix).
 % We found a fully qualified triple.  Determine whether it is
 % Turtle, TriG, N-Triples or N-Quads.
 
-guess_turtle_family(Excluded, F, Opts) :-
+guess_turtle_format(Excluded, F, Opts) :-
   ord_subtract([nquads,ntriples,trig,turtle], Excluded, Fs),
   (   % Narrowed down to one.
       Fs = [F]
