@@ -38,6 +38,7 @@ Support for loading RDF data.
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
@@ -146,10 +147,31 @@ rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
   ;   existence_error(rdf_format, [Format])
   ).
 
-rdf_call_on_quad(Goal_4, rdf(S,P,O0,G0)) :- !,
-  (rdf_is_term(O0) -> O = O0 ; rdf11:post_object(O, O0)),
-  rdf11:post_graph(G, G0),
-  call(Goal_4, S, P, O, G).
+rdf_call_on_quad(Goal_4, rdf(S,P,O1,G1)) :- !,
+  rdf11:post_graph(G2, G1),
+  (   rdf_is_term(O1)
+  ->  call(Goal_4, S, P, O1, G2)
+  ;   flag(county, I, I + 1), format(user_output, "~D~n", [I]), (I =:= 2022 -> gtrace ; true),
+      rdf_legacy_literal_components(O1, D, Lex1, LTag1),
+      catch(rdf11:post_object(O2, O1), E, true),
+      rdf_literal_components(O2, D, Lex2, LTag2),
+      % Non-canonical lexical form.
+      (   Lex1 \== Lex2
+      ->  print_message(warning, non_canonical_lexical_form(D,Lex1))
+      ;   true
+      ),
+      % Non-canonical language tag.
+      (   ground(LTag1),
+          LTag1 \== LTag2
+      ->  print_message(warning, non_canonical_language_tag(LTag1))
+      ;   true
+      ),
+      % Incorrect lexical form.
+      (   var(E)
+      ->  call(Goal_4, S, P, O2, G2)
+      ;   print_message(warning, E)
+      )
+  ).
 rdf_call_on_quad(Goal_4, rdf(S,P,O)) :-
   rdf_default_graph(G),
   rdf_call_on_quad(Goal_4, rdf(S,P,O,G)).
