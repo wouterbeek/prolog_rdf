@@ -196,7 +196,7 @@ gen_literal(_, V^^D) :- !,
   rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
-  turtle:turtle_write_uri(current_output, D).
+  gen_iri(D).
 gen_literal(_, V@LTag) :- !,
   rdf_literal_lexical_form(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
