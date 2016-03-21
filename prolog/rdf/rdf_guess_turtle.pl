@@ -9,12 +9,13 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/12, 2016/02
+@version 2015/12, 2016/02-2016/03
 */
 
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(option_ext)).
+:- use_module(library(ordsets)).
 :- use_module(library(typecheck)).
 
 :- meta_predicate
@@ -46,7 +47,7 @@
 % as well).
 rdf_guess_turtle(true, F, Opts) -->
   eos, !,
-  guess_turtle_family(F, Opts).
+  {guess_turtle_format([], F, Opts)}.
 % Skip blanks.
 rdf_guess_turtle(EoS, F, Opts) -->
   blank, !, blanks,
@@ -59,81 +60,92 @@ rdf_guess_turtle(EoS, F, Opts) -->
 % @PREFIX
 rdf_guess_turtle(_, F, Opts) -->
   "@", turtle_keyword, !,
-  guess_turtle_or_trig(F, Opts).
+  {guess_turtle_format([nquads,ntriples], F, Opts)}.
 % BASE
 % PREFIX
 rdf_guess_turtle(_, F, Opts) -->
   turtle_keyword, blank, !,
-  guess_turtle_or_trig(F, Opts).
-% Turtle triple.
+  {guess_turtle_format([nquads,ntriples], F, Opts)}.
+% Default graph.
 rdf_guess_turtle(_, F, Opts) -->
-  turtle_subject(SF),
+  "{", !,
+  {guess_turtle_format([trig], F, Opts)}.
+% Names graph.
+rdf_guess_turtle(_, F, Opts) -->
+  turtle_iriref(_), *(ws), "{", !,
+  {guess_turtle_format([trig], F, Opts)}.
+% Tuple.
+rdf_guess_turtle(_, F, Opts) -->
+  turtle_subject(Fs1),
   *(ws),
-  turtle_predicate(PF),
+  turtle_predicate(Fs2),
   *(ws),
-  turtle_object(OF),
+  turtle_object(Fs3),
   *(ws),
   (   % End of a triple.
       "."
   ->  {
-        exclude(var, [SF,PF,OF], Fs),
-        guess_turtle_family(Fs, F, Opts)
+        ord_union([Fs1,Fs2,Fs3], Fs),
+        guess_turtle_format(Fs, F, Opts)
       }
   ;   % Object list notation.
       ";"
-  ->  guess_turtle_or_trig(F, Opts)
+  ->  {guess_turtle_format([nquads,ntriples], F, Opts)}
   ;   % Predicate-Object pairs list notation.
       ","
-  ->  guess_turtle_or_trig(F, Opts)
+  ->  {guess_turtle_format([nquads,ntriples], F, Opts)}
   ;   % End of a quad.
       turtle_graph,
       *(ws),
       "."
-  ->  {F = nquads}
+  ->  {guess_turtle_format([ntriples,turtle], F, Opts)}
   ).
 % Anonymous blank node.
 rdf_guess_turtle(_, F, Opts) -->
   "[", !,
-  guess_turtle_or_trig(F, Opts).
+  {guess_turtle_format([nquads,ntriples], F, Opts)}.
 % RDF collection.
 rdf_guess_turtle(_, F, Opts) -->
   "(", !,
-  guess_turtle_or_trig(F, Opts).
+  {guess_turtle_format([nquads,ntriples], F, Opts)}.
 
 turtle_bnode --> "_:", *(nonblank).
 
-turtle_graph --> turtle_iriref(_).
+turtle_graph(Fs) --> turtle_iriref(Fs).
 
-turtle_iriref(F) -->
-  "<", !, ...(Cs), ">", !,
-  {atom_codes(Iri, Cs), (is_iri(Iri) -> true ; F = turtleOrTrig)}.
-turtle_iriref(_) -->
-  turtle_iriref_prefix, ":", *(nonblank).
+turtle_iriref([]) --> "<", !, ..., ">", !.
+turtle_iriref([nquads,ntriples]) --> turtle_iriref_prefix, ":", *(nonblank).
 
-turtle_iriref_prefix --> ":",   !, {fail}.
+turtle_iriref_prefix --> ":", !, {fail}.
 turtle_iriref_prefix --> blank, !, {fail}.
-turtle_iriref_prefix --> [_],      turtle_iriref_prefix.
+turtle_iriref_prefix --> [_], turtle_iriref_prefix.
 turtle_iriref_prefix --> "".
 
 turtle_ltag --> *(nonblank).
 
-turtle_object(OF) --> turtle_iriref(OF), !.
-turtle_object(_) --> turtle_bnode, !.
-turtle_object(_) -->
-  turtle_string, *(ws),
-  ("^^" -> *(ws), turtle_iriref(_) ; "@" -> turtle_ltag ; "").
+turtle_object(Fs) --> turtle_iriref(Fs), !.
+turtle_object([]) --> turtle_bnode, !.
+turtle_object(Fs) -->
+  turtle_string(Fs1), *(ws),
+  (   "^^"
+  ->  *(ws), turtle_iriref(Fs2)
+  ;   "@"
+  ->  turtle_ltag, {Fs2 = []}
+  ;   {Fs2 = []}
+  ),
+  {ord_union([Fs1,Fs2], Fs)}.
 
-turtle_predicate(PF)      --> turtle_iriref(PF), !.
-turtle_predicate(turtleOrTrig) --> "a".
+turtle_predicate(Fs) --> turtle_iriref(Fs), !.
+turtle_predicate([nquads,ntriples]) --> "a".
 
 % Triple single quotes.
-turtle_string --> "'''",    !, turtle_string_codes([0'',0'',0'']).
+turtle_string([nquads,ntriples]) --> "'''", !, turtle_string_codes([0'',0'',0'']).
 % Single single quotes.
-turtle_string --> "'",      !, turtle_string_codes([0'']).
+turtle_string([nquads,ntriples]) --> "'", !, turtle_string_codes([0'']).
 % Triple double quotes.
-turtle_string --> "\"\"\"", !, turtle_string_codes([0'",0'",0'"]).   %"
+turtle_string([nquads,ntriples]) --> "\"\"\"", !, turtle_string_codes([0'",0'",0'"]). %"
 % Single double quotes.
-turtle_string --> "\"",        turtle_string_codes([0'"]).   %"
+turtle_string([]) --> "\"", turtle_string_codes([0'"]). %"
 
 % Escaped single quote.
 turtle_string_codes(End) --> "\\\'", !, turtle_string_codes(End).
@@ -146,58 +158,37 @@ turtle_string_codes(End) --> [_],    !, turtle_string_codes(End).
 % End of stream.
 turtle_string_codes(_)   --> "".
 
-turtle_subject(SF) --> turtle_iriref(SF), !.
-turtle_subject(_)       --> turtle_bnode.
+turtle_subject(Fs) --> turtle_iriref(Fs), !.
+turtle_subject([]) --> turtle_bnode.
 
-ws      --> blank, !.
+ws --> blank, !.
 ws, " " --> "#", ..., (eol ; eos), !.
 
 turtle_keyword --> atom_lower(A), !, {turtle_keyword(A)}.
+
 turtle_keyword(base).
 turtle_keyword(prefix).
 
-
-%! guess_turtle_or_trig(-Format:turtle_format, +Opts)// is det.
-% The file starts with a Turtle construct.
-% It can still be TriG.
-% We trust the content type and otherwise we assume TriG if there
-% is a "{" in the first section of the file.
-
-guess_turtle_or_trig(F, Opts) -->
-  (   {
-        option(default_rdf_format(F0), Opts),
-        ground(F0)
-      }
-  ->  {
-        must_be(oneof([trig,turtle]), F0),
-        F = F0
-      }
-  ;   ..., "{"
-  ->  {F = trig}
-  ;   {F = turtle}
-  ).
-
-
-%! guess_turtle_family(
-%!   +Formats:list(atom),
+%! guess_turtle_format(
+%!   +Excluded:ordset(rdf_format),
 %!   -Format:turtle_format,
 %!   +Opts
 %! )// is det.
-% We found a fully qualified triple.
-% This still can be Turtle, TriG, N-Triples or N-Quads.
+% We found a fully qualified triple.  Determine whether it is
+% Turtle, TriG, N-Triples or N-Quads.
 
-guess_turtle_family(Fs, F, Opts) :-
-  memberchk(turtleOrTrig, Fs), !,
-  (   option(default_rdf_format(F0), Opts),
-      ground(F0)
-  ->  must_be(oneof([trig,turtle]), F0),
-      F = F0
-  ;   F = turtle
-  ).
-guess_turtle_family(_, F, Opts) :-
-  (   option(default_rdf_format(F0), Opts),
-      ground(F0)
-  ->  must_be(oneof([nquads,ntriples,trig,turtle]), F0),
-      F = F0
-  ;   F = ntriples
+guess_turtle_family(Excluded, F, Opts) :-
+  ord_subtract([nquads,ntriples,trig,turtle], Excluded, Fs),
+  (   % Narrowed down to one.
+      Fs = [F]
+  ->  true
+  ;   % Multiple options: pick the one specified as an option, if any.
+      option(default_rdf_format(F0), Opts),
+      ground(F0),
+      memberchk(F0, Fs)
+  ->  F = F0
+  ;   % Multiple options: Trig is most general.
+      memberchk(trig, Fs)
+  ;   % Multiple options: N-Quads is more general than N-Triples.
+      memberchk(nquads, Fs)
   ).

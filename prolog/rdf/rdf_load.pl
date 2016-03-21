@@ -151,8 +151,7 @@ rdf_call_on_quad(Goal_4, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
   (   rdf_is_term(O1)
   ->  call(Goal_4, S, P, O1, G2)
-  ;   flag(county, I, I + 1), format(user_output, "~D~n", [I]), (I =:= 2022 -> gtrace ; true),
-      rdf_legacy_literal_components(O1, D, Lex1, LTag1),
+  ;   rdf_legacy_literal_components(O1, D, Lex1, LTag1),
       catch(rdf11:post_object(O2, O1), E, true),
       rdf_literal_components(O2, D, Lex2, LTag2),
       % Non-canonical lexical form.
