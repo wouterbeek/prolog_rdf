@@ -186,7 +186,9 @@ guess_turtle_format(Excluded, F, Opts) :-
       memberchk(F0, Fs)
   ->  F = F0
   ;   % Multiple options: Trig is most general.
-      memberchk(trig, Fs)
+      F = trig,
+      memberchk(F, Fs)
   ;   % Multiple options: N-Quads is more general than N-Triples.
-      memberchk(nquads, Fs)
+      F = nquads,
+      memberchk(F, Fs)
   ).

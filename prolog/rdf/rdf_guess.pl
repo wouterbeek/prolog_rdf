@@ -55,10 +55,10 @@ rdf_guess_format(Read, I, F, Opts) :-
   debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
 
   % Try to parse the peeked string as Turtle- or XML-like.
-  (   rdf_guess_turtle(S, N, F, Opts)
-  ;   rdf_guess_xml(S, F)
-  ;   rdf_guess_jsonld(S, N),
+  (   rdf_guess_jsonld(S, N),
       F = jsonld
+  ;   rdf_guess_turtle(S, N, F, Opts)
+  ;   rdf_guess_xml(S, F)
   ), !,
 
   debug(rdf(guess), "Assuming ~a based on heuristics.", [F]).
