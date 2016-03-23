@@ -258,4 +258,4 @@
 
 'sbo:content'(Article) -->
   {once(rdf_has(Article, sbo:content, Content))},
-  html(a(href=Article, div(property='sbo:content', \rdfh_literal(Content)))).
+  html(div(property='sbo:content', \rdfh_literal(Content))).

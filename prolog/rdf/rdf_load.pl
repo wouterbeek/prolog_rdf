@@ -44,15 +44,22 @@ Support for loading RDF data.
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
 
-:- meta_predicate
-    rdf_call_on_graph(+,1),
-    rdf_call_on_graph(+,1,+),
+:- meta_predicate 
+    rdf_call_on_graph(+, 1),
+    rdf_call_on_graph(+, 1, +),
     rdf_call_on_quad(4, +),
     rdf_call_on_quads(4, +),
     rdf_call_on_quads(4, +, +),
-    rdf_call_on_tuples(+,4),
-    rdf_call_on_tuples(+,4,+),
-    rdf_call_on_tuples_stream(4,+,+,+).
+    rdf_call_on_tuples(+, 4),
+    rdf_call_on_tuples(+, 4, +),
+    rdf_call_on_tuples_stream(4, +, +, +).
+
+:- rdf_meta
+   rdf_call_on_graph(+, :, t),
+   rdf_call_on_tuples(+, :, t),
+   rdf_download_to_file(+, +, t),
+   rdf_load_file(+, t),
+   rdf_load_tuples(+, -, t).
 
 :- predicate_options(rdf_call_on_graph/3, 3, [
      pass_to(rdf_load_file/2)
