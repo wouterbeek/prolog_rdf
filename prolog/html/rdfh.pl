@@ -22,6 +22,7 @@
     rdfh_term//1,          % +Term
     rdfh_tree//1,          % +Tree
     rdfh_triple//3,        % +S, +P, +O
+    rdfh_triple_table//1,  % +Triples
     rdfh_triple_table//4   % ?S, ?P, ?O, ?G
   ]
 ).
@@ -89,13 +90,13 @@ rdfh_describe(S) -->
     group_pairs_by_key(Pairs, Groups)
   },
   bs_table(
-    bs_table_header(["Predicate","Objects"]),
-    html_maplist(rdfh_describe_row, Groups)
+    \bs_table_header(["Predicate","Objects"]),
+    \html_maplist(rdfh_describe_row, Groups)
   ).
 
 rdfh_describe_row(P-Os) -->
   html(tr([td(\rdfh_property(P)),td(\seplist(rdfh_object, Os))])).
-  
+
 
 
 %! rdfh_graph(+G)// is det.
@@ -231,8 +232,8 @@ rdfh_quad_row(rdf(S,P,O,G)) -->
 
 rdfh_quad_table(Quads) -->
   bs_table(
-    bs_table_header(["Subject","Predicate","Object","Graph"]),
-    html_maplist(rdfh_quad_row, Quads)
+    \bs_table_header(["Subject","Predicate","Object","Graph"]),
+    \html_maplist(rdfh_quad_row, Quads)
   ).
 
 
@@ -344,8 +345,8 @@ rdfh_triple_row(rdf(S,P,O)) -->
 
 rdfh_triple_table(L) -->
   bs_table(
-    bs_table_header(["Subject","Predicate","Object"]),
-    html_maplist(rdfh_triple_row, L)
+    \bs_table_header(["Subject","Predicate","Object"]),
+    \html_maplist(rdfh_triple_row, L)
   ).
 
 

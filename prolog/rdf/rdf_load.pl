@@ -149,8 +149,9 @@ rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
 
 rdf_call_on_quad(Goal_4, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
+  (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
-  ->  call(Goal_4, S, P, O1, G2)
+  ->  call(Goal_4, S, P, O1, G3)
   ;   rdf_legacy_literal_components(O1, D, Lex1, LTag1),
       catch(rdf11:post_object(O2, O1), E, true),
       rdf_literal_components(O2, D, Lex2, LTag2),
@@ -167,7 +168,7 @@ rdf_call_on_quad(Goal_4, rdf(S,P,O1,G1)) :- !,
       ),
       % Incorrect lexical form.
       (   var(E)
-      ->  call(Goal_4, S, P, O2, G2)
+      ->  call(Goal_4, S, P, O2, G3)
       ;   print_message(warning, E)
       )
   ).
@@ -233,7 +234,7 @@ rdf_load_file(Source, Opts) :-
 
 % @tbd IRI normalization.
 rdf_load_tuple(State, ToG, S, P, O, FromG) :-
-  (debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
+  %%%%(debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
   (   rdf_default_graph(FromG)
   ->  G = ToG,
       dict_inc(triples, State)

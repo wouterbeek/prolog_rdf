@@ -118,4 +118,4 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, To),
   %debug(rdf(clean), "Compressed sorted tuple file.", []),
-  true.
+  delete_file(Tmp).
