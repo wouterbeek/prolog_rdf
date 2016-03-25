@@ -78,13 +78,13 @@ run_test0(D):-
   rdf_unload_db,
   (   rdf_load_tuples(D.input, Tuples1, [base_iri(Base)]),
       formatln("Parsed tuples:"),
-      rdf_print_tuples(Tuples1),
+      rdf_print_quads(Tuples1),
       
       % Compare to RDF from N-Quads.
       isomorphic_tuples(Tuples1, Tuples2)
   ->  true
   ;   ansi_format(user_output, [fg(red)], "Expected tuples:~n", []),
-      rdf_print_tuples(Tuples2)
+      rdf_print_quads(Tuples2)
   ), !.
 run_test0(D) :-
   ansi_format(user_output, [fg(red)], "Test ~w failed.~n", [D]).

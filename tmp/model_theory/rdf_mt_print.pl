@@ -31,8 +31,7 @@ Sytax-to-semantics map printing.
 
 rdf_mt_print_graph(G) :-
   format("GRAPH ~w\n", [G]),
-  rdf_triples(G, Triples),
-  rdf_print_tuples(Triples).
+  rdf_print_graph(G).
 
 
 

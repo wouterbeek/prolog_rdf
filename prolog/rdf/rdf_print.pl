@@ -6,15 +6,16 @@
     rdf_print_object//1,    % +G
     rdf_print_predicate//1, % +G
     rdf_print_quad/4,       % +S, +P, +O, +G
+    rdf_print_quads/1,      % +Tuples
     rdf_print_quads/3,      % ?S, ?P, ?O
     rdf_print_quads/4,      % ?S, ?P, ?O, ?G
     rdf_print_term/1,       % +T
     rdf_print_term//1,      % +T
     rdf_print_triple/3,     % +S, +P, +O
     rdf_print_triple//3,    % +S, +P, +O
+    rdf_print_triples/1,    % +Triples
     rdf_print_triples/3,    % ?S, ?P, ?O
-    rdf_print_triples/4,    % ?S, ?P, ?O, ?G
-    rdf_print_tuples/1      % +Tuples
+    rdf_print_triples/4     % ?S, ?P, ?O, ?G
   ]
 ).
 
@@ -65,6 +66,12 @@ rdf_print_quad(S, P, O, G) :-
 
 
 
+rdf_print_quads(Tuples) :-
+  maplist(graph_triple_pair0, Tuples, Pairs),
+  keysort(Pairs, SortedPairs),
+  rdf_print_sorted_pairs0(SortedPairs).
+
+
 rdf_print_quads(S, P, O) :-
   rdf_print_quads(S, P, O, _).
 
@@ -76,12 +83,17 @@ rdf_print_quads(S, P, O, G) :-
 
 
 rdf_print_triple(S, P, O) :-
-  rdf_print_tuples([rdf(S,P,O)]).
+  rdf_print_triples([rdf(S,P,O)]).
 
 
 rdf_print_triple(S, P, O) -->
   dcg_goal(rdf_print_triple(S, P, O)).
 
+
+
+rdf_print_triples(Triples) :-
+  rdf_default_graph(G),
+  rdf_print_groups0(G-Triples).
 
 
 rdf_print_triples(S, P, O) :-
@@ -90,15 +102,9 @@ rdf_print_triples(S, P, O) :-
 
 rdf_print_triples(S, P, O, G) :-
   aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Triples),
-  rdf_default_graph(G),
-  rdf_print_groups0([G-Triples]).
+  rdf_print_triples(Triples).
 
 
-
-rdf_print_tuples(Tuples) :-
-  maplist(graph_triple_pair0, Tuples, Pairs),
-  keysort(Pairs, SortedPairs),
-  rdf_print_sorted_pairs0(SortedPairs).
 
 graph_triple_pair0(rdf(S,P,O), G-rdf(S,P,O)) :-
   rdf_default_graph(G).
