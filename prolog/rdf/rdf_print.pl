@@ -93,7 +93,7 @@ rdf_print_triple(S, P, O) -->
 
 rdf_print_triples(Triples) :-
   rdf_default_graph(G),
-  rdf_print_groups0(G-Triples).
+  rdf_print_groups0([G-Triples]).
 
 
 rdf_print_triples(S, P, O) :-
