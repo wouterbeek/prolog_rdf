@@ -113,7 +113,7 @@ rdf_cache_worker(Opts, S, Ys) :-
 rdf_deref(S) :-
   debug(rdf_deref(request), "Dereferencing ~a", [S]),
   call_collect_messages(rdf_call_on_tuples(S, rdf_deref_tuple(S))),
-  if_debug(rdf_deref(result), rdf_print_graph(S, [id_closure(true)])).
+  if_debug(rdf_deref(result), rdf_print_quads(S, _, _, _)).
 
 rdf_deref_tuple(S1, S2, P, O, _) :-
   is_same_iri(S1, S2, S3), !,

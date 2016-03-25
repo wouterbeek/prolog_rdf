@@ -51,7 +51,6 @@ Predicates for asseritng RDFS statements in an easy way.
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_print_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 

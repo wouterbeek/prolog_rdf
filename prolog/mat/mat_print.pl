@@ -1,14 +1,8 @@
 :- module(
   mat_print,
   [
-    print_deduction//3, % +Rule:compound
-                        % +Premises:list(compound)
-                        % +Conclusion:compond
-    print_deduction//4, % +Rule:compound
-                        % +Premises:list(compound)
-                        % +Conclusion:compond
-                        % +Options:list(compound)
-    print_rule//1 % +Rule:compound
+    print_deduction//3, % +Rule, +Prems, +Conc
+    print_rule//1 % +Rule
   ]
 ).
 
@@ -17,121 +11,76 @@
 Printing of materialization results.
 
 @author Wouter Beek
-@version 2015/08-2015/12
+@version 2015/08-2015/12, 2016/03
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(rdf/rdf_print_stmt)).
-
-:- predicate_options(print_conclusion//2, 2, [
-     pass_to(print_expression0//2, 2)
-   ]).
-:- predicate_options(print_deduction//3, 3, [
-     pass_to(print_deduction//4, 4)
-   ]).
-:- predicate_options(print_deduction//4, 4, [
-     pass_to(print_conclusion//2, 2),
-     pass_to(print_premises//2, 2)
-   ]).
-:- predicate_options(print_premise//3, 3, [
-     pass_to(print_expression0//2, 2)
-   ]).
-:- predicate_options(print_premises//2, 2, [
-     pass_to(print_premises//3, 3)
-   ]).
-:- predicate_options(print_premises//3, 3, [
-     pass_to(print_premise//3, 3)
-   ]).
-:- predicate_options(print_expression0//2, 2, [
-     pass_to(rdf_print_tuple//5, 5)
-   ]).
+:- use_module(library(rdf/rdf_print)).
 
 
 
 
 
-%! print_conclusion(+Conclusion:compound, +Options:list(compound))// is det.
+%! print_conclusion(+Conc)// is det.
 
-print_conclusion(T, Opts) -->
+print_conclusion(Conc) -->
   "  ",
   provable,
   "   ",
-  print_expression0(T, Opts),
+  print_expression0(Conc),
   nl.
 
 
 
-%! print_deduction(
-%!   +Rule:compound,
-%!   +Premises:list(compound),
-%!   +Conclusion:compond
-%! )// is det.
-% Wrapper around print_deduction//4 with default options.
+%! print_deduction(+Rule, +Prems, +Conc)// is det.
 
-print_deduction(R, Ps, C) --> print_deduction(R, Ps, C, []).
-
-
-%! print_deduction(
-%!   +Rule:compound,
-%!   +Premises:list(compound),
-%!   +Conclusion:compond,
-%!   +Options:list(compound)
-%! )// is det.
-
-print_deduction(R, Ps, C, Opts) -->
-  "[", print_rule(R), "]",
+print_deduction(Rule, Prems, Conc) -->
+  "[", print_rule(Rule), "]",
   nl,
-  print_premises(Ps, Opts),
-  print_conclusion(C, Opts).
+  print_premises(Prems),
+  print_conclusion(Conc).
 
 
 
-%! print_expression0(+Expression:compound, +Options:list(compound))// is det.
+%! print_expression0(+Expression:compound)// is det.
 
-print_expression0(error, _) --> !,
+print_expression0(error) --> !,
   falsum.
-print_expression0(rdf(S,P,O), Opts) --> !,
-  rdf_print_tuple(S, P, O, _, Opts).
-print_expression0(T, _) -->
+print_expression0(rdf(S,P,O)) --> !,
+  rdf_print_triple(S, P, O).
+print_expression0(T) -->
   term(T).
 
 
 
-%! print_premise(
-%!   +Index:positive_integer,
-%!   +Premise:compound,
-%!   +Options:list(compound)
-%! )// is det.
+%! print_premise(+Index, +P)// is det.
 
-print_premise(N, T, Opts) -->
+print_premise(I, P) -->
   "P",
-  integer(N),
+  thousands(I),
   ": ",
-  print_expression0(T, Opts).
+  print_expression0(P).
 
 
 
-%! print_premises(+Premises:list(compound), +Options:list(compound))// is det.
-% Wrapper around print_premises//3.
+%! print_premises(+Prems)// is det.
+% Wrapper around print_premises//2.
 
-print_premises(Ps, Opts) --> print_premises(1, Ps, Opts).
+print_premises(Ps) -->
+  print_premises(1, Ps).
 
 
-%! print_premises(
-%!   +Index:positive_integer,
-%!   +Premises:list(compound),
-%!   +Options:list(compound)
-%! )// is det.
+%! print_premises(+Index, +Prems)// is det.
 
-print_premises(N1, [H|T], Opts) --> !,
+print_premises(I1, [P|Ps]) --> !,
   "  ",
-  print_premise(N1, H, Opts),
+  print_premise(I1, P),
   nl,
-  {succ(N1, N2)},
-  print_premises(N2, T, Opts).
-print_premises(_, [], _) --> "".
+  {I2 is I1 + 1},
+  print_premises(I2, Ps).
+print_premises(_, []) --> [].
 
 
 

@@ -241,7 +241,6 @@ rdf_load_file(Source, Opts) :-
 
 % @tbd IRI normalization.
 rdf_load_tuple(State, ToG, S, P, O, FromG) :-
-  %%%%(debugging(rdf(load)) -> rdf_print(S, P, O, G) ; true),
   (   rdf_default_graph(FromG)
   ->  G = ToG,
       dict_inc(triples, State)

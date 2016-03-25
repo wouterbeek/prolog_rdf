@@ -25,8 +25,8 @@ Largely derived from the JSON-LD 1.0 specification (W3C).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_load)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(terms)).
 
 
@@ -71,26 +71,26 @@ run_test0(D):-
   % Print JSON-LD.
   json_read_any(D.input, DIn),
   print_dict(DIn),
-  rdf_load_tuples(D.expect, Stmts2),
+  rdf_load_tuples(D.expect, Tuples2),
 
   % Read RDF from JSON-LD.
   atomic_concat('http://json-ld.org/test-suite/tests/', D.input, Base),
   rdf_unload_db,
-  (   rdf_load_tuples(D.input, Stmts1, [base_iri(Base)]),
+  (   rdf_load_tuples(D.input, Tuples1, [base_iri(Base)]),
       formatln("Parsed tuples:"),
-      rdf_print(Stmts1),
+      rdf_print_tuples(Tuples1),
       
       % Compare to RDF from N-Quads.
-      isomorphic_tuples(Stmts1, Stmts2)
+      isomorphic_tuples(Tuples1, Tuples2)
   ->  true
   ;   ansi_format(user_output, [fg(red)], "Expected tuples:~n", []),
-      rdf_print(Stmts2)
+      rdf_print_tuples(Tuples2)
   ), !.
 run_test0(D) :-
   ansi_format(user_output, [fg(red)], "Test ~w failed.~n", [D]).
 
 %! isomorphic_graphs(+G1, +G2) is semidet.
-%! isomorphic_tuples(+Stmts1, +Stmts2) is semidet.
+%! isomorphic_tuples(+Tuples1, +Tuples2) is semidet.
 % Is true if there is a consistent mapping between the blank nodes in 1
 % and the blank nodes in 2 that makes both structures equal.  This maps to
 % the Prolog notion of *variant* if there was a canonical ordering of triples.
@@ -99,15 +99,15 @@ isomorphic_graphs(G1, G2) :-
   maplist(rdf_graph_to_triples, [G1,G2], [Triples1,Triples2]),
   isomorphic_tuples(Triples1, Triples2).
 
-isomorphic_tuples(Stmts1, Stmts2) :-
-  once(tuples_permutation(Stmts1, Perm1)),
+isomorphic_tuples(Tuples1, Tuples2) :-
+  once(tuples_permutation(Tuples1, Perm1)),
   % NONDET.
-  tuples_permutation(Stmts2, Perm2),
+  tuples_permutation(Tuples2, Perm2),
   variant(Perm1, Perm2), !.
 
-tuples_permutation(Stmts1, Perm) :-
-  replace_bnodes_with_vars(Stmts1, Stmts2),
-  partition(ground, Stmts2, Ground, NonGround),
+tuples_permutation(Tuples1, Perm) :-
+  replace_bnodes_with_vars(Tuples1, Tuples2),
+  partition(ground, Tuples2, Ground, NonGround),
   sort(Ground, Sorted),
   append(Sorted, NonGroundPermutation, Perm),
   permutation(NonGround, NonGroundPermutation).

@@ -53,9 +53,9 @@ rdf_cp0(Action, FromG, S, P, O, ToG) :-
     rdf_assert(S, P, O, ToG),
     (   debugging(rdf(update))
     ->  format("[~a] ", [Action]),
-        rdf_print(S, P, O, FromG),
+        rdf_print_triples(S, P, O, FromG),
         write(" → "),
-        rdf_print(S, P, O, ToG)
+        rdf_print_triples(S, P, O, ToG)
     ;   true
     )
   )).

@@ -89,15 +89,14 @@ mat(GIn, GOut, Opts) :-
       (rdf_graph(GIn) -> true ; existence_error(rdf_graph, GIn)),
 
       % Debug message before.
-      PrintOpts = [abbr_list(true),indent(1)],
       debug(mat(_), 'BEFORE MATERIALIZATION:', []),
-      if_debug(mat(_), rdf_print_graph(GIn, PrintOpts)),
+      if_debug(mat(_), rdf_print_triples(_, _, _, GIn)),
 
       once(mat0(GIn, GOut, Opts)),
 
       % Debug message for successful materialization results.
       debug(mat(_), 'AFTER MATERIALIZATION:', []),
-      if_debug(mat(_), rdf_print_graph(GIn, PrintOpts))
+      if_debug(mat(_), rdf_print_triples(_, _, _, GIn))
   ).
 
 mat0(GIn, GOut, Opts) :-

@@ -37,11 +37,10 @@ rdf_test(database(identity), G) :-
     rdf_assert(ex:a, owl:sameAs, ex:c, G),
     rdf_assert(ex:d, owl:sameAs, ex:c, G)
   ),(
-    Opts = [indent(2)],
     format("Graph:~n"),
-    rdf_print_graph(default, [id_closure(true)|Opts]),
+    rdf_print_triples(_, _, _, default),
     format("Identity store:~n"),
-    rdf_print_graph(default, Opts)
+    rdf_print_triples(_, _, _, default)
   )).
 
 

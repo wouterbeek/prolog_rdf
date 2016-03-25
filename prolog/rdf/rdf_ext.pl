@@ -9,12 +9,11 @@
     rdf_image/2,            % +S, -Img
     rdf_is_ground_quad/1,   % @Term
     rdf_is_ground_triple/1, % @Term
+    rdf_is_quad/1,          % @Term
+    rdf_is_triple/1,        % @Term
     rdf_langstring/3,       % ?S, ?P, -Lit
     rdf_nextto/3,           % ?X, ?Y, ?RdfList
     rdf_pref_string/3,      % ?S, ?P, -Lit
-    rdf_print/1,            % +Tuples
-    rdf_print/3,            % ?S, ?P, ?O
-    rdf_print/4,            % ?S, ?P, ?O, ?G
     rdf_retractall/1,       % +Tuple
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
@@ -61,8 +60,6 @@
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
-   rdf_print(r, r, o),
-   rdf_print(r, r, o, r),
    rdf_retractall(t),
    rdf_string(r, -),
    rdf_triples(r, r, o, -),
@@ -149,6 +146,18 @@ rdf_is_ground_triple(rdf(S,_,O)) :-
 
 
 
+%! rdf_is_quad(@Term) is semidet.
+
+rdf_is_quad(rdf(_,_,_,_)).
+
+
+
+%! rdf_is_triple(@Term) is semidet.
+
+rdf_is_triple(rdf(_,_,_)).
+
+
+
 %! rdf_langstring(?S, ?P, -Lit) is nondet.
 % Matches RDF statements whose object term is a language-tagged string
 % that mathes the given language priory list.
@@ -203,147 +212,6 @@ rdf_pref_string(S, P, LRange, Lit) :-
 % Plain XSD strings.
 rdf_pref_string(S, P, _, V^^xsd:string) :-
   rdf_has(S, P, V^^xsd:string).
-
-
-%! rdf_print(+Tuples) is det.
-
-rdf_print(Tuples) :-
-  rdf_snap((
-    maplist(rdf_assert, Tuples),
-    rdf_print(_, _, _, _)
-  )).
-
-
-%! rdf_print(?S, ?P, ?O) is det.
-
-rdf_print(S, P, O) :-
-  ground(rdf(S,P,O)), !,
-  rdf_print_triples(0, [rdf(S,P,O)]).
-rdf_print(S, P, O) :-
-  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Triples),
-  rdf_print_triples(0, Triples).
-
-
-%! rdf_print(?S, ?P, ?O, ?G) is det.
-
-rdf_print(S, P, O, G) :-
-  aggregate_all(set(rdf(S,P,O,G)), rdf(S, P, O, G), Quads),
-  findall(G-rdf(S,P,O), member(rdf(S,P,O,G), Quads), Pairs),
-  group_pairs_by_key(Pairs, Groups),
-  forall(member(G-Tuples, Groups), rdf_print_graph(Tuples, G)).
-
-rdf_print_bnode(B) :-
-  write(B).
-
-%! rdf_print_graph(+Triples, +G) is det.
-
-rdf_print_graph(Triples, G) :-
-  (   rdf_default_graph(G)
-  ->  I = 0
-  ;   rdf_print_graph(G),
-      write(" {\n"),
-      I = 1
-  ),
-  rdf_print_triples(I, Triples),
-  (rdf_default_graph(G) -> true ; write("}\n")).
-
-rdf_print_triples(I, Triples) :-
-  findall(S-po(P,O), member(rdf(S,P,O), Triples), Pairs),
-  group_pairs_by_key(Pairs, Groups),
-  forall(member(S-POs, Groups), rdf_print_subject(I, S, POs)).
-
-rdf_print_subject(I1, S, POs) :-
-  tab0(I1),
-  rdf_print_subject(S),
-  findall(P-O, member(po(P,O), POs), Pairs),
-  group_pairs_by_key(Pairs, Groups),
-  (   Groups = [P-Os]
-  ->  write(" "),
-      rdf_print_predicate(P, Os),
-      writeln(" .")
-  ;   nl,
-      I2 is I1 + 1,
-      rdf_print_predicates(I2, Groups)
-  ).
-
-rdf_print_predicates(I, [P-Os]) :-
-  tab0(I),
-  rdf_print_predicate(P, Os),
-  writeln(" .").
-rdf_print_predicates(I, [P-Os|T]) :-
-  tab0(I),
-  rdf_print_predicate(P, Os),
-  writeln(" ;"),
-  rdf_print_predicates(I, T).
-
-rdf_print_predicate(P, Os) :-
-  rdf_print_predicate(P),
-  write(" "),
-  rdf_print_objects(Os).
-
-rdf_print_graph(G) :-
-  rdf_print_iri(G).
-
-rdf_print_iri(Full) :-
-  rdf_global_id(Alias:Local, Full), !,
-  write(Alias),
-  write(":"),
-  write(Local).
-rdf_print_iri(Full) :-
-  write("<"),
-  write(Full),
-  write(">").
-
-rdf_print_literal(Lex^^D) :-
-  rdf_equal(xsd:boolean, D), !,
-  turtle:turtle_write_quoted_string(current_output, Lex).
-rdf_print_literal(V^^D) :-
-  rdf_equal(xsd:string, D), !,
-  atom_string(Lex, V),
-  turtle:turtle_write_quoted_string(current_output, Lex).
-rdf_print_literal(V^^D) :-
-  (   rdf_equal(xsd:integer, D)
-  ;   rdf_equal(xsd:decimal, D)
-  ;   rdf_equal(xsd:double, D)
-  ), !,
-  atom_number(Lex, V),
-  turtle:turtle_write_quoted_string(current_output, Lex).
-rdf_print_literal(V^^D) :- !,
-  rdf_literal_lexical_form(V^^D, Lex),
-  turtle:turtle_write_quoted_string(current_output, Lex),
-  write("^^"),
-  rdf_print_iri(D).
-rdf_print_literal(V@LTag) :- !,
-  atom_string(Lex, V),
-  turtle:turtle_write_quoted_string(current_output, Lex),
-  write("@"),
-  write(LTag).
-rdf_print_literal(V) :-
-  rdf_print_literal(V^^xsd:string).
-
-rdf_print_object(O) :-
-  rdf_is_literal(O), !,
-  rdf_print_literal(O).
-rdf_print_object(O) :-
-  rdf_print_subject(O).
-
-rdf_print_objects([H]) :- !,
-  rdf_print_object(H).
-rdf_print_objects([H|T]) :-
-  rdf_print_object(H),
-  write(", "),
-  rdf_print_objects(T).
-
-rdf_print_predicate(P) :-
-  rdf_print_iri(P).
-
-rdf_print_subject(S) :-
-  rdf_is_bnode(S), !,
-  rdf_print_bnode(S).
-rdf_print_subject(S) :-
-  rdf_print_iri(S).
-
-tab0(N1) :- N2 is N1 * 4, tab(N2).
 
 
 

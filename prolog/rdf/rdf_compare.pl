@@ -39,7 +39,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(default)).
-:- use_module(library(rdf/rdf_print_term)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 

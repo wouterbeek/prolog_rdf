@@ -23,7 +23,7 @@
 :- use_module(library(os/process_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(rdf/rdf_load)).
-:- use_module(library(rdf/rdf_print_term)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 
 :- meta_predicate

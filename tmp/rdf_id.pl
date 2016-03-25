@@ -48,6 +48,7 @@
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_default)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(xsd/xsd)).
 :- use_module(library(yall)).
@@ -173,7 +174,7 @@ rdf_print_id(Tid) -->
   rdf_print_id(Tid, []).
 rdf_print_id(Tid, Opts) -->
   {id_to_terms(Tid, Ts)},
-  set([T]>>rdf_print_term(T, Opts), Ts).
+  set(rdf_print_term, Ts).
 
 
 

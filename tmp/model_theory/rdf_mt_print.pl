@@ -21,6 +21,8 @@ Sytax-to-semantics map printing.
 @version 2013/08, 2014/01, 2014/11
 */
 
+:- use_module(library(rdf/rdf_print)).
+
 
 
 
@@ -29,15 +31,8 @@ Sytax-to-semantics map printing.
 
 rdf_mt_print_graph(G) :-
   format("GRAPH ~w\n", [G]),
-  rdf_triples(G, Ts),
-  forall(
-    member(rdf(S,P,O), Ts),
-    (
-      tab,
-      dcg_with_output_to(current_output, rdf_print_triple(S,P,O,_)),
-      nl
-    )
-  ).
+  rdf_triples(G, Triples),
+  rdf_print_tuples(Triples).
 
 
 

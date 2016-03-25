@@ -79,8 +79,8 @@ script6:-
 script7:-
   rdf_assert(ex:s, ex:p, 01^^xsd:integer, ex:g),
   print_id_store,
-  forall(rdf_print_triple(_, _, _, _), true),
+  rdf_print_quads(_, _, _, _),
 
   rdf_assert(ex:s, owl:sameAs, 1^^xsd:integer, ex:g),
   print_id_store,
-  forall(rdf_print_triple(_, _, _, _), true).
+  rdf_print_quads(_, _, _, _).

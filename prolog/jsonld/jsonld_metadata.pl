@@ -16,7 +16,6 @@
 
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_generics)).
-:- use_module(library(rdf/rdf_print)).
 
 
 

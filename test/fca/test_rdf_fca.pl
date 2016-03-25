@@ -22,7 +22,6 @@
 :- use_module(library(os/pdf)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_load)).
-:- use_module(library(rdf/rdf_print_term)).
 
 :- initialization(list_external_programs).
 

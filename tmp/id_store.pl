@@ -56,7 +56,7 @@ Identifiers are atoms.
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_id)).
-:- use_module(library(rdf/rdf_print_term)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11), [
      rdf_graph/1 as rdf_graph_id,
      rdf_unload_graph/1 as rdf_unload_graph_id
@@ -83,10 +83,6 @@ Identifiers are atoms.
 %! term_to_id0(+T, -Tid) is nondet.
 
 :- dynamic(term_to_id0/2).
-
-:- predicate_options(print_id_store/1, 1, [
-     pass_to(rdf_print_term//2, 2)
-   ]).
 
 :- initialization((rdf_equal(owl:sameAs, P), assign_id(P))).
 
@@ -208,7 +204,7 @@ print_id_store(Opts) :-
       tab(N),
       atom(Tid),
       "\t",
-      set([T]>>rdf_print_term(T, Opts), Ts),
+      maplist(rdf_print_term, Ts),
       nl
    ))
   ).

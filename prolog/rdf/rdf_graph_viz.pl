@@ -300,9 +300,9 @@ rdf_vertex_image(V, VImage) :-
 %!   -Label:atom
 %! ) is det.
 
-rdf_vertex_label(Opts1, V) -->
-  {merge_options(Opts1, [literal_ellipsis(50)], Opts2)},
-  rdf_print_term(V, Opts2).
+rdf_vertex_label(_Opts1, V) -->
+  %{merge_options(Opts1, [literal_ellipsis(50)], Opts2)},
+  rdf_print_term(V).
 
 
 

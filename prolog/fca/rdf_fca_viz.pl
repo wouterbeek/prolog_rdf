@@ -19,7 +19,7 @@
 :- use_module(library(fca/rdf_fca)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_print_term)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
