@@ -64,7 +64,7 @@ http_header_value(media_type(Type,Subtype,Params)) --> !,
       "/",
       span(class=subtype, \rdfh_literal(Subtype)),
       "; ",
-      span(class=parameters, \seplist(http_parameter, Params))
+      span(class=parameters, \html_seplist(http_parameter, Params))
     ])
   ).
 http_header_value(product(Name,Version)) --> !,

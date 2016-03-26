@@ -95,7 +95,7 @@ rdfh_describe(S) -->
   ).
 
 rdfh_describe_row(P-Os) -->
-  html(tr([td(\rdfh_property(P)),td(\seplist(rdfh_object, Os))])).
+  html(tr([td(\rdfh_property(P)),td(\html_seplist(rdfh_object, Os))])).
 
 
 
@@ -192,7 +192,7 @@ rdfh_property(Prop) -->
 %! rdfh_property_path(+Props)// is det.
 
 rdfh_property_path(Props) -->
-  seplist(rdfh_property, Props).
+  html_seplist(rdfh_property, Props).
 
 
 

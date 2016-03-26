@@ -36,7 +36,7 @@ rdf_info:-
   sort(1, @>=, Pairs, SortedPairs),
   list_truncate(SortedPairs, 10, TopSortedPairs),
   forall(member(N-G, TopSortedPairs), (
-    dcg_with_output_to(atom(A), rdf_print_term(G)),
+    dcg_with_output_to(atom(A), dcg_print_term(G)),
     format(user_output, '~D~25|~a~n', [N,A])
   )),
   nl.

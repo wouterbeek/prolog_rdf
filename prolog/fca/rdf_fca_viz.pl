@@ -76,6 +76,6 @@ rdf_fca_viz(G, File, Opts) :-
 
 % HELPERS %
 
-rdf_attribute_label(A) --> rdf_print_term(A).
+rdf_attribute_label(A) --> dcg_print_term(A).
 
-rdf_object_label(A)    --> rdf_print_term(A).
+rdf_object_label(A)    --> dcg_print_term(A).

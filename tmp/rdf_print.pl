@@ -1,8 +1,6 @@
 :- module(
   rdf_print,
   [
-    rdf_print_bnode//1,     % +B
-    rdf_print_bnode//2,     % +B, +Opts
     rdf_print_deref/1,      % +S
     rdf_print_deref/2,      % +S, +Opts
     rdf_print_descr/1,      % +S
@@ -170,10 +168,6 @@ Printing of RDF statements to a text-based output stream.
 :- predicate_options(rdf_print_triples/2, 2, [
      pass_to(rdf_print_tuple/5, 5)
    ]).
-:- predicate_options(rdf_print_bnode//2, 2, [
-     abbr_list(+boolean),
-     pass_to(rdf_print_list//2, 2)
-   ]).
 :- predicate_options(rdf_print_iri//2, 2, [
      abbr_iri(+boolean),
      abbr_list(+boolean),
@@ -206,33 +200,8 @@ Printing of RDF statements to a text-based output stream.
 :- predicate_options(rdf_print_term/2, 2, [
      pass_to(rdf_print_term//2, 2)
    ]).
-:- predicate_options(rdf_print_term//2, 2, [
-     pass_to(rdf_print_bnode//2, 2),
-     pass_to(rdf_print_iri//2, 2),
-     pass_to(rdf_print_literal//2, 2)
-   ]).
 
 
-
-
-
-%! rdf_print_bnode(+B)// is det.
-%! rdf_print_bnode(+B, +Opts)// is det.
-% The following options are supported:
-%   * abbr_list(+boolean)
-%     Whether RDF lists are shown in Prolog list notation.
-%     Default is `true` for statements in the RDF DB
-%     but `false` for RDF compound terms (since in the latter case
-%     we cannot check whether something is an RDF list or not).
-
-rdf_print_bnode(B) -->
-  rdf_print_bnode(B, []).
-
-rdf_print_bnode(B, Opts) -->
-  {option(abbr_list(true), Opts)},
-  rdf_print_list(B, Opts), !.
-rdf_print_bnode(B, _) -->
-  atom(B).
 
 
 

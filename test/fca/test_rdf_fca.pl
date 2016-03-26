@@ -95,10 +95,10 @@ fca_viz0(Context, GLbl) :-
     Context,
     File,
     [
-      attribute_label(rdf_print_term),
+      attribute_label(dcg_print_term),
       concept_label(both),
       graph_label(GLbl),
-      object_label(rdf_print_term)
+      object_label(dcg_print_term)
     ]
   ),
   open_pdf(File).
