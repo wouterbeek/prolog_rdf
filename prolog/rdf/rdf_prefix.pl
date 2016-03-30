@@ -1,6 +1,7 @@
 :- module(
   rdf_prefix,
   [
+    abbr_iri/2,                   % +Iri, -Abbr
     rdf_current_prefix/1,         % ?Prefix
     rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
     rdf_reset_prefix/2            % +Prefix, +IriPrefix
@@ -31,7 +32,7 @@ This allows the following two IRI notations to be distinguished:
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11-2016/01
+@version 2015/07-2015/09, 2015/11-2016/01, 2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -44,6 +45,15 @@ This allows the following two IRI notations to be distinguished:
 :- initialization((assert_cc_prefixes,assert_dbpedia_localizations)).
 
 
+
+
+
+%! abbr_iri(+Iri, -Abbr) is det.
+
+abbr_iri(Iri, Abbr) :-
+  rdf_global_id(Alias:Local, Iri), !,
+  atomic_list_concat([Alias,Local], :, Abbr).
+abbr_iri(Iri, Iri).
 
 
 

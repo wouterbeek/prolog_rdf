@@ -140,10 +140,10 @@ rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
   ;   % Trig & Turtle.
       memberchk(Format, [trig,turtle])
   ->  rdf_process_turtle(Source, rdf_call_on_quads(Goal_4), Opts3)
-  ;   % JSON-LD.
-      Format == jsonld
-  ->  json_read_dict(Source, Json),
-      forall(jsonld_tuple(Json, Tuple, Opts3), rdf_call_on_quad(Goal_4, Tuple))
+  %;   % JSON-LD.
+  %    Format == jsonld
+  %->  json_read_dict(Source, Json),
+  %    forall(jsonld_tuple(Json, Tuple, Opts3), rdf_call_on_quad(Goal_4, Tuple))
   ;   % RDF/XML.
       Format == xml
   ->  process_rdf(Source, rdf_call_on_quads(Goal_4), Opts3)
