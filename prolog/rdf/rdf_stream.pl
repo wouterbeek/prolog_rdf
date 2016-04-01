@@ -19,6 +19,7 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -29,7 +30,6 @@
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(typecheck)).
-:- use_module(library(uri/uri_ext)).
 :- use_module(library(zlib)).
 
 :- meta_predicate
@@ -89,7 +89,7 @@ rdf_read_from_stream0(Goal_2, Opts1, M1, Source) :-
   call(Goal_2, M2, Source).
 
 rdf_guess_format_options0(M, Opts1, Opts2) :-
-  uri_file_extensions(M.'llo:base_iri'.'@value', Exts1),
+  iri_file_extensions(M.'llo:base_iri'.'@value', Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, Format), !,

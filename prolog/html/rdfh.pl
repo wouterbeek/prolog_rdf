@@ -191,6 +191,10 @@ rdfh_literal0(V^^D) -->
 rdfh_literal0(V^^D) -->
   {rdf11:xsd_date_time_type(D)}, !,
   html_date_time(V).
+% XSD decimal
+rdfh_literal0(V^^D) -->
+  {rdf_subdatatype_of(D, xsd:decimal)}, !,
+  html("~w"-[V]).
 % XSD float & XSD double.
 rdfh_literal0(V^^D) -->
   {(  rdf_subdatatype_of(D, xsd:float)
