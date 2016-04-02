@@ -189,8 +189,11 @@ rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
   html("~a"-[V]).
 % XSD date/time.
-rdfh_literal0(V^^D) -->
-  {rdf11:xsd_date_time_type(D)}, !,
+rdfh_literal0(V^^D1) -->
+  {
+    rdf_subdatatype_of(D1, D2),
+    rdf11:xsd_date_time_type(D2)
+  }, !,
   html_date_time(V).
 % XSD decimal
 rdfh_literal0(V^^D) -->
@@ -434,10 +437,17 @@ rdfh_triple_table(L) -->
   rdfh_triple_table(_{}, L).
 
 rdfh_triple_table(Opts, L) -->
-  bs_table(
-    \bs_table_header(["Subject","Predicate","Object"]),
-    \html_maplist(rdfh_triple_row(Opts), L)
+  bs_table(\rdfh_table_header, \html_maplist(rdfh_triple_row(Opts), L)).
+
+rdfh_table_header -->
+  html(
+    tr([
+      th(class=subject, "Subject"),
+      th(class=predicate, "Predicate"),
+      th(class=object, "Object")
+    ])
   ).
+
 
 
 %! rdfh_triple_table(?S, ?P, ?O, ?G)// is det.
