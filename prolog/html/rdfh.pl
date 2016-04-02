@@ -58,6 +58,7 @@ This assumes that an HTTP handler with id `rdfh` is defined.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(rdf/rdf_prefix), []).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(typecheck)).
@@ -182,7 +183,7 @@ rdfh_literal0(V^^D) -->
   html(\[V]).
 % RDF language-tagged string.
 rdfh_literal0(S@LTag) --> !,
-  html(span(lang=LTag, S)).
+  html([span(lang=LTag, S)," ",\flag_icon(LTag)]).
 % XSD boolean.
 rdfh_literal0(V^^D) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
@@ -234,7 +235,7 @@ rdfh_predicate(P) -->
   rdfh_predicate(_{}, P).
 
 rdfh_predicate(Opts, P) -->
-  rdfh_link(Opts, predicate=P, rdfh_iri(P)).
+  rdfh_link(Opts, predicate=P, \rdfh_iri(P)).
 
 
 
@@ -324,7 +325,7 @@ rdfh_subject(S) -->
   rdfh_subject(_{}, S).
 
 rdfh_subject(Opts, S) -->
-  rdfh_link(Opts, subject=S, rdfh_subject0(S)).
+  rdfh_link(Opts, subject=S, \rdfh_subject0(S)).
 
 rdfh_subject0(S) -->
   {rdf_is_iri(S)}, !,
@@ -342,7 +343,7 @@ rdfh_term(T) -->
   rdfh_term(_{}, T).
 
 rdfh_term(Opts, T) -->
-  rdfh_link(Opts, term=T, rdfh_term0(T)).
+  rdfh_link(Opts, term=T, \rdfh_term0(T)).
 
 rdfh_term0(Lit) -->
   {rdf_is_literal(Lit)}, !,
