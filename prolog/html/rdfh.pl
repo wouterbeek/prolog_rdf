@@ -175,7 +175,7 @@ rdfh_literal(Lit) -->
   rdfh_literal(_{}, Lit).
 
 rdfh_literal(Opts, Lit) -->
-  rdfh_link(Opts, literal=Lit, rdfh_literal0(Lit)).
+  rdfh_link(Opts, literal=Lit, \rdfh_literal0(Lit)).
 
 % RDF HTML
 rdfh_literal0(V^^D) -->
@@ -249,7 +249,7 @@ rdfh_property(Prop) -->
   rdfh_property(_{}, Prop).
 
 rdfh_property(Opts, Prop) -->
-  rdfh_link(Opts, property=Prop, rdfh_iri(Prop)).
+  rdfh_link(Opts, property=Prop, \rdfh_iri(Prop)).
 
 
 

@@ -61,7 +61,7 @@ jsonld_expand_term(Context, Compact, Full) :-
 %         in addition to type coersion.
 jsonld_expand_term(Context, Alias, Full) :-
   get_dict(Alias, Context, Def),
-  (   string(Def)
+  (   (atom(Def) ; string(Def))
   ->  jsonld_expand_term(Context, Def, Full)
   ;   get_dict('@id', Def, Full)
   ), !.
