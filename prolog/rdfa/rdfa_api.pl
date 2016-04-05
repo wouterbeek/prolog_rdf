@@ -21,8 +21,8 @@
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdfa/rdfa_api)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdfa_date_time(r, o, +, ?, ?).

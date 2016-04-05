@@ -20,7 +20,7 @@ Higher-level update operations performed on RDF data.
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
-:- use_module(library(rdf/rdf_ext)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdf_cp(r, r, r, o, r),

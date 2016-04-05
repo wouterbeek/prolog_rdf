@@ -18,7 +18,7 @@
 
 :- use_module(library(hash_ext)).
 :- use_module(library(http/html_write)).
-:- use_module(library(rdf/rdf_ext)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri)).
 
