@@ -24,7 +24,6 @@
     rdfs_label/2           % +S, -Lit
   ]
 ).
-:- reexport(library(semweb/rdf11)).
 
 /** <module> RDF extensions
 
@@ -41,6 +40,7 @@
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
 

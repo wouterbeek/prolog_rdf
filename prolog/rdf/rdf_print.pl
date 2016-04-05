@@ -1,6 +1,8 @@
 :- module(
   rdf_print,
   [
+    dcg_print_describe//1,   % ?S
+    dcg_print_describe//2,   % ?S,             +Opts
     dcg_print_graph//1,      % +G
     dcg_print_graph//2,      % +G,             +Opts
     dcg_print_graph_term//1, % +G
@@ -24,6 +26,8 @@
     dcg_print_triples//3,    % ?S, ?P, ?O
     dcg_print_triples//4,    % ?S, ?P, ?O, ?G
     dcg_print_triples//5,    % ?S, ?P, ?O, ?G, +Opts
+    rdf_print_describe/1,    % ?S
+    rdf_print_describe/2,    % ?S,             +Opts
     rdf_print_graph/1,       % +G
     rdf_print_graph/2,       % +G,             +Opts
     rdf_print_graph_term/1,  % +G
@@ -75,6 +79,8 @@ Print RDF statements.
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
+   dcg_print_describe(r, ?, ?),
+   dcg_print_describe(r, +, ?, ?),
    dcg_print_graph(r, ?, ?),
    dcg_print_graph(r, +, ?, ?),
    dcg_print_graph_term(r, ?, ?),
@@ -94,6 +100,8 @@ Print RDF statements.
    dcg_print_triples(r, r, o, ?, ?),
    dcg_print_triples(r, r, o, r, ?, ?),
    dcg_print_triples(r, r, o, r, +, ?, ?),
+   rdf_print_describe(r),
+   rdf_print_describe(r, +),
    rdf_print_graph(r),
    rdf_print_graph(r, +),
    rdf_print_graph_term(r),
@@ -119,6 +127,12 @@ Print RDF statements.
 
 
 % NON-DCG INVOCATIONS %
+
+rdf_print_describe(G) :-
+  dcg_with_output_to(current_output, dcg_print_describe(G)).
+
+rdf_print_describe(G, Opts) :-
+  dcg_with_output_to(current_output, dcg_print_describe(G, Opts)).
 
 rdf_print_graph(G) :-
   dcg_with_output_to(current_output, dcg_print_graph(G)).
@@ -194,6 +208,15 @@ rdf_print_triples(S, P, O, G, Opts) :-
 
 
 % PRINT MULTIPLE TUPLES %
+
+dcg_print_describe(S) -->
+  dcg_print_describe(S, _{}).
+
+
+dcg_print_describe(S, Opts) -->
+  dcg_print_triples(S, _, _, _, Opts).
+
+
 
 dcg_print_graph(G) -->
   dcg_print_graph(G, _{}).
@@ -295,21 +318,31 @@ dcg_print_subjects0(I1, [S-POs|Groups1], Opts) -->
 
 
 dcg_print_predicates0(_, [], _) --> !, [].
-dcg_print_predicates0(I, [P-Os|T], Opts) -->
-  tab(I),
+dcg_print_predicates0(I1, [P-Os|T], Opts) -->
+  tab(I1),
   dcg_print_predicate(P, Opts),
   " ",
   (   {Os = [O]}
   ->  dcg_print_object(O, Opts)
-  ;   "[",
-      seplist(dcg_print_object0(Opts), Os),
-      "] "
+  ;   {
+        I2 is I1 + 1,
+        Os = [O|Os0]
+      },
+      dcg_print_object(O, Opts),
+      nl,
+      dcg_print_objects0(I2, Os0, Opts)
   ),
   " ",
   ({T == []} -> "." ; ";"),
   nl,
-  dcg_print_predicates0(I, T, Opts).
-dcg_print_object0(Opts, O) --> dcg_print_object(O, Opts).
+  dcg_print_predicates0(I1, T, Opts).
+
+dcg_print_objects0(_, [], _) --> !, [].
+dcg_print_objects0(I, [O|T], Opts) -->
+  tab(I),
+  dcg_print_object(O, Opts),
+  ({T == []} -> "" ; " ,", nl),
+  dcg_print_objects0(I, T, Opts).
 
 
 
