@@ -4,6 +4,8 @@
     rdf_aggregate_all/3,    % +Template, :Goal, -Result
     rdf_assert/1,           % +Tuple
     rdf_assert/2,           % +Triple, +G
+    rdf_assert_rev/3,       % +O, +P, +S
+    rdf_assert_rev/4,       % +O, +P, +S, +G
     rdf_expect_graph/1,     % ?G
     rdf_graph_to_triples/2, % ?G, -Triples
     rdf_image/2,            % +S, -Img
@@ -21,7 +23,7 @@
     rdf_tuple/1,            % -Tuple
     rdf_unload_db/0,
     rdfs_instance0/2,       % ?I, ?C
-    rdfs_label/2           % +S, -Lit
+    rdfs_label/2            % +S, -Lit
   ]
 ).
 
@@ -52,6 +54,8 @@
    rdf_aggregate_all(+, t, -),
    rdf_assert(t),
    rdf_assert(t, r),
+   rdf_assert_rev(o, r, r),
+   rdf_assert_rev(o, r, r, r),
    rdf_expect_graph(r),
    rdf_graph_to_triples(r, -),
    rdf_image(r, -),
@@ -85,10 +89,22 @@ rdf_assert(rdf(S,P,O,G)) :-
   rdf_assert(S, P, O, G).
 
 
-
 %! rdf_assert(+Triple, +G) is det.
 
 rdf_assert(rdf(S,P,O), G) :-
+  rdf_assert(S, P, O, G).
+
+
+
+%! rdf_assert_rev(+O, +P, +S) is det.
+
+rdf_assert_rev(O, P, S) :-
+  rdf_assert_rev(S, P, O).
+
+
+%! rdf_assert_rev(+O, +P, +S, +G) is det.
+
+rdf_assert_rev(O, P, S, G) :-
   rdf_assert(S, P, O, G).
 
 

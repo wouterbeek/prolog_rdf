@@ -11,7 +11,7 @@
 /** <module> RDF datatype
 
 @author Wouter Beek
-@version 2016/01-2016/02
+@version 2016/01-2016/02, 2016/04
 */
 
 :- use_module(library(error)).
@@ -80,9 +80,11 @@ xsd_date_time_datatype(date_time(Y,Mo,Da,H,Mi,S,_), D) :-
 %! xsd_subtype_of(?Subtype:iri, ?Supertype:iri) is nondet.
 
 xsd_subtype_of(XGlobal, YGlobal) :-
-  maplist(xsd_global_local, [XGlobal,YGlobal], [XLocal,YLocal]),
+  xsd_global_local(XGlobal, XLocal),
+  xsd_global_local(YGlobal, YLocal),
   xsdp_subtype_of(XLocal, YLocal),
-  maplist(xsd_global_local, [XGlobal,YGlobal], [XLocal,YLocal]).
+  xsd_global_local(XGlobal, XLocal),
+  xsd_global_local(YGlobal, YLocal).
 
-xsd_global_local(X, X) :- var(X), !.
+xsd_global_local(X, Y) :- var(X), var(Y), !.
 xsd_global_local(X, Y) :- rdf_global_id(xsd:Y, X).

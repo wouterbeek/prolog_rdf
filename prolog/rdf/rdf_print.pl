@@ -65,7 +65,7 @@ Print RDF statements.
 @author Wouter Beek
 @tbd Turtle container abbreviation.
 @tbd Turtle collection abbreviation.
-@version 2016/03
+@version 2016/03-2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -137,62 +137,72 @@ rdf_print_describe(G, Opts) :-
 rdf_print_graph(G) :-
   dcg_with_output_to(current_output, dcg_print_graph(G)).
 
-rdf_print_graph(G, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_graph(G, Opts)).
+rdf_print_graph(G, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_graph(G, Opts2)).
 
 rdf_print_graph_term(G) :-
   dcg_with_output_to(current_output, dcg_print_graph_term(G)).
 
-rdf_print_graph_term(G, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_graph_term(G, Opts)).
+rdf_print_graph_term(G, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_graph_term(G, Opts2)).
 
 rdf_print_object(O) :-
   dcg_with_output_to(current_output, dcg_print_object(O)).
 
-rdf_print_object(O, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_object(O, Opts)).
+rdf_print_object(O, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_object(O, Opts2)).
 
 rdf_print_predicate(P) :-
   dcg_with_output_to(current_output, dcg_print_predicate(P)).
 
-rdf_print_predicate(P, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_predicate(P, Opts)).
+rdf_print_predicate(P, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_predicate(P, Opts2)).
 
 rdf_print_quad(S, P, O, G) :-
   dcg_with_output_to(current_output, dcg_print_quad(S, P, O, G)).
 
-rdf_print_quad(S, P, O, G, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_quad(S, P, O, G, Opts)).
+rdf_print_quad(S, P, O, G, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_quad(S, P, O, G, Opts2)).
 
 rdf_print_quads(Tuples) :-
   dcg_with_output_to(current_output, dcg_print_quads(Tuples)).
 
-rdf_print_quads(Tuples, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_quads(Tuples, Opts)).
+rdf_print_quads(Tuples, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_quads(Tuples, Opts2)).
 
 rdf_print_quads(S, P, O, G) :-
   dcg_with_output_to(current_output, dcg_print_quads(S, P, O, G)).
 
-rdf_print_quads(S, P, O, G, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_quads(S, P, O, G, Opts)).
+rdf_print_quads(S, P, O, G, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_quads(S, P, O, G, Opts2)).
 
 rdf_print_term(T) :-
   dcg_with_output_to(current_output, dcg_print_term(T)).
 
-rdf_print_term(T, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_term(T, Opts)).
+rdf_print_term(T, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_term(T, Opts2)).
 
 rdf_print_triple(S, P, O) :-
   dcg_with_output_to(current_output, dcg_print_triple(S, P, O)).
 
-rdf_print_triple(S, P, O, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_triple(S, P, O, Opts)).
+rdf_print_triple(S, P, O, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_triple(S, P, O, Opts2)).
 
 rdf_print_triples(Triples) :-
   dcg_with_output_to(current_output, dcg_print_triples(Triples)).
 
-rdf_print_triples(Triples, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_triples(Triples, Opts)).
+rdf_print_triples(Triples, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_triples(Triples, Opts2)).
 
 rdf_print_triples(S, P, O) :-
   dcg_with_output_to(current_output, dcg_print_triples(S, P, O)).
@@ -200,8 +210,9 @@ rdf_print_triples(S, P, O) :-
 rdf_print_triples(S, P, O, G) :-
   dcg_with_output_to(current_output, dcg_print_triples(S, P, O, G)).
 
-rdf_print_triples(S, P, O, G, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_triples(S, P, O, G, Opts)).
+rdf_print_triples(S, P, O, G, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_triples(S, P, O, G, Opts2)).
 
 
 
