@@ -3,6 +3,7 @@
   [
     gen_nquad/4,   % +S, +P, +O, +G
     gen_ntriple/3, % +S, +P, +O
+    gen_ntriple/4, % +S, +P, +O, +G
     gen_ntuples/4, % ?S, ?P, ?O, ?G
     gen_ntuples/5  % ?S, ?P, ?O, ?G, +Opts
   ]
@@ -11,7 +12,7 @@
 /** <module> Generate N-Quads
 
 @author Wouter Beek
-@version 2016/03
+@version 2016/03-2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -28,6 +29,7 @@
 :- rdf_meta
    gen_nquad(r, r, o, r),
    gen_ntriple(r, r, o),
+   gen_ntriple(r, r, o, r),
    gen_ntuple(+, r, r, o, r),
    gen_ntuple(+, +, r, r, o, r),
    gen_ntuples(r, r, o, r, +).
@@ -46,6 +48,10 @@ gen_nquad(S, P, O, G) :-
 
 gen_ntriple(S, P, O) :-
   gen_nquad(S, P, O, default).
+
+
+gen_ntriple(S, P, O, _) :-
+  gen_ntriple(S, P, O).
 
 
 
