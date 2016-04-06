@@ -19,12 +19,12 @@
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(option)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
-:- use_module(library(uri)).
 
 :- rdf_meta
    gen_nquad(r, r, o, r),
@@ -112,10 +112,10 @@ gen_ntuples_begin(State2, Opts) :-
   gen_empty_state(State1),
   (option(warn(Warn), Opts) -> put_dict(warn, State1, Warn, State2) ; State2 = State1),
   (   option(base_iri(BaseIri), Opts)
-  ->  uri_components(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
+  ->  iri_comps(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
       atom_ending_in(Path0, '#', Suffix),
       atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
-      uri_components(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
+      iri_comps(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
       nb_set_dict(bprefix, State2, BPrefix)
   ;   true
   ).

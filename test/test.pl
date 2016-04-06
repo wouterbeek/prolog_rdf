@@ -60,6 +60,7 @@
 :- use_module(library(rdfa/rdfa_high)).
 :- use_module(library(rdfa/rdfa_low)).
 %/rdfs
+:- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stats)).
 %/sparql
 :- use_module(library(sparql/sparql_db)).

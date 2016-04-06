@@ -103,7 +103,7 @@ dbpedia_register(LTag) :-
   % Some languages, in addition, have their own SPARQL endpoint.
   atomic_list_concat([LTag,dbpedia], ., Endpoint),
   atomic_list_concat([LTag,dbpedia,org], ., Auth),
-  uri_components(Iri, uri_components(http,Auth,_,_,_)),
+  iri_comps(Iri, uri_components(http,Auth,_,_,_)),
   sparql_register_endpoint(
     Endpoint,
     [Iri,'http://dbpedia.org','http://live.dbpedia.org'],
@@ -118,9 +118,9 @@ dbpedia_register(LTag) :-
 % Endpoints that are associated with the prefix of the given resource.
 
 sparql_endpoint_by_iri(Iri, Endpoint) :-
-  uri_component(Iri, host, Host),
+  iri_comp(Iri, host, Host),
   sparql_endpoint_option(Endpoint, location, Location),
-  uri_component(Location, host, Host).
+  iri_comp(Location, host, Host).
 
 
 

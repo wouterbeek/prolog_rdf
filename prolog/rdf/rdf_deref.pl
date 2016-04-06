@@ -18,13 +18,13 @@
 :- use_module(library(apply)).
 :- use_module(library(debug_ext)).
 :- use_module(library(http/http_ext)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pool)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(uri)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
 :- debug(rdf_deref(overview)).
@@ -86,7 +86,7 @@ rdf_cache(Opts1) :-
 rdf_cache_worker(Opts, S, Ys) :-
   option(excluded_authorities(ExclAuths), Opts, []),
   (   rdf_is_iri(S)
-  ->  (   uri_components(S, uri_components(Scheme,Auth,_,_,_)),
+  ->  (   iri_comps(S, uri_components(Scheme,Auth,_,_,_)),
           http_scheme(Scheme)
       ->  (   memberchk(Auth, ExclAuths)
           ->  Ys = [],

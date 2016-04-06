@@ -19,9 +19,9 @@ Automated conversion from Prolog terms to RDF triples.
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdfs/rdfs_api)).
-:- use_module(library(uri)).
 
 
 
@@ -31,7 +31,7 @@ prolog_to_rdf(G, Mod, Term, I) :-
   % Namespace.
   (   rdf_current_prefix(Mod, _), !
   ;   atomic_list_concat([Mod,''], /, Path),
-      uri_components(Iri, uri_components(http,'www.wouterbeek.com',Path,_,_)),
+      iri_comps(Iri, uri_components(http,'www.wouterbeek.com',Path,_,_)),
       rdf_register_prefix(Mod, Iri)
   ),
 

@@ -34,6 +34,7 @@ names:
 | `Lex`             | Lexical form   |
 | `Name`            | Name           |
 | `Node`            | Node           |
+| `NS`              | Namespace      |
 | `O`               | Object term    |
 | `P`               | Predicate term |
 | `Prop`            | Property       |

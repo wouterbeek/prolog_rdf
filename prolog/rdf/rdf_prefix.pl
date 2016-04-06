@@ -38,9 +38,9 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(csv)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(uri)).
 
 :- initialization((assert_cc_prefixes,assert_dbpedia_localizations)).
 
@@ -289,23 +289,17 @@ dbpedia_language_tag(zh_yue).
 %! dbpedia_register(+LanguageTag:atom) is det.
 
 dbpedia_register(LTag) :-
-  atomic_list_concat([LTag,dbpedia,org], ., Authority),
+  atomic_list_concat([LTag,dbpedia,org], ., Auth),
 
   % XML namespace for resources.
-  atomic_list_concat([LTag,dbr], ., ResourceNamespace),
-  uri_components(
-    ResourcePrefix,
-    uri_components(http,Authority,'/resource/',_,_)
-  ),
-  rdf_reset_prefix(ResourceNamespace, ResourcePrefix),
+  atomic_list_concat([LTag,dbr], ., ResourceNS),
+  iri_comps(ResourcePrefix, uri_components(http,Auth,'/resource/',_,_)),
+  rdf_reset_prefix(ResourceNS, ResourcePrefix),
 
   % XML namespace for properties.
-  atomic_list_concat([LTag,dbp], ., PropertyNamespace),
-  uri_components(
-    PropertyPrefix,
-    uri_components(http,Authority,'/property/',_,_)
-  ),
-  rdf_reset_prefix(PropertyNamespace, PropertyPrefix).
+  atomic_list_concat([LTag,dbp], ., PropNS),
+  iri_comps(PropPrefix, uri_components(http,Auth,'/property/',_,_)),
+  rdf_reset_prefix(PropNS, PropPrefix).
 
 
 

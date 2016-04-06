@@ -26,9 +26,9 @@
 :- use_module(library(os/gnu_wc)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).

@@ -15,13 +15,13 @@
 @author Wouter Beek
 @compat RDF 1.1 Semantics
 @see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
-@version 2015/08, 2015/10, 2015/12-2016/01
+@version 2015/08, 2015/10, 2015/12-2016/01, 2016/04
 */
 
 :- use_module(library(atom_ext)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(uri)).
 
 :- rdf_meta
    rdf_fresh_graph(r, +),
@@ -74,13 +74,13 @@ rdf_new_graph(G1, G) :-
       rdf_new_graph(G2, G)
   ).
 rdf_new_graph(G1, G) :-
-  uri_components(G1, uri_components(Scheme,Auth,Path1,_,_)),
+  iri_comps(G1, uri_components(Scheme,Auth,Path1,_,_)),
   % Remove the query and fragment parts, if any.
-  uri_components(G2, uri_components(Scheme,Auth,Path1,_,_)),
+  iri_comps(G2, uri_components(Scheme,Auth,Path1,_,_)),
   (   rdf_new_graph_try(G2)
   ->  G = G2
   ;   new_atom(Path1, Path2),
-      uri_components(G2, uri_components(Scheme,Auth,Path2,_,_)),
+      iri_comps(G2, uri_components(Scheme,Auth,Path2,_,_)),
       rdf_new_graph(G2, G)
   ).
 rdf_new_graph(G1, G) :-

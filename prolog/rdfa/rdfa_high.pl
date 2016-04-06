@@ -18,9 +18,9 @@
 
 :- use_module(library(hash_ext)).
 :- use_module(library(http/html_write)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
-:- use_module(library(uri)).
 
 :- rdf_meta
    agent_image(r, -),
@@ -39,7 +39,7 @@ agent_gravatar(Agent, Uri) :-
   downcase_atom(EMail, CanonicalEMail),
   md5(CanonicalEMail, Hash),
   atomic_list_concat(['',avatar,Hash], /, Path),
-  uri_components(Uri, uri_components(http,'www.gravatar.com',Path,_,_)).
+  iri_comps(Uri, uri_components(http,'www.gravatar.com',Path,_,_)).
 
 
 

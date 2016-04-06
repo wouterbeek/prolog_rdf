@@ -67,7 +67,7 @@ This assumes that an HTTP handler with id `rdfh` is defined.
    rdfh_link(+, html, ?, ?),
    rdfh_link(+, +, html, ?, ?).
 
-:- setting(rdfh_handler, atom, rdfh,
+:- setting(rdfh_handler, atom, '',
      "ID of the HTTP handler that performs RDF term lookup."
    ).
 
@@ -165,6 +165,7 @@ rdfh_list(L) -->
 rdfh_list(Opts, L) -->
   {rdf_list(L, Terms)},
   list(rdfh_term0(Opts), Terms).
+rdfh_term0(Opts, Term) --> rdfh_term(Term, Opts).
 
 
 
@@ -267,7 +268,7 @@ rdfh_property_path(Opts, Props) -->
 %! rdfh_quad(+S, +P, +O, +G)// is det.
 
 rdfh_quad(S, P, O, G) -->
-  html([&(lang),\rdfh_triple0(S, P, O),", ",\rdfh_graph(G),&(rang)]).
+  html([&(lang),\rdfh_triple(S, P, O),", ",\rdfh_graph(G),&(rang)]).
 
 
 
@@ -393,22 +394,27 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
 
 
 
+%! rdfh_triple(+Triple)// is det.
 %! rdfh_triple(+S, +P, +O)// is det.
 %! rdfh_triple(+Opts, +S, +P, +O)// is det.
+
+rdfh_triple(rdf(S,P,O)) -->
+  html(div, \rdfh_triple(S, P, O)).
+
 
 rdfh_triple(S, P, O) -->
   rdfh_triple(_{}, S, P, O).
 
-rdfh_triple(Opts, S, P, O) -->
-  html([&(lang),\rdfh_triple0(Opts, S, P, O),&(rang)]).
 
-rdfh_triple0(Opts, S, P, O) -->
+rdfh_triple(Opts, S, P, O) -->
   html([
+    &(lang),
     \rdfh_subject(Opts, S),
     ", ",
     \rdfh_predicate(Opts, P),
     ", ",
-    \rdfh_object(Opts, O)
+    \rdfh_object(Opts, O),
+    &(rang)
   ]).
 
 
@@ -484,6 +490,7 @@ rdfh_link(Query, Content_2) -->
 rdfh_link(Opts, N=V1, Content_2) -->
   {
     setting(rdfh_handler, Id),
+    Id \== '',
     rdf_global_term(V1, V2),
     (is_iri(V2) -> Iri = true ; Iri = false),
     term_to_atom(V2, V3),
@@ -497,10 +504,3 @@ rdfh_link(Opts, N=V1, Content_2) -->
   ({Iri == true} -> html([" ",\external_link_icon(V3)]) ; "").
 rdfh_link(_, _, Content_2) -->
   Content_2.
-
-
-
-%! rdfh_triple0(+Trip:compound)// is det.
-
-rdfh_triple0(rdf(S,P,O)) -->
-  html(div, \rdfh_triple(S, P, O)).
