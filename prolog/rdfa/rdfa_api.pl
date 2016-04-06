@@ -37,7 +37,7 @@ rdfa_date_time(P1, Something, Masks) -->
   {
     something_to_date_time(Something, DT),
     date_time_masks(Masks, DT, MaskedDT),
-    current_ltag(LTag),
+    current_ltag([en,nl], LTag),
     html_machine_date_time(MaskedDT, MachineString),
     xsd_date_time_datatype(DT, D1),
     maplist(rdfa_prefixed_iri, [P1,D1], [P2,D2])

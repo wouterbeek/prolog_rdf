@@ -19,7 +19,7 @@
 Support for loading RDF data.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/03
+@version 2015/08, 2015/10-2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -43,6 +43,7 @@ Support for loading RDF data.
 :- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
+:- use_module(library(uuid_ext)).
 
 :- meta_predicate 
     rdf_call_on_graph(+, 1),
@@ -227,7 +228,9 @@ rdf_load_file(Source, Opts) :-
   % Allow statistics about the number of tuples to be returned.
   rdf_default_graph(DefG),
   option(graph(ToG), Opts, DefG),
-  State = _{quads: 0, triples: 0},
+  uuid_no_hyphen(Uuid),
+  atom_concat('_:', Uuid, BPrefix),
+  State = _{bnode: BPrefix, quads: 0, triples: 0},
   rdf_call_on_tuples(Source, rdf_load_tuple(State, ToG), Opts),
   NoTuples is State.triples + State.quads,
   option(quads(State.quads), Opts, _),
@@ -240,7 +243,8 @@ rdf_load_file(Source, Opts) :-
   ).
 
 % @tbd IRI normalization.
-rdf_load_tuple(State, ToG, S, P, O, FromG) :-
+rdf_load_tuple(State, ToG, S0, P0, O0, FromG) :-
+  maplist(bnodify(State), [S0,P0,O0], [S,P,O]),
   (   rdf_default_graph(FromG)
   ->  G = ToG,
       dict_inc(triples, State)
@@ -248,6 +252,12 @@ rdf_load_tuple(State, ToG, S, P, O, FromG) :-
       dict_inc(quads, State)
   ),
   rdf_assert(S, P, O, G).
+
+bnodify(State, X, Y) :-
+  rdf_is_bnode(X),
+  atom_concat('_:', Postfix, X), !,
+  atomic_list_concat(['_',State.bnode,Postfix], :, Y).
+bnodify(_, X, X).
 
 
 
