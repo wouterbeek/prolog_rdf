@@ -165,7 +165,6 @@ rdfh_list(L) -->
 rdfh_list(Opts, L) -->
   {rdf_list(L, Terms)},
   list(rdfh_term0(Opts), Terms).
-rdfh_term0(Opts, Term) --> rdfh_term(Term, Opts).
 
 
 
@@ -176,46 +175,49 @@ rdfh_literal(Lit) -->
   rdfh_literal(_{}, Lit).
 
 rdfh_literal(Opts, Lit) -->
-  rdfh_link(Opts, literal=Lit, \rdfh_literal0(Lit)).
+  rdfh_link(Opts, literal=Lit, rdfh_literal0(Opts, Lit)).
 
 % RDF HTML
-rdfh_literal0(V^^D) -->
+rdfh_literal0(_, V^^D) -->
   {rdf_subdatatype_of(D, rdf:'HTML')}, !,
   html(\[V]).
 % RDF language-tagged string.
-rdfh_literal0(S@LTag) --> !,
+rdfh_literal0(Opts, S@LTag) -->
+  {get_dict(show_flag, Opts, true)}, !,
   html([span(lang=LTag, S)," ",\flag_icon(LTag)]).
+rdfh_literal0(_, S@LTag) --> !,
+  html(span(lang=LTag, S)).
 % XSD boolean.
-rdfh_literal0(V^^D) -->
+rdfh_literal0(_, V^^D) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
   html("~a"-[V]).
 % XSD date/time.
-rdfh_literal0(V^^D1) -->
+rdfh_literal0(_, V^^D1) -->
   {
     rdf_subdatatype_of(D1, D2),
     rdf11:xsd_date_time_type(D2)
   }, !,
   html_date_time(V).
 % XSD decimal
-rdfh_literal0(V^^D) -->
+rdfh_literal0(_, V^^D) -->
   {rdf_subdatatype_of(D, xsd:decimal)}, !,
   html("~w"-[V]).
 % XSD float & XSD double.
-rdfh_literal0(V^^D) -->
+rdfh_literal0(_, V^^D) -->
   {(  rdf_subdatatype_of(D, xsd:float)
   ;   rdf_subdatatype_of(D, xsd:double)
   )}, !,
   html("~G"-[V]).
 % XSD integer.
-rdfh_literal0(V^^D) -->
+rdfh_literal0(_, V^^D) -->
   {rdf_subdatatype_of(D, xsd:integer)}, !,
   html("~D"-[V]).
 % XSD string.
-rdfh_literal0(V^^D) -->
+rdfh_literal0(_, V^^D) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
   html(V).
 % XSD URI
-rdfh_literal0(V^^D) -->
+rdfh_literal0(_, V^^D) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
 
@@ -228,7 +230,7 @@ rdfh_object(O) -->
   rdfh_object(_{}, O).
 
 rdfh_object(Opts, O) -->
-  rdfh_link(Opts, object=O, \rdfh_term0(O)).
+  rdfh_link(Opts, object=O, \rdfh_term0(Opts, O)).
 
 
 
@@ -347,12 +349,12 @@ rdfh_term(T) -->
   rdfh_term(_{}, T).
 
 rdfh_term(Opts, T) -->
-  rdfh_link(Opts, term=T, \rdfh_term0(T)).
+  rdfh_link(Opts, term=T, \rdfh_term0(Opts, T)).
 
-rdfh_term0(Lit) -->
+rdfh_term0(Opts, Lit) -->
   {rdf_is_literal(Lit)}, !,
-  rdfh_literal0(Lit).
-rdfh_term0(S) -->
+  rdfh_literal0(Opts, Lit).
+rdfh_term0(_, S) -->
   rdfh_subject0(S).
 
 
