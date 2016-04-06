@@ -13,7 +13,7 @@
 */
 
 :- use_module(library(memfile)).
-:- use_module(library(rdf/rdf_ext)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(sgml/sgml_ext)).
 
 
