@@ -201,11 +201,12 @@ owl_assert_value_restriction(P, V, G, R) :-
 
 
 
-%! rdf_assert_action(+ActionClass:iri, +Actor:iri, -Action:iri) is det.
-%! rdf_assert_action(+ActionClass:iri, +Actor:iri, -Action:iri, +G) is det.
+%! rdf_assert_action(+ActionC, +Actor, -Action) is det.
+%! rdf_assert_action(+ActionC, +Actor, -Action, +G) is det.
 
 rdf_assert_action(ActionClass, Actor, Action):-
   rdf_assert_action(ActionClass, Actor, Action, default).
+
 
 rdf_assert_action(ActionClass, Actor, Action, G):-
   rdf_create_iri(vzm, [action], Action),
