@@ -122,11 +122,10 @@ rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
   BaseIri = M.'llo:base_iri'.'@value',
   jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
   rdf_format_iri(Format, FormatIri),
-  % @tbd Globally unique blank nodes?
-  %%%%uuid_no_hyphen(UniqueId),
-  %%%%atomic_list_concat(['_:',UniqueId,-], BPrefix),
+  uuid_no_hyphen(Uuid),
+  atomic_list_concat(['_',Uuid,''], :, BPrefix),
   Opts2 = [
-    anon_prefix('_:'),
+    anon_prefix(BPrefix),
     base(BaseIri),
     base_iri(BaseIri),
     base_uri(BaseIri),
@@ -228,9 +227,7 @@ rdf_load_file(Source, Opts) :-
   % Allow statistics about the number of tuples to be returned.
   rdf_default_graph(DefG),
   option(graph(ToG), Opts, DefG),
-  uuid_no_hyphen(Uuid),
-  atom_concat('_:', Uuid, BPrefix),
-  State = _{bnode: BPrefix, quads: 0, triples: 0},
+  State = _{quads: 0, triples: 0},
   rdf_call_on_tuples(Source, rdf_load_tuple(State, ToG), Opts),
   NoTuples is State.triples + State.quads,
   option(quads(State.quads), Opts, _),
@@ -243,8 +240,8 @@ rdf_load_file(Source, Opts) :-
   ).
 
 % @tbd IRI normalization.
-rdf_load_tuple(State, ToG, S0, P0, O0, FromG) :-
-  maplist(bnodify(State), [S0,P0,O0], [S,P,O]),
+rdf_load_tuple(State, ToG, S, P, O, FromG) :-
+  %maplist(bnodify(State), [S0,P0,O0], [S,P,O]),
   (   rdf_default_graph(FromG)
   ->  G = ToG,
       dict_inc(triples, State)
