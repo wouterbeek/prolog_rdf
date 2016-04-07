@@ -321,39 +321,46 @@ dcg_print_subjects0(I1, [S-POs|Groups1], Opts) -->
   dcg_print_subject(S, Opts),
   {
     aggregate_all(set(P-O), member(po(P,O), POs), SortedPairs),
-    group_pairs_by_key(SortedPairs, Groups2)
+    group_pairs_by_key(SortedPairs, Groups2),
+    I2 is I1 + 1
   },
-  ({Groups2 = [_]} -> " ", {I2 = 0} ; nl, {I2 is I1 + 1}),
-  dcg_print_predicates0(I2, Groups2, Opts),
+  dcg_print_predicates1(I2, Groups2, Opts),
   dcg_print_subjects0(I1, Groups1, Opts).
 
+% There is exactly one predicate.  Emit it on the same line.
+dcg_print_predicates1(I, [P-Os], Opts) --> !,
+  " ",
+  dcg_print_predicate(P, Opts),
+  dcg_print_objects1(I, Os, Opts).
+dcg_print_predicates1(I, Groups, Opts) -->
+  dcg_print_predicates2(I, Groups, Opts).
 
-dcg_print_predicates0(_, [], _) --> !, [].
-dcg_print_predicates0(I1, [P-Os|T], Opts) -->
+dcg_print_predicates2(_, [], _) --> !, [].
+dcg_print_predicates2(I1, [P-Os|Groups], Opts) -->
+  nl,
   tab(I1),
   dcg_print_predicate(P, Opts),
-  " ",
-  (   {Os = [O]}
-  ->  dcg_print_object(O, Opts)
-  ;   {
-        I2 is I1 + 1,
-        Os = [O|Os0]
-      },
-      dcg_print_object(O, Opts),
-      nl,
-      dcg_print_objects0(I2, Os0, Opts)
-  ),
-  " ",
-  ({T == []} -> "." ; ";"),
-  nl,
-  dcg_print_predicates0(I1, T, Opts).
+  {I2 is I1 + 1},
+  dcg_print_objects1(I2, Os, Opts),
+  ({Groups == []} -> "." ; ";"),
+  dcg_print_predicates2(I1, Groups, Opts).
 
-dcg_print_objects0(_, [], _) --> !, [].
-dcg_print_objects0(I, [O|T], Opts) -->
+
+% There is exactly one object.  Emit it on the same line.
+dcg_print_objects1(_, [O], Opts) --> !,
+  " ",
+  dcg_print_object(O, Opts).
+dcg_print_objects1(I, Os, Opts) -->
+  dcg_print_objects2(I, Os, Opts).
+
+
+dcg_print_objects2(_, [], _) --> !, [].
+dcg_print_objects2(I, [O|Os], Opts) -->
+  nl,
   tab(I),
   dcg_print_object(O, Opts),
-  ({T == []} -> "" ; " ,", nl),
-  dcg_print_objects0(I, T, Opts).
+  ({Os == []} -> "" ; " ,"),
+  dcg_print_objects2(I, Os, Opts).
 
 
 
