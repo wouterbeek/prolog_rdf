@@ -40,6 +40,7 @@
 
 
 
+
 gen_nquad(S, P, O, G) :-
   gen_empty_state(State),
   gen_ntuple(State, S, P, O, G).
