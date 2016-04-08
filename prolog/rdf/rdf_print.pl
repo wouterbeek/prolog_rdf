@@ -333,7 +333,8 @@ dcg_print_predicates1(I, [P-Os], Opts) --> !,
   dcg_print_predicate(P, Opts),
   dcg_print_objects1(I, Os, Opts).
 dcg_print_predicates1(I, Groups, Opts) -->
-  dcg_print_predicates2(I, Groups, Opts).
+  dcg_print_predicates2(I, Groups, Opts),
+  nl.
 
 dcg_print_predicates2(_, [], _) --> !, [].
 dcg_print_predicates2(I1, [P-Os|Groups], Opts) -->
@@ -342,6 +343,7 @@ dcg_print_predicates2(I1, [P-Os|Groups], Opts) -->
   dcg_print_predicate(P, Opts),
   {I2 is I1 + 1},
   dcg_print_objects1(I2, Os, Opts),
+  " ",
   ({Groups == []} -> "." ; ";"),
   dcg_print_predicates2(I1, Groups, Opts).
 
