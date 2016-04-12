@@ -56,6 +56,7 @@ This assumes that an HTTP handler with id `rdfh` is defined.
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/js_write)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix), []).
@@ -364,6 +365,16 @@ rdfh_tree(Tree) -->
   html([
     \check_all,
     div(class=treeview, div(class=tree,\rdfh_trees([0], [Tree])))
+  ]).
+
+check_all -->
+  html([
+    \js_script({|javascript(_)||
+$("#checkAll").change(function () {
+  $("input:checkbox").prop('checked', $(this).prop("checked"));
+});
+    |}),
+    p(label([input([id=checkAll,type=checkbox], []), 'Check all']))
   ]).
 
 rdfh_trees(_, []) --> !, [].
