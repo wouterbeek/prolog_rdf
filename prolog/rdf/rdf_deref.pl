@@ -3,15 +3,16 @@
   [
     rdf_cache/0,
     rdf_cache/1, % +Opts
-    rdf_deref/1  % +S
+    rdf_deref/1, % +Iri
+    rdf_deref/2  % +Iri, -Tuples
   ]
 ).
 
-/** <module> RDF: Synchronization
+/** <module> RDF dereference
 
 @author Wouter Beek
 @tbd Fix IRI normalization,
-@version 2015/12-2016/02
+@version 2015/12-2016/02, 2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -31,7 +32,9 @@
 :- debug(rdf_deref(request)).
 %:- debug(rdf_deref(result)).
 
-:- rdf_meta(rdf_deref(r)).
+:- rdf_meta
+   rdf_deref(r),
+   rdf_deref(r, -).
 
 :- predicate_options(rdf_cache/1, 1, [
      number_of_workers(+nonneg),
@@ -46,7 +49,7 @@
 
 
 
-%! rdf_cache:triple_to_iri(+Triple:rdf_triple, -Iri:iri) is nondet.
+%! rdf_cache:triple_to_iri(+Triple, -Iri) is nondet.
 
 :- dynamic(rdf_cache:triple_to_iri/2).
 :- multifile(rdf_cache:triple_to_iri/2).
@@ -123,3 +126,13 @@ rdf_deref_tuple(_, _, _, _, _).
 is_same_iri(X, Y, Z) :-
   iri_normalized(X, Z),
   iri_normalized(Y, Z).
+
+
+%! rdf_deref(+Iri, -Tuple) is det.
+
+rdf_deref(Iri, Tuple) :-
+  call_collect_messages(rdf_call_on_tuples(Iri, rdf_deref_tuple0(Tuple))).
+
+rdf_deref_tuple0(rdf(S,P,O), S, P, O, G) :-
+  rdf_default_graph(G), !.
+rdf_deref_tuple0(rdf(S,P,O,G), S, P, O, G).

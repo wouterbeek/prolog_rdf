@@ -1,8 +1,8 @@
 :- module(
   rdf_print,
   [
-    rdf_print_deref/1,      % +S
-    rdf_print_deref/2,      % +S, +Opts
+    rdf_print_deref/1,      % +Iri
+    rdf_print_deref/2,      % +Iri, +Opts
     rdf_print_descr/1,      % +S
     rdf_print_descr/2,      % +S, +Opts
     rdf_print_descr/3,      % +S, ?G, +Opts
@@ -213,14 +213,14 @@ rdf_print_datatype(D, Opts) -->
 
 
 
-%! rdf_print_deref(+S) is det.
-%! rdf_print_deref(+S, +Opts) is det.
+%! rdf_print_deref(+Iri) is det.
+%! rdf_print_deref(+Iri, +Opts) is det.
 
-rdf_print_deref(S) :-
-  rdf_print_deref(S, []).
-rdf_print_deref(S, Opts) :-
-  rdf_deref(S),
-  rdf_print_triple(S, _, _, _, Opts).
+rdf_print_deref(Iri) :-
+  rdf_print_deref(Iri, []).
+rdf_print_deref(Iri, Opts) :-
+  rdf_deref(Iri, Tuples),
+  rdf_print_tuples(Tuples, Opts).
 
 
 
