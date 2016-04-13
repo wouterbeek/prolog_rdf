@@ -13,10 +13,11 @@
 /** <module> RDFa high-level structures
 
 @author Wouter Beek
-@version 2016/02-2016/03
+@version 2016/02-2016/04
 */
 
 :- use_module(library(hash_ext)).
+:- use_module(library(html/html_ext)).
 :- use_module(library(http/html_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(rdf/rdf_ext)).
@@ -81,7 +82,7 @@ agent_name(Agent, String) :-
 
 agent_name(Agent) -->
   html(
-    a(href=Agent, [
+    \internal_link(Agent, [
       \'foaf:givenName'(Agent), %'
       " ",
       \'foaf:familyName'(Agent) %'
