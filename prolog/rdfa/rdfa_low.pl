@@ -3,44 +3,44 @@
   [
     'bf:subtitle'/2,      % +Article, -Subtitle
     'bf:subtitle'//1,     % +Article
-    'dc:abstract'/2,      % +Resource, -Abstract
-    'dc:abstract'//1,     % +Resource
-    'dc:created'/2,       % +Resource, -DT
-    'dc:created'//1,      % +Resource
-    'dc:creator'/2,       % +Resource, -Agent
-    'dc:creator'//1,      % +Resource
-    'dc:subject'/2,       % +Resource, -Subject
-    'dc:title'/2,         % +Resource, -Title
-    'dc:title'//1,        % +Resource
-    'foaf:depiction'/2,   % +Agent, -Uri
+    'dc:abstract'/2,      % +Res,     -Abstract
+    'dc:abstract'//1,     % +Res
+    'dc:created'/2,       % +Res,     -DT
+    'dc:created'//1,      % +Res
+    'dc:creator'/2,       % +Res,     -Agent
+    'dc:creator'//1,      % +Res
+    'dc:subject'/2,       % +Res,     -Subject
+    'dc:title'/2,         % +Res,     -Title
+    'dc:title'//1,        % +Res
+    'foaf:depiction'/2,   % +Agent,   -Uri
     'foaf:depiction'//1,  % +Agent
-    'foaf:familyName'/2,  % +Agent, -FamilyName
+    'foaf:familyName'/2,  % +Agent,   -FamilyName
     'foaf:familyName'//1, % +Agent
-    'foaf:givenName'/2,   % +Agent, -GivenName
+    'foaf:givenName'/2,   % +Agent,   -GivenName
     'foaf:givenName'//1,  % +Agent
-    'foaf:homepage'/2,    % +Agent, -Uri
+    'foaf:homepage'/2,    % +Agent,   -Uri
     'foaf:homepage'//1,   % +Agent
-    'foaf:mbox'/2,        % +Agent, -Uri
+    'foaf:mbox'/2,        % +Agent,   -Uri
     'foaf:mbox'//1,       % +Agent
-    'foaf:name'/2,        % +Agent, -Name
+    'foaf:name'/2,        % +Agent,   -Name
     'foaf:name'//1,       % +Agent
     'org:memberOf'//1,    % +Agent
     'sbo:commentOf'//1,   % +Comment
     'sbo:content'//1      % +Article
   ]
 ).
-:- reexport(library(rdfa/rdfa_api)).
 
 /** <module> RDFa low-level structures
 
 @author Wouter Beek
-@version 2016/02-2016/03
+@version 2016/02-2016/04
 */
 
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/rdfh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(rdfa/rdfa_api)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
@@ -89,13 +89,13 @@
 
 
 
-%! 'dc:abstract'(+Resource, -Abstract) is det.
+%! 'dc:abstract'(+Res, -Abstract) is det.
 
 'dc:abstract'(Res, Abstract) :-
   rdf_pref_string(Res, dc:abstract, Abstract).
 
 
-%! 'dc:abstract'(+Resource)// is det.
+%! 'dc:abstract'(+Res)// is det.
 
 'dc:abstract'(Res) -->
   {once('dc:abstract'(Res, Abstract))},
@@ -103,13 +103,13 @@
 
 
 
-%! 'dc:created'(+Resource, -DateTime) is det.
+%! 'dc:created'(+Res, -DateTime) is nondet.
 
 'dc:created'(Res, DT) :-
   rdf_has(Res, dc:created, DT^^xsd:date).
 
 
-%! 'dc:created'(+Resource)// is det.
+%! 'dc:created'(+Res)// is det.
 
 'dc:created'(Res) -->
   {once('dc:created'(Res, DT))},
@@ -117,13 +117,14 @@
 
 
 
-%! 'dc:creator'(+Resource, -Agent) is det.
+%! 'dc:creator'(+Res, -Agent) is nondet.
 
 'dc:creator'(Res, Agent) :-
   rdf_has(Res, dc:creator, Agent).
+  
 
 
-%! 'dc:creator'(+Resource)// is det.
+%! 'dc:creator'(+Res)// is det.
 
 'dc:creator'(Res) -->
   {once('dc:creator'(Res, Agent))},
@@ -131,20 +132,20 @@
 
 
 
-%! 'dc:subject'(+Resource, -Subject) is det.
+%! 'dc:subject'(+Res, -Subject) is nondet.
 
 'dc:subject'(Res, Tag) :-
   rdf_has(Res, dc:subject, Tag).
 
 
 
-%! 'dc:title'(+Resource, -Title) is det.
+%! 'dc:title'(+Res, -Title) is det.
 
 'dc:title'(Res, Title) :-
   rdf_pref_string(Res, dc:title, Title).
 
 
-%! 'dc:title'(+Resource)// is det.
+%! 'dc:title'(+Res)// is det.
 
 'dc:title'(Res) -->
   {'dc:title'(Res, Title)},
@@ -152,7 +153,7 @@
 
 
 
-%! 'foaf:depiction'(+Agent, -Uri)// is det.
+%! 'foaf:depiction'(+Agent, -Uri) is nondet.
 
 'foaf:depiction'(Agent, Uri) :-
   rdf_has(Agent, foaf:depiction, Uri^^xsd:anyURI).
@@ -194,7 +195,7 @@
 
 
 
-%! 'foaf:homepage'(+Agent, -Uri) is det.
+%! 'foaf:homepage'(+Agent, -Uri) is nondet.
 
 'foaf:homepage'(Agent, Uri) :-
   rdf_has(Agent, foaf:homepage, Uri^^xsd:anyURI).
@@ -208,7 +209,7 @@
 
 
 
-%! 'foaf:mbox'(+Agent, -Uri) is det.
+%! 'foaf:mbox'(+Agent, -Uri) is nondet.
 
 'foaf:mbox'(Agent, Uri) :-
   rdf_has(Agent, foaf:mbox, Uri^^xsd:anyURI).

@@ -13,12 +13,14 @@
     owl_assert_object_property/8,     % +P, ?Q, ?Label, ?Comment, ?Domain, ?Range, ?G, +Opts
     owl_assert_ontology/2,            % +Ontology, ?G
     owl_assert_value_restriction/4,   % +P, +Value, ?G, -Restriction
-    rdf_assert_action/3,              % +ActionClass, +Actor, -Action
     rdf_assert_action/4,              % +ActionClass, +Actor, -Action, +G
     rdf_assert_instance/3,            % +I, +Cs, +G
+    rdf_assert_list/4,                % +S, +P, +L, +G
     rdf_assert_now/2,                 % +S, +P
     rdf_assert_now/3,                 % +S, +P, +D
     rdf_assert_now/4,                 % +S, +P, +D, +G
+    rdf_assert_objects/3,             % +S, +P, +Os
+    rdf_assert_objects/4,             % +S, +P, +Os, +G
     rdf_create_iri/2,                 % +Prefix, -Iri
     rdf_create_iri/3,                 % +Prefix, +SubPaths, -Iri
     rdfs_assert_class/5,              % +C, ?D, ?Label, ?Comment, ?G
@@ -43,11 +45,12 @@
 Predicates for asseritng RDFS statements in an easy way.
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/12-2016/01
+@version 2015/07-2015/09, 2015/12-2016/01, 2016/04
 */
 
 :- use_module(library(apply)).
 :- use_module(library(default)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -77,12 +80,14 @@ Predicates for asseritng RDFS statements in an easy way.
    owl_assert_object_property(r, t, ?, ?, r, r, r, +),
    owl_assert_ontology(r, r),
    owl_assert_value_restriction(r, r, r, -),
-   rdf_assert_action(r, r, -),
    rdf_assert_action(r, r, -, r),
    rdf_assert_instance(r, t, r),
+   rdf_assert_list(r, r, t, r),
    rdf_assert_now(o, r),
    rdf_assert_now(o, r, r),
    rdf_assert_now(o, r, r, r),
+   rdf_assert_objects(r, r, t),
+   rdf_assert_objects(r, r, t, r),
    rdfs_assert_class(r, t, ?, ?, r),
    rdfs_assert_comment(r, +, r),
    rdfs_assert_domain(r, r, r),
@@ -201,12 +206,7 @@ owl_assert_value_restriction(P, V, G, R) :-
 
 
 
-%! rdf_assert_action(+ActionC, +Actor, -Action) is det.
 %! rdf_assert_action(+ActionC, +Actor, -Action, +G) is det.
-
-rdf_assert_action(ActionClass, Actor, Action):-
-  rdf_assert_action(ActionClass, Actor, Action, default).
-
 
 rdf_assert_action(ActionClass, Actor, Action, G):-
   rdf_create_iri(vzm, [action], Action),
@@ -229,6 +229,14 @@ rdf_assert_instance(I, C, G) :-
 
 
 
+%! rdf_assert_list(+S, +P, +L, +G) is det.
+
+rdf_assert_list(S, P, L, G) :-
+  rdf_assert_list(L, B),
+  rdf_assert(S, P, B, G).
+
+
+
 %! rdf_assert_now(+S, +P) is det.
 %! rdf_assert_now(+S, +P, +D) is det.
 %! rdf_assert_now(+S, +P, +D, +G) is det.
@@ -242,6 +250,19 @@ rdf_assert_now(S, P, D) :-
 rdf_assert_now(S, P, D, G) :-
   get_time(Now),
   rdf_assert(S, P, Now^^D, G).
+
+
+
+%! rdf_assert_objects(+S, +P, +Os) is det.
+%! rdf_assert_objects(+S, +P, +Os, +G) is det.
+
+rdf_assert_objects(S, P, Os) :-
+  rdf_default_graph(G),
+  rdf_assert_objects(S, P, Os, G).
+
+
+rdf_assert_objects(S, P, Os, G) :-
+  forall(member(O, Os), rdf_assert(S, P, O, G)).
 
 
 

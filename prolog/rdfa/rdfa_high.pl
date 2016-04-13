@@ -1,14 +1,13 @@
 :- module(
   rdfa_high,
   [
-    agent_image/2,    % +Agent, -Img:iri
+    agent_image/2,    % +Agent, -Img
     agent_image//1,   % +Agent
-    agent_name/2,     % +Agent, -Name:string
-    agent_name//1     % +Agent
+    agent_name/2,     % +Agent, -Name
+    agent_name//1,    % +Agent
+    creators//1       % +Res
   ]
 ).
-:- reexport(library(rdfa/rdfa_api)).
-:- reexport(library(rdfa/rdfa_low)).
 
 /** <module> RDFa high-level structures
 
@@ -21,6 +20,8 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(rdfa/rdfa_api)).
+:- use_module(library(rdfa/rdfa_low)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
 
@@ -28,7 +29,8 @@
    agent_image(r, -),
    agent_image(r, ?, ?),
    agent_name(r, -),
-   agent_name(r, ?, ?).
+   agent_name(r, ?, ?),
+   creators(r, ?, ?).
 
 
 
@@ -90,3 +92,16 @@ agent_name(Agent) -->
   ), !.
 agent_name(Agent) -->
   'foaf:name'(Agent).
+
+
+
+%! creators(+Res)// is det.
+
+creators(Res) -->
+  {rdf_list(Res, dc:creator, Agents)},
+  html(
+    ol([inlist='',rel='dc:creator'],
+      \html_maplist(agent_item0, Agents)
+    )
+  ).
+agent_item0(Agent) --> html(li(\agent_name(Agent))).

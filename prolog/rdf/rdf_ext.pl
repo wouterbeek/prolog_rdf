@@ -14,6 +14,7 @@
     rdf_is_quad/1,          % @Term
     rdf_is_triple/1,        % @Term
     rdf_langstring/3,       % ?S, ?P, -Lit
+    rdf_list/3,             % ?S, ?P, -L
     rdf_nextto/3,           % ?X, ?Y, ?RdfList
     rdf_pref_string/3,      % ?S, ?P, -Lit
     rdf_retractall/1,       % +Tuple
@@ -31,7 +32,7 @@
 
 @author Wouter Beek
 @compat RDF 1.1
-@version 2015/12-2016/03
+@version 2015/12-2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -60,6 +61,7 @@
    rdf_graph_to_triples(r, -),
    rdf_image(r, -),
    rdf_langstring(r, r, o),
+   rdf_list(r, r, -),
    rdf_nextto(o, o, r),
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
@@ -189,6 +191,14 @@ rdf_langstring(S, P, LRange, Lit) :-
   basic_filtering(LRange, LTag),
   Lit = V@LTag.
 
+
+
+%! rdf_list(?S, ?P, -L) is nondet.
+
+rdf_list(S, P, L) :-
+  rdf_has(S, P, B),
+  (rdf_list(B) -> rdf_list(B, L) ; L = [B]).
+  
 
 
 %! rdf_nextto(?X, ?Y, ?RdfList) is nondet.
