@@ -3,8 +3,8 @@
   [
     rdf_call_on_graph/2,    % +Source, :Goal_1
     rdf_call_on_graph/3,    % +Source, :Goal_1, +Opts
-    rdf_call_on_tuples/2,   % +Source, :Goal_4
-    rdf_call_on_tuples/3,   % +Source, :Goal_4, +Opts
+    rdf_call_on_tuples/2,   % +Source, :Goal_5
+    rdf_call_on_tuples/3,   % +Source, :Goal_5, +Opts
     rdf_download_to_file/2, % +Iri, +File
     rdf_download_to_file/3, % +Iri, +File, +Opts
     rdf_load_file/1,        % +Source
@@ -48,12 +48,12 @@ Support for loading RDF data.
 :- meta_predicate 
     rdf_call_on_graph(+, 1),
     rdf_call_on_graph(+, 1, +),
-    rdf_call_on_quad(4, +),
-    rdf_call_on_quads(4, +),
-    rdf_call_on_quads(4, +, +),
-    rdf_call_on_tuples(+, 4),
-    rdf_call_on_tuples(+, 4, +),
-    rdf_call_on_tuples_stream(4, +, +, +).
+    rdf_call_on_quad(5, +, +),
+    rdf_call_on_quads(5, +, +),
+    rdf_call_on_quads(5, +, +, +),
+    rdf_call_on_tuples(+, 5),
+    rdf_call_on_tuples(+, 5, +),
+    rdf_call_on_tuples_stream(5, +, +, +).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
@@ -104,20 +104,20 @@ rdf_call_on_graph(Source, Goal_1, Opts0) :-
 
 
 
-%! rdf_call_on_tuples(+Source, :Goal_4) is nondet.
-%! rdf_call_on_tuples(+Source, :Goal_4, +Opts) is nondet.
+%! rdf_call_on_tuples(+Source, :Goal_5) is nondet.
+%! rdf_call_on_tuples(+Source, :Goal_5, +Opts) is nondet.
 
-rdf_call_on_tuples(Source, Goal_4) :-
-  rdf_call_on_tuples(Source, Goal_4, []).
+rdf_call_on_tuples(Source, Goal_5) :-
+  rdf_call_on_tuples(Source, Goal_5, []).
 
-rdf_call_on_tuples(Source, Goal_4, Opts) :-
-  rdf_read_from_stream(Source, rdf_call_on_tuples_stream(Goal_4, Opts), Opts).
+rdf_call_on_tuples(Source, Goal_5, Opts) :-
+  rdf_read_from_stream(Source, rdf_call_on_tuples_stream(Goal_5, Opts), Opts).
 
 
-%! rdf_call_on_tuples_stream(:Goal_4, +Opts, +Metadata, +Source) is det.
-% The following call is made: `call(:Goal_4, +S, +P, +O, +G)`.
+%! rdf_call_on_tuples_stream(:Goal_5, +Opts, +M, +Source) is det.
+% The following call is made: `call(:Goal_5, +M, +S, +P, +O, +G)`.
 
-rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
+rdf_call_on_tuples_stream(Goal_5, Opts1, M, Source) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
   BaseIri = M.'llo:base_iri'.'@value',
   jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
@@ -136,29 +136,29 @@ rdf_call_on_tuples_stream(Goal_4, Opts1, M, Source) :-
   merge_options(Opts1, Opts2, Opts3),
   (   % N-Quads & N-Triples.
       memberchk(Format, [nquads,ntriples])
-  ->  rdf_process_ntriples(Source, rdf_call_on_quads(Goal_4), Opts3)
+  ->  rdf_process_ntriples(Source, rdf_call_on_quads(Goal_5, M), Opts3)
   ;   % Trig & Turtle.
       memberchk(Format, [trig,turtle])
-  ->  rdf_process_turtle(Source, rdf_call_on_quads(Goal_4), Opts3)
+  ->  rdf_process_turtle(Source, rdf_call_on_quads(Goal_5, M), Opts3)
   %;   % JSON-LD.
   %    Format == jsonld
   %->  json_read_dict(Source, Json),
-  %    forall(jsonld_tuple(Json, Tuple, Opts3), rdf_call_on_quad(Goal_4, Tuple))
+  %    forall(jsonld_tuple(Json, Tuple, Opts3), rdf_call_on_quad(Goal_5, M, Tuple))
   ;   % RDF/XML.
       Format == xml
-  ->  process_rdf(Source, rdf_call_on_quads(Goal_4), Opts3)
+  ->  process_rdf(Source, rdf_call_on_quads(Goal_5, M), Opts3)
   ;   % RDFa.
       Format == rdfa
   ->  read_rdfa(Source, Triples, Opts3),
-      rdf_call_on_quads(Goal_4, Triples)
+      rdf_call_on_quads(Goal_5, M, Triples)
   ;   existence_error(rdf_format, [Format])
   ).
 
-rdf_call_on_quad(Goal_4, rdf(S,P,O1,G1)) :- !,
+rdf_call_on_quad(Goal_5, M, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
-  ->  call(Goal_4, S, P, O1, G3)
+  ->  call(Goal_5, M, S, P, O1, G3)
   ;   rdf_legacy_literal_components(O1, D, Lex1, LTag1),
       catch((
         rdf11:post_object(O2, O1),
@@ -177,25 +177,25 @@ rdf_call_on_quad(Goal_4, rdf(S,P,O1,G1)) :- !,
       ),
       % Incorrect lexical form.
       (   var(E)
-      ->  call(Goal_4, S, P, O2, G3)
+      ->  call(Goal_5, M, S, P, O2, G3)
       ;   print_message(warning, E)
       )
   ).
-rdf_call_on_quad(Goal_4, rdf(S,P,O)) :-
+rdf_call_on_quad(Goal_5, M, rdf(S,P,O)) :-
   rdf_default_graph(G),
-  rdf_call_on_quad(Goal_4, rdf(S,P,O,G)).
+  rdf_call_on_quad(Goal_5, M, rdf(S,P,O,G)).
 
-rdf_call_on_quads(Goal_4, Tuples) :-
-  maplist(rdf_call_on_quad(Goal_4), Tuples).
+rdf_call_on_quads(Goal_5, M, Tuples) :-
+  maplist(rdf_call_on_quad(Goal_5, M), Tuples).
 
-rdf_call_on_quads(Goal_4, Tuples, _) :-
-  rdf_call_on_quads(Goal_4, Tuples).
+rdf_call_on_quads(Goal_5, M, Tuples, _) :-
+  rdf_call_on_quads(Goal_5, M, Tuples).
 
 
 
 %! rdf_download_to_file(+Iri, +File) is det.
 %! rdf_download_to_file(+Iri, ?File, +Opts) is det.
-% Options are passed to rdf_read_from_stream/3 and write_stream_to_file/3.
+% Options are passed to rdf_read_from_stream/4 and write_stream_to_file/3.
 
 rdf_download_to_file(Iri, File) :-
   rdf_download_to_file(Iri, File, []).
@@ -242,7 +242,7 @@ rdf_load_file(Source, Opts) :-
   ).
 
 % @tbd IRI normalization.
-rdf_load_tuple(State, ToG, S, P, O, FromG) :-
+rdf_load_tuple(State, ToG, _, S, P, O, FromG) :-
   %maplist(bnodify(State), [S0,P0,O0], [S,P,O]),
   (   rdf_default_graph(FromG)
   ->  G = ToG,

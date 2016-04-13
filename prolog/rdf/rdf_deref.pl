@@ -118,7 +118,7 @@ rdf_deref(S) :-
   call_collect_messages(rdf_call_on_tuples(S, rdf_deref_tuple(S))),
   if_debug(rdf_deref(result), rdf_print_quads(S, _, _, _)).
 
-rdf_deref_tuple(S1, S2, P, O, _) :-
+rdf_deref_tuple(S1, S2, _, P, O, _) :-
   is_same_iri(S1, S2, S3), !,
   rdf_assert(S3, P, O, S2).
 rdf_deref_tuple(_, _, _, _, _).

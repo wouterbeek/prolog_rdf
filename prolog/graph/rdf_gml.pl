@@ -182,9 +182,9 @@ gml_setup(
 
 
 
-%! gml_tuple(+EOut, +NOut, +Opts, +S, +P, +O, +G) is det.
+%! gml_tuple(+EOut, +NOut, +Opts, +M, +S, +P, +O, +G) is det.
 
-gml_tuple(EOut, NOut, Opts, S, P, O, _) :-
+gml_tuple(EOut, NOut, Opts, _, S, P, O, _) :-
   maplist(gml_node(NOut, Opts), [S,O], [NId1,NId2]),
   gml_edge(EOut, NId1, P, NId2, Opts).
 
