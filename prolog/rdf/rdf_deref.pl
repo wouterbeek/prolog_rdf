@@ -126,13 +126,3 @@ rdf_deref_tuple(_, _, _, _, _).
 is_same_iri(X, Y, Z) :-
   iri_normalized(X, Z),
   iri_normalized(Y, Z).
-
-
-%! rdf_deref(+Iri, -Tuple) is det.
-
-rdf_deref(Iri, Tuple) :-
-  call_collect_messages(rdf_call_on_tuples(Iri, rdf_deref_tuple0(Tuple))).
-
-rdf_deref_tuple0(rdf(S,P,O), S, P, O, G) :-
-  rdf_default_graph(G), !.
-rdf_deref_tuple0(rdf(S,P,O,G), S, P, O, G).
