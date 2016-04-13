@@ -1,30 +1,75 @@
-:- module(deref, [deref1/0,deref1/1,deref2/0,deref2/1]).
+:- module(deref, [deref_all/1,deref/1]).
 
-:- use_module(library(dcg/dcg_ext), []).
+:- use_module(library(call_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
+:- use_module(library(thread)).
+:- use_module(library(zlib)).
 
 :- dcg_ext:set_setting(tab_size, 2).
 
-deref1 :- rdf_test(Iri), deref1(Iri).
-deref2 :- rdf_test(Iri), deref2(Iri).
+deref_all(N) :-
+  setup_call_cleanup(
+    gzopen('/scratch/lodlab/crawls/13/iri.gz', read, Source),
+    deref_all(Source, N),
+    close(Source)
+  ).
 
-deref1(Iri) :- rdf_read_from_stream(Iri, deref1, [parse_headers(true)]).
+deref_all(Source, N) :-
+  % Remove first rubbish line.
+  read_line_to_codes(Source, _),
+  deref_all0(Source, N).
 
-deref1(M, Source) :-
-  print_dict(M, [indent(2)]),
-  peek_string(Source, 100, String),
-  format(user_output, "~s~n", [String]),
-  rdf_load:rdf_call_on_tuples_stream(deref:rdf_print_quad0, [], M, Source).
-rdf_print_quad0(_, S, P, O, G) :- rdf_print_quad(S, P, O, G), nl.
+deref_all0(Source, N) :-
+  read_lines(Source, N, Lines),
+  (   Lines == []
+  ->  true
+  ;   concurrent_maplist(deref_iri, Lines),
+      sleep(10),
+      deref_all0(Source, N)
+  ).
 
-deref2(Iri) :-
-  rdf_call_on_graph(Iri, rdf_print_graph, [metadata(M),parse_headers(true)]),
-  nl,
-  print_dict(M).
+read_lines(_, 0, []) :- !.
+read_lines(Source, N1, L) :-
+  read_line_to_codes(Source, H),
+  (   H == end_of_file
+  ->  L = []
+  ;   N2 is N1 - 1,
+      L = [H|T],
+      read_lines(Source, N2, T)
+  ).
 
-rdf_test('http://dbpedia.org/resource/Tim_Berners-Lee').
+deref_iri(Line) :-
+  phrase(deref_iri(NumDocs, Iri), Line),
+  deref(Iri, NumDocs).
+
+deref_iri(NumDocs, Iri) -->
+  integer(NumDocs), " ", rest(Cs), {atom_codes(Iri, Cs)}.
+
+deref(Iri) :-
+  rdf_call_on_graph(Iri, deref_graph(Iri), [metadata(M),parse_headers(true),triples(NumTriples),quads(NumQuads)]),
+  %print_dict(M),
+  format(user_output, "Number of triples: ~D~n", [NumTriples]),
+  format(user_output, "Number of quads: ~D~n", [NumQuads]).
+
+deref_graph(Iri, G) :-
+  rdf_print_graph(G), nl,
+  rdf_aggregate_all(count, rdf(Iri, _, _, G), NS),
+  format(user_output, "Appears in subject position: ~D~n", [NS]),
+  rdf_aggregate_all(count, rdf(_, Iri, _, G), NP),
+  format(user_output, "Appears in predicate position: ~D~n", [NP]),
+  rdf_aggregate_all(count, rdf(_, _, Iri, G), NO),
+  format(user_output, "Appears in object position: ~D~n", [NO]).
+
+deref(Iri, NumDocs) :-
+  deref(Iri),
+  format(user_output, "Number of documents: ~D~n", [NumDocs]).
+
+iri('http://dbpedia.org/resource/Tim_Berners-Lee').
