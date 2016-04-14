@@ -13,16 +13,6 @@
     owl_assert_object_property/8,     % +P, ?Q, ?Label, ?Comment, ?Domain, ?Range, ?G, +Opts
     owl_assert_ontology/2,            % +Ontology, ?G
     owl_assert_value_restriction/4,   % +P, +Value, ?G, -Restriction
-    rdf_assert_action/4,              % +ActionClass, +Actor, -Action, +G
-    rdf_assert_instance/3,            % +I, +Cs, +G
-    rdf_assert_list/4,                % +S, +P, +L, +G
-    rdf_assert_now/2,                 % +S, +P
-    rdf_assert_now/3,                 % +S, +P, +D
-    rdf_assert_now/4,                 % +S, +P, +D, +G
-    rdf_assert_objects/3,             % +S, +P, +Os
-    rdf_assert_objects/4,             % +S, +P, +Os, +G
-    rdf_create_iri/2,                 % +Prefix, -Iri
-    rdf_create_iri/3,                 % +Prefix, +SubPaths, -Iri
     rdfs_assert_class/5,              % +C, ?D, ?Label, ?Comment, ?G
     rdfs_assert_comment/3,            % +S, +Comment, ?G
     rdfs_assert_domain/3,             % +P, +C, ?G
@@ -80,14 +70,6 @@ Predicates for asseritng RDFS statements in an easy way.
    owl_assert_object_property(r, t, ?, ?, r, r, r, +),
    owl_assert_ontology(r, r),
    owl_assert_value_restriction(r, r, r, -),
-   rdf_assert_action(r, r, -, r),
-   rdf_assert_instance(r, t, r),
-   rdf_assert_list(r, r, t, r),
-   rdf_assert_now(o, r),
-   rdf_assert_now(o, r, r),
-   rdf_assert_now(o, r, r, r),
-   rdf_assert_objects(r, r, t),
-   rdf_assert_objects(r, r, t, r),
    rdfs_assert_class(r, t, ?, ?, r),
    rdfs_assert_comment(r, +, r),
    rdfs_assert_domain(r, r, r),
@@ -203,89 +185,6 @@ owl_assert_value_restriction(P, V, G, R) :-
   rdf_assert_instance(R, owl:'Restriction', G),
   rdf_assert(R, owl:onProperty, P, G),
   rdf_assert(R, owl:hasValue, V, G).
-
-
-
-%! rdf_assert_action(+ActionC, +Actor, -Action, +G) is det.
-
-rdf_assert_action(ActionClass, Actor, Action, G):-
-  rdf_create_iri(vzm, [action], Action),
-  rdf_assert(Action, rdf:type, ActionClass, G),
-  rdf_assert_now(Action, prov:atTime, G),
-  rdf_assert(Actor, sbo:performed, Action, G).
-
-
-
-%! rdf_assert_instance(+I, ?Cs, ?G) is det.
-
-rdf_assert_instance(I, C, G) :-
-  var(C), !,
-  rdf_assert(I, rdf:type, rdfs:'Resource', G).
-rdf_assert_instance(I, Cs, G) :-
-  is_list(Cs), !,
-  maplist([C]>>rdf_assert_instance(I, C, G), Cs).
-rdf_assert_instance(I, C, G) :-
-  rdf_assert(I, rdf:type, C, G).
-
-
-
-%! rdf_assert_list(+S, +P, +L, +G) is det.
-
-rdf_assert_list(S, P, L, G) :-
-  rdf_assert_list(L, B),
-  rdf_assert(S, P, B, G).
-
-
-
-%! rdf_assert_now(+S, +P) is det.
-%! rdf_assert_now(+S, +P, +D) is det.
-%! rdf_assert_now(+S, +P, +D, +G) is det.
-
-rdf_assert_now(S, P) :-
-  rdf_assert_now(S, P, xsd:dateTime).
-
-rdf_assert_now(S, P, D) :-
-  rdf_assert_now(S, P, D, default).
-
-rdf_assert_now(S, P, D, G) :-
-  get_time(Now),
-  rdf_assert(S, P, Now^^D, G).
-
-
-
-%! rdf_assert_objects(+S, +P, +Os) is det.
-%! rdf_assert_objects(+S, +P, +Os, +G) is det.
-
-rdf_assert_objects(S, P, Os) :-
-  rdf_default_graph(G),
-  rdf_assert_objects(S, P, Os, G).
-
-
-rdf_assert_objects(S, P, Os, G) :-
-  forall(member(O, Os), rdf_assert(S, P, O, G)).
-
-
-
-%! rdf_create_iri(+Prefix:atom, -Iri:atom) is det.
-%! rdf_create_iri(+Prefix:atom, +SubPaths:list(atom), -Iri:atom) is det.
-% Succeeds with a fresh IRI within the RDF namespace denoted by Prefix
-% and the given SubPaths.
-%
-% IRI freshness is guaranteed by the UUID that is used as the path suffix.
-%
-% @arg Prefix   A registered RDF prefix name.
-% @arg SubPaths A list of path names that prefix the UUID.
-% @arg Iri      A fresh IRI.
-
-rdf_create_iri(Prefix, Iri) :-
-  rdf_create_iri(Prefix, [], Iri).
-
-rdf_create_iri(Prefix, SubPaths0, Iri) :-
-  uuid_no_hyphen(Id),
-  append(SubPaths0, [Id], SubPaths),
-  atomic_list_concat(SubPaths, /, LocalName),
-  % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
-  rdf_global_id(Prefix:LocalName, Iri).
 
 
 

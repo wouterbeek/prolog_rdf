@@ -1,8 +1,13 @@
 :- module(
-  rdfa_low,
+  rdfa_ext,
   [
+    agent_image/2,        % +Agent,   -Img
+    agent_image//1,       % +Agent
+    agent_name/2,         % +Agent,   -Name
+    agent_name//1,        % +Agent
     'bf:subtitle'/2,      % +Article, -Subtitle
     'bf:subtitle'//1,     % +Article
+    creators//1,          % +Res
     'dc:abstract'/2,      % +Res,     -Abstract
     'dc:abstract'//1,     % +Res
     'dc:created'/2,       % +Res,     -DT
@@ -25,27 +30,46 @@
     'foaf:name'/2,        % +Agent,   -Name
     'foaf:name'//1,       % +Agent
     'org:memberOf'//1,    % +Agent
+    rdfa_date_time//3,    % +P,       +Something,  +Masks
+    rdfa_prefixed_iri/2,  % +Iri,     -PrefixedIri
+    rdfa_prefixes/2,      % +Aliases, -Prefixes
     'sbo:commentOf'//1,   % +Comment
     'sbo:content'//1      % +Article
   ]
 ).
 
-/** <module> RDFa low-level structures
+/** <module> RDFa
 
 @author Wouter Beek
 @version 2016/02-2016/04
 */
 
+:- use_module(library(apply)).
+:- use_module(library(date_time/date_time)).
+:- use_module(library(hash_ext)).
 :- use_module(library(html/html_bs)).
+:- use_module(library(html/html_date_time_human)).
+:- use_module(library(html/html_date_time_machine)).
+:- use_module(library(html/html_ext)).
 :- use_module(library(html/rdfh)).
 :- use_module(library(http/html_write)).
+:- use_module(library(iri/iri_ext)).
+:- use_module(library(nlp/nlp_lang)).
+:- use_module(library(pairs)).
+:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdfa/rdfa_api)).
+:- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(string_ext)).
 
 :- rdf_meta
+   agent_image(r, -),
+   agent_image(r, ?, ?),
+   agent_name(r, -),
+   agent_name(r, ?, ?),
    'bf:subtitle'(r, -),
    'bf:subtitle'(r, ?, ?),
+   creators(r, ?, ?),
    'dc:abstract'(r, -),
    'dc:abstract'(r, ?, ?),
    'dc:created'(r, -),
@@ -68,10 +92,71 @@
    'foaf:name'(r, -),
    'foaf:name'(r, ?, ?),
    'org:memberOf'(r, ?, ?),
+   rdfa_date_time(r, o, +, ?, ?),
    'sbo:commentOf'(r, ?, ?),
    'sbo:content'(r, ?, ?).
 
 
+
+
+
+%! agent_gravatar(+Agent, -Uri) is det.
+
+agent_gravatar(Agent, Uri) :-
+  once('foaf:mbox'(Agent, EMail)),
+  downcase_atom(EMail, CanonicalEMail),
+  md5(CanonicalEMail, Hash),
+  atomic_list_concat(['',avatar,Hash], /, Path),
+  iri_comps(Uri, uri_components(http,'www.gravatar.com',Path,_,_)).
+
+
+
+%! agent_image(+Agent, -Image) is det.
+
+agent_image(Agent, Img) :-
+  'foaf:depiction'(Agent, Img).
+agent_image(Agent, Img) :-
+  agent_gravatar(Agent, Img).
+
+
+%! agent_image(+Agent)// is det.
+
+agent_image(Agent) -->
+  {
+    agent_name(Agent, Name),
+    agent_image(Agent, Img)
+  },
+  html(a(href=Agent, img([alt=Name,property='foaf:depiction',src=Img], []))).
+
+
+
+%! agent_name(+Agent, -Name) is det.
+
+agent_name(Agent, String) :-
+  'foaf:givenName'(Agent, GivenName),
+  'foaf:familyName'(Agent, FamilyName), !,
+  rdf_string(GivenName, String1),
+  rdf_string(FamilyName, String2),
+  string_list_concat([String1,String2], " ", String).
+agent_name(Agent, String) :-
+  'foaf:name'(Agent, Name),
+  rdf_string(Name, String).
+
+
+
+%! agent_name(+Agent)// is det.
+
+agent_name(Agent) -->
+  internal_link(Agent, \agent_name0(Agent)).
+agent_name(Agent) -->
+  'foaf:name'(Agent).
+
+agent_name0(Agent) -->{gtrace},
+  html([
+    \'foaf:givenName'(Agent), %'
+    " ",
+    \'foaf:familyName'(Agent) %'
+  ]), !.
 
 
 
@@ -86,6 +171,19 @@
 'bf:subtitle'(Article) -->
   {'bf:subtitle'(Article, Subtitle)},
   html(h2(span(property='bf:subtitle', \rdfh_literal(Subtitle)))).
+
+
+
+%! creators(+Res)// is det.
+
+creators(Res) -->
+  {rdf_list(Res, dc:creator, Agents)},
+  html(
+    ol([inlist='',rel='dc:creator'],
+      \html_maplist(agent_item0, Agents)
+    )
+  ).
+agent_item0(Agent) --> html(li(\agent_name(Agent))).
 
 
 
@@ -249,6 +347,46 @@
     rdfa_prefixed_iri(Organization, Organization0)
   },
   html(span(property=Organization0, \rdfh_literal(Label))).
+
+
+
+%! rdfa_date_time(+P, +Something, +Masks)// is det.
+
+rdfa_date_time(P1, Something, Masks) -->
+  {
+    something_to_date_time(Something, DT),
+    date_time_masks(Masks, DT, MaskedDT),
+    current_ltag([en,nl], LTag),
+    html_machine_date_time(MaskedDT, MachineString),
+    xsd_date_time_datatype(DT, D1),
+    maplist(rdfa_prefixed_iri, [P1,D1], [P2,D2])
+  },
+  html(
+    time([datatype=D2,datetime=MachineString,property=P2],
+      \html_human_date_time(MaskedDT, _{ltag: LTag, masks: Masks})
+    )
+  ).
+
+
+
+%! rdfa_prefixed_iri(+Iri, -PrefixedIri) is det.
+
+rdfa_prefixed_iri(Iri, PrefixedIri) :-
+  rdf_global_id(Alias:Local, Iri),
+  atomic_list_concat([Alias,Local], :, PrefixedIri).
+
+
+
+%! rdfa_prefixes(+Aliases, -Prefixes) is det.
+
+rdfa_prefixes(Aliases, Defs) :-
+  maplist(rdf_current_prefix, Aliases, Prefixes),
+  pairs_keys_values(Pairs, Aliases, Prefixes),
+  maplist(pair_to_prefix0, Pairs, Defs0),
+  atomic_list_concat(Defs0, ' ', Defs).
+
+pair_to_prefix0(Alias-Prefix, Def) :-
+  atomic_list_concat([Alias,Prefix], ': ', Def).
 
 
 
