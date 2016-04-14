@@ -77,7 +77,7 @@ jsonld_subject_tree(PDefs, DefLang, Tree, S1, D) :-
 
   % Predicate-object pairs.
   assoc_to_keys(Subtree, Ps1),
-  selectchk(RdfType, Ps1, Ps2),
+  subtract(Ps1, [RdfType], Ps2),
   maplist(jsonld_ptree(PDefs, DefLang, Subtree), Ps2, Pairs3),
 
   % Pairs → dict.
