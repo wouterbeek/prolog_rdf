@@ -151,7 +151,7 @@ agent_name(Agent) -->
 agent_name(Agent) -->
   'foaf:name'(Agent).
 
-agent_name0(Agent) -->{gtrace},
+agent_name0(Agent) -->
   html([
     \'foaf:givenName'(Agent), %'
     " ",
