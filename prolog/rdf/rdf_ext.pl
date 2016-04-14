@@ -54,7 +54,7 @@
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(uuid)).
+:- use_module(library(uuid_ext)).
 :- use_module(library(yall)).
 
 :- meta_predicate
