@@ -1,8 +1,8 @@
 :- module(
   jsonld_metadata,
   [
-    jsonld_metadata/2,                % +Metadata, -Jsonld
-    jsonld_metadata_abbreviate_iri/2, % +Full, -Compact
+    jsonld_metadata/2,                % +M,       -Jsonld
+    jsonld_metadata_abbreviate_iri/2, % +Full,    -Compact
     jsonld_metadata_context/1,        % -Context
     jsonld_metadata_expand_iri/2      % +Compact, -Full
   ]
@@ -21,14 +21,13 @@
 
 
 
-%! jsonld_metadata(+Metadata, -Jsonld) is det.
-%! jsonld_metadata(+S, +Metadata, -Jsonld) is det.
+%! jsonld_metadata(+M, -Jsonld) is det.
 
-jsonld_metadata(D1, D3) :-
+jsonld_metadata(M, Jsonld) :-
   jsonld_metadata_context(Context),
-  D2 = D1.put(_{'@context': Context}),
-  atom_json_dict(A, D2),
-  atom_json_dict(A, D3).
+  M0 = M.put(_{'@context': Context}),
+  atom_json_dict(A, M0),
+  atom_json_dict(A, Jsonld).
 
 
 

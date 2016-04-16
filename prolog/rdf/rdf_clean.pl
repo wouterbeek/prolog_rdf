@@ -73,13 +73,13 @@ rdf_clean(From, To, Opts) :-
 %! rdf_clean_stream(+To, +Opts, +Metadata, +Source) is det.
 
 rdf_clean_stream(To, Opts1, M1, Source) :-
-  merge_options([quads(NoQuads),triples(NoTriples),tuples(NoTuples)], Opts1, Opts2),
+  Opts0 = [quads(NumQuads),triples(NumTriples),tuples(NumTuples)],
+  merge_options(Opts0, Opts1, Opts2),
   option(metadata(M4), Opts1, _),
   option(compress(Compress), Opts1, none),
   
   absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),
   thread_file(Tmp0, Tmp),
-  %debug(rdf(clean), "Temporarily storing clean RDF in ~a.", [Tmp]),
   setup_call_cleanup(
     (
       open(Tmp, write, Sink),
@@ -91,7 +91,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
       close(Sink)
     )
   ),
-  debug(rdf(clean), "Cleaned ~D tuples (~D triples and ~D quads).", [NoTuples,NoTriples,NoQuads]),
+  deb_cleaned_tuples(NumTuples, NumTriples, NumQuads),
   M2 = M1.put(_{
     'llo:processed_quads': _{'@type': 'xsd:nonNegativeInteger', '@value': NoQuads},
     'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTriples},
@@ -99,25 +99,44 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   }),
 
   % Store input stream properties.
-  % @tbd Why does the stream not have any properties?
   stream_metadata(Source, MStream),
   M3 = M2.put(MStream),
 
   sort_file(Tmp, Opts1),
-  %debug(rdf(clean), "Sorting cleaned tuples file.", []),
 
   % Count the number of unique tuples.
-  file_lines(Tmp, NoLines),
-  NoDuplicates is NoTuples - NoLines,
-  debug(rdf(clean), "Wrote ~D unique tuples (skipping ~D duplicates).", [NoTuples,NoDuplicates]),
+  file_lines(Tmp, NumLines),
+  NumDuplicates is NumTuples - NumLines,
+  deb_wrote_tuples(NumTuples, NumDuplicates),
   M4 = M3.put(_{
-    'llo:unique_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTuples},
-    'llo:duplicate_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoDuplicates}
+    unique_tuples: NumTuples,
+    duplicate_tuples: NumDuplicates
   }),
   
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, To),
-  %debug(rdf(clean), "Compressed sorted tuple file.", []),
   delete_file(Tmp).
 gen_ntuple0(Sink, State, _, S, P, O, G) :-
   gen_tuples:gen_ntuple(Sink, State, S, P, O, G).
+
+
+
+
+
+% HELPERS %
+
+deb_cleaned_tuples(NumTuples, NumTriples, NumQuads) :-
+  debug(
+    rdf(clean),
+    "Cleaned ~D tuples (~D triples and ~D quads).",
+    [NumTuples,NumTriples,NumQuads]
+  ).
+
+
+
+deb_wrote_tuples(NumTuples, NumDuplicates) :-
+  debug(
+    rdf(clean),
+    "Wrote ~D unique tuples (skipping ~D duplicates).",
+    [NumTuples,NumDuplicates]
+  ).
