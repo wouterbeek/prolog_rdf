@@ -89,7 +89,7 @@ rdf_read_from_stream0(Goal_2, Opts1, M1, Source) :-
   call(Goal_2, M2, Source).
 
 rdf_guess_format_options0(M, Opts1, Opts2) :-
-  iri_file_extensions(M.'llo:base_iri'.'@value', Exts1),
+  iri_file_extensions(M.'llo:base_iri', Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, Format), !,

@@ -176,7 +176,7 @@ jsonld_oterm(PDefs, _DefLang, P2, O1, O2) :-
   ->  O2 = Lex
   %;   LTag == DefLang
   %->  O2 = Lex
-  ;   O2 = literal{'@language':LTag}
+  ;   O2 = literal{'@language': LTag}
   ).
 jsonld_oterm(PDefs, _, P2, O1, O2) :-
   O1 = _^^D1, !,
@@ -186,7 +186,7 @@ jsonld_oterm(PDefs, _, P2, O1, O2) :-
   ->  O2 = Lex
   ;   rdf_literal_datatype(O1, D1),
       jsonld_abbreviate_iri0(D1, D2),
-      O2 = literal{'@type':D2,'@value':Lex}
+      O2 = literal{'@type':D2, '@value':Lex}
   ).
 jsonld_oterm(_, _, _, O1, O2) :-
   jsonld_abbreviate_iri0(O1, O2).
@@ -199,15 +199,15 @@ p_defs(Triples, [P1|Ps1], [P2-odef{'@container': '@list'}|Ps2]) :-
   p_container(Triples, P1), !,
   jsonld_abbreviate_iri0(P1, P2),
   p_defs(Triples, Ps1, Ps2).
-p_defs(Triples, [P1|Ps1], [P2-odef{'@language':LTag}|Ps2]) :-
+p_defs(Triples, [P1|Ps1], [P2-odef{'@language': LTag}|Ps2]) :-
   p_ltag(Triples, P1, LTag), !,
   jsonld_abbreviate_iri0(P1, P2),
   p_defs(Triples, Ps1, Ps2).
-p_defs(Triples, [P1|Ps1], [P2-odef{'@type':'@id'}|Ps2]) :-
+p_defs(Triples, [P1|Ps1], [P2-odef{'@type': '@id'}|Ps2]) :-
   p_iri(Triples, P1), !,
   jsonld_abbreviate_iri0(P1, P2),
   p_defs(Triples, Ps1, Ps2).
-p_defs(Triples, [P1|Ps1], [P2-odef{'@type':D2}|Ps2]) :-
+p_defs(Triples, [P1|Ps1], [P2-odef{'@type': D2}|Ps2]) :-
   p_datatype(Triples, P1, D1), !,
   jsonld_abbreviate_iri0(P1, P2),
   jsonld_abbreviate_iri0(D1, D2),

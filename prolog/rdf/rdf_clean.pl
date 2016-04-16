@@ -93,9 +93,9 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   ),
   deb_cleaned_tuples(NumTuples, NumTriples, NumQuads),
   M2 = M1.put(_{
-    'llo:processed_quads': _{'@type': 'xsd:nonNegativeInteger', '@value': NoQuads},
-    'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTriples},
-    'llo:processed_tuples': _{'@type': 'xsd:nonNegativeInteger', '@value': NoTuples}
+    'llo:processed_quads': NoQuads,
+    'llo:processed_triples': NoTriples,
+    'llo:processed_tuples': NoTuples
   }),
 
   % Store input stream properties.
@@ -109,8 +109,8 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   NumDuplicates is NumTuples - NumLines,
   deb_wrote_tuples(NumTuples, NumDuplicates),
   M4 = M3.put(_{
-    unique_tuples: NumTuples,
-    duplicate_tuples: NumDuplicates
+    'llo:unique_tuples': NumTuples,
+    'llo:duplicate_tuples': NumDuplicates
   }),
   
   % Compress the file, according to user option.
