@@ -15,6 +15,8 @@
 
 :- dcg_ext:set_setting(tab_size, 2).
 
+
+
 deref_all(N) :-
   setup_call_cleanup(
     gzopen('/scratch/lodlab/crawls/13/iri.gz', read, Source),
@@ -22,42 +24,44 @@ deref_all(N) :-
     close(Source)
   ).
 
-deref_all(Source, N) :-
-  % Remove first rubbish line.
-  read_line_to_codes(Source, _),
-  deref_all0(Source, N).
 
-deref_all0(Source, N) :-
+deref_all(Source, N) :-
+  % Remove the first line which contains RocksDB rubbish.
+  read_line_to_codes(Source, _),
+  deref_all_nonfirst(Source, N).
+
+
+deref_all_nonfirst(Source, N) :-
   read_lines(Source, N, Lines),
   (   Lines == []
   ->  true
-  ;   concurrent_maplist(deref_iri, Lines),
+  ;   concurrent_maplist(deref_line, Lines),
       sleep(10),
-      deref_all0(Source, N)
+      deref_all_nonfirst(Source, N)
   ).
 
-read_lines(_, 0, []) :- !.
-read_lines(Source, N1, L) :-
-  read_line_to_codes(Source, H),
-  (   H == end_of_file
-  ->  L = []
-  ;   N2 is N1 - 1,
-      L = [H|T],
-      read_lines(Source, N2, T)
-  ).
 
-deref_iri(Line) :-
-  phrase(deref_iri(NumDocs, Iri), Line),
+deref_line(Cs) :-
+  phrase(deref_iri(NumDocs, Iri), Cs),
   deref(Iri, NumDocs).
+
 
 deref_iri(NumDocs, Iri) -->
   integer(NumDocs), " ", rest(Cs), {atom_codes(Iri, Cs)}.
 
+
 deref(Iri) :-
-  rdf_call_on_graph(Iri, deref_graph(Iri), [metadata(M),parse_headers(true),triples(NumTriples),quads(NumQuads)]),
+  Opts = [metadata(M),parse_headers(true),triples(NumTriples),quads(NumQuads)],
+  rdf_call_on_graph(Iri, deref_graph(Iri), Opts),
   %print_dict(M),
   format(user_output, "Number of triples: ~D~n", [NumTriples]),
   format(user_output, "Number of quads: ~D~n", [NumQuads]).
+
+
+deref(Iri, NumDocs) :-
+  deref(Iri),
+  format(user_output, "Number of documents: ~D~n", [NumDocs]).
+
 
 deref_graph(Iri, G) :-
   rdf_print_graph(G), nl,
@@ -68,8 +72,22 @@ deref_graph(Iri, G) :-
   rdf_aggregate_all(count, rdf(_, _, Iri, G), NO),
   format(user_output, "Appears in object position: ~D~n", [NO]).
 
-deref(Iri, NumDocs) :-
-  deref(Iri),
-  format(user_output, "Number of documents: ~D~n", [NumDocs]).
+
+
+% DEBUG %
 
 iri('http://dbpedia.org/resource/Tim_Berners-Lee').
+
+
+
+% HELPERS %
+
+read_lines(_, 0, []) :- !.
+read_lines(Source, N1, L) :-
+  read_line_to_codes(Source, H),
+  (   H == end_of_file
+  ->  L = []
+  ;   N2 is N1 - 1,
+      L = [H|T],
+      read_lines(Source, N2, T)
+  ).
