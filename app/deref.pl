@@ -51,9 +51,10 @@ deref_iri(NumDocs, Iri) -->
 
 
 deref(Iri) :-
+  gtrace,
   Opts = [metadata(M),parse_headers(true),triples(NumTriples),quads(NumQuads)],
   rdf_call_on_graph(Iri, deref_graph(Iri), Opts),
-  %print_dict(M),
+  print_dict(M),
   format(user_output, "Number of triples: ~D~n", [NumTriples]),
   format(user_output, "Number of quads: ~D~n", [NumQuads]).
 
