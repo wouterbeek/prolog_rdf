@@ -53,9 +53,12 @@ rdf_fca_test(Name) :-
 %! rdf_fca_test_file(+File:atom) is det.
 
 rdf_fca_test_file(File) :-
-  rdf_call_on_graph(File, rdf_fca_context(Context)),
+  rdf_call_on_graph(File, rdf_fca_context0(Context)),
   format(string(GLbl), "FCA for RDF file ~a", [File]),
   fca_viz0(Context, GLbl).
+
+rdf_fca_context0(Context, _, G) :-
+  rdf_fca_context(Context, G).
 
 
 

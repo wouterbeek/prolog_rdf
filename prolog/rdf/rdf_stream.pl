@@ -40,19 +40,6 @@
    rdf_write_to_stream(+,2,+),
    rdf_read_from_stream0(2,+,+,+).
 
-:- predicate_options(rdf_read_from_stream/3, 3, [
-     pass_to(rdf_read_from_stream0/4, 2),
-     pass_to(rdf_http_plugin:rdf_extra_headers/2, 2),
-     pass_to(read_from_stream/4, 4)
-   ]).
-:- predicate_options(rdf_read_from_stream0/4, 2, [
-     rdf_format(+rdf_format),
-     pass_to(rdf_guess_format/3, 3)
-   ]).
-:- predicate_options(rdf_write_to_stream/3, 3, [
-     pass_to(write_to_stream/3, 3)
-   ]).
-
 
 
 
@@ -60,6 +47,8 @@
 %! rdf_read_from_stream(+Source, :Goal_2) is det.
 %! rdf_read_from_stream(+Source, :Goal_2, +Opts) is det.
 % Goal_2 is applied to a metadata dictionary and a stream (in that order).
+%
+% Options are passed to read_from_stream/3 and rdf_guess_fomat/3
 %
 % @throws existence_error if an HTTP request returns an error code.
 

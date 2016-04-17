@@ -85,7 +85,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
       open(Tmp, write, Sink),
       gen_ntuples:gen_ntuples_begin(State, Opts2)
     ),
-    rdf_load:rdf_call_on_tuples_stream(gen_ntuple0(Sink, State), Opts1, M1, Source),
+    rdf_load:rdf_call_on_tuples_stream0(gen_ntuple0(Sink, State), Opts1, M1, Source),
     (
       gen_ntuples:gen_ntuples_end(State, Opts2),
       close(Sink)

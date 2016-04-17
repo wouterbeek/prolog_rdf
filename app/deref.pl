@@ -79,20 +79,26 @@ deref_all_nonfirst(In, Out, N) :-
 
 
 
-deref_graph(Out, Iri, G) :-
+deref_graph(Out, Iri, M, G) :-
   rdf_print_graph(G), nl,
+  
   % Number of occurrences in the subject position
   rdf_aggregate_all(count, rdf(Iri, _, _, G), NumSubjects),
   rdf_store(Out, Iri, deref:number_of_subjects, NumSubjects^^xsd:nonNegativeInteger),
   debug(deref, "Appears in subject position: ~D", [NumSubjects]),
+
   % Number of occurrences in the predicate position
   rdf_aggregate_all(count, rdf(_, Iri, _, G), NumPredicates),
   rdf_store(Out, Iri, deref:number_of_subjects, NumPredicates^^xsd:nonNegativeInteger),
   debug(deref, "Appears in predicate position: ~D", [NumPredicates]),
+
   % Number of occurrences in the object position
   rdf_aggregate_all(count, rdf(_, _, Iri, G), NumObjects),
   rdf_store(Out, Iri, deref:number_of_subjects, NumObjects^^xsd:nonNegativeInteger),
-  debug(deref, "Appears in object position: ~D", [NumObjects]).
+  debug(deref, "Appears in object position: ~D", [NumObjects]),
+
+  % Metadata
+  print_dict(M). %TBD
 
 
 
@@ -107,16 +113,13 @@ deref_iri(Out, Iri) :-
   (X = 428607 -> gtrace ; true),
   Opts = [
     base_iri(Iri),
-    metadata(M),
     parse_headers(true),
     triples(NumTriples),
     quads(NumQuads)
   ],
   (   catch(rdf_call_on_graph(Iri, deref_graph(Out, Iri), Opts), E, true)
   ->  (   var(E)
-      ->  print_dict(M), %TBD
-	  gtrace,
-	  % Number of triples
+      ->  % Number of triples
 	  rdf_store(Out, Iri, deref:number_of_triples, NumTriples^^xsd:nonNegativeInteger),
           debug(deref, "Number of triples: ~D", [NumTriples]),
 	  % Number of quadruples
