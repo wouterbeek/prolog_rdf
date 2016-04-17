@@ -1,7 +1,8 @@
 :- module(
   rdf_error,
   [
-    rdf_store/4, % +Out, +S, +P, +O
+    rdf_store/4,        % +Out, +S, +P, +O
+    rdf_store_list/2,   % +Out, +L
     rdf_store_warning/3 % +Out, +Doc, +E
   ]
 ).
@@ -30,6 +31,22 @@
 
 rdf_store(Out, S, P, O) :-
   with_output_to(Out, gen_ntriple(S, P, O)).
+
+
+
+%! rdf_store_list(+Out, +L) is det.
+
+rdf_store_list(Out, L) :-
+  rdf_create_bnode(B),
+  rdf_store_list(Out, B, L).
+
+
+rdf_store_list(_, _, []) :- !.
+rdf_store_list(Out, B1, [H|T]) :-
+  rdf_store(Out, B1, rdf:first, H),
+  (T == [] -> rdf_equal(rdf:nil, B2) ; rdf_create_bnode(B2)),
+  rdf_store(Out, B1, rdf:rest, B2),
+  rdf_store_list(Out, B2, T).
 
 
 

@@ -14,9 +14,11 @@
 @version 2016/04
 */
 
+:- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(jsonld/jsonld_generics)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_error)).
@@ -97,8 +99,35 @@ deref_graph(Out, Iri, M, G) :-
   rdf_store(Out, Iri, deref:number_of_subjects, NumObjects^^xsd:nonNegativeInteger),
   debug(deref, "Appears in object position: ~D", [NumObjects]),
 
-  % Metadata
-  print_dict(M). %TBD
+  % Serialization format
+  get_dict('llo:rdf_format', M, RdfFormat0),
+  Context = _{formats: 'http://www.w3.org/ns/formats/'},
+  jsonld_expand_term(Context, RdfFormat0, RdfFormat),
+  rdf_store(Out, Iri, deref:serialization_format, RdfFormat),
+
+  get_dict('llo:http_communication', M, L1),
+  maplist(store_http_metadata0(Out), L1, L2),
+  rdf_store_list(Out, L2).
+
+
+store_http_metadata0(Out, M, B) :-
+  rdf_create_bnode(B),
+  maplist(store_http_headers0(Out, B), M.'llo:headers'),
+  rdf_store(Out, B, deref:iri, M.'llo:iri'^^xsd:anyURI),
+  rdf_store(Out, B, deref:status, M.'llo:status'^^xsd:nonNegativeInteger),
+  rdf_store(Out, B, deref:time, M.'llo:time'^^xsd:float),
+  Major-Minor = M.'llo:version',
+  format(string(Version), "~d.~d", [Major,Minor]),
+  rdf_store(Out, B, deref:version, Version^^xsd:string).
+
+
+store_http_headers0(Out, B, Key-Vals) :-
+  maplist(store_http_header0(Out, B, Key), Vals).
+
+
+store_http_header0(Out, B, Key, Val) :-
+  rdf_global_id(deref:Key, P),
+  rdf_store(Out, B, P, Val^^xsd:string).
 
 
 

@@ -2,7 +2,7 @@
   jsonld_generics,
   [
     jsonld_abbreviate_iri/3, % +Context, +Full, -Compact
-    jsonld_expand_term/3,     % +Context, +Compact, -Full
+    jsonld_expand_term/3,    % +Context, +Compact, -Full
     jsonld_is_bnode/1,       % +Term
     jsonld_keyword/1         % ?Keyword
   ]

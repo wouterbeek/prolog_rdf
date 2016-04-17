@@ -188,11 +188,15 @@ gen_graph(G) :-
 
 % TERMS BY KIND %
 
+gen_bnode(_, B) :-
+  write(B).
+/*
 gen_bnode(State, B) :-
   % Retrieve (existing) or create (new) a numeric blank node identifier.
   (bnode_map(B, Id) -> true ; dict_inc(bnode, State, Id)),
   atomic_concat(State.bprefix, Id, Name),
   write(Name).
+*/
 
 
 gen_iri(Iri) :-

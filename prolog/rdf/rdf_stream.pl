@@ -83,8 +83,7 @@ rdf_read_from_stream0(Goal_2, Opts, M1, Source) :-
   call(Goal_2, M2, Source).
 
 rdf_guess_format_options0(M, Opts1, Opts2) :-
-  http_get_dict('llo:base_iri', M, BaseIri),
-  iri_file_extensions(BaseIri, Exts1),
+  iri_file_extensions(M.'llo:base_iri', Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, Format), !,
