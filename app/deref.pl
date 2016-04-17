@@ -11,6 +11,9 @@
 
 /** <module> Dereference application
 
+http://0-255.cocolog-nifty.com/blog/2010/03/post-8f2a.html
+error(instantiation_error,context(archive:archive_open_stream/4,_))
+
 @author Wouter Beek
 @author Niels Ockeloen
 @version 2016/04
@@ -43,7 +46,7 @@
 
 :- dcg_ext:set_setting(tab_size, 2).
 
-:- debug(deref).
+:- debug(deref(flag)).
 
 
 
@@ -151,10 +154,8 @@ deref_graph(Out, Iri, M, G) :-
   jsonld_expand_term(Context, RdfFormat0, RdfFormat),
   rdf_store(Out, Iri, deref:serialization_format, RdfFormat),
 
-  get_dict('llo:http_communication', M, L1),
-  maplist(store_http_metadata0(Out), L1, L2),
-  rdf_store_list(Out, L2, RdfList),
-  rdf_store(Out, Iri, deref:responses, RdfList).
+  % Metadata
+  store_metadata(Out, Iri, M).
 
 
 store_http_metadata0(Out, M, B) :-
@@ -177,6 +178,13 @@ store_http_header0(Out, B, Key, Val) :-
   rdf_store(Out, B, P, Val^^xsd:string).
 
 
+store_metadata(Out, Iri, M) :-
+  get_dict('llo:http_communication', M, L1),
+  maplist(store_http_metadata0(Out), L1, L2),
+  rdf_store_list(Out, L2, RdfList),
+  rdf_store(Out, Iri, deref:responses, RdfList).
+
+
 
 deref_iri(Iri) :-
   deref_iri(user_output, Iri).
@@ -185,8 +193,8 @@ deref_iri(Iri) :-
 deref_iri(Out, Iri) :-
   % Debug index
   flag(deref, X, X + 1),
-  debug(deref, "~D", [X]),
-  (X = 428607 -> gtrace ; true),
+  debug(deref(flag), "~D  ~t  ~a", [X,Iri]),
+  (X = -1 -> gtrace ; true),
   Opts = [base_iri(Iri),triples(NumTriples),quads(NumQuads)],
   (   catch(rdf_call_on_graph(Iri, deref_graph(Out, Iri), Opts), E, true)
   ->  (   var(E)
@@ -196,6 +204,9 @@ deref_iri(Out, Iri) :-
 	  % Number of quadruples
 	  rdf_store(Out, Iri, deref:number_of_quads, NumQuads^^xsd:nonNegativeInteger),
           debug(deref, "Number of quads: ~D", [NumQuads])
+      ;   % HTTP error status code
+          E = error(existence_error(open_any2,M),_)
+      ->  store_metadata(Out, Iri, M)
       ;   % Exception
           rdf_store_warning(Out, Iri, E)
       )
@@ -224,6 +235,7 @@ deref_line(Out, Cs) :-
 
 % DEBUG %
 
+iri('http://%5Cdementialcore.blogspot.com').
 iri('http://dbpedia.org/resource/Tim_Berners-Lee').
 iri('http://%20ossiane.blog@studio-amarante.com/').
 

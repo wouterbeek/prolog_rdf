@@ -38,15 +38,15 @@ rdf_store(Out, S, P, O) :-
 
 rdf_store_list(Out, L, B) :-
   rdf_create_bnode(B),
-  rdf_store_list(Out, B, L).
+  rdf_store_list0(Out, B, L).
 
 
-rdf_store_list(_, _, []) :- !.
-rdf_store_list(Out, B1, [H|T]) :-
+rdf_store_list0(_, _, []) :- !.
+rdf_store_list0(Out, B1, [H|T]) :-
   rdf_store(Out, B1, rdf:first, H),
   (T == [] -> rdf_equal(rdf:nil, B2) ; rdf_create_bnode(B2)),
   rdf_store(Out, B1, rdf:rest, B2),
-  rdf_store_list(Out, B2, T).
+  rdf_store_list0(Out, B2, T).
 
 
 
@@ -159,6 +159,8 @@ rdf_store_warning(Out, Doc, error(socket_error(Msg),_)) :-
   ->  Name = host_not_found
   ;   Msg == 'Try Again'
   ->  Name = try_again
+  ;   Msg = 'Unknown error 0' % @tbd ???
+  ->  Name = unknown_error_0  % @tbd ???
   ), !,
   rdf_global_id(llo:Name, O),
   rdf_store(Out, Doc, llo:socket_error, O).
