@@ -325,6 +325,7 @@ dcg_print_subjects0(I1, [S-POs|Groups1], Opts) -->
     I2 is I1 + 1
   },
   dcg_print_predicates1(I2, Groups2, Opts),
+  nl,
   dcg_print_subjects0(I1, Groups1, Opts).
 
 % There is exactly one predicate.  Emit it on the same line.
@@ -333,8 +334,7 @@ dcg_print_predicates1(I, [P-Os], Opts) --> !,
   dcg_print_predicate(P, Opts),
   dcg_print_objects1(I, Os, Opts).
 dcg_print_predicates1(I, Groups, Opts) -->
-  dcg_print_predicates2(I, Groups, Opts),
-  nl.
+  dcg_print_predicates2(I, Groups, Opts).
 
 dcg_print_predicates2(_, [], _) --> !, [].
 dcg_print_predicates2(I1, [P-Os|Groups], Opts) -->
