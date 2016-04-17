@@ -113,7 +113,6 @@ deref_iri(Out, Iri) :-
   (X = 428607 -> gtrace ; true),
   Opts = [
     base_iri(Iri),
-    parse_headers(true),
     triples(NumTriples),
     quads(NumQuads)
   ],
