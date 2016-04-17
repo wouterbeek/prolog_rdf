@@ -1,6 +1,7 @@
 :- module(
   rdf_error,
   [
+    rdf_store/4, % +Out, +S, +P, +O
     rdf_store_warning/3 % +Out, +Doc, +E
   ]
 ).
@@ -13,6 +14,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(gen/gen_ntuples)).
+:- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
@@ -102,6 +104,12 @@ rdf_store_warning(Out, Doc, E) :-
   rdf_store(Out, Doc, llo:not_an_iri, Name^^xsd:string).
 rdf_store_warning(Out, Doc, error(type_error(http_iri,Name),_)) :- !,
   rdf_store(Out, Doc, llo:non_https_iri, Name^^xsd:anyURI).
+% Literal: non-canonical lexical form.
+rdf_store_warning(Out, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
+  abbr_iri(D1, D2),
+  atom_concat(noncanonical_, D2, Name),
+  rdf_global_id(llo:Name, P),
+  rdf_store(Out, Doc, P, Lex^^xsd:string).
 % Malformed URL
 rdf_store_warning(Out, Doc, error(domain_error(url,Url),_)) :- !,
   rdf_store(Out, Doc, llo:malformed_url, Url^^xsd:anyURI).
@@ -126,6 +134,8 @@ rdf_store_warning(Out, Doc, error(socket_error(Msg),_)) :-
   ->  Name = connection_refused
   ;   Msg == 'No Data'
   ->  Name = no_data
+  ;   Msg == 'No Recovery'
+  ->  Name = no_recovery
   ;   Msg == 'No route to host'
   ->  Name = no_route_to_host
   ;   Msg == 'Host not found'
@@ -135,7 +145,7 @@ rdf_store_warning(Out, Doc, error(socket_error(Msg),_)) :-
   ), !,
   rdf_global_id(llo:Name, O),
   rdf_store(Out, Doc, llo:socket_error, O).
-% SSL: SSL verify
+% SSL: verify
 rdf_store_warning(Out, Doc, error(ssl_error(ssl_verify),_)) :- !,
   rdf_store(Out, Doc, llo:ssl_error, llo:ssl_verify).
 % Syntax error
@@ -156,17 +166,12 @@ rdf_store_warning(Out, Doc, rdf(redefined_id(Uri))) :- !,
 % RDF/XML: name
 rdf_store_warning(Out, Doc, rdf(not_a_name(XmlName))) :- !,
   rdf_store(Out, Doc, llo:xml_name_error, XmlName^^xsd:string).
-% RDF/XML: unparsable
+% RDF/XML: cannot parse
 rdf_store_warning(Out, Doc, rdf(unparsed(Dom))) :- !,
   rdf11:in_xml_literal(xml, Dom, A1),
   atom_truncate(A1, 500, A2),
   rdf_store(Out, Doc, llo:rdf_xml_parser_error, A2^^xsd:string).
-% Non-canonical lexical form.
-rdf_store_warning(Out, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
-  abbr_iri(D1, D2),
-  atom_concat(noncanonical_, D2, Name),
-  rdf_global_id(llo:Name, P),
-  rdf_store(Out, Doc, P, Lex^^xsd:string).
 % Unhandled error term.
-rdf_store_warning(Out, _, Term) :-
-  format(Out, "~w~n", [Term]).
+rdf_store_warning(_, _, Term) :-
+  gtrace,
+  msg_warning("~w~n", [Term]).

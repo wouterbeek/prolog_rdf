@@ -41,7 +41,7 @@ rdf_guess_format(Spec, F) :-
 
 rdf_guess_format(Spec, F, Opts) :-
   setup_call_cleanup(
-    open_any2(Spec, read, Read, Close_0),
+    open_any2(Spec, read, Read, Close_0, Opts),
     rdf_guess_format(Read, 0, F, Opts),
     close_any2(Close_0)
   ).

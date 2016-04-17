@@ -11,7 +11,7 @@
 /** <module> RDF stream
 
 @author Wouter Beek
-@version 2015/08-2016/02
+@version 2015/08-2016/02, 2016/04
 */
 
 :- use_module(library(apply)).
@@ -19,6 +19,7 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(lists)).
@@ -89,7 +90,8 @@ rdf_read_from_stream0(Goal_2, Opts1, M1, Source) :-
   call(Goal_2, M2, Source).
 
 rdf_guess_format_options0(M, Opts1, Opts2) :-
-  iri_file_extensions(M.'llo:base_iri', Exts1),
+  http_get_dict('llo:base_iri', M, BaseIri),
+  iri_file_extensions(BaseIri, Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, Format), !,

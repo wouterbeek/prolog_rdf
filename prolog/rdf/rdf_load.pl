@@ -28,6 +28,7 @@ Support for loading RDF data.
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/json)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
@@ -119,7 +120,7 @@ rdf_call_on_tuples(Source, Goal_5, Opts) :-
 
 rdf_call_on_tuples_stream(Goal_5, Opts1, M, Source) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1.
-  BaseIri = M.'llo:base_iri',
+  http_get_dict('llo:base_iri', M, BaseIri),
   jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
   rdf_format_iri(Format, FormatIri),
   uuid_no_hyphen(Uuid),
