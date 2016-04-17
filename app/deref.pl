@@ -3,6 +3,8 @@
   [
     deref_all/0,
     deref_all/1, % +N
+    deref_hdt/1, % +S
+    deref_hdt/3, % +S, +P, +O
     deref_iri/1  % +Iri
   ]
 ).
@@ -18,6 +20,7 @@
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(hdt)).
 :- use_module(library(jsonld/jsonld_generics)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
@@ -29,10 +32,14 @@
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
+:- use_module(library(solution_sequences)).
 :- use_module(library(thread)).
 :- use_module(library(zlib)).
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
+
+:- rdf_meta
+   deref_hdt(r, r, o).
 
 :- dcg_ext:set_setting(tab_size, 2).
 
@@ -55,7 +62,7 @@ deref_all(N) :-
   setup_call_cleanup(
     (
       gzopen('/scratch/lodlab/crawls/iri.gz', read, In),
-      gzopen('/scratch/lodlab/crawls/deref.nt.gz', write, Out)
+      open('/scratch/lodlab/crawls/deref.nt', write, Out)
     ),
     deref_all(In, Out, N),
     (
@@ -77,6 +84,45 @@ deref_all_nonfirst(In, Out, N) :-
   ->  true
   ;   concurrent_maplist(deref_line(Out), Lines),
       deref_all_nonfirst(In, Out, N)
+  ).
+
+
+
+deref_hdt(S) :-
+  var(S), !,
+  hdt_file0(HdtFile),
+  hdt_open(Hdt, HdtFile),
+  distinct(S, deref_subject0(Hdt, S)),
+  deref_hdt(S).
+deref_hdt(S) :-
+  findall(Triple, deref_triple0(S, Triple), Triples),
+  rdf_print_triples(Triples).
+
+deref_subject0(Hdt, S) :-
+  hdt_subject(Hdt, S),
+  deref_hdt(S, deref:responses, _).
+
+deref_triple0(S, Triple) :-
+  deref_hdt(S, P, O),
+  (   Triple = rdf(S,P,O)
+  ;   rdf_is_bnode(O),
+      deref_triple0(O, Triple)
+  ).
+
+hdt_file0('/scratch/lodlab/crawls/deref.hdt').
+
+
+deref_hdt(S, P, O) :-
+  hdt_file0(HdtFile),
+  (   exists_file(HdtFile)
+  ->  true
+  ;   NTriplesFile = '/scratch/lodlab/crawls/deref.nt',
+      hdt_create_from_file(HdtFile, NTriplesFile, [])
+  ),
+  setup_call_cleanup(
+    hdt_open(Hdt, HdtFile),
+    hdt_search(Hdt, S, P, O),
+    hdt_close(Hdt)
   ).
 
 
@@ -107,7 +153,8 @@ deref_graph(Out, Iri, M, G) :-
 
   get_dict('llo:http_communication', M, L1),
   maplist(store_http_metadata0(Out), L1, L2),
-  rdf_store_list(Out, L2).
+  rdf_store_list(Out, L2, RdfList),
+  rdf_store(Out, Iri, deref:responses, RdfList).
 
 
 store_http_metadata0(Out, M, B) :-
@@ -140,11 +187,7 @@ deref_iri(Out, Iri) :-
   flag(deref, X, X + 1),
   debug(deref, "~D", [X]),
   (X = 428607 -> gtrace ; true),
-  Opts = [
-    base_iri(Iri),
-    triples(NumTriples),
-    quads(NumQuads)
-  ],
+  Opts = [base_iri(Iri),triples(NumTriples),quads(NumQuads)],
   (   catch(rdf_call_on_graph(Iri, deref_graph(Out, Iri), Opts), E, true)
   ->  (   var(E)
       ->  % Number of triples

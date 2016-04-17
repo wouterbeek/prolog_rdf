@@ -2,7 +2,7 @@
   rdf_error,
   [
     rdf_store/4,        % +Out, +S, +P, +O
-    rdf_store_list/2,   % +Out, +L
+    rdf_store_list/3,   % +Out, +L, -RdfL
     rdf_store_warning/3 % +Out, +Doc, +E
   ]
 ).
@@ -34,9 +34,9 @@ rdf_store(Out, S, P, O) :-
 
 
 
-%! rdf_store_list(+Out, +L) is det.
+%! rdf_store_list(+Out, +L, -RdfL) is det.
 
-rdf_store_list(Out, L) :-
+rdf_store_list(Out, L, B) :-
   rdf_create_bnode(B),
   rdf_store_list(Out, B, L).
 
