@@ -9,12 +9,13 @@
 /** <module> RDF GML
 
 @author Wouter Beek
-@version 2016/02-2016/03
+@version 2016/02-2016/04
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/compress_ext)).
@@ -31,30 +32,24 @@
     gml_label(4, +, -, +),
     gml_setup(+, -, -, -, -, -, -, -, +).
 
-:- predicate_options(gml_edge/5, 5, [
-     edge_label_writer(+callable),
-     node_label_writer(+callable),
-     out_base(+atom),
-     prefixes(+list(pair)),
-     pass_to(rdf_print_predicate//2, 2),
-     pass_to(rdf_print_term//2, 2)
-   ]).
-
 
 
 
 
 %! rdf_load_gml(+Source) is det.
-% Wrapper around rdf_load_gml/2 with default options.
+%! rdf_load_gml(+Source, +Opts) is det.
+% The following options are supported:
+%   - out_base(+atom)
+%     The base name of the output files and the name of the graph.
+%   - Other options are passed to gml_setup/9 and gml_tuple/3.
 
 rdf_load_gml(Source) :-
-  rdf_load_gml(Source, []).
+  rdf_load_gml(Source, _{}).
 
-
-%! rdf_load_gml(+Source, +Opts) is det.
 
 rdf_load_gml(Source, Opts) :-
-  option(out_base(Base), Opts, out),
+  atomic_list_concat([DefBase|_], ., Source),
+  get_dict(out_base, Opts, Base, DefBase),
   setup_call_cleanup(
     gml_setup(
       Base,
@@ -106,8 +101,8 @@ gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile) :-
 %   - edge_label_printer(+callable)
 
 gml_edge(EOut, NId1, P, NId2, Opts) :-
-  option(edge_label_printer(Dcg_2), Opts, rdf_print_predicate),
-  gml_label(Dcg_2, P, EL, Opts),
+  get_dict(edge_label_printer, Opts, Dcg_4, dcg_print_predicate),
+  gml_label(Dcg_4, P, EL, Opts),
   format(EOut, "  edge [ label \"~a\" source ~a target ~a ]~n", [EL,NId1,NId2]).
 
 
@@ -128,10 +123,10 @@ gml_encode_label --> [].
 
 
 
-%! gml_label(:Dcg_2, +T, -Label, +Opts) is det.
+%! gml_label(:Dcg_4, +T, -Label, +Opts) is det.
 
-gml_label(Dcg_2, T, Lbl, Opts) :-
-  phrase(dcg_call(Dcg_2, T, Opts), Cs1),
+gml_label(Dcg_4, T, Lbl, Opts) :-
+  phrase(dcg_call(Dcg_4, T, Opts), Cs1),
   phrase(gml_encode_label, Cs1, Cs2),
   string_codes(Lbl, Cs2).
 
@@ -142,9 +137,9 @@ gml_label(Dcg_2, T, Lbl, Opts) :-
 %   - node_label_printer(+callable)
 
 gml_node(NOut, Opts, N, NId) :-
-  option(node_label_printer(Dcg_2), Opts, rdf_print_term),
+  get_dict(node_label_printer, Opts, Dcg_4, dcg_print_term),
   md5(N, NId),
-  gml_label(Dcg_2, N, VL, Opts),
+  gml_label(Dcg_4, N, VL, Opts),
   format(NOut, "  node [ id ~a label \"~a\" ]~n", [NId,VL]).
 
 
@@ -157,8 +152,6 @@ gml_node(NOut, Opts, N, NId) :-
 %!   +Opts
 %! ) is det.
 % The following options are supported:
-%   - out_base(+atom)
-%     The base name of the output files and the name of the graph.
 %   - prefixes(+list(pair))
 
 gml_setup(
@@ -169,11 +162,11 @@ gml_setup(
   Opts
 ) :-
   % Register prefixes.
-  option(prefixes(Pairs), Opts, []),
+  get_dict(prefixes, Opts, Pairs, []),
   pairs_keys_values(Pairs, Keys, Vals),
   maplist(rdf_register_prefix, Keys, Vals),
 
-  atomic_list_concat([Base,gml], ., GFile),
+  atomic_list_concat([Base,gml,gz], ., GFile),
   atomic_list_concat([Base,edges,tmp], ., EFile),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
 
