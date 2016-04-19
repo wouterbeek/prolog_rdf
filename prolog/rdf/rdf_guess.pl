@@ -31,47 +31,44 @@
 
 
 
-%! rdf_guess_format(+Source, -Format:rdf_format) is det.
-%! rdf_guess_format(+Source, -Format:rdf_format, +Opts) is det.
+%! rdf_guess_format(+Source, -Format) is det.
+%! rdf_guess_format(+Source, -Format, +Opts) is det.
 % The following options are supported:
 %   * default_rdf_format(+rdf_format)
 
-rdf_guess_format(Spec, F) :-
-  rdf_guess_format(Spec, F, []).
-
-rdf_guess_format(Spec, F, Opts) :-
-  setup_call_cleanup(
-    open_any2(Spec, read, Read, Close_0, Opts),
-    rdf_guess_format(Read, 0, F, Opts),
-    close_any2(Close_0)
-  ).
+rdf_guess_format(Source, Format) :-
+  rdf_guess_format(Source, Format, []).
 
 
-%! rdf_guess_format(+Read, +Iteration:nonneg, -Format:rdf_format, +Opts) is det.
+rdf_guess_format(Source, Format, Opts) :-
+  call_on_stream(Source, rdf_guess_format1(Format, Opts)).
 
-rdf_guess_format(Read, I, F, Opts) :-
+rdf_guess_format1(Format, Opts, _, In) :-
+  rdf_guess_format2(In, 0, Format, Opts).
+
+rdf_guess_format2(In, I, Format, Opts) :-
   N is 1000 * 2 ^ I,
-  peek_string(Read, N, S),
+  peek_string(In, N, S),
   debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
 
   % Try to parse the peeked string as Turtle- or XML-like.
   (   rdf_guess_jsonld(S, N),
-      F = jsonld
-  ;   rdf_guess_turtle(S, N, F, Opts)
-  ;   rdf_guess_xml(S, F)
+      Format = jsonld
+  ;   rdf_guess_turtle(S, N, Format, Opts)
+  ;   rdf_guess_xml(S, Format)
   ), !,
 
-  debug(rdf(guess), "Assuming ~a based on heuristics.", [F]).
-rdf_guess_format(Read, I1, F, Opts) :-
+  debug(rdf(guess), "Assuming ~a based on heuristics.", [Format]).
+rdf_guess_format2(In, I1, Format, Opts) :-
   I1 < 4,
   I2 is I1 + 1,
-  rdf_guess_format(Read, I2, F, Opts).
+  rdf_guess_format2(In, I2, Format, Opts).
 
 
 % For Turtle-family formats it matters whether or not
 % end of stream has been reached.
-rdf_guess_turtle(S, N, F, Opts) :-
+rdf_guess_turtle(S, N, Format, Opts) :-
   % Do not backtrack if the whole stream has been peeked.
   string_length(S, M),
   ((M =:= 0 ; M < N) -> !, EoS = true ; EoS = false),
-  string_phrase(rdf_guess_turtle(EoS, F, Opts), S, _).
+  string_phrase(rdf_guess_turtle(EoS, Format, Opts), S, _).

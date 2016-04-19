@@ -98,10 +98,6 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
     'llo:processed_tuples': NoTuples
   }),
 
-  % Store input stream properties.
-  stream_metadata(Source, MStream),
-  M3 = M2.put(MStream),
-
   sort_file(Tmp, Opts1),
 
   % Count the number of unique tuples.
