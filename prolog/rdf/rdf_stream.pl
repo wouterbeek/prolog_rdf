@@ -66,18 +66,16 @@ rdf_read_from_stream0(Goal_2, Opts, M1, In) :-
   (   option(rdf_format(Format1), Opts),
       ground(Format1)
   ->  true
-  ;   rdf_guess_format_options0(M1, Opts, GuessOpts1),
+  ;   rdf_guess_format_options0(M1, Opts, GuessOpts),
       % Make sure the metadata option of the RDF source does not get overwritten
       % when opening the stream for guessing the RDF serialization format.
-      remove_option(GuessOpts1, metadata(_), GuessOpts2),
-      rdf_guess_format(in, Format1, GuessOpts2)
+      rdf_guess_format(In, Format1, GuessOpts)
   ),
   (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true),
   % `Format' is now instantiated.
   rdf_format_iri(Format1, Format2),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
   M2 = M1.put(_{'llo:rdf_format': Format3}),
-  ignore(option(metadata(M2), Opts)),
   call(Goal_2, M2, In).
 
 rdf_guess_format_options0(M, Opts1, Opts2) :-

@@ -11,7 +11,7 @@
 /** <module> Save RDF data
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02
+@version 2015/08, 2015/10-2016/02, 2016/04
 */
 
 :- use_module(library(debug)).
@@ -35,26 +35,6 @@
 :- rdf_meta
    rdf_save_file(+, t).
 
-:- predicate_options(rdf_save_file/2, 2, [
-     rdf_format(+rdf_format),
-     graph(+iri),
-     pass_to(rdf_save_to_stream/3, 2),
-     pass_to(rdf_write_to_stream/3, 3)
-   ]).
-:- predicate_options(rdf_save_to_stream/3, 2, [
-     pass_to(gen_ntuples/2, 2),
-     pass_to(rdf_save_trig/2, 2),
-     pass_to(rdf_save_turtle/2, 2),
-     pass_to(rdf_save_xmlrdf/2, 2)
-   ]).
-:- predicate_options(rdf_write_to_graph/3, 3, [
-     pass_to(rdf_write_to_stream/3, 3),
-     pass_to(rdf_write_to_graph/4, 2)
-   ]).
-:- predicate_options(rdf_write_to_graph/4, 2, [
-     pass_to(rdf_save_file/2, 2)
-   ]).
-
 
 
 
@@ -67,6 +47,7 @@
 
 rdf_save_file(Out) :-
   rdf_save_file(Out, []).
+
 
 % The file name can be derived from the graph.
 rdf_save_file(Out, Opts) :-
@@ -108,7 +89,6 @@ rdf_save_file(File, Opts) :-
   exists_file(File),
   time_file(File, LMod), !,
   debug(rdf(save), "No need to save graph ~w; no updates.", [G]).
-% "If you know how to do it and you can do it... DO IT!"
 rdf_save_file(Out, Opts) :-
   % Determine the RDF output format:
   %   1. By option.
@@ -128,21 +108,22 @@ rdf_save_file(Out, Opts) :-
   
   rdf_write_to_stream(Out, rdf_save_to_stream0(Format, Opts), Opts).
 
-rdf_save_to_stream0(F, Opts, _, Write) :- rdf_save_to_stream(F, Opts, Write).
+rdf_save_to_stream0(F, Opts, _, Out) :-
+  rdf_save_to_stream(F, Opts, Out).
 
 
-%! rdf_save_to_stream(+Format:rdf_format, +Opts, +Write) is det.
+%! rdf_save_to_stream(+Format:rdf_format, +Opts, +Out) is det.
 
 % N-Quads or N-Triples
-rdf_save_to_stream(Format, Opts, Write) :-
+rdf_save_to_stream(Format, Opts, Out) :-
   memberchk(Format, [nquads,ntriples]), !,
   option(graph(G), Opts, _NO_GRAPH),
-  with_output_to(Write, gen_ntuples(_, _, _, G)).
+  with_output_to(Out, gen_ntuples(_, _, _, G)).
 % TriG
-rdf_save_to_stream(trig, Opts, Write) :- !,
-  rdf_save_trig(Write, Opts).
+rdf_save_to_stream(trig, Opts, Out) :- !,
+  rdf_save_trig(Out, Opts).
 % Turtle
-rdf_save_to_stream(turtle, Opts0, Write) :- !,
+rdf_save_to_stream(turtle, Opts0, Out) :- !,
   merge_options(
     [
       a(true),
@@ -158,10 +139,10 @@ rdf_save_to_stream(turtle, Opts0, Write) :- !,
     Opts0,
     Opts
   ),
-  rdf_save_turtle(Write, Opts).
+  rdf_save_turtle(Out, Opts).
 % XML/RDF
-rdf_save_to_stream(xml, Opts, Write) :- !,
-  rdf_save_xmlrdf(Write, Opts).
+rdf_save_to_stream(xml, Opts, Out) :- !,
+  rdf_save_xmlrdf(Out, Opts).
 
 
 
@@ -181,16 +162,18 @@ rdf_save_to_stream(xml, Opts, Write) :- !,
 rdf_write_to_graph(Out, Goal_1) :-
   rdf_write_to_graph(Out, Goal_1, []).
 
-rdf_write_to_graph(Out, Goal_1, Opts) :-
-  rdf_write_to_stream(Out, rdf_write_to_graph(Goal_1, Opts), Opts).
 
-rdf_write_to_graph(Goal_1, Opts1, _, Write) :-
+rdf_write_to_graph(Out, Goal_1, Opts) :-
+  rdf_write_to_stream(Out, rdf_write_to_graph0(Goal_1, Opts), Opts).
+
+
+rdf_write_to_graph0(Goal_1, Opts1, _, Out) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
       call(Goal_1, G),
       merge_options([graph(G)], Opts1, Opts2),
-      rdf_save_file(stream(Write), Opts2)
+      rdf_save_file(stream(Out), Opts2)
     ),
     rdf_unload_graph(G)
   ).

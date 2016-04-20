@@ -34,17 +34,6 @@
 :- use_module(library(semweb/turtle)).
 :- use_module(library(stream_ext)).
 
-:- predicate_options(rdf_clean/3, 3, [
-     pass_to(absolute_file_name/3, 3),
-     pass_to(rdf_read_from_stream/3, 3),
-     pass_to(rdf_clean_read/4, 2)
-   ]).
-:- predicate_options(rdf_clean_stream/4, 2, [
-     compress(+oneof([deflate,gzip,none])),
-     metadata(-dict),
-     pass_to(sort_file/2, 2)
-   ]).
-
 
 
 
@@ -55,8 +44,6 @@
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
 %      Default is `none`.
-%    * metadata(-dict)
-%      Returns the metadata for cleaning the From source.
 %    * rdf_format(+oneof([jsonld,ntriples,nquads,rdfa,trig,trix,turtle,xml]))
 %      The RDF serialization format of the input.
 %      When absent this is guessed heuristically.
@@ -75,7 +62,6 @@ rdf_clean(From, To, Opts) :-
 rdf_clean_stream(To, Opts1, M1, Source) :-
   Opts0 = [quads(NumQuads),triples(NumTriples),tuples(NumTuples)],
   merge_options(Opts0, Opts1, Opts2),
-  option(metadata(M3), Opts1, _),
   option(compress(Compress), Opts1, none),
   
   absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),

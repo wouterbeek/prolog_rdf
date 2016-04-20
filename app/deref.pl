@@ -189,7 +189,11 @@ store_metadata(Out, Iri, M) :-
 
 
 deref_iri(Iri) :-
-  deref_iri(user_output, Iri).
+  rdf_snap((
+    deref_iri(Iri, Iri),
+    rdf_print_graph(Iri),
+    rdf_unload_graph(Iri)
+  )).
 
 
 deref_iri(Out, Iri) :-
@@ -198,22 +202,24 @@ deref_iri(Out, Iri) :-
   debug(deref(flag), "~D  ~t  ~a", [X,Iri]),
   (X = -1 -> gtrace ; true),
   Opts = [base_iri(Iri),triples(NumTriples),quads(NumQuads)],
-  (   catch(rdf_call_on_graph(Iri, deref_graph(Out, Iri), Opts), E, true)
-  ->  (   var(E)
-      ->  % Number of triples
-	  rdf_store(Out, Iri, deref:number_of_triples, NumTriples^^xsd:nonNegativeInteger),
-          debug(deref, "Number of triples: ~D", [NumTriples]),
-	  % Number of quadruples
-	  rdf_store(Out, Iri, deref:number_of_quads, NumQuads^^xsd:nonNegativeInteger),
-          debug(deref, "Number of quads: ~D", [NumQuads])
-      ;   % HTTP error status code
-          E = error(existence_error(open_any2,M),_)
-      ->  store_metadata(Out, Iri, M)
-      ;   % Exception
-          rdf_store_warning(Out, Iri, E)
-      )
-  ;   msg_warning("HOPEFULLY THE ARCHIVE_CLOSE/1 HACK...~n") %TBD
+  catch(rdf_call_on_graph(Iri, deref_graph(Out, Iri), Opts), E, true), !,
+  (   var(E)
+  ->  % Number of triples
+      rdf_store(Out, Iri, deref:number_of_triples, NumTriples^^xsd:nonNegativeInteger),
+      debug(deref, "Number of triples: ~D", [NumTriples]),
+      % Number of quadruples
+      rdf_store(Out, Iri, deref:number_of_quads, NumQuads^^xsd:nonNegativeInteger),
+      debug(deref, "Number of quads: ~D", [NumQuads])
+  ;   % HTTP error status code
+      E = error(existence_error(open_any2,M),_)
+  ->  store_metadata(Out, Iri, M)
+  ;   % Exception
+      rdf_store_warning(Out, Iri, E)
   ).
+% O NO!
+deref_iri(Out, Iri) :-
+  gtrace,
+  deref_iri(Out, Iri).
 
 
 deref_iri(Out, Iri, NumDocs) :-
@@ -237,9 +243,9 @@ deref_line(Out, Cs) :-
 
 % DEBUG %
 
-iri('http://%5Cdementialcore.blogspot.com').
-iri('http://dbpedia.org/resource/Tim_Berners-Lee').
 iri('http://%20ossiane.blog@studio-amarante.com/').
+iri('http://dbpedia.org/resource/Tim_Berners-Lee').
+iri('http://%5Cdementialcore.blogspot.com').
 
 
 

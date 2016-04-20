@@ -148,6 +148,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, M, Source) :-
 
 
 rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
+  gtrace,
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
@@ -184,6 +185,7 @@ rdf_call_on_quads0(Goal_5, M, Tuples) :-
 
 
 rdf_call_on_quads0(Goal_5, M, Tuples, _) :-
+  gtrace,
   rdf_call_on_quads0(Goal_5, M, Tuples).
 
 

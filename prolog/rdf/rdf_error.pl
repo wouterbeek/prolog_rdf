@@ -21,7 +21,7 @@
 :- use_module(library(uri)).
 
 :- rdf_meta
-   rdf_store(+, r, r, o).
+   rdf_store(r, r, r, o).
 
 
 
@@ -30,7 +30,10 @@
 %! rdf_store(+Out, +S, +P, +O) is det.
 
 rdf_store(Out, S, P, O) :-
+  is_stream(Out), !,
   with_output_to(Out, gen_ntriple(S, P, O)).
+rdf_store(G, S, P, O) :-
+  rdf_assert(S, P, O, G).
 
 
 
