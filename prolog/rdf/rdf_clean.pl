@@ -75,7 +75,7 @@ rdf_clean(From, To, Opts) :-
 rdf_clean_stream(To, Opts1, M1, Source) :-
   Opts0 = [quads(NumQuads),triples(NumTriples),tuples(NumTuples)],
   merge_options(Opts0, Opts1, Opts2),
-  option(metadata(M4), Opts1, _),
+  option(metadata(M3), Opts1, _),
   option(compress(Compress), Opts1, none),
   
   absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),
@@ -93,9 +93,9 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   ),
   deb_cleaned_tuples(NumTuples, NumTriples, NumQuads),
   M2 = M1.put(_{
-    'llo:processed_quads': NoQuads,
-    'llo:processed_triples': NoTriples,
-    'llo:processed_tuples': NoTuples
+    'llo:processed_quads': NumQuads,
+    'llo:processed_triples': NumTriples,
+    'llo:processed_tuples': NumTuples
   }),
 
   sort_file(Tmp, Opts1),
@@ -104,7 +104,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   file_lines(Tmp, NumLines),
   NumDuplicates is NumTuples - NumLines,
   deb_wrote_tuples(NumTuples, NumDuplicates),
-  M4 = M3.put(_{
+  M3 = M2.put(_{
     'llo:unique_tuples': NumTuples,
     'llo:duplicate_tuples': NumDuplicates
   }),
@@ -112,8 +112,9 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
   % Compress the file, according to user option.
   compress_file(Tmp, Compress, To),
   delete_file(Tmp).
+
 gen_ntuple0(Sink, State, _, S, P, O, G) :-
-  gen_tuples:gen_ntuple(Sink, State, S, P, O, G).
+  gen_ntuples:gen_ntuple(Sink, State, S, P, O, G).
 
 
 

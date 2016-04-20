@@ -41,7 +41,7 @@ oaei_convert_rdf_to_tsv(Source, Sink) :-
 %! oaei_convert_tsv_to_rdf(+Source, +Sink) is det.
 
 oaei_convert_tsv_to_rdf(Source, Sink) :-
-  oaei_load_tsv(Source, Alginments),
+  oaei_load_tsv(Source, Alignments),
   oaei_save_rdf(Alignments, Sink).
 
 
@@ -56,7 +56,7 @@ oaei_load_rdf(Source, Alignments) :-
 oaei_load_rdf(Source, Alignments, Opts) :-
   rdf_call_on_graph(Source, oaei_load_rdf0(Alignments), Opts).
 
-oaei_load_rdf0(Alignments, _) :-
+oaei_load_rdf0(Alignments, _, _) :-
   aggregate_all(set(From-To), oaei_alignment(From, To), Alignments).
 
 

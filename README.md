@@ -39,6 +39,7 @@ names:
 | `P`               | Predicate term |
 | `Prop`            | Property       |
 | `Quad`            | Quadruple      |
+| `Rel`             | Relation       |
 | `S`               | Subject term   |
 | `Term`            | Term           |
 | `Triple`          | Triple         |

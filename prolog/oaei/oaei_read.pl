@@ -2,7 +2,7 @@
   oaei_read,
   [
     oaei_alignment/2, % ?From, ?To
-    oaei_alignment/4 % ?From, ?To, ?Relation:atom, ?Measure:between(0.0,1.0)
+    oaei_alignment/4  % ?From, ?To, ?Rel:atom, ?Measure:between(0.0,1.0)
   ]    
 ).
 
@@ -31,7 +31,7 @@ oaei_alignment(From, To) :-
 %! oaei_alignment(
 %!   ?From:rdf_term,
 %!   ?To:rdf_term,
-%!   ?Relation:atom,
+%!   ?Rel:atom,
 %!   ?Measure:between(0.0,1.0)
 %! ) is nondet.
 
