@@ -303,7 +303,7 @@ dcg_print_groups0([G-Triples|Groups], Opts) -->
       {I2 = I1 + 1}
   ),
   dcg_print_triples0(I2, Triples, Opts),
-  ({rdf_default_graph(G)} -> "" ; "}\n"),
+  ({rdf_default_graph(G)} -> "\n" ; "}\n"),
   dcg_print_groups0(Groups, Opts).
 
 

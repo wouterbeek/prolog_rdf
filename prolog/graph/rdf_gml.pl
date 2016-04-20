@@ -28,9 +28,9 @@
 :- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
-    gml_cleanup(+, +, +, +, +, +),
+    gml_cleanup(+, +, +, +, +, +, +, +),
     gml_label(4, +, -, +),
-    gml_setup(+, -, -, -, -, -, -, -, +).
+    gml_setup(+, -, -, -, -, -, -, -, -, -, +).
 
 
 
@@ -41,7 +41,7 @@
 % The following options are supported:
 %   - out_base(+atom)
 %     The base name of the output files and the name of the graph.
-%   - Other options are passed to gml_setup/9 and gml_tuple/3.
+%   - Other options are passed to gml_setup/11 and gml_tuple/3.
 
 rdf_load_gml(Source) :-
   rdf_load_gml(Source, _{}).
@@ -53,27 +53,27 @@ rdf_load_gml(Source, Opts) :-
   setup_call_cleanup(
     gml_setup(
       Base,
-      NFile, NOut, NClose_0,
-      EFile, EOut, EClose_0,
+      NFile, NOut, NClose_0, NM,
+      EFile, EOut, EClose_0, EM,
       GFile,
       Opts
     ),
     rdf_call_on_tuples(Source, gml_tuple(EOut, NOut, Opts)),
-    gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile)
+    gml_cleanup(Base, NFile, NClose_0, NM, EFile, EClose_0, EM, GFile)
   ).
 
 
 
 %! gml_cleanup(
 %!   +Base,
-%!   +NFile, :NClose_0,
-%!   +EFile, :EClose_0,
+%!   +NFile, :NClose_0, NM,
+%!   +EFile, :EClose_0, EM,
 %!   +GFile
 %! ) is det.
 
-gml_cleanup(Base, NFile, NClose_0, EFile, EClose_0, GFile) :-
-  close_any2(NClose_0),
-  close_any2(EClose_0),
+gml_cleanup(Base, NFile, NClose_0, NM1, EFile, EClose_0, EM1, GFile) :-
+  close_any(NClose_0, NM1, _),
+  close_any(EClose_0, EM1, _),
 
   % Sort the nodes to ensure there are no duplicates.
   sort_file(NFile),
@@ -146,8 +146,8 @@ gml_node(NOut, Opts, N, NId) :-
 
 %! gml_setup(
 %!   +Base,
-%!   -NFile, -NOut, :NClose_0,
-%!   -EFile, -EOut, :EClose_0,
+%!   -NFile, -NOut, :NClose_0, -NM,
+%!   -EFile, -EOut, :EClose_0, -EM,
 %!   -GFile,
 %!   +Opts
 %! ) is det.
@@ -156,8 +156,8 @@ gml_node(NOut, Opts, N, NId) :-
 
 gml_setup(
   Base,
-  NFile, NOut, NClose_0,
-  EFile, EOut, EClose_0,
+  NFile, NOut, NClose_0, NM,
+  EFile, EOut, EClose_0, EM,
   GFile,
   Opts
 ) :-
@@ -170,8 +170,8 @@ gml_setup(
   atomic_list_concat([Base,edges,tmp], ., EFile),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
 
-  open_any2(EFile, write, EOut, EClose_0),
-  open_any2(NFile, write, NOut, NClose_0).
+  open_any2(EFile, write, EOut, EClose_0, EM),
+  open_any2(NFile, write, NOut, NClose_0, NM).
 
 
 
