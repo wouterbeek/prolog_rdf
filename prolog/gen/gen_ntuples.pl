@@ -1,15 +1,17 @@
 :- module(
   gen_ntuples,
   [
-    gen_nquad/4,   % +S, +P, +O, +G
-    gen_ntriple/3, % +S, +P, +O
-    gen_ntriple/4, % +S, +P, +O, +G
-    gen_ntuples/4, % ?S, ?P, ?O, ?G
-    gen_ntuples/5  % ?S, ?P, ?O, ?G, +Opts
+    gen_nquad/4,    % +S, +P, +O, +G
+    gen_nquads/4,   % ?S, ?P, ?O,     +Opts
+    gen_nquads/5,   % ?S, ?P, ?O, ?G, +Opts
+    gen_ntriple/3,  % +S, +P, +O
+    gen_ntriple/4,  % +S, +P, +O, +G
+    gen_ntriples/4, % ?S, ?P, ?O      +Opts
+    gen_ntriples/5  % ?S, ?P, ?O, ?G, +Opts
   ]
 ).
 
-/** <module> Generate N-Quads
+/** <module> Generate N-Tuples, i.e., N-Triples and N-Quads
 
 @author Wouter Beek
 @version 2016/03-2016/04
@@ -19,6 +21,7 @@
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(error)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(option)).
 :- use_module(library(print_ext)).
@@ -28,24 +31,45 @@
 
 :- rdf_meta
    gen_nquad(r, r, o, r),
+   gen_nquads(r, r, o, +),
+   gen_nquads(r, r, o, r, +),
    gen_ntriple(r, r, o),
    gen_ntriple(r, r, o, r),
+   gen_ntriples(r, r, o, +),
+   gen_ntriples(r, r, o, r, +),
    gen_ntuple(+, r, r, o, r),
    gen_ntuple(+, +, r, r, o, r),
    gen_ntuples(r, r, o, r, +).
 
-:- thread_local
-   bnode_map/2.
 
 
 
 
+%! gen_nquad(+S, +P, +O, +G) is det.
+% Write a fully instantiated quadruple to current output.
 
 gen_nquad(S, P, O, G) :-
   gen_empty_state(State),
   gen_ntuple(State, S, P, O, G).
 
 
+
+%! gen_nquads(?S, ?P, ?O, +Opts) is det.
+%! gen_nquads(?S, ?P, ?O, ?G, +Opts) is det.
+
+gen_nquads(S, P, O, Opts) :-
+  gen_nquads(S, P, O, _, Opts).
+
+
+gen_nquads(S, P, O, G, Opts0) :-
+  merge_options([rdf_format(nquads)], Opts0, Opts),
+  gen_ntuples(S, P, O, G, Opts).
+
+
+
+%! gen_ntriple(+S, +P, +O) is det.
+%! gen_ntriple(+S, +P, +O, +G) is det.
+% Write a fully instantiated triple to current output.
 
 gen_ntriple(S, P, O) :-
   gen_nquad(S, P, O, default).
@@ -56,6 +80,23 @@ gen_ntriple(S, P, O, _) :-
 
 
 
+%! gen_ntriples(?S, ?P, ?O, +Opts) is det.
+%! gen_ntriples(?S, ?P, ?O, ?G, +Opts) is det.
+
+gen_ntriples(S, P, O, Opts) :-
+  gen_ntriples(S, P, O, _, Opts).
+
+
+gen_ntriples(S, P, O, G, Opts0) :-
+  merge_options([rdf_format(ntriples)], Opts0, Opts),
+  gen_ntuples(S, P, O, G, Opts).
+
+
+
+%! gen_ntuple(+State, +S, +P, +O, +G) is det.
+%! gen_ntuple(+Sink, +State, +S, +P, +O, +G) is det.
+% Low-level tuple writer.
+
 gen_ntuple(State, S, P, O, G) :-
   gen_subject(State, S),
   put_char(' '),
@@ -63,7 +104,9 @@ gen_ntuple(State, S, P, O, G) :-
   put_char(' '),
   gen_object(State, O),
   put_char(' '),
-  (   rdf_default_graph(G)
+  (   State.rdf_format == ntriples
+  ->  dict_inc(triples, State)
+  ;   rdf_default_graph(G)
   ->  dict_inc(triples, State)
   ;   gen_graph(G),
       put_char(' '),
@@ -78,16 +121,8 @@ gen_ntuple(Sink, State, S, P, O, G) :-
 
 
 
-%! gen_ntuples(?S, ?P, ?O, ?G) is det.
 %! gen_ntuples(?S, ?P, ?O, ?G, +Opts) is det.
-% The following options are supported:
-%   - quads(-nonneg)
-%   - triples(-nonneg)
-%   - tuples(-nonneg)
-%   - warn(+stream)
-
-gen_ntuples(S, P, O, G) :-
-  gen_ntuples(S, P, O, G, []).
+% Options are passed to gen_ntuples_begin/2 and gen_ntuples_end/2.
 
 gen_ntuples(S, P, O, G, Opts) :-
   setup_call_cleanup(
@@ -102,31 +137,44 @@ gen_ntuples(S, P, O, G, Opts) :-
 
 
 
+
 % STAGE SETTING %
 
 gen_empty_state(_{bnode: 0, bprefix: '_:', quads: 0, triples: 0}).
 
 
-%! gen_ntuples_begin(-State, +Opts) is det.
 
-gen_ntuples_begin(State2, Opts) :-
-  gen_empty_state(State1),
-  (option(warn(Warn), Opts) -> put_dict(warn, State1, Warn, State2) ; State2 = State1),
+%! gen_ntuples_begin(-State, +Opts) is det.
+% The following options are supported:
+%   * base_iri(+iri)
+%   * rdf_format(+oneof([nquads,ntriples]))
+%     Default is `nquads`.
+%   * warn(+stream)
+
+gen_ntuples_begin(State, Opts) :-
+  gen_empty_state(State),
+  % Stream for warnings.
+  (option(warn(Warn), Opts) -> nb_set_dict(warn, State, Warn) ; true),
+  % Well-known IRI prefix for blank nodes.
   (   option(base_iri(BaseIri), Opts)
   ->  iri_comps(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
       atom_ending_in(Path0, '#', Suffix),
       atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
       iri_comps(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
-      nb_set_dict(bprefix, State2, BPrefix)
+      nb_set_dict(bprefix, State, BPrefix)
   ;   true
-  ).
+  ),
+  option(rdf_format(Format), Opts, nquads),
+  must_be(oneof([nquads,ntriples]), Format),
+  nb_set_dict(rdf_format, State, Format).
+
 
 
 %! gen_ntuples_end(+State, +Opts) is det.
 % The following options are supported:
-%   - quads(-nonneg)
-%   - triples(-nonneg)
-%   - tuples(-nonneg)
+%   * quads(-nonneg)
+%   * triples(-nonneg)
+%   * tuples(-nonneg)
 
 gen_ntuples_end(State, Opts) :-
   option(quads(State.quads), Opts, _),
@@ -144,14 +192,17 @@ gen_ntuples_for_subject(State, P, O, G, S) :-
   maplist(gen_ntuples_for_predicate(State, O, G, S), Ps).
 
 
+
 gen_ntuples_for_predicate(State, O, G, S, P) :-
   aggregate_all(set(O), rdf(S, P, O, G), Os),
   maplist(gen_ntuples_for_object(State, G, S, P), Os).
 
 
+
 gen_ntuples_for_object(State, G, S, P, O) :-
   aggregate_all(set(G), rdf(S, P, O, G), Gs),
   maplist(gen_ntuple(State, S, P, O), Gs).
+
 
 
 
@@ -165,8 +216,10 @@ gen_subject(_, Iri) :-
   gen_iri(Iri).
 
 
+
 gen_predicate(P) :-
   gen_iri(P).
+
 
 
 gen_object(State, B) :-
@@ -180,8 +233,10 @@ gen_object(State, Lit) :-
   gen_literal(State, Lit), !.
 
 
+
 gen_graph(G) :-
   gen_iri(G).
+
 
 
 
@@ -190,17 +245,12 @@ gen_graph(G) :-
 
 gen_bnode(_, B) :-
   write(B).
-/*
-gen_bnode(State, B) :-
-  % Retrieve (existing) or create (new) a numeric blank node identifier.
-  (bnode_map(B, Id) -> true ; dict_inc(bnode, State, Id)),
-  atomic_concat(State.bprefix, Id, Name),
-  write(Name).
-*/
+
 
 
 gen_iri(Iri) :-
   turtle:turtle_write_uri(current_output, Iri).
+
 
 
 gen_literal(_, V^^D) :- !,
