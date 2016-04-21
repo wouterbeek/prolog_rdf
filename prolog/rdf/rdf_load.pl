@@ -185,7 +185,6 @@ rdf_call_on_quads0(Goal_5, M, Tuples) :-
 
 
 rdf_call_on_quads0(Goal_5, M, Tuples, _) :-
-  gtrace,
   rdf_call_on_quads0(Goal_5, M, Tuples).
 
 
