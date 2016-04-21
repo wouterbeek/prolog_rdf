@@ -41,7 +41,7 @@
 :- rdf_meta
    deref_hdt(r, r, o).
 
-:- dcg_ext:set_setting(tab_size, 2).
+:- dcg_ext:set_setting(tab_size, 8).
 
 :- debug(deref(flag)).
 
@@ -137,12 +137,12 @@ deref_graph(Out, Iri, G, M, _) :-
 
   % Number of occurrences in the predicate position
   rdf_aggregate_all(count, rdf(_, Iri, _, G), NumPredicates),
-  rdf_store(Out, Iri, deref:number_of_subjects, NumPredicates^^xsd:nonNegativeInteger),
+  rdf_store(Out, Iri, deref:number_of_predicates, NumPredicates^^xsd:nonNegativeInteger),
   debug(deref, "Appears in predicate position: ~D", [NumPredicates]),
 
   % Number of occurrences in the object position
   rdf_aggregate_all(count, rdf(_, _, Iri, G), NumObjects),
-  rdf_store(Out, Iri, deref:number_of_subjects, NumObjects^^xsd:nonNegativeInteger),
+  rdf_store(Out, Iri, deref:number_of_objects, NumObjects^^xsd:nonNegativeInteger),
   debug(deref, "Appears in object position: ~D", [NumObjects]),
 
   % Serialization format
