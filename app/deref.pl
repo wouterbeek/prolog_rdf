@@ -127,9 +127,9 @@ deref_hdt(S, P, O) :-
 
 
 
-deref_graph(Out, Iri, M, G) :-
+deref_graph(Out, Iri, G, M, _) :-
   rdf_print_graph(G), nl,
-  
+
   % Number of occurrences in the subject position
   rdf_aggregate_all(count, rdf(Iri, _, _, G), NumSubjects),
   rdf_store(Out, Iri, deref:number_of_subjects, NumSubjects^^xsd:nonNegativeInteger),
@@ -238,7 +238,7 @@ deref_line(Out, Cs) :-
 
 % DEBUG %
 
-%iri('http://%20ossiane.blog@studio-amarante.com/').
+iri('http://%20ossiane.blog@studio-amarante.com/').
 iri('http://dbpedia.org/resource/Tim_Berners-Lee').
 iri('http://%5Cdementialcore.blogspot.com').
 

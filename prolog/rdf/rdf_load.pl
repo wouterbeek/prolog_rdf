@@ -1,8 +1,8 @@
 :- module(
   rdf_load,
   [
-    rdf_call_on_graph/2,    % +Source, :Goal_2
-    rdf_call_on_graph/3,    % +Source, :Goal_2, +Opts
+    rdf_call_on_graph/2,    % +Source, :Goal_3
+    rdf_call_on_graph/3,    % +Source, :Goal_3, +Opts
     rdf_call_on_tuples/2,   % +Source, :Goal_5
     rdf_call_on_tuples/3,   % +Source, :Goal_5, +Opts
     rdf_download_to_file/2, % +Iri,    +File
@@ -31,7 +31,7 @@ Support for loading RDF data.
 :- use_module(library(http/http_ext)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(jsonld/jsonld_read)).
-:- use_module(library(option)).
+:- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
 :- use_module(library(rdf), [process_rdf/3]).
@@ -47,14 +47,14 @@ Support for loading RDF data.
 :- use_module(library(uuid_ext)).
 
 :- meta_predicate 
-    rdf_call_on_graph(+, 2),
-    rdf_call_on_graph(+, 2, +),
+    rdf_call_on_graph(+, 3),
+    rdf_call_on_graph(+, 3, +),
     rdf_call_on_quad0(5, +, +),
     rdf_call_on_quads0(5, +, +),
     rdf_call_on_quads0(5, +, +, +),
     rdf_call_on_tuples(+, 5),
     rdf_call_on_tuples(+, 5, +),
-    rdf_call_on_tuples0(5, +, +, +).
+    rdf_call_on_tuples0(5, +, +, +, -).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
@@ -67,23 +67,24 @@ Support for loading RDF data.
 
 
 
-%! rdf_call_on_graph(+Source, :Goal_2) .
-%! rdf_call_on_graph(+Source, :Goal_2, +Opts) .
-% The following call is made: `call(:Goal_2, +M, +G)`.
+%! rdf_call_on_graph(+Source, :Goal_3) .
+%! rdf_call_on_graph(+Source, :Goal_3, +Opts) .
+% The following call is made: `call(:Goal_3, +G, +M1, -M2)`.
 %
 % Options are passed to rdf_load_file/2.
 
-rdf_call_on_graph(Source, Goal_2) :-
-  rdf_call_on_graph(Source, Goal_2, []).
+rdf_call_on_graph(Source, Goal_3) :-
+  rdf_call_on_graph(Source, Goal_3, []).
 
 
-rdf_call_on_graph(Source, Goal_2, Opts0) :-
+rdf_call_on_graph(Source, Goal_3, Opts1) :-
+  remove_option(Opts1, metadata(M2), Opts2),
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
-      merge_options([metadata(M)], Opts0, Opts),
-      rdf_load_file(Source, Opts),
-      call(Goal_2, M, G)
+      merge_options([graph(G),metadata(M1)], Opts2, Opts3),
+      rdf_load_file(Source, Opts3),
+      call(Goal_3, G, M1, M2)
     ),
     rdf_unload_graph(G)
   ).
@@ -109,7 +110,7 @@ rdf_call_on_tuples(Source, Goal_5, Opts) :-
   rdf_call_on_stream(Source, rdf_call_on_tuples0(Goal_5, Opts), Opts).
 
 
-rdf_call_on_tuples0(Goal_5, Opts1, M, Source) :-
+rdf_call_on_tuples0(Goal_5, Opts1, In, M, M) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
   get_dict('llo:base_iri', M, BaseIri),
   jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
@@ -128,27 +129,26 @@ rdf_call_on_tuples0(Goal_5, Opts1, M, Source) :-
   merge_options(Opts1, Opts2, Opts3),
   (   % N-Quads & N-Triples.
       memberchk(Format, [nquads,ntriples])
-  ->  rdf_process_ntriples(Source, rdf_call_on_quads0(Goal_5, M), Opts3)
+  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, M), Opts3)
   ;   % Trig & Turtle.
       memberchk(Format, [trig,turtle])
-  ->  rdf_process_turtle(Source, rdf_call_on_quads0(Goal_5, M), Opts3)
+  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, M), Opts3)
   %;   % JSON-LD.
   %    Format == jsonld
-  %->  json_read_dict(Source, Json),
+  %->  json_read_dict(In, Json),
   %    forall(jsonld_tuple(Json, Tuple, Opts3), rdf_call_on_quad0(Goal_5, M, Tuple))
   ;   % RDF/XML.
       Format == xml
-  ->  process_rdf(Source, rdf_call_on_quads0(Goal_5, M), Opts3)
+  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, M), Opts3)
   ;   % RDFa.
       Format == rdfa
-  ->  read_rdfa(Source, Triples, Opts3),
+  ->  read_rdfa(In, Triples, Opts3),
       rdf_call_on_quads0(Goal_5, M, Triples)
   ;   existence_error(rdf_format, [Format])
   ).
 
 
 rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
-  gtrace,
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
@@ -202,8 +202,8 @@ rdf_download_to_file(Iri, File, Opts) :-
   rdf_call_on_stream(Iri, rdf_download_to_file0(TmpFile, Opts), Opts),
   rename_file(TmpFile, File).
 
-rdf_download_to_file0(TmpFile, Opts, _, Source) :-
-  write_stream_to_file(Source, TmpFile, Opts).
+rdf_download_to_file0(TmpFile, Opts, In, _, _) :-
+  write_stream_to_file(In, TmpFile, Opts).
 
 
 

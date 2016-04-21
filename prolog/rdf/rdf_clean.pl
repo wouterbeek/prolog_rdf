@@ -1,8 +1,8 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean/3, % +Source, +Sink, -M
-    rdf_clean/4  % +Source, +Sink, -M, +Opts
+    rdf_clean/2, % +Source, +Sink
+    rdf_clean/3  % +Source, +Sink, +Opts
   ]
 ).
 
@@ -33,13 +33,14 @@
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/turtle)).
 :- use_module(library(stream_ext)).
+:- use_module(library(yall)).
 
 
 
 
 
-%! rdf_clean(+Source, +Sink, -M) is det.
-%! rdf_clean(+Source, +Sink, -M, +Opts) is det.
+%! rdf_clean(+Source, +Sink) is det.
+%! rdf_clean(+Source, +Sink, +Opts) is det.
 % The following options are supported:
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
@@ -50,15 +51,20 @@
 %
 % @throws existence_error If an HTTP request returns an error code.
 
-rdf_clean(Source, Sink, M) :-
-  rdf_clean(Source, Sink, M, []).
+rdf_clean(Source, Sink) :-
+  rdf_clean(Source, Sink, []).
 
 
-rdf_clean(Source, Sink, M, Opts) :-
-  rdf_call_on_stream(Source, rdf_clean0(Sink, M, Opts), Opts).
+rdf_clean(Source, Sink, Opts) :-
+  rdf_call_on_stream(
+    Source,
+    [In,M1,M2]>>rdf_clean(In, Sink, M1, M2, Opts),
+    Opts
+  ),
+  ignore(option(metadata(M2), Opts)).
 
 
-rdf_clean0(Sink, M3, Opts1, M1, In) :-
+rdf_clean(In, Sink, M1, M4, Opts1) :-
   Opts0 = [quads(NumQuads),triples(NumTriples),tuples(NumTuples)],
   merge_options(Opts0, Opts1, Opts2),
   option(compress(Compress), Opts1, none),
@@ -72,9 +78,7 @@ rdf_clean0(Sink, M3, Opts1, M1, In) :-
     ),
     rdf_load:rdf_call_on_tuples0(
       rdf_clean:gen_ntuple0(TmpOut, State),
-      Opts1,
-      M1,
-      In
+      Opts1, In, M1, M2
     ),
     (
       gen_ntuples:gen_ntuples_end(State, Opts2),
@@ -82,7 +86,7 @@ rdf_clean0(Sink, M3, Opts1, M1, In) :-
     )
   ),
   deb_cleaned_tuples(NumTuples, NumTriples, NumQuads),
-  M2 = M1.put(_{
+  M3 = M2.put(_{
     'llo:processed_quads': NumQuads,
     'llo:processed_triples': NumTriples,
     'llo:processed_tuples': NumTuples
@@ -94,7 +98,7 @@ rdf_clean0(Sink, M3, Opts1, M1, In) :-
   file_lines(TmpSink, NumLines),
   NumDuplicates is NumTuples - NumLines,
   deb_wrote_tuples(NumTuples, NumDuplicates),
-  M3 = M2.put(_{
+  M4 = M3.put(_{
     'llo:unique_tuples': NumTuples,
     'llo:duplicate_tuples': NumDuplicates
   }),

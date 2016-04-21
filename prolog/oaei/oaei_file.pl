@@ -57,7 +57,7 @@ oaei_load_rdf(Source, Alignments) :-
 oaei_load_rdf(Source, Alignments, Opts) :-
   rdf_call_on_graph(Source, oaei_load_rdf0(Alignments), Opts).
 
-oaei_load_rdf0(Alignments, _, _) :-
+oaei_load_rdf0(Alignments, _, _, _) :-
   aggregate_all(set(From-To), oaei_alignment(From, To), Alignments).
 
 
@@ -82,5 +82,5 @@ oaei_save_rdf(Sink, Alignments) :-
 oaei_save_tsv(Sink, Alignments) :-
   call_to_stream(Sink, oaei_save_tsv0(Alignments)).
 
-oaei_save_tsv0(Alignments, _, Out) :-
+oaei_save_tsv0(Alignments, Out, _, _) :-
   forall(member(From-To, Alignments), tsv_write_stream(Out, [row(From,To)])).

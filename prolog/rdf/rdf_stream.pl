@@ -1,10 +1,8 @@
 :- module(
   rdf_stream,
   [
-    rdf_call_on_stream/2, % +Source, :Goal_2
-    rdf_call_on_stream/3, % +Source, :Goal_2, +Opts
-    rdf_call_to_stream/2,  % +Sink, :Goal_2
-    rdf_call_to_stream/3   % +Sink, :Goal_2, +Opts
+    rdf_call_on_stream/2, % +Source, :Goal_3
+    rdf_call_on_stream/3  % +Source, :Goal_3, +Opts
   ]
 ).
 
@@ -32,36 +30,34 @@
 :- use_module(library(zlib)).
 
 :- meta_predicate
-   rdf_call_on_stream(+, 2),
-   rdf_call_on_stream(+, 2, +),
-   rdf_call_to_stream(+, 2),
-   rdf_call_to_stream(+, 2, +),
-   rdf_call_on_stream0(2, +, +, +).
+   rdf_call_on_stream(+, 3),
+   rdf_call_on_stream(+, 3, +),
+   rdf_call_on_stream0(3, +, +, +, -).
 
 
 
 
 
-%! rdf_call_on_stream(+Source, :Goal_2) is det.
-%! rdf_call_on_stream(+Source, :Goal_2, +Opts) is det.
+%! rdf_call_on_stream(+Source, :Goal_3) is det.
+%! rdf_call_on_stream(+Source, :Goal_3, +Opts) is det.
 % Goal_2 is applied to a metadata dictionary and a stream (in that order).
 %
 % Options are passed to read_from_stream/3 and rdf_guess_fomat/3
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-rdf_call_on_stream(Source, Goal_2) :-
-  rdf_call_on_stream(Source, Goal_2, []).
+rdf_call_on_stream(Source, Goal_3) :-
+  rdf_call_on_stream(Source, Goal_3, []).
 
 
-rdf_call_on_stream(Source, Goal_2, Opts1) :-
+rdf_call_on_stream(Source, Goal_3, Opts1) :-
   % Accept headers for RDF are specified in `library(semweb/rdf_http_plugin))'.
-  rdf_http_plugin:rdf_extra_headers(DefaultRdfOpts, Opts1),
-  merge_options(DefaultRdfOpts, Opts1, Opts2),
-  call_on_stream(Source, rdf_call_on_stream0(Goal_2, Opts2), Opts2).
+  rdf_http_plugin:rdf_extra_headers(DefRdfOpts, Opts1),
+  merge_options(DefRdfOpts, Opts1, Opts2),
+  call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
-rdf_call_on_stream0(Goal_2, Opts, M1, In) :-
-  % Guess the RDF serialization format in case option `rdf_format/1'
+rdf_call_on_stream0(Goal_3, Opts, In, M1, M3) :-
+  % Guess the RDF serialization format in case option rdf_format/1
   % is not given.
   (   option(rdf_format(Format1), Opts),
       ground(Format1)
@@ -76,7 +72,7 @@ rdf_call_on_stream0(Goal_2, Opts, M1, In) :-
   rdf_format_iri(Format1, Format2),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
   M2 = M1.put(_{'llo:rdf_format': Format3}),
-  call(Goal_2, M2, In).
+  call(Goal_3, In, M2, M3).
 
 rdf_guess_format_options0(M, Opts1, Opts2) :-
   iri_file_extensions(M.'llo:base_iri', Exts1),
@@ -85,14 +81,3 @@ rdf_guess_format_options0(M, Opts1, Opts2) :-
   rdf_file_extension(Ext, Format), !,
   merge_options(Opts1, [default_rdf_format(Format)], Opts2).
 rdf_guess_format_options0(_, Opts, Opts).
-
-
-
-%! rdf_call_to_stream(+Sink, :Goal_2) is det.
-%! rdf_call_to_stream(+Sink, :Goal_2, +Opts) is det.
-
-rdf_call_to_stream(Sink, Goal_2) :-
-  rdf_call_to_stream(Sink, Goal_2, []).
-
-rdf_call_to_stream(Sink, Goal_2, Opts) :-
-  call_to_stream(Sink, Goal_2, Opts).

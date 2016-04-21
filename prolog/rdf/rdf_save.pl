@@ -19,6 +19,7 @@
 :- use_module(library(iostream)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_stream)).
@@ -26,11 +27,12 @@
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
+:- use_module(library(yall)).
 
 :- meta_predicate
     rdf_call_to_graph(+, 1),
     rdf_call_to_graph(+, 1, +),
-    rdf_call_to_graph0(1, +, +, +).
+    rdf_call_to_graph0(+, 1, +).
 
 :- rdf_meta
    rdf_save_file(+, t).
@@ -106,18 +108,18 @@ rdf_save_file(Sink, Opts) :-
   % Make sure the directory exists.
   (is_absolute_file_name(Sink) -> create_file_directory(Sink) ; true),
   
-  rdf_call_to_stream(Sink, rdf_save_file0(Format, Opts), Opts).
+  call_to_stream(Sink, [Out,_,_]>>rdf_save_file(Out, Format, Opts), Opts).
 
 % N-Quads or N-Triples
-rdf_save_file0(Format, Opts, _, Out) :-
+rdf_save_file(Out, Format, Opts) :-
   memberchk(Format, [nquads,ntriples]), !,
   option(graph(G), Opts, _NO_GRAPH),
   with_output_to(Out, gen_ntuples(_, _, _, G)).
 % TriG
-rdf_save_file0(trig, Opts, _, Out) :- !,
+rdf_save_file(Out, trig, Opts) :- !,
   rdf_save_trig(Out, Opts).
 % Turtle
-rdf_save_file0(turtle, Opts0, _, Out) :- !,
+rdf_save_file(Out, turtle, Opts0) :- !,
   merge_options(
     [
       a(true),
@@ -135,7 +137,7 @@ rdf_save_file0(turtle, Opts0, _, Out) :- !,
   ),
   rdf_save_turtle(Out, Opts).
 % XML/RDF
-rdf_save_file0(xml, Opts, _, Out) :-
+rdf_save_file(Out, xml, Opts) :-
   rdf_save_xmlrdf(Out, Opts).
 
 
@@ -158,10 +160,14 @@ rdf_call_to_graph(Sink, Goal_1) :-
 
 
 rdf_call_to_graph(Sink, Goal_1, Opts) :-
-  rdf_call_to_stream(Sink, rdf_call_to_graph0(Goal_1, Opts), Opts).
+  call_to_stream(
+    Sink,
+    [Out,_,_]>>rdf_call_to_graph0(Out, Goal_1, Opts),
+    Opts
+  ).
 
 
-rdf_call_to_graph0(Goal_1, Opts1, _, Out) :-
+rdf_call_to_graph0(Out, Goal_1, Opts1) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
