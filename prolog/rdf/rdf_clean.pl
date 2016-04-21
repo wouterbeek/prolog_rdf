@@ -58,7 +58,7 @@ rdf_clean(Source, Sink) :-
 rdf_clean(Source, Sink, Opts) :-
   rdf_call_on_stream(
     Source,
-    [In,M1,M2]>>rdf_clean(In, Sink, M1, M2, Opts),
+    {Sink,Opts}/[In,M1,M2]>>rdf_clean(In, Sink, M1, M2, Opts),
     Opts
   ),
   ignore(option(metadata(M2), Opts)).

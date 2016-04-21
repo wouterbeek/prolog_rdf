@@ -10,7 +10,7 @@
 Automatically generate VoID descriptions.
 
 @author Wouter Beek
-@version 2016/01-2016/02
+@version 2016/01-2016/02, 2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -27,6 +27,8 @@ Automatically generate VoID descriptions.
 
 
 
+
+
 void_gen(In):-
   G = void,
   setup_call_cleanup(
@@ -34,7 +36,7 @@ void_gen(In):-
     (
       [E|_] = M.entries,
       void_gen(In, E.'llo:rdf_format', G),
-      rdf_save_file('VoID.ttl', [graph(G),rdf_format(turtle)])
+      rdf_save_to_file('VoID.ttl', [graph(G),rdf_format(turtle)])
     ),
     rdf_reset_db
   ).
@@ -81,7 +83,10 @@ void_gen(In, Format, G):-
   % void:triples
   rdf_assert(Dataset, void:triples, NT^^xsd:nonNegativeInteger, G),
   % void:vocabulary
-  maplist([Vocab]>>rdf_assert(Dataset, void:vocabulary, Vocab, G), Vocabs).
+  maplist(
+    {Dataset,G}/[Vocab]>>rdf_assert(Dataset, void:vocabulary, Vocab, G),
+    Vocabs
+  ).
 
 
 vocabulary_term(C):- rdfs_class(C).

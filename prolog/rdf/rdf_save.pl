@@ -1,13 +1,14 @@
 :- module(
   rdf_save,
   [
-    rdf_call_to_graph/2, % +Sink, :Goal_1
-    rdf_call_to_graph/3, % +Sink, :Goal_1,        +Opts
-    rdf_save_file/1,     % +Sink
-    rdf_save_file/2,     % +Sink,                 +Opts
-    rdf_save_file/5,     % +Sink, ?S, ?P, ?O,     +Opts
-    rdf_save_file/6,     % +Sink, ?S, ?P, ?O, ?G, +Opts
-    rdf_save_file_name/2 % -Sink,                 +Opts
+    rdf_call_to_graph/2,    % +Sink, :Goal_1
+    rdf_call_to_graph/3,    % +Sink, :Goal_1,        +Opts
+    rdf_save_to_file/1,     % +Sink
+    rdf_save_to_file/2,     % +Sink,                 +Opts
+    rdf_save_to_file/4,     % +Sink, ?S, ?P, ?O
+    rdf_save_to_file/5,     % +Sink, ?S, ?P, ?O,     +Opts
+    rdf_save_to_file/6,     % +Sink, ?S, ?P, ?O, ?G, +Opts
+    rdf_save_to_file_name/2 % -Sink,                 +Opts
   ]
 ).
 
@@ -39,9 +40,10 @@
     rdf_call_to_graph0(+, 1, +).
 
 :- rdf_meta
-   rdf_save_file(+, t),
-   rdf_save_file(+, r, r, o, +),
-   rdf_save_file(+, r, r, o, r, +).
+   rdf_save_to_file(+, t),
+   rdf_save_to_file(+, r, r, o),
+   rdf_save_to_file(+, r, r, o, +),
+   rdf_save_to_file(+, r, r, o, r, +).
 
 
 
@@ -67,7 +69,7 @@ rdf_call_to_graph(Sink, Goal_1) :-
 rdf_call_to_graph(Sink, Goal_1, Opts) :-
   call_to_stream(
     Sink,
-    [Out,_,_]>>rdf_call_to_graph0(Out, Goal_1, Opts),
+    {Goal_1,Opts}/[Out,M,M]>>rdf_call_to_graph0(Out, Goal_1, Opts),
     Opts
   ).
 
@@ -78,30 +80,31 @@ rdf_call_to_graph0(Out, Goal_1, Opts1) :-
     (
       call(Goal_1, G),
       merge_options([graph(G)], Opts1, Opts2),
-      rdf_save_file(stream(Out), Opts2)
+      rdf_save_to_file(stream(Out), Opts2)
     ),
     rdf_unload_graph(G)
   ).
 
 
 
-%! rdf_save_file(+Sink) is det.
-%! rdf_save_file(+Sink, +Opts) is det.
-%! rdf_save_file(+Sink, ?S, ?P, ?O, +Opts) is det.
-%! rdf_save_file(+Sink, ?S, ?P, ?O, ?G, +Opts) is det.
+%! rdf_save_to_file(+Sink) is det.
+%! rdf_save_to_file(+Sink, +Opts) is det.
+%! rdf_save_to_file(+Sink, ?S, ?P, ?O) is det.
+%! rdf_save_to_file(+Sink, ?S, ?P, ?O, +Opts) is det.
+%! rdf_save_to_file(+Sink, ?S, ?P, ?O, ?G, +Opts) is det.
 % The following options are supported:
 %   * graph(+iri)
 %   * rdf_format(+rdf_format)
 
-rdf_save_file(Sink) :-
-  rdf_save_file(Sink, []).
+rdf_save_to_file(Sink) :-
+  rdf_save_to_file(Sink, []).
 
 
 % We do not need to save the graph if:
 %   1. the contents of the graph did not change, and
 %   2. the serialization format of the graph did not change, and
 %   3. the output file is the same.
-rdf_save_file(File, Opts) :-
+rdf_save_to_file(File, Opts) :-
   is_absolute_file_name(File),
   option(graph(G), Opts),
   
@@ -118,7 +121,7 @@ rdf_save_file(File, Opts) :-
   time_file(File, LMod), !,
   debug(rdf(save), "No need to save graph ~w; no updates.", [G]).
 % We need to save the graph.
-rdf_save_file(Sink, Opts) :-
+rdf_save_to_file(Sink, Opts) :-
   % Determine the RDF output format:
   %   1. By option.
   %   2. By file name extension.
@@ -135,22 +138,26 @@ rdf_save_file(Sink, Opts) :-
   % Make sure the directory exists.
   (is_absolute_file_name(Sink) -> create_file_directory(Sink) ; true),
   
-  call_to_stream(Sink, [Out,_,_]>>rdf_save_file0(Out, Format, Opts), Opts).
+  call_to_stream(
+    Sink,
+    {Format,Opts}/[Out,M,M]>>rdf_save_to_file0(Out, Format, Opts),
+    Opts
+  ).
 
 
 % N-Quads
-rdf_save_file0(Out, nquads, Opts) :- !,
+rdf_save_to_file0(Out, nquads, Opts) :- !,
   option(graph(G), Opts, _),
-  rdf_save_file0(Out, _, _, _, G, Opts).
+  rdf_save_to_file0(Out, _, _, _, G, Opts).
 % N-Triples
-rdf_save_file0(Out, ntriples, Opts) :- !,
+rdf_save_to_file0(Out, ntriples, Opts) :- !,
   option(graph(G), Opts, _),
-  rdf_save_file0(Out, _, _, _, G, Opts).
+  rdf_save_to_file0(Out, _, _, _, G, Opts).
 % TriG
-rdf_save_file0(Out, trig, Opts) :- !,
+rdf_save_to_file0(Out, trig, Opts) :- !,
   rdf_save_trig(Out, Opts).
 % Turtle
-rdf_save_file0(Out, turtle, Opts0) :- !,
+rdf_save_to_file0(Out, turtle, Opts0) :- !,
   merge_options(
     [
       a(true),
@@ -168,43 +175,51 @@ rdf_save_file0(Out, turtle, Opts0) :- !,
   ),
   rdf_save_turtle(Out, Opts).
 % XML/RDF
-rdf_save_file0(Out, xml, Opts) :- !,
+rdf_save_to_file0(Out, xml, Opts) :- !,
   rdf_save_xmlrdf(Out, Opts).
-rdf_save_file0(_, Format, _) :-
+rdf_save_to_file0(_, Format, _) :-
   domain_error(rdf_format, Format).
 
 
-rdf_save_file(Sink, S, P, O, Opts) :-
-  rdf_save_file(Sink, S, P, O, _, Opts).
+rdf_save_to_file(Sink, S, P, O) :-
+  rdf_save_to_file(Sink, S, P, O, []).
 
 
-rdf_save_file(Sink, S, P, O, G, Opts) :-
+rdf_save_to_file(Sink, S, P, O, Opts) :-
+  rdf_save_to_file(Sink, S, P, O, _, Opts).
+
+
+rdf_save_to_file(Sink, S, P, O, G, Opts) :-
   option(format(Format), Opts, nquads),
-  call_to_stream(Sink, [Out,_,_]>>rdf_save_file0(Out, S, P, O, G, Format), Opts).
+  call_to_stream(
+    Sink,
+    {S,P,O,G,Format}/[Out,M,M]>>rdf_save_to_file0(Out, S, P, O, G, Format),
+    Opts
+  ).
 
 
-rdf_save_file0(Out, S, P, O, G, nquads) :- !,
+rdf_save_to_file0(Out, S, P, O, G, nquads) :- !,
   with_output_to(Out, gen_nquads(S, P, O, G)).
-rdf_save_file0(Out, S, P, O, G, ntriples) :- !,
+rdf_save_to_file0(Out, S, P, O, G, ntriples) :- !,
   with_output_to(Out, gen_ntriples(S, P, O, G)).
-rdf_save_file0(_, _, _, _, _, Format) :-  
+rdf_save_to_file0(_, _, _, _, _, Format) :-  
   domain_error(rdf_format, Format).
 
 
 
-%! rdf_save_file_name(-Iri, +Opts) is det.
+%! rdf_save_to_file_name(-Iri, +Opts) is det.
 % Makes file name that could be used to save the RDF data specified in Opts to.
 
-rdf_save_file_name(Iri, _) :-
+rdf_save_to_file_name(Iri, _) :-
   var(Iri), !,
   instantiation_error(Iri).
 % The file name can be derived from the graph.
-rdf_save_file_name(Iri, Opts) :-
+rdf_save_to_file_name(Iri, Opts) :-
   option(graph(G), Opts),
   rdf_graph_property(G, source(File)), !,
   uri_file_name(File, Iri).
 % A new file name is created based on graph and serialization format.
-rdf_save_file_name(Iri, Opts) :-
+rdf_save_to_file_name(Iri, Opts) :-
   option(graph(Base), Opts, out),
   % In case a serialization format is specified,
   % we use the appropriate file extension.

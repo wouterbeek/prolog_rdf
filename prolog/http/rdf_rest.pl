@@ -12,7 +12,7 @@
 Support for RESTful interfaces to RDF data.
 
 @author Wouter Beek
-@version 2016/02
+@version 2016/02, 2016/04
 */
 
 :- use_module(library(rdf/rdf_ext)).
@@ -27,5 +27,13 @@ Support for RESTful interfaces to RDF data.
 
 
 
+
+
 rdf_rest_handler(Req, HandleId, C, Singular_3, Plural_2) :-
-  rest_handler(Req, HandleId, [I]>>rdfs_instance0(I, C), Singular_3, Plural_2).
+  rest_handler(
+    Req,
+    HandleId,
+    {C}/[I]>>rdfs_instance0(I, C),
+    Singular_3,
+    Plural_2
+  ).

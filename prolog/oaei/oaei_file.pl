@@ -73,7 +73,10 @@ oaei_load_tsv(Source, Alignments) :-
 %! oaei_save_rdf(+Sink, +Alignments:list(pair)) is det.
 
 oaei_save_rdf(Sink, Alignments) :-
-  rdf_call_to_graph(Sink, [G]>>oaei_assert_alignments(Alignments, G)).
+  rdf_call_to_graph(
+    Sink,
+    {Alignments}/[G]>>oaei_assert_alignments(Alignments, G)
+  ).
 
 
 

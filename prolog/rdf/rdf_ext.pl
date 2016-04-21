@@ -133,7 +133,7 @@ rdf_assert_instance(I, C, G) :-
   rdf_assert(I, rdf:type, rdfs:'Resource', G).
 rdf_assert_instance(I, Cs, G) :-
   is_list(Cs), !,
-  maplist([C]>>rdf_assert_instance(I, C, G), Cs).
+  maplist({I,G}/[C]>>rdf_assert_instance(I, C, G), Cs).
 rdf_assert_instance(I, C, G) :-
   rdf_assert(I, rdf:type, C, G).
 
@@ -306,7 +306,7 @@ rdf_list(S, P, L) :-
 %! rdf_nextto(?X, ?Y, ?RdfList) is nondet.
 
 rdf_nextto(X, Y, L) :-
-  closure([X,Y]>>rdf_directly_nextto(X, Y, L), X, Y).
+  closure({L}/[X,Y]>>rdf_directly_nextto(X, Y, L), X, Y).
 
 rdf_directly_nextto(X, Y, L) :-
   rdf_has(L, rdf:first, X),

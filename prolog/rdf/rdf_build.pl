@@ -343,7 +343,12 @@ rdfs_assert_class0(C, Parent, Lbl, Comm, G) :-
 
 owl_assert_property(P, Qs, Lbl, Comm, D, R, G, Opts) :-
   (option(functional(true), Opts) -> owl_assert_functional_property(P, G) ; true),
-  (var(Qs) -> true ; is_list(Qs) -> maplist([Q]>>rdfs_assert_subproperty(P, Q, G), Qs) ; rdfs_assert_subproperty(P, Qs, G)),
+  (   var(Qs)
+  ->  true
+  ;   is_list(Qs)
+  ->  maplist({P,G}/[Q]>>rdfs_assert_subproperty(P, Q, G), Qs)
+  ;   rdfs_assert_subproperty(P, Qs, G)
+  ),
   (var(Lbl) -> true ; rdfs_assert_label(P, Lbl, G)),
   (var(Comm) -> true ; rdfs_assert_comment(P, Comm, G)),
   (var(D) -> true ; rdfs_assert_domain(P, D, G)),
