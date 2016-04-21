@@ -95,7 +95,7 @@ rdf_call_on_graph(Source, Goal_2, Opts0) :-
 % The following call is made: `call(:Goal_5, +M, +S, +P, +O, +G)`.
 %
 % Options are passed to:
-%   * rdf_read_from_stream/3
+%   * rdf_call_on_stream/3
 %   * rdf_process_ntriples/3
 %   * rdf_process_turtle/3,
 %   * process_rdf/3
@@ -106,10 +106,10 @@ rdf_call_on_tuples(Source, Goal_5) :-
 
 
 rdf_call_on_tuples(Source, Goal_5, Opts) :-
-  rdf_read_from_stream(Source, rdf_call_on_tuples_stream0(Goal_5, Opts), Opts).
+  rdf_call_on_stream(Source, rdf_call_on_tuples0(Goal_5, Opts), Opts).
 
 
-rdf_call_on_tuples_stream0(Goal_5, Opts1, M, Source) :-
+rdf_call_on_tuples0(Goal_5, Opts1, M, Source) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
   get_dict('llo:base_iri', M, BaseIri),
   jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
@@ -192,17 +192,17 @@ rdf_call_on_quads0(Goal_5, M, Tuples, _) :-
 
 %! rdf_download_to_file(+Iri, +File) is det.
 %! rdf_download_to_file(+Iri, ?File, +Opts) is det.
-% Options are passed to rdf_read_from_stream/4 and write_stream_to_file/3.
+% Options are passed to rdf_call_on_stream/4 and write_stream_to_file/3.
 
 rdf_download_to_file(Iri, File) :-
   rdf_download_to_file(Iri, File, []).
 
 rdf_download_to_file(Iri, File, Opts) :-
   thread_file(File, TmpFile),
-  rdf_read_from_stream(Iri, write_stream_to_file0(TmpFile, Opts), Opts),
+  rdf_call_on_stream(Iri, rdf_download_to_file0(TmpFile, Opts), Opts),
   rename_file(TmpFile, File).
 
-write_stream_to_file0(TmpFile, Opts, _, Source) :-
+rdf_download_to_file0(TmpFile, Opts, _, Source) :-
   write_stream_to_file(Source, TmpFile, Opts).
 
 

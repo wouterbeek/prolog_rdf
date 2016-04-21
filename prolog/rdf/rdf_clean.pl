@@ -9,7 +9,7 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01, 2016/03
+@version 2015/08-2015/11, 2016/01, 2016/03-2016/04
 */
 
 :- use_module(library(apply)).
@@ -53,13 +53,12 @@
 rdf_clean(From, To) :-
   rdf_clean(From, To, []).
 
+
 rdf_clean(From, To, Opts) :-
-  rdf_read_from_stream(From, rdf_clean_stream(To, Opts), Opts).
+  rdf_call_on_stream(From, rdf_clean0(To, Opts), Opts).
 
 
-%! rdf_clean_stream(+To, +Opts, +Metadata, +Source) is det.
-
-rdf_clean_stream(To, Opts1, M1, Source) :-
+rdf_clean0(To, Opts1, M1, In) :-
   Opts0 = [quads(NumQuads),triples(NumTriples),tuples(NumTuples)],
   merge_options(Opts0, Opts1, Opts2),
   option(compress(Compress), Opts1, none),
@@ -71,7 +70,7 @@ rdf_clean_stream(To, Opts1, M1, Source) :-
       open(Tmp, write, Sink),
       gen_ntuples:gen_ntuples_begin(State, Opts2)
     ),
-    rdf_load:rdf_call_on_tuples_stream0(gen_ntuple0(Sink, State), Opts1, M1, Source),
+    rdf_load:rdf_call_on_tuples0(gen_ntuple0(Sink, State), Opts1, M1, In),
     (
       gen_ntuples:gen_ntuples_end(State, Opts2),
       close(Sink)
