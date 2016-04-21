@@ -1,8 +1,8 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean/2, % +From, +To
-    rdf_clean/3  % +From, +To, +Opts
+    rdf_clean/3, % +Source, +Sink, -M
+    rdf_clean/4  % +Source, +Sink, -M, +Opts
   ]
 ).
 
@@ -38,8 +38,8 @@
 
 
 
-%! rdf_clean(+From, +To) is det.
-%! rdf_clean(+From, +To, +Opts) is det.
+%! rdf_clean(+Source, +Sink, -M) is det.
+%! rdf_clean(+Source, +Sink, -M, +Opts) is det.
 % The following options are supported:
 %    * compress(+oneof([deflate,gzip,none]))
 %      What type of compression is used on the output file.
@@ -50,30 +50,30 @@
 %
 % @throws existence_error If an HTTP request returns an error code.
 
-rdf_clean(From, To) :-
-  rdf_clean(From, To, []).
+rdf_clean(Source, Sink, M) :-
+  rdf_clean(Source, Sink, M, []).
 
 
-rdf_clean(From, To, Opts) :-
-  rdf_call_on_stream(From, rdf_clean0(To, Opts), Opts).
+rdf_clean(Source, Sink, M, Opts) :-
+  rdf_call_on_stream(Source, rdf_clean0(Sink, M, Opts), Opts).
 
 
-rdf_clean0(To, Opts1, M1, In) :-
+rdf_clean0(Sink, M3, Opts1, M1, In) :-
   Opts0 = [quads(NumQuads),triples(NumTriples),tuples(NumTuples)],
   merge_options(Opts0, Opts1, Opts2),
   option(compress(Compress), Opts1, none),
   
-  absolute_file_name(cleaning, Tmp0, [access(write)|Opts1]),
-  thread_file(Tmp0, Tmp),
+  absolute_file_name(cleaning, TmpSink0, [access(write)|Opts1]),
+  thread_file(TmpSink0, TmpSink),
   setup_call_cleanup(
     (
-      open(Tmp, write, Sink),
+      open(TmpSink, write, TmpOut),
       gen_ntuples:gen_ntuples_begin(State, Opts2)
     ),
-    rdf_load:rdf_call_on_tuples0(gen_ntuple0(Sink, State), Opts1, M1, In),
+    rdf_load:rdf_call_on_tuples0(gen_ntuple0(TmpOut, State), Opts1, M1, In),
     (
       gen_ntuples:gen_ntuples_end(State, Opts2),
-      close(Sink)
+      close(TmpOut)
     )
   ),
   deb_cleaned_tuples(NumTuples, NumTriples, NumQuads),
@@ -83,7 +83,7 @@ rdf_clean0(To, Opts1, M1, In) :-
     'llo:processed_tuples': NumTuples
   }),
 
-  sort_file(Tmp, Opts1),
+  sort_file(TmpSink, Opts1),
 
   % Count the number of unique tuples.
   file_lines(Tmp, NumLines),
@@ -95,8 +95,8 @@ rdf_clean0(To, Opts1, M1, In) :-
   }),
   
   % Compress the file, according to user option.
-  compress_file(Tmp, Compress, To),
-  delete_file(Tmp).
+  compress_file(TmpSink, Compress, Sink),
+  delete_file(TmpSink).
 
 gen_ntuple0(Sink, State, _, S, P, O, G) :-
   gen_ntuples:gen_ntuple(Sink, State, S, P, O, G).
