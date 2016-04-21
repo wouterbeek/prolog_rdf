@@ -86,7 +86,7 @@ rdf_clean0(Sink, M3, Opts1, M1, In) :-
   sort_file(TmpSink, Opts1),
 
   % Count the number of unique tuples.
-  file_lines(Tmp, NumLines),
+  file_lines(TmpSink, NumLines),
   NumDuplicates is NumTuples - NumLines,
   deb_wrote_tuples(NumTuples, NumDuplicates),
   M3 = M2.put(_{

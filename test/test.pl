@@ -35,7 +35,6 @@
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_default)).
-:- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
