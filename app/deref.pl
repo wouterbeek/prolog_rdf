@@ -11,11 +11,6 @@
 
 /** <module> Dereference application
 
-http://0009.jp/hiroblog/index.rdf
-
-http://0-255.cocolog-nifty.com/blog/2010/03/post-8f2a.html
-error(instantiation_error,context(archive:archive_open_stream/4,_))
-
 @author Wouter Beek
 @author Niels Ockeloen
 @version 2016/04
@@ -243,7 +238,7 @@ deref_line(Out, Cs) :-
 
 % DEBUG %
 
-iri('http://%20ossiane.blog@studio-amarante.com/').
+%iri('http://%20ossiane.blog@studio-amarante.com/').
 iri('http://dbpedia.org/resource/Tim_Berners-Lee').
 iri('http://%5Cdementialcore.blogspot.com').
 

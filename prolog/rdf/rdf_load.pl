@@ -81,7 +81,7 @@ rdf_call_on_graph(Source, Goal_2, Opts0) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
-      merge_options([graph(G),metadata(M)], Opts0, Opts),
+      merge_options([metadata(M)], Opts0, Opts),
       rdf_load_file(Source, Opts),
       call(Goal_2, M, G)
     ),
