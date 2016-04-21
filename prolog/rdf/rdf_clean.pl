@@ -70,7 +70,12 @@ rdf_clean0(Sink, M3, Opts1, M1, In) :-
       open(TmpSink, write, TmpOut),
       gen_ntuples:gen_ntuples_begin(State, Opts2)
     ),
-    rdf_load:rdf_call_on_tuples0(gen_ntuple0(TmpOut, State), Opts1, M1, In),
+    rdf_load:rdf_call_on_tuples0(
+      rdf_clean:gen_ntuple0(TmpOut, State),
+      Opts1,
+      M1,
+      In
+    ),
     (
       gen_ntuples:gen_ntuples_end(State, Opts2),
       close(TmpOut)

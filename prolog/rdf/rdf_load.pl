@@ -54,7 +54,7 @@ Support for loading RDF data.
     rdf_call_on_quads0(5, +, +, +),
     rdf_call_on_tuples(+, 5),
     rdf_call_on_tuples(+, 5, +),
-    rdf_call_on_tuples_stream0(5, +, +, +).
+    rdf_call_on_tuples0(5, +, +, +).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),

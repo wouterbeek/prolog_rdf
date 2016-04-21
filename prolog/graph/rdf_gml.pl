@@ -72,8 +72,8 @@ rdf_load_gml(Source, Opts) :-
 %! ) is det.
 
 gml_cleanup(Base, NFile, NClose_0, NM1, EFile, EClose_0, EM1, GFile) :-
-  close_any(NClose_0, NM1, _),
-  close_any(EClose_0, EM1, _),
+  close_any2(NClose_0, NM1, _),
+  close_any2(EClose_0, EM1, _),
 
   % Sort the nodes to ensure there are no duplicates.
   sort_file(NFile),

@@ -24,6 +24,7 @@
 :- use_module(library(oaei/oaei_read)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_load)).
+:- use_module(library(rdf/rdf_save)).
 :- use_module(library(yall)).
 
 
@@ -72,7 +73,7 @@ oaei_load_tsv(Source, Alignments) :-
 %! oaei_save_rdf(+Sink, +Alignments:list(pair)) is det.
 
 oaei_save_rdf(Sink, Alignments) :-
-  rdf_write_to_graph(Sink, [G]>>oaei_assert_alignments(Alignments, G)).
+  rdf_call_to_graph(Sink, [G]>>oaei_assert_alignments(Alignments, G)).
 
 
 

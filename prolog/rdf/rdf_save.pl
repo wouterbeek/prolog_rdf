@@ -1,10 +1,10 @@
 :- module(
   rdf_save,
   [
-    rdf_save_file/1,      % ?Sink
-    rdf_save_file/2,      % ?Sink, +Opts
-    rdf_write_to_graph/2, % +Sink, :Goal_1
-    rdf_write_to_graph/3  % +Sink, :Goal_1, +Opts
+    rdf_save_file/1,     % ?Sink
+    rdf_save_file/2,     % ?Sink,          +Opts
+    rdf_call_to_graph/2, % +Sink, :Goal_1
+    rdf_call_to_graph/3  % +Sink, :Goal_1, +Opts
   ]
 ).
 
@@ -28,9 +28,9 @@
 :- use_module(library(uri)).
 
 :- meta_predicate
-    rdf_write_to_graph(+, 1),
-    rdf_write_to_graph(+, 1, +),
-    rdf_write_to_graph(1, +, +, +).
+    rdf_call_to_graph(+, 1),
+    rdf_call_to_graph(+, 1, +),
+    rdf_call_to_graph0(1, +, +, +).
 
 :- rdf_meta
    rdf_save_file(+, t).
@@ -45,20 +45,20 @@
 %   * rdf_format(+rdf_format)
 %   * graph(+iri)
 
-rdf_save_file(Out) :-
-  rdf_save_file(Out, []).
+rdf_save_file(Sink) :-
+  rdf_save_file(Sink, []).
 
 
 % The file name can be derived from the graph.
-rdf_save_file(Out, Opts) :-
-  var(Out),
+rdf_save_file(Sink, Opts) :-
+  var(Sink),
   option(graph(G0), Opts),
   rdf_graph_property(G0, source(File0)), !,
   uri_file_name(File0, File),
   rdf_save_file(File, Opts).
 % A new file name is created based on graph and serialization format.
-rdf_save_file(Out, Opts) :-
-  var(Out), !,
+rdf_save_file(Sink, Opts) :-
+  var(Sink), !,
   option(graph(Base), Opts, out),
   % In case a serialization format is specified,
   % we use the appropriate file extension.
@@ -89,41 +89,35 @@ rdf_save_file(File, Opts) :-
   exists_file(File),
   time_file(File, LMod), !,
   debug(rdf(save), "No need to save graph ~w; no updates.", [G]).
-rdf_save_file(Out, Opts) :-
+rdf_save_file(Sink, Opts) :-
   % Determine the RDF output format:
   %   1. By option.
   %   2. By file name extension.
   %   3. Default to `nquads'.
   (   option(rdf_format(Format), Opts)
   ->  true
-  ;   is_absolute_file_name(Out),
-      file_name_extension(_, Ext, Out),
+  ;   is_absolute_file_name(Sink),
+      file_name_extension(_, Ext, Sink),
       rdf_file_extension(Ext, Format)
   ->  true
   ;   Format = nquads
   ),
 
   % Make sure the directory exists.
-  (is_absolute_file_name(Out) -> create_file_directory(Out) ; true),
+  (is_absolute_file_name(Sink) -> create_file_directory(Sink) ; true),
   
-  rdf_write_to_stream(Out, rdf_save_to_stream0(Format, Opts), Opts).
-
-rdf_save_to_stream0(F, Opts, _, Out) :-
-  rdf_save_to_stream(F, Opts, Out).
-
-
-%! rdf_save_to_stream(+Format:rdf_format, +Opts, +Out) is det.
+  rdf_call_to_stream(Sink, rdf_save_file0(Format, Opts), Opts).
 
 % N-Quads or N-Triples
-rdf_save_to_stream(Format, Opts, Out) :-
+rdf_save_file0(Format, Opts, _, Out) :-
   memberchk(Format, [nquads,ntriples]), !,
   option(graph(G), Opts, _NO_GRAPH),
   with_output_to(Out, gen_ntuples(_, _, _, G)).
 % TriG
-rdf_save_to_stream(trig, Opts, Out) :- !,
+rdf_save_file0(trig, Opts, _, Out) :- !,
   rdf_save_trig(Out, Opts).
 % Turtle
-rdf_save_to_stream(turtle, Opts0, Out) :- !,
+rdf_save_file0(turtle, Opts0, _, Out) :- !,
   merge_options(
     [
       a(true),
@@ -141,15 +135,15 @@ rdf_save_to_stream(turtle, Opts0, Out) :- !,
   ),
   rdf_save_turtle(Out, Opts).
 % XML/RDF
-rdf_save_to_stream(xml, Opts, Out) :- !,
+rdf_save_file0(xml, Opts, _, Out) :-
   rdf_save_xmlrdf(Out, Opts).
 
 
 
-%! rdf_write_to_graph(+Out, :Goal_1) is det.
-%! rdf_write_to_graph(+Out, :Goal_1, +Opts) is det.
+%! rdf_call_to_graph(+Sink, :Goal_1) is det.
+%! rdf_call_to_graph(+Sink, :Goal_1, +Opts) is det.
 % Writes results of Goal_1 asserted in its additional Graph argument
-% to Out.
+% to Sink.
 %
 % The following options are supported:
 %   * compress(+oneof([deflate,gzip,none]))
@@ -159,15 +153,15 @@ rdf_save_to_stream(xml, Opts, Out) :- !,
 %     The output format that is used for writing.
 %     Default is `simpleQuads`.
 
-rdf_write_to_graph(Out, Goal_1) :-
-  rdf_write_to_graph(Out, Goal_1, []).
+rdf_call_to_graph(Sink, Goal_1) :-
+  rdf_call_to_graph(Sink, Goal_1, []).
 
 
-rdf_write_to_graph(Out, Goal_1, Opts) :-
-  rdf_write_to_stream(Out, rdf_write_to_graph0(Goal_1, Opts), Opts).
+rdf_call_to_graph(Sink, Goal_1, Opts) :-
+  rdf_call_to_stream(Sink, rdf_call_to_graph0(Goal_1, Opts), Opts).
 
 
-rdf_write_to_graph0(Goal_1, Opts1, _, Out) :-
+rdf_call_to_graph0(Goal_1, Opts1, _, Out) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
