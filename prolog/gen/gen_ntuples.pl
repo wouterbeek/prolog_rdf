@@ -151,22 +151,26 @@ gen_empty_state(_{bnode: 0, bprefix: '_:', quads: 0, triples: 0}).
 %     Default is `nquads`.
 %   * warn(+stream)
 
-gen_ntuples_begin(State, Opts) :-
-  gen_empty_state(State),
-  % Stream for warnings.
-  (option(warn(Warn), Opts) -> nb_set_dict(warn, State, Warn) ; true),
-  % Well-known IRI prefix for blank nodes.
+gen_ntuples_begin(State3, Opts) :-
+  gen_empty_state(State1),
+  % Stream for warnings
+  (   option(warn(Warn), Opts)
+  ->  State2 = State1.put(_{warn: Warn})
+  ;   State2 = State1
+  ),
+  % Well-known IRI prefix for blank nodes
   (   option(base_iri(BaseIri), Opts)
   ->  iri_comps(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
       atom_ending_in(Path0, '#', Suffix),
       atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
       iri_comps(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
-      nb_set_dict(bprefix, State, BPrefix)
+      nb_set_dict(bprefix, State2, BPrefix)
   ;   true
   ),
+  % RDF serialization format
   option(rdf_format(Format), Opts, nquads),
   must_be(oneof([nquads,ntriples]), Format),
-  nb_set_dict(rdf_format, State, Format).
+  State3 = State2.put(_{rdf_format: Format}).
 
 
 
