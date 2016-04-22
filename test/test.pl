@@ -59,7 +59,5 @@
 %/rdfs
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stats)).
-%/sparql
-:- use_module(library(sparql/sparql_db)).
 %/void
 :- use_module(library(void/void_build)).

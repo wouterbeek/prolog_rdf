@@ -1,8 +1,10 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_format/2, % +In, -Format
-    rdf_guess_format/3  % +In, -Format, +Opts
+    rdf_guess_format/2,      % +In, -Format
+    rdf_guess_format/3,      % +In, -Format, +Opts
+    rdf_guess_format_file/2, % +File, -Format
+    rdf_guess_format_file/3  % +File, -Format, +Opts
   ]
 ).
 
@@ -19,6 +21,7 @@
 :- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
+:- use_module(library(yall)).
 
 
 
@@ -62,3 +65,20 @@ rdf_guess_turtle(S, N, Format, Opts) :-
   string_length(S, M),
   ((M =:= 0 ; M < N) -> !, EoS = true ; EoS = false),
   string_phrase(rdf_guess_turtle(EoS, Format, Opts), S, _).
+
+
+
+
+%! rdf_guess_format_file(+File, -Format) is det.
+%! rdf_guess_format_file(+File, -Format, +Opts) is det.
+
+rdf_guess_format_file(File, Format) :-
+  rdf_guess_format_file(File, Format, []).
+
+
+rdf_guess_format_file(File, Format, Opts) :-
+  call_on_stream(
+    File,
+    {Format,Opts}/[In,M,M]>>rdf_guess_format(In, Format, Opts),
+    Opts
+  ).

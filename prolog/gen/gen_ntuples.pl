@@ -2,10 +2,14 @@
   gen_ntuples,
   [
     gen_nquad/4,    % +S, +P, +O, +G
+    gen_nquads/1,   % +Tuples
+    gen_nquads/2,   % +Tuples,        +Opts
     gen_nquads/4,   % ?S, ?P, ?O,     +Opts
     gen_nquads/5,   % ?S, ?P, ?O, ?G, +Opts
     gen_ntriple/3,  % +S, +P, +O
     gen_ntriple/4,  % +S, +P, +O, +G
+    gen_ntriples/1, % +Triples
+    gen_ntriples/2, % +Triples,       +Opts
     gen_ntriples/4, % ?S, ?P, ?O      +Opts
     gen_ntriples/5  % ?S, ?P, ?O, ?G, +Opts
   ]
@@ -54,8 +58,18 @@ gen_nquad(S, P, O, G) :-
 
 
 
+%! gen_nquads(+Tuples) is det.
+%! gen_nquads(+Tuples, +Opts) is det.
 %! gen_nquads(?S, ?P, ?O, +Opts) is det.
 %! gen_nquads(?S, ?P, ?O, ?G, +Opts) is det.
+
+gen_nquads(Tuples) :-
+  gen_nquads(Tuples, []).
+
+
+gen_nquads(Tuples, Opts) :-
+  gen_ntuples(Tuples, nquads, Opts).
+
 
 gen_nquads(S, P, O, Opts) :-
   gen_nquads(S, P, O, _, Opts).
@@ -80,8 +94,18 @@ gen_ntriple(S, P, O, _) :-
 
 
 
+%! gen_ntriples(+Triples) is det.
+%! gen_ntriples(+Triples, +Opts) is det.
 %! gen_ntriples(?S, ?P, ?O, +Opts) is det.
 %! gen_ntriples(?S, ?P, ?O, ?G, +Opts) is det.
+
+gen_ntriples(Triples) :-
+  gen_ntriples(Triples, []).
+
+
+gen_ntriples(Triples, Opts) :-
+  gen_ntuples(Triples, ntriples, Opts).
+
 
 gen_ntriples(S, P, O, Opts) :-
   gen_ntriples(S, P, O, _, Opts).
@@ -93,9 +117,16 @@ gen_ntriples(S, P, O, G, Opts0) :-
 
 
 
+%! gen_ntuple(+State, +Tuple) is det.
 %! gen_ntuple(+State, +S, +P, +O, +G) is det.
 %! gen_ntuple(+Sink, +State, +S, +P, +O, +G) is det.
 % Low-level tuple writer.
+
+gen_ntuple(State, rdf(S,P,O)) :- !,
+  gen_ntuple(State, S, P, O, _).
+gen_ntuple(State, rdf(S,P,O,G)) :-
+  gen_ntuple(State, S, P, O, G).
+
 
 gen_ntuple(State, S, P, O, G) :-
   gen_subject(State, S),
@@ -121,8 +152,18 @@ gen_ntuple(Sink, State, S, P, O, G) :-
 
 
 
+%! gen_ntuples(+Tuples, +Format, +Opts) is det.
 %! gen_ntuples(?S, ?P, ?O, ?G, +Opts) is det.
 % Options are passed to gen_ntuples_begin/2 and gen_ntuples_end/2.
+
+gen_ntuples(Tuples, Format, Opts1) :-
+  merge_options([rdf_format(Format)], Opts1, Opts2),
+  setup_call_cleanup(
+    gen_ntuples_begin(State, Opts2),
+    maplist(gen_ntuple(State), Tuples),
+    gen_ntuples_end(State, Opts2)
+  ).
+
 
 gen_ntuples(S, P, O, G, Opts) :-
   setup_call_cleanup(
