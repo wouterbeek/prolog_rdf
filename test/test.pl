@@ -59,5 +59,7 @@
 %/rdfs
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stats)).
+%/service
+:- use_module(library(service/lov)).
 %/void
 :- use_module(library(void/void_build)).
