@@ -31,17 +31,17 @@
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(service/lov)).
 :- use_module(library(settings)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(thread)).
+:- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
 :- rdf_meta
    deref_hdt(r, r, o).
-
-:- dcg_ext:set_setting(tab_size, 8).
 
 :- debug(deref(flag)).
 
@@ -127,9 +127,15 @@ deref_hdt(S, P, O) :-
 
 
 
-deref_graph(Out, Iri, G, M, _) :-
-  rdf_print_graph(G), nl,
+deref_graph(Out, Iri, G, M) :-
+  rdf_print_graph(G),
 
+  % Vocabulary IRI?
+  (   iri_vocab(Iri, Vocab)
+  ->  rdf_store(Out, Iri, deref:vocabulary, Vocab)
+  ;   true
+  ),
+  
   % Number of occurrences in the subject position
   rdf_aggregate_all(count, rdf(Iri, _, _, G), NumSubjects),
   rdf_store(Out, Iri, deref:number_of_subjects, NumSubjects^^xsd:nonNegativeInteger),
@@ -197,11 +203,20 @@ deref_iri(Out, Iri) :-
   debug(deref(flag), "~D  ~t  ~a", [X,Iri]),
   (X = -1 -> gtrace ; true),
   Opts = [base_iri(Iri),triples(NumTriples),quads(NumQuads)],
-  catch(rdf_call_on_graph(Iri, deref_graph(Out, Iri), Opts), E, true), !,
+  catch(
+    rdf_call_on_graph(
+      Iri,
+      {Out,Iri}/[G,M,M]>>deref_graph(Out, Iri, G, M),
+      Opts
+    ),
+    E,
+    true
+  ), !,
   (   var(E)
   ->  % Number of triples
       rdf_store(Out, Iri, deref:number_of_triples, NumTriples^^xsd:nonNegativeInteger),
       debug(deref, "Number of triples: ~D", [NumTriples]),
+      
       % Number of quadruples
       rdf_store(Out, Iri, deref:number_of_quads, NumQuads^^xsd:nonNegativeInteger),
       debug(deref, "Number of quads: ~D", [NumQuads])
