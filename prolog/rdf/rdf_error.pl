@@ -3,6 +3,7 @@
   [
     rdf_store/4,        % +Out, +S, +P, +O
     rdf_store_list/3,   % +Out, +L, -RdfL
+    rdf_store_now/3,    % +Out, +S, +P
     rdf_store_warning/3 % +Out, +Doc, +E
   ]
 ).
@@ -21,7 +22,8 @@
 :- use_module(library(uri)).
 
 :- rdf_meta
-   rdf_store(r, r, r, o).
+   rdf_store(+, r, r, o),
+   rdf_store_now(+, r, r).
 
 
 
@@ -50,6 +52,14 @@ rdf_store_list0(Out, B1, [H|T]) :-
   (T == [] -> rdf_equal(rdf:nil, B2) ; rdf_create_bnode(B2)),
   rdf_store(Out, B1, rdf:rest, B2),
   rdf_store_list0(Out, B2, T).
+
+
+
+%! rdf_store_now(+Out, +S, +P) is det.
+
+rdf_store_now(Out, S, P) :-
+  get_time(Now),
+  rdf_store(Out, S, P, Now^^xsd:dateTime).
 
 
 

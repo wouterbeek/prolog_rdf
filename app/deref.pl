@@ -2,10 +2,12 @@
   deref,
   [
     deref_all/0,
-    deref_all/1, % +N
-    deref_hdt/1, % +S
-    deref_hdt/3, % +S, +P, +O
-    deref_iri/1  % +Iri
+    deref_all/1,         % +N
+    deref_hdt/1,         % +S
+    deref_hdt/3,         % +S, +P, +O
+    deref_iri/1,         % +Iri
+    deref_iri_to_file/1, % +Iri
+    deref_iri_to_file/2  % +Iri, +File
   ]
 ).
 
@@ -22,6 +24,7 @@
 :- use_module(library(debug)).
 :- use_module(library(hdt)).
 :- use_module(library(jsonld/jsonld_generics)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_error)).
@@ -34,14 +37,14 @@
 :- use_module(library(settings)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(thread)).
+:- use_module(library(uri)).
+:- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
 :- rdf_meta
    deref_hdt(r, r, o).
-
-:- dcg_ext:set_setting(tab_size, 8).
 
 :- debug(deref(flag)).
 
@@ -98,9 +101,11 @@ deref_hdt(S) :-
   findall(Triple, deref_triple0(S, Triple), Triples),
   rdf_print_triples(Triples).
 
+
 deref_subject0(Hdt, S) :-
   hdt_subject(Hdt, S),
   deref_hdt(S, deref:responses, _).
+
 
 deref_triple0(S, Triple) :-
   deref_hdt(S, P, O),
@@ -108,6 +113,7 @@ deref_triple0(S, Triple) :-
   ;   rdf_is_bnode(O),
       deref_triple0(O, Triple)
   ).
+
 
 hdt_file0('/scratch/lodlab/crawls/deref.hdt').
 
@@ -128,7 +134,7 @@ deref_hdt(S, P, O) :-
 
 
 deref_graph(Out, Iri, G, M, _) :-
-  rdf_print_graph(G), nl,
+  rdf_print_graph(G),
 
   % Number of occurrences in the subject position
   rdf_aggregate_all(count, rdf(Iri, _, _, G), NumSubjects),
@@ -210,7 +216,8 @@ deref_iri(Out, Iri) :-
   ->  store_metadata(Out, Iri, M)
   ;   % Exception
       rdf_store_warning(Out, Iri, E)
-  ).
+  ),
+  rdf_store_now(Out, Iri, dc:created).
 % O NO!
 deref_iri(Out, Iri) :-
   gtrace,
@@ -225,6 +232,22 @@ deref_iri(Out, Iri, NumDocs) :-
 
 deref_iri(NumDocs, Iri) -->
   integer(NumDocs), " ", rest(Cs), {atom_codes(Iri, Cs)}.
+
+
+
+%! deref_iri_to_file(+Iri) is det.
+%! deref_iri_to_file(+Iri, +File) is det.
+
+deref_iri_to_file(Iri) :-
+  uri_components(Iri, uri_components(_,Auth,Path,_,_)),
+  atomic_list_concat(Subpaths, /, Path),
+  atomic_list_concat([Auth|Subpaths], '_', Base),
+  file_name_extension(Base, nt, File),
+  deref_iri_to_file(Iri, File).
+
+
+deref_iri_to_file(Iri, File) :-
+  call_to_stream(File, {Iri}/[Out,M,M]>>deref_iri(Out, Iri)).
 
 
 

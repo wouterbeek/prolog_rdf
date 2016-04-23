@@ -162,7 +162,7 @@ rdf_save_to_file0(Out, turtle, Opts0) :- !,
     [
       a(true),
       align_prefixes(true),
-      comment(true),
+      comment(false),
       group(true),
       indent(4),
       only_known_prefixes(true),

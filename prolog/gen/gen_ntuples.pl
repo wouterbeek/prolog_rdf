@@ -49,14 +49,37 @@
 
 
 
+% SINGULAR STATEMENTS %
+
 %! gen_nquad(+S, +P, +O, +G) is det.
 % Write a fully instantiated quadruple to current output.
 
 gen_nquad(S, P, O, G) :-
-  gen_empty_state(State),
+  gen_one_ntuple(nquads, S, P, O, G).
+
+
+
+%! gen_ntriple(+S, +P, +O) is det.
+%! gen_ntriple(+S, +P, +O, +G) is det.
+% Write a fully instantiated triple to current output.
+
+gen_ntriple(S, P, O) :-
+  gen_one_ntuple(ntriples, S, P, O, default).
+
+
+gen_ntriple(S, P, O, _) :-
+  gen_one_ntuple(ntriples, S, P, O, default).
+
+
+gen_one_ntuple(Format, S, P, O, G) :-
+  gen_empty_state(Format, State),
   gen_ntuple(State, S, P, O, G).
 
 
+
+
+
+% MULTIPLE STATEMENTS %
 
 %! gen_nquads(+Tuples) is det.
 %! gen_nquads(+Tuples, +Opts) is det.
@@ -78,19 +101,6 @@ gen_nquads(S, P, O, Opts) :-
 gen_nquads(S, P, O, G, Opts0) :-
   merge_options([rdf_format(nquads)], Opts0, Opts),
   gen_ntuples(S, P, O, G, Opts).
-
-
-
-%! gen_ntriple(+S, +P, +O) is det.
-%! gen_ntriple(+S, +P, +O, +G) is det.
-% Write a fully instantiated triple to current output.
-
-gen_ntriple(S, P, O) :-
-  gen_nquad(S, P, O, default).
-
-
-gen_ntriple(S, P, O, _) :-
-  gen_ntriple(S, P, O).
 
 
 
@@ -129,11 +139,11 @@ gen_ntuple(State, rdf(S,P,O,G)) :-
 
 
 gen_ntuple(State, S, P, O, G) :-
-  gen_subject(State, S),
+  gen_subject(S),
   put_char(' '),
   gen_predicate(P),
   put_char(' '),
-  gen_object(State, O),
+  gen_object(O),
   put_char(' '),
   (   State.rdf_format == ntriples
   ->  dict_inc(triples, State)
@@ -181,7 +191,15 @@ gen_ntuples(S, P, O, G, Opts) :-
 
 % STAGE SETTING %
 
+%! gen_emtpy_state(-State) is det.
+%! gen_emtpy_state(+Format, -State) is det.
+
 gen_empty_state(_{bnode: 0, bprefix: '_:', quads: 0, triples: 0}).
+
+
+gen_empty_state(Format, State) :-
+  gen_empty_state(State0),
+  State = State0.put(_{rdf_format: Format}).
 
 
 
@@ -192,8 +210,12 @@ gen_empty_state(_{bnode: 0, bprefix: '_:', quads: 0, triples: 0}).
 %     Default is `nquads`.
 %   * warn(+stream)
 
-gen_ntuples_begin(State3, Opts) :-
-  gen_empty_state(State1),
+gen_ntuples_begin(State2, Opts) :-
+  % RDF serialization format
+  option(rdf_format(Format), Opts, nquads),
+  must_be(oneof([nquads,ntriples]), Format),
+  gen_empty_state(Format, State1),
+  
   % Stream for warnings
   (   option(warn(Warn), Opts)
   ->  State2 = State1.put(_{warn: Warn})
@@ -207,11 +229,7 @@ gen_ntuples_begin(State3, Opts) :-
       iri_comps(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
       nb_set_dict(bprefix, State2, BPrefix)
   ;   true
-  ),
-  % RDF serialization format
-  option(rdf_format(Format), Opts, nquads),
-  must_be(oneof([nquads,ntriples]), Format),
-  State3 = State2.put(_{rdf_format: Format}).
+  ).
 
 
 
@@ -254,10 +272,10 @@ gen_ntuples_for_object(State, G, S, P, O) :-
 
 % TERMS BY POSITION %
 
-gen_subject(State, B) :-
+gen_subject(B) :-
   rdf_is_bnode(B), !,
-  gen_bnode(State, B).
-gen_subject(_, Iri) :-
+  gen_bnode(B).
+gen_subject(Iri) :-
   gen_iri(Iri).
 
 
@@ -267,15 +285,15 @@ gen_predicate(P) :-
 
 
 
-gen_object(State, B) :-
+gen_object(B) :-
   rdf_is_bnode(B), !,
-  gen_bnode(State, B).
-gen_object(_, Iri) :-
+  gen_bnode(B).
+gen_object(Iri) :-
   rdf_is_iri(Iri), !,
   gen_iri(Iri).
 % Literal term comes last to support modern and legacy formats.
-gen_object(State, Lit) :-
-  gen_literal(State, Lit), !.
+gen_object(Lit) :-
+  gen_literal(Lit), !.
 
 
 
@@ -288,7 +306,7 @@ gen_graph(G) :-
 
 % TERMS BY KIND %
 
-gen_bnode(_, B) :-
+gen_bnode(B) :-
   write(B).
 
 
@@ -298,12 +316,12 @@ gen_iri(Iri) :-
 
 
 
-gen_literal(_, V^^D) :- !,
+gen_literal(V^^D) :- !,
   rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   gen_iri(D).
-gen_literal(_, V@LTag) :- !,
+gen_literal(V@LTag) :- !,
   rdf_literal_lexical_form(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).

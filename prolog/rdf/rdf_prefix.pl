@@ -4,7 +4,8 @@
     abbr_iri/2,                   % +Iri, -Abbr
     rdf_current_prefix/1,         % ?Prefix
     rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
-    rdf_reset_prefix/2            % +Prefix, +IriPrefix
+    rdf_reset_prefix/2,           % +Prefix, +IriPrefix
+    rdf_used_prefix/1             % -Prefix
   ]
 ).
 
@@ -32,7 +33,7 @@ This allows the following two IRI notations to be distinguished:
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11-2016/01, 2016/03
+@version 2015/07-2015/09, 2015/11-2016/01, 2016/03-2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -41,6 +42,7 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(solution_sequences)).
 
 :- initialization((assert_cc_prefixes,assert_dbpedia_localizations)).
 
@@ -342,6 +344,17 @@ rdf_reset_prefix(Prefix, IriPrefix) :-
     ;   rdf_register_prefix(Prefix, IriPrefix)
     )
   )).
+
+
+
+%! rdf_used_prefix(-Prefix) is nondet.
+
+rdf_used_prefix(Prefix) :-
+  distinct(Prefix, rdf_used_prefix0(Prefix)).
+
+rdf_used_prefix0(Prefix) :-
+  rdf_term(Term),
+  rdf_global_id(Prefix:_, Term).
 
 
 
