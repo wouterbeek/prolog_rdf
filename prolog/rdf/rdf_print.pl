@@ -234,7 +234,7 @@ dcg_print_graph(G) -->
 
 
 dcg_print_graph(G, Opts) -->
-  dcg_print_triples(_, _, _, G, Opts).
+  dcg_print_quads(_, _, _, G, Opts).
 
 
 

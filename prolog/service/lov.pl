@@ -1,7 +1,9 @@
 :- module(
   lov,
   [
-    lov/1 % -Namespace
+    iri_vocab/2, % +Iri, -Vocab
+    lov/1,       % -Vocab
+    vocab/1      % -Vocab
   ]
 ).
 
@@ -11,15 +13,34 @@
 @version 2016/04
 */
 
+:- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
+:- use_module(library(persistency)).
+:- use_module(library(rdf/rdf_prefix), []).
 :- use_module(library(sparql/sparql_query)).
 
+:- initialization(db_attach('lov.db', [])).
+
+:- persistent
+   vocab(iri:atom).
 
 
 
 
-lov(Iri) :-
+
+init_lov :-
+  forall(lov(Vocab), assert_vocab(Vocab)).
+
+
+
+iri_vocab(Iri, Vocab) :-
+  lov(Vocab),
+  atom_prefix(Vocab, Iri).
+
+
+
+lov(Vocab) :-
   atom_phrase(
     sparql_build_select(
       [rdf,voaf],
@@ -29,4 +50,4 @@ lov(Iri) :-
     Q
   ),
   sparql_select('http://lov.okfn.org/dataset/lov/sparql', Q, Results),
-  member([Iri], Results).
+  member([Vocab], Results).
