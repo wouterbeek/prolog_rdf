@@ -69,7 +69,7 @@ rdf_call_on_stream0(Goal_3, Opts, In, M1, M3) :-
   ),
   (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true),
   % `Format' is now instantiated.
-  rdf_format_iri(Format1, Format2),
+  (rdf_format_iri(Format1, Format2) -> true ; domain_error(rdf_format, Format1)),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
   M2 = M1.put(_{'llo:rdf_format': Format3}),
   call(Goal_3, In, M2, M3).

@@ -104,19 +104,15 @@ on_cdata(_, _) :-
 
 
 
-%! doc_content_type(
-%!   +Dialect:atom,
-%!   +Doctype:atom,
-%!   +Attrs,
-%!   -Format:rdf_format
-%! ) is det.
+%! doc_content_type(+Dialect, +Doctype, +Attrs, -Format) is det.
 
 doc_content_type(_,       html, _,     rdfa) :- !.
 doc_content_type(html,    _,    _,     rdfa) :- !.
 doc_content_type(xhtml,   _,    _,     rdfa) :- !.
 doc_content_type(html5,   _,    _,     rdfa) :- !.
 doc_content_type(xhtml5,  _,    _,     rdfa) :- !.
-doc_content_type(Dialect, Top,  Attrs, xml) :-
+doc_content_type(xml,     rss,  _,     rss ) :- !.
+doc_content_type(Dialect, Top,  Attrs, xml ) :-
   % Extract the namespace from the doctype.
   (Dialect == sgml -> LocalName = rdf ; Dialect == xml -> LocalName = 'RDF'),
   atomic_list_concat([NS,LocalName], :, Top),

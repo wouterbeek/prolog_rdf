@@ -122,6 +122,9 @@ Print RDF statements.
    rdf_print_triples(r, r, o, r),
    rdf_print_triples(r, r, o, r, +).
 
+:- dynamic
+    bnode_map/2.
+
 
 
 
@@ -417,6 +420,9 @@ dcg_print_predicate(P) -->
   dcg_print_predicate(P, _{}).
 
 
+dcg_print_predicate(P, _) -->
+  {rdf_equal(rdf:type, P)}, !,
+  "a".
 dcg_print_predicate(P, Opts) -->
   dcg_print_iri(P, Opts).
 
@@ -443,6 +449,14 @@ dcg_print_term(T, Opts) -->
 
 % PRINT A TERM BY ITS KIND %
 
+dcg_print_bnode(B, Opts) -->
+  {dict_has_key(bnode_counter, Opts)}, !,
+  (   {bnode_map(B, N)}
+  ->  ""
+  ;   {dict_inc(bnode_counter, Opts, N)},
+      {assert(bnode_map(B, N))}
+  ),
+  "_:", integer(N).
 dcg_print_bnode(B, Opts) -->
   dcg_print_truncated_atom(B, Opts).
 

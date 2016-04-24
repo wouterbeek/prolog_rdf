@@ -210,6 +210,8 @@ rdf_download_to_file0(TmpFile, Opts, In, _, _) :-
 %! rdf_load_file(+Source, +Opts) is det.
 % The following options are supported:
 %   * base_iri(+atom)
+%   * force_graph(+rdf_graph)
+%     Forces all tuples to be loaded as triples in this graph.
 %   * graph(+rdf_graph)
 %     The default graph.
 %     Default is `default'.
@@ -223,31 +225,43 @@ rdf_load_file(Source) :-
 
 
 rdf_load_file(Source, Opts) :-
-  % Allow statistics about the number of tuples to be returned.
-  rdf_default_graph(DefG),
-  option(graph(ToG), Opts, DefG),
   State = _{quads: 0, triples: 0},
-  rdf_call_on_tuples(Source, rdf_load_tuple0(State, ToG), Opts),
-  NoTuples is State.triples + State.quads,
+  (   option(force_graph(ToG), Opts)
+  ->  Goal_5 = rdf_force_load_tuple0(State, ToG)
+  ;   rdf_default_graph(DefG),
+      option(graph(ToG), Opts, DefG),
+      Goal_5 = rdf_load_tuple0(State, ToG)
+  ),
+  rdf_call_on_tuples(Source, Goal_5, Opts),
   option(quads(State.quads), Opts, _),
   option(triples(State.triples), Opts, _),
-  option(tuples(NoTuples), Opts, _),
+  NumTuples is State.triples + State.quads,
+  option(tuples(NumTuples), Opts, _),
   debug(
     rdf(load),
     "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
-    [NoTuples,Source,State.triples,State.quads]
+    [NumTuples,Source,State.triples,State.quads]
   ).
 
 
-% @tbd IRI normalization.
+rdf_force_load_tuple0(State, ToG, _, S, P, O, FromG) :-
+  count_tuple0(State, FromG),
+  % @tbd IRI normalization.
+  rdf_assert(S, P, O, ToG).
+
+
 rdf_load_tuple0(State, ToG, _, S, P, O, FromG) :-
-  (   rdf_default_graph(FromG)
-  ->  G = ToG,
-      dict_inc(triples, State)
-  ;   G = FromG,
-      dict_inc(quads, State)
-  ),
+  count_tuple0(State, FromG),
+  (rdf_default_graph(FromG) -> G = ToG ; G = FromG),
+  % @tbd IRI normalization.
   rdf_assert(S, P, O, G).
+
+
+count_tuple0(State, G) :-
+  rdf_default_graph(G), !,
+  dict_inc(triples, State).
+count_tuple0(State, _) :-
+  dict_inc(quads, State).
 
 
 

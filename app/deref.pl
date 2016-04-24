@@ -27,6 +27,7 @@
 :- use_module(library(os/open_any2)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_load)).
@@ -66,7 +67,7 @@ deref_all(N) :-
   setup_call_cleanup(
     (
       gzopen('/scratch/lodlab/crawls/iri.gz', read, In),
-      open('/scratch/lodlab/crawls/deref.nt', write, Out)
+      gzopen('/scratch/lodlab/crawls/deref.nt.gz', write, Out)
     ),
     deref_all(In, Out, N),
     (
@@ -134,8 +135,16 @@ deref_hdt(S, P, O) :-
 
 
 
-deref_graph(Out, Iri, G, M, _) :-
+deref_graph(Out, Iri, G, M) :-
   rdf_print_graph(G),
+
+  % Concise Bounded Description?
+  cbd(Iri, CbdSize),
+  rdf_store(Out, Iri, deref:cbd_size, CbdSize^^xsd:nonNegativeInteger),
+  
+  % Hash IRI?
+  (sub_atom(Iri, _, 1, _, #) -> HashIri = true ; HashIri = false),
+  rdf_store(Out, Iri, deref:is_hash_iri, HashIri^^xsd:boolean),
 
   % Vocabulary IRI?
   (   iri_vocab(Iri, Vocab)
@@ -277,6 +286,7 @@ deref_line(Out, Cs) :-
 
 % DEBUG %
 
+iri('http://0-0-7.livejournal.com/data/rss').
 iri('http://%20ossiane.blog@studio-amarante.com/').
 iri('http://dbpedia.org/resource/Tim_Berners-Lee').
 iri('http://%5Cdementialcore.blogspot.com').

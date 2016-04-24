@@ -144,8 +144,8 @@ rdf_store_warning(Out, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
 rdf_store_warning(Out, Doc, error(domain_error(url,Url),_)) :- !,
   rdf_store(Out, Doc, llo:malformed_url, Url^^xsd:anyURI).
 % No RDF
-rdf_store_warning(Out, Doc, error(no_rdf(_))) :- !,
-  rdf_store(Out, Doc, llo:rdf_serialization_format, llo:unrecognized_format).
+rdf_store_warning(Out, Doc, error(domain_error(rdf_format,Format),_)) :- !,
+  rdf_store(Out, Doc, llo:no_rdf_serialization_format, Format^^xsd:string).
 % Permission: redirect
 rdf_store_warning(Out, Doc, error(permission_error(redirect,http,Object),context(_,Msg1))) :- !,
   atom_truncate(Msg1, 500, Msg2),
