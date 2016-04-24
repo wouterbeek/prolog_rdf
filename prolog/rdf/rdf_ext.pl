@@ -27,6 +27,8 @@
     rdf_list/3,             % ?S, ?P, -L
     rdf_nextto/3,           % ?X, ?Y, ?RdfList
     rdf_pref_string/3,      % ?S, ?P, -Lit
+    rdf_reification/3,      % ?S, ?P, ?O
+    rdf_reification/4,      % ?S, ?P, ?O, -Stmt
     rdf_retractall/1,       % +Tuple
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
@@ -85,6 +87,8 @@
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
    rdf_retractall(t),
+   rdf_reification(r, r, o),
+   rdf_reification(r, r, o, -),
    rdf_string(r, -),
    rdf_triples(r, r, o, -),
    rdfs_instance0(o, r),
@@ -340,6 +344,20 @@ rdf_pref_string(S, P, LRange, Lit) :-
 % Plain XSD strings.
 rdf_pref_string(S, P, _, V^^xsd:string) :-
   rdf_has(S, P, V^^xsd:string).
+
+
+
+%! rdf_reification(?S, ?P, ?O) is nonet.
+%! rdf_reification(?S, ?P, ?O, -Stmt) is nonet.
+
+rdf_reification(S, P, O) :-
+  rdf_reification(S, P, O, _).
+
+
+rdf_reification(S, P, O, Stmt) :-
+  rdf_has(Stmt, rdf:subject, S),
+  rdf_has(Stmt, rdf:predicate, P),
+  rdf_has(Stmt, rdf:object, O).
 
 
 

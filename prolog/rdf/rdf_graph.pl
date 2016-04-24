@@ -3,6 +3,7 @@
   [
     rdf_fresh_graph/2,  % ?G, +FreshnessLifetime:between(0.0,inf)
     rdf_graph_age/2,    % ?G, -Age:between(0.0,inf)
+    rdf_is_graph/1,     % +G
     rdf_new_graph/1,    % -G
     rdf_new_graph/2,    % +Name, -G
     rdf_stale_graph/2,  % ?G, +FreshnessLifetime:between(0.0,inf)
@@ -26,6 +27,7 @@
 :- rdf_meta
    rdf_fresh_graph(r, +),
    rdf_graph_age(r, -),
+   rdf_is_graph(r),
    rdf_new_graph(r, -),
    rdf_stale_graph(r, ?),
    rdf_tmp_graph(r),
@@ -55,6 +57,15 @@ rdf_graph_age(G, Age) :-
   get_time(Now),
   Age is Now - LastMod.
 
+
+
+%! rdf_is_graph(+G) is semidet.
+% `rdf_graph(+)` throws an exception if G is not an atom.
+% This predicate fails silently instead.
+
+rdf_is_graph(G) :-
+  atom(G),
+  rdf_graph(G).
 
 
 %! rdf_new_graph(-G) is det.

@@ -24,6 +24,7 @@ This results in a subgraph where the object nodes are either URI references, lit
 :- use_module(library(aggregate)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
@@ -33,22 +34,25 @@ This results in a subgraph where the object nodes are either URI references, lit
 
 
 test_cbd :-
+  rdf_reset_db,
+  
   PrintOpts = _{bnode_counter: 0},
-  rdf_snap((
-    absolute_file_name(library('rdf/cbd1.rdf'), File1, [access(read)]),
-    rdf_load_file(File1),
-    msg_notification("Full graph:~n"),
-    rdf_print_graph(default, PrintOpts),
-    cbd('http://example.com/aReallyGreatBook', Cbd),
-    msg_notification("Computed CBD:~n"),
-    rdf_print_triples(Cbd, PrintOpts)
-  )),
-  rdf_snap((
-    absolute_file_name(library('rdf/cbd2.rdf'), File2, [access(read)]),
-    rdf_load_file(File2),
-    msg_notification("Reference CBD:~n"),
-    rdf_print_graph(default, PrintOpts)
-  )).
+  
+  absolute_file_name(library('rdf/cbd1.rdf'), File1, [access(read)]),
+  rdf_load_file(File1, [graph(cbd1)]),
+  msg_notification("Full graph:~n"),
+  rdf_print_graph(cbd1, PrintOpts),
+
+  cbd('http://example.com/aReallyGreatBook', Cbd),
+  msg_notification("Computed CBD:~n"),
+  rdf_print_triples(Cbd, PrintOpts),
+  
+  absolute_file_name(library('rdf/cbd2.rdf'), File2, [access(read)]),
+  rdf_load_file(File2, [graph(cbd2)]),
+  msg_notification("Reference CBD:~n"),
+  rdf_print_graph(cbd2, PrintOpts),
+
+  rdf_isomorphic_graphs(Cbd, cbd2).
 
 
 
@@ -63,6 +67,8 @@ cbd_triple0(S, Triple) :-
   (   Triple = rdf(S,P,O)
   ;   rdf_is_bnode(O),
       cbd_triple0(O, Triple)
+  ;   rdf_reification(S, P, O, Stmt),
+      cbd_triple0(Stmt, Triple)
   ).
 
 
