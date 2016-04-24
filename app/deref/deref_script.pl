@@ -1,17 +1,12 @@
 :- module(
-  deref,
+  deref_script,
   [
     deref_all/0,
-    deref_all/1,         % +N
-    deref_hdt/1,         % +S
-    deref_hdt/3,         % +S, +P, +O
-    deref_iri/1,         % +Iri
-    deref_iri_to_file/1, % +Iri
-    deref_iri_to_file/2  % +Iri, +File
+    deref_all/1 % +N
   ]
 ).
 
-/** <module> Dereference application
+/** <module> Dereferencing script
 
 @author Wouter Beek
 @author Niels Ockeloen
@@ -22,12 +17,9 @@
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(hdt)).
 :- use_module(library(jsonld/jsonld_generics)).
-:- use_module(library(os/open_any2)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_load)).
@@ -37,17 +29,13 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(service/lov)).
 :- use_module(library(settings)).
-:- use_module(library(solution_sequences)).
 :- use_module(library(thread)).
-:- use_module(library(uri)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
-:- rdf_meta
-   deref_hdt(r, r, o).
-
+:- debug(deref).
 :- debug(deref(flag)).
 
 
@@ -93,54 +81,12 @@ deref_all_nonfirst(In, Out, N) :-
 
 
 
-deref_hdt(S) :-
-  var(S), !,
-  hdt_file0(HdtFile),
-  hdt_open(Hdt, HdtFile),
-  distinct(S, deref_subject0(Hdt, S)),
-  deref_hdt(S).
-deref_hdt(S) :-
-  findall(Triple, deref_triple0(S, Triple), Triples),
-  rdf_print_triples(Triples).
-
-
-deref_subject0(Hdt, S) :-
-  hdt_subject(Hdt, S),
-  deref_hdt(S, deref:responses, _).
-
-
-deref_triple0(S, Triple) :-
-  deref_hdt(S, P, O),
-  (   Triple = rdf(S,P,O)
-  ;   rdf_is_bnode(O),
-      deref_triple0(O, Triple)
-  ).
-
-
-hdt_file0('/scratch/lodlab/crawls/deref.hdt').
-
-
-deref_hdt(S, P, O) :-
-  hdt_file0(HdtFile),
-  (   exists_file(HdtFile)
-  ->  true
-  ;   NTriplesFile = '/scratch/lodlab/crawls/deref.nt',
-      hdt_create_from_file(HdtFile, NTriplesFile, [])
-  ),
-  setup_call_cleanup(
-    hdt_open(Hdt, HdtFile),
-    hdt_search(Hdt, S, P, O),
-    hdt_close(Hdt)
-  ).
-
-
-
 deref_graph(Out, Iri, G, M) :-
-  rdf_print_graph(G),
+  (debugging(deref) -> rdf_print_graph(G) ; true),
 
-  % Concise Bounded Description?
-  cbd(Iri, CbdSize),
-  rdf_store(Out, Iri, deref:cbd_size, CbdSize^^xsd:nonNegativeInteger),
+  % Concise Bounded Description are _hinted at_ by ‘lone blank nodes’.
+  lone_bnodes(NumBNodes),
+  rdf_store(Out, Iri, deref:lone_bnodes, NumBNodes^^xsd:nonNegativeInteger),
   
   % Hash IRI?
   (sub_atom(Iri, _, 1, _, #) -> HashIri = true ; HashIri = false),
@@ -205,14 +151,6 @@ store_metadata(Out, Iri, M) :-
 
 
 
-deref_iri(Iri) :-
-  rdf_snap((
-    deref_iri(Iri, Iri),
-    rdf_print_graph(Iri),
-    rdf_unload_graph(Iri)
-  )).
-
-
 deref_iri(Out, Iri) :-
   % Debug index
   flag(deref, X, X + 1),
@@ -260,22 +198,6 @@ deref_iri(NumDocs, Iri) -->
 
 
 
-%! deref_iri_to_file(+Iri) is det.
-%! deref_iri_to_file(+Iri, +File) is det.
-
-deref_iri_to_file(Iri) :-
-  uri_components(Iri, uri_components(_,Auth,Path,_,_)),
-  atomic_list_concat(Subpaths, /, Path),
-  atomic_list_concat([Auth|Subpaths], '_', Base),
-  file_name_extension(Base, nt, File),
-  deref_iri_to_file(Iri, File).
-
-
-deref_iri_to_file(Iri, File) :-
-  call_to_stream(File, {Iri}/[Out,M,M]>>deref_iri(Out, Iri)).
-
-
-
 deref_line(Out, Cs) :-
   phrase(deref_iri(NumDocs, Iri), Cs),
   deref_iri(Out, Iri, NumDocs).
@@ -284,18 +206,26 @@ deref_line(Out, Cs) :-
 
 
 
-% DEBUG %
-
-iri('http://0-0-7.livejournal.com/data/rss').
-iri('http://%20ossiane.blog@studio-amarante.com/').
-iri('http://dbpedia.org/resource/Tim_Berners-Lee').
-iri('http://%5Cdementialcore.blogspot.com').
-
-
-
-
-
 % HELPERS %
+
+%! lone_bnode(-BNode) is nondet.
+
+lone_bnode(B) :-
+  rdf(_, _, B),
+  rdf_is_bnode(B),
+  \+ rdf(B, _, _).
+
+
+
+%! lone_bnodes(-N) is det.
+
+lone_bnodes(N) :-
+  aggregate_all(set(B), lone_bnode(B), Bs),
+  length(Bs, N).
+
+
+
+%! read_lines(+In, +N, -Lines) is nondet.
 
 read_lines(_, 0, []) :- !.
 read_lines(In, N1, L) :-
