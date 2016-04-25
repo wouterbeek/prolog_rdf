@@ -3,7 +3,8 @@
   [
     deref_iri/1,         % +Iri
     deref_iri_to_file/1, % +Iri
-    deref_iri_to_file/2  % +Iri, +File
+    deref_iri_to_file/2, % +Iri, +File
+    iri/1                % -Iri
   ]
 ).
 
@@ -13,13 +14,14 @@
 @version 2016/04
 */
 
-:- use_module(library(openany2)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
+:- use_module(deref_script).
 
 
 

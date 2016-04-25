@@ -2,7 +2,8 @@
   deref_script,
   [
     deref_all/0,
-    deref_all/1 % +N
+    deref_all/1, % +N
+    deref_iri/2  % +Out, +Iri
   ]
 ).
 
@@ -18,6 +19,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(jsonld/jsonld_generics)).
+:- use_module(library(lists)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_error)).
@@ -138,8 +140,10 @@ store_http_headers0(Out, B, Key-Vals) :-
   maplist(store_http_header0(Out, B, Key), Vals).
 
 
-store_http_header0(Out, B, Key, Val) :-
-  rdf_global_id(deref:Key, P),
+store_http_header0(Out, B, Key1, Val) :-
+  atomic_list_concat(KeyComps, :, Key1),
+  last(KeyComps, Key2),
+  rdf_global_id(deref:Key2, P),
   rdf_store(Out, B, P, Val^^xsd:string).
 
 
