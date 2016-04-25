@@ -14,12 +14,16 @@
 @version 2016/03-2016/04
 */
 
+:- use_module(library(apply)).
 :- use_module(library(atom_ext)).
+:- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
+
+:- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
 :- rdf_meta
    rdf_store(+, r, r, o),
@@ -72,15 +76,15 @@ rdf_store_warning(Out, Doc, error(archive_error(Code,_),_)) :-
   ;   Code == 25
   ->  Name = invalid_central_directory_signature
   ), !,
-  rdf_global_id(llo:Name, O),
-  rdf_store(Out, Doc, llo:arhive_error, O).
+  rdf_global_id(deref:Name, O),
+  rdf_store(Out, Doc, deref:arhive_error, O).
 % Encoding: character
 rdf_store_warning(Out, Doc, error(type_error(character,Char),context(_,_))) :- !,
-  rdf_store(Out, Doc, llo:character_encoding_error, Char^^xsd:integer).
+  rdf_store(Out, Doc, deref:character_encoding_error, Char^^xsd:integer).
 % Existence: directory
 rdf_store_warning(Out, Doc, error(existence_error(directory,Dir),context(_,'File exists'))) :- !,
   uri_file_name(Uri, Dir),
-  rdf_store(Out, Doc, llo:directory_existence_error, Uri^^xsd:anyURI).
+  rdf_store(Out, Doc, deref:directory_existence_error, Uri^^xsd:anyURI).
 % Existence: file
 rdf_store_warning(Out, Doc, error(existence_error(file,File),context(_,Msg))) :-
   (   Msg == 'Directory not empty'
@@ -88,17 +92,17 @@ rdf_store_warning(Out, Doc, error(existence_error(file,File),context(_,Msg))) :-
   ;   Msg == 'No such file or directory'
   ->  Name = file_existence_error
   ), !,
-  rdf_global_id(llo:Name, P),
+  rdf_global_id(deref:Name, P),
   uri_file_name(Uri, File),
   rdf_store(Out, Doc, P, Uri^^xsd:anyURI).
 % Existence: source sink?
 rdf_store_warning(Out, Doc, error(existence_error(source_sink,Path),context(_,'Is a directory'))) :- !,
   uri_file_name(Uri, Path),
-  rdf_store(Out, Doc, llo:is_a_directory_error, Uri^^xsd:anyURI).
+  rdf_store(Out, Doc, deref:is_a_directory_error, Uri^^xsd:anyURI).
 % HTTP status
 rdf_store_warning(Out, Doc, error(http_status(Status),_)) :-
   (between(400, 499, Status) ; between(500, 599, Status)), !,
-  rdf_store(Out, Doc, llo:http_error, Status^^xsd:positiveInteger).
+  rdf_store(Out, Doc, deref:http_error, Status^^xsd:positiveInteger).
 % IO: read
 rdf_store_warning(Out, Doc, error(io_error(read,_),context(_,Msg))) :-
   (   Msg == 'Connection reset by peer'
@@ -108,11 +112,11 @@ rdf_store_warning(Out, Doc, error(io_error(read,_),context(_,Msg))) :-
   ;   Msg = 'Is a directory'
   ->  Name = is_a_directory
   ), !,
-  rdf_global_id(llo:Name, O),
-  rdf_store(Out, Doc, llo:io_read_error, O).
+  rdf_global_id(deref:Name, O),
+  rdf_store(Out, Doc, deref:io_read_error, O).
 % IO: write
 rdf_store_warning(Out, Doc, error(io_error(write,_),context(_,'Encoding cannot represent character'))) :- !,
-  rdf_store(Out, Doc, llo:io_write_error, llo:encoding_error).
+  rdf_store(Out, Doc, deref:io_write_error, deref:encoding_error).
 % IO warning
 rdf_store_warning(Out, Doc, io_warning(_,Msg)) :-
   (   Msg == 'Illegal UTF-8 continuation'
@@ -120,8 +124,8 @@ rdf_store_warning(Out, Doc, io_warning(_,Msg)) :-
   ;   Msg == 'Illegal UTF-8 start'
   ->  Name = illegal_utf8_start
   ),
-  rdf_global_id(llo:Name, O),
-  rdf_store(Out, Doc, llo:io_warning, O).
+  rdf_global_id(deref:Name, O),
+  rdf_store(Out, Doc, deref:io_warning, O).
 % IRI
 rdf_store_warning(Out, Doc, E) :-
   (   E = error(existence_error(source_sink,Name),_)
@@ -131,31 +135,31 @@ rdf_store_warning(Out, Doc, E) :-
   ;   E = error(permission_error(open,source_sink,Name),context(system:open/4,'Permission denied'))
   ->  true
   ), !,
-  rdf_store(Out, Doc, llo:not_an_iri, Name^^xsd:string).
+  rdf_store(Out, Doc, deref:not_an_iri, Name^^xsd:string).
 rdf_store_warning(Out, Doc, error(type_error(http_iri,Name),_)) :- !,
-  rdf_store(Out, Doc, llo:non_https_iri, Name^^xsd:anyURI).
+  rdf_store(Out, Doc, deref:non_https_iri, Name^^xsd:anyURI).
 % Literal: non-canonical lexical form.
 rdf_store_warning(Out, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
   abbr_iri(D1, D2),
   atom_concat(noncanonical_, D2, Name),
-  rdf_global_id(llo:Name, P),
+  rdf_global_id(deref:Name, P),
   rdf_store(Out, Doc, P, Lex^^xsd:string).
 % Malformed URL
 rdf_store_warning(Out, Doc, error(domain_error(url,Url),_)) :- !,
-  rdf_store(Out, Doc, llo:malformed_url, Url^^xsd:anyURI).
+  rdf_store(Out, Doc, deref:malformed_url, Url^^xsd:anyURI).
 % No RDF
 rdf_store_warning(Out, Doc, error(domain_error(rdf_format,Format),_)) :- !,
-  rdf_store(Out, Doc, llo:no_rdf_serialization_format, Format^^xsd:string).
+  rdf_store(Out, Doc, deref:no_rdf_serialization_format, Format^^xsd:string).
 % Permission: redirect
 rdf_store_warning(Out, Doc, error(permission_error(redirect,http,Object),context(_,Msg1))) :- !,
   atom_truncate(Msg1, 500, Msg2),
   format(string(String), "[~a] ~a", [Object,Msg2]),
-  rdf_store(Out, Doc, llo:http_redirect_permission_error, String^^xsd:string).
+  rdf_store(Out, Doc, deref:http_redirect_permission_error, String^^xsd:string).
 % SGML parser
 rdf_store_warning(Out, Doc, sgml(sgml_parser(_),_,Line,Msg1)) :- !,
   atom_truncate(Msg1, 500, Msg2),
   format(string(String), "[~w] ~a", [Line,Msg2]),
-  rdf_store(Out, Doc, llo:sgml_parser_error, String^^xsd:string).
+  rdf_store(Out, Doc, deref:sgml_parser_error, String^^xsd:string).
 % Socket error
 rdf_store_warning(Out, Doc, error(socket_error(Msg),_)) :-
   (   Msg == 'Connection timed out'
@@ -175,34 +179,35 @@ rdf_store_warning(Out, Doc, error(socket_error(Msg),_)) :-
   ;   Msg = 'Unknown error 0' % @tbd ???
   ->  Name = unknown_error_0  % @tbd ???
   ), !,
-  rdf_global_id(llo:Name, O),
-  rdf_store(Out, Doc, llo:socket_error, O).
+  rdf_global_id(deref:Name, O),
+  rdf_store(Out, Doc, deref:socket_error, O).
 % SSL: verify
 rdf_store_warning(Out, Doc, error(ssl_error(ssl_verify),_)) :- !,
-  rdf_store(Out, Doc, llo:ssl_error, llo:ssl_verify).
+  rdf_store(Out, Doc, deref:ssl_error, deref:ssl_verify).
 % Syntax error
 rdf_store_warning(Out, Doc, error(syntax_error(Msg1),stream(_,Line,Col,Char))) :- !,
   atom_truncate(Msg1, 500, Msg2),
+  maplist(defval(unknown), [Line,Col,Char]),
   format(string(String), "[~w:~w:~w] ~a", [Line,Col,Char,Msg2]),
-  rdf_store(Out, Doc, llo:syntax_error, String^^xsd:string).
+  rdf_store(Out, Doc, deref:syntax_error, String^^xsd:string).
 % Timeout: read
 rdf_store_warning(Out, Doc, error(timeout_error(read,_),context(_,_))) :- !,
-  rdf_store(Out, Doc, llo:timeout_error, llo:read).
+  rdf_store(Out, Doc, deref:timeout_error, deref:read).
 % Turtle: undefined prefix
 rdf_store_warning(Out, Doc, error(existence_error(turtle_prefix,Prefix), stream(_,Line,Col,Char))) :- !,
   format(string(String), "[~w:~w:~w] ~a", [Line,Col,Char,Prefix]),
-  rdf_store(Out, Doc, llo:missing_turtle_prefix_defintion, String^^xsd:string).
+  rdf_store(Out, Doc, deref:missing_turtle_prefix_defintion, String^^xsd:string).
 % RDF/XML: multiple definitions
 rdf_store_warning(Out, Doc, rdf(redefined_id(Uri))) :- !,
-  rdf_store(Out, Doc, llo:redefined_rdf_id, Uri^^xsd:anyURI).
+  rdf_store(Out, Doc, deref:redefined_rdf_id, Uri^^xsd:anyURI).
 % RDF/XML: name
 rdf_store_warning(Out, Doc, rdf(not_a_name(XmlName))) :- !,
-  rdf_store(Out, Doc, llo:xml_name_error, XmlName^^xsd:string).
+  rdf_store(Out, Doc, deref:xml_name_error, XmlName^^xsd:string).
 % RDF/XML: cannot parse
 rdf_store_warning(Out, Doc, rdf(unparsed(Dom))) :- !,
   rdf11:in_xml_literal(xml, Dom, A1),
   atom_truncate(A1, 500, A2),
-  rdf_store(Out, Doc, llo:rdf_xml_parser_error, A2^^xsd:string).
+  rdf_store(Out, Doc, deref:rdf_xml_parser_error, A2^^xsd:string).
 % Unhandled error term.
 rdf_store_warning(_, _, Term) :-
   gtrace,

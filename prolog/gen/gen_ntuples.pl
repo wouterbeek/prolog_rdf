@@ -221,6 +221,7 @@ gen_ntuples_begin(State2, Opts) :-
   ->  State2 = State1.put(_{warn: Warn})
   ;   State2 = State1
   ),
+  
   % Well-known IRI prefix for blank nodes
   (   option(base_iri(BaseIri), Opts)
   ->  iri_comps(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
