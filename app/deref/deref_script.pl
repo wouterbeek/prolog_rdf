@@ -45,26 +45,33 @@
 
 deref_all :-
   flag(deref, _, 1),
-  expand_file_name('/ssd/lodlab/wouter/iri_part_*', Files),
-  length(Files, N),
+  expand_file_name('/ssd/lodlab/wouter/iri_part_*', Sources),
+  length(Sources, N),
   numlist(1, N, Ns),
-  setup_call_cleanup(
-    open('/ssd/lodlab/wouter/deref.nt', write, Out, [alias(deref)]),
-    maplist(start_deref_thread(deref), Ns, Files),
-    close(Out)
+  Sink = '/ssd/lodlab/wouter/deref.nt',
+  maplist(
+    {Sink}/[N,Source]>>start_deref_thread(Source, N, Sink),
+    Ns,
+    Sources
   ).
 
 
-start_deref_thread(Out, N, File) :-
+start_deref_thread(Source, N, Sink) :-
   atomic_list_concat([deref,N], '_', Alias),
-  thread_create(run_deref_thread(Out, File), _, [alias(Alias)]).
+  thread_create(run_deref_thread(Source, Sink), _, [alias(Alias)]).
 
 
-run_deref_thread(Out, File) :-
+run_deref_thread(Source, Sink) :-
   setup_call_cleanup(
-    open(File, read, In),
+    (
+      open(Source, read, In),
+      open(Sink, append, Out)
+    ),
     run_deref_thread_stream(In, Out),
-    close(In)
+    (
+      close(Out),
+      close(In)
+    )
   ).
 
 

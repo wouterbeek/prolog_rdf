@@ -29,7 +29,7 @@
 
 %:- debug(deref(meta)).
 %:- debug(deref(print)).
-:- debug(deref(status)).
+%:- debug(deref(status)).
 
 
 
