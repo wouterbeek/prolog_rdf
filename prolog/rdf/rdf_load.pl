@@ -144,7 +144,7 @@ rdf_call_on_tuples0(Goal_5, Opts1, In, M, M) :-
       Format == rdfa
   ->  read_rdfa(In, Triples, Opts3),
       rdf_call_on_quads0(Goal_5, M, Triples)
-  ;   existence_error(rdf_format, [Format])
+  ;   domain_error(rdf_format, Format)
   ).
 
 

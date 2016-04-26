@@ -35,7 +35,7 @@ init_lov :-
 
 
 iri_vocab(Iri, Vocab) :-
-  lov(Vocab),
+  vocab(Vocab),
   atom_prefix(Vocab, Iri).
 
 

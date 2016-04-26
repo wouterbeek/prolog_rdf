@@ -22,6 +22,7 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(rdf/rdf_prefix), []).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta

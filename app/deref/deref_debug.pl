@@ -21,7 +21,9 @@
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
+:- use_module(deref_core).
 :- use_module(deref_script).
+
 
 
 
@@ -57,3 +59,5 @@ iri('http://0-0-7.livejournal.com/data/rss').
 iri('http://%20ossiane.blog@studio-amarante.com/').
 iri('http://dbpedia.org/resource/Tim_Berners-Lee').
 iri('http://%5Cdementialcore.blogspot.com').
+iri(Iri) :-
+  iri_from_file(Iri).

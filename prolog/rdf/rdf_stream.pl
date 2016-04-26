@@ -56,6 +56,7 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
   merge_options(DefRdfOpts, Opts1, Opts2),
   call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
+
 rdf_call_on_stream0(Goal_3, Opts, In, M1, M3) :-
   % Guess the RDF serialization format in case option rdf_format/1
   % is not given.
@@ -66,13 +67,15 @@ rdf_call_on_stream0(Goal_3, Opts, In, M1, M3) :-
       % Make sure the metadata option of the RDF source does not get overwritten
       % when opening the stream for guessing the RDF serialization format.
       rdf_guess_format(In, Format1, GuessOpts)
+  ->  (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true)
+  ;   Format1 = unrecognized
   ),
-  (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true),
   % `Format' is now instantiated.
   (rdf_format_iri(Format1, Format2) -> true ; domain_error(rdf_format, Format1)),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
   M2 = M1.put(_{'llo:rdf_format': Format3}),
   call(Goal_3, In, M2, M3).
+
 
 rdf_guess_format_options0(M, Opts1, Opts2) :-
   iri_file_extensions(M.'llo:base_iri', Exts1),
