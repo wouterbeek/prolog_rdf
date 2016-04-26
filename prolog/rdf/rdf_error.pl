@@ -71,13 +71,13 @@ rdf_store_now(Out, S, P) :-
 %! rdf_store_warning(+Out, +Doc, +E) is det.
 
 % Archive error
-rdf_store_warning(Out, Doc, error(archive_error(Code,_),_)) :-
-  (   Code == 2
-  ->  Name = missing_type_keyword_in_mtree_spec
-  ;   Code == 4
-  ->  Name = unrecognized_archive_format
-  ;   Code == 25
+rdf_store_warning(Out, Doc, error(archive_error(_,Msg),_)) :-
+  (   Msg = 'Invalid central directory signature'
   ->  Name = invalid_central_directory_signature
+  ;   Msg = 'Missing type keyword in mtree spec'
+  ->  Name = missing_type_keyword_in_mtree_spec
+  ;   Msg = 'Unrecognized archive format'
+  ->  Name = unrecognized_archive_format
   ), !,
   rdf_global_id(deref:Name, O),
   rdf_store(Out, Doc, deref:archive_error, O).
@@ -172,6 +172,8 @@ rdf_store_warning(Out, Doc, error(socket_error(Msg),_)) :-
   ->  Name = connection_timed_out
   ;   Msg == 'Connection refused'
   ->  Name = connection_refused
+  ;   Msg == 'Network is unreachable'
+  ->  Name = unreachable_network
   ;   Msg == 'No Data'
   ->  Name = no_data
   ;   Msg == 'No Recovery'

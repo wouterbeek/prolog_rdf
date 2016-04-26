@@ -28,7 +28,7 @@
 
 deref_hdt(S) :-
   var(S), !,
-  hdt_file0(HdtFile),
+  hdt_prepare(HdtFile),
   hdt_open(Hdt, HdtFile),
   distinct(S, deref_subject0(Hdt, S)),
   deref_hdt(S).
@@ -56,14 +56,19 @@ nt_file0('/home/wbeek/deref.nt').
 
 
 deref_hdt(S, P, O) :-
+  hdt_prepare(HdtFile),
+  setup_call_cleanup(
+    hdt_open(Hdt, HdtFile),
+    hdt_search(Hdt, S, P, O),
+    hdt_close(Hdt)
+  ).
+
+
+
+hdt_prepare(HdtFile) :-
   hdt_file0(HdtFile),
   (   exists_file(HdtFile)
   ->  true
   ;   nt_file0(NTriplesFile),
       hdt_create_from_file(HdtFile, NTriplesFile, [])
-  ),
-  setup_call_cleanup(
-    hdt_open(Hdt, HdtFile),
-    hdt_search(Hdt, S, P, O),
-    hdt_close(Hdt)
   ).
