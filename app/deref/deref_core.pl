@@ -27,7 +27,7 @@
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
-:- debug(deref(meta)).
+%:- debug(deref(meta)).
 %:- debug(deref(print)).
 :- debug(deref(status)).
 
@@ -69,6 +69,7 @@ deref_iri(Out, Iri) :-
 
 
 deref_graph(Out, Iri, G, M) :-
+  %(atom_prefix(Iri, 'http://dbpedia.org/resource/') -> gtrace ; true),
   (debugging(deref(print)) -> rdf_print_graph(G) ; true),
 
   % Concise Bounded Description are _hinted at_ by ‘lone blank nodes’.
