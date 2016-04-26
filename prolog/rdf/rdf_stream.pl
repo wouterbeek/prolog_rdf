@@ -58,19 +58,19 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
 
 
 rdf_call_on_stream0(Goal_3, Opts, In, M1, M3) :-
-  % Guess the RDF serialization format in case option rdf_format/1
-  % is not given.
   (   option(rdf_format(Format1), Opts),
       ground(Format1)
   ->  true
   ;   rdf_guess_format_options0(M1, Opts, GuessOpts),
-      % Make sure the metadata option of the RDF source does not get overwritten
-      % when opening the stream for guessing the RDF serialization format.
+      % @note Make sure the metadata option of the RDF source does not get
+      % overwritten when opening the stream for guessing the RDF serialization
+      % format.
       rdf_guess_format(In, Format1, GuessOpts)
-  ->  (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true)
+  ->  true
   ;   Format1 = unrecognized
   ),
-  % `Format' is now instantiated.
+  % JSON-LD _must_ be encoded in UTF-8.
+  (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true),
   (rdf_format_iri(Format1, Format2) -> true ; domain_error(rdf_format, Format1)),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
   M2 = M1.put(_{'llo:rdf_format': Format3}),
