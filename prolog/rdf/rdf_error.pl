@@ -40,7 +40,6 @@ rdf_store(Out, S, P, O) :-
   is_stream(Out), !,
   with_output_to(Out, gen_ntriple(S, P, O)).
 rdf_store(G, S, P, O) :-
-  rdf_is_graph(G), !,
   rdf_assert(S, P, O, G).
 
 
@@ -75,11 +74,13 @@ rdf_store_now(Out, S, P) :-
 rdf_store_warning(Out, Doc, error(archive_error(Code,_),_)) :-
   (   Code == 2
   ->  Name = missing_type_keyword_in_mtree_spec
+  ;   Code == 4
+  ->  Name = unrecognized_archive_format
   ;   Code == 25
   ->  Name = invalid_central_directory_signature
   ), !,
   rdf_global_id(deref:Name, O),
-  rdf_store(Out, Doc, deref:arhive_error, O).
+  rdf_store(Out, Doc, deref:archive_error, O).
 % Cookie
 rdf_store_warning(Out, Doc, error(domain_error(set_cookie,Msg),_)) :- !,
   rdf_store(Out, Doc, deref:set_cookie, Msg^^xsd:string).
