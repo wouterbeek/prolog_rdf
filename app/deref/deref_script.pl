@@ -34,7 +34,10 @@
 
 :- use_module(deref_core).
 
-%:- debug(deref(flag)).
+:- debug(deref(flag)).
+
+:- dynamic
+    deref_thread_iri0/2.
 
 
 
@@ -43,22 +46,29 @@
 deref_all :-
   flag(deref, _, 1),
   expand_file_name('/ssd/lodlab/wouter/iri_part_*', Files),
+  length(Files, N),
+  numlist(1, N, Ns),
   setup_call_cleanup(
-    gzopen('/ssd/lodlab/wouter/deref.nt', write, Out, [alias(deref)]),
-    concurrent_maplist(deref_file(deref), Files),
+    open('/ssd/lodlab/wouter/deref.nt', write, Out, [alias(deref)]),
+    maplist(start_deref_thread(deref), Ns, Files),
     close(Out)
   ).
 
 
-deref_file(Out, File) :-
+start_deref_thread(Out, N, File) :-
+  atomic_list_concat([deref,N], '_', Alias),
+  thread_create(run_deref_thread(Out, File), _, [alias(Alias)]).
+
+
+run_deref_thread(Out, File) :-
   setup_call_cleanup(
     open(File, read, In),
-    deref_stream(In, Out),
+    run_deref_thread_stream(In, Out),
     close(In)
   ).
 
 
-deref_stream(In, Out) :-
+run_deref_thread_stream(In, Out) :-
   read_line_to_codes(In, Cs),
   (   Cs == end_of_file
   ->  true
@@ -70,8 +80,17 @@ deref_stream(In, Out) :-
 deref_codes(Out, Cs) :-
   phrase(deref_iri(NumDocs, Iri), Cs),
   flag(deref, X, X + 1), debug(deref(flag), "~D  ~t  ~a", [X,Iri]),
+  update_deref_thread_iri(Iri),
   deref_iri(Out, Iri),
   rdf_store(Out, Iri, deref:number_of_documents, NumDocs^^xsd:nonNegativeInteger).
+
+
+update_deref_thread_iri(Iri) :-
+  thread_self(Alias),
+  with_mutex(deref_thread_iri, (
+    retractall(deref_thread_iri0(Alias, _)),
+    assert(deref_thread_iri0(Alias, Iri))
+  )).
 
 
 deref_iri(NumDocs, Iri) -->
