@@ -1,10 +1,10 @@
 :- module(
   rdf_error,
   [
-    rdf_store/4,        % +Out, +S, +P, +O
-    rdf_store_list/3,   % +Out, +L, -RdfL
-    rdf_store_now/3,    % +Out, +S, +P
-    rdf_store_warning/3 % +Out, +Doc, +E
+    rdf_store/4,        % +Sink, +S, +P, +O
+    rdf_store_list/3,   % +Sink, +L, -RdfL
+    rdf_store_now/3,    % +Sink, +S, +P
+    rdf_store_warning/3 % +Sink, +Doc, +E
   ]
 ).
 
@@ -19,6 +19,7 @@
 :- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
@@ -33,12 +34,13 @@
 
 
 
-%! rdf_store(+Out, +S, +P, +O) is det.
+%! rdf_store(+Sink, +S, +P, +O) is det.
 
 rdf_store(Out, S, P, O) :-
   is_stream(Out), !,
   with_output_to(Out, gen_ntriple(S, P, O)).
 rdf_store(G, S, P, O) :-
+  rdf_is_graph(G), !,
   rdf_assert(S, P, O, G).
 
 
@@ -78,6 +80,9 @@ rdf_store_warning(Out, Doc, error(archive_error(Code,_),_)) :-
   ), !,
   rdf_global_id(deref:Name, O),
   rdf_store(Out, Doc, deref:arhive_error, O).
+% Cookie
+rdf_store_warning(Out, Doc, error(domain_error(set_cookie,Msg),_)) :- !,
+  rdf_store(Out, Doc, deref:set_cookie, Msg^^xsd:string).
 % Encoding: character
 rdf_store_warning(Out, Doc, error(type_error(character,Char),context(_,_))) :- !,
   rdf_store(Out, Doc, deref:character_encoding_error, Char^^xsd:integer).

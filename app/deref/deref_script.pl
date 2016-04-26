@@ -8,8 +8,6 @@
 
 /** <module> Dereferencing script
 
-http://war.by-airforce.com/images/Stalingrad-1942/stalingrad-map-1943.jpg
-
 @author Wouter Beek
 @author Niels Ockeloen
 @version 2016/04
@@ -18,7 +16,7 @@ http://war.by-airforce.com/images/Stalingrad-1942/stalingrad-map-1943.jpg
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
@@ -36,7 +34,7 @@ http://war.by-airforce.com/images/Stalingrad-1942/stalingrad-map-1943.jpg
 
 :- use_module(deref_core).
 
-:- debug(deref(flag)).
+%:- debug(deref(flag)).
 
 
 
@@ -46,8 +44,8 @@ deref_all :-
   flag(deref, _, 1),
   expand_file_name('/ssd/lodlab/wouter/iri_part_*', Files),
   setup_call_cleanup(
-    open('/ssd/lodlab/wouter/deref.nt', write, Out),
-    concurrent_maplist(deref_file(Out), Files),
+    gzopen('/ssd/lodlab/wouter/deref.nt', write, Out, [alias(deref)]),
+    concurrent_maplist(deref_file(deref), Files),
     close(Out)
   ).
 
@@ -71,12 +69,7 @@ deref_stream(In, Out) :-
 
 deref_codes(Out, Cs) :-
   phrase(deref_iri(NumDocs, Iri), Cs),
-  
-  % Debug index
-  flag(deref, X, X + 1),
-  debug(deref(flag), "~D  ~t  ~a", [X,Iri]),
-  (X = -1 -> gtrace ; true),
-  
+  flag(deref, X, X + 1), debug(deref(flag), "~D  ~t  ~a", [X,Iri]),
   deref_iri(Out, Iri),
   rdf_store(Out, Iri, deref:number_of_documents, NumDocs^^xsd:nonNegativeInteger).
 
