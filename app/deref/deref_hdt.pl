@@ -13,6 +13,7 @@
 */
 
 :- use_module(library(hdt)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
@@ -49,7 +50,8 @@ deref_triple0(S, Triple) :-
   ).
 
 
-hdt_file0('/scratch/lodlab/crawls/deref.hdt').
+hdt_file0('/home/wbeek/deref.hdt').
+nt_file0('/home/wbeek/deref.nt').
 
 
 
@@ -57,7 +59,7 @@ deref_hdt(S, P, O) :-
   hdt_file0(HdtFile),
   (   exists_file(HdtFile)
   ->  true
-  ;   NTriplesFile = '/scratch/lodlab/crawls/deref.nt',
+  ;   nt_file0(NTriplesFile),
       hdt_create_from_file(HdtFile, NTriplesFile, [])
   ),
   setup_call_cleanup(
