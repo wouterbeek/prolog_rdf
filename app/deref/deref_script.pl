@@ -73,7 +73,7 @@ run_deref_thread_stream(In, Out) :-
   (   Cs == end_of_file
   ->  true
   ;   deref_codes(Out, Cs),
-      deref_stream(In, Out)
+      run_deref_thread_stream(In, Out)
   ).
 
 
