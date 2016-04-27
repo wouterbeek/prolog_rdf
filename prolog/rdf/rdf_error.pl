@@ -81,6 +81,9 @@ rdf_store_warning(Out, Doc, error(archive_error(_,Msg),_)) :-
   ), !,
   rdf_global_id(deref:Name, O),
   rdf_store(Out, Doc, deref:archive_error, O).
+% Archive has no content
+rdf_store_warning(Out, Doc, error(no_content(_),_)) :-!,
+  rdf_store(Out, Doc, deref:archive_error, deref:no_content).
 % Cookie
 rdf_store_warning(Out, Doc, error(domain_error(set_cookie,Msg),_)) :- !,
   rdf_store(Out, Doc, deref:set_cookie, Msg^^xsd:string).
