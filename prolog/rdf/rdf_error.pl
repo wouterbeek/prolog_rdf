@@ -74,8 +74,8 @@ rdf_store_now(Out, S, P) :-
 rdf_store_warning(Out, Doc, error(archive_error(_,Msg),_)) :-
   (   Msg = 'Invalid central directory signature'
   ->  Name = invalid_central_directory_signature
-  ;   Msg = 'Missing type keyword in mtree spec'
-  ->  Name = missing_type_keyword_in_mtree_spec
+  ;   Msg = 'Missing type keyword in mtree specification'
+  ->  Name = missing_type_keyword_in_mtree_specification
   ;   Msg = 'Unrecognized archive format'
   ->  Name = unrecognized_archive_format
   ), !,

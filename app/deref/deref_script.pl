@@ -34,7 +34,7 @@
 
 :- use_module(deref_core).
 
-:- debug(deref(flag)).
+%:- debug(deref(flag)).
 
 :- dynamic
     deref_thread_iri0/2.
@@ -45,48 +45,43 @@
 
 deref_all :-
   flag(deref, _, 1),
-  expand_file_name('/ssd/lodlab/wouter/iri_part_*', Sources),
+  expand_file_name('/ssd/lodlab/wouter/iri_part_*', Sources0), length(Sources, 25), append(Sources, _, Sources0),
   length(Sources, N),
   numlist(1, N, Ns),
-  Sink = '/ssd/lodlab/wouter/deref.nt',
-  maplist(
-    {Sink}/[N,Source]>>start_deref_thread(Source, N, Sink),
-    Ns,
-    Sources
-  ).
+  maplist(start_deref_thread, Ns, Sources).
 
 
-start_deref_thread(Source, N, Sink) :-
+start_deref_thread(N, Source) :-
   atomic_list_concat([deref,N], '_', Alias),
-  thread_create(run_deref_thread(Source, Sink), _, [alias(Alias)]).
+  thread_create(run_deref_thread(Source), _, [alias(Alias)]).
 
 
-run_deref_thread(Source, Sink) :-
+run_deref_thread(Source) :-
+  file_name_extension(Source, nt, Sink),
   setup_call_cleanup(
     (
-      open(Source, read, In),
-      open(Sink, append, Out)
+      open(Sink, write, Out),
+      open(Source, read, In)
     ),
-    run_deref_thread_stream(In, Out),
+    run_deref_thread_stream(Out, In),
     (
-      close(Out),
-      close(In)
+      close(In),
+      close(Out)
     )
   ).
 
 
-run_deref_thread_stream(In, Out) :-
+run_deref_thread_stream(Out, In) :-
   read_line_to_codes(In, Cs),
   (   Cs == end_of_file
   ->  true
   ;   deref_codes(Out, Cs),
-      run_deref_thread_stream(In, Out)
+      run_deref_thread_stream(Out, In)
   ).
 
 
 deref_codes(Out, Cs) :-
   phrase(deref_iri(NumDocs, Iri), Cs),
-  flag(deref, X, X + 1), debug(deref(flag), "~D  ~t  ~a", [X,Iri]),
   update_deref_thread_iri(Iri),
   deref_iri(Out, Iri),
   rdf_store(Out, Iri, deref:number_of_documents, NumDocs^^xsd:nonNegativeInteger).

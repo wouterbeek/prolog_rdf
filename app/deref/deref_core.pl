@@ -124,6 +124,8 @@ store_http_metadata(Out, Iri, M, B) :-
   maplist(store_http_headers(Out, B), M.'llo:headers'),
   rdf_store(Out, B, deref:iri, M.'llo:iri'^^xsd:anyURI),
   rdf_store(Out, B, deref:status, M.'llo:status'^^xsd:nonNegativeInteger),
+  number_of_open_files(NumFiles),
+  debug(deref(flag), "[~D] ~d ~a", [NumFiles,M.'llo:status',Iri]),
   debug(deref(status), "HTTP status: ~d ~a", [M.'llo:status',Iri]),
   rdf_store(Out, B, deref:time, M.'llo:time'^^xsd:float),
   Major-Minor = M.'llo:version',
