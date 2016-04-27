@@ -45,10 +45,15 @@
 
 deref_all :-
   flag(deref, _, 1),
-  expand_file_name('/ssd/lodlab/wouter/iri_part_*', Sources0), length(Sources, 25), append(Sources, _, Sources0),
-  length(Sources, N),
-  numlist(1, N, Ns),
-  maplist(start_deref_thread, Ns, Sources).
+  N1 = 75,
+  N2 = 75,
+  expand_file_name('/ssd/lodlab/wouter/iri_part_*', Sources1),
+  length(Sources2, N1),
+  append(Sources2, Sources3, Sources1),
+  length(Sources4, N2),
+  append(Sources4, _, Sources3),
+  numlist(1, N2, Ns),
+  maplist(start_deref_thread, Ns, Sources4).
 
 
 start_deref_thread(N, Source) :-

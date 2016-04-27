@@ -16,6 +16,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(print_ext)).
@@ -81,6 +82,10 @@ rdf_store_warning(Out, Doc, error(archive_error(_,Msg),_)) :-
   ), !,
   rdf_global_id(deref:Name, O),
   rdf_store(Out, Doc, deref:archive_error, O).
+% Archive cannot parse line
+rdf_store_warning(Out, Doc, error(archive_error(_,Msg),_)) :-
+  atom_phrase(archive_cant_parse_line(Line), Msg), !,
+  rdf_store(Out, Doc, deref:archive_cannot_parse_line, Line^^xsd:nonNegativeInteger).
 % Archive has no content
 rdf_store_warning(Out, Doc, error(no_content(_),_)) :-!,
   rdf_store(Out, Doc, deref:archive_error, deref:no_content).
@@ -192,6 +197,13 @@ rdf_store_warning(Out, Doc, error(socket_error(Msg),_)) :-
   ), !,
   rdf_global_id(deref:Name, O),
   rdf_store(Out, Doc, deref:socket_error, O).
+% SSL: error
+rdf_store_warning(Out, Doc, error(ssl_error(Error0,_Lib0,_Func0,_Reason0),_)) :- !,
+  atom_number(Error0, Error),
+  %atom_phrase(ssl_lib(Lib), Lib0),
+  %atom_phrase(ssl_func(Func), Func0),
+  %atom_phrase(ssl_reason(Reason), Reason0),
+  rdf_store(Out, Doc, deref:ssl_error, Error^^xsd:nonNegativeInteger).
 % SSL: verify
 rdf_store_warning(Out, Doc, error(ssl_error(ssl_verify),_)) :- !,
   rdf_store(Out, Doc, deref:ssl_error, deref:ssl_verify).
@@ -219,7 +231,21 @@ rdf_store_warning(Out, Doc, rdf(unparsed(Dom))) :- !,
   rdf11:in_xml_literal(xml, Dom, A1),
   atom_truncate(A1, 500, A2),
   rdf_store(Out, Doc, deref:rdf_xml_parser_error, A2^^xsd:string).
+% XML: DOM error
+rdf_store_warning(Out, Doc, error(type_error(xml_dom,A1),_)) :- !,
+  atom_truncate(A1, 500, A2),
+  rdf_store(Out, Doc, deref:no_xml_dom, A2^^xsd:string).
 % Unhandled error term.
 rdf_store_warning(_, _, Term) :-
   gtrace,
   msg_warning("~w~n", [Term]).
+
+
+
+archive_cant_parse_line(Line) --> "Can't parse line ", integer(Line).
+
+ssl_lib(N) --> "lib(", integer(N), ")".
+
+ssl_func(N) --> "func(", integer(N), ")".
+
+ssl_reason(N) --> "reason(", integer(N), ")".
