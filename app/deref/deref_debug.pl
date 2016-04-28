@@ -10,9 +10,6 @@
 
 /** <module> Debug dereferencing
 
-http://www.mybloglog.com/buzz/members/maria_m/foaf/mime_John
-http://www.flickr.com/photos/66028951@N00/3385429039
-
 @author Wouter Beek
 @version 2016/04
 */
@@ -58,6 +55,8 @@ deref_iri_to_file(Iri, File) :-
 
 
 
+iri('http://www.mybloglog.com/buzz/members/maria_m/foaf/mime_John').
+iri('http://www.flickr.com/photos/66028951@N00/3385429039').
 iri('http://hs.moodyisd.edlioschool.com/').
 iri('http://0-0-7.livejournal.com/data/rss').
 iri('http://%20ossiane.blog@studio-amarante.com/').
