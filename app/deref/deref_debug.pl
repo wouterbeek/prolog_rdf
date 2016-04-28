@@ -10,6 +10,8 @@
 
 /** <module> Debug dereferencing
 
+http://www.flickr.com/photos/66028951@N00/3385429039
+
 @author Wouter Beek
 @version 2016/04
 */
