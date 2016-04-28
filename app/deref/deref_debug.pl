@@ -10,6 +10,8 @@
 
 /** <module> Debug dereferencing
 
+http://www.mybloglog.com/buzz/members/maria_m/foaf/mime_John
+
 @author Wouter Beek
 @version 2016/04
 */
