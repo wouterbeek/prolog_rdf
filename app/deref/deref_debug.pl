@@ -10,6 +10,7 @@
 
 /** <module> Debug dereferencing
 
+http://www.mybloglog.com/buzz/members/maria_m/foaf/mime_John
 http://www.flickr.com/photos/66028951@N00/3385429039
 
 @author Wouter Beek
