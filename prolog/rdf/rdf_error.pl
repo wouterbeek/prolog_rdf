@@ -113,6 +113,9 @@ rdf_store_warning(Out, Doc, error(existence_error(file,File),context(_,Msg))) :-
 rdf_store_warning(Out, Doc, error(existence_error(source_sink,Path),context(_,'Is a directory'))) :- !,
   uri_file_name(Uri, Path),
   rdf_store(Out, Doc, deref:is_a_directory_error, Uri^^xsd:anyURI).
+% HTTP reply is empty
+rdf_store_warning(Out, Doc, error(existence_error(http_reply,_),_)) :- !,
+  rdf_store(Out, Doc, deref:http_error, deref:empty_http_reply).
 % HTTP status
 rdf_store_warning(Out, Doc, error(http_status(Status),_)) :-
   (between(400, 499, Status) ; between(500, 599, Status)), !,
