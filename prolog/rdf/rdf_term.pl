@@ -15,6 +15,7 @@
     rdf_literal_datatype/2,          % +Lit, ?D
     rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?V
+    rdf_lone_bnode/1,                % ?B
     rdf_name/2,                      % +G, ?Name
     rdf_node/2,                      % +G, ?Node
     rdf_object/2,                    % +G, ?O
@@ -64,7 +65,7 @@ resources as well.
 @author Wouter Beek
 @compat RDF 1.1 Concepts and Abstract Syntax
 @see http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/
-@version 2015/07-2015/08, 2015/10, 2015/12-2016/03
+@version 2015/07-2015/08, 2015/10, 2015/12-2016/03, 2016/05
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -242,6 +243,16 @@ rdf_literal_lexical_form(V@_, Lex) :-
 
 rdf_literal_value(V^^_, V).
 rdf_literal_value(V@_, V).
+
+
+
+%! rdf_lone_bnode(+B) is semidet.
+%! rdf_lone_bnode(-B) is nondet.
+
+rdf_lone_bnode(B) :-
+  rdf(_, _, B),
+  rdf_is_bnode(B),
+  \+ rdf(B, _, _).
 
 
 
