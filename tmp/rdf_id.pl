@@ -50,7 +50,6 @@
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(xsd/xsd)).
 :- use_module(library(yall)).
 
 :- predicate_options(rdf_print_id//2, 2, [

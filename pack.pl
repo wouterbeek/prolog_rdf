@@ -6,6 +6,5 @@ name(plRdf).
 packager('Wouter Beek', 'me@wouterbeek.com').
 requires(plHtml).
 requires(plGraphViz).
-requires(plXsd).
 title('Extended support for handling RDF data in SWI-Prolog.').
-version('0.1.0').
+version('0.0.1').
