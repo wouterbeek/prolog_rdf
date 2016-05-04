@@ -139,7 +139,8 @@ Print RDF statements.
    rdf_print_triples(r, r, o, r, +).
 
 :- dynamic
-    bnode_map/2.
+    bnode_map/2,
+    var_map/2.
 
 
 
@@ -353,12 +354,13 @@ dcg_print_groups0([G-Triples|Groups], Opts) -->
   dcg_print_groups0(Groups, Opts).
 
 
-dcg_print_triples0(I, Triples, Opts) -->
+dcg_print_triples0(I, Triples, Opts1) -->
   {
     aggregate_all(set(S-po(P,O)), member(rdf(S,P,O), Triples), SortedPairs),
-    group_pairs_by_key(SortedPairs, Groups)
+    group_pairs_by_key(SortedPairs, Groups),
+    Opts2 = Opts1.put(_{var_counter: 0})
   },
-  dcg_print_subjects0(I, Groups, Opts).
+  dcg_print_subjects0(I, Groups, Opts2).
 
 
 dcg_print_subjects0(_, [], _) --> !, [].
@@ -488,6 +490,9 @@ dcg_print_predicate(P, _) -->
   {rdf_equal(rdf:type, P)}, !,
   "a".
 dcg_print_predicate(P, Opts) -->
+  {var(P)}, !,
+  dcg_print_var(P, Opts).
+dcg_print_predicate(P, Opts) -->
   dcg_print_iri(P, Opts).
 
 
@@ -496,8 +501,10 @@ dcg_print_subject(S, Opts) -->
   {rdf_is_bnode(S)}, !,
   dcg_print_bnode(S, Opts).
 dcg_print_subject(S, Opts) -->
+  {var(S)}, !,
+  dcg_print_var(S, Opts).
+dcg_print_subject(S, Opts) -->
   dcg_print_iri(S, Opts).
-
 
 
 dcg_print_term(T) -->
@@ -590,6 +597,17 @@ dcg_print_literal(V@LTag, Opts) --> !,
   dcg_print_lexical_form(Lex, Opts),
   "@",
   dcg_print_language_tag(LTag, Opts).
+
+
+
+dcg_print_var(Var, Opts) -->
+  (   {var_map(Var, N)}
+  ->  ""
+  ;   {dict_inc(var_counter, Opts, N)},
+      {assert(var_map(Var, N))}
+  ),
+  "?q",
+  integer(N).
 
 
 
