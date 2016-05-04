@@ -11,6 +11,8 @@
     dcg_print_object//2,     % +O,             +Opts
     dcg_print_predicate//1,  % +P
     dcg_print_predicate//2,  % +P,             +Opts
+    dcg_print_quad//1,       % +Stmt
+    dcg_print_quad//2,       % +Stmt,          +Opts
     dcg_print_quad//4,       % +S, +P, +O, +G
     dcg_print_quad//5,       % +S, +P, +O, +G, +Opts
     dcg_print_quads//1,      % +Tuples
@@ -19,6 +21,8 @@
     dcg_print_quads//5,      % ?S, ?P, ?O, ?G, +Opts
     dcg_print_term//1,       % +T
     dcg_print_term//2,       % +T,             +Opts
+    dcg_print_triple//1,     % +Stmt
+    dcg_print_triple//2,     % +Stmt,          +Opts
     dcg_print_triple//3,     % +S, +P, +O
     dcg_print_triple//4,     % +S, +P, +O,     +Opts
     dcg_print_triples//1,    % +Triples
@@ -36,6 +40,8 @@
     rdf_print_object/2,      % +O,             +Opts
     rdf_print_predicate/1,   % +P
     rdf_print_predicate/2,   % +P,             +Opts
+    rdf_print_quad/1,        % +Stmt
+    rdf_print_quad/2,        % +Stmt,          +Opts
     rdf_print_quad/4,        % +S, +P, +O, +G
     rdf_print_quad/5,        % +S, +P, +O, +G, +Opts
     rdf_print_quads/1,       % +Tuples
@@ -44,6 +50,8 @@
     rdf_print_quads/5,       % ?S, ?P, ?O, ?G, +Opts
     rdf_print_term/1,        % +T
     rdf_print_term/2,        % +T,             +Opts
+    rdf_print_triple/1,      % +Stmt
+    rdf_print_triple/2,      % +Stmt,          +Opts
     rdf_print_triple/3,      % +S, +P, +O
     rdf_print_triple/4,      % +S, +P, +O,     +Opts
     rdf_print_triples/1,     % +Triples
@@ -65,7 +73,7 @@ Print RDF statements.
 @author Wouter Beek
 @tbd Turtle container abbreviation.
 @tbd Turtle collection abbreviation.
-@version 2016/03-2016/04
+@version 2016/03-2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -89,12 +97,16 @@ Print RDF statements.
    dcg_print_object(o, +, ?, ?),
    dcg_print_predicate(r, ?, ?),
    dcg_print_predicate(r, +, ?, ?),
+   dcg_print_quad(t, ?, ?),
+   dcg_print_quad(t, +, ?, ?),
    dcg_print_quad(r, r, o, r, ?, ?),
    dcg_print_quad(r, r, o, r, +, ?, ?),
    dcg_print_quads(r, r, o, r, ?, ?),
    dcg_print_quads(r, r, o, r, +, ?, ?),
    dcg_print_term(o, ?, ?),
    dcg_print_term(o, +, ?, ?),
+   dcg_print_triple(t, ?, ?),
+   dcg_print_triple(t, +, ?, ?),
    dcg_print_triple(r, r, o, ?, ?),
    dcg_print_triple(r, r, o, +, ?, ?),
    dcg_print_triples(r, r, o, ?, ?),
@@ -110,12 +122,16 @@ Print RDF statements.
    rdf_print_object(o, +),
    rdf_print_predicate(r),
    rdf_print_predicate(r, +),
+   rdf_print_quad(t),
+   rdf_print_quad(t, +),
    rdf_print_quad(r, r, o, r),
    rdf_print_quad(r, r, o, r, +),
    rdf_print_quads(r, r, o, r),
    rdf_print_quads(r, r, o, r, +),
    rdf_print_term(o),
    rdf_print_term(o, +),
+   rdf_print_triple(t),
+   rdf_print_triple(t, +),
    rdf_print_triple(r, r, o),
    rdf_print_triple(r, r, o, +),
    rdf_print_triples(r, r, o),
@@ -165,6 +181,13 @@ rdf_print_predicate(P, Opts1) :-
   mod_dict(out, Opts1, current_output, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_predicate(P, Opts2)).
 
+rdf_print_quad(Stmt) :-
+  dcg_with_output_to(current_output, dcg_print_quad(Stmt)).
+
+rdf_print_quad(Stmt, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_quad(Stmt, Opts2)).
+
 rdf_print_quad(S, P, O, G) :-
   dcg_with_output_to(current_output, dcg_print_quad(S, P, O, G)).
 
@@ -192,6 +215,13 @@ rdf_print_term(T) :-
 rdf_print_term(T, Opts1) :-
   mod_dict(out, Opts1, current_output, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_term(T, Opts2)).
+
+rdf_print_triple(Stmt) :-
+  dcg_with_output_to(current_output, dcg_print_triple(Stmt)).
+
+rdf_print_triple(Stmt, Opts1) :-
+  mod_dict(out, Opts1, current_output, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_triple(Stmt, Opts2)).
 
 rdf_print_triple(S, P, O) :-
   dcg_with_output_to(current_output, dcg_print_triple(S, P, O)).
@@ -373,6 +403,17 @@ dcg_print_objects2(I, [O|Os], Opts) -->
 
 % PRINT A SINGLE TUPLE %
 
+dcg_print_quad(Stmt) -->
+  dcg_print_quad(Stmt, _{}).
+
+
+dcg_print_quad(rdf(S,P,O), Opts) --> !,
+  {rdf_default_graph(G)},
+  dcg_print_quad(rdf(S,P,O,G), Opts).
+dcg_print_quad(rdf(S,P,O,G), Opts) -->
+  dcg_print_quad(S, P, O, G, Opts).
+
+
 dcg_print_quad(S, P, O, G) -->
   dcg_print_quad(S, P, O, G, _{}).
 
@@ -380,6 +421,16 @@ dcg_print_quad(S, P, O, G) -->
 dcg_print_quad(S, P, O, G, Opts) -->
   dcg_print_quads([rdf(S,P,O,G)], Opts).
 
+
+
+dcg_print_triple(Stmt) -->
+  dcg_print_triple(Stmt, _{}).
+
+
+dcg_print_triple(rdf(S,P,O), Opts) --> !,
+  dcg_print_triple(S, P, O, Opts).
+dcg_print_triple(rdf(S,P,O,_), Opts) -->
+  dcg_print_triple(rdf(S,P,O), Opts).
 
 
 dcg_print_triple(S, P, O) -->
