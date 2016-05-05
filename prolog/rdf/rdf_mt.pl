@@ -10,8 +10,7 @@
 :- use_module(library(debug)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
-
-:- use_module('/home/wbeek/Git/tabling_library/tabling').
+:- use_module(library(tabling_library/tabling)).
 
 :- rdf_meta
    axiom(r, r, o),
