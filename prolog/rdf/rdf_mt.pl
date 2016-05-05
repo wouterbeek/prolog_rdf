@@ -1,26 +1,35 @@
+:- module(rdf_mt, [rdf_mt/3]).
+
+/** <module> RDF backwards chaining through tabling
+
+@author Wouter Beek
+@version 2016/05
+*/
+
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
+
 :- use_module('/home/wbeek/Git/tabling_library/tabling').
 
 :- rdf_meta
    axiom(r, r, o),
-   rdfmt(r, r, o),
+   rdf_mt(r, r, o),
    rule(t, t).
 
 :- table
-   rdfmt/3.
+   rdf_mt/3.
 
-:- debug(rdfmt).
+:- debug(rdf_mt).
 
-rdfmt(S1, P1, O1) :-
-  debug(rdfmt, dcg_print_triple(S1, P1, O1)),
+rdf_mt(S1, P1, O1) :-
+  debug(rdf_mt, dcg_print_triple(S1, P1, O1)),
   rule(rdf(S1,P1,O1), L),
-  forall(member(rdf(S2,P2,O2), L), rdfmt(S2, P2, O2)).
-rdfmt(S, P, O) :-
+  forall(member(rdf(S2,P2,O2), L), rdf_mt(S2, P2, O2)).
+rdf_mt(S, P, O) :-
   rdf(S, P, O).
-rdfmt(S, P, O) :-
+rdf_mt(S, P, O) :-
   axiom(S, P, O).
 
 rule(rdf(I,rdf:type,C), [rdf(P, rdfs:domain, C),rdf(I, P, _)]).
