@@ -33,7 +33,7 @@ This allows the following two IRI notations to be distinguished:
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11-2016/01, 2016/03-2016/04
+@version 2015/07-2015/09, 2015/11-2016/01, 2016/03-2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -43,8 +43,6 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
-
-:- initialization((assert_cc_prefixes,assert_dbpedia_localizations)).
 
 
 
@@ -56,22 +54,6 @@ abbr_iri(Iri, Abbr) :-
   rdf_global_id(Alias:Local, Iri), !,
   atomic_list_concat([Alias,Local], :, Abbr).
 abbr_iri(Iri, Iri).
-
-
-
-assert_cc_prefixes:-
-  absolute_file_name(library(rdf/prefixes), File, [access(read),extensions([csv])]),
-  csv_read_file(File, Rows0),
-  % Since the more popular prefixes are stored towards the top of the file,
-  % we assert them in reverse order. This way the Semweb library will
-  % (1) be able to interpret all CC-registered prefixes,
-  % while at the same time
-  % (2) using only the most popular prefix in writing.
-  reverse(Rows0, Rows),
-  maplist(assert_cc_prefix, Rows).
-
-assert_cc_prefix(row(Alias,Prefix)) :-
-  rdf_reset_prefix(Alias, Prefix).
 
 
 

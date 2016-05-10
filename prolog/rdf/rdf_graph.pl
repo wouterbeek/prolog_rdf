@@ -16,7 +16,7 @@
 @author Wouter Beek
 @compat RDF 1.1 Semantics
 @see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
-@version 2015/08, 2015/10, 2015/12-2016/01, 2016/04
+@version 2015/08, 2015/10, 2015/12-2016/01, 2016/04-2016/05
 */
 
 :- use_module(library(atom_ext)).
@@ -24,6 +24,8 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(rdf/rdf_prefix), []).
 :- use_module(library(semweb/rdf11)).
+
+:- rdf_register_prefix(ex, 'http://example.com/').
 
 :- rdf_meta
    rdf_fresh_graph(r, +),

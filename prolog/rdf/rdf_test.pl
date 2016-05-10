@@ -10,7 +10,7 @@
 Various tests for RDF predicates,
 
 @author Wouter Beek
-@version 2015/12-2016/01
+@version 2015/12-2016/01, 206/05
 */
 
 :- use_module(library(dcg/dcg_collection)).
@@ -21,6 +21,7 @@ Various tests for RDF predicates,
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_register_prefix(ch, 'http://www.wouterbeek.com/ch.owl#' ).
+:- rdf_register_prefix(ex, 'http://example.com/').
 :- rdf_register_prefix(nl, 'http://www.wouterbeek.com/nl.owl#' ).
 
 :- meta_predicate(rdf_test(0,0)).

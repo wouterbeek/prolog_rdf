@@ -44,7 +44,7 @@
 
 @author Wouter Beek
 @compat RDF 1.1
-@version 2015/12-2016/04
+@version 2015/12-2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -58,6 +58,10 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid_ext)).
 :- use_module(library(yall)).
+
+:- rdf_register_prefix(dbo, 'sbo:performed, Action').
+:- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
+:- rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#').
 
 :- meta_predicate
     rdf_aggregate_all(+, 0, -),
@@ -122,11 +126,11 @@ rdf_assert(rdf(S,P,O), G) :-
 
 %! rdf_assert_action(+ActionC, +Actor, -Action, +G) is det.
 
-rdf_assert_action(ActionClass, Actor, Action, G):-
+rdf_assert_action(ActionC, Actor, Action, G):-
   rdf_create_iri(vzm, [action], Action),
-  rdf_assert(Action, rdf:type, ActionClass, G),
+  rdf_assert(Action, rdf:type, ActionC, G),
   rdf_assert_now(Action, prov:atTime, G),
-  rdf_assert(Actor, sbo:performed, Action, G).
+  rdf_assert(Action, prov:wasAssociatedWith, Actor, G).
 
 
 

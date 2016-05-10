@@ -11,7 +11,7 @@
 /** <module> RDF file
 
 @author Wouter Beek
-@version 2015/08, 2016/01-2016/03
+@version 2015/08, 2016/01-2016/03, 2016/05
 */
 
 :- use_module(library(error)). % Hook.
@@ -19,6 +19,8 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_http_plugin)). % RDF serialization formats.
 :- use_module(library(solution_sequences)).
+
+:- rdf_register_prefix(formats, 'http://www.w3.org/ns/formats/').
 
 :- rdf_meta
    rdf_format_iri(?, r).
@@ -62,9 +64,9 @@ rdf_http_plugin:rdf_content_type('application/ld+json', 0.99, jsonld). %ABC
 
 
 
-%! rdf_file_extension(+Extension:atom) is semidet.
+%! rdf_file_extension(+Ext) is semidet.
 % Succeeds for file extensions of RDF serializations.
-%! rdf_file_extension(-Extension:atom) is multi.
+%! rdf_file_extension(-Ext) is multi.
 % Enumerates file extensions RDF serializations.
 
 rdf_file_extension(Ext) :-
@@ -72,10 +74,10 @@ rdf_file_extension(Ext) :-
 
 
 
-%! rdf_file_extension(+Extension:atom, +Format:atom) is semidet.
-%! rdf_file_extension(+Extension:atom, -Format:atom) is semidet.
-%! rdf_file_extension(-Extension:atom, +Format:atom) is det.
-%! rdf_file_extension(-Extension:atom, -Format:atom) is multi.
+%! rdf_file_extension(+Ext, +Format) is semidet.
+%! rdf_file_extension(+Ext, -Format) is semidet.
+%! rdf_file_extension(-Ext, +Format) is det.
+%! rdf_file_extension(-Ext, -Format) is multi.
 
 rdf_file_extension(Ext, Format) :-
   rdf_http_plugin:rdf_content_type(_, _, Format),

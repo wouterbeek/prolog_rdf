@@ -1,47 +1,47 @@
 :- module(
   sparql11,
   [
-    'BLANK_NODE_LABEL'//1, % -BlankNodeLabel:atom
-    'HEX'//1, % ?Weight:between(0,15)
-    iri//1, % -Iri:atom
-    'PERCENT'//1, % ?Code:code
-    'PLX'//1, % ?Code:code
-    'PN_LOCAL_ESC'//1 % ?Code:code
+    'BLANK_NODE_LABEL'//1, % -BNodeLabel
+    'HEX'//1,              % ?Weight:between(0,15)
+    iri//1,                % -Iri
+    'PERCENT'//1,          % ?C
+    'PLX'//1,              % ?C
+    'PN_LOCAL_ESC'//1      % ?C
   ]
 ).
 :- reexport(library(dcg/sparql10), [
-     'ANON'//1, % ?BlankNode:bnode
-     'BlankNode'//1, % ?BlankNode:bnode
-     'BooleanLiteral'//1, % ?Boolean:boolean
-     'DECIMAL'//1, % ?Decimal:rational
-     'DECIMAL_NEGATIVE'//1, % ?Decimal:rational
-     'DECIMAL_POSITIVE'//1, % ?Decimal:rational
-     'DOUBLE'//1, % ?Double:float
-     'DOUBLE_NEGATIVE'//1, % ?Double:float
-     'DOUBLE_POSITIVE'//1, % ?Double:float
-     'ECHAR'//1, % ?Code:code
-     'EXPONENT'//1, % ?Exponent:integer
-     'INTEGER'//1, % ?Integer:integer
-     'INTEGER_NEGATIVE'//1, % ?Integer:negative_integer
-     'INTEGER_POSITIVE'//1, % ?Integer:positive_integer
-     'IRI_REF'//1 as 'IRIREF', % ?Iri:atom
-     'IRIref'//1, % ?Iri:atom
-     'LANGTAG'//1, % ?LanguageTag:list(atom)
-     'NumericLiteral'//1, % ?Literal:compound
-     'NumericLiteralNegative'//1, % ?Literal:compound
-     'NumericLiteralPositive'//1, % ?Literal:compound
-     'NumericLiteralUnsigned'//1, % ?Literal:compound
-     'PN_CHARS'//1, % ?Code:code
-     'PN_CHARS_U'//1, % ?Code:code
-     'PNAME_LN'//1, % ?Iri:atom
-     'PNAME_NS'//1, % ?Prefix:atom
-     'PrefixedName'//1, % -Iri:atom
-     'RDFLiteral'//1, % ?Literal:compound
-     'String'//1, % ?String:atom
-     'STRING_LITERAL_LONG1'//1, % ?String:atom
-     'STRING_LITERAL_LONG2'//1, % ?String:atom
-     'STRING_LITERAL1'//1, % ?String:atom
-     'STRING_LITERAL2'//1 % ?String:atom
+     'ANON'//1,                   % ?BNode
+     'BlankNode'//1,              % ?BNode
+     'BooleanLiteral'//1,         % ?Boolean
+     'DECIMAL'//1,                % ?Decimal:rational
+     'DECIMAL_NEGATIVE'//1,       % ?Decimal:rational
+     'DECIMAL_POSITIVE'//1,       % ?Decimal:rational
+     'DOUBLE'//1,                 % ?Double:float
+     'DOUBLE_NEGATIVE'//1,        % ?Double:float
+     'DOUBLE_POSITIVE'//1,        % ?Double:float
+     'ECHAR'//1,                  % ?C
+     'EXPONENT'//1,               % ?Exp:integer
+     'INTEGER'//1,                % ?I:integer
+     'INTEGER_NEGATIVE'//1,       % ?I:negative_integer
+     'INTEGER_POSITIVE'//1,       % ?I:positive_integer
+     'IRI_REF'//1 as 'IRIREF',    % ?Iri
+     'IRIref'//1,                 % ?Iri
+     'LANGTAG'//1,                % ?LTag:list(atom)
+     'NumericLiteral'//1,         % ?Lit
+     'NumericLiteralNegative'//1, % ?Lit
+     'NumericLiteralPositive'//1, % ?Lit
+     'NumericLiteralUnsigned'//1, % ?Lit
+     'PN_CHARS'//1,               % ?C
+     'PN_CHARS_U'//1,             % ?C
+     'PNAME_LN'//1,               % ?Prefix
+     'PNAME_NS'//1,               % ?Alias
+     'PrefixedName'//1,           % -Iri
+     'RDFLiteral'//1,             % ?Lit
+     'String'//1,                 % ?String
+     'STRING_LITERAL_LONG1'//1,   % ?String
+     'STRING_LITERAL_LONG2'//1,   % ?String
+     'STRING_LITERAL1'//1,        % ?String
+     'STRING_LITERAL2'//1         % ?String
    ]).
 
 /** <module> SPARQL 1.1: Tokens
@@ -49,16 +49,16 @@
 @author Wouter Beek
 @compat SPARQL 1.1
 @see http://www.w3.org/TR/sparql11-query/#grammar
-@version 2015/11-2016/01
+@version 2015/11-2016/01, 2016/05
 */
 
-:- use_module(library(dcg/dcg_ext), except([iri//1])).
+:- use_module(library(dcg/dcg_ext)).
 
 
 
 
 
-%! 'BLANK_NODE_LABEL'(?BlankNodeLabel:atom)// .
+%! 'BLANK_NODE_LABEL'(?BNodeLabel)// .
 % Blank node labels are written as `_:abc` for a blank node with label `abc`.
 %
 % The same blank node label cannot be used
@@ -111,7 +111,7 @@ pn_chars_dot(0'.) --> ".".
 
 
 
-%! iri(-Iri:atom)// is det.
+%! iri(-Iri)// is det.
 % ```ebnf
 % [136]   iri ::= IRIREF | PrefixedName
 % ```

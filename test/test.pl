@@ -17,7 +17,6 @@
 %/html
 :- use_module(library(html/rdfh)).
 :- use_module(library(html/rdfh_fca)).
-:- use_module(library(html/rdfh_grid)).
 :- use_module(library(html/rdfh_gv)).
 %/mat
 :- use_module(library(mat/j_db)).
@@ -32,12 +31,16 @@
 :- use_module(library(oaei/oaei_read)).
 %/rdf
 :- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
+:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
+:- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_graph_theory)).
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_graph_viz)).
@@ -45,6 +48,7 @@
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
 :- use_module(library(rdf/rdf_info)).
+:- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
@@ -52,6 +56,7 @@
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_stats)).
 :- use_module(library(rdf/rdf_stream)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_test)).
 :- use_module(library(rdf/rdf_update)).
 %/rdfa
@@ -61,5 +66,6 @@
 :- use_module(library(rdfs/rdfs_stats)).
 %/service
 :- use_module(library(service/lov)).
+:- use_module(library(service/prefix_cc)).
 %/void
 :- use_module(library(void/void_build)).

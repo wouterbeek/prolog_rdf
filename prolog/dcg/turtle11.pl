@@ -1,43 +1,41 @@
 :- module(
   turtle11,
   [
-    'DECIMAL'//1, % -Decimal:rational
-    'INTEGER'//1, % -Integer:integer
-    'IRIREF'//1, % -Iri:atom
-    literal//1, % -Literal:compound
-    'NumericLiteral'//1, % -Literal:compound
-    prefixID//2, % -PrefixLabel:atom
-                 % -Iri:atom
-    sparqlPrefix//2, % -PrefixLabel:atom
-                     % -Iri:atom
-    'String'//1, % -String:atom
-    'STRING_LITERAL_QUOTE'//1, % -String:atom 
-    'STRING_LITERAL_SINGLE_QUOTE'//1, % -String:atom
-    'STRING_LITERAL_LONG_SINGLE_QUOTE'//1, % -String:atom
-    'STRING_LITERAL_LONG_QUOTE'//1 % -String:atom
+    'DECIMAL'//1,                          % -Decimal
+    'INTEGER'//1,                          % -I
+    'IRIREF'//1,                           % -Iri
+    literal//1,                            % -Lit
+    'NumericLiteral'//1,                   % -Lit
+    prefixID//2,                           % -Alias, -Prefix
+    sparqlPrefix//2,                       % -Alias, -Prefix
+    'String'//1,                           % -String
+    'STRING_LITERAL_QUOTE'//1,             % -String
+    'STRING_LITERAL_SINGLE_QUOTE'//1,      % -String
+    'STRING_LITERAL_LONG_SINGLE_QUOTE'//1, % -String
+    'STRING_LITERAL_LONG_QUOTE'//1         % -String
   ]
 ).
 :- reexport(library(dcg/sparql10), [
    ]).
 :- use_module(library(dcg/sparql11), [
-     'BooleanLiteral'//1, % -Literal:compound
-     'DOUBLE'//1, % ?Number:rational
-     'ECHAR'//1, % ?Code:code
-     'HEX'//1, % ?Weight:between(0,15)
-     'LANGTAG'//1, % -LanguageTag:list(atom)
-     'PNAME_LN'//1, % -Iri:atom
-     'PNAME_NS'//1, % -Prefix:atom
-     iri//1 % -Iri:atom
+     'BooleanLiteral'//1, % -Lit
+     'DOUBLE'//1,         % ?Number
+     'ECHAR'//1,          % ?C
+     'HEX'//1,            % ?Weight:between(0,15)
+     'LANGTAG'//1,        % -LTag:list(atom)
+     'PNAME_LN'//1,       % -Prefix
+     'PNAME_NS'//1,       % -Alias
+     iri//1               % -Iri
    ]).
 :- reexport(library(dcg/turtle10), [
-     nodeID//1 % -BlankNode:bnode
+     nodeID//1 % -BNode
    ]).
 
 /** <module> Turtle 1.1
 
 @author Wouter Beek
 @compat Turtle 1.1
-@version 2015/11-2016/01
+@version 2015/11-2016/01, 2016/05
 */
 
 :- use_module(library(dcg/dcg_ascii)).
