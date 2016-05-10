@@ -11,24 +11,27 @@
 @version 2016/05
 */
 
-:- use_module(library(csv)).
+:- use_module(library(apply)).
+:- use_module(library(dict_ext)).
+:- use_module(library(http/http_download)).
 :- use_module(library(lists)).
 :- use_module(library(persistency)).
 
 :- initialization(db_attach('prefix_cc.db', [])).
 
 :- persistent
-   prefix(alias:atom, iri:atom).
+   prefix_cc(alias:atom, iri:atom).
 
 
+
+
+
+assert_prefix_cc(Alias-Prefix) :-
+  assert_prefix_cc(Alias, Prefix).
 
 
 
 init_prefix_cc :-
-  forall(prefix_cc(Alias, Prefix), assert_prefix_cc(Alias, Prefix)).
-
-
-
-prefix_cc(Alias, Prefix) :-
-  csv_read_file(File, Rows),
-  member(row(Alias, Prefix), Rows).
+  json_download('http://prefix.cc/popular/all.file.json', D),
+  dict_pairs(D, Pairs),
+  maplist(assert_prefix_cc, Pairs).

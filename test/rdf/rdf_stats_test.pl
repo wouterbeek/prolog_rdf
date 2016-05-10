@@ -2,7 +2,8 @@
 
 :- use_module(library(plunit)).
 :- use_module(library(rdf/rdf_stats)).
-:- use_module(library(rdf/rdf_test), []).
+
+:- use_module('../rdf_test_data').
 
 :- begin_tests(rdf_stats).
 

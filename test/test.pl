@@ -24,11 +24,6 @@
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(mat/mat_print)).
 :- use_module(library(mat/mat_viz)).
-%/oaei
-:- use_module(library(oaei/oaei_build)).
-:- use_module(library(oaei/oaei_check)).
-:- use_module(library(oaei/oaei_file)).
-:- use_module(library(oaei/oaei_read)).
 %/rdf
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_cbd)).
@@ -57,7 +52,6 @@
 :- use_module(library(rdf/rdf_stats)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf/rdf_test)).
 :- use_module(library(rdf/rdf_update)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
@@ -66,6 +60,7 @@
 :- use_module(library(rdfs/rdfs_stats)).
 %/service
 :- use_module(library(service/lov)).
+:- use_module(library(service/oaei)).
 :- use_module(library(service/prefix_cc)).
 %/void
 :- use_module(library(void/void_build)).

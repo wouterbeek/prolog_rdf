@@ -33,15 +33,15 @@
     rdfa_date_time//3,    % +P,       +Something,  +Masks
     rdfa_prefixed_iri/2,  % +Iri,     -PrefixedIri
     rdfa_prefixes/2,      % +Aliases, -Prefixes
-    'sbo:commentOf'//1,   % +Comment
-    'sbo:content'//1      % +Article
+    'sioc:content'//1,    % +Article
+    'sioc:reply_of'//1    % +Comment
   ]
 ).
 
 /** <module> RDFa
 
 @author Wouter Beek
-@version 2016/02-2016/04
+@version 2016/02-2016/05
 */
 
 :- use_module(library(apply)).
@@ -61,6 +61,10 @@
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
+
+:- rdf_register_prefix(bf, 'http://bibframe.org/vocab/').
+:- rdf_register_prefix(org, 'http://www.w3.org/ns/org#').
+:- rdf_register_prefix(sioc, 'http://rdfs.org/sioc/ns#').
 
 :- rdf_meta
    agent_image(r, -),
@@ -93,8 +97,8 @@
    'foaf:name'(r, ?, ?),
    'org:memberOf'(r, ?, ?),
    rdfa_date_time(r, o, +, ?, ?),
-   'sbo:commentOf'(r, ?, ?),
-   'sbo:content'(r, ?, ?).
+   'sioc:content'(r, ?, ?),
+   'sioc:reply_of'(r, ?, ?).
 
 
 
@@ -390,12 +394,12 @@ pair_to_prefix0(Alias-Prefix, Def) :-
 
 
 
-'sbo:commentOf'(Comment) -->
-  {once(rdf_has(Comment, sbo:commentOf, Article))},
+'sioc:content'(Article) -->
+  {once(rdf_has(Article, sioc:content, Content))},
+  html(div(property='sioc:content', \rdfh_literal(Content))).
+
+
+
+'sioc:reply_of'(Comment) -->
+  {once(rdf_has(Comment, sioc:reply_of, Article))},
   html(span(rel='sbo:commentOf', \'dc:title'(Article))). %'
-
-
-
-'sbo:content'(Article) -->
-  {once(rdf_has(Article, sbo:content, Content))},
-  html(div(property='sbo:content', \rdfh_literal(Content))).
