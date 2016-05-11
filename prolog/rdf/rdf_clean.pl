@@ -42,12 +42,8 @@
 %! rdf_clean(+Source, +Sink) is det.
 %! rdf_clean(+Source, +Sink, +Opts) is det.
 % The following options are supported:
-%    * compress(+oneof([deflate,gzip,none]))
-%      What type of compression is used on the output file.
-%      Default is `none`.
-%    * rdf_format(+oneof([jsonld,ntriples,nquads,rdfa,trig,trix,turtle,xml]))
-%      The RDF serialization format of the input.
-%      When absent this is guessed heuristically.
+%   * metadata(-dict)
+%   * Other options are passed to rdf_call_on_stream/3 and rdf_clean/5.
 %
 % @throws existence_error If an HTTP request returns an error code.
 
