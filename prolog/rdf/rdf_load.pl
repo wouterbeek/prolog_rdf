@@ -154,18 +154,20 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
   (   rdf_is_term(O1)
   ->  call(Goal_5, M, S, P, O1, G3)
   ;   rdf_legacy_literal_components(O1, D, Lex1, LTag1),
+      %%%%(rdf_equal(rdf:'XMLLiteral', D) -> gtrace ; true),
       catch((
         rdf11:post_object(O2, O1),
-        rdf_literal_components(O2, D, Lex2, LTag2)
+        rdf11:pre_object(O2, O3),
+        rdf_legacy_literal_components(O3, D, Lex3, LTag3)
       ), E, true),
       % Non-canonical lexical form.
-      (   Lex1 \== Lex2
+      (   Lex1 \== Lex3
       ->  print_message(warning, non_canonical_lexical_form(D,Lex1))
       ;   true
       ),
       % Non-canonical language tag.
       (   ground(LTag1),
-          LTag1 \== LTag2
+          LTag1 \== LTag3
       ->  print_message(warning, non_canonical_language_tag(LTag1))
       ;   true
       ),

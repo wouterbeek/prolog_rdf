@@ -1,6 +1,7 @@
 :- module(
   rdf_error,
   [
+    rdf_store/2,        % +Sink, +Triple
     rdf_store/4,        % +Sink, +S, +P, +O
     rdf_store_list/3,   % +Sink, +L, -RdfL
     rdf_store_now/3,    % +Sink, +S, +P
@@ -11,7 +12,7 @@
 /** <module> RDF error
 
 @author Wouter Beek
-@version 2016/03-2016/04
+@version 2016/03-2016/05
 */
 
 :- use_module(library(apply)).
@@ -28,6 +29,7 @@
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
 :- rdf_meta
+   rdf_store(+, t),
    rdf_store(+, r, r, o),
    rdf_store_now(+, r, r).
 
@@ -35,7 +37,12 @@
 
 
 
+%! rdf_store(+Sink, +Triple) is det.
 %! rdf_store(+Sink, +S, +P, +O) is det.
+
+rdf_store(Out, rdf(S,P,O)) :-
+  rdf_store(Out, S, P, O).
+
 
 rdf_store(Out, S, P, O) :-
   is_stream(Out), !,
@@ -236,7 +243,7 @@ rdf_store_warning(Out, Doc, error(type_error(xml_dom,A1),_)) :- !,
   rdf_store(Out, Doc, deref:no_xml_dom, A2^^xsd:string).
 % Unhandled error term.
 rdf_store_warning(_, _, Term) :-
-  gtrace,
+  gtrace, %DEB
   msg_warning("~w~n", [Term]).
 
 

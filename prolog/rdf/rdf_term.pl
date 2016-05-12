@@ -9,7 +9,7 @@
     rdf_is_legacy_literal/1,         % @Term
     rdf_language_tagged_string/1,    % ?Lit
     rdf_language_tagged_string/2,    % +G, ?Lit
-    rdf_legacy_literal_components/4, % +Lit, -D, -Lex, -LTag) is det.
+    rdf_legacy_literal_components/4, % +Lit, -D, -Lex, -LTag
     rdf_literal/2,                   % +G, ?Lit
     rdf_literal_components/4,        % ?Lit, ?D, ?Lex, ?LTag
     rdf_literal_datatype/2,          % +Lit, ?D

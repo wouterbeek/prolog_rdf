@@ -9,7 +9,7 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01, 2016/03-2016/04
+@version 2015/08-2015/11, 2016/01, 2016/03-2016/05
 */
 
 :- use_module(library(apply)).
@@ -23,7 +23,7 @@
 :- use_module(library(os/compress_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
-:- use_module(library(os/gnu_wc)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
@@ -73,7 +73,7 @@ rdf_clean(In, Sink, M1, M4, Opts1) :-
       gen_ntuples:gen_ntuples_begin(State, Opts2)
     ),
     rdf_load:rdf_call_on_tuples0(
-      rdf_clean:gen_ntuple0(TmpOut, State),
+      {TmpOut,State}/[_,S,P,O,G]>>(gen_ntuples:gen_ntuple(TmpOut, State, S, P, O, G)),
       Opts1, In, M1, M2
     ),
     (
@@ -91,7 +91,7 @@ rdf_clean(In, Sink, M1, M4, Opts1) :-
   sort_file(TmpSink, Opts1),
 
   % Count the number of unique tuples.
-  file_lines(TmpSink, NumLines),
+  source_numlines(TmpSink, NumLines),
   NumDuplicates is NumTuples - NumLines,
   deb_wrote_tuples(NumTuples, NumDuplicates),
   M4 = M3.put(_{
@@ -102,10 +102,7 @@ rdf_clean(In, Sink, M1, M4, Opts1) :-
   % Compress the file, according to user option.
   compress_file(TmpSink, Compress, Sink),
   delete_file(TmpSink).
-
-gen_ntuple0(Sink, State, _, S, P, O, G) :-
-  gen_ntuples:gen_ntuple(Sink, State, S, P, O, G).
-
+  
 
 
 
