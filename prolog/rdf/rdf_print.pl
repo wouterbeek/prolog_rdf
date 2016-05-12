@@ -350,7 +350,7 @@ dcg_print_groups0([G-Triples|Groups], Opts) -->
       {I2 = I1 + 1}
   ),
   dcg_print_triples0(I2, Triples, Opts),
-  ({rdf_default_graph(G)} -> "\n" ; "}\n"),
+  ({rdf_default_graph(G)} -> "" ; "}\n"),
   dcg_print_groups0(Groups, Opts).
 
 
@@ -601,7 +601,8 @@ dcg_print_literal(V@LTag, Opts) --> !,
 
 
 dcg_print_var(Var, Opts) -->
-  (   {var_map(Var, N)}
+  (   {var_map(Var0, N)},
+      {Var == Var0}
   ->  ""
   ;   {dict_inc(var_counter, Opts, N)},
       {assert(var_map(Var, N))}
