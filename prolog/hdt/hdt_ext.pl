@@ -25,6 +25,7 @@
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
+:- use_module(library(zlib)).
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
@@ -145,7 +146,7 @@ hdt_prepare(HdtFile, Opts) :-
 
 ensure_ntriples(From, To) :-
   setup_call_cleanup(
-    open(To, write, Sink),
+    gzopen(To, write, Sink),
     with_output_to(Sink,
       rdf_call_on_tuples(From, [_,S,P,O,G]>>gen_ntriple(S, P, O, G))
     ),
