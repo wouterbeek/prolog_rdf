@@ -21,6 +21,8 @@
 */
 
 :- use_module(library(hdt)).
+:- use_module(library(gen/gen_ntuples)).
+:- use_module(library(rdf/rdf_load)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
@@ -118,15 +120,15 @@ hdt_prepare(HdtFile, _) :-
   exists_file(HdtFile), !.
 hdt_prepare(HdtFile, Opts) :-
   file_name_extension(Base, hdt, HdtFile),
-  file_name_extension(Base, nt, NTriplesFile),
+  file_name_extension(Base, 'nt.gz', NTriplesFile),
   exists_file(NTriplesFile), !,
   file_name_extension(Base, hdt, HdtFile),
   hdt_create_from_file(HdtFile, NTriplesFile, Opts).
 hdt_prepare(HdtFile, Opts) :-
   file_name_extension(Base, hdt, HdtFile),
-  file_name_extension(Base, nq, NQuadsFile),
+  file_name_extension(Base, 'nq.gz', NQuadsFile),
   exists_file(NQuadsFile), !,
-  file_name_extension(Base, nt, NTriplesFile),
+  file_name_extension(Base, 'nt.gz', NTriplesFile),
   setup_call_cleanup(
     ensure_ntriples(NQuadsFile, NTriplesFile),
     hdt_prepare(HdtFile, Opts),
