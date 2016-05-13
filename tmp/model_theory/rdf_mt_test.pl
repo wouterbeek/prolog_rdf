@@ -10,7 +10,7 @@ Tests for RDFS model theory.
 
 :- use_module(library(plunit)).
 
-:- rdf_reset_prefix(ex, 'http://example.com/').
+:- rdf_reset_prefix(ex, 'http://example.org/').
 
 :- begin_tests(rdf_mt).
 

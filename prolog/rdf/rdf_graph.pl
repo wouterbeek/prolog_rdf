@@ -25,7 +25,7 @@
 :- use_module(library(rdf/rdf_prefix), []).
 :- use_module(library(semweb/rdf11)).
 
-:- rdf_register_prefix(ex, 'http://example.com/').
+:- rdf_register_prefix(ex, 'http://example.org/').
 
 :- rdf_meta
    rdf_fresh_graph(r, +),

@@ -20,7 +20,7 @@
 
 :- rdf_register_prefix(ch, 'http://www.wouterbeek.com/ch.owl#' ).
 :- rdf_register_prefix(dbr, 'http://dbpedia.org/resource/').
-:- rdf_register_prefix(ex, 'http://example.com/').
+:- rdf_register_prefix(ex, 'http://example.org/').
 :- rdf_register_prefix(nl, 'http://www.wouterbeek.com/nl.owl#' ).
 
 

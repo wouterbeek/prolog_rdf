@@ -1,7 +1,8 @@
 :- module(
   prefix_cc,
   [
-    prefix_cc/2 % ?Alias, ?Prefix
+    prefix_cc/2, % ?Alias, ?Prefix
+    register_prefix_cc/0
   ]
 ).
 
@@ -16,6 +17,7 @@
 :- use_module(library(http/http_download)).
 :- use_module(library(lists)).
 :- use_module(library(persistency)).
+:- use_module(library(semweb/rdf11)).
 
 :- initialization(db_attach('prefix_cc.db', [])).
 
@@ -26,7 +28,8 @@
 
 
 
-assert_prefix_cc(Alias-Prefix) :-
+assert_prefix_cc(Alias-Prefix0) :-
+  atom_string(Prefix, Prefix0),
   assert_prefix_cc(Alias, Prefix).
 
 
@@ -35,3 +38,9 @@ init_prefix_cc :-
   json_download('http://prefix.cc/popular/all.file.json', D),
   dict_pairs(D, Pairs),
   maplist(assert_prefix_cc, Pairs).
+
+
+
+register_prefix_cc :-
+  init_prefix_cc,
+  forall(prefix_cc(Alias, Prefix), rdf_register_prefix(Alias, Prefix)).

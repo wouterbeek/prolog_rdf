@@ -59,7 +59,7 @@
 :- use_module(library(uuid_ext)).
 :- use_module(library(yall)).
 
-:- rdf_register_prefix(dbo, 'sbo:performed, Action').
+:- rdf_register_prefix(dbo, 'http://dbpedia.org/ontology/').
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
 :- rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#').
 
