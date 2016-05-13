@@ -153,9 +153,14 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
   ->  call(Goal_5, M, S, P, O1, G3)
-  ;   rdf_legacy_literal_components(O1, D, Lex1, LTag1),
-      %%%%(rdf_equal(rdf:'XMLLiteral', D) -> gtrace ; true),
+  ;   rdf_legacy_literal_components(O1, D, Lex0, LTag1),
       catch((
+        (   rdf_equal(rdf:'HTML', D)
+        ->  rdf11:write_xml_literal(html, Lex0, Lex1)
+        ;   rdf_equal(rdf:'XMLLiteral', D)
+        ->  rdf11:write_xml_literal(xml, Lex0, Lex1)
+        ;   Lex1 = Lex0
+        ),
         rdf11:post_object(O2, O1),
         rdf11:pre_object(O2, O3),
         rdf_legacy_literal_components(O3, D, Lex3, LTag3)
