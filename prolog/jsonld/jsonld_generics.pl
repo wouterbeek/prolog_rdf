@@ -29,6 +29,7 @@
 jsonld_abbreviate_iri(Context, Full, Compact) :-
   is_iri(Full),
   get_dict(Alias, Context, Prefix),
+  atom(Prefix),
   atom_concat(Prefix, Local, Full), !,
   atomic_list_concat([Alias,Local], :, Compact).
 
