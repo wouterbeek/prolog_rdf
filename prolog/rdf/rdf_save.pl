@@ -15,7 +15,7 @@
 /** <module> Save RDF data
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02, 2016/04
+@version 2015/08, 2015/10-2016/02, 2016/04-2016/05
 */
 
 :- use_module(library(debug)).
@@ -148,11 +148,11 @@ rdf_save_to_file(Sink, Opts) :-
 % N-Quads
 rdf_save_to_file0(Out, nquads, Opts) :- !,
   option(graph(G), Opts, _),
-  rdf_save_to_file0(Out, _, _, _, G, Opts).
+  rdf_save_to_file0(Out, _, _, _, G, nquads).
 % N-Triples
 rdf_save_to_file0(Out, ntriples, Opts) :- !,
   option(graph(G), Opts, _),
-  rdf_save_to_file0(Out, _, _, _, G, Opts).
+  rdf_save_to_file0(Out, _, _, _, G, ntriples).
 % TriG
 rdf_save_to_file0(Out, trig, Opts) :- !,
   rdf_save_trig(Out, Opts).
