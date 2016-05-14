@@ -28,7 +28,10 @@
 % name ::= nameStartChar nameChar*
 % ```
 
-name(S) --> nameStartChar(H), *(nameChar, T), {string_codes(S, [H|T])}.
+name(S) -->
+  nameStartChar(H),
+  *(nameChar, T),
+  {string_codes(S, [H|T])}.
 
 
 

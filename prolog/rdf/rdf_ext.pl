@@ -34,9 +34,7 @@
     rdf_string/2,           % +Lit, -String
     rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
     rdf_tuple/1,            % -Tuple
-    rdf_unload_db/0,
-    rdfs_instance0/2,       % ?I, ?C
-    rdfs_label/2            % +S, -Lit
+    rdf_unload_db/0
   ]
 ).
 
@@ -94,9 +92,7 @@
    rdf_reification(r, r, o),
    rdf_reification(r, r, o, -),
    rdf_string(r, -),
-   rdf_triples(r, r, o, -),
-   rdfs_instance0(o, r),
-   rdfs_label(r, o).
+   rdf_triples(r, r, o, -).
 
 
 
@@ -410,25 +406,6 @@ rdf_unload_db :-
   rdf_unload_graph(G),
   rdf_unload_db.
 rdf_unload_db.
-
-
-
-%! rdfs_instance0(?I, ?C) is nondet.
-
-rdfs_instance0(I, D) :-
-  nonvar(D), !,
-  rdf_reachable(C, rdfs:subClassOf, D),
-  rdf_has(I, rdf:type, C).
-rdfs_instance0(I, D) :-
-  rdf_has(I, rdf:type, C),
-  rdf_reachable(C, rdfs:subClassOf, D).
-
-
-
-%! rdfs_label(+S, -Lit) is nondet.
-
-rdfs_label(S, Lit) :-
-  rdf_pref_string(S, rdfs:label, Lit).
 
 
 

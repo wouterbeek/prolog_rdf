@@ -1,16 +1,17 @@
 :- module(
   rdfs_ext,
   [
-    rdfs_class/1,    % ?C
-    rdfs_instance/2, % ?I, ?C
-    rdfs_property/1  % ?Prop
+    rdfs_class/1,     % ?C
+    rdfs_instance0/2, % ?I, ?C
+    rdfs_label/2,     % ?S, -Lit
+    rdfs_property/1   % ?Prop
   ]
 ).
 
 /** <module> RDFS extensions
 
 @author Wouter Beek
-@version 2016/04
+@version 2016/04-2015/05
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -19,12 +20,16 @@
 
 :- rdf_meta
    rdfs_class(r),
-   rdfs_instance(r, r),
+   rdfs_instance0(o, r),
+   rdfs_label(r, o),
    rdfs_property(r).
 
 
 
 
+
+%! rdfs_class(+C) is semidet.
+%! rdfs_class(-C) is nondet.
 
 rdfs_class(C) :-
   distinct(C, rdfs_class0(C)).
@@ -44,10 +49,26 @@ rdfs_class0(C) :-
 
 
 
-rdfs_instance(I, C) :-
-  rdfs_individual_of(I, C).
+%! rdfs_instance0(?I, ?C) is nondet.
+
+rdfs_instance0(I, D) :-
+  nonvar(D), !,
+  rdf_reachable(C, rdfs:subClassOf, D),
+  rdf_has(I, rdf:type, C).
+rdfs_instance0(I, D) :-
+  rdf_has(I, rdf:type, C),
+  rdf_reachable(C, rdfs:subClassOf, D).
 
 
+
+%! rdfs_label(?S, -Lit) is nondet.
+
+rdfs_label(S, Lit) :-
+  rdf_pref_string(S, rdfs:label, Lit).
+
+
+
+%! rdfs_property(-Prop) is nondet.
 
 rdfs_property(Prop) :-
   distinct(Prop, rdfs_property0(Prop)).
