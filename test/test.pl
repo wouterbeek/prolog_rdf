@@ -59,8 +59,14 @@
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stats)).
 %/service
+:- use_module(library(service/btc)).
+:- use_module(library(service/flickrwrappr)).
+:- use_module(library(service/freebase)).
 :- use_module(library(service/lov)).
+:- use_module(library(service/musicbrainz)).
 :- use_module(library(service/oaei)).
+:- use_module(library(service/odc)).
 :- use_module(library(service/prefix_cc)).
+:- use_module(library(service/void_store)).
 %/void
 :- use_module(library(void/void_build)).
