@@ -1,18 +1,24 @@
 :- module(
   hdt_ext,
   [
-    hdt/4,         % +File, ?S, ?P, ?O
-    hdt0/4,        % +Hdt,  ?S, ?P, ?O
-    hdt_goal/2,    % +File, :Goal_1
-    hdt_last/3,    % +File, ?X, ?L
-    hdt_last0/3,   % +Hdt,  ?X, ?L
-    hdt_member/3,  % +File, ?X, ?L
-    hdt_member0/3, % +Hdt,  ?X, ?L
-    hdt_prepare/1, % +Base
-    hdt_prepare/2  % +Base, +Opts
+    hdt/4,              % +File, ?S, ?P, ?O
+    hdt0/4,             % +Hdt,  ?S, ?P, ?O
+    hdt_goal/2,         % +File,             :Goal_1
+    hdt_header/4,       % +File, ?S, ?P, ?O
+    hdt_header0/4,      % +Hdt,  ?S, ?P, ?O
+    hdt_last/3,         % +File, ?X, ?L
+    hdt_last0/3,        % +Hdt,  ?X, ?L
+    hdt_member/3,       % +File, ?X, ?L
+    hdt_member0/3,      % +Hdt,  ?X, ?L
+    hdt_prepare/1,      % +Base
+    hdt_prepare/2,      % +Base,                      +Opts
+    hdt_print/4,        % +File, ?S, ?P, ?O
+    hdt_print/5,        % +File, ?S, ?P, ?O,          +Opts
+    hdt_print0/4,       % +Hdt,  ?S, ?P, ?O
+    hdt_print0/5,       % +Hdt,  ?S, ?P, ?O,          +Opts
+    hdt_remove/1        % +File
   ]
 ).
-:- reexport(library(hdt)).
 
 /** <module> HDT extensions
 
@@ -20,25 +26,34 @@
 @version 2016/04-2016/05
 */
 
-:- use_module(library(hdt)).
 :- use_module(library(gen/gen_ntuples)).
+:- use_module(library(hdt), []).
+:- use_module(library(html/html_ext)).
+:- use_module(library(pagination)).
 :- use_module(library(rdf/rdf_load)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
-:- rdf_meta
-   hdt(+, r, r, o),
-   hdt0(+, r, r, o),
-   hdt_last(+, r, r),
-   hdt_last0(+, r, r),
-   hdt_member(+, r, r),
-   hdt_member0(+, r, r).
-
 :- meta_predicate
-    hdt_goal(+, 1).
+   hdt_goal(+, 1).
+
+:- rdf_meta
+   hdt( +, r, r, o),
+   hdt0(+, r, r, o),
+   hdt_header( +, r, r, o),
+   hdt_header0(+, r, r, o),
+   hdt_last( +, r, r),
+   hdt_last0(+, r, r),
+   hdt_member( +, r, r),
+   hdt_member0(+, r, r),
+   hdt_print( +, r, r, o),
+   hdt_print0(+, r, r, o),
+   hdt_print( +, r, r, o, +),
+   hdt_print0(+, r, r, o, +).
 
 
 
@@ -48,23 +63,37 @@
 %! hdt0(+Hdt, ?S, ?P, ?O) is nondet.
 
 hdt(File, S, P, O) :-
-  hdt_prepare(File),
   hdt_goal(File, {S,P,O}/[Hdt]>>hdt0(Hdt, S, P, O)).
 
 
 hdt0(Hdt, S, P, O) :-
-  hdt_search(Hdt, S, P, O).
+  hdt:hdt_search(Hdt, S, P, O).
 
 
 
 %! hdt_goal(+File, :Goal_1) is det.
 
 hdt_goal(File, Goal_1) :-
+  hdt_prepare(File),
   setup_call_cleanup(
-    hdt_open(Hdt, File),
+    hdt:hdt_open(Hdt, File),
     call(Goal_1, Hdt),
-    hdt_close(Hdt)
+    hdt:hdt_close(Hdt)
   ).
+
+
+
+%! hdt_header(+File, ?S, ?P, ?O) is nondet.
+%! hdt_header0(+Hdt, ?S, ?P, ?O) is nondet.
+% The following predicates are supported:
+%   - `<http://rdfs.org/ns/void#triples>` with object `N^^xsd:integer`
+
+hdt_header(File, S, P, O) :-
+  hdt_goal(File, {S,P,O}/[Hdt]>>hdt_header0(Hdt, S, P, O)).
+
+
+hdt_header0(Hdt, S, P, O) :-
+  hdt:hdt_header(Hdt, S, P, O).
 
 
 
@@ -124,7 +153,7 @@ hdt_prepare(HdtFile, Opts) :-
   file_name_extension(Base, 'nt.gz', NTriplesFile),
   exists_file(NTriplesFile), !,
   file_name_extension(Base, hdt, HdtFile),
-  hdt_create_from_file(HdtFile, NTriplesFile, Opts).
+  hdt:hdt_create_from_file(HdtFile, NTriplesFile, Opts).
 hdt_prepare(HdtFile, Opts) :-
   file_name_extension(Base, hdt, HdtFile),
   file_name_extension(Base, 'nq.gz', NQuadsFile),
@@ -135,6 +164,39 @@ hdt_prepare(HdtFile, Opts) :-
     hdt_prepare(HdtFile, Opts),
     delete_file(NTriplesFile)
   ).
+
+
+
+%! hdt_print(+File, ?S, ?P, ?O) is nondet.
+%! hdt_print(+File, ?S, ?P, ?O, +Opts) is nondet.
+%! hdt_print0(+Hdt, ?S, ?P, ?O) is nondet.
+%! hdt_print0(+Hdt, ?S, ?P, ?O, +Opts) is nondet.
+
+hdt_print(File, S, P, O) :-
+  hdt_goal(File, {S,P,O}/[Hdt]>>hdt_print0(Hdt, S, P, O, _{})).
+
+
+hdt_print(File, S, P, O, Opts) :-
+  hdt_goal(File, {S,P,O,Opts}/[Hdt]>>hdt_print0(Hdt, S, P, O, Opts)).
+
+
+hdt_print0(Hdt, S, P, O) :-
+  hdt_print0(Hdt, S, P, O, _{}).
+
+
+hdt_print0(Hdt, S, P, O, Opts) :-
+  hdt_pagination0(
+    Hdt, S, P, O,
+    {Opts}/[Results]>>rdf_print_triples(Results, Opts),
+    Opts
+  ).
+
+
+
+hdt_remove(File) :-
+  (exists_file(File) -> delete_file(File) ; true),
+  atomic_list_concat([File,index], ., IndexFile),
+  (exists_file(IndexFile) -> delete_file(IndexFile) ; true).
 
 
 
