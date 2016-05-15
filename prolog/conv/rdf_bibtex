@@ -1,17 +1,15 @@
 :- module(
-  bibtex_to_rdf,
+  rdf_bibtex,
   [
-    bibtex_to_rdf/2, % +Source, +Graph
-    bibtex_to_rdf/3 % +Source
-                    % +Graph:rdf_graph
-		    % +Options:list(compound)
+    bibtex_to_rdf/2, % +Source, +G
+    bibtex_to_rdf/3  % +Source, +G, +Opts
   ]
 ).
 
 /** <module> BibTeX to RDF converter
 
 @author Wouter Beek
-@version 2015/05, 2015/12
+@version 2015/05, 2015/12, 2016/05
 */
 
 :- use_module(library(apply)).
@@ -19,29 +17,29 @@
 :- use_module(library(hash_ext)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(semweb/rdf_db), [rdf_global_id/2]).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_register_prefix(lobo, 'http://linkedopenbibtex.org/ontology/').
 :- rdf_register_prefix(lobr, 'http://linkedopenbibtex.org/resource/').
 
-:- rdf_meta(bibtex_to_rdf(+,r)).
+:- rdf_meta
+   bibtex_to_rdf(+, r),
+   bibtex_to_rdf(+, r, +).
 
 
 
 
-%! bibtex_to_rdf(+Source, +Graph:rdf_graph) is det.
-% Wrapper around bibtex_to_rdf/3 with default options.
+
+%! bibtex_to_rdf(+Source, +G       ) is det.
+%! bibtex_to_rdf(+Source, +G, +Opts) is det.
 
 bibtex_to_rdf(Source, G) :-
   bibtex_to_rdf(Source, G, []).
 
 
-%! bibtex_to_rdf(+Source, +Graph:rdf_graph, +Options:list(compound)) is det.
-
 bibtex_to_rdf(Source, G, Opts) :-
   bibtex_load(Source, Entries, Opts),
   maplist(assert_bibtex_entry(G), Entries).
-
 
 
 assert_bibtex_entry(G, Entry0) :-

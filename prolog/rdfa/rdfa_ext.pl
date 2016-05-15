@@ -347,7 +347,7 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 'org:memberOf'(Agent) -->
   {
     once(rdf_has(Agent, org:memberOf, Organization)),
-    once(rdfs_label(Organization, Label)),
+    once(rdfs_pref_label(Organization, Label)),
     rdfa_prefixed_iri(Organization, Organization0)
   },
   html(span(property=Organization0, \rdfh_literal(Label))).

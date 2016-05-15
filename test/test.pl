@@ -1,3 +1,6 @@
+%/conv
+:- use_module(library(conv/rdf_bibtex)).
+:- use_module(library(conv/rdf_csv)).
 %/dcg
 :- use_module(library(dcg/manchester)).
 :- use_module(library(dcg/nquads11)).
@@ -24,9 +27,10 @@
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(mat/mat_print)).
 :- use_module(library(mat/mat_viz)).
+%/owl
+:- use_module(library(owl/owl_ext)).
 %/rdf
 :- use_module(library(rdf/rdf_annotate)).
-:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).

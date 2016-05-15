@@ -154,7 +154,7 @@ rdfh_iri(Iri) -->
   html([\rdfh_alias(Alias),":",Local]).
 % RDFS label replacing IRI.
 rdfh_iri(Iri) -->
-  {rdfs_label(Iri, Lbl)}, !,
+  {rdfs_pref_label(Iri, Lbl)}, !,
   html(Lbl).
 % Plain IRI.
 rdfh_iri(Iri) -->
