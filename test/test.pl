@@ -25,6 +25,7 @@
 :- use_module(library(mat/mat_print)).
 :- use_module(library(mat/mat_viz)).
 %/rdf
+:- use_module(library(rdf/rdf_annotate)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_clean)).
