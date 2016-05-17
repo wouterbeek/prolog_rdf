@@ -7,6 +7,8 @@
     owl_assert_disjointWith/3,        % +C, +D, ?G
     owl_assert_equivalent_class/3,    % +C, +D, ?G
     owl_assert_functional_property/2, % +P, ?G
+    owl_assert_identity/2,            % +S, +O
+    owl_assert_identity/3,            % +S, +O, +G
     owl_assert_intersection_of/3,     % +C, +Ds, ?G
     owl_assert_named_individual/5,    % +I, ?C, ?Label, ?Comment, ?G
     owl_assert_object_property/2,     % +P, ?G
@@ -40,6 +42,8 @@ Predicates for asseritng RDFS statements in an easy way.
    owl_assert_disjointWith(o, o, r),
    owl_assert_equivalent_class(r, r, r),
    owl_assert_functional_property(r, r),
+   owl_assert_identity(r, r),
+   owl_assert_identity(r, r, r),
    owl_assert_intersection_of(r, t, r),
    owl_assert_named_individual(r, t, ?, ?, r),
    owl_assert_object_property(r, r),
@@ -93,6 +97,18 @@ owl_assert_equivalent_class(C, D, G) :-
 
 owl_assert_functional_property(P, G) :-
   rdf_assert_instance(P, owl:'FunctionalProperty', G).
+
+
+
+%! owl_assert_identity(+S, +O) is det.
+%! owl_assert_identity(+S, +O, +G) is det.
+
+owl_assert_identity(S, O) :-
+  rdf_assert(S, owl:sameAs, O).
+
+
+owl_assert_identity(S, O, G) :-
+  rdf_assert(S, owl:sameAs, O, G).
 
 
 
