@@ -15,7 +15,6 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/bibtex)).
 :- use_module(library(hash_ext)).
-:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
 

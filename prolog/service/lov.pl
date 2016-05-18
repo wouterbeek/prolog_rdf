@@ -77,5 +77,5 @@ lov(sparql, Vocab) :-
   sparql_select('http://lov.okfn.org/dataset/lov/sparql', Q, Results),
   member([Vocab], Results).
 
-lov_datadump0(G, Vovab) :-
+lov_datadump0(G, Vocab) :-
   rdf(Vocab, rdf:type, voaf:'Vocabulary', G).

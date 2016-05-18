@@ -71,8 +71,6 @@ strings*.
 @version 2015/08, 2015/12
 */
 
-:- use_module(library(rdf/rdf_build)).
-:- reexport(library(rdf/rdf_read)).
 :- use_module(library(rdf/rdf_print)).
 
 

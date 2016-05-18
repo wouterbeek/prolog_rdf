@@ -101,7 +101,7 @@ html_annotations(LocationPrefix, Cs1, OffsetAdjustment1, [H|T]) -->
 
 %! rdf_annotate(+Res, +Text, +G, +Opts) is det.
 
-rdf_annotate(Res, Text, Graph, Opts0):-
+rdf_annotate(Res, Text, G, Opts0):-
   merge_options(Opts0, [concepts(Concepts)], Opts),
   
   % Annotate the paragraph text with DBpedia links.

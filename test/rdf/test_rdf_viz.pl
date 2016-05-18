@@ -4,7 +4,6 @@
 :- use_module(library(mat/mat)).
 :- use_module(library(mat/mat_viz)).
 :- use_module(library(os/process_ext)).
-:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_show)).
 :- use_module(library(semweb/rdf11)).

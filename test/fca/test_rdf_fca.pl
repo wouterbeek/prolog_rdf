@@ -20,7 +20,6 @@
 :- use_module(library(fca/rdf_fca_viz)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
-:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_load)).
 
 :- initialization(list_external_programs).

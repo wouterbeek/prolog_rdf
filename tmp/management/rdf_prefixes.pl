@@ -37,7 +37,6 @@ where the file denoted by [1] contains the assertions for [2], [3], etc.
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_build)).
 :- use_module(library(uri)).
 
 

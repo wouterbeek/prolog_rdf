@@ -16,7 +16,7 @@
     rdfs_assert_subproperty/3, % +P, +Q, ?G
     rdfs_class/1,              % ?C
     rdfs_domain/2,             % ?P, ?Dom
-    rdfs_instance0/2,          % ?I, ?C
+    rdfs_instance/2,           % ?I, ?C
     rdfs_pref_label/2,         % ?S, -Lit
     rdfs_property/1,           % ?Prop
     rdfs_range/2,              % ?P, ?Ran
@@ -52,7 +52,7 @@
    rdfs_assert_subproperty(r, t, r),
    rdfs_class(r),
    rdfs_domain(r, r),
-   rdfs_instance0(o, r),
+   rdfs_instance(o, r),
    rdfs_pref_label(r, o),
    rdfs_property(r),
    rdfs_range(r, r),
@@ -197,19 +197,19 @@ rdfs_domain(P, Dom) :-
 
 
 
-%! rdfs_instance0(?I, ?C) is nondet.
+%! rdfs_instance(?I, ?C) is nondet.
 
-rdfs_instance0(I, D) :-
+rdfs_instance(I, D) :-
   nonvar(D), !,
   rdf_reachable(C, rdfs:subClassOf, D),
   rdf_has(I, rdf:type, C).
-rdfs_instance0(I, D) :-
+rdfs_instance(I, D) :-
   rdf_has(I, rdf:type, C),
   rdf_reachable(C, rdfs:subClassOf, D).
-rdfs_instance0(Lex^^C, D) :-
+rdfs_instance(Lex^^C, D) :-
   rdf(_, _, Lex^^C),
   rdf_subdatatype_of(C, D).
-rdfs_instance0(Lex@LTag, rdf:langString) :-
+rdfs_instance(Lex@LTag, rdf:langString) :-
   rdf(_, _, Lex@LTag).
 
 

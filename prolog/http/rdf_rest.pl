@@ -33,7 +33,7 @@ rdf_rest_handler(Req, HandleId, C, Singular_3, Plural_2) :-
   rest_handler(
     Req,
     HandleId,
-    {C}/[I]>>rdfs_instance0(I, C),
+    {C}/[I]>>rdfs_instance(I, C),
     Singular_3,
     Plural_2
   ).

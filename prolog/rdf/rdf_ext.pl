@@ -249,7 +249,7 @@ rdf_image(S, V) :-
   rdf_has(S, foaf:depiction, V^^xsd:anyURI).
 rdf_image(S, V) :-
   rdf(S, _, V),
-  rdfs_instance0(V, dcmit:'Image').
+  rdfs_instance(V, dcmit:'Image').
 
 
 
