@@ -12,10 +12,10 @@
 Support for RESTful interfaces to RDF data.
 
 @author Wouter Beek
-@version 2016/02, 2016/04
+@version 2016/02, 2016/04-2016/05
 */
 
-:- use_module(library(rdf/rdf_ext)).
+:- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 

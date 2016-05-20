@@ -127,10 +127,12 @@ agent_image(Agent, Img) :-
 
 agent_image(Agent) -->
   {
+    iri_to_location(Agent, Loc),
     agent_name(Agent, Name),
-    agent_image(Agent, Img)
+    agent_image(Agent, Img),
+    iri_to_location(Img, ImgLoc) 
   },
-  html(a(href=Agent, img([alt=Name,property='foaf:depiction',src=Img], []))).
+  html(a(href=Loc, img([alt=Name,property='foaf:depiction',src=ImgLoc], []))).
 
 
 
@@ -229,8 +231,11 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 %! 'dc:creator'(+Res)// is det.
 
 'dc:creator'(Res) -->
-  {once('dc:creator'(Res, Agent))},
-  html(a([href=Agent,property='dc:creator'], \agent_name(Agent))).
+  {
+    once('dc:creator'(Res, Agent)),
+    iri_to_location(Agent, Loc)
+  },
+  html(a([href=Loc,property='dc:creator'], \agent_name(Agent))).
 
 
 
@@ -264,8 +269,11 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 %! 'foaf:depiction'(+Agent)// is det.
 
 'foaf:depiction'(Agent) -->
-  {once('foaf:depiction'(Agent, Uri))},
-  html(img([property='foaf:depiction',src=Uri], [])).
+  {
+    once('foaf:depiction'(Agent, Img)),
+    iri_to_location(Img, ImgLoc)
+  },
+  html(img([property='foaf:depiction',src=ImgLoc], [])).
 
 
 
@@ -306,8 +314,8 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 %! 'foaf:homepage'(+Agent)// is det.
 
 'foaf:homepage'(Agent) -->
-  {once('foaf:homepage'(Agent, Uri))},
-  html(a([href=Uri,rel='foaf:homepage'], [\bs_icon(web)," ",code(Uri)])).
+  {once('foaf:homepage'(Agent, Loc))},
+  html(a([href=Loc,rel='foaf:homepage'], [\bs_icon(web)," ",code(Loc)])).
 
 
 
@@ -321,10 +329,10 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 
 'foaf:mbox'(Agent) -->
   {
-    once('foaf:mbox'(Agent, Uri)),
-    atomic_list_concat([mailto,Local], ':', Uri)
+    once('foaf:mbox'(Agent, Loc)),
+    atomic_list_concat([mailto,Local], ':', Loc)
   },
-  html(a([href=Uri,property='foaf:mbox'], [\bs_icon(mail)," ",code(Local)])).
+  html(a([href=Loc,property='foaf:mbox'], [\bs_icon(mail)," ",code(Local)])).
 
 
 
