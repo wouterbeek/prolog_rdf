@@ -158,6 +158,18 @@ rdf_store_warning(Out, Doc, E) :-
   rdf_store(Out, Doc, deref:not_an_iri, Name^^xsd:string).
 rdf_store_warning(Out, Doc, error(type_error(http_iri,Name),_)) :- !,
   rdf_store(Out, Doc, deref:non_https_iri, Name^^xsd:anyURI).
+% Literal: illegal lexical form.
+rdf_store_warning(Out, Doc, error(type_error(D1,Lex),_)) :- !,
+  abbr_iri(D1, D2),
+  atom_concat(illegal_, D2, Name),
+  rdf_global_id(deref:Name, P),
+  rdf_store(Out, Doc, P, Lex^^xsd:string).
+% Literal: out-of-bounds value.
+rdf_store_warning(Out, Doc, error(domain_error(D1,Lex),_)) :- !,
+  abbr_iri(D1, D2),
+  atom_concat(outofbounds_, D2, Name),
+  rdf_global_id(deref:Name, P),
+  rdf_store(Out, Doc, P, Lex^^xsd:string).
 % Literal: non-canonical lexical form.
 rdf_store_warning(Out, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
   abbr_iri(D1, D2),
@@ -243,7 +255,7 @@ rdf_store_warning(Out, Doc, error(type_error(xml_dom,A1),_)) :- !,
   rdf_store(Out, Doc, deref:no_xml_dom, A2^^xsd:string).
 % Unhandled error term.
 rdf_store_warning(_, _, Term) :-
-  gtrace, %DEB
+  forall(between(1, 1000000, _), format(user_output, "~w~n", [Term])),
   msg_warning("~w~n", [Term]).
 
 
