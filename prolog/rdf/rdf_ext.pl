@@ -146,7 +146,7 @@ rdf_assert_instance(I, C, G) :-
 %! rdf_assert_list(+S, +P, +L, +G) is det.
 
 rdf_assert_list(S, P, L, G) :-
-  rdf_assert_list(L, B),
+  rdf_assert_list(L, B, G),
   rdf_assert(S, P, B, G).
 
 
@@ -347,8 +347,8 @@ rdf_pref_string(S, P, _, V^^xsd:string) :-
 
 
 
-%! rdf_reification(?S, ?P, ?O) is nonet.
-%! rdf_reification(?S, ?P, ?O, -Stmt) is nonet.
+%! rdf_reification(?S, ?P, ?O) is nondet.
+%! rdf_reification(?S, ?P, ?O, -Stmt) is nondet.
 
 rdf_reification(S, P, O) :-
   rdf_reification(S, P, O, _).
