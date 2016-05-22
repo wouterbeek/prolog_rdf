@@ -508,7 +508,9 @@ dcg_print_subject(S, Opts) -->
   {var(S)}, !,
   dcg_print_var(S, Opts).
 dcg_print_subject(S, Opts) -->
+  {rdf_is_iri(S)}, !,
   dcg_print_iri(S, Opts).
+
 
 
 dcg_print_term(T) -->

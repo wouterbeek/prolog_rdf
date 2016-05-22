@@ -18,134 +18,70 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(debug)).
+:- use_module(library(list_ext)).
+:- use_module(library(option)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(pure_input)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(yall)).
+
+:- rdf_register_prefix(ex, 'http://example.org/').
 
 
 
 
 
 %! csv_to_rdf(+Source, +Opts) is det.
-
-csv_to_rdf(Source, Opts) :-
-  call_on_stream(Source, {Opts}/[In,M,M]>>stream_csv_to_rdf(In, Opts)).
-
-
-stream_csv_to_rdf(In, Opts) :-
-  phrase_from_stream(csv(Rows, Opts), In),
-  gtrace,
-  dcg_with_output_to(current_output, dcg_table(Rows)).
-
-
-/*
-  maplist(row_to_list, Rows1, Rows2),
-  Rows2 = [Header|Rows3],
-
-  % Convert the header row.
-  csv_header_to_rdf(G, TBox, Header, Ps),
-
-  % Convert data rows.
-  rdf_global_id(TBox:CName, C),
-  maplist(csv_row_to_rdf(ABox, G, C, Ps), Rows3).
-
-
-
-%! csv_header_to_rdf(
-%!   +Graph:rdf_graph,
-%!   +TBox:atom,
-%!   +Header:list,
-%!   -Properties:list(iri)
-%! ) is det.
-% Converts the header of an CSV file to a collection of RDF properties.
-% These properties denote the relationship between:
-%   1. the unnamed entity represented by a data row, and
-%   2. the value that appears in a specific cell of that data row.
-
-csv_header_to_rdf(G, TBox, Header, Ps) :-
-  maplist(csv_header_entry_to_rdf(G, TBox), Header, Ps).
-
-
-
-%! csv_header_entry_to_rdf(
-%!   +Graph:rdf_graph,
-%!   +TBox:atom,
-%!   +HeaderEntry,
-%!   -Property:iri
-%! ) is det.
-
-csv_header_entry_to_rdf(G, TBox, HeaderEntry, P) :-
-  atom_phrase(rdf_property_name, HeaderEntry, LocalName),
-  rdf_global_id(TBox:LocalName, P),
-  rdfs_assert_domain(P, rdfs:'Resource', G),
-  rdfs_assert_range(P, xsd:string, G).
-
-
-
-%! rdf_property_name// .
-% Converts the header name into the local name of the RDF term denoting
-%  the RDF property.
 %
-% The following conversions are applied:
-%   - Unicode line terminators and whites are replaced by underscores.
-%   - Unicode uppercase letters are converted to lowercase letters.
+% The following options are supported:
+%   - abox_alias(+atom)
+%     Default is `ex'.
+%   - header(+list)
+%     A list of RDF properties that represent the columns.
+%     This is used when there are no column labels in the CSV file.
+%   - tbox_alias(+atom)
+%     Uses the header labels as specified in the first row of the CSV file.
+%     The header labels will be turned into RDF properties within the given
+%     namespace.
 
-rdf_property_name, underscore -->
-  (   line_terminator
-  ;   punctuation
-  ;   white
-  ), !,
-  rdf_property_name.
-rdf_property_name, [Lower] -->
-  letter(Code), !,
-  {code_type(Code, to_upper(Lower))},
-  rdf_property_name.
-rdf_property_name, [X] -->
-  [X], !,
-  rdf_property_name.
-rdf_property_name --> [].
-
-
-
-%! csv_row_to_rdf(
-%!   +ABox:iri,
-%!   +Graph:rdf_graph,
-%!   +Class:iri,
-%!   +Properties:list(iri),
-%!   +Row:list
-%! ) is det.
-% Converts a CSV data row to RDF, using the RDF properties that were created
-%  based on the header row.
-
-csv_row_to_rdf(ABox, G, C, Ps, Row) :-
-  % A row is translated into an instance of the given class.
-  rdf_create_next_resource(ABox, [], C, G, Entry),
-  
-  % Assert each cell in the given row.
-  maplist(csv_cell_to_rdf(G, Entry), Ps, Row).
-
-
-
-%! csv_cell_to_rdf(
-%!   +Graph:rdf_graph,
-%!   +Entry:rdf_bnode,
-%!   +Property:iri,
-%!   +Value
-%! ) is det.
-% Converts a CSV cell value to RDF.
-
-% Only graphic values are converted.
-csv_cell_to_rdf(G, Entry, P, V) :-
-  atom_chars(V, Cs),
-  member(C, Cs),
-  graphic(C, _, _), !,
-  {string_codes(S, Cs)},
-  rdf_assert(Entry, P, S, G).
-% Non-graphic values are ignored.
-csv_cell_to_rdf(_, _, _, Val) :-
-  debug(
-    csv_to_rdf,
-    "Will not convert non-graphic value \"~w\" to RDF.",
-    [Val]
+csv_to_rdf(Source, Opts1) :-
+  option(abox_alias(ABox), Opts1, ex),
+  rdf_default_graph(DefG),
+  option(graph(G), Opts1, DefG),
+  csv:make_csv_options(Opts1, Opts2, _),
+  D1 = _{abox_alias: ABox, graph: G},
+  (   option(header(Ps), Opts1)
+  ->  D2 = D1.put(_{header: Ps})
+  ;   option(tbox_alias(TBox), Opts1)
+  ->  D2 = D1.put(_{tbox_alias: TBox})
+  ;   D2 = D1.put(_{tbox_alias: ex})
+  ),
+  call_on_stream(
+    Source,
+    {D2,Opts2}/[In,M,M]>>csv_stream_to_rdf1(In, D2, Opts2)
   ).
-*/
+
+csv_stream_to_rdf1(In, D, Opts) :-
+  get_dict(header, D, Ps), !,
+  csv_stream_to_rdf2(In, Ps, D, Opts).
+csv_stream_to_rdf1(In, D, Opts) :-
+  once(csv:csv_read_stream_row(In, Row, _, Opts)),
+  list_row(Locals, Row),
+  maplist(local_iri0(D.tbox_alias), Locals, Ps),
+  csv_stream_to_rdf2(In, Ps, D, Opts).
+
+csv_stream_to_rdf2(In, Ps, D, Opts) :-
+  csv:csv_read_stream_row(In, Row, I, Opts),
+  list_row(Atoms, Row),
+  maplist(assert0(I, D), Ps, Atoms),
+  fail.
+csv_stream_to_rdf2(_, _, _, _).
+
+local_iri0(Alias, Local, Iri) :-
+  rdf_global_id(Alias:Local, Iri).
+
+assert0(I1, D, P, Atom) :-
+  atom_number(I2, I1),
+  rdf_global_id(D.abox_alias:I2, S),
+  rdf_assert(S, P, Atom^^xsd:string, D.graph).

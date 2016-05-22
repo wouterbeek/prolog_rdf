@@ -295,12 +295,7 @@ rdf_current_prefix(Prefix) :-
 
 
 
-%! rdf_iri_alias_prefix_local(
-%!   +Iri:iri,
-%!   -Alias:atom,
-%!   -Prefix:iri,
-%!   -Local:atom
-%! ) is det.
+%! rdf_iri_alias_prefix_local(+Iri, -Alias, -Prefix, -Local) is det.
 % Returns the prefix of the given IRI that is abbreviated with a registered
 % RDF prefix, if any.  If no registered RDF prefix occurs in Iri the full IRI
 % is returned.
