@@ -1,11 +1,11 @@
-% Tests for `rdf/rdf_stats`.
+% Tests for `stat/rdf_stat`.
 
 :- use_module(library(plunit)).
-:- use_module(library(rdf/rdf_stats)).
+:- use_module(library(stat/rdf_stat)).
 
 :- use_module('../rdf_test_data').
 
-:- begin_tests(rdf_stats).
+:- begin_tests(rdf_stat).
 
 test(rdf_number_of_subjects, [forall(test_case(G,N))]) :-
   setup_call_cleanup(
@@ -31,4 +31,4 @@ rdf_assert_graph(g2) :-
   rdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2),
   rdf_assert(rdf:s2, rdf:p1, rdf:o1, ex:g2).
 
-:- end_tests(rdf_stats).
+:- end_tests(rdf_stat).

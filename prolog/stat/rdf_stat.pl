@@ -1,5 +1,5 @@
 :- module(
-  rdf_stats,
+  rdf_stat,
   [
     rdf_descr_size/2,              % +S, -Count
     rdf_number_of_bnodes/1,        % -Count
@@ -21,18 +21,21 @@
     rdf_number_of_triples/1,       % -Count
     rdf_number_of_triples/2,       % ?G, -Count
     rdf_number_of_triples/4,       % ?S, ?P, ?O, -Count
-    rdf_number_of_triples/5        % ?S, ?P, ?O, ?G, -Count
+    rdf_number_of_triples/5,       % ?S, ?P, ?O, ?G, -Count
+    rdf_rows_for_predicate/2      % +P, -Rows
   ]
 ).
 
-/** <module> RDF: Statistics
+/** <module> RDF statistics
 
 @author Wouter Beek
 @version 2015/08, 2015/10, 2015/12-2016/01, 2016/05
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_term)).
@@ -50,7 +53,8 @@
    rdf_number_of_subjects(r, o, -),
    rdf_number_of_subjects(r, o, ?, -),
    rdf_number_of_triples(r, r, o, -),
-   rdf_number_of_triples(r, r, o, ?, -).
+   rdf_number_of_triples(r, r, o, ?, -),
+   rdf_rows_for_predicate(r, -).
 
 
 
@@ -199,6 +203,17 @@ rdf_number_of_triples(S, P, O, N) :-
 
 rdf_number_of_triples(S, P, O, G, N) :-
   rdf_number_ofs(rdf(S,P,O), S, P, O, G, N).
+
+
+
+%! rdf_rows_for_predicate(+P, -Rows) is det.
+
+rdf_rows_for_predicate(P, Rows) :-
+  aggregate_all(set(O), rdf(_, P, O), Os),
+  maplist(rdf_number_of_subjects(P), Os, Ns),
+  pairs_keys_values(Pairs, Ns, Os),
+  keysort(Pairs, SortedPairs),
+  maplist(pair_list, SortedPairs, Rows).
 
 
 

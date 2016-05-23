@@ -50,6 +50,8 @@
     rdf_print_quads/2,       % +Tuples,        +Opts
     rdf_print_quads/4,       % ?S, ?P, ?O, ?G
     rdf_print_quads/5,       % ?S, ?P, ?O, ?G, +Opts
+    rdf_print_table/1,       % +Rows,
+    rdf_print_table/2,       % +Rows,          +Opts
     rdf_print_term/1,        % +T
     rdf_print_term/2,        % +T,             +Opts
     rdf_print_triple/1,      % +Tuple
@@ -82,6 +84,8 @@ Print RDF statements.
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_pl)).
+:- use_module(library(dcg/dcg_table)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
@@ -213,6 +217,16 @@ rdf_print_quads(S, P, O, G) :-
 rdf_print_quads(S, P, O, G, Opts1) :-
   mod_dict(out, Opts1, current_output, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quads(S, P, O, G, Opts2)).
+
+rdf_print_table(Rows) :-
+  rdf_print_table(Rows, []).
+
+rdf_print_table(Rows, Opts1) :-
+  merge_options([cell(print_cell0)], Opts1, Opts2),
+  dcg_with_output_to(current_output, dcg_table(Rows, Opts2)).
+
+print_cell0(Term) --> dcg_print_term(Term), !.
+print_cell0(Term) --> term(Term).
 
 rdf_print_term(T) :-
   dcg_with_output_to(current_output, dcg_print_term(T)).

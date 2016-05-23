@@ -17,11 +17,11 @@ Automatically generate VoID descriptions.
 :- use_module(library(apply)).
 :- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_save)).
-:- use_module(library(rdf/rdf_stats)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stats)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(stat/rdf_stat)).
 :- use_module(library(yall)).
 
 

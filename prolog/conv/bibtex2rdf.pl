@@ -1,8 +1,8 @@
 :- module(
-  rdf_bibtex,
+  bibtex2rdf,
   [
-    bibtex_to_rdf/2, % +Source, +G
-    bibtex_to_rdf/3  % +Source, +G, +Opts
+    bibtex2rdf/2, % +Source, +G
+    bibtex2rdf/3  % +Source, +G, +Opts
   ]
 ).
 
@@ -22,21 +22,21 @@
 :- rdf_register_prefix(lobr, 'http://linkedopenbibtex.org/resource/').
 
 :- rdf_meta
-   bibtex_to_rdf(+, r),
-   bibtex_to_rdf(+, r, +).
+   bibtex2rdf(+, r),
+   bibtex2rdf(+, r, +).
 
 
 
 
 
-%! bibtex_to_rdf(+Source, +G       ) is det.
-%! bibtex_to_rdf(+Source, +G, +Opts) is det.
+%! bibtex2rdf(+Source, +G       ) is det.
+%! bibtex2rdf(+Source, +G, +Opts) is det.
 
-bibtex_to_rdf(Source, G) :-
-  bibtex_to_rdf(Source, G, []).
+bibtex2rdf(Source, G) :-
+  bibtex2rdf(Source, G, []).
 
 
-bibtex_to_rdf(Source, G, Opts) :-
+bibtex2rdf(Source, G, Opts) :-
   bibtex_load(Source, Entries, Opts),
   maplist(assert_bibtex_entry(G), Entries).
 

@@ -15,7 +15,7 @@
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_stats)).
+:- use_module(library(stat/rdf_stat)).
 
 
 

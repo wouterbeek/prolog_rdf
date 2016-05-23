@@ -1,6 +1,6 @@
 %/conv
-:- use_module(library(conv/rdf_bibtex)).
-:- use_module(library(conv/rdf_csv)).
+:- use_module(library(conv/bibtex2rdf)).
+:- use_module(library(conv/csv2rdf)).
 %/dcg
 :- use_module(library(dcg/manchester)).
 :- use_module(library(dcg/nquads11)).
@@ -54,7 +54,6 @@
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_save)).
 :- use_module(library(rdf/rdf_statement)).
-:- use_module(library(rdf/rdf_stats)).
 :- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
@@ -73,5 +72,8 @@
 :- use_module(library(service/odc)).
 :- use_module(library(service/prefix_cc)).
 :- use_module(library(service/void_store)).
+%/stat
+:- use_module(library(stat/rdf_stat)).
+:- use_module(library(stat/rdf_stat_print)).
 %/void
 :- use_module(library(void/void_build)).
