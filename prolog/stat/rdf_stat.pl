@@ -22,7 +22,7 @@
     rdf_number_of_triples/2,       % ?G, -Count
     rdf_number_of_triples/4,       % ?S, ?P, ?O, -Count
     rdf_number_of_triples/5,       % ?S, ?P, ?O, ?G, -Count
-    rdf_rows_for_predicate/2      % +P, -Rows
+    rdf_rows_for_predicate/2       % +P, -Rows
   ]
 ).
 
@@ -78,7 +78,7 @@ rdf_number_of_bnodes(N) :-
 
 rdf_number_of_bnodes(G, N) :-
   rdf_expect_graph(G),
-  aggregate_all(count, rdf_bnode(G, _), N).
+  aggregate_all(count, rdf_bnode(_, G), N).
 
 
 
@@ -93,7 +93,7 @@ rdf_number_of_datatype_iris(N) :-
 
 rdf_number_of_datatype_iris(G, N) :-
   rdf_expect_graph(G),
-  aggregate_all(count, rdf_datatype_iri(G, _), N).
+  aggregate_all(count, rdf_datatype_iri(_, G), N).
 
 
 
@@ -109,7 +109,7 @@ rdf_number_of_objects(N) :-
 
 rdf_number_of_objects(G, N) :-
   rdf_expect_graph(G),
-  aggregate_all(count, rdf_object(G, _), N).
+  aggregate_all(count, rdf_object(_, G), N).
 
 
 %! rdf_number_of_objects(?S, ?P, -Count:nonneg) is det.
@@ -136,7 +136,7 @@ rdf_number_of_predicates(N) :-
 
 rdf_number_of_predicates(G, N) :-
   rdf_expect_graph(G),
-  aggregate_all(count, rdf_predicate(G, _), N).
+  aggregate_all(count, rdf_predicate(_, G), N).
 
 
 %! rdf_number_of_predicates(?S, ?O, -Count:nonneg) is det.
@@ -163,7 +163,7 @@ rdf_number_of_subjects(N) :-
 
 rdf_number_of_subjects(G, N) :-
   rdf_expect_graph(G),
-  aggregate_all(count, rdf_subject(G, _), N).
+  aggregate_all(count, rdf_subject(_, G), N).
 
 
 %! rdf_number_of_subjects(?P, ?O, -Count:nonneg) is det.
@@ -213,7 +213,7 @@ rdf_rows_for_predicate(P, Rows) :-
   maplist(rdf_number_of_subjects(P), Os, Ns),
   pairs_keys_values(Pairs, Ns, Os),
   keysort(Pairs, SortedPairs),
-  maplist(pair_list, SortedPairs, Rows).
+  maplist(pair_inv_list, SortedPairs, Rows).
 
 
 

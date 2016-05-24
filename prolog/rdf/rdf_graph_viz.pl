@@ -47,20 +47,6 @@ handled by plGraphViz.
 :- rdf_meta
    rdf_term_to_export_graph(r, -, +).
 
-:- predicate_options(rdf_edges_to_export_graph/3, 3, [
-     colorscheme(+oneof([none,svg,x11])),
-     pass_to(build_export_graph/3, 3),
-     pass_to(rdf_term_name//2, 2)
-   ]).
-:- predicate_options(rdf_graph_to_export_graph/3, 3, [
-     pass_to(rdf_edges_to_export_graph/3, 3)
-   ]).
-:- predicate_options(rdf_term_to_export_graph/3, 3, [
-     depth(+nonneg),
-     graph(+atom),
-     pass_to(rdf_edges_to_export_graph/3, 3)
-   ]).
-
 
 
 

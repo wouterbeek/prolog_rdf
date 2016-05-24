@@ -1,27 +1,27 @@
 :- module(
   rdf_term,
   [
-    rdf_bnode/2,                     % +G, ?B
+    rdf_bnode/2,                     % ?B,    ?G
     rdf_datatype_iri/1,              % ?D
-    rdf_datatype_iri/2,              % +G, ?D
-    rdf_iri/2,                       % +G, ?Iri
+    rdf_datatype_iri/2,              % ?D,    ?G
+    rdf_iri/2,                       % ?Iri,  ?G
     rdf_is_language_tagged_string/1, % @Term
     rdf_is_legacy_literal/1,         % @Term
     rdf_language_tagged_string/1,    % ?Lit
-    rdf_language_tagged_string/2,    % +G, ?Lit
+    rdf_language_tagged_string/2,    % ?Lit,  ?G
     rdf_legacy_literal_components/4, % +Lit, -D, -Lex, -LTag
-    rdf_literal/2,                   % +G, ?Lit
+    rdf_literal/2,                   % ?Lit,  ?G
     rdf_literal_components/4,        % ?Lit, ?D, ?Lex, ?LTag
     rdf_literal_datatype/2,          % +Lit, ?D
     rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?V
     rdf_lone_bnode/1,                % ?B
-    rdf_name/2,                      % +G, ?Name
-    rdf_node/2,                      % +G, ?Node
-    rdf_object/2,                    % +G, ?O
-    rdf_predicate/2,                 % +G, ?P
-    rdf_subject/2,                   % +G, ?S
-    rdf_term/2                       % +G, ?Term
+    rdf_name/2,                      % ?Name, ?G
+    rdf_node/2,                      % ?Node, ?G
+    rdf_object/2,                    % ?O,    ?G
+    rdf_predicate/2,                 % ?P,    ?G
+    rdf_subject/2,                   % ?S,    ?G
+    rdf_term/2                       % ?Term, ?G
   ]
 ).
 :- reexport(library(semweb/rdf11), [
@@ -77,19 +77,21 @@ resources as well.
    rdf_datatype_iri(r, r),
    rdf_iri(r, r),
    rdf_legacy_literal_components(o, r, -, -),
-   rdf_literal(r, o),
+   rdf_literal(o, r),
    rdf_literal_components(o, r, ?, ?),
    rdf_literal_datatype(o, r),
    rdf_literal_lexical_form(o, ?),
    rdf_literal_value(o, ?),
-   rdf_name(r, o),
-   rdf_node(r, o),
+   rdf_name(o, r),
+   rdf_node(o, r),
    rdf_subject(r, r),
-   rdf_object(r, o),
+   rdf_object(o, r),
    rdf_predicate(r, r),
-   rdf_term(r, o).
+   rdf_term(o, r).
 
-:- multifile(error:has_type/2).
+:- multifile
+    error:has_type/2.
+
 error:has_type(rdf_bnode, B) :-
   rdf_is_bnode(B).
 error:has_type(rdf_graph, G) :-
@@ -127,36 +129,32 @@ error:has_type(rdf_triple, Triple) :-
 
 
 
-%! rdf_bnode(+G, +B) is semidet.
-%! rdf_bnode(+G, -B) is nondet.
+%! rdf_bnode(?B, ?G) is nondet.
 
-rdf_bnode(G, B) :-
+rdf_bnode(B, G) :-
   rdf_bnode(B),
-  once(rdf_node(G, B)).
+  once(rdf_node(B, G)).
 
 
 
 %! rdf_datatype_iri(+D) is semidet.
 %! rdf_datatype_iri(-D) is nondet.
+%! rdf_datatype_iri(?D, ?G) is nondet.
 
 rdf_datatype_iri(D) :-
   distinct(D, (rdf_literal(Lit), rdf_literal_datatype(Lit, D))).
 
 
-%! rdf_datatype_iri(+G, +D) is semidet.
-%! rdf_datatype_iri(+G, -D) is nondet.
-
-rdf_datatype_iri(G, D) :-
-  distinct(D, (rdf_literal(G, Lit), rdf_literal_datatype(Lit, D))).
+rdf_datatype_iri(D, G) :-
+  distinct(D, (rdf_literal(Lit, G), rdf_literal_datatype(Lit, D))).
 
 
 
-%! rdf_iri(+G, +Iri) is semidet.
-%! rdf_iri(+G, -Iri) is nondet.
+%! rdf_iri(?Iri, ?G) is nondet.
 
-rdf_iri(G, Iri) :-
+rdf_iri(Iri, G) :-
   rdf_iri(Iri),
-  once(rdf_term(G, Iri)).
+  once(rdf_term(Iri, G)).
 
 
 
@@ -178,11 +176,11 @@ rdf_language_tagged_string(Lit) :-
   Lit = _@_.
 
 
-%! rdf_language_tagged_string(+G, +Lit) is semidet.
-%! rdf_language_tagged_string(+G, -Lit) is nondet.
 
-rdf_language_tagged_string(G, Lit) :-
-  rdf_literal(G, Lit),
+%! rdf_language_tagged_string(?Lit, ?G) is nondet.
+
+rdf_language_tagged_string(Lit, G) :-
+  rdf_literal(Lit, G),
   Lit = _@_.
 
 
@@ -195,7 +193,7 @@ rdf_is_legacy_literal(literal(_)).
 
 
 
-%! rdf_legacy_literal_components(+Literal, -D, -Lex, -LTag) is det.
+%! rdf_legacy_literal_components(+Lit, -D, -Lex, -LTag) is det.
 
 rdf_legacy_literal_components(literal(type(D,Lex)), D, Lex, _) :- !.
 rdf_legacy_literal_components(literal(lang(LTag,Lex)), rdf:langString, Lex, LTag) :- !.
@@ -203,8 +201,7 @@ rdf_legacy_literal_components(literal(Lex), xsd:string, Lex, _).
 
 
 
-%! rdf_literal(+G, +Lit) is semidet.
-%! rdf_literal(+G, -Lit) is nondet.
+%! rdf_literal(?Lit, ?G) is nondet.
 
 rdf_literal(G, Lit) :-
   rdf_literal(Lit),
@@ -256,69 +253,63 @@ rdf_lone_bnode(B) :-
 
 
 
-%! rdf_name(+G, +Name) is semidet.
-%! rdf_name(+G, -Name) is nondet.
+%! rdf_name(?Name, ?G) is nondet.
 
-rdf_name(G, Name) :-
-  rdf_term(G, Name),
+rdf_name(Name, G) :-
+  rdf_term(Name, G),
   \+ rdf_is_bnode(Name).
 
 
 
-%! rdf_node(+G, +Node) is semidet.
-%! rdf_node(+G, -Node) is nondet.
+%! rdf_node(?Node, ?G) is nondet.
 
-rdf_node(G, S) :-
-  rdf_subject(G, S).
-rdf_node(G, O) :-
-  rdf_object(G, O),
+rdf_node(S, G) :-
+  rdf_subject(S, G).
+rdf_node(O, G) :-
+  rdf_object(O, G),
   % Make sure there are no duplicates.
-  \+ rdf_subject(G, O).
+  \+ rdf_subject(O, G).
 
 
 
-%! rdf_object(+G, +O) is semidet.
-%! rdf_object(+G, -O) is nondet.
+%! rdf_object(?O, ?G) is nondet.
 
-rdf_object(G, O) :-
+rdf_object(O, G) :-
   var(O), !,
   rdf_object(O),
-  once(rdf(_, _, O, G)).
-rdf_object(G, O) :-
-  rdf(_, _, O, G).
+  distinct(G, rdf(_, _, O, G)).
+rdf_object(O, G) :-
+  distinct(G, rdf(_, _, O, G)).
 
 
 
-%! rdf_predicate(+G, +P) is semidet.
-%! rdf_predicate(+G, -P) is nondet.
+%! rdf_predicate(?P, ?G) is nondet.
 
-rdf_predicate(G, P) :-
+rdf_predicate(P, G) :-
   var(P), !,
   rdf_predicate(P),
-  once(rdf(_, P, _, G)).
-rdf_predicate(G, P) :-
-  rdf(_, P, _, G).
+  distinct(G, rdf(_, P, _, G)).
+rdf_predicate(P, G) :-
+  distinct(G, rdf(_, P, _, G)).
 
 
 
-%! rdf_subject(+G, +S) is semidet.
-%! rdf_subject(+G, -S) is nondet.
+%! rdf_subject(?G, ?S) is nondet.
 
-rdf_subject(G, S) :-
+rdf_subject(S, G) :-
   var(S), !,
   rdf_subject(S),
-  rdf(S, _, _, G).
+  distinct(G, rdf(S, _, _, G)).
 rdf_subject(G, S) :-
-  rdf(S, _, _, G).
+  distinct(G, rdf(S, _, _, G)).
 
 
 
-%! rdf_term(+G, +Term) is semidet.
-%! rdf_term(+G, -Term) is nondet.
+%! rdf_term(?Term, ?G) is nondet.
 
-rdf_term(G, P) :-
-  rdf_predicate(G, P).
-rdf_term(G, Node) :-
-  rdf_node(G, Node),
+rdf_term(P, G) :-
+  rdf_predicate(P, G).
+rdf_term(Node, G) :-
+  rdf_node(Node, G),
   % Ensure there are no duplicates.
   \+ rdf_predicate(Node).
