@@ -48,13 +48,11 @@
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
 :- use_module(library(rdf/rdf_info)).
+:- use_module(library(rdf/rdf_io)).
 :- use_module(library(rdf/rdf_isomorphism)).
-:- use_module(library(rdf/rdf_load)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_save)).
 :- use_module(library(rdf/rdf_statement)).
-:- use_module(library(rdf/rdf_stream)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 %/rdfa

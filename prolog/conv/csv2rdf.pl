@@ -38,14 +38,14 @@ Automatic conversion from CSV to RDF.
 %! csv2rdf(+File, +Opts) is det.
 %
 % The following options are supported:
-%   - abox_alias(+atom)
+%   * abox_alias(+atom)
 %     Default is `ex'.
-%   - graph(+atom)
+%   * graph(+atom)
 %     Default is the default graph.
-%   - header(+list)
+%   * header(+list)
 %     A list of RDF properties that represent the columns.
 %     This is used when there are no column labels in the CSV file.
-%   - tbox_alias(+atom)
+%   * tbox_alias(+atom)
 %     Uses the header labels as specified in the first row of the CSV file.
 %     The header labels will be turned into RDF properties within the given
 %     namespace.

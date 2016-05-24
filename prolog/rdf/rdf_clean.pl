@@ -26,7 +26,7 @@
 :- use_module(library(os/open_any2)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
-:- use_module(library(rdf/rdf_stream)).
+:- use_module(library(rdf/rdf_io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/rdf_ntriples)).

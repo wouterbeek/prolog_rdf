@@ -12,7 +12,7 @@
 */
 
 :- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_load)).
+:- use_module(library(rdf/rdf_io)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
