@@ -33,6 +33,7 @@ resource [3].
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
@@ -69,7 +70,7 @@ flickrwrappr_cache(G, Resources, Triples):-
   maplist(ord_union, [Resourcess,Tripless], [Resources,Triples]).
 
 flickrwrappr_cache_url(IRI1-IRI, Resources, Triples):-
-  uri_query_add_nvpair(IRI1, format, rdf, IRI2),
+  iri_add_query_comp(IRI1, format=rdf, IRI2),
   lod_local_query([], IRI2, _NoGraph, IRI, Resources, Triples).
 
 assert_proposition(Graph, [S,P,O]):-

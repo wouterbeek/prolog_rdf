@@ -19,6 +19,7 @@
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(os/thread_ext)).
+:- use_module(library(iri/iri_ext)).
 
 :- rdf_meta
    html_annotations(+, +, r, ?, ?),
@@ -82,7 +83,7 @@ html_annotations(LocationPrefix, Cs1, OffsetAdjustment1, [H|T]) -->
         rdf_has(H, annotate:'@URI', Res^^xsd:anyURI),
         (   var(LocationPrefix)
         ->  Location = Res
-        ;   uri_query_add_nvpair(LocationPrefix, concept, Res, Location)
+        ;   iri_add_query_comp(LocationPrefix, concept=Res, Location)
         ),
 
         % Background caching of annotation concepts.
