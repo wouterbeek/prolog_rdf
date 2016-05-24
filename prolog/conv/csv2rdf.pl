@@ -1,8 +1,10 @@
 :- module(
   csv2rdf,
   [
-    csv2rdf/1, % +File
-    csv2rdf/2  % +File, +Opts
+    csv2rdf_file/2,  % +File1, +File2
+    csv2rdf_file/3,  % +File1, +File2, +Opts
+    csv2rdf_graph/2, % +File,  +G
+    csv2rdf_graph/3  % +File,  +G,     +Opts
   ]
 ).
 
@@ -25,6 +27,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(os/open_any2)).
 :- use_module(library(pure_input)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_store)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
@@ -34,14 +37,12 @@ Automatic conversion from CSV to RDF.
 
 
 
-%! csv2rdf(+File) is det.
-%! csv2rdf(+File, +Opts) is det.
+%! csv2rdf_file(+File1, +File2) is det.
+%! csv2rdf_file(+File1, +File2, +Opts) is det.
 %
 % The following options are supported:
 %   * abox_alias(+atom)
 %     Default is `ex'.
-%   * graph(+atom)
-%     Default is the default graph.
 %   * header(+list)
 %     A list of RDF properties that represent the columns.
 %     This is used when there are no column labels in the CSV file.
@@ -51,50 +52,72 @@ Automatic conversion from CSV to RDF.
 %     namespace.
 %     Default is `ex`.
 
-csv2rdf(File) :-
-  csv2rdf(File, []).
+csv2rdf_file(File1, File2) :-
+  csv2rdf_file(File1, File2, []).
 
 
-csv2rdf(File, Opts1) :-
+csv2rdf_file(File1, File2, Opts1) :-
+  csv2rdf_options(Opts1, D, Opts2),
+  call_onto_stream(
+    File1,
+    File2,
+    {D,Opts2}/[In,MIn,MIn,Out,MOut,MOut]>>csv2rdf_1(In, stream(Out), D, Opts2),
+    Opts1
+  ).
+
+
+csv2rdf_graph(File, G) :-
+  csv2rdf_graph(File, G, []).
+
+
+csv2rdf_graph(File, G, Opts1) :-
+  csv2rdf_options(Opts1, D, Opts2),
+  call_on_stream(
+    File,
+    {D,Opts2}/[In,M,M]>>csv2rdf_1(In, graph(G), D, Opts2),
+    Opts1
+  ).
+
+
+csv2rdf_options(Opts1, D2, Opts2) :-
   option(abox_alias(ABox), Opts1, ex),
-  rdf_default_graph(DefG),
-  option(graph(G), Opts1, DefG),
   csv:make_csv_options(Opts1, Opts2, _),
-  D1 = _{abox_alias: ABox, graph: G},
+  D1 = _{abox_alias: ABox},
   (   option(header(Ps), Opts1)
   ->  D2 = D1.put(_{header: Ps})
   ;   option(tbox_alias(TBox), Opts1)
   ->  D2 = D1.put(_{tbox_alias: TBox})
   ;   D2 = D1.put(_{tbox_alias: ex})
-  ),
-  thread_file(TmpFile),
-  call_onto_stream(
-    File,
-    TmpFile,
-    {D2,Opts2}/[In,M,M]>>csv2rdf_stream1(In, D2, Opts2),
-    Opts1
   ).
 
-csv2rdf_stream1(In, D, Opts) :-
+
+csv2rdf_1(In, Sink, D, Opts) :-
   get_dict(header, D, Ps), !,
-  csv2rdf_stream2(In, Ps, D, Opts).
-csv2rdf_stream1(In, D, Opts) :-
+  csv2rdf_2(In, Sink, Ps, D, Opts).
+csv2rdf_1(In, Sink, D, Opts) :-
   once(csv:csv_read_stream_row(In, Row, _, Opts)),
   list_row(Locals, Row),
   maplist(local_iri0(D.tbox_alias), Locals, Ps),
-  csv2rdf_stream2(In, Ps, D, Opts).
+  csv2rdf_2(In, Sink, Ps, D, Opts).
 
-csv2rdf_stream2(In, Ps, D, Opts) :-
+
+csv2rdf_2(In, Sink, Ps, D, Opts) :-
   csv:csv_read_stream_row(In, Row, I, Opts),
   list_row(Atoms, Row),
-  maplist(assert0(I, D), Ps, Atoms),
+  maplist(assert0(Sink, I, D), Ps, Atoms),
   fail.
-csv2rdf_stream2(_, _, _, _).
+csv2rdf_2(_, _, _, _, _).
+
 
 local_iri0(Alias, Local, Iri) :-
   rdf_global_id(Alias:Local, Iri).
 
-assert0(I1, D, P, Atom) :-
+
+assert0(Sink, I1, D, P, Atom) :-
   atom_number(I2, I1),
   rdf_global_id(D.abox_alias:I2, S),
-  rdf_assert(S, P, Atom^^xsd:string, D.graph).
+  (   Sink = stream(Out)
+  ->  rdf_store(Out, S, P, Atom^^xsd:string)
+  ;   Sink = graph(G)
+  ->  rdf_assert(S, P, Atom^^xsd:string, G)
+  ).

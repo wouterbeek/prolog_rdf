@@ -63,6 +63,7 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_statement)).
+:- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 %/rdfa

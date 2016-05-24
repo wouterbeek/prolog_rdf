@@ -1,10 +1,6 @@
 :- module(
   rdf_error,
   [
-    rdf_store/2,        % +Sink, +Triple
-    rdf_store/4,        % +Sink, +S, +P, +O
-    rdf_store_list/3,   % +Sink, +L, -RdfL
-    rdf_store_now/3,    % +Sink, +S, +P
     rdf_store_warning/3 % +Sink, +Doc, +E
   ]
 ).
@@ -19,60 +15,16 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_store)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
 :- rdf_register_prefix(deref, 'http://lodlaundromat.org/deref/').
 
-:- rdf_meta
-   rdf_store(+, t),
-   rdf_store(+, r, r, o),
-   rdf_store_now(+, r, r).
 
-
-
-
-
-%! rdf_store(+Sink, +Triple) is det.
-%! rdf_store(+Sink, +S, +P, +O) is det.
-
-rdf_store(Out, rdf(S,P,O)) :-
-  rdf_store(Out, S, P, O).
-
-
-rdf_store(Out, S, P, O) :-
-  is_stream(Out), !,
-  with_output_to(Out, gen_ntriple(S, P, O)).
-rdf_store(G, S, P, O) :-
-  rdf_assert(S, P, O, G).
-
-
-
-%! rdf_store_list(+Out, +L, -RdfL) is det.
-
-rdf_store_list(Out, L, B) :-
-  rdf_create_bnode(B),
-  rdf_store_list0(Out, B, L).
-
-
-rdf_store_list0(_, _, []) :- !.
-rdf_store_list0(Out, B1, [H|T]) :-
-  rdf_store(Out, B1, rdf:first, H),
-  (T == [] -> rdf_equal(rdf:nil, B2) ; rdf_create_bnode(B2)),
-  rdf_store(Out, B1, rdf:rest, B2),
-  rdf_store_list0(Out, B2, T).
-
-
-
-%! rdf_store_now(+Out, +S, +P) is det.
-
-rdf_store_now(Out, S, P) :-
-  get_time(Now),
-  rdf_store(Out, S, P, Now^^xsd:dateTime).
 
 
 
