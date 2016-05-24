@@ -18,6 +18,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(os/thread_ext)).
 
 :- rdf_meta
    html_annotations(+, +, r, ?, ?),
@@ -71,7 +72,7 @@ html_annotations(LocationPrefix, Cs1, OffsetAdjustment1, [H|T]) -->
       % Secondly, emit the annotation.
       % This requires adjusting all pending annotations.
       {
-        rdf_simple_literal(H, annotate:'@surfaceForm', SurfaceForm),
+        rdf(H, annotate:'@surfaceForm', SurfaceForm^^xsd:string),
         atom_length(SurfaceForm, Skip),
         length(SurfaceFormCodes, Skip),
         append(SurfaceFormCodes, Cs3, Cs2),
@@ -88,7 +89,7 @@ html_annotations(LocationPrefix, Cs1, OffsetAdjustment1, [H|T]) -->
         (   rdf_graph(Res)
         ->  % Already cached.
             true
-        ;   thread_create(run_collect_messages(lod_cache(Res, [silent(true)])))
+        ;   create_thread(run_collect_messages(lod_cache(Res, [silent(true)])))
         )
       },
       html(

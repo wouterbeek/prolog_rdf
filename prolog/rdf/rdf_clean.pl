@@ -53,7 +53,7 @@ rdf_clean(Source, Sink) :-
 rdf_clean(Source, Sink, Opts) :-
   rdf_call_on_stream(
     Source,
-    {Sink,Opts}/[In,M1,M2]>>rdf_clean(In, Sink, M1, M2, Opts),
+    {Sink,M2,Opts}/[In,M1,M2]>>rdf_clean(In, Sink, M1, M2, Opts),
     Opts
   ),
   ignore(option(metadata(M2), Opts)).
@@ -71,7 +71,7 @@ rdf_clean(In, Sink, M1, M4, Opts1) :-
       open(TmpSink, write, TmpOut),
       gen_ntuples:gen_ntuples_begin(State, Opts2)
     ),
-    rdf_load:rdf_call_on_tuples0(
+    rdf_io:rdf_call_on_tuples0(
       {TmpOut,State}/[_,S,P,O,G]>>(gen_ntuples:gen_ntuple(TmpOut, State, S, P, O, G)),
       Opts1, In, M1, M2
     ),

@@ -1,5 +1,5 @@
 :- module(
-  rdfs_stats,
+  rdfs_stat,
   [
     rdfs_number_of_classes/1, % -N
     rdfs_number_of_instances/2, % +C, -N
@@ -10,12 +10,13 @@
 /** <module> RDFS statistics
 
 @author Wouter Beek
-@version 2015/12-2016/01
+@version 2015/12-2016/01, 2016/05
 */
 
 :- use_module(library(aggregate)).
 
-:- rdf_meta(rdf_number_of_instances(r,-)).
+:- rdf_meta
+   rdf_number_of_instances(r, -).
 
 
 

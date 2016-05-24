@@ -1,23 +1,23 @@
 :- module(
-  xml_to_rdf,
+  xml2rdf,
   [
-    parse_file/4, % +File:atom
+    parse_file/4, % +File
                   % +ParserVersion:oneof(['1.0','1.1'])
                   % +Namespace:atom
-                  % ?Graph:rdf_graph
-    create_resource/7, % +XML_DOM:list
+                  % ?G
+    create_resource/7, % +Dom
                        % +XML_PrimaryProperties:list(atom)
                        % :XML2RDF_Translation
-                       % +Class:iri
-                       % +Graph:rdf_graph
-                       % -Subject:or([bnode,iri])
-                       % -XML_RemainingDOM:list
-    create_triples/6 % +XML_DOM:list
+                       % +C
+                       % +G
+                       % -S
+                       % -RemainingDom
+    create_triples/6 % +Dom
                      % +XML_Properties:list(atom)
                      % :XML2RDF_Translation
-                     % +Subject:or([bnode,iri])
-                     % +Graph:rdf_graph
-                     % -XML_RemainingDOM:list
+                     % +S
+                     % +G
+                     % -RemainingDom
   ]
 ).
 
@@ -27,7 +27,7 @@ Converts XML DOMs to RDF graphs.
 
 @author Wouter Beek
 @version 2013/06, 2013/09-2013/11, 2014/01, 2014/03, 2014/10-2014/11, 2015/02,
-         2015/12
+         2015/12, 2016/05
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -35,19 +35,22 @@ Converts XML DOMs to RDF graphs.
 :- use_module(library(lists)).
 :- use_module(library(pure_input)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
-:- meta_predicate(create_resource(+,+,3,+,+,-,-)).
-:- meta_predicate(create_triples(+,+,3,+,+,-)).
-:- meta_predicate(get_dom_value(+,3,+,-)).
+:- meta_predicate
+    create_resource(+, +, 3, +, +, -, -),
+    create_triples(+, +, 3, +, +, -),
+    get_dom_value(+, 3, +, -).
 
-:- rdf_meta(parse_file(+,+,+,r)).
+:- rdf_meta
+   parse_file(+, +, +, r).
 
 
 
 
 
-%! ensure_graph_name(+File:atom, ?Graph:rdf_graph) is det.
+%! ensure_graph_name(+File, ?G) is det.
 
 ensure_graph_name(_, G) :-
   nonvar(G), !.
@@ -67,11 +70,8 @@ parse_file(File1, Version, Prefix, G) :-
 
 
 
-%! xml_parse(
-%!   +Version:oneof(['1.0','1.1']),
-%!   +Prefix:atom,
-%!   +Graph:rdf_graph
-%! )// is det.
+%! xml_parse(+Version:oneof(['1.0','1.1']), +Prefix:atom, +G)// is det.
+%
 % Parses the root tag.
 
 xml_parse(ParserVersion, Prefix, G) -->
@@ -90,12 +90,7 @@ xml_parse(ParserVersion, Prefix, G) -->
 
 
 
-%! xml_parse(
-%!   +Version:oneof(['1.0','1.1']),
-%!   +Prefix:atom,
-%!   +Resource:iri,
-%!   +Graph:rdf_graph
-%! )// is det.
+%! xml_parse(+Version:oneof(['1.0','1.1']), +Prefix:atom, +S +G)// is det.
 
 % Non-tag content.
 xml_parse(Version, Prefix, S, G) -->
@@ -154,13 +149,13 @@ xml_content(Version, Tag, [H|T]) -->
 % OLD APPROACH %
 
 %! create_resource(
-%!   +XML_DOM:list,
+%!   +Dom,
 %!   +XML_PrimaryProperties:list(atom),
 %!   :XML2RDF_Translation,
-%!   +Class:iri,
-%!   +Graph:atom,
-%!   -Subject:or([bnode,iri]),
-%!   -XML_RemainingDOM:list
+%!   +C,
+%!   +G,
+%!   -S,
+%!   -RemainingDom
 %! ) is det.
 
 create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2) :-
@@ -191,21 +186,15 @@ create_resource(DOM1, XML_PrimaryPs, Trans, C, G, S, DOM2) :-
 
 
 
-%! create_triple(
-%!   +RDF_Subject:or([bnode,iri]),
-%!   +RDF_Predicate:iri,
-%!   +ObjectType:atom,
-%!   +XML_Content,
-%!   +RDF_Graph:atom
-%! ) is det.
+%! create_triple(+S, +P, +ObjectType:atom, +XML_Content, +G) is det.
 
 % Simple literal.
 create_triple(S, P, literal, Content, G) :- !,
-  rdf_assert_simple_literal(S, P, Content, G).
+  rdf_assert(S, P, Content^^xsd:string, G).
 % Typed literal.
 create_triple(S, P, D1, Content, G) :-
   xsd_datatype(D1, D2), !,
-  rdf_assert_typed_literal(S, P, D2, Content, G).
+  rdf_assert(S, P, Content^^D2, G).
 % IRI.
 create_triple(S, P, _, Content, G) :-
   % Spaces are not allowed in IRIs.
@@ -214,12 +203,12 @@ create_triple(S, P, _, Content, G) :-
 
 
 %! create_triples(
-%!   +XML_DOM:list,
+%!   +Dom,
 %!   +XML_Properties:list(atom),
 %!   :XML2RDF_Translation,
-%!   +RDF_Subject:or([bnode,iri]),
-%!   +RDF_Graph:atom,
-%!   -XML_RemainingDOM:list
+%!   +S,
+%!   +G,
+%!   -RemainingDom
 %! ) is nondet.
 
 % The XML DOM is fully processed.
@@ -247,20 +236,20 @@ create_triples(DOM, _Ps, _Trans, _S, _G, DOM).
 
 
 %! get_dom_value(
-%!   +DOM:list,
+%!   +Dom,
 %!   :XML2RDF_Translation,
 %!   +XML_Property:atom,
 %!   -Value
 %! ) is det.
 
-get_dom_value(DOM, Trans, XML_P, Value) :-
-  memberchk(element(XML_P, _, [LexicalForm]), DOM),
+get_dom_value(Dom, Trans, XML_P, Value) :-
+  memberchk(element(XML_P, _, [Lex]), Dom),
   call(Trans, XML_P, _, O_Type),
   (   O_Type == literal
-  ->  Value = LexicalForm
-  ;   xsd_datatype(O_Type, XSD_Datatype)
-  ->  xsd_canonical_map(XSD_Datatype, LexicalForm, Value)
-  ;   Value = LexicalForm
+  ->  Value = Lex
+  ;   xsd_datatype(O_Type, D)
+  ->  xsd_canonical_map(D, Lex, V)
+  ;   V = Lex
   ).
 
 update_property_filter(Ps1, _, _) :-
@@ -274,11 +263,7 @@ update_property_filter(Ps1, XML_P, Ps2) :-
 
 % HELPERS
 
-%! xml_version_map(
-%!   ?ParserVersion:oneof(['1.0','1.1']),
-%!   ?DocumentVersion:compound
-%! ) .
+%! xml_version_map(?ParserVersion:oneof(['1.0','1.1']), ?DocVersion:compound) is nondet.
 
 xml_version_map('1.0', version(1,0)).
 xml_version_map('1.1', version(1,1)).
-

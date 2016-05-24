@@ -17,10 +17,19 @@
 :- use_module(library(gen/gen_ntuples)).
 %/graph
 :- use_module(library(graph/rdf_gml)).
+%/hdt
+:- use_module(library(hdt/hdt_ext)).
 %/html
 :- use_module(library(html/rdfh)).
 :- use_module(library(html/rdfh_fca)).
 :- use_module(library(html/rdfh_gv)).
+%/http
+:- use_module(library(http/rdf_rest)).
+%/jsonld
+:- use_module(library(jsonld/jsonld_build)).
+:- use_module(library(jsonld/jsonld_generics)).
+:- use_module(library(jsonld/jsonld_metadata)).
+:- use_module(library(jsonld/jsonld_read)).
 %/mat
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat)).
@@ -45,6 +54,7 @@
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_guess)).
+:- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
 :- use_module(library(rdf/rdf_info)).
@@ -59,7 +69,6 @@
 :- use_module(library(rdfa/rdfa_ext)).
 %/rdfs
 :- use_module(library(rdfs/rdfs_ext)).
-:- use_module(library(rdfs/rdfs_stats)).
 %/service
 :- use_module(library(service/btc)).
 :- use_module(library(service/flickrwrappr)).
@@ -72,6 +81,6 @@
 :- use_module(library(service/void_store)).
 %/stat
 :- use_module(library(stat/rdf_stat)).
-:- use_module(library(stat/rdf_stat_print)).
+:- use_module(library(stat/rdfs_stat)).
 %/void
 :- use_module(library(void/void_build)).

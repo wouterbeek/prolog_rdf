@@ -7,14 +7,12 @@
     rdf_call_on_tuples/3,         % +Source, :Goal_5, +Opts
     rdf_call_on_stream/2,         % +Source, :Goal_3
     rdf_call_on_stream/3,         % +Source, :Goal_3, +Opts
-    rdf_call_onto_stream/2,       % +Sink,   :Goal_3
-    rdf_call_onto_stream/3,       % +Sink,   :Goal_3, +Opts
     rdf_download_to_file/2,       % +Iri,    +File
     rdf_download_to_file/3,       % +Iri,    +File,   +Opts
     rdf_load_file/1,              % +Source
     rdf_load_file/2,              % +Source,          +Opts
     rdf_load_tuples/2,            % +Source, -Tuples
-    rdf_load_tuples/3             % +Source, -Tuples, +Opts
+    rdf_load_tuples/3,            % +Source, -Tuples, +Opts
     rdf_write_to_graph/2,         % +Sink,   :Goal_1
     rdf_write_to_graph/3,         % +Sink,   :Goal_1, +Opts
     rdf_write_to_stream/1,        % +Sink
@@ -458,14 +456,6 @@ rdf_write_to_stream(File, S, P, O, G, Opts) :-
   ),
   create_file_directory(File),
   rdf_write_to_stream(File, S, P, O, G, Opts).
-% No need to save to file if no updates are made.
-rdf_write_to_stream(File0, S, P, O, G, Opts) :-
-  is_absolute_file_name(File0),
-  % (i) The graph was not modified after the last save operation.
-  rdf_graph_property(G, modified(false)),
-  % (ii) The given file is the source of the given graph.
-  rdf_graph_property(G, source(File0)),
-  uri_file_name(File0, File), !.
 rdf_write_to_stream(Sink, S, P, O, G, Opts) :-
   rdf_default_graph(DefG),
   defval(DefG, G),
@@ -478,7 +468,7 @@ rdf_file_name0(File, Opts) :-
   rdf_file_name0(Base, File, Opts).
 
 rdf_file_name0(Base, File, Opts) :-
-  rdf_write_format(_, Opts, Format),
+  rdf_write_format0(_, Opts, Format),
   rdf_file_extension(Ext, Format),
   file_name_extension(Base, Ext, File).
 
@@ -513,9 +503,8 @@ rdf_write_to_stream_legacy(Sink) :-
 
 rdf_write_to_stream_legacy(Sink, Opts) :-
   rdf_write_format0(Sink, Opts, Format),
-  (   memberchk(Format, [nquads,ntriples]),
-  ->  option(graph(G), Opts, _),
-      rdf_write_to_stream(Sink, Opts)
+  (   memberchk(Format, [nquads,ntriples])
+  ->  rdf_write_to_stream(Sink, Opts)
   ;   Format == trig
   ->  call_to_stream(Sink, {Opts}/[Out,M,M]>>rdf_save_trig(Out, Opts))
   ;   Format == turtle
@@ -534,7 +523,7 @@ rdf_write_to_stream_legacy(Sink, Opts) :-
         Opts,
         TurtleOpts
       ),
-      call_to_stream(Sink, {Opts}/[Out,M,M]>>rdf_save_turtle(Out, Opts))
+      call_to_stream(Sink, {TurtleOpts}/[Out,M,M]>>rdf_save_turtle(Out, TurtleOpts))
   ;   Format == xml
   ->  call_to_stream(Sink, {Opts}/[Out,M,M]>>rdf_save_xmlrdf(Out, Opts))
   ;   domain_error(rdf_format, Format)

@@ -17,10 +17,10 @@ Automatically generate VoID descriptions.
 :- use_module(library(apply)).
 :- use_module(library(rdf/rdf_io)).
 :- use_module(library(rdfs/rdfs_ext)).
-:- use_module(library(rdfs/rdfs_stats)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(stat/rdf_stat)).
+:- use_module(library(stat/rdfs_stat)).
 :- use_module(library(yall)).
 
 
@@ -34,7 +34,7 @@ void_gen(In):-
     (
       [E|_] = M.entries,
       void_gen(In, E.'llo:rdf_format', G),
-      rdf_save_to_file('VoID.ttl', [graph(G),rdf_format(turtle)])
+      rdf_write_to_stream('VoID.ttl', [graph(G),rdf_format(turtle)])
     ),
     rdf_reset_db
   ).
