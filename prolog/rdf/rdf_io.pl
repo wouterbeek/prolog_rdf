@@ -52,7 +52,7 @@
 :- use_module(library(os/open_any2)).
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_file), []).
+:- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_term)).
@@ -486,7 +486,7 @@ rdf_write_to_stream0(S, P, O, G, nquads, Out, M, M) :- !,
   with_output_to(Out, gen_nquads(S, P, O, G)).
 rdf_write_to_stream0(S, P, O, G, ntriples, Out, M, M) :- !,
   with_output_to(Out, gen_ntriples(S, P, O, G)).
-rdf_write_to_stream0(_, _, _, _, Format, _, M, M) :-  
+rdf_write_to_stream0(_, _, _, _, Format, _, M, M) :-
   domain_error(rdf_format, Format).
 
 

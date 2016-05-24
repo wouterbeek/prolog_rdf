@@ -1,6 +1,7 @@
 :- module(
   csv2rdf,
   [
+    csv2rdf_file/1,  % +File
     csv2rdf_file/2,  % +File1, +File2
     csv2rdf_file/3,  % +File1, +File2, +Opts
     csv2rdf_graph/2, % +File,  +G
@@ -37,6 +38,7 @@ Automatic conversion from CSV to RDF.
 
 
 
+%! csv2rdf_file(+File) is det.
 %! csv2rdf_file(+File1, +File2) is det.
 %! csv2rdf_file(+File1, +File2, +Opts) is det.
 %
@@ -51,6 +53,11 @@ Automatic conversion from CSV to RDF.
 %     The header labels will be turned into RDF properties within the given
 %     namespace.
 %     Default is `ex`.
+
+csv2rdf_file(File1) :-
+  file_change_extension(File1, nt, File2),
+  csv2rdf_file(File1, File2).
+
 
 csv2rdf_file(File1, File2) :-
   csv2rdf_file(File1, File2, []).

@@ -38,6 +38,7 @@
     rdf_print_graph/2,       % +G,             +Opts
     rdf_print_graph_term/1,  % +G
     rdf_print_graph_term/2,  % +G,             +Opts
+    rdf_print_graphs/0,
     rdf_print_object/1,      % +O
     rdf_print_object/2,      % +O,             +Opts
     rdf_print_predicate/1,   % +P
@@ -88,7 +89,8 @@ Print RDF statements.
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
-:- use_module(library(pairs)).
+:- use_module(library(pair_ext)).
+:- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 
@@ -175,6 +177,12 @@ rdf_print_graph_term(G) :-
 rdf_print_graph_term(G, Opts1) :-
   mod_dict(out, Opts1, current_output, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_graph_term(G, Opts2)).
+
+rdf_print_graphs :-
+  findall(N-G, rdf_statistics(triples_by_graph(G,N)), Pairs),
+  asc_pairs(Pairs, SortedPairs),
+  maplist(pair_inv_row, SortedPairs, Rows),
+  print_table([head(["Graph","#triples"])|Rows]).
 
 rdf_print_object(O) :-
   dcg_with_output_to(current_output, dcg_print_object(O)).
