@@ -1,12 +1,16 @@
 :- module(
   rdf_update,
   [
-    rdf_cp/5,        % +FromG, ?S, ?P, ?O, +ToG
-    rdf_cp_graph/2,  % +FromG, +ToG
-    rdf_increment/2, % +S, +P
-    rdf_increment/3, % +S, +P, +G
-    rdf_mv/5,        % +FromG, ?S, ?P, ?O, +ToG
-    rdf_mv_graph/2   % +FromG, +ToG
+    rdf_cp/2,      % +FromG, +ToG
+    rdf_cp/5,      % +FromG, ?S, ?P, ?O, +ToG
+    rdf_inc/2,     % +S, +P
+    rdf_inc/3,     % +S, +P, +G
+    rdf_mv/2,      % +FromG, +ToG
+    rdf_mv/5,      % +FromG, ?S, ?P, ?O, +ToG
+    rdf_rm/4,      % ?S, ?P, ?O, ?G
+    rdf_rm_cell/4, % +S, +P, +O, +G
+    rdf_rm_col/2,  % +P, +G
+    rdf_rm_null/2  % +Null, +G
   ]
 ).
 
@@ -15,35 +19,43 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10-2016/01, 2016/03
+@version 2015/07-2015/08, 2015/10-2016/01, 2016/03, 2016/05
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
+:- use_module(library(dict_ext)).
+:- use_module(library(print_ext)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
+   rdf_cp(r, r),
    rdf_cp(r, r, r, o, r),
-   rdf_cp_graph(r, r),
-   rdf_increment(r, r),
-   rdf_increment(r, r, +),
+   rdf_inc(r, r),
+   rdf_inc(r, r, +),
+   rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
-   rdf_mv_graph(r, r).
+   rdf_rm(r, r, o, r),
+   rdf_rm_cell(r, r, o, r),
+   rdf_rm_col(r, r),
+   rdf_rm_null(o, r).
 
 
 
 
 
-%! rdf_cp(
-%!   +FromGraph:atom,
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   +ToGraph:atom
-%! ) is det.
-% Copies triples between graphs.
+%! rdf_cp(+FromG, +ToG) is det.
+%! rdf_cp(+FromG, ?S, ?P, ?O, +ToG) is det.
+%
+% Copy graph or copy triples between graphs.
 %
 % @tbd Perform blank node renaming.
+
+rdf_cp(FromG, ToG) :-
+  FromG == ToG, !.
+rdf_cp(FromG, ToG) :-
+  rdf_cp(FromG, _, _, _, ToG).
+
 
 rdf_cp(FromG, S, P, O, ToG) :-
   rdf_transaction(rdf_cp0(copied, FromG, S, P, O, ToG)).
@@ -62,25 +74,16 @@ rdf_cp0(Action, FromG, S, P, O, ToG) :-
 
 
 
-%! rdf_cp_graph(+FromG, +ToG) is det.
+%! rdf_inc(+S, +P) is det.
+%! rdf_inc(+S, +P, +G) is det.
+%
+% Increment values.
 
-rdf_cp_graph(FromG, ToG) :-
-  FromG == ToG, !.
-rdf_cp_graph(FromG, ToG) :-
-  rdf_cp(FromG, _, _, _, ToG).
-
-
-
-%! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri) is det.
-% Wrapper around rdf_increment/5.
-
-rdf_increment(S, P) :-
-  rdf_increment(S, P, _).
+rdf_inc(S, P) :-
+  rdf_inc(S, P, _).
 
 
-%! rdf_increment(+Subject:or([bnode,iri]), +Predicate:iri, +Graph:atom) is det.
-
-rdf_increment(S, P, G) :-
+rdf_inc(S, P, G) :-
   rdf_transaction((
     rdf(S, P, Old^^D, G),
 
@@ -96,14 +99,15 @@ rdf_increment(S, P, G) :-
 
 
 
-%! rdf_mv(
-%!   +FromGraph:atom,
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   +ToGraph:atom
-%! ) is det.
-% Move triples between graphs.
+%! rdf_mv(+FromG, ?S, ?P, ?O, +ToG) is det.
+%! rdf_mv(+FromG, +ToG) is det.
+%
+% Rename graphs or move triples between graphs.
+
+rdf_mv(FromG, ToG) :-
+  rdf_mv(FromG, _, _, _, ToG),
+  rdf_unload_graph(FromG).
+
 
 rdf_mv(FromG, S, P, O, ToG) :-
   rdf_transaction((
@@ -113,8 +117,42 @@ rdf_mv(FromG, S, P, O, ToG) :-
 
 
 
-%! rdf_mv_graph(+FromG, +ToG) is det.
+%! rdf_rm(?S, ?P, ?O, ?G) is det.
 
-rdf_mv_graph(FromG, ToG) :-
-  rdf_mv(FromG, _, _, _, ToG),
-  rdf_unload_graph(FromG).
+rdf_rm(S, P, O, G) :-
+  rdf_transaction(rdf_rm(S, P, O, G, _{count:0})).
+
+
+rdf_rm(S, P, O, G, State) :-
+  rdf(S, P, O, G),
+  rdf_retractall(S, P, O, G),
+  dict_inc(count, State),
+  fail.
+rdf_rm(_, _, _, _, State) :-
+  ansi_format(
+    user_output,
+    [fg(yellow)],
+    "~D statements were removed.~n",
+    [State.count]
+  ).
+
+
+
+%! rdf_rm_cell(+S, +P, +O, +G) is det.
+
+rdf_rm_cell(S, P, O, G) :-
+  rdf_rm(S, P, O, G).
+
+
+
+%! rdf_rm_col(+P, +G) is det.
+
+rdf_rm_col(P, G) :-
+  rdf_rm(_, P, _, G).
+
+
+
+%! rdf_rm_null(+Null, +G) is det.
+
+rdf_rm_null(Null, G) :-
+  rdf_rm(_, _, Null, G).

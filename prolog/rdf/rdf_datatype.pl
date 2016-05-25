@@ -19,6 +19,7 @@
 @version 2016/01-2016/02, 2016/04-2016/05
 */
 
+:- use_module(library(debug_ext)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
 :- use_module(library(html/html_dom)).
@@ -53,11 +54,11 @@ rdf_compat_datatype(Lex, D) :-
   is_of_type(Dom, N).
 rdf_compat_datatype(Lex, rdf:'HTML') :-
   string_to_atom(Lex, Lex0),
-  atom_to_html_dom(Lex0, Dom),
+  call_collect_messages(atom_to_html_dom(Lex0, Dom), _, _),
   memberchk(element(_,_,_), Dom).
 rdf_compat_datatype(Lex, rdf:'XMLLiteral') :-
   string_to_atom(Lex, Lex0),
-  atom_to_xml_dom(Lex0, Dom),
+  call_collect_messages(atom_to_xml_dom(Lex0, Dom), _, _),
   memberchk(element(_,_,_), Dom).
 rdf_compat_datatype(Lex, xsd:boolean) :-
   rdf11:in_boolean(Lex, _).
