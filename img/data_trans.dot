@@ -1,0 +1,83 @@
+digraph data_transformation {
+  rankdir=LR;
+  ranksep=1.0;
+  node [fontsize=10.0,shape=rect];
+
+  {
+    rank=same;
+    r1 [style=invisible];
+    n1 [label=<Detect>];
+  }
+
+  {
+    rank=same;
+    r2 [style=invisible];
+    node [color=lightblue,style=filled];
+    n11 [label=<Compatible datatype IRI>];
+    n12 [label=<Known grammar>];
+    n13 [label=<Known mistake>];
+    n14 [label=<Known ID>];
+    n15 [label=<Shared prefix>];
+    n16 [label=<Null values>];
+    n17 [label=<Outliers>];
+  }
+
+  {
+    rank=same;
+    r3 [style=invisible];
+    node [color=lawngreen,style=filled];
+    n221 [label=<Datatype IRI<BR/>Literal → IRI>];
+    n222 [label=<Lexical form<BR/>Lexical → Lexical>];
+    n223 [label=<Assign IRI<BR/>String → IRI>];
+    n224 [label=<IRI prefix<BR/>IRI → IRI>];
+    n231 [label=<Delete cell>];
+    n232 [label=<Delete column>];
+  }
+  
+  {
+    rank=same;
+    r4 [style=invisible];
+    n21 [label=<Create>];
+    n22 [label=<Update>];
+    n23 [label=<Delete>];
+  }
+
+  {
+    rank=same;
+    r5 [style=invisible];
+    n2 [label=<Alter>];
+  }
+  
+  {
+    edge [arrowhead=none,style=invisible];
+    r1 -> r2 -> r3 -> r4 -> r5;
+  }
+
+  n1 -> n11;
+  n1 -> n12;
+  n1 -> n13;
+  n1 -> n14;
+  n1 -> n15;
+  n1 -> n16;
+  n1 -> n17;
+
+  n2 -> n21;
+  n2 -> n22;
+  n2 -> n23;
+
+  n22 -> n221;
+  n22 -> n222;
+  n22 -> n223;
+  n22 -> n224;
+
+  n23 -> n231;
+  n23 -> n232;
+
+  n11 -> n221;
+  n12 -> n222;
+  n13 -> n222;
+  n14 -> n223;
+  n15 -> n224;
+  n16 -> n231;
+  n17 -> n231;
+}
