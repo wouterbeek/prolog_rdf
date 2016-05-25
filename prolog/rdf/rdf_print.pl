@@ -2,7 +2,8 @@
   rdf_print,
   [
     dcg_print_describe//1,   % ?S
-    dcg_print_describe//2,   % ?S,             +Opts
+    dcg_print_describe//2,   % ?S,         ?G
+    dcg_print_describe//3,   % ?S,         ?G, +Opts
     dcg_print_graph//1,      % +G
     dcg_print_graph//2,      % +G,             +Opts
     dcg_print_graph_term//1, % +G
@@ -33,7 +34,8 @@
     dcg_print_triples//4,    % ?S, ?P, ?O, ?G
     dcg_print_triples//5,    % ?S, ?P, ?O, ?G, +Opts
     rdf_print_describe/1,    % ?S
-    rdf_print_describe/2,    % ?S,             +Opts
+    rdf_print_describe/2,    % ?S,         ?G
+    rdf_print_describe/3,    % ?S,         ?G, +Opts
     rdf_print_graph/1,       % +G
     rdf_print_graph/2,       % +G,             +Opts
     rdf_print_graph_term/1,  % +G
@@ -71,9 +73,13 @@
 
 Print RDF statements.
 
-| **Key**      | **Value** |
-| `indent`     | nonneg    |
-| `max_length` | nonneg    |
+| **Key**         | **Value** |
+|:----------------|:----------|
+| `bnode_counter` | nonneg    |
+| `indent`        | nonneg    |
+| `iri_lbl`       | boolean   |
+| `max_length`    | nonneg    |
+| `var_counter`   | nonneg    |
 
 @author Wouter Beek
 @tbd Turtle container abbreviation.
@@ -92,11 +98,13 @@ Print RDF statements.
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    dcg_print_describe(r, ?, ?),
-   dcg_print_describe(r, +, ?, ?),
+   dcg_print_describe(r, r, ?, ?),
+   dcg_print_describe(r, r, +, ?, ?),
    dcg_print_graph(r, ?, ?),
    dcg_print_graph(r, +, ?, ?),
    dcg_print_graph_term(r, ?, ?),
@@ -123,7 +131,8 @@ Print RDF statements.
    dcg_print_triples(r, r, o, r, ?, ?),
    dcg_print_triples(r, r, o, r, +, ?, ?),
    rdf_print_describe(r),
-   rdf_print_describe(r, +),
+   rdf_print_describe(r, r),
+   rdf_print_describe(r, r, +),
    rdf_print_graph(r),
    rdf_print_graph(r, +),
    rdf_print_graph_term(r),
@@ -158,11 +167,14 @@ Print RDF statements.
 
 % NON-DCG INVOCATIONS %
 
-rdf_print_describe(G) :-
-  dcg_with_output_to(current_output, dcg_print_describe(G)).
+rdf_print_describe(S) :-
+  dcg_with_output_to(current_output, dcg_print_describe(S)).
 
-rdf_print_describe(G, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_describe(G, Opts)).
+rdf_print_describe(S, G) :-
+  dcg_with_output_to(current_output, dcg_print_describe(S, G)).
+
+rdf_print_describe(S, G, Opts) :-
+  dcg_with_output_to(current_output, dcg_print_describe(S, G, Opts)).
 
 rdf_print_graph(G) :-
   dcg_with_output_to(current_output, dcg_print_graph(G)).
@@ -181,8 +193,8 @@ rdf_print_graph_term(G, Opts1) :-
 rdf_print_graphs :-
   findall(N-G, rdf_statistics(triples_by_graph(G,N)), Pairs),
   asc_pairs(Pairs, SortedPairs),
-  maplist(pair_inv_row, SortedPairs, Rows),
-  print_table([head(["Graph","#triples"])|Rows]).
+  maplist(pair_inv_list, SortedPairs, Rows),
+  rdf_print_table([head(["Graph","#triples"])|Rows]).
 
 rdf_print_object(O) :-
   dcg_with_output_to(current_output, dcg_print_object(O)).
@@ -281,11 +293,15 @@ rdf_print_triples(S, P, O, G, Opts1) :-
 % PRINT MULTIPLE TUPLES %
 
 dcg_print_describe(S) -->
-  dcg_print_describe(S, _{}).
+  dcg_print_describe(S, _).
 
 
-dcg_print_describe(S, Opts) -->
-  dcg_print_triples(S, _, _, _, Opts).
+dcg_print_describe(S, G) -->
+  dcg_print_describe(S, G, _{}).
+
+
+dcg_print_describe(S, G, Opts) -->
+  dcg_print_triples(S, _, _, G, Opts).
 
 
 
@@ -566,6 +582,15 @@ dcg_print_datatype_iri(D, Opts) -->
 
 
 
+dcg_print_iri(Full, Opts) -->
+  {
+    get_dict(iri_lbl, Opts, true, true),
+    rdfs_pref_label(Full, Lit)
+  }, !,
+  {rdf_literal_lexical_form(Lit, Lex)},
+  "“",
+  atom(Lex),
+  "”".
 dcg_print_iri(Full, Opts) -->
   {rdf_global_id(Alias:Local1, Full)}, !,
   {

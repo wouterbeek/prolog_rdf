@@ -7,9 +7,13 @@
     rdf_inc/3,     % +S, +P, +G
     rdf_mv/2,      % +FromG, +ToG
     rdf_mv/5,      % +FromG, ?S, ?P, ?O, +ToG
+    rdf_rm/3,      % ?S, ?P, ?O
     rdf_rm/4,      % ?S, ?P, ?O, ?G
+    rdf_rm_cell/3, % +S, +P, +O
     rdf_rm_cell/4, % +S, +P, +O, +G
+    rdf_rm_col/1,  % +P
     rdf_rm_col/2,  % +P, +G
+    rdf_rm_null/1, % +Null
     rdf_rm_null/2  % +Null, +G
   ]
 ).
@@ -35,9 +39,13 @@ Higher-level update operations performed on RDF data.
    rdf_inc(r, r, +),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
+   rdf_rm(r, r, o),
    rdf_rm(r, r, o, r),
+   rdf_rm_cell(r, r, o),
    rdf_rm_cell(r, r, o, r),
+   rdf_rm_col(r),
    rdf_rm_col(r, r),
+   rdf_rm_null(o),
    rdf_rm_null(o, r).
 
 
@@ -117,7 +125,12 @@ rdf_mv(FromG, S, P, O, ToG) :-
 
 
 
+%! rdf_rm(?S, ?P, ?O) is det.
 %! rdf_rm(?S, ?P, ?O, ?G) is det.
+
+rdf_rm(S, P, O) :-
+  rdf_rm(S, P, O, _).
+
 
 rdf_rm(S, P, O, G) :-
   rdf_transaction(rdf_rm(S, P, O, G, _{count:0})).
@@ -138,21 +151,36 @@ rdf_rm(_, _, _, _, State) :-
 
 
 
+%! rdf_rm_cell(+S, +P, +O) is det.
 %! rdf_rm_cell(+S, +P, +O, +G) is det.
+
+rdf_rm_cell(S, P, O) :-
+  rdf_rm_cell(S, P, O, _).
+
 
 rdf_rm_cell(S, P, O, G) :-
   rdf_rm(S, P, O, G).
 
 
 
+%! rdf_rm_col(+P) is det.
 %! rdf_rm_col(+P, +G) is det.
+
+rdf_rm_col(P) :-
+  rdf_rm_col(P, _).
+
 
 rdf_rm_col(P, G) :-
   rdf_rm(_, P, _, G).
 
 
 
+%! rdf_rm_null(+Null) is det.
 %! rdf_rm_null(+Null, +G) is det.
+
+rdf_rm_null(Null) :-
+  rdf_rm_null(Null, _).
+
 
 rdf_rm_null(Null, G) :-
   rdf_rm(_, _, Null, G).

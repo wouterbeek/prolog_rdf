@@ -3,7 +3,6 @@
   [
     rdf_predicate_info/2,   % ?P, ?G
     rdf_predicate_types/2,  % ?P, ?G
-    rdf_predicate_values/0,
     rdf_predicate_values/1, %     ?G
     rdf_predicate_values/2  % ?P, ?G
   ]
@@ -56,25 +55,21 @@ rdf_predicate_types(P, G) :-
   maplist(rdf_compat_datatypes0, Lexs, Dss),
   ord_intersection(Dss, Ds),
   maplist(list_split, Rows, Ds),
-  print_table([head([P])|Rows]).
+  rdf_print_table([head([P])|Rows]).
 
 rdf_compat_datatypes0(Lex, Ds) :-
   aggregate_all(set(D), rdf_compat_datatype(Lex, D), Ds).
 
 
 
-%! rdf_predicate_values is det.
 %! rdf_predicate_values(?G) is nondet.
 %! rdf_predicate_values(?P, ?G) is nondet.
 %
 % Prints overviews of (1) how many distinct objects there are for a
 % given predicate term or (2) how often each object term occurs.
 
-rdf_predicate_values :-
-  forall(rdf_graph(G), rdf_predicate_values(G)).
-
-
 rdf_predicate_values(G) :-
+  rdf_graph(G),
   findall(
     N-P,
     (rdf_predicate(P, G), rdf_number_of_objects(_, P, G, N)),
@@ -82,7 +77,7 @@ rdf_predicate_values(G) :-
   ),
   asc_pairs(Pairs, SortedPairs),
   maplist(pair_inv_list, SortedPairs, Rows),
-  print_table([head(["Predicate","#objects"])|Rows]).
+  rdf_print_table([head(["Predicate","#objects"])|Rows]).
 
 
 rdf_predicate_values(P, G) :-

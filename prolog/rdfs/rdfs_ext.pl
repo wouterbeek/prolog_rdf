@@ -2,6 +2,7 @@
   rdfs_ext,
   [
     rdfs_assert_class/5,       % +C, ?D, ?Lbl, ?Comment, ?G
+    rdfs_assert_comment/2,     % +S, +Comment
     rdfs_assert_comment/3,     % +S, +Comment, ?G
     rdfs_assert_domain/3,      % +P, +C, ?G
     rdfs_assert_isDefinedBy/2, % +S, ?G
@@ -39,6 +40,7 @@
 
 :- rdf_meta
    rdfs_assert_class(r, t, ?, ?, r),
+   rdfs_assert_comment(r, +),
    rdfs_assert_comment(r, +, r),
    rdfs_assert_domain(r, r, r),
    rdfs_assert_isDefinedBy(r, r),
@@ -71,7 +73,12 @@ rdfs_assert_class(C, Parent, Lbl, Comm, G) :-
 
 
 
+%! rdfs_assert_comment(+S, +Comment) is det.
 %! rdfs_assert_comment(+S, +Comment, ?G) is det.
+
+rdfs_assert_comment(S, Comment) :-
+  rdfs_assert_comment(S, Comment, _).
+
 
 rdfs_assert_comment(S, Comment, G) :-
   rdf_assert(S, rdfs:comment, Comment, G).
@@ -87,8 +94,9 @@ rdfs_assert_domain(P, D, G) :-
 
 %! rdfs_assert_isDefinedBy(+S, ?G) is det.
 %! rdfs_assert_isDefinedBy(+S, ?Iri, ?G) is det.
-% If Iri is uninstantiated, the IRI denoted by the registered RDF prefix
-% of Term, if any, is used.
+%
+% If Iri is uninstantiated, the IRI denoted by the registered RDF
+% prefix of Term, if any, is used.
 
 rdfs_assert_isDefinedBy(S, G) :-
   rdfs_assert_isDefinedBy(S, _, G).
@@ -104,6 +112,7 @@ rdfs_assert_isDefinedBy(S, Iri, G) :-
 
 %! rdfs_assert_label(+S, +Lbl) is det.
 %! rdfs_assert_label(+S, +Lbl, ?G) is det.
+%
 % Assigns an RDFS label to the resource denoted by the given RDF term.
 %
 % This predicate stores the label as an RDF language-tagged string.
@@ -111,6 +120,7 @@ rdfs_assert_isDefinedBy(S, Iri, G) :-
 
 rdfs_assert_label(S, Lbl) :-
   rdfs_assert_label(S, Lbl, _).
+
 
 rdfs_assert_label(S, Lbl, G) :-
   rdf_assert(S, rdfs:label, Lbl, G).
