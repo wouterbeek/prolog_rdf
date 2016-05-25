@@ -28,6 +28,13 @@
 
 
 
+%! rdf_predicate_values is det.
+%! rdf_predicate_values(?G) is nondet.
+%! rdf_predicate_values(?P, ?G) is nondet.
+%
+% Prints overviews of (1) how many distinct objects there are for a
+% given predicate term or (2) how often each object term occurs.
+
 rdf_predicate_values :-
   forall(rdf_graph(G), rdf_predicate_values(G)).
 

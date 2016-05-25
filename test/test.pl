@@ -82,6 +82,7 @@
 :- use_module(library(service/void_store)).
 %/stat
 :- use_module(library(stat/rdf_stat)).
+:- use_module(library(stat/rdf_stat_cli)).
 :- use_module(library(stat/rdfs_stat)).
 %/void
 :- use_module(library(void/void_build)).

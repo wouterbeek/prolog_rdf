@@ -1,0 +1,507 @@
+<svg:svg preserveAspectRatio="xMidYMid" height="1060" width="810" xmlns:svg="http://www.w3.org/2000/svg">
+  <svg:style type="text/css">
+    .restriction {
+    stroke:black; stroke-width: 2; fill: none;
+    }
+    .complex {
+    stroke:black; stroke-dasharray: 3 2 ; stroke-width: 2; fill: none;
+    }
+    .list {
+    stroke:black; stroke-dasharray: 10 2 3 2 3 2 3 2; stroke-width: 2; fill: none;
+    }
+    .complexbox {
+    fill:#FFFFFF; stroke:black;
+    }
+    .specialbox {
+    fill:#6096BF;stroke:black; stroke-width: 1;
+    }
+    .primitivebox {
+    fill:#BFE4FF;stroke:black;
+    }
+    .otherbox {
+    fill:#E6F4FF;stroke:black;
+    }
+    .listbox {
+    fill:#80C9FF;stroke:black;
+    }
+    .legendbox {
+    fill:#E0E0E0;stroke:black;
+    }
+    .heading {
+    fill:black;font-family: Century Schoolbook, Palatino, Times Roman;font-size:32;
+    }
+    .h2 {
+    fill:black;font-family: Century Schoolbook, Palatino, Times Roman;font-size:24;
+    }
+    .legend {
+    fill:black;font-family: Palatino, Times Roman;font-size:16;
+    }
+    .typename {
+    fill:black;font-family:Courier;font-size:16;
+    }
+    .specialname {
+    fill:white;font-family:Courier;font-size:16;font-weight: bold;
+    }
+  </svg:style>
+  <svg:defs>
+    <svg:g id="bigarrow">
+      <svg:polygon fill="black" points="0 0, -6 -9, 6 -9"/>
+    </svg:g>
+    <svg:g id="Rbigarrow">
+      <svg:polygon fill="black" points="0 0, -9 -6, -9 6"/>
+    </svg:g>
+    <svg:g id="Lbigarrow">
+      <svg:polygon fill="black" points="0 0, 9 -6, 9 6"/>
+    </svg:g>
+    <svg:g id="Ubigarrow">
+      <svg:polygon fill="black" points="0 0, -6 9, 6 9"/>
+    </svg:g>
+    <svg:g id="arrow">
+      <svg:polygon fill="black" points="0 0, -4 -6, 4 -6"/>
+    </svg:g>
+    <svg:g id="Rarrow">
+      <svg:polygon fill="black" points="0 0, -6 -4, -6 4"/>
+    </svg:g>
+    <svg:g id="Larrow">
+      <svg:polygon fill="black" points="0 0, 6 -4, 6 4"/>
+    </svg:g>
+    <svg:g id="Uarrow">
+      <svg:polygon fill="black" points="0 0, -4 6, 4 6"/>
+    </svg:g>
+    <svg:g id="th_anyType">
+      <svg:rect class="specialbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="specialname" y="15" x="10">anyType</svg:text>
+    </svg:g>
+    <svg:g id="th_complex">
+      <svg:rect class="complexbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">all complex types</svg:text>
+    </svg:g>
+    <svg:g id="th_anySimpleType">
+      <svg:rect class="specialbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="specialname" y="15" x="10">anySimpleType</svg:text>
+    </svg:g>
+    <svg:g id="th_anyAtomicType">
+      <svg:rect class="specialbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="specialname" y="15" x="10">anyAtomicType</svg:text>
+    </svg:g>
+    <svg:g id="th_anyURI">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">anyURI</svg:text>
+    </svg:g>
+    <svg:g id="th_base64Binary">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">base64Binary</svg:text>
+    </svg:g>
+    <svg:g id="th_boolean">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">boolean</svg:text>
+    </svg:g>
+    <svg:g id="th_date">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">date</svg:text>
+    </svg:g>
+    <svg:g id="th_dateTime">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">dateTime</svg:text>
+    </svg:g>
+    <svg:g id="th_dateTimeStamp">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">dateTimeStamp</svg:text>
+    </svg:g>
+    <svg:g id="th_decimal">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">decimal</svg:text>
+    </svg:g>
+    <svg:g id="th_integer">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">integer</svg:text>
+    </svg:g>
+    <svg:g id="th_long">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">long</svg:text>
+    </svg:g>
+    <svg:g id="th_int">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">int</svg:text>
+    </svg:g>
+    <svg:g id="th_short">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">short</svg:text>
+    </svg:g>
+    <svg:g id="th_byte">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">byte</svg:text>
+    </svg:g>
+    <svg:g id="th_nonNegativeInteger">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">nonNegativeInteger</svg:text>
+    </svg:g>
+    <svg:g id="th_positiveInteger">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">positiveInteger</svg:text>
+    </svg:g>
+    <svg:g id="th_unsignedLong">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">unsignedLong</svg:text>
+    </svg:g>
+    <svg:g id="th_unsignedInt">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">unsignedInt</svg:text>
+    </svg:g>
+    <svg:g id="th_unsignedShort">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">unsignedShort</svg:text>
+    </svg:g>
+    <svg:g id="th_unsignedByte">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">unsignedByte</svg:text>
+    </svg:g>
+    <svg:g id="th_nonPositiveInteger">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">nonPositiveInteger</svg:text>
+    </svg:g>
+    <svg:g id="th_negativeInteger">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">negativeInteger</svg:text>
+    </svg:g>
+    <svg:g id="th_double">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">double</svg:text>
+    </svg:g>
+    <svg:g id="th_duration">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">duration</svg:text>
+    </svg:g>
+    <svg:g id="th_dayTimeDuration">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">dayTimeDuration</svg:text>
+    </svg:g>
+    <svg:g id="th_yearMonthDuration">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">yearMonthDuration</svg:text>
+    </svg:g>
+    <svg:g id="th_float">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">float</svg:text>
+    </svg:g>
+    <svg:g id="th_gDay">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">gDay</svg:text>
+    </svg:g>
+    <svg:g id="th_gMonth">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">gMonth</svg:text>
+    </svg:g>
+    <svg:g id="th_gMonthDay">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">gMonthDay</svg:text>
+    </svg:g>
+    <svg:g id="th_gYear">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">gYear</svg:text>
+    </svg:g>
+    <svg:g id="th_gYearMonth">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">gYearMonth</svg:text>
+    </svg:g>
+    <svg:g id="th_hexBinary">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">hexBinary</svg:text>
+    </svg:g>
+    <svg:g id="th_NOTATION">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">NOTATION</svg:text>
+    </svg:g>
+    <svg:g id="th_QName">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">QName</svg:text>
+    </svg:g>
+    <svg:g id="th_string">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">string</svg:text>
+    </svg:g>
+    <svg:g id="th_normalizedString">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">normalizedString</svg:text>
+    </svg:g>
+    <svg:g id="th_token">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">token</svg:text>
+    </svg:g>
+    <svg:g id="th_language">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">language</svg:text>
+    </svg:g>
+    <svg:g id="th_Name">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">Name</svg:text>
+    </svg:g>
+    <svg:g id="th_NCName">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">NCName</svg:text>
+    </svg:g>
+    <svg:g id="th_ENTITY">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">ENTITY</svg:text>
+    </svg:g>
+    <svg:g id="th_ID">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">ID</svg:text>
+    </svg:g>
+    <svg:g id="th_IDREF">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">IDREF</svg:text>
+    </svg:g>
+    <svg:g id="th_NMTOKEN">
+      <svg:rect class="otherbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">NMTOKEN</svg:text>
+    </svg:g>
+    <svg:g id="th_time">
+      <svg:rect class="primitivebox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">time</svg:text>
+    </svg:g>
+    <svg:g id="th_ENTITIES">
+      <svg:rect class="listbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">ENTITIES</svg:text>
+    </svg:g>
+    <svg:g id="th_IDREFS">
+      <svg:rect class="listbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">IDREFS</svg:text>
+    </svg:g>
+    <svg:g id="th_NMTOKENS">
+      <svg:rect class="listbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">NMTOKENS</svg:text>
+    </svg:g>
+    <svg:g id="th_T1">
+      <svg:rect class="complexbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">T1</svg:text>
+    </svg:g>
+    <svg:g id="th_T2">
+      <svg:rect class="complexbox" height="20" width="200" y="0" x="0"/>
+      <svg:text class="typename" y="15" x="10">T2</svg:text>
+    </svg:g>
+    <svg:g id="th_legend">
+      <svg:rect class="legendbox" height="270" width="450" y="0" x="0"/>
+      <svg:text class="heading" y="25" x="10">Key</svg:text>
+      <svg:use transform="translate(10,40)" xlink:href="#th_anySimpleType" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <svg:text class="legend" y="55" x="220">Special types</svg:text>
+      <svg:use transform="translate(10,70)" xlink:href="#th_anyURI" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <svg:text class="legend" y="85" x="220">Primitive types</svg:text>
+      <svg:use transform="translate(10,100)" xlink:href="#th_dateTimeStamp" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <svg:text class="legend" y="115" x="220">Other built-in atomic types</svg:text>
+      <svg:use transform="translate(10,130)" xlink:href="#th_ENTITIES" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <svg:text class="legend" y="145" x="220">Built-in list types</svg:text>
+      <svg:use transform="translate(10,160)" xlink:href="#th_complex" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <svg:text class="legend" y="175" x="220">Complex types</svg:text>
+      <svg:path d="M 25 210 V 240  H 55" class="restriction"/>
+      <svg:use transform="translate(10,200)" xlink:href="#th_T1" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <svg:text class="legend" y="215" x="220">T2 is derived from T1</svg:text>
+      <svg:use transform="translate(40,230)" xlink:href="#th_T2" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <svg:text class="legend" y="245" x="250"/>
+    </svg:g>
+  </svg:defs>
+  <svg:path d="M 25 20 V 50 H 55" class="restriction"/>
+  <svg:path d="M 25 20 V 80 H 55" class="restriction"/>
+  <svg:path d="M 55 80 V 110 H 85" class="restriction"/>
+  <svg:path d="M 85 110 V 140 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 170 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 200 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 230 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 260 H 115" class="restriction"/>
+  <svg:path d="M 115 260 V 290 H 145" class="restriction"/>
+  <svg:path d="M 85 110 V 320 H 115" class="restriction"/>
+  <svg:path d="M 115 320 V 350 H 365" class="restriction"/>
+  <svg:path d="M 365 350 V 380 H 395" class="restriction"/>
+  <svg:path d="M 395 380 V 410 H 425" class="restriction"/>
+  <svg:path d="M 425 410 V 440 H 455" class="restriction"/>
+  <svg:path d="M 455 440 V 470 H 485" class="restriction"/>
+  <svg:path d="M 365 350 V 500 H 395" class="restriction"/>
+  <svg:path d="M 395 500 V 530 H 425" class="restriction"/>
+  <svg:path d="M 395 500 V 560 H 425" class="restriction"/>
+  <svg:path d="M 425 560 V 590 H 455" class="restriction"/>
+  <svg:path d="M 455 590 V 620 H 485" class="restriction"/>
+  <svg:path d="M 485 620 V 650 H 515" class="restriction"/>
+  <svg:path d="M 365 350 V 680 H 395" class="restriction"/>
+  <svg:path d="M 395 680 V 710 H 425" class="restriction"/>
+  <svg:path d="M 85 110 V 380 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 410 H 115" class="restriction"/>
+  <svg:path d="M 115 410 V 440 H 145" class="restriction"/>
+  <svg:path d="M 115 410 V 470 H 145" class="restriction"/>
+  <svg:path d="M 85 110 V 500 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 530 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 560 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 590 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 620 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 650 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 680 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 710 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 740 H 115" class="restriction"/>
+  <svg:path d="M 85 110 V 770 H 115" class="restriction"/>
+  <svg:path d="M 115 770 V 800 H 365" class="restriction"/>
+  <svg:path d="M 365 800 V 830 H 395" class="restriction"/>
+  <svg:path d="M 395 830 V 860 H 425" class="restriction"/>
+  <svg:path d="M 395 830 V 890 H 425" class="restriction"/>
+  <svg:path d="M 425 890 V 920 H 455" class="restriction"/>
+  <svg:path d="M 455 920 V 950 H 485" class="restriction"/>
+  <svg:path d="M 455 920 V 980 H 485" class="restriction"/>
+  <svg:path d="M 455 920 V 1010 H 485" class="restriction"/>
+  <svg:path d="M 395 830 V 1040 H 425" class="restriction"/>
+  <svg:path d="M 85 110 V 830 H 115" class="restriction"/>
+  <svg:path d="M 55 80 V 860 H 85" class="restriction"/>
+  <svg:path d="M 55 80 V 890 H 85" class="restriction"/>
+  <svg:path d="M 55 80 V 920 H 85" class="restriction"/>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-1-20120405/structures.html#key-anyType" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(10,10)" xlink:href="#th_anyType"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-1-20120405/structures.html#Complex_Type_Definitions" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(40,40)" xlink:href="#th_complex"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#anySimpleType" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(40,70)" xlink:href="#th_anySimpleType"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#anyAtomicType" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(70,100)" xlink:href="#th_anyAtomicType"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#anyURI" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,130)" xlink:href="#th_anyURI"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#base64Binary" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,160)" xlink:href="#th_base64Binary"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#boolean" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,190)" xlink:href="#th_boolean"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#date" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,220)" xlink:href="#th_date"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#dateTime" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,250)" xlink:href="#th_dateTime"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#dateTimeStamp" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(130,280)" xlink:href="#th_dateTimeStamp"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#decimal" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,310)" xlink:href="#th_decimal"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#integer" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(350,340)" xlink:href="#th_integer"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#long" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(380,370)" xlink:href="#th_long"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#int" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(410,400)" xlink:href="#th_int"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#short" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(440,430)" xlink:href="#th_short"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#byte" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(470,460)" xlink:href="#th_byte"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#nonNegativeInteger" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(380,490)" xlink:href="#th_nonNegativeInteger"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#positiveInteger" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(410,520)" xlink:href="#th_positiveInteger"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#unsignedLong" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(410,550)" xlink:href="#th_unsignedLong"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#unsignedInt" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(440,580)" xlink:href="#th_unsignedInt"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#unsignedShort" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(470,610)" xlink:href="#th_unsignedShort"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#unsignedByte" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(500,640)" xlink:href="#th_unsignedByte"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#nonPositiveInteger" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(380,670)" xlink:href="#th_nonPositiveInteger"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#negativeInteger" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(410,700)" xlink:href="#th_negativeInteger"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#double" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,370)" xlink:href="#th_double"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#duration" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,400)" xlink:href="#th_duration"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#dayTimeDuration" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(130,430)" xlink:href="#th_dayTimeDuration"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#yearMonthDuration" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(130,460)" xlink:href="#th_yearMonthDuration"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#float" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,490)" xlink:href="#th_float"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#gDay" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,520)" xlink:href="#th_gDay"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#gMonth" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,550)" xlink:href="#th_gMonth"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#gMonthDay" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,580)" xlink:href="#th_gMonthDay"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#gYear" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,610)" xlink:href="#th_gYear"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#gYearMonth" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,640)" xlink:href="#th_gYearMonth"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#hexBinary" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,670)" xlink:href="#th_hexBinary"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#NOTATION" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,700)" xlink:href="#th_NOTATION"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#QName" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,730)" xlink:href="#th_QName"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#string" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,760)" xlink:href="#th_string"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#normalizedString" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(350,790)" xlink:href="#th_normalizedString"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#token" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(380,820)" xlink:href="#th_token"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#language" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(410,850)" xlink:href="#th_language"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#Name" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(410,880)" xlink:href="#th_Name"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#NCName" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(440,910)" xlink:href="#th_NCName"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#ENTITY" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(470,940)" xlink:href="#th_ENTITY"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#ID" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(470,970)" xlink:href="#th_ID"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#IDREF" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(470,1000)" xlink:href="#th_IDREF"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#NMTOKEN" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(410,1030)" xlink:href="#th_NMTOKEN"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#time" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(100,820)" xlink:href="#th_time"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#ENTITIES" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(70,850)" xlink:href="#th_ENTITIES"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#IDREFS" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(70,880)" xlink:href="#th_IDREFS"/>
+  </svg:a>
+  <svg:a target="_parent" xlink:href="http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#NMTOKENS" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg:use transform="translate(70,910)" xlink:href="#th_NMTOKENS"/>
+  </svg:a>
+  <svg:use transform="translate(350,10)" xlink:href="#th_legend" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+</svg:svg>
