@@ -1,23 +1,25 @@
 :- module(
   rdf_update,
   [
-    rdf_cp/2,        % +FromG, +ToG
-    rdf_cp/5,        % +FromG, ?S, ?P, ?O, +ToG
-    rdf_inc/2,       % +S, +P
-    rdf_inc/3,       % +S, +P, +G
-    rdf_mv/2,        % +FromG, +ToG
-    rdf_mv/5,        % +FromG, ?S, ?P, ?O, +ToG
-    rdf_parse_col/2, % +P, Dcg_0
-    rdf_rm/3,        % ?S, ?P, ?O
-    rdf_rm/4,        % ?S, ?P, ?O, ?G
-    rdf_rm_cell/3,   % +S, +P, +O
-    rdf_rm_cell/4,   % +S, +P, +O, ?G
-    rdf_rm_col/1,    % +P
-    rdf_rm_col/2,    % +P, +G
-    rdf_rm_error/3,  % ?S, ?P, ?O
-    rdf_rm_error/4,  % ?S, ?P, ?O, ?G
-    rdf_rm_null/1,   % +Null
-    rdf_rm_null/2    % +Null, +G
+    rdf_change/4,           % +S, +P, +O, +Action
+    rdf_change_datatype/2,  % +P, +D
+    rdf_cp/2,               % +FromG, +ToG
+    rdf_cp/5,               % +FromG, ?S, ?P, ?O, +ToG
+    rdf_inc/2,              % +S, +P
+    rdf_inc/3,              % +S, +P, +G
+    rdf_mv/2,               % +FromG, +ToG
+    rdf_mv/5,               % +FromG, ?S, ?P, ?O, +ToG
+    rdf_parse_col/2,        % +P, Dcg_0
+    rdf_rm/3,               % ?S, ?P, ?O
+    rdf_rm/4,               % ?S, ?P, ?O, ?G
+    rdf_rm_cell/3,          % +S, +P, +O
+    rdf_rm_cell/4,          % +S, +P, +O, ?G
+    rdf_rm_col/1,           % +P
+    rdf_rm_col/2,           % +P, +G
+    rdf_rm_error/3,         % ?S, ?P, ?O
+    rdf_rm_error/4,         % ?S, ?P, ?O, ?G
+    rdf_rm_null/1,          % +Null
+    rdf_rm_null/2           % +Null, +G
   ]
 ).
 
@@ -32,17 +34,22 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(cli_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
+:- use_module(library(error)).
 :- use_module(library(dict_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
     rdf_parse_col(+, //).
 
 :- rdf_meta
+   rdf_change(r, r, o, t),
+   rdf_change_datatype(r, r),
    rdf_cp(r, r),
    rdf_cp(r, r, r, o, r),
    rdf_inc(r, r),
@@ -65,12 +72,46 @@ Higher-level update operations performed on RDF data.
 
 
 
+%! rdf_change(?S, ?P, ?O, +Action) is det.
+
+rdf_change(S, P, O, Action) :-
+  must_be(ground, O),
+  rdf11:pre_ground_object(O, O0),
+  (   Action = object(NewO)
+  ->  rdf11:pre_ground_object(NewO, NewO0),
+      Action0 = object(NewO0)
+  ;   Action0 = Action
+  ),
+  rdf_db:rdf_update(S, P, O0, Action0).
+
+
+
+%! rdf_change_datatype(+P, +D) is semidet.
+
+rdf_change_datatype(P, D2) :-
+  rdf_datatypes_compat(P, Ds),
+  memberchk(D2, Ds),
+  State = _{count:0},
+  forall((
+    rdf(S, P, Lit1),
+    rdf_literal(Lit1, D1, Lex, LTag),
+    D1 \== D2
+  ), (
+    rdf_literal(Lit2, D2, Lex, LTag),
+    rdf_change(S, P, Lit1, object(Lit2)),
+    dict_inc(count, State)
+  )),
+  rdf_msg(State.count, "changed datatype").
+
+
+
 %! rdf_cp(+FromG, +ToG) is det.
 %! rdf_cp(+FromG, ?S, ?P, ?O, +ToG) is det.
 %
 % Copy graph or copy triples between graphs.
 %
 % @tbd Perform blank node renaming.
+% @tbd Use rdf_update/5.
 
 rdf_cp(FromG, ToG) :-
   FromG == ToG, !.
@@ -79,19 +120,7 @@ rdf_cp(FromG, ToG) :-
 
 
 rdf_cp(FromG, S, P, O, ToG) :-
-  rdf_transaction(rdf_cp0(copied, FromG, S, P, O, ToG)).
-
-rdf_cp0(Action, FromG, S, P, O, ToG) :-
-  forall(rdf(S, P, O, FromG), (
-    rdf_assert(S, P, O, ToG),
-    (   debugging(rdf(update))
-    ->  format("[~a] ", [Action]),
-        rdf_print_triples(S, P, O, FromG),
-        write(" → "),
-        rdf_print_triples(S, P, O, ToG)
-    ;   true
-    )
-  )).
+  rdf_transaction(forall(rdf(S, P, O, FromG), rdf_assert(S, P, O, ToG))).
 
 
 
@@ -106,16 +135,11 @@ rdf_inc(S, P) :-
 
 rdf_inc(S, P, G) :-
   rdf_transaction((
-    rdf(S, P, Old^^D, G),
-
-    % Any integer datatype can be incremented.
+    rdf(S, P, N1^^D, G),
     rdf11:xsd_numerical(D, TypeCheck, integer),
-    New is Old + 1,
-    % Make sure the new value belongs to the datatype's value space.
-    must_be(TypeCheck, New),
-
-    rdf_retractall(S, P, Old^^Old, G),
-    rdf_assert(S, P, New^^D, G)
+    N2 is N1 + 1,
+    must_be(TypeCheck, N2),
+    rdf_change(S, P, N1^^D, G, object(N2^^D))
   )).
 
 
@@ -131,10 +155,12 @@ rdf_mv(FromG, ToG) :-
 
 
 rdf_mv(FromG, S, P, O, ToG) :-
-  rdf_transaction((
-    rdf_cp0(moved, FromG, S, P, O, ToG),
-    rdf_retractall(S, P, O, FromG)
-  )).
+  State = _{count:0},
+  forall(rdf(S, P, O, FromG), (
+    rdf_change(S, P, O, FromG, graph(ToG)),
+    dict_inc(count, State)
+  )),
+  rdf_msg(State.count, "moved").
 
 
 
@@ -144,32 +170,20 @@ rdf_mv(FromG, S, P, O, ToG) :-
 % @tbd Explain what rdf_update/4 does in terms of graphs.
 
 rdf_parse_col(P, Dcg_0) :-
-  State1 = _{count:0},
   forall(rdf(_, P, Lit), (
     rdf_literal(Lit, D, Lex1, _),
     string_phrase(Dcg_0, Lex1, Lex2),
-    rdf_compat_datatype(Lex2, D),
-    dict_inc(count, State1)
+    rdf_datatype_compat(Lex2, D)
   )),
-  format(
-    string(Msg),
-    "Do you want to apply rdf_parse_col/3 to ~D triples?",
-    [State1.count]
-  ),
-  (   user_input(Msg)
-  ->  State2 = _{count:0},
-      rdf_transaction(
-        forall(rdf(S, P, Lit1), (
-          rdf_literal(Lit1, D, Lex1, LTag),
-          string_phrase(Dcg_0, Lex1, Lex2),
-          rdf_literal(Lit2, D, Lex2, LTag),
-          rdf_update(S, P, Lit1, object(Lit2)),
-          dict_inc(count, State2)
-        ))
-      ),
-      rdf_msg(State2.count, "updated")
-  ;   true
-  ).
+  State = _{count:0},
+  forall(rdf(S, P, Lit1), (
+    rdf_literal(Lit1, D, Lex1, LTag),
+    string_phrase(Dcg_0, Lex1, Lex2),
+    rdf_literal(Lit2, D, Lex2, LTag),
+    rdf_change(S, P, Lit1, object(Lit2)),
+    dict_inc(count, State)
+  )),
+  rdf_msg(State.count, "changed lexical form").
 
 
 
@@ -181,25 +195,12 @@ rdf_rm(S, P, O) :-
 
 
 rdf_rm(S, P, O, G) :-
-  rdf_transaction(rdf_rm(S, P, O, G, _{count:0})).
-
-
-rdf_rm(S, P, O, G, State) :-
-  rdf(S, P, O, G),
-  rdf_retractall(S, P, O, G),
-  dict_inc(count, State),
-  fail.
-rdf_rm(_, _, _, _, State) :-
+  State = _{count:0},
+  forall(rdf(S, P, O, G), (
+    rdf_retractall(S, P, O, G),
+    dict_inc(count, State)
+  )),
   rdf_msg(State.count, "removed").
-
-
-rdf_msg(N, Action) :-
-  ansi_format(
-    user_output,
-    [fg(yellow)],
-    "~D statements were ~s.~n",
-    [N,Action]
-  ).
 
 
 
@@ -248,3 +249,19 @@ rdf_rm_null(Null) :-
 
 rdf_rm_null(Null, G) :-
   rdf_rm(_, _, Null, G).
+
+
+
+
+
+% HELPERS %
+
+%! rdf_msg(+N, +Action) is det.
+
+rdf_msg(N, Action) :-
+  ansi_format(
+    user_output,
+    [fg(yellow)],
+    "~D statements were ~s.~n",
+    [N,Action]
+  ).

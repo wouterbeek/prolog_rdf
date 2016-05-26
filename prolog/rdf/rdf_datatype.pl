@@ -1,8 +1,12 @@
 :- module(
   rdf_datatype,
   [
-    rdf_compat_datatype/2,       % +Lex, -D
-    rdf_compat_min_datatype/2,   % +Lex, -D
+    rdf_datatype/2,              % +P, -D
+    rdf_datatype/3,              % +P, ?G, -D
+    rdf_datatype_compat/2,       % +Lex, -D
+    rdf_datatype_compat_min/2,   % +Lex, -D
+    rdf_datatypes_compat/2,      % +P, -Ds
+    rdf_datatypes_compat/3,      % +P, ?G, -Ds
     rdf_datatype_property/2,     % ?D, ?Property
     rdf_datatype_supremum/2,     % +Datatypes, -Supremum
     rdf_strict_subdatatype_of/2, % ?Subtype, ?Supertype
@@ -19,10 +23,14 @@
 @version 2016/01-2016/02, 2016/04-2016/05
 */
 
+:- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
 :- use_module(library(html/html_dom)).
+:- use_module(library(ordsets)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(sgml)).
@@ -30,8 +38,12 @@
 :- use_module(library(xsdp_types)).
 
 :- rdf_meta
-   rdf_compat_datatype(+, r),
-   rdf_compat_min_datatype(+, r),
+   rdf_datatype(r, -),
+   rdf_datatype(r, r, -),
+   rdf_datatype_compat(+, r),
+   rdf_datatype_compat_min(+, r),
+   rdf_datatype_compats(r, -),
+   rdf_datatype_compats(r, r, -),
    rdf_datatype_property(r, ?),
    rdf_datatype_supremum(t, t),
    rdf_strict_subdatatype_of(r, r),
@@ -44,37 +56,71 @@
 
 
 
-%! rdf_compat_datatype(+Lex, -D) is det.
+%! rdf_datatype(+P, -D) is semidet.
+%! rdf_datatype(+P, ?G, -D) is nondet.
 
-rdf_compat_datatype(Lex, D) :-
+rdf_datatype(P, D) :-
+  rdf(_, P, O),
+  rdf_literal_datatype(O, D), !,
+  forall(rdf(_, P, O0), rdf_literal_datatype(O0, D)).
+
+
+rdf_datatype(P, G, D) :-
+  rdf(_, P, O, G),
+  rdf_literal_datatype(O, D), !,
+  forall(rdf(_, P, O0, G), rdf_literal_datatype(O0, D)).
+
+
+
+%! rdf_datatype_compat(+Lex, -D) is det.
+
+rdf_datatype_compat(Lex, D) :-
   catch(xsd_time_string(_, D, Lex), _, false).
-rdf_compat_datatype(Lex, D) :-
+rdf_datatype_compat(Lex, D) :-
   catch(xsd_number_string(N, Lex), _, false),
   rdf11:xsd_numerical(D, Dom, _),
   is_of_type(Dom, N).
-rdf_compat_datatype(Lex, rdf:'HTML') :-
+rdf_datatype_compat(Lex, rdf:'HTML') :-
   string_to_atom(Lex, Lex0),
   call_collect_messages(atom_to_html_dom(Lex0, Dom), _, _),
   memberchk(element(_,_,_), Dom).
-rdf_compat_datatype(Lex, rdf:'XMLLiteral') :-
+rdf_datatype_compat(Lex, rdf:'XMLLiteral') :-
   string_to_atom(Lex, Lex0),
   call_collect_messages(atom_to_xml_dom(Lex0, Dom), _, _),
   memberchk(element(_,_,_), Dom).
-rdf_compat_datatype(Lex, xsd:boolean) :-
+rdf_datatype_compat(Lex, xsd:boolean) :-
   rdf11:in_boolean(Lex, _).
-rdf_compat_datatype(Lex, xsd:boolean) :-
+rdf_datatype_compat(Lex, xsd:boolean) :-
+  string(Lex),
   number_string(N, Lex),
   rdf11:in_boolean(N, _).
-rdf_compat_datatype(_, xsd:string).
+rdf_datatype_compat(_, xsd:string).
 
 
 
-%! rdf_compat_min_datatype(+Lex, -D) is nondet.
+%! rdf_datatypes_compat(+P, +Ds) is det.
+%! rdf_datatypes_compat(+P, ?G, +Ds) is det.
 
-rdf_compat_min_datatype(Lex, D1) :-
-  rdf_compat_datatype(Lex, D1),
+rdf_datatypes_compat(P, Ds) :-
+  rdf_datatypes_compat(P, _, Ds).
+
+
+rdf_datatypes_compat(P, G, Ds) :-
+  rdf_aggregate_all(set(Lex), rdf(_, P, Lex^^_, G), Lexs),
+  maplist(rdf_datatypes_compat0, Lexs, Dss),
+  (Dss == [] -> Ds = [] ; ord_intersection(Dss, Ds)).
+
+rdf_datatypes_compat0(Lex, Ds) :-
+  aggregate_all(set(D), rdf_datatype_compat(Lex, D), Ds).
+
+
+
+%! rdf_datatype_compat_min(+Lex, -D) is nondet.
+
+rdf_datatype_compat_min(Lex, D1) :-
+  rdf_datatype_compat(Lex, D1),
   \+ (
-    rdf_compat_datatype(Lex, D2),
+    rdf_datatype_compat(Lex, D2),
     rdf_strict_subdatatype_of(D2, D1)
   ).
 

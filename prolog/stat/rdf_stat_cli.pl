@@ -17,7 +17,6 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(list_ext)).
-:- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_datatype)).
@@ -51,14 +50,9 @@ rdf_predicate_info(P, G) :-
 
 rdf_predicate_types(P, G) :-
   rdf_predicate(P, G),
-  rdf_aggregate_all(set(Lex), rdf(_, P, Lex^^xsd:string, G), Lexs),
-  maplist(rdf_compat_datatypes0, Lexs, Dss),
-  ord_intersection(Dss, Ds),
+  rdf_datatypes_compat(P, G, Ds),
   maplist(list_split, Rows, Ds),
   rdf_print_table([head([P])|Rows]).
-
-rdf_compat_datatypes0(Lex, Ds) :-
-  aggregate_all(set(D), rdf_compat_datatype(Lex, D), Ds).
 
 
 
