@@ -1,6 +1,5 @@
 digraph data_transformation {
   rankdir=LR;
-  ranksep=1.0;
   node [fontsize=10.0,shape=rect];
 
   {
@@ -9,7 +8,8 @@ digraph data_transformation {
     n1 [label=<Detect>];
   }
 
-  {
+  subgraph cluster0 {
+    label=<Detection>;
     rank=same;
     r2 [style=invisible];
     node [color=lightblue,style=filled];
@@ -22,7 +22,8 @@ digraph data_transformation {
     n17 [label=<Outliers>];
   }
 
-  {
+  subgraph cluster1 {
+    label=<Alteration>;
     rank=same;
     r3 [style=invisible];
     node [color=lawngreen,style=filled];
@@ -53,31 +54,39 @@ digraph data_transformation {
     r1 -> r2 -> r3 -> r4 -> r5;
   }
 
-  n1 -> n11;
-  n1 -> n12;
-  n1 -> n13;
-  n1 -> n14;
-  n1 -> n15;
-  n1 -> n16;
-  n1 -> n17;
+  {
+    edge [dir=forward];
+    n1 -> n11;
+    n1 -> n12;
+    n1 -> n13;
+    n1 -> n14;
+    n1 -> n15;
+    n1 -> n16;
+    n1 -> n17;
+  }
+  
+  {
+    edge [dir=none];
+    n11 -> n221;
+    n12 -> n222;
+    n13 -> n222;
+    n14 -> n223;
+    n15 -> n224;
+    n16 -> n231;
+    n17 -> n231;
+  }
 
-  n2 -> n21;
-  n2 -> n22;
-  n2 -> n23;
+  {
+    edge [dir=back];
+    n221 -> n22;
+    n222 -> n22;
+    n223 -> n22;
+    n224 -> n22;
+    n231 -> n23;
+    n232 -> n23;
 
-  n22 -> n221;
-  n22 -> n222;
-  n22 -> n223;
-  n22 -> n224;
-
-  n23 -> n231;
-  n23 -> n232;
-
-  n11 -> n221;
-  n12 -> n222;
-  n13 -> n222;
-  n14 -> n223;
-  n15 -> n224;
-  n16 -> n231;
-  n17 -> n231;
+    n21 -> n2;
+    n22 -> n2;
+    n23 -> n2;
+  }
 }
