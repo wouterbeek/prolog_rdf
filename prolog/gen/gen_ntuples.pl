@@ -318,11 +318,11 @@ gen_iri(Iri) :-
 
 
 gen_literal(V^^D) :- !,
-  rdf_literal_lexical_form(V^^D, Lex),
+  rdf_literal_lex(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   gen_iri(D).
 gen_literal(V@LTag) :- !,
-  rdf_literal_lexical_form(V@LTag, Lex),
+  rdf_literal_lex(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).

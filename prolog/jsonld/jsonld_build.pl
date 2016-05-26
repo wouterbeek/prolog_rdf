@@ -180,7 +180,7 @@ jsonld_oterm(PDefs, _DefLang, P2, O1, O2) :-
   ).
 jsonld_oterm(PDefs, _, P2, O1, O2) :-
   O1 = _^^D1, !,
-  rdf_literal_lexical_form(O1, Lex),
+  rdf_literal_lex(O1, Lex),
   (   memberchk(P2-PDef, PDefs),
       _ = PDef.get('@type')
   ->  O2 = Lex

@@ -587,7 +587,7 @@ dcg_print_iri(Full, Opts) -->
     get_dict(iri_lbl, Opts, true, true),
     rdfs_pref_label(Full, Lit)
   }, !,
-  {rdf_literal_lexical_form(Lit, Lex)},
+  {rdf_literal_lex(Lit, Lex)},
   "“",
   atom(Lex),
   "”".
@@ -648,7 +648,7 @@ dcg_print_literal(V^^D, Opts) -->
   dcg_print_lexical_form(Lex, Opts).
 % Unabbreviated datatype IRI that is not `rdf:langString`.
 dcg_print_literal(V^^D, Opts) --> !,
-  {rdf_literal_lexical_form(V^^D, Lex)},
+  {rdf_literal_lex(V^^D, Lex)},
   dcg_print_lexical_form(Lex, Opts),
   "^^",
   dcg_print_datatype_iri(D, Opts).

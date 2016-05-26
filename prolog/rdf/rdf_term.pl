@@ -1,27 +1,27 @@
 :- module(
   rdf_term,
   [
-    rdf_bnode/2,                     % ?B,    ?G
-    rdf_datatype_iri/1,              % ?D
-    rdf_datatype_iri/2,              % ?D,    ?G
-    rdf_iri/2,                       % ?Iri,  ?G
-    rdf_is_language_tagged_string/1, % @Term
-    rdf_is_legacy_literal/1,         % @Term
-    rdf_language_tagged_string/1,    % ?Lit
-    rdf_language_tagged_string/2,    % ?Lit,  ?G
-    rdf_legacy_literal_components/4, % +Lit, -D, -Lex, -LTag
-    rdf_literal/2,                   % ?Lit,  ?G
-    rdf_literal_components/4,        % ?Lit, ?D, ?Lex, ?LTag
-    rdf_literal_datatype/2,          % +Lit, ?D
-    rdf_literal_lexical_form/2,      % +Lit, ?Lex
-    rdf_literal_value/2,             % +Lit, ?V
-    rdf_lone_bnode/1,                % ?B
-    rdf_name/2,                      % ?Name, ?G
-    rdf_node/2,                      % ?Node, ?G
-    rdf_object/2,                    % ?O,    ?G
-    rdf_predicate/2,                 % ?P,    ?G
-    rdf_subject/2,                   % ?S,    ?G
-    rdf_term/2                       % ?Term, ?G
+    rdf_bnode/2,             % ?B, ?G
+    rdf_datatype_iri/1,      % ?D
+    rdf_datatype_iri/2,      % ?D, ?G
+    rdf_iri/2,               % ?Iri, ?G
+    rdf_is_lts/1,            % @Term
+    rdf_is_legacy_literal/1, % @Term
+    rdf_lts/1,               % ?Lit
+    rdf_lts/2,               % ?Lit, ?G
+    rdf_legacy_literal/4,    % +Lit, -D, -Lex, -LTag
+    rdf_literal/2,           % ?Lit, ?G
+    rdf_literal/4,           % ?Lit, ?D, ?Lex, ?LTag
+    rdf_literal_datatype/2,  % +Lit, ?D
+    rdf_literal_lex/2,       % +Lit, ?Lex
+    rdf_literal_value/2,     % +Lit, ?V
+    rdf_lone_bnode/1,        % ?B
+    rdf_name/2,              % ?Name, ?G
+    rdf_node/2,              % ?Node, ?G
+    rdf_object/2,            % ?O, ?G
+    rdf_predicate/2,         % ?P, ?G
+    rdf_subject/2,           % ?S, ?G
+    rdf_term/2               % ?Term, ?G
   ]
 ).
 :- reexport(library(semweb/rdf11), [
@@ -76,11 +76,11 @@ resources as well.
    rdf_datatype_iri(r),
    rdf_datatype_iri(r, r),
    rdf_iri(r, r),
-   rdf_legacy_literal_components(o, r, -, -),
+   rdf_legacy_literal(o, r, -, -),
    rdf_literal(o, r),
-   rdf_literal_components(o, r, ?, ?),
+   rdf_literal(o, r, ?, ?),
    rdf_literal_datatype(o, r),
-   rdf_literal_lexical_form(o, ?),
+   rdf_literal_lex(o, ?),
    rdf_literal_value(o, ?),
    rdf_name(o, r),
    rdf_node(o, r),
@@ -158,28 +158,28 @@ rdf_iri(Iri, G) :-
 
 
 
-%! rdf_is_language_tagged_string(@Term) is semidet.
+%! rdf_is_lts(@Term) is semidet.
 
-rdf_is_language_tagged_string(Term) :-
+rdf_is_lts(Term) :-
   ground(Term),
   Term = _@_.
 
 
 
-%! rdf_language_tagged_string(+Lit) is semidet.
-%! rdf_language_tagged_string(-Lit) is nondet.
+%! rdf_lts(+Lit) is semidet.
+%! rdf_lts(-Lit) is nondet.
 % The **language-tagged string**s are the cartesian product of the Unicode
 % strings in Normal Form C with the set of BCP 47 language tags.
 
-rdf_language_tagged_string(Lit) :-
+rdf_lts(Lit) :-
   rdf_literal(Lit),
   Lit = _@_.
 
 
 
-%! rdf_language_tagged_string(?Lit, ?G) is nondet.
+%! rdf_lts(?Lit, ?G) is nondet.
 
-rdf_language_tagged_string(Lit, G) :-
+rdf_lts(Lit, G) :-
   rdf_literal(Lit, G),
   Lit = _@_.
 
@@ -193,11 +193,14 @@ rdf_is_legacy_literal(literal(_)).
 
 
 
-%! rdf_legacy_literal_components(+Lit, -D, -Lex, -LTag) is det.
+%! rdf_legacy_literal(+Lit, -D, -Lex, -LTag) is det.
 
-rdf_legacy_literal_components(literal(type(D,Lex)), D, Lex, _) :- !.
-rdf_legacy_literal_components(literal(lang(LTag,Lex)), rdf:langString, Lex, LTag) :- !.
-rdf_legacy_literal_components(literal(Lex), xsd:string, Lex, _).
+rdf_legacy_literal(literal(type(D,Lex0)), D, Lex, _) :- !,
+  atom_string(Lex0, Lex).
+rdf_legacy_literal(literal(lang(LTag,Lex0)), rdf:langString, Lex, LTag) :- !,
+  atom_string(Lex0, Lex).
+rdf_legacy_literal(literal(Lex0), xsd:string, Lex, _) :-
+  atom_string(Lex0, Lex).
 
 
 
@@ -209,12 +212,17 @@ rdf_literal(G, Lit) :-
 
 
 
-%! rdf_literal_components(?Lit, ?D, ?Lex, ?LTag) .
+%! rdf_literal(+Lit, -D, -Lex, -LTag) is det.
 
-rdf_literal_components(V^^D, D, Lex, _) :- !,
-  rdf_literal_lexical_form(V^^D, Lex).
-rdf_literal_components(V@LTag, rdf:langString, Lex, LTag) :-
-  rdf_literal_lexical_form(V@LTag, Lex).
+rdf_literal(Lit, D, Lex, LTag) :-
+  var(Lit), !,
+  rdf_legacy_literal(Lit0, D, Lex, LTag),
+  rdf11:post_object(Lit, Lit0).
+rdf_literal(V^^D, D, Lex, _) :- !,
+  rdf_literal_lex(V^^D, Lex).
+rdf_literal(V@LTag, rdf:langString, Lex, LTag) :-
+  rdf_literal_lex(V@LTag, Lex).
+
 
 
 %! rdf_literal_datatype(+Lit, +D) is semidet.
@@ -225,13 +233,12 @@ rdf_literal_datatype(_@_, D):- rdf_equal(rdf:langString, D).
 
 
 
-%! rdf_literal_lexical_form(+Lit, +Lex) is semidet.
-%! rdf_literal_lexical_form(+Lit, -Lex) is det.
+%! rdf_literal_lex(+Lit, +Lex) is semidet.
+%! rdf_literal_lex(+Lit, -Lex) is det.
 
-rdf_literal_lexical_form(V^^D, Lex) :- !,
-  rdf11:in_type(D, V, Lex).
-rdf_literal_lexical_form(V@_, Lex) :-
-  atom_string(Lex, V).
+rdf_literal_lex(V^^D, Lex) :- !,
+  rdf_lexical_form(V^^D, Lex^^D).
+rdf_literal_lex(V@_, V).
 
 
 
