@@ -25,7 +25,7 @@
     rdf_is_triple/1,        % @Term
     rdf_langstring/3,       % ?S, ?P, -Lit
     rdf_list/3,             % ?S, ?P, -L
-    rdf_nextto/3,           % ?X, ?Y, ?RdfList
+    rdf_nextto_cl/2,        % ?X, ?Y
     rdf_pref_string/3,      % ?S, ?P, -Lit
     rdf_reification/3,      % ?S, ?P, ?O
     rdf_reification/4,      % ?S, ?P, ?O, -Stmt
@@ -84,7 +84,7 @@
    rdf_image(r, -),
    rdf_langstring(r, r, o),
    rdf_list(r, r, -),
-   rdf_nextto(o, o, r),
+   rdf_nextto_cl(o, o),
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
@@ -307,15 +307,10 @@ rdf_list(S, P, L) :-
 
 
 
-%! rdf_nextto(?X, ?Y, ?RdfList) is nondet.
+%! rdf_nextto_cl(?X, ?Y, ?RdfList) is nondet.
 
-rdf_nextto(X, Y, L) :-
-  closure({L}/[X,Y]>>rdf_directly_nextto(X, Y, L), X, Y).
-
-rdf_directly_nextto(X, Y, L) :-
-  rdf_has(L, rdf:first, X),
-  rdf_has(L, rdf:rest, T),
-  rdf_has(T, rdf:first, Y).
+rdf_nextto_cl(X, Y) :-
+  closure([X,Y]>>rdf_nextto(X, Y), X, Y).
 
 
 
