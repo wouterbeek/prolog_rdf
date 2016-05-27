@@ -229,7 +229,7 @@ rdf_literal(V@LTag, rdf:langString, Lex, LTag) :-
 %! rdf_literal_datatype(+Lit, -D) is det.
 
 rdf_literal_datatype(_^^D, D).
-rdf_literal_datatype(_@_, D):- rdf_equal(rdf:langString, D).
+rdf_literal_datatype(_@_, rdf:langString).
 
 
 
