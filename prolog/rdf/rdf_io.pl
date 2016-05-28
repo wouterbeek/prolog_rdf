@@ -227,7 +227,9 @@ rdf_call_on_tuples0(Goal_5, Opts1, In, M, M) :-
   %;   % JSON-LD.
   %    Format == jsonld
   %->  json_read_dict(In, Json),
-  %    forall(jsonld_tuple(Json, Tuple, Opts3), rdf_call_on_quad0(Goal_5, M, Tuple))
+  %    forall(jsonld_tuple(Json, Tuple, Opts3),
+  %      rdf_call_on_quad0(Goal_5, M, Tuple)
+  %    )
   ;   % RDF/XML.
       Format == xml
   ->  process_rdf(In, rdf_call_on_quads0(Goal_5, M), Opts3)

@@ -1,15 +1,17 @@
 :- module(
   jsonld_read,
   [
-    jsonld_tuple/2, % +Json, -Tuple
-    jsonld_tuple/3  % +Json, -Tuple, +Opts
+    jsonld_tuple/2,  % +Json, -Tuple
+    jsonld_tuple/3,  % +Json, -Tuple,  +Opts
+    jsonld_tuples/2, % +Json, -Tuples
+    jsonld_tuples/3  % +Json, -Tuples, +Opts
   ]
 ).
 
 /** <module> JSON-LD read
 
 @author Wouter Beek
-@version 2016/01-2016/03
+@version 2016/01-2016/03, 2016/05
 */
 
 :- use_module(library(dict_ext)).
@@ -24,9 +26,11 @@
 
 
 %! jsonld_tuple(+Json, -Tuple) is det.
+%! jsonld_tuple(+Json, -Tuple, +Opts) is det.
 
 jsonld_tuple(Json, Tuple) :-
   jsonld_tuple(Json, Tuple, []).
+
 
 jsonld_tuple(Json, Tuple, Opts) :-
   % The base IRI that was set outside of the JSON-LD context
@@ -36,6 +40,19 @@ jsonld_tuple(Json, Tuple, Opts) :-
   ;   Context = _{}
   ),
   jsonld_tuple0(Context, Json, Tuple, _).
+
+
+
+%! jsonld_tuples(+Json, -Tuples) is det.
+%! jsonld_tuples(+Json, -Tuples, +Opts) is det.
+
+jsonld_tuples(Json, Tuples) :-
+  jsonld_tuples(Json, Tuples, []).
+
+
+jsonld_tuples(Json, Tuples, Opts) :-
+  aggregate_all(set(Tuple), jsonld_tuple(Json, Tuple, Opts), Tuples).
+
 
 % Case 1: An array of dictionaries.
 jsonld_tuple0(Context, Array, Tuple, S) :-
@@ -111,37 +128,30 @@ jsonld_to_list_triple(Context, S, ODef, LTag, [H|T], Tuple) :-
 % Extract the RDF predicate term encoded by the given JSON-LD key.
 % Also returns the datatype and language specification, if present.
 
-% Case 1: The predicate is ‘rdf:type’.
-%         The object definition is ‘@id’.
-%         There is no language tag.
-jsonld_to_predicate(_, '@type', P, '@id', _) :- !,
-  rdf_equal(rdf:type, P).
-% Case 2: Other predicates.
 jsonld_to_predicate(Context, P1, P5, ODef2, LTag) :-
   jsonld_predicate(Context, P1, P2, Keys),
-  (  member(Key, Keys),
-     atom(Key),
-     get_dict(Key, Context, ODef1),
-     is_dict(ODef1),
-     (   get_dict('@type', ODef1, D)
-     ->  jsonld_expand_term(Context, D, ODef2),
-         P5 = P2
-     ;   get_dict('@container', ODef1, D)
-     ->  atom_string(ODef2, D),
-         P5 = P2
-     ;   get_dict('@reverse', ODef1, P3)
-     ->  jsonld_to_predicate(Context, P3, P4, ODef2, LTag),
-         P5 = '@reverse'(P4)
-     ), !
-  ;  P5 = P2
+  (   P2 == '@type'
+  ->  rdf_equal(rdf:type, P5),
+      ODef2 = '@id'
+  ;   member(Key, Keys),
+      atom(Key),
+      get_dict(Key, Context, ODef1),
+      is_dict(ODef1),
+      (   get_dict('@type', ODef1, D)
+      ->  jsonld_expand_term(Context, D, ODef2),
+          P5 = P2
+      ;   get_dict('@container', ODef1, D)
+      ->  atom_string(ODef2, D),
+          P5 = P2
+      ;   get_dict('@reverse', ODef1, P3)
+      ->  jsonld_to_predicate(Context, P3, P4, ODef2, LTag),
+          P5 = '@reverse'(P4)
+      ), !
+  ;   P5 = P2
   ),
   jsonld_language_mapping(Context, Keys, LTag).
 
 
-% Case 1: JSON-LD keyword.
-jsonld_predicate(_, P, P, []) :-
-  jsonld_keyword(P), !.
-% Case 2: JSON-LD IRI expansion.
 jsonld_predicate(Context, P1, Q, [P1|T]) :-
   jsonld_expand_term(Context, P1, P2),
   (   P1 == P2
@@ -312,9 +322,10 @@ jsonld_context_and_data(D, Context6, Data) :-
   ),
   % Return the extracted context properties into a dictionary
   % since that is easy to pass around.
+  rdf_equal(rdf:type, Type),
   include(
     pair_with_nonvar_value,
-    ['@base'-BaseIri,'@language'-LTag,'@vocab'-Voc2|Map],
+    ['@base'-BaseIri,'@language'-LTag,'@type'-Type,'@vocab'-Voc2|Map],
     Pairs2
   ),
   dict_pairs(Context6, Pairs2).
