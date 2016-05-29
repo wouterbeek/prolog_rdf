@@ -1,10 +1,11 @@
 :- module(
   jsonld_read,
   [
-    jsonld_tuple/2,  % +Json, -Tuple
-    jsonld_tuple/3,  % +Json, -Tuple,  +Opts
-    jsonld_tuples/2, % +Json, -Tuples
-    jsonld_tuples/3  % +Json, -Tuples, +Opts
+    jsonld_tuple/2,              % +D, -Tuple
+    jsonld_tuple/3,              % +D, -Tuple,  +Opts
+    jsonld_tuple_with_context/3, % +Context, +D, -Tuple
+    jsonld_tuples/2,             % +D, -Tuples
+    jsonld_tuples/3              % +D, -Tuples, +Opts
   ]
 ).
 
@@ -25,51 +26,64 @@
 
 
 
-%! jsonld_tuple(+Json, -Tuple) is det.
-%! jsonld_tuple(+Json, -Tuple, +Opts) is det.
+%! jsonld_tuple(+D, -Tuple) is det.
+%! jsonld_tuple(+D, -Tuple, +Opts) is det.
 
-jsonld_tuple(Json, Tuple) :-
-  jsonld_tuple(Json, Tuple, []).
+jsonld_tuple(D, Tuple) :-
+  jsonld_tuple(D, Tuple, []).
 
 
-jsonld_tuple(Json, Tuple, Opts) :-
+jsonld_tuple(D, Tuple, Opts) :-
   % The base IRI that was set outside of the JSON-LD context
   % takes precedence over the one that is set inside the JSON-LD context.
   (   option(base_iri(BaseIri), Opts)
   ->  Context = _{'@base': BaseIri}
   ;   Context = _{}
   ),
-  jsonld_tuple0(Context, Json, Tuple, _).
+  jsonld_tuple_with_context(Context, D, Tuple).
 
 
 
-%! jsonld_tuples(+Json, -Tuples) is det.
-%! jsonld_tuples(+Json, -Tuples, +Opts) is det.
+%! jsonld_tuple_with_context(+Context, +D, -Tuple) is nondet.
 
-jsonld_tuples(Json, Tuples) :-
-  jsonld_tuples(Json, Tuples, []).
+jsonld_tuple_with_context(Context, D, Tuple) :-
+  jsonld_tuple(Context, D, Tuple, _).
 
-
-jsonld_tuples(Json, Tuples, Opts) :-
-  aggregate_all(set(Tuple), jsonld_tuple(Json, Tuple, Opts), Tuples).
 
 
 % Case 1: An array of dictionaries.
-jsonld_tuple0(Context, Array, Tuple, S) :-
+jsonld_tuple(Context, Array, Tuple, S) :-
   is_list(Array), !,
   member(Obj, Array),
-  jsonld_tuple0(Context, Obj, Tuple, S).
+  jsonld_tuple(Context, Obj, Tuple, S).
 % Case 2: A dictionary.
-jsonld_tuple0(Context1, Obj, Tuple, S) :-
+jsonld_tuple(Context1, Obj, Tuple, S) :-
   jsonld_context_and_data(Obj, Context2, Data),
   merge_contexts(Context1, Context2, Context3),
   jsonld_tuple_goto(Context3, Data, Tuple, S).
+
+
+
+%! jsonld_tuples(+D, -Tuples) is det.
+%! jsonld_tuples(+D, -Tuples, +Opts) is det.
+
+jsonld_tuples(D, Tuples) :-
+  jsonld_tuples(D, Tuples, []).
+
+
+jsonld_tuples(D, Tuples, Opts) :-
+  aggregate_all(set(Tuple), jsonld_tuple(D, Tuple, Opts), Tuples).
+
+
 
 % GOTO point for recursive structures (see below).
 jsonld_tuple_goto(Context1, Data1, Tuple, S) :-
   selectchk('@context'-Context2, Data1, Data2), !,
   merge_contexts(Context1, Context2, Context3),
   jsonld_tuple_goto(Context3, Data2, Tuple, S).
+% No more data to process.
+jsonld_tuple_goto(_, [], _, _) :- !,
+  fail.
 jsonld_tuple_goto(Context, Data1, Tuple, S) :-
   jsonld_to_subject(Context, Data1, S, Data2),
   % NONDET
@@ -180,7 +194,7 @@ jsonld_tuple(_, _, _, _, _, null, _) :- !,
 % Reverse property.
 jsonld_tuple(Context, O, '@reverse'(P), _, _, V, Tuple) :-
   ground(P), !,
-  findall(S-STuple, jsonld_tuple0(Context, V, STuple, S), Pairs),
+  findall(S-STuple, jsonld_tuple(Context, V, STuple, S), Pairs),
   group_pairs_by_key(Pairs, Groups),
   Groups = [S-STuples],
   (   member(Tuple, STuples)
@@ -189,11 +203,11 @@ jsonld_tuple(Context, O, '@reverse'(P), _, _, V, Tuple) :-
 % Default graph.
 jsonld_tuple(Context, B, '@graph', _, _, Array, Tuple) :-
   rdf_is_bnode(B), !,
-  jsonld_tuple0(Context, Array, Tuple, _).
+  jsonld_tuple(Context, Array, Tuple, _).
 % Named graph.
 jsonld_tuple(Context1, S, '@graph', _, _, Array, Tuple) :- !,
   put_dict('@graph', Context1, S, Context2),
-  jsonld_tuple0(Context2, Array, Tuple, _).
+  jsonld_tuple(Context2, Array, Tuple, _).
 % Blank node.
 jsonld_tuple(Context, S, P, _, _, _{'@id': O1}, Tuple) :-
   jsonld_is_bnode(O1), !,
@@ -285,7 +299,7 @@ jsonld_tuple(Context, S, P, _, _, V, Tuple) :-
 
 % HELPERS %
 
-%! jsonld_context_and_data(+JsonLd, -Context, -Data:list(pair)) is det.
+%! jsonld_context_and_data(+D, -Context, -Data:list(pair)) is det.
 
 jsonld_context_and_data(D, Context6, Data) :-
   dict_pairs(D, Pairs1),
