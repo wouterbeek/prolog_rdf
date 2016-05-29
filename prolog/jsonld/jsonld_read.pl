@@ -22,6 +22,15 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 
+:- rdf_meta
+   tuple_term(+, r, r, o, -).
+
+:- dynamic
+    jsonld_read:jsonld_tuple_hook/7.
+
+:- multifile
+    jsonld_read:jsonld_tuple_hook/7.
+
 
 
 
@@ -189,6 +198,10 @@ jsonld_to_subject(_, L, S, L) :-
 
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
 
+% Implementation-specific hooks.
+jsonld_tuple(Context, S, P, ODef, LTag, Val, Tuple) :-
+  jsonld_read:jsonld_tuple_hook(Context, S, P, ODef, LTag, Val, Tuple), !.
+% Null value.
 jsonld_tuple(_, _, _, _, _, null, _) :- !,
   fail.
 % Reverse property.
@@ -226,10 +239,8 @@ jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
   member(O, Os),
   jsonld_tuple(Context, S, P, ODef, LTag, O, Tuple).
 % Object is an RDF container.
-jsonld_tuple(Context, S, P, ODef, LTag, _{'@list': L}, Tuple) :- !,
-  % NONDET
-  jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Tuple).
-jsonld_tuple(Context, S, P, ODef, LTag, _{'@set': L}, Tuple) :- !,
+jsonld_tuple(Context, S, P, ODef, LTag, D, Tuple) :-
+  (D = _{'@list': L} ; D = _{'@set': L}), !,
   % NONDET
   jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Tuple).
 % Object is an RDF language-tagged string.

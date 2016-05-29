@@ -11,7 +11,7 @@
 /** <module> JSON-LD generics
 
 @author Wouter Beek
-@version 2016/01-2016/02
+@version 2016/01-2016/02, 2016/05
 */
 
 :- use_module(library(dict_ext)).
@@ -20,6 +20,12 @@
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 
+:- dynamic
+    jsonld_generics:jsonld_keyword_hook/1.
+
+:- multifile
+    jsonld_generics:jsonld_keyword_hook/1.
+
 
 
 
@@ -27,7 +33,7 @@
 %! jsonld_abbreviate_iri(+Context, +Full, -Compact) is det.
 
 jsonld_abbreviate_iri(Context, Full, Compact) :-
-  is_iri(Full),
+  is_http_iri(Full),
   get_dict(Alias, Context, Prefix),
   atom(Prefix),
   atom_concat(Prefix, Local, Full), !,
@@ -42,7 +48,7 @@ jsonld_expand_term(Context, Compact1, Full) :-
   string(Compact1), !,
   atom_string(Compact2, Compact1),
   jsonld_expand_term(Context, Compact2, Full).
-% Case 1: An emty IRI expands to the base IRI.
+% Case 1: An empty IRI expands to the base IRI.
 jsonld_expand_term(Context, '', Full) :-
   get_dict('@base', Context, Full).
 % Case 2: Do not expand blank nodes.
@@ -51,6 +57,9 @@ jsonld_expand_term(_, B, B) :-
 % Case 3: Do not expand JSON-LD keywords.
 jsonld_expand_term(_, Keyword, Keyword) :-
   jsonld_keyword(Keyword), !.
+% Case 4: Do not expand absolute IRIs.
+jsonld_expand_term(_, Full, Full) :-
+  is_http_iri(Full), !.
 % Case 4: Aliased names must be expanded using the context.
 jsonld_expand_term(Context, Compact, Full) :-
   atomic_list_concat([Alias,Local], :, Compact),
@@ -107,3 +116,5 @@ jsonld_keyword('@graph').
 jsonld_keyword('@id').
 jsonld_keyword('@type').
 jsonld_keyword('@value').
+jsonld_keyword(Key) :-
+  jsonld_generics:jsonld_keyword_hook(Key).
