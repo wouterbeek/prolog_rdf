@@ -32,6 +32,7 @@
 */
 
 :- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).

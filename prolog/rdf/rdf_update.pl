@@ -1,25 +1,25 @@
 :- module(
   rdf_update,
   [
-    rdf_change/4,           % +S, +P, +O, +Action
-    rdf_change_datatype/2,  % +P, +D
-    rdf_cp/2,               % +FromG, +ToG
-    rdf_cp/5,               % +FromG, ?S, ?P, ?O, +ToG
-    rdf_inc/2,              % +S, +P
-    rdf_inc/3,              % +S, +P, +G
-    rdf_mv/2,               % +FromG, +ToG
-    rdf_mv/5,               % +FromG, ?S, ?P, ?O, +ToG
-    rdf_parse_col/2,        % +P, Dcg_0
-    rdf_rm/3,               % ?S, ?P, ?O
-    rdf_rm/4,               % ?S, ?P, ?O, ?G
-    rdf_rm_cell/3,          % +S, +P, +O
-    rdf_rm_cell/4,          % +S, +P, +O, ?G
-    rdf_rm_col/1,           % +P
-    rdf_rm_col/2,           % +P, +G
-    rdf_rm_error/3,         % ?S, ?P, ?O
-    rdf_rm_error/4,         % ?S, ?P, ?O, ?G
-    rdf_rm_null/1,          % +Null
-    rdf_rm_null/2           % +Null, +G
+    rdf_change/4,          % +S, +P, +O, +Action
+    rdf_change_datatype/2, % +P, +D
+    rdf_cp/2,              % +FromG, +ToG
+    rdf_cp/5,              % +FromG, ?S, ?P, ?O, +ToG
+    rdf_inc/2,             % +S, +P
+    rdf_inc/3,             % +S, +P, +G
+    rdf_mv/2,              % +FromG, +ToG
+    rdf_mv/5,              % +FromG, ?S, ?P, ?O, +ToG
+    rdf_parse_col/2,       % +P, Dcg_0
+    rdf_rm/3,              % ?S, ?P, ?O
+    rdf_rm/4,              % ?S, ?P, ?O, ?G
+    rdf_rm_cell/3,         % +S, +P, +O
+    rdf_rm_cell/4,         % +S, +P, +O, ?G
+    rdf_rm_col/1,          % +P
+    rdf_rm_col/2,          % +P, +G
+    rdf_rm_error/3,        % ?S, ?P, ?O
+    rdf_rm_error/4,        % ?S, ?P, ?O, ?G
+    rdf_rm_null/1,         % +Null
+    rdf_rm_null/2          % +Null, +G
   ]
 ).
 
@@ -73,6 +73,10 @@ Higher-level update operations performed on RDF data.
 
 
 %! rdf_change(?S, ?P, ?O, +Action) is det.
+%
+% rdf11-compliant wrapper around rdf_update/4.
+%
+% Allows the subject, predicate or object term to be replaced.
 
 rdf_change(S, P, O, Action) :-
   must_be(ground, O),
@@ -87,6 +91,9 @@ rdf_change(S, P, O, Action) :-
 
 
 %! rdf_change_datatype(+P, +D) is semidet.
+%
+% Change the datatype IRI of all object terms that appear with
+% predicate P.
 
 rdf_change_datatype(P, D2) :-
   rdf_datatypes_compat(P, Ds),
@@ -108,7 +115,7 @@ rdf_change_datatype(P, D2) :-
 %! rdf_cp(+FromG, +ToG) is det.
 %! rdf_cp(+FromG, ?S, ?P, ?O, +ToG) is det.
 %
-% Copy graph or copy triples between graphs.
+% Copy a full graph or copy the specified triples between graphs.
 %
 % @tbd Perform blank node renaming.
 % @tbd Use rdf_update/5.
@@ -139,15 +146,15 @@ rdf_inc(S, P, G) :-
     rdf11:xsd_numerical(D, TypeCheck, integer),
     N2 is N1 + 1,
     must_be(TypeCheck, N2),
-    rdf_change(S, P, N1^^D, G, object(N2^^D))
+    rdf_db:rdf_update(S, P, N1^^D, G, object(N2^^D))
   )).
 
 
 
-%! rdf_mv(+FromG, ?S, ?P, ?O, +ToG) is det.
 %! rdf_mv(+FromG, +ToG) is det.
+%! rdf_mv(+FromG, ?S, ?P, ?O, +ToG) is det.
 %
-% Rename graphs or move triples between graphs.
+% Rename a graph or move the specified triples between graphs.
 
 rdf_mv(FromG, ToG) :-
   rdf_mv(FromG, _, _, _, ToG),
@@ -157,7 +164,7 @@ rdf_mv(FromG, ToG) :-
 rdf_mv(FromG, S, P, O, ToG) :-
   State = _{count:0},
   forall(rdf(S, P, O, FromG), (
-    rdf_change(S, P, O, FromG, graph(ToG)),
+    rdf_db:rdf_update(S, P, O, FromG, graph(ToG)),
     dict_inc(count, State)
   )),
   rdf_msg(State.count, "moved").
@@ -165,6 +172,10 @@ rdf_mv(FromG, S, P, O, ToG) :-
 
 
 %! rdf_parse_col(+P, :Dcg_0) is det.
+%
+% Change the lexical form of the literals that appear with predicate
+% P.  Dcg_0 is used to parse the or lexical form and generate the new
+% one.
 %
 % @tbd This does not work with a graph argument.
 % @tbd Explain what rdf_update/4 does in terms of graphs.
@@ -189,6 +200,8 @@ rdf_parse_col(P, Dcg_0) :-
 
 %! rdf_rm(?S, ?P, ?O) is det.
 %! rdf_rm(?S, ?P, ?O, ?G) is det.
+%
+% Remove the specified triples or quadruples.
 
 rdf_rm(S, P, O) :-
   rdf_rm(S, P, O, _).
@@ -206,6 +219,8 @@ rdf_rm(S, P, O, G) :-
 
 %! rdf_rm_cell(+S, +P, +O) is det.
 %! rdf_rm_cell(+S, +P, +O, +G) is det.
+%
+% Remove a specific triple or quadruple.
 
 rdf_rm_cell(S, P, O) :-
   rdf_rm_cell(S, P, O, _).
@@ -218,6 +233,8 @@ rdf_rm_cell(S, P, O, G) :-
 
 %! rdf_rm_col(+P) is det.
 %! rdf_rm_col(+P, +G) is det.
+%
+% Remove all triples that contain predicate P.
 
 rdf_rm_col(P) :-
   rdf_rm_col(P, _).
@@ -230,6 +247,9 @@ rdf_rm_col(P, G) :-
 
 %! rdf_rm_errpr(?S, ?P, ?O) is det.
 %! rdf_rm_error(?S, ?P, ?O, ?G) is det.
+%
+% Wrapper around rdf_rm/4 that indicates that an error or mistake is
+% being removed.
 
 rdf_rm_error(S, P, O) :-
   rdf_rm_error(S, P, O, _).
@@ -242,6 +262,9 @@ rdf_rm_error(S, P, O, G) :-
 
 %! rdf_rm_null(+Null) is det.
 %! rdf_rm_null(+Null, +G) is det.
+%
+% Wrapper around rdf_rm/4 that indicates that an error or mistake is
+% being removed.
 
 rdf_rm_null(Null) :-
   rdf_rm_null(Null, _).

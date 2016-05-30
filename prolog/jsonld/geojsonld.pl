@@ -2,6 +2,7 @@
   geojsonld,
   [
     geojsonld_geometry_class/1, % ?C
+    geojsonld_geometry_class/2, % ?C, ?D
     geojsonld_interpret/0,
     geojsonld_interpret/1,      % ?I
     geojsonld_tuple/2,          % +Source, -Tuple
@@ -21,13 +22,16 @@
 :- use_module(library(jsonld/jsonld_array)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(jsonld/wkt)).
+:- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
+:- rdf_register_prefix(wkt, 'http://geojsonld.com/wkt#').
 
 :- rdf_meta
    geojsonld_geometry_class(r),
+   geojsonld_geometry_class(r, r),
    geojsonld_interpret(r).
 
 
@@ -57,11 +61,15 @@ geojsonld_context(_{
 
 
 
-%! geojsonld_geometry_class(+C) is semidet.
-%! geojsonld_geometry_class(-C) is nondet.
+%! geojsonld_geometry_class(?C) is semidet.
+%! geojsonld_geometry_class(?C, ?D) is nondet.
 
-geojsonld_geometry_class(geold:'MultiPolygon').
-geojsonld_geometry_class(geold:'Polygon').
+geojsonld_geometry_class(C) :-
+  geojsonld_geometry_class(C, _).
+
+
+geojsonld_geometry_class(geold:'MultiPolygon', wkt:multipolygon).
+geojsonld_geometry_class(geold:'Polygon', wkt:polygon).
 
 
 
@@ -69,18 +77,17 @@ geojsonld_geometry_class(geold:'Polygon').
 %! geojsonld_interpret(?I) is nondet.
 
 geojsonld_interpret :-
-  geojsonld_interpret(_).
+  forall(geojsonld_interpret(_), true).
 
 
 geojsonld_interpret(I) :-
   geojsonld_geometry_class(C),
   rdfs_instance(I, C),
-  rdf_has(I, geold:coordinates, Lex^^xsd:string),
-  string_phrase(array(L), Lex),
-  string_phrase(wkt(C, L), Out),
-  writeln(Out).
-  %L = [Exterior|Interiors],
-  %polygon_gen(Exterior, Interiors, Cs),
+  rdf_has(I, geold:coordinates, Lex1^^xsd:string),
+  string_phrase(array(L), Lex1),
+  geojsonld_geometry_class(C, D),
+  string_phrase(wkt(D, L), Lex2),
+  rdf_change(I, geold:coordinates, Lex1^^xsd:string, object(Lex2^^D)).
 
 
 
