@@ -14,7 +14,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_download)).
+:- use_module(library(json_ext)).
 :- use_module(library(lists)).
 :- use_module(library(persistency)).
 :- use_module(library(semweb/rdf11)).
@@ -35,7 +35,7 @@ assert_prefix_cc(Alias-Prefix0) :-
 
 
 init_prefix_cc :-
-  json_download('http://prefix.cc/popular/all.file.json', D),
+  json_load_any('http://prefix.cc/popular/all.file.json', D),
   dict_pairs(D, Pairs),
   maplist(assert_prefix_cc, Pairs).
 

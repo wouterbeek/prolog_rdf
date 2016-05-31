@@ -5,6 +5,7 @@
     rdf_assert/1,           % +Tuple
     rdf_assert/2,           % +Triple, +G
     rdf_assert_action/4,    % +ActionClass, +Actor, -Action, +G
+    rdf_assert_instance/2,  % +I, +Cs
     rdf_assert_instance/3,  % +I, +Cs, +G
     rdf_assert_list/4,      % +S, +P, +L, +G
     rdf_assert_now/2,       % +S, +P
@@ -70,6 +71,7 @@
    rdf_assert(t),
    rdf_assert(t, r),
    rdf_assert_action(r, r, -, r),
+   rdf_assert_instance(r, t),
    rdf_assert_instance(r, t, r),
    rdf_assert_list(r, r, t, r),
    rdf_assert_now(o, r),
@@ -130,7 +132,12 @@ rdf_assert_action(ActionC, Actor, Action, G):-
 
 
 
+%! rdf_assert_instance(+I, ?Cs) is det.
 %! rdf_assert_instance(+I, ?Cs, ?G) is det.
+
+rdf_assert_instance(I, C) :-
+  rdf_assert_instance(I, C, _).
+
 
 rdf_assert_instance(I, C, G) :-
   var(C), !,

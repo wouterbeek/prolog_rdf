@@ -16,7 +16,7 @@
 */
 
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_download)).
+:- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_generics)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
@@ -323,7 +323,7 @@ jsonld_context_and_data(D, Context6, Data) :-
       %
       % The context can be supplied either externally or internally.
       (   is_http_iri(Context1)
-      ->  json_download(Context1, Context2)
+      ->  json_load_any(Context1, Context2)
       ;   Context2 = Context1
       ),
       % Extract the base IRI, if any.
