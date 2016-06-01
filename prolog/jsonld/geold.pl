@@ -15,16 +15,16 @@ http://www.opengis.net/ont/geosparql#asWKT
 "POINT(-84.22924230000001 39.596629500000006)"
 
 @author Wouter Beek
-@version 2016/05
+@version 2016/05-2016/06
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(cli/rc)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_array)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(jsonld/wkt)).
-:- use_module(library(rdf/rdf_cli)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdfs/rdfs_ext)).
@@ -37,7 +37,8 @@ http://www.opengis.net/ont/geosparql#asWKT
 
 :- rdf_meta
    geold_geometry_class(r),
-   geold_geometry_class(r, ?).
+   geold_geometry_class(r, ?),
+   geold_print_feature(r).
 
 
 
@@ -98,7 +99,7 @@ geold_interpret.
 
 geold_print_feature(I) :-
   rdfs_instance(I, geold:'Feature'),
-  rdf_print_tree(I).
+  rc_cbd(I).
 
 
 

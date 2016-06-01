@@ -1,3 +1,5 @@
+%/cli
+:- use_module(library(cli/rc)).
 %/conv
 :- use_module(library(conv/bibtex2rdf)).
 :- use_module(library(conv/csv2rdf)).
@@ -82,7 +84,6 @@
 :- use_module(library(service/void_store)).
 %/stat
 :- use_module(library(stat/rdf_stat)).
-:- use_module(library(stat/rdf_stat_cli)).
 :- use_module(library(stat/rdfs_stat)).
 %/void
 :- use_module(library(void/void_build)).
