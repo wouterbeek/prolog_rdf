@@ -1,8 +1,8 @@
 :- module(
   rdf_cbd,
   [
-    cbd/2, % +Node, -Cbd
-    scbd/2 % +Node, -Scbd
+    cbd/2, % ?Node, -Cbd
+    scbd/2 % ?Node, -Scbd
   ]
 ).
 
@@ -60,9 +60,10 @@ statement in the graph.
 
 
 
-%! cbd(+Node, -Triples) is det.
+%! cbd(?Node, -Triples) is det.
 
 cbd(Node, Triples) :-
+  rdf_subject(Node),
   aggregate_all(set(Triple), cbd_triple0(Node, Triple), Triples).
 
 
@@ -77,9 +78,10 @@ cbd_triple0(S, Triple) :-
 
 
 
-%! scbd(+Node, -Triples) is det.
+%! scbd(?Node, -Triples) is det.
 
 scbd(Node, Triples) :-
+  rdf_subject(Node),
   aggregate_all(set(Triple), scbd_triple0(Node, Triple), Triples).
 
 
