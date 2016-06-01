@@ -1,13 +1,14 @@
 :- module(
   rdf_graph,
   [
-    rdf_fresh_graph/2,  % ?G, +FreshnessLifetime:between(0.0,inf)
-    rdf_graph_age/2,    % ?G, -Age:between(0.0,inf)
-    rdf_is_graph/1,     % +G
-    rdf_new_graph/1,    % -G
-    rdf_new_graph/2,    % +Name, -G
-    rdf_stale_graph/2,  % ?G, +FreshnessLifetime:between(0.0,inf)
-    rdf_tmp_graph/1     % -G
+    file_rdf_graph/3,  % +Alias, +File, -G
+    rdf_fresh_graph/2, % ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_graph_age/2,   % ?G, -Age:between(0.0,inf)
+    rdf_is_graph/1,    % +G
+    rdf_new_graph/1,   % -G
+    rdf_new_graph/2,   % +Name, -G
+    rdf_stale_graph/2, % ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_tmp_graph/1    % -G
   ]
 ).
 
@@ -37,6 +38,15 @@
    rdf_unload_graph(r).
 
 
+
+
+
+%! file_rdf_graph(+Alias, +File, -G) is det.
+
+file_rdf_graph(Alias, File, G) :-
+  file_base_name(File, Name),
+  file_name_extension(Base, _, Name),
+  rdf_global_id(Alias:Base, G).
 
 
 

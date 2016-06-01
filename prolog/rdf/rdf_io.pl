@@ -2,26 +2,27 @@
   rdf_io,
   [
     rdf_call_on_graph/2,          % +Source, :Goal_3
-    rdf_call_on_graph/3,          % +Source, :Goal_3, +Opts
-    rdf_call_on_tuples/2,         % +Source, :Goal_5
-    rdf_call_on_tuples/3,         % +Source, :Goal_5, +Opts
-    rdf_call_on_stream/2,         % +Source, :Goal_3
-    rdf_call_on_stream/3,         % +Source, :Goal_3, +Opts
-    rdf_download_to_file/2,       % +Iri,    +File
-    rdf_download_to_file/3,       % +Iri,    +File,   +Opts
-    rdf_load_file/1,              % +Source
-    rdf_load_file/2,              % +Source,          +Opts
-    rdf_load_tuples/2,            % +Source, -Tuples
-    rdf_load_tuples/3,            % +Source, -Tuples, +Opts
-    rdf_write_to_graph/2,         % +Sink,   :Goal_1
-    rdf_write_to_graph/3,         % +Sink,   :Goal_1, +Opts
-    rdf_write_to_stream/1,        % +Sink
-    rdf_write_to_stream/2,        % +Sink,                 +Opts
+    rdf_call_on_graph/3,          % +Source, :Goal_3,      +Opts
+    rdf_call_on_tuples/2,         % +Source, :Goal_5       
+    rdf_call_on_tuples/3,         % +Source, :Goal_5,      +Opts
+    rdf_call_on_stream/2,         % +Source, :Goal_3       
+    rdf_call_on_stream/3,         % +Source, :Goal_3,      +Opts
+    rdf_download_to_file/2,       % +Iri,    +File         
+    rdf_download_to_file/3,       % +Iri,    +File,        +Opts
+    rdf_load_file/1,              % +Source                
+    rdf_load_file/2,              % +Source,               +Opts
+    rdf_load_tuples/2,            % +Source, -Tuples       
+    rdf_load_tuples/3,            % +Source, -Tuples,      +Opts
+    rdf_write_to_graph/2,         % +Sink,   :Goal_1       
+    rdf_write_to_graph/3,         % +Sink,   :Goal_1,      +Opts
+    rdf_write_to_stream/1,        % +Sink                  
+    rdf_write_to_stream/2,        % +Sink,             ?G
+    rdf_write_to_stream/3,        % +Sink,             ?G  +Opts
     rdf_write_to_stream/4,        % +Sink, ?S, ?P, ?O
     rdf_write_to_stream/5,        % +Sink, ?S, ?P, ?O, ?G
     rdf_write_to_stream/6,        % +Sink, ?S, ?P, ?O, ?G, +Opts
-    rdf_write_to_stream_legacy/1, % +Sink) is det.
-    rdf_write_to_stream_legacy/2  % +Sink, +Opts) is det.
+    rdf_write_to_stream_legacy/1, % +Sink
+    rdf_write_to_stream_legacy/2  % +Sink,                 +Opts
   ]
 ).
 
@@ -91,6 +92,8 @@
    rdf_download_to_file(+, +, t),
    rdf_load_file(+, t),
    rdf_load_tuples(+, -, t),
+   rdf_write_to_stream(+, r),
+   rdf_write_to_stream(+, r, +),
    rdf_write_to_stream(+, r, r, o),
    rdf_write_to_stream(+, r, r, o, r),
    rdf_write_to_stream(+, r, r, o, r, +).
@@ -418,10 +421,11 @@ rdf_write_to_graph(Sink, Goal_1, Opts) :-
 
 
 
-%! rdf_write_to_stream(+Sink) is det.
-%! rdf_write_to_stream(+Sink, +Opts) is det.
-%! rdf_write_to_stream(+Sink, ?S, ?P, ?O) is det.
-%! rdf_write_to_stream(+Sink, ?S, ?P, ?O, ?G) is det.
+%! rdf_write_to_stream(+Sink                       ) is det.
+%! rdf_write_to_stream(+Sink,             ?G       ) is det.
+%! rdf_write_to_stream(+Sink,             ?G, +Opts) is det.
+%! rdf_write_to_stream(+Sink, ?S, ?P, ?O           ) is det.
+%! rdf_write_to_stream(+Sink, ?S, ?P, ?O, ?G       ) is det.
 %! rdf_write_to_stream(+Sink, ?S, ?P, ?O, ?G, +Opts) is det.
 %
 % Writes output to an RDF stream.
@@ -433,11 +437,15 @@ rdf_write_to_graph(Sink, Goal_1, Opts) :-
 % Options are passed to call_to_stream/3 and ...
 
 rdf_write_to_stream(Sink) :-
-  rdf_write_to_stream(Sink, _, _, _).
+  rdf_write_to_stream(Sink, _).
 
 
-rdf_write_to_stream(Sink, Opts) :-
-  rdf_write_to_stream(Sink, _, _, _, _, Opts).
+rdf_write_to_stream(Sink, G) :-
+  rdf_write_to_stream(Sink, G, []).
+
+
+rdf_write_to_stream(Sink, G, Opts) :-
+   rdf_write_to_stream(Sink, _, _, _, G, Opts).
 
 
 rdf_write_to_stream(Sink, S, P, O) :-

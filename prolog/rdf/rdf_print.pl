@@ -1,9 +1,6 @@
 :- module(
   rdf_print,
   [
-    dcg_print_describe//1,   % ?S
-    dcg_print_describe//2,   % ?S,         ?G
-    dcg_print_describe//3,   % ?S,         ?G, +Opts
     dcg_print_graph//1,      % +G
     dcg_print_graph//2,      % +G,             +Opts
     dcg_print_graph_term//1, % +G
@@ -33,14 +30,10 @@
     dcg_print_triples//3,    % ?S, ?P, ?O
     dcg_print_triples//4,    % ?S, ?P, ?O, ?G
     dcg_print_triples//5,    % ?S, ?P, ?O, ?G, +Opts
-    rdf_print_describe/1,    % ?S
-    rdf_print_describe/2,    % ?S,         ?G
-    rdf_print_describe/3,    % ?S,         ?G, +Opts
     rdf_print_graph/1,       % +G
     rdf_print_graph/2,       % +G,             +Opts
     rdf_print_graph_term/1,  % +G
     rdf_print_graph_term/2,  % +G,             +Opts
-    rdf_print_graphs/0,
     rdf_print_object/1,      % +O
     rdf_print_object/2,      % +O,             +Opts
     rdf_print_predicate/1,   % +P
@@ -73,13 +66,14 @@
 
 Print RDF statements.
 
-| **Key**         | **Value** |
-|:----------------|:----------|
-| `bnode_counter` | nonneg    |
-| `indent`        | nonneg    |
-| `iri_lbl`       | boolean   |
-| `max_length`    | nonneg    |
-| `var_counter`   | nonneg    |
+| **Key**         | **Value** | **Description**                 |
+|:----------------|:----------|:--------------------------------|
+| `bnode_map`     | boolean   | Whether or not blank node names |
+|                 |           | are replaced by small integers. |
+| `indent`        | nonneg    |                                 |
+| `iri_lbl`       | boolean   | Whether or not the prefered     |
+|                 |           | label is used i.o. the IRI.     |
+| `max_length`    | nonneg    |                                 |
 
 @author Wouter Beek
 @tbd Turtle container abbreviation.
@@ -102,9 +96,6 @@ Print RDF statements.
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
-   dcg_print_describe(r, ?, ?),
-   dcg_print_describe(r, r, ?, ?),
-   dcg_print_describe(r, r, +, ?, ?),
    dcg_print_graph(r, ?, ?),
    dcg_print_graph(r, +, ?, ?),
    dcg_print_graph_term(r, ?, ?),
@@ -130,9 +121,6 @@ Print RDF statements.
    dcg_print_triples(r, r, o, ?, ?),
    dcg_print_triples(r, r, o, r, ?, ?),
    dcg_print_triples(r, r, o, r, +, ?, ?),
-   rdf_print_describe(r),
-   rdf_print_describe(r, r),
-   rdf_print_describe(r, r, +),
    rdf_print_graph(r),
    rdf_print_graph(r, +),
    rdf_print_graph_term(r),
@@ -167,15 +155,6 @@ Print RDF statements.
 
 % NON-DCG INVOCATIONS %
 
-rdf_print_describe(S) :-
-  dcg_with_output_to(current_output, dcg_print_describe(S)).
-
-rdf_print_describe(S, G) :-
-  dcg_with_output_to(current_output, dcg_print_describe(S, G)).
-
-rdf_print_describe(S, G, Opts) :-
-  dcg_with_output_to(current_output, dcg_print_describe(S, G, Opts)).
-
 rdf_print_graph(G) :-
   dcg_with_output_to(current_output, dcg_print_graph(G)).
 
@@ -189,12 +168,6 @@ rdf_print_graph_term(G) :-
 rdf_print_graph_term(G, Opts1) :-
   mod_dict(out, Opts1, current_output, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_graph_term(G, Opts2)).
-
-rdf_print_graphs :-
-  findall(N-G, rdf_statistics(triples_by_graph(G,N)), Pairs),
-  asc_pairs(Pairs, SortedPairs),
-  maplist(pair_inv_list, SortedPairs, Rows),
-  rdf_print_table([head(["Graph","#triples"])|Rows]).
 
 rdf_print_object(O) :-
   dcg_with_output_to(current_output, dcg_print_object(O)).
@@ -292,19 +265,6 @@ rdf_print_triples(S, P, O, G, Opts1) :-
 
 % PRINT MULTIPLE TUPLES %
 
-dcg_print_describe(S) -->
-  dcg_print_describe(S, _).
-
-
-dcg_print_describe(S, G) -->
-  dcg_print_describe(S, G, _{}).
-
-
-dcg_print_describe(S, G, Opts) -->
-  dcg_print_triples(S, _, _, G, Opts).
-
-
-
 dcg_print_graph(G) -->
   dcg_print_graph(G, _{}).
 
@@ -396,13 +356,12 @@ dcg_print_groups0([G-Triples|Groups], Opts) -->
   dcg_print_groups0(Groups, Opts).
 
 
-dcg_print_triples0(I, Triples, Opts1) -->
+dcg_print_triples0(I, Triples, Opts) -->
   {
     aggregate_all(set(S-po(P,O)), member(rdf(S,P,O), Triples), SortedPairs),
-    group_pairs_by_key(SortedPairs, Groups),
-    Opts2 = Opts1.put(_{var_counter: 0})
+    group_pairs_by_key(SortedPairs, Groups)
   },
-  dcg_print_subjects0(I, Groups, Opts2).
+  dcg_print_subjects0(I, Groups, Opts).
 
 
 dcg_print_subjects0(_, [], _) --> !, [].
@@ -531,9 +490,9 @@ dcg_print_predicate(P) -->
 dcg_print_predicate(P, _) -->
   {rdf_equal(rdf:type, P)}, !,
   "a".
-dcg_print_predicate(P, Opts) -->
+dcg_print_predicate(P, _) -->
   {var(P)}, !,
-  dcg_print_var(P, Opts).
+  dcg_print_var(P).
 dcg_print_predicate(P, Opts) -->
   dcg_print_iri(P, Opts).
 
@@ -542,9 +501,9 @@ dcg_print_predicate(P, Opts) -->
 dcg_print_subject(S, Opts) -->
   {rdf_is_bnode(S)}, !,
   dcg_print_bnode(S, Opts).
-dcg_print_subject(S, Opts) -->
+dcg_print_subject(S, _) -->
   {var(S)}, !,
-  dcg_print_var(S, Opts).
+  dcg_print_var(S).
 dcg_print_subject(S, Opts) -->
   {rdf_is_iri(S)}, !,
   dcg_print_iri(S, Opts).
@@ -565,15 +524,18 @@ dcg_print_term(T, Opts) -->
 % PRINT A TERM BY ITS KIND %
 
 dcg_print_bnode(B, Opts) -->
-  {dict_has_key(bnode_counter, Opts)}, !,
+  get_dict(bnode_map, Opts, false), !,
+  dcg_print_truncated_atom(B, Opts).
+dcg_print_bnode(B, _) -->
   (   {bnode_map(B, N)}
   ->  ""
-  ;   {dict_inc(bnode_counter, Opts, N)},
-      {assert(bnode_map(B, N))}
+  ;   {
+        flag(bnode_counter, N0, N0 + 1),
+        N is N0 + 1,
+        assert(bnode_map(B, N))
+      }
   ),
   "_:", integer(N).
-dcg_print_bnode(B, Opts) -->
-  dcg_print_truncated_atom(B, Opts).
 
 
 
@@ -661,15 +623,19 @@ dcg_print_literal(V@LTag, Opts) --> !,
 
 
 
-dcg_print_var(Var, Opts) -->
-  (   {var_map(Var0, N)},
-      {Var == Var0}
-  ->  ""
-  ;   {dict_inc(var_counter, Opts, N)},
-      {assert(var_map(Var, N))}
-  ),
+dcg_print_var(Var) -->
+  {var_number(Var, N)},
   "?q",
   integer(N).
+
+
+var_number(Var, N) :-
+  var_map(Var0, N),
+  Var == Var0, !.
+var_number(Var, N) :-
+  flag(var_counter, N0, N0 + 1),
+  N is N0 + 1,
+  assert(var_map(Var, N)).
 
 
 

@@ -20,7 +20,7 @@ test :-
 test(Mod:Mode, Opts) :-
   rdf_reset_db,
   load_and_print_graph0(sourcegraph, Opts),
-  StartNode = 'http://example.com/aReallyGreatBook',
+  StartNode = 'http://example.org/aReallyGreatBook',
   call(Mod:Mode, StartNode, Triples),
   msg_notification("Computed ~a:~n", [Mode]),
   rdf_print_triples(Triples, Opts),

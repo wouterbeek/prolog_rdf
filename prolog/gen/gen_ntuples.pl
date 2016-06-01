@@ -4,13 +4,13 @@
     gen_nquad/4,    % +S, +P, +O, +G
     gen_nquads/1,   % +Tuples
     gen_nquads/2,   % +Tuples,        +Opts
-    gen_nquads/4,   % ?S, ?P, ?O,     +Opts
+    gen_nquads/4,   % ?S, ?P, ?O, ?G
     gen_nquads/5,   % ?S, ?P, ?O, ?G, +Opts
     gen_ntriple/3,  % +S, +P, +O
     gen_ntriple/4,  % +S, +P, +O, +G
     gen_ntriples/1, % +Triples
     gen_ntriples/2, % +Triples,       +Opts
-    gen_ntriples/4, % ?S, ?P, ?O      +Opts
+    gen_ntriples/4, % ?S, ?P, ?O, ?G
     gen_ntriples/5  % ?S, ?P, ?O, ?G, +Opts
   ]
 ).
@@ -18,7 +18,7 @@
 /** <module> Generate N-Tuples, i.e., N-Triples and N-Quads
 
 @author Wouter Beek
-@version 2016/03-2016/04
+@version 2016/03-2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -35,11 +35,11 @@
 
 :- rdf_meta
    gen_nquad(r, r, o, r),
-   gen_nquads(r, r, o, +),
+   gen_nquads(r, r, o, r),
    gen_nquads(r, r, o, r, +),
    gen_ntriple(r, r, o),
    gen_ntriple(r, r, o, r),
-   gen_ntriples(r, r, o, +),
+   gen_ntriples(r, r, o, r),
    gen_ntriples(r, r, o, r, +),
    gen_ntuple(+, r, r, o, r),
    gen_ntuple(+, +, r, r, o, r),
@@ -83,7 +83,7 @@ gen_one_ntuple(Format, S, P, O, G) :-
 
 %! gen_nquads(+Tuples) is det.
 %! gen_nquads(+Tuples, +Opts) is det.
-%! gen_nquads(?S, ?P, ?O, +Opts) is det.
+%! gen_nquads(?S, ?P, ?O, ?G) is det.
 %! gen_nquads(?S, ?P, ?O, ?G, +Opts) is det.
 
 gen_nquads(Tuples) :-
@@ -94,8 +94,8 @@ gen_nquads(Tuples, Opts) :-
   gen_ntuples(Tuples, nquads, Opts).
 
 
-gen_nquads(S, P, O, Opts) :-
-  gen_nquads(S, P, O, _, Opts).
+gen_nquads(S, P, O, G) :-
+  gen_nquads(S, P, O, G, []).
 
 
 gen_nquads(S, P, O, G, Opts0) :-
@@ -117,8 +117,8 @@ gen_ntriples(Triples, Opts) :-
   gen_ntuples(Triples, ntriples, Opts).
 
 
-gen_ntriples(S, P, O, Opts) :-
-  gen_ntriples(S, P, O, _, Opts).
+gen_ntriples(S, P, O, G) :-
+  gen_ntriples(S, P, O, G, []).
 
 
 gen_ntriples(S, P, O, G, Opts0) :-
