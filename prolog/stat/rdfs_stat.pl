@@ -14,6 +14,8 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(rdfs/rdfs_ext)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdf_number_of_instances(r, -).

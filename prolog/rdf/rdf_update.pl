@@ -7,6 +7,8 @@
     rdf_cp/5,              % +FromG, ?S, ?P, ?O, +ToG
     rdf_inc/2,             % +S, +P
     rdf_inc/3,             % +S, +P, +G
+    rdf_flatten/1,         % +P
+    rdf_flatten/2,         % +P, ?G
     rdf_mv/2,              % +FromG, +ToG
     rdf_mv/5,              % +FromG, ?S, ?P, ?O, +ToG
     rdf_parse_col/2,       % +P, Dcg_0
@@ -28,7 +30,7 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10-2016/01, 2016/03, 2016/05
+@version 2015/07-2015/08, 2015/10-2016/01, 2016/03, 2016/05-2016/06
 */
 
 :- use_module(library(cli_ext)).
@@ -54,6 +56,8 @@ Higher-level update operations performed on RDF data.
    rdf_cp(r, r, r, o, r),
    rdf_inc(r, r),
    rdf_inc(r, r, +),
+   rdf_flatten(r),
+   rdf_flatten(r, r),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
    rdf_parse_col(r, :),
@@ -128,6 +132,25 @@ rdf_cp(FromG, ToG) :-
 
 rdf_cp(FromG, S, P, O, ToG) :-
   rdf_transaction(forall(rdf(S, P, O, FromG), rdf_assert(S, P, O, ToG))).
+
+
+
+%! rdf_flatten(+P) is det
+%! rdf_flatten(+P, ?G) is det
+
+rdf_flatten(P) :-
+  rdf_flatten(P, _).
+
+
+rdf_flatten(P1, G) :-
+  rdf(X, P1, Y, G),
+  rdf_is_bnode(Y),
+  forall(rdf(Y, P2, Z, G), rdf_transaction((
+    rdf_assert(X, P2, Z, G),
+    rdf_retractall(X, P1, Y, G),
+    rdf_retractall(Y, P2, Z, G)
+  ))).
+
 
 
 

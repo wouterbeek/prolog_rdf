@@ -3,9 +3,9 @@
   [
     geold_interpret/0,
     geold_print_feature/1, % ?Feature
-    geold_tuple/2,         % +Source, -Tuple
-    geold_tuples/2,        % +Source, -Tuples
-    geold_unpack/2         % ?FeatureCollection, ?Feature
+    geold_rm_feature_collections/0,
+    geold_tuple/2, % +Source, -Tuple
+    geold_tuples/2 % +Source, -Tuples
   ]
 ).
 
@@ -125,7 +125,6 @@ geold_tuples(Source, Tuples) :-
 
 
 
-geold_unpack(FeatureCollection, Feature) :-
-  rdfs_instance(FeatureCollection, geold:'FeatureCollection'),
-  rdf(FeatureCollection, features, Features),
-  member(Feature, Features).
+geold_rm_feature_collections :-
+  rdf_rm_col(geold:features),
+  rdf_rm(_, rdf:type, geold:'FeatureCollection').

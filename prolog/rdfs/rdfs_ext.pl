@@ -190,9 +190,9 @@ rdfs_class(C) :-
 rdfs_class0(C) :-
   rdfs_instance(C, rdfs:'Class').
 rdfs_class0(C) :-
-  rdfs_subclass_of(C, _).
+  rdf_has(C, rdfs:subClassOf, _).
 rdfs_class0(C) :-
-  rdfs_subclass_of(_, C).
+  rdf_has(_, rdfs:subClassOf, C).
 rdfs_class0(C) :-
   rdf_has(_, rdfs:domain, C).
 rdfs_class0(C) :-
