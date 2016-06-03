@@ -9,6 +9,7 @@
     rc_cbd/2,        % ?S, +Opts
     rc_classes/0,
     rc_graphs/0,
+    rc_p/1,          % ?P
     rc_p/2,          % ?P, ?G
     rc_p_no/1,       %     ?G
     rc_p_no/2,       % ?P, ?G
@@ -52,6 +53,7 @@
    cand_flatten(r),
    rc_cbd(r),
    rc_cbd(r, +),
+   rc_p(r),
    rc_p(r, r),
    rc_p_no(r),
    rc_p_no(r, r),
@@ -138,11 +140,16 @@ rc_graphs :-
 
 
 
+%! rc_p(?P) is nondet.
 %! rc_p(?P, ?G) is nondet.
 
+rc_p(P) :-
+  rc_p(P, _).
+
+
 rc_p(P, G) :-
-  cand_datatype(P, G),
-  rc_p_no(P, G).
+  rc_p_no(P, G),
+  cand_datatype(P, G).
 
 
 
@@ -164,9 +171,15 @@ rc_p_no(G) :-
 
 rc_p_no(P, G) :-
   rdf_predicate(P, G),
-  aggregate_all(set(O), rdf(_, P, O, G), Os),
-  maplist({P,G}/[O,N]>>rdf_number_of_subjects(P, O, G, N), Os, Ns),
-  rdf_counts_resources_table0(["Object","#Occurrences"], Ns, Os).
+  (   \+ ((rdf(S1, P, O, G), rdf(S2, P, O, G), S1 \== S2))
+  ->  ansi_format(user_output, [fg(yellow)], "No reuse of object terms.~n", []),
+      once(findnsols(5, O, rdf(_, P, O, G), Os)),
+      maplist(singleton_list, Os, Rows),
+      rdf_print_table([head(["Object"])|Rows])
+  ;   aggregate_all(set(O), rdf(_, P, O, G), Os),
+      maplist({P,G}/[O,N]>>rdf_number_of_subjects(P, O, G, N), Os, Ns),
+      rdf_counts_resources_table0(["Object","#Occurrences"], Ns, Os)
+  ).
 
 
 

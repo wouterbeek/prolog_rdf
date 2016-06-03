@@ -20,7 +20,7 @@
 /** <module> RDF datatype
 
 @author Wouter Beek
-@version 2016/01-2016/02, 2016/04-2016/05
+@version 2016/01-2016/02, 2016/04-2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -31,6 +31,7 @@
 :- use_module(library(html/html_dom)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(sgml)).
@@ -106,7 +107,7 @@ rdf_datatypes_compat(P, Ds) :-
 
 
 rdf_datatypes_compat(P, G, Ds) :-
-  rdf_aggregate_all(set(Lex), rdf(_, P, Lex^^_, G), Lexs),
+  rdf_aggregate_all(set(Lex), rdf_db:rdf(_, P, literal(type(_,Lex)), G), Lexs),
   maplist(rdf_datatypes_compat0, Lexs, Dss),
   (Dss == [] -> Ds = [] ; ord_intersection(Dss, Ds)).
 

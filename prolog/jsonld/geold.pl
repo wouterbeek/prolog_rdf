@@ -1,11 +1,13 @@
 :- module(
   geold,
   [
-    geold_interpret/0,
+    geold_array2wkt/0,
     geold_print_feature/1, % ?Feature
     geold_rm_feature_collections/0,
-    geold_tuple/2, % +Source, -Tuple
-    geold_tuples/2 % +Source, -Tuples
+    geold_tuple/2,  % +Source, -Tuple
+    geold_tuple/4,  % +Source, +ExtraContext, +ExtraData, -Tuple
+    geold_tuples/2, % +Source, -Tuples
+    geold_tuples/4  % +Source, +ExtraContext, +ExtraData, -Tuples
   ]
 ).
 
@@ -44,6 +46,30 @@ http://www.opengis.net/ont/geosparql#asWKT
 
 
 
+%! geold_array2wkt is nondet.
+%
+% Transforms JSON-LD arrays (see module [[jsonld_array]]) into
+% Well-Known Text literals (see module [[wkt]]).
+
+geold_array2wkt :-
+  geold_geometry_class(C, WktName),
+  rdfs_instance(I, C),
+  rdf_has(I, geold:coordinates, Lex1^^tcco:array),
+  string_phrase(array(Array), Lex1),
+  string_phrase(wkt(WktName, Array), Lex2),
+  rdf_change(
+    I, geold:coordinates, Lex1^^tcco:array,
+    object(Lex2^^gis:wktLiteral)
+  ),
+  fail.
+geold_array2wkt.
+
+
+
+%! geold_context(-Context) is det.
+%
+% The default GeoJSON-LD context.
+
 geold_context(_{
   coordinates: _{'@id': 'geold:coordinates', '@type': '@array'},
   crs: 'geold:crs',
@@ -67,31 +93,16 @@ geold_context(_{
 
 
 
-%! geold_geometry_class(?C, ?D) is semidet.
+%! geold_geometry_class(?C) is semidet.
+%! geold_geometry_class(?C, ?Name) is semidet.
 
 geold_geometry_class(C) :-
   geold_geometry_class(C, _).
 
 
 geold_geometry_class(geold:'MultiPolygon', multipolygon).
+geold_geometry_class(geold:'Point', point).
 geold_geometry_class(geold:'Polygon', polygon).
-
-
-
-%! geold_interpret is nondet.
-
-geold_interpret :-
-  geold_geometry_class(C, WktName),
-  rdfs_instance(I, C),
-  rdf_has(I, geold:coordinates, Lex1^^tcco:array),
-  string_phrase(array(L), Lex1),
-  string_phrase(wkt(WktName, L), Lex2),
-  rdf_change(
-    I, geold:coordinates, Lex1^^tcco:array,
-    object(Lex2^^gis:wktLiteral)
-  ),
-  fail.
-geold_interpret.
 
 
 
@@ -104,27 +115,68 @@ geold_print_feature(I) :-
 
 
 %! geold_tuple(+Source, -Tuple) is det.
+%! geold_tuple(+Source, +ExtraContext, +ExtraData, -Tuple) is det.
 
 geold_tuple(Source, Tuple) :-
-  geold_context(Context),
-  json_read_any(Source, D),
-  jsonld_tuple_with_context(Context, D, Tuple).
+  geold_tuple(Source, _{}, _{}, Tuple).
+
+
+geold_tuple(Source, ExtraContext, ExtraData, Tuple) :-
+  geold_prepare(Source, ExtraContext, Context, ExtraData, Data),
+  jsonld_tuple_with_context(Context, Data, Tuple).
 
 
 
 %! geold_tuples(+Source, -Tuples) is det.
+%! geold_tuples(+Source, +ExtraContext, +ExtraData, -Tuples) is det.
 
 geold_tuples(Source, Tuples) :-
-  geold_context(Context),
-  json_read_any(Source, D),
+  geold_tuples(Source, _{}, Tuples).
+
+
+geold_tuples(Source, ExtraContext, ExtraData, Tuples) :-
+  geold_prepare(Source, ExtraContext, Context, ExtraData, Data),
   aggregate_all(
     set(Tuple),
-    jsonld_tuple_with_context(Context, D, Tuple),
+    jsonld_tuple_with_context(Context, Data, Tuple),
     Tuples
   ).
 
 
 
+%! geold_rm_feature_collections is det.
+%
+% Remove all GeoJSON FeatureCollections, since these are mere
+% artifacts.
+
 geold_rm_feature_collections :-
   rdf_rm_col(geold:features),
   rdf_rm(_, rdf:type, geold:'FeatureCollection').
+
+
+
+
+
+% HELPERS %
+
+%! geold_prepare(+Source, +ExtraContext, -Context, +ExtraData, -Data) is det.
+
+geold_prepare(Source, ExtraContext, Context, ExtraData, Data) :-
+  geold_prepare_context(ExtraContext, Context),
+  geold_prepare_data(Source, ExtraData, Data).
+
+
+
+%! geold_prepare_context(+ExtraContext, -Context) is det.
+
+geold_prepare_context(ExtraContext, Context) :-
+  geold_context(Context0),
+  Context = Context0.put(ExtraContext).
+
+
+
+%! geold_prepare_data(+Source, +ExtraData, -Data) is det.
+
+geold_prepare_data(Source, ExtraData, Data) :-
+  json_read_any(Source, Data0),
+  Data = Data0.put(ExtraData).

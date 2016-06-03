@@ -45,6 +45,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(solution_sequences)).
 
 :- meta_predicate
     rdf_parse_col(+, //).
@@ -142,15 +143,30 @@ rdf_flatten(P) :-
   rdf_flatten(P, _).
 
 
-rdf_flatten(P1, G) :-
-  rdf(X, P1, Y, G),
-  rdf_is_bnode(Y),
-  forall(rdf(Y, P2, Z, G), rdf_transaction((
-    rdf_assert(X, P2, Z, G),
-    rdf_retractall(X, P1, Y, G),
-    rdf_retractall(Y, P2, Z, G)
-  ))).
+rdf_flatten(P, G) :-
+  State = _{count:0},
+  rdf_flatten0(State, P, G),
+  rdf_msg(State.count, "flattened").
 
+
+rdf_flatten0(State, P, G) :-
+  rdf_flatten_cand(S, P, O, G),
+  rdf_flatten0(State, S, P, O, G),
+  fail.
+rdf_flatten0(_, _, _).
+
+
+rdf_flatten0(State, X, P1, Y, G) :-
+  forall(rdf(Y, P2, Z, G), (
+    rdf_assert(X, P2, Z, G),
+    rdf_retractall(Y, P2, Z, G)
+  )),
+  rdf_retractall(X, P1, Y, G),
+  dict_inc(count, State).
+
+
+rdf_flatten_cand(S, P, O, G) :-
+  distinct(rdf(S,P,O), (rdf(S, P, O, G), rdf_is_bnode(O))).
 
 
 

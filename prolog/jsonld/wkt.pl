@@ -1,7 +1,8 @@
 :- module(
   wkt,
   [
-    wkt//2 % ?D, +L
+    wkt//2,    % +Name, +Array
+    wkt_name/1 % ?Name
   ]
 ).
 
@@ -15,14 +16,14 @@ A **polygon** consists of exactly one Exterior linear ring and zero or
 more interior linear rings (Interiors).
 
 @author Wouter Beek
-@version 2016/05
+@version 2016/05-2016/06
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
-   wkt(r, +, ?, ?).
+   wkt(+, +, ?, ?).
 
 
 
@@ -151,12 +152,25 @@ point(_, [X,Y]) --> x(X), " ", y(Y).
 
 'triangle text representation'(ZM1, triangle(L)) --> "TRIANGLE ", 'z m'(ZM1, ZM2), 'triangle text body'(ZM2, L).
 
-wkt(D, L) -->
-  {
-    rdf_global_id(wkt:Name, D),
-    Comp =.. [Name,L]
-  },
+wkt(Name, Array) -->
+  {Comp =.. [Name,Array]},
   'well-known text representation'(_, Comp).
+
+wkt_name(circularstring).
+wkt_name(compoundcurve).
+wkt_name(curvepolygon).
+wkt_name(geometrycollection).
+wkt_name(linestring).
+wkt_name(multicurve).
+wkt_name(multilinestring).
+wkt_name(multipoint).
+wkt_name(multipolygon).
+wkt_name(multisurface).
+wkt_name(point).
+wkt_name(polygon).
+wkt_name(polyhedralsurface).
+wkt_name(tin).
+wkt_name(triangle).
 
 'well-known text representation'(ZM, L) --> 'point text representation'(ZM, L), !.
 'well-known text representation'(ZM, L) --> 'curve text representation'(ZM, L), !.
