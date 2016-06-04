@@ -2,7 +2,9 @@
   geold,
   [
     geold_array2wkt/0,
-    geold_print_feature/1, % ?Feature
+    geold_flatten_geometry/0,
+    geold_flatten_geometry/1, % ?G
+    geold_print_feature/1,    % ?Feature
     geold_rm_feature_collections/0,
     geold_tuple/2,  % +Source, -Tuple
     geold_tuple/4,  % +Source, +ExtraContext, +ExtraData, -Tuple
@@ -51,20 +53,30 @@ http://www.opengis.net/ont/geosparql#asWKT
     gis:resource_shape_hook/3.
 
 gis:resource_shape_hook(Res, Shape, G) :-
-  rdf_has(Res, geold:coordinates, Lex^^D, _, G),
+  rdf_has(Res, geold:geometry, Lex^^D, _, G),
   rdf_global_id(wkt:Name, D),
+  gtrace,
   string_phrase(wkt(Name, Array), Lex),
   array2shape(Array, Name, Shape).
 
 
-array2shape(L, linestring, linestring(L)) :- !.
-array2shape(L, multipolygon, polygon(L)) :- !.
+%polygon([[[point([[5.472025742797797,51.35046476465081,5.472040381482079,51.350393787984586],[5.472096228698165,51.350398304507394,5.472081590099213,51.3504692811806],[5.472025742797797,51.35046476465081]],[[5.472031650727821,51.35046147945612,5.472075136148579,51.35046455782218],[5.472087654571696,51.35040358714889,5.472044585269217,51.35040039163047],[5.472031650727821,51.35046147945612]])]]])
+%polygon([[point(52.1335811883338,4.24342337208216),point(52.1240808418951,4.23342263416468),point(52.1827499743908,3.87006309399112),point(52.0599123264119,3.27368644149239),point(52.076579608387,3.2736864626958),point(52.1994172644824,3.87006311490954),point(52.1335811883338,4.24342337208216)]])
+
+array2shape(L1, linestring, linestring(L2)) :- !,
+  line2points(L1, L2).
+array2shape(L1, multipolygon, polygon([L2])) :- !,
+  line2points(L1, L2).
 array2shape([X,Y], point, point(X,Y)) :- !.
 array2shape([X,Y,Z], point, point(X,Y,Z)) :- !.
 array2shape([X,Y,Z,M], point, point(X,Y,Z,M)) :- !.
-array2shape(L, polygon, polygon([L|_])) :- !.
+array2shape(L1, polygon, polygon([L2])) :- !,
+  line2points(L1, L2).
 
 
+line2points([], []) :- !.
+line2points([X,Y|T1], [point(X,Y)|T2]) :-
+  line2points(T1, T2).
 
 
 
@@ -116,6 +128,30 @@ geold_context(_{
   type: '@type',
   '@vocab': 'http://example.org/'
 }).
+
+
+
+%! geold_flatten_geometry is det.
+
+geold_flatten_geometry :-
+  geold_flatten_geometry(_).
+
+
+geold_flatten_geometry(G) :-
+  geold_flatten_geometry0(_{count:0}, G).
+
+
+geold_flatten_geometry0(State, G) :-
+  rdf(S, geold:geometry, B, G),
+  rdf(B, geold:coordinates, Lit, G),
+  rdf_assert(S, geold:geometry, Lit, G),
+  rdf_retractall(S, geold:geometry, B, G),
+  rdf_retractall(B, geold:coordinates, Lit, G),
+  rdf_retractall(B, rdf:type, _, G),
+  dict_inc(count, State),
+  fail.
+geold_flatten_geometry0(State, _) :-
+  rdf_update:rdf_msg(State.count, "flattened").
 
 
 

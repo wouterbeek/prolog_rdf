@@ -209,10 +209,10 @@ rdf_call_on_tuples0(Goal_5, Opts1, In, M, M) :-
   get_dict('llo:base_iri', M, BaseIri),
   jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
   rdf_format_iri(Format, FormatIri),
-  uuid_no_hyphen(Uuid),
-  atomic_list_concat(['_',Uuid,''], :, BPrefix),
+  %uuid_no_hyphen(Uuid),
+  %atomic_list_concat(['_',Uuid,''], :, BPrefix),
   Opts2 = [
-    anon_prefix(BPrefix),
+    %anon_prefix(BPrefix),
     base(BaseIri),
     base_iri(BaseIri),
     base_uri(BaseIri),
