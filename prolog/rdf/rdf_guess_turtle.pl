@@ -9,7 +9,7 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/12, 2016/02-2016/03
+@version 2015/12, 2016/02-2016/03, 2016/06
 */
 
 :- use_module(library(dcg/dcg_atom)).
@@ -19,11 +19,7 @@
 :- use_module(library(typecheck)).
 
 :- meta_predicate
-    turtle_string_codes(//,?,?).
-
-:- predicate_options(rdf_guess_turtle//3, 3, [
-     default_rdf_format(+turtle_format)
-   ]).
+    turtle_string_codes(//, ?, ?).
 
 
 
@@ -72,16 +68,16 @@ rdf_guess_turtle(_, F, Opts) -->
   {guess_turtle_format([trig], F, Opts)}.
 % Names graph.
 rdf_guess_turtle(_, F, Opts) -->
-  turtle_iriref(_), *(ws), "{", !,
+  turtle_iriref(_), *(bs), "{", !,
   {guess_turtle_format([trig], F, Opts)}.
 % Tuple.
 rdf_guess_turtle(_, F, Opts) -->
   turtle_subject(Fs1),
-  *(ws),
+  *(bs),
   turtle_predicate(Fs2),
-  *(ws),
+  *(bs),
   turtle_object(Fs3),
-  *(ws),
+  *(bs),
   (   % End of a triple.
       "."
   ->  {ord_union([Fs1,Fs2,Fs3], Fs)}
@@ -93,7 +89,7 @@ rdf_guess_turtle(_, F, Opts) -->
   ->  {ord_union([Fs1,Fs2,Fs3,[nquads,ntriples]], Fs)}
   ;   % End of a quad.
       turtle_graph(Fs4),
-      *(ws),
+      *(bs),
       "."
   ->  {ord_union([Fs1,Fs2,Fs3,Fs4,[ntriples,turtle]], Fs)}
   ),
@@ -124,9 +120,9 @@ turtle_ltag --> *(nonblank).
 turtle_object(Fs) --> turtle_iriref(Fs), !.
 turtle_object([]) --> turtle_bnode, !.
 turtle_object(Fs) -->
-  turtle_string(Fs1), *(ws),
+  turtle_string(Fs1), *(bs),
   (   "^^"
-  ->  *(ws), turtle_iriref(Fs2)
+  ->  *(bs), turtle_iriref(Fs2)
   ;   "@"
   ->  turtle_ltag, {Fs2 = []}
   ;   {Fs2 = []}
@@ -159,8 +155,8 @@ turtle_string_codes(_)   --> "".
 turtle_subject(Fs) --> turtle_iriref(Fs), !.
 turtle_subject([]) --> turtle_bnode.
 
-ws --> blank, !.
-ws, " " --> "#", ..., (eol ; eos), !.
+bs0 --> bs, !.
+bs0, " " --> "#", ..., (eol ; eos), !.
 
 turtle_keyword --> atom_lower(A), !, {turtle_keyword(A)}.
 

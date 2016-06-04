@@ -23,17 +23,19 @@ http://www.opengis.net/ont/geosparql#asWKT
 :- use_module(library(aggregate)).
 :- use_module(library(cli/rc)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(geo/wkt)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_array)).
 :- use_module(library(jsonld/jsonld_read)).
+:- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
-:- rdf_register_prefix(gis, 'http://www.opengis.net/ont/geosparql#').
 :- rdf_register_prefix(tcco, 'http://triply.cc/ontology/').
 :- rdf_register_prefix(wkt, 'http://geojsonld.com/wkt#').
 
@@ -41,6 +43,26 @@ http://www.opengis.net/ont/geosparql#asWKT
    geold_geometry_class(r),
    geold_geometry_class(r, ?),
    geold_print_feature(r).
+
+:- dynamic
+    gis:resource_shape_hook/3.
+
+:- multifile
+    gis:resource_shape_hook/3.
+
+gis:resource_shape_hook(Res, Shape, G) :-
+  rdf_has(Res, geold:coordinates, Lex^^D, _, G),
+  rdf_global_id(wkt:Name, D),
+  string_phrase(wkt(Name, Array), Lex),
+  array2shape(Array, Name, Shape).
+
+
+array2shape(L, linestring, linestring(L)) :- !.
+array2shape(L, multipolygon, polygon(L)) :- !.
+array2shape([X,Y], point, point(X,Y)) :- !.
+array2shape([X,Y,Z], point, point(X,Y,Z)) :- !.
+array2shape([X,Y,Z,M], point, point(X,Y,Z,M)) :- !.
+array2shape(L, polygon, polygon([L|_])) :- !.
 
 
 
@@ -52,17 +74,21 @@ http://www.opengis.net/ont/geosparql#asWKT
 % Well-Known Text literals (see module [[wkt]]).
 
 geold_array2wkt :-
-  geold_geometry_class(C, WktName),
+  geold_array2wkt(_{count:0}).
+
+
+geold_array2wkt(State) :-
+  geold_geometry_class(C, Name),
   rdfs_instance(I, C),
   rdf_has(I, geold:coordinates, Lex1^^tcco:array),
   string_phrase(array(Array), Lex1),
-  string_phrase(wkt(WktName, Array), Lex2),
-  rdf_change(
-    I, geold:coordinates, Lex1^^tcco:array,
-    object(Lex2^^gis:wktLiteral)
-  ),
+  string_phrase(wkt(Name, Array), Lex2),
+  rdf_global_id(wkt:Name, D),
+  rdf_change(I, geold:coordinates, Lex1^^tcco:array, object(Lex2^^D)),
+  dict_inc(count, State),
   fail.
-geold_array2wkt.
+geold_array2wkt(State) :-
+  ansi_format(user_output, [fg(yellow)], "~D arrays to WKT.~n", [State.count]).
 
 
 
