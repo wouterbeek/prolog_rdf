@@ -23,10 +23,10 @@ http://www.opengis.net/ont/geosparql#asWKT
 :- use_module(library(aggregate)).
 :- use_module(library(cli/rc)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(geo/wkt)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_array)).
 :- use_module(library(jsonld/jsonld_read)).
-:- use_module(library(jsonld/wkt)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdfs/rdfs_ext)).

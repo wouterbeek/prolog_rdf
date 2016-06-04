@@ -107,9 +107,17 @@ rdf_datatypes_compat(P, Ds) :-
 
 
 rdf_datatypes_compat(P, G, Ds) :-
-  rdf_aggregate_all(set(Lex), rdf_db:rdf(_, P, literal(type(_,Lex)), G), Lexs),
+  rdf_aggregate_all(set(Lex), lexical_form0(P, Lex, G), Lexs),
   maplist(rdf_datatypes_compat0, Lexs, Dss),
   (Dss == [] -> Ds = [] ; ord_intersection(Dss, Ds)).
+
+lexical_form0(P, Lex, G) :-
+  rdf_db:rdf(_, P, literal(type(_,Lex)), G).
+lexical_form0(P, Lex, G) :-
+  rdf_db:rdf(_, P, literal(lang(_,Lex)), G).
+lexical_form0(P, Lex, G) :-
+  rdf_db:rdf(_, P, literal(Lex), G),
+  atom(Lex).
 
 rdf_datatypes_compat0(Lex, Ds) :-
   aggregate_all(set(D), rdf_datatype_compat(Lex, D), Ds).

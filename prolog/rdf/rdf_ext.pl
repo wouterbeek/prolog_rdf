@@ -20,6 +20,7 @@
     rdf_create_iri/3,       % +Prefix, +SubPaths, -Iri
     rdf_expect_graph/1,     % ?G
     rdf_graph_to_triples/2, % ?G, -Triples
+    rdf_has/5,              % ?S, ?P, ?O, ?Q, ?G
     rdf_image/2,            % +S, -Img
     rdf_is_ground_quad/1,   % @Term
     rdf_is_ground_triple/1, % @Term
@@ -28,7 +29,8 @@
     rdf_langstring/3,       % ?S, ?P, -Lit
     rdf_list/3,             % ?S, ?P, -L
     rdf_nextto_cl/2,        % ?X, ?Y
-    rdf_pref_string/3,      % ?S, ?P, -Lit
+    rdf_pref_lex/3,         % ?S, ?P, ?Lex
+    rdf_pref_string/3,      % ?S, ?P, ?Lit
     rdf_reification/3,      % ?S, ?P, ?O
     rdf_reification/4,      % ?S, ?P, ?O, -Stmt
     rdf_retractall/1,       % +Tuple
@@ -46,7 +48,7 @@
 
 @author Wouter Beek
 @compat RDF 1.1
-@version 2015/12-2016/05
+@version 2015/12-2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -88,10 +90,12 @@
    rdf_assert_rev(o, r, r, r),
    rdf_expect_graph(r),
    rdf_graph_to_triples(r, -),
+   rdf_has(r, r, o, r, r),
    rdf_image(r, -),
    rdf_langstring(r, r, o),
    rdf_list(r, r, -),
    rdf_nextto_cl(o, o),
+   rdf_pref_lex(r, r, ?),
    rdf_pref_string(r, r, o),
    rdf_pref_string(r, r, -, o),
    rdf_pref_string(r, r, -, -, o),
@@ -261,6 +265,14 @@ rdf_graph_to_triples(G, Triples) :-
 
 
 
+%! rdf_has(?S, ?P, ?O, -Q, ?G) is nondet.
+
+rdf_has(S, P, O, Q, G) :-
+  rdf_has(S, P, O, Q),
+  rdf(S, Q, O, G).
+
+
+
 %! rdf_image(+S, -Image:iri) is nondet.
 
 rdf_image(S, V) :-
@@ -334,13 +346,27 @@ rdf_nextto_cl(X, Y) :-
 
 
 
-%! rdf_pref_string(?S, ?P, -Lit) is nondet.
+%! rdf_pref_lex(?S, ?P, ?Lex) is nondet.
+%
+% Like rdf_pref_string, but returns only the lexical form.
+
+rdf_pref_lex(S, P, Lex) :-
+  rdf_pref_string(S, P, Lit),
+  rdf_literal_lex(Lit, Lex).
+
+
+
+%! rdf_pref_string(?S, ?P, ?Lit) is nondet.
+%
 % Returns, in this exact order:
-%   1. The language-tagged strings that match the given
-%      language priority list; returning results for higher
-%      priority language earlier.
+%
+%   1. The language-tagged strings that match the given language
+%   priority list; returning results for higher priority language
+%   earlier.
+%
 %   2. The language-tagged strings that do not match the given
-%      language priority list.
+%   language priority list.
+%
 %   3. XSD strings.
 
 rdf_pref_string(S, P, Lit) :-
