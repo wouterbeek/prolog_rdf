@@ -55,7 +55,6 @@ http://www.opengis.net/ont/geosparql#asWKT
 gis:resource_shape_hook(Res, Shape, G) :-
   rdf_has(Res, geold:geometry, Lex^^D, _, G),
   rdf_global_id(wkt:Name, D),
-  gtrace,
   string_phrase(wkt(Name, Array), Lex),
   array2shape(Array, Name, Shape).
 
@@ -64,19 +63,17 @@ gis:resource_shape_hook(Res, Shape, G) :-
 %polygon([[point(52.1335811883338,4.24342337208216),point(52.1240808418951,4.23342263416468),point(52.1827499743908,3.87006309399112),point(52.0599123264119,3.27368644149239),point(52.076579608387,3.2736864626958),point(52.1994172644824,3.87006311490954),point(52.1335811883338,4.24342337208216)]])
 
 array2shape(L1, linestring, linestring(L2)) :- !,
-  line2points(L1, L2).
-array2shape(L1, multipolygon, polygon([L2])) :- !,
-  line2points(L1, L2).
+  maplist(point0, L1, L2).
+array2shape([L1], multipolygon, polygon([L2])) :- !,
+  maplist(point0, L1, L2).
 array2shape([X,Y], point, point(X,Y)) :- !.
 array2shape([X,Y,Z], point, point(X,Y,Z)) :- !.
 array2shape([X,Y,Z,M], point, point(X,Y,Z,M)) :- !.
-array2shape(L1, polygon, polygon([L2])) :- !,
-  line2points(L1, L2).
+array2shape([L1], polygon, polygon([L2])) :- !,
+  maplist(point0, L1, L2).
 
 
-line2points([], []) :- !.
-line2points([X,Y|T1], [point(X,Y)|T2]) :-
-  line2points(T1, T2).
+point0([X,Y], point(X,Y)).
 
 
 

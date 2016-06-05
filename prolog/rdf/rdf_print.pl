@@ -381,7 +381,8 @@ dcg_print_subjects0(I1, [S-POs|Groups1], Opts) -->
 dcg_print_predicates1(I, [P-Os], Opts) --> !,
   " ",
   dcg_print_predicate(P, Opts),
-  dcg_print_objects1(I, Os, Opts).
+  dcg_print_objects1(I, Os, Opts),
+  " .".
 dcg_print_predicates1(I, Groups, Opts) -->
   dcg_print_predicates2(I, Groups, Opts).
 

@@ -8,6 +8,7 @@
     rc_cbd/1,        % ?S
     rc_cbd/2,        % ?S, +Opts
     rc_classes/0,
+    rc_graph/1,      % ?G
     rc_graphs/0,
     rc_p/1,          % ?P
     rc_p/2,          % ?P, ?G
@@ -53,6 +54,7 @@
    cand_flatten(r),
    rc_cbd(r),
    rc_cbd(r, +),
+   rc_graph(r),
    rc_p(r),
    rc_p(r, r),
    rc_p_no(r),
@@ -129,6 +131,14 @@ rc_cbd(S, Opts) :-
 rc_classes :-
   findall(N-C, (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
   rdf_pairs_table0(["Class","#Instances"], Pairs).
+
+
+
+%! rc_graph(?G) is nondet.
+
+rc_graph(G) :-
+  rdf_graph(G),
+  rdf_print_graph(G).
 
 
 
