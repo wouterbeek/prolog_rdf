@@ -17,6 +17,8 @@
 :- use_module(library(fca/rdf_fca_viz)).
 %/gen
 :- use_module(library(gen/gen_ntuples)).
+%/geo
+:- use_module(library(geo/wgs84)).
 %/graph
 :- use_module(library(graph/rdf_gml)).
 %/hdt

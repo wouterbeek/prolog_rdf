@@ -190,7 +190,7 @@ geold_tuple(Source, ExtraContext, ExtraData, Tuple) :-
 %! geold_tuples(+Source, +ExtraContext, +ExtraData, -Tuples) is det.
 
 geold_tuples(Source, Tuples) :-
-  geold_tuples(Source, _{}, Tuples).
+  geold_tuples(Source, _{}, _{}, Tuples).
 
 
 geold_tuples(Source, ExtraContext, ExtraData, Tuples) :-
