@@ -319,7 +319,7 @@ gen_graph(G) :-
 % TERMS BY KIND %
 
 gen_bnode(State, B) :-
-  rdf_bnode_name(B, Name),
+  rdf_bnode_map(B, Name),
   write(State.bprefix),
   write(Name).
 
