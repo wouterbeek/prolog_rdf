@@ -18,7 +18,7 @@
 /** <module> Generate N-Tuples, i.e., N-Triples and N-Quads
 
 @author Wouter Beek
-@version 2016/03-2016/05
+@version 2016/03-2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -29,6 +29,7 @@
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(option)).
 :- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
@@ -52,6 +53,7 @@
 % SINGULAR STATEMENTS %
 
 %! gen_nquad(+S, +P, +O, +G) is det.
+%
 % Write a fully instantiated quadruple to current output.
 
 gen_nquad(S, P, O, G) :-
@@ -61,6 +63,7 @@ gen_nquad(S, P, O, G) :-
 
 %! gen_ntriple(+S, +P, +O) is det.
 %! gen_ntriple(+S, +P, +O, +G) is det.
+%
 % Write a fully instantiated triple to current output.
 
 gen_ntriple(S, P, O) :-
@@ -139,11 +142,11 @@ gen_ntuple(State, rdf(S,P,O,G)) :-
 
 
 gen_ntuple(State, S, P, O, G) :-
-  gen_subject(S),
+  gen_subject(State, S),
   put_char(' '),
   gen_predicate(P),
   put_char(' '),
-  gen_object(O),
+  gen_object(State, O),
   put_char(' '),
   (   State.rdf_format == ntriples
   ->  dict_inc(triples, State)
@@ -164,6 +167,7 @@ gen_ntuple(Sink, State, S, P, O, G) :-
 
 %! gen_ntuples(+Tuples, +Format, +Opts) is det.
 %! gen_ntuples(?S, ?P, ?O, ?G, +Opts) is det.
+%
 % Options are passed to gen_ntuples_begin/2 and gen_ntuples_end/2.
 
 gen_ntuples(Tuples, Format, Opts1) :-
@@ -194,7 +198,7 @@ gen_ntuples(S, P, O, G, Opts) :-
 %! gen_emtpy_state(-State) is det.
 %! gen_emtpy_state(+Format, -State) is det.
 
-gen_empty_state(_{bnode: 0, bprefix: '_:', quads: 0, triples: 0}).
+gen_empty_state(_{bprefix: '_:', quads: 0, triples: 0}).
 
 
 gen_empty_state(Format, State) :-
@@ -204,11 +208,18 @@ gen_empty_state(Format, State) :-
 
 
 %! gen_ntuples_begin(-State, +Opts) is det.
+%
 % The following options are supported:
-%   * base_iri(+iri)
-%   * rdf_format(+oneof([nquads,ntriples]))
-%     Default is `nquads`.
-%   * warn(+stream)
+%
+%   * base_iri(+iri) The base IRI against which relative IRIs are
+%   resolved.
+%
+%   * rdf_format(+oneof([nquads,ntriples])) The RDF serialization
+%   format that is used.  Possible values are `nquads` (default) for
+%   N-Quads 1.1 and `ntriples` for N-Triples 1.1.
+%
+%   * warn(+stream) The output stream, if any, where warnings are
+%   written to.
 
 gen_ntuples_begin(State2, Opts) :-
   % RDF serialization format
@@ -273,10 +284,10 @@ gen_ntuples_for_object(State, G, S, P, O) :-
 
 % TERMS BY POSITION %
 
-gen_subject(B) :-
+gen_subject(State, B) :-
   rdf_is_bnode(B), !,
-  gen_bnode(B).
-gen_subject(Iri) :-
+  gen_bnode(State, B).
+gen_subject(_, Iri) :-
   gen_iri(Iri).
 
 
@@ -286,14 +297,14 @@ gen_predicate(P) :-
 
 
 
-gen_object(B) :-
+gen_object(State, B) :-
   rdf_is_bnode(B), !,
-  gen_bnode(B).
-gen_object(Iri) :-
+  gen_bnode(State, B).
+gen_object(_, Iri) :-
   rdf_is_iri(Iri), !,
   gen_iri(Iri).
 % Literal term comes last to support modern and legacy formats.
-gen_object(Lit) :-
+gen_object(_, Lit) :-
   gen_literal(Lit), !.
 
 
@@ -307,8 +318,10 @@ gen_graph(G) :-
 
 % TERMS BY KIND %
 
-gen_bnode(B) :-
-  write(B).
+gen_bnode(State, B) :-
+  rdf_bnode_name(B, Name),
+  write(State.bprefix),
+  write(Name).
 
 
 

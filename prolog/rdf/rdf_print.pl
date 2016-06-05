@@ -78,7 +78,7 @@ Print RDF statements.
 @author Wouter Beek
 @tbd Turtle container abbreviation.
 @tbd Turtle collection abbreviation.
-@version 2016/03-2016/05
+@version 2016/03-2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -91,6 +91,7 @@ Print RDF statements.
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
@@ -146,7 +147,6 @@ Print RDF statements.
    rdf_print_triples(r, r, o, r, +).
 
 :- dynamic
-    bnode_map/2,
     var_map/2.
 
 
@@ -528,15 +528,8 @@ dcg_print_bnode(B, Opts) -->
   get_dict(bnode_map, Opts, false), !,
   dcg_print_truncated_atom(B, Opts).
 dcg_print_bnode(B, _) -->
-  (   {bnode_map(B, N)}
-  ->  ""
-  ;   {
-        flag(bnode_counter, N0, N0 + 1),
-        N is N0 + 1,
-        assert(bnode_map(B, N))
-      }
-  ),
-  "_:", integer(N).
+  {rdf_bnode_map(B, Name)},
+  "_:", integer(Name).
 
 
 
