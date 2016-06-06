@@ -35,6 +35,7 @@
     rdf_reification/4,      % ?S, ?P, ?O, -Stmt
     rdf_retractall/1,       % +Tuple
     rdf_root/1,             % ?Root
+    rdf_root/2,             % ?Root, ?G
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
     rdf_tree/2,             % ?S, -Tree
@@ -103,6 +104,7 @@
    rdf_reification(r, r, o),
    rdf_reification(r, r, o, -),
    rdf_root(r),
+   rdf_root(r, r),
    rdf_string(r, -),
    rdf_tree(r, -),
    rdf_triples(r, r, o, -).
@@ -412,9 +414,14 @@ rdf_retractall(rdf(S,P,O,G)) :-
 
 
 %! rdf_root(?Root) is nondet.
+%! rdf_root(?Root, ?G) is nondet.
 
 rdf_root(Root) :-
-  rdf_subject(Root),
+  rdf_root(Root, _).
+
+
+rdf_root(Root, G) :-
+  rdf_subject(Root, G),
   \+ rdf(_, _, Root).
 
 

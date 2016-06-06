@@ -34,6 +34,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(list_ext)).
+:- use_module(library(option)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_cbd)).
@@ -210,7 +211,9 @@ rc_root(Node) :-
 
 
 rc_root(Root, Opts) :-
-  rdf_root(Root),
+  option(graph(G0), Opts, _VAR),
+  rdf_global_id(G0, G),
+  rdf_root(Root, G),
   rdf_tree(Root, Triples),
   dcg_with_output_to(current_output, dcg_print_triples(Triples, Opts)).
 

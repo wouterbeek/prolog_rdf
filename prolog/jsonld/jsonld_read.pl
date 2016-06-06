@@ -199,8 +199,8 @@ jsonld_to_subject(_, L, S, L) :-
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
 
 % Implementation-specific hooks.
-jsonld_tuple(Context, S, P, ODef, LTag, Val, Tuple) :-
-  jsonld_read:jsonld_tuple_hook(Context, S, P, ODef, LTag, Val, Tuple), !.
+%jsonld_tuple(Context, S, P, ODef, LTag, Val, Tuple) :-
+%  jsonld_read:jsonld_tuple_hook(Context, S, P, ODef, LTag, Val, Tuple), !.
 % Null value.
 jsonld_tuple(_, _, _, _, _, null, _) :- !,
   fail.

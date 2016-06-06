@@ -1,5 +1,5 @@
 :- module(
-  wgs84,
+  rdf_wgs84,
   [
     wgs84_alt/2,      % ?Res, ?Alt
     wgs84_alt/3,      % ?Res, ?Alt, ?G
