@@ -3,6 +3,8 @@
   [
     rdf_change/4,          % +S, +P, +O, +Action
     rdf_change_datatype/2, % +P, +D
+    rdf_change_iri/5,      % ?S, ?P, ?O, +Positions, :Dcg_0
+    rdf_change_lex/2,      % +P, Dcg_0
     rdf_cp/2,              % +FromG, +ToG
     rdf_cp/5,              % +FromG, ?S, ?P, ?O, +ToG
     rdf_inc/2,             % +S, +P
@@ -11,7 +13,6 @@
     rdf_flatten/2,         % +P, ?G
     rdf_mv/2,              % +FromG, +ToG
     rdf_mv/5,              % +FromG, ?S, ?P, ?O, +ToG
-    rdf_parse_col/2,       % +P, Dcg_0
     rdf_rm/3,              % ?S, ?P, ?O
     rdf_rm/4,              % ?S, ?P, ?O, ?G
     rdf_rm_cell/3,         % +S, +P, +O
@@ -48,11 +49,16 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(solution_sequences)).
 
 :- meta_predicate
-    rdf_parse_col(+, //).
+    rdf_change_iri(?, ?, ?, +, //),
+    rdf_change_iri0(+, +, //, -),
+    rdf_change_iri0(?, ?, ?, +, //, +),
+    rdf_change_lex(+, //).
 
 :- rdf_meta
    rdf_change(r, r, o, t),
    rdf_change_datatype(r, r),
+   rdf_change_iri(r, r, o, +, :),
+   rdf_change_lex(r, :),
    rdf_cp(r, r),
    rdf_cp(r, r, r, o, r),
    rdf_inc(r, r),
@@ -61,7 +67,6 @@ Higher-level update operations performed on RDF data.
    rdf_flatten(r, r),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
-   rdf_parse_col(r, :),
    rdf_rm(r, r, o),
    rdf_rm(r, r, o, r),
    rdf_rm_cell(r, r, o),
@@ -114,6 +119,62 @@ rdf_change_datatype(P, D2) :-
     dict_inc(count, State)
   )),
   rdf_msg(State.count, "changed datatype").
+
+
+
+%! rdf_change_iri(?S, ?P, ?O, +Positions:list(oneof([+,-])), :Dcg_0) is det.
+
+rdf_change_iri(S1, P1, O1, Pos, Dcg_0) :-
+  rdf_change_iri0(S1, P1, O1, Pos, Dcg_0, _{count: 0}).
+
+
+rdf_change_iri0(S1, P1, O1, Pos, Dcg_0, State) :-
+  rdf(S1, P1, O1),
+  rdf_change_iri0(rdf(S1,P1,O1), Pos, Dcg_0, rdf(S2,P2,O2)),
+  (   rdf(S1,P1,O1) == rdf(S2,P2,O2)
+  ->  true
+  ;   rdf_transaction((
+        rdf_retractall(S1, P1, O1),
+        rdf_assert(S2, P2, O2)
+      )),
+      dict_inc(count, State)
+  ),
+  fail.
+rdf_change_iri0(_, _, _, _, _, State) :-
+  rdf_msg(State.count, "changed IRI").
+
+
+rdf_change_iri0(rdf(S1,P1,O1), [PosS,PosP,PosO], Dcg_0, rdf(S2,P2,O2)) :-
+  (PosS == +, rdf_is_iri(S1) -> atom_phrase(Dcg_0, S1, S2) ; S2 = S1),
+  (PosP == +, rdf_is_iri(P1) -> atom_phrase(Dcg_0, P1, P2) ; P2 = P1),
+  (PosO == +, rdf_is_iri(O1) -> atom_phrase(Dcg_0, O1, O2) ; O2 = O1).
+  
+  
+
+%! rdf_change_lex(+P, :Dcg_0) is det.
+%
+% Change the lexical form of the literals that appear with predicate
+% P.  Dcg_0 is used to parse the old lexical form and generate the new
+% one.
+%
+% @tbd This does not work with a graph argument.
+% @tbd Explain what rdf_update/4 does in terms of graphs.
+
+rdf_change_lex(P, Dcg_0) :-
+  forall(rdf(_, P, Lit), (
+    rdf_literal(Lit, D, Lex1, _),
+    string_phrase(Dcg_0, Lex1, Lex2),
+    rdf_datatype_compat(Lex2, D)
+  )),
+  State = _{count:0},
+  forall(rdf(S, P, Lit1), (
+    rdf_literal(Lit1, D, Lex1, LTag),
+    string_phrase(Dcg_0, Lex1, Lex2),
+    rdf_literal(Lit2, D, Lex2, LTag),
+    rdf_change(S, P, Lit1, object(Lit2)),
+    dict_inc(count, State)
+  )),
+  rdf_msg(State.count, "changed lexical form").
 
 
 
@@ -207,33 +268,6 @@ rdf_mv(FromG, S, P, O, ToG) :-
     dict_inc(count, State)
   )),
   rdf_msg(State.count, "moved").
-
-
-
-%! rdf_parse_col(+P, :Dcg_0) is det.
-%
-% Change the lexical form of the literals that appear with predicate
-% P.  Dcg_0 is used to parse the or lexical form and generate the new
-% one.
-%
-% @tbd This does not work with a graph argument.
-% @tbd Explain what rdf_update/4 does in terms of graphs.
-
-rdf_parse_col(P, Dcg_0) :-
-  forall(rdf(_, P, Lit), (
-    rdf_literal(Lit, D, Lex1, _),
-    string_phrase(Dcg_0, Lex1, Lex2),
-    rdf_datatype_compat(Lex2, D)
-  )),
-  State = _{count:0},
-  forall(rdf(S, P, Lit1), (
-    rdf_literal(Lit1, D, Lex1, LTag),
-    string_phrase(Dcg_0, Lex1, Lex2),
-    rdf_literal(Lit2, D, Lex2, LTag),
-    rdf_change(S, P, Lit1, object(Lit2)),
-    dict_inc(count, State)
-  )),
-  rdf_msg(State.count, "changed lexical form").
 
 
 

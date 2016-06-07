@@ -43,16 +43,16 @@ Automatic conversion from CSV to RDF.
 %! csv2rdf_file(+File1, +File2, +Opts) is det.
 %
 % The following options are supported:
-%   * abox_alias(+atom)
-%     Default is `ex'.
-%   * header(+list)
-%     A list of RDF properties that represent the columns.
-%     This is used when there are no column labels in the CSV file.
-%   * tbox_alias(+atom)
-%     Uses the header labels as specified in the first row of the CSV file.
-%     The header labels will be turned into RDF properties within the given
-%     namespace.
-%     Default is `ex`.
+%
+%   * abox_alias(+atom) Default is `ex`.
+%
+%   * header(+list) A list of RDF properties that represent the
+%   columns.  This is used when there are no column labels in the CSV
+%   file.
+%
+%   * tbox_alias(+atom) Uses the header labels as specified in the
+%   first row of the CSV file.  The header labels will be turned into
+%   RDF properties within the given namespace.  Default is `ex`.
 
 csv2rdf_file(File1) :-
   file_change_extension(File1, nt, File2),
@@ -73,6 +73,13 @@ csv2rdf_file(File1, File2, Opts1) :-
   ).
 
 
+
+%! csv2rdf_graph(+File, +G) is det.
+%! csv2rdf_graph(+File, +G, +Opts) is det.
+%
+% Converts the file CSV File into RDF that is asserted into the given
+% graph G.
+
 csv2rdf_graph(File, G) :-
   csv2rdf_graph(File, G, []).
 
@@ -81,7 +88,7 @@ csv2rdf_graph(File, G, Opts1) :-
   csv2rdf_options(Opts1, D, Opts2),
   call_on_stream(
     File,
-    {D,Opts2}/[In,M,M]>>csv2rdf_1(In, graph(G), D, Opts2),
+    {G,D,Opts2}/[In,M,M]>>csv2rdf_1(In, graph(G), D, Opts2),
     Opts1
   ).
 
