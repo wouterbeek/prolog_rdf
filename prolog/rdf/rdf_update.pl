@@ -1,28 +1,30 @@
 :- module(
   rdf_update,
   [
-    rdf_change/4,          % +S, +P, +O, +Action
-    rdf_change_datatype/2, % +P, +D
-    rdf_change_iri/5,      % ?S, ?P, ?O, +Positions, :Dcg_0
-    rdf_change_lex/2,      % +P, Dcg_0
-    rdf_cp/2,              % +FromG, +ToG
-    rdf_cp/5,              % +FromG, ?S, ?P, ?O, +ToG
-    rdf_inc/2,             % +S, +P
-    rdf_inc/3,             % +S, +P, +G
-    rdf_flatten/1,         % +P
-    rdf_flatten/2,         % +P, ?G
-    rdf_mv/2,              % +FromG, +ToG
-    rdf_mv/5,              % +FromG, ?S, ?P, ?O, +ToG
-    rdf_rm/3,              % ?S, ?P, ?O
-    rdf_rm/4,              % ?S, ?P, ?O, ?G
-    rdf_rm_cell/3,         % +S, +P, +O
-    rdf_rm_cell/4,         % +S, +P, +O, ?G
-    rdf_rm_col/1,          % +P
-    rdf_rm_col/2,          % +P, +G
-    rdf_rm_error/3,        % ?S, ?P, ?O
-    rdf_rm_error/4,        % ?S, ?P, ?O, ?G
-    rdf_rm_null/1,         % +Null
-    rdf_rm_null/2          % +Null, +G
+    rdf_change/4,           % +S, +P, +O, +Action
+    rdf_change_datatype/2,  % +P, +D
+    rdf_change_iri/5,       % ?S, ?P, ?O, +Positions, :Dcg_0
+    rdf_change_lex/2,       % +P, Dcg_0
+    rdf_change_p/2,         % +P1, +P2
+    rdf_cp/2,               % +FromG, +ToG
+    rdf_cp/5,               % +FromG, ?S, ?P, ?O, +ToG
+    rdf_combine_datetime/4, % +YP, +MoP, +DaP, +Q
+    rdf_inc/2,              % +S, +P
+    rdf_inc/3,              % +S, +P, +G
+    rdf_flatten/1,          % +P
+    rdf_flatten/2,          % +P, ?G
+    rdf_mv/2,               % +FromG, +ToG
+    rdf_mv/5,               % +FromG, ?S, ?P, ?O, +ToG
+    rdf_rm/3,               % ?S, ?P, ?O
+    rdf_rm/4,               % ?S, ?P, ?O, ?G
+    rdf_rm_cell/3,          % +S, +P, +O
+    rdf_rm_cell/4,          % +S, +P, +O, ?G
+    rdf_rm_col/1,           % +P
+    rdf_rm_col/2,           % +P, +G
+    rdf_rm_error/3,         % ?S, ?P, ?O
+    rdf_rm_error/4,         % ?S, ?P, ?O, ?G
+    rdf_rm_null/1,          % +Null
+    rdf_rm_null/2           % +Null, +G
   ]
 ).
 
@@ -34,6 +36,7 @@ Higher-level update operations performed on RDF data.
 @version 2015/07-2015/08, 2015/10-2016/01, 2016/03, 2016/05-2016/06
 */
 
+:- use_module(library(apply)).
 :- use_module(library(cli_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
@@ -59,6 +62,8 @@ Higher-level update operations performed on RDF data.
    rdf_change_datatype(r, r),
    rdf_change_iri(r, r, o, +, :),
    rdf_change_lex(r, :),
+   rdf_change_p(r, r),
+   rdf_combine_datetime(r, r, r, r),
    rdf_cp(r, r),
    rdf_cp(r, r, r, o, r),
    rdf_inc(r, r),
@@ -82,7 +87,7 @@ Higher-level update operations performed on RDF data.
 
 
 
-%! rdf_change(?S, ?P, ?O, +Action) is det.
+%! rdf_change(+S, +P, +O, +Action) is det.
 %
 % rdf11-compliant wrapper around rdf_update/4.
 %
@@ -175,6 +180,34 @@ rdf_change_lex(P, Dcg_0) :-
     dict_inc(count, State)
   )),
   rdf_msg(State.count, "changed lexical form").
+
+
+
+%! rdf_change_p(+P1, +P2) is det.
+
+rdf_change_p(P1, P2) :-
+  rdf(S, P1, O),
+  rdf_change(S, P1, O, predicate(P2)),
+  fail.
+rdf_change_p(_, _).
+
+
+
+%! rdf_combine_datetime(+YP, +MoP, +DaP, +Q) is det.
+
+rdf_combine_datetime(YP, MoP, DaP, Q) :-
+  rdf(S, YP, Y0^^xsd:string),
+  rdf(S, MoP, Mo0^^xsd:string),
+  rdf(S, DaP, Da0^^xsd:string),
+  maplist(number_string, [Y,Mo,Da], [Y0,Mo0,Da0]),
+  rdf_transaction((
+    rdf_assert(S, Q, date(Y,Mo,Da)^^xsd:date),
+    rdf_retractall(S, YP, Y^^xsd:string),
+    rdf_retractall(S, MoP, Mo^^xsd:string),
+    rdf_retractall(S, DaP, Da^^xsd:string)
+  )),
+  fail.
+rdf_combine_datetime(_, _, _, _).
 
 
 

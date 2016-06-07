@@ -37,7 +37,7 @@ prolog_to_rdf(G, Mod, Term, I) :-
 
   % Class.
   Term =.. [Functor|Args],
-  once(atom_phrase(atom_capitalize, Functor, ClassName)),
+  once(atom_phrase(atom_uppercase, Functor, ClassName)),
   rdf_global_id(Mod:ClassName, Class),
   rdfs_assert_class(Class, G),
 
