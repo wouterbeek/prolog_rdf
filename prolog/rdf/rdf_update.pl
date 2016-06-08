@@ -1,30 +1,34 @@
 :- module(
   rdf_update,
   [
-    rdf_change/4,           % +S, +P, +O, +Action
     rdf_change_datatype/2,  % +P, +D
+    rdf_change_datatype/3,  % +P, ?G, +D
     rdf_change_iri/5,       % ?S, ?P, ?O, +Positions, :Dcg_0
+    rdf_change_iri/6,       % ?S, ?P, ?O, +Positions, ?G, :Dcg_0
     rdf_change_lex/2,       % +P, Dcg_0
-    rdf_change_p/2,         % +P1, +P2
-    rdf_cp/2,               % +FromG, +ToG
-    rdf_cp/5,               % +FromG, ?S, ?P, ?O, +ToG
+    rdf_change_lex/3,       % +P, ?G, Dcg_0
+    rdf_change_p/2,         % +P, +Q
+    rdf_change_p/2,         % +P, ?G, +Q
+    rdf_cp/2,               % +G1, +G2
+    rdf_cp/5,               % +G1, ?S, ?P, ?O, +G2
     rdf_combine_datetime/4, % +YP, +MoP, +DaP, +Q
+    rdf_combine_datetime/5, % +YP, +MoP, +DaP, ?G, +Q
     rdf_inc/2,              % +S, +P
-    rdf_inc/3,              % +S, +P, +G
+    rdf_inc/3,              % +S, +P, ?G
     rdf_flatten/1,          % +P
     rdf_flatten/2,          % +P, ?G
-    rdf_mv/2,               % +FromG, +ToG
-    rdf_mv/5,               % +FromG, ?S, ?P, ?O, +ToG
+    rdf_mv/2,               % +G1, +G2
+    rdf_mv/5,               % +G1, ?S, ?P, ?O, +G2
     rdf_rm/3,               % ?S, ?P, ?O
     rdf_rm/4,               % ?S, ?P, ?O, ?G
     rdf_rm_cell/3,          % +S, +P, +O
     rdf_rm_cell/4,          % +S, +P, +O, ?G
     rdf_rm_col/1,           % +P
-    rdf_rm_col/2,           % +P, +G
+    rdf_rm_col/2,           % +P, ?G
     rdf_rm_error/3,         % ?S, ?P, ?O
     rdf_rm_error/4,         % ?S, ?P, ?O, ?G
     rdf_rm_null/1,          % +Null
-    rdf_rm_null/2           % +Null, +G
+    rdf_rm_null/2           % +Null, ?G
   ]
 ).
 
@@ -52,24 +56,33 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(solution_sequences)).
 
 :- meta_predicate
+    rdf_call_update(1),
+    rdf_call_update(1, +),
     rdf_change_iri(?, ?, ?, +, //),
+    rdf_change_iri(?, ?, ?, +, ?, //),
     rdf_change_iri0(+, +, //, -),
-    rdf_change_iri0(?, ?, ?, +, //, +),
-    rdf_change_lex(+, //).
+    rdf_change_lex(+, //),
+    rdf_change_lex(+, ?, //).
 
 :- rdf_meta
-   rdf_change(r, r, o, t),
+   rdf_call_update(t),
+   rdf_call_update(t, +),
    rdf_change_datatype(r, r),
+   rdf_change_datatype(r, r, r),
    rdf_change_iri(r, r, o, +, :),
+   rdf_change_iri(r, r, o, +, r, :),
    rdf_change_lex(r, :),
+   rdf_change_lex(r, r, :),
    rdf_change_p(r, r),
+   rdf_change_p(r, r, r),
    rdf_combine_datetime(r, r, r, r),
+   rdf_combine_datetime(r, r, r, r, r),
    rdf_cp(r, r),
    rdf_cp(r, r, r, o, r),
-   rdf_inc(r, r),
-   rdf_inc(r, r, +),
    rdf_flatten(r),
    rdf_flatten(r, r),
+   rdf_inc(r, r),
+   rdf_inc(r, r, +),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
    rdf_rm(r, r, o),
@@ -87,67 +100,50 @@ Higher-level update operations performed on RDF data.
 
 
 
-%! rdf_change(+S, +P, +O, +Action) is det.
-%
-% rdf11-compliant wrapper around rdf_update/4.
-%
-% Allows the subject, predicate or object term to be replaced.
-
-rdf_change(S, P, O, Action) :-
-  must_be(ground, O),
-  rdf11:pre_ground_object(O, O0),
-  (   Action = object(NewO)
-  ->  rdf11:pre_ground_object(NewO, NewO0),
-      Action0 = object(NewO0)
-  ;   Action0 = Action
-  ),
-  rdf_db:rdf_update(S, P, O0, Action0).
-
-
-
 %! rdf_change_datatype(+P, +D) is semidet.
+%! rdf_change_datatype(+P, ?G, +D) is semidet.
 %
 % Change the datatype IRI of all object terms that appear with
 % predicate P.
 
-rdf_change_datatype(P, D2) :-
-  rdf_datatypes_compat(P, Ds),
-  memberchk(D2, Ds),
-  State = _{count:0},
-  forall((
-    rdf(S, P, Lit1),
+rdf_change_datatype(P, D) :-
+  rdf_change_datatype(P, _, D).
+
+
+rdf_change_datatype(P, G, D) :-
+  % Make sure all objects for the given predicate P are consistent
+  % with datatype D.
+  rdf_datatypes_compat(P, G, Ds),
+  memberchk(D, Ds),
+  rdf_call_update((
+    % Find instance.
+    rdf(S, P, Lit1, G),
     rdf_literal(Lit1, D1, Lex, LTag),
-    D1 \== D2
-  ), (
+    D1 \== D2,
+    % Transform instance.
     rdf_literal(Lit2, D2, Lex, LTag),
-    rdf_change(S, P, Lit1, object(Lit2)),
-    dict_inc(count, State)
-  )),
-  rdf_msg(State.count, "changed datatype").
+    rdf_update(S, P, Lit1, G, object(Lit2))
+  )).
 
 
 
 %! rdf_change_iri(?S, ?P, ?O, +Positions:list(oneof([+,-])), :Dcg_0) is det.
+%! rdf_change_iri(?S, ?P, ?O, +Positions:list(oneof([+,-])), ?G, :Dcg_0) is det.
 
 rdf_change_iri(S1, P1, O1, Pos, Dcg_0) :-
-  rdf_change_iri0(S1, P1, O1, Pos, Dcg_0, _{count: 0}).
+  rdf_change_iri(S1, P1, O1, Pos, _, Dcg_0).
 
 
-rdf_change_iri0(S1, P1, O1, Pos, Dcg_0, State) :-
-  rdf(S1, P1, O1),
-  rdf_change_iri0(rdf(S1,P1,O1), Pos, Dcg_0, rdf(S2,P2,O2)),
-  (   rdf(S1,P1,O1) == rdf(S2,P2,O2)
-  ->  true
-  ;   rdf_transaction((
-        rdf_retractall(S1, P1, O1),
-        rdf_assert(S2, P2, O2)
-      )),
-      dict_inc(count, State)
-  ),
-  fail.
-rdf_change_iri0(_, _, _, _, _, State) :-
-  rdf_msg(State.count, "changed IRI").
-
+rdf_change_iri(S1, P1, O1, Pos, G, Dcg_0) :-
+  rdf_call_update((
+    % Find instance.
+    rdf(S1, P1, O1, G),
+    rdf_change_iri0(rdf(S1,P1,O1), Pos, Dcg_0, rdf(S2,P2,O2)),
+    rdf(S1,P1,O1) \== rdf(S2,P2,O2),
+    % Transform instance.
+    rdf_retractall(S1, P1, O1, G),
+    rdf_assert(S2, P2, O2, G)
+  )).
 
 rdf_change_iri0(rdf(S1,P1,O1), [PosS,PosP,PosO], Dcg_0, rdf(S2,P2,O2)) :-
   (PosS == +, rdf_is_iri(S1) -> atom_phrase(Dcg_0, S1, S2) ; S2 = S1),
@@ -157,76 +153,90 @@ rdf_change_iri0(rdf(S1,P1,O1), [PosS,PosP,PosO], Dcg_0, rdf(S2,P2,O2)) :-
   
 
 %! rdf_change_lex(+P, :Dcg_0) is det.
+%! rdf_change_lex(+P, ?G, :Dcg_0) is det.
 %
 % Change the lexical form of the literals that appear with predicate
 % P.  Dcg_0 is used to parse the old lexical form and generate the new
 % one.
-%
-% @tbd This does not work with a graph argument.
-% @tbd Explain what rdf_update/4 does in terms of graphs.
 
 rdf_change_lex(P, Dcg_0) :-
-  forall(rdf(_, P, Lit), (
-    rdf_literal(Lit, D, Lex1, _),
-    string_phrase(Dcg_0, Lex1, Lex2),
-    rdf_datatype_compat(Lex2, D)
-  )),
-  State = _{count:0},
-  forall(rdf(S, P, Lit1), (
+  rdf_change_lex(P, _, Dcg_0).
+
+
+rdf_change_lex(P, G, Dcg_0) :-
+  rdf_call_update((
+    % Find instance.
+    rdf(S, P, Lit1),
     rdf_literal(Lit1, D, Lex1, LTag),
     string_phrase(Dcg_0, Lex1, Lex2),
+    rdf_datatype_compat(Lex2, D),
+    % Transform instance.
     rdf_literal(Lit2, D, Lex2, LTag),
-    rdf_change(S, P, Lit1, object(Lit2)),
-    dict_inc(count, State)
-  )),
-  rdf_msg(State.count, "changed lexical form").
+    rdf_update(S, P, Lit1, G, object(Lit2))
+  )).
 
 
 
-%! rdf_change_p(+P1, +P2) is det.
+%! rdf_change_p(+P, +Q) is det.
+%! rdf_change_p(+P, ?G, +Q) is det.
 
-rdf_change_p(P1, P2) :-
-  rdf(S, P1, O),
-  rdf_change(S, P1, O, predicate(P2)),
-  fail.
-rdf_change_p(_, _).
+rdf_change_p(P, Q) :-
+  rdf_change_p(P, _, Q).
+
+
+rdf_change_p(P, G, Q) :-
+  rdf_call_update((
+    % Find instance.
+    rdf(S, P, O, G),
+    P \== Q,
+    % Transform instance.
+    rdf_update(S, P, O, G, predicate(Q))
+  )).
 
 
 
 %! rdf_combine_datetime(+YP, +MoP, +DaP, +Q) is det.
+%! rdf_combine_datetime(+YP, +MoP, +DaP, ?G, +Q) is det.
 
 rdf_combine_datetime(YP, MoP, DaP, Q) :-
-  rdf(S, YP, Y0^^xsd:string),
-  rdf(S, MoP, Mo0^^xsd:string),
-  rdf(S, DaP, Da0^^xsd:string),
-  maplist(number_string, [Y,Mo,Da], [Y0,Mo0,Da0]),
-  rdf_transaction((
-    rdf_assert(S, Q, date(Y,Mo,Da)^^xsd:date),
-    rdf_retractall(S, YP, Y^^xsd:string),
-    rdf_retractall(S, MoP, Mo^^xsd:string),
-    rdf_retractall(S, DaP, Da^^xsd:string)
-  )),
-  fail.
-rdf_combine_datetime(_, _, _, _).
+  rdf_combine_datetime(YP, MoP, DaP, _, Q).
+
+
+rdf_combine_datetime(YP, MoP, DaP, G, Q) :-
+  rdf_call_update((
+    % Find instance.
+    rdf(S, YP, Y0^^xsd:string, G),
+    rdf(S, MoP, Mo0^^xsd:string, G),
+    rdf(S, DaP, Da0^^xsd:string, G),
+    maplist(number_string, [Y,Mo,Da], [Y0,Mo0,Da0]),
+    % Transform instance.
+    rdf_assert(S, Q, date(Y,Mo,Da)^^xsd:date, G),
+    rdf_retractall(S, YP, Y^^xsd:string, G),
+    rdf_retractall(S, MoP, Mo^^xsd:string, G),
+    rdf_retractall(S, DaP, Da^^xsd:string, G)
+  )).
 
 
 
-%! rdf_cp(+FromG, +ToG) is det.
-%! rdf_cp(+FromG, ?S, ?P, ?O, +ToG) is det.
+%! rdf_cp(+G1, +G2) is det.
+%! rdf_cp(+G1, ?S, ?P, ?O, +G2) is det.
 %
 % Copy a full graph or copy the specified triples between graphs.
 %
-% @tbd Perform blank node renaming.
-% @tbd Use rdf_update/5.
+% This asumes that blank nodes are shared between graphs.
 
-rdf_cp(FromG, ToG) :-
-  FromG == ToG, !.
-rdf_cp(FromG, ToG) :-
-  rdf_cp(FromG, _, _, _, ToG).
+rdf_cp(G1, G2) :-
+  rdf_cp(G1, _, _, _, G2).
 
 
-rdf_cp(FromG, S, P, O, ToG) :-
-  rdf_transaction(forall(rdf(S, P, O, FromG), rdf_assert(S, P, O, ToG))).
+rdf_cp(G, _, _, _, G) :- !.
+rdf_cp(G1, S, P, O, G2) :-
+  rdf_transaction(
+    forall(
+      rdf(S, P, O, G1),
+      rdf_assert(S, P, O, G2)
+    )
+  ).
 
 
 
@@ -238,34 +248,20 @@ rdf_flatten(P) :-
 
 
 rdf_flatten(P, G) :-
-  State = _{count:0},
-  rdf_flatten0(State, P, G),
-  rdf_msg(State.count, "flattened").
-
-
-rdf_flatten0(State, P, G) :-
-  rdf_flatten_cand(S, P, O, G),
-  rdf_flatten0(State, S, P, O, G),
-  fail.
-rdf_flatten0(_, _, _).
-
-
-rdf_flatten0(State, X, P1, Y, G) :-
-  forall(rdf(Y, P2, Z, G), (
-    rdf_assert(X, P2, Z, G),
-    rdf_retractall(Y, P2, Z, G)
-  )),
-  rdf_retractall(X, P1, Y, G),
-  dict_inc(count, State).
-
-
-rdf_flatten_cand(S, P, O, G) :-
-  distinct(rdf(S,P,O), (rdf(S, P, O, G), rdf_is_bnode(O))).
+  rdf_call_update((
+    % Find instance.
+    rdf(X, P, Y, G),
+    rdf_is_bnode(Y),
+    rdf(Y, Q, Z, G),
+    % Transform instance.
+    rdf_update(Y, Q, Z, G, subject(X)),
+    rdf_retractall(X, P, Y, G)
+  )).
 
 
 
 %! rdf_inc(+S, +P) is det.
-%! rdf_inc(+S, +P, +G) is det.
+%! rdf_inc(+S, +P, ?G) is det.
 %
 % Increment values.
 
@@ -279,28 +275,28 @@ rdf_inc(S, P, G) :-
     rdf11:xsd_numerical(D, TypeCheck, integer),
     N2 is N1 + 1,
     must_be(TypeCheck, N2),
-    rdf_db:rdf_update(S, P, N1^^D, G, object(N2^^D))
+    rdf_update(S, P, N1^^D, G, object(N2^^D))
   )).
 
 
 
-%! rdf_mv(+FromG, +ToG) is det.
-%! rdf_mv(+FromG, ?S, ?P, ?O, +ToG) is det.
+%! rdf_mv(+G1, +G2) is det.
+%! rdf_mv(+G1, ?S, ?P, ?O, +G2) is det.
 %
 % Rename a graph or move the specified triples between graphs.
 
-rdf_mv(FromG, ToG) :-
-  rdf_mv(FromG, _, _, _, ToG),
-  rdf_unload_graph(FromG).
+rdf_mv(G1, G2) :-
+  rdf_mv(G1, _, _, _, G2),
+  rdf_unload_graph(G1).
 
 
-rdf_mv(FromG, S, P, O, ToG) :-
-  State = _{count:0},
-  forall(rdf(S, P, O, FromG), (
-    rdf_db:rdf_update(S, P, O, FromG, graph(ToG)),
-    dict_inc(count, State)
-  )),
-  rdf_msg(State.count, "moved").
+rdf_mv(G1, S, P, O, G2) :-
+  rdf_call_update((
+    % Find instance.
+    rdf(S, P, O, G1),
+    % Transform instance.
+    rdf_update(S, P, O, G1, graph(G2))
+  )).
 
 
 
@@ -314,17 +310,17 @@ rdf_rm(S, P, O) :-
 
 
 rdf_rm(S, P, O, G) :-
-  State = _{count:0},
-  forall(rdf(S, P, O, G), (
-    rdf_retractall(S, P, O, G),
-    dict_inc(count, State)
-  )),
-  rdf_msg(State.count, "removed").
+  rdf_call_update((
+    % Find instance.
+    rdf(S, P, O, G),
+    % Transform instance.
+    rdf_retractall(S, P, O, G)
+  )).
 
 
 
 %! rdf_rm_cell(+S, +P, +O) is det.
-%! rdf_rm_cell(+S, +P, +O, +G) is det.
+%! rdf_rm_cell(+S, +P, +O, ?G) is det.
 %
 % Remove a specific triple or quadruple.
 
@@ -338,7 +334,7 @@ rdf_rm_cell(S, P, O, G) :-
 
 
 %! rdf_rm_col(+P) is det.
-%! rdf_rm_col(+P, +G) is det.
+%! rdf_rm_col(+P, ?G) is det.
 %
 % Remove all triples that contain predicate P.
 
@@ -367,7 +363,7 @@ rdf_rm_error(S, P, O, G) :-
 
 
 %! rdf_rm_null(+Null) is det.
-%! rdf_rm_null(+Null, +G) is det.
+%! rdf_rm_null(+Null, ?G) is det.
 %
 % Wrapper around rdf_rm/4 that indicates that an error or mistake is
 % being removed.
@@ -385,12 +381,22 @@ rdf_rm_null(Null, G) :-
 
 % HELPERS %
 
-%! rdf_msg(+N, +Action) is det.
+%! rdf_call_update(:Goal_1) is det.
+%
+% The following call is made: `call(
 
-rdf_msg(N, Action) :-
+rdf_call_update(Goal_1) :-
+  rdf_transaction(rdf_call_update(Goal_1, _{count: 0})).
+
+
+rdf_call_update(Goal_1, State) :-
+  call(Goal_1),
+  dict_inc(count, State),
+  fail.
+rdf_call_update(_, State) :-
   ansi_format(
     user_output,
     [fg(yellow)],
-    "~D statements were ~s.~n",
-    [N,Action]
+    "~D updates were made.~n",
+    [State.count]
   ).

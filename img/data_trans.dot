@@ -27,10 +27,11 @@ digraph data_transformation {
     rank=same;
     r3 [style=invisible];
     node [color=lawngreen,style=filled];
-    n221 [label=<Datatype IRI<BR/>Literal → IRI>];
-    n222 [label=<Lexical form<BR/>Lexical → Lexical>];
-    n223 [label=<Assign IRI<BR/>String → IRI>];
-    n224 [label=<IRI prefix<BR/>IRI → IRI>];
+    n211 [label=<Combine columns<BR/>IRIs → (Literals → Literal)>];
+    n221 [label=<Change datatype IRI<BR/>Literal → IRI>];
+    n222 [label=<Change lexical form<BR/>Lexical → Lexical>];
+    n223 [label=<Assign IRI<BR/>Literal → IRI>];
+    n224 [label=<Change IRI prefix<BR/>IRI → IRI>];
     n231 [label=<Delete cell>];
     n232 [label=<Delete column>];
   }
@@ -78,6 +79,7 @@ digraph data_transformation {
 
   {
     edge [dir=back];
+    n211 -> n21;
     n221 -> n22;
     n222 -> n22;
     n223 -> n22;
