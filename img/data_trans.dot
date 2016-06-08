@@ -31,8 +31,9 @@ digraph data_transformation {
     n221 [label=<Change datatype IRI<BR/>Literal → IRI>];
     n222 [label=<Change lexical form<BR/>Lexical → Lexical>];
     n223 [label=<Assign IRI<BR/>Literal → IRI>];
-    n224 [label=<Change IRI prefix<BR/>IRI → IRI>];
-    n231 [label=<Delete cell>];
+    n224 [label=<Change IRI (fully,prefix)<BR/>IRI → IRI>];
+    n225 [label=<Change structure (flatten)>];
+    n231 [label=<Delete cell (error,null)>];
     n232 [label=<Delete column>];
   }
   

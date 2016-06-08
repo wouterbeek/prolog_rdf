@@ -5,8 +5,8 @@
     rdf_change_datatype/3,  % +P, ?G, +D
     rdf_change_iri/5,       % ?S, ?P, ?O, +Positions, :Dcg_0
     rdf_change_iri/6,       % ?S, ?P, ?O, +Positions, ?G, :Dcg_0
-    rdf_change_lex/2,       % +P, Dcg_0
-    rdf_change_lex/3,       % +P, ?G, Dcg_0
+    rdf_change_lex/2,       % +P, :Dcg_0
+    rdf_change_lex/3,       % +P, ?G, :Dcg_0
     rdf_change_p/2,         % +P, +Q
     rdf_change_p/2,         % +P, ?G, +Q
     rdf_cp/2,               % +G1, +G2
@@ -28,7 +28,9 @@
     rdf_rm_error/3,         % ?S, ?P, ?O
     rdf_rm_error/4,         % ?S, ?P, ?O, ?G
     rdf_rm_null/1,          % +Null
-    rdf_rm_null/2           % +Null, ?G
+    rdf_rm_null/2,          % +Null, ?G
+    rdf_split_lex/2,        % +P, :Dcg_2
+    rdf_split_lex/3         % +P, ?G, :Dcg_2
   ]
 ).
 
@@ -62,7 +64,9 @@ Higher-level update operations performed on RDF data.
     rdf_change_iri(?, ?, ?, +, ?, //),
     rdf_change_iri0(+, +, //, -),
     rdf_change_lex(+, //),
-    rdf_change_lex(+, ?, //).
+    rdf_change_lex(+, ?, //),
+    rdf_split_lex(+, 4),
+    rdf_split_lex(+, ?, 4).
 
 :- rdf_meta
    rdf_call_update(t),
@@ -94,7 +98,9 @@ Higher-level update operations performed on RDF data.
    rdf_rm_error(r, r, o),
    rdf_rm_error(r, r, o, r),
    rdf_rm_null(o),
-   rdf_rm_null(o, r).
+   rdf_rm_null(o, r),
+   rdf_split_lex(r, :),
+   rdf_split_lex(r, r, :).
 
 
 
@@ -166,7 +172,7 @@ rdf_change_lex(P, Dcg_0) :-
 rdf_change_lex(P, G, Dcg_0) :-
   rdf_call_update((
     % Find instance.
-    rdf(S, P, Lit1),
+    rdf(S, P, Lit1, G),
     rdf_literal(Lit1, D, Lex1, LTag),
     string_phrase(Dcg_0, Lex1, Lex2),
     rdf_datatype_compat(Lex2, D),
@@ -374,6 +380,22 @@ rdf_rm_null(Null) :-
 
 rdf_rm_null(Null, G) :-
   rdf_rm(_, _, Null, G).
+
+
+
+%! rdf_split_lex(+P, :Dcg_2) is det.
+%! rdf_split_lex(+P, ?G, :Dcg_2) is det.
+
+rdf_split_lex(P, Dcg_2) :-
+  rdf_split_lex(P, _, Dcg_2).
+
+
+rdf_split_lex(P, G, Dcg_2) :-
+  rdf_call_update((
+    rdf(S, P, Lex^^xsd:string, G),
+    string_phrase(dcg_call(Dcg_2, S, G), Lex),
+    rdf_retractall(S, P, Lex^^xsd:string, G)
+  )).
 
 
 
