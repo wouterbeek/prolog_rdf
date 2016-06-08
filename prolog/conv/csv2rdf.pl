@@ -34,6 +34,10 @@ Automatic conversion from CSV to RDF.
 
 :- rdf_register_prefix(ex, 'http://example.org/').
 
+:- rdf_meta
+   csv2rdf_graph(+, r),
+   csv2rdf_graph(+, r, +).
+
 
 
 
