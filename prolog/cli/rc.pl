@@ -12,9 +12,11 @@
     rc_graphs/0,
     rc_p/1,          % ?P
     rc_p/2,          % ?P, ?G
+    rc_p_no/0,
     rc_p_no/1,       %     ?G
     rc_p_no/2,       % ?P, ?G
     rc_predicates/0,
+    rc_predicates/1, % ?G
     rc_root/1,       % ?Node
     rc_root/2,       % ?Node, +Opts
     rc_scbd/1,       % ?Node
@@ -60,6 +62,7 @@
    rc_p(r, r),
    rc_p_no(r),
    rc_p_no(r, r),
+   rc_predicates(r),
    rc_root(r),
    rc_root(r, +),
    rc_scbd(o),
@@ -164,10 +167,15 @@ rc_p(P, G) :-
 
 
 
+%! rc_p_no is nondet.
 %! rc_p_no(?G) is nondet.
 %
 % Prints an overview of how many distinct objects there are for a
 % given predicate term.
+
+rc_p_no :-
+  rc_p_no(_).
+
 
 rc_p_no(G) :-
   rdf_graph(G),
@@ -183,20 +191,34 @@ rc_p_no(G) :-
 rc_p_no(P, G) :-
   rdf_predicate(P, G),
   (   \+ ((rdf(S1, P, O, G), rdf(S2, P, O, G), S1 \== S2))
-  ->  ansi_format(user_output, [fg(yellow)], "No reuse of object terms.~n", []),
-      once(findnsols(5, O, rdf(_, P, O, G), Os)),
-      maplist(singleton_list, Os, Rows),
-      rdf_print_table([head(["Object"])|Rows])
+  ->  rc_p_no_abbr(P, G, "No reuse of object terms.")
   ;   aggregate_all(set(O), rdf(_, P, O, G), Os),
-      maplist({P,G}/[O,N]>>rdf_number_of_subjects(P, O, G, N), Os, Ns),
-      rdf_counts_resources_table0(["Object","#Occurrences"], Ns, Os)
+      (   length(Os, Len),
+          Len > 1000
+      ->  rc_p_no_abbr(P, G, "Too many unique object terms.")
+      ;   maplist({P,G}/[O,N]>>rdf_number_of_subjects(P, O, G, N), Os, Ns),
+          rdf_counts_resources_table0(["Object","#Occurrences"], Ns, Os)
+      )
   ).
 
+rc_p_no_abbr(P, G, Msg) :-
+  ansi_format(user_output, [fg(yellow)], "~s~n", [Msg]),
+  once(findnsols(5, O, rdf(_, P, O, G), Os)),
+  maplist(singleton_list, Os, Rows),
+  rdf_print_table([head(["Object"])|Rows]).
 
+
+
+%! rc_predicates is det.
+%! rc_predicates(?G) is det.
 
 rc_predicates :-
-  aggregate_all(set(P), rdf(_, P, _), Ps),
-  maplist([P,N]>>rdf_number_of_triples(_, P, _, N), Ps, Ns),
+  rc_predicates(_).
+
+
+rc_predicates(G) :-
+  aggregate_all(set(P), rdf(_, P, _, G), Ps),
+  maplist([P,N]>>rdf_number_of_triples(_, P, _, G, N), Ps, Ns),
   rdf_counts_resources_table0(["Predicate","#Occurrences"], Ns, Ps).
 
 
