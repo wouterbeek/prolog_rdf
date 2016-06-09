@@ -25,6 +25,7 @@ point0([X,Y], point(X,Y)).
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_register_prefix(wkt, 'http://geojsonld.com/wkt#').
