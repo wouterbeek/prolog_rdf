@@ -232,6 +232,17 @@ jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
   is_list(Os),
   % NONDET
   jsonld_to_list_triple(Context, S, P, _, LTag, Os, Tuple).
+% Object is an RDF literal with explicitly supplied RDF datatype
+% (1/2).  This comes before abbreviated object list because a datatype
+% may contain arrays in its value space.
+jsonld_tuple(Context, S, P, _, _, _{'@type': D1, '@value': V}, Tuple) :- !,
+  jsonld_expand_term(Context, D1, D2),
+  tuple_term(Context, S, P, V^^D2, Tuple).
+% Object is an RDF literal with explicitly supplied RDF datatype
+% (2/2).
+jsonld_tuple(Context, S, P, D, _, Lex, Tuple) :-
+  ground(D), !,
+  tuple_term(Context, S, P, Lex^^D, Tuple).
 % Abbreviated object list.
 jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
   is_list(Os), !,
@@ -246,10 +257,6 @@ jsonld_tuple(Context, S, P, ODef, LTag, D, Tuple) :-
 % Object is an RDF language-tagged string.
 jsonld_tuple(Context, S, P, _, _, _{'@language': LTag, '@value': Lex}, Tuple) :- !,
   tuple_term(Context, S, P, Lex@LTag, Tuple).
-% Object is an RDF literal with explicitly supplied RDF datatype.
-jsonld_tuple(Context, S, P, _, _, _{'@type': D1, '@value': V}, Tuple) :- !,
-  jsonld_expand_term(Context, D1, D2),
-  tuple_term(Context, S, P, V^^D2, Tuple).
 % Object is an IRI.
 jsonld_tuple(Context, S, P, _, _, _{'@id': O1}, Tuple) :- !,
   jsonld_expand_term(Context, O1, O2),
@@ -275,10 +282,6 @@ jsonld_tuple(Context, S, P, ODef, _, O1, Tuple) :-
   ODef == '@id', !,
   jsonld_expand_term(Context, O1, O2),
   tuple_term(Context, S, P, O2, Tuple).
-% Explicitly typed literal.
-jsonld_tuple(Context, S, P, D, _, Lex, Tuple) :-
-  ground(D), !,
-  tuple_term(Context, S, P, Lex^^D, Tuple).
 % Language-tagged string ‘rdf:langString’.
 jsonld_tuple(Context, S, P, _, LTag, V, Tuple) :-
   (nonvar(LTag) ; get_dict('@language', Context, LTag)),
@@ -359,9 +362,12 @@ pair_with_nonvar_value(_-V) :- nonvar(V).
 
 
 
-tuple_term(Context, S, P, O, rdf(S,P,O,G)) :-
-  get_dict('@graph', Context, G), !.
-tuple_term(_, S, P, O, rdf(S,P,O)).
+tuple_term(Context, S, P, O, Tuple) :-
+  rdf11:pre_object(O, O0),
+  (   get_dict('@graph', Context, G)
+  ->  Tuple = rdf(S,P,O0,G)
+  ;   Tuple = rdf(S,P,O0)
+  ).
 
 
 

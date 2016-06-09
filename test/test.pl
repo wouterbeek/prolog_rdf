@@ -45,6 +45,7 @@
 :- use_module(library(owl/owl_ext)).
 %/rdf
 :- use_module(library(rdf/rdf_annotate)).
+:- use_module(library(rdf/rdf_array)).
 :- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).

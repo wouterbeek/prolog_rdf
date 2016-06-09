@@ -2,18 +2,26 @@
   geold,
   [
     geold_flatten_geo/0,
-    geold_flatten_geo/1,   % ?G
-    geold_geojson/2,       % +Node, -GeoJson
-    geold_print_feature/1, % ?Feature
+    geold_flatten_geo/1,     % ?G
+    geold_geojson/2,         % +Node, -GeoJson
+    geold_interpret_array/0,
+    geold_interpret_array/1, % ?G
+    geold_print_feature/1,   % ?Feature
     geold_rm_feature_collections/0,
-    geold_tuple/2,         % +Source, -Tuple
-    geold_tuple/4,         % +Source, +ExtraContext, +ExtraData, -Tuple
-    geold_tuples/2,        % +Source, -Tuples
-    geold_tuples/4         % +Source, +ExtraContext, +ExtraData, -Tuples
+    geold_tuple/2,           % +Source,                            -Tuple
+    geold_tuple/4,           % +Source, +ExtraContext, +ExtraData, -Tuple
+    geold_tuples/2,          % +Source,                            -Tuples
+    geold_tuples/4           % +Source, +ExtraContext, +ExtraData, -Tuples
   ]
 ).
 
 /** <module> GeoJSON-LD
+
+Because JSON-LD cannot deal with GeoJSON coordinate values, we have to
+extend it ourselves.  We do this by adding array support.  This way
+JSON-LD can be translated into triples while preserving the array
+information.  Later RDF transformations can then be used to interpret
+the array as e.g. Well-Known Text (WKT).
 
 @author Wouter Beek
 @version 2016/05-2016/06
@@ -24,10 +32,12 @@
 :- use_module(library(cli/rc)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(geo/rdf_wkt), []).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_array)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
@@ -38,6 +48,7 @@
 :- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
 
 :- rdf_meta
+   geold_interpret_array(r),
    geold_print_feature(r).
 
 
@@ -49,48 +60,46 @@
 % The default GeoJSON-LD context.
 
 geold_context(_{
-    coordinates: _{'@id': 'geold:coordinates', '@type': '@wkt'},
-    crs: 'geold:crs',
-    geo : 'http://www.opengis.net/ont/geosparql#',
-    geold: 'http://geojsonld.com/vocab#',
-    geometry: 'geold:geometry',
-    'GeometryCollection': 'geold:GeometryCollection',
-    'Feature': 'geold:Feature',
-    'FeatureCollection': 'geold:FeatureCollection',
-    features: 'geold:features',
-    'LineString': 'geold:LineString',
-    'MultiLineString': 'geold:MultiLineString',
-    'MultiPoint': 'geold:MultiPoint',
-    'MultiPolygon': 'geold:MultiPolygon',
-    'Point': 'geold:Point',
-    'Polygon': 'geold:Polygon',
-    properties: 'geold:properties',
-    '@vocab': 'http://example.org/'
+  coordinates: _{'@id': 'geold:coordinates', '@type': 'tcco:array'},
+  crs: 'geold:crs',
+  geo : 'http://www.opengis.net/ont/geosparql#',
+  geold: 'http://geojsonld.com/vocab#',
+  geometry: 'geold:geometry',
+  'GeometryCollection': 'geold:GeometryCollection',
+  'Feature': 'geold:Feature',
+  'FeatureCollection': 'geold:FeatureCollection',
+  features: 'geold:features',
+  'LineString': 'geold:LineString',
+  'MultiLineString': 'geold:MultiLineString',
+  'MultiPoint': 'geold:MultiPoint',
+  'MultiPolygon': 'geold:MultiPolygon',
+  'Point': 'geold:Point',
+  'Polygon': 'geold:Polygon',
+  properties: 'geold:properties',
+  tcco: 'http://triply.cc/ontology/',
+  '@vocab': 'http://example.org/'
 }).
 
 
 
 %! geold_flatten_geo is det.
+%! geold_flatten_geo(?G) is det.
 
 geold_flatten_geo :-
   geold_flatten_geo(_).
 
 
 geold_flatten_geo(G) :-
-  geold_flatten_geo0(_{count:0}, G).
-
-
-geold_flatten_geo0(State, G) :-
-  rdf(S, geold:geometry, B, G),
-  rdf(B, geold:coordinates, Lit, G),
-  rdf_assert(S, geold:geometry, Lit, G),
-  rdf_retractall(S, geold:geometry, B, G),
-  rdf_retractall(B, geold:coordinates, Lit, G),
-  rdf_retractall(B, rdf:type, _, G),
-  dict_inc(count, State),
-  fail.
-geold_flatten_geo0(State, _) :-
-  rdf_update:rdf_msg(State.count, "flattened").
+  rdf_call_update((
+    % Find instance.
+    rdf_has(S, geold:geometry, B, P, G),
+    rdf_has(B, geold:coordinates, Lit, Q, G),
+    % Transform instance.
+    rdf_assert(S, P, Lit, G),
+    rdf_retractall(S, P, B, G),
+    rdf_retractall(B, Q, Lit, G),
+    rdf_retractall(B, rdf:type, _, G)
+  )).
 
 
 
@@ -100,8 +109,25 @@ geold_flatten_geo0(State, _) :-
 
 geold_geojson(Node, _{}) :-
   rdfs_instance(Node, geold:'Feature').
-  %rdf_has(Node, geold:geomery, 
 
+
+
+%! geold_interpret_array is det.
+%! geold_interpret_array(?G) is det.
+
+geold_interpret_array :-
+  geold_interpret_array(_).
+
+
+geold_interpret_array(G) :-
+  rdf_call_update((
+    rdf_has(I, geold:coordinates, Array^^tcco:array, _, G),gtrace,
+    rdfs_instance(I, C),
+    rdf_global_id(_:Name, C),
+    rdf_global_id(wkt:Name, D),
+    Shape =.. [Name|_],
+    rdf_change(I, geold:coordinates, Array^^tcco:array, object(Shape^^D))
+  )).
 
 
 
