@@ -17,6 +17,7 @@
     rdf_download_to_file/3,     % +Iri,    +File,        +Opts
     rdf_load_file/1,            % +Source                
     rdf_load_file/2,            % +Source,               +Opts
+    rdf_load_file_or_call/3,    % +Source, :Goal_1,  +G
     rdf_load_tuples/2,          % +Source, -Tuples       
     rdf_load_tuples/3,          % +Source, -Tuples,      +Opts
     rdf_write_to_sink/1,        % +Sink                  
@@ -91,13 +92,15 @@ already part of ClioPatria.
     rdf_call_on_tuples(+, 5, +),
     rdf_call_on_tuples0(5, +, +, +, -),
     rdf_call_to_graph(+, 1),
-    rdf_call_to_graph(+, 1, +).
+    rdf_call_to_graph(+, 1, +),
+    rdf_load_file_or_call(+, 0, +).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
    rdf_call_on_tuples(+, :, t),
    rdf_download_to_file(+, +, t),
    rdf_load_file(+, t),
+   rdf_load_file_or_call(+, :, r),
    rdf_load_tuples(+, -, t),
    rdf_write_to_sink(+, r),
    rdf_write_to_sink(+, r, +),
@@ -373,15 +376,20 @@ rdf_download_to_file(Iri, File, Opts) :-
 %! rdf_load_file(+Source, +Opts) is det.
 %
 % The following options are supported:
+%
 %   * base_iri(+atom)
-%   * force_graph(+rdf_graph)
-%     Forces all tuples to be loaded as triples in this graph.
-%   * graph(+rdf_graph)
-%     The default graph.
-%     Default is `default'.
+%
+%   * force_graph(+rdf_graph) Forces all tuples to be loaded as
+%   triples in this graph.
+%
+%   * graph(+rdf_graph) The default graph.  Default is `default'.
+%
 %   * quads(-nonneg)
+%
 %   * triples(-nonneg)
+%
 %   * tuples(-nonneg)
+%
 %   * Other options are passed to rdf_call_on_tuples/3.
 %
 % The following code cannot be used because we are not sure whether
@@ -436,6 +444,23 @@ count_tuple0(State, G) :-
   dict_inc(triples, State).
 count_tuple0(State, _) :-
   dict_inc(quads, State).
+
+
+
+%! rdf_load_file_or_call(+Source, :Goal_1, +G) is det.
+%
+% Either loads RDF data from Source into graph G or calls Goal_1 with
+% argument G in order to assert the RDF data.  After asserting the RDF
+% data, the results are written to Source, so that a next call of this
+% predicate will load the data from file.
+
+rdf_load_file_or_call(Source, _, G) :-
+  exists_file(Source),
+  access_file(Source, read),
+  rdf_load_file(Source, [graph(G)]), !.
+rdf_load_file_or_call(Source, Goal_1, G) :-
+  call(Goal_1, G),
+  rdf_write_to_sink(Source, G).
 
 
 
