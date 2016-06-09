@@ -32,7 +32,7 @@ resource [3].
 
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_io)).
+:- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 

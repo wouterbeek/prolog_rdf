@@ -1,5 +1,5 @@
 :- module(
-  rdf_io,
+  rdfio,
   [
     rdf_call_on_graph/2,        % +Source, :Goal_3
     rdf_call_on_graph/3,        % +Source, :Goal_3,      +Opts
@@ -31,6 +31,9 @@
 ).
 
 /** <module> RDF input/output
+
+This module is not named `rdf_io` since a module with that name is
+already part of ClioPatria.
 
 @author Wouter Beek
 @version 2015/08-2016/02, 2016/04-2016/06

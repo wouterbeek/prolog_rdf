@@ -20,17 +20,20 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(cli/rc)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
+:- use_module(library(lists)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(yall)).
 
 :- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
 
@@ -46,24 +49,23 @@
 % The default GeoJSON-LD context.
 
 geold_context(_{
-  coordinates: _{'@id': 'geold:coordinates', '@type': '@wkt'},
-  crs: 'geold:crs',
-  geo : 'http://www.opengis.net/ont/geosparql#',
-  geold: 'http://geojsonld.com/vocab#',
-  geometry: 'geold:geometry',
-  'GeometryCollection': 'geold:GeometryCollection',
-  'Feature': 'geold:Feature',
-  'FeatureCollection': 'geold:FeatureCollection',
-  features: 'geold:features',
-  'LineString': 'geold:LineString',
-  'MultiLineString': 'geold:MultiLineString',
-  'MultiPoint': 'geold:MultiPoint',
-  'MultiPolygon': 'geold:MultiPolygon',
-  'Point': 'geold:Point',
-  'Polygon': 'geold:Polygon',
-  properties: 'geold:properties',
-  type: '@type',
-  '@vocab': 'http://example.org/'
+    coordinates: _{'@id': 'geold:coordinates', '@type': '@wkt'},
+    crs: 'geold:crs',
+    geo : 'http://www.opengis.net/ont/geosparql#',
+    geold: 'http://geojsonld.com/vocab#',
+    geometry: 'geold:geometry',
+    'GeometryCollection': 'geold:GeometryCollection',
+    'Feature': 'geold:Feature',
+    'FeatureCollection': 'geold:FeatureCollection',
+    features: 'geold:features',
+    'LineString': 'geold:LineString',
+    'MultiLineString': 'geold:MultiLineString',
+    'MultiPoint': 'geold:MultiPoint',
+    'MultiPolygon': 'geold:MultiPolygon',
+    'Point': 'geold:Point',
+    'Polygon': 'geold:Polygon',
+    properties: 'geold:properties',
+    '@vocab': 'http://example.org/'
 }).
 
 
@@ -174,6 +176,13 @@ geold_prepare_context(ExtraContext, Context) :-
 
 %! geold_prepare_data(+Source, +ExtraData, -Data) is det.
 
-geold_prepare_data(Source, ExtraData, Data) :-
-  json_read_any(Source, Data0),
-  Data = Data0.put(ExtraData).
+geold_prepare_data(Source, ExtraData, Data2) :-
+  json_read_any(Source, Data1),
+  (   dict_has_key(features, Data1)
+  ->  maplist(
+        {ExtraData}/[Data1,Data2]>>dict_put(Data1, ExtraData, Data2),
+        Data1.features,
+        Data2
+      )
+  ;   Data2 = Data1.put(ExtraData)
+  ).

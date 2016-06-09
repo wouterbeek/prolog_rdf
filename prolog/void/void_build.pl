@@ -15,7 +15,7 @@ Automatically generate VoID descriptions.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(rdf/rdf_io)).
+:- use_module(library(rdf/rdfio)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).

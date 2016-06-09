@@ -25,8 +25,8 @@ Largely derived from the JSON-LD 1.0 specification (W3C).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_io)).
 :- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdfio)).
 :- use_module(library(terms)).
 
 

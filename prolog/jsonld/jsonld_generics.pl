@@ -11,7 +11,7 @@
 /** <module> JSON-LD generics
 
 @author Wouter Beek
-@version 2016/01-2016/02, 2016/05
+@version 2016/01-2016/02, 2016/05-2016/06
 */
 
 :- use_module(library(dict_ext)).
@@ -19,12 +19,6 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
-
-:- dynamic
-    jsonld_generics:jsonld_keyword_hook/1.
-
-:- multifile
-    jsonld_generics:jsonld_keyword_hook/1.
 
 
 
@@ -116,5 +110,4 @@ jsonld_keyword('@graph').
 jsonld_keyword('@id').
 jsonld_keyword('@type').
 jsonld_keyword('@value').
-jsonld_keyword(Key) :-
-  jsonld_generics:jsonld_keyword_hook(Key).
+jsonld_keyword('@vocab').

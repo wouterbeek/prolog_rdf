@@ -96,9 +96,9 @@ jsonld_tuple_goto(_, [], _, _) :- !,
 jsonld_tuple_goto(Context, Data1, Tuple, S) :-
   jsonld_to_subject(Context, Data1, S, Data2),
   % NONDET
-  member(Key-Value, Data2),
+  member(Key-Val, Data2),
   jsonld_to_predicate(Context, Key, P, ODef, LTag),
-  jsonld_tuple(Context, S, P, ODef, LTag, Value, Tuple).
+  jsonld_tuple(Context, S, P, ODef, LTag, Val, Tuple).
 
 
 

@@ -13,7 +13,7 @@
 
 :- use_module(library(os/io_ext)).
 :- use_module(library(os/open_any2)).
-:- use_module(library(rdf/rdf_io)).
+:- use_module(library(rdf/rdfio)).
 :- use_module(library(thread)).
 :- use_module(library(yall)).
 
