@@ -232,6 +232,10 @@ jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
   is_list(Os),
   % NONDET
   jsonld_to_list_triple(Context, S, P, _, LTag, Os, Tuple).
+% Object is an IRI.
+jsonld_tuple(Context, S, P, _, _, _{'@id': O1}, Tuple) :- !,
+  jsonld_expand_term(Context, O1, O2),
+  tuple_term(Context, S, P, O2, Tuple).
 % Object is an RDF literal with explicitly supplied RDF datatype
 % (1/2).  This comes before abbreviated object list because a datatype
 % may contain arrays in its value space.
@@ -257,10 +261,6 @@ jsonld_tuple(Context, S, P, ODef, LTag, D, Tuple) :-
 % Object is an RDF language-tagged string.
 jsonld_tuple(Context, S, P, _, _, _{'@language': LTag, '@value': Lex}, Tuple) :- !,
   tuple_term(Context, S, P, Lex@LTag, Tuple).
-% Object is an IRI.
-jsonld_tuple(Context, S, P, _, _, _{'@id': O1}, Tuple) :- !,
-  jsonld_expand_term(Context, O1, O2),
-  tuple_term(Context, S, P, O2, Tuple).
 % Object is a string without explicitly supplied datatype.
 jsonld_tuple(Context, S, P, _, _, _{'@value': Lex}, Tuple) :- !,
   rdf_equal(xsd:string, D),
