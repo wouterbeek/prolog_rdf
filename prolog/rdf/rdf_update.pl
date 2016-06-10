@@ -246,8 +246,8 @@ rdf_cp(G1, S, P, O, G2) :-
 
 
 
-%! rdf_flatten(+P) is det
-%! rdf_flatten(+P, ?G) is det
+%! rdf_flatten(+P) is det.
+%! rdf_flatten(+P, ?G) is det.
 
 rdf_flatten(P) :-
   rdf_flatten(P, _).
