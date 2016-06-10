@@ -362,12 +362,9 @@ pair_with_nonvar_value(_-V) :- nonvar(V).
 
 
 
-tuple_term(Context, S, P, O, Tuple) :-
-  rdf11:pre_object(O, O0),
-  (   get_dict('@graph', Context, G)
-  ->  Tuple = rdf(S,P,O0,G)
-  ;   Tuple = rdf(S,P,O0)
-  ).
+tuple_term(Context, S, P, O, rdf(S,P,O,G)) :-
+  get_dict('@graph', Context, G), !.
+tuple_term(_, S, P, O, rdf(S,P,O)).
 
 
 
