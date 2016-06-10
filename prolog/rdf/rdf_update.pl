@@ -1,6 +1,7 @@
 :- module(
   rdf_update,
   [
+    rdf_call_update/1,      % :Goal_1
     rdf_change_datatype/2,  % +P, +D
     rdf_change_datatype/3,  % +P, ?G, +D
     rdf_change_iri/5,       % ?S, ?P, ?O, +Positions, :Dcg_0
@@ -106,6 +107,28 @@ Higher-level update operations performed on RDF data.
 
 
 
+%! rdf_call_update(:Goal_1) is det.
+%
+% The following call is made: `call(
+
+rdf_call_update(Goal_1) :-
+  rdf_transaction(rdf_call_update(Goal_1, _{count: 0})).
+
+
+rdf_call_update(Goal_1, State) :-
+  call(Goal_1),
+  dict_inc(count, State),
+  fail.
+rdf_call_update(_, State) :-
+  ansi_format(
+    user_output,
+    [fg(yellow)],
+    "~D updates were made.~n",
+    [State.count]
+  ).
+
+
+
 %! rdf_change_datatype(+P, +D) is semidet.
 %! rdf_change_datatype(+P, ?G, +D) is semidet.
 %
@@ -116,11 +139,11 @@ rdf_change_datatype(P, D) :-
   rdf_change_datatype(P, _, D).
 
 
-rdf_change_datatype(P, G, D) :-
+rdf_change_datatype(P, G, D2) :-
   % Make sure all objects for the given predicate P are consistent
-  % with datatype D.
+  % with datatype D2.
   rdf_datatypes_compat(P, G, Ds),
-  memberchk(D, Ds),
+  memberchk(D2, Ds),
   rdf_call_update((
     % Find instance.
     rdf(S, P, Lit1, G),
@@ -396,29 +419,3 @@ rdf_split_lex(P, G, Dcg_2) :-
     string_phrase(dcg_call(Dcg_2, S, G), Lex),
     rdf_retractall(S, P, Lex^^xsd:string, G)
   )).
-
-
-
-
-
-% HELPERS %
-
-%! rdf_call_update(:Goal_1) is det.
-%
-% The following call is made: `call(
-
-rdf_call_update(Goal_1) :-
-  rdf_transaction(rdf_call_update(Goal_1, _{count: 0})).
-
-
-rdf_call_update(Goal_1, State) :-
-  call(Goal_1),
-  dict_inc(count, State),
-  fail.
-rdf_call_update(_, State) :-
-  ansi_format(
-    user_output,
-    [fg(yellow)],
-    "~D updates were made.~n",
-    [State.count]
-  ).
