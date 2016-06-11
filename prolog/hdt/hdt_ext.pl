@@ -140,6 +140,7 @@ hdt_member2(X, L, Hdt) :-
 
 %! hdt_prepare(+File       ) is det.
 %! hdt_prepare(+File, +Opts) is det.
+%
 % Options are passed to hdt_create_from_file/3.
 
 hdt_prepare(File) :-
@@ -167,10 +168,10 @@ hdt_prepare(HdtFile, Opts) :-
 
 
 
-%! hdt_print( ?S, ?P, ?O  +File       ) is nondet.
-%! hdt_print0(?S, ?P, ?O, +Hdt        ) is nondet.
-%! hdt_print( ?S, ?P, ?O, +File, +Opts) is nondet.
-%! hdt_print0(?S, ?P, ?O, +Hdt,  +Opts) is nondet.
+%! hdt_print(?S, ?P, ?O, +File) is nondet.
+%! hdt_print0(?S, ?P, ?O, +Hdt) is nondet.
+%! hdt_print(?S, ?P, ?O, +File, +Opts) is nondet.
+%! hdt_print0(?S, ?P, ?O, +Hdt, +Opts) is nondet.
 
 hdt_print(S, P, O, File) :-
   hdt_print(S, P, O, File, _{}).
