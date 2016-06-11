@@ -16,11 +16,16 @@
     rdfs_assert_subclass/3,    % +C, ?D, ?G
     rdfs_assert_subproperty/3, % +P, +Q, ?G
     rdfs_class/1,              % ?C
+    rdfs_class/2,              % ?C, ?G
     rdfs_domain/2,             % ?P, ?Dom
+    rdfs_domain/3,             % ?P, ?Dom, ?G
     rdfs_instance/2,           % ?I, ?C
+    rdfs_instance/3,           % ?I, ?C, ?G
     rdfs_pref_label/2,         % ?S, -Lit
     rdfs_property/1,           % ?Prop
+    rdfs_property/2,           % ?Prop, ?G
     rdfs_range/2,              % ?P, ?Ran
+    rdfs_range/3,              % ?P, ?Ran, ?G
     rdfs_retractall_class/1    % +C
   ]
 ).
@@ -28,13 +33,14 @@
 /** <module> RDFS extensions
 
 @author Wouter Beek
-@version 2016/04-2015/05
+@version 2016/04-2016/06
 */
 
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(solution_sequences)).
@@ -55,11 +61,16 @@
    rdfs_assert_subclass(r, t, r),
    rdfs_assert_subproperty(r, t, r),
    rdfs_class(r),
+   rdfs_class(r, r),
    rdfs_domain(r, r),
+   rdfs_domain(r, r, r),
    rdfs_instance(o, r),
+   rdfs_instance(o, r, r),
    rdfs_pref_label(r, o),
    rdfs_property(r),
+   rdfs_property(r, r),
    rdfs_range(r, r),
+   rdfs_range(r, r, r),
    rdfs_retractall_class(r).
 
 
@@ -181,48 +192,65 @@ rdfs_assert_subproperty(P, Q, G) :-
 
 
 
-%! rdfs_class(+C) is semidet.
-%! rdfs_class(-C) is nondet.
+%! rdfs_class(?C) is semidet.
+%! rdfs_class(?C, ?G) is nondet.
 
 rdfs_class(C) :-
-  distinct(C, rdfs_class0(C)).
+  distinct(C, rdfs_class(C, _)).
 
-rdfs_class0(C) :-
-  rdfs_instance(C, rdfs:'Class').
-rdfs_class0(C) :-
-  rdf_has(C, rdfs:subClassOf, _).
-rdfs_class0(C) :-
-  rdf_has(_, rdfs:subClassOf, C).
-rdfs_class0(C) :-
-  rdf_has(_, rdfs:domain, C).
-rdfs_class0(C) :-
-  rdf_has(_, rdfs:range, C).
-rdfs_class0(C) :-
-  rdf_has(_, rdf:type, C).
+
+rdfs_class(C, G) :-
+  distinct(C, rdfs_class0(C, G)).
+
+rdfs_class0(C, G) :-
+  rdfs_instance(C, rdfs:'Class', G).
+rdfs_class0(C, G) :-
+  rdf_has(C, rdfs:subClassOf, _, _, G).
+rdfs_class0(C, G) :-
+  rdf_has(_, rdfs:subClassOf, C, _, G).
+rdfs_class0(C, G) :-
+  rdf_has(_, rdfs:domain, C, _, G).
+rdfs_class0(C, G) :-
+  rdf_has(_, rdfs:range, C, _, G).
+rdfs_class0(C, G) :-
+  rdf_has(_, rdf:type, C, _, G).
 
 
 
 %! rdfs_domain(?P, ?Dom) is nondet.
+%! rdfs_domain(?P, ?Dom, ?G) is nondet.
 
 rdfs_domain(P, Dom) :-
-  rdf_has(P, rdfs:domain, Dom).
+  distinct(P-Dom, rdfs_domain(P, Dom, _)).
+
+
+rdfs_domain(P, Dom, G) :-
+  rdf_has(P, rdfs:domain, Dom, _, G).
 
 
 
 %! rdfs_instance(?I, ?C) is nondet.
+%! rdfs_instance(?I, ?C, ?G) is nondet.
 
 rdfs_instance(I, D) :-
+  distinct(I-D, rdfs_instance(I, D, _)).
+
+
+rdfs_instance(I, D, G) :-
+  distinct(I-D-G, rdfs_instance0(I, D, G)).
+
+rdfs_instance0(I, D, G) :-
   nonvar(D), !,
-  rdf_reachable(C, rdfs:subClassOf, D),
-  rdf_has(I, rdf:type, C).
-rdfs_instance(I, D) :-
-  rdf_has(I, rdf:type, C),
-  rdf_reachable(C, rdfs:subClassOf, D).
-rdfs_instance(Lex^^C, D) :-
-  rdf(_, _, Lex^^C),
+  rdf_reachable(C, rdfs:subClassOf, D), % @tbd
+  rdf_has(I, rdf:type, C, _, G).
+rdfs_instance0(I, D, G) :-
+  rdf_has(I, rdf:type, C, _, G),
+  rdf_reachable(C, rdfs:subClassOf, D). % @tbd
+rdfs_instance0(Lex^^C, D, G) :-
+  rdf(_, _, Lex^^C, G),
   rdf_subdatatype_of(C, D).
-rdfs_instance(Lex@LTag, rdf:langString) :-
-  rdf(_, _, Lex@LTag).
+rdfs_instance0(Lex@LTag, rdf:langString, G) :-
+  rdf(_, _, Lex@LTag, G).
 
 
 
@@ -233,26 +261,32 @@ rdfs_pref_label(S, Lit) :-
 
 
 
-%! rdfs_property(-Prop) is nondet.
+%! rdfs_property(?Prop) is nondet.
+%! rdfs_property(?Prop, ?G) is nondet.
 
 rdfs_property(Prop) :-
-  distinct(Prop, rdfs_property0(Prop)).
+  distinct(Prop, rdfs_property(Prop, _)).
 
-rdfs_property0(Prop) :-
-  rdf_predicate(Prop).
-rdfs_property0(Prop) :-
-  rdfs_instance(Prop, rdf:'Property').
-rdfs_property0(Prop) :-
-  rdfs_subproperty_of(Prop, _).
-rdfs_property0(Prop) :-
-  rdfs_subproperty_of(_, Prop).
+
+rdfs_property(Prop, G) :-
+  distinct(Prop-G, rdfs_property0(Prop, G)).
+
+rdfs_property0(Prop, G) :-
+  rdf_predicate(Prop, G).
+rdfs_property0(Prop, G) :-
+  rdfs_instance(Prop, rdf:'Property', G).
 
 
 
 %! rdfs_range(?P, ?Ran) is nondet.
+%! rdfs_range(?P, ?Ran, ?G) is nondet.
 
 rdfs_range(P, Ran) :-
-  rdf_has(P, rdfs:range, Ran).
+  rdfs_range(P, Ran, _).
+
+
+rdfs_range(P, Ran, G) :-
+  rdf_has(P, rdfs:range, Ran, _, G).
 
 
 

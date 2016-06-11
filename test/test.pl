@@ -89,5 +89,5 @@
 %/stat
 :- use_module(library(stat/rdf_stat)).
 :- use_module(library(stat/rdfs_stat)).
-%/void
-:- use_module(library(void/void_build)).
+%/vocab
+:- use_module(library(vocab/void)).

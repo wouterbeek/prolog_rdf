@@ -20,6 +20,7 @@
     rdf_flatten/2,          % +P, ?G
     rdf_mv/2,               % +G1, +G2
     rdf_mv/5,               % +G1, ?S, ?P, ?O, +G2
+    rdf_rm/1,               % +Tuple
     rdf_rm/3,               % ?S, ?P, ?O
     rdf_rm/4,               % ?S, ?P, ?O, ?G
     rdf_rm_cell/3,          % +S, +P, +O
@@ -30,6 +31,7 @@
     rdf_rm_error/4,         % ?S, ?P, ?O, ?G
     rdf_rm_null/1,          % +Null
     rdf_rm_null/2,          % +Null, ?G
+    rdf_rm_tree/1,          % +S
     rdf_split_lex/2,        % +P, :Dcg_2
     rdf_split_lex/3         % +P, ?G, :Dcg_2
   ]
@@ -90,6 +92,7 @@ Higher-level update operations performed on RDF data.
    rdf_inc(r, r, +),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
+   rdf_rm(t),
    rdf_rm(r, r, o),
    rdf_rm(r, r, o, r),
    rdf_rm_cell(r, r, o),
@@ -100,6 +103,7 @@ Higher-level update operations performed on RDF data.
    rdf_rm_error(r, r, o, r),
    rdf_rm_null(o),
    rdf_rm_null(o, r),
+   rdf_rm_tree(r),
    rdf_split_lex(r, :),
    rdf_split_lex(r, r, :).
 
@@ -329,10 +333,19 @@ rdf_mv(G1, S, P, O, G2) :-
 
 
 
+%! rdf_rm(+Tuple) is det.
 %! rdf_rm(?S, ?P, ?O) is det.
 %! rdf_rm(?S, ?P, ?O, ?G) is det.
 %
 % Remove the specified triples or quadruples.
+
+rdf_rm(rdf(S,P,O)) :-
+  rdf_rm(S, P, O).
+
+
+rdf_rm(rdf(S,P,O,G)) :-
+  rdf_rm(S, P, O, G).
+
 
 rdf_rm(S, P, O) :-
   rdf_rm(S, P, O, _).
@@ -403,6 +416,14 @@ rdf_rm_null(Null) :-
 
 rdf_rm_null(Null, G) :-
   rdf_rm(_, _, Null, G).
+
+
+
+%! rdf_rm_tree(+S) is det.
+
+rdf_rm_tree(S) :-
+  rdf_tree(S, Tree),
+  maplist(rdf_rm, Tree).
 
 
 

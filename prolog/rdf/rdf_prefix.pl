@@ -4,6 +4,7 @@
     abbr_iri/2,                   % +Iri, -Abbr
     rdf_current_prefix/1,         % ?Prefix
     rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
+    rdf_iri_prefix/2,             % +Iri, -Prefix
     rdf_reset_prefix/2,           % +Prefix, +IriPrefix
     rdf_used_prefix/1             % -Prefix
   ]
@@ -33,7 +34,7 @@ This allows the following two IRI notations to be distinguished:
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11-2016/01, 2016/03-2016/05
+@version 2015/07-2015/09, 2015/11-2016/01, 2016/03-2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -303,6 +304,13 @@ rdf_current_prefix(Prefix) :-
 rdf_iri_alias_prefix_local(Iri, Alias, Prefix, Local) :-
   rdf_db:rdf_global_id(Alias:Local, Iri),
   rdf_current_prefix(Alias, Prefix).
+
+
+
+%! rdf_iri_prefix(+Iri, -Prefix) is det.
+
+rdf_iri_prefix(Iri, Prefix) :-
+  rdf_iri_alias_prefix_local(Iri, _, Prefix, _).
 
 
 
