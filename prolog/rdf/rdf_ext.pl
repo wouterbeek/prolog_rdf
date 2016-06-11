@@ -40,7 +40,7 @@
     rdf_string/2,           % +Lit, -String
     rdf_tree/2,             % ?S, -Tree
     rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
-    rdf_tuple/1,            % -Tuple
+    rdf_tuple/1,            % ?Tuple
     rdf_unload_db/0
   ]
 ).
@@ -459,11 +459,17 @@ rdf_tree([S|T1], Hist1, Tree1, Sol) :-
 
 
 
-%! rdf_tuple(-Tuple) is det.
+%! rdf_tuple(+Tuple) is semidet.
+%! rdf_tuple(-Tuple) is nondet.
 
 rdf_tuple(Tuple) :-
+  var(Tuple), !,
   rdf(S, P, O, G),
   (G == default -> Tuple = rdf(S,P,O) ; Tuple = rdf(S,P,O,G)).
+rdf_tuple(rdf(S,P,O)) :- !,
+  rdf(S, P, O).
+rdf_tuple(rdf(S,P,O,G)) :-
+  rdf(S, P, O, G).
   
 
 

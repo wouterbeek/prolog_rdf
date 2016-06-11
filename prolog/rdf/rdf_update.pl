@@ -1,7 +1,7 @@
 :- module(
   rdf_update,
   [
-    rdf_call_update/1,      % :Goal_1
+    rdf_call_update/1,      % :Goal_0
     rdf_change_datatype/2,  % +P, +D
     rdf_change_datatype/3,  % +P, ?G, +D
     rdf_change_iri/5,       % ?S, ?P, ?O, +Positions, :Dcg_0
@@ -20,7 +20,6 @@
     rdf_flatten/2,          % +P, ?G
     rdf_mv/2,               % +G1, +G2
     rdf_mv/5,               % +G1, ?S, ?P, ?O, +G2
-    rdf_rm/1,               % +Tuple
     rdf_rm/3,               % ?S, ?P, ?O
     rdf_rm/4,               % ?S, ?P, ?O, ?G
     rdf_rm_cell/3,          % +S, +P, +O
@@ -32,6 +31,7 @@
     rdf_rm_null/1,          % +Null
     rdf_rm_null/2,          % +Null, ?G
     rdf_rm_tree/1,          % +S
+    rdf_rm_tuples/1,        % +Tuples
     rdf_split_lex/2,        % +P, :Dcg_2
     rdf_split_lex/3         % +P, ?G, :Dcg_2
   ]
@@ -51,6 +51,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(dict_ext)).
+:- use_module(library(lists)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
@@ -61,8 +62,8 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(solution_sequences)).
 
 :- meta_predicate
-    rdf_call_update(1),
-    rdf_call_update(1, +),
+    rdf_call_update(0),
+    rdf_call_update(0, +),
     rdf_change_iri(?, ?, ?, +, //),
     rdf_change_iri(?, ?, ?, +, ?, //),
     rdf_change_iri0(+, +, //, -),
@@ -92,7 +93,6 @@ Higher-level update operations performed on RDF data.
    rdf_inc(r, r, +),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
-   rdf_rm(t),
    rdf_rm(r, r, o),
    rdf_rm(r, r, o, r),
    rdf_rm_cell(r, r, o),
@@ -104,6 +104,7 @@ Higher-level update operations performed on RDF data.
    rdf_rm_null(o),
    rdf_rm_null(o, r),
    rdf_rm_tree(r),
+   rdf_rm_tuples(t),
    rdf_split_lex(r, :),
    rdf_split_lex(r, r, :).
 
@@ -111,16 +112,16 @@ Higher-level update operations performed on RDF data.
 
 
 
-%! rdf_call_update(:Goal_1) is det.
+%! rdf_call_update(:Goal_0) is det.
 %
 % The following call is made: `call(
 
-rdf_call_update(Goal_1) :-
-  rdf_transaction(rdf_call_update(Goal_1, _{count: 0})).
+rdf_call_update(Goal_0) :-
+  rdf_transaction(rdf_call_update(Goal_0, _{count: 0})).
 
 
-rdf_call_update(Goal_1, State) :-
-  call(Goal_1),
+rdf_call_update(Goal_0, State) :-
+  call(Goal_0),
   dict_inc(count, State),
   fail.
 rdf_call_update(_, State) :-
@@ -333,19 +334,10 @@ rdf_mv(G1, S, P, O, G2) :-
 
 
 
-%! rdf_rm(+Tuple) is det.
 %! rdf_rm(?S, ?P, ?O) is det.
 %! rdf_rm(?S, ?P, ?O, ?G) is det.
 %
 % Remove the specified triples or quadruples.
-
-rdf_rm(rdf(S,P,O)) :-
-  rdf_rm(S, P, O).
-
-
-rdf_rm(rdf(S,P,O,G)) :-
-  rdf_rm(S, P, O, G).
-
 
 rdf_rm(S, P, O) :-
   rdf_rm(S, P, O, _).
@@ -423,7 +415,20 @@ rdf_rm_null(Null, G) :-
 
 rdf_rm_tree(S) :-
   rdf_tree(S, Tree),
-  maplist(rdf_rm, Tree).
+  rdf_rm_tuples(Tree).
+
+
+
+%! rdf_rm_tuples(+Tuples) is det.
+
+rdf_rm_tuples(Tuples) :-
+  rdf_call_update((
+    % Find instance.
+    member(Tuple, Tuples),
+    rdf_tuple(Tuple),
+    % Transform instance.
+    rdf_retractall(Tuple)
+  )).
 
 
 

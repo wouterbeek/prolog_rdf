@@ -145,7 +145,7 @@ graph_to_void0(Goal_2, G1, M, G2) :-
   ),
 
   % VoID assertions that cannot be generated automatically.
-  call(Goal_2, Dataset, G).
+  call(Goal_2, Dataset, G2).
 
 
 vocab_term(C, G) :-

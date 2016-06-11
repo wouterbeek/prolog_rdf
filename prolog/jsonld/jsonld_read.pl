@@ -236,6 +236,11 @@ jsonld_tuple(Context, S, P, ODef, LTag, Os, Tuple) :-
 jsonld_tuple(Context, S, P, _, _, _{'@id': O1}, Tuple) :- !,
   jsonld_expand_term(Context, O1, O2),
   tuple_term(Context, S, P, O2, Tuple).
+% Object is an IRI; try to expand it.
+jsonld_tuple(Context, S, P, ODef, _, O1, Tuple) :-
+  ODef == '@id', !,
+  jsonld_expand_term(Context, O1, O2),
+  tuple_term(Context, S, P, O2, Tuple).
 % Object is an RDF literal with explicitly supplied RDF datatype
 % (1/2).  This comes before abbreviated object list because a datatype
 % may contain arrays in its value space.
@@ -277,11 +282,6 @@ jsonld_tuple(Context, S1, P, _, _, O1, Tuple) :-
       % NONDET
       member(Tuple, Tuples)
   ).
-% Object is an IRI; try to expand it.
-jsonld_tuple(Context, S, P, ODef, _, O1, Tuple) :-
-  ODef == '@id', !,
-  jsonld_expand_term(Context, O1, O2),
-  tuple_term(Context, S, P, O2, Tuple).
 % Language-tagged string ‘rdf:langString’.
 jsonld_tuple(Context, S, P, _, LTag, V, Tuple) :-
   (nonvar(LTag) ; get_dict('@language', Context, LTag)),
