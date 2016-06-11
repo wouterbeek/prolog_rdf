@@ -1,7 +1,8 @@
 :- module(
   void,
   [
-    source_to_void/2 % +Source, +G
+    source_to_void/2, % +Source, +VoidG
+    source_to_void/3  % +Source, :Goal_2, +VoidG
   ]
 ).
 
@@ -10,6 +11,7 @@
 Automatically generate VoID descriptions.
 
 @author Wouter Beek
+@tbd Add support for generating linksets.
 @version 2016/01-2016/02, 2016/04, 2016/06
 */
 
@@ -24,22 +26,79 @@ Automatically generate VoID descriptions.
 :- use_module(library(solution_sequences)).
 :- use_module(library(stat/rdf_stat)).
 :- use_module(library(stat/rdfs_stat)).
+:- use_module(library(true)).
 :- use_module(library(yall)).
 
+:- meta_predicate
+    graph_to_void0(2, +, +, +),
+    source_to_void(+, 2, +).
+
 :- rdf_meta
-   source_to_void(+, r).
+   source_to_void(+, r),
+   source_to_void(+, :, r).
 
 
 
 
 
-%! source_to_void(+Source, ?VoidG) is det.
+%! source_to_void(+Source, +VoidG) is det.
+%! source_to_void(+Source, :Goal_2, +VoidG) is det.
+%
+% Common assertions to be made by `call(Goal_2, Dataset, VoidG)` are:
+%
+%   * `dcterms:description` A textual description of the dataset.
+%
+%   * `dcterms:contributor` An entity, such as a person, organisation,
+%   or service, that is responsible for making contributions to the
+%   dataset.  The contributor should be described as an RDF resource,
+%   rather than just providing the name as a literal.
+%
+%   * `dcterms:created ` Date of creation of the dataset. The value
+%   should be formatted and data-typed as an xsd:date.
+%
+%   * `dcterms:creator ` An entity, such as a person, organisation, or
+%   service, that is primarily responsible for creating the dataset.
+%   The creator should be described as an RDF resource, rather than
+%   just providing the name as a literal.
+%
+%   * `dcterms:date` A point or period of time associated with an event
+%   in the life-cycle of the resource.  The value should be formatted
+%   and data-typed as an xsd:date.
+%
+%   * `dcterms:issued` Date of formal issuance (e.g., publication) of
+%   the dataset.  The value should be formatted and datatyped as an
+%   xsd:date.
+%
+%   * `dcterms:modified` Date on which the dataset was changed.  The
+%   value should be formatted and datatyped as an xsd:date.
+%
+%   * `dcterms:publisher` An entity, such as a person, organisation, or
+%   service, that is responsible for making the dataset available.
+%   The publisher should be described as an RDF resource, rather than
+%   just providing the name as a literal.
+%
+%   * `dcterms:source` A related resource from which the dataset is
+%   derived.  The source should be described as an RDF resource,
+%   rather than as a literal.
+%
+%   * `dcterms:title ` The name of the dataset.
+%
+%   * `foaf:homepage` _The_ (IFP) homepage of the dataset.
+%
+%   * `foaf:page` A Web page containing relevant information.
 
 source_to_void(Source, G2) :-
-  rdf_call_on_graph(Source, {G2}/[G1,M,M]>>graph_to_void0(G1, M, G2)).
+  source_to_void(Source, true, G2).
 
 
-graph_to_void0(G1, M, G2) :-
+source_to_void(Source, Goal_2, G2) :-
+  rdf_call_on_graph(
+    Source,
+    {Goal_2,G2}/[G1,M,M]>>graph_to_void0(Goal_2, G1, M, G2)
+  ).
+
+
+graph_to_void0(Goal_2, G1, M, G2) :-
   % rdf:type
   rdf_create_bnode(Dataset),
   rdf_assert_instance(Dataset, void:'Dataset', G2),
@@ -83,7 +142,10 @@ graph_to_void0(G1, M, G2) :-
       rdf_iri_prefix(Iri, Vocab)
     )),
     rdf_assert(Dataset, void:vocabulary, Vocab, G2)
-  ).
+  ),
+
+  % VoID assertions that cannot be generated automatically.
+  call(Goal_2, Dataset, G).
 
 
 vocab_term(C, G) :-
