@@ -48,7 +48,7 @@ Generates end user-oriented HTML representations of RDF data.
 This assumes that an HTTP handler with id `rdfh` is defined.
 
 @author Wouter Beek
-@version 2016/02-2016/05
+@version 2016/02-2016/06
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -67,7 +67,7 @@ This assumes that an HTTP handler with id `rdfh` is defined.
 :- use_module(library(yall)).
 
 :- html_meta
-   rdfh_link(html, +, ?, ?),
+   rdfh_link(+, html, ?, ?),
    rdfh_link(+, html, +, ?, ?).
 
 :- setting(rdfh_handler, atom, '',
@@ -93,7 +93,7 @@ rdfh_bnode(B) -->
 
 
 rdfh_bnode(B, Opts) -->
-  rdfh_link(bnode=B, html(B), Opts).
+  rdfh_link(bnode(B), html(B), Opts).
 
 
 
@@ -104,8 +104,8 @@ rdfh_class(C) -->
   rdfh_class(C, _{}).
 
 
-rdfh_class(Opts, C) -->
-  rdfh_link(Opts, class=C, \rdfh_iri(C)).
+rdfh_class(C, Opts) -->
+  rdfh_link(class(C), rdfh_iri(C), Opts).
 
 
 
@@ -117,7 +117,7 @@ rdfh_datatype(D) -->
 
 
 rdfh_datatype(D, Opts) -->
-  rdfh_link(Opts, datatype=D, \rdfh_iri(D)).
+  rdfh_link(datatype(D), rdfh_iri(D), Opts).
 
 
 
@@ -142,7 +142,7 @@ rdfh_describe_row(P-Os) -->
 %! rdfh_graph(+G)// is det.
 
 rdfh_graph(G) -->
-  rdfh_link(graph=G, \rdfh_iri(G)).
+  rdfh_link(graph(G), rdfh_iri(G)).
 
 
 
@@ -183,7 +183,7 @@ rdfh_literal(Lit) -->
 
 
 rdfh_literal(Lit, Opts) -->
-  rdfh_link(literal=Lit, rdfh_literal0(Lit, Opts), Opts).
+  rdfh_link(literal(Lit), rdfh_literal0(Lit, Opts), Opts).
 
 % RDF HTML
 rdfh_literal0(V^^D, _) -->
@@ -192,9 +192,9 @@ rdfh_literal0(V^^D, _) -->
 % RDF language-tagged string.
 rdfh_literal0(S@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
-  html([span(lang=LTag, S)," ",\flag_icon(LTag)]).
+  html([span(lang(LTag), S)," ",\flag_icon(LTag)]).
 rdfh_literal0(S@LTag, _) --> !,
-  html(span(lang=LTag, S)).
+  html(span(lang(LTag), S)).
 % XSD boolean.
 rdfh_literal0(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
@@ -239,7 +239,7 @@ rdfh_object(O) -->
 
 
 rdfh_object(O, Opts) -->
-  rdfh_link(Opts, object=O, \rdfh_term0(O, Opts)).
+  rdfh_link(object(O), rdfh_term0(O, Opts), Opts).
 
 
 
@@ -251,7 +251,7 @@ rdfh_predicate(P) -->
 
 
 rdfh_predicate(P, Opts) -->
-  rdfh_link(Opts, predicate=P, \rdfh_iri(P)).
+  rdfh_link(predicate(P), rdfh_iri(P), Opts).
 
 
 
@@ -263,7 +263,7 @@ rdfh_property(Prop) -->
 
 
 rdfh_property(Prop, Opts) -->
-  rdfh_link(Opts, property=Prop, \rdfh_iri(Prop)).
+  rdfh_link(property(Prop), rdfh_iri(Prop), Opts).
 
 
 
@@ -344,7 +344,7 @@ rdfh_subject(S) -->
 
 
 rdfh_subject(S, Opts) -->
-  rdfh_link(Opts, subject=S, \rdfh_subject0(S)).
+  rdfh_link(subject(S), rdfh_subject0(S), Opts).
 
 rdfh_subject0(S) -->
   {rdf_is_iri(S)}, !,
@@ -363,7 +363,7 @@ rdfh_term(Term) -->
 
 
 rdfh_term(Term, Opts) -->
-  rdfh_link(Opts, term=Term, \rdfh_term0(Term, Opts)).
+  rdfh_link(term(Term), rdfh_term0(Term, Opts), Opts).
 
 rdfh_term0(Lit, Opts) -->
   {rdf_is_literal(Lit)}, !,
@@ -378,7 +378,7 @@ rdfh_term0(S, _) -->
 rdfh_tree(Tree) -->
   html([
     \check_all,
-    div(class=treeview, div(class=tree,\rdfh_trees([0], [Tree])))
+    div(class(treeview), div(class(tree),\rdfh_trees([0], [Tree])))
   ]).
 
 check_all -->
@@ -388,18 +388,18 @@ $("#checkAll").change(function () {
   $("input:checkbox").prop('checked', $(this).prop("checked"));
 });
     |}),
-    p(label([input([id=checkAll,type=checkbox], []), 'Check all']))
+    p(label([input([id(checkAll),type(checkbox)], []), 'Check all']))
   ]).
 
 rdfh_trees(_, []) --> !, [].
 rdfh_trees(Ns, [P-[Leaf-[]]|Trees]) --> !,
   html([
-    div(class=node, [\rdfh_predicate(P)," ",\rdfh_object(Leaf)]),
+    div(class(node), [\rdfh_predicate(P)," ",\rdfh_object(Leaf)]),
     \rdfh_trees(Ns, Trees)
   ]).
 rdfh_trees(Ns, [Leaf-[]|Trees]) --> !,
   html([
-    div(class=node, \rdfh_object(Leaf)),
+    div(class(node), \rdfh_object(Leaf)),
     \rdfh_trees(Ns, Trees)
   ]).
 rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
@@ -411,10 +411,10 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
     append(Ns1, [0], Ns3)
   },
   html([
-    div(class=node, [
-      input([id=Id,type=checkbox], []),
-      label(for=Id, \rdfh_predicate(Root)),
-      div(class=tree, \rdfh_trees(Ns3, Subtrees))
+    div(class(node), [
+      input([id(Id),type(checkbox)], []),
+      label(for(Id), \rdfh_predicate(Root)),
+      div(class(tree), \rdfh_trees(Ns3, Subtrees))
     ]),
     \rdfh_trees(Ns2, Trees)
   ]).
@@ -480,9 +480,9 @@ rdfh_triple_table(Triples, Opts) -->
 rdfh_table_header -->
   html(
     tr([
-      th(class=subject, "Subject"),
-      th(class=predicate, "Predicate"),
-      th(class=object, "Object")
+      th(class(subject), "Subject"),
+      th(class(predicate), "Predicate"),
+      th(class(object), "Object")
     ])
   ).
 
@@ -505,36 +505,28 @@ rdfh_triple_table(S, P, O, G, Opts) -->
 
 % HELPERS %
 
-/*
-html_entry(owl:equivalentClass, equiv).
-html_entry(owl:sameAs,          equiv).
-html_entry(rdf:type,            isin).
-html_entry(rdfs:subClassOf,     sube).
-*/
+%! rdfh_link(+Res:compound, :Content_2       )// is det.
+%! rdfh_link(+Res:compound, :Content_2, +Opts)// is det.
+%
+% Generates an RDF request link in case HTTP handler `rdfh` is
+% defined.  Otherwise, the content is generated without an enclosing
+% link element.
 
-%! rdfh_link(+Query, :Content_2       )// is det.
-%! rdfh_link(+Query, :Content_2, +Opts)// is det.
-% Generates an RDF request link in case HTTP handler `rdfh` is defined.
-% Otherwise, the content is generated without an enclosing link element.
-
-rdfh_link(Query, Content_2) -->
-  rdfh_link(Query, Content_2, _{}).
+rdfh_link(Res, Content_2) -->
+  rdfh_link(Res, Content_2, _{}).
 
 
-rdfh_link(N=V1, Content_2, Opts) -->
+rdfh_link(Res, Content_2, Opts) -->
   {
+    Res =.. [_,V1],
     setting(rdfh_handler, Id),
     Id \== '',
-    rdf_global_term(V1, V2),
-    (is_iri(V2) -> Iri = true ; Iri = false),
-    term_to_atom(V2, V3),
-    (   get_dict(query, Opts, Query1)
-    ->  Query2 = [N=V3|Query1]
-    ;   Query2 = [N=V3]
-    ),
-    http_link_to_id(Id, Query2, Location), !
+    (is_iri(V1) -> Iri = true ; Iri = false),
+    term_to_atom(V1, V2),
+    (get_dict(query, Opts, Query0) -> Query = [Res|Query0] ; Query = [Res]),
+    http_link_to_id(Id, Query, Location), !
   },
   internal_link(Location, Content_2),
-  ({Iri == true} -> html([" ",\external_link_icon(V3)]) ; "").
+  ({Iri == true} -> html([" ",\external_link_icon(V2)]) ; "").
 rdfh_link(_, Content_2, _) -->
   Content_2.
