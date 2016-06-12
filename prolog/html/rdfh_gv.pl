@@ -16,10 +16,6 @@
 :- use_module(library(html/html_dom)).
 :- use_module(library(rdf/rdf_graph_viz)).
 
-:- predicate_options(rdfh_gv//2, 2, [
-     pass_to(rdf_graph_to_export_graph/3, 3)
-   ]).
-
 
 
 
@@ -29,6 +25,7 @@
 
 rdfh_gv(G) -->
   rdfh_gv(G, []).
+
 
 rdfh_gv(G, Opts) -->
   {
