@@ -560,9 +560,9 @@ rdfh_link(Res1, Content_2, Opts) -->
     (is_iri(V1) -> Iri = true ; Iri = false),
     
     (get_dict(query, Opts, Query0) -> Query = [Res2|Query0] ; Query = [Res2]),
-    http_link_to_id(Id, Query, Location), !
+    http_link_to_id(Id, Query, Link), !
   },
-  internal_link(Location, Content_2),
-  ({Iri == true} -> html([" ",\external_link_icon(V2)]) ; "").
+  internal_link(Link, Content_2),
+  ({Iri == true} -> html([" ",\external_link_icon(V1)]) ; "").
 rdfh_link(_, Content_2, _) -->
   Content_2.
