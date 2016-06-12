@@ -4,22 +4,23 @@
     rdfh_alias//1,         % +Alias
     rdfh_bnode//1,         % +B
     rdfh_bnode//2,         % +B,             +Opts
-    rdfh_class//1,         % +C	            
+    rdfh_class//1,         % +C
     rdfh_class//2,         % +C,             +Opts
-    rdfh_datatype//1,      % +D	            
+    rdfh_datatype//1,      % +D
     rdfh_datatype//2,      % +D,             +Opts
-    rdfh_describe//1,      % +S	            
-    rdfh_graph//1,         % +G	            
-    rdfh_iri//1,           % +Iri           
-    rdfh_list//1,          % +L	            
+    rdfh_describe//1,      % +S
+    rdfh_graph//1,         % +G
+    rdfh_graph_table//0,
+    rdfh_iri//1,           % +Iri
+    rdfh_list//1,          % +L
     rdfh_list//2,          % +L,             +Opts
-    rdfh_literal//1,       % +Lit           
+    rdfh_literal//1,       % +Lit
     rdfh_literal//2,       % +Lit,           +Opts
-    rdfh_object//1,        % +O	            
+    rdfh_object//1,        % +O
     rdfh_object//2,        % +O,             +Opts
-    rdfh_predicate//1,     % +P	            
+    rdfh_predicate//1,     % +P
     rdfh_predicate//2,     % +P,             +Opts
-    rdfh_property//1,      % +Prop          
+    rdfh_property//1,      % +Prop
     rdfh_property//2,      % +Prop,          +Opts
     rdfh_property_path//1, % +Props
     rdfh_property_path//2, % +Props,         +Opts
@@ -64,11 +65,14 @@ The following options are supported:
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/js_write)).
+:- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix), []).
+:- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
+:- use_module(library(stat/rdf_stat)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
@@ -155,6 +159,24 @@ rdfh_graph(G) -->
 
 
 
+%! rdfh_graph_table// is det.
+
+rdfh_graph_table -->
+  {
+    findall(NumTriples-G, rdf_number_of_triples(G, NumTriples), Pairs),
+    desc_pairs_values(Pairs, Gs)
+  },
+  bs_table(
+    \bs_table_header(["Graph","Number of triples"]),
+    \html_maplist(rdfh_graph_row, Gs)
+  ).
+
+rdfh_graph_row(G) -->
+  {rdf_number_of_triples(G, NumTriples)},
+  html(tr([td(\rdfh_graph(G)),td(\html_thousands(NumTriples))])).
+
+
+
 %! rdfh_iri(+Iri)// is det.
 
 % Abbreviated notation for IRI.
@@ -215,6 +237,9 @@ rdfh_literal0(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
   html("~a"-[V]).
 % XSD date/time.
+rdfh_literal0(V^^D, Opts) -->
+  {rdf_equal(xsd:gYear, D), integer(V)}, !,
+  rdfh_literal0(date(V,_,_)^^D, Opts).
 rdfh_literal0(V^^D1, _) -->
   {
     rdf_subdatatype_of(D1, D2),
