@@ -1,7 +1,6 @@
 :- module(
   rdfh,
   [
-    rdfh_alias//1,         % +Alias
     rdfh_bnode//1,         % +B
     rdfh_bnode//2,         % +B,             +Opts
     rdfh_class//1,         % +C
@@ -27,7 +26,6 @@
     rdfh_quad//4,          % +S, +P, +O, +G
     rdfh_quad_panels//4,   % ?S, ?P, ?O, ?G
     rdfh_quad_table//4,    % ?S, ?P, ?O, ?G
-    rdfh_string//1,        % +Lit
     rdfh_subject//1,       % +S
     rdfh_subject//2,       % +S,             +Opts
     rdfh_term//1,          % +Term
@@ -65,10 +63,13 @@ The following options are supported:
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/js_write)).
+:- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
+:- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix), []).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
@@ -77,8 +78,7 @@ The following options are supported:
 :- use_module(library(yall)).
 
 :- html_meta
-   rdfh_link(+, html, ?, ?),
-   rdfh_link(+, html, +, ?, ?).
+   rdfh_link(+, +, +, html, +, ?, ?).
 
 :- setting(rdfh_handler, atom, '',
      "ID of the HTTP handler that performs RDF term lookup."
@@ -88,228 +88,298 @@ The following options are supported:
 
 
 
-%! rdfh_alias(+Alias)// is det.
-
-rdfh_alias(Alias) -->
-  html(Alias).
-
-
-
-%! rdfh_bnode(+BNode       )// is det.
+%! rdfh_bnode(+BNode)// is det.
 %! rdfh_bnode(+BNode, +Opts)// is det.
 
 rdfh_bnode(B) -->
   {rdfh_default_options(Opts)},
   rdfh_bnode(B, Opts).
 
-
 rdfh_bnode(B, Opts) -->
-  rdfh_link(bnode(B), html(B), Opts).
+  rdfh_bnode_outer(_, [], B, Opts).
+
+rdfh_bnode_outer(C, Cs1, B0, Opts) -->
+  {
+    ord_add_element(Cs1, bnode, Cs2),
+    rdf_bnode_map(B0, B)
+  },
+  rdfh_link(C, Cs2, B, \rdfh_bnode_inner(B, Opts), Opts).
+
+rdfh_bnode_inner(B, _) -->
+  {rdf_bnode_map(B, Lbl)},
+  html(["_:",Lbl]).
 
 
 
-%! rdfh_class(+C       )// is det.
-%! rdfh_class(+C, +Opts)// is det.
+%! rdfh_class(+C)// is det.
+%! rdfh_class(+Cs, +Opts)// is det.
 
 rdfh_class(C) -->
   {rdfh_default_options(Opts)},
   rdfh_class(C, Opts).
 
-
 rdfh_class(C, Opts) -->
-  rdfh_link(class(C), \rdfh_iri(C), Opts).
+  rdfh_class_outer(_, [], C, Opts).
+
+rdfh_class_outer(C0, Cs1, C, Opts) -->
+  {ord_add_element(Cs1, class, Cs2)},
+  rdfh_term_outer(C0, Cs2, C, Opts).
 
 
 
-%! rdfh_datatype(+D       )// is det.
+%! rdfh_datatype(+D)// is det.
 %! rdfh_datatype(+D, +Opts)// is det.
 
 rdfh_datatype(D) -->
   {rdfh_default_options(Opts)},
   rdfh_datatype(D, Opts).
 
-
 rdfh_datatype(D, Opts) -->
-  rdfh_link(datatype(D), \rdfh_iri(D), Opts).
+  rdfh_datatype_outer(_, [], D, Opts).
+
+rdfh_datatype_outer(C, Cs1, D, Opts) -->
+  {ord_add_element(Cs1, datatype, Cs2)},
+  rdfh_term_outer(C, Cs2, D, Opts).
 
 
 
 %! rdfh_describe(+S)// is det.
+%! rdfh_describe(+S, +Opts)// is det.
+%
 % Generate a full description of subject term S.
 
 rdfh_describe(S) -->
+  {rdfh_default_options(Opts)},
+  rdfh_describe(S, Opts).
+
+rdfh_describe(S, Opts) -->
   {
     findall(P-O, rdf(S, P, O), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
   bs_table(
     \bs_table_header(["Predicate","Objects"]),
-    \html_maplist(rdfh_describe_row, Groups)
+    \html_maplist({Opts}/[Group]>>rdfh_describe_row(Group, Opts), Groups)
   ).
 
-rdfh_describe_row(P-Os) -->
-  html(tr([td(\rdfh_property(P)),td(\html_seplist(rdfh_object, Os))])).
+rdfh_describe_row(P-Os, Opts) -->
+  html(
+    tr([
+      td(\rdfh_property_outer(property, [], P, Opts)),
+      td(\html_seplist({Opts}/[O]>>rdfh_object(O, Opts), Os))
+    ])
+  ).
 
 
 
 %! rdfh_graph(+G)// is det.
 
 rdfh_graph(G) -->
-  rdfh_link(graph(G), \rdfh_iri(G)).
+  {rdfh_default_options(Opts)},
+  rdfh_graph(G, Opts).
+
+rdfh_graph(G, Opts) -->
+  rdfh_graph_outer(_, [], G, Opts).
+
+rdfh_graph_outer(C, Cs1, G, Opts) -->
+  {ord_add_element(Cs1, graph, Cs2)},
+  rdfh_iri_outer(C, Cs2, G, Opts).
 
 
 
 %! rdfh_graph_table// is det.
+%! rdfh_graph_table(+Opts)// is det.
 
 rdfh_graph_table -->
+  {rdfh_default_options(Opts)},
+  rdfh_graph_table(Opts).
+
+rdfh_graph_table(Opts) -->
   {
     findall(NumTriples-G, rdf_number_of_triples(G, NumTriples), Pairs),
     desc_pairs_values(Pairs, Gs)
   },
   bs_table(
     \bs_table_header(["Graph","Number of triples"]),
-    \html_maplist(rdfh_graph_row, Gs)
+    \html_maplist({Opts}/[G]>>rdfh_graph_row(G, Opts), Gs)
   ).
 
-rdfh_graph_row(G) -->
+rdfh_graph_row(G, Opts) -->
   {rdf_number_of_triples(G, NumTriples)},
-  html(tr([td(\rdfh_graph(G)),td(\html_thousands(NumTriples))])).
+  html(
+    tr([
+      td(\rdfh_graph_outer(graph, [], G, Opts)),
+      td(\html_thousands(NumTriples))
+    ])
+  ).
 
 
 
 %! rdfh_iri(+Iri)// is det.
+%! rdfh_iri(+Iri, +Opts)// is det.
+
+rdfh_iri(Iri) -->
+  {rdfh_default_options(Opts)},
+  rdfh_iri(Iri, Opts).
+
+rdfh_iri(Iri, Opts) -->
+  rdfh_iri_outer(_, [], Iri, Opts).
+
+rdfh_iri_outer(C, Cs1, Iri, Opts) -->
+  {ord_add_element(Cs1, iri, Cs2)},
+  rdfh_link(C, Cs2, Iri, \rdfh_iri_inner(Iri, Opts), Opts).
 
 % Abbreviated notation for IRI.
-rdfh_iri(Iri) -->
+rdfh_iri_inner(Iri, _) -->
   {rdf_global_id(Alias:Local, Iri)}, !,
-  html([\rdfh_alias(Alias),":",Local]).
+  html([
+    span(class=alias, Alias),
+    ":",
+    Local
+  ]).
 % RDFS label replacing IRI.
-rdfh_iri(Iri) -->
+rdfh_iri_inner(Iri, _) -->
   {rdfs_pref_label(Iri, Lbl)}, !,
   html(Lbl).
 % Plain IRI.
-rdfh_iri(Iri) -->
+rdfh_iri_inner(Iri, _) -->
   html(Iri).
 
 
 
-%! rdfh_list(+List       )// is det.
-%! rdfh_list(+List, +Opts)// is det.
+%! rdfh_list(+L)// is det.
+%! rdfh_list(+L, +Opts)// is det.
 
 rdfh_list(L) -->
   {rdfh_default_options(Opts)},
   rdfh_list(L, Opts).
 
-
 rdfh_list(L, Opts) -->
   {rdf_list(L, Terms)},
-  list(rdfh_term0(Opts), Terms).
+  list({Opts}/[Term]>>rdfh_term(Term, Opts), Terms).
 
 
 
-%! rdfh_literal(+Lit       )// is det.
+%! rdfh_literal(+Lit)// is det.
 %! rdfh_literal(+Lit, +Opts)// is det.
 
 rdfh_literal(Lit) -->
   {rdfh_default_options(Opts)},
   rdfh_literal(Lit, Opts).
 
-
 rdfh_literal(Lit, Opts) -->
-  rdfh_link(literal(Lit), \rdfh_literal0(Lit, Opts), Opts).
+  rdfh_literal_outer(_, [], Lit, Opts).
+
+rdfh_literal_outer(C, Cs1, Lit, Opts) -->
+  {ord_add_element(Cs1, literal, Cs2)},
+  rdfh_link(C, Cs2, Lit, \rdfh_literal_inner(Lit, Opts), Opts).
 
 % RDF HTML
-rdfh_literal0(V^^D, _) -->
+rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, rdf:'HTML')}, !,
   html(\[V]).
 % RDF language-tagged string.
-rdfh_literal0(S@LTag, Opts) -->
+rdfh_literal_inner(S@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
   html([
     span(lang(LTag), \bs_truncated(S, Opts.max_length)),
     " ",
     \flag_icon(LTag)
   ]).
-rdfh_literal0(S@LTag, Opts) --> !,
+rdfh_literal_inner(S@LTag, Opts) --> !,
   html(span(lang(LTag), \bs_truncated(S, Opts.max_length))).
 % XSD boolean.
-rdfh_literal0(V^^D, _) -->
+rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
   html("~a"-[V]).
 % XSD date/time.
-rdfh_literal0(V^^D, Opts) -->
+rdfh_literal_inner(V^^D, Opts) -->
   {rdf_equal(xsd:gYear, D), integer(V)}, !,
-  rdfh_literal0(date(V,_,_)^^D, Opts).
-rdfh_literal0(V^^D1, _) -->
+  rdfh_literal_inner(date(V,_,_)^^D, Opts).
+rdfh_literal_inner(V^^D1, _) -->
   {
     rdf_subdatatype_of(D1, D2),
     rdf11:xsd_date_time_type(D2)
   }, !,
   html_date_time(V).
 % XSD decimal
-rdfh_literal0(V^^D, _) -->
+rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:decimal)}, !,
   html("~w"-[V]).
 % XSD float & XSD double.
-rdfh_literal0(V^^D, _) -->
+rdfh_literal_inner(V^^D, _) -->
   {(  rdf_subdatatype_of(D, xsd:float)
   ;   rdf_subdatatype_of(D, xsd:double)
   )}, !,
   html("~G"-[V]).
 % XSD integer.
-rdfh_literal0(V^^D, _) -->
+rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:integer)}, !,
   html("~D"-[V]).
 % XSD string.
-rdfh_literal0(S^^D, Opts) -->
+rdfh_literal_inner(S^^D, Opts) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
   bs_truncated(S, Opts.max_length).
 % XSD URI
-rdfh_literal0(V^^D, _) -->
+rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
-rdfh_literal0(V^^D, _) -->
+% ‘Raw’ array
+rdfh_literal_inner(Array^^D, Opts) -->
+  {rdf_equal(tcco:array, D)}, !,
+  {rdf_literal_lex(Array^^D, Lex)},
+  bs_truncated(Lex, Opts.max_length).
+rdfh_literal_inner(V^^D, _) -->
   {gtrace}, %DEB
   html([p(V),p(D)]).
 
 
 
-%! rdfh_object(+O       )// is det.
+%! rdfh_object(+O)// is det.
 %! rdfh_object(+O, +Opts)// is det.
 
 rdfh_object(O) -->
   {rdfh_default_options(Opts)},
   rdfh_object(O, Opts).
 
-
 rdfh_object(O, Opts) -->
-  rdfh_link(object(O), \rdfh_term0(O, Opts), Opts).
+  rdfh_object_outer(_, [], O, Opts).
+
+rdfh_object_outer(C, Cs1, O, Opts) -->
+  {ord_add_element(Cs1, object, Cs2)},
+  rdfh_term_outer(C, Cs2, O, Opts).
 
 
 
-%! rdfh_predicate(+P       )// is det.
+%! rdfh_predicate(+P)// is det.
 %! rdfh_predicate(+P, +Opts)// is det.
 
 rdfh_predicate(P) -->
   {rdfh_default_options(Opts)},
   rdfh_predicate(P, Opts).
 
-
 rdfh_predicate(P, Opts) -->
-  rdfh_link(predicate(P), \rdfh_iri(P), Opts).
+  rdfh_predicate_outer(_, [], P, Opts).
+
+rdfh_predicate_outer(C, Cs1, P, Opts) -->
+  {ord_add_element(Cs1, predicate, Cs2)},
+  rdfh_iri_outer(C, Cs2, P, Opts).
 
 
 
-%! rdfh_property(+Prop       )// is det.
+%! rdfh_property(+Prop)// is det.
 %! rdfh_property(+Prop, +Opts)// is det.
 
 rdfh_property(Prop) -->
   {rdfh_default_options(Opts)},
   rdfh_property(Prop, Opts).
 
-
 rdfh_property(Prop, Opts) -->
-  rdfh_link(property(Prop), \rdfh_iri(Prop), Opts).
+  rdfh_property_outer(_, [], Prop, Opts).
+
+rdfh_property_outer(C, Cs1, Prop, Opts) -->
+  {ord_add_element(Cs1, property, Cs2)},
+  rdfh_term_outer(C, Cs2, Prop, Opts).
 
 
 
@@ -320,16 +390,27 @@ rdfh_property_path(Props) -->
   {rdfh_default_options(Opts)},
   rdfh_property_path(Props, Opts).
 
-
 rdfh_property_path(Props, Opts) -->
-  html_seplist(rdfh_property(Opts), Props).
+  html_seplist({Opts}/[Prop]>>rdfh_property(Prop, Opts), Props).
 
 
 
 %! rdfh_quad(+S, +P, +O, +G)// is det.
 
 rdfh_quad(S, P, O, G) -->
-  html([&(lang),\rdfh_triple(S, P, O),", ",\rdfh_graph(G),&(rang)]).
+  {rdfh_default_options(Opts)},
+  rdfh_quad(S, P, O, G, Opts).
+
+rdfh_quad(S, P, O, G, Opts) -->
+  html(
+    span(class=quadruple, [
+      &(lang),
+      \rdfh_triple_outer(_, S, P, O, Opts),
+      ", ",
+      \rdfh_graph_outer(graph, G, Opts),
+      &(rang)
+    ])
+  ).
 
 
 
@@ -346,79 +427,88 @@ rdfh_quad_panels(S, P, O, G) -->
 
 %! rdfh_quad_row(+Quad)// is det.
 
-rdfh_quad_row(rdf(S,P,O,G)) -->
+rdfh_quad_row(Quad) -->
+  {rdfh_default_options(Opts)},
+  rdfh_quad_row(Quad, Opts).
+
+rdfh_quad_row(rdf(S,P,O,G), Opts) -->
   html(
-    tr([
-      td(\rdfh_subject(S)),
-      td(\rdfh_predicate(P)),
-      td(\rdfh_object(O)),
-      td(\rdfh_graph(G))
-    ])
+    span(class=quadruple,
+      tr([
+        td(\rdfh_subject_outer(subject, [], S, Opts)),
+        td(\rdfh_predicate_outer(predicate, [], P, Opts)),
+        td(\rdfh_object_outer(object, [], O, Opts)),
+        td(\rdfh_graph_outer(graph, [], G, Opts))
+      ])
+    )
   ).
 
 
 
 %! rdfh_quad_table(+Quads)// is det.
+%! rdfh_quad_table(+Quads, +Opts)// is det.
+%! rdfh_quad_table(?S, ?P, ?O, ?G)// is det.
+%! rdfh_quad_table(?S, ?P, ?O, ?G, +Opts)// is det.
 
 rdfh_quad_table(Quads) -->
+  {rdfh_default_options(Opts)},
+  rdfh_quad_table(Quads, Opts).
+
+rdfh_quad_table(Quads, Opts) -->
   bs_table(
     \bs_table_header(["Subject","Predicate","Object","Graph"]),
-    \html_maplist(rdfh_quad_row, Quads)
+    \html_maplist({Opts}/[Quad]>>rdfh_quad_row(Quad, Opts), Quads)
   ).
 
-
-%! rdfh_quad_table(?S, ?P, ?O, ?G)// is det.
-
 rdfh_quad_table(S, P, O, G) -->
-  {findall(rdf(S,P,O,G), rdf(S, P, O, G), L)},
-  rdfh_quad_table(L).
+  {rdfh_default_options(Opts)},
+  rdfh_quad_table(S, P, O, G, Opts).
+
+rdfh_quad_table(S, P, O, G, Opts) -->
+  {findall(rdf(S,P,O,G), rdf(S, P, O, G), Quads)},
+  rdfh_quad_table(Quads, Opts).
 
 
 
-%! rdfh_string(+Lit)// is det.
-
-rdfh_string(Lit) -->
-  {rdf_string(Lit, String)},
-  html(String).
-
-
-
-%! rdfh_subject(+S       )// is det.
+%! rdfh_subject(+S)// is det.
 %! rdfh_subject(+S, +Opts)// is det.
 
 rdfh_subject(S) -->
   {rdfh_default_options(Opts)},
   rdfh_subject(S, Opts).
 
-
 rdfh_subject(S, Opts) -->
-  rdfh_link(subject(S), \rdfh_subject0(S), Opts).
+  rdfh_subject_outer(_, [], S, Opts).
 
-rdfh_subject0(S) -->
-  {rdf_is_iri(S)}, !,
-  rdfh_iri(S).
-rdfh_subject0(S) -->
-  {rdf_is_bnode(S)}, !,
-  rdfh_bnode(S).
+rdfh_subject_outer(C, Cs1, S, Opts) -->
+  {ord_add_element(Cs1, subject, Cs2)},
+  (   {rdf_is_iri(S)}
+  ->  rdfh_iri_outer(C, Cs2, S, Opts)
+  ;   {rdf_is_bnode(S)}
+  ->  rdfh_bnode_outer(C, Cs2, S, Opts)
+  ).
 
 
 
-%! rdfh_term(+Term       )// is det.
+%! rdfh_term(+Term)// is det.
 %! rdfh_term(+Term, +Opts)// is det.
 
 rdfh_term(Term) -->
   {rdfh_default_options(Opts)},
   rdfh_term(Term, Opts).
 
-
 rdfh_term(Term, Opts) -->
-  rdfh_link(term(Term), \rdfh_term0(Term, Opts), Opts).
+  rdfh_term_outer(_, [], Term, Opts).
 
-rdfh_term0(Lit, Opts) -->
-  {rdf_is_literal(Lit)}, !,
-  rdfh_literal0(Lit, Opts).
-rdfh_term0(S, _) -->
-  rdfh_subject0(S).
+rdfh_term_outer(C, Cs1, Term, Opts) -->
+  {ord_add_element(Cs1, term, Cs2)},
+  (   {rdf_is_literal(Term)}
+  ->  rdfh_literal_outer(C, Cs2, Term, Opts)
+  ;   {rdf_is_bnode(Term)}
+  ->  rdfh_bnode_outer(C, Cs2, Term, Opts)
+  ;   {rdf_is_iri(Term)}
+  ->  rdfh_iri_outer(C, Cs2, Term, Opts)
+  ).
 
 
 
@@ -443,12 +533,12 @@ $("#checkAll").change(function () {
 rdfh_trees(_, []) --> !, [].
 rdfh_trees(Ns, [P-[Leaf-[]]|Trees]) --> !,
   html([
-    div(class(node), [\rdfh_predicate(P)," ",\rdfh_object(Leaf)]),
+    div(class=node, [\rdfh_predicate_outer(P)," ",\rdfh_object_outer(Leaf)]),
     \rdfh_trees(Ns, Trees)
   ]).
 rdfh_trees(Ns, [Leaf-[]|Trees]) --> !,
   html([
-    div(class(node), \rdfh_object(Leaf)),
+    div(class=node, \rdfh_object_outer(Leaf)),
     \rdfh_trees(Ns, Trees)
   ]).
 rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
@@ -460,10 +550,10 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
     append(Ns1, [0], Ns3)
   },
   html([
-    div(class(node), [
-      input([id(Id),type(checkbox)], []),
-      label(for(Id), \rdfh_predicate(Root)),
-      div(class(tree), \rdfh_trees(Ns3, Subtrees))
+    div(class=node, [
+      input([id=Id,type=checkbox], []),
+      label(for=Id, \rdfh_predicate_outer(Root)),
+      div(class=tree, \rdfh_trees(Ns3, Subtrees))
     ]),
     \rdfh_trees(Ns2, Trees)
   ]).
@@ -471,32 +561,37 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
 
 
 %! rdfh_triple(+Triple)// is det.
-%! rdfh_triple(+S, +P, +O       )// is det.
+%! rdfh_triple(+Triple, +Opts)// is det.
+%! rdfh_triple(+S, +P, +O)// is det.
 %! rdfh_triple(+S, +P, +O, +Opts)// is det.
 
-rdfh_triple(rdf(S,P,O)) -->
-  html(div, \rdfh_triple(S, P, O)).
+rdfh_triple(Triple) -->
+  {rdfh_default_options(Opts)},
+  rdfh_triple(Triple, Opts).
 
+rdfh_triple(rdf(S,P,O), Opts) -->
+  rdfh_triple(S, P, O, Opts).
 
 rdfh_triple(S, P, O) -->
   {rdfh_default_options(Opts)},
   rdfh_triple(S, P, O, Opts).
 
-
 rdfh_triple(S, P, O, Opts) -->
-  html([
-    &(lang),
-    \rdfh_subject(S, Opts),
-    ", ",
-    \rdfh_predicate(P, Opts),
-    ", ",
-    \rdfh_object(O, Opts),
-    &(rang)
-  ]).
+  html(
+    span(class=triple, [
+      &(lang),
+      \rdfh_subject_outer(subject, [], S, Opts),
+      ", ",
+      \rdfh_predicate_outer(predicate, [], P, Opts),
+      ", ",
+      \rdfh_object_outer(object, [], O, Opts),
+      &(rang)
+    ])
+  ).
 
 
 
-%! rdfh_triple_row(+Triple       )// is det.
+%! rdfh_triple_row(+Triple)// is det.
 %! rdfh_triple_row(+Triple, +Opts)// is det.
 
 rdfh_triple_row(Triple) -->
@@ -506,22 +601,23 @@ rdfh_triple_row(Triple) -->
 
 rdfh_triple_row(rdf(S,P,O), Opts) -->
   html(
-    tr([
-      td(\rdfh_subject(S, Opts)),
-      td(\rdfh_predicate(P, Opts)),
-      td(\rdfh_object(O, Opts))
-    ])
+    span(class=triple,
+      tr([
+        td(\rdfh_subject_outer(subject, [], S, Opts)),
+        td(\rdfh_predicate_outer(predicate, [], P, Opts)),
+        td(\rdfh_object_outer(object, [], O, Opts))
+      ])
+    )
   ).
 
 
 
-%! rdfh_triple_table(+Triples       )// is det.
+%! rdfh_triple_table(+Triples)// is det.
 %! rdfh_triple_table(+Triples, +Opts)// is det.
 
 rdfh_triple_table(Triples) -->
   {rdfh_default_options(Opts)},
   rdfh_triple_table(Triples, Opts).
-
 
 rdfh_triple_table(Triples, Opts) -->
   bs_table(
@@ -532,15 +628,15 @@ rdfh_triple_table(Triples, Opts) -->
 rdfh_table_header -->
   html(
     tr([
-      th(class(subject), "Subject"),
-      th(class(predicate), "Predicate"),
-      th(class(object), "Object")
+      th(class=subject, "Subject"),
+      th(class=predicate, "Predicate"),
+      th(class=object, "Object")
     ])
   ).
 
 
 
-%! rdfh_triple_table(?S, ?P, ?O, ?G       )// is det.
+%! rdfh_triple_table(?S, ?P, ?O, ?G)// is det.
 %! rdfh_triple_table(?S, ?P, ?O, ?G, +Opts)// is det.
 
 rdfh_triple_table(S, P, O, G) -->
@@ -549,8 +645,8 @@ rdfh_triple_table(S, P, O, G) -->
 
 
 rdfh_triple_table(S, P, O, G, Opts) -->
-  {findall(rdf(S,P,O), rdf(S, P, O, G), L)},
-  rdfh_triple_table(L, Opts).
+  {findall(rdf(S,P,O), rdf(S, P, O, G), Triples)},
+  rdfh_triple_table(Triples, Opts).
 
 
 
@@ -562,32 +658,42 @@ rdfh_default_options(_{max_length: 50}).
 
 
 
-%! rdfh_link(+Res:compound, :Content_2       )// is det.
-%! rdfh_link(+Res:compound, :Content_2, +Opts)// is det.
+%! rdfh_link(+C, +Cs, +Term, :Content_2, +Opts)// is det.
 %
 % Generates an RDF request link in case HTTP handler `rdfh` is
 % defined.  Otherwise, the content is generated without an enclosing
 % link element.
+%
+% Cs is a list of classes.  Possible values are `datatype`, `graph`,
+% `predicate`, `object`, `subject`, `term`.
+%
+% C is the class that denotes the context in which Term is displayed.
 
-rdfh_link(Res, Content_2) -->
-  rdfh_link(Res, Content_2, _{}).
-
-
-rdfh_link(Res1, Content_2, Opts) -->
+rdfh_link(C, Cs, Term, Content_2, Opts) -->
   {
-    Res1 =.. [N,V1],
-    term_to_atom(V1, V2),
-    Res2 =.. [N,V2],
-    
     setting(rdfh_handler, Id),
-    Id \== '',
-    
-    (is_iri(V1) -> Iri = true ; Iri = false),
-    
-    (get_dict(query, Opts, Query0) -> Query = [Res2|Query0] ; Query = [Res2]),
-    http_link_to_id(Id, Query, Link), !
+    Id \== '', !,
+    rdfh_link_query_term(C, Term, QueryTerm),
+    (   get_dict(query, Opts, Query0)
+    ->  Query = [QueryTerm|Query0]
+    ;   Query = [QueryTerm]
+    ),
+    http_link_to_id(Id, Query, Link)
   },
-  internal_link(Link, Content_2),
-  ({Iri == true} -> html([" ",\external_link_icon(V1)]) ; "").
-rdfh_link(_, Content_2, _) -->
+  html(
+    span(class=Cs, [
+      \internal_link(Link, Content_2),
+      \rdfh_link_external(Term)
+    ])
+  ).
+rdfh_link(_, _, _, Content_2, _) -->
   Content_2.
+
+rdfh_link_query_term(C, Term1, QueryTerm) :-
+  term_to_atom(Term1, Term2),
+  QueryTerm =.. [C,Term2].
+
+rdfh_link_external(Term) -->
+  {rdf_is_iri(Term)}, !,
+  html([" ",\external_link_icon(Term)]).
+rdfh_link_external(_) --> [].
