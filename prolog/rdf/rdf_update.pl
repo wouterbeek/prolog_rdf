@@ -1,7 +1,7 @@
 :- module(
   rdf_update,
   [
-    rdf_call_update/1,     % :Goal_0
+    rdf_call_update/2,     % :Find_0, Transform_0
     rdf_change_datatype/2, % +P, +D
     rdf_change_datatype/3, % +P, ?G, +D
     rdf_change_iri/5,      % ?S, ?P, ?O, +Positions, :Dcg_0
@@ -70,8 +70,8 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(solution_sequences)).
 
 :- meta_predicate
-    rdf_call_update(0),
-    rdf_call_update(0, +),
+    rdf_call_update(0, 0),
+    rdf_call_update(0, 0, +),
     rdf_change_iri(?, ?, ?, +, //),
     rdf_change_iri(?, ?, ?, +, ?, //),
     rdf_change_iri0(+, +, //, -),
@@ -81,8 +81,8 @@ Higher-level update operations performed on RDF data.
     rdf_split_lex(+, ?, 4).
 
 :- rdf_meta
-   rdf_call_update(t),
-   rdf_call_update(t, +),
+   rdf_call_update(t, t),
+   rdf_call_update(t, t, +),
    rdf_change_datatype(r, r),
    rdf_change_datatype(r, r, r),
    rdf_change_iri(r, r, o, +, :),
@@ -124,19 +124,19 @@ Higher-level update operations performed on RDF data.
 
 
 
-%! rdf_call_update(:Goal_0) is det.
-%
-% The following call is made: `call(
+%! rdf_call_update(:Find_0, Transform_0) is det.
 
-rdf_call_update(Goal_0) :-
-  rdf_transaction(rdf_call_update(Goal_0, _{count: 0})).
+rdf_call_update(Find_0, Transform_0) :-
+  rdf_transaction(rdf_call_update(Find_0, Transform_0, _{count: 0})).
 
 
-rdf_call_update(Goal_0, State) :-
-  call(Goal_0),
+rdf_call_update(Find_0, Transform_0, State) :-
+  % NONDET
+  Find_0,
+  (Transform_0 -> true ; gtrace), %DEB
   dict_inc(count, State),
   fail.
-rdf_call_update(_, State) :-
+rdf_call_update(_, _, State) :-
   ansi_format(
     user_output,
     [fg(yellow)],
@@ -158,11 +158,10 @@ rdf_change_datatype(P, D) :-
 
 rdf_change_datatype(P, G, D2) :-
   rdf_call_update((
-    % Find instance.
     rdf(S, P, Lit1, G),
     rdf_literal(Lit1, D1, Lex, LTag),
-    D1 \== D2,
-    % Transform instance.
+    D1 \== D2
+  ), (
     rdf_literal(Lit2, D2, Lex, LTag),
     rdf_update(S, P, Lit1, G, object(Lit2))
   )).
@@ -178,11 +177,10 @@ rdf_change_iri(S1, P1, O1, Pos, Dcg_0) :-
 
 rdf_change_iri(S1, P1, O1, Pos, G, Dcg_0) :-
   rdf_call_update((
-    % Find instance.
     rdf(S1, P1, O1, G),
     rdf_change_iri0(rdf(S1,P1,O1), Pos, Dcg_0, rdf(S2,P2,O2)),
-    rdf(S1,P1,O1) \== rdf(S2,P2,O2),
-    % Transform instance.
+    rdf(S1,P1,O1) \== rdf(S2,P2,O2)
+  ), (
     rdf_retractall(S1, P1, O1, G),
     rdf_assert(S2, P2, O2, G)
   )).
@@ -207,13 +205,12 @@ rdf_change_lex(P, Dcg_0) :-
 
 rdf_change_lex(P, G, Dcg_0) :-
   rdf_call_update((
-    % Find instance.
     rdf(S, P, Lit1, G),
     rdf_literal(Lit1, D, Lex1, LTag),
     string_phrase(Dcg_0, Lex1, Lex2),
     Lex1 \== Lex2,
-    rdf_datatype_compat(Lex2, D),
-    % Transform instance.
+    rdf_datatype_compat(Lex2, D)
+  ), (
     rdf_literal(Lit2, D, Lex2, LTag),
     rdf_update(S, P, Lit1, G, object(Lit2))
   )).
@@ -229,10 +226,9 @@ rdf_change_p(P, Q) :-
 
 rdf_change_p(P, G, Q) :-
   rdf_call_update((
-    % Find instance.
     rdf(S, P, O, G),
-    P \== Q,
-    % Transform instance.
+    P \== Q
+  ), (
     rdf_update(S, P, O, G, predicate(Q))
   )).
 
@@ -246,11 +242,10 @@ rdf_comb_date(YP, MP, DP, Q) :-
 
 rdf_comb_date(YP, MP, DP, G, Q) :-
   rdf_call_update((
-    % Find instance.
     rdf(S, YP, Y^^xsd:gYear, G),
     rdf(S, MP, M^^xsd:gMonth, G),
-    rdf(S, DP, D^^xsd:gDay, G),
-    % Transform instance.
+    rdf(S, DP, D^^xsd:gDay, G)
+  ), (
     rdf_assert(S, Q, date(Y,M,D)^^xsd:date, G)%,
     %%%%rdf_retractall(S, YP, Y^^xsd:gYear, G),
     %%%%rdf_retractall(S, MP, M^^xsd:gMonth, G),
@@ -268,11 +263,10 @@ rdf_comb_month_day(MY, MP, DP, Q) :-
 
 rdf_comb_month_day(MY, MP, DP, G, Q) :-
   rdf_call_update((
-    % Find instance.
     rdf(S, MP, M^^xsd:gMonth, G),
     rdf(S, DP, D^^xsd:gDay, G),
-    \+ rdf(S, MY, _, G),
-    % Transform instance.
+    \+ rdf(S, MY, _, G)
+  ), (
     rdf_assert(S, Q, month_day(M,D)^^xsd:gMonthDay, G)%,
     %%%%rdf_retractall(S, MoP, Mo^^xsd:gMonth, G),
     %%%%rdf_retractall(S, DaP, Da^^xsd:gDay, G)
@@ -289,11 +283,10 @@ rdf_comb_year_month(YP, MP, DP, Q) :-
 
 rdf_comb_year_month(YP, MP, DP, G, Q) :-
   rdf_call_update((
-    % Find instance.
     rdf(S, YP, Y^^xsd:gYear, G),
     rdf(S, MP, M^^xsd:gMonth, G),
-    \+ rdf(S, DP, _, G),
-    % Transform instance.
+    \+ rdf(S, DP, _, G)
+  ), (
     rdf_assert(S, Q, year_month(Y,M)^^xsd:gYearMonth, G)%,
     %%%%rdf_retractall(S, YP, Y^^xsd:gYear, G),
     %%%%rdf_retractall(S, MoP, Mo^^xsd:gMonth, G)
@@ -333,11 +326,10 @@ rdf_flatten(P) :-
 
 rdf_flatten(P, G) :-
   rdf_call_update((
-    % Find instance.
     rdf(X, P, Y, G),
     rdf_is_bnode(Y),
-    rdf(Y, Q, Z, G),
-    % Transform instance.
+    rdf(Y, Q, Z, G)
+  ), (
     rdf_update(Y, Q, Z, G, subject(X)),
     rdf_retractall(X, P, Y, G)
   )).
@@ -375,12 +367,10 @@ rdf_mv(G1, G2) :-
 
 
 rdf_mv(G1, S, P, O, G2) :-
-  rdf_call_update((
-    % Find instance.
+  rdf_call_update(
     rdf(S, P, O, G1),
-    % Transform instance.
     rdf_update(S, P, O, G1, graph(G2))
-  )).
+  ).
 
 
 
@@ -426,12 +416,10 @@ rdf_rm(S, P, O) :-
 
 
 rdf_rm(S, P, O, G) :-
-  rdf_call_update((
-    % Find instance.
+  rdf_call_update(
     rdf(S, P, O, G),
-    % Transform instance.
     rdf_retractall(S, P, O, G)
-  )).
+  ).
 
 
 
@@ -505,10 +493,9 @@ rdf_rm_tree(S) :-
 
 rdf_rm_tuples(Tuples) :-
   rdf_call_update((
-    % Find instance.
     member(Tuple, Tuples),
-    rdf_tuple(Tuple),
-    % Transform instance.
+    rdf_tuple(Tuple)
+  ), (
     rdf_retractall(Tuple)
   )).
 
@@ -523,7 +510,8 @@ rdf_split_lex(P, Dcg_2) :-
 
 rdf_split_lex(P, G, Dcg_2) :-
   rdf_call_update((
-    rdf(S, P, Lex^^xsd:string, G),
+    rdf(S, P, Lex^^xsd:string, G)
+  ), (
     string_phrase(dcg_call(Dcg_2, S, G), Lex),
     rdf_retractall(S, P, Lex^^xsd:string, G)
   )).

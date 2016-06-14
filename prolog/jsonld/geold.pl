@@ -91,11 +91,10 @@ geold_flatten_geo :-
 
 geold_flatten_geo(G) :-
   rdf_call_update((
-    % Find instance.
     rdf_has(S, geold:geometry, B, P, G),
     rdf_is_bnode(B),
-    rdf_has(B, geold:coordinates, Lit, Q, G),
-    % Transform instance.
+    rdf_has(B, geold:coordinates, Lit, Q, G)
+  ), (
     rdf_assert(S, P, Lit, G),
     rdf_retractall(S, P, B, G),
     rdf_retractall(B, Q, Lit, G),
@@ -125,7 +124,8 @@ geold_interpret_array(G) :-
     rdf_has(I, geold:geometry, Array^^tcco:array, _, G),
     rdfs_instance(I, C),
     rdf_global_id(_:Name, C),
-    rdf_global_id(wkt:Name, D),
+    rdf_global_id(wkt:Name, D)
+  ), (
     Shape =.. [Name|_],
     rdf_change(I, geold:coordinates, Array^^tcco:array, object(Shape^^D))
   )).
