@@ -1,8 +1,10 @@
 :- module(
   rdf_cbd,
   [
-    cbd/2, % ?Node, -Cbd
-    scbd/2 % ?Node, -Scbd
+    cbd/2,        % ?Node, -Triples
+    cbd_triple/2, % +Node, -Triple
+    scbd/2,       % ?Node, -Triples
+    scbd_triple/2 % +Node, -Triple
   ]
 ).
 
@@ -55,17 +57,21 @@ statement in the graph.
 :- use_module(library(aggregate)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(solution_sequences)).
 
 
 
 
 
 %! cbd(?Node, -Triples) is det.
+%! cbd_triple(+Node, -Triple) is nondet.
 
 cbd(Node, Triples) :-
   rdf_subject(Node),
   aggregate_all(set(Triple), cbd_triple0(Node, Triple), Triples).
 
+cbd_triple(Node, Triple) :-
+  distinct(Triple, cbd_triple0(Node, Triple)).
 
 cbd_triple0(S, Triple) :-
   rdf(S, P, O),
@@ -79,11 +85,15 @@ cbd_triple0(S, Triple) :-
 
 
 %! scbd(?Node, -Triples) is det.
+%! scbd_triple(+Node, -Triple) is nondet.
 
 scbd(Node, Triples) :-
   rdf_subject(Node),
   aggregate_all(set(Triple), scbd_triple0(Node, Triple), Triples).
 
+
+scbd_triple(Node, Triple) :-
+  distinct(Triple, scbd_triple0(Node, Triple)).
 
 scbd_triple0(O, Triple) :-
   rdf(S, P, O),
