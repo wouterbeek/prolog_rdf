@@ -76,7 +76,10 @@ rdf_datatype(P, G, D) :-
 %! rdf_datatype_compat(+Lex, -D) is det.
 
 rdf_datatype_compat(Lex, D) :-
-  catch(xsd_time_string(_, D, Lex), _, false).
+  catch((
+    rdf11:xsd_date_time_type(D),
+    xsd_time_string(_, D, Lex)
+  ), _, false).
 rdf_datatype_compat(Lex, D) :-
   catch(xsd_number_string(N, Lex), _, false),
   rdf11:xsd_numerical(D, Dom, _),
@@ -101,6 +104,10 @@ rdf_datatype_compat(_, xsd:string).
 
 %! rdf_datatypes_compat(+P, +Ds) is det.
 %! rdf_datatypes_compat(+P, ?G, +Ds) is det.
+%
+% @tbd Can be optimized when the compatible datatypes of the previous
+% lexical form act as a filter on the datatypes that need to be
+% checked for the next lexical form.
 
 rdf_datatypes_compat(P, Ds) :-
   rdf_datatypes_compat(P, _, Ds).
