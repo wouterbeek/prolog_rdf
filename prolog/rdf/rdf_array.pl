@@ -29,5 +29,5 @@ rdf11:out_type_hook(D, L, Lex) :-
   rdf_equal(tcco:array, D), !,
   atom_phrase(array(L), Lex).
 
-array(L) --> "[", seplist(array, L), "]", !.
+array(L) --> "[", seplist(array, " ", L), "]", !.
 array(N) --> float(N).

@@ -166,7 +166,7 @@ rdfh_describe_row(P-Os, Opts) -->
   html(
     tr([
       td(\rdfh_property_outer(property, [], P, Opts)),
-      td(\html_seplist({Opts}/[O]>>rdfh_object(O, Opts), Os))
+      td(\html_seplist({Opts}/[O]>>rdfh_object(O, Opts), " ", Os))
     ])
   ).
 
