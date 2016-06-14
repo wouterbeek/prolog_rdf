@@ -6,7 +6,7 @@
     cand_flatten/0,
     cand_flatten/1,  % ?P
     rc_cbd/1,        % ?S
-    rc_cbd/2,        % ?S, +Opts
+    rc_cbd/2,        % ?S, ?G
     rc_classes/0,
     rc_graph/1,      % ?G
     rc_graphs/0,
@@ -18,11 +18,11 @@
     rc_predicates/0,
     rc_predicates/1, % ?G
     rc_root/1,       % ?Node
-    rc_root/2,       % ?Node, +Opts
+    rc_root/2,       % ?Node, ?G
     rc_scbd/1,       % ?Node
-    rc_scbd/2,       % ?Node, +Opts
+    rc_scbd/2,       % ?Node, ?G
     rc_tree/1,       % ?Node
-    rc_tree/2        % ?Node, +Opts
+    rc_tree/2        % ?Node, ?G
   ]
 ).
 
@@ -56,7 +56,7 @@
    cand_datatype(r, r),
    cand_flatten(r),
    rc_cbd(r),
-   rc_cbd(r, +),
+   rc_cbd(r, r),
    rc_graph(r),
    rc_p(r),
    rc_p(r, r),
@@ -64,11 +64,11 @@
    rc_p_no(r, r),
    rc_predicates(r),
    rc_root(r),
-   rc_root(r, +),
+   rc_root(r, r),
    rc_scbd(o),
-   rc_scbd(o, +),
+   rc_scbd(o, r),
    rc_tree(r),
-   rc_tree(r, +).
+   rc_tree(r, r).
 
 
 
@@ -116,17 +116,17 @@ rc_next_p(P) :-
 
 
 %! rc_cbd(?S) is det.
-%! rc_cbd(?S, +Opts) is det.
+%! rc_cbd(?S, ?G) is det.
 %
 % Print the Concise-Bounded Description (CBD) of subject terms.
 
 rc_cbd(S) :-
-  rc_cbd(S, _{}).
+  rc_cbd(S, _).
 
 
-rc_cbd(S, Opts) :-
-  cbd(S, Triples),
-  rdf_print_triples(Triples, Opts).
+rc_cbd(S, G) :-
+  cbd(S, G, Triples),
+  rdf_print_triples(Triples).
 
 
 
@@ -224,50 +224,48 @@ rc_predicates(G) :-
 
 
 %! rc_root(?Node) is det.
-%! rc_root(?Node, +Opts) is det.
+%! rc_root(?Node, ?G) is det.
 %
 % Print the tree for an RDF root node.
 
 rc_root(Node) :-
-  rc_root(Node, _{}).
+  rc_root(Node, _).
 
 
-rc_root(Root, Opts) :-
-  option(graph(G0), Opts, _VAR),
-  rdf_global_id(G0, G),
-  rdf_root(Root, G),
-  rdf_tree(Root, Triples),
-  dcg_with_output_to(current_output, dcg_print_triples(Triples, Opts)).
+rc_root(Node, G) :-
+  rdf_root(Node, G),
+  rdf_tree(Node, Triples),
+  rdf_print_triples(Triples).
 
 
 
 %! rc_scbd(?Node) is det.
-%! rc_scbd(?Node, +Opts) is det.
+%! rc_scbd(?Node, ?G) is det.
 %
 % Print the Symmetric CBD (SCBD) for an RDF node.
 
 rc_scbd(Node) :-
-  rc_scbd(Node, _{}).
+  rc_scbd(Node, _).
 
 
-rc_scbd(Node, Opts) :-
-  scbd(Node, Triples),
-  rdf_print_triples(Triples, Opts).
+rc_scbd(Node, G) :-
+  scbd(Node, G, Triples),
+  rdf_print_triples(Triples).
 
 
 
 %! rc_tree(?Node) is det.
-%! rc_tree(?Node, +Opts) is det.
+%! rc_tree(?Node, ?G) is det.
 %
 % Print the tree for a subject term.
 
 rc_tree(Node) :-
-  rc_tree(Node, _{}).
+  rc_tree(Node, _).
 
 
-rc_tree(Node, Opts) :-
-  rdf_tree(Node, Triples),
-  dcg_with_output_to(current_output, dcg_print_triples(Triples, Opts)).
+rc_tree(Node, G) :-
+  rdf_tree(Node, G, Triples),
+  rdf_print_triples(Triples).
 
 
 

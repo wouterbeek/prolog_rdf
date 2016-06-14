@@ -1,17 +1,15 @@
 :- module(
   geold,
   [
-    geold_flatten_geo/0,
-    geold_flatten_geo/1,     % ?G
-    geold_geojson/2,         % +Node, -GeoJson
-    geold_interpret_array/0,
-    geold_interpret_array/1, % ?G
-    geold_print_feature/1,   % ?Feature
+    geold_flatten/0,
+    geold_flatten/1,       % ?G
+    geold_geojson/2,       % +Node, -GeoJson
+    geold_print_feature/1, % ?Feature
     geold_rm_feature_collections/0,
-    geold_tuple/2,           % +Source,                            -Tuple
-    geold_tuple/4,           % +Source, +ExtraContext, +ExtraData, -Tuple
-    geold_tuples/2,          % +Source,                            -Tuples
-    geold_tuples/4           % +Source, +ExtraContext, +ExtraData, -Tuples
+    geold_tuple/2,         % +Source,                            -Tuple
+    geold_tuple/4,         % +Source, +ExtraContext, +ExtraData, -Tuple
+    geold_tuples/2,        % +Source,                            -Tuples
+    geold_tuples/4         % +Source, +ExtraContext, +ExtraData, -Tuples
   ]
 ).
 
@@ -29,6 +27,7 @@ the array as e.g. Well-Known Text (WKT).
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(cli/rc)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
@@ -48,7 +47,8 @@ the array as e.g. Well-Known Text (WKT).
 :- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
 
 :- rdf_meta
-   geold_interpret_array(r),
+   geold_flatten(r),
+   geold_geojson(r, -),
    geold_print_feature(r).
 
 
@@ -76,29 +76,38 @@ geold_context(_{
   'Point': 'geold:Point',
   'Polygon': 'geold:Polygon',
   properties: 'geold:properties',
+  rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
   tcco: 'http://triply.cc/ontology/',
-  '@vocab': 'http://example.org/'
+  type: _{'@id': 'rdf:type', '@type': '@id'},
+  '@vocab': geold
 }).
 
 
 
-%! geold_flatten_geo is det.
-%! geold_flatten_geo(?G) is det.
+%! geold_flatten is det.
+%! geold_flatten(?G) is det.
 
-geold_flatten_geo :-
-  geold_flatten_geo(_).
+geold_flatten :-
+  geold_flatten(_).
 
 
-geold_flatten_geo(G) :-
+geold_flatten(G) :-
   rdf_call_update((
     rdf_has(S, geold:geometry, B, P, G),
+    % Without the blank node check an already converted literal may
+    % appear in the subject position of rdf_has/5, resulting in an
+    % exception.
     rdf_is_bnode(B),
-    rdf_has(B, geold:coordinates, Lit, Q, G)
+    rdf_has(B, rdf:type, C, Q1, G),
+    rdf_has(B, geold:coordinates, Array^^tcco:array, Q2, G)
   ), (
-    rdf_assert(S, P, Lit, G),
+    rdf_global_id(_:Name0, C),
+    lowercase_atom(Name0, Name),
+    rdf_global_id(wkt:Name, D),
+    rdf_assert(S, P, Array^^D, G),
     rdf_retractall(S, P, B, G),
-    rdf_retractall(B, Q, Lit, G),
-    rdf_retractall(B, rdf:type, _, G)
+    rdf_retractall(B, Q1, C, G),
+    rdf_retractall(B, Q2, Array^^tcco:array, G)
   )).
 
 
@@ -109,26 +118,6 @@ geold_flatten_geo(G) :-
 
 geold_geojson(Node, _{}) :-
   rdfs_instance(Node, geold:'Feature').
-
-
-
-%! geold_interpret_array is det.
-%! geold_interpret_array(?G) is det.
-
-geold_interpret_array :-
-  geold_interpret_array(_).
-
-
-geold_interpret_array(G) :-
-  rdf_call_update((
-    rdf_has(I, geold:geometry, Array^^tcco:array, _, G),
-    rdfs_instance(I, C),
-    rdf_global_id(_:Name, C),
-    rdf_global_id(wkt:Name, D)
-  ), (
-    Shape =.. [Name|_],
-    rdf_change(I, geold:coordinates, Array^^tcco:array, object(Shape^^D))
-  )).
 
 
 

@@ -42,16 +42,16 @@ point0([X,Y], point(X,Y)).
    rdf11:out_type_hook/3.
 
 gis:resource_shape_hook(Res, Shape, G) :-
-  rdf_has(Res, geold:geometry, Shape^^_, _, G).
+  rdf_has(Res, geold:geometry, Array^^D, _, G),
+  rdf_global_id(wkt:Name, D),
+  Shape =.. [Name,Array].
 
-rdf11:in_ground_type_hook(D, Shape, Lex) :-
-  wkt_same_type0(D, Shape),
+rdf11:in_ground_type_hook(D, Array, Lex) :-
+  rdf_global_id(wkt:Name, D),
+  Shape =.. [Name,Array],
   atom_phrase(wkt(Shape), Lex).
 
-rdf11:out_type_hook(D, Shape, Lex) :-
+rdf11:out_type_hook(D, Array, Lex) :-
   atom_phrase(wkt(Shape), Lex),
-  wkt_same_type0(D, Shape).
-
-wkt_same_type0(D, Shape) :-
-  rdf_global_id(wkt:Name, D),
-  Shape =.. [Name|_].
+  Shape =.. [Name,Array],
+  rdf_global_id(wkt:Name, D).

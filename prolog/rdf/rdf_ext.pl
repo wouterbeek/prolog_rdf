@@ -32,13 +32,15 @@
     rdf_pref_lex/3,         % ?S, ?P, ?Lex
     rdf_pref_string/3,      % ?S, ?P, ?Lit
     rdf_reification/3,      % ?S, ?P, ?O
-    rdf_reification/4,      % ?S, ?P, ?O, -Stmt
+    rdf_reification/4,      % ?S, ?P, ?O, ?G
+    rdf_reification/5,      % ?S, ?P, ?O, ?G, -Stmt
     rdf_retractall/1,       % +Tuple
     rdf_root/1,             % ?Root
     rdf_root/2,             % ?Root, ?G
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
-    rdf_tree/2,             % ?S, -Tree
+    rdf_tree/2,             % +S, -Tree
+    rdf_tree/3,             % +S, ?G, -Tree
     rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
     rdf_tuple/1,            % ?Tuple
     rdf_unload_db/0
@@ -102,11 +104,13 @@
    rdf_pref_string(r, r, -, -, o),
    rdf_retractall(t),
    rdf_reification(r, r, o),
-   rdf_reification(r, r, o, -),
+   rdf_reification(r, r, o, r),
+   rdf_reification(r, r, o, r, -),
    rdf_root(r),
    rdf_root(r, r),
    rdf_string(r, -),
    rdf_tree(r, -),
+   rdf_tree(r, r, -),
    rdf_triples(r, r, o, -).
 
 
@@ -391,16 +395,21 @@ rdf_pref_string(S, P, _, V^^xsd:string) :-
 
 
 %! rdf_reification(?S, ?P, ?O) is nondet.
-%! rdf_reification(?S, ?P, ?O, -Stmt) is nondet.
+%! rdf_reification(?S, ?P, ?O, ?G) is nondet.
+%! rdf_reification(?S, ?P, ?O, ?G, -Stmt) is nondet.
 
 rdf_reification(S, P, O) :-
   rdf_reification(S, P, O, _).
 
 
-rdf_reification(S, P, O, Stmt) :-
-  rdf_has(Stmt, rdf:subject, S),
-  rdf_has(Stmt, rdf:predicate, P),
-  rdf_has(Stmt, rdf:object, O).
+rdf_reification(S, P, O, G) :-
+  rdf_reification(S, P, O, G, _).
+
+
+rdf_reification(S, P, O, G, Stmt) :-
+  rdf_has(Stmt, rdf:subject, S, _, G),
+  rdf_has(Stmt, rdf:predicate, P, _, G),
+  rdf_has(Stmt, rdf:object, O, _, G).
 
 
 
@@ -441,21 +450,26 @@ rdf_string(V@_, V).
 
 
 %! rdf_tree(+S, -Tree) is det.
+%! rdf_tree(+S, ?G, -Tree) is det.
 
 rdf_tree(S, Tree) :-
-  rdf_tree([S], [], [], Tree).
+  rdf_tree(S, _, Tree).
 
-rdf_tree([], _, Tree, Tree) :- !.
-rdf_tree([H|T], Hist, Tree, Sol) :-
+
+rdf_tree(S, G, Tree) :-
+  rdf_tree([S], G, [], [], Tree).
+
+rdf_tree([], _, _, Tree, Tree) :- !.
+rdf_tree([H|T], G, Hist, Tree, Sol) :-
   memberchk(H, Hist), !,
-  rdf_tree(T, Hist, Tree, Sol).
-rdf_tree([S|T1], Hist1, Tree1, Sol) :-
-  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O), Triples),
-  aggregate_all(set(O), (rdf(S,_,O), \+ rdf_is_literal(O)), Os),
+  rdf_tree(T, G, Hist, Tree, Sol).
+rdf_tree([S|T1], G, Hist1, Tree1, Sol) :-
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Triples),
+  aggregate_all(set(O), (rdf(S, _, O, G), \+ rdf_is_literal(O)), Os),
   ord_union(T1, Os, T2),
   ord_add_element(Hist1, S, Hist2),
   ord_union(Tree1, Triples, Tree2),
-  rdf_tree(T2, Hist2, Tree2, Sol).
+  rdf_tree(T2, G, Hist2, Tree2, Sol).
 
 
 

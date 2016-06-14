@@ -1,10 +1,14 @@
 :- module(
   rdf_cbd,
   [
-    cbd/2,        % ?Node, -Triples
-    cbd_triple/2, % +Node, -Triple
-    scbd/2,       % ?Node, -Triples
-    scbd_triple/2 % +Node, -Triple
+    cbd/2,         % ?Node,     -Triples
+    cbd/3,         % ?Node, ?G, -Triples
+    cbd_triple/2,  % +Node,     -Triple
+    cbd_triple/3,  % +Node, ?G, -Triple
+    scbd/2,        % ?Node,     -Triples
+    scbd/3,        % ?Node, ?G, -Triples
+    scbd_triple/2, % +Node,     -Triple
+    scbd_triple/3  % +Node, ?G, -Triple
   ]
 ).
 
@@ -64,17 +68,29 @@ statement in the graph.
 
 
 %! cbd(?Node, -Triples) is det.
+%! cbd(?Node, ?G, -Triples) is det.
 %! cbd_triple(+Node, -Triple) is nondet.
+%! cbd_triple(+Node, ?G, -Triple) is nondet.
 
 cbd(Node, Triples) :-
+  cbd(Node, _, Triples).
+
+
+cbd(Node, G, Triples) :-
   rdf_subject(Node),
-  aggregate_all(set(Triple), cbd_triple0(Node, Triple), Triples).
+  aggregate_all(set(Triple), cbd_triple0(Node, G, Triple), Triples).
+
 
 cbd_triple(Node, Triple) :-
-  distinct(Triple, cbd_triple0(Node, Triple)).
+  cbd_triple(Node, _, Triple).
 
-cbd_triple0(S, Triple) :-
-  rdf(S, P, O),
+
+cbd_triple(Node, G, Triple) :-
+  distinct(Triple, cbd_triple0(Node, G, Triple)).
+
+
+cbd_triple0(S, G, Triple) :-
+  rdf(S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   rdf_is_bnode(O),
       cbd_triple0(O, Triple)
@@ -85,23 +101,34 @@ cbd_triple0(S, Triple) :-
 
 
 %! scbd(?Node, -Triples) is det.
+%! scbd(?Node, ?G, -Triples) is det.
 %! scbd_triple(+Node, -Triple) is nondet.
+%! scbd_triple(+Node, ?G, -Triple) is nondet.
 
 scbd(Node, Triples) :-
+  scbd(Node, _, Triples).
+
+
+scbd(Node, G, Triples) :-
   rdf_subject(Node),
-  aggregate_all(set(Triple), scbd_triple0(Node, Triple), Triples).
+  aggregate_all(set(Triple), scbd_triple0(Node, G, Triple), Triples).
 
 
 scbd_triple(Node, Triple) :-
-  distinct(Triple, scbd_triple0(Node, Triple)).
+  scbd_triple(Node, _, Triple).
 
-scbd_triple0(O, Triple) :-
-  rdf(S, P, O),
+
+scbd_triple(Node, G, Triple) :-
+  distinct(Triple, scbd_triple0(Node, G, Triple)).
+
+
+scbd_triple0(O, G, Triple) :-
+  rdf(S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   rdf_is_bnode(S),
-      scbd_triple0(S, Triple)
-  ;   rdf_reification(S, P, O, Stmt),
-      scbd_triple0(Stmt, Triple)
+      scbd_triple0(S, G, Triple)
+  ;   rdf_reification(S, P, O, G, Stmt),
+      scbd_triple0(Stmt, G, Triple)
   ).
-scbd_triple0(S, Triple) :-
-  cbd_triple0(S, Triple).
+scbd_triple0(S, G, Triple) :-
+  cbd_triple0(S, G, Triple).
