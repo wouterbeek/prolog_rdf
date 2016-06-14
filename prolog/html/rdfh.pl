@@ -77,6 +77,12 @@ The following options are supported:
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
+:- dynamic
+    rdf11:rdfh_literal_hook//2.
+
+:- multifile
+    rdf11:rdfh_literal_hook//2.
+
 :- html_meta
    rdfh_link(+, +, +, html, +, ?, ?).
 
@@ -341,10 +347,8 @@ rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
 % ‘Raw’ array
-rdfh_literal_inner(Array^^D, Opts) -->
-  {rdf_equal(tcco:array, D)}, !,
-  {rdf_literal_lex(Array^^D, Lex)},
-  bs_truncated(Lex, Opts.max_length).
+rdfh_literal_inner(Lit, Opts) -->
+  rdf11:rdfh_literal_inner(Lit, Opts).
 rdfh_literal_inner(V^^D, _) -->
   {gtrace}, %DEB
   html([p(V),p(D)]).
