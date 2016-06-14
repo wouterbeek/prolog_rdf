@@ -14,10 +14,10 @@
     rdf_cp/5,              % +G1, ?S, ?P, ?O, +G2
     rdf_comb_date/4,       % +YP, +MP, +DP, +Q
     rdf_comb_date/5,       % +YP, +MP, +DP, ?G, +Q
-    rdf_comb_month_day/3,  % +MP, +DP, +Q
-    rdf_comb_month_day/4,  % +MP, +DP, ?G, +Q
-    rdf_comb_year_month/3, % +YP, +MP, +Q
-    rdf_comb_year_month/4, % +YP, +MP, ?G, +Q
+    rdf_comb_month_day/4,  % +YP, +MP, +DP, +Q
+    rdf_comb_month_day/5,  % +YP, +MP, +DP, ?G, +Q
+    rdf_comb_year_month/4, % +YP, +MP, +DP, +Q
+    rdf_comb_year_month/5, % +YP, +MP, +DP, ?G, +Q
     rdf_inc/2,             % +S, +P
     rdf_inc/3,             % +S, +P, ?G
     rdf_flatten/1,         % +P
@@ -93,10 +93,10 @@ Higher-level update operations performed on RDF data.
    rdf_change_p(r, r, r),
    rdf_comb_date(r, r, r, r),
    rdf_comb_date(r, r, r, r, r),
-   rdf_comb_month_day(r, r, r),
    rdf_comb_month_day(r, r, r, r),
-   rdf_comb_year_month(r, r, r),
+   rdf_comb_month_day(r, r, r, r, r),
    rdf_comb_year_month(r, r, r, r),
+   rdf_comb_year_month(r, r, r, r, r),
    rdf_cp(r, r),
    rdf_cp(r, r, r, o, r),
    rdf_flatten(r),
@@ -238,8 +238,8 @@ rdf_change_p(P, G, Q) :-
 
 
 
-%! rdf_comb_date(+YP, +MoP, +DaP, +Q) is det.
-%! rdf_comb_date(+YP, +MoP, +DaP, ?G, +Q) is det.
+%! rdf_comb_date(+YP, +MP, +DP, +Q) is det.
+%! rdf_comb_date(+YP, +MP, +DP, ?G, +Q) is det.
 
 rdf_comb_date(YP, MP, DP, Q) :-
   rdf_comb_date(YP, MP, DP, _, Q).
@@ -259,18 +259,19 @@ rdf_comb_date(YP, MP, DP, G, Q) :-
 
 
 
-%! rdf_comb_month_day(+MP, +DP, +Q) is det.
-%! rdf_comb_month_day(+MP, +DP, ?G, +Q) is det.
+%! rdf_comb_month_day(+MY, +MP, +DP, +Q) is det.
+%! rdf_comb_month_day(+MY, +MP, +DP, ?G, +Q) is det.
 
-rdf_comb_month_day(MP, DP, Q) :-
-  rdf_comb_month_day(MP, DP, _, Q).
+rdf_comb_month_day(MY, MP, DP, Q) :-
+  rdf_comb_month_day(MY, MP, DP, _, Q).
 
 
-rdf_comb_month_day(MP, DP, G, Q) :-
+rdf_comb_month_day(MY, MP, DP, G, Q) :-
   rdf_call_update((
     % Find instance.
     rdf(S, MP, M^^xsd:gMonth, G),
     rdf(S, DP, D^^xsd:gDay, G),
+    \+ rdf(S, MY, _, G),
     % Transform instance.
     rdf_assert(S, Q, month_day(M,D)^^xsd:gMonthDay, G)%,
     %%%%rdf_retractall(S, MoP, Mo^^xsd:gMonth, G),
@@ -279,18 +280,19 @@ rdf_comb_month_day(MP, DP, G, Q) :-
 
 
 
-%! rdf_comb_year_month(+YP, +MP, +Q) is det.
-%! rdf_comb_year_month(+YP, +MP, ?G, +Q) is det.
+%! rdf_comb_year_month(+YP, +MP, +DP, +Q) is det.
+%! rdf_comb_year_month(+YP, +MP, +DP, ?G, +Q) is det.
 
-rdf_comb_year_month(YP, MP, Q) :-
-  rdf_comb_year_month(YP, MP, _, Q).
+rdf_comb_year_month(YP, MP, DP, Q) :-
+  rdf_comb_year_month(YP, MP, DP, _, Q).
 
 
-rdf_comb_year_month(YP, MP, G, Q) :-
+rdf_comb_year_month(YP, MP, DP, G, Q) :-
   rdf_call_update((
     % Find instance.
     rdf(S, YP, Y^^xsd:gYear, G),
     rdf(S, MP, M^^xsd:gMonth, G),
+    \+ rdf(S, DP, _, G),
     % Transform instance.
     rdf_assert(S, Q, year_month(Y,M)^^xsd:gYearMonth, G)%,
     %%%%rdf_retractall(S, YP, Y^^xsd:gYear, G),
