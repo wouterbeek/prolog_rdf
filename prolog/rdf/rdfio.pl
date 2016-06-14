@@ -462,9 +462,8 @@ rdf_load_file_or_call(Source, Goal_1, G) :-
   rdf_load_file_or_call(Source, Goal_1, G, []).
 
 
-rdf_load_file_or_call(Source, _, G, Opts1) :-
-  exists_file(Source),
-  access_file(Source, read),
+rdf_load_file_or_call(Source0, _, G, Opts1) :-
+  absolute_file_name(Source0, Source, [access(read),file_errors(fail)]),
   merge_options(Opts1, [graph(G)], Opts2),
   rdf_load_file(Source, Opts2), !.
 rdf_load_file_or_call(Source, Goal_1, G, Opts) :-
