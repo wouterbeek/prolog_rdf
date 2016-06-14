@@ -271,14 +271,17 @@ rdfh_literal(Lit, Opts) -->
   rdfh_literal_outer(_, [], Lit, Opts).
 
 rdfh_literal_outer(C, Cs1, Lit, Opts) -->
-  {ord_add_element(Cs1, literal, Cs2)},
-  rdfh_link(C, Cs2, Lit, \rdfh_literal_inner(Lit, Opts), Opts).
+  {
+    ord_add_element(Cs1, literal, Cs2),
+    rdf_literal_datatype(Lit, D)
+  },
+  rdfh_link(C, Cs2, [datatype=D], Lit, \rdfh_literal_inner(Lit, Opts), Opts).
 
 % RDF HTML
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, rdf:'HTML')}, !,
   html(\[V]).
-% RDF language-tagged string.
+% RDF language-tagged string
 rdfh_literal_inner(S@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
   html([
@@ -288,35 +291,48 @@ rdfh_literal_inner(S@LTag, Opts) -->
   ]).
 rdfh_literal_inner(S@LTag, Opts) --> !,
   html(span(lang(LTag), \bs_truncated(S, Opts.max_length))).
-% XSD boolean.
+% XSD boolean
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
   html("~a"-[V]).
-% XSD date/time.
-rdfh_literal_inner(V^^D, Opts) -->
-  {rdf_equal(xsd:gYear, D), integer(V)}, !,
-  rdfh_literal_inner(date(V,_,_)^^D, Opts).
-rdfh_literal_inner(V^^D1, _) -->
+% XSD gDay
+rdfh_literal_inner(Da^^D, _) -->
+  {rdf_equal(xsd:gDay, D)}, !,
+  html("~d"-[Da]).
+% XSD gMonth
+rdfh_literal_inner(Mo^^D, _) -->
+  {rdf_equal(xsd:gMonth, D)}, !,
+  html("~d"-[Mo]).
+% XSD gYear
+rdfh_literal_inner(Y^^D, _) -->
+  {rdf_equal(xsd:gYear, D)}, !,
+  html("~d"-[Y]).
+% XSD date
+% XSD dateTime
+% XSD gMonthYear
+% XSD gYearMonth
+rdfh_literal_inner(V^^D1, Opts) -->
   {
     rdf_subdatatype_of(D1, D2),
     rdf11:xsd_date_time_type(D2)
   }, !,
-  html_date_time(V).
+  html_date_time(V, Opts).
 % XSD decimal
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:decimal)}, !,
   html("~w"-[V]).
-% XSD float & XSD double.
+% XSD double
+% XSD float
 rdfh_literal_inner(V^^D, _) -->
   {(  rdf_subdatatype_of(D, xsd:float)
   ;   rdf_subdatatype_of(D, xsd:double)
   )}, !,
   html("~G"-[V]).
-% XSD integer.
+% XSD integer
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:integer)}, !,
   html("~D"-[V]).
-% XSD string.
+% XSD string
 rdfh_literal_inner(S^^D, Opts) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
   bs_truncated(S, Opts.max_length).
@@ -391,7 +407,7 @@ rdfh_property_path(Props) -->
   rdfh_property_path(Props, Opts).
 
 rdfh_property_path(Props, Opts) -->
-  html_seplist({Opts}/[Prop]>>rdfh_property(Prop, Opts), Props).
+  html_seplist({Opts}/[Prop]>>rdfh_property(Prop, Opts), " ", Props).
 
 
 
@@ -659,6 +675,7 @@ rdfh_default_options(_{max_length: 50}).
 
 
 %! rdfh_link(+C, +Cs, +Term, :Content_2, +Opts)// is det.
+%! rdfh_link(+C, +Cs, +Attrs, +Term, :Content_2, +Opts)// is det.
 %
 % Generates an RDF request link in case HTTP handler `rdfh` is
 % defined.  Otherwise, the content is generated without an enclosing
@@ -670,6 +687,10 @@ rdfh_default_options(_{max_length: 50}).
 % C is the class that denotes the context in which Term is displayed.
 
 rdfh_link(C, Cs, Term, Content_2, Opts) -->
+  rdfh_link(C, Cs, [], Term, Content_2, Opts).
+
+
+rdfh_link(C, Cs, Attrs, Term, Content_2, Opts) -->
   {
     setting(rdfh_handler, Id),
     Id \== '', !,
@@ -681,12 +702,12 @@ rdfh_link(C, Cs, Term, Content_2, Opts) -->
     http_link_to_id(Id, Query, Link)
   },
   html(
-    span(class=Cs, [
+    span([class=Cs|Attrs], [
       \internal_link(Link, Content_2),
       \rdfh_link_external(Term)
     ])
   ).
-rdfh_link(_, _, _, Content_2, _) -->
+rdfh_link(_, _, _, _, Content_2, _) -->
   Content_2.
 
 rdfh_link_query_term(C, Term1, QueryTerm) :-
