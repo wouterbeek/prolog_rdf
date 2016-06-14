@@ -50,6 +50,8 @@ Automatic conversion from CSV to RDF.
 %
 %   * abox_alias(+atom) Default is `ex`.
 %
+%   * alias(+atom) Sets both abox_alias/1 and tbox_alias/1.
+%
 %   * header(+list) A list of RDF properties that represent the
 %   columns.  This is used when there are no column labels in the CSV
 %   file.
@@ -97,6 +99,10 @@ csv2rdf_graph(File, G, Opts1) :-
   ).
 
 
+csv2rdf_options(Opts1, D, Opts4) :-
+  select_option(alias(Box), Opts1, Opts2), !,
+  merge_options(Opts2, [abox_alias(Box),tbox_alias(Box)], Opts3),
+  csv2rdf_options(Opts3, D, Opts4).
 csv2rdf_options(Opts1, D2, Opts2) :-
   option(abox_alias(ABox), Opts1, ex),
   csv:make_csv_options(Opts1, Opts2, _),
