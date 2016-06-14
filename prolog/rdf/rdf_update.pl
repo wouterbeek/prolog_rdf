@@ -1,42 +1,46 @@
 :- module(
   rdf_update,
   [
-    rdf_call_update/1,      % :Goal_0
-    rdf_change_datatype/2,  % +P, +D
-    rdf_change_datatype/3,  % +P, ?G, +D
-    rdf_change_iri/5,       % ?S, ?P, ?O, +Positions, :Dcg_0
-    rdf_change_iri/6,       % ?S, ?P, ?O, +Positions, ?G, :Dcg_0
-    rdf_change_lex/2,       % +P, :Dcg_0
-    rdf_change_lex/3,       % +P, ?G, :Dcg_0
-    rdf_change_p/2,         % +P, +Q
-    rdf_change_p/2,         % +P, ?G, +Q
-    rdf_cp/2,               % +G1, +G2
-    rdf_cp/5,               % +G1, ?S, ?P, ?O, +G2
-    rdf_combine_datetime/4, % +YP, +MoP, +DaP, +Q
-    rdf_combine_datetime/5, % +YP, +MoP, +DaP, ?G, +Q
-    rdf_inc/2,              % +S, +P
-    rdf_inc/3,              % +S, +P, ?G
-    rdf_flatten/1,          % +P
-    rdf_flatten/2,          % +P, ?G
-    rdf_mv/2,               % +G1, +G2
-    rdf_mv/5,               % +G1, ?S, ?P, ?O, +G2
-    rdf_rm/3,               % ?S, ?P, ?O
-    rdf_rm/4,               % ?S, ?P, ?O, ?G
-    rdf_padding/1,          % +P
-    rdf_padding/2,          % +P, +PaddingCode
-    rdf_padding/3,          % +P, +PaddingCode, ?G
-    rdf_rm_cell/3,          % +S, +P, +O
-    rdf_rm_cell/4,          % +S, +P, +O, ?G
-    rdf_rm_col/1,           % +P
-    rdf_rm_col/2,           % +P, ?G
-    rdf_rm_error/3,         % ?S, ?P, ?O
-    rdf_rm_error/4,         % ?S, ?P, ?O, ?G
-    rdf_rm_null/1,          % +Null
-    rdf_rm_null/2,          % +Null, ?G
-    rdf_rm_tree/1,          % +S
-    rdf_rm_tuples/1,        % +Tuples
-    rdf_split_lex/2,        % +P, :Dcg_2
-    rdf_split_lex/3         % +P, ?G, :Dcg_2
+    rdf_call_update/1,     % :Goal_0
+    rdf_change_datatype/2, % +P, +D
+    rdf_change_datatype/3, % +P, ?G, +D
+    rdf_change_iri/5,      % ?S, ?P, ?O, +Positions, :Dcg_0
+    rdf_change_iri/6,      % ?S, ?P, ?O, +Positions, ?G, :Dcg_0
+    rdf_change_lex/2,      % +P, :Dcg_0
+    rdf_change_lex/3,      % +P, ?G, :Dcg_0
+    rdf_change_p/2,        % +P, +Q
+    rdf_change_p/2,        % +P, ?G, +Q
+    rdf_cp/2,              % +G1, +G2
+    rdf_cp/5,              % +G1, ?S, ?P, ?O, +G2
+    rdf_comb_date/4,       % +YP, +MP, +DP, +Q
+    rdf_comb_date/5,       % +YP, +MP, +DP, ?G, +Q
+    rdf_comb_month_day/3,  % +MP, +DP, +Q
+    rdf_comb_month_day/4,  % +MP, +DP, ?G, +Q
+    rdf_comb_year_month/3, % +YP, +MP, +Q
+    rdf_comb_year_month/4, % +YP, +MP, ?G, +Q
+    rdf_inc/2,             % +S, +P
+    rdf_inc/3,             % +S, +P, ?G
+    rdf_flatten/1,         % +P
+    rdf_flatten/2,         % +P, ?G
+    rdf_mv/2,              % +G1, +G2
+    rdf_mv/5,              % +G1, ?S, ?P, ?O, +G2
+    rdf_rm/3,              % ?S, ?P, ?O
+    rdf_rm/4,              % ?S, ?P, ?O, ?G
+    rdf_padding/1,         % +P
+    rdf_padding/2,         % +P, +PaddingCode
+    rdf_padding/3,         % +P, +PaddingCode, ?G
+    rdf_rm_cell/3,         % +S, +P, +O
+    rdf_rm_cell/4,         % +S, +P, +O, ?G
+    rdf_rm_col/1,          % +P
+    rdf_rm_col/2,          % +P, ?G
+    rdf_rm_error/3,        % ?S, ?P, ?O
+    rdf_rm_error/4,        % ?S, ?P, ?O, ?G
+    rdf_rm_null/1,         % +Null
+    rdf_rm_null/2,         % +Null, ?G
+    rdf_rm_tree/1,         % +S
+    rdf_rm_tuples/1,       % +Tuples
+    rdf_split_lex/2,       % +P, :Dcg_2
+    rdf_split_lex/3        % +P, ?G, :Dcg_2
   ]
 ).
 
@@ -87,8 +91,12 @@ Higher-level update operations performed on RDF data.
    rdf_change_lex(r, r, :),
    rdf_change_p(r, r),
    rdf_change_p(r, r, r),
-   rdf_combine_datetime(r, r, r, r),
-   rdf_combine_datetime(r, r, r, r, r),
+   rdf_comb_date(r, r, r, r),
+   rdf_comb_date(r, r, r, r, r),
+   rdf_comb_month_day(r, r, r),
+   rdf_comb_month_day(r, r, r, r),
+   rdf_comb_year_month(r, r, r),
+   rdf_comb_year_month(r, r, r, r),
    rdf_cp(r, r),
    rdf_cp(r, r, r, o, r),
    rdf_flatten(r),
@@ -149,10 +157,6 @@ rdf_change_datatype(P, D) :-
 
 
 rdf_change_datatype(P, G, D2) :-
-  % Make sure all objects for the given predicate P are consistent
-  % with datatype D2.
-  rdf_datatypes_compat(P, G, Ds),
-  memberchk(D2, Ds),
   rdf_call_update((
     % Find instance.
     rdf(S, P, Lit1, G),
@@ -207,6 +211,7 @@ rdf_change_lex(P, G, Dcg_0) :-
     rdf(S, P, Lit1, G),
     rdf_literal(Lit1, D, Lex1, LTag),
     string_phrase(Dcg_0, Lex1, Lex2),
+    Lex1 \== Lex2,
     rdf_datatype_compat(Lex2, D),
     % Transform instance.
     rdf_literal(Lit2, D, Lex2, LTag),
@@ -233,26 +238,65 @@ rdf_change_p(P, G, Q) :-
 
 
 
-%! rdf_combine_datetime(+YP, +MoP, +DaP, +Q) is det.
-%! rdf_combine_datetime(+YP, +MoP, +DaP, ?G, +Q) is det.
+%! rdf_comb_date(+YP, +MoP, +DaP, +Q) is det.
+%! rdf_comb_date(+YP, +MoP, +DaP, ?G, +Q) is det.
 
-rdf_combine_datetime(YP, MoP, DaP, Q) :-
-  rdf_combine_datetime(YP, MoP, DaP, _, Q).
+rdf_comb_date(YP, MP, DP, Q) :-
+  rdf_comb_date(YP, MP, DP, _, Q).
 
-
-rdf_combine_datetime(YP, MoP, DaP, G, Q) :-
+rdf_comb_date(YP, MP, DP, G, Q) :-
   rdf_call_update((
     % Find instance.
-    rdf(S, YP, Y0^^xsd:string, G),
-    rdf(S, MoP, Mo0^^xsd:string, G),
-    rdf(S, DaP, Da0^^xsd:string, G),
-    maplist(number_string, [Y,Mo,Da], [Y0,Mo0,Da0]),
+    rdf(S, YP, Y^^xsd:gYear, G),
+    rdf(S, MP, M^^xsd:gMonth, G),
+    rdf(S, DP, D^^xsd:gDay, G),
     % Transform instance.
-    rdf_assert(S, Q, date(Y,Mo,Da)^^xsd:date, G),
-    rdf_retractall(S, YP, Y^^xsd:string, G),
-    rdf_retractall(S, MoP, Mo^^xsd:string, G),
-    rdf_retractall(S, DaP, Da^^xsd:string, G)
+    rdf_assert(S, Q, date(Y,M,D)^^xsd:date, G)%,
+    %%%%rdf_retractall(S, YP, Y^^xsd:gYear, G),
+    %%%%rdf_retractall(S, MP, M^^xsd:gMonth, G),
+    %%%%rdf_retractall(S, DP, D^^xsd:gDay, G)
   )).
+
+
+
+%! rdf_comb_month_day(+MP, +DP, +Q) is det.
+%! rdf_comb_month_day(+MP, +DP, ?G, +Q) is det.
+
+rdf_comb_month_day(MP, DP, Q) :-
+  rdf_comb_month_day(MP, DP, _, Q).
+
+
+rdf_comb_month_day(MP, DP, G, Q) :-
+  rdf_call_update((
+    % Find instance.
+    rdf(S, MP, M^^xsd:gMonth, G),
+    rdf(S, DP, D^^xsd:gDay, G),
+    % Transform instance.
+    rdf_assert(S, Q, month_day(M,D)^^xsd:gMonthDay, G)%,
+    %%%%rdf_retractall(S, MoP, Mo^^xsd:gMonth, G),
+    %%%%rdf_retractall(S, DaP, Da^^xsd:gDay, G)
+  )).
+
+
+
+%! rdf_comb_year_month(+YP, +MP, +Q) is det.
+%! rdf_comb_year_month(+YP, +MP, ?G, +Q) is det.
+
+rdf_comb_year_month(YP, MP, Q) :-
+  rdf_comb_year_month(YP, MP, _, Q).
+
+
+rdf_comb_year_month(YP, MP, G, Q) :-
+  rdf_call_update((
+    % Find instance.
+    rdf(S, YP, Y^^xsd:gYear, G),
+    rdf(S, MP, M^^xsd:gMonth, G),
+    % Transform instance.
+    rdf_assert(S, Q, year_month(Y,M)^^xsd:gYearMonth, G)%,
+    %%%%rdf_retractall(S, YP, Y^^xsd:gYear, G),
+    %%%%rdf_retractall(S, MoP, Mo^^xsd:gMonth, G)
+  )).
+
 
 
 
