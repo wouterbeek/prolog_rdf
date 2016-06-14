@@ -22,6 +22,9 @@
     rdf_mv/5,               % +G1, ?S, ?P, ?O, +G2
     rdf_rm/3,               % ?S, ?P, ?O
     rdf_rm/4,               % ?S, ?P, ?O, ?G
+    rdf_padding/1,          % +P
+    rdf_padding/2,          % +P, +PaddingCode
+    rdf_padding/3,          % +P, +PaddingCode, ?G
     rdf_rm_cell/3,          % +S, +P, +O
     rdf_rm_cell/4,          % +S, +P, +O, ?G
     rdf_rm_col/1,           % +P
@@ -45,13 +48,14 @@ Higher-level update operations performed on RDF data.
 @version 2015/07-2015/08, 2015/10-2016/01, 2016/03, 2016/05-2016/06
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(cli_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(dict_ext)).
-:- use_module(library(lists)).
+:- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
@@ -331,6 +335,38 @@ rdf_mv(G1, S, P, O, G2) :-
     % Transform instance.
     rdf_update(S, P, O, G1, graph(G2))
   )).
+
+
+
+%! rdf_padding(+P) is det.
+%! rdf_padding(+P, +PaddingCode) is det.
+%! rdf_padding(+P, +PaddingCode, ?G) is det.
+
+rdf_padding(P) :-
+  rdf_padding(P, 0'0).
+
+
+rdf_padding(P, C) :-
+  rdf_padding(P, C, _).
+
+
+rdf_padding(P, C, G) :-
+  aggregate_all(max(Len), (
+    rdf(_, P, Lit, G),
+    rdf_literal_lex(Lit, Lex),
+    atom_length(Lex, Len)
+  ), Max),
+  rdf_change_lex(P, G, rdf_padding_lex(C, Max)).
+
+rdf_padding_lex(C, Len), Cs -->
+  ...(Suffix),
+  eos,
+  {
+    length(Suffix, SuffixLen),
+    PrefixLen is Len - SuffixLen,
+    repeating_list(C, PrefixLen, Prefix),
+    append(Prefix, Suffix, Cs)
+  }.
 
 
 
