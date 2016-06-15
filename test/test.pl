@@ -21,6 +21,7 @@
 %/geo
 :- use_module(library(geo/rdf_wgs84)).
 :- use_module(library(geo/rdf_wkt)).
+:- use_module(library(geo/virt_geo)).
 %/graph
 :- use_module(library(graph/rdf_gml)).
 %/hdt
