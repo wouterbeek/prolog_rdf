@@ -104,12 +104,12 @@ rdfh_bnode(B) -->
 rdfh_bnode(B, Opts) -->
   rdfh_bnode_outer(_, [], B, Opts).
 
-rdfh_bnode_outer(C, Cs1, B0, Opts) -->
+rdfh_bnode_outer(C, Cs1, B, Opts) -->
   {
     ord_add_element(Cs1, bnode, Cs2),
-    rdf_bnode_map(B0, B)
+    rdf_bnode_map(B, Lbl)
   },
-  rdfh_link(C, Cs2, B, \rdfh_bnode_inner(B, Opts), Opts).
+  rdfh_link(C, Cs2, B, \rdfh_bnode_inner(Lbl, Opts), Opts).
 
 rdfh_bnode_inner(B, _) -->
   {rdf_bnode_map(B, Lbl)},
@@ -288,15 +288,15 @@ rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, rdf:'HTML')}, !,
   html(\[V]).
 % RDF language-tagged string
-rdfh_literal_inner(S@LTag, Opts) -->
+rdfh_literal_inner(Str@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
   html([
-    span(lang(LTag), \bs_truncated(S, Opts.max_length)),
+    span(lang(LTag), \bs_truncated(Str, Opts.max_length)),
     " ",
     \flag_icon(LTag)
   ]).
-rdfh_literal_inner(S@LTag, Opts) --> !,
-  html(span(lang(LTag), \bs_truncated(S, Opts.max_length))).
+rdfh_literal_inner(Str@LTag, Opts) --> !,
+  html(span(lang=LTag, \bs_truncated(Str, Opts.max_length))).
 % XSD boolean
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
@@ -339,9 +339,9 @@ rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:integer)}, !,
   html("~D"-[V]).
 % XSD string
-rdfh_literal_inner(S^^D, Opts) -->
+rdfh_literal_inner(Str^^D, Opts) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
-  bs_truncated(S, Opts.max_length).
+  bs_truncated(Str, Opts.max_length).
 % XSD URI
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
