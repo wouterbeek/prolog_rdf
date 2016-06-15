@@ -16,12 +16,12 @@
 :- dynamic
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
-   rdf11:rdfh_literal_hook//2.
+   rdfh:rdfh_literal_hook//2.
 
 :- multifile
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
-   rdf11:rdfh_literal_hook//2.
+   rdfh:rdfh_literal_hook//2.
 
 rdf11:in_ground_type_hook(D, L, Lex) :-
   % @tbd
@@ -36,7 +36,7 @@ rdf11:out_type_hook(D, L, Lex) :-
 array(L) --> "[", seplist(array, " ", L), "]", !.
 array(N) --> float(N).
 
-rdf11:rdfh_literal_inner(Array^^D, Opts) -->
+rdfh:rdfh_literal_hook(Array^^D, Opts) -->
   {rdf_equal(tcco:array, D)}, !,
   {rdf_literal_lex(Array^^D, Lex)},
   bs_truncated(Lex, Opts.max_length).

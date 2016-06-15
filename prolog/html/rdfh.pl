@@ -78,10 +78,10 @@ The following options are supported:
 :- use_module(library(yall)).
 
 :- dynamic
-    rdf11:rdfh_literal_hook//2.
+    rdfh:rdfh_literal_hook//2.
 
 :- multifile
-    rdf11:rdfh_literal_hook//2.
+    rdfh:rdfh_literal_hook//2.
 
 :- html_meta
    rdfh_link(+, +, +, html, +, ?, ?).
@@ -348,7 +348,7 @@ rdfh_literal_inner(V^^D, _) -->
   html(V).
 % ‘Raw’ array
 rdfh_literal_inner(Lit, Opts) -->
-  rdf11:rdfh_literal_inner(Lit, Opts).
+  rdfh:rdfh_literal_hook(Lit, Opts).
 rdfh_literal_inner(V^^D, _) -->
   {gtrace}, %DEB
   html([p(V),p(D)]).
