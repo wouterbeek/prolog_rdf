@@ -13,8 +13,8 @@
 
 
 test :-
-  test(cbd, _{bnode_counter: 0}),
-  test(scbd, _{bnode_counter: 0}).
+  test(rdf_cbd, _{bnode_counter: 0}),
+  test(rdf_scbd, _{bnode_counter: 0}).
 
 
 test(Mod:Mode, Opts) :-

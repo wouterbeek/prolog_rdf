@@ -1,14 +1,14 @@
 :- module(
   rdf_cbd,
   [
-    cbd/2,         % ?Node,     -Triples
-    cbd/3,         % ?Node, ?G, -Triples
-    cbd_triple/2,  % +Node,     -Triple
-    cbd_triple/3,  % +Node, ?G, -Triple
-    scbd/2,        % ?Node,     -Triples
-    scbd/3,        % ?Node, ?G, -Triples
-    scbd_triple/2, % +Node,     -Triple
-    scbd_triple/3  % +Node, ?G, -Triple
+    rdf_cbd/2,         % ?Node,     -Triples
+    rdf_cbd/3,         % ?Node, ?G, -Triples
+    rdf_cbd_triple/2,  % +Node,     -Triple
+    rdf_cbd_triple/3,  % +Node, ?G, -Triple
+    rdf_scbd/2,        % ?Node,     -Triples
+    rdf_scbd/3,        % ?Node, ?G, -Triples
+    rdf_scbd_triple/2, % +Node,     -Triple
+    rdf_scbd_triple/3  % +Node, ?G, -Triple
   ]
 ).
 
@@ -60,75 +60,87 @@ statement in the graph.
 
 :- use_module(library(aggregate)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
+:- rdf_meta
+   rdf_cbd(o, -),
+   rdf_cbd(o, r, -),
+   rdf_cbd_triple(o, -),
+   rdf_cbd_triple(o, r, -),
+   rdf_scbd(o, -),
+   rdf_scbd(o, r, -),
+   rdf_scbd_triple(o, -),
+   rdf_scbd_triple(o, r, -).
 
 
 
 
-%! cbd(?Node, -Triples) is det.
-%! cbd(?Node, ?G, -Triples) is det.
-%! cbd_triple(+Node, -Triple) is nondet.
-%! cbd_triple(+Node, ?G, -Triple) is nondet.
 
-cbd(Node, Triples) :-
-  cbd(Node, _, Triples).
+%! rdf_cbd(?Node, -Triples) is det.
+%! rdf_cbd(?Node, ?G, -Triples) is det.
+%! rdf_cbd_triple(+Node, -Triple) is nondet.
+%! rdf_cbd_triple(+Node, ?G, -Triple) is nondet.
 
-
-cbd(Node, G, Triples) :-
-  rdf_subject(Node),
-  aggregate_all(set(Triple), cbd_triple0(Node, G, Triple), Triples).
+rdf_cbd(Node, Triples) :-
+  rdf_cbd(Node, _, Triples).
 
 
-cbd_triple(Node, Triple) :-
-  cbd_triple(Node, _, Triple).
+rdf_cbd(Node, G, Triples) :-
+  rdf_subject(Node, G),
+  aggregate_all(set(Triple), rdf_cbd_triple0(Node, G, Triple), Triples).
 
 
-cbd_triple(Node, G, Triple) :-
-  distinct(Triple, cbd_triple0(Node, G, Triple)).
+rdf_cbd_triple(Node, Triple) :-
+  rdf_cbd_triple(Node, _, Triple).
 
 
-cbd_triple0(S, G, Triple) :-
+rdf_cbd_triple(Node, G, Triple) :-
+  distinct(Triple, rdf_cbd_triple0(Node, G, Triple)).
+
+rdf_cbd_triple0(S, G, Triple) :-
   rdf(S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   rdf_is_bnode(O),
-      cbd_triple0(O, Triple)
+      rdf_cbd_triple0(O, Triple)
   ;   rdf_reification(S, P, O, Stmt),
-      cbd_triple0(Stmt, Triple)
+      rdf_cbd_triple0(Stmt, Triple)
   ).
 
 
 
-%! scbd(?Node, -Triples) is det.
-%! scbd(?Node, ?G, -Triples) is det.
-%! scbd_triple(+Node, -Triple) is nondet.
-%! scbd_triple(+Node, ?G, -Triple) is nondet.
+%! rdf_scbd(?Node, -Triples) is det.
+%! rdf_scbd(?Node, ?G, -Triples) is det.
+%! rdf_scbd_triple(+Node, -Triple) is nondet.
+%! rdf_scbd_triple(+Node, ?G, -Triple) is nondet.
 
-scbd(Node, Triples) :-
-  scbd(Node, _, Triples).
-
-
-scbd(Node, G, Triples) :-
-  rdf_subject(Node),
-  aggregate_all(set(Triple), scbd_triple0(Node, G, Triple), Triples).
+rdf_scbd(Node, Triples) :-
+  rdf_scbd(Node, _, Triples).
 
 
-scbd_triple(Node, Triple) :-
-  scbd_triple(Node, _, Triple).
+rdf_scbd(Node, G, Triples) :-
+  rdf_term(Node, G),
+  aggregate_all(set(Triple), rdf_scbd_triple0(Node, G, Triple), Triples).
 
 
-scbd_triple(Node, G, Triple) :-
-  distinct(Triple, scbd_triple0(Node, G, Triple)).
+rdf_scbd_triple(Node, Triple) :-
+  rdf_scbd_triple(Node, _, Triple).
 
 
-scbd_triple0(O, G, Triple) :-
+rdf_scbd_triple(Node, G, Triple) :-
+  distinct(Triple, rdf_scbd_triple0(Node, G, Triple)).
+
+rdf_scbd_triple0(O, G, Triple) :-
+  rdf_cbd_inv_triple0(O, G, Triple).
+rdf_scbd_triple0(S, G, Triple) :-
+  rdf_cbd_triple0(S, G, Triple).
+
+rdf_cbd_inv_triple0(O, G, Triple) :-
   rdf(S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   rdf_is_bnode(S),
-      scbd_triple0(S, G, Triple)
+      rdf_cbd_inv_triple0(S, G, Triple)
   ;   rdf_reification(S, P, O, G, Stmt),
-      scbd_triple0(Stmt, G, Triple)
+      rdf_scbd_triple0(Stmt, G, Triple)
   ).
-scbd_triple0(S, G, Triple) :-
-  cbd_triple0(S, G, Triple).

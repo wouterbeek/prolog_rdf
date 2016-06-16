@@ -244,9 +244,12 @@ rdfh_iri_inner(Iri, _) -->
     Local
   ]).
 % RDFS label replacing IRI.
-rdfh_iri_inner(Iri, _) -->
-  {rdfs_pref_label(Iri, Lbl)}, !,
-  html(Lbl).
+rdfh_iri_inner(Iri, Opts) -->
+  {
+    get_dict(iri_label, Opts, true),
+    rdfs_pref_label(Iri, Lbl)
+  }, !,
+  rdfh_literal_inner(Lbl, Opts).
 % Plain IRI.
 rdfh_iri_inner(Iri, _) -->
   html(Iri).
@@ -707,7 +710,7 @@ rdfh_link(C, Cs, Attrs, Term, Content_2, Opts) -->
   },
   html(
     span([class=Cs|Attrs], [
-      \internal_link(Link, Content_2),
+      html(a(href=Link, Content_2)),
       \rdfh_link_external(Term)
     ])
   ).

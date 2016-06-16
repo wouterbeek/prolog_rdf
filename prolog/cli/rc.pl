@@ -125,7 +125,7 @@ rc_cbd(S) :-
 
 
 rc_cbd(S, G) :-
-  cbd(S, G, Triples),
+  rdf_cbd(S, G, Triples),
   rdf_print_triples(Triples).
 
 
@@ -249,7 +249,7 @@ rc_scbd(Node) :-
 
 
 rc_scbd(Node, G) :-
-  scbd(Node, G, Triples),
+  rdf_scbd(Node, G, Triples),
   rdf_print_triples(Triples).
 
 

@@ -65,7 +65,7 @@ resources as well.
 @author Wouter Beek
 @compat RDF 1.1 Concepts and Abstract Syntax
 @see http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/
-@version 2015/07-2015/08, 2015/10, 2015/12-2016/03, 2016/05
+@version 2015/07-2015/08, 2015/10, 2015/12-2016/03, 2016/05-2016/06
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -297,6 +297,7 @@ rdf_predicate(P, G) :-
   rdf_predicate(P),
   distinct(G, rdf(_, P, _, G)).
 rdf_predicate(P, G) :-
+  rdf_is_predicate(P),
   distinct(G, rdf(_, P, _, G)).
 
 
@@ -308,6 +309,7 @@ rdf_subject(S, G) :-
   rdf_subject(S),
   distinct(G, rdf(S, _, _, G)).
 rdf_subject(G, S) :-
+  rdf_is_subject(S),
   distinct(G, rdf(S, _, _, G)).
 
 
