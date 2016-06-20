@@ -14,7 +14,7 @@
 Automatic conversion from CSV to RDF.
 
 @author Wouter Beek
-@version 2016/05
+@version 2016/05-2016/06
 */
 
 :- use_module(library(apply)).
@@ -121,25 +121,21 @@ csv2rdf_1(In, Sink, D, Opts) :-
 csv2rdf_1(In, Sink, D, Opts) :-
   once(csv:csv_read_stream_row(In, Row, _, Opts)),
   list_row(Locals, Row),
-  maplist(local_iri0(D.tbox_alias), Locals, Ps),
+  maplist(rdf_global_iri(D.tbox_alias), Locals, Ps),
   csv2rdf_2(In, Sink, Ps, D, Opts).
 
 
 csv2rdf_2(In, Sink, Ps, D, Opts) :-
   csv:csv_read_stream_row(In, Row, N, Opts),
-  list_row(Atoms, Row),
+  list_row(Vals, Row),
   atom_number(Name, N),
   rdf_global_id(D.abox_alias:Name, S),
-  maplist(assert0(Sink, S), Ps, Atoms),
+  maplist(assert0(Sink, S), Ps, Vals),
   fail.
 csv2rdf_2(_, _, _, _, _).
 
 
-local_iri0(Alias, Local, Iri) :-
-  rdf_global_id(Alias:Local, Iri).
-
-
-assert0(graph(G), S, P, Atom) :- !,
-  rdf_assert(S, P, Atom^^xsd:string, G).
-assert0(stream(Out), S, P, Atom) :-
-  rdf_store(Out, S, P, Atom^^xsd:string).
+assert0(graph(G), S, P, Val) :- !,
+  rdf_assert(S, P, Val^^xsd:string, G).
+assert0(stream(Out), S, P, Val) :-
+  rdf_store(Out, S, P, Val^^xsd:string).

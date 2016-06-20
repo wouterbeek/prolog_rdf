@@ -19,6 +19,7 @@
     rdf_create_iri/2,       % +Prefix, -Iri
     rdf_create_iri/3,       % +Prefix, +SubPaths, -Iri
     rdf_expect_graph/1,     % ?G
+    rdf_global_iri/3,       % ?Alias, ?Local, ?Iri
     rdf_graph_to_triples/2, % ?G, -Triples
     rdf_has/5,              % ?S, ?P, ?O, ?Q, ?G
     rdf_image/2,            % +S, -Img
@@ -43,7 +44,8 @@
     rdf_tree/3,             % +S, ?G, -Tree
     rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
     rdf_tuple/1,            % ?Tuple
-    rdf_unload_db/0
+    rdf_unload_db/0,
+    triple_subject/2        % ?Triple, ?S
   ]
 ).
 
@@ -260,6 +262,14 @@ rdf_expect_graph(G) :-
   rdf_graph(G), !.
 rdf_expect_graph(G) :-
   existence_error(rdf_graph, G).
+
+
+
+%! rdf_global_iri(+Alias, +Local, -Iri) is det.
+%! rdf_global_iri(-Alias, -Local, +Iri) is det.
+
+rdf_global_iri(Alias, Local, Iri) :-
+  rdf_global_id(Alias:Local, Iri).
 
 
 
@@ -501,6 +511,12 @@ rdf_unload_db :-
   rdf_unload_graph(G),
   rdf_unload_db.
 rdf_unload_db.
+
+
+
+%! triple_subject(+Triple, -S) is det.
+
+triple_subject(rdf(S,_,_), S).
 
 
 

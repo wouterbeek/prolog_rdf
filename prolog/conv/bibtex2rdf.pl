@@ -29,7 +29,7 @@
 
 
 
-%! bibtex2rdf(+Source, +G       ) is det.
+%! bibtex2rdf(+Source, +G) is det.
 %! bibtex2rdf(+Source, +G, +Opts) is det.
 
 bibtex2rdf(Source, G) :-

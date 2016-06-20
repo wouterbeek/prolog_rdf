@@ -578,7 +578,7 @@ dcg_print_lexical_form(Lex, Opts) -->
 
 
 
-%! dcg_print_literal(+Lit       )// is det.
+%! dcg_print_literal(+Lit)// is det.
 %! dcg_print_literal(+Lit, +Opts)// is det.
 
 dcg_print_literal(Lit) -->
@@ -614,7 +614,10 @@ dcg_print_literal(V@LTag, Opts) --> !,
   dcg_print_lexical_form(Lex, Opts),
   "@",
   dcg_print_language_tag(LTag, Opts).
-
+% Unsupported literal.
+dcg_print_literal(Lit, _) -->
+  {gtrace}, %DEB
+  format(user_output, "~w~n", [Lit]).
 
 
 dcg_print_var(Var) -->
