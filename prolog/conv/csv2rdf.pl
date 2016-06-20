@@ -130,7 +130,7 @@ csv2rdf_2(In, Sink, Ps, D, Opts) :-
   list_row(Atoms, Row),
   atom_number(Name, N),
   rdf_global_id(D.abox_alias:Name, S),
-  maplist(assert0(Sink, S, D), Ps, Atoms),
+  maplist(assert0(Sink, S), Ps, Atoms),
   fail.
 csv2rdf_2(_, _, _, _, _).
 
@@ -139,7 +139,7 @@ local_iri0(Alias, Local, Iri) :-
   rdf_global_id(Alias:Local, Iri).
 
 
-assert0(graph(G), S, D, P, Atom) :- !,
+assert0(graph(G), S, P, Atom) :- !,
   rdf_assert(S, P, Atom^^xsd:string, G).
-assert0(stream(Out), S, D, P, Atom) :-
+assert0(stream(Out), S, P, Atom) :-
   rdf_store(Out, S, P, Atom^^xsd:string).

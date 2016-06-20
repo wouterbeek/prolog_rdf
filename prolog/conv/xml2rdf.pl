@@ -40,8 +40,8 @@ xml2rdf_graph(Source, Record_2, G) :-
 xml2rdf_graph(Source, Record_2, G, Opts1) :-
   (   del_dict(alias, Opts1, Alias, Opts2)
   ->  Opts3 = Opts2.put(_{abox_alias: Alias, tbox_alias: Alias})
-  ;   dict_put_default(abox_alias, Opts1, ex, Opts2),
-      dict_put_default(tbox_alias, Opts2, ex, Opts3)
+  ;   dict_put_def(abox_alias, Opts1, ex, Opts2),
+      dict_put_def(tbox_alias, Opts2, ex, Opts3)
   ),
   xml_download(Source, Dom, Opts3),
   findall(Record, call(Record_2, Dom, Record), Records),

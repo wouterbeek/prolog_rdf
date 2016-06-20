@@ -6,6 +6,7 @@
     gen_nquads/2,   % +Tuples,        +Opts
     gen_nquads/4,   % ?S, ?P, ?O, ?G
     gen_nquads/5,   % ?S, ?P, ?O, ?G, +Opts
+    gen_ntriple/1,  % +Triple
     gen_ntriple/3,  % +S, +P, +O
     gen_ntriple/4,  % +S, +P, +O, +G
     gen_ntriples/1, % +Triples
@@ -61,10 +62,15 @@ gen_nquad(S, P, O, G) :-
 
 
 
+%! gen_ntriple(+Triple) is det.
 %! gen_ntriple(+S, +P, +O) is det.
 %! gen_ntriple(+S, +P, +O, +G) is det.
 %
 % Write a fully instantiated triple to current output.
+
+gen_ntriple(rdf(S,P,O)) :-
+  gen_ntriple(S, P, O).
+
 
 gen_ntriple(S, P, O) :-
   gen_one_ntuple(ntriples, S, P, O, default).
