@@ -9,7 +9,7 @@
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(semweb/rdf11)).
 
-:- rdf_register_prefix(user, 'http://example.org/user/').
+:- rdf_register_prefix(user, 'http://www.swi-prolog.org/cliopatria/user/').
 
 :- multifile
     google_client:create_user_hook/2,
