@@ -4,6 +4,7 @@
 :- use_module(library(conv/bibtex2rdf)).
 :- use_module(library(conv/csv2rdf)).
 :- use_module(library(conv/marcxml2rdf)).
+:- use_module(library(conv/xml2rdf)).
 %/dcg
 :- use_module(library(dcg/manchester)).
 :- use_module(library(dcg/nquads11)).
@@ -33,6 +34,7 @@
 %/http
 :- use_module(library(http/rdf_rest)).
 %/jsonld
+:- use_module(library(jsonld/geold)).
 :- use_module(library(jsonld/jsonld_build)).
 :- use_module(library(jsonld/jsonld_generics)).
 :- use_module(library(jsonld/jsonld_metadata)).
@@ -48,11 +50,13 @@
 %/rdf
 :- use_module(library(rdf/rdf_annotate)).
 :- use_module(library(rdf/rdf_array)).
+:- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
+:- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)).

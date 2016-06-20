@@ -103,9 +103,9 @@ rdf_cbd_triple0(S, G, Triple) :-
   rdf(S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   rdf_is_bnode(O),
-      rdf_cbd_triple0(O, Triple)
+      rdf_cbd_triple0(O, G, Triple)
   ;   rdf_reification(S, P, O, Stmt),
-      rdf_cbd_triple0(Stmt, Triple)
+      rdf_cbd_triple0(Stmt, G, Triple)
   ).
 
 

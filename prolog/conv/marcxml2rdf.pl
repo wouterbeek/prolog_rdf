@@ -39,5 +39,5 @@ marcxml2record(Dom, Alias, Triples) :-
 %! marcxml2stmt(+Dom, +Alias, -Triple) is nondet.
 
 marcxml2stmt(Dom, Alias, Triple) :-
-  marcxml2triples(Dom, Alias, Triples),
+  marcxml2record(Dom, Alias, Triples),
   member(Triple, Triples).

@@ -45,6 +45,8 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
+:- initialization(assert_dbpedia_localizations).
+
 
 
 
@@ -58,7 +60,7 @@ abbr_iri(Iri, Iri).
 
 
 
-assert_dbpedia_localizations:-
+assert_dbpedia_localizations :-
   forall(
     dbpedia_language_tag(LTag),
     dbpedia_register(LTag)

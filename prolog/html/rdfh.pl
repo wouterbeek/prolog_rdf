@@ -31,6 +31,7 @@
     rdfh_term//1,          % +Term
     rdfh_term//2,          % +Term,          +Opts
     rdfh_tree//1,          % +Tree
+    rdfh_tree//2,          % +Tree,          +Opts
     rdfh_triple//3,        % +S, +P, +O
     rdfh_triple//4,        % +S, +P, +O,     +Opts
     rdfh_triple_table//1,  % +Triples
@@ -171,7 +172,7 @@ rdfh_describe(S, Opts) -->
 rdfh_describe_row(P-Os, Opts) -->
   html(
     tr([
-      td(\rdfh_property_outer(property, [], P, Opts)),
+      td(\rdfh_property_outer(property, [property], P, Opts)),
       td(\html_seplist({Opts}/[O]>>rdfh_object(O, Opts), " ", Os))
     ])
   ).
@@ -214,7 +215,7 @@ rdfh_graph_row(G, Opts) -->
   {rdf_number_of_triples(G, NumTriples)},
   html(
     tr([
-      td(\rdfh_graph_outer(graph, [], G, Opts)),
+      td(\rdfh_graph_outer(graph, [graph], G, Opts)),
       td(\html_thousands(NumTriples))
     ])
   ).
@@ -284,7 +285,7 @@ rdfh_literal_outer(C, Cs1, Lit, Opts) -->
     ord_add_element(Cs1, literal, Cs2),
     rdf_literal_datatype(Lit, D)
   },
-  rdfh_link(C, Cs2, [datatype=D], Lit, \rdfh_literal_inner(Lit, Opts), Opts).
+  rdfh_link(C, Cs2, [datatype=D], Lit, rdfh_literal_inner(Lit, Opts), Opts).
 
 % RDF HTML
 rdfh_literal_inner(V^^D, _) -->
@@ -428,9 +429,9 @@ rdfh_quad(S, P, O, G, Opts) -->
   html(
     span(class=quadruple, [
       &(lang),
-      \rdfh_triple_outer(_, S, P, O, Opts),
+      \rdfh_triple(S, P, O, Opts),
       ", ",
-      \rdfh_graph_outer(graph, G, Opts),
+      \rdfh_graph_outer(graph, [graph], G, Opts),
       &(rang)
     ])
   ).
@@ -458,10 +459,10 @@ rdfh_quad_row(rdf(S,P,O,G), Opts) -->
   html(
     span(class=quadruple,
       tr([
-        td(\rdfh_subject_outer(subject, [], S, Opts)),
-        td(\rdfh_predicate_outer(predicate, [], P, Opts)),
-        td(\rdfh_object_outer(object, [], O, Opts)),
-        td(\rdfh_graph_outer(graph, [], G, Opts))
+        td(\rdfh_subject_outer(subject, [subject], S, Opts)),
+        td(\rdfh_predicate_outer(predicate, [predicate], P, Opts)),
+        td(\rdfh_object_outer(object, [object], O, Opts)),
+        td(\rdfh_graph_outer(graph, [graph], G, Opts))
       ])
     )
   ).
@@ -536,11 +537,17 @@ rdfh_term_outer(C, Cs1, Term, Opts) -->
 
 
 %! rdfh_tree(+Tree)// is det.
+%! rdfh_tree(+Tree, +Opts)// is det.
 
 rdfh_tree(Tree) -->
+  {rdfh_default_options(Opts)},
+  rdfh_tree(Tree, Opts).
+
+
+rdfh_tree(Tree, Opts) -->
   html([
     \check_all,
-    div(class(treeview), div(class(tree),\rdfh_trees([0], [Tree])))
+    div(class(treeview), div(class(tree),\rdfh_trees([0], [Tree], Opts)))
   ]).
 
 check_all -->
@@ -553,18 +560,22 @@ $("#checkAll").change(function () {
     p(label([input([id(checkAll),type(checkbox)], []), 'Check all']))
   ]).
 
-rdfh_trees(_, []) --> !, [].
-rdfh_trees(Ns, [P-[Leaf-[]]|Trees]) --> !,
+rdfh_trees(_, [], _) --> !, [].
+rdfh_trees(Ns, [P-[Leaf-[]]|Trees], Opts) --> !,
   html([
-    div(class=node, [\rdfh_predicate_outer(P)," ",\rdfh_object_outer(Leaf)]),
-    \rdfh_trees(Ns, Trees)
+    div(class=node, [
+      \rdfh_predicate_outer(predicate, [predicate], P, Opts),
+      " ",
+      \rdfh_object_outer(object, [object], Leaf, Opts)
+    ]),
+    \rdfh_trees(Ns, Trees, Opts)
   ]).
-rdfh_trees(Ns, [Leaf-[]|Trees]) --> !,
+rdfh_trees(Ns, [Leaf-[]|Trees], Opts) --> !,
   html([
-    div(class=node, \rdfh_object_outer(Leaf)),
-    \rdfh_trees(Ns, Trees)
+    div(class=node, \rdfh_object_outer(object, [object], Leaf, Opts)),
+    \rdfh_trees(Ns, Trees, Opts)
   ]).
-rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
+rdfh_trees(Ns1, [Root-Subtrees|Trees], Opts) -->
   {
     atomic_list_concat([item|Ns1], -, Id),
     append(Ns, [N1], Ns1),
@@ -575,10 +586,10 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees]) -->
   html([
     div(class=node, [
       input([id=Id,type=checkbox], []),
-      label(for=Id, \rdfh_predicate_outer(Root)),
-      div(class=tree, \rdfh_trees(Ns3, Subtrees))
+      label(for=Id, \rdfh_predicate_outer(predicate, [predicate], Root, Opts)),
+      div(class=tree, \rdfh_trees(Ns3, Subtrees, Opts))
     ]),
-    \rdfh_trees(Ns2, Trees)
+    \rdfh_trees(Ns2, Trees, Opts)
   ]).
 
 
@@ -603,11 +614,11 @@ rdfh_triple(S, P, O, Opts) -->
   html(
     span(class=triple, [
       &(lang),
-      \rdfh_subject_outer(subject, [], S, Opts),
+      \rdfh_subject_outer(subject, [subject], S, Opts),
       ", ",
-      \rdfh_predicate_outer(predicate, [], P, Opts),
+      \rdfh_predicate_outer(predicate, [predicate], P, Opts),
       ", ",
-      \rdfh_object_outer(object, [], O, Opts),
+      \rdfh_object_outer(object, [object], O, Opts),
       &(rang)
     ])
   ).
@@ -626,9 +637,9 @@ rdfh_triple_row(rdf(S,P,O), Opts) -->
   html(
     span(class=triple,
       tr([
-        td(\rdfh_subject_outer(subject, [], S, Opts)),
-        td(\rdfh_predicate_outer(predicate, [], P, Opts)),
-        td(\rdfh_object_outer(object, [], O, Opts))
+        td(\rdfh_subject_outer(subject, [subject], S, Opts)),
+        td(\rdfh_predicate_outer(predicate, [predicate], P, Opts)),
+        td(\rdfh_object_outer(object, [object], O, Opts))
       ])
     )
   ).

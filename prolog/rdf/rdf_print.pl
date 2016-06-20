@@ -66,14 +66,14 @@
 
 Print RDF statements.
 
-| **Key**         | **Value** | **Description**                 |
-|:----------------|:----------|:--------------------------------|
-| `bnode_map`     | boolean   | Whether or not blank node names |
-|                 |           | are replaced by small integers. |
-| `indent`        | nonneg    |                                 |
-| `iri_lbl`       | boolean   | Whether or not the prefered     |
-|                 |           | label is used i.o. the IRI.     |
-| `max_length`    | nonneg    |                                 |
+| **Key**         | **Value** | **Default** | **Description**                 |
+|:----------------|:----------|:-----------:|:--------------------------------|
+| `bnode_map`     | boolean   | `true`      | Whether or not blank node names |
+|                 |           |             | are replaced by small integers. |
+| `indent`        | nonneg    | 0           |                                 |
+| `iri_lbl`       | boolean   | `false`     | Whether or not the prefered     |
+|                 |           |             | label is used i.o. the IRI.     |
+| `max_length`    | nonneg    | `inf`       |                                 |
 
 @author Wouter Beek
 @tbd Turtle container abbreviation.
@@ -540,7 +540,7 @@ dcg_print_datatype_iri(D, Opts) -->
 
 dcg_print_iri(Full, Opts) -->
   {
-    get_dict(iri_lbl, Opts, true, true),
+    get_dict(iri_lbl, Opts, true),
     rdfs_pref_label(Full, Lit)
   }, !,
   {rdf_literal_lex(Lit, Lex)},
@@ -617,7 +617,7 @@ dcg_print_literal(V@LTag, Opts) --> !,
 % Unsupported literal.
 dcg_print_literal(Lit, _) -->
   {gtrace}, %DEB
-  format(user_output, "~w~n", [Lit]).
+  {format(user_output, "~w~n", [Lit])}.
 
 
 dcg_print_var(Var) -->

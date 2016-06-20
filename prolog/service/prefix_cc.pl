@@ -35,7 +35,7 @@ assert_prefix_cc(Alias-Prefix0) :-
 
 
 init_prefix_cc :-
-  json_load_any('http://prefix.cc/popular/all.file.json', D),
+  json_read_any('http://prefix.cc/popular/all.file.json', D),
   dict_pairs(D, Pairs),
   maplist(assert_prefix_cc, Pairs).
 
