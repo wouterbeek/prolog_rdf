@@ -85,7 +85,8 @@ The following options are supported:
     rdfh:rdfh_literal_hook//2.
 
 :- html_meta
-   rdfh_link(+, +, +, html, +, ?, ?).
+   rdfh_link(+, +, +, html, +, ?, ?),
+   rdfh_link(+, +, +, +, html, +, ?, ?).
 
 :- setting(rdfh_handler, atom, '',
      "ID of the HTTP handler that performs RDF term lookup."
@@ -692,8 +693,8 @@ rdfh_default_options(_{max_length: 50}).
 
 
 
-%! rdfh_link(+C, +Cs, +Term, :Content_2, +Opts)// is det.
-%! rdfh_link(+C, +Cs, +Attrs, +Term, :Content_2, +Opts)// is det.
+%! rdfh_link(+C, +Cs, +Term, :Content_0, +Opts)// is det.
+%! rdfh_link(+C, +Cs, +Attrs, +Term, :Content_0, +Opts)// is det.
 %
 % Generates an RDF request link in case HTTP handler `rdfh` is
 % defined.  Otherwise, the content is generated without an enclosing
@@ -704,11 +705,11 @@ rdfh_default_options(_{max_length: 50}).
 %
 % C is the class that denotes the context in which Term is displayed.
 
-rdfh_link(C, Cs, Term, Content_2, Opts) -->
-  rdfh_link(C, Cs, [], Term, Content_2, Opts).
+rdfh_link(C, Cs, Term, Content_0, Opts) -->
+  rdfh_link(C, Cs, [], Term, Content_0, Opts).
 
 
-rdfh_link(C, Cs, Attrs, Term, Content_2, Opts) -->
+rdfh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   {
     setting(rdfh_handler, Id),
     Id \== '', !,
@@ -721,12 +722,12 @@ rdfh_link(C, Cs, Attrs, Term, Content_2, Opts) -->
   },
   html(
     span([class=Cs|Attrs], [
-      html(a(href=Link, Content_2)),
+      html(a(href=Link, Content_0)),
       \rdfh_link_external(Term)
     ])
   ).
-rdfh_link(_, _, _, _, Content_2, _) -->
-  Content_2.
+rdfh_link(_, _, _, _, Content_0, _) -->
+  Content_0.
 
 rdfh_link_query_term(C, Term1, QueryTerm) :-
   term_to_atom(Term1, Term2),

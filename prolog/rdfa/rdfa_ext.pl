@@ -410,4 +410,4 @@ pair_to_prefix0(Alias-Prefix, Def) :-
 
 'sioc:reply_of'(Comment) -->
   {once(rdf_has(Comment, sioc:reply_of, Article))},
-  html(span(rel='sbo:commentOf', \'dc:title'(Article))). %'
+  html(span(rel='sioc:reply_of', \'dc:title'(Article))). %'

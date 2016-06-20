@@ -6,8 +6,10 @@
     rdf_assert/1,           % +Tuple
     rdf_assert/2,           % +Triple, +G
     rdf_assert_action/4,    % +ActionClass, +Actor, -Action, +G
-    rdf_assert_instance/2,  % +I, +Cs
-    rdf_assert_instance/3,  % +I, +Cs, +G
+    rdf_assert_instance/2,  % +I, ?C
+    rdf_assert_instance/3,  % +I, ?C, +G
+    rdf_assert_instances/2, % +I, +Cs
+    rdf_assert_instances/3, % +I, +Cs, +G
     rdf_assert_list/4,      % +S, +P, +L, +G
     rdf_assert_now/2,       % +S, +P
     rdf_assert_now/3,       % +S, +P, +D
@@ -63,6 +65,7 @@
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(ordsets)).
 :- use_module(library(print_ext)).
+:- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_prefix), []). % Load RDF prefixes.
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
@@ -83,8 +86,10 @@
    rdf_assert(t),
    rdf_assert(t, r),
    rdf_assert_action(r, r, -, r),
-   rdf_assert_instance(r, t),
-   rdf_assert_instance(r, t, r),
+   rdf_assert_instance(r, r),
+   rdf_assert_instance(r, r, r),
+   rdf_assert_instances(r, t),
+   rdf_assert_instances(r, t, r),
    rdf_assert_list(r, r, t, r),
    rdf_assert_now(o, r),
    rdf_assert_now(o, r, r),
@@ -157,21 +162,27 @@ rdf_assert_action(ActionC, Actor, Action, G):-
 
 
 
-%! rdf_assert_instance(+I, ?Cs) is det.
-%! rdf_assert_instance(+I, ?Cs, ?G) is det.
+%! rdf_assert_instance(+I, ?C) is det.
+%! rdf_assert_instance(+I, ?C, ?G) is det.
 
 rdf_assert_instance(I, C) :-
   rdf_assert_instance(I, C, _).
 
 
 rdf_assert_instance(I, C, G) :-
-  var(C), !,
-  rdf_assert(I, rdf:type, rdfs:'Resource', G).
-rdf_assert_instance(I, Cs, G) :-
-  is_list(Cs), !,
-  maplist({I,G}/[C]>>rdf_assert_instance(I, C, G), Cs).
-rdf_assert_instance(I, C, G) :-
+  rdf_defval(C, rdfs:'Resource'),
   rdf_assert(I, rdf:type, C, G).
+
+
+
+%! rdf_assert_instances(+I, +Cs) is det.
+%! rdf_assert_instances(+I, +Cs, ?G) is det.
+
+rdf_assert_instances(I, Cs) :-
+  rdf_assert_instances(I, Cs, _).
+
+rdf_assert_instances(I, Cs, G) :-
+  maplist({I,G}/[C]>>rdf_assert_instance(I, C, G), Cs).
 
 
 

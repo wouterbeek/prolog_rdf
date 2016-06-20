@@ -42,16 +42,13 @@ bibtex2rdf(Source, G, Opts) :-
 
 
 assert_bibtex_entry(G, Entry0) :-
-  % Resource.
   md5(Entry0, Hash),
-  Entry0 = entry(ClassName,Name,Pairs),
+  Entry0 = entry(CName,Name,Pairs),
   rdf_global_id(lobr:Hash, Entry),
   
-  % Class.
-  rdf_global_id(lobo:ClassName, Class),
-  rdf_assert_instance(Entry, Class, G),
+  rdf_global_id(lobo:CName, C),
+  rdf_assert_instance(Entry, C, G),
   
-  % Properties.
   rdf_assert(Entry, lobo:name, Name, G),
   maplist(assert_bibtex_property(Entry, G), Pairs).
 

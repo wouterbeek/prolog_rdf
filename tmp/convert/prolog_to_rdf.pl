@@ -28,24 +28,20 @@ Automated conversion from Prolog terms to RDF triples.
 
 
 prolog_to_rdf(G, Mod, Term, I) :-
-  % Namespace.
   (   rdf_current_prefix(Mod, _), !
   ;   atomic_list_concat([Mod,''], /, Path),
       iri_comps(Iri, uri_components(http,'www.wouterbeek.com',Path,_,_)),
       rdf_register_prefix(Mod, Iri)
   ),
 
-  % Class.
   Term =.. [Functor|Args],
-  once(atom_phrase(atom_uppercase, Functor, ClassName)),
-  rdf_global_id(Mod:ClassName, Class),
-  rdfs_assert_class(Class, G),
+  once(atom_phrase(atom_uppercase, Functor, CName)),
+  rdf_global_id(Mod:CName, C),
+  rdfs_assert_class(C, G),
 
-  % Instance.
   rdf_create_bnode(I),
-  rdf_assert_instance(I, Class, G),
-
-  % Propositions.
+  rdf_assert_instance(I, C, G),
+  
   Mod:legend(Functor, ArgRequirements),
   maplist(prolog_to_rdf(G, Mod, I), ArgRequirements, Args).
 

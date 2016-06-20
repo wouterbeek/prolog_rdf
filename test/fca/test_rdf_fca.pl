@@ -75,16 +75,16 @@ rdf_fca_test_graph(G) :-
 rdf_fca_assert_graph(number, G) :-
   rdf_new_graph(number, G),
   forall(between(1, 10, N), rdf_assert_number(N, G)),
-  rdf_assert_instance(ex:'1',  [ex:'Odd',ex:'Square'],                 G),
-  rdf_assert_instance(ex:'2',  [ex:'Even',ex:'Prime'],                 G),
-  rdf_assert_instance(ex:'3',  [ex:'Odd',ex:'Prime'],                  G),
-  rdf_assert_instance(ex:'4',  [ex:'Composite',ex:'Even',ex:'Square'], G),
-  rdf_assert_instance(ex:'5',  [ex:'Odd',ex:'Prime'],                  G),
-  rdf_assert_instance(ex:'6',  [ex:'Composite',ex:'Even'],             G),
-  rdf_assert_instance(ex:'7',  [ex:'Odd',ex:'Prime'],                  G),
-  rdf_assert_instance(ex:'8',  [ex:'Composite',ex:'Even'],             G),
-  rdf_assert_instance(ex:'9',  [ex:'Composite',ex:'Odd',ex:'Square'],  G),
-  rdf_assert_instance(ex:'10', [ex:'Composite',ex:'Even'],             G).
+  rdf_assert_instances(ex:'1',  [ex:'Odd',ex:'Square'],                 G),
+  rdf_assert_instances(ex:'2',  [ex:'Even',ex:'Prime'],                 G),
+  rdf_assert_instances(ex:'3',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instances(ex:'4',  [ex:'Composite',ex:'Even',ex:'Square'], G),
+  rdf_assert_instances(ex:'5',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instances(ex:'6',  [ex:'Composite',ex:'Even'],             G),
+  rdf_assert_instances(ex:'7',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instances(ex:'8',  [ex:'Composite',ex:'Even'],             G),
+  rdf_assert_instances(ex:'9',  [ex:'Composite',ex:'Odd',ex:'Square'],  G),
+  rdf_assert_instances(ex:'10', [ex:'Composite',ex:'Even'],             G).
 
 
 

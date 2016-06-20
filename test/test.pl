@@ -77,9 +77,11 @@
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
+:- use_module(library(rdf/rdf_user)).
 :- use_module(library(rdf/rdfio)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
+:- use_module(library(rdfa/rdfa_user)).
 %/rdfs
 :- use_module(library(rdfs/rdfs_ext)).
 %/service
