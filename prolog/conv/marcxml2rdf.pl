@@ -1,8 +1,8 @@
 :- module(
   marcxml2rdf,
   [
-    marcxml2record/3, % +Dom, +Alias, -Triples
-    marcxml2stmt/3    % +Dom, +Alias, -Triple
+    marcxml2rdf_record/3, % +Dom, +Alias, -Triples
+    marcxml2rdf_stmt/3    % +Dom, +Alias, -Triple
   ]
 ).
 
@@ -19,9 +19,9 @@
 
 
 
-%! marcxml2record(+Dom, +Alias, -Triples) is nondet.
+%! marcxml2rdf_record(+Dom, +Alias, -Triples) is nondet.
 
-marcxml2record(Dom, Alias, Triples) :-
+marcxml2rdf_record(Dom, Alias, Triples) :-
   rdf_create_bnode(S),
   findall(Triple, (
     (   marcxml_controlfield(Dom, Field, Val0),
@@ -36,8 +36,8 @@ marcxml2record(Dom, Alias, Triples) :-
 
 
 
-%! marcxml2stmt(+Dom, +Alias, -Triple) is nondet.
+%! marcxml2rdf_stmt(+Dom, +Alias, -Triple) is nondet.
 
-marcxml2stmt(Dom, Alias, Triple) :-
-  marcxml2record(Dom, Alias, Triples),
+marcxml2rdf_stmt(Dom, Alias, Triple) :-
+  marcxml2rdf_record(Dom, Alias, Triples),
   member(Triple, Triples).

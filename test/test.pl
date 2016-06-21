@@ -3,7 +3,9 @@
 %/conv
 :- use_module(library(conv/bibtex2rdf)).
 :- use_module(library(conv/csv2rdf)).
+:- use_module(library(conv/json2rdf)).
 :- use_module(library(conv/marcxml2rdf)).
+:- use_module(library(conv/ndjson2rdf)).
 :- use_module(library(conv/xml2rdf)).
 %/dcg
 :- use_module(library(dcg/manchester)).
