@@ -41,11 +41,16 @@ json2rdf_stmt0(In, Alias, Triple) :-
   ;   atom_string(A, Str),
       atom_json_dict(A, D),
       rdf_create_bnode(S),
-      get_dict_path(Keys1, D, Val0),
-      ensure_atom(Val0, Val),
+      get_dict_path(Keys1, D, Val),
+
+      % P
       atomic_list_concat(Keys1, '_', Local1),
       atomic_list_concat(Keys2, ' ', Local1),
       atomic_list_concat(Keys2, '_', Local2),
       rdf_global_id(Alias:Local2, P),
-      rdf_global_term(rdf(S,P,Val^^xsd:string), Triple)
+
+      % O
+      (is_list(Val) -> O = Val^^tcco:array ; O = Val^^xsd:string),
+      
+      rdf_global_term(rdf(S,P,O), Triple)
   ).

@@ -37,6 +37,7 @@
     rdf_rm_error/4,        % ?S, ?P, ?O, ?G
     rdf_rm_null/1,         % +Null
     rdf_rm_null/2,         % +Null, ?G
+    rdf_rm_null/3,         % ?P, +Null, ?G
     rdf_rm_tree/1,         % +S
     rdf_rm_tuples/1,       % +Tuples
     rdf_split_lex/2,       % +P, :Dcg_2
@@ -115,6 +116,7 @@ Higher-level update operations performed on RDF data.
    rdf_rm_error(r, r, o, r),
    rdf_rm_null(o),
    rdf_rm_null(o, r),
+   rdf_rm_null(r, o, r),
    rdf_rm_tree(r),
    rdf_rm_tuples(t),
    rdf_split_lex(r, :),
@@ -468,6 +470,7 @@ rdf_rm_error(S, P, O, G) :-
 
 %! rdf_rm_null(+Null) is det.
 %! rdf_rm_null(+Null, ?G) is det.
+%! rdf_rm_null(?P, +Null, ?G) is det.
 %
 % Wrapper around rdf_rm/4 that indicates that an error or mistake is
 % being removed.
@@ -477,7 +480,11 @@ rdf_rm_null(Null) :-
 
 
 rdf_rm_null(Null, G) :-
-  rdf_rm(_, _, Null, G).
+  rdf_rm_null(_, Null, G).
+
+
+rdf_rm_null(P, Null, G) :-
+  rdf_rm(_, P, Null, G).
 
 
 
