@@ -283,7 +283,7 @@ rdfh_literal_outer(C, Cs1, Lit, Opts) -->
     ord_add_element(Cs1, literal, Cs2),
     rdf_literal_datatype(Lit, D)
   },
-  rdfh_link(C, Cs2, [datatype=D], Lit, rdfh_literal_inner(Lit, Opts), Opts).
+  rdfh_link(C, Cs2, [datatype=D], Lit, \rdfh_literal_inner(Lit, Opts), Opts).
 
 % RDF HTML
 rdfh_literal_inner(V^^D, _) -->
@@ -351,9 +351,9 @@ rdfh_literal_inner(V^^D, _) -->
 % Datatype hooks.
 rdfh_literal_inner(Lit, Opts) -->
   rdfh:rdfh_literal_hook(Lit, Opts).
-rdfh_literal_inner(V^^D, _) -->
+rdfh_literal_inner(Lit, _) -->
   {gtrace}, %DEB
-  html([p(V),p(D)]).
+  html([p(Lit)]).
 
 
 

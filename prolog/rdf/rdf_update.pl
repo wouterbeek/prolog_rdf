@@ -1,6 +1,8 @@
 :- module(
   rdf_update,
   [
+    rdf_add_ltag/2,        % +P, +LTag
+    rdf_add_ltag/3,        % +P, +LTag, ?G
     rdf_call_update/2,     % :Find_0, Transform_0
     rdf_change_datatype/2, % +P, +D
     rdf_change_datatype/3, % +P, ?G, +D
@@ -86,6 +88,8 @@ Higher-level update operations performed on RDF data.
     rdf_split_string(+, 4, ?).
 
 :- rdf_meta
+   rdf_add_ltag(r, r),
+   rdf_add_ltag(r, +, r),
    rdf_call_update(t, t),
    rdf_call_update(t, t, +),
    rdf_change_datatype(r, r),
@@ -129,6 +133,21 @@ Higher-level update operations performed on RDF data.
    rdf_split_string(r, :, r).
 
 
+
+
+
+%! rdf_add_ltag(+P, +LTag) is det.
+%! rdf_add_ltag(+P, +LTag, ?G) is det.
+
+rdf_add_ltag(P, LTag) :-
+  rdf_add_ltag(P, LTag, _).
+
+
+rdf_add_ltag(P, LTag, G) :-
+  rdf_call_update(
+    rdf(S, P, Str^^xsd:string, G),
+    rdf_update(S, P, Str^^xsd:string, G, object(Str@LTag))
+  ).
 
 
 
@@ -373,7 +392,8 @@ rdf_lex_to_iri(P, Alias, Lex2Local_0) :-
 
 rdf_lex_to_iri(P, Alias, Lex2Local_0, G) :-
   rdf_call_update((
-    rdf(S, P, Lit, G)
+    rdf(S, P, Lit, G),
+    rdf_is_literal(Lit)
   ), (
     rdf_literal_lex(Lit, Lex),
     string_codes(Lex, Cs1),
