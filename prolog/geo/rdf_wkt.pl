@@ -21,12 +21,6 @@ Allows WKT shapes to be read/written from/to the RDF DB.
 :- rdf_meta
    array2shape(+, r, -).
 
-:- dynamic
-   gis:resource_shape_hook/4,
-   rdf11:in_ground_type_hook/3,
-   rdf11:out_type_hook/3,
-   rdfh:rdfh_literal_hook//2.
-
 :- multifile
    gis:resource_shape_hook/4,
    rdf11:in_ground_type_hook/3,

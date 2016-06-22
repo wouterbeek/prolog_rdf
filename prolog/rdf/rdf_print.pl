@@ -34,6 +34,8 @@
     rdf_print_graph/2,       % +G,             +Opts
     rdf_print_graph_term/1,  % +G
     rdf_print_graph_term/2,  % +G,             +Opts
+    rdf_print_literal/1,     % +Lit
+    rdf_print_literal/2,     % +Lit,           +Opts
     rdf_print_object/1,      % +O
     rdf_print_object/2,      % +O,             +Opts
     rdf_print_predicate/1,   % +P
@@ -96,6 +98,12 @@ Print RDF statements.
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 
+:- dynamic
+    var_map/2.
+
+:- multifile
+    rdf:dcg_print_literal_hook//2.
+
 :- rdf_meta
    dcg_print_graph(r, ?, ?),
    dcg_print_graph(r, +, ?, ?),
@@ -126,6 +134,8 @@ Print RDF statements.
    rdf_print_graph(r, +),
    rdf_print_graph_term(r),
    rdf_print_graph_term(r, +),
+   rdf_print_literal(o),
+   rdf_print_literal(o, +),
    rdf_print_object(o),
    rdf_print_object(o, +),
    rdf_print_predicate(r),
@@ -146,9 +156,6 @@ Print RDF statements.
    rdf_print_triples(r, r, o, r),
    rdf_print_triples(r, r, o, r, +).
 
-:- dynamic
-    var_map/2.
-
 
 
 
@@ -156,107 +163,158 @@ Print RDF statements.
 % NON-DCG INVOCATIONS %
 
 rdf_print_graph(G) :-
-  dcg_with_output_to(current_output, dcg_print_graph(G)).
+  rdf_print_graph(G, _{}).
+
 
 rdf_print_graph(G, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_graph(G, Opts2)).
 
+
+
 rdf_print_graph_term(G) :-
-  dcg_with_output_to(current_output, dcg_print_graph_term(G)).
+  rdf_print_graph_term(G, _{}).
+
 
 rdf_print_graph_term(G, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_graph_term(G, Opts2)).
 
+
+
+rdf_print_literal(Lit) :-
+  rdf_print_object(Lit, _{}).
+
+
+rdf_print_literal(Lit, Opts1) :-
+  rdf_print_default_options(Opts1, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_literal(Lit, Opts2)).
+
+
+
 rdf_print_object(O) :-
-  dcg_with_output_to(current_output, dcg_print_object(O)).
+  rdf_print_object(O, _{}).
+
 
 rdf_print_object(O, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_object(O, Opts2)).
 
+
+
 rdf_print_predicate(P) :-
-  dcg_with_output_to(current_output, dcg_print_predicate(P)).
+  rdf_print_predicate(P, _{}).
+
 
 rdf_print_predicate(P, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_predicate(P, Opts2)).
 
+
+
 rdf_print_quad(Tuple) :-
-  dcg_with_output_to(current_output, dcg_print_quad(Tuple)).
+  rdf_print_quad(Tuple, _{}).
+
 
 rdf_print_quad(Tuple, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quad(Tuple, Opts2)).
 
+
+
 rdf_print_quad(S, P, O, G) :-
-  dcg_with_output_to(current_output, dcg_print_quad(S, P, O, G)).
+  rdf_print_quad(S, P, O, G, _{}).
+
 
 rdf_print_quad(S, P, O, G, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quad(S, P, O, G, Opts2)).
 
+
+
 rdf_print_quads(Tuples) :-
-  dcg_with_output_to(current_output, dcg_print_quads(Tuples)).
+  rdf_print_quads(Tuples, _{}).
+
 
 rdf_print_quads(Tuples, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quads(Tuples, Opts2)).
 
+
+
 rdf_print_quads(S, P, O, G) :-
-  dcg_with_output_to(current_output, dcg_print_quads(S, P, O, G)).
+  rdf_print_quads(S, P, O, G, _{}).
+
 
 rdf_print_quads(S, P, O, G, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quads(S, P, O, G, Opts2)).
+
+
 
 rdf_print_table(Rows) :-
   rdf_print_table(Rows, []).
 
 rdf_print_table(Rows, Opts1) :-
-  merge_options([cell(print_cell0)], Opts1, Opts2),
-  dcg_with_output_to(current_output, dcg_table(Rows, Opts2)).
+  merge_options(Opts1, [cell(print_cell0)], Opts2),
+  rdf_print_default_options(Opts2, Out, Opts3),
+  dcg_with_output_to(Out, dcg_table(Rows, Opts3)).
 
 print_cell0(Term) --> dcg_print_term(Term), !.
 print_cell0(Term) --> term(Term).
 
+
+
 rdf_print_term(T) :-
-  dcg_with_output_to(current_output, dcg_print_term(T)).
+  rdf_print_term(T, _{}).
+
 
 rdf_print_term(T, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_term(T, Opts2)).
 
+
+
 rdf_print_triple(Tuple) :-
-  dcg_with_output_to(current_output, dcg_print_triple(Tuple)).
+  rdf_print_triple(Tuple, _{}).
+
 
 rdf_print_triple(Tuple, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triple(Tuple, Opts2)).
 
+
+
 rdf_print_triple(S, P, O) :-
-  dcg_with_output_to(current_output, dcg_print_triple(S, P, O)).
+  rdf_print_triple(S, P, O, _{}).
+
 
 rdf_print_triple(S, P, O, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triple(S, P, O, Opts2)).
 
+
+
 rdf_print_triples(Triples) :-
-  dcg_with_output_to(current_output, dcg_print_triples(Triples)).
+  rdf_print_triples(Triples, _{}).
+
 
 rdf_print_triples(Triples, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triples(Triples, Opts2)).
 
+
+
 rdf_print_triples(S, P, O) :-
-  dcg_with_output_to(current_output, dcg_print_triples(S, P, O)).
+  rdf_print_triples(S, P, O, _).
+
 
 rdf_print_triples(S, P, O, G) :-
-  dcg_with_output_to(current_output, dcg_print_triples(S, P, O, G)).
+  rdf_print_triples(S, P, O, G, _{}).
+
 
 rdf_print_triples(S, P, O, G, Opts1) :-
-  mod_dict(out, Opts1, current_output, Out, Opts2),
+  rdf_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triples(S, P, O, G, Opts2)).
 
 
@@ -526,7 +584,7 @@ dcg_print_term(T, Opts) -->
 
 dcg_print_bnode(B, Opts) -->
   get_dict(bnode_map, Opts, false), !,
-  dcg_print_truncated_atom(B, Opts).
+  atom_ellipsis(B, Opts.max_length).
 dcg_print_bnode(B, _) -->
   {rdf_bnode_map(B, Name)},
   "_:", integer(Name).
@@ -548,32 +606,30 @@ dcg_print_iri(Full, Opts) -->
   atom(Lex),
   "”".
 dcg_print_iri(Full, Opts) -->
-  {rdf_global_id(Alias:Local1, Full)}, !,
   {
-    get_dict(max_length, Opts, Max1, inf),
+    rdf_global_id(Alias:Local, Full), !,
     atom_length(Alias, AliasLen),
     Minus is AliasLen + 1,
-    inf_minus(Max1, Minus, Max2),
-    atom_truncate(Local1, Max2, Local2)
+    inf_minus(Opts.max_length, Minus, Max)
   },
   atom(Alias),
   ":",
-  atom(Local2).
+  atom_ellipsis(Local, Max).
 dcg_print_iri(Full, Opts) -->
   "<",
-  dcg_print_truncated_atom(Full, Opts),
+  atom_ellipsis(Full, Opts),
   ">".
 
 
 
 dcg_print_language_tag(LTag, Opts) -->
-  dcg_print_truncated_atom(LTag, Opts).
+  atom_ellipsis(LTag, Opts.max_length).
 
 
 
 dcg_print_lexical_form(Lex, Opts) -->
   "\"",
-  dcg_print_truncated_atom(Lex, Opts),
+  atom_ellipsis(Lex, Opts.max_length),
   "\"".
 
 
@@ -585,6 +641,9 @@ dcg_print_literal(Lit) -->
   dcg_print_literal(Lit, _{}).
 
 
+% Datatype hooks.
+dcg_print_literal(Lit, Opts) -->
+  rdf:dcg_print_literal_hook(Lit, Opts).
 % Abbreviate XSD Boolean.
 dcg_print_literal(Lex^^D, Opts) -->
   {rdf_equal(xsd:boolean, D)}, !,
@@ -640,15 +699,14 @@ var_number(Var, N) :-
 
 % HELPERS %
 
-dcg_print_truncated_atom(A1, Opts) -->
-  {
-    get_dict(max_length, Opts, Max, inf),
-    atom_truncate(A1, Max, A2)
-  },
-  atom(A2).
-
-
-
 inf_minus(inf, _, inf) :- !.
 inf_minus(X, Y, X)     :- X =< Y, !.
 inf_minus(X, Y, Z)     :- Z is X - Y.
+
+
+
+%! rdf_print_default_options(+Opts1, -Out, -Opts2) is det.
+
+rdf_print_default_options(Opts1, Out, Opts2) :-
+  mod_dict(out, Opts1, current_output, Out, Opts3),
+  dict_put_def(max_length, Opts3, 50, Opts2).

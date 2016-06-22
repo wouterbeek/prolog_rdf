@@ -78,9 +78,6 @@ The following options are supported:
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
-:- dynamic
-    rdfh:rdfh_literal_hook//2.
-
 :- multifile
     rdfh:rdfh_literal_hook//2.
 
@@ -351,7 +348,7 @@ rdfh_literal_inner(Str^^D, Opts) -->
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
-% ‘Raw’ array
+% Datatype hooks.
 rdfh_literal_inner(Lit, Opts) -->
   rdfh:rdfh_literal_hook(Lit, Opts).
 rdfh_literal_inner(V^^D, _) -->
