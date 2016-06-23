@@ -23,6 +23,7 @@
 :- use_module(library(jsonld/geold)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(os/open_any2)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
