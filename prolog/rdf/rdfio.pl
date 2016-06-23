@@ -44,6 +44,7 @@ already part of ClioPatria.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
@@ -79,7 +80,6 @@ already part of ClioPatria.
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
-
 :- meta_predicate
     rdf_call_on_graph(+, 3),
     rdf_call_on_graph(+, 3, +),
@@ -110,6 +110,8 @@ already part of ClioPatria.
    rdf_write_to_sink(+, r, r, o),
    rdf_write_to_sink(+, r, r, o, r),
    rdf_write_to_sink(+, r, r, o, r, +).
+
+:- debug(rdf(io)).
 
 
 
@@ -544,7 +546,8 @@ rdf_write_to_sink(Sink, S, P, O, G, Opts) :-
   rdf_default_graph(DefG),
   defval(DefG, G),
   rdf_write_format0(Sink, Opts, Format),
-  call_to_stream(Sink, rdf_write_to_sink0(S, P, O, G, Format), Opts).
+  call_to_stream(Sink, rdf_write_to_sink0(S, P, O, G, Format), Opts),
+  debug(rdf(io), "RDF was written to sink ~w.", [Sink]).
 
 
 rdf_file_name0(File, Opts) :-

@@ -4,8 +4,8 @@
     csv2rdf_file/1,  % +File
     csv2rdf_file/2,  % +File1, +File2
     csv2rdf_file/3,  % +File1, +File2, +Opts
-    csv2rdf_graph/2, % +File,  +G
-    csv2rdf_graph/3  % +File,  +G,     +Opts
+    csv2rdf_graph/2, % +File, +G
+    csv2rdf_graph/3  % +File, +G, +Opts
   ]
 ).
 
@@ -46,6 +46,11 @@ Automatic conversion from CSV to RDF.
 %! csv2rdf_file(+File) is det.
 %! csv2rdf_file(+File1, +File2) is det.
 %! csv2rdf_file(+File1, +File2, +Opts) is det.
+%! csv2rdf_graph(+File, +G) is det.
+%! csv2rdf_graph(+File, +G, +Opts) is det.
+%
+% Converts the given CSV input file into RDF that is asserted either
+% into the given output file or into the given RDF graph.
 %
 % The following options are supported:
 %
@@ -79,13 +84,6 @@ csv2rdf_file(File1, File2, Opts1) :-
     Opts1
   ).
 
-
-
-%! csv2rdf_graph(+File, +G) is det.
-%! csv2rdf_graph(+File, +G, +Opts) is det.
-%
-% Converts the file CSV File into RDF that is asserted into the given
-% graph G.
 
 csv2rdf_graph(File, G) :-
   csv2rdf_graph(File, G, []).

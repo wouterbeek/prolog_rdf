@@ -91,6 +91,7 @@ Print RDF statements.
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_bnode_map)).
@@ -257,8 +258,8 @@ rdf_print_table(Rows) :-
 
 rdf_print_table(Rows, Opts1) :-
   merge_options(Opts1, [cell(print_cell0)], Opts2),
-  rdf_print_default_options(Opts2, Out, Opts3),
-  dcg_with_output_to(Out, dcg_table(Rows, Opts3)).
+  option(out(Out), Opts1, current_output),
+  dcg_with_output_to(Out, dcg_table(Rows, Opts2)).
 
 print_cell0(Term) --> dcg_print_term(Term), !.
 print_cell0(Term) --> term(Term).
@@ -324,7 +325,8 @@ rdf_print_triples(S, P, O, G, Opts1) :-
 % PRINT MULTIPLE TUPLES %
 
 dcg_print_graph(G) -->
-  dcg_print_graph(G, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_graph(G, Opts).
 
 
 dcg_print_graph(G, Opts) -->
@@ -333,7 +335,8 @@ dcg_print_graph(G, Opts) -->
 
 
 dcg_print_quads(Tuples) -->
-  dcg_print_quads(Tuples, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_quads(Tuples, Opts).
 
 
 dcg_print_quads([rdf(S,P,O)], Opts) --> !,
@@ -363,7 +366,8 @@ graph_triple_pair0(rdf(S,P,O,G), G-rdf(S,P,O)).
 
 
 dcg_print_quads(S, P, O, G) -->
-  dcg_print_quads(S, P, O, G, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_quads(S, P, O, G, Opts).
 
 
 dcg_print_quads(S, P, O, G, Opts) -->
@@ -373,7 +377,8 @@ dcg_print_quads(S, P, O, G, Opts) -->
 
 
 dcg_print_triples(Triples) -->
-  dcg_print_triples(Triples, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_triples(Triples, Opts).
 
 
 dcg_print_triples(Triples, Opts) -->
@@ -386,7 +391,8 @@ dcg_print_triples(S, P, O) -->
 
 
 dcg_print_triples(S, P, O, G) -->
-  dcg_print_triples(S, P, O, G, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_triples(S, P, O, G, Opts).
 
 
 dcg_print_triples(S, P, O, G, Opts) -->
@@ -479,7 +485,8 @@ dcg_print_objects2(I, [O|Os], Opts) -->
 % PRINT A SINGLE TUPLE %
 
 dcg_print_quad(Tuple) -->
-  dcg_print_quad(Tuple, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_quad(Tuple, Opts).
 
 
 dcg_print_quad(rdf(S,P,O), Opts) --> !,
@@ -490,7 +497,8 @@ dcg_print_quad(rdf(S,P,O,G), Opts) -->
 
 
 dcg_print_quad(S, P, O, G) -->
-  dcg_print_quad(S, P, O, G, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_quad(S, P, O, G, Opts).
 
 
 dcg_print_quad(S, P, O, G, Opts) -->
@@ -499,7 +507,8 @@ dcg_print_quad(S, P, O, G, Opts) -->
 
 
 dcg_print_triple(Tuple) -->
-  dcg_print_triple(Tuple, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_triple(Tuple, Opts).
 
 
 dcg_print_triple(rdf(S,P,O), Opts) --> !,
@@ -509,7 +518,8 @@ dcg_print_triple(rdf(S,P,O,_), Opts) -->
 
 
 dcg_print_triple(S, P, O) -->
-  dcg_print_triple(S, P, O, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_triple(S, P, O, Opts).
 
 
 dcg_print_triple(S, P, O, Opts) -->
@@ -522,7 +532,8 @@ dcg_print_triple(S, P, O, Opts) -->
 % PRINT A TERM BY IT POSITIONALITY %
 
 dcg_print_graph_term(G) -->
-  dcg_print_graph_term(G, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_graph_term(G, Opts).
 
 
 dcg_print_graph_term(G, Opts) -->
@@ -531,7 +542,8 @@ dcg_print_graph_term(G, Opts) -->
 
 
 dcg_print_object(O) -->
-  dcg_print_object(O, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_object(O, Opts).
 
 
 dcg_print_object(O, Opts) -->
@@ -543,7 +555,8 @@ dcg_print_object(O, Opts) -->
 
 
 dcg_print_predicate(P) -->
-  dcg_print_predicate(P, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_predicate(P, Opts).
 
 
 dcg_print_predicate(P, _) -->
@@ -570,7 +583,8 @@ dcg_print_subject(S, Opts) -->
 
 
 dcg_print_term(T) -->
-  dcg_print_term(T, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_term(T, Opts).
 
 
 dcg_print_term(T, Opts) -->
@@ -638,7 +652,8 @@ dcg_print_lexical_form(Lex, Opts) -->
 %! dcg_print_literal(+Lit, +Opts)// is det.
 
 dcg_print_literal(Lit) -->
-  dcg_print_literal(Lit, _{}).
+  {dcg_print_default_options(Opts)},
+  dcg_print_literal(Lit, Opts).
 
 
 % Datatype hooks.
@@ -699,6 +714,14 @@ var_number(Var, N) :-
 
 % HELPERS %
 
+%! dcg_print_default_options(-Opts) is det.
+
+dcg_print_default_options(_{max_length: 50}).
+
+
+
+%! inf_minus(+X, +Y, -Z) is det.
+  
 inf_minus(inf, _, inf) :- !.
 inf_minus(X, Y, X)     :- X =< Y, !.
 inf_minus(X, Y, Z)     :- Z is X - Y.
@@ -707,6 +730,7 @@ inf_minus(X, Y, Z)     :- Z is X - Y.
 
 %! rdf_print_default_options(+Opts1, -Out, -Opts2) is det.
 
-rdf_print_default_options(Opts1, Out, Opts2) :-
+rdf_print_default_options(Opts1, Out, Opts5) :-
   mod_dict(out, Opts1, current_output, Out, Opts3),
-  dict_put_def(max_length, Opts3, 50, Opts2).
+  dcg_print_default_options(Opts4),
+  merge_dicts(Opts4, Opts3, Opts5).
