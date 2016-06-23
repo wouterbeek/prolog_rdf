@@ -1,6 +1,7 @@
 :- module(
   rdf_conv,
   [
+    rdf_conv/2, % +Alias, +Name
     rdf_conv/3, % +Alias, +Mod, +Name
     rdf_conv/4  % +Alias, +Mod, +Name, +Format
   ]
@@ -21,8 +22,13 @@
 
 
 
+%! rdf_conv(+Alias, +Name) is det.
 %! rdf_conv(+Alias, +Mod, +Name) is det.
 %! rdf_conv(+Alias, +Mod, +Name, +Format) is det.
+
+rdf_conv(Alias, Name) :-
+  rdf_conv(Alias, Name, Name).
+
 
 rdf_conv(Alias, Mod, Name) :-
   rdf_conv(Alias, Mod, Name, ntriples).
