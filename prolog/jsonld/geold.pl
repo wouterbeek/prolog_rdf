@@ -64,7 +64,7 @@ geold_context(
   _{
     coordinates: _{'@id': 'geold:coordinates', '@type': 'tcco:array'},
     crs: 'geold:crs',
-    geo : 'http://www.opengis.net/ont/geosparql#',
+    geold: 'http://geojsonld.com/vocab#',
     geometry: 'geold:geometry',
     'GeometryCollection': 'geold:GeometryCollection',
     'Feature': 'geold:Feature',
@@ -80,9 +80,10 @@ geold_context(
     rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     tcco: 'http://triply.cc/ontology/',
     type: _{'@id': 'rdf:type', '@type': '@id'},
-    '@vocab': Alias
+    '@vocab': Prefix
   }
-).
+) :-
+  rdf_current_prefix(Alias, Prefix).
 
 
 

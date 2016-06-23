@@ -53,30 +53,30 @@ handled by plGraphViz.
 
 %! create_namespace_map(
 %!   +Scheme:oneof([svg,x11]),
-%!   -PrefixColors:list(pair)
+%!   -AliasColors:list(pair)
 %! ) is det.
 
 create_namespace_map(Scheme, Map) :-
-  aggregate_all(set(Prefix), rdf_current_prefix(Prefix), Prefixes),
-  create_namespace_map(Prefixes, Scheme, Map).
+  aggregate_all(set(Alias), rdf_current_alias(Alias), Aliases),
+  create_namespace_map(Aliases, Scheme, Map).
 
 
 
 %! create_namespace_map(
-%!   +Prefixes:list(atom),
+%!   +Aliases:list(atom),
 %!   +Colorscheme:oneof([svg,x11]),
-%!   -PrefixColors:list(pair)
+%!   -AliasColors:list(pair)
 %! ) is det.
 
-create_namespace_map(Prefixes, Scheme, Map) :-
-  length(Prefixes, NP),
+create_namespace_map(Aliases, Scheme, Map) :-
+  length(Aliases, NP),
   aggregate_all(set(C), gv_color(Scheme, C), Cs),
   length(Cs, NC),
   Delta is NC // NP,
   findall(
-    Prefix-C,
+    Alias-C,
     (
-      nth0(I, Prefixes, Prefix),
+      nth0(I, Aliases, Alias),
       % In case there are more namespaces than colors, Delta=1 and we use
       % the same color for all namespaces with index I mod M.
       J is (I * Delta) mod NC,
@@ -89,19 +89,20 @@ create_namespace_map(Prefixes, Scheme, Map) :-
 
 
 %! rdf_edges_to_export_graph(+Trips, -ExportG, +Opts) is det.
+%
 % The following options are supported:
-%   * colorscheme(+oneof([none,svg,x11]))
-%     The colorscheme for the colors assigned to vertices and edges.
-%     Supported values are `svg`, `x11`, and `none` (for black and white).
-%     Default is `svg`.
-%   * prefix_colors(+list(pair))
-%     Default is [].
+%
+%   * colorscheme(+oneof([none,svg,x11])) The colorscheme for the
+%   colors assigned to vertices and edges.  Supported values are
+%   `svg`, `x11`, and `none` (for black and white).  Default is `svg`.
+%
+%   * alias_colors(+list(pair)) The default is [].
 
 rdf_edges_to_export_graph(Es, ExportG, Opts1) :-
   % Options `colorscheme' and `namespace_colors' are special
   % since their values are reused by other options.
   select_option(colorscheme(Colorscheme), Opts1, Opts2, x11),
-  (   select_option(prefix_colors(Map), Opts2, Opts3)
+  (   select_option(alias_colors(Map), Opts2, Opts3)
   ->  true
   ;   create_namespace_map(Colorscheme, Map)
   ),
@@ -183,7 +184,7 @@ rdf_edge_arrowhead(_, normal).
 
 %! rdf_edge_color(
 %!   +Colorscheme:oneof([none,svg,x11]),
-%!   +PrefixColors:list(pair),
+%!   +AliasColors:list(pair),
 %!   +Edge:compound,
 %!   -Color:atom
 %! ) is det.
@@ -243,7 +244,7 @@ rdf_edge_style(_, solid).
 
 %! rdf_vertex_color(
 %!   +Colorscheme:oneof([none,svg,x11]),
-%!   +PrefixColors:list(pair),
+%!   +AliasColors:list(pair),
 %!   +Term:rdf_term,
 %!   -Color:atom
 %! ) is det.
@@ -265,8 +266,8 @@ rdf_vertex_color(_, _, V, VColor) :-
   rdf:rdf_class_color(C, VColor), !.
 % IRI with a colored namespace.
 rdf_vertex_color(_, Map, T, VColor) :-
-  rdf_global_id(Prefix:_, T),
-  memberchk(Prefix-VColor, Map), !.
+  rdf_global_id(Alias:_, T),
+  memberchk(Alias-VColor, Map), !.
 % Other IRI.
 rdf_vertex_color(_, _, _, black).
 

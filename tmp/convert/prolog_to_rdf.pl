@@ -13,7 +13,7 @@
 Automated conversion from Prolog terms to RDF triples.
 
 @author Wouter Beek
-@version 2014/01, 2014/11, 2015/12
+@version 2014/01, 2014/11, 2015/12, 2016/06
 */
 
 :- use_module(library(apply)).
@@ -21,6 +21,7 @@ Automated conversion from Prolog terms to RDF triples.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(rdf/rdf_ext)).
+:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdfs/rdfs_api)).
 
 
@@ -28,7 +29,7 @@ Automated conversion from Prolog terms to RDF triples.
 
 
 prolog_to_rdf(G, Mod, Term, I) :-
-  (   rdf_current_prefix(Mod, _), !
+  (   rdf_current_alias(Mod), !
   ;   atomic_list_concat([Mod,''], /, Path),
       iri_comps(Iri, uri_components(http,'www.wouterbeek.com',Path,_,_)),
       rdf_register_prefix(Mod, Iri)

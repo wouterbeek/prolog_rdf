@@ -2,6 +2,7 @@
   rdf_prefix,
   [
     abbr_iri/2,                   % +Iri, -Abbr
+    rdf_current_alias/1,          % ?Alias
     rdf_current_prefix/1,         % ?Prefix
     rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
     rdf_iri_prefix/2,             % +Iri, -Prefix
@@ -19,9 +20,9 @@ The following terminology is (mis-)used in the field:
     (I would have prefered the name "prefix".)
   * **Local Name**
     For a prefixed IRI, the suffix that is not covered by the IRI-prefix.
-  * **Prefix**
+  * **Alias**
     The custom string that stands for an *IRI prefix*.
-    (I would have prefered the name "alias".)
+    (Erroneously called ‘prefix’ in the RDF 1.1 specification.)
 
 This allows the following two IRI notations to be distinguished:
 
@@ -66,7 +67,7 @@ assert_dbpedia_localizations :-
     dbpedia_register(LTag)
   ).
 
-%! dbpedia_language_tag(-LanguageTag:atom) is multi.
+%! dbpedia_language_tag(-LanguageTag) is multi.
 
 dbpedia_language_tag(ab).
 dbpedia_language_tag(ace).
@@ -273,7 +274,7 @@ dbpedia_language_tag(zh_min_nan).
 dbpedia_language_tag('zh-yue').
 dbpedia_language_tag(zh_yue).
 
-%! dbpedia_register(+LanguageTag:atom) is det.
+%! dbpedia_register(+LanguageTag) is det.
 
 dbpedia_register(LTag) :-
   atomic_list_concat([LTag,dbpedia,org], ., Auth),
@@ -290,11 +291,19 @@ dbpedia_register(LTag) :-
 
 
 
-%! rdf_current_prefix(+Prefix:atom) is semidet.
-%! rdf_current_prefix(-Prefix:atom) is det.
+%! rdf_current_alias(+Alias) is semidet.
+%! rdf_current_alias(-Alias) is det.
+
+rdf_current_alias(Alias) :-
+  rdf_current_alias(Alias, _).
+
+
+
+%! rdf_current_prefix(+Prefix) is semidet.
+%! rdf_current_prefix(-Prefix) is det.
 
 rdf_current_prefix(Prefix) :-
-  rdf_current_prefix(Prefix, _).
+  rdf_current_prefix(_, Prefix).
 
 
 
@@ -316,7 +325,7 @@ rdf_iri_prefix(Iri, Prefix) :-
 
 
 
-%! rdf_reset_prefix(+Prefix:atom, +IriPrefix:iri) is det.
+%! rdf_reset_prefix(+Prefix, +IriPrefix) is det.
 % Sets or resets RDF prefixes (whatever is needed to effectuate the mapping
 % from Prefix onto IRI), but shows a warning in the case of resetting.
 
