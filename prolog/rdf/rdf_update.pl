@@ -3,13 +3,13 @@
   [
     rdf_add_ltag/2,        % +P, +LTag
     rdf_add_ltag/3,        % +P, +LTag, ?G
-    rdf_call_update/2,     % :Find_0, Transform_0
+    rdf_call_update/2,     % :Find_0, :Transform_0
     rdf_change_datatype/2, % +P, +D
     rdf_change_datatype/3, % +P, ?G, +D
     rdf_change_iri/5,      % ?S, ?P, ?O, +Positions, :Dcg_0
     rdf_change_iri/6,      % ?S, ?P, ?O, +Positions, ?G, :Dcg_0
     rdf_change_lex/2,      % +P, :Dcg_0
-    rdf_change_lex/3,      % +P, :Dcg_0, ?G
+    rdf_change_lex/3,      % +P, ?G, :Dcg_0
     rdf_change_p/2,        % +P, +Q
     rdf_change_p/2,        % +P, ?G, +Q
     rdf_cp/2,              % +G1, +G2
@@ -25,7 +25,7 @@
     rdf_flatten/1,         % +P
     rdf_flatten/2,         % +P, ?G
     rdf_lex_to_iri/3,      % ?P, +Alias, :Lex2Local_0
-    rdf_lex_to_iri/4,      % ?P, +Alias, :Lex2Local_0, ?G
+    rdf_lex_to_iri/4,      % ?P, +Alias, ?G, :Lex2Local_0
     rdf_mv/2,              % +G1, +G2
     rdf_mv/5,              % +G1, ?S, ?P, ?O, +G2
     rdf_rm/3,              % ?S, ?P, ?O
@@ -45,7 +45,7 @@
     rdf_rm_tree/1,         % +S
     rdf_rm_tuples/1,       % +Tuples
     rdf_split_string/2,    % +P, :Dcg_2
-    rdf_split_string/3     % +P, :Dcg_2, ?G
+    rdf_split_string/3     % +P, ?G, :Dcg_2
   ]
 ).
 
@@ -82,11 +82,11 @@ Higher-level update operations performed on RDF data.
     rdf_change_iri(?, ?, ?, +, ?, //),
     rdf_change_iri0(+, +, //, -),
     rdf_change_lex(+, //),
-    rdf_change_lex(+, //, ?),
+    rdf_change_lex(+, ?, //),
     rdf_lex_to_iri(?, +, //),
-    rdf_lex_to_iri(?, +, //, ?),
+    rdf_lex_to_iri(?, +, ?, //),
     rdf_split_string(+, 4),
-    rdf_split_string(+, 4, ?).
+    rdf_split_string(+, ?, 4).
 
 :- rdf_meta
    rdf_add_ltag(r, r),
@@ -98,7 +98,7 @@ Higher-level update operations performed on RDF data.
    rdf_change_iri(r, r, o, +, :),
    rdf_change_iri(r, r, o, +, r, :),
    rdf_change_lex(r, :),
-   rdf_change_lex(r, :, r),
+   rdf_change_lex(r, r, :),
    rdf_change_p(r, r),
    rdf_change_p(r, r, r),
    rdf_comb_date(r, r, r, r),
@@ -114,7 +114,7 @@ Higher-level update operations performed on RDF data.
    rdf_inc(r, r),
    rdf_inc(r, r, +),
    rdf_lex_to_iri(r, +, :),
-   rdf_lex_to_iri(r, +, :, r),
+   rdf_lex_to_iri(r, +, r, :),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
    rdf_rm(r, r, o),
@@ -131,7 +131,7 @@ Higher-level update operations performed on RDF data.
    rdf_rm_tree(r),
    rdf_rm_tuples(t),
    rdf_split_string(r, :),
-   rdf_split_string(r, :, r).
+   rdf_split_string(r, r, :).
 
 :- debug(rdf(update)).
 
@@ -226,17 +226,17 @@ rdf_change_iri0(rdf(S1,P1,O1), [PosS,PosP,PosO], Dcg_0, rdf(S2,P2,O2)) :-
   
 
 %! rdf_change_lex(+P, :Dcg_0) is det.
-%! rdf_change_lex(+P, :Dcg_0, ?G) is det.
+%! rdf_change_lex(+P, ?G, :Dcg_0) is det.
 %
 % Change the lexical form of the literals that appear with predicate
 % P.  Dcg_0 is used to parse the old lexical form and generate the new
 % one.
 
 rdf_change_lex(P, Dcg_0) :-
-  rdf_change_lex(P, Dcg_0, _).
+  rdf_change_lex(P, _, Dcg_0).
 
 
-rdf_change_lex(P, Dcg_0, G) :-
+rdf_change_lex(P, G, Dcg_0) :-
   rdf_call_update((
     rdf(S, P, Lit1, G),
     rdf_literal(Lit1, D, Lex1, LTag),
@@ -390,13 +390,13 @@ rdf_inc(S, P, G) :-
 
 
 %! rdf_lex_to_iri(?P, +Alias, :Lex2Local_0) is det.
-%! rdf_lex_to_iri(?P, +Alias, :Lex2Local_0, ?G) is det.
+%! rdf_lex_to_iri(?P, +Alias, ?G, :Lex2Local_0) is det.
 
 rdf_lex_to_iri(P, Alias, Lex2Local_0) :-
-  rdf_lex_to_iri(P, Alias, Lex2Local_0, _).
+  rdf_lex_to_iri(P, Alias, _, Lex2Local_0).
 
 
-rdf_lex_to_iri(P, Alias, Lex2Local_0, G) :-
+rdf_lex_to_iri(P, Alias, G, Lex2Local_0) :-
   rdf_call_update((
     rdf(S, P, Lit, G),
     rdf_is_literal(Lit)
@@ -447,7 +447,7 @@ rdf_lex_padding(P, C, G) :-
     rdf_literal_lex(Lit, Lex),
     atom_length(Lex, Len)
   ), Max),
-  rdf_change_lex(P, rdf_lex_padding0(C, Max), G).
+  rdf_change_lex(P, G, rdf_lex_padding0(C, Max)).
 
 rdf_lex_padding0(C, Len), Cs -->
   ...(Suffix),
@@ -562,7 +562,7 @@ rdf_rm_tuples(Tuples) :-
 
 
 %! rdf_split_string(+P, :Dcg_2) is det.
-%! rdf_split_string(+P, :Dcg_2, ?G) is det.
+%! rdf_split_string(+P, ?G, :Dcg_2) is det.
 
 rdf_split_string(P, Dcg_2) :-
   rdf_split_string(P, _, Dcg_2).

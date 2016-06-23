@@ -1,26 +1,63 @@
 :- module(
   json2rdf,
   [
-%    json2rdf_record/3, % +Source, +Alias, -Triples
-    json2rdf_stmt/3    % +Source, +Alias, -Triple
+    geojson2rdf_graph/3, % +Source, +Alias, +Graph
+    geojson2rdf_stmt/3,  % +Source, +Alias, -Triple
+    json2rdf_graph/3,    % +Source, +Alias, +Graph
+    json2rdf_stmt/3,     % +Source, +Alias, -Triple
+    ndjson2rdf_triple/3  % +Source, +Context, -Triple
   ]
 ).
 
 /** <module> JSON-2-RDF
 
 @author Wouter Beek
+@see http://ndjson.org/
 @version 2016/06
 */
 
 :- use_module(library(atom_ext)).
+:- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(json_ext)).
+:- use_module(library(jsonld/geold)).
+:- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
+:- debug(json2rdf).
 
+
+
+
+%! geojson2rdf_graph(+File, +Alias, +G) is det.
+
+geojson2rdf_graph(File, Alias, G) :-
+  geojson2rdf_stmt(File, Alias, Triple),
+  rdf_assert(Triple, G),
+  fail.
+geojson2rdf_graph(_, _, _) :-
+  debug(geojsond2rdf, "GeoJSON → RDF done", []).
+
+
+
+%! geojson2rdf_stmt(+File, +Alias, -Triple) is nondet.
+
+geojson2rdf_stmt(File, Alias, Triple) :-
+  geold_tuple(File, Alias, Triple).
+
+
+
+%! json2rdf_graph(+Source, +Alias, +G) is nondet.
+
+json2rdf_graph(Source, Alias, G) :-
+  json2rdf_stmt(Source, Alias, Triple),
+  rdf_assert(Triple, G),
+  fail.
+json2rdf_graph(_, _, _) :-
+  debug(jsond2rdf, "JSON → RDF done", []).
 
 
 
@@ -54,3 +91,18 @@ json2rdf_stmt0(In, Alias, Triple) :-
       
       rdf_global_term(rdf(S,P,O), Triple)
   ).
+
+
+
+%! ndjson2rdf_triple(+Source, +Context, -Triple) is nondet.
+
+ndjson2rdf_triple(Source, Context, Triple) :-
+  call_on_stream(
+    Source,
+    {Context,Triple}/[In,MIn,MIn]>>ndjson2rdf0(In, Context, Triple)
+  ).
+
+ndjson2rdf0(In, Context, Triple) :-
+  read_line_to_string(In, S),
+  atom_json_dict(S, D),
+  jsonld_tuple_with_context(Context, D, Triple).
