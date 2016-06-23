@@ -20,6 +20,7 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(xml/marcxml)).
 :- use_module(library(xml/xml_stream)).
@@ -88,21 +89,25 @@ xml2rdf_assert_record0(Dom, G, Opts) :-
 
 
 xml2rdf_assert_record0([], _, _, _, _) :- !.
-xml2rdf_assert_record0([Empty|Dom], T, S, G, Opts) :-
+xml2rdf_assert_record0([Empty|Dom], L, S, G, Opts) :-
   is_empty_atom(Empty), !,
-  xml2rdf_assert_record0(Dom, T, S, G, Opts).
-xml2rdf_assert_record0([element(H, _, Os)|Dom], T, S, G, Opts) :-
-  (   maplist(atomic, Os)
+  xml2rdf_assert_record0(Dom, L, S, G, Opts).
+xml2rdf_assert_record0([element(H,Attrs,Vals)|Dom], T, S, G, Opts) :-
+  (   maplist(atomic, Vals)
   ->  reverse([H|T], L),
       atomic_list_concat(L, '_', Name),
       rdf_global_id(Opts.tbox_alias:Name, P),
       forall((
-        member(O, Os),
-        \+ is_empty_atom(O)
+        member(Val, Vals),
+        \+ is_empty_atom(Val)
       ), (
-        rdf_print_quad(S, P, O^^xsd:string, G),
-        rdf_assert(S, P, O^^xsd:string, G)
+        (   memberchk(language=LTag, Attrs)
+        ->  rdf_literal(Lit, rdf:langString, Val, LTag)
+        ;   rdf_literal(Lit, xsd:string, Val, _)
+        ),
+        rdf_print_quad(S, P, Lit, G),
+        rdf_assert(S, P, Lit, G)
       ))
-  ;   xml2rdf_assert_record0(Os, [H|T], S, G, Opts)
+  ;   xml2rdf_assert_record0(Vals, [H|T], S, G, Opts)
   ),
   xml2rdf_assert_record0(Dom, [], S, G, Opts).

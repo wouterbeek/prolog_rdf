@@ -194,8 +194,10 @@ rdf_is_legacy_literal(literal(_)).
 
 
 %! rdf_legacy_literal(+Lit, -D, -Lex, -LTag) is det.
+%! rdf_legacy_literal(-Lit, +D, +Lex, +LTag) is det.
 
-rdf_legacy_literal(literal(type(D,Lex0)), D, Lex, _) :- !,
+rdf_legacy_literal(literal(type(D,Lex0)), D, Lex, _) :-
+  \+ rdf_equal(rdf:langString, D), !,
   atom_string(Lex0, Lex).
 rdf_legacy_literal(literal(lang(LTag,Lex0)), rdf:langString, Lex, LTag) :- !,
   atom_string(Lex0, Lex).
@@ -213,6 +215,7 @@ rdf_literal(G, Lit) :-
 
 
 %! rdf_literal(+Lit, -D, -Lex, -LTag) is det.
+%! rdf_literal(-Lit, +D, +Lex, +LTag) is det.
 
 rdf_literal(Lit, D, Lex, LTag) :-
   var(Lit), !,
