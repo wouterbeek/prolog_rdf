@@ -643,7 +643,7 @@ dcg_print_literal(Lit) -->
 
 % Datatype hooks.
 dcg_print_literal(Lit, Opts) -->
-  rdf:dcg_print_literal_hook(Lit, Opts).
+  rdf:dcg_print_literal_hook(Lit, Opts), !.
 % Abbreviate XSD Boolean.
 dcg_print_literal(Lex^^D, Opts) -->
   {rdf_equal(xsd:boolean, D)}, !,
