@@ -1,8 +1,9 @@
 :- module(
   rdf_conv,
   [
-    rdf_conv/1, % +Name
-    rdf_conv/2  % +Name, +Opts
+    rdf_conv/1,              % +Name
+    rdf_conv/2,              % +Name, +Opts
+    rdf_conv_alias_options/2 % +Opts1, -Opts2
   ]
 ).
 
@@ -61,7 +62,7 @@ rdf_conv(Name, Opts1) :-
   dict_get(format, Opts1, ntriples, Format),
   dict_get(module, Opts1, Name, Mod),
   dict_get(search_path, Opts1, Alias, Search),
-  merge_dict(
+  merge_dicts(
     Opts1,
     _{alias: Alias, format: Format, module: Mod, search_path: Search},
     Opts2
@@ -94,6 +95,17 @@ rdf_conv_void(Name, Opts) :-
   Goal_1 = Opts.module:Pred_1,
   rdf_conv_graph(Name, void, Opts, G),
   rdf_load_file_or_call(Spec, source_to_void(Spec0, Goal_1), G, [rdf_format(Opts.format)]).
+
+
+
+%! rdf_conv_alias_options(+Opts1, -Opts2) is det.
+
+rdf_conv_alias_options(Opts1, Opts3) :-
+  del_dict(alias, Opts1, Alias, Opts2), !,
+  Opts3 = Opts2.put(_{abox_alias: Alias, tbox_alias: Alias}).
+rdf_conv_alias_options(Opts1, Opts3) :-
+  dict_put_def(abox_alias, Opts1, ex, Opts2),
+  dict_put_def(tbox_alias, Opts2, ex, Opts3).
 
 
 

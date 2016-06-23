@@ -631,7 +631,7 @@ dcg_print_iri(Full, Opts) -->
   atom_ellipsis(Local, Max).
 dcg_print_iri(Full, Opts) -->
   "<",
-  atom_ellipsis(Full, Opts),
+  atom_ellipsis(Full, Opts.max_length),
   ">".
 
 

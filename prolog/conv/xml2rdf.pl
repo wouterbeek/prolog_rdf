@@ -1,8 +1,10 @@
 :- module(
   xml2rdf,
   [
-    xml2rdf_graph/3, % +Source, :Record_2, +G
-    xml2rdf_graph/4  % +Source, :Record_2, +G, +Opts
+    marcxml2rdf_graph/3, % +Source, +RecordNames, +G
+    marcxml2rdf_graph/3, % +Source, +RecordNames, +G, +Opts
+    xml2rdf_graph/3,     % +Source, :RecordNames, +G
+    xml2rdf_graph/4      % +Source, :RecordNames, +G, +Opts
   ]
 ).
 
@@ -13,10 +15,14 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(conv/rdf_conv)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_download)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(xml/marcxml)).
+:- use_module(library(xml/xml_stream)).
+:- use_module(library(yall)).
 
 :- meta_predicate
     xml2rdf_graph(+, 2, +),
@@ -28,43 +34,73 @@
 
 
 
-%! xml2rdf_graph(+Source, :Record_2, +G) is nondet.
-%! xml2rdf_graph(+Source, :Record_2, +G, +Opts) is nondet.
-%
-% Fails where there are no records to convert.
+%! marcxml2rdf_graph(+Source, +RecordNames, +G) is det.
+%! marcxml2rdf_graph(+Source, +RecordNames, +G, +Opts) is det.
 
-xml2rdf_graph(Source, Record_2, G) :-
-  xml2rdf_graph(Source, Record_2, G, _{}).
+marcxml2rdf_graph(Source, RecordNames, G) :-
+  marcxml2rdf_graph(Source, RecordNames, G, _{}).
 
 
-xml2rdf_graph(Source, Record_2, G, Opts1) :-
-  (   del_dict(alias, Opts1, Alias, Opts2)
-  ->  Opts3 = Opts2.put(_{abox_alias: Alias, tbox_alias: Alias})
-  ;   dict_put_def(abox_alias, Opts1, ex, Opts2),
-      dict_put_def(tbox_alias, Opts2, ex, Opts3)
-  ),
-  xml_download(Source, Dom, Opts3),
-  findall(Record, call(Record_2, Dom, Record), Records),
-  (   Records == []
-  ->  true
-  ;   forall(member(Record, Records), xml2rdf_record(Record, G, Opts3))
+marcxml2rdf_graph(Source, RecordNames, G, Opts1) :-
+  rdf_conv_alias_options(Opts1, Opts2),
+  xml_stream_record(
+    Source,
+    RecordNames,
+    {Opts2,G}/[Dom]>>marcxml2rdf_assert_record0(Dom, Opts2.alias, G)
   ).
 
 
-xml2rdf_record(Record, G, Opts) :-
-  flag(xml_record, N, N + 1),
-  atom_number(Name, N),
-  rdf_global_id(Opts.abox_alias:Name, S),
-  xml2rdf_record(Record, [], S, G, Opts).
+marcxml2rdf_record0(Dom, Alias, G) :-
+  rdf_create_bnode(S),
+  forall(
+    marcxml2rdf_stmt0(Dom, Alias, P, Val),
+    rdf_assert(S, P, Val^^xsd:string, G)
+  ).
 
 
-xml2rdf_record([], _, _, _, _) :- !.
-xml2rdf_record([element(H, _, Os)|Dom], T, S, G, Opts) :-
+marcxml2rdf_stmt0(Dom, Alias, P, Val) :-
+  marcxml_controlfield(Dom, Field, Val0),
+  rdf_global_id(Alias:Field, P),
+  atom_string(Val0, Val).
+marcxml2rdf_stmt0(Dom, Alias, P, Val) :-
+  marcxml_datafield(Dom, Field, Subfield, Val0),
+  atom_concat(Field, Subfield, Local),
+  rdf_global_id(Alias:Local, P),
+  atom_string(Val0, Val).
+
+
+
+%! xml2rdf_graph(+Source, +RecordNames, +G) is nondet.
+%! xml2rdf_graph(+Source, +RecordNames, +G, +Opts) is nondet.
+
+xml2rdf_graph(Source, RecordNames, G) :-
+  xml2rdf_graph(Source, RecordNames, G, _{}).
+
+
+xml2rdf_graph(Source, RecordNames, G, Opts1) :-
+  rdf_conv_alias_options(Opts1, Opts2),
+  xml_stream_record(
+    Source,
+    RecordNames,
+    [Dom]>>xml2rdf_assert_record0(Dom, G, Opts2)
+  ).
+
+
+xml2rdf_assert_record0(Dom, G, Opts) :-
+  rdf_create_bnode(S),
+  xml2rdf_assert_record0(Dom, [], S, G, Opts).
+
+
+xml2rdf_record0([], _, _, _, _) :- !.
+xml2rdf_record0([element(H, _, Os)|Dom], T, S, G, Opts) :-
   (   maplist(atomic, Os)
   ->  reverse([H|T], L),
       atomic_list_concat(L, '_', Name),
       rdf_global_id(Opts.tbox_alias:Name, P),
-      forall(member(O, Os), rdf_assert(S, P, O^^xsd:string, G))
-  ;   xml2rdf_record(Os, [H|T], S, G, Opts)
+      forall(member(O, Os), (
+        rdf_print_quad(S, P, O^^xsd:string, G),
+        rdf_assert(S, P, O^^xsd:string, G)
+      ))
+  ;   xml2rdf_record0(Os, [H|T], S, G, Opts)
   ),
-  xml2rdf_record(Dom, [], S, G, Opts).
+  xml2rdf_record0(Dom, [], S, G, Opts).

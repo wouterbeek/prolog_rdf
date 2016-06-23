@@ -384,4 +384,4 @@ jsonld_language_mapping(Context, [_|Keys], LTag) :-
 %! merge_contexts(+Context1, +Context2, -Context3) is det.
 
 merge_contexts(Context1, Context2, Context3) :-
-  merge_dict(Context1, Context2, Context3).
+  merge_dicts(Context1, Context2, Context3).
