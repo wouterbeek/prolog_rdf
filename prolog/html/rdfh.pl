@@ -57,7 +57,6 @@ The following options are supported:
 @version 2016/02-2016/06
 */
 
-:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_ext)).
@@ -68,14 +67,12 @@ The following options are supported:
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdf/rdf_datatype)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix), []).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(stat/rdf_stat)).
-:- use_module(library(typecheck)).
 :- use_module(library(yall)).
 
 :- multifile

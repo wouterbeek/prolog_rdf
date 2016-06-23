@@ -9,10 +9,10 @@
     rdf_call_on_stream/3,       % +Source, :Goal_3,      +Opts
     rdf_call_to_graph/2,        % +Sink,   :Goal_1       
     rdf_call_to_graph/3,        % +Sink,   :Goal_1,      +Opts
-    rdf_conv/2,                 % +Source, -Sink
-    rdf_conv/3,                 % +Source, -Sink,        +Opts
-    rdf_conv_legacy/2,          % +Source, -Sink
-    rdf_conv_legacy/3,          % +Source, -Sink,        +Opts
+    rdf_change_format/2,        % +Source, -Sink
+    rdf_change_format/3,        % +Source, -Sink,        +Opts
+    rdf_change_format_legacy/2, % +Source, -Sink
+    rdf_change_format_legacy/3, % +Source, -Sink,        +Opts
     rdf_download_to_file/2,     % +Iri,    +File         
     rdf_download_to_file/3,     % +Iri,    +File,        +Opts
     rdf_load_file/1,            % +Source                
@@ -329,14 +329,14 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
 
 
 
-%! rdf_conv(+Source, +Sink) is det.
-%! rdf_conv(+Source, +Sink, +Opts) is det.
+%! rdf_change_format(+Source, +Sink) is det.
+%! rdf_change_format(+Source, +Sink, +Opts) is det.
 
-rdf_conv(Source, Sink) :-
-  rdf_conv(Source, Sink, []).
+rdf_change_format(Source, Sink) :-
+  rdf_change_format(Source, Sink, []).
 
 
-rdf_conv(Source, Sink, Opts) :-
+rdf_change_format(Source, Sink, Opts) :-
   rdf_call_on_tuples(
     Source,
     {Sink,Opts}/[_M,S,P,O,G]>>rdf_write_to_sink(Sink, S, P, O, G, Opts)
@@ -344,14 +344,14 @@ rdf_conv(Source, Sink, Opts) :-
 
 
 
-%! rdf_conv_legacy(+Source, +Sink) is det.
-%! rdf_conv_legacy(+Source, +Sink, +Opts) is det.
+%! rdf_change_format_legacy(+Source, +Sink) is det.
+%! rdf_change_format_legacy(+Source, +Sink, +Opts) is det.
 
-rdf_conv_legacy(Source, Sink) :-
-  rdf_conv_legacy(Source, Sink, []).
+rdf_change_format_legacy(Source, Sink) :-
+  rdf_change_format_legacy(Source, Sink, []).
 
 
-rdf_conv_legacy(Source, Sink, Opts) :-
+rdf_change_format_legacy(Source, Sink, Opts) :-
   rdf_load_file(Source),
   rdf_write_to_sink_legacy(Sink, Opts).
 

@@ -61,6 +61,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(apply)).
 :- use_module(library(cli_ext)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug)).
 :- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(dict_ext)).
@@ -132,6 +133,8 @@ Higher-level update operations performed on RDF data.
    rdf_split_string(r, :),
    rdf_split_string(r, :, r).
 
+:- debug(rdf(update)).
+
 
 
 
@@ -146,7 +149,7 @@ rdf_add_ltag(P, LTag) :-
 rdf_add_ltag(P, LTag, G) :-
   rdf_call_update(
     rdf(S, P, Str^^xsd:string, G),
-    rdf_update(S, P, Str^^xsd:string, G, object(Str@LTag))
+    rdf_update0(S, P, Str^^xsd:string, G, object(Str@LTag))
   ).
 
 
@@ -160,6 +163,8 @@ rdf_call_update(Find_0, Transform_0) :-
 rdf_call_update(Find_0, Transform_0, State) :-
   % NONDET
   Find_0,
+  %format(user_output, "~D~n", [State.count]),
+  %(State.count =:= 3569 -> gtrace ; true),
   (Transform_0 -> true ; gtrace), %DEB
   dict_inc(count, State),
   fail.
@@ -190,7 +195,8 @@ rdf_change_datatype(P, G, D2) :-
     D1 \== D2
   ), (
     rdf_literal(Lit2, D2, Lex, LTag),
-    rdf_update(S, P, Lit1, G, object(Lit2))
+    %debug(rdf(update), "~w → ~w", [Lit1,Lit2]),
+    rdf_update0(S, P, Lit1, G, object(Lit2))
   )).
 
 
@@ -239,7 +245,7 @@ rdf_change_lex(P, Dcg_0, G) :-
     rdf_datatype_compat(Lex2, D)
   ), (
     rdf_literal(Lit2, D, Lex2, LTag),
-    rdf_update(S, P, Lit1, G, object(Lit2))
+    rdf_update0(S, P, Lit1, G, object(Lit2))
   )).
 
 
@@ -256,7 +262,7 @@ rdf_change_p(P, G, Q) :-
     rdf(S, P, O, G),
     P \== Q
   ), (
-    rdf_update(S, P, O, G, predicate(Q))
+    rdf_update0(S, P, O, G, predicate(Q))
   )).
 
 
@@ -357,7 +363,7 @@ rdf_flatten(P, G) :-
     rdf_is_bnode(Y),
     rdf(Y, Q, Z, G)
   ), (
-    rdf_update(Y, Q, Z, G, subject(X)),
+    rdf_update0(Y, Q, Z, G, subject(X)),
     rdf_retractall(X, P, Y, G)
   )).
 
@@ -378,7 +384,7 @@ rdf_inc(S, P, G) :-
     rdf11:xsd_numerical(D, TypeCheck, integer),
     N2 is N1 + 1,
     must_be(TypeCheck, N2),
-    rdf_update(S, P, N1^^D, G, object(N2^^D))
+    rdf_update0(S, P, N1^^D, G, object(N2^^D))
   )).
 
 
@@ -400,7 +406,7 @@ rdf_lex_to_iri(P, Alias, Lex2Local_0, G) :-
     phrase(Lex2Local_0, Cs1, Cs2),
     atom_codes(Local, Cs2),
     rdf_global_id(Alias:Local, O),
-    rdf_update(S, P, Lit, G, object(O))
+    rdf_update0(S, P, Lit, G, object(O))
   )).
 
 
@@ -418,7 +424,7 @@ rdf_mv(G1, G2) :-
 rdf_mv(G1, S, P, O, G2) :-
   rdf_call_update(
     rdf(S, P, O, G1),
-    rdf_update(S, P, O, G1, graph(G2))
+    rdf_update0(S, P, O, G1, graph(G2))
   ).
 
 
@@ -569,3 +575,38 @@ rdf_split_string(P, G, Dcg_2) :-
     string_phrase(dcg_call(Dcg_2, S, G), Lex),
     rdf_retractall(S, P, Lex^^xsd:string, G)
   )).
+
+
+
+
+
+% HELPERS %
+
+rdf_update0(S, P, O, Action) :-
+  rdf_update0(S, P, O, _, Action).
+
+
+rdf_update0(S1, P, O, G, subject(S2)) :- !,
+  (   S1 \== S2
+  ->  rdf_retractall(S1, P, O, G),
+      rdf_assert(S2, P, O, G)
+  ;   true
+  ).
+rdf_update0(S, P1, O, G, predicate(P2)) :- !,
+  (   P1 \== P2
+  ->  rdf_retractall(S, P1, O, G),
+      rdf_assert(S, P2, O, G)
+  ;   true
+  ).
+rdf_update0(S, P, O1, G, object(O2)) :- !,
+  (   O1 \== O2
+  ->  rdf_retractall(S, P, O1, G),
+      rdf_assert(S, P, O2, G)
+  ;   true
+  ).
+rdf_update0(S, P, O, G1, graph(G2)) :-
+  (   G1 \== G2
+  ->  rdf_retractall(S, P, O, G1),
+      rdf_assert(S, P, O, G2)
+  ;   true
+  ).
