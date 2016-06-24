@@ -9,11 +9,12 @@
 /** <module> RDF graph theory
 
 @author Wouter Beek
-@version 2015/12, 2016/03
+@version 2015/12, 2016/03, 2016/06
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_stmt)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
@@ -27,7 +28,7 @@
 % Edges are the labeled edges in Graph.
 
 rdf_graph_edges(G, Es) :-
-  rdf_graph_to_triples(G, Triples),
+  z_triples(G, Triples),
   maplist(rdf_triple_edge, Triples, Es).
 
 

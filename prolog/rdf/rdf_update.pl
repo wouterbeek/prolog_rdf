@@ -148,8 +148,8 @@ rdf_add_ltag(P, LTag) :-
 
 rdf_add_ltag(P, LTag, G) :-
   rdf_call_update(
-    rdf(S, P, Str^^xsd:string, G),
-    rdf_update0(S, P, Str^^xsd:string, G, object(Str@LTag))
+    z(Mode, S, P, Str^^xsd:string, G),
+    z_update0(Mode, S, P, Str^^xsd:string, G, object(Str@LTag))
   ).
 
 
@@ -555,9 +555,9 @@ rdf_rm_tuples(Tuples) :-
   rdf_call_update((
     member(Tuple, Tuples),
     rdf_tuple(Tuple)
-  ), (
+  ),
     rdf_retractall(Tuple)
-  )).
+  ).
 
 
 
@@ -575,38 +575,3 @@ rdf_split_string(P, G, Dcg_2) :-
     string_phrase(dcg_call(Dcg_2, S, G), Lex),
     rdf_retractall(S, P, Lex^^xsd:string, G)
   )).
-
-
-
-
-
-% HELPERS %
-
-rdf_update0(S, P, O, Action) :-
-  rdf_update0(S, P, O, _, Action).
-
-
-rdf_update0(S1, P, O, G, subject(S2)) :- !,
-  (   S1 \== S2
-  ->  rdf_retractall(S1, P, O, G),
-      rdf_assert(S2, P, O, G)
-  ;   true
-  ).
-rdf_update0(S, P1, O, G, predicate(P2)) :- !,
-  (   P1 \== P2
-  ->  rdf_retractall(S, P1, O, G),
-      rdf_assert(S, P2, O, G)
-  ;   true
-  ).
-rdf_update0(S, P, O1, G, object(O2)) :- !,
-  (   O1 \== O2
-  ->  rdf_retractall(S, P, O1, G),
-      rdf_assert(S, P, O2, G)
-  ;   true
-  ).
-rdf_update0(S, P, O, G1, graph(G2)) :-
-  (   G1 \== G2
-  ->  rdf_retractall(S, P, O, G1),
-      rdf_assert(S, P, O, G2)
-  ;   true
-  ).

@@ -26,36 +26,38 @@
 
 
 %! rdf_isomorphic_graphs(+G1, +G2) is semidet.
+%
 % Succeeds if there is a consistent mapping between the blank nodes in
-% both graphs / collections of tuples that makes both structures equal.
+% both graphs / collections of tuples that makes both structures
+% equal.
 %
 % This maps to the Prolog notion of *variant*, assuming a canonical
 % ordering on tuples.
 
 rdf_isomorphic_graphs(G1, G2) :-
-  maplist(ensure_tuples0, [G1,G2], [Tuples1,Tuples2]),
-  isomorphic_tuples0(Tuples1, Tuples2).
+  maplist(ensure_tuples0, [G1,G2], [Triples1,Triples2]),
+  isomorphic_tuples0(Triples1, Triples2).
 
 
-ensure_tuples0(G, Tuples) :-
+ensure_tuples0(G, Triples) :-
   rdf_is_graph(G), !,
-  rdf_graph_to_triples(G, Tuples).
-ensure_tuples0(Tuples, Tuples) :-
-  is_list(Tuples), !.
+  z_triples(G, Triples).
+ensure_tuples0(Triples, Triples) :-
+  is_list(Triples), !.
 ensure_tuples0(G, _) :-
   type_error(rdf_graph, G).
 
 
-isomorphic_tuples0(Tuples1, Tuples2) :-
-  once(tuples_permutation0(Tuples1, Perm1)),
+isomorphic_tuples0(Triples1, Triples2) :-
+  once(tuples_permutation0(Triples1, Perm1)),
   % NONDET.
-  tuples_permutation0(Tuples2, Perm2),
+  tuples_permutation0(Triples2, Perm2),
   variant(Perm1, Perm2), !.
 
 
-tuples_permutation0(Tuples1, Perm) :-
-  replace_bnodes_with_vars1(Tuples1, Tuples2),
-  partition(ground, Tuples2, Ground, NonGround),
+tuples_permutation0(Triples1, Perm) :-
+  replace_bnodes_with_vars1(Triples1, Triples2),
+  partition(ground, Triples2, Ground, NonGround),
   sort(Ground, Sorted),
   append(Sorted, NonGroundPermutation, Perm),
   permutation(NonGround, NonGroundPermutation).

@@ -21,8 +21,8 @@
     rdf_load_file_or_write_to_mem/4,  % +Source, :Goal_1,  +G, +Opts
     rdf_load_file_or_write_to_disk/2, % +Spec, :Goal_1
     rdf_load_file_or_write_to_disk/3, % +Spec, :Goal_1, +Opts
-    rdf_load_tuples/2,                % +Source, -Tuples       
-    rdf_load_tuples/3,                % +Source, -Tuples,      +Opts
+    rdf_load_tuples/2,                % +Source, -Triples
+    rdf_load_tuples/3,                % +Source, -Triples,     +Opts
     rdf_write_to_sink/1,              % +Sink                  
     rdf_write_to_sink/2,              % +Sink,             ?G
     rdf_write_to_sink/3,              % +Sink,             ?G, +Opts
@@ -497,19 +497,20 @@ rdf_load_file_or_write_to_mem(Source, Goal_1, G, Opts) :-
 
 
 
-%! rdf_load_tuples(+Source, -Tuples) is det.
-%! rdf_load_tuples(+Source, -Tuples, +Opts) is det.
+%! rdf_load_tuples(+Source, -Triples) is det.
+%! rdf_load_tuples(+Source, -Triples, +Opts) is det.
+%
 % Options are passed to rdf_load_file/2.
 
-rdf_load_tuples(Source, Tuples) :-
-  rdf_load_tuples(Source, Tuples, []).
+rdf_load_tuples(Source, Triples) :-
+  rdf_load_tuples(Source, Triples, []).
 
 
-rdf_load_tuples(Source, Tuples, Opts) :-
+rdf_load_tuples(Source, Triples, Opts) :-
   rdf_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
-    aggregate_all(set(Tuple), rdf_tuple(Tuple), Tuples)
+    rdf_triples(Triples)
   )).
 
 

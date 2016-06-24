@@ -19,13 +19,22 @@
     rdfs_class/2,              % ?C, ?G
     rdfs_domain/2,             % ?P, ?Dom
     rdfs_domain/3,             % ?P, ?Dom, ?G
+    rdfs_has/3,                % ?S, ?P, ?O
+    rdfs_has/4,                % ?S, ?P, ?O, ?Q
+    rdfs_has/5,                % ?S, ?P, ?O, ?Q, ?G
+    rdfs_image/2,              % +S, -Img
     rdfs_instance/2,           % ?I, ?C
     rdfs_instance/3,           % ?I, ?C, ?G
     rdfs_pref_label/2,         % ?S, -Lit
+    rdfs_pref_lex/3,         % ?S, ?P, ?Lex
+    rdfs_pref_string/3,      % ?S, ?P, ?Lit
     rdfs_property/1,           % ?Prop
     rdfs_property/2,           % ?Prop, ?G
     rdfs_range/2,              % ?P, ?Ran
     rdfs_range/3,              % ?P, ?Ran, ?G
+    rdfs_reification/3,      % ?S, ?P, ?O
+    rdfs_reification/4,      % ?S, ?P, ?O, ?G
+    rdfs_reification/5,      % ?S, ?P, ?O, ?G, -Stmt
     rdfs_retractall_class/1    % +C
   ]
 ).
@@ -50,10 +59,15 @@
    rdfs_assert_comment(r, +),
    rdfs_assert_comment(r, +, r),
    rdfs_assert_domain(r, r, r),
+   rdfs_assert_instance(r, r),
+   rdfs_assert_instance(r, r, r),
+   rdfs_assert_instances(r, t),
+   rdfs_assert_instances(r, t, r),
    rdfs_assert_isDefinedBy(r, r),
    rdfs_assert_isDefinedBy(r, r, r),
    rdfs_assert_label(r, +),
    rdfs_assert_label(r, +, r),
+   rdfs_assert_list(r, r, t, r),
    rdfs_assert_property(r, r, r, r),
    rdfs_assert_range(r, r, r),
    rdfs_assert_seeAlso(r, +, r),
@@ -64,13 +78,23 @@
    rdfs_class(r, r),
    rdfs_domain(r, r),
    rdfs_domain(r, r, r),
+   rdfs_has(r, r, o),
+   rdfs_has(r, r, o, r, r),
+   rdfs_image(r, -),
    rdfs_instance(o, r),
    rdfs_instance(o, r, r),
+   rdfs_lts(r, r, o),
    rdfs_pref_label(r, o),
+   rdfs_pref_lex(r, r, ?),
+   rdfs_pref_string(r, r, o),
+   rdfs_pref_string(r, r, -, o),
    rdfs_property(r),
    rdfs_property(r, r),
    rdfs_range(r, r),
    rdfs_range(r, r, r),
+   rdfs_reification(r, r, o),
+   rdfs_reification(r, r, o, r),
+   rdfs_reification(r, r, o, r, -),
    rdfs_retractall_class(r).
 
 
@@ -80,7 +104,7 @@
 %! rdfs_assert_class(+C, ?D, ?Lbl, ?Comment, ?G) is det.
 
 rdfs_assert_class(C, Parent, Lbl, Comm, G) :-
-  rdf_assert(C, rdf:type, rdfs:'Class', G),
+  rdf_assert_instance(C, rdfs:'Class', G),
   rdfs_assert_class0(C, Parent, Lbl, Comm, G).
 
 
@@ -202,6 +226,7 @@ rdfs_class(C) :-
 rdfs_class(C, G) :-
   distinct(C, rdfs_class0(C, G)).
 
+
 rdfs_class0(C, G) :-
   rdfs_instance(C, rdfs:'Class', G).
 rdfs_class0(C, G) :-
@@ -229,6 +254,36 @@ rdfs_domain(P, Dom, G) :-
 
 
 
+%! rdfs_has(?S, ?P, ?O) is nondet.
+%! rdfs_has(?S, ?P, ?O, -Q) is nondet.
+%! rdfs_has(?S, ?P, ?O, -Q, ?G) is nondet.
+
+rdfs_has(S, P, O) :-
+  rdfs_has(S, P, O, _).
+
+
+rdfs_has(S, P, O, Q) :-
+  rdfs_has(S, P, O, Q, _).
+
+
+rdfs_has(S, P, O, Q, G) :-
+  rdf_has(S, P, O, Q),
+  rdf(S, Q, O, G).
+
+
+
+%! rdfs_image(+S, -Img) is nondet.
+
+rdfs_image(S, Img) :-
+  rdfs_has(S, dbo:thumbnail, Img^^xsd:anyURI).
+rdfs_image(S, Img) :-
+  rdfs_has(S, foaf:depiction, Img^^xsd:anyURI).
+rdfs_image(S, Img) :-
+  rdf(S, _, Img),
+  rdfs_instance(Img, dcmit:'Image').
+
+
+
 %! rdfs_instance(?I, ?C) is nondet.
 %! rdfs_instance(?I, ?C, ?G) is nondet.
 
@@ -238,6 +293,7 @@ rdfs_instance(I, D) :-
 
 rdfs_instance(I, D, G) :-
   distinct(I-D-G, rdfs_instance0(I, D, G)).
+
 
 rdfs_instance0(I, D, G) :-
   nonvar(D), !,
@@ -254,10 +310,71 @@ rdfs_instance0(Lex@LTag, rdf:langString, G) :-
 
 
 
+%! rdfs_lts(?S, ?P, -Lit) is nondet.
+%
+% Matches RDF statements whose object term is a language-tagged string
+% that mathes the given language priory list.  Notice that results for
+% each of the prioritized languages are given in arbitrary order.
+
+rdfs_lts(S, P, Lit) :-
+  current_lrange(LRange),
+  rdfs_lts(S, P, LRange, Lit).
+
+
+rdfs_lts(S, P, LRange, Lit) :-
+  rdfs_has(S, P, V@LTag),
+  basic_filtering(LRange, LTag),
+  Lit = V@LTag.
+
+
+
+%! rdfs_pref_lex(?S, ?P, ?Lex) is nondet.
+%
+% Like rdfs_pref_string, but returns only the lexical form.
+
+rdfs_pref_lex(S, P, Lex) :-
+  rdfs_pref_string(S, P, Lit),
+  rdfs_literal_lex(Lit, Lex).
+
+
+
 %! rdfs_pref_label(?S, -Lit) is nondet.
 
 rdfs_pref_label(S, Lit) :-
   rdf_pref_string(S, rdfs:label, Lit).
+
+
+
+%! rdfs_pref_string(?S, ?P, ?Lit) is nondet.
+%
+% Returns, in this exact order:
+%
+%   1. The language-tagged strings that match the given language
+%   priority list; returning results for higher priority language
+%   earlier.
+%
+%   2. The language-tagged strings that do not match the given
+%   language priority list.
+%
+%   3. XSD strings.
+
+rdfs_pref_string(S, P, Lit) :-
+  current_lrange(LRange),
+  rdfs_pref_string(S, P, LRange, Lit).
+
+
+% Matching language-tagged strings.
+rdfs_pref_string(S, P, LRange, Lit) :-
+  rdfs_lts(S, P, LRange, Lit).
+% Non-matching language-tagged strings.
+rdfs_pref_string(S, P, LRange, Lit) :-
+  rdfs_has(S, P, V@LTag),
+  % Avoid duplicates.
+  \+ basic_filtering(LRange, LTag),
+  Lit = V@LTag.
+% Plain XSD strings.
+rdfs_pref_string(S, P, _, V^^xsd:string) :-
+  rdfs_has(S, P, V^^xsd:string).
 
 
 
@@ -270,6 +387,7 @@ rdfs_property(Prop) :-
 
 rdfs_property(Prop, G) :-
   distinct(Prop-G, rdfs_property0(Prop, G)).
+
 
 rdfs_property0(Prop, G) :-
   rdf_predicate(Prop, G).
@@ -287,6 +405,25 @@ rdfs_range(P, Ran) :-
 
 rdfs_range(P, Ran, G) :-
   rdf_has(P, rdfs:range, Ran, _, G).
+
+
+
+%! rdfs_reification(?S, ?P, ?O) is nondet.
+%! rdfs_reification(?S, ?P, ?O, ?G) is nondet.
+%! rdfs_reification(?S, ?P, ?O, ?G, -Stmt) is nondet.
+
+rdfs_reification(S, P, O) :-
+  rdfs_reification(S, P, O, _).
+
+
+rdfs_reification(S, P, O, G) :-
+  rdfs_reification(S, P, O, G, _).
+
+
+rdfs_reification(S, P, O, G, Stmt) :-
+  rdfs_has(Stmt, rdf:subject, S, _, G),
+  rdfs_has(Stmt, rdf:predicate, P, _, G),
+  rdfs_has(Stmt, rdf:object, O, _, G).
 
 
 
@@ -333,3 +470,40 @@ rdfs_assert_class0(C, Parent, Lbl, Comm, G) :-
   (var(Lbl) -> true ; rdfs_assert_label(C, Lbl, G)),
   (var(Comm) -> true ; rdfs_assert_comment(C, Comm, G)),
   rdfs_assert_isDefinedBy(C, G).
+
+
+
+%! basic_filtering(
+%!   +LanguagePriorityList:list(atom),
+%!   +LanguageTag:atom
+%! ) is semidet.
+% Succeeds if the LanguagePriorityList matches the LanguageTag according to
+% the basic filtering algorithm described in RFC 4647,
+% i.e., if the former is a case-insensitive prefix of the latter,
+% while also treating the `*` sign as a wildcard.
+%
+% @compat RFC 4647
+
+basic_filtering(Ranges, Tag):-
+  % NONDET
+  member(Range, Ranges),
+  atomic_list_concat(Subtags1, -, Range),
+  atomic_list_concat(Subtags2, -, Tag),
+  basic_filtering0(Subtags1, Subtags2), !.
+
+
+basic_filtering0(_, []).
+basic_filtering0([H1|T1], [H2|T2]):-
+  subtag_match(H1, H2),
+  basic_filtering0(T1, T2).
+
+
+
+%! subtag_match(+RangeSubtag:atom, +Subtag:atom) is semidet.
+% Two subtags match if either they are the same when compared
+% case-insensitively or the language range's subtag is the wildcard `*`
+
+subtag_match(*, _):- !.
+subtag_match(X1, X2):-
+  downcase_atom(X1, X),
+  downcase_atom(X2, X).

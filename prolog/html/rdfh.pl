@@ -2,42 +2,44 @@
   rdfh,
   [
     rdfh_bnode//1,         % +B
-    rdfh_bnode//2,         % +B,             +Opts
+    rdfh_bnode//2,         % +B, +Opts
     rdfh_class//1,         % +C
-    rdfh_class//2,         % +C,             +Opts
+    rdfh_class//2,         % +C, +Opts
     rdfh_datatype//1,      % +D
-    rdfh_datatype//2,      % +D,             +Opts
+    rdfh_datatype//2,      % +D, +Opts
     rdfh_describe//1,      % +S
     rdfh_graph//1,         % +G
     rdfh_graph_table//0,
     rdfh_iri//1,           % +Iri
     rdfh_list//1,          % +L
-    rdfh_list//2,          % +L,             +Opts
+    rdfh_list//2,          % +L, +Opts
     rdfh_literal//1,       % +Lit
-    rdfh_literal//2,       % +Lit,           +Opts
+    rdfh_literal//2,       % +Lit, +Opts
     rdfh_object//1,        % +O
-    rdfh_object//2,        % +O,             +Opts
+    rdfh_object//2,        % +O, +Opts
     rdfh_predicate//1,     % +P
-    rdfh_predicate//2,     % +P,             +Opts
+    rdfh_predicate//2,     % +P, +Opts
     rdfh_property//1,      % +Prop
-    rdfh_property//2,      % +Prop,          +Opts
+    rdfh_property//2,      % +Prop, +Opts
     rdfh_property_path//1, % +Props
-    rdfh_property_path//2, % +Props,         +Opts
+    rdfh_property_path//2, % +Props, +Opts
     rdfh_quad//4,          % +S, +P, +O, +G
-    rdfh_quad_panels//4,   % ?S, ?P, ?O, ?G
-    rdfh_quad_table//4,    % ?S, ?P, ?O, ?G
     rdfh_subject//1,       % +S
-    rdfh_subject//2,       % +S,             +Opts
+    rdfh_subject//2,       % +S, +Opts
     rdfh_term//1,          % +Term
-    rdfh_term//2,          % +Term,          +Opts
+    rdfh_term//2,          % +Term, +Opts
     rdfh_tree//1,          % +Tree
-    rdfh_tree//2,          % +Tree,          +Opts
+    rdfh_tree//2,          % +Tree, +Opts
     rdfh_triple//3,        % +S, +P, +O
-    rdfh_triple//4,        % +S, +P, +O,     +Opts
+    rdfh_triple//4,        % +S, +P, +O, +Opts
     rdfh_triple_table//1,  % +Triples
-    rdfh_triple_table//2,  % +Triples,       +Opts
-    rdfh_triple_table//4,  % ?S, ?P, ?O, ?G
-    rdfh_triple_table//5   % +S, ?P, ?O, ?G, +Opts
+    rdfh_triple_table//2,  % +Triples, +Opts
+    zh_quad_panels//5,     % +Mode, ?S, ?P, ?O, ?G
+    zh_quad_panels//6,     % +Mode, ?S, ?P, ?O, ?G, +Opts
+    zh_quad_table//5,      % +Mode, ?S, ?P, ?O, ?G
+    zh_quad_table//6,      % +Mode, ?S, ?P, ?O, ?G, +Opts
+    zh_triple_table//5,    % +Mode, ?S, ?P, ?O, ?G
+    zh_triple_table//6     % +Mode, +S, ?P, ?O, ?G, +Opts
   ]
 ).
 
@@ -68,6 +70,7 @@ The following options are supported:
 :- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix), []).
+:- use_module(library(rdf/rdf_stmt)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
@@ -75,12 +78,20 @@ The following options are supported:
 :- use_module(library(stat/rdf_stat)).
 :- use_module(library(yall)).
 
-:- multifile
-    rdfh:rdfh_literal_hook//2.
-
 :- html_meta
    rdfh_link(+, +, +, html, +, ?, ?),
    rdfh_link(+, +, +, +, html, +, ?, ?).
+
+:- multifile
+    rdfh:rdfh_literal_hook//2.
+
+:- rdf_meta
+   zh_quad_panels(+, r, r, o, r),
+   zh_quad_panels(+, r, r, o, r, +),
+   zh_quad_table(+, r, r, o, r),
+   zh_quad_table(+, r, r, o, r, +),
+   zh_triple_table(+, r, r, o, r),
+   zh_triple_table(+, r, r, o, r, +).
 
 :- setting(rdfh_handler, atom, '',
      "ID of the HTTP handler that performs RDF term lookup."
@@ -97,8 +108,10 @@ rdfh_bnode(B) -->
   {rdfh_default_options(Opts)},
   rdfh_bnode(B, Opts).
 
+
 rdfh_bnode(B, Opts) -->
   rdfh_bnode_outer(_, [], B, Opts).
+
 
 rdfh_bnode_outer(C, Cs1, B, Opts) -->
   {
@@ -106,6 +119,7 @@ rdfh_bnode_outer(C, Cs1, B, Opts) -->
     rdf_bnode_map(B, Lbl)
   },
   rdfh_link(C, Cs2, B, \rdfh_bnode_inner(Lbl, Opts), Opts).
+
 
 rdfh_bnode_inner(B, _) -->
   {rdf_bnode_map(B, Lbl)},
@@ -120,8 +134,10 @@ rdfh_class(C) -->
   {rdfh_default_options(Opts)},
   rdfh_class(C, Opts).
 
+
 rdfh_class(C, Opts) -->
   rdfh_class_outer(_, [], C, Opts).
+
 
 rdfh_class_outer(C0, Cs1, C, Opts) -->
   {ord_add_element(Cs1, class, Cs2)},
@@ -136,8 +152,10 @@ rdfh_datatype(D) -->
   {rdfh_default_options(Opts)},
   rdfh_datatype(D, Opts).
 
+
 rdfh_datatype(D, Opts) -->
   rdfh_datatype_outer(_, [], D, Opts).
+
 
 rdfh_datatype_outer(C, Cs1, D, Opts) -->
   {ord_add_element(Cs1, datatype, Cs2)},
@@ -145,43 +163,17 @@ rdfh_datatype_outer(C, Cs1, D, Opts) -->
 
 
 
-%! rdfh_describe(+S)// is det.
-%! rdfh_describe(+S, +Opts)// is det.
-%
-% Generate a full description of subject term S.
-
-rdfh_describe(S) -->
-  {rdfh_default_options(Opts)},
-  rdfh_describe(S, Opts).
-
-rdfh_describe(S, Opts) -->
-  {
-    findall(P-O, rdf(S, P, O), Pairs),
-    group_pairs_by_key(Pairs, Groups)
-  },
-  bs_table(
-    \bs_table_header(["Predicate","Objects"]),
-    \html_maplist({Opts}/[Group]>>rdfh_describe_row(Group, Opts), Groups)
-  ).
-
-rdfh_describe_row(P-Os, Opts) -->
-  html(
-    tr([
-      td(\rdfh_property_outer(property, [property], P, Opts)),
-      td(\html_seplist({Opts}/[O]>>rdfh_object(O, Opts), " ", Os))
-    ])
-  ).
-
-
-
 %! rdfh_graph(+G)// is det.
+%! rdfh_graph(+G, +Opts)// is det.
 
 rdfh_graph(G) -->
   {rdfh_default_options(Opts)},
   rdfh_graph(G, Opts).
 
+
 rdfh_graph(G, Opts) -->
   rdfh_graph_outer(_, [], G, Opts).
+
 
 rdfh_graph_outer(C, Cs1, G, Opts) -->
   {ord_add_element(Cs1, graph, Cs2)},
@@ -196,6 +188,7 @@ rdfh_graph_table -->
   {rdfh_default_options(Opts)},
   rdfh_graph_table(Opts).
 
+
 rdfh_graph_table(Opts) -->
   {
     findall(NumTriples-G, rdf_number_of_triples(G, NumTriples), Pairs),
@@ -203,10 +196,11 @@ rdfh_graph_table(Opts) -->
   },
   bs_table(
     \bs_table_header(["Graph","Number of triples"]),
-    \html_maplist({Opts}/[G]>>rdfh_graph_row(G, Opts), Gs)
+    \html_maplist({Opts}/[G]>>rdfh_graph_row0(G, Opts), Gs)
   ).
 
-rdfh_graph_row(G, Opts) -->
+
+rdfh_graph_row0(G, Opts) -->
   {rdf_number_of_triples(G, NumTriples)},
   html(
     tr([
@@ -224,21 +218,20 @@ rdfh_iri(Iri) -->
   {rdfh_default_options(Opts)},
   rdfh_iri(Iri, Opts).
 
+
 rdfh_iri(Iri, Opts) -->
   rdfh_iri_outer(_, [], Iri, Opts).
+
 
 rdfh_iri_outer(C, Cs1, Iri, Opts) -->
   {ord_add_element(Cs1, iri, Cs2)},
   rdfh_link(C, Cs2, Iri, \rdfh_iri_inner(Iri, Opts), Opts).
 
+
 % Abbreviated notation for IRI.
 rdfh_iri_inner(Iri, _) -->
   {rdf_global_id(Alias:Local, Iri)}, !,
-  html([
-    span(class=alias, Alias),
-    ":",
-    Local
-  ]).
+  html([span(class=alias, Alias),":",Local]).
 % RDFS label replacing IRI.
 rdfh_iri_inner(Iri, Opts) -->
   {
@@ -252,19 +245,6 @@ rdfh_iri_inner(Iri, _) -->
 
 
 
-%! rdfh_list(+L)// is det.
-%! rdfh_list(+L, +Opts)// is det.
-
-rdfh_list(L) -->
-  {rdfh_default_options(Opts)},
-  rdfh_list(L, Opts).
-
-rdfh_list(L, Opts) -->
-  {rdf_list(L, Terms)},
-  list({Opts}/[Term]>>rdfh_term(Term, Opts), Terms).
-
-
-
 %! rdfh_literal(+Lit)// is det.
 %! rdfh_literal(+Lit, +Opts)// is det.
 
@@ -272,8 +252,10 @@ rdfh_literal(Lit) -->
   {rdfh_default_options(Opts)},
   rdfh_literal(Lit, Opts).
 
+
 rdfh_literal(Lit, Opts) -->
   rdfh_literal_outer(_, [], Lit, Opts).
+
 
 rdfh_literal_outer(C, Cs1, Lit, Opts) -->
   {
@@ -281,6 +263,7 @@ rdfh_literal_outer(C, Cs1, Lit, Opts) -->
     rdf_literal_datatype(Lit, D)
   },
   rdfh_link(C, Cs2, [datatype=D], Lit, \rdfh_literal_inner(Lit, Opts), Opts).
+
 
 % RDF HTML
 rdfh_literal_inner(V^^D, _) -->
@@ -361,8 +344,10 @@ rdfh_object(O) -->
   {rdfh_default_options(Opts)},
   rdfh_object(O, Opts).
 
+
 rdfh_object(O, Opts) -->
   rdfh_object_outer(_, [], O, Opts).
+
 
 rdfh_object_outer(C, Cs1, O, Opts) -->
   {ord_add_element(Cs1, object, Cs2)},
@@ -377,8 +362,10 @@ rdfh_predicate(P) -->
   {rdfh_default_options(Opts)},
   rdfh_predicate(P, Opts).
 
+
 rdfh_predicate(P, Opts) -->
   rdfh_predicate_outer(_, [], P, Opts).
+
 
 rdfh_predicate_outer(C, Cs1, P, Opts) -->
   {ord_add_element(Cs1, predicate, Cs2)},
@@ -393,8 +380,10 @@ rdfh_property(Prop) -->
   {rdfh_default_options(Opts)},
   rdfh_property(Prop, Opts).
 
+
 rdfh_property(Prop, Opts) -->
   rdfh_property_outer(_, [], Prop, Opts).
+
 
 rdfh_property_outer(C, Cs1, Prop, Opts) -->
   {ord_add_element(Cs1, property, Cs2)},
@@ -409,6 +398,7 @@ rdfh_property_path(Props) -->
   {rdfh_default_options(Opts)},
   rdfh_property_path(Props, Opts).
 
+
 rdfh_property_path(Props, Opts) -->
   html_seplist({Opts}/[Prop]>>rdfh_property(Prop, Opts), " ", Props).
 
@@ -419,6 +409,7 @@ rdfh_property_path(Props, Opts) -->
 rdfh_quad(S, P, O, G) -->
   {rdfh_default_options(Opts)},
   rdfh_quad(S, P, O, G, Opts).
+
 
 rdfh_quad(S, P, O, G, Opts) -->
   html(
@@ -433,22 +424,12 @@ rdfh_quad(S, P, O, G, Opts) -->
 
 
 
-%! rdfh_quad_panels(?S, ?P, ?O, ?G)// is det.
-
-rdfh_quad_panels(S, P, O, G) -->
-  {
-    findall(G-rdf(S,P,O), rdf(S, P, O, G), Pairs),
-    group_pairs_by_key(Pairs, Groups)
-  },
-  bs_panels(rdfh_triple_table, Groups).
-
-
-
 %! rdfh_quad_row(+Quad)// is det.
 
 rdfh_quad_row(Quad) -->
   {rdfh_default_options(Opts)},
   rdfh_quad_row(Quad, Opts).
+
 
 rdfh_quad_row(rdf(S,P,O,G), Opts) -->
   html(
@@ -466,27 +447,17 @@ rdfh_quad_row(rdf(S,P,O,G), Opts) -->
 
 %! rdfh_quad_table(+Quads)// is det.
 %! rdfh_quad_table(+Quads, +Opts)// is det.
-%! rdfh_quad_table(?S, ?P, ?O, ?G)// is det.
-%! rdfh_quad_table(?S, ?P, ?O, ?G, +Opts)// is det.
 
 rdfh_quad_table(Quads) -->
   {rdfh_default_options(Opts)},
   rdfh_quad_table(Quads, Opts).
+
 
 rdfh_quad_table(Quads, Opts) -->
   bs_table(
     \bs_table_header(["Subject","Predicate","Object","Graph"]),
     \html_maplist({Opts}/[Quad]>>rdfh_quad_row(Quad, Opts), Quads)
   ).
-
-rdfh_quad_table(S, P, O, G) -->
-  {rdfh_default_options(Opts)},
-  rdfh_quad_table(S, P, O, G, Opts).
-
-rdfh_quad_table(S, P, O, G, Opts) -->
-  {findall(rdf(S,P,O,G), rdf(S, P, O, G), Quads)},
-  rdfh_quad_table(Quads, Opts).
-
 
 
 %! rdfh_subject(+S)// is det.
@@ -496,8 +467,10 @@ rdfh_subject(S) -->
   {rdfh_default_options(Opts)},
   rdfh_subject(S, Opts).
 
+
 rdfh_subject(S, Opts) -->
   rdfh_subject_outer(_, [], S, Opts).
+
 
 rdfh_subject_outer(C, Cs1, S, Opts) -->
   {ord_add_element(Cs1, subject, Cs2)},
@@ -516,8 +489,10 @@ rdfh_term(Term) -->
   {rdfh_default_options(Opts)},
   rdfh_term(Term, Opts).
 
+
 rdfh_term(Term, Opts) -->
   rdfh_term_outer(_, [], Term, Opts).
+
 
 rdfh_term_outer(C, Cs1, Term, Opts) -->
   {ord_add_element(Cs1, term, Cs2)},
@@ -541,11 +516,12 @@ rdfh_tree(Tree) -->
 
 rdfh_tree(Tree, Opts) -->
   html([
-    \check_all,
-    div(class(treeview), div(class(tree),\rdfh_trees([0], [Tree], Opts)))
+    \check_all0,
+    div(class(treeview), div(class(tree),\rdfh_trees0([0], [Tree], Opts)))
   ]).
 
-check_all -->
+
+check_all0 -->
   html([
     \js_script({|javascript(_)||
 $("#checkAll").change(function () {
@@ -555,22 +531,23 @@ $("#checkAll").change(function () {
     p(label([input([id(checkAll),type(checkbox)], []), 'Check all']))
   ]).
 
-rdfh_trees(_, [], _) --> !, [].
-rdfh_trees(Ns, [P-[Leaf-[]]|Trees], Opts) --> !,
+
+rdfh_trees0(_, [], _) --> !, [].
+rdfh_trees0(Ns, [P-[Leaf-[]]|Trees], Opts) --> !,
   html([
     div(class=node, [
       \rdfh_predicate_outer(predicate, [predicate], P, Opts),
       " ",
       \rdfh_object_outer(object, [object], Leaf, Opts)
     ]),
-    \rdfh_trees(Ns, Trees, Opts)
+    \rdfh_trees0(Ns, Trees, Opts)
   ]).
-rdfh_trees(Ns, [Leaf-[]|Trees], Opts) --> !,
+rdfh_trees0(Ns, [Leaf-[]|Trees], Opts) --> !,
   html([
     div(class=node, \rdfh_object_outer(object, [object], Leaf, Opts)),
-    \rdfh_trees(Ns, Trees, Opts)
+    \rdfh_trees0(Ns, Trees, Opts)
   ]).
-rdfh_trees(Ns1, [Root-Subtrees|Trees], Opts) -->
+rdfh_trees0(Ns1, [Root-Subtrees|Trees], Opts) -->
   {
     atomic_list_concat([item|Ns1], -, Id),
     append(Ns, [N1], Ns1),
@@ -582,9 +559,9 @@ rdfh_trees(Ns1, [Root-Subtrees|Trees], Opts) -->
     div(class=node, [
       input([id=Id,type=checkbox], []),
       label(for=Id, \rdfh_predicate_outer(predicate, [predicate], Root, Opts)),
-      div(class=tree, \rdfh_trees(Ns3, Subtrees, Opts))
+      div(class=tree, \rdfh_trees0(Ns3, Subtrees, Opts))
     ]),
-    \rdfh_trees(Ns2, Trees, Opts)
+    \rdfh_trees0(Ns2, Trees, Opts)
   ]).
 
 
@@ -598,12 +575,15 @@ rdfh_triple(Triple) -->
   {rdfh_default_options(Opts)},
   rdfh_triple(Triple, Opts).
 
+
 rdfh_triple(rdf(S,P,O), Opts) -->
   rdfh_triple(S, P, O, Opts).
+
 
 rdfh_triple(S, P, O) -->
   {rdfh_default_options(Opts)},
   rdfh_triple(S, P, O, Opts).
+
 
 rdfh_triple(S, P, O, Opts) -->
   html(
@@ -648,13 +628,15 @@ rdfh_triple_table(Triples) -->
   {rdfh_default_options(Opts)},
   rdfh_triple_table(Triples, Opts).
 
+
 rdfh_triple_table(Triples, Opts) -->
   bs_table(
-    \rdfh_table_header,
+    \rdfh_table_header0,
     \html_maplist({Opts}/[Triple]>>rdfh_triple_row(Triple, Opts), Triples)
   ).
 
-rdfh_table_header -->
+
+rdfh_table_header0 -->
   html(
     tr([
       th(class=subject, "Subject"),
@@ -665,16 +647,93 @@ rdfh_table_header -->
 
 
 
-%! rdfh_triple_table(?S, ?P, ?O, ?G)// is det.
-%! rdfh_triple_table(?S, ?P, ?O, ?G, +Opts)// is det.
+%! zh_describe(+Mode, +S)// is det.
+%! zh_describe(+Mode, +S, +Opts)// is det.
+%
+% Generate a full description of subject term S.
 
-rdfh_triple_table(S, P, O, G) -->
+zh_describe(Mode, S) -->
   {rdfh_default_options(Opts)},
-  rdfh_triple_table(S, P, O, G, Opts).
+  zh_describe(Mode, S, Opts).
 
 
-rdfh_triple_table(S, P, O, G, Opts) -->
-  {findall(rdf(S,P,O), rdf(S, P, O, G), Triples)},
+zh_describe(Mode, S, Opts) -->
+  {
+    findall(P-O, z(Mode, S, P, O), Pairs),
+    group_pairs_by_key(Pairs, Groups)
+  },
+  bs_table(
+    \bs_table_header(["Predicate","Objects"]),
+    \html_maplist({Opts}/[Group]>>zh_describe_row0(Group, Opts), Groups)
+  ).
+
+
+zh_describe_row0(P-Os, Opts) -->
+  html(
+    tr([
+      td(\rdfh_property_outer(property, [property], P, Opts)),
+      td(\html_seplist({Opts}/[O]>>rdfh_object(O, Opts), " ", Os))
+    ])
+  ).
+
+
+
+%! zh_list(+Mode, +L)// is det.
+%! zh_list(+Mode, +L, ?G)// is det.
+%! zh_list(+Mode, +L, +Opts)// is det.
+
+zh_list(Mode, L) -->
+  {rdfh_default_options(Opts)},
+  zh_list(Mode, L, Opts).
+
+
+zh_list(Mode, L, Opts) -->
+  {rdf_list(L, Terms)},
+  list({Opts}/[Term]>>rdfh_term(Term, Opts), Terms).
+
+
+
+%! zh_quad_panels(+Mode, ?S, ?P, ?O, ?G)// is det.
+%! zh_quad_panels(+Mode, ?S, ?P, ?O, ?G, +Opts)// is det.
+
+zh_quad_panels(Mode, S, P, O, G, Opts) -->
+  {rdfh_default_options(Opts)},
+  zh_quad_panels(Mode, S, P, O, G, Opts).
+
+
+zh_quad_panels(Mode, S, P, O, G, Opts) -->
+  {
+    findall(G-Triple, z_triple(mode, G, Triple), Pairs),
+    group_pairs_by_key(Pairs, Groups)
+  },
+  bs_panels(rdfh_triple_table, Groups).
+
+
+
+%! zh_quad_table(?S, ?P, ?O, ?G)// is det.
+%! zh_quad_table(?S, ?P, ?O, ?G, +Opts)// is det.
+
+zh_quad_table(Mode, S, P, O, G) -->
+  {rdfh_default_options(Opts)},
+  zh_quad_table(Mode, S, P, O, G, Opts).
+
+
+zh_quad_table(Mode, S, P, O, G, Opts) -->
+  {z_quads(Mode, S, P, O, G, Quads)},
+  rdfh_quad_table(Quads, Opts).
+
+
+
+%! zh_triple_table(+Mode, ?S, ?P, ?O, ?G)// is det.
+%! zh_triple_table(+Mode, ?S, ?P, ?O, ?G, +Opts)// is det.
+
+zh_triple_table(Mode, S, P, O, G) -->
+  {rdfh_default_options(Opts)},
+  zh_triple_table(Mode, S, P, O, G, Opts).
+
+
+zh_triple_table(Mode, S, P, O, G, Opts) -->
+  {z_triples(Mode, S, P, O, G, Triples)},
   rdfh_triple_table(Triples, Opts).
 
 
@@ -723,9 +782,11 @@ rdfh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
 rdfh_link(_, _, _, _, Content_0, _) -->
   Content_0.
 
+
 rdfh_link_query_term(C, Term1, QueryTerm) :-
   term_to_atom(Term1, Term2),
   QueryTerm =.. [C,Term2].
+
 
 rdfh_link_external(Term) -->
   {rdf_is_iri(Term)}, !,

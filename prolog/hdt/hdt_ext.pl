@@ -1,24 +1,37 @@
 :- module(
   hdt_ext,
   [
-    hdt/4,         % ?S, ?P, ?O, +File
-    hdt0/4,        % ?S, ?P, ?O, +Hdt
-    hdt_goal/2,    % +File, :Goal_1
-    hdt_header/4,  % ?S, ?P, ?O, +File
-    hdt_header0/4, % ?S, ?P, ?O, +Hdt
-    hdt_last/3,    % ?X, ?L,     +File
-    hdt_last0/3,   % ?X, ?L,     +Hdt
-    hdt_member/3,  % ?X, ?L,     +File
-    hdt_member0/3, % ?X, ?L,     +Hdt
-    hdt_prepare/1, % +File
-    hdt_prepare/2, % +File, +Opts
-    hdt_print/4,   % ?S, ?P, ?O, +File
-    hdt_print0/4,  % ?S, ?P, ?O, +Hdt
-    hdt_print/5,   % ?S, ?P, ?O, +File, +Opts
-    hdt_print0/5,  % ?S, ?P, ?O, +Hdt,  +Opts
-    hdt_remove/1,  % +File
-    hdt_tree/3,    % ?S, -Tree, +File
-    hdt_tree0/3    % ?S, -Tree, +Hdt
+    hdt/4,           % ?S, ?P, ?O, +File
+    hdt0/4,          % ?S, ?P, ?O, +Hdt
+    hdt_bnode/2,     % ?B, ?G
+    hdt_datatype/1,  % ?D
+    hdt_datatype/2,  % ?D, ?G
+    hdt_goal/2,      % +File, :Goal_1
+    hdt_header/4,    % ?S, ?P, ?O, +File
+    hdt_header0/4,   % ?S, ?P, ?O, +Hdt
+    hdt_iri/2,       % ?Iri, ?G
+    hdt_last/3,      % ?X, ?L, +File
+    hdt_last0/3,     % ?X, ?L, +Hdt
+    hdt_literal/2,   % ?Lit, ?G
+    hdt_lts/1,       % ?Lit
+    hdt_lts/2,       % ?Lit, ?G
+    hdt_member/3,    % ?X, ?L, +File
+    hdt_member0/3,   % ?X, ?L, +Hdt
+    hdt_name/2,      % ?Name, ?G
+    hdt_node/2,      % ?Node, ?G
+    hdt_object/2,    % ?O, ?G
+    hdt_predicate/2, % ?P, ?G
+    hdt_prepare/1,   % +File
+    hdt_prepare/2,   % +File, +Opts
+    hdt_print/4,     % ?S, ?P, ?O, +File
+    hdt_print0/4,    % ?S, ?P, ?O, +Hdt
+    hdt_print/5,     % ?S, ?P, ?O, +File, +Opts
+    hdt_print0/5,    % ?S, ?P, ?O, +Hdt, +Opts
+    hdt_remove/1,    % +File
+    hdt_subject/2,   % ?S, ?G
+    hdt_term/2,      % ?Term, ?G
+    hdt_tree/3,      % ?S, -Tree, +File
+    hdt_tree0/3      % ?S, -Tree, +Hdt
   ]
 ).
 
@@ -47,10 +60,18 @@
 :- rdf_meta
    hdt( r, r, o, +),
    hdt0(r, r, o, +),
+   hdt_bnode(?, r),
+   hdt_datatype(r),
+   hdt_datatype(r, r),
    hdt_header( r, r, o, +),
    hdt_header0(r, r, o, +),
+   hdt_iri(r, r),
    hdt_last( r, r, +),
    hdt_last0(r, r, +),
+   hdt_literal(o, r),
+   hdt_literal(o, r, ?, ?),
+   hdt_lts(o),
+   hdt_lts(o, r),
    hdt_member( r, r, +),
    hdt_member0(r, r, +),
    hdt_print( r, r, o, +),
@@ -73,6 +94,25 @@ hdt(S, P, O, File) :-
 
 hdt0(S, P, O, Hdt) :-
   hdt:hdt_search(Hdt, S, P, O).
+
+
+
+%! hdt_bnode(?B, ?G) is nondet.
+
+hdt_bnode(B, G) :-
+  z_bnode0(disk, B, G).
+
+
+
+%! hdt_datatype(?D) is nondet.
+%! hdt_datatype(?D, ?G) is nondet.
+
+hdt_datatype(D) :-
+  z_datatype(disk, D).
+
+
+hdt_datatype(D, G) :-
+  z_datatype(disk, D, G).
 
 
 
@@ -102,6 +142,13 @@ hdt_header0(S, P, O, Hdt) :-
 
 
 
+%! hdt_iri(?Iri, ?G) is nondet.
+
+hdt_iri(Iri, G) :-
+  z_iri(disk, Iri, G).
+
+
+
 %! hdt_last( ?L, ?X, +File) is nondet.
 %! hdt_last0(?L, ?X, +Hdt ) is nondet.
 
@@ -116,6 +163,25 @@ hdt_last0(L, X, Hdt) :-
   ->  hdt0(L, rdf:first, X, Hdt)
   ;   hdt_last0(T, X, Hdt)
   ).
+
+
+
+%! hdt_lts(?Lit) is nondet.
+%! hdt_lts(?Lit, ?G) is nondet.
+
+hdt_lts(Lit) :-
+  z_lts(disk, Lit).
+
+
+hdt_lts(Lit, G) :-
+  z_lts(disk, Lit, G).
+
+
+
+%! hdt_literal(?Lit, ?G) is nondet.
+
+hdt_literal(Lit, G) :-
+  z_literal(disk, Lit, G).
 
 
 
@@ -140,6 +206,34 @@ hdt_member2(X, L, Hdt) :-
 hdt_member2(X, L, Hdt) :-
   hdt0(L, rdf:rest, L0, Hdt),
   hdt_member2(X, L0, Hdt).
+
+
+
+%! hdt_name(?Name, ?G) is nondet.
+
+hdt_name(Name, G) :-
+  z_name(disk, Name, G).
+
+
+
+%! hdt_node(?Node, ?G) is nondet.
+
+hdt_node(Node, G) :-
+  z_node(disk, Node, G).
+
+
+
+%! hdt_object(?O, ?G) is nondet.
+
+hdt_object(O, G) :-
+  z_object(disk, O, G).
+
+
+
+%! hdt_predicate(?P, ?G) is nondet.
+
+hdt_predicate(P, G) :-
+  z_predicate(disk, P, G).
 
 
 
@@ -207,6 +301,20 @@ hdt_remove(File) :-
 
 
 
+%! hdt_subject(?S, ?G) is nondet.
+
+hdt_subject(S, G) :-
+  z_subject(disk, S, G).
+
+
+
+%! hdt_term(?Term, ?G) is nondet.
+
+hdt_term(P, G) :-
+  z_term(disk, P, G).
+
+
+
 %! hdt_tree(?S, -Tree, +File) is det.
 %! hdt_tree0(?S, -Tree, +Hdt) is det.
 
@@ -216,10 +324,19 @@ hdt_tree(S, Tree, File) :-
 
 hdt_tree0(S, Tree, Hdt) :-
   distinct(S, hdt0(S, P, O, Hdt)),
-  hdt_tree0([S], [rdf(S,P,O)], Tree, Hdt).
+  hdt_tree0([S], Hdt, [], [], Tree).
 
 
-%hdt_tree0(S, 
+hdt_tree0([], _, _, Tree, Tree) :- !.
+hdt_tree0([H|T], G, Hist, Tree, Sol) :-
+  memberchk(H, Hist), !,
+rdf_tree0([S|T1], G, Hist1, Tree1, Sol) :-
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Triples),
+  aggregate_all(set(O), (rdf(S, _, O, G), \+ rdf_is_literal(O)), Os),
+  ord_union(T1, Os, T2),
+  ord_add_element(Hist1, S, Hist2),
+  ord_union(Tree1, Triples, Tree2),
+  rdf_tree0(T2, G, Hist2, Tree2, Sol).
 
 
 
