@@ -10,8 +10,8 @@
     hdt_last0/3,        % ?X, ?L,     +Hdt
     hdt_member/3,       % ?X, ?L,     +File
     hdt_member0/3,      % ?X, ?L,     +Hdt
-    hdt_prepare/1,      % +Base
-    hdt_prepare/2,      % +Base, +Opts
+    hdt_prepare/1,      % +File
+    hdt_prepare/2,      % +File, +Opts
     hdt_print/4,        % ?S, ?P, ?O, +File
     hdt_print0/4,       % ?S, ?P, ?O, +Hdt
     hdt_print/5,        % ?S, ?P, ?O, +File, +Opts

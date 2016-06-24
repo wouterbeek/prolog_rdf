@@ -11,6 +11,8 @@
     rdf_assert_instances/2, % +I, +Cs
     rdf_assert_instances/3, % +I, +Cs, +G
     rdf_assert_list/4,      % +S, +P, +L, +G
+    rdf_assert_mode/4,      % +Mode, +S, +P, +O
+    rdf_assert_mode/5,      % +Mode, +S, +P, +O, +Sink
     rdf_assert_now/2,       % +S, +P
     rdf_assert_now/3,       % +S, +P, +D
     rdf_assert_now/4,       % +S, +P, +D, +G
@@ -62,6 +64,7 @@
 :- use_module(library(apply)).
 :- use_module(library(closure)).
 :- use_module(library(error)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(ordsets)).
 :- use_module(library(print_ext)).
@@ -91,6 +94,8 @@
    rdf_assert_instances(r, t),
    rdf_assert_instances(r, t, r),
    rdf_assert_list(r, r, t, r),
+   rdf_assert_mode(+, r, r, o),
+   rdf_assert_mode(+, r, r, o, r),
    rdf_assert_now(o, r),
    rdf_assert_now(o, r, r),
    rdf_assert_now(o, r, r, r),
@@ -191,6 +196,22 @@ rdf_assert_instances(I, Cs, G) :-
 rdf_assert_list(S, P, L, G) :-
   rdf_assert_list(L, B, G),
   rdf_assert(S, P, B, G).
+
+
+
+%! rdf_assert_mode(+Mode:oneof([hdt,mem]), +S, +P, +O) is det.
+%! rdf_assert_mode(+Mode:oneof([hdt,mem]), +S, +P, +O, +Sink) is det.
+
+rdf_assert_mode(hdt, S, P, O) :-
+  gen_ntriple(S, P, O).
+rdf_assert_mode(mem, S, P, O) :-
+  rdf_assert(S, P, O).
+
+
+rdf_assert_mode(hdt, S, P, O, Sink) :-
+  call_to_stream(Sink, [Out,M,M]>>with_output_to(Out, gen_ntriple(S, P, O))).
+rdf_assert_mode(mem, S, P, O, G) :-
+  rdf_assert(S, P, O, G).
 
 
 

@@ -1,34 +1,36 @@
 :- module(
   rdfio,
   [
-    rdf_call_on_graph/2,        % +Source, :Goal_3
-    rdf_call_on_graph/3,        % +Source, :Goal_3,      +Opts
-    rdf_call_on_tuples/2,       % +Source, :Goal_5       
-    rdf_call_on_tuples/3,       % +Source, :Goal_5,      +Opts
-    rdf_call_on_stream/2,       % +Source, :Goal_3       
-    rdf_call_on_stream/3,       % +Source, :Goal_3,      +Opts
-    rdf_call_to_graph/2,        % +Sink,   :Goal_1       
-    rdf_call_to_graph/3,        % +Sink,   :Goal_1,      +Opts
-    rdf_change_format/2,        % +Source, -Sink
-    rdf_change_format/3,        % +Source, -Sink,        +Opts
-    rdf_change_format_legacy/2, % +Source, -Sink
-    rdf_change_format_legacy/3, % +Source, -Sink,        +Opts
-    rdf_download_to_file/2,     % +Iri,    +File         
-    rdf_download_to_file/3,     % +Iri,    +File,        +Opts
-    rdf_load_file/1,            % +Source                
-    rdf_load_file/2,            % +Source,               +Opts
-    rdf_load_file_or_call/3,    % +Source, :Goal_1,  +G
-    rdf_load_file_or_call/4,    % +Source, :Goal_1,  +G, +Opts
-    rdf_load_tuples/2,          % +Source, -Tuples       
-    rdf_load_tuples/3,          % +Source, -Tuples,      +Opts
-    rdf_write_to_sink/1,        % +Sink                  
-    rdf_write_to_sink/2,        % +Sink,             ?G
-    rdf_write_to_sink/3,        % +Sink,             ?G, +Opts
-    rdf_write_to_sink/4,        % +Sink, ?S, ?P, ?O
-    rdf_write_to_sink/5,        % +Sink, ?S, ?P, ?O, ?G
-    rdf_write_to_sink/6,        % +Sink, ?S, ?P, ?O, ?G, +Opts
-    rdf_write_to_sink_legacy/1, % +Sink
-    rdf_write_to_sink_legacy/2  % +Sink,                 +Opts
+    rdf_call_on_graph/2,              % +Source, :Goal_3
+    rdf_call_on_graph/3,              % +Source, :Goal_3,      +Opts
+    rdf_call_on_tuples/2,             % +Source, :Goal_5       
+    rdf_call_on_tuples/3,             % +Source, :Goal_5,      +Opts
+    rdf_call_on_stream/2,             % +Source, :Goal_3       
+    rdf_call_on_stream/3,             % +Source, :Goal_3,      +Opts
+    rdf_call_to_graph/2,              % +Sink,   :Goal_1       
+    rdf_call_to_graph/3,              % +Sink,   :Goal_1,      +Opts
+    rdf_change_format/2,              % +Source, -Sink
+    rdf_change_format/3,              % +Source, -Sink,        +Opts
+    rdf_change_format_legacy/2,       % +Source, -Sink
+    rdf_change_format_legacy/3,       % +Source, -Sink,        +Opts
+    rdf_download_to_file/2,           % +Iri,    +File         
+    rdf_download_to_file/3,           % +Iri,    +File,        +Opts
+    rdf_load_file/1,                  % +Source                
+    rdf_load_file/2,                  % +Source,               +Opts
+    rdf_load_file_or_write_to_mem/3,  % +Source, :Goal_1,  +G
+    rdf_load_file_or_write_to_mem/4,  % +Source, :Goal_1,  +G, +Opts
+    rdf_load_file_or_write_to_disk/2, % +Spec, :Goal_1
+    rdf_load_file_or_write_to_disk/3, % +Spec, :Goal_1, +Opts
+    rdf_load_tuples/2,                % +Source, -Tuples       
+    rdf_load_tuples/3,                % +Source, -Tuples,      +Opts
+    rdf_write_to_sink/1,              % +Sink                  
+    rdf_write_to_sink/2,              % +Sink,             ?G
+    rdf_write_to_sink/3,              % +Sink,             ?G, +Opts
+    rdf_write_to_sink/4,              % +Sink, ?S, ?P, ?O
+    rdf_write_to_sink/5,              % +Sink, ?S, ?P, ?O, ?G
+    rdf_write_to_sink/6,              % +Sink, ?S, ?P, ?O, ?G, +Opts
+    rdf_write_to_sink_legacy/1,       % +Sink
+    rdf_write_to_sink_legacy/2        % +Sink,                 +Opts
   ]
 ).
 
@@ -50,6 +52,7 @@ already part of ClioPatria.
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(gen/gen_ntuples)).
+:- use_module(library(hdt/hdt_ext)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/json)).
 :- use_module(library(iostream)).
@@ -94,16 +97,18 @@ already part of ClioPatria.
     rdf_call_on_tuples0(5, +, +, +, -),
     rdf_call_to_graph(+, 1),
     rdf_call_to_graph(+, 1, +),
-    rdf_load_file_or_call(+, 1, +),
-    rdf_load_file_or_call(+, 1, +, +).
+    rdf_load_file_or_write_to_mem(+, 1, +),
+    rdf_load_file_or_write_to_mem(+, 1, +, +),
+    rdf_load_file_or_write_to_disk(+, 1),
+    rdf_load_file_or_write_to_disk(+, 1, +).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
    rdf_call_on_tuples(+, :, t),
    rdf_download_to_file(+, +, t),
    rdf_load_file(+, t),
-   rdf_load_file_or_call(+, :, r),
-   rdf_load_file_or_call(+, :, r, +),
+   rdf_load_file_or_write_to_mem(+, :, r),
+   rdf_load_file_or_write_to_mem(+, :, r, +),
    rdf_load_tuples(+, -, t),
    rdf_write_to_sink(+, r),
    rdf_write_to_sink(+, r, +),
@@ -452,23 +457,41 @@ count_tuple0(State, _) :-
 
 
 
-%! rdf_load_file_or_call(+Source, :Goal_1, +G) is det.
-%! rdf_load_file_or_call(+Source, :Goal_1, +G, +Opts) is det.
+%! rdf_load_file_or_write_to_disk(+Spec, :Goal_1) is det.
+%! rdf_load_file_or_write_to_disk(+Spec, :Goal_1, +Opts) is det.
+
+rdf_load_file_or_write_to_disk(Spec, Goal_1) :-
+  rdf_load_file_or_write_to_disk(Spec, Goal_1, []).
+
+
+rdf_load_file_or_write_to_disk(Spec, G, Opts1) :-
+  absolute_file_name(Spec, File, [access(read),file_errors(fail)]),
+  merge_options(Opts1, [graph(G)], Opts2),
+  rdf_load_file(File, Opts2), !.
+rdf_load_file_or_write_to_disk(Spec, Goal_1, Opts) :-
+  absolute_file_name(Spec, File, [access(write)]),
+  call_to_stream(File, [Out,M,M]>>call(Goal_1, Out), Opts),
+  hdt_prepare(File).
+
+
+
+%! rdf_load_file_or_write_to_mem(+Source, :Goal_1, +G) is det.
+%! rdf_load_file_or_write_to_mem(+Source, :Goal_1, +G, +Opts) is det.
 %
 % Either loads RDF data from Source into graph G or calls Goal_1 with
 % argument G in order to assert the RDF data.  After asserting the RDF
 % data, the results are written to Source, so that a next call of this
 % predicate will load the data from file.
 
-rdf_load_file_or_call(Source, Goal_1, G) :-
-  rdf_load_file_or_call(Source, Goal_1, G, []).
+rdf_load_file_or_write_to_mem(Source, Goal_1, G) :-
+  rdf_load_file_or_write_to_mem(Source, Goal_1, G, []).
 
 
-rdf_load_file_or_call(Source0, _, G, Opts1) :-
+rdf_load_file_or_write_to_mem(Source0, _, G, Opts1) :-
   absolute_file_name(Source0, Source, [access(read),file_errors(fail)]),
   merge_options(Opts1, [graph(G)], Opts2),
   rdf_load_file(Source, Opts2), !.
-rdf_load_file_or_call(Source, Goal_1, G, Opts) :-
+rdf_load_file_or_write_to_mem(Source, Goal_1, G, Opts) :-
   call(Goal_1, G),
   rdf_write_to_sink(Source, G, Opts).
 

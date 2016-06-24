@@ -1,10 +1,10 @@
 :- module(
   xml2rdf,
   [
-    marcxml2rdf_graph/3, % +Source, +RecordNames, +G
-    marcxml2rdf_graph/3, % +Source, +RecordNames, +G, +Opts
-    xml2rdf_graph/3,     % +Source, +RecordNames, +G
-    xml2rdf_graph/4      % +Source, +RecordNames, +G, +Opts
+    marcxml2rdf/4, % +Mode, +Source, +RecordNames, +Sink
+    marcxml2rdf/5, % +Mode, +Source, +RecordNames, +Sink, +Opts
+    xml2rdf/4,     % +Mode, +Source, +RecordNames, +Sink
+    xml2rdf/5      % +Mode, +Source, +RecordNames, +Sink, +Opts
   ]
 ).
 
@@ -19,6 +19,7 @@
 :- use_module(library(conv/rdf_conv)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
+:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
@@ -26,32 +27,38 @@
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
 
+:- rdf_meta
+   marcxml2rdf(+, +, +, r),
+   marcxml2rdf(+, +, +, r, +),
+   xml2rdf(+, +, +, r),
+   xml2rdf(+, +, +, r, +).
 
 
 
 
-%! marcxml2rdf_graph(+Source, +RecordNames, +G) is det.
-%! marcxml2rdf_graph(+Source, +RecordNames, +G, +Opts) is det.
 
-marcxml2rdf_graph(Source, RecordNames, G) :-
-  marcxml2rdf_graph(Source, RecordNames, G, _{}).
+%! marcxml2rdf(+Mode, +Source, +RecordNames, +Sink) is det.
+%! marcxml2rdf(+Mode, +Source, +RecordNames, +Sink, +Opts) is det.
+
+marcxml2rdf(Mode, Source, RecordNames, Sink) :-
+  marcxml2rdf(Mode, Source, RecordNames, Sink, _{}).
 
 
-marcxml2rdf_graph(Source, RecordNames, G, Opts1) :-
+marcxml2rdf(Mode, Source, RecordNames, Sink, Opts1) :-
   rdf_conv_alias_options(Opts1, Opts2),
   Alias = Opts2.alias,
   xml_stream_record(
     Source,
     RecordNames,
-    {Alias,G}/[Dom]>>marcxml2rdf_assert_record0(Dom, Alias, G)
+    {Mode,Alias,Sink}/[Dom]>>marcxml2rdf_assert_record0(Mode, Dom, Alias, Sink)
   ).
 
 
-marcxml2rdf_assert_record0(Dom, Alias, G) :-
+marcxml2rdf_assert_record0(Mode, Dom, Alias, Sink) :-
   rdf_create_bnode(S),
   forall(
     marcxml2rdf_stmt0(Dom, Alias, P, Val),
-    rdf_assert(S, P, Val^^xsd:string, G)
+    rdf_assert_mode(Mode, S, P, Val^^xsd:string, Sink)
   ).
 
 
@@ -67,32 +74,32 @@ marcxml2rdf_stmt0(Dom, Alias, P, Val) :-
 
 
 
-%! xml2rdf_graph(+Source, +RecordNames, +G) is nondet.
-%! xml2rdf_graph(+Source, +RecordNames, +G, +Opts) is nondet.
+%! xml2rdf(+Mode, +Source, +RecordNames, +Sink) is nondet.
+%! xml2rdf(+Mode, +Source, +RecordNames, +Sink, +Opts) is nondet.
 
-xml2rdf_graph(Source, RecordNames, G) :-
-  xml2rdf_graph(Source, RecordNames, G, _{}).
+xml2rdf(Mode, Source, RecordNames, Sink) :-
+  xml2rdf(Mode, Source, RecordNames, Sink, _{}).
 
 
-xml2rdf_graph(Source, RecordNames, G, Opts1) :-
+xml2rdf(Mode, Source, RecordNames, Sink, Opts1) :-
   rdf_conv_alias_options(Opts1, Opts2),
   xml_stream_record(
     Source,
     RecordNames,
-    [Dom]>>xml2rdf_assert_record0(Dom, G, Opts2)
+    {Mode}/[Dom]>>xml2rdf_assert_record0(Mode, Dom, Sink, Opts2)
   ).
 
 
-xml2rdf_assert_record0(Dom, G, Opts) :-
+xml2rdf_assert_record0(Mode, Dom, Sink, Opts) :-
   rdf_create_bnode(S),
-  xml2rdf_assert_record0(Dom, [], S, G, Opts).
+  xml2rdf_assert_record0(Mode, Dom, [], S, Sink, Opts).
 
 
-xml2rdf_assert_record0([], _, _, _, _) :- !.
-xml2rdf_assert_record0([Empty|Dom], L, S, G, Opts) :-
+xml2rdf_assert_record0(_, [], _, _, _, _) :- !.
+xml2rdf_assert_record0(Mode, [Empty|Dom], L, S, Sink, Opts) :-
   is_empty_atom(Empty), !,
-  xml2rdf_assert_record0(Dom, L, S, G, Opts).
-xml2rdf_assert_record0([element(H,Attrs,Vals)|Dom], T, S, G, Opts) :-
+  xml2rdf_assert_record0(Mode, Dom, L, S, Sink, Opts).
+xml2rdf_assert_record0(Mode, [element(H,Attrs,Vals)|Dom], T, S, Sink, Opts) :-
   (   maplist(atomic, Vals)
   ->  reverse([H|T], L),
       atomic_list_concat(L, '_', Name),
@@ -105,9 +112,9 @@ xml2rdf_assert_record0([element(H,Attrs,Vals)|Dom], T, S, G, Opts) :-
         ->  rdf_literal(Lit, rdf:langString, Val, LTag)
         ;   rdf_literal(Lit, xsd:string, Val, _)
         ),
-        rdf_print_quad(S, P, Lit, G),
-        rdf_assert(S, P, Lit, G)
+        rdf_print_triple(S, P, Lit),
+        rdf_assert_mode(Mode, S, P, Lit, Sink)
       ))
-  ;   xml2rdf_assert_record0(Vals, [H|T], S, G, Opts)
+  ;   xml2rdf_assert_record0(Mode, Vals, [H|T], S, Sink, Opts)
   ),
-  xml2rdf_assert_record0(Dom, [], S, G, Opts).
+  xml2rdf_assert_record0(Mode, Dom, [], S, Sink, Opts).

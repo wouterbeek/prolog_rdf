@@ -1,8 +1,8 @@
 :- module(
   rdf_conv,
   [
-    rdf_conv/1,              % +Name
-    rdf_conv/2,              % +Name, +Opts
+    rdf_conv/1,              % +Alias
+    rdf_conv/2,              % +Alias, +Opts
     rdf_conv_alias_options/2 % +Opts1, -Opts2
   ]
 ).
@@ -19,29 +19,34 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(vocab/void)).
 
+:- meta_predicate
+    rdf_conv_call(1, +, +, +).
 
 
 
 
-%! rdf_conv(+Name) is det.
-%! rdf_conv(+Name, +Opts) is det.
+
+%! rdf_conv(+Alias) is det.
+%! rdf_conv(+Alias, +Opts) is det.
 %
 % The resultant data file is called `<NAME>_data.<EXT>`.  The
 % resultant VoID file, if any, is called `<NAME>_void.<EXT>`.
 %
-% The calls that are made are `call(<NAME>_load_data, +G)` and
-% `call(<NAME>_load_void, +G)`.
+% The calls that are made are `call(<NAME>_load_data, +Sink, +G)`,
+% `call(<NAME>_load_vocab, +Sink, +G)` and `call(<NAME>_load_void,
+% +Sink, +G)`.
 %
 % The followning options are defined:
-%
-%   * alias(+atom) The alias of the RDF prefix that acts as the
-%   default IRI prefix.  By default this is Name.
 %
 %   * format(+rdf_format) The RDF serialization format that is used to
 %   store the data in.  The default is `ntriples`.
 %
+%   * mode(+oneof([disk,mem])) Whether the result of data conversion
+%   is stored in memory (RDF graph) or on disk (HDT archive).  The
+%   default is `mem`.
+%
 %   * module(+atom) The name of the module which defines the goals.
-%   By default this is Name.
+%   The default is Alias.
 %
 %   * search_path(+atom) The file search path where data files should
 %   be read/written from/to.  The default is Alias.
@@ -52,49 +57,47 @@
 %   * void(+boolean) Whether or not a VoID description is generates as
 %   well.  The default is `false`.
 
+rdf_conv(Alias) :-
+  rdf_conv(Alias, _{}).
 
-rdf_conv(Name) :-
-  rdf_conv(Name, _{}).
 
-
-rdf_conv(Name, Opts1) :-
-  dict_get(alias, Opts1, Name, Alias),
+rdf_conv(Alias, Opts1) :-
   dict_get(format, Opts1, ntriples, Format),
-  dict_get(module, Opts1, Name, Mod),
+  dict_get(module, Opts1, Alias, Mod),
   dict_get(search_path, Opts1, Alias, Search),
   merge_dicts(
     Opts1,
     _{alias: Alias, format: Format, module: Mod, search_path: Search},
     Opts2
   ),
-  rdf_conv_data(Name, Opts2),
-  (get_dict(vocab, Opts1, true) -> rdf_conv_vocab(Name, Opts2) ; true),
-  (get_dict(void, Opts1, true) -> rdf_conv_void(Name, Opts2) ; true).
+  rdf_conv_data(Alias, Opts2),
+  (get_dict(vocab, Opts1, true) -> rdf_conv_vocab(Alias, Opts2) ; true),
+  (get_dict(void, Opts1, true) -> rdf_conv_void(Alias, Opts2) ; true).
 
 
-rdf_conv_data(Name, Opts) :-
-  rdf_conv_spec(Name, data, Opts, Spec),
-  rdf_conv_goal(Name, data, Pred_1),
+rdf_conv_data(Alias, Opts) :-
+  rdf_conv_spec(Alias, data, Opts, Spec),
+  rdf_conv_goal(Alias, data, Pred_1),
   Goal_1 = Opts.module:Pred_1,
-  rdf_conv_graph(Name, data, Opts, G),
-  rdf_load_file_or_call(Spec, Goal_1, G, [rdf_format(Opts.format)]).
+  rdf_conv_graph(Alias, data, G),
+  rdf_conv_call(Goal_1, Spec, G, Opts).
 
 
-rdf_conv_vocab(Name, Opts) :-
-  rdf_conv_spec(Name, vocab, Opts, Spec),
-  rdf_conv_goal(Name, vocab, Pred_1),
+rdf_conv_vocab(Alias, Opts) :-
+  rdf_conv_spec(Alias, vocab, Opts, Spec),
+  rdf_conv_goal(Alias, vocab, Pred_1),
   Goal_1 = Opts.module:Pred_1,
-  rdf_conv_graph(Name, vocab, Opts, G),
-  rdf_load_file_or_call(Spec, Goal_1, G, [rdf_format(Opts.format)]).
+  rdf_conv_graph(Alias, vocab, G),
+  rdf_conv_call(Goal_1, Spec, G, Opts).
 
 
-rdf_conv_void(Name, Opts) :-
-  rdf_conv_spec(Name, data, Opts, Spec0),
-  rdf_conv_spec(Name, void, Opts, Spec),
-  rdf_conv_goal(Name, void, Pred_1),
+rdf_conv_void(Alias, Opts) :-
+  rdf_conv_spec(Alias, data, Opts, Spec0),
+  rdf_conv_spec(Alias, void, Opts, Spec),
+  rdf_conv_goal(Alias, void, Pred_1),
   Goal_1 = Opts.module:Pred_1,
-  rdf_conv_graph(Name, void, Opts, G),
-  rdf_load_file_or_call(Spec, source_to_void(Spec0, Goal_1), G, [rdf_format(Opts.format)]).
+  rdf_conv_graph(Alias, void, G),
+  rdf_conv_call(source_to_void(Spec0, Goal_1), Spec, G, Opts).
 
 
 
@@ -113,39 +116,48 @@ rdf_conv_alias_options(Opts1, Opts3) :-
 
 % HELPERS %
 
-%! rdf_conv_base(+Name, +Kind, -Base) is det.
+%! rdf_conv_base(+Alias, +Kind, -Base) is det.
 
-rdf_conv_base(Name, Kind, Base) :-
-  atomic_list_concat([Name,Kind], '_', Base).
+rdf_conv_base(Alias, Kind, Base) :-
+  atomic_list_concat([Alias,Kind], '_', Base).
 
 
 
-%! rdf_conv_file(+Name, +Kind, +Opts, -File) is det.
+%! rdf_conv_call(:Goal_1, +Spec, +G, +Opts) is det.
 
-rdf_conv_file(Name, Kind, Opts, File) :-
-  rdf_conv_base(Name, Kind, Base),
+rdf_conv_call(Goal_1, Spec, _, Opts) :-
+  get_dict(mode, Opts, hdt), !,
+  rdf_load_file_or_write_to_disk(Spec, Goal_1, [rdf_format(Opts.format)]).
+rdf_conv_call(Goal_1, Spec, G, Opts) :-
+  rdf_load_file_or_write_to_mem(Spec, Goal_1, G, [rdf_format(Opts.format)]).
+
+
+
+%! rdf_conv_file(+Alias, +Kind, +Opts, -File) is det.
+
+rdf_conv_file(Alias, Kind, Opts, File) :-
+  rdf_conv_base(Alias, Kind, Base),
   rdf_file_extension(Ext, Opts.format),
   file_name_extension(Base, Ext, File).
 
 
 
-%! rdf_conv_goal(+Name, +Kind, -Goal_1) is det.
+%! rdf_conv_goal(+Alias, +Kind, -Goal_1) is det.
 
-rdf_conv_goal(Name, Kind, Goal_1) :-
-  atomic_list_concat([Name,load,Kind], '_', Goal_1).
-
-
-
-%! rdf_conv_graph(+Name, +Kind, +Opts, -G) is det.
-
-rdf_conv_graph(Name, Kind, Opts, G) :-
-  rdf_conv_base(Name, Kind, Base),
-  rdf_global_id(Opts.alias:Base, G).
+rdf_conv_goal(Alias, Kind, Goal_1) :-
+  atomic_list_concat([Alias,load,Kind], '_', Goal_1).
 
 
 
-%! rdf_conv_spec(+Name, +Kind, +Opts, -Spec) is det.
+%! rdf_conv_graph(+Alias, +Kind, -G) is det.
 
-rdf_conv_spec(Name, Kind, Opts, Spec) :-
-  rdf_conv_file(Name, Kind, Opts, File0),
+rdf_conv_graph(Alias, Kind, G) :-
+  rdf_global_id(Alias:Kind, G).
+
+
+
+%! rdf_conv_spec(+Alias, +Kind, +Opts, -Spec) is det.
+
+rdf_conv_spec(Alias, Kind, Opts, Spec) :-
+  rdf_conv_file(Alias, Kind, Opts, File0),
   Spec =.. [Opts.search_path,File0].

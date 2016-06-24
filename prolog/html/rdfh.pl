@@ -322,6 +322,10 @@ rdfh_literal_inner(V^^D1, Opts) -->
     rdf11:xsd_date_time_type(D2)
   }, !,
   html_date_time(V, Opts).
+% XSD integer
+rdfh_literal_inner(V^^D, _) -->
+  {rdf_subdatatype_of(D, xsd:integer)}, !,
+  html("~D"-[V]).
 % XSD decimal
 rdfh_literal_inner(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:decimal)}, !,
@@ -333,10 +337,6 @@ rdfh_literal_inner(V^^D, _) -->
   ;   rdf_subdatatype_of(D, xsd:double)
   )}, !,
   html("~G"-[V]).
-% XSD integer
-rdfh_literal_inner(V^^D, _) -->
-  {rdf_subdatatype_of(D, xsd:integer)}, !,
-  html("~D"-[V]).
 % XSD string
 rdfh_literal_inner(Str^^D, Opts) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
