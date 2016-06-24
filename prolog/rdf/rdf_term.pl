@@ -305,13 +305,13 @@ rdf_predicate(P, G) :-
 
 
 
-%! rdf_subject(?G, ?S) is nondet.
+%! rdf_subject(?S, ?G) is nondet.
 
 rdf_subject(S, G) :-
   var(S), !,
   rdf_subject(S),
   distinct(G, rdf(S, _, _, G)).
-rdf_subject(G, S) :-
+rdf_subject(S, G) :-
   rdf_is_subject(S),
   distinct(G, rdf(S, _, _, G)).
 

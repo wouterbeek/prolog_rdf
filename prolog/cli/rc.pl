@@ -234,7 +234,7 @@ rc_root(Node) :-
 
 rc_root(Node, G) :-
   rdf_root(Node, G),
-  rdf_tree(Node, Triples),
+  rdf_tree(Node, G, Triples),
   rdf_print_triples(Triples).
 
 

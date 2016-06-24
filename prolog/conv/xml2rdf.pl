@@ -17,6 +17,7 @@
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(conv/rdf_conv)).
+:- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_ext)).
@@ -32,6 +33,8 @@
    marcxml2rdf(+, +, +, r, +),
    xml2rdf(+, +, +, r),
    xml2rdf(+, +, +, r, +).
+
+:- debug(xml2rdf).
 
 
 
@@ -92,14 +95,15 @@ xml2rdf(Mode, Source, RecordNames, Sink, Opts1) :-
 
 xml2rdf_assert_record0(Mode, Dom, Sink, Opts) :-
   rdf_create_bnode(S),
-  xml2rdf_assert_record0(Mode, Dom, [], S, Sink, Opts).
+  get_dict(ltag_attr, Opts, LTagAttr),
+  xml2rdf_assert_record0(Mode, Dom, [], S, LTagAttr, Sink, Opts).
 
 
-xml2rdf_assert_record0(_, [], _, _, _, _) :- !.
-xml2rdf_assert_record0(Mode, [Empty|Dom], L, S, Sink, Opts) :-
+xml2rdf_assert_record0(_, [], _, _, _, _, _) :- !.
+xml2rdf_assert_record0(Mode, [Empty|Dom], L, S, LTagAttr, Sink, Opts) :-
   is_empty_atom(Empty), !,
-  xml2rdf_assert_record0(Mode, Dom, L, S, Sink, Opts).
-xml2rdf_assert_record0(Mode, [element(H,Attrs,Vals)|Dom], T, S, Sink, Opts) :-
+  xml2rdf_assert_record0(Mode, Dom, L, S, LTagAttr, Sink, Opts).
+xml2rdf_assert_record0(Mode, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Sink, Opts) :-
   (   maplist(atomic, Vals)
   ->  reverse([H|T], L),
       atomic_list_concat(L, '_', Name),
@@ -108,13 +112,13 @@ xml2rdf_assert_record0(Mode, [element(H,Attrs,Vals)|Dom], T, S, Sink, Opts) :-
         member(Val, Vals),
         \+ is_empty_atom(Val)
       ), (
-        (   memberchk(language=LTag, Attrs)
+        (   memberchk(LTagAttr=LTag, Attrs)
         ->  rdf_literal(Lit, rdf:langString, Val, LTag)
         ;   rdf_literal(Lit, xsd:string, Val, _)
         ),
-        rdf_print_triple(S, P, Lit),
+        (debugging(xml2rdf) -> rdf_print_triple(S, P, Lit) ; true),
         rdf_assert_mode(Mode, S, P, Lit, Sink)
       ))
-  ;   xml2rdf_assert_record0(Mode, Vals, [H|T], S, Sink, Opts)
+  ;   xml2rdf_assert_record0(Mode, Vals, [H|T], S, LTagAttr, Sink, Opts)
   ),
-  xml2rdf_assert_record0(Mode, Dom, [], S, Sink, Opts).
+  xml2rdf_assert_record0(Mode, Dom, [], S, LTagAttr, Sink, Opts).

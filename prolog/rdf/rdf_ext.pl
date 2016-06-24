@@ -44,8 +44,8 @@
     rdf_root/2,             % ?Root, ?G
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
-    rdf_tree/2,             % +S, -Tree
-    rdf_tree/3,             % +S, ?G, -Tree
+    rdf_tree/2,             % ?S, -Tree
+    rdf_tree/3,             % ?S, ?G, -Tree
     rdf_triples/4,          % ?S, ?P. ?O, -Triples:ordset
     rdf_tuple/1,            % ?Tuple
     rdf_unload_db/0,
@@ -491,14 +491,15 @@ rdf_string(V@_, V).
 
 
 
-%! rdf_tree(+S, -Tree) is det.
-%! rdf_tree(+S, ?G, -Tree) is det.
+%! rdf_tree(?S, -Tree) is det.
+%! rdf_tree(?S, ?G, -Tree) is det.
 
 rdf_tree(S, Tree) :-
   rdf_tree(S, _, Tree).
 
 
 rdf_tree(S, G, Tree) :-
+  rdf_subject(S, G),
   rdf_tree([S], G, [], [], Tree).
 
 rdf_tree([], _, _, Tree, Tree) :- !.
