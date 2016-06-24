@@ -1,29 +1,31 @@
 :- module(
   hdt_ext,
   [
-    hdt/4,              % ?S, ?P, ?O, +File
-    hdt0/4,             % ?S, ?P, ?O, +Hdt
-    hdt_goal/2,         % +File, :Goal_1
-    hdt_header/4,       % ?S, ?P, ?O, +File
-    hdt_header0/4,      % ?S, ?P, ?O, +Hdt
-    hdt_last/3,         % ?X, ?L,     +File
-    hdt_last0/3,        % ?X, ?L,     +Hdt
-    hdt_member/3,       % ?X, ?L,     +File
-    hdt_member0/3,      % ?X, ?L,     +Hdt
-    hdt_prepare/1,      % +File
-    hdt_prepare/2,      % +File, +Opts
-    hdt_print/4,        % ?S, ?P, ?O, +File
-    hdt_print0/4,       % ?S, ?P, ?O, +Hdt
-    hdt_print/5,        % ?S, ?P, ?O, +File, +Opts
-    hdt_print0/5,       % ?S, ?P, ?O, +Hdt,  +Opts
-    hdt_remove/1        % +File
+    hdt/4,         % ?S, ?P, ?O, +File
+    hdt0/4,        % ?S, ?P, ?O, +Hdt
+    hdt_goal/2,    % +File, :Goal_1
+    hdt_header/4,  % ?S, ?P, ?O, +File
+    hdt_header0/4, % ?S, ?P, ?O, +Hdt
+    hdt_last/3,    % ?X, ?L,     +File
+    hdt_last0/3,   % ?X, ?L,     +Hdt
+    hdt_member/3,  % ?X, ?L,     +File
+    hdt_member0/3, % ?X, ?L,     +Hdt
+    hdt_prepare/1, % +File
+    hdt_prepare/2, % +File, +Opts
+    hdt_print/4,   % ?S, ?P, ?O, +File
+    hdt_print0/4,  % ?S, ?P, ?O, +Hdt
+    hdt_print/5,   % ?S, ?P, ?O, +File, +Opts
+    hdt_print0/5,  % ?S, ?P, ?O, +Hdt,  +Opts
+    hdt_remove/1,  % +File
+    hdt_tree/3,    % ?S, -Tree, +File
+    hdt_tree0/3    % ?S, -Tree, +Hdt
   ]
 ).
 
 /** <module> HDT extensions
 
 @author Wouter Beek
-@version 2016/04-2016/05
+@version 2016/04-2016/06
 */
 
 :- use_module(library(gen/gen_ntuples)).
@@ -33,6 +35,7 @@
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
@@ -53,7 +56,9 @@
    hdt_print( r, r, o, +),
    hdt_print0(r, r, o, +),
    hdt_print( r, r, o, +, +),
-   hdt_print0(r, r, o, +, +).
+   hdt_print0(r, r, o, +, +),
+   hdt_tree(r, -, +),
+   hdt_tree0(r, -, +).
 
 
 
@@ -199,6 +204,22 @@ hdt_remove(File) :-
   (exists_file(File) -> delete_file(File) ; true),
   atomic_list_concat([File,index], ., IndexFile),
   (exists_file(IndexFile) -> delete_file(IndexFile) ; true).
+
+
+
+%! hdt_tree(?S, -Tree, +File) is det.
+%! hdt_tree0(?S, -Tree, +Hdt) is det.
+
+hdt_tree(S, Tree, File) :-
+  hdt_goal(File, {S,Tree}/[Hdt]>>hdt_tree0(S, Tree, Hdt)).
+
+
+hdt_tree0(S, Tree, Hdt) :-
+  distinct(S, hdt0(S, P, O, Hdt)),
+  hdt_tree0([S], [rdf(S,P,O)], Tree, Hdt).
+
+
+%hdt_tree0(S, 
 
 
 
