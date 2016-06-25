@@ -55,7 +55,7 @@ statement in the graph.
   from the starting node.
 
 @author Wouter Beek
-@version 2015/04, 2015/06
+@version 2016/04, 2016/06
 */
 
 :- use_module(library(aggregate)).

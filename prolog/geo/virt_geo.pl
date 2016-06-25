@@ -36,7 +36,7 @@ virt_geo(G) :-
   rdf_call_update((
     rdf_has(S, geold:geometry, Lit, P, G)
   ), (
-    rdf_literal_lex(Lit, Lex),
+    z_literal_lex(Lit, Lex),
     rdf_assert(S, geosparql:asWKT, Lex^^geosparql:wktLiteral, G),
     rdf_assert_instance(S, ngeo:'Geometry', G),
     rdf_retractall(S, P, Lit, G)

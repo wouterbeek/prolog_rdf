@@ -58,5 +58,5 @@ rdf11:out_type_hook(D, Array, Lex) :-
 
 rdfh:rdfh_literal_hook(Array^^D, Opts) -->
   {rdf_global_id(wkt:_, D)}, !,
-  {rdf_literal_lex(Array^^D, Lex)},
+  {z_literal_lex(Array^^D, Lex)},
   bs_truncated(Lex, Opts.max_length).

@@ -57,7 +57,7 @@
 rdf_cache:triple_to_iri(rdf(_,P,_), P).
 rdf_cache:triple_to_iri(rdf(_,_,O), D) :-
   rdf_is_literal(O),
-  rdf_literal_datatype(O, D).
+  z_literal_datatype(O, D).
 rdf_cache:triple_to_iri(rdf(_,P,O), O) :-
   (rdf_equal(owl:equivalentClass, P), ! ; rdf_equal(owl:sameAs, P)),
   rdf_is_iri(O).

@@ -113,8 +113,8 @@ xml2rdf_assert_record0(Mode, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Sink, 
         \+ is_empty_atom(Val)
       ), (
         (   memberchk(LTagAttr=LTag, Attrs)
-        ->  rdf_literal(Lit, rdf:langString, Val, LTag)
-        ;   rdf_literal(Lit, xsd:string, Val, _)
+        ->  z_literal(Lit, rdf:langString, Val, LTag)
+        ;   z_literal(Lit, xsd:string, Val, _)
         ),
         (debugging(xml2rdf) -> rdf_print_triple(S, P, Lit) ; true),
         rdf_assert_mode(Mode, S, P, Lit, Sink)

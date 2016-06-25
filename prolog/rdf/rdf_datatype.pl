@@ -62,14 +62,14 @@
 
 rdf_datatype(P, D) :-
   rdf(_, P, O),
-  rdf_literal_datatype(O, D), !,
-  forall(rdf(_, P, O0), rdf_literal_datatype(O0, D)).
+  z_literal_datatype(O, D), !,
+  forall(rdf(_, P, O0), z_literal_datatype(O0, D)).
 
 
 rdf_datatype(P, G, D) :-
   rdf(_, P, O, G),
-  rdf_literal_datatype(O, D), !,
-  forall(rdf(_, P, O0, G), rdf_literal_datatype(O0, D)).
+  z_literal_datatype(O, D), !,
+  forall(rdf(_, P, O0, G), z_literal_datatype(O0, D)).
 
 
 

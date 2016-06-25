@@ -32,9 +32,6 @@
     rdfs_property/2,           % ?Prop, ?G
     rdfs_range/2,              % ?P, ?Ran
     rdfs_range/3,              % ?P, ?Ran, ?G
-    rdfs_reification/3,      % ?S, ?P, ?O
-    rdfs_reification/4,      % ?S, ?P, ?O, ?G
-    rdfs_reification/5,      % ?S, ?P, ?O, ?G, -Stmt
     rdfs_retractall_class/1    % +C
   ]
 ).
@@ -92,9 +89,6 @@
    rdfs_property(r, r),
    rdfs_range(r, r),
    rdfs_range(r, r, r),
-   rdfs_reification(r, r, o),
-   rdfs_reification(r, r, o, r),
-   rdfs_reification(r, r, o, r, -),
    rdfs_retractall_class(r).
 
 
@@ -405,25 +399,6 @@ rdfs_range(P, Ran) :-
 
 rdfs_range(P, Ran, G) :-
   rdf_has(P, rdfs:range, Ran, _, G).
-
-
-
-%! rdfs_reification(?S, ?P, ?O) is nondet.
-%! rdfs_reification(?S, ?P, ?O, ?G) is nondet.
-%! rdfs_reification(?S, ?P, ?O, ?G, -Stmt) is nondet.
-
-rdfs_reification(S, P, O) :-
-  rdfs_reification(S, P, O, _).
-
-
-rdfs_reification(S, P, O, G) :-
-  rdfs_reification(S, P, O, G, _).
-
-
-rdfs_reification(S, P, O, G, Stmt) :-
-  rdfs_has(Stmt, rdf:subject, S, _, G),
-  rdfs_has(Stmt, rdf:predicate, P, _, G),
-  rdfs_has(Stmt, rdf:object, O, _, G).
 
 
 

@@ -31,12 +31,7 @@
    rdf_datatype(r),
    rdf_datatype(r, r),
    rdf_iri(r, r),
-   rdf_legacy_literal(o, r, -, -),
    rdf_literal(o, r),
-   rdf_literal(o, r, ?, ?),
-   rdf_literal_datatype(o, r),
-   rdf_literal_lex(o, ?),
-   rdf_literal_val(o, ?),
    rdf_lts(o),
    rdf_lts(o, r),
    rdf_name(o, r),
@@ -53,88 +48,115 @@
 %! rdf_bnode(?B, ?G) is nondet.
 
 rdf_bnode(B, G) :-
-  z_bnode(mem, B, G).
+  rdf_bnode(B),
+  distinct(G, rdf_bnode(B, G)).
 
 
 
 %! rdf_datatype(?D) is nondet.
-
-rdf_datatype(D) :-
-  z_datatype(mem, D).
-
-
-
 %! rdf_datatype(?D, ?G) is nondet.
 
+rdf_datatype(D) :-
+  distinct(D, (
+    rdf_literal(Lit),
+    z_literal_datatype(Lit, D)
+  )).
+
+
 rdf_datatype(D, G) :-
-  z_datatype(mem, D, G).
+  distinct(D-G, (
+    z_literal(Lit, G),
+    z_literal_datatype(Lit, D)
+  )).
 
 
 
 %! rdf_iri(?Iri, ?G) is nondet.
 
 rdf_iri(Iri, G) :-
-  z_iri(mem, Iri, G).
+  rdf_iri(Iri),
+  distinct(G, rdf_term(Iri, G)).
 
 
 
 %! rdf_literal(?Lit, ?G) is nondet.
 
 rdf_literal(Lit, G) :-
-  z_literal(mem, Lit, G).
+  rdf_literal(Lit),
+  distinct(G, rdf(_, _, Lit, G)).
 
 
 
 %! rdf_lts(?Lit) is nondet.
+%
+% The **language-tagged string**s are the cartesian product of the Unicode
+% strings in Normal Form C with the set of BCP 47 language tags.
 
 rdf_lts(Lit) :-
-  z_lts(mem, Lit).
+  rdf_literal(Lit),
+  z_is_tls(Lit).
 
 
 
 %! rdf_lts(?Lit, ?G) is nondet.
 
 rdf_lts(Lit, G) :-
-  z_lts(mem, Lit, G).
+  rdf_literal(Lit, G),
+  z_is_lts(Lit).
 
 
 
 %! rdf_name(?Name, ?G) is nondet.
 
 rdf_name(Name, G) :-
-  z_name(mem, Name, G).
+  rdf_term(Name, G),
+  \+ rdf_is_bnode(Name).
 
 
 
 %! rdf_node(?Node, ?G) is nondet.
 
-rdf_node(Node, G) :-
-  z_node(mem, Node, G).
+rdf_node(S, G) :-
+  rdf_subject(S, G).
+rdf_node(O, G) :-
+  rdf_object(O, G),
+  % Make sure there are no duplicates.
+  \+ rdf_subject(O, G).
 
 
 
 %! rdf_object(?O, ?G) is nondet.
 
 rdf_object(O, G) :-
-  z_object(mem, O, G).
+  % [O] In memory we can pre-enumerate (pre-check is idle).
+  (var(O) -> rdf_object(O) ; true),
+  distinct(G, z(_, _, O, G)).
 
 
 
 %! rdf_predicate(?P, ?G) is nondet.
 
 rdf_predicate(P, G) :-
-  z_predicate(mem, P, G).
+  % [O] In memory we can pre-enumerate and pre-check syntax.
+  (var(P) -> rdf_predicate(P) ; rdf_is_iri(P)),
+  distinct(G, rdf(_, P, _, G)).
 
 
 
 %! rdf_subject(?S, ?G) is nondet.
 
 rdf_subject(S, G) :-
-  z_subject(mem, S, G).
+  % [O] In memory we can pre-enumerate and pre-check syntax.
+  (var(S) -> rdf_subject(S) ; rdf_is_subject(S)),
+  distinct(G, rdf(S, _, _, G)).
 
 
 
 %! rdf_term(?Term, ?G) is nondet.
 
 rdf_term(P, G) :-
-  z_term(mem, P, G).
+  rdf_predicate(P, G).
+rdf_term(Node, G) :-
+  rdf_node(Node, G),
+  % Ensure there are no duplicates.
+  \+ rdf_predicate(Node, G).

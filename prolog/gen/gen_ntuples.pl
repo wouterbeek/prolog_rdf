@@ -31,9 +31,9 @@
 :- use_module(library(option)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_bnode_map)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
+:- use_module(library(z/z_term)).
 
 :- rdf_meta
    gen_nquad(r, r, o, r),
@@ -337,12 +337,12 @@ gen_iri(Iri) :-
 
 
 gen_literal(V^^D) :- !,
-  rdf_literal_lex(V^^D, Lex),
+  z_literal_lex(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   gen_iri(D).
 gen_literal(V@LTag) :- !,
-  rdf_literal_lex(V@LTag, Lex),
+  z_literal_lex(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
 gen_literal(V) :-

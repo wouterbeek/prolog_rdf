@@ -75,8 +75,8 @@ The following options are supported:
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
-:- use_module(library(stat/rdf_stat)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_stat)).
 
 :- html_meta
    rdfh_link(+, +, +, html, +, ?, ?),
@@ -191,7 +191,7 @@ rdfh_graph_table -->
 
 rdfh_graph_table(Opts) -->
   {
-    findall(NumTriples-G, rdf_number_of_triples(G, NumTriples), Pairs),
+    findall(N-G, z_number_of_triples(G, N), Pairs),
     desc_pairs_values(Pairs, Gs)
   },
   bs_table(
@@ -201,11 +201,11 @@ rdfh_graph_table(Opts) -->
 
 
 rdfh_graph_row0(G, Opts) -->
-  {rdf_number_of_triples(G, NumTriples)},
+  {z_number_of_triples(G, N)},
   html(
     tr([
       td(\rdfh_graph_outer(graph, [graph], G, Opts)),
-      td(\html_thousands(NumTriples))
+      td(\html_thousands(N))
     ])
   ).
 
@@ -260,7 +260,7 @@ rdfh_literal(Lit, Opts) -->
 rdfh_literal_outer(C, Cs1, Lit, Opts) -->
   {
     ord_add_element(Cs1, literal, Cs2),
-    rdf_literal_datatype(Lit, D)
+    z_literal_datatype(Lit, D)
   },
   rdfh_link(C, Cs2, [datatype=D], Lit, \rdfh_literal_inner(Lit, Opts), Opts).
 

@@ -3,10 +3,10 @@
   [
     rdf_call_on_graph/2,              % +Source, :Goal_3
     rdf_call_on_graph/3,              % +Source, :Goal_3,      +Opts
-    rdf_call_on_tuples/2,             % +Source, :Goal_5       
-    rdf_call_on_tuples/3,             % +Source, :Goal_5,      +Opts
     rdf_call_on_stream/2,             % +Source, :Goal_3       
     rdf_call_on_stream/3,             % +Source, :Goal_3,      +Opts
+    rdf_call_on_tuples/2,             % +Source, :Goal_5       
+    rdf_call_on_tuples/3,             % +Source, :Goal_5,      +Opts
     rdf_call_to_graph/2,              % +Sink,   :Goal_1       
     rdf_call_to_graph/3,              % +Sink,   :Goal_1,      +Opts
     rdf_change_format/2,              % +Source, -Sink
@@ -82,6 +82,7 @@ already part of ClioPatria.
 :- use_module(library(uuid_ext)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
+:- use_module(library(z/z_term)).
 
 :- meta_predicate
     rdf_call_on_graph(+, 3),
@@ -269,7 +270,7 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
   ->  call(Goal_5, M, S, P, O1, G3)
-  ;   rdf_legacy_literal(O1, D, Lex0, LTag1),
+  ;   z_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
       ->  rdf11:write_xml_literal(html, Lex0, Lex1)
       ;   rdf_equal(rdf:'XMLLiteral', D)
@@ -279,7 +280,7 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
       catch((
         rdf11:post_object(O2, O1),
         rdf11:pre_object(O2, O3),
-        rdf_legacy_literal(O3, D, Lex3, LTag3)
+        z_legacy_literal(O3, D, Lex3, LTag3)
       ), E, true),
       % Non-canonical lexical form.
       (   Lex1 \== Lex3

@@ -23,7 +23,7 @@
 rdf:dcg_print_literal_hook(Array^^D, Opts) -->
   {
     rdf_equal(tcco:array, D), !,
-    rdf_literal_lex(Array^^D, Lex)
+    z_literal_lex(Array^^D, Lex)
   },
   str_ellipsis(Lex, Opts.max_length).
 
@@ -43,6 +43,6 @@ array(N) --> float(N).
 rdfh:rdfh_literal_hook(Array^^D, Opts) -->
   {
     rdf_equal(tcco:array, D), !,
-    rdf_literal_lex(Array^^D, Lex)
+    z_literal_lex(Array^^D, Lex)
   },
   bs_truncated(Lex, Opts.max_length).

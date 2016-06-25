@@ -74,6 +74,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(z/z_shape)).
 
 :- meta_predicate
     rdf_call_update(0, 0),
@@ -191,10 +192,10 @@ rdf_change_datatype(P, D) :-
 rdf_change_datatype(P, G, D2) :-
   rdf_call_update((
     rdf(S, P, Lit1, G),
-    rdf_literal(Lit1, D1, Lex, LTag),
+    z_literal(Lit1, D1, Lex, LTag),
     D1 \== D2
   ), (
-    rdf_literal(Lit2, D2, Lex, LTag),
+    z_literal(Lit2, D2, Lex, LTag),
     %debug(rdf(update), "~w → ~w", [Lit1,Lit2]),
     rdf_update0(S, P, Lit1, G, object(Lit2))
   )).
@@ -239,12 +240,12 @@ rdf_change_lex(P, Dcg_0) :-
 rdf_change_lex(P, G, Dcg_0) :-
   rdf_call_update((
     rdf(S, P, Lit1, G),
-    rdf_literal(Lit1, D, Lex1, LTag),
+    z_literal(Lit1, D, Lex1, LTag),
     string_phrase(Dcg_0, Lex1, Lex2),
     Lex1 \== Lex2,
     rdf_datatype_compat(Lex2, D)
   ), (
-    rdf_literal(Lit2, D, Lex2, LTag),
+    z_literal(Lit2, D, Lex2, LTag),
     rdf_update0(S, P, Lit1, G, object(Lit2))
   )).
 
@@ -401,7 +402,7 @@ rdf_lex_to_iri(P, Alias, G, Lex2Local_0) :-
     rdf(S, P, Lit, G),
     rdf_is_literal(Lit)
   ), (
-    rdf_literal_lex(Lit, Lex),
+    z_literal_lex(Lit, Lex),
     string_codes(Lex, Cs1),
     phrase(Lex2Local_0, Cs1, Cs2),
     atom_codes(Local, Cs2),
@@ -444,7 +445,7 @@ rdf_lex_padding(P, C) :-
 rdf_lex_padding(P, C, G) :-
   aggregate_all(max(Len), (
     rdf(_, P, Lit, G),
-    rdf_literal_lex(Lit, Lex),
+    z_literal_lex(Lit, Lex),
     atom_length(Lex, Len)
   ), Max),
   rdf_change_lex(P, G, rdf_lex_padding0(C, Max)).
@@ -544,7 +545,7 @@ rdf_rm_null(P, Null, G) :-
 %! rdf_rm_tree(+S) is det.
 
 rdf_rm_tree(S) :-
-  rdf_tree(S, Tree),
+  z_tree(S, Tree),
   rdf_rm_tuples(Tree).
 
 

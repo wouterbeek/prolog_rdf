@@ -50,6 +50,8 @@
 :- use_module(library(stat/rdf_stat)).
 :- use_module(library(stat/rdfs_stat)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_cbd)).
+:- use_module(library(z/z_shape)).
 
 :- rdf_meta
    cand_datatype(r),
@@ -234,7 +236,7 @@ rc_root(Node) :-
 
 rc_root(Node, G) :-
   rdf_root(Node, G),
-  rdf_tree(Node, G, Triples),
+  z_tree(Node, G, Triples),
   rdf_print_triples(Triples).
 
 
@@ -249,7 +251,7 @@ rc_scbd(Node) :-
 
 
 rc_scbd(Node, G) :-
-  rdf_scbd(Node, G, Triples),
+  z_scbd(Node, G, Triples),
   rdf_print_triples(Triples).
 
 
@@ -264,7 +266,7 @@ rc_tree(Node) :-
 
 
 rc_tree(Node, G) :-
-  rdf_tree(Node, G, Triples),
+  z_tree(Node, G, Triples),
   rdf_print_triples(Triples).
 
 

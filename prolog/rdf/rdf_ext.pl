@@ -13,13 +13,14 @@
     rdf_list/3,             % ?S, ?P, -L
     rdf_lone_bnode/2,       % ?B, ?G
     rdf_nextto_cl/2,        % ?X, ?Y
+    rdf_reification/3,      % ?S, ?P, ?O
+    rdf_reification/4,      % ?S, ?P, ?O, ?G
+    rdf_reification/5,      % ?S, ?P, ?O, ?G, -Stmt
     rdf_retractall/1,       % +Tuple
     rdf_root/1,             % ?Root
     rdf_root/2,             % ?Root, ?G
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
-    rdf_tree/2,             % ?S, -Tree
-    rdf_tree/3,             % ?S, ?G, -Tree
     rdf_unload_db/0,
     rdf_update/4,           % +S, +P, +O, +Action
     rdf_update/5            % +S, +P, +O, +G, +Action
@@ -67,12 +68,13 @@
    rdf_expect_graph(r),
    rdf_list(r, r, -),
    rdf_nextto_cl(o, o),
+   rdf_reification(r, r, o),
+   rdf_reification(r, r, o, r),
+   rdf_reification(r, r, o, r, -),
    rdf_retractall(t),
    rdf_root(r),
    rdf_root(r, r),
-   rdf_string(r, -),
-   rdf_tree(r, -),
-   rdf_tree(r, r, -).
+   rdf_string(r, -).
 
 
 
@@ -206,6 +208,25 @@ rdf_nextto_cl(X, Y) :-
 
 
 
+%! rdf_reification(?S, ?P, ?O) is nondet.
+%! rdf_reification(?S, ?P, ?O, ?G) is nondet.
+%! rdf_reification(?S, ?P, ?O, ?G, -Stmt) is nondet.
+
+rdf_reification(S, P, O) :-
+  rdf_reification(S, P, O, _).
+
+
+rdf_reification(S, P, O, G) :-
+  rdf_reification(S, P, O, G, _).
+
+
+rdf_reification(S, P, O, G, Stmt) :-
+  rdf(Stmt, rdf:subject, S, G),
+  rdf(Stmt, rdf:predicate, P, G),
+  rdf(Stmt, rdf:object, O, G).
+
+
+
 %! rdf_retractall(+Tuple) is det.
 
 rdf_retractall(rdf(S,P,O)) :- !,
@@ -253,46 +274,6 @@ rdf_snap(Goal_0) :-
 
 rdf_string(V^^xsd:string, V) :- !.
 rdf_string(V@_, V).
-
-
-
-%! hdt_tree(?S, -Tree) is det.
-%! rdf_tree(?S, -Tree) is det.
-%! hdt_tree(?S, ?G, -Tree) is det.
-%! rdf_tree(?S, ?G, -Tree) is det.
-
-hdt_tree(S, Tree) :-
-  hdt_tree(S, _, Tree).
-
-
-rdf_tree(S, Tree) :-
-  rdf_tree(S, _, Tree).
-
-
-hdt_tree(S, G, Tree) :-
-  z_tree(disk, S, G, Tree).
-
-
-rdf_tree(S, G, Tree) :-
-  z_tree(mem, S, G, Tree).
-
-
-z_tree(Mode, S, G, Tree) :-
-  z_subject(Mode, S, G),
-  z_tree0(Mode, [S], G, [], [], Tree).
-
-
-z_tree0(_, [], _, _, Tree, Tree) :- !.
-z_tree0(Mode, [H|T], G, Hist, Tree, Sol) :-
-  memberchk(H, Hist), !,
-  z_tree0(Mode, T, G, Hist, Tree, Sol).
-z_tree0(Mode, [S|T1], G, Hist1, Tree1, Sol) :-
-  aggregate_all(set(rdf(S,P,O)), z(Mode, S, P, O, G), Triples),
-  aggregate_all(set(O), (z(Mode, S, _, O, G), \+ rdf_is_literal(O)), Os),
-  ord_union(T1, Os, T2),
-  ord_add_element(Hist1, S, Hist2),
-  ord_union(Tree1, Triples, Tree2),
-  z_tree0(Mode, T2, G, Hist2, Tree2, Sol).
 
 
 
