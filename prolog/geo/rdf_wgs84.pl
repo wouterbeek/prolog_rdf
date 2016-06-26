@@ -1,16 +1,16 @@
 :- module(
   rdf_wgs84,
   [
-    wgs84_alt/2,      % ?Res, ?Alt
-    wgs84_alt/3,      % ?Res, ?Alt, ?G
-    wgs84_lat/2,      % ?Res, ?Lat
-    wgs84_lat/3,      % ?Res, ?Lat, ?G
-    wgs84_lat_long/3, % ?Res, ?Lat, ?Long
-    wgs84_lat_long/4, % ?Res, ?Lat, ?Long, ?G
-    wgs84_long/2,     % ?Res, ?Long
-    wgs84_long/3,     % ?Res, ?Long, ?G
-    wgs84_point/2,    % ?Res, ?Point
-    wgs84_point/3     % ?Res, ?Point, ?G
+    wgs84_alt/3,      % ?M, ?S, ?Alt
+    wgs84_alt/4,      % ?M, ?S, ?Alt, ?G
+    wgs84_lat/3,      % ?M, ?S, ?Lat
+    wgs84_lat/4,      % ?M, ?S, ?Lat, ?G
+    wgs84_lat_long/4, % ?M, ?S, ?Lat, ?Long
+    wgs84_lat_long/5, % ?M, ?S, ?Lat, ?Long, ?G
+    wgs84_long/3,     % ?M, ?S, ?Long
+    wgs84_long/4,     % ?M, ?S, ?Long, ?G
+    wgs84_point/3,    % ?M, ?S, ?Point
+    wgs84_point/4     % ?M, ?S, ?Point, ?G
   ]
 ).
 
@@ -39,22 +39,26 @@ wgs84:Point IS-A wgs84:SpatialThing
 
 :- rdf_register_prefix(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 
-:- dynamic
-   gis:resource_shape_hook/3,
-   rdf11:in_ground_type_hook/3,
-   rdf11:out_type_hook/3.
-
 :- multifile
-   gis:resource_shape_hook/3,
+   gis:resource_shape_hook/5,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3.
 
 :- rdf_meta
-   wgs84_point(r,?),
-   wgs84_point(r,?,?).
+   wgs84_alt(?, r, ?),
+   wgs84_alt(?, r, ?, r),
+   wgs84_lat(?, r, ?),
+   wgs84_lat(?, r, ?, r),
+   wgs84_lat_long(?, r, ?, ?),
+   wgs84_lat_long(?, r, ?, ?, r),
+   wgs84_long(?, r, ?),
+   wgs84_long(?, r, ?, r),
+   wgs84_point(?, r, ?),
+   wgs84_point(?, r, ?, r).
 
-gis:resource_shape_hook(Res, Point, G) :-
-  wgs84_point(Res, Point, G).
+gis:resource_shape_hook(M, S, D, Point, G) :-
+  rdf_equal(wkt:point, D),
+  wgs84_point(M, S, Point, G).
 
 rdf11:in_ground_type_hook(D, Lat-Long, Lex) :-
   rdf_equal(wgs84:pair, D),
@@ -69,81 +73,81 @@ rdf11:out_type_hook(D, Lat-Long, Lex) :-
 
 
 
-%! wgs84_alt(?Res, ?Alt) is nondet.
-%! wgs84_alt(?Res, ?Alt, ?G) is nondet.
+%! wgs84_alt(?M, ?S, ?Alt) is nondet.
+%! wgs84_alt(?M, ?S, ?Alt, ?G) is nondet.
 %
-% Succeeds if Alt is the WGS84 altitude of resource Res.
+% Succeeds if Alt is the WGS84 altitude of resource S.
 
-wgs84_alt(Res, Alt) :-
-  wgs84_alt(Res, Alt, _).
-
-
-wgs84_alt(Res, Alt, G) :-
-  rdf_has(Res, wgs84:location, Point, _, G),
-  rdf_has(Point, wgs84:alt, Alt^^xsd:float, _, G).
+wgs84_alt(M, S, Alt) :-
+  wgs84_alt(M, S, Alt, _).
 
 
+wgs84_alt(M, S, Alt, G) :-
+  z(M, S, wgs84:location, Point, _, G),
+  z(M, Point, wgs84:alt, Alt^^xsd:float, _, G).
 
-%! wgs84_lat(?Res, ?Lat) is nondet.
-%! wgs84_lat(?Res, ?Lat, ?G) is nondet.
+
+
+%! wgs84_lat(?M, ?S, ?Lat) is nondet.
+%! wgs84_lat(?M, ?S, ?Lat, ?G) is nondet.
 %
-% Succeeds if Lat is the WGS84 latitude of resource Res.
+% Succeeds if Lat is the WGS84 latitude of resource S.
 
-wgs84_lat(Res, Lat) :-
-  wgs84_lat(Res, Lat, _).
-
-
-wgs84_lat(Res, Lat, G) :-
-  rdf_has(Res, wgs84:location, Point, _, G),
-  rdf_has(Point, wgs84:lat, Lat^^xsd:float, _, G).
+wgs84_lat(M, S, Lat) :-
+  wgs84_lat(M, S, Lat, _).
 
 
-
-%! wgs84_lat_long(?Res, ?Lat, ?Long) is nondet.
-%! wgs84_lat_long(?Res, ?Lat, ?Long, ?G) is nondet.
-
-wgs84_lat_long(Res, Lat, Long) :-
-  wgs84_lat_long(Res, Lat, Long, _).
-
-
-wgs84_lat_long(Res, Lat, Long, G) :-
-  rdf_has(Res, wgs84:location, Point, _, G),
-  rdf_has(Point, wgs84:lat_long, Lat-Long^^wgs84:pair, _, G).
+wgs84_lat(M, S, Lat, G) :-
+  z(M, S, wgs84:location, Point, _, G),
+  z(M, Point, wgs84:lat, Lat^^xsd:float, _, G).
 
 
 
-%! wgs84_long(?Res, ?Long) is nondet.
-%! wgs84_long(?Res, ?Long, ?G) is nondet.
+%! wgs84_lat_long(?M, ?S, ?Lat, ?Long) is nondet.
+%! wgs84_lat_long(?M, ?S, ?Lat, ?Long, ?G) is nondet.
+
+wgs84_lat_long(M, S, Lat, Long) :-
+  wgs84_lat_long(M, S, Lat, Long, _).
+
+
+wgs84_lat_long(M, S, Lat, Long, G) :-
+  z(M, S, wgs84:location, Point, _, G),
+  z(M, Point, wgs84:lat_long, Lat-Long^^wgs84:pair, _, G).
+
+
+
+%! wgs84_long(?M, ?S, ?Long) is nondet.
+%! wgs84_long(?M, ?S, ?Long, ?G) is nondet.
 %
-% Succeeds if Long is the WGS84 longitude of resource Res.
+% Succeeds if Long is the WGS84 longitude of resource S.
 
-wgs84_long(Res, Long) :-
-  wgs84_long(Res, Long, _).
-
-
-wgs84_long(Res, Long, G) :-
-  rdf_has(Res, wgs84:location, Point, _, G),
-  rdf_has(Point, wgs84:long, Long^^xsd:float, _, G).
+wgs84_long(M, S, Long) :-
+  wgs84_long(M, S, Long, _).
 
 
+wgs84_long(M, S, Long, G) :-
+  z(M, S, wgs84:location, Point, _, G),
+  z(M, Point, wgs84:long, Long^^xsd:float, _, G).
 
-%! wgs84_point(?Res, ?Point) is nondet.
-%! wgs84_point(?Res, ?Point, ?G) is nondet.
+
+
+%! wgs84_point(?M, ?S, ?Point) is nondet.
+%! wgs84_point(?M, ?S, ?Point, ?G) is nondet.
 %
-% Succeeds if Point denotes a geo-location of resource Res.
+% Succeeds if Point denotes a geo-location of resource S.
 %
 % Point is either of the form `point(?Lat,?Long)` or
 % `point(?Lat,?Long,?Alt)`.
 
-wgs84_point(Res, Point) :-
-  wgs84_point(Res, Point, _).
+wgs84_point(M, S, Point) :-
+  wgs84_point(M, S, Point, _).
 
 
-wgs84_point(Res, Point, G) :-
-  rdf_has(Res, wgs84:location, Point, _, G),
-  rdf_has(Point, wgs84:lat, Lat^^xsd:float, _, G),
-  rdf_has(Point, wgs84:long, Long^^xsd:float, _, G),
-  (   rdf_has(Point, wgs84:alt, Alt^^xsd:float, G)
+wgs84_point(M, S, Point, G) :-
+  z(M, S, wgs84:location, Point, _, G),
+  z(M, Point, wgs84:lat, Lat^^xsd:float, _, G),
+  z(M, Point, wgs84:long, Long^^xsd:float, _, G),
+  (   z(M, Point, wgs84:alt, Alt^^xsd:float, G)
   ->  Point = point(Lat,Long,Alt)
   ;   Point = point(Lat,Long)
   ).

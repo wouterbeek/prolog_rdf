@@ -97,21 +97,21 @@ geold_flatten :-
 
 geold_flatten(G) :-
   rdf_call_update((
-    rdf_has(S, geold:geometry, B, P, G),
+    rdf(S, geold:geometry, B, G),
     % Without the blank node check an already converted literal may
     % appear in the subject position of rdf_has/5, resulting in an
     % exception.
     rdf_is_bnode(B),
-    rdf_has(B, rdf:type, C, Q1, G),
-    rdf_has(B, geold:coordinates, Array^^tcco:array, Q2, G)
+    rdf(B, rdf:type, C, G),
+    rdf(B, geold:coordinates, Array^^tcco:array, G)
   ), (
     rdf_global_id(_:Name0, C),
     lowercase_atom(Name0, Name),
     rdf_global_id(wkt:Name, D),
-    rdf_assert(S, P, Array^^D, G),
-    rdf_retractall(S, P, B, G),
-    rdf_retractall(B, Q1, C, G),
-    rdf_retractall(B, Q2, Array^^tcco:array, G)
+    rdf_assert(S, geold:geometry, Array^^D, G),
+    rdf_retractall(S, geold:geometry, B, G),
+    rdf_retractall(B, rdf:type, C, G),
+    rdf_retractall(B, geold:coordinates, Array^^tcco:array, G)
   )).
 
 

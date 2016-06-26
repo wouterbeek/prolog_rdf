@@ -25,9 +25,6 @@
     rdfs_image/2,              % +S, -Img
     rdfs_instance/2,           % ?I, ?C
     rdfs_instance/3,           % ?I, ?C, ?G
-    rdfs_pref_label/2,         % ?S, -Lit
-    rdfs_pref_lex/3,         % ?S, ?P, ?Lex
-    rdfs_pref_string/3,      % ?S, ?P, ?Lit
     rdfs_property/1,           % ?Prop
     rdfs_property/2,           % ?Prop, ?G
     rdfs_range/2,              % ?P, ?Ran
@@ -42,7 +39,6 @@
 @version 2016/04-2016/06
 */
 
-:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -79,11 +75,6 @@
    rdfs_image(r, -),
    rdfs_instance(o, r),
    rdfs_instance(o, r, r),
-   rdfs_lts(r, r, o),
-   rdfs_pref_label(r, o),
-   rdfs_pref_lex(r, r, ?),
-   rdfs_pref_string(r, r, o),
-   rdfs_pref_string(r, r, -, o),
    rdfs_property(r),
    rdfs_property(r, r),
    rdfs_range(r, r),
@@ -303,74 +294,6 @@ rdfs_instance0(Lex@LTag, rdf:langString, G) :-
 
 
 
-%! rdfs_lts(?S, ?P, -Lit) is nondet.
-%
-% Matches RDF statements whose object term is a language-tagged string
-% that mathes the given language priory list.  Notice that results for
-% each of the prioritized languages are given in arbitrary order.
-
-rdfs_lts(S, P, Lit) :-
-  current_lrange(LRange),
-  rdfs_lts(S, P, LRange, Lit).
-
-
-rdfs_lts(S, P, LRange, Lit) :-
-  rdfs_has(S, P, V@LTag),
-  basic_filtering(LRange, LTag),
-  Lit = V@LTag.
-
-
-
-%! rdfs_pref_lex(?S, ?P, ?Lex) is nondet.
-%
-% Like rdfs_pref_string, but returns only the lexical form.
-
-rdfs_pref_lex(S, P, Lex) :-
-  rdfs_pref_string(S, P, Lit),
-  z_literal_lex(Lit, Lex).
-
-
-
-%! rdfs_pref_label(?S, -Lit) is nondet.
-
-rdfs_pref_label(S, Lit) :-
-  rdfs_pref_string(S, rdfs:label, Lit).
-
-
-
-%! rdfs_pref_string(?S, ?P, ?Lit) is nondet.
-%
-% Returns, in this exact order:
-%
-%   1. The language-tagged strings that match the given language
-%   priority list; returning results for higher priority language
-%   earlier.
-%
-%   2. The language-tagged strings that do not match the given
-%   language priority list.
-%
-%   3. XSD strings.
-
-rdfs_pref_string(S, P, Lit) :-
-  current_lrange(LRange),
-  rdfs_pref_string(S, P, LRange, Lit).
-
-
-% Matching language-tagged strings.
-rdfs_pref_string(S, P, LRange, Lit) :-
-  rdfs_lts(S, P, LRange, Lit).
-% Non-matching language-tagged strings.
-rdfs_pref_string(S, P, LRange, Lit) :-
-  rdfs_has(S, P, V@LTag),
-  % Avoid duplicates.
-  \+ basic_filtering(LRange, LTag),
-  Lit = V@LTag.
-% Plain XSD strings.
-rdfs_pref_string(S, P, _, V^^xsd:string) :-
-  rdfs_has(S, P, V^^xsd:string).
-
-
-
 %! rdfs_property(?Prop) is nondet.
 %! rdfs_property(?Prop, ?G) is nondet.
 
@@ -444,40 +367,3 @@ rdfs_assert_class0(C, Parent, Lbl, Comm, G) :-
   (var(Lbl) -> true ; rdfs_assert_label(C, Lbl, G)),
   (var(Comm) -> true ; rdfs_assert_comment(C, Comm, G)),
   rdfs_assert_isDefinedBy(C, G).
-
-
-
-%! basic_filtering(
-%!   +LanguagePriorityList:list(atom),
-%!   +LanguageTag:atom
-%! ) is semidet.
-% Succeeds if the LanguagePriorityList matches the LanguageTag according to
-% the basic filtering algorithm described in RFC 4647,
-% i.e., if the former is a case-insensitive prefix of the latter,
-% while also treating the `*` sign as a wildcard.
-%
-% @compat RFC 4647
-
-basic_filtering(Ranges, Tag):-
-  % NONDET
-  member(Range, Ranges),
-  atomic_list_concat(Subtags1, -, Range),
-  atomic_list_concat(Subtags2, -, Tag),
-  basic_filtering0(Subtags1, Subtags2), !.
-
-
-basic_filtering0(_, []).
-basic_filtering0([H1|T1], [H2|T2]):-
-  subtag_match(H1, H2),
-  basic_filtering0(T1, T2).
-
-
-
-%! subtag_match(+RangeSubtag:atom, +Subtag:atom) is semidet.
-% Two subtags match if either they are the same when compared
-% case-insensitively or the language range's subtag is the wildcard `*`
-
-subtag_match(*, _):- !.
-subtag_match(X1, X2):-
-  downcase_atom(X1, X),
-  downcase_atom(X2, X).

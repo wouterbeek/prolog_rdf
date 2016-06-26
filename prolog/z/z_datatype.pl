@@ -1,12 +1,12 @@
 :- module(
   z_datatype,
   [
-    z_col_datatype/2,          % +P, -D
-    z_col_datatype/3,          % +P, ?G, -D
+    z_col_datatype/3,          % ?M, +P, -D
+    z_col_datatype/4,          % ?M, +P, ?G, -D
     z_datatype_compat/2,       % +Lex, -D
     z_datatype_compat_min/2,   % +Lex, -D
-    z_datatypes_compat/2,      % +P, -Ds
-    z_datatypes_compat/3,      % +P, ?G, -Ds
+    z_datatypes_compat/3,      % ?M, +P, -Ds
+    z_datatypes_compat/4,      % ?M, +P, ?G, -Ds
     z_datatype_property/2,     % ?D, ?Property
     z_datatype_supremum/2,     % +Datatypes, -Supremum
     z_strict_subdatatype_of/2, % ?Subtype, ?Supertype
@@ -40,14 +40,14 @@
 :- use_module(library(z/z_term)).
 
 :- rdf_meta
-   z_col_datatype(r, -),
-   z_col_datatype(r, r, -),
+   z_col_datatype(?, r, -),
+   z_col_datatype(?, r, r, -),
    z_datatype_compat(+, r),
    z_datatype_compat_min(+, r),
-   z_datatype_compats(r, -),
-   z_datatype_compats(r, r, -),
    z_datatype_property(r, ?),
    z_datatype_supremum(t, t),
+   z_datatypes_compat(?, r, -),
+   z_datatypes_compat(?, r, r, -),
    z_strict_subdatatype_of(r, r),
    z_subdatatype_of(r, r),
    xsd_date_time_datatype(o, r),
@@ -58,17 +58,17 @@
 
 
 
-%! z_col_datatype(+P, -D) is semidet.
-%! z_col_datatype(+P, ?G, -D) is nondet.
+%! z_col_datatype(?M, +P, -D) is semidet.
+%! z_col_datatype(?M, +P, ?G, -D) is nondet.
 
-z_col_datatype(P, D) :-
-  z_col_datatype(P, _, D).
+z_col_datatype(M, P, D) :-
+  z_col_datatype(M, P, _, D).
 
 
-z_col_datatype(P, G, D) :-
-  z(_, P, O, G),
+z_col_datatype(M, P, G, D) :-
+  z(M, _, P, O, G),
   z_literal_datatype(O, D), !,
-  forall(z(_, P, O0, G), z_literal_datatype(O0, D)).
+  forall(z(M, _, P, O0, G), z_literal_datatype(O0, D)).
 
 
 
@@ -98,34 +98,6 @@ z_datatype_compat(Lex, xsd:boolean) :-
   number_string(N, Lex),
   rdf11:in_boolean(N, _).
 z_datatype_compat(_, xsd:string).
-
-
-
-%! z_datatypes_compat(+P, +Ds) is det.
-%! z_datatypes_compat(+P, ?G, +Ds) is det.
-%
-% @tbd Can be optimized when the compatible datatypes of the previous
-% lexical form act as a filter on the datatypes that need to be
-% checked for the next lexical form.
-
-z_datatypes_compat(P, Ds) :-
-  z_datatypes_compat(P, _, Ds).
-
-
-z_datatypes_compat(P, G, Ds) :-
-  z_aggregate_all(set(Lex), lexical_form0(P, Lex, G), Lexs),
-  maplist(z_datatypes_compat0, Lexs, Dss),
-  (Dss == [] -> Ds = [] ; ord_intersection(Dss, Ds)).
-
-
-lexical_form0(P, Lex, G) :-
-  z(_, P, Lit, G),
-  rdf_is_literal(Lit),
-  z_literal_lex(Lit, Lex).
-
-
-z_datatypes_compat0(Lex, Ds) :-
-  aggregate_all(set(D), z_datatype_compat(Lex, D), Ds).
 
 
 
@@ -178,7 +150,35 @@ z_datatype_supremum([H1,H2|T], Sup) :-
 
 
 
-%! z_strict_subdatatype_of(?Subtype:iri, ?Supertype:iri) is nondet.
+%! z_datatypes_compat(?M, +P, +Ds) is det.
+%! z_datatypes_compat(?M, +P, ?G, +Ds) is det.
+%
+% @tbd Can be optimized when the compatible datatypes of the previous
+% lexical form act as a filter on the datatypes that need to be
+% checked for the next lexical form.
+
+z_datatypes_compat(M, P, Ds) :-
+  z_datatypes_compat(M, P, _, Ds).
+
+
+z_datatypes_compat(M, P, G, Ds) :-
+  z_aggregate_all(set(Lex), lexical_form0(M, P, Lex, G), Lexs),
+  maplist(z_datatypes_compat0, Lexs, Dss),
+  (Dss == [] -> Ds = [] ; ord_intersection(Dss, Ds)).
+
+
+lexical_form0(M, P, Lex, G) :-
+  z(M, _, P, Lit, G),
+  rdf_is_literal(Lit),
+  z_literal_lex(Lit, Lex).
+
+
+z_datatypes_compat0(Lex, Ds) :-
+  aggregate_all(set(D), z_datatype_compat(Lex, D), Ds).
+
+
+
+%! z_strict_subdatatype_of(?Subtype, ?Supertype) is nondet.
 
 z_strict_subdatatype_of(X, Y) :-
   dif(X, Y),
@@ -186,7 +186,7 @@ z_strict_subdatatype_of(X, Y) :-
 
 
 
-%! z_subdatatype_of(?Subtype:iri, ?Supertype:iri) is nondet.
+%! z_subdatatype_of(?Subtype, ?Supertype) is nondet.
 
 z_subdatatype_of(X, Y) :-
   xsd_subtype_of(X, Y).
@@ -224,7 +224,7 @@ xsd_date_time_datatype(date_time(Y,Mo,Da,H,Mi,S,_), D) :-
 
 
 
-%! xsd_strict_subtype_of(?Subtype:iri, ?Supertype:iri) is nondet.
+%! xsd_strict_subtype_of(?Subtype, ?Supertype) is nondet.
 
 xsd_strict_subtype_of(X, Y) :-
   dif(X, Y),
@@ -232,14 +232,18 @@ xsd_strict_subtype_of(X, Y) :-
 
 
 
-%! xsd_subtype_of(?Subtype:iri, ?Supertype:iri) is nondet.
+%! xsd_subtype_of(?Subtype, ?Supertype) is nondet.
 
 xsd_subtype_of(XGlobal, YGlobal) :-
-  xsd_global_local(XGlobal, XLocal),
-  xsd_global_local(YGlobal, YLocal),
+  xsd_global_local0(XGlobal, XLocal),
+  xsd_global_local0(YGlobal, YLocal),
   xsdp_subtype_of(XLocal, YLocal),
-  xsd_global_local(XGlobal, XLocal),
-  xsd_global_local(YGlobal, YLocal).
+  xsd_global_local0(XGlobal, XLocal),
+  xsd_global_local0(YGlobal, YLocal).
 
-xsd_global_local(X, Y) :- var(X), var(Y), !.
-xsd_global_local(X, Y) :- rdf_global_id(xsd:Y, X).
+
+xsd_global_local0(X, Y) :-
+  var(X),
+  var(Y), !.
+xsd_global_local0(X, Y) :-
+  rdf_global_id(xsd:Y, X).

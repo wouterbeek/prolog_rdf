@@ -11,6 +11,7 @@
 :- use_module(library(html/html_bs)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(z/z_term)).
 
 :- rdf_register_prefix(tcco, 'http://triply.cc/ontology/').
 

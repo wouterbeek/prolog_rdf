@@ -7,11 +7,11 @@
     rdf_change_datatype/2, % +P, +D
     rdf_change_datatype/3, % +P, ?G, +D
     rdf_change_iri/5,      % ?S, ?P, ?O, +Positions, :Dcg_0
-    rdf_change_iri/6,      % ?S, ?P, ?O, +Positions, ?G, :Dcg_0
+    rdf_change_iri/6,      % ?S, ?P, ?O, ?G, +Positions, :Dcg_0
     rdf_change_lex/2,      % +P, :Dcg_0
     rdf_change_lex/3,      % +P, ?G, :Dcg_0
     rdf_change_p/2,        % +P, +Q
-    rdf_change_p/2,        % +P, ?G, +Q
+    rdf_change_p/3,        % +P, ?G, +Q
     rdf_cp/2,              % +G1, +G2
     rdf_cp/5,              % +G1, ?S, ?P, ?O, +G2
     rdf_comb_date/4,       % +YP, +MP, +DP, +Q
@@ -30,9 +30,8 @@
     rdf_mv/5,              % +G1, ?S, ?P, ?O, +G2
     rdf_rm/3,              % ?S, ?P, ?O
     rdf_rm/4,              % ?S, ?P, ?O, ?G
-    rdf_lex_padding/1,     % +P
     rdf_lex_padding/2,     % +P, +PaddingCode
-    rdf_lex_padding/3,     % +P, +PaddingCode, ?G
+    rdf_lex_padding/3,     % +P, ?G, +PaddingCode
     rdf_rm_cell/3,         % +S, +P, +O
     rdf_rm_cell/4,         % +S, +P, +O, ?G
     rdf_rm_col/1,          % +P
@@ -80,7 +79,7 @@ Higher-level update operations performed on RDF data.
     rdf_call_update(0, 0),
     rdf_call_update(0, 0, +),
     rdf_change_iri(?, ?, ?, +, //),
-    rdf_change_iri(?, ?, ?, +, ?, //),
+    rdf_change_iri(?, ?, ?, ?, +, //),
     rdf_change_iri0(+, +, //, -),
     rdf_change_lex(+, //),
     rdf_change_lex(+, ?, //),
@@ -97,7 +96,7 @@ Higher-level update operations performed on RDF data.
    rdf_change_datatype(r, r),
    rdf_change_datatype(r, r, r),
    rdf_change_iri(r, r, o, +, :),
-   rdf_change_iri(r, r, o, +, r, :),
+   rdf_change_iri(r, r, o, r, +, :),
    rdf_change_lex(r, :),
    rdf_change_lex(r, r, :),
    rdf_change_p(r, r),
@@ -114,6 +113,8 @@ Higher-level update operations performed on RDF data.
    rdf_flatten(r, r),
    rdf_inc(r, r),
    rdf_inc(r, r, +),
+   rdf_lex_padding(r, +),
+   rdf_lex_padding(r, r, +),
    rdf_lex_to_iri(r, +, :),
    rdf_lex_to_iri(r, +, r, :),
    rdf_mv(r, r),
@@ -203,13 +204,13 @@ rdf_change_datatype(P, G, D2) :-
 
 
 %! rdf_change_iri(?S, ?P, ?O, +Positions:list(oneof([+,-])), :Dcg_0) is det.
-%! rdf_change_iri(?S, ?P, ?O, +Positions:list(oneof([+,-])), ?G, :Dcg_0) is det.
+%! rdf_change_iri(?S, ?P, ?O, ?G, +Positions:list(oneof([+,-])), :Dcg_0) is det.
 
 rdf_change_iri(S1, P1, O1, Pos, Dcg_0) :-
-  rdf_change_iri(S1, P1, O1, Pos, _, Dcg_0).
+  rdf_change_iri(S1, P1, O1, _, Pos, Dcg_0).
 
 
-rdf_change_iri(S1, P1, O1, Pos, G, Dcg_0) :-
+rdf_change_iri(S1, P1, O1, G, Pos, Dcg_0) :-
   rdf_call_update((
     rdf(S1, P1, O1, G),
     rdf_change_iri0(rdf(S1,P1,O1), Pos, Dcg_0, rdf(S2,P2,O2)),
@@ -430,19 +431,14 @@ rdf_mv(G1, S, P, O, G2) :-
 
 
 
-%! rdf_lex_padding(+P) is det.
 %! rdf_lex_padding(+P, +PaddingCode) is det.
-%! rdf_lex_padding(+P, +PaddingCode, ?G) is det.
-
-rdf_lex_padding(P) :-
-  rdf_lex_padding(P, 0'0).
-
+%! rdf_lex_padding(+P, ?G, +PaddingCode) is det.
 
 rdf_lex_padding(P, C) :-
-  rdf_lex_padding(P, C, _).
+  rdf_lex_padding(P, _, C).
 
 
-rdf_lex_padding(P, C, G) :-
+rdf_lex_padding(P, G, C) :-
   aggregate_all(max(Len), (
     rdf(_, P, Lit, G),
     z_literal_lex(Lit, Lex),

@@ -22,13 +22,13 @@ Allows WKT shapes to be read/written from/to the RDF DB.
    array2shape(+, r, -).
 
 :- multifile
-   gis:resource_shape_hook/4,
+   gis:resource_shape_hook/5,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
    zh:zh_literal_hook//2.
 
-gis:resource_shape_hook(Res, D, Shape, G) :-
-  z(Res, geold:geometry, Array^^D, G),
+gis:resource_shape_hook(M, S, D, Shape, G) :-
+  z(M, S, geold:geometry, Array^^D, G),
   array2shape(Array, D, Shape).
 
 array2shape(L1, wkt:lineString, linestring(L2)) :- !,

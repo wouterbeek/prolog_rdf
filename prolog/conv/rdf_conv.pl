@@ -40,9 +40,9 @@
 %
 % The followning options are defined:
 %
-%   * mode(+oneof([disk,memory])) Whether the result of data
-%   conversion is stored in memory (RDF graph) or on disk (HDT
-%   archive).  The default is `memory`.
+%   * mode(+oneof([hdt,rdf])) Whether the result of data conversion is
+%   stored in memory (`rdf`) or on disk (`hdt`).  The default is
+%   `hdt`.
 %
 %   * module(+atom) The name of the module which defines the goals.
 %   The default is Alias.
@@ -58,7 +58,7 @@ rdf_conv(Alias) :-
 
 
 rdf_conv(Alias, Opts1) :-
-  merge_dicts(_{mode: disk, module: Alias}, Opts1, Opts2),
+  merge_dicts(_{mode: hdt, module: Alias}, Opts1, Opts2),
   rdf_conv_data(Alias, Opts2),
   (get_dict(vocab, Opts1, true) -> rdf_conv_vocab(Alias, Opts2) ; true),
   (get_dict(void, Opts1, true) -> rdf_conv_void(Alias, Opts2) ; true).
@@ -90,7 +90,8 @@ rdf_conv_void(Alias, Opts) :-
 source_to_void0(DataFile, Goal_1, VoidG) :-
   source_to_void(DataFile, Goal_1, VoidG),
   z_graph_to_file(VoidG, [nt,gz], VoidFile),
-  rdf_write_to_sink(VoidFile, VoidG, [compression(gzip),rdf_format(ntriples)]).
+  rdf_write_to_sink(VoidFile, VoidG, [compression(gzip),rdf_format(ntriples)]),
+  rdf_unload_graph(VoidG).
 
 
 

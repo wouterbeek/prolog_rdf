@@ -2,9 +2,10 @@
   z_ext,
   [
     z_aggregate_all/3, % +Template, :Goal, -Result
-    z_graph/1,         % ?G
+    z_graph/2,         % ?M, ?G
     z_graph_to_file/3, % +G, +Comps, -File
-    z_load_or_call/3   % +Mode, :Goal_1, +G
+    z_load_or_call/3,  % +M, :Goal_1, +G
+    z_save/1           % +G
   ]
 ).
 
@@ -27,8 +28,9 @@ Generic support for the Z abstraction layer.
 
 :- rdf_meta
    z_aggregate_all(+, t, -),
-   z_graph(r),
-   z_load_or_call(+, :, r).
+   z_graph(?, r),
+   z_load_or_call(+, :, r),
+   z_save(r).
 
 :- debug(z(ext)).
 
@@ -43,11 +45,11 @@ z_aggregate_all(Template, Goal, Result) :-
 
 
 
-%! z_graph(?G) is nondet.
+%! z_graph(?M, ?G) is nondet.
 
-z_graph(G) :-
+z_graph(rdf, G) :-
   rdf_graph(G).
-z_graph(G) :-
+z_graph(hdt, G) :-
   hdt_graph(G).
 
 
@@ -61,21 +63,29 @@ z_graph_to_file(G, Comps, HdtFile) :-
 
 
 
-%! z_load_or_call(+Mode, :Goal_1, +G) is det.
+%! z_load_or_call(+M, :Goal_1, +G) is det.
 
-z_load_or_call(Mode, Goal_1, G) :-
+z_load_or_call(M, Goal_1, G) :-
   (   z_graph_to_file(G, [nt,gz], File),
       exists_file(File)
-  ->  (   Mode == memory
+  ->  (   M == rdf
       ->  rdf_load_file(File),
           debug(z(ext), "N-Triples → memory", [])
-      ;   Mode == disk
+      ;   M == hdt
       ->  hdt_load(G)
       )
   ;   call(Goal_1, G),
       debug(z(ext), "Callled goal, hopefully written to N-Triples now...", []),
-      z_load_or_call(Mode, Goal_1, G)
+      z_load_or_call(M, Goal_1, G)
   ).
+
+
+
+%! z_save(+G) is det.
+
+z_save(G) :-
+  z_graph_to_file(G, [nt,gz], File),
+  rdf_write_to_sink(File, G, [compression(gzip),rdf_format(ntriples)]).
 
 
 

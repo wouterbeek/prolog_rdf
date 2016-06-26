@@ -2,25 +2,29 @@
   zh,
   [
     zh_bnode//1,         % +B
-    zh_bnode//2,         % +B, +Opts
+    zh_bnode//2,         % +B,     +Opts
     zh_class//1,         % +C
-    zh_class//2,         % +C, +Opts
+    zh_class//2,         % +C,     +Opts
     zh_datatype//1,      % +D
-    zh_datatype//2,      % +D, +Opts
-    zh_describe//1,      % +S
-    zh_graph//1,         % +G
-    zh_graph_table//0,
+    zh_datatype//2,      % +D,     +Opts
+    zh_describe//2,      % +M, +S
+    zh_describe//3,      % +M, +S, +Opts
+    zh_graph_term//1,    % +G
+    zh_graph_term//2,    % +G,     +Opts
+    zh_graph_table//1,   % +M
+    zh_graph_table//2,   % +M,     +Opts
     zh_iri//1,           % +Iri
+    zh_iri//2,           % +Iri,   +Opts
     zh_list//1,          % +L
-    zh_list//2,          % +L, +Opts
+    zh_list//2,          % +L,     +Opts
     zh_literal//1,       % +Lit
-    zh_literal//2,       % +Lit, +Opts
+    zh_literal//2,       % +Lit,   +Opts
     zh_object//1,        % +O
-    zh_object//2,        % +O, +Opts
+    zh_object//2,        % +O,     +Opts
     zh_predicate//1,     % +P
-    zh_predicate//2,     % +P, +Opts
+    zh_predicate//2,     % +P,     +Opts
     zh_property//1,      % +Prop
-    zh_property//2,      % +Prop, +Opts
+    zh_property//2,      % +Prop,  +Opts
     zh_property_path//1, % +Props
     zh_property_path//2, % +Props, +Opts
     zh_quad//4,          % +S, +P, +O, +G
@@ -38,8 +42,8 @@
     zh_triple//4,        % +S, +P, +O, +Opts
     zh_triple_table//1,  % +Triples
     zh_triple_table//2,  % +Triples, +Opts
-    zh_triple_table//4,  % ?S, ?P, ?O, ?G
-    zh_triple_table//5   % +S, ?P, ?O, ?G, +Opts
+    zh_triple_table//5,  % ?M, ?S, ?P, ?O, ?G
+    zh_triple_table//6   % ?M, ?S, ?P, ?O, ?G, +Opts
   ]
 ).
 
@@ -87,12 +91,22 @@ The following options are supported:
     zh:zh_literal_hook//2.
 
 :- rdf_meta
+   zh_class(r, ?, ?),
+   zh_class(r, +, ?, ?),
+   zh_datatype(r, ?, ?),
+   zh_datatype(r, +, ?, ?),
+   zh_describe(+, r, ?, ?),
+   zh_describe(+, r, +, ?, ?),
+   zh_graph_term(r, ?, ?),
+   zh_graph_term(r, +, ?, ?),
+   zh_iri(r, ?, ?),
+   zh_iri(r, +, ?, ?),
    zh_quad_panels(r, r, o, r, ?, ?),
    zh_quad_panels(r, r, o, r, +, ?, ?),
    zh_quad_table(r, r, o, r, ?, ?),
    zh_quad_table(r, r, o, r, +, ?, ?),
-   zh_triple_table(r, r, o, r, ?, ?),
-   zh_triple_table(r, r, o, r, +, ?, ?).
+   zh_triple_table(?, r, r, o, r, ?, ?),
+   zh_triple_table(?, r, r, o, r, +, ?, ?).
 
 :- setting(zh_handler, atom, '',
      "ID of the HTTP handler that performs RDF term lookup."
@@ -102,8 +116,8 @@ The following options are supported:
 
 
 
-%! zh_bnode(+BNode)// is det.
-%! zh_bnode(+BNode, +Opts)// is det.
+%! zh_bnode(+B)// is det.
+%! zh_bnode(+B, +Opts)// is det.
 
 zh_bnode(B) -->
   {zh_default_options(Opts)},
@@ -164,19 +178,19 @@ zh_datatype_outer(C, Cs1, D, Opts) -->
 
 
 
-%! zh_describe(+S)// is det.
-%! zh_describe(+S, +Opts)// is det.
+%! zh_describe(+M, +S)// is det.
+%! zh_describe(+M, +S, +Opts)// is det.
 %
 % Generate a full description of subject term S.
 
-zh_describe(S) -->
+zh_describe(M, S) -->
   {zh_default_options(Opts)},
-  zh_describe(S, Opts).
+  zh_describe(M, S, Opts).
 
 
-zh_describe(S, Opts) -->
+zh_describe(M, S, Opts) -->
   {
-    findall(P-O, z(S, P, O), Pairs),
+    findall(P-O, z(M, S, P, O), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
   bs_table(
@@ -195,35 +209,35 @@ zh_describe_row0(P-Os, Opts) -->
 
 
 
-%! zh_graph(+G)// is det.
-%! zh_graph(+G, +Opts)// is det.
+%! zh_graph_term(+G)// is det.
+%! zh_graph_term(+G, +Opts)// is det.
 
-zh_graph(G) -->
+zh_graph_term(G) -->
   {zh_default_options(Opts)},
-  zh_graph(G, Opts).
+  zh_graph_term(G, Opts).
 
 
-zh_graph(G, Opts) -->
-  zh_graph_outer(_, [], G, Opts).
+zh_graph_term(G, Opts) -->
+  zh_graph_term_outer(_, [], G, Opts).
 
 
-zh_graph_outer(C, Cs1, G, Opts) -->
+zh_graph_term_outer(C, Cs1, G, Opts) -->
   {ord_add_element(Cs1, graph, Cs2)},
   zh_iri_outer(C, Cs2, G, Opts).
 
 
 
-%! zh_graph_table// is det.
-%! zh_graph_table(+Opts)// is det.
+%! zh_graph_table(+M)// is det.
+%! zh_graph_table(+M, +Opts)// is det.
 
-zh_graph_table -->
+zh_graph_table(M) -->
   {zh_default_options(Opts)},
-  zh_graph_table(Opts).
+  zh_graph_table(M, Opts).
 
 
-zh_graph_table(Opts) -->
+zh_graph_table(M, Opts) -->
   {
-    findall(N-G, z_number_of_triples(G, N), Pairs),
+    findall(N-G, z_number_of_triples(M, G, N), Pairs),
     desc_pairs_values(Pairs, Gs)
   },
   bs_table(
@@ -724,16 +738,16 @@ zh_table_header0 -->
 
 
 
-%! zh_triple_table(?S, ?P, ?O, ?G)// is det.
-%! zh_triple_table(?S, ?P, ?O, ?G, +Opts)// is det.
+%! zh_triple_table(?M, ?S, ?P, ?O, ?G)// is det.
+%! zh_triple_table(?M, ?S, ?P, ?O, ?G, +Opts)// is det.
 
-zh_triple_table(S, P, O, G) -->
+zh_triple_table(M, S, P, O, G) -->
   {zh_default_options(Opts)},
-  zh_triple_table(S, P, O, G, Opts).
+  zh_triple_table(M, S, P, O, G, Opts).
 
 
-zh_triple_table(S, P, O, G, Opts) -->
-  {z_triples(S, P, O, G, Triples)},
+zh_triple_table(M, S, P, O, G, Opts) -->
+  {z_triples(M, S, P, O, G, Triples)},
   zh_triple_table(Triples, Opts).
 
 
