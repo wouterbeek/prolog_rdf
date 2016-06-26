@@ -24,4 +24,4 @@
 %! hdt_number_of_triples(?G, -N) is nondet.
 
 hdt_number_of_triples(G, N) :-
-  hdt_header(_, '<http://rdfs.org/ns/void#triples>', N, G).
+  hdt_header(_, '<http://rdfs.org/ns/void#triples>', N^^xsd:integer, G).

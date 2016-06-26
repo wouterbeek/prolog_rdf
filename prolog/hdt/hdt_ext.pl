@@ -183,6 +183,7 @@ hdt_load(_, _, G, _) :-
   hdt_graph(G, _), !.
 % HDT → open
 hdt_load(HdtFile, NTriplesFile, G, _) :-
+  exists_file(HdtFile), !,
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph(G, Hdt, HdtFile, NTriplesFile)),
   debug(z(ext), "HDT → open", []).

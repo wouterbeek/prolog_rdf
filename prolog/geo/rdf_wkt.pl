@@ -11,10 +11,9 @@ Allows WKT shapes to be read/written from/to the RDF DB.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
 :- use_module(library(html/html_bs)).
-:- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(z/z_stmt)).
+:- use_module(library(z/z_term)).
 
 :- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
 :- rdf_register_prefix(wkt, 'http://geojsonld.com/wkt#').

@@ -106,6 +106,7 @@ Print RDF statements.
 :- use_module(library(z/z_cbd)).
 :- use_module(library(z/z_shape)).
 :- use_module(library(z/z_stmt)).
+:- use_module(library(z/z_term)).
 
 :- dynamic
     var_map/2.

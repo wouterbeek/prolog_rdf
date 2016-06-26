@@ -84,7 +84,11 @@ rdf_conv_void(Alias, Opts) :-
   rdf_global_id(Alias:void, VoidG),
   atomic_list_concat([Alias,load,void], '_', Pred_1),
   Goal_1 = Opts.module:Pred_1,
-  z_load_or_call(Opts.mode, source_to_void(DataFile, Goal_1), VoidG),
+  z_load_or_call(Opts.mode, source_to_void0(DataFile, Goal_1), VoidG).
+
+
+source_to_void0(DataFile, Goal_1, VoidG) :-
+  source_to_void(DataFile, Goal_1, VoidG),
   z_graph_to_file(VoidG, [nt,gz], VoidFile),
   rdf_write_to_sink(VoidFile, VoidG, [compression(gzip),rdf_format(ntriples)]).
 

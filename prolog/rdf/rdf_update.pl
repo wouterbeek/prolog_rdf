@@ -73,8 +73,8 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(z/z_datatype)).
-:- use_module(library(z/z_print)).
 :- use_module(library(z/z_shape)).
+:- use_module(library(z/z_term)).
 
 :- meta_predicate
     rdf_call_update(0, 0),
@@ -149,8 +149,8 @@ rdf_add_ltag(P, LTag) :-
 
 rdf_add_ltag(P, LTag, G) :-
   rdf_call_update(
-    z(Mode, S, P, Str^^xsd:string, G),
-    z_update0(Mode, S, P, Str^^xsd:string, G, object(Str@LTag))
+    rdf(S, P, Str^^xsd:string, G),
+    rdf_update(S, P, Str^^xsd:string, G, object(Str@LTag))
   ).
 
 
@@ -197,7 +197,7 @@ rdf_change_datatype(P, G, D2) :-
   ), (
     z_literal(Lit2, D2, Lex, LTag),
     %debug(rdf(update), "~w → ~w", [Lit1,Lit2]),
-    rdf_update0(S, P, Lit1, G, object(Lit2))
+    rdf_update(S, P, Lit1, G, object(Lit2))
   )).
 
 
@@ -246,7 +246,7 @@ rdf_change_lex(P, G, Dcg_0) :-
     z_datatype_compat(Lex2, D)
   ), (
     z_literal(Lit2, D, Lex2, LTag),
-    rdf_update0(S, P, Lit1, G, object(Lit2))
+    rdf_update(S, P, Lit1, G, object(Lit2))
   )).
 
 
@@ -263,7 +263,7 @@ rdf_change_p(P, G, Q) :-
     rdf(S, P, O, G),
     P \== Q
   ), (
-    rdf_update0(S, P, O, G, predicate(Q))
+    rdf_update(S, P, O, G, predicate(Q))
   )).
 
 
@@ -364,7 +364,7 @@ rdf_flatten(P, G) :-
     rdf_is_bnode(Y),
     rdf(Y, Q, Z, G)
   ), (
-    rdf_update0(Y, Q, Z, G, subject(X)),
+    rdf_update(Y, Q, Z, G, subject(X)),
     rdf_retractall(X, P, Y, G)
   )).
 
@@ -385,7 +385,7 @@ rdf_inc(S, P, G) :-
     rdf11:xsd_numerical(D, TypeCheck, integer),
     N2 is N1 + 1,
     must_be(TypeCheck, N2),
-    rdf_update0(S, P, N1^^D, G, object(N2^^D))
+    rdf_update(S, P, N1^^D, G, object(N2^^D))
   )).
 
 
@@ -407,7 +407,7 @@ rdf_lex_to_iri(P, Alias, G, Lex2Local_0) :-
     phrase(Lex2Local_0, Cs1, Cs2),
     atom_codes(Local, Cs2),
     rdf_global_id(Alias:Local, O),
-    rdf_update0(S, P, Lit, G, object(O))
+    rdf_update(S, P, Lit, G, object(O))
   )).
 
 
@@ -425,7 +425,7 @@ rdf_mv(G1, G2) :-
 rdf_mv(G1, S, P, O, G2) :-
   rdf_call_update(
     rdf(S, P, O, G1),
-    rdf_update0(S, P, O, G1, graph(G2))
+    rdf_update(S, P, O, G1, graph(G2))
   ).
 
 

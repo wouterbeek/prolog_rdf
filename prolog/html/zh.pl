@@ -77,6 +77,7 @@ The following options are supported:
 :- use_module(library(z/z_datatype)).
 :- use_module(library(z/z_stat)).
 :- use_module(library(z/z_stmt)).
+:- use_module(library(z/z_term)).
 
 :- html_meta
    zh_link(+, +, +, html, +, ?, ?),
@@ -313,7 +314,7 @@ zh_literal_outer(C, Cs1, Lit, Opts) -->
 
 % RDF HTML
 zh_literal_inner(V^^D, _) -->
-  {rdf_subdatatype_of(D, rdf:'HTML')}, !,
+  {z_subdatatype_of(D, rdf:'HTML')}, !,
   html(\[V]).
 % RDF language-tagged string
 zh_literal_inner(Str@LTag, Opts) -->
@@ -327,7 +328,7 @@ zh_literal_inner(Str@LTag, Opts) --> !,
   html(span(lang=LTag, \bs_truncated(Str, Opts.max_length))).
 % XSD boolean
 zh_literal_inner(V^^D, _) -->
-  {rdf_subdatatype_of(D, xsd:boolean)}, !,
+  {z_subdatatype_of(D, xsd:boolean)}, !,
   html("~a"-[V]).
 % XSD gDay
 zh_literal_inner(Da^^D, _) -->
@@ -347,32 +348,32 @@ zh_literal_inner(Y^^D, _) -->
 % XSD gYearMonth
 zh_literal_inner(V^^D1, Opts) -->
   {
-    rdf_subdatatype_of(D1, D2),
+    z_subdatatype_of(D1, D2),
     rdf11:xsd_date_time_type(D2)
   }, !,
   html_date_time(V, Opts).
 % XSD integer
 zh_literal_inner(V^^D, _) -->
-  {rdf_subdatatype_of(D, xsd:integer)}, !,
+  {z_subdatatype_of(D, xsd:integer)}, !,
   html("~D"-[V]).
 % XSD decimal
 zh_literal_inner(V^^D, _) -->
-  {rdf_subdatatype_of(D, xsd:decimal)}, !,
+  {z_subdatatype_of(D, xsd:decimal)}, !,
   html("~w"-[V]).
 % XSD double
 % XSD float
 zh_literal_inner(V^^D, _) -->
-  {(  rdf_subdatatype_of(D, xsd:float)
-  ;   rdf_subdatatype_of(D, xsd:double)
+  {(  z_subdatatype_of(D, xsd:float)
+  ;   z_subdatatype_of(D, xsd:double)
   )}, !,
   html("~G"-[V]).
 % XSD string
 zh_literal_inner(Str^^D, Opts) -->
-  {rdf_subdatatype_of(D, xsd:string)}, !,
+  {z_subdatatype_of(D, xsd:string)}, !,
   bs_truncated(Str, Opts.max_length).
 % XSD URI
 zh_literal_inner(V^^D, _) -->
-  {rdf_subdatatype_of(D, xsd:anyURI)}, !,
+  {z_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
 % Datatype hooks.
 zh_literal_inner(Lit, Opts) -->
