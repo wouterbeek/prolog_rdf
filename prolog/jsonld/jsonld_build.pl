@@ -20,13 +20,13 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 :- use_module(library(z/z_cbd)).
+:- use_module(library(z/z_datatype)).
 
 :- rdf_meta
    subject_to_jsonld(r, r, -),
@@ -245,7 +245,7 @@ p_datatype(Triples, P, Sup) :-
     (member(rdf(_,P,O), Triples), z_literal_datatype(O, D)),
     Ds
   ),
-  rdf_datatype_supremum(Ds, Sup). % @tbd
+  z_datatype_supremum(Ds, Sup).
 
 
 

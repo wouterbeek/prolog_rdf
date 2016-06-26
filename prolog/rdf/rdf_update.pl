@@ -67,13 +67,13 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(z/z_datatype)).
+:- use_module(library(z/z_print)).
 :- use_module(library(z/z_shape)).
 
 :- meta_predicate
@@ -243,7 +243,7 @@ rdf_change_lex(P, G, Dcg_0) :-
     z_literal(Lit1, D, Lex1, LTag),
     string_phrase(Dcg_0, Lex1, Lex2),
     Lex1 \== Lex2,
-    rdf_datatype_compat(Lex2, D)
+    z_datatype_compat(Lex2, D)
   ), (
     z_literal(Lit2, D, Lex2, LTag),
     rdf_update0(S, P, Lit1, G, object(Lit2))

@@ -29,6 +29,7 @@
 
 :- use_module(library(error)).
 :- use_module(library(ordsets)).
+:- use_module(library(z/z_stmt)).
 
 
 
@@ -50,9 +51,9 @@
 %  at least one triple in G.
 
 rdf_graph_instance(H, G, Map) :-
-  rdf_triples(G, GTriples),
+  z_triples(G, GTriples),
   partition(rdf_is_ground_triple, GTriples, GGround, GNonground),
-  rdf_triples(H, HTriples),
+  z_triples(H, HTriples),
   ord_subtract(HTriples, GGround, HInstance),
   rdf_graph_instance(HInstance, GNonground, [], Map).
 

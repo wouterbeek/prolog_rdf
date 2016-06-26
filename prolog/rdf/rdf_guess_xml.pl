@@ -9,12 +9,13 @@
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2015/12
+@version 2015/12, 2016/06
 */
 
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(sgml/sgml_ext)).
+:- use_module(library(z/z_term)).
 
 
 
@@ -122,4 +123,4 @@ doc_content_type(Dialect, Top,  Attrs, xml ) :-
   memberchk(Attr=RDFNS, Attrs),
 
   % Ensure it is indeed the RDF namespace.
-  rdf_current_prefix(rdf, RDFNS).
+  z_alias_prefix(rdf, RDFNS).

@@ -65,7 +65,7 @@ rdf_datatype(D) :-
 
 rdf_datatype(D, G) :-
   distinct(D-G, (
-    z_literal(Lit, G),
+    rdf_literal(Lit, G),
     z_literal_datatype(Lit, D)
   )).
 
@@ -94,7 +94,7 @@ rdf_literal(Lit, G) :-
 
 rdf_lts(Lit) :-
   rdf_literal(Lit),
-  z_is_tls(Lit).
+  z_is_lts(Lit).
 
 
 

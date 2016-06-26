@@ -8,6 +8,7 @@
     hdt_assert/4,  % +S, +P, +O, +G
     hdt_delete/1,  % +G
     hdt_fs/0,
+    hdt_graph/1,   % ?G
     hdt_graph/2,   % ?G, ?Hdt
     hdt_header/4,  % ?S, ?P, ?O, +G
     hdt_load/1,    % +G
@@ -44,6 +45,7 @@
    hdt_assert(r, r, o),
    hdt_assert(r, r, o, r),
    hdt_delete(r),
+   hdt_graph(r),
    hdt_graph(r, ?),
    hdt_header(r, r, o, r),
    hdt_load(r),
@@ -129,7 +131,12 @@ hdt_fs(Wildcard0, Files) :-
 
 
 
+%! hdt_graph(?G) is nondet
 %! hdt_graph(?G, ?Hdt) is nondet
+
+hdt_graph(G) :-
+  hdt_graph(G, _).
+
 
 hdt_graph(G, Hdt):-
   hdt_graph(G, Hdt, _, _).

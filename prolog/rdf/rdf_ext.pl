@@ -1,7 +1,6 @@
 :- module(
   rdf_ext,
   [
-    rdf_aggregate_all/3,    % +Template, :Goal, -Result
     rdf_create_iri/2,       % +Prefix, -Iri
     rdf_create_iri/3,       % +Prefix, +SubPaths, -Iri
     rdf_expect_graph/1,     % ?G
@@ -11,14 +10,11 @@
     rdf_is_quad/1,          % @Term
     rdf_is_triple/1,        % @Term
     rdf_list/3,             % ?S, ?P, -L
-    rdf_lone_bnode/2,       % ?B, ?G
     rdf_nextto_cl/2,        % ?X, ?Y
     rdf_reification/3,      % ?S, ?P, ?O
     rdf_reification/4,      % ?S, ?P, ?O, ?G
     rdf_reification/5,      % ?S, ?P, ?O, ?G, -Stmt
     rdf_retractall/1,       % +Tuple
-    rdf_root/1,             % ?Root
-    rdf_root/2,             % ?Root, ?G
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
     rdf_unload_db/0,
@@ -53,11 +49,9 @@
 :- rdf_register_prefix(dcmit, 'http://purl.org/dc/dcmitype/').
 
 :- meta_predicate
-    rdf_aggregate_all(+, 0, -),
     rdf_snap(0).
 
 :- rdf_meta
-   rdf_aggregate_all(+, t, -),
    rdf_assert_now(o, r),
    rdf_assert_now(o, r, r),
    rdf_assert_now(o, r, r, r),
@@ -72,18 +66,9 @@
    rdf_reification(r, r, o, r),
    rdf_reification(r, r, o, r, -),
    rdf_retractall(t),
-   rdf_root(r),
-   rdf_root(r, r),
    rdf_string(r, -).
 
 
-
-
-
-%! rdf_aggregate_all(+Template, :Goal, -Result) is det.
-
-rdf_aggregate_all(Template, Goal, Result) :-
-  aggregate_all(Template, Goal, Result).
 
 
 
@@ -172,35 +157,6 @@ rdf_list(S, P, L) :-
 
 
 
-%! hdt_lone_bnode(?B) is nondet.
-%! rdf_lone_bnode(?B) is nondet.
-
-hdt_lone_bnode(B) :-
-  hdt_lone_bnode(B, _).
-
-
-rdf_lone_bnode(B) :-
-  rdf_lone_bnode(B, _).
-
-
-
-%! hdt_lone_bnode(?B, ?G) is nondet.
-%! rdf_lone_bnode(?B, ?G) is nondet.
-
-hdt_lone_bnode(B, G) :-
-  z_lone_bnode(disk, B, G).
-
-
-rdf_lone_bnode(B, G) :-
-  z_lone_bnode(mem, B, G).
-
-
-z_lone_bnode(Mode, B, G) :-
-  z_bnode(Mode, B, G),
-  \+ z(Mode, B, _, _, G).
-
-
-
 %! rdf_nextto_cl(?X, ?Y, ?RdfList) is nondet.
 
 rdf_nextto_cl(X, Y) :-
@@ -233,33 +189,6 @@ rdf_retractall(rdf(S,P,O)) :- !,
   rdf_retractall(S, P, O).
 rdf_retractall(rdf(S,P,O,G)) :-
   rdf_retractall(S, P, O, G).
-
-
-
-%! hdt_root(?Root) is nondet.
-%! rdf_root(?Root) is nondet.
-%! hdt_root(?Root, ?G) is nondet.
-%! rdf_root(?Root, ?G) is nondet.
-
-hdt_root(Root) :-
-  hdt_root(Root, _).
-
-
-rdf_root(Root) :-
-  rdf_root(Root, _).
-
-
-hdt_root(Root, G) :-
-  z_root(disk, Root, G).
-
-
-rdf_root(Root, G) :-
-  z_root(mem, Root, G).
-
-
-z_root(Mode, Root, G) :-
-  z_subject(Root, G),
-  \+ z(Mode, _, _, Root, G).
 
 
 

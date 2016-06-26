@@ -13,7 +13,7 @@
     rdf_assert_objects/3,   % +S, +P, +Os
     rdf_assert_objects/4,   % +S, +P, +Os, +G
     rdf_assert_rev/3,       % +O, +P, +S
-    rdf_assert_rev/4,       % +O, +P, +S, +G
+    rdf_assert_rev/4        % +O, +P, +S, +G
   ]
 ).
 
@@ -23,12 +23,13 @@
 @version 2016/06
 */
 
+:- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#').
 
-rdf_meta :-
+:- rdf_meta
   rdf_assert_action(r, r, -, r).
 
 
@@ -39,7 +40,7 @@ rdf_meta :-
 
 rdf_assert_action(ActionC, Actor, Action, G):-
   rdf_create_iri(vzm, [action], Action),
-  rdf_assert_instance(Action, rdf:type, ActionC, G),
+  rdf_assert_instance(Action, ActionC, G),
   rdf_assert_now(Action, prov:atTime, G),
   rdf_assert(Action, prov:wasAssociatedWith, Actor, G).
 
@@ -116,6 +117,3 @@ rdf_assert_rev(O, P, S) :-
 
 rdf_assert_rev(O, P, S, G) :-
   rdf_assert(S, P, O, G).
-
-
-

@@ -42,7 +42,7 @@
 @version 2016/04-2016/06
 */
 
-:- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -50,6 +50,9 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(vocab/vocab_ext)).
+:- use_module(library(z/z_datatype)).
+:- use_module(library(z/z_term)).
 
 :- rdf_meta
    rdfs_assert_class(r, t, ?, ?, r),
@@ -224,15 +227,15 @@ rdfs_class(C, G) :-
 rdfs_class0(C, G) :-
   rdfs_instance(C, rdfs:'Class', G).
 rdfs_class0(C, G) :-
-  rdf_has(C, rdfs:subClassOf, _, _, G).
+  rdfs_has(C, rdfs:subClassOf, _, _, G).
 rdfs_class0(C, G) :-
-  rdf_has(_, rdfs:subClassOf, C, _, G).
+  rdfs_has(_, rdfs:subClassOf, C, _, G).
 rdfs_class0(C, G) :-
-  rdf_has(_, rdfs:domain, C, _, G).
+  rdfs_has(_, rdfs:domain, C, _, G).
 rdfs_class0(C, G) :-
-  rdf_has(_, rdfs:range, C, _, G).
+  rdfs_has(_, rdfs:range, C, _, G).
 rdfs_class0(C, G) :-
-  rdf_has(_, rdf:type, C, _, G).
+  rdfs_has(_, rdf:type, C, _, G).
 
 
 
@@ -244,7 +247,7 @@ rdfs_domain(P, Dom) :-
 
 
 rdfs_domain(P, Dom, G) :-
-  rdf_has(P, rdfs:domain, Dom, _, G).
+  rdfs_has(P, rdfs:domain, Dom, _, G).
 
 
 
@@ -261,7 +264,7 @@ rdfs_has(S, P, O, Q) :-
 
 
 rdfs_has(S, P, O, Q, G) :-
-  rdf_has(S, P, O, Q),
+  rdfs_has(S, P, O, Q),
   rdf(S, Q, O, G).
 
 
@@ -292,13 +295,13 @@ rdfs_instance(I, D, G) :-
 rdfs_instance0(I, D, G) :-
   nonvar(D), !,
   rdf_reachable(C, rdfs:subClassOf, D), % @tbd
-  rdf_has(I, rdf:type, C, _, G).
+  rdfs_has(I, rdf:type, C, _, G).
 rdfs_instance0(I, D, G) :-
-  rdf_has(I, rdf:type, C, _, G),
+  rdfs_has(I, rdf:type, C, _, G),
   rdf_reachable(C, rdfs:subClassOf, D). % @tbd
 rdfs_instance0(Lex^^C, D, G) :-
   rdf(_, _, Lex^^C, G),
-  rdf_subdatatype_of(C, D).
+  z_subdatatype_of(C, D).
 rdfs_instance0(Lex@LTag, rdf:langString, G) :-
   rdf(_, _, Lex@LTag, G).
 
@@ -328,14 +331,14 @@ rdfs_lts(S, P, LRange, Lit) :-
 
 rdfs_pref_lex(S, P, Lex) :-
   rdfs_pref_string(S, P, Lit),
-  rdfs_literal_lex(Lit, Lex).
+  z_literal_lex(Lit, Lex).
 
 
 
 %! rdfs_pref_label(?S, -Lit) is nondet.
 
 rdfs_pref_label(S, Lit) :-
-  rdf_pref_string(S, rdfs:label, Lit).
+  rdfs_pref_string(S, rdfs:label, Lit).
 
 
 
@@ -398,7 +401,7 @@ rdfs_range(P, Ran) :-
 
 
 rdfs_range(P, Ran, G) :-
-  rdf_has(P, rdfs:range, Ran, _, G).
+  rdfs_has(P, rdfs:range, Ran, _, G).
 
 
 
@@ -415,8 +418,8 @@ rdfs_retractall_class(C) :-
   %     Connect all subclasses of Class to all superclasses of Class.
   forall(
     (
-      rdf_has(SubC, rdfs:subClassOf, C),
-      rdf_has(C, rdfs:subClassOf, SuperC)
+      rdfs_has(SubC, rdfs:subClassOf, C),
+      rdfs_has(C, rdfs:subClassOf, SuperC)
     ),
     (
       % The transitive link is now a direct one.

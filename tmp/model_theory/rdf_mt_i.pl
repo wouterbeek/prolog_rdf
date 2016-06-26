@@ -47,9 +47,11 @@ Interpretation function `I`:
 */
 
 :- use_module(library(apply)).
+:- use_module(library(z/z_stmt)).
 
 % The overarching interpretation plus assignment function.
-:- rdf_meta(mt_i(r,-,+,-)).
+:- rdf_meta
+   mt_i(r, -, +, -).
 
 
 
@@ -89,7 +91,7 @@ mt_i(G, M, A) :-
 mt_i(G, M, A1, A2) :-
   rdf_graph(G),
   model(M), !,
-  rdf_triples(G, Ts),
+  z_triples(G, Ts),
   mt_i(G, M, Ts, A1, A2).
 
 %! mt_i(

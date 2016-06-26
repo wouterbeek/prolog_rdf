@@ -8,14 +8,15 @@
 /** <module> Open Data Communities (ODC)
 
 @author Wouter Beek
-@version 2014/05, 2016/05
+@version 2014/05, 2016/05-2016/06
 */
 
-:- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_stmt)).
+:- use_module(library(z/z_term)).
 
 
 
@@ -28,6 +29,7 @@ odc_entry(Res, Triples) :-
     {Res,Triples}/[G,M,M]>>odc_entry0(Res, Triples, G)
   ).
 
+
 odc_entry0(Res, Triples, G) :-
-  distinct(Res, rdf_subject(G, Res)),
-  rdf_triples(Res, _, _, Triples).
+  distinct(Res, z_subject(G, Res)),
+  z_triples(Res, _, _, Triples).

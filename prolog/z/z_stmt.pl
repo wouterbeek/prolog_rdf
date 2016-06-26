@@ -124,7 +124,7 @@ z_quad(S, P, O, Quad) :-
 
 
 z_quad(S, P, O, G, Quad) :-
-  rdf(S, P, O, G),
+  z(S, P, O, G),
   Quad = rdf(S, P, O, G).
 
 
@@ -230,7 +230,7 @@ z_triple(S, P, O, Triple) :-
 
 
 z_triple(S, P, O, G, Triple) :-
-  rdf(S, P, O, G),
+  z(S, P, O, G),
   Triple = rdf(S, P, O).
 
 
@@ -302,5 +302,5 @@ z_triples(S, P, O, G, Triples) :-
 
 graph_file(G, File) :-
   rdf_global_id(Alias:Local, G),
-  directory_file_name(Alias, Local, Base),
+  directory_file_path(Alias, Local, Base),
   file_name_extension(Base, nt, File).

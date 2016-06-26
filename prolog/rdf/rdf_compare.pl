@@ -25,10 +25,9 @@
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(default)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
-
+:- use_module(library(z/z_print)).
 
 :- rdf_meta
    rdf_comp(o, o, -),

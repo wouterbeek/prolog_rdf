@@ -26,23 +26,24 @@ handled by plGraphViz.
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_graph_theory)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs), [
      rdfs_individual_of/2,
      rdfs_subclass_of/2
    ]).
 :- use_module(library(typecheck)).
+:- use_module(library(z/z_print)).
+:- use_module(library(z/z_term)).
 
 :- dynamic
-     rdf:rdf_class_color/2,
-     rdf:rdf_edge_style/2,
-     rdf:rdf_predicate_label//1.
+    rdf:rdf_class_color/2,
+    rdf:rdf_edge_style/2,
+    rdf:rdf_predicate_label//1.
 
 :- multifile
-     rdf:rdf_class_color/2,
-     rdf:rdf_edge_style/2,
-     rdf:rdf_predicate_label//1.
+    rdf:rdf_class_color/2,
+    rdf:rdf_edge_style/2,
+    rdf:rdf_predicate_label//1.
 
 :- rdf_meta
    rdf_term_to_export_graph(r, -, +).
@@ -57,7 +58,7 @@ handled by plGraphViz.
 %! ) is det.
 
 create_namespace_map(Scheme, Map) :-
-  aggregate_all(set(Alias), rdf_current_alias(Alias), Aliases),
+  aggregate_all(set(Alias), z_alias(Alias), Aliases),
   create_namespace_map(Aliases, Scheme, Map).
 
 

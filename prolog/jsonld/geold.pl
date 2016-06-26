@@ -43,6 +43,7 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_term)).
 
 :- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
 
@@ -83,7 +84,7 @@ geold_context(
     '@vocab': Prefix
   }
 ) :-
-  rdf_current_prefix(Alias, Prefix).
+  z_alias_prefix(Alias, Prefix).
 
 
 

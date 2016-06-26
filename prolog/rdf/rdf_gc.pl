@@ -20,8 +20,8 @@ Graph-based garbage collection for RDF.
 :- use_module(library(debug)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(pair_ext)).
+:- use_module(library(rdf/rdf_stat)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(stat/rdf_stat)).
 
 %! rdf_graph_exlcuded_from_gc(?G) is nondet.
 

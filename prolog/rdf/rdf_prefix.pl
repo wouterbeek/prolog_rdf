@@ -2,8 +2,6 @@
   rdf_prefix,
   [
     abbr_iri/2,                   % +Iri, -Abbr
-    rdf_current_alias/1,          % ?Alias
-    rdf_current_prefix/1,         % ?Prefix
     rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
     rdf_iri_prefix/2,             % +Iri, -Prefix
     rdf_reset_prefix/2,           % +Prefix, +IriPrefix
@@ -288,22 +286,6 @@ dbpedia_register(LTag) :-
   atomic_list_concat([LTag,dbp], ., PropNS),
   iri_comps(PropPrefix, uri_components(http,Auth,'/property/',_,_)),
   rdf_reset_prefix(PropNS, PropPrefix).
-
-
-
-%! rdf_current_alias(+Alias) is semidet.
-%! rdf_current_alias(-Alias) is det.
-
-rdf_current_alias(Alias) :-
-  rdf_current_alias(Alias, _).
-
-
-
-%! rdf_current_prefix(+Prefix) is semidet.
-%! rdf_current_prefix(-Prefix) is det.
-
-rdf_current_prefix(Prefix) :-
-  rdf_current_prefix(_, Prefix).
 
 
 

@@ -41,7 +41,7 @@
 /** <module> RDFa
 
 @author Wouter Beek
-@version 2016/02-2016/05
+@version 2016/02-2016/06
 */
 
 :- use_module(library(apply)).
@@ -56,11 +56,12 @@
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
+:- use_module(library(z/z_datatype)).
+:- use_module(library(z/z_term)).
 
 :- rdf_register_prefix(bf, 'http://bibframe.org/vocab/').
 :- rdf_register_prefix(org, 'http://www.w3.org/ns/org#').
@@ -392,7 +393,7 @@ rdfa_prefixed_iri(Iri, PrefixedIri) :-
 %! rdfa_prefixes(+Aliases, -Prefixes) is det.
 
 rdfa_prefixes(Aliases, Defs) :-
-  maplist(rdf_current_prefix, Aliases, Prefixes),
+  maplist(z_alias_prefix, Aliases, Prefixes),
   pairs_keys_values(Pairs, Aliases, Prefixes),
   maplist(pair_to_prefix0, Pairs, Defs0),
   atomic_list_concat(Defs0, ' ', Defs).

@@ -11,9 +11,6 @@
                             % ?Predicate:iri
                             % ?Object:rdf_term
                             % ?Graph:atom
-    rdf_triples/3, % +Resource:iri,
-                   % -Triples:ordset(compound)
-                   % ?Graph:atom
     rdf_triples_to_edges/2 % +Triples:list(compound)
                            % -Edges:ordset(pair(rdf_term))
   ]
@@ -35,8 +32,7 @@ Support for RDF triple compound terms.
    rdf_ground_triple(r,r,o,?),
    rdf_is_nonground_triple(t),
    rdf_is_triple(t),
-   rdf_nonground_triple(r,r,o,?),
-   rdf_triples(r,-,?).
+   rdf_nonground_triple(r,r,o,?).
 
 
 
@@ -84,17 +80,6 @@ rdf_is_triple(rdf(S,P,O)) :-
 rdf_nonground_triple(S, P, O, G) :-
   rdf(S, P, O, G),
   rdf_is_nonground_triple(rdf(S,P,O)).
-
-
-
-%! rdf_triples(+Resource:iri, -Triples:ordset(compound), ?Graph:atom) is det.
-
-rdf_triples(Resource, Triples, Graph) :-
-  aggregate_all(
-    set(rdf(Resource,P,O)),
-    rdf_term_outgoing_edge(Resource, P, O, Graph),
-    Triples
-  ).
 
 
 

@@ -55,7 +55,6 @@
 :- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_error)).
@@ -74,6 +73,7 @@
 :- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
@@ -85,6 +85,7 @@
 :- use_module(library(rdfa/rdfa_user)).
 %/rdfs
 :- use_module(library(rdfs/rdfs_ext)).
+:- use_module(library(rdfs/rdfs_stat)).
 %/service
 :- use_module(library(service/btc)).
 :- use_module(library(service/flickrwrappr)).
@@ -95,8 +96,15 @@
 :- use_module(library(service/odc)).
 :- use_module(library(service/prefix_cc)).
 :- use_module(library(service/void_store)).
-%/stat
-:- use_module(library(stat/rdf_stat)).
-:- use_module(library(stat/rdfs_stat)).
 %/vocab
 :- use_module(library(vocab/void)).
+%/z
+:- use_module(library(z/z_cbd)).
+:- use_module(library(z/z_datatype)).
+:- use_module(library(z/z_ext)).
+:- use_module(library(z/z_list)).
+:- use_module(library(z/z_print)).
+:- use_module(library(z/z_shape)).
+:- use_module(library(z/z_stat)).
+:- use_module(library(z/z_stmt)).
+:- use_module(library(z/z_term)).

@@ -68,7 +68,6 @@ The following options are supported:
 :- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_bnode_map)).
-:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_prefix), []).
 :- use_module(library(rdf/rdf_stmt)).
 :- use_module(library(rdf/rdf_term)).
@@ -76,6 +75,7 @@ The following options are supported:
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_datatype)).
 :- use_module(library(z/z_stat)).
 
 :- html_meta

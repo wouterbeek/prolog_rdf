@@ -22,12 +22,12 @@ Automatically generate VoID descriptions.
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdfs/rdfs_ext)).
+:- use_module(library(rdfs/rdfs_stat)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(stat/rdf_stat)).
-:- use_module(library(stat/rdfs_stat)).
 :- use_module(library(true)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_stat)).
 
 :- meta_predicate
     graph_to_void0(2, +, +, +),
@@ -111,11 +111,11 @@ graph_to_void0(Goal_2, G1, M, G2) :-
   rdf_assert(Dataset, void:dataDump, M.'llo:base_iri', G2),
 
   % Number of distinct object terms (‘void:distinctObjects’).
-  rdf_number_of_objects(G1, NumOs),
+  z_number_of_objects(G1, NumOs),
   rdf_assert(Dataset, void:distinctObjects, NumOs^^xsd:nonNegativeInteger, G2),
 
   % Number of distinct subject terms (‘void:distinctSubjects’).
-  rdf_number_of_subjects(G1, NumSs),
+  z_number_of_subjects(G1, NumSs),
   rdf_assert(Dataset, void:distinctSubjects, NumSs^^xsd:nonNegativeInteger, G2),
   
   % void:feature
@@ -124,12 +124,12 @@ graph_to_void0(Goal_2, G1, M, G2) :-
   
   % Number of distinct predicate terms (erroneously called
   % ‘void:properties’).
-  rdf_number_of_predicates(G1, NumPs),
+  z_number_of_predicates(G1, NumPs),
   rdf_assert(Dataset, void:properties, NumPs^^xsd:nonNegativeInteger, G2),
   
   % Number of distinct triples (‘void:triples’).  Should we not count
   % quadruples?
-  rdf_number_of_triples(G1, NumTriples),
+  z_number_of_triples(G1, NumTriples),
   rdf_assert(Dataset, void:triples, NumTriples^^xsd:nonNegativeInteger, G2),
   
   % Vocabularies that appear in the data, defined as the registered

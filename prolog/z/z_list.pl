@@ -54,16 +54,16 @@ z_list(L, G) :-
   var(L), !,
   z(L, rdf:first, _, G),
   \+ z(_, rdf:rest, L, G),
-  rdf_list_g(L).
+  z_list0(L, G).
 z_list(L, G) :-
-  z_list_g(L, G).
+  z_list0(L, G).
 
 
-z_list_g(rdf:nil, _) :- !.
-z_list_g(L, G) :-
+z_list0(rdf:nil, _) :- !.
+z_list0(L, G) :-
   once(z(L, rdf:first, _, G)),
   z(L, rdf:rest, Rest, G),
-  (rdf_equal(rdf:nil, Rest) -> true ; z_list_g(Rest, G)).
+  (rdf_equal(rdf:nil, Rest) -> true ; z_list0(Rest, G)).
 
 
 

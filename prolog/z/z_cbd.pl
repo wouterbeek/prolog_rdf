@@ -23,6 +23,8 @@
 :- use_module(library(z/z_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(z/z_stmt)).
+:- use_module(library(z/z_term)).
 
 :- rdf_meta
    z_cbd(o, -),
@@ -63,7 +65,7 @@ z_cbd_triple(Node, G, Triple) :-
 z_cbd_triple0(S, G, Triple) :-
   z(S, P, O, G),
   (   Triple = rdf(S,P,O)
-  ;   z_is_bnode(O),
+  ;   rdf_is_bnode(O),
       z_cbd_triple0(O, G, Triple)
   ;   z_reification(S, P, O, Stmt),
       z_cbd_triple0(Stmt, G, Triple)
@@ -102,7 +104,7 @@ z_scbd_triple0(S, G, Triple) :-
 z_cbd_inv_triple0(O, G, Triple) :-
   z(S, P, O, G),
   (   Triple = rdf(S,P,O)
-  ;   z_is_bnode(S),
+  ;   rdf_is_bnode(S),
       z_cbd_inv_triple0(S, G, Triple)
   ;   z_reification(S, P, O, G, Stmt),
       z_scbd_triple0(Stmt, G, Triple)
