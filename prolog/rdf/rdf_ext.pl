@@ -1,9 +1,10 @@
 :- module(
   rdf_ext,
   [
+    rdf_assert/1,           % +Tuple
+    rdf_assert/2,           % +Triple, +G
     rdf_create_iri/2,       % +Prefix, -Iri
     rdf_create_iri/3,       % +Prefix, +SubPaths, -Iri
-    rdf_expect_graph/1,     % ?G
     rdf_global_iri/3,       % ?Alias, ?Local, ?Iri
     rdf_is_ground_quad/1,   % @Term
     rdf_is_ground_triple/1, % @Term
@@ -17,9 +18,7 @@
     rdf_retractall/1,       % +Tuple
     rdf_snap/1,             % :Goal_0
     rdf_string/2,           % +Lit, -String
-    rdf_unload_db/0,
-    rdf_update/4,           % +S, +P, +O, +Action
-    rdf_update/5            % +S, +P, +O, +G, +Action
+    rdf_unload_db/0
   ]
 ).
 
@@ -52,14 +51,8 @@
     rdf_snap(0).
 
 :- rdf_meta
-   rdf_assert_now(o, r),
-   rdf_assert_now(o, r, r),
-   rdf_assert_now(o, r, r, r),
-   rdf_assert_objects(r, r, t),
-   rdf_assert_objects(r, r, t, r),
-   rdf_assert_rev(o, r, r),
-   rdf_assert_rev(o, r, r, r),
-   rdf_expect_graph(r),
+   rdf_assert(t),
+   rdf_assert(t, r),
    rdf_list(r, r, -),
    rdf_nextto_cl(o, o),
    rdf_reification(r, r, o),
@@ -69,6 +62,20 @@
    rdf_string(r, -).
 
 
+
+
+
+%! rdf_assert(+Tuple) is det.
+%! rdf_assert(+Triple, +G) is det.
+
+rdf_assert(rdf(S,P,O)) :- !,
+  rdf_assert(S, P, O).
+rdf_assert(rdf(S,P,O,G)) :-
+  rdf_assert(S, P, O, G).
+
+
+rdf_assert(rdf(S,P,O), G) :-
+  rdf_assert(S, P, O, G).
 
 
 
@@ -93,22 +100,6 @@ rdf_create_iri(Prefix, SubPaths0, Iri) :-
   atomic_list_concat(SubPaths, /, LocalName),
   % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
   rdf_global_id(Prefix:LocalName, Iri).
-
-
-
-%! rdf_expect_graph(+G) is semidet.
-%! rdf_expect_graph(-G) is nondet.
-% If Term is uninstantiated it is non-deterministically
-% instantiated to existing RDF graphs.
-% If Term is instantiated and does not denote an existing RDF graph
-% this results in an exception.
-%
-% @throws existence_error
-
-rdf_expect_graph(G) :-
-  rdf_graph(G), !.
-rdf_expect_graph(G) :-
-  existence_error(rdf_graph, G).
 
 
 

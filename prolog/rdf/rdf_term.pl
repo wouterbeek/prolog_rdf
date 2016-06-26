@@ -130,7 +130,7 @@ rdf_node(O, G) :-
 rdf_object(O, G) :-
   % [O] In memory we can pre-enumerate (pre-check is idle).
   (var(O) -> rdf_object(O) ; true),
-  distinct(G, z(_, _, O, G)).
+  distinct(G, rdf(_, _, O, G)).
 
 
 

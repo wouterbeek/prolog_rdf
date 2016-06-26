@@ -30,7 +30,19 @@
 :- rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#').
 
 :- rdf_meta
-  rdf_assert_action(r, r, -, r).
+   rdf_assert_action(r, r, -, r),
+   rdf_assert_instance(r, r),
+   rdf_assert_instance(r, r, r),
+   rdf_assert_instances(r, t),
+   rdf_assert_instances(r, t, r),
+   rdf_assert_list(r, r, t, r),
+   rdf_assert_now(o, r),
+   rdf_assert_now(o, r, r),
+   rdf_assert_now(o, r, r, r),
+   rdf_assert_objects(r, r, t),
+   rdf_assert_objects(r, r, t, r),
+   rdf_assert_rev(o, r, r),
+   rdf_assert_rev(o, r, r, r).
 
 
 

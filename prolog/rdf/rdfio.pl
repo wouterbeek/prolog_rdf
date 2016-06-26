@@ -17,8 +17,6 @@
     rdf_download_to_file/3,     % +Iri,    +File,        +Opts
     rdf_load_file/1,            % +Source                
     rdf_load_file/2,            % +Source,               +Opts
-    rdf_load_file_or_write/3,   % +Source, :Goal_1,  +G
-    rdf_load_file_or_write/4,   % +Source, :Goal_1,  +G, +Opts
     rdf_load_tuples/2,          % +Source, -Triples
     rdf_load_tuples/3,          % +Source, -Triples,     +Opts
     rdf_write_to_sink/1,        % +Sink                  
@@ -79,6 +77,7 @@ already part of ClioPatria.
 :- use_module(library(uuid_ext)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
+:- use_module(library(z/z_ext)).
 :- use_module(library(z/z_stmt)).
 :- use_module(library(z/z_term)).
 
@@ -95,17 +94,13 @@ already part of ClioPatria.
     rdf_call_on_tuples(+, 5, +),
     rdf_call_on_tuples0(5, +, +, +, -),
     rdf_call_to_graph(+, 1),
-    rdf_call_to_graph(+, 1, +),
-    rdf_load_file_or_write(+, 1, +),
-    rdf_load_file_or_write(+, 1, +, +).
+    rdf_call_to_graph(+, 1, +).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
    rdf_call_on_tuples(+, :, t),
    rdf_download_to_file(+, +, t),
    rdf_load_file(+, t),
-   rdf_load_file_or_write(+, :, r),
-   rdf_load_file_or_write(+, :, r, +),
    rdf_load_tuples(+, -, t),
    rdf_write_to_sink(+, r),
    rdf_write_to_sink(+, r, +),
@@ -451,28 +446,6 @@ count_tuple0(State, G) :-
   dict_inc(triples, State).
 count_tuple0(State, _) :-
   dict_inc(quads, State).
-
-
-
-%! rdf_load_file_or_write(+Source, :Goal_1, +G) is det.
-%! rdf_load_file_or_write(+Source, :Goal_1, +G, +Opts) is det.
-%
-% Either loads RDF data from Source into graph G or calls Goal_1 with
-% argument G in order to assert the RDF data.  After asserting the RDF
-% data, the results are written to Source, so that a next call of this
-% predicate will load the data from file.
-
-rdf_load_file_or_write(Source, Goal_1, G) :-
-  rdf_load_file_or_write(Source, Goal_1, G, []).
-
-
-rdf_load_file_or_write(Source0, _, G, Opts1) :-
-  absolute_file_name(Source0, Source, [access(read),file_errors(fail)]),
-  merge_options(Opts1, [graph(G)], Opts2),
-  rdf_load_file(Source, Opts2), !.
-rdf_load_file_or_write(Source, Goal_1, G, Opts) :-
-  call(Goal_1, G),
-  rdf_write_to_sink(Source, G, Opts).
 
 
 

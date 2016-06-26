@@ -26,6 +26,7 @@ Automatically generate VoID descriptions.
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(true)).
+:- use_module(library(vocab/vocab_ext)).
 :- use_module(library(yall)).
 :- use_module(library(z/z_stat)).
 

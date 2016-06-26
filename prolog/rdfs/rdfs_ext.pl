@@ -59,10 +59,6 @@
    rdfs_assert_comment(r, +),
    rdfs_assert_comment(r, +, r),
    rdfs_assert_domain(r, r, r),
-   rdfs_assert_instance(r, r),
-   rdfs_assert_instance(r, r, r),
-   rdfs_assert_instances(r, t),
-   rdfs_assert_instances(r, t, r),
    rdfs_assert_isDefinedBy(r, r),
    rdfs_assert_isDefinedBy(r, r, r),
    rdfs_assert_label(r, +),
@@ -264,7 +260,7 @@ rdfs_has(S, P, O, Q) :-
 
 
 rdfs_has(S, P, O, Q, G) :-
-  rdfs_has(S, P, O, Q),
+  rdf_has(S, P, O, Q),
   rdf(S, Q, O, G).
 
 

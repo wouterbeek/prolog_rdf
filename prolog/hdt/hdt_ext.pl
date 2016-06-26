@@ -1,20 +1,21 @@
 :- module(
   hdt_ext,
   [
-    hdt/3,         % ?S, ?P, ?O
-    hdt/4,         % ?S, ?P, ?O, ?G
-    hdt_assert/1,  % +Tuple
-    hdt_assert/3,  % +S, +P, +O
-    hdt_assert/4,  % +S, +P, +O, +G
-    hdt_delete/1,  % +G
+    hdt/3,              % ?S, ?P, ?O
+    hdt/4,              % ?S, ?P, ?O, ?G
+    hdt_assert/1,       % +Tuple
+    hdt_assert/2,       % +Triple, +G
+    hdt_assert/3,       % +S, +P, +O
+    hdt_assert/4,       % +S, +P, +O, +G
+    hdt_delete/1,       % +G
     hdt_fs/0,
-    hdt_graph/1,   % ?G
-    hdt_graph/2,   % ?G, ?Hdt
-    hdt_header/4,  % ?S, ?P, ?O, +G
-    hdt_load/1,    % +G
-    hdt_load/2,    % +G, +Opts
-    hdt_refresh/1, % +G
-    hdt_unload/1   % +G
+    hdt_graph/1,        % ?G
+    hdt_graph/2,        % ?G, ?Hdt
+    hdt_header/4,       % ?S, ?P, ?O, +G
+    hdt_load/1,         % +G
+    hdt_load/2,         % +G, +Opts
+    hdt_refresh/1,      % +G
+    hdt_unload/1        % +G
   ]
 ).
 
@@ -32,6 +33,7 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_ext)).
 :- use_module(library(zlib)).
 
 %! hdt_graph(?G, ?Hdt, ?HdtFile, ?NTriplesFile) is nondet.
@@ -42,6 +44,8 @@
 :- rdf_meta
    hdt(r, r, o),
    hdt(r, r, o, r),
+   hdt_assert(t),
+   hdt_assert(t, r),
    hdt_assert(r, r, o),
    hdt_assert(r, r, o, r),
    hdt_delete(r),
@@ -71,6 +75,7 @@ hdt(S, P, O, G) :-
 
 
 %! hdt_assert(+Tuple) is det.
+%! hdt_assert(+Triple, +G) is det.
 %! hdt_assert(+S, +P, +O) is det.
 %! hdt_assert(+S, +P, +O, +G) is det.
 
@@ -80,13 +85,17 @@ hdt_assert(rdf(S,P,O,G)) :-
   hdt_assert(S, P, O, G).
 
 
+hdt_assert(rdf(S,P,O), G) :-
+  hdt_assert(S, P, O, G).
+
+
 hdt_assert(S, P, O) :-
   rdf_default_graph(G),
   hdt_assert(S, P, O, G).
 
 
 hdt_assert(S, P, O, G) :-
-  hdt_graph_to_file(G, [nt,gz], NTriplesFile),
+  z_graph_to_file(G, [nt,gz], NTriplesFile),
   call_to_stream(
     NTriplesFile,
     {S,P,O}/[Out,M,M]>>with_output_to(Out, gen_ntriple(S, P, O)),
@@ -98,7 +107,7 @@ hdt_assert(S, P, O, G) :-
 %! hdt_delete(+G) is det.
 
 hdt_delete(G) :-
-  hdt_graph_to_file(G, [hdt], HdtFile),
+  z_graph_to_file(G, [hdt], HdtFile),
   (exists_file(HdtFile) -> delete_file(HdtFile) ; true),
   atomic_list_concat([HdtFile,index], ., HdtIndexFile),
   (exists_file(HdtIndexFile) -> delete_file(HdtIndexFile) ; true).
@@ -131,8 +140,8 @@ hdt_fs(Wildcard0, Files) :-
 
 
 
-%! hdt_graph(?G) is nondet
-%! hdt_graph(?G, ?Hdt) is nondet
+%! hdt_graph(?G) is nondet.
+%! hdt_graph(?G, ?Hdt) is nondet.
 
 hdt_graph(G) :-
   hdt_graph(G, _).
@@ -165,27 +174,38 @@ hdt_load(G) :-
 
 
 hdt_load(G, Opts) :-
-  hdt_graph_to_file(G, [hdt], HdtFile),
-  hdt_load(HdtFile, G, Opts).
+  z_graph_to_file(G, [hdt], HdtFile),
+  hdt_load(HdtFile, _, G, Opts).
 
 
-hdt_load(_, G, _) :-
+% Already opened
+hdt_load(_, _, G, _) :-
   hdt_graph(G, _), !.
-hdt_load(HdtFile, G, Opts) :-
+% HDT → open
+hdt_load(HdtFile, NTriplesFile, G, _) :-
+  hdt:hdt_open(Hdt, HdtFile),
+  assert(hdt_graph(G, Hdt, HdtFile, NTriplesFile)),
+  debug(z(ext), "HDT → open", []).
+% N-Triples → HDT
+hdt_load(HdtFile, NTriplesFile, G, Opts) :-
   file_name_extension(Base, hdt, HdtFile),
   file_name_extension(Base, 'nt.gz', NTriplesFile),
   exists_file(NTriplesFile), !,
   hdt:hdt_create_from_file(HdtFile, NTriplesFile, Opts),
-  hdt:hdt_open(Hdt, HdtFile),
-  assert(hdt_graph(G, Hdt, HdtFile, NTriplesFile)).
-hdt_load(HdtFile, G, Opts) :-
+  debug(z(ext), "N-Triples → HDT", []),
+  hdt_load(HdtFile, NTriplesFile, G, Opts).
+% N-Quads → N-Triples
+hdt_load(HdtFile, NTriplesFile, G, Opts) :-
   file_name_extension(Base, hdt, HdtFile),
   file_name_extension(Base, 'nq.gz', NQuadsFile),
   exists_file(NQuadsFile), !,
   file_name_extension(Base, 'nt.gz', NTriplesFile),
   setup_call_cleanup(
     ensure_ntriples(NQuadsFile, NTriplesFile),
-    hdt_load(HdtFile, G, Opts),
+    (
+      debug(z(ext), "N-Quads → N-Triples", []),
+      hdt_load(HdtFile, NTriplesFile, G, Opts)
+    ),
     delete_file(NTriplesFile)
   ).
 
@@ -223,19 +243,3 @@ ensure_ntriples(From, To) :-
     ),
     close(Sink)
   ).
-
-
-
-%! hdt_graph_to_file(+G, +Comps, -HdtFile) is det.
-
-hdt_graph_to_file(G, Comps, HdtFile) :-
-  hdt_graph_to_base(G, Base),
-  atomic_list_concat([Base|Comps], ., Local),
-  absolute_file_name(data(Local), HdtFile, [access(write)]).
-
-
-hdt_graph_to_base(G, Base) :-
-  rdf_global_id(Alias:Local, G), !,
-  atomic_list_concat([Alias,Local], '_', Base).
-hdt_graph_to_base(G, Base) :-
-  Base = G.
