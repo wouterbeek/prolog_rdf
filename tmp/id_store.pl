@@ -56,7 +56,6 @@ Identifiers are atoms.
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf/rdf_id)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11), [
      rdf_graph/1 as rdf_graph_id,
      rdf_unload_graph/1 as rdf_unload_graph_id
@@ -64,6 +63,7 @@ Identifiers are atoms.
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_print)).
 
 :- rdf_meta
 	assign_graph_id(r, -),
@@ -204,7 +204,7 @@ print_id_store(Opts) :-
       tab(N),
       atom(Tid),
       "\t",
-      '*'(rdf_print_term, Ts),
+      '*'(z_print_term, Ts),
       nl
    ))
   ).

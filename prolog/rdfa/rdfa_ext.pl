@@ -51,7 +51,7 @@
 :- use_module(library(html/html_date_time_human)).
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(html/html_ext)).
-:- use_module(library(html/rdfh)).
+:- use_module(library(html/zh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).
@@ -177,7 +177,7 @@ agent_name0(Agent) -->
 
 'bf:subtitle'(Article) -->
   {'bf:subtitle'(Article, Subtitle)},
-  html(h2(span(property='bf:subtitle', \rdfh_literal(Subtitle)))).
+  html(h2(span(property='bf:subtitle', \zh_literal(Subtitle)))).
 
 
 
@@ -204,7 +204,7 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 
 'dc:abstract'(Res) -->
   {once('dc:abstract'(Res, Abstract))},
-  html(p(property='dc:abstract', \rdfh_literal(Abstract))).
+  html(p(property='dc:abstract', \zh_literal(Abstract))).
 
 
 
@@ -257,7 +257,7 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 
 'dc:title'(Res) -->
   {'dc:title'(Res, Title)},
-  html(h1(property='dc:title', \rdfh_literal(Title))).
+  html(h1(property='dc:title', \zh_literal(Title))).
 
 
 
@@ -288,7 +288,7 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 
 'foaf:familyName'(Agent) -->
   {once('foaf:familyName'(Agent, FamilyName))},
-  html(span(property='foaf:familyName', \rdfh_literal(FamilyName))).
+  html(span(property='foaf:familyName', \zh_literal(FamilyName))).
 
 
 
@@ -302,7 +302,7 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 
 'foaf:givenName'(Agent) -->
   {'foaf:givenName'(Agent, GivenName)}, !,
-  html(span(property='foaf:givenName', \rdfh_literal(GivenName))).
+  html(span(property='foaf:givenName', \zh_literal(GivenName))).
 
 
 
@@ -347,7 +347,7 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
 
 'foaf:name'(Agent) -->
   {'foaf:name'(Agent, Name)},
-  html(span(property='foaf:name', \rdfh_literal(Name))).
+  html(span(property='foaf:name', \zh_literal(Name))).
 
 
 
@@ -359,7 +359,7 @@ agent_item0(Agent) --> html(li(\agent_name(Agent))).
     once(rdfs_pref_label(Organization, Label)),
     rdfa_prefixed_iri(Organization, Organization0)
   },
-  html(span(property=Organization0, \rdfh_literal(Label))).
+  html(span(property=Organization0, \zh_literal(Label))).
 
 
 
@@ -405,7 +405,7 @@ pair_to_prefix0(Alias-Prefix, Def) :-
 
 'sioc:content'(Article) -->
   {once(rdf_has(Article, sioc:content, Content))},
-  html(div(property='sioc:content', \rdfh_literal(Content))).
+  html(div(property='sioc:content', \zh_literal(Content))).
 
 
 

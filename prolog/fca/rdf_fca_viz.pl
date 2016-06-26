@@ -19,22 +19,14 @@
 :- use_module(library(fca/rdf_fca)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(option)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(z/z_print)).
 
 :- rdf_meta
    rdf_fca_export_graph(r, -),
    rdf_fca_export_graph(r, -, :),
    rdf_fca_viz(r, +),
    rdf_fca_viz(r, +, :).
-
-:- predicate_options(rdf_fca_export_graph/3, 3, [
-     pass_to(fca_export_graph/3, 3)
-   ]).
-:- predicate_options(rdf_fca_viz/3, 3, [
-     pass_to(rdf_fca_export_graph/3, 3),
-     pass_to(graph_viz/3, 3)
-   ]).
 
 
 

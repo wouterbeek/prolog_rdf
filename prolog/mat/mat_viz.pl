@@ -29,10 +29,11 @@ Exports materialization results.
 :- use_module(library(mat/mat_print)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(pl_term)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(z/z_print)).
 
-:- rdf_meta(mat_viz(r,r,o)).
+:- rdf_meta
+   mat_viz(r, r, o).
 
 
 

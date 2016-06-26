@@ -5,8 +5,6 @@
     cand_datatype/2, % ?P, ?G
     cand_flatten/1,  % ?G
     cand_flatten/2,  % ?P, ?G
-    rc_cbd/1,        % ?S
-    rc_cbd/2,        % ?S, ?G
     rc_classes/0,
     rc_graph/1,      % ?G
     rc_graphs/0,
@@ -16,15 +14,19 @@
     rc_p_no/1,       %     ?G
     rc_p_no/2,       % ?P, ?G
     rc_predicates/0,
-    rc_predicates/1, % ?G
-    rc_root/1,       % ?Node
-    rc_root/2,       % ?Node, ?G
-    rc_scbd/1,       % ?Node
-    rc_scbd/2,       % ?Node, ?G
-    rc_tree/1,       % ?Node
-    rc_tree/2        % ?Node, ?G
+    rc_predicates/1  % ?G
   ]
 ).
+:- reexport(library(z/z_print), [
+     z_print_cbd/1  as rc_cbd,
+     z_print_cbd/2  as rc_cbd,
+     z_print_root/1 as rc_root,
+     z_print_root/2 as rc_root,
+     z_print_scbd/1 as rc_scbd,
+     z_print_scbd/2 as rc_scbd,
+     z_print_tree/1 as rc_tree,
+     z_print_tree/2 as rc_tree
+   ]).
 
 /** <module> RDF CLI
 
@@ -39,7 +41,6 @@
 :- use_module(library(option)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdfs/rdfs_ext)).
@@ -58,20 +59,12 @@
    cand_datatype(r),
    cand_datatype(r, r),
    cand_flatten(r),
-   rc_cbd(r),
-   rc_cbd(r, r),
    rc_graph(r),
    rc_p(r),
    rc_p(r, r),
    rc_p_no(r),
    rc_p_no(r, r),
-   rc_predicates(r),
-   rc_root(r),
-   rc_root(r, r),
-   rc_scbd(o),
-   rc_scbd(o, r),
-   rc_tree(r),
-   rc_tree(r, r).
+   rc_predicates(r).
 
 
 
@@ -120,21 +113,6 @@ rc_next_p(P, G) :-
   maplist(singleton_list, Qs, Rows),
   format(string(Lbl), "Next predicates of ~a", [P]),
   z_print_table([head([Lbl])|Rows]).
-
-
-
-%! rc_cbd(?S) is det.
-%! rc_cbd(?S, ?G) is det.
-%
-% Print the Concise-Bounded Description (CBD) of subject terms.
-
-rc_cbd(S) :-
-  rc_cbd(S, _).
-
-
-rc_cbd(S, G) :-
-  z_cbd(S, G, Triples),
-  z_print_triples(Triples).
 
 
 
@@ -228,52 +206,6 @@ rc_predicates(G) :-
   aggregate_all(set(P), z(_, P, _, G), Ps),
   maplist({G}/[P,N]>>z_number_of_triples(_, P, _, G, N), Ps, Ns),
   rdf_counts_resources_table0(["Predicate","#occurrences"], Ns, Ps).
-
-
-
-%! rc_root(?Node) is det.
-%! rc_root(?Node, ?G) is det.
-%
-% Print the tree for an RDF root node.
-
-rc_root(Node) :-
-  rc_root(Node, _).
-
-
-rc_root(Node, G) :-
-  z_root(Node, G),
-  z_tree(Node, G, Triples),
-  z_print_triples(Triples).
-
-
-
-%! rc_scbd(?Node) is det.
-%! rc_scbd(?Node, ?G) is det.
-%
-% Print the Symmetric CBD (SCBD) for an RDF node.
-
-rc_scbd(Node) :-
-  rc_scbd(Node, _).
-
-
-rc_scbd(Node, G) :-
-  z_scbd(Node, G, Triples),
-  z_print_triples(Triples).
-
-
-
-%! rc_tree(?Node) is det.
-%! rc_tree(?Node, ?G) is det.
-%
-% Print the tree for a subject term.
-
-rc_tree(Node) :-
-  rc_tree(Node, _).
-
-
-rc_tree(Node, G) :-
-  z_tree(Node, G, Triples),
-  z_print_triples(Triples).
 
 
 

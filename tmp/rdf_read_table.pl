@@ -1,7 +1,7 @@
 :- module(
   rdf_read_table,
   [
-    rdfh_read_table/2 % +Table:rdf_term, +Opts
+    rdf_read_table/2 % +Table:rdf_term, +Opts
   ]
 ).
 
@@ -15,18 +15,18 @@
 :- use_module(library(rdf/rdf_ext)).
 
 :- rdf_meta
-   rdfh_read_table(o, +, ?, ?).
+   rdf_read_table(o, +, ?, ?).
 
 
 
 
 
-%! rdfh_read_table(+Table:rdf_term, +Opts)// is det.
+%! rdf_read_table(+Table:rdf_term, +Opts)// is det.
 % RDF table resources are supported by [rdf_table].
 %
-% Options are defined by rdfh_table//3.
+% Options are defined by rdf_table//3.
 
-rdfh_read_table(Table, Opts) -->
+rdf_read_table(Table, Opts) -->
   {
     option(header_column(HasHeaderColumn), Opts),
     option(header_row(HasHeaderRow), Opts),
@@ -47,7 +47,7 @@ rdfh_read_table(Table, Opts) -->
     ;   Rows2 = Rows1
     )
   },
-  rdfh_table(rdfh_term(Caption), Rows2, Opts).
+  rdf_table(rdf_print_term(Caption), Rows2, Opts).
 
 
 %! rdf_table_get_rows(

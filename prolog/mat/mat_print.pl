@@ -17,7 +17,7 @@ Printing of materialization results.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(rdf/rdf_print)).
+:- use_module(library(z/z_print)).
 
 
 

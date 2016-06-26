@@ -21,10 +21,6 @@
    rdfh_fca(r, ?, ?),
    rdfh_fca(r, :, ?, ?).
 
-:- predicate_options(rdfh_fca//2, 2, [
-     pass_to(rdf_graph_to_export_graph/3, 3)
-   ]).
-
 
 
 

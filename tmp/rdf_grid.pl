@@ -15,6 +15,7 @@ Build grid compound terms based on RDF data.
 
 :- use_module(library(apply)).
 :- use_module(library(debug)).
+:- use_module(library(html/zh)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(semweb/rdf11)).
@@ -80,7 +81,7 @@ graph_to_widget(G, rdf_tuples(S,Quads,Triples,Duplicates)) :-
   pop_triple(S, llo:processed_tuples, _, G),
   pop_triple(S, llo:unique_tuples, _^^xsd:nonNegativeInteger, G).
 % Triple.
-graph_to_widget(G, rdfh_triple(S, P, O)) :-
+graph_to_widget(G, zh_triple(S, P, O)) :-
   pop_triple(S, P, O, G).
 
 

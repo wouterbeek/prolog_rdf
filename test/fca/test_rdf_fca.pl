@@ -7,7 +7,7 @@
   ]
    ).
 :- reexport(library(fca/fca)).
-:- reexport(library(rdf/rdf_print)).
+:- reexport(library(z/z_print)).
 
 /** <module> RDF FCA Test
 

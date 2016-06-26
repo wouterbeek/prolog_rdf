@@ -1,9 +1,9 @@
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_isomorphism)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(z/z_cbd)).
+:- use_module(library(z/z_print)).
 
 :- meta_predicate
     test(2, +).
@@ -13,8 +13,8 @@
 
 
 test :-
-  test(rdf_cbd, _{bnode_counter: 0}),
-  test(rdf_scbd, _{bnode_counter: 0}).
+  test(z_cbd, _{bnode_counter: 0}),
+  test(z_scbd, _{bnode_counter: 0}).
 
 
 test(Mod:Mode, Opts) :-
@@ -23,7 +23,7 @@ test(Mod:Mode, Opts) :-
   StartNode = 'http://example.org/aReallyGreatBook',
   call(Mod:Mode, StartNode, Triples),
   msg_notification("Computed ~a:~n", [Mode]),
-  rdf_print_triples(Triples, Opts),
+  z_print_triples(Triples, Opts),
   load_and_print_graph0(Mode, Opts),
   rdf_isomorphic_graphs(Triples, Mode).
 
@@ -33,4 +33,4 @@ load_and_print_graph0(G, Opts) :-
   absolute_file_name(File, Path, [access(read)]),
   rdf_load_file(Path, [graph(G)]),
   msg_notification("~a:~n", [G]),
-  rdf_print_graph(G, Opts).
+  z_print_graph(G, Opts).

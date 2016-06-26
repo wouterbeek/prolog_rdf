@@ -14,7 +14,6 @@
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_register_prefix(ch, 'http://www.wouterbeek.com/ch.owl#' ).

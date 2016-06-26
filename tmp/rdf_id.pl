@@ -1,20 +1,20 @@
 :- module(
   rdf_id,
   [
-    rdf_assert_id/3,       % +S, +P, +O
-    rdf_assert_id/4,       % +S, +P, +O, ?G
-    rdf_id/3,              % ?S, ?P, ?O
-    rdf_id/4,              % ?S, ?P, ?O, ?G
-    rdf_id/6,              % ?S, ?P, ?O, -Sid, -Pid, -Oid
-    rdf_id/8,              % ?S, ?P, ?O, +G, -Sid, -Pid, -Oid, -Gid
-    rdf_has_id/3,          % ?S, ?P, ?O
-    rdf_print_graph_id//1, % ?Gid
-    rdf_print_graph_id//2, % ?Gid, +Opts
-    rdf_print_id//1,       % +Tid
-    rdf_print_id//2,       % +Tid, +Opts
-    rdf_reachable_id/3,    % ?S, ?P, ?O
-    rdf_retractall_id/3,   % ?S, ?P, ?O
-    rdf_retractall_id/4    % ?S, ?P, ?O, ?G
+    rdf_assert_id/3,     % +S, +P, +O
+    rdf_assert_id/4,     % +S, +P, +O, ?G
+    rdf_id/3,            % ?S, ?P, ?O
+    rdf_id/4,            % ?S, ?P, ?O, ?G
+    rdf_id/6,            % ?S, ?P, ?O, -Sid, -Pid, -Oid
+    rdf_id/8,            % ?S, ?P, ?O, +G, -Sid, -Pid, -Oid, -Gid
+    rdf_has_id/3,        % ?S, ?P, ?O
+    rdf_reachable_id/3,  % ?S, ?P, ?O
+    rdf_retractall_id/3, % ?S, ?P, ?O
+    rdf_retractall_id/4, % ?S, ?P, ?O, ?G
+    z_print_graph_id//1, % ?Gid
+    z_print_graph_id//2, % ?Gid, +Opts
+    z_print_id//1,       % +Tid
+    z_print_id//2        % +Tid, +Opts
   ]
 ).
 :- reexport(library(semweb/rdf11), [
@@ -38,7 +38,7 @@
 @compat RDF 1.1 Concepts and Abstract Syntax
 @license MIT License
 @see http://www.w3.org/TR/rdf11-concepts/
-@version 2015/07-2016/02
+@version 2015/07-2016/02, 2016/06
 */
 
 :- use_module(library(date_time/date_time)).
@@ -48,13 +48,9 @@
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(rdf/id_store)).
 :- use_module(library(rdf/rdf_default)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(yall)).
-
-:- predicate_options(rdf_print_id//2, 2, [
-     pass_to(rdf_print_term//2, 2)
-   ]).
+:- use_module(library(z/z_print)).
+:- use_module(library(z/z_term)).
 
 :- rdf_meta
    rdf_assert_id(o, r, o),
@@ -154,43 +150,6 @@ rdf_has_id(S, P, O) :-
 
 
 
-%! rdf_print_graph_id(+Gid)// is det.
-%! rdf_print_graph_id(+Gid, +Opts)// is det.
-
-rdf_print_graph_id(Gid) -->
-  rdf_print_graph_id(Gid, []).
-rdf_print_graph_id(default, _) --> !,
-  "default".
-rdf_print_graph_id(Gid, Opts) -->
-  rdf_print_id(Gid, Opts).
-
-
-
-%! rdf_print_id(+Tid)// is det.
-%! rdf_print_id(+Tid, +Opts)// is det.
-
-rdf_print_id(Tid) -->
-  rdf_print_id(Tid, []).
-rdf_print_id(Tid, Opts) -->
-  {id_to_terms(Tid, Ts)},
-  set(rdf_print_term, Ts).
-
-
-
-%! rdf_print_tuple_id(+Sid, +Pid, +Oid, ?Gid, +Opts) is det.
-
-rdf_print_tuple_id(Sid, Pid, Oid, Gid, Opts) -->
-  "〈",
-  rdf_print_id(Sid, Opts),
-  ", ",
-  rdf_print_id(Pid, Opts),
-  ", ",
-  rdf_print_id(Oid, Opts),
-  "〉",
-  ({var(Gid)} -> "" ; rdf_print_graph_id(Gid, Opts)).
-
-
-
 %! rdf_reachable_id(?S, ?P, ?O) is nondet.
 
 rdf_reachable_id(S, P, O) :-
@@ -218,6 +177,43 @@ rdf_retractall_id(S, P, O, G) :-
   var_or_graph_term_to_id(G, Gid),
   rdf_retractall0(Sid, Pid, Oid, Gid),
   maplist(remove_id, [Sid,Pid,Oid]).
+
+
+
+%! z_print_graph_id(+Gid)// is det.
+%! z_print_graph_id(+Gid, +Opts)// is det.
+
+z_print_graph_id(Gid) -->
+  z_print_graph_id(Gid, []).
+z_print_graph_id(default, _) --> !,
+  "default".
+z_print_graph_id(Gid, Opts) -->
+  z_print_id(Gid, Opts).
+
+
+
+%! z_print_id(+Tid)// is det.
+%! z_print_id(+Tid, +Opts)// is det.
+
+z_print_id(Tid) -->
+  z_print_id(Tid, []).
+z_print_id(Tid, Opts) -->
+  {id_to_terms(Tid, Ts)},
+  set(z_print_term, Ts).
+
+
+
+%! z_print_tuple_id(+Sid, +Pid, +Oid, ?Gid, +Opts) is det.
+
+z_print_tuple_id(Sid, Pid, Oid, Gid, Opts) -->
+  "〈",
+  z_print_id(Sid, Opts),
+  ", ",
+  z_print_id(Pid, Opts),
+  ", ",
+  z_print_id(Oid, Opts),
+  "〉",
+  ({var(Gid)} -> "" ; z_print_graph_id(Gid, Opts)).
 
 
 

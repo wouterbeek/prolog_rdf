@@ -29,9 +29,9 @@
 %/hdt
 :- use_module(library(hdt/hdt_ext)).
 %/html
-:- use_module(library(html/rdfh)).
 :- use_module(library(html/rdfh_fca)).
 :- use_module(library(html/rdfh_gv)).
+:- use_module(library(html/zh)).
 %/http
 :- use_module(library(http/rdf_rest)).
 %/jsonld
@@ -72,7 +72,6 @@
 :- use_module(library(rdf/rdf_info)).
 :- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_store)).

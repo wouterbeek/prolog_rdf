@@ -1,8 +1,10 @@
 :- module(
   jsonld_build,
   [
-    subject_to_jsonld/2, % +S, ?G, -Jsonld
-    triples_to_jsonld/2  % +Triples, ?G, -Jsonld
+    subject_to_jsonld/2, % +S, -Jsonld
+    subject_to_jsonld/3, % +S, ?G, -Jsonld
+    triples_to_jsonld/2, % +Triples, -Jsonld
+    triples_to_jsonld/3  % +Triples, ?G, -Jsonld
   ]
 ).
 
@@ -29,14 +31,21 @@
 :- use_module(library(z/z_datatype)).
 
 :- rdf_meta
+   subject_to_jsonld(r, -),
    subject_to_jsonld(r, r, -),
+   triples_to_jsonld(t, -),
    triples_to_jsonld(t, r, -).
 
 
 
 
 
+%! subject_to_jsonld(+S, -Jsonld) is det.
 %! subject_to_jsonld(+S, ?G, -Jsonld) is det.
+
+subject_to_jsonld(S, Jsonld) :-
+  subject_to_jsonld(S, _, Jsonld).
+
 
 subject_to_jsonld(S, G, Jsonld) :-
   z_cbd(S, G, Triples),
@@ -44,7 +53,12 @@ subject_to_jsonld(S, G, Jsonld) :-
 
 
 
+%! triples_to_jsonld(+Triples, -Jsonld) is det.
 %! triples_to_jsonld(+Triples, ?G, -Jsonld) is det.
+
+triples_to_jsonld(Triples, Jsonld) :-
+  triples_to_jsonld(Triples, _, Jsonld).
+
 
 triples_to_jsonld(Triples, G, Jsonld) :-
   jsonld_triples_context(Triples, G, PDefs, DefLang, Context),
@@ -116,7 +130,7 @@ jsonld_triples_context(Triples, G, PDefs, _LTag, Context) :-
   */
 
   % Predicate definitions.
-  aggregate_all(set(P), member(rdf(_,P,_), Triples), Ps).
+  aggregate_all(set(P), member(rdf(_,P,_), Triples), Ps),
   p_defs(Triples, Ps, G, PDefs),
 
   % Pairs → dict.

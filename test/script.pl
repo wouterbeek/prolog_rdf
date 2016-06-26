@@ -1,7 +1,7 @@
 :- use_module(library(debug)).
 %:- use_module(library(mat/mat)).
 :- use_module(library(rdf/rdf_info)).
-:- use_module(library(rdf/rdf_print)).
+:- use_module(library(z/z_print)).
 
 :- debug(mat(rdf(_))).
 :- debug(mat(rdfs(_))).
@@ -26,7 +26,7 @@ script1:-
   rdf_assert(Hog2, ex:age, 2.3, G),
   rdf_assert(Hog2, ex:age, 23 rdiv 10, G),
   rdf_assert(Hog2, rdfs:comment, "This is a fine hog.", G),
-  rdf_print_graph(G).
+  z_print_graph(G).
   %mat0(G).
 
 script2:-
@@ -38,7 +38,7 @@ script2:-
   owl_assert_value_restriction(ex:p, ex:v2, G, R2),
   owl_assert_intersection_of(D, [R1,R2], G),
   rdf_assert_instance(ex:a, ex:'A', G),
-  rdf_print_graph(G).
+  z_print_graph(G).
   %mat0(G).
 
 script3:-
@@ -46,7 +46,7 @@ script3:-
   rdf_equal(ex:script3, G),
   rdf_assert(ex:a, owl:sameAs, ex:b, G),
   rdf_assert(ex:b, owl:differentFrom, ex:a, G),
-  rdf_print_graph(G).
+  z_print_graph(G).
   %mat0(G).
 
 script4:-
@@ -54,7 +54,7 @@ script4:-
   rdf_equal(ex:script4, G),
   rdfs_assert_range(ex:p, ex:c, G),
   rdf_assert(ex:s, ex:p, "o", G),
-  rdf_print_graph(G).
+  z_print_graph(G).
   %mat0(G).
 
 script5:-
@@ -64,7 +64,7 @@ script5:-
   rdf_assert(ex:a, ex:p, ex:b, G),
   rdf_assert(ex:a, ex:p, ex:c, G),
   rdf_assert(ex:b, owl:differentFrom, ex:c, G),
-  rdf_print_graph(G).
+  z_print_graph(G).
   %mat0(G).
 %mat0(G) :- atom_concat(G, '_mat', GMat), mat(G, GMat).
 
@@ -72,14 +72,14 @@ script6:-
   rdf_reset_db,
   rdf_equal(ex:script6, G),
   rdf_assert_now(ex:s, ex:p, G),
-  rdf_print_graph(G).
+  z_print_graph(G).
 
 
 script7:-
   rdf_assert(ex:s, ex:p, 01^^xsd:integer, ex:g),
   print_id_store,
-  rdf_print_quads(_, _, _, _),
+  z_print_quads(_, _, _, _),
 
   rdf_assert(ex:s, owl:sameAs, 1^^xsd:integer, ex:g),
   print_id_store,
-  rdf_print_quads(_, _, _, _).
+  z_print_quads(_, _, _, _).

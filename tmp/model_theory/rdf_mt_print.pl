@@ -21,7 +21,7 @@ Sytax-to-semantics map printing.
 @version 2013/08, 2014/01, 2014/11
 */
 
-:- use_module(library(rdf/rdf_print)).
+:- use_module(library(z/z_print)).
 
 
 
@@ -31,7 +31,7 @@ Sytax-to-semantics map printing.
 
 rdf_mt_print_graph(G) :-
   format("GRAPH ~w\n", [G]),
-  rdf_print_graph(G).
+  z_print_graph(G).
 
 
 
@@ -146,7 +146,7 @@ rdf_mt_print_i_ext(M) :-
     (
       format("\t~w -> ", [Property]),
       dcg_with_output_to(current_output,
-        set(pair(ascii,rdf_term_name), ResourcePairs)
+        set(pair(ascii,dcg_print_term), ResourcePairs)
       ),
       nl
     )

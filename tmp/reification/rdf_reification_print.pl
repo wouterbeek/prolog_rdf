@@ -52,9 +52,9 @@ dcg_stmt(Brackets, triple, Statement) -->
   {rdf_statement(S, P, O, _, Statement)},
 
   % A statement is serialized as a triple of RDF terms.
-  tuple(Brackets, rdf_term_name, [S,P,O]).
+  tuple(Brackets, dcg_term_term, [S,P,O]).
 
 rdfs_label0(Term, Label) :-
   rdfs_label_value(Term, Label, _, _), !.
 rdfs_label0(Term, Atom) :-
-  dcg_with_output_to(atom(Atom), rdf_term_name(Term)).
+  dcg_with_output_to(atom(Atom), dcg_print_term(Term)).

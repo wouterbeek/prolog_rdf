@@ -21,12 +21,12 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(xml/marcxml)).
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_print)).
 
 :- rdf_meta
    marcxml2rdf(+, +, +, r),
@@ -116,7 +116,7 @@ xml2rdf_assert_record0(Mode, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Sink, 
         ->  z_literal(Lit, rdf:langString, Val, LTag)
         ;   z_literal(Lit, xsd:string, Val, _)
         ),
-        (debugging(xml2rdf) -> rdf_print_triple(S, P, Lit) ; true),
+        (debugging(xml2rdf) -> z_print_triple(S, P, Lit) ; true),
         rdf_assert_mode(Mode, S, P, Lit, Sink)
       ))
   ;   xml2rdf_assert_record0(Mode, Vals, [H|T], S, LTagAttr, Sink, Opts)
