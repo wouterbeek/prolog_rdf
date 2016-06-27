@@ -40,6 +40,7 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(z/z_ext)).
+:- use_module(library(z/z_stmt)).
 :- use_module(library(z/z_term)).
 
 :- rdf_meta
