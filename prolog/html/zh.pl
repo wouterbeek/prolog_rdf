@@ -222,7 +222,7 @@ zh_describe(M, S, Opts) -->
 zh_describe_row0(M, P-Os, Opts) -->
   html(
     tr([
-      td(\zh_property_outer(property, [property], P, Opts)),
+      td(\zh_property_outer(M, property, [property], P, Opts)),
       td(\html_seplist({M,Opts}/[O]>>zh_object(M, O, Opts), " ", Os))
     ])
   ).
@@ -588,7 +588,7 @@ zh_subject_outer(M, C, Cs1, S, Opts) -->
   (   {rdf_is_iri(S)}
   ->  zh_iri_outer(M, C, Cs2, S, Opts)
   ;   {rdf_is_bnode(S)}
-  ->  zh_bnode_outer(M, C, Cs2, S, Opts)
+  ->  zh_bnode_outer(C, Cs2, S, Opts)
   ).
 
 
@@ -809,12 +809,10 @@ zh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
     ),
     http_link_to_id(Id, Query, Link)
   },
-  html(
-    span([class=Cs|Attrs], [
-      html(a(href=Link, Content_0)),
-      \zh_link_external(Term)
-    ])
-  ).
+  html([
+    html(a([class=Cs,href=Link|Attrs], Content_0)),
+    \zh_link_external(Term)
+  ]).
 zh_link(_, _, _, _, Content_0, _) -->
   Content_0.
 
