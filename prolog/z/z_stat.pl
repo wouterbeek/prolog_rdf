@@ -70,7 +70,7 @@ z_number_of_bnodes(M, N) :-
 
 
 z_number_of_bnodes(M, G, N) :-
-  z_graph(G),
+  z_graph(M, G),
   aggregate_all(count, z_bnode(M, _, G), N).
 
 
@@ -83,7 +83,7 @@ z_number_of_datatypes(M, N) :-
 
 
 z_number_of_datatypes(M, G, N) :-
-  z_graph(G),
+  z_graph(M, G),
   aggregate_all(count, z_datatype(M, _, G), N).
 
 
@@ -98,7 +98,7 @@ z_number_of_objects(M, N) :-
 
 
 z_number_of_objects(M, G, N) :-
-  z_graph(G),
+  z_graph(M, G),
   aggregate_all(count, z_object(M, _, G), N).
 
 
@@ -121,7 +121,7 @@ z_number_of_predicates(M, N) :-
 
 
 z_number_of_predicates(M, G, N) :-
-  z_graph(G),
+  z_graph(M, G),
   aggregate_all(count, z_predicate(M, _, G), N).
 
 
@@ -144,7 +144,7 @@ z_number_of_subjects(M, N) :-
 
 
 z_number_of_subjects(M, G, N) :-
-  z_graph(G),
+  z_graph(M, G),
   aggregate_all(count, z_subject(M, _, G), N).
 
 

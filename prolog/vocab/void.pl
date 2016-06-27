@@ -104,19 +104,20 @@ graph_to_void0(Goal_2, G1, M, G2) :-
   rdf_create_bnode(Dataset),
   rdf_assert_instance(Dataset, void:'Dataset', G2),
   
-  % Number of unique classes (‘void:classes’).
-  rdfs_number_of_classes(G1, NumCs),
-  rdf_assert(Dataset, void:classes, NumCs^^xsd:nonNegativeInteger, G2),
+  % @tbd
+  %% Number of unique classes (‘void:classes’).
+  %rdfs_number_of_classes(G1, NumCs),
+  %rdf_assert(Dataset, void:classes, NumCs^^xsd:nonNegativeInteger, G2),
   
   % Link where a data dump is published (‘void:dataDump’).
   rdf_assert(Dataset, void:dataDump, M.'llo:base_iri', G2),
 
   % Number of distinct object terms (‘void:distinctObjects’).
-  z_number_of_objects(G1, NumOs),
+  z_number_of_objects(rdf, G1, NumOs),
   rdf_assert(Dataset, void:distinctObjects, NumOs^^xsd:nonNegativeInteger, G2),
 
   % Number of distinct subject terms (‘void:distinctSubjects’).
-  z_number_of_subjects(G1, NumSs),
+  z_number_of_subjects(rdf, G1, NumSs),
   rdf_assert(Dataset, void:distinctSubjects, NumSs^^xsd:nonNegativeInteger, G2),
   
   % void:feature
@@ -125,25 +126,26 @@ graph_to_void0(Goal_2, G1, M, G2) :-
   
   % Number of distinct predicate terms (erroneously called
   % ‘void:properties’).
-  z_number_of_predicates(G1, NumPs),
+  z_number_of_predicates(rdf, G1, NumPs),
   rdf_assert(Dataset, void:properties, NumPs^^xsd:nonNegativeInteger, G2),
   
   % Number of distinct triples (‘void:triples’).  Should we not count
   % quadruples?
-  z_number_of_triples(G1, NumTriples),
+  z_number_of_triples(rdf, G1, NumTriples),
   rdf_assert(Dataset, void:triples, NumTriples^^xsd:nonNegativeInteger, G2),
-  
-  % Vocabularies that appear in the data, defined as the registered
-  % RDF prefixes that appear in at least one of the RDF terms
-  % (‘void:vocabulary’).
-  forall(
-    distinct(Vocab, (
-      vocab_term(Iri, G1),
-      rdf_is_iri(Iri),
-      rdf_iri_prefix(Iri, Vocab)
-    )),
-    rdf_assert(Dataset, void:vocabulary, Vocab, G2)
-  ),
+
+  % @tbd
+  %% Vocabularies that appear in the data, defined as the registered
+  %% RDF prefixes that appear in at least one of the RDF terms
+  %% (‘void:vocabulary’).
+  %forall(
+  %  distinct(Vocab, (
+  %    vocab_term(Iri, G1),
+  %    rdf_is_iri(Iri),
+  %    rdf_iri_prefix(Iri, Vocab)
+  %  )),
+  %  rdf_assert(Dataset, void:vocabulary, Vocab, G2)
+  %),
 
   % VoID assertions that cannot be generated automatically.
   call(Goal_2, Dataset, G2).
