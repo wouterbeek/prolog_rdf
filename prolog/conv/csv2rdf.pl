@@ -39,6 +39,8 @@ Automatic conversion from CSV to RDF.
    csv2rdf_graph(+, r),
    csv2rdf_graph(+, r, +).
 
+:- debug(csv2rdf).
+
 
 
 
@@ -114,7 +116,7 @@ csv2rdf_options(Opts1, D2, Opts2) :-
   ).
 
 
-csv2rdf_1(In, Sink, D, Opts) :-
+csv2rdf_1(In, Sink, D, Opts) :-gtrace,
   get_dict(header, D, Ps), !,
   csv2rdf_2(In, Sink, Ps, D, Opts).
 csv2rdf_1(In, Sink, D, Opts) :-
@@ -130,6 +132,8 @@ csv2rdf_2(In, Sink, Ps, D, Opts) :-
   atom_number(Name, N),
   rdf_global_id(D.abox_alias:Name, S),
   maplist(assert0(Sink, S), Ps, Vals),
+  flag(aap, N, N + 1),
+  debug(csv2rdf, "~D", [N]),
   fail.
 csv2rdf_2(_, _, _, _, _).
 

@@ -2,6 +2,8 @@
 
 /** <module> RDF array
 
+"[[[[5.469528183884724 51.34669900730107] [5.46948054297083 51.34672156677506] [5.469399538134988 51.346652770426864] [5.469444439087056 51.34663106685318] [5.469528183884724 51.34669900730107]]]]" ^^ tcco:array
+
 @author Wouter Beek
 @version 2016/06
 */
@@ -38,7 +40,7 @@ rdf11:out_type_hook(D, L, Lex) :-
   rdf_equal(tcco:array, D), !,
   atom_phrase(array(L), Lex).
 
-array(L) --> "[", seplist(array, " ", L), "]", !.
+array(L) --> "[", !, seplist(array, " ", L), "]", !.
 array(N) --> float(N).
 
 zh:zh_literal_hook(_, Array^^D, Opts) -->

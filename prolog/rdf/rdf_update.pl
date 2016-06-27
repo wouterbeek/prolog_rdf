@@ -541,7 +541,7 @@ rdf_rm_null(P, Null, G) :-
 %! rdf_rm_tree(+S) is det.
 
 rdf_rm_tree(S) :-
-  z_tree(S, Tree),
+  z_tree(rdf, S, Tree),
   rdf_rm_tuples(Tree).
 
 
