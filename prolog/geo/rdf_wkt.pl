@@ -25,9 +25,9 @@ Allows WKT shapes to be read/written from/to the RDF DB.
    gis:resource_shape_hook/5,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
-   zh:zh_literal_hook//2.
+   zh:zh_literal_hook//3.
 
-gis:resource_shape_hook(M, S, D, Shape, G) :-
+gis:resource_shape_hook(M, S, D, G, Shape) :-
   z(M, S, geold:geometry, Array^^D, G),
   array2shape(Array, D, Shape).
 
@@ -56,7 +56,9 @@ rdf11:out_type_hook(D, Array, Lex) :-
   Shape =.. [Name,Array],
   rdf_global_id(wkt:Name, D).
 
-zh:zh_literal_hook(Array^^D, Opts) -->
-  {rdf_global_id(wkt:_, D)}, !,
-  {z_literal_lex(Array^^D, Lex)},
+zh:zh_literal_hook(_, Array^^D, Opts) -->
+  {
+    rdf_global_id(wkt:_, D), !,
+    z_literal_lex(Array^^D, Lex)
+  },
   bs_truncated(Lex, Opts.max_length).

@@ -56,7 +56,7 @@ wgs84:Point IS-A wgs84:SpatialThing
    wgs84_point(?, r, ?),
    wgs84_point(?, r, ?, r).
 
-gis:resource_shape_hook(M, S, D, Point, G) :-
+gis:resource_shape_hook(M, S, D, G, Point) :-
   rdf_equal(wkt:point, D),
   wgs84_point(M, S, Point, G).
 

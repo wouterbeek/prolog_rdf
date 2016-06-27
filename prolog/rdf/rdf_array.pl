@@ -19,7 +19,7 @@
    rdf:dcg_print_literal_hook//2,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
-   zh:zh_literal_hook//2.
+   zh:zh_literal_hook//3.
 
 rdf:dcg_print_literal_hook(Array^^D, Opts) -->
   {
@@ -41,7 +41,7 @@ rdf11:out_type_hook(D, L, Lex) :-
 array(L) --> "[", seplist(array, " ", L), "]", !.
 array(N) --> float(N).
 
-zh:zh_literal_hook(Array^^D, Opts) -->
+zh:zh_literal_hook(_, Array^^D, Opts) -->
   {
     rdf_equal(tcco:array, D), !,
     z_literal_lex(Array^^D, Lex)
