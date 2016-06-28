@@ -17,14 +17,16 @@
   ]
 ).
 
-/** <module> RDF term
+/** <module> RDF term API
+
+In addition to what `library(semweb/rdf11)` already provides.
 
 @author Wouter Beek
 @version 2016/06
 */
 
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(z/z_term)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdf_bnode(?, r),

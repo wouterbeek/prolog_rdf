@@ -48,11 +48,20 @@
 :- use_module(library(mat/mat_viz)).
 %/owl
 :- use_module(library(owl/owl_ext)).
+%/q
+:- use_module(library(q/q_cbd)).
+:- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_ext)).
+:- use_module(library(q/q_list)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_shape)).
+:- use_module(library(q/q_stat)).
+:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_term)).
 %/rdf
 :- use_module(library(rdf/rdf_annotate)).
 :- use_module(library(rdf/rdf_array)).
 :- use_module(library(rdf/rdf_bnode_map)).
-:- use_module(library(rdf/rdf_cbd)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_default)).
@@ -97,13 +106,3 @@
 :- use_module(library(service/void_store)).
 %/vocab
 :- use_module(library(vocab/void)).
-%/z
-:- use_module(library(z/z_cbd)).
-:- use_module(library(z/z_datatype)).
-:- use_module(library(z/z_ext)).
-:- use_module(library(z/z_list)).
-:- use_module(library(z/z_print)).
-:- use_module(library(z/z_shape)).
-:- use_module(library(z/z_stat)).
-:- use_module(library(z/z_stmt)).
-:- use_module(library(z/z_term)).

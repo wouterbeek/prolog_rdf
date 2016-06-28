@@ -6,6 +6,7 @@
 @version 2016/06
 */
 
+:- use_module(library(q/q_stmt)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(semweb/rdf11)).
 
@@ -36,4 +37,4 @@ google_client:create_user_hook(Profile, User) :-
 
 
 google_client:current_user_hook(Profile, User) :-
-  rdf_pref_string(User, user:googleName, Profile.sub^^xsd:string).
+  q_pref_string(rdf, User, user:googleName, Profile.sub^^xsd:string).
