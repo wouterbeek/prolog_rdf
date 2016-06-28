@@ -1,5 +1,5 @@
 :- module(
-  z_print,
+  q_print,
   [
     dcg_print_graph//2,      % ?M, +G
     dcg_print_graph//3,      % ?M, +G,         +Opts
@@ -30,55 +30,55 @@
     dcg_print_triples//4,    % ?M, ?S, ?P, ?O
     dcg_print_triples//5,    % ?M, ?S, ?P, ?O, ?G
     dcg_print_triples//6,    % ?M, ?S, ?P, ?O, ?G, +Opts
-    z_print_cbd/2,           % ?M, ?S
-    z_print_cbd/3,           % ?M, ?S, ?G
-    z_print_cbd/4,           % ?M, ?S, ?G,         +Opts
-    z_print_graph/2,         % ?M, +G
-    z_print_graph/3,         % ?M, +G,             +Opts
-    z_print_graph_term/1,    % +G
-    z_print_graph_term/2,    % +G,                 +Opts
-    z_print_literal/1,       % +Lit
-    z_print_literal/2,       % +Lit,               +Opts
-    z_print_object/1,        % +O
-    z_print_object/2,        % +O,                 +Opts
-    z_print_pagination/5,    % ?M, ?S, ?P, ?O, ?G
-    z_print_pagination/6,    % ?M, ?S, ?P, ?O, ?G, +Opts
-    z_print_predicate/1,     % +P
-    z_print_predicate/2,     % +P,                 +Opts
-    z_print_quad/1,          % +Tuple
-    z_print_quad/2,          % +Tuple,             +Opts
-    z_print_quad/4,          % +S, +P, +O, +G
-    z_print_quad/5,          % +S, +P, +O, +G,     +Opts
-    z_print_quads/1,         % +Tuples
-    z_print_quads/2,         % +Tuples,            +Opts
-    z_print_quads/5,         % ?M, ?S, ?P, ?O, ?G
-    z_print_quads/6,         % ?M, ?S, ?P, ?O, ?G, +Opts
-    z_print_root/2,          % ?M, ?Node
-    z_print_root/3,          % ?M, ?Node, ?G
-    z_print_root/4,          % ?M, ?Node, ?G       +Opts
-    z_print_scbd/2,          % ?M, ?Node
-    z_print_scbd/3,          % ?M, ?Node, ?G
-    z_print_scbd/4,          % ?M, ?Node, ?G,      +Opts
-    z_print_table/1,         % +Rows
-    z_print_table/2,         % +Rows,              +Opts
-    z_print_term/1,          % +T
-    z_print_term/2,          % +T,                 +Opts
-    z_print_tree/2,          % ?M, ?S
-    z_print_tree/3,          % ?M, ?S, ?G
-    z_print_tree/4,          % ?M, ?S, ?G,         +Opts
-    z_print_triple/1,        % +Tuple
-    z_print_triple/2,        % +Tuple,             +Opts
-    z_print_triple/3,        % +S, +P, +O
-    z_print_triple/4,        % +S, +P, +O,         +Opts
-    z_print_triples/1,       % +Triples
-    z_print_triples/2,       % +Triples,           +Opts
-    z_print_triples/4,       % ?M, ?S, ?P, ?O
-    z_print_triples/5,       % ?M, ?S, ?P, ?O, ?G
-    z_print_triples/6        % ?M, ?S, ?P, ?O, ?G, +Opts
+    q_print_cbd/2,           % ?M, ?S
+    q_print_cbd/3,           % ?M, ?S, ?G
+    q_print_cbd/4,           % ?M, ?S, ?G,         +Opts
+    q_print_graph/2,         % ?M, +G
+    q_print_graph/3,         % ?M, +G,             +Opts
+    q_print_graph_term/1,    % +G
+    q_print_graph_term/2,    % +G,                 +Opts
+    q_print_literal/1,       % +Lit
+    q_print_literal/2,       % +Lit,               +Opts
+    q_print_object/1,        % +O
+    q_print_object/2,        % +O,                 +Opts
+    q_print_pagination/5,    % ?M, ?S, ?P, ?O, ?G
+    q_print_pagination/6,    % ?M, ?S, ?P, ?O, ?G, +Opts
+    q_print_predicate/1,     % +P
+    q_print_predicate/2,     % +P,                 +Opts
+    q_print_quad/1,          % +Tuple
+    q_print_quad/2,          % +Tuple,             +Opts
+    q_print_quad/4,          % +S, +P, +O, +G
+    q_print_quad/5,          % +S, +P, +O, +G,     +Opts
+    q_print_quads/1,         % +Tuples
+    q_print_quads/2,         % +Tuples,            +Opts
+    q_print_quads/5,         % ?M, ?S, ?P, ?O, ?G
+    q_print_quads/6,         % ?M, ?S, ?P, ?O, ?G, +Opts
+    q_print_root/2,          % ?M, ?Node
+    q_print_root/3,          % ?M, ?Node, ?G
+    q_print_root/4,          % ?M, ?Node, ?G       +Opts
+    q_print_scbd/2,          % ?M, ?Node
+    q_print_scbd/3,          % ?M, ?Node, ?G
+    q_print_scbd/4,          % ?M, ?Node, ?G,      +Opts
+    q_print_table/1,         % +Rows
+    q_print_table/2,         % +Rows,              +Opts
+    q_print_term/1,          % +T
+    q_print_term/2,          % +T,                 +Opts
+    q_print_tree/2,          % ?M, ?S
+    q_print_tree/3,          % ?M, ?S, ?G
+    q_print_tree/4,          % ?M, ?S, ?G,         +Opts
+    q_print_triple/1,        % +Tuple
+    q_print_triple/2,        % +Tuple,             +Opts
+    q_print_triple/3,        % +S, +P, +O
+    q_print_triple/4,        % +S, +P, +O,         +Opts
+    q_print_triples/1,       % +Triples
+    q_print_triples/2,       % +Triples,           +Opts
+    q_print_triples/4,       % ?M, ?S, ?P, ?O
+    q_print_triples/5,       % ?M, ?S, ?P, ?O, ?G
+    q_print_triples/6        % ?M, ?S, ?P, ?O, ?G, +Opts
   ]
 ).
 
-/** <module> Z print
+/** <module> Quine print
 
 Print RDF statements.
 
@@ -94,7 +94,7 @@ Print RDF statements.
 @author Wouter Beek
 @tbd Turtle container abbreviation.
 @tbd Turtle collection abbreviation.
-@version 2016/03-2016/06
+@version 2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -109,14 +109,14 @@ Print RDF statements.
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/q_cbd)).
+:- use_module(library(q/q_shape)).
+:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
-:- use_module(library(z/z_cbd)).
-:- use_module(library(z/z_shape)).
-:- use_module(library(z/z_stmt)).
-:- use_module(library(z/z_term)).
 
 :- dynamic
     var_map/2.
@@ -150,45 +150,45 @@ Print RDF statements.
    dcg_print_triples(?, r, r, o, ?, ?),
    dcg_print_triples(?, r, r, o, r, ?, ?),
    dcg_print_triples(?, r, r, o, r, +, ?, ?),
-   z_print_cbd(?, r),
-   z_print_cbd(?, r, r),
-   z_print_cbd(?, r, r, +),
-   z_print_graph(?, r),
-   z_print_graph(?, r, +),
-   z_print_graph_term(r),
-   z_print_graph_term(r, +),
-   z_print_literal(o),
-   z_print_literal(o, +),
-   z_print_object(o),
-   z_print_object(o, +),
-   z_print_pagination(?, r, r, o, r),
-   z_print_pagination(?, r, r, o, r, +),
-   z_print_predicate(r),
-   z_print_predicate(r, +),
-   z_print_quad(t),
-   z_print_quad(t, +),
-   z_print_quad(r, r, o, r),
-   z_print_quad(r, r, o, r, +),
-   z_print_quads(?, r, r, o, r),
-   z_print_quads(?, r, r, o, r, +),
-   z_print_root(?, r),
-   z_print_root(?, r, r),
-   z_print_root(?, r, r, +),
-   z_print_scbd(?, o),
-   z_print_scbd(?, o, r),
-   z_print_scbd(?, o, r, +),
-   z_print_term(o),
-   z_print_term(o, +),
-   z_print_tree(?, r),
-   z_print_tree(?, r, r),
-   z_print_tree(?, r, r, +),
-   z_print_triple(t),
-   z_print_triple(t, +),
-   z_print_triple(r, r, o),
-   z_print_triple(r, r, o, +),
-   z_print_triples(?, r, r, o),
-   z_print_triples(?, r, r, o, r),
-   z_print_triples(?, r, r, o, r, +).
+   q_print_cbd(?, r),
+   q_print_cbd(?, r, r),
+   q_print_cbd(?, r, r, +),
+   q_print_graph(?, r),
+   q_print_graph(?, r, +),
+   q_print_graph_term(r),
+   q_print_graph_term(r, +),
+   q_print_literal(o),
+   q_print_literal(o, +),
+   q_print_object(o),
+   q_print_object(o, +),
+   q_print_pagination(?, r, r, o, r),
+   q_print_pagination(?, r, r, o, r, +),
+   q_print_predicate(r),
+   q_print_predicate(r, +),
+   q_print_quad(t),
+   q_print_quad(t, +),
+   q_print_quad(r, r, o, r),
+   q_print_quad(r, r, o, r, +),
+   q_print_quads(?, r, r, o, r),
+   q_print_quads(?, r, r, o, r, +),
+   q_print_root(?, r),
+   q_print_root(?, r, r),
+   q_print_root(?, r, r, +),
+   q_print_scbd(?, o),
+   q_print_scbd(?, o, r),
+   q_print_scbd(?, o, r, +),
+   q_print_term(o),
+   q_print_term(o, +),
+   q_print_tree(?, r),
+   q_print_tree(?, r, r),
+   q_print_tree(?, r, r, +),
+   q_print_triple(t),
+   q_print_triple(t, +),
+   q_print_triple(r, r, o),
+   q_print_triple(r, r, o, +),
+   q_print_triples(?, r, r, o),
+   q_print_triples(?, r, r, o, r),
+   q_print_triples(?, r, r, o, r, +).
 
 
 
@@ -196,175 +196,175 @@ Print RDF statements.
 
 % NON-DCG INVOCATIONS %
 
-%! z_print_cbd(?M, ?S) is det.
-%! z_print_cbd(?M, ?S, ?G) is det.
-%! z_print_cbd(?M, ?S, ?G, +Opts) is det.
+%! q_print_cbd(?M, ?S) is det.
+%! q_print_cbd(?M, ?S, ?G) is det.
+%! q_print_cbd(?M, ?S, ?G, +Opts) is det.
 %
 % Print the Concise-Bounded Description (CBD) of subject terms.
 
-z_print_cbd(M, S) :-
-  z_print_cbd(M, S, _).
+q_print_cbd(M, S) :-
+  q_print_cbd(M, S, _).
 
 
-z_print_cbd(M, S, G) :-
-  z_print_cbd(M, S, G, []).
+q_print_cbd(M, S, G) :-
+  q_print_cbd(M, S, G, []).
 
 
-z_print_cbd(M, S, G, Opts) :-
-  z_cbd(M, S, G, Triples),
-  z_print_triples(Triples, Opts).
+q_print_cbd(M, S, G, Opts) :-
+  q_cbd(M, S, G, Triples),
+  q_print_triples(Triples, Opts).
 
 
 
-z_print_graph(M, G) :-
-  z_print_graph(M, G, _{}).
+q_print_graph(M, G) :-
+  q_print_graph(M, G, _{}).
 
 
-z_print_graph(M, G, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_graph(M, G, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_graph(M, G, Opts2)).
 
 
 
-z_print_graph_term(G) :-
-  z_print_graph_term(G, _{}).
+q_print_graph_term(G) :-
+  q_print_graph_term(G, _{}).
 
 
-z_print_graph_term(G, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_graph_term(G, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_graph_term(G, Opts2)).
 
 
 
-z_print_literal(Lit) :-
-  z_print_object(Lit, _{}).
+q_print_literal(Lit) :-
+  q_print_object(Lit, _{}).
 
 
-z_print_literal(Lit, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_literal(Lit, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_literal(Lit, Opts2)).
 
 
 
-z_print_object(O) :-
-  z_print_object(O, _{}).
+q_print_object(O) :-
+  q_print_object(O, _{}).
 
 
-z_print_object(O, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_object(O, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_object(O, Opts2)).
 
 
 
-z_print_pagination(M, S, P, O, G) :-
-  z_print_pagination(M, S, P, O, G, _{}).
+q_print_pagination(M, S, P, O, G) :-
+  q_print_pagination(M, S, P, O, G, _{}).
 
 
-z_print_pagination(M, S, P, O, G, Opts) :-
-  pagination(Triple, z_triple(M, S, P, O, G, Triple), Opts, Result),
+q_print_pagination(M, S, P, O, G, Opts) :-
+  pagination(Triple, q_triple(M, S, P, O, G, Triple), Opts, Result),
   pagination_result(
     Result,
-    {Opts}/[Results]>>z_print_triples(Results, Opts)
+    {Opts}/[Results]>>q_print_triples(Results, Opts)
   ).
 
 
 
-z_print_predicate(P) :-
-  z_print_predicate(P, _{}).
+q_print_predicate(P) :-
+  q_print_predicate(P, _{}).
 
 
-z_print_predicate(P, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_predicate(P, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_predicate(P, Opts2)).
 
 
 
-z_print_quad(Tuple) :-
-  z_print_quad(Tuple, _{}).
+q_print_quad(Tuple) :-
+  q_print_quad(Tuple, _{}).
 
 
-z_print_quad(Tuple, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_quad(Tuple, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quad(Tuple, Opts2)).
 
 
 
-z_print_quad(S, P, O, G) :-
-  z_print_quad(S, P, O, G, _{}).
+q_print_quad(S, P, O, G) :-
+  q_print_quad(S, P, O, G, _{}).
 
 
-z_print_quad(S, P, O, G, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_quad(S, P, O, G, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quad(S, P, O, G, Opts2)).
 
 
 
-z_print_quads(Tuples) :-
-  z_print_quads(Tuples, _{}).
+q_print_quads(Tuples) :-
+  q_print_quads(Tuples, _{}).
 
 
-z_print_quads(Tuples, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_quads(Tuples, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quads(Tuples, Opts2)).
 
 
 
-z_print_quads(M, S, P, O, G) :-
-  z_print_quads(M, S, P, O, G, _{}).
+q_print_quads(M, S, P, O, G) :-
+  q_print_quads(M, S, P, O, G, _{}).
 
 
-z_print_quads(M, S, P, O, G, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_quads(M, S, P, O, G, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_quads(M, S, P, O, G, Opts2)).
 
 
 
-%! z_print_root(?M, ?Node) is det.
-%! z_print_root(?M, ?Node, ?G) is det.
-%! z_print_root(?M, ?Node, ?G, +Opts) is det.
+%! q_print_root(?M, ?Node) is det.
+%! q_print_root(?M, ?Node, ?G) is det.
+%! q_print_root(?M, ?Node, ?G, +Opts) is det.
 %
 % Print the tree for an RDF root node.
 
-z_print_root(M, Node) :-
-  z_print_root(M, Node, _).
+q_print_root(M, Node) :-
+  q_print_root(M, Node, _).
 
 
-z_print_root(M, Node, G) :-
-  z_print_root(M, Node, G, []).
+q_print_root(M, Node, G) :-
+  q_print_root(M, Node, G, []).
 
 
-z_print_root(M, Node, G, Opts) :-
-  z_root(M, Node, G),
-  z_tree(M, Node, G, Triples),
-  z_print_triples(Triples, Opts).
+q_print_root(M, Node, G, Opts) :-
+  q_root(M, Node, G),
+  q_tree(M, Node, G, Triples),
+  q_print_triples(Triples, Opts).
 
 
 
-%! z_print_scbd(?M, ?Node) is det.
-%! z_print_scbd(?M, ?Node, ?G) is det.
-%! z_print_scbd(?M, ?Node, ?G, +Opts) is det.
+%! q_print_scbd(?M, ?Node) is det.
+%! q_print_scbd(?M, ?Node, ?G) is det.
+%! q_print_scbd(?M, ?Node, ?G, +Opts) is det.
 %
 % Print the Symmetric CBD (SCBD) for an RDF node.
 
-z_print_scbd(M, Node) :-
-  z_print_scbd(M, Node, _).
+q_print_scbd(M, Node) :-
+  q_print_scbd(M, Node, _).
 
 
-z_print_scbd(M, Node, G) :-
-  z_print_scbd(M, Node, G, []).
+q_print_scbd(M, Node, G) :-
+  q_print_scbd(M, Node, G, []).
 
 
-z_print_scbd(M, Node, G, Opts) :-
-  z_scbd(M, Node, G, Triples),
-  z_print_triples(Triples, Opts).
+q_print_scbd(M, Node, G, Opts) :-
+  q_scbd(M, Node, G, Triples),
+  q_print_triples(Triples, Opts).
 
 
 
-z_print_table(Rows) :-
-  z_print_table(Rows, []).
+q_print_table(Rows) :-
+  q_print_table(Rows, []).
 
 
-z_print_table(Rows, Opts1) :-
+q_print_table(Rows, Opts1) :-
   merge_options(Opts1, [cell(print_cell0)], Opts2),
   option(out(Out), Opts1, current_output),
   dcg_with_output_to(Out, dcg_table(Rows, Opts2)).
@@ -377,76 +377,76 @@ print_cell0(Term) -->
 
 
 
-z_print_term(T) :-
-  z_print_term(T, _{}).
+q_print_term(T) :-
+  q_print_term(T, _{}).
 
 
-z_print_term(T, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_term(T, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_term(T, Opts2)).
 
 
 
-%! z_tree(?M, ?S) is det.
-%! z_tree(?M, ?S, ?G) is det.
-%! z_tree(?M, ?S, ?G, +Opts) is det.
+%! q_tree(?M, ?S) is det.
+%! q_tree(?M, ?S, ?G) is det.
+%! q_tree(?M, ?S, ?G, +Opts) is det.
 %
 % Print the tree for a subject term.
 
-z_print_tree(M, S) :-
-  z_print_tree(M, S, _).
+q_print_tree(M, S) :-
+  q_print_tree(M, S, _).
 
 
-z_print_tree(M, S, G) :-
-  z_print_tree(M, S, G, []).
+q_print_tree(M, S, G) :-
+  q_print_tree(M, S, G, []).
 
 
-z_print_tree(M, S, G, Opts) :-
-  z_tree(M, S, G, Triples),
-  z_print_triples(Triples, Opts).
+q_print_tree(M, S, G, Opts) :-
+  q_tree(M, S, G, Triples),
+  q_print_triples(Triples, Opts).
 
 
 
-z_print_triple(Tuple) :-
-  z_print_triple(Tuple, _{}).
+q_print_triple(Tuple) :-
+  q_print_triple(Tuple, _{}).
 
 
-z_print_triple(Tuple, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_triple(Tuple, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triple(Tuple, Opts2)).
 
 
 
-z_print_triple(S, P, O) :-
-  z_print_triple(S, P, O, _{}).
+q_print_triple(S, P, O) :-
+  q_print_triple(S, P, O, _{}).
 
 
-z_print_triple(S, P, O, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_triple(S, P, O, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triple(S, P, O, Opts2)).
 
 
 
-z_print_triples(Triples) :-
-  z_print_triples(Triples, _{}).
+q_print_triples(Triples) :-
+  q_print_triples(Triples, _{}).
 
 
-z_print_triples(Triples, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_triples(Triples, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triples(Triples, Opts2)).
 
 
 
-z_print_triples(M, S, P, O) :-
-  z_print_triples(M, S, P, O, _).
+q_print_triples(M, S, P, O) :-
+  q_print_triples(M, S, P, O, _).
 
 
-z_print_triples(M, S, P, O, G) :-
-  z_print_triples(M, S, P, O, G, _{}).
+q_print_triples(M, S, P, O, G) :-
+  q_print_triples(M, S, P, O, G, _{}).
 
 
-z_print_triples(M, S, P, O, G, Opts1) :-
-  z_print_default_options(Opts1, Out, Opts2),
+q_print_triples(M, S, P, O, G, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
   dcg_with_output_to(Out, dcg_print_triples(M, S, P, O, G, Opts2)).
 
 
@@ -502,7 +502,7 @@ dcg_print_quads(M, S, P, O, G) -->
 
 
 dcg_print_quads(M, S, P, O, G, Opts) -->
-  {aggregate_all(set(G-rdf(S,P,O)), z(M, S, P, O, G), SortedPairs)},
+  {aggregate_all(set(G-rdf(S,P,O)), q(M, S, P, O, G), SortedPairs)},
   dcg_print_sorted_pairs0(SortedPairs, Opts).
 
 
@@ -527,7 +527,7 @@ dcg_print_triples(M, S, P, O, G) -->
 
 
 dcg_print_triples(M, S, P, O, G, Opts) -->
-  {z_triples(M, S, P, O, G, Triples)},
+  {q_triples(M, S, P, O, G, Triples)},
   dcg_print_triples(Triples, Opts).
 
 
@@ -748,7 +748,7 @@ dcg_print_iri(Full, Opts) -->
     get_dict(iri_lbl, Opts, true),
     rdfs_pref_label(Full, Lit) % @tbd
   }, !,
-  {z_literal_lex(Lit, Lex)},
+  {q_literal_lex(Lit, Lex)},
   "“",
   atom(Lex),
   "”".
@@ -816,7 +816,7 @@ dcg_print_literal(Val^^D, Opts) -->
   dcg_print_lexical_form(Lex, Opts).
 % Unabbreviated datatype IRI that is not `rdf:langString`.
 dcg_print_literal(V^^D, Opts) --> !,
-  {z_literal_lex(V^^D, Lex)},
+  {q_literal_lex(V^^D, Lex)},
   dcg_print_lexical_form(Lex, Opts),
   "^^",
   dcg_print_datatype_iri(D, Opts).
@@ -868,9 +868,9 @@ inf_minus(X, Y, Z) :-
 
 
 
-%! z_print_default_options(+Opts1, -Out, -Opts2) is det.
+%! q_print_default_options(+Opts1, -Out, -Opts2) is det.
 
-z_print_default_options(Opts1, Out, Opts5) :-
+q_print_default_options(Opts1, Out, Opts5) :-
   mod_dict(out, Opts1, current_output, Out, Opts3),
   dcg_print_default_options(Opts4),
   merge_dicts(Opts4, Opts3, Opts5).

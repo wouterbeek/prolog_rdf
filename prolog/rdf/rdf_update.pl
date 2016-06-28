@@ -57,7 +57,7 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10-2016/01, 2016/03, 2016/05-2016/06
+@version 2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -70,14 +70,14 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_shape)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(z/z_datatype)).
-:- use_module(library(z/z_shape)).
-:- use_module(library(z/z_term)).
 
 :- meta_predicate
     rdf_call_update(0, 0),
@@ -202,10 +202,10 @@ rdf_change_datatype(P, D) :-
 rdf_change_datatype(P, G, D2) :-
   rdf_call_update((
     rdf(S, P, Lit1, G),
-    z_literal(Lit1, D1, Lex, LTag),
+    q_literal(Lit1, D1, Lex, LTag),
     D1 \== D2
   ), (
-    z_literal(Lit2, D2, Lex, LTag),
+    q_literal(Lit2, D2, Lex, LTag),
     %debug(rdf(update), "~w → ~w", [Lit1,Lit2]),
     rdf_update(S, P, Lit1, G, object(Lit2))
   )).
@@ -250,12 +250,12 @@ rdf_change_lex(P, Dcg_0) :-
 rdf_change_lex(P, G, Dcg_0) :-
   rdf_call_update((
     rdf(S, P, Lit1, G),
-    z_literal(Lit1, D, Lex1, LTag),
+    q_literal(Lit1, D, Lex1, LTag),
     string_phrase(Dcg_0, Lex1, Lex2),
     Lex1 \== Lex2,
-    z_datatype_compat(Lex2, D)
+    q_datatype_compat(Lex2, D)
   ), (
-    z_literal(Lit2, D, Lex2, LTag),
+    q_literal(Lit2, D, Lex2, LTag),
     rdf_update(S, P, Lit1, G, object(Lit2))
   )).
 
@@ -425,7 +425,7 @@ rdf_lex_padding(P, C) :-
 rdf_lex_padding(P, G, C) :-
   aggregate_all(max(Len), (
     rdf(_, P, Lit, G),
-    z_literal_lex(Lit, Lex),
+    q_literal_lex(Lit, Lex),
     atom_length(Lex, Len)
   ), Max),
   rdf_change_lex(P, G, rdf_lex_padding0(C, Max)).
@@ -454,7 +454,7 @@ rdf_lex_to_iri(P, Alias, G, Lex2Local_0) :-
     rdf(S, P, Lit, G),
     rdf_is_literal(Lit)
   ), (
-    z_literal_lex(Lit, Lex),
+    q_literal_lex(Lit, Lex),
     string_codes(Lex, Cs1),
     phrase(Lex2Local_0, Cs1, Cs2),
     atom_codes(Local, Cs2),
@@ -582,7 +582,7 @@ rdf_rm_null(P, Null, G) :-
 %! rdf_rm_tree(+S) is det.
 
 rdf_rm_tree(S) :-
-  z_tree(rdf, S, Tree),
+  q_tree(rdf, S, Tree),
   rdf_rm_tuples(Tree).
 
 
