@@ -1,18 +1,19 @@
 :- module(
   gen_ntuples,
   [
+    gen_nquad/1,    % +Quad
     gen_nquad/4,    % +S, +P, +O, +G
     gen_nquads/1,   % +Tuples
-    gen_nquads/2,   % +Tuples,        +Opts
-    gen_nquads/4,   % ?S, ?P, ?O, ?G
-    gen_nquads/5,   % ?S, ?P, ?O, ?G, +Opts
+    gen_nquads/2,   % +Tuples,            +Opts
+    gen_nquads/5,   % +M, ?S, ?P, ?O, ?G
+    gen_nquads/6,   % +M, ?S, ?P, ?O, ?G, +Opts
     gen_ntriple/1,  % +Triple
     gen_ntriple/3,  % +S, +P, +O
-    gen_ntriple/4,  % +S, +P, +O, +G
     gen_ntriples/1, % +Triples
-    gen_ntriples/2, % +Triples,       +Opts
-    gen_ntriples/4, % ?S, ?P, ?O, ?G
-    gen_ntriples/5  % ?S, ?P, ?O, ?G, +Opts
+    gen_ntriples/2, % +Triples,           +Opts
+    gen_ntriples/5, % +M, ?S, ?P, ?O, ?G
+    gen_ntriples/6, % +M, ?S, ?P, ?O, ?G, +Opts
+    gen_ntuple/5    % +State, +S, +P, +O, +G
   ]
 ).
 
@@ -30,22 +31,20 @@
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(option)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_bnode_map)).
+:- use_module(library(q/q_bnode_map)).
+:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle)). % Private
-:- use_module(library(z/z_term)).
 
 :- rdf_meta
    gen_nquad(r, r, o, r),
-   gen_nquads(r, r, o, r),
-   gen_nquads(r, r, o, r, +),
+   gen_nquads(+, r, r, o, r),
+   gen_nquads(+, r, r, o, r, +),
    gen_ntriple(r, r, o),
    gen_ntriple(r, r, o, r),
-   gen_ntriples(r, r, o, r),
-   gen_ntriples(r, r, o, r, +),
-   gen_ntuple(+, r, r, o, r),
-   gen_ntuple(+, +, r, r, o, r),
-   gen_ntuples(r, r, o, r, +).
+   gen_ntriples(+, r, r, o, r),
+   gen_ntriples(+, r, r, o, r, +).
 
 
 
@@ -53,12 +52,17 @@
 
 % SINGULAR STATEMENTS %
 
+%! gen_nquad(+Quad) is det.
 %! gen_nquad(+S, +P, +O, +G) is det.
 %
 % Write a fully instantiated quadruple to current output.
 
+gen_nquad(rdf(S,P,O,G)) :-
+  gen_nquad(S, P, O, G).
+
+
 gen_nquad(S, P, O, G) :-
-  gen_one_ntuple(nquads, S, P, O, G).
+  gen_one_ntuple0(nquads, S, P, O, G).
 
 
 
@@ -73,14 +77,11 @@ gen_ntriple(rdf(S,P,O)) :-
 
 
 gen_ntriple(S, P, O) :-
-  gen_one_ntuple(ntriples, S, P, O, default).
+  q_default_graph(G),
+  gen_one_ntuple0(ntriples, S, P, O, G).
 
 
-gen_ntriple(S, P, O, _) :-
-  gen_one_ntuple(ntriples, S, P, O, default).
-
-
-gen_one_ntuple(Format, S, P, O, G) :-
+gen_one_ntuple0(Format, S, P, O, G) :-
   gen_empty_state(Format, State),
   gen_ntuple(State, S, P, O, G).
 
@@ -92,8 +93,8 @@ gen_one_ntuple(Format, S, P, O, G) :-
 
 %! gen_nquads(+Tuples) is det.
 %! gen_nquads(+Tuples, +Opts) is det.
-%! gen_nquads(?S, ?P, ?O, ?G) is det.
-%! gen_nquads(?S, ?P, ?O, ?G, +Opts) is det.
+%! gen_nquads(+M, ?S, ?P, ?O, ?G) is det.
+%! gen_nquads(+M, ?S, ?P, ?O, ?G, +Opts) is det.
 
 gen_nquads(Tuples) :-
   gen_nquads(Tuples, []).
@@ -103,20 +104,20 @@ gen_nquads(Tuples, Opts) :-
   gen_ntuples(Tuples, nquads, Opts).
 
 
-gen_nquads(S, P, O, G) :-
-  gen_nquads(S, P, O, G, []).
+gen_nquads(M, S, P, O, G) :-
+  gen_nquads(M, S, P, O, G, []).
 
 
-gen_nquads(S, P, O, G, Opts0) :-
+gen_nquads(M, S, P, O, G, Opts0) :-
   merge_options([rdf_format(nquads)], Opts0, Opts),
-  gen_ntuples(S, P, O, G, Opts).
+  gen_ntuples(M, S, P, O, G, Opts).
 
 
 
 %! gen_ntriples(+Triples) is det.
 %! gen_ntriples(+Triples, +Opts) is det.
-%! gen_ntriples(?S, ?P, ?O, +Opts) is det.
-%! gen_ntriples(?S, ?P, ?O, ?G, +Opts) is det.
+%! gen_ntriples(+M, ?S, ?P, ?O, +Opts) is det.
+%! gen_ntriples(+M, ?S, ?P, ?O, ?G, +Opts) is det.
 
 gen_ntriples(Triples) :-
   gen_ntriples(Triples, []).
@@ -126,13 +127,13 @@ gen_ntriples(Triples, Opts) :-
   gen_ntuples(Triples, ntriples, Opts).
 
 
-gen_ntriples(S, P, O, G) :-
-  gen_ntriples(S, P, O, G, []).
+gen_ntriples(M, S, P, O, G) :-
+  gen_ntriples(M, S, P, O, G, []).
 
 
-gen_ntriples(S, P, O, G, Opts0) :-
+gen_ntriples(M, S, P, O, G, Opts0) :-
   merge_options([rdf_format(ntriples)], Opts0, Opts),
-  gen_ntuples(S, P, O, G, Opts).
+  gen_ntuples(M, S, P, O, G, Opts).
 
 
 
@@ -172,7 +173,7 @@ gen_ntuple(Sink, State, S, P, O, G) :-
 
 
 %! gen_ntuples(+Tuples, +Format, +Opts) is det.
-%! gen_ntuples(?S, ?P, ?O, ?G, +Opts) is det.
+%! gen_ntuples(+M, ?S, ?P, ?O, ?G, +Opts) is det.
 %
 % Options are passed to gen_ntuples_begin/2 and gen_ntuples_end/2.
 
@@ -185,12 +186,12 @@ gen_ntuples(Tuples, Format, Opts1) :-
   ).
 
 
-gen_ntuples(S, P, O, G, Opts) :-
+gen_ntuples(M, S, P, O, G, Opts) :-
   setup_call_cleanup(
     gen_ntuples_begin(State, Opts),
     (
-      aggregate_all(set(S), rdf(S, P, O, G), Ss),
-      maplist(gen_ntuples_for_subject(State, P, O, G), Ss)
+      aggregate_all(set(S), q(M, S, P, O, G), Ss),
+      maplist(gen_ntuples_for_subject(State, M, P, O, G), Ss)
     ),
     gen_ntuples_end(State, Opts)
   ).
@@ -252,9 +253,13 @@ gen_ntuples_begin(State2, Opts) :-
 
 
 %! gen_ntuples_end(+State, +Opts) is det.
+%
 % The following options are supported:
+%
 %   * quads(-nonneg)
+%
 %   * triples(-nonneg)
+%
 %   * tuples(-nonneg)
 
 gen_ntuples_end(State, Opts) :-
@@ -266,22 +271,23 @@ gen_ntuples_end(State, Opts) :-
 
 
 
+
 % AGGRREGATION %
 
-gen_ntuples_for_subject(State, P, O, G, S) :-
-  aggregate_all(set(P), rdf(S, P, O, G), Ps),
-  maplist(gen_ntuples_for_predicate(State, O, G, S), Ps).
+gen_ntuples_for_subject(State, M, P, O, G, S) :-
+  aggregate_all(set(P), q(M, S, P, O, G), Ps),
+  maplist(gen_ntuples_for_predicate(State, M, O, G, S), Ps).
 
 
 
-gen_ntuples_for_predicate(State, O, G, S, P) :-
-  aggregate_all(set(O), rdf(S, P, O, G), Os),
-  maplist(gen_ntuples_for_object(State, G, S, P), Os).
+gen_ntuples_for_predicate(State, M, O, G, S, P) :-
+  aggregate_all(set(O), q(M, S, P, O, G), Os),
+  maplist(gen_ntuples_for_object(State, M, G, S, P), Os).
 
 
 
-gen_ntuples_for_object(State, G, S, P, O) :-
-  aggregate_all(set(G), rdf(S, P, O, G), Gs),
+gen_ntuples_for_object(State, M, G, S, P, O) :-
+  aggregate_all(set(G), q(M, S, P, O, G), Gs),
   maplist(gen_ntuple(State, S, P, O), Gs).
 
 
@@ -291,7 +297,7 @@ gen_ntuples_for_object(State, G, S, P, O) :-
 % TERMS BY POSITION %
 
 gen_subject(State, B) :-
-  rdf_is_bnode(B), !,
+  q_is_bnode(B), !,
   gen_bnode(State, B).
 gen_subject(_, Iri) :-
   gen_iri(Iri).
@@ -304,14 +310,15 @@ gen_predicate(P) :-
 
 
 gen_object(State, B) :-
-  rdf_is_bnode(B), !,
+  q_is_bnode(B), !,
   gen_bnode(State, B).
 gen_object(_, Iri) :-
-  rdf_is_iri(Iri), !,
+  q_is_iri(Iri), !,
   gen_iri(Iri).
-% Literal term comes last to support modern and legacy formats.
+% Literal term comes last to support both modern (`rdf11`) and legacy
+% (`rdf_db`) formats.
 gen_object(_, Lit) :-
-  gen_literal(Lit), !.
+  gen_literal(Lit).
 
 
 
@@ -325,7 +332,7 @@ gen_graph(G) :-
 % TERMS BY KIND %
 
 gen_bnode(State, B) :-
-  rdf_bnode_map(B, Name),
+  q_bnode_map(B, Name),
   write(State.bprefix),
   write(Name).
 
@@ -337,14 +344,14 @@ gen_iri(Iri) :-
 
 
 gen_literal(V^^D) :- !,
-  z_literal_lex(V^^D, Lex),
+  q_literal_lex(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   gen_iri(D).
 gen_literal(V@LTag) :- !,
-  z_literal_lex(V@LTag, Lex),
+  q_literal_lex(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
 gen_literal(V) :-
-  rdf_equal(xsd:string, D),
+  qis(xsd:string, D),
   gen_literal(V^^D).

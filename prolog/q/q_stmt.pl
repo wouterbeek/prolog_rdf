@@ -3,15 +3,19 @@
   [
     q/4,                  % ?M, ?S, ?P, ?O
     q/5,                  % ?M, ?S, ?P, ?O, ?G
-    q_lts/4,              % ?M, ?S, ?P, -Lit
-    q_lts/5,              % ?M, ?S, ?P, ?G, -Lit
-    q_lts/6,              % ?M, ?S, ?P, +LRange, ?G, -Lit
-    q_pref_label/3,       % ?M, ?S, -Lit
-    q_pref_label/4,       % ?M, ?S, ?G, -Lit
-    q_pref_lex/4,         % ?M, ?S, ?P, -Lex
-    q_pref_lex/5,         % ?M, ?S, ?P, ?G, -Lex
-    q_pref_string/4,      % ?M, ?S, ?P, -Lit
-    q_pref_string/5,      % ?M, ?S, ?P, ?G, -Lit
+    q_is_ground_quad/1,   % @Term
+    q_is_ground_triple/1, % @Term
+    q_is_quad/1,          % @Term
+    q_is_triple/1,        % @Term
+    q_lts/4,              % ?M, ?S, ?P, ?Lit
+    q_lts/5,              % ?M, ?S, ?P, ?Lit, ?G
+    q_lts/6,              % ?M, ?S, ?P, +LRange, ?Lit, -G
+    q_pref_label/3,       % ?M, ?S, ?Lit
+    q_pref_label/4,       % ?M, ?S, ?Lit, ?G
+    q_pref_lex/4,         % ?M, ?S, ?P, ?Lex
+    q_pref_lex/5,         % ?M, ?S, ?P, ?Lex, ?G
+    q_pref_string/4,      % ?M, ?S, ?P, ?Lit
+    q_pref_string/5,      % ?M, ?S, ?P, ?Lit, ?G
     q_quad/2,             % ?M, -Quad
     q_quad/3,             % ?M, ?G, -Quad
     q_quad/5,             % ?M, ?S, ?P, ?O, -Quad
@@ -128,59 +132,92 @@ q(hdt, S, P, O, G) :-
 
 
 
+%! q_is_ground_quad(@Term) is semidet.
+%
+% Succeeds if the given triple is ground, i.e., contains no blank
+% node.
+
+q_is_ground_quad(rdf(S,P,O,_)) :-
+  q_is_ground_triple(rdf(S,P,O)).
+
+
+
+%! q_is_ground_triple(@Term) is semidet.
+%
+% Succeeds if the given triple is ground, i.e., contains no blank
+% node.
+
+q_is_ground_triple(rdf(S,_,O)) :-
+  \+ q_is_bnode(S),
+  \+ q_is_bnode(O).
+
+
+
+%! q_is_quad(@Term) is semidet.
+
+q_is_quad(rdf(_,_,_,_)).
+
+
+
+%! q_is_triple(@Term) is semidet.
+
+q_is_triple(rdf(_,_,_)).
+
+
+
 %! q_lts(?M, ?S, ?P, -Lit) is nondet.
-%! q_lts(?M, ?S, ?P, ?G, -Lit) is nondet.
-%! q_lts(?M, ?S, ?P, +LRange, ?G, -Lit) is nondet.
+%! q_lts(?M, ?S, ?P, -Lit, ?G) is nondet.
+%! q_lts(?M, ?S, ?P, +LRange, -Lit, ?G) is nondet.
 %
 % Matches RDF statements whose object term is a language-tagged string
 % that mathes the given language priory list.  Notice that results for
 % each of the prioritized languages are given in arbitrary order.
 
 q_lts(M, S, P, Lit) :-
-  q_lts(M, S, P, _, Lit).
+  q_lts(M, S, P, Lit, _).
 
 
-q_lts(M, S, P, G, Lit) :-
+q_lts(M, S, P, Lit, G) :-
   current_lrange(LRange),
-  q_lts(M, S, P, LRange, G, Lit).
+  q_lts(M, S, P, LRange, Lit, G).
 
 
-q_lts(M, S, P, LRange, G, Lit) :-
+q_lts(M, S, P, LRange, Lit, G) :-
   q(M, S, P, V@LTag, G),
   basic_filtering(LRange, LTag),
   Lit = V@LTag.
 
 
 
-%! q_pref_label(?M, ?S, -Lit) is nondet.
-%! q_pref_label(?M, ?S, ?G, -Lit) is nondet.
+%! q_pref_label(?M, ?S, ?Lit) is nondet.
+%! q_pref_label(?M, ?S, ?Lit, ?G) is nondet.
 
 q_pref_label(M, S, Lit) :-
-  q_pref_label(M, S, _, Lit).
+  q_pref_label(M, S, Lit, _).
 
 
-q_pref_label(M, S, G, Lit) :-
-  q_pref_string(M, S, rdfs:label, G, Lit).
+q_pref_label(M, S, Lit, G) :-
+  q_pref_string(M, S, rdfs:label, Lit, G).
 
 
 
 %! q_pref_lex(?M, ?S, ?P, -Lex) is nondet.
-%! q_pref_lex(?M, ?S, ?P, ?G, -Lex) is nondet.
+%! q_pref_lex(?M, ?S, ?P, -Lex, ?G) is nondet.
 %
 % Like q_pref_string/[4,5], but returns only the lexical form.
 
 q_pref_lex(M, S, P, Lex) :-
-  q_pref_lex(M, S, P, _, Lex).
+  q_pref_lex(M, S, P, Lex, _).
 
 
-q_pref_lex(M, S, P, G, Lex) :-
-  q_pref_string(M, S, P, G, Lit),
+q_pref_lex(M, S, P, Lex, G) :-
+  q_pref_string(M, S, P, Lit, G),
   q_literal_lex(Lit, Lex).
 
 
 
 %! q_pref_string(?M, ?S, ?P, ?Lit) is nondet.
-%! q_pref_string(?M, ?S, ?P, ?G, ?Lit) is nondet.
+%! q_pref_string(?M, ?S, ?P, ?Lit, ?G) is nondet.
 %
 % Returns, in this exact order:
 %
@@ -194,25 +231,25 @@ q_pref_lex(M, S, P, G, Lex) :-
 %   3. XSD strings.
 
 q_pref_string(M, S, P, Lit) :-
-  q_pref_string(M, S, P, _, Lit).
+  q_pref_string(M, S, P, Lit, _).
 
 
-q_pref_string(M, S, P, G, Lit) :-
+q_pref_string(M, S, P, Lit, G) :-
   current_lrange(LRange),
-  q_pref_string(M, S, P, LRange, G, Lit).
+  q_pref_string(M, S, P, LRange, Lit, G).
 
 
 % Matching language-tagged strings.
-q_pref_string(M, S, P, LRange, G, Lit) :-
-  q_lts(M, S, P, LRange, G, Lit).
+q_pref_string(M, S, P, LRange, Lit, G) :-
+  q_lts(M, S, P, LRange, Lit, G).
 % Non-matching language-tagged strings.
-q_pref_string(M, S, P, LRange, G, Lit) :-
+q_pref_string(M, S, P, LRange, Lit, G) :-
   q(M, S, P, V@LTag, G),
   % Avoid duplicates.
   \+ basic_filtering(LRange, LTag),
   Lit = V@LTag.
 % Plain XSD strings.
-q_pref_string(M, S, P, _, G, V^^xsd:string) :-
+q_pref_string(M, S, P, _, V^^xsd:string, G) :-
   q(M, S, P, V^^xsd:string, G).
 
 
@@ -257,7 +294,7 @@ q_quad_graph(rdf(_,_,_,G), G).
 
 q_quad_iri(Quad, Iri) :-
   q_quad_term(Quad, Iri),
-  rdf_is_iri(Iri).
+  q_is_iri(Iri).
 
 
 q_quad_object(rdf(_,_,O,_), O).
@@ -359,7 +396,7 @@ q_triple_datatype(rdf(_,_,O), D) :-
 
 q_triple_iri(Triple, Iri) :-
   q_triple_term(Triple, Iri),
-  rdf_is_iri(Iri).
+  q_is_iri(Iri).
 
 
 q_triple_object(rdf(_,_,O,_), O).
@@ -438,7 +475,7 @@ basic_filtering0([H1|T1], [H2|T2]):-
 %! graph_file(+G, -File) is det.
 
 graph_file(G, File) :-
-  rdf_global_id(Alias:Local, G),
+  qiri(Alias:Local, G),
   directory_file_path(Alias, Local, Base),
   file_name_extension(Base, nt, File).
 

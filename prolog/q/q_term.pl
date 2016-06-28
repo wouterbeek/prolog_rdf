@@ -2,23 +2,38 @@
   q_term,
   [
     q_alias/1,             % ?Alias
-    q_alias_prefix/2,      % ?Alias, ?Prefix
+   %q_alias_prefix/2,      % ?Alias, ?Prefix
     q_bnode/2,             % ?M, ?B
     q_bnode/3,             % ?M, ?B, ?G
+   %q_create_bnode/1,      % -B
     q_datatype/2,          % ?M, ?D
     q_datatype/3,          % ?M, ?D, ?G
+    q_default_graph/1,     % ?G
     q_iri/2,               % ?M, ?Iri
     q_iri/3,               % ?M, ?Iri, ?G
+   %q_is_bnode/1,          % @Term
+   %q_is_iri/1,            % @Term
+   %q_is_literal/1,        % @Term
     q_is_lts/1,            % @Term
     q_is_legacy_literal/1, % @Term
+   %q_is_name/1,           % @Term
+    q_is_node/1,           % @Term
+   %q_is_object/1,         % @Term
+   %q_is_predicate/1,      % @Term
+   %q_is_subject/1,        % @Term
+   %q_is_term/1,           % @Term
     q_iri_alias/2,         % +Iri, -Alias
-    q_iri_alias_prefix/3,  % +Iri, -Alias, -Prefix
+    q_iri_alias_local/3,   % +Iri, ?Alias, ?Local
+    q_iri_alias_prefix/3,  % +Iri, ?Alias, ?Prefix
+    q_iri_local/2,         % +Iri, -Local
+    q_iri_prefix/2,        % +Iri, -Prefix
     q_legacy_literal/4,    % +Lit, -D, -Lex, -LTag
     q_literal/2,           % ?M, ?Lit
     q_literal/3,           % ?M, ?Lit, ?G
     q_literal/4,           % ?Lit, ?D, ?Lex, ?LTag
     q_literal_datatype/2,  % +Lit, ?D
     q_literal_lex/2,       % +Lit, ?Lex
+    q_literal_string/2,    % +Lit, -Str
     q_literal_val/2,       % +Lit, ?Val
     q_lone_bnode/2,        % ?M, ?B
     q_lone_bnode/3,        % ?M, ?B, ?G
@@ -36,9 +51,34 @@
     q_subject/2,           % ?M, ?S
     q_subject/3,           % ?M, ?S, ?G
     q_term/2,              % ?M, ?Term
-    q_term/3               % ?M, ?Term, ?G
+    q_term/3               % ?M, ?Term, ?G,
+   %qcompound/2,           % ?Comp0, ?Comp
+   %qiri/2,                % ?Iri0, ?Iri
+   %qis/2,                 % +Iri0, ?Iri
+   %qobject/2              % ?O0, ?O
   ]
 ).
+:- reexport(library(semweb/rdf11), [
+     rdf_create_bnode/1 as q_create_bnode,
+     rdf_current_prefix/2 as q_alias_prefix,
+     rdf_default_graph/1 as q_default_graph,
+     rdf_equal/2 as qis,
+     rdf_global_id/2 as qiri,
+     rdf_global_object/2 as qobject,
+     rdf_global_term/2 as qcompound,
+     rdf_is_bnode/1 as q_is_bnode,
+     rdf_is_iri/1 as q_is_iri,
+     rdf_is_literal/1 as q_is_literal,
+     rdf_is_name/1 as q_is_name,
+     rdf_is_object/1 as q_is_object,
+     rdf_is_predicate/1 as q_is_predicate,
+     rdf_is_subject/1 as q_is_subject,
+     rdf_is_term/1 as q_is_term,
+     (rdf_meta)/1,
+     rdf_register_prefix/2 as q_create_alias,
+     op(110, xfx, @),
+     op(650, xfx, ^^)
+   ]).
 
 /** <module> Quine term API
 
@@ -46,10 +86,10 @@
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)). % Priority for rdf_meta/1.
 :- use_module(library(hdt/hdt_term)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
 
@@ -63,12 +103,14 @@
    q_is_legacy_literal(o),
    q_iri_alias(r, ?),
    q_iri_alias_prefix(r, ?, ?),
+   q_is_node(o),
    q_legacy_literal(o, r, ?, ?),
    q_literal(?, o),
    q_literal(?, o, r),
    q_literal(o, r, ?, ?),
    q_literal_datatype(o, r),
    q_literal_lex(o, ?),
+   q_literal_string(o, -),
    q_literal_val(o, ?),
    q_lone_bnode(?, ?, r),
    q_lts(?, o),
@@ -93,14 +135,7 @@
 %! q_alias(?Alias) is nondet.
 
 q_alias(Alias) :-
-  rdf_current_prefix(Alias, _).
-
-
-
-%! q_alias_prefix(?Alias, ?Prefix) is nondet.
-
-q_alias_prefix(Alias, Prefix) :-
-  rdf_current_prefix(Alias, Prefix).
+  q_alias_prefix(Alias, _).
 
 
 
@@ -136,22 +171,6 @@ q_datatype(hdt, D, G) :-
 
 
 
-%! q_is_lts(@Term) is semidet.
-
-q_is_lts(Term) :-
-  ground(Term),
-  Term = _@_.
-
-
-
-%! q_is_legacy_literal(@Term) is semidet.
-
-q_is_legacy_literal(literal(type(_,_))) :- !.
-q_is_legacy_literal(literal(lang(_,_))) :- !.
-q_is_legacy_literal(literal(_)).
-
-
-
 %! q_iri(?M, ?Iri) is nondet.
 %! q_iri(?M, ?Iri, ?G) is nondet.
 
@@ -171,15 +190,60 @@ q_iri(hdt, Iri, G) :-
 %! q_iri_alias(+Iri, -Alias) is nondet.
 
 q_iri_alias(Iri, Alias) :-
-  rdf_global_id(Alias:_, Iri).
+  qiri(Alias:_, Iri).
 
+
+
+%! q_iri_alias_local(+Iri, -Alias, -Local) is det.
+%! q_iri_alias_local(-Iri, +Alias, +Local) is det.
+
+q_iri_alias_local(Iri, Alias, Local) :-
+  qiri(Alias:Local, Iri).
 
 
 %! q_iri_alias_prefix(+Iri, -Alias, -Prefix) is nondet.
+%! q_iri_alias_prefix(-Iri, +Alias, +Prefix) is det.
 
 q_iri_alias_prefix(Iri, Alias, Prefix) :-
   q_iri_alias(Iri, Alias),
-  rdf_current_prefix(Alias, Prefix).
+  q_alias_prefix(Alias, Prefix).
+
+
+
+%! q_iri_local(+Iri, -Local) is det.
+
+q_iri_local(Iri, Local) :-
+  qiri(_:Local, Iri).
+
+
+
+%! q_iri_prefix(+Iri, -Prefix) is nondet.
+
+q_iri_prefix(Iri, Prefix) :-
+  qiri(_:Prefix, Iri).
+
+
+
+%! q_is_lts(@Term) is semidet.
+
+q_is_lts(Term) :-
+  ground(Term),
+  Term = _@_.
+
+
+
+%! q_is_legacy_literal(@Term) is semidet.
+
+q_is_legacy_literal(literal(type(_,_))) :- !.
+q_is_legacy_literal(literal(lang(_,_))) :- !.
+q_is_legacy_literal(literal(_)).
+
+
+
+%! q_is_node(@Term) is semidet.
+
+q_is_node(Term) :-
+  q_is_object(Term).
 
 
 
@@ -187,7 +251,7 @@ q_iri_alias_prefix(Iri, Alias, Prefix) :-
 %! q_legacy_literal(-Lit, +D, +Lex, +LTag) is det.
 
 q_legacy_literal(literal(type(D,Lex0)), D, Lex, _) :-
-  \+ rdf_equal(rdf:langString, D), !,
+  \+ qis(rdf:langString, D), !,
   atom_string(Lex0, Lex).
 q_legacy_literal(literal(lang(LTag,Lex0)), rdf:langString, Lex, LTag) :- !,
   atom_string(Lex0, Lex).
@@ -238,8 +302,15 @@ q_literal_datatype(_@_, rdf:langString).
 %! q_literal_lex(+Lit, -Lex) is det.
 
 q_literal_lex(Val^^D, Lex) :- !,
-  rdf_lexical_form(Val^^D, Lex^^D).
+  rdf11:rdf_lexical_form(Val^^D, Lex^^D).
 q_literal_lex(Val@_, Val).
+
+
+
+%! q_literal_string(@Term) is semidet.
+
+q_literal_string(V^^xsd:string, V) :- !.
+q_literal_string(V@_, V).
 
 
 
@@ -347,7 +418,7 @@ q_predicate(hdt, P, G) :-
 %! q_prefix(?Prefix) is nondet.
 
 q_prefix(Prefix) :-
-  rdf_current_prefix(_, Prefix).
+  q_alias_prefix(_, Prefix).
 
 
 

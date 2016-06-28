@@ -2,10 +2,8 @@
   mat_viz,
   [
     mat_viz/0,
-    mat_viz/1, % +Statement:compound
-    mat_viz/3 % +Subject:rdf_term
-              % +Predicate:iri
-              % +Object:rdf_term
+    mat_viz/1, % +Stmt
+    mat_viz/3  % +S, +P, +O
   ]
 ).
 
@@ -29,8 +27,9 @@ Exports materialization results.
 :- use_module(library(mat/mat_print)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(pl_term)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_term)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(z/z_print)).
 
 :- rdf_meta
    mat_viz(r, r, o).

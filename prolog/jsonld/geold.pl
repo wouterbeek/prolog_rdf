@@ -4,7 +4,6 @@
     geold_flatten/0,
     geold_flatten/1,       % ?G
     geold_geojson/2,       % +Node, -GeoJson
-    geold_print_feature/1, % ?Feature
     geold_rm_feature_collections/0,
     geold_tuple/3,         % +Source, +Alias, -Tuple
     geold_tuple/5,         % +Source, +Alias, +ExtraContext, +ExtraData, -Tuple
@@ -36,16 +35,16 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_array)).
+:- use_module(library(q/q_array)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
-:- use_module(library(z/z_term)).
 
-:- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
+:- q_create_alias(geold, 'http://geojsonld.com/vocab#').
 
 :- rdf_meta
    geold_flatten(r),
@@ -84,7 +83,7 @@ geold_context(
     '@vocab': Prefix
   }
 ) :-
-  z_alias_prefix(Alias, Prefix).
+  q_alias_prefix(Alias, Prefix).
 
 
 
@@ -101,13 +100,13 @@ geold_flatten(G) :-
     % Without the blank node check an already converted literal may
     % appear in the subject position of rdf_has/5, resulting in an
     % exception.
-    rdf_is_bnode(B),
+    q_is_bnode(B),
     rdf(B, rdf:type, C, G),
     rdf(B, geold:coordinates, Array^^tcco:array, G)
   ), (
-    rdf_global_id(_:Name0, C),
+    qiri(_:Name0, C),
     lowercase_atom(Name0, Name),
-    rdf_global_id(wkt:Name, D),
+    qiri(wkt:Name, D),
     rdf_assert(S, geold:geometry, Array^^D, G),
     rdf_retractall(S, geold:geometry, B, G),
     rdf_retractall(B, rdf:type, C, G),
@@ -122,14 +121,6 @@ geold_flatten(G) :-
 
 geold_geojson(Node, _{}) :-
   rdfs_instance(Node, geold:'Feature').
-
-
-
-%! geold_print_feature(?Feature) is nondet.
-
-geold_print_feature(I) :-
-  rdfs_instance(I, geold:'Feature'),
-  rc_cbd(I).
 
 
 

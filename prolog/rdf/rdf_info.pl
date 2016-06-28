@@ -14,8 +14,8 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(z/z_print)).
-:- use_module(library(z/z_stat)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_stat)).
 
 
 
@@ -28,11 +28,11 @@ rdf_info:-
   ansi_format(user_output, [bold], 'Number of triples~30|Graph~n', []),
 
   % First row: all triples.
-  z_number_of_triples(T),
+  q_number_of_triples(T),
   format(user_output, '~D~25|All~n', [T]),
 
   % Consective rows: one for each named graph.
-  findall(N-G, z_number_of_triples(G, N), Pairs),
+  findall(N-G, q_number_of_triples(G, N), Pairs),
   sort(1, @>=, Pairs, SortedPairs),
   list_truncate(SortedPairs, 10, TopSortedPairs),
   forall(member(N-G, TopSortedPairs), (

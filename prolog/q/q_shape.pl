@@ -14,13 +14,13 @@
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    q_root(?, r),
@@ -63,7 +63,7 @@ q_tree0(M, [H|T], G, Hist, Tree, Sol) :-
   q_tree0(M, T, G, Hist, Tree, Sol).
 q_tree0(M, [S|T1], G, Hist1, Tree1, Sol) :-
   q_triples(M, S, _, _, G, Triples),
-  aggregate_all(set(O), (member(rdf(_,_,O), Triples), rdf_is_subject(O)), New),
+  aggregate_all(set(O), (member(rdf(_,_,O), Triples), q_is_subject(O)), New),
   ord_union(T1, New, T2),
   ord_add_element(Hist1, S, Hist2),
   ord_union(Tree1, Triples, Tree2),

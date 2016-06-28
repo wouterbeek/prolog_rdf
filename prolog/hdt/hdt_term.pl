@@ -32,11 +32,11 @@
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)). % Priority for rdf_meta/1.
 :- use_module(library(hdt), []).
 :- use_module(library(hdt/hdt_ext)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(q/q_term)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(z/z_term)).
 
 :- rdf_meta
    hdt_bnode(?, r),
@@ -73,7 +73,7 @@ hdt_bnode(B) :-
 
 
 hdt_bnode(B, G) :-
-  (var(B) -> true ; rdf_is_bnode(B)),
+  (var(B) -> true ; q_is_bnode(B)),
   distinct(B-G, (
     hdt(S, _, O, G),
     (S = B ; O = B)
@@ -91,7 +91,7 @@ hdt_datatype(D) :-
 hdt_datatype(D, G) :-
   distinct(D-G, (
     hdt_literal(Lit, G),
-    z_literal_datatype(Lit, D)
+    q_literal_datatype(Lit, D)
   )).
 
 
@@ -105,7 +105,7 @@ hdt_iri(Iri) :-
 
 hdt_iri(Iri, G) :-
   hdt_name(Iri, G),
-  rdf_is_iri(Iri).
+  q_is_iri(Iri).
 
 
 
@@ -118,7 +118,7 @@ hdt_literal(Lit) :-
 
 hdt_literal(Lit, G) :-
   hdt_object(Lit, G),
-  rdf_is_literal(Lit).
+  q_is_literal(Lit).
 
 
 
@@ -131,7 +131,7 @@ hdt_lts(Lit) :-
 
 hdt_lts(Lit, G) :-
   hdt_literal(Lit, G),
-  z_is_lts(Lit).
+  q_is_lts(Lit).
 
 
 
@@ -190,7 +190,7 @@ hdt_predicate(P) :-
 
 
 hdt_predicate(P, G) :-
-  (var(P) -> true ; rdf_is_predicate(P)),
+  (var(P) -> true ; q_is_predicate(P)),
   distinct(P-G, hdt(_, P, _, G)).
 
 
@@ -203,7 +203,7 @@ hdt_subject(S) :-
 
 
 hdt_subject(S, G) :-
-  (var(S) -> true ; rdf_is_subject(S)),
+  (var(S) -> true ; q_is_subject(S)),
   distinct(S-G, hdt(S, _, _, G)).
 
 

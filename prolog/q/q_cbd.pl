@@ -1,14 +1,14 @@
 :- module(
   q_cbd,
   [
-    q_cbd/3,         % ?M, ?Node,     -Triples
-    q_cbd/4,         % ?M, ?Node, ?G, -Triples
-    q_cbd_triple/3,  % ?M, +Node,     -Triple
-    q_cbd_triple/4,  % ?M, +Node, ?G, -Triple
-    q_scbd/3,        % ?M, ?Node,     -Triples
-    q_scbd/4,        % ?M, ?Node, ?G, -Triples
-    q_scbd_triple/3, % ?M, +Node,     -Triple
-    q_scbd_triple/4  % ?M, +Node, ?G, -Triple
+    q_cbd_triple/3,   % ?M, +Node,     -Triple
+    q_cbd_triple/4,   % ?M, +Node, ?G, -Triple
+    q_cbd_triples/3,  % ?M, ?Node,     -Triples
+    q_cbd_triples/4,  % ?M, ?Node, ?G, -Triples
+    q_scbd_triple/3,  % ?M, +Node,     -Triple
+    q_scbd_triple/4,  % ?M, +Node, ?G, -Triple
+    q_scbd_triples/3, % ?M, ?Node,     -Triples
+    q_scbd_triples/4  % ?M, ?Node, ?G, -Triples
   ]
 ).
 
@@ -58,39 +58,30 @@ statement in the graph.
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(aggregate)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
-   q_cbd(?, o, -),
-   q_cbd(?, o, r, -),
    q_cbd_triple(?, o, -),
    q_cbd_triple(?, o, r, -),
-   q_scbd(?, o, -),
-   q_scbd(?, o, r, -),
+   q_cbd_triples(?, o, -),
+   q_cbd_triples(?, o, r, -),
    q_scbd_triple(?, o, -),
-   q_scbd_triple(?, o, r, -).
+   q_scbd_triple(?, o, r, -),
+   q_scbd_triples(?, o, -),
+   q_scbd_triples(?, o, r, -).
 
 
 
 
 
-%! q_cbd(?M, ?Node, -Triples) is det.
-%! q_cbd(?M, ?Node, ?G, -Triples) is det.
 %! q_cbd_triple(?M, +Node, -Triple) is nondet.
 %! q_cbd_triple(?M, +Node, ?G, -Triple) is nondet.
-
-q_cbd(M, Node, Triples) :-
-  q_cbd(M, Node, _, Triples).
-
-
-q_cbd(M, Node, G, Triples) :-
-  q_subject(M, Node, G),
-  aggregate_all(set(Triple), q_cbd_triple0(M, Node, G, Triple), Triples).
-
+%! q_cbd_triples(?M, ?Node, -Triples) is det.
+%! q_cbd_triples(?M, ?Node, ?G, -Triples) is det.
 
 q_cbd_triple(M, Node, Triple) :-
   q_cbd_triple(M, Node, _, Triple).
@@ -103,27 +94,27 @@ q_cbd_triple(M, Node, G, Triple) :-
 q_cbd_triple0(M, S, G, Triple) :-
   q(M, S, P, O, G),
   (   Triple = rdf(S,P,O)
-  ;   rdf_is_bnode(O),
+  ;   q_is_bnode(O),
       q_cbd_triple0(M, O, G, Triple)
   ;   q_reification(M, S, P, O, Stmt),
       q_cbd_triple0(M, Stmt, G, Triple)
   ).
 
 
+q_cbd_triples(M, Node, Triples) :-
+  q_cbd_triples(M, Node, _, Triples).
 
-%! q_scbd(?M, ?Node, -Triples) is det.
-%! q_scbd(?M, ?Node, ?G, -Triples) is det.
+
+q_cbd_triples(M, Node, G, Triples) :-
+  q_subject(M, Node, G),
+  aggregate_all(set(Triple), q_cbd_triple0(M, Node, G, Triple), Triples).
+
+
+
 %! q_scbd_triple(?M, +Node, -Triple) is nondet.
 %! q_scbd_triple(?M, +Node, ?G, -Triple) is nondet.
-
-q_scbd(M, Node, Triples) :-
-  q_scbd(M, Node, _, Triples).
-
-
-q_scbd(M, Node, G, Triples) :-
-  q_term(M, Node, G),
-  aggregate_all(set(Triple), q_scbd_triple0(M, Node, G, Triple), Triples).
-
+%! q_scbd_triples(?M, ?Node, -Triples) is det.
+%! q_scbd_triples(?M, ?Node, ?G, -Triples) is det.
 
 q_scbd_triple(M, Node, Triple) :-
   q_scbd_triple(M, Node, _, Triple).
@@ -142,8 +133,17 @@ q_scbd_triple0(M, S, G, Triple) :-
 q_cbd_inv_triple0(M, O, G, Triple) :-
   q(M, S, P, O, G),
   (   Triple = rdf(S,P,O)
-  ;   rdf_is_bnode(S),
+  ;   q_is_bnode(S),
       q_cbd_inv_triple0(M, S, G, Triple)
   ;   q_reification(M, S, P, O, G, Stmt),
       q_scbd_triple0(M, Stmt, G, Triple)
   ).
+
+
+q_scbd_triples(M, Node, Triples) :-
+  q_scbd_triples(M, Node, _, Triples).
+
+
+q_scbd_triples(M, Node, G, Triples) :-
+  q_term(M, Node, G),
+  aggregate_all(set(Triple), q_scbd_triple0(M, Node, G, Triple), Triples).

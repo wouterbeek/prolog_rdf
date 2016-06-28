@@ -15,7 +15,7 @@
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(sgml/sgml_ext)).
-:- use_module(library(z/z_term)).
+:- use_module(library(q/q_term)).
 
 
 
@@ -123,4 +123,4 @@ doc_content_type(Dialect, Top,  Attrs, xml ) :-
   memberchk(Attr=RDFNS, Attrs),
 
   % Ensure it is indeed the RDF namespace.
-  z_alias_prefix(rdf, RDFNS).
+  q_alias_prefix(rdf, RDFNS).

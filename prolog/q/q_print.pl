@@ -1,77 +1,77 @@
 :- module(
   q_print,
   [
-    dcg_print_graph//2,      % ?M, +G
-    dcg_print_graph//3,      % ?M, +G,         +Opts
-    dcg_print_graph_term//1, % +G
-    dcg_print_graph_term//2, % +G,             +Opts
-    dcg_print_literal//1,    % +Lit
-    dcg_print_literal//2,    % +Lit,           +Opts
-    dcg_print_object//1,     % +O
-    dcg_print_object//2,     % +O,             +Opts
-    dcg_print_predicate//1,  % +P
-    dcg_print_predicate//2,  % +P,             +Opts
-    dcg_print_quad//1,       % +Tuple
-    dcg_print_quad//2,       % +Tuple,         +Opts
-    dcg_print_quad//4,       % +S, +P, +O, +G
-    dcg_print_quad//5,       % +S, +P, +O, +G, +Opts
-    dcg_print_quads//1,      % +Tuples
-    dcg_print_quads//2,      % +Tuples,        +Opts
+    dcg_print_graph//2,      % ?M,             +G
+    dcg_print_graph//3,      % ?M,             +G, +Opts
+    dcg_print_graph_term//1, %                 +G
+    dcg_print_graph_term//2, %                 +G, +Opts
+    dcg_print_literal//1,    %     +Lit
+    dcg_print_literal//2,    %     +Lit,           +Opts
+    dcg_print_object//1,     %     +O
+    dcg_print_object//2,     %     +O,             +Opts
+    dcg_print_predicate//1,  %     +P
+    dcg_print_predicate//2,  %     +P,             +Opts
+    dcg_print_quad//1,       %     +Tuple
+    dcg_print_quad//2,       %     +Tuple,         +Opts
+    dcg_print_quad//4,       %     +S, +P, +O, +G
+    dcg_print_quad//5,       %     +S, +P, +O, +G, +Opts
+    dcg_print_quads//1,      %     +Tuples
+    dcg_print_quads//2,      %     +Tuples,        +Opts
     dcg_print_quads//5,      % ?M, ?S, ?P, ?O, ?G
     dcg_print_quads//6,      % ?M, ?S, ?P, ?O, ?G, +Opts
-    dcg_print_term//1,       % +T
-    dcg_print_term//2,       % +T,             +Opts
-    dcg_print_triple//1,     % +Tuple
-    dcg_print_triple//2,     % +Tuple,         +Opts
-    dcg_print_triple//3,     % +S, +P, +O
-    dcg_print_triple//4,     % +S, +P, +O,     +Opts
-    dcg_print_triples//1,    % +Triples
-    dcg_print_triples//2,    % +Triples,       +Opts
+    dcg_print_term//1,       %     +Term
+    dcg_print_term//2,       %     +Term,          +Opts
+    dcg_print_triple//1,     %     +Tuple
+    dcg_print_triple//2,     %     +Tuple,         +Opts
+    dcg_print_triple//3,     %     +S, +P, +O
+    dcg_print_triple//4,     %     +S, +P, +O,     +Opts
+    dcg_print_triples//1,    %     +Triples
+    dcg_print_triples//2,    %     +Triples,       +Opts
     dcg_print_triples//4,    % ?M, ?S, ?P, ?O
     dcg_print_triples//5,    % ?M, ?S, ?P, ?O, ?G
     dcg_print_triples//6,    % ?M, ?S, ?P, ?O, ?G, +Opts
     q_print_cbd/2,           % ?M, ?S
-    q_print_cbd/3,           % ?M, ?S, ?G
-    q_print_cbd/4,           % ?M, ?S, ?G,         +Opts
-    q_print_graph/2,         % ?M, +G
-    q_print_graph/3,         % ?M, +G,             +Opts
-    q_print_graph_term/1,    % +G
-    q_print_graph_term/2,    % +G,                 +Opts
-    q_print_literal/1,       % +Lit
-    q_print_literal/2,       % +Lit,               +Opts
-    q_print_object/1,        % +O
-    q_print_object/2,        % +O,                 +Opts
+    q_print_cbd/3,           % ?M, ?S,         ?G
+    q_print_cbd/4,           % ?M, ?S,         ?G, +Opts
+    q_print_graph/2,         % ?M,             +G
+    q_print_graph/3,         % ?M,             +G, +Opts
+    q_print_graph_term/1,    %                 +G
+    q_print_graph_term/2,    %                 +G, +Opts
+    q_print_literal/1,       %             +Lit
+    q_print_literal/2,       %             +Lit,   +Opts
+    q_print_object/1,        %             +O
+    q_print_object/2,        %             +O,     +Opts
     q_print_pagination/5,    % ?M, ?S, ?P, ?O, ?G
     q_print_pagination/6,    % ?M, ?S, ?P, ?O, ?G, +Opts
-    q_print_predicate/1,     % +P
-    q_print_predicate/2,     % +P,                 +Opts
-    q_print_quad/1,          % +Tuple
-    q_print_quad/2,          % +Tuple,             +Opts
-    q_print_quad/4,          % +S, +P, +O, +G
-    q_print_quad/5,          % +S, +P, +O, +G,     +Opts
-    q_print_quads/1,         % +Tuples
-    q_print_quads/2,         % +Tuples,            +Opts
+    q_print_predicate/1,     %         +P
+    q_print_predicate/2,     %         +P,         +Opts
+    q_print_quad/1,          %     +Tuple
+    q_print_quad/2,          %     +Tuple,         +Opts
+    q_print_quad/4,          %     +S, +P, +O, +G
+    q_print_quad/5,          %     +S, +P, +O, +G, +Opts
+    q_print_quads/1,         %     +Tuples
+    q_print_quads/2,         %     +Tuples,        +Opts
     q_print_quads/5,         % ?M, ?S, ?P, ?O, ?G
     q_print_quads/6,         % ?M, ?S, ?P, ?O, ?G, +Opts
-    q_print_root/2,          % ?M, ?Node
-    q_print_root/3,          % ?M, ?Node, ?G
-    q_print_root/4,          % ?M, ?Node, ?G       +Opts
+    q_print_root/2,          % ?M, ?S
+    q_print_root/3,          % ?M, ?S,         ?G
+    q_print_root/4,          % ?M, ?S,         ?G, +Opts
     q_print_scbd/2,          % ?M, ?Node
-    q_print_scbd/3,          % ?M, ?Node, ?G
-    q_print_scbd/4,          % ?M, ?Node, ?G,      +Opts
-    q_print_table/1,         % +Rows
-    q_print_table/2,         % +Rows,              +Opts
-    q_print_term/1,          % +T
-    q_print_term/2,          % +T,                 +Opts
+    q_print_scbd/3,          % ?M, ?Node,      ?G
+    q_print_scbd/4,          % ?M, ?Node,      ?G, +Opts
+    q_print_table/1,         %     +Rows
+    q_print_table/2,         %     +Rows,          +Opts
+    q_print_term/1,          %     +Term
+    q_print_term/2,          %     +Term,          +Opts
     q_print_tree/2,          % ?M, ?S
-    q_print_tree/3,          % ?M, ?S, ?G
-    q_print_tree/4,          % ?M, ?S, ?G,         +Opts
-    q_print_triple/1,        % +Tuple
-    q_print_triple/2,        % +Tuple,             +Opts
-    q_print_triple/3,        % +S, +P, +O
-    q_print_triple/4,        % +S, +P, +O,         +Opts
-    q_print_triples/1,       % +Triples
-    q_print_triples/2,       % +Triples,           +Opts
+    q_print_tree/3,          % ?M, ?S,         ?G
+    q_print_tree/4,          % ?M, ?S,         ?G, +Opts
+    q_print_triple/1,        %     +Tuple
+    q_print_triple/2,        %     +Tuple,         +Opts
+    q_print_triple/3,        %     +S, +P, +O
+    q_print_triple/4,        %     +S, +P, +O,     +Opts
+    q_print_triples/1,       %     +Triples
+    q_print_triples/2,       %     +Triples,       +Opts
     q_print_triples/4,       % ?M, ?S, ?P, ?O
     q_print_triples/5,       % ?M, ?S, ?P, ?O, ?G
     q_print_triples/6        % ?M, ?S, ?P, ?O, ?G, +Opts
@@ -97,6 +97,7 @@ Print RDF statements.
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
@@ -109,20 +110,19 @@ Print RDF statements.
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdfs/rdfs_ext)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
 :- dynamic
     var_map/2.
 
 :- multifile
-    rdf:dcg_print_literal_hook//2.
+    q:dcg_print_literal_hook//2.
 
 :- rdf_meta
    dcg_print_graph(?, r, ?, ?),
@@ -211,7 +211,7 @@ q_print_cbd(M, S, G) :-
 
 
 q_print_cbd(M, S, G, Opts) :-
-  q_cbd(M, S, G, Triples),
+  q_cbd_triples(M, S, G, Triples),
   q_print_triples(Triples, Opts).
 
 
@@ -319,23 +319,23 @@ q_print_quads(M, S, P, O, G, Opts1) :-
 
 
 
-%! q_print_root(?M, ?Node) is det.
-%! q_print_root(?M, ?Node, ?G) is det.
-%! q_print_root(?M, ?Node, ?G, +Opts) is det.
+%! q_print_root(?M, ?S) is det.
+%! q_print_root(?M, ?S, ?G) is det.
+%! q_print_root(?M, ?S, ?G, +Opts) is det.
 %
 % Print the tree for an RDF root node.
 
-q_print_root(M, Node) :-
-  q_print_root(M, Node, _).
+q_print_root(M, S) :-
+  q_print_root(M, S, _).
 
 
-q_print_root(M, Node, G) :-
-  q_print_root(M, Node, G, []).
+q_print_root(M, S, G) :-
+  q_print_root(M, S, G, []).
 
 
-q_print_root(M, Node, G, Opts) :-
-  q_root(M, Node, G),
-  q_tree(M, Node, G, Triples),
+q_print_root(M, S, G, Opts) :-
+  q_root(M, S, G),
+  q_tree(M, S, G, Triples),
   q_print_triples(Triples, Opts).
 
 
@@ -355,7 +355,7 @@ q_print_scbd(M, Node, G) :-
 
 
 q_print_scbd(M, Node, G, Opts) :-
-  q_scbd(M, Node, G, Triples),
+  q_scbd_triples(M, Node, G, Triples),
   q_print_triples(Triples, Opts).
 
 
@@ -370,6 +370,8 @@ q_print_table(Rows, Opts1) :-
   dcg_with_output_to(Out, dcg_table(Rows, Opts2)).
 
 
+print_cell0(pl(Term)) --> !,
+  term(Term).
 print_cell0(Term) -->
   dcg_print_term(Term), !.
 print_cell0(Term) -->
@@ -491,7 +493,7 @@ dcg_print_quads(Tuples, Opts) -->
 
 
 graph_triple_pair0(rdf(S,P,O), G-rdf(S,P,O)) :-
-  rdf_default_graph(G).
+  q_default_graph(G).
 graph_triple_pair0(rdf(S,P,O,G), G-rdf(S,P,O)).
 
 
@@ -513,7 +515,7 @@ dcg_print_triples(Triples) -->
 
 
 dcg_print_triples(Triples, Opts) -->
-  {rdf_default_graph(G)},
+  {q_default_graph(G)},
   dcg_print_groups0([G-Triples], Opts).
 
 
@@ -539,7 +541,7 @@ dcg_print_sorted_pairs0(SortedPairs, Opts) -->
 dcg_print_groups0([], _) --> !, [].
 dcg_print_groups0([G-Triples|Groups], Opts) -->
   {get_dict(indent, Opts, I1, 0)},
-  (   {rdf_default_graph(G)}
+  (   {q_default_graph(G)}
   ->  {I2 = I1}
   ;   tab(I1),
       dcg_print_graph_term(G, Opts),
@@ -547,7 +549,7 @@ dcg_print_groups0([G-Triples|Groups], Opts) -->
       {I2 = I1 + 1}
   ),
   dcg_print_triples0(I2, Triples, Opts),
-  ({rdf_default_graph(G)} -> "" ; "}\n"),
+  ({q_default_graph(G)} -> "" ; "}\n"),
   dcg_print_groups0(Groups, Opts).
 
 
@@ -623,7 +625,7 @@ dcg_print_quad(Tuple) -->
 
 
 dcg_print_quad(rdf(S,P,O), Opts) --> !,
-  {rdf_default_graph(G)},
+  {q_default_graph(G)},
   dcg_print_quad(rdf(S,P,O,G), Opts).
 dcg_print_quad(rdf(S,P,O,G), Opts) -->
   dcg_print_quad(S, P, O, G, Opts).
@@ -680,7 +682,7 @@ dcg_print_object(O) -->
 
 
 dcg_print_object(O, Opts) -->
-  {rdf_is_literal(O)}, !,
+  {q_is_literal(O)}, !,
   dcg_print_literal(O, Opts).
 dcg_print_object(O, Opts) -->
   dcg_print_subject(O, Opts).
@@ -704,13 +706,13 @@ dcg_print_predicate(P, Opts) -->
 
 
 dcg_print_subject(S, Opts) -->
-  {rdf_is_bnode(S)}, !,
+  {q_is_bnode(S)}, !,
   dcg_print_bnode(S, Opts).
 dcg_print_subject(S, _) -->
   {var(S)}, !,
   dcg_print_var(S).
 dcg_print_subject(S, Opts) -->
-  {rdf_is_iri(S)}, !,
+  {q_is_iri(S)}, !,
   dcg_print_iri(S, Opts).
 
 
@@ -733,7 +735,7 @@ dcg_print_bnode(B, Opts) -->
   get_dict(bnode_map, Opts, false), !,
   atom_ellipsis(B, Opts.max_length).
 dcg_print_bnode(B, _) -->
-  {rdf_bnode_map(B, Name)},
+  {q_bnode_map(B, Name)},
   "_:", integer(Name).
 
 
@@ -743,18 +745,19 @@ dcg_print_datatype_iri(D, Opts) -->
 
 
 
+% @tbd
+%dcg_print_iri(Full, Opts) -->
+%  {
+%    get_dict(iri_lbl, Opts, true),
+%    q_pref_label(M, Full, Lit, G)
+%  }, !,
+%  {q_literal_lex(Lit, Lex)},
+%  "“",
+%  atom(Lex),
+%  "”".
 dcg_print_iri(Full, Opts) -->
   {
-    get_dict(iri_lbl, Opts, true),
-    rdfs_pref_label(Full, Lit) % @tbd
-  }, !,
-  {q_literal_lex(Lit, Lex)},
-  "“",
-  atom(Lex),
-  "”".
-dcg_print_iri(Full, Opts) -->
-  {
-    rdf_global_id(Alias:Local, Full), !,
+    qiri(Alias:Local, Full), !,
     atom_length(Alias, AliasLen),
     Minus is AliasLen + 1,
     inf_minus(Opts.max_length, Minus, Max)
@@ -791,26 +794,24 @@ dcg_print_literal(Lit) -->
 
 % Datatype hooks.
 dcg_print_literal(Lit, Opts) -->
-  rdf:dcg_print_literal_hook(Lit, Opts), !.
+  q:dcg_print_literal_hook(Lit, Opts), !.
 % Abbreviate XSD Boolean.
 dcg_print_literal(Lex^^D, Opts) -->
-  {rdf_equal(xsd:boolean, D)}, !,
+  {qis(xsd:boolean, D)}, !,
   dcg_print_lexical_form(Lex, Opts).
 % Abbreviate XSD string.
 dcg_print_literal(V^^D, Opts) -->
-  {rdf_equal(xsd:string, D)}, !,
+  {qis(xsd:string, D)}, !,
   {atom_string(Lex, V)},
   dcg_print_lexical_form(Lex, Opts).
 % Abbreviate XSD integers.
 dcg_print_literal(Val^^D, _) -->
-  {rdf_equal(xsd:integer, D)}, !,
+  {qis(xsd:integer, D)}, !,
   thousands(Val).
 % Abbreviate XSD decimals and doubles.
 dcg_print_literal(Val^^D, Opts) -->
   {
-    (  rdf_equal(xsd:decimal, D)
-    ;   rdf_equal(xsd:double, D)
-    ), !,
+    (qis(xsd:decimal, D) ; qis(xsd:double, D)), !,
     atom_number(Lex, Val)
   },
   dcg_print_lexical_form(Lex, Opts).

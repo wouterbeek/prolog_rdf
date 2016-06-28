@@ -1,5 +1,5 @@
 :- module(
-  q_ext,
+  q_io,
   [
     q_aggregate_all/3, % +Template, :Goal, -Result
     q_graph/2,         % ?M, ?G
@@ -8,26 +8,27 @@
     q_load/3,          % +M, +G, +Opts
     q_load_or_call/3,  % +M, :Goal_1, +G
     q_load_or_call/4,  % +M, :Goal_1, +G, +Opts
-    q_save/1           % +G
+    q_save/1,          % +G
+    q_unload/2         % +M, +G
   ]
 ).
 
-/** <module> Quine generics
-
-Generic support for the Quine abstraction layer.
+/** <module> Quine I/O
 
 @author Wouter Beek
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)). % Prioritize rdf_meta/1.
 :- use_module(library(debug)).
 :- use_module(library(hdt/hdt_ext)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdfio)).
-:- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
     q_aggregate_all(+, 0, -),
-    q_load_or_call(+, 1, +).
+    q_load_or_call(+, 1, +),
+    q_load_or_call(+, 1, +, +).
 
 :- rdf_meta
    q_aggregate_all(+, t, -),
@@ -36,7 +37,8 @@ Generic support for the Quine abstraction layer.
    q_load(+, r, +),
    q_load_or_call(+, :, r),
    q_load_or_call(+, :, r, +),
-   q_save(r).
+   q_save(r),
+   q_unload(+, r).
 
 :- debug(q(ext)).
 
@@ -54,7 +56,7 @@ q_aggregate_all(Template, Goal, Result) :-
 %! q_graph(?M, ?G) is nondet.
 
 q_graph(rdf, G) :-
-  rdf_graph(G).
+  rdf11:rdf_graph(G).
 q_graph(hdt, G) :-
   hdt_graph(G).
 
@@ -79,7 +81,7 @@ q_load(M, G) :-
 q_load(hdt, G, Opts) :- !,
   hdt_load(G, Opts).
 q_load(rdf, G, Opts) :- !,
-  rdf_load(G, Opts).
+  rdfio:rdf_load(G, Opts).
 
 
 
@@ -108,6 +110,15 @@ q_save(G) :-
 
 
 
+%! q_unload(+M, +G) is det.
+
+q_unload(rdf, G) :- !,
+  rdf_unload_graph(G).
+q_unload(hdt, G) :- !,
+  hdt_unload(G).
+
+
+
 
 
 % HELPERS %
@@ -115,7 +126,7 @@ q_save(G) :-
 %! q_graph_to_base(+G, -Base) is det.
 
 q_graph_to_base(G, Base) :-
-  rdf_global_id(Alias:Local, G), !,
+  qiri(Alias:Local, G), !,
   atomic_list_concat([Alias,Local], '_', Base).
 q_graph_to_base(G, Base) :-
   Base = G.

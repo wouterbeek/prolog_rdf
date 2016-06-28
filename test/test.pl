@@ -1,5 +1,5 @@
 %/cli
-:- use_module(library(cli/rc)).
+:- use_module(library(cli/q_cli)).
 %/conv
 :- use_module(library(conv/bibtex2rdf)).
 :- use_module(library(conv/csv2rdf)).
@@ -49,9 +49,10 @@
 %/owl
 :- use_module(library(owl/owl_ext)).
 %/q
+:- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_datatype)).
-:- use_module(library(q/q_ext)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
@@ -61,7 +62,6 @@
 %/rdf
 :- use_module(library(rdf/rdf_annotate)).
 :- use_module(library(rdf/rdf_array)).
-:- use_module(library(rdf/rdf_bnode_map)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_default)).

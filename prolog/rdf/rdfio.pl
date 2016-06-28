@@ -59,6 +59,9 @@ already part of ClioPatria.
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
 :- use_module(library(os/open_any2)).
+:- use_module(library(q/q_io)).
+:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)).
@@ -77,9 +80,6 @@ already part of ClioPatria.
 :- use_module(library(uuid_ext)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
-:- use_module(library(z/z_ext)).
-:- use_module(library(z/z_stmt)).
-:- use_module(library(z/z_term)).
 
 :- meta_predicate
     rdf_call_on_graph(+, 3),
@@ -261,7 +261,7 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
   ->  call(Goal_5, M, S, P, O1, G3)
-  ;   z_legacy_literal(O1, D, Lex0, LTag1),
+  ;   q_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
       ->  rdf11:write_xml_literal(html, Lex0, Lex1)
       ;   rdf_equal(rdf:'XMLLiteral', D)
@@ -271,7 +271,7 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
       catch((
         rdf11:post_object(O2, O1),
         rdf11:pre_object(O2, O3),
-        z_legacy_literal(O3, D, Lex3, LTag3)
+        q_legacy_literal(O3, D, Lex3, LTag3)
       ), E, true),
       % Non-canonical lexical form.
       (   Lex1 \== Lex3
@@ -462,7 +462,7 @@ rdf_load_tuples(Source, Triples, Opts) :-
   rdf_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
-    z_triples(Triples)
+    q_triples(rdf, Triples)
   )).
 
 
@@ -546,9 +546,9 @@ rdf_write_format0(_, _, nquads).
 
 
 rdf_write_to_sink0(S, P, O, G, nquads, Out, M, M) :- !,
-  with_output_to(Out, gen_nquads(S, P, O, G)).
+  with_output_to(Out, gen_nquads(rdf, S, P, O, G)).
 rdf_write_to_sink0(S, P, O, G, ntriples, Out, M, M) :- !,
-  with_output_to(Out, gen_ntriples(S, P, O, G)).
+  with_output_to(Out, gen_ntriples(rdf, S, P, O, G)).
 rdf_write_to_sink0(_, _, _, _, Format, _, M, M) :-
   domain_error(rdf_format, Format).
 

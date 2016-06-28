@@ -1,40 +1,40 @@
 :- module(
   rdfa_ext,
   [
-    agent_image/2,        % +Agent,   -Img
-    agent_image//1,       % +Agent
-    agent_name/2,         % +Agent,   -Name
-    agent_name//1,        % +Agent
-    'bf:subtitle'/2,      % +Article, -Subtitle
-    'bf:subtitle'//1,     % +Article
-    creators//1,          % +Res
-    'dc:abstract'/2,      % +Res,     -Abstract
-    'dc:abstract'//1,     % +Res
-    'dc:created'/2,       % +Res,     -DT
-    'dc:created'//1,      % +Res
-    'dc:creator'/2,       % +Res,     -Agent
-    'dc:creator'//1,      % +Res
-    'dc:subject'/2,       % +Res,     -Subject
-    'dc:title'/2,         % +Res,     -Title
-    'dc:title'//1,        % +Res
-    'foaf:depiction'/2,   % +Agent,   -Uri
-    'foaf:depiction'//1,  % +Agent
-    'foaf:familyName'/2,  % +Agent,   -FamilyName
-    'foaf:familyName'//1, % +Agent
-    'foaf:givenName'/2,   % +Agent,   -GivenName
-    'foaf:givenName'//1,  % +Agent
-    'foaf:homepage'/2,    % +Agent,   -Uri
-    'foaf:homepage'//1,   % +Agent
-    'foaf:mbox'/2,        % +Agent,   -Uri
-    'foaf:mbox'//1,       % +Agent
-    'foaf:name'/2,        % +Agent,   -Name
-    'foaf:name'//1,       % +Agent
-    'org:memberOf'//1,    % +Agent
-    rdfa_date_time//3,    % +P,       +Something,  +Masks
-    rdfa_prefixed_iri/2,  % +Iri,     -PrefixedIri
+    agent_image/4,        % +M, +Agent,   -Img,        ?G
+    agent_image//3,       % +M, +Agent,                ?G
+    agent_name/4,         % +M, +Agent,   -Name,       ?G
+    agent_name//3,        % +M, +Agent,                ?G
+    'bf:subtitle'/4,      % +M, +Article, -Subtitle,   ?G
+    'bf:subtitle'//3,     % +M, +Article,              ?G
+    creators//3,          % +M, +Res,                  ?G
+    'dc:abstract'/4,      % +M, +Res,     -Abstract,   ?G
+    'dc:abstract'//3,     % +M, +Res,                  ?G
+    'dc:created'/4,       % +M, +Res,     -DT,         ?G
+    'dc:created'//3,      % +M, +Res,                  ?G
+    'dc:creator'/4,       % +M, +Res,     -Agent,      ?G
+    'dc:creator'//3,      % +M, +Res,                  ?G
+    'dc:subject'/4,       % +M, +Res,     -Subject,    ?G
+    'dc:title'/4,         % +M, +Res,     -Title,      ?G
+    'dc:title'//3,        % +M, +Res,                  ?G
+    'foaf:depiction'/4,   % +M, +Agent,   -Iri,        ?G
+    'foaf:depiction'//3,  % +M, +Agent,                ?G
+    'foaf:familyName'/4,  % +M, +Agent,   -FamilyName, ?G
+    'foaf:familyName'//3, % +M, +Agent,                ?G
+    'foaf:givenName'/4,   % +M, +Agent,   -GivenName,  ?G
+    'foaf:givenName'//3,  % +M, +Agent,                ?G
+    'foaf:homepage'/4,    % +M, +Agent,   -Iri,        ?G
+    'foaf:homepage'//3,   % +M, +Agent,                ?G
+    'foaf:mbox'/4,        % +M, +Agent,   -Iri,        ?G
+    'foaf:mbox'//3,       % +M, +Agent,                ?G
+    'foaf:name'/4,        % +M, +Agent,   -Name,       ?G
+    'foaf:name'//3,       % +M, +Agent,                ?G
+    'org:memberOf'//3,    % +M, +Agent,                ?G
+    rdfa_date_time//3,    %     +P, +Something, +Masks
+    rdfa_prefixed_iri/2,  % +Iri, -PrefixedIri
     rdfa_prefixes/2,      % +Aliases, -Prefixes
-    'sioc:content'//1,    % +Article
-    'sioc:reply_of'//1    % +Comment
+    'sioc:content'//3,    % +M, +Article,              ?G
+    'sioc:reply_of'//3    % +M, +Comment,              ?G
   ]
 ).
 
@@ -56,310 +56,287 @@
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
-:- use_module(library(rdf/rdf_ext)).
+:- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdfa/rdfa_ext)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
-:- use_module(library(z/z_datatype)).
-:- use_module(library(z/z_term)).
 
-:- rdf_register_prefix(bf, 'http://bibframe.org/vocab/').
-:- rdf_register_prefix(org, 'http://www.w3.org/ns/org#').
-:- rdf_register_prefix(sioc, 'http://rdfs.org/sioc/ns#').
+:- q_create_alias(bf, 'http://bibframe.org/vocab/').
+:- q_create_alias(org, 'http://www.w3.org/ns/org#').
+:- q_create_alias(sioc, 'http://rdfs.org/sioc/ns#').
 
 :- rdf_meta
-   agent_image(r, -),
-   agent_image(r, ?, ?),
-   agent_name(r, -),
-   agent_name(r, ?, ?),
-   'bf:subtitle'(r, -),
-   'bf:subtitle'(r, ?, ?),
-   creators(r, ?, ?),
-   'dc:abstract'(r, -),
-   'dc:abstract'(r, ?, ?),
-   'dc:created'(r, -),
-   'dc:created'(r, ?, ?),
-   'dc:creator'(r, -),
-   'dc:creator'(r, ?, ?),
-   'dc:subject'(r, -),
-   'dc:title'(r, -),
-   'dc:title'(r, ?, ?),
-   'foaf:depiction'(r, -),
-   'foaf:depiction'(r, ?, ?),
-   'foaf:familyName'(r, -),
-   'foaf:familyName'(r, ?, ?),
-   'foaf:givenName'(r, -),
-   'foaf:givenName'(r, ?, ?),
-   'foaf:homepage'(r, -),
-   'foaf:homepage'(r, ?, ?),
-   'foaf:mbox'(r, -),
-   'foaf:mbox'(r, ?, ?),
-   'foaf:name'(r, -),
-   'foaf:name'(r, ?, ?),
-   'org:memberOf'(r, ?, ?),
-   rdfa_date_time(r, o, +, ?, ?),
-   'sioc:content'(r, ?, ?),
-   'sioc:reply_of'(r, ?, ?).
+   agent_image(+, r, -, r),
+   agent_image(+, r, r, ?, ?),
+   agent_name(+, r, -, r),
+   agent_name(+, r, r, ?, ?),
+   'bf:subtitle'(+, r, -, r),
+   'bf:subtitle'(+, r, r, ?, ?),
+   creators(+, r, r, ?, ?),
+   'dc:abstract'(+, r, -, r),
+   'dc:abstract'(+, r, r, ?, ?),
+   'dc:created'(+, r, -, r),
+   'dc:created'(+, r, r, ?, ?),
+   'dc:creator'(+, r, -, r),
+   'dc:creator'(+, r, r, ?, ?),
+   'dc:subject'(+, r, -, r),
+   'dc:title'(+, r, -, r),
+   'dc:title'(+, r, r, ?, ?),
+   'foaf:depiction'(+, r, -, r),
+   'foaf:depiction'(+, r, r, ?, ?),
+   'foaf:familyName'(+, r, -, r),
+   'foaf:familyName'(+, r, r, ?, ?),
+   'foaf:givenName'(+, r, -, r),
+   'foaf:givenName'(+, r, r, ?, ?),
+   'foaf:homepage'(+, r, -, r),
+   'foaf:homepage'(+, r, r, ?, ?),
+   'foaf:mbox'(+, r, -, r),
+   'foaf:mbox'(+, r, r, ?, ?),
+   'foaf:name'(+, r, -, r),
+   'foaf:name'(+, r, r, ?, ?),
+   'org:memberOf'(+, r, r, ?, ?),
+   rdfa_date_time(r, +, +, ?, ?),
+   'sioc:content'(+, r, r, ?, ?),
+   'sioc:reply_of'(+, r, r, ?, ?).
 
 
 
 
 
-%! agent_gravatar(+Agent, -Uri) is det.
+%! agent_gravatar(+Agent, -Iri) is det.
 
-agent_gravatar(Agent, Uri) :-
+agent_gravatar(Agent, Iri) :-
   once('foaf:mbox'(Agent, EMail)),
   downcase_atom(EMail, CanonicalEMail),
   md5(CanonicalEMail, Hash),
   atomic_list_concat(['',avatar,Hash], /, Path),
-  iri_comps(Uri, uri_components(http,'www.gravatar.com',Path,_,_)).
+  iri_comps(Iri, uri_components(http,'www.gravatar.com',Path,_,_)).
 
 
 
-%! agent_image(+Agent, -Image) is det.
+%! agent_image(+M, +Agent, -Img, ?G) is det.
+%! agent_image(+M, +Agent, ?G)// is det.
 
-agent_image(Agent, Img) :-
-  'foaf:depiction'(Agent, Img).
-agent_image(Agent, Img) :-
+agent_image(M, Agent, Img, G) :-
+  'foaf:depiction'(M, Agent, Img, G).
+agent_image(_, Agent, Img, _) :-
   agent_gravatar(Agent, Img).
 
 
-%! agent_image(+Agent)// is det.
-
-agent_image(Agent) -->
+agent_image(M, Agent, G) -->
   {
-    iri_to_location(Agent, Loc),
-    agent_name(Agent, Name),
-    agent_image(Agent, Img),
-    iri_to_location(Img, ImgLoc) 
+    agent_name(M, Agent, Name, G),
+    agent_image(M, Agent, Img, G)
   },
-  html(a(href=Loc, img([alt=Name,property='foaf:depiction',src=ImgLoc], []))).
+  internal_link(Agent, image(Img, [alt=Name,property='foaf:depiction'])).
 
 
 
-%! agent_name(+Agent, -Name) is det.
+%! agent_name(+M, +Agent, -Name, ?G) is det.
+%! agent_name(+M, +Agent, ?G)// is det.
 
-agent_name(Agent, String) :-
-  'foaf:givenName'(Agent, GivenName),
-  'foaf:familyName'(Agent, FamilyName), !,
-  rdf_string(GivenName, String1),
-  rdf_string(FamilyName, String2),
-  string_list_concat([String1,String2], " ", String).
-agent_name(Agent, String) :-
-  'foaf:name'(Agent, Name),
-  rdf_string(Name, String).
+agent_name(M, Agent, Str, G) :-
+  'foaf:givenName'(M, Agent, GivenName, G),
+  'foaf:familyName'(M, Agent, FamilyName, G), !,
+  q_literal_string(GivenName, Str1),
+  q_literal_string(FamilyName, Str2),
+  string_list_concat([Str1,Str2], " ", Str).
+agent_name(M, Agent, Str, G) :-
+  'foaf:name'(M, Agent, Name, G),
+  q_literal_string(Name, Str).
 
 
+agent_name(M, Agent, G) -->
+  internal_link(Agent, \agent_name0(M, Agent, G)).
+agent_name(M, Agent, G) -->
+  'foaf:name'(M, Agent, G).
 
-%! agent_name(+Agent)// is det.
 
-agent_name(Agent) -->
-  internal_link(Agent, \agent_name0(Agent)).
-agent_name(Agent) -->
-  'foaf:name'(Agent).
-
-agent_name0(Agent) -->
+agent_name0(M, Agent, G) -->
   html([
-    \'foaf:givenName'(Agent), %'
+    \'foaf:givenName'(M, Agent, G), %'
     " ",
-    \'foaf:familyName'(Agent) %'
+    \'foaf:familyName'(M, Agent, G) %'
   ]), !.
 
 
 
-%! 'bf:subtitle'(+Article, -Subtitle)// is det.
+%! 'bf:subtitle'(+M, +Article, -Subtitle, G)// is det.
+%! 'bf:subtitle'(+M, +Article, ?G)// is det.
 
-'bf:subtitle'(Article, Subtitle) :-
-  rdf_pref_string(Article, bf:subtitle, Subtitle).
-
-
-%! 'bf:subtitle'(+Article)// is det.
-
-'bf:subtitle'(Article) -->
-  {'bf:subtitle'(Article, Subtitle)},
-  html(h2(span(property='bf:subtitle', \zh_literal(Subtitle)))).
+'bf:subtitle'(M, Article, Subtitle, G) :-
+  q_pref_string(M, Article, bf:subtitle, Subtitle, G).
 
 
+'bf:subtitle'(M, Article, G) -->
+  {'bf:subtitle'(M, Article, Subtitle, G)},
+  html(h2(span(property='bf:subtitle', \qh_literal(Subtitle)))).
 
-%! creators(+Res)// is det.
 
-creators(Res) -->
-  {rdf_list(Res, dc:creator, Agents)},
+
+%! creators(+M, +Res, +G)// is det.
+
+creators(M, Res, G) -->
+  {q_list_pl(M, Res, dc:creator, Agents, G)},
   html(
     ol([inlist='',rel='dc:creator'],
-      \html_maplist(agent_item0, Agents)
+      \html_maplist(agent_item0(M, G), Agents)
     )
   ).
-agent_item0(Agent) --> html(li(\agent_name(Agent))).
+
+agent_item0(M, G, Agent) -->
+  html(li(\agent_name(M, Agent, G))).
 
 
 
-%! 'dc:abstract'(+Res, -Abstract) is det.
+%! 'dc:abstract'(+M, +Res, -Abstract, ?G) is det.
+%! 'dc:abstract'(+M, +Res, ?G)// is det.
 
-'dc:abstract'(Res, Abstract) :-
-  rdf_pref_string(Res, dc:abstract, Abstract).
-
-
-%! 'dc:abstract'(+Res)// is det.
-
-'dc:abstract'(Res) -->
-  {once('dc:abstract'(Res, Abstract))},
-  html(p(property='dc:abstract', \zh_literal(Abstract))).
+'dc:abstract'(M, Res, Abstract, G) :-
+  q_pref_string(M, Res, dc:abstract, Abstract, G).
 
 
-
-%! 'dc:created'(+Res, -DateTime) is nondet.
-
-'dc:created'(Res, DT) :-
-  rdf_has(Res, dc:created, DT^^xsd:date).
+'dc:abstract'(M, Res, G) -->
+  {once('dc:abstract'(M, Res, Abstract, G))},
+  html(p(property='dc:abstract', \qh_literal(Abstract))).
 
 
-%! 'dc:created'(+Res)// is det.
 
-'dc:created'(Res) -->
-  {once('dc:created'(Res, DT))},
+%! 'dc:created'(+M, +Res, -DateTime, ?G) is nondet.
+%! 'dc:created'(+M, +Res, ?G)// is det.
+
+'dc:created'(M, Res, DT, G) :-
+  q(M, Res, dc:created, DT^^xsd:date, G).
+
+
+'dc:created'(M, Res, G) -->
+  {once('dc:created'(M, Res, DT, G))},
   rdfa_date_time(dc:created, DT, [offset]).
 
 
 
-%! 'dc:creator'(+Res, -Agent) is nondet.
+%! 'dc:creator'(+M, +Res, -Agent, ?G) is nondet.
+%! 'dc:creator'(+M, +Res, ?G)// is det.
 
-'dc:creator'(Res, Agent) :-
-  rdf_has(Res, dc:creator, Agent).
+'dc:creator'(M, Res, Agent, G) :-
+  q(M, Res, dc:creator, Agent, G).
   
 
-
-%! 'dc:creator'(+Res)// is det.
-
-'dc:creator'(Res) -->
+'dc:creator'(M, Res, G) -->
   {
-    once('dc:creator'(Res, Agent)),
-    iri_to_location(Agent, Loc)
+    once('dc:creator'(M, Res, Agent, G))
   },
-  html(a([href=Loc,property='dc:creator'], \agent_name(Agent))).
+  internal_link(Agent, [property='dc:creator'], \agent_name(M, Agent, G)).
 
 
 
-%! 'dc:subject'(+Res, -Subject) is nondet.
+%! 'dc:subject'(+M, +Res, -Subject, ?G) is nondet.
 
-'dc:subject'(Res, Tag) :-
-  rdf_has(Res, dc:subject, Tag).
-
-
-
-%! 'dc:title'(+Res, -Title) is det.
-
-'dc:title'(Res, Title) :-
-  rdf_pref_string(Res, dc:title, Title).
-
-
-%! 'dc:title'(+Res)// is det.
-
-'dc:title'(Res) -->
-  {'dc:title'(Res, Title)},
-  html(h1(property='dc:title', \zh_literal(Title))).
+'dc:subject'(M, Res, Tag, G) :-
+  q(M, Res, dc:subject, Tag, G).
 
 
 
-%! 'foaf:depiction'(+Agent, -Uri) is nondet.
+%! 'dc:title'(+M, +Res, -Title, ?G) is det.
+%! 'dc:title'(+M, +Res, ?G)// is det.
 
-'foaf:depiction'(Agent, Uri) :-
-  rdf_has(Agent, foaf:depiction, Uri^^xsd:anyURI).
+'dc:title'(M, Res, Title, G) :-
+  q_pref_string(M, Res, dc:title, Title, G).
 
 
-%! 'foaf:depiction'(+Agent)// is det.
+'dc:title'(M, Res, G) -->
+  {'dc:title'(M, Res, Title, G)},
+  html(h1(property='dc:title', \qh_literal(Title))).
 
-'foaf:depiction'(Agent) -->
+
+
+%! 'foaf:depiction'(+M, +Agent, -Img, ?G) is nondet.
+%! 'foaf:depiction'(+M, +Agent, ?G)// is det.
+
+'foaf:depiction'(M, Agent, Ing, G) :-
+  q(M, Agent, foaf:depiction, Img^^xsd:anyURI, G).
+
+
+'foaf:depiction'(M, Agent, G) -->
+  {once('foaf:depiction'(M, Agent, Img, G))},
+  image(Img, [property='foaf:depiction']).
+
+
+
+%! 'foaf:familyName'(+M, +Agent, -FamilyName, ?G) is det.
+%! 'foaf:familyName'(+M, +Agent, ?G)// is det.
+
+'foaf:familyName'(M, Agent, FamilyName, G) :-
+  q_pref_string(M, Agent, foaf:familyName, FamilyName, G).
+
+
+'foaf:familyName'(M, Agent, G) -->
+  {once('foaf:familyName'(M, Agent, FamilyName, G))},
+  html(span(property='foaf:familyName', \qh_literal(FamilyName))).
+
+
+
+%! 'foaf:givenName'(+M, +Agent, -GivenName, ?G) is det.
+%! 'foaf:givenName'(+M, +Agent, ?G)// is det.
+
+'foaf:givenName'(M, Agent, GivenName, G) :-
+  q_pref_string(M, Agent, foaf:givenName, GivenName, G).
+
+
+'foaf:givenName'(M, Agent, G) -->
+  {'foaf:givenName'(M, Agent, GivenName, G)}, !,
+  html(span(property='foaf:givenName', \qh_literal(GivenName))).
+
+
+
+%! 'foaf:homepage'(+M, +Agent, -Iri, G) is nondet.
+%! 'foaf:homepage'(+M, +Agent, ?G)// is det.
+
+'foaf:homepage'(M, Agent, Iri, G) :-
+  q(M, Agent, foaf:homepage, Iri^^xsd:anyURI, G).
+
+
+'foaf:homepage'(M, Agent, G) -->
+  {once('foaf:homepage'(M, Agent, Iri, G))},
+  external_link(Iri, [rel='foaf:homepage'], [\bs_icon(web)," ",code(Iri)]).
+
+
+
+%! 'foaf:mbox'(+M, +Agent, -Iri,?G) is nondet.
+%! 'foaf:mbox'(+M, +Agent, ?G)// is det.
+
+'foaf:mbox'(M, Agent, Iri, G) :-
+  q(M, Agent, foaf:mbox, Iri^^xsd:anyURI, G).
+
+
+'foaf:mbox'(M, Agent, G) -->
+  {once('foaf:mbox'(M, Agent, Iri, G))},
+  mail_link(Iri).
+
+
+
+%! 'foaf:name'(+M, +Agent, -Name, ?G) is det.
+%! 'foaf:name'(+M, +Agent, ?G)// is det.
+
+'foaf:name'(M, Agent, Name, G) :-
+  q_pref_string(M, Agent, foaf:name, Name, G).
+
+
+'foaf:name'(M, Agent, G) -->
+  {'foaf:name'(M, Agent, Name, G)},
+  html(span(property='foaf:name', \qh_literal(Name))).
+
+
+
+%! 'org:memberOf'(+M, +Agent, ?G)// is det.
+
+'org:memberOf'(M, Agent, G) -->
   {
-    once('foaf:depiction'(Agent, Img)),
-    iri_to_location(Img, ImgLoc)
-  },
-  html(img([property='foaf:depiction',src=ImgLoc], [])).
-
-
-
-%! 'foaf:familyName'(+Agent, -FamilyName) is det.
-
-'foaf:familyName'(Agent, FamilyName) :-
-  rdf_pref_string(Agent, foaf:familyName, FamilyName).
-
-
-%! 'foaf:familyName'(+Agent)// is det.
-
-'foaf:familyName'(Agent) -->
-  {once('foaf:familyName'(Agent, FamilyName))},
-  html(span(property='foaf:familyName', \zh_literal(FamilyName))).
-
-
-
-%! 'foaf:givenName'(+Agent, -GivenName) is det.
-
-'foaf:givenName'(Agent, GivenName) :-
-  rdf_pref_string(Agent, foaf:givenName, GivenName).
-
-
-%! 'foaf:givenName'(+Agent)// is det.
-
-'foaf:givenName'(Agent) -->
-  {'foaf:givenName'(Agent, GivenName)}, !,
-  html(span(property='foaf:givenName', \zh_literal(GivenName))).
-
-
-
-%! 'foaf:homepage'(+Agent, -Uri) is nondet.
-
-'foaf:homepage'(Agent, Uri) :-
-  rdf_has(Agent, foaf:homepage, Uri^^xsd:anyURI).
-
-
-%! 'foaf:homepage'(+Agent)// is det.
-
-'foaf:homepage'(Agent) -->
-  {once('foaf:homepage'(Agent, Loc))},
-  html(a([href=Loc,rel='foaf:homepage'], [\bs_icon(web)," ",code(Loc)])).
-
-
-
-%! 'foaf:mbox'(+Agent, -Uri) is nondet.
-
-'foaf:mbox'(Agent, Uri) :-
-  rdf_has(Agent, foaf:mbox, Uri^^xsd:anyURI).
-
-
-%! 'foaf:mbox'(+Agent)// is det.
-
-'foaf:mbox'(Agent) -->
-  {
-    once('foaf:mbox'(Agent, Loc)),
-    atomic_list_concat([mailto,Local], ':', Loc)
-  },
-  html(a([href=Loc,property='foaf:mbox'], [\bs_icon(mail)," ",code(Local)])).
-
-
-
-%! 'foaf:name'(+Agent, -Name) is det.
-
-'foaf:name'(Agent, Name) :-
-  rdf_pref_string(Agent, foaf:name, Name).
-
-
-%! 'foaf:name'(+Agent)// is det.
-
-'foaf:name'(Agent) -->
-  {'foaf:name'(Agent, Name)},
-  html(span(property='foaf:name', \zh_literal(Name))).
-
-
-
-%! 'org:memberOf'(+Agent)// is det.
-
-'org:memberOf'(Agent) -->
-  {
-    once(rdf_has(Agent, org:memberOf, Organization)),
-    once(rdfs_pref_label(Organization, Label)),
+    once(q(M, Agent, org:memberOf, Organization, G)),
+    once(q_pref_label(M, Organization, Label, G)),
     rdfa_prefixed_iri(Organization, Organization0)
   },
-  html(span(property=Organization0, \zh_literal(Label))).
+  html(span(property=Organization0, \qh_literal(Label))).
 
 
 
@@ -385,7 +362,7 @@ rdfa_date_time(P1, Something, Masks) -->
 %! rdfa_prefixed_iri(+Iri, -PrefixedIri) is det.
 
 rdfa_prefixed_iri(Iri, PrefixedIri) :-
-  rdf_global_id(Alias:Local, Iri),
+  qiri(Alias:Local, Iri),
   atomic_list_concat([Alias,Local], :, PrefixedIri).
 
 
@@ -393,7 +370,7 @@ rdfa_prefixed_iri(Iri, PrefixedIri) :-
 %! rdfa_prefixes(+Aliases, -Prefixes) is det.
 
 rdfa_prefixes(Aliases, Defs) :-
-  maplist(z_alias_prefix, Aliases, Prefixes),
+  maplist(q_alias_prefix, Aliases, Prefixes),
   pairs_keys_values(Pairs, Aliases, Prefixes),
   maplist(pair_to_prefix0, Pairs, Defs0),
   atomic_list_concat(Defs0, ' ', Defs).
@@ -403,12 +380,12 @@ pair_to_prefix0(Alias-Prefix, Def) :-
 
 
 
-'sioc:content'(Article) -->
-  {once(rdf_has(Article, sioc:content, Content))},
-  html(div(property='sioc:content', \zh_literal(Content))).
+'sioc:content'(M, Article, G) -->
+  {once(q(M, Article, sioc:content, Content, Q))},
+  html(div(property='sioc:content', \qh_literal(Content))).
 
 
 
-'sioc:reply_of'(Comment) -->
-  {once(rdf_has(Comment, sioc:reply_of, Article))},
-  html(span(rel='sioc:reply_of', \'dc:title'(Article))). %'
+'sioc:reply_of'(M, Comment, G) -->
+  {once(q(M, Comment, sioc:reply_of, Article, G))},
+  html(span(rel='sioc:reply_of', \'dc:title'(M, Article, G))). %'

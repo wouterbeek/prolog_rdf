@@ -23,6 +23,8 @@ handled by plGraphViz.
 :- use_module(library(gv/gv_color)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_graph_theory)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -32,8 +34,6 @@ handled by plGraphViz.
      rdfs_subclass_of/2
    ]).
 :- use_module(library(typecheck)).
-:- use_module(library(z/z_print)).
-:- use_module(library(z/z_term)).
 
 :- dynamic
     rdf:rdf_class_color/2,
@@ -58,7 +58,7 @@ handled by plGraphViz.
 %! ) is det.
 
 create_namespace_map(Scheme, Map) :-
-  aggregate_all(set(Alias), z_alias(Alias), Aliases),
+  aggregate_all(set(Alias), q_alias(Alias), Aliases),
   create_namespace_map(Aliases, Scheme, Map).
 
 

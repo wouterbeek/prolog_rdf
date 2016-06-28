@@ -7,7 +7,7 @@
   ]
    ).
 :- reexport(library(fca/fca)).
-:- reexport(library(z/z_print)).
+:- reexport(library(q/q_print)).
 
 /** <module> RDF FCA Test
 
@@ -52,12 +52,9 @@ rdf_fca_test(Name) :-
 %! rdf_fca_test_file(+File:atom) is det.
 
 rdf_fca_test_file(File) :-
-  rdf_call_on_graph(File, rdf_fca_context0(Context)),
+  rdf_call_on_graph(File, {Context}/[G,M,M]>>rdf_fca_context(Context, G)),
   format(string(GLbl), "FCA for RDF file ~a", [File]),
   fca_viz0(Context, GLbl).
-
-rdf_fca_context0(Context, _, G) :-
-  rdf_fca_context(Context, G).
 
 
 

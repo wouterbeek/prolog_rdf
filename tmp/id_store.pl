@@ -55,6 +55,7 @@ Identifiers are atoms.
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
+:- use_module(library(q/q_print)).
 :- use_module(library(rdf/rdf_id)).
 :- use_module(library(semweb/rdf11), [
      rdf_graph/1 as rdf_graph_id,
@@ -63,7 +64,6 @@ Identifiers are atoms.
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
-:- use_module(library(z/z_print)).
 
 :- rdf_meta
 	assign_graph_id(r, -),
@@ -77,12 +77,11 @@ Identifiers are atoms.
 	term_to_terms(o, -).
 
 %! id_to_terms0(+Tid, -Ts:ordset) is nondet.
-
-:- dynamic(id_to_terms0/2).
-
 %! term_to_id0(+T, -Tid) is nondet.
 
-:- dynamic(term_to_id0/2).
+:- dynamic
+    id_to_terms0/2,
+    term_to_id0/2.
 
 :- initialization((rdf_equal(owl:sameAs, P), assign_id(P))).
 
@@ -118,7 +117,7 @@ assign_id(T, Tid) :-
   )).
 
 canonical_form(T, T) :-
-  z_is_legacy_literal(T), !.
+  q_is_legacy_literal(T), !.
 canonical_form(T1, T2) :-
   rdf11:pre_object(T1, T2).
 
@@ -204,7 +203,7 @@ print_id_store(Opts) :-
       tab(N),
       atom(Tid),
       "\t",
-      '*'(z_print_term, Ts),
+      '*'(q_print_term, Ts),
       nl
    ))
   ).
@@ -280,7 +279,7 @@ store_id0(X, Y) :-
 %! term_to_id(+T, -Tid) is semidet.
 
 term_to_id(T1, Tid) :-
-  (rdf_is_iri(T1) -> iri_normalized(T1, T2) ; T2 = T1),
+  (q_is_iri(T1) -> iri_normalized(T1, T2) ; T2 = T1),
   term_to_id0(T2, Tid).
 
 

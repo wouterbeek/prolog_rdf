@@ -2,8 +2,6 @@
   rdf_prefix,
   [
     abbr_iri/2,                   % +Iri, -Abbr
-    rdf_iri_alias_prefix_local/4, % +Iri, -Alias, -Prefix, -Local
-    rdf_iri_prefix/2,             % +Iri, -Prefix
     rdf_reset_prefix/2,           % +Prefix, +IriPrefix
     rdf_used_prefix/1             % -Prefix
   ]
@@ -287,24 +285,6 @@ dbpedia_register(LTag) :-
   atomic_list_concat([LTag,dbp], ., PropNS),
   iri_comps(PropPrefix, uri_components(http,Auth,'/property/',_,_)),
   rdf_reset_prefix(PropNS, PropPrefix).
-
-
-
-%! rdf_iri_alias_prefix_local(+Iri, -Alias, -Prefix, -Local) is det.
-% Returns the prefix of the given IRI that is abbreviated with a registered
-% RDF prefix, if any.  If no registered RDF prefix occurs in Iri the full IRI
-% is returned.
-
-rdf_iri_alias_prefix_local(Iri, Alias, Prefix, Local) :-
-  rdf_db:rdf_global_id(Alias:Local, Iri),
-  rdf_current_prefix(Alias, Prefix).
-
-
-
-%! rdf_iri_prefix(+Iri, -Prefix) is det.
-
-rdf_iri_prefix(Iri, Prefix) :-
-  rdf_iri_alias_prefix_local(Iri, _, Prefix, _).
 
 
 

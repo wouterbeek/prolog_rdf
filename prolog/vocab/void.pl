@@ -18,6 +18,8 @@ Automatically generate VoID descriptions.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(jsonld/jsonld_metadata)).
+:- use_module(library(q/q_stat)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix)).
@@ -28,7 +30,6 @@ Automatically generate VoID descriptions.
 :- use_module(library(true)).
 :- use_module(library(vocab/vocab_ext)).
 :- use_module(library(yall)).
-:- use_module(library(z/z_stat)).
 
 :- meta_predicate
     graph_to_void0(2, +, +, +),
@@ -101,7 +102,7 @@ source_to_void(Source, Goal_2, G2) :-
 
 graph_to_void0(Goal_2, G1, M, G2) :-
   % rdf:type
-  rdf_create_bnode(Dataset),
+  q_create_bnode(Dataset),
   rdf_assert_instance(Dataset, void:'Dataset', G2),
   
   % @tbd
@@ -113,11 +114,11 @@ graph_to_void0(Goal_2, G1, M, G2) :-
   rdf_assert(Dataset, void:dataDump, M.'llo:base_iri', G2),
 
   % Number of distinct object terms (‘void:distinctObjects’).
-  z_number_of_objects(rdf, G1, NumOs),
+  q_number_of_objects(rdf, G1, NumOs),
   rdf_assert(Dataset, void:distinctObjects, NumOs^^xsd:nonNegativeInteger, G2),
 
   % Number of distinct subject terms (‘void:distinctSubjects’).
-  z_number_of_subjects(rdf, G1, NumSs),
+  q_number_of_subjects(rdf, G1, NumSs),
   rdf_assert(Dataset, void:distinctSubjects, NumSs^^xsd:nonNegativeInteger, G2),
   
   % void:feature
@@ -126,12 +127,12 @@ graph_to_void0(Goal_2, G1, M, G2) :-
   
   % Number of distinct predicate terms (erroneously called
   % ‘void:properties’).
-  z_number_of_predicates(rdf, G1, NumPs),
+  q_number_of_predicates(rdf, G1, NumPs),
   rdf_assert(Dataset, void:properties, NumPs^^xsd:nonNegativeInteger, G2),
   
   % Number of distinct triples (‘void:triples’).  Should we not count
   % quadruples?
-  z_number_of_triples(rdf, G1, NumTriples),
+  q_number_of_triples(rdf, G1, NumTriples),
   rdf_assert(Dataset, void:triples, NumTriples^^xsd:nonNegativeInteger, G2),
 
   % @tbd

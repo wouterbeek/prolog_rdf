@@ -20,16 +20,16 @@
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(html/html_dom)).
 :- use_module(library(ordsets)).
-:- use_module(library(q/q_ext)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(sgml)).
 :- use_module(library(xml/xml_dom)).
@@ -162,7 +162,7 @@ q_datatypes_compat(M, P, G, Ds) :-
 
 lexical_form0(M, P, Lex, G) :-
   q(M, _, P, Lit, G),
-  rdf_is_literal(Lit),
+  q_is_literal(Lit),
   q_literal_lex(Lit, Lex).
 
 

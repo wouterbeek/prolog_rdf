@@ -30,11 +30,12 @@
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt), []).
 :- use_module(library(os/open_any2)).
+:- use_module(library(q/q_io)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
-:- use_module(library(z/z_ext)).
 :- use_module(library(zlib)).
 
 %! hdt_graph(?G, ?Hdt, ?HdtFile, ?NTriplesFile) is nondet.
@@ -92,12 +93,12 @@ hdt_assert(rdf(S,P,O), G) :-
 
 
 hdt_assert(S, P, O) :-
-  rdf_default_graph(G),
+  q_default_graph(G),
   hdt_assert(S, P, O, G).
 
 
 hdt_assert(S, P, O, G) :-
-  z_graph_to_file(G, [nt,gz], NTriplesFile),
+  q_graph_to_file(G, [nt,gz], NTriplesFile),
   call_to_stream(
     NTriplesFile,
     {S,P,O}/[Out,M,M]>>with_output_to(Out, gen_ntriple(S, P, O)),
@@ -109,7 +110,7 @@ hdt_assert(S, P, O, G) :-
 %! hdt_delete(+G) is det.
 
 hdt_delete(G) :-
-  z_graph_to_file(G, [hdt], HdtFile),
+  q_graph_to_file(G, [hdt], HdtFile),
   (exists_file(HdtFile) -> delete_file(HdtFile) ; true),
   atomic_list_concat([HdtFile,index], ., HdtIndexFile),
   (exists_file(HdtIndexFile) -> delete_file(HdtIndexFile) ; true).
@@ -176,7 +177,7 @@ hdt_load(G) :-
 
 
 hdt_load(G, Opts) :-
-  z_graph_to_file(G, [hdt], HdtFile),
+  q_graph_to_file(G, [hdt], HdtFile),
   hdt_load(HdtFile, _, G, Opts).
 
 
@@ -188,14 +189,14 @@ hdt_load(HdtFile, NTriplesFile, G, _) :-
   exists_file(HdtFile), !,
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph(G, Hdt, HdtFile, NTriplesFile)),
-  debug(z(ext), "HDT → open", []).
+  debug(q(ext), "HDT → open", []).
 % N-Triples → HDT
 hdt_load(HdtFile, NTriplesFile, G, Opts) :-
   file_name_extension(Base, hdt, HdtFile),
   file_name_extension(Base, 'nt.gz', NTriplesFile),
   exists_file(NTriplesFile), !,
   hdt:hdt_create_from_file(HdtFile, NTriplesFile, Opts),
-  debug(z(ext), "N-Triples → HDT", []),
+  debug(q(ext), "N-Triples → HDT", []),
   hdt_load(HdtFile, NTriplesFile, G, Opts).
 % N-Quads → N-Triples
 hdt_load(HdtFile, NTriplesFile, G, Opts) :-
@@ -206,7 +207,7 @@ hdt_load(HdtFile, NTriplesFile, G, Opts) :-
   setup_call_cleanup(
     ensure_ntriples(NQuadsFile, NTriplesFile),
     (
-      debug(z(ext), "N-Quads → N-Triples", []),
+      debug(q(ext), "N-Quads → N-Triples", []),
       hdt_load(HdtFile, NTriplesFile, G, Opts)
     ),
     delete_file(NTriplesFile)
@@ -250,10 +251,21 @@ hdt_unload(G) :-
 %! ensure_ntriples(+From, +To) is det.
 
 ensure_ntriples(From, To) :-
+  Opts = [rdf_format(ntriples)],
   setup_call_cleanup(
-    gzopen(To, write, Sink),
-    with_output_to(Sink,
-      rdf_call_on_tuples(From, [_,S,P,O,G]>>gen_ntriple(S, P, O, G))
+    (
+      gzopen(To, write, Sink),
+      gen_ntuples:gen_ntuples_begin(State, Opts)
     ),
-    close(Sink)
+    with_output_to(
+      Sink, 
+      rdf_call_on_tuples(
+        From,
+        {State}/[_,S,P,O,G]>>gen_ntuple(State, S, P, O, G)
+      )
+    ),
+    (
+      gen_ntuples:gen_ntuples_end(State, Opts),
+      close(Sink)
+    )
   ).

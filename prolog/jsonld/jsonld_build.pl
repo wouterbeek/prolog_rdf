@@ -27,8 +27,8 @@
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
-:- use_module(library(z/z_cbd)).
-:- use_module(library(z/z_datatype)).
+:- use_module(library(q/q_cbd)).
+:- use_module(library(q/q_datatype)).
 
 :- rdf_meta
    subject_to_jsonld(r, -),
@@ -48,7 +48,7 @@ subject_to_jsonld(S, Jsonld) :-
 
 
 subject_to_jsonld(S, G, Jsonld) :-
-  z_cbd(S, G, Triples),
+  q_cbd(S, G, Triples),
   triples_to_jsonld(Triples, G, Jsonld).
 
 
@@ -115,8 +115,8 @@ jsonld_triples_context(Triples, G, PDefs, _LTag, Context) :-
     set(Alias-Prefix),
     (
       member(Triple, Triples),
-      (z_triple_iri(Triple, Iri) ; z_triple_datatype(Triple, Iri)),
-      z_iri_alias_prefix(Iri, Alias, Prefix)
+      (q_triple_iri(Triple, Iri) ; q_triple_datatype(Triple, Iri)),
+      q_iri_alias_prefix(Iri, Alias, Prefix)
     ),
     Pairs
   ),
@@ -183,10 +183,10 @@ jsonld_ptree(PDefs, DefLang, Tree, G, P1, P2-O2) :-
 
 jsonld_oterm(PDefs, _, P2, G, O1, Elems2) :-
   rdf_is_subject(O1),
-  z_list(O1, G),
+  q_list(O1, G),
   memberchk(P2-PDef, PDefs),
   '@list' == PDef.get('@container'), !,
-  z_list_pl(O1, G, Elems1),
+  q_list_pl(O1, G, Elems1),
   maplist(jsonld_abbreviate_iri0, Elems1, Elems2).
 jsonld_oterm(PDefs, _DefLang, P2, _, O1, O2) :-
   O1 = Lex@LTag, !,
@@ -199,11 +199,11 @@ jsonld_oterm(PDefs, _DefLang, P2, _, O1, O2) :-
   ).
 jsonld_oterm(PDefs, _, P2, _, O1, O2) :-
   O1 = _^^D1, !,
-  z_literal_lex(O1, Lex),
+  q_literal_lex(O1, Lex),
   (   memberchk(P2-PDef, PDefs),
       _ = PDef.get('@type')
   ->  O2 = Lex
-  ;   z_literal_datatype(O1, D1),
+  ;   q_literal_datatype(O1, D1),
       jsonld_abbreviate_iri0(D1, D2),
       O2 = literal{'@type':D2, '@value':Lex}
   ).
@@ -243,8 +243,8 @@ p_defs(_, [], _, []).
 p_container(Triples, P, G) :-
   memberchk(rdf(_,P,O), Triples),
   rdf_is_subject(O),
-  z_list(O, G),
-  forall(member(rdf(_,P,O), Triples), z_list(O, G)).
+  q_list(O, G),
+  forall(member(rdf(_,P,O), Triples), q_list(O, G)).
 
 
 
@@ -253,13 +253,13 @@ p_container(Triples, P, G) :-
 
 p_datatype(Triples, P, Sup) :-
   memberchk(rdf(_,P,O), Triples),
-  z_literal_datatype(O, D),
+  q_literal_datatype(O, D),
   aggregate_all(
     set(D),
-    (member(rdf(_,P,O), Triples), z_literal_datatype(O, D)),
+    (member(rdf(_,P,O), Triples), q_literal_datatype(O, D)),
     Ds
   ),
-  z_datatype_supremum(Ds, Sup).
+  q_datatype_supremum(Ds, Sup).
 
 
 
@@ -275,7 +275,7 @@ p_iri(Triples, P) :-
 
 p_ltag(Triples, P, LTag) :-
   memberchk(rdf(_,P,_@LTag), Triples),
-  forall(member(rdf(_,P,O), Triples), z_is_lts(O)).
+  forall(member(rdf(_,P,O), Triples), q_is_lts(O)).
 
 
 

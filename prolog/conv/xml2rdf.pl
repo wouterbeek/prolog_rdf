@@ -21,14 +21,11 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_term)).
 :- use_module(library(xml/marcxml)).
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
-:- use_module(library(z/z_print)).
-:- use_module(library(z/z_term)).
 
 :- debug(xml2rdf).
 
@@ -44,7 +41,7 @@ marcxml2rdf(Source, RecordNames) :-
 
 
 marcxml2rdf(Source, RecordNames, Opts1) :-
-  rdf_conv_alias_options(Opts1, Opts2),
+  conv_alias_options(Opts1, Opts2),
   Alias = Opts2.alias,
   xml_stream_record(
     Source,
@@ -54,7 +51,7 @@ marcxml2rdf(Source, RecordNames, Opts1) :-
 
 
 marcxml2rdf_assert_record0(Dom, Alias) :-
-  rdf_create_bnode(S),
+  q_create_bnode(S),
   forall(
     marcxml2rdf_stmt0(Dom, Alias, P, Val),
     gen_ntriple(S, P, Val^^xsd:string)
@@ -81,7 +78,7 @@ xml2rdf(Source, RecordNames) :-
 
 
 xml2rdf(Source, RecordNames, Opts1) :-
-  rdf_conv_alias_options(Opts1, Opts2),
+  conv_alias_options(Opts1, Opts2),
   xml_stream_record(
     Source,
     RecordNames,
@@ -90,7 +87,7 @@ xml2rdf(Source, RecordNames, Opts1) :-
 
 
 xml2rdf_assert_record0(Dom, Opts) :-
-  rdf_create_bnode(S),
+  q_create_bnode(S),
   get_dict(ltag_attr, Opts, LTagAttr),
   xml2rdf_assert_record0(Dom, [], S, LTagAttr, Opts).
 
@@ -103,14 +100,14 @@ xml2rdf_assert_record0([element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Opts) :-
   (   maplist(atomic, Vals)
   ->  reverse([H|T], L),
       atomic_list_concat(L, '_', Name),
-      rdf_global_id(Opts.tbox_alias:Name, P),
+      qiri(Opts.tbox_alias:Name, P),
       forall((
         member(Val, Vals),
         \+ is_empty_atom(Val)
       ), (
         (   memberchk(LTagAttr=LTag, Attrs)
-        ->  z_literal(Lit, rdf:langString, Val, LTag)
-        ;   z_literal(Lit, xsd:string, Val, _)
+        ->  q_literal(Lit, rdf:langString, Val, LTag)
+        ;   q_literal(Lit, xsd:string, Val, _)
         ),
         (   debugging(xml2rdf)
         ->  with_output_to(user_output, z_print_triple(S, P, Lit))

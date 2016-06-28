@@ -29,7 +29,7 @@
 
 :- use_module(library(error)).
 :- use_module(library(ordsets)).
-:- use_module(library(z/z_stmt)).
+:- use_module(library(q/q_stmt)).
 
 
 
@@ -50,10 +50,10 @@
 % If H is an instance of G then every triple in H is an instance of
 %  at least one triple in G.
 
-rdf_graph_instance(H, G, Map) :-
-  z_triples(G, GTriples),
-  partition(rdf_is_ground_triple, GTriples, GGround, GNonground),
-  z_triples(H, HTriples),
+rdf_graph_instance(M, H, G, Map) :-
+  q_triples(M, G, GTriples),
+  partition(q_is_ground_triple, GTriples, GGround, GNonground),
+  q_triples(M, H, HTriples),
   ord_subtract(HTriples, GGround, HInstance),
   rdf_graph_instance(HInstance, GNonground, [], Map).
 

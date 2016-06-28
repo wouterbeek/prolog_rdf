@@ -30,17 +30,16 @@
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)). % rdf_meta/1 priority.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(hdt/hdt_stat)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_ext)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_stat)).
-:- use_module(library(semweb/rdf11)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta

@@ -25,7 +25,7 @@ In addition to what `library(semweb/rdf11)` already provides.
 @version 2016/06
 */
 
-:- use_module(library(z/z_term)).
+:- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
@@ -61,14 +61,14 @@ rdf_bnode(B, G) :-
 rdf_datatype(D) :-
   distinct(D, (
     rdf_literal(Lit),
-    z_literal_datatype(Lit, D)
+    q_literal_datatype(Lit, D)
   )).
 
 
 rdf_datatype(D, G) :-
   distinct(D-G, (
     rdf_literal(Lit, G),
-    z_literal_datatype(Lit, D)
+    q_literal_datatype(Lit, D)
   )).
 
 
@@ -96,7 +96,7 @@ rdf_literal(Lit, G) :-
 
 rdf_lts(Lit) :-
   rdf_literal(Lit),
-  z_is_lts(Lit).
+  q_is_lts(Lit).
 
 
 
@@ -104,7 +104,7 @@ rdf_lts(Lit) :-
 
 rdf_lts(Lit, G) :-
   rdf_literal(Lit, G),
-  z_is_lts(Lit).
+  q_is_lts(Lit).
 
 
 

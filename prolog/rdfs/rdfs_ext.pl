@@ -43,12 +43,12 @@
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(vocab/vocab_ext)).
-:- use_module(library(z/z_datatype)).
-:- use_module(library(z/z_term)).
 
 :- rdf_meta
    rdfs_assert_class(r, t, ?, ?, r),
@@ -123,7 +123,7 @@ rdfs_assert_isDefinedBy(S, G) :-
 
 rdfs_assert_isDefinedBy(S, Prefix, G) :-
   var(Prefix), !,
-  rdf_iri_alias_prefix_local(S, _, Prefix, _),
+  q_iri_prefix(S, Prefix),
   rdf_assert(S, rdfs:isDefinedBy, Prefix^^xsd:anyURI, G).
 rdfs_assert_isDefinedBy(S, Iri, G) :-
   rdf_assert(S, rdfs:isDefinedBy, Iri^^xsd:anyURI, G).
@@ -288,7 +288,7 @@ rdfs_instance0(I, D, G) :-
   rdf_reachable(C, rdfs:subClassOf, D). % @tbd
 rdfs_instance0(Lex^^C, D, G) :-
   rdf(_, _, Lex^^C, G),
-  z_subdatatype_of(C, D).
+  q_subdatatype_of(C, D).
 rdfs_instance0(Lex@LTag, rdf:langString, G) :-
   rdf(_, _, Lex@LTag, G).
 

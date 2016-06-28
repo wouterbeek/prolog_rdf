@@ -27,7 +27,6 @@
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(z/z_print)).
 
 :- rdf_meta
    rdf_comp(o, o, -),

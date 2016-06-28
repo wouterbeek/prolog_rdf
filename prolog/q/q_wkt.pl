@@ -1,8 +1,8 @@
-:- module(rdf_wkt, []).
+:- module(q_wkt, []).
 
-/** <module> RDF support for Well-Known Text (WKT)
+/** <module> Quine Well-Known Text (WKT) plug-in
 
-Allows WKT shapes to be read/written from/to the RDF DB.
+Allows WKT shapes to be read/written from/to the Quine triple store.
 
 @author Wouter Beek
 @version 2016/06
@@ -11,12 +11,11 @@ Allows WKT shapes to be read/written from/to the RDF DB.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
 :- use_module(library(html/html_bs)).
-:- use_module(library(semweb/rdf11)).
-:- use_module(library(z/z_stmt)).
-:- use_module(library(z/z_term)).
+:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_term)).
 
-:- rdf_register_prefix(geold, 'http://geojsonld.com/vocab#').
-:- rdf_register_prefix(wkt, 'http://geojsonld.com/wkt#').
+:- q_create_alias(geold, 'http://geojsonld.com/vocab#').
+:- q_create_alias(wkt, 'http://geojsonld.com/wkt#').
 
 :- rdf_meta
    array2shape(+, r, -).
@@ -25,10 +24,10 @@ Allows WKT shapes to be read/written from/to the RDF DB.
    gis:resource_shape_hook/5,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
-   zh:zh_literal_hook//3.
+   qh:qh_literal_hook//2.
 
 gis:resource_shape_hook(M, S, D, G, Shape) :-
-  z(M, S, geold:geometry, Array^^D, G),
+  q(M, S, geold:geometry, Array^^D, G),
   array2shape(Array, D, Shape).
 
 array2shape(L1, wkt:lineString, linestring(L2)) :- !,
@@ -46,18 +45,18 @@ point2shape([X,Y], point(X,Y)).
 
 
 rdf11:in_ground_type_hook(D, Array, Lex) :-
-  rdf_global_id(wkt:Name, D),
+  qiri(wkt:Name, D),
   Shape =.. [Name,Array],
   atom_phrase(wkt(Shape), Lex).
 
 rdf11:out_type_hook(D, Array, Lex) :-
   atom_phrase(wkt(Shape), Lex),
   Shape =.. [Name,Array],
-  rdf_global_id(wkt:Name, D).
+  qiri(wkt:Name, D).
 
-zh:zh_literal_hook(_, Array^^D, Opts) -->
+zh:zh_literal_hook(Array^^D, Opts) -->
   {
-    rdf_global_id(wkt:_, D), !,
-    z_literal_lex(Array^^D, Lex)
+    qiri(wkt:_, D), !,
+    q_literal_lex(Array^^D, Lex)
   },
   bs_truncated(Lex, Opts.max_length).
