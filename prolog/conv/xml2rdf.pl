@@ -28,6 +28,7 @@
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
 :- use_module(library(z/z_print)).
+:- use_module(library(z/z_term)).
 
 :- debug(xml2rdf).
 
@@ -111,7 +112,10 @@ xml2rdf_assert_record0([element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Opts) :-
         ->  z_literal(Lit, rdf:langString, Val, LTag)
         ;   z_literal(Lit, xsd:string, Val, _)
         ),
-        (debugging(xml2rdf) -> z_print_triple(S, P, Lit) ; true),
+        (   debugging(xml2rdf)
+        ->  with_output_to(user_output, z_print_triple(S, P, Lit))
+        ;   true
+        ),
         gen_ntriple(S, P, Lit)
       ))
   ;   xml2rdf_assert_record0(Vals, [H|T], S, LTagAttr, Opts)

@@ -48,6 +48,7 @@
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stat)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(solution_sequences)).
 :- use_module(library(stat/r_ext)).
 :- use_module(library(yall)).
 :- use_module(library(z/z_cbd)).
@@ -129,7 +130,7 @@ cand_flatten(M, P, G) :-
 % @tbd
 
 rc_classes :-
-  findall(N-C, (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
+  findall(N-[C,N], (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
   z_pairs_table0(["Class","#instances"], Pairs).
 
 
@@ -155,8 +156,14 @@ rc_graphs :-
 
 
 rc_graphs(M) :-
-  findall(N-G, z_number_of_triples(M, G, N), Pairs),
-  z_pairs_table0(["Graph","#triples"], Pairs).
+  Header0 = ["Graph","#triples"],
+  (   var(M)
+  ->  append(Header0, ["Store"], Header),
+      findall(N-[G,N,M], z_number_of_triples(M, G, N), Pairs)
+  ;   Header = Header0,
+      findall(N-[G,N], z_number_of_triples(M, G, N), Pairs)
+  ),
+  z_pairs_table0(Header, Pairs).
 
 
 
@@ -186,9 +193,15 @@ rc_p_no :-
 
 
 rc_p_no(M, G) :-
-  aggregate_all(set(P), z_predicate(M, P, G), Ps),
-  maplist({M,G}/[P,N]>>z_number_of_objects(M, _, P, G, N), Ps, Ns),
-  rdf_counts_resources_table0(["Predicate","#objects"], Ns, Ps).
+  findall(
+    N-[P,N],
+    (
+      distinct(P, z_predicate(M, P, G)),
+      z_number_of_objects(M, _, P, G, N)
+    ),
+    Pairs
+  ),
+  rdf_pairs_table0(["Predicate","#objects"], Pairs).
 
 
 %! rc_p_no(?P) is nondet.
@@ -209,8 +222,15 @@ rc_p_no(M, P, G) :-
       (   length(Os, Len),
           Len > 1000
       ->  rc_p_no_abbr(M, P, G, "Too many unique object terms.")
-      ;   maplist({M,P,G}/[O,N]>>z_number_of_subjects(M, P, O, G, N), Os, Ns),
-          rdf_counts_resources_table0(["Object","#occurrences"], Ns, Os)
+      ;   findall(
+            N-[O,N],
+            (
+              member(O, Os),
+              z_number_of_subjects(M, P, O, G, N)
+            ),
+            Pairs
+          ),
+          z_pairs_table0(["Object","#occurrences"], Pairs)
       )
   ).
 
@@ -232,9 +252,15 @@ rc_predicates :-
 
 
 rc_predicates(M, G) :-
-  aggregate_all(set(P), z(M, _, P, _, G), Ps),
-  maplist({M,G}/[P,N]>>z_number_of_triples(M, _, P, _, G, N), Ps, Ns),
-  rdf_counts_resources_table0(["Predicate","#occurrences"], Ns, Ps).
+  findall(
+    N-[P,N],
+    (
+      distinct(P, z(M, _, P, _, G)),
+      z_number_of_triples(M, _, P, _, G, N)
+    ),
+    Pairs
+  ),
+  z_pairs_table0(["Predicate","#occurrences"], Pairs).
 
 
 
@@ -242,18 +268,7 @@ rc_predicates(M, G) :-
 
 % HELPERS %
 
-%! rdf_counts_resources_table0(
-%!   +HeaderRow:list(string),
-%!   +Counts:list(number),
-%!   +Resources:list
-%! ) is det.
-
-rdf_counts_resources_table0(HeaderRow, Ns, L) :-
-  pairs_keys_values(Pairs, Ns, L),
-  z_pairs_table0(HeaderRow, Pairs).
-
-
 z_pairs_table0(HeaderRow, Pairs) :-
   asc_pairs(Pairs, SortedPairs),
-  maplist(pair_inv_list, SortedPairs, DataRows),
+  pairs_values(SortedPairs, DataRows),
   z_print_table([head(HeaderRow)|DataRows]).

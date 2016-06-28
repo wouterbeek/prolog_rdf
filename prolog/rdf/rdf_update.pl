@@ -10,6 +10,8 @@
     rdf_change_iri/6,      % ?S, ?P, ?O, ?G, +Positions, :Dcg_0
     rdf_change_lex/2,      % +P, :Dcg_0
     rdf_change_lex/3,      % +P, ?G, :Dcg_0
+    rdf_change_ltag/2,     % +LTag1, +LTag2
+    rdf_change_ltag/3,     % +LTag1, ?G, +LTag2
     rdf_change_p/2,        % +P, +Q
     rdf_change_p/3,        % +P, ?G, +Q
     rdf_cp/2,              % +G1, +G2
@@ -24,14 +26,16 @@
     rdf_inc/3,             % +S, +P, ?G
     rdf_flatten/1,         % +P
     rdf_flatten/2,         % +P, ?G
+    rdf_lex_padding/2,     % +P, +PaddingCode
+    rdf_lex_padding/3,     % +P, ?G, +PaddingCode
     rdf_lex_to_iri/3,      % ?P, +Alias, :Lex2Local_0
     rdf_lex_to_iri/4,      % ?P, +Alias, ?G, :Lex2Local_0
     rdf_mv/2,              % +G1, +G2
     rdf_mv/5,              % +G1, ?S, ?P, ?O, +G2
+    rdf_process_string/2,  % +P, :Dcg_2
+    rdf_process_string/3,  % +P, ?G, :Dcg_2
     rdf_rm/3,              % ?S, ?P, ?O
     rdf_rm/4,              % ?S, ?P, ?O, ?G
-    rdf_lex_padding/2,     % +P, +PaddingCode
-    rdf_lex_padding/3,     % +P, ?G, +PaddingCode
     rdf_rm_cell/3,         % +S, +P, +O
     rdf_rm_cell/4,         % +S, +P, +O, ?G
     rdf_rm_col/1,          % +P
@@ -43,8 +47,8 @@
     rdf_rm_null/3,         % ?P, +Null, ?G
     rdf_rm_tree/1,         % +S
     rdf_rm_tuples/1,       % +Tuples
-    rdf_split_string/2,    % +P, :Dcg_2
-    rdf_split_string/3     % +P, ?G, :Dcg_2
+    rdf_split_string/2,    % +P, :Sep_0
+    rdf_split_string/3     % +P, ?G, :Sep_0
   ]
 ).
 
@@ -85,8 +89,10 @@ Higher-level update operations performed on RDF data.
     rdf_change_lex(+, ?, //),
     rdf_lex_to_iri(?, +, //),
     rdf_lex_to_iri(?, +, ?, //),
-    rdf_split_string(+, 4),
-    rdf_split_string(+, ?, 4).
+    rdf_process_string(+, 4),
+    rdf_process_string(+, ?, 4),
+    rdf_split_string(+, //),
+    rdf_split_string(+, ?, //).
 
 :- rdf_meta
    rdf_add_ltag(r, r),
@@ -99,6 +105,7 @@ Higher-level update operations performed on RDF data.
    rdf_change_iri(r, r, o, r, +, :),
    rdf_change_lex(r, :),
    rdf_change_lex(r, r, :),
+   rdf_change_ltag(+, r, +),
    rdf_change_p(r, r),
    rdf_change_p(r, r, r),
    rdf_comb_date(r, r, r, r),
@@ -119,6 +126,8 @@ Higher-level update operations performed on RDF data.
    rdf_lex_to_iri(r, +, r, :),
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
+   rdf_process_string(r, :),
+   rdf_process_string(r, r, :).
    rdf_rm(r, r, o),
    rdf_rm(r, r, o, r),
    rdf_rm_cell(r, r, o),
@@ -249,6 +258,21 @@ rdf_change_lex(P, G, Dcg_0) :-
     z_literal(Lit2, D, Lex2, LTag),
     rdf_update(S, P, Lit1, G, object(Lit2))
   )).
+
+
+
+%! rdf_change_ltag(+LTag1, +LTag2) is det.
+%! rdf_change_ltag(+LTag1, ?G, +LTag2) is det.
+
+rdf_change_ltag(LTag1, LTag2) :-
+  rdf_change_ltag(LTag1, _, LTag2).
+
+
+rdf_change_ltag(LTag1, G, LTag2) :-
+  rdf_call_update(
+    rdf(S, P, Lex@LTag1, G),
+    rdf_update(S, P, Lex@LTag1, G, object(Lex@LTag2))
+  ).
 
 
 
@@ -391,6 +415,33 @@ rdf_inc(S, P, G) :-
 
 
 
+%! rdf_lex_padding(+P, +PaddingCode) is det.
+%! rdf_lex_padding(+P, ?G, +PaddingCode) is det.
+
+rdf_lex_padding(P, C) :-
+  rdf_lex_padding(P, _, C).
+
+
+rdf_lex_padding(P, G, C) :-
+  aggregate_all(max(Len), (
+    rdf(_, P, Lit, G),
+    z_literal_lex(Lit, Lex),
+    atom_length(Lex, Len)
+  ), Max),
+  rdf_change_lex(P, G, rdf_lex_padding0(C, Max)).
+
+rdf_lex_padding0(C, Len), Cs -->
+  ...(Suffix),
+  eos,
+  {
+    length(Suffix, SuffixLen),
+    PrefixLen is Len - SuffixLen,
+    repeating_list(C, PrefixLen, Prefix),
+    append(Prefix, Suffix, Cs)
+  }.
+
+
+
 %! rdf_lex_to_iri(?P, +Alias, :Lex2Local_0) is det.
 %! rdf_lex_to_iri(?P, +Alias, ?G, :Lex2Local_0) is det.
 
@@ -431,30 +482,20 @@ rdf_mv(G1, S, P, O, G2) :-
 
 
 
-%! rdf_lex_padding(+P, +PaddingCode) is det.
-%! rdf_lex_padding(+P, ?G, +PaddingCode) is det.
+%! rdf_process_string(+P, :Dcg_2) is det.
+%! rdf_process_string(+P, ?G, :Dcg_2) is det.
 
-rdf_lex_padding(P, C) :-
-  rdf_lex_padding(P, _, C).
+rdf_process_string(P, Dcg_2) :-
+  rdf_process_string(P, _, Dcg_2).
 
 
-rdf_lex_padding(P, G, C) :-
-  aggregate_all(max(Len), (
-    rdf(_, P, Lit, G),
-    z_literal_lex(Lit, Lex),
-    atom_length(Lex, Len)
-  ), Max),
-  rdf_change_lex(P, G, rdf_lex_padding0(C, Max)).
-
-rdf_lex_padding0(C, Len), Cs -->
-  ...(Suffix),
-  eos,
-  {
-    length(Suffix, SuffixLen),
-    PrefixLen is Len - SuffixLen,
-    repeating_list(C, PrefixLen, Prefix),
-    append(Prefix, Suffix, Cs)
-  }.
+rdf_process_string(P, G, Dcg_2) :-
+  rdf_call_update(
+    rdf(S, P, Lex^^xsd:string, G),
+  (
+    string_phrase(dcg_call(Dcg_2, S, G), Lex),
+    rdf_retractall(S, P, Lex^^xsd:string, G)
+  )).
 
 
 
@@ -558,17 +599,14 @@ rdf_rm_tuples(Tuples) :-
 
 
 
-%! rdf_split_string(+P, :Dcg_2) is det.
-%! rdf_split_string(+P, ?G, :Dcg_2) is det.
+%! rdf_split_string(+P, :Sep_0)// is det.
+%! rdf_split_string(+P, ?G, :Sep_0)// is det.
 
-rdf_split_string(P, Dcg_2) :-
-  rdf_split_string(P, _, Dcg_2).
+rdf_split_string(P, Sep_0) :-
+  rdf_split_string(P, _, Sep_0).
 
 
-rdf_split_string(P, G, Dcg_2) :-
-  rdf_call_update((
-    rdf(S, P, Lex^^xsd:string, G)
-  ), (
-    string_phrase(dcg_call(Dcg_2, S, G), Lex),
-    rdf_retractall(S, P, Lex^^xsd:string, G)
-  )).
+rdf_split_string(P, G, Sep_0) :-
+  rdf_call_update(
+    rdf(S, P, Lex^^xsd:string, G),
+    string_phrase('+'(

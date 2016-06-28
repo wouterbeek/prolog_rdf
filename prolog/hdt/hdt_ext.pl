@@ -1,21 +1,22 @@
 :- module(
   hdt_ext,
   [
-    hdt/3,              % ?S, ?P, ?O
-    hdt/4,              % ?S, ?P, ?O, ?G
-    hdt_assert/1,       % +Tuple
-    hdt_assert/2,       % +Triple, +G
-    hdt_assert/3,       % +S, +P, +O
-    hdt_assert/4,       % +S, +P, +O, +G
-    hdt_delete/1,       % +G
+    hdt/3,                % ?S, ?P, ?O
+    hdt/4,                % ?S, ?P, ?O, ?G
+    hdt_assert/1,         % +Tuple
+    hdt_assert/2,         % +Triple, +G
+    hdt_assert/3,         % +S, +P, +O
+    hdt_assert/4,         % +S, +P, +O, +G
+    hdt_delete/1,         % +G
     hdt_fs/0,
-    hdt_graph/1,        % ?G
-    hdt_graph/2,        % ?G, ?Hdt
-    hdt_header/4,       % ?S, ?P, ?O, +G
-    hdt_load/1,         % +G
-    hdt_load/2,         % +G, +Opts
-    hdt_refresh/1,      % +G
-    hdt_unload/1        % +G
+    hdt_graph/1,          % ?G
+    hdt_graph/2,          % ?G, ?Hdt
+    hdt_header/4,         % ?S, ?P, ?O, +G
+    hdt_load/1,           % +G
+    hdt_load/2,           % +G, +Opts
+    hdt_load_to_memory/1, % +G
+    hdt_refresh/1,        % +G
+    hdt_unload/1          % +G
   ]
 ).
 
@@ -54,6 +55,7 @@
    hdt_header(r, r, o, r),
    hdt_load(r),
    hdt_load(r, +),
+   hdt_load_to_memory(r),
    hdt_refresh(r),
    hdt_unload(r).
 
@@ -209,6 +211,17 @@ hdt_load(HdtFile, NTriplesFile, G, Opts) :-
     ),
     delete_file(NTriplesFile)
   ).
+
+
+
+%! hdt_load_to_memory(+G) is det.
+
+hdt_load_to_memory(G) :-
+  hdt_load(G),
+  hdt(S, P, O, G),
+  rdf_assert(S, P, O, G),
+  fail.
+hdt_load_to_memory(_).
 
 
 
