@@ -42,6 +42,7 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(service/prefix_cc), []).
 :- use_module(library(solution_sequences)).
 
 :- initialization(assert_dbpedia_localizations).
