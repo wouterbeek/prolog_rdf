@@ -51,7 +51,7 @@
 :- use_module(library(html/html_date_time_human)).
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(html/html_ext)).
-:- use_module(library(html/zh)).
+:- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).

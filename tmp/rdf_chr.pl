@@ -15,15 +15,18 @@
 :- use_module(library(chr)).
 :- use_module(library(closure)).
 :- use_module(library(debug_ext)).
-:- use_module(library(html/zh)).
+:- use_module(library(html/qh)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(solution_sequences)).
 
-:- chr_constraint triple/4, widget/3.
+:- chr_constraint
+   triple/4,
+   widget/3.
 
-:- dynamic rdf_chr:is_well_known_entity/1.
+:- dynamic
+    rdf_chr:is_well_known_entity/1.
 
 rdf_chr(S, L) :-
   findall(Triple, distinct(Triple, s_triple(S, Triple)), Triples),
@@ -232,78 +235,78 @@ pairs_to_assoc(A1, [kv(K,V)|T], A) :- put_assoc(K, A1, V, A2), pairs_to_assoc(A2
 
 term_or_tile(X) -->
   {rdf_is_term(X)}, !,
-  html(p(\zh_term(X))).
+  html(p(\qh_term(X))).
 term_or_tile(X) -->
   tile(X).
 
 access_control_allow_headers(L) -->
   html([
     h1("Access-Control-Allow-Headers"),
-    div(\html_maplist(zh_literal, L))
+    div(\html_maplist(qh_literal, L))
   ]).
 
 archive_entry(Filetype, Format, ModifiedTime, Name) -->
   html([
     h1("Archive entry"),
     p([
-      \zh_literal(Filetype),
-      \zh_literal(Format),
-      \zh_literal(ModifiedTime),
-      \zh_literal(Name)
+      \qh_literal(Filetype),
+      \qh_literal(Format),
+      \qh_literal(ModifiedTime),
+      \qh_literal(Name)
     ])
   ]).
 
 etag(Tag, Weak) -->
-  html([\zh_literal(Tag),\zh_literal(Weak)]).
+  html([\qh_literal(Tag),\qh_literal(Weak)]).
 
 http_header(P, W) -->
-  html([h1(\zh_predicate(P)),\term_or_tile(W)]).
+  html([h1(\qh_predicate(P)),\term_or_tile(W)]).
 
 http_version(Major, Minor) -->
   html([
     h1("HTTP version"),
-    p([\zh_literal(Major),".",\zh_literal(Minor)])
+    p([\qh_literal(Major),".",\qh_literal(Minor)])
   ]).
 
 media_type(Type, Subtype, Parameters) -->
   html([
-    p([\zh_literal(Type),"/",\zh_literal(Subtype)]),
+    p([\qh_literal(Type),"/",\qh_literal(Subtype)]),
     p(\html_calls(Parameters))
   ]).
 
 parameter(Key, Value) -->
-  html(p([\zh_literal(Key),": ",\zh_literal(Value)])).
+  html(p([\qh_literal(Key),": ",\qh_literal(Value)])).
 
 path(Ps, Widget_2) -->
   html([div(\path_items(Ps)),\html_call(Widget_2)]).
 
 path_items([]) --> !, [].
 path_items([H]) --> !,
-  zh_predicate(H).
+  qh_predicate(H).
 path_items([H1,H2|T]) -->
-  html([\zh_predicate(H1),"/",\zh_predicate(H2),\path_items(T)]).
+  html([\qh_predicate(H1),"/",\qh_predicate(H2),\path_items(T)]).
 
 po_pair(P, O) -->
-  html([h1(\zh_predicate(P)),p(\zh_object(O))]).
+  html([h1(\qh_predicate(P)),p(\qh_object(O))]).
 
 product(Name, Version) -->
-  html(p([\zh_literal(Name),": ",\zh_literal(Version)])).
+  html(p([\qh_literal(Name),": ",\qh_literal(Version)])).
 
 rdf_counter(NoQuads, NoTuples, NoTriples) -->
   html([
     h1("Processed RDF tuples"),
     main([
-      div([h1("Tuples"),p(\zh_literal(NoTuples))]),
-      div([h1("Triples"),p(\zh_literal(NoTriples))]),
-      div([h1("Quads"),p(\zh_literal(NoQuads))])
+      div([h1("Tuples"),p(\qh_literal(NoTuples))]),
+      div([h1("Triples"),p(\qh_literal(NoTriples))]),
+      div([h1("Quads"),p(\qh_literal(NoQuads))])
     ])
   ]).
 
 tree(Tree) -->
-  zh_tree(Tree).
+  qh_tree(Tree).
 
 triple(S, P, O) -->
-  zh_triple(S, P, O).
+  qh_triple(S, P, O).
 
 widget(N,S,W) -->
   html(
@@ -325,7 +328,7 @@ http_info(L, Major-Minor, S) -->
     h1("HTTP information"),
     main([
       div([h1("Version"),\http_version0(Major,Minor)]),
-      div([h1("Status code"),p(\zh_literal(S))])
+      div([h1("Status code"),p(\qh_literal(S))])
     ]),
     h1("Headers"),\http_headers0(L)
   ]).
@@ -337,5 +340,5 @@ http_headers0(L) -->
   ).
 
 http_header_row0(P-W) -->
-  html(tr([td(\zh_predicate(P)),td(\zh_or_tile(W))])).
+  html(tr([td(\qh_predicate(P)),td(\qh_or_tile(W))])).
 */

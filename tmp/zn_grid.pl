@@ -1,7 +1,7 @@
 :- module(
-  zh_grid,
+  qh_grid,
   [
-    zh_grid//1 % +G
+    qh_grid//1 % +G
   ]
 ).
 
@@ -13,31 +13,31 @@
 
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/html_grid)).
-:- use_module(library(html/zh)).
+:- use_module(library(html/qh)).
 :- use_module(library(rdf/rdf_grid)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
-   zh_grid(r, ?, ?).
+   qh_grid(r, ?, ?).
 
 
 
 
 
-%! zh_grid(+G)// is det.
+%! qh_grid(+G)// is det.
 %
 % Generates an HTML DOM grid whose widgets show aspects of the data in
 % graph G.
 
-zh_grid(G) -->
+qh_grid(G) -->
   {rdf_grid(G, Widgets)},
-  html_grid(zh_grid:Widgets).
+  html_grid(qh_grid:Widgets).
 
 
 archive_entry(S, P, Pairs) -->
   html(
     div(about=S, [
-      h1(\zh_property(P)),
+      h1(\qh_property(P)),
       \html_maplist(po_pair0, Pairs)
     ])
   ).
@@ -49,7 +49,7 @@ archive_entry(S, P, Pairs) -->
 http_header(S, P, L) -->
   html(
     div(about=S, [
-      h1(\zh_property(P)),
+      h1(\qh_property(P)),
       span(property=P, \html_maplist(http_header_value, L))
     ])
   ).
@@ -57,16 +57,16 @@ http_header(S, P, L) -->
 
 http_header_value(L) -->
   {is_list(L)}, !,
-  list(zh_literal, L).
+  list(qh_literal, L).
 http_header_value(O) -->
   {rdf_is_literal(O)}, !,
-  html(p(\zh_literal(O))).
+  html(p(\qh_literal(O))).
 http_header_value(media_type(Type,Subtype,Params)) --> !,
   html(
     p(class='media-type', [
-      span(class=type, \zh_literal(Type)),
+      span(class=type, \qh_literal(Type)),
       "/",
-      span(class=subtype, \zh_literal(Subtype)),
+      span(class=subtype, \qh_literal(Subtype)),
       "; ",
       span(class=parameters, \html_seplist(http_parameter, " ", Params))
     ])
@@ -74,35 +74,35 @@ http_header_value(media_type(Type,Subtype,Params)) --> !,
 http_header_value(product(Name,Version)) --> !,
   html(
     p(class=product, [
-      span(class=name, \zh_literal(Name)),
+      span(class=name, \qh_literal(Name)),
       ": ",
-      span(class=version, \zh_literal(Version))
+      span(class=version, \qh_literal(Version))
     ])
   ).
 http_header_value(uri(Scheme,Host,Path)) -->
   html(
     p(class=uri, [
-      span(class=scheme, \zh_literal(Scheme)),
+      span(class=scheme, \qh_literal(Scheme)),
       "://",
-      span(class=host, \zh_literal(Host)),
+      span(class=host, \qh_literal(Host)),
       "/",
-      span(class=path, \zh_literal(Path))
+      span(class=path, \qh_literal(Path))
     ])
   ).
 
 
 http_parameter(param(Key,Value)) -->
-  html([\zh_literal(Key),"=",\zh_literal(Value)]).
+  html([\qh_literal(Key),"=",\qh_literal(Value)]).
 
 
 http_version(S, P, version(Major,Minor)) -->
   html(
     div(about=S, [
-      h1(\zh_property(P)),
+      h1(\qh_property(P)),
       p(class=version, [
-        span(class=major, \zh_literal(Major)),
+        span(class=major, \qh_literal(Major)),
         ".",
-        span(class=minor, \zh_literal(Minor))
+        span(class=minor, \qh_literal(Minor))
       ])
     ])
   ).
@@ -111,9 +111,9 @@ http_version(S, P, version(Major,Minor)) -->
 po_pair0(P-O) -->
   html(
     p([
-      \zh_property(P),
+      \qh_property(P),
       ": ",
-      span(property=P, \zh_object(O))
+      span(property=P, \qh_object(O))
     ])
   ).
 

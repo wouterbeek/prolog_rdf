@@ -55,7 +55,7 @@ rdf11:out_type_hook(D, Array, Lex) :-
   Shape =.. [Name,Array],
   rdf_global_id(wkt:Name, D).
 
-zh:zh_literal_hook(Array^^D, Opts) -->
+qh:qh_literal_hook(Array^^D, Opts) -->
   {
     rdf_global_id(wkt:_, D), !,
     q_literal_lex(Array^^D, Lex)
