@@ -267,7 +267,7 @@ rdf_vertex_color(_, _, V, VColor) :-
   rdf:rdf_class_color(C, VColor), !.
 % IRI with a colored namespace.
 rdf_vertex_color(_, Map, T, VColor) :-
-  rdf_global_id(Alias:_, T),
+  q_iri_alias(T, Alias),
   memberchk(Alias-VColor, Map), !.
 % Other IRI.
 rdf_vertex_color(_, _, _, black).

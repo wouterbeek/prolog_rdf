@@ -8,6 +8,7 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
 :- use_module(library(html/html_bs)).
@@ -45,18 +46,18 @@ point2shape([X,Y], point(X,Y)).
 
 
 rdf11:in_ground_type_hook(D, Array, Lex) :-
-  qiri(wkt:Name, D),
+  rdf_global_id(wkt:Name, D),
   Shape =.. [Name,Array],
   atom_phrase(wkt(Shape), Lex).
 
 rdf11:out_type_hook(D, Array, Lex) :-
   atom_phrase(wkt(Shape), Lex),
   Shape =.. [Name,Array],
-  qiri(wkt:Name, D).
+  rdf_global_id(wkt:Name, D).
 
 zh:zh_literal_hook(Array^^D, Opts) -->
   {
-    qiri(wkt:_, D), !,
+    rdf_global_id(wkt:_, D), !,
     q_literal_lex(Array^^D, Lex)
   },
   bs_truncated(Lex, Opts.max_length).

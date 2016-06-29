@@ -353,5 +353,5 @@ gen_literal(V@LTag) :- !,
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
 gen_literal(V) :-
-  qis(xsd:string, D),
+  rdf_equal(xsd:string, D),
   gen_literal(V^^D).

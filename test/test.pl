@@ -1,10 +1,9 @@
-%/cli
-:- use_module(library(cli/q_cli)).
 %/conv
 :- use_module(library(conv/bibtex2rdf)).
 :- use_module(library(conv/csv2rdf)).
 :- use_module(library(conv/json2rdf)).
-:- use_module(library(conv/rdf_conv)).
+:- use_module(library(conv/q_conv)).
+:- use_module(library(conv/rdf2gml)).
 :- use_module(library(conv/xml2rdf)).
 %/dcg
 :- use_module(library(dcg/manchester)).
@@ -16,24 +15,19 @@
 :- use_module(library(dcg/turtle11)).
 :- use_module(library(dcg/turtle_conv)).
 %/fca
-:- use_module(library(fca/rdf_fca)).
 :- use_module(library(fca/rdf_fca_viz)).
+:- use_module(library(fca/rdfs_fca)).
 %/gen
 :- use_module(library(gen/gen_ntuples)).
-%/geo
-:- use_module(library(geo/rdf_wgs84)).
-:- use_module(library(geo/rdf_wkt)).
-:- use_module(library(geo/virt_geo)).
-%/graph
-:- use_module(library(graph/rdf_gml)).
 %/hdt
 :- use_module(library(hdt/hdt_ext)).
+:- use_module(library(hdt/hdt_stat)).
+:- use_module(library(hdt/hdt_term)).
+:- use_module(library(hdt/hdt_update)).
 %/html
+:- use_module(library(html/qh)).
 :- use_module(library(html/rdfh_fca)).
 :- use_module(library(html/rdfh_gv)).
-:- use_module(library(html/zh)).
-%/http
-:- use_module(library(http/rdf_rest)).
 %/jsonld
 :- use_module(library(jsonld/geold)).
 :- use_module(library(jsonld/jsonld_build)).
@@ -49,19 +43,24 @@
 %/owl
 :- use_module(library(owl/owl_ext)).
 %/q
+:- use_module(library(q/q_array)).
 :- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_cbd)).
+:- use_module(library(q/q_cli)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_graph_theory)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_print)).
+:- use_module(library(q/q_rest)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/q_wgs84)).
+:- use_module(library(q/q_wkt)).
 %/rdf
 :- use_module(library(rdf/rdf_annotate)).
-:- use_module(library(rdf/rdf_array)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_default)).
@@ -71,8 +70,6 @@
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_graph_theory)).
-:- use_module(library(rdf/rdf_graph_nav)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_guess_jsonld)).
@@ -82,7 +79,6 @@
 :- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_stat)).
-:- use_module(library(rdf/rdf_statement)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
@@ -105,4 +101,7 @@
 :- use_module(library(service/prefix_cc)).
 :- use_module(library(service/void_store)).
 %/vocab
+:- use_module(library(vocab/vocab_ext)).
 :- use_module(library(vocab/void)).
+%/xsd
+:- use_module(library(xsd/xsd)).

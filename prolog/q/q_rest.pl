@@ -1,22 +1,21 @@
 :- module(
-  rdf_rest,
+  q_rest,
   [
-    rdf_rest_handler/5 % +Request, +HandleId, +Class, :Singular_3, :Plural_2
+    q_rest_handler/5 % +Request, +HandleId, +Class, :Singular_3, :Plural_2
   ]
 ).
-
 :- reexport(library(http/rest)).
 
-/** <module> RDF REST
+/** <module> Quine REST call
 
 Support for RESTful interfaces to RDF data.
 
 @author Wouter Beek
-@version 2016/02, 2016/04-2016/05
+@version 2016/02, 2016/04-2016/06
 */
 
-:- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(yall)).
 
 :- meta_predicate
@@ -29,7 +28,7 @@ Support for RESTful interfaces to RDF data.
 
 
 
-rdf_rest_handler(Req, HandleId, C, Singular_3, Plural_2) :-
+q_rest_handler(Req, HandleId, C, Singular_3, Plural_2) :-
   rest_handler(
     Req,
     HandleId,

@@ -27,15 +27,14 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
-:- use_module(library(cli/rc)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(geo/rdf_wkt), []).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_array)).
+:- use_module(library(q/q_wkt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_term)).
@@ -104,9 +103,9 @@ geold_flatten(G) :-
     rdf(B, rdf:type, C, G),
     rdf(B, geold:coordinates, Array^^tcco:array, G)
   ), (
-    qiri(_:Name0, C),
+    rdf_global_id(_:Name0, C),
     lowercase_atom(Name0, Name),
-    qiri(wkt:Name, D),
+    rdf_global_id(wkt:Name, D),
     rdf_assert(S, geold:geometry, Array^^D, G),
     rdf_retractall(S, geold:geometry, B, G),
     rdf_retractall(B, rdf:type, C, G),

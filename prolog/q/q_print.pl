@@ -757,7 +757,7 @@ dcg_print_datatype_iri(D, Opts) -->
 %  "”".
 dcg_print_iri(Full, Opts) -->
   {
-    qiri(Alias:Local, Full), !,
+    rdf_global_id(Alias:Local, Full), !,
     atom_length(Alias, AliasLen),
     Minus is AliasLen + 1,
     inf_minus(Opts.max_length, Minus, Max)
@@ -797,21 +797,21 @@ dcg_print_literal(Lit, Opts) -->
   q:dcg_print_literal_hook(Lit, Opts), !.
 % Abbreviate XSD Boolean.
 dcg_print_literal(Lex^^D, Opts) -->
-  {qis(xsd:boolean, D)}, !,
+  {rdf_equal(xsd:boolean, D)}, !,
   dcg_print_lexical_form(Lex, Opts).
 % Abbreviate XSD string.
 dcg_print_literal(V^^D, Opts) -->
-  {qis(xsd:string, D)}, !,
+  {rdf_equal(xsd:string, D)}, !,
   {atom_string(Lex, V)},
   dcg_print_lexical_form(Lex, Opts).
 % Abbreviate XSD integers.
 dcg_print_literal(Val^^D, _) -->
-  {qis(xsd:integer, D)}, !,
+  {rdf_equal(xsd:integer, D)}, !,
   thousands(Val).
 % Abbreviate XSD decimals and doubles.
 dcg_print_literal(Val^^D, Opts) -->
   {
-    (qis(xsd:decimal, D) ; qis(xsd:double, D)), !,
+    (rdf_equal(xsd:decimal, D) ; rdf_equal(xsd:double, D)), !,
     atom_number(Lex, Val)
   },
   dcg_print_lexical_form(Lex, Opts).

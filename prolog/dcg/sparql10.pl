@@ -2,7 +2,7 @@
   sparql10,
   [
     'ANON'//1, % ?BlankNode:bnode
-    'BLANK_NODE_LABEL'//1, % -BlankNode:atom
+    'BLANK_NODE_LABEL'//1, % -BlankNode
     'BlankNode'//1, % ?BlankNode:bnode
     'BooleanLiteral'//1, % ?Literal:compound
     'DECIMAL'//1, % ?Decimal:rational
@@ -16,8 +16,8 @@
     'INTEGER'//1, % ?Integer:integer
     'INTEGER_NEGATIVE'//1, % ?Integer:negative_integer
     'INTEGER_POSITIVE'//1, % ?Integer:positive_integer
-    'IRI_REF'//1, % ?Iri:atom
-    'IRIref'//1, % ?Iri:atom
+    'IRI_REF'//1, % ?Iri
+    'IRIref'//1, % ?Iri
     'LANGTAG'//1, % ?LanguageTag:list(atom)
     'NumericLiteral'//1, % ?Literal:compound
     'NumericLiteralNegative'//1, % ?Literal:compound
@@ -26,17 +26,17 @@
     'PN_CHARS'//1, % ?Code:code
     'PN_CHARS_BASE'//1, % ?Code:code
     'PN_CHARS_U'//1, % ?Code:code
-    'PN_LOCAL'//1, % ?LocalPart:atom
-    'PN_PREFIX'//1, % ?Prefix:atom
-    'PNAME_LN'//1, % ?Iri:atom
-    'PNAME_NS'//1, % ?Prefix:atom
-    'PrefixedName'//1, % ?Iri:atom
+    'PN_LOCAL'//1, % ?LocalPart
+    'PN_PREFIX'//1, % ?Alias
+    'PNAME_LN'//1, % ?Iri
+    'PNAME_NS'//1, % ?Alias
+    'PrefixedName'//1, % ?Iri
     'RDFLiteral'//1, % ?Literal:compound
-    'String'//1, % ?String:atom
-    'STRING_LITERAL_LONG1'//1, % ?String:atom
-    'STRING_LITERAL_LONG2'//1, % ?String:atom
-    'STRING_LITERAL1'//1, % ?String:atom
-    'STRING_LITERAL2'//1, % ?String:atom
+    'String'//1, % ?String
+    'STRING_LITERAL_LONG1'//1, % ?String
+    'STRING_LITERAL_LONG2'//1, % ?String
+    'STRING_LITERAL1'//1, % ?String
+    'STRING_LITERAL2'//1, % ?String
     'WS'//0
   ]
 ).
@@ -71,7 +71,7 @@
 
 
 
-%! 'ANON'(-BlankNode:atom)// is det.
+%! 'ANON'(-BlankNode)// is det.
 % A blank node that is used in only one place in the query syntax
 % can be indicated with the notation `[]`.
 %
@@ -85,7 +85,7 @@
 
 
 
-%! 'BLANK_NODE_LABEL'(-BlankNodeLabel:atom)// is det.
+%! 'BLANK_NODE_LABEL'(-BlankNodeLabel)// is det.
 % ```ebnf
 % [73]   BLANK_NODE_LABEL ::= '_:' PN_LOCAL
 % ```
@@ -94,7 +94,7 @@
 
 
 
-%! 'BlankNode'(-BlankNode:atom)// is det.
+%! 'BlankNode'(-BlankNode)// is det.
 % Blank nodes are indicated by either the label form,
 % such as `_:abc`, or the abbreviated form `[]`.
 %
@@ -257,7 +257,7 @@ echar_code(0'\\) --> "\\".
 
 
 
-%! 'IRI_REF'(-Iri:atom)// is det.
+%! 'IRI_REF'(-Iri)// is det.
 % ```ebnf
 % [70]   IRI_REF ::=  '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
 % ```
@@ -279,7 +279,7 @@ iriref_code(C) --> [C].
 
 
 
-%! 'IRIref'(-Iri:atom)// is det.
+%! 'IRIref'(-Iri)// is det.
 % ```ebnf
 % [67]   IRIref ::= IRI_REF | PrefixedName
 % ```
@@ -434,7 +434,7 @@ subtags([]) --> "".
 
 
 
-%! 'PN_LOCAL'(-LocalPart:atom)// is det.
+%! 'PN_LOCAL'(-LocalPart)// is det.
 % The **local part** of a prefixed name.
 %
 % ```ebnf
@@ -452,7 +452,7 @@ subtags([]) --> "".
 
 
 
-%! 'PN_PREFIX'(-Prefix:atom)// is det.
+%! 'PN_PREFIX'(-Alias)// is det.
 % ```ebnf
 % [99]   PN_PREFIX ::= PN_CHARS_BASE ( ( PN_CHARS | '.' )* PN_CHARS )?
 % ```
@@ -464,19 +464,19 @@ subtags([]) --> "".
 
 
 
-%! 'PNAME_LN'(-Iri:atom)// is det.
+%! 'PNAME_LN'(-Iri)// is det.
 % ```ebnf
 % [72]   PNAME_LN ::= PNAME_NS PN_LOCAL
 % ```
 
 'PNAME_LN'(Iri) -->
-  'PNAME_NS'(Prefix),
+  'PNAME_NS'(Alias),
   'PN_LOCAL'(Local),
-  {rdf_global_id(Prefix:Local, Iri)}.
+  {rdf_global_id(Alias:Local, Iri)}.
 
 
 
-%! 'PNAME_NS'(?Prefix:atom)// is det.
+%! 'PNAME_NS'(?Alias)// is det.
 % An IRI prefix label.
 %
 % Notice that the empty string is also a prefix label.
@@ -485,12 +485,12 @@ subtags([]) --> "".
 % [71]   PNAME_NS ::= PN_PREFIX? ':'
 % ```
 
-'PNAME_NS'(Prefix) --> 'PN_PREFIX'(Prefix), !, ":".
+'PNAME_NS'(Alias) --> 'PN_PREFIX'(Alias), !, ":".
 'PNAME_NS'('')     --> ":".
 
 
 
-%! 'PrefixedName'(-Iri:atom)// is det.
+%! 'PrefixedName'(-Iri)// is det.
 % A **prefixed name** is a *prefix label* and a *local part*,
 % separated by a colon.
 % The prefixed name is mapped to an IRI
@@ -502,7 +502,7 @@ subtags([]) --> "".
 % ```
 
 'PrefixedName'(Iri) --> 'PNAME_LN'(Iri), !.
-'PrefixedName'(Iri) --> 'PNAME_NS'(Prefix), {rdf_global_id(Prefix:'', Iri)}.
+'PrefixedName'(Iri) --> 'PNAME_NS'(Alias), {rdf_global_id(Alias:'', Iri)}.
 
 
 

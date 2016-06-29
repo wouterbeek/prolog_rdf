@@ -75,7 +75,7 @@ rdf_add_i_l(G, TypedLiteral1, M, Resource) :-
   rdf_typed_literal_term(TypedLiteral1, G),
   model(M),
   resource(M, Resource), !,
-  rdf_global_object(TypedLiteral1, TypedLiteral2),
+  qobject(TypedLiteral1, TypedLiteral2),
   db_add_novel(rdf_mt:i_l(G, TypedLiteral2, M, Resource)).
 
 %! rdf_add_i_s(

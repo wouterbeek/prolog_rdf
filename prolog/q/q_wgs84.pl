@@ -56,15 +56,15 @@ wgs84:Point IS-A wgs84:SpatialThing
    wgs84_point(?, r, ?, r).
 
 gis:resource_shape_hook(M, S, D, G, Point) :-
-  qis(wkt:point, D),
+  rdf_equal(wkt:point, D),
   wgs84_point(M, S, Point, G).
 
 rdf11:in_ground_type_hook(D, Lat-Long, Lex) :-
-  qis(wgs84:pair, D),
+  rdf_equal(wgs84:pair, D),
   atomic_list_concat([Lat,Long], ',', Lex).
 
 rdf11:out_type_hook(D, Lat-Long, Lex) :-
-  qis(wgs84:pair, D),
+  rdf_equal(wgs84:pair, D),
   atomic_list_concat(Comps, ',', Lex),
   maplist(atom_number, Comps, [Lat,Long]).
 

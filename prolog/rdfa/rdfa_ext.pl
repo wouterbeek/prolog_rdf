@@ -362,7 +362,7 @@ rdfa_date_time(P1, Something, Masks) -->
 %! rdfa_prefixed_iri(+Iri, -PrefixedIri) is det.
 
 rdfa_prefixed_iri(Iri, PrefixedIri) :-
-  qiri(Alias:Local, Iri),
+  rdf_global_id(Alias:Local, Iri),
   atomic_list_concat([Alias,Local], :, PrefixedIri).
 
 

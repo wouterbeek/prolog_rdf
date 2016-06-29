@@ -1,13 +1,13 @@
 :- module(
   q_io,
   [
-    q_aggregate_all/3, % +Template, :Goal, -Result
+    q_aggregate_all/3, % +Template, :Goal_0, -Result
     q_graph/2,         % ?M, ?G
     q_graph_to_file/3, % +G, +Comps, -File
     q_load/2,          % +M, +G
     q_load/3,          % +M, +G, +Opts
-    q_load_or_call/3,  % +M, :Goal_1, +G
-    q_load_or_call/4,  % +M, :Goal_1, +G, +Opts
+    q_load_or_call/3,  % +M, :Goal_2, +G
+    q_load_or_call/4,  % +M, :Goal_2, +G, +Opts
     q_save/1,          % +G
     q_unload/2         % +M, +G
   ]
@@ -46,10 +46,10 @@
 
 
 
-%! q_aggregate_all(+Template, :Goal, -Result) is det.
+%! q_aggregate_all(+Template, :Goal_0, -Result) is det.
 
-q_aggregate_all(Template, Goal, Result) :-
-  aggregate_all(Template, Goal, Result).
+q_aggregate_all(Template, Goal_0, Result) :-
+  aggregate_all(Template, Goal_0, Result).
 
 
 
@@ -85,19 +85,19 @@ q_load(rdf, G, Opts) :- !,
 
 
 
-%! q_load_or_call(+M, :Goal_1, +G) is det.
-%! q_load_or_call(+M, :Goal_1, +G, +Opts) is det.
+%! q_load_or_call(+M, :Goal_2, +G) is det.
+%! q_load_or_call(+M, :Goal_2, +G, +Opts) is det.
 
-q_load_or_call(M, Goal_1, G) :-
-  q_load_or_call(M, Goal_1, G, []).
+q_load_or_call(M, Goal_2, G) :-
+  q_load_or_call(M, Goal_2, G, []).
 
 
-q_load_or_call(M, Goal_1, G, Opts) :-
+q_load_or_call(M, Goal_2, G, Opts) :-
   (   q_load(M, G)
   ->  debug(q(ext), "Loaded graph ~w into backend ~a", [G,M])
-  ;   call(Goal_1, G, Opts),
+  ;   call(Goal_2, G, Opts),
       debug(q(ext), "Called goal to generate graph ~w", [G]),
-      q_load_or_call(M, Goal_1, G, Opts)
+      q_load_or_call(M, Goal_2, G, Opts)
   ).
 
 
@@ -126,7 +126,7 @@ q_unload(hdt, G) :- !,
 %! q_graph_to_base(+G, -Base) is det.
 
 q_graph_to_base(G, Base) :-
-  qiri(Alias:Local, G), !,
+  rdf_global_id(Alias:Local, G), !,
   atomic_list_concat([Alias,Local], '_', Base).
 q_graph_to_base(G, Base) :-
   Base = G.

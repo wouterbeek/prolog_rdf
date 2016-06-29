@@ -112,7 +112,7 @@ mt_i(G, M, Ts, A1, An) :-
 mt_i(G, M, rdf(SYN_S1,SYN_P1,SYN_O1), A1, A4) :-
   maplist(
     % This works for subject and predicate terms as well...
-    rdf_global_object,
+    qobject,
     [SYN_S1,SYN_P1,SYN_O1],
     [SYN_S2,SYN_P2,SYN_O2]
   ),

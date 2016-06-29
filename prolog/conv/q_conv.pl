@@ -13,11 +13,11 @@
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(dict_ext)).
 :- use_module(library(hdt/hdt_ext)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdf/rdfio)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(vocab/void)).
 
 :- rdf_meta
@@ -65,23 +65,23 @@ q_conv(Alias, Opts1) :-
 
 
 q_conv_data(Alias, Opts) :-
-  qiri(Alias:data, G),
+  rdf_global_id(Alias:data, G),
   atomic_list_concat([Alias,load,data], '_', Pred_1),
   Goal_1 = Opts.module:Pred_1,
   q_load_or_call(Opts.mode, Goal_1, G).
 
 
 q_conv_vocab(Alias, Opts) :-
-  qiri(Alias:vocab, G),
+  rdf_global_id(Alias:vocab, G),
   atomic_list_concat([Alias,load,vocab], '_', Pred_1),
   Goal_1 = Opts.module:Pred_1,
-  z_load_or_call(Opts.mode, Goal_1, G).
+  q_load_or_call(Opts.mode, Goal_1, G).
 
 
 q_conv_void(Alias, Opts) :-
-  qiri(Alias:data, DataG),
+  rdf_global_id(Alias:data, DataG),
   q_graph_to_file(DataG, [nt,gz], DataFile),
-  qiri(Alias:void, VoidG),
+  rdf_global_id(Alias:void, VoidG),
   atomic_list_concat([Alias,load,void], '_', Pred_1),
   Goal_1 = Opts.module:Pred_1,
   q_load_or_call(Opts.mode, source_to_void0(DataFile, Goal_1), VoidG).
@@ -91,7 +91,7 @@ source_to_void0(DataFile, Goal_1, VoidG) :-
   source_to_void(DataFile, Goal_1, VoidG),
   q_graph_to_file(VoidG, [nt,gz], VoidFile),
   rdf_write_to_sink(VoidFile, VoidG, [compression(gzip),rdf_format(ntriples)]),
-  rdf_unload_graph(VoidG).
+  q_unload_graph(VoidG).
 
 
 

@@ -88,7 +88,7 @@ rdf_create_iri(Prefix, SubPaths0, Iri) :-
   append(SubPaths0, [Id], SubPaths),
   atomic_list_concat(SubPaths, /, LocalName),
   % Resolve the absolute IRI against the base IRI denoted by the RDF prefix.
-  qiri(Prefix:LocalName, Iri).
+  rdf_global_id(Prefix:LocalName, Iri).
 
 
 

@@ -16,7 +16,7 @@
 
 script1:-
   rdf_reset_db,
-  qis(ex:script1, G),
+  rdf_equal(ex:script1, G),
   rdf_create_iri(ex, [animal,hog], Hog1),
   rdf_create_iri(ex, [animal,hog], Hog2),
   rdf_assert_instance(Hog1, ex:'Hog', G),
@@ -32,7 +32,7 @@ script1:-
 
 script2:-
   rdf_reset_db,
-  qis(ex:script2, G),
+  rdf_equal(ex:script2, G),
   q_create_bnode(D),
   rdf_assert(ex:'A', owl:equivalentClass, D, G),
   owl_assert_value_restriction(ex:p, ex:v1, G, R1),
@@ -44,7 +44,7 @@ script2:-
 
 script3:-
   rdf_reset_db, 
-  qis(ex:script3, G),
+  rdf_equal(ex:script3, G),
   rdf_assert(ex:a, owl:sameAs, ex:b, G),
   rdf_assert(ex:b, owl:differentFrom, ex:a, G),
   q_print_graph(G).
@@ -52,7 +52,7 @@ script3:-
 
 script4:-
   rdf_reset_db,
-  qis(ex:script4, G),
+  rdf_equal(ex:script4, G),
   rdfs_assert_range(ex:p, ex:c, G),
   rdf_assert(ex:s, ex:p, "o", G),
   q_print_graph(G).
@@ -60,7 +60,7 @@ script4:-
 
 script5:-
   rdf_reset_db,
-  qis(ex:script5, G),
+  rdf_equal(ex:script5, G),
   owl_assert_functional_property(ex:p, G),
   rdf_assert(ex:a, ex:p, ex:b, G),
   rdf_assert(ex:a, ex:p, ex:c, G),
@@ -71,7 +71,7 @@ script5:-
 
 script6:-
   rdf_reset_db,
-  qis(ex:script6, G),
+  rdf_equal(ex:script6, G),
   rdf_assert_now(ex:s, ex:p, G),
   q_print_graph(G).
 

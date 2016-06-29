@@ -1,9 +1,8 @@
 :- module(
   rdf_prefix,
   [
-    abbr_iri/2,                   % +Iri, -Abbr
-    rdf_reset_prefix/2,           % +Prefix, +IriPrefix
-    rdf_used_prefix/1             % -Prefix
+    abbr_iri/2,        % +Iri, -Abbr
+    rdf_reset_prefix/2 % +Prefix, +IriPrefix
   ]
 ).
 
@@ -304,24 +303,8 @@ rdf_reset_prefix(Prefix, IriPrefix) :-
     )
   )).
 
-
-
-%! rdf_used_prefix(-Prefix) is nondet.
-
-rdf_used_prefix(Prefix) :-
-  distinct(Prefix, rdf_used_prefix0(Prefix)).
-
-rdf_used_prefix0(Prefix) :-
-  rdf_term(Term),
-  rdf_global_id(Prefix:_, Term).
-
-
-
-
-
-% MESSAGES %
-
-:- multifile(prolog:message//1).
+:- multifile
+    prolog:message//1.
 
 prolog:message(rdf_reset_prefix(Alias,FromPrefix,ToPrefix)) -->
   % Circumvent prefix abbreviation in ClioPatria.

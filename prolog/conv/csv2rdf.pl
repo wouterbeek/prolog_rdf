@@ -27,8 +27,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(pure_input)).
-:- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
@@ -116,13 +115,14 @@ csv2rdf_options(Opts1, D2, Opts2) :-
   ).
 
 
-csv2rdf_1(In, Sink, D, Opts) :-gtrace,
+csv2rdf_1(In, Sink, D, Opts) :-
   get_dict(header, D, Ps), !,
   csv2rdf_2(In, Sink, Ps, D, Opts).
 csv2rdf_1(In, Sink, D, Opts) :-
   once(csv:csv_read_stream_row(In, Row, _, Opts)),
   list_row(Locals, Row),
-  maplist(rdf_global_iri(D.tbox_alias), Locals, Ps),
+  Alias = D.tbox_alias,
+  maplist({Alias}/[Local,P]>>q_iri_alias_local(P, Alias, Local), Locals, Ps),
   csv2rdf_2(In, Sink, Ps, D, Opts).
 
 

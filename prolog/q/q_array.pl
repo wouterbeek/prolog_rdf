@@ -23,19 +23,19 @@
 
 q:dcg_print_literal_hook(Array^^D, Opts) -->
   {
-    qis(tcco:array, D), !,
+    rdf_equal(tcco:array, D), !,
     q_literal_lex(Array^^D, Lex)
   },
   str_ellipsis(Lex, Opts.max_length).
 
 rdf11:in_ground_type_hook(D, L, Lex) :-
   % @tbd
-  qis(tcco:array, D), !,
+  rdf_equal(tcco:array, D), !,
   atom_phrase(array(L), Lex).
 
 rdf11:out_type_hook(D, L, Lex) :-
   % @tbd
-  qis(tcco:array, D), !,
+  rdf_equal(tcco:array, D), !,
   atom_phrase(array(L), Lex).
 
 array(L) --> "[", !, seplist(array, " ", L), "]", !.
@@ -43,7 +43,7 @@ array(N) --> float(N).
 
 qh:qh_literal_hook(Array^^D, Opts) -->
   {
-    qis(tcco:array, D), !,
+    rdf_equal(tcco:array, D), !,
     q_literal_lex(Array^^D, Lex)
   },
   bs_truncated(Lex, Opts.max_length).

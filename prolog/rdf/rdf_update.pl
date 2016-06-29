@@ -14,6 +14,8 @@
     rdf_change_ltag/3,     % +LTag1, ?G, +LTag2
     rdf_change_p/2,        % +P, +Q
     rdf_change_p/3,        % +P, ?G, +Q
+    rdf_change_prefix/6,   % ?S, ?P, ?O, +Positions, +Alias1, +Alias2
+    rdf_change_prefix/7,   % ?S, ?P, ?O, ?G, +Positions, +Alias1, +Alias2
     rdf_cp/2,              % +G1, +G2
     rdf_cp/5,              % +G1, ?S, ?P, ?O, +G2
     rdf_comb_date/4,       % +YP, +MP, +DP, +Q
@@ -47,8 +49,8 @@
     rdf_rm_null/3,         % ?P, +Null, ?G
     rdf_rm_tree/1,         % +S
     rdf_rm_tuples/1,       % +Tuples
-    rdf_split_string/2,    % +P, :Sep_0
-    rdf_split_string/3     % +P, ?G, :Sep_0
+    rdf_split_string/2,    % +P, +SepChars
+    rdf_split_string/3     % +P, +SepChars, ?G
   ]
 ).
 
@@ -61,12 +63,9 @@ Higher-level update operations performed on RDF data.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(apply)).
-:- use_module(library(cli_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(debug_ext)).
-:- use_module(library(error)).
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
@@ -74,10 +73,8 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(solution_sequences)).
 
 :- meta_predicate
     rdf_call_update(0, 0),
@@ -90,9 +87,7 @@ Higher-level update operations performed on RDF data.
     rdf_lex_to_iri(?, +, //),
     rdf_lex_to_iri(?, +, ?, //),
     rdf_process_string(+, 4),
-    rdf_process_string(+, ?, 4),
-    rdf_split_string(+, //),
-    rdf_split_string(+, ?, //).
+    rdf_process_string(+, ?, 4).
 
 :- rdf_meta
    rdf_add_ltag(r, r),
@@ -108,6 +103,8 @@ Higher-level update operations performed on RDF data.
    rdf_change_ltag(+, r, +),
    rdf_change_p(r, r),
    rdf_change_p(r, r, r),
+   rdf_change_prefix(r, r, o, +, +, +),
+   rdf_change_prefix(r, r, o, r, +, +, +),
    rdf_comb_date(r, r, r, r),
    rdf_comb_date(r, r, r, r, r),
    rdf_comb_month_day(r, r, r, r),
@@ -127,7 +124,7 @@ Higher-level update operations performed on RDF data.
    rdf_mv(r, r),
    rdf_mv(r, r, r, o, r),
    rdf_process_string(r, :),
-   rdf_process_string(r, r, :).
+   rdf_process_string(r, r, :),
    rdf_rm(r, r, o),
    rdf_rm(r, r, o, r),
    rdf_rm_cell(r, r, o),
@@ -141,8 +138,8 @@ Higher-level update operations performed on RDF data.
    rdf_rm_null(r, o, r),
    rdf_rm_tree(r),
    rdf_rm_tuples(t),
-   rdf_split_string(r, :),
-   rdf_split_string(r, r, :).
+   rdf_split_string(r, +),
+   rdf_split_string(r, r, +).
 
 :- debug(rdf(update)).
 
@@ -229,12 +226,13 @@ rdf_change_iri(S1, P1, O1, G, Pos, Dcg_0) :-
     rdf_assert(S2, P2, O2, G)
   )).
 
+
 rdf_change_iri0(rdf(S1,P1,O1), [PosS,PosP,PosO], Dcg_0, rdf(S2,P2,O2)) :-
   (PosS == +, rdf_is_iri(S1) -> atom_phrase(Dcg_0, S1, S2) ; S2 = S1),
   (PosP == +, rdf_is_iri(P1) -> atom_phrase(Dcg_0, P1, P2) ; P2 = P1),
   (PosO == +, rdf_is_iri(O1) -> atom_phrase(Dcg_0, O1, O2) ; O2 = O1).
-  
-  
+
+
 
 %! rdf_change_lex(+P, :Dcg_0) is det.
 %! rdf_change_lex(+P, ?G, :Dcg_0) is det.
@@ -290,6 +288,28 @@ rdf_change_p(P, G, Q) :-
   ), (
     rdf_update(S, P, O, G, predicate(Q))
   )).
+
+
+
+%! rdf_change_prefix(?S, ?P, ?O, +Positions, +Alias1, +Alias2) is det.
+%! rdf_change_prefix(?S, ?P, ?O, ?G, +Positions, +Alias1, +Alias2) is det.
+%
+% Positions is a length-3 list of elements `+` (considered) or `-`
+% (not considered).
+
+rdf_change_prefix(S, P, O, Positions, Alias1, Alias2) :-
+  rdf_change_prefix(S, P, O, _, Positions, Alias1, Alias2).
+
+
+rdf_change_prefix(S, P, O, G, Positions, Alias1, Alias2) :-
+  rdf_change_iri(S, P, O, G, Positions, iri_change_prefix0(Alias1, Alias2)).
+
+
+iri_change_prefix0(Alias1, Alias2), atom(Prefix2), Cs -->
+  {q_alias_prefix(Alias1, Prefix1)},
+  atom(Prefix1),
+  {q_alias_prefix(Alias2, Prefix2)},
+  rest(Cs).
 
 
 
@@ -599,14 +619,18 @@ rdf_rm_tuples(Tuples) :-
 
 
 
-%! rdf_split_string(+P, :Sep_0)// is det.
-%! rdf_split_string(+P, ?G, :Sep_0)// is det.
+%! rdf_split_string(+P, +SepChars)// is det.
+%! rdf_split_string(+P, ?G, +SepChars)// is det.
 
-rdf_split_string(P, Sep_0) :-
-  rdf_split_string(P, _, Sep_0).
+rdf_split_string(P, SepChars) :-
+  rdf_split_string(P, _, SepChars).
 
 
-rdf_split_string(P, G, Sep_0) :-
-  rdf_call_update(
-    rdf(S, P, Lex^^xsd:string, G),
-    string_phrase('+'(
+rdf_split_string(P, G, SepChars) :-
+  rdf_call_update((
+    rdf(S, P, Str0^^xsd:string, G),
+    split_string(Str0, SepChars, "", Strs)
+  ),
+    forall(member(Str, Strs), rdf_assert(S, P, Str^^xsd:string)),
+    rdf_retractall(S, P, Str0^^xsd:string, G)
+  ).

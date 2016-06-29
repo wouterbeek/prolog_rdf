@@ -64,6 +64,7 @@ The following options are supported:
 @version 2016/02-2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_ext)).
@@ -77,7 +78,6 @@ The following options are supported:
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11), []).
 :- use_module(library(settings)).
 :- use_module(library(yall)).
 
@@ -292,7 +292,7 @@ qh_iri_outer(M, C, Cs1, Iri, Opts) -->
 
 % Abbreviated notation for IRI.
 qh_iri_inner(_, Iri, _) -->
-  {qiri(Alias:Local, Iri)}, !,
+  {rdf_global_id(Alias:Local, Iri)}, !,
   html([span(class=alias, Alias),":",Local]).
 % RDFS label replacing IRI.
 qh_iri_inner(M, Iri, Opts) -->
@@ -361,15 +361,15 @@ qh_literal_inner(V^^D, _) -->
   html("~a"-[V]).
 % XSD gDay
 qh_literal_inner(Da^^D, _) -->
-  {qis(xsd:gDay, D)}, !,
+  {rdf_equal(xsd:gDay, D)}, !,
   html("~d"-[Da]).
 % XSD gMonth
 qh_literal_inner(Mo^^D, _) -->
-  {qis(xsd:gMonth, D)}, !,
+  {rdf_equal(xsd:gMonth, D)}, !,
   html("~d"-[Mo]).
 % XSD gYear
 qh_literal_inner(Y^^D, _) -->
-  {qis(xsd:gYear, D)}, !,
+  {rdf_equal(xsd:gYear, D)}, !,
   html("~d"-[Y]).
 % XSD date
 % XSD dateTime

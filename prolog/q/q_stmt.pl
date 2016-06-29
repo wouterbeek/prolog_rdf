@@ -475,7 +475,7 @@ basic_filtering0([H1|T1], [H2|T2]):-
 %! graph_file(+G, -File) is det.
 
 graph_file(G, File) :-
-  qiri(Alias:Local, G),
+  rdf_global_id(Alias:Local, G),
   directory_file_path(Alias, Local, Base),
   file_name_extension(Base, nt, File).
 

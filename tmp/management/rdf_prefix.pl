@@ -1,12 +1,6 @@
 :- module(
   rdf_prefix,
   [
-    rdf_convert_prefixes/6, % +FromPrefix:atom
-                            % +ToPrefix:atom
-                            % ?Subject:rdf_term
-                            % ?Predicate:iri
-                            % ?Object:rdf_term
-                            % ?Graph:rdf_graph
     rdf_longest_prefix/3, % +Iri:iri
                           % -LongestPrefix:atom
                           % -ShortestLocalName:atom
@@ -24,7 +18,7 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 
 @author Wouter Beek
 @version 2013/03-2013/05, 2014/01, 2014/07, 2014/09, 2014/11-2014/12, 2015/02,
-         2015/12
+         2015/12, 2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -34,55 +28,11 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
 
-:- rdf_meta(rdf_prefixe_iri(r,-)).
-:- rdf_meta(rdf_prefixes(r,r,o,?,-)).
-:- rdf_meta(rdf_convert_prefixes(+,+,r,r,o,?)).
+:- rdf_meta
+   rdf_prefixe_iri(r, -),
+   rdf_prefixes(r, r, o, ?, -).
 
 
-
-
-
-%! rdf_convert_prefixes(
-%!   +FromPrefix:atom,
-%!   +FromTerm:rdf_term,
-%!   +ToPrefix:atom,
-%!   +ToTerm:rdf_term
-%! ) is det.
-
-rdf_convert_prefixes(_, _, B, B) :-
-  rdf_is_bnode(B), !.
-rdf_convert_prefixes(_, _, Lit, Lit) :-
-  rdf_is_literal(Lit), !.
-rdf_convert_prefixes(FromPrefix, ToPrefix, FromIri, ToIri) :-
-  rdf_global_id(FromPrefix:LocalName, FromIri),
-  rdf_global_id(ToPrefix:LocalName, ToIri).
-
-
-%! rdf_convert_prefixes(
-%!   +FromPrefix:atom,
-%!   +ToPrefix:atom,
-%!   ?Subject:or([bnode,iri]),
-%!   ?Predicate:iri,
-%!   ?Object:rdf_term,
-%!   ?Graph:rdf_graph
-%! ) is det.
-% Converts all resources that occur in the given patterns
-% with the given namespace to similar resources that have another namespace.
-%
-% The namespaces must be registered with module [xml_namespace].
-
-rdf_convert_prefixes(FromPrefix, ToPrefix, S1, P1, O1, G) :-
-  forall(
-    rdf_retractall(S1, P1, O1, G),
-    (
-      maplist(
-        rdf_convert_prefixes(FromPrefix, ToPrefix),
-        [S1,P1,O1],
-        [S2,P2,O2]
-      ),
-      rdf_assert(S2, P2, O2, G)
-    )
-  ).
 
 
 

@@ -1,18 +1,18 @@
 :- module(
   q_list,
   [
-    q_last/3,    % ?M, +RdfL, ?X
-    q_last/4,    % ?M, +RdfL, ?X, ?G
-    q_list/2,    % ?M, ?RdfL
-    q_list/3,    % ?M, ?RdfL, ?G
-    q_list/4,    % ?M, ?S, ?P, ?RdfL
-    q_list/5,    % ?M, ?S, ?P, ?RdfL, ?G
+    q_last/3,       % ?M, +RdfL, ?X
+    q_last/4,       % ?M, +RdfL, ?X, ?G
+    q_list/2,       % ?M, ?RdfL
+    q_list/3,       % ?M, ?RdfL, ?G
+    q_list/4,       % ?M, ?S, ?P, ?RdfL
+    q_list/5,       % ?M, ?S, ?P, ?RdfL, ?G
     q_list_to_pl/3, % ?M, +RdfL, -PlL
     q_list_to_pl/4, % ?M, +RdfL, ?G, -PlL
-    q_list_pl/4, % ?M, ?S, ?P, -PlL
-    q_list_pl/5, % ?M, ?S, ?P, -PlL, ?G
-    q_member/3,  % ?M, ?X, ?RdfL
-    q_member/4   % ?M, ?X, ?RdfL, ?G
+    q_list_pl/4,    % ?M, ?S, ?P, -PlL
+    q_list_pl/5,    % ?M, ?S, ?P, -PlL, ?G
+    q_member/3,     % ?M, ?X, ?RdfL
+    q_member/4      % ?M, ?X, ?RdfL, ?G
   ]
 ).
 
@@ -22,9 +22,9 @@
 @version 2016/06
 */
 
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11), []).
 
 :- rdf_meta
    q_last(?, r, r),
@@ -54,7 +54,7 @@ q_last(M, RdfL, X) :-
 q_last(M, RdfL, X, G) :-
   q_is_subject(RdfL), !,
   q(M, RdfL, rdf:rest, T, G),
-  (   qis(T, rdf:nil)
+  (   rdf_equal(T, rdf:nil)
   ->  q(M, RdfL, rdf:first, X, G)
   ;   q_last(M, T, X, G)
   ).
@@ -85,7 +85,7 @@ q_list0(_, rdf:nil, _) :- !.
 q_list0(M, RdfL, G) :-
   once(q(M, RdfL, rdf:first, _, G)),
   q(M, RdfL, rdf:rest, Rest, G),
-  (qis(rdf:nil, Rest) -> true ; q_list0(M, Rest, G)).
+  (rdf_equal(rdf:nil, Rest) -> true ; q_list0(M, Rest, G)).
 
 
 q_list(M, S, P, RdfL) :-
