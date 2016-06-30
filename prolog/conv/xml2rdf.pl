@@ -1,9 +1,7 @@
 :- module(
   xml2rdf,
   [
-    marcxml2rdf/2, % +Source, +RecordNames
     marcxml2rdf/3, % +Source, +RecordNames, +Opts
-    xml2rdf/2,     % +Source, +RecordNames
     xml2rdf/3      % +Source, +RecordNames, +Opts
   ]
 ).
@@ -23,6 +21,7 @@
 :- use_module(library(lists)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(xml/marcxml)).
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
@@ -31,12 +30,7 @@
 
 
 
-%! marcxml2rdf(+Source, +RecordNames) is det.
 %! marcxml2rdf(+Source, +RecordNames, +Opts) is det.
-
-marcxml2rdf(Source, RecordNames) :-
-  marcxml2rdf(Source, RecordNames, _{}).
-
 
 marcxml2rdf(Source, RecordNames, Opts1) :-
   conv_alias_options(Opts1, Opts2),
@@ -68,24 +62,15 @@ marcxml2rdf_stmt0(Dom, Alias, P, Val) :-
 
 
 
-%! xml2rdf(+Source, +RecordNames) is nondet.
 %! xml2rdf(+Source, +RecordNames, +Opts) is nondet.
-
-xml2rdf(Source, RecordNames) :-
-  xml2rdf(Source, RecordNames, _{}).
-
 
 xml2rdf(Source, RecordNames, Opts1) :-
   conv_alias_options(Opts1, Opts2),
-  xml_stream_record(
-    Source,
-    RecordNames,
-    xml2rdf_record0(Opts2)
-  ).
+  xml_stream_record(Source, RecordNames, xml2rdf_record0(Opts2)).
 
 
 xml2rdf_record0(Opts, Dom) :-
-  q_create_bnode(S),
+  qb_bnode(S),
   get_dict(ltag_attr, Opts, LTagAttr),
   xml2rdf_record0(Dom, [], S, LTagAttr, Opts).
 
