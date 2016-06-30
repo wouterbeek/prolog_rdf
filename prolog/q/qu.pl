@@ -45,19 +45,19 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/qb)).
+:- use_module(library(q/q__io)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_shape)).
+:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
     qu_call(0, 0),
-    qu_change_iri(+, +, ?, ?, ?, +, //),
     qu_change_iri(+, +, ?, ?, ?, ?, +, //),
-    qu_change_iri0(+, +, +, +, //, -),
+    qu_change_iri0(+, +, //, -),
     qu_change_lex(+, +, +, ?, //),
-    qu_lex_to_iri(+, +, ?, +, //),
     qu_lex_to_iri(+, +, ?, +, ?, //),
     qu_process_string(+, +, +, ?, 5).
 
@@ -109,9 +109,7 @@ qu_add_ltag(M1, M2, P, LTag, G) :-
 %! qu_call(:Find_0, Transform_0) is det.
 
 qu_call(Find_0, Transform_0) :-
-  q_transaction(
-    qu_call0(Find_0, Transform_0, _{count: 0})
-  ).
+  q_transaction(qu:qu_call0(Find_0, Transform_0, _{count: 0})).
 
 
 qu_call0(Find_0, Transform_0, State) :-
@@ -337,7 +335,7 @@ qu_lex_padding(M1, M2, P, G, C) :-
     ),
     Max
   ),
-  q_change_lex(M1, M2, P, G, qu_lex_padding0(C, Max)).
+  qu_change_lex(M1, M2, P, G, qu_lex_padding0(C, Max)).
 
 
 qu_lex_padding0(C, Len), Cs -->
@@ -363,7 +361,7 @@ qu_lex_to_iri(M1, M2, P, Alias, G, Lex2Local_0) :-
     string_codes(Lex, Cs1),
     phrase(Lex2Local_0, Cs1, Cs2),
     atom_codes(Local, Cs2),
-    q_global_id(Alias:Local, O),
+    rdf_global_id(Alias:Local, O),
     qu(M1, M2, S, P, Lit, G, object(O))
   )).
 
@@ -405,7 +403,7 @@ qu_process_string(M1, M2, P, G, Dcg_3) :-
 qu_rm(M1, M2, S, P, O, G) :-
   qu_call(
     q(M1, S, P, O, G),
-    q_rm(M2, S, P, O, G)
+    qb_rm(M2, S, P, O, G)
   ).
 
 

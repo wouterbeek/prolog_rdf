@@ -1,7 +1,7 @@
 :- module(
   csv2rdf,
   [
-    csv2rdf/4 % +M, +File, +G, +Opts
+    csv2rdf/4 % +M, +Source, +G, +Opts
   ]
 ).
 
@@ -37,7 +37,7 @@ Automatic conversion from CSV to RDF.
 
 
 
-%! csv2rdf(+M, +File, +G, +Opts) is det.
+%! csv2rdf(+M, +Source, +G, +Opts) is det.
 %
 % Converts the given CSV input file into RDF that is asserted either
 % into the given output file or into the given RDF graph.
@@ -56,11 +56,10 @@ Automatic conversion from CSV to RDF.
 %   first row of the CSV file.  The header labels will be turned into
 %   RDF properties within the given namespace.  Default is `ex`.
 
-csv2rdf(M, File, G, Opts0) :-
-  csv2rdf_options(Opts0, D, Opts),
+csv2rdf(M, Source, G, Opts) :-
   call_on_stream(
-    File,
-    {M,G,D,Opts}/[In,Meta,Meta]>>csv2rdf0(M, In, G, D, Opts),
+    Source,
+    {M,G,D,Opts}/[In,Meta,Meta]>>csv2rdf1(M, In, G, D, Opts),
     Opts
   ).
 
@@ -81,22 +80,29 @@ csv2rdf_options(Opts1, D2, Opts2) :-
   ).
 
 
-csv2rdf0(M, In, G, D, Opts) :-
-  get_dict(header, D, Ps), !,
-  csv2rdf0(M, In, Ps, G, D, Opts).
-csv2rdf0(M, In, G, D, Opts) :-
-  once(csv:csv_read_stream_row(In, Row, _, Opts)),
-  list_row(Locals, Row),
-  Alias = D.tbox_alias,
-  maplist({Alias}/[Local,P]>>q_iri_alias_local(P, Alias, Local), Locals, Ps),
-  csv2rdf0(M, In, Ps, G, D, Opts).
+csv2rdf1(M, In, G, D, Opts0) :-
+  csv2rdf_options(Opts0, D, Opts),
+  (   get_dict(header, D, Ps)
+  ->  true
+  ;   once(csv:csv_read_stream_row(In, Row, _, Opts)),
+      list_row(Locals, Row),
+      Alias = D.tbox_alias,
+      maplist({Alias}/[Local,P]>>q_iri_alias_local(P, Alias, Local), Locals, Ps)
+  ),
+  csv2rdf2(M, In, Ps, G, D, Opts).
 
 
-csv2rdf0(M, In, Ps, G, D, Opts) :-
+csv2rdf2(M, In, Ps, G, D, Opts) :-
   csv:csv_read_stream_row(In, Row, N, Opts),
   list_row(Vals, Row),
   atom_number(Name, N),
   rdf_global_id(D.abox_alias:Name, S),
-  maplist({M,S,G}/[P,Val]>>qb(M, S, P, Val^^xsd:string, G), Ps, Vals),
+  csv2rdf3(M, S, Ps, Vals, G),
   fail.
-csv2rdf0(_, _, _, _, _, _).
+csv2rdf2(_, _, _, _, _, _).
+
+
+csv2rdf3(_, _, [], [], _) :- !.
+csv2rdf3(M, S, [P|Ps], [Val|Vals], G) :- !,
+  qb(M, S, P, Val^^xsd:string, G),
+  csv2rdf3(M, S, Ps, Vals, G).

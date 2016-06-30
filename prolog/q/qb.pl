@@ -64,6 +64,7 @@
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid_ext)).
+:- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- qb_alias(prov, 'http://www.w3.org/ns/prov#').
@@ -128,7 +129,11 @@ qb(M, rdf(S,P,O), G) :-
 
 
 qb(hdt, S, P, O, G) :- !,
-  hdt__assert(S, P, O, G).
+  hdt__call(
+    append,
+    {S,P,O,G}/[Out]>>with_output_to(Out, gen_ntriple(S, P, O)),
+    G
+  ).
 qb(rdf, S, P, O, G) :- !,
   rdf_assert(S, P, O, G).
 

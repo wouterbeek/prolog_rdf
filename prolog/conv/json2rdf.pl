@@ -1,11 +1,11 @@
 :- module(
   json2rdf,
   [
-    geojson2rdf_graph/4, % +M, +Source, +Alias, +Graph
-    geojson2rdf_stmt/3,  % +Source, +Alias, -Triple
-    json2rdf_graph/4,    % +M, +Source, +Alias, +Graph
-    json2rdf_stmt/3,     % +Source, +Alias, -Triple
-    ndjson2rdf_triple/3  % +Source, +Context, -Triple
+    geojson2rdf/4,      % +M, +Source, +Alias, +G
+    geojson2rdf_stmt/3, % +Source, +Alias, -Triple
+    json2rdf/4,         % +M, +Source, +Alias, +G
+    json2rdf_stmt/3,    % +Source, +Alias, -Triple
+    ndjson2rdf_triple/3 % +Source, +Context, -Triple
   ]
 ).
 
@@ -19,6 +19,8 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
+:- use_module(library(gen/gen_ntuples)).
+:- use_module(library(hdt/hdt__io)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/geold)).
 :- use_module(library(jsonld/jsonld_read)).
@@ -34,31 +36,39 @@
 
 
 
-%! geojson2rdf_graph(+M, +File, +Alias, +G) is det.
+%! geojson2rdf(+M, +Source, +Alias, +G) is det.
 
-geojson2rdf_graph(M, File, Alias, G) :-
-  geojson2rdf_stmt(File, Alias, Triple),
-  qb(M, Triple, G),
+geojson2rdf(hdt, Source, Alias, G) :- !,
+  hdt__call(write, geojson2rdf_stream(Source, Alias), G).
+
+
+geojson2rdf_stream(Source, Alias, Out) :-
+  geojson2rdf_stmt(Source, Alias, Triple),
+  with_output_to(Out, gen_ntriple(Triple)),
   fail.
-geojson2rdf_graph(_, _, _, _) :-
+geojson2rdf_stream(_, _, _) :-
   debug(geojsond2rdf, "GeoJSON → RDF done", []).
 
 
 
-%! geojson2rdf_stmt(+File, +Alias, -Triple) is nondet.
+%! geojson2rdf_stmt(+Source, +Alias, -Triple) is nondet.
 
-geojson2rdf_stmt(File, Alias, Triple) :-
-  geold_tuple(File, Alias, Triple).
+geojson2rdf_stmt(Source, Alias, Triple) :-
+  geold_tuple(Source, Alias, Triple).
 
 
 
-%! json2rdf_graph(+M, +Source, +Alias, +G) is nondet.
+%! json2rdf(+M, +Source, +Alias, +G) is nondet.
 
-json2rdf_graph(M, Source, Alias, G) :-
+json2rdf(hdt, Source, Alias, G) :- !,
+  hdt__call(write, json2rdf_stream(Source, Alias), G).
+
+
+json2rdf_stream(Source, Alias, Out) :-
   json2rdf_stmt(Source, Alias, Triple),
-  qb(M, Triple, G),
+  with_output_to(Out, gen_ntriple(Triple)),
   fail.
-json2rdf_graph(_, _, _, _) :-
+json2rdf_stream(_, _, _) :-
   debug(jsond2rdf, "JSON → RDF done", []).
 
 

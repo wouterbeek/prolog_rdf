@@ -42,10 +42,6 @@
 %
 % The followning options are defined:
 %
-%   * mode(+oneof([hdt,rdf])) Whether the result of data conversion is
-%   stored in memory (`rdf`) or on disk (`hdt`).  The default is
-%   `hdt`.
-%
 %   * module(+atom) The name of the module which defines the goals.
 %   The default is Alias.
 %
@@ -60,7 +56,7 @@ q_conv(Alias) :-
 
 
 q_conv(Alias, Opts1) :-
-  merge_dicts(_{mode: hdt, module: Alias}, Opts1, Opts2),
+  merge_dicts(_{module: Alias}, Opts1, Opts2),
   q_conv(Alias, data, Opts2),
   (get_dict(vocab, Opts1, true) -> q_conv(Alias, vocab, Opts2) ; true),
   (get_dict(void, Opts1, true) -> q_conv_void(Alias, Opts2) ; true).
@@ -71,8 +67,8 @@ q_conv(Alias, Name, Opts) :-
   (   q_exists(G)
   ->  debug(q(conv), "Graph ~a already exists in store.", [G])
   ;   atomic_list_concat([Alias,load,Name], '_', Pred),
-      Goal_2 = Opts.module:Pred,
-      call(Goal_2, M, G),
+      Goal_1 = Opts.module:Pred,
+      call(Goal_1, G),
       q_save(G),
       q_unload(G),
       debug(q(conv), "Graph ~a converted to store.", [G])
@@ -84,10 +80,11 @@ q_conv_void(Alias, Opts) :-
   (   q_exists(VoidG)
   ->  debug(q(conv), "Graph ~a already exists in store.", [VoidG])
   ;   rdf_global_id(Alias:data, DataG),
-      q_graph_to_file(DataG, [nt,gz], DataFile),
       atomic_list_concat([Alias,load,void], '_', Pred),
       Goal_3 = Opts.module:Pred,
-      source_to_void(DataFile, Goal_3, VoidG),
+      q_load(hdt, DataG),
+      source_to_void(DataG, Goal_3, VoidG),
+      q_unload(DataG),
       q_save(VoidG),
       q_unload(VoidG),
       debug(q(conv), "Graph ~a converted to store.", [VoidG])

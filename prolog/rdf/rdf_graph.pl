@@ -114,7 +114,7 @@ rdf_new_graph(G1, G) :-
 rdf_new_graph_try(G) :-
   with_mutex(rdf_graph, (
     \+ rdf_graph(G),
-    qb_graph(G)
+    rdf_create_graph(G)
   )).
 
 

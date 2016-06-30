@@ -18,7 +18,7 @@
     q_unload/2         % +M, +G
   ]
 ).
-:- reexport(library(semweb/rdf_db), [
+:- reexport(library(semweb/rdf11), [
      rdf_transaction/1 as q_transaction,
      rdf_transaction/2 as q_transaction,
      rdf_transaction/3 as q_transaction
@@ -31,6 +31,7 @@
 */
 
 :- use_module(library(debug)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt__io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf__io)).

@@ -1,7 +1,7 @@
 :- module(
   hdt__io,
   [
-    hdt__assert/4,  % +S, +P, +O, +G
+    hdt__call/3,    % +Mode, :Goal_1, +G
     hdt__delete/1,  % +G
     hdt__graph/1,   % ?G
     hdt__graph/2,   % ?G, -Hdt
@@ -19,7 +19,6 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt), []).
 :- use_module(library(os/open_any2)).
 :- use_module(library(q/q__io)).
@@ -35,8 +34,11 @@
 :- dynamic
     hdt_graph0/4.
 
+:- meta_predicate
+    hdt__call(+, 1, +).
+
 :- rdf_meta
-   hdt__assert(r, r, o, r),
+   hdt__call(+, :, r),
    hdt__delete(r),
    hdt__graph(r),
    hdt__graph(r, ?),
@@ -49,15 +51,13 @@
 
 
 
-%! hdt__assert(+S, +P, +O, +G) is det.
-%
-% Asserts the given quadruple to disk.
+%! hdt__call(+Mode, :Goal_1, +G) is det.
 
-hdt__assert(S, P, O, G) :-
+hdt__call(Mode, Goal_1, G) :- !,
   q_graph_to_file(G, [nt,gz], File),
   setup_call_cleanup(
-    gzopen(File, write, Out),
-    with_output_to(Out, gen_ntriple(S, P, O)),
+    gzopen(File, Mode, Out),
+    call(Goal_1, Out),
     close(Out)
   ).
 

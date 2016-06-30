@@ -12,9 +12,9 @@
 @version 2016/06
 */
 
-:- use_module(library(semweb/rdf11), [rdf_meta/1]).
 :- use_module(library(hdt), []).
 :- use_module(library(hdt/hdt__io)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
