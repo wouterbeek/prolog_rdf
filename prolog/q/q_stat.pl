@@ -36,7 +36,7 @@
 :- use_module(library(error)).
 :- use_module(library(hdt/hdt_stat)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_io)).
+:- use_module(library(q/q__io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_stat)).

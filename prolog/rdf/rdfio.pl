@@ -59,7 +59,6 @@ already part of ClioPatria.
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
 :- use_module(library(os/open_any2)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf), [process_rdf/3]).

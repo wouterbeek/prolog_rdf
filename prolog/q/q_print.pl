@@ -101,6 +101,7 @@ Print RDF statements.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
+:- use_module(library(dcg/dcg_cli)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_table)).
@@ -370,12 +371,12 @@ q_print_table(Rows, Opts1) :-
   dcg_with_output_to(Out, dcg_table(Rows, Opts2)).
 
 
+print_cell0(bold(Term)) --> !,
+  bold(Term).
 print_cell0(pl(Term)) --> !,
   term(Term).
 print_cell0(Term) -->
-  dcg_print_term(Term), !.
-print_cell0(Term) -->
-  term(Term).
+  dcg_print_term(Term).
 
 
 

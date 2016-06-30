@@ -12,6 +12,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(q/q_term)).
+:- use_module(library(semweb/rdf11)).
 
 :- q_create_alias(tcco, 'http://triply.cc/ontology/').
 
@@ -29,17 +30,21 @@ q:dcg_print_literal_hook(Array^^D, Opts) -->
   str_ellipsis(Lex, Opts.max_length).
 
 rdf11:in_ground_type_hook(D, L, Lex) :-
-  % @tbd
   rdf_equal(tcco:array, D), !,
   atom_phrase(array(L), Lex).
 
 rdf11:out_type_hook(D, L, Lex) :-
-  % @tbd
   rdf_equal(tcco:array, D), !,
   atom_phrase(array(L), Lex).
 
-array(L) --> "[", !, seplist(array, " ", L), "]", !.
-array(N) --> float(N).
+array(N) -->
+  (generating -> {float(N)} ; parsing),
+  float(N), !.
+array(L) -->
+  (generating ->  {is_list(L)} ; parsing),
+  "[", !,
+  seplist(array, " ", L),
+  "]", !.
 
 qh:qh_literal_hook(Array^^D, Opts) -->
   {

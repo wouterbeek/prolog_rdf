@@ -63,7 +63,6 @@ Perform basic RDF statement manipulations: statement ↔ terms
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(hdt/hdt_ext)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
 :- use_module(library(nlp/nlp_lang)).

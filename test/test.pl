@@ -20,7 +20,7 @@
 %/gen
 :- use_module(library(gen/gen_ntuples)).
 %/hdt
-:- use_module(library(hdt/hdt_ext)).
+:- use_module(library(hdt/hdt__io)).
 :- use_module(library(hdt/hdt_stat)).
 :- use_module(library(hdt/hdt_term)).
 :- use_module(library(hdt/hdt_update)).
@@ -43,13 +43,13 @@
 %/owl
 :- use_module(library(owl/owl_ext)).
 %/q
+:- use_module(library(q/q__io)).
 :- use_module(library(q/q_array)).
 :- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_cli)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_graph_theory)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_rest)).
@@ -60,6 +60,7 @@
 :- use_module(library(q/q_wgs84)).
 :- use_module(library(q/q_wkt)).
 %/rdf
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_annotate)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
@@ -83,7 +84,6 @@
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdf/rdf_user)).
-:- use_module(library(rdf/rdfio)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(rdfa/rdfa_user)).

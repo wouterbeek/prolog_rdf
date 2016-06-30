@@ -12,7 +12,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(hdt/hdt_ext)).
+:- use_module(library(hdt/hdt__io)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
 :- use_module(library(uuid_ext)).

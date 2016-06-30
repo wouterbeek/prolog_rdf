@@ -50,7 +50,6 @@
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_datatype)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stat)).
@@ -122,12 +121,12 @@ q__gs :-
 
 
 q__gs(M) :-
-  Header0 = ["graph","№ triples"],
+  Header0 = [bold("graph"),bold("№ triples")],
   (   var(M)
-  ->  append(Header0, ["store"], Header),
-      findall(N-[G,N,M], q_number_of_triples(M, G, N), Pairs)
+  ->  append(Header0, [bold("store")], Header),
+      findall(N-[G,pl(N),pl(M)], q_number_of_triples(M, G, N), Pairs)
   ;   Header = Header0,
-      findall(N-[G,N], q_number_of_triples(M, G, N), Pairs)
+      findall(N-[G,pl(N)], q_number_of_triples(M, G, N), Pairs)
   ),
   q_pairs_table0(Header, Pairs).
 

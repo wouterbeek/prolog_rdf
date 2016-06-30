@@ -34,7 +34,6 @@
 
 :- use_module(library(semweb/rdf11)). % Priority for rdf_meta/1.
 :- use_module(library(hdt), []).
-:- use_module(library(hdt/hdt_ext)).
 :- use_module(library(q/q_term)).
 :- use_module(library(solution_sequences)).
 
@@ -144,7 +143,7 @@ hdt_name(Name) :-
 
 hdt_name(Name, G) :-
   distinct(Name-G, (
-    hdt_graph(G, Hdt),
+    hdt__graph(G, Hdt),
     (  hdt:hdt_subject(Hdt, Name)
     ;  hdt:hdt_predicate(Hdt, Name)
     ;  hdt:hdt_object(Hdt, Name)
