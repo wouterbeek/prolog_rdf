@@ -11,8 +11,8 @@
     qh_describe//3,      % +M, +S,             +Opts
     qh_graph_term//2,    % +M, +G
     qh_graph_term//3,    % +M, +G,             +Opts
-    qh_graph_table//1,   % +M
-    qh_graph_table//2,   % +M,                 +Opts
+    qh_graph_table//0,
+    qh_graph_table//1,   %                     +Opts
     qh_iri//2,           % +M, +Iri
     qh_iri//3,           % +M, +Iri,           +Opts
     qh_list//2,          % +M, +L
@@ -243,31 +243,32 @@ qh_graph_term_outer(M, C, Cs1, G, Opts) -->
 
 
 
-%! qh_graph_table(+M)// is det.
-%! qh_graph_table(+M, +Opts)// is det.
+%! qh_graph_table// is det.
+%! qh_graph_table(+Opts)// is det.
 
-qh_graph_table(M) -->
+qh_graph_table -->
   {qh_default_options(Opts)},
-  qh_graph_table(M, Opts).
+  qh_graph_table(Opts).
 
 
-qh_graph_table(M, Opts) -->
+qh_graph_table(Opts) -->
   {
-    findall(N-G, q_number_of_triples(M, G, N), Pairs),
-    desc_pairs_values(Pairs, Gs)
+    findall(N-[M,G], q_number_of_triples(M, G, N), Pairs),
+    desc_pairs_values(Pairs, Vals)
   },
   bs_table(
-    \bs_table_header(["Graph","Number of triples"]),
-    \html_maplist({M,Opts}/[G]>>qh_graph_row0(M, G, Opts), Gs)
+    \bs_table_header(["graph","№ triples","store"]),
+    \html_maplist({Opts}/[Val]>>qh_graph_row0(Val, Opts), Vals)
   ).
 
 
-qh_graph_row0(M, G, Opts) -->
+qh_graph_row0([M,G], Opts) -->
   {q_number_of_triples(M, G, N)},
   html(
     tr([
       td(\qh_graph_term_outer(M, graph, [graph], G, Opts)),
-      td(\html_thousands(N))
+      td(\html_thousands(N)),
+      td(M)
     ])
   ).
 

@@ -90,7 +90,7 @@
    qb_comment(+, r, +, r),
    qb_domain(+, r, r, r),
    qb_isDefinedBy(+, r, r, r),
-   qb_label(+, +, r, o, r),
+   qb_label(+, r, o, r),
    qb_property(+, r, r, r, r),
    qb_range(+, r, r, r),
    qb_seeAlso(+, r, +, r),
@@ -387,7 +387,7 @@ qb_intersection_of(M, C, Ds, G) :-
 qb_named_individual(M, I, C, Lbl, Comm, G) :-
   qb_instance(M, I, owl:'NamedIndividual', G),
   (var(C) -> true ; qb_instance(M, I, C, G)),
-  (var(Lbl) -> true ; qb_label(M, rdf, I, Lbl, G)),
+  (var(Lbl) -> true ; qb_label(M, I, Lbl, G)),
   (var(Comm) -> true ; qb_comment(M, I, Comm, G)),
   qb_isDefinedBy(M, I, G).
 

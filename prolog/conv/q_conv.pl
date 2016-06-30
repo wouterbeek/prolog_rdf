@@ -69,7 +69,6 @@ q_conv(Alias, Name, Opts) :-
   ;   atomic_list_concat([Alias,load,Name], '_', Pred),
       Goal_1 = Opts.module:Pred,
       call(Goal_1, G),
-      q_save(G),
       q_unload(G),
       debug(q(conv), "Graph ~a converted to store.", [G])
   ).

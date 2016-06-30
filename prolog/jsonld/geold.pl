@@ -1,8 +1,6 @@
 :- module(
   geold,
   [
-    geold_flatten/0,
-    geold_flatten/1, % ?G
     geold_geojson/2, % +Node, -GeoJson
     geold_rm_feature_collections/0,
     geold_tuple/3,   % +Source, +Alias, -Tuple
@@ -46,7 +44,6 @@ the array as e.g. Well-Known Text (WKT).
 :- qb_alias(geold, 'http://geojsonld.com/vocab#').
 
 :- rdf_meta
-   geold_flatten(r),
    geold_geojson(r, -),
    geold_print_feature(r).
 
@@ -83,35 +80,6 @@ geold_context(
   }
 ) :-
   q_alias_prefix(Alias, Prefix).
-
-
-
-%! geold_flatten is det.
-%! geold_flatten(?G) is det.
-
-geold_flatten :-
-  geold_flatten(_).
-
-
-geold_flatten(G) :-
-  M = rdf,
-  rdf_call_update((
-    q(M, S, geold:geometry, B, G),
-    % Without the blank node check an already converted literal may
-    % appear in the subject position of rdf_has/5, resulting in an
-    % exception.
-    q_is_bnode(B),
-    q_instance(M, B, C, G),
-    q(M, B, geold:coordinates, Array^^tcco:array, G)
-  ), (
-    rdf_global_id(_:Name0, C),
-    lowercase_atom(Name0, Name),
-    rdf_global_id(wkt:Name, D),
-    qb(M, S, geold:geometry, Array^^D, G),
-    rdf_retractall(S, geold:geometry, B, G),
-    rdf_retractall(B, rdf:type, C, G),
-    rdf_retractall(B, geold:coordinates, Array^^tcco:array, G)
-  )).
 
 
 

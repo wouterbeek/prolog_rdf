@@ -3,12 +3,14 @@
   [
     q__cbd/1,   %     ?S
    %q__cbd/3,   % ?M, ?S,     ?G
-    %q__cs/0,
-    %q__cs/2,    % ?M,         ?G
+   %q__cs/0,
+   %q__cs/2,    % ?M,         ?G
     q__g/0,
     q__g/2,     % ?M,         ?G
     q__gs/0,
     q__gs/1,    % ?M
+    q__p/1,     %         ?P
+    q__p/3,     % ?M,     ?P, ?G
     q__p_ds/1,  %         ?P
     q__p_ds/3,  % ?M,     ?P, ?G
     q__p_os/1,  %         ?P
@@ -63,8 +65,11 @@
 
 :- rdf_meta
    q__cbd(r),
+   q__cbd(+, r, r),
    q__cs(?, r),
    q__g(?, r),
+   q__p(r),
+   q__p(?, r, r),
    q__p_ds(r),
    q__p_ds(?, r, r),
    q__p_os(r),
@@ -74,8 +79,11 @@
    q__ps(?, r),
    q__ps_no(?, r),
    q__root(r),
+   q__root(+, r, r),
    q__scbd(r),
-   q__tree(r).
+   q__scbd(+, r, r),
+   q__tree(r),
+   q__tree(+, r, r).
 
 
 
@@ -95,7 +103,7 @@ q__cbd(S) :-
 
 % @tbd
 %q__cs(rdf, G) :-
-%  findall(N-[C,N], (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
+%  findall(N-[C,pl(N)], (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
 %  q_pairs_table0(["class","№ instances"], Pairs).
 
 
@@ -129,6 +137,19 @@ q__gs(M) :-
       findall(N-[G,pl(N)], q_number_of_triples(M, G, N), Pairs)
   ),
   q_pairs_table0(Header, Pairs).
+
+
+
+%! q__p(?P) is nondet.
+%! q__p(?M, ?P, ?G) is nondet.
+
+q__p(P) :-
+  q__p(_, P, _).
+
+
+q__p(M, P, G) :-
+  q__p_os(M, P, G),
+  q__p_ds(M, P, G).
 
 
 
@@ -169,14 +190,14 @@ q__p_os(M, P, G) :-
           Len > 1000
       ->  q_p_no_abbr(M, P, G, "Too many unique object terms.")
       ;   findall(
-            N-[O,N],
+            N-[O,pl(N)],
             (
               member(O, Os),
               q_number_of_subjects(M, P, O, G, N)
             ),
             Pairs
           ),
-          q_pairs_table0(["object","№ occurrences"], Pairs)
+          q_pairs_table0([bold("object"),bold("№ occurrences")], Pairs)
       )
   ).
 
@@ -214,14 +235,14 @@ q__ps :-
 
 q__ps(M, G) :-
   findall(
-    N-[P,N],
+    N-[P,pl(N)],
     (
       distinct(P, q(M, _, P, _, G)),
       q_number_of_triples(M, _, P, _, G, N)
     ),
     Pairs
   ),
-  q_pairs_table0(["predicate","№ occurrences"], Pairs).
+  q_pairs_table0([bold("predicate"),bold("№ occurrences")], Pairs).
 
 
 
@@ -238,14 +259,14 @@ q__ps_no :-
 
 q__ps_no(M, G) :-
   findall(
-    N-[P,N],
+    N-[P,pl(N)],
     (
       distinct(P, q_predicate(M, P, G)),
       q_number_of_objects(M, _, P, G, N)
     ),
     Pairs
   ),
-  q_pairs_table0(["predicate","№ objects"], Pairs).
+  q_pairs_table0([bold("predicate"),bold("№ objects")], Pairs).
 
 
 
@@ -278,7 +299,7 @@ q_p_no_abbr(M, P, G, Msg) :-
   ansi_format(user_output, [fg(yellow)], "~s~n", [Msg]),
   once(findnsols(5, O, q(M, _, P, O, G), Os)),
   maplist(singleton_list, Os, Rows),
-  q_print_table([head(["object"])|Rows]).
+  q_print_table([head([bold("object")])|Rows]).
 
 
 
