@@ -23,10 +23,10 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(rdf/rdf_prefix), []).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 
-:- rdf_register_prefix(ex, 'http://example.org/').
+:- qb_alias(ex, 'http://example.org/').
 
 :- rdf_meta
    rdf_fresh_graph(r, +),
@@ -114,7 +114,7 @@ rdf_new_graph(G1, G) :-
 rdf_new_graph_try(G) :-
   with_mutex(rdf_graph, (
     \+ rdf_graph(G),
-    rdf_create_graph(G)
+    qb_graph(G)
   )).
 
 

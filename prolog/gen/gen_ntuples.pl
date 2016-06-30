@@ -157,7 +157,7 @@ gen_ntuple(State, S, P, O, G) :-
   put_char(' '),
   (   State.rdf_format == ntriples
   ->  dict_inc(triples, State)
-  ;   rdf_default_graph(G)
+  ;   q_default_graph(G)
   ->  dict_inc(triples, State)
   ;   gen_graph(G),
       put_char(' '),

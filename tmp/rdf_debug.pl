@@ -25,7 +25,6 @@ Show RDF data structures during modeling/development.
 :- use_module(library(os/thread_ext)).
 :- use_module(library(pl_term)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(stream_ext)).
 

@@ -10,10 +10,19 @@
     q_load/2,          % +M, +G
     q_load_or_call/3,  % +M, :Goal_1, +G
     q_save/1,          % +G
+    q_snap/1,          % :Goal_0
+   %q_transaction/1,   % :Goal_0
+   %q_transaction/2,   % :Goal_0, +Id
+   %q_transaction/3,   % :Goal_0, +Is, +Opts
     q_unload/1,        % +G
     q_unload/2         % +M, +G
   ]
 ).
+:- reexport(library(semweb/rdf_db), [
+     rdf_transaction/1 as q_transaction,
+     rdf_transaction/2 as q_transaction,
+     rdf_transaction/3 as q_transaction
+   ]).
 
 /** <module> Quine I/O
 
@@ -29,7 +38,8 @@
 
 :- meta_predicate
     q_aggregate_all(+, 0, -),
-    q_load_or_call(+, 1, +).
+    q_load_or_call(+, 1, +),
+    q_snap(0).
 
 :- rdf_meta
    q_aggregate_all(+, t, -),
@@ -145,6 +155,13 @@ q_load_or_call(M, Goal_1, G) :-
 
 q_save(G) :-
   rdf__save(G).
+
+
+
+%! q_snap(:Goal_0) .
+
+q_snap(Goal_0) :-
+  q_transaction(Goal_0, _, [snapshot(true)]).
 
 
 

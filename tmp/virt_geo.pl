@@ -12,15 +12,16 @@
 @version 2016/06
 */
 
+:- use_module(library(q/qb)).
+:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_update)).
+:- use_module(library(q/qu)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
-:- q_create_alias(geosparql, 'http://www.opengis.net/ont/geosparql#').
-:- q_create_alias(ngeo, 'http://geovocab.org/geometry#').
+:- qb_alias(geosparql, 'http://www.opengis.net/ont/geosparql#').
+:- qb_alias(ngeo, 'http://geovocab.org/geometry#').
 
 :- rdf_meta
    virt_geo(r).
@@ -33,13 +34,14 @@
 %! virt_geo(+File1, +File2) is det.
 
 virt_geo(G) :-
+  M = rdf
   rdf_call_update((
-    rdf_has(S, geold:geometry, Lit, P, G)
+    q(M, S, geold:geometry, Lit, P, G)
   ), (
     q_literal_lex(Lit, Lex),
-    rdf_assert(S, geosparql:asWKT, Lex^^geosparql:wktLiteral, G),
-    rdf_assert_instance(S, ngeo:'Geometry', G),
-    rdf_retractall(S, P, Lit, G)
+    qb(M, S, geosparql:asWKT, Lex^^geosparql:wktLiteral, G),
+    qb_instance(M, S, ngeo:'Geometry', G),
+    q_retractall(M, S, P, Lit, G)
   )).
 
 

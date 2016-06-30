@@ -14,7 +14,6 @@
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(semweb/rdf11)).
 

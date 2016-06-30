@@ -36,7 +36,7 @@ wgs84:Point IS-A wgs84:SpatialThing
 
 :- use_module(library(q/q_term)).
 
-:- q_create_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
+:- qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 
 :- multifile
    gis:resource_shape_hook/5,

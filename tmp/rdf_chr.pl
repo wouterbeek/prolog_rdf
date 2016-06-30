@@ -18,7 +18,6 @@
 :- use_module(library(html/qh)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(solution_sequences)).
 
 :- chr_constraint

@@ -173,7 +173,7 @@ gml_setup(
   % Register prefixes.
   get_dict(prefixes, Opts, Pairs, []),
   pairs_keys_values(Pairs, Keys, Vals),
-  maplist(rdf_register_prefix, Keys, Vals),
+  maplist(qb_alias, Keys, Vals),
 
   atomic_list_concat([Base,gml,gz], ., GFile),
   atomic_list_concat([Base,edges,tmp], ., EFile),

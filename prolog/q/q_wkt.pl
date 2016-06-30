@@ -12,11 +12,12 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
 :- use_module(library(html/html_bs)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 
-:- q_create_alias(geold, 'http://geojsonld.com/vocab#').
-:- q_create_alias(wkt, 'http://geojsonld.com/wkt#').
+:- qb_alias(geold, 'http://geojsonld.com/vocab#').
+:- qb_alias(wkt, 'http://geojsonld.com/wkt#').
 
 :- rdf_meta
    array2shape(+, r, -).

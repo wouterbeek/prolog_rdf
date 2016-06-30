@@ -2,9 +2,7 @@
   rdf_deref,
   [
     rdf_cache/0,
-    rdf_cache/1, % +Opts
-    rdf_deref/1, % +Iri
-    rdf_deref/2  % +Iri, -Tuples
+    rdf_cache/1 % +Opts
   ]
 ).
 
@@ -33,10 +31,6 @@
 
 :- multifile
     rdf_cache:triple_to_iri/2.
-
-:- rdf_meta
-   rdf_deref(r),
-   rdf_deref(r, -).
 
 :- debug(rdf(deref)).
 
@@ -100,23 +94,3 @@ rdf_cache_worker(Opts, S, Ys) :-
   ;   Ys = [],
       debug(rdf(deref), "Skipping non-IRI: ~w", [S])
   ).
-
-
-
-%! rdf_deref(+S) is det.
-
-rdf_deref(S) :-
-  debug(rdf(deref), "Dereferencing ~a", [S]),
-  call_collect_messages(rdf_call_on_tuples(S, rdf_deref_tuple(S))),
-  if_debug(rdf(deref), z_print_quads(S, _, _, _)).
-
-
-rdf_deref_tuple(S1, S2, _, P, O, _) :-
-  is_same_iri(S1, S2, S3), !,
-  rdf_assert(S3, P, O, S2).
-rdf_deref_tuple(_, _, _, _, _).
-
-
-is_same_iri(X, Y, Z) :-
-  iri_normalized(X, Z),
-  iri_normalized(Y, Z).

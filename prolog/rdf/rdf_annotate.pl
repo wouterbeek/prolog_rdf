@@ -1,18 +1,17 @@
 :- module(
-  rdf_annotate,
+  q_annotate,
   [
-    html_annotations//3, % +Location, +Txt, +S
-    rdf_annotate/4,      % +S, +Txt,     +Opts
-    rdf_annotate/4,      % +S, +Txt, ?G, +Opts
-    rdf_annotation/2,    % +S, -Concept
-    rdf_annotations/2    % +S, -Concepts
+    qt_annotations//5, % +M, +Location, +Txt, +S, +G
+    q_annotate/5,      % +M, +S, +Txt, +G, +Opts
+    q_annotation/4,    % +M, +S, +G, -Concept
+    q_annotations/4    % +M, +S, +G, -Concepts
   ]
 ).
 
 /** <module> RDF-based text annotation
 
 @author Wouter Beek
-@version 2015/08, 2016/05
+@version 2015/08, 2016/05-2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -23,42 +22,43 @@
 :- use_module(library(lists)).
 :- use_module(library(nlp/dbpedia_spotlight)).
 :- use_module(library(os/thread_ext)).
+:- use_module(library(q/qb)).
+:- use_module(library(q/q_stmt)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 
 :- rdf_meta
-   html_annotations(+, +, r, ?, ?),
-   rdf_annotate(r, +, +),
-   rdf_annotate(r, +, r, +),
-   rdf_annotation(r, r),
-   rdf_annotations(r, -).
+   qh_annotations(+, +, +, r, +, ?, ?),
+   q_annotate(+, r, +, r, +),
+   q_annotation(+, r, r, -),
+   q_annotations(+, r, r, -).
 
-:- rdf_register_prefix(ann, 'http://lodlaundromat.org/annotate/').
-
+:- qb_alias(ann, 'http://lodlaundromat.org/annotate/').
 
 
 
 
-%! html_annotations(+Location, +Txt, +S)// is det.
 
-html_annotations(Location, Txt, S) -->
+%! qh_annotations(+M, +Location, +Txt, +S, +G)// is det.
+
+qh_annotations(M, Location, Txt, S, G) -->
   {
-    rdf(S, ann:hasAnnotationJob, Job),
-    (rdf_has(Job, ann:'Resource', Anns0) -> rdf_list(Anns0, Anns) ; Anns = []),
+    q(M, S, ann:hasAnnotationJob, Job, G),
+    (q_list_pl(M, Job, ann:'Resource', Anns, G) -> true ; Anns = []),
     atom_codes(Txt, Cs)
   },
-  html_annotations(Location, Cs, 0, Anns).
+  qh_annotations(M, Location, Cs, 0, Anns, G).
 
 
-html_annotations(_, Cs, _, []) --> !,
+qh_annotations(_, _, Cs, _, [], _) --> !,
   % Emit the remaining text.
   {atom_codes(Txt, Cs)},
   html(Txt).
-html_annotations(Location1, Cs1, OffsetAdjustment1, [H|T]) -->
+qh_annotations(M, Location1, Cs1, OffsetAdjustment1, [H|T], G) -->
   % Firstly, emit the text that appears before the next annotation.
   {
-    rdf_has(H, ann:'@offset', Offset0^^xsd:nonNegativeInteger),
+    q(M, H, ann:'@offset', Offset0^^xsd:nonNegativeInteger, G),
     Offset is Offset0 - OffsetAdjustment1
   },
   (   {Offset < 0}
@@ -77,14 +77,14 @@ html_annotations(Location1, Cs1, OffsetAdjustment1, [H|T]) -->
       % Secondly, emit the annotation.
       % This requires adjusting all pending annotations.
       {
-        rdf_has(H, ann:'@surfaceForm', SurfaceForm^^xsd:string),
+        q(M, H, ann:'@surfaceForm', SurfaceForm^^xsd:string, G),
         atom_length(SurfaceForm, Skip),
         length(SurfaceFormCs, Skip),
         append(SurfaceFormCs, Cs3, Cs2),
         OffsetAdjustment2 is OffsetAdjustment1 + Offset + Skip,
 
         % The hyperlink is based on the given LocationId, if any.
-        rdf_has(H, ann:'@URI', Location2^^xsd:anyURI),
+        q(M, H, ann:'@URI', Location2^^xsd:anyURI, G),
         (   var(Location1)
         ->  Location = Location2
         ;   iri_add_query_comp(Location1, concept=Location2, Location)
@@ -92,18 +92,13 @@ html_annotations(Location1, Cs1, OffsetAdjustment1, [H|T]) -->
       },
       html(a([class=annotated,href=Location,resource=Location2], [SurfaceForm]))
   ),
-  html_annotations(Location1, Cs3, OffsetAdjustment2, T).
+  qh_annotations(M, Location1, Cs3, OffsetAdjustment2, T, G).
 
 
 
-%! rdf_annotate(+S, +Txt, +Opts) is det.
-%! rdf_annotate(+S, +Txt, ?G, +Opts) is det.
+%! rdf_annotate(+M, +S, +Txt, +G, +Opts) is det.
 
-rdf_annotate(S, Txt, Opts):-
-  rdf_annotate(S, Txt, _, Opts).
-
-
-rdf_annotate(S, Txt, G, Opts0):-
+rdf_annotate(M, S, Txt, G, Opts0):-
   merge_options(Opts0, [concepts(Concepts)], Opts),
   annotate(Txt, Anns1, Opts),
 
@@ -125,31 +120,31 @@ rdf_annotate(S, Txt, G, Opts0):-
     '@URI': object{'@id': 'ann:URI', '@type': '@id'}
   },
   put_dict('@context', Anns1, Context, Anns2),
-  rdf_create_iri(ann, [job], Job),
+  qb_iri(ann, [job], Job),
   put_dict('@id', Anns2, Job, Anns3),
   rdf_global_id(ann:'AnnotationJob', C),
   put_dict('@type', Anns3, C, Anns4),
-  forall(jsonld_tuple(Anns4, rdf(S,P,O)), rdf_assert(S, P, O, G)),
+  forall(jsonld_tuple(Anns4, rdf(S,P,O)), qb(M, S, P, O, G)),
   option(language(Lang), Opts),
-  rdf_assert(Job, ann:naturalLanguage^^xsd:string, Lang, G),
-  rdf_assert(S, ann:hasAnnotationJob, Job, G),
+  qb(Job, ann:naturalLanguage, Lang^^xsd:string, G),
+  qb(M, S, ann:hasAnnotationJob, Job, G),
   
   % Relate the annotation concepts to the resource in whose text they occur.
-  maplist({S,G}/[Concept]>>rdf_assert(S, ann:hasConcept, Concept, G), Concepts).
+  maplist({M,S,G}/[Concept]>>qb(M, S, ann:hasConcept, Concept, G), Concepts).
 
 
 
-%! rdf_annotation(+S, -Concept) is nondet.
+%! rdf_annotation(+M, +S, -Concept, +G) is nondet.
 
-rdf_annotation(S, Concept) :-
-  rdf_has(S, ann:hasAnnotationJob, Job),
-  rdf_has(Job, ann:'Resources', Anns),
-  rdf_member(Ann, Anns),
-  rdf_has(Ann, ann:'@URI', Concept^^xsd:anyURI).
+rdf_annotation(M, S, Concept, G) :-
+  q(M, S, ann:hasAnnotationJob, Job, G),
+  q_list_pl(M, Job, ann:'Resources', Anns, G),
+  member(Ann, Anns),
+  q(M, Ann, ann:'@URI', Concept^^xsd:anyURI, G).
 
 
 
-%! rdf_annotations(+S, -Concepts) is nondet.
+%! rdf_annotations(+M, +S, +G, -Concepts) is nondet.
 
-rdf_annotations(S, Concepts) :-
-  aggregate_all(set(Concept), rdf_annotation(S, Concept), Concepts).
+rdf_annotations(M, S, G, Concepts) :-
+  aggregate_all(set(Concept), rdf_annotation(M, S, G, Concept), Concepts).

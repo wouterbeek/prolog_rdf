@@ -81,7 +81,7 @@
 % [94]   ANON ::= '[' WS* ']'
 % ```
 
-'ANON'(A) --> "[", *('WS'), "]", {rdf_create_bnode(A)}.
+'ANON'(A) --> "[", *('WS'), "]", {qb_bnode(A)}.
 
 
 

@@ -1,8 +1,7 @@
 :- module(
   rdf_prefix,
   [
-    abbr_iri/2,        % +Iri, -Abbr
-    rdf_reset_prefix/2 % +Prefix, +IriPrefix
+    abbr_iri/2 % +Iri, -Abbr
   ]
 ).
 
@@ -38,6 +37,8 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(csv)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
+:- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(service/prefix_cc), []).
 :- use_module(library(solution_sequences)).
@@ -293,13 +294,13 @@ dbpedia_register(LTag) :-
 
 rdf_reset_prefix(Prefix, IriPrefix) :-
   with_mutex(rdf_reset_prefix, (
-    (   rdf_current_prefix(Prefix, OldIriPrefix)
+    (   q_alias_prefix(Prefix, OldIriPrefix)
     ->  (   OldIriPrefix == IriPrefix
         ->  true
-        ;   rdf_register_prefix(Prefix, IriPrefix, [force(true)]),
+        ;   qb_alias(Prefix, IriPrefix),
             print_message(warning, rdf_reset_prefix(Prefix,OldIriPrefix,IriPrefix))
         )
-    ;   rdf_register_prefix(Prefix, IriPrefix)
+    ;   qb_alias(Prefix, IriPrefix)
     )
   )).
 

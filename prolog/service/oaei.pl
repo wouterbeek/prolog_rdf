@@ -1,9 +1,9 @@
 :- module(
   oaei,
   [
-    oaei/2,                    % ?From, ?To
-    oaei/4,                    % ?From, ?To, ?Rel, ?V
-    oaei_assert/2,             % +Pair,           ?G
+    oaei/3,                    % ?From, ?To, ?G
+    oaei/5,                    % ?From, ?To, ?Rel, ?V, ?G
+    oaei_assert/2,             % +Pair, ?G
     oaei_assert/4,             % +Pair, +Rel, +V, ?G
     oaei_convert_rdf_to_tsv/2, % +Source, +Sink
     oaei_convert_tsv_to_rdf/2, % +Source, +Sink
@@ -31,7 +31,7 @@ During loading and saving alignments are represented as pairs.
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
-:- rdf_register_prefix(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
+:- qb_alias(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
 
 :- rdf_meta
    oaei(o, o),
@@ -43,34 +43,34 @@ During loading and saving alignments are represented as pairs.
 
 
 
-%! oaei(?From, ?To) is nondet.
-%! oaei(?From, ?To, ?Rel, ?V) is nondet.
+%! oaei(+M, ?From, ?To, ?G) is nondet.
+%! oaei(+M, ?From, ?To, ?Rel, ?V, ?G) is nondet.
 
-oaei(From, To) :-
-  oaei(From, To, =, 1.0).
-
-
-oaei(From, To, Rel, V) :-
-  rdf_has(X, align:entity1, From),
-  rdf_has(X, align:entity2, To),
-  rdf_has(X, align:relation, Rel^^xsd:string),
-  rdf_has(X, align:measure, V^^xsd:float).
+oaei(M, From, To, G) :-
+  oaei(M, From, To, =, 1.0, G).
 
 
+oaei(M, From, To, Rel, V) :-
+  q(M, X, align:entity1, From, G),
+  q(M, X, align:entity2, To, G),
+  q(M, X, align:relation, Rel^^xsd:string, G),
+  q(M, X, align:measure, V^^xsd:float, G).
 
-%! oaei_assert(+Pair, ?G) is det.
-%! oaei_assert(+Pair, +Rel, +V:between(0.0,1.0), ?G) is det.
-
-oaei_assert(Pair, G) :-
-  oaei_assert(Pair, =, 1.0, G).
 
 
-oaei_assert(From-To, Rel, V, G) :-
-  rdf_create_bnode(B),
-  rdf_assert(B, align:entity1, From, G),
-  rdf_assert(B, align:entity2, To, G),
-  rdf_assert(B, align:relation, Rel, G),
-  rdf_assert(B, align:measure, V, G).
+%! oaei_assert(+M, +Pair, ?G) is det.
+%! oaei_assert(+M, +Pair, +Rel, +V:between(0.0,1.0), ?G) is det.
+
+oaei_assert(M, Pair, G) :-
+  oaei_assert(M, Pair, =, 1.0, G).
+
+
+oaei_assert(M, From-To, Rel, V, G) :-
+  qb_bnode(M, B),
+  qb(M, B, align:entity1, From, G),
+  qb(M, B, align:entity2, To, G),
+  qb(M, B, align:relation, Rel, G),
+  qb(M, B, align:measure, V, G).
 
 
 
@@ -100,8 +100,8 @@ oaei_load_rdf(Source, L) :-
 oaei_load_rdf(Source, L, Opts) :-
   rdf_call_on_graph(Source, oaei_load_rdf0(L), Opts).
 
-oaei_load_rdf0(L, _, _, _) :-
-  findall(From-To, oaei(From, To), L).
+oaei_load_rdf0(L, G, Meta, Meta) :-
+  findall(From-To, oaei(rdf, From, To, G), L).
 
 
 
@@ -119,7 +119,7 @@ oaei_save_rdf(Sink, Pairs) :-
   rdf_call_to_graph(Sink, oaei_assert1(Pairs)).
 
 oaei_assert1(Pairs, G) :-
-  maplist({G}/[Pair]>>oaei_assert(Pair, G), Pairs).
+  maplist({G}/[Pair]>>oaei_assert(rdf, Pair, G), Pairs).
 
 
 

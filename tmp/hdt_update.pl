@@ -13,6 +13,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(hdt/hdt__io)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
 :- use_module(library(uuid_ext)).
@@ -28,14 +29,15 @@
 
 
 
-%! hdt_update_tree(+G, :Goal_1) is det.
+%! hdt_update_tree(:Goal_1) is det.
 
 hdt_update_tree(G1, Goal_1) :-
-  q_tree(hdt, Root, G1, Tree),
+  M = hdt,
+  q_tree(M, Root, G1, Tree),
   setup_call_cleanup(
     (
       uuid_no_hyphen(G2),
-      maplist({G2}/[Triple]>>rdf_assert(Triple, G2), Tree)
+      maplist({G2}/[Triple]>>qb(M, Triple, G2), Tree)
     ),
     call(Goal_1, G2),
     (

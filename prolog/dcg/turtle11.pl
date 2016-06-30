@@ -145,7 +145,7 @@ prefixID(PrefixLabel, Iri) -->
   'PNAME_NS'(PrefixLabel),
   'IRIREF'(Iri),
   ".",
-  {rdf_register_prefix(PrefixLabel, Iri)}.
+  {qb_alias(PrefixLabel, Iri)}.
 
 
 
@@ -175,7 +175,7 @@ sparqlPrefix(PrefixLabel, Iri) -->
   "PREFIX",
   'PNAME_NS'(PrefixLabel),
   'IRIREF'(Iri),
-  {rdf_register_prefix(PrefixLabel, Iri)}.
+  {qb_alias(PrefixLabel, Iri)}.
 
 
 

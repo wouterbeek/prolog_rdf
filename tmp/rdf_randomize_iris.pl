@@ -13,6 +13,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(q/qb)).
 :- use_module(library(random)).
 :- use_module(library(uri)).
 
@@ -53,7 +54,7 @@ randomize_iri(IRI1, IRI2) :-
 randomize_triple(Graph, Dict, S1-P1-O1) :-
   rdf_retractall(S1, P1, O1, Graph),
   maplist(iri_lookup(Dict), [S1,P1,O1], [S2,P2,O2]),
-  rdf_assert(S2, P2, O2, Graph).
+  qb(S2, P2, O2, Graph).
 
 iri_lookup(Dict, X, Y) :-
   memberchk(X-Y, Dict), !.

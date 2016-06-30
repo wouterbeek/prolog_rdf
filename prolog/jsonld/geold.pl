@@ -2,13 +2,13 @@
   geold,
   [
     geold_flatten/0,
-    geold_flatten/1,       % ?G
-    geold_geojson/2,       % +Node, -GeoJson
+    geold_flatten/1, % ?G
+    geold_geojson/2, % +Node, -GeoJson
     geold_rm_feature_collections/0,
-    geold_tuple/3,         % +Source, +Alias, -Tuple
-    geold_tuple/5,         % +Source, +Alias, +ExtraContext, +ExtraData, -Tuple
-    geold_tuples/3,        % +Source, +Alias, -Tuples
-    geold_tuples/5         % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
+    geold_tuple/3,   % +Source, +Alias, -Tuple
+    geold_tuple/5,   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuple
+    geold_tuples/3,  % +Source, +Alias, -Tuples
+    geold_tuples/5   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
   ]
 ).
 
@@ -34,16 +34,16 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(lists)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_array)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_wkt)).
+:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf/rdf_update)).
+:- use_module(library(q/qu)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
-:- q_create_alias(geold, 'http://geojsonld.com/vocab#').
+:- qb_alias(geold, 'http://geojsonld.com/vocab#').
 
 :- rdf_meta
    geold_flatten(r),
@@ -94,19 +94,20 @@ geold_flatten :-
 
 
 geold_flatten(G) :-
+  M = rdf,
   rdf_call_update((
-    rdf(S, geold:geometry, B, G),
+    q(M, S, geold:geometry, B, G),
     % Without the blank node check an already converted literal may
     % appear in the subject position of rdf_has/5, resulting in an
     % exception.
     q_is_bnode(B),
-    rdf(B, rdf:type, C, G),
-    rdf(B, geold:coordinates, Array^^tcco:array, G)
+    q_instance(M, B, C, G),
+    q(M, B, geold:coordinates, Array^^tcco:array, G)
   ), (
     rdf_global_id(_:Name0, C),
     lowercase_atom(Name0, Name),
     rdf_global_id(wkt:Name, D),
-    rdf_assert(S, geold:geometry, Array^^D, G),
+    qb(M, S, geold:geometry, Array^^D, G),
     rdf_retractall(S, geold:geometry, B, G),
     rdf_retractall(B, rdf:type, C, G),
     rdf_retractall(B, geold:coordinates, Array^^tcco:array, G)

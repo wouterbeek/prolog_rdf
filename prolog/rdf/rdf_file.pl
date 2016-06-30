@@ -15,12 +15,12 @@
 */
 
 :- use_module(library(error)). % Hook.
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_http_plugin)). % RDF serialization formats.
 :- use_module(library(solution_sequences)).
 
-:- rdf_register_prefix(formats, 'http://www.w3.org/ns/formats/').
+:- qb_alias(formats, 'http://www.w3.org/ns/formats/').
 
 :- rdf_meta
    rdf_format_iri(?, r).

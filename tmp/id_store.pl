@@ -327,18 +327,18 @@ create_id(Tid) :-
 rdf_rename_term0(Xid, Yid) :-
   % Firstly. rename the graph `Xid', if it exists.
   (   rdf_graph_id(Xid)
-  ->  forall(rdf_id(Sid, Pid, Oid, Xid), rdf_assert_id(Sid, Pid, Oid, Yid)),
+  ->  forall(rdf_id(Sid, Pid, Oid, Xid), qb_id(Sid, Pid, Oid, Yid)),
       rdf_unload_graph_id(Xid)
   ;   true
   ),
 
   % Secondly, rename statements containing term X
   % in the subject, predicate and object position.
-  forall(rdf_id(Xid, Pid, Oid, Gid), rdf_assert_id(Yid, Pid, Oid, Gid)),
+  forall(rdf_id(Xid, Pid, Oid, Gid), qb_id(Yid, Pid, Oid, Gid)),
   rdf_retractall_id(Xid, _, _, _),
-  forall(rdf_id(Sid, Xid, Oid, Gid), rdf_assert_id(Sid, Yid, Oid, Gid)),
+  forall(rdf_id(Sid, Xid, Oid, Gid), qb_id(Sid, Yid, Oid, Gid)),
   rdf_retractall_id(_, Xid, _, _),
-  forall(rdf_id(Sid, Pid, Xid, Gid), rdf_assert_id(Sid, Pid, Yid, Gid)),
+  forall(rdf_id(Sid, Pid, Xid, Gid), qb_id(Sid, Pid, Yid, Gid)),
   rdf_retractall_id(_, _, Xid, _).
 
 

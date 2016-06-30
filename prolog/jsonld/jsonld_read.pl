@@ -123,7 +123,7 @@ jsonld_to_list_triple(Context, S, P, _, _, [], Tuple) :- !,
   rdf_equal(rdf:nil, Nil),
   tuple_term(Context, S, P, Nil, Tuple).
 jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Tuple) :-
-  rdf_create_bnode(B),
+  qb_bnode(B),
   (   tuple_term(Context, S, P, B, Tuple)
   ;   jsonld_to_list_triple(Context, B, ODef, LTag, L, Tuple)
   ).
@@ -139,7 +139,7 @@ jsonld_to_list_triple(Context, S, ODef, LTag, [H|T], Tuple) :-
   (   rdf_equal(rdf:first, First),
       jsonld_tuple(Context, S, First, ODef, LTag, H, Tuple)
   ;   rdf_equal(rdf:rest, Rest),
-      rdf_create_bnode(B),
+      qb_bnode(B),
       (   tuple_term(Context, S, Rest, B, Tuple)
       ;   jsonld_to_list_triple(Context, B, ODef, LTag, T, Tuple)
       )
@@ -193,7 +193,7 @@ jsonld_to_subject(Context, L1, S2, L2) :-
   jsonld_expand_term(Context, S1, S2), !.
 % Case 2: No explicit subject term.  Create a fresh blank node.
 jsonld_to_subject(_, L, S, L) :-
-  rdf_create_bnode(S).
+  qb_bnode(S).
 
 
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.

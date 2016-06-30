@@ -1,20 +1,6 @@
 :- module(
   rdfs_ext,
   [
-    rdfs_assert_class/5,       % +C, ?D, ?Lbl, ?Comment, ?G
-    rdfs_assert_comment/2,     % +S, +Comment
-    rdfs_assert_comment/3,     % +S, +Comment, ?G
-    rdfs_assert_domain/3,      % +P, +C, ?G
-    rdfs_assert_isDefinedBy/2, % +S, ?G
-    rdfs_assert_isDefinedBy/3, % +S, ?Iri, ?G
-    rdfs_assert_label/2,       % +S, +Lbl
-    rdfs_assert_label/3,       % +S, +Lbl, ?G
-    rdfs_assert_property/4,    % +C, +P, +D, ?G
-    rdfs_assert_range/3,       % +P, +C, ?G
-    rdfs_assert_seeAlso/3,     % +S, +Uri, +G
-    rdfs_assert_subclass/2,    % +C, ?G
-    rdfs_assert_subclass/3,    % +C, ?D, ?G
-    rdfs_assert_subproperty/3, % +P, +Q, ?G
     rdfs_class/1,              % ?C
     rdfs_class/2,              % ?C, ?G
     rdfs_domain/2,             % ?P, ?Dom
@@ -39,33 +25,17 @@
 @version 2016/04-2016/06
 */
 
-:- use_module(library(rdf/rdf_default)).
-:- use_module(library(rdf/rdf_ext)).
-:- use_module(library(rdf/rdf_prefix)).
-:- use_module(library(rdf/rdf_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(vocab/vocab_ext)).
+
+:- qb_alias(dbo, 'http://dbpedia.org/ontology/').
+:- qb_alias(dcmit, 'http://purl.org/dc/dcmitype/').
 
 :- rdf_meta
-   rdfs_assert_class(r, t, ?, ?, r),
-   rdfs_assert_comment(r, +),
-   rdfs_assert_comment(r, +, r),
-   rdfs_assert_domain(r, r, r),
-   rdfs_assert_isDefinedBy(r, r),
-   rdfs_assert_isDefinedBy(r, r, r),
-   rdfs_assert_label(r, +),
-   rdfs_assert_label(r, +, r),
-   rdfs_assert_list(r, r, t, r),
-   rdfs_assert_property(r, r, r, r),
-   rdfs_assert_range(r, r, r),
-   rdfs_assert_seeAlso(r, +, r),
-   rdfs_assert_subclass(r, r),
-   rdfs_assert_subclass(r, t, r),
-   rdfs_assert_subproperty(r, t, r),
    rdfs_class(r),
    rdfs_class(r, r),
    rdfs_domain(r, r),
@@ -82,121 +52,6 @@
    rdfs_retractall_class(r).
 
 
-
-
-
-%! rdfs_assert_class(+C, ?D, ?Lbl, ?Comment, ?G) is det.
-
-rdfs_assert_class(C, Parent, Lbl, Comm, G) :-
-  rdf_assert_instance(C, rdfs:'Class', G),
-  rdfs_assert_class0(C, Parent, Lbl, Comm, G).
-
-
-
-%! rdfs_assert_comment(+S, +Comment) is det.
-%! rdfs_assert_comment(+S, +Comment, ?G) is det.
-
-rdfs_assert_comment(S, Comment) :-
-  rdfs_assert_comment(S, Comment, _).
-
-
-rdfs_assert_comment(S, Comment, G) :-
-  rdf_assert(S, rdfs:comment, Comment, G).
-
-
-
-%! rdfs_assert_domain(+P, +C, ?G) is det.
-
-rdfs_assert_domain(P, D, G) :-
-  rdf_assert(P, rdfs:domain, D, G).
-
-
-
-%! rdfs_assert_isDefinedBy(+S, ?G) is det.
-%! rdfs_assert_isDefinedBy(+S, ?Iri, ?G) is det.
-%
-% If Iri is uninstantiated, the IRI denoted by the registered RDF
-% prefix of Term, if any, is used.
-
-rdfs_assert_isDefinedBy(S, G) :-
-  rdfs_assert_isDefinedBy(S, _, G).
-
-rdfs_assert_isDefinedBy(S, Prefix, G) :-
-  var(Prefix), !,
-  q_iri_prefix(S, Prefix),
-  rdf_assert(S, rdfs:isDefinedBy, Prefix^^xsd:anyURI, G).
-rdfs_assert_isDefinedBy(S, Iri, G) :-
-  rdf_assert(S, rdfs:isDefinedBy, Iri^^xsd:anyURI, G).
-
-
-
-%! rdfs_assert_label(+S, +Lbl) is det.
-%! rdfs_assert_label(+S, +Lbl, ?G) is det.
-%
-% Assigns an RDFS label to the resource denoted by the given RDF term.
-%
-% This predicate stores the label as an RDF language-tagged string.
-% The default language is `en-US`.
-
-rdfs_assert_label(S, Lbl) :-
-  rdfs_assert_label(S, Lbl, _).
-
-
-rdfs_assert_label(S, Lbl, G) :-
-  rdf_assert(S, rdfs:label, Lbl, G).
-
-
-
-%! rdfs_assert_property(+C, +P, +D, ?G) is det.
-
-rdfs_assert_property(C, P, D, G) :-
-  rdfs_assert_domain(P, C, G),
-  rdfs_assert_range(P, D, G).
-
-
-
-%! rdfs_assert_range(+P, +C, ?G) is det.
-
-rdfs_assert_range(P, C, G) :-
-  rdf_assert(P, rdfs:range, C, G).
-
-
-
-%! rdfs_assert_seeAlso(+S, +Iri, ?G) is det.
-
-rdfs_assert_seeAlso(S, Iri, G) :-
-  rdf_assert(S, rdfs:seeAlso, Iri, G).
-
-
-
-%! rdfs_assert_subclass(+C, ?G) is det.
-%! rdfs_assert_subclass(+C, ?D, ?G) is det.
-% If D is uninstantiated it defaults to `rdfs:Resource`.
-
-rdfs_assert_subclass(C, G) :-
-  rdfs_assert_subclass(C, _, G).
-rdfs_assert_subclass(C, D, G) :-
-  % Allow the parent class to be uninstantiated.
-  (   var(D)
-  ->  rdf_assert(C, rdfs:subClassOf, rdfs:'Resource', G)
-  ;   is_list(D)
-  ->  forall(member(D0, D), rdf_assert(C, rdfs:subClassOf, D0, G))
-  ;   rdf_assert(C, rdfs:subClassOf, D, G)
-  ).
-
-
-
-%! rdfs_assert_subproperty(+P, ?Q, ?G) is det.
-% Creates a new property that is a subproperty of the given parent property.
-%
-% If Q is uninstantiated it defaults to `rdf:Property`.
-
-rdfs_assert_subproperty(P, Qs, G) :-
-  is_list(Qs), !,
-  forall(member(Q, Qs), rdfs_assert_subproperty(P, Q, G)).
-rdfs_assert_subproperty(P, Q, G) :-
-  rdf_defval(rdf:'Property', Q),
-  rdf_assert(P, rdfs:subPropertyOf, Q, G).
 
 
 
@@ -364,6 +219,6 @@ rdfs_retractall_class(C) :-
 
 rdfs_assert_class0(C, Parent, Lbl, Comm, G) :-
   rdfs_assert_subclass(C, Parent, G),
-  (var(Lbl) -> true ; rdfs_assert_label(C, Lbl, G)),
+  (var(Lbl) -> true ; qb_label(rdf, C, Lbl, G)),
   (var(Comm) -> true ; rdfs_assert_comment(C, Comm, G)),
   rdfs_assert_isDefinedBy(C, G).

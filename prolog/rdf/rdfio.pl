@@ -62,7 +62,6 @@ already part of ClioPatria.
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf), [process_rdf/3]).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_guess)).
@@ -257,7 +256,7 @@ rdf_call_on_tuples0(Goal_5, Opts1, In, M, M) :-
 
 rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
-  (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
+  (G2 == user -> q_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
   ->  call(Goal_5, M, S, P, O1, G3)
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
@@ -290,7 +289,7 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
       )
   ).
 rdf_call_on_quad0(Goal_5, M, rdf(S,P,O)) :-
-  rdf_default_graph(G),
+  q_default_graph(G),
   rdf_call_on_quad0(Goal_5, M, rdf(S,P,O,G)).
 
 
@@ -411,7 +410,7 @@ rdf_load_file(Source, Opts) :-
   State = _{quads: 0, triples: 0},
   (   option(force_graph(ToG), Opts)
   ->  Goal_5 = rdf_force_load_tuple0(State, ToG)
-  ;   rdf_default_graph(DefG),
+  ;   q_default_graph(DefG),
       option(graph(ToG), Opts, DefG),
       Goal_5 = rdf_load_tuple0(State, ToG)
   ),
@@ -435,13 +434,13 @@ rdf_force_load_tuple0(State, ToG, _, S, P, O, FromG) :-
 
 rdf_load_tuple0(State, ToG, _, S, P, O, FromG) :-
   count_tuple0(State, FromG),
-  (rdf_default_graph(FromG) -> G = ToG ; G = FromG),
+  (q_default_graph(FromG) -> G = ToG ; G = FromG),
   % @tbd IRI normalization.
   rdf_assert(S, P, O, G).
 
 
 count_tuple0(State, G) :-
-  rdf_default_graph(G), !,
+  q_default_graph(G), !,
   dict_inc(triples, State).
 count_tuple0(State, _) :-
   dict_inc(quads, State).
@@ -458,7 +457,7 @@ rdf_load_tuples(Source, Triples) :-
 
 
 rdf_load_tuples(Source, Triples, Opts) :-
-  rdf_snap((
+  q_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
     q_triples(rdf, Triples)
@@ -518,7 +517,7 @@ rdf_write_to_sink(File, S, P, O, G, Opts) :-
   create_file_directory(File),
   rdf_write_to_sink(File, S, P, O, G, Opts).
 rdf_write_to_sink(Sink, S, P, O, G, Opts) :-
-  rdf_default_graph(DefG),
+  q_default_graph(DefG),
   defval(DefG, G),
   rdf_write_format0(Sink, Opts, Format),
   call_to_stream(Sink, rdf_write_to_sink0(S, P, O, G, Format), Opts),

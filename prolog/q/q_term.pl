@@ -5,9 +5,9 @@
    %q_alias_prefix/2,      % ?Alias, ?Prefix
     q_bnode/2,             % ?M, ?B
     q_bnode/3,             % ?M, ?B, ?G
-   %q_create_bnode/1,      % -B
     q_datatype/2,          % ?M, ?D
     q_datatype/3,          % ?M, ?D, ?G
+    q_defval/2,            % +Def, -Val
     q_default_graph/1,     % ?G
     q_iri/2,               % ?M, ?Iri
     q_iri/3,               % ?M, ?Iri, ?G
@@ -60,11 +60,9 @@
      rdf_global_id/2,
      rdf_global_object/2,
      rdf_global_term/2,
-     (rdf_meta)/1,
-     rdf_register_prefix/2 as q_create_alias
+     (rdf_meta)/1
    ]).
 :- reexport(library(semweb/rdf11), [
-     rdf_create_bnode/1 as q_create_bnode,
      rdf_default_graph/1 as q_default_graph,
      rdf_is_bnode/1 as q_is_bnode,
      rdf_is_iri/1 as q_is_iri,
@@ -95,6 +93,7 @@
    q_bnode(?, ?, r),
    q_datatype(?, r),
    q_datatype(?, r, r),
+   q_defval(r, -),
    q_iri(?, r),
    q_iri(?, r, r),
    q_is_lts(o),
@@ -166,6 +165,14 @@ q_datatype(rdf, D, G) :-
   rdf_datatype(D, G).
 q_datatype(hdt, D, G) :-
   hdt_datatype(D, G).
+
+
+
+%! q_defval(+Def, -Val) is det.
+
+q_defval(_, X) :-
+  nonvar(X), !.
+q_defval(X, X).
 
 
 

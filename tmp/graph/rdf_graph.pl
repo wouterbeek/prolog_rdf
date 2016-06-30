@@ -29,6 +29,7 @@
 
 :- use_module(library(error)).
 :- use_module(library(ordsets)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_stmt)).
 
 
@@ -105,7 +106,7 @@ rdf_graph_merge(FromGs, ToG) :-
     bnode_map(FromG, SharedBNode-NewBNode),
     (
       member(FromG-SharedBNode, SharedBNodes),
-      rdf_create_bnode(NewBNode)
+      qb_bnode(NewBNode)
     ),
     Map
   ),
@@ -125,7 +126,7 @@ rdf_graph_merge(FromGs, ToG) :-
       ->  true
       ;   O2 = O1
       ),
-      rdf_assert(S2, P, O2, ToG)
+      qb(S2, P, O2, ToG)
     )
   ).
 

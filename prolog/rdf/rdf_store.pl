@@ -37,21 +37,21 @@ rdf_store(Out, S, P, O) :-
   is_stream(Out), !,
   with_output_to(Out, gen_ntriple(S, P, O)).
 rdf_store(G, S, P, O) :-
-  rdf_assert(S, P, O, G).
+  qb(S, P, O, G).
 
 
 
 %! rdf_store_list(+Out, +L, -RdfL) is det.
 
 rdf_store_list(Out, L, B) :-
-  rdf_create_bnode(B),
+  qb_bnode(B),
   rdf_store_list0(Out, B, L).
 
 
 rdf_store_list0(_, _, []) :- !.
 rdf_store_list0(Out, B1, [H|T]) :-
   rdf_store(Out, B1, rdf:first, H),
-  (T == [] -> rdf_equal(rdf:nil, B2) ; rdf_create_bnode(B2)),
+  (T == [] -> rdf_equal(rdf:nil, B2) ; qb_bnode(B2)),
   rdf_store(Out, B1, rdf:rest, B2),
   rdf_store_list0(Out, B2, T).
 

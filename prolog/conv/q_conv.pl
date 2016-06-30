@@ -70,9 +70,9 @@ q_conv(Alias, Name, Opts) :-
   rdf_global_id(Alias:Name, G),
   (   q_exists(G)
   ->  debug(q(conv), "Graph ~a already exists in store.", [G])
-  ;   atomic_list_concat([Alias,load,Name], '_', Pred_1),
-      Goal_1 = Opts.module:Pred_1,
-      call(Goal_1, G),
+  ;   atomic_list_concat([Alias,load,Name], '_', Pred),
+      Goal_2 = Opts.module:Pred,
+      call(Goal_2, M, G),
       q_save(G),
       q_unload(G),
       debug(q(conv), "Graph ~a converted to store.", [G])
@@ -85,9 +85,9 @@ q_conv_void(Alias, Opts) :-
   ->  debug(q(conv), "Graph ~a already exists in store.", [VoidG])
   ;   rdf_global_id(Alias:data, DataG),
       q_graph_to_file(DataG, [nt,gz], DataFile),
-      atomic_list_concat([Alias,load,void], '_', Pred_1),
-      Goal_1 = Opts.module:Pred_1,
-      source_to_void(DataFile, Goal_1, VoidG),
+      atomic_list_concat([Alias,load,void], '_', Pred),
+      Goal_3 = Opts.module:Pred,
+      source_to_void(DataFile, Goal_3, VoidG),
       q_save(VoidG),
       q_unload(VoidG),
       debug(q(conv), "Graph ~a converted to store.", [VoidG])

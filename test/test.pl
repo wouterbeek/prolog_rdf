@@ -46,6 +46,7 @@
 :- use_module(library(q/q__io)).
 :- use_module(library(q/q_array)).
 :- use_module(library(q/q_bnode_map)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_cli)).
 :- use_module(library(q/q_datatype)).
@@ -59,15 +60,14 @@
 :- use_module(library(q/q_term)).
 :- use_module(library(q/q_wgs84)).
 :- use_module(library(q/q_wkt)).
+:- use_module(library(q/qu)).
 %/rdf
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_annotate)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
-:- use_module(library(rdf/rdf_default)).
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_error)).
-:- use_module(library(rdf/rdf_ext)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph)).
@@ -82,7 +82,6 @@
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf/rdf_update)).
 :- use_module(library(rdf/rdf_user)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
@@ -101,7 +100,6 @@
 :- use_module(library(service/prefix_cc)).
 :- use_module(library(service/void_store)).
 %/vocab
-:- use_module(library(vocab/vocab_ext)).
 :- use_module(library(vocab/void)).
 %/xsd
 :- use_module(library(xsd/xsd)).

@@ -9,8 +9,9 @@ Tests for RDFS model theory.
 */
 
 :- use_module(library(plunit)).
+:- use_module(library(q/qb)).
 
-:- rdf_reset_prefix(ex, 'http://example.org/').
+:- qb_alias(ex, 'http://example.org/').
 
 :- begin_tests(rdf_mt).
 
@@ -70,24 +71,27 @@ build_test_model(G, M) :-
   rdf_add_i_ext(M, 1, 2, 1).
 
 build_test_syntax(G) :-
+  M = rdf,
   G = rdf_mt_graph_1,
-  rdf_assert(ex:a, ex:b, ex:c, G),
-  rdf_assert(ex:c, ex:a, ex:a, G),
-  rdf_assert(ex:c, ex:b, ex:a, G),
-  rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
+  qb(M, ex:a, ex:b, ex:c, G),
+  qb(M, ex:c, ex:a, ex:a, G),
+  qb(M, ex:c, ex:b, ex:a, G),
+  qb(M, ex:a, ex:b, literal(type(ex:b,whatever)), G).
 build_test_syntax(G) :-
+  M = rdf,
   G = rdf_mt_graph_2,
-  rdf_assert(ex:a, ex:c, ex:b, G),
-  rdf_assert(ex:a, ex:b, ex:b, G),
-  rdf_assert(ex:c, ex:a, ex:c, G),
-  rdf_assert(ex:a, ex:b, literal(whatever), G).
+  qb(M, ex:a, ex:c, ex:b, G),
+  qb(M, ex:a, ex:b, ex:b, G),
+  qb(M, ex:c, ex:a, ex:c, G),
+  qb(M, ex:a, ex:b, literal(whatever), G).
 build_test_syntax(G) :-
+  M = rdf,
   G = rdf_mt_graph_3,
-  rdf_bnode(X),
-  rdf_assert(   X, ex:b, ex:c, G),
-  rdf_assert(ex:c, ex:a, ex:a, G),
-  rdf_assert(ex:c, ex:b, ex:a, G),
-  rdf_assert(ex:a, ex:b, literal(type(ex:b,whatever)), G).
+  qb_bnode(X),
+  qb(M,    X, ex:b, ex:c, G),
+  qb(M, ex:c, ex:a, ex:a, G),
+  qb(M, ex:c, ex:b, ex:a, G),
+  qb(M, ex:a, ex:b, literal(type(ex:b,whatever)), G).
 
 clean_test(G, M) :-
   rdf_unload_model(M),

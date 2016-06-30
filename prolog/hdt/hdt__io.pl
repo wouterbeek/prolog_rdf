@@ -23,7 +23,7 @@
 :- use_module(library(hdt), []).
 :- use_module(library(os/open_any2)).
 :- use_module(library(q/q__io)).
-:- use_module(library(q/q_build)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).

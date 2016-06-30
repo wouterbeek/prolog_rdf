@@ -115,7 +115,7 @@ mat0(GIn, GOut, Opts) :-
   ;   true
   ),
 
-  forall(find_chr_constraint(rdf_chr(S,P,O)), rdf_assert(S, P, O, GOut)),
+  forall(find_chr_constraint(rdf_chr(S,P,O)), qb(rdf, S, P, O, GOut)),
 
   if_option(justifications(true), Opts, clear_j).
 

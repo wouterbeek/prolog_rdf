@@ -61,9 +61,9 @@
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(string_ext)).
 
-:- q_create_alias(bf, 'http://bibframe.org/vocab/').
-:- q_create_alias(org, 'http://www.w3.org/ns/org#').
-:- q_create_alias(sioc, 'http://rdfs.org/sioc/ns#').
+:- qb_alias(bf, 'http://bibframe.org/vocab/').
+:- qb_alias(org, 'http://www.w3.org/ns/org#').
+:- qb_alias(sioc, 'http://rdfs.org/sioc/ns#').
 
 :- rdf_meta
    agent_image(+, r, -, r),

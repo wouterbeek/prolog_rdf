@@ -1,9 +1,9 @@
 :- module(
   json2rdf,
   [
-    geojson2rdf_graph/3, % +Source, +Alias, +Graph
+    geojson2rdf_graph/4, % +M, +Source, +Alias, +Graph
     geojson2rdf_stmt/3,  % +Source, +Alias, -Triple
-    json2rdf_graph/3,    % +Source, +Alias, +Graph
+    json2rdf_graph/4,    % +M, +Source, +Alias, +Graph
     json2rdf_stmt/3,     % +Source, +Alias, -Triple
     ndjson2rdf_triple/3  % +Source, +Context, -Triple
   ]
@@ -23,6 +23,7 @@
 :- use_module(library(jsonld/geold)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(os/open_any2)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
@@ -33,13 +34,13 @@
 
 
 
-%! geojson2rdf_graph(+File, +Alias, +G) is det.
+%! geojson2rdf_graph(+M, +File, +Alias, +G) is det.
 
-geojson2rdf_graph(File, Alias, G) :-
+geojson2rdf_graph(M, File, Alias, G) :-
   geojson2rdf_stmt(File, Alias, Triple),
-  rdf_assert(Triple, G),
+  qb(M, Triple, G),
   fail.
-geojson2rdf_graph(_, _, _) :-
+geojson2rdf_graph(_, _, _, _) :-
   debug(geojsond2rdf, "GeoJSON → RDF done", []).
 
 
@@ -51,13 +52,13 @@ geojson2rdf_stmt(File, Alias, Triple) :-
 
 
 
-%! json2rdf_graph(+Source, +Alias, +G) is nondet.
+%! json2rdf_graph(+M, +Source, +Alias, +G) is nondet.
 
-json2rdf_graph(Source, Alias, G) :-
+json2rdf_graph(M, Source, Alias, G) :-
   json2rdf_stmt(Source, Alias, Triple),
-  rdf_assert(Triple, G),
+  qb(M, Triple, G),
   fail.
-json2rdf_graph(_, _, _) :-
+json2rdf_graph(_, _, _, _) :-
   debug(jsond2rdf, "JSON → RDF done", []).
 
 
@@ -78,7 +79,7 @@ json2rdf_stmt0(In, Alias, Triple) :-
   ->  !, fail
   ;   atom_string(A, Str),
       atom_json_dict(A, D),
-      rdf_create_bnode(S),
+      qb_bnode(S),
       get_dict_path(Keys1, D, Val),
 
       % P
