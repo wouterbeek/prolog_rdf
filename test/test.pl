@@ -1,5 +1,4 @@
 %/conv
-:- use_module(library(conv/bibtex2rdf)).
 :- use_module(library(conv/csv2rdf)).
 :- use_module(library(conv/json2rdf)).
 :- use_module(library(conv/q_conv)).
@@ -22,8 +21,8 @@
 %/hdt
 :- use_module(library(hdt/hdt__io)).
 :- use_module(library(hdt/hdt_stat)).
+:- use_module(library(hdt/hdt_stmt)).
 :- use_module(library(hdt/hdt_term)).
-:- use_module(library(hdt/hdt_update)).
 %/html
 :- use_module(library(html/qh)).
 :- use_module(library(html/rdfh_fca)).
@@ -40,8 +39,6 @@
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(mat/mat_print)).
 :- use_module(library(mat/mat_viz)).
-%/owl
-:- use_module(library(owl/owl_ext)).
 %/q
 :- use_module(library(q/q__io)).
 :- use_module(library(q/q_array)).
