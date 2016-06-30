@@ -85,8 +85,6 @@ q_conv_void(Alias, Opts) :-
       q_load(hdt, DataG),
       source_to_void(DataG, Goal_3, VoidG),
       q_unload(DataG),
-      q_save(VoidG),
-      q_unload(VoidG),
       debug(q(conv), "Graph ~a converted to store.", [VoidG])
   ).
 

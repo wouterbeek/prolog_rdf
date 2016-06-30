@@ -107,7 +107,6 @@ source_to_void(DataG, Goal_3, VoidG) :-
   %qb(M, Dataset, void:dataDump, M.'llo:base_iri', VoidG),
 
   % Number of distinct object terms (‘void:distinctObjects’).
-  gtrace,
   q_number_of_objects(M, DataG, NumOs),
   qb(M, Dataset, void:distinctObjects, NumOs^^xsd:nonNegativeInteger, VoidG),
 

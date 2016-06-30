@@ -2,6 +2,7 @@
   q__io,
   [
     q_aggregate_all/3, % +Template, :Goal_0, -Result
+    q_available/2,     % ?M, -G
     q_backend/1,       % ?M
     q_exists/1,        % +G
     q_fs/0,
@@ -62,6 +63,24 @@
 
 q_aggregate_all(Template, Goal_0, Result) :-
   aggregate_all(Template, Goal_0, Result).
+
+
+
+%! q_available(?M, -G) is nondet.
+
+q_available(M, G) :-
+  distinct(G, (
+    member(Wildcard0, ['*.hdt','*.nt.gz','*.nq.gz']),
+    absolute_file_name(data(.), Dir, [access(read),file_type(directory)]),
+    directory_file_path(Dir, Wildcard0, Wildcard),
+    expand_file_name(Wildcard, Paths),
+    member(Path, Paths),
+    directory_file_path(Dir, File, Path),
+    atomic_list_concat([Base|_], ., File),
+    atomic_list_concat([Alias,Local], '_', Base),
+    rdf_global_id(Alias:Local, G),
+    \+ q_graph(M, G)
+  )).
 
 
 
@@ -175,9 +194,9 @@ q_unload(G) :-
   forall(q_graph(M, G), q_unload(M, G)).
 
 
-q_unload(rdf, G) :-
+q_unload(rdf, G) :- !,
   rdf_unload_graph(G).
-q_unload(hdt, G) :-
+q_unload(hdt, G) :- !,
   hdt__unload(G).
 
 

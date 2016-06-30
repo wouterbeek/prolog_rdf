@@ -391,7 +391,7 @@ qu_process_string(M1, M2, P, G, Dcg_3) :-
     q(M1, S, P, Lex^^xsd:string, G)
   ), (
     string_phrase(dcg_call(Dcg_3, M2, S, G), Lex),
-    qr_rm(M1, S, P, Lex^^xsd:string, G)
+    qb_rm(M1, S, P, Lex^^xsd:string, G)
   )).
 
 

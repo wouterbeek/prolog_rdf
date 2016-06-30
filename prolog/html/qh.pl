@@ -794,7 +794,7 @@ qh_link(C, Cs, Term, Content_0, Opts) -->
 
 qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   {
-    setting(qh_handler, Id),
+    setting(qh:http_handler, Id),
     Id \== '', !,
     qh_link_query_term(C, Term, QueryTerm),
     (   get_dict(query, Opts, Query0)
