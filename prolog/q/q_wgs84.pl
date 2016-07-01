@@ -35,6 +35,8 @@ wgs84:Point IS-A wgs84:SpatialThing
 */
 
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
+:- use_module(library(semweb/rdf11)).
 
 :- qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 

@@ -84,7 +84,7 @@
    qb_rm(+, t),
    qb_rm(+, t, r),
    qb_rm(+, r, r, o, r),
-   qb_update(+, +, r, r, o, r, t),
+   qu(+, +, r, r, o, r, t),
    % RDFS
    qb_class(+, r, t, ?, ?, r),
    qb_comment(+, r, +, r),

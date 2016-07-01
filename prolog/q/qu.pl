@@ -1,34 +1,36 @@
 :- module(
   qu,
   [
-    qu_add_ltag/5,        % +M1, +M2, +P, +LTag, +G
-    qu_call/2,            % :Find_0, :Transform_0
-    qu_change_datatype/5, % +M1, +M2, +P, +G, +D
-    qu_change_iri/8,      % +M1, +M2, ?S, ?P, ?O, +G, +Positions, :Dcg_0
-    qu_change_lex/5,      % +M1, +M2, +P, +G, :Dcg_0
-    qu_change_ltag/5,     % +M1, +M2, +LTag1, +G, +LTag2
-    qu_change_p/5,        % +M1, +M2, +P, +G, +Q
-    qu_change_prefix/9,   % +M1, +M2, ?S, ?P, ?O, +G, +Positions, +Alias1, +Alias2
-    qu_cp/4,              % +M1, +M2, +G1, +G2
-    qu_cp/7,              % +M1, +M2, +G1, ?S, ?P, ?O, +G2
-    qu_comb_date/7,       % +M1, +M2, +YP, +MP, +DP, +G, +Q
-    qu_comb_month_day/7,  % +M1, +M2, +YP, +MP, +DP, +G, +Q
-    qu_comb_year_month/7, % +M1, +M2, +YP, +MP, +DP, +G, +Q
-    qu_inc/5,             % +M1, +M2, +S, +P, +G
-    qu_flatten/4,         % +M1, +M2, +P, +G
-    qu_lex_padding/5,     % +M1, +M2, +P, +G, +PaddingCode
-    qu_lex_to_iri/6,      % +M1, +M2, ?P, +Alias, +G, :Lex2Local_0
-    qu_mv/4,              % +M1, +M2, +G1, +G2
-    qu_mv/7,              % +M1, +M2, +G1, ?S, ?P, ?O, +G2
-    qu_process_string/5,  % +M1, +M2, +P, +G, :Dcg_3
-    qu_rm/6,              % +M1, +M2, ?S, ?P, ?O, +G
-    qu_rm_cell/6,         % +M1, +M2, +S, +P, +O, +G
-    qu_rm_col/4,          % +M1, +M2, +P, +G
-    qu_rm_error/6,        % +M1, +M2, ?S, ?P, ?O, +G
-    qu_rm_null/5,         % +M1, +M2, ?P, +Null, +G
-    qu_rm_tree/4,         % +M1, +M2, +S, +G
-    qu_rm_triples/6,      % +M1, +M2, ?S, ?P, ?O, ?G
-    qu_split_string/5     % +M1, +M2, +P, +G, ?SepChars
+    qu_add_ltag/5,          % +M1, +M2, +P, +LTag, +G
+    qu_call/2,              % :Find_0, :Transform_0
+    qu_change_datatype/5,   % +M1, +M2, +P, +G, +D
+    qu_change_iri/8,        % +M1, +M2, ?S, ?P, ?O, +G, +Positions, :Dcg_0
+    qu_change_lex/5,        % +M1, +M2, +P, +G, :Dcg_0
+    qu_change_ltag/5,       % +M1, +M2, +LTag1, +G, +LTag2
+    qu_change_p/5,          % +M1, +M2, +P, +G, +Q
+    qu_change_prefix/9,     % +M1, +M2, ?S, ?P, ?O, +G, +Positions, +Alias1, +Alias2
+    qu_cp/4,                % +M1, +M2, +G1, +G2
+    qu_cp/7,                % +M1, +M2, +G1, ?S, ?P, ?O, +G2
+    qu_comb_date/7,         % +M1, +M2, +YP, +MP, +DP, +G, +Q
+    qu_comb_month_day/7,    % +M1, +M2, +YP, +MP, +DP, +G, +Q
+    qu_comb_year_month/7,   % +M1, +M2, +YP, +MP, +DP, +G, +Q
+    qu_inc/5,               % +M1, +M2, +S, +P, +G
+    qu_flatten/4,           % +M1, +M2, +P, +G
+    qu_lex_padding/5,       % +M1, +M2, +P, +G, +PaddingCode
+    qu_lex_to_iri/6,        % +M1, +M2, ?P, +Alias, +G, :Lex2Local_0
+    qu_mv/4,                % +M1, +M2, +G1, +G2
+    qu_mv/7,                % +M1, +M2, +G1, ?S, ?P, ?O, +G2
+    qu_process_string/5,    % +M1, +M2, +P, +G, :Dcg_3
+    qu_replace_string/7,    % +M1, +M2, ?S, ?P, +Sub1, +G, +Sub2
+    qu_replace_predicate/5, % +M1, +M2, +P, +G, +Q
+    qu_rm/6,                % +M1, +M2, ?S, ?P, ?O, +G
+    qu_rm_cell/6,           % +M1, +M2, +S, +P, +O, +G
+    qu_rm_col/4,            % +M1, +M2, +P, +G
+    qu_rm_error/6,          % +M1, +M2, ?S, ?P, ?O, +G
+    qu_rm_null/5,           % +M1, +M2, ?P, +Null, +G
+    qu_rm_tree/4,           % +M1, +M2, +S, +G
+    qu_rm_triples/6,        % +M1, +M2, ?S, ?P, ?O, ?G
+    qu_split_string/5       % +M1, +M2, +P, +G, ?SepChars
   ]
 ).
 
@@ -52,6 +54,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(string_ext)).
 
 :- meta_predicate
     qu_call(0, 0),
@@ -83,6 +86,8 @@ Higher-level update operations performed on RDF data.
    qu_mv(+, +, r, r),
    qu_mv(+, +, r, r, r, o, r),
    qu_process_string(+, +, r, r, :),
+   qu_replace_string(+, +, r, r, +, r, +),
+   qu_replace_predicate(+, +, r, r, r),
    qu_rm(+, +, r, r, o, r),
    qu_rm_cell(+, +, r, r, o, r),
    qu_rm_col(+, +, r, r),
@@ -392,6 +397,29 @@ qu_process_string(M1, M2, P, G, Dcg_3) :-
   ), (
     string_phrase(dcg_call(Dcg_3, M2, S, G), Lex),
     qb_rm(M1, S, P, Lex^^xsd:string, G)
+  )).
+
+
+
+%! qu_replace_predicate(+M1, +M2, +P, +G, +Q) is det.
+
+qu_replace_predicate(M1, M2, P, G, Q) :-
+  qu_call(
+    q(M1, S, P, O, G),
+    qu(M1, M2, S, P, O, G, predicate(Q))
+  ).
+
+
+
+%! qu_replace_string(+M1, +M2, ?S, ?P, +Sub1, +G, +Sub2) is det.
+
+qu_replace_string(M1, M2, S, P, Sub1, G, Sub2) :-
+  qu_call((
+    q(M1, S, P, Str1^^xsd:string, G),
+    string_replace(Str1, Sub1, Sub2, Str2),
+    Str1 \== Str2
+  ), (
+    qu(M1, M2, S, P, Str1^^xsd:string, G, object(Str2^^xsd:string))
   )).
 
 
