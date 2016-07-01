@@ -34,6 +34,7 @@ wgs84:Point IS-A wgs84:SpatialThing
 @version 2016/06
 */
 
+:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
@@ -84,8 +85,8 @@ wgs84_alt(M, S, Alt) :-
 
 
 wgs84_alt(M, S, Alt, G) :-
-  q(M, S, wgs84:location, Point, _, G),
-  q(M, Point, wgs84:alt, Alt^^xsd:float, _, G).
+  q(M, S, wgs84:location, Point, G),
+  q(M, Point, wgs84:alt, Alt^^xsd:float, G).
 
 
 
@@ -99,8 +100,8 @@ wgs84_lat(M, S, Lat) :-
 
 
 wgs84_lat(M, S, Lat, G) :-
-  q(M, S, wgs84:location, Point, _, G),
-  q(M, Point, wgs84:lat, Lat^^xsd:float, _, G).
+  q(M, S, wgs84:location, Point, G),
+  q(M, Point, wgs84:lat, Lat^^xsd:float, G).
 
 
 
@@ -112,8 +113,8 @@ wgs84_lat_long(M, S, Lat, Long) :-
 
 
 wgs84_lat_long(M, S, Lat, Long, G) :-
-  q(M, S, wgs84:location, Point, _, G),
-  q(M, Point, wgs84:lat_long, Lat-Long^^wgs84:pair, _, G).
+  q(M, S, wgs84:location, Point, G),
+  q(M, Point, wgs84:lat_long, Lat-Long^^wgs84:pair, G).
 
 
 
@@ -127,8 +128,8 @@ wgs84_long(M, S, Long) :-
 
 
 wgs84_long(M, S, Long, G) :-
-  q(M, S, wgs84:location, Point, _, G),
-  q(M, Point, wgs84:long, Long^^xsd:float, _, G).
+  q(M, S, wgs84:location, Point, G),
+  q(M, Point, wgs84:long, Long^^xsd:float, G).
 
 
 
@@ -145,9 +146,9 @@ wgs84_point(M, S, Point) :-
 
 
 wgs84_point(M, S, Point, G) :-
-  q(M, S, wgs84:location, Point, _, G),
-  q(M, Point, wgs84:lat, Lat^^xsd:float, _, G),
-  q(M, Point, wgs84:long, Long^^xsd:float, _, G),
+  q(M, S, wgs84:location, Point, G),
+  q(M, Point, wgs84:lat, Lat^^xsd:float, G),
+  q(M, Point, wgs84:long, Long^^xsd:float, G),
   (   q(M, Point, wgs84:alt, Alt^^xsd:float, G)
   ->  Point = point(Lat,Long,Alt)
   ;   Point = point(Lat,Long)
