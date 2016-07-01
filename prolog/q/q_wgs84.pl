@@ -1,15 +1,10 @@
 :- module(
   q_wgs84,
   [
-    wgs84_alt/3,      % ?M, ?S, ?Alt
     wgs84_alt/4,      % ?M, ?S, ?Alt, ?G
-    wgs84_lat/3,      % ?M, ?S, ?Lat
     wgs84_lat/4,      % ?M, ?S, ?Lat, ?G
-    wgs84_lat_long/4, % ?M, ?S, ?Lat, ?Long
     wgs84_lat_long/5, % ?M, ?S, ?Lat, ?Long, ?G
-    wgs84_long/3,     % ?M, ?S, ?Long
     wgs84_long/4,     % ?M, ?S, ?Long, ?G
-    wgs84_point/3,    % ?M, ?S, ?Point
     wgs84_point/4     % ?M, ?S, ?Point, ?G
   ]
 ).
@@ -48,15 +43,10 @@ wgs84:Point IS-A wgs84:SpatialThing
    rdf11:out_type_hook/3.
 
 :- rdf_meta
-   wgs84_alt(?, r, ?),
    wgs84_alt(?, r, ?, r),
-   wgs84_lat(?, r, ?),
    wgs84_lat(?, r, ?, r),
-   wgs84_lat_long(?, r, ?, ?),
    wgs84_lat_long(?, r, ?, ?, r),
-   wgs84_long(?, r, ?),
    wgs84_long(?, r, ?, r),
-   wgs84_point(?, r, ?),
    wgs84_point(?, r, ?, r).
 
 gis:resource_shape_hook(M, S, D, G, Point) :-
@@ -76,14 +66,9 @@ rdf11:out_type_hook(D, Lat-Long, Lex) :-
 
 
 
-%! wgs84_alt(?M, ?S, ?Alt) is nondet.
 %! wgs84_alt(?M, ?S, ?Alt, ?G) is nondet.
 %
 % Succeeds if Alt is the WGS84 altitude of resource S.
-
-wgs84_alt(M, S, Alt) :-
-  wgs84_alt(M, S, Alt, _).
-
 
 wgs84_alt(M, S, Alt, G) :-
   q(M, S, wgs84:location, Point, G),
@@ -91,14 +76,9 @@ wgs84_alt(M, S, Alt, G) :-
 
 
 
-%! wgs84_lat(?M, ?S, ?Lat) is nondet.
 %! wgs84_lat(?M, ?S, ?Lat, ?G) is nondet.
 %
 % Succeeds if Lat is the WGS84 latitude of resource S.
-
-wgs84_lat(M, S, Lat) :-
-  wgs84_lat(M, S, Lat, _).
-
 
 wgs84_lat(M, S, Lat, G) :-
   q(M, S, wgs84:location, Point, G),
@@ -106,12 +86,7 @@ wgs84_lat(M, S, Lat, G) :-
 
 
 
-%! wgs84_lat_long(?M, ?S, ?Lat, ?Long) is nondet.
 %! wgs84_lat_long(?M, ?S, ?Lat, ?Long, ?G) is nondet.
-
-wgs84_lat_long(M, S, Lat, Long) :-
-  wgs84_lat_long(M, S, Lat, Long, _).
-
 
 wgs84_lat_long(M, S, Lat, Long, G) :-
   q(M, S, wgs84:location, Point, G),
@@ -119,14 +94,9 @@ wgs84_lat_long(M, S, Lat, Long, G) :-
 
 
 
-%! wgs84_long(?M, ?S, ?Long) is nondet.
 %! wgs84_long(?M, ?S, ?Long, ?G) is nondet.
 %
 % Succeeds if Long is the WGS84 longitude of resource S.
-
-wgs84_long(M, S, Long) :-
-  wgs84_long(M, S, Long, _).
-
 
 wgs84_long(M, S, Long, G) :-
   q(M, S, wgs84:location, Point, G),
@@ -134,7 +104,6 @@ wgs84_long(M, S, Long, G) :-
 
 
 
-%! wgs84_point(?M, ?S, ?Point) is nondet.
 %! wgs84_point(?M, ?S, ?Point, ?G) is nondet.
 %
 % Succeeds if Point denotes a geo-location of resource S.
@@ -142,15 +111,11 @@ wgs84_long(M, S, Long, G) :-
 % Point is either of the form `point(?Lat,?Long)` or
 % `point(?Lat,?Long,?Alt)`.
 
-wgs84_point(M, S, Point) :-
-  wgs84_point(M, S, Point, _).
-
-
-wgs84_point(M, S, Point, G) :-
-  q(M, S, wgs84:location, Point, G),
-  q(M, Point, wgs84:lat, Lat^^xsd:float, G),
-  q(M, Point, wgs84:long, Long^^xsd:float, G),
-  (   q(M, Point, wgs84:alt, Alt^^xsd:float, G)
-  ->  Point = point(Lat,Long,Alt)
-  ;   Point = point(Lat,Long)
+wgs84_point(M, S, PlPoint, G) :-
+  q(M, S, wgs84:location, RdfPoint, G),
+  q(M, RdfPoint, wgs84:lat, Lat^^xsd:float, G),
+  q(M, RdfPoint, wgs84:long, Long^^xsd:float, G),
+  (   q(M, RdfPoint, wgs84:alt, Alt^^xsd:float, G)
+  ->  PlPoint = point(Lat,Long,Alt)
+  ;   PlPoint = point(Lat,Long)
   ).
