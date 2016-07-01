@@ -492,7 +492,7 @@ qu_rm_triples(M1, M2, S, P, O, G) :-
 
 
 
-%! qu_split_string(+M1, +M2, +P, +G, +SepChars)// is det.
+%! qu_split_string(+M1, +M2, +P, +G, +SepChars) is det.
 
 qu_split_string(M1, M2, P, G, SepChars) :-
   qu_call((

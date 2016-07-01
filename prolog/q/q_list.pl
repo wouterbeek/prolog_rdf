@@ -102,7 +102,7 @@ q_list(M, S, P, RdfL, G) :-
 %! q_list_to_pl(?M, +RdfL, -PlL) is nondet.
 %! q_list_to_pl(?M, +RdfL, ?G, -PlL) is nondet.
 %! q_list_pl(?M, ?S, ?P, -PlL) is nondet.
-%! q_list_pl(?M, ?S, ?P, ?G, -PlL, ) is nondet.
+%! q_list_pl(?M, ?S, ?P, ?G, -PlL) is nondet.
 
 q_list_to_pl(M, RdfL, PlL) :-
   q_list_to_pl(M, RdfL, _, PlL).

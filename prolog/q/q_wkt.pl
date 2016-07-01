@@ -1,26 +1,32 @@
-:- module(q_wkt, []).
+:- module(
+  q_wkt,
+  [
+    qb_wkt_point/4 % +M, +S, +PlPoint, +G
+  ]
+).
 
 /** <module> Quine Well-Known Text (WKT) plug-in
 
 Allows WKT shapes to be read/written from/to the Quine triple store.
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
 :- use_module(library(html/html_bs)).
-:- use_module(library(q/qb)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 
 :- qb_alias(geold, 'http://geojsonld.com/vocab#').
 :- qb_alias(wkt, 'http://geojsonld.com/wkt#').
 
 :- rdf_meta
-   array2shape(+, r, -).
+   array2shape(+, r, -),
+   qu_wkt_point(+, r, +, r).
 
 :- multifile
    gis:resource_shape_hook/5,
@@ -62,3 +68,13 @@ qh:qh_literal_hook(Array^^D, Opts) -->
     q_literal_lex(Array^^D, Lex)
   },
   bs_truncated(Lex, Opts.max_length).
+
+
+
+
+
+%! qb_wkt_point(+M, +S, +PlPoint, +G) is det.
+
+qb_wkt_point(M, S, PlPoint, G) :-
+  atom_phrase(wkt(point(PlPoint)), Lex),
+  qb(M, S, geold:geometry, Lex^^wkt:point, G).
