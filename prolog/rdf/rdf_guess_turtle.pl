@@ -158,10 +158,8 @@ turtle_subject([]) --> turtle_bnode.
 bs0 --> bs, !.
 bs0, " " --> "#", ..., (eol ; eos), !.
 
-turtle_keyword --> atom_lower(A), !, {turtle_keyword(A)}.
-
-turtle_keyword(base).
-turtle_keyword(prefix).
+turtle_keyword --> "base".
+turtle_keyword --> "prefix".
 
 %! guess_turtle_format(
 %!   +Excluded:ordset(rdf_format),
