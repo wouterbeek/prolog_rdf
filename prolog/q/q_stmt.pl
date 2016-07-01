@@ -39,6 +39,7 @@
     q_triple/3,           % ?M, ?G, -Triple
     q_triple/5,           % ?M, ?S, ?P, ?O, -Triple
     q_triple/6,           % ?M, ?S, ?P, ?O, ?G, -Triple
+    q_triple_datatype/2,  % +Triple, -D
     q_triple_iri/2,       % +Triple, -Iri
     q_triple_object/2,    % +Triple, -O
     q_triple_predicate/2, % +Triple, -P
@@ -67,6 +68,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- use_module(library(hdt/hdt_stmt)).
 :- use_module(library(lists)).
 :- use_module(library(nlp/nlp_lang)).
+:- use_module(library(q/q_term)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).

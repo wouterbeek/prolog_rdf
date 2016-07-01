@@ -528,9 +528,9 @@ qh_quad_row(M, rdf(S,P,O,G), Opts) -->
   html(
     span(class=quadruple,
       tr([
-        td(\qh_subject_outer(M, subject, [subject], S, Opts)),
+        td(\qh_subject_outer(M, term, [subject], S, Opts)),
         td(\qh_predicate_outer(M, predicate, [predicate], P, Opts)),
-        td(\qh_object_outer(M, object, [object], O, Opts)),
+        td(\qh_object_outer(M, term, [object], O, Opts)),
         td(\qh_graph_term_outer(M, graph, [graph], G, Opts))
       ])
     )
@@ -697,11 +697,11 @@ qh_triple(M, S, P, O, Opts) -->
   html(
     span(class=triple, [
       &(lang),
-      \qh_subject_outer(M, subject, [subject], S, Opts),
+      \qh_subject_outer(M, term, [subject], S, Opts),
       ", ",
       \qh_predicate_outer(M, predicate, [predicate], P, Opts),
       ", ",
-      \qh_object_outer(M, object, [object], O, Opts),
+      \qh_object_outer(M, term, [object], O, Opts),
       &(rang)
     ])
   ).
@@ -720,9 +720,9 @@ qh_triple_row(M, rdf(S,P,O), Opts) -->
   html(
     span(class=triple,
       tr([
-        td(\qh_subject_outer(M, subject, [subject], S, Opts)),
+        td(\qh_subject_outer(M, term, [subject], S, Opts)),
         td(\qh_predicate_outer(M, predicate, [predicate], P, Opts)),
-        td(\qh_object_outer(M, object, [object], O, Opts))
+        td(\qh_object_outer(M, term, [object], O, Opts))
       ])
     )
   ).

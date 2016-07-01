@@ -24,6 +24,7 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_list)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
