@@ -20,7 +20,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(hdt), []).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(q/q__io)).
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
@@ -51,15 +51,11 @@
 
 
 
-%! hdt__call(+Mode, :Goal_1, +G) is det.
+%! hdt__call(:Goal_1, +G) is det.
 
-hdt__call(Mode, Goal_1, G) :- !,
+hdt__call(Goal_1, G) :- !,
   q_graph_to_file(G, [nt,gz], File),
-  setup_call_cleanup(
-    gzopen(File, Mode, Out),
-    call(Goal_1, Out),
-    close(Out)
-  ).
+  call_to_stream(File, Goal_1).
 
 
 
@@ -180,22 +176,16 @@ hdt2rdf(_).
 
 %! ensure_ntriples(+NQuadsFile, +NTriplesFile) is det.
 
-ensure_ntriples(From, To) :-
+ensure_ntriples(Source, Sink) :-
   Opts = [rdf_format(ntriples)],
-  setup_call_cleanup(
-    (
-      gzopen(To, write, Sink),
-      gen_ntuples:gen_ntuples_begin(State, Opts)
-    ),
-    with_output_to(
-      Sink, 
+  call_to_stream(
+    Sink,
+    setup_call_cleanup(
+      gen_ntuples:gen_ntuples_begin(State, Opts),
       rdf_call_on_tuples(
-        From,
+        Source,
         {State}/[_,S,P,O,G]>>gen_ntuple(State, S, P, O, G)
-      )
-    ),
-    (
-      gen_ntuples:gen_ntuples_end(State, Opts),
-      close(Sink)
+      ),
+      gen_ntuples:gen_ntuples_end(State, Opts)
     )
   ).

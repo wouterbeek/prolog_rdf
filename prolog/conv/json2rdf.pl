@@ -24,12 +24,11 @@
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/geold)).
 :- use_module(library(jsonld/jsonld_read)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(yall)).
 
 :- debug(json2rdf).
 
@@ -39,14 +38,14 @@
 %! geojson2rdf(+M, +Source, +Alias, +G) is det.
 
 geojson2rdf(hdt, Source, Alias, G) :- !,
-  hdt__call(write, geojson2rdf_stream(Source, Alias), G).
+  hdt__call(geojson2rdf_stream0(Source, Alias), G).
 
 
-geojson2rdf_stream(Source, Alias, Out) :-
+geojson2rdf_stream0(Source, Alias) :-
   geojson2rdf_stmt(Source, Alias, Triple),
-  with_output_to(Out, gen_ntriple(Triple)),
+  gen_ntriple(Triple),
   fail.
-geojson2rdf_stream(_, _, _) :-
+geojson2rdf_stream0(_, _) :-
   debug(geojsond2rdf, "GeoJSON → RDF done", []).
 
 
@@ -61,14 +60,14 @@ geojson2rdf_stmt(Source, Alias, Triple) :-
 %! json2rdf(+M, +Source, +Alias, +G) is nondet.
 
 json2rdf(hdt, Source, Alias, G) :- !,
-  hdt__call(write, json2rdf_stream(Source, Alias), G).
+  hdt__call(json2rdf_stream0(Source, Alias), G).
 
 
-json2rdf_stream(Source, Alias, Out) :-
+json2rdf_stream0(Source, Alias, Out) :-
   json2rdf_stmt(Source, Alias, Triple),
   with_output_to(Out, gen_ntriple(Triple)),
   fail.
-json2rdf_stream(_, _, _) :-
+json2rdf_stream0(_, _, _) :-
   debug(jsond2rdf, "JSON → RDF done", []).
 
 
@@ -76,13 +75,10 @@ json2rdf_stream(_, _, _) :-
 %! json2rdf_stmt(+Source, +Alias, -Triple) is nondet.
 
 json2rdf_stmt(Source, Alias, Triple) :-
-  call_on_stream(
-    Source,
-    {Alias,Triple}/[In,MIn,MIn]>>json2rdf_stmt0(In, Alias, Triple),
-    [throw_when_empty(true)]
-  ).
+  call_on_stream(Source, json2rdf_stmt_stream0(Alias, Triple, In)).
 
-json2rdf_stmt0(In, Alias, Triple) :-
+
+json2rdf_stmt_stream0(Alias, Triple, In, Meta, Meta) :-
   repeat,
   read_line_to_string(In, Str),
   (   Str == end_of_file
@@ -109,12 +105,10 @@ json2rdf_stmt0(In, Alias, Triple) :-
 %! ndjson2rdf_triple(+Source, +Context, -Triple) is nondet.
 
 ndjson2rdf_triple(Source, Context, Triple) :-
-  call_on_stream(
-    Source,
-    {Context,Triple}/[In,MIn,MIn]>>ndjson2rdf0(In, Context, Triple)
-  ).
+  call_on_stream(Source, ndjson2rdf_triple_stream0(Context, Triple)).
 
-ndjson2rdf0(In, Context, Triple) :-
-  read_line_to_string(In, S),
-  atom_json_dict(S, D),
-  jsonld_tuple_with_context(Context, D, Triple).
+
+ndjson2rdf_triple_stream0(Context, Triple, In, Meta, Meta) :-
+  read_line_to_string(In, Str),
+  atom_json_dict(Str, Json),
+  jsonld_tuple_with_context(Context, Json, Triple).

@@ -20,7 +20,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(pure_input)).
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
@@ -57,11 +57,7 @@ Automatic conversion from CSV to RDF.
 %   RDF properties within the given namespace.  Default is `ex`.
 
 csv2rdf(M, Source, G, Opts) :-
-  call_on_stream(
-    Source,
-    {M,G,D,Opts}/[In,Meta,Meta]>>csv2rdf1(M, In, G, D, Opts),
-    Opts
-  ).
+  call_on_stream(Source, csv2rdf_stream1(M, G, D, Opts), Opts).
 
 
 csv2rdf_options(Opts1, D, Opts4) :-
@@ -80,29 +76,33 @@ csv2rdf_options(Opts1, D2, Opts2) :-
   ).
 
 
-csv2rdf1(M, In, G, D, Opts0) :-
+csv2rdf_stream1(G, D, Opts0, In, Meta, Meta) :-
   csv2rdf_options(Opts0, D, Opts),
   (   get_dict(header, D, Ps)
   ->  true
   ;   once(csv:csv_read_stream_row(In, Row, _, Opts)),
       list_row(Locals, Row),
       Alias = D.tbox_alias,
-      maplist({Alias}/[Local,P]>>q_iri_alias_local(P, Alias, Local), Locals, Ps)
+      maplist(
+        {Alias}/[Local,P]>>q_iri_alias_local(P, Alias, Local),
+        Locals,
+        Ps
+      )
   ),
-  csv2rdf2(M, In, Ps, G, D, Opts).
+  csv2rdf_stream2(M, In, Ps, G, D, Opts).
 
 
-csv2rdf2(M, In, Ps, G, D, Opts) :-
+csv2rdf_stream2(M, In, Ps, G, D, Opts) :-
   csv:csv_read_stream_row(In, Row, N, Opts),
   list_row(Vals, Row),
   atom_number(Name, N),
   rdf_global_id(D.abox_alias:Name, S),
-  csv2rdf3(M, S, Ps, Vals, G),
+  csv2rdf_stream3(M, S, Ps, Vals, G),
   fail.
-csv2rdf2(_, _, _, _, _, _).
+csv2rdf_stream2(_, _, _, _, _, _).
 
 
-csv2rdf3(_, _, [], [], _) :- !.
-csv2rdf3(M, S, [P|Ps], [Val|Vals], G) :- !,
+csv2rdf_stream3(_, _, [], [], _) :- !.
+csv2rdf_stream3(M, S, [P|Ps], [Val|Vals], G) :- !,
   qb(M, S, P, Val^^xsd:string, G),
-  csv2rdf3(M, S, Ps, Vals, G).
+  csv2rdf_stream3(M, S, Ps, Vals, G).

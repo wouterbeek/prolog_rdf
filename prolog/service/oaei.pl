@@ -25,7 +25,7 @@ During loading and saving alignments are represented as pairs.
 
 :- use_module(library(csv_ext)).
 :- use_module(library(lists)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
@@ -100,6 +100,7 @@ oaei_load_rdf(Source, L) :-
 oaei_load_rdf(Source, L, Opts) :-
   rdf_call_on_graph(Source, oaei_load_rdf0(L), Opts).
 
+
 oaei_load_rdf0(L, G, Meta, Meta) :-
   findall(From-To, oaei(rdf, From, To, G), L).
 
@@ -116,9 +117,9 @@ oaei_load_tsv(Source, Pairs) :-
 %! oaei_save_rdf(+Sink, +Alignments) is det.
 
 oaei_save_rdf(Sink, Pairs) :-
-  rdf_call_to_graph(Sink, oaei_assert1(Pairs)).
+  rdf_call_to_graph(Sink, oaei_assert0(Pairs)).
 
-oaei_assert1(Pairs, G) :-
+oaei_assert0(Pairs, G) :-
   maplist({G}/[Pair]>>oaei_assert(rdf, Pair, G), Pairs).
 
 
@@ -126,11 +127,12 @@ oaei_assert1(Pairs, G) :-
 %! oaei_save_tsv(+Sink, +Alignments) is det.
 
 oaei_save_tsv(Sink, Pairs) :-
-  call_to_stream(Sink, oaei_save_tsv1(Pairs)).
+  call_to_stream(
+    Sink,
+    {Pairs}/[Out]>>maplist(oaei_save_tsv_pair0(Out), Pairs)
+  ).
 
-oaei_save_tsv1(Pairs, Out, _, _) :-
-  maplist(oaei_save_tsv2(Out), Pairs).
 
-oaei_save_tsv2(Out, Pair) :-
+oaei_save_tsv_pair0(Out, Pair) :-
   pair_row(Pair, Row),
   tsv_write_stream(Out, [Row]).

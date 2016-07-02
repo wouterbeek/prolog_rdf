@@ -17,7 +17,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
@@ -37,7 +37,8 @@ rdf_guess_format(In, Format) :-
 
 
 rdf_guess_format(In, Format, Opts) :-
-  rdf_guess_format0(In, 0, Format, Opts).
+  rdf_guess_format0(0, Format, Opts, In).
+
 
 rdf_guess_format0(In, I, Format, Opts) :-
   N is 1000 * 2 ^ I,
@@ -79,6 +80,6 @@ rdf_guess_format_file(File, Format) :-
 rdf_guess_format_file(File, Format, Opts) :-
   call_on_stream(
     File,
-    {Format,Opts}/[In,M,M]>>rdf_guess_format(In, Format, Opts),
+    [In,Meta,Meta]>>rdf_guess_format(In, Format, Opts),
     Opts
   ).

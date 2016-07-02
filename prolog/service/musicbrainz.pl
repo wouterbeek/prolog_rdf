@@ -15,7 +15,6 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_download)).
 :- use_module(library(ordsets)).
-:- use_module(library(os/open_any2)).
 :- use_module(library(pair_ext)).
 :- use_module(library(thread)).
 :- use_module(library(uri)).

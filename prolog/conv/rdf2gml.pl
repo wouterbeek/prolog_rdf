@@ -21,7 +21,7 @@
 :- use_module(library(option)).
 :- use_module(library(os/compress_ext)).
 :- use_module(library(os/gnu_sort)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(q/q_print)).
@@ -41,10 +41,12 @@
 %
 % The following options are supported:
 %
-%   - out_base(+atom) The base name of the output files and the name
+%   * out_base(+atom) The base name of the output files and the name
 %   of the graph.
 %
-%   - Other options are passed to gml_setup/11 and gml_tuple/3.
+%   * Other options are passed to gml_setup/11 and gml_tuple/3.
+%
+% @tbd Use call_to_streams/5.
 
 rdf2gml(Source) :-
   rdf2gml(Source, _{}).
@@ -82,18 +84,13 @@ gml_cleanup(Base, NFile, NClose_0, NM1, EFile, EClose_0, EM1, GFile) :-
   sort_file(NFile),
 
   % Concatenate the nodes and edges into one file.
-  setup_call_cleanup(
-    open(GFile, write, In2),
-    format(In2, "graph [~n  comment \"~a\"~n  directed 1~n", [Base]),
-    close(In2)
+  call_to_stream(
+    GFile,
+    format(current_output, "graph [~n  comment \"~a\"~n  directed 1~n", [Base])
   ),
   format(atom(CatCmd), "cat ~a ~a >> ~a", [NFile,EFile,GFile]),
   run_process(sh, ['-c',CatCmd]),
-  setup_call_cleanup(
-    open(GFile, append, In3),
-    format(In3, "]~n", []),
-    close(In3)
-  ),
+  call_to_stream(GFile, writeln("]")),
   compress_file(GFile),
   maplist(delete_file, [EFile,NFile]).
 

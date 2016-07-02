@@ -1,32 +1,32 @@
 :- module(
   rdfio,
   [
-    rdf_call_on_graph/2,        % +Source, :Goal_3
-    rdf_call_on_graph/3,        % +Source, :Goal_3,      +Opts
-    rdf_call_on_stream/2,       % +Source, :Goal_3       
-    rdf_call_on_stream/3,       % +Source, :Goal_3,      +Opts
-    rdf_call_on_tuples/2,       % +Source, :Goal_5       
-    rdf_call_on_tuples/3,       % +Source, :Goal_5,      +Opts
-    rdf_call_to_graph/2,        % +Sink,   :Goal_1       
-    rdf_call_to_graph/3,        % +Sink,   :Goal_1,      +Opts
+    rdf_call_on_graph/2,        % +Source, :Goal_1
+    rdf_call_on_graph/3,        % +Source, :Goal_1, +Opts
+    rdf_call_on_stream/2,       % +Source, :Goal_3
+    rdf_call_on_stream/3,       % +Source, :Goal_3, +Opts
+    rdf_call_on_tuples/2,       % +Source, :Goal_5
+    rdf_call_on_tuples/3,       % +Source, :Goal_5, +Opts
+    rdf_call_to_graph/2,        % +Sink, :Goal_1
+    rdf_call_to_graph/3,        % +Sink, :Goal_1, +Opts
     rdf_change_format/2,        % +Source, -Sink
-    rdf_change_format/3,        % +Source, -Sink,        +Opts
+    rdf_change_format/3,        % +Source, -Sink, +Opts
     rdf_change_format_legacy/2, % +Source, -Sink
-    rdf_change_format_legacy/3, % +Source, -Sink,        +Opts
-    rdf_download_to_file/2,     % +Iri,    +File         
-    rdf_download_to_file/3,     % +Iri,    +File,        +Opts
-    rdf_load_file/1,            % +Source                
-    rdf_load_file/2,            % +Source,               +Opts
+    rdf_change_format_legacy/3, % +Source, -Sink, +Opts
+    rdf_download_to_file/2,     % +Iri, +File
+    rdf_download_to_file/3,     % +Iri, +File, +Opts
+    rdf_load_file/1,            % +Source
+    rdf_load_file/2,            % +Source, +Opts
     rdf_load_tuples/2,          % +Source, -Triples
-    rdf_load_tuples/3,          % +Source, -Triples,     +Opts
-    rdf_write_to_sink/1,        % +Sink                  
-    rdf_write_to_sink/2,        % +Sink,             ?G
-    rdf_write_to_sink/3,        % +Sink,             ?G, +Opts
+    rdf_load_tuples/3,          % +Source, -Triples, +Opts
+    rdf_write_to_sink/1,        % +Sink
+    rdf_write_to_sink/2,        % +Sink, ?G
+    rdf_write_to_sink/3,        % +Sink, ?G, +Opts
     rdf_write_to_sink/4,        % +Sink, ?S, ?P, ?O
     rdf_write_to_sink/5,        % +Sink, ?S, ?P, ?O, ?G
     rdf_write_to_sink/6,        % +Sink, ?S, ?P, ?O, ?G, +Opts
     rdf_write_to_sink_legacy/1, % +Sink
-    rdf_write_to_sink_legacy/2  % +Sink,                 +Opts
+    rdf_write_to_sink_legacy/2  % +Sink, +Opts
   ]
 ).
 
@@ -57,8 +57,7 @@ already part of ClioPatria.
 :- use_module(library(lists)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(os/io_ext)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf), [process_rdf/3]).
@@ -80,8 +79,8 @@ already part of ClioPatria.
 :- use_module(library(zlib)).
 
 :- meta_predicate
-    rdf_call_on_graph(+, 3),
-    rdf_call_on_graph(+, 3, +),
+    rdf_call_on_graph(+, 1),
+    rdf_call_on_graph(+, 1, +),
     rdf_call_on_quad0(5, +, +),
     rdf_call_on_quads0(5, +, +),
     rdf_call_on_quads0(5, +, +, +),
@@ -112,27 +111,27 @@ already part of ClioPatria.
 
 
 
-%! rdf_call_on_graph(+Source, :Goal_3) .
-%! rdf_call_on_graph(+Source, :Goal_3, +Opts) .
+%! rdf_call_on_graph(+Source, :Goal_1) .
+%! rdf_call_on_graph(+Source, :Goal_1, +Opts) .
 %
-% Loads Source into a graph and call Goal_3 on it.
+% Loads Source into a graph and call Goal_1 on it.
 %
-% The following call is made: `call(:Goal_3, +G, +M1, -M2)`.
+% The following call is made: `call(:Goal_1, +G, +Meta1, -Meta2)`.
 %
 % Options are passed to rdf_load_file/2.
 
-rdf_call_on_graph(Source, Goal_3) :-
-  rdf_call_on_graph(Source, Goal_3, []).
+rdf_call_on_graph(Source, Goal_1) :-
+  rdf_call_on_graph(Source, Goal_1, []).
 
 
-rdf_call_on_graph(Source, Goal_3, Opts1) :-
-  remove_option(Opts1, metadata(M2), Opts2),
+rdf_call_on_graph(Source, Goal_1, Opts1) :-
+  select_option(metadata(Meta), Opts1, Opts2),
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
-      merge_options([force_graph(G),metadata(M1)], Opts2, Opts3),
+      merge_options([force_graph(G),metadata(Meta)], Opts2, Opts3),
       rdf_load_file(Source, Opts3),
-      call(Goal_3, G, M1, M2)
+      call(Goal_1, G)
     ),
     rdf_unload_graph(G)
   ).
@@ -142,7 +141,7 @@ rdf_call_on_graph(Source, Goal_3, Opts1) :-
 %! rdf_call_on_stream(+Source, :Goal_3) is det.
 %! rdf_call_on_stream(+Source, :Goal_3, +Opts) is det.
 %
-% The following call is made: `call(Goal_3, In, M1, M2)`.
+% The following call is made: `call(Goal_3, In, Meta1, Meta2)`.
 %
 % Options are passed to read_from_stream/3 and rdf_guess_fomat/3
 %
@@ -161,11 +160,11 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
   call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
 
-rdf_call_on_stream0(Goal_3, Opts, In, M1, M3) :-
+rdf_call_on_stream0(Goal_3, Opts, In, Meta1, Meta3) :-
   (   option(rdf_format(Format1), Opts),
       ground(Format1)
   ->  true
-  ;   rdf_guess_format_options0(M1, Opts, GuessOpts),
+  ;   rdf_guess_format_options0(Meta1, Opts, GuessOpts),
       % @note Make sure the metadata option of the RDF source does not get
       % overwritten when opening the stream for guessing the RDF serialization
       % format.
@@ -177,12 +176,12 @@ rdf_call_on_stream0(Goal_3, Opts, In, M1, M3) :-
   (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true),
   (rdf_format_iri(Format1, Format2) -> true ; domain_error(rdf_format, Format1)),
   jsonld_metadata_abbreviate_iri(Format2, Format3),
-  M2 = M1.put(_{'llo:rdf_format': Format3}),
-  call(Goal_3, In, M2, M3).
+  Meta2 = Meta1.put(_{rdf_format: Format3}),
+  call(Goal_3, In, Meta2, Meta3).
 
 
-rdf_guess_format_options0(M, Opts1, Opts2) :-
-  iri_file_extensions(M.'llo:base_iri', Exts1),
+rdf_guess_format_options0(Meta, Opts1, Opts2) :-
+  iri_file_extensions(M.base_iri, Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, Format), !,
@@ -214,15 +213,16 @@ rdf_call_on_tuples(Source, Goal_5, Opts) :-
   rdf_call_on_stream(Source, rdf_call_on_tuples0(Goal_5, Opts), Opts).
 
 
-rdf_call_on_tuples0(Goal_5, Opts1, In, M, M) :-
+rdf_call_on_tuples0(Goal_5, Opts1, In, Meta, Meta) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
-  get_dict('llo:base_iri', M, BaseIri),
-  jsonld_metadata_expand_iri(M.'llo:rdf_format', FormatIri),
+  get_dict(base_iri, Meta, BaseIri),
+  jsonld_metadata_expand_iri(M.rdf_format, FormatIri),
   rdf_format_iri(Format, FormatIri),
-  %uuid_no_hyphen(Uuid),
-  %atomic_list_concat(['_',Uuid,''], :, BPrefix),
+  % Make sure that blank node labels are universally unique.
+  uuid_no_hyphen(Uuid),
+  atomic_list_concat(['_',Uuid,''], :, BPrefix),
   Opts2 = [
-    %anon_prefix(BPrefix),
+    anon_prefix(BPrefix),
     base(BaseIri),
     base_iri(BaseIri),
     base_uri(BaseIri),
@@ -231,34 +231,34 @@ rdf_call_on_tuples0(Goal_5, Opts1, In, M, M) :-
     syntax(style)
   ],
   merge_options(Opts1, Opts2, Opts3),
-  (   % N-Quads & N-Triples.
+  (   % N-Quads & N-Triples
       memberchk(Format, [nquads,ntriples])
-  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, M), Opts3)
-  ;   % Trig & Turtle.
+  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, Meta), Opts3)
+  ;   % Trig & Turtle
       memberchk(Format, [trig,turtle])
-  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, M), Opts3)
-  %;   % JSON-LD.
-  %    Format == jsonld
-  %->  json_read_dict(In, Json),
-  %    forall(jsonld_tuple(Json, Tuple, Opts3),
-  %      rdf_call_on_quad0(Goal_5, M, Tuple)
-  %    )
-  ;   % RDF/XML.
+  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, Meta), Opts3)
+  ;   % JSON-LD
+      Format == jsonld
+  ->  json_read_dict(In, Json),
+      forall(jsonld_tuple(Json, Tuple, Opts3),
+        rdf_call_on_quad0(Goal_5, Meta, Tuple)
+      )
+  ;   % RDF/XML
       Format == xml
-  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, M), Opts3)
-  ;   % RDFa.
+  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, Meta), Opts3)
+  ;   % RDFa
       Format == rdfa
   ->  read_rdfa(In, Triples, Opts3),
-      rdf_call_on_quads0(Goal_5, M, Triples)
+      rdf_call_on_quads0(Goal_5, Meta, Triples)
   ;   domain_error(rdf_format, Format)
   ).
 
 
-rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
+rdf_call_on_quad0(Goal_5, Meta, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
   (G2 == user -> q_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
-  ->  call(Goal_5, M, S, P, O1, G3)
+  ->  call(Goal_5, Meta, S, P, O1, G3)
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
       ->  rdf11:write_xml_literal(html, Lex0, Lex1)
@@ -284,21 +284,21 @@ rdf_call_on_quad0(Goal_5, M, rdf(S,P,O1,G1)) :- !,
       ),
       % Incorrect lexical form.
       (   var(E)
-      ->  call(Goal_5, M, S, P, O2, G3)
+      ->  call(Goal_5, Meta, S, P, O2, G3)
       ;   print_message(warning, E)
       )
   ).
-rdf_call_on_quad0(Goal_5, M, rdf(S,P,O)) :-
+rdf_call_on_quad0(Goal_5, Meta, rdf(S,P,O)) :-
   q_default_graph(G),
-  rdf_call_on_quad0(Goal_5, M, rdf(S,P,O,G)).
+  rdf_call_on_quad0(Goal_5, Meta, rdf(S,P,O,G)).
 
 
-rdf_call_on_quads0(Goal_5, M, Tuples) :-
-  maplist(rdf_call_on_quad0(Goal_5, M), Tuples).
+rdf_call_on_quads0(Goal_5, Meta, Tuples) :-
+  maplist(rdf_call_on_quad0(Goal_5, Meta), Tuples).
 
 
-rdf_call_on_quads0(Goal_5, M, Tuples, _) :-
-  rdf_call_on_quads0(Goal_5, M, Tuples).
+rdf_call_on_quads0(Goal_5, Meta, Tuples, _) :-
+  rdf_call_on_quads0(Goal_5, Meta, Tuples).
 
 
 
@@ -336,7 +336,7 @@ rdf_change_format(Source, Sink) :-
 rdf_change_format(Source, Sink, Opts) :-
   rdf_call_on_tuples(
     Source,
-    {Sink,Opts}/[_M,S,P,O,G]>>rdf_write_to_sink(Sink, S, P, O, G, Opts)
+    {Sink,Opts}/[_,S,P,O,G]>>rdf_write_to_sink(Sink, S, P, O, G, Opts)
   ).
 
 
@@ -356,16 +356,18 @@ rdf_change_format_legacy(Source, Sink, Opts) :-
 
 %! rdf_download_to_file(+Iri, +File) is det.
 %! rdf_download_to_file(+Iri, ?File, +Opts) is det.
+%
 % Options are passed to rdf_call_on_stream/4 and write_stream_to_file/3.
 
 rdf_download_to_file(Iri, File) :-
   rdf_download_to_file(Iri, File, []).
 
+
 rdf_download_to_file(Iri, File, Opts) :-
   thread_file(File, TmpFile),
   rdf_call_on_stream(
     Iri,
-    {TmpFile,Opts}/[In,M,M]>>write_stream_to_file(In, TmpFile, Opts),
+    {TmpFile,Opts}/[In,Meta,Meta]>>write_stream_to_file(In, TmpFile, Opts),
     Opts
   ),
   rename_file(TmpFile, File).
@@ -543,11 +545,11 @@ rdf_write_format0(File, _, Format) :-
 rdf_write_format0(_, _, nquads).
 
 
-rdf_write_to_sink0(S, P, O, G, nquads, Out, M, M) :- !,
+rdf_write_to_sink0(S, P, O, G, nquads, Out, Meta, Meta) :- !,
   with_output_to(Out, gen_nquads(rdf, S, P, O, G)).
-rdf_write_to_sink0(S, P, O, G, ntriples, Out, M, M) :- !,
+rdf_write_to_sink0(S, P, O, G, ntriples, Out, Meta, Meta) :- !,
   with_output_to(Out, gen_ntriples(rdf, S, P, O, G)).
-rdf_write_to_sink0(_, _, _, _, Format, _, M, M) :-
+rdf_write_to_sink0(_, _, _, _, Format, _, Meta, Meta) :-
   domain_error(rdf_format, Format).
 
 
@@ -579,7 +581,7 @@ rdf_write_to_sink_legacy(Sink, Opts) :-
   (   memberchk(Format, [nquads,ntriples])
   ->  rdf_write_to_sink(Sink, Opts)
   ;   Format == trig
-  ->  call_to_stream(Sink, {Opts}/[Out,M,M]>>rdf_save_trig(Out, Opts))
+  ->  call_to_stream(Sink, {Opts}/[Out]>>rdf_save_trig(Out, Opts))
   ;   Format == turtle
   ->  merge_options(
         [
@@ -596,8 +598,11 @@ rdf_write_to_sink_legacy(Sink, Opts) :-
         Opts,
         TurtleOpts
       ),
-      call_to_stream(Sink, {TurtleOpts}/[Out,M,M]>>rdf_save_turtle(Out, TurtleOpts))
+      call_to_stream(
+	Sink,
+	{TurtleOpts}/[Out]>>rdf_save_turtle(Out, TurtleOpts)
+      )
   ;   Format == xml
-  ->  call_to_stream(Sink, {Opts}/[Out,M,M]>>rdf_save_xmlrdf(Out, Opts))
+  ->  call_to_stream(Sink, {Opts}/[Out]>>rdf_save_xmlrdf(Out, Opts))
   ;   domain_error(rdf_format, Format)
   ).

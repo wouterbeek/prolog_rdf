@@ -23,7 +23,7 @@
 :- use_module(library(os/compress_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/gnu_sort)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_file)). % Type definition.
 :- use_module(library(rdf/rdfio)).
@@ -40,9 +40,14 @@
 
 %! rdf_clean(+Source, +Sink) is det.
 %! rdf_clean(+Source, +Sink, +Opts) is det.
+%
 % The following options are supported:
+%
 %   * metadata(-dict)
-%   * Other options are passed to rdf_call_on_stream/3 and rdf_clean/5.
+%
+%   * Other options are passed to:
+%       * rdf_call_on_stream/3
+%       * rdf_clean/5
 %
 % @throws existence_error If an HTTP request returns an error code.
 
@@ -51,15 +56,11 @@ rdf_clean(Source, Sink) :-
 
 
 rdf_clean(Source, Sink, Opts) :-
-  rdf_call_on_stream(
-    Source,
-    {Sink,M2,Opts}/[In,M1,M2]>>rdf_clean(In, Sink, M1, M2, Opts),
-    Opts
-  ),
-  ignore(option(metadata(M2), Opts)).
+  rdf_call_on_stream(Source, rdf_clean0(Sink, Opts), Opts).
+  %ignore(option(metadata(M2), Opts)).
 
 
-rdf_clean(In, Sink, M1, M4, Opts1) :-
+rdf_clean0(Sink, Opts1, In) :-
   Opts0 = [quads(NumQuads),triples(NumTriples),tuples(NumTuples)],
   merge_options(Opts0, Opts1, Opts2),
   option(compress(Compress), Opts1, none),

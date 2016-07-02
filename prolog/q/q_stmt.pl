@@ -69,7 +69,6 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- use_module(library(lists)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(q/q_term)).
-:- use_module(library(os/open_any2)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
