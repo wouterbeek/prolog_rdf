@@ -1,7 +1,7 @@
 :- module(
   hdt__io,
   [
-    hdt__call/3,    % +Mode, :Goal_1, +G
+    hdt__call/2,    % :Goal_1, +G
     hdt__delete/1,  % +G
     hdt__graph/1,   % ?G
     hdt__graph/2,   % ?G, -Hdt
@@ -35,10 +35,10 @@
     hdt_graph0/4.
 
 :- meta_predicate
-    hdt__call(+, 1, +).
+    hdt__call(1, +).
 
 :- rdf_meta
-   hdt__call(+, :, r),
+   hdt__call(:, r),
    hdt__delete(r),
    hdt__graph(r),
    hdt__graph(r, ?),
