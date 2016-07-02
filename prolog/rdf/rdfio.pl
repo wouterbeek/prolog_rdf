@@ -19,12 +19,12 @@
     rdf_load_file/2,            % +Source, +Opts
     rdf_load_tuples/2,          % +Source, -Triples
     rdf_load_tuples/3,          % +Source, -Triples, +Opts
-    rdf_write_to_sink/1,        % +Sink
-    rdf_write_to_sink/2,        % +Sink, ?G
-    rdf_write_to_sink/3,        % +Sink, ?G, +Opts
-    rdf_write_to_sink/4,        % +Sink, ?S, ?P, ?O
-    rdf_write_to_sink/5,        % +Sink, ?S, ?P, ?O, ?G
-    rdf_write_to_sink/6,        % +Sink, ?S, ?P, ?O, ?G, +Opts
+    rdf_write_to_sink/2,        % +Sink, +M
+    rdf_write_to_sink/3,        % +Sink, +M, ?G
+    rdf_write_to_sink/4,        % +Sink, +M, ?G, +Opts
+    rdf_write_to_sink/5,        % +Sink, +M, ?S, ?P, ?O
+    rdf_write_to_sink/6,        % +Sink, +M, ?S, ?P, ?O, ?G
+    rdf_write_to_sink/6,        % +Sink, +M, ?S, ?P, ?O, ?G, +Opts
     rdf_write_to_sink_legacy/1, % +Sink
     rdf_write_to_sink_legacy/2  % +Sink, +Opts
   ]
@@ -36,7 +36,7 @@ This module is not named `rdf_io` since a module with that name is
 already part of ClioPatria.
 
 @author Wouter Beek
-@version 2015/08-2016/02, 2016/04-2016/06
+@version 2015/08-2016/02, 2016/04-2016/07
 */
 
 :- use_module(library(aggregate)).
@@ -181,7 +181,7 @@ rdf_call_on_stream0(Goal_3, Opts, In, Meta1, Meta3) :-
 
 
 rdf_guess_format_options0(Meta, Opts1, Opts2) :-
-  iri_file_extensions(M.base_iri, Exts1),
+  iri_file_extensions(Meta.base_iri, Exts1),
   reverse(Exts1, Exts2),
   member(Ext, Exts2),
   rdf_file_extension(Ext, Format), !,
@@ -216,7 +216,7 @@ rdf_call_on_tuples(Source, Goal_5, Opts) :-
 rdf_call_on_tuples0(Goal_5, Opts1, In, Meta, Meta) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
   get_dict(base_iri, Meta, BaseIri),
-  jsonld_metadata_expand_iri(M.rdf_format, FormatIri),
+  jsonld_metadata_expand_iri(Meta.rdf_format, FormatIri),
   rdf_format_iri(Format, FormatIri),
   % Make sure that blank node labels are universally unique.
   uuid_no_hyphen(Uuid),
@@ -467,12 +467,12 @@ rdf_load_tuples(Source, Triples, Opts) :-
 
 
 
-%! rdf_write_to_sink(+Sink                       ) is det.
-%! rdf_write_to_sink(+Sink,             ?G       ) is det.
-%! rdf_write_to_sink(+Sink,             ?G, +Opts) is det.
-%! rdf_write_to_sink(+Sink, ?S, ?P, ?O           ) is det.
-%! rdf_write_to_sink(+Sink, ?S, ?P, ?O, ?G       ) is det.
-%! rdf_write_to_sink(+Sink, ?S, ?P, ?O, ?G, +Opts) is det.
+%! rdf_write_to_sink(+Sink, +M                       ) is det.
+%! rdf_write_to_sink(+Sink, +M,             ?G       ) is det.
+%! rdf_write_to_sink(+Sink, +M,             ?G, +Opts) is det.
+%! rdf_write_to_sink(+Sink, +M, ?S, ?P, ?O           ) is det.
+%! rdf_write_to_sink(+Sink, +M, ?S, ?P, ?O, ?G       ) is det.
+%! rdf_write_to_sink(+Sink, +M, ?S, ?P, ?O, ?G, +Opts) is det.
 %
 % Writes output to an RDF stream.
 %
@@ -488,28 +488,29 @@ rdf_load_tuples(Source, Triples, Opts) :-
 %
 %   * `ntriples` (N-Triples)
 
-rdf_write_to_sink(Sink) :-
-  rdf_write_to_sink(Sink, _).
+rdf_write_to_sink(Sink, M) :-
+  rdf_write_to_sink(Sink, M, _).
 
 
-rdf_write_to_sink(Sink, G) :-
-  rdf_write_to_sink(Sink, G, []).
+rdf_write_to_sink(Sink, M, G) :-
+  rdf_write_to_sink(Sink, M, G, []).
 
 
-rdf_write_to_sink(Sink, G, Opts) :-
-   rdf_write_to_sink(Sink, _, _, _, G, Opts).
+rdf_write_to_sink(Sink, M, G, Opts) :-
+   rdf_write_to_sink(Sink, M, _, _, _, G, Opts).
 
 
-rdf_write_to_sink(Sink, S, P, O) :-
-  rdf_write_to_sink(Sink, S, P, O, _).
+rdf_write_to_sink(Sink, M, S, P, O) :-
+  rdf_write_to_sink(Sink, M, S, P, O, _).
 
 
-rdf_write_to_sink(Sink, S, P, O, G) :-
-  rdf_write_to_sink(Sink, S, P, O, G, []).
+rdf_write_to_sink(Sink, M, S, P, O, G) :-
+  rdf_write_to_sink(Sink, M, S, P, O, G, []).
 
 
 % We have to come up with a good file name.
-rdf_write_to_sink(File, S, P, O, G, Opts) :-
+% @tbd Check whether HDT file already exists.
+rdf_write_to_sink(File, M, S, P, O, G, Opts) :-
   var(File), !,
   (   % A file is already associated with the given graph G.
       rdf_graph_property(G, source(File))
@@ -517,12 +518,13 @@ rdf_write_to_sink(File, S, P, O, G, Opts) :-
   ;   rdf_file_name0(File, Opts)
   ),
   create_file_directory(File),
-  rdf_write_to_sink(File, S, P, O, G, Opts).
-rdf_write_to_sink(Sink, S, P, O, G, Opts) :-
+  rdf_write_to_sink(File, M, S, P, O, G, Opts).
+rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
   q_default_graph(DefG),
   defval(DefG, G),
-  rdf_write_format0(Sink, Opts, Format),
-  call_to_stream(Sink, rdf_write_to_sink0(S, P, O, G, Format), Opts),
+  rdf_write_format0(Sink, Opts1, Format),
+  merge_options(Opts1, [format(Format)], Opts2),
+  call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2),
   debug(rdf(io), "RDF was written to sink ~w.", [Sink]).
 
 
@@ -543,14 +545,6 @@ rdf_write_format0(File, _, Format) :-
   file_name_extension(_, Ext, File),
   rdf_file_extension(Ext, Format), !.
 rdf_write_format0(_, _, nquads).
-
-
-rdf_write_to_sink0(S, P, O, G, nquads, Out, Meta, Meta) :- !,
-  with_output_to(Out, gen_nquads(rdf, S, P, O, G)).
-rdf_write_to_sink0(S, P, O, G, ntriples, Out, Meta, Meta) :- !,
-  with_output_to(Out, gen_ntriples(rdf, S, P, O, G)).
-rdf_write_to_sink0(_, _, _, _, Format, _, Meta, Meta) :-
-  domain_error(rdf_format, Format).
 
 
 

@@ -67,36 +67,23 @@ rdf_clean0(Sink, Opts1, In) :-
   
   absolute_file_name(cleaning, TmpSink0, [access(write)|Opts1]),
   thread_file(TmpSink0, TmpSink),
-  setup_call_cleanup(
-    (
-      open(TmpSink, write, TmpOut),
-      gen_ntuples:gen_ntuples_begin(State, Opts2)
-    ),
-    rdfio:rdf_call_on_tuples0(
-      {TmpOut,State}/[_,S,P,O,G]>>(gen_ntuples:gen_ntuple(TmpOut, State, S, P, O, G)),
-      Opts1, In, M1, M2
-    ),
-    (
-      gen_ntuples:gen_ntuples_end(State, Opts2),
-      close(TmpOut)
-    )
-  ),
+  call_to_ntuples(TmpSink, gen_ntuples(M, _, _, _, _), Opts1),
   deb_cleaned_tuples(NumTuples, NumTriples, NumQuads),
   M3 = M2.put(_{
-    'llo:processed_quads': NumQuads,
-    'llo:processed_triples': NumTriples,
-    'llo:processed_tuples': NumTuples
+    processed_quads: NumQuads,
+    processed_triples: NumTriples,
+    processed_tuples: NumTuples
   }),
 
   sort_file(TmpSink, Opts1),
 
   % Count the number of unique tuples.
-  source_numlines(TmpSink, NumLines),
+  count_numlines(TmpSink, NumLines),
   NumDuplicates is NumTuples - NumLines,
   deb_wrote_tuples(NumTuples, NumDuplicates),
   M4 = M3.put(_{
-    'llo:unique_tuples': NumTuples,
-    'llo:duplicate_tuples': NumDuplicates
+    unique_tuples: NumTuples,
+    duplicate_tuples: NumDuplicates
   }),
   
   % Compress the file, according to user option.

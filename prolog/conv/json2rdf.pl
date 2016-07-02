@@ -75,7 +75,7 @@ json2rdf_stream0(_, _, _) :-
 %! json2rdf_stmt(+Source, +Alias, -Triple) is nondet.
 
 json2rdf_stmt(Source, Alias, Triple) :-
-  call_on_stream(Source, json2rdf_stmt_stream0(Alias, Triple, In)).
+  call_on_stream(Source, json2rdf_stmt_stream0(Alias, Triple)).
 
 
 json2rdf_stmt_stream0(Alias, Triple, In, Meta, Meta) :-

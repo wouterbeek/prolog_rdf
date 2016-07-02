@@ -32,7 +32,6 @@
 */
 
 :- use_module(library(debug)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt__io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf__io)).

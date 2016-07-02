@@ -1,8 +1,8 @@
 :- module(
   xml2rdf,
   [
-    marcxml2rdf/3, % +Source, +RecordNames, +Opts
-    xml2rdf/3      % +Source, +RecordNames, +Opts
+    marcxml2rdf/4, % +Source, +Sink, +RecordNames, +Opts
+    xml2rdf/4      % +Source, +Sink, +RecordNames, +Opts
   ]
 ).
 
@@ -30,23 +30,26 @@
 
 
 
-%! marcxml2rdf(+Source, +RecordNames, +Opts) is det.
+%! marcxml2rdf(+Source, +Sink, +RecordNames, +Opts) is det.
 
-marcxml2rdf(Source, RecordNames, Opts1) :-
+marcxml2rdf(Source, Sink, RecordNames, Opts1) :-
   conv_alias_options(Opts1, Opts2),
-  Alias = Opts2.alias,
+  call_to_ntriples(Sink, marcxml2rdf_stream0(Source, RecordNames, Opts2)).
+
+
+marcxml2rdf_stream0(Source, RecordNames, Opts, State, Out) :-
   xml_stream_record(
     Source,
     RecordNames,
-    {Alias}/[Dom]>>marcxml2rdf_record0(Dom, Alias)
+    marcxml2rdf_stream_record0(Opts, State, Out)
   ).
 
 
-marcxml2rdf_record0(Dom, Alias) :-
+marcxml2rdf_record0(Opts, State, Out, Dom) :-
   q_create_bnode(S),
   forall(
-    marcxml2rdf_stmt0(Dom, Alias, P, Val),
-    gen_ntriple(S, P, Val^^xsd:string)
+    marcxml2rdf_stmt0(Dom, Opts.alias, P, Val),
+    gen_ntuple(S, P, Val^^xsd:string, State, Out)
   ).
 
 
@@ -62,24 +65,32 @@ marcxml2rdf_stmt0(Dom, Alias, P, Val) :-
 
 
 
-%! xml2rdf(+Source, +RecordNames, +Opts) is nondet.
+%! xml2rdf(+Source, +Sink, +RecordNames, +Opts) is nondet.
 
-xml2rdf(Source, RecordNames, Opts1) :-
+xml2rdf(Source, Sink, RecordNames, Opts1) :-
   conv_alias_options(Opts1, Opts2),
-  xml_stream_record(Source, RecordNames, xml2rdf_record0(Opts2)).
+  call_to_ntriples(Sink, xml2rdf_stream0(Source, RecordNames, Opts2)).
 
 
-xml2rdf_record0(Opts, Dom) :-
+xml2rdf_stream0(Source, RecordNames, Opts, State, Out) :-
+  xml_stream_record(
+    Source,
+    RecordNames,
+    xml2rdf_stream_record0(State, Out, Opts)
+  ).
+
+
+xml2rdf_stream_record0(State, Out, Opts, Dom) :-
   qb_bnode(S),
   get_dict(ltag_attr, Opts, LTagAttr),
-  xml2rdf_record0(Dom, [], S, LTagAttr, Opts).
+  xml2rdf_stream_record0(State, Out, Dom, [], S, LTagAttr, Opts).
 
 
-xml2rdf_record0([], _, _, _, _) :- !.
-xml2rdf_record0([Empty|Dom], L, S, LTagAttr, Opts) :-
+xml2rdf_stream_record0(_, _, [], _, _, _, _) :- !.
+xml2rdf_stream_record0(State, Out, [Empty|Dom], L, S, LTagAttr, Opts) :-
   is_empty_atom(Empty), !,
-  xml2rdf_record0(Dom, L, S, LTagAttr, Opts).
-xml2rdf_record0([element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Opts) :-
+  xml2rdf_stream_record0(State, Out, Dom, L, S, LTagAttr, Opts).
+xml2rdf_stream_record0(State, Out, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Opts) :-
   (   maplist(atomic, Vals)
   ->  reverse([H|T], L),
       atomic_list_concat(L, '_', Name),
@@ -99,8 +110,8 @@ xml2rdf_record0([element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Opts) :-
         ->  with_output_to(user_output, q_print_triple(S, P, Lit))
         ;   true
         ),
-        gen_ntriple(S, P, Lit)
+        gen_ntuple(S, P, Lit, State, Out)
       ))
-  ;   xml2rdf_record0(Vals, [H|T], S, LTagAttr, Opts)
+  ;   xml2rdf_stream_record0(State, Out, Vals, [H|T], S, LTagAttr, Opts)
   ),
-  xml2rdf_record0(Dom, [], S, LTagAttr, Opts).
+  xml2rdf_stream_record0(State, Out, Dom, [], S, LTagAttr, Opts).

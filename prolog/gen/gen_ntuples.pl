@@ -5,8 +5,11 @@
     call_to_nquads/3,   % +Sink, :Goal_2, +Opts
     call_to_ntriples/2, % +Sink, :Goal_2
     call_to_ntriples/3, % +Sink, :Goal_2, +Opts
+    call_to_ntuples/3,  % +Sink, :Goal_2, +Opts
+    gen_ntuple/3,       % +Tuple,             +State, +Out
     gen_ntuple/5,       % +S, +P, +O,         +State, +Out
     gen_ntuple/6,       % +S, +P, +O, +G,     +State, +Out
+    gen_ntuples/3,      % +Tuples,            +State, +Out
     gen_ntuples/7       % ?M, ?S, ?P, ?O, ?G, +State, +Out
   ]
 ).
@@ -30,20 +33,23 @@
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(semweb/turtle)). % Private
+:- use_module(library(semweb/turtle), []).
+:- use_module(library(yall)).
 
 :- meta_predicate
     call_to_nquads(+, 2),
     call_to_nquads(+, 2, +),
     call_to_ntriples(+, 2),
     call_to_ntriples(+, 2, +),
-    call_to_ntuples0(+, 2, +).
+    call_to_ntuples(+, 2, +).
 
 :- rdf_meta
    call_to_nquads(+, t, +),
    call_to_ntriples(+, t, +),
+   gen_ntuple(t, +, +),
    gen_ntuple(r, r, o, +, +),
    gen_ntuple(r, r, o, r, +, +),
+   gen_ntuples(t, +, +),
    gen_ntuples(?, r, r, o, r, +, +).
 
 
@@ -80,7 +86,7 @@ call_to_nquads(Sink, Goal_2) :-
 
 call_to_nquads(Sink, Goal_2, Opts1) :-
   merge_options([format(nquads)], Opts1, Opts2),
-  call_to_ntuples0(Sink, Goal_2, Opts2).
+  call_to_ntuples(Sink, Goal_2, Opts2).
 
 
 
@@ -98,11 +104,13 @@ call_to_ntriples(Sink, Goal_2) :-
 
 call_to_ntriples(Sink, Goal_2, Opts1) :-
   merge_options([format(ntriples)], Opts1, Opts2),
-  call_to_ntuples0(Sink, Goal_2, Opts2).
+  call_to_ntuples(Sink, Goal_2, Opts2).
 
 
 
-call_to_ntuples0(Sink, Goal_2, Opts) :-
+%! call_to_ntuples(+Sink, :Goal_2, +Opts) is det.
+
+call_to_ntuples(Sink, Goal_2, Opts) :-
   setup_call_cleanup(
     gen_ntuples_begin(State, Opts),
     (
@@ -116,8 +124,15 @@ call_to_ntuples0(Sink, Goal_2, Opts) :-
 
 
 
+%! gen_ntuple(+Tuple, +State, +Out) is det.
 %! gen_ntuple(+S, +P, +O, +State, +Out) is det.
 %! gen_ntuple(+S, +P, +O, +G, +State, +Out) is det.
+
+gen_ntuple(rdf(S,P,O), State, Out) :- !,
+  gen_ntuple(S, P, O, State, Out).
+gen_ntuple(rdf(S,P,O,G), State, Out) :- !,
+  gen_ntuple(S, P, O, G, State, Out).
+
 
 gen_ntuple(S, P, O, State, Out) :-
   gen_ntuple(S, P, O, _, State, Out).
@@ -147,7 +162,12 @@ gen_ntuple0(State, S, P, O, G) :-
 
 
 
+%! gen_ntuples(+Tuples, +State, +Out) is det.
 %! gen_ntuples(?M, ?S, ?P, ?O, ?G, +State, +Out) is det.
+
+gen_ntuples(Tuples, State, Out) :-
+  maplist({State,Out}/[Tuple]>>gen_ntuple(Tuple, State, Out), Tuples).
+
 
 gen_ntuples(M, S, P, O, G, State, Out) :-
   aggregate_all(set(S), q(M, S, P, O, G), Ss),

@@ -57,27 +57,11 @@ Automatic conversion from CSV to RDF.
 %   RDF properties within the given namespace.  Default is `ex`.
 
 csv2rdf(M, Source, G, Opts) :-
-  call_on_stream(Source, csv2rdf_stream1(M, G, D, Opts), Opts).
+  call_on_stream(Source, csv2rdf_stream1(M, G, Opts), Opts).
 
 
-csv2rdf_options(Opts1, D, Opts4) :-
-  select_option(alias(Box), Opts1, Opts2), !,
-  merge_options(Opts2, [abox_alias(Box),tbox_alias(Box)], Opts3),
-  csv2rdf_options(Opts3, D, Opts4).
-csv2rdf_options(Opts1, D2, Opts2) :-
-  option(abox_alias(ABox), Opts1, ex),
-  csv:make_csv_options(Opts1, Opts2, _),
-  D1 = _{abox_alias: ABox},
-  (   option(header(Ps), Opts1)
-  ->  D2 = D1.put(_{header: Ps})
-  ;   option(tbox_alias(TBox), Opts1)
-  ->  D2 = D1.put(_{tbox_alias: TBox})
-  ;   D2 = D1.put(_{tbox_alias: ex})
-  ).
-
-
-csv2rdf_stream1(G, D, Opts0, In, Meta, Meta) :-
-  csv2rdf_options(Opts0, D, Opts),
+csv2rdf_stream1(M, G, Opts0, In, Meta, Meta) :-
+  csv2rdf_options0(Opts0, D, Opts),
   (   get_dict(header, D, Ps)
   ->  true
   ;   once(csv:csv_read_stream_row(In, Row, _, Opts)),
@@ -106,3 +90,19 @@ csv2rdf_stream3(_, _, [], [], _) :- !.
 csv2rdf_stream3(M, S, [P|Ps], [Val|Vals], G) :- !,
   qb(M, S, P, Val^^xsd:string, G),
   csv2rdf_stream3(M, S, Ps, Vals, G).
+
+
+csv2rdf_options0(Opts1, D, Opts4) :-
+  select_option(alias(Box), Opts1, Opts2), !,
+  merge_options(Opts2, [abox_alias(Box),tbox_alias(Box)], Opts3),
+  csv2rdf_options0(Opts3, D, Opts4).
+csv2rdf_options0(Opts1, D2, Opts2) :-
+  option(abox_alias(ABox), Opts1, ex),
+  csv:make_csv_options(Opts1, Opts2, _),
+  D1 = _{abox_alias: ABox},
+  (   option(header(Ps), Opts1)
+  ->  D2 = D1.put(_{header: Ps})
+  ;   option(tbox_alias(TBox), Opts1)
+  ->  D2 = D1.put(_{tbox_alias: TBox})
+  ;   D2 = D1.put(_{tbox_alias: ex})
+  ).

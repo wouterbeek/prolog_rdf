@@ -52,6 +52,9 @@
 
 
 %! hdt__call(:Goal_1, +G) is det.
+%
+% The following call is made: `call(Goal_1, File)`, where File is the
+% gzipped N-Triples file associated with graph G.
 
 hdt__call(Goal_1, G) :- !,
   q_graph_to_file(G, [nt,gz], File),
@@ -178,14 +181,4 @@ hdt2rdf(_).
 
 ensure_ntriples(Source, Sink) :-
   Opts = [rdf_format(ntriples)],
-  call_to_stream(
-    Sink,
-    setup_call_cleanup(
-      gen_ntuples:gen_ntuples_begin(State, Opts),
-      rdf_call_on_tuples(
-        Source,
-        {State}/[_,S,P,O,G]>>gen_ntuple(State, S, P, O, G)
-      ),
-      gen_ntuples:gen_ntuples_end(State, Opts)
-    )
-  ).
+  call_to_ntriples(Sink, gen_ntuples(gen_ntuples(_, _, _, _))).
