@@ -1,8 +1,8 @@
 :- module(
   xml2rdf,
   [
-    marcxml2rdf/4, % +Source, +Sink, +RecordNames, +Opts
-    xml2rdf/4      % +Source, +Sink, +RecordNames, +Opts
+    %marcxml2rdf/4, % +Source, +Sink, +RecordNames, +Opts
+    xml2rdf/4 % +Source, +Sink, +RecordNames, +Opts
   ]
 ).
 
@@ -29,12 +29,12 @@
 
 
 
-
+/*
 %! marcxml2rdf(+Source, +Sink, +RecordNames, +Opts) is det.
 
 marcxml2rdf(Source, Sink, RecordNames, Opts1) :-
   conv_alias_options(Opts1, Opts2),
-  call_to_ntriples(Sink, marcxml2rdf_stream0(Source, RecordNames, Opts2)).
+  call_to_ntriples(Sink, marcxml2rdf_stream0(Source, RecordNames, Opts2), Opts1).
 
 
 marcxml2rdf_stream0(Source, RecordNames, Opts, State, Out) :-
@@ -62,7 +62,7 @@ marcxml2rdf_stmt0(Dom, Alias, P, Val) :-
   atom_concat(Field, Subfield, Local),
   rdf_global_id(Alias:Local, P),
   atom_string(Val0, Val).
-
+*/
 
 
 %! xml2rdf(+Source, +Sink, +RecordNames, +Opts) is nondet.
@@ -83,18 +83,18 @@ xml2rdf_stream0(Source, RecordNames, Opts, State, Out) :-
 xml2rdf_stream_record0(State, Out, Opts, Dom) :-
   qb_bnode(S),
   get_dict(ltag_attr, Opts, LTagAttr),
-  xml2rdf_stream_record0(State, Out, Dom, [], S, LTagAttr, Opts).
+  xml2rdf_stream_record0(Opts.tbox_alias, State, Out, Dom, [], S, LTagAttr).
 
 
-xml2rdf_stream_record0(_, _, [], _, _, _, _) :- !.
-xml2rdf_stream_record0(State, Out, [Empty|Dom], L, S, LTagAttr, Opts) :-
+xml2rdf_stream_record0(_, _, _, [], _, _, _) :- !.
+xml2rdf_stream_record0(Alias, State, Out, [Empty|Dom], L, S, LTagAttr) :-
   is_empty_atom(Empty), !,
-  xml2rdf_stream_record0(State, Out, Dom, L, S, LTagAttr, Opts).
-xml2rdf_stream_record0(State, Out, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr, Opts) :-
+  xml2rdf_stream_record0(Alias, State, Out, Dom, L, S, LTagAttr).
+xml2rdf_stream_record0(Alias, State, Out, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr) :-
   (   maplist(atomic, Vals)
   ->  reverse([H|T], L),
       atomic_list_concat(L, '_', Name),
-      rdf_global_id(Opts.tbox_alias:Name, P),
+      rdf_global_id(Alias:Name, P),
       forall((
         member(Val, Vals),
         \+ is_empty_atom(Val)
@@ -112,6 +112,6 @@ xml2rdf_stream_record0(State, Out, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr, 
         ),
         gen_ntuple(S, P, Lit, State, Out)
       ))
-  ;   xml2rdf_stream_record0(State, Out, Vals, [H|T], S, LTagAttr, Opts)
+  ;   xml2rdf_stream_record0(Alias, State, Out, Vals, [H|T], S, LTagAttr)
   ),
-  xml2rdf_stream_record0(State, Out, Dom, [], S, LTagAttr, Opts).
+  xml2rdf_stream_record0(Alias, State, Out, Dom, [], S, LTagAttr).

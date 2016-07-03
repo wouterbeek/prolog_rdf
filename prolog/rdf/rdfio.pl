@@ -328,15 +328,35 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
 
 %! rdf_change_format(+Source, +Sink) is det.
 %! rdf_change_format(+Source, +Sink, +Opts) is det.
+%
+% The following options are supported:
+%
+%   * from_format(+atom)
+%
+%   * to_format(+atom)
+%
+%   * Other options are passed to:
+%
+%     * rdf_call_on_tuples/3
+%     * rdf_write_to_sink/6
 
 rdf_change_format(Source, Sink) :-
   rdf_change_format(Source, Sink, []).
 
 
 rdf_change_format(Source, Sink, Opts) :-
+  (   option(from_format(FromFormat), Opts)
+  ->  merge_options(Opts, [format(FromFormat)], SourceOpts)
+  ;   true
+  ),
+  (   option(to_format(ToFormat), Opts)
+  ->  merge_options(Opts, [format(ToFormat)], SinkOpts)
+  ;   true
+  ),
   rdf_call_on_tuples(
     Source,
-    {Sink,Opts}/[_,S,P,O,G]>>rdf_write_to_sink(Sink, S, P, O, G, Opts)
+    {Sink,SinkOpts}/[_,S,P,O,G]>>rdf_write_to_sink(Sink, S, P, O, G, SinkOpts),
+    SourceOpts
   ).
 
 

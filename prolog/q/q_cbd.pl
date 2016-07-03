@@ -92,6 +92,7 @@ q_cbd_triple(M, Node, G, Triple) :-
 
 
 q_cbd_triple0(M, S, G, Triple) :-
+  rdf_is_subject(S),
   q(M, S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   q_is_bnode(O),

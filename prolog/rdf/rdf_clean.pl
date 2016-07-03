@@ -67,7 +67,7 @@ rdf_clean0(Sink, Opts1, In) :-
   
   absolute_file_name(cleaning, TmpSink0, [access(write)|Opts1]),
   thread_file(TmpSink0, TmpSink),
-  call_to_ntuples(TmpSink, gen_ntuples(M, _, _, _, _), Opts1),
+  call_to_ntuples(TmpSink, gen_ntuples(M, _), Opts1),
   deb_cleaned_tuples(NumTuples, NumTriples, NumQuads),
   M3 = M2.put(_{
     processed_quads: NumQuads,

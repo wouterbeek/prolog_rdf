@@ -1,11 +1,7 @@
 :- module(
   json2rdf,
   [
-    geojson2rdf/4,      % +M, +Source, +Alias, +G
-    geojson2rdf_stmt/3, % +Source, +Alias, -Triple
-    json2rdf/4,         % +M, +Source, +Alias, +G
-    json2rdf_stmt/3,    % +Source, +Alias, -Triple
-    ndjson2rdf_triple/3 % +Source, +Context, -Triple
+    json2rdf/3 % +Source, +Sink, +Opts
   ]
 ).
 
@@ -13,16 +9,14 @@
 
 @author Wouter Beek
 @see http://ndjson.org/
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(atom_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(gen/gen_ntuples)).
-:- use_module(library(hdt/hdt__io)).
 :- use_module(library(json_ext)).
-:- use_module(library(jsonld/geold)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(os/io)).
 :- use_module(library(q/qb)).
@@ -30,55 +24,39 @@
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 
-:- debug(json2rdf).
 
 
 
 
-%! geojson2rdf(+M, +Source, +Alias, +G) is det.
+%! json2rdf(+Source, +Sink, +Opts) is nondet.
+%
+% Convert JSON coming from Source into RDF that is stored in graph G
+% using backend M.
+%
+% Options are passed to:
+%
+%   * call_on_stream/3
+%   * call_to_ntriples/3
+%   * conv_alias_options/2
 
-geojson2rdf(hdt, Source, Alias, G) :- !,
-  hdt__call(geojson2rdf_stream0(Source, Alias), G).
+json2rdf(Source, Sink, Opts1) :-
+  conv_alias_options(Opts1, Opts2),
+  call_to_ntriples(Sink, json2rdf_stmts1(Source, Opts2), Opts1).
 
 
-geojson2rdf_stream0(Source, Alias) :-
-  geojson2rdf_stmt(Source, Alias, Triple),
-  gen_ntriple(Triple),
+json2rdf_stmts1(Source, Opts, State, Out) :-
+  call_on_stream(Source, json2rdf_stmts2(State, Out, Opts), Opts).
+
+
+json2rdf_stmts2(State, Out, Opts, In, Meta, Meta) :-
+  json2rdf_stmt0(In, Opts.alias, Triple),
+  gen_ntuple(Triple, State, Out),
   fail.
-geojson2rdf_stream0(_, _) :-
-  debug(geojsond2rdf, "GeoJSON → RDF done", []).
+json2rdf_stmts2(_, _, _, _, _, _) :-
+  debug(conv(jsond2rdf), "[DONE] JSON → RDF", []).
 
 
-
-%! geojson2rdf_stmt(+Source, +Alias, -Triple) is nondet.
-
-geojson2rdf_stmt(Source, Alias, Triple) :-
-  geold_tuple(Source, Alias, Triple).
-
-
-
-%! json2rdf(+M, +Source, +Alias, +G) is nondet.
-
-json2rdf(hdt, Source, Alias, G) :- !,
-  hdt__call(json2rdf_stream0(Source, Alias), G).
-
-
-json2rdf_stream0(Source, Alias, Out) :-
-  json2rdf_stmt(Source, Alias, Triple),
-  with_output_to(Out, gen_ntriple(Triple)),
-  fail.
-json2rdf_stream0(_, _, _) :-
-  debug(jsond2rdf, "JSON → RDF done", []).
-
-
-
-%! json2rdf_stmt(+Source, +Alias, -Triple) is nondet.
-
-json2rdf_stmt(Source, Alias, Triple) :-
-  call_on_stream(Source, json2rdf_stmt_stream0(Alias, Triple)).
-
-
-json2rdf_stmt_stream0(Alias, Triple, In, Meta, Meta) :-
+json2rdf_stmt0(In, Alias, Triple) :-
   repeat,
   read_line_to_string(In, Str),
   (   Str == end_of_file
@@ -99,16 +77,3 @@ json2rdf_stmt_stream0(Alias, Triple, In, Meta, Meta) :-
       
       rdf_global_term(rdf(S,P,O), Triple)
   ).
-
-
-
-%! ndjson2rdf_triple(+Source, +Context, -Triple) is nondet.
-
-ndjson2rdf_triple(Source, Context, Triple) :-
-  call_on_stream(Source, ndjson2rdf_triple_stream0(Context, Triple)).
-
-
-ndjson2rdf_triple_stream0(Context, Triple, In, Meta, Meta) :-
-  read_line_to_string(In, Str),
-  atom_json_dict(Str, Json),
-  jsonld_tuple_with_context(Context, Json, Triple).

@@ -7,9 +7,10 @@
     call_to_ntriples/3, % +Sink, :Goal_2, +Opts
     call_to_ntuples/3,  % +Sink, :Goal_2, +Opts
     gen_ntuple/3,       % +Tuple,             +State, +Out
-    gen_ntuple/5,       % +S, +P, +O,         +State, +Out
-    gen_ntuple/6,       % +S, +P, +O, +G,     +State, +Out
+    gen_ntuple/5,       %     +S, +P, +O,     +State, +Out
+    gen_ntuple/6,       %     +S, +P, +O, +G, +State, +Out
     gen_ntuples/3,      % +Tuples,            +State, +Out
+    gen_ntuples/4,      % ?M,             ?G, +State, +Out
     gen_ntuples/7       % ?M, ?S, ?P, ?O, ?G, +State, +Out
   ]
 ).
@@ -50,6 +51,7 @@
    gen_ntuple(r, r, o, +, +),
    gen_ntuple(r, r, o, r, +, +),
    gen_ntuples(t, +, +),
+   gen_ntuples(?, r, +, +),
    gen_ntuples(?, r, r, o, r, +, +).
 
 
@@ -59,8 +61,44 @@
 %! call_to_nquads(+Sink, :Goal_2) is det.
 %! call_to_nquads(+Sink, :Goal_2, +Opts) is det.
 %
-% The following call is made: `call(Goal_2, State, Out)`, where State
-% has key `format` set to value `nquads`.
+% Wrapper around call_to_ntuples/[2,3] where the RDF serialization
+% format is set to N-Quads.
+
+call_to_nquads(Sink, Goal_2) :-
+  call_to_nquads(Sink, Goal_2, []).
+
+
+call_to_nquads(Sink, Goal_2, Opts1) :-
+  merge_options([rdf_format(nquads)], Opts1, Opts2),
+  call_to_ntuples(Sink, Goal_2, Opts2).
+
+
+
+%! call_to_ntriples(+Sink, :Goal_2) is det.
+%! call_to_ntriples(+Sink, :Goal_2, +Opts) is det.
+%
+% Wrapper around call_to_ntuples/[2,3] where the RDF serialization
+% format is set to N-Triples.
+
+call_to_ntriples(Sink, Goal_2) :-
+  call_to_ntriples(Sink, Goal_2, []).
+
+
+call_to_ntriples(Sink, Goal_2, Opts1) :-
+  merge_options([rdf_format(ntriples)], Opts1, Opts2),
+  call_to_ntuples(Sink, Goal_2, Opts2).
+
+
+
+%! call_to_ntuples(+Sink, :Goal_2, +Opts) is det.
+%
+% Stage-setting for writing N-Tuples (N-Triples or N-Quads).  Tuples
+% are written to Sink which is one of the sinks supported by
+% open_any/5.
+%
+% Goal_2 is called in the following way: `call(Goal_2, State, Out)`,
+% where State is a dictionary that records the state of writing tuples
+% (format, number of tuples, etc.) and where Out is a writable stream.
 %
 % The following options are supported:
 %
@@ -79,36 +117,6 @@
 %
 %   * warn(+stream) The output stream, if any, where warnings are
 %   written to.
-
-call_to_nquads(Sink, Goal_2) :-
-  call_to_nquads(Sink, Goal_2, []).
-
-
-call_to_nquads(Sink, Goal_2, Opts1) :-
-  merge_options([format(nquads)], Opts1, Opts2),
-  call_to_ntuples(Sink, Goal_2, Opts2).
-
-
-
-%! call_to_ntriples(+Sink, :Goal_2) is det.
-%! call_to_ntriples(+Sink, :Goal_2, +Opts) is det.
-%
-% The following call is made: `call(Goal_2, State, Out)`, where State
-% has key `format` set to value `ntriples`.
-%
-% The supported options are the same as for call_to_nquads/3.
-
-call_to_ntriples(Sink, Goal_2) :-
-  call_to_ntriples(Sink, Goal_2, []).
-
-
-call_to_ntriples(Sink, Goal_2, Opts1) :-
-  merge_options([format(ntriples)], Opts1, Opts2),
-  call_to_ntuples(Sink, Goal_2, Opts2).
-
-
-
-%! call_to_ntuples(+Sink, :Goal_2, +Opts) is det.
 
 call_to_ntuples(Sink, Goal_2, Opts) :-
   setup_call_cleanup(
@@ -163,10 +171,15 @@ gen_ntuple0(State, S, P, O, G) :-
 
 
 %! gen_ntuples(+Tuples, +State, +Out) is det.
+%! gen_ntuples(?M, ?G, +State, +Out) is det.
 %! gen_ntuples(?M, ?S, ?P, ?O, ?G, +State, +Out) is det.
 
 gen_ntuples(Tuples, State, Out) :-
   maplist({State,Out}/[Tuple]>>gen_ntuple(Tuple, State, Out), Tuples).
+
+
+gen_ntuples(M, G, State, Out) :-
+  gen_ntuples(M, _, _, _, G, State, Out).
 
 
 gen_ntuples(M, S, P, O, G, State, Out) :-

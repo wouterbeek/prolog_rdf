@@ -123,7 +123,11 @@ hdt__load(HdtFile, NTriplesFile, G) :-
   exists_file(NQuadsFile), !,
   file_name_extension(Base, 'nt.gz', NTriplesFile),
   setup_call_cleanup(
-    ensure_ntriples(NQuadsFile, NTriplesFile),
+    rdf_change_format(
+      NQuadsFile,
+      NTriplesFile,
+      [from_format(nquads),to_format(ntriples)]
+    ),
     (
       debug(q(ext), "N-Quads → N-Triples", []),
       hdt__load(HdtFile, NTriplesFile, G)
@@ -170,15 +174,3 @@ hdt2rdf(G) :-
   rdf_assert(S, P, O, G),
   fail.
 hdt2rdf(_).
-
-
-
-
-
-% HELPERS %
-
-%! ensure_ntriples(+NQuadsFile, +NTriplesFile) is det.
-
-ensure_ntriples(Source, Sink) :-
-  Opts = [rdf_format(ntriples)],
-  call_to_ntriples(Sink, gen_ntuples(gen_ntuples(_, _, _, _))).
