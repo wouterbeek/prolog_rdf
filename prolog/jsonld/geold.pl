@@ -2,11 +2,11 @@
   geold,
   [
     geold_geojson/2, % +Node, -GeoJson
-    geold_rm_feature_collections/0,
     geold_tuple/3,   % +Source, +Alias, -Tuple
     geold_tuple/5,   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuple
     geold_tuples/3,  % +Source, +Alias, -Tuples
-    geold_tuples/5   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
+    geold_tuples/5,  % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
+    qu_geold_rm_feature_collections/3 % +M1, +M2, +G
   ]
 ).
 
@@ -19,7 +19,7 @@ information.  Later RDF transformations can then be used to interpret
 the array as e.g. Well-Known Text (WKT).
 
 @author Wouter Beek
-@version 2016/05-2016/06
+@version 2016/05-2016/07
 */
 
 :- use_module(library(aggregate)).
@@ -45,7 +45,8 @@ the array as e.g. Well-Known Text (WKT).
 
 :- rdf_meta
    geold_geojson(r, -),
-   geold_print_feature(r).
+   geold_print_feature(r),
+   qu_geold_rm_feature_collections(+, +, r).
 
 
 
@@ -122,14 +123,14 @@ geold_tuples(Source, Alias, ExtraContext, ExtraData, Tuples) :-
 
 
 
-%! geold_rm_feature_collections is det.
+%! qu_geold_rm_feature_collections(+M1, +M2, +G) is det.
 %
 % Remove all GeoJSON FeatureCollections, since these are mere
 % artifacts.
 
-geold_rm_feature_collections :-
-  rdf_rm_col(geold:features),
-  rdf_rm(_, rdf:type, geold:'FeatureCollection').
+qu_geold_rm_feature_collections(M1, M2, G) :-
+  qu_rm_col(M1, M2, geold:features, G),
+  qu_rm(M1, M2, _, rdf:type, geold:'FeatureCollection', G).
 
 
 
