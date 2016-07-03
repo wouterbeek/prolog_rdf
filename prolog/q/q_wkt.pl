@@ -29,12 +29,12 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
    qu_wkt_point(+, r, +, r).
 
 :- multifile
-   gis:resource_shape_hook/5,
+   gis:gis_shape_hook/5,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
    qh:qh_literal_hook//2.
 
-gis:resource_shape_hook(M, S, D, G, Shape) :-
+gis:gis_shape_hook(M, S, D, G, Shape) :-
   q(M, S, geold:geometry, Array^^D, G),
   array2shape(Array, D, Shape).
 

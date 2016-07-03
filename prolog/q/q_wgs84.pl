@@ -7,7 +7,7 @@
     q_wgs84_long/4,     % ?M, ?S, ?Lng, ?G
     q_wgs84_point/4,    % ?M, ?S, ?PlPoint, ?G
     qb_wgs84_point/4,   % +M, +S, +PlPoint, +G
-    qu_wgs84_point/5,   % +M1, +M2, +LatP, +LngP, +G
+    qu_wgs84_point/3,   % +M1, +M2, +G
     qu_wgs84_wkt/3      % +M1, +M2, +G
   ]
 ).
@@ -42,7 +42,7 @@ wgs84:Point IS-A wgs84:SpatialThing
 :- qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 
 :- multifile
-   gis:resource_shape_hook/5,
+   gis:gis_shape_hook/5,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3.
 
@@ -53,10 +53,10 @@ wgs84:Point IS-A wgs84:SpatialThing
    q_wgs84_long(?, r, ?, r),
    q_wgs84_point(?, r, ?, r),
    qb_wgs84_point(+, r, +, r),
-   qu_wgs84_point(+, +, r, r, r),
+   qu_wgs84_point(+, +, r),
    qu_wgs84_wkt(+, +, r).
 
-gis:resource_shape_hook(M, S, D, G, Point) :-
+gis:gis_shape_hook(M, S, D, G, Point) :-
   rdf_equal(wkt:point, D),
   q_wgs84_point(M, S, Point, G).
 
@@ -146,16 +146,17 @@ qb_wgs84_point0(M, S, point(Lat,Lng), G, RdfPoint) :-
 
 
 
-%! qu_wgs84_point(+M1, +M2, +LatP, +LngP, +G) is det.
+%! qu_wgs84_point(+M1, +M2, +G) is det.
 
-qu_wgs84_point(M1, M2, LatP, LngP, G) :-
+qu_wgs84_point(M1, M2, G) :-
   qu_call((
-    qb(M, RdfPoint, LatP, Lat^^xsd:float, G),
-    qb(M, RdfPoint, LngP, Lng^^xsd:float, G)
+    q(M1, S, wgs84:lat, Lat^^xsd:float, G),
+    q(M1, S, wgs84:long, Lng^^xsd:float, G)
   ), (
+    qb_bnode(RdfPoint),
     qb(M2, S, wgs84:location, RdfPoint, G),
-    qu(M1, M2, S, wgs84:lat, Lat, G, subject(RdfPoint)),
-    qu(M1, M2, S, wgs84:long, Lng, G, subject(RdfPoint))
+    qu(M1, M2, S, wgs84:lat, Lat^^xsd:float, G, subject(RdfPoint)),
+    qu(M1, M2, S, wgs84:long, Lng^^xsd:float, G, subject(RdfPoint))
   )).
 
 
