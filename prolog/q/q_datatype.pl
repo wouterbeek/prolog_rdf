@@ -155,19 +155,19 @@ q_datatypes_compat(M, P, Ds) :-
 
 
 q_datatypes_compat(M, P, G, Ds) :-
-  q_aggregate_all(set(Lex), lexical_form0(M, P, Lex, G), Lexs),
-  maplist(q_datatypes_compat0, Lexs, Dss),
+  q_aggregate_all(set(O), q(M, _, P, O, G), Os),
+  maplist(term_compat_datatypes0, Os, Dss),
   (Dss == [] -> Ds = [] ; ord_intersection(Dss, Ds)).
 
 
-lexical_form0(M, P, Lex, G) :-
-  q(M, _, P, Lit, G),
-  q_is_literal(Lit),
-  q_literal_lex(Lit, Lex).
-
-
-q_datatypes_compat0(Lex, Ds) :-
+term_compat_datatypes0(O, Ds) :-
+  q_is_literal(O), !,
+  q_literal_lex(O, Lex),
   aggregate_all(set(D), q_datatype_compat(Lex, D), Ds).
+term_compat_datatypes0(O, [iri]) :-
+  q_is_iri(O), !.
+term_compat_datatypes0(O, [bnode]) :- !,
+  q_is_bnode(O).
 
 
 
