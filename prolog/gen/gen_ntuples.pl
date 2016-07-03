@@ -25,11 +25,10 @@
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(error)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(print_ext)).
+:- use_module(library(os/io)).
 :- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
@@ -118,14 +117,14 @@ call_to_ntriples(Sink, Goal_2, Opts1) :-
 %   * warn(+stream) The output stream, if any, where warnings are
 %   written to.
 
-call_to_ntuples(Sink, Goal_2, Opts) :-
+call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
   setup_call_cleanup(
     gen_ntuples_begin(State, Opts),
     (
       Goal_2 =.. Comps1,
       append(Comps1, [State], Comps2),
       Goal_1 =.. Comps2,
-      call_to_stream(Sink, Goal_1, Opts)
+      call_to_stream(Sink, Mod:Goal_1, Opts)
     ),
     gen_ntuples_end(State, Opts)
   ).
@@ -147,7 +146,7 @@ gen_ntuple(S, P, O, State, Out) :-
 
 
 gen_ntuple(S, P, O, G, State, Out) :-
-  with_output_to(Out, gen_tuple0(State, S, P, O, G)).
+  with_output_to(Out, gen_ntuple0(State, S, P, O, G)).
 
 
 gen_ntuple0(State, S, P, O, G) :-
@@ -198,8 +197,8 @@ gen_ntuples_begin(State2, Opts) :-
   option(rdf_format(Format), Opts, nquads),
   State1 = _{
     bprefix: '_:',
-    format: Format,
     quads: 0,
+    rdf_format: Format,
     triples: 0
   },
   % Stream to write warnings to, if any.

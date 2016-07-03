@@ -37,7 +37,7 @@ rdf_guess_format(In, Format) :-
 
 
 rdf_guess_format(In, Format, Opts) :-
-  rdf_guess_format0(0, Format, Opts, In).
+  rdf_guess_format0(In, 0, Format, Opts).
 
 
 rdf_guess_format0(In, I, Format, Opts) :-
