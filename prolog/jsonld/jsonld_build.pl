@@ -72,15 +72,7 @@ triples_to_jsonld(M, Triples, G, Jsonld) :-
 
 
 
-%! jsonld_subject_tree(
-%!   +M,
-%!   +PDefintions:list(pair),
-%!   ?DefLang,
-%!   +Tree,
-%!   +G,
-%!   +S,
-%!   -Jsonld
-%! ) is det.
+%! jsonld_subject_tree(+M, +PDefs:list(pair), ?DefLang, +Tree, +G, +S, -Jsonld) is det.
 
 jsonld_subject_tree(M, PDefs, DefLang, Tree, G, S1, Jsonld) :-
   get_assoc(S1, Tree, Subtree),
@@ -119,7 +111,7 @@ jsonld_triples_context(M, Triples, G, PDefs, _LTag, Context) :-
       (q_triple_iri(Triple, Iri) ; q_triple_datatype(Triple, Iri)),
       q_iri_alias_prefix(Iri, Alias, Prefix)
     ),
-    Pairs
+    Aliases
   ),
 
   /*
@@ -134,8 +126,7 @@ jsonld_triples_context(M, Triples, G, PDefs, _LTag, Context) :-
   aggregate_all(set(P), member(rdf(_,P,_), Triples), Ps),
   p_defs(M, Triples, Ps, G, PDefs),
 
-  % Pairs → dict.
-  append([Pairs,PDefs], Pairs),
+  append(Aliases, PDefs, Pairs),
   dict_pairs(Context, Pairs).
 
 
