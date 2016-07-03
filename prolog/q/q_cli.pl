@@ -39,7 +39,7 @@
 /** <module> Quine CLI
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -297,7 +297,7 @@ q__tree(S) :-
 
 q_p_no_abbr(M, P, G, Msg) :-
   ansi_format(user_output, [fg(yellow)], "~s~n", [Msg]),
-  once(findnsols(5, O, q(M, _, P, O, G), Os)),
+  once(findnsols(5, O, distinct(O, q(M, _, P, O, G)), Os)),
   maplist(singleton_list, Os, Rows),
   q_print_table([head([bold("object")])|Rows]).
 
