@@ -1,7 +1,10 @@
 :- module(
   json2rdf,
   [
-    json2rdf/3 % +Source, +Sink, +Opts
+    json2rdf/2,        % +Source, +Sink
+    json2rdf/3,        % +Source, +Sink, +Opts
+    json2rdf_stream/3, % +Source,        +State, +Out
+    json2rdf_stream/4  % +Source, +Opts, +State, +Out
   ]
 ).
 
@@ -29,6 +32,7 @@
 
 
 
+%! json2rdf(+Source, +Sink) is nondet.
 %! json2rdf(+Source, +Sink, +Opts) is nondet.
 %
 % Convert JSON coming from Source into RDF that is stored in graph G
@@ -40,20 +44,32 @@
 %   * call_to_ntriples/3
 %   * conv_alias_options/2
 
-json2rdf(Source, Sink, Opts1) :-
+json2rdf(Source, Sink) :-
+  json2rdf(Source, Sink, []).
+
+
+json2rdf(Source, Sink, Opts) :-
+  call_to_ntriples(Sink, json2rdf_stmts1(Source, Opts)).
+
+
+
+%! json2rdf_stream(+Source, +State, +Out) is nondet.
+%! json2rdf_stream(+Source, +Opts, +State, +Out) is nondet.
+
+json2rdf_stream(Source, State, Out) :-
+  json2rdf_stream(Source, [], State, Out).
+
+
+json2rdf_stream(Source, Opts1, State, Out) :-
   conv_alias_options(Opts1, Opts2),
-  call_to_ntriples(Sink, json2rdf_stmts1(Source, Opts2)).
+  call_on_stream(Source, json2rdf_stream0(Opts2, State, Out)).
 
 
-json2rdf_stmts1(Source, Opts, State, Out) :-
-  call_on_stream(Source, json2rdf_stmts2(State, Out, Opts)).
-
-
-json2rdf_stmts2(State, Out, Opts, In, Meta, Meta) :-
+json2rdf_stream0(Opts, State, Out, In, Meta, Meta) :-
   json2rdf_stmt0(In, Opts.alias, Triple),
   gen_ntuple(Triple, State, Out),
   fail.
-json2rdf_stmts2(_, _, _, _, _, _) :-
+json2rdf_stream0(_, _, _, _, _, _) :-
   debug(conv(jsond2rdf), "[DONE] JSON → RDF", []).
 
 

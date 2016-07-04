@@ -1,7 +1,8 @@
 :- module(
   hdt__io,
   [
-    hdt__call/2,    % :Goal_1, +G
+    hdt__call/2,    % :Goal_2, +G
+    hdt__call/3,    % :Goal_2, +G, +Opts
     hdt__delete/1,  % +G
     hdt__graph/1,   % ?G
     hdt__graph/2,   % ?G, -Hdt
@@ -15,10 +16,11 @@
 /** <module> HDT extensions
 
 @author Wouter Beek
-@version 2016/04-2016/06
+@version 2016/04-2016/07
 */
 
 :- use_module(library(apply)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt), []).
 :- use_module(library(os/io)).
 :- use_module(library(q/q__io)).
@@ -35,10 +37,12 @@
     hdt_graph0/4.
 
 :- meta_predicate
-    hdt__call(1, +).
+    hdt__call(2, +),
+    hdt__call(2, +, +).
 
 :- rdf_meta
    hdt__call(:, r),
+   hdt__call(:, r, +),
    hdt__delete(r),
    hdt__graph(r),
    hdt__graph(r, ?),
@@ -52,13 +56,19 @@
 
 
 %! hdt__call(:Goal_1, +G) is det.
+%! hdt__call(:Goal_1, +G, +Opts) is det.
 %
-% The following call is made: `call(Goal_1, File)`, where File is the
-% gzipped N-Triples file associated with graph G.
+% The following call is made: `call(Goal_2, State, Out)`, where State
+% maintains the state during N-Triple writing and Out is the output
+% stream.
 
-hdt__call(Goal_1, G) :- !,
+hdt__call(Goal_2, G) :-
+  hdt__call(Goal_2, G, []).
+
+
+hdt__call(Goal_2, G, Opts) :-
   q_graph_to_file(G, [nt,gz], File),
-  call_to_stream(File, Goal_1).
+  call_to_ntriples(File, Goal_2, Opts).
 
 
 

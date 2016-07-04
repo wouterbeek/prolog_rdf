@@ -479,8 +479,8 @@ qu_rm_col(M1, M2, P, G) :-
 %! qu_rm_empty_string(+M1, +M2, ?P, +G) is det.
 
 qu_rm_empty_string(M1, M2, P, G) :-
-  qu_rm_empty_string(P),
-  qu_rm_null(M1, M2, P, "", G).
+  qu_rm_empty_string_deb(P),
+  qu_rm_null(M1, M2, P, ""^^xsd:string, G).
 
 
 
@@ -555,8 +555,9 @@ qu_change_datatype_deb(P, D) :-
 
 
 
-qu_change_lex_deb(P, _:Pred) :-
+qu_change_lex_deb(P, _:Goal) :-
   with_output_to(string(P0), q_print_predicate(P)),
+  Goal =.. [Pred|_],
   debug(qu(change_lex), "Changel lexcal form for ‘~s’ using ‘~a’", [P0,Pred]).
 
 

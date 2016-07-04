@@ -1,7 +1,10 @@
 :- module(
   csv2rdf,
   [
-    csv2rdf/4 % +M, +Source, +G, +Opts
+    csv2rdf/2,        % +Source, +Sink
+    csv2rdf/3,        % +Source, +Sink, +Opts
+    csv2rdf_stream/3, % +Source,               +State, +Out
+    csv2rdf_stream/4  % +Source,        +Opts, +State, +Out
   ]
 ).
 
@@ -10,13 +13,14 @@
 Automatic conversion from CSV to RDF.
 
 @author Wouter Beek
-@version 2016/05-2016/06
+@version 2016/05-2016/07
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
@@ -30,14 +34,12 @@ Automatic conversion from CSV to RDF.
 
 :- qb_alias(ex, 'http://example.org/').
 
-:- rdf_meta
-   csv2rdf_graph(+, +, r, +).
 
 
 
 
-
-%! csv2rdf(+M, +Source, +G, +Opts) is det.
+%! csv2rdf(+Source, +Sink) is det.
+%! csv2rdf(+Source, +Sink, +Opts) is det.
 %
 % Converts the given CSV input file into RDF that is asserted either
 % into the given output file or into the given RDF graph.
@@ -56,40 +58,51 @@ Automatic conversion from CSV to RDF.
 %   first row of the CSV file.  The header labels will be turned into
 %   RDF properties within the given namespace.  Default is `ex`.
 
-csv2rdf(M, Source, G, Opts) :-
-  call_on_stream(Source, csv2rdf_stream1(M, G, Opts), Opts).
+csv2rdf(Source, Sink) :-
+  csv2rdf(Source, Sink, []).
 
 
-csv2rdf_stream1(M, G, Opts0, In, Meta, Meta) :-
-  csv2rdf_options0(Opts0, D, Opts),
-  (   get_dict(header, D, Ps)
+csv2rdf(Source, Sink, Opts) :-
+  call_to_ntriples(Sink, csv2rdf_stream(Source, Opts), Opts).
+
+
+
+%! csv2rdf_stream(+Source, +State, +Out) is det.
+%! csv2rdf_stream(+Source, +Opts, +State, +Out) is det.
+
+csv2rdf_stream(Source, State, Out) :-
+  csv2rdf_stream(Source, [], State, Out).
+
+
+csv2rdf_stream(Source, Opts, State, Out) :-
+  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts)).
+
+
+csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
+  csv2rdf_options0(Opts1, Dict, Opts2),
+  (   get_dict(header, Dict, Ps)
   ->  true
-  ;   once(csv:csv_read_stream_row(In, Row, _, Opts)),
-      list_row(Locals, Row),
-      Alias = D.tbox_alias,
+  ;   once(csv:csv_read_stream_row(In, HeaderRow, _, Opts2)),
+      list_row(HeaderNames, HeaderRow),
+      Alias = Dict.tbox_alias,
       maplist(
-        {Alias}/[Local,P]>>q_iri_alias_local(P, Alias, Local),
-        Locals,
+        {Alias}/[HeaderName,P]>>q_iri_alias_local(P, Alias, HeaderName),
+        HeaderNames,
         Ps
       )
   ),
-  csv2rdf_stream2(M, In, Ps, G, D, Opts).
-
-
-csv2rdf_stream2(M, In, Ps, G, D, Opts) :-
-  csv:csv_read_stream_row(In, Row, N, Opts),
-  list_row(Vals, Row),
-  atom_number(Name, N),
-  rdf_global_id(D.abox_alias:Name, S),
-  csv2rdf_stream3(M, S, Ps, Vals, G),
+  csv:csv_read_stream_row(In, DataRow, RowN, Opts2),
+  list_row(Vals, DataRow),
+  atom_number(Name, RowN),
+  rdf_global_id(Dict.abox_alias:Name, S),
+  rdf_equal(xsd:string, D),
+  maplist(
+    {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),
+    Ps,
+    Vals
+  ),
   fail.
-csv2rdf_stream2(_, _, _, _, _, _).
-
-
-csv2rdf_stream3(_, _, [], [], _) :- !.
-csv2rdf_stream3(M, S, [P|Ps], [Val|Vals], G) :- !,
-  qb(M, S, P, Val^^xsd:string, G),
-  csv2rdf_stream3(M, S, Ps, Vals, G).
+csv2rdf_stream0(_, _, _, _, Meta, Meta).
 
 
 csv2rdf_options0(Opts1, D, Opts4) :-

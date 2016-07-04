@@ -717,7 +717,10 @@ dcg_print_predicate(P) -->
 
 
 dcg_print_predicate(P, _) -->
-  {rdf_equal(rdf:type, P)}, !,
+  {
+    ground(P),
+    rdf_equal(rdf:type, P)
+  }, !,
   "a".
 dcg_print_predicate(P, _) -->
   {var(P)}, !,
