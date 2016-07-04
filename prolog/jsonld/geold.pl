@@ -26,6 +26,7 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
@@ -129,6 +130,7 @@ geold_tuples(Source, Alias, ExtraContext, ExtraData, Tuples) :-
 % artifacts.
 
 qu_geold_rm_feature_collections(M1, M2, G) :-
+  qu_geold_rm_feature_collections_deb,
   qu_rm_col(M1, M2, geold:features, G),
   qu_rm(M1, M2, _, rdf:type, geold:'FeatureCollection', G).
 
@@ -166,3 +168,12 @@ geold_prepare_data(Source, ExtraData, Data2) :-
       )
   ;   Data2 = Data1.put(ExtraData)
   ).
+
+
+
+
+
+% DEBUG %
+
+qu_geold_rm_feature_collections_deb :-
+  debug(qu(geold_rm_feature_collection), "Remove GeoJSON FeatureCollections", []).

@@ -7,13 +7,14 @@
     qu_change_iri/8,        % +M1, +M2, ?S, ?P, ?O, +G, +Positions, :Dcg_0
     qu_change_lex/5,        % +M1, +M2, +P, +G, :Dcg_0
     qu_change_ltag/5,       % +M1, +M2, +LTag1, +G, +LTag2
-    qu_change_p/5,          % +M1, +M2, +P, +G, +Q
+    qu_change_num/6,        % +M1, +M2, ?S, ?P, +G, :Goal_2
     qu_change_prefix/9,     % +M1, +M2, ?S, ?P, ?O, +G, +Positions, +Alias1, +Alias2
+    qu_change_val/6,        % +M1, +M2, ?S, ?P, +G, :Goal_2
     qu_cp/4,                % +M1, +M2, +G1, +G2
     qu_cp/7,                % +M1, +M2, +G1, ?S, ?P, ?O, +G2
-    qu_comb_date/7,         % +M1, +M2, +YP, +MP, +DP, +G, +Q
-    qu_comb_month_day/7,    % +M1, +M2, +YP, +MP, +DP, +G, +Q
-    qu_comb_year_month/7,   % +M1, +M2, +YP, +MP, +DP, +G, +Q
+    qu_comb_date/7,         % +M1, +M2, +P1, +P2, +P3, +G, +Q
+    qu_comb_month_day/7,    % +M1, +M2, +P1, +P2, +P3, +G, +Q
+    qu_comb_year_month/7,   % +M1, +M2, +P1, +P2, +P3, +G, +Q
     qu_inc/5,               % +M1, +M2, +S, +P, +G
     qu_flatten/4,           % +M1, +M2, +P, +G
     qu_lex_padding/5,       % +M1, +M2, +P, +G, +PaddingCode
@@ -26,6 +27,7 @@
     qu_rm/6,                % +M1, +M2, ?S, ?P, ?O, +G
     qu_rm_cell/6,           % +M1, +M2, +S, +P, +O, +G
     qu_rm_col/4,            % +M1, +M2, +P, +G
+    qu_rm_empty_string/4,   % +M1, +M2, ?S, ?P, +G
     qu_rm_error/6,          % +M1, +M2, ?S, ?P, ?O, +G
     qu_rm_null/5,           % +M1, +M2, ?P, +Null, +G
     qu_rm_tree/4,           % +M1, +M2, +S, +G
@@ -49,6 +51,7 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(print_ext)).
 :- use_module(library(q/q__io)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
@@ -61,6 +64,8 @@ Higher-level update operations performed on RDF data.
     qu_change_iri(+, +, ?, ?, ?, ?, +, //),
     qu_change_iri0(+, +, //, -),
     qu_change_lex(+, +, +, ?, //),
+    qu_change_num(+, +, ?, ?, +, 2),
+    qu_change_val(+, +, ?, ?, +, 2),
     qu_lex_to_iri(+, +, ?, +, ?, //),
     qu_process_string(+, +, +, ?, 5).
 
@@ -71,15 +76,15 @@ Higher-level update operations performed on RDF data.
    qu_change_iri(+, +, r, r, o, r, +, :),
    qu_change_lex(+, +, r, r, :),
    qu_change_ltag(+, +, +, r, +),
-   qu_change_p(+, +, r, r, r),
+   qu_change_num(+, +, r, r, r, :),
    qu_change_prefix(+, +, r, r, o, r, +, +, +),
+   qu_change_val(+, +, r, r, r, :),
    qu_comb_date(+, +, r, r, r, r, r),
    qu_comb_month_day(+, +, r, r, r, r, r),
    qu_comb_year_month(+, +, r, r, r, r, r),
    qu_cp(+, +, r, r),
    qu_cp(+, +, r, r, r, o, r),
    qu_flatten(+, +, r, r),
-   qu_inc(+, +, r, r),
    qu_inc(+, +, r, r, +),
    qu_lex_padding(+, +, r, r, +),
    qu_lex_to_iri(+, +, r, +, r, :),
@@ -104,6 +109,7 @@ Higher-level update operations performed on RDF data.
 %! qu_add_ltag(+M1, +M2, +P, +LTag, +G) is det.
 
 qu_add_ltag(M1, M2, P, LTag, G) :-
+  qu_add_ltag_deb(P, LTag),
   qu_call(
     q(M1, S, P, Str^^xsd:string, G),
     qu(M1, M2, S, P, Str^^xsd:string, G, object(Str@LTag))
@@ -139,6 +145,7 @@ qu_call0(_, _, State) :-
 % predicate P.
 
 qu_change_datatype(M1, M2, P, G, D2) :-
+  qu_change_datatype_deb(P, D2),
   qu_call((
     q(M1, S, P, Lit1, G),
     q_literal(Lit1, D1, Lex, LTag),
@@ -177,6 +184,7 @@ qu_change_iri0(rdf(S1,P1,O1), [PosS,PosP,PosO], Dcg_0, rdf(S2,P2,O2)) :-
 % one.
 
 qu_change_lex(M1, M2, P, G, Dcg_0) :-
+  qu_change_lex_deb(P, Dcg_0),
   qu_call((
     q(M1, S, P, Lit1, G),
     q_literal(Lit1, D, Lex1, LTag),
@@ -199,15 +207,16 @@ qu_change_ltag(M1, M2, LTag1, G, LTag2) :-
   ).
 
 
+%! qu_change_num(+M1, +M2, ?S, ?P, ?G, :Goal_2) is det.
 
-%! qu_change_p(+M1, +M2, +P, +G, +Q) is det.
-
-qu_change_p(M1, M2, P, G, Q) :-
+qu_change_num(M1, M2, S, P, G, Goal_2) :-
   qu_call((
-    q(M1, S, P, O, G),
-    P \== Q
+    q(M1, S, P, Val1^^D, G)
   ), (
-    qu(M1, M2, S, P, O, G, predicate(Q))
+    call(Goal_2, Val1, Val2),
+    rdf11:xsd_numerical(D, TypeCheck, integer),
+    must_be(TypeCheck, Val2),
+    qu(M1, M2, S, P, Val1^^D, G, object(Val2^^D))
   )).
 
 
@@ -229,48 +238,63 @@ iri_change_prefix0(Alias1, Alias2), atom(Prefix2), Cs -->
 
 
 
-%! qu_comb_date(+M1, +M2, +YP, +MP, +DP, +G, +Q) is det.
+%! qu_change_val(+M1, +M2, ?S, ?P, ?G, :Goal_2) is det.
 
-qu_comb_date(M1, M2, YP, MP, DP, G, Q) :-
+qu_change_val(M1, M2, S, P, G, Goal_2) :-
   qu_call((
-    q(M1, S, YP, Y^^xsd:gYear, G),
-    q(M1, S, MP, M^^xsd:gMonth, G),
-    q(M1, S, DP, D^^xsd:gDay, G)
+    q(M1, S, P, Val1^^D, G)
+  ), (
+    call(Goal_2, Val1, Val2),
+    qu(M1, M2, S, P, Val1^^D, G, object(Val2^^D))
+  )).
+
+
+
+%! qu_comb_date(+M1, +M2, +P1, +P2, +P3, +G, +Q) is det.
+
+qu_comb_date(M1, M2, P1, P2, P3, G, Q) :-
+  qu_comb_date_deb,
+  qu_call((
+    q(M1, S, P1, Y^^xsd:gYear, G),
+    q(M1, S, P2, M^^xsd:gMonth, G),
+    q(M1, S, P3, D^^xsd:gDay, G)
   ), (
     qb(M1, S, Q, date(Y,M,D)^^xsd:date, G),
-    qb_rm(M2, S, YP, Y^^xsd:gYear, G),
-    qb_rm(M2, S, MP, M^^xsd:gMonth, G),
-    qb_rm(M2, S, DP, D^^xsd:gDay, G)
+    qb_rm(M2, S, P1, Y^^xsd:gYear, G),
+    qb_rm(M2, S, P2, M^^xsd:gMonth, G),
+    qb_rm(M2, S, P3, D^^xsd:gDay, G)
   )).
 
 
 
-%! qu_comb_month_day(+M1, +M2, +MY, +MP, +DP, +G, +Q) is det.
+%! qu_comb_month_day(+M1, +M2, +P1, +P2, +P3, +G, +Q) is det.
 
-qu_comb_month_day(M1, M2, MY, MP, DP, G, Q) :-
+qu_comb_month_day(M1, M2, P1, P2, P3, G, Q) :-
+  qu_comb_month_day_deb,
   qu_call((
-    q(M1, S, MP, M^^xsd:gMonth, G),
-    q(M1, S, DP, D^^xsd:gDay, G),
-    \+ q(M1, S, MY, _, G)
+    q(M1, S, P2, M^^xsd:gMonth, G),
+    q(M1, S, P3, D^^xsd:gDay, G),
+    \+ q(M1, S, P1, _, G)
   ), (
     qb(M2, S, Q, month_day(M,D)^^xsd:gMonthDay, G),
-    qb_rm(M1, S, MP, M^^xsd:gMonth, G),
-    qb_rm(M1, S, DP, D^^xsd:gDay, G)
+    qb_rm(M1, S, P2, M^^xsd:gMonth, G),
+    qb_rm(M1, S, P3, D^^xsd:gDay, G)
   )).
 
 
 
-%! qu_comb_year_month(+M1, +M2, +YP, +MP, +DP, +G, +Q) is det.
+%! qu_comb_year_month(+M1, +M2, +P1, +P2, +P3, +G, +Q) is det.
 
-qu_comb_year_month(M1, M2, YP, MP, DP, G, Q) :-
+qu_comb_year_month(M1, M2, P1, P2, P3, G, Q) :-
+  qu_comb_year_month_deb,
   qu_call((
-    q(M1, S, YP, Y^^xsd:gYear, G),
-    q(M1, S, MP, M^^xsd:gMonth, G),
-    \+ q(M1, S, DP, _, G)
+    q(M1, S, P1, Y^^xsd:gYear, G),
+    q(M1, S, P2, M^^xsd:gMonth, G),
+    \+ q(M1, S, P3, _, G)
   ), (
     qb(M2, S, Q, year_month(Y,M)^^xsd:gYearMonth, G),
-    qb_rm(M1, S, YP, Y^^xsd:gYear, G),
-    qb_rm(M1, S, MP, M^^xsd:gMonth, G)
+    qb_rm(M1, S, P1, Y^^xsd:gYear, G),
+    qb_rm(M1, S, P2, M^^xsd:gMonth, G)
   )).
 
 
@@ -312,25 +336,19 @@ qu_flatten(M1, M2, P, G) :-
 
 
 
-%! qu_inc(+M1, +M2, +S, +P, +G) is det.
+%! qu_inc(+M1, +M2, ?S, ?P, +G) is det.
 %
 % Increment values.
 
 qu_inc(M1, M2, S, P, G) :-
-  qu_call((
-    q(M1, S, P, N1^^D, G),
-    rdf11:xsd_numerical(D, TypeCheck, integer)
-  ), (
-    N2 is N1 + 1,
-    must_be(TypeCheck, N2),
-    qu(M1, M2, S, P, N1^^D, G, object(N2^^D))
-  )).
+  qu_change_num(M1, M2, S, P, G, succ).
 
 
 
 %! qu_lex_padding(+M1, +M2, +P, +G, +PaddingCode) is det.
 
 qu_lex_padding(M1, M2, P, G, C) :-
+  qu_lex_padding_deb(P, C),
   aggregate_all(
     max(Len),
     (
@@ -404,10 +422,13 @@ qu_process_string(M1, M2, P, G, Dcg_3) :-
 %! qu_replace_predicate(+M1, +M2, +P, +G, +Q) is det.
 
 qu_replace_predicate(M1, M2, P, G, Q) :-
-  qu_call(
+  qu_replace_predicate_deb(P, Q),
+  qu_call((
     q(M1, S, P, O, G),
+    P \== Q
+  ), (
     qu(M1, M2, S, P, O, G, predicate(Q))
-  ).
+  )).
 
 
 
@@ -450,16 +471,26 @@ qu_rm_cell(M1, M2, S, P, O, G) :-
 % Remove all triples that contain predicate P.
 
 qu_rm_col(M1, M2, P, G) :-
+  qu_rm_col_deb(P),
   qu_rm(M1, M2, _, P, _, G).
 
 
 
-%! qu_rm_error(M1, M2, ?S, ?P, ?O, +G) is det.
+%! qu_rm_empty_string(+M1, +M2, ?P, +G) is det.
+
+qu_rm_empty_string(M1, M2, P, G) :-
+  qu_rm_empty_string(P),
+  qu_rm_null(M1, M2, P, "", G).
+
+
+
+%! qu_rm_error(+M1, +M2, ?S, ?P, ?O, +G) is det.
 %
 % Wrapper around qu_rm/4 that indicates that an error or mistake is
 % being removed.
 
 qu_rm_error(M1, M2, S, P, O, G) :-
+  qu_rm_error_deb(S, P, O),
   qu_rm(M1, M2, S, P, O, G).
 
 
@@ -470,6 +501,7 @@ qu_rm_error(M1, M2, S, P, O, G) :-
 % being removed.
 
 qu_rm_null(M1, M2, P, Null, G) :-
+  qu_rm_null_deb(P, Null),
   qu_rm(M1, M2, _, P, Null, G).
 
 
@@ -495,6 +527,7 @@ qu_rm_triples(M1, M2, S, P, O, G) :-
 %! qu_split_string(+M1, +M2, +P, +G, +SepChars) is det.
 
 qu_split_string(M1, M2, P, G, SepChars) :-
+  qu_split_string_deb(P),
   qu_call((
     q(M1, S, P, Str0^^xsd:string, G),
     split_string(Str0, SepChars, "", Strs)
@@ -502,3 +535,90 @@ qu_split_string(M1, M2, P, G, SepChars) :-
     forall(member(Str, Strs), qb(M2, S, P, Str^^xsd:string)),
     qb_rm(M2, S, P, Str0^^xsd:string, G)
   )).
+
+
+
+
+
+% DEBUG %
+
+qu_add_ltag_deb(P, LTag) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(add_ltag), "Add language-tag ‘~a’ for ‘~s’", [LTag,P0]).
+
+
+
+qu_change_datatype_deb(P, D) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  with_output_to(string(D0), q_print_datatype(D)),
+  debug(qu(change_datatype), "Change datatype of ‘~s’ to ‘~s’", [P0,D0]).
+
+
+
+qu_change_lex_deb(P, _:Pred) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(change_lex), "Changel lexcal form for ‘~s’ using ‘~a’", [P0,Pred]).
+
+
+
+qu_comb_date_deb :-
+  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’", []).
+
+
+
+qu_comb_month_day_deb :-
+  debug(qu(comb_data), "Combine ‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’", []).
+
+
+
+qu_comb_year_month_deb :-
+  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’ → ‘xsd:date’", []).
+
+
+
+qu_lex_padding_deb(P, C) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(lex_padding), "Add padding ‘~c’ to lexical forms of ‘~s’", [C,P0]).
+
+
+
+qu_replace_predicate_deb(P, Q) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  with_output_to(string(Q0), q_print_predicate(Q)),
+  debug(qu(replace_predicate), "Replace predicate ‘~s’ → ‘~s’", [P0,Q0]).
+
+
+
+qu_replace_string(From, To, P) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(replace_string), "Replace string ‘~s’ → ‘~s’ for ‘~s’", [From,To,P0]).
+
+
+
+qu_rm_col_deb(P) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(rm_col), "Remove column ‘~s’", [P0]).
+
+
+
+qu_rm_empty_string_deb(P) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(rm_empty_string), "Remove ε for ‘~s’", [P0]).
+
+
+
+qu_rm_error_deb(S, P, O) :-
+  with_output_to(string(Triple0), q_print_triple(S, P, O)),
+  debug(qu(rm_error), "~s", [Triple0]).
+
+
+
+qu_rm_null_deb(P, Null) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(rm_null), "Remove NULL values ‘~s’ for ‘~s’", [Null,P0]).
+
+
+
+qu_split_string_deb(P) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(split_string), "Split string for ‘~s’", [P0]).

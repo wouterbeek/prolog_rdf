@@ -1,6 +1,8 @@
 :- module(
   q_print,
   [
+    dcg_print_datatype//1,   %     +D
+    dcg_print_datatype//2,   %     +D,             +Opts
     dcg_print_graph//2,      % ?M,             +G
     dcg_print_graph//3,      % ?M,             +G, +Opts
     dcg_print_graph_term//1, %                 +G
@@ -33,6 +35,8 @@
     q_print_cbd/2,           % ?M, ?S
     q_print_cbd/3,           % ?M, ?S,         ?G
     q_print_cbd/4,           % ?M, ?S,         ?G, +Opts
+    q_print_datatype/1,      %     +D
+    q_print_datatype/2,      %     +D,             +Opts
     q_print_graph/2,         % ?M,             +G
     q_print_graph/3,         % ?M,             +G, +Opts
     q_print_graph_term/1,    %                 +G
@@ -94,7 +98,7 @@ Print RDF statements.
 @author Wouter Beek
 @tbd Turtle container abbreviation.
 @tbd Turtle collection abbreviation.
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -126,6 +130,8 @@ Print RDF statements.
     q:dcg_print_literal_hook//2.
 
 :- rdf_meta
+   dcg_print_datatype(r, ?, ?),
+   dcg_print_datatype(r, +, ?, ?),
    dcg_print_graph(?, r, ?, ?),
    dcg_print_graph(?, r, +, ?, ?),
    dcg_print_graph_term(r, ?, ?),
@@ -154,6 +160,8 @@ Print RDF statements.
    q_print_cbd(?, r),
    q_print_cbd(?, r, r),
    q_print_cbd(?, r, r, +),
+   q_print_datatype(r),
+   q_print_datatype(r, +),
    q_print_graph(?, r),
    q_print_graph(?, r, +),
    q_print_graph_term(r),
@@ -196,6 +204,19 @@ Print RDF statements.
 
 
 % NON-DCG INVOCATIONS %
+
+%! q_print_datatype(+D) is det.
+%! q_print_datatype(+D, +Opts) is det.
+
+q_print_datatype(D) :-
+  q_print_datatype(D, _{}).
+
+
+q_print_datatype(D, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_iri(D, Opts2)).
+
+
 
 %! q_print_cbd(?M, ?S) is det.
 %! q_print_cbd(?M, ?S, ?G) is det.
@@ -665,7 +686,7 @@ dcg_print_triple(S, P, O, Opts) -->
 
 
 
-% PRINT A TERM BY IT POSITIONALITY %
+% PRINT A TERM BY ITS POSITIONALITY %
 
 dcg_print_graph_term(G) -->
   {dcg_print_default_options(Opts)},
@@ -741,7 +762,15 @@ dcg_print_bnode(B, _) -->
 
 
 
-dcg_print_datatype_iri(D, Opts) -->
+%! dcg_print_datatype(+D)// is det.
+%! dcg_print_datatype(+D, +Opts)// is det.
+
+dcg_print_datatype(D) -->
+  {dcg_print_default_options(Opts)},
+  dcg_print_datatype(D, Opts).
+
+
+dcg_print_datatype(D, Opts) -->
   dcg_print_iri(D, Opts).
 
 
@@ -821,7 +850,7 @@ dcg_print_literal(V^^D, Opts) --> !,
   {q_literal_lex(V^^D, Lex)},
   dcg_print_lexical_form(Lex, Opts),
   "^^",
-  dcg_print_datatype_iri(D, Opts).
+  dcg_print_datatype(D, Opts).
 % Language-tagged string datatype IRI.
 dcg_print_literal(V@LTag, Opts) --> !,
   {atom_string(Lex, V)},
@@ -838,15 +867,6 @@ dcg_print_var(Var) -->
   {var_number(Var, N)},
   "?q",
   integer(N).
-
-
-var_number(Var, N) :-
-  var_map(Var0, N),
-  Var == Var0, !.
-var_number(Var, N) :-
-  flag(var_counter, N0, N0 + 1),
-  N is N0 + 1,
-  assert(var_map(Var, N)).
 
 
 
@@ -876,3 +896,15 @@ q_print_default_options(Opts1, Out, Opts5) :-
   mod_dict(out, Opts1, current_output, Out, Opts3),
   dcg_print_default_options(Opts4),
   merge_dicts(Opts4, Opts3, Opts5).
+
+
+
+%! var_number(@Var, -N) is det.
+
+var_number(Var, N) :-
+  var_map(Var0, N),
+  Var == Var0, !.
+var_number(Var, N) :-
+  flag(var_counter, N0, N0 + 1),
+  N is N0 + 1,
+  assert(var_map(Var, N)).

@@ -130,7 +130,7 @@ qb(M, rdf(S,P,O), G) :-
 
 qb(hdt, S, P, O, G) :- !,
   hdt__call(
-    {S,P,O,G}/[Sink]>>call_to_ntriples(Sink, gen_ntriple(hdt, S, P, O, G)),
+    {S,P,O,G}/[Sink]>>call_to_ntriples(Sink, gen_ntuple(S, P, O, G)),
     G
   ).
 qb(rdf, S, P, O, G) :- !,

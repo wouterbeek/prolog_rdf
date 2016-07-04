@@ -25,6 +25,7 @@ wgs84:Point IS-A wgs84:SpatialThing
 @version 2016/06-2016/07
 */
 
+:- use_module(library(debug)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -126,8 +127,18 @@ qu_wgs84_point(M1, M2, G) :-
 %! qu_wgs84_wkt(+M1, +M2, +G) is det.
 
 qu_wgs84_wkt(M1, M2, G) :-
+  qu_wgs_84_wkt_deb,
   qu_call((
     q_wgs84_point(M1, S, PlPoint, G)
   ), (
     qb_wkt_point(M2, S, PlPoint, G)
   )).
+
+
+
+
+
+% DEBUG %
+
+qu_wgs84_wkt_deb :-
+  debug(qu(wgs84_wkt), "Create WGS84 points", []).

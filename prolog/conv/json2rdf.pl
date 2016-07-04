@@ -13,14 +13,15 @@
 */
 
 :- use_module(library(atom_ext)).
+:- use_module(library(conv/q_conv)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(os/io)).
-:- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 
@@ -41,7 +42,7 @@
 
 json2rdf(Source, Sink, Opts1) :-
   conv_alias_options(Opts1, Opts2),
-  call_to_ntriples(Sink, json2rdf_stmts1(Source, Opts2), Opts1).
+  call_to_ntriples(Sink, json2rdf_stmts1(Source, Opts2)).
 
 
 json2rdf_stmts1(Source, Opts, State, Out) :-
