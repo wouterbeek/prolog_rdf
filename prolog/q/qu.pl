@@ -615,7 +615,8 @@ qu_rm_error_deb(S, P, O) :-
 
 qu_rm_null_deb(P, Null) :-
   with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(rm_null), "Remove NULL values ‘~s’ for ‘~s’", [Null,P0]).
+  with_output_to(string(Null0), q_print_object(Null)),
+  debug(qu(rm_null), "Remove NULL values ‘~s’ for ‘~s’", [Null0,P0]).
 
 
 

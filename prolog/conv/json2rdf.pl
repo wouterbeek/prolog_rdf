@@ -46,7 +46,7 @@ json2rdf(Source, Sink, Opts1) :-
 
 
 json2rdf_stmts1(Source, Opts, State, Out) :-
-  call_on_stream(Source, json2rdf_stmts2(State, Out, Opts), Opts).
+  call_on_stream(Source, json2rdf_stmts2(State, Out, Opts)).
 
 
 json2rdf_stmts2(State, Out, Opts, In, Meta, Meta) :-
