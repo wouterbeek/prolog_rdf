@@ -26,11 +26,6 @@
 
 /** <module> Quine statistics
 
-If the backend is instantiated then the statistic for that backend is
-returned.  If the backend is var then it is not instantiated to the
-various backends, but the sum of the statistics for each backend is
-returned.
-
 @author Wouter Beek
 @version 2016/06-2016/07
 */
@@ -48,7 +43,7 @@ returned.
 :- use_module(library(solution_sequences)).
 
 :- meta_predicate
-    q_sum_over_backends0(+, 2, -).
+    q_sum_over_backends0(?, 2, -).
 
 :- rdf_meta
    q_number_of_bnodes(?, r, -),
@@ -74,14 +69,14 @@ returned.
 %! q_number_of_bnodes(?M, ?G, -N) is det.
 
 q_number_of_bnodes(M, N) :-
-  q_sum_over_backends(M, q_number_of_bnodes0, N).
+  q_sum_over_backends0(M, q_number_of_bnodes0, N).
 
 q_number_of_bnodes0(M, N) :-
   aggregate_all(count, q_bnode(M, _), N).
 
 
 q_number_of_bnodes(M, G, N) :-
-  q_sum_over_backends(M, q_number_of_bnodes0(G), N).
+  q_sum_over_backends0(M, q_number_of_bnodes0(G), N).
 
 q_number_of_bnodes0(G, M, N) :-
   q_graph(M, G),
@@ -93,14 +88,14 @@ q_number_of_bnodes0(G, M, N) :-
 %! q_number_of_datatypes(?M, ?G, -N) is det.
 
 q_number_of_datatypes(M, N) :-
-  q_sum_over_backends(M, q_number_of_datatypes0, N).
+  q_sum_over_backends0(M, q_number_of_datatypes0, N).
 
 q_number_of_datatypes0(M, N) :-
   aggregate_all(count, q_datatype(M, _), N).
 
 
 q_number_of_datatypes(M, G, N) :-
-  q_sum_over_backends(M, q_number_of_datatypes0(G), N).
+  q_sum_over_backends0(M, q_number_of_datatypes0(G), N).
 
 q_number_of_datatypes0(G, M, N) :-
   q_graph(M, G),
@@ -114,14 +109,14 @@ q_number_of_datatypes0(G, M, N) :-
 %! q_number_of_objects(?M, ?S, ?P, ?G, -N) is det.
 
 q_number_of_objects(M, N) :-
-  q_sum_over_backends(M, q_number_of_objects0, N).
+  q_sum_over_backends0(M, q_number_of_objects0, N).
 
 q_number_of_objects(M, N) :-
   aggregate_all(count, q_object(M, _), N).
 
 
 q_number_of_objects(M, G, N) :-
-  q_sum_over_backends(M, q_number_of_objects0(G), N).
+  q_sum_over_backends0(M, q_number_of_objects0(G), N).
 
 q_number_of_objects0(G, M, N) :-
   q_graph(M, G),
@@ -143,14 +138,14 @@ q_number_of_objects(M, S, P, G, N) :-
 %! q_number_of_predicates(?M, ?S, ?O, ?G, -N) is det.
 
 q_number_of_predicates(M, N) :-
-  q_sum_over_backends(M, q_number_of_predicates0, N).
+  q_sum_over_backends0(M, q_number_of_predicates0, N).
 
 q_number_of_predicates0(M, N) :-
   aggregate_all(count, q_predicate(M, _), N).
 
 
 q_number_of_predicates(M, G, N) :-
-  q_sum_over_backends(M, q_number_of_predicates0(G), N).
+  q_sum_over_backends0(M, q_number_of_predicates0(G), N).
 
 q_number_of_predicates0(G, M, N) :-
   q_graph(M, G),
@@ -172,14 +167,14 @@ q_number_of_predicates(M, S, O, G, N) :-
 %! q_number_of_subjects(?M, ?P, ?O, ?G, -N) is det.
 
 q_number_of_subjects(M, N) :-
-  q_sum_over_backends(M, q_number_of_subjects0, N).
+  q_sum_over_backends0(M, q_number_of_subjects0, N).
 
 q_number_of_subjects0(M, N) :-
   aggregate_all(count, q_subject(M, _), N).
 
 
 q_number_of_subjects(M, G, N) :-
-  q_sum_over_backends(M, q_number_of_subjects0(G), N).
+  q_sum_over_backends0(M, q_number_of_subjects0(G), N).
 
 q_number_of_subjects0(G, M, N) :-
   q_graph(M, G),
@@ -201,7 +196,7 @@ q_number_of_subjects(M, P, O, G, N) :-
 %! q_number_of_triples(?M, ?S, ?P, ?O, ?G, -N) is det.
 
 q_number_of_triples(M, N) :-
-  q_sum_over_backends(M, q_number_of_triples0, N).
+  q_sum_over_backends0(M, q_number_of_triples0, N).
 
 q_number_of_triples0(hdt, N) :-
   aggregate_all(sum(N0), hdt_number_of_triples(_, N0), N).
@@ -210,7 +205,7 @@ q_number_of_triples0(rdf, N) :-
 
 
 q_number_of_triples(M, G, N) :-
-  q_sum_over_backends(M, q_number_of_triples0(G), N).
+  q_sum_over_backends0(M, q_number_of_triples0(G), N).
 
 q_number_of_triples0(G, hdt, N) :-
   hdt_number_of_triples(G, N).
@@ -231,18 +226,20 @@ q_number_of_triples(M, S, P, O, G, N) :-
 
 % HELPERS %
 
-q_number_ofs(_, Witness, S, P, O, G, N) :-
-  q_sum_over_backends(M, q_number_ofs0(Witness, S, P, O, G, M, N), N).
+q_number_ofs(M, Witness, S, P, O, G, N) :-
+  q_sum_over_backends0(M, q_number_ofs0(Witness, S, P, O, G), N).
 
 q_number_ofs0(Witness, S, P, O, G, M, N) :-
   aggregate_all(count, distinct(Witness, q(M, S, P, O, G)), N).
 
 
 
-%! q_sum_over_backends0(+M, :Goal_2, -N) is det.
+%! q_sum_over_backends0(+M, :Goal_2, -N) is semidet.
+%! q_sum_over_backends0(-M, :Goal_2, -N) is nondet.
 
 q_sum_over_backends0(M, Goal_2, N) :-
   ground(M), !,
   once(call(Goal_2, M, N)).
 q_sum_over_backends0(M, Goal_2, N) :-
-  aggregate_all(sum(N), (q_backend(M), call(Goal_2, M, N)), N).
+  q_backend(M),
+  call(Goal_2, M, N).

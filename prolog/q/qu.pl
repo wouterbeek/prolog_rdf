@@ -544,67 +544,67 @@ qu_split_string(M1, M2, P, G, SepChars) :-
 
 qu_add_ltag_deb(P, LTag) :-
   with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(add_ltag), "Add language-tag ‘~a’ for ‘~s’", [LTag,P0]).
+  debug(qu(add_ltag), "Add language-tag ‘~a’ for ‘~s’.", [LTag,P0]).
 
 
 
 qu_change_datatype_deb(P, D) :-
   with_output_to(string(P0), q_print_predicate(P)),
   with_output_to(string(D0), q_print_datatype(D)),
-  debug(qu(change_datatype), "Change datatype of ‘~s’ to ‘~s’", [P0,D0]).
+  debug(qu(change_datatype), "Change datatype of ‘~s’ to ‘~s’.", [P0,D0]).
 
 
 
 qu_change_lex_deb(P, _:Goal) :-
   with_output_to(string(P0), q_print_predicate(P)),
   Goal =.. [Pred|_],
-  debug(qu(change_lex), "Changel lexcal form for ‘~s’ using ‘~a’", [P0,Pred]).
+  debug(qu(change_lex), "Changel lexcal form for ‘~s’ using ‘~a’.", [P0,Pred]).
 
 
 
 qu_comb_date_deb :-
-  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’", []).
+  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’.", []).
 
 
 
 qu_comb_month_day_deb :-
-  debug(qu(comb_data), "Combine ‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’", []).
+  debug(qu(comb_data), "Combine ‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’.", []).
 
 
 
 qu_comb_year_month_deb :-
-  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’ → ‘xsd:date’", []).
+  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’ → ‘xsd:date’.", []).
 
 
 
 qu_lex_padding_deb(P, C) :-
   with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(lex_padding), "Add padding ‘~c’ to lexical forms of ‘~s’", [C,P0]).
+  debug(qu(lex_padding), "Add padding ‘~c’ to lexical forms of ‘~s’.", [C,P0]).
 
 
 
 qu_replace_predicate_deb(P, Q) :-
   with_output_to(string(P0), q_print_predicate(P)),
   with_output_to(string(Q0), q_print_predicate(Q)),
-  debug(qu(replace_predicate), "Replace predicate ‘~s’ → ‘~s’", [P0,Q0]).
+  debug(qu(replace_predicate), "Replace predicate ‘~s’ → ‘~s’.", [P0,Q0]).
 
 
 
 qu_replace_string(From, To, P) :-
   with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(replace_string), "Replace string ‘~s’ → ‘~s’ for ‘~s’", [From,To,P0]).
+  debug(qu(replace_string), "Replace string ‘~s’ → ‘~s’ for ‘~s’.", [From,To,P0]).
 
 
 
 qu_rm_col_deb(P) :-
   with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(rm_col), "Remove column ‘~s’", [P0]).
+  debug(qu(rm_col), "Remove column ‘~s’.", [P0]).
 
 
 
 qu_rm_empty_string_deb(P) :-
   with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(rm_empty_string), "Remove ε for ‘~s’", [P0]).
+  debug(qu(rm_empty_string), "Remove ε for ‘~s’.", [P0]).
 
 
 
@@ -617,10 +617,10 @@ qu_rm_error_deb(S, P, O) :-
 qu_rm_null_deb(P, Null) :-
   with_output_to(string(P0), q_print_predicate(P)),
   with_output_to(string(Null0), q_print_object(Null)),
-  debug(qu(rm_null), "Remove NULL values ‘~s’ for ‘~s’", [Null0,P0]).
+  debug(qu(rm_null), "Remove NULL values ‘~s’ for ‘~s’.", [Null0,P0]).
 
 
 
 qu_split_string_deb(P) :-
   with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(split_string), "Split string for ‘~s’", [P0]).
+  debug(qu(split_string), "Split string for ‘~s’.", [P0]).
