@@ -590,7 +590,7 @@ qu_replace_predicate_deb(P, Q) :-
 
 
 
-qu_replace_string(From, To, P) :-
+qu_replace_string_deb(From, To, P) :-
   with_output_to(string(P0), q_print_predicate(P)),
   debug(qu(replace_string), "Replace string ‘~s’ → ‘~s’ for ‘~s’.", [From,To,P0]).
 

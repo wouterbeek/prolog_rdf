@@ -49,7 +49,7 @@ json2rdf(Source, Sink) :-
 
 
 json2rdf(Source, Sink, Opts) :-
-  call_to_ntriples(Sink, json2rdf_stmts1(Source, Opts)).
+  call_to_ntriples(Sink, json2rdf_stream(Source, Opts)).
 
 
 
@@ -66,10 +66,10 @@ json2rdf_stream(Source, Opts1, State, Out) :-
 
 
 json2rdf_stream0(Opts, State, Out, In, Meta, Meta) :-
-  json2rdf_stmt0(In, Opts.alias, Triple),
+  json2rdf_stmt0(In, Opts.tbox_alias, Triple),
   gen_ntuple(Triple, State, Out),
   fail.
-json2rdf_stream0(_, _, _, _, _, _) :-
+json2rdf_stream0(_, _, _, _, Meta, Meta) :-
   debug(conv(jsond2rdf), "[DONE] JSON → RDF", []).
 
 
