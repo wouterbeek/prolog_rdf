@@ -142,10 +142,17 @@ source_to_void(DataG, Goal_3, VoidG) :-
   %),
 
   % VoID assertions that cannot be generated automatically.
-  call(Goal_3, M, Dataset, VoidG).
+  (current_goal(Goal_3) -> call(Goal_3, M, Dataset, VoidG) ; true).
 
 
 vocab_term(C, G) :-
   rdfs_class(C, G).
 vocab_term(P, G) :-
   rdfs_property(P, G).
+
+
+current_goal(Goal0) :-
+  strip_module(Goal0, _, Goal),
+  Goal =.. [Pred|Args],
+  length(Args, Arity),
+  current_predicate(Pred/Arity).

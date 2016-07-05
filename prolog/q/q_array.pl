@@ -20,6 +20,7 @@
    rdf11:out_type_hook/3,
    qh:qh_literal_hook//2.
 
+
 q:dcg_print_literal_hook(Array^^D, Opts) -->
   {
     rdf_equal(tcco:array, D), !,
@@ -27,19 +28,26 @@ q:dcg_print_literal_hook(Array^^D, Opts) -->
   },
   str_ellipsis(Lex, Opts.max_length).
 
+
 rdf11:in_ground_type_hook(D, L, Lex) :-
   rdf_equal(tcco:array, D), !,
-  atom_phrase(array_gen(L), Lex).
+  % @tbd
+  (is_list(L) -> atom_phrase(array_gen(L), Lex) ; Lex = L).
+
 
 rdf11:out_type_hook(D, L, Lex) :-
   rdf_equal(tcco:array, D), !,
-  atom_phrase(array_par(L), Lex).
+  % @tbd
+  (atom(Lex) -> atom_phrase(array_par(L), Lex) ; string_phrase(array_par(L), Lex)).
+
 
 array_gen(L) --> {is_list(L)}, !, "[", seplist(array_gen, " ", L), "]", !.
 array_gen(N) --> float(N).
 
+
 array_par(L) --> "[", !, seplist(array_par, " ", L), "]", !.
 array_par(N) --> float(N), !.
+
 
 qh:qh_literal_hook(Array^^D, Opts) -->
   {

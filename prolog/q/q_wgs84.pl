@@ -1,11 +1,12 @@
 :- module(
   q_wgs84,
   [
-    q_wgs84_point/4,          % ?M, ?S, ?Point, ?G
-    qb_wgs84_point/4,         % +M, +S, +Point, +G
-    qu_nest_wgs84_point/3,    % +M1, +M2, +G
-    qu_replace_wgs84_point/3, % +M1, +M2, +G
-    qu_rm_wgs84_point/5       % +M1, +M2, +S, +Point, +G
+    q_wgs84_point/4,                 % ?M, ?S, ?Point, ?G
+    qb_wgs84_point/4,                % +M, +S, +Point, +G
+    qu_replace_flat_wgs84_point/3,   % +M1, +M2, +G
+    qu_replace_flat_wgs84_point/5,   % +M1, +M2, +Q, +R, +G
+    qu_replace_nested_wgs84_point/3, % +M1, +M2, +G
+    qu_replace_nested_wgs84_point/6  % +M1, +M2, +P, +Q, +R, +G
   ]
 ).
 
@@ -53,9 +54,8 @@ wgs84:Point IS-A wgs84:SpatialThing
 :- rdf_meta
    q_wgs84_point(?, r, ?, r),
    qb_wgs84_point(+, r, +, r),
-   qu_nest_wgs84_point(+, +, r),
-   qu_replace_wgs84_point(+, +, r),
-   qu_rm_wgs84_point(+, +, r, ?, r).
+   qu_replace_flat_wgs84_point(+, +, r, r, r),
+   qu_replace_nested_wgs84_point(+, +, r, r, r, r).
 
 
 gis:gis_shape_hook(M, S, D, G, Point) :-
@@ -107,38 +107,48 @@ qb_wgs84_point(M, S, point(Lng,Lat), G) :- !,
 
 
 
-%! qu_nest_wgs84_point(+M1, +M2, +G) is det.
+%! qu_replace_flat_wgs84_point(+M1, +M2, +G) is det.
+%! qu_replace_flat_wgs84_point(+M1, +M2, +Q, +R, +G) is det.
+%
+% From flat WGS84 point notation to Triply point notation.
 
-qu_nest_wgs84_point(M1, M2, G) :-
-  gtrace,
-  debug(qu(wgs84), "Nest WGS84 points with ‘wgs84:location’.", []),
-  qu_add_nesting(M1, M2, wgs84:location, [wgs84:long,wgs84:lat], G).
+qu_replace_flat_wgs84_point(M1, M2, G) :-
+  qu_replace_flat_wgs84_point(M1, M2, wgs84:long, wgs84:lat, G).
 
 
-
-%! qu_replace_wgs84_point(+M1, +M2, +G) is det.
-
-qu_replace_wgs84_point(M1, M2, G) :-
-  gtrace,
-  debug(qu(wgs84), "Change WGS84 points to WKT points.", []),
+qu_replace_flat_wgs84_point(M1, M2, Q, R, G) :-
+  debug(qu(wgs84), "Triplyfy flat WGS84 point notation.", []),
   qu_call((
-    q_wgs84_point(M1, S, Point, G)
+    q(M1, S, Q, Lng^^xsd:float, G),
+    q(M1, S, R, Lat^^xsd:float, G)
   ), (
-    qb_wkt_point(M2, S, Point, G),
-    qu_rm_wgs84_point(M1, M2, S, Point, G)
+    qb_wkt_point(M2, S, point(Lng,Lat), G),
+    qb_rm(M1, S, Q, Lng^^xsd:float, G),
+    qb_rm(M1, S, R, Lat^^xsd:float, G)
   )).
 
 
 
-%! qb_rm_wgs84_point(+M1, +M2, ?S, ?Point, ?G) is det.
+%! qu_replace_nested_wgs84_point(+M1, +M2, +P, +Q, +R, +G) is det.
+%
+% From proper WGS84 point notation to Triply point notation.
 
-qu_rm_wgs84_point(M1, M2, S, point(Lng,Lat), G) :-
+qu_replace_nested_wgs84_point(M1, M2, G) :-
+  qu_replace_nested_wgs84_point(M1, M2, wgs84:location, wgs84:long, wgs84:lat, G).
+
+
+qu_replace_nested_wgs84_point(M1, M2, P, Q, R, G) :-
+  debug(qu(wgs84), "Change WGS84 points to WKT points.", []),
   qu_call((
-    q(M1, S, wgs84:location, B, G),
-    q(M1, B, wgs84:long, Lng^^xsd:float, G),
-    q(M1, B, wgs84:lat, Lat^^xsd:float, G)
-  )), ((
-    qb_rm(M2, S, wgs84:location, B, G),
-    qb_rm(M2, B, wgs84:long, Lng^^xsd:float, G),
-    qb_rm(M2, B, wgs84:lat, Lat^^xsd:float, G)
+    q(M1, S, P, B, G),
+    % Without the blank node check an already converted literal may
+    % appear in the subject position, resulting in an exception.
+    q_is_bnode(B),
+    q(M1, B, Q, Lng^^xsd:float, G),
+    q(M1, B, R, Lat^^xsd:float, G)
+  ), (
+    qb_wkt_point(M2, S, point(Lng,Lat), G),
+    qb_rm(M1, S, P, B, G),
+    qb_rm(M1, B, R, Lng^^xsd:float, G),
+    qb_rm(M1, B, Q, Lat^^xsd:float, G)
   )).

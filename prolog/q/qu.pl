@@ -19,6 +19,7 @@
     qu_inc/5,               % +M1, +M2, +S, +P, +G
     qu_flatten/4,           % +M1, +M2, +P, +G
     qu_lex_padding/5,       % +M1, +M2, +P, +G, +PaddingCode
+    qu_lex_to_iri/5,        % +M1, +M2, ?P, +Alias, +G
     qu_lex_to_iri/6,        % +M1, +M2, ?P, +Alias, +G, :Lex2Local_0
     qu_mv/4,                % +M1, +M2, +G1, +G2
     qu_mv/7,                % +M1, +M2, +G1, ?S, ?P, ?O, +G2
@@ -42,7 +43,7 @@
 Higher-level update operations performed on RDF data.
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(aggregate)).
@@ -67,6 +68,7 @@ Higher-level update operations performed on RDF data.
     qu_change_lex(+, +, +, ?, //),
     qu_change_num(+, +, ?, ?, +, 2),
     qu_change_val(+, +, ?, ?, +, 2),
+    qu_lex_to_iri(+, +, ?, +, ?),
     qu_lex_to_iri(+, +, ?, +, ?, //),
     qu_process_string(+, +, +, ?, 5).
 
@@ -89,6 +91,7 @@ Higher-level update operations performed on RDF data.
    qu_flatten(+, +, r, r),
    qu_inc(+, +, r, r, +),
    qu_lex_padding(+, +, r, r, +),
+   qu_lex_to_iri(+, +, r, +, r),
    qu_lex_to_iri(+, +, r, +, r, :),
    qu_mv(+, +, r, r),
    qu_mv(+, +, r, r, r, o, r),
@@ -125,7 +128,7 @@ qu_add_nesting(M1, M2, P, [Q|Qs], G) :-
   qu_call((
     q(M1, S, Q, O, G),
     maplist({M1,S,G}/[Q0,O0]>>q(M1, S, Q0, O0, G), Qs, Os)
-  )), ((
+  ), (
     qb_bnode(B),
     qb(M2, S, P, B, G),
     maplist(
@@ -396,7 +399,12 @@ qu_lex_padding0(C, Len), Cs -->
 
 
 
+%! qu_lex_to_iri(M1, M2, ?P, +Alias, +G) is det.
 %! qu_lex_to_iri(M1, M2, ?P, +Alias, +G, :Lex2Local_0) is det.
+
+qu_lex_to_iri(M1, M2, P, Alias, G) :-
+  qu_lex_to_iri(M1, M2, P, Alias, G, rest).
+
 
 qu_lex_to_iri(M1, M2, P, Alias, G, Lex2Local_0) :-
   qu_lex_to_iri_deb(P, Alias, Lex2Local_0),
