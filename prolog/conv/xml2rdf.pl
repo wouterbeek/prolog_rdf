@@ -14,6 +14,8 @@
 @version 2016/06
 */
 
+:- set_prolog_stack(global, limit(7*10**9)).
+
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(conv/q_conv)).
@@ -63,35 +65,39 @@ xml2rdf_stream(Source, RecordNames, Opts1, State, Out) :-
 xml2rdf_stream0(State, Out, Opts, Dom) :-
   qb_bnode(S),
   get_dict(ltag_attr, Opts, LTagAttr),
-  xml2rdf_stream0(Opts.tbox_alias, State, Out, Dom, [], S, LTagAttr).
+  xml2rdf_stream0(0, Opts.tbox_alias, State, Out, Dom, S, LTagAttr).
 
 
-xml2rdf_stream0(_, _, _, [], _, _, _) :- !.
-xml2rdf_stream0(Alias, State, Out, [Empty|Dom], L, S, LTagAttr) :-
-  is_empty_atom(Empty), !,
-  xml2rdf_stream0(Alias, State, Out, Dom, L, S, LTagAttr).
-xml2rdf_stream0(Alias, State, Out, [element(H,Attrs,Vals)|Dom], T, S, LTagAttr) :-
-  (   maplist(atomic, Vals)
-  ->  reverse([H|T], L),
-      atomic_list_concat(L, '_', Name),
-      rdf_global_id(Alias:Name, P),
-      forall((
-        member(Val, Vals),
-        \+ is_empty_atom(Val)
-      ), (
-        (   memberchk(LTagAttr=LTag0, Attrs)
-        ->  % Language-tagged strings must adhere to the following
-            % grammar: `[a-zA-Z]+ ('-' [a-zA-Z0-9]+)*`
-            atomic_list_concat([x,LTag0], -, LTag),
-            q_literal(Lit, rdf:langString, Val, LTag)
-        ;   q_literal(Lit, xsd:string, Val, _)
-        ),
-        (   debugging(conv(xml2rdf))
-        ->  with_output_to(user_output, q_print_triple(S, P, Lit))
-        ;   true
-        ),
-        gen_ntuple(S, P, Lit, State, Out)
-      ))
-  ;   xml2rdf_stream0(Alias, State, Out, Vals, [H|T], S, LTagAttr)
-  ),
-  xml2rdf_stream0(Alias, State, Out, Dom, [], S, LTagAttr).
+xml2rdf_stream0(N, Alias, State, Out, [element(H,Attrs,Vals)|T], S, LTagAttr) :-
+  maplist(atomic, Vals), !,
+  forall((
+    member(Val, Vals),
+    \+ is_empty_atom(Val)
+  ), (
+    (   memberchk(LTagAttr=LTag0, Attrs)
+    ->  % Language-tagged strings must adhere to the following
+        % grammar: `[a-zA-Z]+ ('-' [a-zA-Z0-9]+)*`
+        atomic_list_concat([x,LTag0], -, LTag),
+        q_literal(Lit, rdf:langString, Val, LTag)
+    ;   q_literal(Lit, xsd:string, Val, _)
+    ),
+    rdf_global_id(Alias:H, P),
+    %%%%debug(conv(xml2rdf), "XML value ~w", [Lit]),
+    gen_ntuple(S, P, Lit, State, Out)
+  )),
+  xml2rdf_stream0(N, Alias, State, Out, T, S, LTagAttr).
+xml2rdf_stream0(N1, Alias, State, Out, [element(H,_,Content)|T], S, LTagAttr) :- !,
+  N2 is N1 + 1,
+  debug(conv(xml2rdf), "XML nesting level ~D", [N2]),
+  rdf_global_id(Alias:H, P),
+  qb_bnode(O),
+  gen_ntuple(S, P, O, State, Out),
+  xml2rdf_stream0(N2, Alias, State, Out, Content, O, LTagAttr),
+  xml2rdf_stream0(N1, Alias, State, Out, T, S, LTagAttr).
+xml2rdf_stream0(N, Alias, State, Out, [H|T], S, LTagAttr) :-
+  is_empty_atom(H), !,
+  xml2rdf_stream0(N, Alias, State, Out, T, S, LTagAttr).
+xml2rdf_stream0(_, _, _, _, [], _, _) :- !.
+xml2rdf_stream0(N, Alias, State, Out, Dom, S, LTagAttr) :-
+  gtrace, %DEB
+  xml2rdf_stream0(N, Alias, State, Out, Dom, S, LTagAttr).

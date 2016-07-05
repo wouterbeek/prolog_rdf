@@ -1,8 +1,11 @@
 :- module(
   hdt_stat,
   [
-    hdt_meta/4,             % ?S, ?P, ?O, +G
-    hdt_number_of_triples/2 % ?G, -N
+    hdt_meta/4,                 % ?S, ?P, ?O, +G
+    hdt_number_of_objects/2,    % ?G, -N
+    hdt_number_of_properties/2, % ?G, -N
+    hdt_number_of_subjects/2,   % ?G, -N
+    hdt_number_of_triples/2     % ?G, -N
   ]
 ).
 
@@ -33,6 +36,27 @@
 hdt_meta(S, P, O, G) :-
   hdt__graph(G, Hdt),
   hdt:hdt_header(Hdt, S, P, O).
+
+
+
+%! hdt_number_of_objects(?G, -N) is nondet.
+
+hdt_number_of_objects(G, N) :-
+  hdt_meta(_, '<http://rdfs.org/ns/void#distinctObjects>', N^^xsd:integer, G).
+
+
+
+%! hdt_number_of_properties(?G, -N) is nondet.
+
+hdt_number_of_properties(G, N) :-
+  hdt_meta(_, '<http://rdfs.org/ns/void#properties>', N^^xsd:integer, G).
+
+
+
+%! hdt_number_of_subjects(?G, -N) is nondet.
+
+hdt_number_of_subjects(G, N) :-
+  hdt_meta(_, '<http://rdfs.org/ns/void#distinctSubjects>', N^^xsd:integer, G).
 
 
 

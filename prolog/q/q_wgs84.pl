@@ -10,6 +10,8 @@
 
 /** <module> Quine WGS84 support
 
+We write geo-coordinates in the following order: 〈lng,lat〉.
+
 rdfs:Resource
     ---[wgs84:location]--> wgs84:SpatialThing
         ---[wgs84:alt]--> xsd:float
@@ -88,7 +90,7 @@ q_wgs84_point(M, S, PlPoint, G) :-
   ).
 q_wgs84_point(M, S, point(Lng,Lat), G) :-
   q(M, S, wgs84:location, RdfPoint, G),
-  q(M, RdfPoint, wgs84:lat_long, Lng-Lat^^wgs84:pair, G).
+  q(M, RdfPoint, wgs84:lat_long, Lat-Lng^^wgs84:pair, G).
 
 
 
