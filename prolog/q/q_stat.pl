@@ -33,6 +33,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(hdt/hdt__io)).
 :- use_module(library(hdt/hdt_stat)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q__io)).
@@ -151,7 +152,7 @@ q_number_of_predicates(M, G, N) :-
 
 q_number_of_predicates0(G, hdt, N) :-
   hdt__graph(G),
-  hdt_number_of_predicates(G, N).
+  hdt_number_of_properties(G, N).
 q_number_of_predicates0(G, rdf, N) :-
   aggregate_all(count, rdf_predicate(_, G), N).
 

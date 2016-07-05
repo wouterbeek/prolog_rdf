@@ -2,6 +2,7 @@
   qu,
   [
     qu_add_ltag/5,          % +M1, +M2, +P, +LTag, +G
+    qu_add_nesting/5,       % +M1, +M2, +P, +Qs, +G
     qu_call/2,              % :Find_0, :Transform_0
     qu_change_datatype/5,   % +M1, +M2, +P, +G, +D
     qu_change_iri/8,        % +M1, +M2, ?S, ?P, ?O, +G, +Positions, :Dcg_0
@@ -27,7 +28,7 @@
     qu_rm/6,                % +M1, +M2, ?S, ?P, ?O, +G
     qu_rm_cell/6,           % +M1, +M2, +S, +P, +O, +G
     qu_rm_col/4,            % +M1, +M2, +P, +G
-    qu_rm_empty_string/4,   % +M1, +M2, ?S, ?P, +G
+    qu_rm_empty_string/4,   % +M1, +M2, ?P, +G
     qu_rm_error/6,          % +M1, +M2, ?S, ?P, ?O, +G
     qu_rm_null/5,           % +M1, +M2, ?P, +Null, +G
     qu_rm_tree/4,           % +M1, +M2, +S, +G
@@ -71,6 +72,7 @@ Higher-level update operations performed on RDF data.
 
 :- rdf_meta
    qu_add_ltag(+, +, r, +, r),
+   qu_add_nesting(+, +, r, t, t),
    qu_call(t, t),
    qu_change_datatype(+, +, r, r, r),
    qu_change_iri(+, +, r, r, o, r, +, :),
@@ -114,6 +116,24 @@ qu_add_ltag(M1, M2, P, LTag, G) :-
     q(M1, S, P, Str^^xsd:string, G),
     qu(M1, M2, S, P, Str^^xsd:string, G, object(Str@LTag))
   ).
+
+
+
+%! qu_add_nesting(+M1, +M2, +P, +Qs, +G) is det.
+
+qu_add_nesting(M1, M2, P, [Q|Qs], G) :-
+  qu_call((
+    q(M1, S, Q, O, G),
+    maplist({M1,S,G}/[Q0,O0]>>q(M1, S, Q0, O0, G), Qs, Os)
+  )), ((
+    qb_bnode(B),
+    qb(M2, S, P, B, G),
+    maplist(
+      {M1,M2,S,G,B}/[Q0,O0]>>qu(M1, M2, S, Q0, O0, G, subject(B)),
+      [Q|Qs],
+      [O|Os]
+    )
+  )).
 
 
 
@@ -323,15 +343,18 @@ qu_cp(M1, M2, G1, S, P, O, G2) :-
 
 
 %! qu_flatten(+M1, +M2, +P, +G) is det.
+%
+% Remove triples 〈S,P,B〉 and 〈B,Q,O〉 from graph G and assert
+% triples 〈S,Q,O〉 instead.
 
 qu_flatten(M1, M2, P, G) :-
   qu_call((
-    q(M1, X, P, Y, G),
-    q_is_bnode(Y),
-    q(M1, Y, Q, Z, G)
+    q(M1, S, P, B, G),
+    q_is_bnode(B),
+    q(M1, B, Q, O, G)
   ), (
-    qu(M1, M2, Y, Q, Z, G, subject(X)),
-    qb_rm(M1, X, P, Y, G)
+    qu(M1, M2, B, Q, O, G, subject(S)),
+    qb_rm(M1, S, P, B, G)
   )).
 
 
@@ -376,6 +399,7 @@ qu_lex_padding0(C, Len), Cs -->
 %! qu_lex_to_iri(M1, M2, ?P, +Alias, +G, :Lex2Local_0) is det.
 
 qu_lex_to_iri(M1, M2, P, Alias, G, Lex2Local_0) :-
+  qu_lex_to_iri_deb(P, Alias, Lex2Local_0),
   qu_call((
     q(M1, S, P, Lit, G),
     q_is_literal(Lit)
@@ -580,6 +604,17 @@ qu_comb_year_month_deb :-
 qu_lex_padding_deb(P, C) :-
   with_output_to(string(P0), q_print_predicate(P)),
   debug(qu(lex_padding), "Add padding ‘~c’ to lexical forms of ‘~s’.", [C,P0]).
+
+
+
+qu_lex_to_iri_deb(P, Alias, _:Goal) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  Goal =.. [Pred|_],
+  debug(
+    qu(lex_to_iri),
+    "Lexicals of ‘~s’ become IRIs with alias ‘~a’ using ‘~a’.",
+    [P0,Alias,Pred]
+  ).
 
 
 

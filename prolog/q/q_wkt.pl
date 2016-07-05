@@ -1,7 +1,8 @@
 :- module(
   q_wkt,
   [
-    qb_wkt_point/4 % +M, +S, +PlPoint, +G
+    qb_wkt_point/4,  % +M, +S, +Point, +G
+    qu_flatten_wkt/3 % +M1, +M2, +G
   ]
 ).
 
@@ -85,8 +86,31 @@ qh:qh_literal_hook(Array^^D, Opts) -->
 
 
 
-%! qb_wkt_point(+M, +S, +PlPoint, +G) is det.
+%! qb_wkt_point(+M, +S, +Point, +G) is det.
 
-qb_wkt_point(M, S, PlPoint, G) :-
-  atom_phrase(wkt(point(PlPoint)), Lex),
+qb_wkt_point(M, S, Point, G) :-
+  atom_phrase(wkt(point(Point)), Lex),
   qb(M, S, geold:geometry, Lex^^wkt:point, G).
+
+
+
+%! qu_flatten_wkt(+M1, +M2, +G) is det.
+
+qu_flatten_wkt(M1, M2, G) :-
+  debug(qu(wkt), "Flatten WKT geometries.", []),
+  qu_call((
+    q(M1, S, geold:geometry, B, G),
+    % Without the blank node check an already converted literal may
+    % appear in the subject position, resulting in an exception.
+    q_is_bnode(B),
+    q(M1, B, rdf:type, C, G),
+    q(M1, B, geold:coordinates, Array^^tcco:array, G)
+  ), (
+    q_iri_local(C, Local0),
+    lowercase_atom(Local0, Local),
+    rdf_global_id(wkt:Local, D),
+    qb(M2, S, geold:geometry, Array^^D, G),
+    qb_rm(M1, S, geold:geometry, B, G),
+    qb_rm(M1, B, rdf:type, C, G),
+    qb_rm(M1, B, geold:coordinates, Array^^tcco:array, G)
+  )).

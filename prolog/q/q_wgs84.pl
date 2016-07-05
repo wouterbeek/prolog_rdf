@@ -1,10 +1,11 @@
 :- module(
   q_wgs84,
   [
-    q_wgs84_point/4,  % ?M, ?S, ?PlPoint, ?G
-    qb_wgs84_point/4, % +M, +S, +PlPoint, +G
-    qu_wgs84_point/3, % +M1, +M2, +G
-    qu_wgs84_wkt/3    % +M1, +M2, +G
+    q_wgs84_point/4,          % ?M, ?S, ?Point, ?G
+    qb_wgs84_point/4,         % +M, +S, +Point, +G
+    qu_nest_wgs84_point/3,    % +M1, +M2, +G
+    qu_replace_wgs84_point/3, % +M1, +M2, +G
+    qu_rm_wgs84_point/5       % +M1, +M2, +S, +Point, +G
   ]
 ).
 
@@ -12,24 +13,30 @@
 
 We write geo-coordinates in the following order: 〈lng,lat〉.
 
+```
 rdfs:Resource
     ---[wgs84:location]--> wgs84:SpatialThing
-        ---[wgs84:alt]--> xsd:float
-        ---[wgs84:lat]--> xsd:float
         ---[wgs84:long]--> xsd:float
+        ---[wgs84:lat]--> xsd:float
 
 wgs84:lat_long (comma-separated)
 
 wgs84:Point IS-A wgs84:SpatialThing
+```
+
+---
 
 @author Wouter Beek
 @see https://www.w3.org/2003/01/geo/wgs84_pos
+@tbd Add altitude support.
+@tbd Add support for lat-lng pair notation.
 @version 2016/06-2016/07
 */
 
 :- use_module(library(debug)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/q_wkt)).
 :- use_module(library(q/qb)).
 :- use_module(library(q/qu)).
 :- use_module(library(semweb/rdf11)).
@@ -46,8 +53,9 @@ wgs84:Point IS-A wgs84:SpatialThing
 :- rdf_meta
    q_wgs84_point(?, r, ?, r),
    qb_wgs84_point(+, r, +, r),
-   qu_wgs84_point(+, +, r),
-   qu_wgs84_wkt(+, +, r).
+   qu_nest_wgs84_point(+, +, r),
+   qu_replace_wgs84_point(+, +, r),
+   qu_rm_wgs84_point(+, +, r, ?, r).
 
 
 gis:gis_shape_hook(M, S, D, G, Point) :-
@@ -73,74 +81,64 @@ rdf11:out_type_hook(D, Lng-Lat, Lex) :-
 
 
 
-%! q_wgs84_point(?M, ?S, ?PlPoint, ?G) is nondet.
+%! q_wgs84_point(?M, ?S, ?Point, ?G) is nondet.
 %
-% Succeeds if PlPoint denotes a geo-location of resource S.
+% Succeeds if Point denotes a geo-location of resource S.
 %
-% PlPoint is either of the form `point(?Lng,?Lat)` or
-% `point(?Lng,?Lat,?Alt)`.
+% Point is of the form `point(?Lng,?Lat)`.
 
-q_wgs84_point(M, S, PlPoint, G) :-
-  q(M, S, wgs84:location, RdfPoint, G),
-  q(M, RdfPoint, wgs84:long, Lng^^xsd:float, G),
-  q(M, RdfPoint, wgs84:lat, Lat^^xsd:float, G),
-  (   q(M, RdfPoint, wgs84:alt, Alt^^xsd:float, G)
-  ->  PlPoint = point(Lng,Lat,Alt)
-  ;   PlPoint = point(Lng,Lat)
-  ).
 q_wgs84_point(M, S, point(Lng,Lat), G) :-
-  q(M, S, wgs84:location, RdfPoint, G),
-  q(M, RdfPoint, wgs84:lat_long, Lat-Lng^^wgs84:pair, G).
+  q(M, S, wgs84:location, B, G),
+  q(M, B, wgs84:long, Lng^^xsd:float, G),
+  q(M, B, wgs84:lat, Lat^^xsd:float, G).
+%q_wgs84_point(M, S, point(Lng,Lat), G) :-
+%  q(M, S, wgs84:location, B, G),
+%  q(M, B, wgs84:lat_long, Lat-Lng^^wgs84:pair, G).
 
 
 
-%! qb_wgs84_point(+M, +S, +PlPoint, +G) is det.
+%! qb_wgs84_point(+M, +S, +Point, +G) is det.
 
-qb_wgs84_point(M, S, point(Lng,Lat,Alt), G) :- !,
-  qb_wgs84_point0(M, S, point(Lng,Lat), G, RdfPoint),
-  qb(M, RdfPoint, wgs84:alt, Alt^^xsd:float, G).
 qb_wgs84_point(M, S, point(Lng,Lat), G) :- !,
-  qb_wgs84_point0(M, S, point(Lng,Lat), G, _).
-
-
-qb_wgs84_point0(M, S, point(Lng,Lat), G, RdfPoint) :-
-  qb_bnode(RdfPoint),
-  qb(M, S, wgs84:location, RdfPoint, G),
-  qb(M, RdfPoint, wgs84:long, Lng^^xsd:float, G),
-  qb(M, RdfPoint, wgs84:lat, Lat^^xsd:float, G).
+  qb_bnode(B),
+  qb(M, S, wgs84:location, B, G),
+  qb(M, B, wgs84:long, Lng^^xsd:float, G),
+  qb(M, B, wgs84:lat, Lat^^xsd:float, G).
 
 
 
-%! qu_wgs84_point(+M1, +M2, +G) is det.
+%! qu_nest_wgs84_point(+M1, +M2, +G) is det.
 
-qu_wgs84_point(M1, M2, G) :-
+qu_nest_wgs84_point(M1, M2, G) :-
+  gtrace,
+  debug(qu(wgs84), "Nest WGS84 points with ‘wgs84:location’.", []),
+  qu_add_nesting(M1, M2, wgs84:location, [wgs84:long,wgs84:lat], G).
+
+
+
+%! qu_replace_wgs84_point(+M1, +M2, +G) is det.
+
+qu_replace_wgs84_point(M1, M2, G) :-
+  gtrace,
+  debug(qu(wgs84), "Change WGS84 points to WKT points.", []),
   qu_call((
-    q(M1, S, wgs84:long, Lng^^xsd:float, G),
-    q(M1, S, wgs84:lat, Lat^^xsd:float, G)
+    q_wgs84_point(M1, S, Point, G)
   ), (
-    qb_bnode(RdfPoint),
-    qb(M2, S, wgs84:location, RdfPoint, G),
-    qu(M1, M2, S, wgs84:long, Lng^^xsd:float, G, subject(RdfPoint)),
-    qu(M1, M2, S, wgs84:lat, Lat^^xsd:float, G, subject(RdfPoint))
+    qb_wkt_point(M2, S, Point, G),
+    qu_rm_wgs84_point(M1, M2, S, Point, G)
   )).
 
 
 
-%! qu_wgs84_wkt(+M1, +M2, +G) is det.
+%! qb_rm_wgs84_point(+M1, +M2, ?S, ?Point, ?G) is det.
 
-qu_wgs84_wkt(M1, M2, G) :-
-  qu_wgs_84_wkt_deb,
+qu_rm_wgs84_point(M1, M2, S, point(Lng,Lat), G) :-
   qu_call((
-    q_wgs84_point(M1, S, PlPoint, G)
-  ), (
-    qb_wkt_point(M2, S, PlPoint, G)
+    q(M1, S, wgs84:location, B, G),
+    q(M1, B, wgs84:long, Lng^^xsd:float, G),
+    q(M1, B, wgs84:lat, Lat^^xsd:float, G)
+  )), ((
+    qb_rm(M2, S, wgs84:location, B, G),
+    qb_rm(M2, B, wgs84:long, Lng^^xsd:float, G),
+    qb_rm(M2, B, wgs84:lat, Lat^^xsd:float, G)
   )).
-
-
-
-
-
-% DEBUG %
-
-qu_wgs84_wkt_deb :-
-  debug(qu(wgs84_wkt), "Create WGS84 points", []).
