@@ -78,10 +78,9 @@ json2rdf_stmt0(In, Alias, Triple) :-
   read_line_to_string(In, Str),
   (   Str == end_of_file
   ->  !, fail
-  ;   atom_string(A, Str),
-      atom_json_dict(A, D),
+  ;   string_json_dict(Str, Dict),
       qb_bnode(S),
-      get_dict_path(Keys1, D, Val),
+      get_dict_path(Keys1, Dict, Val),
 
       % P
       atomic_list_concat(Keys1, '_', Local1),

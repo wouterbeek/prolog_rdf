@@ -11,7 +11,8 @@
 /** <module> XML-2-RDF
 
 @author Wouter Beek
-@version 2016/06
+@tbd Currently runs out of memory for unclear reasons.
+@version 2016/06-2016/07
 */
 
 :- set_prolog_stack(global, limit(7*10**9)).

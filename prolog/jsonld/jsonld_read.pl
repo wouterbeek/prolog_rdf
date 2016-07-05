@@ -12,24 +12,19 @@
 /** <module> JSON-LD read
 
 @author Wouter Beek
-@version 2016/01-2016/03, 2016/05
+@version 2016/01-2016/03, 2016/05, 2016/07
 */
 
 :- use_module(library(dict_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_generics)).
 :- use_module(library(lists)).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 
 :- rdf_meta
    tuple_term(+, r, r, o, -).
-
-:- dynamic
-    jsonld_read:jsonld_tuple_hook/7.
-
-:- multifile
-    jsonld_read:jsonld_tuple_hook/7.
 
 
 
@@ -198,9 +193,6 @@ jsonld_to_subject(_, L, S, L) :-
 
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
 
-% Implementation-specific hooks.
-%jsonld_tuple(Context, S, P, ODef, LTag, Val, Tuple) :-
-%  jsonld_read:jsonld_tuple_hook(Context, S, P, ODef, LTag, Val, Tuple), !.
 % Null value.
 jsonld_tuple(_, _, _, _, _, null, _) :- !,
   fail.
