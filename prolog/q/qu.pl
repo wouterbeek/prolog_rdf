@@ -26,6 +26,7 @@
     qu_process_string/5,    % +M1, +M2, +P, +G, :Dcg_3
     qu_replace_string/7,    % +M1, +M2, ?S, ?P, +Sub1, +G, +Sub2
     qu_replace_predicate/5, % +M1, +M2, +P, +G, +Q
+    qu_replace_subject/5,   % +M1, +M2, +S1, +S2, +G
     qu_rm/6,                % +M1, +M2, ?S, ?P, ?O, +G
     qu_rm_cell/6,           % +M1, +M2, +S, +P, +O, +G
     qu_rm_col/4,            % +M1, +M2, +P, +G
@@ -34,7 +35,8 @@
     qu_rm_null/5,           % +M1, +M2, ?P, +Null, +G
     qu_rm_tree/4,           % +M1, +M2, +S, +G
     qu_rm_triples/6,        % +M1, +M2, ?S, ?P, ?O, ?G
-    qu_split_string/5       % +M1, +M2, +P, +G, ?SepChars
+    qu_split_string/5,      % +M1, +M2, +P, +G, ?SepChars
+    qu_subject_from_key/5   % +M1, +M2, +Alias, +P, +G
   ]
 ).
 
@@ -47,6 +49,7 @@ Higher-level update operations performed on RDF data.
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
@@ -98,6 +101,7 @@ Higher-level update operations performed on RDF data.
    qu_process_string(+, +, r, r, :),
    qu_replace_string(+, +, r, r, +, r, +),
    qu_replace_predicate(+, +, r, r, r),
+   qu_replace_subject(+, +, r, r, r),
    qu_rm(+, +, r, r, o, r),
    qu_rm_cell(+, +, r, r, o, r),
    qu_rm_col(+, +, r, r),
@@ -105,7 +109,8 @@ Higher-level update operations performed on RDF data.
    qu_rm_null(+, +, r, o, r),
    qu_rm_tree(+, +, r, r),
    qu_rm_triples(+, +, r, r, o, r),
-   qu_split_string(+, +, r, r, +).
+   qu_split_string(+, +, r, r, +),
+   qu_subject_from_key(+, +, +, r, r).
 
 
 
@@ -477,6 +482,16 @@ qu_replace_string(M1, M2, S, P, Sub1, G, Sub2) :-
 
 
 
+%! qu_replace_subject(+M1, +M2, +S1, +S2, +G) is det.
+
+qu_replace_subject(M1, M2, S1, S2, G) :-
+  qu_call(
+    q(M1, S1, P, O, G),
+    qu(M1, M2, S1, P, O, G, subject(S2))
+  ).
+
+
+
 %! qu_rm(+M1, +M2, ?S, ?P, ?O, +G) is det.
 %
 % Remove the specified triples or quadruples.
@@ -564,8 +579,22 @@ qu_split_string(M1, M2, P, G, SepChars) :-
     q(M1, S, P, Str0^^xsd:string, G),
     split_string(Str0, SepChars, "", Strs)
   ), (
-    forall(member(Str, Strs), qb(M2, S, P, Str^^xsd:string)),
+    forall(member(Str, Strs), qb(M2, S, P, Str^^xsd:string, G)),
     qb_rm(M2, S, P, Str0^^xsd:string, G)
+  )).
+
+
+
+%! qu_subject_from_key(+M1, +M2, +Alias, +P, +G) is det.
+
+qu_subject_from_key(M1, M2, Alias, P, G) :-
+  qu_call(
+    q(M1, S1, P, Str^^xsd:string, G), (
+    atom_string(A, Str),
+    lowercase_atom(A, Local),
+    rdf_global_id(Alias:Local, S2),
+    qb_rm(M1, S1, P, Str^^xsd:string, G),
+    forall(q(M1, S1, P, O, G), qu(M1, M2, S1, P, O, G, subject(S2)))
   )).
 
 

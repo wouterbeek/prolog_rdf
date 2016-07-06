@@ -12,7 +12,9 @@
     q_list_pl/4,    % ?M, ?S, ?P, -PlL
     q_list_pl/5,    % ?M, ?S, ?P, -PlL, ?G
     q_member/3,     % ?M, ?X, ?RdfL
-    q_member/4      % ?M, ?X, ?RdfL, ?G
+    q_member/4,     % ?M, ?X, ?RdfL, ?G
+    qb_list/4,      % +M, +PlL, -RdfL, +G
+    qb_list/5       % +M, +S, +P, +PlL, +G
   ]
 ).
 
@@ -38,7 +40,9 @@
    q_list_to_pl(?, r, r, -),
    q_list_to_pl(?, r, r, -, r),
    q_member(?, r, r),
-   q_member(?, r, r, r).
+   q_member(?, r, r, r),
+   qb_list(+, +, -, r),
+   qb_list(+, r, r, t, r).
 
 
 
@@ -160,3 +164,31 @@ q_member2(M, X, RdfL, G) :-
 q_member2(M, X, RdfL, G) :-
   q(M, RdfL, rdf:rest, RdfL0, G),
   q_member2(M, X, RdfL0, G).
+
+
+
+%! qb_list(+M, +PlL, -RdfL, +G) is det.
+%! qb_list(+M, +S, +P, +PlL, +G) is det.
+
+qb_list(M, PlL, RdfL, G) :-
+  must_be(list, PlL),
+  rdf_transaction(qb_list0(M, PlL, RdfL, G)).
+
+
+qb_list0(_, [], RdfL, _) :-
+  rdf_equal(rdf:nil, RdfL).
+qb_list0(M, [H|T], RdfL, G) :-
+  (var(RdfL) -> qb_bnode(RdfL) ; true),
+  qb(M, RdfL, rdf:type, rdf:'List', G),
+  qb(M, RdfL, rdf:first, H, G),
+  (   T == []
+  ->  qb(RdfL, rdf:rest, rdf:nil, G)
+  ;   qb_bnode(T2),
+      qb(RdfL, rdf:rest, T2, G),
+      qb_list0(T, T2, G)
+  ).
+
+
+qb_list(M, S, P, PlL, G) :-
+  qb_list(M, PlL, RdfL, G),
+  qb(M, S, P, RdfL, G).

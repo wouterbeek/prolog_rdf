@@ -79,7 +79,7 @@ json2rdf_stmt0(In, Alias, Triple) :-
   (   Str == end_of_file
   ->  !, fail
   ;   string_json_dict(Str, Dict),
-      qb_bnode(S),
+      qb_iri(Alias, S),
       get_dict_path(Keys1, Dict, Val),
 
       % P

@@ -1,10 +1,12 @@
 :- module(
   q_cbd,
   [
+    q_cbd_quad/3,     % ?M, +Node,     -Quad
     q_cbd_triple/3,   % ?M, +Node,     -Triple
     q_cbd_triple/4,   % ?M, +Node, ?G, -Triple
     q_cbd_triples/3,  % ?M, ?Node,     -Triples
     q_cbd_triples/4,  % ?M, ?Node, ?G, -Triples
+    q_scbd_quad/3,    % ?M, +Node,     -Quad
     q_scbd_triple/3,  % ?M, +Node,     -Triple
     q_scbd_triple/4,  % ?M, +Node, ?G, -Triple
     q_scbd_triples/3, % ?M, ?Node,     -Triples
@@ -55,7 +57,7 @@ statement in the graph.
   from the starting node.
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -75,6 +77,13 @@ statement in the graph.
    q_scbd_triples(?, o, r, -).
 
 
+
+
+
+%! q_cbd_quad(?M, +Node, -Quad) is nondet.
+
+q_cbd_quad(M, Node, rdf(S,P,O,G)) :-
+  q_cbd_triple(M, Node, G, rdf(S,P,O)).
 
 
 
@@ -109,6 +118,13 @@ q_cbd_triples(M, Node, Triples) :-
 q_cbd_triples(M, Node, G, Triples) :-
   q_subject(M, Node, G),
   aggregate_all(set(Triple), q_cbd_triple0(M, Node, G, Triple), Triples).
+
+
+
+%! q_scbd_quad(?M, +Node, -Quad) is nondet.
+
+q_scbd_quad(M, Node, rdf(S,P,O,G)) :-
+  q_scbd_triple(M, Node, G, rdf(S,P,O)).
 
 
 

@@ -9,6 +9,7 @@
     q__g/2,     % ?M,         ?G
     q__gs/0,
     q__gs/1,    % ?M
+    q__key/3,   % ?M,     ?P, ?G
     q__p/1,     %         ?P
     q__p/3,     % ?M,     ?P, ?G
     q__p_ds/1,  %         ?P
@@ -68,6 +69,7 @@
    q__cbd(+, r, r),
    q__cs(?, r),
    q__g(?, r),
+   q__key(?, r, r),
    q__p(r),
    q__p(?, r, r),
    q__p_ds(r),
@@ -137,6 +139,19 @@ q__gs(M) :-
       findall(N-[G,pl(N)], q_number_of_triples(M, G, N), Pairs)
   ),
   q_pairs_table0(Header, Pairs).
+
+
+
+%! q__key(?M, ?P, ?G) is nondet.
+
+q__key(M, P, G) :-
+  q_predicate(M, P, G),
+  \+ ((
+    q(M, S1, P, O, G),
+    q(M, S2, P, O, G),
+    S1 \== S2
+  )),
+  forall(q_subject(M, S, G), once(q(M, S, P, _, G))).
 
 
 

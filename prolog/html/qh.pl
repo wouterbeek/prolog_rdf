@@ -31,6 +31,8 @@
     qh_quad//6,          % +M, +S, +P, +O, +G, +Opts
     qh_quad_panels//5,   % +M, ?S, ?P, ?O, ?G
     qh_quad_panels//6,   % +M, ?S, ?P, ?O, ?G, +Opts
+    qh_quad_table//2,    % +M, +Quads
+    qh_quad_table//3,    % +M, +Quads,         +Opts
     qh_quad_table//5,    % +M, ?S, ?P, ?O, ?G
     qh_quad_table//6,    % +M, ?S, ?P, ?O, ?G, +Opts
     qh_subject//2,       % +M, +S

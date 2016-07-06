@@ -9,7 +9,6 @@
    %qb_bnode/1,       % -B
     qb_instance/4,    % +M, +I, ?C, +G
     qb_instances/4,   % +M, +I, +Cs, +G
-    qb_list/5,        % +M, +S, +P, +L, +G
     qb_now/5,         % +M, +S, +P, +D, +G
     qb_objects/5,     % +M, +S, +P, +Os, +G
     qb_reification/4, % +M, +Triple, +G, ?Stmt
@@ -58,9 +57,11 @@
 @version 2016/06
 */
 
+:- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt__io)).
 :- use_module(library(q/q__io)).
+:- use_module(library(q/q_list)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid_ext)).
@@ -76,7 +77,6 @@
    qb(+, r, r, o, r),
    qb_instance(+, r, r, r),
    qb_instances(+, r, t, r),
-   qb_list(+, r, r, t, r),
    qb_now(+, o, r, r, r),
    qb_objects(+, r, r, t, r),
    qb_reification(+, t, r, r),
@@ -147,14 +147,6 @@ qb_instance(M, I, C, G) :-
 
 qb_instances(M, I, Cs, G) :-
   maplist({M,I,G}/[C]>>qb_instance(M, I, C, G), Cs).
-
-
-
-%! qb_list(+M, +S, +P, +L, +G) is det.
-
-qb_list(M, S, P, L, G) :-
-  qb_list(M, L, B, G),
-  qb(M, S, P, B, G).
 
 
 
