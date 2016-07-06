@@ -6,6 +6,7 @@
     geold_tuple/5,   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuple
     geold_tuples/3,  % +Source, +Alias, -Tuples
     geold_tuples/5,  % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
+    qu_geold_flatten_properties/3,    % +M1, +M2, +G
     qu_geold_rm_feature_collections/3 % +M1, +M2, +G
   ]
 ).
@@ -47,6 +48,7 @@ the array as e.g. Well-Known Text (WKT).
 :- rdf_meta
    geold_geojson(r, -),
    geold_print_feature(r),
+   qu_geold_flatten_properties(+, +, r),
    qu_geold_rm_feature_collections(+, +, r).
 
 
@@ -121,6 +123,13 @@ geold_tuples(Source, Alias, ExtraContext, ExtraData, Tuples) :-
     jsonld_tuple_with_context(Context, Data, Tuple),
     Tuples
   ).
+
+
+
+%! qu_geold_flatten_properties(+M1, +M2, +G) is det.
+
+qu_geold_flatten_properties(M1, M2, G) :-
+  qu_flatten(M1, M2, geold:properties, G).
 
 
 

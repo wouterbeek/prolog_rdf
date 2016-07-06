@@ -285,7 +285,7 @@ qh_iri(M, Iri) -->
 
 
 qh_iri(M, Iri, Opts) -->
-  qh_iri_outer(M, _, [], Iri, Opts).
+  qh_iri_outer(M, term, [term], Iri, Opts).
 
 
 qh_iri_outer(M, C, Cs1, Iri, Opts) -->

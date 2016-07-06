@@ -2,11 +2,13 @@
   q_cbd,
   [
     q_cbd_quad/3,     % ?M, +Node,     -Quad
+    q_cbd_quads/3,    % ?M, +Node,     -Quads
     q_cbd_triple/3,   % ?M, +Node,     -Triple
     q_cbd_triple/4,   % ?M, +Node, ?G, -Triple
     q_cbd_triples/3,  % ?M, ?Node,     -Triples
     q_cbd_triples/4,  % ?M, ?Node, ?G, -Triples
     q_scbd_quad/3,    % ?M, +Node,     -Quad
+    q_scbd_quads/3,   % ?M, +Node,     -Quads
     q_scbd_triple/3,  % ?M, +Node,     -Triple
     q_scbd_triple/4,  % ?M, +Node, ?G, -Triple
     q_scbd_triples/3, % ?M, ?Node,     -Triples
@@ -67,10 +69,14 @@ statement in the graph.
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
+   q_cbd_quad(?, o, -),
+   q_cbd_quads(?, o, -),
    q_cbd_triple(?, o, -),
    q_cbd_triple(?, o, r, -),
    q_cbd_triples(?, o, -),
    q_cbd_triples(?, o, r, -),
+   q_scbd_quad(?, o, -),
+   q_scbd_quads(?, o, -),
    q_scbd_triple(?, o, -),
    q_scbd_triple(?, o, r, -),
    q_scbd_triples(?, o, -),
@@ -81,9 +87,15 @@ statement in the graph.
 
 
 %! q_cbd_quad(?M, +Node, -Quad) is nondet.
+%! q_cbd_quad(?M, +Node, -Quad) is nondet.
 
 q_cbd_quad(M, Node, rdf(S,P,O,G)) :-
   q_cbd_triple(M, Node, G, rdf(S,P,O)).
+
+
+q_cbd_quads(M, Node, Quads) :-
+  q_subject(M, Node),
+  aggregate_all(set(Quad), q_cbd_quad(M, Node, Quad), Quads).
 
 
 
@@ -122,9 +134,15 @@ q_cbd_triples(M, Node, G, Triples) :-
 
 
 %! q_scbd_quad(?M, +Node, -Quad) is nondet.
+%! q_scbd_quads(?M, +Node, -Quads) is nondet.
 
 q_scbd_quad(M, Node, rdf(S,P,O,G)) :-
   q_scbd_triple(M, Node, G, rdf(S,P,O)).
+
+
+q_scbd_quads(M, Node, Quads) :-
+  q_subject(M, Node),
+  aggregate_all(set(Quad), q_scbd_quad(M, Node, Quad), Quads).
 
 
 
