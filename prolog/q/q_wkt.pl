@@ -1,6 +1,7 @@
 :- module(
   q_wkt,
   [
+    qb_wkt_point/4,                   % +M, +S, +Point, +G
     qu_replace_flat_wkt_geometry/3,   % +M1, +M2, +G
     qu_replace_flat_wkt_geometry/5,   % +M1, +M2, +Q, +R, +G
     qu_replace_nested_wkt_geometry/3, % +M1, +M2, +G
@@ -37,7 +38,7 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
     qh:qh_literal_hook//2.
 
 :- rdf_meta
-   array2shape(+, r, -),
+   array_shape(+, r, -),
    qu_replace_flat_wkt_geometry(+, +, r, r),
    qu_replace_flat_wkt_geometry(+, +, r, r, r),
    qu_replace_nested_wkt_geometry(+, +, r, r, r),
@@ -46,20 +47,7 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 
 gis:gis_shape_hook(M, S, D, G, Shape) :-
   q(M, S, geold:geometry, Array^^D, G),
-  array2shape(Array, D, Shape).
-
-array2shape(L1, wkt:lineString, linestring(L2)) :- !,
-  maplist(point2shape, L1, L2).
-% HACK: We assume that all multi-polygons are plain polygons.
-array2shape([Polygon], wkt:multiPolygon, Shape) :- !,
-  array2shape(Polygon, wkt:polygon, Shape).
-array2shape([X,Y], wkt:point, point(X,Y)) :- !.
-array2shape([X,Y,Z], wkt:point, point(X,Y,Z)) :- !.
-array2shape([X,Y,Z,M], wkt:point, point(X,Y,Z,M)) :- !.
-array2shape([L1], wkt:polygon, polygon([L2])) :- !,
-  maplist(point2shape, L1, L2).
-
-point2shape([X,Y], point(X,Y)).
+  array_shape(Array, D, Shape).
 
 
 gis:subject_to_geometry(M, S, Array, Name, G) :-
@@ -90,10 +78,31 @@ qh:qh_literal_hook(Array^^D, Opts) -->
 
 
 
+
+%! array_shape(+Array, +D, -Shape) is det.
+%! array_shape(-Array, +D, +Shape) is det.
+
+array_shape(L1, wkt:lineString, linestring(L2)) :- !,
+  maplist(point_shape, L1, L2).
+% HACK: We assume that all multi-polygons are plain polygons.
+array_shape([Polygon], wkt:multiPolygon, Shape) :- !,
+  array_shape(Polygon, wkt:polygon, Shape).
+array_shape([X,Y], wkt:point, point(X,Y)) :- !.
+array_shape([X,Y,Z], wkt:point, point(X,Y,Z)) :- !.
+array_shape([X,Y,Z,M], wkt:point, point(X,Y,Z,M)) :- !.
+array_shape([L1], wkt:polygon, polygon([L2])) :- !,
+  maplist(point_shape, L1, L2).
+
+
+point_shape([X,Y], point(X,Y)).
+
+
+
 %! qb_wkt_point(+M, +S, +Point, +G) is det.
 
 qb_wkt_point(M, S, Point, G) :-
-  atom_phrase(wkt(point(Point)), Lex),
+  point_shape(Array, Point),
+  atom_phrase(wkt(point(Array)), Lex),
   qb(M, S, geold:geometry, Lex^^wkt:point, G).
 
 
