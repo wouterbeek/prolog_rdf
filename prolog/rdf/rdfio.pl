@@ -60,6 +60,7 @@ already part of ClioPatria.
 :- use_module(library(os/io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(rdf), [process_rdf/3]).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_graph)).
@@ -74,7 +75,7 @@ already part of ClioPatria.
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
-:- use_module(library(uuid_ext)).
+:- use_module(library(uuid)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
@@ -218,9 +219,7 @@ rdf_call_on_tuples0(Goal_5, Opts1, In, Meta, Meta) :-
   get_dict(base_iri, Meta, BaseIri),
   jsonld_metadata_expand_iri(Meta.rdf_format, FormatIri),
   rdf_format_iri(Format, FormatIri),
-  % Make sure that blank node labels are universally unique.
-  uuid_no_hyphen(Uuid),
-  atomic_list_concat(['_',Uuid,''], :, BPrefix),
+  qb_bnode_prefix(BPrefix),
   Opts2 = [
     anon_prefix(BPrefix),
     base(BaseIri),
@@ -553,7 +552,7 @@ rdf_write_to_sink(Sink, S, P, O, G, Opts1) :-
 
 
 rdf_file_name0(File, Opts) :-
-  uuid_no_hyphen(Base),
+  uuid(Base),
   rdf_file_name0(Base, File, Opts).
 
 rdf_file_name0(Base, File, Opts) :-

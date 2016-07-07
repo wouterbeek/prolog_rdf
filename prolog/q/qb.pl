@@ -2,34 +2,35 @@
   qb,
   [
   % RDF
-    qb/2,             % +M, +Quad
-    qb/3,             % +M, +Triple, +G
-    qb/5,             % +M, +S, +P, +O, +G
-   %qb_alias/2,       % +Alias, +Prefix
-   %qb_bnode/1,       % -B
-    qb_instance/4,    % +M, +I, ?C, +G
-    qb_instances/4,   % +M, +I, +Cs, +G
-    qb_now/5,         % +M, +S, +P, +D, +G
-    qb_objects/5,     % +M, +S, +P, +Os, +G
-    qb_reification/4, % +M, +Triple, +G, ?Stmt
-    qb_rev/5,         % +M, +O, +P, +S, +G
-    qb_iri/2,         % +Alias, -Iri
-    qb_iri/3,         % +Alias, +SubPaths, -Iri
-    qu/7,             % +M1, +M2, +S, +P, +O, +G, +Action
+    qb/2,              % +M, +Quad
+    qb/3,              % +M, +Triple, +G
+    qb/5,              % +M, +S, +P, +O, +G
+   %qb_alias/2,        % +Alias, +Prefix
+   %qb_bnode/1,        % -B
+    qb_bnode_prefix/1, % -BPrefix
+    qb_instance/4,     % +M, +I, ?C, +G
+    qb_instances/4,    % +M, +I, +Cs, +G
+    qb_iri/2,          % +Alias, -Iri
+    qb_iri/3,          % +Alias, +SubPaths, -Iri
+    qb_now/5,          % +M, +S, +P, +D, +G
+    qb_objects/5,      % +M, +S, +P, +Os, +G
+    qb_reification/4,  % +M, +Triple, +G, ?Stmt
+    qb_rev/5,          % +M, +O, +P, +S, +G
+    qu/7,              % +M1, +M2, +S, +P, +O, +G, +Action
   % RDFS
-    qb_class/6,       % +M, +C, ?D, ?Lbl, ?Comm, +G
-    qb_comment/4,     % +M, +S, +Comm, +G
-    qb_domain/4,      % +M, +P, +C, +G
-    qb_isDefinedBy/4, % +M, +S, ?Iri, +G
-    qb_label/4,       % +M, +S, +O, +G
-    qb_property/5,    % +M, +C, +P, +D, +G
-    qb_range/4,       % +M, +P, +C, +G
-    qb_rm/2,          % +M, +Quad
-    qb_rm/3,          % +M, +Triple, +G
-    qb_rm/5,          % +M, +S, +P, +O, +G
-    qb_seeAlso/4,     % +M, +S, +Iri, +G
-    qb_subclass/4,    % +M, +C, +D, +G
-    qb_subproperty/4, % +M, +P, +Q, +G
+    qb_class/6,        % +M, +C, ?D, ?Lbl, ?Comm, +G
+    qb_comment/4,      % +M, +S, +Comm, +G
+    qb_domain/4,       % +M, +P, +C, +G
+    qb_isDefinedBy/4,  % +M, +S, ?Iri, +G
+    qb_label/4,        % +M, +S, +O, +G
+    qb_property/5,     % +M, +C, +P, +D, +G
+    qb_range/4,        % +M, +P, +C, +G
+    qb_rm/2,           % +M, +Quad
+    qb_rm/3,           % +M, +Triple, +G
+    qb_rm/5,           % +M, +S, +P, +O, +G
+    qb_seeAlso/4,      % +M, +S, +Iri, +G
+    qb_subclass/4,     % +M, +C, +D, +G
+    qb_subproperty/4,  % +M, +P, +Q, +G
   % OWL
     qb_class/6,               % +M, +C, ?D, ?Lbl, ?Comm, +G
     qb_data_property/9,       % +M, +P, ?Q, ?Lbl, ?Comm, ?Dom, ?Ran, +G, +Opts
@@ -54,7 +55,7 @@
 /** <module> Quine build API
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(default)).
@@ -64,7 +65,7 @@
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(uuid_ext)).
+:- use_module(library(uuid)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
@@ -135,6 +136,16 @@ qb(rdf, S, P, O, G) :- !,
 
 
 
+%! qb_bnode_prefix(-BPrefix) is det.
+%
+% BPrefix is a universally unique blank node label prefix.
+
+qb_bnode_prefix(BPrefix) :-
+  uuid(Uuid),
+  atomic_list_concat(['_',Uuid,''], :, BPrefix),
+
+
+
 %! qb_instance(+M, +I, ?C, +G) is det.
 
 qb_instance(M, I, C, G) :-
@@ -147,6 +158,27 @@ qb_instance(M, I, C, G) :-
 
 qb_instances(M, I, Cs, G) :-
   maplist({M,I,G}/[C]>>qb_instance(M, I, C, G), Cs).
+
+
+
+%! qb_iri(+Alias, -Iri) is det.
+%! qb_iri(+Alias, +SubPaths, -Iri) is det.
+%
+% Succeeds with a fresh IRI within the RDF namespace denoted by Alias
+% and the given SubPaths.
+%
+% IRI freshness is guaranteed by the UUID that is used as the path
+% suffix.
+
+qb_iri(Alias, Iri) :-
+  qb_iri(Alias, [], Iri).
+
+
+qb_iri(Alias, SubPaths0, Iri) :-
+  uuid(Id),
+  append(SubPaths0, [Id], SubPaths),
+  atomic_list_concat(SubPaths, /, LocalName),
+  rdf_global_id(Alias:LocalName, Iri).
 
 
 
@@ -207,27 +239,6 @@ qb_rm(rdf, S, P, O, G) :- !,
 
 qu(rdf, rdf, S, P, O, G, Action) :- !,
   rdf_update(S, P, O, G, Action).
-
-
-
-%! qb_iri(+Alias, -Iri) is det.
-%! qb_iri(+Alias, +SubPaths, -Iri) is det.
-%
-% Succeeds with a fresh IRI within the RDF namespace denoted by Alias
-% and the given SubPaths.
-%
-% IRI freshness is guaranteed by the UUID that is used as the path
-% suffix.
-
-qb_iri(Alias, Iri) :-
-  qb_iri(Alias, [], Iri).
-
-
-qb_iri(Alias, SubPaths0, Iri) :-
-  uuid_no_hyphen(Id),
-  append(SubPaths0, [Id], SubPaths),
-  atomic_list_concat(SubPaths, /, LocalName),
-  rdf_global_id(Alias:LocalName, Iri).
 
 
 
