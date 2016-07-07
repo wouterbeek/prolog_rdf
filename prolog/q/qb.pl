@@ -142,7 +142,7 @@ qb(rdf, S, P, O, G) :- !,
 
 qb_bnode_prefix(BPrefix) :-
   uuid(Uuid),
-  atomic_list_concat(['_',Uuid,''], :, BPrefix),
+  atomic_list_concat(['_',Uuid,''], :, BPrefix).
 
 
 
