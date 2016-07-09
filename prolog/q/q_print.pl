@@ -879,7 +879,7 @@ dcg_print_var(Var) -->
 
 %! dcg_print_default_options(-Opts) is det.
 
-dcg_print_default_options(_{max_length: 50}).
+dcg_print_default_options(_{max_length: inf}).
 
 
 

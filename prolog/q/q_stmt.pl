@@ -155,7 +155,7 @@ q_deref(Iri1, Quad) :-
 q_deref0(Set, Iri1, Quad) :-
   rdf_equal(owl:sameAs, P0),
   debug(q_stmt(q_deref), "Dereferencing ~a", [Iri1]),
-  http_fail_on_exception(rdf_load_quads(Iri1, Quads)),
+  http_fail_on_exception(rdf_load_quads(Iri1, Quads, [timeout(2)])),
   add_nb_set(Iri1, Set),
   member(Quad0, Quads),
   (   Quad = Quad0
