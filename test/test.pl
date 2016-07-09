@@ -41,9 +41,9 @@
 :- use_module(library(mat/mat_viz)).
 %/q
 :- use_module(library(q/q__io)).
+:- use_module(library(q/q_annotate)).
 :- use_module(library(q/q_array)).
 :- use_module(library(q/q_bnode_map)).
-:- use_module(library(q/qb)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_cli)).
 :- use_module(library(q/q_datatype)).
@@ -57,10 +57,10 @@
 :- use_module(library(q/q_term)).
 :- use_module(library(q/q_wgs84)).
 :- use_module(library(q/q_wkt)).
+:- use_module(library(q/qb)).
 :- use_module(library(q/qu)).
 %/rdf
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(rdf/rdf_annotate)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_error)).
@@ -72,7 +72,6 @@
 :- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
-:- use_module(library(rdf/rdf_info)).
 :- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_stat)).
@@ -89,6 +88,8 @@
 :- use_module(library(service/btc)).
 :- use_module(library(service/flickrwrappr)).
 :- use_module(library(service/freebase)).
+:- use_module(library(service/ldf)).
+:- use_module(library(service/lotus)).
 :- use_module(library(service/lov)).
 :- use_module(library(service/musicbrainz)).
 :- use_module(library(service/oaei)).

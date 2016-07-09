@@ -1,6 +1,7 @@
 :- module(
   q_stmt,
   [
+  % RDF
     q/4,                  % ?M, ?S, ?P, ?O
     q/5,                  % ?M, ?S, ?P, ?O, ?G
     q_deref/2,            % +Iri, -Quad
@@ -14,12 +15,6 @@
     q_lts/4,              % ?M, ?S, ?P, ?Lit
     q_lts/5,              % ?M, ?S, ?P, ?Lit, ?G
     q_lts/6,              % ?M, ?S, ?P, +LRange, ?Lit, -G
-    q_pref_label/3,       % ?M, ?S, ?Lit
-    q_pref_label/4,       % ?M, ?S, ?Lit, ?G
-    q_pref_lex/4,         % ?M, ?S, ?P, ?Lex
-    q_pref_lex/5,         % ?M, ?S, ?P, ?Lex, ?G
-    q_pref_string/4,      % ?M, ?S, ?P, ?Lit
-    q_pref_string/5,      % ?M, ?S, ?P, ?Lit, ?G
     q_quad/2,             % ?M, -Quad
     q_quad/3,             % ?M, ?G, -Quad
     q_quad/5,             % ?M, ?S, ?P, ?O, -Quad
@@ -53,7 +48,19 @@
     q_triples/2,          % ?M, -Triples
     q_triples/3,          % ?M, ?G, -Triples
     q_triples/5,          % ?M, ?S, ?P, ?O, -Triples
-    q_triples/6           % ?M, ?S, ?P, ?O, ?G, -Triples
+    q_triples/6,          % ?M, ?S, ?P, ?O, ?G, -Triples
+  % RDFS
+    q_domain/4,           % ?M, ?P, ?C, ?G
+    q_pref_label/3,       % ?M, ?S, ?Lit
+    q_pref_label/4,       % ?M, ?S, ?Lit, ?G
+    q_pref_lex/4,         % ?M, ?S, ?P, ?Lex
+    q_pref_lex/5,         % ?M, ?S, ?P, ?Lex, ?G
+    q_pref_string/4,      % ?M, ?S, ?P, ?Lit
+    q_pref_string/5,      % ?M, ?S, ?P, ?Lit, ?G
+    q_range/4,            % ?M, ?P, ?C, ?G
+    q_subclass/4,         % ?M, ?C, ?D, ?G
+  % OWL
+    q_identity/4          % ?M, ?I, ?J, ?G
   ]
 ).
 
@@ -87,6 +94,8 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_derefs(r, -),
    q_derefs(r, -, -),
    q_derefs(r, -, -, -),
+   q_domain(?, r, r, r),
+   q_identity(?, r, r, r),
    q_lts(?, r, r, -),
    q_lts(?, r, r, r, -),
    q_lts(?, r, r, +, r, -),
@@ -110,9 +119,11 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_quads(?, r, -),
    q_quads(?, r, r, o, -),
    q_quads(?, r, r, o, r, -),
+   q_range(?, r, r, r),
    q_reification(?, r, r, o),
    q_reification(?, r, r, o, r),
    q_reification(?, r, r, o, r, r),
+   q_subclass(?, r, r, r),
    q_triple(?, r, -),
    q_triple(?, r, r, o, -),
    q_triple(?, r, r, o, r, -),
@@ -195,6 +206,20 @@ q_deref_category0(Iris, rdf(S,_,_,_), <) :-
 q_deref_category0(Iris, rdf(_,_,O,_), >) :-
   memberchk(O, Iris), !.
 q_deref_category0(_, _, =).
+
+
+
+%! q_domain(?M, ?P, ?C, ?G) is nondet.
+
+q_domain(M, P, C, G) :-
+  q(M, P, rdfs:domain, C, G).
+
+
+
+%! q_identity(?M, ?I, ?J, ?G) is nondet.
+
+q_identity(M, I, J, G) :-
+  q(M, I, owl:sameAs, J, G).
 
 
 
@@ -407,6 +432,13 @@ q_quads(M, S, P, O, G, Quads) :-
 
 
 
+%! q_range(?M, ?P, ?C, ?G) is nondet.
+
+q_range(M, P, C, G) :-
+  q(M, P, rdfs:range, C, G).
+
+
+
 %! q_reification(?M, ?S, ?P, ?O) is nondet.
 %! q_reification(?M, ?S, ?P, ?O, ?G) is nondet.
 %! q_reification(?M, ?S, ?P, ?O, ?G, -Stmt) is nondet.
@@ -423,6 +455,13 @@ q_reification(M, S, P, O, G, Stmt) :-
   q(M, Stmt, rdf:subject, S, G),
   q(M, Stmt, rdf:predicate, P, G),
   q(M, Stmt, rdf:object, O, G).
+
+
+
+%! q_subclass(?M, ?C, ?D, ?G) is nondet.
+
+q_subclass(M, C, D, G) :-
+  q(M, C, rdfs:subClassOf, D, G).
 
 
 

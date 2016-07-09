@@ -1,10 +1,10 @@
 :- module(
   oaei,
   [
-    oaei/3,                    % ?From, ?To, ?G
-    oaei/5,                    % ?From, ?To, ?Rel, ?V, ?G
-    oaei_assert/2,             % +Pair, ?G
-    oaei_assert/4,             % +Pair, +Rel, +V, ?G
+    oaei/4,                    % ?M, ?From, ?To, ?G
+    oaei/6,                    % ?M, ?From, ?To, ?Rel, ?V, ?G
+    qb_oaei/3,                 % +M, +Pair, ?G
+    qb_oaei/5,                 % +M, +Pair, +Rel, +V, ?G
     oaei_convert_rdf_to_tsv/2, % +Source, +Sink
     oaei_convert_tsv_to_rdf/2, % +Source, +Sink
     oaei_load_rdf/2,           % +Source, -Alignments
@@ -34,17 +34,17 @@ During loading and saving alignments are represented as pairs.
 :- qb_alias(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
 
 :- rdf_meta
-   oaei(o, o),
-   oaei(o, o, ?, ?),
-   oaei_assert(o, o, ?),
-   oaei_assert(o, o, +, +, ?).
+   oaei(?, o, o, r),
+   oaei(?, o, o, ?, ?, r),
+   oaei_assert(+, t, r),
+   oaei_assert(+, t, +, +, r).
 
 
 
 
 
-%! oaei(+M, ?From, ?To, ?G) is nondet.
-%! oaei(+M, ?From, ?To, ?Rel, ?V, ?G) is nondet.
+%! oaei(?M, ?From, ?To, ?G) is nondet.
+%! oaei(?M, ?From, ?To, ?Rel, ?V, ?G) is nondet.
 
 oaei(M, From, To, G) :-
   oaei(M, From, To, =, 1.0, G).
@@ -58,14 +58,14 @@ oaei(M, From, To, Rel, V) :-
 
 
 
-%! oaei_assert(+M, +Pair, ?G) is det.
-%! oaei_assert(+M, +Pair, +Rel, +V:between(0.0,1.0), ?G) is det.
+%! qb_oaei(+M, +Pair, ?G) is det.
+%! qb_oaei(+M, +Pair, +Rel, +V:between(0.0,1.0), ?G) is det.
 
-oaei_assert(M, Pair, G) :-
-  oaei_assert(M, Pair, =, 1.0, G).
+qb_oaei(M, Pair, G) :-
+  qb_oaei(M, Pair, =, 1.0, G).
 
 
-oaei_assert(M, From-To, Rel, V, G) :-
+qb_oaei(M, From-To, Rel, V, G) :-
   qb_bnode(M, B),
   qb(M, B, align:entity1, From, G),
   qb(M, B, align:entity2, To, G),
@@ -117,10 +117,10 @@ oaei_load_tsv(Source, Pairs) :-
 %! oaei_save_rdf(+Sink, +Alignments) is det.
 
 oaei_save_rdf(Sink, Pairs) :-
-  rdf_call_to_graph(Sink, oaei_assert0(Pairs)).
+  rdf_call_to_graph(Sink, qb_oaei0(Pairs)).
 
-oaei_assert0(Pairs, G) :-
-  maplist({G}/[Pair]>>oaei_assert(rdf, Pair, G), Pairs).
+qb_oaei0(Pairs, G) :-
+  maplist({G}/[Pair]>>qb_oaei(rdf, Pair, G), Pairs).
 
 
 

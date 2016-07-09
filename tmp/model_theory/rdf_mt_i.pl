@@ -91,7 +91,7 @@ mt_i(G, M, A) :-
 mt_i(G, M, A1, A2) :-
   rdf_graph(G),
   model(M), !,
-  z_triples(G, Ts),
+  q_triples(G, Ts),
   mt_i(G, M, Ts, A1, A2).
 
 %! mt_i(

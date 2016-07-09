@@ -49,9 +49,9 @@ print_deduction(Rule, Prems, Conc) -->
 print_expression0(error) --> !,
   falsum.
 print_expression0(rdf(S,P,O)) --> !,
-  dcg_print_triple(S, P, O).
+  q_print_triple(S, P, O).
 print_expression0(T) -->
-  term(T).
+  pl_term(T).
 
 
 

@@ -2,7 +2,7 @@
   flickrwrappr,
   [
     is_flickrwrappr_iri/1, % +Iri
-    flickrwrappr/2         % +S, -Tuple
+    flickrwrappr/2         % +S, -Quad
   ]
 ).
 
@@ -52,11 +52,11 @@ is_flickrwrappr_iri(Iri):-
 
 
 
-%! flickrwrappr(+S, -Tuple) is nondet.
+%! flickrwrappr(+S, -Quad) is nondet.
 
-flickrwrappr(S, Tuple):-
+flickrwrappr(S, Quad):-
   % NONDET
   rdf_has(S, dbp:hasPhotoCollection, Location1),
   iri_add_query_comp(Location1, format=rdf, Location2),
-  rdf_load_tuples(Location2, Tuples),
-  member(Tuple, Tuples).
+  rdf_load_quads(Location2, Quads),
+  member(Quad, Quads).

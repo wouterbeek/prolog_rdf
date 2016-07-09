@@ -61,30 +61,30 @@ run_tests :-
 
 %! run_test0(+D) is det.
 
-run_test0(D):-
+run_test0(Dict):-
   % Metadata.
-  formatln("Id: ~s", [D.'@id']),
-  write("Type: "), forall(member(Type, D.'@type'), write(Type)), nl,
-  formatln("Name: ~s", [D.name]),
-  formatln("Purpose: ~s", [D.purpose]),
+  formatln("Id: ~s", [Dict.'@id']),
+  write("Type: "), forall(member(Type, Dict.'@type'), write(Type)), nl,
+  formatln("Name: ~s", [Dict.name]),
+  formatln("Purpose: ~s", [Dict.purpose]),
 
   % Print JSON-LD.
-  json_read_any(D.input, DIn),
-  print_dict(DIn),
-  rdf_load_tuples(D.expect, Tuples2),
+  json_read_any(Dict.input, DictIn),
+  print_dict(DictIn),
+  rdf_load_quads(Dict.expect, Quads2),
 
   % Read RDF from JSON-LD.
-  atomic_concat('http://json-ld.org/test-suite/tests/', D.input, Base),
+  atomic_concat('http://json-ld.org/test-suite/tests/', Dict.input, Base),
   rdf_unload_db,
-  (   rdf_load_tuples(D.input, Tuples1, [base_iri(Base)]),
+  (   rdf_load_quads(Dict.input, Quads1, [base_iri(Base)]),
       formatln("Parsed tuples:"),
-      q_print_quads(Tuples1),
+      q_print_quads(Quads1),
       
       % Compare to RDF from N-Quads.
-      isomorphic_tuples(Tuples1, Tuples2)
+      isomorphic_tuples(Quads1, Quads2)
   ->  true
   ;   ansi_format(user_output, [fg(red)], "Expected tuples:~n", []),
-      q_print_quads(Tuples2)
+      q_print_quads(Quads2)
   ), !.
-run_test0(D) :-
-  ansi_format(user_output, [fg(red)], "Test ~w failed.~n", [D]).
+run_test0(Dict) :-
+  ansi_format(user_output, [fg(red)], "Test ~w failed.~n", [Dict]).

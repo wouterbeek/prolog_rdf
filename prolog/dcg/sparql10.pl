@@ -49,7 +49,6 @@
 @version 2015/11-2016/01
 */
 
-:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/rational_ext)).
@@ -554,7 +553,7 @@ subtags([]) --> "".
 % This differs from Turtle 1.1 [24] in which escape sequences
 % for Unicode characters are allowed.
 
-'STRING_LITERAL_LONG1'(S) --> 'STRING_LITERAL_LONG'(single_quote, S).
+'STRING_LITERAL_LONG1'(S) --> 'STRING_LITERAL_LONG'("'", S).
 
 
 
@@ -570,7 +569,7 @@ subtags([]) --> "".
 % This differs from Turtle 1.1 [25] in which escape sequences
 % for Unicode characters are allowed.
 
-'STRING_LITERAL_LONG2'(S) --> 'STRING_LITERAL_LONG'(double_quote, S).
+'STRING_LITERAL_LONG2'(S) --> 'STRING_LITERAL_LONG'("\"", S).
 
 
 
@@ -583,7 +582,7 @@ subtags([]) --> "".
 % This differs from Turtle 1.1 [23] in which escape sequences
 % for Unicode characters are allowed.
 
-'STRING_LITERAL1'(S) --> 'STRING_LITERAL'(single_quote, S).
+'STRING_LITERAL1'(S) --> 'STRING_LITERAL'("'", S).
 
 
 
@@ -596,7 +595,7 @@ subtags([]) --> "".
 % This differs from Turtle 1.1 [22] in which escape sequences
 % for Unicode characters are explicitly allowed.
 
-'STRING_LITERAL2'(S) --> 'STRING_LITERAL'(double_quote, S).
+'STRING_LITERAL2'(S) --> 'STRING_LITERAL'("\"", S).
 
 
 
@@ -627,9 +626,11 @@ pn_chars_dot(C)   --> 'PN_CHARS'(C).
 pn_chars_dot(0'.) --> ".".
 
 
+
 'STRING_LITERAL'(Q, S) -->
   quoted(Q, string_literal_codes(Q, Cs)),
   {string_codes(S, Cs)}.
+
 string_literal_codes(Q, _)     --> Q,          !, {fail}.
 string_literal_codes(_, _)     --> [0x5C],     !, {fail}.
 string_literal_codes(_, _)     --> [0xA],      !, {fail}.
@@ -639,9 +640,11 @@ string_literal_codes(Q, [H|T]) --> [H],        !, string_literal_codes(Q, T).
 string_literal_codes(_, [])    --> "".
 
 
+
 'STRING_LITERAL_LONG'(Q, S) -->
   quoted(3, Q, string_literal_long_codes(Q, Cs)),
   {string_codes(S, Cs)}.
+
 string_literal_long_codes(_, _)     --> "\\",       !, {fail}.
 string_literal_long_codes(Q, _)     --> Q, Q, Q,    !, {fail}.
 string_literal_long_codes(Q, [H|T]) --> 'ECHAR'(H), !, string_literal_long_codes(Q, T).

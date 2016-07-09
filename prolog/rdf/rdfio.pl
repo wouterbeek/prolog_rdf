@@ -392,9 +392,10 @@ rdf_download_to_file(Iri, File) :-
 
 rdf_download_to_file(Iri, File, Opts) :-
   thread_file(File, TmpFile),
-  rdf_call_on_stream(
+  call_onto_stream(
     Iri,
-    {TmpFile,Opts}/[In,Meta,Meta]>>write_stream_to_file(In, TmpFile, Opts),
+    TmpFile,
+    [In,Meta,Meta,Out]>>copy_stream_data(In, Out),
     Opts
   ),
   rename_file(TmpFile, File).

@@ -40,7 +40,7 @@ rdf_isomorphic_graphs(G1, G2) :-
 
 ensure_tuples0(G, Triples) :-
   rdf_is_graph(G), !,
-  z_triples(G, Triples).
+  q_triples(G, Triples).
 ensure_tuples0(Triples, Triples) :-
   is_list(Triples), !.
 ensure_tuples0(G, _) :-

@@ -41,7 +41,7 @@
 /** <module> RDFa
 
 @author Wouter Beek
-@version 2016/02-2016/06
+@version 2016/02-2016/07
 */
 
 :- use_module(library(apply)).
@@ -59,6 +59,7 @@
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdfa/rdfa_ext)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
 
 :- qb_alias(bf, 'http://bibframe.org/vocab/').
@@ -103,10 +104,10 @@
 
 
 
-%! agent_gravatar(+Agent, -Iri) is det.
+%! agent_gravatar(+M, +Agent, -Iri, +G) is det.
 
-agent_gravatar(Agent, Iri) :-
-  once('foaf:mbox'(Agent, EMail)),
+agent_gravatar(M, Agent, Iri, G) :-
+  once('foaf:mbox'(M, Agent, EMail, G)),
   downcase_atom(EMail, CanonicalEMail),
   md5(CanonicalEMail, Hash),
   atomic_list_concat(['',avatar,Hash], /, Path),
@@ -119,8 +120,8 @@ agent_gravatar(Agent, Iri) :-
 
 agent_image(M, Agent, Img, G) :-
   'foaf:depiction'(M, Agent, Img, G).
-agent_image(_, Agent, Img, _) :-
-  agent_gravatar(Agent, Img).
+agent_image(M, Agent, Img, G) :-
+  agent_gravatar(M, Agent, Img, G).
 
 
 agent_image(M, Agent, G) -->
@@ -253,7 +254,7 @@ agent_item0(M, G, Agent) -->
 %! 'foaf:depiction'(+M, +Agent, -Img, ?G) is nondet.
 %! 'foaf:depiction'(+M, +Agent, ?G)// is det.
 
-'foaf:depiction'(M, Agent, Ing, G) :-
+'foaf:depiction'(M, Agent, Img, G) :-
   q(M, Agent, foaf:depiction, Img^^xsd:anyURI, G).
 
 
@@ -381,7 +382,7 @@ pair_to_prefix0(Alias-Prefix, Def) :-
 
 
 'sioc:content'(M, Article, G) -->
-  {once(q(M, Article, sioc:content, Content, Q))},
+  {once(q(M, Article, sioc:content, Content, G))},
   html(div(property='sioc:content', \qh_literal(Content))).
 
 

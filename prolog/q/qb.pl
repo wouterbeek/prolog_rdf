@@ -22,6 +22,7 @@
     qb_class/6,        % +M, +C, ?D, ?Lbl, ?Comm, +G
     qb_comment/4,      % +M, +S, +Comm, +G
     qb_domain/4,       % +M, +P, +C, +G
+    qb_isDefinedBy/3,  % +M, +S, +G
     qb_isDefinedBy/4,  % +M, +S, ?Iri, +G
     qb_label/4,        % +M, +S, +O, +G
     qb_property/5,     % +M, +C, +P, +D, +G
@@ -93,6 +94,7 @@
    qb_class(+, r, t, ?, ?, r),
    qb_comment(+, r, +, r),
    qb_domain(+, r, r, r),
+   qb_isDefinedBy(+, r, r),
    qb_isDefinedBy(+, r, r, r),
    qb_label(+, r, o, r),
    qb_property(+, r, r, r, r),
@@ -280,10 +282,16 @@ qb_domain(M, P, D, G) :-
 
 
 
+%! qb_isDefinedBy(+M, +S, +G) is det.
 %! qb_isDefinedBy(+M, +S, ?Iri, +G) is det.
 %
 % If Iri is uninstantiated, the IRI denoted by the registered RDF
 % prefix of Term, if any, is used.
+
+qb_isDefinedBy(M, S, G) :-
+  q_iri_prefix(S, Prefix),
+  qb_isDefinedBy(M, S, Prefix, G).
+
 
 qb_isDefinedBy(M, S, Iri, G) :-
   (var(Iri) -> q_iri_prefix(S, Iri) ; true),

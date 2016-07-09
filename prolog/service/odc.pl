@@ -30,5 +30,5 @@ odc_entry(S, Triples) :-
 
 
 odc_entry0(S, Triples, G) :-
-  distinct(S, q_subject(rdf, Res, G)),
+  distinct(S, q_subject(rdf, S, G)),
   q_triples(rdf, S, _, _, G, Triples).

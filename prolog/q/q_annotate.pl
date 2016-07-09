@@ -1,7 +1,7 @@
 :- module(
   q_annotate,
   [
-    qt_annotations//5, % +M, +Location, +Txt, +S, +G
+    qh_annotations//5, % +M, +Location, +Txt, +S, +G
     q_annotate/5,      % +M, +S, +Txt, +G, +Opts
     q_annotation/4,    % +M, +S, +G, -Concept
     q_annotations/4    % +M, +S, +G, -Concepts
@@ -22,8 +22,8 @@
 :- use_module(library(lists)).
 :- use_module(library(nlp/dbpedia_spotlight)).
 :- use_module(library(os/thread_ext)).
-:- use_module(library(q/qb)).
 :- use_module(library(q/q_stmt)).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).

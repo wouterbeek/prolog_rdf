@@ -11,6 +11,11 @@
     q_default_graph/1,     % ?G
     q_iri/2,               % ?M, ?Iri
     q_iri/3,               % ?M, ?Iri, ?G
+    q_iri_alias/2,         % +Iri, -Alias
+    q_iri_alias_local/3,   % +Iri, ?Alias, ?Local
+    q_iri_alias_prefix/3,  % +Iri, ?Alias, ?Prefix
+    q_iri_local/2,         % +Iri, -Local
+    q_iri_prefix/2,        % +Iri, -Prefix
    %q_is_bnode/1,          % @Term
    %q_is_iri/1,            % @Term
    %q_is_literal/1,        % @Term
@@ -22,11 +27,6 @@
    %q_is_predicate/1,      % @Term
    %q_is_subject/1,        % @Term
    %q_is_term/1,           % @Term
-    q_iri_alias/2,         % +Iri, -Alias
-    q_iri_alias_local/3,   % +Iri, ?Alias, ?Local
-    q_iri_alias_prefix/3,  % +Iri, ?Alias, ?Prefix
-    q_iri_local/2,         % +Iri, -Local
-    q_iri_prefix/2,        % +Iri, -Prefix
     q_legacy_literal/4,    % +Lit, -D, -Lex, -LTag
     q_literal/2,           % ?M, ?Lit
     q_literal/3,           % ?M, ?Lit, ?G

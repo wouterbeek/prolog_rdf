@@ -38,7 +38,6 @@
 @version 2015/11-2016/01, 2016/05
 */
 
-:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(semweb/rdf11)).
 
@@ -203,7 +202,7 @@ sparqlPrefix(PrefixLabel, Iri) -->
 % This different from SPARQL 1.0 [88] and SPARQL 1.1 [157]
 % in that escape sequences for Unicode characters are allowed here.
 
-'STRING_LITERAL_QUOTE'(S) --> 'STRING_LITERAL'(double_quote, S).
+'STRING_LITERAL_QUOTE'(S) --> 'STRING_LITERAL'("\"", S).
 
 
 
@@ -218,7 +217,7 @@ sparqlPrefix(PrefixLabel, Iri) -->
 % This different from SPARQL 1.0 [87] and SPARQL 1.1 [156]
 % in that escape sequences for Unicode characters are allowed here.
 
-'STRING_LITERAL_SINGLE_QUOTE'(S) --> 'STRING_LITERAL'(single_quote, S).
+'STRING_LITERAL_SINGLE_QUOTE'(S) --> 'STRING_LITERAL'("'", S).
 
 
 
@@ -232,7 +231,7 @@ sparqlPrefix(PrefixLabel, Iri) -->
 % This different from SPARQL 1.0 [89] and SPARQL 1.1 [158]
 % in that escape sequences for Unicode characters are allowed here.
 
-'STRING_LITERAL_LONG_SINGLE_QUOTE'(S) --> 'STRING_LITERAL_LONG'(single_quote, S).
+'STRING_LITERAL_LONG_SINGLE_QUOTE'(S) --> 'STRING_LITERAL_LONG'("'", S).
 
 
 
@@ -246,7 +245,7 @@ sparqlPrefix(PrefixLabel, Iri) -->
 % This different from SPARQL 1.0 [90] and SPARQL 1.1 [159]
 % in that escape sequences for Unicode characters are allowed here.
 
-'STRING_LITERAL_LONG_QUOTE'(S) --> 'STRING_LITERAL_LONG'(double_quote, S).
+'STRING_LITERAL_LONG_QUOTE'(S) --> 'STRING_LITERAL_LONG'("\"", S).
 
 
 

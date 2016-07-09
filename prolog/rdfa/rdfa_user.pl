@@ -1,15 +1,15 @@
 :- module(
   rdfa_user,
   [
-    rdfa_user_menu//0,
-    rdfa_user_menu_button//1 % :Content_0
+    rdfa_user_menu//2,       % +M, +G
+    rdfa_user_menu_button//3 % +M, :Content_0, +G
   ]
 ).
 
 /** <module> RDFa user
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(html/html_bs)).
@@ -17,26 +17,35 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_user)).
 :- use_module(library(rdfa/rdfa_ext)).
+:- use_module(library(semweb/rdf11)).
+:- use_module(library(yall)).
 
 :- html_meta
-   rdfa_user_menu_button(html, ?, ?).
+   rdfa_user_menu_button(+, html, +, ?, ?).
+
+:- rdf_meta
+   rdfs_user_menu(+, r, ?, ?),
+   rdfa_user_menu_button(+, :, r, ?, ?).
 
 
 
 
 
-%! rdfa_user_menu// is det.
+%! rdfa_user_menu(+M, +G)// is det.
 
-rdfa_user_menu -->
-  user_menu(agent_name, agent_image).
+rdfa_user_menu(M, G) -->
+  user_menu(
+    {M,G}/[Agent,Name]>>agent_name(M, Agent, Name, G),
+    {M,G}/[Agent,Img]>>agent_image(M, Agent, Img, G)
+  ).
 
 
 
-%! rdfa_user_menu_button(:Content_0)// is det.
+%! rdfa_user_menu_button(+M, :Content_0, +G)// is det.
 %
 % The user menu shown as a button.
 
-rdfa_user_menu_button(Content_0) -->
+rdfa_user_menu_button(M, Content_0, G) -->
   {current_user(User)}, !,
   html(
     div([class=dropdown,id='user-menu'], [
@@ -46,13 +55,13 @@ rdfa_user_menu_button(Content_0) -->
         id='user-button',
         type=button
       ], [
-        \agent_image(User),
+        \agent_image(M, User, G),
         span(class=caret, [])
       ]),
       Content_0
     ])
   ).
-rdfa_user_menu_button(_) -->
+rdfa_user_menu_button(_, _, _) -->
   {login_link(Link)},
   html(
     span(id='user-menu',
