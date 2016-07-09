@@ -29,7 +29,7 @@ This allows the following two IRI notations to be distinguished:
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/09, 2015/11-2016/01, 2016/03-2016/06
+@version 2015/07-2015/09, 2015/11-2016/01, 2016/03-2016/07
 */
 
 :- use_module(library(aggregate)).
@@ -40,10 +40,10 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(service/prefix_cc), []).
+:- use_module(library(service/prefix_cc)).
 :- use_module(library(solution_sequences)).
 
-:- initialization(assert_dbpedia_localizations).
+:- initialization((register_prefix_cc, register_dbpedia_localizations)).
 
 
 
@@ -58,11 +58,12 @@ abbr_iri(Iri, Iri).
 
 
 
-assert_dbpedia_localizations :-
+register_dbpedia_localizations :-
   forall(
     dbpedia_language_tag(LTag),
     dbpedia_register(LTag)
   ).
+
 
 %! dbpedia_language_tag(-LanguageTag) is multi.
 

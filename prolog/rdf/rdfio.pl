@@ -17,8 +17,10 @@
     rdf_download_to_file/3,     % +Iri, +File, +Opts
     rdf_load_file/1,            % +Source
     rdf_load_file/2,            % +Source, +Opts
-    rdf_load_tuples/2,          % +Source, -Triples
-    rdf_load_tuples/3,          % +Source, -Triples, +Opts
+    rdf_load_quads/2,           % +Source, -Quads
+    rdf_load_quads/3,           % +Source, -Quads, +Opts
+    rdf_load_triples/2,         % +Source, -Triples
+    rdf_load_triples/3,         % +Source, -Triples, +Opts
     rdf_write_to_sink/1,        % +Sink
     rdf_write_to_sink/2,        % +Sink, ?G
     rdf_write_to_sink/3,        % +Sink, ?G, +Opts
@@ -58,6 +60,7 @@ already part of ClioPatria.
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
+:- use_module(library(q/q__io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -99,7 +102,8 @@ already part of ClioPatria.
    rdf_call_on_tuples(+, :, t),
    rdf_download_to_file(+, +, t),
    rdf_load_file(+, t),
-   rdf_load_tuples(+, -, t),
+   rdf_load_quads(+, -, t),
+   rdf_load_triples(+, -, t),
    rdf_write_to_sink(r),
    rdf_write_to_sink(r, +),
    rdf_write_to_sink(r, r, o),
@@ -472,16 +476,34 @@ count_tuple0(State, _) :-
 
 
 
-%! rdf_load_tuples(+Source, -Triples) is det.
-%! rdf_load_tuples(+Source, -Triples, +Opts) is det.
+%! rdf_load_quads(+Source, -Quads) is det.
+%! rdf_load_quads(+Source, -Quads, +Opts) is det.
 %
 % Options are passed to rdf_load_file/2.
 
-rdf_load_tuples(Source, Triples) :-
-  rdf_load_tuples(Source, Triples, []).
+rdf_load_quads(Source, Quads) :-
+  rdf_load_quads(Source, Quads, []).
 
 
-rdf_load_tuples(Source, Triples, Opts) :-
+rdf_load_quads(Source, Quads, Opts) :-
+  q_snap((
+    rdf_retractall(_, _, _),
+    rdf_load_file(Source, Opts),
+    q_quads(rdf, Quads)
+  )).
+
+
+
+%! rdf_load_triples(+Source, -Triples) is det.
+%! rdf_load_triples(+Source, -Triples, +Opts) is det.
+%
+% Options are passed to rdf_load_file/2.
+
+rdf_load_triples(Source, Triples) :-
+  rdf_load_triples(Source, Triples, []).
+
+
+rdf_load_triples(Source, Triples, Opts) :-
   q_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),

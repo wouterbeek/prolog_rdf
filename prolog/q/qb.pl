@@ -8,6 +8,7 @@
    %qb_alias/2,        % +Alias, +Prefix
    %qb_bnode/1,        % -B
     qb_bnode_prefix/1, % -BPrefix
+    qb_deref/3,        % +M, +Iri, +G
     qb_instance/4,     % +M, +I, ?C, +G
     qb_instances/4,    % +M, +I, +Cs, +G
     qb_iri/2,          % +Alias, -Iri
@@ -63,6 +64,7 @@
 :- use_module(library(hdt/hdt__io)).
 :- use_module(library(q/q__io)).
 :- use_module(library(q/q_list)).
+:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid)).
@@ -76,6 +78,7 @@
    qb(+, t),
    qb(+, t, r),
    qb(+, r, r, o, r),
+   qb_deref(+, r, r),
    qb_instance(+, r, r, r),
    qb_instances(+, r, t, r),
    qb_now(+, o, r, r, r),
@@ -133,6 +136,14 @@ qb(hdt, S, P, O, G) :- !,
   hdt__call(gen_ntuple(S, P, O), G).
 qb(rdf, S, P, O, G) :- !,
   rdf_assert(S, P, O, G).
+
+
+
+%! qb_deref(+M, +Iri, +G) is det.
+
+qb_deref(M, Iri, G) :-
+  q_deref(Iri, Tuples),
+  maplist({M,G}/[Tuple]>>qb(M, Tuple, G), Tuples).
 
 
 

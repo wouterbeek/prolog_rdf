@@ -137,7 +137,7 @@ lotus(S, P, Query, O, Doc, Opts) :-
   match_term(Match),
   option(rank(Rank), Opts, psf),
   rank_term(Rank),
-  option(request_size(RequestSize), Opts, 100),
+  option(request_size(RequestSize), Opts, 10),
   QueryComps0 = [
     blank(Blank),
     langannotator(LTagMode),
