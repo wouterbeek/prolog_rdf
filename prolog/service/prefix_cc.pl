@@ -43,7 +43,10 @@ init_prefix_cc :-
 
 
 register_prefix_cc :-
+  \+ prefix_cc(_, _), !,
   init_prefix_cc,
+  register_prefix_cc.
+register_prefix_cc :-
   forall(
     (prefix_cc(Alias, Prefix), \+ q_alias(Alias)),
     qb_alias(Alias, Prefix)
