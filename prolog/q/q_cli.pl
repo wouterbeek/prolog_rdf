@@ -51,6 +51,7 @@
 :- use_module(library(option)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/q__io)).
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_print)).
@@ -202,7 +203,7 @@ q__p_os(M, P, G) :-
   ->  q_p_no_abbr(M, P, G, "No reuse of object terms.")
   ;   aggregate_all(set(O), q(M, _, P, O, G), Os),
       (   length(Os, Len),
-          Len > 1000
+          Len > 5000
       ->  q_p_no_abbr(M, P, G, "Too many unique object terms.")
       ;   findall(
             N-[O,pl(N)],

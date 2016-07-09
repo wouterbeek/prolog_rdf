@@ -452,14 +452,9 @@ qb_action(M, ActionC, Actor, Action, G):-
 
 %! qb_property0(+M, +P, ?Q, ?Lbl, ?Comm, ?Dom, ?Ran, +G, +Opts) is det.
 
-qb_property0(M, P, Qs, Lbl, Comm, Dom, Ran, G, Opts) :-
+qb_property0(M, P, Q, Lbl, Comm, Dom, Ran, G, Opts) :-
   (option(functional(true), Opts) -> qb_functional_property(M, P, G) ; true),
-  (   var(Qs)
-  ->  true
-  ;   is_list(Qs)
-  ->  maplist({M,P,G}/[Q]>>qb_subproperty(M, P, Q, G), Qs)
-  ;   qb_subproperty(M, P, Qs, G)
-  ),
+  (var(Q) -> true ; qb_subproperty(M, P, Q, G)),
   (var(Lbl) -> true ; qb_label(M, P, Lbl, G)),
   (var(Comm) -> true ; qb_comment(M, P, Comm, G)),
   (var(Dom) -> true ; qb_domain(M, P, Dom, G)),

@@ -395,7 +395,7 @@ q_print_table(Rows, Opts1) :-
 print_cell0(bold(Term)) --> !,
   bold(Term).
 print_cell0(pl(Term)) --> !,
-  term(Term).
+  pl_term(Term).
 print_cell0(Term) -->
   dcg_print_term(Term).
 
