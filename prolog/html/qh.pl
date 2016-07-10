@@ -224,7 +224,7 @@ qh_describe_row0(M, Opts, P-Os) -->
   html(
     tr([
       td(\qh_property_outer(M, property, [property], P, Opts)),
-      td(\html_seplist({M,Opts}/[O]>>qh_object(M, O, Opts), " ", Os))
+      td(\html_seplist({M,Opts}/[O]>>qh_object_outer(M, object, [object], O, Opts), " ", Os))
     ])
   ).
 
