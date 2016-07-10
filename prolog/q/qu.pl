@@ -439,7 +439,7 @@ qu_lowercase_predicate(M1, M2, Alias, G) :-
 iri_local_lowercase0(Alias), Cs -->
   {q_alias_prefix(Alias, Prefix)},
   atom(Prefix),
-  atom_lowercase,
+  lowercase,
   {atom_codes(Prefix, Cs)}.
 
 
