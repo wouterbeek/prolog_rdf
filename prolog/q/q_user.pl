@@ -1,13 +1,13 @@
-:- module(rdf_user, []).
+:- module(q_user, []).
 
-/** <module> RDFa user
+/** <module> Quine user
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
-:- use_module(library(q/qb)).
 :- use_module(library(q/q_stmt)).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 
 :- qb_alias(resu, 'http://www.swi-prolog.org/cliopatria/user/').

@@ -15,6 +15,7 @@
     qh_graph_table//1,   %                     +Opts
     qh_iri//2,           % +M, +Iri
     qh_iri//3,           % +M, +Iri,           +Opts
+    qh_link//4,          % +C, +Cs, +Term, :Content_0
     qh_list//2,          % +M, +L
     qh_list//3,          % +M, +L,             +Opts
     qh_literal//1,       %     +Lit
@@ -63,10 +64,10 @@ The following options are supported:
 ---
 
 @author Wouter Beek
-@version 2016/02-2016/06
+@version 2016/02-2016/07
 */
 
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(dict_ext)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_ext)).
@@ -80,10 +81,12 @@ The following options are supported:
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(yall)).
 
 :- html_meta
+   qh_link(+, +, +, html, ?, ?),
    qh_link(+, +, +, html, +, ?, ?),
    qh_link(+, +, +, +, html, +, ?, ?).
 
@@ -138,12 +141,12 @@ The following options are supported:
 %! qh_bnode(+B, +Opts)// is det.
 
 qh_bnode(B) -->
-  {qh_default_options(Opts)},
-  qh_bnode(B, Opts).
+  qh_bnode(B, _{}).
 
 
-qh_bnode(B, Opts) -->
-  qh_bnode_outer(_, [], B, Opts).
+qh_bnode(B, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_bnode_outer(_, [], B, Opts2).
 
 
 qh_bnode_outer(C, Cs1, B, Opts) -->
@@ -164,12 +167,12 @@ qh_bnode_inner(B, _) -->
 %! qh_class(+M, +Cs, +Opts)// is det.
 
 qh_class(M, C) -->
-  {qh_default_options(Opts)},
-  qh_class(M, C, Opts).
+  qh_class(M, C, _{}).
 
 
-qh_class(M, C, Opts) -->
-  qh_class_outer(M, _, [], C, Opts).
+qh_class(M, C, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_class_outer(M, _, [], C, Opts2).
 
 
 qh_class_outer(M, C0, Cs1, C, Opts) -->
@@ -182,12 +185,12 @@ qh_class_outer(M, C0, Cs1, C, Opts) -->
 %! qh_datatype(+M, +D, +Opts)// is det.
 
 qh_datatype(M, D) -->
-  {qh_default_options(Opts)},
-  qh_datatype(M, D, Opts).
+  qh_datatype(M, D, _{}).
 
 
-qh_datatype(M, D, Opts) -->
-  qh_datatype_outer(M, _, [], D, Opts).
+qh_datatype(M, D, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_datatype_outer(M, _, [], D, Opts2).
 
 
 qh_datatype_outer(M, C, Cs1, D, Opts) -->
@@ -202,22 +205,22 @@ qh_datatype_outer(M, C, Cs1, D, Opts) -->
 % Generate a full description of subject term S.
 
 qh_describe(M, S) -->
-  {qh_default_options(Opts)},
-  qh_describe(M, S, Opts).
+  qh_describe(M, S, _{qh_link: true}).
 
 
-qh_describe(M, S, Opts) -->
+qh_describe(M, S, Opts1) -->
   {
+    qh_default_options(Opts1, Opts2),
     findall(P-O, q(M, S, P, O), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
   bs_table(
     \bs_table_header(["Predicate","Objects"]),
-    \html_maplist({M,Opts}/[Group]>>qh_describe_row0(M, Group, Opts), Groups)
+    \html_maplist(qh_describe_row0(M, Opts2), Groups)
   ).
 
 
-qh_describe_row0(M, P-Os, Opts) -->
+qh_describe_row0(M, Opts, P-Os) -->
   html(
     tr([
       td(\qh_property_outer(M, property, [property], P, Opts)),
@@ -231,12 +234,12 @@ qh_describe_row0(M, P-Os, Opts) -->
 %! qh_graph_term(+M, +G, +Opts)// is det.
 
 qh_graph_term(M, G) -->
-  {qh_default_options(Opts)},
-  qh_graph_term(M, G, Opts).
+  qh_graph_term(M, G, _{}).
 
 
-qh_graph_term(M, G, Opts) -->
-  qh_graph_term_outer(M, graph, [], G, Opts).
+qh_graph_term(M, G, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_graph_term_outer(M, graph, [], G, Opts2).
 
 
 qh_graph_term_outer(M, C, Cs1, G, Opts) -->
@@ -249,18 +252,18 @@ qh_graph_term_outer(M, C, Cs1, G, Opts) -->
 %! qh_graph_table(+Opts)// is det.
 
 qh_graph_table -->
-  {qh_default_options(Opts)},
-  qh_graph_table(Opts).
+  qh_graph_table(_{qh_link: true}).
 
 
-qh_graph_table(Opts) -->
+qh_graph_table(Opts1) -->
   {
+    qh_default_options(Opts1, Opts2),
     findall(N-[M,G], q_number_of_triples(M, G, N), Pairs),
     desc_pairs_values(Pairs, Vals)
   },
   bs_table(
     \bs_table_header(["graph","№ triples","store"]),
-    \html_maplist(qh_graph_row0(Opts), Vals)
+    \html_maplist(qh_graph_row0(Opts2), Vals)
   ).
 
 
@@ -280,12 +283,12 @@ qh_graph_row0(Opts, [M,G]) -->
 %! qh_iri(+M, +Iri, +Opts)// is det.
 
 qh_iri(M, Iri) -->
-  {qh_default_options(Opts)},
-  qh_iri(M, Iri, Opts).
+  qh_iri(M, Iri, _{}).
 
 
-qh_iri(M, Iri, Opts) -->
-  qh_iri_outer(M, term, [term], Iri, Opts).
+qh_iri(M, Iri, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_iri_outer(M, term, [term], Iri, Opts2).
 
 
 qh_iri_outer(M, C, Cs1, Iri, Opts) -->
@@ -314,13 +317,15 @@ qh_iri_inner(_, Iri, _) -->
 %! qh_list(+M, +L, +Opts)// is det.
 
 qh_list(M, L) -->
-  {qh_default_options(Opts)},
-  qh_list(M, L, Opts).
+  qh_list(M, L, _{}).
 
 
-qh_list(M, L, Opts) -->
-  {q_list_pl(M, L, Terms)},
-  list({M,Opts}/[Term]>>qh_term(M, Term, Opts), Terms).
+qh_list(M, L, Opts1) -->
+  {
+    qh_default_options(Opts1, Opts2),
+    q_list_pl(M, L, Terms, _)
+  },
+  html_list({M,Opts2}/[Term]>>qh_term(M, Term, Opts2), Terms).
 
 
 
@@ -328,12 +333,12 @@ qh_list(M, L, Opts) -->
 %! qh_literal(+Lit, +Opts)// is det.
 
 qh_literal(Lit) -->
-  {qh_default_options(Opts)},
-  qh_literal(Lit, Opts).
+  qh_literal(Lit, _{}).
 
 
-qh_literal(Lit, Opts) -->
-  qh_literal_outer(_, [], Lit, Opts).
+qh_literal(Lit, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_literal_outer(literal, [], Lit, Opts2).
 
 
 qh_literal_outer(C, Cs1, Lit, Opts) -->
@@ -418,12 +423,12 @@ qh_literal_inner(Lit, _) -->
 %! qh_object(+M, +O, +Opts)// is det.
 
 qh_object(M, O) -->
-  {qh_default_options(Opts)},
-  qh_object(M, O, Opts).
+  qh_object(M, O, _{}).
 
 
-qh_object(M, O, Opts) -->
-  qh_object_outer(M, _, [], O, Opts).
+qh_object(M, O, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_object_outer(M, _, [], O, Opts2).
 
 
 qh_object_outer(M, C, Cs1, O, Opts) -->
@@ -436,12 +441,12 @@ qh_object_outer(M, C, Cs1, O, Opts) -->
 %! qh_predicate(+M, +P, +Opts)// is det.
 
 qh_predicate(M, P) -->
-  {qh_default_options(Opts)},
-  qh_predicate(M, P, Opts).
+  qh_predicate(M, P, _{}).
 
 
-qh_predicate(M, P, Opts) -->
-  qh_predicate_outer(M, _, [], P, Opts).
+qh_predicate(M, P, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_predicate_outer(M, _, [], P, Opts2).
 
 
 qh_predicate_outer(M, C, Cs1, P, Opts) -->
@@ -454,12 +459,12 @@ qh_predicate_outer(M, C, Cs1, P, Opts) -->
 %! qh_property(+M, +Prop, +Opts)// is det.
 
 qh_property(M, Prop) -->
-  {qh_default_options(Opts)},
-  qh_property(M, Prop, Opts).
+  qh_property(M, Prop, _{}).
 
 
-qh_property(M, Prop, Opts) -->
-  qh_property_outer(M, _, [], Prop, Opts).
+qh_property(M, Prop, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_property_outer(M, _, [], Prop, Opts2).
 
 
 qh_property_outer(M, C, Cs1, Prop, Opts) -->
@@ -472,12 +477,12 @@ qh_property_outer(M, C, Cs1, Prop, Opts) -->
 %! qh_property_path(+M, +Props, +Opts)// is det.
 
 qh_property_path(M, Props) -->
-  {qh_default_options(Opts)},
-  qh_property_path(M, Props, Opts).
+  qh_property_path(M, Props, _{}).
 
 
-qh_property_path(M, Props, Opts) -->
-  html_seplist({M,Opts}/[Prop]>>qh_property(M, Prop, Opts), " ", Props).
+qh_property_path(M, Props, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  html_seplist({M,Opts2}/[Prop]>>qh_property(M, Prop, Opts2), " ", Props).
 
 
 
@@ -485,17 +490,17 @@ qh_property_path(M, Props, Opts) -->
 %! qh_quad(+M, +S, +P, +O, +G, +Opts)// is det.
 
 qh_quad(M, S, P, O, G) -->
-  {qh_default_options(Opts)},
-  qh_quad(M, S, P, O, G, Opts).
+  qh_quad(M, S, P, O, G, _{}).
 
 
-qh_quad(M, S, P, O, G, Opts) -->
+qh_quad(M, S, P, O, G, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
   html(
     span(class=quadruple, [
       &(lang),
-      \qh_triple(M, S, P, O, Opts),
+      \qh_triple(M, S, P, O, Opts2),
       ", ",
-      \qh_graph_term_outer(M, graph, [graph], G, Opts),
+      \qh_graph_term_outer(M, graph, [graph], G, Opts2),
       &(rang)
     ])
   ).
@@ -506,16 +511,46 @@ qh_quad(M, S, P, O, G, Opts) -->
 %! qh_quad_panels(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
 
 qh_quad_panels(M, S, P, O, G) -->
-  {qh_default_options(Opts)},
-  qh_quad_panels(M, S, P, O, G, Opts).
+  qh_quad_panels(M, S, P, O, G, _{}).
 
 
-qh_quad_panels(M, S, P, O, G, Opts) -->
+qh_quad_panels(M, S, P, O, G, Opts1) -->
   {
+    qh_default_options(Opts1, Opts2),
     findall(G-Triple, q_triple(M, S, P, O, G, Triple), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
-  bs_panels({M,Opts}/[Group]>>qh_triple_table(M, Group, Opts), Groups).
+  bs_panels({M,Opts2}/[Group]>>qh_triple_table(M, Group, Opts2), Groups).
+
+
+
+%! qh_quad_table(+M, +Quads)// is det.
+%! qh_quad_table(+M, +Quads, +Opts)// is det.
+%! qh_quad_table(+M, ?S, ?P, ?O, ?G)// is det.
+%! qh_quad_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
+
+qh_quad_table(M, Quads) -->
+  qh_quad_table(M, Quads, _{qh_link: true}).
+
+
+qh_quad_table(M, Quads, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  bs_table(
+    \bs_table_header(["Subject","Predicate","Object","Graph"]),
+    \html_maplist(qh_quad_row0(M, Opts2), Quads)
+  ).
+
+
+qh_quad_table(M, S, P, O, G) -->
+  qh_quad_table(M, S, P, O, G, _{qh_link: true}).
+
+
+qh_quad_table(M, S, P, O, G, Opts1) -->
+  {
+    qh_default_options(Opts1, Opts2),
+    q_quads(M, S, P, O, G, Quads)
+  },
+  qh_quad_table(M, Quads, Opts2).
 
 
 
@@ -539,44 +574,16 @@ qh_quad_row0(M, Opts1, rdf(S,P,O,G)) -->
 
 
 
-%! qh_quad_table(+M, +Quads)// is det.
-%! qh_quad_table(+M, +Quads, +Opts)// is det.
-%! qh_quad_table(+M, ?S, ?P, ?O, ?G)// is det.
-%! qh_quad_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
-
-qh_quad_table(M, Quads) -->
-  {qh_default_options(Opts)},
-  qh_quad_table(M, Quads, Opts).
-
-
-qh_quad_table(M, Quads, Opts) -->
-  bs_table(
-    \bs_table_header(["Subject","Predicate","Object","Graph"]),
-    \html_maplist(qh_quad_row0(M, Opts), Quads)
-  ).
-
-
-qh_quad_table(M, S, P, O, G) -->
-  {qh_default_options(Opts)},
-  qh_quad_table(M, S, P, O, G, Opts).
-
-
-qh_quad_table(M, S, P, O, G, Opts) -->
-  {q_quads(M, S, P, O, G, Quads)},
-  qh_quad_table(M, Quads, Opts).
-
-
-
 %! qh_subject(+M, +S)// is det.
 %! qh_subject(+M, +S, +Opts)// is det.
 
 qh_subject(M, S) -->
-  {qh_default_options(Opts)},
-  qh_subject(M, S, Opts).
+  qh_subject(M, S, _{}).
 
 
-qh_subject(M, S, Opts) -->
-  qh_subject_outer(M, _, [], S, Opts).
+qh_subject(M, S, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_subject_outer(M, _, [], S, Opts2).
 
 
 qh_subject_outer(M, C, Cs1, S, Opts) -->
@@ -593,12 +600,12 @@ qh_subject_outer(M, C, Cs1, S, Opts) -->
 %! qh_term(+M, +Term, +Opts)// is det.
 
 qh_term(M, Term) -->
-  {qh_default_options(Opts)},
-  qh_term(M, Term, Opts).
+  qh_term(M, Term, _{}).
 
 
-qh_term(M, Term, Opts) -->
-  qh_term_outer(M, _, [], Term, Opts).
+qh_term(M, Term, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_term_outer(M, _, [], Term, Opts2).
 
 
 qh_term_outer(M, C, Cs1, Term, Opts) -->
@@ -617,14 +624,14 @@ qh_term_outer(M, C, Cs1, Term, Opts) -->
 %! qh_tree(+M, +Tree, +Opts)// is det.
 
 qh_tree(M, Tree) -->
-  {qh_default_options(Opts)},
-  qh_tree(M, Tree, Opts).
+  qh_tree(M, Tree, _{}).
 
 
-qh_tree(M, Tree, Opts) -->
+qh_tree(M, Tree, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
   html([
     \check_all0,
-    div(class(treeview), div(class(tree),\qh_trees0(M, [0], [Tree], Opts)))
+    div(class(treeview), div(class(tree),\qh_trees0(M, [0], [Tree], Opts2)))
   ]).
 
 
@@ -681,51 +688,30 @@ qh_trees0(M, Ns1, [Root-Subtrees|Trees], Opts) -->
 %! qh_triple(+M, +S, +P, +O, +Opts)// is det.
 
 qh_triple(M, Triple) -->
-  {qh_default_options(Opts)},
-  qh_triple(M, Triple, Opts).
+  qh_triple(M, Triple, _{}).
 
 
-qh_triple(M, rdf(S,P,O), Opts) -->
-  qh_triple(M, S, P, O, Opts).
+qh_triple(M, rdf(S,P,O), Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_triple(M, S, P, O, Opts2).
 
 
 qh_triple(M, S, P, O) -->
-  {qh_default_options(Opts)},
-  qh_triple(M, S, P, O, Opts).
+  qh_triple(M, S, P, O, _{}).
 
 
-qh_triple(M, S, P, O, Opts) -->
+qh_triple(M, S, P, O, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
   html(
     span(class=triple, [
       &(lang),
-      \qh_subject_outer(M, term, [subject], S, Opts),
+      \qh_subject_outer(M, term, [subject], S, Opts2),
       ", ",
-      \qh_predicate_outer(M, predicate, [predicate], P, Opts),
+      \qh_predicate_outer(M, predicate, [predicate], P, Opts2),
       ", ",
-      \qh_object_outer(M, term, [object], O, Opts),
+      \qh_object_outer(M, term, [object], O, Opts2),
       &(rang)
     ])
-  ).
-
-
-
-%! qh_triple_row(+M, +Triple)// is det.
-%! qh_triple_row(+M, +Triple, +Opts)// is det.
-
-qh_triple_row(M, Triple) -->
-  {qh_default_options(Opts)},
-  qh_triple_row(M, Triple, Opts).
-
-
-qh_triple_row(M, rdf(S,P,O), Opts) -->
-  html(
-    span(class=triple,
-      tr([
-        td(\qh_subject_outer(M, term, [subject], S, Opts)),
-        td(\qh_predicate_outer(M, predicate, [predicate], P, Opts)),
-        td(\qh_object_outer(M, term, [object], O, Opts))
-      ])
-    )
   ).
 
 
@@ -734,14 +720,14 @@ qh_triple_row(M, rdf(S,P,O), Opts) -->
 %! qh_triple_table(+M, +Triples, +Opts)// is det.
 
 qh_triple_table(M, Triples) -->
-  {qh_default_options(Opts)},
-  qh_triple_table(M, Triples, Opts).
+  qh_triple_table(M, Triples, _{qh_link: true}).
 
 
-qh_triple_table(M, Triples, Opts) -->
+qh_triple_table(M, Triples, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
   bs_table(
     \qh_table_header0,
-    \html_maplist({M,Opts}/[Triple]>>qh_triple_row(M, Triple, Opts), Triples)
+    \html_maplist(qh_triple_row0(M, Opts2), Triples)
   ).
 
 
@@ -755,18 +741,32 @@ qh_table_header0 -->
   ).
 
 
+qh_triple_row0(M, Opts, rdf(S,P,O)) -->
+  html(
+    span(class=triple,
+      tr([
+        td(\qh_subject_outer(M, term, [subject], S, Opts)),
+        td(\qh_predicate_outer(M, predicate, [predicate], P, Opts)),
+        td(\qh_object_outer(M, term, [object], O, Opts))
+      ])
+    )
+  ).
+
+
 
 %! qh_triple_table(+M, ?S, ?P, ?O, ?G)// is det.
 %! qh_triple_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
 
 qh_triple_table(M, S, P, O, G) -->
-  {qh_default_options(Opts)},
-  qh_triple_table(M, S, P, O, G, Opts).
+  qh_triple_table(M, S, P, O, G, _{qh_link: true}).
 
 
-qh_triple_table(M, S, P, O, G, Opts) -->
-  {q_triples(M, S, P, O, G, Triples)},
-  qh_triple_table(M, Triples, Opts).
+qh_triple_table(M, S, P, O, G, Opts1) -->
+  {
+    qh_default_options(Opts1, Opts2),
+    q_triples(M, S, P, O, G, Triples)
+  },
+  qh_triple_table(M, Triples, Opts2).
 
 
 
@@ -774,10 +774,14 @@ qh_triple_table(M, S, P, O, G, Opts) -->
 
 % HELPERS %
 
-qh_default_options(_{max_length: 50}).
+%! qh_default_options(+Opts1, -Opts2) is det.
+
+qh_default_options(Opts1, Opts2) :-
+  merge_dicts(_{max_length: 50, qh_link: false}, Opts1, Opts2).
 
 
 
+%! qh_link(+C, +Cs, +Term, :Content_0)// is det.
 %! qh_link(+C, +Cs, +Term, :Content_0, +Opts)// is det.
 %! qh_link(+C, +Cs, +Attrs, +Term, :Content_0, +Opts)// is det.
 %
@@ -790,10 +794,17 @@ qh_default_options(_{max_length: 50}).
 %
 % C is the class that denotes the context in which Term is displayed.
 
+qh_link(C, Cs, Term, Content_0) -->
+  qh_link(C, Cs, Term, Content_0, _{qh_link: true}).
+
+
 qh_link(C, Cs, Term, Content_0, Opts) -->
   qh_link(C, Cs, [], Term, Content_0, Opts).
 
 
+qh_link(_, _, _, _, Content_0, Opts) -->
+  {Opts.qh_link == false}, !,
+  html(Content_0).
 qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   {
     setting(qh:http_handler, Id),
@@ -806,7 +817,7 @@ qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
     http_link_to_id(Id, Query, Link)
   },
   html([
-    html(a([class=Cs,href=Link|Attrs], Content_0)),
+    a([class=Cs,href=Link|Attrs], Content_0),
     \qh_link_external(Term)
   ]).
 qh_link(_, _, _, _, Content_0, _) -->

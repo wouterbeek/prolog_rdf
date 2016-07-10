@@ -1,42 +1,43 @@
 :- module(
   qu,
   [
-    qu_add_ltag/5,          % +M1, +M2, +P, +LTag, +G
-    qu_add_nesting/5,       % +M1, +M2, +P, +Qs, +G
-    qu_call/2,              % :Find_0, :Transform_0
-    qu_change_datatype/5,   % +M1, +M2, +P, +G, +D
-    qu_change_iri/8,        % +M1, +M2, ?S, ?P, ?O, +G, +Positions, :Dcg_0
-    qu_change_lex/5,        % +M1, +M2, +P, +G, :Dcg_0
-    qu_change_ltag/5,       % +M1, +M2, +LTag1, +G, +LTag2
-    qu_change_num/6,        % +M1, +M2, ?S, ?P, +G, :Goal_2
-    qu_change_prefix/9,     % +M1, +M2, ?S, ?P, ?O, +G, +Positions, +Alias1, +Alias2
-    qu_change_val/6,        % +M1, +M2, ?S, ?P, +G, :Goal_2
-    qu_cp/4,                % +M1, +M2, +G1, +G2
-    qu_cp/7,                % +M1, +M2, +G1, ?S, ?P, ?O, +G2
-    qu_comb_date/7,         % +M1, +M2, +P1, +P2, +P3, +G, +Q
-    qu_comb_month_day/7,    % +M1, +M2, +P1, +P2, +P3, +G, +Q
-    qu_comb_year_month/7,   % +M1, +M2, +P1, +P2, +P3, +G, +Q
-    qu_inc/5,               % +M1, +M2, +S, +P, +G
-    qu_flatten/4,           % +M1, +M2, +P, +G
-    qu_lex_padding/5,       % +M1, +M2, +P, +G, +PaddingCode
-    qu_lex_to_iri/5,        % +M1, +M2, ?P, +Alias, +G
-    qu_lex_to_iri/6,        % +M1, +M2, ?P, +Alias, +G, :Lex2Local_0
-    qu_mv/4,                % +M1, +M2, +G1, +G2
-    qu_mv/7,                % +M1, +M2, +G1, ?S, ?P, ?O, +G2
-    qu_process_string/5,    % +M1, +M2, +P, +G, :Dcg_3
-    qu_replace_string/7,    % +M1, +M2, ?S, ?P, +Sub1, +G, +Sub2
-    qu_replace_predicate/5, % +M1, +M2, +P, +G, +Q
-    qu_replace_subject/5,   % +M1, +M2, +S1, +S2, +G
-    qu_rm/6,                % +M1, +M2, ?S, ?P, ?O, +G
-    qu_rm_cell/6,           % +M1, +M2, +S, +P, +O, +G
-    qu_rm_col/4,            % +M1, +M2, +P, +G
-    qu_rm_empty_string/4,   % +M1, +M2, ?P, +G
-    qu_rm_error/6,          % +M1, +M2, ?S, ?P, ?O, +G
-    qu_rm_null/5,           % +M1, +M2, ?P, +Null, +G
-    qu_rm_tree/4,           % +M1, +M2, +S, +G
-    qu_rm_triples/6,        % +M1, +M2, ?S, ?P, ?O, ?G
-    qu_split_string/5,      % +M1, +M2, +P, +G, ?SepChars
-    qu_subject_from_key/5   % +M1, +M2, +Alias, +P, +G
+    qu_add_ltag/5,            % +M1, +M2, +P, +LTag, +G
+    qu_add_nesting/5,         % +M1, +M2, +P, +Qs, +G
+    qu_call/2,                % :Find_0, :Transform_0
+    qu_change_datatype/5,     % +M1, +M2, +P, +G, +D
+    qu_change_iri/8,          % +M1, +M2, ?S, ?P, ?O, +G, +Positions, :Dcg_0
+    qu_change_lex/5,          % +M1, +M2, +P, +G, :Dcg_0
+    qu_change_ltag/5,         % +M1, +M2, +LTag1, +G, +LTag2
+    qu_change_num/6,          % +M1, +M2, ?S, ?P, +G, :Goal_2
+    qu_change_prefix/9,       % +M1, +M2, ?S, ?P, ?O, +G, +Positions, +Alias1, +Alias2
+    qu_change_val/6,          % +M1, +M2, ?S, ?P, +G, :Goal_2
+    qu_cp/4,                  % +M1, +M2, +G1, +G2
+    qu_cp/7,                  % +M1, +M2, +G1, ?S, ?P, ?O, +G2
+    qu_comb_date/7,           % +M1, +M2, +P1, +P2, +P3, +G, +Q
+    qu_comb_month_day/7,      % +M1, +M2, +P1, +P2, +P3, +G, +Q
+    qu_comb_year_month/7,     % +M1, +M2, +P1, +P2, +P3, +G, +Q
+    qu_inc/5,                 % +M1, +M2, +S, +P, +G
+    qu_flatten/4,             % +M1, +M2, +P, +G
+    qu_lex_padding/5,         % +M1, +M2, +P, +G, +PaddingCode
+    qu_lex_to_iri/5,          % +M1, +M2, ?P, +Alias, +G
+    qu_lex_to_iri/6,          % +M1, +M2, ?P, +Alias, +G, :Lex2Local_0
+    qu_lowercase_predicate/4, % +M1, +M2, +Alias, +G
+    qu_mv/4,                  % +M1, +M2, +G1, +G2
+    qu_mv/7,                  % +M1, +M2, +G1, ?S, ?P, ?O, +G2
+    qu_process_string/5,      % +M1, +M2, +P, +G, :Dcg_3
+    qu_replace_string/7,      % +M1, +M2, ?S, ?P, +Sub1, +G, +Sub2
+    qu_replace_predicate/5,   % +M1, +M2, +P, +G, +Q
+    qu_replace_subject/5,     % +M1, +M2, +S1, +S2, +G
+    qu_rm/6,                  % +M1, +M2, ?S, ?P, ?O, +G
+    qu_rm_cell/6,             % +M1, +M2, +S, +P, +O, +G
+    qu_rm_col/4,              % +M1, +M2, +P, +G
+    qu_rm_empty_string/4,     % +M1, +M2, ?P, +G
+    qu_rm_error/6,            % +M1, +M2, ?S, ?P, ?O, +G
+    qu_rm_null/5,             % +M1, +M2, ?P, +Null, +G
+    qu_rm_tree/4,             % +M1, +M2, +S, +G
+    qu_rm_triples/6,          % +M1, +M2, ?S, ?P, ?O, ?G
+    qu_split_string/5,        % +M1, +M2, +P, +G, ?SepChars
+    qu_subject_from_key/5     % +M1, +M2, +Alias, +P, +G
   ]
 ).
 
@@ -96,6 +97,7 @@ Higher-level update operations performed on RDF data.
    qu_lex_padding(+, +, r, r, +),
    qu_lex_to_iri(+, +, r, +, r),
    qu_lex_to_iri(+, +, r, +, r, :),
+   qu_lowercase_predicate(+, +, +, r),
    qu_mv(+, +, r, r),
    qu_mv(+, +, r, r, r, o, r),
    qu_process_string(+, +, r, r, :),
@@ -427,6 +429,21 @@ qu_lex_to_iri(M1, M2, P, Alias, G, Lex2Local_0) :-
 
 
 
+%! qu_lowercase_predicate(+M1, +M2, +Alias, +G) is det.
+
+qu_lowercase_predicate(M1, M2, Alias, G) :-
+  qu_lowercase_predicate_deb(Alias),
+  qu_change_iri(M1, M2, _, _, _, G, [-,+,-], iri_local_lowercase0(Alias)).
+
+
+iri_local_lowercase0(Alias), Cs -->
+  {q_alias_prefix(Alias, Prefix)},
+  atom(Prefix),
+  atom_lowercase,
+  {atom_codes(Prefix, Cs)}.
+
+
+
 %! qu_mv(+M1, +M2, +G1, +G2) is det.
 %! qu_mv(+M1, +M2, +G1, ?S, ?P, ?O, +G2) is det.
 %
@@ -647,11 +664,12 @@ qu_lex_padding_deb(P, C) :-
 qu_lex_to_iri_deb(P, Alias, _:Goal) :-
   with_output_to(string(P0), q_print_predicate(P)),
   Goal =.. [Pred|_],
-  debug(
-    qu(lex_to_iri),
-    "Lexicals of ‘~s’ become IRIs with alias ‘~a’ using ‘~a’.",
-    [P0,Alias,Pred]
-  ).
+  debug(qu(lex_to_iri), "Lexicals of ‘~s’ become IRIs with alias ‘~a’ using ‘~a’.", [P0,Alias,Pred]).
+
+
+
+qu_lowercase_predicate_deb(Alias) :-
+  debug(qu(lowercase_predicate), "Lowercase predicates using alias ‘~a’.", [Alias]).
 
 
 

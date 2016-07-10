@@ -11,7 +11,7 @@
 Support for RESTful interfaces to RDF data.
 
 @author Wouter Beek
-@version 2016/02, 2016/04-2016/06
+@version 2016/02, 2016/04-2016/07
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -19,10 +19,10 @@ Support for RESTful interfaces to RDF data.
 :- use_module(library(yall)).
 
 :- meta_predicate
-   rdf_rest_handler(+, +, +, 3, 2).
+   q_rest_handler(+, +, +, 3, 2).
 
 :- rdf_meta
-   rdf_rest_handler(+, +, r, :, :).
+   q_rest_handler(+, +, r, :, :).
 
 
 

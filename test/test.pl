@@ -55,6 +55,7 @@
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/q_user)).
 :- use_module(library(q/q_wgs84)).
 :- use_module(library(q/q_wkt)).
 :- use_module(library(q/qb)).
@@ -77,7 +78,6 @@
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf/rdf_user)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(rdfa/rdfa_user)).

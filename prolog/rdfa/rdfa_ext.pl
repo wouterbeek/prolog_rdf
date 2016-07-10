@@ -57,10 +57,13 @@
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
+:- use_module(library(xsd/xsd)).
 
 :- qb_alias(bf, 'http://bibframe.org/vocab/').
 :- qb_alias(org, 'http://www.w3.org/ns/org#').
@@ -199,7 +202,7 @@ agent_item0(M, G, Agent) -->
 
 'dc:abstract'(M, Res, G) -->
   {once('dc:abstract'(M, Res, Abstract, G))},
-  html(p(property='dc:abstract', \qh_literal(Abstract))).
+  html(p(property='dc:abstract', \qh_literal(Abstract, _{max_length: 150}))).
 
 
 
