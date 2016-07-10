@@ -30,6 +30,7 @@
     'foaf:name'/4,        % +M, +Agent,   -Name,       ?G
     'foaf:name'//3,       % +M, +Agent,                ?G
     'org:memberOf'//3,    % +M, +Agent,                ?G
+    rdfa_date_time//2,    %     +P, +Something
     rdfa_date_time//3,    %     +P, +Something, +Masks
     rdfa_prefixed_iri/2,  % +Iri, -PrefixedIri
     rdfa_prefixes/2,      % +Aliases, -Prefixes
@@ -99,6 +100,7 @@
    'foaf:name'(+, r, -, r),
    'foaf:name'(+, r, r, ?, ?),
    'org:memberOf'(+, r, r, ?, ?),
+   rdfa_date_time(r, +, ?, ?),
    rdfa_date_time(r, +, +, ?, ?),
    'sioc:content'(+, r, r, ?, ?),
    'sioc:reply_of'(+, r, r, ?, ?).
@@ -344,7 +346,12 @@ agent_item0(M, G, Agent) -->
 
 
 
+%! rdfa_date_time(+P, +Something)// is det.
 %! rdfa_date_time(+P, +Something, +Masks)// is det.
+
+rdfa_date_time(P1, Something) -->
+  rdfa_date_time(P1, Something, []).
+
 
 rdfa_date_time(P1, Something, Masks) -->
   {
