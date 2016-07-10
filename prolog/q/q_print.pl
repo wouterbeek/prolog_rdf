@@ -41,6 +41,8 @@
     q_print_graph/3,         % ?M,             +G, +Opts
     q_print_graph_term/1,    %                 +G
     q_print_graph_term/2,    %                 +G, +Opts
+    q_print_iri/1,           %             +Iri
+    q_print_iri/2,           %             +Iri,   +Opts
     q_print_literal/1,       %             +Lit
     q_print_literal/2,       %             +Lit,   +Opts
     q_print_object/1,        %             +O
@@ -166,6 +168,8 @@ Print RDF statements.
    q_print_graph(?, r, +),
    q_print_graph_term(r),
    q_print_graph_term(r, +),
+   q_print_iri(r),
+   q_print_iri(r, +),
    q_print_literal(o),
    q_print_literal(o, +),
    q_print_object(o),
@@ -258,8 +262,18 @@ q_print_graph_term(G, Opts1) :-
 
 
 
-q_print_literal(Lit) :-
+q_print_iri(Lit) :-
   q_print_object(Lit, _{}).
+
+
+q_print_iri(Lit, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
+  dcg_with_output_to(Out, dcg_print_iri(Lit, Opts2)).
+
+
+
+q_print_literal(Lit) :-
+  q_print_literal(Lit, _{}).
 
 
 q_print_literal(Lit, Opts1) :-

@@ -215,7 +215,7 @@ qh_describe(M, S, Opts1) -->
     group_pairs_by_key(Pairs, Groups)
   },
   bs_table(
-    \bs_table_header(["Predicate","Objects"]),
+    \bs_table_header(["predicate","objects"]),
     \html_maplist(qh_describe_row0(M, Opts2), Groups)
   ).
 

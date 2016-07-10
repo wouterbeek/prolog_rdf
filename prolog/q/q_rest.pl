@@ -14,8 +14,9 @@ Support for RESTful interfaces to RDF data.
 @version 2016/02, 2016/04-2016/07
 */
 
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(http/rest)).
 :- use_module(library(rdfs/rdfs_ext)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
 :- meta_predicate

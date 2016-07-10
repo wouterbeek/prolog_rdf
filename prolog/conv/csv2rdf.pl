@@ -49,6 +49,8 @@ Automatic conversion from CSV to RDF.
 %
 %   * alias(+atom) Sets both abox_alias/1 and tbox_alias/1.
 %
+%   * class(+compound)
+%
 %   * header(+list) A list of RDF properties that represent the
 %   columns.  This is used when there are no column labels in the CSV
 %   file.
@@ -94,6 +96,7 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
   list_row(Vals, DataRow),
   atom_number(Name, RowN),
   rdf_global_id(Dict.abox_alias:Name, S),
+  (option(class(C), Opts1) -> gen_ntuple(S, rdf:type, C, State, Out) ; true),
   rdf_equal(xsd:string, D),
   maplist(
     {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),
