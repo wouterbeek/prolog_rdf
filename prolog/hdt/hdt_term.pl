@@ -33,6 +33,7 @@
 */
 
 :- use_module(library(hdt), []).
+:- use_module(library(hdt/hdt__io)).
 :- use_module(library(hdt/hdt_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
