@@ -541,7 +541,7 @@ qh_quad_table(Quads) -->
 
 
 qh_quad_table(M, Quads) -->
-  qh_quad_table(M, Quads, _{qh_link: true}).
+  qh_quad_table(M, Quads, _{max_length: 25, qh_link: true}).
 
 
 qh_quad_table(M, Quads, Opts1) -->
@@ -553,7 +553,7 @@ qh_quad_table(M, Quads, Opts1) -->
 
 
 qh_quad_table(M, S, P, O, G) -->
-  qh_quad_table(M, S, P, O, G, _{qh_link: true}).
+  qh_quad_table(M, S, P, O, G, _{max_length: 25, qh_link: true}).
 
 
 qh_quad_table(M, S, P, O, G, Opts1) -->
@@ -736,7 +736,7 @@ qh_triple_table(Triples) -->
 
 
 qh_triple_table(M, Triples) -->
-  qh_triple_table(M, Triples, _{qh_link: true}).
+  qh_triple_table(M, Triples, _{max_length: 25, qh_link: true}).
 
 
 qh_triple_table(M, Triples, Opts1) -->
@@ -774,7 +774,7 @@ qh_triple_row0(M, Opts, rdf(S,P,O)) -->
 %! qh_triple_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
 
 qh_triple_table(M, S, P, O, G) -->
-  qh_triple_table(M, S, P, O, G, _{qh_link: true}).
+  qh_triple_table(M, S, P, O, G, _{max_length: 25, qh_link: true}).
 
 
 qh_triple_table(M, S, P, O, G, Opts1) -->
@@ -793,7 +793,7 @@ qh_triple_table(M, S, P, O, G, Opts1) -->
 %! qh_default_options(+Opts1, -Opts2) is det.
 
 qh_default_options(Opts1, Opts2) :-
-  merge_dicts(_{iri_lbl: false, max_length: 25, qh_link: false}, Opts1, Opts2).
+  merge_dicts(_{iri_lbl: false, max_length: 50, qh_link: false}, Opts1, Opts2).
 
 
 

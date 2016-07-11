@@ -142,7 +142,8 @@ source_to_void(DataG, Goal_3, VoidG) :-
   %),
 
   % VoID assertions that cannot be generated automatically.
-  (current_goal(Goal_3) -> call(Goal_3, M, Dataset, VoidG) ; true).
+  call(Goal_3, M, Dataset, VoidG).
+  %(current_goal(Goal_3) -> call(Goal_3, M, Dataset, VoidG) ; true).
 
 
 vocab_term(C, G) :-
