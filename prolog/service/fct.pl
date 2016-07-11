@@ -54,11 +54,13 @@ fct_label(Search, Result) :-
   atomic_list_concat([''|PathComps], /, Path),
   uri_query_components(Query, [lbl(Search)]),
   uri_components(Iri, uri_components(Scheme,Host,Path,Query,_)),
+  % json_read_any/[2,3] cannot be used here because the `Accept`
+  % header must be `*` in order to retrieve JSON.
   setup_call_cleanup(
     http_open(Iri, In, [request_header('Accept'='*')]),
     json_read_dict(In, Results),
     close(In)
-  ),gtrace,
+  ),
   member(Result0, Results.results),
   atom_string(Result, Result0),
   is_http_iri(Result).

@@ -167,6 +167,7 @@ q_deref(Iri1, Quad) :-
 
 q_deref0(Set, Iri1, Quad) :-
   rdf_equal(owl:sameAs, P0),
+  \+ blacklisted(Iri1),
   debug(q_stmt(q_deref), "Dereferencing ~a", [Iri1]),
   http_fail_on_exception(rdf_load_quads(Iri1, Quads, [timeout(2)])),
   add_nb_set(Iri1, Set),
@@ -176,6 +177,7 @@ q_deref0(Set, Iri1, Quad) :-
       add_nb_set(Iri2, Set, true),
       q_deref0(Set, Iri2, Quad)
   ).
+blacklisted('http://yago-knowledge.org/resource/Abraham_Kuyper').
 
 
 

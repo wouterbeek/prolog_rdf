@@ -8,6 +8,7 @@
    %qb_alias/2,        % +Alias, +Prefix
    %qb_bnode/1,        % -B
     qb_bnode_prefix/1, % -BPrefix
+    qb_deref/2,        % +M, +Iri
     qb_deref/3,        % +M, +Iri, +G
     qb_instance/4,     % +M, +I, ?C, +G
     qb_instances/4,    % +M, +I, +Cs, +G
@@ -60,6 +61,7 @@
 @version 2016/06-2016/07
 */
 
+:- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt__io)).
@@ -79,6 +81,7 @@
    qb(+, t),
    qb(+, t, r),
    qb(+, r, r, o, r),
+   qb_deref(+, r),
    qb_deref(+, r, r),
    qb_instance(+, r, r, r),
    qb_instances(+, r, t, r),
@@ -141,11 +144,19 @@ qb(rdf, S, P, O, G) :- !,
 
 
 
+%! qb_deref(+M, +Iri) is det.
 %! qb_deref(+M, +Iri, +G) is det.
 
+qb_deref(M, Iri) :-
+  qb_deref(M, Iri, Iri).
+
+
 qb_deref(M, Iri, G) :-
-  q_deref(Iri, Tuples),
-  maplist({M,G}/[Tuple]>>qb(M, Tuple, G), Tuples).
+  q_deref(Iri, rdf(S,P,O,_)),
+  qb(M, S, P, O, G),
+  fail.
+qb_deref(_, Iri, _) :-
+  debug(qb(qb_deref), "Dereferenced: ~a", [Iri]).
 
 
 

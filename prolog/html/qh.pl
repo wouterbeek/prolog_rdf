@@ -32,6 +32,7 @@
     qh_quad//6,          % +M, +S, +P, +O, +G, +Opts
     qh_quad_panels//5,   % +M, ?S, ?P, ?O, ?G
     qh_quad_panels//6,   % +M, ?S, ?P, ?O, ?G, +Opts
+    qh_quad_table//1,    % +Quads
     qh_quad_table//2,    % +M, +Quads
     qh_quad_table//3,    % +M, +Quads,         +Opts
     qh_quad_table//5,    % +M, ?S, ?P, ?O, ?G
@@ -44,6 +45,7 @@
     qh_tree//3,          % +M, +Tree,          +Opts
     qh_triple//4,        % +M, +S, +P, +O
     qh_triple//5,        % +M, +S, +P, +O,     +Opts
+    qh_triple_table//1,  % +Triples
     qh_triple_table//2,  % +M, +Triples
     qh_triple_table//3,  % +M, +Triples,       +Opts
     qh_triple_table//5,  % +M, ?S, ?P, ?O, ?G
@@ -303,6 +305,7 @@ qh_iri_inner(_, Iri, _) -->
 % RDFS label replacing IRI.
 qh_iri_inner(M, Iri, Opts) -->
   {
+    ground(M),
     get_dict(iri_label, Opts, true),
     q_pref_label(M, Iri, Lbl)
   }, !,
@@ -524,10 +527,15 @@ qh_quad_panels(M, S, P, O, G, Opts1) -->
 
 
 
+%! qh_quad_table(+Quads)// is det.
 %! qh_quad_table(+M, +Quads)// is det.
 %! qh_quad_table(+M, +Quads, +Opts)// is det.
 %! qh_quad_table(+M, ?S, ?P, ?O, ?G)// is det.
 %! qh_quad_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
+
+qh_quad_table(Quads) -->
+  qh_quad_table(_, Quads).
+
 
 qh_quad_table(M, Quads) -->
   qh_quad_table(M, Quads, _{qh_link: true}).
@@ -716,8 +724,13 @@ qh_triple(M, S, P, O, Opts1) -->
 
 
 
+%! qh_triple_table(+Triples)// is det.
 %! qh_triple_table(+M, +Triples)// is det.
 %! qh_triple_table(+M, +Triples, +Opts)// is det.
+
+qh_triple_table(Triples) -->
+  qh_triple_table(_, Triples).
+
 
 qh_triple_table(M, Triples) -->
   qh_triple_table(M, Triples, _{qh_link: true}).
