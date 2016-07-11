@@ -131,6 +131,7 @@ lotus(S, P, Query, O, Doc, Opts) :-
   setting(lotus:endpoint_scheme, Scheme),
   setting(lotus:endpoint_host, Host),
   option(blank(Blank), Opts, false),
+  boolean_negation(Blank, NoBlank),
   option(ltag(LTag0), Opts, _),
   option(ltag_mode(LTagMode), Opts, user),
   option(match(Match), Opts, phrase),
@@ -139,7 +140,7 @@ lotus(S, P, Query, O, Doc, Opts) :-
   rank_term(Rank),
   option(request_size(RequestSize), Opts, 10),
   QueryComps0 = [
-    blank(Blank),
+    noblank(NoBlank),
     langannotator(LTagMode),
     langtag(LTag0),
     match(Match),
@@ -192,6 +193,11 @@ rank_term(termrichness).
 
 
 % HELPERS %
+
+boolean_negation(true, false).
+boolean_negation(false, true).
+
+
 
 %! ll_is_bnode(@Term) is semidet.
 
