@@ -86,6 +86,7 @@
 :- use_module(library(rdfs/rdfs_stat)).
 %/service
 :- use_module(library(service/btc)).
+:- use_module(library(service/fct)).
 :- use_module(library(service/flickrwrappr)).
 :- use_module(library(service/freebase)).
 :- use_module(library(service/ldf)).
