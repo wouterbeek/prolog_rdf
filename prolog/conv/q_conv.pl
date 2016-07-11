@@ -90,6 +90,13 @@ q_conv_void(Alias, Opts) :-
 
 
 %! conv_alias_options(+Opts1, -Opts2) is det.
+%
+% The same code for option lists:
+%
+% ```prolog
+% (option(alias(Alias), Opts1) -> true ; Alias = ex),
+% merge_options(Opts1, [abox_alias(Alias),tbox_alias(Alias)], Opts2),
+% ```
 
 conv_alias_options(Opts1, Opts3) :-
   del_dict(alias, Opts1, Alias, Opts2), !,

@@ -69,6 +69,7 @@ The following options are supported:
 @version 2016/02-2016/07
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
@@ -299,20 +300,22 @@ qh_iri_outer(M, C, Cs1, Iri, Opts) -->
 
 
 % Abbreviated notation for IRI.
-qh_iri_inner(_, Iri, _) -->
-  {rdf_global_id(Alias:Local, Iri)}, !,
-  html([span(class=alias, Alias),":",Local]).
+qh_iri_inner(_, Iri, Opts) -->
+  {rdf_global_id(Alias:Local1, Iri)}, !,
+  {dcg_with_output_to(atom(Local2), atom_ellipsis(Local1, Opts.max_length))},
+  html([span(class=alias, Alias),":",Local2]).
 % RDFS label replacing IRI.
 qh_iri_inner(M, Iri, Opts) -->
   {
     ground(M),
-    get_dict(iri_label, Opts, true),
+    get_dict(iri_lbl, Opts, true),
     q_pref_label(M, Iri, Lbl)
   }, !,
   qh_literal_inner(Lbl, Opts).
-% Plain IRI.
-qh_iri_inner(_, Iri, _) -->
-  html(Iri).
+% Plain IRI, possibly ellipsed.
+qh_iri_inner(_, Iri1, Opts) -->
+  {dcg_with_output_to(atom(Iri2), atom_ellipsis(Iri1, Opts.max_length))},
+  html(Iri2).
 
 
 
@@ -790,7 +793,7 @@ qh_triple_table(M, S, P, O, G, Opts1) -->
 %! qh_default_options(+Opts1, -Opts2) is det.
 
 qh_default_options(Opts1, Opts2) :-
-  merge_dicts(_{max_length: 50, qh_link: false}, Opts1, Opts2).
+  merge_dicts(_{iri_lbl: false, max_length: 25, qh_link: false}, Opts1, Opts2).
 
 
 
