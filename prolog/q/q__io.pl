@@ -76,7 +76,8 @@ q_available(M, G) :-
     member(Path, Paths),
     directory_file_path(Dir, File, Path),
     atomic_list_concat([Base|_], ., File),
-    atomic_list_concat([Alias,Local], '_', Base),
+    atomic_list_concat([Alias|Locals], '_', Base),
+    atomic_list_concat(Locals, '_', Local),
     rdf_global_id(Alias:Local, G),
     \+ q_graph(M, G)
   )).

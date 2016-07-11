@@ -43,7 +43,7 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(service/prefix_cc)).
 :- use_module(library(solution_sequences)).
 
-:- initialization((register_prefix_cc, register_dbpedia_localizations)).
+:- initialization(register_dbpedia_localizations).
 
 
 

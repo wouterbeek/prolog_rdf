@@ -153,6 +153,7 @@ qb_deref(M, Iri) :-
 
 qb_deref(M, Iri, G) :-
   q_deref(Iri, rdf(S,P,O,_)),
+  S == Iri,
   qb(M, S, P, O, G),
   fail.
 qb_deref(_, Iri, _) :-
