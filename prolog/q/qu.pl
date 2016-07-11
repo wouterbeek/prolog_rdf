@@ -594,7 +594,7 @@ qu_split_string(M1, M2, P, G, SepChars) :-
   qu_split_string_deb(P),
   qu_call((
     q(M1, S, P, Str0^^xsd:string, G),
-    split_string(Str0, SepChars, "", Strs)
+    split_string(Str0, SepChars, " ", Strs)
   ), (
     forall(member(Str, Strs), qb(M2, S, P, Str^^xsd:string, G)),
     qb_rm(M2, S, P, Str0^^xsd:string, G)
@@ -707,7 +707,7 @@ qu_rm_error_deb(S, P, O) :-
 qu_rm_null_deb(P, Null) :-
   with_output_to(string(P0), q_print_predicate(P)),
   with_output_to(string(Null0), q_print_object(Null)),
-  debug(qu(rm_null), "Remove NULL values ‘~s’ for ‘~s’.", [Null0,P0]).
+  debug(qu(rm_null), "Remove NULL value ‘~s’ for ‘~s’.", [Null0,P0]).
 
 
 
