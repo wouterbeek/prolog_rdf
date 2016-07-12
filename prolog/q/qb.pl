@@ -47,7 +47,9 @@
     qb_ontology/3,            % +M, +Ontology, +G
     qb_value_restriction/5,   % +M, +P, +Val, +G, -Restriction
   % DOMAIN-SPECIFIC
-    qb_action/5 % +M, +ActionC, +Actor, -Action, +G
+    qb_action/5, % +M, +ActionC, +Actor, -Action, +G
+    qb_mail/4,   % +M, +Agent, +Mail, +G
+    qb_user/7    % +M, +User, +C, +Img, +GivenName, +FamilyName, +G
   ]
 ).
 :- reexport(library(semweb/rdf11), [
@@ -117,7 +119,9 @@
    qb_ontology(+, r, r),
    qb_value_restriction(+, r, r, r, -),
    % DOMAIN-SPECIFIC
-   qb_action(+, r, r, -, r).
+   qb_action(+, r, r, -, r),
+   qb_mail(+, r, +, r),
+   qb_user(+, r, r, +, +, +, r).
 
 
 
@@ -465,6 +469,24 @@ qb_action(M, ActionC, Actor, Action, G):-
   qb_instance(M, Action, ActionC, G),
   qb_now(M, Action, prov:atTime, G),
   qb(M, Action, prov:wasAssociatedWith, Actor, G).
+
+
+
+%! qb_mail(+M, +Agent, +Mail, +G) is det.
+
+qb_mail(M, Agent, Mail, G) :-
+  atomic_list_concat([mailto,Mail], :, Iri),
+  qb(M, Agent, foaf:mbox, Iri^^xsd:anyURI, G).
+
+
+
+%! qb_user(+M, +User, +C, +Img, +GivenName, +FamilyName, +G) is det.
+
+qb_user(M, User, C, Img, GivenName, FamilyName, G) :-
+  qb_instance(M, User, C, G),
+  qb(M, User, foaf:depiction, Img^^xsd:anyURI, G),
+  qb(M, User, foaf:familyName, FamilyName@nl, G),
+  qb(M, User, foaf:givenName, GivenName@nl, G).
 
 
 

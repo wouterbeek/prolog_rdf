@@ -21,12 +21,13 @@
 /** <module> Quine list API
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    q_last(?, r, r),
@@ -179,13 +180,15 @@ qb_list0(_, [], RdfL, _) :-
   rdf_equal(rdf:nil, RdfL).
 qb_list0(M, [H|T], RdfL, G) :-
   (var(RdfL) -> qb_bnode(RdfL) ; true),
-  qb(M, RdfL, rdf:type, rdf:'List', G),
+  % @tbd RDF alias expansion does not work.
+  rdf_equal(rdf:'List', C),
+  qb(M, RdfL, rdf:type, C, G),
   qb(M, RdfL, rdf:first, H, G),
   (   T == []
-  ->  qb(RdfL, rdf:rest, rdf:nil, G)
+  ->  qb(M, RdfL, rdf:rest, rdf:nil, G)
   ;   qb_bnode(T2),
-      qb(RdfL, rdf:rest, T2, G),
-      qb_list0(T, T2, G)
+      qb(M, RdfL, rdf:rest, T2, G),
+      qb_list0(M, T, T2, G)
   ).
 
 

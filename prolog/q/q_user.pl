@@ -9,27 +9,43 @@
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(settings)).
 
 :- qb_alias(resu, 'http://www.swi-prolog.org/cliopatria/user/').
+
+:- setting(
+     user_backend,
+     oneof([hdt,rdf]),
+     rdf,
+     "The backend used for storing user information."
+   ).
+:- setting(
+     user_graph,
+     atom,
+     'http://www.swi-prolog.org/cliopatria/user/',
+     "The name of the graph in which user information is stored."
+   ).
+:- setting(user_alias, atom, resu, "The IRI prefix of user resources.").
 
 :- multifile
     google_client:create_user_hook/2,
     google_client:current_user_hook/2.
+
+:- rdf_meta
+   qb_user(+, +, r, +, +, +, r).
 
 
 
 
 
 google_client:create_user_hook(Profile, User) :-
-  M = rdf,
-  rdf_equal(resu:'', G),
+  setting(user_backend, M),
+  setting(user_graph, G),
+  setting(user_alias, Alias),
+  qb_iri(Alias, User),
+  rdf_global_id(Alias:'User', C),
+  qb_user(M, User, C, Profile.picture, Profile.given_name, Profile.family_name, G),
   atomic_list_concat([mailto,Profile.email], :, EMail),
-  atom_string(Picture, Profile.picture),
-  q_create_iri(resu, User),
-  qb_instance(M, User, resu:'User', G),
-  qb(M, User, foaf:depiction, Picture^^xsd:anyURI, G),
-  qb(M, User, foaf:familyName, Profile.family_name@nl, G),
-  qb(M, User, foaf:givenName, Profile.given_name@nl, G),
   qb(M, User, foaf:mbox, EMail^^xsd:anyURI, G),
   qb(M, User, resu:googleName, Profile.sub^^xsd:string, G),
   qb(M, User, resu:locale, Profile.locale^^xsd:string, G),
