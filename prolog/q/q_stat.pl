@@ -51,16 +51,16 @@
    q_number_of_datatype(?, r, -),
    q_number_of_objects(?, r, -),
    q_number_of_objects(?, r, r, -),
-   q_number_of_objects(?, r, r, ?, -),
+   q_number_of_objects(?, r, r, r, -),
    q_number_of_predicates(?, r, -),
    q_number_of_predicates(?, r, o, -),
-   q_number_of_predicates(?, r, o, ?, -),
+   q_number_of_predicates(?, r, o, r, -),
    q_number_of_subjects(?, r, -),
    q_number_of_subjects(?, r, o, -),
-   q_number_of_subjects(?, r, o, ?, -),
+   q_number_of_subjects(?, r, o, r, -),
    q_number_of_triples(?, r, -),
    q_number_of_triples(?, r, r, o, -),
-   q_number_of_triples(?, r, r, o, ?, -).
+   q_number_of_triples(?, r, r, o, r, -).
 
 
 

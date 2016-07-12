@@ -61,7 +61,9 @@ This assumes that an HTTP handler with id `qh` is defined.
 
 The following options are supported:
 
-  * max_length(+nonneg)
+  * max_iri_length(+or([nonneg,oneof([inf])]))
+
+  * max_literal_length(+or([nonneg,oneof([inf])]))
 
 ---
 
@@ -302,7 +304,7 @@ qh_iri_outer(M, C, Cs1, Iri, Opts) -->
 % Abbreviated notation for IRI.
 qh_iri_inner(_, Iri, Opts) -->
   {rdf_global_id(Alias:Local1, Iri)}, !,
-  {dcg_with_output_to(atom(Local2), atom_ellipsis(Local1, Opts.max_length))},
+  {dcg_with_output_to(atom(Local2), atom_ellipsis(Local1, Opts.max_iri_length))},
   html([span(class=alias, Alias),":",Local2]).
 % RDFS label replacing IRI.
 qh_iri_inner(M, Iri, Opts) -->
@@ -314,7 +316,7 @@ qh_iri_inner(M, Iri, Opts) -->
   qh_literal_inner(Lbl, Opts).
 % Plain IRI, possibly ellipsed.
 qh_iri_inner(_, Iri1, Opts) -->
-  {dcg_with_output_to(atom(Iri2), atom_ellipsis(Iri1, Opts.max_length))},
+  {dcg_with_output_to(atom(Iri2), atom_ellipsis(Iri1, Opts.max_iri_length))},
   html(Iri2).
 
 
@@ -363,12 +365,12 @@ qh_literal_inner(V^^D, _) -->
 qh_literal_inner(Str@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
   html([
-    span(lang(LTag), \bs_truncated(Str, Opts.max_length)),
+    span(lang(LTag), \bs_truncated(Str, Opts.max_literal_length)),
     " ",
     \flag_icon(LTag)
   ]).
 qh_literal_inner(Str@LTag, Opts) --> !,
-  html(span(lang=LTag, \bs_truncated(Str, Opts.max_length))).
+  html(span(lang=LTag, \bs_truncated(Str, Opts.max_literal_length))).
 % XSD boolean
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:boolean)}, !,
@@ -411,7 +413,7 @@ qh_literal_inner(V^^D, _) -->
 % XSD string
 qh_literal_inner(Str^^D, Opts) -->
   {q_subdatatype_of(D, xsd:string)}, !,
-  bs_truncated(Str, Opts.max_length).
+  bs_truncated(Str, Opts.max_literal_length).
 % XSD URI
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:anyURI)}, !,
@@ -541,11 +543,11 @@ qh_quad_table(Quads) -->
 
 
 qh_quad_table(M, Quads) -->
-  qh_quad_table(M, Quads, _{max_length: 25, qh_link: true}).
+  qh_quad_table(M, Quads, _{}).
 
 
 qh_quad_table(M, Quads, Opts1) -->
-  {qh_default_options(Opts1, Opts2)},
+  {qh_default_table_options(Opts1, Opts2)},
   bs_table(
     \bs_table_header(["Subject","Predicate","Object","Graph"]),
     \html_maplist(qh_quad_row0(M, Opts2), Quads)
@@ -553,12 +555,12 @@ qh_quad_table(M, Quads, Opts1) -->
 
 
 qh_quad_table(M, S, P, O, G) -->
-  qh_quad_table(M, S, P, O, G, _{max_length: 25, qh_link: true}).
+  qh_quad_table(M, S, P, O, G, _{}).
 
 
 qh_quad_table(M, S, P, O, G, Opts1) -->
   {
-    qh_default_options(Opts1, Opts2),
+    qh_default_table_options(Opts1, Opts2),
     q_quads(M, S, P, O, G, Quads)
   },
   qh_quad_table(M, Quads, Opts2).
@@ -736,11 +738,11 @@ qh_triple_table(Triples) -->
 
 
 qh_triple_table(M, Triples) -->
-  qh_triple_table(M, Triples, _{max_length: 25, qh_link: true}).
+  qh_triple_table(M, Triples, _{}).
 
 
 qh_triple_table(M, Triples, Opts1) -->
-  {qh_default_options(Opts1, Opts2)},
+  {qh_default_table_options(Opts1, Opts2)},
   bs_table(
     \qh_table_header0,
     \html_maplist(qh_triple_row0(M, Opts2), Triples)
@@ -774,12 +776,12 @@ qh_triple_row0(M, Opts, rdf(S,P,O)) -->
 %! qh_triple_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
 
 qh_triple_table(M, S, P, O, G) -->
-  qh_triple_table(M, S, P, O, G, _{max_length: 25, qh_link: true}).
+  qh_triple_table(M, S, P, O, G, _{}).
 
 
 qh_triple_table(M, S, P, O, G, Opts1) -->
   {
-    qh_default_options(Opts1, Opts2),
+    qh_default_table_options(Opts1, Opts2),
     q_triples(M, S, P, O, G, Triples)
   },
   qh_triple_table(M, Triples, Opts2).
@@ -793,7 +795,26 @@ qh_triple_table(M, S, P, O, G, Opts1) -->
 %! qh_default_options(+Opts1, -Opts2) is det.
 
 qh_default_options(Opts1, Opts2) :-
-  merge_dicts(_{iri_lbl: false, max_length: 50, qh_link: false}, Opts1, Opts2).
+  DefOpts = _{
+    iri_lbl: false,
+    max_iri_length: 50,
+    max_literal_length: inf,
+    qh_link: false
+  },
+  merge_dicts(DefOpts, Opts1, Opts2).
+
+
+
+%! qh_default_table_options(+Opts1, -Opts2) is det.
+
+qh_default_table_options(Opts1, Opts2) :-
+  qh_default_options(_{}, DefOpts1),
+  DefOpts2 = _{
+    max_iri_length: 25,
+    qh_link: true
+  },
+  merge_dicts(DefOpts1, DefOpts2, DefOpts),
+  merge_dicts(Opts1, DefOpts, Opts2).
 
 
 
