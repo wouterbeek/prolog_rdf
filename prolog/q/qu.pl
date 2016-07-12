@@ -594,7 +594,8 @@ qu_split_string(M1, M2, P, G, SepChars) :-
   qu_split_string_deb(P),
   qu_call((
     q(M1, S, P, Str0^^xsd:string, G),
-    split_string(Str0, SepChars, " ", Strs)
+    split_string(Str0, SepChars, " ", Strs),
+    Strs \= [_]
   ), (
     forall(member(Str, Strs), qb(M2, S, P, Str^^xsd:string, G)),
     qb_rm(M2, S, P, Str0^^xsd:string, G)
