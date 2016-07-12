@@ -21,10 +21,11 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pool)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
-:- use_module(library(z/z_print)).
 
 :- dynamic
     rdf_cache:triple_to_iri/2.
@@ -43,10 +44,10 @@
 rdf_cache:triple_to_iri(rdf(_,P,_), P).
 rdf_cache:triple_to_iri(rdf(_,_,O), D) :-
   rdf_is_literal(O),
-  z_literal_datatype(O, D).
+  q_literal_datatype(O, D).
 rdf_cache:triple_to_iri(rdf(_,P,O), O) :-
   (rdf_equal(owl:equivalentClass, P), ! ; rdf_equal(owl:sameAs, P)),
-  rdf_is_iri(O).
+  q_is_iri(O).
 
 
 

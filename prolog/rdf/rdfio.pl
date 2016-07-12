@@ -14,7 +14,7 @@
     rdf_change_format_legacy/2, % +Source, -Sink
     rdf_change_format_legacy/3, % +Source, -Sink, +Opts
     rdf_download_to_file/2,     % +Iri, +File
-    rdf_download_to_file/3,     % +Iri, +File, +Opts
+    rdf_download_to_file/4,     % +Iri, +File, +InOpts, +OutOpts
     rdf_load_file/1,            % +Source
     rdf_load_file/2,            % +Source, +Opts
     rdf_load_quads/2,           % +Source, -Quads
@@ -100,7 +100,6 @@ already part of ClioPatria.
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
    rdf_call_on_tuples(+, :, t),
-   rdf_download_to_file(+, +, t),
    rdf_load_file(+, t),
    rdf_load_quads(+, -, t),
    rdf_load_triples(+, -, t),
@@ -382,21 +381,22 @@ rdf_change_format_legacy(Source, Sink, Opts) :-
 
 
 %! rdf_download_to_file(+Iri, +File) is det.
-%! rdf_download_to_file(+Iri, ?File, +Opts) is det.
+%! rdf_download_to_file(+Iri, ?File, +InOpts, +OutOpts) is det.
 %
-% Options are passed to rdf_call_on_stream/4 and write_stream_to_file/3.
+% Options are passed to rdf_call_onto_stream/5.
 
 rdf_download_to_file(Iri, File) :-
-  rdf_download_to_file(Iri, File, []).
+  rdf_download_to_file(Iri, File, [], []).
 
 
-rdf_download_to_file(Iri, File, Opts) :-
+rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
   thread_file(File, TmpFile),
   call_onto_stream(
     Iri,
     TmpFile,
     [In,Meta,Meta,Out]>>copy_stream_data(In, Out),
-    Opts
+    InOpts,
+    OutOpts
   ),
   rename_file(TmpFile, File).
 

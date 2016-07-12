@@ -1,7 +1,7 @@
 :- module(
   q_graph_theory,
   [
-    q_ego/3 % +S, +Depth, -Triples
+    q_ego/3,         % +S, +Depth, -Triples
     q_graph_edges/2, % ?G, -Es
     q_triple_edge/2  % ?Triple, ?E
   ]

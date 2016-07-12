@@ -6,7 +6,6 @@
     rdfs_has/3,      % ?S, ?P, ?O
     rdfs_has/4,      % ?S, ?P, ?O, ?Q
     rdfs_has/5,      % ?S, ?P, ?O, ?Q, ?G
-    rdfs_image/2,    % +S, -Img
     rdfs_instance/2, % ?I, ?C
     rdfs_instance/3, % ?I, ?C, ?G
     rdfs_property/1, % ?Prop
@@ -37,7 +36,6 @@
    rdfs_class(r, r),
    rdfs_has(r, r, o),
    rdfs_has(r, r, o, r, r),
-   rdfs_image(r, -),
    rdfs_instance(o, r),
    rdfs_instance(o, r, r),
    rdfs_property(r),
@@ -89,18 +87,6 @@ rdfs_has(S, P, O, Q) :-
 rdfs_has(S, P, O, Q, G) :-
   rdf_has(S, P, O, Q),
   rdf(S, Q, O, G).
-
-
-
-%! rdfs_image(+S, -Img) is nondet.
-
-rdfs_image(S, Img) :-
-  rdfs_has(S, dbo:thumbnail, Img^^xsd:anyURI).
-rdfs_image(S, Img) :-
-  rdfs_has(S, foaf:depiction, Img^^xsd:anyURI).
-rdfs_image(S, Img) :-
-  rdf(S, _, Img),
-  rdfs_instance(Img, dcmit:'Image').
 
 
 

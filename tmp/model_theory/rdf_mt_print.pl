@@ -21,7 +21,7 @@ Sytax-to-semantics map printing.
 @version 2013/08, 2014/01, 2014/11
 */
 
-:- use_module(library(z/z_print)).
+:- use_module(library(q/q_print)).
 
 
 
@@ -31,7 +31,7 @@ Sytax-to-semantics map printing.
 
 rdf_mt_print_graph(G) :-
   format("GRAPH ~w\n", [G]),
-  z_print_graph(G).
+  q_print_graph(G).
 
 
 

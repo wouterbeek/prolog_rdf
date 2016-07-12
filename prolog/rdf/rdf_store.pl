@@ -37,7 +37,7 @@ rdf_store(Out, S, P, O) :-
   is_stream(Out), !,
   with_output_to(Out, gen_ntriple(S, P, O)).
 rdf_store(G, S, P, O) :-
-  qb(S, P, O, G).
+  qb(hdt, S, P, O, G).
 
 
 

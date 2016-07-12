@@ -90,13 +90,13 @@ mat(GIn, GOut, Opts) :-
 
       % Debug message before.
       debug(mat(_), 'BEFORE MATERIALIZATION:', []),
-      if_debug(mat(_), z_print_triples(_, _, _, GIn)),
+      if_debug(mat(_), q_print_triples(_, _, _, GIn)),
 
       once(mat0(GIn, GOut, Opts)),
 
       % Debug message for successful materialization results.
       debug(mat(_), 'AFTER MATERIALIZATION:', []),
-      if_debug(mat(_), z_print_triples(_, _, _, GIn))
+      if_debug(mat(_), q_print_triples(_, _, _, GIn))
   ).
 
 mat0(GIn, GOut, Opts) :-

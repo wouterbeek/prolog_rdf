@@ -23,9 +23,9 @@ handled by plGraphViz.
 :- use_module(library(gv/gv_color)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
+:- use_module(library(q/q_graph_theory)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdf/rdf_graph_theory)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs), [
@@ -33,11 +33,6 @@ handled by plGraphViz.
      rdfs_subclass_of/2
    ]).
 :- use_module(library(typecheck)).
-
-:- dynamic
-    rdf:rdf_class_color/2,
-    rdf:rdf_edge_style/2,
-    rdf:rdf_predicate_label//1.
 
 :- multifile
     rdf:rdf_class_color/2,
@@ -139,7 +134,7 @@ rdf_graph_to_export_graph(G, ExportG) :-
 %! rdf_graph_to_export_graph(+G, -ExportG, +Opts) is det.
 
 rdf_graph_to_export_graph(G, ExportG, Opts) :-
-  rdf_graph_edges(G, Es),
+  q_graph_edges(G, Es),
   rdf_edges_to_export_graph(Es, ExportG, Opts).
 
 
@@ -153,8 +148,8 @@ rdf_graph_to_export_graph(G, ExportG, Opts) :-
 
 rdf_term_to_export_graph(T, ExportG, Opts1) :-
   select_option(depth(Depth), Opts1, Opts2, 1),
-  rdf_ego(T, Depth, Ts),
-  maplist(rdf_triple_edge, Ts, Es),
+  q_ego(T, Depth, Ts),
+  maplist(q_triple_edge, Ts, Es),
   rdf_edges_to_export_graph(Es, ExportG, Opts2).
 
 
@@ -273,11 +268,11 @@ rdf_vertex_color(_, _, _, black).
 
 
 
-%! rdf_vertex_image(+Term:rdf_term, -ImageFile:atom) is det.
+%! rdf_vertex_image(+M, +G, +V, -Img) is det.
 % Only display the first picture that is found for Term.
 
-rdf_vertex_image(V, VImage) :-
-  once(rdf_image(V, VImage)).
+rdf_vertex_image(M, G, V, Img) :-
+  once(q_image(M, V, Img, G)).
 
 
 

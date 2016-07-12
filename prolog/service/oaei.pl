@@ -20,13 +20,14 @@
 During loading and saving alignments are represented as pairs.
 
 @author Wouter Beek
-@version 2015/10, 2015/12-2016/01, 2016/05-2016/06
+@version 2015/10, 2015/12-2016/01, 2016/05-2016/07
 */
 
 :- use_module(library(csv_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/io)).
 :- use_module(library(pair_ext)).
+:- use_module(library(q/qb)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
@@ -50,7 +51,7 @@ oaei(M, From, To, G) :-
   oaei(M, From, To, =, 1.0, G).
 
 
-oaei(M, From, To, Rel, V) :-
+oaei(M, From, To, Rel, V, G) :-
   q(M, X, align:entity1, From, G),
   q(M, X, align:entity2, To, G),
   q(M, X, align:relation, Rel^^xsd:string, G),
@@ -66,7 +67,7 @@ qb_oaei(M, Pair, G) :-
 
 
 qb_oaei(M, From-To, Rel, V, G) :-
-  qb_bnode(M, B),
+  qb_bnode(B),
   qb(M, B, align:entity1, From, G),
   qb(M, B, align:entity2, To, G),
   qb(M, B, align:relation, Rel, G),

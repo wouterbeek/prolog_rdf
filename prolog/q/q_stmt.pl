@@ -61,7 +61,9 @@
     q_range/4,            % ?M, ?P, ?C, ?G
     q_subclass/4,         % ?M, ?C, ?D, ?G
   % OWL
-    q_identity/4          % ?M, ?I, ?J, ?G
+    q_identity/4,         % ?M, ?I, ?J, ?G
+  % Domain-specific
+    q_image/4             % ?M, ?S, -Img, ?G
   ]
 ).
 
@@ -97,6 +99,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_derefs(r, -, -, -),
    q_domain(?, r, r, r),
    q_identity(?, r, r, r),
+   q_image(?, r, -, r),
    q_instance(?, r, r, r),
    q_lts(?, r, r, -),
    q_lts(?, r, r, r, -),
@@ -224,6 +227,18 @@ q_domain(M, P, C, G) :-
 
 q_identity(M, I, J, G) :-
   q(M, I, owl:sameAs, J, G).
+
+
+
+%! q_image(?M, ?S, -Img, ?G) is nondet.
+
+q_image(M, S, Img, G) :-
+  q(M, S, dbo:thumbnail, Img^^xsd:anyURI, G).
+q_image(M, S, Img, G) :-
+  q(M, S, foaf:depiction, Img^^xsd:anyURI, G).
+q_image(M, S, Img, G) :-
+  q(M, S, _, Img, G),
+  q_instance(M, Img, dcmit:'Image', G).
 
 
 

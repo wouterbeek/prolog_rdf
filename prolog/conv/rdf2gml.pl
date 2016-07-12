@@ -1,8 +1,8 @@
 :- module(
   rdf2gml,
   [
-    rdf2gml/1, % +Source
-    rdf2gml/2  % +Source, +BaseOut
+    rdf2gml/2, % +Source, +Sink
+    rdf2gml/3  % +Source, +Sink, +Opts
   ]
 ).
 
@@ -26,73 +26,60 @@
 :- use_module(library(pairs)).
 :- use_module(library(q/q_print)).
 :- use_module(library(rdf/rdfio)).
+:- use_module(library(thread)).
+:- use_module(library(uuid)).
 
 :- meta_predicate
-    gml_cleanup(+, +, +, +, +, +, +, +),
-    gml_label(4, +, -, +),
-    gml_setup(+, -, -, -, -, -, -, -, -, -, +).
+    gml_label(4, +, -, +).
 
 
 
 
 
-%! rdf2gml(+Source) is det.
-%! rdf2gml(+Source, +Opts) is det.
+%! rdf2gml(+Source, +Sink) is det.
+%! rdf2gml(+Source, +Sink, +Opts) is det.
 %
-% The following options are supported:
+% Source can be any source, but Sink must be a file.  The reason for
+% this is that GML cannot be written in-stream because vertices and
+% edges are stored separately.
 %
-%   * out_base(+atom) The base name of the output files and the name
-%   of the graph.
+% Options are passed to:
 %
-%   * Other options are passed to gml_setup/11 and gml_tuple/3.
+%   * call_onto_streams/7
 %
-% @tbd Use call_to_streams/5.
+%   * gml_edge/5
+%
+%   * gml_node/4
+%
+%   * rdf_call_on_tuples/3
 
-rdf2gml(Source) :-
-  rdf2gml(Source, _{}).
+rdf2gml(Source, Sink) :-
+  rdf2gml(Source, Sink, _{}).
 
 
-rdf2gml(Source, Opts) :-
-  atomic_list_concat([DefBase|_], ., Source),
-  get_dict(out_base, Opts, Base, DefBase),
-  setup_call_cleanup(
-    gml_setup(
-      Base,
-      NFile, NOut, NClose_0, NM,
-      EFile, EOut, EClose_0, EM,
-      GFile,
-      Opts
+rdf2gml(Source, Sink, Opts) :-
+  absolute_file_name(Sink, GFile, [access(write)]),
+  uuid(Base),
+  atomic_list_concat([Base,edges,tmp], ., EFile),
+  atomic_list_concat([Base,nodes,tmp], ., NFile),
+  call_cleanup(
+    (
+      call_onto_streams(Source, EFile, NFile, rdf2gml_stream(Opts), Opts, [], []),
+      % Sort the nodes to ensure there are no duplicates.
+      sort_file(NFile),
+      % Concatenate the nodes and edges into one file.
+      call_to_stream(GFile, writeln("graph [~n  directed 1")),
+      format(atom(CatCmd), "cat ~a ~a >> ~a", [NFile,EFile,GFile]),
+      run_process(sh, ['-c',CatCmd]),
+      call_to_stream(GFile, writeln("]")),
+      compress_file(GFile)
     ),
-    rdf_call_on_tuples(Source, gml_tuple(EOut, NOut, Opts)),
-    gml_cleanup(Base, NFile, NClose_0, NM, EFile, EClose_0, EM, GFile)
+    concurrent_maplist(delete_file, [EFile,NFile])
   ).
 
+rdf2gml_stream(Opts, In, Meta, Meta, NOut, EOut) :-
+  rdf_call_on_tuples(In, gml_triple(EOut, NOut, Opts), Opts).
 
-
-%! gml_cleanup(
-%!   +Base,
-%!   +NFile, :NClose_0, NM,
-%!   +EFile, :EClose_0, EM,
-%!   +GFile
-%! ) is det.
-
-gml_cleanup(Base, NFile, NClose_0, NM1, EFile, EClose_0, EM1, GFile) :-
-  close_any2(NClose_0, NM1, _),
-  close_any2(EClose_0, EM1, _),
-
-  % Sort the nodes to ensure there are no duplicates.
-  sort_file(NFile),
-
-  % Concatenate the nodes and edges into one file.
-  call_to_stream(
-    GFile,
-    format(current_output, "graph [~n  comment \"~a\"~n  directed 1~n", [Base])
-  ),
-  format(atom(CatCmd), "cat ~a ~a >> ~a", [NFile,EFile,GFile]),
-  run_process(sh, ['-c',CatCmd]),
-  call_to_stream(GFile, writeln("]")),
-  compress_file(GFile),
-  maplist(delete_file, [EFile,NFile]).
 
 
 
@@ -148,40 +135,7 @@ gml_node(NOut, Opts, N, NId) :-
 
 
 
-%! gml_setup(
-%!   +Base,
-%!   -NFile, -NOut, :NClose_0, -NM,
-%!   -EFile, -EOut, :EClose_0, -EM,
-%!   -GFile,
-%!   +Opts
-%! ) is det.
-%
-% The following options are supported:
-%
-%   * prefixes(+list(pair))
-
-gml_setup(
-  Base,
-  NFile, NOut, NClose_0, NM,
-  EFile, EOut, EClose_0, EM,
-  GFile,
-  Opts
-) :-
-  % Register prefixes.
-  get_dict(prefixes, Opts, Pairs, []),
-  pairs_keys_values(Pairs, Keys, Vals),
-  maplist(qb_alias, Keys, Vals),
-
-  atomic_list_concat([Base,gml,gz], ., GFile),
-  atomic_list_concat([Base,edges,tmp], ., EFile),
-  atomic_list_concat([Base,nodes,tmp], ., NFile),
-
-  open_any2(EFile, write, EOut, EClose_0, EM),
-  open_any2(NFile, write, NOut, NClose_0, NM).
-
-
-
-%! gml_tuple(+EOut, +NOut, +Opts, +M, +S, +P, +O, +G) is det.
+%! gml_triple(+EOut, +NOut, +Opts, +Meta, +S, +P, +O, +G) is det.
 
 gml_tuple(EOut, NOut, Opts, _, S, P, O, _) :-
   maplist(gml_node(NOut, Opts), [S,O], [NId1,NId2]),

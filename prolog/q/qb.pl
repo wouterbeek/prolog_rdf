@@ -14,6 +14,7 @@
     qb_instances/4,    % +M, +I, +Cs, +G
     qb_iri/2,          % +Alias, -Iri
     qb_iri/3,          % +Alias, +SubPaths, -Iri
+    qb_now/4,          % +M, +S, +P, +G
     qb_now/5,          % +M, +S, +P, +D, +G
     qb_objects/5,      % +M, +S, +P, +Os, +G
     qb_reification/4,  % +M, +Triple, +G, ?Stmt
@@ -87,6 +88,7 @@
    qb_deref(+, r, r),
    qb_instance(+, r, r, r),
    qb_instances(+, r, t, r),
+   qb_now(+, o, r, r),
    qb_now(+, o, r, r, r),
    qb_objects(+, r, r, t, r),
    qb_reification(+, t, r, r),
@@ -213,7 +215,14 @@ qb_iri(Alias, SubPaths0, Iri) :-
 
 
 
+%! qb_now(+M, +S, +P, +G) is det.
 %! qb_now(+M, +S, +P, +D, +G) is det.
+%
+% The default date/time datatype is `xsd:dateTime`.
+
+qb_now(M, S, P, G) :-
+  qb_now(M, S, P, xsd:dateTime, G).
+
 
 qb_now(M, S, P, D, G) :-
   get_time(Now),
@@ -376,7 +385,7 @@ qb_subproperty(M, P, Q, G) :-
 
 qb_data_property(M, P, Q, Lbl, Comm, Dom, Ran, G, Opts) :-
   qb_instance(M, P, owl:'DataProperty', G),
-  qb_property(M, P, Q, Lbl, Comm, Dom, Ran, G, Opts).
+  qb_property0(M, P, Q, Lbl, Comm, Dom, Ran, G, Opts).
 
 
 
