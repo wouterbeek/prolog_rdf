@@ -78,7 +78,7 @@ rdf2gml(Source, Sink, Opts) :-
   ).
 
 rdf2gml_stream(Opts, In, Meta, Meta, NOut, EOut) :-
-  rdf_call_on_tuples(In, gml_triple(EOut, NOut, Opts), Opts).
+  rdf_call_on_tuples_stream(In, gml_triple(EOut, NOut, Opts), Meta, Opts).
 
 
 
@@ -137,7 +137,7 @@ gml_node(NOut, Opts, N, NId) :-
 
 %! gml_triple(+EOut, +NOut, +Opts, +Meta, +S, +P, +O, +G) is det.
 
-gml_tuple(EOut, NOut, Opts, _, S, P, O, _) :-
+gml_triple(EOut, NOut, Opts, _, S, P, O, _) :-
   maplist(gml_node(NOut, Opts), [S,O], [NId1,NId2]),
   gml_edge(EOut, NId1, P, NId2, Opts).
 

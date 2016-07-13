@@ -1,34 +1,35 @@
 :- module(
   rdfio,
   [
-    rdf_call_on_graph/2,        % +Source, :Goal_1
-    rdf_call_on_graph/3,        % +Source, :Goal_1, +Opts
-    rdf_call_on_stream/2,       % +Source, :Goal_3
-    rdf_call_on_stream/3,       % +Source, :Goal_3, +Opts
-    rdf_call_on_tuples/2,       % +Source, :Goal_5
-    rdf_call_on_tuples/3,       % +Source, :Goal_5, +Opts
-    rdf_call_to_graph/2,        % +Sink, :Goal_1
-    rdf_call_to_graph/3,        % +Sink, :Goal_1, +Opts
-    rdf_change_format/2,        % +Source, -Sink
-    rdf_change_format/3,        % +Source, -Sink, +Opts
-    rdf_change_format_legacy/2, % +Source, -Sink
-    rdf_change_format_legacy/3, % +Source, -Sink, +Opts
-    rdf_download_to_file/2,     % +Iri, +File
-    rdf_download_to_file/4,     % +Iri, +File, +InOpts, +OutOpts
-    rdf_load_file/1,            % +Source
-    rdf_load_file/2,            % +Source, +Opts
-    rdf_load_quads/2,           % +Source, -Quads
-    rdf_load_quads/3,           % +Source, -Quads, +Opts
-    rdf_load_triples/2,         % +Source, -Triples
-    rdf_load_triples/3,         % +Source, -Triples, +Opts
-    rdf_write_to_sink/1,        % +Sink
-    rdf_write_to_sink/2,        % +Sink, ?G
-    rdf_write_to_sink/3,        % +Sink, ?G, +Opts
-    rdf_write_to_sink/4,        % +Sink, ?S, ?P, ?O
-    rdf_write_to_sink/5,        % +Sink, ?S, ?P, ?O, ?G
-    rdf_write_to_sink/6,        % +Sink, ?S, ?P, ?O, ?G, +Opts
-    rdf_write_to_sink_legacy/1, % +Sink
-    rdf_write_to_sink_legacy/2  % +Sink, +Opts
+    rdf_call_on_graph/2,         % +Source, :Goal_1
+    rdf_call_on_graph/3,         % +Source, :Goal_1, +Opts
+    rdf_call_on_stream/2,        % +Source, :Goal_3
+    rdf_call_on_stream/3,        % +Source, :Goal_3, +Opts
+    rdf_call_on_tuples/2,        % +Source, :Goal_5
+    rdf_call_on_tuples/3,        % +Source, :Goal_5, +Opts
+    rdf_call_on_tuples_stream/4, % +In, :Goal_5, +Meta, +Opts
+    rdf_call_to_graph/2,         % +Sink, :Goal_1
+    rdf_call_to_graph/3,         % +Sink, :Goal_1, +Opts
+    rdf_change_format/2,         % +Source, -Sink
+    rdf_change_format/3,         % +Source, -Sink, +Opts
+    rdf_change_format_legacy/2,  % +Source, -Sink
+    rdf_change_format_legacy/3,  % +Source, -Sink, +Opts
+    rdf_download_to_file/2,      % +Iri, +File
+    rdf_download_to_file/4,      % +Iri, +File, +InOpts, +OutOpts
+    rdf_load_file/1,             % +Source
+    rdf_load_file/2,             % +Source, +Opts
+    rdf_load_quads/2,            % +Source, -Quads
+    rdf_load_quads/3,            % +Source, -Quads, +Opts
+    rdf_load_triples/2,          % +Source, -Triples
+    rdf_load_triples/3,          % +Source, -Triples, +Opts
+    rdf_write_to_sink/1,         % +Sink
+    rdf_write_to_sink/2,         % +Sink, ?G
+    rdf_write_to_sink/3,         % +Sink, ?G, +Opts
+    rdf_write_to_sink/4,         % +Sink, ?S, ?P, ?O
+    rdf_write_to_sink/5,         % +Sink, ?S, ?P, ?O, ?G
+    rdf_write_to_sink/6,         % +Sink, ?S, ?P, ?O, ?G, +Opts
+    rdf_write_to_sink_legacy/1,  % +Sink
+    rdf_write_to_sink_legacy/2   % +Sink, +Opts
   ]
 ).
 
@@ -93,7 +94,7 @@ already part of ClioPatria.
     rdf_call_on_stream0(3, +, +, +, -),
     rdf_call_on_tuples(+, 5),
     rdf_call_on_tuples(+, 5, +),
-    rdf_call_on_tuples0(5, +, +, +, -),
+    rdf_call_on_tuples_stream(+, 5, +, +),
     rdf_call_to_graph(+, 1),
     rdf_call_to_graph(+, 1, +).
 
@@ -214,10 +215,14 @@ rdf_call_on_tuples(Source, Goal_5) :-
 
 
 rdf_call_on_tuples(Source, Goal_5, Opts) :-
-  rdf_call_on_stream(Source, rdf_call_on_tuples0(Goal_5, Opts), Opts).
+  rdf_call_on_stream(
+    Source,
+    [In,Meta,Meta]>>rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts),
+    Opts
+  ).
 
 
-rdf_call_on_tuples0(Goal_5, Opts1, In, Meta, Meta) :-
+rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
   get_dict(base_iri, Meta, BaseIri),
   jsonld_metadata_expand_iri(Meta.rdf_format, FormatIri),
