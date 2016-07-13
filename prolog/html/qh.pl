@@ -331,7 +331,7 @@ qh_list(M, L) -->
 qh_list(M, L, Opts1) -->
   {
     qh_default_options(Opts1, Opts2),
-    q_list_pl(M, L, Terms, _)
+    findall(Term, q_list_member(M, L, Term, _), Terms)
   },
   html_list({M,Opts2}/[Term]>>qh_term(M, Term, Opts2), Terms).
 

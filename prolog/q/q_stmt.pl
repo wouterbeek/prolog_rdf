@@ -85,10 +85,14 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- use_module(library(nb_set)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
+
+:- qb_alias(dbo, 'http://dbpedia.org/ontology/').
+:- qb_alias(dctype, 'http://purl.org/dc/dcmitype/').
 
 :- rdf_meta
    q(?, r, r, o),
@@ -238,7 +242,7 @@ q_image(M, S, Img, G) :-
   q(M, S, foaf:depiction, Img^^xsd:anyURI, G).
 q_image(M, S, Img, G) :-
   q(M, S, _, Img, G),
-  q_instance(M, Img, dcmit:'Image', G).
+  q_instance(M, Img, dctype:'Image', G).
 
 
 

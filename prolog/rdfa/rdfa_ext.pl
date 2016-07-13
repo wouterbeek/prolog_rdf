@@ -7,6 +7,7 @@
     agent_name//3,        % +M, +Agent,                ?G
     'bf:subtitle'/4,      % +M, +Article, -Subtitle,   ?G
     'bf:subtitle'//3,     % +M, +Article,              ?G
+    creator/4,            % +M, +Res,     -Agent,      ?G
     creators//3,          % +M, +Res,                  ?G
     'dc:abstract'/4,      % +M, +Res,     -Abstract,   ?G
     'dc:abstract'//3,     % +M, +Res,                  ?G
@@ -53,11 +54,13 @@
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).
+:- use_module(library(http/http_user)).
 :- use_module(library(http/html_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_list)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -77,6 +80,7 @@
    agent_name(+, r, r, ?, ?),
    'bf:subtitle'(+, r, -, r),
    'bf:subtitle'(+, r, r, ?, ?),
+   creators(+, r, -, r),
    creators(+, r, r, ?, ?),
    'dc:abstract'(+, r, -, r),
    'dc:abstract'(+, r, r, ?, ?),
@@ -134,13 +138,15 @@ agent_image(M, Agent, G) -->
     agent_name(M, Agent, Name, G),
     agent_image(M, Agent, Img, G)
   },
-  internal_link(Agent, image(Img, [alt=Name,property='foaf:depiction'])).
+  internal_link(Agent, \image(Img, [alt=Name,property='foaf:depiction'])).
 
 
 
 %! agent_name(+M, +Agent, -Name, ?G) is det.
 %! agent_name(+M, +Agent, ?G)// is det.
 
+agent_name(_, Agent, "you", _) :-
+  current_user(Agent), !.
 agent_name(M, Agent, Str, G) :-
   'foaf:givenName'(M, Agent, GivenName, G),
   'foaf:familyName'(M, Agent, FamilyName, G), !,
@@ -152,6 +158,9 @@ agent_name(M, Agent, Str, G) :-
   q_literal_string(Name, Str).
 
 
+agent_name(_, Agent, _) -->
+  {current_user(Agent)}, !,
+  internal_link(Agent, "you").
 agent_name(M, Agent, G) -->
   internal_link(Agent, \agent_name0(M, Agent, G)).
 agent_name(M, Agent, G) -->
@@ -168,11 +177,12 @@ agent_name0(M, Agent, G) -->
 
 
 %! 'bf:subtitle'(+M, +Article, -Subtitle, G)// is det.
-%! 'bf:subtitle'(+M, +Article, ?G)// is det.
 
 'bf:subtitle'(M, Article, Subtitle, G) :-
   q_pref_string(M, Article, bf:subtitle, Subtitle, G).
 
+
+%! 'bf:subtitle'(+M, +Article, ?G)// is det.
 
 'bf:subtitle'(M, Article, G) -->
   {'bf:subtitle'(M, Article, Subtitle, G)},
@@ -180,10 +190,27 @@ agent_name0(M, Agent, G) -->
 
 
 
+%! creator(+M, ?Res, ?Agent, +G) is det.
+
+creator(M, Res, Agent, G) :-
+  q_list_member(M, Res, dc:creator, Agent, G).
+creator(M, Res, Agent, G) :-
+  q(M, Res, dc:creator, Agent, G),
+  \+ q_list(M, Agent, G).
+
+
+
 %! creators(+M, +Res, +G)// is det.
+%
+% Generates RDFa HTML for the creators of resource Res.
+%
+% Creators recorded with property `dc:creator`.
+%
+% This predicate uses module `http_user` to determine whether one of
+% the creators is the current user, if there is one.
 
 creators(M, Res, G) -->
-  {q_list_pl(M, Res, dc:creator, Agents, G)},
+  {findall(Agent, creator(M, Res, Agent, G), Agents)},
   html(
     ol([inlist='',rel='dc:creator'],
       \html_maplist(agent_item0(M, G), Agents)

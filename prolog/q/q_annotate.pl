@@ -45,7 +45,7 @@
 qh_annotations(M, Location, Txt, S, G) -->
   {
     q(M, S, annotate:hasAnnotationJob, Job, G),
-    (q_list_pl(M, Job, annotate:'Resource', Anns, G) -> true ; Anns = []),
+    findall(Ann, q_list_member(M, Job, annotate:'Resource', Ann, G), Anns),
     atom_codes(Txt, Cs)
   },
   qh_annotations(M, Location, Cs, 0, Anns, G).
@@ -138,8 +138,7 @@ q_annotate(M, S, Txt, G, Opts0):-
 
 q_annotation(M, S, Concept, G) :-
   q(M, S, annotate:hasAnnotationJob, Job, G),
-  q_list_pl(M, Job, annotate:'Resources', Anns, G),
-  member(Ann, Anns),
+  q_list_member(M, Job, annotate:'Resources', Ann, G),
   q(M, Ann, annotate:'@URI', Concept^^xsd:anyURI, G).
 
 

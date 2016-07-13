@@ -178,7 +178,7 @@ jsonld_oterm(M, PDefs, _, P2, G, O1, Elems2) :-
   q_list(M, O1, G),
   memberchk(P2-PDef, PDefs),
   '@list' == PDef.get('@container'), !,
-  q_list_to_pl(M, O1, G, Elems1),
+  findall(Elem1, q_list_member(M, O1, Elem1, G), Elems1),
   maplist(jsonld_abbreviate_iri0, Elems1, Elems2).
 jsonld_oterm(_, PDefs, _DefLang, P2, _, O1, O2) :-
   O1 = Lex@LTag, !,

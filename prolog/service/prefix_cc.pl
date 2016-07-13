@@ -352,7 +352,6 @@ assert_cached_version :-
   qb_alias(dbo, 'http://dbpedia.org/ontology/'),
   qb_alias(dbp, 'http://dbpedia.org/property/'),
   qb_alias(dbowl, 'http://dbpedia.org/owl/'),
-  qb_alias(dbpo, 'http://dbpedia.org/ontology/'),
   qb_alias(dbr, 'http://dbpedia.org/resource/'),
   qb_alias(dbt, 'http://dbpedia.org/resource/Template:'),
   qb_alias(dbtont, 'http://dbtropes.org/ont/'),
