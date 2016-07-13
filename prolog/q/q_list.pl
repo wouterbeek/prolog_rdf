@@ -88,17 +88,10 @@ q_list(M, S, P, L, G) :-
 %! q_list_member(?M, ?S, ?P, ?O, ?G) is nondet.
 
 q_list_member(M, L, O, G) :-
-  ground(O), !,
-  once(q_list_member0(M, L, O, G)).
-q_list_member(M, L, O, G) :-
-  q_list_member0(M, L, O, G).
-
-
-q_list_member0(M, L, O, G) :-
   q(M, L, rdf:first, O, G).
-q_list_member0(M, L, O, G) :-
+q_list_member(M, L, O, G) :-
   q(M, L, rdf:rest, T, G),
-  q_list_member0(M, T, O, G).
+  q_list_member(M, T, O, G).
 
 
 
