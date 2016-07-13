@@ -10,6 +10,7 @@
     q_graph_to_file/3, % +G, +Comps, -File
     q_load/2,          % +M, +G
     q_load_or_call/3,  % +M, :Goal_1, +G
+    q_member/2,        % ?Elem, +L
     q_save/1,          % +G
     q_snap/1,          % :Goal_0
    %q_transaction/1,   % :Goal_0
@@ -28,11 +29,12 @@
 /** <module> Quine I/O
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06-2016/07
 */
 
 :- use_module(library(debug)).
 :- use_module(library(hdt/hdt__io)).
+:- use_module(library(lists)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
@@ -48,6 +50,7 @@
    q_graph(?, r),
    q_load(+, r),
    q_load_or_call(+, :, r),
+   q_member(r, t),
    q_save(r),
    q_unload(r),
    q_unload(+, r).
@@ -170,6 +173,13 @@ q_load_or_call(M, Goal_1, G) :-
       debug(q(io), "Called goal to generate graph ~w", [G]),
       q_load_or_call(M, Goal_1, G)
   ).
+
+
+
+%! q_member(?Elem, +L) is nondet.
+
+q_member(Elem, L) :-
+  member(Elem, L).
 
 
 

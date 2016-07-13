@@ -12,7 +12,6 @@
 @version 2015/12, 2016/02-2016/03, 2016/06
 */
 
-:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(option_ext)).
 :- use_module(library(ordsets)).

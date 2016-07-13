@@ -12,7 +12,7 @@
 */
 
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_atom)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qu)).
