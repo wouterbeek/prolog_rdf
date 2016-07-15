@@ -43,16 +43,16 @@ jsonld_metadata_abbreviate_iri(Full, Compact) :-
 
 jsonld_metadata_context(
   _{
-    formats: 'http://www.w3.org/ns/formats/',
-    llo:     'http://lodlaundromat.org/ontology/',
-    'llo:base_iri':          _{'@type': 'xsd:anyURI'},
-    'llo:duplicate_tuples':  _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:processed_quads':   _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:processed_triples': _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:processed_tuples':  _{'@type': 'xsd:nonNegativeInteger'},
-    'llo:unique_tuples':     _{'@type': 'xsd:nonNegativeInteger'},
-    rdf:     'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    xsd:     'http://www.w3.org/2001/XMLSchema#'
+    '@vocab':          'http://lodlaundromat.org/ontology/',
+    base_iri:          _{'@type': 'xsd:anyURI'},
+    duplicate_tuples:  _{'@type': 'xsd:nonNegativeInteger'},
+    formats:           'http://www.w3.org/ns/formats/',
+    processed_quads:   _{'@type': 'xsd:nonNegativeInteger'},
+    processed_triples: _{'@type': 'xsd:nonNegativeInteger'},
+    processed_tuples:  _{'@type': 'xsd:nonNegativeInteger'},
+    rdf:               'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+    unique_tuples:     _{'@type': 'xsd:nonNegativeInteger'},
+    xsd:               'http://www.w3.org/2001/XMLSchema#'
   }
 ).
 

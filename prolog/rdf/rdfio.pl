@@ -166,22 +166,20 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
 
 
 rdf_call_on_stream0(Goal_3, Opts, In, Meta1, Meta3) :-
-  (   option(rdf_format(Format1), Opts),
-      ground(Format1)
+  (   option(rdf_format(Format), Opts),
+      ground(Format)
   ->  true
   ;   rdf_guess_format_options0(Meta1, Opts, GuessOpts),
-      % @note Make sure the metadata option of the RDF source does not get
-      % overwritten when opening the stream for guessing the RDF serialization
-      % format.
-      rdf_guess_format(In, Format1, GuessOpts)
+      % @note Make sure the metadata option of the RDF source does not
+      % get overwritten when opening the stream for guessing the RDF
+      % serialization format.
+      rdf_guess_format(In, Format, GuessOpts)
   ->  true
-  ;   Format1 = unrecognized
+  ;   Format = unrecognized
   ),
   % JSON-LD _must_ be encoded in UTF-8.
-  (Format1 == jsonld -> set_stream(In, encoding(utf8)) ; true),
-  (rdf_format_iri(Format1, Format2) -> true ; domain_error(rdf_format, Format1)),
-  jsonld_metadata_abbreviate_iri(Format2, Format3),
-  Meta2 = Meta1.put(_{rdf_format: Format3}),
+  (Format == jsonld -> set_stream(In, encoding(utf8)) ; true),
+  put_dict(rdf_format, Meta1, Format, Meta2),
   call(Goal_3, In, Meta2, Meta3).
 
 
@@ -204,6 +202,7 @@ rdf_guess_format_options0(_, Opts, Opts).
 % The following call is made: `call(:Goal_5, +M, +S, +P, +O, +G)`.
 %
 % Options are passed to:
+%
 %   * rdf_call_on_stream/3
 %   * rdf_process_ntriples/3
 %   * rdf_process_turtle/3,
@@ -257,7 +256,6 @@ rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts1) :-
       Format == rdfa
   ->  read_rdfa(In, Triples, Opts3),
       rdf_call_on_quads0(Goal_5, Meta, Triples)
-  ;   domain_error(rdf_format, Format)
   ).
 
 
