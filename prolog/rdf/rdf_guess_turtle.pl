@@ -65,7 +65,7 @@ rdf_guess_turtle(_, F, Opts) -->
 rdf_guess_turtle(_, F, Opts) -->
   "{", !,
   {guess_turtle_format([trig], F, Opts)}.
-% Names graph.
+% Named graph.
 rdf_guess_turtle(_, F, Opts) -->
   turtle_iriref(_), *(bs), "{", !,
   {guess_turtle_format([trig], F, Opts)}.
