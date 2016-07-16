@@ -9,6 +9,7 @@
     q_derefs/3,           % +Iri, -POs, -SPs
     q_derefs/4,           % +Iri, -POs, -SPs, -Rest
     q_instance/4,         % ?M, ?I, ?C, ?G
+    q_is_def_quad/1,      % @Term
     q_is_ground_quad/1,   % @Term
     q_is_ground_triple/1, % @Term
     q_is_quad/1,          % @Term
@@ -250,6 +251,15 @@ q_image(M, S, Img, G) :-
 
 q_instance(M, I, C, G) :-
   q(M, I, rdf:type, C, G).
+
+
+
+%! q_is_def_quad(@Term) is semidet.
+%
+% Succeeds if Term is a quadruple with default graph.
+
+q_is_def_quad(rdf(_,_,_,G)) :-
+  rdf_default_graph(G).
 
 
 
