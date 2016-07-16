@@ -9,6 +9,8 @@
     dcg_print_graph_term//2, %                 +G, +Opts
     dcg_print_literal//1,    %     +Lit
     dcg_print_literal//2,    %     +Lit,           +Opts
+    dcg_print_node//1,       %     +Node
+    dcg_print_node//2,       %     +Node,          +Opts
     dcg_print_object//1,     %     +O
     dcg_print_object//2,     %     +O,             +Opts
     dcg_print_predicate//1,  %     +P
@@ -142,6 +144,8 @@ Print RDF statements.
    dcg_print_literal(o, +, ?, ?),
    dcg_print_object(o, ?, ?),
    dcg_print_object(o, +, ?, ?),
+   dcg_print_node(o, ?, ?),
+   dcg_print_node(o, +, ?, ?),
    dcg_print_predicate(r, ?, ?),
    dcg_print_predicate(r, +, ?, ?),
    dcg_print_quad(t, ?, ?),
@@ -709,6 +713,16 @@ dcg_print_graph_term(G) -->
 
 dcg_print_graph_term(G, Opts) -->
   dcg_print_iri(G, Opts).
+
+
+
+dcg_print_node(Node) -->
+  {dcg_print_default_options(Opts)},
+  dcg_print_Node(Node, Opts).
+
+
+dcg_print_node(Node, Opts) -->
+  dcg_print_term(Node, Opts).
 
 
 
