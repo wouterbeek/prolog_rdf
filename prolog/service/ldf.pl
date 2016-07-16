@@ -13,7 +13,8 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
+:- use_module(library(lists)).
+:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdfio)).
@@ -38,10 +39,7 @@ ldf(S, P, O, Endpoint) :-
   uri_query_components(Query, Query0),
   % An IRI that implements a Linked Triple Fragments request.
   uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
-  atom_phrase(uri_optional_query_enc, Query, EncQuery),
-  % The name of the metadata graph.
-  uri_components(MetaG, uri_components(Scheme,Auth,Path,EncQuery,metadata)),
-  ldf_from_iri(Iri, S, P, O, MetaG).
+  ldf_request(Iri, S, P, O).
 
 
 
@@ -62,39 +60,14 @@ ldf_parameter(Key, Val, Key=Val).
 
 
 
-%! ldf_from_iri(+Iri, ?S, ?P, ?O, +MetaG) is det.
+%! ldf_request(+Iri, ?S, ?P, ?O) is det.
 
-ldf_from_iri(Iri, S, P, O, MetaG) :-
-  rdf_tmp_graph(DataG),
-  rdf_load_file(Iri, [force_graph(DataG),rdf_format(nquads)]),
-  ldf_from_graph(S, P, O, DataG, MetaG).
-
-
-
-%! ldf_from_graph(?S, ?P, ?O, +DataG, +MetaG) is nondet.
-
-ldf_from_graph(S, P, O, DataG, _) :-
-  q(rdf, S, P, O, DataG).
-% If the metadata graph does not contain any triples then something is
-% wrong.
-ldf_from_graph(_, _, _, _, MetaG) :-
-  \+ q(rdf, _, _, _, MetaG), !,
-  existence_error(ldf_metadata_graph, MetaG).
-% There is a metadata graph: check whether there is a next page with
-% more results.
-ldf_from_graph(S, P, O, DataG, MetaG) :-
-  q(rdf, _, hydra:nextPage, Iri, MetaG), !,
-  ldf_unload(DataG, MetaG),
-  ldf_from_iri(Iri, S, P, O, MetaG).
-% There is a metadata graph but it contains no more next page links.
-ldf_from_graph(_, _, _, DataG, MetaG) :-
-  ldf_unload(DataG, MetaG),
-  fail.
-
-
-
-%! ldf_unload(+DataG, +MetaG) is det.
-
-ldf_unload(DataG, MetaG) :-
-  rdf_unload_graph(DataG),
-  rdf_unload_graph(MetaG).
+ldf_request(Iri, S, P, O) :-
+  rdf_load_quads(Iri, Quads, [rdf_format(trig)]),
+  partition(q_is_def_quad, Quads, DataQuads, MetaQuads),
+  (   member(rdf(S,P,O,_), DataQuads)
+  ;   % Check whether there is a next page with more results.
+      rdf_equal(hydra:nextPage, Q),
+      memberchk(rdf(_,Q,Iri,_), MetaQuads),
+      ldf_request(Iri, S, P, O)
+  ).
