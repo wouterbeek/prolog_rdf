@@ -214,12 +214,10 @@ rdf_call_on_tuples(Source, Goal_5) :-
 
 
 rdf_call_on_tuples(Source, Goal_5, Opts) :-
-  rdf_call_on_stream(
-    Source,
-    [In,Meta,Meta]>>rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts),
-    Opts
-  ).
+  rdf_call_on_stream(Source, rdf_call_on_tuples_stream0(Goal_5, Opts), Opts).
 
+rdf_call_on_tuples_stream0(Goal_5, Opts, In, Meta, Meta) :-
+  rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts).
 
 rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts1) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
@@ -394,14 +392,11 @@ rdf_download_to_file(Iri, File) :-
 
 rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
   thread_file(File, TmpFile),
-  call_onto_stream(
-    Iri,
-    TmpFile,
-    [In,Meta,Meta,Out]>>copy_stream_data(In, Out),
-    InOpts,
-    OutOpts
-  ),
+  call_onto_stream(Iri, TmpFile, copy_stream_data0, InOpts, OutOpts),
   rename_file(TmpFile, File).
+
+copy_stream_data0(In, Meta, Meta, Out) :-
+  copy_stream_data(In, Out).
 
 
 
