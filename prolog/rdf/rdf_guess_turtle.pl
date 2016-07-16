@@ -90,7 +90,7 @@ rdf_guess_turtle(_, F, Opts) -->
       turtle_graph(Fs4),
       *(bs),
       "."
-  ->  {ord_union([Fs1,Fs2,Fs3,Fs4,[ntriples,turtle]], Fs)}
+  ->  {ord_union([Fs1,Fs2,Fs3,Fs4,[ntriples,trig,turtle]], Fs)}
   ),
   {guess_turtle_format(Fs, F, Opts)}.
 % Anonymous blank node.
@@ -178,7 +178,7 @@ guess_turtle_format(Excluded, F, Opts) :-
       ground(F0),
       memberchk(F0, Fs)
   ->  F = F0
-  ;   % Multiple options: Trig is most general.
+  ;   % Multiple options: Trig is more general than Turtle.
       F = trig,
       memberchk(F, Fs)
   ;   % Multiple options: N-Quads is more general than N-Triples.
