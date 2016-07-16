@@ -54,8 +54,8 @@ Keys
 :- use_module(library(os/gnu_sort)).
 :- use_module(library(os/io)).
 :- use_module(library(os/process_ext)).
+:- use_module(library(os/thread_counter)).
 :- use_module(library(pairs)).
-:- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_print)).
 :- use_module(library(rdf/rdfio)).
 :- use_module(library(semweb/rdf11)).
@@ -65,6 +65,9 @@ Keys
 
 :- meta_predicate
     gml_label(4, +, -, +).
+
+:- thread_local
+   node_id0/2.
 
 
 
@@ -121,7 +124,8 @@ rdf2gml_end(NFile, EFile, GFile, Opts) :-
   run_process(sh, ['-c',CatCmd]),
   call_to_stream(GFile, [Out]>>format(Out, "]~n", []), [compression(false)]),
   (option(compression(true), Opts, true) -> compress_file(GFile) ; true),
-  concurrent_maplist(delete_file, [NFile,EFile]).
+  concurrent_maplist(delete_file, [NFile,EFile]),
+  delete_thread_counter(node_id).
 
 
 
@@ -129,6 +133,9 @@ rdf2gml_end(NFile, EFile, GFile, Opts) :-
 %! rdf2gml_start(+Opts, -NFile, -EFile, -GFile, -ExportOpts) is det.
 %
 % The following options are supported:
+%
+%   * base_name(+atom) The base name of the written files.  The
+%   default is a UUID.
 %
 %   * compression(+boolean) Whether or not the GML file is compressed.
 %   Default is `true`.
@@ -150,11 +157,12 @@ rdf2gml_start(Opts, NFile, EFile, GFile, ExportOpts2) :-
   option(export_options(ExportOpts1), Opts, _{}),
   q_print:dcg_print_default_options(DefExportOpts),
   merge_dicts(DefExportOpts, ExportOpts1, ExportOpts2),
-  uuid(Base),
+  (option(base_name(Base), Opts) -> true ; uuid(Base)),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
   atomic_list_concat([Base,edges,tmp], ., EFile),
   (option(compression(true), Opts, true) -> T = [gz] ; T = []),
-  atomic_list_concat([Base,graph,gml|T], ., GFile).
+  atomic_list_concat([Base,graph,gml|T], ., GFile),
+  create_thread_counter(node_id).
 
 
 
@@ -204,9 +212,16 @@ gml_label(Dcg_4, T, Lbl, ExportOpts) :-
 
 gml_node(NOut, ExportOpts, N, NId) :-
   get_dict(node_label_printer, ExportOpts, Dcg_4, dcg_print_node),
-  q_bnode_map(N, NId),
+  node_id(N, NId),
   gml_label(Dcg_4, N, VL, ExportOpts),
   format(NOut, "  node [ id ~d label \"~a\" ]~n", [NId,VL]).
+
+
+node_id(N, NId) :-
+  node_id0(N, NId), !.
+node_id(N, NId) :-
+  inc_thread_counter(node_id, NId),
+  assert(node_id0(N, NId)).
 
 
 
