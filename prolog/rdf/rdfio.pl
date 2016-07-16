@@ -55,7 +55,6 @@ already part of ClioPatria.
 :- use_module(library(http/json)).
 :- use_module(library(iostream)).
 :- use_module(library(iri/iri_ext)).
-:- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(option_ext)).
@@ -166,20 +165,7 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
 
 
 rdf_call_on_stream0(Goal_3, Opts, In, Meta1, Meta3) :-
-  (   option(rdf_format(Format), Opts),
-      ground(Format)
-  ->  true
-  ;   rdf_guess_format_options0(Meta1, Opts, GuessOpts),
-      % @note Make sure the metadata option of the RDF source does not
-      % get overwritten when opening the stream for guessing the RDF
-      % serialization format.
-      rdf_guess_format(In, Format, GuessOpts)
-  ->  true
-  ;   Format = unrecognized
-  ),
-  % JSON-LD _must_ be encoded in UTF-8.
-  (Format == jsonld -> set_stream(In, encoding(utf8)) ; true),
-  put_dict(rdf_format, Meta1, Format, Meta2),
+  rdf_determine_format(In, Meta1, Meta2, Opts),
   call(Goal_3, In, Meta2, Meta3).
 
 
@@ -219,41 +205,40 @@ rdf_call_on_tuples(Source, Goal_5, Opts) :-
 rdf_call_on_tuples_stream0(Goal_5, Opts, In, Meta, Meta) :-
   rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts).
 
-rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts1) :-
-  % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
-  get_dict(base_iri, Meta, BaseIri),
-  jsonld_metadata_expand_iri(Meta.rdf_format, FormatIri),
-  rdf_format_iri(Format, FormatIri),
+
+rdf_call_on_tuples_stream(In, Goal_5, Meta1, Opts1) :-
+  rdf_determine_format(In, Meta1, Meta2, Opts1),
   qb_bnode_prefix(BPrefix),
+  % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
   Opts2 = [
     anon_prefix(BPrefix),
-    base(BaseIri),
-    base_iri(BaseIri),
-    base_uri(BaseIri),
-    format(Format),
+    base(Meta2.base_iri),
+    base_iri(Meta2.base_iri),
+    base_uri(Meta2.base_iri),
+    format(Meta2.rdf_format),
     max_errors(-1),
     syntax(style)
   ],
   merge_options(Opts1, Opts2, Opts3),
   (   % N-Quads & N-Triples
-      memberchk(Format, [nquads,ntriples])
-  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, Meta), Opts3)
+      memberchk(Meta2.rdf_format, [nquads,ntriples])
+  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, Meta2), Opts3)
   ;   % Trig & Turtle
-      memberchk(Format, [trig,turtle])
-  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, Meta), Opts3)
+      memberchk(Meta2.rdf_format, [trig,turtle])
+  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, Meta2), Opts3)
   ;   % JSON-LD
-      Format == jsonld
+      Meta2.rdf_format == jsonld
   ->  json_read_dict(In, Json),
       forall(jsonld_tuple(Json, Tuple, Opts3),
-        rdf_call_on_quad0(Goal_5, Meta, Tuple)
+        rdf_call_on_quad0(Goal_5, Meta2, Tuple)
       )
   ;   % RDF/XML
-      Format == xml
-  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, Meta), Opts3)
+      Meta2.rdf_format == xml
+  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, Meta2), Opts3)
   ;   % RDFa
-      Format == rdfa
+      Meta2.rdf_format == rdfa
   ->  read_rdfa(In, Triples, Opts3),
-      rdf_call_on_quads0(Goal_5, Meta, Triples)
+      rdf_call_on_quads0(Goal_5, Meta2, Triples)
   ).
 
 
@@ -644,3 +629,26 @@ rdf_write_to_sink_legacy(Sink, Opts) :-
   ->  call_to_stream(Sink, {Opts}/[Out]>>rdf_save_xmlrdf(Out, Opts))
   ;   domain_error(rdf_format, Format)
   ).
+
+
+
+
+
+% HELPERS %
+
+%! rdf_determine_format(+In, +Meta1, -Meta2, +Opts) is semidet.
+
+rdf_determine_format(_, Meta, Meta, _) :-
+  get_dict(rdf_format, Meta, _), !.
+rdf_determine_format(_, Meta1, Meta2, Opts) :-
+  option(rdf_format(Format), Opts), !,
+  put_dict(rdf_format, Meta1, Format, Meta2).
+rdf_determine_format(In, Meta1, Meta2, Opts) :-
+  rdf_guess_format_options0(Meta1, Opts, GuessOpts),
+  % @note Make sure the metadata option of the RDF source does not
+  % get overwritten when opening the stream for guessing the RDF
+  % serialization format.
+  rdf_guess_format(In, Format, GuessOpts),
+  % @note JSON-LD _must_ be encoded in UTF-8.
+  (Format == jsonld -> set_stream(In, encoding(utf8)) ; true),
+  put_dict(rdf_format, Meta1, Format, Meta2).
