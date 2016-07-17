@@ -48,6 +48,7 @@ Keys
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/compress_ext)).
@@ -67,7 +68,7 @@ Keys
     gml_label(4, +, -, +).
 
 :- thread_local
-   node_id0/2.
+   node_id0/3.
 
 
 
@@ -116,16 +117,18 @@ rdf2gml_end(NFile, EFile, GFile) :-
 
 
 rdf2gml_end(NFile, EFile, GFile, Opts) :-
+  SinkOpts = [compression(false)],
   % Sort the nodes and edges to ensure there are no duplicates.
   concurrent_maplist(sort_file, [NFile,EFile]),
   % Concatenate the nodes and edges into one file.
-  call_to_stream(GFile, [Out]>>format(Out, "graph [~n  directed 1~n", []), [compression(false)]),
+  call_to_stream(GFile, [Out]>>format(Out, "graph [~n  directed 1~n", []), SinkOpts),
   format(atom(CatCmd), "cat ~a ~a >> ~a", [NFile,EFile,GFile]),
   run_process(sh, ['-c',CatCmd]),
-  call_to_stream(GFile, [Out]>>format(Out, "]~n", []), [compression(false)]),
+  call_to_stream(GFile, [Out]>>format(Out, "]~n", []), SinkOpts),
   (option(compression(true), Opts, true) -> compress_file(GFile) ; true),
   concurrent_maplist(delete_file, [NFile,EFile]),
-  delete_thread_counter(node_id).
+  delete_thread_counter(node_id),
+  retractall(node_id0(_,_,_)).
 
 
 
@@ -208,20 +211,20 @@ gml_label(Dcg_4, T, Lbl, ExportOpts) :-
 
 
 
-%! gml_node(+NOut, +ExportOpts, +N, -NId) is det.
+%! gml_node(+Out, +ExportOpts, +N, -Id) is det.
 
-gml_node(NOut, ExportOpts, N, NId) :-
-  get_dict(node_label_printer, ExportOpts, Dcg_4, dcg_print_node),
-  node_id(N, NId),
-  gml_label(Dcg_4, N, VL, ExportOpts),
-  format(NOut, "  node [ id ~d label \"~a\" ]~n", [NId,VL]).
+gml_node(Out, Opts, N, Id) :-
+  gml_node0(N, Id, Lbl, Opts),
+  format(Out, "  node [ id ~d label \"~a\" ]~n", [Id,Lbl]).
 
-
-node_id(N, NId) :-
-  node_id0(N, NId), !.
-node_id(N, NId) :-
-  inc_thread_counter(node_id, NId),
-  assert(node_id0(N, NId)).
+gml_node0(N, Id, Lbl, _) :-
+  node_id0(N, Id, Lbl), !.
+gml_node0(N, Id, Lbl, Opts) :-
+  get_dict(node_label_printer, Opts, Dcg_4, dcg_print_node),
+  inc_thread_counter(node_id, Id),
+  gml_label(Dcg_4, N, Lbl, Opts),
+  assert(node_id0(N,Id,Lbl)),
+  debug(conv(rdf2gml), "Added node ID: ~D (~w)", [Id,N]).
 
 
 

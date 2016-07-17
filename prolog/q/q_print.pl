@@ -718,7 +718,7 @@ dcg_print_graph_term(G, Opts) -->
 
 dcg_print_node(Node) -->
   {dcg_print_default_options(Opts)},
-  dcg_print_Node(Node, Opts).
+  dcg_print_node(Node, Opts).
 
 
 dcg_print_node(Node, Opts) -->

@@ -62,12 +62,12 @@ ldf_parameter(Key, Val, Key=Val).
 
 %! ldf_request(+Iri, ?S, ?P, ?O) is det.
 
-ldf_request(Iri, S, P, O) :-
-  rdf_load_quads(Iri, Quads, [rdf_format(trig)]),
+ldf_request(Iri1, S, P, O) :-
+  rdf_load_quads(Iri1, Quads, [rdf_format(trig)]),
   partition(q_is_def_quad, Quads, DataQuads, MetaQuads),
   (   member(rdf(S,P,O,_), DataQuads)
   ;   % Check whether there is a next page with more results.
       rdf_equal(hydra:nextPage, Q),
-      memberchk(rdf(_,Q,Iri,_), MetaQuads),
-      ldf_request(Iri, S, P, O)
+      memberchk(rdf(_,Q,Iri2,_), MetaQuads),
+      ldf_request(Iri2, S, P, O)
   ).
