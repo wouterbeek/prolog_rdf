@@ -1,10 +1,10 @@
 :- module(
   lotus,
   [
-    lotus/2,      % +Query:string, -S
-    lotus/3,      % +Query:string, -S, +Opts
-    lotus/5,      % ?S, ?P, +Query:string, -O, -Doc
-    lotus/6,      % ?S, ?P, +Query:string, -O, -Doc, +Opts
+    lotus/2,      % +Query, -S
+    lotus/3,      % +Query, -S, +Opts
+    lotus/5,      % ?S, ?P, +Query, -O, -Doc
+    lotus/6,      % ?S, ?P, +Query, -O, -Doc, +Opts
     match_term/1, % ?MatchTerm
     rank_term/1   % ?RankTerm
   ]
