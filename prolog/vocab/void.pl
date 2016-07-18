@@ -1,7 +1,7 @@
 :- module(
   void,
   [
-    source_to_void/4  % +DataG, +Meta, :Goal_3, +VoidG
+    source_to_void/3  % +DataG, :Goal_3, +VoidG
   ]
 ).
 
@@ -29,16 +29,16 @@ Automatically generate VoID descriptions.
 :- use_module(library(yall)).
 
 :- meta_predicate
-    source_to_void(+, +, 3, +).
+    source_to_void(+, 3, +).
 
 :- rdf_meta
-   source_to_void(r, +, :, r).
+   source_to_void(r, :, r).
 
 
 
 
 
-%! source_to_void(+DataG, +Meta, :Goal_3, +VoidG) is det.
+%! source_to_void(+DataG, :Goal_3, +VoidG) is det.
 %
 % Common assertions to be made by `call(Goal_3, M, Dataset, VoidG)`
 % are:
@@ -84,7 +84,7 @@ Automatically generate VoID descriptions.
 %
 %   * `foaf:page` A Web page containing relevant information.
 
-source_to_void(DataG, Meta, Goal_3, VoidG) :-
+source_to_void(DataG, Goal_3, VoidG) :-
   M = hdt,
   
   % rdf:type

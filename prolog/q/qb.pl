@@ -154,7 +154,8 @@ qb(rdf, S, P, O, G) :- !,
 %! qb_deref(+M, +Iri, +G) is det.
 
 qb_deref(M, Iri) :-
-  q_available(M, Iri), !.
+  q_available(Iri), !,
+  q_load(M, Iri).
 qb_deref(M, Iri) :-
   qb_deref(M, Iri, Iri).
 
