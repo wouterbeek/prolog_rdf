@@ -24,6 +24,7 @@
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -42,8 +43,12 @@ xml2rdf(Source, Sink, RecordNames) :-
   xml2rdf(Source, Sink, RecordNames, _{}).
 
 
-xml2rdf(Source, Sink, RecordNames, Opts) :-
-  call_to_ntriples(Sink, xml2rdf_stream(Source, RecordNames, Opts)).
+xml2rdf(Source, Sink, RecordNames, Opts1) :-
+  (   get_dict(entry_name, Opts1, Entry)
+  ->  Opts2 = [entry_name(Entry)]
+  ;   Opts2 = []
+  ),
+  call_to_ntriples(Sink, xml2rdf_stream(Source, RecordNames, Opts1), Opts2).
 
 
 
@@ -55,7 +60,7 @@ xml2rdf_stream(Source, RecordNames, State, Out) :-
 
 
 xml2rdf_stream(Source, RecordNames, Opts1, State, Out) :-
-  conv_alias_options(Opts1, Opts2),
+  q_fs:q_alias_options0(Opts1, Opts2),
   xml_stream_record(
     Source,
     RecordNames,

@@ -87,6 +87,9 @@ HDT or RDF, graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<GRAPH>`
 :- use_module(library(debug)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
+:- use_module(library(os/file_ext)).
+:- use_module(library(os/io)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).
 :- use_module(library(yall)).
@@ -94,15 +97,19 @@ HDT or RDF, graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<GRAPH>`
 %! hdt_graph0(?G, ?HdtFile, ?Hdt) is nondet.
 
 :- dynamic
-    hdt_graph0/3,
-    q_store_call(:, r),
-    q_store_call(:, +, +).
+    hdt_graph0/3.
 
 :- meta_predicate
     q_ls0(2),
     q_store_call(2, +),
     q_store_call(2, +, +).
 
+:- multifile
+  q_fs:q_source2store_hook/4.
+
+:- rdf_meta
+    q_store_call(:, r),
+    q_store_call(:, +, +).
 
 
 
@@ -122,21 +129,23 @@ q_source(Dataset, Graph) :-
 
 
 q_source0(Graph, _, Meta, Meta) :-
-  Graph = Meta.entry_name.
+  Path = Meta.path,
+  last(Path, Entry),
+  Graph = Entry.name.
 
 
 
 %! q_source_file(?Dataset, -File) is nondet.
 
-q_source_file(Dataset, File) :-
+q_source_file(Dataset, Path) :-
   absolute_file_name(source(.), Dir, [access(read),file_type(directory)]),
   (   var(Dataset)
-  ->  directory_files(Dir, Datasets),
-      member(Dataset, Datasets),
-      \+ is_dummy_file(Dataset)
-  ;   true
+  ->  directory_files(Dir, Files),
+      member(File, Files),
+      \+ is_dummy_file(File)
+  ;   atomic_list_concat([Dataset,tar,gz], ., File)
   ),
-  directory_file_path(Dir, Dataset, File).
+  directory_file_path(Dir, File, Path).
 
 
 
@@ -172,10 +181,9 @@ q_source2store(Dataset, Graph) :-
   q_store(Dataset, Graph), !,
   debug(q(fs), "〈~a,~a〉 already in the Quine store.", [Dataset,Graph]).
 q_source2store(Dataset, Graph) :-
-  atomic_list_concat([Dataset,load], '_', Pred),
-  Goal_1 = q_fs:Pred,
   q_source_file(Dataset, File),
-  call(Goal_1, File, Graph),
+  q_graph0(Dataset, Graph, G),
+  q_fs:q_source2store_hook(Dataset, File, Graph, G),
   debug(q(fs), "〈~a,~a〉 is added to the Quine store.", [Dataset,Graph]).
 
 
@@ -220,7 +228,7 @@ q_store_call(Goal_2, G) :-
 
 q_store_call(Goal_2, Dataset, Graph) :-
   q_store_file(Dataset, Graph, File),
-  call_to_ntriples(File, Goal_2).
+  call_to_ntriples(File, Goal_2, [entry(Graph)]).
 
 
 
