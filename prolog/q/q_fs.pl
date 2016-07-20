@@ -87,11 +87,12 @@ HDT or RDF, graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<GRAPH>`
 :- use_module(library(debug)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
-:- use_module(library(os/file_ext)).
+:- use_module(library(os/dir_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).
+:- use_module(library(true)).
 :- use_module(library(yall)).
 
 %! hdt_graph0(?G, ?HdtFile, ?Hdt) is nondet.
@@ -114,6 +115,7 @@ HDT or RDF, graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<GRAPH>`
 
 
 
+
 % SOURCE LAYER %
 
 %! q_source(?Dataset) is nondet.
@@ -125,13 +127,7 @@ q_source(Dataset) :-
 
 q_source(Dataset, Graph) :-
   q_source_file(Dataset, File),
-  call_on_stream(File, q_source0(Graph)).
-
-
-q_source0(Graph, _, Meta, Meta) :-
-  Path = Meta.path,
-  last(Path, Entry),
-  Graph = Entry.name.
+  call_on_stream(File, [_,Meta,Meta]>>true, [entry_name(Graph)]).
 
 
 
@@ -249,7 +245,7 @@ q_store_dir(Dataset, Subdir) :-
 %! q_store_file(?Dataset, ?Graph, -File) is nondet.
 
 q_store_file(Dataset, Graph, File) :-
-  q_store(Dataset, Dir),
+  q_store_dir(Dataset, Dir),
   (   var(Graph)
   ->  directory_files(Dir, Graphs),
       member(Graph, Graphs),
