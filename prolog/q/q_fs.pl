@@ -127,7 +127,10 @@ q_source(Dataset) :-
 
 q_source(Dataset, Graph) :-
   q_source_file(Dataset, File),
-  call_on_stream(File, [_,Meta,Meta]>>true, [entry_name(Graph)]).
+  call_on_stream(File, [_,Meta,Meta]>>true),
+  Path = Meta.entry_path,
+  last(Path, Entry),
+  Graph = Entry.name.
 
 
 
