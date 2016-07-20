@@ -96,8 +96,8 @@ source_to_void(DataG, Goal_3, VoidG) :-
   %rdfs_number_of_classes(DataG, NumCs),
   %qb(M, Dataset, void:classes, NumCs^^xsd:nonNegativeInteger, VoidG),
   
-  % Link where a data dump is published (‘void:dataDump’).
-  qb(M, Dataset, void:dataDump, Meta.base_iri, VoidG),
+  %% Link where a data dump is published (‘void:dataDump’).
+  %qb(M, Dataset, void:dataDump, Meta.base_iri, VoidG),
 
   % Number of distinct object terms (‘void:distinctObjects’).
   q_number_of_objects(M, DataG, NumOs),
@@ -108,8 +108,8 @@ source_to_void(DataG, Goal_3, VoidG) :-
   qb(M, Dataset, void:distinctSubjects, NumSs^^xsd:nonNegativeInteger, VoidG),
   
   %% void:feature
-  jsonld_metadata_expand_iri(Meta.rdf_format, Format),
-  qb(M, Dataset, void:feature, Format, VoidG),
+  %jsonld_metadata_expand_iri(Meta.rdf_format, Format),
+  %qb(M, Dataset, void:feature, Format, VoidG),
   
   % Number of distinct predicate terms (erroneously called
   % ‘void:properties’).
@@ -134,9 +134,7 @@ source_to_void(DataG, Goal_3, VoidG) :-
   ),
 
   % VoID assertions that cannot be generated automatically.
-  call(Goal_3, M, Dataset, VoidG).
-  % @tbd
-  %(current_goal(Goal_3) -> call(Goal_3, M, Dataset, VoidG) ; true).
+  (current_goal(Goal_3) -> call(Goal_3, M, Dataset, VoidG) ; true).
 
 
 vocab_term(C, G) :-

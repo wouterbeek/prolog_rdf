@@ -16,7 +16,6 @@
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(conv/q_conv)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(gen/gen_ntuples)).

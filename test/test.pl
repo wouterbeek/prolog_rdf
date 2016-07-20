@@ -1,7 +1,6 @@
 %/conv
 :- use_module(library(conv/csv2rdf)).
 :- use_module(library(conv/json2rdf)).
-:- use_module(library(conv/q_conv)).
 :- use_module(library(conv/rdf2gml)).
 :- use_module(library(conv/xml2rdf)).
 %/dcg
@@ -19,7 +18,6 @@
 %/gen
 :- use_module(library(gen/gen_ntuples)).
 %/hdt
-:- use_module(library(hdt/hdt__io)).
 :- use_module(library(hdt/hdt_stat)).
 :- use_module(library(hdt/hdt_stmt)).
 :- use_module(library(hdt/hdt_term)).
@@ -40,7 +38,6 @@
 :- use_module(library(mat/mat_print)).
 :- use_module(library(mat/mat_viz)).
 %/q
-:- use_module(library(q/q__io)).
 :- use_module(library(q/q_annotate)).
 :- use_module(library(q/q_array)).
 :- use_module(library(q/q_bnode_map)).
@@ -61,7 +58,6 @@
 :- use_module(library(q/qb)).
 :- use_module(library(q/qu)).
 %/rdf
-:- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_error)).
@@ -78,6 +74,7 @@
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(rdf/rdfio)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(rdfa/rdfa_user)).

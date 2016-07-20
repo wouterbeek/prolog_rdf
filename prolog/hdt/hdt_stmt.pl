@@ -13,7 +13,6 @@
 */
 
 :- use_module(library(hdt), []).
-:- use_module(library(hdt/hdt__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
@@ -33,5 +32,5 @@ hdt(S, P, O) :-
 
 
 hdt(S, P, O, G) :-
-  hdt__graph(G, Hdt),
+  q_fs:hdt_graph(G, Hdt),
   hdt:hdt_search(Hdt, S, P, O).

@@ -1,6 +1,7 @@
 :- module(
   q_term,
   [
+    q_aggregate_all/3,     % +Template, :Goal_0, -Result
     q_alias/1,             % ?Alias
    %q_alias_prefix/2,      % ?Alias, ?Prefix
     q_bnode/2,             % ?M, ?B
@@ -39,6 +40,7 @@
     q_lone_bnode/3,        % ?M, ?B, ?G
     q_lts/2,               % ?M, ?Lit
     q_lts/3,               % ?M, ?Lit, ?G
+    q_member/2,            % ?Elem, +L
     q_name/2,              % ?M, ?Name
     q_name/3,              % ?M, ?Name, ?G
     q_node/2,              % ?M, ?Node
@@ -48,10 +50,14 @@
     q_predicate/2,         % ?M, ?P
     q_predicate/3,         % ?M, ?P, ?G
     q_prefix/1,            % ?Prefix
+    q_snap/1,              % :Goal_0
     q_subject/2,           % ?M, ?S
     q_subject/3,           % ?M, ?S, ?G
     q_term/2,              % ?M, ?Term
     q_term/3               % ?M, ?Term, ?G
+   %q_transaction/1,       % :Goal_0
+   %q_transaction/2,       % :Goal_0, +Id
+   %q_transaction/3        % :Goal_0, +Is, +Opts
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
@@ -72,6 +78,9 @@
      rdf_is_predicate/1 as q_is_predicate,
      rdf_is_subject/1 as q_is_subject,
      rdf_is_term/1 as q_is_term,
+     rdf_transaction/1 as q_transaction,
+     rdf_transaction/2 as q_transaction,
+     rdf_transaction/3 as q_transaction,
      op(110, xfx, @),
      op(650, xfx, ^^)
    ]).
@@ -89,7 +98,12 @@
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
 
+:- meta_predicate
+    q_aggregate_all(+, 0, -),
+    q_snap(0).
+
 :- rdf_meta
+   q_aggregate_all(+, t, -),
    q_bnode(?, ?, r),
    q_datatype(?, r),
    q_datatype(?, r, r),
@@ -112,6 +126,7 @@
    q_lone_bnode(?, ?, r),
    q_lts(?, o),
    q_lts(?, o, r),
+   q_member(r, t),
    q_name(?, o),
    q_name(?, o, r),
    q_node(?, o),
@@ -126,6 +141,15 @@
    q_term(?, o, r).
 
 
+
+
+
+%! q_aggregate_all(+Template, :Goal_0, -Result) is det.
+%
+% Calls aggregate_all/3 under RDF alias expansion.
+
+q_aggregate_all(Template, Goal_0, Result) :-
+  aggregate_all(Template, Goal_0, Result).
 
 
 
@@ -356,6 +380,15 @@ q_lts(hdt, Lit, G) :-
 
 
 
+%! q_member(?Elem, +L) is nondet.
+%
+% Calls member/2 under RDF alias expansion.
+
+q_member(Elem, L) :-
+  member(Elem, L).
+
+
+
 %! q_name(?M, ?Name) is nondet.
 %! q_name(?M, ?Name, ?G) is nondet.
 
@@ -424,6 +457,15 @@ q_predicate(hdt, P, G) :-
 
 q_prefix(Prefix) :-
   q_alias_prefix(_, Prefix).
+
+
+
+%! q_snap(:Goal_0) .
+%
+% Call Goal_0 inside an RDF snapshot.
+
+q_snap(Goal_0) :-
+  q_transaction(Goal_0, _, [snapshot(true)]).
 
 
 

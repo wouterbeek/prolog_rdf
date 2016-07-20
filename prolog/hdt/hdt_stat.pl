@@ -16,7 +16,6 @@
 */
 
 :- use_module(library(hdt), []).
-:- use_module(library(hdt/hdt__io)).
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
@@ -34,7 +33,7 @@
 %   * `'<http://rdfs.org/ns/void#triples>'` with object `N^^xsd:integer`
 
 hdt_meta(S, P, O, G) :-
-  hdt__graph(G, Hdt),
+  q_fs:hdt_graph(G, Hdt),
   hdt:hdt_header(Hdt, S, P, O).
 
 

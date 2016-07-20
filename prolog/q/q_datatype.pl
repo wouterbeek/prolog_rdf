@@ -27,7 +27,6 @@
 :- use_module(library(error)).
 :- use_module(library(html/html_dom)).
 :- use_module(library(ordsets)).
-:- use_module(library(q/q__io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdfs)).

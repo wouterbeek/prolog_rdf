@@ -60,7 +60,6 @@ already part of ClioPatria.
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q__io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).

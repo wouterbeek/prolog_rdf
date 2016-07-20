@@ -67,8 +67,6 @@
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
-:- use_module(library(hdt/hdt__io)).
-:- use_module(library(q/q__io)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
@@ -144,7 +142,7 @@ qb(M, rdf(S,P,O), G) :-
 
 
 qb(hdt, S, P, O, G) :- !,
-  hdt__call(gen_ntuple(S, P, O), G).
+  q_store_call(gen_ntuple(S, P, O), G).
 qb(rdf, S, P, O, G) :- !,
   rdf_assert(S, P, O, G).
 

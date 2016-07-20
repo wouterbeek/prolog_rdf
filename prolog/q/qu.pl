@@ -55,7 +55,6 @@ Higher-level update operations performed on RDF data.
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/q__io)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).

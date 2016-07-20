@@ -33,10 +33,8 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(hdt/hdt__io)).
 :- use_module(library(hdt/hdt_stat)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q__io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_stat)).
@@ -120,7 +118,7 @@ q_number_of_objects(M, G, N) :-
   q_stat_call0(M, q_number_of_objects0(G), N).
 
 q_number_of_objects0(G, hdt, N) :-
-  hdt__graph(G),
+  q_graph(hdt, G),
   hdt_number_of_objects(G, N).
 q_number_of_objects0(G, rdf, N) :-
   aggregate_all(count, q_object(_, G), N).
@@ -151,7 +149,7 @@ q_number_of_predicates(M, G, N) :-
   q_stat_call0(M, q_number_of_predicates0(G), N).
 
 q_number_of_predicates0(G, hdt, N) :-
-  hdt__graph(G),
+  q_graph(hdt, G),
   hdt_number_of_properties(G, N).
 q_number_of_predicates0(G, rdf, N) :-
   aggregate_all(count, rdf_predicate(_, G), N).
@@ -175,7 +173,7 @@ q_number_of_subjects(M, N) :-
   q_stat_call0(M, q_number_of_subjects0, N).
 
 q_number_of_subjects0(hdt, N) :-
-  aggregate_all(sum(N), (hdt__graph(G), hdt_number_of_subjects(G, N)), N).
+  aggregate_all(sum(N), (q_graph(hdt, G), hdt_number_of_subjects(G, N)), N).
 q_number_of_subjects0(rdf, N) :-
   aggregate_all(count, rdf_subject(_), N).
 
@@ -184,7 +182,7 @@ q_number_of_subjects(M, G, N) :-
   q_stat_call0(M, q_number_of_subjects0(G), N).
 
 q_number_of_subjects0(G, hdt, N) :-
-  hdt__graph(G),
+  q_graph(hdt, G),
   hdt_number_of_subjects(G, N).
 q_number_of_subjects0(G, rdf, N) :-
   aggregate_all(count, rdf_subject(_, G), N).

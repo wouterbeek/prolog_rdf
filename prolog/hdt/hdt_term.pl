@@ -33,7 +33,6 @@
 */
 
 :- use_module(library(hdt), []).
-:- use_module(library(hdt/hdt__io)).
 :- use_module(library(hdt/hdt_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
@@ -145,7 +144,7 @@ hdt_name(Name) :-
 
 hdt_name(Name, G) :-
   distinct(Name-G, (
-    hdt__graph(G, Hdt),
+    q_fs:hdt_graph(G, Hdt),
     (  hdt:hdt_subject(Hdt, Name)
     ;  hdt:hdt_predicate(Hdt, Name)
     ;  hdt:hdt_object(Hdt, Name)
