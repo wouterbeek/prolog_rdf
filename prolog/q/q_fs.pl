@@ -88,7 +88,9 @@ HDT or RDF, graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<GRAPH>`
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
+:- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).
@@ -107,6 +109,8 @@ HDT or RDF, graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<GRAPH>`
 
 :- multifile
   q_fs:q_source2store_hook/4.
+
+:- qb_alias(triply, 'http://geonovum.triply.cc/').
 
 :- rdf_meta
     q_store_call(:, r),
@@ -127,7 +131,9 @@ q_source(Dataset) :-
 
 q_source(Dataset, Graph) :-
   q_source_file(Dataset, File),
-  call_on_stream(File, [_,Meta,Meta]>>true),
+  call_on_stream(File, q_source0(Graph)).
+
+q_source0(Graph, _, Meta, Meta) :-
   Path = Meta.entry_path,
   last(Path, Entry),
   Graph = Entry.name.
@@ -213,7 +219,8 @@ q_store(Dataset) :-
 
 
 q_store(Dataset, Graph) :-
-  q_store_file(Dataset, Graph, _).
+  q_store_file(Dataset, Graph, File),
+  exists_file(File).
 
 
 
@@ -227,6 +234,7 @@ q_store_call(Goal_2, G) :-
 
 q_store_call(Goal_2, Dataset, Graph) :-
   q_store_file(Dataset, Graph, File),
+  create_file_directory(File),
   call_to_ntriples(File, Goal_2, [entry(Graph)]).
 
 
@@ -255,7 +263,8 @@ q_store_file(Dataset, Graph, File) :-
       \+ is_dummy_file(Graph)
   ;   true
   ),
-  directory_file_path(Dir, Graph, Base),
+  directory_file_path(Dir, Graph, Path),
+  atomic_list_concat([Base|_], ., Path),
   atomic_list_concat([Base,nt,gz], ., File).
 
 

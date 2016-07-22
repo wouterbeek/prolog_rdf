@@ -24,12 +24,15 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/io)).
 :- use_module(library(q/q_bnode_map)).
+:- use_module(library(q/q_print)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
@@ -146,6 +149,11 @@ gen_ntuple(S, P, O, State, Out) :-
 
 
 gen_ntuple(S, P, O, G, State, Out) :-
+  (   debugging(gen_ntuple)
+  ->  dcg_with_output_to(string(Str), dcg_print_triple(S, P, O)),
+      debug(gen_ntuple, "~s", [Str])
+  ;   true
+  ),
   with_output_to(Out, gen_ntuple0(State, S, P, O, G)).
 
 
