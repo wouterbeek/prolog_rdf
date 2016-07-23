@@ -18,7 +18,7 @@
 /** <module> Generate N-Tuples, i.e., N-Triples and N-Quads
 
 @author Wouter Beek
-@version 2016/03-2016/06
+@version 2016/03-2016/07
 */
 
 :- use_module(library(aggregate)).
@@ -191,7 +191,7 @@ gen_ntuples(M, G, State, Out) :-
 
 gen_ntuples(M, S, P, O, G, State, Out) :-
   aggregate_all(set(S), q(M, S, P, O, G), Ss),
-  with_output_to(Out, maplist(gen_ntuples_for_subject(State, M, P, O, G), Ss)).
+  maplist(gen_ntuples_for_subject0(State, Out, M, P, O, G), Ss).
 
 
 
@@ -240,21 +240,21 @@ gen_ntuples_end(State, Opts) :-
 
 % AGGRREGATION %
 
-gen_ntuples_for_subject(State, M, P, O, G, S) :-
+gen_ntuples_for_subject0(State, Out, M, P, O, G, S) :-
   aggregate_all(set(P), q(M, S, P, O, G), Ps),
-  maplist(gen_ntuples_for_predicate(State, M, O, G, S), Ps).
+  maplist(gen_ntuples_for_predicate0(State, Out, M, O, G, S), Ps).
 
 
 
-gen_ntuples_for_predicate(State, M, O, G, S, P) :-
+gen_ntuples_for_predicate0(State, Out, M, O, G, S, P) :-
   aggregate_all(set(O), q(M, S, P, O, G), Os),
-  maplist(gen_ntuples_for_object(State, M, G, S, P), Os).
+  maplist(gen_ntuples_for_object0(State, Out, M, G, S, P), Os).
 
 
 
-gen_ntuples_for_object(State, M, G, S, P, O) :-
+gen_ntuples_for_object0(State, Out, M, G, S, P, O) :-
   aggregate_all(set(G), q(M, S, P, O, G), Gs),
-  maplist(gen_ntuple(State, S, P, O), Gs).
+  maplist({S,P,O,State,Out}/[G]>>gen_ntuple(S, P, O, G, State, Out), Gs).
 
 
 

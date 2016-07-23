@@ -3,6 +3,7 @@
   [
   % SOURCE LAYER
     q_source_file/2,     % ?Dataset, -File
+    q_source_graph/1,    % ?Graph
     q_source_graph/2,    % ?Dataset, ?Graph
     q_source_ls/0,
 
@@ -90,10 +91,9 @@ Graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<GRAPH>`
 :- use_module(library(error)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt_ext)).
-:- use_module(library(lists)).
+:- use_module(library(os/archive_ext)).
 :- use_module(library(os/directory_ext)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(os/io)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf_io)).
 :- use_module(library(semweb/rdf11)).
@@ -144,32 +144,30 @@ q_source_file(Dataset, File) :-
   absolute_file_name(source(.), Dir0, [access(read),file_type(directory)]),
   (var(Dataset) -> directory_file(Dir0, Dataset) ; true),
   directory_file_path(Dir0, Dataset, Base),
-  atomic_list_concat([Base,tar,gz], File),
-  exists_directory(File).
+  atomic_list_concat([Base,tar,gz], ., File).
 
 
-
-%! q_source_graph(+G) is semidet.
 %! q_source_graph(-G) is nondet.
 
 q_source_graph(G) :-
-  nonvar(G), !,
-  q_graph_name(Dataset, Graph, G),
-  q_source_graph(Dataset, Graph).
-q_source_graph(G) :-
-  q_source_graph(Dataset, Graph),
-  q_graph_name(Dataset, Graph, G).
+  q_source_graph(_, _, G).
 
 
+%! q_source_graph(+Dataset, -G) is nondet.
 
-%! q_source_graph(+Dataset, +Graph) is semidet.
-%! q_source_graph(+Dataset, +Graph) is nondet.
-%! q_source_graph(-Dataset, -Graph) is nondet.
+q_source_graph(Dataset, G) :-
+  q_source_graph(Dataset, _, G).
 
-q_source_graph(Dataset, Graph) :-
+
+%! q_source_graph(+Dataset, +Graph, -G) is semidet.
+%! q_source_graph(+Dataset, +Graph, -G) is nondet.
+%! q_source_graph(-Dataset, -Graph, -G) is nondet.
+
+q_source_graph(Dataset, Graph, G) :-
   q_source_file(Dataset, File),
   exists_file(File),
-  archive_entry(File, Graph).
+  archive_entry(File, Graph),
+  q_graph_name(Dataset, Graph, G).
 
 
 
@@ -194,13 +192,17 @@ q_source_ls :-
 % `call(<NAME>_load_void,+Sink,+G)`.
 
 q_source2store(Dataset) :-
-  absolute_file_name(store(.), Dir0, [access(read),file_type(directory)]),
-  directory_file_path(Dir0, Dataset, Dir),
-  exists_directory(Dir),
+  forall(
+    q_source_graph(Dataset, G),
+    (
+      q_store_file(G, File),
+      exists_file(File)
+    )
+  ), !,
   debug(q(fs), "Dataset ~a already exists in Quine store.", [Dataset]).
 q_source2store(Dataset) :-
   q_source_file(Dataset, File),
-  q_graph_name(Dataset, Graph, G),
+  q_source_graph(Dataset, Graph, G),
   q_io:q_source2store_hook(Dataset, File, Graph, G),
   debug(q(fs), "Dataset ~a is added to the Quine store.", [Dataset]).
 
@@ -223,7 +225,7 @@ q_store_rm(G) :-
 q_store_call(Goal_2, G) :-
   q_store_file(G, File),
   create_file_directory(File),
-  q_store_name(_, Graph, G),
+  q_graph_name(_, Graph, G),
   call_to_ntriples(File, Goal_2, [entry(Graph)]).
 
 
@@ -235,7 +237,7 @@ q_store_call(Goal_2, G) :-
 q_store_directory(Dir) :-
   absolute_file_name(store(.), Dir0, [access(read),file_type(directory)]),
   directory_path(Dir0, Dir).
-  
+
 
 
 %! q_store_file(-File) is nondet.
@@ -373,8 +375,8 @@ q_view_file(File) :-
   absolute_file_name(views(.), Dir, [access(read),file_type(directory)]),
   directory_path(Dir, Subdir),
   directory_path(Subdir, File).
-  
-  
+
+
 
 %! q_view_file(+M, +G, -File) is det.
 %! q_view_file(-M, -G, +File) is det.
@@ -451,18 +453,7 @@ q_load(rdf, G) :-
 
 q_save(M, G) :-
   q_store_file(G, NTriplesFile),
-  (   M == hdt
-  ->  call_to_ntriples(NTriplesFile, q_hdt2stream0(G))
-  ;   M == rdf
-  ->  rdf_write_to_sink(NTriplesFile, G)
-  ).
-
-
-q_hdt2stream0(G, State, Out) :-
-  hdt(S, P, O, G),
-  gen_ntuple(S, P, O, State, Out),
-  fail.
-q_hdt2stream0(_, _, _).
+  rdf_write_to_sink(NTriplesFile, M, G).
 
 
 

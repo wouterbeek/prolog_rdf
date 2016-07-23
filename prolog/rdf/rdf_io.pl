@@ -424,9 +424,11 @@ rdf_load_file(Source, Opts) :-
       Goal_5 = rdf_load_tuple0(State, ToG)
   ),
   rdf_call_on_tuples(Source, Goal_5, Opts),
-  option(quads(State.quads), Opts, _),
-  option(triples(State.triples), Opts, _),
-  NumTuples is State.triples + State.quads,
+  NumQuads = State.quads,
+  NumTriples = State.triples,
+  option(quads(NumQuads), Opts, _),
+  option(triples(NumTriples), Opts, _),
+  NumTuples is NumQuads + NumTriples,
   option(tuples(NumTuples), Opts, _),
   debug(
     rdf(stream),
@@ -503,6 +505,8 @@ rdf_load_triples(Source, Triples, Opts) :-
 % If no Sink is given the file from which graph G, if instantiated,
 % was loaded is used.
 %
+% @tbd Check whether HDT file already exists.
+%
 % In line with module `io`, the following call is made:
 % `call(Goal_3,Out,Meta1,Meta2)`.
 %
@@ -534,8 +538,6 @@ rdf_write_to_sink(Sink, M, S, P, O, G) :-
   rdf_write_to_sink(Sink, M, S, P, O, G, []).
 
 
-% We have to come up with a good file name.
-% @tbd Check whether HDT file already exists.
 rdf_write_to_sink(File, M, S, P, O, G, Opts) :-
   var(File), !,
   (   % A file is already associated with the given graph G.
