@@ -20,7 +20,6 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(csv)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
-:- use_module(library(debug)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
@@ -81,6 +80,7 @@ csv2rdf_stream(Source, Opts, State, Out) :-
 
 
 csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
+  debug(conv(csv2rdf), ">>> CSV → RDF", []),
   csv2rdf_options0(Opts1, Dict, Opts2),
   (   get_dict(header, Dict, Ps)
   ->  true
@@ -104,9 +104,9 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
     Ps,
     Vals
   ),
-  debug(conv(csv2rdf), "Converted CSV row ~D to RDF.", [RowN]),
   fail.
-csv2rdf_stream0(_, _, _, _, Meta, Meta).
+csv2rdf_stream0(_, _, _, _, Meta, Meta) :-
+  debug(conv(csv2rdf), "<<< CSV → RDF", []).
 
 
 csv2rdf_options0(Opts1, D, Opts4) :-

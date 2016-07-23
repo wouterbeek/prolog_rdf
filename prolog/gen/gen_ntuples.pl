@@ -119,6 +119,8 @@ call_to_ntriples(Sink, Goal_2, Opts1) :-
 %
 %   * warn(+stream) The output stream, if any, where warnings are
 %   written to.
+%
+%   * Other options are written to call_to_stream/3.
 
 call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
   setup_call_cleanup(
@@ -149,31 +151,24 @@ gen_ntuple(S, P, O, State, Out) :-
 
 
 gen_ntuple(S, P, O, G, State, Out) :-
-  (   debugging(gen_ntuple)
-  ->  dcg_with_output_to(string(Str), dcg_print_triple(S, P, O)),
-      debug(gen_ntuple, "~s", [Str])
-  ;   true
-  ),
-  with_output_to(Out, gen_ntuple0(State, S, P, O, G)).
-
-
-gen_ntuple0(State, S, P, O, G) :-
-  gen_subject(State, S),
-  put_char(' '),
-  gen_predicate(P),
-  put_char(' '),
-  gen_object(State, O),
-  put_char(' '),
-  (   State.rdf_format == ntriples
-  ->  dict_inc(triples, State)
-  ;   q_default_graph(G)
-  ->  dict_inc(triples, State)
-  ;   gen_graph(G),
-      put_char(' '),
-      dict_inc(quads, State)
-  ),
-  put_char(.),
-  put_code(10).
+  with_output_to(Out, (
+    gen_subject(State, S),
+    put_char(' '),
+    gen_predicate(P),
+    put_char(' '),
+    gen_object(State, O),
+    put_char(' '),
+    (   State.rdf_format == ntriples
+    ->  dict_inc(triples, State)
+    ;   q_default_graph(G)
+    ->  dict_inc(triples, State)
+    ;   gen_graph(G),
+        put_char(' '),
+        dict_inc(quads, State)
+    ),
+    put_char(.),
+    put_code(10)
+  )).
 
 
 
@@ -222,7 +217,8 @@ gen_ntuples_begin(State2, Opts) :-
       iri_comps(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
       nb_set_dict(bprefix, State2, BPrefix)
   ;   true
-  ).
+  ),
+  debug(gen_ntuples, ">>> Writing N-Tuples", []).
 
 
 
@@ -232,7 +228,8 @@ gen_ntuples_end(State, Opts) :-
   option(quads(State.quads), Opts, _),
   option(triples(State.triples), Opts, _),
   NoTuples is State.triples + State.quads,
-  option(tuples(NoTuples), Opts, _).
+  option(tuples(NoTuples), Opts, _),
+  debug(gen_ntuples, "<<< Written N-Tuples", []).
 
 
 

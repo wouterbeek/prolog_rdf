@@ -552,8 +552,7 @@ rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
   defval(DefG, G),
   rdf_write_format0(Sink, Opts1, Format),
   merge_options(Opts1, [format(Format)], Opts2),
-  call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2),
-  debug(rdf(io), "RDF was written to sink ~w.", [Sink]).
+  call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2).
 
 
 rdf_file_name0(File, Opts) :-
