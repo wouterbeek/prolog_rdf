@@ -1,28 +1,35 @@
 :- module(
-  hdt_term,
+  hdt_ext,
   [
-    hdt_bnode/1,     % ?B
-    hdt_bnode/2,     % ?B, ?G
-    hdt_datatype/1,  % ?D
-    hdt_datatype/2,  % ?D, ?G
-    hdt_iri/1,       % ?Iri
-    hdt_iri/2,       % ?Iri, ?G
-    hdt_literal/1,   % ?Lit
-    hdt_literal/2,   % ?Lit, ?G
-    hdt_lts/1,       % ?Lit
-    hdt_lts/2,       % ?Lit, ?G
-    hdt_name/1,      % ?Name, ?G
-    hdt_name/2,      % ?Name, ?G
-    hdt_node/1,      % ?Node, ?G
-    hdt_node/2,      % ?Node, ?G
-    hdt_object/1,    % ?O, ?G
-    hdt_object/2,    % ?O, ?G
-    hdt_predicate/1, % ?P, ?G
-    hdt_predicate/2, % ?P, ?G
-    hdt_subject/1,   % ?S, ?G
-    hdt_subject/2,   % ?S, ?G
-    hdt_term/1,      % ?Term, ?G
-    hdt_term/2       % ?Term, ?G
+    hdt/3,                      % ?S, ?P, ?O
+    hdt/4,                      % ?S, ?P, ?O, ?G
+    hdt_bnode/1,                % ?B
+    hdt_bnode/2,                % ?B, ?G
+    hdt_datatype/1,             % ?D
+    hdt_datatype/2,             % ?D, ?G
+    hdt_iri/1,                  % ?Iri
+    hdt_iri/2,                  % ?Iri, ?G
+    hdt_literal/1,              % ?Lit
+    hdt_literal/2,              % ?Lit, ?G
+    hdt_lts/1,                  % ?Lit
+    hdt_lts/2,                  % ?Lit, ?G
+    hdt_meta/4,                 % ?S, ?P, ?O, +G
+    hdt_name/1,                 % ?Name, ?G
+    hdt_name/2,                 % ?Name, ?G
+    hdt_node/1,                 % ?Node, ?G
+    hdt_node/2,                 % ?Node, ?G
+    hdt_number_of_objects/2,    % ?G, -NumOs
+    hdt_number_of_properties/2, % ?G, -NumPs
+    hdt_number_of_subjects/2,   % ?G, -NumSs
+    hdt_number_of_triples/2,    % ?G, -NumTriples
+    hdt_object/1,               % ?O, ?G
+    hdt_object/2,               % ?O, ?G
+    hdt_predicate/1,            % ?P, ?G
+    hdt_predicate/2,            % ?P, ?G
+    hdt_subject/1,              % ?S, ?G
+    hdt_subject/2,              % ?S, ?G
+    hdt_term/1,                 % ?Term, ?G
+    hdt_term/2                  % ?Term, ?G
   ]
 ).
 
@@ -33,12 +40,13 @@
 */
 
 :- use_module(library(hdt), []).
-:- use_module(library(hdt/hdt_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
+   hdt(r, r, o),
+   hdt(r, r, o, r),
    hdt_bnode(?, r),
    hdt_datatype(r),
    hdt_datatype(r, r),
@@ -48,10 +56,15 @@
    hdt_literal(o, r),
    hdt_lts(o),
    hdt_lts(o, r),
+   hdt_meta(r, r, o, r),
    hdt_name(o),
    hdt_name(o, r),
    hdt_node(o),
    hdt_node(o, r),
+   hdt_number_of_objects(r, -),
+   hdt_number_of_properties(r, -),
+   hdt_number_of_subjects(r, -),
+   hdt_number_of_triples(r, -),
    hdt_object(o),
    hdt_object(o, r),
    hdt_predicate(r),
@@ -62,6 +75,19 @@
    hdt_term(o, r).
 
 
+
+
+
+%! hdt(?S, ?P, ?O) is nondet.
+%! hdt(?S, ?P, ?O, ?G) is nondet.
+
+hdt(S, P, O) :-
+  distinct(rdf(S,P,O), hdt(S, P, O, _)).
+
+
+hdt(S, P, O, G) :-
+  q_io:hdt_graph(G, Hdt),
+  hdt:hdt_search(Hdt, S, P, O).
 
 
 
@@ -135,6 +161,18 @@ hdt_lts(Lit, G) :-
 
 
 
+%! hdt_meta(?S, ?P, ?O, ?G) is nondet.
+%
+% The following predicates are supported:
+%
+%   * `'<http://rdfs.org/ns/void#triples>'` with object `N^^xsd:integer`
+
+hdt_meta(S, P, O, G) :-
+  q_io:hdt_graph(G, Hdt),
+  hdt:hdt_header(Hdt, S, P, O).
+
+
+
 %! hdt_name(?Name) is nondet.
 %! hdt_name(?Name, ?G) is nondet.
 
@@ -144,7 +182,7 @@ hdt_name(Name) :-
 
 hdt_name(Name, G) :-
   distinct(Name-G, (
-    q_fs:hdt_graph(G, Hdt),
+    q_io:hdt_graph(G, Hdt),
     (  hdt:hdt_subject(Hdt, Name)
     ;  hdt:hdt_predicate(Hdt, Name)
     ;  hdt:hdt_object(Hdt, Name)
@@ -167,6 +205,34 @@ hdt_node(O, G) :-
   hdt_object(O, G),
   % Make sure there are no duplicates.
   \+ hdt_subject(O, G).
+
+
+
+%! hdt_number_of_objects(?G, -N) is nondet.
+
+hdt_number_of_objects(G, N) :-
+  hdt_meta(_, '<http://rdfs.org/ns/void#distinctObjects>', N^^xsd:integer, G).
+
+
+
+%! hdt_number_of_properties(?G, -N) is nondet.
+
+hdt_number_of_properties(G, N) :-
+  hdt_meta(_, '<http://rdfs.org/ns/void#properties>', N^^xsd:integer, G).
+
+
+
+%! hdt_number_of_subjects(?G, -N) is nondet.
+
+hdt_number_of_subjects(G, N) :-
+  hdt_meta(_, '<http://rdfs.org/ns/void#distinctSubjects>', N^^xsd:integer, G).
+
+
+
+%! hdt_number_of_triples(?G, -N) is nondet.
+
+hdt_number_of_triples(G, N) :-
+  hdt_meta(_, '<http://rdfs.org/ns/void#triples>', N^^xsd:integer, G).
 
 
 

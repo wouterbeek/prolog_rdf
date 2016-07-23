@@ -2,7 +2,7 @@
 :- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_print)).
 :- use_module(library(rdf/rdf_isomorphism)).
-:- use_module(library(rdf/rdfio)).
+:- use_module(library(rdf/rdf_io)).
 :- use_module(library(semweb/rdf11)).
 
 :- meta_predicate

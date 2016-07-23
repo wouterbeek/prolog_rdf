@@ -48,7 +48,7 @@ json2rdf(Source, Sink) :-
 
 
 json2rdf(Source, Sink, Opts) :-
-  call_to_ntriples(Sink, json2rdf_stream(Source, Opts)).
+  call_to_ntriples(Sink, json2rdf_stream(Source, Opts), Opts).
 
 
 
@@ -61,7 +61,7 @@ json2rdf_stream(Source, State, Out) :-
 
 json2rdf_stream(Source, Opts1, State, Out) :-
   conv_alias_options(Opts1, Opts2),
-  call_on_stream(Source, json2rdf_stream0(Opts2, State, Out)).
+  call_on_stream(Source, json2rdf_stream0(Opts2, State, Out), Opts1).
 
 
 json2rdf_stream0(Opts, State, Out, In, Meta, Meta) :-

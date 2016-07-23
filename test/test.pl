@@ -18,9 +18,7 @@
 %/gen
 :- use_module(library(gen/gen_ntuples)).
 %/hdt
-:- use_module(library(hdt/hdt_stat)).
-:- use_module(library(hdt/hdt_stmt)).
-:- use_module(library(hdt/hdt_term)).
+:- use_module(library(hdt/hdt_ext)).
 %/html
 :- use_module(library(html/qh)).
 :- use_module(library(html/rdfh_fca)).
@@ -69,12 +67,12 @@
 :- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).
+:- use_module(library(rdf/rdf_io)).
 :- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(rdf/rdfio)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(rdfa/rdfa_user)).

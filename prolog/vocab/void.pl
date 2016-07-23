@@ -20,7 +20,7 @@ Automatically generate VoID descriptions.
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
-:- use_module(library(rdf/rdfio)).
+:- use_module(library(rdf/rdf_io)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stat)).
 :- use_module(library(semweb/rdf11)).

@@ -77,7 +77,7 @@ csv2rdf_stream(Source, State, Out) :-
 
 
 csv2rdf_stream(Source, Opts, State, Out) :-
-  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts)).
+  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts), Opts).
 
 
 csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-

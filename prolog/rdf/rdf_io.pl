@@ -1,5 +1,5 @@
 :- module(
-  rdfio,
+  rdf_io,
   [
     rdf_call_on_graph/2,         % +Source, :Goal_1
     rdf_call_on_graph/3,         % +Source, :Goal_1, +Opts
@@ -8,35 +8,31 @@
     rdf_call_on_tuples/2,        % +Source, :Goal_5
     rdf_call_on_tuples/3,        % +Source, :Goal_5, +Opts
     rdf_call_on_tuples_stream/4, % +In, :Goal_5, +Meta, +Opts
-    rdf_call_to_graph/2,         % +Sink, :Goal_1
-    rdf_call_to_graph/3,         % +Sink, :Goal_1, +Opts
-    rdf_change_format/2,         % +Source, -Sink
-    rdf_change_format/3,         % +Source, -Sink, +Opts
-    rdf_change_format_legacy/2,  % +Source, -Sink
-    rdf_change_format_legacy/3,  % +Source, -Sink, +Opts
+    rdf_call_to_graph/2,         % ?Sink, :Goal_1
+    rdf_call_to_graph/3,         % ?Sink, :Goal_1, +Opts
+    rdf_change_format/2,         % +Source, +Sink
+    rdf_change_format/3,         % +Source, +Sink, +Opts
+    rdf_change_format_legacy/2,  % +Source, +Sink
+    rdf_change_format_legacy/3,  % +Source, +Sink, +Opts
     rdf_download_to_file/2,      % +Iri, +File
     rdf_download_to_file/4,      % +Iri, +File, +InOpts, +OutOpts
     rdf_load_file/1,             % +Source
-    rdf_load_file/2,             % +Source, +Opts
+    rdf_load_file/2,             % +Source,           +Opts
     rdf_load_quads/2,            % +Source, -Quads
-    rdf_load_quads/3,            % +Source, -Quads, +Opts
+    rdf_load_quads/3,            % +Source, -Quads,   +Opts
     rdf_load_triples/2,          % +Source, -Triples
     rdf_load_triples/3,          % +Source, -Triples, +Opts
-    rdf_write_to_sink/1,         % +Sink
-    rdf_write_to_sink/2,         % +Sink, ?G
-    rdf_write_to_sink/3,         % +Sink, ?G, +Opts
-    rdf_write_to_sink/4,         % +Sink, ?S, ?P, ?O
-    rdf_write_to_sink/5,         % +Sink, ?S, ?P, ?O, ?G
-    rdf_write_to_sink/6,         % +Sink, ?S, ?P, ?O, ?G, +Opts
-    rdf_write_to_sink_legacy/1,  % +Sink
-    rdf_write_to_sink_legacy/2   % +Sink, +Opts
+    rdf_write_to_sink/3,         % ?Sink, ?M,             ?G
+    rdf_write_to_sink/4,         % ?Sink, ?M,             ?G, +Opts
+    rdf_write_to_sink/5,         % ?Sink, ?M, ?S, ?P, ?O
+    rdf_write_to_sink/6,         % ?Sink, ?M, ?S, ?P, ?O, ?G
+    rdf_write_to_sink/7,         % ?Sink, ?M, ?S, ?P, ?O, ?G, +Opts
+    rdf_write_to_sink_legacy/2,  % ?Sink, ?M
+    rdf_write_to_sink_legacy/3   % ?Sink, ?M, +Opts
   ]
 ).
 
-/** <module> RDF input/output
-
-This module is not named `rdf_io` since a module with that name is
-already part of ClioPatria.
+/** <module> RDF I/O
 
 @author Wouter Beek
 @version 2015/08-2016/02, 2016/04-2016/07
@@ -60,6 +56,7 @@ already part of ClioPatria.
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -93,8 +90,8 @@ already part of ClioPatria.
     rdf_call_on_tuples(+, 5),
     rdf_call_on_tuples(+, 5, +),
     rdf_call_on_tuples_stream(+, 5, +, +),
-    rdf_call_to_graph(+, 1),
-    rdf_call_to_graph(+, 1, +).
+    rdf_call_to_graph(?, 1),
+    rdf_call_to_graph(?, 1, +).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
@@ -102,11 +99,11 @@ already part of ClioPatria.
    rdf_load_file(+, t),
    rdf_load_quads(+, -, t),
    rdf_load_triples(+, -, t),
-   rdf_write_to_sink(r),
-   rdf_write_to_sink(r, +),
-   rdf_write_to_sink(r, r, o),
-   rdf_write_to_sink(r, r, o, r),
-   rdf_write_to_sink(r, r, o, r, +).
+   rdf_write_to_sink(+, ?, r),
+   rdf_write_to_sink(+, ?, r, +),
+   rdf_write_to_sink(+, ?, r, r, o),
+   rdf_write_to_sink(+, ?, r, r, o, r),
+   rdf_write_to_sink(+, ?, r, r, o, r, +).
 
 :- debug(rdf(io)).
 
@@ -289,13 +286,13 @@ rdf_call_on_quads0(Goal_5, Meta, Tuples, _) :-
 
 
 
-%! rdf_call_to_graph(+Sink, :Goal_1) is det.
-%! rdf_call_to_graph(+Sink, :Goal_1, +Opts) is det.
+%! rdf_call_to_graph(?Sink, :Goal_1) is det.
+%! rdf_call_to_graph(?Sink, :Goal_1, +Opts) is det.
 %
 % Writes results of Goal_1, as asserted into a single graph, to Sink.
 % The following call is made: `call(Goal_1, G)`.
 %
-% Options are passed to rdf_write_to_sink/6.
+% Options are passed to rdf_write_to_sink/7.
 
 rdf_call_to_graph(Sink, Goal_1) :-
   rdf_call_to_graph(Sink, Goal_1, []).
@@ -306,7 +303,7 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
     rdf_tmp_graph(G),
     (
       call(Goal_1, G),
-      rdf_write_to_sink(Sink, _, _, _, G, Opts)
+      rdf_write_to_sink(Sink, rdf, _, _, _, G, Opts)
     ),
     rdf_unload_graph(G)
   ).
@@ -325,7 +322,7 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
 %   * Other options are passed to:
 %
 %     * rdf_call_on_tuples/3
-%     * rdf_write_to_sink/6
+%     * rdf_write_to_sink/7
 
 rdf_change_format(Source, Sink) :-
   rdf_change_format(Source, Sink, []).
@@ -346,7 +343,7 @@ rdf_change_format(Source, Sink, Opts) :-
 rdf_change_format0(Source, SourceOpts, State, Out) :-
   rdf_call_on_tuples(
     Source,
-    {State,Out}/[_,S,P,O,G]>>gen_ntuple(S, P, O, G, State, Out),
+    {State,Out}/[_,S,P,O,G]>>gen_ntuple(rdf, S, P, O, G, State, Out),
     SourceOpts
   ).
 
@@ -361,7 +358,7 @@ rdf_change_format_legacy(Source, Sink) :-
 
 rdf_change_format_legacy(Source, Sink, Opts) :-
   rdf_load_file(Source),
-  rdf_write_to_sink_legacy(Sink, Opts).
+  rdf_write_to_sink_legacy(Sink, rdf, Opts).
 
 
 
@@ -495,50 +492,51 @@ rdf_load_triples(Source, Triples, Opts) :-
 
 
 
-%! rdf_write_to_sink(+Sink                       ) is det.
-%! rdf_write_to_sink(+Sink,             ?G       ) is det.
-%! rdf_write_to_sink(+Sink,             ?G, +Opts) is det.
-%! rdf_write_to_sink(+Sink, ?S, ?P, ?O           ) is det.
-%! rdf_write_to_sink(+Sink, ?S, ?P, ?O, ?G       ) is det.
-%! rdf_write_to_sink(+Sink, ?S, ?P, ?O, ?G, +Opts) is det.
+%! rdf_write_to_sink(?Sink, ?M,             ?G       ) is det.
+%! rdf_write_to_sink(?Sink, ?M,             ?G, +Opts) is det.
+%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O           ) is det.
+%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O, ?G       ) is det.
+%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O, ?G, +Opts) is det.
 %
-% Writes output to an RDF stream.
+% Writes N-Tuples from backend M in an RDF serialization to Sink.
 %
-% File sinks are treated specially.
+% If no Sink is given the file from which graph G, if instantiated,
+% was loaded is used.
 %
-% The following call is made: `call(Goal_3, Out, M1, M2)`.
+% In line with module `io`, the following call is made:
+% `call(Goal_3,Out,Meta1,Meta2)`.
 %
-% Options are passed to call_to_stream/3 and ...
+% The following options are supported:
+%
+%   * `rdf_format(+atom)`
 %
 % The following formats are supported:
 %
 %   * `nquads` (N-Quads)
 %
 %   * `ntriples` (N-Triples)
+%
+% For other formats use rdf_write_to_sink_legacy/[2,3].
 
-rdf_write_to_sink(Sink) :-
-  rdf_write_to_sink(Sink, _).
-
-
-rdf_write_to_sink(Sink, G) :-
-  rdf_write_to_sink(Sink, G, []).
+rdf_write_to_sink(Sink, M, G) :-
+  rdf_write_to_sink(Sink, M, G, []).
 
 
-rdf_write_to_sink(Sink, G, Opts) :-
-   rdf_write_to_sink(Sink, _, _, _, G, Opts).
+rdf_write_to_sink(Sink, M, G, Opts) :-
+   rdf_write_to_sink(Sink, M, _, _, _, G, Opts).
 
 
-rdf_write_to_sink(Sink, S, P, O) :-
-  rdf_write_to_sink(Sink, S, P, O, _).
+rdf_write_to_sink(Sink, M, S, P, O) :-
+  rdf_write_to_sink(Sink, M, S, P, O, _).
 
 
-rdf_write_to_sink(Sink, S, P, O, G) :-
-  rdf_write_to_sink(Sink, S, P, O, G, []).
+rdf_write_to_sink(Sink, M, S, P, O, G) :-
+  rdf_write_to_sink(Sink, M, S, P, O, G, []).
 
 
 % We have to come up with a good file name.
 % @tbd Check whether HDT file already exists.
-rdf_write_to_sink(File, S, P, O, G, Opts) :-
+rdf_write_to_sink(File, M, S, P, O, G, Opts) :-
   var(File), !,
   (   % A file is already associated with the given graph G.
       rdf_graph_property(G, source(File))
@@ -546,13 +544,13 @@ rdf_write_to_sink(File, S, P, O, G, Opts) :-
   ;   rdf_file_name0(File, Opts)
   ),
   create_file_directory(File),
-  rdf_write_to_sink(File, S, P, O, G, Opts).
-rdf_write_to_sink(Sink, S, P, O, G, Opts1) :-
+  rdf_write_to_sink(File, M, S, P, O, G, Opts).
+rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
   q_default_graph(DefG),
   defval(DefG, G),
   rdf_write_format0(Sink, Opts1, Format),
   merge_options(Opts1, [format(Format)], Opts2),
-  call_to_ntuples(Sink, gen_ntuples(S, P, O, G), Opts2),
+  call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2),
   debug(rdf(io), "RDF was written to sink ~w.", [Sink]).
 
 
@@ -576,8 +574,8 @@ rdf_write_format0(_, _, nquads).
 
 
 
-%! rdf_write_to_sink_legacy(+Sink) is det.
-%! rdf_write_to_sink_legacy(+Sink, +Opts) is det.
+%! rdf_write_to_sink_legacy(?Sink, ?M) is det.
+%! rdf_write_to_sink_legacy(?Sink, ?M, +Opts) is det.
 %
 % Legacy RDF writers that can only dump everything or a given graph to
 % a file (no triple pattern support).
@@ -594,14 +592,14 @@ rdf_write_format0(_, _, nquads).
 %
 %   * `xml` (RDF/XML)
 
-rdf_write_to_sink_legacy(Sink) :-
-  rdf_write_to_sink_legacy(Sink, []).
+rdf_write_to_sink_legacy(Sink, M) :-
+  rdf_write_to_sink_legacy(Sink, M, []).
 
 
-rdf_write_to_sink_legacy(Sink, Opts) :-
+rdf_write_to_sink_legacy(Sink, M, Opts) :-
   rdf_write_format0(Sink, Opts, Format),
   (   memberchk(Format, [nquads,ntriples])
-  ->  rdf_write_to_sink(Sink, Opts)
+  ->  rdf_write_to_sink(Sink, M, Opts)
   ;   Format == trig
   ->  call_to_stream(Sink, {Opts}/[Out]>>rdf_save_trig(Out, Opts))
   ;   Format == turtle

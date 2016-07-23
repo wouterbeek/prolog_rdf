@@ -92,7 +92,7 @@
 */
 
 :- use_module(library(semweb/rdf11)). % Priority for rdf_meta/1.
-:- use_module(library(hdt/hdt_term)).
+:- use_module(library(hdt/hdt_ext)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(solution_sequences)).

@@ -33,7 +33,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(hdt/hdt_stat)).
+:- use_module(library(hdt/hdt_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).

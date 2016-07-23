@@ -24,7 +24,7 @@
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(q/q_fs)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -60,7 +60,7 @@ xml2rdf_stream(Source, RecordNames, State, Out) :-
 
 
 xml2rdf_stream(Source, RecordNames, Opts1, State, Out) :-
-  q_fs:q_alias_options0(Opts1, Opts2),
+  q_io:q_alias_options0(Opts1, Opts2),
   xml_stream_record(
     Source,
     RecordNames,
