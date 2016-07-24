@@ -352,9 +352,9 @@ q_change_view(M1, G, M2) :-
 % Enumerate existing view files.
 
 q_view_file(File) :-
-  absolute_file_name(views(.), Dir, [access(read),file_type(directory)]),
-  directory_path(Dir, Subdir),
-  directory_path(Subdir, File).
+  q_something_root(view, Root),
+  directory_path(Root, Dir),
+  directory_path(Dir, File).
 
 
 
@@ -374,10 +374,10 @@ q_view_file(M, G, File) :-
   nonvar(File), !,
   q_backend(M, Exts),
   atomic_list_concat([Base|Exts], ., File),
-  directory_file_path(Subdir, Graph, Base),
-  directory_file_path(Dir, Dataset, Subdir),
+  directory_file_path(Dir, Graph, Base),
+  directory_file_path(Root, Dataset, Dir),
   q_graph_name(Dataset, Graph, G),
-  absolute_file_name(views(.), Dir, [access(write),file_type(directory)]).
+  q_something_root(view, Root).
 q_view_file(_, _, _) :-
   instantiation_error(q_view_file(_,_,_)).
 
@@ -536,7 +536,7 @@ q_something_root(Type, Root) :-
 %! q_view_base(+G, -Base) is det.
 
 q_view_base(G, Base) :-
-  absolute_file_name(views(.), Dir, [access(write),file_type(directory)]),
+  q_something_root(view, Root),
   q_graph_name(Dataset, Graph, G),
-  directory_file_path(Dir, Dataset, Subdir),
-  directory_file_path(Subdir, Graph, Base).
+  directory_file_path(Root, Dataset, Dir),
+  directory_file_path(Dir, Graph, Base).
