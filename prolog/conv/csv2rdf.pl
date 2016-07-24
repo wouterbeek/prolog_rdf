@@ -36,7 +36,7 @@ The following debug flags are used:
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
-:- qb_alias(ex, 'http://example.org/').
+:- qb_alias(triply, 'http://triply.cc/').
 
 
 

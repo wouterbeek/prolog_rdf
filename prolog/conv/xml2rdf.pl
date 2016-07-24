@@ -30,6 +30,8 @@
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
 
+:- qb_alias(triply, 'http://triply.cc/').
+
 
 
 

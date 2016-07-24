@@ -58,7 +58,7 @@ Keys
 :- use_module(library(os/thread_counter)).
 :- use_module(library(pairs)).
 :- use_module(library(q/q_print)).
-:- use_module(library(rdf/rdf_io)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(thread)).
 :- use_module(library(uuid)).

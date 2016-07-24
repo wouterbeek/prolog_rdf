@@ -28,7 +28,7 @@ During loading and saving alignments are represented as pairs.
 :- use_module(library(os/io)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/qb)).
-:- use_module(library(rdf/rdf_io)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 

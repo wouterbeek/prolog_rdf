@@ -21,7 +21,7 @@
 :- use_module(library(q/qb)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
-:- use_module(library(rdf/rdf_io)).
+:- use_module(library(rdf/rdf__io)).
 
 :- initialization(list_external_programs).
 

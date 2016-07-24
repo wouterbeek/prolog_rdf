@@ -1,5 +1,5 @@
 :- module(
-  rdf_io,
+  rdf__io,
   [
     rdf_call_on_graph/2,         % +Source, :Goal_1
     rdf_call_on_graph/3,         % +Source, :Goal_1, +Opts
@@ -36,7 +36,7 @@
 
 The following debug flags are used:
 
-  * rdf(rdf_io)
+  * rdf(rdf__io)
 
 @author Wouter Beek
 @version 2015/08-2016/02, 2016/04-2016/07
@@ -432,7 +432,7 @@ rdf_load_file(Source, Opts) :-
   NumTuples is NumQuads + NumTriples,
   option(tuples(NumTuples), Opts, _),
   debug(
-    rdf(rdf_io),
+    rdf(rdf__io),
     "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
     [NumTuples,Source,State.triples,State.quads]
   ).

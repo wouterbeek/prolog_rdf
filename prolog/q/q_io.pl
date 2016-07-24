@@ -88,11 +88,13 @@ The following flags are used:
 :- use_module(library(os/directory_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(q/qb)).
-:- use_module(library(rdf/rdf_io)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(tree/s_tree)).
 
 %! hdt_graph0(?G, ?HdtFile, ?Hdt) is nondet.
+
+:- qb_alias(triply, 'http://triply.cc/').
 
 :- dynamic
     hdt_graph0/3.
@@ -104,8 +106,6 @@ The following flags are used:
 :- multifile
     q_io:q_scrape2store_hook/2,
     q_io:q_source2store_hook/4.
-
-:- qb_alias(triply, 'http://geonovum.triply.cc/').
 
 :- rdf_meta
    q_change_view(+, r, +),
