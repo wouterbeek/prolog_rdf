@@ -261,7 +261,8 @@ q_store_file(G, File) :-
   absolute_file_name(store(.), Dir0, [access(write),file_type(directory)]),
   directory_file_path(Dir0, Dataset, Dir),
   directory_file_path(Dir, Entry, Base),
-  atomic_list_concat([Base,nt,gz], ., File).
+  atomic_list_concat([Base,nt,gz], ., File),
+  create_file_directory(File).
 
 
 

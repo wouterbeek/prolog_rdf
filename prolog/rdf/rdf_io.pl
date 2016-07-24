@@ -344,7 +344,7 @@ rdf_change_format(Source, Sink, Opts) :-
 rdf_change_format0(Source, SourceOpts, State, Out) :-
   rdf_call_on_tuples(
     Source,
-    {State,Out}/[_,S,P,O,G]>>gen_ntuple(rdf, S, P, O, G, State, Out),
+    {State,Out}/[_,S,P,O,G]>>gen_ntuple(S, P, O, G, State, Out),
     SourceOpts
   ).
 
