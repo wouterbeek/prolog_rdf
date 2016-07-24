@@ -17,6 +17,10 @@
 
 /** <module> Generate N-Tuples, i.e., N-Triples and N-Quads
 
+The follwing debug flags are used:
+
+  * gen_ntuples
+
 @author Wouter Beek
 @version 2016/03-2016/07
 */
@@ -25,7 +29,7 @@
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
@@ -218,7 +222,7 @@ gen_ntuples_begin(State2, Opts) :-
       nb_set_dict(bprefix, State2, BPrefix)
   ;   true
   ),
-  debug(gen_ntuples, ">>> Writing N-Tuples", []).
+  indent_debug(gen_ntuples, "> Writing N-Tuples").
 
 
 
@@ -229,7 +233,7 @@ gen_ntuples_end(State, Opts) :-
   option(triples(State.triples), Opts, _),
   NoTuples is State.triples + State.quads,
   option(tuples(NoTuples), Opts, _),
-  debug(gen_ntuples, "<<< Written N-Tuples", []).
+  indent_debug(gen_ntuples, "< Written N-Tuples").
 
 
 

@@ -15,8 +15,6 @@
 @version 2016/06-2016/07
 */
 
-:- set_prolog_stack(global, limit(7*10**9)).
-
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(debug)).
@@ -38,6 +36,16 @@
 
 %! xml2rdf(+Source, +Sink, +RecordNames) is nondet.
 %! xml2rdf(+Source, +Sink, +RecordNames, +Opts) is nondet.
+%
+% The following options are supported:
+%
+%   * abox_alias(+atom)
+%
+%   * alias(+atom)
+%
+%   * entry_name(+atom)
+%
+%   * tbox_alias(+atom)
 
 xml2rdf(Source, Sink, RecordNames) :-
   xml2rdf(Source, Sink, RecordNames, _{}).
@@ -60,7 +68,7 @@ xml2rdf_stream(Source, RecordNames, State, Out) :-
 
 
 xml2rdf_stream(Source, RecordNames, Opts1, State, Out) :-
-  q_io:q_alias_options0(Opts1, Opts2),
+  dict_alias_options(Opts1, Opts2),
   xml_stream_record(
     Source,
     RecordNames,
@@ -122,3 +130,13 @@ xml_p_attrs(PAttrs, [Attr|Attrs], [Val|Vals]) :-
   xml_p_attrs(PAttrs, Attrs, Vals).
 xml_p_attrs(PAttrs, [_|Attrs], Vals) :-
   xml_p_attrs(PAttrs, Attrs, Vals).
+
+
+
+
+
+% HELPERS %
+
+dict_alias_options(Opts1, Opts3) :-
+  (del_dict(alias, Opts1, Alias, Opts2) -> true ; Alias = ex, Opts2 = Opts1),
+  Opts3 = Opts2.put(_{abox_alias: Alias, tbox_alias: Alias}).

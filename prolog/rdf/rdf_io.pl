@@ -34,6 +34,10 @@
 
 /** <module> RDF I/O
 
+The following debug flags are used:
+
+  * rdf(rdf_io)
+
 @author Wouter Beek
 @version 2015/08-2016/02, 2016/04-2016/07
 */
@@ -42,7 +46,6 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
@@ -104,8 +107,6 @@
    rdf_write_to_sink(+, ?, r, r, o),
    rdf_write_to_sink(+, ?, r, r, o, r),
    rdf_write_to_sink(+, ?, r, r, o, r, +).
-
-:- debug(rdf(io)).
 
 
 
@@ -431,7 +432,7 @@ rdf_load_file(Source, Opts) :-
   NumTuples is NumQuads + NumTriples,
   option(tuples(NumTuples), Opts, _),
   debug(
-    rdf(stream),
+    rdf(rdf_io),
     "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
     [NumTuples,Source,State.triples,State.quads]
   ).

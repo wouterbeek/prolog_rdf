@@ -40,8 +40,8 @@
 % Options are passed to:
 %
 %   * call_on_stream/3
+%
 %   * call_to_ntriples/3
-%   * conv_alias_options/2
 
 json2rdf(Source, Sink) :-
   json2rdf(Source, Sink, []).
@@ -60,7 +60,7 @@ json2rdf_stream(Source, State, Out) :-
 
 
 json2rdf_stream(Source, Opts1, State, Out) :-
-  conv_alias_options(Opts1, Opts2),
+  list_alias_options(Opts1, Opts2),
   call_on_stream(Source, json2rdf_stream0(Opts2, State, Out), Opts1).
 
 
@@ -92,3 +92,14 @@ json2rdf_stmt0(In, Alias, Triple) :-
       
       rdf_global_term(rdf(S,P,O), Triple)
   ).
+
+
+
+
+
+% HELPERS %
+
+list_alias_options(Opts1, Opts4) :-
+  merge_options(Opts1, [alias(ex)], Opts2),
+  select_option(alias(Alias), Opts2, Opts3),
+  merge_options(Opts3, [abox_alias(Alias),tbox_alias(Alias)], Opts4).

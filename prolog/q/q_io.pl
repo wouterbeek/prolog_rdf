@@ -7,6 +7,7 @@
     q_source_ls/0,
 
   % SOURCE LAYER ↔ STORAGE LAYER
+    q_scrape2store/1,    % +Dataset
     q_source2store/1,    % +Dataset
     q_store_rm/1,        % +G
 
@@ -80,13 +81,15 @@ Display graphs with q_store_ls/0.
 Graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<ENTRY>`
 
 
----
+The following flags are used:
+
+  * q(q_io)
 
 @author Wouter Beek
 @version 2016/07
 */
 
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt_ext)).
@@ -108,7 +111,8 @@ Graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<ENTRY>`
     q_store_call(2, +).
 
 :- multifile
-  q_io:q_source2store_hook/4.
+    q_io:q_scrape2store_hook/2,
+    q_io:q_source2store_hook/4.
 
 :- qb_alias(triply, 'http://geonovum.triply.cc/').
 
@@ -164,6 +168,13 @@ q_source_ls :-
 
 % SOURCE LAYER ↔ STORAGE LAYER
 
+%! q_scrape2store(+Dataset) is det.
+
+q_scrape2store(Dataset) :-
+  q_graph_name(Dataset, data, G),
+  q_io:q_scrape2store_hook(Dataset, G).
+
+
 %! q_source2store(+Dataset) is det.
 %
 % The resultant data file is called `<DATASET>_conv.<EXT>`.  The
@@ -183,7 +194,7 @@ q_source2store(Dataset) :-
       exists_file(File2)
     )
   ), !,
-  debug(q(fs), "Dataset ~a already exists in Quine store.", [Dataset]).
+  indent_debug(q(q_io), "Dataset ~a already exists in Quine store.", [Dataset]).
 q_source2store(Dataset) :-
   q_source_file(Dataset, File),
   forall(
@@ -193,7 +204,7 @@ q_source2store(Dataset) :-
       q_io:q_source2store_hook(Dataset, File, Entry, G)
     )
   ),
-  debug(q(fs), "Dataset ~a is added to the Quine store.", [Dataset]).
+  indent_debug(q(q_io), "Dataset ~a is added to the Quine store.", [Dataset]).
 
 
 
@@ -290,7 +301,7 @@ q_store2view(hdt, G) :-
   exists_file(NTriplesFile), !,
   q_view_file(G, [hdt], HdtFile),
   hdt:hdt_create_from_file(HdtFile, NTriplesFile, []),
-  debug(q(fs), "N-Triples → HDT", []).
+  indent_debug(q(q_io), "N-Triples → HDT").
 % N-Quads → N-Triples
 q_store2view(hdt, G) :-
   q_view_base(G, Base),
@@ -304,7 +315,7 @@ q_store2view(hdt, G) :-
       [from_format(nquads),to_format(ntriples)]
     ),
     (
-      debug(q(fs), "N-Quads → N-Triples", []),
+      indent_debug(q(q_io), "N-Quads → N-Triples"),
       q_store2view(hdt, G)
     ),
     delete_file(NTriplesFile)
@@ -427,7 +438,7 @@ q_load(hdt, G) :-
   exists_file(HdtFile), !,
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph0(G, HdtFile, Hdt)),
-  debug(q(fs), "HDT → open", []).
+  indent_debug(q(q_io), "HDT → open").
 q_load(rdf, G) :-
   q_store_file(G, NTriplesFile),
   rdf_load_file(NTriplesFile, [rdf_format(ntriples),graph(G)]).
