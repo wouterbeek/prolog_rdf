@@ -81,11 +81,12 @@ csv2rdf_stream(Source, State, Out) :-
 
 
 csv2rdf_stream(Source, Opts, State, Out) :-
-  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts), Opts).
+  indent_debug(conv(csv2rdf), "> CSV → RDF"),
+  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts), Opts),
+  indent_debug(conv(csv2rdf), "< CSV → RDF").
 
 
 csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
-  indent_debug(conv(csv2rdf), "> CSV → RDF"),
   csv2rdf_options0(Opts1, Dict, Opts2),
   (   get_dict(header, Dict, Ps)
   ->  true
@@ -110,8 +111,7 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
     Vals
   ),
   fail.
-csv2rdf_stream0(_, _, _, _, Meta, Meta) :-
-  indent_debug(conv(csv2rdf), "< CSV → RDF").
+csv2rdf_stream0(_, _, _, _, Meta, Meta).
 
 
 csv2rdf_options0(Opts1, D, Opts4) :-
