@@ -2,8 +2,10 @@
   q_io,
   [
   % SOURCE LAYER
-    q_source_dataset/1,  % -Dataset
-    q_source_file/2,     % ?Dataset, -File
+    q_source_dataset/2,  % ?Dataset, -Dir
+    q_source_file/3,     % ?Dataset, ?Graph, -File
+    q_source_graph/1,    % -G
+    q_source_graph/3,    % ?Dataset, ?Graph, -G
     q_source_ls/0,
 
   % SOURCE LAYER ↔ STORAGE LAYER
@@ -13,10 +15,9 @@
 
   % STORAGE LAYER
     q_store_call/2,      % :Goal_2, +G
-    q_store_directory/1, % -Dir
-    q_store_file/1,      % -File
-    q_store_file/2,      % +G, -File
-    q_store_graph/1,     % ?G
+    q_store_file/3,      % ?Dataset, ?Graph, -File
+    q_store_graph/1,     % -G
+    q_store_graph/3,     % ?Dataset, ?Graph, -G
     q_store_ls/0,
 
   % STORAGE LAYER ↔ VIEWS LAYER
@@ -50,14 +51,6 @@
 Files are stored as `/source/<DATATSET>.tar.gz` and contain entries of
 the form `<GRAPH>.<EXT>`.
 
-Enumerate existing files with q_source_file/2 and existing graphs with
-q_source_graph/1.
-
-Enumerate Gzipped TAR file names with q_source_file/2.
-
-Display graphs with q_source_ls/0.
-
-
    ↓ q_source2store/[1,2]   ↑ q_store_rm/[1,2]
 
 
@@ -65,11 +58,6 @@ Display graphs with q_source_ls/0.
 clean and standards-compliant RDF format.
 
 Files are stored as `/data/<DATASET>/<ENTRY>.nt.gz`.
-
-Enumerate directories (datasets) and files (graphs) with q_store_dir/2 and q_store_file/3.
-
-Display graphs with q_store_ls/0.
-
 
    ↓ q_store2view/[2,3]   ↑ q_view_rm/[2,3]
 
@@ -80,10 +68,13 @@ Display graphs with q_store_ls/0.
 
 Graph name `http://<CUSTOMER>.triply.cc/<DATASET>/<ENTRY>`
 
+---
 
 The following flags are used:
 
   * q(q_io)
+
+---
 
 @author Wouter Beek
 @version 2016/07
@@ -107,7 +98,7 @@ The following flags are used:
     hdt_graph0/3.
 
 :- meta_predicate
-    q_ls0(1),
+    q_ls0(+, 1),
     q_store_call(2, +).
 
 :- multifile
@@ -122,7 +113,6 @@ The following flags are used:
    q_loaded(?, r),
    q_save(+, r),
    q_store_call(:, r),
-   q_store_file(r, -),
    q_store_graph(r),
    q_store_rm(r),
    q_store2view(+, r),
@@ -137,30 +127,37 @@ The following flags are used:
 
 % SOURCE LAYER %
 
-%! q_source_dataset(-Dataset) is nondet.
+%! q_source_dataset(?Dataset, -Dir) is nondet.
 
-q_source_dataset(Dataset) :-
-  q_source_file(Dataset, _).
+q_source_dataset(Dataset, Dir) :-
+  q_something_dataset(source, Dataset, Dir).
 
 
 
-%! q_source_file(?Dataset, -File) is nondet.
+%! q_source_file(?Dataset, ?Graph, -File) is nondet.
 
-q_source_file(Dataset, File) :-
-  absolute_file_name(source(.), Dir, [access(read),file_type(directory)]),
-  (   var(Dataset)
-  ->  directory_file(Dir, File),
-      atomic_list_concat([Dataset,tar,gz], ., File)
-  ;   directory_file_path(Dir, Dataset, Base),
-      atomic_list_concat([Base,tar,gz], ., File)
-  ).
+q_source_file(Dataset, Graph, File) :-
+  q_something_file(source, Dataset, Graph, File).
+
+
+
+%! q_source_graph(-G) is nondet.
+%! q_source_graph(?Dataset, ?Graph, -G) is nondet.
+
+q_source_graph(G) :-
+  q_source_graph(_, _, G).
+
+
+q_source_graph(Dataset, Graph, G) :-
+  q_source_file(Dataset, Graph, _),
+  q_graph_name(Dataset, Graph, G).
 
 
 
 %! q_source_ls is det.
 
 q_source_ls :-
-  q_ls0(q_source_dataset).
+  q_ls0(source, q_source_graph).
 
 
 
@@ -175,6 +172,7 @@ q_scrape2store(Dataset) :-
   q_io:q_scrape2store_hook(Dataset, G).
 
 
+
 %! q_source2store(+Dataset) is det.
 %
 % The resultant data file is called `<DATASET>_conv.<EXT>`.  The
@@ -185,23 +183,20 @@ q_scrape2store(Dataset) :-
 % `call(<NAME>_load_void,+Sink,+G)`.
 
 q_source2store(Dataset) :-
-  q_source_file(Dataset, File1),
   forall(
-    archive_entry(File1, Entry),
+    q_source_graph(Dataset, Graph, _),
     (
-      q_graph_name(Dataset, Entry, G),
-      q_store_file(G, File2),
+      q_store_file(Dataset, Graph, File2),
       exists_file(File2)
     )
   ), !,
   indent_debug(q(q_io), "Dataset ~a already exists in Quine store.", [Dataset]).
 q_source2store(Dataset) :-
-  q_source_file(Dataset, File),
   forall(
-    archive_entry(File, Entry),
+    q_source_file(Dataset, Graph, File),
     (
-      q_graph_name(Dataset, Entry, G),
-      q_io:q_source2store_hook(Dataset, File, Entry, G)
+      q_graph_name(Dataset, Graph, G),
+      q_io:q_source2store_hook(Dataset, Graph, File, G)
     )
   ),
   indent_debug(q(q_io), "Dataset ~a is added to the Quine store.", [Dataset]).
@@ -211,7 +206,8 @@ q_source2store(Dataset) :-
 %! q_store_rm(+G) is det.
 
 q_store_rm(G) :-
-  q_store_file(G, File),
+  q_graph_name(Dataset, Graph, G),
+  q_store_file(Dataset, Graph, File),
   delete_file(File).
 
 
@@ -223,61 +219,45 @@ q_store_rm(G) :-
 %! q_store_call(:Goal_2, +G) is det.
 
 q_store_call(Goal_2, G) :-
-  q_store_file(G, File),
+  q_graph_name(Dataset, Graph, G),
+  q_store_file(Dataset, Graph, File),
   create_file_directory(File),
   call_to_ntriples(File, Goal_2).
 
 
 
-%! q_store_directory(-Dir) is nondet.
-%
-% Enumerate existing store directories (representing datasets).
+%! q_store_dataset(?Dataset, -Dir) is nondet.
 
-q_store_directory(Dir) :-
-  absolute_file_name(store(.), Dir0, [access(read),file_type(directory)]),
-  directory_path(Dir0, Dir).
+q_store_dataset(Dataset, Dir) :-
+  q_something_dataset(store, Dataset, Dir).
 
 
 
-%! q_store_file(-File) is nondet.
-%
-% Enumerate existing store files (representing graphs).
-
-q_store_file(File) :-
-  q_store_directory(Dir),
-  directory_path(Dir, File).
-
-
-
-%! q_store_file(+G, -File) is nondet.
+%! q_store_file(?Dataset, ?Graph, -File) is nondet.
 %
 % Translate between graph names and files containing serializations of
 % those graphs.
 %
 % File need not exist.
 
-q_store_file(G, File) :-
-  q_graph_name(Dataset, Entry, G),
-  absolute_file_name(store(.), Dir0, [access(write),file_type(directory)]),
-  directory_file_path(Dir0, Dataset, Dir),
-  directory_file_path(Dir, Entry, Base),
-  atomic_list_concat([Base,nt,gz], ., File),
-  create_file_directory(File).
+q_store_file(Dataset, Graph, Path) :-
+  q_something_file(store, Dataset, Graph, Path).
 
 
 
-%! q_store_graph(+G) is semidet.
 %! q_store_graph(-G) is nondet.
+%! q_store_graph(?Dataset, ?Graph, -G) is nondet.
 %
 % Enumerate graphs that are currently in the store.
 
 q_store_graph(G) :-
-  nonvar(G), !,
-  q_store_file(G, File),
-  exists_file(File).
-q_store_graph(G) :-
-  q_store_file(File),
-  q_store_file(G, File).
+  q_store_graph(_, _, G).
+
+
+q_store_graph(Dataset, Graph, G) :-
+  q_store_file(Dataset, Graph, File),
+  exists_file(File),
+  q_graph_name(Dataset, Graph, G).
 
 
 
@@ -286,7 +266,7 @@ q_store_graph(G) :-
 % Overview of graphs that are currently in the store.
 
 q_store_ls :-
-  q_ls0(q_store_graph).
+  q_ls0(store, q_store_graph).
 
 
 
@@ -394,9 +374,9 @@ q_view_file(M, G, File) :-
   nonvar(File), !,
   q_backend(M, Exts),
   atomic_list_concat([Base|Exts], ., File),
-  directory_file_path(Subdir, Entry, Base),
+  directory_file_path(Subdir, Graph, Base),
   directory_file_path(Dir, Dataset, Subdir),
-  q_graph_name(Dataset, Entry, G),
+  q_graph_name(Dataset, Graph, G),
   absolute_file_name(views(.), Dir, [access(write),file_type(directory)]).
 q_view_file(_, _, _) :-
   instantiation_error(q_view_file(_,_,_)).
@@ -421,7 +401,7 @@ q_view_graph(M, G) :-
 q_view_ls :-
   forall(
     q_backend(M),
-    q_ls0(q_view_graph(M))
+    q_ls0(view, q_view_graph(M))
   ).
 
 
@@ -441,18 +421,21 @@ q_load(hdt, G) :-
   assert(hdt_graph0(G, HdtFile, Hdt)),
   indent_debug(q(q_io), "HDT → open").
 q_load(rdf, G) :-
-  q_store_file(G, NTriplesFile),
+  q_graph_name(Dataset, Graph, G),
+  q_store_file(Dataset, Graph, NTriplesFile),
   rdf_load_file(NTriplesFile, [rdf_format(ntriples),graph(G)]).
 
 
 
 %! q_save(+M, +G) is det.
 %
-% Save the contents of 〈Dataset,Entry〉 in backend M to the storage
+% Save the contents of 〈Dataset,Graph〉 in backend M to the storage
 % layer.
 
 q_save(M, G) :-
-  q_store_file(G, NTriplesFile),
+  q_graph_name(Dataset, Graph, G),
+  q_store_file(Dataset, Graph, NTriplesFile),
+  create_file_directory(NTriplesFile),
   rdf_write_to_sink(NTriplesFile, M, G, [rdf_format(ntriples)]).
 
 
@@ -487,14 +470,15 @@ q_loaded(rdf, G) :-
 
 % HELPERS %
 
-%! q_ls0(:Goal_1) is det.
+%! q_ls0(+Type, :Goal_1) is det.
 
-q_ls0(Goal_1) :-
-  findall(
-    Dataset-Entry,
+q_ls0(Type, Goal_1) :-
+  aggregate_all(
+    set(X-Y),
     (
       call(Goal_1, G),
-      q_graph_name(Dataset, Entry, G)
+      q_graph_name(Dataset, Graph, G),
+      (X = Dataset, Y = Graph ; X = Type, Y = Dataset)
     ),
     Pairs
   ),
@@ -503,22 +487,49 @@ q_ls0(Goal_1) :-
 
 
 
-%! q_graph_name(+Dataset, +Entry, -G) is det.
-%! q_graph_name(-Dataset, -Entry, +G) is det.
+%! q_graph_name(+Dataset, +Graph, -G) is det.
+%! q_graph_name(-Dataset, -Graph, +G) is det.
 
-q_graph_name(Dataset, Entry, G) :-
+q_graph_name(Dataset, Graph, G) :-
   nonvar(G), !,
   rdf_global_id(triply:Local, G),
-  atomic_list_concat([Dataset,Entry], '_', Local).
-q_graph_name(Dataset, Entry0, G) :-
+  atomic_list_concat([Dataset,Graph], '_', Local).
+q_graph_name(Dataset, Graph0, G) :-
   nonvar(Dataset),
-  nonvar(Entry0), !,
+  nonvar(Graph0), !,
   % Sometimes we need to remove the source extensions of the entry.
-  atomic_list_concat([Entry|_], ., Entry0),
-  atomic_list_concat([Dataset,Entry], '_', Local),
+  atomic_list_concat([Graph|_], ., Graph0),
+  atomic_list_concat([Dataset,Graph], '_', Local),
   rdf_global_id(triply:Local, G).
 q_graph_name(_, _, _) :-
   instantiation_error(q_graph_name(_,_,_)).
+
+
+
+%! q_something_dataset(+Type, ?Dataset, -Dir) is nondet.
+
+q_something_dataset(Type, Dataset, Dir) :-
+  q_something_root(Type, Root),
+  (var(Dataset) -> directory_file(Root, Dataset) ; true),
+  directory_file_path(Root, Dataset, Dir).
+
+
+
+%! q_something_file(+Type, ?Dataset, ?Graph, -File) is nondet.
+
+q_something_file(Type, Dataset, Graph, Path) :-
+  q_something_dataset(Type, Dataset, Dir),
+  directory_file(Dir, File),
+  atomic_list_concat([Graph|_], ., File),
+  directory_file_path(Dir, File, Path).
+
+
+
+%! q_something_root(+Type, -Root) is det.
+
+q_something_root(Type, Root) :-
+  Spec =.. [Type,.],
+  absolute_file_name(Spec, Root, [access(write),file_type(directory)]).
 
 
 
@@ -526,6 +537,6 @@ q_graph_name(_, _, _) :-
 
 q_view_base(G, Base) :-
   absolute_file_name(views(.), Dir, [access(write),file_type(directory)]),
-  q_graph_name(Dataset, Entry, G),
+  q_graph_name(Dataset, Graph, G),
   directory_file_path(Dir, Dataset, Subdir),
-  directory_file_path(Subdir, Entry, Base).
+  directory_file_path(Subdir, Graph, Base).
