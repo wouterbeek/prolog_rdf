@@ -86,7 +86,7 @@ hdt(S, P, O) :-
 
 
 hdt(S, P, O, G) :-
-  q_io:hdt_graph(G, Hdt),
+  q_io:hdt_graph0(G, _, Hdt),
   hdt:hdt_search(Hdt, S, P, O).
 
 
@@ -168,7 +168,7 @@ hdt_lts(Lit, G) :-
 %   * `'<http://rdfs.org/ns/void#triples>'` with object `N^^xsd:integer`
 
 hdt_meta(S, P, O, G) :-
-  q_io:hdt_graph(G, Hdt),
+  q_io:hdt_graph0(G, _, Hdt),
   hdt:hdt_header(Hdt, S, P, O).
 
 
@@ -182,7 +182,7 @@ hdt_name(Name) :-
 
 hdt_name(Name, G) :-
   distinct(Name-G, (
-    q_io:hdt_graph(G, Hdt),
+    q_io:hdt_graph0(G, _, Hdt),
     (  hdt:hdt_subject(Hdt, Name)
     ;  hdt:hdt_predicate(Hdt, Name)
     ;  hdt:hdt_object(Hdt, Name)
