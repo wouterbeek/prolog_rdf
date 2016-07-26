@@ -1,9 +1,12 @@
 :- module(
   q_io,
   [
+    q_ls/0,
+    
   % SOURCE LAYER
-    q_source_dataset/2,   % ?D, -Dir
+    q_source_dataset/1,   % ?D
     q_source_graph/1,     % ?G
+    q_source_graph/2,     % ?D, ?G
     q_source_ls/0,
 
   % SOURCE LAYER ↔ STORAGE LAYER
@@ -14,8 +17,9 @@
 
   % STORAGE LAYER
     q_store_call/2,       % :Goal_2, +G
-    q_store_dataset/2,    % ?D, -Dir
+    q_store_dataset/1,    % ?D
     q_store_graph/1,      % ?G
+    q_store_graph/2,      % ?D, ?G
     q_store_ls/0,
 
   % STORAGE LAYER ↔ VIEWS LAYER
@@ -27,8 +31,11 @@
     q_backend/1,          % ?M
     q_backend/2,          % ?M, ?Exts
     q_change_view/3,      % +M1, +G, +M2
+    
     q_view_graph/2,       % +M, ?G
+    q_view_graph/3,       % +M, ?D, ?G
     q_view_ls/0,
+    q_view_ls/1,          % ?M
 
   % VIEWS LAYER ↔ LOADED VIEWS LAYER
     q_load/2,             % +M, +G
@@ -86,9 +93,11 @@ The following flags are used:
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/directory_ext)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(q/q_print)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(settings)).
 :- use_module(library(tree/s_tree)).
 
 %! hdt_graph0(?G, ?HdtFile, ?Hdt) is nondet.
@@ -105,6 +114,8 @@ The following flags are used:
     q_io:q_scrape2store_hook/2,
     q_io:q_source2store_hook/4.
 
+:- qb_alias(triply, 'http://triply.cc/').
+
 :- rdf_meta
    q_change_view(+, r, +),
    q_load(+, r),
@@ -112,20 +123,41 @@ The following flags are used:
    q_save(+, r),
    q_scrape2store(r),
    q_source2store(r),
-   q_source_dataset(r, -),
+   q_source_dataset(r),
    q_source_graph(r),
+   q_source_graph(r, r),
    q_store_call(:, r),
-   q_store_dataset(r, -),
+   q_store_dataset(r),
    q_store_graph(r),
-   q_store_graph(?, ?, r, -),
+   q_store_graph(r, r),
    q_store_rm_dataset(r),
    q_store_rm_graph(r),
    q_store2view(+, r),
    q_unload(+, r),
    q_view_graph(+, r),
-   q_view_graph(+, ?, ?, r, -),
+   q_view_graph(+, r, r),
    q_view_rm_dataset(+, r),
    q_view_rm_graph(+, r).
+
+:- setting(
+     copula,
+     atom,
+     '☡',
+     "In RDF graph names, the copula that is used between the dataset and graph components."
+   ).
+
+
+
+
+
+% GENERICS %
+
+%! q_ls is det.
+
+q_ls :-
+  q_source_ls,
+  q_store_ls,
+  q_view_ls.
 
 
 
@@ -133,17 +165,22 @@ The following flags are used:
 
 % SOURCE LAYER %
 
-%! q_source_dataset(?D, -Dir) is nondet.
+%! q_source_dataset(?D) is nondet.
 
-q_source_dataset(D, Dir) :-
-  q_dataset(source, D, Dir).
+q_source_dataset(D) :-
+  q_dataset(source, D).
 
 
 
 %! q_source_graph(?G) is nondet.
+%! q_source_graph(?D, ?G) is nondet.
 
 q_source_graph(G) :-
-  q_graph(source, Dataset, Graph, G, File).
+  q_graph(source, G).
+
+
+q_source_graph(D, G) :-
+  q_graph(source, D, G).
 
 
 
@@ -161,8 +198,7 @@ q_source_ls :-
 %! q_scrape2store(+D) is det.
 
 q_scrape2store(D) :-
-  q_dataset_name(Dataset, D),
-  q_graph_name(Dataset, data, G),
+  q_graph_name(D, data, G),
   q_io:q_scrape2store_hook(G).
 
 
@@ -177,29 +213,24 @@ q_scrape2store(D) :-
 % `call(<NAME>_load_void,+Sink,+G)`.
 
 q_source2store(D) :-
-  q_dataset_name(Dataset, D),
   forall(
-    q_graph(source, Dataset, Graph, _, _),
+    q_graph(source, D, G),
     (
-      q_graph(store, Dataset, Graph, _, File2),
+      q_graph_file(store, D, G, File2),
       exists_file(File2)
     )
   ), !,
-  indent_debug(q(q_io), "Dataset ~a already exists in Quine store.", [Dataset]).
+  indent_debug(q(q_io), "Dataset ~a already exists in Quine store.", [D]).
 q_source2store(D) :-
-  q_dataset_name(Dataset, D),
   forall(
-    q_graph(source, Dataset, Graph, _, File),
-    (
-      q_graph_name(Dataset, Graph, G),
-      q_io:q_source2store_hook(File, G)
-    )
+    q_graph_file(source, D, G, File),
+    q_io:q_source2store_hook(File, G)
   ),
-  indent_debug(q(q_io), "Dataset ~a is added to the Quine store.", [Dataset]).
+  indent_debug(q(q_io), "Dataset ~a is added to the Quine store.", [D]).
 
 
 
-%! q_store_rm_dataset(+Dataset) is det.
+%! q_store_rm_dataset(+D) is det.
 
 q_store_rm_dataset(D) :-
   q_rm_dataset(store, D).
@@ -225,27 +256,22 @@ q_store_call(Goal_2, G) :-
 
 
 
-%! q_store_dataset(?Dataset, -Dir) is nondet.
+%! q_store_dataset(?D) is nondet.
 
-q_store_dataset(D, Dir) :-
-  q_dataset(store, D, Dir).
+q_store_dataset(D) :-
+  q_dataset(store, D).
 
 
 
 %! q_store_graph(?G) is nondet.
-%! q_store_graph(?Dataset, ?Graph, ?G, -File) is nondet.
-%
-% Translate between graph names and files containing serializations of
-% those graphs.
-%
-% File need not exist.
+%! q_store_graph(?D, ?G) is nondet.
 
 q_store_graph(G) :-
-  q_store_graph(_, _, G, _).
+  q_graph(store, G).
 
 
-q_store_graph(Dataset, Graph, G, File) :-
-  q_graph(store, Dataset, Graph, G, File).
+q_store_graph(D, G) :-
+  q_graph(store, D, G).
 
 
 
@@ -266,14 +292,14 @@ q_store_ls :-
 
 % N-Triples → HDT
 q_store2view(hdt, G) :-
-  q_view_graph(rdf, Dataset, Graph, G, NTriplesFile),
+  q_graph_file_name(view(rdf), G, NTriplesFile),
   exists_file(NTriplesFile), !,
-  q_view_graph(hdt, Dataset, Graph, G, HdtFile),
+  q_graph_file_name(view(hdt), G, HdtFile),
   hdt:hdt_create_from_file(HdtFile, NTriplesFile, []),
   indent_debug(q(q_io), "N-Triples → HDT").
 % N-Quads → N-Triples
 q_store2view(hdt, G) :-
-  q_view_graph(rdf, _, _, G, NTriplesFile),
+  q_graph_file_name(view(rdf), G, NTriplesFile),
   file_change_extension(NTriplesFile, 'nq.gz', NQuadsFile),
   exists_file(NQuadsFile), !,
   setup_call_cleanup(
@@ -292,15 +318,14 @@ q_store2view(rdf, _).
 
 
 
-%! q_view_rm_graph(+M, +D) is det.
+%! q_view_rm_dataset(+M, +D) is det.
 %
 % @tbd Use q_rm_dataset/2 once the index file is removed from the HDT
 % implementation.
 
 q_view_rm_dataset(M, D) :-
-  q_dataset_name(Dataset, D),
   forall(
-    q_view_graph(M, Dataset, Graph, G, _),
+    q_view_graph(M, D, G),
     q_view_rm_graph(M, G)
   ).
 
@@ -312,7 +337,7 @@ q_view_rm_dataset(M, D) :-
 % removed from the implementation.
 
 q_view_rm_graph(hdt, G) :- !,
-  q_view_graph(hdt, _, _, G, HdtFile),
+  q_graph_file(view(hdt), G, HdtFile),
   (exists_file(HdtFile) -> delete_file(HdtFile) ; true),
   atomic_list_concat([HdtFile,index], ., HdtIndexFile),
   (exists_file(HdtIndexFile) -> delete_file(HdtIndexFile) ; true).
@@ -344,35 +369,40 @@ q_backend(hdt, [hdt]).
 % as well.
 
 q_change_view(M1, G, M2) :-
-  q_graph_name(Dataset, Graph, G),
   with_mutex(q_io, (
-    q_graph_rm(view(M1), Dataset, Graph),
+    q_graph_rm(view(M1), G),
     q_store2view(M2, G)
   )).
 
 
 
-%! q_view_graph(+M, ?Dataset, ?Graph, ?G, -File) is semidet.
+%! q_view_graph(+M, ?G) is semidet.
+%! q_view_graph(+M, ?D, ?G) is semidet.
 
-q_view_graph(M, Dataset, Graph, G, File) :-
-  q_graph(type(M), Dataset, Graph, G, File).
+q_view_graph(M, G) :-
+  q_graph(type(M), G).
+
+
+q_view_graph(M, D, G) :-
+  q_graph(type(M), D, G).
 
 
 
 %! q_view_ls is det.
+%! q_view_ls(?M) is det.
 
 q_view_ls :-
   forall(
     q_backend(M),
-    q_ls(view(M))
+    q_view_ls(M)
   ).
 
 
-
-%! q_view_rm_dataset(+M, +D) is det.
-
-q_view_rm_dataset(M, D) :-
-  q_rm_dataset(view(M), D).
+q_view_ls(M) :-
+  q_backend(M),
+  write("Backend: "),
+  writeln(M),
+  q_ls(view(M)).
 
 
 
@@ -385,13 +415,13 @@ q_view_rm_dataset(M, D) :-
 q_load(hdt, G) :-
   hdt_graph0(G, _, _), !.
 q_load(hdt, G) :-
-  q_view_graph(hdt, _, _, G, HdtFile),
+  q_view_graph(hdt, G, HdtFile),
   exists_file(HdtFile), !,
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph0(G, HdtFile, Hdt)),
   indent_debug(q(q_io), "HDT → open").
 q_load(rdf, G) :-
-  q_store_graph(_, _, G, NTriplesFile),
+  q_graph_file(store, G, NTriplesFile),
   rdf_load_file(NTriplesFile, [rdf_format(ntriples),graph(G)]).
 
 
@@ -402,7 +432,7 @@ q_load(rdf, G) :-
 % layer.
 
 q_save(M, G) :-
-  q_store_graph(_, _, G, NTriplesFile),
+  q_graph_file_name(store, G, NTriplesFile),
   create_file_directory(NTriplesFile),
   rdf_write_to_sink(NTriplesFile, M, G, [rdf_format(ntriples)]).
 
@@ -448,26 +478,22 @@ q_loaded_ls :-
 
 % HELPERS %
 
-%! q_dataset(+Type, ?D, -Dir) is nondet.
+%! q_dataset(+Type, +D) is semidet.
+%! q_dataset(+Type, -D) is nondet.
 
-q_dataset(Type, D, Dir) :-
-  q_root(Type, Root),
-  (   var(D)
-  ->  directory_file(Root, Dataset),
-      rdf_global_id(triply:Dataset, D)
-  ;   rdf_global_id(triply:Dataset, D)
-  ),
-  directory_file_path(Root, Dataset, Dir).
+q_dataset(Type, D) :-
+  q_dataset_file(Type, D, _).
 
 
 
 %! q_dataset_file(+Type, +D, -Dir) is det.
+%! q_dataset_file(+Type, -D, -Dir) is nondet.
 
 q_dataset_file(Type, D, Dir) :-
   q_root(Type, Root),
-  q_dataset_name(Dataset, D),
-  directory_file_path(Root, Dataset, Dir),
-  create_directory(Dir).
+  (var(D) -> directory_file(Root, Name) ; true),
+  q_dataset_name(Name, D),
+  directory_file_path(Root, Name, Dir).
 
 
 
@@ -486,68 +512,77 @@ q_file_extensions(view(M), Exts) :-
 
 
 
-%! q_graph(+Type, ?Dataset, ?Graph, ?G, -File) is nondet.
+%! q_graph(+Type, +G) is semidet.
+%! q_graph(+Type, -G) is nondet.
+%! q_graph(+Type, +D, +G) is semidet.
+%! q_graph(+Type, +D, -G) is nondet.
+%! q_graph(+Type, -D, +G) is det.
+%! q_graph(+Type, -D, -G) is nondet.
 %
 % From 8 to 2 instantiation patterns.
 
-q_graph(Type, Dataset, Graph, G, Path) :-
-  nonvar(Dataset), nonvar(Graph), nonvar(G), !,
-  q_graph0(Type, Dataset, Graph, G, Path).
-q_graph(Type, Dataset, Graph, G, Path) :-
-  (nonvar(G) ; nonvar(Dataset), nonvar(Graph)), !,
-  q_graph_name(Dataset, Graph, G),
-  q_graph0(Type, Dataset, Graph, G, Path).
-q_graph(Type, Dataset, Graph, G, Path) :-
-  q_graph0(Type, Dataset, Graph, G, Path).
+q_graph(Type, G) :-
+  q_graph(Type, _, G).
 
 
-%! q_graph0(+Type, +Dataset, +Graph, +G, -Path) is det.
-%! q_graph0(+Type, -Dataset, -Graph, -G, -Path) is nondet.
-
-q_graph0(Type, Dataset, Graph, G, Path) :-
-  q_dataset(Type, Dataset, Dir),
-  (   exists_directory(Dir)
-  ->  directory_file(Dir, File),
-      atomic_list_concat([Graph|_], ., File)
-  ;   Type == store,
-      nonvar(Graph)
-  ->  atomic_list_concat([Graph,nt,gz], ., File)
-  ;   Type =.. [view|M],
-      q_backend(M, Exts)
-  ->  atomic_list_concat([Graph|Exts], ., File)
-  ),
-  q_graph_name(Dataset, Graph, G),
-  directory_file_path(Dir, File, Path).
+q_graph(Type, D, G) :-
+  q_graph_file(Type, D, G, _).
 
 
-  
-%! q_graph_file(+Type, +G, -File) is det.
+
+%! q_graph_file(+Type, +G, -File) is semidet.
+%! q_graph_file(+Type, -G, -File) is nondet.
+%! q_graph_file(+Type, +D, +G, -File) is semidet.
+%! q_graph_file(+Type, -D, +G, -File) is semidet.
+%! q_graph_file(+Type, +D, -G, -File) is nondet.
+%! q_graph_file(+Type, -D, -G, -File) is nondet.
+%
+% Enumerate existing files.
 
 q_graph_file(Type, G, File) :-
-  q_graph_name(Dataset, Graph, G),
-  q_dataset_file(Type, Dataset, Dir),
-  directory_file_path(Dir, Graph, Base),
+  q_graph_file(Type, _, G, File).
+
+
+% Make sure that D and G are either both instantiated or both
+% uninstantiated.
+q_graph_file(Type, D, G, File) :-
+  var(D), nonvar(G), !,
+  q_graph_name(D, _, G),
+  q_graph_file(Type, D, G, File).
+q_graph_file(Type, D, G, File) :-
+  q_dataset_file(Type, D, Dir),
+  create_directory(Dir),
+  directory_path(Dir, File),
+  atom_concat(Dir, Local, File),
+  atomic_list_concat([Name|_], ., Local),
+  q_graph_name(D, Name, G).
+
+
+
+%! q_graph_file_name(+Type, +G, -File) is det.
+
+q_graph_file_name(Type, G, File) :-
+  q_dataset_file(Type, D, Dir),
+  q_graph_name(D, Name, G),
   q_file_extensions(Type, Exts),
-  atomic_list_concat([Base|Exts], ., File).
+  atomic_list_concat([Name|Exts], ., Local),
+  setting(q_io:copula, Copula),
+  atomic_list_concat([Dir,Local], Copula, File).
 
 
 
-%! q_graph_name(+Dataset, +Graph, -G) is det.
-%! q_graph_name(-Dataset, -Graph, +G) is det.
+%! q_graph_name(+D, +Name, -G) is det.
+%! q_graph_name(-D, -Name, +G) is det.
 
-q_graph_name(Dataset, Graph, G) :-
+q_graph_name(D, Name, G) :-
   nonvar(G), !,
   rdf_global_id(triply:Local, G),
-  atomic_list_concat([Dataset,Graph], '_', Local).
-q_graph_name(Dataset, Graph0, G) :-
-  nonvar(Dataset),
-  nonvar(Graph0), !,
-  % Sometimes we need to remove the source extensions of the entry.
-  atomic_list_concat([Graph|_], ., Graph0),
-  atomic_list_concat([Dataset,Graph], '_', Local),
-  rdf_global_id(triply:Local, G).
-q_graph_name(_, _, _) :-
-  instantiation_error(q_graph_name(_,_,_)).
+  setting(q_io:copula, Copula),
+  atomic_list_concat([D,Name], Copula, Local).
+q_graph_name(D, Name, G) :-
+  nonvar(D), nonvar(Name), !,
+  setting(q_io:copula, Copula),
+  atomic_list_concat([D,Name], Copula, G).
 
 
 
@@ -557,22 +592,24 @@ q_ls(Type) :-
   aggregate_all(
     set(X-Y),
     (
-      q_graph(Type, Dataset, Graph, _, _),
-      (X = Dataset, Y = Graph ; X = Type, Y = Dataset)
+      q_graph(Type, D, G),
+      (X = D, Y = G ; X = Type, Y = D)
     ),
     Pairs
   ),
-  (pairs_to_tree(Pairs, Tree) -> print_tree(Tree) ; writeln("∅")).
+  (   pairs_to_tree(Pairs, Tree)
+  ->  print_tree(Tree, [label_writer(q_print:dcg_print_term)])
+  ;   writeln("∅")
+  ).
 
 
 
 %! q_rm_dataset(+Type, +D) is det.
 
 q_rm_dataset(Type, D) :-
-  q_dataset_name(Dataset, D),
   forall(
-    q_graph(Type, Dataset, Graph, _, _),
-    q_rm_graph(Type, Dataset, Graph)
+    q_graph(Type, D, G),
+    q_rm_graph(Type, G)
   ).
 
 
@@ -580,7 +617,7 @@ q_rm_dataset(Type, D) :-
 %! q_rm_graph(+Type, +G) is det.
 
 q_rm_graph(Type, G) :-
-  q_graph(Type, _, _, G, File),
+  q_graph_file(Type, G, File),
   (exists_file(File) -> delete_file(File) ; true).
 
 

@@ -7,6 +7,8 @@
     dcg_print_graph//3,      % ?M,             +G, +Opts
     dcg_print_graph_term//1, %                 +G
     dcg_print_graph_term//2, %                 +G, +Opts
+    dcg_print_iri//1,        %     +Iri
+    dcg_print_iri//2,        %     +Iri,           +Opts
     dcg_print_literal//1,    %     +Lit
     dcg_print_literal//2,    %     +Lit,           +Opts
     dcg_print_node//1,       %     +Node
@@ -140,6 +142,8 @@ Print RDF statements.
    dcg_print_graph(?, r, +, ?, ?),
    dcg_print_graph_term(r, ?, ?),
    dcg_print_graph_term(r, +, ?, ?),
+   dcg_print_iri(r, ?, ?),
+   dcg_print_iri(r, +, ?, ?),
    dcg_print_literal(o, ?, ?),
    dcg_print_literal(o, +, ?, ?),
    dcg_print_object(o, ?, ?),
@@ -804,6 +808,14 @@ dcg_print_datatype(D) -->
 dcg_print_datatype(D, Opts) -->
   dcg_print_iri(D, Opts).
 
+
+
+%! dcg_print_iri(+Iri)// is det.
+%! dcg_print_iri(+Iri, +Opts)// is det.
+
+dcg_print_iri(Iri) -->
+  {dcg_print_default_options(Opts)},
+  dcg_print_iri(Iri, Opts).
 
 
 % @tbd
