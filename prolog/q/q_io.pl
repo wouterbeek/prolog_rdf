@@ -215,15 +215,15 @@ q_scrape2store(D) :-
 q_source2store(D) :-
   forall(
     q_graph(source, D, G),
-    (
-      q_graph_file(store, D, G, File2),
-      exists_file(File2)
-    )
+    q_graph_file(store, G, _)
   ), !,
   indent_debug(q(q_io), "Dataset ~a already exists in Quine store.", [D]).
 q_source2store(D) :-
   forall(
-    q_graph_file(source, D, G, File),
+    (
+      q_source_graph(D, G),
+      q_graph_file_name(store, G, File)
+    ),
     q_io:q_source2store_hook(File, G)
   ),
   indent_debug(q(q_io), "Dataset ~a is added to the Quine store.", [D]).
@@ -251,7 +251,8 @@ q_store_rm_graph(G) :-
 %! q_store_call(:Goal_2, +G) is det.
 
 q_store_call(Goal_2, G) :-
-  q_graph_file(store, G, File),
+  q_graph_file_name(store, G, File),
+  create_file_directory(File),
   call_to_ntriples(File, Goal_2).
 
 
@@ -497,6 +498,16 @@ q_dataset_file(Type, D, Dir) :-
 
 
 
+%! q_dataset_file_name(+Type, +D, -Dir) is det.
+%! q_dataset_file_name(+Type, -D, -Dir) is nondet.
+
+q_dataset_file_name(Type, D, Dir) :-
+  q_root(Type, Root),
+  q_dataset_name(Name, D),
+  directory_file_path(Root, Name, Dir).
+
+
+
 %! q_dataset_name(?Dataset, ?D) is nondet.
 
 q_dataset_name(Dataset, D) :-
@@ -560,10 +571,11 @@ q_graph_file(Type, D, G, File) :-
 
 
 %! q_graph_file_name(+Type, +G, -File) is det.
+%! q_graph_file_name(+Type, +G, -File) is det.
 
 q_graph_file_name(Type, G, File) :-
-  q_dataset_file(Type, D, Dir),
   q_graph_name(D, Name, G),
+  q_dataset_file_name(Type, D, Dir),
   q_file_extensions(Type, Exts),
   atomic_list_concat([Name|Exts], ., Local),
   setting(q_io:copula, Copula),
@@ -576,9 +588,8 @@ q_graph_file_name(Type, G, File) :-
 
 q_graph_name(D, Name, G) :-
   nonvar(G), !,
-  rdf_global_id(triply:Local, G),
   setting(q_io:copula, Copula),
-  atomic_list_concat([D,Name], Copula, Local).
+  atomic_list_concat([D,Name], Copula, G).
 q_graph_name(D, Name, G) :-
   nonvar(D), nonvar(Name), !,
   setting(q_io:copula, Copula),
