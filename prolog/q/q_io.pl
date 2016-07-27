@@ -4,46 +4,48 @@
     q_ls/0,
     
   % SOURCE LAYER
-    q_source_dataset/1,   % ?D
-    q_source_graph/1,     % ?G
-    q_source_graph/2,     % ?D, ?G
+    q_source_dataset/1, % ?D
+    q_source_graph/1,   % ?G
+    q_source_graph/2,   % ?D, ?G
     q_source_ls/0,
 
   % SOURCE LAYER ↔ STORAGE LAYER
-    q_scrape2store/1,     % +D
-    q_source2store/1,     % +D
-    q_store_rm_dataset/1, % +D
-    q_store_rm_graph/1,   % +G
+    q_scrape2store_graph/1,   % +G
+    q_source2store_dataset/1, % +D
+    q_source2store_graph/1,   % +G
+    q_store_rm_dataset/1,     % +D
+    q_store_rm_graph/1,       % +G
 
   % STORAGE LAYER
-    q_store_call/2,       % :Goal_2, +G
-    q_store_dataset/1,    % ?D
-    q_store_graph/1,      % ?G
-    q_store_graph/2,      % ?D, ?G
+    q_store_call/2,            % :Goal_2, +G
+    q_store_dataset/1,         % ?D
+    q_store_graph/1,           % ?G
+    q_store_graph/2,           % ?D, ?G
+    q_store_graph_file_name/2, % +G, -File
     q_store_ls/0,
 
   % STORAGE LAYER ↔ VIEWS LAYER
-    q_store2view/2,       % +M, +G
-    q_view_rm_dataset/2,  % +M, +D
-    q_view_rm_graph/2,    % +M, +G
+    q_store2view/2,      % +M, +G
+    q_view_rm_dataset/2, % +M, +D
+    q_view_rm_graph/2,   % +M, +G
 
   % VIEWS LAYER
-    q_backend/1,          % ?M
-    q_backend/2,          % ?M, ?Exts
-    q_change_view/3,      % +M1, +G, +M2
+    q_backend/1,     % ?M
+    q_backend/2,     % ?M, ?Exts
+    q_change_view/3, % +M1, +G, +M2
     
-    q_view_graph/2,       % +M, ?G
-    q_view_graph/3,       % +M, ?D, ?G
+    q_view_graph/2, % +M, ?G
+    q_view_graph/3, % +M, ?D, ?G
     q_view_ls/0,
-    q_view_ls/1,          % ?M
+    q_view_ls/1,    % ?M
 
   % VIEWS LAYER ↔ LOADED VIEWS LAYER
-    q_load/2,             % +M, +G
-    q_save/2,             % +M, +G
-    q_unload/2,           % +M, +G
+    q_load/2,   % +M, +G
+    q_save/2,   % +M, +G
+    q_unload/2, % +M, +G
 
   % LOADED VIEWS LAYER
-    q_loaded_graph/2,     % ?M, ?G
+    q_loaded_graph/2, % ?M, ?G
     q_loaded_ls/0
   ]
 ).
@@ -112,8 +114,8 @@ The following flags are used:
     q_store_call(2, +).
 
 :- multifile
-    q_io:q_scrape2store_hook/2,
-    q_io:q_source2store_hook/4.
+    q_io:q_scrape2store_graph_hook/1,
+    q_io:q_source2store_graph_hook/2.
 
 :- qb_alias(triply, 'http://triply.cc/').
 
@@ -122,8 +124,9 @@ The following flags are used:
    q_load(+, r),
    q_loaded_graph(?, r),
    q_save(+, r),
-   q_scrape2store(r),
-   q_source2store(r),
+   q_scrape2store_graph(r),
+   q_source2store_dataset(r),
+   q_source2store_graph(r),
    q_source_dataset(r),
    q_source_graph(r),
    q_source_graph(r, r),
@@ -131,6 +134,7 @@ The following flags are used:
    q_store_dataset(r),
    q_store_graph(r),
    q_store_graph(r, r),
+   q_store_graph_file_name(r, -),
    q_store_rm_dataset(r),
    q_store_rm_graph(r),
    q_store2view(+, r),
@@ -196,38 +200,42 @@ q_source_ls :-
 
 % SOURCE LAYER ↔ STORAGE LAYER
 
-%! q_scrape2store(+D) is det.
+%! q_scrape2store_graph(+G) is det.
 
-q_scrape2store(D) :-
-  q_graph_name(D, data, G),
-  q_io:q_scrape2store_hook(G).
-
+q_scrape2store_graph(G) :-
+  q_io:q_scrape2store_graph_hook(G).
 
 
-%! q_source2store(+D) is det.
-%
-% The resultant data file is called `<DATASET>_conv.<EXT>`.  The
-% resultant VoID file, if any, is called `<NAME>_void.<EXT>`.
-%
-% The calls that are made are `call(<NAME>_load_data,+Sink,+G)`,
-% `call(<NAME>_load_vocab,+Sink,+G)` and
-% `call(<NAME>_load_void,+Sink,+G)`.
 
-q_source2store(D) :-
+%! q_source2store_dataset(+D) is det.
+
+q_source2store_dataset(D) :-
+  \+ q_source_graph(D, _), !,
+  existence_error(q_source_graph, D).
+q_source2store_dataset(D) :-
   forall(
-    q_graph(source, D, G),
+    q_source_graph(D, G),
     q_graph_file(store, G, _)
   ), !,
   indent_debug(q(q_io), "Dataset ~a already exists in Quine store.", [D]).
-q_source2store(D) :-
+q_source2store_dataset(D) :-
   forall(
-    (
-      q_source_graph(D, G),
-      q_graph_file(source, G, File)
-    ),
-    q_io:q_source2store_hook(File, G)
+    q_source_graph(D, G),
+    q_source2store_graph(G)
   ),
   indent_debug(q(q_io), "Dataset ~a is added to the Quine store.", [D]).
+
+
+
+%! q_source2store_graph(+G) is det.
+
+q_source2store_graph(G) :-
+  \+ q_source_graph(G), !,
+  indent_debug(q(q_io), "Graph ~a already exists in Quine store.", [G]).
+q_source2store_graph(G) :-
+  q_graph_file(source, G, File),
+  q_io:q_source2store_graph_hook(File, G),
+  indent_debug(q(q_io), "Graph ~a is added to the Quine store.", [G]).
 
 
 
@@ -273,6 +281,13 @@ q_store_graph(G) :-
 
 q_store_graph(D, G) :-
   q_graph(store, D, G).
+
+
+
+%! q_store_graph_file_name(+G, -File) is det.
+
+q_store_graph_file_name(G, File) :-
+  q_graph_file_name(store, G, File).
 
 
 

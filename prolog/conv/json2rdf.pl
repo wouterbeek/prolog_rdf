@@ -27,8 +27,6 @@
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 
-:- qb_alias(triply, 'http://triply.cc/').
-
 
 
 
@@ -88,7 +86,7 @@ json2rdf_stream0(State, Out, Opts, In, Meta, Meta) :-
 %! list_alias_options(+Opts1, -Opts2) is det.
 
 list_alias_options(Opts1, Opts4) :-
-  merge_options(Opts1, [alias(triply)], Opts2),
+  merge_options(Opts1, [alias(default)], Opts2),
   select_option(alias(Alias), Opts2, Opts3),
   merge_options(Opts3, [abox_alias(Alias),tbox_alias(Alias)], Opts4).
 

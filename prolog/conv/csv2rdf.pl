@@ -36,8 +36,6 @@ The following debug flags are used:
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
-:- qb_alias(triply, 'http://triply.cc/').
-
 
 
 
@@ -50,7 +48,7 @@ The following debug flags are used:
 %
 % The following options are supported:
 %
-%   * abox_alias(+atom) Default is `ex`.
+%   * abox_alias(+atom) Default is `default`.
 %
 %   * alias(+atom) Sets both abox_alias/1 and tbox_alias/1.
 %
@@ -62,7 +60,7 @@ The following debug flags are used:
 %
 %   * tbox_alias(+atom) Uses the header labels as specified in the
 %   first row of the CSV file.  The header labels will be turned into
-%   RDF properties within the given namespace.  Default is `ex`.
+%   RDF properties within the given namespace.  Default is `default`.
 
 csv2rdf(Source, Sink) :-
   csv2rdf(Source, Sink, []).
@@ -119,12 +117,8 @@ csv2rdf_options0(Opts1, D, Opts4) :-
   merge_options(Opts2, [abox_alias(Box),tbox_alias(Box)], Opts3),
   csv2rdf_options0(Opts3, D, Opts4).
 csv2rdf_options0(Opts1, D2, Opts2) :-
-  option(abox_alias(ABox), Opts1, ex),
-  csv:make_csv_options(Opts1, Opts2, _),
-  D1 = _{abox_alias: ABox},
-  (   option(header(Ps), Opts1)
-  ->  D2 = D1.put(_{header: Ps})
-  ;   option(tbox_alias(TBox), Opts1)
-  ->  D2 = D1.put(_{tbox_alias: TBox})
-  ;   D2 = D1.put(_{tbox_alias: ex})
-  ).
+  option(abox_alias(ABox), Opts1, default),
+  option(tbox_alias(TBox), Opts1, default),
+  D1 = _{abox_alias: ABox, tbox_alias: TBox},
+  (option(header(Ps), Opts1) -> D2 = D1.put(_{header: Ps}) ; D2 = D1),
+  csv:make_csv_options(Opts1, Opts2, _).
