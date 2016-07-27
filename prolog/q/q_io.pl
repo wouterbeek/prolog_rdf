@@ -1,20 +1,21 @@
 :- module(
   q_io,
   [
+    q_graph_name/3,            % ?D, ?Name, ?G
     q_ls/0,
     
   % SOURCE LAYER
-    q_source_dataset/1, % ?D
-    q_source_graph/1,   % ?G
-    q_source_graph/2,   % ?D, ?G
+    q_source_dataset/1,        % ?D
+    q_source_graph/1,          % ?G
+    q_source_graph/2,          % ?D, ?G
     q_source_ls/0,
 
   % SOURCE LAYER ↔ STORAGE LAYER
-    q_scrape2store_graph/1,   % +G
-    q_source2store_dataset/1, % +D
-    q_source2store_graph/1,   % +G
-    q_store_rm_dataset/1,     % +D
-    q_store_rm_graph/1,       % +G
+    q_scrape2store_graph/1,    % +G
+    q_source2store_dataset/1,  % +D
+    q_source2store_graph/1,    % +G
+    q_store_rm_dataset/1,      % +D
+    q_store_rm_graph/1,        % +G
 
   % STORAGE LAYER
     q_store_call/2,            % :Goal_2, +G
@@ -25,27 +26,28 @@
     q_store_ls/0,
 
   % STORAGE LAYER ↔ VIEWS LAYER
-    q_store2view/2,      % +M, +G
-    q_view_rm_dataset/2, % +M, +D
-    q_view_rm_graph/2,   % +M, +G
+    q_store2view/1,            % +M
+    q_store2view_dataset/2,    % +M, +D
+    q_store2view_graph/2,      % +M, +G
+    q_view_rm_dataset/2,       % +M, +D
+    q_view_rm_graph/2,         % +M, +G
 
   % VIEWS LAYER
-    q_backend/1,     % ?M
-    q_backend/2,     % ?M, ?Exts
-    q_change_view/3, % +M1, +G, +M2
-    
-    q_view_graph/2, % +M, ?G
-    q_view_graph/3, % +M, ?D, ?G
+    q_backend/1,               % ?M
+    q_backend/2,               % ?M, ?Exts.
+    q_change_view/3,           % +M1, +G, +M2
+    q_view_graph/2,            % +M, ?G
+    q_view_graph/3,            % +M, ?D, ?G
     q_view_ls/0,
-    q_view_ls/1,    % ?M
+    q_view_ls/1,               % ?M
 
   % VIEWS LAYER ↔ LOADED VIEWS LAYER
-    q_load/2,   % +M, +G
-    q_save/2,   % +M, +G
-    q_unload/2, % +M, +G
+    q_load/2,                  % +M, +G
+    q_save/2,                  % +M, +G
+    q_unload/2,                % +M, +G
 
   % LOADED VIEWS LAYER
-    q_loaded_graph/2, % ?M, ?G
+    q_loaded_graph/2,          % ?M, ?G
     q_loaded_ls/0
   ]
 ).
@@ -59,7 +61,9 @@
 Files are stored as `/source/<DATATSET>.tar.gz` and contain entries of
 the form `<GRAPH>.<EXT>`.
 
-   ↓ q_source2store/[1,2]   ↑ q_store_rm/[1,2]
+
+   ↓ q_source2store_dataset/1   ↑ q_store_rm_dataset/1
+   ↓ q_source2store_graph/1     ↑ q_store_rm_graph/1
 
 
 **Storage layer** contains the converted data stored in a single,
@@ -67,7 +71,9 @@ clean and standards-compliant RDF format.
 
 Files are stored as `/data/<DATASET>/<ENTRY>.nt.gz`.
 
-   ↓ q_store2view/[2,3]   ↑ q_view_rm/[2,3]
+
+   ↓ q_store2view_dataset/2   ↑ q_view_rm_dataset/2
+   ↓ q_store2view_graph/2     ↑ q_view_rm_graph/2
 
 
 **Views layer** contains the data stored in a format for use in
@@ -121,6 +127,7 @@ The following flags are used:
 
 :- rdf_meta
    q_change_view(+, r, +),
+   q_graph_name(r, +, r),
    q_load(+, r),
    q_loaded_graph(?, r),
    q_save(+, r),
@@ -137,7 +144,8 @@ The following flags are used:
    q_store_graph_file_name(r, -),
    q_store_rm_dataset(r),
    q_store_rm_graph(r),
-   q_store2view(+, r),
+   q_store2view_dataset(+, r),
+   q_store2view_graph(+, r),
    q_unload(+, r),
    q_view_graph(+, r),
    q_view_graph(+, r, r),
@@ -156,6 +164,20 @@ The following flags are used:
 
 
 % GENERICS %
+
+%! q_graph_name(+D, +Name, -G) is det.
+%! q_graph_name(-D, -Name, +G) is det.
+
+q_graph_name(D, Name, G) :-
+  nonvar(G), !,
+  setting(q_io:copula, Copula),
+  atomic_list_concat([D,Name], Copula, G).
+q_graph_name(D, Name, G) :-
+  nonvar(D), nonvar(Name), !,
+  setting(q_io:copula, Copula),
+  atomic_list_concat([D,Name], Copula, G).
+
+
 
 %! q_ls is det.
 
@@ -304,17 +326,37 @@ q_store_ls :-
 
 % STORAGE LAYER ↔ VIEWS LAYER %
 
-%! q_store2view(+M, +G) is det.
+%! q_store2view(+M) is det.
+
+q_store2view(M) :-
+  forall(
+    q_store_dataset(D),
+    q_store2view_dataset(M, D)
+  ).
+
+
+
+%! q_store2view_dataset(+M, +D) is det.
+
+q_store2view_dataset(M, D) :-
+  forall(
+    q_store_graph(D, G),
+    q_store2view_graph(M, G)
+  ).
+
+
+
+%! q_store2view_graph(+M, +G) is det.
 
 % N-Triples → HDT
-q_store2view(hdt, G) :-
+q_store2view_graph(hdt, G) :-
   q_graph_file_name(view(rdf), G, NTriplesFile),
   exists_file(NTriplesFile), !,
   q_graph_file_name(view(hdt), G, HdtFile),
   hdt:hdt_create_from_file(HdtFile, NTriplesFile, []),
   indent_debug(q(q_io), "N-Triples → HDT").
 % N-Quads → N-Triples
-q_store2view(hdt, G) :-
+q_store2view_graph(hdt, G) :-
   q_graph_file_name(view(rdf), G, NTriplesFile),
   file_change_extension(NTriplesFile, 'nq.gz', NQuadsFile),
   exists_file(NQuadsFile), !,
@@ -326,17 +368,17 @@ q_store2view(hdt, G) :-
     ),
     (
       indent_debug(q(q_io), "N-Quads → N-Triples"),
-      q_store2view(hdt, G)
+      q_store2view_graph(hdt, G)
     ),
     delete_file(NTriplesFile)
   ).
-q_store2view(rdf, G) :-
+q_store2view_graph(rdf, G) :-
   q_graph_file(store, G, File),
   q_graph_name(D, _, G),
   q_dataset_file(view(rdf), D, Dir),
   create_directory(Dir),
   create_file_link(File, Dir).
-  
+
 
 
 %! q_view_rm_dataset(+M, +D) is det.
@@ -610,20 +652,6 @@ q_graph_file_name(Type, G, File) :-
   q_file_extensions(Type, Exts),
   atomic_list_concat([Name|Exts], ., Local),
   directory_file_path(Dir, Local, File).
-
-
-
-%! q_graph_name(+D, +Name, -G) is det.
-%! q_graph_name(-D, -Name, +G) is det.
-
-q_graph_name(D, Name, G) :-
-  nonvar(G), !,
-  setting(q_io:copula, Copula),
-  atomic_list_concat([D,Name], Copula, G).
-q_graph_name(D, Name, G) :-
-  nonvar(D), nonvar(Name), !,
-  setting(q_io:copula, Copula),
-  atomic_list_concat([D,Name], Copula, G).
 
 
 
