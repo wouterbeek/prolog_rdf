@@ -114,9 +114,6 @@ xml2rdf_stream0(N, Alias, State, Out, [H|T], S, PAttrs) :-
   is_empty_atom(H), !,
   xml2rdf_stream0(N, Alias, State, Out, T, S, PAttrs).
 xml2rdf_stream0(_, _, _, _, [], _, _) :- !.
-xml2rdf_stream0(N, Alias, State, Out, Dom, S, PAttrs) :-
-  gtrace, %DEB
-  xml2rdf_stream0(N, Alias, State, Out, Dom, S, PAttrs).
 
 
 xml_p(Alias, H, PAttrs, Attrs, P) :-

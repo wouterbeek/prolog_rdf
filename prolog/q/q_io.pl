@@ -86,6 +86,7 @@ The following flags are used:
 @version 2016/07
 */
 
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(gen/gen_ntuples)).
@@ -222,7 +223,7 @@ q_source2store(D) :-
   forall(
     (
       q_source_graph(D, G),
-      q_graph_file_name(store, G, File)
+      q_graph_file(source, G, File)
     ),
     q_io:q_source2store_hook(File, G)
   ),
@@ -252,7 +253,6 @@ q_store_rm_graph(G) :-
 
 q_store_call(Goal_2, G) :-
   q_graph_file_name(store, G, File),
-  create_file_directory(File),
   call_to_ntriples(File, Goal_2).
 
 
@@ -315,8 +315,13 @@ q_store2view(hdt, G) :-
     ),
     delete_file(NTriplesFile)
   ).
-q_store2view(rdf, _).
-
+q_store2view(rdf, G) :-
+  q_graph_file(store, G, File),
+  q_graph_name(D, _, G),
+  q_dataset_file(view(rdf), D, Dir),
+  create_directory(Dir),
+  create_file_link(File, Dir).
+  
 
 
 %! q_view_rm_dataset(+M, +D) is det.
@@ -401,8 +406,6 @@ q_view_ls :-
 
 q_view_ls(M) :-
   q_backend(M),
-  write("Backend: "),
-  writeln(M),
   q_ls(view(M)).
 
 
@@ -422,7 +425,7 @@ q_load(hdt, G) :-
   assert(hdt_graph0(G, HdtFile, Hdt)),
   indent_debug(q(q_io), "HDT → open").
 q_load(rdf, G) :-
-  q_graph_file(store, G, NTriplesFile),
+  q_graph_file_name(store, G, NTriplesFile),
   rdf_load_file(NTriplesFile, [rdf_format(ntriples),graph(G)]).
 
 
@@ -434,7 +437,6 @@ q_load(rdf, G) :-
 
 q_save(M, G) :-
   q_graph_file_name(store, G, NTriplesFile),
-  create_file_directory(NTriplesFile),
   rdf_write_to_sink(NTriplesFile, M, G, [rdf_format(ntriples)]).
 
 
@@ -479,6 +481,14 @@ q_loaded_ls :-
 
 % HELPERS %
 
+%! q_check_file_extensions(+Type, +Exts) is semidet.
+
+q_check_file_extensions(source, _) :- !.
+q_check_file_extensions(Type, Exts) :-
+  q_file_extensions(Type, Exts).
+
+
+
 %! q_dataset(+Type, +D) is semidet.
 %! q_dataset(+Type, -D) is nondet.
 
@@ -504,7 +514,8 @@ q_dataset_file(Type, D, Dir) :-
 q_dataset_file_name(Type, D, Dir) :-
   q_root(Type, Root),
   q_dataset_name(Name, D),
-  directory_file_path(Root, Name, Dir).
+  directory_file_path(Root, Name, Dir),
+  create_directory(Dir).
 
 
 
@@ -557,15 +568,20 @@ q_graph_file(Type, G, File) :-
 % Make sure that D and G are either both instantiated or both
 % uninstantiated.
 q_graph_file(Type, D, G, File) :-
-  var(D), nonvar(G), !,
-  q_graph_name(D, _, G),
-  q_graph_file(Type, D, G, File).
+  nonvar(G), !,
+  (var(D) -> q_graph_name(D, _, G) ; true),
+  once(q_graph_file0(Type, D, G, File)).
 q_graph_file(Type, D, G, File) :-
+  q_graph_file0(Type, D, G, File).
+
+
+q_graph_file0(Type, D, G, File) :-
   q_dataset_file(Type, D, Dir),
   create_directory(Dir),
   directory_path(Dir, File),
-  atom_concat(Dir, Local, File),
-  atomic_list_concat([Name|_], ., Local),
+  directory_file_path(Dir, Local, File),
+  atomic_list_concat([Name|Exts], ., Local),
+  q_check_file_extensions(Type, Exts),
   q_graph_name(D, Name, G).
 
 
@@ -578,8 +594,7 @@ q_graph_file_name(Type, G, File) :-
   q_dataset_file_name(Type, D, Dir),
   q_file_extensions(Type, Exts),
   atomic_list_concat([Name|Exts], ., Local),
-  setting(q_io:copula, Copula),
-  atomic_list_concat([Dir,Local], Copula, File).
+  directory_file_path(Dir, Local, File).
 
 
 
@@ -609,9 +624,15 @@ q_ls(Type) :-
     Pairs
   ),
   (   pairs_to_tree(Pairs, Tree)
-  ->  print_tree(Tree, [label_writer(q_print:dcg_print_term)])
+  ->  print_tree(Tree, [label_writer(q_io:print_node0)])
   ;   writeln("∅")
   ).
+
+
+print_node0(Term) -->
+  dcg_print_term(Term), !.
+print_node0(Term) -->
+  pl_term(Term).
 
 
 

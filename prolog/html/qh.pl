@@ -421,9 +421,6 @@ qh_literal_inner(V^^D, _) -->
 % Datatype hooks.
 qh_literal_inner(Lit, Opts) -->
   qh:qh_literal_hook(Lit, Opts).
-qh_literal_inner(Lit, _) -->
-  {gtrace}, %DEB
-  html([p(Lit)]).
 
 
 

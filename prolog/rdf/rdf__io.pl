@@ -7,7 +7,7 @@
     rdf_call_on_stream/3,        % +Source, :Goal_3, +Opts
     rdf_call_on_tuples/2,        % +Source, :Goal_5
     rdf_call_on_tuples/3,        % +Source, :Goal_5, +Opts
-    rdf_call_on_tuples_stream/4, % +In, :Goal_5, +Meta, +Opts
+    rdf_call_on_tuples_stream/4, % +In, :Goal_5, +Path, +Opts
     rdf_call_to_graph/2,         % ?Sink, :Goal_1
     rdf_call_to_graph/3,         % ?Sink, :Goal_1, +Opts
     rdf_change_format/2,         % +Source, +Sink
@@ -117,7 +117,7 @@ The following debug flags are used:
 %
 % Loads Source into a graph and call Goal_1 on it.
 %
-% The following call is made: `call(:Goal_1, +G, +Meta1, -Meta2)`.
+% The following call is made: `call(:Goal_1, +G, +Path1, -Path2)`.
 %
 % Options are passed to rdf_load_file/2.
 
@@ -126,12 +126,11 @@ rdf_call_on_graph(Source, Goal_1) :-
 
 
 rdf_call_on_graph(Source, Goal_1, Opts1) :-
-  select_option(metadata(Meta), Opts1, Opts2),
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
-      merge_options([force_graph(G),metadata(Meta)], Opts2, Opts3),
-      rdf_load_file(Source, Opts3),
+      merge_options(Opts1, [force_graph(G)], Opts2),
+      rdf_load_file(Source, Opts2),
       call(Goal_1, G)
     ),
     rdf_unload_graph(G)
@@ -142,7 +141,7 @@ rdf_call_on_graph(Source, Goal_1, Opts1) :-
 %! rdf_call_on_stream(+Source, :Goal_3) is det.
 %! rdf_call_on_stream(+Source, :Goal_3, +Opts) is det.
 %
-% The following call is made: `call(Goal_3, In, Meta1, Meta2)`.
+% The following call is made: `call(Goal_3, In, Path1, Path2)`.
 %
 % Options are passed to read_from_stream/3 and rdf_guess_fomat/3
 %
@@ -154,25 +153,16 @@ rdf_call_on_stream(Source, Goal_3) :-
 
 
 rdf_call_on_stream(Source, Goal_3, Opts1) :-
-  % Accept headers for RDF requests are specified in
-  % `library(semweb/rdf_http_plugin))'.
+  % Accept headers for RDF requests are specified in library
+  % `semweb/rdf_http_plugin'.
   rdf_http_plugin:rdf_extra_headers(DefRdfOpts, Opts1),
   merge_options(DefRdfOpts, Opts1, Opts2),
   call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
 
-rdf_call_on_stream0(Goal_3, Opts, In, Meta1, Meta3) :-
-  rdf_determine_format(In, Meta1, Meta2, Opts),
-  call(Goal_3, In, Meta2, Meta3).
-
-
-rdf_guess_format_options0(Meta, Opts1, Opts2) :-
-  iri_file_extensions(Meta.base_iri, Exts1),
-  reverse(Exts1, Exts2),
-  member(Ext, Exts2),
-  rdf_file_extension(Ext, Format), !,
-  merge_options(Opts1, [default_rdf_format(Format)], Opts2).
-rdf_guess_format_options0(_, Opts, Opts).
+rdf_call_on_stream0(Goal_3, Opts, In, L1, L3) :-
+  set_rdf_format(L1, L2, Opts),
+  call(Goal_3, In, L2, L3).
 
 
 
@@ -199,51 +189,54 @@ rdf_call_on_tuples(Source, Goal_5) :-
 rdf_call_on_tuples(Source, Goal_5, Opts) :-
   rdf_call_on_stream(Source, rdf_call_on_tuples_stream0(Goal_5, Opts), Opts).
 
-rdf_call_on_tuples_stream0(Goal_5, Opts, In, Meta, Meta) :-
-  rdf_call_on_tuples_stream(In, Goal_5, Meta, Opts).
+
+rdf_call_on_tuples_stream(In, Goal_5, Path, Opts) :-
+  rdf_call_on_tuples_stream0(Goal_5, Opts, In, Path, Path).
 
 
-rdf_call_on_tuples_stream(In, Goal_5, Meta1, Opts1) :-
-  rdf_determine_format(In, Meta1, Meta2, Opts1),
+rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   qb_bnode_prefix(BPrefix),
-  % Library Semweb uses option base_uri/1.  We use option base_iri/1 instead.
+  % Library Semweb uses option base_uri/1.  We use option base_iri/1
+  % instead.
+  get_base_iri(BaseIri, Path, Opts1),
+  option(rdf_format(Format), Opts1),
   Opts2 = [
     anon_prefix(BPrefix),
-    base(Meta2.base_iri),
-    base_iri(Meta2.base_iri),
-    base_uri(Meta2.base_iri),
-    format(Meta2.rdf_format),
+    base(BaseIri),
+    base_uri(BaseIri),
+    format(Format),
     max_errors(-1),
     syntax(style)
   ],
   merge_options(Opts1, Opts2, Opts3),
   (   % N-Quads & N-Triples
-      memberchk(Meta2.rdf_format, [nquads,ntriples])
-  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, Meta2), Opts3)
+      memberchk(Format, [nquads,ntriples])
+  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, Path), Opts3)
   ;   % Trig & Turtle
-      memberchk(Meta2.rdf_format, [trig,turtle])
-  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, Meta2), Opts3)
+      memberchk(Format, [trig,turtle])
+  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, Path), Opts3)
   ;   % JSON-LD
-      Meta2.rdf_format == jsonld
+      Format == jsonld
   ->  json_read_dict(In, Json),
-      forall(jsonld_tuple(Json, Tuple, Opts3),
-        rdf_call_on_quad0(Goal_5, Meta2, Tuple)
+      forall(
+	jsonld_tuple(Json, Tuple, Opts3),
+        rdf_call_on_quad0(Goal_5, Path, Tuple)
       )
   ;   % RDF/XML
-      Meta2.rdf_format == xml
-  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, Meta2), Opts3)
+      Format == xml
+  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, Path), Opts3)
   ;   % RDFa
-      Meta2.rdf_format == rdfa
+      Format == rdfa
   ->  read_rdfa(In, Triples, Opts3),
-      rdf_call_on_quads0(Goal_5, Meta2, Triples)
+      rdf_call_on_quads0(Goal_5, Path, Triples)
   ).
 
 
-rdf_call_on_quad0(Goal_5, Meta, rdf(S,P,O1,G1)) :- !,
+rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
   (G2 == user -> q_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
-  ->  call(Goal_5, Meta, S, P, O1, G3)
+  ->  call(Goal_5, L, S, P, O1, G3)
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
       ->  rdf11:write_xml_literal(html, Lex0, Lex1)
@@ -269,21 +262,21 @@ rdf_call_on_quad0(Goal_5, Meta, rdf(S,P,O1,G1)) :- !,
       ),
       % Incorrect lexical form.
       (   var(E)
-      ->  call(Goal_5, Meta, S, P, O2, G3)
+      ->  call(Goal_5, L, S, P, O2, G3)
       ;   print_message(warning, E)
       )
   ).
-rdf_call_on_quad0(Goal_5, Meta, rdf(S,P,O)) :-
+rdf_call_on_quad0(Goal_5, L, rdf(S,P,O)) :-
   q_default_graph(G),
-  rdf_call_on_quad0(Goal_5, Meta, rdf(S,P,O,G)).
+  rdf_call_on_quad0(Goal_5, L, rdf(S,P,O,G)).
 
 
-rdf_call_on_quads0(Goal_5, Meta, Tuples) :-
-  maplist(rdf_call_on_quad0(Goal_5, Meta), Tuples).
+rdf_call_on_quads0(Goal_5, L, Tuples) :-
+  maplist(rdf_call_on_quad0(Goal_5, L), Tuples).
 
 
-rdf_call_on_quads0(Goal_5, Meta, Tuples, _) :-
-  rdf_call_on_quads0(Goal_5, Meta, Tuples).
+rdf_call_on_quads0(Goal_5, L, Tuples, _) :-
+  rdf_call_on_quads0(Goal_5, L, Tuples).
 
 
 
@@ -377,7 +370,7 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
   call_onto_stream(Iri, TmpFile, copy_stream_data0, InOpts, OutOpts),
   rename_file(TmpFile, File).
 
-copy_stream_data0(In, Meta, Meta, Out) :-
+copy_stream_data0(In, L, L, Out) :-
   copy_stream_data(In, Out).
 
 
@@ -509,7 +502,7 @@ rdf_load_triples(Source, Triples, Opts) :-
 % @tbd Check whether HDT file already exists.
 %
 % In line with module `io`, the following call is made:
-% `call(Goal_3,Out,Meta1,Meta2)`.
+% `call(Goal_3, +Out, +Path1, -Path2)`.
 %
 % The following options are supported:
 %
@@ -635,19 +628,42 @@ rdf_write_to_sink_legacy(Sink, M, Opts) :-
 
 % HELPERS %
 
-%! rdf_determine_format(+In, +Meta1, -Meta2, +Opts) is semidet.
+%! get_base_iri(-BaseIri, +Path, +Opts) is det.
 
-rdf_determine_format(_, Meta, Meta, _) :-
-  get_dict(rdf_format, Meta, _), !.
-rdf_determine_format(_, Meta1, Meta2, Opts) :-
+% Option base_iri/1 overrides.
+get_base_iri(BaseIri, _, Opts) :-
+  option(base_iri(BaseIri), Opts), !.
+get_base_iri(BaseIri, Ds, _) :-
+  member(D, Ds),
+  (   get_dict(iri, D, Iri)
+  ->  iri_remove_fragment(Iri, BaseIri)
+  ;   get_dict(file, D, File)
+  ->  uri_file_name(BaseIri, File)
+  ), !.
+
+
+
+%! set_rdf_format(+Path1, -Path2, +Opts) is det.
+
+% Option rdf_format/1 overrides.
+set_rdf_format([H1|T], [H2|T], Opts) :-
   option(rdf_format(Format), Opts), !,
-  put_dict(rdf_format, Meta1, Format, Meta2).
-rdf_determine_format(In, Meta1, Meta2, Opts) :-
-  rdf_guess_format_options0(Meta1, Opts, GuessOpts),
-  % @note Make sure the metadata option of the RDF source does not
-  % get overwritten when opening the stream for guessing the RDF
+  put_dict(rdf_format, H1, Format, H2).
+set_rdf_format([H|T], [H|T], _) :-
+  dict_has_key(rdf_format, H), !.
+set_rdf_format([H1|T], [H2|T], _) :-
+  (   get_base_iri(BaseIri, [H1|T], Opts),
+      iri_file_extensions(BaseIri, Exts1),
+      reverse(Exts1, Exts2),
+      member(Ext, Exts2),
+      rdf_file_extension(Ext, Format)
+  ->  Opts = [default_rdf_format(Format)]
+  ;   Opts = []
+  ),
+  % Notice that the metadata option of the original options list does
+  % not get overwritten when opening the stream for guessing the RDF
   % serialization format.
-  rdf_guess_format(In, Format, GuessOpts),
-  % @note JSON-LD _must_ be encoded in UTF-8.
+  rdf_guess_format(In, Format, Opts),
+  % JSON-LD _must_ be encoded in UTF-8.
   (Format == jsonld -> set_stream(In, encoding(utf8)) ; true),
-  put_dict(rdf_format, Meta1, Format, Meta2).
+  put_dict(rdf_format, H1, Format, H2).
