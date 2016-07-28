@@ -42,8 +42,11 @@
     q_view_ls/1,               % ?M
 
   % VIEWS LAYER ↔ LOADED VIEWS LAYER
+    q_load/1,                  % +M
     q_load/2,                  % +M, +G
+    q_save/1,                  % +M
     q_save/2,                  % +M, +G
+    q_unload/1,                % +M
     q_unload/2,                % +M, +G
 
   % LOADED VIEWS LAYER
@@ -433,8 +436,8 @@ q_backend(hdt, [hdt]).
 
 q_change_view(M1, G, M2) :-
   with_mutex(q_io, (
-    q_graph_rm(view(M1), G),
-    q_store2view(M2, G)
+    q_rm_graph(view(M1), G),
+    q_store2view_graph(M2, G)
   )).
 
 
@@ -443,11 +446,11 @@ q_change_view(M1, G, M2) :-
 %! q_view_graph(+M, ?D, ?G) is semidet.
 
 q_view_graph(M, G) :-
-  q_graph(type(M), G).
+  q_graph(view(M), G).
 
 
 q_view_graph(M, D, G) :-
-  q_graph(type(M), D, G).
+  q_graph(view(M), D, G).
 
 
 
@@ -471,7 +474,13 @@ q_view_ls(M) :-
 
 % VIEWS LAYER ↔ LOADED VIEW LAYER %
 
+%! q_load(+M) is det.
 %! q_load(+M, +G) is det.
+
+q_load(M) :-
+  q_view_graph(M, G),
+  q_load(M, G).
+
 
 q_load(hdt, G) :-
   hdt_graph0(G, _, _), !.
@@ -487,10 +496,16 @@ q_load(rdf, G) :-
 
 
 
+%! q_save(+M) is det.
 %! q_save(+M, +G) is det.
 %
 % Save the contents of 〈Dataset,Graph〉 in backend M to the storage
 % layer.
+
+q_save(M) :-
+  q_loaded_graph(M, G),
+  q_load(M, G).
+
 
 q_save(M, G) :-
   q_graph_file_name(store, G, NTriplesFile),
@@ -498,7 +513,13 @@ q_save(M, G) :-
 
 
 
+%! q_unload(+M) is det.
 %! q_unload(+M, +G) is det.
+
+q_unload(M) :-
+  q_loaded_graph(M, G),
+  q_unload(M, G).
+
 
 q_unload(hdt, G) :- !,
   with_mutex(q_io, (
