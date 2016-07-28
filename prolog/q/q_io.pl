@@ -478,14 +478,16 @@ q_view_ls(M) :-
 %! q_load(+M, +G) is det.
 
 q_load(M) :-
-  q_view_graph(M, G),
-  q_load(M, G).
+  forall(
+    q_view_graph(M, G),
+    q_load(M, G)
+  ).
 
 
 q_load(hdt, G) :-
   hdt_graph0(G, _, _), !.
 q_load(hdt, G) :-
-  q_view_graph(hdt, G, HdtFile),
+  q_graph_file_name(view(hdt), G, HdtFile),
   exists_file(HdtFile), !,
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph0(G, HdtFile, Hdt)),
@@ -503,8 +505,10 @@ q_load(rdf, G) :-
 % layer.
 
 q_save(M) :-
-  q_loaded_graph(M, G),
-  q_load(M, G).
+  forall(
+    q_loaded_graph(M, G),
+    q_load(M, G)
+  ).
 
 
 q_save(M, G) :-
@@ -517,8 +521,10 @@ q_save(M, G) :-
 %! q_unload(+M, +G) is det.
 
 q_unload(M) :-
-  q_loaded_graph(M, G),
-  q_unload(M, G).
+  forall(
+    q_loaded_graph(M, G),
+    q_unload(M, G)
+  ).
 
 
 q_unload(hdt, G) :- !,
