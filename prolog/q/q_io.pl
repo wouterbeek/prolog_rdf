@@ -351,16 +351,19 @@ q_store2view_dataset(M, D) :-
 
 %! q_store2view_graph(+M, +G) is det.
 
+q_store2view_graph(M, G) :-
+  q_graph_file_name(view(M), G, File),
+  exists_file(File), !.
 % N-Triples → HDT
 q_store2view_graph(hdt, G) :-
-  q_graph_file_name(view(rdf), G, NTriplesFile),
+  q_graph_file_name(store, G, NTriplesFile),
   exists_file(NTriplesFile), !,
   q_graph_file_name(view(hdt), G, HdtFile),
   hdt:hdt_create_from_file(HdtFile, NTriplesFile, []),
   indent_debug(q(q_io), "N-Triples → HDT").
 % N-Quads → N-Triples
 q_store2view_graph(hdt, G) :-
-  q_graph_file_name(view(rdf), G, NTriplesFile),
+  q_graph_file_name(store, G, NTriplesFile),
   file_change_extension(NTriplesFile, 'nq.gz', NQuadsFile),
   exists_file(NQuadsFile), !,
   setup_call_cleanup(
@@ -484,6 +487,8 @@ q_load(M) :-
   ).
 
 
+q_load(M, G) :-
+  q_loaded_graph(M, G), !.
 q_load(hdt, G) :-
   hdt_graph0(G, _, _), !.
 q_load(hdt, G) :-
