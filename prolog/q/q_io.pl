@@ -11,14 +11,15 @@
     q_source_ls/0,
 
   % SOURCE LAYER ↔ STORAGE LAYER
-    q_scrape2store_graph/1,    % +G
+    q_source2store/0,
     q_source2store_dataset/1,  % +D
     q_source2store_graph/1,    % +G
+    q_store_call/2,            % :Goal_2, +G
+    q_store_rm/0,
     q_store_rm_dataset/1,      % +D
     q_store_rm_graph/1,        % +G
 
   % STORAGE LAYER
-    q_store_call/2,            % :Goal_2, +G
     q_store_dataset/1,         % ?D
     q_store_graph/1,           % ?G
     q_store_graph/2,           % ?D, ?G
@@ -123,8 +124,8 @@ The following flags are used:
     q_store_call(2, +).
 
 :- multifile
-    q_io:q_scrape2store_graph_hook/1,
-    q_io:q_source2store_graph_hook/2.
+    q_io:q_source2store_graph_hook/2,
+    q_io:q_source2store_graph_hook/3.
 
 :- qb_alias(triply, 'http://triply.cc/').
 
@@ -134,7 +135,6 @@ The following flags are used:
    q_load(+, r),
    q_loaded_graph(?, r),
    q_save(+, r),
-   q_scrape2store_graph(r),
    q_source2store_dataset(r),
    q_source2store_graph(r),
    q_source_dataset(r),
@@ -225,10 +225,13 @@ q_source_ls :-
 
 % SOURCE LAYER ↔ STORAGE LAYER
 
-%! q_scrape2store_graph(+G) is det.
+%! q_source2store is det.
 
-q_scrape2store_graph(G) :-
-  q_io:q_scrape2store_graph_hook(G).
+q_source2store :-
+  forall(
+    q_dataset(source, D),
+    q_source2store_dataset(D)
+  ).
 
 
 
@@ -258,9 +261,31 @@ q_source2store_graph(G) :-
   \+ q_source_graph(G), !,
   indent_debug(q(q_io), "Graph ~a already exists in Quine store.", [G]).
 q_source2store_graph(G) :-
-  q_graph_file(source, G, File),
-  q_io:q_source2store_graph_hook(File, G),
+  (   q_load_prolog_file(G, scrape)
+  ->  q_io:q_source2store_graph_hook(G)
+  ;   q_load_prolog_file(G, transform)
+  ->  q_graph_file(source, G, File),
+      q_io:q_source2store_graph_hook(File, G)
+  ),
   indent_debug(q(q_io), "Graph ~a is added to the Quine store.", [G]).
+
+
+
+%! q_store_call(:Goal_2, +G) is det.
+
+q_store_call(Goal_2, G) :-
+  q_store_graph_file_name(G, File),
+  call_to_ntuples(File, Goal_2).
+
+
+
+%! q_store_rm_dataset(+D) is det.
+
+q_store_rm :-
+  forall(
+    q_store_dataset(D),
+    q_store_rm_dataset(D)
+  ).
 
 
 
@@ -281,14 +306,6 @@ q_store_rm_graph(G) :-
 
 
 % STORAGE LAYER %
-
-%! q_store_call(:Goal_2, +G) is det.
-
-q_store_call(Goal_2, G) :-
-  q_graph_file_name(store, G, File),
-  call_to_ntriples(File, Goal_2).
-
-
 
 %! q_store_dataset(?D) is nondet.
 
@@ -517,7 +534,7 @@ q_save(M) :-
 
 
 q_save(M, G) :-
-  q_graph_file_name(store, G, NTriplesFile),
+  q_store_graph_file_name(G, NTriplesFile),
   rdf_write_to_sink(NTriplesFile, M, G, [rdf_format(ntriples)]).
 
 
@@ -684,6 +701,25 @@ q_graph_file_name(Type, G, File) :-
   q_file_extensions(Type, Exts),
   atomic_list_concat([Name|Exts], ., Local),
   directory_file_path(Dir, Local, File).
+
+
+
+%! q_prolog_file_name(+G, +Name, -File) is det.
+
+q_prolog_file_name(G, Name, File) :-
+  q_graph_name(D, _, G),
+  q_dataset_file(source, D, Dir),
+  directory_file_path(Dir, Name, Base),
+  file_name_extension(Base, pl, File).
+
+
+
+%! q_load_prolog_file(+G, +Name) is det.
+
+q_load_prolog_file(G, Name) :-
+  q_prolog_file_name(G, Name, File),
+  exists_file(File),
+  load_files([File]).
 
 
 
