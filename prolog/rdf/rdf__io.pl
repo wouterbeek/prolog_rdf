@@ -161,7 +161,7 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
 
 
 rdf_call_on_stream0(Goal_3, Opts, In, L1, L3) :-
-  set_rdf_format(L1, L2, Opts),
+  set_rdf_format(In, L1, L2, Opts),
   call(Goal_3, In, L2, L3).
 
 
@@ -199,7 +199,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1
   % instead.
   get_base_iri(BaseIri, Path, Opts1),
-  option(rdf_format(Format), Opts1),
+  once(get_dicts(rdf_format, Path, Format)),
   Opts2 = [
     anon_prefix(BPrefix),
     base(BaseIri),
@@ -325,11 +325,11 @@ rdf_change_format(Source, Sink) :-
 rdf_change_format(Source, Sink, Opts) :-
   (   option(from_format(FromFormat), Opts)
   ->  merge_options(Opts, [rdf_format(FromFormat)], SourceOpts)
-  ;   true
+  ;   SourceOpts = Opts
   ),
   (   option(to_format(ToFormat), Opts)
   ->  merge_options(Opts, [rdf_format(ToFormat)], SinkOpts)
-  ;   true
+  ;   SinkOpts = Opts
   ),
   call_to_ntuples(Sink, rdf_change_format0(Source, SourceOpts), SinkOpts).
 
@@ -630,7 +630,7 @@ rdf_write_to_sink_legacy(Sink, M, Opts) :-
 
 %! get_base_iri(-BaseIri, +Path, +Opts) is det.
 
-% Option base_iri/1 overrides.
+% Option base_iri/1 overrides everything else.
 get_base_iri(BaseIri, _, Opts) :-
   option(base_iri(BaseIri), Opts), !.
 get_base_iri(BaseIri, Ds, _) :-
@@ -643,27 +643,26 @@ get_base_iri(BaseIri, Ds, _) :-
 
 
 
-%! set_rdf_format(+Path1, -Path2, +Opts) is det.
+%! set_rdf_format(+In, +Path1, -Path2, +Opts) is det.
 
-% Option rdf_format/1 overrides.
-set_rdf_format([H1|T], [H2|T], Opts) :-
+% Option rdf_format/1 overrides everything else.
+set_rdf_format(_, [H1|T], [H2|T], Opts) :-
   option(rdf_format(Format), Opts), !,
   put_dict(rdf_format, H1, Format, H2).
-set_rdf_format([H|T], [H|T], _) :-
+set_rdf_format(_, [H|T], [H|T], _) :-
   dict_has_key(rdf_format, H), !.
-set_rdf_format([H1|T], [H2|T], _) :-
+set_rdf_format(In, [H1|T], [H2|T], Opts) :-
   (   get_base_iri(BaseIri, [H1|T], Opts),
-      iri_file_extensions(BaseIri, Exts1),
-      reverse(Exts1, Exts2),
-      member(Ext, Exts2),
+      iri_file_extensions(BaseIri, Exts),
+      member(Ext, Exts),
       rdf_file_extension(Ext, Format)
-  ->  Opts = [default_rdf_format(Format)]
-  ;   Opts = []
+  ->  FormatOpts = [default_rdf_format(Format)]
+  ;   FormatOpts = []
   ),
   % Notice that the metadata option of the original options list does
   % not get overwritten when opening the stream for guessing the RDF
   % serialization format.
-  rdf_guess_format(In, Format, Opts),
+  rdf_guess_format(In, Format, FormatOpts),
   % JSON-LD _must_ be encoded in UTF-8.
   (Format == jsonld -> set_stream(In, encoding(utf8)) ; true),
   put_dict(rdf_format, H1, Format, H2).
