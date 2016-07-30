@@ -5,9 +5,7 @@
     geold_tuple/3,   % +Source, +Alias, -Tuple
     geold_tuple/5,   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuple
     geold_tuples/3,  % +Source, +Alias, -Tuples
-    geold_tuples/5,  % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
-    qu_geold_flatten_properties/3,    % +M1, +M2, +G
-    qu_geold_rm_feature_collections/3 % +M1, +M2, +G
+    geold_tuples/5   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
   ]
 ).
 
@@ -38,7 +36,6 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(q/q_wkt)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
-:- use_module(library(q/qu)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
@@ -47,9 +44,7 @@ the array as e.g. Well-Known Text (WKT).
 
 :- rdf_meta
    geold_geojson(r, -),
-   geold_print_feature(r),
-   qu_geold_flatten_properties(+, +, r),
-   qu_geold_rm_feature_collections(+, +, r).
+   geold_print_feature(r).
 
 
 
@@ -126,25 +121,6 @@ geold_tuples(Source, Alias, ExtraContext, ExtraData, Tuples) :-
 
 
 
-%! qu_geold_flatten_properties(+M1, +M2, +G) is det.
-
-qu_geold_flatten_properties(M1, M2, G) :-
-  qu_flatten(M1, M2, geold:properties, G).
-
-
-
-%! qu_geold_rm_feature_collections(+M1, +M2, +G) is det.
-%
-% Remove all GeoJSON FeatureCollections, since these are mere
-% artifacts.
-
-qu_geold_rm_feature_collections(M1, M2, G) :-
-  qu_geold_rm_feature_collections_deb,
-  qu_rm_col(M1, M2, geold:features, G),
-  qu_rm(M1, M2, _, rdf:type, geold:'FeatureCollection', G).
-
-
-
 
 
 % HELPERS %
@@ -177,12 +153,3 @@ geold_prepare_data(Source, ExtraData, Data2) :-
       )
   ;   Data2 = Data1.put(ExtraData)
   ).
-
-
-
-
-
-% DEBUG %
-
-qu_geold_rm_feature_collections_deb :-
-  debug(qu(geold_rm_feature_collection), "Remove GeoJSON FeatureCollections", []).

@@ -67,7 +67,7 @@ The follwing debug flags are used:
 %! call_to_nquads(+Sink, :Goal_2) is det.
 %! call_to_nquads(+Sink, :Goal_2, +Opts) is det.
 %
-% Wrapper around call_to_ntuples/[2,3] where the RDF serialization
+% Wrapper around call_to_ntuples/3 where the RDF serialization
 % format is set to N-Quads.
 
 call_to_nquads(Sink, Goal_2) :-
@@ -83,7 +83,7 @@ call_to_nquads(Sink, Goal_2, Opts1) :-
 %! call_to_ntriples(+Sink, :Goal_2) is det.
 %! call_to_ntriples(+Sink, :Goal_2, +Opts) is det.
 %
-% Wrapper around call_to_ntuples/[2,3] where the RDF serialization
+% Wrapper around call_to_ntuples/3 where the RDF serialization
 % format is set to N-Triples.
 
 call_to_ntriples(Sink, Goal_2) :-

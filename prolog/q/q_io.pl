@@ -238,7 +238,7 @@ q_source2store :-
 %! q_source2store_dataset(+D) is det.
 
 q_source2store_dataset(D) :-
-  \+ q_source_graph(D, _), !,
+  \+ q_prolog_file(D, _, _), !,
   existence_error(q_source_graph, D).
 q_source2store_dataset(D) :-
   forall(
@@ -261,9 +261,10 @@ q_source2store_graph(G) :-
   \+ q_source_graph(G), !,
   indent_debug(q(q_io), "Graph ~a already exists in Quine store.", [G]).
 q_source2store_graph(G) :-
-  (   q_load_prolog_file(G, scrape)
+  q_graph_name(D, _, G),
+  (   q_load_prolog_file(D, scrape)
   ->  q_io:q_source2store_graph_hook(G)
-  ;   q_load_prolog_file(G, transform)
+  ;   q_load_prolog_file(D, transform)
   ->  q_graph_file(source, G, File),
       q_io:q_source2store_graph_hook(File, G)
   ),
@@ -275,7 +276,7 @@ q_source2store_graph(G) :-
 
 q_store_call(Goal_2, G) :-
   q_store_graph_file_name(G, File),
-  call_to_ntuples(File, Goal_2).
+  call_to_ntriples(File, Goal_2).
 
 
 
@@ -589,7 +590,8 @@ q_loaded_ls :-
 
 %! q_check_file_extensions(+Type, +Exts) is semidet.
 
-q_check_file_extensions(source, _) :- !.
+q_check_file_extensions(source, Exts) :- !,
+  \+ memberchk(pl, Exts).
 q_check_file_extensions(Type, Exts) :-
   q_file_extensions(Type, Exts).
 
@@ -704,21 +706,31 @@ q_graph_file_name(Type, G, File) :-
 
 
 
-%! q_prolog_file_name(+G, +Name, -File) is det.
+%! q_prolog_file(+D, +Name, -File) is det.
+%! q_prolog_file(+D, -Name, -File) is det.
 
-q_prolog_file_name(G, Name, File) :-
-  q_graph_name(D, _, G),
+q_prolog_file(D, Name, File) :-
+  q_prolog_file_name(D, Name, File),
+  exists_file(File).
+
+
+
+%! q_prolog_file_name(+D, +Name, -File) is det.
+%! q_prolog_file_name(+D, -Name, -File) is det.
+
+q_prolog_file_name(D, Name, File) :-
   q_dataset_file(source, D, Dir),
-  directory_file_path(Dir, Name, Base),
-  file_name_extension(Base, pl, File).
+  directory_file_path(Dir, '*.pl', Wildcard),
+  expand_file_name(Wildcard, [File]),
+  directory_file_path(Dir, Local, File),
+  file_name_extension(Name, pl, Local).
 
 
 
-%! q_load_prolog_file(+G, +Name) is det.
+%! q_load_prolog_file(+D, +Name) is det.
 
-q_load_prolog_file(G, Name) :-
-  q_prolog_file_name(G, Name, File),
-  exists_file(File),
+q_load_prolog_file(D, Name) :-
+  q_prolog_file(D, Name, File),
   load_files([File]).
 
 

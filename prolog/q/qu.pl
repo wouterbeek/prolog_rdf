@@ -11,7 +11,7 @@
       qu_replace_predicate/5,   % +M1, +M2, +P1, ?G, +P2
 
   % LITERAL
-    qu_replace_string/5,        % +M1, +M2, +P, ?G, :Dcg_3
+    qu_replace_string/6,        % +M1, +M2, ?S, ?P, ?G, :Dcg_3
     qu_replace_substring/7,     % +M1, +M2, ?S, ?P, +SubStr1, ?G, +SubStr2
       % DATATYPE IRI
       qu_change_datatype/5,     % +M1, +M2, ?P, ?G, +D
@@ -50,6 +50,7 @@
     qu_rm/6,                    % +M1, +M2, ?S, ?P, ?O, ?G
     qu_rm_cell/6,               % +M1, +M2, +S, +P, +O, ?G
     qu_rm_col/4,                % +M1, +M2, +P, ?G
+    qu_rm_empty_string/3,       % +M1, +M2, ?G
     qu_rm_empty_string/4,       % +M1, +M2, ?P, ?G
     qu_rm_error/6,              % +M1, +M2, ?S, ?P, ?O, ?G
     qu_rm_null/5,               % +M1, +M2, ?P, +Null, ?G
@@ -91,6 +92,8 @@ to predicate and/or graph.
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/q_wgs84)).
+:- use_module(library(q/q_wkt)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
@@ -106,7 +109,7 @@ to predicate and/or graph.
     qu_change_lex(+, +, ?, ?, //),
     qu_change_val(+, +, ?, ?, ?, ?, 2),
     qu_lex_to_iri(+, +, ?, +, ?, //),
-    qu_replace_string(+, +, +, ?, 5).
+    qu_replace_string(+, +, ?, ?, ?, 5).
 
 :- qb_alias(geold, 'http://geojsonld.com/vocab#').
 :- qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
@@ -148,12 +151,14 @@ to predicate and/or graph.
    qu_replace_nested_wkt_point(+, +, r),
    qu_replace_nested_wkt_point(+, +, r, r, r, r),
    qu_replace_predicate(+, +, r, r, r),
-   qu_replace_string(+, +, r, r, :),
+   qu_replace_string(+, +, r, r, r, :),
    qu_replace_subject(+, +, r, r, r),
    qu_replace_substring(+, +, r, r, +, r, +),
    qu_rm(+, +, r, r, o, r),
    qu_rm_cell(+, +, r, r, o, r),
    qu_rm_col(+, +, r, r),
+   qu_rm_empty_string(+, +, r),
+   qu_rm_empty_string(+, +, r, r),
    qu_rm_error(+, +, r, r, o, r),
    qu_rm_null(+, +, r, o, r),
    qu_rm_tree(+, +, r, r),
@@ -282,12 +287,12 @@ qu_replace_predicate(M1, M2, P1, G, P2) :-
 
 % TERM > LITERAL
 
-%! qu_replace_string(+M1, +M2, +P, ?G, :Dcg_3) is det.
+%! qu_replace_string(+M1, +M2, ?S, ?P, ?G, :Dcg_3) is det.
 
-qu_replace_string(M1, M2, P, G, Dcg_3) :-
+qu_replace_string(M1, M2, S, P, G, Dcg_3) :-
   qu_call(
     q(M1, S, P, Lex^^xsd:string, G),
-    (
+    (gtrace,
       string_phrase(dcg_call(Dcg_3, M2, S, G), Lex),
       qb_rm(M1, S, P, Lex^^xsd:string, G)
     )
@@ -730,7 +735,12 @@ qu_rm_col(M1, M2, P, G) :-
 
 
 
+%! qu_rm_empty_string(+M1, +M2, ?G) is det.
 %! qu_rm_empty_string(+M1, +M2, ?P, ?G) is det.
+
+qu_rm_empty_string(M1, M2, G) :-
+  qu_rm_empty_string(M1, M2, _, G).
+
 
 qu_rm_empty_string(M1, M2, P, G) :-
   qu_rm_empty_string_deb(P),
