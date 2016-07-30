@@ -1,11 +1,7 @@
 :- module(
   q_wkt,
   [
-    qb_wkt_point/4,                   % +M, +S, +Point, +G
-    qu_replace_flat_wkt_geometry/3,   % +M1, +M2, +G
-    qu_replace_flat_wkt_geometry/5,   % +M1, +M2, +Q, +R, +G
-    qu_replace_nested_wkt_geometry/3, % +M1, +M2, +G
-    qu_replace_nested_wkt_geometry/6  % +M1, +M2, +P, +Q, +R, +G
+    qb_wkt_point/4 % +M, +S, +Point, +G
   ]
 ).
 
@@ -104,53 +100,3 @@ qb_wkt_point(M, S, Point, G) :-
   point_shape(Array, Point),
   atom_phrase(wkt(point(Array)), Lex),
   qb(M, S, geold:geometry, Lex^^wkt:point, G).
-
-
-
-%! qu_replace_flat_wkt_geometry(+M1, +M2, +G) is det.
-%! qu_replace_flat_wkt_geometry(+M1, +M2, +Q, +R, +G) is det.
-
-qu_replace_flat_wkt_geometry(M1, M2, G) :-
-  qu_replace_flat_wkt_geometry(M1, M2, rdf:type, geold:coordinates, G).
-
-
-qu_replace_flat_wkt_geometry(M1, M2, Q, R, G) :-
-  debug(qu(wkt), "Triplyfy flat WKT geometry notation.", []),
-  qu_call((
-    q(M1, S, Q, C, G),
-    q(M1, S, R, Array^^D0, G)
-  ), (
-    q_iri_local(C, Local0),
-    lowercase_atom(Local0, Local),
-    rdf_global_id(wkt:Local, D),
-    qb(M2, S, geold:geometry, Array^^D, G),
-    qb_rm(M1, S, Q, C, G),
-    qb_rm(M1, S, R, Array^^D0, G)
-  )).
-
-
-
-%! qu_replace_nested_wkt_geometry(+M1, +M2, +G) is det.
-%! qu_replace_nested_wkt_geometry(+M1, +M2, +P, +Q, +R, +G) is det.
-
-qu_replace_nested_wkt_geometry(M1, M2, G) :-
-  qu_replace_nested_wkt_geometry(M1, M2, geold:geometry, rdf:type, geold:coordinates, G).
-
-
-qu_replace_nested_wkt_geometry(M1, M2, P, Q, R, G) :-
-  qu_call((
-    q(M1, S, P, B, G),
-    % Without the blank node check an already converted literal may
-    % appear in the subject position, resulting in an exception.
-    q_is_bnode(B),
-    q(M1, B, Q, C, G),
-    q(M1, B, R, Array^^D0, G)
-  ), (
-    q_iri_local(C, Local0),
-    lowercase_atom(Local0, Local),
-    rdf_global_id(wkt:Local, D),
-    qb(M2, S, geold:geometry, Array^^D, G),
-    qb_rm(M1, S, P, B, G),
-    qb_rm(M1, B, Q, C, G),
-    qb_rm(M1, B, R, Array^^D0, G)
-  )).
