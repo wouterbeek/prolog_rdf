@@ -51,7 +51,6 @@
 :- use_module(library(option)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).

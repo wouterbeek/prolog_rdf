@@ -122,7 +122,6 @@ Print RDF statements.
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_bnode_map)).
-:- use_module(library(q/q_cbd)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
@@ -379,7 +378,7 @@ q_print_root(M, S, G) :-
 
 q_print_root(M, S, G, Opts) :-
   q_root(M, S, G),
-  q_tree(M, S, G, Triples),
+  q_tree_triples(M, S, G, Triples),
   q_print_triples(Triples, Opts).
 
 
@@ -433,9 +432,9 @@ q_print_term(T, Opts1) :-
 
 
 
-%! q_tree(?M, ?S) is det.
-%! q_tree(?M, ?S, ?G) is det.
-%! q_tree(?M, ?S, ?G, +Opts) is det.
+%! q_print_tree(?M, ?S) is det.
+%! q_print_tree(?M, ?S, ?G) is det.
+%! q_print_tree(?M, ?S, ?G, +Opts) is det.
 %
 % Print the tree for a subject term.
 

@@ -764,7 +764,7 @@ qu_rm_null(M1, M2, P, Null, G) :-
 
 qu_rm_tree(M1, M2, S, G) :-
   forall(
-    q_tree(M1, S, G, Triple),
+    q_tree_triple(M1, S, G, Triple),
     qb_rm(M2, Triple, G)
   ).
 
