@@ -517,7 +517,7 @@ q_load(hdt, G) :-
   indent_debug(q(q_io), "HDT → open").
 q_load(rdf, G) :-
   q_graph_file_name(store, G, NTriplesFile),
-  rdf_load_file(NTriplesFile, [rdf_format(ntriples),graph(G)]).
+  rdf_load(NTriplesFile, [format(ntriples),graph(G)]).
 
 
 
