@@ -1,6 +1,7 @@
 :- module(
   qu,
   [
+    q_transform/2,              % +G, :Goal_3
 % TERM
     qu_replace_subject/5,       % +M1, +M2, +S1, ?G, +S2
     qu_subject_from_key/5,      % +M1, +M2, +Alias, +P, ?G
@@ -88,6 +89,7 @@ to predicate and/or graph.
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).
@@ -99,6 +101,7 @@ to predicate and/or graph.
 :- use_module(library(string_ext)).
 
 :- meta_predicate
+    q_transform(+, 3),
     qu_call(0, 0),
     qu_call0(0, 0, +),
     qu_change_decimal(+, +, ?, ?, ?, 2),
@@ -116,6 +119,7 @@ to predicate and/or graph.
 :- qb_alias(wkt, 'http://geojsonld.com/wkt#').
 
 :- rdf_meta
+   q_transform(+, t),
    qu_add_ltag(+, +, r, +, r),
    qu_add_padding(+, +, r, r, +),
    qu_call(t, t),
@@ -165,6 +169,20 @@ to predicate and/or graph.
    qu_rm_triples(+, +, r, r, o, r),
    qu_split_string(+, +, r, r, +),
    qu_subject_from_key(+, +, +, r, r).
+
+
+
+
+
+% GENERICS %
+
+%! q_transform(+G, :Goal_3) is det.
+
+q_transform(G, Goal_3) :-
+  q_load(rdf, G),
+  call(Goal_3, rdf, rdf, G),
+  q_save(rdf, G),
+  q_unload(rdf, G).
 
 
 
@@ -292,7 +310,7 @@ qu_replace_predicate(M1, M2, P1, G, P2) :-
 qu_replace_string(M1, M2, S, P, G, Dcg_3) :-
   qu_call(
     q(M1, S, P, Lex^^xsd:string, G),
-    (gtrace,
+    (
       string_phrase(dcg_call(Dcg_3, M2, S, G), Lex),
       qb_rm(M1, S, P, Lex^^xsd:string, G)
     )
