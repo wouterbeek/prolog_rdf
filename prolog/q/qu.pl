@@ -12,6 +12,7 @@
       qu_replace_predicate/5,   % +M1, +M2, +P1, ?G, +P2
 
   % LITERAL
+    qu_replace_string/5,        % +M1, +M2, ?P, ?G, :Dcg_3
     qu_replace_string/6,        % +M1, +M2, ?S, ?P, ?G, :Dcg_3
     qu_replace_substring/7,     % +M1, +M2, ?S, ?P, +SubStr1, ?G, +SubStr2
       % DATATYPE IRI
@@ -112,6 +113,7 @@ to predicate and/or graph.
     qu_change_lex(+, +, ?, ?, //),
     qu_change_val(+, +, ?, ?, ?, ?, 2),
     qu_lex_to_iri(+, +, ?, +, ?, //),
+    qu_replace_string(+, +, ?, ?, 5),
     qu_replace_string(+, +, ?, ?, ?, 5).
 
 :- qb_alias(geold, 'http://geojsonld.com/vocab#').
@@ -155,6 +157,7 @@ to predicate and/or graph.
    qu_replace_nested_wkt_point(+, +, r),
    qu_replace_nested_wkt_point(+, +, r, r, r, r),
    qu_replace_predicate(+, +, r, r, r),
+   qu_replace_string(+, +, r, r, :),
    qu_replace_string(+, +, r, r, r, :),
    qu_replace_subject(+, +, r, r, r),
    qu_replace_substring(+, +, r, r, +, r, +),
@@ -305,7 +308,12 @@ qu_replace_predicate(M1, M2, P1, G, P2) :-
 
 % TERM > LITERAL
 
+%! qu_replace_string(+M1, +M2, ?P, ?G, :Dcg_3) is det.
 %! qu_replace_string(+M1, +M2, ?S, ?P, ?G, :Dcg_3) is det.
+
+qu_replace_string(M1, M2, P, G, Dcg_3) :-
+  qu_replace_string(M1, M2, _, P, G, Dcg_3).
+
 
 qu_replace_string(M1, M2, S, P, G, Dcg_3) :-
   qu_call(
