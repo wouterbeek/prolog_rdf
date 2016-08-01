@@ -92,14 +92,15 @@
 
 Print RDF statements.
 
-| **Key**         | **Value** | **Default** | **Description**                 |
-|:----------------|:----------|:-----------:|:--------------------------------|
-| `bnode_map`     | boolean   | `true`      | Whether or not blank node names |
-|                 |           |             | are replaced by small integers. |
-| `indent`        | nonneg    | 0           |                                 |
-| `iri_lbl`       | boolean   | `false`     | Whether or not the prefered     |
-|                 |           |             | label is used i.o. the IRI.     |
-| `max_length`    | nonneg    | `inf`       |                                 |
+| **Key**     | **Value** | **Default** | **Description**                  |
+|:------------|:----------|:-----------:|:---------------------------------|
+| `bnode_map` | boolean   | `true`      | Whether or not blank node labels |
+|             |           |             | are replaced by integers.        |
+| `indent`    | nonneg    | 0           |                                  |
+| `iri_lbl`   | boolean   | `false`     | Whether or not the prefered      |
+|             |           |             | label is used i.o. the IRI.      |
+| `max_iri_length`     | nonneg | `inf` | The maximum length of an IRI.    |
+| `max_literal_length` | nonneg | `inf` | The maximum length of a literal. |
 
 @author Wouter Beek
 @tbd Turtle container abbreviation.
@@ -789,7 +790,7 @@ dcg_print_term(T, Opts) -->
 
 dcg_print_bnode(B, Opts) -->
   get_dict(bnode_map, Opts, false), !,
-  atom_ellipsis(B, Opts.max_length).
+  atom_ellipsis(B, Opts.max_bnode_length).
 dcg_print_bnode(B, _) -->
   {q_bnode_map(B, Name)},
   "_:", integer(Name).
@@ -832,26 +833,26 @@ dcg_print_iri(Full, Opts) -->
     rdf_global_id(Alias:Local, Full), !,
     atom_length(Alias, AliasLen),
     Minus is AliasLen + 1,
-    inf_minus(Opts.max_length, Minus, Max)
+    inf_minus(Opts.max_iri_length, Minus, Max)
   },
   atom(Alias),
   ":",
   atom_ellipsis(Local, Max).
 dcg_print_iri(Full, Opts) -->
   "<",
-  atom_ellipsis(Full, Opts.max_length),
+  atom_ellipsis(Full, Opts.max_iri_length),
   ">".
 
 
 
 dcg_print_language_tag(LTag, Opts) -->
-  atom_ellipsis(LTag, Opts.max_length).
+  atom_ellipsis(LTag, Opts.max_literal_length).
 
 
 
 dcg_print_lexical_form(Lex, Opts) -->
   "\"",
-  atom_ellipsis(Lex, Opts.max_length),
+  atom_ellipsis(Lex, Opts.max_literal_length),
   "\"".
 
 
@@ -914,7 +915,12 @@ dcg_print_var(Var) -->
 
 %! dcg_print_default_options(-Opts) is det.
 
-dcg_print_default_options(_{max_length: inf}).
+dcg_print_default_options(
+  _{
+    max_iri_length: inf,
+    max_literal_length: inf
+  }
+).
 
 
 

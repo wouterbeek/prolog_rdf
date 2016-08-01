@@ -32,7 +32,10 @@
     qh_term//3,          % +M, +Term,          +Opts
     qh_triple//4,        % +M, +S, +P, +O
     qh_triple//5,        % +M, +S, +P, +O,     +Opts
+  % FOR USE IN MODULE QH_UI
+    qh_default_options/2,    % +Opts1, -Opts2
     qh_graph_term_outer0//5, % +M, +Class, +Classes, +Opts, +G
+    qh_link_query_term0/3,   % +Class, +Term, -QueryTerm
     qh_object_outer0//5,     % +M, +Class, +Classes, +Opts, +O
     qh_predicate_outer0//5,  % +M, +Class, +Classes, +Opts, +P
     qh_property_outer0//5,   % +M, +Class, +Classes, +Opts, +P
@@ -558,7 +561,7 @@ qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   {
     setting(qh:http_handler, Id),
     Id \== '', !,
-    qh_link_query_term(C, Term, QueryTerm),
+    qh_link_query_term0(C, Term, QueryTerm),
     (   get_dict(query, Opts, Query0)
     ->  Query = [QueryTerm|Query0]
     ;   Query = [QueryTerm]
@@ -573,7 +576,7 @@ qh_link(_, _, _, _, Content_0, _) -->
   Content_0.
 
 
-qh_link_query_term(C, Term1, QueryTerm) :-
+qh_link_query_term0(C, Term1, QueryTerm) :-
   term_to_atom(Term1, Term2),
   QueryTerm =.. [C,Term2].
 

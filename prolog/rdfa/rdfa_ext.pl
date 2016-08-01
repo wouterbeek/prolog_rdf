@@ -231,7 +231,12 @@ agent_item0(M, G, Agent) -->
 
 'dc:abstract'(M, Res, G) -->
   {once('dc:abstract'(M, Res, Abstract, G))},
-  html(p(property='dc:abstract', \qh_literal(Abstract, _{max_length: 150}))).
+  html(
+    p(
+      property='dc:abstract',
+      \qh_literal(Abstract, _{max_literal_length: 150})
+    )
+  ).
 
 
 

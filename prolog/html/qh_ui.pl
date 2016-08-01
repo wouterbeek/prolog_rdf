@@ -30,14 +30,15 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dict_ext)).
 :- use_module(library(gis/gis_db)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
+:- use_module(library(pair_ext)).
 :- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_stat)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
@@ -133,7 +134,7 @@ qh_graph_table -->
 
 qh_graph_table(Opts1) -->
   {
-    qh_default_options(Opts1, Opts2),
+    qh_default_table_options(Opts1, Opts2),
     findall(N-[M,G], q_number_of_triples(M, G, N), Pairs),
     desc_pairs_values(Pairs, Vals)
   },
@@ -210,7 +211,7 @@ qh_quad_table(M, S, P, O, G, Opts1) -->
 qh_quad_row0(M, Opts1, rdf(S,P,O,G)) -->
   {
     (del_dict(query, Opts1, Query1, Opts2) -> true ; Opts2 = Opts1),
-    qh_link_query_term(graph, G, QueryTerm),
+    qh_link_query_term0(graph, G, QueryTerm),
     union(Query1, [QueryTerm], Query2),
     put_dict(query, Opts2, Query2, Opts3)
   },
