@@ -135,5 +135,5 @@ proof_node_shape(X, SShape) :-
   SShape = octagon.
 
 
-s_label(rdf(S,P,O)) --> !, dcg_print_triple(S, P, O).
-s_label(T) --> dcg_print_term(T).
+s_label(rdf(S,P,O)) --> !, dcg_q_print_triple(S, P, O).
+s_label(T) --> dcg_q_print_term(T).

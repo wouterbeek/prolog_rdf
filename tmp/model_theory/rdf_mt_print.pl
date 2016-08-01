@@ -146,7 +146,7 @@ rdf_mt_print_i_ext(M) :-
     (
       format("\t~w -> ", [Property]),
       dcg_with_output_to(current_output,
-        set(pair(ascii,dcg_print_term), ResourcePairs)
+        set(pair(ascii,dcg_q_print_term), ResourcePairs)
       ),
       nl
     )

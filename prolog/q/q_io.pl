@@ -51,7 +51,10 @@
     q_unload/2,                % +M, +G
 
   % LOADED VIEWS LAYER
-    q_loaded_graph/2,          % ?M, ?G
+    q_loaded_dataset/1,        % ?D
+    q_loaded_dataset/2,        % ?M, ?D
+    q_loaded_graph/2,          % ?D, ?G
+    q_loaded_graph/3,          % ?M, ?D, ?G
     q_loaded_ls/0
   ]
 ).
@@ -111,6 +114,7 @@ The following flags are used:
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
+:- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).
 
 %! hdt_graph0(?G, ?HdtFile, ?Hdt) is nondet.
@@ -133,7 +137,10 @@ The following flags are used:
    q_change_view(+, r, +),
    q_graph_name(r, +, r),
    q_load(+, r),
-   q_loaded_graph(?, r),
+   q_loaded_dataset(r),
+   q_loaded_dataset(?, r),
+   q_loaded_graph(r, r),
+   q_loaded_graph(?, r, r),
    q_save(+, r),
    q_source2store_dataset(r),
    q_source2store_graph(r),
@@ -565,11 +572,33 @@ q_unload(rdf, G) :-
 
 % LOADED VIEW LAYER %
 
-%! q_loaded_graph(?M, ?G) is nondet.
+%! q_loaded_dataset(?D) is nondet.
+%! q_loaded_dataset(?M, ?D) is nondet.
 
-q_loaded_graph(hdt, G) :-
+q_loaded_dataset(D) :-
+  distinct(D, q_loaded_dataset(_, D)).
+
+
+q_loaded_dataset(M, D) :-
+  distinct(D, q_loaded_graph(M, D, _)).
+
+
+
+%! q_loaded_graph(?D, ?G) is nondet.
+%! q_loaded_graph(?M, ?D, ?G) is nondet.
+
+q_loaded_graph(D, G) :-
+  distinct(D-G, q_loaded_graph(_, D, G)).
+
+
+q_loaded_graph(M, D, G) :-
+  q_loaded_graph0(M, G),
+  q_graph_name(D, _, G).
+
+
+q_loaded_graph0(hdt, G) :-
   hdt_graph0(G, _, _).
-q_loaded_graph(rdf, G) :-
+q_loaded_graph0(rdf, G) :-
   rdf_graph(G).
 
 
@@ -747,15 +776,9 @@ q_ls(Type) :-
     Pairs
   ),
   (   pairs_to_tree(Pairs, Tree)
-  ->  print_tree(Tree, [label_writer(q_io:print_node0)])
+  ->  print_tree(Tree, [label_writer(q_print:dcg_q_print_something)])
   ;   writeln("∅")
   ).
-
-
-print_node0(Term) -->
-  dcg_print_term(Term), !.
-print_node0(Term) -->
-  pl_term(Term).
 
 
 

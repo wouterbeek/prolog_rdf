@@ -147,10 +147,10 @@ rdf2gml_end(NFile, EFile, GFile, Opts) :-
 %   This includes the following options:
 %
 %     * edge_label_printer(+callable) The DCG writer for GML edges.
-%     The default is dcg_print_predicate//2.
+%     The default is dcg_q_print_predicate//2.
 %
 %     * node_label_printer(+callable) The DCG writer for GML nodes.
-%     The default is dcg_print_node//2.
+%     The default is dcg_q_print_node//2.
 
 rdf2gml_start(NFile, EFile, GFile, ExportOpts) :-
   rdf2gml_start([], NFile, EFile, GFile, ExportOpts).
@@ -158,7 +158,7 @@ rdf2gml_start(NFile, EFile, GFile, ExportOpts) :-
 
 rdf2gml_start(Opts, NFile, EFile, GFile, ExportOpts2) :-
   option(export_options(ExportOpts1), Opts, _{}),
-  q_print:dcg_print_default_options(DefExportOpts),
+  q_print:dcg_q_print_default_options(DefExportOpts),
   merge_dicts(DefExportOpts, ExportOpts1, ExportOpts2),
   (option(base_name(Base), Opts) -> true ; uuid(Base)),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
@@ -180,7 +180,7 @@ rdf2gml_triple(NOut, EOut, S, P, O, ExportOpts) :-
 %! gml_edge(+EOut, +NId1, +P, +NId2, +ExportOpts) is det
 
 gml_edge(EOut, NId1, P, NId2, ExportOpts) :-
-  get_dict(edge_label_printer, ExportOpts, Dcg_4, dcg_print_predicate),
+  get_dict(edge_label_printer, ExportOpts, Dcg_4, dcg_q_print_predicate),
   gml_label(Dcg_4, P, EL, ExportOpts),
   format(EOut, "  edge [ label \"~a\" source ~d target ~d ]~n", [EL,NId1,NId2]).
 
@@ -220,7 +220,7 @@ gml_node(Out, Opts, N, Id) :-
 gml_node0(N, Id, Lbl, _) :-
   node_id0(N, Id, Lbl), !.
 gml_node0(N, Id, Lbl, Opts) :-
-  get_dict(node_label_printer, Opts, Dcg_4, dcg_print_node),
+  get_dict(node_label_printer, Opts, Dcg_4, dcg_q_print_node),
   inc_thread_counter(node_id, Id),
   gml_label(Dcg_4, N, Lbl, Opts),
   assert(node_id0(N,Id,Lbl)),

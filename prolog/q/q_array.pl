@@ -15,13 +15,13 @@
 :- qb_alias(tcco, 'http://triply.cc/ontology/').
 
 :- multifile
-   q:dcg_print_literal_hook//2,
+   q:dcg_q_print_literal_hook//2,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
    qh:qh_literal_hook//2.
 
 
-q:dcg_print_literal_hook(Array^^D, Opts) -->
+q:dcg_q_print_literal_hook(Array^^D, Opts) -->
   {
     rdf_equal(tcco:array, D), !,
     q_literal_lex(Array^^D, Lex)

@@ -96,14 +96,14 @@ pair_rows(P, XYs1, Xs1, Ys1, [[P,XY,X,Y]|T]) :-
 
 rdf_comp_caption0(X, Y) -->
   "Comparing terms ",
-  dcg_print_term(X),
+  dcg_q_print_term(X),
   " and ",
-  dcg_print_term(Y).
+  dcg_q_print_term(Y).
 rdf_comp_cell0(L) -->
   {is_list(L)}, !,
-  set(dcg_print_term, L).
+  set(dcg_q_print_term, L).
 rdf_comp_cell0(T) -->
-  dcg_print_term(T).
+  dcg_q_print_term(T).
 
 
 

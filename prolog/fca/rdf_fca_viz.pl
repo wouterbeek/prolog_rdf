@@ -72,9 +72,9 @@ rdfs_fca_viz(G, File, Opts) :-
 % HELPERS %
 
 rdf_attribute_label(Term) -->
-  dcg_print_term(Term).
+  dcg_q_print_term(Term).
 
 
 
 rdf_object_label(Term) -->
-  dcg_print_term(Term).
+  dcg_q_print_term(Term).

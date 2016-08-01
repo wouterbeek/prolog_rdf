@@ -214,7 +214,7 @@ rdf_edge_label(edge(_,P,_)) -->
    )}, !,
   "".
 % Others: the edge name is the predicate term.
-rdf_edge_label(edge(_,P,_)) --> dcg_print_term(P).
+rdf_edge_label(edge(_,P,_)) --> dcg_q_print_term(P).
 
 
 
@@ -284,7 +284,7 @@ rdf_vertex_image(M, G, V, Img) :-
 
 rdf_vertex_label(_Opts1, V) -->
   %{merge_options(Opts1, [literal_ellipsis(50)], Opts2)},
-  dcg_print_term(V).
+  dcg_q_print_term(V).
 
 
 

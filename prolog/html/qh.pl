@@ -5,6 +5,8 @@
     qh_bnode//2,         %     +B,             +Opts
     qh_class//2,         % +M, +C
     qh_class//3,         % +M, +C,             +Opts
+    qh_dataset_term//2,  % +M, +D
+    qh_dataset_term//3,  % +M, +D,             +Opts
     qh_datatype//2,      % +M, +D
     qh_datatype//3,      % +M, +D,             +Opts
     qh_graph_term//2,    % +M, +G
@@ -33,13 +35,14 @@
     qh_triple//4,        % +M, +S, +P, +O
     qh_triple//5,        % +M, +S, +P, +O,     +Opts
   % FOR USE IN MODULE QH_UI
-    qh_default_options/2,    % +Opts1, -Opts2
-    qh_graph_term_outer0//5, % +M, +Class, +Classes, +Opts, +G
-    qh_link_query_term0/3,   % +Class, +Term, -QueryTerm
-    qh_object_outer0//5,     % +M, +Class, +Classes, +Opts, +O
-    qh_predicate_outer0//5,  % +M, +Class, +Classes, +Opts, +P
-    qh_property_outer0//5,   % +M, +Class, +Classes, +Opts, +P
-    qh_subject_outer0//5     % +M, +Class, +Classes, +Opts, +S
+    qh_dataset_term_outer0//5, % +M, +Class, +Classes, +Opts, +D
+    qh_default_options/2,      % +Opts1, -Opts2
+    qh_graph_term_outer0//5,   % +M, +Class, +Classes, +Opts, +G
+    qh_link_query_term0/3,     % +Class, +Term, -QueryTerm
+    qh_object_outer0//5,       % +M, +Class, +Classes, +Opts, +O
+    qh_predicate_outer0//5,    % +M, +Class, +Classes, +Opts, +P
+    qh_property_outer0//5,     % +M, +Class, +Classes, +Opts, +P
+    qh_subject_outer0//5       % +M, +Class, +Classes, +Opts, +S
   ]
 ).
 
@@ -58,7 +61,7 @@ The following options are supported:
 ---
 
 @author Wouter Beek
-@version 2016/02-2016/07
+@version 2016/02-2016/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -90,6 +93,8 @@ The following options are supported:
 :- rdf_meta
    qh_class(+, r, ?, ?),
    qh_class(+, r, +, ?, ?),
+   qh_dataset_term(+, r, ?, ?),
+   qh_dataset_term(+, r, +, ?, ?),
    qh_datatype(+, r, ?, ?),
    qh_datatype(+, r, +, ?, ?),
    qh_graph_term(+, r, ?, ?),
@@ -169,6 +174,24 @@ qh_class(M, C, Opts1) -->
 qh_class_outer0(M, C0, Cs1, Opts, C) -->
   {ord_add_element(Cs1, class, Cs2)},
   qh_term_outer0(M, C0, Cs2, Opts, C).
+
+
+
+%! qh_dataset_term(+M, +D)// is det.
+%! qh_dataset_term(+M, +D, +Opts)// is det.
+
+qh_dataset_term(M, D) -->
+  qh_dataset_term(M, D, _{}).
+
+
+qh_dataset_term(M, D, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_dataset_term_outer0(M, dataset, [], Opts2, D).
+
+
+qh_dataset_term_outer0(M, C, Cs1, Opts, D) -->
+  {ord_add_element(Cs1, dataset, Cs2)},
+  qh_iri_outer0(M, C, Cs2, Opts, D).
 
 
 
