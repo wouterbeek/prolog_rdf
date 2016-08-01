@@ -51,7 +51,7 @@ In addition to what `library(semweb/rdf11)` already provides.
 
 rdf_bnode(B, G) :-
   rdf_bnode(B),
-  distinct(G, rdf_bnode(B, G)).
+  distinct(G, rdf_term(B, G)).
 
 
 
@@ -91,8 +91,9 @@ rdf_literal(Lit, G) :-
 
 %! rdf_lts(?Lit) is nondet.
 %
-% The **language-tagged string**s are the cartesian product of the Unicode
-% strings in Normal Form C with the set of BCP 47 language tags.
+% The **language-tagged string**s are the cartesian product of the
+% Unicode strings in Normal Form C with the set of BCP 47 language
+% tags.
 
 rdf_lts(Lit) :-
   rdf_literal(Lit),

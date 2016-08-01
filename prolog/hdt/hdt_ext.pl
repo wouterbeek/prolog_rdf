@@ -244,7 +244,8 @@ hdt_object(O) :-
 
 
 hdt_object(O, G) :-
-  distinct(O-G, hdt(_, _, O, G)).
+  q_io:hdt_graph0(G, _, Hdt),
+  hdt:hdt_object(Hdt, O).
 
 
 
@@ -257,7 +258,8 @@ hdt_predicate(P) :-
 
 hdt_predicate(P, G) :-
   (var(P) -> true ; q_is_predicate(P)),
-  distinct(P-G, hdt(_, P, _, G)).
+  q_io:hdt_graph0(G, _, Hdt),
+  hdt:hdt_predicate(Hdt, P).
 
 
 
@@ -270,7 +272,8 @@ hdt_subject(S) :-
 
 hdt_subject(S, G) :-
   (var(S) -> true ; q_is_subject(S)),
-  distinct(S-G, hdt(S, _, _, G)).
+  q_io:hdt_graph0(G, _, Hdt),
+  hdt:hdt_subject(Hdt, S).
 
 
 

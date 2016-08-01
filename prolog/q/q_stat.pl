@@ -1,33 +1,33 @@
 :- module(
   q_stat,
   [
-    q_number_of_bnodes/2,     % ?M, -N
-    q_number_of_bnodes/3,     % ?M, ?G, -N
-    q_number_of_datatypes/2,  % ?M, -N
-    q_number_of_datatypes/3,  % ?M, ?G, -N
-    q_number_of_objects/2,    % ?M, -N
-    q_number_of_objects/3,    % ?M, ?G, -N
-    q_number_of_objects/4,    % ?M, ?S, ?P, -N
-    q_number_of_objects/5,    % ?M, ?S, ?P, ?G, -N
-    q_number_of_predicates/2, % ?M, -N
-    q_number_of_predicates/3, % ?M, ?G, -N
-    q_number_of_predicates/4, % ?M, ?S, ?O, -N
-    q_number_of_predicates/5, % ?M, ?S, ?O, ?G, -N
-    q_number_of_subjects/2,   % ?M, -N
-    q_number_of_subjects/3,   % ?M, ?G, -N
-    q_number_of_subjects/4,   % ?M, ?P, ?O, -N
-    q_number_of_subjects/5,   % ?M, ?P, ?O, ?G, -N
-    q_number_of_triples/2,    % ?M, -N
-    q_number_of_triples/3,    % ?M, ?G, -N
-    q_number_of_triples/5,    % ?M, ?S, ?P, ?O, -N
-    q_number_of_triples/6     % ?M, ?S, ?P, ?O, ?G, -N
+    q_number_of_bnodes/2,     % +M,                 -NumBs
+    q_number_of_bnodes/3,     % +M,             ?G, -NumBs
+    q_number_of_datatypes/2,  % +M,                 -NumDs
+    q_number_of_datatypes/3,  % +M,             ?G, -NumDs
+    q_number_of_objects/2,    % +M,                 -NumOs
+    q_number_of_objects/3,    % +M,             ?G, -NumOs
+    q_number_of_objects/4,    % +M, ?S, ?P,         -NumOs
+    q_number_of_objects/5,    % +M, ?S, ?P,     ?G, -NumOs
+    q_number_of_predicates/2, % +M,                 -NumPs
+    q_number_of_predicates/3, % +M,             ?G, -NumPs
+    q_number_of_predicates/4, % +M, ?S,     ?O,     -NumPs
+    q_number_of_predicates/5, % +M, ?S,     ?O, ?G, -NumPs
+    q_number_of_subjects/2,   % +M,                 -NumSs
+    q_number_of_subjects/3,   % +M,             ?G, -NumSs
+    q_number_of_subjects/4,   % +M,     ?P, ?O,     -NumSs
+    q_number_of_subjects/5,   % +M,     ?P, ?O, ?G, -NumSs
+    q_number_of_triples/2,    % +M,                 -NumTriples
+    q_number_of_triples/3,    % +M,             ?G, -NumTriples
+    q_number_of_triples/5,    % +M, ?S, ?P, ?O,     -NumTriples
+    q_number_of_triples/6     % +M, ?S, ?P, ?O, ?G, -NumTriples
   ]
 ).
 
 /** <module> Quine statistics
 
 @author Wouter Beek
-@version 2016/06-2016/07
+@version 2016/06-2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -39,11 +39,9 @@
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_stat)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
-
-:- meta_predicate
-    q_stat_call0(?, 2, -).
 
 :- rdf_meta
    q_number_of_bnodes(?, r, -),
@@ -65,168 +63,132 @@
 
 
 
-%! q_number_of_bnodes(?M, -N) is det.
-%! q_number_of_bnodes(?M, ?G, -N) is det.
+%! q_number_of_bnodes(+M, -NumBs) is det.
+%! q_number_of_bnodes(+M, ?G, -NumBs) is det.
 
-q_number_of_bnodes(M, N) :-
-  q_stat_call0(M, q_number_of_bnodes0, N).
-
-q_number_of_bnodes0(M, N) :-
-  aggregate_all(count, q_bnode(M, _), N).
+q_number_of_bnodes(M, NumBs) :-
+  aggregate_all(sum(N0), q_number_of_bnodes(M, _, N0), NumBs).
 
 
-q_number_of_bnodes(M, G, N) :-
-  q_stat_call0(M, q_number_of_bnodes0(G), N).
-
-q_number_of_bnodes0(G, M, N) :-
-  q_graph(M, G),
-  aggregate_all(count, q_bnode(M, _, G), N).
+q_number_of_bnodes(M, G, NumBs) :-
+  q_loaded_graph(M, G),
+  aggregate_all(count, q_bnode(M, _, G), NumBs).
 
 
 
-%! q_number_of_datatypes(?M, -N) is det.
-%! q_number_of_datatypes(?M, ?G, -N) is det.
+%! q_number_of_datatypes(+M, -NumDs) is det.
+%! q_number_of_datatypes(+M, ?G, -NumDs) is det.
 
-q_number_of_datatypes(M, N) :-
-  q_stat_call0(M, q_number_of_datatypes0, N).
-
-q_number_of_datatypes0(M, N) :-
-  aggregate_all(count, q_datatype(M, _), N).
+q_number_of_datatypes(M, NumDs) :-
+  aggregate_all(sum(N0), q_datatype(M, _, N0), NumDs).
 
 
-q_number_of_datatypes(M, G, N) :-
-  q_stat_call0(M, q_number_of_datatypes0(G), N).
-
-q_number_of_datatypes0(G, M, N) :-
-  q_graph(M, G),
-  aggregate_all(count, q_datatype(M, _, G), N).
+q_number_of_datatypes(M, G, NumDs) :-
+  q_loaded_graph(M, G),
+  aggregate_all(count, q_datatype(M, _, G), NumDs).
 
 
 
-%! q_number_of_objects(?M, -N) is det.
-%! q_number_of_objects(?M, ?G, -N) is det.
-%! q_number_of_objects(?M, ?S, ?P, -N) is det.
-%! q_number_of_objects(?M, ?S, ?P, ?G, -N) is det.
+%! q_number_of_objects(+M, -NumOs) is det.
+%! q_number_of_objects(+M, ?G, -NumOs) is det.
+%! q_number_of_objects(+M, ?S, ?P, -NumOs) is det.
+%! q_number_of_objects(+M, ?S, ?P, ?G, -NumOs) is det.
 
-q_number_of_objects(M, N) :-
-  q_stat_call0(M, q_number_of_objects0, N).
-
-q_number_of_objects(M, N) :-
-  aggregate_all(count, q_object(M, _), N).
+q_number_of_objects(M, NumOs) :-
+  aggregate_all(sum(N0), q_number_of_object(M, _, N0), NumOs).
 
 
-q_number_of_objects(M, G, N) :-
-  q_stat_call0(M, q_number_of_objects0(G), N).
-
-q_number_of_objects0(G, hdt, N) :-
-  q_graph(hdt, G),
-  hdt_number_of_objects(G, N).
-q_number_of_objects0(G, rdf, N) :-
-  aggregate_all(count, q_object(_, G), N).
+q_number_of_objects(hdt, G, NumOs) :- !,
+  q_loaded_graph(hdt, G),
+  hdt_number_of_objects(G, NumOs).
+q_number_of_objects(rdf, G, NumOs) :-
+  aggregate_all(count, rdf_object(_, G), NumOs).
 
 
-q_number_of_objects(M, S, P, N) :-
-  q_number_of_objects(M, S, P, _, N).
+q_number_of_objects(M, S, P, NumOs) :-
+  q_number_of_objects(M, S, P, _, NumOs).
 
 
-q_number_of_objects(M, S, P, G, N) :-
-  q_number_ofs(M, O, S, P, O, G, N).
+q_number_of_objects(M, S, P, G, NumOs) :-
+  q_number_ofs(M, O, S, P, O, G, NumOs).
 
 
 
-%! q_number_of_predicates(?M, -N) is det.
-%! q_number_of_predicates(?M, ?G, -N) is det.
-%! q_number_of_predicates(?M, ?S, ?O, -N) is det.
-%! q_number_of_predicates(?M, ?S, ?O, ?G, -N) is det.
+%! q_number_of_predicates(+M, -NumPs) is det.
+%! q_number_of_predicates(+M, ?G, -NumPs) is det.
+%! q_number_of_predicates(+M, ?S, ?O, -NumPs) is det.
+%! q_number_of_predicates(+M, ?S, ?O, ?G, -NumPs) is det.
 
-q_number_of_predicates(M, N) :-
-  q_stat_call0(M, q_number_of_predicates0, N).
-
-q_number_of_predicates0(M, N) :-
-  aggregate_all(count, q_predicate(M, _), N).
-
-
-q_number_of_predicates(M, G, N) :-
-  q_stat_call0(M, q_number_of_predicates0(G), N).
-
-q_number_of_predicates0(G, hdt, N) :-
-  q_graph(hdt, G),
-  hdt_number_of_properties(G, N).
-q_number_of_predicates0(G, rdf, N) :-
-  aggregate_all(count, rdf_predicate(_, G), N).
+q_number_of_predicates(hdt, NumPs) :- !,
+  aggregate_all(sum(N0), q_number_of_predicates(hdt, _, N0), NumPs).
+q_number_of_predicates(rdf, NumPs) :-
+  rdf_number_of_predicates(NumPs).
 
 
-q_number_of_predicates(M, S, O, N) :-
-  q_number_of_predicates(M, S, O, _, N).
+q_number_of_predicates(hdt, G, NumPs) :- !,
+  q_loaded_graph(hdt, G),
+  hdt_number_of_properties(G, NumPs).
+q_number_of_predicates(rdf, G, NumPs) :-
+  rdf_number_of_predicates(G, NumPs).
 
 
-q_number_of_predicates(M, S, O, G, N) :-
-  q_number_ofs(M, P, S, P, O, G, N).
+q_number_of_predicates(M, S, O, NumPs) :-
+  q_number_of_predicates(M, S, O, _, NumPs).
+
+
+q_number_of_predicates(M, S, O, G, NumPs) :-
+  q_number_ofs(M, P, S, P, O, G, NumPs).
 
 
 
-%! q_number_of_subjects(?M, -N) is det.
-%! q_number_of_subjects(?M, ?G, -N) is det.
-%! q_number_of_subjects(?M, ?P, ?O, -N) is det.
-%! q_number_of_subjects(?M, ?P, ?O, ?G, -N) is det.
+%! q_number_of_subjects(+M, -NumSs) is det.
+%! q_number_of_subjects(+M, ?G, -NumSs) is det.
+%! q_number_of_subjects(+M, ?P, ?O, -NumSs) is det.
+%! q_number_of_subjects(+M, ?P, ?O, ?G, -NumSs) is det.
 
-q_number_of_subjects(M, N) :-
-  q_stat_call0(M, q_number_of_subjects0, N).
-
-q_number_of_subjects0(hdt, N) :-
-  aggregate_all(sum(N), (q_graph(hdt, G), hdt_number_of_subjects(G, N)), N).
-q_number_of_subjects0(rdf, N) :-
-  aggregate_all(count, rdf_subject(_), N).
+q_number_of_subjects(M, NumSs) :-
+  aggregate_all(sum(N0), q_number_of_subjects(M, _, N0), NumSs).
 
 
-q_number_of_subjects(M, G, N) :-
-  q_stat_call0(M, q_number_of_subjects0(G), N).
-
-q_number_of_subjects0(G, hdt, N) :-
-  q_graph(hdt, G),
-  hdt_number_of_subjects(G, N).
-q_number_of_subjects0(G, rdf, N) :-
-  aggregate_all(count, rdf_subject(_, G), N).
+q_number_of_subjects(hdt, G, NumSs) :- !,
+  q_loaded_graph(hdt, G),
+  hdt_number_of_subjects(G, NumSs).
+q_number_of_subjects(rdf, G, NumSs) :-
+  aggregate_all(count, rdf_subject(_, G), NumSs).
 
 
-q_number_of_subjects(M, P, O, N) :-
-  q_number_of_subjects(M, P, O, _, N).
+q_number_of_subjects(M, P, O, NumSs) :-
+  q_number_of_subjects(M, P, O, _, NumSs).
 
 
-q_number_of_subjects(M, P, O, G, N) :-
-  q_number_ofs(M, S, S, P, O, G, N).
+q_number_of_subjects(M, P, O, G, NumSs) :-
+  q_number_ofs(M, S, S, P, O, G, NumSs).
 
 
 
-%! q_number_of_triples(?M, -N) is det.
-%! q_number_of_triples(?M, ?G, -N) is det.
-%! q_number_of_triples(?M, ?S, ?P, ?O, -N) is det.
-%! q_number_of_triples(?M, ?S, ?P, ?O, ?G, -N) is det.
+%! q_number_of_triples(+M, -NumTriples) is det.
+%! q_number_of_triples(+M, ?G, -NumTriples) is det.
+%! q_number_of_triples(+M, ?S, ?P, ?O, -NumTriples) is det.
+%! q_number_of_triples(+M, ?S, ?P, ?O, ?G, -NumTriples) is det.
 
-q_number_of_triples(M, N) :-
-  q_stat_call0(M, q_number_of_triples0, N).
-
-q_number_of_triples0(hdt, N) :-
-  aggregate_all(sum(N0), hdt_number_of_triples(_, N0), N).
-q_number_of_triples0(rdf, N) :-
-  rdf_number_of_triples(N).
+q_number_of_triples(hdt, NumTriples) :- !,
+  aggregate_all(sum(N0), q_number_of_triples(hdt, _, N0), NumTriples).
+q_number_of_triples(rdf, NumTriples) :-
+  rdf_number_of_triples(NumTriples).
 
 
-q_number_of_triples(M, G, N) :-
-  q_stat_call0(M, q_number_of_triples0(G), N).
-
-q_number_of_triples0(G, hdt, N) :-
-  hdt_number_of_triples(G, N).
-q_number_of_triples0(G, rdf, N) :-
-  rdf_number_of_triples(G, N).
+q_number_of_triples(hdt, G, NumTriples) :- !,
+  hdt_number_of_triples(G, NumTriples).
+q_number_of_triples(rdf, G, NumTriples) :-
+  rdf_number_of_triples(G, NumTriples).
 
 
-q_number_of_triples(M, S, P, O, N) :-
-  q_number_of_triples(M, S, P, O, _, N).
+q_number_of_triples(M, S, P, O, NumTriples) :-
+  q_number_of_triples(M, S, P, O, _, NumTriples).
 
 
-q_number_of_triples(M, S, P, O, G, N) :-
-  q_number_ofs(M, rdf(S,P,O), S, P, O, G, N).
+q_number_of_triples(M, S, P, O, G, NumTriples) :-
+  q_number_ofs(M, rdf(S,P,O), S, P, O, G, NumTriples).
 
 
 
@@ -234,20 +196,10 @@ q_number_of_triples(M, S, P, O, G, N) :-
 
 % HELPERS %
 
-q_number_ofs(M, Witness, S, P, O, G, N) :-
-  q_stat_call0(M, q_number_ofs0(Witness, S, P, O, G), N).
+%! q_number_of0(+M, +Witness, ?S, ?P, ?O, ?G, -NumWitnesses) is semidet.
+%
+% Master predicate that calculates how many instances match an
+% 〈S,P,O,G〉 pattern.
 
-q_number_ofs0(Witness, S, P, O, G, M, N) :-
-  aggregate_all(count, distinct(Witness, q(M, S, P, O, G)), N).
-
-
-
-%! q_stat_call0(+M, :Goal_2, -N) is semidet.
-%! q_stat_call0(-M, :Goal_2, -N) is nondet.
-
-q_stat_call0(M, Goal_2, N) :-
-  ground(M), !,
-  once(call(Goal_2, M, N)).
-q_stat_call0(M, Goal_2, N) :-
-  q_backend(M),
-  call(Goal_2, M, N).
+q_number_ofs(M, Witness, S, P, O, G, NumWitnesses) :-
+  aggregate_all(count, distinct(Witness, q(M, S, P, O, G)), NumWitnesses).

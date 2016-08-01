@@ -26,10 +26,11 @@
 /** <module> Quine HTML UI components
 
 @author Wouter Beek
-@version 2016/07
+@version 2016/07-2016/08
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(dict_ext)).
 :- use_module(library(gis/gis_db)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
