@@ -69,7 +69,6 @@ The following options are supported:
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_ext)).
-:- use_module(library(html/html_pl)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/js_write)).

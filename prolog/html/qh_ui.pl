@@ -35,7 +35,6 @@
 :- use_module(library(gis/gis_db)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
-:- use_module(library(html/html_pl)).
 :- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
@@ -72,6 +71,12 @@ qh_dataset_table -->
 
 qh_dataset_table(Opts1) -->
   {
+    HeaderRow = [
+      string("Dataset"),
+      string("Graph"),
+      string("№ triples"),
+      string("Store")
+    ],
     qh_default_table_options(Opts1, Opts2),
     aggregate_all(set(D), q_loaded_dataset(D), Ds),
     maplist(q_dataset_tree, Ds, SumTriples, Trees),
@@ -79,7 +84,7 @@ qh_dataset_table(Opts1) -->
     desc_pairs_values(Pairs, OrderedTrees)
   },
   bs_table(
-    \html_table_header_row(["dataset","graph","№ triples","store"]),
+    \html_table_header_row(HeaderRow),
     \html_table_trees({Opts2}/[Term]>>qh_something(Term, Opts2), OrderedTrees)
   ).
 
@@ -96,12 +101,13 @@ qh_describe(M, S) -->
 
 qh_describe(M, S, Opts1) -->
   {
+    HeaderRow = [string("Predicate"),string("Objects")],
     qh_default_table_options(Opts1, Opts2),
     findall(P-O, q(M, S, P, O), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
   bs_table(
-    \html_table_header_row(["predicate","objects"]),
+    \html_table_header_row(HeaderRow),
     \html_maplist(qh_describe_row0(Opts2), Groups)
   ).
 
@@ -163,6 +169,7 @@ qh_graph_table -->
 
 qh_graph_table(Opts1) -->
   {
+    HeaderRow = [string("Graph"),string("№ triples"),string("Store")],
     qh_default_table_options(Opts1, Opts2),
     findall(
       NumTriples-[G,NumTriples,M],
@@ -172,7 +179,7 @@ qh_graph_table(Opts1) -->
     desc_pairs_values(Pairs, DataRows)
   },
   bs_table(
-    \html_table_header_row(["graph","№ triples","store"]),
+    \html_table_header_row(HeaderRow),
     \html_maplist(qh_graph_row0(Opts2), DataRows)
   ).
 
@@ -217,9 +224,17 @@ qh_quad_table(Quads) -->
 
 
 qh_quad_table(Quads, Opts1) -->
-  {qh_default_table_options(Opts1, Opts2)},
+  {
+    HeaderRow = [
+      string("Subject"),
+      string("Predicate"),
+      string("Object"),
+      string("Graph")
+    ],
+    qh_default_table_options(Opts1, Opts2)
+  },
   bs_table(
-    \html_table_header_row(["subject","predicate","object","graph"]),
+    \html_table_header_row(HeaderRow),
     \html_maplist(qh_quad_row0(Opts2), Quads)
   ).
 
