@@ -151,9 +151,8 @@ qh_graph_menu(_) --> [].
 
 
 qh_graph_menu_item(G) -->
-  {term_to_atom(G, Val)},
   html(
-    option(value=Val,
+    option(value=G,
       \qh_graph_term(G, _{qh_link: false})
     )
   ).

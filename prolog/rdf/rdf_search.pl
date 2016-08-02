@@ -23,5 +23,5 @@
 %! rdf_search(+Pattern, -Quad) is nondet.
 
 rdf_search(Pattern, rdf(S,P,Str^^D,G)) :-
-  {like(Str, Pattern)},
+  {substring(Str, Pattern)},
   rdf(S, P, Str^^D, G).
