@@ -4,6 +4,7 @@
   % RDF
     q/4,                  % ?M, ?S, ?P, ?O
     q/5,                  % ?M, ?S, ?P, ?O, ?G
+    q/6,                  % ?M, ?S, ?P, ?O, ?G, ?D
     q_deref/2,            % +Iri, -Quad
     q_derefs/2,           % +Iri, -Quads
     q_derefs/3,           % +Iri, -POs, -SPs
@@ -85,6 +86,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- use_module(library(lists)).
 :- use_module(library(nb_set)).
 :- use_module(library(nlp/nlp_lang)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
@@ -98,6 +100,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- rdf_meta
    q(?, r, r, o),
    q(?, r, r, o, r),
+   q(?, r, r, o, r, r),
    q_deref(r, -),
    q_derefs(r, -),
    q_derefs(r, -, -),
@@ -154,6 +157,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
 
 %! q(?M, ?S, ?P, ?O) is nondet.
 %! q(?M, ?S, ?P, ?O, ?G) is nondet.
+%! q(?M, ?S, ?P, ?O, ?G, ?D) is nondet.
 
 q(M, S, P, O) :-
   q(M, S, P, O, _).
@@ -163,6 +167,15 @@ q(rdf, S, P, O, G) :-
   rdf(S, P, O, G).
 q(hdt, S, P, O, G) :-
   hdt(S, P, O, G).
+
+
+q(M, S, P, O, G, D) :-gtrace,
+  (nonvar(G) ; nonvar(D)), !,
+  q_loaded_dataset_graph(D, G),
+  q(M, S, P, O, G).
+q(M, S, P, O, G, D) :-
+  q(M, S, P, O, G),
+  q_loaded_dataset_graph(D, G).
 
 
 

@@ -26,7 +26,7 @@ q:dcg_q_print_literal_hook(Array^^D, Opts) -->
     rdf_equal(tcco:array, D), !,
     q_literal_lex(Array^^D, Lex)
   },
-  str_ellipsis(Lex, Opts.max_literal_length).
+  str_ellipsis(Lex, Opts.max_lit_len).
 
 
 rdf11:in_ground_type_hook(D, L, Lex) :-
@@ -54,4 +54,4 @@ qh:qh_literal_hook(Array^^D, Opts) -->
     rdf_equal(tcco:array, D), !,
     q_literal_lex(Array^^D, Lex)
   },
-  bs_truncated(Lex, Opts.max_literal_length).
+  bs_truncated(Lex, Opts.max_lit_len).
