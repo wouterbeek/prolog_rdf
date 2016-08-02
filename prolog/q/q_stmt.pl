@@ -169,7 +169,7 @@ q(hdt, S, P, O, G) :-
   hdt(S, P, O, G).
 
 
-q(M, S, P, O, G, D) :-gtrace,
+q(M, S, P, O, G, D) :-
   (nonvar(G) ; nonvar(D)), !,
   q_loaded_dataset_graph(D, G),
   q(M, S, P, O, G).
