@@ -3,6 +3,8 @@
   [
     qh_something//1,     % +Term
     qh_something//2,     % +Term,          +Opts
+    qh_something0//2,    % +Opts,          +Term
+    qh_alias//1,         % +Alias
     qh_bnode//1,         % +B
     qh_bnode//2,         % +B,             +Opts
     qh_class//1,         % +C
@@ -139,6 +141,8 @@ qh_something(Term) -->
   qh_something(Term, _{}).
 
 
+qh_something(alias(Alias), _) -->
+  qh_alias(Alias).
 qh_something(dataset_term(D), Opts) -->
   qh_dataset_term(D, Opts).
 qh_something(graph_term(G), Opts) --> !,
@@ -147,6 +151,24 @@ qh_something(Term, Opts) -->
   html_something(Term, Opts).
 
 
+qh_something0(Opts, Term) -->
+  qh_something(Term, Opts).
+
+
+
+
+
+%! qh_alias(+Alias)// is det.
+
+qh_alias(Alias) -->
+  {
+    qh_external_iri(alias, Alias, Link),
+    q_alias_prefix(Alias, Prefix)
+  },
+  html([
+    a([class=alias,href=Link], Alias),
+    \qh_link_external(Prefix)
+  ]).
 
 
 
@@ -549,6 +571,22 @@ qh_default_options(Opts1, Opts2) :-
 
 
 
+%! qh_external_iri(+C, +Term, -Link) is det.
+%! qh_external_iri(+C, +Term, +Query, -Link) is det.
+
+qh_external_iri(C, Term, Link) :-
+  qh_external_iri(C, Term, [], Link).
+
+
+qh_external_iri(C, Term, Query1, Link) :-
+  setting(qh:http_handler, Id),
+  Id \== '',
+  qh_link_query_term0(C, Term, QueryTerm),
+  Query2 = [QueryTerm|Query1],
+  http_link_to_id(Id, Query2, Link).
+
+
+
 %! qh_link(+C, +Cs, +Term, :Content_0)// is det.
 %! qh_link(+C, +Cs, +Term, :Content_0, +Opts)// is det.
 %! qh_link(+C, +Cs, +Attrs, +Term, :Content_0, +Opts)// is det.
@@ -575,14 +613,8 @@ qh_link(_, _, _, _, Content_0, Opts) -->
   html(Content_0).
 qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   {
-    setting(qh:http_handler, Id),
-    Id \== '', !,
-    qh_link_query_term0(C, Term, QueryTerm),
-    (   get_dict(query, Opts, Query0)
-    ->  Query = [QueryTerm|Query0]
-    ;   Query = [QueryTerm]
-    ),
-    http_link_to_id(Id, Query, Link)
+    get_dict(query, Opts, Query, []),
+    qh_external_iri(C, Term, Query, Link), !
   },
   html([
     a([class=Cs,href=Link|Attrs], Content_0),
