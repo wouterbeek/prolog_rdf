@@ -54,13 +54,18 @@ Generates end user-oriented HTML representations of RDF data.
 
 This assumes that an HTTP handler with id `qh` is defined.
 
-The following options are supported:
+The following options are supported to achieve parity with module
+`q_print`:
 
-  * max_iri_length(+or([nonneg,oneof([inf])]))
+  - iri_abbr(+boolean)
 
-  * max_literal_length(+or([nonneg,oneof([inf])]))
+  - max_iri_len(+or([nonneg,oneof([inf])]))
+
+  - max_lit_len(+or([nonneg,oneof([inf])]))
 
 ---
+
+@tbd Achieve parity with option `bnode_map` from module `q_print`.
 
 @author Wouter Beek
 @version 2016/02-2016/08
@@ -141,12 +146,14 @@ qh_something(Term) -->
   qh_something(Term, _{}).
 
 
-qh_something(alias(Alias), _) -->
+qh_something(rdf_alias(Alias), _) --> !,
   qh_alias(Alias).
-qh_something(dataset_term(D), Opts) -->
+qh_something(rdf_dataset_term(D), Opts) --> !,
   qh_dataset_term(D, Opts).
-qh_something(graph_term(G), Opts) --> !,
+qh_something(rdf_graph_term(G), Opts) --> !,
   qh_graph_term(G, Opts).
+qh_something(rdf_iri(Iri), Opts) --> !,
+  qh_iri(Iri, Opts).
 qh_something(Term, Opts) -->
   html_something(Term, Opts).
 
@@ -289,12 +296,15 @@ qh_iri_outer0(C, Cs1, Opts, Iri) -->
 
 % Abbreviated notation for IRI.
 qh_iri_inner(Iri, Opts) -->
-  {rdf_global_id(Alias:Local1, Iri)}, !,
-  {dcg_with_output_to(atom(Local2), atom_ellipsis(Local1, Opts.max_iri_length))},
+  {
+    Opts.iri_abbr == true,
+    rdf_global_id(Alias:Local1, Iri), !,
+    dcg_with_output_to(atom(Local2), atom_ellipsis(Local1, Opts.max_iri_len))
+  },
   html([span(class=alias, Alias),":",Local2]).
 % Plain IRI, possibly ellipsed.
 qh_iri_inner(Iri1, Opts) -->
-  {dcg_with_output_to(atom(Iri2), atom_ellipsis(Iri1, Opts.max_iri_length))},
+  {dcg_with_output_to(atom(Iri2), atom_ellipsis(Iri1, Opts.max_iri_len))},
   html(Iri2).
 
 
@@ -327,12 +337,12 @@ qh_literal_inner(V^^D, _) -->
 qh_literal_inner(Str@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
   html([
-    span(lang(LTag), \bs_truncated(Str, Opts.max_literal_length)),
+    span(lang(LTag), \bs_truncated(Str, Opts.max_lit_len)),
     " ",
     \flag_icon(LTag)
   ]).
 qh_literal_inner(Str@LTag, Opts) --> !,
-  html(span(lang=LTag, \bs_truncated(Str, Opts.max_literal_length))).
+  html(span(lang=LTag, \bs_truncated(Str, Opts.max_lit_len))).
 % XSD boolean
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:boolean)}, !,
@@ -375,7 +385,7 @@ qh_literal_inner(V^^D, _) -->
 % XSD string
 qh_literal_inner(Str^^D, Opts) -->
   {q_subdatatype_of(D, xsd:string)}, !,
-  bs_truncated(Str, Opts.max_literal_length).
+  bs_truncated(Str, Opts.max_lit_len).
 % XSD URI
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:anyURI)}, !,
@@ -562,9 +572,9 @@ qh_triple(S, P, O, Opts1) -->
 
 qh_default_options(Opts1, Opts2) :-
   DefOpts = _{
-    iri_lbl: false,
-    max_iri_length: 50,
-    max_literal_length: inf,
+    iri_abbr: true,
+    max_iri_len: 50,
+    max_lit_len: inf,
     qh_link: false
   },
   merge_dicts(DefOpts, Opts1, Opts2).

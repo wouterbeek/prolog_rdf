@@ -94,19 +94,25 @@
 
 Print RDF statements.
 
-| **Key**     | **Value** | **Default** | **Description**                  |
-|:------------|:----------|:-----------:|:---------------------------------|
-| `bnode_map` | boolean   | `true`      | Whether or not blank node labels |
-|             |           |             | are replaced by integers.        |
-| `indent`    | nonneg    | 0           |                                  |
-| `iri_lbl`   | boolean   | `false`     | Whether or not the prefered      |
-|             |           |             | label is used i.o. the IRI.      |
-| `max_iri_length`     | nonneg | `inf` | The maximum length of an IRI.    |
-| `max_literal_length` | nonneg | `inf` | The maximum length of a literal. |
+| **Key**       | **Value** | **Default** | **Description**                  |
+|:--------------|:----------|:-----------:|:---------------------------------|
+| `bnode_map`   | boolean   | `true`      | Whether blank node labels are    |
+|               |           |             | replaced by integers.            |
+| `indent`      | nonneg    | 0           |                                  |
+| `iri_abbr`    | boolean   | `true`      | Whether IRIs are abbreviated     |
+|               |           |             | based on the current aliases.    |
+| `max_iri_len` | nonneg    | `inf`       | The maximum length of an IRI.    |
+| `max_lit_len` | nonneg    | `inf`       | The maximum length of a literal. |
+
+@tbd Turtle container abbreviation.
+
+@tbd Turtle collection abbreviation.
+
+@tbd More fine-grained control for RDF term ellipsis: `max_bnode_len`,
+     `max_datatype_iri_len`, `max_lex_len`, `max_graph_term_len`,
+     `max_dataset_term_len`.
 
 @author Wouter Beek
-@tbd Turtle container abbreviation.
-@tbd Turtle collection abbreviation.
 @version 2016/06-2016/08
 */
 
@@ -818,7 +824,7 @@ dcg_q_print_term(T, Opts) -->
 
 dcg_q_print_bnode(B, Opts) -->
   get_dict(bnode_map, Opts, false), !,
-  atom_ellipsis(B, Opts.max_bnode_length).
+  atom_ellipsis(B, Opts.max_bnode_len).
 dcg_q_print_bnode(B, _) -->
   {q_bnode_map(B, Name)},
   "_:", integer(Name).
@@ -846,41 +852,32 @@ dcg_q_print_iri(Iri) -->
   dcg_q_print_iri(Iri, Opts).
 
 
-% @tbd
-%dcg_q_print_iri(Full, Opts) -->
-%  {
-%    get_dict(iri_lbl, Opts, true),
-%    q_pref_label(M, Full, Lit, G)
-%  }, !,
-%  {q_literal_lex(Lit, Lex)},
-%  "“",
-%  atom(Lex),
-%  "”".
 dcg_q_print_iri(Full, Opts) -->
   {
+    Opts.iri_abbr == true,
     rdf_global_id(Alias:Local, Full), !,
     atom_length(Alias, AliasLen),
     Minus is AliasLen + 1,
-    inf_minus(Opts.max_iri_length, Minus, Max)
+    inf_minus(Opts.max_iri_len, Minus, Max)
   },
   atom(Alias),
   ":",
   atom_ellipsis(Local, Max).
 dcg_q_print_iri(Full, Opts) -->
   "<",
-  atom_ellipsis(Full, Opts.max_iri_length),
+  atom_ellipsis(Full, Opts.max_iri_len),
   ">".
 
 
 
 dcg_q_print_language_tag(LTag, Opts) -->
-  atom_ellipsis(LTag, Opts.max_literal_length).
+  atom_ellipsis(LTag, Opts.max_lit_len).
 
 
 
 dcg_q_print_lexical_form(Lex, Opts) -->
   "\"",
-  atom_ellipsis(Lex, Opts.max_literal_length),
+  atom_ellipsis(Lex, Opts.max_lit_len),
   "\"".
 
 
@@ -944,10 +941,7 @@ dcg_q_print_var(Var) -->
 %! dcg_q_print_default_options(-Opts) is det.
 
 dcg_q_print_default_options(
-  _{
-    max_iri_length: inf,
-    max_literal_length: inf
-  }
+  _{iri_abbr: true, max_iri_len: inf, max_lit_len: inf}
 ).
 
 
