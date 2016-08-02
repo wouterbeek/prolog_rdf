@@ -48,7 +48,7 @@ tab_class(C) -->
         \zh_class(C),
         "."
       ]),
-      \bs_table_header(["Instance"]),
+      \html_table_header_row(["Instance"]),
       \html_maplist(zh_term_row, Rows)
     ),
     \tab_node_triples(C, _)
@@ -74,7 +74,7 @@ tab_classes(G) -->
   },
   bs_table(
     html(["Overview of classes in RDF graph ",\zh_graph(G),"."]),
-    bs_table_header(["Class","Members"]),
+    html_table_header_row(["Class","Members"]),
     html_maplist(zh_class_count_row, TopRows)
   ).
 tab_classes_row0(N-C, [C,N]).

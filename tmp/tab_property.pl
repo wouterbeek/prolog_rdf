@@ -69,7 +69,7 @@ tab_property_domain(Prop) -->
   },
   bs_table(
     html(["Overview of the domain of property ",\zh_property(Prop),"."]),
-    bs_table_header(["Class"]),
+    html_table_header_row(["Class"]),
     html_maplist(zh_class_row, Rows)
   ).
 
@@ -87,7 +87,7 @@ tab_property_range(Prop) -->
   },
   bs_table(
     html(["Overview of the range of property ",\zh_property(Prop),"."]),
-    bs_table_header(["Class"]),
+    html_table_header_row(["Class"]),
     html_maplist(zh_class_row, Rows)
   ).
   
@@ -106,7 +106,7 @@ tab_predicate_literals(P) -->
   },
   bs_table(
     html([\zh_predicate(P)," has ",\html_thousands(Len)," unique values."]),
-    \bs_table_header(["Literal value"]),
+    \html_table_header_row(["Literal value"]),
     \html_maplist(zh_literal_row, Rows)
   ).
 
@@ -126,8 +126,8 @@ tab_properties(G) -->
   },
   bs_table(
     html(["Overview of properties",\zh_in_graph(G),"."]),
-    bs_table_header(['Property','Occurrences']),
-    maplist(bs_table_row, TopRows)
+    html_table_header_row(['Property','Occurrences']),
+    maplist(html_table_data_row, TopRows)
   ).
 rdf_number_of_triples0(P, N):-
   rdf_number_of_triples(_, P, _, N).

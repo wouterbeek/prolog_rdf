@@ -2,6 +2,7 @@
   q_print,
   [
     dcg_q_print_something//1,  % +Term
+    dcg_q_print_something//2,  % +Term,              +Opts
     dcg_q_print_datatype//1,   %     +D
     dcg_q_print_datatype//2,   %     +D,             +Opts
     dcg_q_print_graph//2,      % ?M,             +G
@@ -137,7 +138,8 @@ Print RDF statements.
     q:dcg_q_print_literal_hook//2.
 
 :- rdf_meta
-   dcg_q_print_something(t),
+   dcg_q_print_something(o),
+   dcg_q_print_something(o, +),
    dcg_q_print_datatype(r, ?, ?),
    dcg_q_print_datatype(r, +, ?, ?),
    dcg_q_print_graph(?, r, ?, ?),
@@ -220,11 +222,22 @@ Print RDF statements.
 % SUPER GENERIC TERM PRINTING %
 
 %! dcg_q_print_something(+Term)// is det.
+%! dcg_q_print_something(+Term, +Opts)// is det.
 
 dcg_q_print_something(Term) -->
-  dcg_q_print_term(Term), !.
-dcg_q_print_something(Term) -->
-  pl_term(Term).
+  dcg_q_print_something(Term, _{}).
+
+
+
+dcg_q_print_something(Term, Opts2) -->
+  {
+    dcg_q_print_default_options(Opts1),
+    merge_dicts(Opts1, Opts2, Opts3)
+  },
+  dcg_q_print_term(Term, Opts3), !.
+dcg_q_print_something(Term, Opts1) -->
+  {merge_dicts(Opts1, _{indent: 0}, Opts2)},
+  pl_term(Term, Opts2).
 
 
 

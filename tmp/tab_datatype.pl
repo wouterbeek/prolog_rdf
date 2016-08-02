@@ -63,8 +63,8 @@ rdf_datatype_table(D, Pairs, ColumnHeader) -->
   },
   bs_table(
     html(["Overview of datatype IRI ",\zh_datatype(D),"."]),
-    \bs_table_header(["Number of literals","Lexical from","Datatype IRI",ColumnHeader]),
-    \html_maplist(bs_table_row, Rows)
+    \html_table_header_row(["Number of literals","Lexical from","Datatype IRI",ColumnHeader]),
+    \html_maplist(html_table_data_row, Rows)
   ).
 
 
@@ -95,7 +95,7 @@ tab_datatypes(G) -->
   ->  html([])
   ;   bs_table(
         html(["Overview of datatype IRIs in graph ",\zh_graph(G),"."]),
-        bs_table_header(["Number of literals","Datatype IRI"]),
-        html_maplist(bs_table_row, Rows)
+        html_table_header_row(["Number of literals","Datatype IRI"]),
+        html_maplist(html_table_data_row, Rows)
       )
   ).

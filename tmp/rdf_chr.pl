@@ -334,7 +334,7 @@ http_info(L, Major-Minor, S) -->
 
 http_headers0(L) -->
   bs_table(
-    \bs_table_header(["Header","Value"]),
+    \html_table_header_row(["Header","Value"]),
     \html_maplist(http_header_row0, L)
   ).
 
