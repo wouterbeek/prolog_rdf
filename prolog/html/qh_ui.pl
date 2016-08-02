@@ -254,8 +254,8 @@ qh_quad_table(M, S, P, O, G, Opts1) -->
 qh_quad_row0(Opts1, rdf(S,P,O,G)) -->
   {
     (del_dict(query, Opts1, Query1, Opts2) -> true ; Opts2 = Opts1),
-    qh_link_query_term0(graph, G, QueryTerm),
-    union(Query1, [QueryTerm], Query2),
+    term_to_atom(G, A),
+    union(Query1, [graph(A)], Query2),
     put_dict(query, Opts2, Query2, Opts3)
   },
   html(

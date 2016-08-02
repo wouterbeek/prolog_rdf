@@ -40,7 +40,6 @@
     qh_dataset_term_outer0//4, % +Class, +Classes, +Opts, +D
     qh_default_options/2,      % +Opts1, -Opts2
     qh_graph_term_outer0//4,   % +Class, +Classes, +Opts, +G
-    qh_link_query_term0/3,     % +Class, +Term, -QueryTerm
     qh_object_outer0//4,       % +Class, +Classes, +Opts, +O
     qh_predicate_outer0//4,    % +Class, +Classes, +Opts, +P
     qh_property_outer0//4,     % +Class, +Classes, +Opts, +P
@@ -591,7 +590,8 @@ qh_external_iri(C, Term, Link) :-
 qh_external_iri(C, Term, Query1, Link) :-
   setting(qh:http_handler, Id),
   Id \== '',
-  qh_link_query_term0(C, Term, QueryTerm),
+  term_to_atom(Term, A),
+  QueryTerm =.. [C,A],
   Query2 = [QueryTerm|Query1],
   http_link_to_id(Id, Query2, Link).
 
@@ -633,10 +633,6 @@ qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
 qh_link(_, _, _, _, Content_0, _) -->
   Content_0.
 
-
-qh_link_query_term0(C, Term1, QueryTerm) :-
-  term_to_atom(Term1, Term2),
-  QueryTerm =.. [C,Term2].
 
 
 qh_link_external(Term) -->
