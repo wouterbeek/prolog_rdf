@@ -69,6 +69,7 @@
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(rdf/rdf_search)).
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
