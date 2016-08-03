@@ -76,8 +76,8 @@ csv2rdf_stream(Source, State, Out) :-
 
 csv2rdf_stream(Source, Opts1, State, Out) :-
   indent_debug(conv(csv2rdf), "> CSV → RDF"),
-  once(dict_options(Opts1, Opts2)), % @tbd @hack dict_options/2 should
-                                    % be det some day.
+  % @tbd @hack dict_options/2 should be det some day.
+  once(dict_options(Opts1, Opts2)),
   call_on_stream(Source, csv2rdf_stream0(State, Out, Opts1), Opts2),
   indent_debug(conv(csv2rdf), "< CSV → RDF").
 

@@ -171,7 +171,7 @@ The following flags are used:
 :- setting(
      copula,
      atom,
-     '☡',
+     '☡',%†
      "In RDF graph names, the copula that is used between the dataset and graph components."
    ).
 
@@ -765,6 +765,7 @@ q_graph_file0(Type, D, G, File) :-
   (   % Transform
       atomic_list_concat([Name|Exts], ., Local),
       q_check_file_extensions(Type, Exts)
+  ->  true
   ;   % Scrape
       Local == 'scrape.pl',
       Name = data
