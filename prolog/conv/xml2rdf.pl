@@ -17,6 +17,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
+:- use_module(library(conv/q_conv)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(gen/gen_ntuples)).
@@ -66,7 +67,7 @@ xml2rdf_stream(Source, RecordNames, State, Out) :-
 
 
 xml2rdf_stream(Source, RecordNames, Opts1, State, Out) :-
-  default_xml2rdf_options(Opts1, Opts2),
+  q_conv_options(Opts1, Opts2),
   flag(xml2rdf, _, 0),
   xml_stream_record(
     Source,
@@ -122,13 +123,3 @@ xml_p_attrs(PAttrs, [Attr|Attrs], [Val|Vals]) :-
   xml_p_attrs(PAttrs, Attrs, Vals).
 xml_p_attrs(PAttrs, [_|Attrs], Vals) :-
   xml_p_attrs(PAttrs, Attrs, Vals).
-
-
-
-
-
-% HELPERS %
-
-default_xml2rdf_options(Opts1, Opts2) :-
-  q_alias_prefix(default, Domain),
-  merge_dicts(_{concept: resource, domain: Domain}, Opts1, Opts2).

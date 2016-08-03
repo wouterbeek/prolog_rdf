@@ -45,8 +45,10 @@
   % VIEWS LAYER ↔ LOADED VIEWS LAYER
     q_load/1,                  % +M
     q_load/2,                  % +M, +G
-    q_save/1,                  % +M
-    q_save/2,                  % +M, +G
+    q_save_append/1,           % +M
+    q_save_append/2,           % +M, +G
+    q_save_overwrite/1,        % +M
+    q_save_overwrite/2,        % +M, +G
     q_unload/1,                % +M
     q_unload/2,                % +M, +G
 
@@ -144,7 +146,8 @@ The following flags are used:
    q_loaded_dataset_graph(?, r, r),
    q_loaded_graph(r),
    q_loaded_graph(?, r),
-   q_save(+, r),
+   q_save_append(+, r),
+   q_save_overwrite(+, r),
    q_source2store_dataset(r),
    q_source2store_graph(r),
    q_source_dataset(r),
@@ -537,22 +540,44 @@ q_load(rdf, G) :-
 
 
 
-%! q_save(+M) is det.
-%! q_save(+M, +G) is det.
+%! q_save_append(+M) is det.
+%! q_save_append(+M, +G) is det.
 %
 % Save the contents of 〈Dataset,Graph〉 in backend M to the storage
 % layer.
 
-q_save(M) :-
+q_save_append(M) :-
+  q_save0(M, []).
+
+
+q_save_append(M, G) :-
+  q_save0(M, G, []).
+
+
+
+%! q_save_overwrite(+M) is det.
+%! q_save_overwrite(+M, +G) is det.
+
+q_save_overwrite(M) :-
+  q_save0(M, [mode(write)]).
+
+
+q_save_overwrite(M, G) :-
+  q_save0(M, G, [mode(write)]).
+
+
+
+q_save0(M, Opts) :-
   forall(
     q_loaded_graph(M, G),
-    q_load(M, G)
+    q_save0(M, G, Opts)
   ).
 
 
-q_save(M, G) :-
+q_save0(M, G, Opts1) :-
   q_store_graph_file_name(G, NTriplesFile),
-  rdf_write_to_sink(NTriplesFile, M, G, [rdf_format(ntriples)]).
+  merge_options(Opts1, [rdf_format(ntriples)], Opts2),
+  rdf_write_to_sink(NTriplesFile, M, G, Opts2).
 
 
 

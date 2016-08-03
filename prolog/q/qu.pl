@@ -1,7 +1,6 @@
 :- module(
   qu,
   [
-    q_transform/2,              % +G, :Goal_3
 % TERM
     qu_replace_subject/5,       % +M1, +M2, +S1, ?G, +S2
     qu_subject_from_key/5,      % +M1, +M2, +Alias, +P, ?G
@@ -102,7 +101,6 @@ to predicate and/or graph.
 :- use_module(library(string_ext)).
 
 :- meta_predicate
-    q_transform(+, 3),
     qu_call(0, 0),
     qu_call0(0, 0, +),
     qu_change_decimal(+, +, ?, ?, ?, 2),
@@ -121,7 +119,6 @@ to predicate and/or graph.
 :- qb_alias(wkt, 'http://geojsonld.com/wkt#').
 
 :- rdf_meta
-   q_transform(+, t),
    qu_add_ltag(+, +, r, +, r),
    qu_add_padding(+, +, r, r, +),
    qu_call(t, t),
@@ -172,20 +169,6 @@ to predicate and/or graph.
    qu_rm_triples(+, +, r, r, o, r),
    qu_split_string(+, +, r, r, +),
    qu_subject_from_key(+, +, +, r, r).
-
-
-
-
-
-% GENERICS %
-
-%! q_transform(+G, :Goal_3) is det.
-
-q_transform(G, Goal_3) :-
-  q_load(rdf, G),
-  call(Goal_3, rdf, rdf, G),
-  q_save(rdf, G),
-  q_unload(rdf, G).
 
 
 
@@ -316,6 +299,7 @@ qu_replace_string(M1, M2, P, G, Dcg_3) :-
 
 
 qu_replace_string(M1, M2, S, P, G, Dcg_3) :-
+  qu_replace_string_deb(Dcg_3),
   qu_call(
     q(M1, S, P, Lex^^xsd:string, G),
     (
@@ -1061,9 +1045,8 @@ qu_replace_predicate_deb(P, Q) :-
 
 
 
-qu_replace_string_deb(From, To, P) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(replace_string), "Replace string ‘~s’ → ‘~s’ for ‘~s’.", [From,To,P0]).
+qu_replace_string_deb(Dcg_3) :-
+  debug(qu(replace_string), "Replace string using ‘~w’.", [Dcg_3]).
 
 
 

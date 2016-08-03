@@ -21,6 +21,7 @@ The following debug flags are used:
 */
 
 :- use_module(library(apply)).
+:- use_module(library(conv/q_conv)).
 :- use_module(library(csv)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
@@ -73,14 +74,16 @@ csv2rdf_stream(Source, State, Out) :-
   csv2rdf_stream(Source, _{}, State, Out).
 
 
-csv2rdf_stream(Source, Opts, State, Out) :-
+csv2rdf_stream(Source, Opts1, State, Out) :-
   indent_debug(conv(csv2rdf), "> CSV → RDF"),
-  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts), Opts),
+  once(dict_options(Opts1, Opts2)), % @tbd @hack dict_options/2 should
+                                    % be det some day.
+  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts1), Opts2),
   indent_debug(conv(csv2rdf), "< CSV → RDF").
 
 
 csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
-  default_csv2rdf_options(Opts1, Opts2),
+  q_conv_options(Opts1, Opts2),
   csv:make_csv_options([], CsvOpts, _),
   (   get_dict(header, Opts2, Ps)
   ->  true
@@ -101,13 +104,3 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
   ),
   fail.
 csv2rdf_stream0(_, _, _, _, Meta, Meta).
-
-
-
-
-
-% HELPERS %
-
-default_csv2rdf_options(Opts1, Opts2) :-
-  q_alias_prefix(default, Domain),
-  merge_dicts(_{concept: resource, domain: Domain}, Opts1, Opts2).
