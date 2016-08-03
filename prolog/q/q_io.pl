@@ -123,8 +123,6 @@ The following flags are used:
 
 %! hdt_graph0(?D, ?G, ?HdtFile, ?Hdt) is nondet.
 
-:- qb_alias(triply, 'http://triply.cc/').
-
 :- dynamic
     hdt_graph0/4.
 
@@ -134,8 +132,6 @@ The following flags are used:
 :- multifile
     q_io:q_source2store_graph_hook/2,
     q_io:q_source2store_graph_hook/3.
-
-:- qb_alias(triply, 'http://triply.cc/').
 
 :- rdf_meta
    q_change_view(+, r, +),
@@ -281,7 +277,7 @@ q_source2store_graph(G) :-
 q_source2store_graph(G) :-
   q_dataset_graph(D, G),
   (   q_load_prolog_file(D, scrape)
-  ->  q_io:q_source2store_graph_hook(G)
+  ->  q_io:q_scrape2store_graph_hook(G)
   ;   q_load_prolog_file(D, transform)
   ->  q_graph_file(source, G, File),
       q_io:q_source2store_graph_hook(File, G)
@@ -683,7 +679,7 @@ q_dataset_file_name(Type, D, Dir) :-
 %! q_dataset_name(?Dataset, ?D) is nondet.
 
 q_dataset_name(Dataset, D) :-
-  rdf_global_id(triply:Dataset, D).
+  rdf_global_id(ns:Dataset, D).
 
 
 
@@ -741,8 +737,13 @@ q_graph_file0(Type, D, G, File) :-
   create_directory(Dir),
   directory_path(Dir, File),
   directory_file_path(Dir, Local, File),
-  atomic_list_concat([Name|Exts], ., Local),
-  q_check_file_extensions(Type, Exts),
+  (   % Transform
+      atomic_list_concat([Name|Exts], ., Local),
+      q_check_file_extensions(Type, Exts)
+  ;   % Scrape
+      Local == 'scrape.pl',
+      Name = data
+  ),
   q_dataset_graph(D, Name, G).
 
 

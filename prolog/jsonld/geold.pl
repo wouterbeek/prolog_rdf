@@ -2,10 +2,10 @@
   geold,
   [
     geold_geojson/2, % +Node, -GeoJson
-    geold_tuple/3,   % +Source, +Alias, -Tuple
-    geold_tuple/5,   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuple
-    geold_tuples/3,  % +Source, +Alias, -Tuples
-    geold_tuples/5   % +Source, +Alias, +ExtraContext, +ExtraData, -Tuples
+    geold_tuple/2,   % +Source, -Tuple
+    geold_tuple/4,   % +Source, +ExtraContext, +ExtraData, -Tuple
+    geold_tuples/2,  % +Source, -Tuples
+    geold_tuples/4   % +Source, +ExtraContext, +ExtraData, -Tuples
   ]
 ).
 
@@ -50,12 +50,11 @@ the array as e.g. Well-Known Text (WKT).
 
 
 
-%! geold_context(+Alias, -Context) is det.
+%! geold_context(-Context) is det.
 %
 % The default GeoJSON-LD context.
 
 geold_context(
-  Alias,
   _{
     coordinates: _{'@id': 'geold:coordinates', '@type': 'tcco:array'},
     crs: 'geold:crs',
@@ -78,7 +77,7 @@ geold_context(
     '@vocab': Prefix
   }
 ) :-
-  q_alias_prefix(Alias, Prefix).
+  q_alias_prefix(nsdef, Prefix).
 
 
 
@@ -91,28 +90,28 @@ geold_geojson(Node, _{}) :-
 
 
 
-%! geold_tuple(+Source, +Alias, -Tuple) is det.
-%! geold_tuple(+Source, +Alias, +ExtraContext, +ExtraData, -Tuple) is det.
+%! geold_tuple(+Source, -Tuple) is det.
+%! geold_tuple(+Source, +ExtraContext, +ExtraData, -Tuple) is det.
 
-geold_tuple(Source, Alias, Tuple) :-
-  geold_tuple(Source, Alias, _{}, _{}, Tuple).
+geold_tuple(Source, Tuple) :-
+  geold_tuple(Source, _{}, _{}, Tuple).
 
 
-geold_tuple(Source, Alias, ExtraContext, ExtraData, Tuple) :-
-  geold_prepare(Source, Alias, ExtraContext, Context, ExtraData, Data),
+geold_tuple(Source, ExtraContext, ExtraData, Tuple) :-
+  geold_prepare(Source, ExtraContext, Context, ExtraData, Data),
   jsonld_tuple_with_context(Context, Data, Tuple).
 
 
 
-%! geold_tuples(+Source, +Alias, -Tuples) is det.
-%! geold_tuples(+Source, +Alias, +ExtraContext, +ExtraData, -Tuples) is det.
+%! geold_tuples(+Source, -Tuples) is det.
+%! geold_tuples(+Source, +ExtraContext, +ExtraData, -Tuples) is det.
 
-geold_tuples(Source, Alias, Tuples) :-
-  geold_tuples(Source, Alias, _{}, _{}, Tuples).
+geold_tuples(Source, Tuples) :-
+  geold_tuples(Source, _{}, _{}, Tuples).
 
 
-geold_tuples(Source, Alias, ExtraContext, ExtraData, Tuples) :-
-  geold_prepare(Source, Alias, ExtraContext, Context, ExtraData, Data),
+geold_tuples(Source, ExtraContext, ExtraData, Tuples) :-
+  geold_prepare(Source, ExtraContext, Context, ExtraData, Data),
   aggregate_all(
     set(Tuple),
     jsonld_tuple_with_context(Context, Data, Tuple),
@@ -125,18 +124,18 @@ geold_tuples(Source, Alias, ExtraContext, ExtraData, Tuples) :-
 
 % HELPERS %
 
-%! geold_prepare(+Source, +Alias, +ExtraContext, -Context, +ExtraData, -Data) is det.
+%! geold_prepare(+Source, +ExtraContext, -Context, +ExtraData, -Data) is det.
 
-geold_prepare(Source, Alias, ExtraContext, Context, ExtraData, Data) :-
-  geold_prepare_context(Alias, ExtraContext, Context),
+geold_prepare(Source, ExtraContext, Context, ExtraData, Data) :-
+  geold_prepare_context(ExtraContext, Context),
   geold_prepare_data(Source, ExtraData, Data).
 
 
 
-%! geold_prepare_context(+Alias, +ExtraContext, -Context) is det.
+%! geold_prepare_context(+ExtraContext, -Context) is det.
 
-geold_prepare_context(Alias, ExtraContext, Context) :-
-  geold_context(Alias, Context0),
+geold_prepare_context(ExtraContext, Context) :-
+  geold_context(Context0),
   Context = Context0.put(ExtraContext).
 
 

@@ -17,7 +17,7 @@ The following debug flags are used:
   * conv(csv2rdf)
 
 @author Wouter Beek
-@version 2016/05-2016/07
+@version 2016/05-2016/08
 */
 
 :- use_module(library(apply)).
@@ -25,6 +25,7 @@ The following debug flags are used:
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(debug_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
@@ -48,22 +49,16 @@ The following debug flags are used:
 %
 % The following options are supported:
 %
-%   * abox_alias(+atom) Default is `default`.
+%   * concept(+atom)
 %
-%   * alias(+atom) Sets both abox_alias/1 and tbox_alias/1.
-%
-%   * class(+compound)
+%   * domain(+atom)
 %
 %   * header(+list) A list of RDF properties that represent the
-%   columns.  This is used when there are no column labels in the CSV
-%   file.
-%
-%   * tbox_alias(+atom) Uses the header labels as specified in the
-%   first row of the CSV file.  The header labels will be turned into
-%   RDF properties within the given namespace.  Default is `default`.
+%     columns.  This is used when there are no column labels in the
+%     CSV file.
 
 csv2rdf(Source, Sink) :-
-  csv2rdf(Source, Sink, []).
+  csv2rdf(Source, Sink, _{}).
 
 
 csv2rdf(Source, Sink, Opts) :-
@@ -75,7 +70,7 @@ csv2rdf(Source, Sink, Opts) :-
 %! csv2rdf_stream(+Source, +Opts, +State, +Out) is det.
 
 csv2rdf_stream(Source, State, Out) :-
-  csv2rdf_stream(Source, [], State, Out).
+  csv2rdf_stream(Source, _{}, State, Out).
 
 
 csv2rdf_stream(Source, Opts, State, Out) :-
@@ -85,23 +80,19 @@ csv2rdf_stream(Source, Opts, State, Out) :-
 
 
 csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
-  csv2rdf_options0(Opts1, Dict, Opts2),
-  (   get_dict(header, Dict, Ps)
+  default_csv2rdf_options(Opts1, Opts2),
+  csv:make_csv_options([], CsvOpts, _),
+  (   get_dict(header, Opts2, Ps)
   ->  true
-  ;   once(csv:csv_read_stream_row(In, HeaderRow, _, Opts2)),
+  ;   once(csv:csv_read_stream_row(In, HeaderRow, _, CsvOpts)),
       list_row(HeaderNames, HeaderRow),
-      Alias = Dict.tbox_alias,
-      maplist(
-        {Alias}/[HeaderName,P]>>q_iri_alias_local(P, Alias, HeaderName),
-        HeaderNames,
-        Ps
-      )
+      maplist(qb_tbox_iri(Opts2.domain), HeaderNames, Ps)
   ),
-  csv:csv_read_stream_row(In, DataRow, RowN, Opts2),
+  csv:csv_read_stream_row(In, DataRow, RowN, CsvOpts),
+  debug(conv(csv2rdf), "~D", [RowN]),
   list_row(Vals, DataRow),
-  atom_number(Name, RowN),
-  rdf_global_id(Dict.abox_alias:Name, S),
-  (option(class(C), Opts1) -> gen_ntuple(S, rdf:type, C, State, Out) ; true),
+  first(Vals, Reference),
+  qb_abox_iri(Opts2.domain, Opts2.concept, Reference, S),
   rdf_equal(xsd:string, D),
   maplist(
     {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),
@@ -112,13 +103,11 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
 csv2rdf_stream0(_, _, _, _, Meta, Meta).
 
 
-csv2rdf_options0(Opts1, D, Opts4) :-
-  select_option(alias(Box), Opts1, Opts2), !,
-  merge_options(Opts2, [abox_alias(Box),tbox_alias(Box)], Opts3),
-  csv2rdf_options0(Opts3, D, Opts4).
-csv2rdf_options0(Opts1, D2, Opts2) :-
-  option(abox_alias(ABox), Opts1, default),
-  option(tbox_alias(TBox), Opts1, default),
-  D1 = _{abox_alias: ABox, tbox_alias: TBox},
-  (option(header(Ps), Opts1) -> D2 = D1.put(_{header: Ps}) ; D2 = D1),
-  csv:make_csv_options(Opts1, Opts2, _).
+
+
+
+% HELPERS %
+
+default_csv2rdf_options(Opts1, Opts2) :-
+  q_alias_prefix(default, Domain),
+  merge_dicts(_{concept: resource, domain: Domain}, Opts1, Opts2).
