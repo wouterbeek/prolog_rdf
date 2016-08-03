@@ -51,8 +51,7 @@ json2rdf(Source, Sink) :-
 
 
 json2rdf(Source, Sink, Opts1) :-
-  % @tbd @hack dict_options/2 should be det some day.
-  once(dict_options(Opts1, Opts2)),
+  dict_options(Opts1, Opts2),
   call_to_ntriples(Sink, json2rdf_stream(Source, Opts1), Opts2).
 
 
@@ -66,8 +65,7 @@ json2rdf_stream(Source, State, Out) :-
 
 json2rdf_stream(Source, Opts1, State, Out) :-
   indent_debug(conv(json2rdf), "> JSON → RDF"),
-  % @tbd @hack dict_options/2 should be det some day.
-  once(dict_options(Opts1, Opts2)),
+  dict_options(Opts1, Opts2),
   call_on_stream(Source, json2rdf_stream0(State, Out, Opts1), Opts2),
   indent_debug(conv(json2rdf), "< JSON → RDF").
 
