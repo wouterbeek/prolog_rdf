@@ -24,6 +24,7 @@
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
 :- use_module(library(os/io)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(readutil)).
@@ -98,13 +99,13 @@ json2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
 dict_to_triple(Dict, Opts, Triple) :-
   % S
   uuid(Uuid),
-  qb_abox_iri(Opts.domain, Opts.concept, Uuid, S),
+  q_abox_iri(Opts.domain, Opts.concept, Uuid, S),
   % P
   get_dict_path(Keys1, Dict, Val), % NONDET
   atomic_list_concat(Keys1, '_', Local1),
   atomic_list_concat(Keys2, ' ', Local1),
   atomic_list_concat(Keys2, '_', Local2),
-  qb_tbox_iri(Opts.domain, Local2, P),
+  q_tbox_iri(Opts.domain, Local2, P),
   % O
   get_dict_path(Keys1, Dict, Val),
   (is_list(Val) -> O = Val^^tcco:array ; O = Val^^xsd:string),

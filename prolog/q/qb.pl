@@ -5,7 +5,6 @@
     qb/2,              % +M, +Quad
     qb/3,              % +M, +Triple, +G
     qb/5,              % +M, +S, +P, +O, +G
-    qb_abox_iri/4,     % +Domain, +Concept, +Reference, -S
    %qb_alias/2,        % +Alias, +Prefix
    %qb_bnode/1,        % -B
     qb_bnode_prefix/1, % -BPrefix
@@ -20,7 +19,6 @@
     qb_objects/5,      % +M, +S, +P, +Os, +G
     qb_reification/4,  % +M, +Triple, +G, ?Stmt
     qb_rev/5,          % +M, +O, +P, +S, +G
-    qb_tbox_iri/3,     % +Domain, +Term, -P
     qu/7,              % +M1, +M2, +S, +P, +O, +G, +Action
   % RDFS
     qb_class/6,        % +M, +C, ?D, ?Lbl, ?Comm, +G
@@ -151,14 +149,6 @@ qb(rdf, S, P, O, G) :- !,
 
 
 
-%! qb_abox_iri(+Domain, +Concept, +Reference, -S) is det.
-
-qb_abox_iri(Domain, Concept, Reference, S) :-
-  atomic_list_concat(['',id,Concept,Reference], /, Path),
-  uri_components(S, uri_components(http,Domain,Path,_,_)).
-
-
-
 %! qb_deref(+M, +Iri) is det.
 %! qb_deref(+M, +Iri, +G) is det.
 
@@ -282,14 +272,6 @@ qb_rm(M, rdf(S,P,O), G) :-
 
 qb_rm(rdf, S, P, O, G) :- !,
   rdf_retractall(S, P, O, G).
-
-
-
-%! qb_tbox_iri(+Domain, +Term, -P) is det.
-
-qb_tbox_iri(Domain, Term, P) :-
-  atomic_list_concat(['',def], /, Path),
-  uri_components(P, uri_components(http,Domain,Path,_,Term)).
 
 
 

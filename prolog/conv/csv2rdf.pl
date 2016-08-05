@@ -34,6 +34,7 @@ The following debug flags are used:
 :- use_module(library(os/io)).
 :- use_module(library(pure_input)).
 :- use_module(library(q/qb)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
@@ -97,13 +98,13 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
   ->  true
   ;   once(csv:csv_read_stream_row(In, HeaderRow, _, CsvOpts)),
       list_row(HeaderNames, HeaderRow),
-      maplist(qb_tbox_iri(Opts2.domain), HeaderNames, Ps)
+      maplist(q_tbox_iri(Opts2.domain), HeaderNames, Ps)
   ),
   csv:csv_read_stream_row(In, DataRow, RowN, CsvOpts),
   debug(conv(csv2rdf), "~D", [RowN]),
   list_row(Vals, DataRow),
   first(Vals, Reference),
-  qb_abox_iri(Opts2.domain, Opts2.concept, Reference, S),
+  q_abox_iri(Opts2.domain, Opts2.concept, Reference, S),
   rdf_equal(xsd:string, D),
   maplist(
     {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),
