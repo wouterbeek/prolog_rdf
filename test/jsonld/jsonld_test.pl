@@ -38,7 +38,7 @@ run_test(I) :-
   between(1, inf, I),
   run_test(I).
 run_test(I) :-
-  format_integer(I, 4, Id0),
+  integer_padding(I, 4, Id0),
   atomic_list_concat([toRdf,Id0,in], -, Base),
   file_name_extension(Base, jsonld, Local),
   (   access_file(Local, read)
