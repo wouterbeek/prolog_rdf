@@ -25,7 +25,7 @@
 :- initialization(db_attach('q_dataset.db', [])).
 
 :- persistent
-   q_dataset(dataset:atom, default:atom, named:atom).
+   q_dataset(dataset:atom, default_graph:atom, named_graphs:list(atom)).
 
 
 

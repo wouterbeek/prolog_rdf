@@ -13,6 +13,7 @@
 */
 
 :- use_module(library(dict_ext)).
+:- use_module(library(q/q_graph)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).

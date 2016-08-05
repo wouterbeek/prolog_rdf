@@ -217,6 +217,7 @@ q_store2view(M) :-
   ).
 
 
+% Nothing to do: view already exists.
 q_store2view(M, G) :-
   q_graph_to_file(view, G, M, File),
   exists_file(File), !.
@@ -301,14 +302,22 @@ q_load(M) :-
   ).
 
 
+% Nothing to do.
 q_load(M, G) :-
-  q_graph(M, G).
+  q_graph(M, G), !.
+% Cannot proceed: create the view first.
+q_load(M, G) :-
+  \+ q_view_graph(M, G), !,
+  q_store2view(M, G),
+  q_load(M, G).
+% Load HDT view.
 q_load(hdt, G) :-
   q_graph_to_file(view, G, hdt, HdtFile),
   exists_file(HdtFile), !,
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph0(G, HdtFile, Hdt)),
   indent_debug(q(q_graph), "HDT → open").
+% Load RDF view.
 q_load(rdf, G) :-
   q_graph_to_file(view, G, ntriples, NTriplesFile),
   rdf_load(NTriplesFile, [format(ntriples),graph(G)]).
