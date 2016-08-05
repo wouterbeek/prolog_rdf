@@ -60,7 +60,6 @@
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(rdfs/rdfs_stat)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(stat/r_ext)).
 :- use_module(library(yall)).
 
 :- rdf_meta
