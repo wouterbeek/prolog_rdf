@@ -71,8 +71,9 @@
     q_store_extensions/2,
     q_view_extensions/2.
 
-q_source2store_hook(rdf, Source, Sink, Opts) :- !,
-  rdf_change_format(Source, Sink, Opts).
+q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
+  dict_options(Opts1, Opts2),
+  rdf_change_format(Source, Sink, Opts2).
 
 q_source_extensions(rdf, [Ext]) :-
   rdf_default_file_extension(_, Ext).

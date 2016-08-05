@@ -59,7 +59,6 @@ The following debug flags are used:
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -555,7 +554,7 @@ rdf_file_name0(File, Opts) :-
 
 rdf_file_name0(Base, File, Opts) :-
   rdf_write_format0(_, Opts, Format),
-  rdf_file_extension(Ext, Format),
+  rdf_default_file_extension(Ext, Format),
   file_name_extension(Base, Ext, File).
 
 
@@ -564,7 +563,7 @@ rdf_write_format0(_, Opts, Format) :-
 rdf_write_format0(File, _, Format) :-
   is_absolute_file_name(File),
   file_name_extension(_, Ext, File),
-  rdf_file_extension(Ext, Format), !.
+  rdf_default_file_extension(Ext, Format), !.
 rdf_write_format0(_, _, nquads).
 
 
@@ -655,7 +654,7 @@ set_rdf_format(In, [H1|T], [H2|T], Opts) :-
   (   get_base_iri(BaseIri, [H1|T], Opts),
       iri_file_extensions(BaseIri, Exts),
       member(Ext, Exts),
-      rdf_file_extension(Ext, Format)
+      rdf_default_file_extension(Ext, Format)
   ->  FormatOpts = [default_rdf_format(Format)]
   ;   FormatOpts = []
   ),
