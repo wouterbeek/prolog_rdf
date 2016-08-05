@@ -89,7 +89,6 @@ to predicate and/or graph.
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_datatype)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).

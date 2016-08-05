@@ -23,13 +23,19 @@
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(xml/marcxml)).
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
+
+:- multifile
+    q_graph:q_source2store_hook/4.
+
+q_graph:q_source2store_hook(xml, Source, Sink, Opts1) :- !,
+  del_dict(record_names, Opts1, RecordNames, Opts2),
+  xml2rdf(Source, Sink, RecordNames, Opts2).
 
 
 

@@ -219,7 +219,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
       Format == jsonld
   ->  json_read_dict(In, Json),
       forall(
-        jsonld_tuple(Json, Tuple, Opts3),
+	jsonld_tuple(Json, Tuple, Opts3),
         rdf_call_on_quad0(Goal_5, Path, Tuple)
       )
   ;   % RDF/XML

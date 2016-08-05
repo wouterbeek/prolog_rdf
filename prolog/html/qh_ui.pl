@@ -39,7 +39,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_stat)).

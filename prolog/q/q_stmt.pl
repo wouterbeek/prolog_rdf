@@ -86,7 +86,6 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- use_module(library(lists)).
 :- use_module(library(nb_set)).
 :- use_module(library(nlp/nlp_lang)).
-:- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).

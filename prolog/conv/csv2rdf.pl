@@ -38,6 +38,12 @@ The following debug flags are used:
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
+:- multifile
+    q_graph:q_source2store_hook/4.
+
+q_graph:q_source2store_hook(csv, Source, Sink, Opts) :- !,
+  csv2rdf(Source, Sink, Opts).
+
 
 
 
