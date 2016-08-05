@@ -1,18 +1,17 @@
 :- module(
   rdf_file,
   [
-    rdf_file_extension/1, % ?Ext
-    rdf_file_extension/2, % ?Ext, ?Format
-    rdf_format/1,         % ?Format
-    rdf_format/2,         % ?Mediatype:atom, ?Format
-    rdf_format_iri/2      % ?Format, ?Iri
+    rdf_default_file_extension/2, % ?Format, ?Ext
+    rdf_format/1,                 % ?Format
+    rdf_format/2,                 % ?Mediatype:atom, ?Format
+    rdf_format_iri/2              % ?Format, ?Iri
   ]
 ).
 
 /** <module> RDF file
 
 @author Wouter Beek
-@version 2015/08, 2016/01-2016/03, 2016/05
+@version 2015/08, 2016/01-2016/03, 2016/05, 2016/08
 */
 
 :- use_module(library(error)). % Hook.
@@ -21,10 +20,9 @@
 :- use_module(library(semweb/rdf_http_plugin)). % RDF serialization formats.
 :- use_module(library(solution_sequences)).
 
+
 :- qb_alias(formats, 'http://www.w3.org/ns/formats/').
 
-:- rdf_meta
-   rdf_format_iri(?, r).
 
 :- multifile
     error:has_type/2.
@@ -42,49 +40,34 @@ error:has_type(rdfxml_format, F) :-
 error:has_type(turtle_format, F) :-
   memberchk(F, [nquads,ntriples,trig,turtle]).
 
-:- dynamic
-    user:prolog_file_type/2,
-    rdf_http_plugin:rdf_content_type/2.
 
 :- multifile
-    user:prolog_file_type/2,
-    rdf_http_plugin:rdf_content_type/2.
-
-user:prolog_file_type(nq,     nquads).
-user:prolog_file_type(nt,     ntriples).
-user:prolog_file_type(html,   rdfa).
-user:prolog_file_type(jsonld, jsonld).
-%user:prolog_file_type(n3,     n3).
-user:prolog_file_type(trig,   trig).
-user:prolog_file_type(ttl,    turtle).
-user:prolog_file_type(rdf,    xml).
+    rdf_http_plugin:rdf_content_type/3.
 
 rdf_http_plugin:rdf_content_type('application/ld+json', 0.99, jsonld). %ABC
 
 
+:- rdf_meta
+   rdf_format_iri(?, r).
 
 
 
-%! rdf_file_extension(+Ext) is semidet.
-% Succeeds for file extensions of RDF serializations.
-%! rdf_file_extension(-Ext) is multi.
-% Enumerates file extensions RDF serializations.
-
-rdf_file_extension(Ext) :-
-  distinct(Ext, rdf_file_extension(Ext, _)).
 
 
+%! rdf_default_file_extension(?Format, ?Ext) is semidet.
 
-%! rdf_file_extension(+Ext, +Format) is semidet.
-%! rdf_file_extension(+Ext, -Format) is semidet.
-%! rdf_file_extension(-Ext, +Format) is det.
-%! rdf_file_extension(-Ext, -Format) is multi.
+rdf_default_file_extension(nquads, nq).
+rdf_default_file_extension(ntriples, nt).
+rdf_default_file_extension(rdfa, html).
+rdf_default_file_extension(jsonld, jsonld).
+rdf_default_file_extension(trig, trig).
+rdf_default_file_extension(turtle, ttl).
+rdf_default_file_extension(xml, rdf).
 
-rdf_file_extension(Ext, Format) :-
-  rdf_http_plugin:rdf_content_type(_, _, Format),
-  user:prolog_file_type(Ext, Format).
 
 
+%! rdf_format(?Format) is nondet.
+%! rdf_format(?MT, ?Format) is nondet.
 
 rdf_format(Format) :-
   rdf_format(_, Format).
