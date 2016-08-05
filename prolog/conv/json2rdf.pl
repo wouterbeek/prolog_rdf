@@ -32,13 +32,13 @@
 
 :- multifile
     q_graph:q_source2store_hook/4,
-    q_graph:q_source_extensions/3.
+    q_graph:q_source_extensions_hook/2.
 
 q_graph:q_source2store_hook(json, Source, Sink, Opts) :- !,
   json2rdf(Source, Sink, Opts).
 
-q_graph:q_source_extensions(json, [json]).
-q_graph:q_source_extensions(json, [ndjson]).
+q_graph:q_source_extensions_hook(json, [json]).
+q_graph:q_source_extensions_hook(json, [ndjson]).
 
 
 

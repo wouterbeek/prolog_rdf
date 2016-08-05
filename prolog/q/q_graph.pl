@@ -61,29 +61,18 @@
 
 
 %! q_source2store_hook(+Format, +Source, +Sink, +Opts) is det.
-%! q_source_extensions(?Format, ?Exts) is nondet.
-%! q_store_extensions(?Format, ?Exts) is nondet.
-%! q_view_extensions(?Format, ?Exts) is nondet.
+%! q_source_extensions_hook(?Format, ?Exts) is nondet.
+%! q_store_extensions_hook(?Format, ?Exts) is nondet.
+%! q_view_extensions_hook(?Format, ?Exts) is nondet.
 
 :- multifile
     q_source2store_hook/4,
-    q_source_extensions/2,
-    q_store_extensions/2,
-    q_view_extensions/2.
+    q_source_extensions_hook/2,
+    q_view_extensions_hook/2.
 
 q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
   dict_options(Opts1, Opts2),
   rdf_change_format(Source, Sink, Opts2).
-
-q_source_extensions(rdf, [Ext]) :-
-  rdf_default_file_extension(_, Ext).
-
-q_store_extensions(hdt,      [hdt]  ).
-q_store_extensions(nquads,   [nq,gz]).
-q_store_extensions(ntriples, [nt,gz]).
-
-q_view_extensions(hdt, [hdt]).
-q_view_extensions(rdf, [nt,gz]).
 
 
 :- rdf_meta
@@ -101,6 +90,15 @@ q_view_extensions(rdf, [nt,gz]).
 
 
 % SOURCE %
+
+%! q_source_extensions(?Fromat, ?Exts) is nondet.
+
+q_source_extensions(rdf, [Ext]) :-
+  rdf_default_file_extension(_, Ext).
+q_source_extensions(Format, Exts) :-
+  q_source_extensions_hook(Format, Exts).
+
+
 
 %! q_source_file(-File) is nondet.
 %
@@ -166,6 +164,14 @@ q_source2store(url(Source,Opts), Sink) :-
 
 
 % STORE %
+
+%! q_store_extensions(?Format, ?Exts) is nondet.
+
+q_store_extensions(hdt, [hdt]).
+q_store_extensions(nquads, [nq,gz]).
+q_store_extensions(ntriples, [nt,gz]).
+
+
 
 %! q_store_file(-File, -G) is nondet
 %
@@ -239,6 +245,15 @@ q_store2view(rdf, G) :-
 
 
 % VIEW %
+
+%! q_view_extensions(?Format, ?Exts) is nondet.
+
+q_view_extensions(hdt, [hdt]).
+q_view_extensions(rdf, [nt,gz]).
+q_view_extensions(Format, Exts) :-
+  q_view_extensions_hook(Format, Exts).
+
+
 
 %! q_view_file(-M, -File, -G) is nondet.
 %

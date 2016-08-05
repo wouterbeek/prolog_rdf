@@ -39,10 +39,13 @@ The following debug flags are used:
 :- use_module(library(yall)).
 
 :- multifile
-    q_graph:q_source2store_hook/4.
+    q_graph:q_source2store_hook/4,
+    q_graph:q_source_extensions_hook/2.
 
 q_graph:q_source2store_hook(csv, Source, Sink, Opts) :- !,
   csv2rdf(Source, Sink, Opts).
+
+q_graph:q_source_extensions_hook(csv, [csv]).
 
 
 

@@ -45,7 +45,7 @@ The following debug flags are used:
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
@@ -334,11 +334,13 @@ rdf_change_format(Source, Sink, Opts) :-
 
 
 rdf_change_format0(Source, SourceOpts, State, Out) :-
+  indent_debug(conv(rdf2rdf), "> RDF → RDF"),
   rdf_call_on_tuples(
     Source,
     {State,Out}/[_,S,P,O,G]>>gen_ntuple(S, P, O, G, State, Out),
     SourceOpts
-  ).
+  ),
+  indent_debug(conv(rdf2rdf), "< RDF → RDF").
 
 
 

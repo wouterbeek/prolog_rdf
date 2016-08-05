@@ -31,11 +31,15 @@
 :- use_module(library(yall)).
 
 :- multifile
-    q_graph:q_source2store_hook/4.
+    q_graph:q_source2store_hook/4,
+    q_graph:q_source_extensions_hook/2.
 
 q_graph:q_source2store_hook(xml, Source, Sink, Opts1) :- !,
   del_dict(record_names, Opts1, RecordNames, Opts2),
   xml2rdf(Source, Sink, RecordNames, Opts2).
+
+q_graph:q_source_extensions_hook(xml, [marcxml]).
+q_graph:q_source_extensions_hook(xml, [xml]).
 
 
 
