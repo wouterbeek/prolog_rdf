@@ -149,7 +149,7 @@ q_cbd_triples(M, Node, Triples) :-
 
 q_cbd_triples(M, Node, G, Triples) :-
   q_subject(M, Node, G),
-  aggregate_all(set(Triple), q_cbd_triple0(M, Node, G, Triple), Triples).
+  aggregate_all(set(Triple), q_cbd_triple(M, Node, G, Triple), Triples).
 
 
 
