@@ -21,16 +21,22 @@
   q_view_graph/2,     % -M, -G
     
     % VIEW ⬄ LOADED
-    q_view2loaded/1,  % +M
-    q_view2loaded/2,  % +M, +G
+    q_load/1,         % +M
+    q_load/2,         % +M, +G
+    q_save/1,         % +M
+    q_save/2,         % +M, +G
+    q_save_append/1,  % +M
+    q_save_append/2,  % +M, +G
+    q_unload/1,       % +M
+    q_unload/2,       % +M, +G
 
   % LOADED
   q_graph/2,          % ?M, ?G
 
   % GENERICS
+  q_graph_iri/2,      % +Name, -G
   q_ls/0,
-  q_ls/1,             % +Type
-  q_name_to_graph/2   % +Name, -G
+  q_ls/1              % +Type
   ]
 ).
 
@@ -42,6 +48,7 @@
 
 :- use_module(library(os/directory_ext)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
@@ -50,7 +57,7 @@
 :- use_module(library(tree/s_tree)).
 
 
-%! hdt_graph0(?G, ?HdtFile, ?File) is nondet.
+%! hdt_graph0(?G, ?HdtFile, ?Hdt) is nondet.
 
 :- dynamic
     hdt_graph0/3.
@@ -78,10 +85,12 @@ q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
 :- rdf_meta
    q_graph(?, r),
    q_load(+, r),
+   q_save(+, r),
+   q_save_append(+, r),
    q_store2view(+, r),
    q_store_file(?, r),
    q_store_graph(r),
-   q_view2loaded(+, r),
+   q_unload(+, r),
    q_view_graph(-, r),
    q_view_file(-, -, r).
 
@@ -153,7 +162,7 @@ q_source2store(file(Source,Opts), Sink) :- !,
   once(q_source_extensions(Format, Exts)),
   q_source2store_hook(Format, Source, Sink, Opts).
 q_source2store(url(Source,Opts), Sink) :-
-  q_name_to_graph(Opts.name, G),
+  q_graph_iri(Opts.name, G),
   q_graph_to_file(store, G, ntriples, Sink),
   file_extensions(Source, Exts),
   once(q_source_extensions(Format, Exts)),
@@ -280,29 +289,91 @@ q_view_graph(M, G) :-
 
 % VIEW ⬄ LOADED %
 
-%! q_view2loaded(+M) is det.
-%! q_view2loaded(+M, +G) is det.
+%! q_load(+M) is det.
+%! q_load(+M, +G) is det.
 %
 % Load graph G into backend M.
 
-q_view2loaded(M) :-
+q_load(M) :-
   forall(
     q_view_graph(M, G),
-    q_view2loaded(M, G)
+    q_load(M, G)
   ).
 
 
-q_view2loaded(M, G) :-
+q_load(M, G) :-
   q_graph(M, G).
-q_view2loaded(hdt, G) :-
+q_load(hdt, G) :-
   q_graph_to_file(view, G, hdt, HdtFile),
   exists_file(HdtFile), !,
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph0(G, HdtFile, Hdt)),
   indent_debug(q(q_graph), "HDT → open").
 q_load(rdf, G) :-
-  q_graph_to_file_name(store, G, ntriples, NTriplesFile),
+  q_graph_to_file(view, G, ntriples, NTriplesFile),
   rdf_load(NTriplesFile, [format(ntriples),graph(G)]).
+
+
+
+%! q_save(+M) is det.
+%! q_save(+M, +G) is det.
+
+q_save(M) :-
+  q_save0(M, [mode(write)]).
+
+
+q_save(M, G) :-
+  q_save0(M, G, [mode(write)]).
+
+
+
+%! q_save_append(+M) is det.
+%! q_save_append(+M, +G) is det.
+%
+% Save the contents of 〈Dataset,Graph〉 in backend M to the storage
+% layer.
+
+q_save_append(M) :-
+  q_save0(M, []).
+
+
+q_save_append(M, G) :-
+  q_save0(M, G, []).
+
+
+q_save0(M, Opts) :-
+  forall(
+    q_graph(M, G),
+    q_save0(M, G, Opts)
+  ).
+
+
+q_save0(M, G, Opts1) :-
+  q_graph_to_file(store, G, ntriples, NTriplesFile),
+  merge_options(Opts1, [rdf_format(ntriples)], Opts2),
+  rdf_write_to_sink(NTriplesFile, M, G, Opts2).
+
+
+
+%! q_unload(+M) is det.
+%! q_unload(+M, +G) is det.
+
+q_unload(M) :-
+  forall(
+    q_graph(M, G),
+    q_unload(M, G)
+  ).
+
+
+q_unload(hdt, G) :- !,
+  with_mutex(q_io, (
+    hdt_graph0(G, _, Hdt),
+    hdt:hdt_close(Hdt),
+    retract(hdt_graph0(G,_,Hdt))
+  )).
+q_unload(rdf, G) :-
+  rdf_unload_graph(G).
+
 
 
 
@@ -324,6 +395,13 @@ q_graph(rdf, G) :-
 
 
 % GENERICS %
+
+%! q_graph_iri(+Ref, -G) is det.
+
+q_graph_iri(Ref, G) :-
+  q_abox_iri(ns, graph, Ref, G).
+
+
 
 %! q_ls is det.
 %! q_ls(+Type) is det.
@@ -348,13 +426,6 @@ q_graph0(loaded(M), G) :-
 
 
 
-%! q_name_to_graph(+Name, -G) is det.
-
-q_name_to_graph(Name, G) :-
-  qb_abox_iri(ns, graph, Name, G).
-
-
-
 
 
 % HELPERS %
@@ -364,7 +435,7 @@ q_name_to_graph(Name, G) :-
 q_file_to_graph(File, G) :-
   file_name_extension(Base, _, File),
   directory_file_path(_, Local, Base),
-  q_name_to_graph(Local, G).
+  q_graph_iri(Local, G).
 
 
 

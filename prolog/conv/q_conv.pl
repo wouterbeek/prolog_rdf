@@ -42,5 +42,5 @@ q_conv_options(Opts1, Opts2) :-
 q_transform(G, Goal_3) :-
   q_load(rdf, G),
   call(Goal_3, rdf, rdf, G),
-  q_save_overwrite(rdf, G),
+  q_save(rdf, G),
   q_unload(rdf, G).
