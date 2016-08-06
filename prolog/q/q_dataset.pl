@@ -1,7 +1,9 @@
 :- module(
   q_dataset,
   [
-    q_add_dataset/3,           % +DRef, +NGRefs, -D
+    q_add_dataset/1,           % +Ref
+    q_add_dataset/3,           % +DRef, +DefGRef, +GRefs
+    q_add_dataset/4,           % +DRef, +DefGRef, +GRefs, -D
     q_dataset_default_graph/2, % ?D, ?DefG
     q_dataset_graph/2,         % ?D, ?G
     q_dataset_iri/2,           % ?Ref, ?D
@@ -31,12 +33,22 @@
 
 
 
-%! q_add_dataset(+DRef, +NGRefs, -D) is det.
+%! q_add_dataset(+DRef) is det.
+%! q_add_dataset(+DRef, +DefGRef, +GRefs) is det.
+%! q_add_dataset(+DRef, +DefGRef, +GRefs, -D) is det.
 
-q_add_dataset(DRef, NGRefs, D) :-
+q_add_dataset(Ref) :-
+  q_add_dataset(Ref, Ref, [Ref]).
+
+
+q_add_dataset(DRef, DefGRef, GRefs) :-
+  q_add_dataset(DRef, DefGRef, GRefs, _).
+
+
+q_add_dataset(DRef, DefGRef, GRefs, D) :-
   q_dataset_iri(DRef, D),
-  maplist(q_graph_iri, [DRef|NGRefs], [DefG|NGs]),
-  assert_q_dataset(D, DefG, NGs).
+  maplist(q_graph_iri, [DefGRef|GRefs], [DefG|Gs]),
+  assert_q_dataset(D, DefG, Gs).
 
 
 
@@ -63,7 +75,8 @@ q_dataset_graph(D, G) :-
 %! q_dataset_iri(-Ref, +D) is det.
 
 q_dataset_iri(Ref, D) :-
-  q_abox_iri(ns, dataset, Ref, D).
+  q_alias_domain(ns, Domain),
+  q_abox_iri(Domain, dataset, Ref, D).
 
 
 

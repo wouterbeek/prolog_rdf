@@ -3,6 +3,7 @@
   [
     q_aggregate_all/3,     % +Template, :Goal_0, -Result
     q_alias/1,             % ?Alias
+    q_alias_domain/2,      % +Alias, -Domain
    %q_alias_prefix/2,      % ?Alias, ?Prefix
     q_bnode/2,             % ?M, ?B
     q_bnode/3,             % ?M, ?B, ?G
@@ -88,7 +89,7 @@
 /** <module> Quine term API
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06, 2016/08
 */
 
 :- use_module(library(semweb/rdf11)). % Priority for rdf_meta/1.
@@ -157,6 +158,14 @@ q_aggregate_all(Template, Goal_0, Result) :-
 
 q_alias(Alias) :-
   q_alias_prefix(Alias, _).
+
+
+
+%! q_alias_domain(+Alias, -Domain) is det.
+
+q_alias_domain(Alias, Domain) :-
+  q_alias_prefix(Alias, Prefix),
+  uri_components(Prefix, uri_components(_,Domain,_,_,_)).
 
 
 

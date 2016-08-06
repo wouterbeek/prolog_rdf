@@ -35,5 +35,9 @@ q_abox_iri(Domain, Concept, Ref, Iri) :-
 %! q_tbox_iri(-Domain, -Term, +Iri) is det.
 
 q_tbox_iri(Domain, Term, Iri) :-
+  nonvar(Iri), !,
+  uri_components(Iri, uri_components(http,Domain,Path,_,Term)),
+  atomic_list_concat(['',def], /, Path).
+q_tbox_iri(Domain, Term, Iri) :-
   atomic_list_concat(['',def], /, Path),
   uri_components(Iri, uri_components(http,Domain,Path,_,Term)).

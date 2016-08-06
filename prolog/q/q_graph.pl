@@ -34,9 +34,9 @@
   q_graph/2,          % ?M, ?G
 
   % GENERICS
-  q_graph_iri/2,      % +Name, -G
-  q_ls/0,
-  q_ls/1              % +Type
+    q_graph_iri/2,    % +Name, -G
+    q_ls/0,
+    q_ls/1            % +Type
   ]
 ).
 
@@ -46,10 +46,12 @@
 @version 2016/08
 */
 
+:- use_module(library(debug_ext)).
 :- use_module(library(os/directory_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
+:- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_file)).
@@ -124,7 +126,7 @@ q_source_file(File) :-
 % SOURCE ⬄ STORE %
 
 %! q_source2store is det.
-%! q_source2store(+Source, -Sink) is det.
+%! q_source2store(+Source, -G) is det.
 %
 % Convert Source into an RDF file with graph G.  Source is one of the
 % following:
@@ -153,7 +155,7 @@ q_source2store :-
   ).
 
 
-q_source2store(file(Source,Opts), Sink) :- !,
+q_source2store(file(Source,Opts), G) :- !,
   access_file(Source, read),
   file_extensions(Source, Exts),
   q_source_extensions(Format, Exts),
@@ -161,7 +163,7 @@ q_source2store(file(Source,Opts), Sink) :- !,
   q_graph_to_file(store, G, ntriples, Sink),
   once(q_source_extensions(Format, Exts)),
   q_source2store_hook(Format, Source, Sink, Opts).
-q_source2store(url(Source,Opts), Sink) :-
+q_source2store(url(Source,Opts), G) :-
   q_graph_iri(Opts.name, G),
   q_graph_to_file(store, G, ntriples, Sink),
   file_extensions(Source, Exts),
@@ -408,7 +410,8 @@ q_graph(rdf, G) :-
 %! q_graph_iri(+Ref, -G) is det.
 
 q_graph_iri(Ref, G) :-
-  q_abox_iri(ns, graph, Ref, G).
+  q_alias_domain(ns, Domain),
+  q_abox_iri(Domain, graph, Ref, G).
 
 
 
@@ -442,7 +445,7 @@ q_graph0(loaded(M), G) :-
 %! q_file_to_graph(+File, -G) is det.
 
 q_file_to_graph(File, G) :-
-  file_name_extension(Base, _, File),
+  file_name(File, Base),
   directory_file_path(_, Local, Base),
   q_graph_iri(Local, G).
 
