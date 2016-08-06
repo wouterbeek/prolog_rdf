@@ -56,6 +56,7 @@
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf_db), [rdf_load_db/1,rdf_save_db/2]).
 :- use_module(library(tree/s_tree)).
 
 
@@ -82,7 +83,6 @@
 q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
   dict_options(Opts1, Opts2),
   rdf_change_format(Source, Sink, Opts2).
-
 
 :- rdf_meta
    q_load(+, r),
@@ -191,7 +191,7 @@ q_store_extensions(ntriples, [nt,gz]).
 
 q_store_file(File, G) :-
   q_root(store, Root),
-  directory_file(Root, File),
+  directory_path(Root, File),
   q_file_to_graph(File, G).
 
 
@@ -228,8 +228,11 @@ q_store2view(hdt, G) :-
   q_graph_to_file(store, G, ntriples, NTriplesFile),
   exists_file(NTriplesFile), !,
   q_graph_to_file(view, G, hdt, HdtFile),
-  hdt:hdt_create_from_file(HdtFile, NTriplesFile, []),
-  indent_debug(q(q_graph), "N-Triples → HDT").
+  indent_debug_call(
+    q(q_graph),
+    "N-Triples → HDT",
+    hdt:hdt_create_from_file(HdtFile, NTriplesFile, [])
+  ).
 % N-Quads → N-Triples
 q_store2view(hdt, G) :-
   q_graph_to_file(store, G, nquads, NQuadsFile),
@@ -241,16 +244,29 @@ q_store2view(hdt, G) :-
       NTriplesFile,
       [from_format(nquads),to_format(ntriples)]
     ),
-    (
-      indent_debug(q(q_graph), "N-Quads → N-Triples"),
+    indent_debug_call(
+      q(q_graph),
+      "N-Quads → N-Triples",
       q_store2view(hdt, G)
     ),
     delete_file(NTriplesFile)
   ).
 q_store2view(rdf, G) :-
-  q_graph_to_file(store, G, ntriples, File),
-  q_root(view, Root),
-  create_file_link(File, Root).
+  q_graph_to_file(store, G, ntriples, FromFile),
+  q_graph_to_file(view, G, rdf, ToFile),
+  setup_call_cleanup(
+    rdf_load(FromFile, [graph(G)]),
+    indent_debug_call(
+      q_graph(rdf),
+      "RDF → MEM",
+      indent_debug_call(
+        q_graph(rdf),
+        "MEM → TRP",
+        rdf_save_db(ToFile, G)
+      )
+    ),
+    rdf_unload_graph(G)
+  ).
 
 
 
@@ -261,7 +277,7 @@ q_store2view(rdf, G) :-
 %! q_view_extensions(?Format, ?Exts) is nondet.
 
 q_view_extensions(hdt, [hdt]).
-q_view_extensions(rdf, [nt,gz]).
+q_view_extensions(rdf, [trp]).
 q_view_extensions(Format, Exts) :-
   q_view_extensions_hook(Format, Exts).
 
@@ -274,7 +290,7 @@ q_view_extensions(Format, Exts) :-
 
 q_view_file(M, File, G) :-
   q_root(view, Root),
-  directory_file(Root, File),
+  directory_path(Root, File),
   q_file_to_graph(File, G),
   file_extensions(File, Exts),
   once(q_view_extensions(M, Exts)).
@@ -316,13 +332,14 @@ q_load(M, G) :-
 q_load(hdt, G) :-
   q_graph_to_file(view, G, hdt, HdtFile),
   exists_file(HdtFile), !,
+  indent_debug(in, q(q_graph), "HDT → MEM", []),
   hdt:hdt_open(Hdt, HdtFile),
-  assert(hdt_graph0(G, HdtFile, Hdt)),
-  indent_debug(q(q_graph), "HDT → open").
+  assert(hdt_graph0(G, HdtFile, Hdt)).
 % Load RDF view.
 q_load(rdf, G) :-
-  q_graph_to_file(view, G, ntriples, NTriplesFile),
-  rdf_load(NTriplesFile, [format(ntriples),graph(G)]).
+  q_graph_to_file(view, G, rdf, File),
+  indent_debug(in, q(q_graph), "TRP → MEM", []),
+  rdf_load_db(File).
 
 
 
@@ -377,13 +394,18 @@ q_unload(M) :-
 
 
 q_unload(hdt, G) :- !,
-  with_mutex(q_io, (
-    hdt_graph0(G, _, Hdt),
-    hdt:hdt_close(Hdt),
-    retract(hdt_graph0(G,_,Hdt))
-  )).
+  with_mutex(
+    q_graph,
+    (
+      hdt_graph0(G, _, Hdt),
+      hdt:hdt_close(Hdt),
+      retract(hdt_graph0(G,_,Hdt)),
+      indent_debug(out, q(q_graph), "HDT → MEM", [])
+    )
+  ).
 q_unload(rdf, G) :-
-  rdf_unload_graph(G).
+  rdf_unload_graph(G),
+  indent_debug(out, q(q_graph), "TRP → MEM", []).
 
 
 
@@ -442,6 +464,17 @@ q_graph0(loaded(M), G) :-
 
 % HELPERS %
 
+%! q_extensions(+Type, +Format, -Exts) is det.
+
+q_extensions(source, Format, Exts) :- !,
+  q_source_extensions(Format, Exts).
+q_extensions(store, Format, Exts) :- !,
+  q_store_extensions(Format, Exts).
+q_extensions(view, Format, Exts) :-
+  q_view_extensions(Format, Exts).
+
+
+
 %! q_file_to_graph(+File, -G) is det.
 
 q_file_to_graph(File, G) :-
@@ -466,11 +499,7 @@ q_graph_to_base(Type, G, Base) :-
 
 q_graph_to_file(Type, G, Format, File) :-
   q_graph_to_base(Type, G, Base),
-  once((
-      q_source_extensions(Format, Exts)
-  ;   q_store_extensions(Format, Exts)
-  ;   q_view_extensions(Format, Exts)
-  )),
+  q_extensions(Type, Format, Exts),
   atomic_list_concat([Base|Exts], ., File).
 
 

@@ -24,6 +24,7 @@
 :- use_module(library(lists)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_iri)).
+:- use_module(library(q/q_term)).
 :- use_module(library(persistency)).
 :- use_module(library(semweb/rdf11)).
 
