@@ -31,7 +31,7 @@
     q_unload/2,       % +M, +G
 
   % LOADED
-  q_graph/2,          % ?M, ?G
+  q_loaded_graph/2,   % ?M, ?G
 
   % GENERICS
     q_graph_iri/2,    % +Name, -G
@@ -85,8 +85,8 @@ q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
 
 
 :- rdf_meta
-   q_graph(?, r),
    q_load(+, r),
+   q_loaded_graph(?, r),
    q_save(+, r),
    q_save_append(+, r),
    q_store2view(+, r),
@@ -306,7 +306,7 @@ q_load(M) :-
 
 % Nothing to do.
 q_load(M, G) :-
-  q_graph(M, G), !.
+  q_loaded_graph(M, G), !.
 % Cannot proceed: create the view first.
 q_load(M, G) :-
   \+ q_view_graph(M, G), !,
@@ -354,7 +354,7 @@ q_save_append(M, G) :-
 
 q_save0(M, Opts) :-
   forall(
-    q_graph(M, G),
+    q_loaded_graph(M, G),
     q_save0(M, G, Opts)
   ).
 
@@ -371,7 +371,7 @@ q_save0(M, G, Opts1) :-
 
 q_unload(M) :-
   forall(
-    q_graph(M, G),
+    q_loaded_graph(M, G),
     q_unload(M, G)
   ).
 
@@ -391,14 +391,14 @@ q_unload(rdf, G) :-
 
 % LOADED %
 
-%! q_graph(+M, +G) is semidet.
-%! q_graph(+M, -G) is nondet.
-%! q_graph(-M, +G) is nondet.
-%! q_graph(-M, -G) is nondet.
+%! q_loaded_graph(+M, +G) is semidet.
+%! q_loaded_graph(+M, -G) is nondet.
+%! q_loaded_graph(-M, +G) is nondet.
+%! q_loaded_graph(-M, -G) is nondet.
 
-q_graph(hdt, G) :-
+q_loaded_graph(hdt, G) :-
   hdt_graph0(G, _, _).
-q_graph(rdf, G) :-
+q_loaded_graph(rdf, G) :-
   rdf_graph(G).
 
 
@@ -434,7 +434,7 @@ q_view_graph0(view(M), G) :-
   q_view_graph(M, G).
 
 q_graph0(loaded(M), G) :-
-  q_graph(M, G).
+  q_loaded_graph(M, G).
 
 
 

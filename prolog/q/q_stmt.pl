@@ -76,7 +76,7 @@ Enumerate statements from different back-ends.
 Perform basic RDF statement manipulations: statement ↔ terms
 
 @author Wouter Beek
-@version 2016/06-2016/07
+@version 2016/06-2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -86,6 +86,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- use_module(library(lists)).
 :- use_module(library(nb_set)).
 :- use_module(library(nlp/nlp_lang)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
@@ -170,11 +171,11 @@ q(hdt, S, P, O, G) :-
 
 q(M, S, P, O, G, D) :-
   (nonvar(G) ; nonvar(D)), !,
-  q_loaded_dataset_graph(D, G),
+  q_dataset_graph(D, G),
   q(M, S, P, O, G).
 q(M, S, P, O, G, D) :-
   q(M, S, P, O, G),
-  q_loaded_dataset_graph(D, G).
+  q_dataset_graph(D, G).
 
 
 

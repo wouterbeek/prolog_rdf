@@ -39,6 +39,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(pair_ext)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_stat)).
@@ -77,7 +78,7 @@ qh_dataset_table(Opts1) -->
       string("Store")
     ],
     qh_default_table_options(Opts1, Opts2),
-    aggregate_all(set(D), q_loaded_dataset(D), Ds),
+    aggregate_all(set(D), q_dataset(D), Ds),
     maplist(q_dataset_tree, Ds, SumTriples, Trees),
     pairs_keys_values(Pairs, SumTriples, Trees),
     desc_pairs_values(Pairs, OrderedTrees)
@@ -393,7 +394,7 @@ qh_triple_table(M, S, P, O, G, Opts1) -->
 %! q_dataset_tree(+D, -SumTriples, -Tree) is det.
 
 q_dataset_tree(D, SumTriples, t(rdf_dataset_term(D),OrderedTrees)) :-
-  aggregate_all(set(G), q_loaded_dataset_graph(D, G), Gs),
+  aggregate_all(set(G), q_dataset_graph(D, G), Gs),
   maplist(q_graph_tree(D), Gs, NumTriples, Trees),
   pairs_keys_values(Pairs, NumTriples, Trees),
   desc_pairs_values(Pairs, OrderedTrees),
@@ -405,10 +406,10 @@ q_dataset_tree(D, SumTriples, t(rdf_dataset_term(D),OrderedTrees)) :-
 
 q_graph_tree(D, G, NumTriples, Tree) :-
   once((
-    q_loaded_dataset_graph(M, D, G),
-    q_number_of_triples(M, G, NumTriples)
+    q_dataset_graph(D, G),
+    q_number_of_triples(_, G, NumTriples)
   )),
-  aggregate_all(set(M0), q_loaded_dataset_graph(M0, D, G), Ms),
+  aggregate_all(set(M0), q_loaded_graph(M0, G), Ms),
   Tree = t(rdf_graph_term(G),[t([thousands(NumTriples),set(Ms)],[])]).
 
 

@@ -41,6 +41,7 @@
 :- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_cli)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_graph)).
 :- use_module(library(q/q_graph_theory)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_list)).
