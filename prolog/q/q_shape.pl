@@ -135,10 +135,10 @@ q_cbd_triple0(M, S, Hist1, G, Triple) :-
   q(M, S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   q_is_bnode(O),
-      node_histoty0(Hist1, O, Hist2),
+      node_history0(Hist1, O, Hist2),
       q_cbd_triple0(M, O, Hist2, G, Triple)
   ;   q_reification(M, S, P, O, Stmt),
-      node_histoty0(Hist1, Stmt, Hist2),
+      node_history0(Hist1, Stmt, Hist2),
       q_cbd_triple0(M, Stmt, Hist2, G, Triple)
   ).
 
@@ -202,10 +202,10 @@ q_cbd_inv_triple0(M, O, Hist1, G, Triple) :-
   q(M, S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   q_is_bnode(S),
-      node_history(Hist1, S, Hist2),
+      node_history0(Hist1, S, Hist2),
       q_cbd_inv_triple0(M, S, Hist2, G, Triple)
   ;   q_reification(M, S, P, O, G, Stmt),
-      node_history(Hist1, Stmt, Hist2),
+      node_history0(Hist1, Stmt, Hist2),
       q_scbd_triple0(M, Stmt, Hist2, G, Triple)
   ).
 
