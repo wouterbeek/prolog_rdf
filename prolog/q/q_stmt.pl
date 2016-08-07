@@ -20,6 +20,7 @@
     q_lts/6,               % ?M, ?S, ?P, +LRange, ?Lit, -G
     q_quad/2,              % ?M, -Quad
     q_quad/3,              % ?M, ?G, -Quad
+    q_quad/4,              % ?M, ?S, ?G, -Quad
     q_quad/5,              % ?M, ?S, ?P, ?O, -Quad
     q_quad/6,              % ?M, ?S, ?P, ?O, ?G, -Quad
     q_quad_datatype/2,     % +Quad, -D
@@ -34,6 +35,7 @@
     q_quad_triple/2,       % ?Quad, ?Triple
     q_quads/2,             % ?M, -Quads
     q_quads/3,             % ?M, ?G, -Quads
+    q_quads/4,             % ?M, ?S, ?G, -Quads
     q_quads/5,             % ?M, ?S, ?P, ?O, -Quads
     q_quads/6,             % ?M, ?S, ?P, ?O, ?G, -Quads
     q_reification/4,       % ?M, ?S, ?P, ?O
@@ -41,6 +43,7 @@
     q_reification/6,       % ?M, ?S, ?P, ?O, ?G, -Stmt
     q_triple/2,            % ?M, -Triple
     q_triple/3,            % ?M, ?G, -Triple
+    q_triple/4,            % ?M, ?S, ?G, -Triple
     q_triple/5,            % ?M, ?S, ?P, ?O, -Triple
     q_triple/6,            % ?M, ?S, ?P, ?O, ?G, -Triple
     q_triple_datatype/2,   % +Triple, -D
@@ -52,6 +55,7 @@
     q_triple_terms/4,      % ?Triple, ?S, ?P, ?O
     q_triples/2,           % ?M, -Triples
     q_triples/3,           % ?M, ?G, -Triples
+    q_triples/4,           % ?M, ?S, ?G, -Triples
     q_triples/5,           % ?M, ?S, ?P, ?O, -Triples
     q_triples/6,           % ?M, ?S, ?P, ?O, ?G, -Triples
   % RDFS
@@ -121,6 +125,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_pref_string(?, r, r, -),
    q_pref_string(?, r, r, r, -),
    q_quad(?, r, -),
+   q_quad(?, r, r, -),
    q_quad(?, r, r, o, -),
    q_quad(?, r, r, o, r, -),
    q_quad_datatype(t, r),
@@ -134,6 +139,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_quad_terms(t, r, r, o, r),
    q_quad_triple(t, t),
    q_quads(?, r, -),
+   q_quads(?, r, r, -),
    q_quads(?, r, r, o, -),
    q_quads(?, r, r, o, r, -),
    q_range(?, r, r, r),
@@ -142,6 +148,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_reification(?, r, r, o, r, r),
    q_subclass(?, r, r, r),
    q_triple(?, r, -),
+   q_triple(?, r, r, -),
    q_triple(?, r, r, o, -),
    q_triple(?, r, r, o, r, -),
    q_triple_datatype(t, r),
@@ -152,6 +159,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_triple_term(t, o),
    q_triple_terms(t, r, r, o),
    q_triples(?, r, -),
+   q_triples(?, r, r, -),
    q_triples(?, r, r, o, -),
    q_triples(?, r, r, o, r, -).
 
@@ -403,6 +411,7 @@ q_pref_string(M, S, P, _, V^^xsd:string, G) :-
 
 %! q_quad(?M, -Quad) is nondet.
 %! q_quad(?M, ?G, -Quad) is nondet.
+%! q_quad(?M, ?S, ?G, -Quad) is nondet.
 %! q_quad(?M, ?S, ?P, ?O, -Quad) is nondet.
 %! q_quad(?M, ?S, ?P, ?O, ?G, -Quad) is nondet.
 
@@ -412,6 +421,10 @@ q_quad(M, Quad) :-
 
 q_quad(M, G, Quad) :-
   q_quad(M, _, _, _, G, Quad).
+
+
+q_quad(M, S, G, Quad) :-
+  q_quad(M, S, _, _, G, Quad).
 
 
 q_quad(M, S, P, O, Quad) :-
@@ -425,12 +438,6 @@ q_quad(M, S, P, O, G, Quad) :-
 
 
 %! q_quad_datatype(+Quad, -D) is det.
-%! q_quad_graph(+Quad, -G) is det.
-%! q_quad_iri(+Quad, -Iri) is det.
-%! q_quad_object(+Quad, -O) is det.
-%! q_quad_predicate(+Quad, -P) is det.
-%! q_quad_subject(+Quad, -S) is det.
-%! q_quad_term(+Quad, -Term) is nondet.
 
 q_quad_datatype(rdf(_,_,O,_), D) :-
   q_literal_datatype(O, D).
@@ -499,6 +506,7 @@ q_quad_triple(rdf(S,P,O,_), rdf(S,P,O)).
 
 %! q_quads(?M, -Quads) is nondet.
 %! q_quads(?M, ?G, -Quads) is nondet.
+%! q_quads(?M, ?S, ?G, -Quads) is nondet.
 %! q_quads(?M, ?S, ?P, ?O, -Quads) is nondet.
 %! q_quads(?M, ?S, ?P, ?O, ?G, -Quads) is nondet.
 
@@ -508,6 +516,10 @@ q_quads(M, Quads) :-
 
 q_quads(M, G, Quads) :-
   q_quads(M, _, _, _, G, Quads).
+
+
+q_quads(M, S, G, Quads) :-
+  q_quads(M, S, _, _, G, Quads).
 
 
 q_quads(M, S, P, O, Quads) :-
@@ -554,6 +566,7 @@ q_subclass(M, C, D, G) :-
 
 %! q_triple(?M, ?Triple) is nondet.
 %! q_triple(?M, ?G, ?Triple) is nondet.
+%! q_triple(?M, ?S, ?G, ?Triple) is nondet.
 %! q_triple(?M, ?S, ?P, ?O, ?Triple) is nondet.
 %! q_triple(?M, ?S, ?P, ?O, ?G, ?Triple) is nondet.
 
@@ -563,6 +576,10 @@ q_triple(M, Triple) :-
 
 q_triple(M, G, Triple) :-
   q_triple(M, _, _, _, G, Triple).
+
+
+q_triple(M, S, G, Triple) :-
+  q_triple(M, S, _, _, G, Triple).
 
 
 q_triple(M, S, P, O, Triple) :-
@@ -576,29 +593,39 @@ q_triple(M, S, P, O, G, Triple) :-
 
 
 %! q_triple_datatype(+Triple, -D) is det.
-%! q_triple_iri(+Triple, -Iri) is nondet.
-%! q_triple_object(+Triple, -O) is det.
-%! q_triple_predicate(+Triple, -P) is det.
-%! q_triple_subject(+Triple, -S) is det.
-%! q_triple_term(+Triple, -Term) is nondet.
 
 q_triple_datatype(rdf(_,_,O), D) :-
   q_literal_datatype(O, D).
 
+
+
+%! q_triple_iri(+Triple, -Iri) is nondet.
 
 q_triple_iri(Triple, Iri) :-
   q_triple_term(Triple, Iri),
   q_is_iri(Iri).
 
 
+
+%! q_triple_object(+Triple, -O) is det.
+
 q_triple_object(rdf(_,_,O,_), O).
 
+
+
+%! q_triple_predicate(+Triple, -P) is det.
 
 q_triple_predicate(rdf(_,P,_,_), P).
 
 
+
+%! q_triple_subject(+Triple, -S) is det.
+
 q_triple_subject(rdf(S,_,_,_), S).
 
+
+
+%! q_triple_term(+Triple, -Term) is nondet.
 
 q_triple_term(rdf(S,_,_), S).
 q_triple_term(rdf(_,P,_), P).
@@ -614,6 +641,7 @@ q_triple_terms(rdf(S,P,O), S, P, O).
 
 %! q_triples(?M, -Triple) is nondet.
 %! q_triples(?M, ?G, -Triple) is nondet.
+%! q_triples(?M, ?S, ?G, -Triple) is nondet.
 %! q_triples(?M, ?S, ?P, ?O, -Triple) is nondet.
 %! q_triples(?M, ?S, ?P, ?O, ?G, -Triple) is nondet.
 
@@ -623,6 +651,10 @@ q_triples(M, Triples) :-
 
 q_triples(M, G, Triples) :-
   q_triples(M, _, _, _, G, Triples).
+
+
+q_triples(M, S, G, Triples) :-
+  q_triples(M, S, _, _, G, Triples).
 
 
 q_triples(M, S, P, O, Triples) :-
@@ -638,12 +670,10 @@ q_triples(M, S, P, O, G, Triples) :-
 
 % HELPERS %
 
-%! basic_filtering(
-%!   +LanguagePriorityList:list(atom),
-%!   +LanguageTag:atom
-%! ) is semidet.
-% Succeeds if the LanguagePriorityList matches the LanguageTag according to
-% the basic filtering algorithm described in RFC 4647,
+%! basic_filtering(+LPriorityList, +LTag) is semidet.
+%
+% Succeeds if the LanguagePriorityList matches the LanguageTag
+% according to the basic filtering algorithm described in RFC 4647,
 % i.e., if the former is a case-insensitive prefix of the latter,
 % while also treating the `*` sign as a wildcard.
 %
@@ -674,8 +704,10 @@ graph_file(G, File) :-
 
 
 %! subtag_match(+RangeSubtag:atom, +Subtag:atom) is semidet.
+%
 % Two subtags match if either they are the same when compared
-% case-insensitively or the language range's subtag is the wildcard `*`
+% case-insensitively or the language range's subtag is the wildcard
+% `*`
 
 subtag_match(*, _):- !.
 subtag_match(X1, X2):-

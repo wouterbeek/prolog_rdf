@@ -4,17 +4,19 @@
     jsonld_abbreviate_iri/3, % +Context, +Full, -Compact
     jsonld_expand_term/3,    % +Context, +Compact, -Full
     jsonld_is_bnode/1,       % +Term
-    jsonld_keyword/1         % ?Keyword
+    jsonld_keyword/1,        % ?Keyword
+    reply_jsonld/1           % +Dict
   ]
 ).
 
 /** <module> JSON-LD generics
 
 @author Wouter Beek
-@version 2016/01-2016/02, 2016/05-2016/06
+@version 2016/01-2016/02, 2016/05-2016/06, 2016/08
 */
 
 :- use_module(library(dict_ext)).
+:- use_module(library(http/http_json)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
@@ -111,3 +113,10 @@ jsonld_keyword('@id').
 jsonld_keyword('@type').
 jsonld_keyword('@value').
 jsonld_keyword('@vocab').
+
+
+
+%! reply_jsonld(+Dict) is det.
+
+reply_jsonld(Dict) :-
+  reply_json_dict(Dict, [content_type('application/ld+json')]).

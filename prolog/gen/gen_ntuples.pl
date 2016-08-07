@@ -1,17 +1,18 @@
 :- module(
   gen_ntuples,
   [
-    call_to_nquads/2,   % +Sink, :Goal_2
-    call_to_nquads/3,   % +Sink, :Goal_2, +Opts
-    call_to_ntriples/2, % +Sink, :Goal_2
-    call_to_ntriples/3, % +Sink, :Goal_2, +Opts
-    call_to_ntuples/3,  % +Sink, :Goal_2, +Opts
-    gen_ntuple/3,       % +Tuple,             +State, +Out
-    gen_ntuple/5,       %     +S, +P, +O,     +State, +Out
-    gen_ntuple/6,       %     +S, +P, +O, +G, +State, +Out
-    gen_ntuples/3,      % +Tuples,            +State, +Out
-    gen_ntuples/4,      % ?M,             ?G, +State, +Out
-    gen_ntuples/7       % ?M, ?S, ?P, ?O, ?G, +State, +Out
+    call_to_nquads/2,    % +Sink, :Goal_2
+    call_to_nquads/3,    % +Sink, :Goal_2, +Opts
+    call_to_ntriples/2,  % +Sink, :Goal_2
+    call_to_ntriples/3,  % +Sink, :Goal_2, +Opts
+    call_to_ntuples/3,   % +Sink, :Goal_2, +Opts
+    gen_ntuple/3,        % +Tuple,             +State, +Out
+    gen_ntuple/5,        %     +S, +P, +O,     +State, +Out
+    gen_ntuple/6,        %     +S, +P, +O, +G, +State, +Out
+    gen_ntuples/3,       % +Tuples,            +State, +Out
+    gen_ntuples/4,       % ?M,             ?G, +State, +Out
+    gen_ntuples/7,       % ?M, ?S, ?P, ?O, ?G, +State, +Out
+    ntuples_media_type/2 % ?MT, ?Format
   ]
 ).
 
@@ -22,7 +23,7 @@ The follwing debug flags are used:
   * gen_ntuples
 
 @author Wouter Beek
-@version 2016/03-2016/07
+@version 2016/03-2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -191,6 +192,15 @@ gen_ntuples(M, G, State, Out) :-
 gen_ntuples(M, S, P, O, G, State, Out) :-
   aggregate_all(set(S), q(M, S, P, O, G), Ss),
   maplist(gen_ntuples_for_subject0(State, Out, M, P, O, G), Ss).
+
+
+
+%! ntuples_media_type(+MT, -Format) is semidet.
+%
+% Succeeds for media types supported by this module.
+
+ntuples_media_type(application/'n-quads', nquads) :- !.
+ntuples_media_type(application/'n-triples', ntriples).
 
 
 

@@ -5,7 +5,8 @@
     geold_tuple/2,   % +Source, -Tuple
     geold_tuple/4,   % +Source, +ExtraContext, +ExtraData, -Tuple
     geold_tuples/2,  % +Source, -Tuples
-    geold_tuples/4   % +Source, +ExtraContext, +ExtraData, -Tuples
+    geold_tuples/4,  % +Source, +ExtraContext, +ExtraData, -Tuples
+    reply_geojson/1  % +Dict
   ]
 ).
 
@@ -18,7 +19,7 @@ information.  Later RDF transformations can then be used to interpret
 the array as e.g. Well-Known Text (WKT).
 
 @author Wouter Beek
-@version 2016/05-2016/07
+@version 2016/05-2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -27,6 +28,7 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
+:- use_module(library(http/http_json)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
@@ -152,3 +154,10 @@ geold_prepare_data(Source, ExtraData, Data2) :-
       )
   ;   Data2 = Data1.put(ExtraData)
   ).
+
+
+
+%! reply_geojson(+Dict) is det.
+
+reply_geojson(Dict) :-
+  reply_json_dict(Dict, [content_type('application/vnd.geo+json')]).
