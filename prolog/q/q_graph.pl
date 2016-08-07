@@ -6,6 +6,7 @@
 
     % SOURCE ⬄ STORE
     q_source2store/0,
+    q_source2store/1, % +Name
     q_source2store/2, % +File, -G
 
   % STORE
@@ -126,6 +127,7 @@ q_source_file(File) :-
 % SOURCE ⬄ STORE %
 
 %! q_source2store is det.
+%! q_source2store(+Name) is det.
 %! q_source2store(+Source, -G) is det.
 %
 % Convert Source into an RDF file with graph G.  Source is one of the
@@ -153,6 +155,13 @@ q_source2store :-
     q_source_file(File),
     q_source2store(file(File,_{}), _)
   ).
+
+
+q_source2store(Name) :-
+  atomic_list_concat([Name,*], ., Wildcard0),
+  absolute_file_name(source(Wildcard0), Wildcard),
+  expand_file_name(Wildcard, [File]),
+  q_source2store(file(File,_{}), _).
 
 
 q_source2store(file(Source,Opts), G) :- !,
