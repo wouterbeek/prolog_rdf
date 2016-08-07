@@ -1,10 +1,11 @@
 :- module(
   jsonld_build,
   [
-    subject_to_jsonld/3, % +M, +S, -Jsonld
-    subject_to_jsonld/4, % +M, +S, ?G, -Jsonld
-    triples_to_jsonld/3, % +M, +Triples, -Jsonld
-    triples_to_jsonld/4  % +M, +Triples, ?G, -Jsonld
+    quads_to_jsonld/3,   % +M, +Quads, -Dict
+    subject_to_jsonld/3, % +M, +S, -Dict
+    subject_to_jsonld/4, % +M, +S, ?G, -Dict
+    triples_to_jsonld/3, % +M, +Triples, -Dict
+    triples_to_jsonld/4  % +M, +Triples, ?G, -Dict
   ]
 ).
 
@@ -13,7 +14,7 @@
 @author Wouter Beek
 @compat JSON-LD 1.1
 @see http://www.w3.org/TR/json-ld/
-@version 2016/01, 2016/06
+@version 2016/01, 2016/06, 2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -31,6 +32,7 @@
 :- use_module(library(typecheck)).
 
 :- rdf_meta
+   quads_to_jsonld(+, t, -),
    subject_to_jsonld(+, r, -),
    subject_to_jsonld(+, r, r, -),
    triples_to_jsonld(+, t, -),
@@ -40,41 +42,72 @@
 
 
 
-%! subject_to_jsonld(+M, +S, -Jsonld) is det.
-%! subject_to_jsonld(+M, +S, ?G, -Jsonld) is det.
+%! quads_to_jsonld(+M, +Quads, -Dict) is det.
 
-subject_to_jsonld(M, S, Jsonld) :-
-  subject_to_jsonld(M, S, _, Jsonld).
-
-
-subject_to_jsonld(M, S, G, Jsonld) :-
-  q_cbd_triples(M, S, G, Triples),
-  triples_to_jsonld(M, Triples, G, Jsonld).
-
-
-
-%! triples_to_jsonld(+M, +Triples, -Jsonld) is det.
-%! triples_to_jsonld(+M, +Triples, ?G, -Jsonld) is det.
-
-triples_to_jsonld(M, Triples, Jsonld) :-
-  triples_to_jsonld(M, Triples, _, Jsonld).
-
-
-triples_to_jsonld(M, Triples, G, Jsonld) :-
-  jsonld_triples_context(M, Triples, G, PDefs, DefLang, Context),
-  jsonld_triples_tree(Triples, Tree),
-  assoc_to_keys(Tree, Ss),
-  maplist(jsonld_subject_tree(M, PDefs, DefLang, Tree, G), Ss, Ds),
-  (   Ds = [D]
-  ->  Jsonld = D.put('@context', Context)
-  ;   dict_pairs(Jsonld, ['@context'-Context,'@graph'-Ds])
+quads_to_jsonld(M, Quads, Dict) :-
+  findall(G-rdf(S,P,O), member(rdf(S,P,O,G), Quads), Pairs),
+  group_pairs_by_key(Pairs, GroupedPairs),
+  pairs_keys_values(GroupedPairs, Gs, Tripless),
+  maplist(triples_to_jsonld(M), Tripless, Gs, Contexts, SDictss),
+  (   Gs = [G],
+      Contexts = [Context],
+      SDictss = [SDicts]
+  ->  Dict = _{'@context': Context, '@graph': SDicts, '@id': G}
+  ;   merge_dicts(Contexts, Context),
+      maplist(jsonld_graph_dict, Gs, SDictss, GDicts),
+      Dict = _{'@context': Context, '@graph': GDicts}
   ).
 
 
+jsonld_graph_dict(G, SDicts, _{'@graph': SDicts, '@id': G}).
 
-%! jsonld_subject_tree(+M, +PDefs:list(pair), ?DefLang, +Tree, +G, +S, -Jsonld) is det.
 
-jsonld_subject_tree(M, PDefs, DefLang, Tree, G, S1, Jsonld) :-
+merge_dicts([Dict], Dict) :- !.
+merge_dicts([H1,H2|T], Dict) :-
+  merge_dicts(H1, H2, H3),
+  merge_dicts([H3|T], Dict).
+
+
+
+%! subject_to_jsonld(+M, +S, -Dict) is det.
+%! subject_to_jsonld(+M, +S, ?G, -Dict) is det.
+
+subject_to_jsonld(M, S, Dict) :-
+  subject_to_jsonld(M, S, _, Dict).
+
+
+subject_to_jsonld(M, S, G, Dict) :-
+  q_cbd_triples(M, S, G, Triples),
+  triples_to_jsonld(M, Triples, G, Dict).
+
+
+
+%! triples_to_jsonld(+M, +Triples, -Dict) is det.
+%! triples_to_jsonld(+M, +Triples, ?G, -Dict) is det.
+
+triples_to_jsonld(M, Triples, Dict) :-
+  triples_to_jsonld(M, Triples, _, Dict).
+
+
+triples_to_jsonld(M, Triples, G, Dict) :-
+  triples_to_jsonld(M, Triples, G, Context, Dicts),
+  (   Dicts = [Dict0]
+  ->  put_dict('@context', Dict0, Context, Dict)
+  ;   Dict = _{'@context': Context, '@graph': Dicts}
+  ).
+
+
+triples_to_jsonld(M, Triples, G, Context, Dicts) :-
+  jsonld_triples_context(M, Triples, G, PDefs, DefLang, Context),
+  jsonld_triples_tree(Triples, Tree),
+  assoc_to_keys(Tree, Ss),
+  maplist(jsonld_subject_tree(M, PDefs, DefLang, Tree, G), Ss, Dicts).
+
+
+
+%! jsonld_subject_tree(+M, +PDefs:list(pair), ?DefLang, +Tree, +G, +S, -Dict) is det.
+
+jsonld_subject_tree(M, PDefs, DefLang, Tree, G, S1, Dict) :-
   get_assoc(S1, Tree, Subtree),
 
   % '@id'
@@ -96,7 +129,7 @@ jsonld_subject_tree(M, PDefs, DefLang, Tree, G, S1, Jsonld) :-
   maplist(jsonld_ptree(M, PDefs, DefLang, Subtree, G), Ps2, Pairs3),
 
   % Pairs → dict.
-  dict_pairs(Jsonld, Pairs1).
+  dict_pairs(Dict, Pairs1).
 
 
 
@@ -171,7 +204,7 @@ jsonld_ptree(M, PDefs, DefLang, Tree, G, P1, P2-O2) :-
 
 
 
-%! jsonld_oterm(+M, +PDefs, ?DefLang, +P, +G, +O, -JsonldO) is det.
+%! jsonld_oterm(+M, +PDefs, ?DefLang, +P, +G, +O, -DictO) is det.
 
 jsonld_oterm(M, PDefs, _, P2, G, O1, Elems2) :-
   q_is_subject(O1),

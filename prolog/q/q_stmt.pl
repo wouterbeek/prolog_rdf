@@ -2,70 +2,72 @@
   q_stmt,
   [
   % RDF
-    q/4,                  % ?M, ?S, ?P, ?O
-    q/5,                  % ?M, ?S, ?P, ?O, ?G
-    q/6,                  % ?M, ?S, ?P, ?O, ?G, ?D
-    q_deref/2,            % +Iri, -Quad
-    q_derefs/2,           % +Iri, -Quads
-    q_derefs/3,           % +Iri, -POs, -SPs
-    q_derefs/4,           % +Iri, -POs, -SPs, -Rest
-    q_instance/4,         % ?M, ?I, ?C, ?G
-    q_is_def_quad/1,      % @Term
-    q_is_ground_quad/1,   % @Term
-    q_is_ground_triple/1, % @Term
-    q_is_quad/1,          % @Term
-    q_is_triple/1,        % @Term
-    q_lts/4,              % ?M, ?S, ?P, ?Lit
-    q_lts/5,              % ?M, ?S, ?P, ?Lit, ?G
-    q_lts/6,              % ?M, ?S, ?P, +LRange, ?Lit, -G
-    q_quad/2,             % ?M, -Quad
-    q_quad/3,             % ?M, ?G, -Quad
-    q_quad/5,             % ?M, ?S, ?P, ?O, -Quad
-    q_quad/6,             % ?M, ?S, ?P, ?O, ?G, -Quad
-    q_quad_datatype/2,    % +Quad, -D
-    q_quad_graph/2,       % +Quad, -G
-    q_quad_iri/2,         % +Quad, -Iri
-    q_quad_object/2,      % +Quad, -O
-    q_quad_predicate/2,   % +Quad, -P
-    q_quad_subject/2,     % +Quad, -S
-    q_quad_term/2,        % +Quad, -Term
-    q_quad_terms/5,       % ?Quad, ?S, ?P, ?O, ?G
-    q_quads/2,            % ?M, -Quads
-    q_quads/3,            % ?M, ?G, -Quads
-    q_quads/5,            % ?M, ?S, ?P, ?O, -Quads
-    q_quads/6,            % ?M, ?S, ?P, ?O, ?G, -Quads
-    q_reification/4,      % ?M, ?S, ?P, ?O
-    q_reification/5,      % ?M, ?S, ?P, ?O, ?G
-    q_reification/6,      % ?M, ?S, ?P, ?O, ?G, -Stmt
-    q_triple/2,           % ?M, -Triple
-    q_triple/3,           % ?M, ?G, -Triple
-    q_triple/5,           % ?M, ?S, ?P, ?O, -Triple
-    q_triple/6,           % ?M, ?S, ?P, ?O, ?G, -Triple
-    q_triple_datatype/2,  % +Triple, -D
-    q_triple_iri/2,       % +Triple, -Iri
-    q_triple_object/2,    % +Triple, -O
-    q_triple_predicate/2, % +Triple, -P
-    q_triple_subject/2,   % +Triple, -S
-    q_triple_term/2,      % +Triple, -Term
-    q_triple_terms/4,     % ?Triple, ?S, ?P, ?O
-    q_triples/2,          % ?M, -Triples
-    q_triples/3,          % ?M, ?G, -Triples
-    q_triples/5,          % ?M, ?S, ?P, ?O, -Triples
-    q_triples/6,          % ?M, ?S, ?P, ?O, ?G, -Triples
+    q/4,                   % ?M, ?S, ?P, ?O
+    q/5,                   % ?M, ?S, ?P, ?O, ?G
+    q/6,                   % ?M, ?S, ?P, ?O, ?G, ?D
+    q_deref/2,             % +Iri, -Quad
+    q_derefs/2,            % +Iri, -Quads
+    q_derefs/3,            % +Iri, -POs, -SPs
+    q_derefs/4,            % +Iri, -POs, -SPs, -Rest
+    q_instance/4,          % ?M, ?I, ?C, ?G
+    q_is_def_quad/1,       % @Term
+    q_is_ground_quad/1,    % @Term
+    q_is_ground_triple/1,  % @Term
+    q_is_quad/1,           % @Term
+    q_is_triple/1,         % @Term
+    q_lts/4,               % ?M, ?S, ?P, ?Lit
+    q_lts/5,               % ?M, ?S, ?P, ?Lit, ?G
+    q_lts/6,               % ?M, ?S, ?P, +LRange, ?Lit, -G
+    q_quad/2,              % ?M, -Quad
+    q_quad/3,              % ?M, ?G, -Quad
+    q_quad/5,              % ?M, ?S, ?P, ?O, -Quad
+    q_quad/6,              % ?M, ?S, ?P, ?O, ?G, -Quad
+    q_quad_datatype/2,     % +Quad, -D
+    q_quad_graph/2,        % +Quad, -G
+    q_quad_graph_triple/3, % ?Quad, ?G, ?Triple
+    q_quad_iri/2,          % +Quad, -Iri
+    q_quad_object/2,       % +Quad, -O
+    q_quad_predicate/2,    % +Quad, -P
+    q_quad_subject/2,      % +Quad, -S
+    q_quad_term/2,         % +Quad, -Term
+    q_quad_terms/5,        % ?Quad, ?S, ?P, ?O, ?G
+    q_quad_triple/2,       % ?Quad, ?Triple
+    q_quads/2,             % ?M, -Quads
+    q_quads/3,             % ?M, ?G, -Quads
+    q_quads/5,             % ?M, ?S, ?P, ?O, -Quads
+    q_quads/6,             % ?M, ?S, ?P, ?O, ?G, -Quads
+    q_reification/4,       % ?M, ?S, ?P, ?O
+    q_reification/5,       % ?M, ?S, ?P, ?O, ?G
+    q_reification/6,       % ?M, ?S, ?P, ?O, ?G, -Stmt
+    q_triple/2,            % ?M, -Triple
+    q_triple/3,            % ?M, ?G, -Triple
+    q_triple/5,            % ?M, ?S, ?P, ?O, -Triple
+    q_triple/6,            % ?M, ?S, ?P, ?O, ?G, -Triple
+    q_triple_datatype/2,   % +Triple, -D
+    q_triple_iri/2,        % +Triple, -Iri
+    q_triple_object/2,     % +Triple, -O
+    q_triple_predicate/2,  % +Triple, -P
+    q_triple_subject/2,    % +Triple, -S
+    q_triple_term/2,       % +Triple, -Term
+    q_triple_terms/4,      % ?Triple, ?S, ?P, ?O
+    q_triples/2,           % ?M, -Triples
+    q_triples/3,           % ?M, ?G, -Triples
+    q_triples/5,           % ?M, ?S, ?P, ?O, -Triples
+    q_triples/6,           % ?M, ?S, ?P, ?O, ?G, -Triples
   % RDFS
-    q_domain/4,           % ?M, ?P, ?C, ?G
-    q_pref_label/3,       % ?M, ?S, ?Lit
-    q_pref_label/4,       % ?M, ?S, ?Lit, ?G
-    q_pref_lex/4,         % ?M, ?S, ?P, ?Lex
-    q_pref_lex/5,         % ?M, ?S, ?P, ?Lex, ?G
-    q_pref_string/4,      % ?M, ?S, ?P, ?Lit
-    q_pref_string/5,      % ?M, ?S, ?P, ?Lit, ?G
-    q_range/4,            % ?M, ?P, ?C, ?G
-    q_subclass/4,         % ?M, ?C, ?D, ?G
+    q_domain/4,            % ?M, ?P, ?C, ?G
+    q_pref_label/3,        % ?M, ?S, ?Lit
+    q_pref_label/4,        % ?M, ?S, ?Lit, ?G
+    q_pref_lex/4,          % ?M, ?S, ?P, ?Lex
+    q_pref_lex/5,          % ?M, ?S, ?P, ?Lex, ?G
+    q_pref_string/4,       % ?M, ?S, ?P, ?Lit
+    q_pref_string/5,       % ?M, ?S, ?P, ?Lit, ?G
+    q_range/4,             % ?M, ?P, ?C, ?G
+    q_subclass/4,          % ?M, ?C, ?D, ?G
   % OWL
-    q_identity/4,         % ?M, ?I, ?J, ?G
+    q_identity/4,          % ?M, ?I, ?J, ?G
   % Domain-specific
-    q_image/4             % ?M, ?S, -Img, ?G
+    q_image/4              % ?M, ?S, -Img, ?G
   ]
 ).
 
@@ -123,12 +125,14 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_quad(?, r, r, o, r, -),
    q_quad_datatype(t, r),
    q_quad_graph(t, r),
+   q_quad_graph_triple(t, r, t),
    q_quad_iri(t, r),
    q_quad_object(t, o),
    q_quad_predicate(t, r),
    q_quad_subject(t, r),
    q_quad_term(t, o),
    q_quad_terms(t, r, r, o, r),
+   q_quad_triple(t, t),
    q_quads(?, r, -),
    q_quads(?, r, r, o, -),
    q_quads(?, r, r, o, r, -),
@@ -198,7 +202,6 @@ q_deref0(Set, Iri1, Quad) :-
       add_nb_set(Iri2, Set, true),
       q_deref0(Set, Iri2, Quad)
   ).
-blacklisted('http://yago-knowledge.org/resource/Abraham_Kuyper').
 
 
 
@@ -433,22 +436,47 @@ q_quad_datatype(rdf(_,_,O,_), D) :-
   q_literal_datatype(O, D).
 
 
+
+%! q_quad_graph(+Quad, -G) is det.
+
 q_quad_graph(rdf(_,_,_,G), G).
 
+
+
+%! q_quad_graph_triple(+Quad, -G, -Triple) is det.
+%! q_quad_graph_triple(-Quad, +G, +Triple) is det.
+
+q_quad_graph_triple(rdf(S,P,O,G), G, rdf(S,P,O)).
+
+
+
+%! q_quad_iri(+Quad, -Iri) is multi.
 
 q_quad_iri(Quad, Iri) :-
   q_quad_term(Quad, Iri),
   q_is_iri(Iri).
 
 
+
+%! q_quad_object(+Quad, -O) is det.
+
 q_quad_object(rdf(_,_,O,_), O).
 
+
+
+%! q_quad_predicate(+Quad, -P) is det.
 
 q_quad_predicate(rdf(_,P,_,_), P).
 
 
+
+%! q_quad_subject(+Quad, -S) is det.
+
 q_quad_subject(rdf(S,_,_,_), S).
 
+
+
+%! q_quad_term(+Quad, -Term) is multi.
 
 q_quad_term(rdf(S,_,_,_), S).
 q_quad_term(rdf(_,P,_,_), P).
@@ -460,6 +488,12 @@ q_quad_term(rdf(_,_,_,G), G).
 %! q_quad_terms(?Quad, ?S, ?P, ?O, ?G) is det.
 
 q_quad_terms(rdf(S,P,O,G), S, P, O, G).
+
+
+
+%! q_quad_triple(+Quad, -Triple) is det.
+
+q_quad_triple(rdf(S,P,O,_), rdf(S,P,O)).
 
 
 
