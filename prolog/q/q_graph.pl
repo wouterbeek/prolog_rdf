@@ -167,10 +167,9 @@ q_source2store(Name) :-
 q_source2store(file(Source,Opts), G) :- !,
   access_file(Source, read),
   file_extensions(Source, Exts),
-  q_source_extensions(Format, Exts),
+  once(q_source_extensions(Format, Exts)),
   q_file_to_graph(Source, G),
   q_graph_to_file(store, G, ntriples, Sink),
-  once(q_source_extensions(Format, Exts)),
   q_source2store_hook(Format, Source, Sink, Opts).
 q_source2store(url(Source,Opts), G) :-
   q_graph_iri(Opts.name, G),
