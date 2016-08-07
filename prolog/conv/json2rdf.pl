@@ -24,6 +24,7 @@
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
 :- use_module(library(os/io)).
+:- use_module(library(q/q_array), []). % tcco:array
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
