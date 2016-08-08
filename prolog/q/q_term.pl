@@ -109,8 +109,15 @@
 :- multifile
     http:convert_parameter/3.
 
-http:convert_parameter(q_term, A, Term) :- !,
-  (atom_phrase(q_term0(Term), A) -> true ; Term = A).
+
+http:convert_parameter(q_iri, A, A) :- !.
+http:convert_parameter(q_literal, A, Term) :- !,
+  atom_phrase(q_term0(Term), A).
+http:convert_parameter(q_term, A, Term) :-
+  (   http:convert_paramter(q_literal, A, Term)
+  ->  true
+  ;   http:convert_paramter(q_iri, A, Term)
+  ).
 
 q_term0(Term) -->
   "\"", !,
