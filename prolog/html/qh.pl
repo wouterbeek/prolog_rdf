@@ -94,7 +94,9 @@ The following options are supported to achieve parity with module
    qh_link(+, +, +, +, html, +, ?, ?).
 
 :- multifile
-    qh:qh_literal_hook//2.
+    qh:qh_literal_hook//2,
+    rdf11:in_ground_type_hook/3,
+    rdf11:out_type_hook/3.
 
 :- rdf_meta
    qh_something(o, ?, ?),
@@ -580,20 +582,18 @@ qh_default_options(Opts1, Opts2) :-
 
 
 
-%! qh_external_iri(+C, +Term, -Link) is det.
-%! qh_external_iri(+C, +Term, +Query, -Link) is det.
+%! qh_external_iri(+C, +Val, -Link) is det.
+%! qh_external_iri(+C, +Val, +Query, -Link) is det.
 
-qh_external_iri(C, Term, Link) :-
-  qh_external_iri(C, Term, [], Link).
+qh_external_iri(C, Val, Link) :-
+  qh_external_iri(C, Val, [], Link).
 
 
-qh_external_iri(C, Term, Query1, Link) :-
+qh_external_iri(C, Val, Query, Link) :-
   setting(qh:http_handler, Id),
   Id \== '',
-  term_to_atom(Term, A),
-  QueryTerm =.. [C,A],
-  Query2 = [QueryTerm|Query1],
-  http_link_to_id(Id, Query2, Link).
+  q_query_term(C, Val, QueryTerm),
+  http_link_to_id(Id, [QueryTerm|Query], Link).
 
 
 
@@ -632,7 +632,6 @@ qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   ]).
 qh_link(_, _, _, _, Content_0, _) -->
   Content_0.
-
 
 
 qh_link_external(Term) -->

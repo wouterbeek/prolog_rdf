@@ -51,6 +51,8 @@
     q_predicate/2,         % ?M, ?P
     q_predicate/3,         % ?M, ?P, ?G
     q_prefix/1,            % ?Prefix
+    q_query_term/2,        % +Term, -QueryTerm
+    q_query_term/3,        % +Key, +Val, -QueryTerm
     q_snap/1,              % :Goal_0
     q_subject/2,           % ?M, ?S
     q_subject/3,           % ?M, ?S, ?G
@@ -92,16 +94,59 @@
 @version 2016/06, 2016/08
 */
 
-:- use_module(library(semweb/rdf11)). % Priority for rdf_meta/1.
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
 
 :- meta_predicate
     q_aggregate_all(+, 0, -),
     q_snap(0).
+
+:- multifile
+    http:convert_parameter/3.
+
+http:convert_parameter(q_term, A, Term) :- !,
+  (atom_phrase(q_term0(Term), A) -> true ; Term = A).
+
+q_term0(Term) -->
+  "\"", !,
+  q_lex0([0'"], Cs), %"
+  (   "@"
+  ->  q_ltag0(LTag),
+      {
+        string_codes(Str, Cs),
+        Term = Str@LTag
+      }
+  ;   "^^",
+      q_iri0(D),
+      {
+        atom_codes(Lex, Cs),
+        rdf11:out_type(D, Val, Lex),
+        Term = Val^^D
+      }
+  ).
+q_term0(Iri) -->
+  q_iri0(Iri).
+
+q_ltag0(LTag) -->
+  rest(Cs),
+  {atom_codes(LTag, Cs)}.
+
+q_lex0(End, L)     --> "\\\'", !, q_lex0(End, L).
+q_lex0(End, L)     --> "\\\"", !, q_lex0(End, L).
+q_lex0(End, [])    --> End,    !.
+q_lex0(End, [H|T]) --> [H],    !, q_lex0(End, T).
+q_lex0(_,   [])    --> "".
+
+q_iri0(Iri) -->
+  "<",
+  '...'(Cs),
+  ">",
+  {atom_codes(Iri, Cs)}.
 
 :- rdf_meta
    q_aggregate_all(+, t, -),
@@ -466,6 +511,28 @@ q_predicate(hdt, P, G) :-
 
 q_prefix(Prefix) :-
   q_alias_prefix(_, Prefix).
+
+
+
+%! q_query_term(+Term, -QueryTerm) is det.
+%! q_query_term(+Key, +Val, -QueryTerm) is det.
+
+q_query_term(Term, QueryTerm) :-
+  Term =.. [Key,Val],
+  q_query_term(Key, Val, QueryTerm).
+
+
+q_query_term(Key, Val, QueryTerm) :-
+  q_write_query_term(Val, A),
+  QueryTerm =.. [Key,A].
+
+
+q_write_query_term(Val^^D, A) :- !,
+  rdf11:in_ground_type(D, Val, Lex),
+  format(atom(A), '"~a"^^<~a>', [Lex,D]).
+q_write_query_term(Lex@LTag, A) :- !,
+  format(atom(A), '"~a"@~a', [Lex,LTag]).
+q_write_query_term(A, A).
 
 
 
