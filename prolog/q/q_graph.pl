@@ -5,9 +5,12 @@
   q_source_file/1,    % -File
 
     % SOURCE ⬄ STORE
+    q_create/0,
+    q_create/1,       % +G
     q_source2store/0,
     q_source2store/1, % +Name
     q_source2store/2, % +File, -G
+    q_store_reset/0,
 
   % STORE
   q_store_file/2,     % -File, ?G
@@ -16,6 +19,7 @@
     % STORE ⬄ VIEW
     q_store2view/1,   % +M
     q_store2view/2,   % +M, +G
+    q_view_reset/0,
 
   % VIEW
   q_view_file/3,      % -M, -File, -G
@@ -28,6 +32,7 @@
     q_save/2,         % +M, +G
     q_save_append/1,  % +M
     q_save_append/2,  % +M, +G
+    q_unload/0,
     q_unload/1,       % +M
     q_unload/2,       % +M, +G
 
@@ -47,6 +52,8 @@
 @version 2016/08
 */
 
+:- use_module(library(apply)).
+:- use_module(library(call_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(os/directory_ext)).
 :- use_module(library(os/file_ext)).
@@ -71,12 +78,14 @@
     q_ls(2).
 
 
+%! q_create_hook(+G) is det.
 %! q_source2store_hook(+Format, +Source, +Sink, +Opts) is det.
 %! q_source_extensions_hook(?Format, ?Exts) is nondet.
 %! q_store_extensions_hook(?Format, ?Exts) is nondet.
 %! q_view_extensions_hook(?Format, ?Exts) is nondet.
 
 :- multifile
+    q_create_hook/1,
     q_source2store_hook/4,
     q_source_extensions_hook/2,
     q_view_extensions_hook/2.
@@ -86,6 +95,7 @@ q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
   rdf_change_format(Source, Sink, Opts2).
 
 :- rdf_meta
+   q_create(r),
    q_load(+, r),
    q_loaded_graph(?, r),
    q_save(+, r),
@@ -125,6 +135,19 @@ q_source_file(File) :-
 
 
 % SOURCE ⬄ STORE %
+
+%! q_create is det.
+%! q_create(+G) is det.
+
+q_create :-
+  forall(q_create(_)).
+
+
+q_create(G) :-
+  q_create_hook(G),
+  q_save(rdf, G).
+    
+
 
 %! q_source2store is det.
 %! q_source2store(+Name) is det.
@@ -177,6 +200,17 @@ q_source2store(url(Source,Opts), G) :-
   file_extensions(Source, Exts),
   once(q_source_extensions(Format, Exts)),
   q_source2store_hook(Format, Source, Sink, Opts).
+
+
+
+%! q_store_reset is det.
+
+q_store_reset :-
+  q_root(store, Root),
+  directory_file_path(Root, *, Wildcard),
+  expand_file_name(Wildcard, Files),
+  maplist(delete_file_msg, Files),
+  delete_file_msg('q_dataset.db').
 
 
 
@@ -278,9 +312,28 @@ q_store2view(rdf, G) :-
 
 
 
+%! q_view_reset is det.
+
+q_view_reset :-
+  q_root(view, Root),
+  directory_file_path(Root, *, Wildcard),
+  expand_file_name(Wildcard, Files),
+  maplist(delete_file_msg, Files).
+
+
+
 
 
 % VIEW %
+
+%! q_backend(?M) is nondet.
+%
+% Enumerate the currently supported backends.
+
+q_backend(M) :-
+  distinct(M, q_view_extensions(M, _)).
+
+
 
 %! q_view_extensions(?Format, ?Exts) is nondet.
 
@@ -391,8 +444,14 @@ q_save0(M, G, Opts1) :-
 
 
 
+%! q_unload is det.
 %! q_unload(+M) is det.
 %! q_unload(+M, +G) is det.
+
+q_unload :-
+  q_backend(M),
+  q_unload(M).
+
 
 q_unload(M) :-
   forall(
