@@ -36,6 +36,8 @@
     % CACHE ⬄ VIEW
     q_cache2view/1,           % +M
     q_cache2view/2,           % +M, +G
+    q_store2view/0,
+    q_store2view/1,           % +M
     q_store2view/2,           % +M, +G
     q_view2store_append/1,    % +M
     q_view2store_append/2,    % +M, +G
@@ -239,8 +241,7 @@ q_create(Name) :-
 q_create_data(Refs, Goal_2, G) :-
   q_graph_iri(Refs, G),
   call(Goal_2, rdf, G),
-  q_store2cache(rdf, G),
-  q_cache2view(rdf, G).
+  q_store2view0(G).
 
 
 
@@ -250,7 +251,7 @@ q_create_vocab(Refs, Goal_2, G) :-
   q_vocab_iri(Refs, G),
   call(Goal_2, rdf, G),
   q_view2store_overwrite(rdf, G),
-  q_store2cache(rdf, G).
+  q_store2view0(G).
 
 
 
@@ -260,7 +261,7 @@ q_create_void(Refs, D, Goal_3, G) :-
   q_void_iri(Refs, G),
   call(Goal_3, rdf, D, G),
   q_view2store_overwrite(rdf, G),
-  q_store2cache(rdf, G).
+  q_store2view0(G).
 
 
 
@@ -568,11 +569,35 @@ q_cache2view(rdf, G) :-
 
 
 
+%! q_store2view is det.
+%! q_store2view(+M) is det.
 %! q_store2view(+M, +G) is det.
+
+q_store2view :-
+  forall(
+    q_backend(M),
+    q_store2view(M)
+  ).
+
+  
+q_store2view(M) :-
+  forall(
+    q_store_graph(G),
+    q_store2view(M, G)
+  ).
+
 
 q_store2view(M, G) :-
   q_store2cache(M, G),
   q_cache2view(M, G).
+
+
+
+q_store2view0(G) :-
+  forall(
+    q_backend(M),
+    q_store2view(M, G)
+  ).
 
 
 
