@@ -1,14 +1,18 @@
 :- module(
   q_io,
   [
+    % CREATE
+    q_create/0,
+    q_create/1,       % +Name
+    q_create_data/3,  % +Refs, :Goal_2, -G
+    q_create_vocab/3, % +Refs, :Goal_2, -G
+    q_create_void/4,  % +D, +Refs, :Goal_3, -G
+    q_rm/0,
+    
   % SOURCE
   q_source_file/1,    % -File
 
     % SOURCE ⬄ STORE
-    q_create/0,
-    q_create/1,       % +G
-    q_create_data/3,  % +Refs, :Goal_2, -G
-    q_create_vocab/3, % +Refs, :Goal_2, -G
     q_source2store/0,
     q_source2store/2, % +File, -G
     q_source2store/3, % +File, -G, +Opts
@@ -47,7 +51,8 @@
   % GENERICS
     q_graph_iri/2,    % ?Refs, ?G
     q_ls/0,
-    q_vocab_iri/2     % ?Refs, -G
+    q_vocab_iri/2,    % ?Refs, -G
+    q_void_iri/2      % ?Refs, -G
   ]
 ).
 
@@ -94,22 +99,38 @@ Design principles:
   7. Each graph has an IRI and a file name.  IRI and file name have a
      one-to-one mapping.
 
-**Source layer** contains the raw sources that can be in any (also
-**non-RDF) format.
+---
 
-   ↓ q_source2store/[0,2,3]   ↑ q_store_rm/0
+Source Layer
 
+↓ q_source2store/[0,2,3]   ↑ q_store_rm/0
 
-**Storage layer** contains the converted data stored in a single,
-clean and standards-compliant RDF format.
+Storage Layer
 
+↓ q_store2cache/[1,2]      ↑ q_cache_rm/0
 
-   ↓ q_store2cache/[1,2]   ↑ q_cache_rm/0
+Cache Layer
 
+↓ q_cache2view/[1,2]       ↑ q_cache_rm/[0-2]
 
-**Cache layer** contains the data cached in a format for use in
-specific views.  This is not necessarily RDF, since that is not
-optimal for most applications.
+View Layer
+
+---
+
+Purpose of each layer
+
+  - The source layer contains the raw sources that can be in any (also
+    non-RDF) format.
+
+  - The storage layer contains the converted data stored in a single,
+    clean and standards-compliant RDF format.
+
+  - The cache layer contains the data cached in a format for use in
+    specific views.  This is not necessarily RDF, since that is not
+    optimal for most applications.
+
+  - The view layer contains data loaded for direct use in
+    applications.
 
 ---
 
@@ -151,6 +172,7 @@ The following flags are used:
 :- meta_predicate
     q_create_data(+, 2, -),
     q_create_vocab(+, 2, -),
+    q_create_void(+, +, 3, -),
     q_ls(+, 1),
     q_transform(+, +, +, 3).
 
@@ -177,6 +199,7 @@ q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
    q_cache_graph(-, r),
    q_change_cache(+, r, +),
    q_create(r),
+   q_create_void(r, +, :, -),
    q_graph_iri(+, r),
    q_source2store(r),
    q_source2store(+, r),
@@ -190,7 +213,63 @@ q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
    q_view2store_append(+, r),
    q_view_rm(+, r),
    q_view_graph(-, r),
-   q_vocab_iri(?, r).
+   q_vocab_iri(?, r),
+   q_void_iri(?, r).
+
+
+
+
+
+% CREATE %
+
+%! q_create is det.
+%! q_create(+Name) is det.
+
+q_create :-
+  forall(q_create(_)).
+
+
+q_create(Name) :-
+  q_create_hook(Name).
+
+
+
+%! q_create_data(+Refs, :Goal_2, -G) is det.
+
+q_create_data(Refs, Goal_2, G) :-
+  q_graph_iri(Refs, G),
+  call(Goal_2, rdf, G),
+  q_store2cache(rdf, G),
+  q_cache2view(rdf, G).
+
+
+
+%! q_create_vocab(+Refs, :Goal_2, -G) is det.
+
+q_create_vocab(Refs, Goal_2, G) :-
+  q_vocab_iri(Refs, G),
+  call(Goal_2, rdf, G),
+  q_view2store_overwrite(rdf, G),
+  q_store2cache(rdf, G).
+
+
+
+%! q_create_void(+Refs, +D, :Goal_3, -G) is det.
+
+q_create_void(Refs, D, Goal_3, G) :-
+  q_void_iri(Refs, G),
+  call(Goal_3, rdf, D, G),
+  q_view2store_overwrite(rdf, G),
+  q_store2cache(rdf, G).
+
+
+
+%! q_rm is det.
+
+q_rm :-
+  q_store_rm,
+  q_cache_rm,
+  q_view_rm.
 
 
 
@@ -220,37 +299,6 @@ q_source_file(File) :-
 
 
 % SOURCE ⬄ STORE %
-
-%! q_create is det.
-%! q_create(+G) is det.
-
-q_create :-
-  forall(q_create(_)).
-
-
-q_create(G) :-
-  q_create_hook(G).
-
-
-
-%! q_create_data(+Refs, :Goal_2, -G) is det.
-
-q_create_data(Refs, Goal_2, G) :-
-  q_graph_iri(Refs, G),
-  call(Goal_2, rdf, G),
-  q_store2cache(rdf, G),
-  q_cache2view(rdf, G).
-
-
-
-%! q_create_vocab(+Refs, :Goal_2, -G) is det.
-
-q_create_vocab(Refs, Goal_2, G) :-
-  q_vocab_iri(Refs, G),
-  call(Goal_2, rdf, G),
-  q_view2store_overwrite(rdf, G).
-
-
 
 %! q_source2store is det.
 %! q_source2store(+File, -G) is det.
@@ -301,6 +349,7 @@ q_source2store(File, G, Opts) :-
 
 q_store_rm :-
   q_root_rm(store),
+  q_rm_dataset,
   (exists_file('q_dataset.db') -> delete_file_msg('q_dataset.db') ; true).
 
 
@@ -376,36 +425,34 @@ q_store2cache(M, G) :-
   exists_file(File), !.
 % N-Triples → HDT
 q_store2cache(hdt, G) :-
-  q_graph_to_file(store, G, ntriples, NTriplesFile),
-  exists_file(NTriplesFile), !,
-  q_graph_to_file(cache, G, hdt, HdtFile),
-  create_file_directory(HdtFile),
+  q_graph_to_file(store, G, ntriples, FromFile),
+  exists_file(FromFile), !,
+  q_graph_to_file(cache, G, hdt, ToFile),
+  create_file_directory(ToFile),
   indent_debug_call(
     q(q_io),
     "N-Triples → HDT",
-    hdt:hdt_create_from_file(HdtFile, NTriplesFile, [])
+    hdt:hdt_create_from_file(ToFile, FromFile, [])
   ).
 % N-Quads → N-Triples
 q_store2cache(hdt, G) :-
-  q_graph_to_file(store, G, nquads, NQuadsFile),
-  exists_file(NQuadsFile), !,
-  q_graph_to_file(store, G, ntriples, NTriplesFile),
+  q_graph_to_file(store, G, nquads, FromFile),
+  exists_file(FromFile), !,
+  q_graph_to_file(store, G, ntriples, ToFile),
+  create_file_directory(ToFile),
   setup_call_cleanup(
-    rdf_change_format(
-      NQuadsFile,
-      NTriplesFile,
-      [from_format(nquads),to_format(ntriples)]
-    ),
+    rdf_change_format(FromFile, ToFile, [from_format(nquads),to_format(ntriples)]),
     indent_debug_call(
       q(q_io),
       "N-Quads → N-Triples",
       q_store2cache(hdt, G)
     ),
-    delete_file(NTriplesFile)
+    delete_file(ToFile)
   ).
 q_store2cache(rdf, G) :-
   q_graph_to_file(store, G, ntriples, FromFile),
   q_graph_to_file(cache, G, rdf, ToFile),
+  create_file_directory(ToFile),
   setup_call_cleanup(
     rdf_load(FromFile, [graph(G)]),
     indent_debug_call(
@@ -575,8 +622,10 @@ q_view2store0(M, G, Opts1) :-
 %! q_view_rm(+M, +G) is det.
 
 q_view_rm :-
-  q_backend(M),
-  q_view_rm(M).
+  forall(
+    q_backend(M),
+    q_view_rm(M)
+  ).
 
 
 q_view_rm(M) :-
@@ -644,6 +693,13 @@ q_ls :-
 
 q_vocab_iri(Refs, G) :-
   q_graph_iri([vocab|Refs], G).
+
+
+
+%! q_void_iri(+Refs, -G) is det.
+
+q_void_iri(Refs, G) :-
+  q_graph_iri([void|Refs], G).
 
 
 

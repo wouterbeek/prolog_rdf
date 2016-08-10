@@ -7,9 +7,10 @@
     q_dataset/3,               % ?D, ?DefG, ?NGs
     q_dataset_default_graph/2, % ?D, ?DefG
     q_dataset_graph/2,         % ?D, ?G
-    q_dataset_iri/2,           % ?Ref, ?D
+    q_dataset_iri/2,           % ?Refs, ?D
     q_dataset_ls/0,
     q_dataset_named_graph/2,   % ?D, ?NG
+    q_rm_dataset/0,
     q_rm_dataset/1             % +D
   ]
 ).
@@ -49,7 +50,7 @@
 %! q_add_dataset(+D, +DefG, +Gs) is det.
 
 q_add_dataset(D, DefG, Gs) :-
-  with_mutex(q_dataset, assert_q_dataset(D, DefG, Gs)).
+  assert_q_dataset(D, DefG, Gs).
 
 
 
@@ -57,7 +58,7 @@ q_add_dataset(D, DefG, Gs) :-
 
 q_add_to_dataset(D, G) :-
   with_mutex(q_dataset, (
-    retract_q_dataset(D, DefG, Gs1),
+    retractall_q_dataset(D, DefG, Gs1),
     ord_add_element(Gs1, G, Gs2),
     assert_q_dataset(D, DefG, Gs2)
   )).
@@ -91,12 +92,12 @@ q_dataset_graph(D, G) :-
 
 
 
-%! q_dataset_iri(+Ref, -D) is det.
-%! q_dataset_iri(-Ref, +D) is det.
+%! q_dataset_iri(+Refs, -D) is det.
+%! q_dataset_iri(-Refs, +D) is det.
 
-q_dataset_iri(Ref, D) :-
+q_dataset_iri(Refs, D) :-
   q_alias_domain(ns, Domain),
-  q_abox_iri(Domain, dataset, [Ref], D).
+  q_abox_iri(Domain, dataset, Refs, D).
 
 
 
@@ -115,7 +116,15 @@ q_dataset_named_graph(D, NG) :-
 
 
 
+%! q_rm_dataset is det.
 %! q_rm_dataset(+D) is det.
 
+q_rm_dataset :-
+  forall(
+    q_dataset(D),
+    q_rm_dataset(D)
+  ).
+
+
 q_rm_dataset(D) :-
-  with_mutex(q_dataset, retract_dataset(D, _, _)).
+  retractall_q_dataset(D, _, _).
