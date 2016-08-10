@@ -1,8 +1,10 @@
 :- module(
   q_iri,
   [
-    q_abox_iri/4, % ?Domain, ?Concept, ?Ref, ?Iri
+    q_abox_iri/3, % +Concept, +Refs, -Iri
+    q_abox_iri/4, % ?Domain, ?Concept, ?Refs, ?Iri
     q_init_ns/0,
+    q_tbox_iri/2, % +Term, -Iri
     q_tbox_iri/3  % ?Domain, ?Term, ?Iri
   ]
 ).
@@ -14,22 +16,36 @@
 */
 
 :- use_module(library(q/qb)).
+:- use_module(library(q/q_term)).
 :- use_module(library(settings)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
+:- rdf_meta
+   q_abox_iri(-, -, -, r),
+   q_tbox_iri(-, -, r).
 
 
 
 
-%! q_abox_iri(+Domain, +Concept, +Ref, -Iri) is det.
-%! q_abox_iri(-Domain, -Concept, -Ref, +Iri) is det.
 
-q_abox_iri(Domain, Concept, Ref, Iri) :-
+%! q_abox_iri(+Concept, +Refs, -Iri) is det.
+%! q_abox_iri(+Domain, +Concept, +Refs, -Iri) is det.
+%! q_abox_iri(-Domain, -Concept, -Refs, +Iri) is det.
+
+q_abox_iri(Concept, Refs, Iri) :-
+  q_alias_prefix(nsid, Prefix),
+  uri_components(Prefix, uri_components(http,Host,Path,_,_)),
+  atomic_list_concat([Host,Path], /, Domain),
+  q_abox_iri(Domain, Concept, Refs, Iri).
+
+
+q_abox_iri(Domain, Concept, Refs, Iri) :-
   nonvar(Iri), !,
   uri_components(Iri, uri_components(http,Domain,Path,_,_)),
-  atomic_list_concat(['',id,Concept,Ref], /, Path).
-q_abox_iri(Domain, Concept, Ref, Iri) :-
-  atomic_list_concat(['',id,Concept,Ref], /, Path),
+  atomic_list_concat(['',id,Concept|Refs], /, Path).
+q_abox_iri(Domain, Concept, Refs, Iri) :-
+  atomic_list_concat(['',id,Concept|Refs], /, Path),
   uri_components(Iri, uri_components(http,Domain,Path,_,_)).
 
 
@@ -48,8 +64,15 @@ q_init_ns :-
 
 
 
+%! q_tbox_iri(+Term, -Iri) is det.
 %! q_tbox_iri(+Domain, +Term, -Iri) is det.
 %! q_tbox_iri(-Domain, -Term, +Iri) is det.
+
+q_tbox_iri(Term, Iri) :-
+  q_alias_prefix(nsdef, Prefix),
+  uri_components(Prefix, uri_components(http,Host,_,_,_)),
+  q_tbox_iri(Host, Term, Iri).
+
 
 q_tbox_iri(Domain, Term, Iri) :-
   nonvar(Iri), !,

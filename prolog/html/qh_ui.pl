@@ -40,7 +40,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_dataset)).
-:- use_module(library(q/q_graph)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_stat)).
@@ -132,7 +132,7 @@ qh_graph_menu(M) -->
       (
         gis_index(G),
         once((
-          q_loaded_graph(M, G),
+          q_view_graph(M, G),
           q_number_of_triples(M, G, N)
         ))
       ),
@@ -409,12 +409,12 @@ q_dataset_tree(D, SumTriples, t(rdf_dataset_term(D),OrderedTrees)) :-
 
 q_graph_tree(G, NumTriples, Tree) :-
   once((
-    q_loaded_graph(M, G),
+    q_view_graph(M, G),
     q_number_of_triples(M, G, NumTriples)
   )),
   aggregate_all(
     set(M0),
-    ((  q_loaded_graph(M0, G)
+    ((  q_view_graph(M0, G)
     ;   gis_index(G), M0 = gis
     )),
     Ms

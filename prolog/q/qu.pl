@@ -9,6 +9,7 @@
       qu_change_iri_prefix/9,   % +M1, +M2, ?S, ?P, ?O, ?G, +Pos, +Alias1, +Alias2
       qu_lowercase_predicate/4, % +M1, +M2, +Alias, ?G
       qu_replace_predicate/5,   % +M1, +M2, +P1, ?G, +P2
+      qu_replace_predicates_by_vocab/5, % +M1, +M2, +P, +G, +GVocab
 
   % LITERAL
     qu_replace_string/5,        % +M1, +M2, ?P, ?G, :Dcg_3
@@ -79,7 +80,7 @@ Most transformation predicates allow their applicability to be scoped
 to predicate and/or graph.
 
 @author Wouter Beek
-@version 2016/06-2016/07
+@version 2016/06-2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -89,6 +90,7 @@ to predicate and/or graph.
 :- use_module(library(list_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).
@@ -153,6 +155,7 @@ to predicate and/or graph.
    qu_replace_nested_wkt_point(+, +, r),
    qu_replace_nested_wkt_point(+, +, r, r, r, r),
    qu_replace_predicate(+, +, r, r, r),
+   qu_replace_predicates_by_vocab(+, +, r, r, r),
    qu_replace_string(+, +, r, r, :),
    qu_replace_string(+, +, r, r, r, :),
    qu_replace_subject(+, +, r, r, r),
@@ -285,6 +288,23 @@ qu_replace_predicate(M1, M2, P1, G, P2) :-
     ),
     qu(M1, M2, S, P1, O, G, predicate(P2))
   ).
+
+
+
+%! qu_replace_predicates_by_vocab(+M1, +M2, +P, +G, +GVocab) is det.
+
+qu_replace_predicates_by_vocab(M1, M2, P, G, GVocab) :-
+  qu_replace_predicates_by_vocab_deb(GVocab),
+  qu_call(
+    (
+      q(M1, Q2, P, Str^^xsd:string, GVocab),
+      q_tbox_iri(Str, Q1),
+      q(M1, S, Q1, O, G)
+    ),
+    qu(M1, M2, S, Q1, O, G, predicate(Q2))
+  ).
+
+
 
 
 
@@ -1042,6 +1062,11 @@ qu_replace_predicate_deb(P, Q) :-
   with_output_to(string(Q0), q_print_predicate(Q)),
   debug(qu(replace_predicate), "Replace predicate ‘~s’ → ‘~s’.", [P0,Q0]).
 
+
+
+qu_replace_predicates_by_vocab_deb(GVocab) :-
+  with_output_to(string(GVocab0), q_print_graph_term(GVocab)),
+  debug(qu(replace_predicate), "Replace predicates based on vocabulary ‘~a’.", [GVocab0]).
 
 
 qu_replace_string_deb(Dcg_3) :-

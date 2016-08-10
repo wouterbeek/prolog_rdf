@@ -35,7 +35,7 @@
 :- use_module(library(error)).
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_graph)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_stat)).
@@ -71,7 +71,7 @@ q_number_of_bnodes(M, NumBs) :-
 
 
 q_number_of_bnodes(M, G, NumBs) :-
-  q_loaded_graph(M, G),
+  q_view_graph(M, G),
   aggregate_all(count, q_bnode(M, _, G), NumBs).
 
 
@@ -84,7 +84,7 @@ q_number_of_datatypes(M, NumDs) :-
 
 
 q_number_of_datatypes(M, G, NumDs) :-
-  q_loaded_graph(M, G),
+  q_view_graph(M, G),
   aggregate_all(count, q_datatype(M, _, G), NumDs).
 
 
@@ -99,7 +99,7 @@ q_number_of_objects(M, NumOs) :-
 
 
 q_number_of_objects(hdt, G, NumOs) :- !,
-  q_loaded_graph(hdt, G),
+  q_view_graph(hdt, G),
   hdt_number_of_objects(G, NumOs).
 q_number_of_objects(rdf, G, NumOs) :-
   aggregate_all(count, rdf_object(_, G), NumOs).
@@ -126,7 +126,7 @@ q_number_of_predicates(rdf, NumPs) :-
 
 
 q_number_of_predicates(hdt, G, NumPs) :- !,
-  q_loaded_graph(hdt, G),
+  q_view_graph(hdt, G),
   hdt_number_of_properties(G, NumPs).
 q_number_of_predicates(rdf, G, NumPs) :-
   rdf_number_of_predicates(G, NumPs).
@@ -151,7 +151,7 @@ q_number_of_subjects(M, NumSs) :-
 
 
 q_number_of_subjects(hdt, G, NumSs) :- !,
-  q_loaded_graph(hdt, G),
+  q_view_graph(hdt, G),
   hdt_number_of_subjects(G, NumSs).
 q_number_of_subjects(rdf, G, NumSs) :-
   aggregate_all(count, rdf_subject(_, G), NumSs).

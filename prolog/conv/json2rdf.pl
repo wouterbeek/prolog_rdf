@@ -33,14 +33,14 @@
 :- use_module(library(uuid)).
 
 :- multifile
-    q_graph:q_source2store_hook/4,
-    q_graph:q_source_extensions_hook/2.
+    q_io:q_source2store_hook/4,
+    q_io:q_source_extensions_hook/2.
 
-q_graph:q_source2store_hook(json, Source, Sink, Opts) :- !,
+q_io:q_source2store_hook(json, Source, Sink, Opts) :- !,
   json2rdf(Source, Sink, Opts).
 
-q_graph:q_source_extensions_hook(json, [json]).
-q_graph:q_source_extensions_hook(json, [ndjson]).
+q_io:q_source_extensions_hook(json, [json]).
+q_io:q_source_extensions_hook(json, [ndjson]).
 
 
 
@@ -100,7 +100,7 @@ json2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
 dict_to_triple(Dict, Opts, Triple) :-
   % S
   uuid(Uuid),
-  q_abox_iri(Opts.domain, Opts.concept, Uuid, S),
+  q_abox_iri(Opts.domain, Opts.concept, [Uuid], S),
   % P
   get_dict_path(Keys1, Dict, Val), % NONDET
   atomic_list_concat(Keys1, '_', Local1),

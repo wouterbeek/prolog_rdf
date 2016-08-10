@@ -40,13 +40,13 @@ The following debug flags are used:
 :- use_module(library(yall)).
 
 :- multifile
-    q_graph:q_source2store_hook/4,
-    q_graph:q_source_extensions_hook/2.
+    q_io:q_source2store_hook/4,
+    q_io:q_source_extensions_hook/2.
 
-q_graph:q_source2store_hook(csv, Source, Sink, Opts) :- !,
+q_io:q_source2store_hook(csv, Source, Sink, Opts) :- !,
   csv2rdf(Source, Sink, Opts).
 
-q_graph:q_source_extensions_hook(csv, [csv]).
+q_io:q_source_extensions_hook(csv, [csv]).
 
 
 
@@ -100,11 +100,10 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
       list_row(HeaderNames, HeaderRow),
       maplist(q_tbox_iri(Opts2.domain), HeaderNames, Ps)
   ),
-  csv:csv_read_stream_row(In, DataRow, RowN, CsvOpts),
-  debug(conv(csv2rdf), "~D", [RowN]),
+  csv:csv_read_stream_row(In, DataRow, _, CsvOpts),
   list_row(Vals, DataRow),
-  first(Vals, Reference),
-  q_abox_iri(Opts2.domain, Opts2.concept, Reference, S),
+  first(Vals, Ref),
+  q_abox_iri(Opts2.domain, Opts2.concept, [Ref], S),
   rdf_equal(xsd:string, D),
   maplist(
     {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),
