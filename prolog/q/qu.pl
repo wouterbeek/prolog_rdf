@@ -3,7 +3,8 @@
   [
 % TERM
     qu_replace_subject/5,       % +M1, +M2, +S1, ?G, +S2
-    qu_subject_from_key/5,      % +M1, +M2, +Alias, +P, ?G
+    qu_subject_from_key/5,      % +M1, +M2, +P, +Concept, ?G
+    qu_subject_from_key/6,      % +M1, +M2, +P, +Concept, :Goal_2, ?G
   % IRI
     qu_change_iri/8,            % +M1, +M2, ?S, ?P, ?O, ?G, +Pos, :Dcg_0
       qu_change_iri_prefix/9,   % +M1, +M2, ?S, ?P, ?O, ?G, +Pos, +Alias1, +Alias2
@@ -113,11 +114,14 @@ to predicate and/or graph.
     qu_change_val(+, +, ?, ?, ?, ?, 2),
     qu_lex_to_iri(+, +, ?, +, ?, //),
     qu_replace_string(+, +, ?, ?, 5),
-    qu_replace_string(+, +, ?, ?, ?, 5).
+    qu_replace_string(+, +, ?, ?, ?, 5),
+    qu_subject_from_key(+, +, +, +, 2, ?).
+
 
 :- qb_alias(geold, 'http://geojsonld.com/vocab#').
 :- qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 :- qb_alias(wkt, 'http://geojsonld.com/wkt#').
+
 
 :- rdf_meta
    qu_add_ltag(+, +, r, +, r),
@@ -170,7 +174,8 @@ to predicate and/or graph.
    qu_rm_tree(+, +, r, r),
    qu_rm_triples(+, +, r, r, o, r),
    qu_split_string(+, +, r, r, +),
-   qu_subject_from_key(+, +, +, r, r).
+   qu_subject_from_key(+, +, r, +, r),
+   qu_subject_from_key(+, +, r, +, :, r).
 
 
 
@@ -188,20 +193,29 @@ qu_replace_subject(M1, M2, S1, G, S2) :-
 
 
 
-%! qu_subject_from_key(+M1, +M2, +Alias, +P, ?G) is det.
+%! qu_subject_from_key(+M1, +M2, +P, +Concept, ?G) is det.
+%! qu_subject_from_key(+M1, +M2, +P, +Concept, :Goal_2, ?G) is det.
 %
 % Use the string value of predicate P to generate the subject terms.
 
-qu_subject_from_key(M1, M2, Alias, P, G) :-
+qu_subject_from_key(M1, M2, P, Concept, G) :-
+  qu_subject_from_key(M1, M2, P, Concept, =, G).
+
+
+qu_subject_from_key(M1, M2, P, Concept, Goal_2, G) :-
+  qu_subject_from_key_deb(P),
   qu_call(
-    q(M1, S1, P, Str^^xsd:string, G),
     (
-      lowercase_string(Str, Local),
-      rdf_global_id(Alias:Local, S2),
-      qb_rm(M1, S1, P, Str^^xsd:string, G),
+      q(M1, S1, P, Str^^xsd:string, G),
+      call(Goal_2, Str, Ref),
+      q_abox_iri(Concept, [Ref], S2),
+      S1 \== S2
+    ),
+    (
+      qb_rm(M1, S1, P, Ref^^xsd:string, G),
       forall(
-        q(M1, S1, P, O, G),
-        qu(M1, M2, S1, P, O, G, subject(S2))
+        q(M1, S1, Q, O, G),
+        qu(M1, M2, S1, Q, O, G, subject(S2))
       )
     )
   ).
@@ -1102,3 +1116,9 @@ qu_rm_null_deb(P, Null) :-
 qu_split_string_deb(P) :-
   with_output_to(string(P0), q_print_predicate(P)),
   debug(qu(split_string), "Split string for ‘~s’.", [P0]).
+
+
+
+qu_subject_from_key_deb(P) :-
+  with_output_to(string(P0), q_print_predicate(P)),
+  debug(qu(split_string), "Rename subjects based on key ‘~s’.", [P0]).

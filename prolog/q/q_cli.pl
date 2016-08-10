@@ -40,7 +40,7 @@
 /** <module> Quine CLI
 
 @author Wouter Beek
-@version 2016/06-2016/07
+@version 2016/06-2016/08
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -52,6 +52,7 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stat)).
@@ -112,7 +113,7 @@ q__cbd(S) :-
 %! q__g(?M, ?G) is nondet.
 
 q__g :-
-  q_graph(M, G),
+  q_view_graph(M, G),
   q__g(M, G).
 
 
@@ -172,7 +173,7 @@ q__p(M, P, G) :-
 % Shows the candidate datatypes for predicate term P.
 
 q__p_ds(P) :-
-  q_graph(M, G),
+  q_view_graph(M, G),
   q__p_ds(M, P, G).
 
 
@@ -190,7 +191,7 @@ q__p_ds(M, P, G) :-
 % Prints an overview of how often each object term occurs.
 
 q__p_os(P) :-
-  q_graph(M, G),
+  q_view_graph(M, G),
   q__p_os(M, P, G).
 
 
@@ -242,7 +243,7 @@ q__p_ps(M, P, G) :-
 %! q__ps(?M, ?G) is det.
 
 q__ps :-
-  q_graph(M, G),
+  q_view_graph(M, G),
   q__ps(M, G).
 
 
@@ -266,7 +267,7 @@ q__ps(M, G) :-
 % given predicate term.
 
 q__ps_no :-
-  q_graph(M, G),
+  q_view_graph(M, G),
   q__ps_no(M, G).
 
 

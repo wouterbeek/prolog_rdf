@@ -37,6 +37,7 @@ The following debug flags are used:
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(uuid)).
 :- use_module(library(yall)).
 
 :- multifile
@@ -102,7 +103,7 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
   ),
   csv:csv_read_stream_row(In, DataRow, _, CsvOpts),
   list_row(Vals, DataRow),
-  first(Vals, Ref),
+  uuid(Ref),
   q_abox_iri(Opts2.domain, Opts2.concept, [Ref], S),
   rdf_equal(xsd:string, D),
   maplist(
