@@ -342,10 +342,7 @@ q_source_file(File) :-
 %   - record_names(+list(atom)) For the XML source format.
 
 q_source2store :-
-  forall(
-    q_source_file(File),
-    q_source2store(File, _, _{})
-  ).
+  forall(q_source_file(File), q_source2store(File, _, _{})).
 
 
 q_source2store(File, G) :-
@@ -421,8 +418,10 @@ q_transform(M1, M2, G, Goal_3) :-
   call(Goal_3, M1, M2, G),
   % The transformations now have to be synced with the store, from
   % which the cache can be recreated.
-  q_view2store_overwrite(M, G),
-  q_store2cache(M, G).
+  q_view2store_overwrite(M2, G),
+  % Reset the cache, otherwise store2cache will no do anything.
+  q_cache_rm(M2, G),
+  q_store2cache(M2, G).
 
 
 
@@ -437,17 +436,11 @@ q_transform(M1, M2, G, Goal_3) :-
 % Create a cache of store graph G in backend M.
 
 q_store2cache :-
-  forall(
-    q_backend(M),
-    q_store2cache(M)
-  ).
+  forall(q_backend(M), q_store2cache(M)).
 
 
 q_store2cache(M) :-
-  forall(
-    q_store_graph(G),
-    q_store2cache(M, G)
-  ).
+  forall(q_store_graph(G), q_store2cache(M, G)).
 
 
 % Nothing to do: cache already exists.
@@ -460,10 +453,23 @@ q_store2cache(M, G) :-
 
 
 %! q_cache_rm is det.
+%! q_cache_rm(+M) is det.
+%! q_cache_rm(+M, +G) is det.
 
 q_cache_rm :-
   retractall_q_cache0(_, _),
-  q_root_rm(cache).
+  q_root_rm(cache),
+  delete_file_msg('q_cache.db').
+
+
+q_cache_rm(M) :-
+  forall(q_cache_graph(M, G), q_cache_rm(M, G)).
+
+
+q_cache_rm(M, G) :-
+  retractall_q_cache0(M, G),
+  q_graph_to_file(cache, G, M, File),
+  delete_file_msg(File).
 
 
 
@@ -530,10 +536,7 @@ q_cache_graph(M, G) :-
 % Load graph G into backend M.
 
 q_cache2view(M) :-
-  forall(
-    q_cache_graph(M, G),
-    q_cache2view(M, G)
-  ).
+  forall(q_cache_graph(M, G), q_cache2view(M, G)).
 
 
 % View already exists: nothing to do.
@@ -555,17 +558,11 @@ q_cache2view(M, G) :-
 %! q_store2view(+M, +G) is det.
 
 q_store2view :-
-  forall(
-    q_backend(M),
-    q_store2view(M)
-  ).
+  forall(q_backend(M), q_store2view(M)).
 
   
 q_store2view(M) :-
-  forall(
-    q_store_graph(G),
-    q_store2view(M, G)
-  ).
+  forall(q_store_graph(G), q_store2view(M, G)).
 
 
 q_store2view(M, G) :-
@@ -575,10 +572,7 @@ q_store2view(M, G) :-
 
 
 q_store2view0(G) :-
-  forall(
-    q_backend(M),
-    q_store2view(M, G)
-  ).
+  forall(q_backend(M), q_store2view(M, G)).
 
 
 
@@ -609,10 +603,7 @@ q_view2store_overwrite(M, G) :-
 
 
 q_view2store0(M, Opts) :-
-  forall(
-    q_view_graph(M, G),
-    q_view2store0(M, G, Opts)
-  ).
+  forall(q_view_graph(M, G), q_view2store0(M, G, Opts)).
 
 
 q_view2store0(M, G, Opts1) :-
@@ -628,18 +619,12 @@ q_view2store0(M, G, Opts1) :-
 %! q_view_rm(+M, +G) is det.
 
 q_view_rm :-
-  forall(
-    q_backend(M),
-    q_view_rm(M)
-  ).
+  forall(q_backend(M), q_view_rm(M)).
 
 
 q_view_rm(M) :-
-  forall(
-    % Also dummy views are removed.
-    q_view_graph(M, G),
-    q_view_rm(M, G)
-  ).
+  % Also dummy views are removed.
+  forall(q_view_graph(M, G), q_view_rm(M, G)).
 
 
 q_view_rm(M, G) :-

@@ -50,9 +50,7 @@ q_io:q_view_graph_hook(hdt, G, false) :-
 
 
 q_io:q_view_rm_hook(hdt, G) :-
-  with_mutex(q_io, (
-    hdt_graph0(G, Hdt),
-    hdt:hdt_close(Hdt),
-    retract(hdt_graph0(G,Hdt)),
-    indent_debug(out, q(q_io), "HDT → RDF", [])
-  )).
+  hdt_graph0(G, Hdt),
+  hdt:hdt_close(Hdt),
+  retract(hdt_graph0(G,Hdt)),
+  indent_debug(out, q(q_io), "HDT → RDF", []).
