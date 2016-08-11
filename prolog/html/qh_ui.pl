@@ -33,7 +33,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dict_ext)).
-:- use_module(library(gis/gis_db)).
+:- use_module(library(gis/gis)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).

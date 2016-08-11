@@ -181,7 +181,7 @@ The following flags are used:
 :- use_module(library(conv/json2rdf), []). % JSON → N-Triples
 :- use_module(library(conv/xml2rdf), []). % XML → N-Triples
 :- use_module(library(debug_ext)).
-:- use_module(library(gis/gis_db), []). % RDF → GIS
+:- use_module(library(gis/gis), []). % RDF → GIS
 :- use_module(library(hdt/hdt_io), []). % N-Triples → HDT
 :- use_module(library(os/file_ext)).
 :- use_module(library(persistency)).
