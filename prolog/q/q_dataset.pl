@@ -9,7 +9,9 @@
     q_dataset_graph/2,         % ?D, ?G
     q_dataset_iri/2,           % ?Refs, ?D
     q_dataset_ls/0,
-    q_dataset_named_graph/2,   % ?D, ?NG
+    q_dataset_named_graph/2,   % ?D, ?NG 
+    q_dataset_tree/3,          % +Order, +D, -Tree
+    q_dataset_trees/2,         % +Order, -Trees
     q_rm_dataset/0,
     q_rm_dataset/1             % +D
   ]
@@ -21,11 +23,15 @@
 @version 2016/08
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_iri)).
+:- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
+:- use_module(library(ordsets)).
+:- use_module(library(pair_ext)).
 :- use_module(library(persistency)).
 :- use_module(library(semweb/rdf11)).
 
@@ -41,6 +47,7 @@
    q_dataset_graph(r, r),
    q_dataset_iri(?, r),
    q_dataset_named_graph(r, r),
+   q_dataset_tree(+, r, -),
    q_rm_dataset(r).
 
 
@@ -116,6 +123,49 @@ q_dataset_named_graph(D, NG) :-
 
 
 
+%! q_dataset_tree(+Order, +D, -Tree) is det.
+%
+% Return a dataset tree in which the graphs are ordered in one of the
+% following ways:
+%
+%   - `lexicographic`: by graph name
+%
+%   - `number_of_triples`: by the number of triples per graph
+
+q_dataset_tree(Order, D, Tree) :-
+  q_dataset_tree0(Order, D, _, Tree).
+  
+
+q_dataset_tree0(Order, D, SumNumTriples, t(D,OrderedTrees)) :-
+  findall(G, q_dataset_named_graph(D, G), Gs),
+  maplist(q_graph_tree0, Gs, NumTriples, Trees),
+  KeyDict = _{lexicographic: Gs, number_of_triples: NumTriples},
+  q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees),
+  sum_list(NumTriples, SumNumTriples).
+
+
+q_graph_tree0(G, NumTriples, t(G,[])) :-
+  once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))).
+
+
+
+%! q_dataset_trees(+Order, -Trees) is det.
+%
+% Return all dataset trees ordered in one of the following ways:
+%
+%   - `lexicographic`: by dataset and graph name
+%
+%   - `number_of_triples`: by the number of triples per dataset and
+%     graph
+
+q_dataset_trees(Order, OrderedTrees) :-
+  aggregate_all(set(D), q_dataset(D), Ds),
+  maplist(q_dataset_tree0(Order), Ds, NumTriples, Trees),
+  KeyDict = _{lexicographic: Ds, number_of_triples: NumTriples},
+  q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees).
+
+
+
 %! q_rm_dataset is det.
 %! q_rm_dataset(+D) is det.
 
@@ -128,3 +178,11 @@ q_rm_dataset :-
 
 q_rm_dataset(D) :-
   retractall_q_dataset(D, _, _).
+
+
+
+% HELPERS %
+
+q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees) :-
+  pairs_keys_values(Pairs, KeyDict.Order, Trees),
+  desc_pairs_values(Pairs, OrderedTrees).

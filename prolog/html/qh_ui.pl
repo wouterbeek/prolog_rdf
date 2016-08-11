@@ -79,15 +79,23 @@ qh_dataset_table(Opts1) -->
       string("Store")
     ],
     qh_default_table_options(Opts1, Opts2),
-    aggregate_all(set(D), q_dataset(D), Ds),
-    maplist(q_dataset_tree, Ds, SumTriples, Trees),
-    pairs_keys_values(Pairs, SumTriples, Trees),
-    desc_pairs_values(Pairs, OrderedTrees)
+    q_dataset_trees(Opts2.order, Trees1),
+    maplist(qh_dataset_tree0, Trees1, Trees2)
   },
   bs_table(
     \html_table_header_row(HeaderRow),
-    \html_table_trees({Opts2}/[Term]>>qh_something(Term, Opts2), OrderedTrees)
+    \html_table_trees({Opts2}/[Term]>>qh_something(Term, Opts2), Trees2)
   ).
+
+
+qh_dataset_tree0(t(D,Trees1), t(rdf_dataset_term(D),Trees2)) :-
+  maplist(qh_graph_tree0, Trees1, Trees2).
+
+
+qh_graph_tree0(t(G,[]), t(rdf_graph_term(G),[t(Attrs,[])])) :-
+  once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
+  aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
+  Attrs = [thousands(NumTriples),set(Ms)].
 
 
 
@@ -394,33 +402,14 @@ qh_triple_table(M, S, P, O, G, Opts1) -->
 
 % HELPERS %
 
-%! q_dataset_tree(+D, -SumTriples, -Tree) is det.
-
-q_dataset_tree(D, SumTriples, t(rdf_dataset_term(D),OrderedTrees)) :-
-  aggregate_all(set(G), q_dataset_graph(D, G), Gs),
-  maplist(q_graph_tree, Gs, NumTriples, Trees),
-  pairs_keys_values(Pairs, NumTriples, Trees),
-  desc_pairs_values(Pairs, OrderedTrees),
-  sum_keys(Pairs, SumTriples).
-
-
-
-%! q_graph_tree(+G, -NumTriples, -Tree) is det.
-
-q_graph_tree(G, NumTriples, Tree) :-
-  once((
-    q_view_graph(M, G),
-    q_number_of_triples(M, G, NumTriples)
-  )),
-  aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
-  Tree = t(rdf_graph_term(G),[t([thousands(NumTriples),set(Ms)],[])]).
-
-
-
 %! qh_default_table_options(+Opts1, -Opts2) is det.
 
 qh_default_table_options(Opts1, Opts2) :-
   qh:qh_default_options(_{}, DefOpts1),
-  DefOpts2 = _{max_iri_length: 25, qh_link: true},
+  DefOpts2 = _{
+    max_iri_length: 25,
+    order: number_of_triples,
+    qh_link: true
+  },
   merge_dicts(DefOpts1, DefOpts2, DefOpts),
   merge_dicts(Opts1, DefOpts, Opts2).
