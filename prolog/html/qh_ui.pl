@@ -1,25 +1,26 @@
 :- module(
   qh_ui,
   [
+    qh_dataset_graph_menu//4, % +Action, +M, +D, +G
     qh_dataset_table//0,
-    qh_dataset_table//1, %                     +Opts
-    qh_describe//2,      % +M, +S
-    qh_describe//3,      % +M, +S,             +Opts
-    qh_graph_menu//1,    % +M
+    qh_dataset_table//1,      %                     +Opts
+    qh_describe//2,           % +M, +S
+    qh_describe//3,           % +M, +S,             +Opts
+    qh_graph_menu//1,         % +M
     qh_graph_table//0,
-    qh_graph_table//1,   %                     +Opts
-    qh_quad_panels//5,   % +M, ?S, ?P, ?O, ?G
-    qh_quad_panels//6,   % +M, ?S, ?P, ?O, ?G, +Opts
-    qh_quad_table//1,    %     +Quads
-    qh_quad_table//2,    %     +Quads,         +Opts
-    qh_quad_table//5,    % +M, ?S, ?P, ?O, ?G
-    qh_quad_table//6,    % +M, ?S, ?P, ?O, ?G, +Opts
-    qh_tree//1,          %     +Tree
-    qh_tree//2,          %     +Tree,          +Opts
-    qh_triple_table//1,  %     +Triples
-    qh_triple_table//2,  %     +Triples,       +Opts
-    qh_triple_table//5,  % +M, ?S, ?P, ?O, ?G
-    qh_triple_table//6   % +M, ?S, ?P, ?O, ?G, +Opts
+    qh_graph_table//1,        %                     +Opts
+    qh_quad_panels//5,        % +M, ?S, ?P, ?O, ?G
+    qh_quad_panels//6,        % +M, ?S, ?P, ?O, ?G, +Opts
+    qh_quad_table//1,         %     +Quads
+    qh_quad_table//2,         %     +Quads,         +Opts
+    qh_quad_table//5,         % +M, ?S, ?P, ?O, ?G
+    qh_quad_table//6,         % +M, ?S, ?P, ?O, ?G, +Opts
+    qh_tree//1,               %     +Tree
+    qh_tree//2,               %     +Tree,          +Opts
+    qh_triple_table//1,       %     +Triples
+    qh_triple_table//2,       %     +Triples,       +Opts
+    qh_triple_table//5,       % +M, ?S, ?P, ?O, ?G
+    qh_triple_table//6        % +M, ?S, ?P, ?O, ?G, +Opts
   ]
 ).
 
@@ -50,6 +51,7 @@
 :- use_module(library(yall)).
 
 :- rdf_meta
+   qh_dataset_graph_menu(+, +, r, r, ?, ?),
    qh_describe(+, r, ?, ?),
    qh_describe(+, r, +, ?, ?),
    qh_quad_panels(+, r, r, o, r, ?, ?),
@@ -60,6 +62,48 @@
    qh_triple_table(+, r, r, o, r, +, ?, ?).
 
 
+
+
+
+%! qh_dataset_graph_menu(+Action, +M, +D, +G)// is det.
+%
+% @tbd `class(selected)` does not show a selection in the HTML page.
+%
+% @tbd JavaScript does not work; cannot extract the `value` attribute.
+
+qh_dataset_graph_menu(Action, M, D, G) -->
+  {
+    q_dataset_trees(M, number_of_triples, Trees),
+    Trees \== []
+  }, !,
+  bs_dropdown_menu(
+    Action,
+    'dataset-graph-menu',
+    "Graph",
+    qh_dataset_graph_menu_item(D, G),
+    Trees
+  ),
+  js_script({|javascript(_)||
+$("#dataset-graph-menu").on('change', function(){
+  var params = $(this).children(':selected');
+  alert(params);
+});
+  |}).
+qh_dataset_graph_menu(_, _, _, _) --> [].
+
+
+qh_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
+  {with_output_to(string(Lbl), q_print_dataset_term(D))},
+  html(
+    optgroup(label(Lbl),
+      \html_maplist(qh_graph_menu_item0(D0, D, G0), Trees)
+    )
+  ).
+
+
+qh_graph_menu_item0(D0, D, G0, t(G,[])) -->
+  {(D0 = D, G0 = G -> Selected = true ; Selected = false)},
+  qh_graph_menu_item(Selected, G).
 
 
 
@@ -79,7 +123,7 @@ qh_dataset_table(Opts1) -->
       string("Store")
     ],
     qh_default_table_options(Opts1, Opts2),
-    q_dataset_trees(Opts2.order, Trees1),
+    q_dataset_trees(_, Opts2.order, Trees1),
     maplist(qh_dataset_tree0, Trees1, Trees2)
   },
   bs_table(
@@ -103,6 +147,8 @@ qh_graph_tree0(t(G,[]), t(rdf_graph_term(G),[t(Attrs,[])])) :-
 %! qh_describe(+M, +S, +Opts)// is det.
 %
 % Generate a full description of subject term S.
+%
+% @tbd Align with (S)CBD.
 
 qh_describe(M, S) -->
   qh_describe(M, S, _{}).
@@ -135,39 +181,21 @@ qh_describe_row0(Opts, P-Os) -->
 
 qh_graph_menu(M) -->
   {
-    findall(
-      N-G,
-      (
-        gis_graph(G),
-        once((
-          q_view_graph(M, G),
-          q_number_of_triples(M, G, N)
-        ))
-      ),
-      Pairs
+    % @tbd Special GIS case should be fixed in module `gis_db`.
+    (   M == gis
+    ->  findall(G, gis_graph(G), Gs)
+    ;   findall(N-G, q_number_of_triples(M, G, N), Pairs),
+        desc_pairs_values(Pairs, Gs)
     ),
-    Pairs \== [], !,
-    desc_pairs_values(Pairs, Gs)
+    Gs \== []
   },
-  html(
-    form([class=['navbar-form','navbar-right'],role=search],
-      div(class='form-group', [
-        label(for='graph-menu', "Graph: "),
-        select([class=['form-control',selectpicker],id='graph-menu'],
-          \html_maplist(qh_graph_menu_item, Gs)
-        )
-      ])
-    )
-  ).
+  bs_dropdown_menu('graph-menu', "Graph", qh_graph_menu_item(false), Gs).
 qh_graph_menu(_) --> [].
 
 
-qh_graph_menu_item(G) -->
-  html(
-    option(value=G,
-      \qh_graph_term(G, _{qh_link: false})
-    )
-  ).
+qh_graph_menu_item(Selected, G) -->
+  {(Selected == true -> T = [class(selected)] ; T = [])},
+  html(option([value(G)|T], \qh_graph_term(G, _{qh_link: false}))).
 
 
 
@@ -352,32 +380,23 @@ qh_triple_table(Triples) -->
 
 
 qh_triple_table(Triples, Opts1) -->
-  {qh_default_table_options(Opts1, Opts2)},
+  {
+    HeaderRow = [string("Subject"),string("Predicate"),string("Object")],
+    qh_default_table_options(Opts1, Opts2)
+  },
   bs_table(
-    \qh_table_header0,
+    \html_table_header_row(HeaderRow),
     \html_maplist(qh_triple_row0(Opts2), Triples)
-  ).
-
-
-qh_table_header0 -->
-  html(
-    tr([
-      th(class=subject, "subject"),
-      th(class=predicate, "predicate"),
-      th(class=object, "object")
-    ])
   ).
 
 
 qh_triple_row0(Opts, rdf(S,P,O)) -->
   html(
-    span(class=triple,
-      tr([
-        td(\qh_subject_outer0(term, [subject], Opts, S)),
-        td(\qh_predicate_outer0(predicate, [predicate], Opts, P)),
-        td(\qh_object_outer0(term, [object], Opts, O))
-      ])
-    )
+    tr([
+      td(\qh_subject_outer0(term, [subject], Opts, S)),
+      td(\qh_predicate_outer0(predicate, [predicate], Opts, P)),
+      td(\qh_object_outer0(term, [object], Opts, O))
+    ])
   ).
 
 

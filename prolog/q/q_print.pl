@@ -1,92 +1,96 @@
 :- module(
   q_print,
   [
-    dcg_q_print_something//1,  % +Term
-    dcg_q_print_something//2,  % +Term,              +Opts
-    dcg_q_print_datatype//1,   %     +D
-    dcg_q_print_datatype//2,   %     +D,             +Opts
-    dcg_q_print_graph//2,      % ?M,             +G
-    dcg_q_print_graph//3,      % ?M,             +G, +Opts
-    dcg_q_print_graph_term//1, %                 +G
-    dcg_q_print_graph_term//2, %                 +G, +Opts
-    dcg_q_print_iri//1,        %     +Iri
-    dcg_q_print_iri//2,        %     +Iri,           +Opts
-    dcg_q_print_literal//1,    %     +Lit
-    dcg_q_print_literal//2,    %     +Lit,           +Opts
-    dcg_q_print_node//1,       %     +Node
-    dcg_q_print_node//2,       %     +Node,          +Opts
-    dcg_q_print_object//1,     %     +O
-    dcg_q_print_object//2,     %     +O,             +Opts
-    dcg_q_print_predicate//1,  %     +P
-    dcg_q_print_predicate//2,  %     +P,             +Opts
-    dcg_q_print_quad//1,       %     +Tuple
-    dcg_q_print_quad//2,       %     +Tuple,         +Opts
-    dcg_q_print_quad//4,       %     +S, +P, +O, +G
-    dcg_q_print_quad//5,       %     +S, +P, +O, +G, +Opts
-    dcg_q_print_quads//1,      %     +Tuples
-    dcg_q_print_quads//2,      %     +Tuples,        +Opts
-    dcg_q_print_quads//5,      % ?M, ?S, ?P, ?O, ?G
-    dcg_q_print_quads//6,      % ?M, ?S, ?P, ?O, ?G, +Opts
-    dcg_q_print_term//1,       %     +Term
-    dcg_q_print_term//2,       %     +Term,          +Opts
-    dcg_q_print_triple//1,     %     +Tuple
-    dcg_q_print_triple//2,     %     +Tuple,         +Opts
-    dcg_q_print_triple//3,     %     +S, +P, +O
-    dcg_q_print_triple//4,     %     +S, +P, +O,     +Opts
-    dcg_q_print_triples//1,    %     +Triples
-    dcg_q_print_triples//2,    %     +Triples,       +Opts
-    dcg_q_print_triples//4,    % ?M, ?S, ?P, ?O
-    dcg_q_print_triples//5,    % ?M, ?S, ?P, ?O, ?G
-    dcg_q_print_triples//6,    % ?M, ?S, ?P, ?O, ?G, +Opts
-    q_print_cbd/2,             % ?M, ?S
-    q_print_cbd/3,             % ?M, ?S,         ?G
-    q_print_cbd/4,             % ?M, ?S,         ?G, +Opts
-    q_print_datatype/1,        %     +D
-    q_print_datatype/2,        %     +D,             +Opts
-    q_print_graph/2,           % ?M,             +G
-    q_print_graph/3,           % ?M,             +G, +Opts
-    q_print_graph_term/1,      %                 +G
-    q_print_graph_term/2,      %                 +G, +Opts
-    q_print_iri/1,             %             +Iri
-    q_print_iri/2,             %             +Iri,   +Opts
-    q_print_literal/1,         %             +Lit
-    q_print_literal/2,         %             +Lit,   +Opts
-    q_print_object/1,          %             +O
-    q_print_object/2,          %             +O,     +Opts
-    q_print_pagination/5,      % ?M, ?S, ?P, ?O, ?G
-    q_print_pagination/6,      % ?M, ?S, ?P, ?O, ?G, +Opts
-    q_print_predicate/1,       %         +P
-    q_print_predicate/2,       %         +P,         +Opts
-    q_print_quad/1,            %     +Tuple
-    q_print_quad/2,            %     +Tuple,         +Opts
-    q_print_quad/4,            %     +S, +P, +O, +G
-    q_print_quad/5,            %     +S, +P, +O, +G, +Opts
-    q_print_quads/1,           %     +Tuples
-    q_print_quads/2,           %     +Tuples,        +Opts
-    q_print_quads/5,           % ?M, ?S, ?P, ?O, ?G
-    q_print_quads/6,           % ?M, ?S, ?P, ?O, ?G, +Opts
-    q_print_root/2,            % ?M, ?S
-    q_print_root/3,            % ?M, ?S,         ?G
-    q_print_root/4,            % ?M, ?S,         ?G, +Opts
-    q_print_scbd/2,            % ?M, ?Node
-    q_print_scbd/3,            % ?M, ?Node,      ?G
-    q_print_scbd/4,            % ?M, ?Node,      ?G, +Opts
-    q_print_table/1,           %     +Rows
-    q_print_table/2,           %     +Rows,          +Opts
-    q_print_term/1,            %     +Term
-    q_print_term/2,            %     +Term,          +Opts
-    q_print_tree/2,            % ?M, ?S
-    q_print_tree/3,            % ?M, ?S,         ?G
-    q_print_tree/4,            % ?M, ?S,         ?G, +Opts
-    q_print_triple/1,          %     +Tuple
-    q_print_triple/2,          %     +Tuple,         +Opts
-    q_print_triple/3,          %     +S, +P, +O
-    q_print_triple/4,          %     +S, +P, +O,     +Opts
-    q_print_triples/1,         %     +Triples
-    q_print_triples/2,         %     +Triples,       +Opts
-    q_print_triples/4,         % ?M, ?S, ?P, ?O
-    q_print_triples/5,         % ?M, ?S, ?P, ?O, ?G
-    q_print_triples/6          % ?M, ?S, ?P, ?O, ?G, +Opts
+    dcg_q_print_something//1,    % +Term
+    dcg_q_print_something//2,    % +Term,              +Opts
+    dcg_q_print_dataset_term//1, %     +D
+    dcg_q_print_dataset_term//2, %     +D,             +Opts
+    dcg_q_print_datatype//1,     %     +D
+    dcg_q_print_datatype//2,     %     +D,             +Opts
+    dcg_q_print_graph//2,        % ?M,             +G
+    dcg_q_print_graph//3,        % ?M,             +G, +Opts
+    dcg_q_print_graph_term//1,   %                 +G
+    dcg_q_print_graph_term//2,   %                 +G, +Opts
+    dcg_q_print_iri//1,          %     +Iri
+    dcg_q_print_iri//2,          %     +Iri,           +Opts
+    dcg_q_print_literal//1,      %     +Lit
+    dcg_q_print_literal//2,      %     +Lit,           +Opts
+    dcg_q_print_node//1,         %     +Node
+    dcg_q_print_node//2,         %     +Node,          +Opts
+    dcg_q_print_object//1,       %     +O
+    dcg_q_print_object//2,       %     +O,             +Opts
+    dcg_q_print_predicate//1,    %     +P
+    dcg_q_print_predicate//2,    %     +P,             +Opts
+    dcg_q_print_quad//1,         %     +Tuple
+    dcg_q_print_quad//2,         %     +Tuple,         +Opts
+    dcg_q_print_quad//4,         %     +S, +P, +O, +G
+    dcg_q_print_quad//5,         %     +S, +P, +O, +G, +Opts
+    dcg_q_print_quads//1,        %     +Tuples
+    dcg_q_print_quads//2,        %     +Tuples,        +Opts
+    dcg_q_print_quads//5,        % ?M, ?S, ?P, ?O, ?G
+    dcg_q_print_quads//6,        % ?M, ?S, ?P, ?O, ?G, +Opts
+    dcg_q_print_term//1,         %     +Term
+    dcg_q_print_term//2,         %     +Term,          +Opts
+    dcg_q_print_triple//1,       %     +Tuple
+    dcg_q_print_triple//2,       %     +Tuple,         +Opts
+    dcg_q_print_triple//3,       %     +S, +P, +O
+    dcg_q_print_triple//4,       %     +S, +P, +O,     +Opts
+    dcg_q_print_triples//1,      %     +Triples
+    dcg_q_print_triples//2,      %     +Triples,       +Opts
+    dcg_q_print_triples//4,      % ?M, ?S, ?P, ?O
+    dcg_q_print_triples//5,      % ?M, ?S, ?P, ?O, ?G
+    dcg_q_print_triples//6,      % ?M, ?S, ?P, ?O, ?G, +Opts
+    q_print_cbd/2,               % ?M, ?S
+    q_print_cbd/3,               % ?M, ?S,         ?G
+    q_print_cbd/4,               % ?M, ?S,         ?G, +Opts
+    q_print_dataset_term/1,      %     +D
+    q_print_dataset_term/2,      %     +D,             +Opts
+    q_print_datatype/1,          %     +D
+    q_print_datatype/2,          %     +D,             +Opts
+    q_print_graph/2,             % ?M,             +G
+    q_print_graph/3,             % ?M,             +G, +Opts
+    q_print_graph_term/1,        %                 +G
+    q_print_graph_term/2,        %                 +G, +Opts
+    q_print_iri/1,               %             +Iri
+    q_print_iri/2,               %             +Iri,   +Opts
+    q_print_literal/1,           %             +Lit
+    q_print_literal/2,           %             +Lit,   +Opts
+    q_print_object/1,            %             +O
+    q_print_object/2,            %             +O,     +Opts
+    q_print_pagination/5,        % ?M, ?S, ?P, ?O, ?G
+    q_print_pagination/6,        % ?M, ?S, ?P, ?O, ?G, +Opts
+    q_print_predicate/1,         %         +P
+    q_print_predicate/2,         %         +P,         +Opts
+    q_print_quad/1,              %     +Tuple
+    q_print_quad/2,              %     +Tuple,         +Opts
+    q_print_quad/4,              %     +S, +P, +O, +G
+    q_print_quad/5,              %     +S, +P, +O, +G, +Opts
+    q_print_quads/1,             %     +Tuples
+    q_print_quads/2,             %     +Tuples,        +Opts
+    q_print_quads/5,             % ?M, ?S, ?P, ?O, ?G
+    q_print_quads/6,             % ?M, ?S, ?P, ?O, ?G, +Opts
+    q_print_root/2,              % ?M, ?S
+    q_print_root/3,              % ?M, ?S,         ?G
+    q_print_root/4,              % ?M, ?S,         ?G, +Opts
+    q_print_scbd/2,              % ?M, ?Node
+    q_print_scbd/3,              % ?M, ?Node,      ?G
+    q_print_scbd/4,              % ?M, ?Node,      ?G, +Opts
+    q_print_table/1,             %     +Rows
+    q_print_table/2,             %     +Rows,          +Opts
+    q_print_term/1,              %     +Term
+    q_print_term/2,              %     +Term,          +Opts
+    q_print_tree/2,              % ?M, ?S
+    q_print_tree/3,              % ?M, ?S,         ?G
+    q_print_tree/4,              % ?M, ?S,         ?G, +Opts
+    q_print_triple/1,            %     +Tuple
+    q_print_triple/2,            %     +Tuple,         +Opts
+    q_print_triple/3,            %     +S, +P, +O
+    q_print_triple/4,            %     +S, +P, +O,     +Opts
+    q_print_triples/1,           %     +Triples
+    q_print_triples/2,           %     +Triples,       +Opts
+    q_print_triples/4,           % ?M, ?S, ?P, ?O
+    q_print_triples/5,           % ?M, ?S, ?P, ?O, ?G
+    q_print_triples/6            % ?M, ?S, ?P, ?O, ?G, +Opts
   ]
 ).
 
@@ -137,15 +141,20 @@ Print RDF statements.
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(yall)).
 
+
 :- dynamic
     var_map/2.
+
 
 :- multifile
     q:dcg_q_print_literal_hook//2.
 
+
 :- rdf_meta
    dcg_q_print_something(o),
    dcg_q_print_something(o, +),
+   dcg_q_print_dataset(r, ?, ?),
+   dcg_q_print_dataset(r, +, ?, ?),
    dcg_q_print_datatype(r, ?, ?),
    dcg_q_print_datatype(r, +, ?, ?),
    dcg_q_print_graph(?, r, ?, ?),
@@ -180,6 +189,8 @@ Print RDF statements.
    q_print_cbd(?, r),
    q_print_cbd(?, r, r),
    q_print_cbd(?, r, r, +),
+   q_print_dataset(r),
+   q_print_dataset(r, +),
    q_print_datatype(r),
    q_print_datatype(r, +),
    q_print_graph(?, r),
@@ -251,6 +262,19 @@ dcg_q_print_something(Term, Opts1) -->
 
 % NON-DCG INVOCATIONS %
 
+%! q_print_dataset_term(+D) is det.
+%! q_print_dataset_term(+D, +Opts) is det.
+
+q_print_dataset_term(D) :-
+  q_print_dataset_term(D, _{}).
+
+
+q_print_dataset_term(D, Opts1) :-
+  q_print_default_options(Opts1, Out, Opts2),
+  dcg_with_output_to(Out, dcg_q_print_dataset_term(D, Opts2)).
+
+
+
 %! q_print_datatype(+D) is det.
 %! q_print_datatype(+D, +Opts) is det.
 
@@ -260,7 +284,7 @@ q_print_datatype(D) :-
 
 q_print_datatype(D, Opts1) :-
   q_print_default_options(Opts1, Out, Opts2),
-  dcg_with_output_to(Out, dcg_q_print_iri(D, Opts2)).
+  dcg_with_output_to(Out, dcg_q_print_datatype(D, Opts2)).
 
 
 
@@ -743,6 +767,16 @@ dcg_q_print_triple(S, P, O, Opts) -->
 
 
 % PRINT A TERM BY ITS POSITIONALITY %
+
+dcg_q_print_dataset_term(G) -->
+  {dcg_q_print_default_options(Opts)},
+  dcg_q_print_dataset_term(G, Opts).
+
+
+dcg_q_print_dataset_term(G, Opts) -->
+  dcg_q_print_iri(G, Opts).
+
+
 
 dcg_q_print_graph_term(G) -->
   {dcg_q_print_default_options(Opts)},

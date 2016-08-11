@@ -10,8 +10,8 @@
     q_dataset_iri/2,           % ?Refs, ?D
     q_dataset_ls/0,
     q_dataset_named_graph/2,   % ?D, ?NG 
-    q_dataset_tree/3,          % +Order, +D, -Tree
-    q_dataset_trees/2,         % +Order, -Trees
+    q_dataset_tree/4,          % ?M, +Order, +D, -Tree
+    q_dataset_trees/3,         % ?M, +Order, -Trees
     q_rm_dataset/0,
     q_rm_dataset/1             % +D
   ]
@@ -123,7 +123,7 @@ q_dataset_named_graph(D, NG) :-
 
 
 
-%! q_dataset_tree(+Order, +D, -Tree) is det.
+%! q_dataset_tree(?M, +Order, +D, -Tree) is det.
 %
 % Return a dataset tree in which the graphs are ordered in one of the
 % following ways:
@@ -132,24 +132,25 @@ q_dataset_named_graph(D, NG) :-
 %
 %   - `number_of_triples`: by the number of triples per graph
 
-q_dataset_tree(Order, D, Tree) :-
-  q_dataset_tree0(Order, D, _, Tree).
+q_dataset_tree(M, Order, D, Tree) :-
+  q_dataset_tree0(M, Order, D, _, Tree).
   
 
-q_dataset_tree0(Order, D, SumNumTriples, t(D,OrderedTrees)) :-
+q_dataset_tree0(M, Order, D, SumNumTriples, t(D,OrderedTrees)) :-
   findall(G, q_dataset_named_graph(D, G), Gs),
-  maplist(q_graph_tree0, Gs, NumTriples, Trees),
+  maplist(q_graph_tree0(M), Gs, NumTriples, Trees),
   KeyDict = _{lexicographic: Gs, number_of_triples: NumTriples},
   q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees),
   sum_list(NumTriples, SumNumTriples).
 
 
-q_graph_tree0(G, NumTriples, t(G,[])) :-
-  once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))).
+q_graph_tree0(M, G, NumTriples, t(G,[])) :-
+  (var(M) -> once(q_view_graph(M, G)) ; true),
+  q_number_of_triples(M, G, NumTriples).
 
 
 
-%! q_dataset_trees(+Order, -Trees) is det.
+%! q_dataset_trees(?M, +Order, -Trees) is det.
 %
 % Return all dataset trees ordered in one of the following ways:
 %
@@ -158,9 +159,9 @@ q_graph_tree0(G, NumTriples, t(G,[])) :-
 %   - `number_of_triples`: by the number of triples per dataset and
 %     graph
 
-q_dataset_trees(Order, OrderedTrees) :-
+q_dataset_trees(M, Order, OrderedTrees) :-
   aggregate_all(set(D), q_dataset(D), Ds),
-  maplist(q_dataset_tree0(Order), Ds, NumTriples, Trees),
+  maplist(q_dataset_tree0(M, Order), Ds, NumTriples, Trees),
   KeyDict = _{lexicographic: Ds, number_of_triples: NumTriples},
   q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees).
 
