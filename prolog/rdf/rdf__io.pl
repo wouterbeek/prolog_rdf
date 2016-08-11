@@ -39,7 +39,7 @@ The following debug flags are used:
   * rdf(rdf__io)
 
 @author Wouter Beek
-@version 2015/08-2016/02, 2016/04-2016/07
+@version 2015/08-2016/02, 2016/04-2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -59,6 +59,7 @@ The following debug flags are used:
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
+:- use_module(library(q/q_io), []).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -80,6 +81,7 @@ The following debug flags are used:
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
+
 :- meta_predicate
     rdf_call_on_graph(+, 1),
     rdf_call_on_graph(+, 1, +),
@@ -94,6 +96,63 @@ The following debug flags are used:
     rdf_call_on_tuples_stream(+, 5, +, +),
     rdf_call_to_graph(?, 1),
     rdf_call_to_graph(?, 1, +).
+
+
+:- multifile
+    q_io:q_cache_extensions_hook/2,
+    q_io:q_cache2view_hook/2,
+    q_io:q_store2cache_hook/2,
+    q_io:q_source2store_hook/4,
+    q_io:q_source_extensions_hook/2,
+    q_io:q_view_graph_hook/3,
+    q_io:q_view_rm_hook/2.
+
+
+q_io:q_cache_extensions_hook(rdf, [trp]).
+
+
+q_io:q_cache2view_hook(rdf, G) :-
+  q_io:q_graph_to_file(cache, G, rdf, File),
+  indent_debug(in, q(q_io), "TRP → MEM", []),
+  rdf_load_db(File).
+
+
+q_io:q_store2cache_hook(rdf, G) :- !,
+  q_io:q_graph_to_file(store, G, ntriples, FromFile),
+  q_io:q_graph_to_file(cache, G, rdf, ToFile),
+  create_file_directory(ToFile),
+  setup_call_cleanup(
+    rdf_load(FromFile, [graph(G)]),
+    indent_debug_call(
+      q_io(rdf),
+      "N-Triples → MEM",
+      indent_debug_call(
+        q_io(rdf),
+        "MEM → TRP",
+        rdf_save_db(ToFile, G)
+      )
+    ),
+    rdf_unload_graph(G)
+  ).
+
+
+q_io:q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
+  dict_options(Opts1, Opts2),
+  rdf_change_format(Source, Sink, Opts2).
+
+
+q_io:q_source_extensions_hook(rdf, [Ext]) :-
+  rdf_default_file_extension(_, Ext).
+
+
+q_io:q_view_graph_hook(rdf, G, false) :-
+  rdf_graph(G).
+
+
+q_io:q_view_rm_hook(rdf, G) :-
+  rdf_unload_graph(G),
+  indent_debug(out, q(q_io), "TRP → MEM", []).
+
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),

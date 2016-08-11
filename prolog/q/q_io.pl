@@ -4,7 +4,6 @@
     % CREATE
     q_create/0,
     q_create/1,       % +Name
-    q_create_data/3,  % +Refs, :Goal_2, -G
     q_create_vocab/3, % +Refs, :Goal_2, -G
     q_create_void/4,  % +D, +Refs, :Goal_3, -G
     q_rm/0,
@@ -21,9 +20,11 @@
   % STORE
   q_store_file/2,     % -File, ?G
   q_store_graph/1,    % -G
+  q_transform/2,      % +G, :Goal_3
   q_transform/4,      % +M1, +M2, +G, :Goal_3
     
     % STORE ⬄ CACHE
+    q_store2cache/0,
     q_store2cache/1,  % +M
     q_store2cache/2,  % +M, +G
     q_cache_rm/0,
@@ -109,7 +110,7 @@ Source Layer
 
 Storage Layer
 
-↓ q_store2cache/[1,2]      ↑ q_cache_rm/0
+↓ q_store2cache/[0-2]      ↑ q_cache_rm/0
 
 Cache Layer
 
@@ -136,6 +137,34 @@ Purpose of each layer
 
 ---
 
+The supported source formats are extended through hooks:
+
+  - q_source2store_hook(+M, +Source, +Sink, +Opts)
+
+  - q_source_extensions_hook(?Format, -Exts)
+
+---
+
+The supported cache formats are extended through hooks:
+
+  - q_store2cache_hook(+M, +G)
+
+  - q_cache2view_hook(+M, +G)
+
+  - q_cache_extensions_hook(?M, -Exts)
+
+  - q_cache_rm_hook(+M, +G)
+
+  - q_view_rm_hook(+M, +G)
+
+---
+
+Convertible datasets are loaded in through a hook:
+
+  - q_create_hook(+Name)
+
+---
+
 The following flags are used:
 
   * q(q_io)
@@ -148,51 +177,53 @@ The following flags are used:
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
-:- use_module(library(conv/csv2rdf), []).
-:- use_module(library(conv/json2rdf), []).
-:- use_module(library(conv/xml2rdf), []).
+:- use_module(library(conv/csv2rdf), []). % CSV → N-Triples
+:- use_module(library(conv/json2rdf), []). % JSON → N-Triples
+:- use_module(library(conv/xml2rdf), []). % XML → N-Triples
 :- use_module(library(debug_ext)).
+:- use_module(library(gis/gis_db), []). % RDF → GIS
+:- use_module(library(hdt/hdt_io), []). % N-Triples → HDT
 :- use_module(library(os/file_ext)).
+:- use_module(library(persistency)).
 :- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
-:- use_module(library(rdf/rdf__io)).
-:- use_module(library(rdf/rdf_file)).
+:- use_module(library(rdf/rdf__io)). % N-Quads, RDF/XML, … → N-Triples
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_db), [rdf_load_db/1,rdf_save_db/2]).
 :- use_module(library(tree/s_tree)).
 
 
-%! hdt_graph0(?G, ?HdtFile, ?Hdt) is nondet.
-
-:- dynamic
-    hdt_graph0/3.
+:- initialization(db_attach('q_cache.db', [])).
 
 
 :- meta_predicate
-    q_create_data(+, 2, -),
     q_create_vocab(+, 2, -),
     q_create_void(+, +, 3, -),
     q_ls(+, 1),
+    q_transform(+, 3),
     q_transform(+, +, +, 3).
 
 
-%! q_create_hook(+G) is det.
-%! q_source2store_hook(+Format, +Source, +Sink, +Opts) is det.
-%! q_source_extensions_hook(?Format, ?Exts) is nondet.
-%! q_store_extensions_hook(?Format, ?Exts) is nondet.
-%! q_cache_extensions_hook(?Format, ?Exts) is nondet.
-
 :- multifile
-    q_create_hook/1,
-    q_source_extensions_hook/2,
-    q_cache_extensions_hook/2.
+    % DATASETS
+    q_create_hook/1, % E.g., create the CBS dataset.
+    % SOURCE FORMATS
+    q_source2store_hook/4, % E.g., convert CSV files to N-Triple files.
+    q_source_extensions_hook/2, % E.g., CSV files have extensions ‘csv’.
+    % CACHE FORMATS
+    q_backend_hook/1, % Only for backends that have no files in cache.
+    q_cache2view_hook/2, % E.g., open HDT file.
+    q_cache_extensions_hook/2, % E.g., ‘hdt’ file extension for HDT.
+    q_store2cache_hook/2, % E.g., create HDT file from N-Triples file.
+    q_view_graph_hook/3, % E.g., (hdt,G)-pairs.
+    q_view_rm_hook/2. % E.g., remove the HDT files for specific graphs.
 
-q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
-  dict_options(Opts1, Opts2),
-  rdf_change_format(Source, Sink, Opts2).
+
+:- persistent
+   q_cache0(backend:atom, graph:atom).
 
 
 :- rdf_meta
@@ -210,6 +241,7 @@ q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
    q_store2view(+, r),
    q_store_file(?, r),
    q_store_graph(r),
+   q_transform(r, :),
    q_transform(+, +, r, :),
    q_view2store_overwrite(+, r),
    q_view2store_append(+, r),
@@ -236,20 +268,12 @@ q_create(Name) :-
 
 
 
-%! q_create_data(+Refs, :Goal_2, -G) is det.
-
-q_create_data(Refs, Goal_2, G) :-
-  q_graph_iri(Refs, G),
-  call(Goal_2, rdf, G),
-  q_store2view0(G).
-
-
-
 %! q_create_vocab(+Refs, :Goal_2, -G) is det.
 
 q_create_vocab(Refs, Goal_2, G) :-
   q_vocab_iri(Refs, G),
   call(Goal_2, rdf, G),
+  % Write to store&view.
   q_view2store_overwrite(rdf, G),
   q_store2view0(G).
 
@@ -260,6 +284,7 @@ q_create_vocab(Refs, Goal_2, G) :-
 q_create_void(Refs, D, Goal_3, G) :-
   q_void_iri(Refs, G),
   call(Goal_3, rdf, D, G),
+  % Write to store&view.
   q_view2store_overwrite(rdf, G),
   q_store2view0(G).
 
@@ -280,8 +305,6 @@ q_rm :-
 
 %! q_source_extensions(?Format, ?Exts) is nondet.
 
-q_source_extensions(rdf, [Ext]) :-
-  rdf_default_file_extension(_, Ext).
 q_source_extensions(Format, Exts) :-
   q_source_extensions_hook(Format, Exts).
 
@@ -304,13 +327,6 @@ q_source_file(File) :-
 %! q_source2store is det.
 %! q_source2store(+File, -G) is det.
 %! q_source2store(+File, -G, Opts) is det.
-%
-% Convert Source into an RDF file with graph G.  Source is one of the
-% following:
-%
-%   - file(+File:atom, +Opts:dict)
-%
-%   - url(+Url:atom, +Opts:dict)
 %
 % The following options are defined:
 %
@@ -351,7 +367,7 @@ q_source2store(File, G, Opts) :-
 q_store_rm :-
   q_root_rm(store),
   q_rm_dataset,
-  (exists_file('q_dataset.db') -> delete_file_msg('q_dataset.db') ; true).
+  delete_file_msg('q_dataset.db').
 
 
 
@@ -360,9 +376,9 @@ q_store_rm :-
 % STORE %
 
 %! q_store_extensions(?Format, ?Exts) is nondet.
+%
+% N-Triples is the only format used in the store.
 
-q_store_extensions(hdt, [hdt]).
-q_store_extensions(nquads, [nq,gz]).
 q_store_extensions(ntriples, [nt,gz]).
 
 
@@ -390,17 +406,23 @@ q_store_graph(G) :-
 
 
 
+%! q_transform(+G, :Goal_3) is det.
 %! q_transform(+M1, +M2, +G, :Goal_3) is det.
+%
+% Only within the ‘rdf’ view can we perform arbitrary transformations.
+
+q_transform(G, Goal_3) :-
+  q_transform(rdf, rdf, G, Goal_3).
+
 
 q_transform(M1, M2, G, Goal_3) :-
-  setup_call_cleanup(
-    q_store2view(M1, G),
-    (
-      call(Goal_3, M1, M2, G),
-      q_view2store_overwrite(M2, G)
-    ),
-    q_view_rm(M1, G)
-  ).
+  % Convert store to ‘rdf’ cache&view.
+  q_store2view(M1, G),
+  call(Goal_3, M1, M2, G),
+  % The transformations now have to be synced with the store, from
+  % which the cache can be recreated.
+  q_view2store_overwrite(M, G),
+  q_store2cache(M, G).
 
 
 
@@ -408,10 +430,18 @@ q_transform(M1, M2, G, Goal_3) :-
 
 % STORE ⬄ CACHE %
 
+%! q_store2cache is det.
 %! q_store2cache(+M) is det.
 %! q_store2cache(+M, +G) is det.
 %
 % Create a cache of store graph G in backend M.
+
+q_store2cache :-
+  forall(
+    q_backend(M),
+    q_store2cache(M)
+  ).
+
 
 q_store2cache(M) :-
   forall(
@@ -422,57 +452,17 @@ q_store2cache(M) :-
 
 % Nothing to do: cache already exists.
 q_store2cache(M, G) :-
-  q_graph_to_file(cache, G, M, File),
-  exists_file(File), !.
-% N-Triples → HDT
-q_store2cache(hdt, G) :-
-  q_graph_to_file(store, G, ntriples, FromFile),
-  exists_file(FromFile), !,
-  q_graph_to_file(cache, G, hdt, ToFile),
-  create_file_directory(ToFile),
-  indent_debug_call(
-    q(q_io),
-    "N-Triples → HDT",
-    hdt:hdt_create_from_file(ToFile, FromFile, [])
-  ).
-% N-Quads → N-Triples
-q_store2cache(hdt, G) :-
-  q_graph_to_file(store, G, nquads, FromFile),
-  exists_file(FromFile), !,
-  q_graph_to_file(store, G, ntriples, ToFile),
-  create_file_directory(ToFile),
-  setup_call_cleanup(
-    rdf_change_format(FromFile, ToFile, [from_format(nquads),to_format(ntriples)]),
-    indent_debug_call(
-      q(q_io),
-      "N-Quads → N-Triples",
-      q_store2cache(hdt, G)
-    ),
-    delete_file(ToFile)
-  ).
-q_store2cache(rdf, G) :-
-  q_graph_to_file(store, G, ntriples, FromFile),
-  q_graph_to_file(cache, G, rdf, ToFile),
-  create_file_directory(ToFile),
-  setup_call_cleanup(
-    rdf_load(FromFile, [graph(G)]),
-    indent_debug_call(
-      q_io(rdf),
-      "RDF → MEM",
-      indent_debug_call(
-        q_io(rdf),
-        "MEM → TRP",
-        rdf_save_db(ToFile, G)
-      )
-    ),
-    rdf_unload_graph(G)
-  ).
+  q_cache0(M, G), !.
+q_store2cache(M, G) :-
+  q_store2cache_hook(M, G), !,
+  assert_q_cache0(M, G).
 
 
 
 %! q_cache_rm is det.
 
 q_cache_rm :-
+  retractall_q_cache0(_, _),
   q_root_rm(cache).
 
 
@@ -487,13 +477,13 @@ q_cache_rm :-
 
 q_backend(M) :-
   distinct(M, q_cache_extensions(M, _)).
+q_backend(M) :-
+  q_backend_hook(M).
 
 
 
 %! q_cache_extensions(?Format, ?Exts) is nondet.
 
-q_cache_extensions(hdt, [hdt]).
-q_cache_extensions(rdf, [trp]).
 q_cache_extensions(Format, Exts) :-
   q_cache_extensions_hook(Format, Exts).
 
@@ -526,7 +516,7 @@ q_cache_file(M, File, G) :-
 %! q_cache_graph(-M, -G) is nondet.
 
 q_cache_graph(M, G) :-
-  q_cache_file(M, _, G).
+  q_cache0(M, G).
 
 
 
@@ -548,24 +538,15 @@ q_cache2view(M) :-
 
 % View already exists: nothing to do.
 q_cache2view(M, G) :-
-  q_view_graph(M, G), !.
+  % Dummy views do not need to be recreated either.
+  q_view_graph(M, G, _), !.
 % Cannot proceed: create the cache first.
 q_cache2view(M, G) :-
   \+ q_cache_graph(M, G), !,
   q_store2cache(M, G),
   q_cache2view(M, G).
-% Load HDT cache.
-q_cache2view(hdt, G) :-
-  q_graph_to_file(cache, G, hdt, HdtFile),
-  exists_file(HdtFile), !,
-  indent_debug(in, q(q_io), "HDT → MEM", []),
-  hdt:hdt_open(Hdt, HdtFile),
-  assert(hdt_graph0(G, HdtFile, Hdt)).
-% Load RDF/TRP cache.
-q_cache2view(rdf, G) :-
-  q_graph_to_file(cache, G, rdf, File),
-  indent_debug(in, q(q_io), "TRP → MEM", []),
-  rdf_load_db(File).
+q_cache2view(M, G) :-
+  q_cache2view_hook(M, G), !.
 
 
 
@@ -655,24 +636,14 @@ q_view_rm :-
 
 q_view_rm(M) :-
   forall(
+    % Also dummy views are removed.
     q_view_graph(M, G),
     q_view_rm(M, G)
   ).
 
 
-q_view_rm(hdt, G) :- !,
-  with_mutex(
-    q_io,
-    (
-      hdt_graph0(G, _, Hdt),
-      hdt:hdt_close(Hdt),
-      retract(hdt_graph0(G,_,Hdt)),
-      indent_debug(out, q(q_io), "HDT → MEM", [])
-    )
-  ).
-q_view_rm(rdf, G) :-
-  rdf_unload_graph(G),
-  indent_debug(out, q(q_io), "TRP → MEM", []).
+q_view_rm(M, G) :-
+  q_view_rm_hook(M, G), !.
 
 
 
@@ -684,11 +655,15 @@ q_view_rm(rdf, G) :-
 %! q_view_graph(+M, -G) is nondet.
 %! q_view_graph(-M, +G) is nondet.
 %! q_view_graph(-M, -G) is nondet.
+%
+% Non-dummy views.
 
-q_view_graph(hdt, G) :-
-  hdt_graph0(G, _, _).
-q_view_graph(rdf, G) :-
-  rdf_graph(G).
+q_view_graph(M, G) :-
+  q_view_graph(M, G, false).
+
+
+q_view_graph(M, G, Dummy) :-
+  q_view_graph_hook(M, G, Dummy).
 
 
 

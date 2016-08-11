@@ -130,7 +130,7 @@ qh_graph_menu(M) -->
     findall(
       N-G,
       (
-        gis_index(G),
+        gis_graph(G),
         once((
           q_view_graph(M, G),
           q_number_of_triples(M, G, N)
@@ -412,13 +412,7 @@ q_graph_tree(G, NumTriples, Tree) :-
     q_view_graph(M, G),
     q_number_of_triples(M, G, NumTriples)
   )),
-  aggregate_all(
-    set(M0),
-    ((  q_view_graph(M0, G)
-    ;   gis_index(G), M0 = gis
-    )),
-    Ms
-  ),
+  aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
   Tree = t(rdf_graph_term(G),[t([thousands(NumTriples),set(Ms)],[])]).
 
 

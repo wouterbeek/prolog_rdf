@@ -212,7 +212,6 @@ qu_subject_from_key(M1, M2, P, Concept, Goal_2, G) :-
       S1 \== S2
     ),
     (
-      qb_rm(M1, S1, P, Ref^^xsd:string, G),
       forall(
         q(M1, S1, Q, O, G),
         qu(M1, M2, S1, Q, O, G, subject(S2))
