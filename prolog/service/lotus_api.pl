@@ -1,5 +1,5 @@
 :- module(
-  lotus,
+  lotus_api,
   [
     lotus/2,      % +Query, -S
     lotus/3,      % +Query, -S, +Opts
@@ -10,7 +10,7 @@
   ]
 ).
 
-/** <module> LOTUS: Linked Open Text UnleaShed
+/** <module> LOTUS (Linked Open Text UnleaShed) API
 
 @author Wouter Beek
 @author Filip Ilievski
@@ -36,12 +36,14 @@
      'lotus.lodlaundromat.org',
      "The host name of the LOTUS endpoint."
    ).
+
 :- setting(
      endpoint_scheme,
      oneof([http,https]),
      http,
      "The scheme of the LOTUS endpoint."
    ).
+
 
 :- rdf_meta
    lotus(r, r, +, -, -),

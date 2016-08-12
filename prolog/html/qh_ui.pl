@@ -85,8 +85,12 @@ qh_dataset_graph_menu(Action, M, D, G) -->
   ),
   js_script({|javascript(_)||
 $("#dataset-graph-menu").on('change', function(){
-  var params = $(this).children(':selected');
-  alert(params);
+  var urls = [];
+  $(this).children(':selected').each(function(i,el) {
+    urls.push(el.value);
+  })
+  console.log(urls);
+  alert(urls);
 });
   |}).
 qh_dataset_graph_menu(_, _, _, _) --> [].
@@ -104,8 +108,6 @@ qh_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
 qh_graph_menu_item0(D0, D, G0, t(G,[])) -->
   {(D0 = D, G0 = G -> Selected = true ; Selected = false)},
   qh_graph_menu_item(Selected, G).
-
-
 
 %! qh_dataset_table// is det.
 %! qh_dataset_table(+Opts)// is det.

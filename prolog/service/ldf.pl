@@ -9,12 +9,13 @@
 /** <module> Linked Data Fragments (LDF) client
 
 @author Wouter Beek
-@version 2015/08, 2016/07
+@version 2015/08, 2016/07-2016/08
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -54,6 +55,20 @@ ldf_guess_size(S, P, O, Endpoint, NumTriples) :-
 
 
 % HELPERS %
+
+%! ldf_iri_page(+Iri, -Page) is det.
+%
+% Useful for debugging since this allows the page of a request IRI to
+% be extracted.
+
+ldf_iri_page(Iri, Page) :-
+  uri_components(Iri, uri_components(_,_,_,Query,_)),
+  uri_query_components(Query, QueryComps),
+  option(page(Page0), QueryComps), !,
+  atom_number(Page0, Page).
+ldf_iri_page(_, 1).
+
+
 
 %! ldf_parameter(+Key, +Val, -Param) is det.
 
