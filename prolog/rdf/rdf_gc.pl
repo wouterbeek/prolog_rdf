@@ -25,13 +25,13 @@ Graph-based garbage collection for RDF.
 
 %! rdf_graph_exlcuded_from_gc(?G) is nondet.
 
-:- dynamic(rdf_graph_exlcuded_from_gc/1).
-
 %! rdf_touched_graph(+FirstTouch:float, +LastTouch:float, +G) is semidet.
 %! rdf_touched_graph(?FirstTouch:float, ?LastTouch:float, +G) is semidet.
 %! rdf_touched_graph(?FirstTouch:float, ?LastTouch:float, ?G) is nondet.
 
-:- dynamic(rdf_touched_graph/3).
+:- dynamic
+    rdf_graph_exlcuded_from_gc/1,
+    rdf_touched_graph/3.
 
 :- initialization(init_rdf_gc_graph).
 
@@ -50,6 +50,7 @@ rdf_graph_touch(G) :-
 rdf_graph_touch(G) :-
   with_mutex(rdf_gc, rdf_graph_touch_sync(G)).
 
+
 % The graph was previously touched.  Update timestamp.
 rdf_graph_touch_sync(G) :-
   retract(rdf_touched_graph(First, _, G)), !,
@@ -66,6 +67,7 @@ rdf_gc_by_graph :-
   rdf_number_of_triples(N),
   (N > 1e6 -> rdf_gc_by_graph0 ; true).
 
+
 rdf_gc_by_graph0 :-
   findall(Time-G, rdf_touched_graph(_, Time, G), Pairs),
   desc_pairs_values(Pairs, [G|_]),
@@ -75,6 +77,7 @@ rdf_gc_by_graph0 :-
   rdf_number_of_triples(G, N),
   debug(rdf_gc, "[-~:d] [~w] Unloaded graph ~w", [N,Duration,G]),
   rdf_gc_by_graph.
+
 
 duration(Timestamp, Duration) :-
   get_time(Now),

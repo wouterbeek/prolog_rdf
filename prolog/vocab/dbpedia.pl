@@ -18,13 +18,13 @@
     rdf11:out_type_hook/3.
 
 
-qh:qh_literal_hook(Val^^D, Opts) -->
+qh:qh_literal_hook(Val^^D, _) -->
   {q_subdatatype_ofs(D, [dbt:minute,dbt:second])}, !,
   html("~G"-[Val]).
 
 
 rdf11:in_ground_type_hook(D1, Val, Lex) :-
-  q_subdatatype_ofs(D, [dbt:minute,dbt:second]), !,
+  q_subdatatype_ofs(D1, [dbt:minute,dbt:second]), !,
   rdf_equal(D2, xsd:float),
   rdf11:in_ground_type_hook(D2, Val, Lex).
 

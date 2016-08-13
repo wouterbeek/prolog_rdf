@@ -15,6 +15,7 @@
 @version 2016/08
 */
 
+:- use_module(library(iri/iri_ext), []).
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
 :- use_module(library(settings)).

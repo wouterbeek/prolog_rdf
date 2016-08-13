@@ -9,7 +9,7 @@
 /** <module> RDFa user
 
 @author Wouter Beek
-@version 2016/06-2016/07
+@version 2016/06-2016/08
 */
 
 :- use_module(library(html/html_bs)).
@@ -34,7 +34,7 @@
 %! rdfa_user_menu(+M, +G)// is det.
 
 rdfa_user_menu(M, G) -->
-  user_menu(
+  bs_user_menu(
     {M,G}/[Agent,Name]>>agent_name(M, Agent, Name, G),
     {M,G}/[Agent,Img]>>agent_image(M, Agent, Img, G)
   ).

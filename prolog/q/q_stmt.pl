@@ -183,11 +183,11 @@ q(hdt, S, P, O, G) :-
 
 q(M, S, P, O, G, D) :-
   (nonvar(G) ; nonvar(D)), !,
-  q_dataset_graph(D, G),
+  ignore(q_dataset_graph(D, G)),
   q(M, S, P, O, G).
 q(M, S, P, O, G, D) :-
   q(M, S, P, O, G),
-  q_dataset_graph(D, G).
+  ignore(q_dataset_graph(D, G)).
 
 
 

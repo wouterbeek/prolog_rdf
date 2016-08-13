@@ -34,7 +34,7 @@ q_io:q_cache2view_hook(hdt, G) :-
   assert(hdt_graph0(G, Hdt)).
 
 
-q_io:q_store2cache_hook(hdt, G) :- !,
+q_io:q_store2cache_hook(hdt, G) :-
   q_io:q_graph_to_file(store, G, ntriples, FromFile),
   q_io:q_graph_to_file(cache, G, hdt, ToFile),
   create_file_directory(ToFile),
@@ -53,4 +53,4 @@ q_io:q_view_rm_hook(hdt, G) :-
   hdt_graph0(G, Hdt),
   hdt:hdt_close(Hdt),
   retract(hdt_graph0(G,Hdt)),
-  indent_debug(out, q(q_io), "HDT → RDF", []).
+  indent_debug(out, q(q_io), "MEM → HDT", []).

@@ -36,13 +36,16 @@
 /** <module> HDT terms
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06, 2016/08
 */
 
 :- use_module(library(hdt), []).
 :- use_module(library(hdt/hdt_io), []).
+:- use_module(library(os/file_ext)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(service/prefix_cc)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
@@ -87,8 +90,13 @@ hdt(S, P, O) :-
 
 
 hdt(S, P, O, G) :-
-  hdt_io:hdt_graph0(G, Hdt),
-  hdt:hdt_search(Hdt, S, P, O).
+  (var(G) -> q_cache_graph(hdt, G) ; true),
+  q_io:q_graph_to_file(cache, G, hdt, File),
+  setup_call_cleanup(
+    hdt:hdt_open(Hdt, File),
+    hdt:hdt_search(Hdt, S, P, O),
+    hdt:hdt_close(Hdt)
+  ).
 
 
 

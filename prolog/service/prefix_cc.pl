@@ -514,6 +514,7 @@ assert_cached_version :-
   qb_alias(eunis, 'http://eunis.eea.europa.eu/rdf/species-schema.rdf#'),
   qb_alias(eurlex, 'http://eur-lex.publicdata.eu/ontology/'),
   qb_alias(eurostat, 'http://wifo5-04.informatik.uni-mannheim.de/eurostat/resource/eurostat/'),
+  qb_alias(eustat, 'http://eurostat.linked-statistics.org/data/'),
   qb_alias(ev, 'http://www.w3.org/2001/xml-events/'),
   qb_alias(event, 'http://purl.org/NET/c4dm/event.owl#'),
   qb_alias(events, 'http://eulersharp.sourceforge.net/2003/03swap/event#'),
