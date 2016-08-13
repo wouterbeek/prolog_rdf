@@ -94,7 +94,7 @@ The following options are supported to achieve parity with module
    qh_link(+, +, +, +, html, +, ?, ?).
 
 :- multifile
-    qh:qh_literal_hook//2,
+    qh_literal_hook//2,
     rdf11:in_ground_type_hook/3,
     rdf11:out_type_hook/3.
 
@@ -131,7 +131,7 @@ The following options are supported to achieve parity with module
    qh_triple(r, r, o, +, ?, ?).
 
 :- setting(
-     qh:http_handler,
+     http_handler,
      atom,
      '',
      "ID of the HTTP handler that performs RDF term lookup."
@@ -393,7 +393,7 @@ qh_literal_inner(V^^D, _) -->
   html(V).
 % Datatype hooks.
 qh_literal_inner(Lit, Opts) -->
-  qh:qh_literal_hook(Lit, Opts).
+  qh_literal_hook(Lit, Opts).
 
 
 
@@ -590,7 +590,7 @@ qh_external_iri(C, Val, Link) :-
 
 
 qh_external_iri(C, Val, Query, Link) :-
-  setting(qh:http_handler, Id),
+  setting(http_handler, Id),
   Id \== '',
   q_query_term(C, Val, QueryTerm),
   http_link_to_id(Id, [QueryTerm|Query], Link).

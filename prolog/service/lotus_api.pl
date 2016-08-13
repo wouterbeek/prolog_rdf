@@ -31,14 +31,14 @@
 :- use_module(library(uri)).
 
 :- setting(
-     endpoint_host,
+     host,
      atom,
      'lotus.lodlaundromat.org',
      "The host name of the LOTUS endpoint."
    ).
 
 :- setting(
-     endpoint_scheme,
+     scheme,
      oneof([http,https]),
      http,
      "The scheme of the LOTUS endpoint."
@@ -130,8 +130,8 @@ lotus(S, P, Query, O, Doc) :-
 
 
 lotus(S, P, Query, O, Doc, Opts) :-
-  setting(lotus:endpoint_scheme, Scheme),
-  setting(lotus:endpoint_host, Host),
+  setting(scheme, Scheme),
+  setting(host, Host),
   option(blank(Blank), Opts, false),
   boolean_negation(Blank, NoBlank),
   option(ltag(LTag0), Opts, _),
@@ -152,6 +152,7 @@ lotus(S, P, Query, O, Doc, Opts) :-
     string(Query),
     subject(S)
   ],
+  Query \== "",
   include(ground, QueryComps0, QueryComps),
   uri_query_components(QueryComp, QueryComps),
   uri_components(Iri, uri_components(Scheme,Host,'/retrieve',QueryComp,_)),

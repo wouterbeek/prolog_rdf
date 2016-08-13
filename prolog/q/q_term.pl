@@ -42,6 +42,7 @@
     q_lts/2,               % ?M, ?Lit
     q_lts/3,               % ?M, ?Lit, ?G
     q_member/2,            % ?Elem, +L
+    q_memberchk/2,         % ?Elem, +L
     q_name/2,              % ?M, ?Name
     q_name/3,              % ?M, ?Name, ?G
     q_node/2,              % ?M, ?Node
@@ -180,6 +181,7 @@ q_iri0(Iri) -->
    q_lts(?, o),
    q_lts(?, o, r),
    q_member(r, t),
+   q_memberchk(r, t),
    q_name(?, o),
    q_name(?, o, r),
    q_node(?, o),
@@ -447,6 +449,15 @@ q_lts(hdt, Lit, G) :-
 
 q_member(Elem, L) :-
   member(Elem, L).
+
+
+
+%! q_memberchk(?Elem, +L) is nondet.
+%
+% Calls memberchk/2 under RDF alias expansion.
+
+q_memberchk(Elem, L) :-
+  memberchk(Elem, L).
 
 
 

@@ -2,6 +2,8 @@
   xsd,
   [
     xsd_date_time_datatype/2, % +DT, -D
+    xsd_div/3,                % +X, +Y, -Z
+    xsd_mod/3,                % +X, +Y, -Z
     xsd_strict_subtype_of/2,  % ?Subtype, ?Supertype
     xsd_subtype_of/2          % ?Subtype, ?Supertype
   ]
