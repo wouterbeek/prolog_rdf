@@ -179,6 +179,8 @@ q(rdf, S, P, O, G) :-
   rdf11:rdf(S, P, O, G).
 q(hdt, S, P, O, G) :-
   hdt(S, P, O, G).
+q(hdt0, S, P, O, Hdt) :-
+  hdt0(S, P, O, Hdt).
 
 
 q(M, S, P, O, G, D) :-
