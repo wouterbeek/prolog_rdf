@@ -153,6 +153,27 @@ hdt_bnode0(B, Hdt) :-
 
 
 
+%! hdt_call_file(+File, :Goal_1) is det.
+
+hdt_call_file(File, Goal_1) :-
+  setup_call_cleanup(
+    hdt:hdt_open(Hdt, File),
+    call(Goal_1, Hdt),
+    hdt:hdt_close(Hdt)
+  ).
+
+
+
+%! hdt_call_lgraph(?G, :Goal_1) is det.
+
+hdt_call_lgraph(G, Goal_1) :-
+  lready_graph(G),
+  lgraph_lfile(G, hdt, File),
+  exists_file(File),
+  hdt_call_file(File, Goal_1).
+
+
+
 %! hdt_datatype(?D) is nondet.
 %! hdt_datatype(?D, ?G) is nondet.
 %! hdt_datatype0(?D, +Hdt) is nondet.
@@ -168,26 +189,6 @@ hdt_datatype(D, G) :-
 hdt_datatype0(D, Hdt) :-
   hdt_literal0(Lit, Hdt),
   q_literal_datatype(Lit, D).
-
-
-
-%! hdt_call_file(+File, :Goal_1) is det.
-
-hdt_call_file(File, Goal_1) :-
-  setup_call_cleanup(
-    hdt:hdt_open(Hdt, File),
-    call(Goal_1, Hdt),
-    hdt:hdt_close(Hdt)
-  ).
-
-
-
-%! hdt_call_lgraph(?G, :Goal_1) is det.
-
-hdt_call_lgraph(G, Goal_1) :-
-  lgraph(G),
-  lgraph_lfile(G, hdt, File),
-  hdt_call_file(File, Goal_1).
 
 
 
