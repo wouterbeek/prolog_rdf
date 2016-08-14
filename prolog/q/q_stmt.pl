@@ -406,8 +406,10 @@ q_pref_string(M, S, P, LRange, Lit, G) :-
   \+ basic_filtering(LRange, LTag),
   Lit = V@LTag.
 % Plain XSD strings.
-q_pref_string(M, S, P, _, V^^xsd:string, G) :-
-  q(M, S, P, V^^xsd:string, G).
+q_pref_string(M, S, P, _, V^^D, G) :-
+  % @bug RDF prefix expansion does not work here.
+  rdf_equal(D, xsd:string),
+  q(M, S, P, V^^D, G).
 
 
 
