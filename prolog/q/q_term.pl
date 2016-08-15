@@ -58,10 +58,11 @@
     q_subject/2,           % ?M, ?S
     q_subject/3,           % ?M, ?S, ?G
     q_term/2,              % ?M, ?Term
-    q_term/3               % ?M, ?Term, ?G
+    q_term/3,              % ?M, ?Term, ?G
    %q_transaction/1,       % :Goal_0
    %q_transaction/2,       % :Goal_0, +Id
-   %q_transaction/3        % :Goal_0, +Is, +Opts
+   %q_transaction/3,       % :Goal_0, +Is, +Opts
+    ll_is_bnode/1          % @Term
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
@@ -618,3 +619,10 @@ q_term(hdt, Term, G) :-
   hdt_term(Term, G).
 q_term(hdt0, Term, Hdt) :-
   hdt_term0(Term, Hdt).
+
+
+
+%! ll_is_bnode(@Term) is semidet.
+
+ll_is_bnode(B) :-
+  atom_prefix(B, 'http://lodlaundromat.org/.well-known/genid/').
