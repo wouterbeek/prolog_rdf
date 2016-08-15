@@ -138,7 +138,7 @@ agent_image(M, Agent, G) -->
     agent_name(M, Agent, Name, G),
     agent_image(M, Agent, Img, G)
   },
-  internal_link(Agent, \image(Img, [alt=Name,property='foaf:depiction'])).
+  data_link(Agent, \image(Img, [alt=Name,property='foaf:depiction'])).
 
 
 
@@ -160,9 +160,9 @@ agent_name(M, Agent, Str, G) :-
 
 agent_name(_, Agent, _) -->
   {current_user(Agent)}, !,
-  internal_link(Agent, "you").
+  data_link(Agent, "you").
 agent_name(M, Agent, G) -->
-  internal_link(Agent, \agent_name0(M, Agent, G)).
+  data_link(Agent, \agent_name0(M, Agent, G)).
 agent_name(M, Agent, G) -->
   'foaf:name'(M, Agent, G).
 
@@ -264,7 +264,7 @@ agent_item0(M, G, Agent) -->
   {
     once('dc:creator'(M, Res, Agent, G))
   },
-  internal_link(Agent, [property='dc:creator'], \agent_name(M, Agent, G)).
+  data_link(Agent, [property='dc:creator'], \agent_name(M, Agent, G)).
 
 
 

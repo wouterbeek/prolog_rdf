@@ -58,10 +58,11 @@
     q_subject/2,           % ?M, ?S
     q_subject/3,           % ?M, ?S, ?G
     q_term/2,              % ?M, ?Term
-    q_term/3               % ?M, ?Term, ?G
+    q_term/3,              % ?M, ?Term, ?G
    %q_transaction/1,       % :Goal_0
    %q_transaction/2,       % :Goal_0, +Id
-   %q_transaction/3        % :Goal_0, +Is, +Opts
+   %q_transaction/3,       % :Goal_0, +Is, +Opts
+    ll_is_bnode/1          % @Term
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
@@ -103,9 +104,11 @@
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
 
+
 :- meta_predicate
     q_aggregate_all(+, 0, -),
     q_snap(0).
+
 
 :- multifile
     http:convert_parameter/3.
@@ -155,6 +158,7 @@ q_iri0(Iri) -->
   '...'(Cs),
   ">",
   {atom_codes(Iri, Cs)}.
+
 
 :- rdf_meta
    q_aggregate_all(+, t, -),
@@ -236,6 +240,8 @@ q_bnode(rdf, B, G) :-
   rdf_bnode(B, G).
 q_bnode(hdt, B, G) :-
   hdt_bnode(B, G).
+q_bnode(hdt0, B, Hdt) :-
+  hdt_bnode0(B, Hdt).
 
 
 
@@ -252,6 +258,8 @@ q_datatype(rdf, D, G) :-
   rdf_datatype(D, G).
 q_datatype(hdt, D, G) :-
   hdt_datatype(D, G).
+q_datatype(hdt0, D, Hdt) :-
+  hdt_datatype0(D, Hdt).
 
 
 
@@ -276,6 +284,8 @@ q_iri(rdf, Iri, G) :-
   rdf_iri(Iri, G).
 q_iri(hdt, Iri, G) :-
   hdt_iri(Iri, G).
+q_iri(hdt0, Iri, Hdt) :-
+  hdt_iri0(Iri, Hdt).
 
 
 
@@ -291,6 +301,7 @@ q_iri_alias(Iri, Alias) :-
 
 q_iri_alias_local(Iri, Alias, Local) :-
   rdf_global_id(Alias:Local, Iri).
+
 
 
 %! q_iri_alias_prefix(+Iri, -Alias, -Prefix) is nondet.
@@ -365,6 +376,8 @@ q_literal(rdf, Lit, G) :-
   rdf_literal(Lit, G).
 q_literal(hdt, Lit, G) :-
   hdt_literal(Lit, G).
+q_literal(hdt0, Lit, Hdt) :-
+  hdt_literal0(Lit, Hdt).
 
 
 
@@ -440,6 +453,8 @@ q_lts(rdf, Lit, G) :-
   rdf_lts(Lit, G).
 q_lts(hdt, Lit, G) :-
   hdt_lts(Lit, G).
+q_lts(hdt0, Lit, Hdt) :-
+  hdt_lts0(Lit, Hdt).
 
 
 
@@ -474,6 +489,8 @@ q_name(rdf, Name, G) :-
   rdf_name(Name, G).
 q_name(hdt, Name, G) :-
   hdt_name(Name, G).
+q_name(hdt0, Name, Hdt) :-
+  hdt_name0(Name, Hdt).
 
 
 
@@ -490,6 +507,8 @@ q_node(rdf, Node, G) :-
   rdf_node(Node, G).
 q_node(hdt, Node, G) :-
   hdt_node(Node, G).
+q_node(hdt0, Node, Hdt) :-
+  hdt_node0(Node, Hdt).
 
 
 
@@ -506,6 +525,8 @@ q_object(rdf, O, G) :-
   rdf_object(O, G).
 q_object(hdt, O, G) :-
   hdt_object(O, G).
+q_object(hdt0, O, Hdt) :-
+  hdt_object0(O, Hdt).
 
 
 
@@ -522,6 +543,8 @@ q_predicate(rdf, P, G) :-
   rdf_predicate(P, G).
 q_predicate(hdt, P, G) :-
   hdt_predicate(P, G).
+q_predicate(hdt0, P, Hdt) :-
+  hdt_predicate0(P, Hdt).
 
 
 
@@ -576,6 +599,8 @@ q_subject(rdf, S, G) :-
   rdf_subject(S, G).
 q_subject(hdt, S, G) :-
   hdt_subject(S, G).
+q_subject(hdt0, S, Hdt) :-
+  hdt_subject0(S, Hdt).
 
 
 
@@ -592,3 +617,12 @@ q_term(rdf, Term, G) :-
   rdf_term(Term, G).
 q_term(hdt, Term, G) :-
   hdt_term(Term, G).
+q_term(hdt0, Term, Hdt) :-
+  hdt_term0(Term, Hdt).
+
+
+
+%! ll_is_bnode(@Term) is semidet.
+
+ll_is_bnode(B) :-
+  atom_prefix(B, 'http://lodlaundromat.org/.well-known/genid/').

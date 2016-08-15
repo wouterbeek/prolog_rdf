@@ -36,7 +36,7 @@
     qh_term//2,          % +Term,          +Opts
     qh_triple//3,        % +S, +P, +O
     qh_triple//4,        % +S, +P, +O,     +Opts
-  % FOR USE IN MODULE QH_UI
+  % -------------------------
     qh_dataset_term_outer0//4, % +Class, +Classes, +Opts, +D
     qh_default_options/2,      % +Opts1, -Opts2
     qh_graph_term_outer0//4,   % +Class, +Classes, +Opts, +G

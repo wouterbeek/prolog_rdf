@@ -1,12 +1,16 @@
 :- module(
   lotus_api,
   [
-    lotus/2,      % +Query, -S
-    lotus/3,      % +Query, -S, +Opts
-    lotus/5,      % ?S, ?P, +Query, -O, -Doc
-    lotus/6,      % ?S, ?P, +Query, -O, -Doc, +Opts
-    match_term/1, % ?MatchTerm
-    rank_term/1   % ?RankTerm
+    lotus/2,         % +Query, -S
+    lotus/3,         % +Query, -S, +Opts
+    lotus/5,         % ?S, ?P, +Query, -O, -Doc
+    lotus/6,         % ?S, ?P, +Query, -O, -Doc, +Opts
+    lotus_result/2,  % +Query, -Dict
+    lotus_result/3,  % +Query, -Dict, +Opts
+    lotus_results/2, % +Query, -Dict
+    lotus_results/3, % +Query, -Dict, +Opts
+    match_term/1,    % ?MatchTerm
+    rank_term/1      % ?RankTerm
   ]
 ).
 
@@ -16,7 +20,7 @@
 @author Filip Ilievski
 @see http://lotus.lodlaundromat.org/
 @tbd Add support for hyper-parameters.
-@version 2015/10, 2016/07
+@version 2015/10, 2016/07-2016/08
 */
 
 :- use_module(library(apply)).
@@ -25,6 +29,8 @@
 :- use_module(library(json_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(print_ext)).
+:- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(solution_sequences)).
@@ -129,7 +135,36 @@ lotus(S, P, Query, O, Doc) :-
   lotus(S, P, Query, O, Doc, []).
 
 
-lotus(S, P, Query, O, Doc, Opts) :-
+lotus(S, P, Query, O, Doc, Opts1) :-
+  include(ground, [predicate(P),subject(S)], Opts2),
+  merge_options(Opts1, Opts2, Opts3),
+  lotus_result(Query, Dict, Opts3),
+  maplist(atom_string, [Lex,LTag,Doc], [Dict.string,Dict.langtag,Dict.docid]),
+  (ground(LTag) -> O = Lex@LTag ; O = Lex^^xsd:string).
+
+
+
+%! lotus_result(+Query, -Dict) is nondet.
+%! lotus_result(+Query, -Dict, +Opts) is nondet.
+
+lotus_result(Query, Dict) :-
+  lotus_result(Query, Dict, []).
+
+
+lotus_result(Query, Dict, Opts) :-
+  lotus_results(Query, Dict0, Opts),
+  member(Dict, Dict0.hits).
+
+
+
+%! lotus_results(+Query, -Dict) is nondet.
+%! lotus_results(+Query, -Dict, +Opts) is nondet.
+
+lotus_results(Query, Dict) :-
+  lotus_results(Query, Dict, []).
+
+
+lotus_results(Query, Dict, Opts) :-
   setting(scheme, Scheme),
   setting(host, Host),
   option(blank(Blank), Opts, false),
@@ -141,6 +176,8 @@ lotus(S, P, Query, O, Doc, Opts) :-
   option(rank(Rank), Opts, psf),
   rank_term(Rank),
   option(request_size(RequestSize), Opts, 10),
+  ignore(option(predicate(P), Opts)),
+  ignore(option(subject(S), Opts)),
   QueryComps0 = [
     noblank(NoBlank),
     langannotator(LTagMode),
@@ -156,18 +193,7 @@ lotus(S, P, Query, O, Doc, Opts) :-
   include(ground, QueryComps0, QueryComps),
   uri_query_components(QueryComp, QueryComps),
   uri_components(Iri, uri_components(Scheme,Host,'/retrieve',QueryComp,_)),
-  debug(lotus(request), "REQUEST: ~a~n", [Iri]),
-  json_read_any(Iri, Results),
-  ignore(option(result_size(Results.numhits), Opts)),
-  ignore(option(result_time(Results.took), Opts)),
-  debug(lotus(response), "RESPONSE: ~D hits in ~Dms", [Results.numhits,Results.took]),
-  member(Result, Results.hits),
-  maplist(
-    atom_string,
-    [S,P,Lex,LTag,Doc],
-    [Result.subject,Result.predicate,Result.string,Result.langtag,Result.docid]
-  ),
-  (ground(LTag) -> O = Lex@LTag ; O = Lex^^xsd:string).
+  json_read_any(Iri, Dict).
 
 
 
@@ -199,10 +225,3 @@ rank_term(termrichness).
 
 boolean_negation(true, false).
 boolean_negation(false, true).
-
-
-
-%! ll_is_bnode(@Term) is semidet.
-
-ll_is_bnode(B) :-
-  atom_prefix(B, 'http://lodlaundromat.org/.well-known/genid/').

@@ -179,15 +179,17 @@ q(rdf, S, P, O, G) :-
   rdf11:rdf(S, P, O, G).
 q(hdt, S, P, O, G) :-
   hdt(S, P, O, G).
+q(hdt0, S, P, O, Hdt) :-
+  hdt0(S, P, O, Hdt).
 
 
 q(M, S, P, O, G, D) :-
   (nonvar(G) ; nonvar(D)), !,
-  q_dataset_graph(D, G),
+  ignore(q_dataset_graph(D, G)),
   q(M, S, P, O, G).
 q(M, S, P, O, G, D) :-
   q(M, S, P, O, G),
-  q_dataset_graph(D, G).
+  ignore(q_dataset_graph(D, G)).
 
 
 
@@ -404,8 +406,10 @@ q_pref_string(M, S, P, LRange, Lit, G) :-
   \+ basic_filtering(LRange, LTag),
   Lit = V@LTag.
 % Plain XSD strings.
-q_pref_string(M, S, P, _, V^^xsd:string, G) :-
-  q(M, S, P, V^^xsd:string, G).
+q_pref_string(M, S, P, _, V^^D, G) :-
+  % @bug RDF prefix expansion does not work here.
+  rdf_equal(D, xsd:string),
+  q(M, S, P, V^^D, G).
 
 
 

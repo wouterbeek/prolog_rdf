@@ -293,19 +293,14 @@ qh_quad_table(M, S, P, O, G, Opts1) -->
 
 
 
-qh_quad_row0(Opts1, rdf(S,P,O,G)) -->
-  {
-    (del_dict(query, Opts1, Query, Opts2) -> true ; Query = [], Opts2 = Opts1),
-    q_query_term(graph(G), QueryTerm),
-    put_dict(query, Opts2, [QueryTerm|Query], Opts3)
-  },
+qh_quad_row0(Opts, rdf(S,P,O,G)) -->
   html(
     span(class=quadruple,
       tr([
-        td(\qh_subject_outer0(term, [subject], Opts3, S)),
-        td(\qh_predicate_outer0(predicate, [predicate], Opts3, P)),
-        td(\qh_object_outer0(term, [object], Opts3, O)),
-        td(\qh_graph_term_outer0(graph, [graph], Opts1, G))
+        td(\qh_subject_outer0(term, [subject], Opts, S)),
+        td(\qh_predicate_outer0(predicate, [predicate], Opts, P)),
+        td(\qh_object_outer0(term, [object], Opts, O)),
+        td(\qh_graph_term_outer0(graph, [graph], Opts, G))
       ])
     )
   ).

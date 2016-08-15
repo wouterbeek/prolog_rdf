@@ -31,7 +31,7 @@
 
   % CACHE
   q_change_cache/3,   % +M1, +G, +M2
-  q_cache_file/3,     % -M, -File, -G
+  q_cache_file/2,     % -M, -File
   q_cache_graph/2,    % -M, -G
     
     % CACHE ⬄ VIEW
@@ -184,7 +184,6 @@ The following flags are used:
 :- use_module(library(gis/gis), []). % RDF → GIS
 :- use_module(library(hdt/hdt_io), []). % N-Triples → HDT
 :- use_module(library(os/file_ext)).
-:- use_module(library(persistency)).
 :- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
@@ -194,9 +193,6 @@ The following flags are used:
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_db), [rdf_load_db/1,rdf_save_db/2]).
 :- use_module(library(tree/s_tree)).
-
-
-:- initialization(db_attach('q_cache.db', [])).
 
 
 :- meta_predicate
@@ -222,13 +218,8 @@ The following flags are used:
     q_view_rm_hook/2. % E.g., remove the HDT files for specific graphs.
 
 
-:- persistent
-   q_cache0(backend:atom, graph:atom).
-
-
 :- rdf_meta
    q_cache2view(+, r),
-   q_cache_file(-, -, r),
    q_cache_graph(-, r),
    q_change_cache(+, r, +),
    q_create(r),
@@ -264,7 +255,7 @@ q_create :-
 
 
 q_create(Name) :-
-  q_create_hook(Name).
+  once(q_create_hook(Name)).
 
 
 
@@ -355,7 +346,7 @@ q_source2store(File, G, Opts) :-
   once(q_source_extensions(Format, Exts)),
   q_file_to_graph(source, File, G),
   q_graph_to_file(store, G, ntriples, Sink),
-  q_source2store_hook(Format, File, Sink, Opts).
+  once(q_source2store_hook(Format, File, Sink, Opts)).
 
 
 
@@ -443,12 +434,8 @@ q_store2cache(M) :-
   forall(q_store_graph(G), q_store2cache(M, G)).
 
 
-% Nothing to do: cache already exists.
 q_store2cache(M, G) :-
-  q_cache0(M, G), !.
-q_store2cache(M, G) :-
-  q_store2cache_hook(M, G), !,
-  assert_q_cache0(M, G).
+  once(q_store2cache_hook(M, G)).
 
 
 
@@ -457,9 +444,7 @@ q_store2cache(M, G) :-
 %! q_cache_rm(+M, +G) is det.
 
 q_cache_rm :-
-  retractall_q_cache0(_, _),
-  q_root_rm(cache),
-  delete_file_msg('q_cache.db').
+  q_root_rm(cache).
 
 
 q_cache_rm(M) :-
@@ -467,7 +452,6 @@ q_cache_rm(M) :-
 
 
 q_cache_rm(M, G) :-
-  retractall_q_cache0(M, G),
   q_graph_to_file(cache, G, M, File),
   delete_file_msg(File).
 
@@ -505,15 +489,14 @@ q_change_cache(M1, G, M2) :-
 
 
 
-%! q_cache_file(-M, -File, -G) is nondet.
+%! q_cache_file(-M, -File) is nondet.
 %
 % Enumerates the files and associated graph names that are currently
 % in the store directory.
 
-q_cache_file(M, File, G) :-
+q_cache_file(M, File) :-
   q_root(cache, Root),
   directory_path_recursive(Root, File),
-  q_file_to_graph(cache, File, G),
   file_extensions(File, Exts),
   once(q_cache_extensions(M, Exts)).
 
@@ -522,7 +505,8 @@ q_cache_file(M, File, G) :-
 %! q_cache_graph(-M, -G) is nondet.
 
 q_cache_graph(M, G) :-
-  q_cache0(M, G).
+  q_cache_file(M, File),
+  q_file_to_graph(cache, File, G).
 
 
 
@@ -549,7 +533,7 @@ q_cache2view(M, G) :-
   q_store2cache(M, G),
   q_cache2view(M, G).
 q_cache2view(M, G) :-
-  q_cache2view_hook(M, G), !.
+  once(q_cache2view_hook(M, G)).
 
 
 
@@ -628,7 +612,7 @@ q_view_rm(M) :-
 
 
 q_view_rm(M, G) :-
-  q_view_rm_hook(M, G), !.
+  once(q_view_rm_hook(M, G)).
 
 
 
@@ -707,8 +691,8 @@ q_extensions(store, Format, Exts) :- !,
 
 q_file_to_graph(Type, File, G) :-
   q_root(Type, Root),
-  atom_concat(Root, File0, File),
-  file_name(File0, Base),
+  atom_concat(Root, Local, File),
+  file_name(Local, Base),
   atomic_list_concat([''|Refs], /, Base),
   q_graph_iri(Refs, G).
 
@@ -751,7 +735,7 @@ q_ls(Root, Goal_1) :-
 q_root(Type, Root) :-
   Type =.. [Type0|_],
   Spec =.. [Type0,.],
-  absolute_file_name(Spec, Root, [access(write),file_type(directory)]).
+  absolute_file_name(Spec, Root, [file_type(directory)]).
 
 
 

@@ -117,7 +117,7 @@ q_io:q_cache2view_hook(rdf, G) :-
   rdf_load_db(File).
 
 
-q_io:q_store2cache_hook(rdf, G) :- !,
+q_io:q_store2cache_hook(rdf, G) :-
   q_io:q_graph_to_file(store, G, ntriples, FromFile),
   q_io:q_graph_to_file(cache, G, rdf, ToFile),
   create_file_directory(ToFile),
@@ -136,7 +136,7 @@ q_io:q_store2cache_hook(rdf, G) :- !,
   ).
 
 
-q_io:q_source2store_hook(rdf, Source, Sink, Opts1) :- !,
+q_io:q_source2store_hook(rdf, Source, Sink, Opts1) :-
   dict_options(Opts1, Opts2),
   rdf_change_format(Source, Sink, Opts2).
 
