@@ -17,14 +17,14 @@
 
 
 :- multifile
-    q_io:q_cache_extensions/2,
+    q_io:q_cache_format_hook/2,
     q_io:q_cache2view_hook/2,
     q_io:q_store2cache_hook/2,
     q_io:q_view_graph_hook/2,
     q_io:q_view_rm_hook/2.
 
 
-q_io:q_cache_extensions(hdt, [hdt]).
+q_io:q_cache_format_hook(hdt, [hdt]).
 
 
 q_io:q_cache2view_hook(hdt, G) :-

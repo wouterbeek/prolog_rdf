@@ -8,7 +8,7 @@
     hdt_bnode/2,                % ?B, ?G
     hdt_bnode0/2,               % ?B, +Hdt
     hdt_call_file/2,            % +File, :Goal_1
-    hdt_call_lgraph/2,          % ?G, :Goal_1
+    hdt_call_graph/2,          % ?G, :Goal_1
     hdt_datatype/1,             % ?D
     hdt_datatype/2,             % ?D, ?G
     hdt_datatype0/2,            % ?D, +Hdt
@@ -59,7 +59,6 @@
 :- use_module(library(hdt), []).
 :- use_module(library(hdt/hdt_io), []).
 :- use_module(library(os/file_ext)).
-:- use_module(library(lodcli/lodfs)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(service/prefix_cc)).
@@ -68,7 +67,7 @@
 
 :- meta_predicate
     hdt_call_file(+, 1),
-    hdt_call_lgraph(?, 1).
+    hdt_call_graph(?, 1).
 
 
 :- rdf_meta
@@ -76,7 +75,7 @@
    hdt(r, r, o, r),
    hdt0(r, r, o, +),
    hdt_bnode(?, r),
-   hdt_call_lgraph(r, :),
+   hdt_call_graph(r, :),
    hdt_datatype(r),
    hdt_datatype(r, r),
    hdt_datatype0(r, +),
@@ -127,7 +126,7 @@ hdt(S, P, O) :-
 
 
 hdt(S, P, O, G) :-
-  hdt_call_lgraph(G, hdt0(S, P, O)).
+  hdt_call_graph(G, hdt0(S, P, O)).
 
 
 hdt0(S, P, O, Hdt) :-
@@ -144,7 +143,7 @@ hdt_bnode(B) :-
 
 
 hdt_bnode(B, G) :-
-  hdt_call_lgraph(G, hdt_bnode0(B)).
+  hdt_call_graph(G, hdt_bnode0(B)).
 
 
 hdt_bnode0(B, Hdt) :-
@@ -164,11 +163,11 @@ hdt_call_file(File, Goal_1) :-
 
 
 
-%! hdt_call_lgraph(?G, :Goal_1) is det.
+%! hdt_call_graph(?G, :Goal_1) is det.
 
-hdt_call_lgraph(G, Goal_1) :-
-  lgraph_ready(G),
-  lgraph_lfile(G, hdt, File),
+hdt_call_graph(G, Goal_1) :-
+  q_store_graph(G),
+  q_graph_file(G, hdt, File),
   exists_file(File),
   hdt_call_file(File, Goal_1).
 
@@ -183,7 +182,7 @@ hdt_datatype(D) :-
 
 
 hdt_datatype(D, G) :-
-  hdt_call_lgraph(G, hdt_datatype0(D)).
+  hdt_call_graph(G, hdt_datatype0(D)).
 
 
 hdt_datatype0(D, Hdt) :-
@@ -201,7 +200,7 @@ hdt_iri(Iri) :-
 
 
 hdt_iri(Iri, G) :-
-  hdt_call_lgraph(G, hdt_iri0(Iri)).
+  hdt_call_graph(G, hdt_iri0(Iri)).
 
 
 hdt_iri0(Iri, Hdt) :-
@@ -219,7 +218,7 @@ hdt_literal(Lit) :-
 
 
 hdt_literal(Lit, G) :-
-  hdt_call_lgraph(G, hdt_literal0(Lit)).
+  hdt_call_graph(G, hdt_literal0(Lit)).
 
 
 hdt_literal0(Lit, Hdt) :-
@@ -237,7 +236,7 @@ hdt_lts(Lit) :-
 
 
 hdt_lts(Lit, G) :-
-  hdt_call_lgraph(G, hdt_lts0(Lit)).
+  hdt_call_graph(G, hdt_lts0(Lit)).
 
 
 hdt_lts0(Lit, Hdt) :-
@@ -254,7 +253,7 @@ hdt_lts0(Lit, Hdt) :-
 %   * `'<http://rdfs.org/ns/void#triples>'` with object `N^^xsd:integer`
 
 hdt_meta(S, P, O, G) :-
-  hdt_call_lgraph(G, hdt_meta0(S, P, O)).
+  hdt_call_graph(G, hdt_meta0(S, P, O)).
 
 
 hdt_meta0(S, P, O, Hdt) :-
@@ -271,7 +270,7 @@ hdt_name(Name) :-
 
 
 hdt_name(Name, G) :-
-  hdt_call_lgraph(G, hdt_name0(Name)).
+  hdt_call_graph(G, hdt_name0(Name)).
 
 
 hdt_name0(Name, Hdt) :-
@@ -294,7 +293,7 @@ hdt_node(Node) :-
 
 
 hdt_node(S, G) :-
-  hdt_call_lgraph(G, hdt_node0(S)).
+  hdt_call_graph(G, hdt_node0(S)).
 
 
 hdt_node0(S, Hdt) :-
@@ -343,7 +342,7 @@ hdt_object(O) :-
 
 
 hdt_object(O, G) :-
-  hdt_call_lgraph(G, hdt_object0(O)).
+  hdt_call_graph(G, hdt_object0(O)).
 
 
 hdt_object0(O, Hdt) :-
@@ -360,7 +359,7 @@ hdt_predicate(P) :-
 
 
 hdt_predicate(P, G) :-
-  hdt_call_lgraph(G, hdt_predicate0(P)).
+  hdt_call_graph(G, hdt_predicate0(P)).
 
 
 hdt_predicate0(P, Hdt) :-
@@ -406,7 +405,7 @@ hdt_subject(S) :-
 
 
 hdt_subject(S, G) :-
-  hdt_call_lgraph(G, hdt_subject0(S)).
+  hdt_call_graph(G, hdt_subject0(S)).
 
 
 hdt_subject0(S, Hdt) :-
@@ -424,7 +423,7 @@ hdt_term(Term) :-
 
 
 hdt_term(Name, G) :-
-  hdt_call_lgraph(G, hdt_term0(Name)).
+  hdt_call_graph(G, hdt_term0(Name)).
 
 
 hdt_term0(Name, Hdt) :-

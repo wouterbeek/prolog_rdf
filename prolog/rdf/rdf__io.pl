@@ -56,7 +56,6 @@ The following debug flags are used:
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
-:- use_module(library(lodcli/lodfs)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
