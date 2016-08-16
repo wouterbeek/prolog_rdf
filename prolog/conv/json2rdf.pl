@@ -34,13 +34,13 @@
 
 :- multifile
     q_io:q_source2store_hook/4,
-    q_io:q_source_extensions_hook/2.
+    q_io:q_source_format_hook/2.
 
 q_io:q_source2store_hook(json, Source, Sink, Opts) :- !,
   json2rdf(Source, Sink, Opts).
 
-q_io:q_source_extensions_hook(json, [json]).
-q_io:q_source_extensions_hook(json, [ndjson]).
+q_io:q_source_format_hook(json, [json]).
+q_io:q_source_format_hook(json, [ndjson]).
 
 
 

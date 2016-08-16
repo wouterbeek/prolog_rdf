@@ -109,6 +109,8 @@ qh_graph_menu_item0(D0, D, G0, t(G,[])) -->
   {(D0 = D, G0 = G -> Selected = true ; Selected = false)},
   qh_graph_menu_item(Selected, G).
 
+
+
 %! qh_dataset_table// is det.
 %! qh_dataset_table(+Opts)// is det.
 

@@ -1,8 +1,6 @@
 :- module(
   q_print,
   [
-    dcg_q_print_something//1,    % +Term
-    dcg_q_print_something//2,    % +Term,              +Opts
     dcg_q_print_dataset_term//1, %     +D
     dcg_q_print_dataset_term//2, %     +D,             +Opts
     dcg_q_print_datatype//1,     %     +D
@@ -29,6 +27,8 @@
     dcg_q_print_quads//2,        %     +Tuples,        +Opts
     dcg_q_print_quads//5,        % ?M, ?S, ?P, ?O, ?G
     dcg_q_print_quads//6,        % ?M, ?S, ?P, ?O, ?G, +Opts
+    dcg_q_print_something//1,    % +Term
+    dcg_q_print_something//2,    % +Term,              +Opts
     dcg_q_print_term//1,         %     +Term
     dcg_q_print_term//2,         %     +Term,          +Opts
     dcg_q_print_triple//1,       %     +Tuple
@@ -151,8 +151,6 @@ Print RDF statements.
 
 
 :- rdf_meta
-   dcg_q_print_something(o),
-   dcg_q_print_something(o, +),
    dcg_q_print_dataset(r, ?, ?),
    dcg_q_print_dataset(r, +, ?, ?),
    dcg_q_print_datatype(r, ?, ?),
@@ -177,6 +175,8 @@ Print RDF statements.
    dcg_q_print_quad(r, r, o, r, +, ?, ?),
    dcg_q_print_quads(?, r, r, o, r, ?, ?),
    dcg_q_print_quads(?, r, r, o, r, +, ?, ?),
+   dcg_q_print_something(o),
+   dcg_q_print_something(o, +),
    dcg_q_print_term(o, ?, ?),
    dcg_q_print_term(o, +, ?, ?),
    dcg_q_print_triple(t, ?, ?),

@@ -56,6 +56,7 @@ The following debug flags are used:
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
+:- use_module(library(lodcli/lodfs)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
@@ -99,37 +100,36 @@ The following debug flags are used:
 
 
 :- multifile
-    q_io:q_cache_extensions_hook/2,
+    q_io:q_cache_format_hook/2,
     q_io:q_cache2view_hook/2,
     q_io:q_store2cache_hook/2,
     q_io:q_source2store_hook/4,
-    q_io:q_source_extensions_hook/2,
+    q_io:q_source_format_hook/2,
     q_io:q_view_graph_hook/3,
     q_io:q_view_rm_hook/2.
 
 
-q_io:q_cache_extensions_hook(rdf, [trp]).
+q_io:q_cache_format_hook(rdf, [trp]).
 
 
 q_io:q_cache2view_hook(rdf, G) :-
-  q_io:q_graph_to_file(cache, G, rdf, File),
+  q_file_graph(File, rdf, G),
   indent_debug(in, q(q_io), "TRP → MEM", []),
   rdf_load_db(File).
 
 
 q_io:q_store2cache_hook(rdf, G) :-
-  q_io:q_graph_to_file(store, G, ntriples, FromFile),
-  q_io:q_graph_to_file(cache, G, rdf, ToFile),
-  create_file_directory(ToFile),
+  q_file_graph(Source, ntriples, G),
+  q_file_graph(Sink, rdf, G),
   setup_call_cleanup(
-    rdf_load(FromFile, [graph(G)]),
+    rdf_load(Source, [graph(G)]),
     indent_debug_call(
       q_io(rdf),
       "N-Triples → MEM",
       indent_debug_call(
         q_io(rdf),
         "MEM → TRP",
-        rdf_save_db(ToFile, G)
+        rdf_save_db(Sink, G)
       )
     ),
     rdf_unload_graph(G)
@@ -141,7 +141,7 @@ q_io:q_source2store_hook(rdf, Source, Sink, Opts1) :-
   rdf_change_format(Source, Sink, Opts2).
 
 
-q_io:q_source_extensions_hook(rdf, [Ext]) :-
+q_io:q_source_format_hook(rdf, [Ext]) :-
   rdf_default_file_extension(_, Ext).
 
 

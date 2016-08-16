@@ -42,12 +42,12 @@ The following debug flags are used:
 
 :- multifile
     q_io:q_source2store_hook/4,
-    q_io:q_source_extensions_hook/2.
+    q_io:q_source_format_hook/2.
 
 q_io:q_source2store_hook(csv, Source, Sink, Opts) :- !,
   csv2rdf(Source, Sink, Opts).
 
-q_io:q_source_extensions_hook(csv, [csv]).
+q_io:q_source_format_hook(csv, [csv]).
 
 
 

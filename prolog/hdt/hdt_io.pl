@@ -28,20 +28,20 @@ q_io:q_cache_extensions(hdt, [hdt]).
 
 
 q_io:q_cache2view_hook(hdt, G) :-
-  q_io:q_graph_to_file(cache, G, hdt, HdtFile),
+  q_file_graph(HdtFile, hdt, G),
   indent_debug(in, q(q_io), "HDT → MEM", []),
   hdt:hdt_open(Hdt, HdtFile),
   assert(hdt_graph0(G, Hdt)).
 
 
 q_io:q_store2cache_hook(hdt, G) :-
-  q_io:q_graph_to_file(store, G, ntriples, FromFile),
-  q_io:q_graph_to_file(cache, G, hdt, ToFile),
-  create_file_directory(ToFile),
+  q_file_graph(Source, ntriples, G),
+  q_file_graph(Sink, hdt, G),
+  create_file_directory(Sink),
   indent_debug_call(
     q(q_io),
     "N-Triples → HDT",
-    hdt:hdt_create_from_file(ToFile, FromFile, [])
+    hdt:hdt_create_from_file(Sink, Source, [])
   ).
 
 

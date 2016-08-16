@@ -167,7 +167,7 @@ hdt_call_file(File, Goal_1) :-
 %! hdt_call_lgraph(?G, :Goal_1) is det.
 
 hdt_call_lgraph(G, Goal_1) :-
-  lready_graph(G),
+  lgraph_ready(G),
   lgraph_lfile(G, hdt, File),
   exists_file(File),
   hdt_call_file(File, Goal_1).
