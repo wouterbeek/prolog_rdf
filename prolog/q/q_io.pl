@@ -2,52 +2,54 @@
   q_io,
   [
   % GENERICS
-  q_file/3,           % ?Name, ?Format, ?File
-  q_file_graph/3,     % ?File, ?Format, ?G
-  q_graph_hash/2,     % ?G, ?Hash
-  q_graph_hash/3,     % ?G, ?Name, ?Hash
+  q_file/3,             % ?Name, ?Format, ?File
+  q_file_graph/2,       % ?File, ?G
+  q_file_graph/3,       % ?File, ?Format, ?G
+  q_file_is_ready/1,    % +File
+  q_file_is_ready/2,    % +File1, File2
+  q_file_touch_ready/1, % +File
+  q_graph_hash/2,       % ?G, ?Hash
+  q_graph_hash/3,       % ?G, ?Name, ?Hash
   q_ls/0,
 
   % SOURCE
-  q_source_file/1,    % -File
+  q_source_file/1,      % -File
 
     % SOURCE ⬄ STORE
     q_source2store/0,
-    q_source2store/2, % +File, -G
 
   % STORE
-  q_hash_ready/1,     % ?Hash
-  q_graph_ready/1,    % +G
-  q_store_file/2,     % -File, ?G
-  q_store_graph/1,    % -G
-  q_transform/2,      % +G, :Goal_3
-  q_transform/4,      % +M1, +M2, +G, :Goal_3
+  q_store_file/2,       % -File, ?G
+  q_store_graph/1,      % -G
+  q_transform/2,        % +G, :Goal_3
+  q_transform/4,        % +M1, +M2, +G, :Goal_3
     
     % STORE ⬄ CACHE
     q_store2cache/0,
-    q_store2cache/1,  % +M
-    q_store2cache/2,  % +M, +G
+    q_store2cache/1,    % +M
+    q_store2cache/2,    % +M, +G
+    q_cache_rm/1,       % +M
+    q_cache_rm/2,       % +M, +G
 
   % CACHE
-  q_change_cache/3,   % +M1, +G, +M2
-  q_cache_file/2,     % -M, -File
-  q_cache_graph/2,    % -M, -G
+  q_change_cache/3,     % +M1, +G, +M2
+  q_cache_file/2,       % -M, -File
+  q_cache_graph/2,      % -M, -G
     
     % CACHE ⬄ VIEW
-    q_cache2view/1,           % +M
-    q_cache2view/2,           % +M, +G
+    q_cache2view/0,
+    q_cache2view/1,     % +M
+    q_cache2view/2,     % +M, +G
     q_store2view/0,
-    q_store2view/1,           % +M
-    q_store2view/2,           % +M, +G
-    q_view2store_append/1,    % +M
-    q_view2store_append/2,    % +M, +G
-    q_view2store_overwrite/1, % +M
-    q_view2store_overwrite/2, % +M, +G
-    q_view_rm/1,              % +M
-    q_view_rm/2,              % +M, +G
+    q_store2view/1,     % +M
+    q_store2view/2,     % +M, +G
+    q_view2store/1,     % +M
+    q_view2store/2,     % +M, +G
+    q_view_rm/1,        % +M
+    q_view_rm/2,        % +M, +G
 
   % VIEW
-  q_view_graph/2      % ?M, ?G
+  q_view_graph/2        % ?M, ?G
   ]
 ).
 
@@ -87,7 +89,8 @@ them.
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(q/q_print)).
-:- use_module(library(rdf/rdf__io)).       % N-Quads, RDF/XML, … → N-Triples
+:- use_module(library(rdf/rdf__io)). % N-Quads, RDF/XML, … → N-Triples
+                                     % N-Triples → TRP
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(tree/s_tree)).
@@ -102,7 +105,9 @@ them.
     q_cache_format_hook/2,  % E.g., ‘hdt’ file extension for HDT.
     q_source2store_hook/3,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
-    q_view_graph_hook/3.    % E.g., (hdt,G)-pairs.
+    q_store2view_hook/2,    % E.g., GIS index, which has no cache format.
+    q_view_graph_hook/2,    % E.g., (hdt,G)-pairs.
+    q_view_rm_hook/2.
 
 :- rdf_meta
    q_file_graph(?, ?, r),
@@ -157,6 +162,9 @@ q_graph_hash(G, Hash) :-
 %! q_graph_hash(-G, +Name, +Hash) is det.
 %! q_graph_hash(-G, -Name, +Hash) is multi.
 
+q_graph_hash(G, Name, Hash) :-
+  nonvar(G), !,
+  rdf_global_id(Name:Hash, G).
 q_graph_hash(G, Name, Hash) :-
   q_name(Name),
   rdf_global_id(Name:Hash, G).
@@ -232,7 +240,6 @@ q_source_file(File) :-
 % SOURCE ⬄ STORE %
 
 %! q_source2store is det.
-%! q_source2store(+File, -G) is det.
 %
 % Automatically convert source files to store files.
 %
@@ -252,11 +259,11 @@ q_source_file(File) :-
 q_source2store :-
   forall(
     q_source_file(File),
-    q_source2store(File, _)
+    q_source2store(File)
   ).
 
 
-q_source2store(File1, G) :-
+q_source2store(File1) :-
   file_extensions(File1, Exts),
   % The format is determined by the file extensions.
   (   q_source_format(Format, Exts)
@@ -269,10 +276,15 @@ q_source2store(File1, G) :-
   base64(Local, Hash),
   % Determine the store file.
   q_file_hash(File2, data, ntriples, Hash),
-  create_file_directory(File2),
-  q_file_graph(File2, G),
-  % Automatically convert source file to store file.
-  once(q_source2store_hook(Format, File1, File2)).
+  (   q_file_ready_time(File2, Ready2),
+      time_file(File1, Ready1),
+      Ready2 > Ready1
+  ->  true
+  ;   create_file_directory(File2),
+      % Automatically convert source file to store file.
+      once(q_source2store_hook(Format, File1, File2)),
+      q_file_touch_ready(File2)
+  ).
 
 
 
@@ -294,6 +306,22 @@ q_file(Name, Format, File) :-
 
 
 
+%! q_file_delete(+File) is det.
+
+q_file_delete(File) :-
+  delete_file_msg(File),
+  q_file_ready(File, Ready),
+  delete_file_msg(Ready).
+
+
+
+%! q_file_graph(+File, -G) is det.
+%! q_file_graph(-File, +G) is multi.
+
+q_file_graph(File, G) :-
+  q_file_graph(File, _, G).
+
+
 %! q_file_graph(+File, -Format, -G) is det.
 %! q_file_graph(-File, -Format, +G) is multi.
 %! q_file_graph(-File, +Format, +G) is det.
@@ -308,27 +336,42 @@ q_file_graph(File, Format, G) :-
 
 
 
-%! q_graph_ready(+G) is semidet.
-%! q_graph_ready(-G) is nondet.
-%
-% Graphs that are done cleaning.
+%! q_file_is_ready(+File) is semidet.
+%! q_file_is_ready(+File1, +File2) is semidet.
 
-q_graph_ready(G) :-
-  q_hash_ready(Hash),
-  q_graph_hash(G, Hash).
+q_file_is_ready(File) :-
+  q_file_ready(File, Ready),
+  exists_file(Ready).
 
 
+q_file_is_ready(File1, File2) :-
+  q_file_ready_time(File2, Ready2),
+  q_file_ready_time(File1, Ready1),
+  Ready2 > Ready1.
 
-%! q_hash_ready(+Hash) is semidet.
-%! q_hash_ready(-Hash) is nondet.
-%
-% Hashes of graphs that are done cleaning.
 
-q_hash_ready(Hash) :-
-  (nonvar(Hash) -> true ; q_dir(Dir)),
-  q_dir_hash(Dir, Hash),
-  directory_file_path(Dir, done, Done),
-  exists_file(Done).
+
+%! q_file_ready(+File, -Ready) is det.
+
+q_file_ready(File, Ready) :-
+  atomic_list_concat([File,ready], ., Ready).
+
+
+
+%! q_file_ready_time(+File, -Time) is det.
+
+q_file_ready_time(File, Time) :-
+  q_file_ready(File, Ready),
+  exists_file(Ready),
+  time_file(Ready, Time).
+
+
+
+%! q_file_touch_ready(+File) is det.
+
+q_file_touch_ready(File) :-
+  q_file_ready(File, Ready),
+  touch(Ready).
 
 
 
@@ -367,10 +410,10 @@ q_store_graph(G) :-
 %! q_transform(+G, :Goal_3) is det.
 %! q_transform(+M1, +M2, +G, :Goal_3) is det.
 %
-% Only within the ‘rdf’ view can we perform arbitrary transformations.
+% Only within the ‘trp’ view can we perform arbitrary transformations.
 
 q_transform(G, Goal_3) :-
-  q_transform(rdf, rdf, G, Goal_3).
+  q_transform(trp, trp, G, Goal_3).
 
 
 q_transform(M1, M2, G, Goal_3) :-
@@ -379,7 +422,7 @@ q_transform(M1, M2, G, Goal_3) :-
   call(Goal_3, M1, M2, G),
   % The transformations now have to be synced with the store, from
   % which the cache can be recreated.
-  q_view2store_overwrite(M2, G),
+  q_view2store(M2, G),
   % Reset the cache, otherwise store2cache will no do anything.
   q_cache_rm(M2, G),
   q_store2cache(M2, G).
@@ -427,7 +470,7 @@ q_cache_rm(M) :-
 
 q_cache_rm(M, G) :-
   q_file_graph(File, M, G),
-  delete_file_msg(File).
+  q_file_delete(File).
 
 
 
@@ -494,10 +537,18 @@ q_cache_graph(M, G) :-
 
 % CACHE ⬄ VIEW %
 
+%! q_cache2view is det.
 %! q_cache2view(+M) is det.
 %! q_cache2view(+M, +G) is det.
 %
 % Load graph G into backend M.
+
+q_cache2view :-
+  forall(
+    q_backend(M),
+    q_cache2view(M)
+  ).
+
 
 q_cache2view(M) :-
   forall(
@@ -509,7 +560,7 @@ q_cache2view(M) :-
 % View already exists: nothing to do.
 q_cache2view(M, G) :-
   % Dummy views do not need to be recreated either.
-  q_view_graph(M, G, _), !.
+  q_view_graph_hook(M, G, _), !.
 % Cannot proceed: create the cache first.
 q_cache2view(M, G) :-
   \+ q_cache_graph(M, G), !,
@@ -539,57 +590,27 @@ q_store2view(M) :-
 
 
 q_store2view(M, G) :-
+  q_store2view_hook(M, G), !.
+q_store2view(M, G) :-
   q_store2cache(M, G),
   q_cache2view(M, G).
 
 
 
-q_store2view0(G) :-
-  forall(
-    q_backend(M),
-    q_store2view(M, G)
-  ).
+%! q_view2store(+M) is det.
+%! q_view2store(+M, +G) is det.
 
-
-
-%! q_view2store_append(+M) is det.
-%! q_view2store_append(+M, +G) is det.
-%
-% Save the contents of 〈Dataset,Graph〉 in backend M to the storage
-% layer.
-
-q_view2store_append(M) :-
-  q_view2store0(M, []).
-
-
-q_view2store_append(M, G) :-
-  q_view2store0(M, G, []).
-
-
-
-%! q_view2store_overwrite(+M) is det.
-%! q_view2store_overwrite(+M, +G) is det.
-
-q_view2store_overwrite(M) :-
-  q_view2store0(M, [mode(write)]).
-
-
-q_view2store_overwrite(M, G) :-
-  q_view2store0(M, G, [mode(write)]).
-
-
-q_view2store0(M, Opts) :-
+q_view2store(M) :-
   forall(
     q_view_graph(M, G),
-    q_view2store0(M, G, Opts)
+    q_view2store(M, G)
   ).
 
 
-q_view2store0(M, G, Opts1) :-
+q_view2store(M, G) :-
   q_file_graph(NTriplesFile, G),
-  merge_options(Opts1, [rdf_format(ntriples)], Opts2),
   create_file_directory(NTriplesFile),
-  rdf_write_to_sink(NTriplesFile, M, G, Opts2).
+  rdf_write_to_sink(NTriplesFile, M, G, [mode(write),rdf_format(ntriples)]).
 
 
 
@@ -628,11 +649,8 @@ q_view_rm(M, G) :-
 % Non-dummy views.
 
 q_view_graph(M, G) :-
-  q_view_graph(M, G, false).
-
-
-q_view_graph(M, G, Dummy) :-
-  q_view_graph_hook(M, G, Dummy).
+  q_backend(M),
+  q_view_graph_hook(M, G, false).
 
 
 
@@ -685,14 +703,6 @@ q_dir_hash(Dir4, Hash) :-
   append_directories(Dir1, Dir2, Dir3),
   setting(q_io:store_dir, Dir0),
   directory_file_path(Dir0, Dir3, Dir4).
-
-
-
-%! q_file_graph(+File, -G) is det.
-%! q_file_graph(-File, +G) is multi.
-
-q_file_graph(File, G) :-
-  q_file_graph(File, _, G).
 
 
 

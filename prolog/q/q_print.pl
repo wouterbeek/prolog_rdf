@@ -473,11 +473,13 @@ q_print_table(Rows, Opts1) :-
 
 
 print_cell0(bold(Term)) --> !,
-  bold(Term).
+  bold(Term), !.
 print_cell0(pl(Term)) --> !,
-  pl_term(Term).
-print_cell0(Term) -->
-  dcg_q_print_term(Term).
+  pl_term(Term), !.
+print_cell0(set(Term)) --> !,
+  set(Term), !.
+print_cell0(Term) --> !,
+  dcg_q_print_term(Term), !.
 
 
 

@@ -8,7 +8,7 @@
 :- begin_tests(rdf_stat).
 
 test(q_number_of_subjects, [forall(test_case0(G,N))]) :-
-  M = rdf,
+  M = trp,
   qb_graph0(M, G),
   q_number_of_subjects(M, _, _, G, N0),
   q_unload(M, G)

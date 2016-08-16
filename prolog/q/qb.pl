@@ -144,7 +144,7 @@ qb(M, rdf(S,P,O), G) :-
 
 qb(hdt, S, P, O, G) :- !,
   q_store_call(gen_ntuple(S, P, O), G).
-qb(rdf, S, P, O, G) :- !,
+qb(trp, S, P, O, G) :- !,
   rdf_assert(S, P, O, G).
 
 
@@ -153,7 +153,7 @@ qb(rdf, S, P, O, G) :- !,
 %! qb_deref(+M, +Iri, +G) is det.
 
 qb_deref(M, Iri) :-
-  q_view_graph(rdf, Iri), !,
+  q_view_graph(trp, Iri), !,
   q_load(M, Iri).
 qb_deref(M, Iri) :-
   qb_deref(M, Iri, Iri).
@@ -270,14 +270,14 @@ qb_rm(M, rdf(S,P,O), G) :-
   qb_rm(M, S, P, O, G).
 
 
-qb_rm(rdf, S, P, O, G) :- !,
+qb_rm(trp, S, P, O, G) :- !,
   rdf_retractall(S, P, O, G).
 
 
 
 %! qu(+M1, +M2, +S, +P, +O, +G, +Action) is det.
 
-qu(rdf, rdf, S, P, O, G, Action) :- !,
+qu(trp, trp, S, P, O, G, Action) :- !,
   rdf_update(S, P, O, G, Action).
 
 

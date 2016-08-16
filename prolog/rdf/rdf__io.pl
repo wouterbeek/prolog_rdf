@@ -59,7 +59,7 @@ The following debug flags are used:
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q_io), []).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -108,48 +108,52 @@ The following debug flags are used:
     q_io:q_view_rm_hook/2.
 
 
-q_io:q_cache_format_hook(rdf, [trp]).
+q_io:q_cache_format_hook(trp, [trp]).
 
 
-q_io:q_cache2view_hook(rdf, G) :-
-  q_file_graph(File, rdf, G),
-  indent_debug(in, q(q_io), "TRP → MEM", []),
+q_io:q_cache2view_hook(trp, G) :-
+  q_file_graph(File, trp, G),
+  indent_debug(q_io(cache2view(trp)), "TRP → MEM"),
   rdf_load_db(File).
 
 
-q_io:q_store2cache_hook(rdf, G) :-
-  q_file_graph(Source, ntriples, G),
-  q_file_graph(Sink, rdf, G),
-  setup_call_cleanup(
-    rdf_load(Source, [graph(G)]),
-    indent_debug_call(
-      q_io(rdf),
-      "N-Triples → MEM",
-      indent_debug_call(
-        q_io(rdf),
-        "MEM → TRP",
-        rdf_save_db(Sink, G)
-      )
-    ),
-    rdf_unload_graph(G)
+q_io:q_store2cache_hook(trp, G) :-
+  q_file_graph(File1, ntriples, G),
+  q_file_graph(File2, trp, G),
+  (   q_file_is_ready(File1, File2)
+  ->  true
+  ;   setup_call_cleanup(
+        rdf_load(File1, [graph(G)]),
+        indent_debug_call(
+          q_io(store2cache(trp)),
+          "N-Triples → MEM",
+          indent_debug_call(
+            q_io(store2cache(trp)),
+            "MEM → TRP",
+            rdf_save_db(File2, G)
+          )
+        ),
+        rdf_unload_graph(G)
+      ),
+      q_file_touch_ready(File2)
   ).
 
 
-q_io:q_source2store_hook(rdf, Source, Sink) :-
-  rdf_change_format(Source, Sink).
+q_io:q_source2store_hook(rdf, File1, File2) :-
+  rdf_change_format(File1, File2).
 
 
 q_io:q_source_format_hook(rdf, [Ext]) :-
   rdf_default_file_extension(_, Ext).
 
 
-q_io:q_view_graph_hook(rdf, G, false) :-
+q_io:q_view_graph_hook(trp, G, false) :-
   rdf_graph(G).
 
 
-q_io:q_view_rm_hook(rdf, G) :-
+q_io:q_view_rm_hook(trp, G) :-
   rdf_unload_graph(G),
-  indent_debug(out, q(q_io), "TRP → MEM", []).
+  indent_debug(q_io(view_rm(trp)), "TRP → MEM").
 
 
 :- rdf_meta
@@ -353,7 +357,7 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
     rdf_tmp_graph(G),
     (
       call(Goal_1, G),
-      rdf_write_to_sink(Sink, rdf, _, _, _, G, Opts)
+      rdf_write_to_sink(Sink, trp, _, _, _, G, Opts)
     ),
     rdf_unload_graph(G)
   ).
@@ -410,7 +414,7 @@ rdf_change_format_legacy(Source, Sink) :-
 
 rdf_change_format_legacy(Source, Sink, Opts) :-
   rdf_load_file(Source),
-  rdf_write_to_sink_legacy(Sink, rdf, Opts).
+  rdf_write_to_sink_legacy(Sink, trp, Opts).
 
 
 
@@ -523,7 +527,7 @@ rdf_load_quads(Source, Quads, Opts) :-
   q_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
-    q_quads(rdf, Quads)
+    q_quads(trp, Quads)
   )).
 
 
@@ -541,7 +545,7 @@ rdf_load_triples(Source, Triples, Opts) :-
   q_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
-    q_triples(rdf, Triples)
+    q_triples(trp, Triples)
   )).
 
 

@@ -128,7 +128,7 @@ rdfs_property(Prop, G) :-
 
 
 rdfs_property0(Prop, G) :-
-  q_predicate(rdf, Prop, G).
+  q_predicate(trp, Prop, G).
 rdfs_property0(Prop, G) :-
   rdfs_instance(Prop, rdf:'Property', G).
 

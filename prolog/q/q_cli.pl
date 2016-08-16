@@ -8,7 +8,6 @@
     q__g/0,
     q__g/2,     % ?M,         ?G
     q__gs/0,
-    q__gs/1,    % ?M
     q__key/3,   % ?M,     ?P, ?G
     q__p/1,     %         ?P
     q__p/3,     % ?M,     ?P, ?G
@@ -103,7 +102,7 @@ q__cbd(S) :-
 % @tbd Add support for `M = hdt`.
 
 % @tbd
-%q__cs(rdf, G) :-
+%q__cs(trp, G) :-
 %  findall(N-[C,pl(N)], (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
 %  q_pairs_table0(["class","№ instances"], Pairs).
 
@@ -123,21 +122,17 @@ q__g(M, G) :-
 
 
 %! q__gs is det.
-%! q__gs(?M) is det.
 
 q__gs :-
-  q__gs(_).
-
-
-q__gs(M) :-
-  Header0 = [bold("graph"),bold("№ triples")],
-  (   var(M)
-  ->  append(Header0, [bold("store")], Header),
-      findall(N-[G,pl(N),pl(M)], q_number_of_triples(M, G, N), Pairs)
-  ;   Header = Header0,
-      findall(N-[G,pl(N)], q_number_of_triples(M, G, N), Pairs)
-  ),
+  Header = [bold("graph"),bold("№ triples"),bold("store")],
+  aggregate_all(set(G), q_view_graph(_, G), Gs),
+  maplist(graph_pair0, Gs, Pairs),
   q_pairs_table0(Header, Pairs).
+
+
+graph_pair0(G, NumTriples-[G,pl(NumTriples),set(Ms)]) :-
+  once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
+  aggregate_all(set(M0), q_view_graph(M0, G), Ms).
 
 
 

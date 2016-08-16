@@ -106,8 +106,6 @@ The supported cache formats are extended through hooks:
 
   - q_cache_format_hook(?M, -Exts)
 
-  - q_cache_rm_hook(+M, +G)
-
   - q_view_rm_hook(+M, +G)
 
 ---
@@ -153,8 +151,6 @@ The following flags are used:
    q_store_graph(r),
    q_transform(r, :),
    q_transform(+, +, r, :),
-   q_view2store_overwrite(+, r),
-   q_view2store_append(+, r),
    q_view_rm(+, r),
    q_view_graph(-, r),
    q_vocab_iri(?, r),
@@ -170,9 +166,9 @@ The following flags are used:
 
 q_create_vocab(Refs, Goal_2, G) :-
   q_vocab_iri(Refs, G),
-  call(Goal_2, rdf, G),
+  call(Goal_2, trp, G),
   % Write to store&view.
-  q_view2store_overwrite(rdf, G),
+  q_view2store_overwrite(trp, G),
   q_store2view0(G).
 
 
@@ -181,9 +177,9 @@ q_create_vocab(Refs, Goal_2, G) :-
 
 q_create_void(Refs, D, Goal_3, G) :-
   q_void_iri(Refs, G),
-  call(Goal_3, rdf, D, G),
+  call(Goal_3, trp, D, G),
   % Write to store&view.
-  q_view2store_overwrite(rdf, G),
+  q_view2store_overwrite(trp, G),
   q_store2view0(G).
 
 

@@ -13,7 +13,7 @@
 
 script1:-
   rdf_reset_db,
-  M = rdf,
+  M = trp,
   G = script1,
   q_create_bnode(D),
   qb(M, ex:'A', owl:equivalentClass, D, G),
@@ -28,7 +28,7 @@ script1:-
 
 script2:-
   rdf_reset_db,
-  M = rdf,
+  M = trp,
   G = script2,
   q_create_bnode(D),
   qb(M, ex:'A', owl:equivalentClass, D, G),
@@ -42,7 +42,7 @@ script2:-
 
 script3:-
   rdf_reset_db,
-  M = rdf,
+  M = trp,
   G = script3,
   qb(M, ex:a, owl:sameAs, ex:b, G),
   qb(M, ex:b, owl:differentFrom, ex:a, G),
@@ -51,7 +51,7 @@ script3:-
 
 script4:-
   rdf_reset_db,
-  M = rdf,
+  M = trp,
   G = script4,
   qb_range(M, ex:p, ex:c, G),
   qb(M, ex:s, ex:p, "o", G),
@@ -60,7 +60,7 @@ script4:-
 
 script5:-
   rdf_reset_db,
-  M = rdf,
+  M = trp,
   G = script5,
   owl_assert_functional_property(ex:p, G),
   qb(M, ex:a, ex:p, ex:b, G),

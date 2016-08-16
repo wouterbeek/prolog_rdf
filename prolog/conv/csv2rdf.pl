@@ -41,11 +41,11 @@ The following debug flags are used:
 :- use_module(library(yall)).
 
 :- multifile
-    q_io:q_source2store_hook/4,
+    q_io:q_source2store_hook/3,
     q_io:q_source_format_hook/2.
 
-q_io:q_source2store_hook(csv, Source, Sink, Opts) :- !,
-  csv2rdf(Source, Sink, Opts).
+q_io:q_source2store_hook(csv, File1, File2) :- !,
+  csv2rdf(File1, File2).
 
 q_io:q_source_format_hook(csv, [csv]).
 
