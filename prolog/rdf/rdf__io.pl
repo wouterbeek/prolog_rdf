@@ -16,6 +16,7 @@
     rdf_change_format_legacy/3,  % +Source, +Sink, +Opts
     rdf_download_to_file/2,      % +Iri, +File
     rdf_download_to_file/4,      % +Iri, +File, +InOpts, +OutOpts
+    rdf_graph_is_fresh/1,        % +G
     rdf_load_file/1,             % +Source
     rdf_load_file/2,             % +Source,           +Opts
     rdf_load_quads/2,            % +Source, -Quads
@@ -101,7 +102,7 @@ The following debug flags are used:
 :- multifile
     q_io:q_cache_format_hook/2,
     q_io:q_cache2view_hook/2,
-    q_io:q_store2cache_hook/2,
+    q_io:q_store2cache_hook/4,
     q_io:q_source2store_hook/3,
     q_io:q_source_format_hook/2,
     q_io:q_view_graph_hook/3,
@@ -117,25 +118,19 @@ q_io:q_cache2view_hook(trp, G) :-
   rdf_load_db(File).
 
 
-q_io:q_store2cache_hook(trp, G) :-
-  q_file_graph(File1, ntriples, G),
-  q_file_graph(File2, trp, G),
-  (   q_file_is_ready(File1, File2)
-  ->  true
-  ;   setup_call_cleanup(
-        rdf_load(File1, [graph(G)]),
-        indent_debug_call(
-          q_io(store2cache(trp)),
-          "N-Triples → MEM",
-          indent_debug_call(
-            q_io(store2cache(trp)),
-            "MEM → TRP",
-            rdf_save_db(File2, G)
-          )
-        ),
-        rdf_unload_graph(G)
-      ),
-      q_file_touch_ready(File2)
+q_io:q_store2cache_hook(trp, File1, File2, G) :-
+  setup_call_cleanup(
+    rdf_load(File1, [graph(G)]),
+    indent_debug_call(
+      q_io(store2cache(trp)),
+      "N-Triples → MEM",
+      indent_debug_call(
+        q_io(store2cache(trp)),
+        "MEM → TRP",
+        rdf_save_db(File2, G)
+      )
+    ),
+    rdf_unload_graph(G)
   ).
 
 
@@ -159,6 +154,7 @@ q_io:q_view_rm_hook(trp, G) :-
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
    rdf_call_on_tuples(+, :, t),
+   rdf_graph_is_fresh(r),
    rdf_load_file(+, t),
    rdf_load_quads(+, -, t),
    rdf_load_triples(+, -, t),
@@ -434,6 +430,17 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
 
 copy_stream_data0(In, L, L, Out) :-
   copy_stream_data(In, Out).
+
+
+
+%! rdf_graph_is_fresh(+G) is semidet.
+
+rdf_graph_is_fresh(G) :-
+  rdf_graph_property(G, source_last_modified(Time1)),
+  rdf_graph_property(G, source(Iri)),
+  uri_file_name(Iri, File),
+  time_file(File, Time2),
+  Time1 >= Time2.
 
 
 

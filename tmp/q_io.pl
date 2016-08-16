@@ -96,71 +96,9 @@ The supported source formats are extended through hooks:
 
   - q_source_format_hook(?Format, -Exts)
 
----
-
-The supported cache formats are extended through hooks:
-
-  - q_store2cache_hook(+M, +G)
-
-  - q_cache2view_hook(+M, +G)
-
-  - q_cache_format_hook(?M, -Exts)
-
-  - q_view_rm_hook(+M, +G)
-
----
-
-The following flags are used:
-
-  * q(q_io)
-
----
-
-@author Wouter Beek
-@version 2016/08
 */
 
-:- use_module(library(apply)).
-:- use_module(library(call_ext)).
-:- use_module(library(debug_ext)).
-:- use_module(library(q/q_dataset)).
-:- use_module(library(q/q_iri)).
-:- use_module(library(q/q_print)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qb)).
 
-:- meta_predicate
-    q_create_vocab(+, 2, -),
-    q_create_void(+, +, 3, -).
-
-:- multifile
-    q_cache2view_hook/2, % E.g., open HDT file.
-    q_store2cache_hook/2, % E.g., create HDT file from N-Triples file.
-    q_view_rm_hook/2. % E.g., remove the HDT files for specific graphs.
-
-:- rdf_meta
-   q_cache2view(+, r),
-   q_cache_graph(-, r),
-   q_change_cache(+, r, +),
-   q_create(r),
-   q_create_void(r, +, :, -),
-   q_graph_iri(+, r),
-   q_store2cache(+, r),
-   q_store2view(+, r),
-   q_store_file(?, r),
-   q_store_graph(r),
-   q_transform(r, :),
-   q_transform(+, +, r, :),
-   q_view_rm(+, r),
-   q_view_graph(-, r),
-   q_vocab_iri(?, r),
-   q_void_iri(?, r).
-
-
-
-
-
-% CREATE %
 
 %! q_create_vocab(+Refs, :Goal_2, -G) is det.
 
@@ -183,9 +121,6 @@ q_create_void(Refs, D, Goal_3, G) :-
   q_store2view0(G).
 
 
-
-
-% GENERICS %
 
 %! q_graph_iri(+Refs, -G) is det.
 

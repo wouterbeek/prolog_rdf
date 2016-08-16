@@ -33,8 +33,8 @@
 
   % CACHE
   q_change_cache/3,     % +M1, +G, +M2
-  q_cache_file/2,       % -M, -File
-  q_cache_graph/2,      % -M, -G
+  q_cache_file/2,       % ?M, ?File
+  q_cache_graph/2,      % ?M, ?G
     
     % CACHE ⬄ VIEW
     q_cache2view/0,
@@ -105,11 +105,13 @@ them.
     q_cache_format_hook/2,  % E.g., ‘hdt’ file extension for HDT.
     q_source2store_hook/3,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
+    q_store2cache_hook/4,   % E.g., create HDT file from N-Triples file.
     q_store2view_hook/2,    % E.g., GIS index, which has no cache format.
     q_view_graph_hook/2,    % E.g., (hdt,G)-pairs.
     q_view_rm_hook/2.
 
 :- rdf_meta
+   q_cache_graph(?, r),
    q_file_graph(?, ?, r),
    q_graph_hash(r, ?),
    q_graph_hash(r, ?, ?),
@@ -175,16 +177,16 @@ q_graph_hash(G, Name, Hash) :-
 
 q_ls :-
   setting(source_dir, Dir1),
-  q_ls0(Dir1, q_source_file),
+  q_ls0(source(Dir1), q_source_file),
   setting(store_dir, Dir2),
-  q_ls0(Dir2, q_store_graph),
+  q_ls0(store(Dir2), q_store_graph),
   forall(
     q_backend(M),
-    q_ls0(Dir2, q_cache_graph(M))
+    q_ls0(cache(M), q_cache_graph(M))
   ),
   forall(
     q_backend(M),
-    q_ls0(Dir2, q_view_graph(M))
+    q_ls0(view(M), q_view_graph(M))
   ).
 
 
@@ -201,11 +203,8 @@ print_term0(G) -->
     base64(Local, EncLocal)
   },
   atom(Local).
-print_term0(File) -->
-  {is_absolute_file_name(File)}, !,
-  atom(File).
 print_term0(Term) -->
-  dcg_q_print_something(Term).
+  atom(Term).
 
 
 
@@ -278,7 +277,7 @@ q_source2store(File1) :-
   q_file_hash(File2, data, ntriples, Hash),
   (   q_file_ready_time(File2, Ready2),
       time_file(File1, Ready1),
-      Ready2 > Ready1
+      Ready2 >= Ready1
   ->  true
   ;   create_file_directory(File2),
       % Automatically convert source file to store file.
@@ -347,7 +346,7 @@ q_file_is_ready(File) :-
 q_file_is_ready(File1, File2) :-
   q_file_ready_time(File2, Ready2),
   q_file_ready_time(File1, Ready1),
-  Ready2 > Ready1.
+  Ready2 >= Ready1.
 
 
 
@@ -379,7 +378,6 @@ q_file_touch_ready(File) :-
 %
 % N-Triples is the only format used in the store.
 
-q_store_format(nquads, [nq,gz]).
 q_store_format(ntriples, [nt,gz]).
 
 
@@ -423,9 +421,8 @@ q_transform(M1, M2, G, Goal_3) :-
   % The transformations now have to be synced with the store, from
   % which the cache can be recreated.
   q_view2store(M2, G),
-  % Reset the cache, otherwise store2cache will no do anything.
-  q_cache_rm(M2, G),
-  q_store2cache(M2, G).
+  % Sync the cached version.
+  q_store2view(G).
 
 
 
@@ -454,7 +451,14 @@ q_store2cache(M) :-
 
 
 q_store2cache(M, G) :-
-  once(q_store2cache_hook(M, G)).
+  q_file_graph(File1, ntriples, G),
+  q_file_graph(File2, M, G),
+  (   q_file_is_ready(File1, File2)
+  ->  true
+  ;   q_cache_rm(M, G),
+      once(q_store2cache_hook(M, File1, File2, G)),
+      q_file_touch_ready(File2)
+  ).
 
 
 
@@ -469,6 +473,7 @@ q_cache_rm(M) :-
 
 
 q_cache_rm(M, G) :-
+  q_view_rm(M, G),
   q_file_graph(File, M, G),
   q_file_delete(File).
 
@@ -512,11 +517,18 @@ q_change_cache(M1, G, M2) :-
 
 
 
+%! q_cache_file(+M, +File) is nondet.
 %! q_cache_file(-M, -File) is nondet.
 %
 % Enumerates the files and associated graph names that are currently
 % in the store directory.
 
+q_cache_file(M, File) :-
+  nonvar(File), !,
+  file_extensions(File, Exts),
+  once(q_cache_format(M, Exts)),
+  setting(store_dir, Dir),
+  atom_concat(Dir, _, File).
 q_cache_file(M, File) :-
   setting(store_dir, Dir),
   directory_path_recursive(Dir, File),
@@ -525,8 +537,14 @@ q_cache_file(M, File) :-
 
 
 
+%! q_cache_graph(+M, +G) is semidet.
+%! q_cache_graph(+M, -G) is nondet.
 %! q_cache_graph(-M, -G) is nondet.
 
+q_cache_graph(M, G) :-
+  nonvar(G), !,
+  q_file_graph(File, G),
+  q_cache_file(M, File).
 q_cache_graph(M, G) :-
   q_cache_file(M, File),
   q_file_graph(File, G).
@@ -572,19 +590,19 @@ q_cache2view(M, G) :-
 
 
 %! q_store2view is det.
-%! q_store2view(+M) is det.
+%! q_store2view(+G) is det.
 %! q_store2view(+M, +G) is det.
 
 q_store2view :-
   forall(
-    q_backend(M),
-    q_store2view(M)
+    q_store_graph(G),
+    q_store2view(G)
   ).
 
   
-q_store2view(M) :-
+q_store2view(G) :-
   forall(
-    q_store_graph(G),
+    q_backend(M),
     q_store2view(M, G)
   ).
 
@@ -608,9 +626,10 @@ q_view2store(M) :-
 
 
 q_view2store(M, G) :-
-  q_file_graph(NTriplesFile, G),
+  q_file_graph(NTriplesFile, ntriples, G),
   create_file_directory(NTriplesFile),
-  rdf_write_to_sink(NTriplesFile, M, G, [mode(write),rdf_format(ntriples)]).
+  rdf_write_to_sink(NTriplesFile, M, G, [mode(write),rdf_format(ntriples)]),
+  q_file_touch_ready(NTriplesFile).
 
 
 
@@ -633,7 +652,9 @@ q_view_rm(M) :-
 
 
 q_view_rm(M, G) :-
+  q_view_graph_hook(M, G, _), !,
   once(q_view_rm_hook(M, G)).
+q_view_rm(_, _).
 
 
 
@@ -683,7 +704,10 @@ q_dir_file(Dir, Name, Format, File) :-
   q_format(Format, Exts).
 q_dir_file(Dir, Name, Format, File) :-
   q_name(Name),
-  q_format(Format, Exts),
+  (   nonvar(Format)
+  ->  once(q_format(Format, Exts))
+  ;   q_format(Format, Exts)
+  ),
   atomic_list_concat([Name|Exts], ., Local),
   directory_file_path(Dir, Local, File).
 

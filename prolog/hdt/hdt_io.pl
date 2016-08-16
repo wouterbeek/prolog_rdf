@@ -19,7 +19,7 @@
 :- multifile
     q_io:q_cache_format_hook/2,
     q_io:q_cache2view_hook/2,
-    q_io:q_store2cache_hook/2,
+    q_io:q_store2cache_hook/4,
     q_io:q_view_graph_hook/2,
     q_io:q_view_rm_hook/2.
 
@@ -34,19 +34,18 @@ q_io:q_cache2view_hook(hdt, G) :-
   assert(hdt_graph0(G, Hdt)).
 
 
-q_io:q_store2cache_hook(hdt, G) :-
-  q_file_graph(File1, ntriples, G),
-  q_file_graph(File2, hdt, G),
-  (   q_file_is_ready(File1, File2)
-  ->  true
-  ;   create_file_directory(File2),
-      indent_debug_call(
-        q_io(store2cache(hdt)),
-        "N-Triples → HDT",
-        hdt:hdt_create_from_file(File2, File1, [])
-      ),
-      q_file_touch_ready(File2)
+q_io:q_store2cache_hook(hdt, File1, File2, _) :-
+  remove_index_file(File2),
+  create_file_directory(File2),
+  indent_debug_call(
+    q_io(store2cache(hdt)),
+    "N-Triples → HDT",
+    hdt:hdt_create_from_file(File2, File1, [])
   ).
+
+remove_index_file(File) :-
+  atomic_list_concat([File,index], ., IndexFile),
+  delete_file_msg(IndexFile).
 
 
 q_io:q_view_graph_hook(hdt, G, false) :-
