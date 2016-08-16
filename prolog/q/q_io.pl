@@ -2,17 +2,18 @@
   q_io,
   [
   % GENERICS
+  q_file/3,           % ?Name, ?Format, ?File
+  q_file_graph/3,     % ?File, ?Format, ?G
+  q_graph_hash/2,     % ?G, ?Hash
+  q_graph_hash/3,     % ?G, ?Name, ?Hash
   q_ls/0,
 
   % SOURCE
-  q_file/3,           % ?Name, ?Format, ?File
-  q_file_graph/3,     % ?File, ?Format, ?G
   q_source_file/1,    % -File
 
     % SOURCE ⬄ STORE
     q_source2store/0,
     q_source2store/2, % +File, -G
-    q_source2store/3, % +File, -G, +Opts
 
   % STORE
   q_hash_ready/1,     % ?Hash
@@ -99,15 +100,16 @@ them.
 :- multifile
     q_backend_hook/1,       % Only for backends that have no files in cache.
     q_cache_format_hook/2,  % E.g., ‘hdt’ file extension for HDT.
-    q_source2store_hook/4,  % E.g., convert CSV files to N-Triple files.
+    q_source2store_hook/3,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
     q_view_graph_hook/3.    % E.g., (hdt,G)-pairs.
 
 :- rdf_meta
    q_file_graph(?, ?, r),
+   q_graph_hash(r, ?),
+   q_graph_hash(r, ?, ?),
    q_source2store(r),
-   q_source2store(+, r),
-   q_source2store(+, r, +).
+   q_source2store(+, r).
 
 :- setting(
      source_dir,
@@ -141,6 +143,23 @@ q_format(Format, Exts) :-
   q_store_format(Format, Exts).
 q_format(Format, Exts) :-
   q_cache_format(Format, Exts).
+
+
+
+%! q_graph_hash(+G, -Hash) is det.
+%! q_graph_hash(-G, +Hash) is multi.
+
+q_graph_hash(G, Hash) :-
+  q_graph_hash(G, _, Hash).
+
+
+%! q_graph_hash(+G, -Name, -Hash) is det.
+%! q_graph_hash(-G, +Name, +Hash) is det.
+%! q_graph_hash(-G, -Name, +Hash) is multi.
+
+q_graph_hash(G, Name, Hash) :-
+  q_name(Name),
+  rdf_global_id(Name:Hash, G).
 
 
 
@@ -214,7 +233,6 @@ q_source_file(File) :-
 
 %! q_source2store is det.
 %! q_source2store(+File, -G) is det.
-%! q_source2store(+File, -G, Opts) is det.
 %
 % Automatically convert source files to store files.
 %
@@ -234,15 +252,11 @@ q_source_file(File) :-
 q_source2store :-
   forall(
     q_source_file(File),
-    q_source2store(File, _, _{})
+    q_source2store(File, _)
   ).
 
 
-q_source2store(File, G) :-
-  q_source2store(File, G, _{}).
-
-
-q_source2store(File1, G, Opts) :-
+q_source2store(File1, G) :-
   file_extensions(File1, Exts),
   % The format is determined by the file extensions.
   (   q_source_format(Format, Exts)
@@ -251,14 +265,14 @@ q_source2store(File1, G, Opts) :-
   ),
   % Derive a hash based on the source file.
   setting(source_dir, Dir),
-  atom_concat(Dir, Local, File1),
+  directory_file_path(Dir, Local, File1),
   base64(Local, Hash),
   % Determine the store file.
   q_file_hash(File2, data, ntriples, Hash),
   create_file_directory(File2),
   q_file_graph(File2, G),
   % Automatically convert source file to store file.
-  once(q_source2store_hook(Format, File1, File2, Opts)).
+  once(q_source2store_hook(Format, File1, File2)).
 
 
 
@@ -311,7 +325,7 @@ q_graph_ready(G) :-
 % Hashes of graphs that are done cleaning.
 
 q_hash_ready(Hash) :-
-  q_hash(Hash),
+  (nonvar(Hash) -> true ; q_dir(Dir)),
   q_dir_hash(Dir, Hash),
   directory_file_path(Dir, done, Done),
   exists_file(Done).
@@ -702,23 +716,6 @@ q_file_hash(File, Name, Format, Hash) :-
 q_file_hash(File, Name, Format, Hash) :-
   q_dir_hash(Dir, Hash),
   q_dir_file(Dir, Name, Format, File).
-
-
-
-%! q_graph_hash(+G, -Hash) is det.
-%! q_graph_hash(-G, +Hash) is multi.
-
-q_graph_hash(G, Hash) :-
-  q_graph_hash(G, _, Hash).
-
-
-%! q_graph_hash(+G, -Name, -Hash) is det.
-%! q_graph_hash(-G, +Name, +Hash) is det.
-%! q_graph_hash(-G, -Name, +Hash) is multi.
-
-q_graph_hash(G, Name, Hash) :-
-  q_name(Name),
-  rdf_global_id(Name:Hash, G).
 
 
 

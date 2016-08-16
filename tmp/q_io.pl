@@ -9,7 +9,6 @@
     
     % GENERICS
     q_graph_iri/2,    % ?Refs, ?G
-    q_ls/0,
     q_vocab_iri/2,    % ?Refs, -G
     q_void_iri/2      % ?Refs, -G
   ]
@@ -95,8 +94,6 @@ Purpose of each layer
 
 The supported source formats are extended through hooks:
 
-  - q_source2store_hook(+M, +Source, +Sink, +Opts)
-
   - q_source_format_hook(?Format, -Exts)
 
 ---
@@ -112,12 +109,6 @@ The supported cache formats are extended through hooks:
   - q_cache_rm_hook(+M, +G)
 
   - q_view_rm_hook(+M, +G)
-
----
-
-Convertible datasets are loaded in through a hook:
-
-  - q_create_hook(+Name)
 
 ---
 
@@ -145,7 +136,6 @@ The following flags are used:
     q_create_void(+, +, 3, -).
 
 :- multifile
-    q_create_hook/1, % E.g., create the CBS dataset.
     q_cache2view_hook/2, % E.g., open HDT file.
     q_store2cache_hook/2, % E.g., create HDT file from N-Triples file.
     q_view_rm_hook/2. % E.g., remove the HDT files for specific graphs.
@@ -175,18 +165,6 @@ The following flags are used:
 
 
 % CREATE %
-
-%! q_create is det.
-%! q_create(+Name) is det.
-
-q_create :-
-  forall(q_create(_)).
-
-
-q_create(Name) :-
-  once(q_create_hook(Name)).
-
-
 
 %! q_create_vocab(+Refs, :Goal_2, -G) is det.
 

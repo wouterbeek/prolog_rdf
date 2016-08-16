@@ -102,7 +102,7 @@ The following debug flags are used:
     q_io:q_cache_format_hook/2,
     q_io:q_cache2view_hook/2,
     q_io:q_store2cache_hook/2,
-    q_io:q_source2store_hook/4,
+    q_io:q_source2store_hook/3,
     q_io:q_source_format_hook/2,
     q_io:q_view_graph_hook/3,
     q_io:q_view_rm_hook/2.
@@ -135,9 +135,8 @@ q_io:q_store2cache_hook(rdf, G) :-
   ).
 
 
-q_io:q_source2store_hook(rdf, Source, Sink, Opts1) :-
-  dict_options(Opts1, Opts2),
-  rdf_change_format(Source, Sink, Opts2).
+q_io:q_source2store_hook(rdf, Source, Sink) :-
+  rdf_change_format(Source, Sink).
 
 
 q_io:q_source_format_hook(rdf, [Ext]) :-
