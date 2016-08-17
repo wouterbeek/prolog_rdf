@@ -1,8 +1,8 @@
 :- module(
   q_dataset,
   [
-    q_add_dataset/3,           % +D, +GRef, +Gs
     q_add_to_dataset/2,        % +D, +G
+    q_create_dataset/3,        % +D, +GRef, +Gs
     q_dataset/1,               % ?D
     q_dataset/3,               % ?D, ?DefG, ?NGs
     q_dataset_default_graph/2, % ?D, ?DefG
@@ -41,7 +41,7 @@
    q_dataset(dataset:atom, default_graph:atom, named_graphs:list(atom)).
 
 :- rdf_meta
-   q_add_to_dataset(r, r),
+   q_create_to_dataset(r, r),
    q_dataset(r),
    q_dataset_default_graph(r, r),
    q_dataset_graph(r, r),
@@ -54,13 +54,6 @@
 
 
 
-%! q_add_dataset(+D, +DefG, +Gs) is det.
-
-q_add_dataset(D, DefG, Gs) :-
-  assert_q_dataset(D, DefG, Gs).
-
-
-
 %! q_add_to_dataset(+D, +G) is det.
 
 q_add_to_dataset(D, G) :-
@@ -69,6 +62,18 @@ q_add_to_dataset(D, G) :-
     ord_add_element(Gs1, G, Gs2),
     assert_q_dataset(D, DefG, Gs2)
   )).
+
+
+
+%! q_create_dataset(+D, +DefG, +NGs) is det.
+
+q_create_dataset(D, DefG, NGs) :-
+  with_mutex(q_dataset, q_create_dataset_mutex(D, DefG, NGs)).
+
+q_create_dataset_mutex(D, _, _) :-
+  q_dataset(D, _, _), !.
+q_create_dataset_mutex(D, DefG ,NGs) :-
+  assert_q_dataset(D, DefG, NGs).
 
 
 

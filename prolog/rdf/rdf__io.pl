@@ -218,6 +218,11 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
 
 rdf_call_on_stream0(Goal_3, Opts, In, L1, L3) :-
   set_rdf_format(In, L1, L2, Opts),
+  % GUESS ENCODING
+  % 1. Text?  2. Unicode?  3. Format?
+  % @ tbd Archive entries are always encoded as octet.  We
+  % change this to UTF-8.
+  %%%%set_stream(In, encoding(utf8)),
   call(Goal_3, In, L2, L3).
 
 
@@ -275,7 +280,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
       Format == jsonld
   ->  json_read_dict(In, Json),
       forall(
-	jsonld_tuple(Json, Tuple, Opts3),
+        jsonld_tuple(Json, Tuple, Opts3),
         rdf_call_on_quad0(Goal_5, Path, Tuple)
       )
   ;   % RDF/XML

@@ -41,6 +41,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_dataset)).
+:- use_module(library(q/q_graph)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_stmt)).
@@ -132,7 +133,7 @@ qh_dataset_table(Opts1) -->
   },
   bs_table(
     \html_table_header_row(HeaderRow),
-    \html_table_trees({Opts2}/[Term]>>qh_something(Term, Opts2), Trees2)
+    \html_table_trees(qh_something0(Opts2), Trees2)
   ).
 
 
@@ -212,31 +213,10 @@ qh_graph_table -->
 
 qh_graph_table(Opts1) -->
   {
-    HeaderRow = [string("Graph"),string("№ triples"),string("Store")],
-    qh_default_table_options(Opts1, Opts2),
-    findall(
-      NumTriples-[G,NumTriples,M],
-      q_number_of_triples(M, G, NumTriples),
-      Pairs
-    ),
-    desc_pairs_values(Pairs, DataRows)
+    q_graph_table_comps(HeaderRow, DataRows),
+    qh_default_table_options(Opts1, Opts2)
   },
-  bs_table(
-    \html_table_header_row(HeaderRow),
-    \html_maplist(qh_graph_row0(Opts2), DataRows)
-  ).
-
-
-qh_graph_row0(Opts, Row) -->
-  html(tr(\qh_graph_cells0(Opts, Row))).
-
-
-qh_graph_cells0(Opts, [G,NumTriples,Ms]) -->
-  html([
-    td(\qh_graph_term_outer0(graph, [graph], Opts, G)),
-    td(\html_thousands(NumTriples)),
-    td(\html_set(Ms))
-  ]).
+  bs_table_content(qh_something0(Opts2), [head(HeaderRow)|DataRows]).
 
 
 

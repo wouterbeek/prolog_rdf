@@ -1,19 +1,3 @@
-:- module(
-  q_io,
-  [
-    % CREATE
-    q_create/0,
-    q_create/1,       % +Name
-    q_create_vocab/3, % +Refs, :Goal_2, -G
-    q_create_void/4,  % +D, +Refs, :Goal_3, -G
-    
-    % GENERICS
-    q_graph_iri/2,    % ?Refs, ?G
-    q_vocab_iri/2,    % ?Refs, -G
-    q_void_iri/2      % ?Refs, -G
-  ]
-).
-
 /** <module> Quine input/output
 
 Design principles:
@@ -97,17 +81,6 @@ The supported source formats are extended through hooks:
   - q_source_format_hook(?Format, -Exts)
 
 */
-
-
-
-%! q_create_vocab(+Refs, :Goal_2, -G) is det.
-
-q_create_vocab(Refs, Goal_2, G) :-
-  q_vocab_iri(Refs, G),
-  call(Goal_2, trp, G),
-  % Write to store&view.
-  q_view2store_overwrite(trp, G),
-  q_store2view0(G).
 
 
 

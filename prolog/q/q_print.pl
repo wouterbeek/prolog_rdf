@@ -27,8 +27,6 @@
     dcg_q_print_quads//2,        %     +Tuples,        +Opts
     dcg_q_print_quads//5,        % ?M, ?S, ?P, ?O, ?G
     dcg_q_print_quads//6,        % ?M, ?S, ?P, ?O, ?G, +Opts
-    dcg_q_print_something//1,    % +Term
-    dcg_q_print_something//2,    % +Term,              +Opts
     dcg_q_print_term//1,         %     +Term
     dcg_q_print_term//2,         %     +Term,          +Opts
     dcg_q_print_triple//1,       %     +Tuple
@@ -135,6 +133,7 @@ Print RDF statements.
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_bnode_map)).
+:- use_module(library(q/q_graph)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
@@ -175,8 +174,6 @@ Print RDF statements.
    dcg_q_print_quad(r, r, o, r, +, ?, ?),
    dcg_q_print_quads(?, r, r, o, r, ?, ?),
    dcg_q_print_quads(?, r, r, o, r, +, ?, ?),
-   dcg_q_print_something(o),
-   dcg_q_print_something(o, +),
    dcg_q_print_term(o, ?, ?),
    dcg_q_print_term(o, +, ?, ?),
    dcg_q_print_triple(t, ?, ?),
@@ -231,30 +228,6 @@ Print RDF statements.
    q_print_triples(?, r, r, o),
    q_print_triples(?, r, r, o, r),
    q_print_triples(?, r, r, o, r, +).
-
-
-
-
-
-% SUPER GENERIC TERM PRINTING %
-
-%! dcg_q_print_something(+Term)// is det.
-%! dcg_q_print_something(+Term, +Opts)// is det.
-
-dcg_q_print_something(Term) -->
-  dcg_q_print_something(Term, _{}).
-
-
-
-dcg_q_print_something(Term, Opts2) -->
-  {
-    dcg_q_print_default_options(Opts1),
-    merge_dicts(Opts1, Opts2, Opts3)
-  },
-  dcg_q_print_term(Term, Opts3), !.
-dcg_q_print_something(Term, Opts1) -->
-  {merge_dicts(Opts1, _{indent: 0}, Opts2)},
-  pl_term(Term, Opts2).
 
 
 
@@ -467,19 +440,9 @@ q_print_table(Rows) :-
 
 
 q_print_table(Rows, Opts1) :-
-  merge_options(Opts1, [cell(print_cell0)], Opts2),
+  merge_options(Opts1, [cell(dcg_call)], Opts2),
   option(out(Out), Opts1, current_output),
   dcg_with_output_to(Out, dcg_table(Rows, Opts2)).
-
-
-print_cell0(bold(Term)) --> !,
-  bold(Term), !.
-print_cell0(pl(Term)) --> !,
-  pl_term(Term), !.
-print_cell0(set(Term)) --> !,
-  set(Term), !.
-print_cell0(Term) --> !,
-  dcg_q_print_term(Term), !.
 
 
 
@@ -785,7 +748,8 @@ dcg_q_print_graph_term(G) -->
   dcg_q_print_graph_term(G, Opts).
 
 
-dcg_q_print_graph_term(G, Opts) -->
+dcg_q_print_graph_term(EncG, Opts) -->
+  {q_graph_pp(EncG, G)},
   dcg_q_print_iri(G, Opts).
 
 

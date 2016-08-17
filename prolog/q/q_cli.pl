@@ -51,6 +51,7 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_graph)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_shape)).
@@ -124,15 +125,8 @@ q__g(M, G) :-
 %! q__gs is det.
 
 q__gs :-
-  Header = [bold("graph"),bold("№ triples"),bold("store")],
-  aggregate_all(set(G), q_view_graph(_, G), Gs),
-  maplist(graph_pair0, Gs, Pairs),
-  q_pairs_table0(Header, Pairs).
-
-
-graph_pair0(G, NumTriples-[G,pl(NumTriples),set(Ms)]) :-
-  once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
-  aggregate_all(set(M0), q_view_graph(M0, G), Ms).
+  q_graph_table_comps(HeaderRow, DataRows),
+  q_print_table([head(HeaderRow)|DataRows]).
 
 
 
