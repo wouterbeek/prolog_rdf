@@ -6,6 +6,7 @@
 @version 2016/08
 */
 
+:- use_module(library(apply)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hdt), []).
 :- use_module(library(os/file_ext)).
@@ -18,6 +19,7 @@
 
 :- multifile
     q_io:q_cache_format_hook/2,
+    q_io:q_cache_rm_hook/2,
     q_io:q_cache2view_hook/2,
     q_io:q_store2cache_hook/4,
     q_io:q_view_graph_hook/2,
@@ -25,6 +27,12 @@
 
 
 q_io:q_cache_format_hook(hdt, [hdt]).
+
+
+q_io:q_cache_rm_hook(hdt, G) :-
+  q_file_graph(HdtFile, hdt, G),
+  atomic_list_concat([HdtFile,index], ., IndexFile),
+  maplist(q_file_delete, [HdtFile,IndexFile]).
 
 
 q_io:q_cache2view_hook(hdt, G) :-

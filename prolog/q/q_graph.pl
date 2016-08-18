@@ -1,8 +1,11 @@
 :- module(
   q_graph,
   [
-    q_graph_pp/2,         % +EncG, -G
-    q_graph_table_comps/2 % -HeaderRow, -DataRows
+    q_data_graph/2,        % +Name, -G
+    q_graph_pp/2,          % +EncG, -G
+    q_graph_table_comps/2, % -HeaderRow, -DataRows
+    q_vocab_graph/2,       % +Name, -G
+    q_void_graph/2         % +Name, -G
   ]
 ).
 
@@ -21,6 +24,14 @@
 :- use_module(library(semweb/rdf11)).
 
 
+
+
+
+%! q_data_graph(+Name, -G) is det.
+
+q_data_graph(Name, G) :-
+  base64(Name, Hash),
+  q_graph_hash(G, data, Hash).
 
 
 
@@ -48,3 +59,19 @@ graph_data_row_pair0(
 ) :-
   once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
   aggregate_all(set(M0), q_view_graph(M0, G), Ms).
+
+
+
+%! q_vocab_graph(+Name, -G) is det.
+
+q_vocab_graph(Name, G) :-
+  base64(Name, Hash),
+  q_graph_hash(G, vocab, Hash).
+
+
+
+%! q_void_graph(+Name, -G) is det.
+
+q_void_graph(Name, G) :-
+  base64(Name, Hash),
+  q_graph_hash(G, void, Hash).

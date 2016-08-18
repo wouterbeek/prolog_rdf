@@ -3,6 +3,7 @@
   [
   % GENERICS
   q_file/3,             % ?Name, ?Format, ?File
+  q_file_delete/1,      % +File  
   q_file_graph/2,       % ?File, ?G
   q_file_graph/3,       % ?File, ?Format, ?G
   q_file_is_ready/1,    % +File
@@ -16,22 +17,22 @@
   q_source_file/1,      % -File
 
     % SOURCE ⬄ STORE
-    q_gen2store/0,
+    q_generate/2,       % -G, :Goal_1
     q_init/0,
     q_source2store/0,
+    q_store_rm/0,
 
   % STORE
   q_store_file/2,       % -File, ?G
   q_store_graph/1,      % -G
-  q_transform/0,
   q_transform/2,        % +G, :Goal_3
-  q_transform/4,        % +M1, +M2, +G, :Goal_3
     
     % STORE ⬄ CACHE
     q_store2cache/0,
     q_store2cache/1,    % +M
     q_store2cache/2,    % +M, +G
-    q_cache_rm/1,       % +M
+    q_cache_rm/0,
+    q_cache_rm/1,       % +G
     q_cache_rm/2,       % +M, +G
 
   % CACHE
@@ -48,7 +49,8 @@
     q_store2view/2,     % +M, +G
     q_view2store/1,     % +M
     q_view2store/2,     % +M, +G
-    q_view_rm/1,        % +M
+    q_view_rm/0,
+    q_view_rm/1,        % +G
     q_view_rm/2,        % +M, +G
 
   % VIEW
@@ -93,6 +95,7 @@ them.
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_print)).
 :- use_module(library(rdf/rdf__io)). % N-Quads, RDF/XML, … → N-Triples
                                      % N-Triples → TRP
@@ -102,19 +105,19 @@ them.
 :- use_module(library(tree/s_tree)).
 
 :- meta_predicate
+    q_generate(-, 1),
     q_ls0(+, 1),
-    q_transform(+, 3),
-    q_transform(+, +, +, 3).
+    q_transform(+, 3).
 
 :- multifile
     q_backend_hook/1,       % Only for backends that have no files in cache.
     q_cache_format_hook/2,  % E.g., ‘hdt’ file extension for HDT.
-    q_gen2store_hook/1,
+    q_cache_rm_hook/2,      % E.g., ‘hdt’ also has an index file.
+    q_dataset2store_hook/1,
     q_source2store_hook/3,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
     q_store2cache_hook/4,   % E.g., create HDT file from N-Triples file.
     q_store2view_hook/2,    % E.g., GIS index, which has no cache format.
-    q_transform_hook/0,
     q_view_graph_hook/2,    % E.g., (hdt,G)-pairs.
     q_view_rm_hook/2.
 
@@ -246,15 +249,15 @@ q_source_file(File) :-
 
 % SOURCE ⬄ STORE %
 
-%! q_gen2store is det.
+%! q_dataset2store is det.
 
-q_gen2store :-
+q_dataset2store :-
   forall(
-    q_gen2store_hook(G),
     (
-      q_view2store(trp, G),
-      q_store2view(G)
-    )
+      q_dataset2store_hook(D),
+      q_dataset_graph(D, G)
+    ),
+    q_view2store(trp, G)
   ).
 
 
@@ -262,8 +265,9 @@ q_gen2store :-
 %! q_init is det.
 
 q_init :-
-  q_gen2store,
-  q_source2store.
+  q_source2store,
+  q_dataset2store,
+  q_store2view.
 
 
 
@@ -313,6 +317,32 @@ q_source2store(File1) :-
       once(q_source2store_hook(Format, File1, File2)),
       q_file_touch_ready(File2)
   ).
+
+
+
+%! q_store_rm is det.
+%! q_store_rm(+G) is det.
+
+q_store_rm :-
+  forall(
+    q_store_graph(G),
+    q_store_rm(G)
+  ),
+  % Delete empty directories.
+  setting(store_dir, Dir),
+  forall(
+    (
+      directory_recursive(Dir, Subdir),
+      directory_is_empty(Subdir)
+    ),
+    delete_directory(Subdir)
+  ).
+
+
+q_store_rm(G) :-
+  q_cache_rm(G),
+  q_file_graph(File, G),
+  delete_file_msg(File).
 
 
 
@@ -403,6 +433,18 @@ q_file_touch_ready(File) :-
 
 
 
+%! q_generate(-G, :Goal_1) is det.
+
+q_generate(G, Goal_1) :-
+  call(Goal_1, G),
+  % The transformations now have to be synced with the store, from
+  % which the cache can be recreated.
+  q_view2store(trp, G),
+  % Sync the cached version.
+  q_store2view(G).
+
+
+
 %! q_store_format(?Format, ?Exts) is nondet.
 %
 % N-Triples is the only format used in the store.
@@ -434,23 +476,15 @@ q_store_graph(G) :-
 
 
 
-%! q_transform is det.
 %! q_transform(+G, :Goal_3) is det.
-%! q_transform(+M1, +M2, +G, :Goal_3) is det.
 %
 % Only within the ‘trp’ view can we perform arbitrary transformations.
-
-q_transform :-
-  forall(q_transform_hook).
-
 
 q_transform(G, Goal_3) :-
   % Convert store to the ‘trp’ view, perform the transformation there,
   % and write the result back.
-  q_transform(trp, trp, G, Goal_3).
-
-
-q_transform(M1, M2, G, Goal_3) :-
+  M1 = trp,
+  M2 = trp,
   q_store2view(M1, G),
   call(Goal_3, M1, M2, G),
   % The transformations now have to be synced with the store, from
@@ -497,10 +531,18 @@ q_store2cache(M, G) :-
 
 
 
-%! q_cache_rm(+M) is det.
+%! q_cache_rm is det.
+%! q_cache_rm(+G) is det.
 %! q_cache_rm(+M, +G) is det.
 
-q_cache_rm(M) :-
+q_cache_rm :-
+  forall(
+    q_cache_graph(G),
+    q_cache_rm(G)
+  ).
+
+
+q_cache_rm(G) :-
   forall(
     q_cache_graph(M, G),
     q_cache_rm(M, G)
@@ -509,8 +551,11 @@ q_cache_rm(M) :-
 
 q_cache_rm(M, G) :-
   q_view_rm(M, G),
-  q_file_graph(File, M, G),
-  q_file_delete(File).
+  (   q_cache_rm_hook(M, G)
+  ->  true
+  ;   q_file_graph(File, M, G),
+      q_file_delete(File)
+  ).
 
 
 
@@ -570,6 +615,13 @@ q_cache_file(M, File) :-
   file_extensions(File, Exts),
   once(q_cache_format(M, Exts)).
 
+
+
+%! q_cache_graph(+G) is semidet.
+%! q_cache_graph(-G) is nondet.
+
+q_cache_graph(G) :-
+  distinct(G, q_cache_graph(_, G)).
 
 
 %! q_cache_graph(+M, +G) is semidet.
@@ -669,17 +721,17 @@ q_view2store(M, G) :-
 
 
 %! q_view_rm is det.
-%! q_view_rm(+M) is det.
+%! q_view_rm(+G) is det.
 %! q_view_rm(+M, +G) is det.
 
 q_view_rm :-
   forall(
-    q_backend(M),
-    q_view_rm(M)
+    q_view_graph(G),
+    q_view_rm(G)
   ).
 
 
-q_view_rm(M) :-
+q_view_rm(G) :-
   forall(
     q_view_graph(M, G),
     q_view_rm(M, G)
