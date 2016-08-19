@@ -5,6 +5,8 @@
     q_number_of_bnodes/3,     % +M,             ?G, -NumBs
     q_number_of_datatypes/2,  % +M,                 -NumDs
     q_number_of_datatypes/3,  % +M,             ?G, -NumDs
+    q_number_of_literals/2,   % +M,                 -NumLits
+    q_number_of_literals/3,   % +M,             ?G, -NumLits
     q_number_of_objects/2,    % +M,                 -NumOs
     q_number_of_objects/3,    % +M,             ?G, -NumOs
     q_number_of_objects/4,    % +M, ?S, ?P,         -NumOs
@@ -44,20 +46,21 @@
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
-   q_number_of_bnodes(?, r, -),
-   q_number_of_datatype(?, r, -),
-   q_number_of_objects(?, r, -),
-   q_number_of_objects(?, r, r, -),
-   q_number_of_objects(?, r, r, r, -),
-   q_number_of_predicates(?, r, -),
-   q_number_of_predicates(?, r, o, -),
-   q_number_of_predicates(?, r, o, r, -),
-   q_number_of_subjects(?, r, -),
-   q_number_of_subjects(?, r, o, -),
-   q_number_of_subjects(?, r, o, r, -),
-   q_number_of_triples(?, r, -),
-   q_number_of_triples(?, r, r, o, -),
-   q_number_of_triples(?, r, r, o, r, -).
+   q_number_of_bnodes(+, r, -),
+   q_number_of_datatype(+, r, -),
+   q_number_of_literals(+, r, -),
+   q_number_of_objects(+, r, -),
+   q_number_of_objects(+, r, r, -),
+   q_number_of_objects(+, r, r, r, -),
+   q_number_of_predicates(+, r, -),
+   q_number_of_predicates(+, r, o, -),
+   q_number_of_predicates(+, r, o, r, -),
+   q_number_of_subjects(+, r, -),
+   q_number_of_subjects(+, r, o, -),
+   q_number_of_subjects(+, r, o, r, -),
+   q_number_of_triples(+, r, -),
+   q_number_of_triples(+, r, r, o, -),
+   q_number_of_triples(+, r, r, o, r, -).
 
 
 
@@ -89,13 +92,25 @@ q_number_of_datatypes(M, G, NumDs) :-
 
 
 
+%! q_number_of_literals(+M, -NumLits) is det.
+%! q_number_of_literals(+M, ?G, -NumLits) is det.
+
+q_number_of_literals(M, NumLits) :-
+  q_number_of_literals(M, _, NumLits).
+
+
+q_number_of_literals(M, G, NumLits) :-
+  aggregate_all(count, (q(M, _, _, O, G), q_is_literal(O)), NumLits).
+  
+
+
 %! q_number_of_objects(+M, -NumOs) is det.
 %! q_number_of_objects(+M, ?G, -NumOs) is det.
 %! q_number_of_objects(+M, ?S, ?P, -NumOs) is det.
 %! q_number_of_objects(+M, ?S, ?P, ?G, -NumOs) is det.
 
 q_number_of_objects(M, NumOs) :-
-  aggregate_all(sum(N0), q_number_of_object(M, _, N0), NumOs).
+  aggregate_all(sum(N0), q_number_of_objects(M, _, N0), NumOs).
 
 
 q_number_of_objects(hdt, G, NumOs) :- !,

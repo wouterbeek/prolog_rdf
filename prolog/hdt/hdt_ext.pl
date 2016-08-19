@@ -8,7 +8,7 @@
     hdt_bnode/2,                % ?B, ?G
     hdt_bnode0/2,               % ?B, +Hdt
     hdt_call_file/2,            % +File, :Goal_1
-    hdt_call_graph/2,          % ?G, :Goal_1
+    hdt_call_graph/2,           % ?G, :Goal_1
     hdt_datatype/1,             % ?D
     hdt_datatype/2,             % ?D, ?G
     hdt_datatype0/2,            % ?D, +Hdt
@@ -59,6 +59,7 @@
 :- use_module(library(hdt), []).
 :- use_module(library(hdt/hdt_io), []).
 :- use_module(library(os/file_ext)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).

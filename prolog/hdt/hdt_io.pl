@@ -10,6 +10,7 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(hdt), []).
 :- use_module(library(os/file_ext)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
 
 
@@ -32,7 +33,7 @@ q_io:q_cache_format_hook(hdt, [hdt]).
 q_io:q_cache_rm_hook(hdt, G) :-
   q_file_graph(HdtFile, hdt, G),
   atomic_list_concat([HdtFile,index], ., IndexFile),
-  maplist(q_file_delete, [HdtFile,IndexFile]).
+  maplist(q_delete_file, [HdtFile,IndexFile]).
 
 
 q_io:q_cache2view_hook(hdt, G) :-

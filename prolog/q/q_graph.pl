@@ -19,6 +19,7 @@
 :- use_module(library(apply)).
 :- use_module(library(base64)).
 :- use_module(library(pair_ext)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(semweb/rdf11)).
@@ -48,7 +49,7 @@ q_graph_pp(EncG, G) :-
 
 q_graph_table_comps(HeaderRow, DataRows) :-
   HeaderRow = [bold("Graph"),bold("№ triples"),bold("Store")],
-  aggregate_all(set(G), q_view_graph(G), Gs),
+  aggregate_all(set(G), q_view_graph(_, G), Gs),
   maplist(graph_data_row_pair0, Gs, Pairs),
   asc_pairs_values(Pairs, DataRows).
 
