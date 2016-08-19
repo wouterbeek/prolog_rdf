@@ -66,7 +66,7 @@ q_delete_ready(File) :-
 % Directory of a data graph.
 
 q_dir(Dir3) :-
-  setting(store_dir, Dir1),
+  setting(q_io:store_dir, Dir1),
   directory_path(Dir1, Dir2),
   directory_path(Dir2, Dir3).
 
@@ -82,7 +82,7 @@ q_dir('', Dir) :- !,
   q_dir(Dir).
 q_dir(HashG, Dir2) :-
   atom_length(HashG, N),
-  setting(store_dir, Root),
+  setting(q_io:store_dir, Root),
   (   % HashG falls within the first two characters (outer
       % directory).
       N =< 2
