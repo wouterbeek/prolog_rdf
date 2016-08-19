@@ -16,6 +16,7 @@
     rdf_change_format_legacy/3,  % +Source, +Sink, +Opts
     rdf_download_to_file/2,      % +Iri, +File
     rdf_download_to_file/4,      % +Iri, +File, +InOpts, +OutOpts
+    rdf_graph_is_fresh/1,        % +G
     rdf_load_file/1,             % +Source
     rdf_load_file/2,             % +Source,           +Opts
     rdf_load_quads/2,            % +Source, -Quads
@@ -59,7 +60,8 @@ The following debug flags are used:
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q_io), []).
+:- use_module(library(q/q_fs)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -99,64 +101,61 @@ The following debug flags are used:
 
 
 :- multifile
-    q_io:q_cache_extensions_hook/2,
+    q_io:q_cache_format_hook/2,
     q_io:q_cache2view_hook/2,
-    q_io:q_store2cache_hook/2,
-    q_io:q_source2store_hook/4,
-    q_io:q_source_extensions_hook/2,
+    q_io:q_store2cache_hook/4,
+    q_io:q_source2store_hook/3,
+    q_io:q_source_format_hook/2,
     q_io:q_view_graph_hook/3,
     q_io:q_view_rm_hook/2.
 
 
-q_io:q_cache_extensions_hook(rdf, [trp]).
+q_io:q_cache_format_hook(trp, [trp]).
 
 
-q_io:q_cache2view_hook(rdf, G) :-
-  q_io:q_graph_to_file(cache, G, rdf, File),
-  indent_debug(in, q(q_io), "TRP → MEM", []),
+q_io:q_cache2view_hook(trp, G) :-
+  q_file_graph(File, trp, G),
+  indent_debug(q_io(cache2view(trp)), "TRP → MEM"),
   rdf_load_db(File).
 
 
-q_io:q_store2cache_hook(rdf, G) :-
-  q_io:q_graph_to_file(store, G, ntriples, FromFile),
-  q_io:q_graph_to_file(cache, G, rdf, ToFile),
-  create_file_directory(ToFile),
+q_io:q_store2cache_hook(trp, File1, File2, G) :-
   setup_call_cleanup(
-    rdf_load(FromFile, [graph(G)]),
+    rdf_load(File1, [graph(G)]),
     indent_debug_call(
-      q_io(rdf),
+      q_io(store2cache(trp)),
       "N-Triples → MEM",
       indent_debug_call(
-        q_io(rdf),
+        q_io(store2cache(trp)),
         "MEM → TRP",
-        rdf_save_db(ToFile, G)
+        rdf_save_db(File2, G)
       )
     ),
     rdf_unload_graph(G)
   ).
 
 
-q_io:q_source2store_hook(rdf, Source, Sink, Opts1) :-
-  dict_options(Opts1, Opts2),
-  rdf_change_format(Source, Sink, Opts2).
+q_io:q_source2store_hook(rdf, File1, File2) :-
+  rdf_change_format(File1, File2).
 
 
-q_io:q_source_extensions_hook(rdf, [Ext]) :-
+q_io:q_source_format_hook(rdf, [Ext]) :-
   rdf_default_file_extension(_, Ext).
 
 
-q_io:q_view_graph_hook(rdf, G, false) :-
+q_io:q_view_graph_hook(trp, G, false) :-
   rdf_graph(G).
 
 
-q_io:q_view_rm_hook(rdf, G) :-
+q_io:q_view_rm_hook(trp, G) :-
   rdf_unload_graph(G),
-  indent_debug(out, q(q_io), "TRP → MEM", []).
+  indent_debug(q_io(view_rm(trp)), "TRP → MEM").
 
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
    rdf_call_on_tuples(+, :, t),
+   rdf_graph_is_fresh(r),
    rdf_load_file(+, t),
    rdf_load_quads(+, -, t),
    rdf_load_triples(+, -, t),
@@ -220,6 +219,11 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
 
 rdf_call_on_stream0(Goal_3, Opts, In, L1, L3) :-
   set_rdf_format(In, L1, L2, Opts),
+  % GUESS ENCODING
+  % 1. Text?  2. Unicode?  3. Format?
+  % @ tbd Archive entries are always encoded as octet.  We
+  % change this to UTF-8.
+  %%%%set_stream(In, encoding(utf8)),
   call(Goal_3, In, L2, L3).
 
 
@@ -277,7 +281,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
       Format == jsonld
   ->  json_read_dict(In, Json),
       forall(
-	jsonld_tuple(Json, Tuple, Opts3),
+        jsonld_tuple(Json, Tuple, Opts3),
         rdf_call_on_quad0(Goal_5, Path, Tuple)
       )
   ;   % RDF/XML
@@ -355,7 +359,7 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
     rdf_tmp_graph(G),
     (
       call(Goal_1, G),
-      rdf_write_to_sink(Sink, rdf, _, _, _, G, Opts)
+      rdf_write_to_sink(Sink, trp, _, _, _, G, Opts)
     ),
     rdf_unload_graph(G)
   ).
@@ -412,7 +416,7 @@ rdf_change_format_legacy(Source, Sink) :-
 
 rdf_change_format_legacy(Source, Sink, Opts) :-
   rdf_load_file(Source),
-  rdf_write_to_sink_legacy(Sink, rdf, Opts).
+  rdf_write_to_sink_legacy(Sink, trp, Opts).
 
 
 
@@ -432,6 +436,17 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
 
 copy_stream_data0(In, L, L, Out) :-
   copy_stream_data(In, Out).
+
+
+
+%! rdf_graph_is_fresh(+G) is semidet.
+
+rdf_graph_is_fresh(G) :-
+  rdf_graph_property(G, source_last_modified(Time1)),
+  rdf_graph_property(G, source(Iri)),
+  uri_file_name(Iri, File),
+  time_file(File, Time2),
+  Time1 >= Time2.
 
 
 
@@ -525,7 +540,7 @@ rdf_load_quads(Source, Quads, Opts) :-
   q_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
-    q_quads(rdf, Quads)
+    q_quads(trp, Quads)
   )).
 
 
@@ -543,7 +558,7 @@ rdf_load_triples(Source, Triples, Opts) :-
   q_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
-    q_triples(rdf, Triples)
+    q_triples(trp, Triples)
   )).
 
 

@@ -171,8 +171,6 @@ Perform basic RDF statement manipulations: statement ↔ terms
 %! q(+M, ?S, ?P, ?O, ?G) is nondet.
 %! q(+M, ?S, ?P, ?O, ?G, ?D) is nondet.
 
-q(triples(Triples), S, P, O) :- !,
-  member(rdf(S,P,O), Triples).
 q(M, S, P, O) :-
   q(M, S, P, O, _).
 
@@ -181,9 +179,7 @@ q(hdt, S, P, O, G) :- !,
   hdt(S, P, O, G).
 q(hdt0, S, P, O, Hdt) :- !,
   hdt0(S, P, O, Hdt).
-q(quads(Quads), S, P, O, G) :- !,
-  member(rdf(S,P,O,G), Quads).
-q(rdf, S, P, O, G) :-
+q(trp, S, P, O, G) :-
   rdf11:rdf(S, P, O, G).
 
 

@@ -9,6 +9,8 @@
     qh_graph_menu//1,         % +M
     qh_graph_table//0,
     qh_graph_table//1,        %                     +Opts
+    qh_p_os_table//1,         % +Pairs
+    qh_p_os_table//2,         % +Pairs,             +Opts
     qh_quad_panels//5,        % +M, ?S, ?P, ?O, ?G
     qh_quad_panels//6,        % +M, ?S, ?P, ?O, ?G, +Opts
     qh_quad_table//1,         %     +Quads
@@ -41,6 +43,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_dataset)).
+:- use_module(library(q/q_graph)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_stmt)).
@@ -132,15 +135,15 @@ qh_dataset_table(Opts1) -->
   },
   bs_table(
     \html_table_header_row(HeaderRow),
-    \html_table_trees({Opts2}/[Term]>>qh_something(Term, Opts2), Trees2)
+    \html_table_trees(qh_something0(Opts2), Trees2)
   ).
 
 
-qh_dataset_tree0(t(D,Trees1), t(rdf_dataset_term(D),Trees2)) :-
+qh_dataset_tree0(t(D,Trees1), t(dcg_q_print_dataset_term(D),Trees2)) :-
   maplist(qh_graph_tree0, Trees1, Trees2).
 
 
-qh_graph_tree0(t(G,[]), t(rdf_graph_term(G),[t(Attrs,[])])) :-
+qh_graph_tree0(t(G,[]), t(dcg_q_print_graph_term(G),[t(Attrs,[])])) :-
   once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
   aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
   Attrs = [thousands(NumTriples),set(Ms)].
@@ -158,27 +161,12 @@ qh_describe(M, S) -->
   qh_describe(M, S, _{}).
 
 
-qh_describe(M, S, Opts1) -->
+qh_describe(M, S, Opts) -->
   {
-    HeaderRow = [string("Predicate"),string("Objects")],
-    qh_default_table_options(Opts1, Opts2),
     findall(P-O, q(M, S, P, O), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
-  bs_table(
-    \html_table_header_row(HeaderRow),
-    \html_maplist(qh_describe_row0(Opts2), Groups)
-  ).
-
-
-qh_describe_row0(Opts, P-Os) -->
-  html(
-    tr([
-      td(\qh_property_outer0(property, [property], Opts, P)),
-      td(\html_seplist(qh_object_outer0(object, [object], Opts), " ", Os))
-    ])
-  ).
-
+  qh_p_os_table(Groups, Opts).
 
 
 %! qh_graph_menu(+M)// is det.
@@ -212,31 +200,38 @@ qh_graph_table -->
 
 qh_graph_table(Opts1) -->
   {
-    HeaderRow = [string("Graph"),string("№ triples"),string("Store")],
-    qh_default_table_options(Opts1, Opts2),
-    findall(
-      NumTriples-[G,NumTriples,M],
-      q_number_of_triples(M, G, NumTriples),
-      Pairs
-    ),
-    desc_pairs_values(Pairs, DataRows)
+    q_graph_table_comps(HeaderRow, DataRows),
+    qh_default_table_options(Opts1, Opts2)
+  },
+  bs_table_content(qh_something0(Opts2), [head(HeaderRow)|DataRows]).
+
+
+
+%! qh_p_os_table(+Groups)// is det.
+%! qh_p_os_table(+Groups, +Opts)// is det.
+
+qh_p_os_table(Groups) -->
+  qh_p_os_table(Groups, _{}).
+
+
+qh_p_os_table(Groups, Opts1) -->
+  {
+    HeaderRow = [string("Predicate"),string("Objects")],
+    qh_default_table_options(Opts1, Opts2)
   },
   bs_table(
     \html_table_header_row(HeaderRow),
-    \html_maplist(qh_graph_row0(Opts2), DataRows)
+    \html_maplist(qh_p_os_row0(Opts2), Groups)
   ).
 
 
-qh_graph_row0(Opts, Row) -->
-  html(tr(\qh_graph_cells0(Opts, Row))).
-
-
-qh_graph_cells0(Opts, [G,NumTriples,Ms]) -->
-  html([
-    td(\qh_graph_term_outer0(graph, [graph], Opts, G)),
-    td(\html_thousands(NumTriples)),
-    td(\html_set(Ms))
-  ]).
+qh_p_os_row0(Opts, P-Os) -->
+  html(
+    tr([
+      td(\qh_property_outer0(property, [property], Opts, P)),
+      td(\html_seplist(qh_object_outer0(object, [object], Opts), " ", Os))
+    ])
+  ).
 
 
 

@@ -2,7 +2,6 @@
   rdf_graph,
   [
     file_rdf_graph/3,  % +Alias, +File, -G
-    rdf_fresh_graph/2, % ?G, +FreshnessLifetime:between(0.0,inf)
     rdf_graph_age/2,   % ?G, -Age:between(0.0,inf)
     rdf_is_graph/1,    % +G
     rdf_new_graph/1,   % -G
@@ -29,7 +28,6 @@
 :- qb_alias(ex, 'http://example.org/').
 
 :- rdf_meta
-   rdf_fresh_graph(r, +),
    rdf_graph_age(r, -),
    rdf_is_graph(r),
    rdf_new_graph(r, -),
@@ -47,17 +45,6 @@ file_rdf_graph(Alias, File, G) :-
   file_base_name(File, Name),
   file_name_extension(Base, _, Name),
   rdf_global_id(Alias:Base, G).
-
-
-
-%! rdf_fresh_graph(+G, +FreshnessLifetime:between(0.0,inf)) is semidet.
-%! rdf_fresh_graph(-G, +FreshnessLifetime:between(0.0,inf)) is nondet.
-% Succeeds for currently loaded RDF graphs whose age is below
-% the given FreshnessLifetime.
-
-rdf_fresh_graph(G, FLT) :-
-  rdf_graph_age(G, Age),
-  is_fresh_age(Age, FLT).
 
 
 

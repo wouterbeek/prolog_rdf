@@ -71,21 +71,21 @@ build_test_model(G, M) :-
   rdf_add_i_ext(M, 1, 2, 1).
 
 build_test_syntax(G) :-
-  M = rdf,
+  M = trp,
   G = rdf_mt_graph_1,
   qb(M, ex:a, ex:b, ex:c, G),
   qb(M, ex:c, ex:a, ex:a, G),
   qb(M, ex:c, ex:b, ex:a, G),
   qb(M, ex:a, ex:b, literal(type(ex:b,whatever)), G).
 build_test_syntax(G) :-
-  M = rdf,
+  M = trp,
   G = rdf_mt_graph_2,
   qb(M, ex:a, ex:c, ex:b, G),
   qb(M, ex:a, ex:b, ex:b, G),
   qb(M, ex:c, ex:a, ex:c, G),
   qb(M, ex:a, ex:b, literal(whatever), G).
 build_test_syntax(G) :-
-  M = rdf,
+  M = trp,
   G = rdf_mt_graph_3,
   qb_bnode(X),
   qb(M,    X, ex:b, ex:c, G),

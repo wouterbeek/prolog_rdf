@@ -1,9 +1,6 @@
 :- module(
   qh,
   [
-    qh_something//1,     % +Term
-    qh_something//2,     % +Term,          +Opts
-    qh_something0//2,    % +Opts,          +Term
     qh_alias//1,         % +Alias
     qh_bnode//1,         % +B
     qh_bnode//2,         % +B,             +Opts
@@ -30,6 +27,9 @@
     qh_property_path//2, % +Props,         +Opts
     qh_quad//4,          % +S, +P, +O, +G
     qh_quad//5,          % +S, +P, +O, +G, +Opts
+    qh_something//1,     % +Term
+    qh_something//2,     % +Term,          +Opts
+    qh_something0//2,    % +Opts,          +Term
     qh_subject//1,       % +S
     qh_subject//2,       % +S,             +Opts
     qh_term//1,          % +Term
@@ -82,6 +82,7 @@ The following options are supported to achieve parity with module
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_graph)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
@@ -147,13 +148,13 @@ qh_something(Term) -->
   qh_something(Term, _{}).
 
 
-qh_something(rdf_alias(Alias), _) --> !,
+qh_something(dcg_q_print_alias(Alias), _) --> !,
   qh_alias(Alias).
-qh_something(rdf_dataset_term(D), Opts) --> !,
+qh_something(dcg_q_print_dataset_term(D), Opts) --> !,
   qh_dataset_term(D, Opts).
-qh_something(rdf_graph_term(G), Opts) --> !,
+qh_something(dcg_q_print_graph_term(G), Opts) --> !,
   qh_graph_term(G, Opts).
-qh_something(rdf_iri(Iri), Opts) --> !,
+qh_something(dcg_q_print_iri(Iri), Opts) --> !,
   qh_iri(Iri, Opts).
 qh_something(Term, Opts) -->
   html_something(Term, Opts).
@@ -274,7 +275,12 @@ qh_graph_term(G, Opts1) -->
 
 qh_graph_term_outer0(C, Cs1, Opts, G) -->
   {ord_add_element(Cs1, graph, Cs2)},
-  qh_iri_outer0(C, Cs2, Opts, G).
+  qh_link(C, Cs2, [graph=G], G, \qh_graph_term_inner(G, Opts), Opts).
+
+
+qh_graph_term_inner(EncG, Opts) -->
+  {q_graph_pp(EncG, G)},
+  qh_iri_inner(G, Opts).
 
 
 

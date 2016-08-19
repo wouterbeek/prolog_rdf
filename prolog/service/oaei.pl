@@ -103,7 +103,7 @@ oaei_load_rdf(Source, L, Opts) :-
 
 
 oaei_load_rdf0(L, G, Meta, Meta) :-
-  findall(From-To, oaei(rdf, From, To, G), L).
+  findall(From-To, oaei(trp, From, To, G), L).
 
 
 
@@ -121,7 +121,7 @@ oaei_save_rdf(Sink, Pairs) :-
   rdf_call_to_graph(Sink, qb_oaei0(Pairs)).
 
 qb_oaei0(Pairs, G) :-
-  maplist({G}/[Pair]>>qb_oaei(rdf, Pair, G), Pairs).
+  maplist({G}/[Pair]>>qb_oaei(trp, Pair, G), Pairs).
 
 
 

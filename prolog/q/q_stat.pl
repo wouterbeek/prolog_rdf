@@ -5,6 +5,8 @@
     q_number_of_bnodes/3,     % +M,             ?G, -NumBs
     q_number_of_datatypes/2,  % +M,                 -NumDs
     q_number_of_datatypes/3,  % +M,             ?G, -NumDs
+    q_number_of_literals/2,   % +M,                 -NumLits
+    q_number_of_literals/3,   % +M,             ?G, -NumLits
     q_number_of_objects/2,    % +M,                 -NumOs
     q_number_of_objects/3,    % +M,             ?G, -NumOs
     q_number_of_objects/4,    % +M, ?S, ?P,         -NumOs
@@ -44,20 +46,21 @@
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
-   q_number_of_bnodes(?, r, -),
-   q_number_of_datatype(?, r, -),
-   q_number_of_objects(?, r, -),
-   q_number_of_objects(?, r, r, -),
-   q_number_of_objects(?, r, r, r, -),
-   q_number_of_predicates(?, r, -),
-   q_number_of_predicates(?, r, o, -),
-   q_number_of_predicates(?, r, o, r, -),
-   q_number_of_subjects(?, r, -),
-   q_number_of_subjects(?, r, o, -),
-   q_number_of_subjects(?, r, o, r, -),
-   q_number_of_triples(?, r, -),
-   q_number_of_triples(?, r, r, o, -),
-   q_number_of_triples(?, r, r, o, r, -).
+   q_number_of_bnodes(+, r, -),
+   q_number_of_datatype(+, r, -),
+   q_number_of_literals(+, r, -),
+   q_number_of_objects(+, r, -),
+   q_number_of_objects(+, r, r, -),
+   q_number_of_objects(+, r, r, r, -),
+   q_number_of_predicates(+, r, -),
+   q_number_of_predicates(+, r, o, -),
+   q_number_of_predicates(+, r, o, r, -),
+   q_number_of_subjects(+, r, -),
+   q_number_of_subjects(+, r, o, -),
+   q_number_of_subjects(+, r, o, r, -),
+   q_number_of_triples(+, r, -),
+   q_number_of_triples(+, r, r, o, -),
+   q_number_of_triples(+, r, r, o, r, -).
 
 
 
@@ -89,19 +92,31 @@ q_number_of_datatypes(M, G, NumDs) :-
 
 
 
+%! q_number_of_literals(+M, -NumLits) is det.
+%! q_number_of_literals(+M, ?G, -NumLits) is det.
+
+q_number_of_literals(M, NumLits) :-
+  q_number_of_literals(M, _, NumLits).
+
+
+q_number_of_literals(M, G, NumLits) :-
+  aggregate_all(count, (q(M, _, _, O, G), q_is_literal(O)), NumLits).
+  
+
+
 %! q_number_of_objects(+M, -NumOs) is det.
 %! q_number_of_objects(+M, ?G, -NumOs) is det.
 %! q_number_of_objects(+M, ?S, ?P, -NumOs) is det.
 %! q_number_of_objects(+M, ?S, ?P, ?G, -NumOs) is det.
 
 q_number_of_objects(M, NumOs) :-
-  aggregate_all(sum(N0), q_number_of_object(M, _, N0), NumOs).
+  aggregate_all(sum(N0), q_number_of_objects(M, _, N0), NumOs).
 
 
 q_number_of_objects(hdt, G, NumOs) :- !,
   q_view_graph(hdt, G),
   hdt_number_of_objects(G, NumOs).
-q_number_of_objects(rdf, G, NumOs) :-
+q_number_of_objects(trp, G, NumOs) :-
   aggregate_all(count, rdf_object(_, G), NumOs).
 
 
@@ -121,14 +136,14 @@ q_number_of_objects(M, S, P, G, NumOs) :-
 
 q_number_of_predicates(hdt, NumPs) :- !,
   aggregate_all(sum(N0), q_number_of_predicates(hdt, _, N0), NumPs).
-q_number_of_predicates(rdf, NumPs) :-
+q_number_of_predicates(trp, NumPs) :-
   rdf_number_of_predicates(NumPs).
 
 
 q_number_of_predicates(hdt, G, NumPs) :- !,
   q_view_graph(hdt, G),
   hdt_number_of_properties(G, NumPs).
-q_number_of_predicates(rdf, G, NumPs) :-
+q_number_of_predicates(trp, G, NumPs) :-
   rdf_number_of_predicates(G, NumPs).
 
 
@@ -153,7 +168,7 @@ q_number_of_subjects(M, NumSs) :-
 q_number_of_subjects(hdt, G, NumSs) :- !,
   q_view_graph(hdt, G),
   hdt_number_of_subjects(G, NumSs).
-q_number_of_subjects(rdf, G, NumSs) :-
+q_number_of_subjects(trp, G, NumSs) :-
   aggregate_all(count, rdf_subject(_, G), NumSs).
 
 
@@ -173,13 +188,13 @@ q_number_of_subjects(M, P, O, G, NumSs) :-
 
 q_number_of_triples(hdt, NumTriples) :- !,
   aggregate_all(sum(N0), q_number_of_triples(hdt, _, N0), NumTriples).
-q_number_of_triples(rdf, NumTriples) :-
+q_number_of_triples(trp, NumTriples) :-
   rdf_number_of_triples(NumTriples).
 
 
 q_number_of_triples(hdt, G, NumTriples) :- !,
   hdt_number_of_triples(G, NumTriples).
-q_number_of_triples(rdf, G, NumTriples) :-
+q_number_of_triples(trp, G, NumTriples) :-
   rdf_number_of_triples(G, NumTriples).
 
 

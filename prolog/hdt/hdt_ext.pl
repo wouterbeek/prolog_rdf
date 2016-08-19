@@ -8,7 +8,7 @@
     hdt_bnode/2,                % ?B, ?G
     hdt_bnode0/2,               % ?B, +Hdt
     hdt_call_file/2,            % +File, :Goal_1
-    hdt_call_lgraph/2,          % ?G, :Goal_1
+    hdt_call_graph/2,           % ?G, :Goal_1
     hdt_datatype/1,             % ?D
     hdt_datatype/2,             % ?D, ?G
     hdt_datatype0/2,            % ?D, +Hdt
@@ -59,7 +59,8 @@
 :- use_module(library(hdt), []).
 :- use_module(library(hdt/hdt_io), []).
 :- use_module(library(os/file_ext)).
-:- use_module(library(lodcli/lodfs)).
+:- use_module(library(q/q_fs)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(service/prefix_cc)).
@@ -68,7 +69,7 @@
 
 :- meta_predicate
     hdt_call_file(+, 1),
-    hdt_call_lgraph(?, 1).
+    hdt_call_graph(?, 1).
 
 
 :- rdf_meta
@@ -76,7 +77,7 @@
    hdt(r, r, o, r),
    hdt0(r, r, o, +),
    hdt_bnode(?, r),
-   hdt_call_lgraph(r, :),
+   hdt_call_graph(r, :),
    hdt_datatype(r),
    hdt_datatype(r, r),
    hdt_datatype0(r, +),
@@ -127,7 +128,7 @@ hdt(S, P, O) :-
 
 
 hdt(S, P, O, G) :-
-  hdt_call_lgraph(G, hdt0(S, P, O)).
+  hdt_call_graph(G, hdt0(S, P, O)).
 
 
 hdt0(S, P, O, Hdt) :-
@@ -164,11 +165,11 @@ hdt_call_file(File, Goal_1) :-
 
 
 
-%! hdt_call_lgraph(?G, :Goal_1) is det.
+%! hdt_call_graph(?G, :Goal_1) is det.
 
-hdt_call_lgraph(G, Goal_1) :-
-  lready_graph(G),
-  lgraph_lfile(G, hdt, File),
+hdt_call_graph(G, Goal_1) :-
+  q_store_graph(G),
+  q_file_graph(File, hdt, G),
   exists_file(File),
   hdt_call_file(File, Goal_1).
 

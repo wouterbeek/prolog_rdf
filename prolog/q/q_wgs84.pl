@@ -27,6 +27,7 @@ wgs84:Point IS-A wgs84:SpatialThing
 @see https://www.w3.org/2003/01/geo/wgs84_pos
 @tbd Add altitude support.
 @tbd Add support for lat-lng pair notation.
+@tbd Convert to WKT ASAP.
 @version 2016/06-2016/07
 */
 
@@ -42,23 +43,12 @@ wgs84:Point IS-A wgs84:SpatialThing
 :- qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 
 :- multifile
-    %%%%gis:gis_shape_hook/5,
-    %%%%gis:subject_to_geometry/5,
     rdf11:in_ground_type_hook/3,
     rdf11:out_type_hook/3.
 
 :- rdf_meta
    q_wgs84_point(?, r, ?, r),
    qb_wgs84_point(+, r, +, r).
-
-
-%%%%gis:gis_shape_hook(M, S, D, G, Point) :-
-%%%%  rdf_equal(wkt:point, D),
-%%%%  q_wgs84_point(M, S, Point, G).
-
-
-%%%%gis:subject_to_geometry(M, S, [Lng,Lat], point, G) :-
-%%%%  q_wgs84_point(M, S, point(Lng,Lat), G).
 
 
 rdf11:in_ground_type_hook(D, Lng-Lat, Lex) :-

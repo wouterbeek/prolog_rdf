@@ -40,12 +40,23 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(service/prefix_cc)).
 :- use_module(library(solution_sequences)).
 
-:- initialization(register_dbpedia_localizations).
-
-
+:- initialization(init_rdf_prefix).
+init_rdf_prefix :-
+  qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
+  qb_alias(dct, 'http://purl.org/dc/terms/'),
+  qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
+  qb_alias(ll, 'http://lodlaundromat.org/resource/'),
+  qb_alias(llm, 'http://lodlaundromat.org/metrics/ontology/'),
+  qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
+  qb_alias(llr, 'http://lodlaundromat.org/resource/'),
+  qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
+  qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
+  qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
+  qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
+  qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
+  register_dbpedia_localizations.
 
 
 

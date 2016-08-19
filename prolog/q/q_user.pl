@@ -15,8 +15,8 @@
 
 :- setting(
      user_backend,
-     oneof([hdt,rdf]),
-     rdf,
+     oneof([hdt,trp]),
+     trp,
      "The backend used for storing user information."
    ).
 :- setting(
@@ -54,4 +54,4 @@ google_client:create_user_hook(Profile, User) :-
 
 
 google_client:current_user_hook(Profile, User) :-
-  q_pref_string(rdf, User, resu:googleName, Profile.sub^^xsd:string, resu:'').
+  q_pref_string(trp, User, resu:googleName, Profile.sub^^xsd:string, resu:'').

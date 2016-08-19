@@ -33,14 +33,14 @@
 
 :- multifile
     q_io:q_source2store_hook/4,
-    q_io:q_source_extensions_hook/2.
+    q_io:q_source_format_hook/2.
 
 q_io:q_source2store_hook(xml, Source, Sink, Opts1) :- !,
   del_dict(record_names, Opts1, RecordNames, Opts2),
   xml2rdf(Source, Sink, RecordNames, Opts2).
 
-q_io:q_source_extensions_hook(xml, [marcxml]).
-q_io:q_source_extensions_hook(xml, [xml]).
+q_io:q_source_format_hook(xml, [marcxml]).
+q_io:q_source_format_hook(xml, [xml]).
 
 
 

@@ -1,6 +1,8 @@
 :- module(
   q_iri,
   [
+    q_abox_iri/1, % -Iri
+    q_abox_iri/2, % +Refs, -Iri
     q_abox_iri/3, % +Concept, +Refs, -Iri
     q_abox_iri/4, % ?Host, ?Concept, ?Refs, ?Iri
     q_init_ns/0,
@@ -30,9 +32,20 @@
 
 
 
+%! q_abox_iri(-Iri) is det.
+%! q_abox_iri(+Refs, -Iri) is det.
 %! q_abox_iri(+Concept, +Refs, -Iri) is det.
 %! q_abox_iri(+Host, +Concept, +Refs, -Iri) is det.
 %! q_abox_iri(-Host, -Concept, -Refs, +Iri) is det.
+
+q_abox_iri(Iri) :-
+  uuid(Ref),
+  q_abox_iri([Ref], Iri).
+
+
+q_abox_iri(Refs, Iri) :-
+  q_abox_iri('$concept', Refs, Iri).
+
 
 q_abox_iri(Concept, Refs, Iri) :-
   q_alias_prefix(nsid, Prefix),

@@ -45,8 +45,7 @@ rdf_fca_test(rdfs) :-
   absolute_file_name(library('semweb/rdfs.rdfs'), File, [access(read)]),
   rdf_fca_test_file(File).
 rdf_fca_test(Name) :-
-  M = rdf,
-  rdf_fca_assert_graph(M, Name, G),
+  rdf_fca_assert_graph(trp, Name, G),
   rdf_fca_test_graph(G).
 
 

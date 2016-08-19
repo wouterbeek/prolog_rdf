@@ -17,6 +17,7 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
 :- use_module(library(html/html_bs)).
+:- use_module(library(q/q_array), []).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -42,7 +43,9 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 
 
 gis:gis_shape_hook(M, S, D, G, Shape) :-
-  q(M, S, geold:geometry, Array^^D, G),
+  % @bug RDF prefix expansion does not work here.
+  rdf_equal(geold:geometry, P),
+  q(M, S, P, Array^^D, G),
   array_shape(Array, D, Shape).
 
 

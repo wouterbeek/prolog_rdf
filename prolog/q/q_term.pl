@@ -230,36 +230,36 @@ q_alias_domain(Alias, Domain) :-
 %! q_bnode(?M, ?B) is nondet.
 %! q_bnode(?M, ?B, ?G) is nondet.
 
-q_bnode(rdf, B) :-
-  rdf_bnode(B).
 q_bnode(hdt, B) :-
   hdt_bnode(B).
+q_bnode(trp, B) :-
+  rdf_bnode(B).
 
 
-q_bnode(rdf, B, G) :-
-  rdf_bnode(B, G).
 q_bnode(hdt, B, G) :-
   hdt_bnode(B, G).
 q_bnode(hdt0, B, Hdt) :-
   hdt_bnode0(B, Hdt).
+q_bnode(trp, B, G) :-
+  rdf_bnode(B, G).
 
 
 
 %! q_datatype(?M, ?D) is nondet.
 %! q_datatype(?M, ?D, ?G) is nondet.
 
-q_datatype(rdf, D) :-
-  rdf_datatype(D).
 q_datatype(hdt, D) :-
   hdt_datatype(D).
+q_datatype(trp, D) :-
+  rdf_datatype(D).
 
 
-q_datatype(rdf, D, G) :-
-  rdf_datatype(D, G).
 q_datatype(hdt, D, G) :-
   hdt_datatype(D, G).
 q_datatype(hdt0, D, Hdt) :-
   hdt_datatype0(D, Hdt).
+q_datatype(trp, D, G) :-
+  rdf_datatype(D, G).
 
 
 
@@ -274,18 +274,18 @@ q_defval(X, X).
 %! q_iri(?M, ?Iri) is nondet.
 %! q_iri(?M, ?Iri, ?G) is nondet.
 
-q_iri(rdf, Iri) :-
-  rdf_iri(Iri).
 q_iri(hdt, Iri) :-
   hdt_iri(Iri).
+q_iri(trp, Iri) :-
+  rdf_iri(Iri).
 
 
-q_iri(rdf, Iri, G) :-
-  rdf_iri(Iri, G).
 q_iri(hdt, Iri, G) :-
   hdt_iri(Iri, G).
 q_iri(hdt0, Iri, Hdt) :-
   hdt_iri0(Iri, Hdt).
+q_iri(trp, Iri, G) :-
+  rdf_iri(Iri, G).
 
 
 
@@ -366,18 +366,18 @@ q_legacy_literal(literal(Lex0), xsd:string, Lex, _) :-
 %! q_literal(?M, ?Lit) is nondet.
 %! q_literal(?M, ?Lit, ?G) is nondet.
 
-q_literal(rdf, Lit) :-
-  rdf_literal(Lit).
 q_literal(hdt, Lit) :-
   hdt_literal(Lit).
+q_literal(trp, Lit) :-
+  rdf_literal(Lit).
 
 
-q_literal(rdf, Lit, G) :-
-  rdf_literal(Lit, G).
 q_literal(hdt, Lit, G) :-
   hdt_literal(Lit, G).
 q_literal(hdt0, Lit, Hdt) :-
   hdt_literal0(Lit, Hdt).
+q_literal(trp, Lit, G) :-
+  rdf_literal(Lit, G).
 
 
 
@@ -443,18 +443,18 @@ q_lone_bnode(M, B, G) :-
 %! q_lts(?M, ?Lit) is nondet.
 %! q_lts(?M, ?Lts, ?G) is nondet.
 
-q_lts(rdf, Lit) :-
-  rdf_lts(Lit).
 q_lts(hdt, Lit) :-
   hdt_lts(Lit).
+q_lts(trp, Lit) :-
+  rdf_lts(Lit).
 
 
-q_lts(rdf, Lit, G) :-
-  rdf_lts(Lit, G).
 q_lts(hdt, Lit, G) :-
   hdt_lts(Lit, G).
 q_lts(hdt0, Lit, Hdt) :-
   hdt_lts0(Lit, Hdt).
+q_lts(trp, Lit, G) :-
+  rdf_lts(Lit, G).
 
 
 
@@ -479,72 +479,72 @@ q_memberchk(Elem, L) :-
 %! q_name(?M, ?Name) is nondet.
 %! q_name(?M, ?Name, ?G) is nondet.
 
-q_name(rdf, Name) :-
-  rdf_name(Name).
 q_name(hdt, Name) :-
   hdt_name(Name).
+q_name(trp, Name) :-
+  rdf_name(Name).
 
 
-q_name(rdf, Name, G) :-
-  rdf_name(Name, G).
 q_name(hdt, Name, G) :-
   hdt_name(Name, G).
 q_name(hdt0, Name, Hdt) :-
   hdt_name0(Name, Hdt).
+q_name(trp, Name, G) :-
+  rdf_name(Name, G).
 
 
 
 %! q_node(?M, ?Node) is nondet.
 %! q_node(?M, ?Node, ?G) is nondet.
 
-q_node(rdf, Node) :-
-  rdf_node(Node).
 q_node(hdt, Node) :-
   hdt_node(Node).
+q_node(trp, Node) :-
+  rdf_node(Node).
 
 
-q_node(rdf, Node, G) :-
-  rdf_node(Node, G).
 q_node(hdt, Node, G) :-
   hdt_node(Node, G).
 q_node(hdt0, Node, Hdt) :-
   hdt_node0(Node, Hdt).
+q_node(trp, Node, G) :-
+  rdf_node(Node, G).
 
 
 
 %! q_object(?M, ?O) is nondet.
 %! q_object(?M, ?O, ?G) is nondet.
 
-q_object(rdf, O) :-
-  rdf_object(O).
 q_object(hdt, O) :-
   hdt_object(O).
+q_object(trp, O) :-
+  rdf_object(O).
 
 
-q_object(rdf, O, G) :-
-  rdf_object(O, G).
 q_object(hdt, O, G) :-
   hdt_object(O, G).
 q_object(hdt0, O, Hdt) :-
   hdt_object0(O, Hdt).
+q_object(trp, O, G) :-
+  rdf_object(O, G).
 
 
 
 %! q_predicate(?M, ?P) is nondet.
 %! q_predicate(?M, ?P, ?G) is nondet.
 
-q_predicate(rdf, P) :-
-  rdf_predicate(P).
 q_predicate(hdt, P) :-
   hdt_predicate(P).
+q_predicate(trp, P) :-
+  rdf_predicate(P).
 
 
-q_predicate(rdf, P, G) :-
-  rdf_predicate(P, G).
 q_predicate(hdt, P, G) :-
   hdt_predicate(P, G).
 q_predicate(hdt0, P, Hdt) :-
   hdt_predicate0(P, Hdt).
+q_predicate(trp, P, G) :-
+  rdf_predicate(P, G).
 
 
 
@@ -589,36 +589,36 @@ q_snap(Goal_0) :-
 %! q_subject(?M, ?S) is nondet.
 %! q_subject(?M, ?S, ?G) is nondet.
 
-q_subject(rdf, S) :-
-  rdf_subject(S).
 q_subject(hdt, S) :-
   hdt_subject(S).
+q_subject(trp, S) :-
+  rdf_subject(S).
 
 
-q_subject(rdf, S, G) :-
-  rdf_subject(S, G).
 q_subject(hdt, S, G) :-
   hdt_subject(S, G).
 q_subject(hdt0, S, Hdt) :-
   hdt_subject0(S, Hdt).
+q_subject(trp, S, G) :-
+  rdf_subject(S, G).
 
 
 
 %! q_term(?M, ?Term) is nondet.
 %! q_term(?M, ?Term, ?G) is nondet.
 
-q_term(rdf, Term) :-
-  rdf_term(Term).
 q_term(hdt, Term) :-
   hdt_term(Term).
+q_term(trp, Term) :-
+  rdf_term(Term).
 
 
-q_term(rdf, Term, G) :-
-  rdf_term(Term, G).
 q_term(hdt, Term, G) :-
   hdt_term(Term, G).
 q_term(hdt0, Term, Hdt) :-
   hdt_term0(Term, Hdt).
+q_term(trp, Term, G) :-
+  rdf_term(Term, G).
 
 
 
