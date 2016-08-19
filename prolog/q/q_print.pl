@@ -73,8 +73,6 @@
     q_print_scbd/2,              % ?M, ?Node
     q_print_scbd/3,              % ?M, ?Node,      ?G
     q_print_scbd/4,              % ?M, ?Node,      ?G, +Opts
-    q_print_table/1,             %     +Rows
-    q_print_table/2,             %     +Rows,          +Opts
     q_print_term/1,              %     +Term
     q_print_term/2,              %     +Term,          +Opts
     q_print_tree/2,              % ?M, ?S
@@ -432,17 +430,6 @@ q_print_scbd(M, Node, G) :-
 q_print_scbd(M, Node, G, Opts) :-
   q_scbd_triples(M, Node, G, Triples),
   q_print_triples(Triples, Opts).
-
-
-
-q_print_table(Rows) :-
-  q_print_table(Rows, []).
-
-
-q_print_table(Rows, Opts1) :-
-  merge_options(Opts1, [cell(dcg_call)], Opts2),
-  option(out(Out), Opts1, current_output),
-  dcg_with_output_to(Out, dcg_table(Rows, Opts2)).
 
 
 

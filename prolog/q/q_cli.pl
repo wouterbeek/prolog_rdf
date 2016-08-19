@@ -181,7 +181,7 @@ q__g(M, G) :-
 
 q__gs :-
   q_graph_table_comps(HeaderRow, DataRows),
-  q_print_table([head(HeaderRow)|DataRows]).
+  print_table([head(HeaderRow)|DataRows]).
 
 
 
@@ -225,7 +225,7 @@ q__p_ds(M, P, G) :-
   q_predicate(M, P, G),
   q_datatypes_compat(M, P, G, Ds),
   maplist(list_split, Rows, Ds),
-  q_print_table([head([P])|Rows]).
+  print_table([head([P])|Rows]).
 
 
 
@@ -279,7 +279,7 @@ q__p_ps(M, P, G) :-
   aggregate_all(set(Q), (q(M, _, P, X, G), q(M, X, Q, _, G)), Qs),
   maplist(singleton_list, Qs, Rows),
   format(string(Lbl), "Next predicates of ~a", [P]),
-  q_print_table([head([Lbl])|Rows]).
+  print_table([head([Lbl])|Rows]).
 
 
 
@@ -410,7 +410,7 @@ q_p_no_abbr(M, P, G, Msg) :-
   ansi_format(user_output, [fg(yellow)], "~s~n", [Msg]),
   once(findnsols(5, O, distinct(O, q(M, _, P, O, G)), Os)),
   maplist(singleton_list, Os, Rows),
-  q_print_table([head([bold("object")])|Rows]).
+  print_table([head([bold("object")])|Rows]).
 
 
 
@@ -419,4 +419,4 @@ q_p_no_abbr(M, P, G, Msg) :-
 q_pairs_table0(HeaderRow, Pairs) :-
   asc_pairs(Pairs, SortedPairs),
   pairs_values(SortedPairs, DataRows),
-  q_print_table([head(HeaderRow)|DataRows]).
+  print_table([head(HeaderRow)|DataRows]).
