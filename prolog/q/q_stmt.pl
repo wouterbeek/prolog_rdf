@@ -2,27 +2,27 @@
   q_stmt,
   [
   % RDF
-    q/4,                   % ?M, ?S, ?P, ?O
-    q/5,                   % ?M, ?S, ?P, ?O, ?G
-    q/6,                   % ?M, ?S, ?P, ?O, ?G, ?D
+    q/4,                   % +M, ?S, ?P, ?O
+    q/5,                   % +M, ?S, ?P, ?O, ?G
+    q/6,                   % +M, ?S, ?P, ?O, ?G, ?D
     q_deref/2,             % +Iri, -Quad
     q_derefs/2,            % +Iri, -Quads
     q_derefs/3,            % +Iri, -POs, -SPs
     q_derefs/4,            % +Iri, -POs, -SPs, -Rest
-    q_instance/4,          % ?M, ?I, ?C, ?G
+    q_instance/4,          % +M, ?I, ?C, ?G
     q_is_def_quad/1,       % @Term
     q_is_ground_quad/1,    % @Term
     q_is_ground_triple/1,  % @Term
     q_is_quad/1,           % @Term
     q_is_triple/1,         % @Term
-    q_lts/4,               % ?M, ?S, ?P, ?Lit
-    q_lts/5,               % ?M, ?S, ?P, ?Lit, ?G
-    q_lts/6,               % ?M, ?S, ?P, +LRange, ?Lit, -G
-    q_quad/2,              % ?M, -Quad
-    q_quad/3,              % ?M, ?G, -Quad
-    q_quad/4,              % ?M, ?S, ?G, -Quad
-    q_quad/5,              % ?M, ?S, ?P, ?O, -Quad
-    q_quad/6,              % ?M, ?S, ?P, ?O, ?G, -Quad
+    q_lts/4,               % +M, ?S, ?P, ?Lit
+    q_lts/5,               % +M, ?S, ?P, ?Lit, ?G
+    q_lts/6,               % +M, ?S, ?P, +LRange, ?Lit, -G
+    q_quad/2,              % +M, -Quad
+    q_quad/3,              % +M, ?G, -Quad
+    q_quad/4,              % +M, ?S, ?G, -Quad
+    q_quad/5,              % +M, ?S, ?P, ?O, -Quad
+    q_quad/6,              % +M, ?S, ?P, ?O, ?G, -Quad
     q_quad_datatype/2,     % +Quad, -D
     q_quad_graph/2,        % +Quad, -G
     q_quad_graph_triple/3, % ?Quad, ?G, ?Triple
@@ -33,19 +33,19 @@
     q_quad_term/2,         % +Quad, -Term
     q_quad_terms/5,        % ?Quad, ?S, ?P, ?O, ?G
     q_quad_triple/2,       % ?Quad, ?Triple
-    q_quads/2,             % ?M, -Quads
-    q_quads/3,             % ?M, ?G, -Quads
-    q_quads/4,             % ?M, ?S, ?G, -Quads
-    q_quads/5,             % ?M, ?S, ?P, ?O, -Quads
-    q_quads/6,             % ?M, ?S, ?P, ?O, ?G, -Quads
-    q_reification/4,       % ?M, ?S, ?P, ?O
-    q_reification/5,       % ?M, ?S, ?P, ?O, ?G
-    q_reification/6,       % ?M, ?S, ?P, ?O, ?G, -Stmt
-    q_triple/2,            % ?M, -Triple
-    q_triple/3,            % ?M, ?G, -Triple
-    q_triple/4,            % ?M, ?S, ?G, -Triple
-    q_triple/5,            % ?M, ?S, ?P, ?O, -Triple
-    q_triple/6,            % ?M, ?S, ?P, ?O, ?G, -Triple
+    q_quads/2,             % +M, -Quads
+    q_quads/3,             % +M, ?G, -Quads
+    q_quads/4,             % +M, ?S, ?G, -Quads
+    q_quads/5,             % +M, ?S, ?P, ?O, -Quads
+    q_quads/6,             % +M, ?S, ?P, ?O, ?G, -Quads
+    q_reification/4,       % +M, ?S, ?P, ?O
+    q_reification/5,       % +M, ?S, ?P, ?O, ?G
+    q_reification/6,       % +M, ?S, ?P, ?O, ?G, -Stmt
+    q_triple/2,            % +M, -Triple
+    q_triple/3,            % +M, ?G, -Triple
+    q_triple/4,            % +M, ?S, ?G, -Triple
+    q_triple/5,            % +M, ?S, ?P, ?O, -Triple
+    q_triple/6,            % +M, ?S, ?P, ?O, ?G, -Triple
     q_triple_datatype/2,   % +Triple, -D
     q_triple_iri/2,        % +Triple, -Iri
     q_triple_object/2,     % +Triple, -O
@@ -53,25 +53,25 @@
     q_triple_subject/2,    % +Triple, -S
     q_triple_term/2,       % +Triple, -Term
     q_triple_terms/4,      % ?Triple, ?S, ?P, ?O
-    q_triples/2,           % ?M, -Triples
-    q_triples/3,           % ?M, ?G, -Triples
-    q_triples/4,           % ?M, ?S, ?G, -Triples
-    q_triples/5,           % ?M, ?S, ?P, ?O, -Triples
-    q_triples/6,           % ?M, ?S, ?P, ?O, ?G, -Triples
+    q_triples/2,           % +M, -Triples
+    q_triples/3,           % +M, ?G, -Triples
+    q_triples/4,           % +M, ?S, ?G, -Triples
+    q_triples/5,           % +M, ?S, ?P, ?O, -Triples
+    q_triples/6,           % +M, ?S, ?P, ?O, ?G, -Triples
   % RDFS
-    q_domain/4,            % ?M, ?P, ?C, ?G
-    q_pref_label/3,        % ?M, ?S, ?Lit
-    q_pref_label/4,        % ?M, ?S, ?Lit, ?G
-    q_pref_lex/4,          % ?M, ?S, ?P, ?Lex
-    q_pref_lex/5,          % ?M, ?S, ?P, ?Lex, ?G
-    q_pref_string/4,       % ?M, ?S, ?P, ?Lit
-    q_pref_string/5,       % ?M, ?S, ?P, ?Lit, ?G
-    q_range/4,             % ?M, ?P, ?C, ?G
-    q_subclass/4,          % ?M, ?C, ?D, ?G
+    q_domain/4,            % +M, ?P, ?C, ?G
+    q_pref_label/3,        % +M, ?S, ?Lit
+    q_pref_label/4,        % +M, ?S, ?Lit, ?G
+    q_pref_lex/4,          % +M, ?S, ?P, ?Lex
+    q_pref_lex/5,          % +M, ?S, ?P, ?Lex, ?G
+    q_pref_string/4,       % +M, ?S, ?P, ?Lit
+    q_pref_string/5,       % +M, ?S, ?P, ?Lit, ?G
+    q_range/4,             % +M, ?P, ?C, ?G
+    q_subclass/4,          % +M, ?C, ?D, ?G
   % OWL
-    q_identity/4,          % ?M, ?I, ?J, ?G
+    q_identity/4,          % +M, ?I, ?J, ?G
   % Domain-specific
-    q_image/4              % ?M, ?S, -Img, ?G
+    q_image/4              % +M, ?S, -Img, ?G
   ]
 ).
 
@@ -167,20 +167,24 @@ Perform basic RDF statement manipulations: statement ↔ terms
 
 
 
-%! q(?M, ?S, ?P, ?O) is nondet.
-%! q(?M, ?S, ?P, ?O, ?G) is nondet.
-%! q(?M, ?S, ?P, ?O, ?G, ?D) is nondet.
+%! q(+M, ?S, ?P, ?O) is nondet.
+%! q(+M, ?S, ?P, ?O, ?G) is nondet.
+%! q(+M, ?S, ?P, ?O, ?G, ?D) is nondet.
 
+q(triples(Triples), S, P, O) :- !,
+  member(rdf(S,P,O), Triples).
 q(M, S, P, O) :-
   q(M, S, P, O, _).
 
 
+q(hdt, S, P, O, G) :- !,
+  hdt(S, P, O, G).
+q(hdt0, S, P, O, Hdt) :- !,
+  hdt0(S, P, O, Hdt).
+q(quads(Quads), S, P, O, G) :- !,
+  member(rdf(S,P,O,G), Quads).
 q(rdf, S, P, O, G) :-
   rdf11:rdf(S, P, O, G).
-q(hdt, S, P, O, G) :-
-  hdt(S, P, O, G).
-q(hdt0, S, P, O, Hdt) :-
-  hdt0(S, P, O, Hdt).
 
 
 q(M, S, P, O, G, D) :-
@@ -247,21 +251,21 @@ q_deref_category0(_, _, =).
 
 
 
-%! q_domain(?M, ?P, ?C, ?G) is nondet.
+%! q_domain(+M, ?P, ?C, ?G) is nondet.
 
 q_domain(M, P, C, G) :-
   q(M, P, rdfs:domain, C, G).
 
 
 
-%! q_identity(?M, ?I, ?J, ?G) is nondet.
+%! q_identity(+M, ?I, ?J, ?G) is nondet.
 
 q_identity(M, I, J, G) :-
   q(M, I, owl:sameAs, J, G).
 
 
 
-%! q_image(?M, ?S, -Img, ?G) is nondet.
+%! q_image(+M, ?S, -Img, ?G) is nondet.
 
 q_image(M, S, Img, G) :-
   q(M, S, dbo:thumbnail, Img^^xsd:anyURI, G).
@@ -273,7 +277,7 @@ q_image(M, S, Img, G) :-
 
 
 
-%! q_instance(?M, ?I, ?C, ?G) is nondet.
+%! q_instance(+M, ?I, ?C, ?G) is nondet.
 
 q_instance(M, I, C, G) :-
   q(M, I, rdf:type, C, G).
@@ -322,9 +326,9 @@ q_is_triple(rdf(_,_,_)).
 
 
 
-%! q_lts(?M, ?S, ?P, -Lit) is nondet.
-%! q_lts(?M, ?S, ?P, -Lit, ?G) is nondet.
-%! q_lts(?M, ?S, ?P, +LRange, -Lit, ?G) is nondet.
+%! q_lts(+M, ?S, ?P, -Lit) is nondet.
+%! q_lts(+M, ?S, ?P, -Lit, ?G) is nondet.
+%! q_lts(+M, ?S, ?P, +LRange, -Lit, ?G) is nondet.
 %
 % Matches RDF statements whose object term is a language-tagged string
 % that mathes the given language priory list.  Notice that results for
@@ -346,8 +350,8 @@ q_lts(M, S, P, LRange, Lit, G) :-
 
 
 
-%! q_pref_label(?M, ?S, ?Lit) is nondet.
-%! q_pref_label(?M, ?S, ?Lit, ?G) is nondet.
+%! q_pref_label(+M, ?S, ?Lit) is nondet.
+%! q_pref_label(+M, ?S, ?Lit, ?G) is nondet.
 
 q_pref_label(M, S, Lit) :-
   q_pref_label(M, S, Lit, _).
@@ -358,8 +362,8 @@ q_pref_label(M, S, Lit, G) :-
 
 
 
-%! q_pref_lex(?M, ?S, ?P, -Lex) is nondet.
-%! q_pref_lex(?M, ?S, ?P, -Lex, ?G) is nondet.
+%! q_pref_lex(+M, ?S, ?P, -Lex) is nondet.
+%! q_pref_lex(+M, ?S, ?P, -Lex, ?G) is nondet.
 %
 % Like q_pref_string/[4,5], but returns only the lexical form.
 
@@ -373,8 +377,8 @@ q_pref_lex(M, S, P, Lex, G) :-
 
 
 
-%! q_pref_string(?M, ?S, ?P, ?Lit) is nondet.
-%! q_pref_string(?M, ?S, ?P, ?Lit, ?G) is nondet.
+%! q_pref_string(+M, ?S, ?P, ?Lit) is nondet.
+%! q_pref_string(+M, ?S, ?P, ?Lit, ?G) is nondet.
 %
 % Returns, in this exact order:
 %
@@ -413,11 +417,11 @@ q_pref_string(M, S, P, _, V^^D, G) :-
 
 
 
-%! q_quad(?M, -Quad) is nondet.
-%! q_quad(?M, ?G, -Quad) is nondet.
-%! q_quad(?M, ?S, ?G, -Quad) is nondet.
-%! q_quad(?M, ?S, ?P, ?O, -Quad) is nondet.
-%! q_quad(?M, ?S, ?P, ?O, ?G, -Quad) is nondet.
+%! q_quad(+M, -Quad) is nondet.
+%! q_quad(+M, ?G, -Quad) is nondet.
+%! q_quad(+M, ?S, ?G, -Quad) is nondet.
+%! q_quad(+M, ?S, ?P, ?O, -Quad) is nondet.
+%! q_quad(+M, ?S, ?P, ?O, ?G, -Quad) is nondet.
 
 q_quad(M, Quad) :-
   q_quad(M, _, Quad).
@@ -508,11 +512,11 @@ q_quad_triple(rdf(S,P,O,_), rdf(S,P,O)).
 
 
 
-%! q_quads(?M, -Quads) is nondet.
-%! q_quads(?M, ?G, -Quads) is nondet.
-%! q_quads(?M, ?S, ?G, -Quads) is nondet.
-%! q_quads(?M, ?S, ?P, ?O, -Quads) is nondet.
-%! q_quads(?M, ?S, ?P, ?O, ?G, -Quads) is nondet.
+%! q_quads(+M, -Quads) is nondet.
+%! q_quads(+M, ?G, -Quads) is nondet.
+%! q_quads(+M, ?S, ?G, -Quads) is nondet.
+%! q_quads(+M, ?S, ?P, ?O, -Quads) is nondet.
+%! q_quads(+M, ?S, ?P, ?O, ?G, -Quads) is nondet.
 
 q_quads(M, Quads) :-
   q_quads(M, _, Quads).
@@ -535,16 +539,16 @@ q_quads(M, S, P, O, G, Quads) :-
 
 
 
-%! q_range(?M, ?P, ?C, ?G) is nondet.
+%! q_range(+M, ?P, ?C, ?G) is nondet.
 
 q_range(M, P, C, G) :-
   q(M, P, rdfs:range, C, G).
 
 
 
-%! q_reification(?M, ?S, ?P, ?O) is nondet.
-%! q_reification(?M, ?S, ?P, ?O, ?G) is nondet.
-%! q_reification(?M, ?S, ?P, ?O, ?G, -Stmt) is nondet.
+%! q_reification(+M, ?S, ?P, ?O) is nondet.
+%! q_reification(+M, ?S, ?P, ?O, ?G) is nondet.
+%! q_reification(+M, ?S, ?P, ?O, ?G, -Stmt) is nondet.
 
 q_reification(M, S, P, O) :-
   q_reification(M, S, P, O, _).
@@ -561,18 +565,18 @@ q_reification(M, S, P, O, G, Stmt) :-
 
 
 
-%! q_subclass(?M, ?C, ?D, ?G) is nondet.
+%! q_subclass(+M, ?C, ?D, ?G) is nondet.
 
 q_subclass(M, C, D, G) :-
   q(M, C, rdfs:subClassOf, D, G).
 
 
 
-%! q_triple(?M, ?Triple) is nondet.
-%! q_triple(?M, ?G, ?Triple) is nondet.
-%! q_triple(?M, ?S, ?G, ?Triple) is nondet.
-%! q_triple(?M, ?S, ?P, ?O, ?Triple) is nondet.
-%! q_triple(?M, ?S, ?P, ?O, ?G, ?Triple) is nondet.
+%! q_triple(+M, ?Triple) is nondet.
+%! q_triple(+M, ?G, ?Triple) is nondet.
+%! q_triple(+M, ?S, ?G, ?Triple) is nondet.
+%! q_triple(+M, ?S, ?P, ?O, ?Triple) is nondet.
+%! q_triple(+M, ?S, ?P, ?O, ?G, ?Triple) is nondet.
 
 q_triple(M, Triple) :-
   q_triple(M, _, Triple).
@@ -643,11 +647,11 @@ q_triple_terms(rdf(S,P,O), S, P, O).
 
 
 
-%! q_triples(?M, -Triple) is nondet.
-%! q_triples(?M, ?G, -Triple) is nondet.
-%! q_triples(?M, ?S, ?G, -Triple) is nondet.
-%! q_triples(?M, ?S, ?P, ?O, -Triple) is nondet.
-%! q_triples(?M, ?S, ?P, ?O, ?G, -Triple) is nondet.
+%! q_triples(+M, -Triple) is nondet.
+%! q_triples(+M, ?G, -Triple) is nondet.
+%! q_triples(+M, ?S, ?G, -Triple) is nondet.
+%! q_triples(+M, ?S, ?P, ?O, -Triple) is nondet.
+%! q_triples(+M, ?S, ?P, ?O, ?G, -Triple) is nondet.
 
 q_triples(M, Triples) :-
   q_triples(M, _, Triples).
