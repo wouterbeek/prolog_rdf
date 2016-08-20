@@ -5,6 +5,7 @@
     call_to_nquads/3,     % +Sink, :Goal_2, +Opts
     call_to_ntriples/2,   % +Sink, :Goal_2
     call_to_ntriples/3,   % +Sink, :Goal_2, +Opts
+    call_to_ntuples/2,    % +Sink, :Goal_2
     call_to_ntuples/3,    % +Sink, :Goal_2, +Opts
     gen_ntuple/3,         % +Tuple, +State, +Out
     gen_ntuple/5,         % +S, +P, +O, +State, +Out
@@ -53,6 +54,7 @@ The follwing debug flags are used:
     call_to_nquads(+, 2, +),
     call_to_ntriples(+, 2),
     call_to_ntriples(+, 2, +),
+    call_to_ntuples(+, 2),
     call_to_ntuples(+, 2, +).
 
 :- rdf_meta
@@ -76,7 +78,7 @@ The follwing debug flags are used:
 %! call_to_nquads(+Sink, :Goal_2) is det.
 %! call_to_nquads(+Sink, :Goal_2, +Opts) is det.
 %
-% Wrapper around call_to_ntuples/3 where the RDF serialization
+% Wrapper around call_to_ntuples/[2,3] where the RDF serialization
 % format is set to N-Quads.
 
 call_to_nquads(Sink, Goal_2) :-
@@ -92,7 +94,7 @@ call_to_nquads(Sink, Goal_2, Opts1) :-
 %! call_to_ntriples(+Sink, :Goal_2) is det.
 %! call_to_ntriples(+Sink, :Goal_2, +Opts) is det.
 %
-% Wrapper around call_to_ntuples/3 where the RDF serialization
+% Wrapper around call_to_ntuples/[2,3] where the RDF serialization
 % format is set to N-Triples.
 
 call_to_ntriples(Sink, Goal_2) :-
@@ -105,6 +107,7 @@ call_to_ntriples(Sink, Goal_2, Opts1) :-
 
 
 
+%! call_to_ntuples(+Sink, :Goal_2) is det.
 %! call_to_ntuples(+Sink, :Goal_2, +Opts) is det.
 %
 % Stage-setting for writing N-Tuples (N-Triples or N-Quads).  Tuples
@@ -134,6 +137,10 @@ call_to_ntriples(Sink, Goal_2, Opts1) :-
 %   written to.
 %
 %   * Other options are written to call_to_stream/3.
+
+call_to_ntuples(Sink, Goal_2) :-
+  call_to_ntuples(Sink, Goal_2, []).
+
 
 call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
   setup_call_cleanup(
