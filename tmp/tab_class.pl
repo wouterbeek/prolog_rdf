@@ -18,7 +18,7 @@ Generates HTML tables for overviews of RDFS classes.
 :- use_module(library(apply)).
 :- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
-:- use_module(library(html/zh)).
+:- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(list_ext)).
 :- use_module(library(pair_ext)).
@@ -42,13 +42,13 @@ tab_class(C) -->
     \bs_table(
       html([
         "Overview of the ",
-        \html_thousands(Len),
+        \html_integer(Len),
         " instances of RDFS class ",
-        \zh_class(C),
+        \qh_class(C),
         "."
       ]),
       \html_table_header_row(["Instance"]),
-      \html_maplist(zh_term_row, Rows)
+      \html_maplist(qh_term_row, Rows)
     ),
     \tab_node_triples(C, _)
   ]).
@@ -72,9 +72,9 @@ tab_classes(G) -->
     maplist(tab_classes_row0, TopPairs, TopRows)
   },
   bs_table(
-    html(["Overview of classes in RDF graph ",\zh_graph(G),"."]),
+    html(["Overview of classes in RDF graph ",\qh_graph(G),"."]),
     html_table_header_row(["Class","Members"]),
-    html_maplist(zh_class_count_row, TopRows)
+    html_maplist(qh_class_count_row, TopRows)
   ).
 tab_classes_row0(N-C, [C,N]).
 
@@ -84,8 +84,8 @@ tab_classes_row0(N-C, [C,N]).
 
 % HELPERS %
 
-zh_class_count_row([C,N]) -->
-  html(tr([td(\zh_class(C)),td(\html_thousands(N))])).
+qh_class_count_row([C,N]) -->
+  html(tr([td(\qh_class(C)),td(\html_integer(N))])).
 
-zh_term_row([T]) -->
-  html(tr(td(\zh_term(T)))).
+qh_term_row([T]) -->
+  html(tr(td(\qh_term(T)))).

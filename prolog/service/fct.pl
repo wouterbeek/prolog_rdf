@@ -52,7 +52,7 @@ fct_label(Search, Result) :-
   setting(fct:endpoint_host, Host),
   setting(fct:endpoint_path, PathComps),
   atomic_list_concat([''|PathComps], /, Path),
-  uri_query_components(Query, [lbl(Search)]),
+  uri_query_components(Query, [label(Search)]),
   uri_components(Iri, uri_components(Scheme,Host,Path,Query,_)),
   % json_read_any/[2,3] cannot be used here because the `Accept`
   % header must be `*` in order to retrieve JSON.

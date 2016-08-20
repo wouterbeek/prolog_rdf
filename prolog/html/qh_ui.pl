@@ -53,6 +53,9 @@
 :- use_module(library(tree/s_tree)).
 :- use_module(library(yall)).
 
+:- multifile
+    html:html_hook//2.
+
 :- rdf_meta
    qh_dataset_graph_menu(+, +, r, r, ?, ?),
    qh_describe(+, r, ?, ?),
@@ -135,7 +138,7 @@ qh_dataset_table(Opts1) -->
   },
   bs_table(
     \html_table_header_row(HeaderRow),
-    \html_table_trees(qh_something0(Opts2), Trees2)
+    \html_table_trees(html:html_hook(_{}), Trees2)
   ).
 
 
@@ -203,7 +206,7 @@ qh_graph_table(Opts1) -->
     q_graph_table_comps(HeaderRow, DataRows),
     qh_default_table_options(Opts1, Opts2)
   },
-  bs_table_content(qh_something0(Opts2), [head(HeaderRow)|DataRows]).
+  bs_table_content(html:html_hook(Opts2), [head(HeaderRow)|DataRows]).
 
 
 

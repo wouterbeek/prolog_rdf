@@ -8,7 +8,7 @@
 /** <module> RDF error
 
 @author Wouter Beek
-@version 2016/03-2016/05
+@version 2016/03-2016/05, 2016/08
 */
 
 :- use_module(library(apply)).
@@ -16,6 +16,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_store)).

@@ -8,6 +8,8 @@
     rdf_call_on_tuples/2,        % +Source, :Goal_5
     rdf_call_on_tuples/3,        % +Source, :Goal_5, +Opts
     rdf_call_on_tuples_stream/4, % +In, :Goal_5, +Path, +Opts
+    rdf_call_onto_stream/3,      % +Source, +Sink, :Goal_4
+    rdf_call_onto_stream/5,      % +Source, +Sink, :Goal_4, +SourceOpts, +SinkOpts
     rdf_call_to_graph/2,         % ?Sink, :Goal_1
     rdf_call_to_graph/3,         % ?Sink, :Goal_1, +Opts
     rdf_change_format/2,         % +Source, +Sink
@@ -96,6 +98,9 @@ The following debug flags are used:
     rdf_call_on_tuples(+, 5),
     rdf_call_on_tuples(+, 5, +),
     rdf_call_on_tuples_stream(+, 5, +, +),
+    rdf_call_onto_stream(+, +, 4),
+    rdf_call_onto_stream(+, +, 4, +, +),
+    rdf_call_onto_stream0(4, +, +, +, -, +),
     rdf_call_to_graph(?, 1),
     rdf_call_to_graph(?, 1, +).
 
@@ -210,20 +215,12 @@ rdf_call_on_stream(Source, Goal_3) :-
 
 
 rdf_call_on_stream(Source, Goal_3, Opts1) :-
-  % Accept headers for RDF requests are specified in library
-  % `semweb/rdf_http_plugin'.
-  rdf_http_plugin:rdf_extra_headers(DefRdfOpts, Opts1),
-  merge_options(DefRdfOpts, Opts1, Opts2),
+  rdf_update_options(Opts1, Opts2),
   call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
 
 rdf_call_on_stream0(Goal_3, Opts, In, L1, L3) :-
-  set_rdf_format(In, L1, L2, Opts),
-  % GUESS ENCODING
-  % 1. Text?  2. Unicode?  3. Format?
-  % @ tbd Archive entries are always encoded as octet.  We
-  % change this to UTF-8.
-  %%%%set_stream(In, encoding(utf8)),
+  set_rdf_format_and_encoding(In, L1, L2, Opts),
   call(Goal_3, In, L2, L3).
 
 
@@ -342,6 +339,30 @@ rdf_call_on_quads0(Goal_5, L, Tuples, _) :-
 
 
 
+%! rdf_call_onto_stream(+Source, +Sink, :Goal_4) is det.
+%! rdf_call_onto_stream(+Source, +Sink, :Goal_4, +SourceOpts, +SinkOpts) is det.
+
+rdf_call_onto_stream(Source, Sink, Goal_4) :-
+  rdf_call_onto_stream(Source, Sink, Goal_4, [], []).
+
+
+rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
+  rdf_update_options(SourceOpts, RdfOpts),
+  call_onto_stream(
+    Source,
+    Sink,
+    rdf_call_onto_stream0(Goal_4, RdfOpts),
+    SourceOpts,
+    SinkOpts
+  ).
+
+
+rdf_call_onto_stream0(Goal_4, Opts, In, L1, L3, Out) :-
+  set_rdf_format_and_encoding(In, L1, L2, Opts),
+  call(Goal_4, In, L2, L3, Out).
+
+
+
 %! rdf_call_to_graph(?Sink, :Goal_1) is det.
 %! rdf_call_to_graph(?Sink, :Goal_1, +Opts) is det.
 %
@@ -433,6 +454,7 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
   thread_file(File, TmpFile),
   call_onto_stream(Iri, TmpFile, copy_stream_data0, InOpts, OutOpts),
   rename_file(TmpFile, File).
+
 
 copy_stream_data0(In, L, L, Out) :-
   copy_stream_data(In, Out).
@@ -718,15 +740,24 @@ get_base_iri(BaseIri, Ds, _) :-
 
 
 
-%! set_rdf_format(+In, +Path1, -Path2, +Opts) is det.
+%! set_rdf_format_and_encoding(+In, +Path1, -Path2, +Opts) is det.
+%
+% # GUESS ENCODING
+%
+%   1. Text?
+%   2. Unicode?
+%   3. Format?
+%
+% @tbd Archive entries are always encoded as octet.  We change this to
+%      UTF-8.
 
 % Option rdf_format/1 overrides everything else.
-set_rdf_format(_, [H1|T], [H2|T], Opts) :-
+set_rdf_format_and_encoding(_, [H1|T], [H2|T], Opts) :-
   option(rdf_format(Format), Opts), !,
   put_dict(rdf_format, H1, Format, H2).
-set_rdf_format(_, [H|T], [H|T], _) :-
+set_rdf_format_and_encoding(_, [H|T], [H|T], _) :-
   dict_has_key(rdf_format, H), !.
-set_rdf_format(In, [H1|T], [H2|T], Opts) :-
+set_rdf_format_and_encoding(In, [H1|T], [H2|T], Opts) :-
   (   get_base_iri(BaseIri, [H1|T], Opts),
       iri_file_extensions(BaseIri, Exts),
       member(Ext, Exts),
@@ -739,5 +770,14 @@ set_rdf_format(In, [H1|T], [H2|T], Opts) :-
   % serialization format.
   rdf_guess_format(In, Format, FormatOpts),
   % JSON-LD _must_ be encoded in UTF-8.
+  % @tbd Turtle-family formats as well?
   (Format == jsonld -> set_stream(In, encoding(utf8)) ; true),
   put_dict(rdf_format, H1, Format, H2).
+
+
+
+%! rdf_update_options(+Opts1, -Opts2) is det.
+
+rdf_update_options(Opts1, Opts2) :-
+  rdf_http_plugin:rdf_extra_headers(DefOpts, Opts1),
+  merge_options(DefOpts, Opts1, Opts2).

@@ -120,7 +120,7 @@ po_pair0(P-O) -->
 
 rdf_tuples(_, Quads, Triples, Duplicates) -->
   html([
-    p(["Triples: ",\html_thousands(Triples)]),
-    p(["Quads: ",\html_thousands(Quads)]),
-    p(["Duplicates: ",\html_thousands(Duplicates)])
+    p(["Triples: ",\html_integer(Triples)]),
+    p(["Quads: ",\html_integer(Quads)]),
+    p(["Duplicates: ",\html_integer(Duplicates)])
   ]).

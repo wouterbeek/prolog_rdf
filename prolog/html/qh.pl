@@ -27,9 +27,6 @@
     qh_property_path//2, % +Props,         +Opts
     qh_quad//4,          % +S, +P, +O, +G
     qh_quad//5,          % +S, +P, +O, +G, +Opts
-    qh_something//1,     % +Term
-    qh_something//2,     % +Term,          +Opts
-    qh_something0//2,    % +Opts,          +Term
     qh_subject//1,       % +S
     qh_subject//2,       % +S,             +Opts
     qh_term//1,          % +Term
@@ -95,6 +92,7 @@ The following options are supported to achieve parity with module
    qh_link(+, +, +, +, html, +, ?, ?).
 
 :- multifile
+    html:html_hook//2,
     qh_literal_hook//2,
     rdf11:in_ground_type_hook/3,
     rdf11:out_type_hook/3.
@@ -138,30 +136,14 @@ The following options are supported to achieve parity with module
      "ID of the HTTP handler that performs RDF term lookup."
    ).
 
-
-
-
-
-% SUPER GENERIC TERM PRINTING %
-
-qh_something(Term) -->
-  qh_something(Term, _{}).
-
-
-qh_something(dcg_q_print_alias(Alias), _) --> !,
+html:html_hook(_, q_alias(Alias), _) -->
   qh_alias(Alias).
-qh_something(dcg_q_print_dataset_term(D), Opts) --> !,
+html:html_hook(Opts, q_dataset_term(D)) -->
   qh_dataset_term(D, Opts).
-qh_something(dcg_q_print_graph_term(G), Opts) --> !,
+html:html_hook(Opts, q_graph_term(G)) -->
   qh_graph_term(G, Opts).
-qh_something(dcg_q_print_iri(Iri), Opts) --> !,
+html:html_hook(Opts, q_iri(Iri)) -->
   qh_iri(Iri, Opts).
-qh_something(Term, Opts) -->
-  html_something(Term, Opts).
-
-
-qh_something0(Opts, Term) -->
-  qh_something(Term, Opts).
 
 
 

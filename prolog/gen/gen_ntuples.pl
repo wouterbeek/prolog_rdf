@@ -1,18 +1,22 @@
 :- module(
   gen_ntuples,
   [
-    call_to_nquads/2,    % +Sink, :Goal_2
-    call_to_nquads/3,    % +Sink, :Goal_2, +Opts
-    call_to_ntriples/2,  % +Sink, :Goal_2
-    call_to_ntriples/3,  % +Sink, :Goal_2, +Opts
-    call_to_ntuples/3,   % +Sink, :Goal_2, +Opts
-    gen_ntuple/3,        % +Tuple,             +State, +Out
-    gen_ntuple/5,        %     +S, +P, +O,     +State, +Out
-    gen_ntuple/6,        %     +S, +P, +O, +G, +State, +Out
-    gen_ntuples/3,       % +Tuples,            +State, +Out
-    gen_ntuples/4,       % ?M,             ?G, +State, +Out
-    gen_ntuples/7,       % ?M, ?S, ?P, ?O, ?G, +State, +Out
-    ntuples_media_type/2 % ?MT, ?Format
+    call_to_nquads/2,     % +Sink, :Goal_2
+    call_to_nquads/3,     % +Sink, :Goal_2, +Opts
+    call_to_ntriples/2,   % +Sink, :Goal_2
+    call_to_ntriples/3,   % +Sink, :Goal_2, +Opts
+    call_to_ntuples/3,    % +Sink, :Goal_2, +Opts
+    gen_ntuple/3,         % +Tuple, +State, +Out
+    gen_ntuple/5,         % +S, +P, +O, +State, +Out
+    gen_ntuple/6,         % +S, +P, +O, +G, +State, +Out
+    gen_ntuples/3,        % +Tuples, +State, +Out
+    gen_ntuples/4,        % ?M, ?G, +State, +Out
+    gen_ntuples/7,        % ?M, ?S, ?P, ?O, ?G, +State, +Out
+    ntuples_media_type/2, % ?MT, ?Format
+    write_nquad/2,        % +Sink, +Quad
+    write_nquad/5,        % +Sink, +S, +P, +O, +G
+    write_ntriple/2,      % +Sink, +Triple
+    write_ntriple/4       % +Sink, +S, +P, +O
   ]
 ).
 
@@ -59,7 +63,11 @@ The follwing debug flags are used:
    gen_ntuple(r, r, o, r, +, +),
    gen_ntuples(t, +, +),
    gen_ntuples(?, r, +, +),
-   gen_ntuples(?, r, r, o, r, +, +).
+   gen_ntuples(?, r, r, o, r, +, +),
+   write_nquad(+, t),
+   write_nquad(+, r, r, o, r),
+   write_ntriple(+, t),
+   write_ntriple(+, r, r, o).
 
 
 
@@ -201,6 +209,30 @@ gen_ntuples(M, S, P, O, G, State, Out) :-
 
 ntuples_media_type(application/'n-quads', nquads) :- !.
 ntuples_media_type(application/'n-triples', ntriples).
+
+
+
+%! write_nquad(+Sink, +Quad) is det.
+%! write_nquad(+Sink, +S, +P, +O, +G) is det.
+
+write_nquad(Sink, rdf(S,P,O,G)) :-
+  write_nquad(Sink, S, P, O, G).
+
+
+write_nquad(Sink, S, P, O, G) :-
+  call_to_ntuples(Sink, gen_ntuple(S, P, O, G)).
+
+
+
+%! write_ntriple(+Sink, +Triple) is det.
+%! write_ntriple(+Sink, +S, +P, +O) is det.
+
+write_ntriple(Sink, rdf(S,P,O)) :-
+  write_ntriple(Sink, S, P, O).
+
+
+write_ntriple(Sink, S, P, O) :-
+  call_to_ntuples(Sink, gen_ntuple(S, P, O)).
 
 
 

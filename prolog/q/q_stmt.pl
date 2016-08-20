@@ -58,6 +58,8 @@
     q_triples/4,           % +M, ?S, ?G, -Triples
     q_triples/5,           % +M, ?S, ?P, ?O, -Triples
     q_triples/6,           % +M, ?S, ?P, ?O, ?G, -Triples
+    q_x/5,                 % +M, ?S, ?P, ?O, +Name
+    q_x/6,                 % +M, ?S, ?P, ?O, +HashG, +Name
   % RDFS
     q_domain/4,            % +M, ?P, ?C, ?G
     q_pref_label/3,        % +M, ?S, ?Lit
@@ -161,7 +163,9 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_triples(?, r, -),
    q_triples(?, r, r, -),
    q_triples(?, r, r, o, -),
-   q_triples(?, r, r, o, r, -).
+   q_triples(?, r, r, o, r, -),
+   q_x(+, r, r, o, +),
+   q_x(+, r, r, o, +, +).
 
 
 
@@ -667,6 +671,19 @@ q_triples(M, S, P, O, Triples) :-
 
 q_triples(M, S, P, O, G, Triples) :-
   aggregate_all(set(Triple), q_triple(M, S, P, O, G, Triple), Triples).
+
+
+
+%! q_x(+M, ?S, ?P, ?O, +Name) is nondet.
+%! q_x(+M, ?S, ?P, ?O, +HashG, +Name) is nondet.
+
+q_x(M, S, P, O, Name) :-
+  q_x(M, S, P, O, '', Name).
+
+
+q_x(M, S, P, O, HashG, Name) :-
+  q_graph(HashG, Name, G),
+  q(M, S, P, O, G).
 
 
 

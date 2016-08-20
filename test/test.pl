@@ -57,7 +57,6 @@
 :- use_module(library(q/qb)).
 :- use_module(library(q/qu)).
 %/rdf
-:- use_module(library(rdf/rdf_clean)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_file)).

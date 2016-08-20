@@ -134,7 +134,7 @@ q__d :-
 
 
 q__d(HashG) :-
-  q__x(HashG, data).
+  q__x(hdt, HashG, data).
 
 
 q__d(S, P, O) :-
@@ -142,7 +142,7 @@ q__d(S, P, O) :-
 
 
 q__d(S, P, O, HashG) :-
-  q__x(S, P, O, HashG, data).
+  q__x(hdt, S, P, O, HashG, data).
 
 
 
@@ -349,6 +349,19 @@ q__tree(S) :-
 
 
 
+%! q__x(+M, +HashG, +Name) is nondet.
+%! q__x(+M, ?S, ?P, ?O, +HashG, +Name) is nondet.
+
+q__x(M, HashG, Name) :-
+  q__x(M, _, _, _, HashG, Name).
+
+
+q__x(M, S, P, O, HashG, Name) :-
+  pagination(rdf(S,P,O), q_x(M, S, P, O, HashG, Name), Result),
+  pagination_result(Result, q_print_quads).
+
+
+
 
 
 % HELPERS %
@@ -383,24 +396,6 @@ pp_hash_path(HashG, Path) :-
 
 pp_hash_paths(HashG, Paths) :-
   maplist(pp_hash_path(HashG), Paths).
-
-
-
-%! q__x(+HashG, +Name) is nondet.
-%! q__x(?S, ?P, ?O, +HashG, +Name) is nondet.
-
-q__x(HashG, Name) :-
-  q__x(_, _, _, HashG, Name).
-
-
-q__x(S, P, O, HashG, Name) :-
-  pagination(rdf(S,P,O), q__x0(S, P, O, HashG, Name), Result),
-  pagination_result(Result, q_print_quads).
-
-
-q__x0(S, P, O, HashG, Name) :-
-  q_graph(HashG, Name, G),
-  hdt_call_graph(G, hdt0(S, P, O)).
 
 
 
