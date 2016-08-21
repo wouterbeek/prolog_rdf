@@ -735,8 +735,7 @@ dcg_q_print_graph_term(G) -->
   dcg_q_print_graph_term(G, Opts).
 
 
-dcg_q_print_graph_term(EncG, Opts) -->
-  {q_graph_pp(EncG, G)},
+dcg_q_print_graph_term(G, Opts) -->
   dcg_q_print_iri(G, Opts).
 
 

@@ -11,12 +11,13 @@
 Printing of materialization results.
 
 @author Wouter Beek
-@version 2015/08-2015/12, 2016/03
+@version 2015/08-2015/12, 2016/03, 2016/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(html/html_ext)).
 :- use_module(library(q/q_print)).
 
 
@@ -59,7 +60,7 @@ print_expression0(T) -->
 
 print_premise(I, P) -->
   "P",
-  thousands(I),
+  html_thousands(I),
   ": ",
   print_expression0(P).
 

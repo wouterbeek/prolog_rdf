@@ -126,22 +126,27 @@ qh_dataset_table -->
 
 qh_dataset_table(Opts1) -->
   {
-    HeaderRow = ["Dataset","Graph","№ triples","Store"],
+    HeaderRow = [
+      string("Dataset"),
+      string("Graph"),
+      string("№ triples"),
+      string("Store")
+    ],
     qh_default_table_options(Opts1, Opts2),
     q_dataset_trees(_, Opts2.order, Trees1),
     maplist(qh_dataset_tree0, Trees1, Trees2)
   },
   bs_table(
     \html_table_header_row(HeaderRow),
-    \html_table_trees(html:html_hook(_{}), Trees2)
+    \html_table_trees(html:html_hook(Opts2), Trees2)
   ).
 
 
-qh_dataset_tree0(t(D,Trees1), t(dcg_q_print_dataset_term(D),Trees2)) :-
+qh_dataset_tree0(t(D,Trees1), t(q_dataset_term(D),Trees2)) :-
   maplist(qh_graph_tree0, Trees1, Trees2).
 
 
-qh_graph_tree0(t(G,[]), t(dcg_q_print_graph_term(G),[t(Attrs,[])])) :-
+qh_graph_tree0(t(G,[]), t(q_graph_term(G),[t(Attrs,[])])) :-
   once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
   aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
   Attrs = [thousands(NumTriples),set(Ms)].

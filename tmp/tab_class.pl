@@ -42,7 +42,7 @@ tab_class(C) -->
     \bs_table(
       html([
         "Overview of the ",
-        \html_integer(Len),
+        \html_thousands(Len),
         " instances of RDFS class ",
         \qh_class(C),
         "."
@@ -85,7 +85,7 @@ tab_classes_row0(N-C, [C,N]).
 % HELPERS %
 
 qh_class_count_row([C,N]) -->
-  html(tr([td(\qh_class(C)),td(\html_integer(N))])).
+  html(tr([td(\qh_class(C)),td(\html_thousands(N))])).
 
 qh_term_row([T]) -->
   html(tr(td(\qh_term(T)))).

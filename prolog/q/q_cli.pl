@@ -56,6 +56,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_cli), []).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(list_ext)).

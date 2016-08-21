@@ -71,7 +71,6 @@ them.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(base64)).
 :- use_module(library(call_ext)).
 :- use_module(library(conv/csv2rdf), []).  % CSV → N-Triples
 :- use_module(library(conv/json2rdf), []). % JSON → N-Triples
@@ -162,11 +161,8 @@ q_ls0(Root, Goal_1) :-
 
 
 print_term0(G) -->
-  {
-    q_graph_hash(G, EncLocal), !,
-    base64(Local, EncLocal)
-  },
-  atom(Local).
+  {q_graph_hash(G, Hash)}, !,
+  atom(Hash).
 print_term0(Term) -->
   atom(Term).
 
@@ -258,7 +254,7 @@ q_source2store(File1) :-
   % Derive a hash based on the source file.
   setting(source_dir, Dir),
   directory_file_path(Dir, Local, File1),
-  base64(Local, Hash),
+  md5(Local, Hash),
   % Determine the store file.
   q_file_hash(File2, data, ntriples, Hash),
   (   q_file_ready_time(File2, Ready2),

@@ -104,7 +104,12 @@ tab_predicate_literals(P) -->
     length(Rows, Len)
   },
   bs_table(
-    html([\qh_predicate(P)," has ",\html_integer(Len)," unique values."]),
+    html([
+      \qh_predicate(P),
+      " has ",
+      \html_thousands(Len),
+      " unique values."
+    ]),
     \html_table_header_row(["Literal value"]),
     \html_maplist(zh_literal_row, Rows)
   ).
