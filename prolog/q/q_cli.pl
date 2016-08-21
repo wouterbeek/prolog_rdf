@@ -2,9 +2,9 @@
   q_cli,
   [
     q__cbd/1,   %     ?S
-   %q__cbd/3,   % ?M, ?S,     ?HashG
+   %q__cbd/3,   % +M, ?S,     ?HashG
    %q__cs/0,
-   %q__cs/2,    % ?M,         ?HashG
+   %q__cs/2,    % +M,         ?HashG
     q__d/0,
     q__d/1,     % +HashG
     q__d/3,     % ?S, ?P, ?O
@@ -13,27 +13,30 @@
     q__fs/1,    % +HashG
     q__fs/2,    % +HashG, +PageOpts
     q__g/0,
-    q__g/2,     % ?M,         ?HashG
+    q__g/2,     % +M,         ?HashG
     q__gs/0,
-    q__key/3,   % ?M,     ?P, ?HashG
+    q__key/3,   % +M,     ?P, ?HashG
     q__p/1,     %         ?P
-    q__p/3,     % ?M,     ?P, ?HashG
+    q__p/3,     % +M,     ?P, ?HashG
     q__p_ds/1,  %         ?P
-    q__p_ds/3,  % ?M,     ?P, ?HashG
+    q__p_ds/3,  % +M,     ?P, ?HashG
     q__p_os/1,  %         ?P
-    q__p_os/3,  % ?M,     ?P, ?HashG
+    q__p_os/3,  % +M,     ?P, ?HashG
     q__p_ps/1,  %         ?P
-    q__p_ps/3,  % ?M,     ?P, ?HashG
+    q__p_ps/3,  % +M,     ?P, ?HashG
     q__ps/0,
-    q__ps/2,    % ?M,         ?HashG
+    q__ps/2,    % +M,         ?HashG
     q__ps_no/0,
-    q__ps_no/2, % ?M,         ?HashG
+    q__ps_no/2, % +M,         ?HashG
     q__root/1,  %     ?S
-   %q__root/3,  % ?M, ?S,     ?HashG
+   %q__root/3,  % +M, ?S,     ?HashG
     q__scbd/1,  %     ?Node
-   %q__scbd/3,  % ?M, ?Node,  ?HashG
-    q__tree/1   %     ?S
-   %q__tree/3   % ?M, ?S,     ?HashG
+   %q__scbd/3,  % +M, ?Node,  ?HashG
+    q__tree/1,  %     ?S
+   %q__tree/3,  % +M, ?S,     ?HashG
+    q__x/2,     % +M, +Name
+    q__x/3,     % +M, +Name,  +HashG
+    q__x/6      % +M, ?S, ?P, ?O, +HashG, +Name
   ]
 ).
 :- reexport(library(q/q_print), [
@@ -81,7 +84,7 @@
    q__cbd(+, r, r),
    q__cs(?, r),
    q__d(r, r, o),
-   q__d(r, r, o, +),
+   q__d(r, r, o, r),
    q__g(?, r),
    q__key(?, r, r),
    q__p(r),
@@ -99,7 +102,8 @@
    q__scbd(r),
    q__scbd(+, r, r),
    q__tree(r),
-   q__tree(+, r, r).
+   q__tree(+, r, r),
+   q__x(+, r, r, o, r, +).
 
 
 
@@ -113,7 +117,7 @@ q__cbd(S) :-
 
 
 %! q__cs is det.
-%! q__cs(?M, ?HashG) is det.
+%! q__cs(+M, ?HashG) is det.
 %
 % @tbd Add support for `M = hdt`.
 
@@ -134,7 +138,7 @@ q__d :-
 
 
 q__d(HashG) :-
-  q__x(hdt, HashG, data).
+  q__x(hdt, data, HashG).
 
 
 q__d(S, P, O) :-
@@ -142,7 +146,7 @@ q__d(S, P, O) :-
 
 
 q__d(S, P, O, HashG) :-
-  q__x(hdt, S, P, O, HashG, data).
+  q__x(hdt, S, P, O, data, HashG).
 
 
 
@@ -165,7 +169,7 @@ q__fs(HashG, PageOpts) :-
 
 
 %! q__g is nondet.
-%! q__g(?M, ?HashG) is nondet.
+%! q__g(+M, ?HashG) is nondet.
 
 q__g :-
   q_view_graph(M, G),
@@ -185,7 +189,7 @@ q__gs :-
 
 
 
-%! q__key(?M, ?P, ?HashG) is nondet.
+%! q__key(+M, ?P, ?HashG) is nondet.
 
 q__key(M, P, G) :-
   q_predicate(M, P, G),
@@ -199,7 +203,7 @@ q__key(M, P, G) :-
 
 
 %! q__p(?P) is nondet.
-%! q__p(?M, ?P, ?HashG) is nondet.
+%! q__p(+M, ?P, ?HashG) is nondet.
 
 q__p(P) :-
   q__p(_, P, _).
@@ -212,7 +216,7 @@ q__p(M, P, G) :-
 
 
 %! q__p_ds(?P) is nondet.
-%! q__p_ds(?M, ?P, ?HashG) is nondet.
+%! q__p_ds(+M, ?P, ?HashG) is nondet.
 %
 % Shows the candidate datatypes for predicate term P.
 
@@ -230,7 +234,7 @@ q__p_ds(M, P, G) :-
 
 
 %! q__p_os(?P) is nondet.
-%! q__p_os(?M, ?P, ?HashG) is nondet.
+%! q__p_os(+M, ?P, ?HashG) is nondet.
 %
 % Prints an overview of how often each object term occurs.
 
@@ -262,7 +266,7 @@ q__p_os(M, P, G) :-
 
 
 %! q__p_ps(?P) is nondet.
-%! q__p_ps(?M, ?P, ?HashG) is nondet.
+%! q__p_ps(+M, ?P, ?HashG) is nondet.
 %
 % Predicate terms that are candidates for flattening.
 %
@@ -284,7 +288,7 @@ q__p_ps(M, P, G) :-
 
 
 %! q__ps is det.
-%! q__ps(?M, ?HashG) is det.
+%! q__ps(+M, ?HashG) is det.
 
 q__ps :-
   q_view_graph(M, G),
@@ -305,7 +309,7 @@ q__ps(M, G) :-
 
 
 %! q__ps_no is nondet.
-%! q__ps_no(?M, ?HashG) is nondet.
+%! q__ps_no(+M, ?HashG) is nondet.
 %
 % Prints an overview of how many distinct objects there are for a
 % given predicate term.
@@ -349,15 +353,20 @@ q__tree(S) :-
 
 
 
-%! q__x(+M, +HashG, +Name) is nondet.
-%! q__x(+M, ?S, ?P, ?O, +HashG, +Name) is nondet.
+%! q__x(+M, +Name) is nondet.
+%! q__x(+M, +Name, +HashG) is nondet.
+%! q__x(+M, ?S, ?P, ?O, +Name, +HashG) is nondet.
 
-q__x(M, HashG, Name) :-
-  q__x(M, _, _, _, HashG, Name).
+q__x(M, Name) :-
+  q__x(M, Name, '').
 
 
-q__x(M, S, P, O, HashG, Name) :-
-  pagination(rdf(S,P,O), q_x(M, S, P, O, HashG, Name), Result),
+q__x(M, Name, HashG) :-
+  q__x(M, _, _, _, Name, HashG).
+
+
+q__x(M, S, P, O, Name, HashG) :-
+  pagination(rdf(S,P,O), q_x(M, S, P, O, Name, HashG), Result),
   pagination_result(Result, q_print_quads).
 
 

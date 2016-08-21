@@ -59,7 +59,7 @@
     q_triples/5,           % +M, ?S, ?P, ?O, -Triples
     q_triples/6,           % +M, ?S, ?P, ?O, ?G, -Triples
     q_x/5,                 % +M, ?S, ?P, ?O, +Name
-    q_x/6,                 % +M, ?S, ?P, ?O, +HashG, +Name
+    q_x/6,                 % +M, ?S, ?P, ?O, +Name, +HashG
   % RDFS
     q_domain/4,            % +M, ?P, ?C, ?G
     q_pref_label/3,        % +M, ?S, ?Lit
@@ -95,6 +95,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
 :- use_module(library(nb_set)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(q/q_dataset)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
@@ -675,13 +676,13 @@ q_triples(M, S, P, O, G, Triples) :-
 
 
 %! q_x(+M, ?S, ?P, ?O, +Name) is nondet.
-%! q_x(+M, ?S, ?P, ?O, +HashG, +Name) is nondet.
+%! q_x(+M, ?S, ?P, ?O, +Name, +HashG) is nondet.
 
 q_x(M, S, P, O, Name) :-
-  q_x(M, S, P, O, '', Name).
+  q_x(M, S, P, O, Name, '').
 
 
-q_x(M, S, P, O, HashG, Name) :-
+q_x(M, S, P, O, Name, HashG) :-
   q_graph(HashG, Name, G),
   q(M, S, P, O, G).
 

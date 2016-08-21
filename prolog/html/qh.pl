@@ -180,7 +180,7 @@ qh_bnode_outer0(C, Cs1, Opts, B) -->
     ord_add_element(Cs1, bnode, Cs2),
     q_bnode_map(B, Lbl)
   },
-  qh_link(C, Cs2, B, \qh_bnode_inner(Lbl, Opts), Opts).
+  qh_link(C, Cs2, B, qh_bnode_inner(Lbl, Opts), Opts).
 
 
 qh_bnode_inner(B, _) -->
@@ -257,7 +257,7 @@ qh_graph_term(G, Opts1) -->
 
 qh_graph_term_outer0(C, Cs1, Opts, G) -->
   {ord_add_element(Cs1, graph, Cs2)},
-  qh_link(C, Cs2, [graph=G], G, \qh_graph_term_inner(G, Opts), Opts).
+  qh_link(C, Cs2, [graph=G], G, qh_graph_term_inner(G, Opts), Opts).
 
 
 qh_graph_term_inner(EncG, Opts) -->
@@ -280,7 +280,7 @@ qh_iri(Iri, Opts1) -->
 
 qh_iri_outer0(C, Cs1, Opts, Iri) -->
   {ord_add_element(Cs1, iri, Cs2)},
-  qh_link(C, Cs2, Iri, \qh_iri_inner(Iri, Opts), Opts).
+  qh_link(C, Cs2, Iri, qh_iri_inner(Iri, Opts), Opts).
 
 
 % Abbreviated notation for IRI.
@@ -315,7 +315,7 @@ qh_literal_outer0(C, Cs1, Opts, Lit) -->
     ord_add_element(Cs1, literal, Cs2),
     q_literal_datatype(Lit, D)
   },
-  qh_link(C, Cs2, [datatype=D], Lit, \qh_literal_inner(Lit, Opts), Opts).
+  qh_link(C, Cs2, [datatype=D], Lit, qh_literal_inner(Lit, Opts), Opts).
 
 
 % RDF HTML
@@ -619,7 +619,7 @@ qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
     \qh_link_external(Term)
   ]).
 qh_link(_, _, _, _, Content_0, _) -->
-  Content_0.
+  html_call(Content_0).
 
 
 qh_link_external(Term) -->

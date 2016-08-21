@@ -23,6 +23,7 @@
     q_graph/3,            % +HashG, +Name, -G
     q_graph_hash/2,       % ?G, ?Hash
     q_graph_hash/3,       % ?G, ?Name, ?Hash
+    q_hash/1,             % -Hash
     q_name/1              % ?Name
   ]
 ).
@@ -298,6 +299,14 @@ q_graph_hash(G, Name, Hash) :-
 q_graph_hash(G, Name, Hash) :-
   q_name(Name),
   rdf_global_id(Name:Hash, G).
+
+
+
+%! q_hash(-Hash) is nondet.
+
+q_hash(Hash) :-
+  q_dir(Dir),
+  q_dir_hash(Dir, Hash).
 
 
 

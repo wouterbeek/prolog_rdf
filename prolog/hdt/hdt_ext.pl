@@ -40,6 +40,7 @@
     hdt_predicate/2,            % ?P, ?G
     hdt_predicate0/2,           % ?P, +Hdt
     hdt_prepare/1,              % +File
+    hdt_prepare/2,              % +File, -HdtFile
     hdt_remove/1,               % +File
     hdt_subject/1,              % ?S, ?G
     hdt_subject/2,              % ?S, ?G
@@ -62,6 +63,7 @@
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(service/prefix_cc)).
 :- use_module(library(solution_sequences)).
@@ -372,20 +374,31 @@ hdt_predicate0(P, Hdt) :-
 
 
 %! hdt_prepare(+File) is det.
+%! hdt_prepare(+File, -HdtFile) is det.
 
 hdt_prepare(File) :-
+  hdt_prepare(File, _).
+
+
+hdt_prepare(File1, File2) :-
+  atomic_list_concat([Base|_], ., File1),
+  hdt_prepare_base(Base, File2).
+
+
+hdt_prepare_base(Base, File) :-
+  atomic_list_concat([Base,hdt], ., File),
   exists_file(File), !.
-hdt_prepare(File2) :-
-  atomic_list_concat([Base,hdt], ., File2),
+hdt_prepare_base(Base, File2) :-
   atomic_list_concat([Base,nt,gz], ., File1),
   exists_file(File1), !,
-  hdt:hdt_create_from_file(File2, File1, []).
-hdt_prepare(File2) :-
   atomic_list_concat([Base,hdt], ., File2),
+  hdt:hdt_create_from_file(File2, File1, []).
+hdt_prepare_base(Base, File3) :-
   atomic_list_concat([Base,nq,gz], ., File1),
   exists_file(File1), !,
+  atomic_list_concat([Base,nt,gz], ., File2),
   rdf_change_format(File1, File2, [from_format(nquads),to_format(ntriples)]),
-  hdt_prepate(File2).
+  hdt_prepare_base(Base, File3).
 
 
 

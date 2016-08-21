@@ -319,6 +319,7 @@ q_generate(G, Goal_1) :-
 %
 % N-Triples is the only format used in the store.
 
+q_store_format(nquads, [nq,gz]).
 q_store_format(ntriples, [nt,gz]).
 
 
