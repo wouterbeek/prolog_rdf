@@ -219,7 +219,7 @@ qh_p_os_table(Groups) -->
 
 qh_p_os_table(Groups, Opts1) -->
   {
-    HeaderRow = ["Predicate","Objects"],
+    HeaderRow = [string("Predicate"),string("Objects")],
     qh_default_table_options(Opts1, Opts2)
   },
   bs_table(
@@ -266,7 +266,12 @@ qh_quad_table(Quads) -->
 
 qh_quad_table(Quads, Opts1) -->
   {
-    HeaderRow = ["Subject","Predicate","Object","Graph"],
+    HeaderRow = [
+      string("Subject"),
+      string("Predicate"),
+      string("Object"),
+      string("Graph")
+    ],
     qh_default_table_options(Opts1, Opts2)
   },
   bs_table(
@@ -373,7 +378,7 @@ qh_triple_table(Triples) -->
 
 qh_triple_table(Triples, Opts1) -->
   {
-    HeaderRow = ["Subject","Predicate","Object"],
+    HeaderRow = [string("Subject"),string("Predicate"),string("Object")],
     qh_default_table_options(Opts1, Opts2)
   },
   bs_table(

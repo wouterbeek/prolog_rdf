@@ -1,10 +1,11 @@
 :- module(
   q_graph,
   [
-    q_data_graph/2,        % +Name, -G
+    q_data_graph/2,        % +Refs, -G
+    q_graph/2,             % +Refs, -G
     q_graph_table_comps/2, % -HeaderRow, -DataRows
-    q_vocab_graph/2,       % +Name, -G
-    q_void_graph/2         % +Name, -G
+    q_vocab_graph/2,       % +Refs, -G
+    q_void_graph/2         % +Refs, -G
   ]
 ).
 
@@ -27,15 +28,19 @@
 
 
 
-%! q_data_graph(+Name, -G) is det.
+%! q_data_graph(+Refs, -G) is det.
 
-q_data_graph(Name, G) :-
-  md5(Name, Hash),
-  q_graph_hash(G, data, Hash).
-
+q_data_graph(Refs, G) :-
+  q_graph([data|Refs], G).
 
 
-%! q_graph_pp(+EncG, -G) is det.
+
+%! q_graph(+Refs, -G) is det.
+
+q_graph(Refs, G) :-
+  q_abox_iri([graph|Refs], G).
+
+
 
 %! q_graph_table_comps(-HeaderRow, -DataRows) is det.
 
@@ -55,16 +60,14 @@ graph_data_row_pair0(
 
 
 
-%! q_vocab_graph(+Name, -G) is det.
+%! q_vocab_graph(+Refs, -G) is det.
 
-q_vocab_graph(Name, G) :-
-  md5(Name, Hash),
-  q_graph_hash(G, vocab, Hash).
-
+q_vocab_graph(Refs, G) :-
+  q_graph([vocab|Refs], G).
 
 
-%! q_void_graph(+Name, -G) is det.
 
-q_void_graph(Name, G) :-
-  md5(Name, Hash),
-  q_graph_hash(G, void, Hash).
+%! q_void_graph(+Refs, -G) is det.
+
+q_void_graph(Refs, G) :-
+  q_graph([void|Refs], G).
