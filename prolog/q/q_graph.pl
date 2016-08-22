@@ -1,11 +1,11 @@
 :- module(
   q_graph,
   [
-    q_data_graph/2,        % +Refs, -G
-    q_graph/2,             % +Refs, -G
+    q_data_graph/2,        % +Name, -G
     q_graph_table_comps/2, % -HeaderRow, -DataRows
-    q_vocab_graph/2,       % +Refs, -G
-    q_void_graph/2         % +Refs, -G
+    q_related_graph/3,     % +G1, +Name, -G2
+    q_vocab_graph/2,       % +Name, -G
+    q_void_graph/2         % +Name, -G
   ]
 ).
 
@@ -21,24 +21,22 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(semweb/rdf11)).
 
+:- rdf_meta
+   q_related_graph(r, +, -).
 
 
 
 
-%! q_data_graph(+Refs, -G) is det.
 
-q_data_graph(Refs, G) :-
-  q_graph([data|Refs], G).
+%! q_data_graph(+Name, -G) is det.
 
-
-
-%! q_graph(+Refs, -G) is det.
-
-q_graph(Refs, G) :-
-  q_abox_iri([graph|Refs], G).
+q_data_graph(Name, G) :-
+  md5(Name, Hash),
+  q_graph_hash(G, data, Hash).
 
 
 
@@ -60,14 +58,24 @@ graph_data_row_pair0(
 
 
 
-%! q_vocab_graph(+Refs, -G) is det.
+%! q_related_graph(+G1, +Name, -G2) is det.
 
-q_vocab_graph(Refs, G) :-
-  q_graph([vocab|Refs], G).
+q_related_graph(G1, Name, G2) :-
+  q_graph_hash(G1, Hash),
+  q_graph_hash(G2, Name, Hash).
 
 
 
-%! q_void_graph(+Refs, -G) is det.
+%! q_vocab_graph(+Name, -G) is det.
 
-q_void_graph(Refs, G) :-
-  q_graph([void|Refs], G).
+q_vocab_graph(Name, G) :-
+  md5(Name, Hash),
+  q_graph_hash(G, vocab, Hash).
+
+
+
+%! q_void_graph(+Name, -G) is det.
+
+q_void_graph(Name, G) :-
+  md5(Name, Hash),
+  q_graph_hash(G, void, Hash).

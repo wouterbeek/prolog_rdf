@@ -133,6 +133,8 @@
 %! qb(+M, +Quad) is det.
 %! qb(+M, +Triple, +G) is det.
 %! qb(+M, +S, +P, +O, +G) is det.
+%
+% @tbd HDT support.
 
 qb(M, rdf(S,P,O,G)) :-
   qb(M, S, P, O, G).
@@ -142,8 +144,8 @@ qb(M, rdf(S,P,O), G) :-
   qb(M, S, P, O, G).
 
 
-qb(hdt, S, P, O, G) :- !,
-  q_store_call(gen_ntuple(S, P, O), G).
+%qb(hdt, S, P, O, G) :- !,
+%  q_store_call(gen_ntuple(S, P, O), G).
 qb(trp, S, P, O, G) :- !,
   rdf_assert(S, P, O, G).
 

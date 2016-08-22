@@ -254,7 +254,8 @@ q_source2store(File1) :-
   % Derive a hash based on the source file.
   setting(source_dir, Dir),
   directory_file_path(Dir, Local, File1),
-  md5(Local, Hash),
+  file_name(Local, Base),
+  md5(Base, Hash),
   % Determine the store file.
   q_file_hash(File2, data, ntriples, Hash),
   (   q_file_ready_time(File2, Ready2),

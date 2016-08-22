@@ -1,6 +1,7 @@
 :- module(
   qu,
   [
+    qu_call/2,                  % :Find_0, Transform_0
 % TERM
     qu_replace_subject/5,       % +M1, +M2, +S1, ?G, +S2
     qu_subject_from_key/5,      % +M1, +M2, +P, +Concept, ?G

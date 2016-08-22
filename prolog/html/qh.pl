@@ -78,7 +78,9 @@ The following options are supported to achieve parity with module
 :- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_bnode_map)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_stmt)).
@@ -221,7 +223,18 @@ qh_dataset_term(D, Opts1) -->
 
 qh_dataset_term_outer0(C, Cs1, Opts, D) -->
   {ord_add_element(Cs1, dataset, Cs2)},
-  qh_iri_outer0(C, Cs2, Opts, D).
+  qh_link(C, Cs2, [dataset=D], D, \qh_dataset_term_inner(D, Opts), Opts).
+
+
+qh_dataset_term_inner(D, _) -->
+  {
+    q_dataset_default_graph(D, VoidG),
+    q_pref_label(hdt, D, Lit, VoidG),
+    q_literal_string(Lit, Str)
+  }, !,
+  html(Str).
+qh_dataset_term_inner(D, Opts) -->
+  qh_iri_inner(D, Opts).
 
 
 
@@ -260,6 +273,14 @@ qh_graph_term_outer0(C, Cs1, Opts, G) -->
   qh_link(C, Cs2, [graph=G], G, \qh_graph_term_inner(G, Opts), Opts).
 
 
+qh_graph_term_inner(G, _) -->
+  {
+    q_dataset_graph(D, G),
+    q_dataset_default_graph(D, VoidG),
+    q_pref_label(hdt, G, Lit, VoidG),
+    q_literal_string(Lit, Str)
+  }, !,
+  html(Str).
 qh_graph_term_inner(G, Opts) -->
   qh_iri_inner(G, Opts).
 
