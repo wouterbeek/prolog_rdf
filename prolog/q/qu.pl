@@ -432,7 +432,6 @@ qu_change_lex(M1, M2, P, G, Dcg_0) :-
 %! qu_add_padding(+M1, +M2, +P, ?G, +PaddingCode) is det.
 
 qu_add_padding(M1, M2, P, G, PaddingCode) :-
-  qu_add_padding_deb(P, PaddingCode),
   aggregate_all(
     max(Len),
     (
@@ -441,8 +440,10 @@ qu_add_padding(M1, M2, P, G, PaddingCode) :-
       atom_length(Lex, Len)
     ),
     Max
-  ),
+  ), !,
+  qu_add_padding_deb(P, PaddingCode),
   qu_change_lex(M1, M2, P, G, qu_add_padding0(PaddingCode, Max)).
+qu_add_padding(_, _, _, _, _).
 
 
 qu_add_padding0(PaddingCode, Len), Cs -->
