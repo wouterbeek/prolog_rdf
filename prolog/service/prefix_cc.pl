@@ -694,7 +694,6 @@ assert_cached_version :-
   qb_alias(hr, 'http://iserve.kmi.open.ac.uk/ns/hrests#'),
   qb_alias(htir, 'http://www.w3.org/2011/http#'),
   qb_alias(hto, 'http://project-haystack.org/hto#'),
-  qb_alias(http, 'http://www.w3.org/2011/http#'),
   qb_alias(httph, 'http://www.w3.org/2007/ont/httph#'),
   qb_alias(httpm, 'http://www.w3.org/2011/http-methods#'),
   qb_alias(httpvoc, 'http://www.w3.org/2006/http#'),

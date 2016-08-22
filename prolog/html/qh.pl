@@ -273,14 +273,14 @@ qh_graph_term_outer0(C, Cs1, Opts, G) -->
   qh_link(C, Cs2, [graph=G], G, \qh_graph_term_inner(G, Opts), Opts).
 
 
-qh_graph_term_inner(G, _) -->
+qh_graph_term_inner(G, Opts) -->
   {
     q_dataset_graph(D, G),
     q_dataset_default_graph(D, VoidG),
     q_pref_label(hdt, G, Lit, VoidG),
     q_literal_string(Lit, Str)
   }, !,
-  html(Str).
+  html([\qh_dataset_term_inner(D, Opts),"/",Str]).
 qh_graph_term_inner(G, Opts) -->
   qh_iri_inner(G, Opts).
 

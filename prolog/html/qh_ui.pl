@@ -172,6 +172,7 @@ qh_describe(M, S, Opts) -->
   qh_p_os_table(Groups, Opts).
 
 
+
 %! qh_graph_menu(+M)// is det.
 
 qh_graph_menu(M) -->
