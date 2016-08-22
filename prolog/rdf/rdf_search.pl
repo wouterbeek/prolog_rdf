@@ -27,8 +27,9 @@
 %! rdf_search(+Pattern, -Lexs, -TotalNumLexs) is nondet.
 
 rdf_search(Pattern, Lexs, TotalNumLexs) :-
-  tokenize_atom(Pattern, L),
-  case_stem_sounds(L, [H|T]),
+  tokenize_atom(Pattern, L1),
+  hack(L1, L2),
+  case_stem_sounds(L2, [H|T]),
   (T == [] -> Query = H ; n_ary_term(and, [H|T], Query)),
   rdf_find_literals(Query, Lexs),
   length(Lexs, TotalNumLexs).
@@ -49,3 +50,8 @@ rdf_search_result(M, Lexs, rdf(S,P,Lit,G)) :-
   ;   q(M, S, P, Lex@LTag, G),
       Lit = Lex@LTag
   ).
+
+
+hack([], []) :- !.
+hack([X], [X]) :- !.
+hack([X,Y|_], [X,Y]) :- !.
