@@ -23,7 +23,7 @@
 
 /** <module> Generate N-Tuples, i.e., N-Triples and N-Quads
 
-The follwing debug flags are used:
+The following debug flags are used:
 
   * gen_ntuples
 

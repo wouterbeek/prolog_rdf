@@ -46,7 +46,6 @@
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_print)).
-:- use_module(library(q/q_rest)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_stmt)).
