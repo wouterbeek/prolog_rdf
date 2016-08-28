@@ -11,6 +11,7 @@
     creators//3,         % +M, +Res,                  ?G
     dc_abstract/4,       % +M, +Res,     -Abstract,   ?G
     dc_abstract//3,      % +M, +Res,                  ?G
+    dc_abstract//4,      % +M, +Res,                  ?G, +Opts
     dc_created/4,        % +M, +Res,     -DT,         ?G
     dc_created//3,       % +M, +Res,                  ?G
     dc_creator/4,        % +M, +Res,     -Agent,      ?G
@@ -224,19 +225,21 @@ agent_item0(M, G, Agent) -->
 
 %! dc_abstract(+M, +Res, -Abstract, ?G) is det.
 %! dc_abstract(+M, +Res, ?G)// is det.
+%! dc_abstract(+M, +Res, ?G, +Opts)// is det.
+%
+% Options are passed to qh_literal//2.
 
 dc_abstract(M, Res, Abstract, G) :-
   q_pref_string(M, Res, dc:abstract, Abstract, G).
 
 
 dc_abstract(M, Res, G) -->
+  dc_abstract(M, Res, G, _{}).
+
+
+dc_abstract(M, Res, G, Opts) -->
   {once(dc_abstract(M, Res, Abstract, G))},
-  html(
-    p(
-      property='dc:abstract',
-      \qh_literal(Abstract, _{max_lit_len: 150})
-    )
-  ).
+  html(div(property='dc:abstract', \qh_literal(Abstract, Opts))).
 
 
 
