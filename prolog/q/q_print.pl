@@ -144,6 +144,7 @@ Print RDF statements.
 
 
 :- multifile
+    dcg:dcg_hook//1,
     q:dcg_q_print_literal_hook//2.
 
 
@@ -226,6 +227,14 @@ Print RDF statements.
    q_print_triples(?, r, r, o),
    q_print_triples(?, r, r, o, r),
    q_print_triples(?, r, r, o, r, +).
+
+
+dcg:dcg_hook(q_dataset_term(D)) -->
+  dcg_q_print_dataset(D).
+dcg:dcg_hook(q_graph_term(G)) -->
+  dcg_q_print_graph_term(G).
+dcg:dcg_hook(q_iri(Iri)) -->
+  dcg_q_print_iri(Iri).
 
 
 
