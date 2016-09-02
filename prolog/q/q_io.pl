@@ -7,9 +7,11 @@
   q_source_file/1,      % -File
 
     % SOURCE ⬄ STORE
-    q_generate/2,       % -G, :Goal_1
+    q_generate/2,            % -G, :Goal_1
     q_init/0,
     q_source2store/0,
+    q_source2store_file/1,   % +File
+    q_source2store_source/3, % +Source, +Base, +Format
     q_store_rm/0,
 
   % STORE
@@ -221,6 +223,8 @@ q_init :-
 
 
 %! q_source2store is det.
+%! q_source2store_file(+File) is det.
+%! q_source2store_source(+Source, +Base, +Format) is det.
 %
 % Automatically convert source files to store files.
 %
@@ -240,12 +244,12 @@ q_init :-
 q_source2store :-
   forall(
     q_source_file(File),
-    q_source2store(File)
+    q_source2store_file(File)
   ).
 
 
-q_source2store(File1) :-
-  file_extensions(File1, Exts),
+q_source2store_file(File) :-
+  file_extensions(File, Exts),
   % The format is determined by the file extensions.
   (   q_source_format(Format, Exts)
   ->  true
@@ -253,19 +257,27 @@ q_source2store(File1) :-
   ),
   % Derive a hash based on the source file.
   setting(source_dir, Dir),
-  directory_file_path(Dir, Local, File1),
+  directory_file_path(Dir, Local, File),
   file_name(Local, Base),
+  time_file(File, Ready),
+  q_source2store_stream(File, Base, Format, Ready).
+
+
+q_source2store_source(Source, Base, Format) :-
+  q_source2store_source(Source, Base, Format, 0).
+
+
+q_source2store_source(Source, Base, Format, Ready0) :-
   md5(Base, Hash),
   % Determine the store file.
-  q_file_hash(File2, data, ntriples, Hash),
-  (   q_file_ready_time(File2, Ready2),
-      time_file(File1, Ready1),
-      Ready2 >= Ready1
+  q_file_hash(File, data, ntriples, Hash),
+  (   q_file_ready_time(File, Ready),
+      Ready >= Ready0
   ->  true
-  ;   create_file_directory(File2),
+  ;   create_file_directory(File),
       % Automatically convert source file to store file.
-      once(q_source2store_hook(Format, File1, File2)),
-      q_file_touch_ready(File2)
+      once(q_source2store_hook(Format, Source, File)),
+      q_file_touch_ready(File)
   ).
 
 

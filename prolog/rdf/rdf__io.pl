@@ -124,24 +124,24 @@ q_io:q_cache2view_hook(trp, G) :-
   rdf_load_db(File).
 
 
-q_io:q_store2cache_hook(trp, File1, File2, G) :-
+q_io:q_store2cache_hook(trp, Source, Sink, G) :-
   setup_call_cleanup(
-    rdf_load(File1, [graph(G)]),
+    rdf_load(Source, [graph(G)]),
     indent_debug_call(
       q_io(store2cache(trp)),
       "N-Triples → MEM",
       indent_debug_call(
         q_io(store2cache(trp)),
         "MEM → TRP",
-        rdf_save_db(File2, G)
+        rdf_save_db(Sink, G)
       )
     ),
     rdf_unload_graph(G)
   ).
 
 
-q_io:q_source2store_hook(rdf, File1, File2) :-
-  rdf_change_format(File1, File2).
+q_io:q_source2store_hook(rdf, Source, Sink) :-
+  rdf_change_format(Source, Sink).
 
 
 q_io:q_source_format_hook(rdf, [Ext]) :-
