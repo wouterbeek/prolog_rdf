@@ -4,7 +4,8 @@
   q_ls/0,
 
   % SOURCE
-  q_source_file/1,      % -File
+  q_file_name_to_format/2, % +FileName, -Format
+  q_source_file/1,         % -File
 
     % SOURCE ⬄ STORE
     q_generate/2,            % -G, :Goal_1
@@ -174,6 +175,18 @@ print_term0(Term) -->
 
 % SOURCE %
 
+%! q_file_name_to_format(+File, -Format) is det.
+
+q_file_name_to_format(File, Format) :-
+  file_extensions(File, Exts),
+  % The format is determined by the file extensions.
+  (   q_source_format(Format, Exts)
+  ->  true
+  ;   existence_error(source_format, Exts)
+  ).
+
+
+
 %! q_source_format(?Format, ?Exts) is nondet.
 %
 % Enumerates recognized source file formats based on file extensions.
@@ -249,18 +262,13 @@ q_source2store :-
 
 
 q_source2store_file(File) :-
-  file_extensions(File, Exts),
-  % The format is determined by the file extensions.
-  (   q_source_format(Format, Exts)
-  ->  true
-  ;   existence_error(source_format, Exts)
-  ),
+  q_file_name_to_format(File, Format),
   % Derive a hash based on the source file.
   setting(source_dir, Dir),
   directory_file_path(Dir, Local, File),
   file_name(Local, Base),
   time_file(File, Ready),
-  q_source2store_stream(File, Base, Format, Ready).
+  q_source2store_source(File, Base, Format, Ready).
 
 
 q_source2store_source(Source, Base, Format) :-
