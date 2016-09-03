@@ -4,6 +4,7 @@
   % RDF
     qb/2,              % +M, +Quad
     qb/3,              % +M, +Triple, +G
+    qb/4,              % +M, +S, +P, +O
     qb/5,              % +M, +S, +P, +O, +G
    %qb_alias/2,        % +Alias, +Prefix
    %qb_bnode/1,        % -B
@@ -61,7 +62,7 @@
 /** <module> Quine build API
 
 @author Wouter Beek
-@version 2016/06-2016/08
+@version 2016/06-2016/09
 */
 
 :- use_module(library(debug)).
@@ -82,6 +83,7 @@
    % RDF
    qb(+, t),
    qb(+, t, r),
+   qb(+, r, r, o),
    qb(+, r, r, o, r),
    qb_deref(+, r),
    qb_deref(+, r, r),
@@ -132,6 +134,7 @@
 
 %! qb(+M, +Quad) is det.
 %! qb(+M, +Triple, +G) is det.
+%! qb(+M, +S, +P, +O) is det.
 %! qb(+M, +S, +P, +O, +G) is det.
 %
 % @tbd HDT support.
@@ -144,8 +147,10 @@ qb(M, rdf(S,P,O), G) :-
   qb(M, S, P, O, G).
 
 
-%qb(hdt, S, P, O, G) :- !,
-%  q_store_call(gen_ntuple(S, P, O), G).
+qb(stream(State,Out), S, P, O) :-
+  gen_ntuple(S, P, O, State, Out).
+
+
 qb(trp, S, P, O, G) :- !,
   rdf_assert(S, P, O, G).
 

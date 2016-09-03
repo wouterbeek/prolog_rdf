@@ -57,7 +57,6 @@
 :- use_module(library(q/qu)).
 %/rdf
 :- use_module(library(rdf/rdf_compare)).
-:- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph)).
@@ -71,7 +70,6 @@
 :- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_search)).
 :- use_module(library(rdf/rdf_stat)).
-:- use_module(library(rdf/rdf_store)).
 :- use_module(library(rdf/rdf_term)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
