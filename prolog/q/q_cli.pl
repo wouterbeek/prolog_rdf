@@ -164,8 +164,8 @@ q__fs(HashG) :-
 
 
 q__fs(HashG, PageOpts) :-
-  pagination(Dir, q_dir(HashG, Dir), PageOpts, Result),
-  pagination_result(Result, pp_hash_paths(HashG)).
+  pagination(Dir, q_dir(HashG, Dir), PageOpts, Pagination),
+  pagination_result(Pagination, pp_hash_paths(HashG)).
 
 
 
