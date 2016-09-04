@@ -366,8 +366,9 @@ q__x(M, Name, HashG) :-
   q__x(M, _, _, _, Name, HashG).
 
 
-q__x(M, S, P, O, Name, HashG) :-
-  pagination(rdf(S,P,O), q_x(M, S, P, O, Name, HashG), Result),
+q__x(M, S, P, O, Name, Hash) :-
+  q_graph(Hash, Name, G),
+  pagination(rdf(S,P,O), q(M, S, P, O, G), Result),
   pagination_result(Result, q_print_quads).
 
 

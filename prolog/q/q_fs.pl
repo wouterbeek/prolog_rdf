@@ -20,7 +20,8 @@
     q_file_touch_ready/1, % +File
     q_format/1,           % ?Format
     q_format/2,           % ?Format, -Exts
-    q_graph/3,            % +HashG, +Name, -G
+    q_graph/2,            % +Name, ?G
+    q_graph/3,            % +HashG, +Name, ?G
     q_graph_hash/2,       % ?G, ?Hash
     q_graph_hash/3,       % ?G, ?Name, ?Hash
     q_hash/1,             % -Hash
@@ -31,7 +32,7 @@
 /** <module> Quine file system
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08-2016/09
 */
 
 :- use_module(library(apply)).
@@ -275,8 +276,24 @@ q_format(Format, Exts) :-
 
 
 
+%! q_graph(+Name, -G) is nondet.
+%! q_graph(-Name, +G) is nondet.
 %! q_graph(+HashG, +Name, -G) is nondet.
+%! q_graph(-Hash, -Name, +G) is nondet.
 
+q_graph(Name, G) :-
+  ground(G), !,
+  q_dir_graph(Dir, Name, G),
+  q_dir(_, Dir).
+q_graph(Name, G) :-
+  q_hash(Hash),
+  q_graph(Hash, Name, G).
+
+
+q_graph(HashG, Name, G) :-
+  ground(G), !,
+  q_dir_graph(Dir, Name, G),
+  q_dir(HashG, Dir).
 q_graph(HashG, Name, G) :-
   q_dir(HashG, Dir),
   q_dir_graph(Dir, Name, G).
