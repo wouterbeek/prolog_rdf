@@ -631,7 +631,7 @@ qh_link(_, _, _, _, Content_0, Opts) -->
   html(Content_0).
 qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   {
-    get_dict(query, Opts, Query, []),
+    dict_get(query, Opts, [], Query),
     qh_external_iri(C, Term, Query, Link), !
   },
   html([

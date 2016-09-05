@@ -180,7 +180,7 @@ rdf2gml_triple(NOut, EOut, S, P, O, ExportOpts) :-
 %! gml_edge(+EOut, +NId1, +P, +NId2, +ExportOpts) is det
 
 gml_edge(EOut, NId1, P, NId2, ExportOpts) :-
-  get_dict(edge_label_printer, ExportOpts, Dcg_4, dcg_q_print_predicate),
+  dict_get(edge_label_printer, ExportOpts, dcg_q_print_predicate, Dcg_4),
   gml_label(Dcg_4, P, EL, ExportOpts),
   format(EOut, "  edge [ label \"~a\" source ~d target ~d ]~n", [EL,NId1,NId2]).
 
@@ -220,7 +220,7 @@ gml_node(Out, Opts, N, Id) :-
 gml_node0(N, Id, Lbl, _) :-
   node_id0(N, Id, Lbl), !.
 gml_node0(N, Id, Lbl, Opts) :-
-  get_dict(node_label_printer, Opts, Dcg_4, dcg_q_print_node),
+  dict_get(node_label_printer, Opts, dcg_q_print_node, Dcg_4),
   inc_thread_counter(node_id, Id),
   gml_label(Dcg_4, N, Lbl, Opts),
   assert(node_id0(N,Id,Lbl)),

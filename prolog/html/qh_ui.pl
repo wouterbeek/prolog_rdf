@@ -4,8 +4,8 @@
     qh_dataset_graph_menu//4, % +Action, +M, +D, +G
     qh_dataset_table//0,
     qh_dataset_table//1,      %                     +Opts
-    qh_describe//2,           % +M, +S
-    qh_describe//3,           % +M, +S,             +Opts
+    qh_describe//3,           % +M, +S, +G
+    qh_describe//4,           % +M, +S, +G          +Opts
     qh_graph_menu//1,         % +M
     qh_graph_table//0,
     qh_graph_table//1,        %                     +Opts
@@ -29,7 +29,7 @@
 /** <module> Quine HTML UI components
 
 @author Wouter Beek
-@version 2016/07-2016/08
+@version 2016/07-2016/09
 */
 
 :- use_module(library(aggregate)).
@@ -58,8 +58,8 @@
 
 :- rdf_meta
    qh_dataset_graph_menu(+, +, r, r, ?, ?),
-   qh_describe(+, r, ?, ?),
-   qh_describe(+, r, +, ?, ?),
+   qh_describe(+, r, r, ?, ?),
+   qh_describe(+, r, r, +, ?, ?),
    qh_quad_panels(+, r, r, o, r, ?, ?),
    qh_quad_panels(+, r, r, o, r, +, ?, ?),
    qh_quad_table(+, r, r, o, r, ?, ?),
@@ -153,20 +153,20 @@ qh_graph_tree0(t(G,[]), t(q_graph_term(G),[t(Attrs,[])])) :-
 
 
 
-%! qh_describe(+M, +S)// is det.
-%! qh_describe(+M, +S, +Opts)// is det.
+%! qh_describe(+M, +S, +G)// is det.
+%! qh_describe(+M, +S, +G, +Opts)// is det.
 %
 % Generate a full description of subject term S.
 %
 % @tbd Align with (S)CBD.
 
-qh_describe(M, S) -->
-  qh_describe(M, S, _{}).
+qh_describe(M, S, G) -->
+  qh_describe(M, S, G, _{}).
 
 
-qh_describe(M, S, Opts) -->
+qh_describe(M, S, G, Opts) -->
   {
-    findall(P-O, q(M, S, P, O), Pairs),
+    findall(P-O, q(M, S, P, O, G), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
   qh_p_os_table(Groups, Opts).

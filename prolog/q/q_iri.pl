@@ -66,14 +66,18 @@ q_abox_iri(Host, Concept, Refs, Iri) :-
 q_init_ns :-
   setting(iri:data_scheme, Scheme),
   setting(iri:data_auth, Host),
-  uri_components(Prefix1, uri_components(Scheme,Host,'/',_,_)),
-  qb_alias(ns, Prefix1),
-  uri_components(Prefix2, uri_components(Scheme,Host,'/def',_,'')),
-  qb_alias(nsdef, Prefix2),
-  uri_components(Prefix3, uri_components(Scheme,Host,'/doc/',_,_)),
-  qb_alias(nsdoc, Prefix3),
-  uri_components(Prefix4, uri_components(Scheme,Host,'/id/',_,_)),
-  qb_alias(nsid, Prefix4).
+  uri_components(Prefix1, uri_components(Scheme,Host,'/data/',_,_)),
+  qb_alias(data, Prefix1),
+  uri_components(Prefix2, uri_components(Scheme,Host,'/meta/',_,_)),
+  qb_alias(meta, Prefix2),
+  uri_components(Prefix3, uri_components(Scheme,Host,'/',_,_)),
+  qb_alias(ns, Prefix3),
+  uri_components(Prefix4, uri_components(Scheme,Host,'/def',_,'')),
+  qb_alias(nsdef, Prefix4),
+  uri_components(Prefix5, uri_components(Scheme,Host,'/doc/',_,_)),
+  qb_alias(nsdoc, Prefix5),
+  uri_components(Prefix6, uri_components(Scheme,Host,'/id/',_,_)),
+  qb_alias(nsid, Prefix6).
 
 
 

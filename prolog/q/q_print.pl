@@ -603,7 +603,7 @@ dcg_q_print_sorted_pairs0(SortedPairs, Opts) -->
 
 dcg_q_print_groups0([], _) --> !, [].
 dcg_q_print_groups0([G-Triples|Groups], Opts) -->
-  {get_dict(indent, Opts, I1, 0)},
+  {dict_get(indent, Opts, 0, I1)},
   (   {q_default_graph(G)}
   ->  {I2 = I1}
   ;   tab(I1),
