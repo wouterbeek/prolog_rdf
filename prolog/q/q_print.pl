@@ -230,7 +230,7 @@ Print RDF statements.
 
 
 dcg:dcg_hook(q_dataset_term(D)) -->
-  dcg_q_print_dataset(D).
+  dcg_q_print_dataset_term(D).
 dcg:dcg_hook(q_graph_term(G)) -->
   dcg_q_print_graph_term(G).
 dcg:dcg_hook(q_iri(Iri)) -->
@@ -467,7 +467,7 @@ q_print_tree(M, S, G) :-
 
 
 q_print_tree(M, S, G, Opts) :-
-  q_tree(M, S, G, Triples),
+  q_tree_triples(M, S, G, Triples),
   q_print_triples(Triples, Opts).
 
 

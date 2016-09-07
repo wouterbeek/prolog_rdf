@@ -158,10 +158,12 @@ qb(trp, S, P, O, G) :- !,
 
 %! qb_deref(+M, +Iri) is det.
 %! qb_deref(+M, +Iri, +G) is det.
+%
+% @tbd
 
-qb_deref(M, Iri) :-
+qb_deref(_, Iri) :-
   q_view_graph(trp, Iri), !,
-  q_load(M, Iri).
+  rdf_load_file(Iri).
 qb_deref(M, Iri) :-
   qb_deref(M, Iri, Iri).
 

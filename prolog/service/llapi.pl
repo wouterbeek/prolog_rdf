@@ -490,12 +490,12 @@ ll_docs_by_size0(Low, High, SortedPairs) :-
   atom_phrase(sparql_build_select([llo], [doc,ntrips], Bgp), Query),
   findall(Rows, ll_sparql_select(Query, Rows), Rowss),
   findall(
-    NTrips-Doc,
+    NTriples-Doc,
     (
       member(Rows, Rowss),
-      member([Doc,NTripsLit], Rows),
-      NTripsLit = literal(type(_,NTripsA)),
-      atom_number(NTripsA, NTrips)
+      member([Doc,NTriplesLit], Rows),
+      NTriplesLit = literal(type(_,NTriplesA)),
+      atom_number(NTriplesA, NTriples)
     ),
     Pairs
   ),

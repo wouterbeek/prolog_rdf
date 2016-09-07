@@ -51,7 +51,7 @@ q_last(M, L, O, G) :-
 
 
 q_last(M, S, P, O, G) :-
-  q_list0(M, S, P, L, G),
+  q_list(M, S, P, L, G),
   q_last(M, L, O, G).
 
 

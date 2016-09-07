@@ -216,7 +216,7 @@ q_scbd_triples(M, Node, Triples) :-
 
 q_scbd_triples(M, Node, G, Triples) :-
   q_term(M, Node, G),
-  aggregate_all(set(Triple), q_scbd_triple0(M, Node, G, Triple), Triples).
+  aggregate_all(set(Triple), q_scbd_triple(M, Node, G, Triple), Triples).
 
 
 

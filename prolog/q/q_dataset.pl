@@ -21,7 +21,7 @@
 /** <module> Quine dataset
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08-2016/09
 */
 
 :- use_module(library(aggregate)).
@@ -35,6 +35,7 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(persistency)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(tree/s_tree)).
 
 :- initialization(db_attach('q_dataset.db', [])).
 
@@ -123,7 +124,8 @@ q_dataset_iri(Ref, D) :-
 %! q_dataset_ls is det.
 
 q_dataset_ls :-
-  q_ls(q_dataset_graph).
+  aggregate_all(D-G, q_dataset_graph(D, G), Pairs),
+  (pairs_to_tree(Pairs, Tree) -> print_tree(Tree) ; writeln("∅")).
 
 
 

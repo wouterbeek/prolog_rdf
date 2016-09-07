@@ -82,7 +82,7 @@ Most transformation predicates allow their applicability to be scoped
 to predicate and/or graph.
 
 @author Wouter Beek
-@version 2016/06-2016/08
+@version 2016/06-2016/09
 */
 
 :- use_module(library(aggregate)).
@@ -90,6 +90,7 @@ to predicate and/or graph.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
+:- use_module(library(math/math_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_iri)).
@@ -473,7 +474,7 @@ qu_change_val(M1, M2, S, P, DParent, G, Goal_2) :-
     ),
     (
       call(Goal_2, Val1, Val2),
-      rdf_typecheck(D, Val2),
+      q_datatype_check(D, Val2),
       qu(M1, M2, S, P, Val1^^D, G, object(Val2^^D))
     )
   ).

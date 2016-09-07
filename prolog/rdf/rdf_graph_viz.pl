@@ -83,7 +83,7 @@ create_namespace_map(Aliases, Scheme, Map) :-
 
 
 
-%! rdf_edges_to_export_graph(+Trips, -ExportG, +Opts) is det.
+%! rdf_edges_to_export_graph(+Triples, -ExportG, +Opts) is det.
 %
 % The following options are supported:
 %

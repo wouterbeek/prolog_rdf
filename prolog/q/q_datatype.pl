@@ -3,6 +3,7 @@
   [
     q_col_datatype/3,          % ?M, +P, -D
     q_col_datatype/4,          % ?M, +P, ?G, -D
+    q_datatype_check/2,        % +D, +Val
     q_datatype_compat/2,       % +Lex, -D
     q_datatype_compat_min/2,   % +Lex, -D
     q_datatypes_compat/3,      % ?M, +P, -Ds
@@ -17,7 +18,7 @@
 /** <module> RDF datatype
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06, 2016/09
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -61,6 +62,13 @@ q_col_datatype(M, P, G, D) :-
   q(M, _, P, O, G),
   q_literal_datatype(O, D), !,
   forall(q(M, _, P, O0, G), q_literal_datatype(O0, D)).
+
+
+
+%! q_datatype_check(+D, +Val) is semidet.
+
+q_datatype_check(D, Val) :-
+  rdf11:in_ground_type(D, Val, _).
 
 
 

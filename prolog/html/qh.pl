@@ -450,7 +450,7 @@ qh_property(Prop) -->
 
 qh_property(Prop, Opts1) -->
   {qh_default_options(Opts1, Opts2)},
-  qh_property_outer0(_, [], Opts2, Prop).
+  qh_property_outer0(property, [property], Opts2, Prop).
 
 
 qh_property_outer0(C, Cs1, Opts, Prop) -->
@@ -468,7 +468,11 @@ qh_property_path(Props) -->
 
 qh_property_path(Props, Opts1) -->
   {qh_default_options(Opts1, Opts2)},
-  html_seplist(qh_property0(Opts2), " ", Props).
+  html_seplist(
+    qh_property_outer0(property, [property], Opts2),
+    " ",
+    Props
+  ).
 
 
 

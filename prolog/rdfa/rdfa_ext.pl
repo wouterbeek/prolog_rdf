@@ -432,4 +432,4 @@ sioc_content(M, Article, G) -->
 
 sioc_reply_of(M, Comment, G) -->
   {once(q(M, Comment, sioc:reply_of, Article, G))},
-  html(span(rel='sioc:reply_of', \'dc:title'(M, Article, G))). %'
+  html(span(rel='sioc:reply_of', \dc_title(M, Article, G))).
