@@ -397,8 +397,11 @@ hdt_prepare_base(Base, File3) :-
   atomic_list_concat([Base,nq,gz], ., File1),
   exists_file(File1), !,
   atomic_list_concat([Base,nt,gz], ., File2),
-  rdf_change_format(File1, File2, [from_format(nquads),to_format(ntriples)]),
-  hdt_prepare_base(Base, File3).
+  setup_call_cleanup(
+    rdf_change_format(File1, File2, [from_format(nquads),to_format(ntriples)]),
+    hdt_prepare_base(Base, File3),
+    delete_file(File2)
+  ).
 
 
 

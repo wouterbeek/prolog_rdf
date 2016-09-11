@@ -239,7 +239,7 @@ dc_abstract(M, Res, G) -->
 
 dc_abstract(M, Res, G, Opts) -->
   {once(dc_abstract(M, Res, Abstract, G))},
-  html(div(property='dc:abstract', \qh_literal(Abstract, Opts))).
+  html(p(property='dc:abstract', \qh_literal(Abstract, Opts))).
 
 
 

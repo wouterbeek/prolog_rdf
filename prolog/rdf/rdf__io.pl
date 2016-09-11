@@ -652,7 +652,7 @@ rdf_file_name0(File, Opts) :-
 
 rdf_file_name0(Base, File, Opts) :-
   rdf_write_format0(_, Opts, Format),
-  rdf_default_file_extension(Ext, Format),
+  rdf_default_file_extension(Format, Ext),
   file_name_extension(Base, Ext, File).
 
 
@@ -661,7 +661,7 @@ rdf_write_format0(_, Opts, Format) :-
 rdf_write_format0(File, _, Format) :-
   is_absolute_file_name(File),
   file_name_extension(_, Ext, File),
-  rdf_default_file_extension(Ext, Format), !.
+  rdf_default_file_extension(Format, Ext), !.
 rdf_write_format0(_, _, nquads).
 
 
@@ -761,7 +761,7 @@ set_rdf_format_and_encoding(In, [H1|T], [H2|T], Opts) :-
   (   get_base_iri(BaseIri, [H1|T], Opts),
       iri_file_extensions(BaseIri, Exts),
       member(Ext, Exts),
-      rdf_default_file_extension(Ext, Format)
+      rdf_default_file_extension(Format, Ext)
   ->  FormatOpts = [default_rdf_format(Format)]
   ;   FormatOpts = []
   ),
