@@ -7,7 +7,7 @@
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(html/html_bs)).
+:- use_module(library(html/html_ext)).
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
@@ -54,4 +54,4 @@ qh:qh_literal_hook(Array^^D, Opts) -->
     rdf_equal(tcco:array, D), !,
     q_literal_lex(Array^^D, Lex)
   },
-  bs_truncated(Lex, Opts.max_lit_len).
+  truncated(Lex, Opts.max_lit_len).

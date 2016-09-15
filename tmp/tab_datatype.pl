@@ -15,7 +15,6 @@ Generated HTML overviews of singular and of multiple datatype IRIs.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/zh)).
 :- use_module(library(http/html_write)).
@@ -61,17 +60,19 @@ rdf_datatype_table(D, Pairs, ColumnHeader) -->
     desc_pairs(Pairs, DescPairs),
     findall([H|T], member(H-T, DescPairs), Rows)
   },
-  bs_table(
+  table(
     html(["Overview of datatype IRI ",\zh_datatype(D),"."]),
-    \html_table_header_row(["Number of literals","Lexical from","Datatype IRI",ColumnHeader]),
-    \html_maplist(html_table_data_row, Rows)
+    \table_header_row(["Number of literals","Lexical from","Datatype IRI",ColumnHeader]),
+    \html_maplist(table_data_row, Rows)
   ).
 
 
 
 %! tab_datatypes(?G)// is det.
-% Generates an HTML enumeration of datatypes in the given graph (if given),
-% sorted by the number of occurrences (as a proxy for relevance).
+%
+% Generates an HTML enumeration of datatypes in the given graph (if
+% given), sorted by the number of occurrences (as a proxy for
+% relevance).
 
 tab_datatypes(G) -->
   {
@@ -93,9 +94,9 @@ tab_datatypes(G) -->
   },
   (   {Rows == []}
   ->  html([])
-  ;   bs_table(
+  ;   table(
         html(["Overview of datatype IRIs in graph ",\zh_graph(G),"."]),
-        html_table_header_row(["Number of literals","Datatype IRI"]),
-        html_maplist(html_table_data_row, Rows)
+        table_header_row(["Number of literals","Datatype IRI"]),
+        html_maplist(table_data_row, Rows)
       )
   ).

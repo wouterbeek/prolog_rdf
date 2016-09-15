@@ -69,7 +69,6 @@ The following options are supported to achieve parity with module
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(http/html_write)).
@@ -346,12 +345,12 @@ qh_literal_inner(V^^D, _) -->
 qh_literal_inner(Str@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
   html([
-    span(lang(LTag), \bs_truncated(Str, Opts.max_lit_len)),
+    span(lang(LTag), \truncated(Str, Opts.max_lit_len)),
     " ",
     \flag_icon(LTag)
   ]).
 qh_literal_inner(Str@LTag, Opts) --> !,
-  html(span(lang=LTag, \bs_truncated(Str, Opts.max_lit_len))).
+  html(span(lang=LTag, \truncated(Str, Opts.max_lit_len))).
 % XSD boolean
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:boolean)}, !,
@@ -394,7 +393,7 @@ qh_literal_inner(V^^D, _) -->
 % XSD string
 qh_literal_inner(Str^^D, Opts) -->
   {q_subdatatype_of(D, xsd:string)}, !,
-  bs_truncated(Str, Opts.max_lit_len).
+  truncated(Str, Opts.max_lit_len).
 % XSD URI
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:anyURI)}, !,

@@ -16,7 +16,7 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt)).
-:- use_module(library(html/html_bs)).
+:- use_module(library(html/html_ext)).
 :- use_module(library(q/q_array), []).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
@@ -72,7 +72,7 @@ qh:qh_literal_hook(Array^^D, Opts) -->
     rdf_global_id(wkt:_, D), !,
     q_literal_lex(Array^^D, Lex)
   },
-  bs_truncated(Lex, Opts.max_lit_len).
+  truncated(Lex, Opts.max_lit_len).
 
 
 

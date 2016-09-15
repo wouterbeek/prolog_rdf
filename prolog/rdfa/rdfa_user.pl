@@ -12,7 +12,6 @@
 @version 2016/06-2016/08
 */
 
-:- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_user)).
@@ -34,7 +33,7 @@
 %! rdfa_user_menu(+M, +G)// is det.
 
 rdfa_user_menu(M, G) -->
-  bs_user_menu(
+  user_menu(
     {M,G}/[Agent,Name]>>agent_name(M, Agent, Name, G),
     {M,G}/[Agent,Img]>>agent_image(M, Agent, Img, G)
   ).
@@ -65,6 +64,6 @@ rdfa_user_menu_button(_, _, _) -->
   {login_link(Link)},
   html(
     span(id='user-menu',
-      \bs_icon_button(user, 'window.location="'+Link+'";')
+      \icon_button(user, 'window.location="'+Link+'";')
     )
   ).

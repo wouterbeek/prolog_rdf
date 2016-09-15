@@ -60,7 +60,7 @@ print_expression0(T) -->
 
 print_premise(I, P) -->
   "P",
-  html_thousands(I),
+  thousands(I),
   ": ",
   print_expression0(P).
 

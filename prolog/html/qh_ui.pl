@@ -36,7 +36,6 @@
 :- use_module(library(apply)).
 :- use_module(library(dict_ext)).
 :- use_module(library(gis/gis)).
-:- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
@@ -82,7 +81,7 @@ qh_dataset_graph_menu(Action, M, D, G) -->
     q_dataset_trees(M, number_of_triples, Trees),
     Trees \== []
   }, !,
-  bs_dropdown_menu(
+  nav_dropdown_menu(
     Action,
     'dataset-graph-menu',
     "Graph",
@@ -136,9 +135,9 @@ qh_dataset_table(Opts1) -->
     q_dataset_trees(_, Opts2.order, Trees1),
     maplist(qh_dataset_tree0, Trees1, Trees2)
   },
-  bs_table(
-    \html_table_header_row(HeaderRow),
-    \html_table_trees(html:html_hook(Opts2), Trees2)
+  table(
+    \table_header_row(HeaderRow),
+    \table_trees(html:html_hook(Opts2), Trees2)
   ).
 
 
@@ -185,7 +184,7 @@ qh_graph_menu(M) -->
     ),
     Gs \== []
   },
-  bs_dropdown_menu('graph-menu', "Graph", qh_graph_menu_item(false), Gs).
+  nav_dropdown_menu('graph-menu', "Graph", qh_graph_menu_item(false), Gs).
 qh_graph_menu(_) --> [].
 
 
@@ -207,7 +206,7 @@ qh_graph_table(Opts1) -->
     q_graph_table_comps(HeaderRow, DataRows),
     qh_default_table_options(Opts1, Opts2)
   },
-  bs_table_content(html:html_hook(Opts2), [head(HeaderRow)|DataRows]).
+  table_content(html:html_hook(Opts2), [head(HeaderRow)|DataRows]).
 
 
 
@@ -223,8 +222,8 @@ qh_p_os_table(Groups, Opts1) -->
     HeaderRow = [string("Predicate"),string("Objects")],
     qh_default_table_options(Opts1, Opts2)
   },
-  bs_table(
-    \html_table_header_row(HeaderRow),
+  table(
+    \table_header_row(HeaderRow),
     \html_maplist(qh_p_os_row0(Opts2), Groups)
   ).
 
@@ -252,7 +251,7 @@ qh_quad_panels(M, S, P, O, G, Opts1) -->
     findall(G-Triple, q_triple(M, S, P, O, G, Triple), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
-  bs_panels({Opts2}/[Group]>>qh_triple_table(Group, Opts2), Groups).
+  panels({Opts2}/[Group]>>qh_triple_table(Group, Opts2), Groups).
 
 
 
@@ -275,8 +274,8 @@ qh_quad_table(Quads, Opts1) -->
     ],
     qh_default_table_options(Opts1, Opts2)
   },
-  bs_table(
-    \html_table_header_row(HeaderRow),
+  table(
+    \table_header_row(HeaderRow),
     \html_maplist(qh_quad_row0(Opts2), Quads)
   ).
 
@@ -381,8 +380,8 @@ qh_triple_table(Triples, Opts1) -->
     HeaderRow = [string("Subject"),string("Predicate"),string("Object")],
     qh_default_table_options(Opts1, Opts2)
   },
-  bs_table(
-    \html_table_header_row(HeaderRow),
+  table(
+    \table_header_row(HeaderRow),
     \html_maplist(qh_triple_row0(Opts2), Triples)
   ).
 

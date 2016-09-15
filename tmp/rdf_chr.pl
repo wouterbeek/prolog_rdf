@@ -333,8 +333,8 @@ http_info(L, Major-Minor, S) -->
   ]).
 
 http_headers0(L) -->
-  bs_table(
-    \html_table_header_row(["Header","Value"]),
+  table(
+    \table_header_row(["Header","Value"]),
     \html_maplist(http_header_row0, L)
   ).
 

@@ -50,7 +50,6 @@
 :- use_module(library(apply)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(hash_ext)).
-:- use_module(library(html/html_bs)).
 :- use_module(library(html/html_date_time_human)).
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(html/html_ext)).
@@ -337,7 +336,7 @@ foaf_homepage(M, Agent, Iri, G) :-
 
 foaf_homepage(M, Agent, G) -->
   {once(foaf_homepage(M, Agent, Iri, G))},
-  external_link(Iri, [rel='foaf:homepage'], [\bs_icon(web)," ",code(Iri)]).
+  external_link(Iri, [rel='foaf:homepage'], [\icon(web)," ",code(Iri)]).
 
 
 

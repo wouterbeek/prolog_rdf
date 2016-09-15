@@ -12,7 +12,6 @@
 */
 
 :- use_module(library(html/html_ext)).
-:- use_module(library(html/html_grid)).
 :- use_module(library(html/qh)).
 :- use_module(library(rdf/rdf_grid)).
 :- use_module(library(semweb/rdf11)).
@@ -31,7 +30,7 @@
 
 qh_grid(G) -->
   {rdf_grid(G, Widgets)},
-  html_grid(qh_grid:Widgets).
+  grid(qh_grid:Widgets).
 
 
 archive_entry(S, P, Pairs) -->
@@ -120,7 +119,7 @@ po_pair0(P-O) -->
 
 rdf_tuples(_, Quads, Triples, Duplicates) -->
   html([
-    p(["Triples: ",\html_thousands(Triples)]),
-    p(["Quads: ",\html_thousands(Quads)]),
-    p(["Duplicates: ",\html_thousands(Duplicates)])
+    p(["Triples: ",\thousands(Triples)]),
+    p(["Quads: ",\thousands(Quads)]),
+    p(["Duplicates: ",\thousands(Duplicates)])
   ]).

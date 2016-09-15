@@ -292,6 +292,9 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
 
 
 rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
+  %flag(rdf_call_on_quad0, N, N + 1),
+  %format(user_output, "~D~n", [N]),
+  %(N =:= 715769 -> gtrace ; true),
   rdf11:post_graph(G2, G1),
   (G2 == user -> q_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)

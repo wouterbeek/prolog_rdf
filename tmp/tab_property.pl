@@ -16,7 +16,6 @@ Generates HTML tables that descrive RDF predicate terms.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(html/html_bs)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/zh)).
 :- use_module(library(http/html_write)).
@@ -66,9 +65,9 @@ tab_property_domain(Prop) -->
       Rows
     )
   },
-  bs_table(
+  table(
     html(["Overview of the domain of property ",\zh_property(Prop),"."]),
-    html_table_header_row(["Class"]),
+    table_header_row(["Class"]),
     html_maplist(zh_class_row, Rows)
   ).
 
@@ -84,9 +83,9 @@ tab_property_range(Prop) -->
       Rows
     )
   },
-  bs_table(
+  table(
     html(["Overview of the range of property ",\zh_property(Prop),"."]),
-    html_table_header_row(["Class"]),
+    table_header_row(["Class"]),
     html_maplist(zh_class_row, Rows)
   ).
   
@@ -103,14 +102,14 @@ tab_predicate_literals(P) -->
     ),
     length(Rows, Len)
   },
-  bs_table(
+  table(
     html([
       \qh_predicate(P),
       " has ",
-      \html_thousands(Len),
+      \thousands(Len),
       " unique values."
     ]),
-    \html_table_header_row(["Literal value"]),
+    \table_header_row(["Literal value"]),
     \html_maplist(zh_literal_row, Rows)
   ).
 
@@ -128,10 +127,10 @@ tab_properties(G) -->
     list_truncate(DescPairs, 100, TopPairs),
     maplist(tab_properties_row0, TopPairs, TopRows)
   },
-  bs_table(
+  table(
     html(["Overview of properties",\zh_in_graph(G),"."]),
-    html_table_header_row(['Property','Occurrences']),
-    maplist(html_table_data_row, TopRows)
+    table_header_row(['Property','Occurrences']),
+    maplist(table_data_row, TopRows)
   ).
 rdf_number_of_triples0(P, N):-
   rdf_number_of_triples(_, P, _, N).
