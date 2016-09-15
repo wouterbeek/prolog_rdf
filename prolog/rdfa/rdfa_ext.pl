@@ -152,7 +152,7 @@ agent_name(M, Agent, Str, G) :-
   foaf_familyName(M, Agent, FamilyName, G), !,
   q_literal_string(GivenName, Str1),
   q_literal_string(FamilyName, Str2),
-  string_list_concat([Str1,Str2], " ", Str).
+  atomics_to_string([Str1,Str2], " ", Str).
 agent_name(M, Agent, Str, G) :-
   foaf_name(M, Agent, Name, G),
   q_literal_string(Name, Str).
