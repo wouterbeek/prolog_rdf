@@ -29,7 +29,9 @@
 
 %! rdf_guess_format(+In, -Format) is det.
 %! rdf_guess_format(+In, -Format, +Opts) is det.
+%
 % The following options are supported:
+%
 %   * default_rdf_format(+rdf_format)
 
 rdf_guess_format(In, Format) :-
@@ -44,14 +46,12 @@ rdf_guess_format0(In, I, Format, Opts) :-
   N is 1000 * 2 ^ I,
   peek_string(In, N, S),
   debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
-
-  % Try to parse the peeked string as Turtle- or XML-like.
+  % Try to parse the peeked string as Turtle- or XML-family.
   (   rdf_guess_jsonld(S, N),
       Format = jsonld
   ;   rdf_guess_turtle(S, N, Format, Opts)
   ;   rdf_guess_xml(S, Format)
   ), !,
-
   debug(rdf(guess), "Assuming ~a based on heuristics.", [Format]).
 rdf_guess_format0(In, I1, Format, Opts) :-
   I1 < 4,

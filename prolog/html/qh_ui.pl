@@ -125,12 +125,7 @@ qh_dataset_table -->
 
 qh_dataset_table(Opts1) -->
   {
-    HeaderRow = [
-      string("Dataset"),
-      string("Graph"),
-      string("№ triples"),
-      string("Store")
-    ],
+    HeaderRow = ["Dataset","Graph","№ triples","Store"],
     qh_default_table_options(Opts1, Opts2),
     q_dataset_trees(_, Opts2.order, Trees1),
     maplist(qh_dataset_tree0, Trees1, Trees2)
@@ -219,7 +214,7 @@ qh_p_os_table(Groups) -->
 
 qh_p_os_table(Groups, Opts1) -->
   {
-    HeaderRow = [string("Predicate"),string("Objects")],
+    HeaderRow = ["Predicate","Objects"],
     qh_default_table_options(Opts1, Opts2)
   },
   table(
@@ -266,12 +261,7 @@ qh_quad_table(Quads) -->
 
 qh_quad_table(Quads, Opts1) -->
   {
-    HeaderRow = [
-      string("Subject"),
-      string("Predicate"),
-      string("Object"),
-      string("Graph")
-    ],
+    HeaderRow = ["Subject","Predicate","Object","Graph"],
     qh_default_table_options(Opts1, Opts2)
   },
   table(
@@ -377,7 +367,7 @@ qh_triple_table(Triples) -->
 
 qh_triple_table(Triples, Opts1) -->
   {
-    HeaderRow = [string("Subject"),string("Predicate"),string("Object")],
+    HeaderRow = ["Subject","Predicate","Object"],
     qh_default_table_options(Opts1, Opts2)
   },
   table(
