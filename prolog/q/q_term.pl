@@ -62,6 +62,7 @@
    %q_transaction/1,       % :Goal_0
    %q_transaction/2,       % :Goal_0, +Id
    %q_transaction/3,       % :Goal_0, +Is, +Opts
+    q_type/3,              % +M, +G, -C
     ll_is_bnode/1          % @Term
   ]
 ).
@@ -619,6 +620,21 @@ q_term(hdt0, Term, Hdt) :-
   hdt_term0(Term, Hdt).
 q_term(trp, Term, G) :-
   rdf_term(Term, G).
+
+
+
+%! q_type(+M, +G, -C) is nondet.
+%
+% Generates classes for which there is at least one instance in graph
+% G.
+%
+% @tbd Add entailment.
+
+q_type(M, G, C) :-
+  distinct(C, (
+    q_subject(M, I, G),
+    q_instance(M, I, C)
+  )).
 
 
 

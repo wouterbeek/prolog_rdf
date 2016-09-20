@@ -86,13 +86,10 @@ The following options are supported to achieve parity with module
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
-
-:- html_meta
-   qh_link(+, +, +, html, ?, ?),
-   qh_link(+, +, +, html, +, ?, ?),
-   qh_link(+, +, +, +, html, +, ?, ?).
+:- use_module(library(typecheck)).
 
 :- multifile
+    html:html_hook//1,
     html:html_hook//2,
     qh_literal_hook//2,
     rdf11:in_ground_type_hook/3,
@@ -137,8 +134,9 @@ The following options are supported to achieve parity with module
      "ID of the HTTP handler that performs RDF term lookup."
    ).
 
-html:html_hook(_, q_alias(Alias), _) -->
+html:html_hook(q_alias(Alias)) -->
   qh_alias(Alias).
+
 html:html_hook(Opts, q_dataset_term(D)) -->
   qh_dataset_term(D, Opts).
 html:html_hook(Opts, q_graph_term(G)) -->
@@ -181,7 +179,7 @@ qh_bnode_outer0(C, Cs1, Opts, B) -->
     ord_add_element(Cs1, bnode, Cs2),
     q_bnode_map(B, Lbl)
   },
-  qh_link(C, Cs2, B, \qh_bnode_inner(Lbl, Opts), Opts).
+  qh_link(C, Cs2, B, qh_bnode_inner(Lbl, Opts), Opts).
 
 
 qh_bnode_inner(B, _) -->
@@ -222,7 +220,7 @@ qh_dataset_term(D, Opts1) -->
 
 qh_dataset_term_outer0(C, Cs1, Opts, D) -->
   {ord_add_element(Cs1, dataset, Cs2)},
-  qh_link(C, Cs2, [dataset=D], D, \qh_dataset_term_inner(D, Opts), Opts).
+  qh_link(C, Cs2, [dataset=D], D, qh_dataset_term_inner(D, Opts), Opts).
 
 
 qh_dataset_term_inner(D, _) -->
@@ -269,7 +267,7 @@ qh_graph_term(G, Opts1) -->
 
 qh_graph_term_outer0(C, Cs1, Opts, G) -->
   {ord_add_element(Cs1, graph, Cs2)},
-  qh_link(C, Cs2, [graph=G], G, \qh_graph_term_inner(G, Opts), Opts).
+  qh_link(C, Cs2, [graph=G], G, qh_graph_term_inner(G, Opts), Opts).
 
 
 qh_graph_term_inner(G, Opts) -->
@@ -299,7 +297,7 @@ qh_iri(Iri, Opts1) -->
 
 qh_iri_outer0(C, Cs1, Opts, Iri) -->
   {ord_add_element(Cs1, iri, Cs2)},
-  qh_link(C, Cs2, Iri, \qh_iri_inner(Iri, Opts), Opts).
+  qh_link(C, Cs2, Iri, qh_iri_inner(Iri, Opts), Opts).
 
 
 % Abbreviated notation for IRI.
@@ -334,7 +332,7 @@ qh_literal_outer0(C, Cs1, Opts, Lit) -->
     ord_add_element(Cs1, literal, Cs2),
     q_literal_datatype(Lit, D)
   },
-  qh_link(C, Cs2, [datatype=D], Lit, \qh_literal_inner(Lit, Opts), Opts).
+  qh_link(C, Cs2, [datatype=D], Lit, qh_literal_inner(Lit, Opts), Opts).
 
 
 % RDF HTML
@@ -345,12 +343,12 @@ qh_literal_inner(V^^D, _) -->
 qh_literal_inner(Str@LTag, Opts) -->
   {get_dict(show_flag, Opts, true)}, !,
   html([
-    span(lang(LTag), \truncated(Str, Opts.max_lit_len)),
+    span(lang(LTag), \ellipsis(Str, Opts.max_lit_len)),
     " ",
     \flag_icon(LTag)
   ]).
 qh_literal_inner(Str@LTag, Opts) --> !,
-  html(span(lang=LTag, \truncated(Str, Opts.max_lit_len))).
+  html(span(lang=LTag, \ellipsis(Str, Opts.max_lit_len))).
 % XSD boolean
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:boolean)}, !,
@@ -393,7 +391,7 @@ qh_literal_inner(V^^D, _) -->
 % XSD string
 qh_literal_inner(Str^^D, Opts) -->
   {q_subdatatype_of(D, xsd:string)}, !,
-  truncated(Str, Opts.max_lit_len).
+  ellipsis(Str, Opts.max_lit_len).
 % XSD URI
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:anyURI)}, !,
@@ -631,14 +629,14 @@ qh_link(C, Cs, Term, Content_0, Opts) -->
 
 qh_link(_, _, _, _, Content_0, Opts) -->
   {Opts.qh_link == false}, !,
-  html(Content_0).
+  html_call(Content_0).
 qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
   {
     dict_get(query, Opts, [], Query),
     qh_external_iri(C, Term, Query, Link), !
   },
   html([
-    a([class=Cs,href=Link|Attrs], Content_0),
+    a([class=Cs,href=Link|Attrs], \html_call(Content_0)),
     \qh_link_external(Term)
   ]).
 qh_link(_, _, _, _, Content_0, _) -->
@@ -646,6 +644,6 @@ qh_link(_, _, _, _, Content_0, _) -->
 
 
 qh_link_external(Term) -->
-  {q_is_iri(Term)}, !,
+  {is_http_iri(Term)}, !,
   html([" ",\external_link_icon(Term)]).
 qh_link_external(_) --> [].

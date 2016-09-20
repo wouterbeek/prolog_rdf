@@ -54,4 +54,4 @@ qh:qh_literal_hook(Array^^D, Opts) -->
     rdf_equal(tcco:array, D), !,
     q_literal_lex(Array^^D, Lex)
   },
-  truncated(Lex, Opts.max_lit_len).
+  ellipsis(Lex, Opts.max_lit_len).

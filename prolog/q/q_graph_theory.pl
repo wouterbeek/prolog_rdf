@@ -1,7 +1,6 @@
 :- module(
   q_graph_theory,
   [
-    q_ego/3,         % +S, +Depth, -Triples
     q_graph_edges/2, % ?G, -Es
     q_triple_edge/2  % ?Triple, ?E
   ]
@@ -10,11 +9,12 @@
 /** <module> Quine graph theory
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06, 2016/09
 */
 
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    q_graph_edges(r, -).

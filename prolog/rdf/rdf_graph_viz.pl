@@ -148,8 +148,8 @@ rdf_graph_to_export_graph(G, ExportG, Opts) :-
 
 rdf_term_to_export_graph(T, ExportG, Opts1) :-
   select_option(depth(Depth), Opts1, Opts2, 1),
-  q_ego(T, Depth, Ts),
-  maplist(q_triple_edge, Ts, Es),
+  q_ego(T, Depth, Triples),
+  maplist(q_triple_edge, Triples, Es),
   rdf_edges_to_export_graph(Es, ExportG, Opts2).
 
 

@@ -68,6 +68,7 @@
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).

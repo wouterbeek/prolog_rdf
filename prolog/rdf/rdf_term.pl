@@ -151,7 +151,7 @@ rdf_predicate(P, G) :-
 rdf_subject(S, G) :-
   % [O] In memory we can pre-enumerate and pre-check syntax.
   (var(S) -> rdf_subject(S) ; rdf_is_subject(S)),
-  distinct(G, rdf(S, _, _, G)).
+  (var(G) -> distinct(G, rdf(S, _, _, G)) ; once(rdf(S, _, _, G))).
 
 
 

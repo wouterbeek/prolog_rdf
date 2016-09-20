@@ -206,13 +206,12 @@ jsonld_ptree(M, PDefs, DefLang, Tree, G, P1, P2-O2) :-
 
 %! jsonld_oterm(+M, +PDefs, ?DefLang, +P, +G, +O, -DictO) is det.
 
-jsonld_oterm(M, PDefs, _, P2, G, O1, Elems2) :-
+jsonld_oterm(M, PDefs, _, P2, G, O1, L2) :-
   q_is_subject(O1),
-  q_list(M, O1, G),
+  q_maximal_list(M, O1, L1, G),
   memberchk(P2-PDef, PDefs),
   '@list' == PDef.get('@container'), !,
-  findall(Elem1, q_list_member(M, O1, Elem1, G), Elems1),
-  maplist(jsonld_abbreviate_iri0, Elems1, Elems2).
+  maplist(jsonld_abbreviate_iri0, L1, L2).
 jsonld_oterm(_, PDefs, _DefLang, P2, _, O1, O2) :-
   O1 = Lex@LTag, !,
   (   memberchk(P2-PDef, PDefs),
@@ -267,10 +266,13 @@ p_defs(_, _, [], _, []).
 % Predicate P always has an RDF container as its object term.
 
 p_container(M, Triples, P, G) :-
-  forall(member(rdf(_,P,O), Triples), (
-    q_is_subject(O),
-    q_list(M, O, G)
-  )).
+  forall(
+    member(rdf(_,P,O), Triples),
+    (
+      q_is_subject(O),
+      q_maximal_list(M, O, G)
+    )
+  ).
 
 
 

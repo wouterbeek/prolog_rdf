@@ -135,12 +135,12 @@ rdf_store_warning(Out, Doc, error(domain_error(rdf_format,Format),_)) :- !,
   write_ntriple(Out, Doc, nsdef:no_rdf_serialization_format, Format^^xsd:string).
 % Permission: redirect
 rdf_store_warning(Out, Doc, error(permission_error(redirect,http,Object),context(_,Msg1))) :- !,
-  atom_truncate(Msg1, 500, Msg2),
+  atom_ellipsis(Msg1, 500, Msg2),
   format(string(String), "[~a] ~a", [Object,Msg2]),
   write_ntriple(Out, Doc, nsdef:http_redirect_permission_error, String^^xsd:string).
 % SGML parser
 rdf_store_warning(Out, Doc, sgml(sgml_parser(_),_,Line,Msg1)) :- !,
-  atom_truncate(Msg1, 500, Msg2),
+  atom_ellipsis(Msg1, 500, Msg2),
   format(string(String), "[~w] ~a", [Line,Msg2]),
   write_ntriple(Out, Doc, nsdef:sgml_parser_error, String^^xsd:string).
 % Socket error
@@ -178,7 +178,7 @@ rdf_store_warning(Out, Doc, error(ssl_error(ssl_verify),_)) :- !,
   write_ntriple(Out, Doc, nsdef:ssl_error, nsdef:ssl_verify).
 % Syntax error
 rdf_store_warning(Out, Doc, error(syntax_error(Msg1),stream(_,Line,Col,Char))) :- !,
-  atom_truncate(Msg1, 500, Msg2),
+  atom_ellipsis(Msg1, 500, Msg2),
   maplist(defval(unknown), [Line,Col,Char]),
   format(string(String), "[~w:~w:~w] ~a", [Line,Col,Char,Msg2]),
   write_ntriple(Out, Doc, nsdef:syntax_error, String^^xsd:string).
@@ -198,11 +198,11 @@ rdf_store_warning(Out, Doc, rdf(not_a_name(XmlName))) :- !,
 % RDF/XML: cannot parse
 rdf_store_warning(Out, Doc, rdf(unparsed(Dom))) :- !,
   rdf11:in_xml_literal(xml, Dom, A1),
-  atom_truncate(A1, 500, A2),
+  atom_ellipsis(A1, 500, A2),
   write_ntriple(Out, Doc, nsdef:rdf_xml_parser_error, A2^^xsd:string).
 % XML: DOM error
 rdf_store_warning(Out, Doc, error(type_error(xml_dom,A1),_)) :- !,
-  atom_truncate(A1, 500, A2),
+  atom_ellipsis(A1, 500, A2),
   write_ntriple(Out, Doc, nsdef:no_xml_dom, A2^^xsd:string).
 
 

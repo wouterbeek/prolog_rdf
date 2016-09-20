@@ -9,6 +9,7 @@
     q_derefs/2,            % +Iri, -Quads
     q_derefs/3,            % +Iri, -POs, -SPs
     q_derefs/4,            % +Iri, -POs, -SPs, -Rest
+    q_instance/3,          % +M, ?I, ?C
     q_instance/4,          % +M, ?I, ?C, ?G
     q_is_def_quad/1,       % @Term
     q_is_ground_quad/1,    % @Term
@@ -117,6 +118,7 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_domain(?, r, r, r),
    q_identity(?, r, r, r),
    q_image(?, r, -, r),
+   q_instance(?, r, r),
    q_instance(?, r, r, r),
    q_lts(?, r, r, -),
    q_lts(?, r, r, r, -),
@@ -277,7 +279,12 @@ q_image(M, S, Img, G) :-
 
 
 
+%! q_instance(+M, ?I, ?C) is nondet.
 %! q_instance(+M, ?I, ?C, ?G) is nondet.
+
+q_instance(M, I, C) :-
+  q_instance(M, I, C, _).
+
 
 q_instance(M, I, C, G) :-
   q(M, I, rdf:type, C, G).

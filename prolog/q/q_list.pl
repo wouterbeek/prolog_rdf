@@ -1,14 +1,20 @@
 :- module(
   q_list,
   [
-    q_last/4,         % ?M, ?L, ?O, ?G
-    q_last/5,         % ?M, ?S, ?P, ?O, ?G
-    q_list/3,         % ?M, ?L, ?G
-    q_list/5,         % ?M, ?S, ?P, ?L, ?G
-    q_list_member/4,  % ?M, ?L, ?O, ?G
-    q_list_member/5,  % ?M, ?S, ?P, ?O, ?G
+    q_last/4,         % ?M, ?L,  ?O,  ?G
+    q_last/5,         % ?M, ?S,  ?P,  ?O, ?G
+    q_list/3,         % ?M, ?L,  ?G
+    q_list/4,         % ?M, ?L1, -L2, ?G
+    q_list/5,         % ?M, ?S,  ?P,  ?L, ?G
+    q_list/6,         % ?M, ?S,  ?P,  ?L1, -L2, ?G
+    q_list_member/4,  % ?M, ?L,  ?O,  ?G
+    q_list_member/5,  % ?M, ?S,  ?P,  ?O, ?G
+    q_maximal_list/3, % ?M, ?L,  ?G
+    q_maximal_list/4, % ?M, ?L1, ?L2, ?G
+    q_maximal_list/5, % ?M, ?S,  ?P,  ?L, ?G
+    q_maximal_list/6, % ?M, ?S,  ?P,  ?L1, ?L2, ?G
     qb_list/4,        % +M, +L1, -L2, +G
-    qb_list/5         % +M, +S, +P, +L, +G
+    qb_list/5         % +M, +S,  +P,  +L, +G
   ]
 ).
 
@@ -27,9 +33,15 @@
    q_last(?, r, o, r),
    q_last(?, r, r, o, r),
    q_list(?, r, r),
+   q_list(?, r, -, r),
    q_list(?, r, r, r, r),
+   q_list(?, r, r, r, -, r),
    q_list_member(?, r, o, r),
    q_list_member(?, r, r, o, r),
+   q_maximal_list(?, r, r),
+   q_maximal_list(?, r, -, r),
+   q_maximal_list(?, r, r, r, r),
+   q_maximal_list(?, r, r, r, -, r),
    qb_list(+, t, -, r),
    qb_list(+, r, r, t, r).
 
@@ -56,31 +68,75 @@ q_last(M, S, P, O, G) :-
 
 
 
-
-
-
 %! q_list(?M, ?L, ?G) is nondet.
+%! q_list(?M, ?L1, -L2, ?G) is nondet.
 %! q_list(?M, ?S, ?P, ?L, ?G) is nondet.
+%! q_list(?M, ?S, ?P, ?L1, -L2, ?G) is nondet.
+%
+% Enumerates lists L that are not (strict) sublists.
 
-q_list(M, L, G) :-
-  var(L), !,
-  q(M, L, rdf:first, _, G),
-  \+ q(M, _, rdf:rest, L, G),
-  q_list0(M, L, G).
-q_list(M, L, G) :-
-  q_list0(M, L, G).
+q_list(M, L1, G) :-
+  q_list_first(M, L1, L2, G),
+  q_list_rest(M, L2, G).
 
 
-q_list0(_, rdf:nil, _) :- !.
-q_list0(M, L, G) :-
-  once(q(M, L, rdf:first, _, G)),
-  q(M, L, rdf:rest, T, G),
-  (rdf_equal(rdf:nil, T) -> true ; q_list0(M, T, G)).
+q_list(M, L1, [H|T], G) :-
+  q_list_first(M, L1, H, L2, G),
+  q_list_rest(M, L2, T, G).
 
 
 q_list(M, S, P, L, G) :-
   q(M, S, P, L, G),
-  q_list0(M, L, G).
+  q_list(M, L, G).
+
+
+q_list(M, S, P, L1, L2, G) :-
+  q(M, S, P, L1, G),
+  q_list(M, L1, L2, G).
+
+
+q_maximal_list(M, L1, G) :-
+  q_list_first(M, L1, L2, G),
+  \+ q(M, _, rdf:rest, L1, G),
+  q_list_rest(M, L2, G).
+
+
+q_maximal_list(M, L1, [H|T], G) :-
+  q_list_first(M, L1, H, L2, G),
+  \+ q(M, _, rdf:rest, L1, G),
+  q_list_rest(M, L2, T, G).
+
+
+q_maximal_list(M, S, P, L, G) :-
+  q(M, S, P, L, G),
+  q_maximal_list(M, L, G).
+
+
+q_maximal_list(M, S, P, L1, L2, G) :-
+  q(M, S, P, L1, G),
+  q_maximal_list(M, L1, L2, G).
+
+
+q_list_first(M, L1, L2, G) :-
+  once(q(M, L1, rdf:first, _, G)),
+  q(M, L1, rdf:rest, L2, G).
+
+
+q_list_first(M, L1, H, L2, G) :-
+  q(M, L1, rdf:first, H, G),
+  q(M, L1, rdf:rest, L2, G).
+
+
+q_list_rest(M, L1, G) :-
+  q_list_first(M, L1, L2, G),
+  q_list_rest(M, L2, G).
+q_list_rest(_, rdf:nil, _).
+
+
+q_list_rest(M, L1, [H|T], G) :-
+  q_list_first(M, L1, H, L2, G),
+  q_list_rest(M, L2, T, G).
+q_list_rest(_, rdf:nil, [], _).
 
 
 

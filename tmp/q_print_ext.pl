@@ -55,9 +55,9 @@ qh_list(M, L) -->
   qh_list(M, L, _{}).
 
 
-qh_list(M, L, Opts1) -->
+qh_list(M, L1, Opts1) -->
   {
     qh_default_options(Opts1, Opts2),
-    findall(Term, q_list_member(M, L, Term, _), Terms)
+    q_list(M, L1, L2, _)
   },
-  html_list(qh_term_outer0(M, Opts2), Terms).
+  html_list(qh_term_outer0(M, Opts2), L2).

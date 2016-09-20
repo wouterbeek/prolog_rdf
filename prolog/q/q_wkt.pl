@@ -72,7 +72,7 @@ qh:qh_literal_hook(Array^^D, Opts) -->
     rdf_global_id(wkt:_, D), !,
     q_literal_lex(Array^^D, Lex)
   },
-  truncated(Lex, Opts.max_lit_len).
+  ellipsis(Lex, Opts.max_lit_len).
 
 
 

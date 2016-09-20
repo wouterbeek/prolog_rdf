@@ -86,7 +86,7 @@
 :- use_module(library(service/freebase)).
 :- use_module(library(service/ldf)).
 :- use_module(library(service/llapi)).
-:- use_module(library(service/lotus)).
+:- use_module(library(service/lotus_api)).
 :- use_module(library(service/lov)).
 :- use_module(library(service/musicbrainz)).
 :- use_module(library(service/oaei)).
