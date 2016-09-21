@@ -154,6 +154,9 @@ q_instance(M, I, C) :-
   q_instance(M, I, C, _).
 
 
+q_instance(_, I, D, _) :-
+  q_is_literal(I), !,
+  q_literal_datatype(I, D).
 q_instance(M, I, C, G) :-
   q(M, I, rdf:type, C, G).
 
