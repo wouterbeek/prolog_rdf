@@ -22,7 +22,8 @@
     q_number_of_triples/2,    % +M,                 -NumTriples
     q_number_of_triples/3,    % +M,             ?G, -NumTriples
     q_number_of_triples/5,    % +M, ?S, ?P, ?O,     -NumTriples
-    q_number_of_triples/6     % +M, ?S, ?P, ?O, ?G, -NumTriples
+    q_number_of_triples/6,    % +M, ?S, ?P, ?O, ?G, -NumTriples
+    q_number_of_types/3       % +M,             ?G, -NumTypes
   ]
 ).
 
@@ -204,6 +205,10 @@ q_number_of_triples(M, S, P, O, NumTriples) :-
 
 q_number_of_triples(M, S, P, O, G, NumTriples) :-
   q_number_ofs(M, rdf(S,P,O), S, P, O, G, NumTriples).
+
+
+q_number_of_types(M, G, NumTypes) :-
+  aggregate_all(count, q_type(M, G, _), NumTypes).
 
 
 

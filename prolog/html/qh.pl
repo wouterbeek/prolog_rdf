@@ -64,9 +64,10 @@ The following options are supported to achieve parity with module
 @tbd Achieve parity with option `bnode_map` from module `q_print`.
 
 @author Wouter Beek
-@version 2016/02-2016/08
+@version 2016/02-2016/09
 */
 
+:- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(html/html_date_time)).
@@ -82,6 +83,7 @@ The following options are supported to achieve parity with module
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_rdf)).
+:- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
@@ -305,12 +307,12 @@ qh_iri_inner(Iri, Opts) -->
   {
     Opts.iri_abbr == true,
     rdf_global_id(Alias:Local1, Iri), !,
-    dcg_with_output_to(atom(Local2), atom_ellipsis(Local1, Opts.max_iri_len))
+    atom_ellipsis(Local1, Opts.max_iri_len, Local2)
   },
   html([span(class=alias, Alias),":",Local2]).
 % Plain IRI, possibly ellipsed.
 qh_iri_inner(Iri1, Opts) -->
-  {dcg_with_output_to(atom(Iri2), atom_ellipsis(Iri1, Opts.max_iri_len))},
+  {atom_ellipsis(Iri1, Opts.max_iri_len, Iri2)},
   html(Iri2).
 
 
