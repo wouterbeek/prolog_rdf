@@ -13,7 +13,7 @@
 */
 
 :- use_module(library(q/qb)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qu)).
 :- use_module(library(rdf/rdf__io)).

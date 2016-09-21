@@ -16,7 +16,7 @@
 :- use_module(library(lists)).
 :- use_module(library(pl_term)).
 :- use_module(library(porter_stem)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(semweb/rdf_litindex)).
 :- use_module(library(semweb/rdf11)).
 

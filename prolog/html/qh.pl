@@ -81,8 +81,8 @@ The following options are supported to achieve parity with module
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_stat)).
-:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).

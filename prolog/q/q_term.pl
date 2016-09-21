@@ -35,6 +35,7 @@
     q_literal/4,           % ?Lit, ?D, ?Lex, ?LTag
     q_literal_datatype/2,  % +Lit, ?D
     q_literal_lex/2,       % +Lit, ?Lex
+    q_literal_ltag/2,      % +Lit, -LTag
     q_literal_string/2,    % +Lit, -Str
     q_literal_val/2,       % +Lit, ?Val
     q_lone_bnode/2,        % ?M, ?B
@@ -99,7 +100,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(hdt/hdt_ext)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
@@ -410,6 +411,12 @@ q_literal_datatype(_@_, rdf:langString).
 q_literal_lex(Val^^D, Lex) :- !,
   rdf11:rdf_lexical_form(Val^^D, Lex^^D).
 q_literal_lex(Val@_, Val).
+
+
+
+%! q_literal_ltag(+Lit, -LTag) is semidet.
+
+q_literal_ltag(_@LTag, LTag).
 
 
 

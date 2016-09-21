@@ -22,7 +22,7 @@
 :- use_module(library(lists)).
 :- use_module(library(nlp/dbpedia_spotlight)).
 :- use_module(library(os/thread_ext)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).

@@ -64,7 +64,7 @@ The following debug flags are used:
 :- use_module(library(os/io)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf), [process_rdf/3]).

@@ -32,7 +32,7 @@ wgs84:Point IS-A wgs84:SpatialThing
 */
 
 :- use_module(library(debug)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/q_wkt)).
 :- use_module(library(q/qb)).

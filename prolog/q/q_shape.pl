@@ -76,7 +76,7 @@ statement in the graph.
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 

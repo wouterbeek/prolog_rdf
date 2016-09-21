@@ -24,7 +24,7 @@
 @version 2016/06-2016/07
 */
 
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).

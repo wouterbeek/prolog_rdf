@@ -30,7 +30,7 @@
 :- use_module(library(error)).
 :- use_module(library(ordsets)).
 :- use_module(library(q/qb)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 
 
 

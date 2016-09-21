@@ -95,8 +95,8 @@ to predicate and/or graph.
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_shape)).
-:- use_module(library(q/q_stmt)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/q_wgs84)).
 :- use_module(library(q/q_wkt)).

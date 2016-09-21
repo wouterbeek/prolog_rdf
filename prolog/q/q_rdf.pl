@@ -1,14 +1,9 @@
 :- module(
-  q_stmt,
+  q_rdf,
   [
-  % RDF
     q/4,                   % +M, ?S, ?P, ?O
     q/5,                   % +M, ?S, ?P, ?O, ?G
     q/6,                   % +M, ?S, ?P, ?O, ?G, ?D
-    q_deref/2,             % +Iri, -Quad
-    q_derefs/2,            % +Iri, -Quads
-    q_derefs/3,            % +Iri, -POs, -SPs
-    q_derefs/4,            % +Iri, -POs, -SPs, -Rest
     q_instance/3,          % +M, ?I, ?C
     q_instance/4,          % +M, ?I, ?C, ?G
     q_is_def_quad/1,       % @Term
@@ -58,79 +53,34 @@
     q_triples/3,           % +M, ?G, -Triples
     q_triples/4,           % +M, ?S, ?G, -Triples
     q_triples/5,           % +M, ?S, ?P, ?O, -Triples
-    q_triples/6,           % +M, ?S, ?P, ?O, ?G, -Triples
-  % RDFS
-    q_domain/4,            % +M, ?P, ?C, ?G
-    q_pref_label/3,        % +M, ?S, ?Lit
-    q_pref_label/4,        % +M, ?S, ?Lit, ?G
-    q_pref_label_lex/3,    % +M, ?S, ?Lex
-    q_pref_label_lex/4,    % +M, ?S, ?Lex, ?G
-    q_pref_string/4,       % +M, ?S, ?P, ?Lit
-    q_pref_string/5,       % +M, ?S, ?P, ?Lit, ?G
-    q_pref_string_lex/4,   % +M, ?S, ?P, ?Lex
-    q_pref_string_lex/5,   % +M, ?S, ?P, ?Lex, ?G
-    q_range/4,             % +M, ?P, ?C, ?G
-    q_subclass/4,          % +M, ?C, ?D, ?G
-  % OWL
-    q_identity/4,          % +M, ?I, ?J, ?G
-  % Domain-specific
-    q_image/4              % +M, ?S, -Img, ?G
+    q_triples/6            % +M, ?S, ?P, ?O, ?G, -Triples
   ]
 ).
 
-/** <module> Quine statements API
-
-Enumerate statements from different back-ends.
-
-Perform basic RDF statement manipulations: statement ↔ terms
+/** <module> Quine: RDF
 
 @author Wouter Beek
-@version 2016/06-2016/08
+@version 2016/06-2016/09
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(debug)).
+:- use_module(library(apply)).
 :- use_module(library(hdt/hdt_ext)).
-:- use_module(library(http/http_io)).
 :- use_module(library(lists)).
-:- use_module(library(nb_set)).
+:- use_module(library(ltag/ltag_match)).
 :- use_module(library(nlp/nlp_lang)).
-:- use_module(library(q/q_dataset)).
-:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_term)).
-:- use_module(library(q/qb)).
-:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(uuid)).
-:- use_module(library(yall)).
-
-:- qb_alias(dbo, 'http://dbpedia.org/ontology/').
-:- qb_alias(dctype, 'http://purl.org/dc/dcmitype/').
 
 :- rdf_meta
    q(?, r, r, o),
    q(?, r, r, o, r),
    q(?, r, r, o, r, r),
-   q_deref(r, -),
-   q_derefs(r, -),
-   q_derefs(r, -, -),
-   q_derefs(r, -, -, -),
-   q_domain(?, r, r, r),
-   q_identity(?, r, r, r),
-   q_image(?, r, -, r),
    q_instance(?, r, r),
    q_instance(?, r, r, r),
    q_lts(?, r, r, -),
    q_lts(?, r, r, r, -),
    q_lts(?, r, r, +, r, -),
-   q_pref_label(?, r, -),
-   q_pref_label(?, r, r, -),
-   q_pref_label_lex(?, r, -),
-   q_pref_label_lex(?, r, r, -),
-   q_pref_string(?, r, r, -),
-   q_pref_string(?, r, r, r, -),
-   q_pref_string_lex(?, r, r, -),
-   q_pref_string_lex(?, r, r, r, -),
    q_quad(?, r, -),
    q_quad(?, r, r, -),
    q_quad(?, r, r, o, -),
@@ -149,11 +99,9 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_quads(?, r, r, -),
    q_quads(?, r, r, o, -),
    q_quads(?, r, r, o, r, -),
-   q_range(?, r, r, r),
    q_reification(?, r, r, o),
    q_reification(?, r, r, o, r),
    q_reification(?, r, r, o, r, r),
-   q_subclass(?, r, r, r),
    q_triple(?, r, -),
    q_triple(?, r, r, -),
    q_triple(?, r, r, o, -),
@@ -169,7 +117,6 @@ Perform basic RDF statement manipulations: statement ↔ terms
    q_triples(?, r, r, -),
    q_triples(?, r, r, o, -),
    q_triples(?, r, r, o, r, -).
-
 
 
 
@@ -197,85 +144,6 @@ q(M, S, P, O, G, D) :-
 q(M, S, P, O, G, D) :-
   q(M, S, P, O, G),
   ignore(q_dataset_graph(D, G)).
-
-
-
-%! q_deref(+Iri, -Quad) is nondet.
-
-q_deref(Iri1, Quad) :-
-  empty_nb_set(Set),
-  q_deref0(Set, Iri1, Quad).
-
-
-q_deref0(Set, Iri1, Quad) :-
-  rdf_equal(owl:sameAs, P0),
-  debug(q_stmt(q_deref), "Dereferencing ~a", [Iri1]),
-  http_fail_on_exception(rdf_load_quads(Iri1, Quads, [timeout(2)])),
-  add_nb_set(Iri1, Set),
-  member(Quad0, Quads),
-  (   Quad = Quad0
-  ;   (Quad0 = rdf(Iri1,P0,Iri2,_) ; Quad0 = rdf(Iri2,P0,Iri1,_)),
-      add_nb_set(Iri2, Set, true),
-      q_deref0(Set, Iri2, Quad)
-  ).
-
-
-
-%! q_derefs(+Iri, -Quads) is det.
-%! q_derefs(+Iri, -POs, -SPs) is det.
-%! q_derefs(+Iri, -POs, -SPs, -Rest) is det.
-
-q_derefs(Iri, Quads) :-
-  q_derefs(Iri, POs, SPs),
-  append(POs, SPs, Quads).
-
-
-q_derefs(Iri, POs, SPs) :-
-  q_derefs(Iri, POs, SPs, _).
-
-
-q_derefs(Iri, POs, SPs, Rest) :-
-  q_derefs0(Iri, Quads0, Iris),
-  partition(q_deref_category0(Iris), Quads0, POs, Rest, SPs).
-
-
-q_derefs0(Iri, Quads, Iris) :-
-  empty_nb_set(Set),
-  aggregate_all(set(Quad), q_deref0(Set, Iri, Quad), Quads),
-  nb_set_to_list(Set, Iris).
-
-
-q_deref_category0(Iris, rdf(S,_,_,_), <) :-
-  memberchk(S, Iris), !.
-q_deref_category0(Iris, rdf(_,_,O,_), >) :-
-  memberchk(O, Iris), !.
-q_deref_category0(_, _, =).
-
-
-
-%! q_domain(+M, ?P, ?C, ?G) is nondet.
-
-q_domain(M, P, C, G) :-
-  q(M, P, rdfs:domain, C, G).
-
-
-
-%! q_identity(+M, ?I, ?J, ?G) is nondet.
-
-q_identity(M, I, J, G) :-
-  q(M, I, owl:sameAs, J, G).
-
-
-
-%! q_image(+M, ?S, -Img, ?G) is nondet.
-
-q_image(M, S, Img, G) :-
-  q(M, S, dbo:thumbnail, Img^^xsd:anyURI, G).
-q_image(M, S, Img, G) :-
-  q(M, S, foaf:depiction, Img^^xsd:anyURI, G).
-q_image(M, S, Img, G) :-
-  q(M, S, _, Img, G),
-  q_instance(M, Img, dctype:'Image', G).
 
 
 
@@ -354,86 +222,6 @@ q_lts(M, S, P, LRange, Lit, G) :-
   q(M, S, P, V@LTag, G),
   basic_filtering(LRange, LTag),
   Lit = V@LTag.
-
-
-
-%! q_pref_label(+M, ?S, ?Lit) is nondet.
-%! q_pref_label(+M, ?S, ?Lit, ?G) is nondet.
-
-q_pref_label(M, S, Lit) :-
-  q_pref_label(M, S, Lit, _).
-
-
-q_pref_label(M, S, Lit, G) :-
-  q_pref_string(M, S, rdfs:label, Lit, G).
-
-
-
-%! q_pref_label_lex(+M, ?S, ?Lex) is nondet.
-%! q_pref_label_lex(+M, ?S, ?Lex, ?G) is nondet.
-
-q_pref_label_lex(M, S, Lex) :-
-  q_pref_label_lex(M, S, Lex, _).
-
-
-q_pref_label_lex(M, S, Lex, G) :-
-  q_pref_label(M, S, Lit, G),
-  q_literal_lex(Lit, Lex).
-
-
-
-%! q_pref_string(+M, ?S, ?P, ?Lit) is nondet.
-%! q_pref_string(+M, ?S, ?P, ?Lit, ?G) is nondet.
-%
-% Returns, in this exact order:
-%
-%   1. The language-tagged strings that match the given language
-%      priority list; returning results for higher priority language
-%      earlier.
-%
-%   2. The language-tagged strings that do not match the given
-%      language priority list.
-%
-%   3. XSD strings.
-
-q_pref_string(M, S, P, Lit) :-
-  q_pref_string(M, S, P, Lit, _).
-
-
-q_pref_string(M, S, P, Lit, G) :-
-  current_lrange(LRange),
-  q_pref_string(M, S, P, LRange, Lit, G).
-
-
-% Matching language-tagged strings.
-q_pref_string(M, S, P, LRange, Lit, G) :-
-  q_lts(M, S, P, LRange, Lit, G).
-% Non-matching language-tagged strings.
-q_pref_string(M, S, P, LRange, Lit, G) :-
-  q(M, S, P, V@LTag, G),
-  % Avoid duplicates.
-  \+ basic_filtering(LRange, LTag),
-  Lit = V@LTag.
-% Plain XSD strings.
-q_pref_string(M, S, P, _, V^^D, G) :-
-  % @bug RDF prefix expansion does not work here.
-  rdf_equal(D, xsd:string),
-  q(M, S, P, V^^D, G).
-
-
-
-%! q_pref_string_lex(+M, ?S, ?P, -Lex) is nondet.
-%! q_pref_string_lex(+M, ?S, ?P, -Lex, ?G) is nondet.
-%
-% Like q_pref_string/[4,5], but returns only the lexical form.
-
-q_pref_string_lex(M, S, P, Lex) :-
-  q_pref_string_lex(M, S, P, Lex, _).
-
-
-q_pref_string_lex(M, S, P, Lex, G) :-
-  q_pref_string(M, S, P, Lit, G),
-  q_literal_lex(Lit, Lex).
 
 
 
@@ -559,13 +347,6 @@ q_quads(M, S, P, O, G, Quads) :-
 
 
 
-%! q_range(+M, ?P, ?C, ?G) is nondet.
-
-q_range(M, P, C, G) :-
-  q(M, P, rdfs:range, C, G).
-
-
-
 %! q_reification(+M, ?S, ?P, ?O) is nondet.
 %! q_reification(+M, ?S, ?P, ?O, ?G) is nondet.
 %! q_reification(+M, ?S, ?P, ?O, ?G, -Stmt) is nondet.
@@ -582,13 +363,6 @@ q_reification(M, S, P, O, G, Stmt) :-
   q(M, Stmt, rdf:subject, S, G),
   q(M, Stmt, rdf:predicate, P, G),
   q(M, Stmt, rdf:object, O, G).
-
-
-
-%! q_subclass(+M, ?C, ?D, ?G) is nondet.
-
-q_subclass(M, C, D, G) :-
-  q(M, C, rdfs:subClassOf, D, G).
 
 
 
@@ -691,53 +465,3 @@ q_triples(M, S, P, O, Triples) :-
 
 q_triples(M, S, P, O, G, Triples) :-
   aggregate_all(set(Triple), q_triple(M, S, P, O, G, Triple), Triples).
-
-
-
-
-
-% HELPERS %
-
-%! basic_filtering(+LPriorityList, +LTag) is semidet.
-%
-% Succeeds if the LanguagePriorityList matches the LanguageTag
-% according to the basic filtering algorithm described in RFC 4647,
-% i.e., if the former is a case-insensitive prefix of the latter,
-% while also treating the `*` sign as a wildcard.
-%
-% @compat RFC 4647
-
-basic_filtering(Ranges, Tag):-
-  % NONDET
-  member(Range, Ranges),
-  atomic_list_concat(Subtags1, -, Range),
-  atomic_list_concat(Subtags2, -, Tag),
-  basic_filtering0(Subtags1, Subtags2), !.
-
-
-basic_filtering0(_, []).
-basic_filtering0([H1|T1], [H2|T2]):-
-  subtag_match(H1, H2),
-  basic_filtering0(T1, T2).
-
-
-
-%! graph_file(+G, -File) is det.
-
-graph_file(G, File) :-
-  rdf_global_id(Alias:Local, G),
-  directory_file_path(Alias, Local, Base),
-  file_name_extension(Base, nt, File).
-
-
-
-%! subtag_match(+RangeSubtag:atom, +Subtag:atom) is semidet.
-%
-% Two subtags match if either they are the same when compared
-% case-insensitively or the language range's subtag is the wildcard
-% `*`
-
-subtag_match(*, _):- !.
-subtag_match(X1, X2):-
-  downcase_atom(X1, X),
-  downcase_atom(X2, X).

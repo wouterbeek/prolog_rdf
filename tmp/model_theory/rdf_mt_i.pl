@@ -47,7 +47,7 @@ Interpretation function `I`:
 */
 
 :- use_module(library(apply)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 
 % The overarching interpretation plus assignment function.
 :- rdf_meta

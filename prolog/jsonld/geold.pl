@@ -35,9 +35,9 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_array)).
 :- use_module(library(q/qb)).
-:- use_module(library(q/q_wkt)).
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/q_wkt)).
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).

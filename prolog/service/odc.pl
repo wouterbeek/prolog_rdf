@@ -11,7 +11,7 @@
 @version 2014/05, 2016/05-2016/06
 */
 
-:- use_module(library(q/q_stmt)).
+:- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(solution_sequences)).
