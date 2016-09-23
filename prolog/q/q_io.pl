@@ -352,6 +352,7 @@ q_store_file(File, G) :-
   q_file_graph(File, ntriples, G).
 q_store_file(File, G) :-
   setting(store_dir, Dir),
+  Dir \== '',
   directory_path_recursive(Dir, File),
   q_file_graph(File, G).
 

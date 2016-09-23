@@ -69,6 +69,7 @@
 :- use_module(library(lists)).
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(nlp/nlp_lang)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 
@@ -129,11 +130,24 @@ q(M, S, P, O) :-
   q(M, S, P, O, _).
 
 
-q(hdt, S, P, O, G) :- !,
+q(any, S, P, O, G) :- !,
+  q_any(_, S, P, O, G).
+q(M, S, P, O, G) :-
+  var(M), !,
+  q_any(M, S, P, O, G).
+q(M, S, P, O, G) :-
+  q_m(M, S, P, O, G).
+
+q_any(hdt, S, P, O, G) :-
   hdt(S, P, O, G).
-q(hdt0, S, P, O, Hdt) :- !,
+q_any(trp, S, P, O, G) :-
+  rdf11:rdf(S, P, O, G).
+
+q_m(hdt0, S, P, O, Hdt) :- !,
   hdt0(S, P, O, Hdt).
-q(trp, S, P, O, G) :-
+q_m(hdt, S, P, O, G) :- !,
+  hdt(S, P, O, G).
+q_m(trp, S, P, O, G) :- !,
   rdf11:rdf(S, P, O, G).
 
 
