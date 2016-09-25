@@ -133,18 +133,18 @@ q_io:q_source_format_hook(rdf, [Ext]) :-
 
 
 q_io:q_store2cache_hook(trp, Source, Sink, G) :-
-  setup_call_cleanup(
-    rdf_load_file(Source, [graph(G)]),
-    indent_debug_call(
-      q_io(store2cache(trp)),
-      "N-Triples → MEM",
+  indent_debug_call(
+    q_io(store2cache(trp)),
+    "N-Triples → MEM",
+    setup_call_cleanup(
+      rdf_load_file(Source, [graph(G)]),
       indent_debug_call(
         q_io(store2cache(trp)),
         "MEM → TRP",
         rdf_save_db(Sink, G)
-      )
-    ),
-    rdf_unload_graph(G)
+      ),
+      rdf_unload_graph(G)
+    )
   ).
 
 
