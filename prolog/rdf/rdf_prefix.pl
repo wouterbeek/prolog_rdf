@@ -10,21 +10,30 @@
 The following terminology is (mis-)used in the field:
 
   * **IRI prefix**
-    The prefix of an IRI that is abbreviated by a *Prefix*.
-    (I would have prefered the name "prefix".)
+
+    The prefix of an IRI that is abbreviated by a *Prefix*.  (I would
+    have prefered the name "prefix".)
+
   * **Local Name**
-    For a prefixed IRI, the suffix that is not covered by the IRI-prefix.
+
+    For a prefixed IRI, the suffix that is not covered by the
+    IRI-prefix.
+
   * **Alias**
-    The custom string that stands for an *IRI prefix*.
-    (Erroneously called ‘prefix’ in the RDF 1.1 specification.)
+
+    The custom string that stands for an *IRI prefix*.  (Erroneously
+    called ‘prefix’ in the RDF 1.1 specification.)
 
 This allows the following two IRI notations to be distinguished:
 
   * **Expanded**
+
     IRI notation where no prefix is used.
+
   * **Prefixed**
-    IRI notation where a prefix alias is used.
-    Prefixed IRIs have the form `Alias:LocalName'.
+
+    IRI notation where a prefix alias is used.  Prefixed IRIs have the
+    form `Alias:LocalName'.
 
 ---
 
@@ -57,6 +66,8 @@ init_rdf_prefix :-
   qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
   register_dbpedia_localizations.
+
+
 
 
 
@@ -321,4 +332,4 @@ rdf_reset_prefix(Prefix, IriPrefix) :-
 
 prolog:message(rdf_reset_prefix(Alias,FromPrefix,ToPrefix)) -->
   % Circumvent prefix abbreviation in ClioPatria.
-  ['Alias ~a was reset from prefix ~a to prefix ~a.'-[Alias,FromPrefix,ToPrefix]].
+  ["Alias ~a was reset from prefix ~a to prefix ~a."-[Alias,FromPrefix,ToPrefix]].
