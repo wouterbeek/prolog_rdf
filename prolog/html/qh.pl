@@ -129,13 +129,6 @@ The following options are supported to achieve parity with module
    qh_triple(r, r, o, ?, ?),
    qh_triple(r, r, o, +, ?, ?).
 
-:- setting(
-     http_handler,
-     atom,
-     '',
-     "ID of the HTTP handler that performs RDF term lookup."
-   ).
-
 html:html_hook(q_alias(Alias)) -->
   qh_alias(Alias).
 
@@ -601,10 +594,10 @@ qh_external_iri(C, Val, Link) :-
 
 
 qh_external_iri(C, Val, Query, Link) :-
-  setting(http_handler, Id),
-  Id \== '',
+  setting(cp:browse_term_handler, HandleId),
+  HandleId \== '',
   q_query_term(C, Val, QueryTerm),
-  http_link_to_id(Id, [QueryTerm|Query], Link).
+  http_link_to_id(HandleId, [QueryTerm|Query], Link).
 
 
 

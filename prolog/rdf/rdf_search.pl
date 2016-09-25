@@ -9,10 +9,11 @@
 /** <module> RDF search
 
 @author Wouter Beek
-@version 2016/07-2016/08
+@version 2016/07-2016/09
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(lists)).
 :- use_module(library(pl_term)).
 :- use_module(library(porter_stem)).
@@ -27,17 +28,20 @@
 %! rdf_search(+Pattern, -Lexs, -TotalNumLexs) is nondet.
 
 rdf_search(Pattern, Lexs, TotalNumLexs) :-
-  tokenize_atom(Pattern, L1),
-  hack(L1, L2),
-  case_stem_sounds(L2, [H|T]),
-  (T == [] -> Query = H ; n_ary_term(and, [H|T], Query)),
-  rdf_find_literals(Query, Lexs),
+  tokenize_atom(Pattern, Tokens),
+  once(phrase(query(Q), Tokens)),
+  rdf_find_literals(Q, Lexs),
   length(Lexs, TotalNumLexs).
 
 
-case_stem_sounds([H|T1], [or(case(H),prefix(H))|T2]) :- !,
-  case_stem_sounds(T1, T2).
-case_stem_sounds([], []).
+query(Q) -->
+  simple_query(Q1),
+  (eos -> {Q = Q1} ; query(Q2), {Q = and(Q1,Q2)}).
+
+
+simple_query(Token) --> ['"',Token,'"'], !.
+simple_query(not(Token)) --> [-, Token].
+simple_query(case(Token)) --> [Token].
 
 
 
@@ -50,8 +54,3 @@ rdf_search_result(M, Lexs, rdf(S,P,Lit,G)) :-
   ;   q(M, S, P, Lex@LTag, G),
       Lit = Lex@LTag
   ).
-
-
-hack([], []) :- !.
-hack([X], [X]) :- !.
-hack([X,Y|_], [X,Y]) :- !.

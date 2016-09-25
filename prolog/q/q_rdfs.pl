@@ -22,6 +22,7 @@
 */
 
 :- use_module(library(ltag/ltag_match)).
+:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).

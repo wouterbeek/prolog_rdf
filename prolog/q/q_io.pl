@@ -53,6 +53,23 @@
 
 /** <module> Quine I/O
 
+# Steps
+
+q_init/0 does three things:
+
+  1. q_source2store/0 converts non-RDF files in /source to RDF files in /store.
+
+  2. q_dataset2store/0 calls the currently loaded
+     q_dataset2store_hook/1 clauses.  These are typically loaded from
+     files in /script.  This scrapes for new data and transforms data
+     already in /store.
+
+  3. q_store2view/0 creates all supported caches and views for the RDF
+     data in /store.
+
+
+# Concepts
+
 We rely on a parallel between:
 
   - a directory
@@ -66,8 +83,13 @@ hash --- graph
  |
 dir ---- file
 
+
+# Simplifications
+
 Quads are reduced to triples because it is too difficult to support
 them.
+
+---
 
 @author Wouter Beek
 @version 2016/08
