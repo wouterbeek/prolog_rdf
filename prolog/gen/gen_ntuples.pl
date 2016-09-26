@@ -121,21 +121,31 @@ call_to_ntriples(Sink, Goal_2, Opts1) :-
 %
 % The following options are supported:
 %
-%   * base_iri(+iri) The base IRI against which relative IRIs are
-%   resolved.
+%   * base_iri(+iri)
 %
-%   * quads(-nonneg) The number of written quads.
+%     The base IRI against which relative IRIs are resolved.
 %
-%   * rdf_format(+oneof([nquads,ntriples])) The RDF serialization
-%   format that is used.  Possible values are `nquads` (default) for
-%   N-Quads 1.1 and `ntriples` for N-Triples 1.1.
+%   * quads(-nonneg)
 %
-%   * triples(-nonneg) The number of written triples.
+%     The number of written quads.
 %
-%   * tuples(-nonneg) The number of written tuples.
+%   * rdf_format(+oneof([nquads,ntriples]))
 %
-%   * warn(+stream) The output stream, if any, where warnings are
-%   written to.
+%     The RDF serialization format that is used.  Possible values are
+%     `nquads` (default) for N-Quads 1.1 and `ntriples` for N-Triples
+%     1.1.
+%
+%   * triples(-nonneg)
+%
+%     The number of written triples.
+%
+%   * tuples(-nonneg)
+%
+%     The number of written tuples.
+%
+%   * warn(+stream)
+%
+%     The output stream, if any, where warnings are written to.
 %
 %   * Other options are written to call_to_stream/3.
 

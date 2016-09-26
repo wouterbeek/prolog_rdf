@@ -12,8 +12,9 @@
     q_init/0,
     q_source2store/0,
     q_source2store_file/1,   % +File
-    q_source2store_source/3, % +Source, +Base, +Format
+    q_source2store_source/3, % +Source, +Opts, +Result
     q_store_rm/0,
+    q_store_rm/1,            % +G
 
   % STORE
   q_store_file/2,       % -File, ?G
@@ -60,7 +61,7 @@ q_init/0 does three things:
   1. q_source2store/0 converts non-RDF files in /source to RDF files in /store.
 
   2. q_dataset2store/0 calls the currently loaded
-     q_dataset2store_hook/1 clauses.  These are typically loaded from
+     q_dataset2store_hook/2 clauses.  These are typically loaded from
      files in /script.  This scrapes for new data and transforms data
      already in /store.
 
@@ -127,8 +128,8 @@ them.
     q_backend_hook/1,       % Only for backends that have no files in cache.
     q_cache_format_hook/2,  % E.g., ‘hdt’ file extension for HDT.
     q_cache_rm_hook/2,      % E.g., ‘hdt’ also has an index file.
-    q_dataset2store_hook/1,
-    q_source2store_hook/3,  % E.g., convert CSV files to N-Triple files.
+    q_dataset2store_hook/2, % E.g., run custom script for ‘bgt’.
+    q_source2store_hook/4,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
     q_store2cache_hook/4,   % E.g., create HDT file from N-Triples file.
     q_store2view_hook/2,    % E.g., GIS index, which has no cache format.
@@ -244,7 +245,7 @@ q_source_file(File) :-
 q_dataset2store :-
   forall(
     (
-      q_dataset2store_hook(D),
+      q_dataset2store_hook(_, D),
       q_dataset_graph(D, G)
     ),
     q_view2store(trp, G)
@@ -263,22 +264,44 @@ q_init :-
 
 %! q_source2store is det.
 %! q_source2store_file(+File) is det.
-%! q_source2store_source(+Source, +Base, +Format) is det.
+%! q_source2store_source(+Source, +Opts, +Result) is det.
 %
 % Automatically convert source files to store files.
 %
-% The following options are defined:
+% The following options are supported:
 %
-%   - concept(+atom) The concept name of the main/record entity.  Used
-%     in the generated IRI names.  By default this is `resource`.
+%   * base(+atom)
 %
-%   - domain(+atom) The domain name used in the generated IRI names.
-%     By default this is the authority component of the IRI prefix
-%     registered with alias `ns`.
+%     Base IRI.  Required.
 %
-%   - name(+atom) Local name use for the IRI graph name.
+%   * concept(+atom)
 %
-%   - record_names(+list(atom)) For the XML source format.
+%     The concept name of the main/record entity.  Used in the
+%     generated IRI names.  By default this is `resource`.
+%
+%   * domain(+atom)
+%
+%     The domain name used in the generated IRI names.  By default
+%     this is the authority component of the IRI prefix registered
+%     with alias `ns`.
+%
+%   * format(+atom)
+%
+%   * name(+atom)
+%
+%     Local name use for the IRI graph name.
+%
+%   * record_names(+list(atom))
+%
+%     For the XML source format.
+%
+% Result is a list of compound terms:
+%
+%   * triples(-nonneg)
+%
+%     The number of triples that were written while converting Source
+%     to store.
+
 
 q_source2store :-
   forall(
@@ -292,25 +315,33 @@ q_source2store_file(File) :-
   % Derive a hash based on the source file.
   setting(source_dir, Dir),
   directory_file_path(Dir, Local, File),
-  file_name(Local, Base),
+  file_name(Local, BaseIri),
   time_file(File, Ready),
-  q_source2store_source(File, Base, Format, Ready).
+  q_source2store_source(
+    File,
+    _{base_iri: BaseIri, force: false, format: Format},
+    _,
+    Ready
+  ).
 
 
-q_source2store_source(Source, Base, Format) :-
-  q_source2store_source(Source, Base, Format, 0).
+q_source2store_source(Source, Opts, Result) :-
+  q_source2store_source(Source, Opts, Result, 0).
 
 
-q_source2store_source(Source, Base, Format, Ready0) :-
-  md5(Base, Hash),
+q_source2store_source(Source, Opts, Result1, Ready0) :-
+  md5(Opts.base_iri, Hash),
+  % Remove any existing files from store.
+  (Opts.force == true -> q_graph_hash(G, Hash), q_store_rm(G) ; true),
   % Determine the store file.
   q_file_hash(File, data, ntriples, Hash),
   (   q_file_ready_time(File, Ready),
       Ready >= Ready0
-  ->  true
+  ->  ignore(option(triples(0), Result1))
   ;   create_file_directory(File),
       % Automatically convert source file to store file.
-      once(q_source2store_hook(Format, Source, File)),
+      merge_options(Result1, [base_iri(Opts.base_iri)], Result2),
+      once(q_source2store_hook(Opts.format, Source, File, Result2)),
       q_file_touch_ready(File)
   ).
 
@@ -362,7 +393,7 @@ q_generate(G, Goal_1) :-
 %
 % N-Triples is the only format used in the store.
 
-q_store_format(nquads, [nq,gz]).
+%%%%q_store_format(nquads, [nq,gz]).
 q_store_format(ntriples, [nt,gz]).
 
 
@@ -512,18 +543,18 @@ q_change_cache(M1, G, M2) :-
 
 
 
-%%! q_cache_file(+M, +File) is nondet.
+%! q_cache_file(+M, +File) is nondet.
 %! q_cache_file(-M, -File) is nondet.
 %
 % Enumerates the files and associated graph names that are currently
 % in the store directory.
 
-%q_cache_file(M, File) :-
-%  nonvar(File), !,
-%  file_extensions(File, Exts),
-%  once(q_cache_format(M, Exts)),
-%  setting(store_dir, Dir),
-%  atom_concat(Dir, _, File).
+q_cache_file(M, File) :-
+  nonvar(File), !,
+  file_extensions(File, Exts),
+  once(q_cache_format(M, Exts)),
+  setting(store_dir, Dir),
+  atom_concat(Dir, _, File).
 q_cache_file(M, File) :-
   setting(store_dir, Dir),
   directory_path_recursive(Dir, File),
@@ -532,14 +563,14 @@ q_cache_file(M, File) :-
 
 
 
-%%! q_cache_graph(+M, +G) is semidet.
+%! q_cache_graph(+M, +G) is semidet.
 %! q_cache_graph(+M, -G) is nondet.
 %! q_cache_graph(-M, -G) is nondet.
 
-%q_cache_graph(M, G) :-
-%  nonvar(G), !,
-%  q_file_graph(File, G),
-%  q_cache_file(M, File).
+q_cache_graph(M, G) :-
+  nonvar(G), !,
+  q_file_graph(File, G),
+  q_cache_file(M, File).
 q_cache_graph(M, G) :-
   q_cache_file(M, File),
   q_file_graph(File, G).
