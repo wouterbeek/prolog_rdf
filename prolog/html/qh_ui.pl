@@ -7,6 +7,7 @@
     qh_describe//3,           % +M, +S, +G
     qh_describe//4,           % +M, +S, +G          +Opts
     qh_graph_menu//1,         % +M
+    qh_graph_menu//2,         % +Attrs, +M
     qh_graph_table//0,
     qh_graph_table//1,        %                     +Opts
     qh_p_os_table//1,         % +Pairs
@@ -165,8 +166,13 @@ qh_describe(M, S, G, Opts) -->
 
 
 %! qh_graph_menu(+M)// is det.
+%! qh_graph_menu(+Attrs, +M)// is det.
 
 qh_graph_menu(M) -->
+  qh_graph_menu([], M).
+
+
+qh_graph_menu(Attrs1, M) -->
   {
     % @tbd Special GIS case should be fixed in module `gis_db`.
     (   M == gis
@@ -174,10 +180,18 @@ qh_graph_menu(M) -->
     ;   findall(N-G, q_number_of_triples(M, G, N), Pairs),
         desc_pairs_values(Pairs, Gs)
     ),
-    Gs \== []
+    Gs \== [],
+    merge_attrs(Attrs1, [class='navbar-left'], Attrs2)
   },
-  nav_dropdown_menu('graph-menu', "Graph", qh_graph_menu_item(false), Gs).
-qh_graph_menu(_) --> [].
+  navbar_dropdown_menu(
+    Attrs2,
+    _,
+    'graph-menu',
+    "Graph",
+    qh_graph_menu_item(false),
+    Gs
+  ).
+qh_graph_menu(_, _) --> [].
 
 
 qh_graph_menu_item(Selected, G) -->
@@ -315,7 +329,7 @@ $("#checkAll").change(function () {
   $("input:checkbox").prop('checked', $(this).prop("checked"));
 });
     |}),
-    p(label([input([id(checkAll),type(checkbox)], []), "Check all"]))
+    p(label([input([id=checkAll,type=checkbox], []), "Check all"]))
   ]).
 
 

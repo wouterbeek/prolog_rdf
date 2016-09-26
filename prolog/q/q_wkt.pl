@@ -102,4 +102,6 @@ point_shape([X,Y], point(X,Y)).
 qb_wkt_point(M, S, Point, G) :-
   point_shape(Array, Point),
   atom_phrase(wkt(point(Array)), Lex),
-  qb(M, S, geold:geometry, Lex^^wkt:point, G).
+  % @tbd alias
+  rdf_global_id(wkt:point, D),
+  qb(M, S, geold:geometry, Lex^^D, G).

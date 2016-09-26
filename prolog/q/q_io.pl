@@ -204,8 +204,12 @@ q_file_name_to_format(File, Format) :-
   % The format is determined by the file extensions.
   (   q_source_format(Format, Exts)
   ->  true
+  ;   q_source_skip_exts(Exts)
   ;   existence_error(source_format, Exts)
   ).
+
+
+q_source_skip_exts([md]).
 
 
 
