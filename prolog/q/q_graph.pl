@@ -43,7 +43,7 @@ q_data_graph(Name, G) :-
 %! q_graph_table_comps(-HeaderRow, -DataRows) is det.
 
 q_graph_table_comps(HeaderRow, DataRows) :-
-  HeaderRow = [bold("Graph"),bold("№ triples"),bold("Store")],
+  HeaderRow = ["Graph","№ triples","Store"],
   aggregate_all(set(G), q_view_graph(_, G), Gs),
   maplist(graph_data_row_pair0, Gs, Pairs),
   asc_pairs_values(Pairs, DataRows).

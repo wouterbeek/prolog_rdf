@@ -134,7 +134,7 @@ html:html_hook(q_alias(Alias)) -->
 
 html:html_hook(Opts, q_dataset_term(D)) -->
   qh_dataset_term(D, Opts).
-html:html_hook(Opts, q_graph_term(G)) -->
+html:html_hook(Opts, q_graph_term(G)) -->{gtrace},
   qh_graph_term(G, Opts).
 html:html_hook(Opts, q_iri(Iri)) -->
   qh_iri(Iri, Opts).
