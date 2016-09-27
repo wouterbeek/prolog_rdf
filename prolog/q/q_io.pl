@@ -4,6 +4,8 @@
   q_ls/0,
 
   % SOURCE
+  q_dataset2store/0,
+  q_dataset2store/1,       % +Name
   q_file_name_to_format/2, % +FileName, -Format
   q_source_file/1,         % -File
 
@@ -93,7 +95,7 @@ them.
 ---
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08-2016/09
 */
 
 :- use_module(library(apply)).
@@ -118,6 +120,7 @@ them.
 :- use_module(library(settings)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).
+:- use_module(library(thread)).
 
 :- meta_predicate
     q_generate(-, 1),
@@ -128,6 +131,7 @@ them.
     q_backend_hook/1,       % Only for backends that have no files in cache.
     q_cache_format_hook/2,  % E.g., ‘hdt’ file extension for HDT.
     q_cache_rm_hook/2,      % E.g., ‘hdt’ also has an index file.
+    q_dataset2store_hook/1,
     q_dataset2store_hook/2, % E.g., run custom script for ‘bgt’.
     q_source2store_hook/4,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
@@ -232,7 +236,10 @@ q_source_format(Format, Exts) :-
 q_source_file(File) :-
   setting(source_dir, Dir),
   % Every non-directory file in the source directory is a source file.
-  directory_path_recursive(Dir, File).
+  directory_path_recursive(Dir, File),
+  % Exclude certain extensions.
+  file_extensions(File, Exts),
+  \+ q_source_skip_exts(Exts).
 
 
 
@@ -241,15 +248,17 @@ q_source_file(File) :-
 % SOURCE ⬄ STORE %
 
 %! q_dataset2store is det.
+%! q_dataset2store(+Name) is det.
 
 q_dataset2store :-
-  forall(
-    (
-      q_dataset2store_hook(_, D),
-      q_dataset_graph(D, G)
-    ),
-    q_view2store(trp, G)
-  ).
+  findall(Name, q_dataset2store_hook(Name), Names),
+  concurrent_maplist(q_dataset2store, Names).
+
+
+q_dataset2store(Name) :-
+  q_dataset2store_hook(Name, D),
+  q_dataset_graph(D, G),
+  q_view2store(trp, G).
 
 
 
@@ -304,10 +313,8 @@ q_init :-
 
 
 q_source2store :-
-  forall(
-    q_source_file(File),
-    q_source2store_file(File)
-  ).
+  findall(File, q_source_file(File), Files),
+  concurrent_maplist(q_source2store_file, Files).
 
 
 q_source2store_file(File) :-
@@ -452,17 +459,13 @@ q_transform(G, Goal_3) :-
 % Create a cache of store graph G in backend M.
 
 q_store2cache :-
-  forall(
-    q_backend(M),
-    q_store2cache(M)
-  ).
+  findall(M, q_backend(M), Ms),
+  concurrent_maplist(q_store2cache, Ms).
 
 
 q_store2cache(M) :-
-  forall(
-    q_store_graph(G),
-    q_store2cache(M, G)
-  ).
+  findall(G, q_store_graph(G), Gs),
+  concurrent_maplist(q_store2cache(M), Gs).
 
 
 q_store2cache(M, G) :-
@@ -588,17 +591,13 @@ q_cache_graph(M, G) :-
 % Load graph G into backend M.
 
 q_cache2view :-
-  forall(
-    q_backend(M),
-    q_cache2view(M)
-  ).
+  findall(M, q_backend(M), Ms),
+  concurrent_maplist(q_cache2view, Ms).
 
 
 q_cache2view(M) :-
-  forall(
-    q_cache_graph(M, G),
-    q_cache2view(M, G)
-  ).
+  findall(G, q_cache_graph(M, G), Gs),
+  concurrent_maplist(q_cache2view(M), Gs).
 
 
 % View already exists: nothing to do.

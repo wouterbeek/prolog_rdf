@@ -134,7 +134,7 @@ html:html_hook(q_alias(Alias)) -->
 
 html:html_hook(Opts, q_dataset_term(D)) -->
   qh_dataset_term(D, Opts).
-html:html_hook(Opts, q_graph_term(G)) -->{gtrace},
+html:html_hook(Opts, q_graph_term(G)) -->
   qh_graph_term(G, Opts).
 html:html_hook(Opts, q_iri(Iri)) -->
   qh_iri(Iri, Opts).
@@ -360,16 +360,6 @@ qh_literal_inner(Mo^^D, _) -->
 qh_literal_inner(Y^^D, _) -->
   {rdf_equal(xsd:gYear, D)}, !,
   html("~d"-[Y]).
-% XSD date
-% XSD dateTime
-% XSD gMonthYear
-% XSD gYearMonth
-qh_literal_inner(V^^D1, Opts) -->
-  {
-    q_subdatatype_of(D1, D2),
-    rdf11:xsd_date_time_type(D2)
-  }, !,
-  html_date_time(V, Opts).
 % XSD integer
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:integer)}, !,
@@ -391,6 +381,16 @@ qh_literal_inner(Str^^D, Opts) -->
 qh_literal_inner(V^^D, _) -->
   {q_subdatatype_of(D, xsd:anyURI)}, !,
   html(V).
+% XSD date
+% XSD dateTime
+% XSD gMonthYear
+% XSD gYearMonth
+qh_literal_inner(V^^D1, Opts) -->
+  {
+    q_subdatatype_of(D1, D2),
+    rdf11:xsd_date_time_type(D2)
+  }, !,
+  html_date_time(V, Opts).
 % Datatype hooks.
 qh_literal_inner(Lit, Opts) -->
   qh_literal_hook(Lit, Opts).
