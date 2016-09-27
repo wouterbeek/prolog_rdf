@@ -619,17 +619,16 @@ q_cache2view(M, G) :-
 %! q_store2view(+M, +G) is det.
 
 q_store2view :-
-  forall(
-    q_store_graph(G),
-    q_store2view(G)
-  ).
+  findall(G, q_store_graph(G), Gs),
+  concurrent_maplist(q_store2view, Gs).
 
   
 q_store2view(G) :-
-  forall(
-    q_backend(M),
-    q_store2view(M, G)
-  ).
+  findall(M, q_backend(M), Ms),
+  concurrent_maplist(q_store2view0(G), Ms).
+
+q_store2view0(G, M) :-
+  q_store2view(M, G).
 
 
 q_store2view(M, G) :-
@@ -645,17 +644,13 @@ q_store2view(M, G) :-
 %! q_view2store(+M, +G) is det.
 
 q_view2store :-
-  forall(
-    q_backend(M),
-    q_view2store(M)
-  ).
+  findall(M, q_backend(M), Ms),
+  concurrent_maplist(q_view2store, Ms).
 
 
 q_view2store(M) :-
-  forall(
-    q_view_graph(M, G),
-    q_view2store(M, G)
-  ).
+  findall(G, q_view_graph(M, G), Gs),
+  concurrent_maplist(q_view2store(M), Gs).
 
 
 q_view2store(M, G) :-
