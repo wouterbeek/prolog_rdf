@@ -313,8 +313,10 @@ q_init :-
 
 
 q_source2store :-
-  findall(File, q_source_file(File), Files),
-  concurrent_maplist(q_source2store_file, Files).
+  forall(
+    q_source_file(File),
+    q_source2store_file(File)
+  ).
 
 
 q_source2store_file(File) :-
@@ -459,13 +461,17 @@ q_transform(G, Goal_3) :-
 % Create a cache of store graph G in backend M.
 
 q_store2cache :-
-  findall(M, q_backend(M), Ms),
-  concurrent_maplist(q_store2cache, Ms).
+  forall(
+    q_backend(M),
+    q_store2cache(M)
+  ).
 
 
 q_store2cache(M) :-
-  findall(G, q_store_graph(G), Gs),
-  concurrent_maplist(q_store2cache(M), Gs).
+  forall(
+    q_store_graph(G),
+    q_store2cache(M, G)
+  ).
 
 
 q_store2cache(M, G) :-
@@ -591,13 +597,17 @@ q_cache_graph(M, G) :-
 % Load graph G into backend M.
 
 q_cache2view :-
-  findall(M, q_backend(M), Ms),
-  concurrent_maplist(q_cache2view, Ms).
+  forall(
+    q_backend(M),
+    q_cache2view(M)
+  ).
 
 
 q_cache2view(M) :-
-  findall(G, q_cache_graph(M, G), Gs),
-  concurrent_maplist(q_cache2view(M), Gs).
+  forall(
+    q_cache_graph(M, G),
+    q_cache2view(M, G)
+  ).
 
 
 % View already exists: nothing to do.
@@ -619,16 +629,26 @@ q_cache2view(M, G) :-
 %! q_store2view(+M, +G) is det.
 
 q_store2view :-
-  findall(G, q_store_graph(G), Gs),
-  concurrent_maplist(q_store2view, Gs).
+  forall(
+    q_backend(M),
+    q_store2view(M)
+  ).
 
   
-q_store2view(G) :-
-  findall(M, q_backend(M), Ms),
-  concurrent_maplist(q_store2view0(G), Ms).
-
-q_store2view0(G, M) :-
-  q_store2view(M, G).
+q_store2view(gis) :- !,
+  forall(
+    q_store_graph(G),
+    (
+      debug(conv(_), "AAA", []),
+      q_store2view(gis, G),
+      debug(conv(_), "BBB", [])
+    )
+  ).
+q_store2view(M) :-
+  forall(
+    q_store_graph(G),
+    q_store2view(M, G)
+  ).
 
 
 q_store2view(M, G) :-
@@ -644,13 +664,17 @@ q_store2view(M, G) :-
 %! q_view2store(+M, +G) is det.
 
 q_view2store :-
-  findall(M, q_backend(M), Ms),
-  concurrent_maplist(q_view2store, Ms).
+  forall(
+    q_backend(M),
+    q_view2store(M)
+  ).
 
 
 q_view2store(M) :-
-  findall(G, q_view_graph(M, G), Gs),
-  concurrent_maplist(q_view2store(M), Gs).
+  forall(
+    q_view_graph(M, G),
+    q_view2store(M, G)
+  ).
 
 
 q_view2store(M, G) :-
