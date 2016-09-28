@@ -2,6 +2,7 @@
   qh,
   [
     qh_alias//1,         % +Alias
+    qh_alias//2,         % +Alias,         +Opts
     qh_bnode//1,         % +B
     qh_bnode//2,         % +B,             +Opts
     qh_class//1,         % +C
@@ -49,6 +50,10 @@
 Generates end user-oriented HTML representations of RDF data.
 
 This assumes that an HTTP handler with id `qh` is defined.
+
+The following option sets the HTTP handler:
+
+  - handle_id(+atom)
 
 The following options are supported to achieve parity with module
 `q_print`:
@@ -129,9 +134,15 @@ The following options are supported to achieve parity with module
    qh_triple(r, r, o, ?, ?),
    qh_triple(r, r, o, +, ?, ?).
 
-html:html_hook(q_alias(Alias)) -->
-  qh_alias(Alias).
+:- setting(
+     qh:handle_id,
+     atom,
+     '',
+     "The default HTTP handler ID for performs RDF term lookup."
+   ).
 
+html:html_hook(Opts, q_alias(Alias)) -->
+  qh_alias(Alias, Opts).
 html:html_hook(Opts, q_dataset_term(D)) -->
   qh_dataset_term(D, Opts).
 html:html_hook(Opts, q_graph_term(G)) -->
@@ -144,10 +155,15 @@ html:html_hook(Opts, q_iri(Iri)) -->
 
 
 %! qh_alias(+Alias)// is det.
+%! qh_alias(+Alias, +Opts)// is det.
 
 qh_alias(Alias) -->
+  qh_alias(Alias, _{}).
+
+
+qh_alias(Alias, Opts) -->
   {
-    qh_external_iri(alias, Alias, Link),
+    qh_external_iri(alias, Alias, Link, Opts),
     q_alias_prefix(Alias, Prefix)
   },
   html([
@@ -587,14 +603,18 @@ qh_default_options(Opts1, Opts2) :-
 
 
 %! qh_external_iri(+C, +Val, -Link) is det.
-%! qh_external_iri(+C, +Val, +Query, -Link) is det.
+%! qh_external_iri(+C, +Val, -Link, +Opts) is det.
 
 qh_external_iri(C, Val, Link) :-
-  qh_external_iri(C, Val, [], Link).
+  qh_external_iri(C, Val, Link, _{}).
 
 
-qh_external_iri(C, Val, Query, Link) :-
-  setting(cp:browse_term_handler, HandleId),
+qh_external_iri(C, Val, Link, Opts) :-
+  dict_get(query, Opts, [], Query),
+  (   dict_get(handle_id, Opts, HandleId)
+  ->  true
+  ;   setting(qh:handle_id, HandleId)
+  ),
   HandleId \== '',
   q_query_term(C, Val, QueryTerm),
   http_link_to_id(HandleId, [QueryTerm|Query], Link).
@@ -626,10 +646,7 @@ qh_link(_, _, _, _, Content_0, Opts) -->
   {Opts.qh_link == false}, !,
   html_call(Content_0).
 qh_link(C, Cs, Attrs, Term, Content_0, Opts) -->
-  {
-    dict_get(query, Opts, [], Query),
-    qh_external_iri(C, Term, Query, Link), !
-  },
+  {qh_external_iri(C, Term, Link, Opts)}, !,
   html([
     a([class=Cs,href=Link|Attrs], \html_call(Content_0)),
     \qh_link_external(Term)
