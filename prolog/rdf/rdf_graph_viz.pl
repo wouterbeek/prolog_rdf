@@ -24,9 +24,9 @@ handled by plGraphViz.
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(q/q_graph_theory)).
+:- use_module(library(q/q_prefix), []).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs), [
      rdfs_individual_of/2,

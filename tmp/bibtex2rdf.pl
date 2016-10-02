@@ -16,7 +16,7 @@
 :- use_module(library(dcg/bibtex)).
 :- use_module(library(hash_ext)).
 :- use_module(library(q/qb)).
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(q/q_prefix), []).
 :- use_module(library(semweb/rdf11)).
 
 :- qb_alias(lobo, 'http://linkedopenbibtex.org/ontology/').

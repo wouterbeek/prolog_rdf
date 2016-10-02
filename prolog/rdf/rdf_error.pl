@@ -8,7 +8,7 @@
 /** <module> RDF error
 
 @author Wouter Beek
-@version 2016/03-2016/05, 2016/08-2016/09
+@version 2016/03-2016/05, 2016/08-2016/10
 */
 
 :- use_module(library(apply)).
@@ -18,8 +18,8 @@
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/qb)).
+:- use_module(library(q/q_print)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
@@ -111,19 +111,19 @@ rdf_store_warning(Out, Doc, error(type_error(http_iri,Name),_)) :- !,
   write_ntriple(Out, Doc, nsdef:non_https_iri, Name^^xsd:anyURI).
 % Literal: illegal lexical form.
 rdf_store_warning(Out, Doc, error(type_error(D1,Lex),_)) :- !,
-  abbr_iri(D1, D2),
+  iri_abbr(D1, D2),
   atom_concat(illegal_, D2, Name),
   rdf_global_id(nsdef:Name, P),
   write_ntriple(Out, Doc, P, Lex^^xsd:string).
 % Literal: out-of-bounds value.
 rdf_store_warning(Out, Doc, error(domain_error(D1,Lex),_)) :- !,
-  abbr_iri(D1, D2),
+  iri_abbr(D1, D2),
   atom_concat(outofbounds_, D2, Name),
   rdf_global_id(nsdef:Name, P),
   write_ntriple(Out, Doc, P, Lex^^xsd:string).
 % Literal: non-canonical lexical form.
 rdf_store_warning(Out, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
-  abbr_iri(D1, D2),
+  iri_abbr(D1, D2),
   atom_concat(noncanonical_, D2, Name),
   rdf_global_id(nsdef:Name, P),
   write_ntriple(Out, Doc, P, Lex^^xsd:string).
@@ -216,3 +216,9 @@ ssl_func(N) --> "func(", integer(N), ")".
 
 
 ssl_reason(N) --> "reason(", integer(N), ")".
+
+
+abbr_iri(Iri, Abbr) :-
+  with_output_to(atom(Abbr),
+    q_print_iri(Iri, _{iri_abbr: true, max_iri_len: inf})
+  ).

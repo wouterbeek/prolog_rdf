@@ -48,6 +48,7 @@
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_owl)).
+:- use_module(library(q/q_prefix)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_rdfs)).
@@ -72,7 +73,6 @@
 :- use_module(library(rdf/rdf_guess_xml)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_isomorphism)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_search)).
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_term)).

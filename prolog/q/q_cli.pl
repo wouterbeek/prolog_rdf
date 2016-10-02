@@ -13,6 +13,7 @@
     q__fs/1,    % +HashG
     q__fs/2,    % +HashG, +PageOpts
     q__g/0,
+    q__g/1,     %             ?HashG
     q__g/2,     % +M,         ?HashG
     q__gs/0,
     q__key/3,   % +M,     ?P, ?HashG
@@ -51,7 +52,7 @@
 `HashG` is either a hash prefix or a graph term.
 
 @author Wouter Beek
-@version 2016/06-2016/08
+@version 2016/06-2016/08, 2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -69,6 +70,7 @@
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_io)).
+:- use_module(library(q/q_prefix), []).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_shape)).
@@ -170,9 +172,15 @@ q__fs(HashG, PageOpts) :-
 
 
 %! q__g is nondet.
+%! q__g(+M) is nondet.
 %! q__g(+M, ?HashG) is nondet.
 
 q__g :-
+  q__g(hdt).
+
+
+q__g(M) :-
+  q_cache2view(M),
   q_view_graph(M, G),
   q__g(M, G).
 
@@ -367,8 +375,7 @@ q__x(M, Name, HashG) :-
 
 
 q__x(M, S, P, O, Name, Hash) :-
-  q_graph(Hash, Name, G),
-  pagination(rdf(S,P,O), q(M, S, P, O, G), Result),
+  pagination(rdf(S,P,O), (q_graph(Hash, Name, G), q(M, S, P, O, G)), Result),
   pagination_result(Result, q_print_quads).
 
 

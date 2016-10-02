@@ -295,14 +295,12 @@ qh_quad_table(M, S, P, O, G, Opts1) -->
 
 qh_quad_row0(Opts, rdf(S,P,O,G)) -->
   html(
-    span(class=quadruple,
-      tr([
-        td(\qh_subject_outer0(subject, [subject], Opts, S)),
-        td(\qh_predicate_outer0(predicate, [predicate], Opts, P)),
-        td(\qh_object_outer0(object, [object], Opts, O)),
-        td(\qh_graph_term_outer0(graph, [graph], Opts, G))
-      ])
-    )
+    tr(class=quadruple, [
+      td(\qh_subject_outer0(subject, [subject], Opts, S)),
+      td(\qh_predicate_outer0(predicate, [predicate], Opts, P)),
+      td(\qh_object_outer0(object, [object], Opts, O)),
+      td(\qh_graph_term_outer0(graph, [graph], Opts, G))
+    ])
   ).
 
 
@@ -389,7 +387,7 @@ qh_triple_table(Triples, Opts1) -->
 
 qh_triple_row0(Opts, rdf(S,P,O)) -->
   html(
-    tr([
+    tr(class=triple, [
       td(\qh_subject_outer0(subject, [subject], Opts, S)),
       td(\qh_predicate_outer0(predicate, [predicate], Opts, P)),
       td(\qh_object_outer0(object, [object], Opts, O))

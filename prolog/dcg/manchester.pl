@@ -64,7 +64,7 @@ annotated_list(_) --> "".
 :- use_module(library(dcg/sparql10)).
 :- use_module(library(ltag/rfc5646)).
 :- use_module(library(math/rational_ext)).
-:- use_module(library(rdf/rdf_prefix)).
+:- use_module(library(q/q_prefix), []).
 :- use_module(library(semweb/rdf11)).
 
 

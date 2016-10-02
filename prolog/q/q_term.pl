@@ -60,6 +60,7 @@
     q_subject/3,           % ?M, ?S, ?G
     q_term/2,              % ?M, ?Term
     q_term/3,              % ?M, ?Term, ?G
+    q_term_expansion/2,    % +Atom, -Term
    %q_transaction/1,       % :Goal_0
    %q_transaction/2,       % :Goal_0, +Id
    %q_transaction/3,       % :Goal_0, +Is, +Opts
@@ -95,7 +96,7 @@
 /** <module> Quine term API
 
 @author Wouter Beek
-@version 2016/06, 2016/08
+@version 2016/06, 2016/08, 2016/10
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -627,6 +628,17 @@ q_term(hdt0, Term, Hdt) :-
   hdt_term0(Term, Hdt).
 q_term(trp, Term, G) :-
   rdf_term(Term, G).
+
+
+
+%! q_term_expansion(+Atom, -Term) is det.
+
+q_term_expansion(X, Y) :-
+  atom(X),
+  atomic_list_concat([Alias,Local], :, X),
+  q_alias(Alias), !,
+  rdf_global_id(Alias:Local, Y).
+q_term_expansion(X, X).
 
 
 

@@ -309,7 +309,7 @@ q_print_graph_term(G, Opts1) :-
 
 
 q_print_iri(Lit) :-
-  q_print_object(Lit, _{}).
+  q_print_iri(Lit, _{}).
 
 
 q_print_iri(Lit, Opts1) :-

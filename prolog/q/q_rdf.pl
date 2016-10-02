@@ -130,11 +130,11 @@ q(M, S, P, O) :-
   q(M, S, P, O, _).
 
 
-q(any, S, P, O, G) :- !,
-  q_any(_, S, P, O, G).
 q(M, S, P, O, G) :-
   var(M), !,
   q_any(M, S, P, O, G).
+q(any, S, P, O, G) :- !,
+  q_any(_, S, P, O, G).
 q(M, S, P, O, G) :-
   q_m(M, S, P, O, G).
 
