@@ -292,9 +292,6 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
 
 
 rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
-  %flag(rdf_call_on_quad0, N, N + 1),
-  %format(user_output, "~D~n", [N]),
-  %(N =:= 715769 -> gtrace ; true),
   rdf11:post_graph(G2, G1),
   (G2 == user -> q_default_graph(G3) ; G3 = G2),
   (   rdf_is_term(O1)
@@ -331,6 +328,15 @@ rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
 rdf_call_on_quad0(Goal_5, L, rdf(S,P,O)) :-
   q_default_graph(G),
   rdf_call_on_quad0(Goal_5, L, rdf(S,P,O,G)).
+
+
+% Use this to debug bugs in statement calls.
+rdf_call_on_quad0_debug(Goal_5, L, Tuple) :-
+  %flag(rdf_call_on_quad0_debug, N, N + 1),
+  %format(user_output, "~D~n", [N]),
+  %(N =:= 715769 -> gtrace ; true),
+  catch(rdf_call_on_quad0(Goal_5, L, Tuple), E, true),
+  (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, L, Tuple)).
 
 
 rdf_call_on_quads0(Goal_5, L, Tuples) :-

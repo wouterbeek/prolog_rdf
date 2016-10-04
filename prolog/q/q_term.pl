@@ -356,6 +356,8 @@ q_is_node(Term) :-
 %! q_legacy_literal(+Lit, -D, -Lex, -LTag) is det.
 %! q_legacy_literal(-Lit, +D, +Lex, +LTag) is det.
 
+q_legacy_literal(literal(type(D,Dom)), D, Dom, _) :-
+  q_memberchk(D, [rdf:'HTML',rdf:'XMLLiteral']), !.
 q_legacy_literal(literal(type(D,Lex0)), D, Lex, _) :-
   \+ rdf_equal(rdf:langString, D), !,
   atom_string(Lex0, Lex).
