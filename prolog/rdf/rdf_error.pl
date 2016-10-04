@@ -218,7 +218,7 @@ ssl_func(N) --> "func(", integer(N), ")".
 ssl_reason(N) --> "reason(", integer(N), ")".
 
 
-abbr_iri(Iri, Abbr) :-
+iri_abbr(Iri, Abbr) :-
   with_output_to(atom(Abbr),
     q_print_iri(Iri, _{iri_abbr: true, max_iri_len: inf})
   ).
