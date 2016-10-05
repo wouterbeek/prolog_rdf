@@ -98,8 +98,9 @@ q_create_void(Refs, D, Goal_3, G) :-
 %! q_graph_iri(+Refs, -G) is det.
 
 q_graph_iri(Refs, G) :-
-  q_alias_domain(ns, Domain),
-  q_abox_iri(Domain, graph, Refs, G).
+  q_alias_prefix(ns, Prefix),
+  uri_components(Prefix, uri_components(Scheme,Auth,_,_,_)),
+  q_abox_iri(Scheme, Auth, graph, Refs, G).
 
 
 

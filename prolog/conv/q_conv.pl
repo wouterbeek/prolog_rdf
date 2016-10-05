@@ -8,12 +8,11 @@
 /** <module> Quine conversion generics
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08, 2016/11
 */
 
 :- use_module(library(dict_ext)).
-:- use_module(library(q/q_term)).
-:- use_module(library(uri)).
+:- use_module(library(settings)).
 
 
 
@@ -22,7 +21,6 @@
 %! q_conv_options(+Opts1, -Opts2) is det.
 
 q_conv_options(Opts1, Opts2) :-
-  q_alias_prefix(ns, Prefix),
-  uri_components(Prefix, Comps),
-  uri_data(authority, Comps, Domain),
-  merge_dicts(_{concept: resource, domain: Domain}, Opts1, Opts2).
+  setting(iri:data_scheme, Scheme),
+  setting(iri:data_auth, Host),
+  merge_dicts(_{concept: resource, host: Host, scheme: Scheme}, Opts1, Opts2).

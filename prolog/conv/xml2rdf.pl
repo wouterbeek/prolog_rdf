@@ -12,7 +12,7 @@
 
 @author Wouter Beek
 @tbd Currently runs out of memory for unclear reasons.
-@version 2016/06-2016/08
+@version 2016/06-2016/08, 2016/11
 */
 
 :- use_module(library(apply)).
@@ -53,9 +53,11 @@ q_io:q_source_format_hook(xml, [xml]).
 %
 %   * concept(+atom)
 %
-%   * domain(+atom)
-%
 %   * entry_name(+atom)
+%
+%   * host(+atom)
+%
+%   * scheme(+atom)
 
 xml2rdf(Source, Sink, RecordNames) :-
   xml2rdf(Source, Sink, RecordNames, _{}).
@@ -89,7 +91,7 @@ xml2rdf_stream(Source, RecordNames, Opts1, State, Out) :-
 
 xml2rdf_stream0(State, Out, Opts, [element(_,_,Dom)]) :-
   uuid(Uuid),
-  q_abox_iri(Opts.domain, Opts.concept, [Uuid], S),
+  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, [Uuid], S),
   (get_dict(p_attrs, Opts, PAttrs) -> true ; PAttrs = []),
   xml2rdf_stream0(0, State, Out, Dom, S, PAttrs, Opts),
   flag(xml2rdf, N, N+1),
@@ -111,7 +113,7 @@ xml2rdf_stream0(N1, State, Out, [element(H,Attrs,Content)|T], S, PAttrs, Opts) :
   N2 is N1 + 1,
   xml_p(H, PAttrs, Attrs, P, Opts),
   uuid(Uuid),
-  q_abox_iri(Opts.domain, Opts.concept, [Uuid], O),
+  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, [Uuid], O),
   gen_ntuple(S, P, O, State, Out),
   xml2rdf_stream0(N2, State, Out, Content, O, PAttrs, Opts),
   xml2rdf_stream0(N1, State, Out, T, S, PAttrs, Opts).
@@ -124,7 +126,7 @@ xml2rdf_stream0(_, _, _, [], _, _, _) :- !.
 xml_p(H, PAttrs, Attrs, P, Opts) :-
   xml_p_attrs(PAttrs, Attrs, T),
   atomic_list_concat([H|T], :, Term),
-  q_tbox_iri(Opts.domain, Term, P).
+  q_tbox_iri(Opts.scheme, Opts.host, Term, P).
 
 
 xml_p_attrs(_, [], []) :- !.

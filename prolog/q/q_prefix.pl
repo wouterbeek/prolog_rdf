@@ -48,7 +48,7 @@ This allows the following two IRI notations to be distinguished:
 
 :- initialization(init_q_prefix).
 init_q_prefix :-
-  qb_alias(data, 'http://lodlaundromat.org/data/'),
+  %qb_alias(data, 'http://lodlaundromat.org/data/'),
   qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
   qb_alias(dct, 'http://purl.org/dc/terms/'),
   qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
@@ -56,7 +56,7 @@ init_q_prefix :-
   qb_alias(llm, 'http://lodlaundromat.org/metrics/ontology/'),
   qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
   qb_alias(llr, 'http://lodlaundromat.org/resource/'),
-  qb_alias(meta, 'http://lodlaundromat.org/meta/'),
+  %qb_alias(meta, 'http://lodlaundromat.org/meta/'),
   qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
   qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
   qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),

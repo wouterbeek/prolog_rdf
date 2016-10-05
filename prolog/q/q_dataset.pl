@@ -21,7 +21,7 @@
 /** <module> Quine dataset
 
 @author Wouter Beek
-@version 2016/08-2016/09
+@version 2016/08-2016/09, 2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -36,6 +36,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(tree/s_tree)).
+:- use_module(library(uri)).
 
 :- initialization(db_attach('q_dataset.db', [])).
 
@@ -116,8 +117,9 @@ q_dataset_graph(D, G) :-
 %! q_dataset_iri(-Ref, +D) is det.
 
 q_dataset_iri(Ref, D) :-
-  q_alias_domain(ns, Domain),
-  q_abox_iri(Domain, dataset, [Ref], D).
+  q_alias_prefix(ns, Prefix),
+  uri_components(Prefix, uri_components(Scheme,Auth,_,_,_)),
+  q_abox_iri(Scheme, Auth, dataset, [Ref], D).
 
 
 

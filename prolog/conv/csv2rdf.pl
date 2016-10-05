@@ -63,12 +63,14 @@ q_io:q_source_format_hook(csv, [csv]).
 %
 %   * concept(+atom)
 %
-%   * domain(+atom)
-%
 %   * header(+list)
 %
 %     A list of RDF properties that represent the columns.  This is
 %     used when there are no column labels in the CSV file.
+%
+%   * host(+atom)
+%
+%   * scheme(+atom)
 
 csv2rdf(Source, Sink) :-
   csv2rdf(Source, Sink, []).
@@ -100,12 +102,12 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
   ->  true
   ;   once(csv:csv_read_stream_row(In, HeaderRow, _, CsvOpts)),
       list_row(HeaderNames, HeaderRow),
-      maplist(q_tbox_iri(Opts2.domain), HeaderNames, Ps)
+      maplist(q_tbox_iri(Opts2.scheme, Opts2.host), HeaderNames, Ps)
   ),
   csv:csv_read_stream_row(In, DataRow, _, CsvOpts),
   list_row(Vals, DataRow),
   uuid(Ref),
-  q_abox_iri(Opts2.domain, Opts2.concept, [Ref], S),
+  q_abox_iri(Opts2.scheme, Opts2.host, Opts2.concept, [Ref], S),
   rdf_equal(xsd:string, D),
   maplist(
     {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),

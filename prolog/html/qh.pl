@@ -135,7 +135,7 @@ The following options are supported to achieve parity with module
    qh_triple(r, r, o, +, ?, ?).
 
 :- setting(
-     qh:handle_id,
+     handle_id,
      atom,
      '',
      "The default HTTP handler ID for performs RDF term lookup."

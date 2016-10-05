@@ -12,7 +12,7 @@
 
 @author Wouter Beek
 @see http://ndjson.org/
-@version 2016/06-2016/08
+@version 2016/06-2016/08, 2016/11
 */
 
 :- use_module(library(atom_ext)).
@@ -100,13 +100,13 @@ json2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
 dict_to_triple(Dict, Opts, Triple) :-
   % S
   uuid(Uuid),
-  q_abox_iri(Opts.domain, Opts.concept, [Uuid], S),
+  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, [Uuid], S),
   % P
   get_dict_path(Keys1, Dict, Val), % NONDET
   atomic_list_concat(Keys1, '_', Local1),
   atomic_list_concat(Keys2, ' ', Local1),
   atomic_list_concat(Keys2, '_', Local2),
-  q_tbox_iri(Opts.domain, Local2, P),
+  q_tbox_iri(Opts.scheme, Opts.host, Local2, P),
   % O
   get_dict_path(Keys1, Dict, Val),
   (is_list(Val) -> O = Val^^tcco:array ; O = Val^^xsd:string),
