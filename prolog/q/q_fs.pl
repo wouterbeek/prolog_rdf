@@ -116,7 +116,7 @@ q_dir_file(Dir, Name, Format, File) :-
   ground(File), !,
   directory_file_path(Dir, Local, File),
   atomic_list_concat([Name|Exts], ., Local),
-  q_format(Format, Exts).
+  once(q_format(Format, Exts)).
 q_dir_file(Dir, Name, Format, File) :-
   q_name(Name),
   (   nonvar(Format)
