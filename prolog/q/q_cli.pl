@@ -126,7 +126,7 @@ q__cbd(S) :-
 
 % @tbd
 %q__cs(trp, G) :-
-%  findall(N-[C,pl(N)], (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
+%  findall(N-[C,N], (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
 %  q_pairs_table0(["class","№ instances"], Pairs).
 
 
@@ -261,7 +261,7 @@ q__p_os(M, P, G) :-
           Len > 5000
       ->  q_p_no_abbr(M, P, G, "Too many unique object terms.")
       ;   findall(
-            N-[O,pl(N)],
+            N-[O,N],
             (
               member(O, Os),
               q_number_of_subjects(M, P, O, G, N)
@@ -306,7 +306,7 @@ q__ps :-
 
 q__ps(M, G) :-
   findall(
-    N-[P,pl(N)],
+    N-[P,N],
     (
       distinct(P, q(M, _, P, _, G)),
       q_number_of_triples(M, _, P, _, G, N)
@@ -330,7 +330,7 @@ q__ps_no :-
 
 q__ps_no(M, G) :-
   findall(
-    N-[P,pl(N)],
+    N-[P,N],
     (
       distinct(P, q_predicate(M, P, G)),
       q_number_of_objects(M, _, P, G, N)

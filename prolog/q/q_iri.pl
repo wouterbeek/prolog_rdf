@@ -77,7 +77,6 @@ q_init_ns :-
   uri_components(Prefix5, uri_components(Scheme,Host,'/doc/',_,_)),
   qb_alias(nsdoc, Prefix5),
   uri_components(Prefix6, uri_components(Scheme,Host,'/id/',_,_)),
-  gtrace,
   qb_alias(nsid, Prefix6).
 
 
