@@ -15,12 +15,12 @@
 :- qb_alias(resu, 'http://www.swi-prolog.org/cliopatria/user/').
 
 :- setting(
-     user_backend,
+     user:backend,
      oneof([hdt,trp]),
      trp,
      "The backend used for storing user information."
    ).
-:- setting(user_alias, atom, resu, "The IRI prefix of user resources.").
+:- setting(user:alias, atom, resu, "The IRI prefix of user resources.").
 
 :- multifile
     google_client:create_user_hook/2,
@@ -34,9 +34,9 @@
 
 
 google_client:create_user_hook(Profile, User) :-
-  setting(user_backend, M),
-  q_abox_iri(user, G),
-  setting(user_alias, Alias),
+  setting(user:backend, M),
+  q_graph_iri(blog, G),
+  setting(user:alias, Alias),
   qb_iri(Alias, User),
   rdf_global_id(Alias:'User', C),
   qb_user(M, User, C, Profile.picture, Profile.given_name, Profile.family_name, G),

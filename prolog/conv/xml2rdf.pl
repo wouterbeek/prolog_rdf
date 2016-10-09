@@ -90,8 +90,7 @@ xml2rdf_stream(Source, RecordNames, Opts1, State, Out) :-
 
 
 xml2rdf_stream0(State, Out, Opts, [element(_,_,Dom)]) :-
-  uuid(Uuid),
-  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, [Uuid], S),
+  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, S),
   (get_dict(p_attrs, Opts, PAttrs) -> true ; PAttrs = []),
   xml2rdf_stream0(0, State, Out, Dom, S, PAttrs, Opts),
   flag(xml2rdf, N, N+1),
@@ -112,8 +111,7 @@ xml2rdf_stream0(N, State, Out, [element(H,Attrs,Vals)|T], S, PAttrs, Opts) :-
 xml2rdf_stream0(N1, State, Out, [element(H,Attrs,Content)|T], S, PAttrs, Opts) :- !,
   N2 is N1 + 1,
   xml_p(H, PAttrs, Attrs, P, Opts),
-  uuid(Uuid),
-  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, [Uuid], O),
+  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, O),
   gen_ntuple(S, P, O, State, Out),
   xml2rdf_stream0(N2, State, Out, Content, O, PAttrs, Opts),
   xml2rdf_stream0(N1, State, Out, T, S, PAttrs, Opts).

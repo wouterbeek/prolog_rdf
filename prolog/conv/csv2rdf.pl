@@ -106,8 +106,7 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
   ),
   csv:csv_read_stream_row(In, DataRow, _, CsvOpts),
   list_row(Vals, DataRow),
-  uuid(Ref),
-  q_abox_iri(Opts2.scheme, Opts2.host, Opts2.concept, [Ref], S),
+  q_abox_iri(Opts2.scheme, Opts2.host, Opts2.concept, S),
   rdf_equal(xsd:string, D),
   maplist(
     {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),

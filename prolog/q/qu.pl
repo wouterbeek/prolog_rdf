@@ -214,7 +214,7 @@ qu_subject_from_key(M1, M2, P, Concept, Goal_2, G) :-
     (
       q(M1, S1, P, Str^^xsd:string, G),
       call(Goal_2, Str, Ref),
-      q_abox_iri(Concept, [Ref], S2),
+      q_abox_iri(Concept, Ref, S2),
       S1 \== S2
     ),
     (

@@ -92,26 +92,3 @@ q_create_void(Refs, D, Goal_3, G) :-
   % Write to store&view.
   q_view2store_overwrite(trp, G),
   q_store2view0(G).
-
-
-
-%! q_graph_iri(+Refs, -G) is det.
-
-q_graph_iri(Refs, G) :-
-  q_alias_prefix(ns, Prefix),
-  uri_components(Prefix, uri_components(Scheme,Auth,_,_,_)),
-  q_abox_iri(Scheme, Auth, graph, Refs, G).
-
-
-
-%! q_vocab_iri(?Refs, -G) is det.
-
-q_vocab_iri(Refs, G) :-
-  q_graph_iri([vocab|Refs], G).
-
-
-
-%! q_void_iri(+Refs, -G) is det.
-
-q_void_iri(Refs, G) :-
-  q_graph_iri([void|Refs], G).

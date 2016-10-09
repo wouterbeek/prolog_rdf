@@ -99,8 +99,7 @@ json2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
 
 dict_to_triple(Dict, Opts, Triple) :-
   % S
-  uuid(Uuid),
-  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, [Uuid], S),
+  q_abox_iri(Opts.scheme, Opts.host, Opts.concept, S),
   % P
   get_dict_path(Keys1, Dict, Val), % NONDET
   atomic_list_concat(Keys1, '_', Local1),

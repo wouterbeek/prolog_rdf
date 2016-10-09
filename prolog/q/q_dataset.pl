@@ -119,7 +119,7 @@ q_dataset_graph(D, G) :-
 q_dataset_iri(Ref, D) :-
   q_alias_prefix(ns, Prefix),
   uri_components(Prefix, uri_components(Scheme,Auth,_,_,_)),
-  q_abox_iri(Scheme, Auth, dataset, [Ref], D).
+  q_abox_iri(Scheme, Auth, dataset, Ref, D).
 
 
 

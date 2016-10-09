@@ -44,7 +44,8 @@ rdfa_user_menu(M, G) -->
 % The user menu shown as a button.
 
 rdfa_user_menu_button(M, Content_0, G) -->
-  {current_user(User)}, !,
+  % @hack
+  {user_api:current_user(User)}, !,
   html(
     div([class=dropdown,id='user-menu'], [
       button([
