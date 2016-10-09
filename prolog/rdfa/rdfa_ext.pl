@@ -54,7 +54,6 @@
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).
-:- use_module(library(http/http_user)).
 :- use_module(library(http/html_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).
@@ -206,9 +205,6 @@ creator(M, Res, Agent, G) :-
 % Generates RDFa HTML for the creators of resource Res.
 %
 % Creators recorded with property `dc:creator`.
-%
-% This predicate uses module `http_user` to determine whether one of
-% the creators is the current user, if there is one.
 
 creators(M, Res, G) -->
   {findall(Agent, creator(M, Res, Agent, G), Agents)},

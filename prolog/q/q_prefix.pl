@@ -49,9 +49,15 @@ This allows the following two IRI notations to be distinguished:
 :- initialization(init_q_prefix).
 init_q_prefix :-
   %qb_alias(data, 'http://lodlaundromat.org/data/'),
+  qb_alias(blog, 'http://quine.cc/blog/def#'),
+  qb_alias(dbc, 'http://dbpedia.org/resource/Category:'),
+  qb_alias(dbr, 'http://dbpedia.org/resource/'),
   qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
   qb_alias(dct, 'http://purl.org/dc/terms/'),
+  qb_alias(bf, 'http://bibframe.org/vocab/'),
+  qb_alias(dct, 'http://purl.org/dc/terms/'),
   qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
+  qb_alias(http, 'http://www.w3.org/2011/http#'),
   qb_alias(ll, 'http://lodlaundromat.org/resource/'),
   qb_alias(llm, 'http://lodlaundromat.org/metrics/ontology/'),
   qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
@@ -60,6 +66,7 @@ init_q_prefix :-
   qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
   qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
   qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
+  qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
   qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
   register_dbpedia_localizations.

@@ -29,7 +29,7 @@
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(typecheck)).
+:- use_module(library(uri)).
 
 :- rdf_meta
    quads_to_jsonld(+, t, -),
@@ -294,7 +294,7 @@ p_datatype(Triples, P, Sup) :-
 %! p_iri(+Triples, +P) is semidet.
 
 p_iri(Triples, P) :-
-  forall(member(rdf(_,P,O), Triples), is_iri(O)).
+  forall(member(rdf(_,P,O), Triples), uri_is_global(O)).
 
 
 
@@ -310,7 +310,7 @@ p_ltag(Triples, P, LTag) :-
 %! jsonld_abbreviate_iri0(+Iri, -Abbr) is det.
 
 jsonld_abbreviate_iri0(Iri, Abbr) :-
-  is_iri(Iri),
+  uri_is_global(Iri),
   rdf_global_id(Alias:Local, Iri), !,
   atomic_list_concat([Alias,Local], :, Abbr).
 jsonld_abbreviate_iri0(Iri, Iri).

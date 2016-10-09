@@ -28,8 +28,10 @@
       % VALUE
       qu_change_val/7,          % +M1, +M2, ?S, ?P, ?DParent, ?G, :Goal_2
         qu_change_decimal/6,    % +M1, +M2, ?S, ?P, ?G, :Goal_2
-          qu_dec/5,             % +M1, +M2, +S, +P, ?G
-          qu_inc/5,             % +M1, +M2, +S, +P, ?G
+          qu_dec/5,             % +M1, +M2, ?S, ?P, ?G
+          qu_dec/6,             % +M1, +M2, ?S, ?P, +Diff, ?G
+          qu_inc/5,             % +M1, +M2, ?S, ?P, ?G
+          qu_inc/6,             % +M1, +M2, ?S, ?P, +Diff, ?G
         qu_change_double/6,     % +M1, +M2, ?S, ?P, ?G, :Goal_2
         qu_change_float/6,      % +M1, +M2, ?S, ?P, ?G, :Goal_2
 % TERM → TERM
@@ -144,8 +146,10 @@ to predicate and/or graph.
    qu_cp(+, +, r, r),
    qu_cp(+, +, r, r, r, o, r),
    qu_dec(+, +, r, r, r),
+   qu_dec(+, +, r, r, +, r),
    qu_flatten_bnode(+, +, r, r),
    qu_inc(+, +, r, r, r),
+   qu_inc(+, +, r, r, +, r),
    qu_lex_to_iri(+, +, r, +, r),
    qu_lex_to_iri(+, +, r, +, r, :),
    qu_lowercase_predicate(+, +, +, r),
@@ -493,6 +497,7 @@ qu_change_decimal(M1, M2, S, P, G, Goal_2) :-
 % TERM > LITERAL > VALUE > DECIMAL > DECREMENT
 
 %! qu_dec(+M1, +M2, ?S, ?P, ?G) is det.
+%! qu_dec(+M1, +M2, ?S, ?P, +Diff, ?G) is det.
 %
 % Decrement values.
 
@@ -500,15 +505,24 @@ qu_dec(M1, M2, S, P, G) :-
   qu_change_decimal(M1, M2, S, P, G, pred).
 
 
+qu_dec(M1, M2, S, P, Diff, G) :-
+  qu_change_decimal(M1, M2, S, P, G, minus(Diff)).
+
+
 
 % TERM > LITERAL > VALUE > DECIMAL > INCREMENT
 
 %! qu_inc(+M1, +M2, ?S, ?P, ?G) is det.
+%! qu_inc(+M1, +M2, ?S, ?P, +Diff, ?G) is det.
 %
 % Increment values.
 
 qu_inc(M1, M2, S, P, G) :-
   qu_change_decimal(M1, M2, S, P, G, succ).
+
+
+qu_inc(M1, M2, S, P, Diff, G) :-
+  qu_change_decimal(M1, M2, S, P, G, plus(Diff)).
 
 
 

@@ -3,9 +3,10 @@
 /** <module> Quine user
 
 @author Wouter Beek
-@version 2016/06-2016/07
+@version 2016/06-2016/07, 2016/10
 */
 
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
@@ -18,12 +19,6 @@
      oneof([hdt,trp]),
      trp,
      "The backend used for storing user information."
-   ).
-:- setting(
-     user_graph,
-     atom,
-     'http://www.swi-prolog.org/cliopatria/user/',
-     "The name of the graph in which user information is stored."
    ).
 :- setting(user_alias, atom, resu, "The IRI prefix of user resources.").
 
@@ -40,7 +35,7 @@
 
 google_client:create_user_hook(Profile, User) :-
   setting(user_backend, M),
-  setting(user_graph, G),
+  q_abox_iri(user, G),
   setting(user_alias, Alias),
   qb_iri(Alias, User),
   rdf_global_id(Alias:'User', C),
