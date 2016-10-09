@@ -69,10 +69,6 @@
 :- use_module(library(string_ext)).
 :- use_module(library(xsd/xsd)).
 
-:- qb_alias(bf, 'http://bibframe.org/vocab/').
-:- qb_alias(org, 'http://www.w3.org/ns/org#').
-:- qb_alias(sioc, 'http://rdfs.org/sioc/ns#').
-
 :- rdf_meta
    agent_image(+, r, -, r),
    agent_image(+, r, r, ?, ?),
@@ -192,7 +188,7 @@ bf_subtitle(M, Article, G) -->
 
 
 
-%! creator(+M, ?Res, ?Agent, +G) is det.
+%! creator(+M, ?Res, ?Agent, +G) is nondet.
 
 creator(M, Res, Agent, G) :-
   q_list_member(M, Res, dc:creator, Agent, G).

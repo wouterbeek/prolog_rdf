@@ -130,13 +130,17 @@ q_list_first(M, L1, H, L2, G) :-
 q_list_rest(M, L1, G) :-
   q_list_first(M, L1, L2, G),
   q_list_rest(M, L2, G).
-q_list_rest(_, rdf:nil, _).
+% @tbd RDF prefix expansion does not work.
+q_list_rest(_, L, _) :-
+  rdf_equal(rdf:nil, L).
 
 
 q_list_rest(M, L1, [H|T], G) :-
   q_list_first(M, L1, H, L2, G),
   q_list_rest(M, L2, T, G).
-q_list_rest(_, rdf:nil, [], _).
+% @tbd RDF prefix expansion does not work.
+q_list_rest(_, L, [], _) :-
+  rdf_equal(rdf:nil, L).
 
 
 
@@ -169,6 +173,7 @@ qb_list(M, L1, L2, G) :-
 
 
 qb_list0(_, [], L, _) :-
+  % @tbd RDF prefix expansion does not work.
   rdf_equal(rdf:nil, L).
 qb_list0(M, [H|T], L, G) :-
   (var(L) -> qb_bnode(L) ; true),
@@ -177,8 +182,7 @@ qb_list0(M, [H|T], L, G) :-
   qb(M, L, rdf:type, C, G),
   qb(M, L, rdf:first, H, G),
   (   T == []
-  ->  % @tbd RDF alias expansion does not work.
-      rdf_equal(rdf:nil, I),
+  ->  rdf_equal(rdf:nil, I),
       qb(M, L, rdf:rest, I, G)
   ;   qb_bnode(T2),
       qb(M, L, rdf:rest, T2, G),

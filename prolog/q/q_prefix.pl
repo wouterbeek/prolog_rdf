@@ -48,8 +48,9 @@ This allows the following two IRI notations to be distinguished:
 
 :- initialization(init_q_prefix).
 init_q_prefix :-
-  %qb_alias(data, 'http://lodlaundromat.org/data/'),
+  qb_alias(bf, 'http://bibframe.org/vocab/'),
   qb_alias(blog, 'http://quine.cc/blog/def#'),
+  %qb_alias(data, 'http://lodlaundromat.org/data/'),
   qb_alias(dbc, 'http://dbpedia.org/resource/Category:'),
   qb_alias(dbr, 'http://dbpedia.org/resource/'),
   qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
@@ -63,11 +64,18 @@ init_q_prefix :-
   qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
   qb_alias(llr, 'http://lodlaundromat.org/resource/'),
   %qb_alias(meta, 'http://lodlaundromat.org/meta/'),
+  qb_alias(org, 'http://www.w3.org/ns/org#'),
   qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
   qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
   qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
   qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
   qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
+  qb_alias(vzm, 'https://vrijheidzondermaar.nl/'),
+  qb_alias(vzma, 'https://vrijheidzondermaar.nl/article/'),
+  qb_alias(vzmc, 'https://vrijheidzondermaar.nl/comment/'),
+  qb_alias(vzmt, 'https://vrijheidzondermaar.nl/tag/'),
+  qb_alias(vzmu, 'https://vrijheidzondermaar.nl/user/'),
+  qb_alias(vzmv, 'https://vrijheidzondermaar.nl/vote/'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
   register_dbpedia_localizations.
 
