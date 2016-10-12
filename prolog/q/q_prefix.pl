@@ -58,6 +58,7 @@ init_q_prefix :-
   qb_alias(bf, 'http://bibframe.org/vocab/'),
   qb_alias(dct, 'http://purl.org/dc/terms/'),
   qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
+  qb_alias(geold, 'http://geojsonld.com/vocab#'),
   qb_alias(http, 'http://www.w3.org/2011/http#'),
   qb_alias(ll, 'http://lodlaundromat.org/resource/'),
   qb_alias(llm, 'http://lodlaundromat.org/metrics/ontology/'),

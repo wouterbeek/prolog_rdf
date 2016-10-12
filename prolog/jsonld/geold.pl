@@ -1,16 +1,18 @@
 :- module(
   geold,
   [
-    geold_geojson/2, % +Node, -GeoJson
-    geold_tuple/2,   % +Source, -Tuple
-    geold_tuple/4,   % +Source, +ExtraContext, +ExtraData, -Tuple
-    geold_tuples/2,  % +Source, -Tuples
-    geold_tuples/4,  % +Source, +ExtraContext, +ExtraData, -Tuples
-    reply_geojson/1  % +Dict
+    geojson_feature_collection/2, % +Features, -FeatureCollection
+    geold_geojson/2,     % +Node, -GeoJson
+    geold_tuple/2,       % +Source, -Tuple
+    geold_tuple/4,       % +Source, +ExtraContext, +ExtraData, -Tuple
+    geold_tuples/2,      % +Source, -Tuples
+    geold_tuples/4,      % +Source, +ExtraContext, +ExtraData, -Tuples
+    reply_geojson/1,     % +Dict
+    subject_to_geojson/5 % +M, +Properties, +G, +S, -Feature
   ]
 ).
 
-/** <module> GeoJSON-LD
+/** <module> GeoLD: GeoJSON + JSON-LD
 
 Because JSON-LD cannot deal with GeoJSON coordinate values, we have to
 extend it ourselves.  We do this by adding array support.  This way
@@ -19,7 +21,7 @@ information.  Later RDF transformations can then be used to interpret
 the array as e.g. Well-Known Text (WKT).
 
 @author Wouter Beek
-@version 2016/05-2016/08
+@version 2016/05-2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -49,6 +51,13 @@ the array as e.g. Well-Known Text (WKT).
    geold_print_feature(r).
 
 
+
+
+
+%! geojson_feature_collection(+Features, -FeatureCollection) is det.
+
+geojson_feature_collection(Features, FeatureCollection) :-
+  FeatureCollection = _{features: Features, type: "FeatureCollection"}.
 
 
 
@@ -161,3 +170,43 @@ geold_prepare_data(Source, ExtraData, Data2) :-
 
 reply_geojson(Dict) :-
   reply_json_dict(Dict, [content_type('application/vnd.geo+json')]).
+
+
+
+%! subject_to_geojson(+M, +Properties, +G, +S, -Feature) is det.
+
+subject_to_geojson(M, Properties, G, S, Feature) :-
+  once(gis:subject_to_geometry(M, S, Array, Name, G)),
+  capitalize_atom(Name, CName),
+  subject_to_geojson_properties(M, Properties, G, S, Dict),
+  Feature = _{
+    geometry: _{coordinates: Array, type: CName},
+    properties: Dict,
+    type: "Feature"
+  }.
+
+
+subject_to_geojson_properties(_, false, _, S, _{'@id': S}) :- !.
+subject_to_geojson_properties(M, true, G, S, Dict) :-
+  aggregate_all(
+    set(Key-Val),
+    (
+      q(M, S, P, O, G),
+      \+ q_is_bnode(O),
+      \+ rdf_equal(geold:geometry, P),
+      q_iri_local(P, Key),
+      (   q_is_literal(O)
+      ->  q_literal_lex(O, Val0),
+          json_escape(Val0, Val)
+      ;   q_iri_local(O, Val)
+      )
+    ),
+    Pairs
+  ),
+  group_pairs_by_key(Pairs, GroupedPairs0),
+  maplist(pair_flatten_singleton, GroupedPairs0, GroupedPairs),
+  (   html_to_atom(\qh_p_os_table(GroupedPairs), Val)
+  ->  Pair = popupContent-Val
+  ;   Pair = '@id'-S
+  ),
+  dict_pairs(Dict, [Pair|GroupedPairs]).
