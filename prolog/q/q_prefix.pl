@@ -50,7 +50,6 @@ This allows the following two IRI notations to be distinguished:
 init_q_prefix :-
   qb_alias(bf, 'http://bibframe.org/vocab/'),
   qb_alias(blog, 'http://quine.cc/blog/def#'),
-  %qb_alias(data, 'http://lodlaundromat.org/data/'),
   qb_alias(dbc, 'http://dbpedia.org/resource/Category:'),
   qb_alias(dbr, 'http://dbpedia.org/resource/'),
   qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
@@ -64,7 +63,6 @@ init_q_prefix :-
   qb_alias(llm, 'http://lodlaundromat.org/metrics/ontology/'),
   qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
   qb_alias(llr, 'http://lodlaundromat.org/resource/'),
-  %qb_alias(meta, 'http://lodlaundromat.org/meta/'),
   qb_alias(org, 'http://www.w3.org/ns/org#'),
   qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
   qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),

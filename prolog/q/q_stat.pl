@@ -30,7 +30,7 @@
 /** <module> Quine statistics
 
 @author Wouter Beek
-@version 2016/06-2016/08
+@version 2016/06-2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -114,9 +114,9 @@ q_number_of_objects(M, NumOs) :-
   aggregate_all(sum(N0), q_number_of_objects(M, _, N0), NumOs).
 
 
-q_number_of_objects(hdt, G, NumOs) :- !,
+q_number_of_objects(hdt, G, NumOs) :-
   q_view_graph(hdt, G),
-  hdt_number_of_objects(G, NumOs).
+  hdt_number_of_objects(G, NumOs), !.
 q_number_of_objects(trp, G, NumOs) :-
   aggregate_all(count, rdf_object(_, G), NumOs).
 
@@ -135,15 +135,15 @@ q_number_of_objects(M, S, P, G, NumOs) :-
 %! q_number_of_predicates(+M, ?S, ?O, -NumPs) is det.
 %! q_number_of_predicates(+M, ?S, ?O, ?G, -NumPs) is det.
 
-q_number_of_predicates(hdt, NumPs) :- !,
-  aggregate_all(sum(N0), q_number_of_predicates(hdt, _, N0), NumPs).
+q_number_of_predicates(hdt, NumPs) :-
+  aggregate_all(sum(N0), q_number_of_predicates(hdt, _, N0), NumPs), !.
 q_number_of_predicates(trp, NumPs) :-
   rdf_number_of_predicates(NumPs).
 
 
-q_number_of_predicates(hdt, G, NumPs) :- !,
+q_number_of_predicates(hdt, G, NumPs) :-
   q_view_graph(hdt, G),
-  hdt_number_of_properties(G, NumPs).
+  hdt_number_of_properties(G, NumPs), !.
 q_number_of_predicates(trp, G, NumPs) :-
   rdf_number_of_predicates(G, NumPs).
 
@@ -166,9 +166,9 @@ q_number_of_subjects(M, NumSs) :-
   aggregate_all(sum(N0), q_number_of_subjects(M, _, N0), NumSs).
 
 
-q_number_of_subjects(hdt, G, NumSs) :- !,
+q_number_of_subjects(hdt, G, NumSs) :-
   q_view_graph(hdt, G),
-  hdt_number_of_subjects(G, NumSs).
+  hdt_number_of_subjects(G, NumSs), !.
 q_number_of_subjects(trp, G, NumSs) :-
   aggregate_all(count, rdf_subject(_, G), NumSs).
 
@@ -187,14 +187,14 @@ q_number_of_subjects(M, P, O, G, NumSs) :-
 %! q_number_of_triples(+M, ?S, ?P, ?O, -NumTriples) is det.
 %! q_number_of_triples(+M, ?S, ?P, ?O, ?G, -NumTriples) is det.
 
-q_number_of_triples(hdt, NumTriples) :- !,
-  aggregate_all(sum(N0), q_number_of_triples(hdt, _, N0), NumTriples).
+q_number_of_triples(hdt, NumTriples) :-
+  aggregate_all(sum(N0), q_number_of_triples(hdt, _, N0), NumTriples), !.
 q_number_of_triples(trp, NumTriples) :-
   rdf_number_of_triples(NumTriples).
 
 
-q_number_of_triples(hdt, G, NumTriples) :- !,
-  hdt_number_of_triples(G, NumTriples).
+q_number_of_triples(hdt, G, NumTriples) :-
+  hdt_number_of_triples(G, NumTriples), !.
 q_number_of_triples(trp, G, NumTriples) :-
   rdf_number_of_triples(G, NumTriples).
 

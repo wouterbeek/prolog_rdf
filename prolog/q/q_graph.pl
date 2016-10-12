@@ -2,6 +2,7 @@
   q_graph,
   [
     q_data_graph/2,        % +Name, -G
+    q_graph/1,             % -G
     q_graph_table_comps/2, % -HeaderRow, -DataRows
     q_related_graph/3,     % +G1, +Name, -G2
     q_vocab_graph/2,       % +Name, -G
@@ -12,7 +13,7 @@
 /** <module> Quine graph
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08, 2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -24,6 +25,7 @@
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(solution_sequences)).
 
 :- rdf_meta
    q_related_graph(r, +, -).
@@ -40,20 +42,33 @@ q_data_graph(Name, G) :-
 
 
 
+%! q_graph(-G) is nondet.
+
+q_graph(G) :-
+  distinct(G, q_graph0(G)).
+
+
+q_graph0(G) :-
+  q_store_graph(G).
+q_graph0(G) :-
+  q_view_graph(_, G).
+
+
+
 %! q_graph_table_comps(-HeaderRow, -DataRows) is det.
 
 q_graph_table_comps(HeaderRow, DataRows) :-
   HeaderRow = ["Graph","№ triples","Store"],
-  aggregate_all(set(G), q_view_graph(_, G), Gs),
+  aggregate_all(set(G), q_graph(G), Gs),
   maplist(graph_data_row_pair0, Gs, Pairs),
-  asc_pairs_values(Pairs, DataRows).
+  desc_pairs_values(Pairs, DataRows).
 
 
 graph_data_row_pair0(
   G,
   NumTriples-[q_graph_term(G),thousands(NumTriples),set(Ms)]
 ) :-
-  once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
+  (q_number_of_triples(_, G, NumTriples) -> true ; NumTriples = inf),
   aggregate_all(set(M0), q_view_graph(M0, G), Ms).
 
 
