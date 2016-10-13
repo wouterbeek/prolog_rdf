@@ -20,8 +20,9 @@
 
 :- use_module(library(default)).
 :- use_module(library(iri/iri_ext)).
-:- use_module(library(q/qb)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(settings)).
 :- use_module(library(semweb/rdf11)).
 
@@ -86,18 +87,22 @@ q_graph_iri(Name, G) :-
 
 q_init_ns :-
   iri_prefix(Scheme, Auth),
-  uri_components(Prefix1, uri_components(Scheme,Auth,'/data/',_,_)),
-  qb_alias(data, Prefix1),
-  uri_components(Prefix2, uri_components(Scheme,Auth,'/meta/',_,_)),
-  qb_alias(meta, Prefix2),
-  uri_components(Prefix3, uri_components(Scheme,Auth,'/',_,_)),
-  qb_alias(ns, Prefix3),
-  uri_components(Prefix4, uri_components(Scheme,Auth,'/def',_,'')),
-  qb_alias(nsdef, Prefix4),
-  uri_components(Prefix5, uri_components(Scheme,Auth,'/doc/',_,_)),
-  qb_alias(nsdoc, Prefix5),
-  uri_components(Prefix6, uri_components(Scheme,Auth,'/id/',_,_)),
-  qb_alias(nsid, Prefix6).
+  uri_components(Prefix1, uri_components(Scheme,Auth,'/',_,_)),
+  qb_alias(ns, Prefix1),
+  uri_components(Prefix2, uri_components(Scheme,Auth,'/def',_,'')),
+  qb_alias(nsdef, Prefix2),
+  uri_components(Prefix3, uri_components(Scheme,Auth,'/doc/',_,_)),
+  qb_alias(nsdoc, Prefix3),
+  uri_components(Prefix4, uri_components(Scheme,Auth,'/id/',_,_)),
+  qb_alias(nsid, Prefix4),
+  forall(
+    q_name(Name),
+    (
+      atomic_list_concat(['',Name,''], /, Path),
+      uri_components(Prefix5, uri_components(Scheme,Auth,Path,_,_)),
+      qb_alias(Name, Prefix5)
+    )
+  ).
 
 
 

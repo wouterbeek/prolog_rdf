@@ -1,6 +1,7 @@
 :- module(
   q_rdf,
   [
+    q/3,                   % +M, -Triple, ?G
     q/4,                   % +M, ?S, ?P, ?O
     q/5,                   % +M, ?S, ?P, ?O, ?G
     q/6,                   % +M, ?S, ?P, ?O, ?G, ?D
@@ -74,6 +75,7 @@
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
+   q(?, -, r),
    q(?, r, r, o),
    q(?, r, r, o, r),
    q(?, r, r, o, r, r),
@@ -122,9 +124,14 @@
 
 
 
+%! q(+M, -Triple, ?G) is nondet.
 %! q(+M, ?S, ?P, ?O) is nondet.
 %! q(+M, ?S, ?P, ?O, ?G) is nondet.
 %! q(+M, ?S, ?P, ?O, ?G, ?D) is nondet.
+
+q(M, rdf(S,P,O), G) :-
+  q(M, S, P, O, G).
+
 
 q(M, S, P, O) :-
   q(M, S, P, O, _).

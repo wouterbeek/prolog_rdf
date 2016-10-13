@@ -23,7 +23,7 @@
     q_io:q_cache_rm_hook/2,
     q_io:q_cache2view_hook/2,
     q_io:q_store2cache_hook/4,
-    q_io:q_view_graph_hook/2,
+    q_io:q_view_graph_hook/3,
     q_io:q_view_rm_hook/2.
 
 

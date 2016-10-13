@@ -1,7 +1,7 @@
 :- module(
   void,
   [
-    source_to_void/3  % +DataG, :Goal_3, +VoidG
+    source_to_void/3  % +DataG, :Goal_3, +MetaG
   ]
 ).
 
@@ -38,9 +38,9 @@ Automatically generate VoID descriptions.
 
 
 
-%! source_to_void(+DataG, :Goal_3, +VoidG) is det.
+%! source_to_void(+DataG, :Goal_3, +MetaG) is det.
 %
-% Common assertions to be made by `call(Goal_3, M, Dataset, VoidG)`
+% Common assertions to be made by `call(Goal_3, M, Dataset, MetaG)`
 % are:
 %
 %   * `dcterms:description` A textual description of the dataset.
@@ -84,42 +84,42 @@ Automatically generate VoID descriptions.
 %
 %   * `foaf:page` A Web page containing relevant information.
 
-source_to_void(DataG, Goal_3, VoidG) :-
+source_to_void(DataG, Goal_3, MetaG) :-
   M = hdt,
   
   % rdf:type
   qb_bnode(Dataset),
-  qb_instance(M, Dataset, void:'Dataset', VoidG),
+  qb_instance(M, Dataset, void:'Dataset', MetaG),
   
   % @tbd
   %% Number of unique classes (‘void:classes’).
   %rdfs_number_of_classes(DataG, NumCs),
-  %qb(M, Dataset, void:classes, NumCs^^xsd:nonNegativeInteger, VoidG),
+  %qb(M, Dataset, void:classes, NumCs^^xsd:nonNegativeInteger, MetaG),
   
   %% Link where a data dump is published (‘void:dataDump’).
-  %qb(M, Dataset, void:dataDump, Meta.base_iri, VoidG),
+  %qb(M, Dataset, void:dataDump, Meta.base_iri, MetaG),
 
   % Number of distinct object terms (‘void:distinctObjects’).
   q_number_of_objects(M, DataG, NumOs),
-  qb(M, Dataset, void:distinctObjects, NumOs^^xsd:nonNegativeInteger, VoidG),
+  qb(M, Dataset, void:distinctObjects, NumOs^^xsd:nonNegativeInteger, MetaG),
 
   % Number of distinct subject terms (‘void:distinctSubjects’).
   q_number_of_subjects(M, DataG, NumSs),
-  qb(M, Dataset, void:distinctSubjects, NumSs^^xsd:nonNegativeInteger, VoidG),
+  qb(M, Dataset, void:distinctSubjects, NumSs^^xsd:nonNegativeInteger, MetaG),
   
   %% void:feature
   %jsonld_metadata_expand_iri(Meta.rdf_format, Format),
-  %qb(M, Dataset, void:feature, Format, VoidG),
+  %qb(M, Dataset, void:feature, Format, MetaG),
   
   % Number of distinct predicate terms (erroneously called
   % ‘void:properties’).
   q_number_of_predicates(M, DataG, NumPs),
-  qb(M, Dataset, void:properties, NumPs^^xsd:nonNegativeInteger, VoidG),
+  qb(M, Dataset, void:properties, NumPs^^xsd:nonNegativeInteger, MetaG),
   
   % Number of distinct triples (‘void:triples’).  Should we not count
   % quadruples?
   q_number_of_triples(M, DataG, NumTriples),
-  qb(M, Dataset, void:triples, NumTriples^^xsd:nonNegativeInteger, VoidG),
+  qb(M, Dataset, void:triples, NumTriples^^xsd:nonNegativeInteger, MetaG),
 
   % Vocabularies that appear in the data, defined as the registered
   % RDF prefixes that appear in at least one of the RDF terms
@@ -130,11 +130,11 @@ source_to_void(DataG, Goal_3, VoidG) :-
       q_is_iri(Iri),
       q_iri_prefix(Iri, Vocab)
     )),
-    qb(M, Dataset, void:vocabulary, Vocab, VoidG)
+    qb(M, Dataset, void:vocabulary, Vocab, MetaG)
   ),
 
   % VoID assertions that cannot be generated automatically.
-  (current_goal(Goal_3) -> call(Goal_3, M, Dataset, VoidG) ; true).
+  (current_goal(Goal_3) -> call(Goal_3, M, Dataset, MetaG) ; true).
 
 
 vocab_term(C, G) :-

@@ -2,11 +2,10 @@
   q_graph,
   [
     q_data_graph/2,        % +Name, -G
-    q_graph/1,             % -G
     q_graph_table_comps/2, % -HeaderRow, -DataRows
+    q_meta_graph/2,        % +Name, -G
     q_related_graph/3,     % +G1, +Name, -G2
-    q_vocab_graph/2,       % +Name, -G
-    q_void_graph/2         % +Name, -G
+    q_vocab_graph/2        % +Name, -G
   ]
 ).
 
@@ -42,19 +41,6 @@ q_data_graph(Name, G) :-
 
 
 
-%! q_graph(-G) is nondet.
-
-q_graph(G) :-
-  distinct(G, q_graph0(G)).
-
-
-q_graph0(G) :-
-  q_store_graph(G).
-q_graph0(G) :-
-  q_view_graph(_, G).
-
-
-
 %! q_graph_table_comps(-HeaderRow, -DataRows) is det.
 
 q_graph_table_comps(HeaderRow, DataRows) :-
@@ -73,6 +59,14 @@ graph_data_row_pair0(
 
 
 
+%! q_meta_graph(+Name, -G) is det.
+
+q_meta_graph(Name, G) :-
+  md5(Name, Hash),
+  q_graph_hash(G, meta, Hash).
+
+
+
 %! q_related_graph(+G1, +Name, -G2) is det.
 
 q_related_graph(G1, Name, G2) :-
@@ -86,11 +80,3 @@ q_related_graph(G1, Name, G2) :-
 q_vocab_graph(Name, G) :-
   md5(Name, Hash),
   q_graph_hash(G, vocab, Hash).
-
-
-
-%! q_void_graph(+Name, -G) is det.
-
-q_void_graph(Name, G) :-
-  md5(Name, Hash),
-  q_graph_hash(G, void, Hash).

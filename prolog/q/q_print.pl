@@ -138,15 +138,23 @@ Print RDF statements.
 :- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(yall)).
 
-
 :- dynamic
     var_map/2.
-
 
 :- multifile
     dcg:dcg_hook//1,
     q:dcg_q_print_literal_hook//2.
 
+dcg:dcg_hook(q_dataset_term(D)) -->
+  dcg_q_print_dataset_term(D).
+dcg:dcg_hook(q_graph_term(G)) -->
+  dcg_q_print_graph_term(G).
+dcg:dcg_hook(q_iri(Iri)) -->
+  dcg_q_print_iri(Iri).
+dcg:dcg_hook(q_object(O)) -->
+  dcg_q_print_object(O).
+dcg:dcg_hook(q_predicate(P)) -->
+  dcg_q_print_predicate(P).
 
 :- rdf_meta
    dcg_q_print_dataset(r, ?, ?),
@@ -227,14 +235,6 @@ Print RDF statements.
    q_print_triples(?, r, r, o),
    q_print_triples(?, r, r, o, r),
    q_print_triples(?, r, r, o, r, +).
-
-
-dcg:dcg_hook(q_dataset_term(D)) -->
-  dcg_q_print_dataset_term(D).
-dcg:dcg_hook(q_graph_term(G)) -->
-  dcg_q_print_graph_term(G).
-dcg:dcg_hook(q_iri(Iri)) -->
-  dcg_q_print_iri(Iri).
 
 
 

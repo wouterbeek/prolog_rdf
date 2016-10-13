@@ -15,14 +15,16 @@
     q_source2store/0,
     q_source2store_file/1,   % +File
     q_source2store_source/3, % +Source, +Opts, +Result
+    q_source2view/0,
     q_store_rm/0,
     q_store_rm/1,            % +G
 
   % STORE
   q_store_file/2,       % -File, ?G
   q_store_graph/1,      % -G
-  q_transform/2,        % +G, :Goal_3
-    
+  q_transform_cbd/2,    % +G, :Goal_1
+  q_transform_graph/2,  % +G, :Goal_1
+
     % STORE ⬄ CACHE
     q_store2cache/0,
     q_store2cache/1,    % +M
@@ -32,10 +34,11 @@
     q_cache_rm/2,       % +M, +G
 
   % CACHE
+  q_backend/1,          % ?M
   q_change_cache/3,     % +M1, +G, +M2
   q_cache_file/2,       % ?M, ?File
   q_cache_graph/2,      % ?M, ?G
-    
+
     % CACHE ⬄ VIEW
     q_cache2view/0,
     q_cache2view/1,     % +M
@@ -95,49 +98,53 @@ them.
 ---
 
 @author Wouter Beek
-@version 2016/08-2016/09
+@version 2016/08-2016/10
 */
 
-:- use_module(library(apply)).
-:- use_module(library(call_ext)).
 :- use_module(library(conv/csv2rdf), []).  % CSV → N-Triples
 :- use_module(library(conv/json2rdf), []). % JSON → N-Triples
 :- use_module(library(conv/xml2rdf), []).  % XML → N-Triples
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(gis/gis), []).       % RDF → GIS
 :- use_module(library(hash_ext)).
+:- use_module(library(hdt/hdt_ext)).
 :- use_module(library(hdt/hdt_io), []).    % N-Triples → HDT
-:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(os/thread_ext)).
 :- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_fs)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/q_rdf)).
+:- use_module(library(q/q_shape)).
+:- use_module(library(q/qb)).
+:- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf__io)). % N-Quads, RDF/XML, … → N-Triples
                                      % N-Triples → TRP
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).
-:- use_module(library(thread)).
 
 :- meta_predicate
     q_generate(-, 1),
     q_ls0(+, 1),
-    q_transform(+, 3).
+    q_transform_cbd(+, 1),
+    q_transform_graph(+, 1).
 
 :- multifile
     q_backend_hook/1,       % Only for backends that have no files in cache.
     q_cache_format_hook/2,  % E.g., ‘hdt’ file extension for HDT.
     q_cache_rm_hook/2,      % E.g., ‘hdt’ also has an index file.
+    q_cache2view_hook/2,
     q_dataset2store_hook/1,
     q_dataset2store_hook/2, % E.g., run custom script for ‘bgt’.
     q_source2store_hook/4,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
     q_store2cache_hook/4,   % E.g., create HDT file from N-Triples file.
     q_store2view_hook/2,    % E.g., GIS index, which has no cache format.
-    q_view_graph_hook/2,    % E.g., (hdt,G)-pairs.
+    q_view_graph_hook/3,    % E.g., (hdt,G)-pairs.
     q_view_rm_hook/2.
 
 :- rdf_meta
@@ -256,9 +263,7 @@ q_dataset2store :-
 
 
 q_dataset2store(Name) :-
-  q_dataset2store_hook(Name, D),
-  q_dataset_graph(D, G),
-  q_view2store(trp, G).
+  q_dataset2store_hook(Name, _).
 
 
 
@@ -356,6 +361,14 @@ q_source2store_source(Source, Opts, Result1, Ready0) :-
 
 
 
+%! q_source2view is det.
+
+q_source2view :-
+  q_source2store,
+  q_store2view.
+
+
+
 %! q_store_rm is det.
 %! q_store_rm(+G) is det.
 
@@ -402,7 +415,6 @@ q_generate(G, Goal_1) :-
 %
 % N-Triples is the only format used in the store.
 
-%%%%q_store_format(nquads, [nq,gz]).
 q_store_format(ntriples, [nt,gz]).
 
 
@@ -431,20 +443,57 @@ q_store_graph(G) :-
 
 
 
-%! q_transform(+G, :Goal_3) is det.
+%! q_transform_cbd(+G, :Goal_1) is det.
+
+q_transform_cbd(G, Goal_1) :-
+  q_store2view(hdt, G),
+  q_file_graph(File, G),
+  thread_file(File, FileTmp),
+  hdt_call_on_graph(G, qu_cbd_on_hdt(Goal_1, FileTmp)),
+  rename_file(FileTmp, File),
+  q_file_touch_ready(File).
+
+
+qu_cbd_on_hdt(Goal_1, FileTmp, Hdt) :-
+  call_to_ntuples(FileTmp, qu_cbd_to_stream(Goal_1, Hdt)).
+
+
+qu_cbd_to_stream(Goal_1, Hdt, State, Out) :-
+  forall(
+    hdt_subject0(Node, Hdt),
+    setup_call_cleanup(
+      rdf_tmp_graph(TmpG),
+      qu_cbd_entry(Node, Goal_1, TmpG, Hdt, State, Out),
+      rdf_unload_graph(TmpG)
+    )
+  ).
+
+
+qu_cbd_entry(Node, Goal_1, TmpG, Hdt, State, Out) :-
+  forall(
+    q_cbd_triple(hdt0, Node, Hdt, Triple),
+    qb(trp, Triple, TmpG)
+  ),
+  call(Goal_1, TmpG),
+  forall(
+    q(trp, Triple, TmpG),
+    gen_ntuple(Triple, State, Out)
+  ).
+
+
+
+%! q_transform_graph(+G, :Goal_1) is det.
 %
 % Only within the ‘trp’ view can we perform arbitrary transformations.
 
-q_transform(G, Goal_3) :-
+q_transform_graph(G, Goal_1) :-
   % Convert store to the ‘trp’ view, perform the transformation there,
   % and write the result back.
-  M1 = trp,
-  M2 = trp,
-  q_store2view(M1, G),
-  call(Goal_3, M1, M2, G),
+  q_store2view(trp, G),
+  call(Goal_1, G),
   % The transformations now have to be synced with the store, from
   % which the cache can be recreated.
-  q_view2store(M2, G),
+  q_view2store(trp, G),
   % Sync the cached version.
   q_store2view(G).
 
@@ -638,7 +687,7 @@ q_store2view :-
     q_store2view(M)
   ).
 
-  
+
 q_store2view(gis) :- !,
   forall(
     q_store_graph(G),

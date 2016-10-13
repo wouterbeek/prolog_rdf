@@ -1,63 +1,54 @@
 :- module(
   q_cli,
   [
-    q__cbd/1,   %     ?S
-   %q__cbd/3,   % +M, ?S,     ?HashG
-   %q__cs/0,
-   %q__cs/2,    % +M,         ?HashG
-    q__d/0,
-    q__d/1,     % +HashG
-    q__d/3,     % ?S, ?P, ?O
-    q__d/4,     % ?S, ?P, ?O, ?HashG
+    q__cbd/1,   % ?S
+    q__cbd/2,   % ?S, ?G
     q__fs/0,
-    q__fs/1,    % +HashG
-    q__fs/2,    % +HashG, +PageOpts
+    q__fs/1,    % +PrefixHash
+    q__fs/2,    % +PrefixHash, +PageOpts
     q__g/0,
-    q__g/1,     %             ?HashG
-    q__g/2,     % +M,         ?HashG
+    q__g/1,     % ?G
     q__gs/0,
-    q__key/3,   % +M,     ?P, ?HashG
-    q__p/1,     %         ?P
-    q__p/3,     % +M,     ?P, ?HashG
-    q__p_ds/1,  %         ?P
-    q__p_ds/3,  % +M,     ?P, ?HashG
-    q__p_os/1,  %         ?P
-    q__p_os/3,  % +M,     ?P, ?HashG
-    q__p_ps/1,  %         ?P
-    q__p_ps/3,  % +M,     ?P, ?HashG
+    q__key/1,   % ?P
+    q__key/2,   % ?P, ?G
+    q__p/0,
+    q__p/1,     % ?P
+    q__p/2,     % ?P, ?G
+    q__p_ds/1,  % ?P
+    q__p_ds/2,  % ?P, ?G
+    q__p_os/1,  % ?P
+    q__p_os/2,  % ?P, ?G
+    q__p_ps/1,  % ?P
+    q__p_ps/2,  % ?P, ?G
     q__ps/0,
-    q__ps/2,    % +M,         ?HashG
+    q__ps/1,    % ?G
     q__ps_no/0,
-    q__ps_no/2, % +M,         ?HashG
-    q__root/1,  %     ?S
-   %q__root/3,  % +M, ?S,     ?HashG
-    q__scbd/1,  %     ?Node
-   %q__scbd/3,  % +M, ?Node,  ?HashG
-    q__tree/1,  %     ?S
-   %q__tree/3,  % +M, ?S,     ?HashG
-    q__x/2,     % +M, +Name
-    q__x/3,     % +M, +Name,  +HashG
-    q__x/6      % +M, ?S, ?P, ?O, +HashG, +Name
+    q__ps_no/1, % ?G
+    q__root/1,  % ?S
+    q__root/2,  % ?S, ?G
+    q__scbd/1,  % ?Node
+    q__scbd/2,  % ?Node, ?G
+    q__tree/1,  % ?S
+    q__tree/2,  % ?S, ?G
+    q__x/0,
+    q__x/1,     % ?G
+    q__x/3,     % ?S, ?P, ?O
+    q__x/4      % ?S, ?P, ?O, +G
   ]
 ).
-:- reexport(library(q/q_print), [
-     q_print_cbd/3  as q__cbd,
-     q_print_root/3 as q__root,
-     q_print_scbd/3 as q__scbd,
-     q_print_tree/3 as q__tree
-   ]).
 
 /** <module> Quine CLI
 
-`HashG` is either a hash prefix or a graph term.
+`G` is either a hash prefix or a graph term.
 
 @author Wouter Beek
+@tbd q__cs/[0,1] for enumerating classes.
 @version 2016/06-2016/08, 2016/10
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_cli), []).
+:- use_module(library(dcg/dcg_cli)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(list_ext)).
@@ -84,108 +75,83 @@
 
 :- rdf_meta
    q__cbd(r),
-   q__cbd(+, r, r),
-   q__cs(?, r),
-   q__d(r, r, o),
-   q__d(r, r, o, r),
-   q__g(?, r),
-   q__key(?, r, r),
+   q__cbd(r, r),
+   q__g(r),
+   q__key(r),
+   q__key(r, r),
    q__p(r),
-   q__p(?, r, r),
+   q__p(r, r),
    q__p_ds(r),
-   q__p_ds(?, r, r),
+   q__p_ds(r, r),
    q__p_os(r),
-   q__p_os(?, r, r),
+   q__p_os(r, r),
    q__p_ps(r),
-   q__p_ps(?, r, r),
-   q__ps(?, r),
-   q__ps_no(?, r),
+   q__p_ps(r, r),
+   q__ps(r),
+   q__ps_no(r),
    q__root(r),
-   q__root(+, r, r),
+   q__root(r, r),
    q__scbd(r),
-   q__scbd(+, r, r),
+   q__scbd(r, r),
    q__tree(r),
-   q__tree(+, r, r),
-   q__x(+, r, r, o, r, +).
+   q__tree(r, r),
+   q__x(r),
+   q__x(r, r, o),
+   q__x(r, r, o, r).
+
+:- setting(
+     backend,
+     oneof([hdt,trp]),
+     hdt,
+     "The backend that is used to power the Quine CLI."
+   ).
 
 
 
 
 
 %! q__cbd(?S) is nondet.
+%! q__cbd(?S, ?G) is nondet.
 
 q__cbd(S) :-
-  q__cbd(_, S, _).
+  q__cbd(S, _).
 
 
-
-%! q__cs is det.
-%! q__cs(+M, ?HashG) is det.
-%
-% @tbd Add support for `M = hdt`.
-
-% @tbd
-%q__cs(trp, G) :-
-%  findall(N-[C,N], (rdfs_class(C), rdfs_number_of_instances(C, N)), Pairs),
-%  q_pairs_table0(["class","№ instances"], Pairs).
-
-
-
-%! q__d is nondet.
-%! q__d(+HashG) is nondet.
-%! q__(?S, ?P, ?O) is nondet.
-%! q__(?S, ?P, ?O, +HashG) is nondet.
-
-q__d :-
-  q__d('').
-
-
-q__d(HashG) :-
-  q__x(hdt, data, HashG).
-
-
-q__d(S, P, O) :-
-  q__d(S, P, O, '').
-
-
-q__d(S, P, O, HashG) :-
-  q__x(hdt, S, P, O, data, HashG).
+q__cbd(S, G) :-
+  setting(backend, M),
+  q_subject(M, S, G),
+  q_print_cbd(M, S, G).
 
 
 
 %! q__fs is det.
-%! q__fs(+HashG) is det.
-%! q__fs(+HashG, +PageOpts) is det.
+%! q__fs(+PrefixHash) is det.
+%! q__fs(+PrefixHash, +PageOpts) is det.
 
 q__fs :-
   q__fs('').
 
 
-q__fs(HashG) :-
-  q__fs(HashG, _{}).
+q__fs(PrefixHash) :-
+  q__fs(PrefixHash, _{}).
 
 
-q__fs(HashG, PageOpts) :-
-  pagination(Dir, q_dir(HashG, Dir), PageOpts, Pagination),
-  pagination_result(Pagination, pp_hash_paths(HashG)).
+q__fs(PrefixHash, PageOpts) :-
+  pagination(Dir, q_dir(PrefixHash, Dir), PageOpts, Pagination),
+  pagination_result(Pagination, pp_hash_paths(PrefixHash)).
 
 
 
 %! q__g is nondet.
-%! q__g(+M) is nondet.
-%! q__g(+M, ?HashG) is nondet.
+%! q__g(?G) is nondet.
 
 q__g :-
-  q__g(hdt).
+  q__g(_).
 
 
-q__g(M) :-
-  q_cache2view(M),
+q__g(G) :-
+  setting(backend, M),
   q_view_graph(M, G),
-  q__g(M, G).
-
-
-q__g(M, G) :-
   q_print_graph(M, G).
 
 
@@ -198,9 +164,15 @@ q__gs :-
 
 
 
-%! q__key(+M, ?P, ?HashG) is nondet.
+%! q__key(?P) is nondet.
+%! q__key(?P, ?G) is nondet.
 
-q__key(M, P, G) :-
+q__key(P) :-
+  q__key(P, _).
+
+
+q__key(P, G) :-
+  setting(backend, M),
   q_predicate(M, P, G),
   \+ ((
     q(M, S1, P, O, G),
@@ -211,49 +183,72 @@ q__key(M, P, G) :-
 
 
 
+%! q__p is nondet.
 %! q__p(?P) is nondet.
-%! q__p(+M, ?P, ?HashG) is nondet.
+%! q__p(?P, ?G) is nondet.
+
+q__p :-
+  q__p(_).
+
 
 q__p(P) :-
-  q__p(_, P, _).
+  q__p(P, _).
 
 
-q__p(M, P, G) :-
-  q__p_os(M, P, G),
-  q__p_ds(M, P, G).
+q__p(P, G) :-
+  setting(backend, M),
+  q_predicate(M, P, G),
+  dcg_with_output_to(
+    section((
+      "Predicate ",
+      dcg_q_print_predicate(P),
+      " in graph ",
+      dcg_q_print_graph_term(G)
+    ))
+  ),
+  q__p_os0(M, P, G),
+  q__p_ds0(M, P, G).
 
 
 
 %! q__p_ds(?P) is nondet.
-%! q__p_ds(+M, ?P, ?HashG) is nondet.
+%! q__p_ds(?P, ?G) is nondet.
 %
 % Shows the candidate datatypes for predicate term P.
 
 q__p_ds(P) :-
-  q_view_graph(M, G),
-  q__p_ds(M, P, G).
+  q__p_ds(P, _).
 
 
-q__p_ds(M, P, G) :-
+q__p_ds(P, G) :-
+  setting(backend, M),
   q_predicate(M, P, G),
+  q__p_ds0(M, P, G).
+
+
+q__p_ds0(M, P, G) :-
   q_datatypes_compat(M, P, G, Ds),
   maplist(list_split, Rows, Ds),
-  print_table([head([P])|Rows]).
+  print_table([head([q_predicate(P)])|Rows]).
 
 
 
 %! q__p_os(?P) is nondet.
-%! q__p_os(+M, ?P, ?HashG) is nondet.
+%! q__p_os(?P, ?G) is nondet.
 %
 % Prints an overview of how often each object term occurs.
 
 q__p_os(P) :-
-  q_view_graph(M, G),
-  q__p_os(M, P, G).
+  q__p_os(P, _).
 
 
-q__p_os(M, P, G) :-
+q__p_os(P, G) :-
+  setting(backend, M),
   q_predicate(M, P, G),
+  q__p_os0(M, P, G).
+
+
+q__p_os0(M, P, G) :-
   (   \+ ((q(M, S1, P, O, G), q(M, S2, P, O, G), S1 \== S2))
   ->  q_p_no_abbr(M, P, G, "No reuse of object terms.")
   ;   aggregate_all(set(O), q(M, _, P, O, G), Os),
@@ -261,7 +256,7 @@ q__p_os(M, P, G) :-
           Len > 5000
       ->  q_p_no_abbr(M, P, G, "Too many unique object terms.")
       ;   findall(
-            N-[O,N],
+            N-[q_object(O),thousands(N)],
             (
               member(O, Os),
               q_number_of_subjects(M, P, O, G, N)
@@ -275,17 +270,18 @@ q__p_os(M, P, G) :-
 
 
 %! q__p_ps(?P) is nondet.
-%! q__p_ps(+M, ?P, ?HashG) is nondet.
+%! q__p_ps(?P, ?G) is nondet.
 %
 % Predicate terms that are candidates for flattening.
 %
 % @see [[rdf_flatten/2]]
 
 q__p_ps(P) :-
-  q__p_ps(_, P, _).
+  q__p_ps(P, _).
 
 
-q__p_ps(M, P, G) :-
+q__p_ps(P, G) :-
+  setting(backend, M),
   q_predicate(M, P, G),
   forall(q(M, _, P, O, G), q_is_bnode(O)),
   once(q(M, _, P, _, G)),
@@ -297,16 +293,25 @@ q__p_ps(M, P, G) :-
 
 
 %! q__ps is det.
-%! q__ps(+M, ?HashG) is det.
+%! q__ps(?G) is det.
 
 q__ps :-
+  q__ps(_).
+
+
+q__ps(G) :-
+  setting(backend, M),
   q_view_graph(M, G),
-  q__ps(M, G).
-
-
-q__ps(M, G) :-
+  dcg_with_output_to(
+    section((
+      "Graph ",
+      dcg_q_print_graph_term(G),
+      " in backend ",
+      atom(M)
+    ))
+  ),
   findall(
-    N-[P,N],
+    N-[q_predicate(P),thousands(N)],
     (
       distinct(P, q(M, _, P, _, G)),
       q_number_of_triples(M, _, P, _, G, N)
@@ -318,19 +323,20 @@ q__ps(M, G) :-
 
 
 %! q__ps_no is nondet.
-%! q__ps_no(+M, ?HashG) is nondet.
+%! q__ps_no(?G) is nondet.
 %
 % Prints an overview of how many distinct objects there are for a
 % given predicate term.
 
 q__ps_no :-
+  q__ps_no(_).
+
+
+q__ps_no(G) :-
+  setting(backend, M),
   q_view_graph(M, G),
-  q__ps_no(M, G).
-
-
-q__ps_no(M, G) :-
   findall(
-    N-[P,N],
+    N-[q_predicate(P),thousands(N)],
     (
       distinct(P, q_predicate(M, P, G)),
       q_number_of_objects(M, _, P, G, N)
@@ -342,40 +348,67 @@ q__ps_no(M, G) :-
 
 
 %! q__root(?S) is nondet.
+%! q__root(?S, ?G) is nondet.
 
 q__root(S) :-
-  q__root(_, S, _).
+  q__root(S, _).
+
+
+q__root(S, G) :-
+  setting(backend, M),
+  q_subject(M, S, G),
+  q_print_root(M, S, G).
 
 
 
 %! q__scbd(?Node) is nondet.
+%! q__scbd(?Node, ?G) is nondet.
 
 q__scbd(Node) :-
-  q__scbd(_, Node, _).
+  q__scbd(Node, _).
+
+
+q__scbd(Node, G) :-
+  setting(backend, M),
+  q_node(M, Node, G),
+  q_print_scbd(M, Node, G).
 
 
 
 %! q__tree(?S) is nondet.
+%! q__tree(?S, ?G) is nondet.
 
 q__tree(S) :-
-  q__tree(_, S, _).
+  q__tree(S, _).
+
+
+q__tree(S, G) :-
+  setting(backend, M),
+  q_subject(M, S, G),
+  q_print_tree(M, S, G).
 
 
 
-%! q__x(+M, +Name) is nondet.
-%! q__x(+M, +Name, +HashG) is nondet.
-%! q__x(+M, ?S, ?P, ?O, +Name, +HashG) is nondet.
+%! q__x is nondet.
+%! q__x(?G) is nondet.
+%! q__x(?S, ?P, ?O) is nondet.
+%! q__x(?S, ?P, ?O, ?G) is nondet.
 
-q__x(M, Name) :-
-  q__x(M, Name, '').
-
-
-q__x(M, Name, HashG) :-
-  q__x(M, _, _, _, Name, HashG).
+q__x :-
+  q__x(_).
 
 
-q__x(M, S, P, O, Name, Hash) :-
-  pagination(rdf(S,P,O), (q_graph(Hash, Name, G), q(M, S, P, O, G)), Result),
+q__x(G) :-
+  q__x(_, _, _, G).
+
+
+q__x(S, P, O) :-
+  q__x(S, P, O, _).
+
+
+q__x(S, P, O, G) :-
+  setting(backend, M),
+  pagination(rdf(S,P,O), q(M, S, P, O, G), Result),
   pagination_result(Result, q_print_quads).
 
 
@@ -396,24 +429,24 @@ pp_files(Dir) :-
 
 
 
-%! pp_hash_path(+HashG, +Path) is det.
+%! pp_hash_path(+Prefix, +Path) is det.
 
-pp_hash_path(HashG, Path) :-
+pp_hash_path(Prefix, Path) :-
   format(current_output, "  ", []),
   q_dir_hash(Path, Hash),
-  atom_concat(HashG, Rest, Hash),
+  atom_concat(Prefix, Rest, Hash),
   directory_file_path(Path, done, Done),
   (exists_file(Done) -> Color = green ; Color = red),
-  ansi_format(current_output, [fg(Color)], "~a|~a:  ", [HashG,Rest]),
+  ansi_format(current_output, [fg(Color)], "~a|~a:  ", [Prefix,Rest]),
   pp_files(Path),
   nl.
 
 
 
-%! pp_hash_paths(+HashG, +Paths) is det.
+%! pp_hash_paths(+Prefix, +Paths) is det.
 
-pp_hash_paths(HashG, Paths) :-
-  maplist(pp_hash_path(HashG), Paths).
+pp_hash_paths(Prefix, Paths) :-
+  maplist(pp_hash_path(Prefix), Paths).
 
 
 
@@ -422,14 +455,18 @@ pp_hash_paths(HashG, Paths) :-
 q_p_no_abbr(M, P, G, Msg) :-
   ansi_format(user_output, [fg(yellow)], "~s~n", [Msg]),
   once(findnsols(5, O, distinct(O, q(M, _, P, O, G)), Os)),
-  maplist(singleton_list, Os, Rows),
+  maplist(object_row, Os, Rows),
   print_table([head([bold("object")])|Rows]).
+
+object_row(O, [q_object(O)]).
 
 
 
 %! q_pairs_table0(+HeaderRow, +Pairs) is det.
 
 q_pairs_table0(HeaderRow, Pairs) :-
-  asc_pairs(Pairs, SortedPairs),
-  pairs_values(SortedPairs, DataRows),
+  group_pairs_by_key(Pairs, Groups1),
+  maplist(call_on_value(sort), Groups1, Groups2),
+  asc_pairs_values(Groups2, SortedGroups),
+  append(SortedGroups, DataRows),
   print_table([head(HeaderRow)|DataRows]).

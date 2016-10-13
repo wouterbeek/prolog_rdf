@@ -50,7 +50,9 @@ file_rdf_graph(Alias, File, G) :-
 
 %! rdf_graph_age(+G, -Age:between(0.0,inf)) is det.
 %! rdf_graph_age(-G, -Age:between(0.0,inf)) is nondet.
-% Succeeds if Age is the age (in seconds) of a currently loaded RDF Graph.
+%
+% Succeeds if Age is the age (in seconds) of a currently loaded
+% Graph.
 
 rdf_graph_age(G, Age) :-
   rdf_graph_property(G, source_last_modified(LastMod)),
@@ -60,7 +62,9 @@ rdf_graph_age(G, Age) :-
 
 
 %! rdf_is_graph(+G) is semidet.
+%
 % `rdf_graph(+)` throws an exception if G is not an atom.
+%
 % This predicate fails silently instead.
 
 rdf_is_graph(G) :-
@@ -68,13 +72,13 @@ rdf_is_graph(G) :-
   rdf_graph(G).
 
 
+
 %! rdf_new_graph(-G) is det.
+%! rdf_new_graph(+Base:rdf_graph, -G) is det.
 
 rdf_new_graph(G) :-
   rdf_new_graph(ex:unnamed, G).
 
-
-%! rdf_new_graph(+Base:rdf_graph, -G) is det.
 
 rdf_new_graph(G1, G) :-
   rdf_global_id(Prefix:Local1, G1), !,
@@ -108,6 +112,7 @@ rdf_new_graph_try(G) :-
 
 %! rdf_stale_graph(+G, +FreshnessLifetime:between(0.0,inf)) is semidet.
 %! rdf_stale_graph(-G, +FreshnessLifetime:between(0.0,inf)) is nondet.
+%
 % Succeeds for currently loaded graphs whose age is over the given
 % FreshnessLifetime.
 

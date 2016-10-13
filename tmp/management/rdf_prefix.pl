@@ -20,7 +20,6 @@ Namespace support for RDF(S), building on namespace prefix support for XML.
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(rdf/rdf_term)).
 
 :- rdf_meta

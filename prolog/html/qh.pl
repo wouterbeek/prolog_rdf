@@ -236,8 +236,8 @@ qh_dataset_term_outer0(C, Cs1, Opts, D) -->
 
 qh_dataset_term_inner(D, _) -->
   {
-    q_dataset_default_graph(D, VoidG),
-    q_pref_label(hdt, D, Lit, VoidG),
+    q_dataset_default_graph(D, DefG),
+    q_pref_label(hdt, D, Lit, DefG),
     q_literal_string(Lit, Str)
   }, !,
   html(Str).
@@ -284,8 +284,8 @@ qh_graph_term_outer0(C, Cs1, Opts, G) -->
 qh_graph_term_inner(G, Opts) -->
   {
     q_dataset_graph(D, G),
-    q_dataset_default_graph(D, VoidG),
-    q_pref_label(hdt, G, Lit, VoidG),
+    q_dataset_default_graph(D, DefG),
+    q_pref_label(hdt, G, Lit, DefG),
     q_literal_string(Lit, Str)
   }, !,
   html([\qh_dataset_term_inner(D, Opts),"/",Str]).

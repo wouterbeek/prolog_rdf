@@ -65,6 +65,7 @@ init_q_prefix :-
   qb_alias(llr, 'http://lodlaundromat.org/resource/'),
   qb_alias(org, 'http://www.w3.org/ns/org#'),
   qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
+  qb_alias(prov, 'http://www.w3.org/ns/prov#'),
   qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
   qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
   qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
@@ -76,7 +77,8 @@ init_q_prefix :-
   qb_alias(vzmu, 'https://vrijheidzondermaar.nl/user/'),
   qb_alias(vzmv, 'https://vrijheidzondermaar.nl/vote/'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
-  register_dbpedia_localizations.
+  qb_alias(wkt, 'http://geojsonld.com/wkt#').
+  %register_dbpedia_localizations.
 
 
 

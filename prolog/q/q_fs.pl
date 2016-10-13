@@ -3,7 +3,7 @@
   [
     q_delete_file/1,      % +File  
     q_dir/1,              % ?Dir
-    q_dir/2,              % +HashG, -Dir
+    q_dir/2,              % +Hash, -Dir
     q_dir_file/4,         % ?Dir, ?Name, ?Format, ?File
     q_dir_graph/2,        % ?Dir, ?G
     q_dir_graph/3,        % ?Dir, ?Name, ?G
@@ -20,8 +20,9 @@
     q_file_touch_ready/1, % +File
     q_format/1,           % ?Format
     q_format/2,           % ?Format, -Exts
-    q_graph/2,            % +Name, ?G
-    q_graph/3,            % +HashG, +Name, ?G
+    q_graph/1,            % ?G
+    q_graph/2,            % ?Name, ?G
+    q_graph/3,            % ?Hash, ?Name, ?G
     q_graph_hash/2,       % ?G, ?Hash
     q_graph_hash/3,       % ?G, ?Name, ?Hash
     q_hash/1,             % -Hash
@@ -32,13 +33,13 @@
 /** <module> Quine file system
 
 @author Wouter Beek
-@version 2016/08-2016/09
+@version 2016/08-2016/10
 */
 
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(q/q_io), []).
+:- use_module(library(q/q_io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 
@@ -74,28 +75,28 @@ q_dir(Dir3) :-
 
 
 
-%! q_dir(+HashG, -Dir) is nondet.
+%! q_dir(+Hash, -Dir) is nondet.
 %
-% Directories with the given HashG.
+% Directories with the given Hash.
 %
 % Identical to q_dir/1 with the empty prefix.
 
 q_dir('', Dir) :- !,
   q_dir(Dir).
-q_dir(HashG, Dir2) :-
-  atom_length(HashG, N),
+q_dir(Hash, Dir2) :-
+  atom_length(Hash, N),
   setting(q_io:store_dir, Root),
-  (   % HashG falls within the first two characters (outer
+  (   % Hash falls within the first two characters (outer
       % directory).
       N =< 2
-  ->  atom_concat(HashG, *, Wildcard0),
+  ->  atom_concat(Hash, *, Wildcard0),
       append_directories(Root, Wildcard0, Wildcard),
       expand_file_name(Wildcard, Dirs),
       member(Dir1, Dirs),
       directory_path(Dir1, Dir2)
-  ;   % HashG goes past the first two characters (inner
+  ;   % Hash goes past the first two characters (inner
       % directory).
-      atom_codes(HashG, [H1,H2|T1]),
+      atom_codes(Hash, [H1,H2|T1]),
       atom_codes(Dir1, [H1,H2]),
       append(T1, [0'*], T2),
       atom_codes(Wildcard0, T2),
@@ -276,10 +277,23 @@ q_format(Format, Exts) :-
 
 
 
+%! q_graph(+G) is semidet.
+%! q_graph(-G) is nondet.
 %! q_graph(+Name, -G) is nondet.
 %! q_graph(-Name, +G) is nondet.
-%! q_graph(+HashG, +Name, -G) is nondet.
+%! q_graph(+Hash, +Name, -G) is nondet.
 %! q_graph(-Hash, -Name, +G) is nondet.
+
+%! q_graph(-G) is nondet.
+
+q_graph(G) :-
+  distinct(G, q_graph0(G)).
+
+q_graph0(G) :-
+  q_store_graph(G).
+q_graph0(G) :-
+  q_view_graph(_, G).
+
 
 q_graph(Name, G) :-
   ground(G), !,
@@ -290,12 +304,12 @@ q_graph(Name, G) :-
   q_graph(Hash, Name, G).
 
 
-q_graph(HashG, Name, G) :-
+q_graph(Hash, Name, G) :-
   ground(G), !,
   q_dir_graph(Dir, Name, G),
-  q_dir(HashG, Dir).
-q_graph(HashG, Name, G) :-
-  q_dir(HashG, Dir),
+  q_dir(Hash, Dir).
+q_graph(Hash, Name, G) :-
+  q_dir(Hash, Dir),
   q_dir_graph(Dir, Name, G).
 
 
@@ -334,5 +348,4 @@ q_name(data).
 q_name(meta).
 q_name(stat).
 q_name(vocab).
-q_name(void).
 q_name(warn).

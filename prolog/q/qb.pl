@@ -20,7 +20,7 @@
     qb_objects/5,      % +M, +S, +P, +Os, +G
     qb_reification/4,  % +M, +Triple, +G, ?Stmt
     qb_rev/5,          % +M, +O, +P, +S, +G
-    qu/7,              % +M1, +M2, +S, +P, +O, +G, +Action
+    qu/5,              % +S, +P, +O, +G, +Action
   % RDFS
     qb_class/6,        % +M, +C, ?D, ?Lbl, ?Comm, +G
     qb_comment/4,      % +M, +S, +Comm, +G
@@ -62,7 +62,7 @@
 /** <module> Quine build API
 
 @author Wouter Beek
-@version 2016/06-2016/09
+@version 2016/06-2016/10
 */
 
 :- use_module(library(debug)).
@@ -70,6 +70,7 @@
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_list)).
+:- use_module(library(q/q_prefix), []).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
@@ -77,8 +78,6 @@
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
-
-:- qb_alias(prov, 'http://www.w3.org/ns/prov#').
 
 :- rdf_meta
    % RDF
@@ -98,7 +97,7 @@
    qb_rm(+, t),
    qb_rm(+, t, r),
    qb_rm(+, r, r, o, r),
-   qu(+, +, r, r, o, r, t),
+   qu(r, r, o, r, t),
    % RDFS
    qb_class(+, r, t, ?, ?, r),
    qb_comment(+, r, +, r),
@@ -285,9 +284,9 @@ qb_rm(trp, S, P, O, G) :- !,
 
 
 
-%! qu(+M1, +M2, +S, +P, +O, +G, +Action) is det.
+%! qu(+S, +P, +O, +G, +Action) is det.
 
-qu(trp, trp, S, P, O, G, Action) :- !,
+qu(S, P, O, G, Action) :- !,
   rdf_update(S, P, O, G, Action).
 
 
