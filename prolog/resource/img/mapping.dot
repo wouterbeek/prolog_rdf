@@ -1,0 +1,10 @@
+digraph mapping {
+  rankdir=LR;
+  l [label=<<B>Lexical space</B><BR/>"true"<BR/>"1"<BR/>"false"<BR/>"0">];
+  v [label=<<B>Value space</B><BR/><FONT FACE="courier">true</FONT><BR/><FONT FACE="courier">false</FONT>>];
+  {rank=left; l}
+  {rank=right; v}
+  l -> v [label=<Lexical-to-value mapping<BR/><FONT FACE="courier">xsd_lexical_map/3</FONT>>];
+  v -> l [label=<Canonical mapping<BR/><FONT FACE="courier">xsd_canonical_map/3</FONT>>];
+  v -> v [label=<Ordering relation<BR/>Equality relation>];
+}
