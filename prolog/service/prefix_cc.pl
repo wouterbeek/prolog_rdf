@@ -1759,8 +1759,6 @@ assert_cached_version :-
   qb_alias(wb, 'http://data.worldbank.org/'),
   qb_alias(wbc, 'http://worldbank.270a.info/classification/'),
   qb_alias(wbp, 'http://worldbank.270a.info/property/'),
-  qb_alias(wd, 'http://www.wikidata.org/entity/'),
-  qb_alias(wde, 'http://www.wikidata.org/entity/'),
   qb_alias(wdr, 'http://www.w3.org/2007/05/powder#'),
   qb_alias(wdrs, 'http://www.w3.org/2007/05/powder-s#'),
   qb_alias(wdt, 'http://www.wikidata.org/prop/direct/'),

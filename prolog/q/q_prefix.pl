@@ -76,6 +76,7 @@ init_q_prefix :-
   qb_alias(vzmt, 'https://vrijheidzondermaar.nl/tag/'),
   qb_alias(vzmu, 'https://vrijheidzondermaar.nl/user/'),
   qb_alias(vzmv, 'https://vrijheidzondermaar.nl/vote/'),
+  qb_alias(wde, 'http://www.wikidata.org/entity/'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
   qb_alias(wkt, 'http://geojsonld.com/wkt#').
   %register_dbpedia_localizations.

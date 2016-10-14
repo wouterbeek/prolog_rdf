@@ -1,4 +1,9 @@
-:- module(xsd_number, []).
+:- module(
+  xsd_number,
+  [
+    noDecimalMap//1 % -Integer:integer
+  ]
+).
 
 /** <module> XSD Number
 
@@ -15,8 +20,6 @@ Functions”.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(list_ext)).
 
-
-
 :- op(400, yfx, xsd_div).
 :- arithmetic_function(xsd_div/2).
 
@@ -29,8 +32,6 @@ Functions”.
 
 xsd_div(X, Y, Z):-
   Z is floor(X rdiv Y).
-
-
 
 :- op(400, yfx, xsd_mod).
 :- arithmetic_function(xsd_mod/2).
@@ -300,6 +301,7 @@ scientificMap(N) -->
 
 % Auxiliary Functions for Producing Numeral Fragments %
 
+/*
 %! digit(+Integer:between(0,9))// is det.
 %
 % Maps each integer between 0 and 9 to the corresponding digit.
@@ -326,6 +328,7 @@ scientificMap(N) -->
 
 digit(N) -->
   decimal_digit(N).
+*/
 
 
 

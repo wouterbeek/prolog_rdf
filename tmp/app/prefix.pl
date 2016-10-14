@@ -1,0 +1,28 @@
+:- use_module(library(lists)).
+:- use_module(library(llapi/llapi)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf_term)).
+
+:- initialization(prefix).
+
+
+
+
+
+prefix:-
+  prefix('http://dbpedia.org/').
+
+
+prefix(Prefix):-
+  term_to_doc(Prefix, Doc),
+  ldf(S, P, O, Doc),
+  once((
+    (   X = S
+    ;   X = P
+    ;   (O = literal(_) -> q_literal_datatype(O, X) ; X = O)
+    ),
+    atom_prefix(X, Prefix)
+  )),
+  q_print_triple(S, P, O),
+  fail.

@@ -1,8 +1,11 @@
 :- module(
   xsd_date_time,
   [
-    dateTimePlusDuration/2, % +Duration, +DT
+    dateCanonicalMap//1,    % +DT
+    dateTimePlusDuration/3, % +Duration, +DT1, -DT2
+    dayFragValue//1,        % -D
     daysInMonth/3,          % ?Y, ?Mo, ?DaysInMonth
+    monthFragValue//1,      % -Mo
     newDatetime/8,          % ?Y, ?Mo, ?D, ?H, ?Mi, ?S, ?Off, -DT
     normalizeDay/6,         % +Y, +Mo, +D, -NormY, -NormMo, -NormD
     normalizeMinute/10,     % +Y, +Mo, +D, +H, +Mi
@@ -11,7 +14,8 @@
     normalizeSecond/12,     % +Y, +Mo, +D, +H, +Mi, +S:rational
                             % -NormY, -NormMo, -NormD, -NormH, -NormMi
                             % -NormS:rational
-    timeOnTimeline/2        % +DT, -Ss:rational
+    timeOnTimeline/2,       % +DT, -Ss:rational
+    yearFragValue//1        % -Y
   ]
 ).
 
@@ -20,10 +24,39 @@
 Section E.3. “Date/time-related Definitions”
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08, 2016/10
 */
 
+:- use_module(library(arithmetic)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(xsd/xsd_number)).
+
+% @tbd Duplication is needed due to unclear arithmetic operator
+% support.
+:- op(400, yfx, xsd_div).
+:- arithmetic_function(xsd_div/2).
+
+% xsd_div(+M, +N, -Z) is det.
+%
+% # Definition
+%
+% If `M` and `N` are numbers, then `M div N` is the greatest integer
+% less than or equal to `M / N`.
+
+xsd_div(X, Y, Z):-
+  Z is floor(X rdiv Y).
+
+:- op(400, yfx, xsd_mod).
+:- arithmetic_function(xsd_mod/2).
+
+%! xsd_mod(+M, +N, -X) is det.
+%
+% # Definition
+%
+% If `M` and `N` are numbers, then `M mod N` is `m − n * ( m div n)`.
+
+xsd_mod(X, Y, Z):-
+  Z is X - Y * (X xsd_div Y).
 
 
 
@@ -312,7 +345,7 @@ newDatetime(
 
 % E.3.3 ADDING DURATIONS TO DATETIMES %
 
-%! dateTimePlusDuration(+Duration, +DT) is det.
+%! dateTimePlusDuration(+Duration, +DT1, -DT2) is det.
 %
 % Adds a du to a dt value, producing another date/time value.
 %
