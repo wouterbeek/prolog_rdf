@@ -3,6 +3,7 @@
   [
     q__cbd/1,   % ?S
     q__cbd/2,   % ?S, ?G
+    q__ds/0,
     q__fs/0,
     q__fs/1,    % +PrefixHash
     q__fs/2,    % +PrefixHash, +PageOpts
@@ -57,6 +58,7 @@
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
@@ -71,6 +73,7 @@
 :- use_module(library(rdfs/rdfs_stat)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(tree/s_tree)).
 :- use_module(library(yall)).
 
 :- rdf_meta
@@ -121,6 +124,14 @@ q__cbd(S, G) :-
   setting(backend, M),
   q_subject(M, S, G),
   q_print_cbd(M, S, G).
+
+
+
+%! q__ds is det.
+
+q__ds :-
+  aggregate_all(D-G, q_dataset_graph(D, G), Pairs),
+  (pairs_to_tree(Pairs, Tree) -> print_tree(Tree) ; writeln("∅")).
 
 
 

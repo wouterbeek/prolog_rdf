@@ -43,6 +43,10 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 
+:- rdf_meta
+   q_graph_hash(r, ?),
+   q_graph_hash(r, ?, ?).
+
 
 
 
@@ -325,11 +329,11 @@ q_graph_hash(G, Hash) :-
 
 
 q_graph_hash(G, Name, Hash) :-
-  nonvar(G), !,
-  rdf_global_id(Name:Hash, G).
-q_graph_hash(G, Name, Hash) :-
+  var(G), !,
   q_name(Name),
-  rdf_global_id(Name:Hash, G).
+  q_graph_iri([Hash,Name], G).
+q_graph_hash(G, Name, Hash) :-
+  q_graph_iri([Hash,Name], G).
 
 
 
@@ -347,5 +351,4 @@ q_hash(Hash) :-
 q_name(data).
 q_name(meta).
 q_name(stat).
-q_name(vocab).
 q_name(warn).

@@ -83,7 +83,7 @@ The following options are supported to achieve parity with module
 :- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_bnode_map)).
-:- use_module(library(q/q_dataset)).
+:- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).

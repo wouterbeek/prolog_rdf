@@ -1,14 +1,17 @@
 :- module(
   q_iri,
   [
-    q_abox_iri/2,  % ?Concept, ?Iri
-    q_abox_iri/3,  % ?Concept, ?Refs, ?Iri
-    q_abox_iri/4,  % ?Scheme, ?Auth, ?Concept, ?Iri
-    q_abox_iri/5,  % ?Scheme, ?Auth, ?Concept, ?Refs, ?Iri
-    q_graph_iri/2, % +Name, -G
+    q_abox_iri/2,        % ?Concept, ?Iri
+    q_abox_iri/3,        % ?Concept, ?Refs, ?Iri
+    q_abox_iri/4,        % ?Scheme, ?Auth, ?Concept, ?Iri
+    q_abox_iri/5,        % ?Scheme, ?Auth, ?Concept, ?Refs, ?Iri
+    q_dataset_iri/2,     % ?Refs, ?D
+    q_graph_iri/2,       % +Refs, -G
     q_init_ns/0,
-    q_tbox_iri/2,  % ?Term, ?Iri
-    q_tbox_iri/4   % ?Scheme, ?Auth, ?Term, ?Iri
+    q_is_external_iri/1, % +Iri
+    q_is_internal_iri/1, % +Iri
+    q_tbox_iri/2,        % ?Term, ?Iri
+    q_tbox_iri/4         % ?Scheme, ?Auth, ?Term, ?Iri
   ]
 ).
 
@@ -78,10 +81,18 @@ q_abox_iri_refs_out(Refs, Refs).
 
 
 
-%! q_graph_iri(+Name, -G) is det.
+%! q_dataset_iri(+Refs, -D) is det.
+%! q_dataset_iri(-Refs, +D) is det.
 
-q_graph_iri(Name, G) :-
-  q_abox_iri(graph, Name, G).
+q_dataset_iri(Refs, D) :-
+  q_abox_iri(dataset, Refs, D).
+
+
+
+%! q_graph_iri(+Refs, -G) is det.
+
+q_graph_iri(Refs, G) :-
+  q_abox_iri(graph, Refs, G).
 
 
 
@@ -94,15 +105,23 @@ q_init_ns :-
   uri_components(Prefix3, uri_components(Scheme,Auth,'/doc/',_,_)),
   qb_alias(nsdoc, Prefix3),
   uri_components(Prefix4, uri_components(Scheme,Auth,'/id/',_,_)),
-  qb_alias(nsid, Prefix4),
-  forall(
-    q_name(Name),
-    (
-      atomic_list_concat(['',Name,''], /, Path),
-      uri_components(Prefix5, uri_components(Scheme,Auth,Path,_,_)),
-      qb_alias(Name, Prefix5)
-    )
-  ).
+  qb_alias(nsid, Prefix4).
+
+
+
+%! q_is_external_iri(+Iri) is semidet.
+
+q_is_external_iri(Iri) :-
+  uri_components(Iri, uri_components(Scheme,Auth,_,_,_)),
+  iri_prefix(Scheme, Auth).
+
+
+
+%! q_is_internal_iri(+Iri) is semidet.
+
+q_is_internal_iri(Iri) :-
+  uri_components(Iri, uri_components(Scheme,Auth,_,_,_)),
+  \+ iri_prefix(Scheme, Auth).
 
 
 

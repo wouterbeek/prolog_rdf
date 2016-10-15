@@ -8,10 +8,10 @@
   ]
 ).
 
-/** <module> Quine: Dereference
+/** <module> Quine: IRI Dereference
 
 @author Wouter Beek
-@version 2016/09
+@version 2016/09-2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -25,6 +25,7 @@
    q_derefs(r, -),
    q_derefs(r, -, -),
    q_derefs(r, -, -, -).
+
 
 
 

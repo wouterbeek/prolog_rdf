@@ -5,9 +5,10 @@
 
   % SOURCE
   q_dataset2store/0,
-  q_dataset2store/1,       % +Name
-  q_file_name_to_format/2, % +FileName, -Format
-  q_source_file/1,         % -File
+  q_dataset2store/1,        % +Name
+  q_file_name_to_format/2,  % +FileName, -Format
+  q_source_dataset_graph/3, % +File, -D, -Pair
+  q_source_file/1,          % -File
 
     % SOURCE ⬄ STORE
     q_generate/2,            % -G, :Goal_1
@@ -114,7 +115,7 @@ them.
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/thread_ext)).
-:- use_module(library(q/q_dataset)).
+:- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_shape)).
@@ -150,8 +151,6 @@ them.
 :- rdf_meta
    q_cache_graph(?, r),
    q_file_graph(?, ?, r),
-   q_graph_hash(r, ?),
-   q_graph_hash(r, ?, ?),
    q_source2store(r),
    q_source2store(+, r).
 
@@ -225,6 +224,19 @@ q_source_skip_exts([md]).
 
 
 
+%! q_source_dataset_graph(+File, -D, -Pair) is det.
+
+q_source_dataset_graph(File, D, GName-G) :-
+  setting(source_dir, Dir),
+  directory_file_path(Dir, Local, File),
+  file_name(Local, Base),
+  atomic_list_concat([DName|GName], -, Base),
+  q_dataset_iri(DName, D),
+  md5(Base, Hash),
+  q_graph_hash(G, data, Hash).
+
+
+
 %! q_source_format(?Format, ?Exts) is nondet.
 %
 % Enumerates recognized source file formats based on file extensions.
@@ -270,6 +282,7 @@ q_dataset2store(Name) :-
 %! q_init is det.
 
 q_init :-
+  gtrace,
   q_source2store,
   q_dataset2store,
   q_store2view.
@@ -326,14 +339,11 @@ q_source2store :-
 
 q_source2store_file(File) :-
   q_file_name_to_format(File, Format),
-  % Derive a hash based on the source file.
-  setting(source_dir, Dir),
-  directory_file_path(Dir, Local, File),
-  file_name(Local, BaseIri),
+  q_dataset_graph(File, D, GName-G),
   time_file(File, Ready),
   q_source2store_source(
     File,
-    _{base_iri: BaseIri, force: false, format: Format},
+    _{dataset: D, force: false, format: Format, graph: G, 'graph-name': GName},
     _,
     Ready
   ).
@@ -343,20 +353,19 @@ q_source2store_source(Source, Opts, Result) :-
   q_source2store_source(Source, Opts, Result, 0).
 
 
-q_source2store_source(Source, Opts, Result1, Ready0) :-
-  md5(Opts.base_iri, Hash),
-  % Remove any existing files from store.
-  (Opts.force == true -> q_graph_hash(G, Hash), q_store_rm(G) ; true),
-  % Determine the store file.
+q_source2store_source(Source, Opts, Result, Ready0) :-
+  % Remove any preexisting files from store.
+  (Opts.force == true -> q_store_rm(Opts.graph) ; true),
+  md5(Opts.dataset-Opts.graph, Hash),
   q_file_hash(File, data, ntriples, Hash),
   (   q_file_ready_time(File, Ready),
       Ready >= Ready0
-  ->  ignore(option(triples(0), Result1))
+  ->  ignore(option(triples(0), Result))
   ;   create_file_directory(File),
       % Automatically convert source file to store file.
-      merge_options(Result1, [base_iri(Opts.base_iri)], Result2),
-      once(q_source2store_hook(Opts.format, Source, File, Result2)),
-      q_file_touch_ready(File)
+      once(q_source2store_hook(Opts.format, Source, File, Result)),
+      q_file_touch_ready(File),
+      q_dataset_add_graph(Opts.dataset, Opts.'graph-name', Opts.graph)
   ).
 
 

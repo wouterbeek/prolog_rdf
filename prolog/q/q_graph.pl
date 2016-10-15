@@ -1,11 +1,7 @@
 :- module(
   q_graph,
   [
-    q_data_graph/2,        % +Name, -G
-    q_graph_table_comps/2, % -HeaderRow, -DataRows
-    q_meta_graph/2,        % +Name, -G
-    q_related_graph/3,     % +G1, +Name, -G2
-    q_vocab_graph/2        % +Name, -G
+    q_graph_table_comps/2 % -HeaderRow, -DataRows
   ]
 ).
 
@@ -26,18 +22,7 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
-:- rdf_meta
-   q_related_graph(r, +, -).
 
-
-
-
-
-%! q_data_graph(+Name, -G) is det.
-
-q_data_graph(Name, G) :-
-  md5(Name, Hash),
-  q_graph_hash(G, data, Hash).
 
 
 
@@ -49,34 +34,9 @@ q_graph_table_comps(HeaderRow, DataRows) :-
   maplist(graph_data_row_pair0, Gs, Pairs),
   desc_pairs_values(Pairs, DataRows).
 
-
 graph_data_row_pair0(
   G,
   NumTriples-[q_graph_term(G),thousands(NumTriples),set(Ms)]
 ) :-
   (q_number_of_triples(_, G, NumTriples) -> true ; NumTriples = inf),
   aggregate_all(set(M0), q_view_graph(M0, G), Ms).
-
-
-
-%! q_meta_graph(+Name, -G) is det.
-
-q_meta_graph(Name, G) :-
-  md5(Name, Hash),
-  q_graph_hash(G, meta, Hash).
-
-
-
-%! q_related_graph(+G1, +Name, -G2) is det.
-
-q_related_graph(G1, Name, G2) :-
-  q_graph_hash(G1, Hash),
-  q_graph_hash(G2, Name, Hash).
-
-
-
-%! q_vocab_graph(+Name, -G) is det.
-
-q_vocab_graph(Name, G) :-
-  md5(Name, Hash),
-  q_graph_hash(G, vocab, Hash).
