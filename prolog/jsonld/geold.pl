@@ -31,9 +31,11 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_json)).
+:- use_module(library(html/qh_ui)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
+:- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_array)).
 :- use_module(library(q/qb)).

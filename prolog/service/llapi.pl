@@ -34,10 +34,11 @@
 /** <module> LOD Laundromat API
 
 @author Wouter Beek
-@version 2016/07
+@version 2016/07, 2016/10
 */
 
 :- use_module(library(apply)).
+:- use_module(library(call_ext)).
 :- use_module(library(conv/rdf2gml)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
@@ -260,7 +261,7 @@ ll_ldf(S, P, O, Doc) :-
   ll_doc_name0(Doc, Name),
   atomic_list_concat(['',Name], /, Path),
   uri_components(Endpoint, uri_components(http,'ldf.lodlaundromat.org',Path,_,_)),
-  http_fail_on_exception(ldf(S, P, O, Endpoint)).
+  call_or_exception(ldf(S, P, O, Endpoint)).
 
 
 

@@ -10,6 +10,7 @@
     q__g/0,
     q__g/1,     % ?G
     q__gs/0,
+    q__io/0,
     q__key/1,   % ?P
     q__key/2,   % ?P, ?G
     q__p/0,
@@ -76,6 +77,9 @@
 :- use_module(library(tree/s_tree)).
 :- use_module(library(yall)).
 
+:- meta_predicate
+    q__io(+, 1).
+    
 :- rdf_meta
    q__cbd(r),
    q__cbd(r, r),
@@ -172,6 +176,37 @@ q__g(G) :-
 q__gs :-
   q_graph_table_comps(HeaderRow, DataRows),
   print_table([head(HeaderRow)|DataRows]).
+
+
+
+%! q__io is det.
+
+q__io :-
+  setting(source_dir, Dir1),
+  q__io(source(Dir1), q_source_file),
+  setting(store_dir, Dir2),
+  q__io(store(Dir2), q_store_graph),
+  forall(
+    q_backend(M),
+    q__io(cache(M), q_cache_graph(M))
+  ),
+  forall(
+    q_backend(M),
+    q__io(view(M), q_view_graph(M))
+  ).
+
+q__io(Root, Goal_1) :-
+  aggregate_all(set(Root-G), call(Goal_1, G), Pairs),
+  (   pairs_to_tree(Pairs, Tree)
+  ->  print_tree(Tree, [label_writer(q_cli:print_io_term)])
+  ;   writeln("∅")
+  ).
+
+print_io_term(G) -->
+  {q_graph_hash(G, Hash)}, !,
+  atom(Hash).
+print_io_term(Term) -->
+  atom(Term).
 
 
 

@@ -79,7 +79,7 @@ qh_dataset_graph_menu(Action, M, D, G) -->
     q_dataset_trees(M, number_of_triples, Trees),
     Trees \== []
   }, !,
-  nav_dropdown_menu(
+  navbar_dropdown_menu(
     Action,
     'dataset-graph-menu',
     "Graph",

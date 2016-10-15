@@ -11,6 +11,8 @@
     q_datatype/3,          % ?M, ?D, ?G
     q_defval/2,            % +Def, -Val
     q_default_graph/1,     % ?G
+    q_external_iri/2,      % ?M, ?Iri
+    q_internal_iri/2,      % ?M, ?Iri
     q_iri/2,               % ?M, ?Iri
     q_iri/3,               % ?M, ?Iri, ?G
     q_iri_alias/2,         % +Iri, -Alias
@@ -107,15 +109,12 @@
 :- use_module(library(solution_sequences)).
 :- use_module(library(typecheck)).
 
-
 :- meta_predicate
     q_aggregate_all(+, 0, -),
     q_snap(0).
 
-
 :- multifile
     http:convert_parameter/3.
-
 
 http:convert_parameter(q_iri, A, A) :- !.
 http:convert_parameter(q_literal, A, Term) :- !,
@@ -162,13 +161,14 @@ q_iri0(Iri) -->
   ">",
   {atom_codes(Iri, Cs)}.
 
-
 :- rdf_meta
    q_aggregate_all(+, t, -),
    q_bnode(?, ?, r),
    q_datatype(?, r),
    q_datatype(?, r, r),
    q_defval(r, -),
+   q_external_iri(?, r),
+   q_internal_iri(?, r),
    q_iri(?, r),
    q_iri(?, r, r),
    q_is_lts(o),
@@ -271,6 +271,24 @@ q_datatype(trp, D, G) :-
 q_defval(_, X) :-
   nonvar(X), !.
 q_defval(X, X).
+
+
+
+%! q_external_iri(?M, +Iri) is semidet.
+%! q_external_iri(?M, -Iri) is nondet.
+
+q_external_iri(M, Iri) :-
+  q_iri(M, Iri),
+  q_is_external_iri(Iri).
+
+
+
+%! q_internal_iri(?M, +Iri) is semidet.
+%! q_internal_iri(?M, -Iri) is nondet.
+
+q_internal_iri(M, Iri) :-
+  q_iri(M, Iri),
+  q_is_internal_iri(Iri).
 
 
 

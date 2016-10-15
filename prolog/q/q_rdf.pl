@@ -38,6 +38,7 @@
     q_reification/4,       % +M, ?S, ?P, ?O
     q_reification/5,       % +M, ?S, ?P, ?O, ?G
     q_reification/6,       % +M, ?S, ?P, ?O, ?G, -Stmt
+    q_tuple_triple/2,      % +Tuple, -Triple
     q_triple/2,            % +M, -Triple
     q_triple/3,            % +M, ?G, -Triple
     q_triple/4,            % +M, ?S, ?G, -Triple
@@ -105,6 +106,7 @@
    q_reification(?, r, r, o),
    q_reification(?, r, r, o, r),
    q_reification(?, r, r, o, r, r),
+   q_tuple_triple(t, t),
    q_triple(?, r, -),
    q_triple(?, r, r, -),
    q_triple(?, r, r, o, -),
@@ -387,6 +389,13 @@ q_reification(M, S, P, O, G, Stmt) :-
   q(M, Stmt, rdf:subject, S, G),
   q(M, Stmt, rdf:predicate, P, G),
   q(M, Stmt, rdf:object, O, G).
+
+
+
+%! q_tuple_triple(+Tuple, -Triple) is det.
+
+q_tuple_triple(rdf(S,P,O), rdf(S,P,O)) :- !.
+q_tuple_triple(rdf(S,P,O,_), rdf(S,P,O)).
 
 
 

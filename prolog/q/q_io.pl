@@ -1,8 +1,6 @@
 :- module(
   q_io,
   [
-  q_ls/0,
-
   % SOURCE
   q_dataset2store/0,
   q_dataset2store/1,        % +Name
@@ -130,7 +128,6 @@ them.
 
 :- meta_predicate
     q_generate(-, 1),
-    q_ls0(+, 1),
     q_transform_cbd(+, 1),
     q_transform_graph(+, 1).
 
@@ -166,41 +163,6 @@ them.
      '',
      "Directory that stores the created data files."
    ).
-
-
-
-
-
-%! q_ls is det.
-
-q_ls :-
-  setting(source_dir, Dir1),
-  q_ls0(source(Dir1), q_source_file),
-  setting(store_dir, Dir2),
-  q_ls0(store(Dir2), q_store_graph),
-  forall(
-    q_backend(M),
-    q_ls0(cache(M), q_cache_graph(M))
-  ),
-  forall(
-    q_backend(M),
-    q_ls0(view(M), q_view_graph(M))
-  ).
-
-
-q_ls0(Root, Goal_1) :-
-  aggregate_all(set(Root-G), call(Goal_1, G), Pairs),
-  (   pairs_to_tree(Pairs, Tree)
-  ->  print_tree(Tree, [label_writer(q_io:print_term0)])
-  ;   writeln("∅")
-  ).
-
-
-print_term0(G) -->
-  {q_graph_hash(G, Hash)}, !,
-  atom(Hash).
-print_term0(Term) -->
-  atom(Term).
 
 
 
