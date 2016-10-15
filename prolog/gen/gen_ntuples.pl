@@ -147,7 +147,7 @@ call_to_ntriples(Sink, Goal_2, Opts1) :-
 %
 %     The output stream, if any, where warnings are written to.
 %
-%   * Other options are written to call_to_stream/3.
+%   * Other options are passed to call_to_stream/3.
 
 call_to_ntuples(Sink, Goal_2) :-
   call_to_ntuples(Sink, Goal_2, []).

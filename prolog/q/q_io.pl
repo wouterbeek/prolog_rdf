@@ -7,7 +7,6 @@
   q_dataset2store/0,
   q_dataset2store/1,        % +Name
   q_file_name_to_format/2,  % +FileName, -Format
-  q_source_dataset_graph/3, % +File, -D, -Pair
   q_source_file/1,          % -File
 
     % SOURCE ⬄ STORE
@@ -117,6 +116,7 @@ them.
 :- use_module(library(os/thread_ext)).
 :- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_fs)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/qb)).
@@ -141,7 +141,7 @@ them.
     q_cache2view_hook/2,
     q_dataset2store_hook/1,
     q_dataset2store_hook/2, % E.g., run custom script for ‘bgt’.
-    q_source2store_hook/4,  % E.g., convert CSV files to N-Triple files.
+    q_source2store_hook/5,  % E.g., convert CSV files to N-Triple files.
     q_source_format_hook/2, % E.g., CSV files have format ‘csv’.
     q_store2cache_hook/4,   % E.g., create HDT file from N-Triples file.
     q_store2view_hook/2,    % E.g., GIS index, which has no cache format.
@@ -224,16 +224,13 @@ q_source_skip_exts([md]).
 
 
 
-%! q_source_dataset_graph(+File, -D, -Pair) is det.
+%! q_source_dataset_graph(+File, -DName, -GName) is det.
 
-q_source_dataset_graph(File, D, GName-G) :-
+q_source_dataset_graph(File, DName, GName) :-
   setting(source_dir, Dir),
   directory_file_path(Dir, Local, File),
   file_name(Local, Base),
-  atomic_list_concat([DName|GName], -, Base),
-  q_dataset_iri(DName, D),
-  md5(Base, Hash),
-  q_graph_hash(G, data, Hash).
+  atomic_list_concat([DName,GName], -, Base).
 
 
 
@@ -282,7 +279,6 @@ q_dataset2store(Name) :-
 %! q_init is det.
 
 q_init :-
-  gtrace,
   q_source2store,
   q_dataset2store,
   q_store2view.
@@ -339,11 +335,11 @@ q_source2store :-
 
 q_source2store_file(File) :-
   q_file_name_to_format(File, Format),
-  q_dataset_graph(File, D, GName-G),
+  q_source_dataset_graph(File, DName, GName),
   time_file(File, Ready),
   q_source2store_source(
     File,
-    _{dataset: D, force: false, format: Format, graph: G, 'graph-name': GName},
+    _{dataset: DName, format: Format, graph: GName},
     _,
     Ready
   ).
@@ -353,19 +349,29 @@ q_source2store_source(Source, Opts, Result) :-
   q_source2store_source(Source, Opts, Result, 0).
 
 
-q_source2store_source(Source, Opts, Result, Ready0) :-
-  % Remove any preexisting files from store.
-  (Opts.force == true -> q_store_rm(Opts.graph) ; true),
-  md5(Opts.dataset-Opts.graph, Hash),
-  q_file_hash(File, data, ntriples, Hash),
-  (   q_file_ready_time(File, Ready),
+q_source2store_source(Source, Opts, Result1, Ready0) :-
+  q_dataset_iri(Opts.dataset, D),
+  (   q_dataset_graph(D, Opts.graph, G),
+      q_file_graph(File, data, G),
+      q_file_ready_time(File, Ready),
       Ready >= Ready0
-  ->  ignore(option(triples(0), Result))
-  ;   create_file_directory(File),
-      % Automatically convert source file to store file.
-      once(q_source2store_hook(Opts.format, Source, File, Result)),
+  ->  ignore(option(triples(0), Result1))
+  ;   setting(store_dir, Dir),
+      absolute_file_name(
+        uploading,
+        TmpFile0,
+        [access(write),relative_to(Dir)]
+      ),
+      thread_file(TmpFile0, TmpFile),
+      merge_options(Result1, [md5(Hash)], Result2),
+      once(q_source2store_hook(Opts.format, Source, TmpFile, [], Result2)),
+      q_file_hash(File, data, ntriples, Hash),
+      delete_file_msg(File),
+      create_file_directory(File),
+      rename_file(TmpFile, File),
       q_file_touch_ready(File),
-      q_dataset_add_graph(Opts.dataset, Opts.'graph-name', Opts.graph)
+      q_file_graph(File, G),
+      q_dataset_add_graph(D, Opts.graph, G)
   ).
 
 

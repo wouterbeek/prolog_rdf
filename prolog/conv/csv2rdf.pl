@@ -2,9 +2,9 @@
   csv2rdf,
   [
     csv2rdf/2,        % +Source, +Sink
-    csv2rdf/3,        % +Source, +Sink, +Opts
-    csv2rdf_stream/3, % +Source,               +State, +Out
-    csv2rdf_stream/4  % +Source,        +Opts, +State, +Out
+    csv2rdf/4,        % +Source, +Sink, +SourceOpts, +SinkOpts
+    csv2rdf_stream/3, % +Source, +State, +Out
+    csv2rdf_stream/4  % +Source, +Opts, +State, +Out
   ]
 ).
 
@@ -41,11 +41,11 @@ The following debug flags are used:
 :- use_module(library(yall)).
 
 :- multifile
-    q_io:q_source2store_hook/4,
+    q_io:q_source2store_hook/5,
     q_io:q_source_format_hook/2.
 
-q_io:q_source2store_hook(csv, File1, File2, Opts) :-
-  csv2rdf(File1, File2, Opts).
+q_io:q_source2store_hook(csv, File1, File2, SourceOpts, SinkOpts) :-
+  csv2rdf(File1, File2, SourceOpts, SinkOpts).
 
 q_io:q_source_format_hook(csv, [csv]).
 
@@ -54,7 +54,7 @@ q_io:q_source_format_hook(csv, [csv]).
 
 
 %! csv2rdf(+Source, +Sink) is det.
-%! csv2rdf(+Source, +Sink, +Opts) is det.
+%! csv2rdf(+Source, +Sink, +SourceOpts, +SinkOpts) is det.
 %
 % Converts the given CSV input file into RDF that is asserted either
 % into the given output file or into the given RDF graph.
@@ -71,13 +71,15 @@ q_io:q_source_format_hook(csv, [csv]).
 %   * host(+atom)
 %
 %   * scheme(+atom)
+%
+%   * Other options are passed to call_to_ntriples/3.
 
 csv2rdf(Source, Sink) :-
-  csv2rdf(Source, Sink, []).
+  csv2rdf(Source, Sink, [], []).
 
 
-csv2rdf(Source, Sink, Opts) :-
-  call_to_ntriples(Sink, csv2rdf_stream(Source, Opts), Opts).
+csv2rdf(Source, Sink, SourceOpts, SinkOpts) :-
+  call_to_ntriples(Sink, csv2rdf_stream(Source, SourceOpts), SinkOpts).
 
 
 

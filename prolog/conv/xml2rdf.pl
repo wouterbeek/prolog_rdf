@@ -2,9 +2,9 @@
   xml2rdf,
   [
     xml2rdf/3,        % +Source, +Sink, +RecordNames
-    xml2rdf/4,        % +Source, +Sink, +RecordNames, +Opts
-    xml2rdf_stream/4, % +Source,        +RecordNames,        +State, +Out
-    xml2rdf_stream/5  % +Source,        +RecordNames, +Opts, +State, +Out
+    xml2rdf/5,        % +Source, +Sink, +RecordNames, +SourceOpts, +SinkOpts
+    xml2rdf_stream/4, % +Source, +RecordNames, +State, +Out
+    xml2rdf_stream/5  % +Source, +RecordNames, +Opts, +State, +Out
   ]
 ).
 
@@ -32,12 +32,12 @@
 :- use_module(library(yall)).
 
 :- multifile
-    q_io:q_source2store_hook/4,
+    q_io:q_source2store_hook/5,
     q_io:q_source_format_hook/2.
 
-q_io:q_source2store_hook(xml, Source, Sink, Opts1) :-
-  del_dict(record_names, Opts1, RecordNames, Opts2),
-  xml2rdf(Source, Sink, RecordNames, Opts2).
+q_io:q_source2store_hook(xml, Source, Sink, SourceOpts1, SinkOpts) :-
+  del_dict(record_names, SourceOpts1, RecordNames, SourceOpts2),
+  xml2rdf(Source, Sink, RecordNames, SourceOpts2, SinkOpts).
 
 q_io:q_source_format_hook(xml, [marcxml]).
 q_io:q_source_format_hook(xml, [xml]).
@@ -47,7 +47,7 @@ q_io:q_source_format_hook(xml, [xml]).
 
 
 %! xml2rdf(+Source, +Sink, +RecordNames) is nondet.
-%! xml2rdf(+Source, +Sink, +RecordNames, +Opts) is nondet.
+%! xml2rdf(+Source, +Sink, +RecordNames, +SourceOpts, +SinkOpts) is nondet.
 %
 % The following options are supported:
 %
@@ -60,15 +60,19 @@ q_io:q_source_format_hook(xml, [xml]).
 %   * scheme(+atom)
 
 xml2rdf(Source, Sink, RecordNames) :-
-  xml2rdf(Source, Sink, RecordNames, _{}).
+  xml2rdf(Source, Sink, RecordNames, _{}, []).
 
 
-xml2rdf(Source, Sink, RecordNames, Opts1) :-
-  (   get_dict(entry_name, Opts1, Entry)
-  ->  Opts2 = [entry_name(Entry)]
-  ;   Opts2 = []
+xml2rdf(Source, Sink, RecordNames, SourceOpts, SinkOpts1) :-
+  (   get_dict(entry_name, SourceOpts, Entry)
+  ->  merge_options(SinkOpts1, [entry_name(Entry)], SinkOpts2)
+  ;   SinkOpts2 = SinkOpts1
   ),
-  call_to_ntriples(Sink, xml2rdf_stream(Source, RecordNames, Opts1), Opts2).
+  call_to_ntriples(
+    Sink,
+    xml2rdf_stream(Source, RecordNames, SourceOpts),
+    SinkOpts2
+  ).
 
 
 

@@ -40,6 +40,7 @@
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(q/q_io)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 

@@ -133,7 +133,7 @@ q_dataset_graph(D, G) :-
   
 
 q_dataset_graph(D, GName, G) :-
-  q_dataset_graph(D, _, Pairs),
+  q_dataset(D, _, Pairs),
   memberchk(GName-G, Pairs).
 
 

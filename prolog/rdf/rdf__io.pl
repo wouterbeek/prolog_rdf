@@ -13,7 +13,7 @@
     rdf_call_to_graph/2,         % ?Sink, :Goal_1
     rdf_call_to_graph/3,         % ?Sink, :Goal_1, +Opts
     rdf_change_format/2,         % +Source, +Sink
-    rdf_change_format/3,         % +Source, +Sink, +Opts
+    rdf_change_format/4,         % +Source, +Sink, +SourceOpts, +SinkOpts
     rdf_change_format_legacy/2,  % +Source, +Sink
     rdf_change_format_legacy/3,  % +Source, +Sink, +Opts
     rdf_download_to_file/2,      % +Iri, +File
@@ -109,7 +109,7 @@ The following debug flags are used:
     q_io:q_cache_format_hook/2,
     q_io:q_cache2view_hook/2,
     q_io:q_store2cache_hook/4,
-    q_io:q_source2store_hook/4,
+    q_io:q_source2store_hook/5,
     q_io:q_source_format_hook/2,
     q_io:q_view_graph_hook/3,
     q_io:q_view_rm_hook/2.
@@ -124,8 +124,8 @@ q_io:q_cache2view_hook(trp, G) :-
   rdf_load_db(File).
 
 
-q_io:q_source2store_hook(rdf, Source, Sink, Opts) :-
-  rdf_change_format(Source, Sink, Opts).
+q_io:q_source2store_hook(rdf, Source, Sink, SourceOpts, SinkOpts) :-
+  rdf_change_format(Source, Sink, SourceOpts, SinkOpts).
 
 
 q_io:q_source_format_hook(rdf, [Ext]) :-
@@ -218,7 +218,6 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
   rdf_update_options(Opts1, Opts2),
   call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
-
 rdf_call_on_stream0(Goal_3, Opts, In, L1, L3) :-
   set_rdf_format_and_encoding(In, L1, L2, Opts),
   call(Goal_3, In, L2, L3).
@@ -251,7 +250,6 @@ rdf_call_on_tuples(Source, Goal_5, Opts) :-
 
 rdf_call_on_tuples_stream(In, Goal_5, Path, Opts) :-
   rdf_call_on_tuples_stream0(Goal_5, Opts, In, Path, Path).
-
 
 rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   qb_bnode_prefix(BPrefix),
@@ -289,7 +287,6 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   ->  read_rdfa(In, Triples, Opts3),
       rdf_call_on_quads0(Goal_5, Path, Triples)
   ).
-
 
 rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
@@ -329,7 +326,6 @@ rdf_call_on_quad0(Goal_5, L, rdf(S,P,O)) :-
   q_default_graph(G),
   rdf_call_on_quad0(Goal_5, L, rdf(S,P,O,G)).
 
-
 % Use this to debug bugs in statement calls.
 rdf_call_on_quad0_debug(Goal_5, L, Tuple) :-
   %flag(rdf_call_on_quad0_debug, N, N + 1),
@@ -338,10 +334,8 @@ rdf_call_on_quad0_debug(Goal_5, L, Tuple) :-
   catch(rdf_call_on_quad0(Goal_5, L, Tuple), E, true),
   (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, L, Tuple)).
 
-
 rdf_call_on_quads0(Goal_5, L, Tuples) :-
   maplist(rdf_call_on_quad0(Goal_5, L), Tuples).
-
 
 rdf_call_on_quads0(Goal_5, L, Tuples, _) :-
   rdf_call_on_quads0(Goal_5, L, Tuples).
@@ -364,7 +358,6 @@ rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
     SourceOpts,
     SinkOpts
   ).
-
 
 rdf_call_onto_stream0(Goal_4, Opts, In, L1, L3, Out) :-
   set_rdf_format_and_encoding(In, L1, L2, Opts),
@@ -397,7 +390,7 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
 
 
 %! rdf_change_format(+Source, +Sink) is det.
-%! rdf_change_format(+Source, +Sink, +Opts) is det.
+%! rdf_change_format(+Source, +Sink, +SourceOpts, +SinkOpts) is det.
 %
 % The following options are supported:
 %
@@ -411,20 +404,11 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
 %     * rdf_write_to_sink/7
 
 rdf_change_format(Source, Sink) :-
-  rdf_change_format(Source, Sink, []).
+  rdf_change_format(Source, Sink, [], []).
 
 
-rdf_change_format(Source, Sink, Opts) :-
-  (   option(from_format(FromFormat), Opts)
-  ->  merge_options(Opts, [rdf_format(FromFormat)], SourceOpts)
-  ;   SourceOpts = Opts
-  ),
-  (   option(to_format(ToFormat), Opts)
-  ->  merge_options(Opts, [rdf_format(ToFormat)], SinkOpts)
-  ;   SinkOpts = Opts
-  ),
+rdf_change_format(Source, Sink, SourceOpts, SinkOpts) :-
   call_to_ntuples(Sink, rdf_change_format0(Source, SourceOpts), SinkOpts).
-
 
 rdf_change_format0(Source, SourceOpts, State, Out) :-
   indent_debug(conv(rdf2rdf), "> RDF → RDF"),
@@ -463,7 +447,6 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
   thread_file(File, TmpFile),
   call_onto_stream(Iri, TmpFile, copy_stream_data0, InOpts, OutOpts),
   rename_file(TmpFile, File).
-
 
 copy_stream_data0(In, L, L, Out) :-
   copy_stream_data(In, Out).
@@ -536,19 +519,16 @@ rdf_load_file(Source, Opts) :-
     [NumTuples,Source,State.triples,State.quads]
   ).
 
-
 rdf_force_load_tuple0(State, ToG, _, S, P, O, FromG) :-
   count_tuple0(State, FromG),
   % @tbd IRI normalization.
   rdf_assert(S, P, O, ToG).
-
 
 rdf_load_tuple0(State, ToG, _, S, P, O, FromG) :-
   count_tuple0(State, FromG),
   (q_default_graph(FromG) -> G = ToG ; G = FromG),
   % @tbd IRI normalization.
   rdf_assert(S, P, O, G).
-
 
 count_tuple0(State, G) :-
   q_default_graph(G), !,
@@ -654,7 +634,6 @@ rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
   merge_options(Opts1, [format(Format)], Opts2),
   call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2).
 
-
 rdf_file_name0(File, Opts) :-
   uuid(Base),
   rdf_file_name0(Base, File, Opts).
@@ -663,7 +642,6 @@ rdf_file_name0(Base, File, Opts) :-
   rdf_write_format0(_, Opts, Format),
   rdf_default_file_extension(Format, Ext),
   file_name_extension(Base, Ext, File).
-
 
 rdf_write_format0(_, Opts, Format) :-
   option(rdf_format(Format), Opts), !.

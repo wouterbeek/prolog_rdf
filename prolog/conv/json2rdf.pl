@@ -2,8 +2,8 @@
   json2rdf,
   [
     json2rdf/2,        % +Source, +Sink
-    json2rdf/3,        % +Source, +Sink, +Opts
-    json2rdf_stream/3, % +Source,        +State, +Out
+    json2rdf/4,        % +Source, +Sink, +SourceOpts, +SinkOpts
+    json2rdf_stream/3, % +Source, +State, +Out
     json2rdf_stream/4  % +Source, +Opts, +State, +Out
   ]
 ).
@@ -33,11 +33,11 @@
 :- use_module(library(uuid)).
 
 :- multifile
-    q_io:q_source2store_hook/4,
+    q_io:q_source2store_hook/5,
     q_io:q_source_format_hook/2.
 
-q_io:q_source2store_hook(json, File1, File2, Opts) :-
-  json2rdf(File1, File2, Opts).
+q_io:q_source2store_hook(json, File1, File2, SourceOpts, SinkOpts) :-
+  json2rdf(File1, File2, SourceOpts, SinkOpts).
 
 q_io:q_source_format_hook(json, [json]).
 q_io:q_source_format_hook(json, [ndjson]).
@@ -47,7 +47,7 @@ q_io:q_source_format_hook(json, [ndjson]).
 
 
 %! json2rdf(+Source, +Sink) is nondet.
-%! json2rdf(+Source, +Sink, +Opts) is nondet.
+%! json2rdf(+Source, +Sink, +SourceOpts, +SinkOpts) is nondet.
 %
 % Convert JSON coming from Source into RDF that is stored in graph G
 % using backend M.
@@ -59,12 +59,11 @@ q_io:q_source_format_hook(json, [ndjson]).
 %   * call_to_ntriples/3
 
 json2rdf(Source, Sink) :-
-  json2rdf(Source, Sink, _{}).
+  json2rdf(Source, Sink, _{}, []).
 
 
-json2rdf(Source, Sink, Opts1) :-
-  dict_options(Opts1, Opts2),
-  call_to_ntriples(Sink, json2rdf_stream(Source, Opts1), Opts2).
+json2rdf(Source, Sink, SourceOpts, SinkOpts) :-
+  call_to_ntriples(Sink, json2rdf_stream(Source, SourceOpts), SinkOpts).
 
 
 

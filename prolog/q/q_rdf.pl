@@ -70,7 +70,7 @@
 :- use_module(library(lists)).
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(nlp/nlp_lang)).
-:- use_module(library(q/q_dataset_api)).
+:- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 
