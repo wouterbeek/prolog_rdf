@@ -101,6 +101,9 @@ Print RDF statements.
 | `indent`      | nonneg    | 0           |                                  |
 | `iri_abbr`    | boolean   | `true`      | Whether IRIs are abbreviated     |
 |               |           |             | based on the current aliases.    |
+| `iri_lbl`     | boolean   | `false`     | Whether labels should be         |
+|               |           |             | displayed i.o. IRIs.  This       |
+|               |           |             | overrides option `iri_abbr`.     |
 | `max_iri_len` | nonneg    | `inf`       | The maximum length of an IRI.    |
 | `max_lit_len` | nonneg    | `inf`       | The maximum length of a literal. |
 
@@ -113,7 +116,7 @@ Print RDF statements.
      `max_dataset_term_len`.
 
 @author Wouter Beek
-@version 2016/06-2016/08
+@version 2016/06-2016/08, 2016/10
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -133,9 +136,11 @@ Print RDF statements.
 :- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_rdf)).
+:- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdfs/rdfs_ext)).
+:- use_module(library(settings)).
 :- use_module(library(yall)).
 
 :- dynamic
@@ -235,6 +240,13 @@ dcg:dcg_hook(q_predicate(P)) -->
    q_print_triples(?, r, r, o),
    q_print_triples(?, r, r, o, r),
    q_print_triples(?, r, r, o, r, +).
+
+:- setting(
+     backend,
+     hdt,
+     oneof([hdt,trp]),
+     "The backend that is used to make pretty print-outs of RDF expressions."
+   ).
 
 
 
@@ -936,7 +948,7 @@ dcg_q_print_var(Var) -->
 %! dcg_q_print_default_options(-Opts) is det.
 
 dcg_q_print_default_options(
-  _{iri_abbr: true, max_iri_len: inf, max_lit_len: inf}
+  _{iri_abbr: true, iri_lbl: false, max_iri_len: inf, max_lit_len: inf}
 ).
 
 

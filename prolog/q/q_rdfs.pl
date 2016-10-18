@@ -1,19 +1,21 @@
 :- module(
   q_rdfs,
   [
-    q_domain/4,          % +M, ?P, ?C, ?G
-    q_pref_label/3,      % +M, ?S, ?Lit
-    q_pref_label/4,      % +M, ?S, ?Lit, ?G
-    q_pref_label_lex/3,  % +M, ?S, -Lex
-    q_pref_label_lex/4,  % +M, ?S, -Lex, ?G
-    q_pref_string/4,     % +M, ?S, ?P, ?Lit
-    q_pref_string/5,     % +M, ?S, ?P, ?Lit, ?G
-    q_pref_string/6,     % +M, ?S, ?P, +LRange, ?Lit, ?G
-    q_pref_string_lex/4, % +M, ?S, ?P, -Lex
-    q_pref_string_lex/5, % +M, ?S, ?P, -Lex, ?G
-    q_pref_string_lex/6, % +M, ?S, ?P, +LRange, -Lex, ?G
-    q_range/4,           % +M, ?P, ?C, ?G
-    q_subclass/4         % +M, ?C, ?D, ?G
+    q_domain/4,          % ?M, ?P, ?C, ?G
+    q_pref_label/3,      % ?M, ?S, -Lit
+    q_pref_label/4,      % ?M, ?S, -Lit, ?G
+    q_pref_label/5,      % ?M, ?S, +LRange, -Lit, ?G
+    q_pref_label_lex/3,  % ?M, ?S, -Lex
+    q_pref_label_lex/4,  % ?M, ?S, -Lex, ?G
+    q_pref_label_lex/5,  % ?M, ?S, +LRange, -Lex, ?G
+    q_pref_string/4,     % ?M, ?S, ?P, -Lit
+    q_pref_string/5,     % ?M, ?S, ?P, -Lit, ?G
+    q_pref_string/6,     % ?M, ?S, ?P, +LRange, -Lit, ?G
+    q_pref_string_lex/4, % ?M, ?S, ?P, -Lex
+    q_pref_string_lex/5, % ?M, ?S, ?P, -Lex, ?G
+    q_pref_string_lex/6, % ?M, ?S, ?P, +LRange, -Lex, ?G
+    q_range/4,           % ?M, ?P, ?C, ?G
+    q_subclass/4         % ?M, ?C, ?D, ?G
   ]
 ).
 
@@ -29,7 +31,7 @@
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 
-%! q_label_hook(+S, -Lbl).
+%! q_label_hook(+S, +LRange, -Lbl).
 
 %! q_label_property(+P) is semidet.
 %! q_label_property(-P) is det.
@@ -38,7 +40,7 @@
 % represent human-readable labels.
 
 :- multifile
-    q_label_hook/2,
+    q_label_hook/3,
     q_label_property/1.
 
 %q_label_property(M, P, G) :-
@@ -53,15 +55,17 @@ q_label_property(skos:altLabel).
 :- rdf_meta
    q_domain(?, r, r, r),
    q_pref_label(?, r, -),
-   q_pref_label(?, r, r, -),
+   q_pref_label(?, r, -, r),
+   q_pref_label(?, r, +, -, r),
    q_pref_label_lex(?, r, -),
-   q_pref_label_lex(?, r, r, -),
+   q_pref_label_lex(?, r, -, r),
+   q_pref_label_lex(?, r, +, -, r),
    q_pref_string(?, r, r, -),
-   q_pref_string(?, r, r, r, -),
-   q_pref_string(?, r, r, +, r, -),
+   q_pref_string(?, r, r, -, r),
+   q_pref_string(?, r, r, +, -, r),
    q_pref_string_lex(?, r, r, -),
-   q_pref_string_lex(?, r, r, r, -),
-   q_pref_string_lex(?, r, r, +, r, -),
+   q_pref_string_lex(?, r, r, -, r),
+   q_pref_string_lex(?, r, r, +, -, r),
    q_range(?, r, r, r),
    q_subclass(?, r, r, r).
 
@@ -69,48 +73,59 @@ q_label_property(skos:altLabel).
 
 
 
-%! q_domain(+M, ?P, ?C, ?G) is nondet.
+%! q_domain(?M, ?P, ?C, ?G) is nondet.
 
 q_domain(M, P, C, G) :-
   q(M, P, rdfs:domain, C, G).
 
 
 
-%! q_pref_label(+M, ?S, ?Lit) is nondet.
-%! q_pref_label(+M, ?S, ?Lit, ?G) is nondet.
+%! q_pref_label(?M, ?S, -Lit) is nondet.
+%! q_pref_label(?M, ?S, -Lit, ?G) is nondet.
+%! q_pref_label(?M, +S, +LRange, -Lit, ?G) is nondet.
+%
+% Returns a preferred label
+
 
 q_pref_label(M, S, Lit) :-
   q_pref_label(M, S, Lit, _).
 
 
-%! q_pref_label(+M, +S, -Lbl) is nondet.
-%
-% Returns a preferred label
+q_pref_label(M, S, Lit, G) :-
+  current_lrange(LRange),
+  q_pref_label(M, S, LRange, Lit, G).
 
-q_pref_label(_, S, Lbl) :-
-  q_rdfs:q_label_hook(S, Lbl).
-q_pref_label(M, S, Lbl) :-
+
+q_pref_label(_, S, LRange, Lit, _) :-
+  q_rdfs:q_label_hook(S, LRange, Lit), !.
+q_pref_label(M, S, LRange, Lit, G) :-
   q_rdfs:q_label_property(P),
-  q_pref_string(M, S, P, Lit, G).
+  q_pref_string(M, S, P, LRange, Lit, G).
 
 
 
-%! q_pref_label_lex(+M, ?S, -Lex) is nondet.
-%! q_pref_label_lex(+M, ?S, -Lex, ?G) is nondet.
+%! q_pref_label_lex(?M, ?S, -Lex) is nondet.
+%! q_pref_label_lex(?M, ?S, -Lex, ?G) is nondet.
+%! q_pref_label_lex(?M, ?S, +LRange, -Lex, ?G) is nondet.
 
 q_pref_label_lex(M, S, Lex) :-
   q_pref_label_lex(M, S, Lex, _).
 
 
 q_pref_label_lex(M, S, Lex, G) :-
-  q_pref_label(M, S, Lit, G),
+  current_lrange(LRange),
+  q_pref_label_lex(M, S, LRange, Lex, G).
+
+
+q_pref_label_lex(M, S, LRange, Lex, G) :-
+  q_pref_label(M, S, LRange, Lit, G),
   q_literal_lex(Lit, Lex).
 
 
 
-%! q_pref_string(+M, ?S, ?P, ?Lit) is nondet.
-%! q_pref_string(+M, ?S, ?P, ?Lit, ?G) is nondet.
-%! q_pref_string(+M, ?S, ?P, +LRange, ?Lit, ?G) is nondet.
+%! q_pref_string(?M, ?S, ?P, -Lit) is nondet.
+%! q_pref_string(?M, ?S, ?P, -Lit, ?G) is nondet.
+%! q_pref_string(?M, ?S, ?P, +LRange, -Lit, ?G) is nondet.
 %
 % Returns, in this exact order:
 %
@@ -149,30 +164,35 @@ q_pref_string(M, S, P, _, V^^D, G) :-
 
 
 
-%! q_pref_string_lex(+M, ?S, ?P, -Lex) is nondet.
-%! q_pref_string_lex(+M, ?S, ?P, -Lex, ?G) is nondet.
-%! q_pref_string_lex(+M, ?S, ?P, +LRange, -Lex, ?G) is nondet.
+%! q_pref_string_lex(?M, ?S, ?P, -Lex) is nondet.
+%! q_pref_string_lex(?M, ?S, ?P, -Lex, ?G) is nondet.
+%! q_pref_string_lex(?M, ?S, ?P, +LRange, -Lex, ?G) is nondet.
 %
-% Like q_pref_string/[4,5], but returns only the lexical form.
+% Like q_pref_string/[4-6], but returns only the lexical form.
 
 q_pref_string_lex(M, S, P, Lex) :-
   q_pref_string_lex(M, S, P, Lex, _).
 
 
 q_pref_string_lex(M, S, P, Lex, G) :-
-  q_pref_string(M, S, P, Lit, G),
+  current_lrange(LRange),
+  q_pref_string_lex(M, S, P, LRange, Lex, G).
+
+
+q_pref_string_lex(M, S, P, LRange, Lex, G) :-
+  q_pref_string(M, S, P, LRange, Lit, G),
   q_literal_lex(Lit, Lex).
 
 
 
-%! q_range(+M, ?P, ?C, ?G) is nondet.
+%! q_range(?M, ?P, ?C, ?G) is nondet.
 
 q_range(M, P, C, G) :-
   q(M, P, rdfs:range, C, G).
 
 
 
-%! q_subclass(+M, ?C, ?D, ?G) is nondet.
+%! q_subclass(?M, ?C, ?D, ?G) is nondet.
 
 q_subclass(M, C, D, G) :-
   q(M, C, rdfs:subClassOf, D, G).

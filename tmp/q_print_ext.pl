@@ -21,10 +21,6 @@ information than the term itself.
    qh_list(+, r, ?, ?),
    qh_list(+, r, +, ?, ?).
 
-
-
-
-
 % Replace IRIs with labels.
 qh_iri_inner(M, Iri, Opts) -->
   {
@@ -33,20 +29,6 @@ qh_iri_inner(M, Iri, Opts) -->
     q_pref_label(M, Iri, Lbl)
   }, !,
   qh_literal_inner(Lbl, Opts).
-
-
-
-dcg_q_print_iri(Full, Opts) -->
-  {
-    get_dict(iri_lbl, Opts, true),
-    q_pref_label(M, Full, Lit, G)
-  }, !,
-  {q_literal_lex(Lit, Lex)},
-  "“",
-  atom(Lex),
-  "”".
-
-
 
 %! qh_list(+M, +L)// is det.
 %! qh_list(+M, +L, +Opts)// is det.
