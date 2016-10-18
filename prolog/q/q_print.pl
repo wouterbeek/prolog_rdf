@@ -243,8 +243,8 @@ dcg:dcg_hook(q_predicate(P)) -->
 
 :- setting(
      backend,
-     hdt,
      oneof([hdt,trp]),
+     hdt,
      "The backend that is used to make pretty print-outs of RDF expressions."
    ).
 
