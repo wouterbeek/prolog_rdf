@@ -1,9 +1,9 @@
 :- module(
-  llapi_concurrent,
+  ll_concurrent,
   [
     increment_number_of_processed_jobs/0,
-    llapi_concurrent/2, % :Goal_4, ?NumThreads
-    llapi_concurrent/5  % ?S, ?P, ?O, :Goal_4, ?NumThreads
+    ll_concurrent/2, % :Goal_4, ?NumThreads
+    ll_concurrent/5  % ?S, ?P, ?O, :Goal_4, ?NumThreads
   ]
 ).
 
@@ -16,7 +16,6 @@
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(flag_ext)).
-:- use_module(library(llapi/llapi_doc)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(thread)).
@@ -24,13 +23,13 @@
 :- meta_predicate
     concurrent_goal(1,+),
     lapi_concurrent(4,?),
-    llapi_concurrent(?,?,?,4,?),
-    llapi_concurrent0(?,?,?,4,+).
+    ll_concurrent(?,?,?,4,?),
+    ll_concurrent0(?,?,?,4,+).
 
 :- rdf_meta
-   llapi_concurrent(:,?),
-   llapi_concurrent(r,r,o,:,?),
-   llapi_concurrent0(r,r,o,:,+).
+   ll_concurrent(:,?),
+   ll_concurrent(r,r,o,:,?),
+   ll_concurrent0(r,r,o,:,+).
 
 :- dynamic
     number_of_jobs/1,
@@ -42,56 +41,53 @@
 
 %! increment_number_of_processed_jobs is det.
 
-increment_number_of_processed_jobs:-
+increment_number_of_processed_jobs :-
   with_mutex(number_of_processed_jobs, (
     retract(number_of_processed_jobs(M)),
     N is M + 1,
     assert(number_of_processed_jobs(N)),
     number_of_jobs(O),
     P is N / O * 100,
-    debug(llapi(concurrent), "Processed ~D out of ~D jobs (~2f%).", [N,O,P])
+    debug(ll(concurrent), "Processed ~D out of ~D jobs (~2f%).", [N,O,P])
   )).
 
 
 
-%! llapi_concurrent(:Goal_4, ?NumberOfThreads:positive_integer) is det.
-% Wrapper around llapi_concurrent/5 that matches all triples.
+%! ll_concurrent(:Goal_4, ?NumThreads) is det.
+%! ll_concurrent(?S, ?P, ?O, :Goal_4, ?NumThreads) is det.
 
-llapi_concurrent(Goal_4, N):-
-  llapi_concurrent(_, _, _, Goal_4, N).
+ll_concurrent(Goal_4, NumThreads):-
+  ll_concurrent(_, _, _, Goal_4, NumThreads).
 
 
-%! llapi_concurrent(?S, ?P, ?O, :Goal_4, ?NumberOfThreads:positive_integer) is det.
-
-llapi_concurrent(S, P, O, Goal_4, N):-
-  default_number_of_threads(N0),
-  defval(N0, N),
-  tmp_set_prolog_flag(cpu_count, N, llapi_concurrent0(S, P, O, Goal_4, N)),
+ll_concurrent(S, P, O, Goal_4, NumThreads):-
+  defgoal(default_number_of_threads, NumThreads),
+  tmp_set_prolog_flag(cpu_count, NumThreads,
+    ll_concurrent0(S, P, O, Goal_4, NumThreads)
+  ),
   msg_notification("Done running ~w!", [Goal_4]).
 
-
-lodapi_concurrent0(S, P, O, Mod:Goal_4, N):-
+lodapi_concurrent0(S, P, O, Mod:Goal_4, NumThreads):-
   documents2(S, P, O, Locs),
-
   retractall(number_of_jobs(_)),
   length(Locs, M),
   assert(number_of_jobs(M)),
   retractall(number_of_processed_jobs(_)),
   assert(number_of_processed_jobs(0)),
-
   debug(
-    llapi(concurrent),
+    ll(concurrent),
     "Going to process ~D jobs using ~D threads.",
-    [M,N]
+    [M,NumThreads]
   ),
   Goal_4 =.. [Pred|Args],
   Goal_1 =.. [Pred,S,P,O|Args],
   concurrent_maplist(concurrent_goal(Mod:Goal_1), Locs),
   debug(
-    llapi(concurrent),
+    ll(concurrent),
     "Done processing ~D jobs using ~D threads.",
-    [M,N]
+    [M,NumThreads]
   ).
+
 documents2(S, P, O, Locs):-
   findall(Locs, documents(S, P, O, Locs), Locss),
   append(Locss, Locs0),
@@ -99,8 +95,9 @@ documents2(S, P, O, Locs):-
 
 
 %! concurrent_goal(:Goal_1, +Doc) is det.
-% Concurrent maplist requires all threads to succeed.
-% We therefore catch all goals and assure that this calling goal never fails.
+%
+% Concurrent maplist requires all threads to succeed.  We therefore
+% catch all goals and assure that this calling goal never fails.
 
 concurrent_goal(Goal_1, Doc):-
   catch(

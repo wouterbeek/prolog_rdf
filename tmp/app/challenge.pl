@@ -3,11 +3,11 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_print)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(service/lotus)).
+:- use_module(library(service/ll_api)).
+:- use_module(library(service/lotus_api)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 
@@ -45,7 +45,7 @@ go_instance(String) :-
   dcg_with_output_to(user_output, set(Js)).
 
 go_class(String) :-
-  aggregate_all(set(S), lotus(S, _, String-_, _, [rank(lengthnorm)]), Ss),
+  aggregate_all(set(S), lotus(String, S, [rank(lengthnorm)]), Ss),
   maplist(term_to_number_of_docs, Ss, Ns),
   pairs_keys_values(Pairs, Ns, Ss),
   sort(1, @>=, Pairs, SortedPairs),
@@ -58,7 +58,7 @@ class_type_goal0(C, Doc, \+ ldf(_, P, C, Doc)) :-
   rdf_equal(rdf:type, P).
 
 lotus_instance(String, One) :-
-  aggregate_all(set(S), lotus(S, _, String-_, _), Ss),
+  aggregate_all(set(S), lotus(String, S), Ss),
   maplist(term_to_number_of_docs, Ss, Ns),
   pairs_keys_values(Pairs, Ns, Ss),
   sort(1, @>=, Pairs, [_-One|_]).

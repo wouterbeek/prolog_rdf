@@ -15,8 +15,8 @@ User Rapper to test whether LOD Laundromat data can be parsed.
 
 :- use_module(library(csv_ext)).
 :- use_module(library(http/http_download)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(os/archive_ext)).
+:- use_module(library(service/ll_api)).
 
 :- dynamic
     rapper_result/4.

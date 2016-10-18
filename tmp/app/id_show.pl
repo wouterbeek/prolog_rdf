@@ -15,11 +15,11 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_print)).
+:- use_module(library(service/ll_api)).
 
 
 

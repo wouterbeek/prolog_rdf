@@ -13,12 +13,12 @@
 
 :- use_module(library(counter)).
 :- use_module(library(debug)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_print)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(service/ll_api)).
 
-:- debug(llapi(concurrent)).
+:- debug(ll(concurrent)).
 
 
 
@@ -37,7 +37,7 @@ run_on_term(Threads, X) :-
 
 run_on_triple_pattern(Counter, Threads, S, P, O) :-
   create_counter(Counter),
-  llapi_concurrent(S, P, O, run_on_doc(Counter), Threads),
+  ll_concurrent(S, P, O, run_on_doc(Counter), Threads),
   delete_counter(Counter),
   msg_success("Done!").
 

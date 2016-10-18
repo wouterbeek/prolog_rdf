@@ -16,11 +16,11 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(os/io)).
 :- use_module(library(random)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(service/ll_api)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 

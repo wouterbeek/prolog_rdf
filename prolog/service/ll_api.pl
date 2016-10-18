@@ -1,5 +1,5 @@
 :- module(
-  llapi,
+  ll_api,
   [
     ll_doc/1,             % -Doc
     ll_doc/4,             % ?S, ?P, ?O, -Doc

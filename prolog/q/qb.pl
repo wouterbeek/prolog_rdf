@@ -18,7 +18,6 @@
     qb_objects/5,      % +M, +S, +P, +Os, +G
     qb_reification/4,  % +M, +Triple, +G, ?Stmt
     qb_rev/5,          % +M, +O, +P, +S, +G
-    qu/5,              % +S, +P, +O, +G, +Action
   % RDFS
     qb_class/6,        % +M, +C, ?D, ?Lbl, ?Comm, +G
     qb_comment/4,      % +M, +S, +Comm, +G
@@ -93,7 +92,6 @@
    qb_rm(+, t),
    qb_rm(+, t, r),
    qb_rm(+, r, r, o, r),
-   qu(r, r, o, r, t),
    % RDFS
    qb_class(+, r, t, ?, ?, r),
    qb_comment(+, r, +, r),
@@ -255,13 +253,6 @@ qb_rm(M, rdf(S,P,O), G) :-
 
 qb_rm(trp, S, P, O, G) :- !,
   rdf_retractall(S, P, O, G).
-
-
-
-%! qu(+S, +P, +O, +G, +Action) is det.
-
-qu(S, P, O, G, Action) :- !,
-  rdf_update(S, P, O, G, Action).
 
 
 

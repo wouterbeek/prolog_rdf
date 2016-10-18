@@ -1,9 +1,9 @@
 :- module(pld, [run_pld/0]).
 
-:- use_module(library(llapi)).
 :- use_module(library(os/io)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(service/ll_api)).
 :- use_module(library(uri)).
 
 :- qb_alias(llo, 'http://lodlaundromat.org/ontology/').

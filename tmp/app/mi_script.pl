@@ -22,8 +22,8 @@
 :- use_module(library(apply)).
 :- use_module(library(csv_ext)).
 :- use_module(library(debug)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(pool)).
+:- use_module(library(service/ll_api)).
 
 :- use_module(mi).
 
@@ -35,7 +35,7 @@
 
 run(Low, High, Max, NumWorkers) :-
   (   var(Max)
-  ->  llapi_doc:docs_size0(Low, High, Pairs)
+  ->  docs_size0(Low, High, Pairs)
   ;   findnsols(
         Max,
         NumTriples-Doc,

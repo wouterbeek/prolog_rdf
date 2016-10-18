@@ -368,7 +368,8 @@ q_store_rm :-
 q_store_rm(G) :-
   q_cache_rm(G),
   q_file_graph(File, G),
-  q_delete_file(File).
+  q_delete_file(File),
+  q_rm_dataset_graph(G).
 
 
 

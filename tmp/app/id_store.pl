@@ -15,13 +15,13 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(os/io)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(print_ext)).
+:- use_module(library(service/ll_api)).
 
-:- debug(llapi(concurrent)).
-:- debug(llapi(id(doc))).
+:- debug(ll(concurrent)).
+:- debug(ll(id(doc))).
 
 
 
@@ -34,7 +34,7 @@ run:-
 run(N):-
   call_to_nquads(
     'id.nt.gz',
-    llapi_concurrent(_, owl:sameAs, _, store_id_doc, N)
+    ll_concurrent(_, owl:sameAs, _, store_id_doc, N)
   ).
 
 
@@ -50,14 +50,14 @@ store_id_doc(S, P, O, BPrefix, CT, Doc):-
   % DEBUG
   thread_counter(CT, NT),
   doc_name(Doc, Name),
-  debug(llapi(id(doc)), "~D id-statements extracted from doc ~a.", [NT,Name]).
+  debug(ll(id(doc)), "~D id-statements extracted from doc ~a.", [NT,Name]).
 % DEBUG
 store_id_doc(S, P, O, BPrefix, CT, Doc):-
   store_id_doc(S, P, O, BPrefix, CT, Doc).
 
 
 store_id_triple(BPrefix, CT, S, P, O):-
-  dcg_debug(llapi(id(stmt)), dcg_q_print_triple(S, P, O)),
+  dcg_debug(ll(id(stmt)), dcg_q_print_triple(S, P, O)),
   gen_ntriple(S, P, O), !.
 % DEBUG
 store_id_triple(_, _, S, P, O):-

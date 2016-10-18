@@ -88,7 +88,7 @@
 :- use_module(library(service/flickrwrappr)).
 :- use_module(library(service/freebase)).
 :- use_module(library(service/ldf)).
-:- use_module(library(service/llapi)).
+:- use_module(library(service/ll_api)).
 :- use_module(library(service/lotus_api)).
 :- use_module(library(service/lov)).
 :- use_module(library(service/musicbrainz)).

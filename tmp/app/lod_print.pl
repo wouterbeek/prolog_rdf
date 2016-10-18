@@ -15,8 +15,8 @@ Print the LOD Cloud.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(q/q_print)).
+:- use_module(library(service/ll_api)).
 
 :- rdf_meta
    lod_print(r, r, o).

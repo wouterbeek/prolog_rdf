@@ -1,6 +1,7 @@
 :- module(
   qu,
   [
+    qu/5,                       % +S, +P, +O, +G, +Action
     qu_call/2,                  % :Find_0, Transform_0
 % TERM
     qu_replace_subject/3,       % +S1, ?G, +S2
@@ -124,6 +125,7 @@ to predicate and/or graph.
     qu_subject_from_key(+, +, 2, ?).
 
 :- rdf_meta
+   qu(r, r, o, r, t),
    qu_add_ltag(r, +, r),
    qu_add_padding(r, r, +),
    qu_call(t, t),
@@ -178,6 +180,15 @@ to predicate and/or graph.
    qu_split_string(r, r, +),
    qu_subject_from_key(r, +, r),
    qu_subject_from_key(r, +, :, r).
+
+
+
+
+
+%! qu(+S, +P, +O, +G, +Action) is det.
+
+qu(S, P, O, G, Action) :- !,
+  rdf_update(S, P, O, G, Action).
 
 
 

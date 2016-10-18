@@ -2,7 +2,7 @@
 :- use_module(library(default)).
 :- use_module(library(os/io)).
 :- use_module(library(q/q_term)).
-:- use_module(library(service/llapi)).
+:- use_module(library(service/ll_api)).
 
 :- debug(http(error)).
 :- debug(http(receive_reply)).

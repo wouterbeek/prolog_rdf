@@ -15,11 +15,11 @@ Stores documents with the number of seconds since epoch in a TSV file.
 :- use_module(library(debug)).
 :- use_module(library(http/rfc2616_header)).
 :- use_module(library(lists)).
-:- use_module(library(llapi/llapi)).
 :- use_module(library(math/rational_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_term)).
+:- use_module(library(service/ll_api)).
 :- use_module(library(sparql/sparql_query)).
 
 %:- debug(document_epoch(processed)).

@@ -1,10 +1,8 @@
 :- module(
   lotus_api,
   [
-    lotus/2,         % +Query, -S
-    lotus/3,         % +Query, -S, +Opts
-    lotus/5,         % ?S, ?P, +Query, -O, -Doc
-    lotus/6,         % ?S, ?P, +Query, -O, -Doc, +Opts
+    lotus/2,         % +Query, -Iri
+    lotus/3,         % +Query, -Iri, +Opts
     lotus_result/2,  % +Query, -Dict
     lotus_result/3,  % +Query, -Dict, +Opts
     lotus_results/2, % +Query, -Dict
@@ -20,7 +18,7 @@
 @author Filip Ilievski
 @see http://lotus.lodlaundromat.org/
 @tbd Add support for hyper-parameters.
-@version 2015/10, 2016/07-2016/08
+@version 2015/10, 2016/07-2016/08, 2016/10
 */
 
 :- use_module(library(apply)).
@@ -42,7 +40,6 @@
      'lotus.lodlaundromat.org',
      "The host name of the LOTUS endpoint."
    ).
-
 :- setting(
      scheme,
      oneof([http,https]),
@@ -51,34 +48,34 @@
    ).
 
 
-:- rdf_meta
-   lotus(r, r, +, -, -),
-   lotus(r, r, +, -, -, +).
 
 
 
-
-
-%! lotus(+Query:string, -S) is nondet.
-%! lotus(+Query:string, -S, +Opts) is nondet.
-%! lotus(?S, ?P, +Query:string, -O, -Doc) is nondet.
-%! lotus(?S, ?P, +Query:string, -O, -Doc, +Opts) is nondet.
+%! lotus(+Query:string, -Iri) is nondet.
+%! lotus(+Query:string, -Iri, +Opts) is nondet.
 %
 % The following options are supported:
 %
-%   * blank(+boolean) Whether or not results in which the subject term
-%   is a LOD Laundromat blank node should be included or not.  LOD
-%   Laundromat blank nodes are IRIs with prefix
-%   `http://lodlaundromat.org/.well-known/genid/`.  The default value
-%   is `false`.
+%   * blank(+boolean)
 %
-%   * ltag(+atom) Filter by language tag.
+%     Whether or not results in which the subject term is a LOD
+%     Laundromat blank node should be included or not.  LOD Laundromat
+%     blank nodes are IRIs with prefix
+%     `http://lodlaundromat.org/.well-known/genid/`.  The default
+%     value is `false`.
 %
-%   * ltag_mode(+oneof([auto,other,user])) Whether user-supplied
-%   (`user`, default), automatically tagged (`auto`) or unannotated
-%   (`other`, ?) values for option `langtag` should be used.
+%   * ltag(+atom)
+%
+%     Filter by language tag.
+%
+%   * ltag_mode(+oneof([auto,other,user]))
+%
+%     Whether user-supplied (`user`, default), automatically tagged
+%     (`auto`) or unannotated (`other`, ?) values for option `ltag`
+%     should be used.
 %
 %   * match(+atom)
+%
 %     The following values are supported:
 %
 %       * conjunct Matches all terms, not necessarily in the same
@@ -91,7 +88,9 @@
 %       * terms Does not require every word to be matched.  This is
 %       rather slow.
 %
-%   * rank(+atom) The following values are supported:
+%   * rank(+atom)
+%
+%     The following values are supported:
 %
 %       * degree
 %
@@ -109,38 +108,35 @@
 %
 %       * termrichness
 %
-%   * request_size(+nonneg) Default is 10.
+%   * request_size(+nonneg)
+%
+%     Default is 10.
 %
 %   * result_size(-nonneg)
 %
-%   * result_time(-nonneg) In miliseconds.
+%   * result_time(-nonneg)
+%
+%     In miliseconds.
 %
 % The following LOTUS options are currently not supported:
 %
-%   * predicate(+atom) Filter by (part of) a predicate IRI.  Wildcards
-%   and Boolean operators can be used.
+%   * predicate(+atom)
 %
-%   * subject(+atom) Filter by (part of) a subject IRI.  Wildcards and
-%   Boolean operators can be used.
+%     Filter by (part of) a predicate IRI.  Wildcards and Boolean
+%     operators can be used.
+%
+%   * subject(+atom)
+%
+%     Filter by (part of) a subject IRI.  Wildcards and Boolean
+%     operators can be used.
 
-lotus(Query, S) :-
-  lotus(Query, S, []).
-
-
-lotus(Query, S, Opts) :-
-  distinct(S, lotus(S, _, Query, _, _, Opts)).
-
-
-lotus(S, P, Query, O, Doc) :-
-  lotus(S, P, Query, O, Doc, []).
+lotus(Query, Iri) :-
+  lotus(Query, Iri, []).
 
 
-lotus(S, P, Query, O, Doc, Opts1) :-
-  include(ground, [predicate(P),subject(S)], Opts2),
-  merge_options(Opts1, Opts2, Opts3),
-  lotus_result(Query, Dict, Opts3),
-  maplist(atom_string, [Lex,LTag,Doc], [Dict.string,Dict.langtag,Dict.docid]),
-  (ground(LTag) -> O = Lex@LTag ; O = Lex^^xsd:string).
+lotus(Query, Iri, Opts) :-
+  distinct(Iri, lotus_result(Query, Dict, Opts)),
+  atom_string(Iri, Dict.subject).
 
 
 
