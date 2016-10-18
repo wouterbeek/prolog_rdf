@@ -26,7 +26,7 @@ Exports materialization results.
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_print)).
 :- use_module(library(os/process_ext)).
-:- use_module(library(pl_term)).
+:- use_module(library(pl_ext)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(solution_sequences)).

@@ -428,6 +428,8 @@ q_literal_datatype(_@_, rdf:langString).
 
 %! q_literal_lex(+Lit, +Lex) is semidet.
 %! q_literal_lex(+Lit, -Lex) is det.
+%
+% Lexical Lex is always a string.
 
 q_literal_lex(Val^^D, Lex) :- !,
   rdf11:rdf_lexical_form(Val^^D, Lex^^D).
