@@ -859,6 +859,27 @@ dcg_q_print_iri(Iri) -->
   dcg_q_print_iri(Iri, Opts).
 
 
+dcg_q_print_iri(Iri, Opts) -->
+  {Opts.iri_lbl == true}, !,
+  {
+    setting(backend, M),
+    q_pref_label_lex(M, Iri, Lex)
+  },
+  str(Lex).
+/*
+dcg_q_print_iri(Iri, Opts) -->
+  {
+    atom_after_char(S, '#', Local),
+    Local \= ''
+  }, !,
+  atom(Local).
+dcg_q_print_iri(Iri, Opts) -->
+  {
+    atom_after_char(S, '/', Local),
+    Local \= ''
+  }, !,
+  atom(Local).
+*/
 dcg_q_print_iri(Full, Opts) -->
   {
     Opts.iri_abbr == true,
