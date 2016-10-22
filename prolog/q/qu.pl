@@ -1028,11 +1028,14 @@ qu_call0(Find_0, Transform_0, State) :-
   dict_inc(count, State),
   fail.
 qu_call0(_, _, State) :-
-  ansi_format(
-    user_output,
-    [fg(yellow)],
-    "~D updates were made.~n",
-    [State.count]
+  (   debugging(qu(_))
+  ->  ansi_format(
+        user_output,
+        [fg(yellow)],
+        "~D updates were made.~n",
+        [State.count]
+      )
+  ;   true
   ).
 
 

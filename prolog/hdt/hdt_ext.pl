@@ -12,6 +12,7 @@
     hdt_datatype/1,             % ?D
     hdt_datatype/2,             % ?D, ?G
     hdt_datatype0/2,            % ?D, +Hdt
+    hdt_estimate_complexity/5,  % ?S, ?P, ?O, +G, -Est
     hdt_iri/1,                  % ?Iri
     hdt_iri/2,                  % ?Iri, ?G
     hdt_iri0/2,                 % ?Iri, +Hdt
@@ -54,7 +55,7 @@
 /** <module> HDT extensions
 
 @author Wouter Beek
-@version 2016/06, 2016/08
+@version 2016/06, 2016/08, 2016/10
 */
 
 :- use_module(library(hdt), []).
@@ -67,11 +68,9 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
-
 :- meta_predicate
     hdt_call_on_file(+, 1),
     hdt_call_on_graph(?, 1).
-
 
 :- rdf_meta
    hdt(r, r, o),
@@ -82,6 +81,7 @@
    hdt_datatype(r),
    hdt_datatype(r, r),
    hdt_datatype0(r, +),
+   hdt_estimate_complexity(r, r, o, r, -),
    hdt_iri(r),
    hdt_iri(r, r),
    hdt_iri0(r, +),
@@ -192,6 +192,16 @@ hdt_datatype(D, G) :-
 hdt_datatype0(D, Hdt) :-
   hdt_literal0(Lit, Hdt),
   q_literal_datatype(Lit, D).
+
+
+
+%! hdt_estimate_complexity(?S, ?P, ?O, ?G, -Est) is det.
+
+hdt_estimate_complexity(S, P, O, G, Est) :-
+  hdt_call_on_graph(G, hdt_estimate_complexity_(S, P, O, Est)).
+
+hdt_estimate_complexity_(S, P, O, Est, Hdt) :-
+  hdt:hdt_search_cost(Hdt, S, P, O, Est).
 
 
 

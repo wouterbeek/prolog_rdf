@@ -448,7 +448,7 @@ qb_value_restriction(M, P, V, G, R) :-
 %! qb_action(+M, +ActionC, +Actor, -Action, +G) is det.
 
 qb_action(M, ActionC, Actor, Action, G):-
-  qb_iri(vzm, [action], Action),
+  qb_iri(nsdef, [action], Action),
   qb_instance(M, Action, ActionC, G),
   qb_now(M, Action, prov:atTime, G),
   qb(M, Action, prov:wasAssociatedWith, Actor, G).

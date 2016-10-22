@@ -74,12 +74,6 @@ init_q_prefix :-
   qb_alias(schema, 'http://schema.org/'),
   qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
   qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
-  qb_alias(vzm, 'https://vrijheidzondermaar.nl/'),
-  qb_alias(vzma, 'https://vrijheidzondermaar.nl/article/'),
-  qb_alias(vzmc, 'https://vrijheidzondermaar.nl/comment/'),
-  qb_alias(vzmt, 'https://vrijheidzondermaar.nl/tag/'),
-  qb_alias(vzmu, 'https://vrijheidzondermaar.nl/user/'),
-  qb_alias(vzmv, 'https://vrijheidzondermaar.nl/vote/'),
   qb_alias(wde, 'http://www.wikidata.org/entity/'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
   qb_alias(wkt, 'http://geojsonld.com/wkt#').

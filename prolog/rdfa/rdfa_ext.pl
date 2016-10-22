@@ -143,7 +143,7 @@ agent_image(M, Agent, G) -->
 
 agent_name(_, Agent, "you", _) :-
   % @hack
-  user_api:current_user(Agent), !.
+  user_db:current_user(Agent), !.
 agent_name(M, Agent, Str, G) :-
   foaf_givenName(M, Agent, GivenName, G),
   foaf_familyName(M, Agent, FamilyName, G), !,
@@ -157,7 +157,7 @@ agent_name(M, Agent, Str, G) :-
 
 agent_name(_, Agent, _) -->
   % @hack
-  {user_api:current_user(Agent)}, !,
+  {user_db:current_user(Agent)}, !,
   data_link(Agent, "you").
 agent_name(M, Agent, G) -->
   data_link(Agent, \agent_name0(M, Agent, G)).

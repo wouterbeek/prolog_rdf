@@ -20,7 +20,7 @@ Stores documents with the number of seconds since epoch in a TSV file.
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_term)).
 :- use_module(library(service/ll_api)).
-:- use_module(library(sparql/sparql_query)).
+:- use_module(library(sparql/sparql_query_client)).
 
 %:- debug(document_epoch(processed)).
 :- debug(last_modified(malformed)).

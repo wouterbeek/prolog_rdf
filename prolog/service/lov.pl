@@ -25,7 +25,7 @@ Support for the OKF-managed list of open vocabularies.
 :- use_module(library(q/q_prefix), []).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(sparql/sparql_query)).
+:- use_module(library(sparql/sparql_query_client)).
 :- use_module(library(yall)).
 
 :- qb_alias(voaf, 'http://purl.org/vocommons/voaf#').

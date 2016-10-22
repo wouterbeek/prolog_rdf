@@ -45,7 +45,7 @@ rdfa_user_menu(M, G) -->
 
 rdfa_user_menu_button(M, Content_0, G) -->
   % @hack
-  {user_api:current_user(User)}, !,
+  {user_db:current_user(User)}, !,
   html(
     div([class=dropdown,id='user-menu'], [
       button([
