@@ -94,18 +94,21 @@
 
 Print RDF statements.
 
-| **Key**       | **Value** | **Default** | **Description**                  |
-|:--------------|:----------|:-----------:|:---------------------------------|
-| `bnode_map`   | boolean   | `true`      | Whether blank node labels are    |
-|               |           |             | replaced by integers.            |
-| `indent`      | nonneg    | 0           |                                  |
-| `iri_abbr`    | boolean   | `true`      | Whether IRIs are abbreviated     |
-|               |           |             | based on the current aliases.    |
-| `iri_lbl`     | boolean   | `false`     | Whether labels should be         |
-|               |           |             | displayed i.o. IRIs.  This       |
-|               |           |             | overrides option `iri_abbr`.     |
-| `max_iri_len` | nonneg    | `inf`       | The maximum length of an IRI.    |
-| `max_lit_len` | nonneg    | `inf`       | The maximum length of a literal. |
+| **Key**       | **Value**  | **Default** | **Description**                  |
+|:--------------|:-----------|:-----------:|:---------------------------------|
+| `bnode_map`   | boolean    | `true`      | Whether blank node labels are    |
+|               |            |             | replaced by integers.            |
+| `indent`      | nonneg     | 0           |                                  |
+| `iri_abbr`    | boolean    | `true`      | Whether IRIs are abbreviated     |
+|               |            |             | based on the current aliases.    |
+| `iri_lbl`     | boolean    | `false`     | Whether labels should be         |
+|               |            |             | displayed i.o. IRIs.  This       |
+|               |            |             | overrides option `iri_abbr`.     |
+| `max_iri_len` | nonneg     | `inf`       | The maximum length of an IRI.    |
+| `max_lit_len` | nonneg     | `inf`       | The maximum length of a literal. |
+| `prefixes`    | list(pair) | `$null$`    | A custom list of alias/prefix    |
+|               |            |             | mappings that overrules and/or   |
+|               |            |             | extends the alias declarations.  |
 
 @tbd Turtle container abbreviation.
 
@@ -883,7 +886,13 @@ dcg_q_print_iri(Iri, Opts) -->
 dcg_q_print_iri(Full, Opts) -->
   {
     Opts.iri_abbr == true,
-    rdf_global_id(Alias:Local, Full), !,
+    (   dict_get(prefixes, Opts, Pairs),
+        member(Alias-Prefix, Pairs),
+        atom_prefix(Full, Prefix)
+    ->  true
+    ;   rdf_global_id(Alias:Local, Full)
+    ->  true
+    ),
     atom_length(Alias, AliasLen),
     Minus is AliasLen + 1,
     inf_minus(Opts.max_iri_len, Minus, Max)
