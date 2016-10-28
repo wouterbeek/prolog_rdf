@@ -168,9 +168,14 @@ q__g :-
   q__g(_).
 
 
+q__g(N) :-
+  integer(N), !,
+  aggregate_all(set(G), q_graph(G), Gs),
+  nth1chk(N, Gs, G),
+  q__g(G).
 q__g(G) :-
   setting(backend, M),
-  q_view_graph(M, G),
+  (var(G) -> q_view_graph(M, G) ; once(q_view_graph(M, G))),
   q_print_graph(M, G).
 
 

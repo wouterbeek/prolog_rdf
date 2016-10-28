@@ -279,7 +279,7 @@ qh_graph_term_outer0(C, Cs1, Opts, G) -->
 
 
 qh_graph_term_inner(G, Opts) -->
- {
+  {
     q_dataset_graph(D, G),
     q_graph_label(G, Str)
   }, !,

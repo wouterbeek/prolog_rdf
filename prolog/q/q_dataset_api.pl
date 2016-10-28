@@ -55,7 +55,7 @@ q_dataset_tree(M, Order, D, Tree) :-
   
 
 q_dataset_tree0(M, Order, D, SumNumTriples, t(D,OrderedTrees)) :-
-  findall(G, q_dataset_named_graph(D, G), Gs),
+  findall(G, q_dataset_graph(D, G), Gs),
   maplist(q_graph_tree0(M), Gs, NumTriples, Trees),
   KeyDict = _{lexicographic: Gs, number_of_triples: NumTriples},
   q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees),

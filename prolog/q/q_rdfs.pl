@@ -43,9 +43,9 @@
     q_label_hook/3,
     q_label_property/1.
 
-%q_label_property(M, P, G) :-
-%  q_range(M, P, Ran, G),
-%  q_subclass(M, Ran, rdfs:'Literal', G).
+q_label_property(M, P, G) :-
+  q_range(M, P, Ran, G),
+  q_subclass(M, Ran, rdfs:'Literal', G).
 q_label_property(skos:prefLabel).
 q_label_property(foaf:name).
 q_label_property(dc:title).
@@ -99,8 +99,8 @@ q_pref_label(M, S, Lit, G) :-
 q_pref_label(_, S, LRange, Lit, _) :-
   q_rdfs:q_label_hook(S, LRange, Lit), !.
 q_pref_label(M, S, LRange, Lit, G) :-
-  q_rdfs:q_label_property(P),
-  q_pref_string(M, S, P, LRange, Lit, G).
+  %q_rdfs:q_label_property(P),
+  q_pref_string(M, S, rdfs:label, LRange, Lit, G).
 
 
 
