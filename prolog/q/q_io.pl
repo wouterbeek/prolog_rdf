@@ -385,7 +385,10 @@ q_generate(G, Goal_1) :-
   % which the cache can be recreated.
   q_view2store(trp, G),
   % Sync the cached version.
-  q_store2view(G).
+  forall(
+    q_backend(M),
+    q_store2view(M, G)
+  ).
 
 
 
@@ -473,7 +476,10 @@ q_transform_graph(G, Goal_1) :-
   % which the cache can be recreated.
   q_view2store(trp, G),
   % Sync the cached version.
-  q_store2view(G).
+  forall(
+    q_backend(M),
+    q_store2view(M, G)
+  ).
 
 
 
@@ -656,7 +662,7 @@ q_cache2view(M, G) :-
 
 
 %! q_store2view is det.
-%! q_store2view(+G) is det.
+%! q_store2view(+M) is det.
 %! q_store2view(+M, +G) is det.
 
 q_store2view :-

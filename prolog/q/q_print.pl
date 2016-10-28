@@ -1,6 +1,7 @@
 :- module(
   q_print,
   [
+    dcg_q_print_options/2,       % +Opts1, -Opts2
     dcg_q_print_dataset_term//1, %     +D
     dcg_q_print_dataset_term//2, %     +D,             +Opts
     dcg_q_print_datatype//1,     %     +D
@@ -250,6 +251,22 @@ dcg:dcg_hook(q_predicate(P)) -->
      hdt,
      "The backend that is used to make pretty print-outs of RDF expressions."
    ).
+
+
+
+
+
+% DCG OPTIONS  %
+
+%! dcg_q_print_options(+Opts1, -Opts2) is det.
+%
+% Options for the ‘q_print_*’ predicates are automatically resolved,
+% but for the DCG rules ‘dcg_q_print_*’ options need to merged
+% explicitly using this predicate.
+
+dcg_q_print_options(Opts1, Opts3) :-
+  dcg_q_print_default_options(Opts2),
+  merge_dicts(Opts2, Opts1, Opts3).
 
 
 
@@ -649,7 +666,7 @@ dcg_q_print_subjects0(I1, [S-POs|Groups1], Opts) -->
     I2 is I1 + 1
   },
   dcg_q_print_predicates1(I2, Groups2, Opts),
-  nl,
+  ({Opts.newline == true} -> nl ; ""),
   dcg_q_print_subjects0(I1, Groups1, Opts).
 
 
@@ -889,10 +906,10 @@ dcg_q_print_iri(Full, Opts) -->
     (   dict_get(prefixes, Opts, Pairs),
         member(Alias-Prefix, Pairs),
         atom_prefix(Full, Prefix)
-    ->  true
+    ->  atom_concat(Prefix, Local, Full)
     ;   rdf_global_id(Alias:Local, Full)
     ->  true
-    ),
+    ), !,
     atom_length(Alias, AliasLen),
     Minus is AliasLen + 1,
     inf_minus(Opts.max_iri_len, Minus, Max)
@@ -978,7 +995,14 @@ dcg_q_print_var(Var) -->
 %! dcg_q_print_default_options(-Opts) is det.
 
 dcg_q_print_default_options(
-  _{iri_abbr: true, iri_lbl: false, max_iri_len: inf, max_lit_len: inf}
+  _{
+    bnode_map: true,
+    iri_abbr: true,
+    iri_lbl: false,
+    max_iri_len: inf,
+    max_lit_len: inf,
+    newline: true
+  }
 ).
 
 

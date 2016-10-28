@@ -100,12 +100,16 @@ q_init_ns :-
   iri_prefix(Scheme, Auth),
   uri_components(Prefix1, uri_components(Scheme,Auth,'/',_,_)),
   qb_alias(ns, Prefix1),
-  uri_components(Prefix2, uri_components(Scheme,Auth,'/def',_,'')),
-  qb_alias(nsdef, Prefix2),
-  uri_components(Prefix3, uri_components(Scheme,Auth,'/doc/',_,_)),
-  qb_alias(nsdoc, Prefix3),
-  uri_components(Prefix4, uri_components(Scheme,Auth,'/id/',_,_)),
-  qb_alias(nsid, Prefix4).
+  uri_components(Prefix2, uri_components(Scheme,Auth,'/dataset/',_,_)),
+  qb_alias(dataset, Prefix2),
+  uri_components(Prefix3, uri_components(Scheme,Auth,'/def',_,'')),
+  qb_alias(nsdef, Prefix3),
+  uri_components(Prefix4, uri_components(Scheme,Auth,'/doc/',_,_)),
+  qb_alias(nsdoc, Prefix4),
+  uri_components(Prefix5, uri_components(Scheme,Auth,'/graph/',_,_)),
+  qb_alias(graph, Prefix5),
+  uri_components(Prefix6, uri_components(Scheme,Auth,'/id/',_,_)),
+  qb_alias(nsid, Prefix6).
 
 
 

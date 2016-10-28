@@ -69,7 +69,7 @@ The following options are supported to achieve parity with module
 @tbd Achieve parity with option `bnode_map` from module `q_print`.
 
 @author Wouter Beek
-@version 2016/02-2016/09
+@version 2016/02-2016/10
 */
 
 :- use_module(library(atom_ext)).
@@ -84,6 +84,7 @@ The following options are supported to achieve parity with module
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_dataset_db)).
+:- use_module(library(q/q_dataset_api)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
@@ -235,11 +236,7 @@ qh_dataset_term_outer0(C, Cs1, Opts, D) -->
 
 
 qh_dataset_term_inner(D, _) -->
-  {
-    q_dataset_default_graph(D, DefG),
-    q_pref_label(hdt, D, Lit, DefG),
-    q_literal_string(Lit, Str)
-  }, !,
+  {q_dataset_label(D, Str)}, !,
   html(Str).
 qh_dataset_term_inner(D, Opts) -->
   qh_iri_inner(D, Opts).
@@ -282,11 +279,9 @@ qh_graph_term_outer0(C, Cs1, Opts, G) -->
 
 
 qh_graph_term_inner(G, Opts) -->
-  {
+ {
     q_dataset_graph(D, G),
-    q_dataset_default_graph(D, DefG),
-    q_pref_label(hdt, G, Lit, DefG),
-    q_literal_string(Lit, Str)
+    q_graph_label(G, Str)
   }, !,
   html([\qh_dataset_term_inner(D, Opts),"/",Str]).
 qh_graph_term_inner(G, Opts) -->

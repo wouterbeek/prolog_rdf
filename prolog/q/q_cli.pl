@@ -134,7 +134,11 @@ q__cbd(S, G) :-
 %! q__ds is det.
 
 q__ds :-
-  aggregate_all(D-G, q_dataset_graph(D, G), Pairs),
+  aggregate_all(
+    set(q_dataset_term(D)-q_graph_term(G)),
+    q_dataset_graph(D, G),
+    Pairs
+  ),
   (pairs_to_tree(Pairs, Tree) -> print_tree(Tree) ; writeln("∅")).
 
 

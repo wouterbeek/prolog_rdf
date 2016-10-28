@@ -48,6 +48,7 @@
     q_triple_iri/2,        % +Triple, -Iri
     q_triple_object/2,     % +Triple, -O
     q_triple_predicate/2,  % +Triple, -P
+    q_triple_row/2,        % ?Triple, ?Row
     q_triple_subject/2,    % +Triple, -S
     q_triple_term/2,       % +Triple, -Term
     q_triple_terms/4,      % ?Triple, ?S, ?P, ?O
@@ -451,6 +452,13 @@ q_triple_object(rdf(_,_,O,_), O).
 %! q_triple_predicate(+Triple, -P) is det.
 
 q_triple_predicate(rdf(_,P,_,_), P).
+
+
+
+%! q_triple_row(+Triple, -Row) is det.
+%! q_triple_row(-Triple, +Row) is det.
+
+q_triple_row(rdf(S,P,O), row(S,P,O)).
 
 
 

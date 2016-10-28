@@ -1,8 +1,9 @@
 :- module(
   q_dataset_api,
   [
-    q_dataset_tree/4, % ?M, +Order, +D, -Tree
-    q_dataset_trees/3 % ?M, +Order, -Trees
+    q_dataset_label/2, % +D, -Lbl
+    q_dataset_tree/4,  % ?M, +Order, +D, -Tree
+    q_dataset_trees/3  % ?M, +Order, -Trees
   ]
 ).
 
@@ -17,14 +18,26 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_io)).
+:- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_stat)).
+:- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(tree/s_tree)).
 
 :- rdf_meta
+   q_dataset_label(r, -),
    q_dataset_tree(?, +, r, -).
 
 
+
+
+
+%! q_dataset_label(+D, -Lbl) is det.
+
+q_dataset_label(D, Str) :-
+  q_dataset_default_graph(D, DefG),
+  q_pref_label(hdt, D, Lit, DefG),
+  q_literal_string(Lit, Str).
 
 
 

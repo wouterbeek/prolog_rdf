@@ -2,13 +2,16 @@
   q_link,
   [
     q_link/2,         % +Term, -Iri
-    q_link_literal/2, % +Lit, -Iri
     q_link_objects/2, % +P, +G
     q_link_subjects/2 % +P, +G
   ]
 ).
 
-/** <module> Quine: IRI linking
+/** <module> Quine: Term linking
+
+Literals are substituted by IRIs.
+
+IRIs are linked using ‘owl:sameAs’.
 
 @author Wouter Beek
 @version 2016/10
@@ -26,8 +29,8 @@
 :- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
+   q_link(o),
    q_link(o, -),
-   q_link_literal(o, -),
    q_link_objects(r, r),
    q_link_subjects(r, r).
 
@@ -36,59 +39,21 @@
 
 
 %! q_link(+Term, -Iri) is nondet.
+%
+% Use LOTUS to retrieve IRIs that match literal Lit.
+%
+% @tbd Only literals can be linked.
 
-q_link(Lit, Iri) :-
-  q_is_literal(Lit), !,
-  q_link_literal(Lit, Iri),
-  forall(
-    q_link_class(Iri, C),
-    (write("  - "), q_print_object(C), nl)
-  ),
-  dcg_with_output_to(string(Msg), (
-    str("Do you want to link ‘"),
-    dcg_q_print_literal(Lit),
-    str(" to ‘"),
-    dcg_q_print_iri(Iri),
-    str("’?")
-  )),
-  (user_input(Msg) -> !, true ; fail).
-
-q_link_class(I, C) :-
-  % @bug RDF prefix expansion does not work inside distinct/2.
-  rdf_equal(rdf:type, P),
-  distinct(C, ll_ldf(I, P, C)).
+q_link(Term, Iri) :-
+  q_link_iri(Term, Iri),
+  q_user_chooses_iri(Term, Iri).
 
 
-
-%! q_link_literal(+Lit, -Iri) is nondet.
-
-q_link_literal(Str@LTag, Iri) :- !,
+q_link_iri(Str@LTag, Iri) :- !,
   lotus(Str, Iri, [ltag(LTag)]).
-q_link_literal(Lit, Iri) :-
-  q_literal_lex(Lit, Lex),
+q_link_iri(Val^^D, Iri) :- !,
+  q_literal_lex(Val^^D, Lex),
   lotus(Lex, Iri).
-
-/*
-  format(
-    atom(Query),
-    '\c
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\c
-SELECT ?s\n\c
-WHERE {\n\c
-  ?s rdfs:label "~s"@en .\n\c
-}\n',
-    [AreaStr]
-  ),
-  (   sparql_select('http://dbpedia.org/sparql', Query, Result),
-      Result = [[AreaIri]|_]
-  ->  debug(drones, "[LINK] ~a", [AreaIri]),
-      forall(
-        q(trp, S, P, AreaStr@en, CbdG),
-        qu(S, P, AreaStr@en, CbdG, object(AreaIri))
-      )
-  ;   debug(drones, "[NOTHING] ~a", [AreaStr])
-  ).
-*/
 
 
 
@@ -109,3 +74,38 @@ q_link_subjects(P, G) :-
     q(trp, S1, P, O, G),
     (q_link(S1, S2) -> qu(S1, P, O, G, subject(S2)) ; true)
   ).
+
+
+
+
+
+% HEPERS %
+
+%! q_link_class(+I, -C) is nondet.
+%
+% Enumerate classes C for instance I.
+
+q_link_class(I, C) :-
+  % @bug RDF prefix expansion does not work inside distinct/2.
+  rdf_equal(rdf:type, P),
+  distinct(C, ll_ldf(I, P, C)).
+
+
+
+%! q_user_chooses_iri(+Lit, +Iri) is semidet.
+%
+% User accedes that IRI is the correct term WRT a given linking task.
+
+q_user_chooses_iri(Lit, Iri) :-
+  forall(
+    q_link_class(Iri, C),
+    (write("  - "), q_print_object(C), nl)
+  ),
+  dcg_with_output_to(string(Msg), (
+    str("Do you want to replace literal ‘"),
+    dcg_q_print_literal(Lit),
+    str(" with IRI ‘"),
+    dcg_q_print_iri(Iri),
+    str("’?")
+  )),
+  (user_input(Msg) -> !, true ; fail).
