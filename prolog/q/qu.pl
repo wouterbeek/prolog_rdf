@@ -4,7 +4,10 @@
     qu/5,                       % +S, +P, +O, +G, +Action
     qu_call/2,                  % :Find_0, Transform_0
 % TERM
+    qu_replace_object/3,        % +O1, ?G, +O2
+    qu_replace_object/4,        % +O1, ?P, ?G, +O2
     qu_replace_subject/3,       % +S1, ?G, +S2
+    qu_replace_subject/4,       % +S1, ?P, ?G, +S2
     qu_subject_from_key/3,      % +P, +Concept, ?G
     qu_subject_from_key/4,      % +P, +Concept, :Goal_2, ?G
   % IRI
@@ -162,11 +165,14 @@ to predicate and/or graph.
    qu_replace_nested_wgs84_point(r, r, r, r),
    qu_replace_nested_wkt_geometry(r),
    qu_replace_nested_wkt_geometry(r, r, r, r),
+   qu_replace_object(r, r, r),
+   qu_replace_object(r, r, r, r),
    qu_replace_predicate(r, r, r),
    qu_replace_predicates_by_vocab(r, r, r),
    qu_replace_string(r, r, :),
    qu_replace_string(r, r, r, :),
    qu_replace_subject(r, r, r),
+   qu_replace_subject(r, r, r, r),
    qu_replace_substring(r, r, +, r, +),
    qu_rm(r, r, o, r),
    qu_rm_cell(r, r, o, r),
@@ -196,9 +202,29 @@ qu(S, P, O, G, Action) :- !,
 
 % TERM
 
+%! qu_replace_object(+O1, ?G, +O2) is det.
+%! qu_replace_object(+O1, ?P, ?G, +O2) is det.
+
+qu_replace_object(O1, G, O2) :-
+  qu_replace_object(O1, _, G, O2).
+
+
+qu_replace_object(O1, P, G, O2) :-
+  qu_call(
+    q(trp, S, P, O1, G),
+    qu(S, P, O1, G, object(O2))
+  ).
+
+
+
 %! qu_replace_subject(+S1, ?G, +S2) is det.
+%! qu_replace_subject(+S1, ?P, ?G, +S2) is det.
 
 qu_replace_subject(S1, G, S2) :-
+  qu_replace_subject(S1, _, G, S2).
+
+
+qu_replace_subject(S1, P, G, S2) :-
   qu_call(
     q(trp, S1, P, O, G),
     qu(S1, P, O, G, subject(S2))

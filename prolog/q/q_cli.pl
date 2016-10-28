@@ -13,6 +13,7 @@
     q__io/0,
     q__key/1,   % ?P
     q__key/2,   % ?P, ?G
+    q__link/2,  % +P, +G
     q__p/0,
     q__p/1,     % ?P
     q__p/2,     % ?P, ?G
@@ -64,6 +65,7 @@
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_io)).
+:- use_module(library(q/q_link)).
 :- use_module(library(q/q_prefix), []).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
@@ -86,6 +88,7 @@
    q__g(r),
    q__key(r),
    q__key(r, r),
+   q__link(r, r),
    q__p(r),
    q__p(r, r),
    q__p_ds(r),
@@ -124,8 +127,8 @@ q__cbd(S) :-
   q__cbd(S, _).
 
 
-q__cbd(S, G) :-
-  setting(backend, M),
+q__cbd(S, G0) :-
+  q__graph0(M, G0, G),
   q_subject(M, S, G),
   q_print_cbd(M, S, G).
 
@@ -168,14 +171,8 @@ q__g :-
   q__g(_).
 
 
-q__g(N) :-
-  integer(N), !,
-  aggregate_all(set(G), q_graph(G), Gs),
-  nth1chk(N, Gs, G),
-  q__g(G).
-q__g(G) :-
-  setting(backend, M),
-  (var(G) -> q_view_graph(M, G) ; once(q_view_graph(M, G))),
+q__g(G0) :-
+  q__graph0(M, G0, G),
   q_print_graph(M, G).
 
 
@@ -226,8 +223,8 @@ q__key(P) :-
   q__key(P, _).
 
 
-q__key(P, G) :-
-  setting(backend, M),
+q__key(P, G0) :-
+  q__graph0(M, G0, G),
   q_predicate(M, P, G),
   \+ ((
     q(M, S1, P, O, G),
@@ -236,6 +233,13 @@ q__key(P, G) :-
   )),
   forall(q_subject(M, S, G), once(q(M, S, P, _, G))).
 
+
+
+%! q__link(+P, +G) is det.
+
+q__link(P, G) :-
+  q_link_objects(P, G).
+  
 
 
 %! q__p is nondet.
@@ -250,15 +254,15 @@ q__p(P) :-
   q__p(P, _).
 
 
-q__p(P, G) :-
-  setting(backend, M),
+q__p(P, G0) :-
+  q__graph0(M, G0, G),
   q_predicate(M, P, G),
   dcg_with_output_to(
     section((
       "Predicate ",
-      dcg_q_print_predicate(P),
+      sq(dcg_q_print_predicate(P)),
       " in graph ",
-      dcg_q_print_graph_term(G)
+      sq(dcg_q_print_graph_term(G))
     ))
   ),
   q__p_os0(M, P, G),
@@ -275,8 +279,8 @@ q__p_ds(P) :-
   q__p_ds(P, _).
 
 
-q__p_ds(P, G) :-
-  setting(backend, M),
+q__p_ds(P, G0) :-
+  q__graph0(M, G0, G),
   q_predicate(M, P, G),
   q__p_ds0(M, P, G).
 
@@ -297,8 +301,8 @@ q__p_os(P) :-
   q__p_os(P, _).
 
 
-q__p_os(P, G) :-
-  setting(backend, M),
+q__p_os(P, G0) :-
+  q__graph0(M, G0, G),
   q_predicate(M, P, G),
   q__p_os0(M, P, G).
 
@@ -311,14 +315,14 @@ q__p_os0(M, P, G) :-
           Len > 5000
       ->  q_p_no_abbr(M, P, G, "Too many unique object terms.")
       ;   findall(
-            N-[q_object(O),thousands(N)],
+            NumSs-[q_object(O),thousands(NumSs)],
             (
               member(O, Os),
-              q_number_of_subjects(M, P, O, G, N)
+              q_number_of_subjects(M, P, O, G, NumSs)
             ),
             Pairs
           ),
-          q_pairs_table0([bold("object"),bold("№ occurrences")], Pairs)
+          q_pairs_table0([string("object"),string("№ occurrences")], Pairs)
       )
   ).
 
@@ -335,8 +339,8 @@ q__p_ps(P) :-
   q__p_ps(P, _).
 
 
-q__p_ps(P, G) :-
-  setting(backend, M),
+q__p_ps(P, G0) :-
+  q__graph0(M, G0, G),
   q_predicate(M, P, G),
   forall(q(M, _, P, O, G), q_is_bnode(O)),
   once(q(M, _, P, _, G)),
@@ -354,9 +358,8 @@ q__ps :-
   q__ps(_).
 
 
-q__ps(G) :-
-  setting(backend, M),
-  q_view_graph(M, G),
+q__ps(G0) :-
+  q__graph0(M, G0, G),
   dcg_with_output_to(
     section((
       "Graph ",
@@ -373,7 +376,7 @@ q__ps(G) :-
     ),
     Pairs
   ),
-  q_pairs_table0([bold("predicate"),bold("№ occurrences")], Pairs).
+  q_pairs_table0([string("predicate"),string("№ occurrences")], Pairs).
 
 
 
@@ -387,9 +390,8 @@ q__ps_no :-
   q__ps_no(_).
 
 
-q__ps_no(G) :-
-  setting(backend, M),
-  q_view_graph(M, G),
+q__ps_no(G0) :-
+  q__graph0(M, G0, G),
   findall(
     N-[q_predicate(P),thousands(N)],
     (
@@ -398,7 +400,7 @@ q__ps_no(G) :-
     ),
     Pairs
   ),
-  q_pairs_table0([bold("predicate"),bold("№ objects")], Pairs).
+  q_pairs_table0([string("predicate"),string("№ objects")], Pairs).
 
 
 
@@ -409,8 +411,8 @@ q__root(S) :-
   q__root(S, _).
 
 
-q__root(S, G) :-
-  setting(backend, M),
+q__root(S, G0) :-
+  q__graph0(M, G0, G),
   q_subject(M, S, G),
   q_print_root(M, S, G).
 
@@ -423,8 +425,8 @@ q__scbd(Node) :-
   q__scbd(Node, _).
 
 
-q__scbd(Node, G) :-
-  setting(backend, M),
+q__scbd(Node, G0) :-
+  q__graph0(M, G0, G),
   q_node(M, Node, G),
   q_print_scbd(M, Node, G).
 
@@ -437,8 +439,8 @@ q__tree(S) :-
   q__tree(S, _).
 
 
-q__tree(S, G) :-
-  setting(backend, M),
+q__tree(S, G0) :-
+  q__graph0(M, G0, G),
   q_subject(M, S, G),
   q_print_tree(M, S, G).
 
@@ -461,8 +463,8 @@ q__x(S, P, O) :-
   q__x(S, P, O, _).
 
 
-q__x(S, P, O, G) :-
-  setting(backend, M),
+q__x(S, P, O, G0) :-
+  q__graph0(M, G0, G),
   pagination(rdf(S,P,O), q(M, S, P, O, G), Result),
   pagination_result(Result, q_print_quads).
 
@@ -505,13 +507,35 @@ pp_hash_paths(Prefix, Paths) :-
 
 
 
+%! q__graph0(+M, ?G0, -G) is det.
+
+q__graph0(M, G0, G) :-
+  var(M), !,
+  setting(backend, M),
+  q__graph_with_backend0(M, G0, G).
+q__graph0(M, G0, G) :-
+  q__graph_with_backend0(M, G0, G).
+
+q__graph_with_backend0(M, G, G) :-
+  var(G), !,
+  q_view_graph(M, G).
+%q__graph_with_backend0(M, N, G) :-
+%  integer(N), !,
+%  aggregate_all(set(G), q_graph(G), Gs),
+%  nth1chk(N, Gs, G),
+%  q__graph_with_backend0(M, G, G).
+q__graph_with_backend0(M, G, G) :-
+  once(q_view_graph(M, G)).
+
+
+
 %! q_p_no_abbr(+M, +P, +G, +Msg) is det.
 
 q_p_no_abbr(M, P, G, Msg) :-
   ansi_format(user_output, [fg(yellow)], "~s~n", [Msg]),
   once(findnsols(5, O, distinct(O, q(M, _, P, O, G)), Os)),
   maplist(object_row, Os, Rows),
-  print_table([head([bold("object")])|Rows]).
+  print_table([head([string("object")])|Rows]).
 
 object_row(O, [q_object(O)]).
 
@@ -520,8 +544,11 @@ object_row(O, [q_object(O)]).
 %! q_pairs_table0(+HeaderRow, +Pairs) is det.
 
 q_pairs_table0(HeaderRow, Pairs) :-
+  Opts = [],
   group_pairs_by_key(Pairs, Groups1),
   maplist(call_on_value(sort), Groups1, Groups2),
-  asc_pairs_values(Groups2, SortedGroups),
+  desc_pairs_values(Groups2, SortedGroups),
   append(SortedGroups, DataRows),
-  print_table([head(HeaderRow)|DataRows]).
+  option(max_number_of_rows(MaxNumRows), Opts, inf),
+  list_truncate(DataRows, MaxNumRows, DataRows0),
+  print_table([head(HeaderRow)|DataRows0]).

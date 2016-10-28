@@ -17,6 +17,7 @@ IRIs are linked using ‘owl:sameAs’.
 @version 2016/10
 */
 
+:- use_module(library(cli_ext)).
 :- use_module(library(dcg/dcg_cli)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(print_ext)).
@@ -61,8 +62,12 @@ q_link_iri(Val^^D, Iri) :- !,
 
 q_link_objects(P, G) :-
   forall(
-    q(trp, S, P, O1, G),
-    (q_link(O1, O2) -> qu(S, P, O1, G, object(O2)) ; true)
+    distinct(From, q(trp, _, P, From, G)),
+    (   q_link(From, To)
+    ->  qu_replace_object(From, P, G, To),
+        msg_linked(From, To)
+    ;   true
+    )
   ).
 
 
@@ -71,8 +76,12 @@ q_link_objects(P, G) :-
 
 q_link_subjects(P, G) :-
   forall(
-    q(trp, S1, P, O, G),
-    (q_link(S1, S2) -> qu(S1, P, O, G, subject(S2)) ; true)
+    distinct(From, q(trp, From, P, _, G)),
+    (   q_link(From, To)
+    ->  qu_replace_subject(From, P, G, To),
+        msg_linked(From, To)
+    ;   true
+    )
   ).
 
 
@@ -80,6 +89,24 @@ q_link_subjects(P, G) :-
 
 
 % HEPERS %
+
+%! msg_linked(+Term, +Iri) is det.
+
+msg_linked(Term, Iri) :-
+  dcg_with_output_to(string(Msg), (
+    str("Linked "),
+    sq(dcg_q_print_term(Term)),
+    str(" to "),
+    sq(dcg_q_print_iri(Iri)),
+    str(".")
+  )),
+  dcg_with_output_to(user_output, (
+    ansi_str([1,37,43], Msg),
+    nl,
+    nl
+  )).
+
+
 
 %! q_link_class(+I, -C) is nondet.
 %
@@ -102,10 +129,10 @@ q_user_chooses_iri(Lit, Iri) :-
     (write("  - "), q_print_object(C), nl)
   ),
   dcg_with_output_to(string(Msg), (
-    str("Do you want to replace literal ‘"),
-    dcg_q_print_literal(Lit),
-    str(" with IRI ‘"),
-    dcg_q_print_iri(Iri),
-    str("’?")
+    str("Do you want to replace literal "),
+    sq(dcg_q_print_literal(Lit)),
+    str(" with IRI "),
+    sq(dcg_q_print_iri(Iri)),
+    str(" (Y/N)?")
   )),
   (user_input(Msg) -> !, true ; fail).
