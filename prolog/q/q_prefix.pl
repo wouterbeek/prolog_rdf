@@ -48,18 +48,20 @@ This allows the following two IRI notations to be distinguished:
 
 :- initialization(init_q_prefix).
 init_q_prefix :-
-  qb_alias(bf, 'http://bibframe.org/vocab/'),
+  qb_alias(bibframe, 'http://bibframe.org/vocab/'),
   qb_alias(blog, 'http://quine.cc/blog/def#'),
+  qb_alias(cache, 'http://quine.cc/cache/'),
   qb_alias(dbc, 'http://dbpedia.org/resource/Category:'),
+  qb_alias(dbp, 'http://dbpedia.org/property/'),
   qb_alias(dbr, 'http://dbpedia.org/resource/'),
   qb_alias(dby, 'http://dbpedia.org/class/yago/'),
   qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
   qb_alias(dct, 'http://purl.org/dc/terms/'),
-  qb_alias(bf, 'http://bibframe.org/vocab/'),
   qb_alias(dct, 'http://purl.org/dc/terms/'),
   qb_alias(fb, 'http://rdf.freebase.com/ns/'),
   qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
   qb_alias(geold, 'http://geojsonld.com/vocab#'),
+  qb_alias(geosparql, 'http://www.opengis.net/ont/geosparql#'),
   qb_alias(http, 'http://www.w3.org/2011/http#'),
   qb_alias(ll, 'http://lodlaundromat.org/resource/'),
   qb_alias(llm, 'http://lodlaundromat.org/metrics/ontology/'),
@@ -69,16 +71,18 @@ init_q_prefix :-
   qb_alias(org, 'http://www.w3.org/ns/org#'),
   qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
   qb_alias(prov, 'http://www.w3.org/ns/prov#'),
-  qb_alias(qc, 'http://quine.cc/cache/'),
   qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
   qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
   qb_alias(schema, 'http://schema.org/'),
   qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
   qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
-  qb_alias(wde, 'http://www.wikidata.org/entity/'),
+  qb_alias('umbel-rc', 'http://umbel.org/umbel/rc/'),
+  qb_alias('wiki-entity', 'http://www.wikidata.org/entity/'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
-  qb_alias(wkt, 'http://geojsonld.com/wkt#').
-  %register_dbpedia_localizations.
+  qb_alias('wiki-p', 'http://www.wikidata.org/prop/'),
+  qb_alias(wkt, 'http://geojsonld.com/wkt#'),
+  qb_alias(yago, 'http://yago-knowledge.org/resource/'),
+  register_dbpedia_localizations.
 
 
 

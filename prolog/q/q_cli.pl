@@ -13,7 +13,7 @@
     q__io/0,
     q__key/1,   % ?P
     q__key/2,   % ?P, ?G
-    q__link/2,  % +P, +G
+    q__link/3,  % +Backend, +P, +G
     q__p/0,
     q__p/1,     % ?P
     q__p/2,     % ?P, ?G
@@ -88,7 +88,7 @@
    q__g(r),
    q__key(r),
    q__key(r, r),
-   q__link(r, r),
+   q__link(+, r, r),
    q__p(r),
    q__p(r, r),
    q__p_ds(r),
@@ -235,10 +235,10 @@ q__key(P, G0) :-
 
 
 
-%! q__link(+P, +G) is det.
+%! q__link(+Backend, +P, +G) is det.
 
-q__link(P, G) :-
-  q_link_objects(P, G).
+q__link(Backend, P, G) :-
+  q_link_objects(Backend, P, G).
   
 
 
