@@ -57,6 +57,7 @@ init_q_prefix :-
   qb_alias(dct, 'http://purl.org/dc/terms/'),
   qb_alias(bf, 'http://bibframe.org/vocab/'),
   qb_alias(dct, 'http://purl.org/dc/terms/'),
+  qb_alias(fb, 'http://rdf.freebase.com/ns/'),
   qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
   qb_alias(geold, 'http://geojsonld.com/vocab#'),
   qb_alias(http, 'http://www.w3.org/2011/http#'),
@@ -302,15 +303,17 @@ dbpedia_language_tag(zh_yue).
 dbpedia_register(LTag) :-
   atomic_list_concat([LTag,dbpedia,org], ., Auth),
 
-  % XML namespace for resources.
-  atomic_list_concat([LTag,dbr], ., ResourceAlias),
-  iri_comps(ResourcePrefix, uri_components(http,Auth,'/resource/',_,_)),
-  q_reset_prefix(ResourceAlias, ResourcePrefix),
+  atomic_list_concat([LTag,dbc], ., Alias1),
+  iri_comps(Prefix1, uri_components(http,Auth,'/resource/Category:',_,_)),
+  q_reset_prefix(Alias1, Prefix1),
 
-  % XML namespace for properties.
-  atomic_list_concat([LTag,dbp], ., PropAlias),
-  iri_comps(PropPrefix, uri_components(http,Auth,'/property/',_,_)),
-  q_reset_prefix(PropAlias, PropPrefix).
+  atomic_list_concat([LTag,dbp], ., Alias2),
+  iri_comps(Prefix2, uri_components(http,Auth,'/property/',_,_)),
+  q_reset_prefix(Alias2, Prefix2),
+  
+  atomic_list_concat([LTag,dbr], ., Alias3),
+  iri_comps(Prefix3, uri_components(http,Auth,'/resource/',_,_)),
+  q_reset_prefix(Alias3, Prefix3).
 
 
 

@@ -533,7 +533,6 @@ assert_cached_version :-
   qb_alias(fam, 'http://vocab.fusepool.info/fam#'),
   qb_alias(fao, 'http://fao.270a.info/dataset/'),
   qb_alias(faq, 'http://www.openlinksw.com/ontology/faq#'),
-  qb_alias(fb, 'http://rdf.freebase.com/ns/'),
   qb_alias(fbgeo, 'http://rdf.freebase.com/ns/location/geocode/'),
   qb_alias(fc, 'http://www.freeclass.eu/freeclass_v1#'),
   qb_alias(fcm, 'http://eulersharp.sourceforge.net/2006/02swap/fcm#'),

@@ -21,6 +21,7 @@ IRIs are linked using ‘owl:sameAs’.
 :- use_module(library(dcg/dcg_cli)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
@@ -67,7 +68,9 @@ q_link_objects(P, G) :-
   length(Froms, NumFroms),
   msg_notification("We're going to link ~D terms…~n", [NumFroms]),
   catch(q_link_objects_loop(1, NumFroms, Froms, P, G), E, true),
-  (E == user_quits -> !, true ; true).
+  (E == user_quits -> !, true ; true),
+  q_view2store(trp, G),
+  q_store2view(hdt, G).
 
 
 q_link_objects_loop(_, _, [], _, _) :- !,
