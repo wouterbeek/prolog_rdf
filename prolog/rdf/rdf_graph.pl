@@ -7,7 +7,8 @@
     rdf_new_graph/1,   % -G
     rdf_new_graph/2,   % +Name, -G
     rdf_stale_graph/2, % ?G, +FreshnessLifetime:between(0.0,inf)
-    rdf_tmp_graph/1    % -G
+    rdf_tmp_graph/1,   % -G
+    rdf_unload_empty_graphs/0
   ]
 ).
 
@@ -16,13 +17,14 @@
 @author Wouter Beek
 @compat RDF 1.1 Semantics
 @see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
-@version 2015/08, 2015/10, 2015/12-2016/01, 2016/04-2016/05
+@version 2015/08, 2015/10, 2015/12-2016/01, 2016/04-2016/05, 2016/10
 */
 
 :- use_module(library(atom_ext)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(q/qb)).
+:- use_module(library(rdf/rdf_stat)).
 :- use_module(library(semweb/rdf11)).
 
 :- qb_alias(ex, 'http://example.org/').
@@ -126,3 +128,13 @@ rdf_stale_graph(G, FLT) :-
 
 rdf_tmp_graph(G) :-
   rdf_new_graph(ex:tmp, G).
+
+
+
+%! rdf_unload_empty_graphs is det.
+
+rdf_unload_empty_graphs :-
+  forall(
+    rdf_number_of_triples(G, 0),
+    rdf_unload_graph(G)
+  ).

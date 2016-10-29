@@ -45,14 +45,9 @@ IRIs are linked using ‘owl:sameAs’.
 %
 % @tbd Only literals can be linked.
 
-q_link(Term, Iri) :-
-  q_link_iri(Term, Iri),
-  q_user_chooses_iri(Term, Iri).
-
-
-q_link_iri(Str@LTag, Iri) :- !,
+q_link(Str@LTag, Iri) :- !,
   lotus(Str, Iri, [ltag(LTag)]).
-q_link_iri(Val^^D, Iri) :- !,
+q_link(Val^^D, Iri) :- !,
   q_literal_lex(Val^^D, Lex),
   lotus(Lex, Iri).
 
@@ -61,14 +56,49 @@ q_link_iri(Val^^D, Iri) :- !,
 %! q_link_objects(+P, +G) is det.
 
 q_link_objects(P, G) :-
-  forall(
-    distinct(From, q(trp, _, P, From, G)),
-    (   q_link(From, To)
-    ->  qu_replace_object(From, P, G, To),
-        msg_linked(From, To)
-    ;   true
-    )
-  ).
+  aggregate_all(
+    set(From),
+    (
+      q(trp, _, P, From, G),
+      q_is_literal(From)
+    ),
+    Froms
+  ),
+  length(Froms, NumFroms),
+  msg_notification("We're going to link ~D terms…~n", [NumFroms]),
+  catch(q_link_objects_loop(1, NumFroms, Froms, P, G), E, true),
+  (E == user_quits -> !, true ; true).
+
+
+q_link_objects_loop(_, _, [], _, _) :- !,
+  msg_success("We're done linking!~n").
+q_link_objects_loop(M1, N, [H|T], P, G) :-
+  dcg_with_output_to(user_output, (
+    str("("),
+    thousands(M1),
+    str("/"),
+    thousands(N),
+    str(") Let's link "),
+    sq(dcg_q_print_literal(H)),
+    str(":"),
+    nl
+  )),
+  q_link_object_loop(H, P, G),
+  M2 is M1 + 1,
+  q_link_objects_loop(M2, N, T, P, G).
+
+q_link_object_loop(From, P, G) :-
+  q_link(From, To), % NONDET
+  q_user_chooses_iri(From, To), !,
+  qu_replace_object(From, P, G, To),
+  msg_linked(From, To).
+q_link_object_loop(From, _, _) :-
+  dcg_with_output_to(user_output, (
+    str("Could not link "),
+    sq(dcg_q_print_literal(From)),
+    str("."),
+    nl
+  )).
 
 
 
@@ -124,6 +154,12 @@ q_link_class(I, C) :-
 % User accedes that IRI is the correct term WRT a given linking task.
 
 q_user_chooses_iri(Lit, Iri) :-
+  dcg_with_output_to(user_output, (
+    str("Enumerating classes of "),
+    sq(dcg_q_print_iri(Iri)),
+    str(":"),
+    nl
+  )),
   forall(
     q_link_class(Iri, C),
     (write("  - "), q_print_object(C), nl)

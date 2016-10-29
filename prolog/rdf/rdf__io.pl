@@ -551,7 +551,9 @@ rdf_load_quads(Source, Quads, Opts) :-
   q_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, Opts),
-    q_quads(trp, Quads)
+    q_quads(trp, Quads),
+    rdf_retractall(_, _, _),
+    rdf_unload_empty_graphs
   )).
 
 

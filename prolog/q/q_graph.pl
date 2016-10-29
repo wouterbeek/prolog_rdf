@@ -50,8 +50,7 @@ q_graph_table_comps(HeaderRow, DataRows) :-
 
 graph_data_row_pair0(
   G,
-  NumTriples-[G0,thousands(NumTriples),set(Ms)]
+  NumTriples-[q_graph_term(G),thousands(NumTriples),set(Ms)]
 ) :-
-  (q_graph_label(G, Lbl) -> G0 = string(Lbl) ; G0 = q_graph_term(G)),
   (q_number_of_triples(_, G, NumTriples) -> true ; NumTriples = inf),
   aggregate_all(set(M0), q_view_graph(M0, G), Ms).

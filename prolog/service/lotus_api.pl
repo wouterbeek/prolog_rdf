@@ -135,8 +135,10 @@ lotus(Query, Iri) :-
 
 
 lotus(Query, Iri, Opts) :-
-  distinct(Iri, lotus_result(Query, Dict, Opts)),
-  atom_string(Iri, Dict.subject).
+  distinct(Iri, (
+    lotus_result(Query, Dict, Opts),
+    atom_string(Iri, Dict.subject)
+  )).
 
 
 
