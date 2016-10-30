@@ -16,6 +16,7 @@
       qu_lowercase_predicate/2, % +Alias, ?G
       qu_replace_predicate/3,   % +P1, ?G, +P2
       qu_replace_predicates_by_vocab/3, % +P, +G, +GVocab
+      qu_string_to_iri/2,       % +P, +G
 
   % LITERAL
     qu_replace_string/3,        % ?P, ?G, :Dcg_3
@@ -169,6 +170,7 @@ to predicate and/or graph.
    qu_replace_object(r, r, r, r),
    qu_replace_predicate(r, r, r),
    qu_replace_predicates_by_vocab(r, r, r),
+   qu_string_to_iri(r, r),
    qu_replace_string(r, r, :),
    qu_replace_string(r, r, r, :),
    qu_replace_subject(r, r, r),
@@ -354,6 +356,20 @@ qu_replace_predicates_by_vocab(P, G, GVocab) :-
       q(trp, S, Q1, O, G)
     ),
     qu(S, Q1, O, G, predicate(Q2))
+  ).
+
+
+
+%! qu_string_to_iri(+P, +G) is det.
+
+qu_string_to_iri(P, G) :-
+  qu_call(
+    q(trp, S, P, Str^^xsd:string, G),
+    (
+      q_string_to_local(Str, Local),
+      q_tbox_iri(Local, O),
+      qu(S, P, Str^^xsd:string, G, object(O))
+    )
   ).
 
 

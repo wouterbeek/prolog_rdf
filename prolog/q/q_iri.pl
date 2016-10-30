@@ -10,6 +10,7 @@
     q_init_ns/0,
     q_is_external_iri/1, % +Iri
     q_is_internal_iri/1, % +Iri
+    q_string_to_local/2, % +Str, -Local
     q_tbox_iri/2,        % ?Term, ?Iri
     q_tbox_iri/4         % ?Scheme, ?Auth, ?Term, ?Iri
   ]
@@ -21,6 +22,7 @@
 @version 2016/08, 2016/10
 */
 
+:- use_module(library(dcg/basics)).
 :- use_module(library(default)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(q/q_fs)).
@@ -126,6 +128,36 @@ q_is_external_iri(Iri) :-
 q_is_internal_iri(Iri) :-
   uri_components(Iri, uri_components(Scheme,Auth,_,_,_)),
   \+ iri_prefix(Scheme, Auth).
+
+
+
+%! q_string_to_local(+Str, -Local) is det.
+
+q_string_to_local(Str, Local) :-
+  string_codes(Str, Cs1),
+  phrase(string_to_local, Cs1, Cs2),
+  atom_codes(Local, Cs2).
+
+% Remove blanks and use CamelCase.
+string_to_local, [C2] -->
+  'blank+',
+  [C1], !,
+  {code_type(C1, to_lower(C2))},
+  string_to_local.
+% Skup blanks at the end.
+string_to_local -->
+  'blank+', !,
+  string_to_local.
+% Other characters are lowercase.
+string_to_local, [C2] -->
+  [C1], !,
+  {code_type(C1, to_upper(C2))},
+  string_to_local.
+string_to_local --> "".
+
+'blank+' --> blank, 'blank*'.
+'blank*' --> blank, 'blank*'.
+'blank*' --> "".
 
 
 

@@ -28,7 +28,6 @@ Support for XML Schema Datatypes.
 
 @author Wouter Beek
 @compat XSD 1.1 Part 2: Datatypes
-@license MIT License
 @see http://www.w3.org/TR/xmlschema11-2
 @version 2015/07-2015/09, 2015/11-2015/12, 2016/02
 */

@@ -242,6 +242,7 @@ q_dataset2store(Name) :-
 
 q_init :-
   q_source2store,
+  q_store2view,
   q_dataset2store,
   q_store2view.
 

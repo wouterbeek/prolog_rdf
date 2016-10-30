@@ -36,7 +36,6 @@
 
 @author Wouter Beek
 @compat RDF 1.1 Concepts and Abstract Syntax
-@license MIT License
 @see http://www.w3.org/TR/rdf11-concepts/
 @version 2015/07-2016/02, 2016/06
 */

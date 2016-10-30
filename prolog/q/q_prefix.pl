@@ -81,6 +81,7 @@ init_q_prefix :-
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),
   qb_alias('wiki-p', 'http://www.wikidata.org/prop/'),
   qb_alias(wkt, 'http://geojsonld.com/wkt#'),
+  qb_alias(wv, 'http://vocab.org/waiver/terms/norms'),
   qb_alias(yago, 'http://yago-knowledge.org/resource/'),
   register_dbpedia_localizations.
 

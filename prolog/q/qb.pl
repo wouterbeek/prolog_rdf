@@ -62,6 +62,7 @@
 @version 2016/06-2016/10
 */
 
+:- use_module(library(date_time/date_time)).
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(gen/gen_ntuples)).
@@ -207,7 +208,8 @@ qb_now(M, S, P, G) :-
 
 qb_now(M, S, P, D, G) :-
   get_time(Now),
-  qb(M, S, P, Now^^D, G).
+  'something_to_dt-rdf'(Now, D, Val),
+  qb(M, S, P, Val^^D, G).
 
 
 

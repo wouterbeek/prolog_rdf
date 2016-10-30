@@ -13,7 +13,6 @@
 Authenticated read/write access to the RDF DB.
 
 @author Wouter Beek
-@license MIT License
 @version 2015/07, 2015/10, 2015/12
 */
 

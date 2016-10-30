@@ -5,8 +5,8 @@
     agent_image//3,      % +M, +Agent,                ?G
     agent_name/4,        % +M, +Agent,   -Name,       ?G
     agent_name//3,       % +M, +Agent,                ?G
-    bf_subtitle/4,       % +M, +Article, -Subtitle,   ?G
-    bf_subtitle//3,      % +M, +Article,              ?G
+    bibframe_subtitle/4, % +M, +Article, -Subtitle,   ?G
+    bibframe_subtitle//3,% +M, +Article,              ?G
     creator/4,           % +M, +Res,     -Agent,      ?G
     creators//3,         % +M, +Res,                  ?G
     dc_abstract/4,       % +M, +Res,     -Abstract,   ?G
@@ -74,8 +74,8 @@
    agent_image(+, r, r, ?, ?),
    agent_name(+, r, -, r),
    agent_name(+, r, r, ?, ?),
-   bf_subtitle(+, r, -, r),
-   bf_subtitle(+, r, r, ?, ?),
+   bibframe_subtitle(+, r, -, r),
+   bibframe_subtitle(+, r, r, ?, ?),
    creators(+, r, -, r),
    creators(+, r, r, ?, ?),
    dc_abstract(+, r, -, r),
@@ -174,17 +174,17 @@ agent_name0(M, Agent, G) -->
 
 
 
-%! bf_subtitle(+M, +Article, -Subtitle, G)// is det.
+%! bibframe_subtitle(+M, +Article, -Subtitle, G)// is det.
 
-bf_subtitle(M, Article, Subtitle, G) :-
-  q_pref_string(M, Article, bf:subtitle, Subtitle, G).
+bibframe_subtitle(M, Article, Subtitle, G) :-
+  q_pref_string(M, Article, bibframe:subtitle, Subtitle, G).
 
 
-%! bf_subtitle(+M, +Article, ?G)// is det.
+%! bibframe_subtitle(+M, +Article, ?G)// is det.
 
-bf_subtitle(M, Article, G) -->
-  {bf_subtitle(M, Article, Subtitle, G)},
-  html(h2(span(property='bf:subtitle', \qh_literal(Subtitle)))).
+bibframe_subtitle(M, Article, G) -->
+  {bibframe_subtitle(M, Article, Subtitle, G)},
+  html(h2(span(property='bibframe:subtitle', \qh_literal(Subtitle)))).
 
 
 
@@ -344,7 +344,7 @@ foaf_mbox(M, Agent, Iri, G) :-
 
 foaf_mbox(M, Agent, G) -->
   {once(foaf_mbox(M, Agent, Iri, G))},
-  mail_link(Iri).
+  mail_link_and_icon(Iri).
 
 
 

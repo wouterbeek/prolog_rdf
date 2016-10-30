@@ -389,9 +389,9 @@ qh_literal_inner(Str^^D, Opts) -->
   {q_subdatatype_of(D, xsd:string)}, !,
   ellipsis(Str, Opts.max_lit_len).
 % XSD URI
-qh_literal_inner(V^^D, _) -->
+qh_literal_inner(Uri^^D, _) -->
   {q_subdatatype_of(D, xsd:anyURI)}, !,
-  html(V).
+  html(Uri).
 % XSD date
 % XSD dateTime
 % XSD gMonthYear
@@ -650,6 +650,15 @@ qh_link(_, _, _, _, Content_0, _) -->
   html_call(Content_0).
 
 
+qh_link_external(Uri^^D) -->
+  {q_subdatatype_of(D, xsd:anyURI)}, !,
+  html(" "),
+  {uri_components(Uri, uri_components(Scheme,_,_,_,_))},
+  (   {Scheme == mailto}
+  ->  mail_icon(Uri)
+  ;   {memberchk(Scheme, [http,https])}
+  ->  external_link_icon(Uri)
+  ).
 qh_link_external(Term) -->
   {is_http_iri(Term)}, !,
   html([" ",\external_link_icon(Term)]).
