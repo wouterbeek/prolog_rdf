@@ -349,6 +349,7 @@ q_hash(Hash) :-
 %! q_name(+Name) is semidet.
 %! q_name(-Name) is multi.
 
+q_name(cache).
 q_name(data).
 q_name(meta).
 q_name(stat).

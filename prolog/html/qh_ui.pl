@@ -1,7 +1,7 @@
 :- module(
   qh_ui,
   [
-    qh_dataset_graph_menu//4, % +Action, +M, +D, +G
+    qh_dataset_graph_menu//3, % +M, +D, +G
     qh_dataset_table//0,
     qh_dataset_table//1,      %                     +Opts
     qh_describe//3,           % +M, +S, +G
@@ -54,7 +54,7 @@
 :- use_module(library(yall)).
 
 :- rdf_meta
-   qh_dataset_graph_menu(+, +, r, r, ?, ?),
+   qh_dataset_graph_menu(+, r, r, ?, ?),
    qh_describe(+, r, r, ?, ?),
    qh_describe(+, r, r, +, ?, ?),
    qh_quad_panels(+, r, r, o, r, ?, ?),
@@ -68,19 +68,18 @@
 
 
 
-%! qh_dataset_graph_menu(+Action, +M, +D, +G)// is det.
+%! qh_dataset_graph_menu(+M, +D, +G)// is det.
 %
 % @tbd `class(selected)` does not show a selection in the HTML page.
 %
 % @tbd JavaScript does not work; cannot extract the `value` attribute.
 
-qh_dataset_graph_menu(Action, M, D, G) -->
+qh_dataset_graph_menu(M, D, G) -->
   {
     q_dataset_trees(M, number_of_triples, Trees),
     Trees \== []
   }, !,
   navbar_dropdown_menu(
-    Action,
     'dataset-graph-menu',
     "Graph",
     qh_dataset_graph_menu_item(D, G),
@@ -96,7 +95,7 @@ $("#dataset-graph-menu").on('change', function(){
   alert(urls);
 });
   |}).
-qh_dataset_graph_menu(_, _, _, _) --> [].
+qh_dataset_graph_menu(_, _, _) --> [].
 
 
 qh_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
@@ -185,7 +184,6 @@ qh_graph_menu(Attrs1, M) -->
   },
   navbar_dropdown_menu(
     Attrs2,
-    _,
     'graph-menu',
     "Graph",
     qh_graph_menu_item(false),
@@ -267,7 +265,7 @@ qh_quad_panels(M, S, P, O, G, Opts1) -->
 %! qh_quad_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
 
 qh_quad_table(Quads) -->
-  qh_quad_table(Quads, _{}).
+  qh_quad_table(Quads, _{query_key: subject}).
 
 
 qh_quad_table(Quads, Opts1) -->
@@ -296,10 +294,10 @@ qh_quad_table(M, S, P, O, G, Opts1) -->
 qh_quad_row0(Opts, rdf(S,P,O,G)) -->
   html(
     tr(class=quadruple, [
-      td(class='col-md-4', \qh_subject_outer0(subject, [subject], Opts, S)),
-      td(class='col-md-2', \qh_predicate_outer0(predicate, [predicate], Opts, P)),
-      td(class='col-md-4', \qh_object_outer0(object, [object], Opts, O)),
-      td(class='col-md-2', \qh_graph_term_outer0(graph, [graph], Opts, G))
+      td(class='col-md-3', \qh_subject_outer0(subject, [subject], Opts, S)),
+      td(class='col-md-3', \qh_predicate_outer0(predicate, [predicate], Opts, P)),
+      td(class='col-md-3', \qh_object_outer0(object, [object], Opts, O)),
+      td(class='col-md-3', \qh_graph_term_outer0(graph, [graph], Opts, G))
     ])
   ).
 

@@ -55,6 +55,8 @@ The following option sets the HTTP handler:
 
   - handle_id(+atom)
 
+  - query_key(+atom)
+
 The following options are supported to achieve parity with module
 `q_print`:
 
@@ -95,6 +97,7 @@ The following options are supported to achieve parity with module
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(typecheck)).
+:- use_module(library(vocab/dbpedia), []). % DBpedia datatype hook.
 
 :- multifile
     html:html_hook//1,
@@ -307,6 +310,9 @@ qh_iri_outer0(C, Cs1, Opts, Iri) -->
 
 
 % Abbreviated notation for IRI.
+qh_iri_inner(Iri, _) -->
+  {rdf_global_id(rdf:type, Iri)}, !,
+  html("a").
 qh_iri_inner(Iri, Opts) -->
   {
     Opts.iri_abbr == true,
@@ -589,7 +595,7 @@ qh_triple(S, P, O, Opts1) -->
 qh_default_options(Opts1, Opts2) :-
   DefOpts = _{
     iri_abbr: true,
-    max_iri_len: 50,
+    max_iri_len: 30,
     max_lit_len: inf,
     qh_link: false
   },
@@ -605,13 +611,14 @@ qh_external_iri(C, Val, Link) :-
 
 
 qh_external_iri(C, Val, Link, Opts) :-
+  (dict_get(query_key, Opts, Key) -> true ; Key = C),
   dict_get(query, Opts, [], Query),
   (   dict_get(handle_id, Opts, HandleId)
   ->  true
   ;   setting(qh:handle_id, HandleId)
   ),
   HandleId \== '',
-  q_query_term(C, Val, QueryTerm),
+  q_query_term(Key, Val, QueryTerm),
   http_link_to_id(HandleId, [QueryTerm|Query], Link).
 
 

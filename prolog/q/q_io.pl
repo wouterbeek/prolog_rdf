@@ -149,7 +149,9 @@ them.
    q_cache_graph(?, r),
    q_file_graph(?, ?, r),
    q_source2store(r),
-   q_source2store(+, r).
+   q_source2store(+, r),
+   q_store2view(+, r),
+   q_view2store(+, r).
 
 :- setting(
      source_dir,

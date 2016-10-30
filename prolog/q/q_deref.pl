@@ -26,9 +26,11 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pool)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/q_io)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
+:- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
@@ -46,8 +48,15 @@
 
 
 %! q_cache_iri(+M, +Iri) is det.
+%! q_cache_iri(+M, +Iri, -G) is det.
 
 q_cache_iri(M, Iri) :-
+  q_cache_iri(M, Iri, G),
+  q_view2store(trp, G),
+  q_store2view(hdt, G).
+
+
+q_cache_iri(M, Iri, G) :-
   q_cached_iri_graph(Iri, G),
   forall(
     q_deref_triple(Iri, Triple),
@@ -76,7 +85,7 @@ q_cache_iris(M) :-
 
 
 q_cache_iris(M, Opts1) :-
-  Pool = qc,
+  Pool = cache,
   forall(
     distinct(Iri, q_external_iri(M, Iri)),
     add_resource(Pool, Iri)
@@ -89,7 +98,7 @@ q_cache_iris(M, Opts1) :-
 
 q_cache_iris_worker(M, Iri, NewIris) :-
   (   q_is_external_iri(M, Iri)
-  ->  if_debug(rdf(deref), print_pool(qc)),
+  ->  if_debug(rdf(deref), print_pool(cache)),
       aggregate_all(
         set(NewIri),
         (
@@ -125,11 +134,11 @@ q_cached_iri(Iri) :-
 
 q_cached_iri_graph(Iri, G) :-
   var(Iri), !,
-  q_iri_alias_local(G, gc, Enc),
+  q_graph_iri([Enc,data], G),
   base64url(Iri, Enc).
 q_cached_iri_graph(Iri, G) :-
   base64url(Iri, Enc),
-  q_iri_alias_local(G, qc, Enc).
+  q_graph_iri([Enc,data], G).
 
 
 
