@@ -72,8 +72,6 @@
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdfs/rdfs_ext)).
-:- use_module(library(rdfs/rdfs_stat)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).

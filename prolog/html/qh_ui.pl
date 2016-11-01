@@ -138,7 +138,10 @@ qh_dataset_tree0(t(D,Trees1), t(q_dataset_term(D),Trees2)) :-
 
 
 qh_graph_tree0(t(G,[]), t(q_graph_term(G),[t(Attrs,[])])) :-
-  once((q_view_graph(M, G), q_number_of_triples(M, G, NumTriples))),
+  once((
+    q_view_graph(M, G),
+    q_number_of_triples(M, G, NumTriples)
+  )),
   aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
   Attrs = [thousands(NumTriples),set(Ms)].
 
@@ -176,7 +179,7 @@ qh_graph_menu(Attrs1, M) -->
     % @tbd Special GIS case should be fixed in module `gis_db`.
     (   M == gis
     ->  findall(G, gis_graph(G), Gs)
-    ;   findall(N-G, q_number_of_triples(M, G, N), Pairs),
+    ;   findall(NumTriples-G, q_number_of_triples(M, G, NumTriples), Pairs),
         desc_pairs_values(Pairs, Gs)
     ),
     Gs \== [],

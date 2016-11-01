@@ -15,7 +15,8 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(geo/wkt)).
+:- use_module(library(geo/wkt_generate)).
+:- use_module(library(geo/wkt_parse)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(q/q_array), []).
 :- use_module(library(q/q_rdf)).
@@ -58,7 +59,7 @@ gis:subject_to_geometry(M, S, Array, Name, G) :-
 rdf11:in_ground_type_hook(D, Array, Lex) :-
   rdf_global_id(wkt:Name, D),
   Shape =.. [Name,Array],
-  atom_phrase(wkt(Shape), Lex).
+  atom_phrase(wkt_gen(Shape), Lex).
 
 
 rdf11:out_type_hook(D, Array, Lex) :-
@@ -101,7 +102,7 @@ point_shape([X,Y], point(X,Y)).
 
 qb_wkt_point(M, S, Point, G) :-
   point_shape(Array, Point),
-  atom_phrase(wkt(point(Array)), Lex),
+  atom_phrase(wkt_gen(point(Array)), Lex),
   % @tbd alias
   rdf_global_id(wkt:point, D),
   qb(M, S, geold:geometry, Lex^^D, G).

@@ -79,9 +79,6 @@
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(rdfa/rdfa_user)).
-%/rdfs
-:- use_module(library(rdfs/rdfs_ext)).
-:- use_module(library(rdfs/rdfs_stat)).
 %/service
 :- use_module(library(service/btc)).
 :- use_module(library(service/fct)).

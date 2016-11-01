@@ -5,8 +5,6 @@
     q/4,                   % +M, ?S, ?P, ?O
     q/5,                   % +M, ?S, ?P, ?O, ?G
     q/6,                   % +M, ?S, ?P, ?O, ?G, ?D
-    q_instance/3,          % +M, ?I, ?C
-    q_instance/4,          % +M, ?I, ?C, ?G
     q_is_def_quad/1,       % @Term
     q_is_ground_quad/1,    % @Term
     q_is_ground_triple/1,  % @Term
@@ -76,20 +74,37 @@
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 
+:- multifile
+    error:has_type/2.
+
+error:has_type(q_quad, Quad) :-
+  Quad = rdf(S,P,O,G),
+  (error:has_type(q_bnode, S) ; error:has_type(q_iri, S)),
+  error:has_type(q, P),
+  error:has_type(q_term, O),
+  error:has_type(q_graph, G).
+error:has_type(q_triple, Triple) :-
+  Triple = rdf(S,P,O),
+  (error:has_type(q_bnode, S) ; error:has_type(q_iri, S)),
+  error:has_type(q_iri, P),
+  error:has_type(q_term, O).
+error:has_type(q_tuple, Triple) :-
+  error:has_type(q_triple, Triple).
+error:has_type(q_tuple, Quad) :-
+  error:has_type(q_quad, Quad).
+
 :- rdf_meta
-   q(?, -, r),
-   q(?, r, r, o),
-   q(?, r, r, o, r),
-   q(?, r, r, o, r, r),
-   q_instance(?, r, r),
-   q_instance(?, r, r, r),
-   q_lts(?, r, r, -),
-   q_lts(?, r, r, r, -),
-   q_lts(?, r, r, +, r, -),
-   q_quad(?, r, -),
-   q_quad(?, r, r, -),
-   q_quad(?, r, r, o, -),
-   q_quad(?, r, r, o, r, -),
+   q(+, -, r),
+   q(+, r, r, o),
+   q(+, r, r, o, r),
+   q(+, r, r, o, r, r),
+   q_lts(+, r, r, -),
+   q_lts(+, r, r, r, -),
+   q_lts(+, r, r, +, r, -),
+   q_quad(+, r, -),
+   q_quad(+, r, r, -),
+   q_quad(+, r, r, o, -),
+   q_quad(+, r, r, o, r, -),
    q_quad_datatype(t, r),
    q_quad_graph(t, r),
    q_quad_graph_triple(t, r, t),
@@ -100,18 +115,18 @@
    q_quad_term(t, o),
    q_quad_terms(t, r, r, o, r),
    q_quad_triple(t, t),
-   q_quads(?, r, -),
-   q_quads(?, r, r, -),
-   q_quads(?, r, r, o, -),
-   q_quads(?, r, r, o, r, -),
-   q_reification(?, r, r, o),
-   q_reification(?, r, r, o, r),
-   q_reification(?, r, r, o, r, r),
+   q_quads(+, r, -),
+   q_quads(+, r, r, -),
+   q_quads(+, r, r, o, -),
+   q_quads(+, r, r, o, r, -),
+   q_reification(+, r, r, o),
+   q_reification(+, r, r, o, r),
+   q_reification(+, r, r, o, r, r),
    q_tuple_triple(t, t),
-   q_triple(?, r, -),
-   q_triple(?, r, r, -),
-   q_triple(?, r, r, o, -),
-   q_triple(?, r, r, o, r, -),
+   q_triple(+, r, -),
+   q_triple(+, r, r, -),
+   q_triple(+, r, r, o, -),
+   q_triple(+, r, r, o, r, -),
    q_triple_datatype(t, r),
    q_triple_iri(t, r),
    q_triple_object(t, o),
@@ -119,10 +134,10 @@
    q_triple_subject(t, r),
    q_triple_term(t, o),
    q_triple_terms(t, r, r, o),
-   q_triples(?, r, -),
-   q_triples(?, r, r, -),
-   q_triples(?, r, r, o, -),
-   q_triples(?, r, r, o, r, -).
+   q_triples(+, r, -),
+   q_triples(+, r, r, -),
+   q_triples(+, r, r, o, -),
+   q_triples(+, r, r, o, r, -).
 
 
 
@@ -168,21 +183,6 @@ q(M, S, P, O, G, D) :-
 q(M, S, P, O, G, D) :-
   q(M, S, P, O, G),
   ignore(q_dataset_graph(D, G)).
-
-
-
-%! q_instance(+M, ?I, ?C) is nondet.
-%! q_instance(+M, ?I, ?C, ?G) is nondet.
-
-q_instance(M, I, C) :-
-  q_instance(M, I, C, _).
-
-
-q_instance(_, I, D, _) :-
-  q_is_literal(I), !,
-  q_literal_datatype(I, D).
-q_instance(M, I, C, G) :-
-  q(M, I, rdf:type, C, G).
 
 
 

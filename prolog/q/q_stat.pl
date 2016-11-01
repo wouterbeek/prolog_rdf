@@ -3,8 +3,12 @@
   [
     q_number_of_bnodes/2,     % +M,                 -NumBs
     q_number_of_bnodes/3,     % +M,             ?G, -NumBs
+    q_number_of_classes/2,    % +M,                 -NumCs
+    q_number_of_classes/3,    % +M,             ?G, -NumCs
     q_number_of_datatypes/2,  % +M,                 -NumDs
     q_number_of_datatypes/3,  % +M,             ?G, -NumDs
+    q_number_of_instances/3,  % +M, ?C,             -NumIs
+    q_number_of_instances/4,  % +M, ?C,         ?G, -NumIs
     q_number_of_literals/2,   % +M,                 -NumLits
     q_number_of_literals/3,   % +M,             ?G, -NumLits
     q_number_of_objects/2,    % +M,                 -NumOs
@@ -15,6 +19,8 @@
     q_number_of_predicates/3, % +M,             ?G, -NumPs
     q_number_of_predicates/4, % +M, ?S,     ?O,     -NumPs
     q_number_of_predicates/5, % +M, ?S,     ?O, ?G, -NumPs
+    q_number_of_properties/2, % +M,                 -NumProps
+    q_number_of_properties/3, % +M,             ?G, -NumProps
     q_number_of_subjects/2,   % +M,                 -NumSs
     q_number_of_subjects/3,   % +M,             ?G, -NumSs
     q_number_of_subjects/4,   % +M,     ?P, ?O,     -NumSs
@@ -48,7 +54,11 @@
 
 :- rdf_meta
    q_number_of_bnodes(+, r, -),
+   q_number_of_classes(+, -),
+   q_number_of_classes(+, r, -),
    q_number_of_datatype(+, r, -),
+   q_number_of_instances(+, r, -),
+   q_number_of_instances(+, r, r, -),
    q_number_of_literals(+, r, -),
    q_number_of_objects(+, r, -),
    q_number_of_objects(+, r, r, -),
@@ -56,6 +66,7 @@
    q_number_of_predicates(+, r, -),
    q_number_of_predicates(+, r, o, -),
    q_number_of_predicates(+, r, o, r, -),
+   q_number_of_properties(+, r, -),
    q_number_of_subjects(+, r, -),
    q_number_of_subjects(+, r, o, -),
    q_number_of_subjects(+, r, o, r, -),
@@ -80,6 +91,18 @@ q_number_of_bnodes(M, G, NumBs) :-
 
 
 
+%! q_number_of_classes(+M, -NumCs) is det.
+%! q_number_of_classes(+M, ?G, -NumCs) is det.
+
+q_number_of_classes(M, NumCs) :-
+  aggregate_all(sum(NumCs), q_number_of_classes(M, _, NumCs), NumCs).
+
+
+q_number_of_classes(M, G, NumCs) :-
+  aggregate_all(count, q_class(M, _, G), NumCs).
+
+
+
 %! q_number_of_datatypes(+M, -NumDs) is det.
 %! q_number_of_datatypes(+M, ?G, -NumDs) is det.
 
@@ -90,6 +113,22 @@ q_number_of_datatypes(M, NumDs) :-
 q_number_of_datatypes(M, G, NumDs) :-
   q_view_graph(M, G),
   aggregate_all(count, q_datatype(M, _, G), NumDs).
+
+
+
+%! q_number_of_instances(+M, ?C, -NumIs) is nondet.
+%! q_number_of_instances(+M, ?C, ?G, -NumIs) is nondet.
+%
+% Is able to iterate over classes, returning the number of instances
+% per class.
+
+q_number_of_instances(M, C, NumIs) :-
+  q_class(M, C),
+  aggregate_all(sum(NumIs), q_number_of_instances(M, C, _, NumIs), NumIs).
+
+
+q_number_of_instances(M, C, G, NumIs) :-
+  aggregate_all(count, q_instance(M, _, C, G), NumIs).
 
 
 
@@ -154,6 +193,18 @@ q_number_of_predicates(M, S, O, NumPs) :-
 
 q_number_of_predicates(M, S, O, G, NumPs) :-
   q_number_ofs(M, P, S, P, O, G, NumPs).
+
+
+
+%! q_number_of_properties(+M, -NumProps) is det.
+%! q_number_of_properties(+M, ?G, -NumProps) is det.
+
+q_number_of_properties(M, NumProps) :-
+  q_number_of_properties(M, _, NumProps).
+
+
+q_number_of_properties(M, G, NumProps) :-
+  aggregate_all(count, q_property(M, _, G), NumProps).
 
 
 

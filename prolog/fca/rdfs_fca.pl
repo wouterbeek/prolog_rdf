@@ -12,7 +12,6 @@
 */
 
 :- use_module(library(q/q_term)).
-:- use_module(library(rdfs/rdfs_ext)).
 
 :- rdf_meta
    rdf_fca_context(-, r).

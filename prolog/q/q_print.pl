@@ -143,7 +143,6 @@ Print RDF statements.
 :- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
-:- use_module(library(rdfs/rdfs_ext)).
 :- use_module(library(settings)).
 :- use_module(library(yall)).
 

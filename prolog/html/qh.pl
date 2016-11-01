@@ -410,7 +410,12 @@ qh_literal_inner(V^^D1, Opts) -->
   html_date_time(V, Opts).
 % Datatype hooks.
 qh_literal_inner(Lit, Opts) -->
-  qh_literal_hook(Lit, Opts).
+  qh_literal_hook(Lit, Opts), !.
+% Other literals for which there is no hook.
+% E.g., http://www.opengis.net/ont/geosparql#wktLiteral
+qh_literal_inner(Lit, Opts) -->
+  {q_literal_lex(Lit, Lex)},
+  html(\ellipsis(Lex, Opts.max_lit_len)).
 
 
 
@@ -596,7 +601,7 @@ qh_default_options(Opts1, Opts2) :-
   DefOpts = _{
     iri_abbr: true,
     max_iri_len: 30,
-    max_lit_len: inf,
+    max_lit_len: 75,
     qh_link: false
   },
   merge_dicts(DefOpts, Opts1, Opts2).

@@ -1,21 +1,21 @@
 :- module(
   q_rdfs,
   [
-    q_domain/4,          % ?M, ?P, ?C, ?G
-    q_pref_label/3,      % ?M, ?S, -Lit
-    q_pref_label/4,      % ?M, ?S, -Lit, ?G
-    q_pref_label/5,      % ?M, ?S, +LRange, -Lit, ?G
-    q_pref_label_lex/3,  % ?M, ?S, -Lex
-    q_pref_label_lex/4,  % ?M, ?S, -Lex, ?G
-    q_pref_label_lex/5,  % ?M, ?S, +LRange, -Lex, ?G
-    q_pref_string/4,     % ?M, ?S, ?P, -Lit
-    q_pref_string/5,     % ?M, ?S, ?P, -Lit, ?G
-    q_pref_string/6,     % ?M, ?S, ?P, +LRange, -Lit, ?G
-    q_pref_string_lex/4, % ?M, ?S, ?P, -Lex
-    q_pref_string_lex/5, % ?M, ?S, ?P, -Lex, ?G
-    q_pref_string_lex/6, % ?M, ?S, ?P, +LRange, -Lex, ?G
-    q_range/4,           % ?M, ?P, ?C, ?G
-    q_subclass/4         % ?M, ?C, ?D, ?G
+    q_domain/4,          % +M, ?P, ?C, ?G
+    q_pref_label/3,      % +M, ?S, -Lit
+    q_pref_label/4,      % +M, ?S, -Lit, ?G
+    q_pref_label/5,      % +M, ?S, +LRange, -Lit, ?G
+    q_pref_label_lex/3,  % +M, ?S, -Lex
+    q_pref_label_lex/4,  % +M, ?S, -Lex, ?G
+    q_pref_label_lex/5,  % +M, ?S, +LRange, -Lex, ?G
+    q_pref_string/4,     % +M, ?S, ?P, -Lit
+    q_pref_string/5,     % +M, ?S, ?P, -Lit, ?G
+    q_pref_string/6,     % +M, ?S, ?P, +LRange, -Lit, ?G
+    q_pref_string_lex/4, % +M, ?S, ?P, -Lex
+    q_pref_string_lex/5, % +M, ?S, ?P, -Lex, ?G
+    q_pref_string_lex/6, % +M, ?S, ?P, +LRange, -Lex, ?G
+    q_range/4,           % +M, ?P, ?C, ?G
+    q_subclass/4         % +M, ?C, ?D, ?G
   ]
 ).
 
@@ -73,16 +73,16 @@ q_label_property(skos:altLabel).
 
 
 
-%! q_domain(?M, ?P, ?C, ?G) is nondet.
+%! q_domain(+M, ?P, ?C, ?G) is nondet.
 
 q_domain(M, P, C, G) :-
   q(M, P, rdfs:domain, C, G).
 
 
 
-%! q_pref_label(?M, ?S, -Lit) is nondet.
-%! q_pref_label(?M, ?S, -Lit, ?G) is nondet.
-%! q_pref_label(?M, +S, +LRange, -Lit, ?G) is nondet.
+%! q_pref_label(+M, ?S, -Lit) is nondet.
+%! q_pref_label(+M, ?S, -Lit, ?G) is nondet.
+%! q_pref_label(+M, +S, +LRange, -Lit, ?G) is nondet.
 %
 % Returns a preferred label
 
@@ -104,9 +104,9 @@ q_pref_label(M, S, LRange, Lit, G) :-
 
 
 
-%! q_pref_label_lex(?M, ?S, -Lex) is nondet.
-%! q_pref_label_lex(?M, ?S, -Lex, ?G) is nondet.
-%! q_pref_label_lex(?M, ?S, +LRange, -Lex, ?G) is nondet.
+%! q_pref_label_lex(+M, ?S, -Lex) is nondet.
+%! q_pref_label_lex(+M, ?S, -Lex, ?G) is nondet.
+%! q_pref_label_lex(+M, ?S, +LRange, -Lex, ?G) is nondet.
 
 q_pref_label_lex(M, S, Lex) :-
   q_pref_label_lex(M, S, Lex, _).
@@ -123,9 +123,9 @@ q_pref_label_lex(M, S, LRange, Lex, G) :-
 
 
 
-%! q_pref_string(?M, ?S, ?P, -Lit) is nondet.
-%! q_pref_string(?M, ?S, ?P, -Lit, ?G) is nondet.
-%! q_pref_string(?M, ?S, ?P, +LRange, -Lit, ?G) is nondet.
+%! q_pref_string(+M, ?S, ?P, -Lit) is nondet.
+%! q_pref_string(+M, ?S, ?P, -Lit, ?G) is nondet.
+%! q_pref_string(+M, ?S, ?P, +LRange, -Lit, ?G) is nondet.
 %
 % Returns, in this exact order:
 %
@@ -164,9 +164,9 @@ q_pref_string(M, S, P, _, V^^D, G) :-
 
 
 
-%! q_pref_string_lex(?M, ?S, ?P, -Lex) is nondet.
-%! q_pref_string_lex(?M, ?S, ?P, -Lex, ?G) is nondet.
-%! q_pref_string_lex(?M, ?S, ?P, +LRange, -Lex, ?G) is nondet.
+%! q_pref_string_lex(+M, ?S, ?P, -Lex) is nondet.
+%! q_pref_string_lex(+M, ?S, ?P, -Lex, ?G) is nondet.
+%! q_pref_string_lex(+M, ?S, ?P, +LRange, -Lex, ?G) is nondet.
 %
 % Like q_pref_string/[4-6], but returns only the lexical form.
 
@@ -185,14 +185,14 @@ q_pref_string_lex(M, S, P, LRange, Lex, G) :-
 
 
 
-%! q_range(?M, ?P, ?C, ?G) is nondet.
+%! q_range(+M, ?P, ?C, ?G) is nondet.
 
 q_range(M, P, C, G) :-
   q(M, P, rdfs:range, C, G).
 
 
 
-%! q_subclass(?M, ?C, ?D, ?G) is nondet.
+%! q_subclass(+M, ?C, ?D, ?G) is nondet.
 
 q_subclass(M, C, D, G) :-
   q(M, C, rdfs:subClassOf, D, G).

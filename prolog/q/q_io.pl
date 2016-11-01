@@ -96,7 +96,7 @@ them.
 ---
 
 @author Wouter Beek
-@version 2016/08-2016/10
+@version 2016/08-2016/11
 */
 
 :- use_module(library(conv/csv2rdf), []).  % CSV → N-Triples
@@ -117,6 +117,7 @@ them.
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_shape)).
+:- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf__io)). % N-Quads, RDF/XML, … → N-Triples
@@ -310,17 +311,17 @@ q_source2store_file(File) :-
   ).
 
 
-q_source2store_source(Source, Opts, Result) :-
-  q_source2store_source(Source, Opts, Result, 0).
+q_source2store_source(Source, Opts, SinkOpts) :-
+  q_source2store_source(Source, Opts, SinkOpts, 0).
 
 
-q_source2store_source(Source, Opts, Result1, Ready0) :-
+q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
   q_dataset_iri(Opts.dataset, D),
   (   q_dataset_graph(D, Opts.graph, G),
       q_file_graph(File, data, G),
       q_file_ready_time(File, Ready),
       Ready >= Ready0
-  ->  ignore(option(triples(0), Result1))
+  ->  ignore(option(triples(0), SinkOpts1))
   ;   setting(store_dir, Dir),
       absolute_file_name(
         uploading,
@@ -328,17 +329,38 @@ q_source2store_source(Source, Opts, Result1, Ready0) :-
         [access(write),relative_to(Dir)]
       ),
       thread_file(TmpFile0, TmpFile),
-      merge_options(Result1, [md5(Hash)], Result2),
-      once(q_source2store_hook(Opts.format, Source, TmpFile, [], Result2)),
+      q_alias_prefix(ex, Prefix),
+      SourceOpts = [base_iri(Prefix)],
+      merge_options(SinkOpts1, [md5(Hash)], SinkOpts2),
+      once(
+	q_source2store_hook(
+	  Opts.format,
+          Source,
+          TmpFile,
+          SourceOpts,
+          SinkOpts2
+        )
+      ),
       q_file_hash(File, data, ntriples, Hash),
       delete_file_msg(File),
       create_file_directory(File),
       rename_file(TmpFile, File),
       q_file_touch_ready(File),
       q_file_graph(File, G),
-      q_dataset_add_graph(D, Opts.graph, G)
+      q_dataset_add_graph(D, Opts.graph, G),
+      M = trp,
+      md5(kadaster-meta, MetaHash),
+      q_graph_hash(MetaG, data, MetaHash),
+      qb_instance(M, D, void:'Dataset', MetaG),
+      qb_label(M, D, "Kadaster"@nl, MetaG),
+      qb(M, D, void:subset, G, MetaG),
+      qb_label(M, G, "Test"@nl, MetaG),
+      qb(M, D, void:subset, MetaG, MetaG),
+      qb_label(M, MetaG, "Metadata"@nl, MetaG),
+      q_dataset_add_graph(D, meta, MetaG),
+      q_dataset_set_default_graph(D, meta)
   ).
-
+  
 
 
 %! q_source2view is det.
