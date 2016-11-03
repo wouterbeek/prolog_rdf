@@ -13,6 +13,8 @@
     qh_datatype//2,      % +D,             +Opts
     qh_graph_term//1,    % +G
     qh_graph_term//2,    % +G,             +Opts
+    qh_instance//1,      % +I
+    qh_instance//2,      % +I,             +Opts
     qh_iri//1,           % +Iri
     qh_iri//2,           % +Iri,           +Opts
     qh_link//4,          % +C, +Cs, +Term, :Content_0
@@ -71,7 +73,7 @@ The following options are supported to achieve parity with module
 @tbd Achieve parity with option `bnode_map` from module `q_print`.
 
 @author Wouter Beek
-@version 2016/02-2016/10
+@version 2016/02-2016/11
 */
 
 :- use_module(library(atom_ext)).
@@ -117,6 +119,8 @@ The following options are supported to achieve parity with module
    qh_datatype(r, +, ?, ?),
    qh_graph_term(r, ?, ?),
    qh_graph_term(r, +, ?, ?),
+   qh_instance(r, ?, ?),
+   qh_instance(r, +, ?, ?),
    qh_iri(r, ?, ?),
    qh_iri(r, +, ?, ?),
    qh_literal(o, ?, ?),
@@ -204,7 +208,7 @@ qh_bnode_inner(B, _) -->
 
 
 %! qh_class(+C)// is det.
-%! qh_class(+Cs, +Opts)// is det.
+%! qh_class(+C, +Opts)// is det.
 
 qh_class(C) -->
   qh_class(C, _{}).
@@ -215,9 +219,9 @@ qh_class(C, Opts1) -->
   qh_class_outer0(_, [], Opts2, C).
 
 
-qh_class_outer0(C0, Cs1, Opts, C) -->
+qh_class_outer0(Class, Cs1, Opts, C) -->
   {ord_add_element(Cs1, class, Cs2)},
-  qh_term_outer0(C0, Cs2, Opts, C).
+  qh_term_outer0(Class, Cs2, Opts, C).
 
 
 
@@ -289,6 +293,24 @@ qh_graph_term_inner(G, Opts) -->
   html([\qh_dataset_term_inner(D, Opts),"/",Str]).
 qh_graph_term_inner(G, Opts) -->
   qh_iri_inner(G, Opts).
+
+
+
+%! qh_instance(+I)// is det.
+%! qh_instance(+I, +Opts)// is det.
+
+qh_instance(I) -->
+  qh_instance(I, _{}).
+
+
+qh_instance(I, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_instance_outer0(_, [], Opts2, I).
+
+
+qh_instance_outer0(C, Cs1, Opts, I) -->
+  {ord_add_element(Cs1, instance, Cs2)},
+  qh_term_outer0(C, Cs2, Opts, I).
 
 
 

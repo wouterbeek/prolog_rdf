@@ -2,6 +2,8 @@
   q_print,
   [
     dcg_q_print_options/2,       % +Opts1, -Opts2
+    dcg_q_print_class//1,        %     +C
+    dcg_q_print_class//2,        %     +C,             +Opts
     dcg_q_print_dataset_term//1, %     +D
     dcg_q_print_dataset_term//2, %     +D,             +Opts
     dcg_q_print_datatype//1,     %     +D
@@ -120,7 +122,7 @@ Print RDF statements.
      `max_dataset_term_len`.
 
 @author Wouter Beek
-@version 2016/06-2016/08, 2016/10
+@version 2016/06-2016/08, 2016/10-2016/11
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -165,6 +167,8 @@ dcg:dcg_hook(q_predicate(P)) -->
   dcg_q_print_predicate(P).
 
 :- rdf_meta
+   dcg_q_print_class(r, ?, ?),
+   dcg_q_print_class(r, +, ?, ?),
    dcg_q_print_dataset(r, ?, ?),
    dcg_q_print_dataset(r, +, ?, ?),
    dcg_q_print_datatype(r, ?, ?),
@@ -986,6 +990,21 @@ dcg_q_print_var(Var) -->
   integer(N).
 
 
+
+
+% PRINT A TERM BY THE SEMANTIC OBJECT IT PURPORTEDLY DENOTES %
+
+%! dcg_q_print_class(+C)// is det.
+%! dcg_q_print_class(+C, +Opts)// is det.
+
+dcg_q_print_class(C) -->
+  dcg_q_print_class(C, _{}).
+
+
+dcg_q_print_class(C, Opts) -->
+  dcg_q_print_iri(C, Opts).
+
+  
 
 
 

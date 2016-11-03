@@ -8,7 +8,7 @@
   q_source_file/1,          % -File
 
     % SOURCE ⬄ STORE
-    q_generate/2,            % -G, :Goal_1
+    q_generate/2,            % ?G, :Goal_1
     q_init/0,
     q_source2store/0,
     q_source2store_file/1,   % +File
@@ -125,10 +125,11 @@ them.
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(string_ext)).
 :- use_module(library(tree/s_tree)).
 
 :- meta_predicate
-    q_generate(-, 1),
+    q_generate(?, 1),
     q_transform_cbd(+, 1),
     q_transform_graph(+, 1).
 
@@ -316,8 +317,10 @@ q_source2store_source(Source, Opts, SinkOpts) :-
 
 
 q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
-  q_dataset_iri(Opts.dataset, D),
-  (   q_dataset_graph(D, Opts.graph, G),
+  DName = Opts.dataset,
+  GName = Opts.graph,
+  q_dataset_iri(DName, D),
+  (   q_dataset_graph(D, GName, G),
       q_file_graph(File, data, G),
       q_file_ready_time(File, Ready),
       Ready >= Ready0
@@ -347,16 +350,18 @@ q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
       rename_file(TmpFile, File),
       q_file_touch_ready(File),
       q_file_graph(File, G),
-      q_dataset_add_graph(D, Opts.graph, G),
+      q_dataset_add_graph(D, GName, G),
       M = trp,
       md5(kadaster-meta, MetaHash),
       q_graph_hash(MetaG, data, MetaHash),
       qb_instance(M, D, void:'Dataset', MetaG),
-      qb_label(M, D, "Kadaster"@nl, MetaG),
+      capitalize_string(DName, DLbl),
+      qb_label(M, D, DLbl^^xsd:string, MetaG),
       qb(M, D, void:subset, G, MetaG),
-      qb_label(M, G, "Test"@nl, MetaG),
+      capitalize_string(GName, GLbl),
+      qb_label(M, G, GLbl^^xsd:string, MetaG),
       qb(M, D, void:subset, MetaG, MetaG),
-      qb_label(M, MetaG, "Metadata"@nl, MetaG),
+      qb_label(M, MetaG, "Metadata"@en, MetaG),
       q_dataset_add_graph(D, meta, MetaG),
       q_dataset_set_default_graph(D, meta)
   ).
@@ -402,7 +407,9 @@ q_store_rm(G) :-
 
 % STORE %
 
-%! q_generate(-G, :Goal_1) is det.
+%! q_generate(?G, :Goal_1) is det.
+%
+% Goal_1 takes care of whether or not graph G is already instantiated.
 
 q_generate(G, Goal_1) :-
   call(Goal_1, G),
