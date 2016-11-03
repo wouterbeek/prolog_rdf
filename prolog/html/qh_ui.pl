@@ -30,7 +30,7 @@
 /** <module> Quine HTML UI components
 
 @author Wouter Beek
-@version 2016/07-2016/09
+@version 2016/07-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -40,7 +40,9 @@
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/js_write)).
+:- use_module(library(http/q_download)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_dataset_api)).
 :- use_module(library(q/q_graph)).
@@ -50,6 +52,7 @@
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(string_ext)).
 :- use_module(library(tree/s_tree)).
 :- use_module(library(yall)).
 
@@ -122,7 +125,7 @@ qh_dataset_table -->
 
 qh_dataset_table(Opts1) -->
   {
-    HeaderRow = ["Dataset","Graph","№ triples","Store"],
+    HeaderRow = ["Dataset","Graph","№ triples","Store","Download"],
     qh_default_table_options(Opts1, Opts2),
     q_dataset_trees(_, Opts2.order, Trees1),
     maplist(qh_dataset_tree0, Trees1, Trees2)
@@ -143,7 +146,11 @@ qh_graph_tree0(t(G,[]), t(q_graph_term(G),[t(Attrs,[])])) :-
     q_number_of_triples(M, G, NumTriples)
   )),
   aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
-  Attrs = [thousands(NumTriples),set(Ms)].
+  download_uri0(G, turtle, Uri),
+  Attrs = [thousands(NumTriples),set(Ms),internal_link(Uri,"Turtle")].
+
+download_uri0(G, Format, Location) :-
+  http_link_to_id(download_handler, [format(Format),graph(G)], Location).
 
 
 
