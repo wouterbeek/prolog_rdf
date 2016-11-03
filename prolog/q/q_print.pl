@@ -998,7 +998,8 @@ dcg_q_print_var(Var) -->
 %! dcg_q_print_class(+C, +Opts)// is det.
 
 dcg_q_print_class(C) -->
-  dcg_q_print_class(C, _{}).
+  {dcg_q_print_default_options(Opts)},
+  dcg_q_print_class(C, Opts).
 
 
 dcg_q_print_class(C, Opts) -->

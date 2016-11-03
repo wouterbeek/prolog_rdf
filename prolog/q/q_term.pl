@@ -288,7 +288,7 @@ q_class(M, C) :-
 
 
 q_class(M, C, G) :-
-  distinct(q_instance(M, _, C)),
+  distinct(C, q_instance(M, _, C)),
   q_node(M, C, G).
 
 

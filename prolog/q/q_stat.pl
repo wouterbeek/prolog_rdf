@@ -124,10 +124,11 @@ q_number_of_datatypes(M, G, NumDs) :-
 
 q_number_of_instances(M, C, NumIs) :-
   q_class(M, C),
-  aggregate_all(sum(NumIs), q_number_of_instances(M, C, _, NumIs), NumIs).
+  aggregate_all(count, q_instance(M, _, C), NumIs).
 
 
 q_number_of_instances(M, C, G, NumIs) :-
+  q_class(M, C, G),
   aggregate_all(count, q_instance(M, _, C, G), NumIs).
 
 
