@@ -352,7 +352,7 @@ q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
       q_file_graph(File, G),
       q_dataset_add_graph(D, GName, G),
       M = trp,
-      md5(kadaster-meta, MetaHash),
+      md5(DName-meta, MetaHash),
       q_graph_hash(MetaG, data, MetaHash),
       qb_instance(M, D, void:'Dataset', MetaG),
       capitalize_string(DName, DLbl),
@@ -392,7 +392,8 @@ q_store_rm :-
       directory_is_empty(Subdir)
     ),
     delete_directory(Subdir)
-  ).
+  ),
+  q_rm_datasets.
 
 
 q_store_rm(G) :-
