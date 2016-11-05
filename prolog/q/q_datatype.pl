@@ -74,29 +74,44 @@ q_datatype_check(D, Val) :-
 
 %! q_datatype_compat(+Lex, -D) is det.
 
+% xsd:date
+% xsd:dateTime
+% xsd:gDay
+% xsd:gMonth
+% xsd:gMonthDay
+% xsd:gYear
+% xsd:gYearMonth
+% xsd:time
 q_datatype_compat(Lex, D) :-
   catch((
     rdf11:xsd_date_time_type(D),
     xsd_time_string(_, D, Lex)
   ), _, false).
+
 q_datatype_compat(Lex, D) :-
   catch(xsd_number_string(N, Lex), _, false),
   rdf11:xsd_numerical(D, Dom, _),
   is_of_type(Dom, N).
+% rdf:HTML
 q_datatype_compat(Lex, rdf:'HTML') :-
   string_to_atom(Lex, Lex0),
   call_collect_messages(atom_to_html_dom(Lex0, Dom), _, _),
   memberchk(element(_,_,_), Dom).
+% rdf:XMLLiteral
 q_datatype_compat(Lex, rdf:'XMLLiteral') :-
   string_to_atom(Lex, Lex0),
   call_collect_messages(atom_to_xml_dom(Lex0, Dom), _, _),
   memberchk(element(_,_,_), Dom).
+% rdf:langString
+q_datatype_compat(_, rdf:langString).
+% xsd:boolean
 q_datatype_compat(Lex, xsd:boolean) :-
   rdf11:in_boolean(Lex, _).
 q_datatype_compat(Lex, xsd:boolean) :-
   string(Lex),
   number_string(N, Lex),
   rdf11:in_boolean(N, _).
+% xsd:string
 q_datatype_compat(_, xsd:string).
 
 

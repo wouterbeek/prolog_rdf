@@ -8,15 +8,12 @@
     qh_describe//4,           % +M, +S, +G          +Opts
     qh_graph_menu//1,         % +M
     qh_graph_menu//2,         % +Attrs, +M
-    qh_graph_table//0,
     qh_graph_table//1,        %                     +Opts
     qh_p_os_table//1,         % +Pairs
     qh_p_os_table//2,         % +Pairs,             +Opts
     qh_quad_panels//5,        % +M, ?S, ?P, ?O, ?G
     qh_quad_panels//6,        % +M, ?S, ?P, ?O, ?G, +Opts
-    qh_quad_table//1,         %     +Quads
     qh_quad_table//2,         %     +Quads,         +Opts
-    qh_quad_table//5,         % +M, ?S, ?P, ?O, ?G
     qh_quad_table//6,         % +M, ?S, ?P, ?O, ?G, +Opts
     qh_tree//1,               %     +Tree
     qh_tree//2,               %     +Tree,          +Opts
@@ -105,7 +102,10 @@ qh_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
   {with_output_to(string(Lbl), q_print_dataset_term(D))},
   html(
     optgroup(label(Lbl),
-      \html_maplist(qh_graph_menu_item0(D0, D, G0), Trees)
+      \html_maplist(
+        qh_graph_menu_item0(D0, D, G0),
+        Trees
+      )
     )
   ).
 
@@ -127,7 +127,8 @@ qh_dataset_table(Opts1) -->
   {
     HeaderRow = ["Dataset","Graph","№ triples","Store","Download"],
     qh_default_table_options(Opts1, Opts2),
-    q_dataset_trees(_, Opts2.order, Trees1),
+    dict_get(order, Opts2, number_of_triples, Order),
+    q_dataset_trees(_, Order, Trees1),
     maplist(qh_dataset_tree0, Trees1, Trees2)
   },
   table(
@@ -148,6 +149,7 @@ qh_graph_tree0(t(G,[]), t(q_graph_term(G),[t(Attrs,[])])) :-
   aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
   download_uri0(G, turtle, Uri),
   Attrs = [thousands(NumTriples),set(Ms),internal_link(Uri,"Turtle")].
+
 
 download_uri0(G, Format, Location) :-
   http_link_to_id(download_handler, [format(Format),graph(G)], Location).
@@ -204,16 +206,15 @@ qh_graph_menu(_, _) --> [].
 
 qh_graph_menu_item(Selected, G) -->
   {(Selected == true -> T = [class(selected)] ; T = [])},
-  html(option([value(G)|T], \qh_graph_term(G, _{qh_link: false}))).
+  html(
+    option([value(G)|T],
+      \qh_graph_term(G, _{handle_id: none})
+    )
+  ).
 
 
 
-%! qh_graph_table// is det.
 %! qh_graph_table(+Opts)// is det.
-
-qh_graph_table -->
-  qh_graph_table(_{}).
-
 
 qh_graph_table(Opts1) -->
   {
@@ -238,15 +239,24 @@ qh_p_os_table(Groups, Opts1) -->
   },
   table(
     \table_header_row(HeaderRow),
-    \html_maplist(qh_p_os_row0(Opts2), Groups)
+    \html_maplist(
+      {Opts2}/[Group]>>qh_p_os_row0(Group, Opts2),
+      Groups
+    )
   ).
 
 
 qh_p_os_row0(Opts, P-Os) -->
   html(
     tr([
-      td(\qh_property_outer0(property, [property], Opts, P)),
-      td(\html_seplist(qh_object_outer0(object, [object], Opts), " ", Os))
+      td(\qh_predicate(P, Opts)),
+      td(
+	\html_seplist(
+	  {Opts}/[O]>>qh_object(O, Opts),
+	  " ",
+	  Os
+	)
+      )
     ])
   ).
 
@@ -265,18 +275,15 @@ qh_quad_panels(M, S, P, O, G, Opts1) -->
     findall(G-Triple, q_triple(M, S, P, O, G, Triple), Pairs),
     group_pairs_by_key(Pairs, Groups)
   },
-  panels({Opts2}/[Group]>>qh_triple_table(Group, Opts2), Groups).
+  panels(
+    {Opts2}/[Group]>>qh_triple_table(Group, Opts2),
+    Groups
+  ).
 
 
 
-%! qh_quad_table(+Quads)// is det.
 %! qh_quad_table(+Quads, +Opts)// is det.
-%! qh_quad_table(+M, ?S, ?P, ?O, ?G)// is det.
 %! qh_quad_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
-
-qh_quad_table(Quads) -->
-  qh_quad_table(Quads, _{query_key: subject}).
-
 
 qh_quad_table(Quads, Opts1) -->
   {
@@ -285,12 +292,11 @@ qh_quad_table(Quads, Opts1) -->
   },
   table(
     \table_header_row(HeaderRow),
-    \html_maplist(qh_quad_row0(Opts2), Quads)
+    \html_maplist(
+      {Opts2}/[Quad]>>qh_quad_row0(Quad, Opts2),
+      Quads
+    )
   ).
-
-
-qh_quad_table(M, S, P, O, G) -->
-  qh_quad_table(M, S, P, O, G, _{}).
 
 
 qh_quad_table(M, S, P, O, G, Opts1) -->
@@ -301,13 +307,21 @@ qh_quad_table(M, S, P, O, G, Opts1) -->
   qh_quad_table(Quads, Opts2).
 
 
-qh_quad_row0(Opts, rdf(S,P,O,G)) -->
+qh_quad_row0(rdf(S,P,O,G), Opts) -->
   html(
-    tr(class=quadruple, [
-      td(class='col-md-3', \qh_subject_outer0(subject, [subject], Opts, S)),
-      td(class='col-md-3', \qh_predicate_outer0(predicate, [predicate], Opts, P)),
-      td(class='col-md-3', \qh_object_outer0(object, [object], Opts, O)),
-      td(class='col-md-3', \qh_graph_term_outer0(graph, [graph], Opts, G))
+    tr([
+      td(class='col-md-3',
+        \qh_subject(S, Opts.put(_{query_key: subject}))
+      ),
+      td(class='col-md-3',
+        \qh_predicate(P, Opts.put(_{query_key: predicate}))
+      ),
+      td(class='col-md-3',
+        \qh_object(O, Opts.put(_{query_key: object}))
+      ),
+      td(class='col-md-3',
+        \qh_graph_term(G, Opts.put(_{query_key: graph}))
+      )
     ])
   ).
 
@@ -343,15 +357,15 @@ qh_trees0(_, [], _) --> !, [].
 qh_trees0(Ns, [P-[Leaf-[]]|Trees], Opts) --> !,
   html([
     div(class=node, [
-      \qh_predicate_outer0(predicate, [predicate], Opts, P),
+      \qh_predicate(P, Opts),
       " ",
-      \qh_object_outer0(object, [object], Opts, Leaf)
+      \qh_object(Leaf, Opts)
     ]),
     \qh_trees0(Ns, Trees, Opts)
   ]).
 qh_trees0(Ns, [Leaf-[]|Trees], Opts) --> !,
   html([
-    div(class=node, \qh_object_outer0(object, [object], Opts, Leaf)),
+    div(class=node, \qh_object(Leaf, Opts)),
     \qh_trees0(Ns, Trees, Opts)
   ]).
 qh_trees0(Ns1, [Root-Subtrees|Trees], Opts) -->
@@ -365,9 +379,7 @@ qh_trees0(Ns1, [Root-Subtrees|Trees], Opts) -->
   html([
     div(class=node, [
       input([id=Id,type=checkbox], []),
-      label(for=Id,
-        \qh_predicate_outer0(predicate, [predicate], Opts, Root)
-      ),
+      label(for=Id, \qh_predicate(Root, Opts)),
       div(class=tree, \qh_trees0(Ns3, Subtrees, Opts))
     ]),
     \qh_trees0(Ns2, Trees, Opts)
@@ -389,16 +401,25 @@ qh_triple_table(Triples, Opts1) -->
   },
   table(
     \table_header_row(HeaderRow),
-    \html_maplist(qh_triple_row0(Opts2), Triples)
+    \html_maplist(
+      {Opts2}/[Triple]>>qh_triple_row0(Triple, Opts2),
+      Triples
+    )
   ).
 
 
-qh_triple_row0(Opts, rdf(S,P,O)) -->
+qh_triple_row0(rdf(S,P,O), Opts) -->
   html(
     tr(class=triple, [
-      td(class='col-md-4', \qh_subject_outer0(subject, [subject], Opts, S)),
-      td(class='col-md-3', \qh_predicate_outer0(predicate, [predicate], Opts, P)),
-      td(class='col-md-5', \qh_object_outer0(object, [object], Opts, O))
+      td(class='col-md-4',
+        \qh_subject(S, Opts.put(_{query_key: subject}))
+      ),
+      td(class='col-md-3',
+        \qh_predicate(P, Opts.put(_{query_key: predicate}))
+      ),
+      td(class='col-md-5',
+        \qh_object(O, Opts.put(_{query_key: object}))
+      )
     ])
   ).
 
@@ -428,10 +449,6 @@ qh_triple_table(M, S, P, O, G, Opts1) -->
 
 qh_default_table_options(Opts1, Opts2) :-
   qh:qh_default_options(_{}, DefOpts1),
-  DefOpts2 = _{
-    max_iri_length: 25,
-    order: number_of_triples,
-    qh_link: true
-  },
+  DefOpts2 = _{max_iri_length: 25},
   merge_dicts(DefOpts1, DefOpts2, DefOpts),
   merge_dicts(Opts1, DefOpts, Opts2).

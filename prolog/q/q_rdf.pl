@@ -10,6 +10,8 @@
     q_is_ground_triple/1,  % @Term
     q_is_quad/1,           % @Term
     q_is_triple/1,         % @Term
+    q_lex/4,               % +M, ?S, ?P, -Lex
+    q_lex/5,               % +M, ?S, ?P, -Lex, ?G
     q_lts/4,               % +M, ?S, ?P, ?Lit
     q_lts/5,               % +M, ?S, ?P, ?Lit, ?G
     q_lts/6,               % +M, ?S, ?P, +LRange, ?Lit, -G
@@ -61,7 +63,7 @@
 /** <module> Quine: RDF
 
 @author Wouter Beek
-@version 2016/06-2016/10
+@version 2016/06-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -98,6 +100,8 @@ error:has_type(q_tuple, Quad) :-
    q(+, r, r, o),
    q(+, r, r, o, r),
    q(+, r, r, o, r, r),
+   q_lex(+, r, r, -),
+   q_lex(+, r, r, -, r),
    q_lts(+, r, r, -),
    q_lts(+, r, r, r, -),
    q_lts(+, r, r, +, r, -),
@@ -225,6 +229,20 @@ q_is_quad(rdf(_,_,_,_)).
 %! q_is_triple(@Term) is semidet.
 
 q_is_triple(rdf(_,_,_)).
+
+
+
+%! q_lex(+M, ?S, ?P, -Lex) is nondet.
+%! q_lex(+M, ?S, ?P, -Lex, ?G) is nondet.
+
+q_lex(M, S, P, Lex) :-
+  q_lex(M, S, P, Lex, _).
+
+
+q_lex(M, S, P, Lex, G) :-
+  q(M, S, P, Lit, G),
+  q_is_literal(Lit),
+  q_literal_lex(Lit, Lex).
 
 
 

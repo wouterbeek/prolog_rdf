@@ -56,7 +56,7 @@
 /** <module> HDT extensions
 
 @author Wouter Beek
-@version 2016/06, 2016/08, 2016/10
+@version 2016/06, 2016/08, 2016/10-2016/11
 */
 
 :- use_module(library(hdt), []).
@@ -366,6 +366,8 @@ hdt_object(O, G) :-
 
 hdt_object0(O, Hdt) :-
   hdt:hdt_object(Hdt, O).
+hdt_object0(O, Hdt) :-
+  hdt:hdt_shared(Hdt, O).
 
 
 
@@ -448,7 +450,9 @@ hdt_subject(S, G) :-
 
 hdt_subject0(S, Hdt) :-
   (var(S) -> true ; q_is_subject(S)),
-  hdt:hdt_subject(Hdt, S).
+  (   hdt:hdt_subject(Hdt, S)
+  ;   hdt:hdt_shared(Hdt, S)
+  ).
 
 
 

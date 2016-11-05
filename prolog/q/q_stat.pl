@@ -7,6 +7,8 @@
     q_number_of_classes/3,    % +M,             ?G, -NumCs
     q_number_of_datatypes/2,  % +M,                 -NumDs
     q_number_of_datatypes/3,  % +M,             ?G, -NumDs
+    q_number_of_domains/3,    % +M,     ?P,         -NumDoms
+    q_number_of_domains/4,    % +M,     ?P,     ?G, -NumDoms
     q_number_of_instances/3,  % +M, ?C,             -NumIs
     q_number_of_instances/4,  % +M, ?C,         ?G, -NumIs
     q_number_of_literals/2,   % +M,                 -NumLits
@@ -21,6 +23,8 @@
     q_number_of_predicates/5, % +M, ?S,     ?O, ?G, -NumPs
     q_number_of_properties/2, % +M,                 -NumProps
     q_number_of_properties/3, % +M,             ?G, -NumProps
+    q_number_of_ranges/3,     % +M,     ?P,         -NumRans
+    q_number_of_ranges/4,     % +M,     ?P,     ?G, -NumRans
     q_number_of_subjects/2,   % +M,                 -NumSs
     q_number_of_subjects/3,   % +M,             ?G, -NumSs
     q_number_of_subjects/4,   % +M,     ?P, ?O,     -NumSs
@@ -36,7 +40,7 @@
 /** <module> Quine statistics
 
 @author Wouter Beek
-@version 2016/06-2016/10
+@version 2016/06-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -57,6 +61,8 @@
    q_number_of_classes(+, -),
    q_number_of_classes(+, r, -),
    q_number_of_datatype(+, r, -),
+   q_number_of_domains(+, r, -),
+   q_number_of_domains(+, r, r, -),
    q_number_of_instances(+, r, -),
    q_number_of_instances(+, r, r, -),
    q_number_of_literals(+, r, -),
@@ -67,6 +73,8 @@
    q_number_of_predicates(+, r, o, -),
    q_number_of_predicates(+, r, o, r, -),
    q_number_of_properties(+, r, -),
+   q_number_of_ranges(+, r, -),
+   q_number_of_ranges(+, r, r, -),
    q_number_of_subjects(+, r, -),
    q_number_of_subjects(+, r, o, -),
    q_number_of_subjects(+, r, o, r, -),
@@ -113,6 +121,22 @@ q_number_of_datatypes(M, NumDs) :-
 q_number_of_datatypes(M, G, NumDs) :-
   q_view_graph(M, G),
   aggregate_all(count, q_datatype(M, _, G), NumDs).
+
+
+
+%! q_number_of_domains(+M, ?P, -NumDoms) is det.
+%! q_number_of_domains(+M, ?P, ?G, -NumDoms) is det.
+%
+% Enumerates the pairs of predicates P and their number of ranges.
+
+q_number_of_domains(M, P, NumDoms) :-
+  q_predicate(M, P),
+  q_number_of_domains(M, P, _, NumDoms).
+
+
+q_number_of_domains(M, P, G, NumDoms) :-
+  q_predicate(M, P, G),
+  aggregate_all(count, q_domain(M, P, _, G), NumDoms).
 
 
 
@@ -209,13 +233,29 @@ q_number_of_properties(M, G, NumProps) :-
 
 
 
+%! q_number_of_ranges(+M, ?P, -NumRans) is det.
+%! q_number_of_ranges(+M, ?P, ?G, -NumRans) is det.
+%
+% Enumerates the pairs of predicates P and their number of ranges.
+
+q_number_of_ranges(M, P, NumRans) :-
+  q_predicate(M, P),
+  q_number_of_ranges(M, P, _, NumRans).
+
+
+q_number_of_ranges(M, P, G, NumRans) :-
+  q_predicate(M, P, G),
+  aggregate_all(count, q_range(M, P, _, G), NumRans).
+
+
+
 %! q_number_of_subjects(+M, -NumSs) is det.
 %! q_number_of_subjects(+M, ?G, -NumSs) is det.
 %! q_number_of_subjects(+M, ?P, ?O, -NumSs) is det.
 %! q_number_of_subjects(+M, ?P, ?O, ?G, -NumSs) is det.
 
 q_number_of_subjects(M, NumSs) :-
-  aggregate_all(sum(N0), q_number_of_subjects(M, _, N0), NumSs).
+  aggregate_all(sum(NumSs), q_number_of_subjects(M, _, NumSs), NumSs).
 
 
 q_number_of_subjects(hdt, G, NumSs) :-

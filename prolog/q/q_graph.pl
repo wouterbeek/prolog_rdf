@@ -2,6 +2,7 @@
   q_graph,
   [
     q_graph_label/2,      % +G, -Lbl
+    q_graph_source/3,     % +M, +G, -Source
     q_graph_table_comps/2 % -HeaderRow, -DataRows
   ]
 ).
@@ -9,7 +10,7 @@
 /** <module> Quine graph
 
 @author Wouter Beek
-@version 2016/08, 2016/10
+@version 2016/08, 2016/10-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -37,6 +38,15 @@ q_graph_label(G, Str) :-
   q_dataset_default_graph(D, DefG),
   q_pref_label(hdt, G, Lit, DefG),
   q_literal_string(Lit, Str).
+
+
+
+%! q_graph_source(+M, +G, -Source) is det.
+
+q_graph_source(hdt, G, Source) :- !,
+  q_file_graph(Source, G).
+q_graph_source(trp, G, Source) :-
+  rdf_graph_property(G, source(Source)).
 
 
 
