@@ -13,7 +13,6 @@
     gen_ntuples/3,        % +Tuples, +State, +Out
     gen_ntuples/4,        % ?M, ?G, +State, +Out
     gen_ntuples/7,        % ?M, ?S, ?P, ?O, ?G, +State, +Out
-    ntuples_media_type/2, % ?MT, ?Format
     write_nquad/2,        % +Sink, +Quad
     write_nquad/5,        % +Sink, +S, +P, +O, +G
     write_ntriple/2,      % +Sink, +Triple
@@ -87,7 +86,7 @@ call_to_nquads(Sink, Goal_2) :-
 
 
 call_to_nquads(Sink, Goal_2, Opts1) :-
-  merge_options([rdf_format(nquads)], Opts1, Opts2),
+  merge_options([rdf_media_type(application/'n-quads')], Opts1, Opts2),
   call_to_ntuples(Sink, Goal_2, Opts2).
 
 
@@ -103,7 +102,7 @@ call_to_ntriples(Sink, Goal_2) :-
 
 
 call_to_ntriples(Sink, Goal_2, Opts1) :-
-  merge_options([rdf_format(ntriples)], Opts1, Opts2),
+  merge_options([rdf_media_type(application/'n-triples')], Opts1, Opts2),
   call_to_ntuples(Sink, Goal_2, Opts2).
 
 
@@ -129,11 +128,11 @@ call_to_ntriples(Sink, Goal_2, Opts1) :-
 %
 %     The number of written quads.
 %
-%   * rdf_format(+oneof([nquads,ntriples]))
+%   * rdf_media_type(+ntuples_media_type)
 %
 %     The RDF serialization format that is used.  Possible values are
-%     `nquads` (default) for N-Quads 1.1 and `ntriples` for N-Triples
-%     1.1.
+%     application/'n-nquads' (default) for N-Quads 1.1 and
+%     application/'n-triples' for N-Triples 1.1.
 %
 %   * triples(-nonneg)
 %
@@ -189,7 +188,7 @@ gen_ntuple(S, P, O, G, State, Out) :-
     put_char(' '),
     gen_object(State, O),
     put_char(' '),
-    (   State.rdf_format == ntriples
+    (   State.rdf_media_type == application/'n-triples'
     ->  dict_inc(triples, State)
     ;   q_default_graph(G)
     ->  dict_inc(triples, State)
@@ -218,15 +217,6 @@ gen_ntuples(M, G, State, Out) :-
 gen_ntuples(M, S, P, O, G, State, Out) :-
   aggregate_all(set(S), q(M, S, P, O, G), Ss),
   maplist(gen_ntuples_for_subject0(State, Out, M, P, O, G), Ss).
-
-
-
-%! ntuples_media_type(+MT, -Format) is semidet.
-%
-% Succeeds for media types supported by this module.
-
-ntuples_media_type(application/'n-quads', nquads) :- !.
-ntuples_media_type(application/'n-triples', ntriples).
 
 
 
@@ -261,11 +251,11 @@ write_ntriple(Sink, S, P, O) :-
 %! gen_ntuples_begin(-State, +Opts) is det.
 
 gen_ntuples_begin(State2, Opts) :-
-  option(rdf_format(Format), Opts, nquads),
+  option(rdf_media_type(MT), Opts, nquads),
   State1 = _{
     bprefix: '_:',
     quads: 0,
-    rdf_format: Format,
+    rdf_media_type: MT,
     triples: 0
   },
   % Stream to write warnings to, if any.

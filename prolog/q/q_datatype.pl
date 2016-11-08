@@ -18,7 +18,7 @@
 /** <module> RDF datatype
 
 @author Wouter Beek
-@version 2016/06, 2016/09
+@version 2016/06, 2016/09, 2016/11
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -205,6 +205,3 @@ q_strict_subdatatype_of(X, Y) :-
 
 q_subdatatype_of(X, Y) :-
   xsd_subtype_of(X, Y).
-q_subdatatype_of(X, Y) :-
-  rdfs_subclass_of(X, Y),
-  \+ xsd_subtype_of(X, Y).

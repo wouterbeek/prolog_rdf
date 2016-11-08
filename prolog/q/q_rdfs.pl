@@ -15,6 +15,7 @@
     q_pref_string_lex/5, % +M, ?S, ?P, -Lex, ?G
     q_pref_string_lex/6, % +M, ?S, ?P, +LRange, -Lex, ?G
     q_range/4,           % +M, ?P, ?C, ?G
+    q_strict_subclass/4, % +M, ?C, ?D, ?G
     q_subclass/4         % +M, ?C, ?D, ?G
   ]
 ).
@@ -22,7 +23,7 @@
 /** <module> Quine: RDFS
 
 @author Wouter Beek
-@version 2016/09-2016/10
+@version 2016/09-2016/11
 */
 
 :- use_module(library(ltag/ltag_match)).
@@ -67,6 +68,7 @@ q_label_property(skos:altLabel).
    q_pref_string_lex(?, r, r, -, r),
    q_pref_string_lex(?, r, r, +, -, r),
    q_range(?, r, r, r),
+   q_strict_subclass(?, r, r, r),
    q_subclass(?, r, r, r).
 
 
@@ -192,7 +194,16 @@ q_range(M, P, C, G) :-
 
 
 
+%! q_strict_subclass(+M, ?C, ?D, ?G) is nondet.
+
+q_strict_subclass(M, C, D, G) :-
+  q_subclass(M, C, D, G),
+  C \== D.
+
+
+
 %! q_subclass(+M, ?C, ?D, ?G) is nondet.
 
+q_subclass(_, C, C, _).
 q_subclass(M, C, D, G) :-
   q(M, C, rdfs:subClassOf, D, G).

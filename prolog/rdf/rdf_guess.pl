@@ -1,10 +1,10 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_format/2,      % +In, -Format
-    rdf_guess_format/3,      % +In, -Format, +Opts
-    rdf_guess_format_file/2, % +File, -Format
-    rdf_guess_format_file/3  % +File, -Format, +Opts
+    rdf_guess_media_type/2,      % +In, -MT
+    rdf_guess_media_type/3,      % +In, -MT, +Opts
+    rdf_guess_media_type_file/2, % +File, -MT
+    rdf_guess_media_type_file/3  % +File, -MT, +Opts
   ]
 ).
 
@@ -12,7 +12,7 @@
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/08-2015/12, 2016/02-2016/04
+@version 2015/08-2015/12, 2016/02-2016/04, 2016/11
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -27,59 +27,59 @@
 
 
 
-%! rdf_guess_format(+In, -Format) is det.
-%! rdf_guess_format(+In, -Format, +Opts) is det.
+%! rdf_guess_media_type(+In, -MT) is det.
+%! rdf_guess_media_type(+In, -MT, +Opts) is det.
 %
 % The following options are supported:
 %
-%   * default_rdf_format(+rdf_format)
+%   * default_rdf_media_type(+rdf_media_type)
 
-rdf_guess_format(In, Format) :-
-  rdf_guess_format(In, Format, []).
-
-
-rdf_guess_format(In, Format, Opts) :-
-  rdf_guess_format0(In, 0, Format, Opts).
+rdf_guess_media_type(In, MT) :-
+  rdf_guess_media_type(In, MT, []).
 
 
-rdf_guess_format0(In, I, Format, Opts) :-
+rdf_guess_media_type(In, MT, Opts) :-
+  rdf_guess_media_type0(In, 0, MT, Opts).
+
+
+rdf_guess_media_type0(In, I, MT, Opts) :-
   N is 1000 * 2 ^ I,
   peek_string(In, N, S),
   debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
   % Try to parse the peeked string as Turtle- or XML-family.
   (   rdf_guess_jsonld(S, N),
-      Format = jsonld
-  ;   rdf_guess_turtle(S, N, Format, Opts)
-  ;   rdf_guess_xml(S, Format)
+      MT = application/'ld+json'
+  ;   rdf_guess_turtle(S, N, MT, Opts)
+  ;   rdf_guess_xml(S, MT)
   ), !,
-  debug(rdf(guess), "Assuming ~a based on heuristics.", [Format]).
-rdf_guess_format0(In, I1, Format, Opts) :-
+  debug(rdf(guess), "Assuming ~a based on heuristics.", [MT]).
+rdf_guess_media_type0(In, I1, MT, Opts) :-
   I1 < 4,
   I2 is I1 + 1,
-  rdf_guess_format0(In, I2, Format, Opts).
+  rdf_guess_media_type0(In, I2, MT, Opts).
 
 
-% For Turtle-family formats it matters whether or not
-% end of stream has been reached.
-rdf_guess_turtle(S, N, Format, Opts) :-
+% For Turtle-family media_types it matters whether or not end of
+% stream has been reached.
+rdf_guess_turtle(S, N, MT, Opts) :-
   % Do not backtrack if the whole stream has been peeked.
   string_length(S, M),
   ((M =:= 0 ; M < N) -> !, EoS = true ; EoS = false),
-  string_phrase(rdf_guess_turtle(EoS, Format, Opts), S, _).
+  string_phrase(rdf_guess_turtle(EoS, MT, Opts), S, _).
 
 
 
 
-%! rdf_guess_format_file(+File, -Format) is det.
-%! rdf_guess_format_file(+File, -Format, +Opts) is det.
+%! rdf_guess_media_type_file(+File, -MT) is det.
+%! rdf_guess_media_type_file(+File, -MT, +Opts) is det.
 
-rdf_guess_format_file(File, Format) :-
-  rdf_guess_format_file(File, Format, []).
+rdf_guess_media_type_file(File, MT) :-
+  rdf_guess_media_type_file(File, MT, []).
 
 
-rdf_guess_format_file(File, Format, Opts) :-
+rdf_guess_media_type_file(File, MT, Opts) :-
   call_on_stream(
     File,
-    [In,Meta,Meta]>>rdf_guess_format(In, Format, Opts),
+    {MT,Opts}/[In,Meta,Meta]>>rdf_guess_media_type(In, MT, Opts),
     Opts
   ).

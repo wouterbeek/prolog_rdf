@@ -10,7 +10,6 @@
     creator/4,           % +M, +Res,     -Agent,      ?G
     creators//3,         % +M, +Res,                  ?G
     dc_abstract/4,       % +M, +Res,     -Abstract,   ?G
-    dc_abstract//3,      % +M, +Res,                  ?G
     dc_abstract//4,      % +M, +Res,                  ?G, +Opts
     dc_created/4,        % +M, +Res,     -DT,         ?G
     dc_created//3,       % +M, +Res,                  ?G
@@ -44,7 +43,7 @@
 /** <module> RDFa
 
 @author Wouter Beek
-@version 2016/02-2016/08
+@version 2016/02-2016/08, 2016/11
 */
 
 :- use_module(library(apply)).
@@ -79,7 +78,7 @@
    creators(+, r, -, r),
    creators(+, r, r, ?, ?),
    dc_abstract(+, r, -, r),
-   dc_abstract(+, r, r, ?, ?),
+   dc_abstract(+, r, r, +, ?, ?),
    dc_created(+, r, -, r),
    dc_created(+, r, r, ?, ?),
    dc_creator(+, r, -, r),
@@ -218,17 +217,12 @@ agent_item0(M, G, Agent) -->
 
 
 %! dc_abstract(+M, +Res, -Abstract, ?G) is det.
-%! dc_abstract(+M, +Res, ?G)// is det.
 %! dc_abstract(+M, +Res, ?G, +Opts)// is det.
 %
 % Options are passed to qh_literal//2.
 
 dc_abstract(M, Res, Abstract, G) :-
   q_pref_string(M, Res, dc:abstract, Abstract, G).
-
-
-dc_abstract(M, Res, G) -->
-  dc_abstract(M, Res, G, _{}).
 
 
 dc_abstract(M, Res, G, Opts) -->

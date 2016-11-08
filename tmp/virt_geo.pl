@@ -50,4 +50,4 @@ virt_geo(File1, File2) :-
 
 virt_geo0(G, File) :-
   virt_geo(G),
-  rdf_write_to_sink(File, G, [rdf_format(ntriples)]).
+  rdf_write_to_sink(File, G, [rdf_media_type(application/'n-triples')]).

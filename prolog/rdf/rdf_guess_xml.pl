@@ -1,7 +1,7 @@
 :- module(
   rdf_guess_xml,
   [
-    rdf_guess_xml/2 % +Snippet:string, -Format:rdf_format
+    rdf_guess_xml/2 % +Snippet, -MT
   ]
 ).
 
@@ -9,7 +9,7 @@
 
 @author Jan Wielemaker
 @author Wouter Beek
-@version 2015/12, 2016/06
+@version 2015/12, 2016/06, 2016/11
 */
 
 :- use_module(library(memfile)).
@@ -21,9 +21,9 @@
 
 
 
-%! rdf_guess_xml(+Snippet:string, -Format:rdf_format) is det.
+%! rdf_guess_xml(+Snippet, -MT) is det.
 
-rdf_guess_xml(S, Format) :-
+rdf_guess_xml(S, MT) :-
   setup_call_cleanup(
     new_memory_file(MFile),
     (
@@ -34,7 +34,7 @@ rdf_guess_xml(S, Format) :-
       ),
      setup_call_cleanup(
         open_memory_file(MFile, read, Read),
-        guess_xml_type(Read, Format),
+        guess_xml_type(Read, MT),
         close(Read)
       )
     ),
@@ -43,30 +43,26 @@ rdf_guess_xml(S, Format) :-
 
 
 
-%! guess_xml_type(+Read, -Format:rdf_format) is semidet.
-% Try to see whether the document is some form of HTML or XML and in particular
-% whether it is  RDF/XML.
-% The latter is basically impossible because it is not obligatory for
-% an RDF/XML document to have an rdf:RDF top level  element, and  when using
-% a typed node, just about anything can qualify for RDF.
-% The only real demand is the XML document uses XML namespaces because these
-% are both required to define <rdf:Description> and a valid type IRI from a
-% typed node.
+%! guess_xml_type(+Read, -MT) is semidet.
+%
+% Try to see whether the document is some form of HTML or XML and in
+% particular whether it is RDF/XML.  The latter is basically
+% impossible because it is not obligatory for an RDF/XML document to
+% have an rdf:RDF top level element, and when using a typed node, just
+% about anything can qualify for RDF.  The only real demand is the XML
+% document uses XML namespaces because these are both required to
+% define <rdf:Description> and a valid type IRI from a typed node.
 %
 % If the toplevel element is detected as =HTML=, we pass =rdfa= as type.
 
-guess_xml_type(Read, Format) :-
+guess_xml_type(Read, MT) :-
   xml_doctype(Read, Dialect, DocType, Attrs),
-  doc_content_type(Dialect, DocType, Attrs, Format).
+  doc_content_type(Dialect, DocType, Attrs, MT).
 
 
 
-%! xml_doctype(
-%!   +Read,
-%!   -Dialect:atom,
-%!   -DocType:atom,
-%!   -Attributes:list(compound)
-%! ) is semidet.
+%! xml_doctype(+Read, -Dialect:atom, -DocType:atom, -Attrs) is semidet.
+%
 % Parse a _repositional_ stream and get the name of the first XML
 % element *and* demand that this element defines XML namespaces.
 % Fails if the document is illegal XML before the first element.
@@ -105,17 +101,21 @@ on_cdata(_, _) :-
 
 
 
-%! doc_content_type(+Dialect, +Doctype, +Attrs, -Format) is det.
+%! doc_content_type(+Dialect, +Doctype, +Attrs, -MT) is det.
 
-doc_content_type(_,       html, _,     rdfa) :- !.
-doc_content_type(html,    _,    _,     rdfa) :- !.
-doc_content_type(xhtml,   _,    _,     rdfa) :- !.
-doc_content_type(html5,   _,    _,     rdfa) :- !.
-doc_content_type(xhtml5,  _,    _,     rdfa) :- !.
-doc_content_type(xml,     rss,  _,     rss ) :- !.
-doc_content_type(Dialect, Top,  Attrs, xml ) :-
+doc_content_type(_, html, _, text/html) :- !.
+doc_content_type(html, _, _, text/html) :- !.
+doc_content_type(xhtml, _, _, application/'xhtml+xml') :- !.
+doc_content_type(html5, _, _, text/html) :- !.
+doc_content_type(xhtml5, _, _, application/'xhtml+xml') :- !.
+doc_content_type(xml, rss, _, application/'rss+xml') :- !.
+doc_content_type(Dialect, Top,  Attrs, application/'xhtml+xml') :-
   % Extract the namespace from the doctype.
-  (Dialect == sgml -> LocalName = rdf ; Dialect == xml -> LocalName = 'RDF'),
+  (   Dialect == sgml
+  ->  LocalName = rdf
+  ;   Dialect == xml
+  ->  LocalName = 'RDF'
+  ),
   atomic_list_concat([NS,LocalName], :, Top),
 
   % Look up the RDF namespace in the attributes list.

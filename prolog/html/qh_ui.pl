@@ -39,7 +39,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/js_write)).
-:- use_module(library(http/q_download)).
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_dataset_api)).
 :- use_module(library(q/q_graph)).
@@ -147,12 +146,12 @@ qh_graph_tree0(t(G,[]), t(q_graph_term(G),[t(Attrs,[])])) :-
     q_number_of_triples(M, G, NumTriples)
   )),
   aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
-  download_uri0(G, turtle, Uri),
+  download_uri0(G, 'application/turtle', Uri),
   Attrs = [thousands(NumTriples),set(Ms),internal_link(Uri,"Turtle")].
 
 
-download_uri0(G, Format, Location) :-
-  http_link_to_id(download_handler, [format(Format),graph(G)], Location).
+download_uri0(G, MT, Location) :-
+  http_link_to_id(download_handler, [graph(G),media_type(MT)], Location).
 
 
 
@@ -451,4 +450,4 @@ qh_default_table_options(Opts1, Opts2) :-
   qh:qh_default_options(_{}, DefOpts1),
   DefOpts2 = _{max_iri_length: 25},
   merge_dicts(DefOpts1, DefOpts2, DefOpts),
-  merge_dicts(Opts1, DefOpts, Opts2).
+  merge_dicts(DefOpts, Opts1, Opts2).

@@ -7,6 +7,7 @@
     q_dataset/3,                   % ?D, ?DefKey, ?Pairs
     q_dataset_add_graph/2,         % +D, +NG
     q_dataset_add_graph/3,         % +D, +Key, +NG
+    q_dataset_db_exists/0,
     q_dataset_default_graph/2,     % ?D, ?DefG
     q_dataset_graph/2,             % ?D, ?G
     q_dataset_graph/3,             % ?D, ?Key, ?G
@@ -23,7 +24,7 @@
 /** <module> Quine: Dataset DB
 
 @author Wouter Beek
-@version 2016/08-2016/10
+@version 2016/08-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -39,7 +40,11 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
-:- initialization(db_attach('q_dataset.db', [])).
+:- initialization(q_dataset_db_init).
+
+q_dataset_db_init :-
+  q_dataset_db_file(File),
+  db_attach(File, []).
 
 %! q_dataset(?D:atom, ?Key:atom, -Pairs:list(pair(atom))) is nondet.
 
@@ -112,6 +117,23 @@ q_dataset_add_graph(D, Key, NG) :-
     ),
     assert_q_dataset(D, Key0, Pairs2)
   )).
+
+
+
+%! q_dataset_db_exists is semidet.
+%
+% Succeeds iff the Quine dataset persistent DB file exists.
+
+q_dataset_db_exists :-
+  q_dataset_db_file(File),
+  exists_file(File).
+
+
+
+%! q_dataset_db_file(-File) is det.
+
+q_dataset_db_file(File) :-
+  absolute_file_name('q_dataset.db', File, [access(write),file_errors(fail)]).
 
 
 

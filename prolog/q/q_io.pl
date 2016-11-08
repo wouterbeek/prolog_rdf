@@ -400,7 +400,7 @@ q_store_rm(G) :-
   q_cache_rm(G),
   q_file_graph(File, G),
   q_delete_file(File),
-  q_rm_dataset_graph(G).
+  (q_dataset_db_exists -> q_rm_dataset_graph(G) ; true).
 
 
 
@@ -750,7 +750,12 @@ q_view2store(M) :-
 q_view2store(M, G) :-
   q_file_graph(NTriplesFile, ntriples, G),
   create_file_directory(NTriplesFile),
-  rdf_write_to_sink(NTriplesFile, M, G, [mode(write),rdf_format(ntriples)]),
+  rdf_write_to_sink(
+    NTriplesFile,
+    M,
+    G,
+    [mode(write),rdf_media_type(application/'n-triples')]
+  ),
   q_file_touch_ready(NTriplesFile).
 
 

@@ -131,8 +131,8 @@ rdf_store_warning(Out, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
 rdf_store_warning(Out, Doc, error(domain_error(url,Url),_)) :- !,
   write_ntriple(Out, Doc, nsdef:malformed_url, Url^^xsd:anyURI).
 % No RDF
-rdf_store_warning(Out, Doc, error(domain_error(rdf_format,Format),_)) :- !,
-  write_ntriple(Out, Doc, nsdef:no_rdf_serialization_format, Format^^xsd:string).
+rdf_store_warning(Out, Doc, error(domain_error(rdf_media_type,MT),_)) :- !,
+  write_ntriple(Out, Doc, nsdef:no_rdf_media_type, MT^^xsd:string).
 % Permission: redirect
 rdf_store_warning(Out, Doc, error(permission_error(redirect,http,Object),context(_,Msg1))) :- !,
   atom_ellipsis(Msg1, 500, Msg2),

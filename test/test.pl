@@ -63,7 +63,6 @@
 %/rdf
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_error)).
-:- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_graph_viz)).

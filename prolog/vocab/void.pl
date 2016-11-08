@@ -1,6 +1,8 @@
 :- module(
   void,
   [
+    q_p_range/3,     % +M, +P, -Ran
+    q_p_range/4,     % +M, +P, -Ran, ?G
     qb_license/4,    % +M, +S, +Name, +G
     qb_norms/4,      % +M, +S, +Name, +G
     qb_void_graph/6, % +M, +D, +GName, +G, :Goal_4, +MetaG
@@ -14,7 +16,7 @@ Automatically generate VoID descriptions.
 
 @author Wouter Beek
 @tbd Add support for generating linksets.
-@version 2016/01-2016/02, 2016/04, 2016/06, 2016/10
+@version 2016/01-2016/02, 2016/04, 2016/06, 2016/10-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -22,6 +24,10 @@ Automatically generate VoID descriptions.
 :- use_module(library(atom_ext)).
 :- use_module(library(jsonld/jsonld_metadata)).
 :- use_module(library(licenses)).
+:- use_module(library(q/q_datatype)).
+:- use_module(library(q/q_print)).
+:- use_module(library(q/q_rdf)).
+:- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -35,12 +41,58 @@ Automatically generate VoID descriptions.
     qb_void_graph(+, +, +, +, 4, +).
 
 :- rdf_meta
+   q_p_range(+, r, -),
+   q_p_range(+, r, -, r),
    qb_license(+, r, +, r),
    qb_norms(+, r, +, r),
    qb_void_graph(+, r, +, r, :, r),
    qb_waiver(+, r, o, r).
 
 
+
+
+
+%! q_p_range(+M, +P, -Ran) is det.
+%! q_p_range(+M, +P, -Ran, +G) is det.
+
+q_p_range(M, P, Ran) :-
+  q_p_range(M, P, Ran, _).
+
+
+q_p_range(M, P, _, G) :-
+  flag(q_p_range, _, 0),
+  once(q(M, _, P, O0, G)),
+  q_term_cat0(M, O0, Ran0, G),
+  nb_setval(range, Ran0),
+  q(M, _, P, O, G),
+  flag(q_p_range, N, N+1), format("~D ", [N]), q_print_object(O), nl,
+  q_term_cat0(M, O, Ran2, G),
+  nb_getval(range, Ran1),
+  q_merge_cat0(M, Ran1, Ran2, Ran3, G),
+  nb_setval(range, Ran3),
+  fail.
+q_p_range(_, _, Ran, _) :-
+  nb_getval(range, Ran),
+  nb_delete(range).
+
+q_term_cat0(_, Lit, D, _) :-
+  q_is_literal(Lit), !,
+  q_literal_datatype(Lit, D).
+q_term_cat0(M, I, C, G) :-
+  q_instance(M, I, C),
+  \+ (
+    q_instance(M, I, C0),
+    q_strict_subclass(M, C0, C, G)
+  ), !.
+q_term_cat0(_, _, C, _) :-
+  rdf_equal(C, rdfs:'Resource').
+
+q_merge_cat0(_, D1, D2, D3, _) :-
+  q_subdatatype_of(D1, D3),
+  q_subdatatype_of(D2, D3), !.
+q_merge_cat0(M, C1, C2, C3, G) :-
+  q_subclass(M, C1, C3, G),
+  q_subclass(M, C2, C3, G), !.
 
 
 
@@ -155,8 +207,8 @@ qb_void_graph(M, D, GName, G, Goal_4, MetaG) :-
 
   % @tbd Based on datadump endpoint.
   %% void:feature
-  %jsonld_metadata_expand_iri(Meta.rdf_format, Format),
-  %qb(M, G, void:feature, Format, MetaG),
+  %jsonld_metadata_expand_iri(Meta.rdf_media_type, MT),
+  %qb(M, G, void:feature, MT, MetaG),
   
   % Number of distinct predicate terms (erroneously called
   % ‘void:properties’).

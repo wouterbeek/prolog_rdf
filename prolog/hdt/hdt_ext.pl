@@ -414,11 +414,11 @@ hdt_prepare_base(Base, File3) :-
   exists_file(File1), !,
   atomic_list_concat([Base,nt,gz], ., File2),
   setup_call_cleanup(
-    rdf_change_format(
+    rdf_reserialize(
       File1,
       File2,
-      [rdf_format(nquads)],
-      [rdf_format(ntriples)]
+      [rdf_media_type(application/'n-quads')],
+      [rdf_media_type(application/'n-triples')]
     ),
     hdt_prepare_base(Base, File3),
     delete_file(File2)

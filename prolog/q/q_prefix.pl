@@ -60,6 +60,7 @@ init_q_prefix :-
   qb_alias(dct, 'http://purl.org/dc/terms/'),
   qb_alias(fb, 'http://rdf.freebase.com/ns/'),
   qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
+  qb_alias(formats, 'http://www.w3.org/ns/formats/'),
   qb_alias(geold, 'http://geojsonld.com/vocab#'),
   qb_alias(geosparql, 'http://www.opengis.net/ont/geosparql#'),
   qb_alias(http, 'http://www.w3.org/2011/http#'),
