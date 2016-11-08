@@ -133,7 +133,11 @@ q_dataset_db_exists :-
 %! q_dataset_db_file(-File) is det.
 
 q_dataset_db_file(File) :-
-  absolute_file_name('q_dataset.db', File, [access(write),file_errors(fail)]).
+  absolute_file_name(
+    '~/q_dataset.db',
+    File,
+    [access(write),expand(true),file_errors(fail)]
+  ).
 
 
 
@@ -170,9 +174,8 @@ q_dataset_named_graph(D, NG) :-
 
 
 q_dataset_named_graph(D, Key, NG) :-
-  q_dataset(D, Key0, Pairs),
-  member(Key-NG, Pairs),
-  Key \== Key0.
+  q_dataset(D, _, Pairs),
+  member(Key-NG, Pairs).
 
 
 

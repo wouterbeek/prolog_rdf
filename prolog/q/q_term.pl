@@ -7,6 +7,9 @@
    %q_alias_prefix/2,      % ?Alias, ?Prefix
     q_bnode/2,             % +M, ?B
     q_bnode/3,             % +M, ?B, ?G
+    q_bnode_iri/2,         % +M, ?B
+    q_bnode_iri/3,         % +M, ?B, ?G
+    q_bnode_iri_prefix/1,  % ?Prefix
     q_class/2,             % +M, -C
     q_class/3,             % +M, -C, ?G
     q_datatype/2,          % +M, ?D
@@ -68,11 +71,10 @@
     q_subject/3,           % +M, ?S, ?G
     q_term/2,              % +M, ?Term
     q_term/3,              % +M, ?Term, ?G
-    q_term_expansion/2,    % +Atom, -Term
-   %q_transaction/1,       % :Goal_0
-   %q_transaction/2,       % :Goal_0, +Id
-   %q_transaction/3,       % :Goal_0, +Is, +Opts
-    ll_is_bnode/1          % @Term
+    q_term_expansion/2     % +Atom, -Term
+   %q_transaction/1        % :Goal_0
+   %q_transaction/2        % :Goal_0, +Id
+   %q_transaction/3        % :Goal_0, +Is, +Opts
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
@@ -190,6 +192,7 @@ q_ltag0(LTag) -->
 :- rdf_meta
    q_aggregate_all(+, t, -),
    q_bnode(?, ?, r),
+   q_bnode_iri(?, ?, r),
    q_class(+, r),
    q_class(+, r, r),
    q_datatype(?, r),
@@ -277,6 +280,28 @@ q_bnode(hdt0, B, Hdt) :-
   hdt_bnode0(B, Hdt).
 q_bnode(trp, B, G) :-
   rdf_bnode(B, G).
+
+
+
+%! q_bnode_iri(+M, ?B) is semidet.
+%! q_bnode_iri(+M, ?B, ?G) is semidet.
+
+q_bnode_iri(M, B) :-
+  q_bnode_iri(M, B, _).
+
+
+q_bnode_iri(M, B, G) :-
+  q_bnode_iri_prefix(Prefix),
+  q_iri(M, B, G),
+  atom_prefix(B, Prefix).
+
+
+
+%! q_bnode_iri_prefix(+Prefix) is semidet.
+%! q_bnode_iri_prefix(-Prefix) is det.
+
+q_bnode_iri_prefix(Prefix) :-
+  q_alias_prefix(bnode, Prefix).
 
 
 
@@ -742,10 +767,3 @@ q_term_expansion(X, Y) :-
   q_alias(Alias), !,
   rdf_global_id(Alias:Local, Y).
 q_term_expansion(X, X).
-
-
-
-%! ll_is_bnode(@Term) is semidet.
-
-ll_is_bnode(B) :-
-  atom_prefix(B, 'http://lodlaundromat.org/.well-known/genid/').

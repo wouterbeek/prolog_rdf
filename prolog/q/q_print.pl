@@ -30,6 +30,8 @@
     dcg_q_print_quads//2,        %     +Tuples,        +Opts
     dcg_q_print_quads//5,        % ?M, ?S, ?P, ?O, ?G
     dcg_q_print_quads//6,        % ?M, ?S, ?P, ?O, ?G, +Opts
+    dcg_q_print_subject//1,      %     +S
+    dcg_q_print_subject//2,      %     +S,             +Opts
     dcg_q_print_term//1,         %     +Term
     dcg_q_print_term//2,         %     +Term,          +Opts
     dcg_q_print_triple//1,       %     +Tuple
@@ -824,6 +826,11 @@ dcg_q_print_predicate(P, _) -->
 dcg_q_print_predicate(P, Opts) -->
   dcg_q_print_iri(P, Opts).
 
+
+
+dcg_q_print_subject(S) -->
+  {dcg_q_print_default_options(Opts)},
+  dcg_q_print_subject(S, Opts).
 
 
 dcg_q_print_subject(S, Opts) -->

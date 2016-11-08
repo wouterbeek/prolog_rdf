@@ -50,6 +50,7 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_rdf)).
+:- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf_stat)).
 :- use_module(library(rdf/rdf_term)).

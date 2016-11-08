@@ -1,9 +1,10 @@
 :- module(
   q_graph,
   [
-    q_graph_label/2,      % +G, -Lbl
-    q_graph_source/3,     % +M, +G, -Source
-    q_graph_table_comps/2 % -HeaderRow, -DataRows
+    q_graph_label/2,          % +G, -Lbl
+    q_graph_meta_graph/2, % +G, -MetaG
+    q_graph_source/3,         % +M, +G, -Source
+    q_graph_table_comps/2     % -HeaderRow, -DataRows
   ]
 ).
 
@@ -34,10 +35,17 @@
 %! q_graph_label(+G, -Lbl) is det.
 
 q_graph_label(G, Str) :-
-  q_dataset_graph(D, G),
-  q_dataset_default_graph(D, DefG),
-  q_pref_label(hdt, G, Lit, DefG),
+  q_graph_meta_graph(G, MetaG),
+  q_pref_label(hdt, G, Lit, MetaG),
   q_literal_string(Lit, Str).
+
+
+
+%! q_graph_meta_graph(+G, -MetaG) is det.
+
+q_graph_meta_graph(G, MetaG) :-
+  q_dataset_graph(D, G),
+  q_dataset_named_graph(D, meta, MetaG).
 
 
 

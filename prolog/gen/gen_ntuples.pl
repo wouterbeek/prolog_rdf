@@ -27,7 +27,8 @@ The following debug flags are used:
   * gen_ntuples
 
 @author Wouter Beek
-@version 2016/03-2016/08
+@tbd Resolve relative IRIs relative to an optional base IRI.
+@version 2016/03-2016/08, 2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -41,7 +42,6 @@ The following debug flags are used:
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
@@ -182,11 +182,11 @@ gen_ntuple(S, P, O, State, Out) :-
 
 gen_ntuple(S, P, O, G, State, Out) :-
   with_output_to(Out, (
-    gen_subject(State, S),
+    gen_subject(S),
     put_char(' '),
     gen_predicate(P),
     put_char(' '),
-    gen_object(State, O),
+    gen_object(O),
     put_char(' '),
     (   State.rdf_media_type == application/'n-triples'
     ->  dict_inc(triples, State)
@@ -253,7 +253,6 @@ write_ntriple(Sink, S, P, O) :-
 gen_ntuples_begin(State2, Opts) :-
   option(rdf_media_type(MT), Opts, nquads),
   State1 = _{
-    bprefix: '_:',
     quads: 0,
     rdf_media_type: MT,
     triples: 0
@@ -262,15 +261,6 @@ gen_ntuples_begin(State2, Opts) :-
   (   option(warn(Warn), Opts)
   ->  State2 = State1.put(_{warn: Warn})
   ;   State2 = State1
-  ),
-  % Well-known IRI prefix for blank nodes
-  (   option(base_iri(BaseIri), Opts)
-  ->  iri_comps(BaseIri, uri_components(Scheme,Auth,Path0,_,_)),
-      atom_ending_in(Path0, '#', Suffix),
-      atomic_list_concat(['','.well-known',genid,Suffix], /, Path),
-      iri_comps(BPrefix, uri_components(Scheme,Auth,Path,_,_)),
-      nb_set_dict(bprefix, State2, BPrefix)
-  ;   true
   ),
   indent_debug(gen_ntuples, "> Writing N-Tuples").
 
@@ -313,10 +303,10 @@ gen_ntuples_for_object0(State, Out, M, G, S, P, O) :-
 
 % TERMS BY POSITION %
 
-gen_subject(State, B) :-
+gen_subject(B) :-
   q_is_bnode(B), !,
-  gen_bnode(State, B).
-gen_subject(_, Iri) :-
+  gen_bnode(B).
+gen_subject(Iri) :-
   gen_iri(Iri).
 
 
@@ -326,15 +316,15 @@ gen_predicate(P) :-
 
 
 
-gen_object(State, B) :-
+gen_object(B) :-
   q_is_bnode(B), !,
-  gen_bnode(State, B).
-gen_object(_, Iri) :-
+  gen_bnode(B).
+gen_object(Iri) :-
   q_is_iri(Iri), !,
   gen_iri(Iri).
 % Literal term comes last to support both modern (`rdf11`) and legacy
 % (`rdf_db`) formats.
-gen_object(_, Lit) :-
+gen_object(Lit) :-
   gen_literal(Lit).
 
 
@@ -348,10 +338,10 @@ gen_graph(G) :-
 
 % TERMS BY KIND %
 
-gen_bnode(State, B) :-
-  q_bnode_map(B, Name),
-  write(State.bprefix),
-  write(Name).
+gen_bnode(B) :-
+  atom_concat('_:', Local, B),
+  rdf_global_id(bnode:Local, Iri),
+  gen_iri(Iri).
 
 
 

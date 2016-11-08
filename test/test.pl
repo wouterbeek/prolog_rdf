@@ -59,6 +59,7 @@
 :- use_module(library(q/q_wgs84)).
 :- use_module(library(q/q_wkt)).
 :- use_module(library(q/qb)).
+:- use_module(library(q/qb_meta)).
 :- use_module(library(q/qu)).
 %/rdf
 :- use_module(library(rdf/rdf_compare)).
@@ -92,7 +93,5 @@
 :- use_module(library(service/odc)).
 :- use_module(library(service/prefix_cc)).
 :- use_module(library(service/void_store)).
-%/vocab
-:- use_module(library(vocab/void)).
 %/xsd
 :- use_module(library(xsd/xsd)).

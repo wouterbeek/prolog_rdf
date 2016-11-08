@@ -35,8 +35,8 @@
 %! q_dataset_label(+D, -Lbl) is det.
 
 q_dataset_label(D, Str) :-
-  q_dataset_default_graph(D, DefG),
-  q_pref_label(hdt, D, Lit, DefG),
+  q_dataset_named_graph(D, meta, MetaG),
+  q_pref_label(hdt, D, Lit, MetaG),
   q_literal_string(Lit, Str).
 
 
