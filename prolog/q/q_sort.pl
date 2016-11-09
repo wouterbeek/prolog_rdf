@@ -1,9 +1,9 @@
 :- module(
   q_sort,
   [
-    q_sort_terms/3,     % +Terms, :Goal_2, -Sorted
-      pair_label_key/4, % +M, +G | +Pair, -Key
-      term_label_key/4  % +M, +G | +Term, -Key
+    q_sort_terms/3,   % +Terms, :Goal_2, -Sorted
+    pair_label_key/4, % +M, +G | +Pair, -Key
+    term_label_key/4  % +M, +G | +Term, -Key
   ]
 ).
 
