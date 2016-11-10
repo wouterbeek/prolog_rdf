@@ -1,7 +1,7 @@
 :- module(
   q_optimise,
   [
-    q_estimate_complexity/6,     % +M, ?S, ?P, ?O, ?G, -N
+    q_estimate_complexity/6,     % +M, ?S, ?P, ?O, ?G, -NumTriples
     q_object_branching_factor/4, % +M, +P, ?G, -N
     q_subject_branching_factor/4 % +M, +P, ?G, -N
   ]
@@ -25,7 +25,7 @@
 
 
 
-%! q_estimate_complexity(+M, ?S, ?P, ?O, ?G, -N) is det.
+%! q_estimate_complexity(+M, ?S, ?P, ?O, ?G, -NumTriples) is det.
 
 q_estimate_complexity(hdt, S, P, O, G, N) :- !,
   hdt_estimate_complexity(S, P, O, N, G).
