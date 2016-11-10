@@ -51,9 +51,13 @@ q_graph_meta_graph(G, MetaG) :-
 
 %! q_graph_source(+M, +G, -Source) is det.
 
-q_graph_source(hdt, G, Source) :- !,
+q_graph_source(M, G, Source) :-
+  q_graph_source0(M, G, Source0),
+  uri_file_name(Source, Source0).
+
+q_graph_source0(hdt, G, Source) :- !,
   q_file_graph(Source, G).
-q_graph_source(trp, G, Source) :-
+q_graph_source0(trp, G, Source) :-
   rdf_graph_property(G, source(Source)).
 
 

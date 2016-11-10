@@ -219,10 +219,10 @@ q_rm_dataset_graph(D, G) :-
       Pairs2 == []
   ->  retractall_q_dataset(D, _, _)
   ;   retractall_q_dataset(D, DefKey1, Pairs1),
-      (   % Change the default graph in case it is removed but some other
-          % graph remains.
+      (   % Change the default graph in case it is removed, but some
+          % other graph remains.
           DefKey1 == Key
-      ->  Pairs2 = [DefKey2|_]
+      ->  Pairs2 = [DefKey2-_|_]
       ;   DefKey2 = DefKey1
       ),
       assert_q_dataset(D, DefKey2, Pairs2)

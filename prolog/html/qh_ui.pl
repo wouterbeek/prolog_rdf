@@ -2,8 +2,6 @@
   qh_ui,
   [
     qh_dataset_graph_menu//3, % +M, +D, +G
-    qh_dataset_table//0,
-    qh_dataset_table//1,      %                     +Opts
     qh_describe//3,           % +M, +S, +G
     qh_describe//4,           % +M, +S, +G          +Opts
     qh_graph_menu//1,         % +M
@@ -112,46 +110,6 @@ qh_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
 qh_graph_menu_item0(D0, D, G0, t(G,[])) -->
   {(D0 = D, G0 = G -> Selected = true ; Selected = false)},
   qh_graph_menu_item(Selected, G).
-
-
-
-%! qh_dataset_table// is det.
-%! qh_dataset_table(+Opts)// is det.
-
-qh_dataset_table -->
-  qh_dataset_table(_{}).
-
-
-qh_dataset_table(Opts1) -->
-  {
-    HeaderRow = ["Dataset","Graph","№ triples","Store","Download"],
-    qh_default_table_options(Opts1, Opts2),
-    dict_get(order, Opts2, number_of_triples, Order),
-    q_dataset_trees(_, Order, Trees1),
-    maplist(qh_dataset_tree0, Trees1, Trees2)
-  },
-  table(
-    \table_header_row(HeaderRow),
-    \table_trees(html_hook(Opts2), Trees2)
-  ).
-
-
-qh_dataset_tree0(t(D,Trees1), t(q_dataset_term(D),Trees2)) :-
-  maplist(qh_graph_tree0, Trees1, Trees2).
-
-
-qh_graph_tree0(t(G,[]), t(q_graph_term(G),[t(Attrs,[])])) :-
-  once((
-    q_view_graph(M, G),
-    q_number_of_triples(M, G, NumTriples)
-  )),
-  aggregate_all(set(M0), q_view_graph(M0, G),  Ms),
-  download_uri0(G, 'application/turtle', Uri),
-  Attrs = [thousands(NumTriples),set(Ms),internal_link(Uri,"Turtle")].
-
-
-download_uri0(G, MT, Location) :-
-  http_link_to_id(download_handler, [graph(G),media_type(MT)], Location).
 
 
 
