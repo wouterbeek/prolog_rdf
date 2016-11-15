@@ -43,6 +43,7 @@
     dcg_q_print_triples//4,      % ?M, ?S, ?P, ?O
     dcg_q_print_triples//5,      % ?M, ?S, ?P, ?O, ?G
     dcg_q_print_triples//6,      % ?M, ?S, ?P, ?O, ?G, +Opts
+    dcg_q_print_var//2,          % +Var,               +Opts
     q_print_cbd/2,               % ?M, ?S
     q_print_cbd/3,               % ?M, ?S,         ?G
     q_print_cbd/4,               % ?M, ?S,         ?G, +Opts
@@ -135,6 +136,7 @@ Print RDF statements.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_table)).
+:- use_module(library(dialect/hprolog)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -148,10 +150,8 @@ Print RDF statements.
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
 :- use_module(library(settings)).
+:- use_module(library(typecheck)).
 :- use_module(library(yall)).
-
-:- dynamic
-    var_map/2.
 
 :- multifile
     dcg:dcg_hook//1,
@@ -758,7 +758,11 @@ dcg_q_print_triple(S, P, O) -->
 
 
 dcg_q_print_triple(S, P, O, Opts) -->
-  dcg_q_print_triples([rdf(S,P,O)], Opts).
+  dcg_q_print_subject(S, Opts),
+  " ",
+  dcg_q_print_predicate(P, Opts),
+  " ",
+  dcg_q_print_object(O, Opts).
 
 
 
@@ -820,9 +824,9 @@ dcg_q_print_predicate(P, _) -->
     rdf_equal(rdf:type, P)
   }, !,
   "a".
-dcg_q_print_predicate(P, _) -->
+dcg_q_print_predicate(P, Opts) -->
   {var(P)}, !,
-  dcg_q_print_var(P).
+  dcg_q_print_var(P, Opts).
 dcg_q_print_predicate(P, Opts) -->
   dcg_q_print_iri(P, Opts).
 
@@ -836,11 +840,11 @@ dcg_q_print_subject(S) -->
 dcg_q_print_subject(S, Opts) -->
   {q_is_bnode(S)}, !,
   dcg_q_print_bnode(S, Opts).
-dcg_q_print_subject(S, _) -->
-  {var(S)}, !,
-  dcg_q_print_var(S).
 dcg_q_print_subject(S, Opts) -->
-  {q_is_iri(S)}, !,
+  {var(S)}, !,
+  dcg_q_print_var(S, Opts).
+dcg_q_print_subject(S, Opts) -->
+  {is_http_iri(S)}, !,
   dcg_q_print_iri(S, Opts).
 
 
@@ -991,10 +995,13 @@ dcg_q_print_literal(V@LTag, Opts) --> !,
   dcg_q_print_language_tag(LTag, Opts).
 
 
-dcg_q_print_var(Var) -->
-  {var_number(Var, N)},
-  "?q",
-  integer(N).
+
+%! dcg_q_print_var(+Var, +Opts)// is det.
+
+dcg_q_print_var(Var, Opts) -->
+  "?",
+  dcg_var(Opts.var_map, Var).
+
 
 
 
@@ -1049,15 +1056,3 @@ q_print_default_options(Opts1, Out, Opts5) :-
   mod_dict(out, Opts1, current_output, Out, Opts3),
   dcg_q_print_default_options(Opts4),
   merge_dicts(Opts4, Opts3, Opts5).
-
-
-
-%! var_number(@Var, -N) is det.
-
-var_number(Var, N) :-
-  var_map(Var0, N),
-  Var == Var0, !.
-var_number(Var, N) :-
-  flag(var_counter, N0, N0 + 1),
-  N is N0 + 1,
-  assert(var_map(Var, N)).
