@@ -53,11 +53,19 @@ q_io:q_source_format_hook(xml, [xml]).
 %
 %   * concept(+atom)
 %
+%     The local name of the IRI that is used for the subject term.
+%
 %   * entry_name(+atom)
+%
+%     The name of the entry inside the source archive, if any.
 %
 %   * host(+atom)
 %
+%     The host that is used for IRI terms.
+%
 %   * scheme(+atom)
+%
+%     The scheme that is used for IRI terms.
 
 xml2rdf(Source, Sink, RecordNames) :-
   xml2rdf(Source, Sink, RecordNames, _{}, []).
