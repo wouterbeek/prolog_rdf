@@ -20,7 +20,12 @@
      trp,
      "The backend used for storing user information."
    ).
-:- setting(user:alias, atom, resu, "The IRI prefix of user resources.").
+:- setting(
+     user:alias,
+     atom,
+     resu,
+     "The IRI prefix of user resources."
+   ).
 
 :- multifile
     google_client:create_user_hook/2,

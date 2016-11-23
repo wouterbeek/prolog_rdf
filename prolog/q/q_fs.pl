@@ -74,7 +74,7 @@ q_delete_ready(File) :-
 % Directory of a data graph.
 
 q_dir(Dir3) :-
-  setting(q_io:store_dir, Dir1),
+  q_store_dir(Dir1),
   directory_path(Dir1, Dir2),
   directory_path(Dir2, Dir3).
 
@@ -90,7 +90,7 @@ q_dir('', Dir) :- !,
   q_dir(Dir).
 q_dir(Hash, Dir2) :-
   atom_length(Hash, N),
-  setting(q_io:store_dir, Root),
+  q_store_dir(Root),
   (   % Hash falls within the first two characters (outer
       % directory).
       N =< 2
@@ -166,7 +166,7 @@ q_dir_hash(Dir4, Hash) :-
   atom_codes(Hash, [H1,H2|T]),
   maplist(atom_codes, [Dir1,Dir2], [[H1,H2],T]),
   append_directories(Dir1, Dir2, Dir3),
-  setting(q_io:store_dir, Dir0),
+  q_store_dir(Dir0),
   directory_file_path(Dir0, Dir3, Dir4).
 
 

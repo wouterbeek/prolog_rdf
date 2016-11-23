@@ -34,14 +34,12 @@
      'dbpedia.org',
      "The host name of the FCT endpoint."
    ).
-
 :- setting(
      endpoint_path,
      list(atom),
      [services,rdf,'iriautocomplete.get'],
      "The path of the FCT endpoint."
    ).
-
 :- setting(
      endpoint_scheme,
      oneof([http,https]),

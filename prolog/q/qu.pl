@@ -89,7 +89,7 @@ Most transformation predicates allow their applicability to be scoped
 to predicate and/or graph.
 
 @author Wouter Beek
-@version 2016/06-2016/10
+@version 2016/06-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -244,7 +244,7 @@ qu_subject_from_key(P, Concept, G) :-
 
 
 qu_subject_from_key(P, Concept, Goal_2, G) :-
-  qu_subject_from_key_deb(P),
+  debug(qu(subject_from_key), qu_subject_from_key_deb(P)),
   qu_call(
     (
       q(trp, S1, P, Str^^xsd:string, G),
@@ -319,7 +319,7 @@ qu_change_iri_prefix0(Alias1, Alias2), atom(Prefix2), Cs -->
 %! qu_lowercase_predicate(+Alias, ?G) is det.
 
 qu_lowercase_predicate(Alias, G) :-
-  qu_lowercase_predicate_deb(Alias),
+  debug(qu(lowercase_predicate), qu_lowercase_predicate_deb(Alias)),
   qu_change_iri(_, _, _, G, [-,+,-], qu_lowercase_iri0(Alias)).
 
 
@@ -334,7 +334,7 @@ qu_lowercase_iri0(Alias), Cs -->
 %! qu_replace_predicate(+P1, ?G, +P2) is det.
 
 qu_replace_predicate(P1, G, P2) :-
-  qu_replace_predicate_deb(P1, P2),
+  debug(qu(replace_predicate), qu_replace_predicate_deb(P1, P2)),
   qu_call(
     (
       q(trp, S, P1, O, G),
@@ -348,7 +348,10 @@ qu_replace_predicate(P1, G, P2) :-
 %! qu_replace_predicates_by_vocab(+P, +G, +GVocab) is det.
 
 qu_replace_predicates_by_vocab(P, G, GVocab) :-
-  qu_replace_predicates_by_vocab_deb(GVocab),
+  debug(
+    qu(replace_predicates_by_vocab),
+    qu_replace_predicates_by_vocab_deb(GVocab)
+  ),
   qu_call(
     (
       q(trp, Q2, P, Str^^xsd:string, GVocab),
@@ -386,7 +389,7 @@ qu_replace_string(P, G, Dcg_3) :-
 
 
 qu_replace_string(S, P, G, Dcg_3) :-
-  qu_replace_string_deb(Dcg_3),
+  debug(qu(replace_string), qu_replace_string_deb(Dcg_3)),
   qu_call(
     q(trp, S, P, Lex^^xsd:string, G),
     (
@@ -418,7 +421,7 @@ qu_replace_substring(S, P, SubStr1, G, SubStr2) :-
 % Change the datatype IRI of literals to D.
 
 qu_change_datatype(P, G, D) :-
-  qu_change_datatype_deb(P, D),
+  debug(qu(change_datatype), qu_change_datatype_deb(P, D)),
   qu_call(
     (
       q(trp, S, P, Lit1, G),
@@ -440,7 +443,7 @@ qu_change_datatype(P, G, D) :-
 % (‘rdf:langString’).
 
 qu_add_ltag(P, LTag, G) :-
-  qu_add_ltag_deb(P, LTag),
+  debug(qu(add_ltag), qu_add_ltag_deb(P, LTag)),
   qu_call(
     q(trp, S, P, Str^^xsd:string, G),
     qu(S, P, Str^^xsd:string, G, object(Str@LTag))
@@ -467,7 +470,7 @@ qu_change_ltag(P, LTag1, G, LTag2) :-
 % Change lexical forms by calling Dcg_0.
 
 qu_change_lex(P, G, Dcg_0) :-
-  qu_change_lex_deb(P, Dcg_0),
+  debug(qu(change_lex), qu_change_lex_deb(P, Dcg_0)),
   qu_call(
     (
       q(trp, S, P, Lit1, G),
@@ -495,7 +498,7 @@ qu_add_padding(P, G, PaddingCode) :-
     ),
     Max
   ), !,
-  qu_add_padding_deb(P, PaddingCode),
+  debug(qu(add_padding), qu_add_padding_deb(P, PaddingCode)),
   qu_change_lex(P, G, qu_add_padding0(PaddingCode, Max)).
 qu_add_padding(_, _, _, _, _).
 
@@ -603,7 +606,7 @@ qu_lex_to_iri(P, Alias, G) :-
 
 
 qu_lex_to_iri(P, Alias, G, Lex2Local_0) :-
-  qu_lex_to_iri_deb(P, Alias, Lex2Local_0),
+  debug(qu(lex_to_iri), qu_lex_to_iri_deb(P, Alias, Lex2Local_0)),
   qu_call(
     (
       q(trp, S, P, Lit, G),
@@ -641,7 +644,7 @@ qu_lex_to_iri(P, Alias, G, Lex2Local_0) :-
 % ```
 
 qu_comb_date(P1, P2, P3, G, Q) :-
-  qu_comb_date_deb,
+  debug(qu(comb_date), qu_comb_date_deb),
   qu_call(
     (
       q(trp, S, P1, Y^^xsd:gYear, G),
@@ -674,7 +677,7 @@ qu_comb_date(P1, P2, P3, G, Q) :-
 % ```
 
 qu_comb_month_day(P1, P2, P3, G, Q) :-
-  qu_comb_month_day_deb,
+  debug(qu(comb_month_day), qu_comb_month_day_deb),
   qu_call(
     (
       q(trp, S, P2, M^^xsd:gMonth, G),
@@ -692,7 +695,7 @@ qu_comb_month_day(P1, P2, P3, G, Q) :-
 %! qu_comb_year_month(+P1, +P2, +P3, ?G, +Q) is det.
 
 qu_comb_year_month(P1, P2, P3, G, Q) :-
-  qu_comb_year_month_deb,
+  debug(qu(comb_year_month), qu_comb_year_month_deb),
   qu_call(
     (
       q(trp, S, P1, Y^^xsd:gYear, G),
@@ -838,7 +841,7 @@ qu_rm_cell(S, P, O, G) :-
 % Remove all triples that contain predicate P.
 
 qu_rm_col(P, G) :-
-  qu_rm_col_deb(P),
+  debug(qu(rm_col), qu_rm_col_deb(P)),
   qu_rm(_, P, _, G).
 
 
@@ -851,7 +854,7 @@ qu_rm_empty_string(G) :-
 
 
 qu_rm_empty_string(P, G) :-
-  qu_rm_empty_string_deb(P),
+  debug(qu(rm_empty), qu_rm_empty_string_deb(P)),
   qu_rm_null(P, ""^^xsd:string, G).
 
 
@@ -862,7 +865,7 @@ qu_rm_empty_string(P, G) :-
 % being removed.
 
 qu_rm_error(S, P, O, G) :-
-  qu_rm_error_deb(S, P, O),
+  debug(qu(rm_error), qu_rm_error_deb(S, P, O)),
   qu_rm(S, P, O, G).
 
 
@@ -873,7 +876,7 @@ qu_rm_error(S, P, O, G) :-
 % being removed.
 
 qu_rm_null(P, Null, G) :-
-  qu_rm_null_deb(P, Null),
+  debug(qu(rm_null), qu_rm_null_deb(P, Null)),
   qu_rm(_, P, Null, G).
 
 
@@ -919,7 +922,7 @@ qu_rm_triples(S, P, O, G) :-
 % ```
 
 qu_split_string(P, G, SepChars) :-
-  qu_split_string_deb(P),
+  debug(qu(split_string), qu_split_string_deb(P)),
   qu_call(
     (
       q(trp, S, P, Str0^^xsd:string, G),
@@ -1086,107 +1089,133 @@ qu_call0(_, _, State) :-
 
 % DEBUG %
 
-qu_add_ltag_deb(P, LTag) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(add_ltag), "Add language-tag ‘~a’ for ‘~s’.", [LTag,P0]).
+qu_add_ltag_deb(P, LTag) -->
+  "Add language-tag ",
+  sq(atom(LTag)),
+  " ",
+  optional_predicate(P),
+  ".".
+
+
+qu_add_padding_deb(P, C) -->
+  "Add padding ‘",
+  sq(code(C)),
+  " to lexical forms of property ",
+  sq(dcg_q_print_predicate(P)),
+  ".".
+
+
+qu_change_datatype_deb(P, D) -->
+  "Change datatype of ",
+  optional_predicate(P),
+  " to ",
+  sq(dcg_q_print_datatype(D)),
+  ".".
+
+
+qu_change_lex_deb(P, Dcg_0) -->
+  "Change lexical form for ",
+  optional_predicate(P),
+  " using goal ",
+  print_goal(Dcg_0),
+  ".".
+
+
+qu_comb_date_deb -->
+  "Combine ‘xsd:gYear’+‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’.".
 
 
 
-qu_add_padding_deb(P, C) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(padding), "Add padding ‘~c’ to lexical forms of ‘~s’.", [C,P0]).
+qu_comb_month_day_deb -->
+  "Combine ‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’.".
 
 
 
-qu_change_datatype_deb(P, D) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  with_output_to(string(D0), q_print_datatype(D)),
-  debug(qu(change_datatype), "Change datatype of ‘~s’ to ‘~s’.", [P0,D0]).
+qu_comb_year_month_deb -->
+  "Combine ‘xsd:gYear’+‘xsd:gMonth’ → ‘xsd:date’.".
 
 
 
-qu_change_lex_deb(P, _:Goal) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  Goal =.. [Pred|_],
-  debug(qu(change_lex), "Change lexical form for ‘~s’ using ‘~a’.", [P0,Pred]).
+qu_lex_to_iri_deb(P, Alias, Goal_0) -->
+  "Lexicals of ",
+  optional_predicate(P),
+  " become IRIs with alias ",
+  sq(atom(Alias)),
+  " using ",
+  print_goal(Goal_0),
+  ".".
 
 
-
-qu_comb_date_deb :-
-  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’.", []).
-
-
-
-qu_comb_month_day_deb :-
-  debug(qu(comb_data), "Combine ‘xsd:gMonth’+‘xsd:gDay’ → ‘xsd:date’.", []).
+qu_lowercase_predicate_deb(Alias) -->
+  "Lowercase predicates using alias ",
+  sq(atom(Alias)),
+  ".".
 
 
-
-qu_comb_year_month_deb :-
-  debug(qu(comb_data), "Combine ‘xsd:gYear’+‘xsd:gMonth’ → ‘xsd:date’.", []).
-
-
-
-qu_lex_to_iri_deb(P, Alias, _:Goal) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  Goal =.. [Pred|_],
-  debug(qu(lex_to_iri), "Lexicals of ‘~s’ become IRIs with alias ‘~a’ using ‘~a’.", [P0,Alias,Pred]).
+qu_replace_predicate_deb(P, Q) -->
+  "Replace predicate ",
+  sq(dcg_q_print_predicate(P)),
+  " → ",
+  sq(dcg_q_print_predicate(Q)),
+  ".".
 
 
-
-qu_lowercase_predicate_deb(Alias) :-
-  debug(qu(lowercase_predicate), "Lowercase predicates using alias ‘~a’.", [Alias]).
-
-
-
-qu_replace_predicate_deb(P, Q) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  with_output_to(string(Q0), q_print_predicate(Q)),
-  debug(qu(replace_predicate), "Replace predicate ‘~s’ → ‘~s’.", [P0,Q0]).
+qu_replace_predicates_by_vocab_deb(GVocab) -->
+  "Replace predicates based on vocabulary ",
+  sq(dcg_q_print_graph_term(GVocab)),
+  ".".
 
 
-
-qu_replace_predicates_by_vocab_deb(GVocab) :-
-  with_output_to(string(GVocab0), q_print_graph_term(GVocab)),
-  debug(qu(replace_predicate), "Replace predicates based on vocabulary ‘~a’.", [GVocab0]).
-
-
-qu_replace_string_deb(Dcg_3) :-
-  debug(qu(replace_string), "Replace string using ‘~w’.", [Dcg_3]).
+qu_replace_string_deb(Dcg_3) -->
+  "Replace string using ",
+  print_goal(Dcg_3),
+  ".".
 
 
-
-qu_rm_col_deb(P) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(rm_col), "Remove column ‘~s’.", [P0]).
-
+qu_rm_col_deb(P) -->
+  "Remove column for predicate ",
+  sq(dcg_q_print_predicate(P)).
 
 
-qu_rm_empty_string_deb(P) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(rm_empty_string), "Remove ε for ‘~s’.", [P0]).
+qu_rm_empty_string_deb(P) -->
+  "Remove ε for ",
+  optional_predicate(P),
+  ".".
 
 
-
-qu_rm_error_deb(S, P, O) :-
-  with_output_to(string(Triple0), q_print_triple(S, P, O)),
-  debug(qu(rm_error), "~s", [Triple0]).
-
-
-
-qu_rm_null_deb(P, Null) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  with_output_to(string(Null0), q_print_object(Null)),
-  debug(qu(rm_null), "Remove NULL value ‘~s’ for ‘~s’.", [Null0,P0]).
+qu_rm_error_deb(S, P, O) -->
+  "Remove triple pattern ",
+  dq(dcg_q_print_triple(S, P, O)),
+  ".".
 
 
+qu_rm_null_deb(P, Null) -->
+  "Remove NULL value ",
+  sq(str(Null)),
+  " for ",
+  optional_predicate(P),
+  ".".
 
-qu_split_string_deb(P) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(split_string), "Split string for ‘~s’.", [P0]).
+
+qu_split_string_deb(P) -->
+  "Split string for ",
+  optional_predicate(P),
+  ".".
 
 
+qu_subject_from_key_deb(P) -->
+  "Rename subjects based on key ",
+  sq(dcg_q_print_predicate(P)).
 
-qu_subject_from_key_deb(P) :-
-  with_output_to(string(P0), q_print_predicate(P)),
-  debug(qu(split_string), "Rename subjects based on key ‘~s’.", [P0]).
+
+optional_predicate(P) -->
+  {var(P)}, !,
+  "any predicate".
+optional_predicate(P) -->
+  "predicate ",
+  sq(dcg_q_print_predicate(P)).
+
+
+print_goal(Goal) -->
+  {Goal =.. [Pred|_]},
+  atom(Pred).

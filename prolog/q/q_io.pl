@@ -5,6 +5,7 @@
   q_dataset2store/0,
   q_dataset2store/1,        % +Name
   q_file_name_to_format/2,  % +FileName, -Format
+  q_source_dir/1,           % -Dir
   q_source_file/1,          % -File
 
     % SOURCE ⬄ STORE
@@ -18,6 +19,7 @@
     q_store_rm/1,            % +G
 
   % STORE
+  q_store_dir/1,        % -Dir
   q_store_file/2,       % -File, ?G
   q_store_graph/1,      % -G
   q_transform_cbd/2,    % +G, :Goal_1
@@ -158,13 +160,13 @@ them.
 :- setting(
      source_dir,
      atom,
-     '',
+     '~/Data/source/',
      "Directory that holds the data source files."
    ).
 :- setting(
      store_dir,
      atom,
-     '',
+     '~/Data/store/',
      "Directory that stores the created data files."
    ).
 
@@ -193,10 +195,18 @@ q_source_skip_exts([md]).
 %! q_source_dataset_graph(+File, -DName, -GName) is det.
 
 q_source_dataset_graph(File, DName, GName) :-
-  setting(source_dir, Dir),
+  q_source_dir(Dir),
   directory_file_path(Dir, Local, File),
   file_name(Local, Base),
   atomic_list_concat([DName,GName], -, Base).
+
+
+
+%! q_source_dir(-Dir) is det.
+
+q_source_dir(Dir) :-
+  setting(source_dir, Dir0),
+  expand_file_name(Dir0, [Dir|_]).
 
 
 
@@ -216,7 +226,7 @@ q_source_format(Format, Exts) :-
 % Enumerates the source files.
 
 q_source_file(File) :-
-  setting(source_dir, Dir),
+  q_source_dir(Dir),
   % Every non-directory file in the source directory is a source file.
   directory_path_recursive(Dir, File),
   % Exclude certain extensions.
@@ -325,7 +335,7 @@ q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
       q_file_ready_time(File, Ready),
       Ready >= Ready0
   ->  ignore(option(triples(0), SinkOpts1))
-  ;   setting(store_dir, Dir),
+  ;   q_store_dir(Dir),
       absolute_file_name(
         uploading,
         TmpFile0,
@@ -385,7 +395,7 @@ q_store_rm :-
     q_store_rm(G)
   ),
   % Delete empty directories.
-  setting(store_dir, Dir),
+  q_store_dir(Dir),
   forall(
     (
       directory_recursive(Dir, Subdir),
@@ -425,6 +435,14 @@ q_generate(G, Goal_1) :-
 
 
 
+%! q_store_dir(-Dir) is det.
+
+q_store_dir(Dir) :-
+  setting(store_dir, Dir0),
+  expand_file_name(Dir0, [Dir|_]).
+
+
+
 %! q_store_format(?Format, ?Exts) is nondet.
 %
 % N-Triples is the only format used in the store.
@@ -443,7 +461,7 @@ q_store_file(File, G) :-
   nonvar(G), !,
   q_file_graph(File, ntriples, G).
 q_store_file(File, G) :-
-  setting(store_dir, Dir),
+  q_store_dir(Dir),
   Dir \== '',
   directory_path_recursive(Dir, File),
   q_file_graph(File, G).
@@ -630,10 +648,10 @@ q_cache_file(M, File) :-
   nonvar(File), !,
   file_extensions(File, Exts),
   once(q_cache_format(M, Exts)),
-  setting(store_dir, Dir),
+  q_store_dir(Dir),
   atom_concat(Dir, _, File).
 q_cache_file(M, File) :-
-  setting(store_dir, Dir),
+  q_store_dir(Dir),
   directory_path_recursive(Dir, File),
   file_extensions(File, Exts),
   once(q_cache_format(M, Exts)).

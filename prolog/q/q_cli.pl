@@ -186,9 +186,9 @@ q__gs :-
 %! q__io is det.
 
 q__io :-
-  setting(source_dir, Dir1),
+  q_source_dir(Dir1),
   q__io(source(Dir1), q_source_file),
-  setting(store_dir, Dir2),
+  q_store_dir(Dir2),
   q__io(store(Dir2), q_store_graph),
   forall(
     q_backend(M),
