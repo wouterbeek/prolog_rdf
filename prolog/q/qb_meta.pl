@@ -83,7 +83,7 @@ meta_objects(M, P, G, NumOs) :-
   meta_objects0(M, P, G, NumOs).
 
 meta_objects0(M, P, G, NumOs) :-
-  q_number_of_objects(M, P, G, NumOs).
+  q_number_of_objects(M, _, P, G, NumOs).
 
 
 
@@ -122,7 +122,7 @@ meta_subjects(M, P, G, NumSs) :-
   meta_subjects0(M, P, G, NumSs).
 
 meta_subjects0(M, P, G, NumSs) :-
-  q_number_of_subjects(M, P, G, NumSs).
+  q_number_of_subjects(M, P, _, G, NumSs).
 
 
 

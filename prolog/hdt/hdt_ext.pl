@@ -59,6 +59,7 @@
 @version 2016/06, 2016/08, 2016/10-2016/11
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(hdt), []).
 :- use_module(library(hdt/hdt_io), []).
 :- use_module(library(os/file_ext)).
@@ -200,6 +201,16 @@ hdt_datatype0(D, Hdt) :-
 %! hdt_estimate_complexity(?S, ?P, ?O, -Est, ?G) is det.
 %! hdt_estimate_complexity0(?S, ?P, ?O, -Est, +Hdt) is det.
 
+hdt_estimate_complexity(S, P, O, Est, G) :-
+  var(G), !,
+  aggregate_all(
+    sum(Est),
+    (
+      q_store_graph(G),
+      hdt_estimate_complexity(S, P, O, Est, G)
+    ),
+    Est
+  ).
 hdt_estimate_complexity(S, P, O, Est, G) :-
   hdt_call_on_graph(G, hdt_estimate_complexity0(S, P, O, Est)).
 

@@ -27,17 +27,14 @@
 
 %! q_estimate_complexity(+M, ?S, ?P, ?O, ?G, -NumTriples) is det.
 
-q_estimate_complexity(_, S, P, O, _, 1.0) :-
+q_estimate_complexity(_, S, P, O, _, 1) :-
   maplist(ground, [S,P,O]), !.
 q_estimate_complexity(hdt0, S, P, O, Hdt, NumTriples) :- !,
-  hdt_estimate_complexity0(S, P, O, NumTriples0, Hdt),
-  NumTriples is float(NumTriples0).
+  hdt_estimate_complexity0(S, P, O, NumTriples, Hdt).
 q_estimate_complexity(hdt, S, P, O, G, NumTriples) :- !,
-  hdt_estimate_complexity(S, P, O, NumTriples0, G),
-  NumTriples is float(NumTriples0).
+  hdt_estimate_complexity(S, P, O, NumTriples, G).
 q_estimate_complexity(trp, S, P, O, _, NumTriples) :-
-  rdf_estimate_complexity(S, P, O, NumTriples0),
-  NumTriples is float(NumTriples0).
+  rdf_estimate_complexity(S, P, O, NumTriples).
 
 
 
