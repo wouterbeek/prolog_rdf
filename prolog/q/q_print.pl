@@ -102,8 +102,6 @@ Print RDF statements.
 
 | **Key**       | **Value**  | **Default** | **Description**                  |
 |:--------------|:-----------|:-----------:|:---------------------------------|
-| `bnode_map`   | boolean    | `true`      | Whether blank node labels are    |
-|               |            |             | replaced by integers.            |
 | `indent`      | nonneg     | 0           |                                  |
 | `iri_abbr`    | boolean    | `true`      | Whether IRIs are abbreviated     |
 |               |            |             | based on the current aliases.    |
@@ -120,7 +118,7 @@ Print RDF statements.
 
 @tbd Turtle collection abbreviation.
 
-@tbd More fine-grained control for RDF term ellipsis: `max_bnode_len`,
+@tbd More fine-grained control for RDF term ellipsis:
      `max_datatype_iri_len`, `max_lex_len`, `max_graph_term_len`,
      `max_dataset_term_len`.
 
@@ -143,7 +141,6 @@ Print RDF statements.
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_rdfs)).
@@ -837,9 +834,9 @@ dcg_q_print_subject(S) -->
   dcg_q_print_subject(S, Opts).
 
 
-dcg_q_print_subject(S, Opts) -->
+dcg_q_print_subject(S, _) -->
   {q_is_bnode(S)}, !,
-  dcg_q_print_bnode(S, Opts).
+  dcg_q_print_bnode(S).
 dcg_q_print_subject(S, Opts) -->
   {var(S)}, !,
   dcg_q_print_var(S, Opts).
@@ -863,12 +860,10 @@ dcg_q_print_term(T, Opts) -->
 
 % PRINT A TERM BY ITS KIND %
 
-dcg_q_print_bnode(B, Opts) -->
-  get_dict(bnode_map, Opts, false), !,
-  atom_ellipsis(B, Opts.max_bnode_len).
-dcg_q_print_bnode(B, _) -->
-  {q_bnode_map(B, Name)},
-  "_:", integer(Name).
+dcg_q_print_bnode(B) -->
+  {rdf_global_id(bnode:Local, B)},
+  "_:",
+  atom(Local).
 
 
 
@@ -1029,7 +1024,6 @@ dcg_q_print_class(C, Opts) -->
 
 dcg_q_print_default_options(
   _{
-    bnode_map: true,
     iri_abbr: true,
     iri_lbl: false,
     max_iri_len: inf,

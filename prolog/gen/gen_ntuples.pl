@@ -339,7 +339,8 @@ gen_graph(G) :-
 % TERMS BY KIND %
 
 gen_bnode(B) :-
-  atom_concat('_:', Local, B),
+  atom_concat('_:', Local0, B),
+  atom_concat(genid, Local, Local0),
   rdf_global_id(bnode:Local, Iri),
   gen_iri(Iri).
 

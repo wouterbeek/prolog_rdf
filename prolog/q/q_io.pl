@@ -11,8 +11,10 @@
 
     % SOURCE ⬄ STORE
     q_generate/2,            % ?G, :Goal_1
+    q_sync/0,
     q_sync/1,                % +G
     q_init/0,
+    q_init/1,                % +M
     q_source2store/0,
     q_source2store_file/1,   % +File
     q_source2store_source/3, % +Source, +Opts, +Result
@@ -249,7 +251,7 @@ q_source_graph(G) :-
   q_dir(_, Dir).
 q_source_graph(G) :-
   q_hash(Hash),
-  q_hash_graph(Hash, G).
+  q_graph_hash(G, Hash).
 
 
 
@@ -269,12 +271,20 @@ q_dataset2store(Name) :-
 
 
 %! q_init is det.
+%! q_init(+M) is det.
 
 q_init :-
   q_source2store,
   q_store2view,
   q_dataset2store,
   q_store2view.
+
+
+q_init(M) :-
+  q_source2store,
+  q_store2view(M),
+  q_dataset2store,
+  q_store2view(M).
 
 
 
@@ -445,7 +455,15 @@ q_generate(G, Goal_1) :-
 
 
 
+%! q_sync is det.
 %! q_sync(+G) is det.
+
+q_sync :-
+  forall(
+    q_view_graph(_, G),
+    q_sync(G)
+  ).
+
 
 q_sync(G) :-
   % The transformations now have to be synced with the store, from

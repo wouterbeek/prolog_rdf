@@ -38,7 +38,6 @@
 %/q
 :- use_module(library(q/q_annotate)).
 :- use_module(library(q/q_array)).
-:- use_module(library(q/q_bnode_map)).
 :- use_module(library(q/q_cli)).
 :- use_module(library(q/q_container)).
 :- use_module(library(q/q_custom)).
