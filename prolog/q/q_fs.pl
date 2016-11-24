@@ -4,15 +4,14 @@
     q_delete_file/1,      % +File  
     q_dir/1,              % ?Dir
     q_dir/2,              % +Hash, -Dir
-    q_dir_file/4,         % ?Dir, ?Name, ?Format, ?File
+    q_dir_file/3,         % ?Dir, ?Format, ?File
     q_dir_graph/2,        % ?Dir, ?G
-    q_dir_graph/3,        % ?Dir, ?Name, ?G
     q_dir_hash/2,         % ?Dir, ?Hash
-    q_file/3,             % ?Name, ?Format, ?File
+    q_file/2,             % ?Format, ?File
     q_file_graph/2,       % ?File, ?G
     q_file_graph/3,       % ?File, ?Format, ?G
     q_file_hash/2,        % ?File, ?Hash
-    q_file_hash/4,        % ?File, ?Name, ?Format, ?Hash
+    q_file_hash/3,        % ?File, ?Format, ?Hash
     q_file_is_ready/1,    % +File
     q_file_is_ready/2,    % +File1, File2
     q_file_ready/2,       % +File, -Ready
@@ -20,20 +19,15 @@
     q_file_touch_ready/1, % +File
     q_format/1,           % ?Format
     q_format/2,           % ?Format, -Exts
-    q_graph/1,            % ?G
-    q_graph/2,            % ?Name, ?G
-    q_graph/3,            % ?Hash, ?Name, ?G
     q_graph_hash/2,       % ?G, ?Hash
-    q_graph_hash/3,       % ?G, ?Name, ?Hash
-    q_hash/1,             % -Hash
-    q_name/1              % ?Name
+    q_hash/1              % -Hash
   ]
 ).
 
 /** <module> Quine file system
 
 @author Wouter Beek
-@version 2016/08-2016/10
+@version 2016/08-2016/11
 */
 
 :- use_module(library(apply)).
@@ -45,8 +39,7 @@
 :- use_module(library(settings)).
 
 :- rdf_meta
-   q_graph_hash(r, ?),
-   q_graph_hash(r, ?, ?).
+   q_graph_hash(r, ?).
 
 
 
@@ -112,44 +105,34 @@ q_dir(Hash, Dir2) :-
 
 
 
-%! q_dir_file(+Dir, +Name, +Format, -File) is det.
-%! q_dir_file(+Dir, +Name, -Format, -File) is multi.
-%! q_dir_file(+Dir, -Name, +Format, -File) is multi.
-%! q_dir_file(+Dir, -Name, -Format, -File) is multi.
-%! q_dir_file(-Dir, -Name, -Format, +File) is det.
+%! q_dir_file(+Dir, +Format, -File) is det.
+%! q_dir_file(+Dir, -Format, -File) is multi.
+%! q_dir_file(-Dir, -Format, +File) is det.
 
-q_dir_file(Dir, Name, Format, File) :-
+q_dir_file(Dir, Format, File) :-
   ground(File), !,
   directory_file_path(Dir, Local, File),
-  atomic_list_concat([Name|Exts], ., Local),
+  atomic_list_concat([data|Exts], ., Local),
   once(q_format(Format, Exts)).
-q_dir_file(Dir, Name, Format, File) :-
-  q_name(Name),
+q_dir_file(Dir, Format, File) :-
   (   nonvar(Format)
   ->  once(q_format(Format, Exts))
   ;   q_format(Format, Exts)
   ),
-  atomic_list_concat([Name|Exts], ., Local),
+  atomic_list_concat([data|Exts], ., Local),
   directory_file_path(Dir, Local, File).
 
 
 
 %! q_dir_graph(+Dir, -G) is multi.
 %! q_dir_graph(-Dir, +G) is det.
-%! q_dir_graph(+Dir, +Name, -G) is det.
-%! q_dir_graph(+Dir, -Name, -G) is multi.
-%! q_dir_graph(-Dir, -Name, +G) is det.
 
 q_dir_graph(Dir, G) :-
-  q_dir_graph(Dir, _, G).
-
-
-q_dir_graph(Dir, Name, G) :-
   ground(Dir), !,
   q_dir_hash(Dir, Hash),
-  q_graph_hash(G, Name, Hash).
-q_dir_graph(Dir, Name, G) :-
-  q_graph_hash(G, Name, Hash),
+  q_graph_hash(G, Hash).
+q_dir_graph(Dir, G) :-
+  q_graph_hash(G, Hash),
   q_dir_hash(Dir, Hash).
 
 
@@ -171,16 +154,16 @@ q_dir_hash(Dir4, Hash) :-
 
 
 
-%! q_file(?Name, ?Format, -File) is nondet.
-%! q_file(-Name, -Format, +File) is nondet.
+%! q_file(?Format, -File) is nondet.
+%! q_file(-Format, +File) is nondet.
 
-q_file(Name, Format, File) :-
+q_file(Format, File) :-
   ground(File), !,
-  q_dir_file(Dir, Name, Format, File),
+  q_dir_file(Dir, Format, File),
   q_dir(Dir).
-q_file(Name, Format, File) :-
+q_file(Format, File) :-
   q_dir(Dir),
-  q_dir_file(Dir, Name, Format, File),
+  q_dir_file(Dir, Format, File),
   exists_file(File).
 
 
@@ -197,33 +180,30 @@ q_file_graph(File, G) :-
 
 q_file_graph(File, Format, G) :-
   ground(File), !,
-  q_file_hash(File, Name, Format, Hash),
-  q_graph_hash(G, Name, Hash).
+  q_file_hash(File, Format, Hash),
+  q_graph_hash(G, Hash).
 q_file_graph(File, Format, G) :-
-  q_graph_hash(G, Name, Hash),
-  q_file_hash(File, Name, Format, Hash).
+  q_graph_hash(G, Hash),
+  q_file_hash(File, Format, Hash).
 
 
 
 %! q_file_hash(+File, -Hash) is det.
 %! q_file_hash(-File, +Hash) is multi.
-%! q_file_hash(+File, -Name, -Format, -Hash) is det.
-%! q_file_hash(-File, +Name, +Format, +Hash) is det.
-%! q_file_hash(-File, +Name, -Format, +Hash) is multi.
-%! q_file_hash(-File, -Name, +Format, +Hash) is multi.
-%! q_file_hash(-File, -Name, -Format, +Hash) is multi.
+%! q_file_hash(+File, ?Format, -Hash) is det.
+%! q_file_hash(-File, ?Format, +Hash) is multi.
 
 q_file_hash(File, Hash) :-
-  q_file_hash(File, _, _, Hash).
+  q_file_hash(File, _, Hash).
 
 
-q_file_hash(File, Name, Format, Hash) :-
+q_file_hash(File, Format, Hash) :-
   ground(File), !,
-  q_dir_file(Dir, Name, Format, File),
+  q_dir_file(Dir, Format, File),
   q_dir_hash(Dir, Hash).
-q_file_hash(File, Name, Format, Hash) :-
+q_file_hash(File, Format, Hash) :-
   q_dir_hash(Dir, Hash),
-  q_dir_file(Dir, Name, Format, File).
+  q_dir_file(Dir, Format, File).
 
 
 
@@ -282,59 +262,14 @@ q_format(Format, Exts) :-
 
 
 
-%! q_graph(+G) is semidet.
-%! q_graph(-G) is nondet.
-%! q_graph(+Name, -G) is nondet.
-%! q_graph(-Name, +G) is nondet.
-%! q_graph(+Hash, +Name, -G) is nondet.
-%! q_graph(-Hash, -Name, +G) is nondet.
-
-%! q_graph(-G) is nondet.
-
-q_graph(G) :-
-  distinct(G, q_graph0(G)).
-
-q_graph0(G) :-
-  q_store_graph(G).
-q_graph0(G) :-
-  q_view_graph(_, G).
-
-
-q_graph(Name, G) :-
-  ground(G), !,
-  q_dir_graph(Dir, Name, G),
-  q_dir(_, Dir).
-q_graph(Name, G) :-
-  q_hash(Hash),
-  q_graph(Hash, Name, G).
-
-
-q_graph(Hash, Name, G) :-
-  ground(G), !,
-  q_dir_graph(Dir, Name, G),
-  q_dir(Hash, Dir).
-q_graph(Hash, Name, G) :-
-  q_dir(Hash, Dir),
-  q_dir_graph(Dir, Name, G).
-
-
-
 %! q_graph_hash(+G, -Hash) is det.
 %! q_graph_hash(-G, +Hash) is multi.
-%! q_graph_hash(+G, -Name, -Hash) is det.
-%! q_graph_hash(-G, +Name, +Hash) is det.
-%! q_graph_hash(-G, -Name, +Hash) is multi.
 
 q_graph_hash(G, Hash) :-
-  q_graph_hash(G, _, Hash).
-
-
-q_graph_hash(G, Name, Hash) :-
   var(G), !,
-  q_name(Name),
-  q_graph_iri([Hash,Name], G).
-q_graph_hash(G, Name, Hash) :-
-  q_graph_iri([Hash,Name], G).
+  q_graph_iri(Hash, G).
+q_graph_hash(G, Hash) :-
+  q_graph_iri(Hash, G).
 
 
 
@@ -343,14 +278,3 @@ q_graph_hash(G, Name, Hash) :-
 q_hash(Hash) :-
   q_dir(Dir),
   q_dir_hash(Dir, Hash).
-
-
-
-%! q_name(+Name) is semidet.
-%! q_name(-Name) is multi.
-
-q_name(cache).
-q_name(data).
-q_name(meta).
-q_name(stat).
-q_name(warn).

@@ -153,7 +153,7 @@ q_io:q_cache2view_hook(trp, G) :-
 q_io:q_source2store_hook(rdf, Source, Sink, SourceOpts, SinkOpts) :-
   rdf_reserialize(Source, Sink, SourceOpts, SinkOpts).
 
-q_io:q_source_format_hook(rdf, [Ext]) :-
+q_io:q_source_format_hook(rdf, Ext) :-
   rdf_media_type(_, _, Ext).
 
 q_io:q_store2cache_hook(trp, Source, Sink, G) :-

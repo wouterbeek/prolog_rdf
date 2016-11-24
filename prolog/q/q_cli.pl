@@ -519,7 +519,7 @@ q__graph_with_backend0(M, G, G) :-
   q_view_graph(M, G).
 %q__graph_with_backend0(M, N, G) :-
 %  integer(N), !,
-%  aggregate_all(set(G), q_graph(G), Gs),
+%  aggregate_all(set(G), q_view_graph(M, G), Gs),
 %  nth1chk(N, Gs, G),
 %  q__graph_with_backend0(M, G, G).
 q__graph_with_backend0(M, G, G) :-

@@ -47,7 +47,7 @@ The following debug flags are used:
 q_io:q_source2store_hook(csv, File1, File2, SourceOpts, SinkOpts) :-
   csv2rdf(File1, File2, SourceOpts, SinkOpts).
 
-q_io:q_source_format_hook(csv, [csv]).
+q_io:q_source_format_hook(csv, csv).
 
 
 

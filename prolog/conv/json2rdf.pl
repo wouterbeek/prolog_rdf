@@ -39,8 +39,8 @@
 q_io:q_source2store_hook(json, File1, File2, SourceOpts, SinkOpts) :-
   json2rdf(File1, File2, SourceOpts, SinkOpts).
 
-q_io:q_source_format_hook(json, [json]).
-q_io:q_source_format_hook(json, [ndjson]).
+q_io:q_source_format_hook(json, json).
+q_io:q_source_format_hook(json, ndjson).
 
 
 

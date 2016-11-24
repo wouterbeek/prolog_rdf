@@ -40,7 +40,7 @@
 
 google_client:create_user_hook(Profile, User) :-
   setting(user:backend, M),
-  q_graph_iri(blog, G),
+  q_graph_iri([blog], G),
   setting(user:alias, Alias),
   qb_iri(Alias, User),
   rdf_global_id(Alias:'User', C),

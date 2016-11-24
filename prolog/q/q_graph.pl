@@ -66,7 +66,7 @@ q_graph_source0(trp, G, Source) :-
 
 q_graph_table_comps(HeaderRow, DataRows) :-
   HeaderRow = ["Graph","№ triples","Store"],
-  aggregate_all(set(G), q_graph(G), Gs),
+  aggregate_all(set(G), q_view_graph(_, G), Gs),
   maplist(graph_data_row_pair0, Gs, Pairs),
   desc_pairs_values(Pairs, DataRows).
 

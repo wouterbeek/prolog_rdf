@@ -120,11 +120,11 @@ q_cache_iris_worker(M, Iri, NewIris) :-
 
 q_cached_iri(Iri) :-
   var(Iri), !,
-  q_graph(G),
+  q_store_graph(G),
   q_cached_iri_graph(Iri, G).
 q_cached_iri(Iri) :-
   q_cached_iri_graph(Iri, G),
-  q_graph(G).
+  q_store_graph(G).
 
 
 

@@ -39,8 +39,8 @@ q_io:q_source2store_hook(xml, Source, Sink, SourceOpts1, SinkOpts) :-
   del_dict(record_names, SourceOpts1, RecordNames, SourceOpts2),
   xml2rdf(Source, Sink, RecordNames, SourceOpts2, SinkOpts).
 
-q_io:q_source_format_hook(xml, [marcxml]).
-q_io:q_source_format_hook(xml, [xml]).
+q_io:q_source_format_hook(xml, marcxml).
+q_io:q_source_format_hook(xml, xml).
 
 
 

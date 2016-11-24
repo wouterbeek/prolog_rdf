@@ -168,12 +168,7 @@ benchmark_directory_dataset0(Benchmark, Dir, Dataset) :-
   sort_by_local_file_name(Subdir, nt, Dataset, NtFile),
   % Load dataset into TRP backend.
   rdf_reset_db,
-  rdf_load_file(NtFile),
-  file_change_extension(NtFile, hdt, HdtFile),
-  % Load dataset into HDT backend.
-  q_io:q_store2cache_hook(hdt, NtFile, HdtFile, _),
-  hdt:hdt_open(Hdt, HdtFile),
-  assert(hdt_io:hdt_graph0(default, Hdt)).
+  rdf_load_file(NtFile).
 
 
 

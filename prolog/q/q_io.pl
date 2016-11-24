@@ -7,9 +7,11 @@
   q_file_name_to_format/2,  % +FileName, -Format
   q_source_dir/1,           % -Dir
   q_source_file/1,          % -File
+  q_source_graph/1,         % ?G
 
     % SOURCE ⬄ STORE
     q_generate/2,            % ?G, :Goal_1
+    q_sync/1,                % +G
     q_init/0,
     q_source2store/0,
     q_source2store_file/1,   % +File
@@ -152,9 +154,8 @@ them.
 :- rdf_meta
    q_cache_graph(?, r),
    q_file_graph(?, ?, r),
-   q_source2store(r),
-   q_source2store(+, r),
    q_store2view(+, r),
+   q_source_graph(r),
    q_view2store(+, r).
 
 :- setting(
@@ -216,8 +217,12 @@ q_source_dir(Dir) :-
 %
 % Extended with hook q_source_format_hook
 
-q_source_format(Format, Exts) :-
-  q_source_format_hook(Format, Exts).
+% Compressed
+q_source_format(Format, [Ext,gz]) :- !,
+  q_source_format_hook(Format, Ext).
+% Uncompressed
+q_source_format(Format, [Ext]) :-
+  q_source_format_hook(Format, Ext).
 
 
 
@@ -234,6 +239,17 @@ q_source_file(File) :-
   \+ q_source_skip_exts(Exts).
 
 
+
+%! q_source_graph(+G) is semidet.
+%! q_source_graph(-G) is nondet.
+
+q_source_graph(G) :-
+  ground(G), !,
+  q_dir_graph(Dir, G),
+  q_dir(_, Dir).
+q_source_graph(G) :-
+  q_hash(Hash),
+  q_hash_graph(Hash, G).
 
 
 
@@ -354,7 +370,7 @@ q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
           SinkOpts2
         )
       ),
-      q_file_hash(File, data, ntriples, Hash),
+      q_file_hash(File, ntriples, Hash),
       delete_file_msg(File),
       create_file_directory(File),
       rename_file(TmpFile, File),
@@ -363,7 +379,7 @@ q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
       q_dataset_add_graph(D, GName, G),
       M = trp,
       md5(DName-meta, MetaHash),
-      q_graph_hash(MetaG, data, MetaHash),
+      q_graph_hash(MetaG, MetaHash),
       qb_instance(M, D, void:'Dataset', MetaG),
       capitalize_string(DName, DLbl),
       qb_label(M, D, DLbl^^xsd:string, MetaG),
@@ -373,7 +389,8 @@ q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
       qb(M, D, void:subset, MetaG, MetaG),
       qb_label(M, MetaG, "Metadata"@en, MetaG),
       q_dataset_add_graph(D, meta, MetaG),
-      q_dataset_set_default_graph(D, meta)
+      q_dataset_set_default_graph(D, meta),
+      q_sync(MetaG)
   ).
   
 
@@ -424,6 +441,13 @@ q_store_rm(G) :-
 
 q_generate(G, Goal_1) :-
   call(Goal_1, G),
+  q_sync(G).
+
+
+
+%! q_sync(+G) is det.
+
+q_sync(G) :-
   % The transformations now have to be synced with the store, from
   % which the cache can be recreated.
   q_view2store(trp, G),
