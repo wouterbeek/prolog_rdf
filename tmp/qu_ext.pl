@@ -25,10 +25,10 @@
 
 
 
-%! qu_remove_thousands(+M1, +M2, +P, G) is det.
+%! qu_remove_thousands(+P, G) is det.
 
-qu_remove_thousands(M1, M2, P, G) :-
-  qu_change_lex(M1, M2, P, G, remove_thousands0).
+qu_remove_thousands(P, G) :-
+  qu_change_lex_dcg(P, G, remove_thousands0).
 
 
 remove_thousands0 -->

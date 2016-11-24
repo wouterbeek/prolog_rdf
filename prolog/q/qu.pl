@@ -28,8 +28,11 @@
       qu_add_ltag/3,            % ?P, +LTag, ?G
       qu_change_ltag/4,         % ?P, +LTag1, ?G, +LTag2
       % LEXICAL FORM
-      qu_change_lex/3,          % ?P, ?G, :Dcg_0
-        qu_add_padding/3,       % +P, ?G, +PaddingCode
+      qu_change_lex/3,          % ?P, ?G, :Goal_2
+      qu_change_lex_dcg/3,      % ?P, ?G, :Dcg_0
+        % PADDING
+        qu_lex_add_padding/3,   % +P, ?G, +PaddingCode
+        qu_lex_rm_padding/3,    % +P, ?G, +PaddingChars
       % VALUE
       qu_change_val/5,          % ?S, ?P, ?DParent, ?G, :Goal_2
         qu_change_decimal/4,    % ?S, ?P, ?G, :Goal_2
@@ -69,7 +72,7 @@
     qu_rm_triples/4,            % ?S, ?P, ?O, ?G
   % SPLIT
     qu_split_string/3,          % +P, ?G, +SepChars
-% GEO
+  % GEO
     qu_replace_flat_wgs84_point/1,    % ?G
     qu_replace_flat_wgs84_point/3,    % +Q, +R, ?G
     qu_replace_flat_wkt_geometry/1,   % +G
@@ -121,7 +124,8 @@ to predicate and/or graph.
     qu_change_float(?, ?, ?, 2),
     qu_change_iri(?, ?, ?, ?, +, //),
     qu_change_iri0(+, +, //, -),
-    qu_change_lex(?, ?, //),
+    qu_change_lex(?, ?, 2),
+    qu_change_lex_dcg(?, ?, //),
     qu_change_val(?, ?, ?, ?, 2),
     qu_lex_to_iri(?, +, ?, //),
     qu_replace_string(?, ?, 5),
@@ -131,7 +135,8 @@ to predicate and/or graph.
 :- rdf_meta
    qu(r, r, o, r, t),
    qu_add_ltag(r, +, r),
-   qu_add_padding(r, r, +),
+   qu_lex_add_padding(r, r, +),
+   qu_lex_rm_padding(r, r, +),
    qu_call(t, t),
    qu_change_datatype(r, r, r),
    qu_change_decimal(r, r, r, :),
@@ -139,6 +144,7 @@ to predicate and/or graph.
    qu_change_float(r, r, r, :),
    qu_change_iri(r, r, o, r, +, :),
    qu_change_iri_prefix(r, r, o, r, +, +, +),
+   qu_change_lex(r, r, :),
    qu_change_lex(r, r, :),
    qu_change_ltag(r, +, r, +),
    qu_change_val(r, r, r, r, :),
@@ -465,11 +471,31 @@ qu_change_ltag(P, LTag1, G, LTag2) :-
 
 % TERM > LITERAL > LEXICAL FORM
 
-%! qu_change_lex(?P, ?G, :Dcg_0) is det.
+%! qu_change_lex(?P, ?G, :Goal_2) is det.
+%
+% Change lexical forms by calling Goal_2 on in/out atoms.
+
+qu_change_lex(P, G, Goal_2) :-
+  debug(qu(change_lex), qu_change_lex_deb(P, Goal_2)),
+  qu_call(
+    (
+      q(trp, S, P, Lit1, G),
+      q_literal(Lit1, D, Lex1, LTag),
+      call(Goal_2, Lex1, Lex2),
+      Lex1 \== Lex2,
+      q_datatype_compat(Lex2, D)
+    ), (
+      q_literal(Lit2, D, Lex2, LTag),
+      qu(S, P, Lit1, G, object(Lit2))
+    )
+  ).
+
+
+%! qu_change_lex_dcg(?P, ?G, :Dcg_0) is det.
 %
 % Change lexical forms by calling Dcg_0.
 
-qu_change_lex(P, G, Dcg_0) :-
+qu_change_lex_dcg(P, G, Dcg_0) :-
   debug(qu(change_lex), qu_change_lex_deb(P, Dcg_0)),
   qu_call(
     (
@@ -486,9 +512,11 @@ qu_change_lex(P, G, Dcg_0) :-
 
 
 
-%! qu_add_padding(+P, ?G, +PaddingCode) is det.
+% TERM > LITERAL > LEXICAL FORM > PADDING
 
-qu_add_padding(P, G, PaddingCode) :-
+%! qu_lex_add_padding(+P, ?G, +PaddingCode) is det.
+
+qu_lex_add_padding(P, G, PaddingCode) :-
   aggregate_all(
     max(Len),
     (
@@ -498,12 +526,12 @@ qu_add_padding(P, G, PaddingCode) :-
     ),
     Max
   ), !,
-  debug(qu(add_padding), qu_add_padding_deb(P, PaddingCode)),
-  qu_change_lex(P, G, qu_add_padding0(PaddingCode, Max)).
-qu_add_padding(_, _, _, _, _).
+  debug(qu(lex_add_padding), qu_lex_add_padding_deb(P, PaddingCode)),
+  qu_change_lex_dcg(P, G, qu_lex_add_padding0(PaddingCode, Max)).
+qu_lex_add_padding(_, _, _, _, _).
 
 
-qu_add_padding0(PaddingCode, Len), Cs -->
+qu_lex_add_padding0(PaddingCode, Len), Cs -->
   ...(Suffix),
   eos,
   {
@@ -512,6 +540,13 @@ qu_add_padding0(PaddingCode, Len), Cs -->
     repeating_list(PaddingCode, PrefixLen, Prefix),
     append(Prefix, Suffix, Cs)
   }.
+
+
+
+%! qu_lex_rm_padding(+P, ?G, +PaddingChars) is det.
+
+qu_lex_rm_padding(P, G, PaddingChars) :-
+  qu_change_lex(P, G, strip_atom(PaddingChars)).
 
 
 
@@ -1097,7 +1132,7 @@ qu_add_ltag_deb(P, LTag) -->
   ".".
 
 
-qu_add_padding_deb(P, C) -->
+qu_lex_add_padding_deb(P, C) -->
   "Add padding ‘",
   sq(code(C)),
   " to lexical forms of property ",
