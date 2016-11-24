@@ -44,6 +44,7 @@
     hdt_prepare/1,              % +File
     hdt_prepare/2,              % +File, -HdtFile
     hdt_remove/1,               % +File
+    hdt_remove_index/1,         % +File
     hdt_subject/1,              % ?S, ?G
     hdt_subject/2,              % ?S, ?G
     hdt_subject0/2,             % ?S, +Hdt
@@ -440,10 +441,19 @@ hdt_prepare_base(Base, File3) :-
 %! hdt_remove(+File) is det.
 
 hdt_remove(File) :-
-  atomic_list_concat([Base,hdt], ., File),
-  atomic_list_concat([Base,index,hdt], ., IndexFile),
-  delete_file_msg(IndexFile),
-  delete_file_msg(File).
+  delete_file_msg(File),
+  hdt_remove_index(File).
+
+
+
+%! hdt_remove_index(+File) is det.
+%
+% Remove the HDT index file for the given HDT file.
+
+hdt_remove_index(File) :-
+  file_name_extension(Base, hdt, File),
+  file_name_extension(Base, 'hdt.index', IndexFile),
+  delete_file_msg(IndexFile).
 
 
 

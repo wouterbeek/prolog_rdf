@@ -17,6 +17,9 @@
 */
 
 :- use_module(library(debug)).
+:- use_module(library(hdt), []).
+:- use_module(library(hdt/hdt_ext)).
+:- use_module(library(hdt/hdt_io), []).
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
@@ -57,7 +60,7 @@ benchmark(Benchmark) :-
 
 benchmark_dataset(Benchmark, Dataset) :-
   benchmark_directory0(Benchmark, Dir),
-  benchmark_directory_dataset0(Benchmark, Dir, Dataset, _).
+  benchmark_directory_dataset0(Benchmark, Dir, Dataset).
 
 
 
@@ -66,7 +69,7 @@ benchmark_dataset(Benchmark, Dataset) :-
 %! benchmark_dataset_query(-Benchmark, -Dataset, -Query) is nondet.
 
 benchmark_dataset_query(Benchmark, Dataset, Query) :-
-  benchmark_dataset_query0(Benchmark, Dataset, Query-_).
+  benchmark_dataset_query0(Benchmark, Dataset, Query, _).
 
 
 %! benchmark_dataset_query(+Benchmark, +Dataset, -Query, -Q) is nondet.
@@ -74,8 +77,8 @@ benchmark_dataset_query(Benchmark, Dataset, Query) :-
 %! benchmark_dataset_query(-Benchmark, -Dataset, -Query, -Q) is nondet.
 
 benchmark_dataset_query(Benchmark, Dataset, Query, Q) :-
-  benchmark_dataset_query0(Benchmark, Dataset, Query-Path),
-  call_on_stream(Path, {Q}/[In,Paths,Paths]>>read_stream_to_atom(In, Q)).
+  benchmark_dataset_query0(Benchmark, Dataset, Query, File),
+  call_on_stream(File, {Q}/[In,Paths,Paths]>>read_stream_to_atom(In, Q)).
 
 
 
@@ -134,17 +137,15 @@ run_benchmark0(Goal_2, Query, NumResults, Duration) :-
 
 % HELPERS %
 
-%! benchmark_dataset_query0(+Benchmark, +Dataset, -Pair) is nondet.
-%! benchmark_dataset_query0(+Benchmark, -Dataset, -Pair) is nondet.
-%! benchmark_dataset_query0(-Benchmark, -Dataset, -Pair) is nondet.
+%! benchmark_dataset_query0(+Benchmark, +Dataset, -Query, -File) is nondet.
+%! benchmark_dataset_query0(+Benchmark, -Dataset, -Query, -File) is nondet.
+%! benchmark_dataset_query0(-Benchmark, -Dataset, -Query, -File) is nondet.
 
-benchmark_dataset_query0(Benchmark, Dataset, Pair) :-
+benchmark_dataset_query0(Benchmark, Dataset, Query, File) :-
   benchmark_directory0(Benchmark, Dir),
-  benchmark_directory_dataset0(Benchmark, Dir, Dataset, File),
-  rdf_reset_db,
-  rdf_load_file(File),
+  benchmark_directory_dataset0(Benchmark, Dir, Dataset),
   directory_file_path(Dir, query, Subdir),
-  pair0(Subdir, sparql, Pair).
+  sort_by_local_file_name(Subdir, sparql, Query, File).
 
 
 
@@ -158,25 +159,35 @@ benchmark_directory0(Benchmark, Subdir) :-
 
 
 
-%! benchmark_directory_dataset0(+Benchmark, +Dir, +Dataset, -Path) is semidet.
-%! benchmark_directory_dataset0(+Benchmark, +Dir, -Dataset, -Path) is nondet.
+%! benchmark_directory_dataset0(+Benchmark, +Dir, +Dataset) is semidet.
+%! benchmark_directory_dataset0(+Benchmark, +Dir, -Dataset) is nondet.
 
-benchmark_directory_dataset0(Benchmark, Dir, Dataset, Path) :-
+benchmark_directory_dataset0(Benchmark, Dir, Dataset) :-
   benchmark_directory0(Benchmark, Dir),
   directory_file_path(Dir, data, Subdir),
-  pair0(Subdir, ttl, Dataset-Path).
+  sort_by_local_file_name(Subdir, nt, Dataset, NtFile),
+  % Load dataset into TRP backend.
+  rdf_reset_db,
+  rdf_load_file(NtFile),
+  file_change_extension(NtFile, hdt, HdtFile),
+  % Load dataset into HDT backend.
+  q_io:q_store2cache_hook(hdt, NtFile, HdtFile, _),
+  hdt:hdt_open(Hdt, HdtFile),
+  assert(hdt_io:hdt_graph0(default, Hdt)).
 
 
 
-pair0(Dir, Ext, Pair) :-
+%! sort_by_local_file_name(+Dir, +Ext, -Base, -File) is nondet.
+
+sort_by_local_file_name(Dir, Ext, Base, File) :-
   % Sort by local file name.
   aggregate_all(
-    set(File-Path),
+    set(Base-File),
     (
-      directory_path(Dir, Path),
-      file_name_extension(Local, Ext, Path),
-      directory_file_path(Dir, File, Local)
+      directory_path(Dir, File),
+      file_name_extension(FileNoExt, Ext, File),
+      directory_file_path(Dir, Base, FileNoExt)
     ),
     Pairs
   ),
-  member(Pair, Pairs).
+  member(Base-File, Pairs).
