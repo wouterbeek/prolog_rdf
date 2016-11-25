@@ -3,7 +3,6 @@
   [
     qh_alias//1,         % +Alias
     qh_bnode//1,         % +BNode
-    qh_bnode//2,         % +BNode,         +Opts
     qh_class//1,         % +C
     qh_class//2,         % +C,             +Opts
     qh_dataset_term//1,  % +D
@@ -38,16 +37,6 @@
 /** <module> Quine HTML basics
 
 Generates end user-oriented HTML representations of RDF data.
-
-This assumes that an HTTP handler with id `qh` is defined.
-
-The following option sets the HTTP handler:
-
-  - handle_id(+atom)
-
-  - query(+list(compound))
-
-  - query_key(+atom)
 
 The following options are supported to achieve parity with module
 `q_print`:
@@ -141,26 +130,10 @@ qh_alias(Alias) -->
 
 
 %! qh_bnode(+BNode)// is det.
-%! qh_bnode(+BNode, +Opts)// is det.
 
 qh_bnode(BNode) -->
-  qh_bnode(BNode, _{}).
-
-
-qh_bnode(BNode, Opts1) -->
-  {qh_default_options(Opts1, Opts2)},
-  qh_bnode0(BNode, Opts2).
-
-qh_bnode0(BNode, Opts) -->
-  {
-    rdf_global_id(bnode:Local, BNode),
-    dict_get(handle_id, Opts, term_handler, HandleId)
-  },
-  (   {HandleId == none}
-  ->  html(["_:",Local])
-  ;   {http_link_to_id(HandleId, term-BNode, Link, Opts)},
-      html(a(href=Link, ["_:",Local]))
-  ).
+  {rdf_global_id(bnode:Local, BNode)},
+  html(["_:",Local]).
 
 
 
@@ -187,18 +160,10 @@ qh_dataset_term(D, Opts1) -->
   {qh_default_options(Opts1, Opts2)},
   qh_dataset_term0(D, Opts2).
 
-qh_dataset_term0(D, Opts) -->
-  {dict_get(handle_id, Opts, term_handler, HandleId)},
-  (   {HandleId == none}
-  ->  qh_dataset_term00(D, Opts)
-  ;   {http_link_to_id(HandleId, term-D, Link, Opts)},
-      html(a(href=Link, \qh_dataset_term00(D, Opts)))
-  ).
-
-qh_dataset_term00(D, _) -->
+qh_dataset_term0(D, _) -->
   {q_dataset_label(D, Lbl)}, !,
   html(Lbl).
-qh_dataset_term00(D, Opts) -->
+qh_dataset_term0(D, Opts) -->
   qh_term0(D, Opts).
 
 
@@ -215,20 +180,12 @@ qh_graph_term(G, Opts1) -->
   qh_graph_term0(G, Opts2).
 
 qh_graph_term0(G, Opts) -->
-  {dict_get(handle_id, Opts, graph_handler, HandleId)},
-  (   {HandleId == none}
-  ->  qh_graph_term00(G, Opts)
-  ;   {http_link_to_id(HandleId, graph-G, Link, Opts)},
-      html(a(href=Link, \qh_graph_term00(G, Opts)))
-  ).
-
-qh_graph_term00(G, Opts) -->
   {
     q_dataset_graph(D, G),
     q_graph_label(G, Str)
   }, !,
-  html([\qh_dataset_term00(D, Opts),"/",Str]).
-qh_graph_term00(G, Opts) -->
+  html([\qh_dataset_term0(D, Opts),"/",Str]).
+qh_graph_term0(G, Opts) -->
   qh_term0(G, Opts).
 
 
@@ -254,22 +211,14 @@ qh_iri(Iri) -->
 
 qh_iri(Iri, Opts1) -->
   {qh_default_options(Opts1, Opts2)},
-  qh_iri0(Iri, Opts2).
-
-qh_iri0(Iri, Opts) -->
-  {dict_get(handle_id, Opts, term_handler, HandleId)},
-  (   {HandleId == none}
-  ->  qh_iri00(Iri, Opts)
-  ;   {http_link_to_id(HandleId, term-Iri, Link, Opts)},
-      html(a(href=Link, \qh_iri00(Iri, Opts)))
-  ),
+  qh_iri0(Iri, Opts2),
   qh_iri_external0(Iri).
 
 % Abbreviated notation for IRI.
-qh_iri00(Iri, _) -->
+qh_iri0(Iri, _) -->
   {rdf_global_id(rdf:type, Iri)}, !,
   html("a").
-qh_iri00(Iri, Opts) -->
+qh_iri0(Iri, Opts) -->
   {
     Opts.iri_abbr == true,
     rdf_global_id(Alias:Local1, Iri), !,
@@ -277,7 +226,7 @@ qh_iri00(Iri, Opts) -->
   },
   html([Alias,":",Local2]).
 % Plain IRI, possibly ellipsed.
-qh_iri00(Iri1, Opts) -->
+qh_iri0(Iri1, Opts) -->
   {atom_ellipsis(Iri1, Opts.max_iri_len, Iri2)},
   html(Iri2).
 
@@ -300,12 +249,7 @@ qh_literal(Lit, Opts1) -->
   qh_literal0(Lit, Opts2).
 
 qh_literal0(Lit, Opts) -->
-  {dict_get(handle_id, Opts, term_handler, HandleId)},
-  (   {HandleId == none}
-  ->  qh_literal00(Lit, Opts)
-  ;   {http_link_to_id(HandleId, term-Lit, Link, Opts)},
-      html(a(href=Link, \qh_literal00(Lit, Opts)))
-  ),
+  qh_literal00(Lit, Opts),
   qh_literal_external0(Lit).
 
 % RDF HTML
@@ -387,7 +331,7 @@ qh_literal_external0(Uri^^D) -->
   ;   {memberchk(Scheme, [http,https])}
   ->  external_link_icon(Uri)
   ).
-qh_literal_external0(_) --> "".
+qh_literal_external0(_) --> [].
 
 
 
@@ -474,9 +418,9 @@ qh_subject(S, Opts1) -->
   {qh_default_options(Opts1, Opts2)},
   qh_subject0(S, Opts2).
 
-qh_subject0(BNode, Opts) -->
+qh_subject0(BNode, _) -->
   {q_is_bnode(BNode)}, !,
-  qh_bnode0(BNode, Opts).
+  qh_bnode(BNode).
 qh_subject0(Iri, Opts) -->
   {q_is_iri(Iri)}, !,
   qh_iri0(Iri, Opts).
@@ -542,24 +486,8 @@ qh_triple0(S, P, O, Opts) -->
 
 % HELPERS %
 
-%! http_link_to_id(+HandleId, +Pair, -Link, +Opts) is det.
-
-http_link_to_id(HandleId, Key0-Term, Link, Opts) :-
-  dict_get(query, Opts, [], T),
-  dict_get(query_key, Opts, Key0, Key),
-  H =.. [Key,Term],
-  maplist(q_query_term, [H|T], Query),
-  http_link_to_id(HandleId, Query, Link).
-
-
-
 %! qh_default_options(+Opts1, -Opts2) is det.
 
 qh_default_options(Opts1, Opts2) :-
-  DefOpts = _{
-    classes: [],
-    iri_abbr: true,
-    max_iri_len: 30,
-    max_lit_len: 75
-  },
+  DefOpts = _{iri_abbr: true, max_iri_len: 30, max_lit_len: 75},
   merge_dicts(DefOpts, Opts1, Opts2).

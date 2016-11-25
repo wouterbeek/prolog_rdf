@@ -305,8 +305,10 @@ hdt_name(Name, G) :-
 
 
 hdt_name0(Name, Hdt) :-
+  (ground(Name) -> q_is_subject(Name) ; true),
   hdt:hdt_subject(Hdt, Name).
 hdt_name0(Name, Hdt) :-
+  (ground(Name) -> q_is_predicate(Name) ; true),
   hdt:hdt_predicate(Hdt, Name).
 hdt_name0(Name, Hdt) :-
   hdt:hdt_object(Hdt, Name).

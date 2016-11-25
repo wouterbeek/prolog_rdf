@@ -11,7 +11,7 @@
     qh_p_os_table//2,         % +Pairs,             +Opts
     qh_quad_panels//5,        % +M, ?S, ?P, ?O, ?G
     qh_quad_panels//6,        % +M, ?S, ?P, ?O, ?G, +Opts
-    qh_quad_table//2,         %     +Quads,         +Opts
+    qh_quad_table//1,         %     +Quads
     qh_quad_table//6,         % +M, ?S, ?P, ?O, ?G, +Opts
     qh_tree//1,               %     +Tree
     qh_tree//2,               %     +Tree,          +Opts
@@ -239,20 +239,17 @@ qh_quad_panels(M, S, P, O, G, Opts1) -->
 
 
 
-%! qh_quad_table(+Quads, +Opts)// is det.
+%! qh_quad_table(+Quads)// is det.
 %! qh_quad_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
 
-qh_quad_table(Quads, Opts1) -->
+qh_quad_table(Quads) -->
   {
     HeaderRow = ["Subject","Predicate","Object","Graph"],
-    qh_default_table_options(Opts1, Opts2)
+    qh_default_table_options(Opts)
   },
   table(
     \table_header_row(HeaderRow),
-    \html_maplist(
-      {Opts2}/[Quad]>>qh_quad_row0(Quad, Opts2),
-      Quads
-    )
+    \html_maplist({Opts}/[Quad]>>qh_quad_row0(Quad, Opts), Quads)
   ).
 
 
@@ -268,17 +265,24 @@ qh_quad_row0(rdf(S,P,O,G), Opts) -->
   html(
     tr([
       td(class='col-md-3',
-        \qh_subject(S, Opts.put(_{query_key: subject}))
+        \internal_link(
+	  link_to_id(subject_handler,[subject(S)]),
+          \qh_subject(S, Opts)
+        )
       ),
       td(class='col-md-3',
-        \qh_predicate(P, Opts.put(_{query_key: predicate}))
+        \internal_link(
+          link_to_id(predicate_handler,[predicate(P)]),
+          \qh_predicate(P, Opts)
+        )
       ),
       td(class='col-md-3',
-        \qh_object(O, Opts.put(_{query_key: object}))
+        \internal_link(
+          link_to_id(object_handler,[object(O)]),
+          \qh_object(O, Opts)
+        )
       ),
-      td(class='col-md-3',
-        \qh_graph_term(G, Opts.put(_{query_key: graph}))
-      )
+      td(class='col-md-3', \graph_link(G))
     ])
   ).
 
@@ -402,10 +406,13 @@ qh_triple_table(M, S, P, O, G, Opts1) -->
 
 % HELPERS %
 
+%! qh_default_table_options(-Opts) is det.
 %! qh_default_table_options(+Opts1, -Opts2) is det.
 
+qh_default_table_options(Opts) :-
+  qh_default_table_options(_{}, Opts).
+
+
 qh_default_table_options(Opts1, Opts2) :-
-  qh:qh_default_options(_{}, DefOpts1),
-  DefOpts2 = _{max_iri_length: 25},
-  merge_dicts(DefOpts1, DefOpts2, DefOpts),
+  qh:qh_default_options(_{max_iri_length: 25}, DefOpts),
   merge_dicts(DefOpts, Opts1, Opts2).
