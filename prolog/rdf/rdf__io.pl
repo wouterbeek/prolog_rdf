@@ -73,11 +73,11 @@ The following debug flags are used:
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_http_plugin)).
-:- use_module(library(semweb/rdf11)).
-:- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
 :- use_module(library(semweb/rdf_ntriples), [rdf_process_ntriples/3]).
 :- use_module(library(semweb/rdf_turtle_write)).
+:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdfa), [read_rdfa/3]).
 :- use_module(library(semweb/turtle), [rdf_process_turtle/3]).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
@@ -313,7 +313,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
 
 rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
-  (G2 == user -> q_default_graph(G3) ; G3 = G2),
+  (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   gen_is_term(O1)
   ->  call(Goal_5, L, S, P, O1, G3)
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
@@ -346,7 +346,7 @@ rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
       )
   ).
 rdf_call_on_quad0(Goal_5, L, rdf(S,P,O)) :-
-  q_default_graph(G),
+  rdf_default_graph(G),
   rdf_call_on_quad0(Goal_5, L, rdf(S,P,O,G)).
 
 % Use this to debug bugs in statement calls.
@@ -527,7 +527,7 @@ rdf_load_file(Source, Opts) :-
   State = _{quads: 0, triples: 0},
   (   option(force_graph(ToG), Opts)
   ->  Goal_5 = rdf_force_load_tuple0(State, ToG)
-  ;   q_default_graph(DefG),
+  ;   rdf_default_graph(DefG),
       option(graph(ToG), Opts, DefG),
       Goal_5 = rdf_load_tuple0(State, ToG)
   ),
@@ -551,12 +551,12 @@ rdf_force_load_tuple0(State, ToG, _, S, P, O, FromG) :-
 
 rdf_load_tuple0(State, ToG, _, S, P, O, FromG) :-
   count_tuple0(State, FromG),
-  (q_default_graph(FromG) -> G = ToG ; G = FromG),
+  (rdf_default_graph(FromG) -> G = ToG ; G = FromG),
   % @tbd IRI normalization.
   rdf_assert(S, P, O, G).
 
 count_tuple0(State, G) :-
-  q_default_graph(G), !,
+  rdf_default_graph(G), !,
   dict_inc(triples, State).
 count_tuple0(State, _) :-
   dict_inc(quads, State).
@@ -687,7 +687,7 @@ rdf_write_to_sink(File, M, S, P, O, G, Opts) :-
   create_file_directory(File),
   rdf_write_to_sink(File, M, S, P, O, G, Opts).
 rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
-  q_default_graph(DefG),
+  rdf_default_graph(DefG),
   defval(DefG, G),
   rdf_write_media_type0(Sink, Opts1, MT),
   merge_options(Opts1, [rdf_media_type(MT)], Opts2),

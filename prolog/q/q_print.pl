@@ -590,7 +590,7 @@ dcg_q_print_quads(Tuples, Opts) -->
 
 
 graph_triple_pair0(rdf(S,P,O), G-rdf(S,P,O)) :-
-  q_default_graph(G).
+  rdf_default_graph(G).
 graph_triple_pair0(rdf(S,P,O,G), G-rdf(S,P,O)).
 
 
@@ -612,7 +612,7 @@ dcg_q_print_triples(Triples) -->
 
 
 dcg_q_print_triples(Triples, Opts) -->
-  {q_default_graph(G)},
+  {rdf_default_graph(G)},
   dcg_q_print_groups0([G-Triples], Opts).
 
 
@@ -638,7 +638,7 @@ dcg_q_print_sorted_pairs0(SortedPairs, Opts) -->
 dcg_q_print_groups0([], _) --> !, [].
 dcg_q_print_groups0([G-Triples|Groups], Opts) -->
   {dict_get(indent, Opts, 0, I1)},
-  (   {q_default_graph(G)}
+  (   {rdf_default_graph(G)}
   ->  {I2 = I1}
   ;   tab(I1),
       dcg_q_print_graph_term(G, Opts),
@@ -646,7 +646,7 @@ dcg_q_print_groups0([G-Triples|Groups], Opts) -->
       {I2 = I1 + 1}
   ),
   dcg_q_print_triples0(I2, Triples, Opts),
-  ({q_default_graph(G)} -> "" ; "}\n"),
+  ({rdf_default_graph(G)} -> "" ; "}\n"),
   dcg_q_print_groups0(Groups, Opts).
 
 
@@ -722,7 +722,7 @@ dcg_q_print_quad(Tuple) -->
 
 
 dcg_q_print_quad(rdf(S,P,O), Opts) --> !,
-  {q_default_graph(G)},
+  {rdf_default_graph(G)},
   dcg_q_print_quad(rdf(S,P,O,G), Opts).
 dcg_q_print_quad(rdf(S,P,O,G), Opts) -->
   dcg_q_print_quad(S, P, O, G, Opts).

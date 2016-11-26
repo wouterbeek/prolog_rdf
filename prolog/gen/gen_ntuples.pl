@@ -190,7 +190,7 @@ gen_ntuple(S, P, O, G, State, Out) :-
     put_char(' '),
     (   State.rdf_media_type == application/'n-triples'
     ->  dict_inc(triples, State)
-    ;   q_default_graph(G)
+    ;   rdf_default_graph(G)
     ->  dict_inc(triples, State)
     ;   gen_graph(G),
         put_char(' '),

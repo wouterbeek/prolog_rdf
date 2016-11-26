@@ -15,7 +15,6 @@
     q_datatype/2,          % +M, ?D
     q_datatype/3,          % +M, ?D, ?G
     q_defval/2,            % +Def, -Val
-    q_default_graph/1,     % ?G
     q_external_iri/2,      % +M, ?Iri
     q_instance/3,          % +M, ?I, ?C
     q_instance/4,          % +M, ?I, ?C, ?G
@@ -86,7 +85,6 @@
      (rdf_meta)/1
    ]).
 :- reexport(library(semweb/rdf11), [
-     rdf_default_graph/1 as q_default_graph,
      rdf_is_bnode/1 as q_is_bnode,
      rdf_is_iri/1 as q_is_iri,
      rdf_is_literal/1 as q_is_literal,
@@ -122,9 +120,7 @@
 error:has_type(q_bnode, BNode) :-
   q_is_bnode(BNode).
 error:has_type(q_graph, G) :-
-  (   G == default
-  ;   error:has_type(q_iri, G)
-  ).
+  error:has_type(q_iri, G).
 error:has_type(q_iri, Iri) :-
   error:has_type(iri, Iri).
 error:has_type(q_literal, Lit) :-
