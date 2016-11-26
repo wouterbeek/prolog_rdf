@@ -34,7 +34,7 @@
     rdfa_date_time//2,   % +P, +Something
     rdfa_date_time//3,   % +P, +Something, +Masks
     rdfa_prefixed_iri/2, % +Iri, -PrefixedIri
-    rdfa_prefixes/2,     % +Aliases, -Prefixes
+    rdfa_prefixes//0,
     sioc_content//3,     % +M, +Article,              ?G
     sioc_reply_of//3     % +M, +Comment,              ?G
   ]
@@ -46,6 +46,7 @@
 @version 2016/02-2016/08, 2016/11
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(hash_ext)).
@@ -67,6 +68,16 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
 :- use_module(library(xsd/xsd)).
+
+:- multifile
+    rdfa:alias/1.
+
+rdfa:alias(bibframe).
+rdfa:alias(dc).
+rdfa:alias(foaf).
+rdfa:alias(org).
+rdfa:alias(sioc).
+rdfa:alias(xsd).
 
 :- rdf_meta
    agent_image(+, r, -, r),
@@ -399,13 +410,17 @@ rdfa_prefixed_iri(Iri, PrefixedIri) :-
 
 
 
-%! rdfa_prefixes(+Aliases, -Prefixes) is det.
+%! rdfa_prefixes// is det.
 
-rdfa_prefixes(Aliases, Defs) :-
-  maplist(q_alias_prefix, Aliases, Prefixes),
-  pairs_keys_values(Pairs, Aliases, Prefixes),
-  maplist(pair_to_prefix0, Pairs, Defs0),
-  atomic_list_concat(Defs0, ' ', Defs).
+rdfa_prefixes -->
+  {
+    aggregate_all(set(Alias), rdfa:alias(Alias), Aliases),
+    maplist(q_alias_prefix, Aliases, Prefixes),
+    pairs_keys_values(Pairs, Aliases, Prefixes),
+    maplist(pair_to_prefix0, Pairs, Vals),
+    atomic_list_concat(Vals, ' ', Val)
+  },
+  html_root_attribute(prefix, Val).
 
 pair_to_prefix0(Alias-Prefix, Def) :-
   atomic_list_concat([Alias,Prefix], ': ', Def).
