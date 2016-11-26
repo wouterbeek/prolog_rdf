@@ -29,6 +29,8 @@
     qh_subject//2,       % +S,             +Opts
     qh_term//1,          % +Term
     qh_term//2,          % +Term,          +Opts
+    qh_triple//1,        % +Triple
+    qh_triple//2,        % +Triple,        +Opts
     qh_triple//3,        % +S, +P, +O
     qh_triple//4         % +S, +P, +O,     +Opts
   ]
@@ -71,7 +73,7 @@ The following options are specific to this module:
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)). % rdf_meta/1
 :- use_module(library(typecheck)).
-:- use_module(library(vocab/dbpedia), []). % DBpedia datatype hook.
+%:- use_module(library(vocab/dbpedia), []). % DBpedia datatype hook.
 :- use_module(library(yall)).
 
 :- multifile
@@ -132,8 +134,11 @@ qh_alias(Alias) -->
 %! qh_bnode(+BNode)// is det.
 
 qh_bnode(BNode) -->
-  {rdf_global_id(bnode:Local, BNode)},
-  html(["_:",Local]).
+  {q_is_bnode(BNode)}, !,
+  html(BNode).
+qh_bnode(BNode) -->
+  {q_bnode_label(BNode, Lbl)}, !,
+  html(["_:",Lbl]).
 
 
 
@@ -419,8 +424,7 @@ qh_subject(S, Opts1) -->
   qh_subject0(S, Opts2).
 
 qh_subject0(BNode, _) -->
-  {q_is_bnode(BNode)}, !,
-  qh_bnode(BNode).
+  qh_bnode(BNode), !.
 qh_subject0(Iri, Opts) -->
   {q_is_iri(Iri)}, !,
   qh_iri0(Iri, Opts).

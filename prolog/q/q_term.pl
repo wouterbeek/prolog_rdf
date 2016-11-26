@@ -1,21 +1,20 @@
 :- module(
   q_term,
   [
+    gen_is_bnode/1,        % +GenBNode
+    gen_is_term/1,         % +GenTerm
     q_aggregate_all/3,     % +Template, :Goal_0, -Result
     q_alias/1,             % ?Alias
     q_alias_domain/2,      % +Alias, -Domain
    %q_alias_prefix/2,      % ?Alias, ?Prefix
-    q_bnode/2,             % +M, ?B
-    q_bnode/3,             % +M, ?B, ?G
-    q_bnode_iri/2,         % +M, ?B
-    q_bnode_iri/3,         % +M, ?B, ?G
-    q_bnode_iri_prefix/1,  % ?Prefix
+    q_bnode/2,             % +M, ?BNode
+    q_bnode/3,             % +M, ?BNode, ?G
+    q_bnode_label/2,       % +BNode, -Lbl
     q_class/2,             % +M, -C
     q_class/3,             % +M, -C, ?G
     q_datatype/2,          % +M, ?D
     q_datatype/3,          % +M, ?D, ?G
     q_defval/2,            % +Def, -Val
-    q_default_graph/1,     % ?G
     q_external_iri/2,      % +M, ?Iri
     q_instance/3,          % +M, ?I, ?C
     q_instance/4,          % +M, ?I, ?C, ?G
@@ -47,8 +46,8 @@
     q_literal_ltag/2,      % +Lit, -LTag
     q_literal_string/2,    % +Lit, -Str
     q_literal_val/2,       % +Lit, ?Val
-    q_lone_bnode/2,        % +M, ?B
-    q_lone_bnode/3,        % +M, ?B, ?G
+    q_lone_bnode/2,        % +M, ?BNode
+    q_lone_bnode/3,        % +M, ?BNode, ?G
     q_lts/2,               % +M, ?Lit
     q_lts/3,               % +M, ?Lit, ?G
     q_member/2,            % ?Elem, +L
@@ -86,7 +85,6 @@
      (rdf_meta)/1
    ]).
 :- reexport(library(semweb/rdf11), [
-     rdf_default_graph/1 as q_default_graph,
      rdf_is_bnode/1 as q_is_bnode,
      rdf_is_iri/1 as q_is_iri,
      rdf_is_literal/1 as q_is_literal,
@@ -119,12 +117,10 @@
 :- multifile
     error:has_type/2.
 
-error:has_type(q_bnode, B) :-
-  q_is_bnode(B).
+error:has_type(q_bnode, BNode) :-
+  q_is_bnode(BNode).
 error:has_type(q_graph, G) :-
-  (   G == default
-  ;   error:has_type(q_iri, G)
-  ).
+  error:has_type(q_iri, G).
 error:has_type(q_iri, Iri) :-
   error:has_type(iri, Iri).
 error:has_type(q_literal, Lit) :-
@@ -133,8 +129,8 @@ error:has_type(q_name, Iri) :-
   error:has_type(q_iri, Iri).
 error:has_type(q_name, Lit) :-
   error:has_type(q_literal, Lit).
-error:has_type(q_term, B) :-
-  error:has_type(q_bnode, B).
+error:has_type(q_term, BNode) :-
+  error:has_type(q_bnode, BNode).
 error:has_type(q_term, Lit) :-
   error:has_type(q_literal, Lit).
 error:has_type(q_term, Iri) :-
@@ -192,7 +188,6 @@ q_ltag0(LTag) -->
 :- rdf_meta
    q_aggregate_all(+, t, -),
    q_bnode(?, ?, r),
-   q_bnode_iri(?, ?, r),
    q_class(+, r),
    q_class(+, r, r),
    q_datatype(?, r),
@@ -241,6 +236,22 @@ q_ltag0(LTag) -->
 
 
 
+%! gen_is_bnode(+GenBNode) is semidet.
+
+gen_is_bnode(node(_)) :- !.
+gen_is_bnode(BNode) :-
+  q_is_bnode(BNode).
+
+
+
+%! gen_is_term(+GenTerm) is semidet.
+
+gen_is_term(node(_)) :- !.
+gen_is_term(Term) :-
+  rdf_is_term(Term).
+
+
+
 %! q_aggregate_all(+Template, :Goal_0, -Result) is det.
 %
 % Calls aggregate_all/3 under RDF alias expansion.
@@ -265,43 +276,31 @@ q_alias_domain(Alias, Domain) :-
 
 
 
-%! q_bnode(+M, ?B) is nondet.
-%! q_bnode(+M, ?B, ?G) is nondet.
+%! q_bnode(+M, ?BNode) is nondet.
+%! q_bnode(+M, ?BNode, ?G) is nondet.
 
-q_bnode(hdt, B) :-
-  hdt_bnode(B).
-q_bnode(trp, B) :-
-  rdf_bnode(B).
-
-
-q_bnode(hdt, B, G) :-
-  hdt_bnode(B, G).
-q_bnode(hdt0, B, Hdt) :-
-  hdt_bnode0(B, Hdt).
-q_bnode(trp, B, G) :-
-  rdf_bnode(B, G).
+q_bnode(hdt, BNode) :-
+  hdt_bnode(BNode).
+q_bnode(trp, BNode) :-
+  rdf_bnode(BNode).
 
 
-
-%! q_bnode_iri(+M, ?B) is semidet.
-%! q_bnode_iri(+M, ?B, ?G) is semidet.
-
-q_bnode_iri(M, B) :-
-  q_bnode_iri(M, B, _).
-
-
-q_bnode_iri(M, B, G) :-
-  q_bnode_iri_prefix(Prefix),
-  q_iri(M, B, G),
-  atom_prefix(B, Prefix).
+q_bnode(hdt, BNode, G) :-
+  hdt_bnode(BNode, G).
+q_bnode(hdt0, BNode, Hdt) :-
+  hdt_bnode0(BNode, Hdt).
+q_bnode(trp, BNode, G) :-
+  rdf_bnode(BNode, G).
 
 
 
-%! q_bnode_iri_prefix(+Prefix) is semidet.
-%! q_bnode_iri_prefix(-Prefix) is det.
+%! q_bnode_label(+BNode, -Lbl) is det.
 
-q_bnode_iri_prefix(Prefix) :-
-  q_alias_prefix(bnode, Prefix).
+q_bnode_label(BNode, BNode) :-
+  q_is_bnode(BNode), !.
+q_bnode_label(BNode, Lbl) :-
+  rdf_global_id(bnode:Local, BNode),
+  atomic_list_concat([_,Lbl], :, Local).
 
 
 
@@ -543,16 +542,16 @@ q_literal_val(Val@_, Val).
 
 
 
-%! q_lone_bnode(+M, ?B) is nondet.
-%! q_lone_bnode(+M, ?B, ?G) is nondet.
+%! q_lone_bnode(+M, ?BNode) is nondet.
+%! q_lone_bnode(+M, ?BNode, ?G) is nondet.
 
-q_lone_bnode(M, B) :-
-  q_lone_bnode(M, B, _).
+q_lone_bnode(M, BNode) :-
+  q_lone_bnode(M, BNode, _).
 
 
-q_lone_bnode(M, B, G) :-
-  q_bnode(M, B, G),
-  \+ q(M, B, _, _, G).
+q_lone_bnode(M, BNode, G) :-
+  q_bnode(M, BNode, G),
+  \+ q(M, BNode, _, _, G).
 
 
 
