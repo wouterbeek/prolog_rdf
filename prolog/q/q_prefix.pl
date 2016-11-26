@@ -47,7 +47,63 @@ This allows the following two IRI notations to be distinguished:
 :- use_module(library(solution_sequences)).
 
 :- initialization(init_q_prefix).
+
 init_q_prefix :-
+  
+  % PREDEFINED FOR RDFa
+  qb_alias(csvw, 'http://www.w3.org/ns/csvw#'),
+  qb_alias(dcat, 'http://www.w3.org/ns/dcat#'),
+  qb_alias(grddl, 'http://www.w3.org/2003/g/data-view#'),
+  qb_alias(ma, 'http://www.w3.org/ns/ma-ont#'),
+  qb_alias(org, 'http://www.w3.org/ns/org#'),
+  %owl http://www.w3.org/2002/07/owl#
+  qb_alias(prov, 'http://www.w3.org/ns/prov#'),
+  qb_alias(qb, 'http://purl.org/linked-data/cube#'),
+  %rdf http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  qb_alias(rdfa, 'http://www.w3.org/ns/rdfa#'),
+  %rdfs http://www.w3.org/2000/01/rdf-schema#
+  qb_alias(rif, 'http://www.w3.org/2007/rif#'),
+  qb_alias(rr, 'http://www.w3.org/ns/r2rml#'),
+  qb_alias(sd, 'http://www.w3.org/ns/sparql-service-description#'),
+  %skos http://www.w3.org/2004/02/skos/core#
+  qb_alias(skosxl, 'http://www.w3.org/2008/05/skos-xl#'),
+  %void http://rdfs.org/ns/void#
+  qb_alias(wdr, 'http://www.w3.org/2007/05/powder#'),
+  qb_alias(wdrs, 'http://www.w3.org/2007/05/powder-s#'),
+  qb_alias(xhv, 'http://www.w3.org/1999/xhtml/vocab#'),
+  qb_alias(xml, 'http://www.w3.org/XML/1998/namespace'),
+  %xsd http://www.w3.org/2001/XMLSchema#
+  
+  % WIDELY USED
+  qb_alias(cc, 'http://creativecommons.org/ns#'),
+  qb_alias(ctag, 'http://commontag.org/ns#'),
+  %dc http://purl.org/dc/elements/1.1/
+  qb_alias(dct, 'http://purl.org/dc/terms/'),
+  %dcterms http://purl.org/dc/terms/
+  %eor http://dublincore.org/2000/03/13/eor#
+  %foaf http://xmlns.com/foaf/0.1/
+  qb_alias(gr, 'http://purl.org/goodrelations/v1#'),
+  qb_alias(ical, 'http://www.w3.org/2002/12/cal/icaltzd#'),
+  qb_alias(og, 'http://ogp.me/ns#'),
+  qb_alias(rev, 'http://purl.org/stuff/rev#'),
+  %serql http://www.openrdf.org/schema/serql#
+  qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
+  qb_alias(v, 'http://rdf.data-vocabulary.org/#'),
+  qb_alias(vcard, 'http://www.w3.org/2006/vcard/ns#'),
+  qb_alias(schema, 'http://schema.org/'),
+
+  % DEFINED BY W3C
+  qb_alias(describedby, 'http://www.w3.org/2007/05/powder-s#describedby'),
+  qb_alias(license, 'http://www.w3.org/1999/xhtml/vocab#license'),
+  qb_alias(role, 'http://www.w3.org/1999/xhtml/vocab#role'),
+
+  % UNDER DEVELOPMENT
+  qb_alias(dqv, 'http://www.w3.org/ns/dqv#'),
+  qb_alias(earl, 'http://www.w3.org/ns/earl#'),
+  qb_alias(ssn, 'http://www.w3.org/ns/ssn/'),
+  qb_alias(oa, 'http://www.w3.org/ns/oa#'),
+
+  % CUSTOM
   qb_alias(bibframe, 'http://bibframe.org/vocab/'),
   qb_alias(blog, 'http://quine.cc/blog/def#'),
   qb_alias(cache, 'http://quine.cc/cache/'),
@@ -56,10 +112,7 @@ init_q_prefix :-
   qb_alias(dbr, 'http://dbpedia.org/resource/'),
   qb_alias(dbt, 'http://dbpedia.org/datatype/'),
   qb_alias(dby, 'http://dbpedia.org/class/yago/'),
-  qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
-  qb_alias(dct, 'http://purl.org/dc/terms/'),
   qb_alias(fb, 'http://ogp.me/ns/fb#'),
-  qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
   qb_alias(formats, 'http://www.w3.org/ns/formats/'),
   qb_alias(geold, 'http://geojsonld.com/vocab#'),
   qb_alias(geosparql, 'http://www.opengis.net/ont/geosparql#'),
@@ -69,16 +122,7 @@ init_q_prefix :-
   qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
   qb_alias(llr, 'http://lodlaundromat.org/resource/'),
   qb_alias(odp, 'http://www.ontologydesignpatterns.org/'),
-  qb_alias(og, 'http://ogp.me/ns#'),
-  qb_alias(org, 'http://www.w3.org/ns/org#'),
-  qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
-  qb_alias(prov, 'http://www.w3.org/ns/prov#'),
-  qb_alias(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
-  qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
-  qb_alias(schema, 'http://schema.org/'),
-  qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
   qb_alias(sparql, 'http://www.w3.org/2005/sparql-results#'),
-  qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
   qb_alias('umbel-rc', 'http://umbel.org/umbel/rc/'),
   qb_alias('wiki-entity', 'http://www.wikidata.org/entity/'),
   qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#'),

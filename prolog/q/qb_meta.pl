@@ -209,59 +209,59 @@ qb_license(M, S, Name, G) :-
 % Common assertions to be made by `call(Goal_3, M, Dataset, MetaG)`
 % are:
 %
-%   * `dcterms:description`
+%   * `dct:description`
 %
 %     A textual description of the dataset.
 %
-%   * `dcterms:contributor`
+%   * `dct:contributor`
 %
 %     An entity, such as a person, organisation, or service, that is
 %     responsible for making contributions to the dataset.  The
 %     contributor should be described as an RDF resource, rather than
 %     just providing the name as a literal.
 %
-%   * `dcterms:created `
+%   * `dct:created `
 %
 %     Date of creation of the dataset. The value should be formatted
 %     and data-typed as an xsd:date.
 %
-%   * `dcterms:creator `
+%   * `dct:creator `
 %
 %     An entity, such as a person, organisation, or service, that is
 %     primarily responsible for creating the dataset.  The creator
 %     should be described as an RDF resource, rather than just
 %     providing the name as a literal.
 %
-%   * `dcterms:date`
+%   * `dct:date`
 %
 %     A point or period of time associated with an event in the
 %     life-cycle of the resource.  The value should be formatted and
 %     data-typed as an xsd:date.
 %
-%   * `dcterms:issued`
+%   * `dct:issued`
 %
 %     Date of formal issuance (e.g., publication) of the dataset.  The
 %     value should be formatted and datatyped as an xsd:date.
 %
-%   * `dcterms:modified`
+%   * `dct:modified`
 %
 %     Date on which the dataset was changed.  The value should be
 %     formatted and datatyped as an xsd:date.
 %
-%   * `dcterms:publisher`
+%   * `dct:publisher`
 %
 %     An entity, such as a person, organisation, or service, that is
 %     responsible for making the dataset available.  The publisher
 %     should be described as an RDF resource, rather than just
 %     providing the name as a literal.
 %
-%   * `dcterms:source`
+%   * `dct:source`
 %
 %     A related resource from which the dataset is derived.  The
 %     source should be described as an RDF resource, rather than as a
 %     literal.
 %
-%   * `dcterms:title`
+%   * `dct:title`
 %
 %     The name of the dataset.
 %

@@ -79,6 +79,30 @@ rdfa:alias(org).
 rdfa:alias(sioc).
 rdfa:alias(xsd).
 
+rdfa:predefined_alias(csvw).
+rdfa:predefined_alias(dcat).
+rdfa:predefined_alias(grddl).
+rdfa:predefined_alias(ma).
+rdfa:predefined_alias(org).
+rdfa:predefined_alias(owl).
+rdfa:predefined_alias(prov).
+rdfa:predefined_alias(qb).
+rdfa:predefined_alias(rdf).
+rdfa:predefined_alias(rdfa).
+rdfa:predefined_alias(rdfs).
+rdfa:predefined_alias(rif).
+rdfa:predefined_alias(rr).
+rdfa:predefined_alias(sd).
+rdfa:predefined_alias(skos).
+rdfa:predefined_alias(skosxl).
+rdfa:predefined_alias(void).
+rdfa:predefined_alias(wdr).
+rdfa:predefined_alias(wdrs).
+rdfa:predefined_alias(xhv).
+rdfa:predefined_alias(xml).
+rdfa:predefined_alias(xsd).
+
+
 :- rdf_meta
    agent_image(+, r, -, r),
    agent_image(+, r, r, ?, ?),
@@ -414,7 +438,14 @@ rdfa_prefixed_iri(Iri, PrefixedIri) :-
 
 rdfa_prefixes -->
   {
-    aggregate_all(set(Alias), rdfa:alias(Alias), Aliases),
+    aggregate_all(
+      set(Alias),
+      (
+	rdfa:alias(Alias),
+	\+ rdfa:predefined_alias(Alias)
+      ),
+      Aliases
+    ),
     maplist(q_alias_prefix, Aliases, Prefixes),
     pairs_keys_values(Pairs, Aliases, Prefixes),
     maplist(pair_to_prefix0, Pairs, Vals),
