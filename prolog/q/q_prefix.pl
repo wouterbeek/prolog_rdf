@@ -58,7 +58,7 @@ init_q_prefix :-
   qb_alias(dby, 'http://dbpedia.org/class/yago/'),
   qb_alias(dc, 'http://purl.org/dc/elements/1.1/'),
   qb_alias(dct, 'http://purl.org/dc/terms/'),
-  qb_alias(fb, 'http://rdf.freebase.com/ns/'),
+  qb_alias(fb, 'http://ogp.me/ns/fb#'),
   qb_alias(foaf, 'http://xmlns.com/foaf/0.1/'),
   qb_alias(formats, 'http://www.w3.org/ns/formats/'),
   qb_alias(geold, 'http://geojsonld.com/vocab#'),
