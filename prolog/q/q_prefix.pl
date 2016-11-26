@@ -76,6 +76,7 @@ init_q_prefix :-
   qb_alias(rdfs, 'http://www.w3.org/2000/01/rdf-schema#'),
   qb_alias(schema, 'http://schema.org/'),
   qb_alias(sioc, 'http://rdfs.org/sioc/ns#'),
+  qb_alias(sparql, 'http://www.w3.org/2005/sparql-results#'),
   qb_alias(skos, 'http://www.w3.org/2004/02/skos/core#'),
   qb_alias('umbel-rc', 'http://umbel.org/umbel/rc/'),
   qb_alias('wiki-entity', 'http://www.wikidata.org/entity/'),

@@ -37,7 +37,6 @@ The following debug flags are used:
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
-
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -47,6 +46,7 @@ The following debug flags are used:
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle), []).
+:- use_module(library(uuid)).
 :- use_module(library(yall)).
 
 :- meta_predicate
@@ -182,11 +182,11 @@ gen_ntuple(S, P, O, State, Out) :-
 
 gen_ntuple(S, P, O, G, State, Out) :-
   with_output_to(Out, (
-    gen_subject(S),
+    gen_subject(S, State),
     put_char(' '),
     gen_predicate(P),
     put_char(' '),
-    gen_object(O),
+    gen_object(O, State),
     put_char(' '),
     (   State.rdf_media_type == application/'n-triples'
     ->  dict_inc(triples, State)
@@ -252,10 +252,12 @@ write_ntriple(Sink, S, P, O) :-
 
 gen_ntuples_begin(State2, Opts) :-
   option(rdf_media_type(MT), Opts, nquads),
+  uuid(Uuid),
   State1 = _{
     quads: 0,
     rdf_media_type: MT,
-    triples: 0
+    triples: 0,
+    uuid: Uuid
   },
   % Stream to write warnings to, if any.
   (   option(warn(Warn), Opts)
@@ -303,10 +305,11 @@ gen_ntuples_for_object0(State, Out, M, G, S, P, O) :-
 
 % TERMS BY POSITION %
 
-gen_subject(B) :-
-  q_is_bnode(B), !,
-  gen_bnode(B).
-gen_subject(Iri) :-
+gen_subject(BNode, State) :-
+  gen_is_bnode(BNode), !,
+  gen_bnode(BNode, State).
+gen_subject(Iri, _) :-
+  q_is_iri(Iri), !,
   gen_iri(Iri).
 
 
@@ -316,15 +319,11 @@ gen_predicate(P) :-
 
 
 
-gen_object(B) :-
-  q_is_bnode(B), !,
-  gen_bnode(B).
-gen_object(Iri) :-
-  q_is_iri(Iri), !,
-  gen_iri(Iri).
+gen_object(S, State) :-
+  gen_subject(S, State), !.
 % Literal term comes last to support both modern (`rdf11`) and legacy
 % (`rdf_db`) formats.
-gen_object(Lit) :-
+gen_object(Lit, _) :-
   gen_literal(Lit).
 
 
@@ -338,11 +337,10 @@ gen_graph(G) :-
 
 % TERMS BY KIND %
 
-gen_bnode(B) :-
-  atom_concat('_:', Local0, B),
-  atom_concat(genid, Local, Local0),
-  rdf_global_id(bnode:Local, Iri),
-  gen_iri(Iri).
+gen_bnode(node(Id), State) :-
+  atomic_list_concat([State.uuid,Id], :, Local),
+  rdf_global_id(bnode:Local, BNode),
+  gen_iri(BNode).
 
 
 

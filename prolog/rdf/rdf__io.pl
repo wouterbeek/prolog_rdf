@@ -276,13 +276,12 @@ rdf_call_on_tuples_stream(In, Goal_5, Path, Opts) :-
   rdf_call_on_tuples_stream0(Goal_5, Opts, In, Path, Path).
 
 rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
-  qb_bnode_prefix(BPrefix),
   % Library Semweb uses option base_uri/1.  We use option base_iri/1
   % instead.
   get_base_iri(BaseIri, Path, Opts1),
   once(get_dicts(rdf_media_type, Path, MT)),
   Opts2 = [
-    anon_prefix(BPrefix),
+    anon_prefix(node(_)),
     base(BaseIri),
     base_uri(BaseIri),
     max_errors(-1),
@@ -315,7 +314,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
 rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
   (G2 == user -> q_default_graph(G3) ; G3 = G2),
-  (   rdf_is_term(O1)
+  (   gen_is_term(O1)
   ->  call(Goal_5, L, S, P, O1, G3)
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)

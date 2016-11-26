@@ -860,10 +860,13 @@ dcg_q_print_term(T, Opts) -->
 
 % PRINT A TERM BY ITS KIND %
 
-dcg_q_print_bnode(B) -->
-  {rdf_global_id(bnode:Local, B)},
+dcg_q_print_bnode(BNode) -->
+  {q_is_bnode(BNode)}, !,
+  atom(BNode).
+dcg_q_print_bnode(BNode) -->
+  {q_bnode_label(BNode, Lbl)}, !,
   "_:",
-  atom(Local).
+  atom(Lbl).
 
 
 
