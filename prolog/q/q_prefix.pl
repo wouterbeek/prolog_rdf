@@ -69,6 +69,7 @@ init_q_prefix :-
   qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
   qb_alias(llr, 'http://lodlaundromat.org/resource/'),
   qb_alias(odp, 'http://www.ontologydesignpatterns.org/'),
+  qb_alias(og, 'http://ogp.me/ns#'),
   qb_alias(org, 'http://www.w3.org/ns/org#'),
   qb_alias(owl, 'http://www.w3.org/2002/07/owl#'),
   qb_alias(prov, 'http://www.w3.org/ns/prov#'),
