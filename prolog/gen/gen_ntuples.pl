@@ -337,8 +337,17 @@ gen_graph(G) :-
 
 % TERMS BY KIND %
 
-gen_bnode(node(Id), State) :-
-  atomic_list_concat([State.uuid,Id], :, Local),
+gen_bnode(node(Id), State) :- !,
+  gen_bnode0(State.uuid, Id).
+gen_bnode(BNode, State) :-
+  atom_concat('_:genid', Id, BNode), !,
+  gen_bnode0(State.uuid, Id).
+gen_bnode(BNode, State) :-
+  atom_concat('_:', Id, BNode),
+  gen_bnode0(State.uuid, Id).
+  
+gen_bnode0(Uuid, Id) :-
+  atomic_list_concat([Uuid,Id], :, Local),
   rdf_global_id(bnode:Local, BNode),
   gen_iri(BNode).
 

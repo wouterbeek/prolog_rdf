@@ -74,6 +74,13 @@ init_q_prefix :-
   qb_alias(xml, 'http://www.w3.org/XML/1998/namespace'),
   %xsd http://www.w3.org/2001/XMLSchema#
   
+  % DEFINED BY W3C
+  qb_alias(describedby, 'http://www.w3.org/2007/05/powder-s#describedby'),
+  qb_alias(fn, 'http://www.w3.org/2005/xpath-functions# '),
+  qb_alias(license, 'http://www.w3.org/1999/xhtml/vocab#license'),
+  qb_alias(role, 'http://www.w3.org/1999/xhtml/vocab#role'),
+  qb_alias(sfn, ' http://www.w3.org/ns/sparql#'),
+
   % WIDELY USED
   qb_alias(cc, 'http://creativecommons.org/ns#'),
   qb_alias(ctag, 'http://commontag.org/ns#'),
@@ -91,11 +98,6 @@ init_q_prefix :-
   qb_alias(v, 'http://rdf.data-vocabulary.org/#'),
   qb_alias(vcard, 'http://www.w3.org/2006/vcard/ns#'),
   qb_alias(schema, 'http://schema.org/'),
-
-  % DEFINED BY W3C
-  qb_alias(describedby, 'http://www.w3.org/2007/05/powder-s#describedby'),
-  qb_alias(license, 'http://www.w3.org/1999/xhtml/vocab#license'),
-  qb_alias(role, 'http://www.w3.org/1999/xhtml/vocab#role'),
 
   % UNDER DEVELOPMENT
   qb_alias(dqv, 'http://www.w3.org/ns/dqv#'),
