@@ -18,6 +18,10 @@
 
 High-level API for making SPARQL queries.
 
+The following debug flags are defined:
+
+  - sparql(request)
+
 @author Wouter Beek
 @version 2015/08, 2015/12, 2016/03-2016/04
 */
@@ -160,6 +164,7 @@ sparql_select(Iri, Q1, Result, Opts) :-
   sparql_query(Iri, Q2, Result0, Opts),
 
   % Determinism.
+  (var(Result0) -> !, fail ; true),
   (Result0 == [] -> !, fail ; true),
   Result = Result0.
 
