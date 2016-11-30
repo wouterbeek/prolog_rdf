@@ -242,9 +242,9 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
   rdf_update_options(Opts1, Opts2),
   call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
-rdf_call_on_stream0(Goal_3, Opts, In, L1, L3) :-
-  set_rdf_media_type_and_encoding(In, L1, L2, Opts),
-  call(Goal_3, In, L2, L3).
+rdf_call_on_stream0(Goal_3, Opts, In, Path1, Path3) :-
+  set_rdf_media_type_and_encoding(In, Path1, Path2, Opts),
+  call(Goal_3, In, Path2, Path3).
 
 
 
@@ -290,7 +290,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   ],
   merge_options(Opts1, Opts2, Opts3),
   (   % N-Quads & N-Triples
-      is_of_type(ntriples_media_type, MT)
+      is_of_type(ntuples_media_type, MT)
   ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, Path), Opts3)
   ;   % Trig & Turtle
       is_of_type(turtle_media_type, MT)
@@ -311,11 +311,11 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
       rdf_call_on_quads0(Goal_5, Path, Triples)
   ).
 
-rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
+rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O1,G1)) :- !,
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   gen_is_term(O1)
-  ->  call(Goal_5, L, S, P, O1, G3)
+  ->  call(Goal_5, Path, S, P, O1, G3)
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
       ->  rdf11:write_xml_literal(html, Lex0, Lex1)
@@ -341,27 +341,27 @@ rdf_call_on_quad0(Goal_5, L, rdf(S,P,O1,G1)) :- !,
       ),
       % Incorrect lexical form.
       (   var(E)
-      ->  call(Goal_5, L, S, P, O2, G3)
+      ->  call(Goal_5, Path, S, P, O2, G3)
       ;   print_message(warning, E)
       )
   ).
-rdf_call_on_quad0(Goal_5, L, rdf(S,P,O)) :-
+rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O)) :-
   rdf_default_graph(G),
-  rdf_call_on_quad0(Goal_5, L, rdf(S,P,O,G)).
+  rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O,G)).
 
 % Use this to debug bugs in statement calls.
-rdf_call_on_quad0_debug(Goal_5, L, Tuple) :-
+rdf_call_on_quad0_debug(Goal_5, Path, Tuple) :-
   %flag(rdf_call_on_quad0_debug, N, N + 1),
   %format(user_output, "~D~n", [N]),
   %(N =:= 715769 -> gtrace ; true),
-  catch(rdf_call_on_quad0(Goal_5, L, Tuple), E, true),
-  (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, L, Tuple)).
+  catch(rdf_call_on_quad0(Goal_5, Path, Tuple), E, true),
+  (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, Path, Tuple)).
 
-rdf_call_on_quads0(Goal_5, L, Tuples) :-
-  maplist(rdf_call_on_quad0(Goal_5, L), Tuples).
+rdf_call_on_quads0(Goal_5, Path, Tuples) :-
+  maplist(rdf_call_on_quad0(Goal_5, Path), Tuples).
 
-rdf_call_on_quads0(Goal_5, L, Tuples, _) :-
-  rdf_call_on_quads0(Goal_5, L, Tuples).
+rdf_call_on_quads0(Goal_5, Path, Tuples, _) :-
+  rdf_call_on_quads0(Goal_5, Path, Tuples).
 
 
 
@@ -382,9 +382,9 @@ rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
     SinkOpts
   ).
 
-rdf_call_onto_stream0(Goal_4, Opts, In, L1, L3, Out) :-
-  set_rdf_media_type_and_encoding(In, L1, L2, Opts),
-  call(Goal_4, In, L2, L3, Out).
+rdf_call_onto_stream0(Goal_4, Opts, In, Path1, Path3, Out) :-
+  set_rdf_media_type_and_encoding(In, Path1, Path2, Opts),
+  call(Goal_4, In, Path2, Path3, Out).
 
 
 
@@ -473,7 +473,7 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
   call_onto_stream(Iri, TmpFile, copy_stream_data0, InOpts, OutOpts),
   rename_file(TmpFile, File).
 
-copy_stream_data0(In, L, L, Out) :-
+copy_stream_data0(In, Path, Path, Out) :-
   copy_stream_data(In, Out).
 
 
