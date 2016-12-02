@@ -2,8 +2,7 @@
   mat_viz,
   [
     mat_viz/0,
-    mat_viz/1, % +Stmt
-    mat_viz/3  % +S, +P, +O
+    mat_viz/1  % +Stmt
   ]
 ).
 
@@ -12,7 +11,7 @@
 Exports materialization results.
 
 @author Wouter Beek
-@version 2015/08, 2015/12
+@version 2015/08, 2015/12, 2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -29,6 +28,7 @@ Exports materialization results.
 :- use_module(library(pl_ext)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
@@ -39,6 +39,7 @@ Exports materialization results.
 
 
 %! mat_viz is det.
+%
 % Exports a proof of all deductions.
 
 mat_viz:-
@@ -54,24 +55,18 @@ mat_viz:-
   mat_viz0(Es, 'Materialization proof tree').
 
 
-%! mat_viz(+Statement:compound) is nondet.
-% Non-deterministically exports proofs for Statement.
 
-mat_viz(S) :-
-  md5(S, C),
+%! mat_viz(+Stmt) is nondet.
+%
+% Non-deterministically exports proofs for statements.
+
+mat_viz(Stmt) :-
+  md5(Stmt, C),
   % Find all edges.
   findall(E, distinct(E, find_edge(s(C), E)), Es),
-  string_phrase(s_label(S), SLabel),
-  format(atom(GLabel), "Proof tree for ~a", [SLabel]),
-  mat_viz0(Es, GLabel).
-
-
-%! mat_export(+Subject:rdf_term, +Predicate:iri, +Object:rdf_term) is nondet.
-% Non-deterministically exports proofs for statement <S,P,O>.
-
-mat_viz(S, P, O) :-
-  mat_viz(rdf(S,P,O)).
-
+  string_phrase(s_label(Stmt), Lbl),
+  format(atom(GLbl), "Proof tree for ~a", [Lbl]),
+  mat_viz0(Es, GLbl).
 
 mat_viz0(Es, GLabel) :-
   findall(V, distinct(V, (member(edge(X,Y), Es), (V = X ; V = Y))), Vs),
@@ -87,7 +82,9 @@ mat_viz0(Es, GLabel) :-
   run_process(xpdf, [file('j.pdf')], [program('XPDF')]).
 
 
+
 %! find_edge(+Node:compound, -Edge:pair(md5)) is nondet.
+%
 % Returns edges that lead onto Node.
 %
 % Node is either `j(MD5)` for justifications or `s(MD5)` for statements.

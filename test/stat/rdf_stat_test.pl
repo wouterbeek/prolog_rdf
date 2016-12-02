@@ -7,13 +7,13 @@
 
 :- begin_tests(rdf_stat).
 
-test(q_number_of_subjects, [forall(test_case0(G,N))]) :-
+test(q_number_of_subjects, [forall(test_case0(G,NumSs))]) :-
   M = trp,
   qb_graph0(M, G),
-  q_number_of_subjects(M, _, _, G, N0),
+  q_number_of_subjects(M, G, NumSs0),
   q_unload(M, G)
-  writeln(N0),
-  N =:= N0.
+  writeln(NumSs0),
+  NumSs =:= NumSs0.
 
 test_case0(ex:g1, 1).
 test_case0(ex:g2, 2).

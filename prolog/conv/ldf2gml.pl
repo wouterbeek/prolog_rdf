@@ -9,10 +9,11 @@
 /** <module> LDF-2-GML
 
 @author Wouter Beek
-@version 2016/07
+@version 2016/07, 2016/12
 */
 
 :- use_module(library(conv/rdf2gml)).
+:- use_module(library(os/io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(service/ldf)).
 
@@ -34,12 +35,13 @@ ldf2gml(S, P, O, Endpoint) :-
 
 
 ldf2gml(S, P, O, Endpoint, SinkOpts) :-
-  rdf2gml_start(SinkOpts, NFile, EFile, GFile, ExportOpts),
-  call_to_streams(NFile, EFile, ldf2gml0(S, P, O, ExportOpts), SinkOpts),
-  rdf2gml_end(NFile, EFile, GFile, SinkOpts).
+  setup_call_cleanup(
+    rdf2gml_start(SinkOpts, NFile, EFile, GFile, ExportOpts),
+    call_to_streams(NFile, EFile, ldf2gml0(S, P, O, Endpoint, ExportOpts), SinkOpts),
+    rdf2gml_end(NFile, EFile, GFile, SinkOpts)
+  ).
 
-
-ldf2gml0(S, P, O, ExportOpts, NOut, EOut) :-
+ldf2gml0(S, P, O, Endpoint, ExportOpts, NOut, EOut) :-
   forall(
     ldf(S, P, O, Endpoint),
     rdf2gml_triple(NOut, EOut, S, P, O, ExportOpts)

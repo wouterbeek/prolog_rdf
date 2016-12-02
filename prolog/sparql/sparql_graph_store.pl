@@ -24,7 +24,6 @@ Partial implementation of the SPARQL Graph Store.
 :- use_module(library(http/http_io)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(rdf/rdf_file)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(sparql/sparql_ext)).
 :- use_module(library(yall)).

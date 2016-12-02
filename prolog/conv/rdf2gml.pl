@@ -13,6 +13,8 @@
 
 /** <module> RDF-2-GML
 
+Graph Markup Language (GML)
+
 Grammar
 =======
 
@@ -137,20 +139,28 @@ rdf2gml_end(NFile, EFile, GFile, Opts) :-
 %
 % The following options are supported:
 %
-%   * base_name(+atom) The base name of the written files.  The
-%   default is a UUID.
+%   * base_name(+atom)
 %
-%   * compression(+boolean) Whether or not the GML file is compressed.
-%   Default is `true`.
+%     The base name of the written files.  The default is a UUID.
 %
-%   * export_options(+dict) Options dictionary passed to GML writers.
-%   This includes the following options:
+%   * compression(+boolean)
 %
-%     * edge_label_printer(+callable) The DCG writer for GML edges.
-%     The default is dcg_q_print_predicate//2.
+%     Whether or not the GML file is compressed.  Default is `true`.
 %
-%     * node_label_printer(+callable) The DCG writer for GML nodes.
-%     The default is dcg_q_print_node//2.
+%   * export_options(+dict)
+%
+%     Options dictionary passed to GML writers.  This includes the
+%     following options:
+%
+%     * edge_label_printer(+callable)
+%
+%       The DCG writer for GML edges.  The default is
+%       dcg_q_print_predicate//2.
+%
+%     * node_label_printer(+callable)
+%
+%       The DCG writer for GML nodes.  The default is
+%       dcg_q_print_node//2.
 
 rdf2gml_start(NFile, EFile, GFile, ExportOpts) :-
   rdf2gml_start([], NFile, EFile, GFile, ExportOpts).

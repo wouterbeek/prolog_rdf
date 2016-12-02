@@ -14,6 +14,8 @@
     hdt_datatype0/2,            % ?D, +Hdt
     hdt_estimate_complexity/5,  % ?S, ?P, ?O, -Est, ?G
     hdt_estimate_complexity0/5, % ?S, ?P, ?O, -Est, +Hdt
+    hdt_header/4,               % ?S, ?P, ?O, ?G
+    hdt_header0/4,              % ?S, ?P, ?O, +Hdt
     hdt_iri/1,                  % ?Iri
     hdt_iri/2,                  % ?Iri, ?G
     hdt_iri0/2,                 % ?Iri, +Hdt
@@ -86,6 +88,7 @@
    hdt_datatype0(r, +),
    hdt_estimate_complexity(r, r, o, -, r),
    hdt_estimate_complexity0(r, r, o, -, +),
+   hdt_header(r, r, o, r),
    hdt_iri(r),
    hdt_iri(r, r),
    hdt_iri0(r, +),
@@ -219,6 +222,18 @@ hdt_estimate_complexity(S, P, O, Est, G) :-
 hdt_estimate_complexity0(S, P, O, Est, Hdt) :-
   hdt:hdt_search_cost(Hdt, S, P, O, Est0),
   Est is integer(Est0).
+
+
+
+%! hdt_header(?S, ?P, ?O, ?G) is nondet.
+%! hdt_header0(?S, ?P, ?O, +Hdt) is nondet.
+
+hdt_header(S, P, O, G) :-
+  hdt_call_on_graph(G, hdt_header0(S, P, O)).
+
+
+hdt_header0(S, P, O, Hdt) :-
+  hdt:hdt_header(Hdt, S, P, O).
 
 
 
