@@ -109,4 +109,6 @@ dict_to_triple(Dict, Opts, Triple) :-
   get_dict_path(Keys1, Dict, Val),
   (is_list(Val) -> O = Val^^tcco:array ; O = Val^^xsd:string),
   % 〈S,P,O〉
-  rdf_global_term(rdf(S,P,O), Triple).
+  rdf_global_term(rdf(S,P,O), Triple0),
+  % @bug This crashes the GUI debugger otherwise.
+  Triple = Triple0.

@@ -14,6 +14,7 @@
     q__key/1,   % ?P
     q__key/2,   % ?P, ?G
     q__link/3,  % +Backend, +P, +G
+    q__load/1,  % +File
     q__p/0,
     q__p/1,     % ?P
     q__p/2,     % ?P, ?G
@@ -46,7 +47,7 @@
 
 @author Wouter Beek
 @tbd q__cs/[0,1] for enumerating classes.
-@version 2016/06-2016/08, 2016/10
+@version 2016/06-2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -73,6 +74,7 @@
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(settings)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(tree/s_tree)).
 :- use_module(library(yall)).
@@ -238,6 +240,17 @@ q__key(P, G0) :-
 q__link(Backend, P, G) :-
   q_link_objects(Backend, P, G).
   
+
+
+%! q__load(+File) is det.
+
+q__load(SourceFile) :-
+  q_source2store_file(SourceFile, StoreFile),
+  q_store_file(StoreFile, G),
+  setting(backend, M),
+  q_store2view(M, G),
+  msg_notification("‘~a’ → ‘~a’~n", [SourceFile,StoreFile]).
+
 
 
 %! q__p is nondet.

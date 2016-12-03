@@ -28,7 +28,7 @@ The following debug flags are used:
 
 @author Wouter Beek
 @tbd Resolve relative IRIs relative to an optional base IRI.
-@version 2016/03-2016/08, 2016/11
+@version 2016/03-2016/12
 */
 
 :- use_module(library(aggregate)).

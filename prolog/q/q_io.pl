@@ -16,8 +16,8 @@
     q_init/0,
     q_init/1,                % +M
     q_source2store/0,
-    q_source2store_file/1,   % +File
-    q_source2store_source/3, % +Source, +Opts, +Result
+    q_source2store_file/2,   % +SourceFile, -StoreFile
+    q_source2store_source/3, % +Source, +Info, +Opts
     q_source2view/0,
     q_store_rm/0,
     q_store_rm/1,            % +G
@@ -102,7 +102,7 @@ them.
 ---
 
 @author Wouter Beek
-@version 2016/08-2016/11
+@version 2016/08-2016/12
 */
 
 :- use_module(library(conv/csv2rdf), []).  % CSV → N-Triples
@@ -195,16 +195,6 @@ q_source_skip_exts([md]).
 
 
 
-%! q_source_dataset_graph(+File, -DName, -GName) is det.
-
-q_source_dataset_graph(File, DName, GName) :-
-  q_source_dir(Dir),
-  directory_file_path(Dir, Local, File),
-  file_name(Local, Base),
-  atomic_list_concat([DName,GName], -, Base).
-
-
-
 %! q_source_dir(-Dir) is det.
 
 q_source_dir(Dir) :-
@@ -289,10 +279,18 @@ q_init(M) :-
 
 
 %! q_source2store is det.
-%! q_source2store_file(+File) is det.
-%! q_source2store_source(+Source, +Opts, +Result) is det.
 %
-% Automatically convert source files to store files.
+% Automatically convert all source files to store files.
+
+q_source2store :-
+  forall(
+    q_source_file(File),
+    q_source2store_file(File, _)
+  ).
+
+
+
+%! q_source2store_file(+SourceFile, -StoreFile) is det.
 %
 % The following options are supported:
 %
@@ -328,37 +326,35 @@ q_init(M) :-
 %     The number of triples that were written while converting Source
 %     to store.
 
-
-q_source2store :-
-  forall(
-    q_source_file(File),
-    q_source2store_file(File)
-  ).
-
-
-q_source2store_file(File) :-
-  q_file_name_to_format(File, Format),
-  q_source_dataset_graph(File, DName, GName),
-  time_file(File, Ready),
+q_source2store_file(SourceFile, StoreFile) :-
+  q_file_name_to_format(SourceFile, Format),
+  directory_file_path(_, Local, SourceFile),
+  file_name(Local, Base),
+  atomic_list_concat([DName,GName], -, Base),
+  time_file(SourceFile, Ready),
   q_source2store_source(
-    File,
+    SourceFile,
     _{dataset: DName, format: Format, graph: GName},
-    _,
-    Ready
+    _{},
+    Ready,
+    StoreFile
   ).
 
 
-q_source2store_source(Source, Opts, SinkOpts) :-
-  q_source2store_source(Source, Opts, SinkOpts, 0).
+
+%! q_source2store_source(+Source, +Info, +SinkOpts) is det.
+%
+% Info is a dictionary with keys ‘dataset’, ‘format’, ‘graph’.
+
+q_source2store_source(Source, Info, SinkOpts) :-
+  q_source2store_source(Source, Info, SinkOpts, 0, _).
 
 
-q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
-  DName = Opts.dataset,
-  GName = Opts.graph,
-  q_dataset_iri(DName, D),
-  (   q_dataset_graph(D, GName, G),
-      q_file_graph(File, data, G),
-      q_file_ready_time(File, Ready),
+q_source2store_source(Source, Info, SinkOpts1, Ready0, StoreFile) :-
+  q_dataset_iri(Info.dataset, D),
+  (   q_dataset_graph(D, Info.graph, G),
+      q_file_graph(StoreFile, ntriples, G),
+      q_file_ready_time(StoreFile, Ready),
       Ready >= Ready0
   ->  ignore(option(triples(0), SinkOpts1))
   ;   q_store_dir(Dir),
@@ -373,28 +369,28 @@ q_source2store_source(Source, Opts, SinkOpts1, Ready0) :-
       merge_options(SinkOpts1, [md5(Hash)], SinkOpts2),
       once(
 	q_source2store_hook(
-	  Opts.format,
+	  Info.format,
           Source,
           TmpFile,
           SourceOpts,
           SinkOpts2
         )
       ),
-      q_file_hash(File, ntriples, Hash),
-      delete_file_msg(File),
-      create_file_directory(File),
-      rename_file(TmpFile, File),
-      q_file_touch_ready(File),
-      q_file_graph(File, G),
-      q_dataset_add_graph(D, GName, G),
+      q_file_hash(StoreFile, ntriples, Hash),
+      delete_file_msg(StoreFile),
+      create_file_directory(StoreFile),
+      rename_file(TmpFile, StoreFile),
+      q_file_touch_ready(StoreFile),
+      q_file_graph(StoreFile, G),
+      q_dataset_add_graph(D, Info.graph, G),
       M = trp,
-      md5(DName-meta, MetaHash),
+      md5(Info.dataset-meta, MetaHash),
       q_graph_hash(MetaG, MetaHash),
       qb_instance(M, D, void:'Dataset', MetaG),
-      capitalize_string(DName, DLbl),
+      capitalize_string(Info.dataset, DLbl),
       qb_label(M, D, DLbl^^xsd:string, MetaG),
       qb(M, D, void:subset, G, MetaG),
-      capitalize_string(GName, GLbl),
+      capitalize_string(Info.graph, GLbl),
       qb_label(M, G, GLbl^^xsd:string, MetaG),
       qb(M, D, void:subset, MetaG, MetaG),
       qb_label(M, MetaG, "Metadata"@en, MetaG),
