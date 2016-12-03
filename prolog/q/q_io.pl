@@ -288,13 +288,13 @@ q_init(M) :-
 q_init_profile(Ms) :-
   thread_create(q_init_profile0(Ms), _, [alias(init),detached(true)]).
 
-q_init_profile0([hdt,gis]) :- !,
+q_init_profile0([gis,hdt]) :- !,
   q_init(hdt),
   forall(
     distinct(G, q(hdt, _, geold:geometry, _, G)),
     q_store2view(gis, G)
   ).
-q_init_profile0([hdt,gis,trp]) :-
+q_init_profile0([gis,hdt,trp]) :-
   q_init.
 
 

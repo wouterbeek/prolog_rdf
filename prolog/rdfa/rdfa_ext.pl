@@ -102,7 +102,6 @@ rdfa:predefined_alias(xhv).
 rdfa:predefined_alias(xml).
 rdfa:predefined_alias(xsd).
 
-
 :- rdf_meta
    agent_image(+, r, -, r),
    agent_image(+, r, r, ?, ?),
@@ -110,6 +109,7 @@ rdfa:predefined_alias(xsd).
    agent_name(+, r, r, ?, ?),
    bibframe_subtitle(+, r, -, r),
    bibframe_subtitle(+, r, r, ?, ?),
+   creator(+, r, r, r),
    creators(+, r, -, r),
    creators(+, r, r, ?, ?),
    dc_abstract(+, r, -, r),
