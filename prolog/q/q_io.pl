@@ -286,7 +286,7 @@ q_init(M) :-
 %! q_init_profile(+Ms) is det.
 
 q_init_profile(Ms) :-
-  thread_create(threaded_init(Ms), _, [alias(init),detached(true)]).
+  thread_create(q_init_profile0(Ms), _, [alias(init),detached(true)]).
 
 q_init_profile0([hdt,gis]) :- !,
   q_init(hdt),
