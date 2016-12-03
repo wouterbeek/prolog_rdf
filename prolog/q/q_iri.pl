@@ -7,6 +7,7 @@
     q_abox_iri/5,        % ?Scheme, ?Auth, ?Concept, ?Refs, ?Iri
     q_dataset_iri/2,     % ?Refs, ?D
     q_graph_iri/2,       % +Refs, -G
+    q_init_ns/0,
     q_is_external_iri/1, % +Iri
     q_is_internal_iri/1, % +Iri
     q_string_to_local/2, % +Str, -Local
@@ -29,8 +30,6 @@
 :- use_module(library(q/qb)).
 :- use_module(library(settings)).
 :- use_module(library(semweb/rdf11)).
-
-:- initialization(q_init_ns).
 
 
 

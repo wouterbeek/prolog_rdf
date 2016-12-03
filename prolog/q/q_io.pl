@@ -15,6 +15,7 @@
     q_sync/1,                % +G
     q_init/0,
     q_init/1,                % +M
+    q_init_profile/1,        % +Ms
     q_source2store/0,
     q_source2store_file/2,   % +SourceFile, -StoreFile
     q_source2store_source/3, % +Source, +Info, +Opts
@@ -57,7 +58,10 @@
     q_view_rm/2,        % +M, +G
 
   % VIEW
-  q_view_graph/2        % ?M, ?G
+  q_view_graph/2,       % ?M, ?G
+
+  % DEBUG
+  deb_q_io//3           % +From, +G, +To
   ]
 ).
 
@@ -121,6 +125,7 @@ them.
 :- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_iri)).
+:- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
@@ -275,6 +280,22 @@ q_init(M) :-
   q_store2view(M),
   q_dataset2store,
   q_store2view(M).
+
+
+
+%! q_init_profile(+Ms) is det.
+
+q_init_profile(Ms) :-
+  thread_create(threaded_init(Ms), _, [alias(init),detached(true)]).
+
+q_init_profile0([hdt,gis]) :- !,
+  q_init(hdt),
+  forall(
+    distinct(G, q(hdt, _, geold:geometry, _, G)),
+    q_store2view(gis, G)
+  ).
+q_init_profile0([hdt,gis,trp]) :-
+  q_init.
 
 
 
@@ -602,10 +623,10 @@ q_store2cache(M, G) :-
   (   q_file_is_ready(File1, File2)
   ->  true
   ;   q_cache_rm(M, G),
-      debug(q(io), "> store-2-cache ~a (~w)", [G,M]),
+      debug(q_io, "> store-2-cache ~a (~w)", [G,M]),
       once(q_store2cache_hook(M, File1, File2, G)),
       q_file_touch_ready(File2),
-      debug(q(io), "< store-2-cache ~a (~w)", [G,M])
+      debug(q_io, "< store-2-cache ~a (~w)", [G,M])
   ).
 
 
@@ -744,9 +765,9 @@ q_cache2view(M, G) :-
   q_store2cache(M, G),
   q_cache2view(M, G).
 q_cache2view(M, G) :-
-  debug(q(io), "> cache-2-view ~a (~w)", [G,M]),
+  debug(q_io, "> cache-2-view ~a (~w)", [G,M]),
   once(q_cache2view_hook(M, G)),
-  debug(q(io), "< cache-2-view ~a (~w)", [G,M]).
+  debug(q_io, "< cache-2-view ~a (~w)", [G,M]).
 
 
 
@@ -764,11 +785,7 @@ q_store2view :-
 q_store2view(gis) :- !,
   forall(
     q_store_graph(G),
-    (
-      debug(conv(_), "AAA", []),
-      q_store2view(gis, G),
-      debug(conv(_), "BBB", [])
-    )
+    q_store2view(gis, G)
   ).
 q_store2view(M) :-
   forall(
@@ -855,3 +872,18 @@ q_view_rm(_, _).
 q_view_graph(M, G) :-
   q_backend(M),
   q_view_graph_hook(M, G, false).
+
+
+
+
+
+% DEBUG %
+
+%! deb_q_io(+From, +G, +To)// is det.
+
+deb_q_io(From, G, To) -->
+  str(From),
+  " → ",
+  dcg_q_print_graph_term(G),
+  " → ",
+  str(To).

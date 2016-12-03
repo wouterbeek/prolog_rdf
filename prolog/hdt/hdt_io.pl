@@ -3,10 +3,11 @@
 /** <module> HDT plugin for Quine I/O
 
 @author Wouter Beek
-@version 2016/08, 2016/11
+@version 2016/08, 2016/11-2016/12
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(os/file_ext)).
@@ -43,12 +44,13 @@ q_io:q_cache2view_hook(hdt, G) :-
   assert(hdt_graph0(G, Hdt)).
 
 
-q_io:q_store2cache_hook(hdt, File1, File2, _) :-
+q_io:q_store2cache_hook(hdt, File1, File2, G) :-
   hdt_remove_index(File2),
   create_file_directory(File2),
+  dcg_with_output_to(string(Msg), deb_q_io("N-Triples", G, "HDT")),
   indent_debug_call(
     q_io(store2cache(hdt)),
-    "N-Triples → HDT",
+    Msg,
     hdt:hdt_create_from_file(File2, File1, [])
   ).
 

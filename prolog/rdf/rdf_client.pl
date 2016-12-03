@@ -18,7 +18,7 @@
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/rfc5988)).
 :- use_module(library(os/io)).
@@ -28,7 +28,6 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle), []).
 
-:- debug(http(_)).
 :- debug(rdf(client)).
 
 test("read/write triples") :-

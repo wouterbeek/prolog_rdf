@@ -11,8 +11,6 @@
     qh_p_os_table//2,         % +Pairs,             +Opts
     qh_quad_panels//5,        % +M, ?S, ?P, ?O, ?G
     qh_quad_panels//6,        % +M, ?S, ?P, ?O, ?G, +Opts
-    qh_quad_table//1,         %     +Quads
-    qh_quad_table//6,         % +M, ?S, ?P, ?O, ?G, +Opts
     qh_tree//1,               %     +Tree
     qh_tree//2,               %     +Tree,          +Opts
     qh_triple_table//1,       %     +Triples
@@ -56,8 +54,6 @@
    qh_describe(+, r, r, +, ?, ?),
    qh_quad_panels(+, r, r, o, r, ?, ?),
    qh_quad_panels(+, r, r, o, r, +, ?, ?),
-   qh_quad_table(+, r, r, o, r, ?, ?),
-   qh_quad_table(+, r, r, o, r, +, ?, ?),
    qh_triple_table(+, r, r, o, r, ?, ?),
    qh_triple_table(+, r, r, o, r, +, ?, ?).
 
@@ -94,7 +90,6 @@ $("#dataset-graph-menu").on('change', function(){
   |}).
 qh_dataset_graph_menu(_, _, _) --> [].
 
-
 qh_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
   {with_output_to(string(Lbl), q_print_dataset_term(D))},
   html(
@@ -105,7 +100,6 @@ qh_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
       )
     )
   ).
-
 
 qh_graph_menu_item0(D0, D, G0, t(G,[])) -->
   {(D0 = D, G0 = G -> Selected = true ; Selected = false)},
@@ -235,55 +229,6 @@ qh_quad_panels(M, S, P, O, G, Opts1) -->
   panels(
     {Opts2}/[Group]>>qh_triple_table(Group, Opts2),
     Groups
-  ).
-
-
-
-%! qh_quad_table(+Quads)// is det.
-%! qh_quad_table(+M, ?S, ?P, ?O, ?G, +Opts)// is det.
-
-qh_quad_table(Quads) -->
-  {
-    HeaderRow = ["Subject","Predicate","Object","Graph"],
-    qh_default_table_options(Opts)
-  },
-  table(
-    \table_header_row(HeaderRow),
-    \html_maplist({Opts}/[Quad]>>qh_quad_row0(Quad, Opts), Quads)
-  ).
-
-
-qh_quad_table(M, S, P, O, G, Opts1) -->
-  {
-    qh_default_table_options(Opts1, Opts2),
-    q_quads(M, S, P, O, G, Quads)
-  },
-  qh_quad_table(Quads, Opts2).
-
-
-qh_quad_row0(rdf(S,P,O,G), Opts) -->
-  html(
-    tr([
-      td(class='col-md-3',
-        \internal_link(
-	  link_to_id(subject_handler,[subject(S)]),
-          \qh_subject(S, Opts)
-        )
-      ),
-      td(class='col-md-3',
-        \internal_link(
-          link_to_id(predicate_handler,[predicate(P)]),
-          \qh_predicate(P, Opts)
-        )
-      ),
-      td(class='col-md-3',
-        \internal_link(
-          link_to_id(object_handler,[object(O)]),
-          \qh_object(O, Opts)
-        )
-      ),
-      td(class='col-md-3', \graph_link(G))
-    ])
   ).
 
 
