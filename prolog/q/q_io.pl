@@ -288,6 +288,8 @@ q_init(M) :-
 q_init_profile(Ms) :-
   thread_create(q_init_profile0(Ms), _, [alias(init),detached(true)]).
 
+q_init_profile0([M]) :-
+  q_init(M).
 q_init_profile0([gis,hdt]) :- !,
   q_init(hdt),
   forall(
