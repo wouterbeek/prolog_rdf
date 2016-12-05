@@ -187,9 +187,9 @@ qh_graph_term(G, Opts1) -->
 qh_graph_term0(G, Opts) -->
   {
     q_dataset_graph(D, G),
-    q_graph_label(G, Str)
+    q_graph_label(G, Lbl)
   }, !,
-  html([\qh_dataset_term0(D, Opts),"/",Str]).
+  html([\qh_dataset_term0(D, Opts),"/",Lbl]).
 qh_graph_term0(G, Opts) -->
   qh_term0(G, Opts).
 

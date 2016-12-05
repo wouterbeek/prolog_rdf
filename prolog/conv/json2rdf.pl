@@ -75,10 +75,10 @@ json2rdf_stream(Source, State, Out) :-
 
 
 json2rdf_stream(Source, Opts1, State, Out) :-
-  indent_debug(conv(json2rdf), "> JSON → RDF"),
   dict_options(Opts1, Opts2),
+  indent_debug(in, io, "> JSON → RDF"),
   call_on_stream(Source, json2rdf_stream0(State, Out, Opts1), Opts2),
-  indent_debug(conv(json2rdf), "< JSON → RDF").
+  indent_debug(out, io, "< JSON → RDF").
 
 
 json2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-

@@ -38,12 +38,8 @@
 
 /** <module> RDF I/O
 
-The following debug flags are used:
-
-  * rdf(rdf__io)
-
 @author Wouter Beek
-@version 2015/08-2016/02, 2016/04-2016/11
+@version 2015/08-2016/02, 2016/04-2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -65,6 +61,7 @@ The following debug flags are used:
 :- use_module(library(os/io)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
+:- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
@@ -148,7 +145,7 @@ q_io:q_cache_format_hook(trp, [trp]).
 q_io:q_cache2view_hook(trp, G) :-
   dcg_with_output_to(string(Msg), deb_q_io("TRP", G, "MEM")),
   q_file_graph(File, trp, G),
-  indent_debug(q_io(cache2view(trp)), Msg),
+  indent_debug(io, Msg),
   rdf_load_db(File).
 
 q_io:q_source2store_hook(rdf, Source, Sink, SourceOpts, SinkOpts) :-
@@ -160,14 +157,10 @@ q_io:q_source_format_hook(rdf, Ext) :-
 q_io:q_store2cache_hook(trp, Source, Sink, G) :-
   dcg_with_output_to(string(Msg1), deb_q_io("N-Triples", G, "MEM")),
   dcg_with_output_to(string(Msg2), deb_q_io("MEM", G, "TRP")),
-  indent_debug_call(
-    q_io(store2cache(trp)),
-    Msg1,
+  indent_debug_call(io, Msg1,
     setup_call_cleanup(
       rdf_load_file(Source, [graph(G)]),
-      indent_debug_call(
-        q_io(store2cache(trp)),
-        Msg2,
+      indent_debug_call(io, Msg2,
         rdf_save_db(Sink, G)
       ),
       rdf_unload_graph(G)
@@ -180,7 +173,7 @@ q_io:q_view_graph_hook(trp, G, false) :-
 q_io:q_view_rm_hook(trp, G) :-
   rdf_unload_graph(G),
   dcg_with_output_to(string(Msg), deb_q_io("TRP", G, "MEM")),
-  indent_debug(q_io(view_rm(trp)), Msg).
+  indent_debug(io, Msg).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
@@ -440,13 +433,13 @@ rdf_reserialize(Source, Sink, SourceOpts, SinkOpts) :-
   call_to_ntuples(Sink, rdf_change_media_type0(Source, SourceOpts), SinkOpts).
 
 rdf_change_media_type0(Source, SourceOpts, State, Out) :-
-  indent_debug(conv(rdf2rdf), "> RDF → RDF"),
+  indent_debug(io, "» RDF → RDF"),
   rdf_call_on_tuples(
     Source,
     {State,Out}/[_,S,P,O,G]>>gen_ntuple(S, P, O, G, State, Out),
     SourceOpts
   ),
-  indent_debug(conv(rdf2rdf), "< RDF → RDF").
+  indent_debug(io, "« RDF → RDF").
 
 
 
@@ -543,7 +536,7 @@ rdf_load_file(Source, Opts) :-
   NumTuples is NumQuads + NumTriples,
   option(tuples(NumTuples), Opts, _),
   debug(
-    rdf(rdf__io),
+    rdf__io,
     "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
     [NumTuples,Source,State.triples,State.quads]
   ).
@@ -695,7 +688,15 @@ rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
   defval(DefG, G),
   rdf_write_media_type0(Sink, Opts1, MT),
   merge_options(Opts1, [rdf_media_type(MT)], Opts2),
-  call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2).
+  dcg_with_output_to(string(Msg), (
+    "TRP → ",
+    dcg_q_print_graph_term(G),
+    " → ",
+    atom(MT)
+  )),
+  indent_debug_call(io, Msg,
+    call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2)
+  ).
 
 rdf_file_name0(File, Opts) :-
   uuid(Base),

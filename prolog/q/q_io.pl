@@ -623,10 +623,10 @@ q_store2cache(M, G) :-
   (   q_file_is_ready(File1, File2)
   ->  true
   ;   q_cache_rm(M, G),
-      debug(q_io, "> store-2-cache ~a (~w)", [G,M]),
+      debug(q_io, "» store-2-cache ~a (~w)", [G,M]),
       once(q_store2cache_hook(M, File1, File2, G)),
       q_file_touch_ready(File2),
-      debug(q_io, "< store-2-cache ~a (~w)", [G,M])
+      debug(q_io, "« store-2-cache ~a (~w)", [G,M])
   ).
 
 
@@ -765,9 +765,9 @@ q_cache2view(M, G) :-
   q_store2cache(M, G),
   q_cache2view(M, G).
 q_cache2view(M, G) :-
-  debug(q_io, "> cache-2-view ~a (~w)", [G,M]),
+  debug(q_io, "» cache-2-view ~a (~w)", [G,M]),
   once(q_cache2view_hook(M, G)),
-  debug(q_io, "< cache-2-view ~a (~w)", [G,M]).
+  debug(q_io, "« cache-2-view ~a (~w)", [G,M]).
 
 
 

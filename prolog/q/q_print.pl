@@ -123,7 +123,7 @@ Print RDF statements.
      `max_dataset_term_len`.
 
 @author Wouter Beek
-@version 2016/06-2016/08, 2016/10-2016/11
+@version 2016/06-2016/12
 */
 
 :- use_module(library(semweb/rdf11)).
@@ -141,6 +141,8 @@ Print RDF statements.
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(q/q_dataset_api)).
+:- use_module(library(q/q_dataset_db)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_rdfs)).
@@ -767,13 +769,16 @@ dcg_q_print_triple(S, P, O, Opts) -->
 
 % PRINT A TERM BY ITS POSITIONALITY %
 
-dcg_q_print_dataset_term(G) -->
+dcg_q_print_dataset_term(D) -->
   {dcg_q_print_default_options(Opts)},
-  dcg_q_print_dataset_term(G, Opts).
+  dcg_q_print_dataset_term(D, Opts).
 
 
-dcg_q_print_dataset_term(G, Opts) -->
-  dcg_q_print_iri(G, Opts).
+dcg_q_print_dataset_term(D, _) -->
+  {q_dataset_label(D, Lbl)}, !,
+  str(Lbl).
+dcg_q_print_dataset_term(D, Opts) -->
+  dcg_q_print_iri(D, Opts).
 
 
 
@@ -782,6 +787,14 @@ dcg_q_print_graph_term(G) -->
   dcg_q_print_graph_term(G, Opts).
 
 
+dcg_q_print_graph_term(G, Opts) -->
+  {
+    q_dataset_graph(D, G),
+    q_graph_label(G, Lbl)
+  }, !,
+  dcg_q_print_dataset_term(D, Opts),
+  "/",
+  str(Lbl).
 dcg_q_print_graph_term(G, Opts) -->
   dcg_q_print_iri(G, Opts).
 

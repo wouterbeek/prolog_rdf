@@ -106,7 +106,7 @@ xml2rdf_stream0(State, Out, Opts, [element(_,_,Dom)]) :-
   (get_dict(p_attrs, Opts, PAttrs) -> true ; PAttrs = []),
   xml2rdf_stream0(0, State, Out, Dom, S, PAttrs, Opts),
   flag(xml2rdf, N, N+1),
-  debug(conv(xml2rdf), "~D", [N]).
+  debug(xml2rdf, "~D", [N]).
 
 
 xml2rdf_stream0(N, State, Out, [element(H,Attrs,Vals)|T], S, PAttrs, Opts) :-

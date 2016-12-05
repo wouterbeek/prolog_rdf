@@ -12,12 +12,8 @@
 
 Automatic conversion from CSV to RDF.
 
-The following debug flags are used:
-
-  * conv(csv2rdf)
-
 @author Wouter Beek
-@version 2016/05-2016/08
+@version 2016/05-2016/12
 */
 
 :- use_module(library(apply)).
@@ -91,13 +87,12 @@ csv2rdf_stream(Source, State, Out) :-
 
 
 csv2rdf_stream(Source, Opts1, State, Out) :-
-  indent_debug(conv(csv2rdf), "> CSV → RDF"),
   dict_options(Opts1, Opts2),
-  call_on_stream(Source, csv2rdf_stream0(State, Out, Opts1), Opts2),
-  indent_debug(conv(csv2rdf), "< CSV → RDF").
+  indent_debug_call(io, "CSV → RDF",
+    call_on_stream(Source, csv2rdf_stream0(State, Out, Opts1), Opts2)
+  ).
 
-
-csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
+csv2rdf_stream0(State, Out, Opts1, In, Path, Path) :-
   q_conv_options(Opts1, Opts2),
   csv:make_csv_options([], CsvOpts, _),
   (   get_dict(header, Opts2, Ps)
@@ -116,4 +111,4 @@ csv2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
     Vals
   ),
   fail.
-csv2rdf_stream0(_, _, _, _, Meta, Meta).
+csv2rdf_stream0(_, _, _, _, Path, Path).

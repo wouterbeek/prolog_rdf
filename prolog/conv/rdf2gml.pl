@@ -234,7 +234,7 @@ gml_node0(N, Id, Lbl, Opts) :-
   inc_thread_counter(node_id, Id),
   gml_label(Dcg_4, N, Lbl, Opts),
   assert(node_id0(N,Id,Lbl)),
-  debug(conv(rdf2gml), "Added node ID: ~D (~w)", [Id,N]).
+  debug(rdf2gml, "Added node ID: ~D (~w)", [Id,N]).
 
 
 
