@@ -134,7 +134,7 @@ q_dataset_db_exists :-
 
 q_dataset_db_file(File) :-
   absolute_file_name(
-    '~/q_dataset.db',
+    'q_dataset.db',
     File,
     [access(write),expand(true),file_errors(fail)]
   ).
