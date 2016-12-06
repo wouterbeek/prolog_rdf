@@ -294,7 +294,7 @@ p_datatype(Triples, P, Sup) :-
 %! p_iri(+Triples, +P) is semidet.
 
 p_iri(Triples, P) :-
-  forall(member(rdf(_,P,O), Triples), uri_is_global(O)).
+  forall(member(rdf(_,P,O), Triples), q_is_iri(O)).
 
 
 
