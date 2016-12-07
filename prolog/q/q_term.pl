@@ -761,7 +761,7 @@ q_term(trp, Term, G) :-
 q_term_expansion(X, X) :-
   is_http_iri(X), !.
 q_term_expansion(X, Y) :-
-  atom(X), !,
+  atom(X),
   atomic_list_concat([Alias,Local], :, X),
   q_alias(Alias), !,
   rdf_global_id(Alias:Local, Y).
