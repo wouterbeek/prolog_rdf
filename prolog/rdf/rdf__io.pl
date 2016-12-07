@@ -61,6 +61,7 @@
 :- use_module(library(os/io)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
+:- use_module(library(q/q_prefix), []).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).

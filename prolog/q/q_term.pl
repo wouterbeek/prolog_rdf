@@ -103,12 +103,14 @@
 /** <module> Quine term API
 
 @author Wouter Beek
-@version 2016/06, 2016/08, 2016/10-2016/11
+@version 2016/06-2016/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(hdt/hdt_ext)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_rdf)).
+:- use_module(library(q/q_rdfs)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).

@@ -2,7 +2,9 @@
      hdt2vec,
      [
        export/0,
-       export/2  % +Depth:nonneg, +NumPaths:nonneg
+       export/2,  % +Depth:nonneg, +NumPaths:nonneg
+       hdt2rdf/2, % +HdtFile, +NtFile
+       merge/1    % +NtFile
      ]
    ).
 
@@ -13,12 +15,16 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(list_ext)).
+:- use_module(library(os/io)).
+:- use_module(library(q/q_fs)).
 :- use_module(library(q/q_term)).
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle), []).
+:- use_module(library(yall)).
 
 export :-
   export(1, 1).
@@ -103,3 +109,45 @@ rnd_hdt0(S, P, O, Triple, Hdt) :-
   length(Triples, NumTriples),
   random_between(1, NumTriples, Index),
   nth1chk(Index, Triples, Triple).
+
+
+
+:- meta_predicate
+    ll_call_on_files(+, 3).
+
+%! ll_call_on_files(+MT, +N, :Goal_3) is det.
+
+ll_call_on_files(MT, N, Goal_3a) :-
+  forall(
+    between(1, N, _),
+    (
+      copy_term(Goal_3a, Goal_3b),
+      q_file(MT, NtFile),
+      call_on_stream(NtFile, Goal_3b)
+    )
+  ).
+
+
+
+%! hdt2rdf(+HdtFile:atom, +NtFile:atom) is det.
+
+hdt2rdf(HdtFile, NtFile) :-
+  call_to_ntriples(NtFile, hdt2rdf(HdtFile)).
+
+hdt2rdf(HdtFile, State, Out) :-
+  hdt_call_on_file(HdtFile, hdt2rdf0(State, Out)).
+
+hdt2rdf0(State, Out, Hdt) :-
+  forall(hdt0(S, P, O, Hdt), gen_ntuple(S, P, O, State, Out)).
+
+
+
+merge(NtFile) :-
+  call_to_stream(NtFile, merge0).
+
+merge0(Out) :-
+  ll_call_on_files(
+    application/'n-triples',
+    100,
+    {Out}/[In,Path,Path]>>copy_data_stream(In, Out)
+  ).
