@@ -43,11 +43,11 @@
     hdt_predicate/1,            % ?P, ?G
     hdt_predicate/2,            % ?P, ?G
     hdt_predicate0/2,           % ?P, +Hdt
-    hdt_prepare/1,              % +File
-    hdt_prepare/2,              % +File, -HdtFile
+    hdt_prepare_file/1,         % +File
+    hdt_prepare_file/2,         % +File, -HdtFile
     hdt_remove/1,               % +File
     hdt_remove_index/1,         % +File
-    hdt_subject/1,              % ?S, ?G
+    hdt_subject/1,              % ?S
     hdt_subject/2,              % ?S, ?G
     hdt_subject0/2,             % ?S, +Hdt
     hdt_term/1,                 % ?Term, ?G
@@ -418,14 +418,14 @@ hdt_predicate0(P, Hdt) :-
 
 
 
-%! hdt_prepare(+File) is det.
-%! hdt_prepare(+File, -HdtFile) is det.
+%! hdt_prepare_file(+File) is det.
+%! hdt_prepare_file(+File, -HdtFile) is det.
 
-hdt_prepare(File) :-
-  hdt_prepare(File, _).
+hdt_prepare_file(File) :-
+  hdt_prepare_file(File, _).
 
 
-hdt_prepare(File1, File2) :-
+hdt_prepare_file(File1, File2) :-
   atomic_list_concat([Base|_], ., File1),
   hdt_prepare_base(Base, File2).
 
