@@ -140,8 +140,7 @@ hdt(S, P, O, G) :-
 
 
 hdt0(S, P, O, Hdt) :-
-  % @hack
-  catch(hdt:hdt_search(Hdt, S, P, O), _, fail).
+  hdt:hdt_search(Hdt, S, P, O).
 
 
 

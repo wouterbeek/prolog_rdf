@@ -3,7 +3,7 @@
      [
        export/0,
        export/2,  % +Depth:nonneg, +NumPaths:nonneg
-       hdt2rdf/2, % +HdtFile, +NtFile
+       hdt2rdf/0,
        merge/1    % +NtFile
      ]
    ).
@@ -20,11 +20,15 @@
 :- use_module(library(list_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(q/q_fs)).
+:- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(random)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle), []).
+:- use_module(library(settings)).
 :- use_module(library(yall)).
+
+:- set_setting(q_io:store_dir, '/scratch/wbeek/crawls/13/store/').
 
 export :-
   export(1, 1).
@@ -113,20 +117,34 @@ rnd_hdt0(S, P, O, Triple, Hdt) :-
 
 
 :- meta_predicate
-    ll_call_on_files(+, 3).
+    ll_call_on_files(+, +, 1).
 
-%! ll_call_on_files(+MT, +N, :Goal_3) is det.
+%! ll_call_on_files(+MT, +N, :Goal_1) is det.
 
-ll_call_on_files(MT, N, Goal_3a) :-
+ll_call_on_files(MT, N, Goal_1a) :-
   forall(
     between(1, N, _),
     (
-      copy_term(Goal_3a, Goal_3b),
-      q_file(MT, NtFile),
-      call_on_stream(NtFile, Goal_3b)
+      copy_term(Goal_1a, Goal_1b),
+      q_file(MT, File),
+      call(Goal_1b, File)
     )
   ).
 
+
+
+%! hdt2rdf is det.
+
+hdt2rdf :-
+  ll_call_on_files(hdt, inf, hdt2rdf).
+
+
+%! hdt2rdf(+HdtFile:atom) is det.
+
+hdt2rdf(HdtFile) :-
+  atomic_list_concat([Base,hdt], ., HdtFile),
+  atomic_list_concat([Base,nt,gz], ., NtFile),
+  hdt2rdf(HdtFile, NtFile).
 
 
 %! hdt2rdf(+HdtFile:atom, +NtFile:atom) is det.
@@ -146,8 +164,7 @@ merge(NtFile) :-
   call_to_stream(NtFile, merge0).
 
 merge0(Out) :-
-  ll_call_on_files(
-    application/'n-triples',
-    100,
-    {Out}/[In,Path,Path]>>copy_data_stream(In, Out)
-  ).
+  ll_call_on_files(ntriples, 2, merge_file0(Out)).
+
+merge_file0(Out, NtFile) :-
+  call_on_stream(NtFile, {Out}/[In,Path,Path]>>copy_stream_data(In, Out)).
