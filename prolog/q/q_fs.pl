@@ -35,6 +35,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(default)).
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(q/q_io)).
@@ -111,7 +112,7 @@ q_dir(Hash, Dir2) :-
 %! q_dir_file(-Dir, -Format, +File) is det.
 
 q_dir_file(Dir, Format, File) :-
-  q_dir_file(Dir, data, Format, File).
+  q_dir_file(Dir, _, Format, File).
 
 
 %! q_dir_file(+Dir, ?Base, +Format, -File) is det.
@@ -124,6 +125,7 @@ q_dir_file(Dir, Base, Format, File) :-
   atomic_list_concat([Base|Exts], ., Local),
   once(q_format(Format, Exts)).
 q_dir_file(Dir, Base, Format, File) :-
+  defval(data, Base),
   (   nonvar(Format)
   ->  once(q_format(Format, Exts))
   ;   q_format(Format, Exts)
@@ -189,7 +191,7 @@ q_file_graph(File, G) :-
 %! q_file_graph(-File, +Format, +G) is det.
 
 q_file_graph(File, Format, G) :-
-  q_file_graph(File, data, Format, G).
+  q_file_graph(File, _, Format, G).
 
 
 %! q_file_graph(+File, ?Base, -Format, -G) is det.
@@ -199,9 +201,9 @@ q_file_graph(File, Format, G) :-
 q_file_graph(File, Base, Format, G) :-
   ground(File), !,
   q_file_hash(File, Base, Format, Hash),
-  q_graph_hash(G, Hash).
+  q_graph_hash(G, Base, Hash).
 q_file_graph(File, Base, Format, G) :-
-  q_graph_hash(G, Hash),
+  q_graph_hash(G, Base, Hash),
   q_file_hash(File, Base, Format, Hash).
 
 
@@ -217,7 +219,7 @@ q_file_hash(File, Hash) :-
 %! q_file_hash(-File, ?Format, +Hash) is multi.
 
 q_file_hash(File, Format, Hash) :-
-  q_file_hash(File, data, Format, Hash).
+  q_file_hash(File, _, Format, Hash).
 
 
 %! q_file_hash(+File, ?Base, ?Format, -Hash) is det.
@@ -300,6 +302,7 @@ q_graph_hash(G, Hash) :-
 
 q_graph_hash(G, Base, Hash) :-
   var(G), !,
+  defval(data, Base),
   q_graph_iri([Hash,Base], G).
 q_graph_hash(G, Base, Hash) :-
   q_graph_iri([Hash,Base], G).
