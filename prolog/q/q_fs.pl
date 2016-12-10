@@ -5,13 +5,16 @@
     q_dir/1,              % ?Dir
     q_dir/2,              % +Hash, -Dir
     q_dir_file/3,         % ?Dir, ?Format, ?File
+    q_dir_file/4,         % ?Dir, ?Base, ?Format, ?File
     q_dir_graph/2,        % ?Dir, ?G
     q_dir_hash/2,         % ?Dir, ?Hash
     q_file/2,             % ?Format, ?File
     q_file_graph/2,       % ?File, ?G
     q_file_graph/3,       % ?File, ?Format, ?G
+    q_file_graph/4,       % ?File, ?Base, ?Format, ?G
     q_file_hash/2,        % ?File, ?Hash
     q_file_hash/3,        % ?File, ?Format, ?Hash
+    q_file_hash/4,        % ?File, ?Base, ?Format, ?Hash
     q_file_is_ready/1,    % +File
     q_file_is_ready/2,    % +File1, File2
     q_file_ready/2,       % +File, -Ready
@@ -20,6 +23,7 @@
     q_format/1,           % ?Format
     q_format/2,           % ?Format, -Exts
     q_graph_hash/2,       % ?G, ?Hash
+    q_graph_hash/3,       % ?G, ?Base, ?Hash
     q_hash/1              % -Hash
   ]
 ).
@@ -27,7 +31,7 @@
 /** <module> Quine file system
 
 @author Wouter Beek
-@version 2016/08-2016/11
+@version 2016/08-2016/12
 */
 
 :- use_module(library(apply)).
@@ -37,9 +41,6 @@
 :- use_module(library(q/q_iri)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
-
-:- rdf_meta
-   q_graph_hash(r, ?).
 
 
 
@@ -110,16 +111,24 @@ q_dir(Hash, Dir2) :-
 %! q_dir_file(-Dir, -Format, +File) is det.
 
 q_dir_file(Dir, Format, File) :-
+  q_dir_file(Dir, data, Format, File).
+
+
+%! q_dir_file(+Dir, ?Base, +Format, -File) is det.
+%! q_dir_file(+Dir, ?Base, -Format, -File) is multi.
+%! q_dir_file(-Dir, ?Base, -Format, +File) is det.
+
+q_dir_file(Dir, Base, Format, File) :-
   ground(File), !,
   directory_file_path(Dir, Local, File),
-  atomic_list_concat([data|Exts], ., Local),
+  atomic_list_concat([Base|Exts], ., Local),
   once(q_format(Format, Exts)).
-q_dir_file(Dir, Format, File) :-
+q_dir_file(Dir, Base, Format, File) :-
   (   nonvar(Format)
   ->  once(q_format(Format, Exts))
   ;   q_format(Format, Exts)
   ),
-  atomic_list_concat([data|Exts], ., Local),
+  atomic_list_concat([Base|Exts], ., Local),
   directory_file_path(Dir, Local, File).
 
 
@@ -170,40 +179,57 @@ q_file(Format, File) :-
 
 %! q_file_graph(+File, -G) is det.
 %! q_file_graph(-File, +G) is multi.
-%! q_file_graph(+File, -Format, -G) is det.
-%! q_file_graph(-File, -Format, +G) is multi.
-%! q_file_graph(-File, +Format, +G) is det.
 
 q_file_graph(File, G) :-
   q_file_graph(File, _, G).
 
 
+%! q_file_graph(+File, -Format, -G) is det.
+%! q_file_graph(-File, -Format, +G) is multi.
+%! q_file_graph(-File, +Format, +G) is det.
+
 q_file_graph(File, Format, G) :-
+  q_file_graph(File, data, Format, G).
+
+
+%! q_file_graph(+File, ?Base, -Format, -G) is det.
+%! q_file_graph(-File, ?Base, -Format, +G) is multi.
+%! q_file_graph(-File, ?Base, +Format, +G) is det.
+
+q_file_graph(File, Base, Format, G) :-
   ground(File), !,
-  q_file_hash(File, Format, Hash),
+  q_file_hash(File, Base, Format, Hash),
   q_graph_hash(G, Hash).
-q_file_graph(File, Format, G) :-
+q_file_graph(File, Base, Format, G) :-
   q_graph_hash(G, Hash),
-  q_file_hash(File, Format, Hash).
+  q_file_hash(File, Base, Format, Hash).
 
 
 
 %! q_file_hash(+File, -Hash) is det.
 %! q_file_hash(-File, +Hash) is multi.
-%! q_file_hash(+File, ?Format, -Hash) is det.
-%! q_file_hash(-File, ?Format, +Hash) is multi.
 
 q_file_hash(File, Hash) :-
   q_file_hash(File, _, Hash).
 
 
+%! q_file_hash(+File, ?Format, -Hash) is det.
+%! q_file_hash(-File, ?Format, +Hash) is multi.
+
 q_file_hash(File, Format, Hash) :-
+  q_file_hash(File, data, Format, Hash).
+
+
+%! q_file_hash(+File, ?Base, ?Format, -Hash) is det.
+%! q_file_hash(-File, ?Base, ?Format, +Hash) is multi.
+
+q_file_hash(File, Base, Format, Hash) :-
   ground(File), !,
-  q_dir_file(Dir, Format, File),
+  q_dir_file(Dir, Base, Format, File),
   q_dir_hash(Dir, Hash).
-q_file_hash(File, Format, Hash) :-
+q_file_hash(File, Base, Format, Hash) :-
   q_dir_hash(Dir, Hash),
-  q_dir_file(Dir, Format, File).
+  q_dir_file(Dir, Base, Format, File).
 
 
 
@@ -266,10 +292,17 @@ q_format(Format, Exts) :-
 %! q_graph_hash(-G, +Hash) is multi.
 
 q_graph_hash(G, Hash) :-
+  q_graph_hash(G, data, Hash).
+
+
+%! q_graph_hash(+G, ?Base, -Hash) is det.
+%! q_graph_hash(-G, ?Base, +Hash) is multi.
+
+q_graph_hash(G, Base, Hash) :-
   var(G), !,
-  q_graph_iri(Hash, G).
-q_graph_hash(G, Hash) :-
-  q_graph_iri(Hash, G).
+  q_graph_iri([Hash,Base], G).
+q_graph_hash(G, Base, Hash) :-
+  q_graph_iri([Hash,Base], G).
 
 
 

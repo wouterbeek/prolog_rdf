@@ -85,7 +85,9 @@ sparql_build_select(Prefixes, Vars, Bgps, Opts) -->
 
 
 %! sparql_query(+Iri, +Query, -Result, +Opts) is det.
+%
 % The following options are supported:
+%
 %   * variable_names(-list(atom))
 
 sparql_query(Iri1, Q, Result, Opts1) :-
@@ -113,14 +115,19 @@ sparql_query(Iri1, Q, Result, Opts1) :-
 
 
 sparql_read_reply0(Result, In, Path, Path) :-
-  (   http_header('Content-Type', Path, media_type("application", Subtype, _))
-  ->  (   Subtype == "sparql-results+xml"
-      ->  sparql_read_xml_result(stream(In), Result)
-      ;   Subtype == "sparql-results+json"
-      ->  sparql_read_json_result(stream(In), Result)
-      )
-  ;   domain_error(sparql_result_document, no_content_type)
+  once((
+    member(Entry, Path),
+    get_dict(headers, Entry, Headers),
+    get_dict('content-type', Headers, Val)
+  )),
+  http_parse_header('content-type', Val, media_type("application",Subtype,_)), !,
+  (   Subtype == 'sparql-results+xml'
+  ->  sparql_read_xml_result(stream(In), Result)
+  ;   Subtype == 'sparql-results+json'
+  ->  sparql_read_json_result(stream(In), Result)
   ).
+sparql_read_reply0(_, _, Path, Path) :-
+  domain_error(sparql_result_document, no_content_type).
 
 
 
