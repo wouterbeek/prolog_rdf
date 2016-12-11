@@ -204,7 +204,8 @@ q_source_skip_exts([md]).
 
 q_source_dir(Dir) :-
   setting(source_dir, Dir0),
-  expand_file_name(Dir0, [Dir|_]).
+  expand_file_name(Dir0, [Dir|_]),
+  create_directory(Dir).
 
 
 
@@ -500,7 +501,8 @@ q_sync(G) :-
 
 q_store_dir(Dir) :-
   setting(store_dir, Dir0),
-  expand_file_name(Dir0, [Dir|_]).
+  expand_file_name(Dir0, [Dir|_]),
+  create_directory(Dir).
 
 
 

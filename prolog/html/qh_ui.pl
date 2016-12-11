@@ -359,5 +359,5 @@ qh_default_table_options(Opts) :-
 
 
 qh_default_table_options(Opts1, Opts2) :-
-  qh:qh_default_options(_{max_iri_length: 25}, DefOpts),
+  qh:qh_default_options(_{max_iri_len: 25}, DefOpts),
   merge_dicts(DefOpts, Opts1, Opts2).

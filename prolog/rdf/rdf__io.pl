@@ -1,6 +1,10 @@
 :- module(
   rdf__io,
   [
+    rdf_alternative_extension/2, % ?MT, ?AltExt
+    rdf_incorrect_media_type/2,  % ?IncorrectMT, MT
+    rdf_media_type/3,            % ?MT, ?Iri, ?DefExt
+    
     rdf_call_on_graph/2,         % +Source, :Goal_1
     rdf_call_on_graph/3,         % +Source, :Goal_1, +Opts
     rdf_call_on_stream/2,        % +Source, :Goal_3
@@ -21,7 +25,6 @@
     rdf_load_quads/3,            % +Source, -Quads,   +Opts
     rdf_load_triples/2,          % +Source, -Triples
     rdf_load_triples/3,          % +Source, -Triples, +Opts
-    rdf_media_type/3,            % ?MT, ?Iri, ?DefExt
     rdf_reserialize/2,           % +Source, +Sink
     rdf_reserialize/4,           % +Source, +Sink, +SourceOpts, +SinkOpts
     rdf_reserialize_legacy/2,    % +Source, +Sink
@@ -197,6 +200,63 @@ rdf_http_plugin:rdf_content_type('application/ld+json', 0.99, jsonld). %ABC
 
 
 
+%! rdf_alternative_extension(?MT, ?AltExt) is nondet.
+
+rdf_alternative_extension(application/turtle, n3).
+
+
+
+%! rdf_incorrect_media_type(?IncorrectMT, ?MT) is nondet.
+
+rdf_incorrect_media_type(application/rdf,          application/'rdf+xml').
+rdf_incorrect_media_type(application/'rdf+turtle', application/turtle).
+rdf_incorrect_media_type(application/'rdf+xml',    application/'rdf+xml').
+rdf_incorrect_media_type(application/'rss+xml',    application/'rdf+xml').
+rdf_incorrect_media_type(application/'x-trig',     application/trig).
+rdf_incorrect_media_type(application/'x-turtle',   application/turtle).
+rdf_incorrect_media_type(application/xml,          application/'rdf+xml').
+rdf_incorrect_media_type(text/n3,                  application/turtle).
+rdf_incorrect_media_type(text/rdf,                 application/'rdf+xml').
+rdf_incorrect_media_type(text/'rdf+n3',            application/turtle).
+rdf_incorrect_media_type(text/'rdf+xml',           application/'rdf+xml').
+rdf_incorrect_media_type(text/turtle,              application/turtle).
+rdf_incorrect_media_type(text/xml,                 application/'rdf+xml').
+
+
+
+%! rdf_media_type(?MT, ?Iri, ?DefExt) is nondet.
+%
+% @see https://www.w3.org/ns/formats/
+
+rdf_media_type(application/'ld+json',   formats:'JSON-LD',   jsonld).
+rdf_media_type(application/'n-quads',   formats:'N-Quads',   nq).
+rdf_media_type(application/'n-triples', formats:'N-Triples', nt).
+rdf_media_type(application/'rdf+xml',   formats:'RDF_XML',   rdf).
+rdf_media_type(application/turtle,      formats:'Turtle',    ttl).
+rdf_media_type(application/trig,        formats:'TriG',      trig).
+rdf_media_type(application/'xhtml+xml', formats:'RDFa',      xhtml).
+rdf_media_type(text/html,               formats:'RDFa',      html).
+%rdf_media_type(json, formats:'RDF_JSON').
+%rdf_media_type(ldpatch, formats:'LD_Patch').
+%rdf_media_type(micro, formats:'microdata').
+%rdf_media_type(n3, formats:'N3').
+%rdf_media_type(owlx, formats:'OWL_XML').
+%rdf_media_type(owlf, formats:'OWL_Functional').
+%rdf_media_type(owlm, formats:'OWL_Manchester').
+%rdf_media_type(powder, formats:'POWDER').
+%rdf_media_type(powders, formats:'POWDER-S').
+%rdf_media_type(provn, formats:'PROV-N').
+%rdf_media_type(provx, formats:'PROV-XML').
+%rdf_media_type(rif, formats:'RIF_XML').
+%rdf_media_type(sparqlx, formats:'SPARQL_Results_XML').
+%rdf_media_type(sparqlj, formats:'SPARQL_Results_JSON').
+%rdf_media_type(sparqlc, formats:'SPARQL_Results_CSV').
+%rdf_media_type(sparqlt, formats:'SPARQL_Results_TSV').
+
+
+
+
+
 %! rdf_call_on_graph(+Source, :Goal_1) .
 %! rdf_call_on_graph(+Source, :Goal_1, +Opts) .
 %
@@ -242,7 +302,7 @@ rdf_call_on_stream(Source, Goal_3, Opts1) :-
   call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
 
 rdf_call_on_stream0(Goal_3, Opts, In, Path1, Path3) :-
-  set_rdf_media_type_and_encoding(In, Path1, Path2, Opts),
+  set_media_type_and_encoding(In, Path1, Path2, Opts),
   call(Goal_3, In, Path2, Path3).
 
 
@@ -382,7 +442,7 @@ rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
   ).
 
 rdf_call_onto_stream0(Goal_4, Opts, In, Path1, Path3, Out) :-
-  set_rdf_media_type_and_encoding(In, Path1, Path2, Opts),
+  set_media_type_and_encoding(In, Path1, Path2, Opts),
   call(Goal_4, In, Path2, Path3, Out).
 
 
@@ -600,37 +660,6 @@ rdf_load_triples(Source, Triples, Opts) :-
 
 
 
-%! rdf_media_type(?MT, ?Iri, ?DefExt) is nondet.
-%
-% @see https://www.w3.org/ns/formats/
-
-rdf_media_type(application/'ld+json', formats:'JSON-LD', jsonld).
-rdf_media_type(application/'n-quads', formats:'N-Quads', nq).
-rdf_media_type(application/'n-triples', formats:'N-Triples', nt).
-rdf_media_type(application/'rdf+xml', formats:'RDF_XML', rdf).
-rdf_media_type(application/turtle, formats:'Turtle', ttl).
-rdf_media_type(application/trig, formats:'TriG', trig).
-rdf_media_type(application/'xhtml+xml', formats:'RDFa', xhtml).
-rdf_media_type(text/html, formats:'RDFa', html).
-%rdf_media_type(json, formats:'RDF_JSON').
-%rdf_media_type(ldpatch, formats:'LD_Patch').
-%rdf_media_type(micro, formats:'microdata').
-%rdf_media_type(n3, formats:'N3').
-%rdf_media_type(owlx, formats:'OWL_XML').
-%rdf_media_type(owlf, formats:'OWL_Functional').
-%rdf_media_type(owlm, formats:'OWL_Manchester').
-%rdf_media_type(powder, formats:'POWDER').
-%rdf_media_type(powders, formats:'POWDER-S').
-%rdf_media_type(provn, formats:'PROV-N').
-%rdf_media_type(provx, formats:'PROV-XML').
-%rdf_media_type(rif, formats:'RIF_XML').
-%rdf_media_type(sparqlx, formats:'SPARQL_Results_XML').
-%rdf_media_type(sparqlj, formats:'SPARQL_Results_JSON').
-%rdf_media_type(sparqlc, formats:'SPARQL_Results_CSV').
-%rdf_media_type(sparqlt, formats:'SPARQL_Results_TSV').
-
-
-
 %! rdf_write_to_sink(?Sink, ?M,             ?G       ) is det.
 %! rdf_write_to_sink(?Sink, ?M,             ?G, +Opts) is det.
 %! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O           ) is det.
@@ -796,7 +825,7 @@ get_base_iri(BaseIri, Ds, _) :-
 
 
 
-%! set_rdf_media_type_and_encoding(+In, +Path1, -Path2, +Opts) is det.
+%! set_media_type_and_encoding(+In, +Path1, -Path2, +Opts) is det.
 %
 % # GUESS ENCODING
 %
@@ -807,50 +836,65 @@ get_base_iri(BaseIri, Ds, _) :-
 % @tbd Archive entries are always encoded as octet.  We change this to
 %      UTF-8.
 
+set_media_type_and_encoding(In, Path1, Path2, Opts) :-
+  set_media_type(In, Path1, Path2, MT, Opts),
+  set_encoding(In, MT).
+
+
 % RDF Media Type was already set.
-set_rdf_media_type_and_encoding(_, [H|T], [H|T], _) :-
-  dict_has_key(rdf_media_type, H), !.
+set_media_type(_, [H|T], [H|T], MT, _) :-
+  get_dict(rdf_media_type, H, MT), !.
 % Option rdf_media_type/1 overrides guesstimates.
-set_rdf_media_type_and_encoding(_, [H1|T], [H2|T], Opts) :-
+set_media_type(_, [H1|T], [H2|T], MT, Opts) :-
   option(rdf_media_type(MT), Opts), !,
   put_dict(rdf_media_type, H1, MT, H2).
-set_rdf_media_type_and_encoding(In, [H1|T], [H2|T], Opts) :-
-  % Set the default Media Type based on the base IRI or the
-  % Content-Type header, if any.
-  (   get_base_iri(BaseIri, [H1|T], Opts),
-      iri_file_extensions(BaseIri, Exts),
-      member(Ext, Exts),
-      rdf_media_type(DefMT, _, Ext)
-  ->  GuessOpts = [default_rdf_media_type(DefMT)]
-  ;   get_dict(headers, H1, Headers),
-      get_dict('content-type', Headers, Val),
-      http_parse_header('content-type', Val, media_type(Type,Subtype,_)),
-      DefMT = Type/Subtype,
-      rdf_media_type(DefMT, _, _)
-  ->  GuessOpts = [default_rdf_media_type(DefMT)]
-  ;   GuessOpts = []
-  ),
-  (   % Notice that the metadata option of the original options list does
-      % not get overwritten when opening the stream for guessing the RDF
-      % serialization format.
-      rdf_guess_media_type(In, MT, GuessOpts)
+% HTTP Content-Type header.
+set_media_type(In, [H1|T], [H2|T], MT3, _) :-
+  get_dict(headers, H1, Headers),
+  get_dict('content-type', Headers, Val),
+  http_parse_header('content-type', Val, media_type(Type,Subtype,_)),
+  MT1 = Type/Subtype,
+  (   rdf_incorrect_media_type(MT1, MT2)
   ->  true
-  ;   nonvar(DefMT),
-      rdf_media_type(DefMT, _, _)
-  ->  true
-  ;   % Default RDF Media Type is N-Quads.
-      MT = application/'n-quads'
+  ;   rdf_media_type(MT1, _, _)
+  ->  MT2 = MT1
   ),
-  % Documents of type JSON-LD or one of the Turtle-family formats
-  % _must_ be encoded in UTF-8.
-  (   (   is_of_type(turtle_media_type, MT)
-      ;   MT == application/'ld+json'
-      )
-  ->  set_stream(In, encoding(utf8))
-  ;   true
-  ),
+  guess_media_type(In, MT2, MT3), !,
+  put_dict(rdf_media_type, H1, MT3, H2).
+% Based on the file extension of the base IRI and our own guesswork.
+set_media_type(In, [H1|T], [H2|T], MT2, Opts) :-
+  get_base_iri(BaseIri, [H1|T], Opts),
+  iri_file_extensions(BaseIri, Exts),
+  member(Ext, Exts),
+  (rdf_media_type(MT1, _, Ext) ; rdf_alternative_extension(MT1, Ext)), !,
+  guess_media_type(In, MT1, MT2), !,
+  put_dict(rdf_media_type, H1, MT2, H2).
+% Time's up!  Let's say its RDF/XML.
+set_media_type(_, [H1|T], [H2|T], MT, _) :-
+  MT = application/'n-quads',
   put_dict(rdf_media_type, H1, MT, H2).
 
+
+set_encoding(In, MT) :-
+  % Documents of type JSON-LD or one of the Turtle-family formats
+  % _must_ be encoded in UTF-8.
+  (is_of_type(turtle_media_type, MT) ; MT == application/'ld+json'), !,
+  set_stream(In, encoding(utf8)).
+set_encoding(_, _).
+
+
+% We're able to guess the Media Type, using the given Media Type.
+guess_media_type(In, MT1, MT2) :-
+  % Notice that the metadata option of the original options list does
+  % not get overwritten when opening the stream for guessing the RDF
+  % serialization format.
+  rdf_guess_media_type(In, MT2, [default_rdf_media_type(MT1)]), !.
+% We're unable to guess the Media Type, but the given Media Type seems
+% ok.
+guess_media_type(_, MT, MT) :-
+  nonvar(MT),
+  rdf_media_type(MT, _, _), !.
+  
 
 
 %! rdf_update_options(+Opts1, -Opts2) is det.

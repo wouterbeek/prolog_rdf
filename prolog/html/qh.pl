@@ -314,8 +314,9 @@ qh_literal00(Uri^^D, _) -->
 % XSD gYearMonth
 qh_literal00(V^^D1, Opts) -->
   {
-    q_subdatatype_of(D1, D2),
-    rdf11:xsd_date_time_type(D2)
+    % @bug here
+    rdf11:xsd_date_time_type(D2),
+    q_subdatatype_of(D1, D2)
   }, !,
   html_date_time(V, Opts).
 % Datatype hooks.

@@ -302,6 +302,7 @@ q_graph_hash(G, Hash) :-
 
 q_graph_hash(G, Base, Hash) :-
   var(G), !,
+  q_hash(Hash),
   defval(data, Base),
   q_graph_iri([Hash,Base], G).
 q_graph_hash(G, Base, Hash) :-
