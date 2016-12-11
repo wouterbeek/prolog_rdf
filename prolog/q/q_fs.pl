@@ -35,6 +35,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(default)).
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
@@ -69,9 +70,16 @@ q_delete_ready(File) :-
 % Directory of a data graph.
 
 q_dir(Dir3) :-
+  var(Dir3), !,
   q_store_dir(Dir1),
   directory_path(Dir1, Dir2),
   directory_path(Dir2, Dir3).
+q_dir(Dir3) :-
+  file_directory_name(Dir3, Dir2),
+  file_directory_name(Dir2, Dir1),
+  q_store_dir(Dir0),
+  atom_ending_in(Dir0, /, X),
+  atom_ending_in(Dir1, /, X).
 
 
 
@@ -294,7 +302,7 @@ q_format(Format, Exts) :-
 %! q_graph_hash(-G, +Hash) is multi.
 
 q_graph_hash(G, Hash) :-
-  q_graph_hash(G, data, Hash).
+  q_graph_hash(G, _, Hash).
 
 
 %! q_graph_hash(+G, ?Base, -Hash) is det.
@@ -313,5 +321,9 @@ q_graph_hash(G, Base, Hash) :-
 %! q_hash(-Hash) is nondet.
 
 q_hash(Hash) :-
+  var(Hash), !,
   q_dir(Dir),
   q_dir_hash(Dir, Hash).
+q_hash(Hash) :-
+  q_dir_hash(Dir, Hash),
+  q_dir(Dir).

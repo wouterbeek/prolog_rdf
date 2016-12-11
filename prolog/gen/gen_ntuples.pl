@@ -198,7 +198,8 @@ gen_ntuple(S, P, O, G, State, Out) :-
     ),
     put_char(.),
     put_code(10)
-  )).
+  )),
+  flush_output(Out).
 
 
 
