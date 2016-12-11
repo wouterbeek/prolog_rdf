@@ -51,6 +51,7 @@
 :- use_module(library(error)).
 :- use_module(library(gen/gen_ntuples)).
 :- use_module(library(http/http_ext)).
+:- use_module(library(http/http11)).
 :- use_module(library(http/json)).
 :- use_module(library(iostream)).
 :- use_module(library(iri/iri_ext)).
@@ -806,27 +807,48 @@ get_base_iri(BaseIri, Ds, _) :-
 % @tbd Archive entries are always encoded as octet.  We change this to
 %      UTF-8.
 
-% Option rdf_media_type/1 overrides everything else.
+% RDF Media Type was already set.
+set_rdf_media_type_and_encoding(_, [H|T], [H|T], _) :-
+  dict_has_key(rdf_media_type, H), !.
+% Option rdf_media_type/1 overrides guesstimates.
 set_rdf_media_type_and_encoding(_, [H1|T], [H2|T], Opts) :-
   option(rdf_media_type(MT), Opts), !,
   put_dict(rdf_media_type, H1, MT, H2).
-set_rdf_media_type_and_encoding(_, [H|T], [H|T], _) :-
-  dict_has_key(rdf_media_type, H), !.
 set_rdf_media_type_and_encoding(In, [H1|T], [H2|T], Opts) :-
+  % Set the default Media Type based on the base IRI or the
+  % Content-Type header, if any.
   (   get_base_iri(BaseIri, [H1|T], Opts),
       iri_file_extensions(BaseIri, Exts),
       member(Ext, Exts),
-      rdf_media_type(MT, _, Ext)
-  ->  GuessOpts = [default_rdf_media_type(MT)]
+      rdf_media_type(DefMT, _, Ext)
+  ->  GuessOpts = [default_rdf_media_type(DefMT)]
+  ;   get_dict(headers, H1, Headers),
+      get_dict('content-type', Headers, Val),
+      http_parse_header('content-type', Val, media_type(Type,Subtype,_)),
+      DefMT = Type/Subtype,
+      rdf_media_type(DefMT, _, _)
+  ->  GuessOpts = [default_rdf_media_type(DefMT)]
   ;   GuessOpts = []
   ),
-  % Notice that the metadata option of the original options list does
-  % not get overwritten when opening the stream for guessing the RDF
-  % serialization format.
-  rdf_guess_media_type(In, MT, GuessOpts),
-  % JSON-LD _must_ be encoded in UTF-8.
-  % @tbd Turtle-family formats as well?
-  (MT == application/'ld+json' -> set_stream(In, encoding(utf8)) ; true),
+  (   % Notice that the metadata option of the original options list does
+      % not get overwritten when opening the stream for guessing the RDF
+      % serialization format.
+      rdf_guess_media_type(In, MT, GuessOpts)
+  ->  true
+  ;   nonvar(DefMT),
+      rdf_media_type(DefMT, _, _)
+  ->  true
+  ;   % Default RDF Media Type is N-Quads.
+      MT = application/'n-quads'
+  ),
+  % Documents of type JSON-LD or one of the Turtle-family formats
+  % _must_ be encoded in UTF-8.
+  (   (   is_of_type(turtle_media_type, MT)
+      ;   MT == application/'ld+json'
+      )
+  ->  set_stream(In, encoding(utf8))
+  ;   true
+  ),
   put_dict(rdf_media_type, H1, MT, H2).
 
 
