@@ -1,6 +1,7 @@
 :- module(
   q_fs,
   [
+    q_base/1,             % ?Base
     q_delete_file/1,      % +File  
     q_dir/1,              % ?Dir
     q_dir/2,              % +Hash, -Dir
@@ -45,6 +46,15 @@
 :- use_module(library(settings)).
 
 
+
+
+
+%! q_base(+Base) is semidet.
+%! q_base(-Base) is multi.
+
+q_base(data).
+q_base(meta).
+q_base(warn).
 
 
 
@@ -133,7 +143,7 @@ q_dir_file(Dir, Base, Format, File) :-
   atomic_list_concat([Base|Exts], ., Local),
   once(q_format(Format, Exts)).
 q_dir_file(Dir, Base, Format, File) :-
-  defval(data, Base),
+  q_base(Base),
   (   nonvar(Format)
   ->  once(q_format(Format, Exts))
   ;   q_format(Format, Exts)
@@ -311,7 +321,7 @@ q_graph_hash(G, Hash) :-
 q_graph_hash(G, Base, Hash) :-
   var(G), !,
   q_hash(Hash),
-  defval(data, Base),
+  q_base(Base),
   q_graph_iri([Hash,Base], G).
 q_graph_hash(G, Base, Hash) :-
   q_graph_iri([Hash,Base], G).

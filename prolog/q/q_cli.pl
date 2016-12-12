@@ -15,6 +15,10 @@
     q__key/2,   % ?P, ?G
     q__link/3,  % +Backend, +P, +G
     q__load/1,  % +File
+    q__m/0,
+    q__m/1,     % ?G
+    q__m/3,     % ?S, ?P, ?O
+    q__m/4,     % ?S, ?P, ?O, ?G
     q__p/0,
     q__p/1,     % ?P
     q__p/2,     % ?P, ?G
@@ -34,10 +38,14 @@
     q__scbd/2,  % ?Node, ?G
     q__tree/1,  % ?S
     q__tree/2,  % ?S, ?G
-    q__x/0,
-    q__x/1,     % ?G
-    q__x/3,     % ?S, ?P, ?O
-    q__x/4      % ?S, ?P, ?O, +G
+    q__w/0,
+    q__w/1,     % ?G
+    q__w/3,     % ?S, ?P, ?O
+    q__w/4,     % ?S, ?P, ?O, ?G
+    q__x/1,     % ?Base
+    q__x/2,     % ?Base, ?G
+    q__x/4,     % ?Base, ?S, ?P, ?O
+    q__x/5      % ?Base, ?S, ?P, ?O, +G
   ]
 ).
 
@@ -89,6 +97,9 @@
    q__key(r),
    q__key(r, r),
    q__link(+, r, r),
+   q__m(r),
+   q__m(r, r, o),
+   q__m(r, r, o, r),
    q__p(r),
    q__p(r, r),
    q__p_ds(r),
@@ -105,16 +116,12 @@
    q__scbd(r, r),
    q__tree(r),
    q__tree(r, r),
-   q__x(r),
-   q__x(r, r, o),
-   q__x(r, r, o, r).
-
-:- setting(
-     backend,
-     oneof([hdt,trp]),
-     hdt,
-     "The backend that is used to power the Quine CLI."
-   ).
+   q__w(r),
+   q__w(r, r, o),
+   q__w(r, r, o, r),
+   q__x(+, r),
+   q__x(+, r, r, o),
+   q__x(+, r, r, o, r).
 
 
 
@@ -127,10 +134,10 @@ q__cbd(S) :-
   q__cbd(S, _).
 
 
-q__cbd(S, G0) :-
-  q__graph0(M, G0, G),
-  q_subject(M, S, G),
-  q_print_cbd(M, S, G).
+q__cbd(S, G) :-
+  q_store_graph(data, G),
+  q_subject(hdt, S, G),
+  q_print_cbd(hdt, S, G).
 
 
 
@@ -171,9 +178,9 @@ q__g :-
   q__g(_).
 
 
-q__g(G0) :-
-  q__graph0(M, G0, G),
-  q_print_graph(M, G).
+q__g(G) :-
+  q_store_graph(data, G),
+  q_print_graph(hdt, G).
 
 
 
@@ -223,15 +230,15 @@ q__key(P) :-
   q__key(P, _).
 
 
-q__key(P, G0) :-
-  q__graph0(M, G0, G),
-  q_predicate(M, P, G),
+q__key(P, G) :-
+  q_store_graph(data, G),
+  q_predicate(hdt, P, G),
   \+ ((
-    q(M, S1, P, O, G),
-    q(M, S2, P, O, G),
+    q(hdt, S1, P, O, G),
+    q(hdt, S2, P, O, G),
     S1 \== S2
   )),
-  forall(q_subject(M, S, G), once(q(M, S, P, _, G))).
+  forall(q_subject(hdt, S, G), once(q(hdt, S, P, _, G))).
 
 
 
@@ -246,10 +253,31 @@ q__link(Backend, P, G) :-
 
 q__load(SourceFile) :-
   q_source2store_file(SourceFile, StoreFile),
-  q_store_file(StoreFile, G),
-  setting(backend, M),
-  q_store2view(M, G),
+  q_store_file(StoreFile, data, G),
+  q_store2view(hdt, G),
   msg_notification("‘~a’ → ‘~a’~n", [SourceFile,StoreFile]).
+
+
+
+%! q__m is nondet.
+%! q__m(?G) is nondet.
+%! q__m(?S, ?P, ?O) is nondet.
+%! q__m(?S, ?P, ?O, ?G) is nondet.
+
+q__m :-
+  q__m(_).
+
+
+q__m(G) :-
+  q__m(_, _, _, G).
+
+
+q__m(S, P, O) :-
+  q__m(S, P, O, _).
+
+
+q__m(S, P, O, G) :-
+  q__x(meta, S, P, O, G).
 
 
 
@@ -265,9 +293,9 @@ q__p(P) :-
   q__p(P, _).
 
 
-q__p(P, G0) :-
-  q__graph0(M, G0, G),
-  q_predicate(M, P, G),
+q__p(P, G) :-
+  q_store_graph(data, G),
+  q_predicate(hdt, P, G),
   dcg_with_output_to(
     section((
       "Predicate ",
@@ -276,8 +304,8 @@ q__p(P, G0) :-
       sq(dcg_q_print_graph_term(G))
     ))
   ),
-  q__p_os0(M, P, G),
-  q__p_ds0(M, P, G).
+  q__p_os0(hdt, P, G),
+  q__p_ds0(hdt, P, G).
 
 
 
@@ -290,14 +318,14 @@ q__p_ds(P) :-
   q__p_ds(P, _).
 
 
-q__p_ds(P, G0) :-
-  q__graph0(M, G0, G),
-  q_predicate(M, P, G),
-  q__p_ds0(M, P, G).
+q__p_ds(P, G) :-
+  q_store_graph(data, G),
+  q_predicate(hdt, P, G),
+  q__p_ds0(hdt, P, G).
 
 
-q__p_ds0(M, P, G) :-
-  q_datatypes_compat(M, P, G, Ds),
+q__p_ds0(hdt, P, G) :-
+  q_datatypes_compat(hdt, P, G, Ds),
   maplist(list_split, Rows, Ds),
   print_table([head([q_predicate(P)])|Rows]).
 
@@ -312,24 +340,24 @@ q__p_os(P) :-
   q__p_os(P, _).
 
 
-q__p_os(P, G0) :-
-  q__graph0(M, G0, G),
-  q_predicate(M, P, G),
-  q__p_os0(M, P, G).
+q__p_os(P, G) :-
+  q_store_graph(data, G),
+  q_predicate(hdt, P, G),
+  q__p_os0(P, G).
 
 
-q__p_os0(M, P, G) :-
-  (   \+ ((q(M, S1, P, O, G), q(M, S2, P, O, G), S1 \== S2))
-  ->  q_p_no_abbr(M, P, G, "No reuse of object terms.")
-  ;   aggregate_all(set(O), q(M, _, P, O, G), Os),
+q__p_os0(P, G) :-
+  (   \+ ((q(hdt, S1, P, O, G), q(hdt, S2, P, O, G), S1 \== S2))
+  ->  q_p_no_abbr(P, G, "No reuse of object terms.")
+  ;   aggregate_all(set(O), q(hdt, _, P, O, G), Os),
       (   length(Os, Len),
           Len > 5000
-      ->  q_p_no_abbr(M, P, G, "Too many unique object terms.")
+      ->  q_p_no_abbr(P, G, "Too many unique object terms.")
       ;   findall(
             NumSs-[q_object(O),thousands(NumSs)],
             (
               member(O, Os),
-              q_number_of_subjects(M, P, O, G, NumSs)
+              q_number_of_subjects(hdt, P, O, G, NumSs)
             ),
             Pairs
           ),
@@ -350,12 +378,12 @@ q__p_ps(P) :-
   q__p_ps(P, _).
 
 
-q__p_ps(P, G0) :-
-  q__graph0(M, G0, G),
-  q_predicate(M, P, G),
-  forall(q(M, _, P, O, G), q_is_bnode(O)),
-  once(q(M, _, P, _, G)),
-  aggregate_all(set(Q), (q(M, _, P, X, G), q(M, X, Q, _, G)), Qs),
+q__p_ps(P, G) :-
+  q_store_graph(data, G),
+  q_predicate(hdt, P, G),
+  forall(q(hdt, _, P, O, G), q_is_bnode(O)),
+  once(q(hdt, _, P, _, G)),
+  aggregate_all(set(Q), (q(hdt, _, P, X, G), q(hdt, X, Q, _, G)), Qs),
   maplist(singleton_list, Qs, Rows),
   format(string(Lbl), "Next predicates of ~a", [P]),
   print_table([head([Lbl])|Rows]).
@@ -369,21 +397,14 @@ q__ps :-
   q__ps(_).
 
 
-q__ps(G0) :-
-  q__graph0(M, G0, G),
-  dcg_with_output_to(
-    section((
-      "Graph ",
-      dcg_q_print_graph_term(G),
-      " in backend ",
-      atom(M)
-    ))
-  ),
+q__ps(G) :-
+  q_store_graph(data, G),
+  dcg_with_output_to(section(("Graph ",dcg_q_print_graph_term(G)))),
   findall(
     N-[q_predicate(P),thousands(N)],
     (
-      distinct(P, q(M, _, P, _, G)),
-      q_number_of_triples(M, _, P, _, G, N)
+      distinct(P, q(hdt, _, P, _, G)),
+      q_number_of_triples(hdt, _, P, _, G, N)
     ),
     Pairs
   ),
@@ -401,13 +422,13 @@ q__ps_no :-
   q__ps_no(_).
 
 
-q__ps_no(G0) :-
-  q__graph0(M, G0, G),
+q__ps_no(G) :-
+  q_store_graph(data, G),
   findall(
     N-[q_predicate(P),thousands(N)],
     (
-      distinct(P, q_predicate(M, P, G)),
-      q_number_of_objects(M, _, P, G, N)
+      distinct(P, q_predicate(hdt, P, G)),
+      q_number_of_objects(hdt, _, P, G, N)
     ),
     Pairs
   ),
@@ -422,10 +443,10 @@ q__root(S) :-
   q__root(S, _).
 
 
-q__root(S, G0) :-
-  q__graph0(M, G0, G),
-  q_subject(M, S, G),
-  q_print_root(M, S, G).
+q__root(S, G) :-
+  q_store_graph(data, G),
+  q_subject(hdt, S, G),
+  q_print_root(hdt, S, G).
 
 
 
@@ -436,10 +457,10 @@ q__scbd(Node) :-
   q__scbd(Node, _).
 
 
-q__scbd(Node, G0) :-
-  q__graph0(M, G0, G),
-  q_node(M, Node, G),
-  q_print_scbd(M, Node, G).
+q__scbd(Node, G) :-
+  q_store_graph(data, G),
+  q_node(hdt, Node, G),
+  q_print_scbd(hdt, Node, G).
 
 
 
@@ -450,33 +471,61 @@ q__tree(S) :-
   q__tree(S, _).
 
 
-q__tree(S, G0) :-
-  q__graph0(M, G0, G),
-  q_subject(M, S, G),
-  q_print_tree(M, S, G).
+q__tree(S, G) :-
+  q_store_graph(data, G),
+  q_subject(hdt, S, G),
+  q_print_tree(hdt, S, G).
 
 
 
-%! q__x is nondet.
-%! q__x(?G) is nondet.
-%! q__x(?S, ?P, ?O) is nondet.
-%! q__x(?S, ?P, ?O, ?G) is nondet.
+%! q__w is nondet.
+%! q__w(?G) is nondet.
+%! q__w(?S, ?P, ?O) is nondet.
+%! q__w(?S, ?P, ?O, ?G) is nondet.
 
-q__x :-
-  q__x(_).
-
-
-q__x(G) :-
-  q__x(_, _, _, G).
+q__w :-
+  q__w(_).
 
 
-q__x(S, P, O) :-
-  q__x(S, P, O, _).
+q__w(G) :-
+  q__w(_, _, _, G).
 
 
-q__x(S, P, O, G0) :-
-  q__graph0(M, G0, G),
-  pagination(rdf(S,P,O), q(M, S, P, O, G), Result),
+q__w(S, P, O) :-
+  q__w(S, P, O, _).
+
+
+q__w(S, P, O, G) :-
+  q__x(warn, S, P, O, G).
+
+
+
+%! q__x(?Base) is nondet.
+%! q__x(?Base, ?G) is nondet.
+%! q__x(?Base, ?S, ?P, ?O) is nondet.
+%! q__x(?Base, ?S, ?P, ?O, ?G) is nondet.
+
+q__x(Base) :-
+  q__x(Base, _).
+
+
+q__x(Base, G) :-
+  q__x(Base, _, _, _, G).
+
+
+q__x(Base, S, P, O) :-
+  q__x(Base, S, P, O, _).
+
+
+q__x(Base, S, P, O, G) :-
+  pagination(
+    rdf(S,P,O),
+    (
+      q_store_graph(Base, G),
+      q(hdt, S, P, O, G)
+    ),
+    Result
+  ),
   pagination_result(Result, q_print_quads).
 
 
@@ -518,33 +567,11 @@ pp_hash_paths(Prefix, Paths) :-
 
 
 
-%! q__graph0(+M, ?G0, -G) is det.
+%! q_p_no_abbr(+P, +G, +Msg) is det.
 
-q__graph0(M, G0, G) :-
-  var(M), !,
-  setting(backend, M),
-  q__graph_with_backend0(M, G0, G).
-q__graph0(M, G0, G) :-
-  q__graph_with_backend0(M, G0, G).
-
-q__graph_with_backend0(M, G, G) :-
-  var(G), !,
-  q_view_graph(M, G).
-%q__graph_with_backend0(M, N, G) :-
-%  integer(N), !,
-%  aggregate_all(set(G), q_view_graph(M, G), Gs),
-%  nth1chk(N, Gs, G),
-%  q__graph_with_backend0(M, G, G).
-q__graph_with_backend0(M, G, G) :-
-  once(q_view_graph(M, G)).
-
-
-
-%! q_p_no_abbr(+M, +P, +G, +Msg) is det.
-
-q_p_no_abbr(M, P, G, Msg) :-
+q_p_no_abbr(P, G, Msg) :-
   ansi_format(user_output, [fg(yellow)], "~s~n", [Msg]),
-  once(findnsols(5, O, distinct(O, q(M, _, P, O, G)), Os)),
+  once(findnsols(5, O, distinct(O, q(hdt, _, P, O, G)), Os)),
   maplist(object_row, Os, Rows),
   print_table([head([string("object")])|Rows]).
 

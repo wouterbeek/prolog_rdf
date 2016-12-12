@@ -2,13 +2,15 @@
   hdt_ext,
   [
     hdt/3,                      % ?S, ?P, ?O
-    hdt/4,                      % ?S, ?P, ?O, ?G
+    hdt/4,                      % ?Base, ?S, ?P, ?O
+    hdt/5,                      % ?Base, ?S, ?P, ?O, ?G
     hdt0/4,                     % ?S, ?P, ?O, +Hdt
     hdt_bnode/1,                % ?B
     hdt_bnode/2,                % ?B, ?G
     hdt_bnode0/2,               % ?B, +Hdt
     hdt_call_on_file/2,         % +File, :Goal_1
     hdt_call_on_graph/2,        % ?G, :Goal_1
+    hdt_call_on_graph/3,        % ?Base, ?G, :Goal_1
     hdt_datatype/1,             % ?D
     hdt_datatype/2,             % ?D, ?G
     hdt_datatype0/2,            % ?D, +Hdt
@@ -59,7 +61,7 @@
 /** <module> HDT extensions
 
 @author Wouter Beek
-@version 2016/06, 2016/08, 2016/10-2016/11
+@version 2016/06-2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -75,14 +77,17 @@
 
 :- meta_predicate
     hdt_call_on_file(+, 1),
-    hdt_call_on_graph(?, 1).
+    hdt_call_on_graph(?, 1),
+    hdt_call_on_graph(?, ?, 1).
 
 :- rdf_meta
    hdt(r, r, o),
-   hdt(r, r, o, r),
+   hdt(?, r, r, o),
+   hdt(?, r, r, o, r),
    hdt0(r, r, o, +),
    hdt_bnode(?, r),
    hdt_call_on_graph(r, :),
+   hdt_call_on_graph(?, r, :),
    hdt_datatype(r),
    hdt_datatype(r, r),
    hdt_datatype0(r, +),
@@ -128,16 +133,24 @@
 
 
 %! hdt(?S, ?P, ?O) is nondet.
-%! hdt(?S, ?P, ?O, ?G) is nondet.
-%! hdt(?S, ?P, ?O, +Hdt) is nondet.
+%! hdt(?Base, ?S, ?P, ?O) is nondet.
+%! hdt(?Base, ?S, ?P, ?O, ?G) is nondet.
+%! hdt(?Base, ?S, ?P, ?O, +Hdt) is nondet.
 
 hdt(S, P, O) :-
-  distinct(rdf(S,P,O), hdt(S, P, O, _)).
+  hdt(data, S, P, O).
 
 
-hdt(S, P, O, G) :-
-  hdt_call_on_graph(G, hdt0(S, P, O)).
+hdt(Base, S, P, O) :-
+  hdt(Base, S, P, O, _).
 
+
+hdt(Base, S, P, O, G) :-
+  hdt_call_on_graph(Base, G, hdt0(S, P, O)).
+
+
+
+%! hdt0(?S, ?P, ?O, +Hdt) is nondet.
 
 hdt0(S, P, O, Hdt) :-
   hdt:hdt_search(Hdt, S, P, O).
@@ -174,10 +187,15 @@ hdt_call_on_file(File, Goal_1) :-
 
 
 %! hdt_call_on_graph(?G, :Goal_1) is det.
+%! hdt_call_on_graph(?Base, ?G, :Goal_1) is det.
 
 hdt_call_on_graph(G, Goal_1) :-
-  q_store_graph(G),
-  q_file_graph(File, hdt, G),
+  hdt_call_on_graph(_, G, Goal_1).
+
+
+hdt_call_on_graph(Base, G, Goal_1) :-
+  q_store_graph(Base, G),
+  q_file_graph(File, Base, hdt, G),
   exists_file(File),
   hdt_call_on_file(File, Goal_1).
 

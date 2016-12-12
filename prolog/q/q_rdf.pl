@@ -168,14 +168,14 @@ q(M, S, P, O, G) :-
   q_m(M, S, P, O, G).
 
 q_any(hdt, S, P, O, G) :-
-  hdt(S, P, O, G).
+  hdt(data, S, P, O, G).
 q_any(trp, S, P, O, G) :-
   rdf11:rdf(S, P, O, G).
 
 q_m(hdt0, S, P, O, Hdt) :- !,
   hdt0(S, P, O, Hdt).
 q_m(hdt, S, P, O, G) :- !,
-  hdt(S, P, O, G).
+  hdt(data, S, P, O, G).
 q_m(trp, S, P, O, G) :- !,
   rdf11:rdf(S, P, O, G).
 

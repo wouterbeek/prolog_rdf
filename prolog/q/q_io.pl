@@ -25,8 +25,9 @@
 
   % STORE
   q_store_dir/1,        % -Dir
-  q_store_file/2,       % -File, ?G
+  q_store_file/3,       % -File, ?Base, ?G
   q_store_graph/1,      % -G
+  q_store_graph/2,      % ?Base, -G
   q_transform_cbd/2,    % +G, :Goal_1
   q_transform_graph/2,  % +G, :Goal_1
 
@@ -514,27 +515,34 @@ q_store_format(ntriples, [nt,gz]).
 
 
 
-%! q_store_file(-File, +G) is nondet.
-%! q_store_file(-File, -G) is nondet.
+%! q_store_file(-File, -Base, +G) is nondet.
+%! q_store_file(-File, -Base, -G) is nondet.
 %
 % Enumerates the files and associated graph names that are currently
 % in the store directory.
 
-q_store_file(File, G) :-
+q_store_file(File, Base, G) :-
   nonvar(G), !,
-  q_file_graph(File, ntriples, G).
-q_store_file(File, G) :-
+  q_file_graph(File, Base, ntriples, G).
+q_store_file(File, Base, G) :-
   q_store_dir(Dir),
   Dir \== '',
   directory_path_recursive(Dir, File),
-  q_file_graph(File, G).
+  q_file_graph(File, Base, ntriples, G).
 
 
 
-%! q_store_graph(-G) is nondet
+%! q_store_graph(-G) is nondet.
 
 q_store_graph(G) :-
-  distinct(G, q_store_file(_, G)).
+  q_store_graph(_, G).
+
+
+%! q_store_graph(+Base, -G) is nondet.
+
+q_store_graph(Base, G) :-
+  q_base(Base),
+  distinct(G, q_store_file(_, Base, G)).
 
 
 
