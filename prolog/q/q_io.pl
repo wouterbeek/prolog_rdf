@@ -551,27 +551,24 @@ q_transform_cbd(G, Goal_1) :-
   q_store2view(hdt, G),
   q_file_graph(File, G),
   thread_file(File, FileTmp),
-  hdt_call_on_graph(G, qu_cbd_on_hdt(Goal_1, FileTmp)),
+  hdt_call_on_graph(G, qu_cbd_on_hdt0(Goal_1, FileTmp)),
   rename_file(FileTmp, File),
   q_file_touch_ready(File).
 
+qu_cbd_on_hdt0(Goal_1, FileTmp, Hdt) :-
+  rdf_call_to_ntuples(FileTmp, qu_cbd_to_stream0(Goal_1, Hdt)).
 
-qu_cbd_on_hdt(Goal_1, FileTmp, Hdt) :-
-  rdf_call_to_ntuples(FileTmp, qu_cbd_to_stream(Goal_1, Hdt)).
-
-
-qu_cbd_to_stream(Goal_1, Hdt, State, Out) :-
+qu_cbd_to_stream0(Goal_1, Hdt, State, Out) :-
   forall(
     hdt_subject0(Node, Hdt),
     setup_call_cleanup(
       rdf_tmp_graph(TmpG),
-      qu_cbd_entry(Node, Goal_1, TmpG, Hdt, State, Out),
+      qu_cbd_entry0(Node, Goal_1, TmpG, Hdt, State, Out),
       rdf_unload_graph(TmpG)
     )
   ).
 
-
-qu_cbd_entry(Node, Goal_1, TmpG, Hdt, State, Out) :-
+qu_cbd_entry0(Node, Goal_1, TmpG, Hdt, State, Out) :-
   forall(
     q_cbd_triple(hdt0, Node, Hdt, Triple),
     qb(trp, Triple, TmpG)
