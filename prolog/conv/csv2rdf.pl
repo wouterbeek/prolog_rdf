@@ -68,14 +68,18 @@ q_io:q_source_format_hook(csv, csv).
 %
 %   * scheme(+atom)
 %
-%   * Other options are passed to call_to_ntriples/3.
+%   * Other options are passed to rdf_call_to_ntriples/3.
 
 csv2rdf(Source, Sink) :-
   csv2rdf(Source, Sink, [], []).
 
 
 csv2rdf(Source, Sink, SourceOpts, SinkOpts) :-
-  call_to_ntriples(Sink, csv2rdf_stream(Source, SourceOpts), SinkOpts).
+  rdf_call_to_ntriples(
+    Sink,
+    csv2rdf_stream(Source, SourceOpts),
+    SinkOpts
+  ).
 
 
 

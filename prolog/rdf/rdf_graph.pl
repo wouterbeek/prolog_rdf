@@ -1,13 +1,14 @@
 :- module(
   rdf_graph,
   [
-    file_rdf_graph/3,  % +Alias, +File, -G
-    rdf_graph_age/2,   % ?G, -Age:between(0.0,inf)
-    rdf_is_graph/1,    % +G
-    rdf_new_graph/1,   % -G
-    rdf_new_graph/2,   % +Name, -G
-    rdf_stale_graph/2, % ?G, +FreshnessLifetime:between(0.0,inf)
-    rdf_tmp_graph/1,   % -G
+    file_rdf_graph/3,     % +Alias, +File, -G
+    rdf_graph_age/2,      % ?G, -Age:between(0.0,inf)
+    rdf_graph_is_fresh/1, % +G
+    rdf_is_graph/1,       % +G
+    rdf_new_graph/1,      % -G
+    rdf_new_graph/2,      % +Name, -G
+    rdf_stale_graph/2,    % ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_tmp_graph/1,      % -G
     rdf_unload_empty_graphs/0
   ]
 ).
@@ -17,7 +18,7 @@
 @author Wouter Beek
 @compat RDF 1.1 Semantics
 @see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
-@version 2015/08, 2015/10, 2015/12-2016/01, 2016/04-2016/05, 2016/10
+@version 2015/08-2016/12
 */
 
 :- use_module(library(atom_ext)).
@@ -31,6 +32,7 @@
 
 :- rdf_meta
    rdf_graph_age(r, -),
+   rdf_graph_is_fresh(r),
    rdf_is_graph(r),
    rdf_new_graph(r, -),
    rdf_stale_graph(r, ?),
@@ -60,6 +62,17 @@ rdf_graph_age(G, Age) :-
   rdf_graph_property(G, source_last_modified(LastMod)),
   get_time(Now),
   Age is Now - LastMod.
+
+
+
+%! rdf_graph_is_fresh(+G) is semidet.
+
+rdf_graph_is_fresh(G) :-
+  rdf_graph_property(G, source_last_modified(Time1)),
+  rdf_graph_property(G, source(Iri)),
+  uri_file_name(Iri, File),
+  time_file(File, Time2),
+  Time1 >= Time2.
 
 
 

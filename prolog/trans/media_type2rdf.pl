@@ -62,9 +62,7 @@ assert_media_type(M, MediaType, DefExt, G):-
   % Default extension
   qb(M, Res, mto:defaultFileExtension, DefExt, G),
   % Parameters
-  maplist(assert_parameter(M, Res, G), Params).
-
-
+  maplist(assert_parameter(M, Res, G), Params),
 
   % Non-IANA.
   html_download(
@@ -112,7 +110,7 @@ init_media_type(G) :-
     media_type_category(Cat0),
     (
       capitalize_atom(Cat0, Cat),
-      assert_category_class(M, Cat, C, G),
+      assert_category_class(M, Cat, _, G),
       atomic_list_concat(
 	['http://www.iana.org/assignments/media-types/',Cat,'.csv'],
 	Iri

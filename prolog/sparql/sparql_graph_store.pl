@@ -71,7 +71,7 @@ sparql_post_graph_statements(Iri, G, Triples) :-
 
 
 sparql_post_graph_statements(Iri, G, Triples, Opts) :-
-  call_to_ntriples(codes(Cs), rdf_write_ntuples(Triples)),
+  rdf_call_to_ntriples(codes(Cs), rdf_write_ntuples(Triples)),
   debug(sparql(graph_store), "~s", [Cs]),
   sparql_post_graph_data(Iri, G, codes(application/'n-triples',Cs), Opts).
 

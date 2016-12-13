@@ -76,7 +76,7 @@ xml2rdf(Source, Sink, RecordNames, SourceOpts, SinkOpts1) :-
   ->  merge_options(SinkOpts1, [entry_name(Entry)], SinkOpts2)
   ;   SinkOpts2 = SinkOpts1
   ),
-  call_to_ntriples(
+  rdf_call_to_ntriples(
     Sink,
     xml2rdf_stream(Source, RecordNames, SourceOpts),
     SinkOpts2

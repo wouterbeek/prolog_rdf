@@ -150,7 +150,7 @@ hdt2rdf(HdtFile) :-
 %! hdt2rdf(+HdtFile:atom, +NtFile:atom) is det.
 
 hdt2rdf(HdtFile, NtFile) :-
-  call_to_ntriples(NtFile, hdt2rdf(HdtFile)).
+  rdf_call_to_ntriples(NtFile, hdt2rdf(HdtFile)).
 
 hdt2rdf(HdtFile, State, Out) :-
   hdt_call_on_file(HdtFile, hdt2rdf0(State, Out)).

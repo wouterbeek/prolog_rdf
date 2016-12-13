@@ -557,7 +557,7 @@ q_transform_cbd(G, Goal_1) :-
 
 
 qu_cbd_on_hdt(Goal_1, FileTmp, Hdt) :-
-  call_to_ntuples(FileTmp, qu_cbd_to_stream(Goal_1, Hdt)).
+  rdf_call_to_ntuples(FileTmp, qu_cbd_to_stream(Goal_1, Hdt)).
 
 
 qu_cbd_to_stream(Goal_1, Hdt, State, Out) :-

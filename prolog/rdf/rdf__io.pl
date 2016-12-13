@@ -33,9 +33,6 @@
     rdf_download_to_file/2,      % +Iri, +File
     rdf_download_to_file/4,      % +Iri, +File, +InOpts, +OutOpts
 
-  % @tbd: Move to rdf/rdf_graph
-    rdf_graph_is_fresh/1,        % +G
-
   % Traditional load
     rdf_load_file/1,             % +Source
     rdf_load_file/2,             % +Source,           +Opts
@@ -224,7 +221,6 @@ q_io:q_view_rm_hook(trp, G) :-
    rdf_call_on_tuples(+, :, t),
    rdf_call_to_nquads(+, t, +),
    rdf_call_to_ntriples(+, t, +),
-   rdf_graph_is_fresh(r),
    rdf_load_file(+, t),
    rdf_load_quads(+, -, t),
    rdf_load_triples(+, -, t),
@@ -631,7 +627,11 @@ rdf_reserialize(Source, Sink) :-
 
 
 rdf_reserialize(Source, Sink, SourceOpts, SinkOpts) :-
-  call_to_ntuples(Sink, rdf_change_media_type0(Source, SourceOpts), SinkOpts).
+  rdf_call_to_ntuples(
+    Sink,
+    rdf_change_media_type0(Source, SourceOpts),
+    SinkOpts
+  ).
 
 rdf_change_media_type0(Source, SourceOpts, State, Out) :-
   indent_debug(io, "» RDF → RDF"),
@@ -673,17 +673,6 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
 
 copy_stream_data0(In, Path, Path, Out) :-
   copy_stream_data(In, Out).
-
-
-
-%! rdf_graph_is_fresh(+G) is semidet.
-
-rdf_graph_is_fresh(G) :-
-  rdf_graph_property(G, source_last_modified(Time1)),
-  rdf_graph_property(G, source(Iri)),
-  uri_file_name(Iri, File),
-  time_file(File, Time2),
-  Time1 >= Time2.
 
 
 
@@ -920,7 +909,7 @@ rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
     atom(MT)
   )),
   indent_debug_call(io, Msg,
-    call_to_ntuples(Sink, rdf_write_ntuples(M, S, P, O, G), Opts2)
+    rdf_call_to_ntuples(Sink, rdf_write_ntuples(M, S, P, O, G), Opts2)
   ).
 
 rdf_file_name0(File, Opts) :-

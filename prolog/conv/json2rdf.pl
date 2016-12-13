@@ -56,14 +56,18 @@ q_io:q_source_format_hook(json, ndjson).
 %
 %   * call_on_stream/3
 %
-%   * call_to_ntriples/3
+%   * rdf_call_to_ntriples/3
 
 json2rdf(Source, Sink) :-
   json2rdf(Source, Sink, _{}, []).
 
 
 json2rdf(Source, Sink, SourceOpts, SinkOpts) :-
-  call_to_ntriples(Sink, json2rdf_stream(Source, SourceOpts), SinkOpts).
+  rdf_call_to_ntriples(
+    Sink,
+    json2rdf_stream(Source, SourceOpts),
+    SinkOpts
+  ).
 
 
 

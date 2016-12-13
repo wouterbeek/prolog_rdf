@@ -106,7 +106,7 @@ sparql_delete_insert_data_body(Mode, Triples, Opts1) :-
   format(current_output, "~a DATA {", [UpcaseMode]),
 
   % Write triple block contents.
-  call_to_ntriples(current_output, rdf_write_ntuples(Triples, Opts2)),
+  rdf_call_to_ntriples(current_output, rdf_write_ntuples(Triples, Opts2)),
 
   % End of content block.
   format(user_output, "}", []),
