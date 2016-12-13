@@ -14,6 +14,7 @@
 
 :- use_module(library(html/html_ext)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_user)).
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
@@ -44,8 +45,7 @@ rdfa_user_menu(M, G) -->
 % The user menu shown as a button.
 
 rdfa_user_menu_button(M, Content_0, G) -->
-  % @hack
-  {user_db:current_user(User)}, !,
+  {current_user(User)}, !,
   html(
     div([class=dropdown,id='user-menu'], [
       button([

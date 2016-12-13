@@ -1141,7 +1141,7 @@ rdf_write_ntuples_for_object0(State, Out, M, G, S, P, O) :-
 % TERMS BY POSITION %
 
 rdf_write_subject(BNode, State) :-
-  rdf_write_is_bnode(BNode), !,
+  gen_is_bnode(BNode), !,
   rdf_write_bnode(BNode, State).
 rdf_write_subject(Iri, _) :-
   q_is_iri(Iri), !,

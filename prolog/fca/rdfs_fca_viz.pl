@@ -11,7 +11,7 @@
 /** <module> Vizualization for FCA for RDFS
 
 @author Wouter Beek
-@version 2015/10, 2015/12-2016/01, 2016/03, 2016/06
+@version 2015/10, 2015/12-2016/01, 2016/03, 2016/06, 2016/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -20,6 +20,7 @@
 :- use_module(library(gv/gv_file)).
 :- use_module(library(option)).
 :- use_module(library(q/q_print)).
+:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdfs_fca_export_graph(r, -),

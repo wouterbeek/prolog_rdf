@@ -348,7 +348,12 @@ qh_object(O) -->
   qh_object(O, _{}).
 
 
-qh_object(O, Opts) -->
+qh_object(O, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_object0(O, Opts2).
+
+
+qh_object0(O, Opts) -->
   qh_term(O, Opts).
 
 
@@ -360,7 +365,12 @@ qh_predicate(P) -->
   qh_predicate(P, _{}).
 
 
-qh_predicate(P, Opts) -->
+qh_predicate(P, Opts1) -->
+  {qh_default_options(Opts1, Opts2)},
+  qh_predicate0(P, Opts2).
+
+
+qh_predicate0(P, Opts) -->
   qh_iri(P, Opts).
 
 

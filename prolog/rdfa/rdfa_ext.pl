@@ -55,6 +55,7 @@
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_user)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
@@ -176,8 +177,7 @@ agent_image(M, Agent, G) -->
 %! agent_name(+M, +Agent, ?G)// is det.
 
 agent_name(_, Agent, "you", _) :-
-  % @hack
-  user_db:current_user(Agent), !.
+  current_user(Agent), !.
 agent_name(M, Agent, Str, G) :-
   foaf_givenName(M, Agent, GivenName, G),
   foaf_familyName(M, Agent, FamilyName, G), !,
@@ -190,8 +190,7 @@ agent_name(M, Agent, Str, G) :-
 
 
 agent_name(_, Agent, _) -->
-  % @hack
-  {user_db:current_user(Agent)}, !,
+  {current_user(Agent)}, !,
   data_link(Agent, "you").
 agent_name(M, Agent, G) -->
   data_link(Agent, \agent_name0(M, Agent, G)).

@@ -25,18 +25,12 @@ Show RDF data structures during modeling/development.
 :- use_module(library(os/thread_ext)).
 :- use_module(library(pl_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(rdf/rdf_graph_viz)).
+:- use_module(library(q/q_graph_viz)).
 :- use_module(library(stream_ext)).
 
 :- rdf_meta
    rdf_show_graph(r),
    rdf_show_graph(r, +).
-
-:- predicate_options(rdf_show_graph/2, 2, [
-     pass_to(rdf_graph_to_export_graph/3, 3),
-     pass_to(graph_viz/3, 3),
-     pass_to(run_process/3, 3)
-   ]).
 
 
 

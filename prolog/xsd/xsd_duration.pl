@@ -15,10 +15,38 @@
 @author Wouter Beek
 @compat XSD 1.1
 @see http://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/
-@version 2015/07, 2015/11, 2016/08
+@version 2015/07, 2015/11, 2016/08, 2016/12
 */
 
 :- use_module(library(apply)).
+:- use_module(library(xsd/xsd_number)).
+
+% @tbd Duplication is needed due to unclear arithmetic operator
+%      support.
+:- op(400, yfx, xsd_div).
+:- arithmetic_function(xsd_div/2).
+
+% xsd_div(+M, +N, -Z) is det.
+%
+% # Definition
+%
+% If `M` and `N` are numbers, then `M div N` is the greatest integer
+% less than or equal to `M / N`.
+
+xsd_div(X, Y, Z):-
+  Z is floor(X rdiv Y).
+
+:- op(400, yfx, xsd_mod).
+:- arithmetic_function(xsd_mod/2).
+
+%! xsd_mod(+M, +N, -X) is det.
+%
+% # Definition
+%
+% If `M` and `N` are numbers, then `M mod N` is `m − n * ( m div n)`.
+
+xsd_mod(X, Y, Z):-
+  Z is X - Y * (X xsd_div Y).
 
 
 

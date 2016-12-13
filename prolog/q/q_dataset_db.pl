@@ -1,8 +1,8 @@
 :- module(
   q_dataset_db,
   [
-    q_create_dataset/3,            % +DRef, +DefGName, +Pairs
-    q_create_dataset/4,            % +DRef, +DefGName, +Pairs, -D
+    qb_dataset/3,                  % +DRef, +DefGName, +Pairs
+    qb_dataset/4,                  % +DRef, +DefGName, +Pairs, -D
     q_dataset/1,                   % ?D
     q_dataset/3,                   % ?D, ?DefGName, ?Pairs
     q_dataset_add_graph/2,         % +D, +NG
@@ -69,14 +69,14 @@ q_dataset_db_init :-
 
 
 
-%! q_create_dataset(+RefD, +DefG, +NGs) is det.
-%! q_create_dataset(+RefD, +DefG, +NGs, -D) is det.
+%! qb_dataset(+RefD, +DefG, +NGs) is det.
+%! qb_dataset(+RefD, +DefG, +NGs, -D) is det.
 
-q_create_dataset(RefD, DefG, NGs) :-
-  q_create_dataset(RefD, DefG, NGs, _).
+qb_dataset(RefD, DefG, NGs) :-
+  qb_dataset(RefD, DefG, NGs, _).
 
 
-q_create_dataset(RefD, DefG, NGs, D) :-
+qb_dataset(RefD, DefG, NGs, D) :-
   q_dataset_iri(RefD, D),
   with_mutex(q_dataset, (
     (   q_dataset(D, _, _)

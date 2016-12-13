@@ -6,7 +6,7 @@
     dayFragValue//1,        % -D
     daysInMonth/3,          % ?Y, ?Mo, ?DaysInMonth
     monthFragValue//1,      % -Mo
-    newDatetime/8,          % ?Y, ?Mo, ?D, ?H, ?Mi, ?S, ?Off, -DT
+    newDateTime/8,          % ?Y, ?Mo, ?D, ?H, ?Mi, ?S, ?Off, -DT
     normalizeDay/6,         % +Y, +Mo, +D, -NormY, -NormMo, -NormD
     normalizeMinute/10,     % +Y, +Mo, +D, +H, +Mi
                             % -NormY, -NormMo, -NormD, -NormH, -NormMi
@@ -24,15 +24,16 @@
 Section E.3. “Date/time-related Definitions”
 
 @author Wouter Beek
-@version 2016/08, 2016/10
+@version 2016/08, 2016/10, 2016/12
 */
 
 :- use_module(library(arithmetic)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(default)).
 :- use_module(library(xsd/xsd_number)).
 
 % @tbd Duplication is needed due to unclear arithmetic operator
-% support.
+%      support.
 :- op(400, yfx, xsd_div).
 :- arithmetic_function(xsd_div/2).
 
@@ -241,7 +242,7 @@ daysInMonth(_, _, 31).
 
 
 
-%! newDatetime(
+%! newDateTime(
 %!   ?Y,
 %!   ?Mo:between(1,12),
 %!   ?D:between(1,31),
@@ -319,7 +320,7 @@ daysInMonth(_, _, 31).
 %
 % @tbd Add type checking.
 
-newDatetime(
+newDateTime(
   Y1, Mo1, D1, H1, Mi1, S1, Off,
   date_time(Y4,Mo4,D4,H4,Mi4,S4,Off)
 ) :-
@@ -758,7 +759,7 @@ dateTimeLexicalMap(DT) -->
   ;   endOfDayFrag(Y, Mi, S)
   ), !,
   opt(timezoneFragValue, Off),
-  {newDatetime(Y, Mo, D, H, Mi, S, Off, DT)}.
+  {newDateTime(Y, Mo, D, H, Mi, S, Off, DT)}.
 
 
 
@@ -840,7 +841,7 @@ dateLexicalMap(DT) -->
   "-",
   dayFragValue(D),
   opt(timezoneFragValue, Off),
-  {newDatetime(Y, Mo, D, _, _, _, Off, DT)}.
+  {newDateTime(Y, Mo, D, _, _, _, Off, DT)}.
 
 
 

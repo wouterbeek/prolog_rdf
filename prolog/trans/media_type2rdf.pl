@@ -16,6 +16,9 @@ Transforms Media Types as recorded in the IANA registry to RDF.
 :- use_module(library(os/io)).
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdfs), [
+     rdfs_individual_of/2
+   ]).
 :- use_module(library(xpath)).
 :- use_module(library(yall)).
 
@@ -88,7 +91,7 @@ assert_media_type(M, MediaType, DefExt, G):-
 %! assert_parameter(+M, +MediaType, +G, +Param) is det.
 
 assert_parameter(M, MediaType, G, parameter{name:Name,value:Value}):-
-  q_create_bnode(Param),
+  qb_bnode(Param),
   qb(M, MediaType, mto:parameter, Param, G),
   qb_instance(M, Param, mto:'Parameter', G),
   qb(M, Param, mto:name, Name, G),
@@ -126,7 +129,7 @@ init_media_type(G) :-
 
 media_type(M, media_type(Type,Subtype,[]), G) :-
   q(M, MediaType, mto:name, Subtype, G),
-  rdfs_instance(MediaType, C),
+  rdfs_individual_of(MediaType, C),
   once(q_pref_label(M, C, Type, G)).
 
 

@@ -1,15 +1,14 @@
 :- module(
   iisg_api,
   [
-    iisg_record2rdf/1, % +Record
-    iisg_record_dom/1  % -Dom
+    iisg_record2rdf/1 % +Record
   ]
 ).
 
 /** <module> IISG API
 
 @author Wouter Beek
-@version 2016/06-2016/07, 2019/11
+@version 2016/06-2016/07
 */
 
 :- use_module(library(conv/xml2rdf)).

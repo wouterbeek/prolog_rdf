@@ -43,6 +43,9 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/q_wkt)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdfs), [
+     rdfs_individual_of/2
+   ]).
 :- use_module(library(yall)).
 
 :- qb_alias(geold, 'http://geojsonld.com/vocab#').
@@ -98,7 +101,7 @@ geold_context(
 % Emits a description of Node in GeoJSON.
 
 geold_geojson(Node, _{}) :-
-  rdfs_instance(Node, geold:'Feature').
+  rdfs_individual_of(Node, geold:'Feature').
 
 
 

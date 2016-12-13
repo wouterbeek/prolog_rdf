@@ -16,8 +16,8 @@
 :- use_module(library(dcg/turtle11)).
 :- use_module(library(dcg/turtle_conv)).
 %/fca
-:- use_module(library(fca/rdf_fca_viz)).
 :- use_module(library(fca/rdfs_fca)).
+:- use_module(library(fca/rdfs_fca_viz)).
 %/hdt
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(hdt/hdt_io)).
@@ -51,6 +51,7 @@
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_graph_theory)).
+:- use_module(library(q/q_graph_viz)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_link)).
@@ -78,7 +79,6 @@
 :- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).

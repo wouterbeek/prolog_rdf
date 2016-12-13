@@ -21,10 +21,10 @@
 % @tbd Where's the proof for this?
 
 xsd_duration_compare(Order, Dur1, Dur2):-
-  newDatetime(1696, 9, 1, 0, 0, 0, 0, DTa),
-  newDatetime(1697, 2, 1, 0, 0, 0, 0, DTb),
-  newDatetime(1903, 3, 1, 0, 0, 0, 0, DTc),
-  newDatetime(1903, 7, 1, 0, 0, 0, 0, DTd),
+  newDateTime(1696, 9, 1, 0, 0, 0, 0, DTa),
+  newDateTime(1697, 2, 1, 0, 0, 0, 0, DTb),
+  newDateTime(1903, 3, 1, 0, 0, 0, 0, DTc),
+  newDateTime(1903, 7, 1, 0, 0, 0, 0, DTd),
   
   datetimePlusDuration(Dur1, DTa, Dur1a),
   datetimePlusDuration(Dur1, DTb, Dur1b),

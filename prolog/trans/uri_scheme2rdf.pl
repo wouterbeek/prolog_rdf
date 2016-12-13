@@ -39,7 +39,7 @@ init_uri_scheme(G) :-
   rdf_load_file(File, [graph(G),format(turtle)]).
 init_uri_scheme(G) :-
   qb_class(
-    M,
+    trp,
     'uri-scheme-o':'UriScheme',
     _,
     "URI Scheme"@en,
@@ -54,6 +54,10 @@ init_uri_scheme(G, Cat) :-
     ['http://www.iana.org/assignments/uri-schemes/',Cat,'.csv'],
     Iri
   ),
-  csv2rdf(hdt, Iri, G, _{host: 'urischeme.org'}, _{}),
   absolute_file_name(G, File, [access(write),extensions([ttl])]),
-  rdf_save_to_file(File, [graph(G),format(turtle)]).
+  csv2rdf(
+    Iri,
+    File,
+    _{host: 'urischeme.org'},
+    [rdf_media_type(application/turtle)]
+  ).

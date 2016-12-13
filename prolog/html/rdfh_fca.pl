@@ -12,7 +12,7 @@
 @version 2015/12, 2016/03
 */
 
-:- use_module(library(fca/rdf_fca_viz)).
+:- use_module(library(fca/rdfs_fca_viz)).
 :- use_module(library(gv/gv_dom)).
 :- use_module(library(html/html_dom)).
 :- use_module(library(semweb/rdf11)).
@@ -33,7 +33,7 @@ rdfh_fca(G) -->
 
 rdfh_fca(G, Opts) -->
   {
-    rdf_fca_export_graph(G, ExportG, Opts),
+    rdfs_fca_export_graph(G, ExportG, Opts),
     gv_dom(ExportG, Dom, [method(dot)])
   },
   html_insert_dom(Dom).

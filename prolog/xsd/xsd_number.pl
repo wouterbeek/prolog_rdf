@@ -1,7 +1,14 @@
 :- module(
   xsd_number,
   [
-    noDecimalMap//1 % -Integer:integer
+    decimalPtMap//1,                       % -Decimal:rational
+    fractionDigitsCanonicalFragmentMap//1, % +Fraction:rational
+    noDecimalMap//1,                       % -Integer:integer
+    noDecimalPtCanonicalMap//1,            % -Integer:integer
+    unsignedDecimalPtCanonicalMap//1,      % +Integer:nonneg
+    unsignedDecimalPtMap//1,               % +Integer:nonneg
+    unsignedNoDecimalPtCanonicalMap//1,    % +Integer:nonneg
+    unsignedNoDecimalMap//1                % +Integer:nonneg
   ]
 ).
 
@@ -11,7 +18,7 @@ The functions defined in Section E.1 “Generic Number-related
 Functions”.
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08, 2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -520,7 +527,8 @@ fractionDigitsCanonicalFragmentMap(Frac) -->
 
 % Generic Number to Numeral Canonical Mappings %
 
-%! unsignedNoDecimalPtCanonicalMap(+Integer:nonneg)// .
+%! unsignedNoDecimalPtCanonicalMap(+Integer:nonneg)// is det.
+%
 % Maps a nonnegative integer to a unsignedNoDecimalPtNumeral//1,
 % its canonical representation.
 %

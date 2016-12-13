@@ -1,9 +1,9 @@
 :- module(
-  rdf_fca_test,
+  rdfs_fca_test,
   [
-    rdf_fca_test/1,      % ?Name
-    rdf_fca_test_file/1, % +File
-    rdf_fca_test_graph/1 % +G
+    rdfs_fca_test/1,      % ?Name
+    rdfs_fca_test_file/1, % +File
+    rdfs_fca_test_graph/1 % +G
   ]
    ).
 :- reexport(library(fca/fca)).
@@ -16,8 +16,8 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(fca/rdf_fca)).
-:- use_module(library(fca/rdf_fca_viz)).
+:- use_module(library(fca/rdfs_fca)).
+:- use_module(library(fca/rdfs_fca_viz)).
 :- use_module(library(q/qb)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
@@ -29,48 +29,48 @@
 
 
 
-%! rdf_fca_test(+Name) is semidet.
-%! rdf_fca_test(-Name) is multi.
+%! rdfs_fca_test(+Name) is semidet.
+%! rdfs_fca_test(-Name) is multi.
 
-rdf_fca_test(dc) :-
+rdfs_fca_test(dc) :-
   absolute_file_name(library('semweb/dc.rdfs'), File, [access(read)]),
-  rdf_fca_test_file(File).
-rdf_fca_test(eor) :-
+  rdfs_fca_test_file(File).
+rdfs_fca_test(eor) :-
   absolute_file_name(library('semweb/eor.rdfs'), File, [access(read)]),
-  rdf_fca_test_file(File).
-rdf_fca_test(owl) :-
+  rdfs_fca_test_file(File).
+rdfs_fca_test(owl) :-
   absolute_file_name(library('semweb/owl.owl'), File, [access(read)]),
-  rdf_fca_test_file(File).
-rdf_fca_test(rdfs) :-
+  rdfs_fca_test_file(File).
+rdfs_fca_test(rdfs) :-
   absolute_file_name(library('semweb/rdfs.rdfs'), File, [access(read)]),
-  rdf_fca_test_file(File).
-rdf_fca_test(Name) :-
-  rdf_fca_assert_graph(trp, Name, G),
-  rdf_fca_test_graph(G).
+  rdfs_fca_test_file(File).
+rdfs_fca_test(Name) :-
+  rdfs_fca_assert_graph(trp, Name, G),
+  rdfs_fca_test_graph(G).
 
 
 
-%! rdf_fca_test_file(+File) is det.
+%! rdfs_fca_test_file(+File) is det.
 
-rdf_fca_test_file(File) :-
-  rdf_call_on_graph(File, {Context}/[G,Meta,Meta]>>rdf_fca_context(Context, G)),
+rdfs_fca_test_file(File) :-
+  rdf_call_on_graph(File, {Context}/[G,Meta,Meta]>>rdfs_fca_context(Context, G)),
   format(string(GLbl), "FCA for RDF file ~a", [File]),
   fca_viz0(Context, GLbl).
 
 
 
-%! rdf_fca_test_graph(+G) is semidet.
+%! rdfs_fca_test_graph(+G) is semidet.
 
-rdf_fca_test_graph(G) :-
-  rdf_fca_context(Con, G),
+rdfs_fca_test_graph(G) :-
+  rdfs_fca_context(Con, G),
   format(string(GLbl), "FCA for RDF graph ~a", [G]),
   fca_viz0(Con, GLbl).
 
 
 
-%! rdf_fca_assert_graph(+M, +Name, -G) is det.
+%! rdfs_fca_assert_graph(+M, +Name, -G) is det.
 
-rdf_fca_assert_graph(M, number, G) :-
+rdfs_fca_assert_graph(M, number, G) :-
   rdf_new_graph(number, G),
   forall(between(1, 10, N), qb_number0(M, N, G)),
   qb_instances(M, ex:'1',  [ex:'Odd',ex:'Square'],                 G),

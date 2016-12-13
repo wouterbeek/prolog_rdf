@@ -227,8 +227,10 @@ qh_quad_panels(M, S, P, O, G, Opts1) -->
     group_pairs_by_key(Pairs, Groups)
   },
   panels(
-    {Opts2}/[Group]>>qh_triple_table(Group, Opts2),
-    Groups
+    html_maplist(
+      {Opts2}/[Group]>>qh_triple_table(Group, Opts2),
+      Groups
+    )
   ).
 
 
@@ -241,7 +243,7 @@ qh_tree(Tree) -->
 
 
 qh_tree(Tree, Opts1) -->
-  {qh_default_options(Opts1, Opts2)},
+  {qh:qh_default_options(Opts1, Opts2)},
   html([
     \check_all0,
     div(class(treeview), div(class(tree),\qh_trees0([0], [Tree], Opts2)))

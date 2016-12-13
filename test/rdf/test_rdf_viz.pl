@@ -3,9 +3,9 @@
 :- use_module(library(gv/gv_file)).
 :- use_module(library(mat/mat)).
 :- use_module(library(mat/mat_viz)).
+:- use_module(library(q/q_graph_viz)).
 :- use_module(library(q/qb)).
 :- use_module(library(os/process_ext)).
-:- use_module(library(rdf/rdf_graph_viz)).
 :- use_module(library(rdf/rdf_show)).
 :- use_module(library(semweb/rdf11)).
 
@@ -15,22 +15,22 @@ script1:-
   rdf_reset_db,
   M = trp,
   G = script1,
-  q_create_bnode(D),
+  qb_bnode(D),
   qb(M, ex:'A', owl:equivalentClass, D, G),
   owl_assert_value_restriction(M, ex:p, ex:v1, G, R1),
   owl_assert_value_restriction(M, ex:p, ex:v2, G, R2),
   qb_list(M, [R1,R2], Rs, G),
   qb(M, D, owl:intersectionOf, Rs, G),
   qb_instance(M, ex:a, ex:'A', G),
-  rdf_graph_viz(G),
+  q_graph_viz(G),
   mat(G, GMat),
-  rdf_graph_viz(GMat).
+  q_graph_viz(GMat).
 
 script2:-
   rdf_reset_db,
   M = trp,
   G = script2,
-  q_create_bnode(D),
+  qb_bnode(D),
   qb(M, ex:'A', owl:equivalentClass, D, G),
   owl_assert_value_restriction(ex:p, ex:v1, G, R1),
   owl_assert_value_restriction(ex:p, ex:v2, G, R2),

@@ -102,7 +102,7 @@ oaei_load_rdf(Source, L, Opts) :-
   rdf_call_on_graph(Source, oaei_load_rdf0(L), Opts).
 
 
-oaei_load_rdf0(L, G, Meta, Meta) :-
+oaei_load_rdf0(L, G) :-
   findall(From-To, oaei(trp, From, To, G), L).
 
 
