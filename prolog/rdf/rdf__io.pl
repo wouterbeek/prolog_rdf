@@ -462,8 +462,7 @@ rdf_call_on_quad0_debug(Goal_5, Path, Tuple) :-
 rdf_call_on_quads0(Goal_5, Path, Tuples) :-
   maplist(rdf_call_on_quad0(Goal_5, Path), Tuples).
 
-rdf_call_on_quads0(Goal_5, Path, Tuples, G) :-
-  writeln(G),
+rdf_call_on_quads0(Goal_5, Path, Tuples, _) :-
   rdf_call_on_quads0(Goal_5, Path, Tuples).
 
 

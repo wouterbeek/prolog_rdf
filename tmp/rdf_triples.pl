@@ -60,12 +60,12 @@ rdf_is_nonground_triple(rdf(_,_,O)) :-
 
 
 
-%! rdf_is_triple(@Triple) is semidet.
+%! q_is_triple(@Triple) is semidet.
 
-rdf_is_triple(rdf(S,P,O)) :-
-  rdf_is_subject(S),
-  rdf_is_predicate(P),
-  rdf_is_object(O).
+q_is_triple(rdf(S,P,O)) :-
+  q_is_subject(S),
+  q_is_predicate(P),
+  q_is_object(O).
 
 
 

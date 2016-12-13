@@ -131,13 +131,13 @@ q_cbd_triple(M, Node, G, Triple) :-
 
 
 q_cbd_triple0(M, S, Hist1, G, Triple) :-
-  rdf_is_subject(S),
+  q_is_subject(S),
   q(M, S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   q_is_bnode(O),
       node_history0(Hist1, O, Hist2),
       q_cbd_triple0(M, O, Hist2, G, Triple)
-  ;   q_reification(M, S, P, O, Stmt),
+  ;   q_reification(M, S, P, O, G, Stmt),
       node_history0(Hist1, Stmt, Hist2),
       q_cbd_triple0(M, Stmt, Hist2, G, Triple)
   ).
@@ -234,7 +234,7 @@ q_tree_triple(M, Root, G, Triple) :-
 
 
 q_tree_triple0(M, S, Hist1, G, Triple) :-
-  rdf_is_subject(S),
+  q_is_subject(S),
   q(M, S, P, O, G),
   (   Triple = rdf(S,P,O)
   ;   q_is_subject(O),
