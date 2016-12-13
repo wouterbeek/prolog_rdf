@@ -365,7 +365,8 @@ q_instance(_, I, D, _) :-
   q_is_literal(I), !,
   q_literal_datatype(I, D).
 q_instance(M, I, C, G) :-
-  q(M, I, rdf:type, C, G).
+  rdf_equal(rdf:type, P), % @hack
+  q(M, I, P, C, G).
 
 
 

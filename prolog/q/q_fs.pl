@@ -7,7 +7,7 @@
     q_dir/2,              % +Hash, -Dir
     q_dir_file/3,         % ?Dir, ?Format, ?File
     q_dir_file/4,         % ?Dir, ?Base, ?Format, ?File
-    q_dir_graph/2,        % ?Dir, ?G
+    q_dir_graph/3,        % ?Dir, ?Base, ?G
     q_dir_hash/2,         % ?Dir, ?Hash
     q_file/2,             % ?Format, ?File
     q_file_graph/2,       % ?File, ?G
@@ -23,6 +23,7 @@
     q_file_touch_ready/1, % +File
     q_format/1,           % ?Format
     q_format/2,           % ?Format, -Exts
+    q_graph/2,            % ?Base, ?G
     q_graph_hash/2,       % ?G, ?Hash
     q_graph_hash/3,       % ?G, ?Base, ?Hash
     q_hash/1              % -Hash
@@ -153,16 +154,16 @@ q_dir_file(Dir, Base, Format, File) :-
 
 
 
-%! q_dir_graph(+Dir, -G) is multi.
-%! q_dir_graph(-Dir, +G) is det.
+%! q_dir_graph(+Dir, +Base, -G) is det.
+%! q_dir_graph(-Dir, -Base, +G) is det.
 
-q_dir_graph(Dir, G) :-
-  ground(Dir), !,
-  q_dir_hash(Dir, Hash),
-  q_graph_hash(G, Hash).
-q_dir_graph(Dir, G) :-
-  q_graph_hash(G, Hash),
+q_dir_graph(Dir, Base, G) :-
+  ground(G), !,
+  q_graph_hash(G, Base, Hash),
   q_dir_hash(Dir, Hash).
+q_dir_graph(Dir, Base, G) :-
+  q_dir_hash(Dir, Hash),
+  q_graph_hash(G, Base, Hash).
 
 
 
@@ -306,6 +307,14 @@ q_format(Format, Exts) :-
 q_format(Format, Exts) :-
   q_io:q_cache_format(Format, Exts).
 
+
+
+%! q_graph(?Base, +G) is semidet.
+%! q_graph(?Base, -G) is nondet.
+
+q_graph(Base, G) :-
+  q_dir(Dir),
+  q_dir_graph(Dir, Base, G).
 
 
 %! q_graph_hash(+G, -Hash) is det.

@@ -1,7 +1,6 @@
 :- module(
   hdt_ext,
   [
-    hdt/3,                      % ?S, ?P, ?O
     hdt/4,                      % ?Base, ?S, ?P, ?O
     hdt/5,                      % ?Base, ?S, ?P, ?O, ?G
     hdt0/4,                     % ?S, ?P, ?O, +Hdt
@@ -9,8 +8,8 @@
     hdt_bnode/2,                % ?B, ?G
     hdt_bnode0/2,               % ?B, +Hdt
     hdt_call_on_file/2,         % +File, :Goal_1
-    hdt_call_on_graph/2,        % ?G, :Goal_1
-    hdt_call_on_graph/3,        % ?Base, ?G, :Goal_1
+    hdt_call_on_graph/2,        %        ?G, :Goal_1
+    hdt_call_on_graph/3,        % ?Base, -G, :Goal_1
     hdt_datatype/1,             % ?D
     hdt_datatype/2,             % ?D, ?G
     hdt_datatype0/2,            % ?D, +Hdt
@@ -78,10 +77,9 @@
 :- meta_predicate
     hdt_call_on_file(+, 1),
     hdt_call_on_graph(?, 1),
-    hdt_call_on_graph(?, ?, 1).
+    hdt_call_on_graph(?, -, 1).
 
 :- rdf_meta
-   hdt(r, r, o),
    hdt(?, r, r, o),
    hdt(?, r, r, o, r),
    hdt0(r, r, o, +),
@@ -132,13 +130,9 @@
 
 
 
-%! hdt(?S, ?P, ?O) is nondet.
 %! hdt(?Base, ?S, ?P, ?O) is nondet.
 %! hdt(?Base, ?S, ?P, ?O, ?G) is nondet.
-%! hdt(?Base, ?S, ?P, ?O, +Hdt) is nondet.
-
-hdt(S, P, O) :-
-  hdt(data, S, P, O).
+%! hdt0(?S, ?P, ?O, +Hdt) is nondet.
 
 
 hdt(Base, S, P, O) :-
@@ -148,9 +142,6 @@ hdt(Base, S, P, O) :-
 hdt(Base, S, P, O, G) :-
   hdt_call_on_graph(Base, G, hdt0(S, P, O)).
 
-
-
-%! hdt0(?S, ?P, ?O, +Hdt) is nondet.
 
 hdt0(S, P, O, Hdt) :-
   hdt:hdt_search(Hdt, S, P, O).
@@ -186,15 +177,15 @@ hdt_call_on_file(File, Goal_1) :-
 
 
 
-%! hdt_call_on_graph(?G, :Goal_1) is det.
-%! hdt_call_on_graph(?Base, ?G, :Goal_1) is det.
+%! hdt_call_on_graph(+G, :Goal_1) is det.
+%! hdt_call_on_graph(?Base, -G, :Goal_1) is det.
 
 hdt_call_on_graph(G, Goal_1) :-
-  hdt_call_on_graph(_, G, Goal_1).
+  hdt_call_on_graph(data, G, Goal_1).
 
 
 hdt_call_on_graph(Base, G, Goal_1) :-
-  q_store_graph(Base, G),
+  q_graph(Base, G),
   q_file_graph(File, Base, hdt, G),
   exists_file(File),
   hdt_call_on_file(File, Goal_1).
@@ -519,11 +510,11 @@ hdt_term(Term) :-
   distinct(Term, hdt_term(Term, _)).
 
 
-hdt_term(Name, G) :-
-  hdt_call_on_graph(G, hdt_term0(Name)).
+hdt_term(Term, G) :-
+  hdt_call_on_graph(G, hdt_term0(Term)).
 
 
 hdt_term0(Name, Hdt) :-
   hdt_name0(Name, Hdt).
-hdt_term0(B, Hdt) :-
-  hdt_bnode0(B, Hdt).
+hdt_term0(BNode, Hdt) :-
+  hdt_bnode0(BNode, Hdt).

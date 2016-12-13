@@ -7,7 +7,6 @@
   q_file_name_to_format/2,  % +FileName, -Format
   q_source_dir/1,           % -Dir
   q_source_file/1,          % -File
-  q_source_graph/1,         % ?G
 
     % SOURCE ⬄ STORE
     q_generate/2,            % ?G, :Goal_1
@@ -162,7 +161,6 @@ them.
    q_cache_graph(?, r),
    q_file_graph(?, ?, r),
    q_store2view(+, r),
-   q_source_graph(r),
    q_view2store(+, r).
 
 :- setting(
@@ -235,19 +233,6 @@ q_source_file(File) :-
   % Exclude certain extensions.
   file_extensions(File, Exts),
   \+ q_source_skip_exts(Exts).
-
-
-
-%! q_source_graph(+G) is semidet.
-%! q_source_graph(-G) is nondet.
-
-q_source_graph(G) :-
-  ground(G), !,
-  q_dir_graph(Dir, G),
-  q_dir(_, Dir).
-q_source_graph(G) :-
-  q_hash(Hash),
-  q_graph_hash(G, Hash).
 
 
 
