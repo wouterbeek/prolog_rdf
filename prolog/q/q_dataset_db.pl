@@ -133,10 +133,11 @@ q_dataset_db_exists :-
 %! q_dataset_db_file(-File) is det.
 
 q_dataset_db_file(File) :-
+  q_store_dir(Dir),
   absolute_file_name(
     'q_dataset.db',
     File,
-    [access(write),expand(true),file_errors(fail)]
+    [access(write),expand(true),file_errors(fail),relative_to(Dir)]
   ).
 
 

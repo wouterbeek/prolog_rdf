@@ -113,6 +113,7 @@ them.
 :- use_module(library(conv/json2rdf), []). % JSON → N-Triples
 :- use_module(library(conv/xml2rdf), []).  % XML → N-Triples
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(gis/gis), []).       % RDF → GIS
 :- use_module(library(hash_ext)).
@@ -558,6 +559,7 @@ qu_cbd_entry0(Node, Goal_1, TmpG, Hdt, State, Out) :-
     q_cbd_triple(hdt0, Node, Hdt, Triple),
     qb(trp, Triple, TmpG)
   ),
+  if_debug(qu(_), q_print_graph(trp, TmpG)),
   call(Goal_1, TmpG),
   forall(
     q(trp, Triple, TmpG),
