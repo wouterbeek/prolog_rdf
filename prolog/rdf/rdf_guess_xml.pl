@@ -109,7 +109,7 @@ doc_content_type(xhtml, _, _, application/'xhtml+xml') :- !.
 doc_content_type(html5, _, _, text/html) :- !.
 doc_content_type(xhtml5, _, _, application/'xhtml+xml') :- !.
 doc_content_type(xml, rss, _, application/'rss+xml') :- !.
-doc_content_type(Dialect, Top,  Attrs, application/'xhtml+xml') :-
+doc_content_type(Dialect, Top,  Attrs, application/'rdf+xml') :-
   % Extract the namespace from the doctype.
   (   Dialect == sgml
   ->  LocalName = rdf

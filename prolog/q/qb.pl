@@ -59,18 +59,18 @@
 /** <module> Quine build API
 
 @author Wouter Beek
-@version 2016/06-2016/10
+@version 2016/06-2016/12
 */
 
 :- use_module(library(date_time/date_time)).
 :- use_module(library(debug)).
 :- use_module(library(default)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_list)).
 :- use_module(library(q/q_prefix), []).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 :- use_module(library(uuid)).
@@ -143,7 +143,7 @@ qb(M, rdf(S,P,O), G) :-
 
 
 qb(stream(State,Out), S, P, O) :-
-  gen_ntuple(S, P, O, State, Out).
+  rdf_write_ntuple(S, P, O, State, Out).
 
 
 qb(trp, S, P, O, G) :- !,

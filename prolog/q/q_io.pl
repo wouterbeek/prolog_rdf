@@ -115,7 +115,6 @@ them.
 :- use_module(library(conv/xml2rdf), []).  % XML → N-Triples
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(gis/gis), []).       % RDF → GIS
 :- use_module(library(hash_ext)).
 :- use_module(library(hdt/hdt_ext)).
@@ -580,7 +579,7 @@ qu_cbd_entry(Node, Goal_1, TmpG, Hdt, State, Out) :-
   call(Goal_1, TmpG),
   forall(
     q(trp, Triple, TmpG),
-    gen_ntuple(Triple, State, Out)
+    rdf_write_ntuple(Triple, State, Out)
   ).
 
 

@@ -11,11 +11,10 @@
 /** <module> HDT-2-Vec
 
 @author Wouter Beek
-@version 2016/12/07
+@version 2016/12
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(os/io)).
@@ -23,6 +22,7 @@
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_term)).
 :- use_module(library(random)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle), []).
 :- use_module(library(settings)).
@@ -156,7 +156,7 @@ hdt2rdf(HdtFile, State, Out) :-
   hdt_call_on_file(HdtFile, hdt2rdf0(State, Out)).
 
 hdt2rdf0(State, Out, Hdt) :-
-  forall(hdt0(S, P, O, Hdt), gen_ntuple(S, P, O, State, Out)).
+  forall(hdt0(S, P, O, Hdt), rdf_write_ntuple(S, P, O, State, Out)).
 
 
 

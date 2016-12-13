@@ -1,10 +1,12 @@
 :- module(
   rdf__io,
   [
+  % RDF Media Types
     rdf_alternative_extension/2, % ?MT, ?AltExt
     rdf_incorrect_media_type/2,  % ?IncorrectMT, MT
     rdf_media_type/3,            % ?MT, ?Iri, ?DefExt
-    
+
+  % Call a goal on a stream of triples/quads
     rdf_call_on_graph/2,         % +Source, :Goal_1
     rdf_call_on_graph/3,         % +Source, :Goal_1, +Opts
     rdf_call_on_stream/2,        % +Source, :Goal_3
@@ -12,28 +14,58 @@
     rdf_call_on_tuples/2,        % +Source, :Goal_5
     rdf_call_on_tuples/3,        % +Source, :Goal_5, +Opts
     rdf_call_on_tuples_stream/4, % +In, :Goal_5, +Path, +Opts
+
+  % Call a goal from/to triples
     rdf_call_onto_stream/3,      % +Source, +Sink, :Goal_4
     rdf_call_onto_stream/5,      % +Source, +Sink, :Goal_4, +SourceOpts, +SinkOpts
+
+  % Call a goal to triples
     rdf_call_to_graph/2,         % ?Sink, :Goal_1
     rdf_call_to_graph/3,         % ?Sink, :Goal_1, +Opts
+    rdf_call_to_nquads/2,        % +Sink, :Goal_2
+    rdf_call_to_nquads/3,        % +Sink, :Goal_2, +Opts
+    rdf_call_to_ntriples/2,      % +Sink, :Goal_2
+    rdf_call_to_ntriples/3,      % +Sink, :Goal_2, +Opts
+    rdf_call_to_ntuples/2,       % +Sink, :Goal_2
+    rdf_call_to_ntuples/3,       % +Sink, :Goal_2, +Opts
+
+  % ???
     rdf_download_to_file/2,      % +Iri, +File
     rdf_download_to_file/4,      % +Iri, +File, +InOpts, +OutOpts
+
+  % @tbd: Move to rdf/rdf_graph
     rdf_graph_is_fresh/1,        % +G
+
+  % Traditional load
     rdf_load_file/1,             % +Source
     rdf_load_file/2,             % +Source,           +Opts
     rdf_load_quads/2,            % +Source, -Quads
     rdf_load_quads/3,            % +Source, -Quads,   +Opts
     rdf_load_triples/2,          % +Source, -Triples
     rdf_load_triples/3,          % +Source, -Triples, +Opts
+
+  % Convert between different RDF Media Types
     rdf_reserialize/2,           % +Source, +Sink
     rdf_reserialize/4,           % +Source, +Sink, +SourceOpts, +SinkOpts
     rdf_reserialize_legacy/2,    % +Source, +Sink
     rdf_reserialize_legacy/3,    % +Source, +Sink, +Opts
+
+  % Write clean N-Tuples to an existing state/stream pair
+    rdf_write_ntuple/3,          % +Tuple, +State, +Out
+    rdf_write_ntuple/5,          % +S, +P, +O, +State, +Out
+    rdf_write_ntuple/6,          % +S, +P, +O, +G, +State, +Out
+    rdf_write_ntuples/3,         % +Tuples, +State, +Out
+    rdf_write_ntuples/4,         % ?M, ?G, +State, +Out
+    rdf_write_ntuples/7,         % ?M, ?S, ?P, ?O, ?G, +State, +Out
+    
+  % Write to clean N-Tuples
     rdf_write_to_sink/3,         % ?Sink, ?M,             ?G
     rdf_write_to_sink/4,         % ?Sink, ?M,             ?G, +Opts
     rdf_write_to_sink/5,         % ?Sink, ?M, ?S, ?P, ?O
     rdf_write_to_sink/6,         % ?Sink, ?M, ?S, ?P, ?O, ?G
     rdf_write_to_sink/7,         % ?Sink, ?M, ?S, ?P, ?O, ?G, +Opts
+
+  % Convert between RDF Media Types
     rdf_write_to_sink_legacy/2,  % ?Sink, ?M
     rdf_write_to_sink_legacy/3   % ?Sink, ?M, +Opts
   ]
@@ -42,17 +74,17 @@
 /** <module> RDF I/O
 
 @author Wouter Beek
-@version 2015/08-2016/02, 2016/04-2016/12
+@version 2015/08-2016/12
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http11)).
 :- use_module(library(http/json)).
@@ -71,6 +103,7 @@
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf), [process_rdf/3]).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_term)).
@@ -103,7 +136,13 @@
     rdf_call_onto_stream(+, +, 4, +, +),
     rdf_call_onto_stream0(4, +, +, +, -, +),
     rdf_call_to_graph(?, 1),
-    rdf_call_to_graph(?, 1, +).
+    rdf_call_to_graph(?, 1, +),
+    rdf_call_to_nquads(+, 2),
+    rdf_call_to_nquads(+, 2, +),
+    rdf_call_to_ntriples(+, 2),
+    rdf_call_to_ntriples(+, 2, +),
+    rdf_call_to_ntuples(+, 2),
+    rdf_call_to_ntuples(+, 2, +).
 
 :- multifile
     error:has_type/2,
@@ -183,11 +222,19 @@ q_io:q_view_rm_hook(trp, G) :-
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
    rdf_call_on_tuples(+, :, t),
+   rdf_call_to_nquads(+, t, +),
+   rdf_call_to_ntriples(+, t, +),
    rdf_graph_is_fresh(r),
    rdf_load_file(+, t),
    rdf_load_quads(+, -, t),
    rdf_load_triples(+, -, t),
    rdf_media_type(?, r, ?),
+   rdf_write_ntuple(t, +, +),
+   rdf_write_ntuple(r, r, o, +, +),
+   rdf_write_ntuple(r, r, o, r, +, +),
+   rdf_write_ntuples(t, +, +),
+   rdf_write_ntuples(?, r, +, +),
+   rdf_write_ntuples(?, r, r, o, r, +, +),
    rdf_write_to_sink(+, ?, r),
    rdf_write_to_sink(+, ?, r, +),
    rdf_write_to_sink(+, ?, r, r, o),
@@ -419,7 +466,8 @@ rdf_call_on_quad0_debug(Goal_5, Path, Tuple) :-
 rdf_call_on_quads0(Goal_5, Path, Tuples) :-
   maplist(rdf_call_on_quad0(Goal_5, Path), Tuples).
 
-rdf_call_on_quads0(Goal_5, Path, Tuples, _) :-
+rdf_call_on_quads0(Goal_5, Path, Tuples, G) :-
+  writeln(G),
   rdf_call_on_quads0(Goal_5, Path, Tuples).
 
 
@@ -471,6 +519,97 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
 
 
 
+%! rdf_call_to_nquads(+Sink, :Goal_2) is det.
+%! rdf_call_to_nquads(+Sink, :Goal_2, +Opts) is det.
+%
+% Wrapper around rdf_call_to_ntuples/[2,3] where the RDF serialization
+% format is set to N-Quads.
+
+rdf_call_to_nquads(Sink, Goal_2) :-
+  rdf_call_to_nquads(Sink, Goal_2, []).
+
+
+rdf_call_to_nquads(Sink, Goal_2, Opts1) :-
+  merge_options([rdf_media_type(application/'n-quads')], Opts1, Opts2),
+  rdf_call_to_ntuples(Sink, Goal_2, Opts2).
+
+
+
+%! rdf_call_to_ntriples(+Sink, :Goal_2) is det.
+%! rdf_call_to_ntriples(+Sink, :Goal_2, +Opts) is det.
+%
+% Wrapper around rdf_call_to_ntuples/[2,3] where the RDF serialization
+% format is set to N-Triples.
+
+rdf_call_to_ntriples(Sink, Goal_2) :-
+  rdf_call_to_ntriples(Sink, Goal_2, []).
+
+
+rdf_call_to_ntriples(Sink, Goal_2, Opts1) :-
+  merge_options([rdf_media_type(application/'n-triples')], Opts1, Opts2),
+  rdf_call_to_ntuples(Sink, Goal_2, Opts2).
+
+
+
+%! rdf_call_to_ntuples(+Sink, :Goal_2) is det.
+%! rdf_call_to_ntuples(+Sink, :Goal_2, +Opts) is det.
+%
+% Stage-setting for writing N-Tuples (N-Triples or N-Quads).  Tuples
+% are written to Sink which is one of the sinks supported by
+% open_any/5.
+%
+% Goal_2 is called in the following way: `call(Goal_2, State, Out)`,
+% where State is a dictionary that records the state of writing tuples
+% (format, number of tuples, etc.) and where Out is a writable stream.
+%
+% The following options are supported:
+%
+%   * base_iri(+iri)
+%
+%     The base IRI against which relative IRIs are resolved.
+%
+%   * quads(-nonneg)
+%
+%     The number of written quads.
+%
+%   * rdf_media_type(+ntuples_media_type)
+%
+%     The RDF serialization format that is used.  Possible values are
+%     application/'n-nquads' (default) for N-Quads 1.1 and
+%     application/'n-triples' for N-Triples 1.1.
+%
+%   * triples(-nonneg)
+%
+%     The number of written triples.
+%
+%   * tuples(-nonneg)
+%
+%     The number of written tuples.
+%
+%   * warn(+stream)
+%
+%     The output stream, if any, where warnings are written to.
+%
+%   * Other options are passed to rdf_call_to_stream/3.
+
+rdf_call_to_ntuples(Sink, Goal_2) :-
+  rdf_call_to_ntuples(Sink, Goal_2, []).
+
+
+rdf_call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
+  setup_call_cleanup(
+    rdf_write_ntuples_begin(State, Opts),
+    (
+      Goal_2 =.. Comps1,
+      append(Comps1, [State], Comps2),
+      Goal_1 =.. Comps2,
+      call_to_stream(Sink, Mod:Goal_1, Opts)
+    ),
+    rdf_write_ntuples_end(State, Opts)
+  ).
+
+
+
 %! rdf_reserialize(+Source, +Sink) is det.
 %! rdf_reserialize(+Source, +Sink, +SourceOpts, +SinkOpts) is det.
 %
@@ -498,7 +637,7 @@ rdf_change_media_type0(Source, SourceOpts, State, Out) :-
   indent_debug(io, "» RDF → RDF"),
   rdf_call_on_tuples(
     Source,
-    {State,Out}/[_,S,P,O,G]>>gen_ntuple(S, P, O, G, State, Out),
+    {State,Out}/[_,S,P,O,G]>>rdf_write_ntuple(S, P, O, G, State, Out),
     SourceOpts
   ),
   indent_debug(io, "« RDF → RDF").
@@ -660,6 +799,61 @@ rdf_load_triples(Source, Triples, Opts) :-
 
 
 
+%! rdf_write_ntuple(+Tuple, +State, +Out) is det.
+%! rdf_write_ntuple(+S, +P, +O, +State, +Out) is det.
+%! rdf_write_ntuple(+S, +P, +O, +G, +State, +Out) is det.
+
+rdf_write_ntuple(rdf(S,P,O), State, Out) :- !,
+  rdf_write_ntuple(S, P, O, State, Out).
+rdf_write_ntuple(rdf(S,P,O,G), State, Out) :- !,
+  rdf_write_ntuple(S, P, O, G, State, Out).
+
+
+rdf_write_ntuple(S, P, O, State, Out) :-
+  rdf_write_ntuple(S, P, O, _, State, Out).
+
+
+rdf_write_ntuple(S, P, O, G, State, Out) :-
+  with_output_to(Out, (
+    rdf_write_subject(S, State),
+    put_char(' '),
+    rdf_write_predicate(P),
+    put_char(' '),
+    rdf_write_object(O, State),
+    put_char(' '),
+    (   State.rdf_media_type == application/'n-triples'
+    ->  dict_inc(triples, State)
+    ;   rdf_default_graph(G)
+    ->  dict_inc(triples, State)
+    ;   rdf_write_graph(G),
+        put_char(' '),
+        dict_inc(quads, State)
+    ),
+    put_char(.),
+    put_code(10)
+  )),
+  flush_output(Out).
+
+
+
+%! rdf_write_ntuples(+Tuples, +State, +Out) is det.
+%! rdf_write_ntuples(?M, ?G, +State, +Out) is det.
+%! rdf_write_ntuples(?M, ?S, ?P, ?O, ?G, +State, +Out) is det.
+
+rdf_write_ntuples(Tuples, State, Out) :-
+  maplist({State,Out}/[Tuple]>>rdf_write_ntuple(Tuple, State, Out), Tuples).
+
+
+rdf_write_ntuples(M, G, State, Out) :-
+  rdf_write_ntuples(M, _, _, _, G, State, Out).
+
+
+rdf_write_ntuples(M, S, P, O, G, State, Out) :-
+  aggregate_all(set(S), q(M, S, P, O, G), Ss),
+  maplist(rdf_write_ntuples_for_subject0(State, Out, M, P, O, G), Ss).
+
+
+
 %! rdf_write_to_sink(?Sink, ?M,             ?G       ) is det.
 %! rdf_write_to_sink(?Sink, ?M,             ?G, +Opts) is det.
 %! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O           ) is det.
@@ -726,7 +920,7 @@ rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
     atom(MT)
   )),
   indent_debug_call(io, Msg,
-    call_to_ntuples(Sink, gen_ntuples(M, S, P, O, G), Opts2)
+    call_to_ntuples(Sink, rdf_write_ntuples(M, S, P, O, G), Opts2)
   ).
 
 rdf_file_name0(File, Opts) :-
@@ -902,3 +1096,119 @@ guess_media_type(_, MT, MT) :-
 rdf_update_options(Opts1, Opts2) :-
   rdf_http_plugin:rdf_extra_headers(DefOpts, Opts1),
   merge_options(DefOpts, Opts1, Opts2).
+
+
+
+% STAGE SETTING %
+
+%! rdf_write_ntuples_begin(-State, +Opts) is det.
+
+rdf_write_ntuples_begin(State2, Opts) :-
+  option(rdf_media_type(MT), Opts, nquads),
+  uuid(Uuid),
+  State1 = _{
+    quads: 0,
+    rdf_media_type: MT,
+    triples: 0,
+    uuid: Uuid
+  },
+  % Stream to write warnings to, if any.
+  (   option(warn(Warn), Opts)
+  ->  State2 = State1.put(_{warn: Warn})
+  ;   State2 = State1
+  ),
+  indent_debug(rdf__io, "> Writing N-Tuples").
+
+
+%! rdf_write_ntuples_end(+State, +Opts) is det.
+
+rdf_write_ntuples_end(State, Opts) :-
+  option(quads(State.quads), Opts, _),
+  option(triples(State.triples), Opts, _),
+  NoTuples is State.triples + State.quads,
+  option(tuples(NoTuples), Opts, _),
+  indent_debug(rdf__io, "< Written N-Tuples").
+
+
+
+% AGGRREGATION %
+
+rdf_write_ntuples_for_subject0(State, Out, M, P, O, G, S) :-
+  aggregate_all(set(P), q(M, S, P, O, G), Ps),
+  maplist(rdf_write_ntuples_for_predicate0(State, Out, M, O, G, S), Ps).
+
+
+rdf_write_ntuples_for_predicate0(State, Out, M, O, G, S, P) :-
+  aggregate_all(set(O), q(M, S, P, O, G), Os),
+  maplist(rdf_write_ntuples_for_object0(State, Out, M, G, S, P), Os).
+
+
+rdf_write_ntuples_for_object0(State, Out, M, G, S, P, O) :-
+  aggregate_all(set(G), q(M, S, P, O, G), Gs),
+  maplist({S,P,O,State,Out}/[G]>>rdf_write_ntuple(S, P, O, G, State, Out), Gs).
+
+
+
+% TERMS BY POSITION %
+
+rdf_write_subject(BNode, State) :-
+  rdf_write_is_bnode(BNode), !,
+  rdf_write_bnode(BNode, State).
+rdf_write_subject(Iri, _) :-
+  q_is_iri(Iri), !,
+  rdf_write_iri(Iri).
+
+
+rdf_write_predicate(P) :-
+  rdf_write_iri(P).
+
+
+rdf_write_object(S, State) :-
+  rdf_write_subject(S, State), !.
+% Literal term comes last to support both modern (`rdf11`) and legacy
+% (`rdf_db`) formats.
+rdf_write_object(Lit, _) :-
+  rdf_write_literal(Lit).
+
+
+rdf_write_graph(G) :-
+  rdf_write_iri(G).
+
+
+
+% TERMS BY KIND %
+
+% @tbd: Who does this?
+rdf_write_bnode(node(Id), State) :- !,
+  rdf_write_bnode0(State.uuid, Id).
+% @tbd: Who does this?
+rdf_write_bnode(BNode, State) :-
+  atom_concat('_:genid', Id, BNode), !,
+  rdf_write_bnode0(State.uuid, Id).
+% @tbd: Who does this?
+rdf_write_bnode(BNode, State) :-
+  atom_concat('_:', Id, BNode),
+  rdf_write_bnode0(State.uuid, Id).
+  
+rdf_write_bnode0(Uuid, Id) :-
+  atomic_list_concat([Uuid,Id], :, Local),
+  rdf_global_id(bnode:Local, BNode),
+  rdf_write_iri(BNode).
+
+
+rdf_write_iri(Iri) :-
+  turtle:turtle_write_uri(current_output, Iri).
+
+
+rdf_write_literal(V^^D) :- !,
+  q_literal_lex(V^^D, Lex),
+  turtle:turtle_write_quoted_string(current_output, Lex),
+  write('^^'),
+  rdf_write_iri(D).
+rdf_write_literal(V@LTag) :- !,
+  q_literal_lex(V@LTag, Lex),
+  turtle:turtle_write_quoted_string(current_output, Lex),
+  format(current_output, '@~w', [LTag]).
+rdf_write_literal(V) :-
+  rdf_equal(xsd:string, D),
+  rdf_write_literal(V^^D).

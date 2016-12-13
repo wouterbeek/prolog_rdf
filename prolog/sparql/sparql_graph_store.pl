@@ -16,14 +16,14 @@ Partial implementation of the SPARQL Graph Store.
 
 @author Wouter Beek
 @compat http://www.w3.org/TR/sparql11-http-rdf-update/
-@version 2015/08, 2016/01, 2016/03-2016/04
+@version 2015/08, 2016/01, 2016/03-2016/04, 2016/12
 */
 
 :- use_module(library(debug)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(http/http_io)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(os/io)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_guess)).
 :- use_module(library(sparql/sparql_ext)).
 :- use_module(library(yall)).
@@ -71,7 +71,7 @@ sparql_post_graph_statements(Iri, G, Triples) :-
 
 
 sparql_post_graph_statements(Iri, G, Triples, Opts) :-
-  call_to_ntriples(codes(Cs), gen_ntuples(Triples)),
+  call_to_ntriples(codes(Cs), rdf_write_ntuples(Triples)),
   debug(sparql(graph_store), "~s", [Cs]),
   sparql_post_graph_data(Iri, G, codes(application/'n-triples',Cs), Opts).
 

@@ -15,7 +15,7 @@
 API for performing SPARQL Update requests.
 
 @author Wouter Beek
-@version 2015/08, 2015/12, 2016/03-2016/04, 2016/07
+@version 2015/08, 2015/12, 2016/03-2016/04, 2016/07, 2016/12
 */
 
 :- use_module(library(apply)).
@@ -23,13 +23,13 @@ API for performing SPARQL Update requests.
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(http/http_io)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os/io)).
 :- use_module(library(pairs)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(sparql/sparql_build)).
 :- use_module(library(sparql/sparql_ext)).
@@ -106,7 +106,7 @@ sparql_delete_insert_data_body(Mode, Triples, Opts1) :-
   format(current_output, "~a DATA {", [UpcaseMode]),
 
   % Write triple block contents.
-  call_to_ntriples(current_output, gen_ntuples(Triples, Opts2)),
+  call_to_ntriples(current_output, rdf_write_ntuples(Triples, Opts2)),
 
   % End of content block.
   format(user_output, "}", []),

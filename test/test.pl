@@ -18,8 +18,6 @@
 %/fca
 :- use_module(library(fca/rdf_fca_viz)).
 :- use_module(library(fca/rdfs_fca)).
-%/gen
-:- use_module(library(gen/gen_ntuples)).
 %/hdt
 :- use_module(library(hdt/hdt_ext)).
 :- use_module(library(hdt/hdt_io)).

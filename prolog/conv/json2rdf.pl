@@ -12,14 +12,13 @@
 
 @author Wouter Beek
 @see http://ndjson.org/
-@version 2016/06-2016/08, 2016/11
+@version 2016/06-2016/12
 */
 
 :- use_module(library(atom_ext)).
 :- use_module(library(conv/q_conv)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(option)).
@@ -28,6 +27,7 @@
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(readutil)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid)).
@@ -89,7 +89,7 @@ json2rdf_stream0(State, Out, Opts1, In, Meta, Meta) :-
   ->  !
   ;   string_json_dict(Str, Dict),
       dict_to_triple(Dict, Opts2, Triple),
-      gen_ntuple(Triple, State, Out),
+      rdf_write_ntuple(Triple, State, Out),
       fail
   ).
 

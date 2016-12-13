@@ -23,7 +23,6 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
@@ -32,6 +31,7 @@ Automatic conversion from CSV to RDF.
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
@@ -106,7 +106,7 @@ csv2rdf_stream0(State, Out, Opts1, In, Path, Path) :-
   q_abox_iri(Opts2.scheme, Opts2.host, Opts2.concept, S),
   rdf_equal(xsd:string, D),
   maplist(
-    {S,D,State,Out}/[P,Val]>>gen_ntuple(S, P, Val^^D, State, Out),
+    {S,D,State,Out}/[P,Val]>>rdf_write_ntuple(S, P, Val^^D, State, Out),
     Ps,
     Vals
   ),

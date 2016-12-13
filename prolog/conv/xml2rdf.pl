@@ -12,7 +12,7 @@
 
 @author Wouter Beek
 @tbd Currently runs out of memory for unclear reasons.
-@version 2016/06-2016/08, 2016/11
+@version 2016/06-2016/12
 */
 
 :- use_module(library(apply)).
@@ -20,13 +20,13 @@
 :- use_module(library(conv/q_conv)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
-:- use_module(library(gen/gen_ntuples)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
+:- use_module(library(rdf/rdf__io)).
 :- use_module(library(xml/marcxml)).
 :- use_module(library(xml/xml_stream)).
 :- use_module(library(yall)).
@@ -117,14 +117,14 @@ xml2rdf_stream0(N, State, Out, [element(H,Attrs,Vals)|T], S, PAttrs, Opts) :-
   ), (
     q_literal(Lit, xsd:string, Val, _),
     xml_p(H, PAttrs, Attrs, P, Opts),
-    gen_ntuple(S, P, Lit, State, Out)
+    rdf_write_ntuple(S, P, Lit, State, Out)
   )),
   xml2rdf_stream0(N, State, Out, T, S, PAttrs, Opts).
 xml2rdf_stream0(N1, State, Out, [element(H,Attrs,Content)|T], S, PAttrs, Opts) :- !,
   N2 is N1 + 1,
   xml_p(H, PAttrs, Attrs, P, Opts),
   q_abox_iri(Opts.scheme, Opts.host, Opts.concept, O),
-  gen_ntuple(S, P, O, State, Out),
+  rdf_write_ntuple(S, P, O, State, Out),
   xml2rdf_stream0(N2, State, Out, Content, O, PAttrs, Opts),
   xml2rdf_stream0(N1, State, Out, T, S, PAttrs, Opts).
 xml2rdf_stream0(N, State, Out, [H|T], S, PAttrs, Opts) :-
