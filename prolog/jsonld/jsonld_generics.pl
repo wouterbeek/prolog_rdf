@@ -4,8 +4,7 @@
     jsonld_abbreviate_iri/3, % +Context, +Full, -Compact
     jsonld_expand_term/3,    % +Context, +Compact, -Full
     jsonld_is_bnode/1,       % +Term
-    jsonld_keyword/1,        % ?Keyword
-    reply_jsonld/1           % +Dict
+    jsonld_keyword/1         % ?Keyword
   ]
 ).
 
@@ -113,10 +112,3 @@ jsonld_keyword('@id').
 jsonld_keyword('@type').
 jsonld_keyword('@value').
 jsonld_keyword('@vocab').
-
-
-
-%! reply_jsonld(+Dict) is det.
-
-reply_jsonld(Dict) :-
-  reply_json_dict(Dict, [content_type('application/ld+json')]).

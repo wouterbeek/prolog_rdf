@@ -7,7 +7,6 @@
     geold_tuple/4,       % +Source, +ExtraContext, +ExtraData, -Tuple
     geold_tuples/2,      % +Source, -Tuples
     geold_tuples/4,      % +Source, +ExtraContext, +ExtraData, -Tuples
-    reply_geojson/1,     % +Dict
     subject_to_geojson/5 % +M, +Properties, +G, +S, -Feature
   ]
 ).
@@ -167,13 +166,6 @@ geold_prepare_data(Source, ExtraData, Data2) :-
       )
   ;   Data2 = Data1.put(ExtraData)
   ).
-
-
-
-%! reply_geojson(+Dict) is det.
-
-reply_geojson(Dict) :-
-  reply_json_dict(Dict, [content_type('application/vnd.geo+json')]).
 
 
 
