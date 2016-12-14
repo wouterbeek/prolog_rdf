@@ -66,8 +66,7 @@ The following options are specific to this module:
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(lists)).
-:- use_module(library(q/q_dataset_db)).
-:- use_module(library(q/q_dataset_api)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_term)).

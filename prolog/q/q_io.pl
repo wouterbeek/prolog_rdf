@@ -122,7 +122,7 @@ them.
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/thread_ext)).
-:- use_module(library(q/q_dataset_db)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).

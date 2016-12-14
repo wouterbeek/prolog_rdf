@@ -18,7 +18,7 @@
 :- use_module(library(apply)).
 :- use_module(library(hash_ext)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_dataset_db)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_iri)).

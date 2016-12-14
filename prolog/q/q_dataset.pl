@@ -1,6 +1,7 @@
 :- module(
-  q_dataset_db,
+  q_dataset,
   [
+  % DB
     qb_dataset/3,                  % +DRef, +DefGName, +Pairs
     qb_dataset/4,                  % +DRef, +DefGName, +Pairs, -D
     q_dataset/1,                   % ?D
@@ -17,14 +18,18 @@
     q_rm_dataset/1,                % +D
     q_rm_dataset_graph/1,          % +G
     q_rm_dataset_graph/2,          % +D, +G
-    q_rm_datasets/0
+    q_rm_datasets/0,
+  % API
+    q_dataset_label/2,             % +D, -Lbl
+    q_dataset_tree/4,              % ?M, +Order, +D, -Tree
+    q_dataset_trees/3              % ?M, +Order, -Trees
   ]
 ).
 
-/** <module> Quine: Dataset DB
+/** <module> Quine: Dataset
 
 @author Wouter Beek
-@version 2016/08-2016/11
+@version 2016/08-2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -32,19 +37,23 @@
 :- use_module(library(lists)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_iri)).
+:- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_stat)).
 :- use_module(library(q/q_term)).
 :- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
 :- use_module(library(persistency)).
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(settings)).
+:- use_module(library(tree/s_tree)).
 :- use_module(library(uri)).
 
-:- initialization(q_dataset_db_init).
-
-q_dataset_db_init :-
-  q_dataset_db_file(File),
-  db_attach(File, []).
+:- setting(
+     dataset_file,
+     atom,
+     '~/Data/source/q_dataset.db',
+     "The file that stores Quine dataset assertions."
+   ).
 
 %! q_dataset(?D:atom, ?GName:atom, -Pairs:list(pair(atom))) is nondet.
 
@@ -61,9 +70,17 @@ q_dataset_db_init :-
    q_dataset_default_graph(r, r),
    q_dataset_graph(r, r),
    q_dataset_graph(r, +, r),
+   q_dataset_label(r, -),
    q_dataset_named_graph(r, r),
    q_dataset_named_graph(r, ?, r),
+   q_dataset_tree(?, +, r, -),
    q_rm_dataset(r).
+
+:- initialization(q_dataset_db_init).
+
+q_dataset_db_init :-
+  setting(dataset_file, File),
+  db_attach(File, []).
 
 
 
@@ -125,20 +142,8 @@ q_dataset_add_graph(D, GName, NG) :-
 % Succeeds iff the Quine dataset persistent DB file exists.
 
 q_dataset_db_exists :-
-  q_dataset_db_file(File),
+  setting(dataset_file, File),
   exists_file(File).
-
-
-
-%! q_dataset_db_file(-File) is det.
-
-q_dataset_db_file(File) :-
-  q_store_dir(Dir),
-  absolute_file_name(
-    'q_dataset.db',
-    File,
-    [access(write),expand(true),file_errors(fail),relative_to(Dir)]
-  ).
 
 
 
@@ -245,3 +250,70 @@ q_rm_datasets :-
     q_dataset(D),
     q_rm_dataset(D)
   ).
+
+
+
+
+
+% API %
+
+%! q_dataset_label(+D, -Lbl) is det.
+
+q_dataset_label(D, Str) :-
+  q_dataset_named_graph(D, meta, MetaG),
+  q_pref_label(hdt, D, Lit, MetaG),
+  q_literal_string(Lit, Str).
+
+
+
+%! q_dataset_tree(?M, +Order, +D, -Tree) is det.
+%
+% Return a dataset tree in which the graphs are ordered in one of the
+% following ways:
+%
+%   - `lexicographic`: by graph name
+%
+%   - `number_of_triples`: by the number of triples per graph
+
+q_dataset_tree(M, Order, D, Tree) :-
+  q_dataset_tree0(M, Order, D, _, Tree).
+  
+
+q_dataset_tree0(M, Order, D, SumNumTriples, t(D,OrderedTrees)) :-
+  findall(G, q_dataset_graph(D, G), Gs),
+  maplist(q_graph_tree0(M), Gs, NumTriples, Trees),
+  KeyDict = _{lexicographic: Gs, number_of_triples: NumTriples},
+  q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees),
+  sum_list(NumTriples, SumNumTriples).
+
+
+q_graph_tree0(M, G, NumTriples, t(G,[])) :-
+  (var(M) -> once(q_view_graph(M, G)) ; true),
+  q_number_of_triples(M, G, NumTriples).
+
+
+
+%! q_dataset_trees(?M, +Order, -Trees) is det.
+%
+% Return all dataset trees ordered in one of the following ways:
+%
+%   - `lexicographic`: by dataset and graph name
+%
+%   - `number_of_triples`: by the number of triples per dataset and
+%     graph
+
+q_dataset_trees(M, Order, OrderedTrees) :-
+  aggregate_all(set(D), q_dataset(D), Ds),
+  maplist(q_dataset_tree0(M, Order), Ds, NumTriples, Trees),
+  KeyDict = _{lexicographic: Ds, number_of_triples: NumTriples},
+  q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees).
+
+
+
+
+
+% HELPERS %
+
+q_dataset_tree_order0(Order, KeyDict, Trees, OrderedTrees) :-
+  pairs_keys_values(Pairs, KeyDict.Order, Trees),
+  desc_pairs_values(Pairs, OrderedTrees).

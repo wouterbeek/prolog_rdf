@@ -141,8 +141,7 @@ Print RDF statements.
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/q_dataset_api)).
-:- use_module(library(q/q_dataset_db)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_rdfs)).

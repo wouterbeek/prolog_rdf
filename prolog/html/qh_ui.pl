@@ -36,7 +36,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/js_write)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_dataset_api)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_graph)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_print)).

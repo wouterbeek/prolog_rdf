@@ -15,7 +15,7 @@
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q_dataset_db)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(semweb/rdf11)).

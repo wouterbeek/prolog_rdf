@@ -44,8 +44,7 @@
 :- use_module(library(q/q_cli)).
 :- use_module(library(q/q_container)).
 :- use_module(library(q/q_custom)).
-:- use_module(library(q/q_dataset_api)).
-:- use_module(library(q/q_dataset_db)).
+:- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_datatype)).
 :- use_module(library(q/q_deref)).
 :- use_module(library(q/q_fs)).
