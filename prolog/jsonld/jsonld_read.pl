@@ -32,19 +32,26 @@
 
 %! jsonld_tuple(+D, -Tuple) is det.
 %! jsonld_tuple(+D, -Tuple, +Opts) is det.
+%
+% The following options are supported:
+%
+%   - base_iri(+atom)
+%
+%   - context(+dict)
 
 jsonld_tuple(D, Tuple) :-
   jsonld_tuple(D, Tuple, []).
 
 
 jsonld_tuple(D, Tuple, Opts) :-
+  option(context(Context1), Opts, _{}),
   % The base IRI that was set outside of the JSON-LD context
   % takes precedence over the one that is set inside the JSON-LD context.
   (   option(base_iri(BaseIri), Opts)
-  ->  Context = _{'@base': BaseIri}
-  ;   Context = _{}
+  ->  Context2 = Context1.put(_{'@base': BaseIri})
+  ;   Context2 = Context1
   ),
-  jsonld_tuple_with_context(Context, D, Tuple).
+  jsonld_tuple_with_context(Context2, D, Tuple).
 
 
 
