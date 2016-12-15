@@ -381,7 +381,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1
   % instead.
   get_base_iri(BaseIri, Path, Opts1),
-  once(get_dicts(rdf_media_type, Path, MT)),
+  dicts_getchk(rdf_media_type, Path, MT),
   Opts2 = [
     anon_prefix(node(_)),
     base(BaseIri),
