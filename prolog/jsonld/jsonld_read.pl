@@ -241,8 +241,8 @@ jsonld_tuple(Context, S, P, ODef, _, O1, Tuple) :-
   jsonld_expand_term(Context, O1, O2),
   tuple_term(Context, S, P, O2, Tuple).
 % Object is an RDF literal with explicitly supplied RDF datatype
-% (1/2).  This comes before abbreviated object list because a datatype
-% may contain arrays in its value space.
+% (1/2).  This comes before the clause that handles abbreviated object
+% lists, because a datatype may contain arrays in its value space.
 jsonld_tuple(Context, S, P, _, _, _{'@type': D1, '@value': V}, Tuple) :- !,
   jsonld_expand_term(Context, D1, D2),
   tuple_term(Context, S, P, V^^D2, Tuple).

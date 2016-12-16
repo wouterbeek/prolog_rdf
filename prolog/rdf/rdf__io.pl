@@ -92,6 +92,7 @@
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
+:- use_module(library(print_ext)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_io)).
 :- use_module(library(q/q_prefix), []).
@@ -245,7 +246,12 @@ rdf_http_plugin:rdf_content_type('application/ld+json', 0.99, jsonld). %ABC
 
 %! rdf_alternative_extension(?MT, ?AltExt) is nondet.
 
-rdf_alternative_extension(application/turtle, n3).
+rdf_alternative_extension(application/'ld+json',   json).
+rdf_alternative_extension(application/turtle,      n3).
+rdf_alternative_extension(application/trig,        trig).
+rdf_alternative_extension(application/turtle,      turtle).
+rdf_alternative_extension(application/'n-quads',   nquads).
+rdf_alternative_extension(application/'n-triples', ntriples).
 
 
 
@@ -378,6 +384,11 @@ rdf_call_on_tuples_stream(In, Goal_5, Path, Opts) :-
   rdf_call_on_tuples_stream0(Goal_5, Opts, In, Path, Path).
 
 rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
+  (   debugging(rdf__io)
+  ->  peek_string(In, 1000, Str),
+      debug(rdf__io, "[PEEK] ~s", [Str])
+  ;   true
+  ),
   % Library Semweb uses option base_uri/1.  We use option base_iri/1
   % instead.
   get_base_iri(BaseIri, Path, Opts1),
@@ -414,6 +425,7 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   ).
 
 rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O1,G1)) :- !,
+  %%%%maplist(print_term, Path),
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   gen_is_term(O1)
@@ -1052,8 +1064,8 @@ set_media_type(In, [H1|T], [H2|T], MT2, Opts) :-
   guess_media_type(In, MT1, MT2), !,
   put_dict(rdf_media_type, H1, MT2, H2).
 % Time's up!  Let's say its RDF/XML.
-set_media_type(_, [H1|T], [H2|T], MT, _) :-
-  MT = application/'n-quads',
+set_media_type(In, [H1|T], [H2|T], MT, _) :-
+  guess_media_type(In, application/'rdf+xml', MT),
   put_dict(rdf_media_type, H1, MT, H2).
 
 
@@ -1083,7 +1095,11 @@ guess_media_type(_, MT, MT) :-
 
 rdf_update_options(Opts1, Opts2) :-
   rdf_http_plugin:rdf_extra_headers(DefOpts, Opts1),
-  merge_options(DefOpts, Opts1, Opts2).
+  % merge_options/3 cannot be used here since it overwrites
+  % request_header/1 entries, even though their keys are different.
+  append(Opts1, DefOpts, Opts2).
+
+
 
 
 
