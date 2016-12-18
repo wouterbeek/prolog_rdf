@@ -75,7 +75,7 @@ ldf_iri_page(_, 1).
 ldf_parameter(_, Val, _) :-
   var(Val), !.
 ldf_parameter(Key, Lit, Key=Val) :-
-  rdf_is_literal(Lit), !,
+  q_is_literal(Lit), !,
   q_literal_lex(Lit, Lex),
   (   q_is_lts(Lit)
   ->  Lit = _@LTag,
