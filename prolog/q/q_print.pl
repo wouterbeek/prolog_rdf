@@ -44,6 +44,7 @@
     dcg_q_print_triples//5,      % ?M, ?S, ?P, ?O, ?G
     dcg_q_print_triples//6,      % ?M, ?S, ?P, ?O, ?G, +Opts
     dcg_q_print_var//2,          % +Var,               +Opts
+    pp_jsonld/2,                 % +Context, :Goal_1
     q_print_cbd/2,               % ?M, ?S
     q_print_cbd/3,               % ?M, ?S,         ?G
     q_print_cbd/4,               % ?M, ?S,         ?G, +Opts
@@ -150,6 +151,9 @@ Print RDF statements.
 :- use_module(library(settings)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
+
+:- meta_predicate
+    pp_jsonld(+, 1).
 
 :- multifile
     dcg:dcg_hook//1,
@@ -270,6 +274,24 @@ dcg:dcg_hook(q_predicate(P)) -->
 dcg_q_print_options(Opts1, Opts3) :-
   dcg_q_print_default_options(Opts2),
   merge_dicts(Opts2, Opts1, Opts3).
+
+
+
+
+
+% META %
+
+%! pp_jsonld(+Context, :Goal_1) .
+%
+% Print the reply for a TAPIR predicate using Turtle.
+
+pp_jsonld(Context, Goal_1) :-
+  catch(call(Goal_1, Dict), E, true),
+  (   var(E)
+  ->  jsonld_tuples(Dict, Triples, [context(Context)]),
+      q_print_triples(Triples)
+  ;   print_message(warning, E)
+  ).
 
 
 
