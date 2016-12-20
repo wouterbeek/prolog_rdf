@@ -240,6 +240,9 @@ q_ltag0(LTag) -->
 
 %! gen_is_bnode(+GenBNode) is semidet.
 
+% Emitted by the RDFa parser (module `rdfa`).
+gen_is_bnode(bnode(_)) :- !.
+% Emitted by the N-Tuples parser (module `rdf_ntriples`).
 gen_is_bnode(node(_)) :- !.
 gen_is_bnode(BNode) :-
   q_is_bnode(BNode).
@@ -248,6 +251,7 @@ gen_is_bnode(BNode) :-
 
 %! gen_is_term(+GenTerm) is semidet.
 
+gen_is_term(bnode(_)) :- !.
 gen_is_term(node(_)) :- !.
 gen_is_term(Term) :-
   rdf_is_term(Term).
