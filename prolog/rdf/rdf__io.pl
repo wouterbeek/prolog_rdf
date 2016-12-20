@@ -13,7 +13,8 @@
     rdf_call_on_stream/3,        % +Source, :Goal_3, +Opts
     rdf_call_on_tuples/2,        % +Source, :Goal_5
     rdf_call_on_tuples/3,        % +Source, :Goal_5, +Opts
-    rdf_call_on_tuples_stream/4, % +In, :Goal_5, +Path, +Opts
+    rdf_call_on_tuples_stream/3, % +In, :Goal_5, +InPath
+    rdf_call_on_tuples_stream/4, % +In, :Goal_5, +InPath, +Opts
 
   % Call a goal from/to triples
     rdf_call_onto_stream/3,      % +Source, +Sink, :Goal_4
@@ -126,13 +127,14 @@
     rdf_call_on_quads0(5, +, +, +),
     rdf_call_on_stream(+, 3),
     rdf_call_on_stream(+, 3, +),
-    rdf_call_on_stream0(3, +, +, +, -),
+    rdf_call_on_stream(3, +, +, +, -),
     rdf_call_on_tuples(+, 5),
     rdf_call_on_tuples(+, 5, +),
+    rdf_call_on_tuples_stream(+, 5, +),
     rdf_call_on_tuples_stream(+, 5, +, +),
     rdf_call_onto_stream(+, +, 4),
     rdf_call_onto_stream(+, +, 4, +, +),
-    rdf_call_onto_stream0(4, +, +, +, -, +),
+    rdf_call_onto_stream(4, +, +, +, -, +),
     rdf_call_to_graph(?, 1),
     rdf_call_to_graph(?, 1, +),
     rdf_call_to_nquads(+, 2),
@@ -311,7 +313,7 @@ rdf_media_type(text/html,               formats:'RDFa',      html).
 %
 % Loads Source into a graph and call Goal_1 on it.
 %
-% The following call is made: `call(:Goal_1, +G, +Path1, -Path2)`.
+% The following call is made: `call(:Goal_1, +G)`.
 %
 % Options are passed to rdf_load_file/2.
 
@@ -335,7 +337,7 @@ rdf_call_on_graph(Source, Goal_1, Opts1) :-
 %! rdf_call_on_stream(+Source, :Goal_3) is det.
 %! rdf_call_on_stream(+Source, :Goal_3, +Opts) is det.
 %
-% The following call is made: `call(Goal_3, In, Path1, Path2)`.
+% The following call is made: `call(Goal_3, In, InPath1, InPath2)`.
 %
 % Options are passed to read_from_stream/3 and rdf_guess_fomat/3
 %
@@ -348,11 +350,11 @@ rdf_call_on_stream(Source, Goal_3) :-
 
 rdf_call_on_stream(Source, Goal_3, Opts1) :-
   rdf_update_options(Opts1, Opts2),
-  call_on_stream(Source, rdf_call_on_stream0(Goal_3, Opts2), Opts2).
+  call_on_stream(Source, rdf_call_on_stream(Goal_3, Opts2), Opts2).
 
-rdf_call_on_stream0(Goal_3, Opts, In, Path1, Path3) :-
-  set_media_type_and_encoding(In, Path1, Path2, Opts),
-  call(Goal_3, In, Path2, Path3).
+rdf_call_on_stream(Goal_3, Opts, In, InPath1, InPath3) :-
+  set_media_type_and_encoding(In, InPath1, InPath2, Opts),
+  call(Goal_3, In, InPath2, InPath3).
 
 
 
@@ -380,19 +382,28 @@ rdf_call_on_tuples(Source, Goal_5, Opts) :-
   rdf_call_on_stream(Source, rdf_call_on_tuples_stream0(Goal_5, Opts), Opts).
 
 
-rdf_call_on_tuples_stream(In, Goal_5, Path, Opts) :-
-  rdf_call_on_tuples_stream0(Goal_5, Opts, In, Path, Path).
 
-rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
-  (   debugging(rdf__io)
-  ->  peek_string(In, 1000, Str),
-      debug(rdf__io, "[PEEK] ~s", [Str])
-  ;   true
-  ),
+%! rdf_call_on_tuples_stream(+In, :Goal_5, +InPath) is det.
+%! rdf_call_on_tuples_stream(+In, :Goal_5, +InPath, +Opts) is det.
+
+rdf_call_on_tuples_stream(In, Goal_5, InPath) :-
+  rdf_call_on_tuples_stream(In, Goal_5, InPath, []).
+
+
+rdf_call_on_tuples_stream(In, Goal_5, InPath, Opts) :-
+  rdf_call_on_tuples_stream0(Goal_5, Opts, In, InPath, InPath).
+
+
+rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
   % Library Semweb uses option base_uri/1.  We use option base_iri/1
   % instead.
-  get_base_iri(BaseIri, Path, Opts1),
-  dicts_getchk(rdf_media_type, Path, MT),
+  get_base_iri(BaseIri, InPath, Opts1),
+  dicts_getchk(rdf_media_type, InPath, MT),
+  (   debugging(rdf__io)
+  ->  peek_string(In, 1000, Str),
+      debug(rdf__io, "[PEEK (~w)] ~s", [MT,Str])
+  ;   true
+  ),
   Opts2 = [
     anon_prefix(node(_)),
     base(BaseIri),
@@ -404,32 +415,32 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, Path, Path) :-
   merge_options(Opts1, Opts2, Opts3),
   (   % N-Quads & N-Triples
       is_of_type(ntuples_media_type, MT)
-  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, Path), Opts3)
+  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, InPath), Opts3)
   ;   % Trig & Turtle
       is_of_type(turtle_media_type, MT)
-  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, Path), Opts3)
+  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, InPath), Opts3)
   ;   % JSON-LD
       MT == application/'ld+json'
   ->  json_read_dict(In, Json),
       forall(
         jsonld_tuple(Json, Tuple, Opts3),
-        rdf_call_on_quad0(Goal_5, Path, Tuple)
+        rdf_call_on_quad0(Goal_5, InPath, Tuple)
       )
   ;   % RDF/XML
       MT == application/'rdf+xml'
-  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, Path), Opts3)
+  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, InPath), Opts3)
   ;   % RDFa
       is_of_type(rdfa_media_type, MT)
   ->  read_rdfa(In, Triples, Opts3),
-      rdf_call_on_quads0(Goal_5, Path, Triples)
+      rdf_call_on_quads0(Goal_5, InPath, Triples)
   ).
 
-rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O1,G1)) :- !,
-  %%%%maplist(print_term, Path),
+rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O1,G1)) :- !,
+  %%%%maplist(print_term, InPath),
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
   (   gen_is_term(O1)
-  ->  call(Goal_5, Path, S, P, O1, G3)
+  ->  call(Goal_5, InPath, S, P, O1, G3)
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
       ->  rdf11:write_xml_literal(html, Lex0, Lex1)
@@ -455,27 +466,27 @@ rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O1,G1)) :- !,
       ),
       % Incorrect lexical form.
       (   var(E)
-      ->  call(Goal_5, Path, S, P, O2, G3)
+      ->  call(Goal_5, InPath, S, P, O2, G3)
       ;   print_message(warning, E)
       )
   ).
-rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O)) :-
+rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O)) :-
   rdf_default_graph(G),
-  rdf_call_on_quad0(Goal_5, Path, rdf(S,P,O,G)).
+  rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O,G)).
 
 % Use this to debug bugs in statement calls.
-rdf_call_on_quad0_debug(Goal_5, Path, Tuple) :-
+rdf_call_on_quad0_debug(Goal_5, InPath, Tuple) :-
   %flag(rdf_call_on_quad0_debug, N, N + 1),
   %format(user_output, "~D~n", [N]),
   %(N =:= 715769 -> gtrace ; true),
-  catch(rdf_call_on_quad0(Goal_5, Path, Tuple), E, true),
-  (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, Path, Tuple)).
+  catch(rdf_call_on_quad0(Goal_5, InPath, Tuple), E, true),
+  (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, InPath, Tuple)).
 
-rdf_call_on_quads0(Goal_5, Path, Tuples) :-
-  maplist(rdf_call_on_quad0(Goal_5, Path), Tuples).
+rdf_call_on_quads0(Goal_5, InPath, Tuples) :-
+  maplist(rdf_call_on_quad0(Goal_5, InPath), Tuples).
 
-rdf_call_on_quads0(Goal_5, Path, Tuples, _) :-
-  rdf_call_on_quads0(Goal_5, Path, Tuples).
+rdf_call_on_quads0(Goal_5, InPath, Tuples, _) :-
+  rdf_call_on_quads0(Goal_5, InPath, Tuples).
 
 
 
@@ -491,14 +502,14 @@ rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
   call_onto_stream(
     Source,
     Sink,
-    rdf_call_onto_stream0(Goal_4, RdfOpts),
+    rdf_call_onto_stream(Goal_4, RdfOpts),
     SourceOpts,
     SinkOpts
   ).
 
-rdf_call_onto_stream0(Goal_4, Opts, In, Path1, Path3, Out) :-
-  set_media_type_and_encoding(In, Path1, Path2, Opts),
-  call(Goal_4, In, Path2, Path3, Out).
+rdf_call_onto_stream(Goal_4, Opts, In, InPath1, InPath3, Out) :-
+  set_media_type_and_encoding(In, InPath1, InPath2, Opts),
+  call(Goal_4, In, InPath2, InPath3, Out).
 
 
 
@@ -574,6 +585,11 @@ rdf_call_to_ntriples(Sink, Goal_2, Opts1) :-
 %   * base_iri(+iri)
 %
 %     The base IRI against which relative IRIs are resolved.
+%
+%   * name(+atom)
+%
+%     Optionally, the name that is given to the dictionary that
+%     represents the state.
 %
 %   * quads(-nonneg)
 %
@@ -682,7 +698,7 @@ rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
   call_onto_stream(Iri, TmpFile, copy_stream_data0, InOpts, OutOpts),
   rename_file(TmpFile, File).
 
-copy_stream_data0(In, Path, Path, Out) :-
+copy_stream_data0(In, InPath, InPath, Out) :-
   copy_stream_data(In, Out).
 
 
@@ -868,7 +884,7 @@ rdf_write_ntuples(M, S, P, O, G, State, Out) :-
 % @tbd Check whether HDT file already exists.
 %
 % In line with module `io`, the following call is made:
-% `call(Goal_3, +Out, +Path1, -Path2)`.
+% `call(Goal_3, +Out, +OutPath1, -OutPath2)`.
 %
 % The following options are supported:
 %
@@ -1004,22 +1020,22 @@ rdf_write_to_sink_legacy(Sink, M, Opts) :-
 
 % HELPERS %
 
-%! get_base_iri(-BaseIri, +Path, +Opts) is det.
+%! get_base_iri(-BaseIri, +InPath, +Opts) is det.
 
 % Option base_iri/1 overrides everything else.
 get_base_iri(BaseIri, _, Opts) :-
   option(base_iri(BaseIri), Opts), !.
-get_base_iri(BaseIri, Ds, _) :-
-  member(D, Ds),
-  (   get_dict(iri, D, Iri)
+get_base_iri(BaseIri, InPaths, _) :-
+  member(InPath, InPaths),
+  (   get_dict(iri, InPath, Iri)
   ->  iri_remove_fragment(Iri, BaseIri)
-  ;   get_dict(file, D, File)
+  ;   get_dict(file, InPath, File)
   ->  uri_file_name(BaseIri, File)
   ), !.
 
 
 
-%! set_media_type_and_encoding(+In, +Path1, -Path2, +Opts) is det.
+%! set_media_type_and_encoding(+In, +InPath1, -InPath2, +Opts) is det.
 %
 % # GUESS ENCODING
 %
@@ -1030,21 +1046,21 @@ get_base_iri(BaseIri, Ds, _) :-
 % @tbd Archive entries are always encoded as octet.  We change this to
 %      UTF-8.
 
-set_media_type_and_encoding(In, Path1, Path2, Opts) :-
-  set_media_type(In, Path1, Path2, MT, Opts),
+set_media_type_and_encoding(In, InPath1, InPath2, Opts) :-
+  set_media_type(In, InPath1, InPath2, MT, Opts),
   set_encoding(In, MT).
 
 
 % RDF Media Type was already set.
-set_media_type(_, [H|T], [H|T], MT, _) :-
-  get_dict(rdf_media_type, H, MT), !.
+set_media_type(_, [InEntry|InPath], [InEntry|InPath], MT, _) :-
+  get_dict(rdf_media_type, InEntry, MT), !.
 % Option rdf_media_type/1 overrides guesstimates.
-set_media_type(_, [H1|T], [H2|T], MT, Opts) :-
+set_media_type(_, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
   option(rdf_media_type(MT), Opts), !,
-  put_dict(rdf_media_type, H1, MT, H2).
+  put_dict(rdf_media_type, InEntry1, MT, InEntry2).
 % HTTP Content-Type header.
-set_media_type(In, [H1|T], [H2|T], MT3, _) :-
-  get_dict(headers, H1, Headers),
+set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT3, _) :-
+  get_dict(headers, InEntry1, Headers),
   get_dict('content-type', Headers, Val),
   http_parse_header('content-type', Val, media_type(Type,Subtype,_)),
   MT1 = Type/Subtype,
@@ -1054,19 +1070,19 @@ set_media_type(In, [H1|T], [H2|T], MT3, _) :-
   ->  MT2 = MT1
   ),
   guess_media_type(In, MT2, MT3), !,
-  put_dict(rdf_media_type, H1, MT3, H2).
+  put_dict(rdf_media_type, InEntry1, MT3, InEntry2).
 % Based on the file extension of the base IRI and our own guesswork.
-set_media_type(In, [H1|T], [H2|T], MT2, Opts) :-
-  get_base_iri(BaseIri, [H1|T], Opts),
+set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT2, Opts) :-
+  get_base_iri(BaseIri, [InEntry1|InPath], Opts),
   iri_file_extensions(BaseIri, Exts),
   member(Ext, Exts),
   (rdf_media_type(MT1, _, Ext) ; rdf_alternative_extension(MT1, Ext)), !,
   guess_media_type(In, MT1, MT2), !,
-  put_dict(rdf_media_type, H1, MT2, H2).
+  put_dict(rdf_media_type, InEntry1, MT2, InEntry2).
 % Time's up!  Let's say its RDF/XML.
-set_media_type(In, [H1|T], [H2|T], MT, _) :-
+set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, _) :-
   guess_media_type(In, application/'rdf+xml', MT),
-  put_dict(rdf_media_type, H1, MT, H2).
+  put_dict(rdf_media_type, InEntry1, MT, InEntry2).
 
 
 set_encoding(In, MT) :-
@@ -1110,7 +1126,8 @@ rdf_update_options(Opts1, Opts2) :-
 rdf_write_ntuples_begin(State2, Opts) :-
   option(rdf_media_type(MT), Opts, nquads),
   uuid(Uuid),
-  State1 = _{
+  ignore(option(name(Name), Opts)),
+  State1 = Name{
     quads: 0,
     rdf_media_type: MT,
     triples: 0,

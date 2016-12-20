@@ -195,7 +195,11 @@ rdf_store_warning(M, Doc, rdf(redefined_id(Uri))) :- !,
 % RDF/XML: name
 rdf_store_warning(M, Doc, rdf(not_a_name(XmlName))) :- !,
   qb(M, Doc, nsdef:xml_name_error, XmlName^^xsd:string).
-% RDF/XML: cannot parse
+% RDF/XML: unexpected tag name.
+rdf_store_warning(M, Doc, rdf(unexpected(TagName,_SgmlParser))) :- !,
+  format(atom(Term), "~w", [TagName]),
+  qb(M, Doc, nsdef:rdf_xml_unexpected, Term^^xsd:string).
+% RDF/XML: cannot parse DOM.
 rdf_store_warning(M, Doc, rdf(unparsed(Dom))) :- !,
   rdf11:in_xml_literal(xml, Dom, A1),
   atom_ellipsis(A1, 500, A2),
@@ -204,7 +208,8 @@ rdf_store_warning(M, Doc, rdf(unparsed(Dom))) :- !,
 rdf_store_warning(M, Doc, error(type_error(xml_dom,A1),_)) :- !,
   atom_ellipsis(A1, 500, A2),
   qb(M, Doc, nsdef:no_xml_dom, A2^^xsd:string).
-
+rdf_store_warning(M, Doc, Term) :-
+  debug(true, "~w,~w,~w", [M,Doc,Term]).
 
 archive_cant_parse_line(Line) --> "Can't parse line ", integer(Line).
 
