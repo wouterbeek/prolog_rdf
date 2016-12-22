@@ -127,7 +127,7 @@ init_media_type(G) :-
 %! media_type(+M, -MT, +G) is nondet.
 % Reads from the Media Types ontology.
 
-media_type(M, media_type(Type,Subtype,[]), G) :-
+media_type(M, media(Type/Subtype,[]), G) :-
   q(M, MediaType, mto:name, Subtype, G),
   rdfs_individual_of(MediaType, C),
   once(q_pref_label(M, C, Type, G)).

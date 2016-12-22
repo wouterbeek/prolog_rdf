@@ -100,7 +100,7 @@ http_header_value(S, O, G) :-
   pop_triple(S, rdf:type, llo:'CacheDirective', G), !,
   pop_triple(S, llo:key, O, G).
 % Internet Media Type.
-http_header_value(S, media_type(Type,Subtype,[Param]), G) :-
+http_header_value(S, media(Type/Subtype,[Param]), G) :-
   pop_triple(S, rdf:type, llo:'MediaType', G), !,
   pop_triple(S, llo:parameters, O, G),
   http_parameter(O, Param, G),

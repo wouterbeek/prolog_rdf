@@ -60,7 +60,7 @@ http_header_value(L) -->
 http_header_value(O) -->
   {rdf_is_literal(O)}, !,
   html(p(\qh_literal(O))).
-http_header_value(media_type(Type,Subtype,Params)) --> !,
+http_header_value(media(Type/Subtype,Params)) --> !,
   html(
     p(class='media-type', [
       span(class=type, \qh_literal(Type)),

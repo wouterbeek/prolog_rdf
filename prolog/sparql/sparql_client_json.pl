@@ -5,7 +5,14 @@
   ]
 ).
 
+/** <module> SPARQL JSON result set (client parser)
+
+@author Wouter Beek
+@version 2016/12
+*/
+
 :- use_module(library(apply)).
+:- use_module(library(dict_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(semweb/rdf11)).
 
@@ -31,12 +38,12 @@ sparql_read_json_result(Source, Result) :-
   json_read_any(Source, Dict),
   json_result(Dict, Result).
 
-json_result(_{head: _{}, boolean: Result}, ask(Result)) :- !.
-json_result(
-  _{head: _{vars: VarNames0}, results: _{bindings: Bindings}},
-  select(VarNames,Rows)
-) :-
+json_result(Dict, ask(Result)) :-
+  get_dict(boolean, Dict, Result), !.
+json_result(Dict, select(VarNames,Rows)) :-
+  get_dict_path([head,vars], Dict, VarNames0),
   maplist(atom_string, VarNames, VarNames0),
+  get_dict_path([results,bindings], Dict, Bindings),
   maplist(json_row(VarNames), Bindings, Rows).
 
 json_row(VarNames, Binding, Row) :-

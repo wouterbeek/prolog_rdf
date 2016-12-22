@@ -154,15 +154,15 @@ triple(N2, S, 'http://lodlaundromat.org/ontology/type', Type),
 triple(N3, S, 'http://lodlaundromat.org/ontology/subtype', Subtype)
 <=>
 sum_list([N1,N2,N3], N)
-| widget(N, S, media_type(Type,Subtype,[])).
+| widget(N, S, media(Type/Subtype,[])).
 
 % MediaType, parameterized.
-widget(N1, S, media_type(Type,Subtype,T)),
+widget(N1, S, media(Type/Subtype,T)),
 triple(N2, S, 'http://lodlaundromat.org/ontology/parameters', O),
 widget(N3, O, H)
 <=>
 sum_list([N1,N2,N3], N)
-| widget(N, S, media_type(Type,Subtype,[H|T])).
+| widget(N, S, media(Type/Subtype,[H|T])).
 
 % Parameter
 triple(N1, S, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://lodlaundromat.org/ontology/Parameter'),
@@ -268,10 +268,10 @@ http_version(Major, Minor) -->
     p([\qh_literal(Major),".",\qh_literal(Minor)])
   ]).
 
-media_type(Type, Subtype, Parameters) -->
+media_type(media(Type/Subtype,Params)) -->
   html([
     p([\qh_literal(Type),"/",\qh_literal(Subtype)]),
-    p(\html_calls(Parameters))
+    p(\html_calls(Params))
   ]).
 
 parameter(Key, Value) -->
