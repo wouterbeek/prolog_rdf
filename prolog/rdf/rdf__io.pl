@@ -48,6 +48,9 @@
     rdf_reserialize_legacy/2,    % +Source, +Sink
     rdf_reserialize_legacy/3,    % +Source, +Sink, +Opts
 
+  % Cleaning
+    rdf_clean_quad/2,            % +Quad1, -Quad2
+
   % Write clean N-Tuples to an existing state/stream pair
     rdf_write_ntuple/3,          % +Tuple, +State, +Out
     rdf_write_ntuple/5,          % +S, +P, +O, +State, +Out
@@ -436,41 +439,9 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
       rdf_call_on_quads0(Goal_5, InPath, Triples)
   ).
 
-rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O1,G1)) :- !,
-  %%%%maplist(print_term, InPath),
-  rdf11:post_graph(G2, G1),
-  (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
-  (   gen_is_term(O1)
-  ->  call(Goal_5, InPath, S, P, O1, G3)
-  ;   q_legacy_literal(O1, D, Lex0, LTag1),
-      (   rdf_equal(rdf:'HTML', D)
-      ->  rdf11:write_xml_literal(html, Lex0, Lex1)
-      ;   rdf_equal(rdf:'XMLLiteral', D)
-      ->  rdf11:write_xml_literal(xml, Lex0, Lex1)
-      ;   Lex1 = Lex0
-      ),
-      catch((
-        rdf11:post_object(O2, O1),
-        rdf11:pre_object(O2, O3),
-        q_legacy_literal(O3, D, Lex3, LTag3)
-      ), E, true),
-      % Non-canonical lexical form.
-      (   Lex1 \== Lex3
-      ->  print_message(warning, non_canonical_lexical_form(D,Lex1))
-      ;   true
-      ),
-      % Non-canonical language tag.
-      (   ground(LTag1),
-          LTag1 \== LTag3
-      ->  print_message(warning, non_canonical_language_tag(LTag1))
-      ;   true
-      ),
-      % Incorrect lexical form.
-      (   var(E)
-      ->  call(Goal_5, InPath, S, P, O2, G3)
-      ;   print_message(warning, E)
-      )
-  ).
+rdf_call_on_quad0(Goal_5, InPath, Quad) :- !,
+  rdf_clean_quad(Quad, rdf(S,P,O,G)),
+  call(Goal_5, InPath, S, P, O, G).
 rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O)) :-
   rdf_default_graph(G),
   rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O,G)).
@@ -630,6 +601,46 @@ rdf_call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
       call_to_stream(Sink, Mod:Goal_1, Opts)
     ),
     rdf_write_ntuples_end(State, Opts)
+  ).
+
+
+
+%! rdf_clean_quad(+Quad1, -Quad2) is det.
+
+rdf_clean_quad(rdf(S,P,O1,G1), rdf(S,P,O2,G3)) :-
+  rdf11:post_graph(G2, G1),
+  (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
+  (   gen_is_term(O1)
+  ->  O2 = O1
+  ;   q_legacy_literal(O1, D, Lex0, LTag1),
+      (   rdf_equal(rdf:'HTML', D)
+      ->  rdf11:write_xml_literal(html, Lex0, Lex1)
+      ;   rdf_equal(rdf:'XMLLiteral', D)
+      ->  rdf11:write_xml_literal(xml, Lex0, Lex1)
+      ;   Lex1 = Lex0
+      ),
+      catch(
+        (
+          rdf11:post_object(O2, O1),
+          rdf11:pre_object(O2, O3),
+          q_legacy_literal(O3, D, Lex3, LTag3)
+        ),
+        E,
+        true
+      ),
+      % Non-canonical lexical form.
+      (   Lex1 \== Lex3
+      ->  print_message(warning, non_canonical_lexical_form(D,Lex1))
+      ;   true
+      ),
+      % Non-canonical language tag.
+      (   ground(LTag1),
+          LTag1 \== LTag3
+      ->  print_message(warning, non_canonical_language_tag(LTag1))
+      ;   true
+      ),
+      % Incorrect lexical form.
+      (var(E) -> true ; print_message(warning, E))
   ).
 
 
