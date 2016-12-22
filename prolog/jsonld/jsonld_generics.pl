@@ -38,7 +38,8 @@ jsonld_abbreviate_iri(Context, Full, Compact) :-
 
 %! jsonld_expand_term(+Context, +Compact, -Full) is det.
 
-% Case 0: IRIs are stored as strings in JSON-LD, so first turn them into atoms.
+% Case 0: IRIs are stored as strings in JSON-LD, so first turn them
+%         into atoms.
 jsonld_expand_term(Context, Compact1, Full) :-
   string(Compact1), !,
   atom_string(Compact2, Compact1),
@@ -70,9 +71,9 @@ jsonld_expand_term(Context, Alias, Full) :-
   ->  jsonld_expand_term(Context, Def, Full)
   ;   get_dict('@id', Def, Full)
   ), !.
-% Case 6: Names that cannot be expanded belong to a vocabulary IRI, if present.
-%         This excludes names that are explicitly mapped to ‘null’ by the
-%         context.
+% Case 6: Names that cannot be expanded belong to a vocabulary IRI, if
+%         present.  This excludes names that are explicitly mapped to
+%         ‘null’ by the context.
 jsonld_expand_term(Context, Compact, Full) :-
   get_dict('@vocab', Context, Vocab),
   \+ jsonld_is_null(Context, Compact), !,

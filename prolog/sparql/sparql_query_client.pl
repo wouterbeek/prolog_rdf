@@ -31,8 +31,8 @@ The following debug flags are defined:
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(http/http_ext)).
+:- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
-:- use_module(library(http/http11)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
@@ -120,7 +120,7 @@ sparql_read_reply0(Result, In, Path, Path) :-
     get_dict(headers, Entry, Headers),
     get_dict('content-type', Headers, Val)
   )),
-  http_parse_header('content-type', Val, media_type("application",Subtype,_)), !,
+  http_parse_header_value(content_type, Val, media(application/Subtype,_)), !,
   (   Subtype == 'sparql-results+xml'
   ->  sparql_read_xml_result(stream(In), Result)
   ;   Subtype == 'sparql-results+json'

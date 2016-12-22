@@ -137,6 +137,7 @@ Print RDF statements.
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(dialect/hprolog)).
 :- use_module(library(dict_ext)).
+:- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pagination)).

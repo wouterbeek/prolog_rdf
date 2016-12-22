@@ -8,7 +8,7 @@
 /** <module> RDF guess JSON-LD
 
 @author Wouter Beek
-@version 2016/03, 2016/06
+@version 2016/03, 2016/06, 2016/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -25,11 +25,18 @@ rdf_guess_jsonld(S, N) :-
 
 rdf_guess_jsonld_grammar -->
   *(bs),
+  optional_arrays,
   "{",
   *(bs),
   jsonld_string,
   *(bs),
   ":", !.
+
+optional_arrays -->
+  "[", !,
+  *(bs),
+  optional_arrays.
+optional_arrays --> "".
 
 % Start of jsonld_string.
 jsonld_string --> "\"", jsonld_string0.

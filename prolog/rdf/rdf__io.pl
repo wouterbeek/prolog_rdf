@@ -84,7 +84,7 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_ext)).
-:- use_module(library(http/http11)).
+:- use_module(library(http/http_header)).
 :- use_module(library(http/json)).
 :- use_module(library(iostream)).
 :- use_module(library(iri/iri_ext)).
@@ -240,7 +240,7 @@ q_io:q_view_rm_hook(trp, G) :-
    rdf_write_to_sink(+, ?, r, r, o, r),
    rdf_write_to_sink(+, ?, r, r, o, r, +).
 
-rdf_http_plugin:rdf_content_type('application/ld+json', 0.99, jsonld). %ABC
+rdf_http_plugin:rdf_content_type('application/ld+json', 0.98, jsonld). %ABC-
 
 
 
@@ -401,12 +401,13 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
   dicts_getchk(rdf_media_type, InPath, MT),
   (   debugging(rdf__io)
   ->  peek_string(In, 1000, Str),
-      debug(rdf__io, "[PEEK (~w)] ~s", [MT,Str])
+      debug(rdf__io, "[PEEK (~w)]~n~s", [MT,Str])
   ;   true
   ),
   Opts2 = [
     anon_prefix(node(_)),
     base(BaseIri),
+    base_iri(BaseIri),
     base_uri(BaseIri),
     max_errors(-1),
     rdf_media_type(MT),
@@ -1062,7 +1063,7 @@ set_media_type(_, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
 set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT3, _) :-
   get_dict(headers, InEntry1, Headers),
   get_dict('content-type', Headers, Val),
-  http_parse_header('content-type', Val, media_type(Type,Subtype,_)),
+  http_parse_header_value(content_type, Val, media(Type/Subtype,_)),
   MT1 = Type/Subtype,
   (   rdf_incorrect_media_type(MT1, MT2)
   ->  true
