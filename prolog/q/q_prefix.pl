@@ -55,12 +55,14 @@ init_q_prefix :-
   qb_alias(dcat, 'http://www.w3.org/ns/dcat#'),
   qb_alias(grddl, 'http://www.w3.org/2003/g/data-view#'),
   qb_alias(ma, 'http://www.w3.org/ns/ma-ont#'),
+  qb_alias(mf, 'http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#'),
   qb_alias(org, 'http://www.w3.org/ns/org#'),
   %owl http://www.w3.org/2002/07/owl#
   qb_alias(prov, 'http://www.w3.org/ns/prov#'),
   qb_alias(qb, 'http://purl.org/linked-data/cube#'),
   %rdf http://www.w3.org/1999/02/22-rdf-syntax-ns#
   qb_alias(rdfa, 'http://www.w3.org/ns/rdfa#'),
+  qb_alias(rdft, 'http://www.w3.org/ns/rdftest#'),
   %rdfs http://www.w3.org/2000/01/rdf-schema#
   qb_alias(rif, 'http://www.w3.org/2007/rif#'),
   qb_alias(rr, 'http://www.w3.org/ns/r2rml#'),

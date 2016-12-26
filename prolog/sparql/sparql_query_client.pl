@@ -163,7 +163,7 @@ sparql_select(Iri, Q, Result) :-
 
 
 sparql_select(Iri, Q1, Result, Opts) :-
-  % Pagination.
+  % ‘pagination’
   option(page_size(PageSize), Opts, 20000),
   betwixt(0, inf, PageSize, Offset),
   query_suffix(Q1, PageSize, Offset, Q2),

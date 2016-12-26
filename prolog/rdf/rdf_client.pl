@@ -6,12 +6,12 @@
     print_uri/2,     % +MT, +Uri
     read_quad/2,     % +Uri, -Quad
     read_triple/2,   % +Uri, -Triple
-    test/1,          % -Name
+    test0/1,          % -Name
     write_triple/2   % +Out, +Triple
   ]
 ).
 
-/** <module> RDF pagination
+/** <module> RDF client
 
 @author Wouter Beek
 @version 2016/11-2016/12
@@ -30,7 +30,7 @@
 
 :- debug(rdf(client)).
 
-test("read/write triples") :-
+test0("read/write triples") :-
   setup_call_cleanup(
     open('local.nt', write, Out),
     forall(

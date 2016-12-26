@@ -402,13 +402,13 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
   % instead.
   get_base_iri(BaseIri, InPath, Opts1),
   dicts_getchk(rdf_media_type, InPath, MT),
-  (   debugging(rdf__io)
-  ->  peek_string(In, 1000, Str),
-      debug(rdf__io, "[PEEK (~w)]~n~s", [MT,Str])
-  ;   true
-  ),
+  %(   debugging(rdf__io)
+  %->  peek_string(In, 1000, Str),
+  %    debug(rdf__io, "[PEEK (~w)]~n~s", [MT,Str])
+  %;   true
+  %),
   Opts2 = [
-    anon_prefix(node(_)),
+    anon_prefix('_:'),
     base(BaseIri),
     base_iri(BaseIri),
     base_uri(BaseIri),
@@ -439,12 +439,12 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
       rdf_call_on_quads0(Goal_5, InPath, Triples)
   ).
 
-rdf_call_on_quad0(Goal_5, InPath, Quad) :- !,
-  rdf_clean_quad(Quad, rdf(S,P,O,G)),
-  call(Goal_5, InPath, S, P, O, G).
-rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O)) :-
+rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O)) :- !,
   rdf_default_graph(G),
   rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O,G)).
+rdf_call_on_quad0(Goal_5, InPath, Quad) :-
+  rdf_clean_quad(Quad, rdf(S,P,O,G)),
+  call(Goal_5, InPath, S, P, O, G).
 
 % Use this to debug bugs in statement calls.
 rdf_call_on_quad0_debug(Goal_5, InPath, Tuple) :-
@@ -610,7 +610,7 @@ rdf_call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
 rdf_clean_quad(rdf(S,P,O1,G1), rdf(S,P,O2,G3)) :-
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
-  (   gen_is_term(O1)
+  (   q_is_term(O1)
   ->  O2 = O1
   ;   q_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
@@ -1185,7 +1185,7 @@ rdf_write_ntuples_for_object0(State, Out, M, G, S, P, O) :-
 % TERMS BY POSITION %
 
 rdf_write_subject(BNode, State) :-
-  gen_is_bnode(BNode), !,
+  q_is_bnode(BNode), !,
   rdf_write_bnode(BNode, State).
 rdf_write_subject(Iri, _) :-
   q_is_iri(Iri), !,

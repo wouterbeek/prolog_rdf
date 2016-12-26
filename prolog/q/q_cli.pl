@@ -66,7 +66,7 @@
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(pagination)).
+:- use_module(library(pagination/cli_pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_dataset)).
@@ -166,8 +166,8 @@ q__fs(PrefixHash) :-
 
 
 q__fs(PrefixHash, PageOpts) :-
-  pagination(Dir, q_dir(PrefixHash, Dir), PageOpts, Pagination),
-  pagination_result(Pagination, pp_hash_paths(PrefixHash)).
+  create_pagination(Dir, q_dir(PrefixHash, Dir), PageOpts, Pagination),
+  cli_pagination_result(Pagination, pp_hash_paths(PrefixHash)).
 
 
 
@@ -518,7 +518,7 @@ q__x(Base, S, P, O) :-
 
 
 q__x(Base, S, P, O, G) :-
-  pagination(
+  create_pagination(
     rdf(S,P,O),
     (
       q_store_graph(Base, G),
@@ -526,7 +526,7 @@ q__x(Base, S, P, O, G) :-
     ),
     Result
   ),
-  pagination_result(Result, q_print_quads).
+  cli_pagination_result(Result, q_print_quads).
 
 
 

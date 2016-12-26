@@ -140,7 +140,7 @@ Print RDF statements.
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(pagination)).
+:- use_module(library(pagination/cli_pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/q_dataset)).
@@ -401,8 +401,8 @@ q_print_pagination(M, S, P, O, G) :-
 
 
 q_print_pagination(M, S, P, O, G, Opts) :-
-  pagination(Triple, q_triple(M, S, P, O, G, Triple), Opts, Result),
-  pagination_result(
+  create_pagination(Triple, q_triple(M, S, P, O, G, Triple), Opts, Result),
+  cli_pagination_result(
     Result,
     {Opts}/[Results]>>q_print_triples(Results, Opts)
   ).
@@ -1085,6 +1085,6 @@ inf_minus(X, Y, Z) :-
 %! q_print_default_options(+Opts1, -Out, -Opts2) is det.
 
 q_print_default_options(Opts1, Out, Opts5) :-
-  mod_dict(out, Opts1, current_output, Out, Opts3),
+  del_dict_or_default(out, Opts1, current_output, Out, Opts3),
   dcg_q_print_default_options(Opts4),
   merge_dicts(Opts4, Opts3, Opts5).
