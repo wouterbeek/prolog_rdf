@@ -74,7 +74,7 @@ rdf_store_warning(M, Doc, error(existence_error(source_sink,Path),context(_,'Is 
 % HTTP reply is empty
 rdf_store_warning(M, Doc, error(existence_error(http_reply,_),_)) :- !,
   qb(M, Doc, nsdef:http_error, nsdef:empty_http_reply).
-% IO: read
+% I/O: read
 rdf_store_warning(M, Doc, error(io_error(read,_),context(_,Msg))) :-
   (   Msg == 'Connection reset by peer'
   ->  Name = connection_reset_by_peer
@@ -85,10 +85,10 @@ rdf_store_warning(M, Doc, error(io_error(read,_),context(_,Msg))) :-
   ), !,
   rdf_global_id(nsdef:Name, O),
   qb(M, Doc, nsdef:io_read_error, O).
-% IO: write
+% I/O: write
 rdf_store_warning(M, Doc, error(io_error(write,_),context(_,'Encoding cannot represent character'))) :- !,
   qb(M, Doc, nsdef:io_write_error, nsdef:encoding_error).
-% IO warning
+% I/O warning
 rdf_store_warning(M, Doc, io_warning(_,Msg)) :-
   (   Msg == 'Illegal UTF-8 continuation'
   ->  Name = illegal_utf8_continuation
@@ -107,6 +107,7 @@ rdf_store_warning(M, Doc, E) :-
   ->  true
   ), !,
   qb(M, Doc, nsdef:not_an_iri, Name^^xsd:string).
+% ???
 rdf_store_warning(M, Doc, error(type_error(http_iri,Name),_)) :- !,
   qb(M, Doc, nsdef:non_https_iri, Name^^xsd:anyURI).
 % Literal: illegal lexical form.
