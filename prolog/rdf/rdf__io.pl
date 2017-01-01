@@ -1059,8 +1059,9 @@ rdf_recode_stream(In, MT, In, true, _) :-
   % _must_ be encoded in UTF-8.
   (is_of_type(turtle_media_type, MT) ; MT == application/'ld+json'), !,
   set_stream(In, encoding(utf8)).
-rdf_recode_stream(In1, _, In2, Close, Opts) :-
-  recode_stream(In1, In2, Close, Opts).
+rdf_recode_stream(In1, _, In2, Close, Opts1) :-
+  merge_options([recode(true)], Opts1, Opts2),
+  recode_stream(In1, In2, Close, Opts2).
 
 
 
