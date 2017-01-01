@@ -4,7 +4,7 @@
   % RDF Media Types
     rdf_alternative_extension/2, % ?MT, ?AltExt
     rdf_incorrect_media_type/2,  % ?IncorrectMT, MT
-    rdf_media_type/3,            % ?MT, ?Iri, ?DefExt
+    rdf_media_type/3,            % ?MT, ?Uri, ?DefExt
 
   % Call a goal on a stream of triples/quads
     rdf_call_on_graph/2,         % +Source, :Goal_1
@@ -31,8 +31,8 @@
     rdf_call_to_ntuples/3,       % +Sink, :Goal_2, +Opts
 
   % ???
-    rdf_download_to_file/2,      % +Iri, +File
-    rdf_download_to_file/4,      % +Iri, +File, +InOpts, +OutOpts
+    rdf_download_to_file/2,      % +Uri, +File
+    rdf_download_to_file/4,      % +Uri, +File, +InOpts, +OutOpts
 
   % Traditional load
     rdf_load_file/1,             % +Source
@@ -278,7 +278,7 @@ rdf_incorrect_media_type(text/xml,                 application/'rdf+xml').
 
 
 
-%! rdf_media_type(?MT, ?Iri, ?DefExt) is nondet.
+%! rdf_media_type(?MT, ?Uri, ?DefExt) is nondet.
 %
 % @see https://www.w3.org/ns/formats/
 
@@ -352,12 +352,16 @@ rdf_call_on_stream(Source, Goal_3) :-
 
 
 rdf_call_on_stream(Source, Goal_3, Opts1) :-
-  rdf_update_options(Opts1, Opts2),
+  set_rdf_options(Opts1, Opts2),
   call_on_stream(Source, rdf_call_on_stream(Goal_3, Opts2), Opts2).
 
-rdf_call_on_stream(Goal_3, Opts, In, InPath1, InPath3) :-
-  set_media_type_and_encoding(In, InPath1, InPath2, Opts),
-  call(Goal_3, In, InPath2, InPath3).
+rdf_call_on_stream(Goal_3, Opts, In1, InPath1, InPath3) :-
+  set_media_type(In1, InPath1, InPath2, MT, Opts),
+  setup_call_cleanup(
+    rdf_recode_stream(In1, MT, In2, Close, Opts),
+    call(Goal_3, In2, InPath2, InPath3),
+    close_any2(Close)
+  ).
 
 
 
@@ -398,9 +402,7 @@ rdf_call_on_tuples_stream(In, Goal_5, InPath, Opts) :-
 
 
 rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
-  % Library Semweb uses option base_uri/1.  We use option base_iri/1
-  % instead.
-  get_base_iri(BaseIri, InPath, Opts1),
+  get_base_uri(BaseUri, InPath, Opts1),
   dicts_getchk(rdf_media_type, InPath, MT),
   %(   debugging(rdf__io)
   %->  peek_string(In, 1000, Str),
@@ -409,9 +411,8 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
   %),
   Opts2 = [
     anon_prefix('_:'),
-    base(BaseIri),
-    base_iri(BaseIri),
-    base_uri(BaseIri),
+    base(BaseUri),
+    base_uri(BaseUri),
     max_errors(-1),
     rdf_media_type(MT),
     syntax(style)
@@ -470,7 +471,7 @@ rdf_call_onto_stream(Source, Sink, Goal_4) :-
 
 
 rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
-  rdf_update_options(SourceOpts, RdfOpts),
+  set_rdf_options(SourceOpts, RdfOpts),
   call_onto_stream(
     Source,
     Sink,
@@ -479,9 +480,13 @@ rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
     SinkOpts
   ).
 
-rdf_call_onto_stream(Goal_4, Opts, In, InPath1, InPath3, Out) :-
-  set_media_type_and_encoding(In, InPath1, InPath2, Opts),
-  call(Goal_4, In, InPath2, InPath3, Out).
+rdf_call_onto_stream(Goal_4, Opts, In1, InPath1, InPath3, Out) :-
+  set_media_type(In1, InPath1, InPath2, MT, Opts),
+  setup_call_cleanup(
+    rdf_recode_stream(In1, MT, In2, Close, Opts),
+    call(Goal_4, In2, InPath2, InPath3, Out),
+    close(Close)
+  ).
 
 
 
@@ -554,9 +559,9 @@ rdf_call_to_ntriples(Sink, Goal_2, Opts1) :-
 %
 % The following options are supported:
 %
-%   * base_iri(+iri)
+%   * base_uri(+uri)
 %
-%     The base IRI against which relative IRIs are resolved.
+%     The base URI against which relative URIs are resolved.
 %
 %   * name(+atom)
 %
@@ -696,18 +701,18 @@ rdf_reserialize_legacy(Source, Sink, Opts) :-
 
 
 
-%! rdf_download_to_file(+Iri, +File) is det.
-%! rdf_download_to_file(+Iri, ?File, +InOpts, +OutOpts) is det.
+%! rdf_download_to_file(+Uri, +File) is det.
+%! rdf_download_to_file(+Uri, ?File, +InOpts, +OutOpts) is det.
 %
 % Options are passed to rdf_call_onto_stream/5.
 
-rdf_download_to_file(Iri, File) :-
-  rdf_download_to_file(Iri, File, [], []).
+rdf_download_to_file(Uri, File) :-
+  rdf_download_to_file(Uri, File, [], []).
 
 
-rdf_download_to_file(Iri, File, InOpts, OutOpts) :-
+rdf_download_to_file(Uri, File, InOpts, OutOpts) :-
   thread_file(File, TmpFile),
-  call_onto_stream(Iri, TmpFile, copy_stream_data0, InOpts, OutOpts),
+  call_onto_stream(Uri, TmpFile, copy_stream_data0, InOpts, OutOpts),
   rename_file(TmpFile, File).
 
 copy_stream_data0(In, InPath, InPath, Out) :-
@@ -720,7 +725,7 @@ copy_stream_data0(In, InPath, InPath, Out) :-
 %
 % The following options are supported:
 %
-%   * base_iri(+atom)
+%   * base_uri(+atom)
 %
 %   * force_graph(+rdf_graph) Forces all tuples to be loaded as
 %   triples in this graph.
@@ -772,13 +777,13 @@ rdf_load_file(Source, Opts) :-
 
 rdf_force_load_tuple0(State, ToG, _, S, P, O, FromG) :-
   count_tuple0(State, FromG),
-  % @tbd IRI normalization.
+  % @tbd URI normalization.
   rdf_assert(S, P, O, ToG).
 
 rdf_load_tuple0(State, ToG, _, S, P, O, FromG) :-
   count_tuple0(State, FromG),
   (rdf_default_graph(FromG) -> G = ToG ; G = FromG),
-  % @tbd IRI normalization.
+  % @tbd URI normalization.
   rdf_assert(S, P, O, G).
 
 count_tuple0(State, G) :-
@@ -1032,45 +1037,45 @@ rdf_write_to_sink_legacy(Sink, M, Opts) :-
 
 % HELPERS %
 
-%! get_base_iri(-BaseIri, +InPath, +Opts) is det.
+%! get_base_uri(-BaseUri, +InPath, +Opts) is det.
 
-% Option base_iri/1 overrides everything else.
-get_base_iri(BaseIri, _, Opts) :-
-  option(base_iri(BaseIri), Opts), !.
-get_base_iri(BaseIri, InPaths, _) :-
-  member(InPath, InPaths),
-  (   get_dict(iri, InPath, Iri)
-  ->  iri_remove_fragment(Iri, BaseIri)
-  ;   get_dict(file, InPath, File)
-  ->  uri_file_name(BaseIri, File)
-  ), !.
+% Option base_uri/1 overrides everything else.
+get_base_uri(BaseUri, _, Opts) :-
+  option(base_uri(BaseUri), Opts), !.
+get_base_uri(BaseUri, InPath, _) :-
+  member(InEntry, InPath),
+  (   _{'@id': Uri, '@type': uri} :< InEntry
+  ->  !, iri_remove_fragment(Uri, BaseUri)
+  ;   _{'@id': File, '@type': file} :< InEntry
+  ->  !, uri_file_name(BaseUri, File)
+  ).
 
 
 
-%! set_media_type_and_encoding(+In, +InPath1, -InPath2, +Opts) is det.
+%! rdf_recode_stream(+In1, +MT, -In2, -Close, +Opts) is det.
+
+rdf_recode_stream(In, MT, In, true, _) :-
+  % Documents of type JSON-LD or one of the Turtle-family formats
+  % _must_ be encoded in UTF-8.
+  (is_of_type(turtle_media_type, MT) ; MT == application/'ld+json'), !,
+  set_stream(In, encoding(utf8)).
+rdf_recode_stream(In1, _, In2, Close, Opts) :-
+  recode_stream(In1, In2, Close, Opts).
+
+
+
+%! set_media_type(+In, +InPath1, -InPath2, -MT, +Opts) is det.
 %
-% # GUESS ENCODING
-%
-%   1. Text?
-%   2. Unicode?
-%   3. Format?
-%
-% @tbd Archive entries are always encoded as octet.  We change this to
-%      UTF-8.
+% Sets the `rdf_media_type` key in InPath2.
 
-set_media_type_and_encoding(In, InPath1, InPath2, Opts) :-
-  set_media_type(In, InPath1, InPath2, MT, Opts),
-  set_encoding(In, MT).
-
-
-% RDF Media Type was already set.
+% The RDF Media Type was already set earlier.
 set_media_type(_, [InEntry|InPath], [InEntry|InPath], MT, _) :-
   get_dict(rdf_media_type, InEntry, MT), !.
-% Option rdf_media_type/1 overrides guesstimates.
+% Option rdf_media_type/1 overrides guesswork.
 set_media_type(_, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
   option(rdf_media_type(MT), Opts), !,
-  put_dict(rdf_media_type, InEntry1, MT, InEntry2).
-% HTTP Content-Type header.
+  InEntry2 = InEntry1.put(_{rdf_media_type: MT}).
+% The HTTP Content-Type header is used to guide the guessing.
 set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT3, _) :-
   get_dict(headers, InEntry1, Headers),
   get_dict('content-type', Headers, Val),
@@ -1080,48 +1085,39 @@ set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT3, _) :-
   ->  true
   ;   rdf_media_type(MT1, _, _)
   ->  MT2 = MT1
-  ),
-  guess_media_type(In, MT2, MT3), !,
-  put_dict(rdf_media_type, InEntry1, MT3, InEntry2).
-% Based on the file extension of the base IRI and our own guesswork.
+  ), !,
+  set_media_type_by_guessing(In, MT2, InEntry1, MT3, InEntry2).
+% The file extension of the base URI is used to guide the guessing.
 set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT2, Opts) :-
-  get_base_iri(BaseIri, [InEntry1|InPath], Opts),
-  iri_file_extensions(BaseIri, Exts),
+  get_base_uri(BaseUri, [InEntry1|InPath], Opts),
+  iri_file_extensions(BaseUri, Exts),
   member(Ext, Exts),
   (rdf_media_type(MT1, _, Ext) ; rdf_alternative_extension(MT1, Ext)), !,
-  guess_media_type(In, MT1, MT2), !,
-  put_dict(rdf_media_type, InEntry1, MT2, InEntry2).
-% Time's up!  Let's say its RDF/XML.
-set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, _) :-
-  guess_media_type(In, application/'rdf+xml', MT),
-  put_dict(rdf_media_type, InEntry1, MT, InEntry2).
+  set_media_type_by_guessing(In, MT1, InEntry1, MT2, InEntry2).
+% Unguided guessing.
+set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT2, _) :-
+  MT1 = application/'rdf+xml',
+  set_media_type_by_guessing(In, MT1, InEntry1, MT2, InEntry2).
 
 
-set_encoding(In, MT) :-
-  % Documents of type JSON-LD or one of the Turtle-family formats
-  % _must_ be encoded in UTF-8.
-  (is_of_type(turtle_media_type, MT) ; MT == application/'ld+json'), !,
-  set_stream(In, encoding(utf8)).
-set_encoding(_, _).
 
+%! set_media_type_by_guessing(+In, +MT1, +InEntry1, -MT2, -InEntry2) is det.
 
-% We're able to guess the Media Type, using the given Media Type.
-guess_media_type(In, MT1, MT2) :-
+set_media_type_by_guessing(In, MT1, InEntry1, MT2, InEntry2) :-
   % Notice that the metadata option of the original options list does
   % not get overwritten when opening the stream for guessing the RDF
   % serialization format.
-  rdf_guess_media_type(In, MT2, [default_rdf_media_type(MT1)]), !.
-% We're unable to guess the Media Type, but the given Media Type seems
-% ok.
-guess_media_type(_, MT, MT) :-
-  nonvar(MT),
-  rdf_media_type(MT, _, _), !.
+  (   rdf_guess_media_type(In, MT2, [default_rdf_media_type(MT1)])
+  ->  true
+  ;   MT2 = MT1
+  ),
+  InEntry2 = InEntry1.put(_{rdf_media_type: MT2}).
   
 
 
-%! rdf_update_options(+Opts1, -Opts2) is det.
+%! set_rdf_options(+Opts1, -Opts2) is det.
 
-rdf_update_options(Opts1, Opts2) :-
+set_rdf_options(Opts1, Opts2) :-
   rdf_http_plugin:rdf_extra_headers(DefOpts, Opts1),
   % merge_options/3 cannot be used here since it overwrites
   % request_header/1 entries, even though their keys are different.
