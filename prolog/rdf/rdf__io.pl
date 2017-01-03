@@ -1145,7 +1145,7 @@ rdf_write_ntuples_begin(State2, Opts) :-
   ->  State2 = State1.put(_{warn: Warn})
   ;   State2 = State1
   ),
-  indent_debug(rdf__io, "> Writing N-Tuples").
+  indent_debug(rdf__io, "» Writing N-Tuples (~w)", [Name]).
 
 
 %! rdf_write_ntuples_end(+State, +Opts) is det.
@@ -1155,7 +1155,8 @@ rdf_write_ntuples_end(State, Opts) :-
   option(triples(State.triples), Opts, _),
   NumTuples is State.triples + State.quads,
   option(tuples(NumTuples), Opts, _),
-  indent_debug(rdf__io, "< Written N-Tuples").
+  dict_tag(State, Name),
+  indent_debug(rdf__io, "« Written N-Tuples (~w)", [Name]).
 
 
 
