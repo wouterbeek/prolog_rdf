@@ -1155,8 +1155,8 @@ rdf_write_ntuples_begin(State2, Opts) :-
 rdf_write_ntuples_end(State, Opts) :-
   option(quads(State.quads), Opts, _),
   option(triples(State.triples), Opts, _),
-  NoTuples is State.triples + State.quads,
-  option(tuples(NoTuples), Opts, _),
+  NumTuples is State.triples + State.quads,
+  option(tuples(NumTuples), Opts, _),
   indent_debug(rdf__io, "< Written N-Tuples").
 
 
