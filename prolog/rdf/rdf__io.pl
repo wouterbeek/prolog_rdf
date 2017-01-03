@@ -75,7 +75,7 @@
 /** <module> RDF I/O
 
 @author Wouter Beek
-@version 2015/08-2016/12
+@version 2015/08-2017/01
 */
 
 :- use_module(library(aggregate)).
@@ -88,6 +88,7 @@
 :- use_module(library(error)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_header)).
+:- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(iostream)).
 :- use_module(library(iri/iri_ext)).
@@ -712,11 +713,8 @@ rdf_download_to_file(Uri, File) :-
 
 rdf_download_to_file(Uri, File, InOpts, OutOpts) :-
   thread_file(File, TmpFile),
-  call_onto_stream(Uri, TmpFile, copy_stream_data0, InOpts, OutOpts),
+  call_onto_stream(Uri, TmpFile, copy_stream_data, InOpts, OutOpts),
   rename_file(TmpFile, File).
-
-copy_stream_data0(In, InPath, InPath, Out) :-
-  copy_stream_data(In, Out).
 
 
 
@@ -1078,7 +1076,7 @@ set_media_type(_, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
   InEntry2 = InEntry1.put(_{rdf_media_type: MT}).
 % The HTTP Content-Type header is used to guide the guessing.
 set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT3, _) :-
-  get_dict(headers, InEntry1, Headers),
+  dicts_getchk(headers, [InEntry1|InPath], Headers),
   get_dict('content-type', Headers, Val),
   http_parse_header_value(content_type, Val, media(Type/Subtype,_)),
   MT1 = Type/Subtype,
