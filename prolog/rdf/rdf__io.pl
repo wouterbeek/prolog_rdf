@@ -570,7 +570,7 @@ rdf_call_to_ntriples(Sink, Goal_2, Opts1) :-
 %     Optionally, the name that is given to the dictionary that
 %     represents the state.
 %
-%   * quads(-nonneg)
+%   * number_of_quads(-nonneg)
 %
 %     The number of written quads.
 %
@@ -580,11 +580,11 @@ rdf_call_to_ntriples(Sink, Goal_2, Opts1) :-
 %     application/'n-nquads' (default) for N-Quads 1.1 and
 %     application/'n-triples' for N-Triples 1.1.
 %
-%   * triples(-nonneg)
+%   * number_of_triples(-nonneg)
 %
 %     The number of written triples.
 %
-%   * tuples(-nonneg)
+%   * number_of_tuples(-nonneg)
 %
 %     The number of written tuples.
 %
@@ -731,11 +731,11 @@ rdf_download_to_file(Uri, File, InOpts, OutOpts) :-
 %
 %   * graph(+rdf_graph) The default graph.  Default is `default'.
 %
-%   * quads(-nonneg)
+%   * number_of_quads(-nonneg)
 %
-%   * triples(-nonneg)
+%   * number_of_triples(-nonneg)
 %
-%   * tuples(-nonneg)
+%   * number_of_tuples(-nonneg)
 %
 %   * Other options are passed to rdf_call_on_tuples/3.
 %
@@ -754,7 +754,7 @@ rdf_load_file(Source) :-
 
 
 rdf_load_file(Source, Opts) :-
-  State = _{quads: 0, triples: 0},
+  State = _{number_of_quads: 0, number_of_triples: 0},
   (   option(force_graph(ToG), Opts)
   ->  Goal_5 = rdf_force_load_tuple0(State, ToG)
   ;   rdf_default_graph(DefG),
@@ -762,16 +762,16 @@ rdf_load_file(Source, Opts) :-
       Goal_5 = rdf_load_tuple0(State, ToG)
   ),
   rdf_call_on_tuples(Source, Goal_5, Opts),
-  NumQuads = State.quads,
-  NumTriples = State.triples,
-  option(quads(NumQuads), Opts, _),
-  option(triples(NumTriples), Opts, _),
+  NumQuads = State.number_of_quads,
+  NumTriples = State.number_of_triples,
+  option(number_of_quads(NumQuads), Opts, _),
+  option(number_of_triples(NumTriples), Opts, _),
   NumTuples is NumQuads + NumTriples,
-  option(tuples(NumTuples), Opts, _),
+  option(number_of_tuples(NumTuples), Opts, _),
   debug(
     rdf__io,
     "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
-    [NumTuples,Source,State.triples,State.quads]
+    [NumTuples,Source,State.number_of_triples,State.number_of_quads]
   ).
 
 rdf_force_load_tuple0(State, ToG, _, S, P, O, FromG) :-
@@ -787,9 +787,9 @@ rdf_load_tuple0(State, ToG, _, S, P, O, FromG) :-
 
 count_tuple0(State, G) :-
   rdf_default_graph(G), !,
-  dict_inc(triples, State).
+  dict_inc(number_of_triples, State).
 count_tuple0(State, _) :-
-  dict_inc(quads, State).
+  dict_inc(number_of_quads, State).
 
 
 
@@ -854,12 +854,12 @@ rdf_write_ntuple(S, P, O, G, State, Out) :-
     rdf_write_object(O, State),
     put_char(' '),
     (   State.rdf_media_type == application/'n-triples'
-    ->  dict_inc(triples, State)
+    ->  dict_inc(number_of_triples, State)
     ;   rdf_default_graph(G)
-    ->  dict_inc(triples, State)
+    ->  dict_inc(number_of_triples, State)
     ;   rdf_write_graph(G),
         put_char(' '),
-        dict_inc(quads, State)
+        dict_inc(number_of_quads, State)
     ),
     put_char(.),
     put_code(10)
@@ -1136,9 +1136,9 @@ rdf_write_ntuples_begin(State2, Opts) :-
   uuid(Uuid),
   ignore(option(name(Name), Opts)),
   State1 = Name{
-    quads: 0,
+    number_of_quads: 0,
     rdf_media_type: MT,
-    triples: 0,
+    number_of_triples: 0,
     uuid: Uuid
   },
   % Stream to write warnings to, if any.
@@ -1152,10 +1152,10 @@ rdf_write_ntuples_begin(State2, Opts) :-
 %! rdf_write_ntuples_end(+State, +Opts) is det.
 
 rdf_write_ntuples_end(State, Opts) :-
-  option(quads(State.quads), Opts, _),
-  option(triples(State.triples), Opts, _),
-  NumTuples is State.triples + State.quads,
-  option(tuples(NumTuples), Opts, _),
+  option(number_of_quads(State.number_of_quads), Opts, _),
+  option(number_of_triples(State.number_of_triples), Opts, _),
+  NumTuples is State.number_of_triples + State.number_of_quads,
+  option(number_of_tuples(NumTuples), Opts, _),
   dict_tag(State, Name),
   indent_debug(rdf__io, "« Written N-Tuples (~w)", [Name]).
 
