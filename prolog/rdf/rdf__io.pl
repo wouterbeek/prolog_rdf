@@ -341,7 +341,8 @@ rdf_call_on_graph(Source, Goal_1, Opts1) :-
 %! rdf_call_on_stream(+Source, :Goal_3) is det.
 %! rdf_call_on_stream(+Source, :Goal_3, +Opts) is det.
 %
-% The following call is made: `call(Goal_3, In, InPath1, InPath2)`.
+% The following call is made: `call(Goal_3, In, InPath1, InPath2)`,
+% where In is a stream containing (hopefully) some RDF data.
 %
 % Options are passed to read_from_stream/3 and rdf_guess_fomat/3
 %
