@@ -33,7 +33,7 @@
 /** <module> Quine file system
 
 @author Wouter Beek
-@version 2016/08-2016/12
+@version 2016/08-2017/01
 */
 
 :- use_module(library(apply)).
@@ -126,17 +126,19 @@ q_dir(Hash, Dir2) :-
 
 
 
-%! q_dir_file(+Dir, +Format, -File) is det.
-%! q_dir_file(+Dir, -Format, -File) is multi.
-%! q_dir_file(-Dir, -Format, +File) is det.
+%! q_dir_file(+Dir, +Format, -File) is nondet.
+%! q_dir_file(+Dir, -Format, -File) is nondet.
+%! q_dir_file(-Dir, +Format, -File) is nondet.
+%! q_dir_file(-Dir, -Format, +File) is semidet.
 
 q_dir_file(Dir, Format, File) :-
   q_dir_file(Dir, _, Format, File).
 
 
-%! q_dir_file(+Dir, ?Base, +Format, -File) is det.
-%! q_dir_file(+Dir, ?Base, -Format, -File) is multi.
-%! q_dir_file(-Dir, ?Base, -Format, +File) is det.
+%! q_dir_file(+Dir, ?Base, +Format, -File) is semidet.
+%! q_dir_file(+Dir, ?Base, -Format, -File) is nondet.
+%! q_dir_file(-Dir, ?Base, +Format, -File) is nondet.
+%! q_dir_file(-Dir, ?Base, -Format, +File) is semidet.
 
 q_dir_file(Dir, Base, Format, File) :-
   ground(File), !,
@@ -150,6 +152,7 @@ q_dir_file(Dir, Base, Format, File) :-
   ;   q_format(Format, Exts)
   ),
   atomic_list_concat([Base|Exts], ., Local),
+  q_dir(Dir),
   directory_file_path(Dir, Local, File).
 
 
