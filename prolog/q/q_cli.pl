@@ -166,8 +166,8 @@ q__fs(PrefixHash) :-
 
 
 q__fs(PrefixHash, PageOpts) :-
-  create_pagination(Dir, q_dir(PrefixHash, Dir), PageOpts, Pagination),
-  cli_pagination_result(Pagination, pp_hash_paths(PrefixHash)).
+  create_pagination(Dir, q_dir(PrefixHash, Dir), PageOpts, Result),
+  cli_pagination_result(Result, pp_hash_paths(PrefixHash)).
 
 
 
