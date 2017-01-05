@@ -70,7 +70,8 @@
     q_subject/3,           % +M, ?S, ?G
     q_term/2,              % +M, ?Term
     q_term/3,              % +M, ?Term, ?G
-    q_term_expansion/2     % +Atom, -Term
+    q_term_expansion/2,    % +Atom, -Term
+    q_term_to_atom/2       % +Term, -Atom
    %q_transaction/1        % :Goal_0
    %q_transaction/2        % :Goal_0, +Id
    %q_transaction/3        % :Goal_0, +Is, +Opts
@@ -103,7 +104,7 @@
 /** <module> Quine term API
 
 @author Wouter Beek
-@version 2016/06-2016/12
+@version 2016/06-2017/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -705,16 +706,8 @@ q_query_term(Term, QueryTerm) :-
 
 
 q_query_term(Key, Val, QueryTerm) :-
-  q_write_query_term(Val, A),
+  q_term_to_atom(Val, A),
   QueryTerm =.. [Key,A].
-
-
-q_write_query_term(Val^^D, A) :- !,
-  rdf11:in_ground_type(D, Val, Lex),
-  format(atom(A), '"~a"^^<~a>', [Lex,D]).
-q_write_query_term(Lex@LTag, A) :- !,
-  format(atom(A), '"~a"@~a', [Lex,LTag]).
-q_write_query_term(A, A).
 
 
 
@@ -773,3 +766,17 @@ q_term_expansion(X, Y) :-
   q_alias(Alias), !,
   rdf_global_id(Alias:Local, Y).
 q_term_expansion(X, X).
+
+
+
+%! q_term_to_atom(+Term, -Atom) is det.
+
+q_term_to_atom(X, X) :-
+  var(X), !.
+q_term_to_atom(Val^^D, A) :- !,
+  rdf11:in_ground_type(D, Val, Lex),
+  format(atom(A), '"~a"^^<~a>', [Lex,D]).
+q_term_to_atom(Lex@LTag, A) :- !,
+  format(atom(A), '"~a"@~a', [Lex,LTag]).
+q_term_to_atom(A, A) :-
+  atom(A).
