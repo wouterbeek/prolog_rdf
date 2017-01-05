@@ -446,8 +446,10 @@ rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O)) :- !,
   rdf_default_graph(G),
   rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O,G)).
 rdf_call_on_quad0(Goal_5, InPath, Quad) :-
-  rdf_clean_quad(Quad, rdf(S,P,O,G)),
-  call(Goal_5, InPath, S, P, O, G).
+  (   rdf_clean_quad(Quad, rdf(S,P,O,G))
+  ->  call(Goal_5, InPath, S, P, O, G)
+  ;   true
+  ).
 
 % Use this to debug bugs in statement calls.
 rdf_call_on_quad0_debug(Goal_5, InPath, Tuple) :-
@@ -612,7 +614,9 @@ rdf_call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
 
 
 
-%! rdf_clean_quad(+Quad1, -Quad2) is det.
+%! rdf_clean_quad(+Quad1, -Quad2) is semidet.
+%
+% Fails if Quad1 cannot be automatically cleaned.
 
 rdf_clean_quad(rdf(S,P,O1,G1), rdf(S,P,O2,G3)) :-
   rdf11:post_graph(G2, G1),
@@ -646,8 +650,8 @@ rdf_clean_quad(rdf(S,P,O1,G1), rdf(S,P,O2,G3)) :-
       ->  print_message(warning, non_canonical_language_tag(LTag1))
       ;   true
       ),
-      % Incorrect lexical form.
-      (var(E) -> true ; print_message(warning, E))
+      % Incorrect lexical form.  This should just fail.
+      (var(E) -> true ; print_message(warning, E), fail)
   ).
 
 
