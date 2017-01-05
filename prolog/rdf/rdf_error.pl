@@ -8,13 +8,14 @@
 /** <module> RDF error
 
 @author Wouter Beek
-@version 2016/03-2016/05, 2016/08-2016/10, 2016/12
+@version 2016/03-2017/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
+:- use_module(library(pl_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_print)).
@@ -178,10 +179,11 @@ rdf_store_warning(M, Doc, error(ssl_error(Error0,_Lib0,_Func0,_Reason0),_)) :- !
 rdf_store_warning(M, Doc, error(ssl_error(ssl_verify),_)) :- !,
   qb(M, Doc, nsdef:ssl_error, nsdef:ssl_verify).
 % Syntax error
-rdf_store_warning(M, Doc, error(syntax_error(Msg1),stream(_,Line,Col,Char))) :- !,
-  atom_ellipsis(Msg1, 500, Msg2),
+rdf_store_warning(M, Doc, error(syntax_error(Term),stream(_,Line,Col,Char))) :- !,
+  with_output_to(atom(A1), write_term(Term)),
+  atom_ellipsis(A1, 500, A2),
   maplist(defval(unknown), [Line,Col,Char]),
-  format(string(String), "[~w:~w:~w] ~a", [Line,Col,Char,Msg2]),
+  format(string(String), "[~w:~w:~w] ~a", [Line,Col,Char,A2]),
   qb(M, Doc, nsdef:syntax_error, String^^xsd:string).
 % Timeout: read
 rdf_store_warning(M, Doc, error(timeout_error(read,_),context(_,_))) :- !,
