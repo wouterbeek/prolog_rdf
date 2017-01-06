@@ -1,32 +1,28 @@
 :- module(
   q_fs,
   [
-    q_base/1,             % ?Base
-    q_delete_file/1,      % +File  
-    q_dir/1,              % ?Dir
-    q_dir/2,              % +Hash, -Dir
-    q_dir_file/3,         % ?Dir, ?Format, ?File
-    q_dir_file/4,         % ?Dir, ?Base, ?Format, ?File
-    q_dir_graph/3,        % ?Dir, ?Base, ?G
-    q_dir_hash/2,         % ?Dir, ?Hash
-    q_file/2,             % ?Format, ?File
-    q_file_graph/2,       % ?File, ?G
-    q_file_graph/3,       % ?File, ?Format, ?G
-    q_file_graph/4,       % ?File, ?Base, ?Format, ?G
-    q_file_hash/2,        % ?File, ?Hash
-    q_file_hash/3,        % ?File, ?Format, ?Hash
-    q_file_hash/4,        % ?File, ?Base, ?Format, ?Hash
-    q_file_is_ready/1,    % +File
-    q_file_is_ready/2,    % +File1, File2
-    q_file_ready/2,       % +File, -Ready
-    q_file_ready_time/2,  % +File, -Time
-    q_file_touch_ready/1, % +File
-    q_format/1,           % ?Format
-    q_format/2,           % ?Format, -Exts
-    q_graph/2,            % ?Base, ?G
-    q_graph_hash/2,       % ?G, ?Hash
-    q_graph_hash/3,       % ?G, ?Base, ?Hash
-    q_hash/1              % -Hash
+    q_base/1,        % ?Base
+    q_delete_file/1, % +File
+    q_dir/1,         % ?Dir
+    q_dir/2,         % +Hash, -Dir
+    q_dir_file/3,    % ?Dir, ?Format, ?File
+    q_dir_file/4,    % ?Dir, ?Base, ?Format, ?File
+    q_dir_graph/3,   % ?Dir, ?Base, ?G
+    q_dir_hash/2,    % ?Dir, ?Hash
+    q_file/2,        % ?Format, ?File
+    q_file/3,        % ?Base, ?Format, ?File
+    q_file_graph/2,  % ?File, ?G
+    q_file_graph/3,  % ?File, ?Format, ?G
+    q_file_graph/4,  % ?File, ?Base, ?Format, ?G
+    q_file_hash/2,   % ?File, ?Hash
+    q_file_hash/3,   % ?File, ?Format, ?Hash
+    q_file_hash/4,   % ?File, ?Base, ?Format, ?Hash
+    q_format/1,      % ?Format
+    q_format/2,      % ?Format, -Exts
+    q_graph/2,       % ?Base, ?G
+    q_graph_hash/2,  % ?G, ?Hash
+    q_graph_hash/3,  % ?G, ?Base, ?Hash
+    q_hash/1         % -Hash
   ]
 ).
 
@@ -70,7 +66,7 @@ q_delete_file(File) :-
 %! q_delete_ready(+File) is det.
 
 q_delete_ready(File) :-
-  q_file_ready(File, Ready),
+  file_ready(File, Ready),
   delete_file_msg(Ready).
 
 
@@ -191,12 +187,19 @@ q_dir_hash(Dir4, Hash) :-
 %! q_file(-Format, +File) is nondet.
 
 q_file(Format, File) :-
+  q_file(_, Format, File).
+
+
+%! q_file(?Base, ?Format, -File) is nondet.
+%! q_file(?Base, -Format, +File) is nondet.
+
+q_file(Base, Format, File) :-
   ground(File), !,
-  q_dir_file(Dir, Format, File),
+  q_dir_file(Dir, Base, Format, File),
   q_dir(Dir).
-q_file(Format, File) :-
+q_file(Base, Format, File) :-
   q_dir(Dir),
-  q_dir_file(Dir, Format, File),
+  q_dir_file(Dir, Base, Format, File),
   exists_file(File).
 
 
@@ -254,45 +257,6 @@ q_file_hash(File, Base, Format, Hash) :-
 q_file_hash(File, Base, Format, Hash) :-
   q_dir_hash(Dir, Hash),
   q_dir_file(Dir, Base, Format, File).
-
-
-
-%! q_file_is_ready(+File) is semidet.
-%! q_file_is_ready(+File1, +File2) is semidet.
-
-q_file_is_ready(File) :-
-  q_file_ready(File, Ready),
-  exists_file(Ready).
-
-
-q_file_is_ready(File1, File2) :-
-  q_file_ready_time(File2, Ready2),
-  q_file_ready_time(File1, Ready1),
-  Ready2 >= Ready1.
-
-
-
-%! q_file_ready(+File, -Ready) is det.
-
-q_file_ready(File, Ready) :-
-  atomic_list_concat([File,ready], ., Ready).
-
-
-
-%! q_file_ready_time(+File, -Time) is det.
-
-q_file_ready_time(File, Time) :-
-  q_file_ready(File, Ready),
-  exists_file(Ready),
-  time_file(Ready, Time).
-
-
-
-%! q_file_touch_ready(+File) is det.
-
-q_file_touch_ready(File) :-
-  q_file_ready(File, Ready),
-  touch(Ready).
 
 
 

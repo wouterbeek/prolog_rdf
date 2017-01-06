@@ -364,7 +364,7 @@ q_source2store_source(Source, Info, SinkOpts1, Ready0, StoreFile) :-
   q_dataset_iri(Info.dataset, D),
   (   q_dataset_graph(D, Info.graph, G),
       q_file_graph(StoreFile, ntriples, G),
-      q_file_ready_time(StoreFile, Ready),
+      file_ready_time(StoreFile, Ready),
       Ready >= Ready0
   ->  ignore(option(triples(0), SinkOpts1))
   ;   q_store_dir(Dir),
@@ -390,7 +390,7 @@ q_source2store_source(Source, Info, SinkOpts1, Ready0, StoreFile) :-
       delete_file_msg(StoreFile),
       create_file_directory(StoreFile),
       rename_file(TmpFile, StoreFile),
-      q_file_touch_ready(StoreFile),
+      file_touch_ready(StoreFile),
       q_file_graph(StoreFile, G),
       q_dataset_add_graph(D, Info.graph, G),
       M = trp,
@@ -539,7 +539,7 @@ q_transform_cbd(G, Goal_1) :-
   thread_file(File, FileTmp),
   hdt_call_on_graph(G, qu_cbd_on_hdt0(Goal_1, FileTmp)),
   rename_file(FileTmp, File),
-  q_file_touch_ready(File).
+  file_touch_ready(File).
 
 qu_cbd_on_hdt0(Goal_1, FileTmp, Hdt) :-
   rdf_call_to_ntuples(FileTmp, qu_cbd_to_stream0(Goal_1, Hdt)).
@@ -615,12 +615,12 @@ q_store2cache(M) :-
 q_store2cache(M, G) :-
   q_file_graph(File1, ntriples, G),
   q_file_graph(File2, M, G),
-  (   q_file_is_ready(File1, File2)
+  (   file_is_ready(File1, File2)
   ->  true
   ;   q_cache_rm(M, G),
       debug(q_io, "» store-2-cache ~a (~w)", [G,M]),
       once(q_store2cache_hook(M, File1, File2, G)),
-      q_file_touch_ready(File2),
+      file_touch_ready(File2),
       debug(q_io, "« store-2-cache ~a (~w)", [G,M])
   ).
 
@@ -824,7 +824,7 @@ q_view2store(M, G) :-
     G,
     [mode(write),rdf_media_type(application/'n-triples')]
   ),
-  q_file_touch_ready(NTriplesFile).
+  file_touch_ready(NTriplesFile).
 
 
 
