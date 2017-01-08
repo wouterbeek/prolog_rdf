@@ -32,13 +32,17 @@
 %! rdf_store_warning(+M, +Doc, +E) is det.
 
 % Archive error
-rdf_store_warning(M, Doc, error(archive_error(_,Msg),_)) :-
+rdf_store_warning(M, Doc, error(archive_error(Code,Msg),_)) :-
   (   Msg = 'Invalid central directory signature'
   ->  Name = invalid_central_directory_signature
   ;   Msg = 'Missing type keyword in mtree specification'
   ->  Name = missing_type_keyword_in_mtree_specification
   ;   Msg = 'Unrecognized archive format'
   ->  Name = unrecognized_archive_format
+  ;   % E.g. “Truncated input file (needed 186262016 bytes, only 0
+      % available)”
+      Code = 25
+  ->  Name = truncated_input_file
   ), !,
   rdf_global_id(nsdef:Name, O),
   qb(M, Doc, nsdef:archive_error, O).
