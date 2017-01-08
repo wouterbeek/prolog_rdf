@@ -18,6 +18,7 @@
 :- use_module(library(pl_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(q/qb)).
+:- use_module(library(q/q_iri)).
 :- use_module(library(q/q_print)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_graph)).
@@ -112,22 +113,16 @@ rdf_store_warning(M, Doc, E) :-
 rdf_store_warning(M, Doc, error(type_error(http_iri,Name),_)) :- !,
   qb(M, Doc, nsdef:non_https_iri, Name^^xsd:anyURI).
 % Literal: illegal lexical form.
-rdf_store_warning(M, Doc, error(type_error(D1,Lex),_)) :- !,
-  iri_abbr(D1, D2),
-  atom_concat(illegal_, D2, Name),
-  rdf_global_id(nsdef:Name, P),
+rdf_store_warning(M, Doc, error(type_error(D,Lex),_)) :- !,
+  q_tbox_iri(D, P),
   qb(M, Doc, P, Lex^^xsd:string).
 % Literal: out-of-bounds value.
-rdf_store_warning(M, Doc, error(domain_error(D1,Lex),_)) :- !,
-  iri_abbr(D1, D2),
-  atom_concat(outofbounds_, D2, Name),
-  rdf_global_id(nsdef:Name, P),
+rdf_store_warning(M, Doc, error(domain_error(D,Lex),_)) :- !,
+  q_tbox_iri(D, P),
   qb(M, Doc, P, Lex^^xsd:string).
 % Literal: non-canonical lexical form.
-rdf_store_warning(M, Doc, non_canonical_lexical_form(D1,Lex)) :- !,
-  iri_abbr(D1, D2),
-  atom_concat(noncanonical_, D2, Name),
-  rdf_global_id(nsdef:Name, P),
+rdf_store_warning(M, Doc, non_canonical_lexical_form(D,Lex)) :- !,
+  q_tbox_iri(D, P),
   qb(M, Doc, P, Lex^^xsd:string).
 % Malformed URL
 rdf_store_warning(M, Doc, error(domain_error(url,Url),_)) :- !,
@@ -216,17 +211,8 @@ rdf_store_warning(M, Doc, Term) :-
 
 archive_cant_parse_line(Line) --> "Can't parse line ", integer(Line).
 
-
 ssl_lib(N) --> "lib(", integer(N), ")".
-
 
 ssl_func(N) --> "func(", integer(N), ")".
 
-
 ssl_reason(N) --> "reason(", integer(N), ")".
-
-
-iri_abbr(Iri, Abbr) :-
-  with_output_to(atom(Abbr),
-    q_print_iri(Iri, _{iri_abbr: true, max_iri_len: inf})
-  ).
