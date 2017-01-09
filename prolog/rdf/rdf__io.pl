@@ -453,16 +453,16 @@ rdf_call_on_quad0(Goal_5, InPath, Quad) :-
 
 % Use this to debug bugs in statement calls.
 rdf_call_on_quad0_debug(Goal_5, InPath, Tuple) :-
-  %flag(rdf_call_on_quad0_debug, N, N + 1),
-  %format(user_output, "~D~n", [N]),
-  %(N =:= 715769 -> gtrace ; true),
+  flag(rdf_call_on_quad0_debug, NumTuples, NumTuples + 1),
+  format(user_output, "~D~n", [NumTuples]),
+  (NumTuples >= 1000000000 -> gtrace ; true),
   catch(rdf_call_on_quad0(Goal_5, InPath, Tuple), E, true),
   (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, InPath, Tuple)).
 
-rdf_call_on_quads0(Goal_5, InPath, Tuples) :-
+rdf_call_on_quads0(Goal_5, InPath, Tuples) :-gtrace,
   maplist(rdf_call_on_quad0(Goal_5, InPath), Tuples).
 
-rdf_call_on_quads0(Goal_5, InPath, Tuples, _) :-
+rdf_call_on_quads0(Goal_5, InPath, Tuples, _) :-gtrace,
   rdf_call_on_quads0(Goal_5, InPath, Tuples).
 
 
@@ -1103,7 +1103,7 @@ set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
   % not get overwritten when opening the stream for guessing the RDF
   % serialization format.
   (   rdf_guess_media_type(stream(In), MT, GuessOpts)
-  ->  InEntry2 = InEntry1.put(_{rdf_media_type: MT2})
+  ->  InEntry2 = InEntry1.put(_{rdf_media_type: MT})
   ;   % Unable to guess RDF format.
       dicts_getchk('@id', [InEntry1|InPath], From),
       domain_error(cannot_guess_rdf_media_type, From)
