@@ -41,7 +41,11 @@ rdf_store_warning(M, Doc, error(archive_error(Code,Msg),_)) :-
   ->  Name = unrecognized_archive_format
   ;   % E.g. “Truncated input file (needed 186262016 bytes, only 0
       % available)”
-      Code = 25
+      Code =:= 25
+  ->  Name = truncated_input_file
+  ;   % E.g. “Truncated input file (needed 186262016 bytes, only 0
+      % available)”
+      Code =:= 1001
   ->  Name = truncated_input_file
   ), !,
   rdf_global_id(nsdef:Name, O),
