@@ -371,7 +371,7 @@ rdf_call_on_stream(Goal_3, Opts, In1, InPath1, InPath3) :-
 %! rdf_call_on_tuples(+Source, :Goal_5, +Opts) is nondet.
 %
 % Probably the most intricate way in which anyone has even read in RDF
-% statements...
+% statements…
 %
 % The following call is made: `call(:Goal_5, +M, +S, +P, +O, +G)`.
 %
@@ -1079,43 +1079,35 @@ set_media_type(_, [InEntry|InPath], [InEntry|InPath], MT, _) :-
 set_media_type(_, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
   option(rdf_media_type(MT), Opts), !,
   InEntry2 = InEntry1.put(_{rdf_media_type: MT}).
-% The HTTP Content-Type header is used to guide the guessing.
-set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT3, _) :-
-  dicts_getchk(headers, [InEntry1|InPath], Headers),
-  get_dict('content-type', Headers, Val),
-  http_parse_header_value(content_type, Val, media(Type/Subtype,_)),
-  MT1 = Type/Subtype,
-  (   rdf_incorrect_media_type(MT1, MT2)
-  ->  true
-  ;   rdf_media_type(MT1, _, _)
-  ->  MT2 = MT1
-  ), !,
-  set_media_type_by_guessing(In, MT2, InEntry1, MT3, InEntry2).
-% The file extension of the base URI is used to guide the guessing.
-set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT2, Opts) :-
-  get_base_uri(BaseUri, [InEntry1|InPath], Opts),
-  iri_file_extensions(BaseUri, Exts),
-  member(Ext, Exts),
-  (rdf_media_type(MT1, _, Ext) ; rdf_alternative_extension(MT1, Ext)), !,
-  set_media_type_by_guessing(In, MT1, InEntry1, MT2, InEntry2).
-% Unable to guess RDF format.
-set_media_type(_, InPath, InPath, _, _) :-
-  dicts_getchk('@id', InPath, From),
-  domain_error(cannot_guess_rdf_media_type, From).
-
-
-
-%! set_media_type_by_guessing(+In, +MT1, +InEntry1, -MT2, -InEntry2) is det.
-
-set_media_type_by_guessing(In, MT1, InEntry1, MT2, InEntry2) :-
+set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
+  (   % The HTTP Content-Type header is used to guide the guessing.
+      dicts_getchk(headers, [InEntry1|InPath], Headers),
+      get_dict('content-type', Headers, Val),
+      http_parse_header_value(content_type, Val, media(Type/Subtype,_)),
+      MT1 = Type/Subtype,
+      (   rdf_incorrect_media_type(MT1, MT2)
+      ->  true
+      ;   rdf_media_type(MT1, _, _)
+      ->  MT2 = MT1
+      )
+  ->  GuessOpts = [default_rdf_media_type(MT2)]
+  ;   % The file extension of the base URI is used to guide the guessing.
+      get_base_uri(BaseUri, [InEntry1|InPath], Opts),
+      iri_file_extensions(BaseUri, Exts),
+      member(Ext, Exts),
+      (rdf_media_type(MT2, _, Ext) ; rdf_alternative_extension(MT2, Ext))
+  ->  GuessOpts = [default_rdf_media_type(MT2)]
+  ;   GuessOpts = []
+  ),
   % Notice that the metadata option of the original options list does
   % not get overwritten when opening the stream for guessing the RDF
   % serialization format.
-  (   rdf_guess_media_type(In, MT2, [default_rdf_media_type(MT1)])
-  ->  true
-  ;   MT2 = MT1
-  ),
-  InEntry2 = InEntry1.put(_{rdf_media_type: MT2}).
+  (   rdf_guess_media_type(stream(In), MT, GuessOpts)
+  ->  InEntry2 = InEntry1.put(_{rdf_media_type: MT2})
+  ;   % Unable to guess RDF format.
+      dicts_getchk('@id', [InEntry1|InPath], From),
+      domain_error(cannot_guess_rdf_media_type, From)
+  ).
   
 
 
