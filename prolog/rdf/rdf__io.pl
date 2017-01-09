@@ -661,16 +661,16 @@ rdf_clean_quad(rdf(S,P,O1,G1), rdf(S,P,O2,G3)) :-
 %
 % The following options are supported:
 %
-%   - rdf_media_type(+rdf_media_type)
+%   * rdf_media_type(+rdf_media_type)
 %
 %     The old RDF Media Type (in SourceOpts) and the new RDF Media
 %     Type (in SinkOpts).
 %
-%   - Other options are passed to:
+%   * Other options are passed to:
 %
-%     - rdf_call_on_tuples/3
+%     * rdf_call_on_tuples/3
 %
-%     - rdf_write_to_sink/7
+%     * rdf_write_to_sink/7
 
 rdf_reserialize(Source, Sink) :-
   rdf_reserialize(Source, Sink, [], []).
@@ -1098,10 +1098,10 @@ set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT2, Opts) :-
   member(Ext, Exts),
   (rdf_media_type(MT1, _, Ext) ; rdf_alternative_extension(MT1, Ext)), !,
   set_media_type_by_guessing(In, MT1, InEntry1, MT2, InEntry2).
-% Unguided guessing.
-set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT2, _) :-
-  MT1 = application/'rdf+xml',
-  set_media_type_by_guessing(In, MT1, InEntry1, MT2, InEntry2).
+% Unable to guess RDF format.
+set_media_type(_, InPath, InPath, _, _) :-
+  dicts_getchk('@id', InPath, From),
+  domain_error(cannot_guess_rdf_media_type, From).
 
 
 

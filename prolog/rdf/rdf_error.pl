@@ -135,6 +135,9 @@ rdf_store_warning(M, Doc, non_canonical_lexical_form(D,Lex)) :- !,
 % Malformed URL
 rdf_store_warning(M, Doc, error(domain_error(url,Url),_)) :- !,
   qb(M, Doc, nsdef:malformed_url, Url^^xsd:anyURI).
+% Cannot guess whether this is RDF
+rdf_store_warning(M, Doc, error(domain_error(cannot_guess_rdf_media_type,Uri),_)) :- !,
+  qb(M, Doc, nsdef:cannot_guess_rdf_media_type, Uri).
 % No RDF
 rdf_store_warning(M, Doc, error(domain_error(rdf_media_type,MT),_)) :- !,
   qb(M, Doc, nsdef:no_rdf_media_type, MT^^xsd:string).
