@@ -160,7 +160,7 @@ q(M, S, P, O) :-
 
 
 q(any, S, P, O, G) :-
-  q0(_, S, P, O, G).
+  q(_, S, P, O, G).
 q(hdt0, S, P, O, Hdt) :-
   hdt0(S, P, O, Hdt).
 q(hdt, S, P, O, G) :-

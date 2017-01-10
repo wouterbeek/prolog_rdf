@@ -459,10 +459,10 @@ rdf_call_on_quad0_debug(Goal_5, InPath, Tuple) :-
   catch(rdf_call_on_quad0(Goal_5, InPath, Tuple), E, true),
   (var(E) -> true ; gtrace, rdf_call_on_quad0_debug(Goal_5, InPath, Tuple)).
 
-rdf_call_on_quads0(Goal_5, InPath, Tuples) :-gtrace,
+rdf_call_on_quads0(Goal_5, InPath, Tuples) :-
   maplist(rdf_call_on_quad0(Goal_5, InPath), Tuples).
 
-rdf_call_on_quads0(Goal_5, InPath, Tuples, _) :-gtrace,
+rdf_call_on_quads0(Goal_5, InPath, Tuples, _) :-
   rdf_call_on_quads0(Goal_5, InPath, Tuples).
 
 
