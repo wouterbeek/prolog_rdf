@@ -12,9 +12,9 @@
     q_generate/2,            % ?G, :Goal_1
     q_sync/0,
     q_sync/1,                % +G
-    q_init/0,
-    q_init/1,                % +M
-    q_init_profile/1,        % +Ms
+    q_init_db/0,
+    q_init_db/1,             % +M
+    q_init_db_profile/1,     % +Ms
     q_source2store/0,
     q_source2store_file/2,   % +SourceFile, -StoreFile
     q_source2store_source/3, % +Source, +Info, +Opts
@@ -69,7 +69,7 @@
 
 # Steps
 
-q_init/0 does three things:
+q_init_db/0 does three things:
 
   1. q_source2store/0 converts non-RDF files in /source to RDF files in /store.
 
@@ -106,7 +106,7 @@ them.
 ---
 
 @author Wouter Beek
-@version 2016/08-2016/12
+@version 2016/08-2017/01
 */
 
 :- use_module(library(conv/csv2rdf), []).  % CSV → N-Triples
@@ -252,17 +252,17 @@ q_dataset2store(Name) :-
 
 
 
-%! q_init is det.
-%! q_init(+M) is det.
+%! q_init_db is det.
+%! q_init_db(+M) is det.
 
-q_init :-
+q_init_db :-
   q_source2store,
   q_store2view,
   q_dataset2store,
   q_store2view.
 
 
-q_init(M) :-
+q_init_db(M) :-
   q_source2store,
   q_store2view(M),
   q_dataset2store,
@@ -270,21 +270,21 @@ q_init(M) :-
 
 
 
-%! q_init_profile(+Ms) is det.
+%! q_init_db_profile(+Ms) is det.
 
-q_init_profile(Ms) :-
-  thread_create(q_init_profile0(Ms), _, [alias(init),detached(true)]).
+q_init_db_profile(Ms) :-
+  thread_create(q_init_db_profile0(Ms), _, [alias(init),detached(true)]).
 
-q_init_profile0([M]) :-
-  q_init(M).
-q_init_profile0([gis,hdt]) :- !,
-  q_init(hdt),
+q_init_db_profile0([M]) :-
+  q_init_db(M).
+q_init_db_profile0([gis,hdt]) :- !,
+  q_init_db(hdt),
   forall(
     distinct(G, q(hdt, _, geold:geometry, _, G)),
     q_store2view(gis, G)
   ).
-q_init_profile0([gis,hdt,trp]) :-
-  q_init.
+q_init_db_profile0([gis,hdt,trp]) :-
+  q_init_db.
 
 
 
