@@ -126,6 +126,7 @@ init_q_prefix :-
   qb_alias(llo, 'http://lodlaundromat.org/ontology/'),
   qb_alias(llr, 'http://lodlaundromat.org/resource/'),
   qb_alias(odp, 'http://www.ontologydesignpatterns.org/'),
+  qb_alias(q, 'https://quine.cc/def/'),
   qb_alias(sparql, 'http://www.w3.org/2005/sparql-results#'),
   qb_alias('umbel-rc', 'http://umbel.org/umbel/rc/'),
   qb_alias('wiki-entity', 'http://www.wikidata.org/entity/'),
