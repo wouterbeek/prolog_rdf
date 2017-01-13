@@ -370,8 +370,7 @@ rdf_call_on_stream(Goal_3, Opts, In1, InPath1, InPath3) :-
 %! rdf_call_on_tuples(+Source, :Goal_5) is nondet.
 %! rdf_call_on_tuples(+Source, :Goal_5, +Opts) is nondet.
 %
-% Probably the most intricate way in which anyone has even read in RDF
-% statements…
+% Probably the most intricate way in which anyone has ever read RDF.
 %
 % The following call is made: `call(:Goal_5, +M, +S, +P, +O, +G)`.
 %
@@ -1102,7 +1101,7 @@ set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
   % Notice that the metadata option of the original options list does
   % not get overwritten when opening the stream for guessing the RDF
   % serialization format.
-  (   rdf_guess_media_type(stream(In), MT, GuessOpts)
+  (   rdf_guess_media_type_stream(In, MT, GuessOpts)
   ->  InEntry2 = InEntry1.put(_{rdf_media_type: MT})
   ;   % Unable to guess RDF format.
       dicts_getchk('@id', [InEntry1|InPath], From),

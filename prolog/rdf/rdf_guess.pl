@@ -1,8 +1,10 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_media_type/2, % +Source, -MT
-    rdf_guess_media_type/3  % +Source, -MT, +Opts
+    rdf_guess_media_type/2,        % +Source, -MT
+    rdf_guess_media_type/3,        % +Source, -MT, +Opts
+    rdf_guess_media_type_stream/2, % +In, -MT
+    rdf_guess_media_type_stream/3  % +In, -MT, +Opts
   ]
 ).
 
@@ -39,29 +41,41 @@ rdf_guess_media_type(Source, MT) :-
 rdf_guess_media_type(Source, MT, Opts) :-
   call_on_stream(
     Source,
-    {MT,Opts}/[In,InPath,InPath]>>rdf_guess_media_type_stream(In, 0, MT, Opts)
+    {MT,Opts}/[In,InPath,InPath]>>rdf_guess_media_type_stream(In, MT, Opts)
   ).
 
+
+
+%! rdf_guess_media_type_stream(+In, -MT) is det.
+%! rdf_guess_media_type_stream(+In, -MT, +Opts) is det.
+
+rdf_guess_media_type_stream(In, MT) :-
+  rdf_guess_media_type_stream(In, MT, []).
+
+
+rdf_guess_media_type_stream(In, MT, Opts) :-
+  rdf_guess_media_type_stream(In, 0, MT, Opts).
+
 rdf_guess_media_type_stream(In, I, MT, Opts) :-
-  N is 1000 * 2 ^ I,
-  peek_string(In, N, S),
-  debug(rdf(guess), "[RDF-GUESS] ~s", [S]),
+  N is 1000 * I,
+  peek_string(In, N, Str),
+  debug(rdf(guess), "[RDF-GUESS] ~s", [Str]),
   % Try to parse the peeked string as Turtle- or XML-family.
-  (   rdf_guess_jsonld(S, N),
+  (   rdf_guess_jsonld(Str, N),
       MT = application/'ld+json'
-  ;   rdf_guess_turtle(S, N, MT, Opts)
-  ;   rdf_guess_xml(S, MT)
+  ;   rdf_guess_turtle(Str, N, MT, Opts)
+  ;   rdf_guess_xml(Str, MT)
   ), !,
   debug(rdf(guess), "Assuming ~a based on heuristics.", [MT]).
 rdf_guess_media_type_stream(In, I1, MT, Opts) :-
-  I1 < 4,
+  I1 =< 4,
   I2 is I1 + 1,
   rdf_guess_media_type_stream(In, I2, MT, Opts).
 
 % For Turtle-family media_types it matters whether or not the end of
 % stream has been reached.
-rdf_guess_turtle(S, N, MT, Opts) :-
+rdf_guess_turtle(Str, N, MT, Opts) :-
   % Do not backtrack if the whole stream has been peeked.
-  string_length(S, M),
+  string_length(Str, M),
   ((M =:= 0 ; M < N) -> !, EoS = true ; EoS = false),
-  string_phrase(rdf_guess_turtle(EoS, MT, Opts), S, _).
+  string_phrase(rdf_guess_turtle(EoS, MT, Opts), Str, _).
