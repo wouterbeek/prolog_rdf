@@ -54,7 +54,7 @@ rdf_guess_media_type_stream(In, MT) :-
 
 
 rdf_guess_media_type_stream(In, MT, Opts) :-
-  rdf_guess_media_type_stream(In, 0, MT, Opts).
+  rdf_guess_media_type_stream(In, 1, MT, Opts).
 
 rdf_guess_media_type_stream(In, I, MT, Opts) :-
   N is 1000 * I,
