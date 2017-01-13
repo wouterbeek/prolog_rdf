@@ -1,23 +1,20 @@
 :- module(
   wm,
   [
-    clean_file/1,   % +File
-    clean_inner/2,  % +From, +ArchiveHash
-    wm_reset_hash/1 % +Hash
+    clean_inner/2,   % +Uri, +ArchiveHash
+    clean_uri/1,     % +Uri
+    wm_reset_hash/1, % +Hash
+    wm_reset_uri/1   % +Uri
   ]
 ).
 
 /** <module> LOD Washing Machine
 
 The following debug flags are defined:
-
-  - wm(begin)
-
-  - wm(done)
-
-  - wm(end)
-
-  - wm(idle)
+  * wm(begin)
+  * wm(done)
+  * wm(end)
+  * wm(idle)
 
 @author Wouter Beek
 @tbd Can we also count (byte_count, char_count, lines_count) what is
@@ -62,14 +59,51 @@ prolog_stack:stack_guard(none).
 
 
 
-%! clean_file(+File) is det.
+% API %
 
-clean_file(File) :-
-  uri_file_name(Uri, File),
+%! clean_uri(+Uri) is det.
+
+clean_uri(Uri0) :-
+  iri_normalized(Uri0, Uri),
   md5(Uri, Hash),
   clean_inner(Uri, Hash).
 
 
+
+%! wm_reset_hash(+Hash) is det.
+
+wm_reset_hash(Hash) :-
+  q_dir_hash(Dir, Hash),
+  with_mutex(ll, delete_directory_and_contents_msg(Dir)).
+
+
+
+%! wm_reset_uri(+Uri) is det.
+
+wm_reset_uri(Uri0) :-
+  iri_normalized(Uri0, Uri),
+  md5(Uri, Hash),
+  % Remove the directories for all entry hashes, if any.
+  ignore(
+    forall(
+      call_on_stream(Uri, wm_reset_entry(Uri)),
+      true
+    )
+  ),
+  % Remove the directory for the archive hash
+  wm_reset_hash(Hash).
+
+
+wm_reset_entry(Uri, _, InPath, InPath) :-
+  path_entry_name(InPath, EntryName),
+  md5(Uri-EntryName, EntryHash),
+  wm_reset_hash(EntryHash).
+
+
+
+
+
+% CORE %
 
 %! clean_inner(+From, +ArchiveHash) is det.
 
@@ -187,14 +221,6 @@ clean_stream3(In, InPath, State, Out) :-
 
 clean_tuple(State, Out, _, S, P, O, G) :-
   rdf_write_ntuple(S, P, O, G, State, Out).
-
-
-
-%! wm_reset_hash(+Hash) is det.
-
-wm_reset_hash(Hash) :-
-  q_dir_hash(Dir, Hash),
-  with_mutex(ll, delete_directory_and_contents_msg(Dir)).
 
 
 
