@@ -367,6 +367,7 @@ rdf_store_metadata_entry(N, InEntry, G, M) :-
 
 % Properties that are skipped.
 rdf_store_metadata_entry_pair(_, _, filetype-_).
+rdf_store_metadata_entry_pair(_, _, mode-_).
 rdf_store_metadata_entry_pair(_, _, mtime-_).
 rdf_store_metadata_entry_pair(_, _, name-_).
 rdf_store_metadata_entry_pair(_, _, newline-_).
