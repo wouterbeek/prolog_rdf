@@ -1,10 +1,10 @@
 :- module(
   wm,
   [
-    clean_inner/2,   % +Uri, +ArchiveHash
-    clean_uri/1,     % +Uri
-    wm_reset_hash/1, % +Hash
-    wm_reset_uri/1   % +Uri
+    wm_clean_inner/2, % +Uri, +ArchiveHash
+    wm_clean_uri/1,   % +Uri
+    wm_reset_hash/1,  % +Hash
+    wm_reset_uri/1    % +Uri
   ]
 ).
 
@@ -61,12 +61,12 @@ prolog_stack:stack_guard(none).
 
 % API %
 
-%! clean_uri(+Uri) is det.
+%! wm_clean_uri(+Uri) is det.
 
-clean_uri(Uri0) :-
+wm_clean_uri(Uri0) :-
   iri_normalized(Uri0, Uri),
   md5(Uri, Hash),
-  clean_inner(Uri, Hash).
+  wm_clean_inner(Uri, Hash).
 
 
 
@@ -93,7 +93,6 @@ wm_reset_uri(Uri0) :-
   % Remove the directory for the archive hash
   wm_reset_hash(Hash).
 
-
 wm_reset_entry(Uri, _, InPath, InPath) :-
   path_entry_name(InPath, EntryName),
   md5(Uri-EntryName, EntryHash),
@@ -105,9 +104,9 @@ wm_reset_entry(Uri, _, InPath, InPath) :-
 
 % CORE %
 
-%! clean_inner(+From, +ArchiveHash) is det.
+%! wm_clean_inner(+From, +ArchiveHash) is det.
 
-clean_inner(From, ArchiveHash) :-
+wm_clean_inner(From, ArchiveHash) :-
   atomic_list_concat([a,ArchiveHash], :, ArchiveAlias),
   archive_label(From, ArchiveHash, ArchiveLbl),
   call_meta_warn(ArchiveAlias, ArchiveLbl, ArchiveHash, clean_archive(From)).
@@ -159,8 +158,7 @@ clean_stream1(In, InPath, ArchiveHash, EntryHash, MetaM) :-
       link_dirs(EntryDir, 'data.nt.gz', CleanDir),
       link_dirs(EntryDir, 'data.nt.gz.ready', CleanDir),
       % Store the number of tuples in RocksDB and ElasticSearch.
-      get_dict(number_of_tuples, OutEntry, NumTuples),
-      rocks_merge(llw, number_of_tuples, NumTuples)
+      get_dict(number_of_tuples, OutEntry, NumTuples)
   ),
   % Explicitly turn off compression when asserting metadata, otherwise
   % we compress twice.
@@ -183,8 +181,7 @@ clean_stream1(In, InPath, ArchiveHash, EntryHash, MetaM) :-
   forall(
     nth1(N, InPath, InEntry),
     rdf_store_metadata_entry(N, InEntry, MetaG, MetaM)
-  ),
-  rocks_merge(llw, number_of_documents, 1).
+  ).
 
 clean_stream2(EntryDir, OutPath2, TmpFile, CleanHash, In, InPath):-
   absolute_file_name(
