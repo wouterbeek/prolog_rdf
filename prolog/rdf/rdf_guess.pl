@@ -10,9 +10,12 @@
 
 /** <module> RDF guess
 
+The following debug flag is used:
+  - rdf_guess
+
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2015/08-2015/12, 2016/02-2016/04, 2016/11, 2017/01
+@version 2015/08-2017/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -59,14 +62,14 @@ rdf_guess_media_type_stream(In, MT, Opts) :-
 rdf_guess_media_type_stream(In, I, MT, Opts) :-
   N is 1000 * I,
   peek_string(In, N, Str),
-  debug(rdf(guess), "[RDF-GUESS] ~s", [Str]),
+  debug(rdf_guess, "[RDF-GUESS] ~s", [Str]),
   % Try to parse the peeked string as Turtle- or XML-family.
   (   rdf_guess_jsonld(Str, N),
       MT = application/'ld+json'
   ;   rdf_guess_turtle(Str, N, MT, Opts)
   ;   rdf_guess_xml(Str, MT)
   ), !,
-  debug(rdf(guess), "Assuming ~a based on heuristics.", [MT]).
+  debug(rdf_guess, "Assuming ~w based on heuristics.", [MT]).
 rdf_guess_media_type_stream(In, I1, MT, Opts) :-
   I1 =< 4,
   I2 is I1 + 1,

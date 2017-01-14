@@ -442,6 +442,9 @@ rdf_call_on_tuples_stream0(Goal_5, SourceOpts1, In, InPath, InPath) :-
       rdf_call_on_quads0(Goal_5, InPath, Triples)
   ).
 
+ntuples_format(application/'n-quads', nquads).
+ntuples_format(application/'n-triples', ntriples).
+
 rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O)) :- !,
   rdf_default_graph(G),
   rdf_call_on_quad0(Goal_5, InPath, rdf(S,P,O,G)).
@@ -684,13 +687,13 @@ rdf_reserialize(Source, Sink, SourceOpts, SinkOpts) :-
   ).
 
 rdf_change_media_type0(Source, SourceOpts, State, Out) :-
-  indent_debug(io, "» RDF → RDF"),
+  indent_debug(io(open), "» RDF → RDF"),
   rdf_call_on_tuples(
     Source,
     {State,Out}/[_,S,P,O,G]>>rdf_write_ntuple(S, P, O, G, State, Out),
     SourceOpts
   ),
-  indent_debug(io, "« RDF → RDF").
+  indent_debug(io(close), "« RDF → RDF").
 
 
 
@@ -718,11 +721,17 @@ rdf_download_to_file(Uri, File) :-
 
 rdf_download_to_file(Uri, File, SourceOpts, SinkOpts) :-
   thread_file(File, TmpFile),
-  call_onto_stream(Uri, TmpFile, rdf_download_to_file, SourceOpts, SinkOpts),
+  rdf_call_to_nquads(TmpFile, rdf_download_to_stream(Uri, SourceOpts), SinkOpts),
   rename_file(TmpFile, File).
 
-%rdf_download_to_file(In, InPath, InPath, Out) :-
-%  rdf_call_on_tuples_stream0(Goal_5, SourceOpts).
+rdf_download_to_stream(Uri, SourceOpts, State, Out) :-
+  forall(
+    rdf_call_on_tuples(Uri, rdf_download_tuple(State, Out), SourceOpts),
+    true
+  ).
+
+rdf_download_tuple(State, Out, _, S, P, O, G) :-
+  rdf_write_ntuple(S, P, O, G, State, Out).
 
 
 
@@ -1152,8 +1161,7 @@ rdf_write_ntuples_begin(State2, SinkOpts) :-
   (   option(warn(Warn), SinkOpts)
   ->  State2 = State1.put(_{warn: Warn})
   ;   State2 = State1
-  ),
-  indent_debug(rdf__io, "» Writing N-Tuples (~w)", [Name]).
+  ).
 
 
 %! rdf_write_ntuples_end(+State, +SinkOpts) is det.
@@ -1162,9 +1170,7 @@ rdf_write_ntuples_end(State, SinkOpts) :-
   option(number_of_quads(State.number_of_quads), SinkOpts, _),
   option(number_of_triples(State.number_of_triples), SinkOpts, _),
   NumTuples is State.number_of_triples + State.number_of_quads,
-  option(number_of_tuples(NumTuples), SinkOpts, _),
-  dict_tag(State, Name),
-  indent_debug(rdf__io, "« Written N-Tuples (~w)", [Name]).
+  option(number_of_tuples(NumTuples), SinkOpts, _).
 
 
 
