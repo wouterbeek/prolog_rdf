@@ -158,7 +158,7 @@ geold_prepare_context(ExtraContext, Context) :-
 
 geold_prepare_data(Source, ExtraData, Data2) :-
   json_read_any(Source, Data1),
-  (   dict_has_key(features, Data1)
+  (   dict_key(Data1, features)
   ->  maplist(
         {ExtraData}/[Data1,Data2]>>dict_put(Data1, ExtraData, Data2),
         Data1.features,

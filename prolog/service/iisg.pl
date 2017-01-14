@@ -72,7 +72,7 @@ iisg_record(Dom3, Opts1) :-
   dict_put_def(page, Opts2, 1, Opts3),
   dict_put_def(sort, Opts3, relevance, Opts4),
   between(1, inf, Opts4.page),
-  (dict_has_key(lookfor, Opts4) -> T = [lookfor=Opts4.search] ; T = []),
+  (dict_key(Opts4, lookfor) -> T = [lookfor=Opts4.search] ; T = []),
   iisg_collection_iri(
     '/Search/Results',
     [limit=Opts4.limit,page=Opts4.page,sort=Opts4.sort,type='AllFields'|T],
