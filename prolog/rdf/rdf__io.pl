@@ -420,7 +420,9 @@ rdf_call_on_tuples_stream0(Goal_5, SourceOpts1, In, InPath, InPath) :-
   merge_options(SourceOpts1, SourceOpts2, SourceOpts3),
   (   % N-Quads & N-Triples
       is_of_type(ntuples_media_type, MT)
-  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, InPath), SourceOpts3)
+  ->  ntuples_format(MT, Format),
+      merge_options([format(Format)], SourceOpts3, SourceOpts4),
+      rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, InPath), SourceOpts4)
   ;   % Trig & Turtle
       is_of_type(turtle_media_type, MT)
   ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, InPath), SourceOpts3)
