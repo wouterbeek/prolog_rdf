@@ -8,13 +8,13 @@
 
   % Call a goal on a stream of triples/quads
     rdf_call_on_graph/2,         % +Source, :Goal_1
-    rdf_call_on_graph/3,         % +Source, :Goal_1, +Opts
+    rdf_call_on_graph/3,         % +Source, :Goal_1, +SourceOpts
     rdf_call_on_stream/2,        % +Source, :Goal_3
-    rdf_call_on_stream/3,        % +Source, :Goal_3, +Opts
+    rdf_call_on_stream/3,        % +Source, :Goal_3, +SourceOpts
     rdf_call_on_tuples/2,        % +Source, :Goal_5
-    rdf_call_on_tuples/3,        % +Source, :Goal_5, +Opts
+    rdf_call_on_tuples/3,        % +Source, :Goal_5, +SourceOpts
     rdf_call_on_tuples_stream/3, % +In, :Goal_5, +InPath
-    rdf_call_on_tuples_stream/4, % +In, :Goal_5, +InPath, +Opts
+    rdf_call_on_tuples_stream/4, % +In, :Goal_5, +InPath, +SourceOpts
 
   % Call a goal from/to triples
     rdf_call_onto_stream/3,      % +Source, +Sink, :Goal_4
@@ -22,31 +22,31 @@
 
   % Call a goal to triples
     rdf_call_to_graph/2,         % ?Sink, :Goal_1
-    rdf_call_to_graph/3,         % ?Sink, :Goal_1, +Opts
+    rdf_call_to_graph/3,         % ?Sink, :Goal_1, +SinkOpts
     rdf_call_to_nquads/2,        % +Sink, :Goal_2
-    rdf_call_to_nquads/3,        % +Sink, :Goal_2, +Opts
+    rdf_call_to_nquads/3,        % +Sink, :Goal_2, +SinkOpts
     rdf_call_to_ntriples/2,      % +Sink, :Goal_2
-    rdf_call_to_ntriples/3,      % +Sink, :Goal_2, +Opts
+    rdf_call_to_ntriples/3,      % +Sink, :Goal_2, +SinkOpts
     rdf_call_to_ntuples/2,       % +Sink, :Goal_2
-    rdf_call_to_ntuples/3,       % +Sink, :Goal_2, +Opts
+    rdf_call_to_ntuples/3,       % +Sink, :Goal_2, +SinkOpts
 
   % ???
     rdf_download_to_file/2,      % +Uri, +File
-    rdf_download_to_file/4,      % +Uri, +File, +InOpts, +OutOpts
+    rdf_download_to_file/4,      % +Uri, +File, +SourceOpts, +SinkOpts
 
   % Traditional load
     rdf_load_file/1,             % +Source
-    rdf_load_file/2,             % +Source,           +Opts
+    rdf_load_file/2,             % +Source,           +SourceOpts
     rdf_load_quads/2,            % +Source, -Quads
-    rdf_load_quads/3,            % +Source, -Quads,   +Opts
+    rdf_load_quads/3,            % +Source, -Quads,   +SourceOpts
     rdf_load_triples/2,          % +Source, -Triples
-    rdf_load_triples/3,          % +Source, -Triples, +Opts
+    rdf_load_triples/3,          % +Source, -Triples, +SourceOpts
 
   % Convert between different RDF Media Types
     rdf_reserialize/2,           % +Source, +Sink
     rdf_reserialize/4,           % +Source, +Sink, +SourceOpts, +SinkOpts
     rdf_reserialize_legacy/2,    % +Source, +Sink
-    rdf_reserialize_legacy/3,    % +Source, +Sink, +Opts
+    rdf_reserialize_legacy/3,    % +Source, +Sink, +SinkOpts
 
   % Cleaning
     rdf_clean_quad/2,            % +Quad1, -Quad2
@@ -61,14 +61,14 @@
     
   % Write to clean N-Tuples
     rdf_write_to_sink/3,         % ?Sink, ?M,             ?G
-    rdf_write_to_sink/4,         % ?Sink, ?M,             ?G, +Opts
+    rdf_write_to_sink/4,         % ?Sink, ?M,             ?G, +SinkOpts
     rdf_write_to_sink/5,         % ?Sink, ?M, ?S, ?P, ?O
     rdf_write_to_sink/6,         % ?Sink, ?M, ?S, ?P, ?O, ?G
-    rdf_write_to_sink/7,         % ?Sink, ?M, ?S, ?P, ?O, ?G, +Opts
+    rdf_write_to_sink/7,         % ?Sink, ?M, ?S, ?P, ?O, ?G, +SinkOpts
 
   % Convert between RDF Media Types
     rdf_write_to_sink_legacy/2,  % ?Sink, ?M
-    rdf_write_to_sink_legacy/3   % ?Sink, ?M, +Opts
+    rdf_write_to_sink_legacy/3   % ?Sink, ?M, +SinkOpts
   ]
 ).
 
@@ -312,8 +312,8 @@ rdf_media_type(text/html,               formats:'RDFa',      html).
 
 
 
-%! rdf_call_on_graph(+Source, :Goal_1) .
-%! rdf_call_on_graph(+Source, :Goal_1, +Opts) .
+%! rdf_call_on_graph(+Source, :Goal_1) is det.
+%! rdf_call_on_graph(+Source, :Goal_1, +SourceOpts) is det.
 %
 % Loads Source into a graph and call Goal_1 on it.
 %
@@ -325,12 +325,12 @@ rdf_call_on_graph(Source, Goal_1) :-
   rdf_call_on_graph(Source, Goal_1, []).
 
 
-rdf_call_on_graph(Source, Goal_1, Opts1) :-
+rdf_call_on_graph(Source, Goal_1, SourceOpts1) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
-      merge_options(Opts1, [force_graph(G)], Opts2),
-      rdf_load_file(Source, Opts2),
+      merge_options(SourceOpts1, [force_graph(G)], SourceOpts2),
+      rdf_load_file(Source, SourceOpts2),
       call(Goal_1, G)
     ),
     rdf_unload_graph(G)
@@ -339,7 +339,7 @@ rdf_call_on_graph(Source, Goal_1, Opts1) :-
 
 
 %! rdf_call_on_stream(+Source, :Goal_3) is det.
-%! rdf_call_on_stream(+Source, :Goal_3, +Opts) is det.
+%! rdf_call_on_stream(+Source, :Goal_3, +SourceOpts) is det.
 %
 % The following call is made: `call(Goal_3, In, InPath1, InPath2)`,
 % where In is a stream containing (hopefully) some RDF data.
@@ -353,14 +353,14 @@ rdf_call_on_stream(Source, Goal_3) :-
   rdf_call_on_stream(Source, Goal_3, []).
 
 
-rdf_call_on_stream(Source, Goal_3, Opts1) :-
-  set_rdf_options(Opts1, Opts2),
-  call_on_stream(Source, rdf_call_on_stream(Goal_3, Opts2), Opts2).
+rdf_call_on_stream(Source, Goal_3, SourceOpts1) :-
+  set_rdf_options(SourceOpts1, SourceOpts2),
+  call_on_stream(Source, rdf_call_on_stream(Goal_3, SourceOpts2), SourceOpts2).
 
-rdf_call_on_stream(Goal_3, Opts, In1, InPath1, InPath3) :-
-  set_media_type(In1, InPath1, InPath2, MT, Opts),
+rdf_call_on_stream(Goal_3, SourceOpts, In1, InPath1, InPath3) :-
+  set_media_type(In1, InPath1, InPath2, MT, SourceOpts),
   setup_call_cleanup(
-    rdf_recode_stream(In1, MT, In2, Close, Opts),
+    rdf_recode_stream(In1, MT, In2, Close, SourceOpts),
     call(Goal_3, In2, InPath2, InPath3),
     close_any2(Close)
   ).
@@ -368,7 +368,7 @@ rdf_call_on_stream(Goal_3, Opts, In1, InPath1, InPath3) :-
 
 
 %! rdf_call_on_tuples(+Source, :Goal_5) is nondet.
-%! rdf_call_on_tuples(+Source, :Goal_5, +Opts) is nondet.
+%! rdf_call_on_tuples(+Source, :Goal_5, +SourceOpts) is nondet.
 %
 % Probably the most intricate way in which anyone has ever read RDF.
 %
@@ -386,31 +386,30 @@ rdf_call_on_tuples(Source, Goal_5) :-
   rdf_call_on_tuples(Source, Goal_5, []).
 
 
-rdf_call_on_tuples(Source, Goal_5, Opts) :-
-  rdf_call_on_stream(Source, rdf_call_on_tuples_stream0(Goal_5, Opts), Opts).
+rdf_call_on_tuples(Source, Goal_5, SourceOpts) :-
+  rdf_call_on_stream(
+    Source,
+    rdf_call_on_tuples_stream0(Goal_5, SourceOpts),
+    SourceOpts
+  ).
 
 
 
 %! rdf_call_on_tuples_stream(+In, :Goal_5, +InPath) is det.
-%! rdf_call_on_tuples_stream(+In, :Goal_5, +InPath, +Opts) is det.
+%! rdf_call_on_tuples_stream(+In, :Goal_5, +InPath, +SourceOpts) is det.
 
 rdf_call_on_tuples_stream(In, Goal_5, InPath) :-
   rdf_call_on_tuples_stream(In, Goal_5, InPath, []).
 
 
-rdf_call_on_tuples_stream(In, Goal_5, InPath, Opts) :-
-  rdf_call_on_tuples_stream0(Goal_5, Opts, In, InPath, InPath).
+rdf_call_on_tuples_stream(In, Goal_5, InPath, SourceOpts) :-
+  rdf_call_on_tuples_stream0(Goal_5, SourceOpts, In, InPath, InPath).
 
 
-rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
-  get_base_uri(BaseUri, InPath, Opts1),
+rdf_call_on_tuples_stream0(Goal_5, SourceOpts1, In, InPath, InPath) :-
+  get_base_uri(BaseUri, InPath, SourceOpts1),
   dicts_getchk(rdf_media_type, InPath, MT),
-  %(   debugging(rdf__io)
-  %->  peek_string(In, 1000, Str),
-  %    debug(rdf__io, "[PEEK (~w)]~n~s", [MT,Str])
-  %;   true
-  %),
-  Opts2 = [
+  SourceOpts2 = [
     anon_prefix('_:'),
     base(BaseUri),
     base_uri(BaseUri),
@@ -418,26 +417,26 @@ rdf_call_on_tuples_stream0(Goal_5, Opts1, In, InPath, InPath) :-
     rdf_media_type(MT),
     syntax(style)
   ],
-  merge_options(Opts1, Opts2, Opts3),
+  merge_options(SourceOpts1, SourceOpts2, SourceOpts3),
   (   % N-Quads & N-Triples
       is_of_type(ntuples_media_type, MT)
-  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, InPath), Opts3)
+  ->  rdf_process_ntriples(In, rdf_call_on_quads0(Goal_5, InPath), SourceOpts3)
   ;   % Trig & Turtle
       is_of_type(turtle_media_type, MT)
-  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, InPath), Opts3)
+  ->  rdf_process_turtle(In, rdf_call_on_quads0(Goal_5, InPath), SourceOpts3)
   ;   % JSON-LD
       MT == application/'ld+json'
   ->  json_read_dict(In, Json),
       forall(
-        jsonld_tuple(Json, Tuple, Opts3),
+        jsonld_tuple(Json, Tuple, SourceOpts3),
         rdf_call_on_quad0(Goal_5, InPath, Tuple)
       )
   ;   % RDF/XML
       MT == application/'rdf+xml'
-  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, InPath), Opts3)
+  ->  process_rdf(In, rdf_call_on_quads0(Goal_5, InPath), SourceOpts3)
   ;   % RDFa
       is_of_type(rdfa_media_type, MT)
-  ->  read_rdfa(In, Triples, Opts3),
+  ->  read_rdfa(In, Triples, SourceOpts3),
       rdf_call_on_quads0(Goal_5, InPath, Triples)
   ).
 
@@ -483,18 +482,18 @@ rdf_call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
     SinkOpts
   ).
 
-rdf_call_onto_stream(Goal_4, Opts, In1, InPath1, InPath3, Out) :-
-  set_media_type(In1, InPath1, InPath2, MT, Opts),
+rdf_call_onto_stream(Goal_4, RdfOpts, In1, InPath1, InPath3, Out) :-
+  set_media_type(In1, InPath1, InPath2, MT, RdfOpts),
   setup_call_cleanup(
-    rdf_recode_stream(In1, MT, In2, Close, Opts),
+    rdf_recode_stream(In1, MT, In2, Close, RdfOpts),
     call(Goal_4, In2, InPath2, InPath3, Out),
-    close(Close)
+    close_any2(Close)
   ).
 
 
 
 %! rdf_call_to_graph(?Sink, :Goal_1) is det.
-%! rdf_call_to_graph(?Sink, :Goal_1, +Opts) is det.
+%! rdf_call_to_graph(?Sink, :Goal_1, +SinkOpts) is det.
 %
 % Writes results of Goal_1, as asserted into a single graph, to Sink.
 % The following call is made: `call(Goal_1, G)`.
@@ -505,12 +504,12 @@ rdf_call_to_graph(Sink, Goal_1) :-
   rdf_call_to_graph(Sink, Goal_1, []).
 
 
-rdf_call_to_graph(Sink, Goal_1, Opts) :-
+rdf_call_to_graph(Sink, Goal_1, SinkOpts) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
       call(Goal_1, G),
-      rdf_write_to_sink(Sink, trp, _, _, _, G, Opts)
+      rdf_write_to_sink(Sink, trp, _, _, _, G, SinkOpts)
     ),
     rdf_unload_graph(G)
   ).
@@ -518,7 +517,7 @@ rdf_call_to_graph(Sink, Goal_1, Opts) :-
 
 
 %! rdf_call_to_nquads(+Sink, :Goal_2) is det.
-%! rdf_call_to_nquads(+Sink, :Goal_2, +Opts) is det.
+%! rdf_call_to_nquads(+Sink, :Goal_2, +SinkOpts) is det.
 %
 % Wrapper around rdf_call_to_ntuples/[2,3] where the RDF serialization
 % format is set to N-Quads.
@@ -527,14 +526,14 @@ rdf_call_to_nquads(Sink, Goal_2) :-
   rdf_call_to_nquads(Sink, Goal_2, []).
 
 
-rdf_call_to_nquads(Sink, Goal_2, Opts1) :-
-  merge_options([rdf_media_type(application/'n-quads')], Opts1, Opts2),
-  rdf_call_to_ntuples(Sink, Goal_2, Opts2).
+rdf_call_to_nquads(Sink, Goal_2, SinkOpts1) :-
+  merge_options([rdf_media_type(application/'n-quads')], SinkOpts1, SinkOpts2),
+  rdf_call_to_ntuples(Sink, Goal_2, SinkOpts2).
 
 
 
 %! rdf_call_to_ntriples(+Sink, :Goal_2) is det.
-%! rdf_call_to_ntriples(+Sink, :Goal_2, +Opts) is det.
+%! rdf_call_to_ntriples(+Sink, :Goal_2, +SinkOpts) is det.
 %
 % Wrapper around rdf_call_to_ntuples/[2,3] where the RDF serialization
 % format is set to N-Triples.
@@ -543,14 +542,14 @@ rdf_call_to_ntriples(Sink, Goal_2) :-
   rdf_call_to_ntriples(Sink, Goal_2, []).
 
 
-rdf_call_to_ntriples(Sink, Goal_2, Opts1) :-
-  merge_options([rdf_media_type(application/'n-triples')], Opts1, Opts2),
-  rdf_call_to_ntuples(Sink, Goal_2, Opts2).
+rdf_call_to_ntriples(Sink, Goal_2, SinkOpts1) :-
+  merge_options([rdf_media_type(application/'n-triples')], SinkOpts1, SinkOpts2),
+  rdf_call_to_ntuples(Sink, Goal_2, SinkOpts2).
 
 
 
 %! rdf_call_to_ntuples(+Sink, :Goal_2) is det.
-%! rdf_call_to_ntuples(+Sink, :Goal_2, +Opts) is det.
+%! rdf_call_to_ntuples(+Sink, :Goal_2, +SinkOpts) is det.
 %
 % Stage-setting for writing N-Tuples (N-Triples or N-Quads).  Tuples
 % are written to Sink which is one of the sinks supported by
@@ -599,16 +598,16 @@ rdf_call_to_ntuples(Sink, Goal_2) :-
   rdf_call_to_ntuples(Sink, Goal_2, []).
 
 
-rdf_call_to_ntuples(Sink, Mod:Goal_2, Opts) :-
+rdf_call_to_ntuples(Sink, Mod:Goal_2, SinkOpts) :-
   setup_call_cleanup(
-    rdf_write_ntuples_begin(State, Opts),
+    rdf_write_ntuples_begin(State, SinkOpts),
     (
       Goal_2 =.. Comps1,
       append(Comps1, [State], Comps2),
       Goal_1 =.. Comps2,
-      call_to_stream(Sink, Mod:Goal_1, Opts)
+      call_to_stream(Sink, Mod:Goal_1, SinkOpts)
     ),
-    rdf_write_ntuples_end(State, Opts)
+    rdf_write_ntuples_end(State, SinkOpts)
   ).
 
 
@@ -694,20 +693,20 @@ rdf_change_media_type0(Source, SourceOpts, State, Out) :-
 
 
 %! rdf_reserialize_legacy(+Source, +Sink) is det.
-%! rdf_reserialize_legacy(+Source, +Sink, +Opts) is det.
+%! rdf_reserialize_legacy(+Source, +Sink, +SinkOpts) is det.
 
 rdf_reserialize_legacy(Source, Sink) :-
   rdf_reserialize_legacy(Source, Sink, []).
 
 
-rdf_reserialize_legacy(Source, Sink, Opts) :-
+rdf_reserialize_legacy(Source, Sink, SinkOpts) :-
   rdf_load_file(Source),
-  rdf_write_to_sink_legacy(Sink, trp, Opts).
+  rdf_write_to_sink_legacy(Sink, trp, SinkOpts).
 
 
 
 %! rdf_download_to_file(+Uri, +File) is det.
-%! rdf_download_to_file(+Uri, ?File, +InOpts, +OutOpts) is det.
+%! rdf_download_to_file(+Uri, ?File, +SourceOpts, +SinkOpts) is det.
 %
 % Options are passed to rdf_call_onto_stream/5.
 
@@ -715,15 +714,18 @@ rdf_download_to_file(Uri, File) :-
   rdf_download_to_file(Uri, File, [], []).
 
 
-rdf_download_to_file(Uri, File, InOpts, OutOpts) :-
+rdf_download_to_file(Uri, File, SourceOpts, SinkOpts) :-
   thread_file(File, TmpFile),
-  call_onto_stream(Uri, TmpFile, copy_stream_data, InOpts, OutOpts),
+  call_onto_stream(Uri, TmpFile, rdf_download_to_file, SourceOpts, SinkOpts),
   rename_file(TmpFile, File).
+
+%rdf_download_to_file(In, InPath, InPath, Out) :-
+%  rdf_call_on_tuples_stream0(Goal_5, SourceOpts).
 
 
 
 %! rdf_load_file(+Source) is det.
-%! rdf_load_file(+Source, +Opts) is det.
+%! rdf_load_file(+Source, +SourceOpts) is det.
 %
 % The following options are supported:
 %
@@ -756,21 +758,21 @@ rdf_load_file(Source) :-
   rdf_load_file(Source, []).
 
 
-rdf_load_file(Source, Opts) :-
+rdf_load_file(Source, SourceOpts) :-
   State = _{number_of_quads: 0, number_of_triples: 0},
-  (   option(force_graph(ToG), Opts)
+  (   option(force_graph(ToG), SourceOpts)
   ->  Goal_5 = rdf_force_load_tuple0(State, ToG)
   ;   rdf_default_graph(DefG),
-      option(graph(ToG), Opts, DefG),
+      option(graph(ToG), SourceOpts, DefG),
       Goal_5 = rdf_load_tuple0(State, ToG)
   ),
-  rdf_call_on_tuples(Source, Goal_5, Opts),
+  rdf_call_on_tuples(Source, Goal_5, SourceOpts),
   NumQuads = State.number_of_quads,
   NumTriples = State.number_of_triples,
-  option(number_of_quads(NumQuads), Opts, _),
-  option(number_of_triples(NumTriples), Opts, _),
+  option(number_of_quads(NumQuads), SourceOpts, _),
+  option(number_of_triples(NumTriples), SourceOpts, _),
   NumTuples is NumQuads + NumTriples,
-  option(number_of_tuples(NumTuples), Opts, _),
+  option(number_of_tuples(NumTuples), SourceOpts, _),
   debug(
     rdf__io,
     "Loaded ~D tuples from ~w (~D triples and ~D quads).~n",
@@ -797,7 +799,7 @@ count_tuple0(State, _) :-
 
 
 %! rdf_load_quads(+Source, -Quads) is det.
-%! rdf_load_quads(+Source, -Quads, +Opts) is det.
+%! rdf_load_quads(+Source, -Quads, +SourceOpts) is det.
 %
 % Options are passed to rdf_load_file/2.
 
@@ -805,10 +807,10 @@ rdf_load_quads(Source, Quads) :-
   rdf_load_quads(Source, Quads, []).
 
 
-rdf_load_quads(Source, Quads, Opts) :-
+rdf_load_quads(Source, Quads, SourceOpts) :-
   q_snap((
     rdf_retractall(_, _, _),
-    rdf_load_file(Source, Opts),
+    rdf_load_file(Source, SourceOpts),
     q_quads(trp, Quads),
     rdf_retractall(_, _, _),
     rdf_unload_empty_graphs
@@ -817,7 +819,7 @@ rdf_load_quads(Source, Quads, Opts) :-
 
 
 %! rdf_load_triples(+Source, -Triples) is det.
-%! rdf_load_triples(+Source, -Triples, +Opts) is det.
+%! rdf_load_triples(+Source, -Triples, +SourceOpts) is det.
 %
 % Options are passed to rdf_load_file/2.
 
@@ -825,10 +827,10 @@ rdf_load_triples(Source, Triples) :-
   rdf_load_triples(Source, Triples, []).
 
 
-rdf_load_triples(Source, Triples, Opts) :-
+rdf_load_triples(Source, Triples, SourceOpts) :-
   q_snap((
     rdf_retractall(_, _, _),
-    rdf_load_file(Source, Opts),
+    rdf_load_file(Source, SourceOpts),
     q_triples(trp, Triples)
   )).
 
@@ -889,11 +891,11 @@ rdf_write_ntuples(M, S, P, O, G, State, Out) :-
 
 
 
-%! rdf_write_to_sink(?Sink, ?M,             ?G       ) is det.
-%! rdf_write_to_sink(?Sink, ?M,             ?G, +Opts) is det.
-%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O           ) is det.
-%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O, ?G       ) is det.
-%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O, ?G, +Opts) is det.
+%! rdf_write_to_sink(?Sink, ?M,             ?G           ) is det.
+%! rdf_write_to_sink(?Sink, ?M,             ?G, +SinkOpts) is det.
+%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O               ) is det.
+%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O, ?G           ) is det.
+%! rdf_write_to_sink(?Sink, ?M, ?S, ?P, ?O, ?G, +SinkOpts) is det.
 %
 % Writes N-Tuples from backend M in an RDF serialization to Sink.
 %
@@ -922,8 +924,8 @@ rdf_write_to_sink(Sink, M, G) :-
   rdf_write_to_sink(Sink, M, G, []).
 
 
-rdf_write_to_sink(Sink, M, G, Opts) :-
-   rdf_write_to_sink(Sink, M, _, _, _, G, Opts).
+rdf_write_to_sink(Sink, M, G, SinkOpts) :-
+   rdf_write_to_sink(Sink, M, _, _, _, G, SinkOpts).
 
 
 rdf_write_to_sink(Sink, M, S, P, O) :-
@@ -934,20 +936,20 @@ rdf_write_to_sink(Sink, M, S, P, O, G) :-
   rdf_write_to_sink(Sink, M, S, P, O, G, []).
 
 
-rdf_write_to_sink(File, M, S, P, O, G, Opts) :-
+rdf_write_to_sink(File, M, S, P, O, G, SinkOpts) :-
   var(File), !,
   (   % A file is already associated with the given graph G.
       rdf_graph_property(G, source(File))
   ->  true
-  ;   rdf_file_name0(File, Opts)
+  ;   rdf_file_name0(File, SinkOpts)
   ),
   create_file_directory(File),
-  rdf_write_to_sink(File, M, S, P, O, G, Opts).
-rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
+  rdf_write_to_sink(File, M, S, P, O, G, SinkOpts).
+rdf_write_to_sink(Sink, M, S, P, O, G, SinkOpts1) :-
   rdf_default_graph(DefG),
   defval(DefG, G),
-  rdf_write_media_type0(Sink, Opts1, MT),
-  merge_options(Opts1, [rdf_media_type(MT)], Opts2),
+  rdf_write_media_type0(Sink, SinkOpts1, MT),
+  merge_options(SinkOpts1, [rdf_media_type(MT)], SinkOpts2),
   dcg_with_output_to(string(Msg), (
     "TRP → ",
     dcg_q_print_graph_term(G),
@@ -955,20 +957,20 @@ rdf_write_to_sink(Sink, M, S, P, O, G, Opts1) :-
     atom(MT)
   )),
   indent_debug_call(io, Msg,
-    rdf_call_to_ntuples(Sink, rdf_write_ntuples(M, S, P, O, G), Opts2)
+    rdf_call_to_ntuples(Sink, rdf_write_ntuples(M, S, P, O, G), SinkOpts2)
   ).
 
-rdf_file_name0(File, Opts) :-
+rdf_file_name0(File, SinkOpts) :-
   uuid(Base),
-  rdf_file_name0(Base, File, Opts).
+  rdf_file_name0(Base, File, SinkOpts).
 
-rdf_file_name0(Base, File, Opts) :-
-  rdf_write_media_type0(_, Opts, MT),
+rdf_file_name0(Base, File, SinkOpts) :-
+  rdf_write_media_type0(_, SinkOpts, MT),
   rdf_media_type(MT, _, Ext),
   file_name_extension(Base, Ext, File).
 
-rdf_write_media_type0(_, Opts, MT) :-
-  option(rdf_media_type(MT), Opts), !.
+rdf_write_media_type0(_, SinkOpts, MT) :-
+  option(rdf_media_type(MT), SinkOpts), !.
 rdf_write_media_type0(File, _, MT) :-
   is_absolute_file_name(File),
   file_name_extension(_, Ext, File),
@@ -978,7 +980,7 @@ rdf_write_media_type0(_, _, application/'n-quads').
 
 
 %! rdf_write_to_sink_legacy(?Sink, ?M) is det.
-%! rdf_write_to_sink_legacy(?Sink, ?M, +Opts) is det.
+%! rdf_write_to_sink_legacy(?Sink, ?M, +SinkOpts) is det.
 %
 % Legacy RDF writers that can only dump everything or a given graph to
 % a file (i.e., no triple pattern support).
@@ -1001,12 +1003,16 @@ rdf_write_to_sink_legacy(Sink, M) :-
   rdf_write_to_sink_legacy(Sink, M, []).
 
 
-rdf_write_to_sink_legacy(Sink, M, Opts) :-
-  rdf_write_media_type0(Sink, Opts, MT),
+rdf_write_to_sink_legacy(Sink, M, SinkOpts) :-
+  rdf_write_media_type0(Sink, SinkOpts, MT),
   (   is_of_type(rdf_ntuples, MT)
-  ->  rdf_write_to_sink(Sink, M, Opts)
+  ->  rdf_write_to_sink(Sink, M, SinkOpts)
   ;   MT == application/trig
-  ->  call_to_stream(Sink, {Opts}/[Out]>>rdf_save_trig(Out, Opts), Opts)
+  ->  call_to_stream(
+        Sink,
+        {SinkOpts}/[Out]>>rdf_save_trig(Out, SinkOpts),
+        SinkOpts
+      )
   ;   MT == application/turtle
   ->  merge_options(
         [
@@ -1020,16 +1026,20 @@ rdf_write_to_sink_legacy(Sink, M, Opts) :-
           tab_distance(0),
           user_prefixes(true)
         ],
-        Opts,
+        SinkOpts,
         TurtleOpts
       ),
       call_to_stream(
 	Sink,
 	{TurtleOpts}/[Out]>>rdf_save_turtle(Out, TurtleOpts),
-        Opts
+        SinkOpts
       )
   ;   MT == application/'rdf+xml'
-  ->  call_to_stream(Sink, {Opts}/[Out]>>rdf_save_xmlrdf(Out, Opts), Opts)
+  ->  call_to_stream(
+        Sink,
+        {SinkOpts}/[Out]>>rdf_save_xmlrdf(Out, SinkOpts),
+        SinkOpts
+      )
   ;   domain_error(rdf_media_type, MT)
   ).
 
@@ -1039,11 +1049,11 @@ rdf_write_to_sink_legacy(Sink, M, Opts) :-
 
 % HELPERS %
 
-%! get_base_uri(-BaseUri, +InPath, +Opts) is det.
+%! get_base_uri(-BaseUri, +InPath, +SourceOpts) is det.
 
 % Option base_uri/1 overrides everything else.
-get_base_uri(BaseUri, _, Opts) :-
-  option(base_uri(BaseUri), Opts), !.
+get_base_uri(BaseUri, _, SourceOpts) :-
+  option(base_uri(BaseUri), SourceOpts), !.
 get_base_uri(BaseUri, InPath, _) :-
   member(InEntry, InPath),
   (   _{'@id': Uri, '@type': uri} :< InEntry
@@ -1054,20 +1064,20 @@ get_base_uri(BaseUri, InPath, _) :-
 
 
 
-%! rdf_recode_stream(+In1, +MT, -In2, -Close, +Opts) is det.
+%! rdf_recode_stream(+In1, +MT, -In2, -Close, +SourceOpts) is det.
 
 rdf_recode_stream(In, MT, In, true, _) :-
   % Documents of type JSON-LD or one of the Turtle-family formats
   % _must_ be encoded in UTF-8.
   (is_of_type(turtle_media_type, MT) ; MT == application/'ld+json'), !,
   set_stream(In, encoding(utf8)).
-rdf_recode_stream(In1, _, In2, Close, Opts1) :-
-  merge_options([recode(true)], Opts1, Opts2),
-  recode_stream(In1, In2, Close, Opts2).
+rdf_recode_stream(In1, _, In2, Close, SourceOpts1) :-
+  merge_options([recode(true)], SourceOpts1, SourceOpts2),
+  recode_stream(In1, In2, Close, SourceOpts2).
 
 
 
-%! set_media_type(+In, +InPath1, -InPath2, -MT, +Opts) is det.
+%! set_media_type(+In, +InPath1, -InPath2, -MT, +SourceOpts) is det.
 %
 % Sets the `rdf_media_type` key in InPath2.
 
@@ -1075,10 +1085,10 @@ rdf_recode_stream(In1, _, In2, Close, Opts1) :-
 set_media_type(_, [InEntry|InPath], [InEntry|InPath], MT, _) :-
   get_dict(rdf_media_type, InEntry, MT), !.
 % Option rdf_media_type/1 overrides guesswork.
-set_media_type(_, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
-  option(rdf_media_type(MT), Opts), !,
+set_media_type(_, [InEntry1|InPath], [InEntry2|InPath], MT, SourceOpts) :-
+  option(rdf_media_type(MT), SourceOpts), !,
   InEntry2 = InEntry1.put(_{rdf_media_type: MT}).
-set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
+set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, SourceOpts) :-
   (   % The HTTP Content-Type header is used to guide the guessing.
       dicts_getchk(headers, [InEntry1|InPath], Headers),
       get_dict('content-type', Headers, Val),
@@ -1091,7 +1101,7 @@ set_media_type(In, [InEntry1|InPath], [InEntry2|InPath], MT, Opts) :-
       )
   ->  GuessOpts = [default_rdf_media_type(MT2)]
   ;   % The file extension of the base URI is used to guide the guessing.
-      get_base_uri(BaseUri, [InEntry1|InPath], Opts),
+      get_base_uri(BaseUri, [InEntry1|InPath], SourceOpts),
       iri_file_extensions(BaseUri, Exts),
       member(Ext, Exts),
       (rdf_media_type(MT2, _, Ext) ; rdf_alternative_extension(MT2, Ext))
@@ -1124,12 +1134,12 @@ set_rdf_options(Opts1, Opts2) :-
 
 % STAGE SETTING %
 
-%! rdf_write_ntuples_begin(-State, +Opts) is det.
+%! rdf_write_ntuples_begin(-State, +SinkOpts) is det.
 
-rdf_write_ntuples_begin(State2, Opts) :-
-  option(rdf_media_type(MT), Opts, nquads),
+rdf_write_ntuples_begin(State2, SinkOpts) :-
+  option(rdf_media_type(MT), SinkOpts, nquads),
   uuid(Uuid),
-  ignore(option(name(Name), Opts)),
+  ignore(option(name(Name), SinkOpts)),
   State1 = Name{
     number_of_quads: 0,
     rdf_media_type: MT,
@@ -1137,20 +1147,20 @@ rdf_write_ntuples_begin(State2, Opts) :-
     uuid: Uuid
   },
   % Stream to write warnings to, if any.
-  (   option(warn(Warn), Opts)
+  (   option(warn(Warn), SinkOpts)
   ->  State2 = State1.put(_{warn: Warn})
   ;   State2 = State1
   ),
   indent_debug(rdf__io, "» Writing N-Tuples (~w)", [Name]).
 
 
-%! rdf_write_ntuples_end(+State, +Opts) is det.
+%! rdf_write_ntuples_end(+State, +SinkOpts) is det.
 
-rdf_write_ntuples_end(State, Opts) :-
-  option(number_of_quads(State.number_of_quads), Opts, _),
-  option(number_of_triples(State.number_of_triples), Opts, _),
+rdf_write_ntuples_end(State, SinkOpts) :-
+  option(number_of_quads(State.number_of_quads), SinkOpts, _),
+  option(number_of_triples(State.number_of_triples), SinkOpts, _),
   NumTuples is State.number_of_triples + State.number_of_quads,
-  option(number_of_tuples(NumTuples), Opts, _),
+  option(number_of_tuples(NumTuples), SinkOpts, _),
   dict_tag(State, Name),
   indent_debug(rdf__io, "« Written N-Tuples (~w)", [Name]).
 
