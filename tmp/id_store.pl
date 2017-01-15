@@ -112,7 +112,7 @@ assign_id(T, Tid) :-
   )).
 
 canonical_form(T, T) :-
-  q_is_legacy_literal(T), !.
+  rdf_is_legacy_literal(T), !.
 canonical_form(T1, T2) :-
   rdf11:pre_object(T1, T2).
 
@@ -274,7 +274,7 @@ store_id0(X, Y) :-
 %! term_to_id(+T, -Tid) is semidet.
 
 term_to_id(T1, Tid) :-
-  (q_is_iri(T1) -> iri_normalized(T1, T2) ; T2 = T1),
+  (rdf_is_iri(T1) -> iri_normalized(T1, T2) ; T2 = T1),
   term_to_id0(T2, Tid).
 
 

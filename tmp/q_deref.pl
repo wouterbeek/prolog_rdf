@@ -94,7 +94,7 @@ q_cache_iris(M, Opts1) :-
   ).
 
 q_cache_iris_worker(M, Iri, NewIris) :-
-  (   q_is_external_iri(Iri)
+  (   rdf_is_external_iri(Iri)
   ->  if_debug(rdf(deref), print_pool(cache)),
       aggregate_all(
         set(NewIri),

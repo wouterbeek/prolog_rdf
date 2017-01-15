@@ -7,7 +7,7 @@
 
 skosmap(Lit, Opts) -->
   {
-    q_is_literal(Lit),
+    rdf_is_literal(Lit),
     findall(Concept-Scheme, skos_find(Lit, Concept, Scheme), Pairs),
     Pairs \== [],
     q_sort_terms(pair_label_key, Pairs, Sorted)

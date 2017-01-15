@@ -182,7 +182,7 @@ ll_docs(Docs) :-
 % pattern 〈S,P,O〉 is satisfied.
 
 ll_docs(S, P, O, Docs) :-
-  include(q_is_iri, [S,P,O], Iris),
+  include(rdf_is_iri, [S,P,O], Iris),
   (   Iris == []
   ->  ll_docs(Docs)
   ;   concurrent_maplist(ll_iri_to_docs, Iris, Docss),

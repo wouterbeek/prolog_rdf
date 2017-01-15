@@ -1,3 +1,8 @@
+%! q_link(+Backend, +P, +G) is det.
+
+q_link(Backend, P, G) :-
+  q_link_objects(Backend, P, G).
+  
 :- module(
   rdf_link,
   [
@@ -57,7 +62,7 @@ rdf_link_objects(Backend, P, G) :-
   aggregate_all(
     set(From),
     (
-      q(trp, _, P, From, G),
+      t(trp, _, P, From, G),
       rdf_is_literal(From)
     ),
     Froms

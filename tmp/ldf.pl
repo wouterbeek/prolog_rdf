@@ -42,7 +42,7 @@ ldf(S, P, O, Endpoint) :-
 ldf_guess_size(S, P, O, Endpoint, NumTriples) :-
   ldf_request_iri(S, P, O, Endpoint, RequestIri),
   rdf_load_quads(RequestIri, Quads, [rdf_media_type(application/trig)]),
-  partition(q_is_def_quad, Quads, _, MetaQuads),
+  partition(rdf_is_def_quad, Quads, _, MetaQuads),
   rdf_equal(hydra:totalItems, P),
   memberchk(rdf(_,P,NumTriples^^_,_), MetaQuads).
 
@@ -71,9 +71,9 @@ ldf_iri_page(_, 1).
 ldf_parameter(_, Val, _) :-
   var(Val), !.
 ldf_parameter(Key, Lit, Key=Val) :-
-  q_is_literal(Lit), !,
+  rdf_is_literal(Lit), !,
   rdf_literal_lexical_form(Lit, Lex),
-  (   q_is_lts(Lit)
+  (   rdf_is_lts(Lit)
   ->  Lit = _@LTag,
       format(atom(Val), '"~a"@~a', [Lex,LTag])
   ;   q_literal_datatype(Lit, D),
@@ -87,7 +87,7 @@ ldf_parameter(Key, Val, Key=Val).
 
 ldf_request(RequestIri1, S, P, O) :-
   rdf_load_quads(RequestIri1, Quads, [rdf_media_type(application/trig)]),
-  partition(q_is_def_quad, Quads, DataQuads, MetaQuads),
+  partition(rdf_is_def_quad, Quads, DataQuads, MetaQuads),
   (   member(rdf(S,P,O,_), DataQuads)
   ;   % Check whether there is a next page with more results.
       rdf_equal(hydra:nextPage, Q),

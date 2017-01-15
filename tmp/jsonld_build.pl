@@ -109,7 +109,7 @@ jsonld_subject_tree(M, PDefs, DefLang, Tree, G, S1, Dict) :-
 
   % '@id'
   jsonld_abbreviate_iri0(S1, S2),
-  (q_is_bnode(S1) -> Pairs1 = Pairs2 ; Pairs1 = ['@id'-S2|Pairs2]),
+  (rdf_is_bnode(S1) -> Pairs1 = Pairs2 ; Pairs1 = ['@id'-S2|Pairs2]),
 
   % '@type'
   rdf_equal(rdf:type, RdfType),
@@ -204,7 +204,7 @@ jsonld_ptree(M, PDefs, DefLang, Tree, G, P1, P2-O2) :-
 %! jsonld_oterm(+M, +PDefs, ?DefLang, +P, +G, +O, -DictO) is det.
 
 jsonld_oterm(M, PDefs, _, P2, G, O1, L2) :-
-  q_is_subject(O1),
+  rdf_is_subject(O1),
   q_maximal_list(M, O1, L1, G),
   memberchk(P2-PDef, PDefs),
   '@list' == PDef.get('@container'), !,
@@ -266,7 +266,7 @@ p_container(M, Triples, P, G) :-
   forall(
     member(rdf(_,P,O), Triples),
     (
-      q_is_subject(O),
+      rdf_is_subject(O),
       q_maximal_list(M, O, G)
     )
   ).
@@ -291,7 +291,7 @@ p_datatype(Triples, P, Sup) :-
 %! p_iri(+Triples, +P) is semidet.
 
 p_iri(Triples, P) :-
-  forall(member(rdf(_,P,O), Triples), q_is_iri(O)).
+  forall(member(rdf(_,P,O), Triples), rdf_is_iri(O)).
 
 
 
@@ -300,7 +300,7 @@ p_iri(Triples, P) :-
 
 p_ltag(Triples, P, LTag) :-
   memberchk(rdf(_,P,_@LTag), Triples),
-  forall(member(rdf(_,P,O), Triples), q_is_lts(O)).
+  forall(member(rdf(_,P,O), Triples), rdf_is_lts(O)).
 
 
 

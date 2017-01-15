@@ -186,10 +186,10 @@ subject_to_geojson_properties(M, true, G, S, Dict) :-
     set(Key-Val),
     (
       q(M, S, P, O, G),
-      \+ q_is_bnode(O),
+      \+ rdf_is_bnode(O),
       \+ rdf_equal(g:geometry, P),
       q_iri_local(P, Key),
-      (   q_is_literal(O)
+      (   rdf_is_literal(O)
       ->  rdf_literal_lexical_form(O, Val0),
           json_escape(Val0, Val)
       ;   q_iri_local(O, Val)

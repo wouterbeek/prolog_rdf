@@ -53,7 +53,7 @@
 
 rdf_graph_instance(M, H, G, Map) :-
   q_triples(M, G, GTriples),
-  partition(q_is_ground_triple, GTriples, GGround, GNonground),
+  partition(rdf_is_ground_triple, GTriples, GGround, GNonground),
   q_triples(M, H, HTriples),
   ord_subtract(HTriples, GGround, HInstance),
   rdf_graph_instance(HInstance, GNonground, [], Map).
