@@ -316,7 +316,6 @@ assert_cached_version :-
   rdf_create_alias(dcq, 'http://purl.org/dc/qualifiers/1.0/'),
   rdf_create_alias(dcr, 'http://www.isocat.org/ns/dcr.rdf#'),
   rdf_create_alias(dcs, 'http://ontologi.es/doap-changeset#'),
-  rdf_create_alias(dctype, 'http://purl.org/dc/dcmitype/'),
   rdf_create_alias(ddc, 'http://purl.org/NET/decimalised#'),
   rdf_create_alias(ddl, 'http://purl.org/vocab/riro/ddl#'),
   rdf_create_alias(decision, 'https://decision-ontology.googlecode.com/svn/trunk/decision.owl#'),
