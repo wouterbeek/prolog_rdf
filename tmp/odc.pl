@@ -11,9 +11,8 @@
 @version 2014/05, 2016/05-2016/06
 */
 
-:- use_module(library(q/q_rdf)).
-:- use_module(library(q/q_term)).
 :- use_module(library(rdf/rdf__io)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 
@@ -30,5 +29,5 @@ odc_entry(S, Triples) :-
 
 
 odc_entry0(S, Triples, G) :-
-  distinct(S, q_subject(trp, S, G)),
-  q_triples(trp, S, _, _, G, Triples).
+  distinct(S, rdf_subject(trp, S, G)),
+  rdf_triples(trp, S, _, _, G, Triples).

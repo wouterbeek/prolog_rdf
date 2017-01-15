@@ -14,7 +14,7 @@
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(rdf/rdf_update)).
+:- use_module(library(trp/trp_update)).
 
 :- rdf_meta
    qu_remove_thousands(+, +, r, r).

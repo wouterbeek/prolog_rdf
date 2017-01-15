@@ -1,6 +1,5 @@
 :- use_module(library(lists)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(service/ll_api)).
 

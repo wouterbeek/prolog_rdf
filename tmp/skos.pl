@@ -1,4 +1,4 @@
-:- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf_term)).
 
 %! skosmap(+Lit, +Opts)// is det.
 %

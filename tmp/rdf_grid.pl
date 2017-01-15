@@ -17,7 +17,7 @@ Build grid compound terms based on RDF data.
 :- use_module(library(debug)).
 :- use_module(library(html/zh)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_update)).
+:- use_module(library(trp/trp_update)).
 
 :- rdf_meta
    pop_triple(r, r, o, r),

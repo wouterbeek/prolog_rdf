@@ -23,11 +23,11 @@ IRIs are linked using ‘owl:sameAs’.
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_update)).
 :- use_module(library(service/fct)).
 :- use_module(library(service/ll_api)).
 :- use_module(library(service/lotus_api)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(trp/trp_update)).
 
 :- rdf_meta
    rdf_link(+, o, -, -),

@@ -17,8 +17,8 @@ Stores documents with the number of seconds since epoch in a TSV file.
 :- use_module(library(lists)).
 :- use_module(library(math/rational_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q_datatype)).
-:- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(service/ll_api)).
 :- use_module(library(sparql/sparql_query_client)).
 

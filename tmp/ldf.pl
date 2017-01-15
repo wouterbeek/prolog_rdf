@@ -16,14 +16,10 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(q/q_rdf)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(uri)).
-
-:- rdf_create_alias(hydra, 'http://www.w3.org/ns/hydra/core#').
 
 :- rdf_meta
    ldf(r, r, o, r),

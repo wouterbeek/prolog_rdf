@@ -24,7 +24,7 @@
 
 rdfs_fca_context(
   context(
-    q_term:q_subject(G),
+    rdf_term:rdf_subject(G),
     rdfs_fca:rdfs_class,
     rdfs_fca:rdfs_instance
   ),

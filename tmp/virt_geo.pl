@@ -15,7 +15,7 @@
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_update)).
+:- use_module(library(trp/trp_update)).
 :- use_module(library(yall)).
 
 :- rdf_create_alias(geosparql, 'http://www.opengis.net/ont/geosparql#').

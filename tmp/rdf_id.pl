@@ -31,8 +31,8 @@
 :- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(yall)).
 
 :- rdf_meta

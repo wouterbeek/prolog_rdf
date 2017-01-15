@@ -22,8 +22,8 @@
 :- use_module(library(lists)).
 :- use_module(library(os/io)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_deref)).
-:- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf_deref)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(settings)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).

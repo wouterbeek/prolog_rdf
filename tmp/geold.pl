@@ -68,23 +68,23 @@ geojson_feature_collection(Features, FeatureCollection) :-
 
 geold_context(
   _{
-    coordinates: _{'@id': 'geold:coordinates', '@type': 'tcco:array'},
-    crs: 'geold:crs',
-    geold: 'http://geojsonld.com/vocab#',
-    geometry: 'geold:geometry',
-    'GeometryCollection': 'geold:GeometryCollection',
-    'Feature': 'geold:Feature',
-    'FeatureCollection': 'geold:FeatureCollection',
-    features: 'geold:features',
-    'LineString': 'geold:LineString',
-    'MultiLineString': 'geold:MultiLineString',
-    'MultiPoint': 'geold:MultiPoint',
-    'MultiPolygon': 'geold:MultiPolygon',
-    'Point': 'geold:Point',
-    'Polygon': 'geold:Polygon',
-    properties: 'geold:properties',
+    coordinates: _{'@id': 'g:coordinates', '@type': 'o:array'},
+    crs: 'g:crs',
+    g: 'https://triply.cc/geo/',
+    geometry: 'g:geometry',
+    'GeometryCollection': 'g:GeometryCollection',
+    'Feature': 'g:Feature',
+    'FeatureCollection': 'g:FeatureCollection',
+    features: 'g:features',
+    'LineString': 'g:LineString',
+    'MultiLineString': 'g:MultiLineString',
+    'MultiPoint': 'g:MultiPoint',
+    'MultiPolygon': 'g:MultiPolygon',
+    o: 'https://triply.cc/ontology/',
+    'Point': 'g:Point',
+    'Polygon': 'g:Polygon',
+    properties: 'g:properties',
     rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    tcco: 'http://triply.cc/ontology/',
     type: _{'@id': 'rdf:type', '@type': '@id'},
     '@vocab': Prefix
   }
@@ -98,7 +98,7 @@ geold_context(
 % Emits a description of Node in GeoJSON.
 
 geold_geojson(Node, _{}) :-
-  rdfs_individual_of(Node, geold:'Feature').
+  rdfs_individual_of(Node, g:'Feature').
 
 
 
@@ -187,7 +187,7 @@ subject_to_geojson_properties(M, true, G, S, Dict) :-
     (
       q(M, S, P, O, G),
       \+ q_is_bnode(O),
-      \+ rdf_equal(geold:geometry, P),
+      \+ rdf_equal(g:geometry, P),
       q_iri_local(P, Key),
       (   q_is_literal(O)
       ->  rdf_literal_lexical_form(O, Val0),
