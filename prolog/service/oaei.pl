@@ -32,7 +32,7 @@ During loading and saving alignments are represented as pairs.
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
-:- qb_alias(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
+:- rdf_create_alias(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
 
 :- rdf_meta
    oaei(?, o, o, r),

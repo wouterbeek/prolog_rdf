@@ -7,7 +7,7 @@
   ]
    ).
 :- reexport(library(fca/fca)).
-:- reexport(library(q/q_print)).
+:- reexport(library(q/rdf_print)).
 
 /** <module> RDF FCA Test
 
@@ -95,10 +95,10 @@ fca_viz0(Context, GLbl) :-
     Context,
     File,
     [
-      attribute_label(dcg_q_print_term),
+      attribute_label(dcg_rdf_print_term),
       concept_label(both),
       graph_label(GLbl),
-      object_label(dcg_q_print_term)
+      object_label(dcg_rdf_print_term)
     ]
   ),
   open_pdf(File).

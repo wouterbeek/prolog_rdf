@@ -11,10 +11,10 @@
     rdf_reachable_id/3,  % ?S, ?P, ?O
     rdf_retractall_id/3, % ?S, ?P, ?O
     rdf_retractall_id/4, % ?S, ?P, ?O, ?G
-    q_print_graph_id//1, % ?Gid
-    q_print_graph_id//2, % ?Gid, +Opts
-    q_print_id//1,       % +Tid
-    q_print_id//2        % +Tid, +Opts
+    rdf_print_graph_id//1, % ?Gid
+    rdf_print_graph_id//2, % ?Gid, +Opts
+    rdf_print_id//1,       % +Tid
+    rdf_print_id//2        % +Tid, +Opts
   ]
 ).
 :- reexport(library(semweb/rdf11), [
@@ -45,7 +45,7 @@
 :- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(yall)).
 
@@ -177,40 +177,40 @@ rdf_retractall_id(S, P, O, G) :-
 
 
 
-%! q_print_graph_id(+Gid)// is det.
-%! q_print_graph_id(+Gid, +Opts)// is det.
+%! rdf_print_graph_id(+Gid)// is det.
+%! rdf_print_graph_id(+Gid, +Opts)// is det.
 
-q_print_graph_id(Gid) -->
-  q_print_graph_id(Gid, []).
-q_print_graph_id(default, _) --> !,
+rdf_print_graph_id(Gid) -->
+  rdf_print_graph_id(Gid, []).
+rdf_print_graph_id(default, _) --> !,
   "default".
-q_print_graph_id(Gid, Opts) -->
-  q_print_id(Gid, Opts).
+rdf_print_graph_id(Gid, Opts) -->
+  rdf_print_id(Gid, Opts).
 
 
 
-%! q_print_id(+Tid)// is det.
-%! q_print_id(+Tid, +Opts)// is det.
+%! rdf_print_id(+Tid)// is det.
+%! rdf_print_id(+Tid, +Opts)// is det.
 
-q_print_id(Tid) -->
-  q_print_id(Tid, []).
-q_print_id(Tid, Opts) -->
+rdf_print_id(Tid) -->
+  rdf_print_id(Tid, []).
+rdf_print_id(Tid, Opts) -->
   {id_to_terms(Tid, Ts)},
-  set(q_print_term, Ts).
+  set(rdf_print_term, Ts).
 
 
 
-%! q_print_tuple_id(+Sid, +Pid, +Oid, ?Gid, +Opts) is det.
+%! rdf_print_tuple_id(+Sid, +Pid, +Oid, ?Gid, +Opts) is det.
 
-q_print_tuple_id(Sid, Pid, Oid, Gid, Opts) -->
+rdf_print_tuple_id(Sid, Pid, Oid, Gid, Opts) -->
   "〈",
-  q_print_id(Sid, Opts),
+  rdf_print_id(Sid, Opts),
   ", ",
-  q_print_id(Pid, Opts),
+  rdf_print_id(Pid, Opts),
   ", ",
-  q_print_id(Oid, Opts),
+  rdf_print_id(Oid, Opts),
   "〉",
-  ({var(Gid)} -> "" ; q_print_graph_id(Gid, Opts)).
+  ({var(Gid)} -> "" ; rdf_print_graph_id(Gid, Opts)).
 
 
 

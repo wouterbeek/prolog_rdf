@@ -7,7 +7,7 @@
     rdf_is_graph/1,       % +G
     rdf_new_graph/1,      % -G
     rdf_new_graph/2,      % +Name, -G
-    rdf_stale_graph/2,    % ?G, +FreshnessLifetime:between(0.0,inf)
+    rdf_stale_graph/2,    % ?G, +FLT:between(0.0,inf)
     rdf_tmp_graph/1,      % -G
     rdf_unload_empty_graphs/0
   ]
@@ -18,17 +18,14 @@
 @author Wouter Beek
 @compat RDF 1.1 Semantics
 @see http://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
-@version 2015/08-2016/12
+@version 2015/08-2017/01
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(q/qb)).
-:- use_module(library(rdf/rdf_stat)).
+:- use_module(library(rdf/rdf_alias), []).
 :- use_module(library(semweb/rdf11)).
-
-:- qb_alias(ex, 'http://example.org/').
+:- use_module(library(uri)).
 
 :- rdf_meta
    rdf_graph_age(r, -),
@@ -104,13 +101,13 @@ rdf_new_graph(G1, G) :-
       rdf_new_graph(G2, G)
   ).
 rdf_new_graph(G1, G) :-
-  iri_comps(G1, uri_components(Scheme,Auth,Path1,_,_)),
+  uri_components(G1, uri_components(Scheme,Auth,Path1,_,_)),
   % Remove the query and fragment parts, if any.
-  iri_comps(G2, uri_components(Scheme,Auth,Path1,_,_)),
+  uri_components(G2, uri_components(Scheme,Auth,Path1,_,_)),
   (   rdf_new_graph_try(G2)
   ->  G = G2
   ;   new_atom(Path1, Path2),
-      iri_comps(G2, uri_components(Scheme,Auth,Path2,_,_)),
+      uri_components(G2, uri_components(Scheme,Auth,Path2,_,_)),
       rdf_new_graph(G2, G)
   ).
 rdf_new_graph(G1, G) :-

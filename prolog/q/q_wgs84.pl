@@ -39,8 +39,8 @@ wgs84:Point IS-A wgs84:SpatialThing
 :- use_module(library(q/qu)).
 :- use_module(library(semweb/rdf11)).
 
-:- qb_alias(wkt, 'http://geojsonld.com/wkt#').
-:- qb_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
+:- rdf_create_alias(wkt, 'http://geojsonld.com/wkt#').
+:- rdf_create_alias(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 
 :- multifile
     rdf11:in_ground_type_hook/3,

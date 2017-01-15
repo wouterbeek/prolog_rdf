@@ -23,7 +23,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(q/q_iri)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(q/q_term)).
 :- use_module(library(q/qb)).
 :- use_module(library(rdf/rdf__io)).

@@ -6,7 +6,7 @@
 :- use_module(library(service/ll_api)).
 :- use_module(library(uri)).
 
-:- qb_alias(llo, 'http://lodlaundromat.org/ontology/').
+:- rdf_create_alias(llo, 'http://lodlaundromat.org/ontology/').
 
 run_pld :-
   call_to_stream('pld.csv', write_pld).

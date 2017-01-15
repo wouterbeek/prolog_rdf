@@ -54,7 +54,7 @@ Identifiers are atoms.
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(rdf/rdf_id)).
 :- use_module(library(semweb/rdf11), [
      rdf_graph/1 as rdf_graph_id,
@@ -202,7 +202,7 @@ print_id_store(Opts) :-
       tab(N),
       atom(Tid),
       "\t",
-      '*'(q_print_term, Ts),
+      '*'(rdf_print_term, Ts),
       nl
    ))
   ).

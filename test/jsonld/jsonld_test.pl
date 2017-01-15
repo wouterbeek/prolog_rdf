@@ -25,7 +25,7 @@ Largely derived from the JSON-LD 1.0 specification (W3C).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(terms)).
 
@@ -78,13 +78,13 @@ run_test0(Dict):-
   rdf_unload_db,
   (   rdf_load_quads(Dict.input, Quads1, [base_iri(Base)]),
       formatln("Parsed tuples:"),
-      q_print_quads(Quads1),
+      rdf_print_quads(Quads1),
       
       % Compare to RDF from N-Quads.
       isomorphic_tuples(Quads1, Quads2)
   ->  true
   ;   ansi_format(user_output, [fg(red)], "Expected tuples:~n", []),
-      q_print_quads(Quads2)
+      rdf_print_quads(Quads2)
   ), !.
 run_test0(Dict) :-
   ansi_format(user_output, [fg(red)], "Test ~w failed.~n", [Dict]).

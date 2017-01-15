@@ -118,14 +118,13 @@ them.
 :- use_module(library(gis/gis), []).       % RDF → GIS
 :- use_module(library(hash_ext)).
 :- use_module(library(hdt/hdt_ext)).
-:- use_module(library(hdt/hdt_io), []).    % N-Triples → HDT
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(q/q_dataset)).
 :- use_module(library(q/q_fs)).
 :- use_module(library(q/q_iri)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(q/q_term)).
@@ -374,7 +373,7 @@ q_source2store_source(Source, Info, SinkOpts1, Ready0, StoreFile) :-
         [access(write),relative_to(Dir)]
       ),
       thread_file(TmpFile0, TmpFile),
-      q_alias_prefix(ex, Prefix),
+      rdf_alias_prefix(ex, Prefix),
       SourceOpts = [base_iri(Prefix)],
       merge_options(SinkOpts1, [md5(Hash)], SinkOpts2),
       once(
@@ -559,7 +558,7 @@ qu_cbd_entry0(Node, Goal_1, TmpG, Hdt, State, Out) :-
     q_cbd_triple(hdt0, Node, Hdt, Triple),
     qb(trp, Triple, TmpG)
   ),
-  if_debug(qu(_), q_print_graph(trp, TmpG)),
+  if_debug(qu(_), rdf_print_graph(trp, TmpG)),
   call(Goal_1, TmpG),
   forall(
     q(trp, Triple, TmpG),
@@ -879,6 +878,6 @@ q_view_graph(M, G) :-
 deb_q_io(From, G, To) -->
   str(From),
   " → ",
-  dcg_q_print_graph_term(G),
+  dcg_rdf_print_graph_term(G),
   " → ",
   str(To).

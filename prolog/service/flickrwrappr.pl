@@ -36,7 +36,7 @@ resource [3].
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 
-:- qb_alias(dbp, 'http://dbpedia.org/property/').
+:- rdf_create_alias(dbp, 'http://dbpedia.org/property/').
 
 :- rdf_meta
    flickrwrappr(r, -).

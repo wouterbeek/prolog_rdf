@@ -59,9 +59,9 @@
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 
-:- qb_alias(lld, 'http://lodlaundromat.org/download/').
-:- qb_alias(llo, 'http://lodlaundromat.org/ontology/').
-:- qb_alias(llr, 'http://lodlaundromat.org/resource/').
+:- rdf_create_alias(lld, 'http://lodlaundromat.org/download/').
+:- rdf_create_alias(llo, 'http://lodlaundromat.org/ontology/').
+:- rdf_create_alias(llr, 'http://lodlaundromat.org/resource/').
 
 :- meta_predicate
     ll_stream(5),

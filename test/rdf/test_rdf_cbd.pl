@@ -1,5 +1,5 @@
 :- use_module(library(print_ext)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(q/q_shape)).
 :- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf__io)).
@@ -23,7 +23,7 @@ test(Mod:Mode, Opts) :-
   StartNode = 'http://example.org/aReallyGreatBook',
   call(Mod:Mode, StartNode, Triples),
   msg_notification("Computed ~a:~n", [Mode]),
-  q_print_triples(Triples, Opts),
+  rdf_print_triples(Triples, Opts),
   load_and_print_graph0(Mode, Opts),
   rdf_isomorphic_graphs(Triples, Mode).
 
@@ -33,4 +33,4 @@ load_and_print_graph0(G, Opts) :-
   absolute_file_name(File, Path, [access(read)]),
   rdf_load_file(Path, [graph(G)]),
   msg_notification("~a:~n", [G]),
-  q_print_graph(G, Opts).
+  rdf_print_graph(G, Opts).

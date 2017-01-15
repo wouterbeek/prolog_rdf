@@ -161,7 +161,7 @@ define(I, inference(Regime)) -->
 %! define_inference_regime(+Alias)// is det.
 
 define_inference_regime(Alias) -->
-  {q_alias_prefix(Alias, Prefix)},
+  {rdf_alias_prefix(Alias, Prefix)},
   "\"", atom(Prefix), "\"".
 
 
@@ -322,7 +322,7 @@ order_criterion(descending) --> "DESC".
 %! prefix(+Indent, +Alias)// is det.
 
 prefix(I, Alias) -->
-  {q_alias_prefix(Alias, Prefix)}, !,
+  {rdf_alias_prefix(Alias, Prefix)}, !,
   tab(I), "PREFIX ",
   atom(Alias),
   ": ",

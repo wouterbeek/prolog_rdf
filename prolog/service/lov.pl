@@ -28,7 +28,7 @@ Support for the OKF-managed list of open vocabularies.
 :- use_module(library(sparql/sparql_query_client)).
 :- use_module(library(yall)).
 
-:- qb_alias(voaf, 'http://purl.org/vocommons/voaf#').
+:- rdf_create_alias(voaf, 'http://purl.org/vocommons/voaf#').
 
 :- initialization(db_attach('lov.db', [])).
 

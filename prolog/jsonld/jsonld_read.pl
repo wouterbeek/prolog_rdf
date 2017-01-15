@@ -1,25 +1,25 @@
 :- module(
   jsonld_read,
   [
-    jsonld_tuple/2,              % +D, -Tuple
-    jsonld_tuple/3,              % +D, -Tuple,  +Opts
-    jsonld_tuple_with_context/3, % +Context, +D, -Tuple
-    jsonld_tuples/2,             % +D, -Tuples
-    jsonld_tuples/3              % +D, -Tuples, +Opts
+    jsonld_tuple/2,              % +Dict, -Tuple
+    jsonld_tuple/3,              % +Dict, -Tuple,  +Opts
+    jsonld_tuple_with_context/3, % +Context, +Dict, -Tuple
+    jsonld_tuples/2,             % +Dict, -Tuples
+    jsonld_tuples/3              % +Dict, -Tuples, +Opts
   ]
 ).
 
 /** <module> JSON-LD read
 
 @author Wouter Beek
-@version 2016/01-2016/03, 2016/05, 2016/07
+@version 2016/01-2017/01
 */
 
 :- use_module(library(dict_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_generics)).
 :- use_module(library(lists)).
-:- use_module(library(q/qb)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(typecheck)).
 
@@ -30,8 +30,8 @@
 
 
 
-%! jsonld_tuple(+D, -Tuple) is det.
-%! jsonld_tuple(+D, -Tuple, +Opts) is det.
+%! jsonld_tuple(+Dict, -Tuple) is det.
+%! jsonld_tuple(+Dict, -Tuple, +Opts) is det.
 %
 % The following options are supported:
 %
@@ -39,11 +39,11 @@
 %
 %   - context(+dict)
 
-jsonld_tuple(D, Tuple) :-
-  jsonld_tuple(D, Tuple, []).
+jsonld_tuple(Dict, Tuple) :-
+  jsonld_tuple(Dict, Tuple, []).
 
 
-jsonld_tuple(D, Tuple, Opts) :-
+jsonld_tuple(Dict, Tuple, Opts) :-
   option(context(Context1), Opts, _{}),
   % The base IRI that was set outside of the JSON-LD context
   % takes precedence over the one that is set inside the JSON-LD context.
@@ -51,14 +51,14 @@ jsonld_tuple(D, Tuple, Opts) :-
   ->  Context2 = Context1.put(_{'@base': BaseIri})
   ;   Context2 = Context1
   ),
-  jsonld_tuple_with_context(Context2, D, Tuple).
+  jsonld_tuple_with_context(Context2, Dict, Tuple).
 
 
 
-%! jsonld_tuple_with_context(+Context, +D, -Tuple) is nondet.
+%! jsonld_tuple_with_context(+Context, +Dict, -Tuple) is nondet.
 
-jsonld_tuple_with_context(Context, D, Tuple) :-
-  jsonld_tuple(Context, D, Tuple, _).
+jsonld_tuple_with_context(Context, Dict, Tuple) :-
+  jsonld_tuple(Context, Dict, Tuple, _).
 
 
 
@@ -75,15 +75,15 @@ jsonld_tuple(Context1, Obj, Tuple, S) :-
 
 
 
-%! jsonld_tuples(+D, -Tuples) is det.
-%! jsonld_tuples(+D, -Tuples, +Opts) is det.
+%! jsonld_tuples(+Dict, -Tuples) is det.
+%! jsonld_tuples(+Dict, -Tuples, +Opts) is det.
 
-jsonld_tuples(D, Tuples) :-
-  jsonld_tuples(D, Tuples, []).
+jsonld_tuples(Dict, Tuples) :-
+  jsonld_tuples(Dict, Tuples, []).
 
 
-jsonld_tuples(D, Tuples, Opts) :-
-  aggregate_all(set(Tuple), jsonld_tuple(D, Tuple, Opts), Tuples).
+jsonld_tuples(Dict, Tuples, Opts) :-
+  aggregate_all(set(Tuple), jsonld_tuple(Dict, Tuple, Opts), Tuples).
 
 
 
@@ -106,8 +106,8 @@ jsonld_tuple_goto(Context, Data1, Tuple, S) :-
 
 %! jsonld_dict_tuple(+Context, +S, +P, +Dict, -Tuple) is nondet.
 
-jsonld_dict_tuple(Context, S1, P, D, Tuple) :-
-  dict_pairs(D, Pairs),
+jsonld_dict_tuple(Context, S1, P, Dict, Tuple) :-
+  dict_pairs(Dict, Pairs),
   findall(Tuple, jsonld_tuple_goto(Context, Pairs, Tuple, _), Tuples),
   (   % The triple connecting the parent object to the child object.
       Tuples = [rdf(S2,_,_)|_],
@@ -125,7 +125,7 @@ jsonld_to_list_triple(Context, S, P, _, _, [], Tuple) :- !,
   rdf_equal(rdf:nil, Nil),
   tuple_term(Context, S, P, Nil, Tuple).
 jsonld_to_list_triple(Context, S, P, ODef, LTag, L, Tuple) :-
-  qb_bnode(B),
+  rdf_create_bnode(B),
   (   tuple_term(Context, S, P, B, Tuple)
   ;   jsonld_to_list_triple(Context, B, ODef, LTag, L, Tuple)
   ).
@@ -141,7 +141,7 @@ jsonld_to_list_triple(Context, S, ODef, LTag, [H|T], Tuple) :-
   (   rdf_equal(rdf:first, First),
       jsonld_tuple(Context, S, First, ODef, LTag, H, Tuple)
   ;   rdf_equal(rdf:rest, Rest),
-      qb_bnode(B),
+      rdf_create_bnode(B),
       (   tuple_term(Context, S, Rest, B, Tuple)
       ;   jsonld_to_list_triple(Context, B, ODef, LTag, T, Tuple)
       )
@@ -162,11 +162,11 @@ jsonld_to_predicate(Context, P1, P5, ODef2, LTag) :-
       atom(Key),
       get_dict(Key, Context, ODef1),
       is_dict(ODef1),
-      (   get_dict('@type', ODef1, D)
-      ->  jsonld_expand_term(Context, D, ODef2),
+      (   get_dict('@type', ODef1, Dict)
+      ->  jsonld_expand_term(Context, Dict, ODef2),
           P5 = P2
-      ;   get_dict('@container', ODef1, D)
-      ->  atom_string(ODef2, D),
+      ;   get_dict('@container', ODef1, Dict)
+      ->  atom_string(ODef2, Dict),
           P5 = P2
       ;   get_dict('@reverse', ODef1, P3)
       ->  jsonld_to_predicate(Context, P3, P4, ODef2, LTag),
@@ -195,7 +195,7 @@ jsonld_to_subject(Context, L1, S2, L2) :-
   jsonld_expand_term(Context, S1, S2), !.
 % Case 2: No explicit subject term.  Create a fresh blank node.
 jsonld_to_subject(_, L, S, L) :-
-  qb_bnode(S).
+  rdf_create_bnode(S).
 
 
 %! jsonld_tuple(+Context, +S, +P, +ODef, +LTag, +Value, -Tuple) is det.
@@ -312,10 +312,10 @@ jsonld_tuple(Context, S, P, _, _, V, Tuple) :-
 
 % HELPERS %
 
-%! jsonld_context_and_data(+D, -Context, -Data:list(pair)) is det.
+%! jsonld_context_and_data(+Dict, -Context, -Data:list(pair)) is det.
 
-jsonld_context_and_data(D, Context6, Data) :-
-  dict_pairs(D, Pairs1),
+jsonld_context_and_data(Dict, Context6, Data) :-
+  dict_pairs(Dict, Pairs1),
   (   selectchk('@context'-Context1, Pairs1, Data)
   ->  % Splits context from data and parses the context into:
       %   1. a fully qualitied base IRI

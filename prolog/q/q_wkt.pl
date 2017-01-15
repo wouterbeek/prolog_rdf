@@ -25,8 +25,8 @@ Allows WKT shapes to be read/written from/to the Quine triple store.
 :- use_module(library(q/qu)).
 :- use_module(library(semweb/rdf11)).
 
-:- qb_alias(geold, 'http://geojsonld.com/vocab#').
-:- qb_alias(wkt, 'http://geojsonld.com/wkt#').
+:- rdf_create_alias(geold, 'http://geojsonld.com/vocab#').
+:- rdf_create_alias(wkt, 'http://geojsonld.com/wkt#').
 
 :- multifile
     gis:gis_shape_hook/5,
@@ -71,7 +71,7 @@ rdf11:out_type_hook(D, Array, Lex) :-
 qh:qh_literal_hook(Array^^D, Opts) -->
   {
     rdf_global_id(wkt:_, D), !,
-    q_literal_lex(Array^^D, Lex)
+    rdf_literal_lexical_form(Array^^D, Lex)
   },
   ellipsis(Lex, Opts.max_lit_len).
 

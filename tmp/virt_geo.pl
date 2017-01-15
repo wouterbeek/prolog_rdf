@@ -20,8 +20,8 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(yall)).
 
-:- qb_alias(geosparql, 'http://www.opengis.net/ont/geosparql#').
-:- qb_alias(ngeo, 'http://geovocab.org/geometry#').
+:- rdf_create_alias(geosparql, 'http://www.opengis.net/ont/geosparql#').
+:- rdf_create_alias(ngeo, 'http://geovocab.org/geometry#').
 
 :- rdf_meta
    virt_geo(r).
@@ -38,7 +38,7 @@ virt_geo(G) :-
   rdf_call_update((
     q(M, S, geold:geometry, Lit, P, G)
   ), (
-    q_literal_lex(Lit, Lex),
+    rdf_literal_lexical_form(Lit, Lex),
     qb(M, S, geosparql:asWKT, Lex^^geosparql:wktLiteral, G),
     qb_instance(M, S, ngeo:'Geometry', G),
     q_retractall(M, S, P, Lit, G)

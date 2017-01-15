@@ -1,5 +1,5 @@
 :- module(
-  q_print_ext,
+  rdf_print_ext,
   [
     qh_list//2, % +M, +L
     qh_list//3  % +M, +L, +Opts

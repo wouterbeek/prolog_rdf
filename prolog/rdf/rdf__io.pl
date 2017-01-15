@@ -91,24 +91,19 @@
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(iostream)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/q_fs)).
-:- use_module(library(q/q_io)).
-:- use_module(library(q/q_prefix), []).
-:- use_module(library(q/q_print)).
-:- use_module(library(q/q_rdf)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qb)).
 :- use_module(library(rdf), [process_rdf/3]).
-:- use_module(library(rdf/rdf__io)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(rdf/rdf_guess)).
+:- use_module(library(rdf/rdf_alias), []).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(semweb/rdf_db), [rdf_save/2 as rdf_save_xmlrdf]).
@@ -150,16 +145,7 @@
 
 :- multifile
     error:has_type/2,
-    q_io:q_cache_format_hook/2,
-    q_io:q_cache2view_hook/2,
-    q_io:q_store2cache_hook/4,
-    q_io:q_source2store_hook/5,
-    q_io:q_source_format_hook/2,
-    q_io:q_view_graph_hook/3,
-    q_io:q_view_rm_hook/2,
     rdf_http_plugin:rdf_content_type/3.
-
-% RDF serialization format information is not backend-specific.
 
 error:has_type(ntuples_media_type, MT) :-
   memberchk(MT, [
@@ -187,41 +173,6 @@ error:has_type(turtle_media_type, MT) :-
     application/trig,
     application/turtle
   ]).
-
-q_io:q_cache_format_hook(trp, [trp]).
-
-q_io:q_cache2view_hook(trp, G) :-
-  dcg_with_output_to(string(Msg), deb_q_io("TRP", G, "MEM")),
-  q_file_graph(File, trp, G),
-  indent_debug(io, Msg),
-  rdf_load_db(File).
-
-q_io:q_source2store_hook(rdf, Source, Sink, SourceOpts, SinkOpts) :-
-  rdf_reserialize(Source, Sink, SourceOpts, SinkOpts).
-
-q_io:q_source_format_hook(rdf, Ext) :-
-  rdf_media_type(_, _, Ext).
-
-q_io:q_store2cache_hook(trp, Source, Sink, G) :-
-  dcg_with_output_to(string(Msg1), deb_q_io("N-Triples", G, "MEM")),
-  dcg_with_output_to(string(Msg2), deb_q_io("MEM", G, "TRP")),
-  indent_debug_call(io, Msg1,
-    setup_call_cleanup(
-      rdf_load_file(Source, [graph(G)]),
-      indent_debug_call(io, Msg2,
-        rdf_save_db(Sink, G)
-      ),
-      rdf_unload_graph(G)
-    )
-  ).
-
-q_io:q_view_graph_hook(trp, G, false) :-
-  rdf_graph(G).
-
-q_io:q_view_rm_hook(trp, G) :-
-  rdf_unload_graph(G),
-  dcg_with_output_to(string(Msg), deb_q_io("TRP", G, "MEM")),
-  indent_debug(io, Msg).
 
 :- rdf_meta
    rdf_call_on_graph(+, :, t),
@@ -329,7 +280,7 @@ rdf_call_on_graph(Source, Goal_1, SourceOpts1) :-
   setup_call_cleanup(
     rdf_tmp_graph(G),
     (
-      merge_options(SourceOpts1, [force_graph(G)], SourceOpts2),
+      merge_options([force_graph(G)], SourceOpts1, SourceOpts2),
       rdf_load_file(Source, SourceOpts2),
       call(Goal_1, G)
     ),
@@ -624,9 +575,9 @@ rdf_call_to_ntuples(Sink, Mod:Goal_2, SinkOpts) :-
 rdf_clean_quad(rdf(S,P,O1,G1), rdf(S,P,O2,G3)) :-
   rdf11:post_graph(G2, G1),
   (G2 == user -> rdf_default_graph(G3) ; G3 = G2),
-  (   q_is_term(O1)
+  (   rdf_is_term(O1)
   ->  O2 = O1
-  ;   q_legacy_literal(O1, D, Lex0, LTag1),
+  ;   rdf_legacy_literal(O1, D, Lex0, LTag1),
       (   rdf_equal(rdf:'HTML', D)
       ->  rdf11:write_xml_literal(html, Lex0, Lex1)
       ;   rdf_equal(rdf:'XMLLiteral', D)
@@ -637,7 +588,7 @@ rdf_clean_quad(rdf(S,P,O1,G1), rdf(S,P,O2,G3)) :-
         (
           rdf11:post_object(O2, O1),
           rdf11:pre_object(O2, O3),
-          q_legacy_literal(O3, D, Lex3, LTag3)
+          rdf_legacy_literal(O3, D, Lex3, LTag3)
         ),
         E,
         true
@@ -819,10 +770,10 @@ rdf_load_quads(Source, Quads) :-
 
 
 rdf_load_quads(Source, Quads, SourceOpts) :-
-  q_snap((
+  rdf_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, SourceOpts),
-    q_quads(trp, Quads),
+    rdf_quads(trp, Quads),
     rdf_retractall(_, _, _),
     rdf_unload_empty_graphs
   )).
@@ -839,10 +790,10 @@ rdf_load_triples(Source, Triples) :-
 
 
 rdf_load_triples(Source, Triples, SourceOpts) :-
-  q_snap((
+  rdf_snap((
     rdf_retractall(_, _, _),
     rdf_load_file(Source, SourceOpts),
-    q_triples(trp, Triples)
+    rdf_triples(trp, Triples)
   )).
 
 
@@ -963,7 +914,7 @@ rdf_write_to_sink(Sink, M, S, P, O, G, SinkOpts1) :-
   merge_options(SinkOpts1, [rdf_media_type(MT)], SinkOpts2),
   dcg_with_output_to(string(Msg), (
     "TRP → ",
-    dcg_q_print_graph_term(G),
+    dcg_rdf_print_graph_term(G),
     " → ",
     atom(MT)
   )),
@@ -1195,10 +1146,10 @@ rdf_write_ntuples_for_object0(State, Out, M, G, S, P, O) :-
 % TERMS BY POSITION %
 
 rdf_write_subject(BNode, State) :-
-  q_is_bnode(BNode), !,
+  rdf_is_bnode(BNode), !,
   rdf_write_bnode(BNode, State).
 rdf_write_subject(Iri, _) :-
-  q_is_iri(Iri), !,
+  rdf_is_iri(Iri), !,
   rdf_write_iri(Iri).
 
 
@@ -1244,12 +1195,12 @@ rdf_write_iri(Iri) :-
 
 
 rdf_write_literal(V^^D) :- !,
-  q_literal_lex(V^^D, Lex),
+  rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   rdf_write_iri(D).
 rdf_write_literal(V@LTag) :- !,
-  q_literal_lex(V@LTag, Lex),
+  rdf_literal_lexical_form(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   format(current_output, '@~w', [LTag]).
 rdf_write_literal(V) :-

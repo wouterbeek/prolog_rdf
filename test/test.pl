@@ -20,7 +20,6 @@
 :- use_module(library(fca/rdfs_fca_viz)).
 %/hdt
 :- use_module(library(hdt/hdt_ext)).
-:- use_module(library(hdt/hdt_io)).
 %/html
 :- use_module(library(html/qh)).
 :- use_module(library(html/qh_ui)).
@@ -59,7 +58,7 @@
 :- use_module(library(q/q_optimise)).
 :- use_module(library(q/q_owl)).
 :- use_module(library(q/q_prefix)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_rdfs)).
 :- use_module(library(q/q_shape)).

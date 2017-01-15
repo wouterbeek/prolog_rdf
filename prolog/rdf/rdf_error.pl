@@ -19,7 +19,7 @@
 :- use_module(library(print_ext)).
 :- use_module(library(q/qb)).
 :- use_module(library(q/q_iri)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_graph)).
 :- use_module(library(semweb/rdf11)).

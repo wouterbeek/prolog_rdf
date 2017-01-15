@@ -16,10 +16,10 @@
 :- use_module(library(q/qb)).
 :- use_module(library(semweb/rdf11)).
 
-:- qb_alias(ch, 'http://www.wouterbeek.com/ch.owl#' ).
-:- qb_alias(dbr, 'http://dbpedia.org/resource/').
-:- qb_alias(ex, 'http://example.org/').
-:- qb_alias(nl, 'http://www.wouterbeek.com/nl.owl#' ).
+:- rdf_create_alias(ch, 'http://www.wouterbeek.com/ch.owl#' ).
+:- rdf_create_alias(dbr, 'http://dbpedia.org/resource/').
+:- rdf_create_alias(ex, 'http://example.org/').
+:- rdf_create_alias(nl, 'http://www.wouterbeek.com/nl.owl#' ).
 
 
 

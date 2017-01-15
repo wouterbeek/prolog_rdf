@@ -12,19 +12,19 @@
 :- use_module(library(q/q_term)).
 :- use_module(library(semweb/rdf11)).
 
-:- qb_alias(tcco, 'http://triply.cc/ontology/').
+:- rdf_create_alias(tcco, 'http://triply.cc/ontology/').
 
 :- multifile
-   q:dcg_q_print_literal_hook//2,
+   q:dcg_rdf_print_literal_hook//2,
    rdf11:in_ground_type_hook/3,
    rdf11:out_type_hook/3,
    qh:qh_literal_hook//2.
 
 
-q:dcg_q_print_literal_hook(Array^^D, Opts) -->
+q:dcg_rdf_print_literal_hook(Array^^D, Opts) -->
   {
     rdf_equal(tcco:array, D), !,
-    q_literal_lex(Array^^D, Lex)
+    rdf_literal_lexical_form(Array^^D, Lex)
   },
   str_ellipsis(Lex, Opts.max_lit_len).
 
@@ -52,6 +52,6 @@ array_par(N) --> float(N), !.
 qh:qh_literal_hook(Array^^D, Opts) -->
   {
     rdf_equal(tcco:array, D), !,
-    q_literal_lex(Array^^D, Lex)
+    rdf_literal_lexical_form(Array^^D, Lex)
   },
   ellipsis(Lex, Opts.max_lit_len).

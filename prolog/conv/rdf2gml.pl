@@ -59,7 +59,7 @@ Keys
 :- use_module(library(os/process_ext)).
 :- use_module(library(os/thread_counter)).
 :- use_module(library(pairs)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(thread)).
@@ -155,12 +155,12 @@ rdf2gml_end(NFile, EFile, GFile, Opts) :-
 %     * edge_label_printer(+callable)
 %
 %       The DCG writer for GML edges.  The default is
-%       dcg_q_print_predicate//2.
+%       dcg_rdf_print_predicate//2.
 %
 %     * node_label_printer(+callable)
 %
 %       The DCG writer for GML nodes.  The default is
-%       dcg_q_print_node//2.
+%       dcg_rdf_print_node//2.
 
 rdf2gml_start(NFile, EFile, GFile, ExportOpts) :-
   rdf2gml_start([], NFile, EFile, GFile, ExportOpts).
@@ -168,7 +168,7 @@ rdf2gml_start(NFile, EFile, GFile, ExportOpts) :-
 
 rdf2gml_start(Opts, NFile, EFile, GFile, ExportOpts2) :-
   option(export_options(ExportOpts1), Opts, _{}),
-  q_print:dcg_q_print_default_options(DefExportOpts),
+  rdf_print:dcg_rdf_print_default_options(DefExportOpts),
   merge_dicts(DefExportOpts, ExportOpts1, ExportOpts2),
   (option(base_name(Base), Opts) -> true ; uuid(Base)),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
@@ -190,7 +190,7 @@ rdf2gml_triple(NOut, EOut, S, P, O, ExportOpts) :-
 %! gml_edge(+EOut, +NId1, +P, +NId2, +ExportOpts) is det
 
 gml_edge(EOut, NId1, P, NId2, ExportOpts) :-
-  dict_get(edge_label_printer, ExportOpts, dcg_q_print_predicate, Dcg_4),
+  dict_get(edge_label_printer, ExportOpts, dcg_rdf_print_predicate, Dcg_4),
   gml_label(Dcg_4, P, EL, ExportOpts),
   format(EOut, "  edge [ label \"~a\" source ~d target ~d ]~n", [EL,NId1,NId2]).
 
@@ -230,7 +230,7 @@ gml_node(Out, Opts, N, Id) :-
 gml_node0(N, Id, Lbl, _) :-
   node_id0(N, Id, Lbl), !.
 gml_node0(N, Id, Lbl, Opts) :-
-  dict_get(node_label_printer, Opts, dcg_q_print_node, Dcg_4),
+  dict_get(node_label_printer, Opts, dcg_rdf_print_node, Dcg_4),
   inc_thread_counter(node_id, Id),
   gml_label(Dcg_4, N, Lbl, Opts),
   assert(node_id0(N,Id,Lbl)),

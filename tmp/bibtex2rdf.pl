@@ -19,8 +19,8 @@
 :- use_module(library(q/q_prefix), []).
 :- use_module(library(semweb/rdf11)).
 
-:- qb_alias(lobo, 'http://linkedopenbibtex.org/ontology/').
-:- qb_alias(lobr, 'http://linkedopenbibtex.org/resource/').
+:- rdf_create_alias(lobo, 'http://linkedopenbibtex.org/ontology/').
+:- rdf_create_alias(lobr, 'http://linkedopenbibtex.org/resource/').
 
 :- rdf_meta
    bibtex2rdf(+, +, r),

@@ -28,8 +28,8 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(solution_sequences)).
 
-:- qb_alias(dbo, 'http://dbpedia.org/ontology/').
-:- qb_alias(dcmit, 'http://purl.org/dc/dcmitype/').
+:- rdf_create_alias(dbo, 'http://dbpedia.org/ontology/').
+:- rdf_create_alias(dcmit, 'http://purl.org/dc/dcmitype/').
 
 :- rdf_meta
    rdfs_class(r),

@@ -76,12 +76,12 @@ write_iri(Iri) :-
   turtle:turtle_write_uri(current_output, Iri).
 
 write_literal(V^^D) :- !,
-  q_literal_lex(V^^D, Lex),
+  rdf_literal_lexical_form(V^^D, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   write('^^'),
   write_iri(D).
 write_literal(V@LTag) :-
-  q_literal_lex(V@LTag, Lex),
+  rdf_literal_lexical_form(V@LTag, Lex),
   turtle:turtle_write_quoted_string(current_output, Lex),
   put_char('@'),
   write(LTag).

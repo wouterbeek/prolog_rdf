@@ -11,7 +11,7 @@
 /** <module> JSON-LD generics
 
 @author Wouter Beek
-@version 2016/01-2016/02, 2016/05-2016/06, 2016/08
+@version 2016/01-2017/01
 */
 
 :- use_module(library(dict_ext)).

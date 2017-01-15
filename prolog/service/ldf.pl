@@ -23,7 +23,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
-:- qb_alias(hydra, 'http://www.w3.org/ns/hydra/core#').
+:- rdf_create_alias(hydra, 'http://www.w3.org/ns/hydra/core#').
 
 :- rdf_meta
    ldf(r, r, o, r),
@@ -76,7 +76,7 @@ ldf_parameter(_, Val, _) :-
   var(Val), !.
 ldf_parameter(Key, Lit, Key=Val) :-
   q_is_literal(Lit), !,
-  q_literal_lex(Lit, Lex),
+  rdf_literal_lexical_form(Lit, Lex),
   (   q_is_lts(Lit)
   ->  Lit = _@LTag,
       format(atom(Val), '"~a"@~a', [Lex,LTag])

@@ -18,15 +18,15 @@
     dc_subject/4,        % +M, +Res,     -Subject,    ?G
     dc_title/4,          % +M, +Res,     -Title,      ?G
     dc_title//3,         % +M, +Res,                  ?G
-    foaf_depiction/4,    % +M, +Agent,   -Iri,        ?G
+    foaf_depiction/4,    % +M, +Agent,   -Uri,        ?G
     foaf_depiction//3,   % +M, +Agent,                ?G
     foaf_familyName/4,   % +M, +Agent,   -FamilyName, ?G
     foaf_familyName//3,  % +M, +Agent,                ?G
     foaf_givenName/4,    % +M, +Agent,   -GivenName,  ?G
     foaf_givenName//3,   % +M, +Agent,                ?G
-    foaf_homepage/4,     % +M, +Agent,   -Iri,        ?G
+    foaf_homepage/4,     % +M, +Agent,   -Uri,        ?G
     foaf_homepage//3,    % +M, +Agent,                ?G
-    foaf_mbox/4,         % +M, +Agent,   -Iri,        ?G
+    foaf_mbox/4,         % +M, +Agent,   -Uri,        ?G
     foaf_mbox//3,        % +M, +Agent,                ?G
     foaf_name/4,         % +M, +Agent,   -Name,       ?G
     foaf_name//3,        % +M, +Agent,                ?G
@@ -56,7 +56,6 @@
 :- use_module(library(html/qh)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_user)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(q/q_datatype)).
@@ -68,6 +67,7 @@
 :- use_module(library(rdfa/rdfa_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(string_ext)).
+:- use_module(library(uri/uri_ext)).
 :- use_module(library(xsd/xsd)).
 
 :- multifile
@@ -144,14 +144,13 @@ rdfa:predefined_alias(xsd).
 
 
 
-%! agent_gravatar(+M, +Agent, -Iri, +G) is det.
+%! agent_gravatar(+M, +Agent, -Uri, +G) is det.
 
-agent_gravatar(M, Agent, Iri, G) :-
+agent_gravatar(M, Agent, Uri, G) :-
   once(foaf_mbox(M, Agent, EMail, G)),
   downcase_atom(EMail, CanonicalEMail),
   md5(CanonicalEMail, Hash),
-  atomic_list_concat(['',avatar,Hash], /, Path),
-  iri_comps(Iri, uri_components(http,'www.gravatar.com',Path,_,_)).
+  uri_comps(Uri, uri(http,'www.gravatar.com',[avatar,Hash],_,_)).
 
 
 
@@ -350,29 +349,29 @@ foaf_givenName(M, Agent, G) -->
 
 
 
-%! foaf_homepage(+M, +Agent, -Iri, G) is nondet.
+%! foaf_homepage(+M, +Agent, -Uri, G) is nondet.
 %! foaf_homepage(+M, +Agent, ?G)// is det.
 
-foaf_homepage(M, Agent, Iri, G) :-
-  q(M, Agent, foaf:homepage, Iri^^xsd:anyURI, G).
+foaf_homepage(M, Agent, Uri, G) :-
+  q(M, Agent, foaf:homepage, Uri^^xsd:anyURI, G).
 
 
 foaf_homepage(M, Agent, G) -->
-  {once(foaf_homepage(M, Agent, Iri, G))},
-  external_link(Iri, [rel='foaf:homepage'], [\icon(web)," ",code(Iri)]).
+  {once(foaf_homepage(M, Agent, Uri, G))},
+  external_link(Uri, [rel='foaf:homepage'], [\icon(web)," ",code(Uri)]).
 
 
 
-%! foaf_mbox(+M, +Agent, -Iri,?G) is nondet.
+%! foaf_mbox(+M, +Agent, -Uri,?G) is nondet.
 %! foaf_mbox(+M, +Agent, ?G)// is det.
 
-foaf_mbox(M, Agent, Iri, G) :-
-  q(M, Agent, foaf:mbox, Iri^^xsd:anyURI, G).
+foaf_mbox(M, Agent, Uri, G) :-
+  q(M, Agent, foaf:mbox, Uri^^xsd:anyURI, G).
 
 
 foaf_mbox(M, Agent, G) -->
-  {once(foaf_mbox(M, Agent, Iri, G))},
-  mail_link_and_icon(Iri).
+  {once(foaf_mbox(M, Agent, Uri, G))},
+  mail_link_and_icon(Uri).
 
 
 
@@ -445,7 +444,7 @@ rdfa_prefixes -->
       ),
       Aliases
     ),
-    maplist(q_alias_prefix, Aliases, Prefixes),
+    maplist(rdf_alias_prefix, Aliases, Prefixes),
     pairs_keys_values(Pairs, Aliases, Prefixes),
     maplist(pair_to_prefix0, Pairs, Vals),
     atomic_list_concat(Vals, ' ', Val)
