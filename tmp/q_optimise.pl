@@ -1,9 +1,9 @@
 :- module(
-  q_optimise,
+  rdf_optimise,
   [
-    q_estimate_complexity/6,     % +M, ?S, ?P, ?O, ?G, -NumTriples
-    q_object_branching_factor/4, % +M, +P, ?G, -N
-    q_subject_branching_factor/4 % +M, +P, ?G, -N
+    rdf_estimate_complexity/6,     % +M, ?S, ?P, ?O, ?G, -NumTriples
+    rdf_object_branching_factor/4, % +M, +P, ?G, -N
+    rdf_subject_branching_factor/4 % +M, +P, ?G, -N
   ]
 ).
 
@@ -19,26 +19,26 @@
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta
-   q_estimate_complexity(+, r, r, o, r, -).
+   rdf_estimate_complexity(+, r, r, o, r, -).
 
 
 
 
 
-%! q_estimate_complexity(+M, ?S, ?P, ?O, ?G, -NumTriples) is det.
+%! rdf_estimate_complexity(+M, ?S, ?P, ?O, ?G, -NumTriples) is det.
 
-q_estimate_complexity(_, S, P, O, _, 1) :-
+rdf_estimate_complexity(_, S, P, O, _, 1) :-
   maplist(ground, [S,P,O]), !.
-q_estimate_complexity(hdt0, S, P, O, Hdt, NumTriples) :- !,
+rdf_estimate_complexity(hdt0, S, P, O, Hdt, NumTriples) :- !,
   hdt_estimate_complexity0(S, P, O, NumTriples, Hdt).
-q_estimate_complexity(hdt, S, P, O, G, NumTriples) :- !,
+rdf_estimate_complexity(hdt, S, P, O, G, NumTriples) :- !,
   hdt_estimate_complexity(S, P, O, NumTriples, G).
-q_estimate_complexity(trp, S, P, O, _, NumTriples) :-
+rdf_estimate_complexity(trp, S, P, O, _, NumTriples) :-
   rdf_estimate_complexity(S, P, O, NumTriples).
 
 
 
-%! q_object_branching_factor(+M, +P, ?G, -Factor) is det.
+%! rdf_object_branching_factor(+M, +P, ?G, -Factor) is det.
 %
 % The average number of atomic ground statements associated with each
 % unique value for the object-side of property P.
@@ -47,12 +47,12 @@ q_estimate_complexity(trp, S, P, O, _, NumTriples) :-
 % obf := \frac{\sum_{o \in G_O} ec(?,p,o)}{\|G_O\|}
 % ```
 
-q_object_branching_factor(hdt, P, G, Factor) :-
-  hdt_call_on_graph(G, q_object_branching_factor0(P, Factor)).
-q_object_branching_factor(trp, P, _, Factor) :-
+rdf_object_branching_factor(hdt, P, G, Factor) :-
+  hdt_call_on_graph(G, rdf_object_branching_factor0(P, Factor)).
+rdf_object_branching_factor(trp, P, _, Factor) :-
   rdf_predicate_property(P, rdf_object_branch_factor(Factor)).
 
-q_object_branching_factor0(P, Factor, Hdt) :-
+rdf_object_branching_factor0(P, Factor, Hdt) :-
   findall(
     N,
     (
@@ -67,7 +67,7 @@ q_object_branching_factor0(P, Factor, Hdt) :-
 
 
 
-%! q_subject_branching_factor(+M, +P, ?G, -Factor) is det.
+%! rdf_subject_branching_factor(+M, +P, ?G, -Factor) is det.
 %
 %	The average number of atomic ground statements associated with each
 %	unique value for the subject-side of property P.  If there are no
@@ -77,12 +77,12 @@ q_object_branching_factor0(P, Factor, Hdt) :-
 % sbf := \frac{\sum_{s \in G_S} ec(s,p,?)}{\|G_S\|}
 % ```
 
-q_subject_branching_factor(hdt, P, G, Factor) :-
-  hdt_call_on_graph(G, q_subject_branching_factor0(P, Factor)).
-q_subject_branching_factor(trp, P, _, Factor) :-
+rdf_subject_branching_factor(hdt, P, G, Factor) :-
+  hdt_call_on_graph(G, rdf_subject_branching_factor0(P, Factor)).
+rdf_subject_branching_factor(trp, P, _, Factor) :-
   rdf_predicate_property(P, rdf_subject_branch_factor(Factor)).
 
-q_subject_branching_factor0(P, Factor, Hdt) :-
+rdf_subject_branching_factor0(P, Factor, Hdt) :-
   findall(
     N,
     (
