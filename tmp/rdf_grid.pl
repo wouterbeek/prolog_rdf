@@ -16,9 +16,8 @@ Build grid compound terms based on RDF data.
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(html/zh)).
-:- use_module(library(q/qu)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_update)).
 
 :- rdf_meta
    pop_triple(r, r, o, r),
@@ -33,7 +32,7 @@ Build grid compound terms based on RDF data.
 rdf_grid(G, Widgets) :-
   setup_call_cleanup(
     (
-      rdf_tmp_graph(TmpG),
+      rdf_graph_iri(TmpG),
       rdf_cp_graph(G, TmpG)
     ),
     graph_to_widgets(TmpG, Widgets),

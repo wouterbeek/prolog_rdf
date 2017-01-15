@@ -29,15 +29,12 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(licenses)).
-:- use_module(library(q/q_datatype)).
-:- use_module(library(q/q_graph)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(q/q_rdf)).
-:- use_module(library(q/q_rdfs)).
-:- use_module(library(q/q_stat)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qb)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_graph)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_stat)).
+:- use_module(library(rdfs/rdfs_api)).
 
 :- meta_predicate
     qb_meta_graph(+, +, +, +, 4, +).

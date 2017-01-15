@@ -27,7 +27,6 @@ IRIs are linked using ‘owl:sameAs’.
 :- use_module(library(service/fct)).
 :- use_module(library(service/ll_api)).
 :- use_module(library(service/lotus_api)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta

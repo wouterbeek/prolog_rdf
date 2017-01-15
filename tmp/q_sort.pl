@@ -14,8 +14,7 @@
 */
 
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_rdfs)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdfs/rdfs_api)).
 
 :- meta_predicate
    q_sort_terms(+, 2, -).

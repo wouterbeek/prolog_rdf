@@ -11,8 +11,7 @@
 @version 2015/11-2016/01, 2016/03, 2016/06, 2016/12
 */
 
-:- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_term)).
 
 :- rdf_meta
    rdfs_fca_context(-, r).

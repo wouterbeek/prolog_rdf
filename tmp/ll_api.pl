@@ -50,10 +50,8 @@
 :- use_module(library(ordsets)).
 :- use_module(library(os/io)).
 :- use_module(library(pairs)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qb)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(service/ldf)).
 :- use_module(library(sparql/sparql_query_client)).
 :- use_module(library(typecheck)).

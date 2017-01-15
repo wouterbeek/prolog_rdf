@@ -26,9 +26,8 @@ Exports materialization results.
 :- use_module(library(mat/mat_print)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(pl_ext)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta

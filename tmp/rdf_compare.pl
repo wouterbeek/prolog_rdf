@@ -24,7 +24,6 @@
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(default)).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta

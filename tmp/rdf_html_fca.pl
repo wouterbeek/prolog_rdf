@@ -15,7 +15,6 @@
 :- use_module(library(fca/rdfs_fca_viz)).
 :- use_module(library(gv/gv_dom)).
 :- use_module(library(html/html_dom)).
-:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdf_html_fca(r, ?, ?),

@@ -16,7 +16,6 @@ Support for the Freebase dataset.
 :- use_module(library(http/http_download)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 :- use_module(library(xpath)).
 

@@ -17,7 +17,6 @@
 :- use_module(library(http/http_io)).
 :- use_module(library(os/io)).
 :- use_module(library(print_ext)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri)).
 :- use_module(library(xpath)).
 

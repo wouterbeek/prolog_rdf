@@ -12,7 +12,7 @@
 /** <module> RDF FCA Test
 
 @author Wouter Beek
-@version 2015/11-2016/01
+@version 2017/01
 */
 
 :- use_module(library(aggregate)).
@@ -22,6 +22,7 @@
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 :- use_module(library(rdf/rdf__io)).
+:- use_module(library(rdf/rdf_iri)).
 
 :- initialization(list_external_programs).
 
@@ -71,7 +72,7 @@ rdfs_fca_test_graph(G) :-
 %! rdfs_fca_assert_graph(+M, +Name, -G) is det.
 
 rdfs_fca_assert_graph(M, number, G) :-
-  rdf_new_graph(number, G),
+  rdf_graph_iri(G),
   forall(between(1, 10, N), qb_number0(M, N, G)),
   qb_instances(M, ex:'1',  [ex:'Odd',ex:'Square'],                 G),
   qb_instances(M, ex:'2',  [ex:'Even',ex:'Prime'],                 G),

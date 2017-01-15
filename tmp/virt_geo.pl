@@ -12,12 +12,10 @@
 @version 2016/06
 */
 
-:- use_module(library(q/qb)).
-:- use_module(library(q/q_rdf)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qu)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(rdf/rdf_update)).
 :- use_module(library(yall)).
 
 :- rdf_create_alias(geosparql, 'http://www.opengis.net/ont/geosparql#').

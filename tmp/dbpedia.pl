@@ -10,7 +10,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf11)).
 
 :- multifile
     qh:qh_literal_hook//2,

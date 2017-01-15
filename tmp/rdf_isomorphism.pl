@@ -15,7 +15,6 @@
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    rdf_isomorphic_graphs(r, r).

@@ -17,20 +17,6 @@
     rdf_print_id//2        % +Tid, +Opts
   ]
 ).
-:- reexport(library(semweb/rdf11), [
-     op(100, xfx, @),
-     op(650, xfx, ^^)
-   ]).
-:- use_module(library(semweb/rdf_db), [
-     rdf/3 as rdf0,                       % ?Sid, ?Pid, Oid
-     rdf/4 as rdf0,                       % ?Sid, ?Pid, ?Oid, ?Gid
-     rdf_assert/3 as rdf_assert0,         % +Sid, +Pid, +Oid
-     rdf_assert/4 as rdf_assert0,         % +Sid, +Pid, +Oid, +Gid
-     rdf_has/3 as rdf_has0,               % ?Sid, ?Pid, ?Oid
-     rdf_reachable/3 as rdf_reachable0,   % ?Sid, ?Pid, ?Oid
-     rdf_retractall/3 as rdf_retractall0, % ?Sid, ?Pid, ?Oid
-     rdf_retractall/4 as rdf_retractall0  % ?Sid, ?Pid, ?Oid, ?Gid
-   ]).
 
 /** <module> Identity-closed RDF
 

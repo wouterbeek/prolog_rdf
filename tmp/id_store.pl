@@ -54,12 +54,8 @@ Identifiers are atoms.
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(q/rdf_print)).
 :- use_module(library(rdf/rdf_id)).
-:- use_module(library(semweb/rdf11), [
-     rdf_graph/1 as rdf_graph_id,
-     rdf_unload_graph/1 as rdf_unload_graph_id
-   ]).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).

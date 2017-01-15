@@ -18,9 +18,6 @@
 @version 2016/03-2016/05, 2016/08
 */
 
-:- use_module(library(q/q_cli)).
-:- use_module(library(semweb/rdf11)).
-
 :- rdf_meta
    lm(r, r, o),
    lm(r, r, o, +),

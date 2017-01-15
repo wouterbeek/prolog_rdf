@@ -37,9 +37,8 @@ The following debug flags are defined:
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(option)).
-:- use_module(library(q/q_datatype)).
+:- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(random)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/sparql_client)).
 :- use_module(library(sparql/sparql_build)).
 :- use_module(library(sparql/sparql_ext)).

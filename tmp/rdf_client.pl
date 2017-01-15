@@ -22,10 +22,9 @@
 :- use_module(library(http/http_open)).
 :- use_module(library(http/rfc5988)).
 :- use_module(library(os/io)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(q/q_term)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_term)).
 :- use_module(library(semweb/rdf_ntriples)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/turtle), []).
 
 :- debug(rdf(client)).

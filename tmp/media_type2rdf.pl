@@ -14,8 +14,7 @@ Transforms Media Types as recorded in the IANA registry to RDF.
 :- use_module(library(http/http11)).
 :- use_module(library(lists)).
 :- use_module(library(os/io)).
-:- use_module(library(q/qb)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(semweb/rdfs), [
      rdfs_individual_of/2
    ]).

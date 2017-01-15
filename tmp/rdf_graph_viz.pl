@@ -25,7 +25,6 @@ handled by plGraphViz.
 :- use_module(library(option)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdfs), [
      rdfs_individual_of/2,
      rdfs_subclass_of/2

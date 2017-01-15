@@ -16,9 +16,7 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(persistency)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qb)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_build)).
 
 :- persistent
    prefix_cc(alias:atom, iri:atom).

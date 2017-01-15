@@ -54,7 +54,6 @@
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_link)).
 :- use_module(library(q/q_list)).
-:- use_module(library(q/q_memoization)).
 :- use_module(library(q/q_optimise)).
 :- use_module(library(q/q_owl)).
 :- use_module(library(q/q_prefix)).

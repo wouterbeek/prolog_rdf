@@ -19,8 +19,7 @@
 :- use_module(library(fca/rdfs_fca)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(option)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_print)).
 
 :- rdf_meta
    rdfs_fca_export_graph(r, -),

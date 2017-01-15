@@ -13,8 +13,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(q/qb)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_build)).
 
 :- rdf_create_alias(ch, 'http://www.wouterbeek.com/ch.owl#' ).
 :- rdf_create_alias(dbr, 'http://dbpedia.org/resource/').

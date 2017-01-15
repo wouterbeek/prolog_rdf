@@ -11,10 +11,8 @@
 @version 2016/02-2016/03, 2016/06
 */
 
-:- use_module(library(html/html_ext)).
-:- use_module(library(html/qh)).
+:- use_module(library(html/rdf_html)).
 :- use_module(library(rdf/rdf_grid)).
-:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    qh_grid(r, ?, ?).

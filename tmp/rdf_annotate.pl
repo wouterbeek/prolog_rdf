@@ -25,7 +25,6 @@
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_iri)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 

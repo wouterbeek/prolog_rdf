@@ -4,8 +4,7 @@
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_print)).
 :- use_module(library(service/ll_api)).
 :- use_module(library(service/lotus_api)).
 :- use_module(library(solution_sequences)).

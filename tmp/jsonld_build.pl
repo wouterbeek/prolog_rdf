@@ -23,12 +23,9 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_datatype)).
-:- use_module(library(q/q_list)).
-:- use_module(library(q/q_shape)).
-:- use_module(library(q/q_rdf)).
-:- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_datatype)).
+:- use_module(library(rdf/rdf_shape)).
 :- use_module(library(uri)).
 
 :- rdf_meta

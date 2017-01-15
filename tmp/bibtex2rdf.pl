@@ -15,9 +15,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/bibtex)).
 :- use_module(library(hash_ext)).
-:- use_module(library(q/qb)).
-:- use_module(library(q/q_prefix), []).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_build)).
 
 :- rdf_create_alias(lobo, 'http://linkedopenbibtex.org/ontology/').
 :- rdf_create_alias(lobr, 'http://linkedopenbibtex.org/resource/').

@@ -14,9 +14,7 @@
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(q/q_term)).
-:- use_module(library(q/qu)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_update)).
 
 :- rdf_meta
    qu_remove_thousands(+, +, r, r).

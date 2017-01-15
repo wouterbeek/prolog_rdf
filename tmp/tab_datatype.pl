@@ -21,9 +21,7 @@ Generated HTML overviews of singular and of multiple datatype IRIs.
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_prefix), []).
-:- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_term)).
 
 
 

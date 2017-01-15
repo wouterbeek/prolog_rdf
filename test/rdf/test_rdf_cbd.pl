@@ -1,9 +1,8 @@
 :- use_module(library(print_ext)).
-:- use_module(library(q/rdf_print)).
-:- use_module(library(q/q_shape)).
-:- use_module(library(rdf/rdf_isomorphism)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_isomorphism)).
+:- use_module(library(rdf/rdf_print)).
+:- use_module(library(rdf/rdf_shape)).
 
 :- meta_predicate
     test(2, +).

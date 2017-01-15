@@ -21,7 +21,6 @@
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(option_ext)).
-:- use_module(library(semweb/rdf11)).
 
 :- rdf_meta
    mat(r),

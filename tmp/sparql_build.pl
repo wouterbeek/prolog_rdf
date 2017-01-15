@@ -98,8 +98,7 @@ Virtuoso-specific:
 :- use_module(library(dcg/dcg_option)).
 :- use_module(library(dcg/sparql11)).
 :- use_module(library(error)).
-:- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_term)).
 
 
 

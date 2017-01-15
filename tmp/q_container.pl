@@ -15,9 +15,7 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(q/q_rdf)).
-:- use_module(library(q/q_term)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta
    q_container(+, r, -, r),
