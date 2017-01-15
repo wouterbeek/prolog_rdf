@@ -27,7 +27,7 @@ The following debug flags are defined:
 :- use_module(library(dict_ext)).
 :- use_module(library(filesex)).
 :- use_module(library(hash_ext)).
-:- use_module(library(hdt/hdt_ext)).
+:- use_module(library(hdt/hdt_api)).
 :- use_module(library(http/http_io)).
 :- use_module(library(lists)).
 :- use_module(library(os/archive_ext)).
@@ -38,12 +38,10 @@ The following debug flags are defined:
 :- use_module(library(os/thread_ext)).
 :- use_module(library(pl_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(q/qb)).
-:- use_module(library(q/q_fs)).
 :- use_module(library(rdf/rdf__io)).
+:- use_module(library(rdf/rdf_api)).
+:- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_error)).
-:- use_module(library(semweb/rdf11)).
-:- use_module(library(semweb/rdf11_containers)).
 :- use_module(library(service/rocks_api), []).
 :- use_module(library(zlib)).
 

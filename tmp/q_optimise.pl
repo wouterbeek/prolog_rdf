@@ -13,9 +13,9 @@
 @version 2016/10
 */
 
-:- use_module(library(hdt/hdt_ext)).
+:- use_module(library(hdt/hdt_api)).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(solution_sequences)).
 
 :- rdf_meta

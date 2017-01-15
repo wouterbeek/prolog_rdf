@@ -1,29 +1,26 @@
 :- module(
-     hdt2vec,
-     [
-       export/0,
-       export/2,  % +Depth:nonneg, +NumPaths:nonneg
-       hdt2rdf/0,
-       merge/1    % +NtFile
-     ]
-   ).
+  hdt2vec,
+  [
+    export/0,
+    export/2,  % +Depth:nonneg, +NumPaths:nonneg
+    hdt2rdf/0,
+    merge/1    % +NtFile
+   ]
+).
 
 /** <module> HDT-2-Vec
 
 @author Wouter Beek
-@version 2016/12
+@version 2016/12-2017/01
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(hdt/hdt_ext)).
+:- use_module(library(hdt/hdt_api)).
 :- use_module(library(list_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(q/q_fs)).
-:- use_module(library(q/q_io)).
-:- use_module(library(q/q_term)).
 :- use_module(library(random)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(rdf/rdf_api)).
 :- use_module(library(semweb/turtle), []).
 :- use_module(library(settings)).
 :- use_module(library(yall)).
