@@ -26,7 +26,7 @@ rdf_html_iri_inner0(M, Iri, Opts) -->
   {
     ground(M),
     get_dict(iri_lbl, Opts, true),
-    q_pref_label(M, Iri, Lbl)
+    rdfs_pref_label(M, Iri, Lbl)
   }, !,
   rdf_html_literal_inner0(Lbl, Opts).
 

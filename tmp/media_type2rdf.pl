@@ -107,7 +107,7 @@ init_media_type(G) :-
   rdf_load_file(File, [graph(G),format(turtle)]).
 init_media_type(G) :-
   M = trp,
-  qb_class(M, mto:'MediaType', rdfs:'Resource', "Media Type", _, G),
+  rdf_assert_class(M, mto:'MediaType', rdfs:'Resource', "Media Type", _, G),
   forall(
     media_type_category(Cat0),
     (
@@ -127,9 +127,9 @@ init_media_type(G) :-
 % Reads from the Media Types ontology.
 
 media_type(M, media(Type/Subtype,[]), G) :-
-  q(M, MediaType, mto:name, Subtype, G),
+  t(M, MediaType, mto:name, Subtype, G),
   rdfs_individual_of(MediaType, C),
-  once(q_pref_label(M, C, Type, G)).
+  once(rdfs_pref_label(M, C, Type, G)).
 
 
 

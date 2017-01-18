@@ -44,6 +44,6 @@ register_prefix_cc :-
   register_prefix_cc.
 register_prefix_cc :-
   forall(
-    (prefix_cc(Alias, Prefix), \+ q_alias(Alias)),
+    (prefix_cc(Alias, Prefix), \+ rdf_alias(Alias)),
     rdf_create_alias(Alias, Prefix)
   ).

@@ -10,7 +10,7 @@
 /** <module> Quine HTML
 */
 
-:- use_module(library(gis/gis)).
+:- use_module(library(gis/gis_api)).
 
 :- rdf_meta
    rdf_html_dataset_graph_menu(+, r, r, ?, ?).
@@ -77,20 +77,23 @@ rdf_html_graph_term0(G, Opts) -->
 
 
 %! rdf_html_graph_menu(+M)// is det.
-%! rdf_html_graph_menu(+Attrs, +M)// is det.
+%! rdf_html_graph_menu(+M, +Attrs)// is det.
 
 rdf_html_graph_menu(M) -->
-  rdf_html_graph_menu([], M).
+  rdf_html_graph_menu(M, []).
 
 
-rdf_html_graph_menu(Attrs1, M) -->
+rdf_html_graph_menu(M, Attrs1) -->
   {
-    % @tbd Special GIS case should be fixed in module `gis_db`.
-    (   M == gis
-    ->  findall(G, gis_graph(G), Gs)
-    ;   findall(NumTriples-G, rdf_number_of_triples(M, G, NumTriples), Pairs),
-        desc_pairs_values(Pairs, Gs)
+    findall(
+      G,
+      (
+        gis_graph(M, G),
+        rdf_number_of_triples(M, G, NumTriples)
+      ),
+      Pairs
     ),
+    desc_pairs_values(Pairs, Gs),
     Gs \== [],
     merge_attrs(Attrs1, [class='navbar-left'], Attrs2)
   },

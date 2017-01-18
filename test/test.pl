@@ -54,9 +54,7 @@
 :- use_module(library(q/q_iri)).
 :- use_module(library(q/q_link)).
 :- use_module(library(q/q_list)).
-:- use_module(library(q/q_optimise)).
 :- use_module(library(q/q_owl)).
-:- use_module(library(q/q_prefix)).
 :- use_module(library(q/rdf_print)).
 :- use_module(library(q/q_rdf)).
 :- use_module(library(q/q_rdfs)).
@@ -68,7 +66,6 @@
 :- use_module(library(q/q_wgs84)).
 :- use_module(library(q/q_wkt)).
 :- use_module(library(q/qb)).
-:- use_module(library(q/qb_meta)).
 :- use_module(library(q/qu)).
 %/rdf
 :- use_module(library(rdf/rdf_client)).

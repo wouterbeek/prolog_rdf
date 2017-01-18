@@ -1,8 +1,8 @@
 :- module(
-  q_container,
+  rdf_container,
   [
-    q_container/4,       % +M, +S, -L, ?G
-    q_container_member/5 % +M, ?S, ?N, ?X, ?G
+    rdf_container/4,       % +M, +S, -L, ?G
+    rdf_container_member/5 % +M, ?S, ?N, ?X, ?G
   ]
 ).
 
@@ -18,30 +18,30 @@
 :- use_module(library(rdf/rdf_api)).
 
 :- rdf_meta
-   q_container(+, r, -, r),
-   q_container_member(+, r, ?, r, r).
+   rdf_container(+, r, -, r),
+   rdf_container_member(+, r, ?, r, r).
 
 
 
 
 
-%! q_container(+M, +S, -L, ?G) is nondet.
+%! rdf_container(+M, +S, -L, ?G) is nondet.
 %
 % True when List is the list of objects attached to Container using a
 % container membership property (rdf:_0, rdf:_1, ...). If multiple
 % objects are connected to the Container using the same membership
 % property, this predicate selects one value non-deterministically.
 
-q_container(M, S, L, G) :-
-  q_subject(M, S, G),
-  findall(N-X, q_container_member(M, S, N, X, G), Pairs),
+rdf_container(M, S, L, G) :-
+  rdf_subject(M, S, G),
+  findall(N-X, rdf_container_member(M, S, N, X, G), Pairs),
   group_pairs_by_key(Pairs, Groups),
   asc_pairs_values(Groups, AscLs),
   maplist(member, L, AscLs).
 
 
 
-%! q_container_member(+M, ?S, ?N, ?X, ?G) is nondet.
+%! rdf_container_member(+M, ?S, ?N, ?X, ?G) is nondet.
 %
 % What is the most efficient way to enumerate `rdfs_member(-,-)`?
 %
@@ -57,29 +57,29 @@ q_container(M, S, L, G) :-
 %    number that appears in a container membership property.  This
 %    means enumerating over all predicate terms using rdf_predicate/1.
 
-q_container_member(M, S, N, X, G) :-
+rdf_container_member(M, S, N, X, G) :-
   (nonvar(S) ; nonvar(X)), !,
-  q(M, S, P, X, G),
-  q_container_membership_property(P, N).
-q_container_member(M, S, N, X, G) :-
-  q_container_membership_property(P, N),
-  q(M, S, P, X, G).
+  t(M, S, P, X, G),
+  rdf_container_membership_property(P, N).
+rdf_container_member(M, S, N, X, G) :-
+  rdf_container_membership_property(P, N),
+  t(M, S, P, X, G).
 
 
 
-%! q_container_membership_property(?P, ?N) is nondet.
+%! rdf_container_membership_property(?P, ?N) is nondet.
 %
 % True when Property is the Nth container membership property.
 %
 % Success of this goal does not imply that Property is present in the
 % database.
 
-q_container_membership_property(P, N) :-
+rdf_container_membership_property(P, N) :-
   var(P), !,
   between(1, inf, N),
   rdf_equal(rdf:'_', Prefix),
   atom_concat(Prefix, N, P).
-q_container_membership_property(P, N) :-
+rdf_container_membership_property(P, N) :-
   rdf_equal(rdf:'_', Prefix),
   string_concat(Prefix, NumS, P),
   number_string(N, NumS),

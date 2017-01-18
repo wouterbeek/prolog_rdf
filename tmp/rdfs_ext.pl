@@ -10,7 +10,7 @@
     rdfs_instance/3, % ?I, ?C, ?G
     rdfs_property/1, % ?Prop
     rdfs_property/2, % ?Prop, ?G
-    qb_rm_class/3    % ?M, +C, ?G
+    rdf_retract_class/3    % ?M, +C, ?G
   ]
 ).
 
@@ -37,7 +37,7 @@
    rdfs_instance(o, r, r),
    rdfs_property(r),
    rdfs_property(r, r),
-   qb_rm_class(?, r, r).
+   rdf_retract_class(?, r, r).
 
 
 
@@ -107,7 +107,7 @@ rdfs_instance0(I, D, G) :-
   rdf_reachable(C, rdfs:subClassOf, D). % @tbd
 rdfs_instance0(Lex^^C, D, G) :-
   rdf(_, _, Lex^^C, G),
-  q_subdatatype_of(C, D).
+  rdf_subdatatype_of(C, D).
 rdfs_instance0(Lex@LTag, rdf:langString, G) :-
   rdf(_, _, Lex@LTag, G).
 
@@ -131,7 +131,7 @@ rdfs_property0(Prop, G) :-
 
 
 
-%! qb_rm_class(+M, +C, +G) is det.
+%! rdf_retract_class(+M, +C, +G) is det.
 % Removes the given class from the triple store.
 %
 % This is the same as removing class terms that are closed under
@@ -139,29 +139,29 @@ rdfs_property0(Prop, G) :-
 %
 % This connects all subclasses of Class to all superclasses of Class.
 
-qb_rm_class(M, C, G) :-
+rdf_retract_class(M, C, G) :-
   % [1] Remove the links to subclasses.
   %     Connect all subclasses of Class to all superclasses of Class.
   forall(
     (
-      q_subclass(M, SubC, C, G),
-      q_subclass(M, C, SuperC, G)
+      rdf_subclass(M, SubC, C, G),
+      rdf_subclass(M, C, SuperC, G)
     ),
     (
       % The transitive link is now a direct one.
       qb_subclass(M, SubC, SuperC, G),
       % Remove the link to a subclass.
-      qb_rm(M, SubC, rdfs:subClassOf, C, G)
+      rdf_retract(M, SubC, rdfs:subClassOf, C, G)
     )
   ),
 
   % [2] Remove the links to superclasses.
-  qb_rm(M, C, rdfs:subClassOf, _, G),
+  rdf_retract(M, C, rdfs:subClassOf, _, G),
 
   % [3] Remove other triples in which the class occurs.
-  qb_rm(M, C, _, _, G),
-  qb_rm(M, _, C, _, G),
-  qb_rm(M, _, _, C, G).
+  rdf_retract(M, C, _, _, G),
+  rdf_retract(M, _, C, _, G),
+  rdf_retract(M, _, _, C, G).
 
 
 
