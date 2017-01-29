@@ -33,7 +33,13 @@ iisg_record2rdf(Record) :-
   atom_concat(Base, '.nt.gz', Local),
   absolute_file_name(data(Local), File, [access(write)]),
   rdf_global_id(iisg:Record, S),
-  xml2rdf(Iri, File, ['marc:record'], _{concept: S}, _{}).
+  xml2rdf(
+    Iri,
+    File,
+    ['marc:record'],
+    _{abox_segment: S, host: 'iisg.amsterdam', scheme: https},
+    _{}
+  ).
 
 
 

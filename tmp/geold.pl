@@ -1,13 +1,11 @@
 :- module(
   geold,
   [
-    geojson_feature_collection/2, % +Features, -FeatureCollection
-    geold_geojson/2,     % +Node, -GeoJson
-    geold_tuple/2,       % +Source, -Tuple
-    geold_tuple/4,       % +Source, +ExtraContext, +ExtraData, -Tuple
-    geold_tuples/2,      % +Source, -Tuples
-    geold_tuples/4,      % +Source, +ExtraContext, +ExtraData, -Tuples
-    subject_to_geojson/5 % +M, +Properties, +G, +S, -Feature
+    geold_geojson/2, % +Node, -GeoJson
+    geold_tuple/2,   % +Source, -Tuple
+    geold_tuple/4,   % +Source, +ExtraContext, +ExtraData, -Tuple
+    geold_tuples/2,  % +Source, -Tuples
+    geold_tuples/4   % +Source, +ExtraContext, +ExtraData, -Tuples
   ]
 ).
 
@@ -55,35 +53,28 @@ the array as e.g. Well-Known Text (WKT).
 
 
 
-%! geojson_feature_collection(+Features, -FeatureCollection) is det.
-
-geojson_feature_collection(Features, FeatureCollection) :-
-  FeatureCollection = _{features: Features, type: "FeatureCollection"}.
-
-
-
 %! geold_context(-Context) is det.
 %
 % The default GeoJSON-LD context.
 
 geold_context(
   _{
-    coordinates: _{'@id': 'g:coordinates', '@type': 'o:array'},
-    crs: 'g:crs',
-    g: 'https://triply.cc/geo/',
-    geometry: 'g:geometry',
-    'GeometryCollection': 'g:GeometryCollection',
-    'Feature': 'g:Feature',
-    'FeatureCollection': 'g:FeatureCollection',
-    features: 'g:features',
-    'LineString': 'g:LineString',
-    'MultiLineString': 'g:MultiLineString',
-    'MultiPoint': 'g:MultiPoint',
-    'MultiPolygon': 'g:MultiPolygon',
+    coordinates: _{'@id': 'geo:coordinates', '@type': 'o:array'},
+    crs: 'geo:crs',
+    geo: 'https://triply.cc/geo/',
+    geometry: 'geo:geometry',
+    'GeometryCollection': 'geo:GeometryCollection',
+    'Feature': 'geo:Feature',
+    'FeatureCollection': 'geo:FeatureCollection',
+    features: 'geo:features',
+    'LineString': 'geo:LineString',
+    'MultiLineString': 'geo:MultiLineString',
+    'MultiPoint': 'geo:MultiPoint',
+    'MultiPolygon': 'geo:MultiPolygon',
     o: 'https://triply.cc/ontology/',
-    'Point': 'g:Point',
-    'Polygon': 'g:Polygon',
-    properties: 'g:properties',
+    'Point': 'geo:Point',
+    'Polygon': 'geo:Polygon',
+    properties: 'geo:properties',
     rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     type: _{'@id': 'rdf:type', '@type': '@id'},
     '@vocab': Prefix
@@ -98,7 +89,7 @@ geold_context(
 % Emits a description of Node in GeoJSON.
 
 geold_geojson(Node, _{}) :-
-  rdfs_individual_of(Node, g:'Feature').
+  rdfs_individual_of(Node, geo:'Feature').
 
 
 
@@ -164,43 +155,3 @@ geold_prepare_data(Source, ExtraData, Data2) :-
       )
   ;   Data2 = Data1.put(ExtraData)
   ).
-
-
-
-%! subject_to_geojson(+M, +Properties, +G, +S, -Feature) is det.
-
-subject_to_geojson(M, Properties, G, S, Feature) :-
-  once(gis:subject_to_geometry(M, S, Array, Name, G)),
-  capitalize_atom(Name, CName),
-  subject_to_geojson_properties(M, Properties, G, S, Dict),
-  Feature = _{
-    geometry: _{coordinates: Array, type: CName},
-    properties: Dict,
-    type: "Feature"
-  }.
-
-
-subject_to_geojson_properties(_, false, _, S, _{'@id': S}) :- !.
-subject_to_geojson_properties(M, true, G, S, Dict) :-
-  aggregate_all(
-    set(Key-Val),
-    (
-      q(M, S, P, O, G),
-      \+ rdf_is_bnode(O),
-      \+ rdf_equal(g:geometry, P),
-      q_iri_local(P, Key),
-      (   rdf_is_literal(O)
-      ->  rdf_literal_lexical_form(O, Val0),
-          json_escape(Val0, Val)
-      ;   q_iri_local(O, Val)
-      )
-    ),
-    Pairs
-  ),
-  group_pairs_by_key(Pairs, GroupedPairs0),
-  maplist(pair_flatten_singleton, GroupedPairs0, GroupedPairs),
-  (   html_to_atom(\qh_p_os_table(GroupedPairs), Val)
-  ->  Pair = popupContent-Val
-  ;   Pair = '@id'-S
-  ),
-  dict_pairs(Dict, [Pair|GroupedPairs]).

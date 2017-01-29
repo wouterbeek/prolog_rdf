@@ -18,11 +18,11 @@
 :- use_module(library(aggregate)).
 :- use_module(library(fca/rdfs_fca)).
 :- use_module(library(fca/rdfs_fca_viz)).
-:- use_module(library(q/qb)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(rdf/rdf_iri)).
+:- use_module(library(rdf/rdf_build)).
+:- use_module(library(uri/uri_ext)).
 
 :- initialization(list_external_programs).
 
@@ -72,18 +72,21 @@ rdfs_fca_test_graph(G) :-
 %! rdfs_fca_assert_graph(+M, +Name, -G) is det.
 
 rdfs_fca_assert_graph(M, number, G) :-
-  rdf_graph_iri(G),
-  forall(between(1, 10, N), qb_number0(M, N, G)),
-  qb_instances(M, ex:'1',  [ex:'Odd',ex:'Square'],                 G),
-  qb_instances(M, ex:'2',  [ex:'Even',ex:'Prime'],                 G),
-  qb_instances(M, ex:'3',  [ex:'Odd',ex:'Prime'],                  G),
-  qb_instances(M, ex:'4',  [ex:'Composite',ex:'Even',ex:'Square'], G),
-  qb_instances(M, ex:'5',  [ex:'Odd',ex:'Prime'],                  G),
-  qb_instances(M, ex:'6',  [ex:'Composite',ex:'Even'],             G),
-  qb_instances(M, ex:'7',  [ex:'Odd',ex:'Prime'],                  G),
-  qb_instances(M, ex:'8',  [ex:'Composite',ex:'Even'],             G),
-  qb_instances(M, ex:'9',  [ex:'Composite',ex:'Odd',ex:'Square'],  G),
-  qb_instances(M, ex:'10', [ex:'Composite',ex:'Even'],             G).
+  uri_segments_uuid(G, []),
+  forall(
+    between(1, 10, N),
+    rdf_assert_number0(M, N, G)
+  ),
+  rdf_assert_instances(M, ex:'1',  [ex:'Odd',ex:'Square'],                 G),
+  rdf_assert_instances(M, ex:'2',  [ex:'Even',ex:'Prime'],                 G),
+  rdf_assert_instances(M, ex:'3',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instances(M, ex:'4',  [ex:'Composite',ex:'Even',ex:'Square'], G),
+  rdf_assert_instances(M, ex:'5',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instances(M, ex:'6',  [ex:'Composite',ex:'Even'],             G),
+  rdf_assert_instances(M, ex:'7',  [ex:'Odd',ex:'Prime'],                  G),
+  rdf_assert_instances(M, ex:'8',  [ex:'Composite',ex:'Even'],             G),
+  rdf_assert_instances(M, ex:'9',  [ex:'Composite',ex:'Odd',ex:'Square'],  G),
+  rdf_assert_instances(M, ex:'10', [ex:'Composite',ex:'Even'],             G).
 
 
 
@@ -106,8 +109,8 @@ fca_viz0(Context, GLbl) :-
 
 
 
-qb_number0(M, N, G) :-
+rdf_assert_number0(M, N, G) :-
   atom_number(A, N),
   rdf_global_id(ex:A, Iri),
-  qb_instance(M, Iri, ex:'Number', G),
-  qb_label(M, Iri, A, G).
+  rdf_assert_instance(M, Iri, ex:'Number', G),
+  rdfs_assert_label(M, Iri, A, G).

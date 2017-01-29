@@ -22,14 +22,12 @@
 :- use_module(library(call_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(http/http_ext)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pool)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_iri)).
 :- use_module(library(yall)).
 
 :- rdf_meta

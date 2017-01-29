@@ -33,7 +33,6 @@ The following debug flags are defined:
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(option)).
@@ -171,29 +170,3 @@ sparql_select(Uri, Q1, Result, Opts) :-
   (var(Result0) -> !, fail ; true),
   (Result0 == [] -> !, fail ; true),
   Result = Result0.
-
-
-
-
-
-% MESSAGES %
-
-:- multifile
-    prolog:message//1.
-
-prolog:message(sparql_query(Status,Q)) -->
-  ["SPARQL query returned HTTP status code ~d for query ~w."-[Status,Q]].
-
-
-
-
-
-% HELPERS %
-
-%! query_suffix(+Query, +Limit, +Offset, -SuffixedQuery) is det.
-
-query_suffix(Q1, Limit, Offset, Q2) :-
-  format(atom(Suffix1), "LIMIT ~d~n", [Limit]),
-  format(atom(Suffix2), "OFFSET ~d~n", [Offset]),
-  atomic_list_concat([Q1,Suffix1,Suffix2], Q2),
-  debug(sparql(request), "~a", [Q2]).

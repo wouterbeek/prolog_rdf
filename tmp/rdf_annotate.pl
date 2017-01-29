@@ -4,7 +4,7 @@
     rdf_annotate/5,         % +M, +S, +Txt, +G, +Opts
     rdf_annotation/4,       % +M, +S, +G, -Concept
     rdf_annotations/4,      % +M, +S, +G, -Concepts
-    rdf_html_annotations//5 % +M, +Location, +Txt, +S, +G
+    rdf_html_annotations//5 % +M, ?Uri, +Txt, +S, +G
   ]
 ).
 
@@ -17,15 +17,14 @@
 :- use_module(library(aggregate)).
 :- use_module(library(debug_ext)).
 :- use_module(library(http/html_write)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(jsonld/jsonld_read)).
 :- use_module(library(lists)).
 :- use_module(library(nlp/dbpedia_spotlight)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_iri)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(uri/uri_ext)).
 :- use_module(library(yall)).
 
 :- rdf_meta
@@ -40,22 +39,22 @@
 
 
 
-%! rdf_html_annotations(+M, +Location, +Txt, +S, +G)// is det.
+%! rdf_html_annotations(+M, ?Uri, +Txt, +S, +G)// is det.
 
-rdf_html_annotations(M, Location, Txt, S, G) -->
+rdf_html_annotations(M, Uri, Txt, S, G) -->
   {
     t(M, S, annotate:hasAnnotationJob, Job, G),
     findall(Ann, rdf_list_member(M, Job, annotate:'Resource', Ann, G), Anns),
     atom_codes(Txt, Cs)
   },
-  rdf_html_annotations(M, Location, Cs, 0, Anns, G).
+  rdf_html_annotations(M, Uri, Cs, 0, Anns, G).
 
 
 rdf_html_annotations(_, _, Cs, _, [], _) --> !,
   % Emit the remaining text.
   {atom_codes(Txt, Cs)},
   html(Txt).
-rdf_html_annotations(M, Location1, Cs1, OffsetAdjustment1, [H|T], G) -->
+rdf_html_annotations(M, Uri1, Cs1, OffsetAdjustment1, [H|T], G) -->
   % Firstly, emit the text that appears before the next annotation.
   {
     t(M, H, annotate:'@offset', Offset0^^xsd:nonNegativeInteger, G),
@@ -83,18 +82,18 @@ rdf_html_annotations(M, Location1, Cs1, OffsetAdjustment1, [H|T], G) -->
         append(SurfaceFormCs, Cs3, Cs2),
         OffsetAdjustment2 is OffsetAdjustment1 + Offset + Skip,
 
-        % The hyperlink is based on the given LocationId, if any.
-        t(M, H, annotate:'@URI', Location2^^xsd:anyURI, G),
-        (   var(Location1)
-        ->  Location = Location2
-        ;   iri_add_query_comp(Location1, concept=Location2, Location)
+        % The hyperlink is based on the given UriId, if any.
+        t(M, H, annotate:'@URI', Uri2^^xsd:anyURI, G),
+        (   var(Uri1)
+        ->  Uri = Uri2
+        ;   iri_add_query_comp(Uri1, concept=Uri2, Uri)
         )
       },
       html(
-        a([class(annotated),href(Location),resource(Location2)], [SurfaceForm])
+        a([class(annotated),href(Uri),resource(Uri2)], [SurfaceForm])
       )
   ),
-  rdf_html_annotations(M, Location1, Cs3, OffsetAdjustment2, T, G).
+  rdf_html_annotations(M, Uri1, Cs3, OffsetAdjustment2, T, G).
 
 
 
@@ -122,7 +121,7 @@ rdf_annotate(M, S, Txt, G, Opts0):-
     '@URI': object{'@id': 'annotate:URI', '@type': '@id'}
   },
   put_dict('@context', Anns1, Context, Anns2),
-  rdf_abox_iri(annotate, Job),
+  uri_segments_uuid(Job, [annotate]),
   put_dict('@id', Anns2, Job, Anns3),
   rdf_global_id(annotate:'AnnotationJob', C),
   put_dict('@type', Anns3, C, Anns4),

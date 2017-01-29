@@ -1,14 +1,14 @@
 :- use_module(library(debug)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_iri)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
+:- use_module(library(uri/uri_ext)).
 
 script1(M) :-
   rdf_reset_db,
   rdf_equal(ex:script1, G),
-  rdf_abox_iri(animal, [hog], Hog1),
-  rdf_abox_iri(animal, [hog], Hog2),
+  uri_segments_uuid(Hog1, [animal,hog]),
+  uri_segments_uuid(Hog2, [animal,hog]),
   rdf_assert_instance(M, Hog1, ex:'Hog', G),
   rdf_assert_instance(M, Hog2, ex:'Hog', G),
   rdf_assert(M, Hog1, foaf:knows, Hog2, G),

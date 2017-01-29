@@ -30,7 +30,6 @@ resource [3].
 @version 2016/05
 */
 
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(uri)).
@@ -55,7 +54,7 @@ is_flickrwrappr_iri(Iri):-
 
 flickrwrappr(S, Quad):-
   % NONDET
-  rdf_has(S, dbp:hasPhotoCollection, Location1),
-  iri_add_query_comp(Location1, format=rdf, Location2),
-  rdf_load_quads(Location2, Quads),
+  rdf_has(S, dbp:hasPhotoCollection, Uri1),
+  iri_add_query_comp(Uri1, format=rdf, Uri2),
+  rdf_load_quads(Uri2, Quads),
   member(Quad, Quads).
