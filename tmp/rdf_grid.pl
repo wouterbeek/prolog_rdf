@@ -150,10 +150,11 @@ pop_list(S, [H|T], G) :-
 
 
 %! pop_triple(+S, +P, +O, +G) is det.
+%
 % Consume the first triple instantiation of 〈S,P,O〉.
 
 pop_triple(S, P, O, G) :-
-  once(rdf(S, P, O, G)),
+  rdf_chk(S, P, O, G),
   rdf_retractall(S, P, O, G),
   rdf_statistics(triples_by_graph(G,N)),
   debug(rdf(grid), "~D triples left.", [N]).

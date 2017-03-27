@@ -83,7 +83,6 @@
 :- use_module(library(rdf/rdf_term)).
 %/rdfa
 :- use_module(library(rdfa/rdfa_ext)).
-:- use_module(library(rdfa/rdfa_user)).
 %/service
 :- use_module(library(service/btc)).
 :- use_module(library(service/fct)).

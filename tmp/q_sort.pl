@@ -42,5 +42,5 @@ pair_label_key(M, G, Term-_, Key) :-
 
 
 term_label_key(M, G, Term, Key) :-
-  rdfs_pref_label_lex(M, Term, Lex, G),
+  rdfs_pref_label_lexical_form(M, Term, Lex, G),
   collation_key(Lex, Key).

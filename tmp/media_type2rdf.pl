@@ -129,7 +129,7 @@ init_media_type(G) :-
 media_type(M, media(Type/Subtype,[]), G) :-
   t(M, MediaType, mto:name, Subtype, G),
   rdfs_individual_of(MediaType, C),
-  once(rdfs_pref_label(M, C, Type, G)).
+  rdfs_pref_label_lexical_form(M, C, Type, G).
 
 
 
