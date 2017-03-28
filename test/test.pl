@@ -72,7 +72,6 @@
 :- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_gc)).
 :- use_module(library(rdf/rdf_graph)).
-:- use_module(library(rdf/rdf_guess)).
 :- use_module(library(rdf/rdf_guess_jsonld)).
 :- use_module(library(rdf/rdf_guess_turtle)).
 :- use_module(library(rdf/rdf_guess_xml)).

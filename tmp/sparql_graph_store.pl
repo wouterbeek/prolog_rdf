@@ -23,7 +23,7 @@ Partial implementation of the SPARQL Graph Store.
 :- use_module(library(http/http_io)).
 :- use_module(library(os/io)).
 :- use_module(library(rdf/rdf__io)).
-:- use_module(library(rdf/rdf_guess)).
+:- use_module(library(semweb/rdf_guess)).
 :- use_module(library(sparql/sparql_ext)).
 :- use_module(library(yall)).
 
@@ -57,7 +57,11 @@ sparql_post_graph_file(Iri, G, File) :-
 
 sparql_post_graph_file(Iri, G, File0, Opts) :-
   absolute_file_name(File0, File, [access(read)]),
-  rdf_guess_media_type(File, MT),
+  setup_call_cleanup(
+    open(File, read, In),
+    rdf_guess_media_type(In, MT),
+    close(In)
+  ),
   sparql_post_graph_data(Iri, G, file(MT,File), Opts).
 
 
