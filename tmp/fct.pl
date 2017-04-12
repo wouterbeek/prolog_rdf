@@ -24,8 +24,7 @@
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(settings)).
-:- use_module(library(typecheck)).
-:- use_module(library(uri)).
+:- use_module(library(uri/uri_ext)).
 
 :- setting(
      endpoint_host,
@@ -73,7 +72,7 @@ fct_label(Str, Score, Iri) :-
 result_pair(Results, Score-Iri) :-
   member(Result, Results.results),
   atom_string(Iri, Result),
-  is_http_iri(Iri),
+  is_uri(Iri),
   q_deref_triples(Iri, Triples),
   aggregate_all(count, is_location(Iri, Triples), NumCs),
   aggregate_all(count, q_deref_triple(Iri, _), NumTriples),
