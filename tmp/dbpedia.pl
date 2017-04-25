@@ -43,6 +43,6 @@ rdf11:out_type_hook(D, Val, Lex) :-
 %! rdf_subdatatype_ofs(+D, +Ds) is semidet.
 
 rdf_subdatatype_ofs(D1, Ds) :-
-  rdf_alias_member(D0, Ds),
+  rdf_prefix_member(D0, Ds),
   rdf_global_id(D0, D2),
   rdf_subdatatype_of(D1, D2), !.

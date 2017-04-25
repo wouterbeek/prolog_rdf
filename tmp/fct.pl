@@ -80,7 +80,7 @@ result_pair(Results, Score-Iri) :-
   Score > 0.
 
 is_location(Iri, Triples) :-
-  rdf_alias_member(
+  rdf_prefix_member(
     C,
     [
       dbo:'Location',
@@ -93,4 +93,4 @@ is_location(Iri, Triples) :-
       wgs84:'SpatialThing'
     ]
   ),
-  rdf_alias_memberchk(rdf(Iri,rdf:type,C), Triples).
+  rdf_prefix_memberchk(rdf(Iri,rdf:type,C), Triples).

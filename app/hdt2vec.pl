@@ -31,7 +31,7 @@ export :-
   export(1, 1).
 
 export(Depth, NumPaths) :-
-  hdt_prepare_file('bgt-valkenswaard.nt.gz', HdtFile),
+  rdf2hdt('bgt-valkenswaard.nt.gz', HdtFile),
   hdt_call_on_file(HdtFile, export_document0(Depth, NumPaths)).
 
 export_document0(Depth, NumPaths, Hdt) :-

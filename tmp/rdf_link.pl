@@ -79,13 +79,13 @@ rdf_link_objects_loop(_, _, _, [], _, _) :- !,
   msg_success("We're done linking!~n").
 rdf_link_objects_loop(Backend, M1, N, [H|T], P, G) :-
   dcg_with_output_to(user_output, (
-    str("("),
+    atom("("),
     thousands(M1),
-    str("/"),
+    atom("/"),
     thousands(N),
-    str(") Let's link "),
+    atom(") Let's link "),
     sq(dcg_rdf_print_literal(H)),
-    str(":"),
+    atom(":"),
     nl
   )),
   rdf_link_object_loop(Backend, H, P, G),
@@ -100,9 +100,9 @@ rdf_link_object_loop(Backend, From, P, G) :-
   msg_linked(From, To).
 rdf_link_object_loop(_, From, _, _) :-
   dcg_with_output_to(user_output, (
-    str("Could not link "),
+    atom("Could not link "),
     sq(dcg_rdf_print_literal(From)),
-    str("."),
+    atom("."),
     nl
   )).
 
@@ -116,11 +116,11 @@ rdf_link_object_loop(_, From, _, _) :-
 
 msg_linked(Term, Iri) :-
   dcg_with_output_to(string(Msg), (
-    str("Linked "),
+    atom("Linked "),
     sq(dcg_rdf_print_term(Term)),
-    str(" to "),
+    atom(" to "),
     sq(dcg_rdf_print_iri(Iri)),
-    str(".")
+    atom(".")
   )),
   dcg_with_output_to(user_output, (
     ansi_str([1,37,43], Msg),
@@ -153,21 +153,21 @@ print_info(lotus, I) :-
 
 rdf_user_chooses_iri(Backend, Lit, Score, Iri) :-
   dcg_with_output_to(user_output, (
-    str("Evidence for linking "),
+    atom("Evidence for linking "),
     sq(dcg_rdf_print_literal(Lit)),
-    str(" to "),
+    atom(" to "),
     sq(dcg_rdf_print_iri(Iri)),
-    str(":"),
+    atom(":"),
     nl
   )),
   print_info(Backend, Iri),
   dcg_with_output_to(string(Msg), (
-    str("["),
+    atom("["),
     number(Score),
-    str("] Do you want to replace literal "),
+    atom("] Do you want to replace literal "),
     sq(dcg_rdf_print_literal(Lit)),
-    str(" with IRI "),
+    atom(" with IRI "),
     sq(dcg_rdf_print_iri(Iri)),
-    str(" (Y/N)?")
+    atom(" (Y/N)?")
   )),
   (user_input(Msg) -> !, true ; fail).

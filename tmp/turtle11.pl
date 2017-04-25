@@ -21,7 +21,6 @@
      'BooleanLiteral'//1, % -Lit
      'DOUBLE'//1,         % ?Number
      'ECHAR'//1,          % ?C
-     'HEX'//1,            % ?Weight:between(0,15)
      'LANGTAG'//1,        % -LTag:list(atom)
      'PNAME_LN'//1,       % -Prefix
      'PNAME_NS'//1,       % -Alias
@@ -253,8 +252,8 @@ sparqlPrefix(PrefixLabel, Iri) -->
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ```
 
-'UCHAR'(C) --> "\\u", #(4, 'HEX', Ds), {pos_sum(Ds, 16, C)}.
-'UCHAR'(C) --> "\\U", #(8, 'HEX', Ds), {pos_sum(Ds, 16, C)}.
+'UCHAR'(C) --> "\\u", #(4, xdigit, Ds), {pos_sum(Ds, 16, C)}.
+'UCHAR'(C) --> "\\U", #(8, xdigit, Ds), {pos_sum(Ds, 16, C)}.
 
 
 
