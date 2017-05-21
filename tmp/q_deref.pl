@@ -11,12 +11,6 @@
   ]
 ).
 
-/** <module> Quine: IRI dereferencing & caching
-
-@author Wouter Beek
-@version 2016/10
-*/
-
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
@@ -134,29 +128,3 @@ q_cached_iri_graph(Iri, G) :-
 q_cached_iri_graph(Iri, G) :-
   base64url(Iri, Enc),
   q_graph_iri([Enc,data], G).
-
-
-
-%! q_deref(+Iri, -Tuple) is nondet.
-
-q_deref(Iri, Tuple) :-
-  call_or_exception(rdf_load_quads(Iri, Tuples)),
-  member(Tuple, Tuples).
-
-
-
-%! q_deref_triple(+Iri, -Triple) is nondet.
-%
-% @see Like q_deref/2, but always returns a triple.
-
-q_deref_triple(Iri, Triple) :-
-  q_deref(Iri, Tuple),
-  q_tuple_triple(Tuple, Triple),
-  Triple = rdf(Iri,_,_).
-
-
-
-%! q_deref_triples(+Iri, -Triples) is det.
-
-q_deref_triples(Iri, Triples) :-
-  aggregate_all(set(Triple), q_deref_triple(Iri, Triple), Triples).

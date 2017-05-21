@@ -16,8 +16,6 @@ Generated HTML overviews of singular and of multiple datatype IRIs.
 
 :- use_module(library(aggregate)).
 :- use_module(library(html/html_ext)).
-:- use_module(library(html/zh)).
-:- use_module(library(http/html_write)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pair_ext)).

@@ -18,7 +18,6 @@ Generates HTML tables for overviews of RDFS classes.
 :- use_module(library(apply)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/qh)).
-:- use_module(library(http/html_write)).
 :- use_module(library(list_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_term)).

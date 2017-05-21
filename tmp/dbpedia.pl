@@ -7,7 +7,6 @@
 */
 
 :- use_module(library(html/html_ext)).
-:- use_module(library(http/html_write)).
 :- use_module(library(rdf/rdf_datatype)).
 :- use_module(library(rdf/rdf_term)).
 
