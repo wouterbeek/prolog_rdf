@@ -148,12 +148,12 @@ dataPropertyIRI(Iri) --> 'IRI'(Iri).
 
 decimalLiteral(literal(type(xsd:decimal,Rat))) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  digits(Ds1),
-  {pos_sum(Ds1, I)},
+  digits(Weights1),
+  {integer_weights(I, Weights1)},
   ".",
-  digits(Ds2),
+  digits(Weights2),
   {
-    pos_frac(Ds2, Frac),
+    fractional_weights(Frac, Weights2),
     rational_parts(Rat0, I, Frac),
     Rat is Sg * Rat0
   }.
@@ -172,7 +172,7 @@ decimalLiteral(literal(type(xsd:decimal,Rat))) -->
 % digits ::= digit { digit }
 % ```
 
-digits(Ds) --> +(digit, Ds).
+digits(Weights) --> +(digit, Weights).
 
 
 
@@ -203,8 +203,11 @@ entity(Iri) --> "NamedIndividual(",    individualIRI(Iri),         ")".
 exponent(Exp) -->
   ("e" ; "E"),
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
-  digits(Ds),
-  {pos_sum(Ds, I), Exp is Sg * 10 ^ I}.
+  digits(Weights),
+  {
+    integer_weights(I, Weights),
+    Exp is Sg * 10 ^ I
+  }.
 
 
 
@@ -217,17 +220,17 @@ exponent(Exp) -->
 
 floatingPointLiteral(Rat) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  (   digits(Ds1)
-  ->  ("." -> digits(Ds2) ; {Ds2 = []})
-  ;   {Ds1 = []},
+  (   digits(Weights1)
+  ->  ("." -> digits(Weights2) ; {Weights2 = []})
+  ;   {Weights1 = []},
       ".",
-      digits(Ds2)
+      digits(Weights2)
   ),
   def(exponent, Exp, 0),
   ("f" ; "F"), !,
   {
-    pos_sum(Ds1, I),
-    pos_frac(Ds2, Frac),
+    integer_weights(I, Weights1),
+    fractional_weights(Frac, Weights2),
     Rat is Sg * float(I + Frac) * Exp
   }.
 
@@ -280,8 +283,11 @@ individualIRI(Iri) --> 'IRI'(Iri).
 
 integerLiteral(literal(type(xsd:integer,I))) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
-  digits(Ds),
-  {pos_sum(Ds, I0), I is Sg * I0}.
+  digits(Weights),
+  {
+    integer_weights(I0, Weights),
+    I is Sg * I0
+  }.
 
 
 
@@ -369,7 +375,8 @@ nonZero(9, 0'9) --> "9".
 % objectPropertyIRI ::= IRI
 % ```
 
-objectPropertyIRI(Iri) --> 'IRI'(Iri).
+objectPropertyIRI(Iri) -->
+  'IRI'(Iri).
 
 
 
@@ -378,7 +385,10 @@ objectPropertyIRI(Iri) --> 'IRI'(Iri).
 % positiveInteger ::= nonZero { digit }
 % ```
 
-positiveInteger(I) --> nonZero(H), *(digit, T), {pos_sum([H|T], I)}.
+positiveInteger(I) -->
+  nonZero(H),
+  *(digit, T),
+  {integer_weights(I, [H|T])}.
 
 
 

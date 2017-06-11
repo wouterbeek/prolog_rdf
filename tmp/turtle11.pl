@@ -51,12 +51,12 @@
 
 'DECIMAL'(N) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  *(digit, Ds1),
-  {pos_sum(Ds1, I)},
+  *(digit, Weights1),
+  {integer_weights(I, Weights1)},
   ".",
-  +(digit, Ds2),
+  +(digit, Weights2),
   {
-    pos_frac(Ds2, Frac),
+    fractional_weights(Frac, Weights2),
     N is Sg * (I + Frac)
   }.
 
@@ -69,8 +69,8 @@
 
 'INTEGER'(I) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  +(digit, Ds),
-  {pos_sum(Ds, I0)},
+  +(digit, Weights),
+  {integer_weights(I0, Weights)},
   {I is Sg * I0}.
 
 
@@ -252,8 +252,14 @@ sparqlPrefix(PrefixLabel, Iri) -->
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ```
 
-'UCHAR'(C) --> "\\u", #(4, xdigit, Ds), {pos_sum(Ds, 16, C)}.
-'UCHAR'(C) --> "\\U", #(8, xdigit, Ds), {pos_sum(Ds, 16, C)}.
+'UCHAR'(C) -->
+  "\\u",
+  #(4, xdigit, Weights),
+  {integer_weights(C, 16, Weights)}.
+'UCHAR'(C) -->
+  "\\U",
+  #(8, xdigit, Weights),
+  {integer_weights(C, 16, Weights)}.
 
 
 

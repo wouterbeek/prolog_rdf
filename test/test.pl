@@ -67,7 +67,6 @@
 :- use_module(library(q/qb)).
 :- use_module(library(q/qu)).
 %/rdf
-:- use_module(library(rdf/rdf_client)).
 :- use_module(library(rdf/rdf_compare)).
 :- use_module(library(rdf/rdf_error)).
 :- use_module(library(rdf/rdf_gc)).
