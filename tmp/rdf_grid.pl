@@ -33,7 +33,7 @@ Build grid compound terms based on RDF data.
 rdf_grid(G, Widgets) :-
   setup_call_cleanup(
     (
-      uri_segments_uuid(TmpG, [graph]),
+      fresh_uri(TmpG, uri(_,_,[graph],_,_)),
       rdf_cp_graph(G, TmpG)
     ),
     graph_to_widgets(TmpG, Widgets),

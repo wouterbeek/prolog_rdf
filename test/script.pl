@@ -7,8 +7,8 @@
 script1(M) :-
   rdf_reset_db,
   rdf_equal(ex:script1, G),
-  uri_segments_uuid(Hog1, [animal,hog]),
-  uri_segments_uuid(Hog2, [animal,hog]),
+  fresh_uri(Hog1, uri(_,_,[animal,hog],_,_)),
+  fresh_uri(Hog2, uri(_,_,[animal,hog],_,_)),
   rdf_assert_instance(M, Hog1, ex:'Hog', G),
   rdf_assert_instance(M, Hog2, ex:'Hog', G),
   rdf_assert(M, Hog1, foaf:knows, Hog2, G),

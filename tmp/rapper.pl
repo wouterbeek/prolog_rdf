@@ -67,7 +67,7 @@ rapper_args([guess(true)|T1], ['--guess'|T2]) :- !, rapper_args(T1, T2).
 rapper_args([ignore_errors(true)|T1], ['--ignore-errors'|T2]) :- !,
   rapper_args(T1, T2).
 rapper_args([input(Format)|T1], [Arg|T2]) :- !,
-  cli_long_flag(input, Format, Arg),
+  format(atom(Arg), '--~input=~w', [Format]),
   rapper_args(T1, T2).
 rapper_args([_|T1], T2) :- rapper_args(T1, T2).
 

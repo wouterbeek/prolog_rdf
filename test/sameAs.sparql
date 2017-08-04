@@ -1,0 +1,4 @@
+prefix owl: <http://www.w3.org/2002/07/owl#>
+select ?x ?y {
+  ?x owl:sameAs* ?y
+}

@@ -72,7 +72,7 @@ rdfs_fca_test_graph(G) :-
 %! rdfs_fca_assert_graph(+M, +Name, -G) is det.
 
 rdfs_fca_assert_graph(M, number, G) :-
-  uri_segments_uuid(G, []),
+  fresh_uri(G, _),
   forall(
     between(1, 10, N),
     rdf_assert_number0(M, N, G)

@@ -121,7 +121,7 @@ rdf_annotate(M, S, Txt, G, Opts0):-
     '@URI': object{'@id': 'annotate:URI', '@type': '@id'}
   },
   put_dict('@context', Anns1, Context, Anns2),
-  uri_segments_uuid(Job, [annotate]),
+  fresh_uri(Job, uri(_,_,[annotate],_,_)),
   put_dict('@id', Anns2, Job, Anns3),
   rdf_global_id(annotate:'AnnotationJob', C),
   put_dict('@type', Anns3, C, Anns4),
