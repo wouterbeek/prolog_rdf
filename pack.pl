@@ -6,5 +6,6 @@ maintainer('Wouter Beek', 'wouter@triply.cc').
 name('plRdf').
 packager('Wouter Beek', 'wouter@triply.cc').
 requires(hdt).
+requires('Prolog-Library-Collection').
 title('Advanced RDF(S) support for SWI-Prolog.').
 version('0.0.1').

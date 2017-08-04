@@ -1,0 +1,12 @@
+{
+  "dependencies": [
+    {
+      "repo": "hdt",
+      "user": "JanWielemaker"
+    },
+    {
+      "repo": "Prolog-Library-Collection",
+      "user": "wouterbeek"
+    }
+  ]
+}
