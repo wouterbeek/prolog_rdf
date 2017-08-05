@@ -1,8 +1,8 @@
 {
   "dependencies": [
     {
-      "user": "wouterbeek",
-      "name": "Prolog-Library-Collection"
+      "name": "Prolog-Library-Collection",
+      "user": "wouterbeek"
     }
   ]
 }
