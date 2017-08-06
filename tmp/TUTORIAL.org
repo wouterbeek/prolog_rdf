@@ -1,59 +1,63 @@
+#+TITLE: plRdf Tutorial
+#+AUTHOR: Wouter Beek
+
 Note: This tutorial is currently outdated.
 
-Create resources and assert relations between them
---------------------------------------------------
+* Create resources and assert relations between them
 
-Make sure your IRI prefix has been registered with
-`rdf_register_prefix/2`:
+Start by defining the RDF prefix that we will use throughout this
+tutorial.  RDF prefixes are registeredw with ~rdf_register_prefix/2~:
 
-```prolog
-?- [library(rdf/rdf_build)].
-?- rdf_register_prefix(ex, 'http://www.example.org/').
-```
+#+BEGIN_SRC prolog
+?- [library(semweb/rdf_ext)].
+?- rdf_register_prefix(ex, 'https://example.org/').
+#+END_SRC
 
 Create fresh IRIs that name two resources:
 
-```prolog
-?- fresh_iri(ex, [animal,hog], Hog1).
-?- fresh_iri(ex, [animal,hog], Hog2).
-```
+#+BEGIN_SRC prolog
+?- rdf_create_iri(ex, [animal,hog], Hog1).
+?- rdf_create_iri(ex, [animal,hog], Hog2).
+#+END_SRC
 
 Assert that the new resources are hogs:
 
-```prolog
-?- rdf_assert_instance($Hog1, ex:'Hog').
-?- rdf_assert_instance($Hog2, ex:'Hog').
-```
+#+BEGIN_SRC prolog
+?- rdf_assert($Hog1, rdf:type, ex:'Hog').
+?- rdf_assert($Hog2, rdf:type, ex:'Hog').
+#+END_SRC
 
 Assert that the two hogs know each other:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_assert($Hog1, foaf:knows, $Hog2).
-```
+#+END_SRC
 
-Notice that we did not declare namespace `foaf` with
-`rdf_register_prefix/2` since it is auto-loaded.
+Notice that we did not have to declare RDF prefix ~foaf~ with
+~rdf_register_prefix/2~.  Common RDF prefixes are already declarated
+automatically by library ~semweb/rdf_ext~.
 
-Let's look at the contents of our RDF graph:
+Let's look at the contents of our RDF graph.  For this we use the
+pretty-print library:
 
-```prolog
-?- [library(rdf/rdf_print)].
+#+BEGIN_SRC prolog
+?- [library(semweb/rdf_print)].
 ?- rdf_print_graph(user).
 〈ex:animal/hog/5b6151..., ∊, ex:Hog〉
 〈ex:animal/hog/5b6155..., ∊, ex:Hog〉
 〈ex:animal/hog/5b6151..., foaf:knows, ex:animal/hog/5b6155...〉
-```
+#+END_SRC
 
 The triple dots indicate that IRI local names were elipsed to ensure
 that every triple fits within an 80 character wide terminal.  The
 appearance can be tweaked through options:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_print_graph(user, [ellip_ln(inf),logic_sym(false),style(turtle)]).
 ex:animal/hog/5b61515c486b11e58bcb002268684c92 rdf:type ex:Hog .
 ex:animal/hog/5b6155da486b11e5a357002268684c92 rdf:type ex:Hog .
 ex:animal/hog/5b61515c486b11e58bcb002268684c92 foaf:knows ex:animal/hog/5b6155da486b11e5a357002268684c92 .
-```
+#+END_SRC
 
 Option `ellip_ln(inf)` (elipsis localname) disables the use of
 ellipses for IRI local names.  Option `logic_sym(false)` (logical
@@ -69,35 +73,35 @@ Data-typed assertions
 Continuing our example of the two hogs, we can now assert the first
 hog's age:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_assert_literal($Hog1, ex:age, xsd:nonNegativeInteger, 2).
 ?- rdf_assert_now($Hog1, ex:registrationDate).
-```
+#+END_SRC
 
 Let's look at the contents of our graph:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_print_graph(user).
 〈ex:animal/hog/5b6151..., ∊, ex:Hog〉
 〈ex:animal/hog/5b6155..., ∊, ex:Hog〉
 〈ex:animal/hog/5b6151..., foaf:knows, ex:animal/hog/5b6155...〉
 〈ex:animal/hog/5b6151..., ex:age, "2"^^xsd:nonNegativeInteger〉
 〈ex:animal/hog/5b6151..., ex:registrationDate, "2015-08-22T01:16:03Z"^^xsd:dateTime〉
-```
+#+END_SRC
 
 If you do not want to choose an RDF datatype (like
 `xsd:nonNegativeInteger` above) then you can do the following to let
 the library choose an appropriate type for you:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_assert_literal_pl($Hog2, ex:age, 2.3).
 ?- rdf_assert_literal_pl($Hog2, ex:age, 23 rdiv 10).
 ?- rdf_assert_literal_pl($Hog2, rdfs:comment, "This is a fine hog.").
-```
+#+END_SRC
 
 Our graph now has the following contents:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_print_graph(user).
 〈ex:animal/hog/4d5018..., ∊, ex:Hog〉
 〈ex:animal/hog/4d5020..., ∊, ex:Hog〉
@@ -107,21 +111,21 @@ Our graph now has the following contents:
 〈ex:animal/hog/4d5020..., ex:age, "2.3"^^xsd:float〉
 〈ex:animal/hog/4d5020..., ex:age, "2.3"^^xsd:decimal〉
 〈ex:animal/hog/4d5020..., rdfs:comment, "This is a fine hog."^^xsd:string〉
-```
+#+END_SRC
 
 Notice that the RDF datatypes actually matter: `"2.3"^^xsd:float` and
 `"2.3"^^xsd:decimal` denote different RDF resources even though their
 lexical expressions are the same.  This library comes with support for
 reading back literals as Prolog values:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- [library(rdf/rdf_read)].
 ?- rdf_literal($Hog2, ex:age, D, V).
 D = http://www.w3.org/2001/XMLSchema#float,
 V = 2.3 ;
 D = http://www.w3.org/2001/XMLSchema#decimal,
 V = 23 rdiv 10
-```
+#+END_SRC
 
 
 
@@ -150,16 +154,16 @@ RDF list is asserted.  All RDF assertion predicates in
 `library(rdf/rdf_list)` come with variants with and without a graph
 argument.
 
-```prolog
+#+BEGIN_SRC prolog
 ?- [library(rdf/rdf_list)].
 ?- rdf_assert_list([1,[[a],1.0],[en,'US']-b], _X, list_test).
-```
+#+END_SRC
 
 The list has been asserted using the RDF linked lists notation.  RDF
 and XSD datatypes are used for the non-list elements and nesting is
 used for the list elements:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_print_graph(list_test, [abbr_list(false)]).
 〈_:2, ∊, rdf:List〉
 〈_:2, rdf:first, "1"^^xsd:integer〉
@@ -179,16 +183,16 @@ used for the list elements:
 〈_:7, rdf:rest, rdf:nil〉
 〈_:3, rdf:rest, _:7〉
 〈_:2, rdf:rest, _:3〉
-```
+#+END_SRC
 
 Since the RDF linked list notation is rather verbose library **plRdf**
 allows RDF lists to be read back as Prolog lists, preserving both
 nesting and taking the RDF datatypes into account:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- rdf_list($_X, Y).
 Y = [1, [[a], 1.0], 'en-US'-b].
-```
+#+END_SRC
 
 
 Triple store profiles
@@ -201,9 +205,9 @@ Triple store profiles
 
 Load the 'plain' RDF profile in the following way:
 
-```prolog
+#+BEGIN_SRC prolog
 ?- [library(profile/profile_rdf)].
-```
+#+END_SRC
 
 This profile is similar to `library(semweb/rdf_db)`, allowing plain
 triples to be asserted/retrieved/retracted.  The only difference is
@@ -215,9 +219,9 @@ calls `rdf_assert/3`.
 
 Load the generalized RDF profile in the following way:
 
-```profile
+#+END_SRCprofile
 ?- [library(profile/profile_gen)].
-```
+#+END_SRC
 
 This profile extends the plain profile by allowing literals to appear
 in the subject position.  This allows all RDF(S) and OWL entailment to
@@ -229,9 +233,9 @@ plain profile).
 
 Load the OWL profile in the following way:
 
-```profile
+#+END_SRCprofile
 ?- [library(profile/profile_owl)].
-```
+#+END_SRC
 
 This profile extends the generalized RDF profile by storing relations
 between identity sets i.o. individual resources.  This significantly

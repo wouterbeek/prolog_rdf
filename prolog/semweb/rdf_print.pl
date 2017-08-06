@@ -3,6 +3,7 @@
   [
     rdf_pp_deref_triple/1,   % +Uri
     rdf_pp_deref_triple/2,   % +Uri, +Options
+    rdf_pp_graph/1,          % +G
     rdf_pp_options/3,        % +Options1, -Out, -Options2
     rdf_pp_quad_groups/1,    % +JoinedPairs:list(pair(atom,list(compound)))
     rdf_pp_quad_groups/2,    % +JoinedPairs:list(pair(atom,list(compound))), +Options
@@ -56,9 +57,10 @@
 |                |            |             | are printed.                     |
 
 @author Wouter Beek
-@version 2017/04-2017/05
+@version 2017/04-2017/05, 2017/08
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
@@ -70,6 +72,7 @@
 :- rdf_meta
    rdf_deref_triple(r),
    rdf_deref_triple(r, +),
+   rdf_pp_graph(r),
    rdf_pp_triple(r, r, o),
    rdf_pp_triple(r, r, o, +),
    % DCG
@@ -106,6 +109,14 @@ rdf_pp_deref_triple(Uri) :-
 rdf_pp_deref_triple(Uri, Options) :-
   rdf_deref_triple(Uri, rdf(S,P,O), Options),
   rdf_pp_triple(S, P, O, Options).
+
+
+
+%! rdf_pp_graph(+G) is det.
+
+rdf_pp_graph(G) :-
+  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Triples),
+  rdf_pp_triples(Triples).
 
 
 
@@ -404,7 +415,7 @@ rdf_dcg_groups0([G-Triples|Groups], Options) -->
   {dict_get(indent, Options, 0, I1)},
   (   {var(G)}
   ->  {I2 = I1}
-  ;   #(I1, tab),
+  ;   dcg_tab(I1),
       rdf_dcg_graph_term(G, Options),
       " {\n",
       {I2 = I1 + 1}
@@ -422,7 +433,7 @@ rdf_dcg_triples0(I, Triples, Options) -->
 
 rdf_dcg_subjects0(_, [], _) --> !, [].
 rdf_dcg_subjects0(I1, [S-POs|Groups1], Options) -->
-  #(I1, tab),
+  dcg_tab(I1),
   rdf_dcg_subject(S, Options),
   {
     aggregate_all(set(P-O), member(po(P,O), POs), SortedPairs),
@@ -445,7 +456,7 @@ rdf_dcg_predicates1(I, Groups, Options) -->
 rdf_dcg_predicates2(_, [], _) --> !, [].
 rdf_dcg_predicates2(I1, [P-Os|Groups], Options) -->
   nl,
-  #(I1, tab),
+  dcg_tab(I1),
   rdf_dcg_predicate(P, Options),
   {I2 is I1 + 1},
   rdf_dcg_objects1(I2, Os, Options),
@@ -463,7 +474,7 @@ rdf_dcg_objects1(I, Os, Options) -->
 rdf_dcg_objects2(_, [], _) --> !, [].
 rdf_dcg_objects2(I, [O|Os], Options) -->
   nl,
-  #(I, tab),
+  dcg_once(#(I, tab)),
   rdf_dcg_object(O, Options),
   ({Os == []} -> "" ; " ,"),
   rdf_dcg_objects2(I, Os, Options).

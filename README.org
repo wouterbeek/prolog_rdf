@@ -1,0 +1,36 @@
+#+TITLE: plRdf
+#+AUTHOR: Wouter Beek
+
+Additional support for working with RDF 1.1 in SWI-Prolog.
+
+* Installation
+
+  1. Install and run [[http://www.swi-prolog.org/Download.html][SWI-Prolog]]
+  
+  2. Install the Prolog-Package-Manager:
+  
+     #+BEGIN_SRC prolog
+     ?- pack_install(ppm).
+     #+END_SRC
+
+  3. Install plRdf:
+
+     #+BEGIN_SRC prolog
+     ppm_install(wouterbeek, plRdf).
+     #+END_SRC
+
+* Modules
+
+This package provides the following modules:
+
+  - ~html/rdfa_ext~: created common HTML elements with RDFa metadata annotations.
+  - ~html/rdf_html~: generates HTML elements for RDF terms
+  - ~semweb/rdf_cli~
+  - ~semweb/rdf_ext~: read/write to/from TriG, Turtle, HDT, N-Triples,
+    N-Quads, RDF/XML, RDFa
+  - ~semweb/rdf_geo~: read/write Well-Known Text (WKT) according to
+    the GeoSPARQL specification.
+  - ~semweb/rdf_print~: pretty-printing for RDF terms, statements and
+    graphs.
+  - ~xsd/xsd_number~: read/write XSD decimal values as Prolog rational
+    numbers.

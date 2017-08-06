@@ -198,7 +198,7 @@ print_id_store(Opts) :-
       tab(N),
       atom(Tid),
       "\t",
-      '*'(rdf_print_term, Ts),
+      *(rdf_print_term, Ts),
       nl
    ))
   ).
