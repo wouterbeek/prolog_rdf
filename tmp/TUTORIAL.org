@@ -16,8 +16,8 @@ tutorial.  RDF prefixes are registeredw with ~rdf_register_prefix/2~:
 Create fresh IRIs that name two resources:
 
 #+BEGIN_SRC prolog
-?- rdf_create_iri(ex, [animal,hog], Hog1).
-?- rdf_create_iri(ex, [animal,hog], Hog2).
+?- rdf_create_iri(ex, [animal,hog,1], Hog1).
+?- rdf_create_iri(ex, [animal,hog,2], Hog2).
 #+END_SRC
 
 Assert that the new resources are hogs:
@@ -43,39 +43,21 @@ pretty-print library:
 #+BEGIN_SRC prolog
 ?- [library(semweb/rdf_print)].
 ?- rdf_print_graph(user).
-〈ex:animal/hog/5b6151..., ∊, ex:Hog〉
-〈ex:animal/hog/5b6155..., ∊, ex:Hog〉
-〈ex:animal/hog/5b6151..., foaf:knows, ex:animal/hog/5b6155...〉
+ex:animal/hog/1 a ex:Hog ;
+	foaf:knows ex:animal/hog/2 .
+ex:animal/hog/2 a ex:Hog .
 #+END_SRC
 
-The triple dots indicate that IRI local names were elipsed to ensure
-that every triple fits within an 80 character wide terminal.  The
-appearance can be tweaked through options:
-
-#+BEGIN_SRC prolog
-?- rdf_print_graph(user, [ellip_ln(inf),logic_sym(false),style(turtle)]).
-ex:animal/hog/5b61515c486b11e58bcb002268684c92 rdf:type ex:Hog .
-ex:animal/hog/5b6155da486b11e5a357002268684c92 rdf:type ex:Hog .
-ex:animal/hog/5b61515c486b11e58bcb002268684c92 foaf:knows ex:animal/hog/5b6155da486b11e5a357002268684c92 .
-#+END_SRC
-
-Option `ellip_ln(inf)` (elipsis localname) disables the use of
-ellipses for IRI local names.  Option `logic_sym(false)` (logical
-symbols) disables the replacement of some often occurring properties
-with related logical symbolism.  Option `style(turtle)` displays
-triples using a Turtle-like syntax i.o. the default tuple syntax.
 
 
-
-Data-typed assertions
----------------------
+* Data-typed assertions
 
 Continuing our example of the two hogs, we can now assert the first
 hog's age:
 
 #+BEGIN_SRC prolog
-?- rdf_assert_literal($Hog1, ex:age, xsd:nonNegativeInteger, 2).
-?- rdf_assert_now($Hog1, ex:registrationDate).
+?- rdf_assert($Hog1, ex:age, 2^^xsd:nonNegativeInteger).
+?- rdf_assert_now(trp, $Hog1, ex:registrationDate).
 #+END_SRC
 
 Let's look at the contents of our graph:
@@ -129,8 +111,7 @@ V = 23 rdiv 10
 
 
 
-RDF lists with members of mixed type
-------------------------------------
+* RDF lists with members of mixed type
 
 RDF lists come in handy when we want to store a number of resources in
 a given order.  However, the built-in predicates
@@ -193,51 +174,3 @@ nesting and taking the RDF datatypes into account:
 ?- rdf_list($_X, Y).
 Y = [1, [[a], 1.0], 'en-US'-b].
 #+END_SRC
-
-
-Triple store profiles
----------------------
-
-**plRdf** comes with different profiles for storing triples.
-
-
-### Plain RDF assertion
-
-Load the 'plain' RDF profile in the following way:
-
-#+BEGIN_SRC prolog
-?- [library(profile/profile_rdf)].
-#+END_SRC
-
-This profile is similar to `library(semweb/rdf_db)`, allowing plain
-triples to be asserted/retrieved/retracted.  The only difference is
-that `rdf_assert/4` does not given an error in mode `(+,+,+,-)` but
-calls `rdf_assert/3`.
-
-
-### Generalized RDF assertion
-
-Load the generalized RDF profile in the following way:
-
-#+END_SRCprofile
-?- [library(profile/profile_gen)].
-#+END_SRC
-
-This profile extends the plain profile by allowing literals to appear
-in the subject position.  This allows all RDF(S) and OWL entailment to
-be expressed in terms of RDF (something which is not possible in the
-plain profile).
-
-
-### OWL assertion
-
-Load the OWL profile in the following way:
-
-#+END_SRCprofile
-?- [library(profile/profile_owl)].
-#+END_SRC
-
-This profile extends the generalized RDF profile by storing relations
-between identity sets i.o. individual resources.  This significantly
-speeds up calculating the identity closure (`owl:sameAs`) and avoids
-OWL entailment to store the identity closure in an exponential way.
