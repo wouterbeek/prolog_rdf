@@ -1,11 +1,11 @@
 :- module(
   rdf_date_time,
   [
-    dt_to_rdf_date_time/3, % +DT, +D, -DateTime
+    dt_to_rdf_date_time/3, % +Datetime1, +D, -Datetime2
     is_rdf_date_time/1,    % @Term
     rdf_assert_now/4,      % +M, +S, +P, +G
     rdf_assert_now/5,      % +M, +S, +P, +D, +G
-    rdf_date_time_to_dt/2, % +DateTime, -DT
+    rdf_date_time_to_dt/2, % +Datetime1, -Datetime2
     rdf_dt/5               % +M, ?S, ?P, -DataTime, ?G
   ]
 ).
@@ -25,24 +25,19 @@ Support for reading/writing date/time assertions in RDF.
 :- multifile
     error:has_type/2.
 
-% RDF11 date/3
 error:has_type(rdf_date_time, date(Y,Mo,D)) :-
   error:has_type(date_time, date(Y,Mo,D)).
-% RDF11 date_time/6
 error:has_type(rdf_date_time, date_time(Y,Mo,D,H,Mi,S)) :-
   error:has_type(rdf_date_time, date(Y,Mo,D)),
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
   (var(S) -> true ; (error:has_type(integer, S) ; error:has_type(float, S))).
-% RDF11 month_day/2
 error:has_type(rdf_date_time, month_day(Mo,D)) :-
   (var(Mo) -> true ; error:has_type(between(1,12), Mo)),
   (var(D) -> true ; error:has_type(between(1,31), D)).
-% RDF11 year_month/2
 error:has_type(rdf_date_time, year_month(Y,Mo)) :-
   (var(Y) -> true ; error:has_type(integer, Y)),
   (var(Mo) -> true ; error:has_type(between(1,12), Mo)).
-% RDF11 time/3
 error:has_type(rdf_date_time, time(H,Mi,S)) :-
   error:has_type(date_time, time(H,Mi,S)).
 
@@ -55,7 +50,7 @@ error:has_type(rdf_date_time, time(H,Mi,S)) :-
 
 
 
-%! dt_to_rdf_date_time(+DT:dt, +D:iri, -DateTime:compound) is det.
+%! dt_to_rdf_date_time(+Datetime1:dt, +D:atom, -Datetime2:compound) is det.
 %
 % Converts date/time values to the representation supported by
 % `library(semweb/rdf11)'.
@@ -94,7 +89,7 @@ rdf_assert_now(M, S, P, D, G) :-
 
 
 
-%! rdf_date_time_to_dt(+DateTime:rdf_date_time, -DT:dt) is det.
+%! rdf_date_time_to_dt(+Datetime1:rdf_date_time, -Datetime2:dt) is det.
 %
 % Converts the five Semweb date/time representations to the one
 % XSD-inspired 7-property model representation (type `dt`).
@@ -116,7 +111,7 @@ rdf_date_time_to_dt(year_month(Y,Mo), dt(Y,Mo,_,_,_,_,0)).
 
 
 
-%! rdf_dt(+M, ?S, ?P, -DT, ?G) is nondet.
+%! rdf_dt(+M, ?S, ?P, -Datetime:dt, ?G) is nondet.
 
 rdf_dt(M, S, P, DT, G) :-
   rdf(M, S, P, Term^^D, G),

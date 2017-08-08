@@ -24,7 +24,7 @@
 /** <module> RDF HTML
 
 @author Wouter Beek
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
 
 :- use_module(library(apply)).
@@ -159,7 +159,7 @@ rdf_html_iri_internal0(Iri1, Options) -->
   html(Iri2).
 
 rdf_html_iri_external0(Iri) -->
-  {uri_is_global(Iri)}, !,
+  {is_uri(Iri)}, !,
   html([" ",\external_link(Iri)]).
 rdf_html_iri_external0(_) --> [].
 

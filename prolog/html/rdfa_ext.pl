@@ -6,7 +6,7 @@
     rdfa_creators//3,    % +M, +Resource, ?G
     rdfa_homepage//3,    % +M, +Agent, ?G
     rdfa_mbox//3,        % +M, +Agent, ?G
-    rdfa_date_time//3,   % +P, +Something, +Options
+    rdfa_date_time//3,   % +P, +Datetime, +Options
     rdfa_prefixed_iri/2, % +Iri, -PrefixedIri
     rdfa_prefixes//0
   ]
@@ -15,7 +15,7 @@
 /** <module> RDFa extensions
 
 @author Wouter Beek
-@version 2017/06-2017/07
+@version 2017/06-2017/08
 */
 
 :- use_module(library(aggregate)).
@@ -30,21 +30,9 @@
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_ext)).
 
-:- dynamic
-    error:has_type/2.
-
 :- multifile
-    error:has_type/2,
     rdfa:prefix/1,
     rdfa:predefined_prefix/1.
-
-error:has_type(rdf_media_type, MediaType) :-
-  error:has_type(rdfa_media_type, MediaType).
-error:has_type(rdfa_media_type, MediaType) :-
-  memberchk(MediaType, [
-    media(application/'xhtml+xml',_),
-    media(text/html,_)
-  ]).
 
 rdfa:predefined_prefix(csvw).
 rdfa:predefined_prefix(dcat).
@@ -129,20 +117,19 @@ rdfa_creators_item0(M, G, Agent) -->
 
 
 
-%! rdfa_date_time(+P, +Something, +Optionions)// is det.
+%! rdfa_date_time(+P, +Datetime:dt, +Options:list(compound))// is det.
 
-rdfa_date_time(P1, Something, Options) -->
+rdfa_date_time(P1, Datetime, Options) -->
   {
-    something_to_date_time(Something, DateTime),
-    html_date_time_machine(DateTime, MachineString),
+    html_date_time_machine(Datetime1, MachineString),
     dict_get(masks, Options, [], Masks),
-    date_time_masks(Masks, DateTime, MaskedDateTime),
-    xsd_date_time_datatype(DateTime, DatatypeIri1),
-    maplist(rdfa_prefixed_iri, [DatatypeIri1,P1], [DatatypeIri2,P2])
+    date_time_masks(Masks, Datetime1, Datetime2),
+    xsd_date_time_datatype(Datetime2, D1),
+    maplist(rdfa_prefixed_iri, [D1,P1], [D2,P2])
   },
   html(
-    time([datatype=DatatypeIri2,datetime=MachineString,property=P2],
-      \html_date_time_human(MaskedDateTime, Options)
+    time([datatype=D2,datetime=MachineString,property=P2],
+      \html_date_time_human(Datetime2, Options)
     )
   ).
 
