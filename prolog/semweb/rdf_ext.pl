@@ -10,6 +10,7 @@
     hdt_init/0,
     hdt_init/1,                      % +FileSpec
     hdt_init/2,                      % +FileSpec, +Name
+    hdt_warm_index/1,                % +FileSpec
     graph_file/2,                    % ?G, ?File
     prefix_local_iri/3,              % ?Prefix, ?Local, ?Iri
     rdf/5,                           % +M, ?S, ?P, ?O, ?G
