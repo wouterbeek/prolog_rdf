@@ -449,6 +449,26 @@ register_language_prefixes(Language) :-
     http:map_exception_to_http_status_hook/4,
     user:message_hook/3.
 
+% RDF11 date/3
+error:has_type(semweb_date_time, date(Y,Mo,D)) :-
+  error:has_type(prolog_date_time, date(Y,Mo,D)).
+% RDF11 date_time/6
+error:has_type(semweb_date_time, date_time(Y,Mo,D,H,Mi,S)) :-
+  error:has_type(semweb_date_time, date(Y,Mo,D)),
+  (var(H) -> true ; error:has_type(between(0,24), H)),
+  (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
+  (var(S) -> true ; (error:has_type(integer, S) ; error:has_type(float, S))).
+% RDF11 month_day/2
+error:has_type(semweb_date_time, month_day(Mo,D)) :-
+  (var(Mo) -> true ; error:has_type(between(1,12), Mo)),
+  (var(D) -> true ; error:has_type(between(1,31), D)).
+% RDF11 year_month/2
+error:has_type(semweb_date_time, year_month(Y,Mo)) :-
+  (var(Y) -> true ; error:has_type(integer, Y)),
+  (var(Mo) -> true ; error:has_type(between(1,12), Mo)).
+% RDF11 time/3
+error:has_type(semweb_date_time, time(H,Mi,S)) :-
+  error:has_type(prolog_date_time, time(H,Mi,S)).
 
 file_ext:media_type_extension(media(application/'ld+json',[]), jsonld).
 file_ext:media_type_extension(media(application/'n-quads',[]), nq).
