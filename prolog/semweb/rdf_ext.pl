@@ -449,22 +449,6 @@ register_language_prefixes(Language) :-
     http:map_exception_to_http_status_hook/4,
     user:message_hook/3.
 
-error:has_type(ntuples_media_type, MediaType) :-
-  memberchk(MediaType, [
-    media(application/'n-quads',_),
-    media(application/'n-triples',_)
-  ]).
-error:has_type(rdf_media_type, MediaType) :-
-  error:has_type(turtle_media_type, MediaType).
-error:has_type(rdf_media_type, MediaType) :-
-  memberchk(MediaType, [
-    media(application/'ld+json',_),
-    media(application/'rdf+xml',_)
-  ]).
-error:has_type(turtle_media_type, MediaType) :-
-  error:has_type(ntuples_media_type, MediaType).
-error:has_type(turtle_media_type, MediaType) :-
-  memberchk(MediaType, [media(application/trig,_),media(text/turtle,_)]).
 
 file_ext:media_type_extension(media(application/'ld+json',[]), jsonld).
 file_ext:media_type_extension(media(application/'n-quads',[]), nq).
@@ -824,11 +808,30 @@ call_on_rdf_stream(Goal_2, Options1, In, [Dict1|Metadata], [Dict2|Metadata]) :-
   dict_put(media_type, Dict1, MediaType1, Dict2).
 
 media_type_warning(MediaType1, MediaType2) :-
-  is_same_media_type(MediaType1, MediaType2), !.
+  'rdf_media_type_>'(MediaType1, MediaType2), !.
 media_type_warning(MediaType1, MediaType2) :-
   print_message(warning, different_media_type(MediaType1,MediaType2)).
 
-is_same_media_type(media(Type/Subtype,_), media(Type/Subtype,_)).
+'rdf_media_type_>'(X, Y) :-
+  'rdf_media_type_='(X, Y), !.
+'rdf_media_type_>'(X, Z) :-
+  'rdf_media_type_strict>'(X, Y),
+  'rdf_media_type_>'(Y, Z).
+
+'rdf_media_type_='(
+  media(Supertype1/Subtype1,_),
+  media(Supertype2/Subtype2,_)
+).
+
+'rdf_media_type_strict>'(media(application/trig,_), media(text/turtle,_)).
+'rdf_media_type_strict>'(
+  media(text/turtle,_),
+  media(application/'n-triples',_)
+).
+'rdf_media_type_strict>'(
+  media(application/'n-quads',_),
+  media(application/'n-triples',_)
+).
 
 % Ordering represents precedence, from lower to hgiher.
 rdf_media_type(media(application/'json-ld',[])).
