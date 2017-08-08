@@ -1,7 +1,7 @@
 :- module(
   sparql_viz,
   [
-    sparql_viz/4 % +Method, +Query, +Format, -Out
+    sparql_viz/4 % +Query, +Method, +Format, -Out
   ]
 ).
 
@@ -13,11 +13,9 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(file_ext)).
 :- use_module(library(lists)).
 :- use_module(library(memfile)).
 :- use_module(library(os_ext)).
-:- use_module(library(semweb/rdf_ext)).
 :- use_module(library(semweb/rdf_print)).
 :- use_module(library(semweb/sparql_parser)).
 :- use_module(library(uri/uri_ext)).
@@ -26,14 +24,14 @@
 
 
 
-%! sparql_viz(+Method:atom. +Query:string, +Format:atom, -Out:stream) is det.
+%! sparql_viz(+Query:string, +Method:atom, +Format:atom, -Out:stream) is det.
 
-sparql_viz(Method, Query, Format, Out) :-
+sparql_viz(Query, Method, Format, Out) :-
   sparql_parse('https://example.org/', dataset([],[]), Query, State, Algebra),
   new_memory_file(Handle),
   setup_call_cleanup(
     open_memory_file(Handle, write, Out0),
-    with_output_to(Out, sparql_viz(State, Algebra)),
+    with_output_to(Out0, sparql_viz(State, Algebra)),
     close(Out0)
   ),
   setup_call_cleanup(
@@ -102,7 +100,7 @@ write_label(Options, Var, Label) :-
   var(Var), !,
   dcg_with_output_to(atom(Label), rdf_dcg_var(Var, Options)).
 write_label(Options, Uri, Label) :-
-  uri_is_global(Uri), !,
+  is_uri(Uri), !,
   dcg_with_output_to(atom(Label), rdf_dcg_iri(Uri, Options)).
 write_label(_, Term, Label) :-
   format(atom(Label), "~w", [Term]).
