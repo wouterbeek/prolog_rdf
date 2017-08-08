@@ -62,7 +62,7 @@ rdf_link_objects(Backend, P, G) :-
   aggregate_all(
     set(From),
     (
-      t(trp, _, P, From, G),
+      rdf(trp, _, P, From, G),
       rdf_is_literal(From)
     ),
     Froms

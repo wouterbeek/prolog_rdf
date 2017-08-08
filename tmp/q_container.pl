@@ -59,11 +59,11 @@ rdf_container(M, S, L, G) :-
 
 rdf_container_member(M, S, N, X, G) :-
   (nonvar(S) ; nonvar(X)), !,
-  t(M, S, P, X, G),
+  rdf(M, S, P, X, G),
   rdf_container_membership_property(P, N).
 rdf_container_member(M, S, N, X, G) :-
   rdf_container_membership_property(P, N),
-  t(M, S, P, X, G).
+  rdf(M, S, P, X, G).
 
 
 

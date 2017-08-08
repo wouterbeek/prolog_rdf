@@ -43,7 +43,7 @@
 
 rdf_html_annotations(M, Uri, Txt, S, G) -->
   {
-    t(M, S, annotate:hasAnnotationJob, Job, G),
+    rdf(M, S, annotate:hasAnnotationJob, Job, G),
     findall(Ann, rdf_list_member(M, Job, annotate:'Resource', Ann, G), Anns),
     atom_codes(Txt, Cs)
   },
@@ -57,7 +57,7 @@ rdf_html_annotations(_, _, Cs, _, [], _) --> !,
 rdf_html_annotations(M, Uri1, Cs1, OffsetAdjustment1, [H|T], G) -->
   % Firstly, emit the text that appears before the next annotation.
   {
-    t(M, H, annotate:'@offset', Offset0^^xsd:nonNegativeInteger, G),
+    rdf(M, H, annotate:'@offset', Offset0^^xsd:nonNegativeInteger, G),
     Offset is Offset0 - OffsetAdjustment1
   },
   (   {Offset < 0}
@@ -76,14 +76,14 @@ rdf_html_annotations(M, Uri1, Cs1, OffsetAdjustment1, [H|T], G) -->
       % Secondly, emit the annotation.
       % This requires adjusting all pending annotations.
       {
-        t(M, H, annotate:'@surfaceForm', SurfaceForm^^xsd:string, G),
+        rdf(M, H, annotate:'@surfaceForm', SurfaceForm^^xsd:string, G),
         atom_length(SurfaceForm, Skip),
         length(SurfaceFormCs, Skip),
         append(SurfaceFormCs, Cs3, Cs2),
         OffsetAdjustment2 is OffsetAdjustment1 + Offset + Skip,
 
         % The hyperlink is based on the given UriId, if any.
-        t(M, H, annotate:'@URI', Uri2^^xsd:anyURI, G),
+        rdf(M, H, annotate:'@URI', Uri2^^xsd:anyURI, G),
         (   var(Uri1)
         ->  Uri = Uri2
         ;   iri_add_query_comp(Uri1, concept=Uri2, Uri)
@@ -141,9 +141,9 @@ rdf_annotate(M, S, Txt, G, Opts0):-
 %! rdf_annotation(+M, +S, -Concept, +G) is nondet.
 
 rdf_annotation(M, S, Concept, G) :-
-  t(M, S, annotate:hasAnnotationJob, Job, G),
+  rdf(M, S, annotate:hasAnnotationJob, Job, G),
   rdf_list_member(M, Job, annotate:'Resources', Ann, G),
-  t(M, Ann, annotate:'@URI', Concept^^xsd:anyURI, G).
+  rdf(M, Ann, annotate:'@URI', Concept^^xsd:anyURI, G).
 
 
 

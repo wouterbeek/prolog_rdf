@@ -900,7 +900,7 @@ graph_file(G, File) :-
 %! hdt_call_on_file(+FileSpec:term, :Goal_1) is det.
 
 hdt_call_on_file(FileSpec, Goal_1) :-
-  asbolute_file_name(FileSpec, File, [access(read)]),
+  absolute_file_name(FileSpec, File, [access(read)]),
   setup_call_cleanup(
     hdt_open(Hdt, File),
     call(Goal_1, Hdt),

@@ -81,5 +81,5 @@ rdf_wkt(M, Feature, Shape) :-
 
 
 rdf_wkt(M, Feature, Shape, G) :-
-  t(M, Feature, geo:hasGeometry, BNode, G),
-  t(M, BNode, geo:asWKT, Shape^^geo:wktLiteral, G).
+  rdf(M, Feature, geo:hasGeometry, BNode, G),
+  rdf(M, BNode, geo:asWKT, Shape^^geo:wktLiteral, G).

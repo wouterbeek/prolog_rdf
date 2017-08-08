@@ -72,8 +72,8 @@ fct_label(Str, Score, Iri) :-
 result_pair(Results, Score-Iri) :-
   member(Result, Results.results),
   atom_string(Iri, Result),
-  is_uri(Iri),
-  q_deref_triples(Iri, Triples),
+  uri_is_global(Iri),
+  rdf_deref_triples(Iri, Triples),
   aggregate_all(count, is_location(Iri, Triples), NumCs),
   aggregate_all(count, q_deref_triple(Iri, _), NumTriples),
   Score is NumTriples + 100 * NumCs,

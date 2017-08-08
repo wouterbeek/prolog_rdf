@@ -127,7 +127,7 @@ init_media_type(G) :-
 % Reads from the Media Types ontology.
 
 media_type(M, media(Type/Subtype,[]), G) :-
-  t(M, MediaType, mto:name, Subtype, G),
+  rdf(M, MediaType, mto:name, Subtype, G),
   rdfs_individual_of(MediaType, C),
   rdfs_pref_label_lexical_form(M, C, Type, G).
 
