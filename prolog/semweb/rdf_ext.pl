@@ -23,8 +23,6 @@
     rdf_assert_action/5,             % +M, +ActionClass, +Actor, -Action, +G
     rdf_assert_agent/7,              % +M, +User, +Group, +Image, +GivenName,
                                      % +FamilyName, +G
-    rdf_assert_now/4,                % +M, +S, +P, +G
-    rdf_assert_now/5,                % +M, +S, +P, +D, +G
     rdf_assert_objects/5,            % +M, +S, +P, +Os, +G
     rdf_atom_to_term/2,              % +Atom, -Term
     rdf_bnode_iri/2,                 % +M, ?BNode
@@ -45,8 +43,6 @@
     rdf_create_iri/3,                % +Prefix, +Path, -Iri
     rdf_creator/4,                   % +M, ?Resource, ?Agent, +G
     rdf_current_prefix/1,            % +Prefix
-    rdf_datetime/5,                  % +M, ?S, ?P, -DataTime, ?G
-    rdf_datetime_datatype/2,         % +DateTime, -Datatype
     rdf_deref_quad/2,                % +Uri, -Quad
     rdf_deref_quad/3,                % +Uri, -Quad, +Options
     rdf_deref_quads/2,               % +Uri, -Quads
@@ -72,7 +68,6 @@
     rdf_literal/3,                   % +M, ?Literal, ?G
     rdf_literal/4,                   % ?Literal, ?D, ?Lexical, ?Lang
     rdf_literal_datatype/2,          % +Lit, ?D
-    rdf_literal_datetime/2,          % ?Literal, ?DateTime
     rdf_literal_language_tag/2,      % +Lit, -LTag
     rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?Val
@@ -133,7 +128,6 @@
     rdf_tuple_quad/3,                % +Tuple, +G, -Quad
     rdf_tuple_triple/2,              % +Tuple, ?Triple
     rdf_write_term/2,                % +Out, +Term
-    timeOnTimeline/2,                % +Literal, -Seconds
     write_literal/1,                 % +Literal
     write_literal/2,                 % +Out, +Literal
     write_nquad/1,                   % +Quad
@@ -155,14 +149,13 @@
 /** <module> RDF extensions
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(date_time)).
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
@@ -176,6 +169,7 @@
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(rdf)).
+:- use_module(library(semweb/rdf_date_time)).
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin), []).
 :- use_module(library(semweb/rdf_ntriples)).
@@ -184,18 +178,13 @@
 :- use_module(library(solution_sequences)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
-:- use_module(library(xsd/xsd_number)).
-:- use_module(library(xsdp_types)).
+:- use_module(library(xsd/xsd)).
 :- use_module(library(yall)).
-
-:- arithmetic_function(xsd_div/2).
 
 :- debug(clean_tuple).
 :- debug(hdt_graph).
 
 :- dynamic
-    error:has_type/2,
-    file_ext:media_type_extension/2,
     hdt_graph/2.
 
 :- initialization
@@ -444,39 +433,17 @@ register_language_prefixes(Language) :-
     rdf_snap(0).
 
 :- multifile
-    error:has_type/2,
     file_ext:media_type_extension/2,
     http:map_exception_to_http_status_hook/4,
     user:message_hook/3.
 
-% RDF11 date/3
-error:has_type(semweb_date_time, date(Y,Mo,D)) :-
-  error:has_type(prolog_date_time, date(Y,Mo,D)).
-% RDF11 date_time/6
-error:has_type(semweb_date_time, date_time(Y,Mo,D,H,Mi,S)) :-
-  error:has_type(semweb_date_time, date(Y,Mo,D)),
-  (var(H) -> true ; error:has_type(between(0,24), H)),
-  (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
-  (var(S) -> true ; (error:has_type(integer, S) ; error:has_type(float, S))).
-% RDF11 month_day/2
-error:has_type(semweb_date_time, month_day(Mo,D)) :-
-  (var(Mo) -> true ; error:has_type(between(1,12), Mo)),
-  (var(D) -> true ; error:has_type(between(1,31), D)).
-% RDF11 year_month/2
-error:has_type(semweb_date_time, year_month(Y,Mo)) :-
-  (var(Y) -> true ; error:has_type(integer, Y)),
-  (var(Mo) -> true ; error:has_type(between(1,12), Mo)).
-% RDF11 time/3
-error:has_type(semweb_date_time, time(H,Mi,S)) :-
-  error:has_type(prolog_date_time, time(H,Mi,S)).
-
-file_ext:media_type_extension(media(application/'ld+json',[]), jsonld).
-file_ext:media_type_extension(media(application/'n-quads',[]), nq).
-file_ext:media_type_extension(media(application/'n-quads',[]),nquads).
-file_ext:media_type_extension(media(application/'n-triples',[]), nt).
-file_ext:media_type_extension(media(application/'rdf+xml',[]), rdf).
-file_ext:media_type_extension(media(application/trig,[]), trig).
-file_ext:media_type_extension(media(text/turtle,[]), ttl).
+file_ext:media_type_extension_(media(application/'ld+json',[]), jsonld).
+file_ext:media_type_extension_(media(application/'n-quads',[]), nq).
+file_ext:media_type_extension_(media(application/'n-quads',[]),nquads).
+file_ext:media_type_extension_(media(application/'n-triples',[]), nt).
+file_ext:media_type_extension_(media(application/'rdf+xml',[]), rdf).
+file_ext:media_type_extension_(media(application/trig,[]), trig).
+file_ext:media_type_extension_(media(text/turtle,[]), ttl).
 
 http:map_exception_to_http_status_hook(
   error(existence_error(hdt_graph,G),_),
@@ -484,20 +451,6 @@ http:map_exception_to_http_status_hook(
   [connection(close)],
   []
 ).
-
-:- op(400, yfx, xsd_div).
-
-% xsd_div(+M, +N, -Z) is det.
-%
-% # Definition
-%
-% If `M` and `N` are numbers, then `M div N` is the greatest integer
-% less than or equal to `M / N`.
-%
-% @tbd Import from `library(xsd/xsd_number)'.
-
-xsd_div(X, Y, Z):-
-  Z is floor(X rdiv Y).
 
 :- rdf_meta
    rdf_agent_image(+, r, -, r),
@@ -517,8 +470,6 @@ xsd_div(X, Y, Z):-
    rdf_assert(+, r, r, o, r),
    rdf_assert_action(+, r, r, -, r),
    rdf_assert_agent(+, r, r, +, +, +, r),
-   rdf_assert_now(+, o, r, r),
-   rdf_assert_now(+, o, r, r, r),
    rdf_assert_objects(+, r, r, t, r),
    rdf_call_update(t, t),
    rdf_cbd_quad(?, o, -),
@@ -531,7 +482,6 @@ xsd_div(X, Y, Z):-
    rdf_chk(+, r, r, o, r),
    rdf_chk_lexical_form(r, r, -, r),
    rdf_chk_lexical_form(+, r, r, -, r),
-   rdf_datetime(+, r, r, -, r),
    rdf_deref_quad(r, t),
    rdf_deref_quad(r, t, +),
    rdf_deref_quads(r, -),
@@ -555,7 +505,6 @@ xsd_div(X, Y, Z):-
    rdf_literal(?, o, r),
    rdf_literal(o, r, ?, ?),
    rdf_literal_datatype(o, r),
-   rdf_literal_datetime(o, ?),
    rdf_literal_language_tag(o, -),
    rdf_literal_lexical_form(o, -),
    rdf_literal_value(o, ?),
@@ -612,8 +561,7 @@ xsd_div(X, Y, Z):-
    write_ntriple(+, t),
    write_ntriple(+, r, r, o),
    write_ntuple(t),
-   write_ntuple(+, t),
-   xsd_subtype_of(r, r).
+   write_ntuple(+, t).
 
 :- rdf_register_prefix(bibframe, 'http://bibframe.org/vocab/').
 :- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
@@ -685,14 +633,6 @@ xsd_div(X, Y, Z):-
 :- rdf_register_prefix(yago, 'http://yago-knowledge.org/resource/').
 
 
-
-
-
-%! prefix_local_iri(-Prefix:atom, -Local:atom,   +Iri:atom) is det.
-%! prefix_local_iri(+Prefix:atom, +Local:atom, -Iri:atom) is det.
-
-prefix_local_iri(Prefix, Local, Iri) :-
-  rdf_global_id(Prefix:Local, Iri).
 
 
 
@@ -838,10 +778,7 @@ media_type_warning(MediaType1, MediaType2) :-
   'rdf_media_type_strict>'(X, Y),
   'rdf_media_type_>'(Y, Z).
 
-'rdf_media_type_='(
-  media(Supertype1/Subtype1,_),
-  media(Supertype2/Subtype2,_)
-).
+'rdf_media_type_='(media(Supertype/Subtype,_),  media(Supertype/Subtype,_)).
 
 'rdf_media_type_strict>'(media(application/trig,_), media(text/turtle,_)).
 'rdf_media_type_strict>'(
@@ -860,56 +797,6 @@ rdf_media_type(media(text/turtle,[])).
 rdf_media_type(media(application/'n-triples',[])).
 rdf_media_type(media(application/trig,[])).
 rdf_media_type(media(application/'n-quads',[])).
-
-
-
-%! daysInMonth(?Year:integer, +Month:between(1,12),
-%!             -DaysInMonth:between(28,31)) is det.
-%
-% Returns the number of the last day of the month for any combination
-% of year and month.
-%
-%
-% # Algorithm
-%
-% Return:
-%
-%   - 28, when m is 2 and y is not evenly divisible by 4, or is evenly
-%         divisible by 100 but not by 400, or is absent
-%
-%   - 29, when m is 2 and y is evenly divisible by 400, or is evenly
-%         divisible by 4 but not by 100
-%
-%   - 30, when m is 4, 6, 9, or 11
-%
-%   - 31, otherwise (m is 1, 3, 5, 7, 8, 10, or 12)
-%
-%
-% @compat /XML Schema 1.1: Datatypes/, appendix E.3.2 “Auxiliary
-%         Functions”.
-
-% 28 when y is absent.
-daysInMonth(Y, 2, 28):-
-  var(Y), !.
-% 28 when m is 2 and y is not evenly divisible by 4.
-daysInMonth(Y, 2, 28):-
-  Y rem 4 =\= 0, !.
-% 28 when m is 2 and y is evenly divisible by 100 but not by 400.
-daysInMonth(Y, 2, 28):-
-  Y rem 100 =:= 0,
-  Y rem 400 =\= 0, !.
-% 29 when m is 2 and y is evenly divisible by 400.
-daysInMonth(Y, 2, 29):-
-  Y rem 400 =:= 0, !.
-% 29 when m is 2 and y is evenly divisible by 4 but not by 100.
-daysInMonth(Y, 2, 29):-
-  Y rem 4 =:= 0,
-  Y rem 100 =\= 0, !.
-% 30 when m is 4, 6, 9, or 11.
-daysInMonth(_, Month, 30):-
-  memberchk(Month, [4,6,9,11]), !.
-% 31 otherwise (m is 1, 3, 5, 7, 8, 10, or 12).
-daysInMonth(_, _, 31).
 
 
 
@@ -998,6 +885,14 @@ hdt_warm_index(FileSpec) :-
 
 hdt_warm_index1(Hdt) :-
   once(hdt:hdt_search(Hdt, _, _, _)).
+
+
+
+%! prefix_local_iri(-Prefix:atom, -Local:atom,   +Iri:atom) is det.
+%! prefix_local_iri(+Prefix:atom, +Local:atom, -Iri:atom) is det.
+
+prefix_local_iri(Prefix, Local, Iri) :-
+  rdf_global_id(Prefix:Local, Iri).
 
 
 
@@ -1101,23 +996,6 @@ rdf_assert_agent(M, User, Group, Image, GivenName, FamilyName, G) :-
 
 
 
-%! rdf_assert_now(+M, +S, +P, +G) is det.
-%! rdf_assert_now(+M, +S, +P, +D, +G) is det.
-%
-% The default date/time datatype is `xsd:dateTime`.
-
-rdf_assert_now(M, S, P, G) :-
-  rdf_assert_now(M, S, P, xsd:dateTime, G).
-
-
-rdf_assert_now(M, S, P, D, G) :-
-  get_time(Now),
-  something_to_date_time(Now, DateTime1),
-  xsd_datatype_datetime(D, DateTime1, DateTime2),
-  rdf_assert(M, S, P, DateTime2^^D, G).
-
-
-
 %! rdf_assert_objects(+M, +S, +P, +Os, +G) is det.
 
 rdf_assert_objects(M, S, P, Os, G) :-
@@ -1128,15 +1006,15 @@ rdf_assert_objects(M, S, P, Os, G) :-
 %! rdf_atom_to_term(+Atom:atom, -Term:term) is det.
 
 rdf_atom_to_term(Atom, Literal) :-
-  atom_phrase(rdf_literal0(Literal), Atom), !.
+  atom_phrase(rdf_literal_(Literal), Atom), !.
 rdf_atom_to_term(Iri, Iri).
 
-rdf_literal0(Literal) -->
+rdf_literal_(Literal) -->
   "\"",
   ...(Codes1),
   "\"",
   (   "^^"
-  ->  rdf_iri0(D)
+  ->  rdf_iri_(D)
   ;   "@"
   ->  rest(Codes2),
       {atom_codes(LTag, Codes2)}
@@ -1146,7 +1024,7 @@ rdf_literal0(Literal) -->
     rdf_literal(Literal, D, Lex, LTag)
   }.
 
-rdf_iri0(Iri) -->
+rdf_iri_(Iri) -->
   "<",
   ...(Codes),
   ">", !,
@@ -1448,38 +1326,6 @@ rdf_current_prefix(Prefix) :-
 
 
 
-%! rdf_datetime(+M, ?S, ?P, -DataTime, ?G) is nondet.
-
-rdf_datetime(M, S, P, DateTime, G) :-
-  rdf(M, S, P, Value^^Datatype, G),
-  rdf11:xsd_date_time_type(Datatype),
-  semweb_to_date_time(Value, DateTime).
-
-
-
-%! rdf_datetime_datatype(+DateTime:compound, -Datatype:atom) is det.
-%
-% Returns the dataytype IRI (`Datatype') that best represents the
-% given `DateTime' which is represented in the sever property model.
-%
-% @arg DateTime A date/time representation according to the seven
-%               property model.
-%
-% @arg Datatype Either of the following datatype IRIs:
-%
-%               * xsd:date
-%               * xsd:dateTime
-%               * xsd:gMonth
-%               * xsd:gMonthDay
-%               * xsd:gYear
-%               * xsd:gYearMonth
-%               * xsd:time
-
-rdf_datetime_datatype(DateTime, Datatype) :-
-  rdf_literal_datetime(_^^Datatype, DateTime).
-
-
-
 %! rdf_deref_quad(+Uri, -Quad) is nondet.
 %! rdf_deref_quad(+Uri, -Quad, +Options) is nondet.
 
@@ -1682,7 +1528,6 @@ rdf_list_member(M, L, O, G) :-
   rdf_list_member(M, T, O, G).
 
 
-
 rdf_list_member(M, S, P, O, G) :-
   ground(O), !,
   rdf_list_member(M, L, O, G),
@@ -1754,56 +1599,6 @@ legacy_literal_components(literal(Lex0), D, Lex, _) :-
 
 rdf_literal_datatype(_^^D, D).
 rdf_literal_datatype(_@_, rdf:langString).
-
-
-
-%! rdf_literal_datetime(+Literal:compound, -DateTime:compound) is det.
-%! rdf_literal_datetime(-Literal:compound, +DateTime:compound) is det.
-%
-% Converts between the date/time seven property model (`DateTime') and
-% an RDF literal.
-%
-% @arg Literal An RDF literal with one of the following datatype IRIs:
-%
-%               * xsd:date
-%               * xsd:dateTime
-%               * xsd:gMonth
-%               * xsd:gMonthDay
-%               * xsd:gYear
-%               * xsd:gYearMonth
-%               * xsd:time
-%
-% @arg DateTime A date/time representation according to the seven
-%               property model, i.e., `date_time(Y,Mo,D,H,Mi,S,Z)'.
-
-rdf_literal_datetime(
-  date_time(Y,Mo,D,H,Mi,S,Z)^^xsd:dateTime,
-  date_time(Y,Mo,D,H,Mi,S,Z)
-) :-
-  ground(date_time(Y,Mo,D,H,Mi,S,Z)), !.
-rdf_literal_datetime(
-  date_time(Y,Mo,D,H,Mi,S)^^xsd:dateTime,
-  date_time(Y,Mo,D,H,Mi,S,_)
-) :-
-  ground(date_time(Y,Mo,D,H,Mi,S)), !.
-rdf_literal_datetime(date(Y,Mo,D)^^xsd:date, date_time(Y,Mo,D,_,_,_,_)) :-
-  ground(date(Y,Mo,D)), !.
-rdf_literal_datetime(time(H,Mi,S)^^xsd:time, date_time(_,_,_,H,Mi,S,_)) :-
-  ground(time(H,Mi,S)), !.
-rdf_literal_datetime(
-  month_day(Mo,D)^^xsd:gMonthDay,
-  date_time(_,Mo,D,_,_,_,_)
-) :-
-  ground(month_day(Mo,D)), !.
-rdf_literal_datetime(
-  year_month(Y,Mo)^^xsd:gYearMonth,
-  date_time(Y,Mo,_,_,_,_,_)
-) :-
-  ground(year_month(Y,Mo)), !.
-rdf_literal_datetime(Mo^^xsd:gMonth, date_time(_,Mo,_,_,_,_,_)) :-
-  ground(Mo), !.
-rdf_literal_datetime(Y^^xsd:gYear, date_time(Y,_,_,_,_,_,_)) :-
-  ground(Y).
 
 
 
@@ -2511,125 +2306,6 @@ rdf_write_term(Out, Term) :-
 
 
 
-%! timeOnTimeline(+Literal:compound, -Seconds:rational) is det.
-%
-% Maps a `DateTime' in the seven property model to the decimal number
-% representing its position on the time line.
-%
-%
-% # Arguments
-%
-% @arg DateTime A date/time value in the seven property model.
-%
-% @arg Seconds A decimal number.
-%
-%
-% # Algorithm
-%
-% Let:
-%
-%   - yr be 1971, when dt's year is absent, and dt's year − 1
-%     otherwise
-%
-%   - mo be 12 or dt's month, similarly
-%
-%   - da be daysInMonth(yr + 1, mo) − 1 or (dt's day) − 1,
-%     similarly
-%
-%   - hr be 0 or dt's hour, similarly
-%
-%   - mi be 0 or dt's minute, similarly
-%
-%   - se be 0 or dt's second, similarly
-%
-% Steps:
-%
-%   - Subtract timezoneOffset from mi, when timezoneOffset is not
-%     absent.
-%
-%   - (year)
-%
-%     - Set ToTl to 31536000 × yr
-%
-%   - (Leap-year Days, month, and day)
-%
-%     - Add 86400 × (yr div 400 − yr div 100 + yr div 4) to ToTl
-%
-%     - Add 86400 × Sum_{m < mo} daysInMonth(yr + 1, m) to ToTl
-%
-%     - Add 86400 × da to ToTl
-%
-%   - (hour, minute, and second)
-%
-%     - Add 3600 × hr + 60 × mi + se to ToTl
-%
-%   - Return ToTl
-%
-%
-% @compat /XML Schema 1.1: Datatypes/, appendix E.3.4 “Time on
-%         Timeline”.
-
-
-timeOnTimeline(Literal, N):-
-  rdf_literal_datetime(Literal, date_time(Y1,Mo1,D1,H1,Mi1,S1,Off)),
-  % yr be 1971 when dt's year is absent, and dt's year − 1 otherwise.
-  (var(Y1) -> Y2 = 1971 ; Y2 is Y1 - 1),
-  % mo be 12 or dt's month, similarly.
-  defval(Mo1, 12, Mo2),
-  % da be daysInMonth(yr + 1, mo) − 1 or (dt's day) − 1, similarly.
-  Y2_succ is Y2 + 1,
-  (   var(D1)
-  ->  daysInMonth(Y2_succ, Mo2, D2_succ),
-      D2 is D2_succ - 1
-  ;   D2 is D1 - 1
-  ),
-  % hr be 0 or dt's hour, similarly.
-  defval(0, H1),
-  % mi be 0 or dt's minute, similarly.
-  defval(0, Mi1),
-  % se be 0 or dt's second, similarly.
-  defval(0, S1),
-  % Subtract timezoneOffset from mi when timezoneOffset is not absent.
-  (var(Off) -> Mi2 = Mi1 ; Mi2 is Mi1 - Off),
-  % Add 86400 × Sum_{m < mo} daysInMonth(yr + 1, m) to ToTl.
-  Mo2_pred is Mo2 - 1,
-  aggregate_all(
-    sum(D_aggr),
-    (
-      between(1, Mo2_pred, Mo2_iterator),
-      daysInMonth(Y2, Mo2_iterator, D_aggr)
-    ),
-    DaysInMonth
-  ),
-  N is % Set ToTl to 31536000 × yr.
-       31536000 * Y2
-       % Leap-year Days: add 86400 × (yr div 400 − yr div 100 + yr div
-       % 4) to ToTl.
-       + 86400 * ((Y2 xsd_div 400) - (Y2 xsd_div 100) + (Y2 xsd_div 4))
-       % Month: add 86400 × Sum_{m < mo} daysInMonth(yr + 1, m) to ToTl
-       + 86400 * DaysInMonth
-       % Day: add 86400 × da to ToTl
-       + 86400 * D2
-       % Hour, minute, second: add 3600 × hr + 60 × mi + se to ToTl
-       + 3600 * H1
-       + 60 * Mi2
-       + S1.
-
-%! defval(?FromValue, +DefaultValue, -ToValue) is det.
-%
-% Returns the given value, unless the given value is a variable.  In
-% the latter case, the default value is returned instead.
-%
-% @note We are sometimes using this predicate instead of defval/2 from
-%       `library(default)' because we do not want variable occurrences
-%       of `FromValue' to get instantiated.
-
-defval(X, Y, Y):-
-  var(X), !.
-defval(X, _, X).
-
-
-
 %! write_nquad(+Quad) is det.
 %! write_nquad(+Out, +Quad) is det.
 %! write_nquad(+Out, +Triple, +G) is det.
@@ -2783,20 +2459,3 @@ write_ntuples(Tuples) :-
 
 write_ntuples(Out, Tuples) :-
   maplist(write_ntuple(Out), Tuples).
-
-
-
-%! xsd_subtype_of(?Sub, ?Super) is nondet.
-
-xsd_subtype_of(SubGlobal, SuperGlobal) :-
-  xsd_global_local1(SubGlobal, SubLocal),
-  xsd_global_local1(SuperGlobal, SuperLocal),
-  xsdp_subtype_of(SubLocal, SuperLocal),
-  xsd_global_local1(SubGlobal, SubLocal),
-  xsd_global_local1(SuperGlobal, SuperLocal).
-
-xsd_global_local1(Global, Local) :-
-  var(Global),
-  var(Local), !.
-xsd_global_local1(Global, Local) :-
-  rdf_global_id(xsd:Local, Global).
