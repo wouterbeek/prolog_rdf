@@ -1925,7 +1925,7 @@ rdf_reserialize(UriSpec, FileSpec, Options) :-
   call_to_file(FileSpec, rdf_reserialize(UriSpec, Options)).
 
 rdf_reserialize(UriSpec, Options, Out, Meta, Meta) :-
-  call_on_rdf(UriSpec, write_ntuples1(Out), Options),
+  call_on_rdf(UriSpec, write_ntuples1(Out), Options).
 
 write_ntuples1(Out, Tuples1, _) :-
   convlist(rdf_clean_tuple, Tuples1, Tuples2),
