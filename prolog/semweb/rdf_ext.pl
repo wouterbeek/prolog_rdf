@@ -103,6 +103,7 @@
     rdf_save_quads/2,                % +FileSpec, +Options
     rdf_save_quads/5,                % +FileSpec, ?S, ?P, ?O, ?G
     rdf_save_quads/6,                % +FileSpec, ?S, ?P, ?O, ?G, +Options
+    rdf_save_triples/1,              % +FileSpec
     rdf_save_triples/2,              % +FileSpec, +G
     rdf_save_triples/3,              % +FileSpec, +G, +Options
     rdf_save_triples/6,              % +FileSpec, ?S, ?P, ?O, +G, +Options
@@ -1991,12 +1992,17 @@ rdf_save_quads1(S, P, O, G, Out, Metadata, Metadata) :-
 
 
 
-%! rdf_save_triples(+File:atom, +Graph:atom) is det.
-%! rdf_save_triples(+File:atom, +Graph:atom, +Options:list(compound)) is det.
-%! rdf_save_triples(+File:atom, ?S, ?P, ?O, +Graph:atom,
+%! rdf_save_triples(+FileSpec:term) is det.
+%! rdf_save_triples(+FileSpec:term, ?G) is det.
+%! rdf_save_triples(+FileSpec:term, ?G, +Options:list(compound)) is det.
+%! rdf_save_triples(+FileSpec:term, ?S, ?P, ?O, ?G,
 %!                  +Options:list(compound)) is det.
 %
 % Options are passed to call_to_file/3.
+
+rdf_save_triples(FileSpec) :-
+  rdf_save_triples(FileSpec, _).
+
 
 rdf_save_triples(FileSpec, G) :-
   rdf_save_triples(FileSpec, G, []).
