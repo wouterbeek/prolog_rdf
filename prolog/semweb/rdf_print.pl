@@ -49,7 +49,7 @@
 |                |            |             | based on the current prefixes.   |
 | `max_iri_len`  | nonneg     | `inf`       | The maximum length of an IRI.    |
 | `max_lit_len`  | nonneg     | `inf`       | The maximum length of a literal. |
-| `prefixes`     | list(pair( |             | A custom list of prefix/IRI      |
+| `prefix_map`   | list(pair( |             | A custom list of prefix/IRI      |
 |                | atom))     |             | mappings that overrules and/or   |
 |                |            |             | extends the prefix declarations. |
 | `variable_map` | list(pair( |             | A list of variable/atom mappings |
@@ -57,7 +57,7 @@
 |                |            |             | are printed.                     |
 
 @author Wouter Beek
-@version 2017/04-2017/05, 2017/08
+@version 2017/04-2017/08
 */
 
 :- use_module(library(aggregate)).
@@ -221,8 +221,8 @@ rdf_dcg_iri(Full, Options) -->
   {
     Options.iri_abbr == true,
     (   % Abbreviated based on a manually passed prefix/IRI pair.
-        dict_get(prefixes, Options, Prefixes),
-        member(Prefix-Iri, Prefixes),
+        dict_get(prefix_map, Options, PrefixMap),
+        member(Prefix-Iri, PrefixMap),
         atom_prefix(Full, Iri)
     ->  atom_concat(Iri, Local, Full)
     ;   % Abbreviated based on a global prefix declaration.

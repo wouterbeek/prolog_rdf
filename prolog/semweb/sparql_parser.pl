@@ -56,15 +56,15 @@ sparql_parse(BaseIri, dataset(DefaultGraphs,NamedGraphs), Query, State2, Algebra
     base_iri: BaseIri,
     default_graphs: DefaultGraphs,
     named_graphs: NamedGraphs,
-    prefixes: [],
+    prefix_map: [],
     variable_map: VariableMap1
   },
   once(phrase(sparql_parse0(State1, Form, Algebra1), Codes2)),
-  _{prefixes: Prefixes2, variable_map: VariableMap2} :< State1,
+  _{prefix_map: PrefixMap2, variable_map: VariableMap2} :< State1,
   replace_vars(VariableMap2, Algebra1, Algebra2),
   assoc_to_list(VariableMap2, VariableMap3),
   transpose_pairs(VariableMap3, InvVariableMap),
-  State2 = _{prefixes: Prefixes2, form: Form, variable_map: InvVariableMap}.
+  State2 = _{prefix_map: PrefixMap2, form: Form, variable_map: InvVariableMap}.
 
 replace_vars(_, X, X) :-
   var(X), !.
@@ -2014,9 +2014,12 @@ iriOrFunction(State, Function) -->
   must_see('IRIREF'(State, Iri)),
   skip_ws,
   {
-    _{prefixes: Prefixes1} :< State,
-    (selectchk(Prefix-_, Prefixes1, Prefixes2) -> true ; Prefixes2 = Prefixes1),
-    nb_set_dict(prefixes, State, [Prefix-Iri|Prefixes2])
+    _{prefix_map: PrefixMap1} :< State,
+    (   selectchk(Prefix-_, PrefixMap1, PrefixMap2)
+    ->  true
+    ;   PrefixMap2 = PrefixMap1
+    ),
+    nb_set_dict(prefix_map, State, [Prefix-Iri|PrefixMap2])
   }.
 
 
@@ -3854,8 +3857,8 @@ prefix_iri(State, Prefix, Iri) :-
 
 prefix_local_iri(State, Prefix, Local, Iri2) :-
   % @bug Dot notation does not work here.
-  _{prefixes: Prefixes} :< State,
-  memberchk(Prefix-Iri1, Prefixes), !,
+  _{prefix_map: PrefixMap} :< State,
+  memberchk(Prefix-Iri1, PrefixMap), !,
   atomic_concat(Iri1, Local, Iri2).
 prefix_local_iri(_, Prefix, _, _) :-
   existence_error(rdf_prefix, Prefix).
