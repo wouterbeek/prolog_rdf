@@ -1909,24 +1909,23 @@ rdf_reification(M, S, P, O, G, Stmt) :-
 
 
 
-%! rdf_reserialize(+UriSpec:term, +File:atom) is nondet.
-%! rdf_reserialize(+UriSpec:term, +File:atom,
+%! rdf_reserialize(+UriSpec:term, +FileSpec:term) is nondet.
+%! rdf_reserialize(+UriSpec:term, +FileSpec:term,
 %!                 +Options:list(compound)) is nondet.
 %
 % Reserializes RDF data from URI to N-Quads FileSpec.
 %
-% Options are passed to call_on_rdf/3.
+% Options are passed to call_to_file/3 and call_on_rdf/3.
 
-rdf_reserialize(UriSpec, File) :-
-  rdf_reserialize(UriSpec, File, []).
+rdf_reserialize(UriSpec, FileSpec) :-
+  rdf_reserialize(UriSpec, FileSpec, []).
 
 
-rdf_reserialize(UriSpec, File, Options) :-
-  setup_call_cleanup(
-    gzopen(File, write, Out),
-    call_on_rdf(UriSpec, write_ntuples1(Out), Options),
-    close(Out)
-  ).
+rdf_reserialize(UriSpec, FileSpec, Options) :-
+  call_to_file(FileSpec, rdf_reserialize(UriSpec, Options)).
+
+rdf_reserialize(UriSpec, Options, Out, Meta, Meta) :-
+  call_on_rdf(UriSpec, write_ntuples1(Out), Options),
 
 write_ntuples1(Out, Tuples1, _) :-
   convlist(rdf_clean_tuple, Tuples1, Tuples2),
