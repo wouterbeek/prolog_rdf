@@ -686,8 +686,10 @@ call_on_rdf_stream(Goal_2, Options1, In, [Dict1|Metadata], [Dict2|Metadata]) :-
 
   % Compare the guessed Media Type to the URI's path component.
   metadata_uri(Metadata, Uri),
-  uri_media_type(Uri, MediaType3),
-  media_type_warning(MediaType1, MediaType3),
+  (   uri_media_type(Uri, MediaType3)
+  ->  media_type_warning(MediaType1, MediaType3)
+  ;   true
+  ),
   
   % Determine the base URI.
   option(base_uri(BaseUri), Options1, Uri),
