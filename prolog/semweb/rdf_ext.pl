@@ -494,8 +494,8 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_deref_quads(r, -, +),
    rdf_deref_triple(r, t),
    rdf_deref_triple(r, t, +),
-   rdf_estimate(+, r, r, o, r),
-   rdf_estimate(+, r, r, o, r, -),
+   rdf_estimate(+, r, r, o, -),
+   rdf_estimate(+, r, r, o, -, r),
    rdf_iri(?, r),
    rdf_iri(?, r, r),
    rdf_is_legacy_literal(o),
@@ -1014,6 +1014,7 @@ rdf_assert_objects(M, S, P, Os, G) :-
 %! rdf_atom_to_term(+Atom:atom, -Term:term) is det.
 
 rdf_atom_to_term(Atom, Literal) :-
+  must_be(atom, Atom),
   atom_phrase(rdf_literal_(Literal), Atom), !.
 rdf_atom_to_term(Iri, Iri).
 
@@ -1400,7 +1401,7 @@ init_graph1(Dict) :-
 
 
 %! rdf_estimate(+M, ?S, ?P, ?O, -NumTriples:nonneg) is det.
-%! rdf_estimate(+M, ?S, ?P, ?O, ?G, -NumTriples:nonneg) is det.
+%! rdf_estimate(+M, ?S, ?P, ?O, -NumTriples:nonneg, ?G) is det.
 %
 % @tbd TRP support for rdf_estimate/6.
 
@@ -1422,17 +1423,14 @@ rdf_estimate(trp, S, P, O, NumTriples) :-
   rdf_estimate_complexity(S, P, O, NumTriples).
 
 
-rdf_estimate(_, S, _, _, _, 0) :-
+rdf_estimate(_, S, _, _, 0, _) :-
   ground(S),
   rdf_is_literal(S), !.
-rdf_estimate(_, S, P, O, _, 1) :-
+rdf_estimate(_, S, P, O, 1, _) :-
   ground(rdf(S,P,O)), !.
-rdf_estimate(hdt, S, P, O, G, NumTriples) :- !,
-  hdt_call_on_graph(
-    G,
-    {S,P,O,NumTriples}/[Hdt]>>rdf_estimate(hdt0, S, P, O, Hdt, NumTriples)
-  ).
-rdf_estimate(hdt0, S, P, O, Hdt, NumTriples) :-
+rdf_estimate(hdt, S, P, O, NumTriples, G) :- !,
+  hdt_call_on_graph(G, rdf_estimate(hdt0, S, P, O, NumTriples)).
+rdf_estimate(hdt0, S, P, O, NumTriples, Hdt) :-
   hdt_search_cost(Hdt, S, P, O, NumTriples).
 
 
