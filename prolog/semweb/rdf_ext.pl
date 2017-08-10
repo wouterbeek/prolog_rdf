@@ -453,6 +453,11 @@ http:map_exception_to_http_status_hook(
   []
 ).
 
+user:message_hook(non_canonical_lexical_form('http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML',_,_), _, _).
+user:message_hook(non_canonical_lexical_form('http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral',_,_), _, _).
+user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#double',_,_), _, _).
+user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#float',_,_), _, _).
+
 :- rdf_meta
    rdf_agent_image(+, r, -, r),
    rdf_agent_name(+, r, -, r),
