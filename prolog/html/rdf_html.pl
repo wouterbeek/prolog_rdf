@@ -1,6 +1,11 @@
 :- module(
   rdf_html,
   [
+  % GRAPHS
+    rdf_html_graph//2,        % +Uri, +Triples
+  % STATEMENTS
+    rdf_html_triple//2,       % +Uri, +Triple
+  % TERMS
     graph_link//1,            % +G
     rdf_html_dataset_term//1, % +D
     rdf_html_dataset_term//2, % +D, +Options
@@ -20,6 +25,7 @@
     rdf_html_term//2          % +Term, +Options
   ]
 ).
+:- reexport(library(html/html_ext)).
 
 /** <module> RDF HTML
 
@@ -32,7 +38,7 @@
 :- use_module(library(date_time)).
 :- use_module(library(dict_ext)).
 :- use_module(library(html/html_date_time_machine)).
-:- use_module(library(html/html_ext)).
+:- use_module(library(http/http_server)).
 :- use_module(library(list_ext)).
 :- use_module(library(semweb/rdf_ext)).
 :- use_module(library(uri/uri_ext)).
@@ -43,6 +49,11 @@
     rdf_html_literal_hook//2.
 
 :- rdf_meta
+ % GRAPHS
+   rdf_html_graph(+, t, ?, ?),
+ % STATEMENTS
+   rdf_html_triple(+, t, ?, ?),
+ % TERMS
    rdf_html_dataset_term(r, ?, ?),
    rdf_html_dataset_term(r, +, ?, ?),
    rdf_html_graph_term(r, ?, ?),
@@ -62,6 +73,47 @@
 
 
 
+% GRAPHS
+
+%! rdf_html_graph(+Uri:atom, +Triples:list(compound))// is det.
+
+rdf_html_graph(Uri, Triples) -->
+  table(
+    \table_header_row(["Subject","Predicate","Object"]),
+    \html_maplist(rdf_html_triple(Uri), Triples)
+  ).
+
+
+
+
+
+% STATEMENTS
+
+%! rdf_html_triple(+Uri:atom, +Triple:compound)// is det.
+
+rdf_html_triple(Uri, rdf(S,P,O)) -->
+  {
+    maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
+    maplist(
+      uri_comp_set(query, Uri),
+      [[subject(AtomS)],[predicate(AtomP)],[object(AtomO)]],
+      [UriS,UriP,UriO]
+    )
+  },
+  html(
+    tr([
+      td(a(href=UriS, \rdf_html_subject(S))),
+      td(a(href=UriP, \rdf_html_predicate(P))),
+      td(a(href=UriO, \rdf_html_object(O)))
+    ])
+  ).
+    
+
+
+
+
+% TERMS
+
 %! graph_link(+G)// is det.
 
 graph_link(G) -->
@@ -72,14 +124,14 @@ graph_link(G) -->
 
 rdf_html_bnode_iri(Iri) -->
   {uri_comps(Iri, uri(_,_,Segments,_,_))},
-  rdf_html_bnode_iri0(Segments).
+  rdf_html_bnode_iri_(Segments).
 
-rdf_html_bnode_iri0([]) --> !, {fail}.
-rdf_html_bnode_iri0(['.well-known',genid|Segments]) -->
+rdf_html_bnode_iri_([]) --> !, {fail}.
+rdf_html_bnode_iri_(['.well-known',genid|Segments]) -->
   {atomic_list_concat(Segments, /, Label)},
   html(["_:",Label]).
-rdf_html_bnode_iri0([_|T]) -->
-  rdf_html_bnode_iri0(T).
+rdf_html_bnode_iri_([_|T]) -->
+  rdf_html_bnode_iri_(T).
 
 
 
@@ -101,10 +153,10 @@ rdf_html_dataset_term(D) -->
 
 rdf_html_dataset_term(D, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_dataset_term0(D, Options2).
+  rdf_html_dataset_term_(D, Options2).
 
-rdf_html_dataset_term0(D, Options) -->
-  rdf_html_term0(D, Options).
+rdf_html_dataset_term_(D, Options) -->
+  rdf_html_term_(D, Options).
 
 
 
@@ -117,10 +169,10 @@ rdf_html_graph_term(G) -->
 
 rdf_html_graph_term(G, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_graph_term0(G, Options2).
+  rdf_html_graph_term_(G, Options2).
 
-rdf_html_graph_term0(G, Options) -->
-  rdf_html_term0(G, Options).
+rdf_html_graph_term_(G, Options) -->
+  rdf_html_term_(G, Options).
 
 
 
@@ -133,20 +185,20 @@ rdf_html_iri(Iri) -->
 
 rdf_html_iri(Iri, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_iri0(Iri, Options2).
+  rdf_html_iri_(Iri, Options2).
 
-rdf_html_iri0(Iri, Options) -->
+rdf_html_iri_(Iri, Options) -->
   html([
-    \rdf_html_iri_internal0(Iri, Options),
+    \rdf_html_iri_internal_(Iri, Options),
     " ",
-    \rdf_html_iri_external0(Iri)
+    \rdf_html_iri_external_(Iri)
   ]).
 
 % Abbreviated notation for IRI.
-rdf_html_iri_internal0(Iri, _) -->
+rdf_html_iri_internal_(Iri, _) -->
   {rdf_equal(rdf:type, Iri)}, !,
   html("a").
-rdf_html_iri_internal0(Iri, Options) -->
+rdf_html_iri_internal_(Iri, Options) -->
   {
     Options.iri_abbr == true,
     rdf_global_id(Alias:Local1, Iri), !,
@@ -154,14 +206,14 @@ rdf_html_iri_internal0(Iri, Options) -->
   },
   html([Alias,":",Local2]).
 % Plain IRI, possibly ellipsed.
-rdf_html_iri_internal0(Iri1, Options) -->
+rdf_html_iri_internal_(Iri1, Options) -->
   {atom_ellipsis(Iri1, Options.max_iri_len, Iri2)},
   html(Iri2).
 
-rdf_html_iri_external0(Iri) -->
+rdf_html_iri_external_(Iri) -->
   {is_uri(Iri)}, !,
   html([" ",\external_link(Iri)]).
-rdf_html_iri_external0(_) --> [].
+rdf_html_iri_external_(_) --> [].
 
 
 
@@ -174,13 +226,13 @@ rdf_html_literal(Lit) -->
 
 rdf_html_literal(Lit, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_literal0(Lit, Options2).
+  rdf_html_literal_(Lit, Options2).
 
-rdf_html_literal0(Lit, Options) -->
-  rdf_html_literal_internal0(Lit, Options),
-  rdf_html_literal_external0(Lit).
+rdf_html_literal_(Lit, Options) -->
+  rdf_html_literal_internal_(Lit, Options),
+  rdf_html_literal_external_(Lit).
 
-rdf_html_literal_external0(Uri^^D) -->
+rdf_html_literal_external_(Uri^^D) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(" "),
   {uri_components(Uri, uri_components(Scheme,_,_,_,_))},
@@ -189,64 +241,64 @@ rdf_html_literal_external0(Uri^^D) -->
   ;   {memberchk(Scheme, [http,https])}
   ->  external_link(Uri)
   ).
-rdf_html_literal_external0(_) --> [].
+rdf_html_literal_external_(_) --> [].
 
 % RDF HTML
-rdf_html_literal_internal0(V^^D, _) -->
+rdf_html_literal_internal_(V^^D, _) -->
   {rdf_subdatatype_of(D, rdf:'HTML')}, !,
   html(\[V]).
 % RDF language-tagged string
-rdf_html_literal_internal0(Str@LTag, Options) -->
+rdf_html_literal_internal_(Str@LTag, Options) -->
   {dict_get(show_flag, Options, true)}, !,
   html([
     span(lang(LTag), \html_ellipsis(Str, Options.max_lit_len)),
     " ",
     \flag_icon(LTag)
   ]).
-rdf_html_literal_internal0(Str@LTag, Options) --> !,
+rdf_html_literal_internal_(Str@LTag, Options) --> !,
   html(span(lang=LTag, \html_ellipsis(Str, Options.max_lit_len))).
 % XSD boolean
-rdf_html_literal_internal0(V^^D, _) -->
+rdf_html_literal_internal_(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:boolean)}, !,
   html("~a"-[V]).
 % XSD gDay
-rdf_html_literal_internal0(Da^^D, _) -->
+rdf_html_literal_internal_(Da^^D, _) -->
   {rdf_equal(xsd:gDay, D)}, !,
   html("~d"-[Da]).
 % XSD gMonth
-rdf_html_literal_internal0(Mo^^D, _) -->
+rdf_html_literal_internal_(Mo^^D, _) -->
   {rdf_equal(xsd:gMonth, D)}, !,
   html("~d"-[Mo]).
 % XSD gYear
-rdf_html_literal_internal0(Y^^D, _) -->
+rdf_html_literal_internal_(Y^^D, _) -->
   {rdf_equal(xsd:gYear, D)}, !,
   html("~d"-[Y]).
 % XSD integer
-rdf_html_literal_internal0(V^^D, _) -->
+rdf_html_literal_internal_(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:integer)}, !,
   html("~D"-[V]).
 % XSD decimal
-rdf_html_literal_internal0(V^^D, _) -->
+rdf_html_literal_internal_(V^^D, _) -->
   {rdf_subdatatype_of(D, xsd:decimal)}, !,
   html("~w"-[V]).
 % XSD double
 % XSD float
-rdf_html_literal_internal0(V^^D, _) -->
+rdf_html_literal_internal_(V^^D, _) -->
   {(rdf_subdatatype_of(D, xsd:float) ; rdf_subdatatype_of(D, xsd:double))}, !,
   html("~G"-[V]).
 % XSD string
-rdf_html_literal_internal0(Str^^D, Options) -->
+rdf_html_literal_internal_(Str^^D, Options) -->
   {rdf_subdatatype_of(D, xsd:string)}, !,
   html_ellipsis(Str, Options.max_lit_len).
 % XSD URI
-rdf_html_literal_internal0(Uri^^D, _) -->
+rdf_html_literal_internal_(Uri^^D, _) -->
   {rdf_subdatatype_of(D, xsd:anyURI)}, !,
   html(Uri).
 % XSD date
 % XSD dateTime
 % XSD gMonthYear
 % XSD gYearMonth
-rdf_html_literal_internal0(V^^D1, Options) -->
+rdf_html_literal_internal_(V^^D1, Options) -->
   {
     % @bug here
     rdf11:xsd_date_time_type(D2),
@@ -254,11 +306,11 @@ rdf_html_literal_internal0(V^^D1, Options) -->
   }, !,
   html_date_time(V, Options).
 % Datatype hooks.
-rdf_html_literal_internal0(Lit, Options) -->
+rdf_html_literal_internal_(Lit, Options) -->
   rdf_html_literal_hook(Lit, Options), !.
 % Other literals for which there is no hook.
 % E.g., http://www.opengis.net/ont/geosparql#wktLiteral
-rdf_html_literal_internal0(Lit, Options) -->
+rdf_html_literal_internal_(Lit, Options) -->
   {rdf_literal_lexical_form(Lit, Lex)},
   html_ellipsis(Lex, Options.max_lit_len).
 
@@ -273,10 +325,10 @@ rdf_html_object(O) -->
 
 rdf_html_object(O, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_object0(O, Options2).
+  rdf_html_object_(O, Options2).
 
 
-rdf_html_object0(O, Options) -->
+rdf_html_object_(O, Options) -->
   rdf_html_term(O, Options).
 
 
@@ -290,10 +342,10 @@ rdf_html_predicate(P) -->
 
 rdf_html_predicate(P, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_predicate0(P, Options2).
+  rdf_html_predicate_(P, Options2).
 
 
-rdf_html_predicate0(P, Options) -->
+rdf_html_predicate_(P, Options) -->
   rdf_html_iri(P, Options).
 
 
@@ -307,14 +359,14 @@ rdf_html_subject(S) -->
 
 rdf_html_subject(S, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_subject0(S, Options2).
+  rdf_html_subject_(S, Options2).
 
 
-rdf_html_subject0(S, _) -->
+rdf_html_subject_(S, _) -->
   rdf_html_bnode_iri(S), !.
-rdf_html_subject0(S, Options) -->
+rdf_html_subject_(S, Options) -->
   {rdf_is_iri(S)}, !,
-  rdf_html_iri0(S, Options).
+  rdf_html_iri_(S, Options).
 
 
 
@@ -327,13 +379,13 @@ rdf_html_term(Term) -->
 
 rdf_html_term(Term, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  rdf_html_term0(Term, Options2).
+  rdf_html_term_(Term, Options2).
 
-rdf_html_term0(Term, Options) -->
-  rdf_html_subject0(Term, Options).
-rdf_html_term0(Lit, Options) -->
+rdf_html_term_(Term, Options) -->
+  rdf_html_subject_(Term, Options).
+rdf_html_term_(Lit, Options) -->
   {rdf_is_literal(Lit)}, !,
-  rdf_html_literal0(Lit, Options).
+  rdf_html_literal_(Lit, Options).
 
 
 
