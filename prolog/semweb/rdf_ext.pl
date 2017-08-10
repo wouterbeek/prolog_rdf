@@ -637,8 +637,8 @@ http:map_exception_to_http_status_hook(
 
 
 
-%! call_on_rdf(+UriSpec:term, :Goal_2) is det.
-%! call_on_rdf(+UriSpec:term, :Goal_2, +Options:list(compound)) is det.
+%! call_on_rdf(+UriSpec:term, :Goal_2) is nondet.
+%! call_on_rdf(+UriSpec:term, :Goal_2, +Options:list(compound)) is nondet.
 %
 % Makes the call `Goal_2(+Tuple, ?G)'.
 %
@@ -1354,10 +1354,13 @@ rdf_deref_quads(UriSpec, Quads) :-
 
 rdf_deref_quads(UriSpec, Quads, Options) :-
   empty_nb_set(Set),
-  call_on_rdf(UriSpec, rdf_deref_quads1(Set), Options),
+  forall(
+    call_on_rdf(UriSpec, rdf_deref_quads_(Set), Options),
+    true
+  ),
   nb_set_to_list(Set, Quads).
 
-rdf_deref_quads1(Set, Tuples, G) :-
+rdf_deref_quads_(Set, Tuples, G) :-
   maplist({G}/[Tuple,Quad]>>rdf_tuple_quad(Tuple, G, Quad), Tuples, Quads1),
   convlist(rdf_clean_quad, Quads1, Quads2),
   maplist({Set}/[Quad]>>add_nb_set(Quad, Set), Quads2).
@@ -1640,7 +1643,10 @@ rdf_load2(In) :-
 
 
 rdf_load2(UriSpec, Options) :-
-  call_on_rdf(UriSpec, rdf_assert_clean_tuples1, Options).
+  forall(
+    call_on_rdf(UriSpec, rdf_assert_clean_tuples1, Options),
+    true
+  ).
 
 rdf_assert_clean_tuples1(Tuples, G) :-
   maplist(rdf_assert_clean_tuple1(G), Tuples).
@@ -1927,9 +1933,12 @@ rdf_reserialize(UriSpec, FileSpec, Options) :-
   call_to_file(FileSpec, rdf_reserialize(UriSpec, Options)).
 
 rdf_reserialize(UriSpec, Options, Out, Meta, Meta) :-
-  call_on_rdf(UriSpec, write_ntuples1(Out), Options).
+  forall(
+    call_on_rdf(UriSpec, write_ntuples_(Out), Options),
+    true
+  ).
 
-write_ntuples1(Out, Tuples1, _) :-
+write_ntuples_(Out, Tuples1, _) :-
   convlist(rdf_clean_tuple, Tuples1, Tuples2),
   maplist(write_ntuple(Out), Tuples2).
 
@@ -2254,12 +2263,15 @@ rdf_to_ntriples(UriSpec, FileSpec) :-
 
 
 rdf_to_ntriples(UriSpec, FileSpec, InOptions, OutOptions) :-
-  call_to_file(FileSpec, rdf_to_ntriples1(UriSpec, InOptions), OutOptions).
+  call_to_file(FileSpec, rdf_to_ntriples_(UriSpec, InOptions), OutOptions).
 
-rdf_to_ntriples1(UriSpec, Options, Out, Metadata, Metadata) :-
-  call_on_rdf(UriSpec, rdf_to_ntriples2(Out), Options).
+rdf_to_ntriples_(UriSpec, Options, Out, Metadata, Metadata) :-
+  forall(
+    call_on_rdf(UriSpec, rdf_to_ntriples_(Out), Options),
+    true
+  ).
 
-rdf_to_ntriples2(Out, Tuples1, _) :-
+rdf_to_ntriples_(Out, Tuples1, _) :-
   convlist(rdf_clean_tuple, Tuples1, Tuples2),
   maplist(rdf_tuple_triple, Tuples2, Triples),
   maplist(write_ntriple(Out), Triples).
@@ -2277,16 +2289,19 @@ rdf_to_nquads(UriSpecs, Gs, FileSpec) :-
 
 
 rdf_to_nquads(UriSpecs, Gs, FileSpec, Options) :-
-  call_to_file(FileSpec, rdf_to_nquads1(UriSpecs, Gs, Options), Options).
+  call_to_file(FileSpec, rdf_to_nquads_(UriSpecs, Gs, Options), Options).
 
-rdf_to_nquads1(UriSpecs, Gs, Options, Out, Metadata, Metadata) :-
-  maplist(rdf_to_nquads2(Out, Options), UriSpecs, Gs).
+rdf_to_nquads_(UriSpecs, Gs, Options, Out, Metadata, Metadata) :-
+  maplist(rdf_to_nquads_(Out, Options), UriSpecs, Gs).
 
-rdf_to_nquads2(Out, Options1, UriSpec, G) :-
+rdf_to_nquads_(Out, Options1, UriSpec, G) :-
   merge_options([graph(G)], Options1, Options2),
-  call_on_rdf(UriSpec, rdf_to_nquads3(Out), Options2).
+  forall(
+    call_on_rdf(UriSpec, rdf_to_nquads_(Out), Options2),
+    true
+  ).
 
-rdf_to_nquads3(Out, Tuples1, G:_) :-
+rdf_to_nquads_(Out, Tuples1, G:_) :-
   convlist(rdf_clean_tuple, Tuples1, Tuples2),
   write_nquads(Out, Tuples2, G).
 
