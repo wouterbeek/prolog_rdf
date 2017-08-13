@@ -11,7 +11,7 @@
 
 Model theory for RDF(S).
 
-## Simple interpretation
+# Simple interpretation
 
 A simple interpretation `I` of a vocabulary `V` is defined by:
   1. A non-empty set of resources `IR`, called the domain or universe of `I`.

@@ -12,7 +12,7 @@ Module created to automate the insertion
 of rdf_global_id/2 statements in predicates
 that need these conversions.
 
-### Usage
+# Usage
 
 The directive rdf_meta_expand/1 can be used
 to register a predicate to be auto-expanded.
@@ -23,7 +23,7 @@ by either:
   * =i=
     Do not expand this term.
 
-### Example
+# Example
 
 ```prolog}
 :- rdf_meta_expand pred(e,e,i).

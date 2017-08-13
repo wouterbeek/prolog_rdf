@@ -32,7 +32,7 @@
 
 Build semantic models and syntax-to-semantics maps.
 
-## Building a model
+# Building a model
 
   * rdf_add_i_ext/4
   * rdf_add_model/1
@@ -41,7 +41,7 @@ Build semantic models and syntax-to-semantics maps.
   * rdf_add_resource/2
   * rdf_unload_model/1
 
-## Building a map from graph into model
+# Building a map from graph into model
 
   * rdf_add_i_l/4
   * rdf_add_i_s/4

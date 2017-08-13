@@ -99,7 +99,7 @@ clean_test(G, M) :-
 
 %! test_name(?Succeeds:boolean, ?Graph:atom, ?Model:atom) is nondet.
 %
-% ## `rdf_mt_graph_1` & `rdf_mt_model_1`
+% # `rdf_mt_graph_1` & `rdf_mt_model_1`
 %
 % The first example from Hayes2004 (true):
 % ```
@@ -109,7 +109,7 @@ clean_test(G, M) :-
 % <ex:a> <ex:b> "whatever"^^<ex:b> .
 % ```
 %
-% ## `rdf_mt_graph_2` & `rdf_mt_model_1`
+% # `rdf_mt_graph_2` & `rdf_mt_model_1`
 %
 % The second example from Hayes2004 (false):
 % ```
@@ -119,7 +119,7 @@ clean_test(G, M) :-
 % <ex:a> <ex:b> "whatever" .
 % ```
 %
-% ## `rdf_mt_graph_3` & `rdf_mt_model_1`
+% # `rdf_mt_graph_3` & `rdf_mt_model_1`
 %
 % Variant with blank nodes (true):
 % ```

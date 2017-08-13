@@ -16,12 +16,12 @@ hexOctet  ::= hexDigit hexDigit
 hexBinary ::= hexOctet*
 ```
 
-### Value Space
+# Value Space
 
 The value space of hexBinary is the set of finite-length sequences of zero or
 more binary octets. The length of a value is the number of octets.
 
-### Lexical Mapping
+# Lexical Mapping
 
 hexBinary's lexical space consists of strings of hex (hexadecimal) digits,
 two consecutive digits representing each octet in the corresponding value
