@@ -91,7 +91,8 @@
     rdf_prefix_memberchk/2,          % ?Elem, +L
     rdf_query_term/2,                % +Term, -QueryTerm
     rdf_reserialize/2,               % +Uri, +FileSpec
-    rdf_reserialize/3,               % +Uri, +FileSpec, +Options
+    rdf_reserialize/3,               % +Kind, +Uri, +FileSpec
+    rdf_reserialize/4,               % +Kind, +Uri, +FileSpec, +Options
     rdf_retractall/0,
     rdf_retractall/1,                % +Tuple
     rdf_reification/4,               % +M, ?S, ?P, ?O
@@ -99,14 +100,11 @@
     rdf_reification/6,               % +M, ?S, ?P, ?O, ?G, -Stmt
     rdf_root/2,                      % +M, ?Root
     rdf_root/3,                      % +M, ?Root, ?G
-    rdf_save_quads/1,                % +FileSpec
-    rdf_save_quads/2,                % +FileSpec, +Options
-    rdf_save_quads/5,                % +FileSpec, ?S, ?P, ?O, ?G
-    rdf_save_quads/6,                % +FileSpec, ?S, ?P, ?O, ?G, +Options
-    rdf_save_triples/1,              % +FileSpec
-    rdf_save_triples/2,              % +FileSpec, +G
-    rdf_save_triples/3,              % +FileSpec, +G, +Options
-    rdf_save_triples/6,              % +FileSpec, ?S, ?P, ?O, +G, +Options
+    rdf_save/1,                      % +FileSpec
+    rdf_save/2,                      % +Type, +FileSpec
+    rdf_save/3,                      % +Type, +FileSpec, +Options
+    rdf_save/6,                      % +Type, +FileSpec, ?S, ?P, ?O, ?G
+    rdf_save/7,                      % +Type, +FileSpec, ?S, ?P, ?O, ?G, +Options
     rdf_scbd_quad/3,                 % +M, +Node,     -Quad
     rdf_scbd_quads/3,                % +M, +Node,     -Quads
     rdf_scbd_triple/3,               % +M, +Node,     -Triple
@@ -122,10 +120,6 @@
     rdf_term/3,                      % +M, ?Term, ?G
     rdf_term_to_atom/2,              % +Term, -Atom
     rdf_to_hdt/2,                    % +UriSpec, +HdtFile
-    rdf_to_ntriples/2,               % +UriSpec, +FileSpec
-    rdf_to_ntriples/4,               % +UriSpec, +FileSpec, +InOptions, +OutOption
-    rdf_to_nquads/3,                 % +UriSpecs, +Gs, +FileSpec
-    rdf_to_nquads/4,                 % +UriSpecs, +Gs, +FileSpec, +Options
     rdf_tuple_quad/3,                % +Tuple, +G, -Quad
     rdf_tuple_triple/2,              % +Tuple, ?Triple
     rdf_write_term/2,                % +Out, +Term
@@ -187,6 +181,12 @@
 
 :- dynamic
     hdt_graph/2.
+
+%mime_type_encoding('application/n-quads', utf8).
+%mime_type_encoding('application/n-triples', utf8).
+%mime_type_encoding('application/sparql-query', utf8).
+%mime_type_encoding('application/trig', utf8).
+%mime_type_encoding('text/turtle', utf8).
 
 :- initialization
    forall(language(LTag), register_language_prefixes(LTag)).
@@ -538,11 +538,10 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_retractall(t),
    rdf_root(+, r),
    rdf_root(+, r, r),
-   rdf_save_triples(+, r),
-   rdf_save_triples(+, r, +),
-   rdf_save_triples(+, r, r, o, r, +),
-   rdf_save_quads(+, r, r, o, +),
-   rdf_save_quads(+, r, r, o, r, +),
+   rdf_save(+, +, r),
+   rdf_save(+, +, r, +),
+   rdf_save(+, +, r, r, o, r),
+   rdf_save(+, +, r, r, o, r, +),
    rdf_scbd_quad(?, o, -),
    rdf_scbd_quads(?, o, -),
    rdf_scbd_triple(?, o, -),
@@ -974,7 +973,7 @@ rdf_assert(rdf(S,P,O), G) :-
 
 rdf_assert(stream(Out), S, P, O, G) :-
   ground(Out),
-  (   rdf_is_iri(G)
+  (   is_uri(G)
   ->  write_nquad(Out, S, P, O, G)
   ;   write_ntriple(Out, S, P, O)
   ).
@@ -1921,7 +1920,9 @@ rdf_reification(M, S, P, O, G, Stmt) :-
 
 
 %! rdf_reserialize(+UriSpec:term, +FileSpec:term) is nondet.
-%! rdf_reserialize(+UriSpec:term, +FileSpec:term,
+%! rdf_reserialize(+Kind:oneof([quads,triples]), +UriSpec:term,
+%!                 +FileSpec:term) is nondet.
+%! rdf_reserialize(+Kind:oneof([quads,triples]), +UriSpec:term, +FileSpec:term,
 %!                 +Options:list(compound)) is nondet.
 %
 % Reserializes RDF data from URI to N-Quads FileSpec.
@@ -1929,21 +1930,27 @@ rdf_reification(M, S, P, O, G, Stmt) :-
 % Options are passed to call_to_file/3 and call_on_rdf/3.
 
 rdf_reserialize(UriSpec, FileSpec) :-
-  rdf_reserialize(UriSpec, FileSpec, []).
+  rdf_reserialize(quads, UriSpec, FileSpec).
 
 
-rdf_reserialize(UriSpec, FileSpec, Options) :-
-  call_to_file(FileSpec, rdf_reserialize(UriSpec, Options)).
+rdf_reserialize(Kind, UriSpec, FileSpec) :-
+  rdf_reserialize(Kind, UriSpec, FileSpec, []).
 
-rdf_reserialize(UriSpec, Options, Out, Meta, Meta) :-
-  forall(
-    call_on_rdf(UriSpec, write_ntuples_(Out), Options),
-    true
-  ).
 
-write_ntuples_(Out, Tuples1, _) :-
-  convlist(rdf_clean_tuple, Tuples1, Tuples2),
-  maplist(write_ntuple(Out), Tuples2).
+rdf_reserialize(Kind, UriSpec, FileSpec, Options) :-
+  call_to_file(FileSpec, rdf_reserialize_(Kind, UriSpec, Options), Options).
+
+rdf_reserialize_(Kind, UriSpec, Options, Out, Meta, Meta) :-
+  forall(call_on_rdf(UriSpec, write_ntuples_(Kind, Out), Options), true).
+
+write_ntuples_(Kind, Out, Tuples, _) :-
+  convlist(rdf_clean_tuple, Tuples, Quads),
+  maplist(write_ntuple_(Kind, Out), Quads).
+
+write_ntuple_(quads, Out, Quad) :- !,
+  write_nquad(Out, Quad).
+write_ntuple_(triples, Out, Quad) :-
+  write_ntriple(Out, Quad).
 
 
 
@@ -1974,65 +1981,45 @@ rdf_root(M, Root, G) :-
 
 
 
-%! rdf_save_quads(+FileSpec:compound) is det.
-%! rdf_save_quads(+FileSpec:compound, +Options:list(compound)) is det.
-%! rdf_save_quads(+FileSpec:compound, ?S, ?P, ?O, ?G) is det.
-%! rdf_save_quads(+FileSpec:compound, ?S, ?P, ?O, ?G,
-%!                +Options:list(compound)) is det.
+%! rdf_save(+FileSpec:term) is det.
+%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term) is det.
+%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, +G:atom) is det.
+%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, +G:atom,
+%!          +Options:list(compound)) is det.
+%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, ?S, ?P, ?O,
+%!          ?G) is det.
+%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, ?S, ?P, ?O, ?G,
+%!          +Options:list(compound)) is det.
 %
 % Options are passed to call_to_file/3.
 
-rdf_save_quads(FileSpec) :-
-  rdf_save_quads(FileSpec, []).
+rdf_save(FileSpec) :-
+  rdf_save(quads, FileSpec).
 
 
-rdf_save_quads(FileSpec, Options) :-
-  rdf_save_quads(FileSpec, _, _, _, _, Options).
+rdf_save(Type, FileSpec) :-
+  rdf_save(Type, FileSpec, _).
 
 
-rdf_save_quads(FileSpec, S, P, O, G) :-
-  rdf_save_quads(FileSpec, S, P, O, G, []).
+rdf_save(Type, FileSpec, G) :-
+  rdf_save(Type, FileSpec, G, []).
 
 
-rdf_save_quads(FileSpec, S, P, O, G, Options) :-
-  call_to_file(FileSpec, rdf_save_quads1(S, P, O, G), Options).
-
-rdf_save_quads1(S, P, O, G, Out, Metadata, Metadata) :-
-  forall(
-    rdf(S, P, O, G),
-    write_nquad(Out, rdf(S,P,O,G))
-  ).
+rdf_save(Type, FileSpec, G, Options) :-
+  rdf_save(Type, FileSpec, _, _, _, G, Options).
 
 
-
-%! rdf_save_triples(+FileSpec:term) is det.
-%! rdf_save_triples(+FileSpec:term, ?G) is det.
-%! rdf_save_triples(+FileSpec:term, ?G, +Options:list(compound)) is det.
-%! rdf_save_triples(+FileSpec:term, ?S, ?P, ?O, ?G,
-%!                  +Options:list(compound)) is det.
-%
-% Options are passed to call_to_file/3.
-
-rdf_save_triples(FileSpec) :-
-  rdf_save_triples(FileSpec, _).
+rdf_save(Type, FileSpec, S, P, O, G) :-
+  rdf_save(Type, FileSpec, S, P, O, G, []).
 
 
-rdf_save_triples(FileSpec, G) :-
-  rdf_save_triples(FileSpec, G, []).
+rdf_save(Type, FileSpec, S, P, O, G, Options) :-
+  call_to_file(FileSpec, rdf_save_(Type, S, P, O, G), Options).
 
-
-rdf_save_triples(FileSpec, G, Options) :-
-  rdf_save_triples(FileSpec, _, _, _, G, Options).
-
-
-rdf_save_triples(FileSpec, S, P, O, G, Options) :-
-  call_to_file(FileSpec, rdf_save_triples1(S, P, O, G), Options).
-
-rdf_save_triples1(S, P, O, G, Out, Metadata, Metadata) :-
-  forall(
-    rdf(S, P, O, G),
-    write_ntriple(Out, rdf(S,P,O))
-  ).
+rdf_save_(quads, S, P, O, G, Out, Metadata, Metadata) :- !,
+  forall(rdf(S, P, O, G), write_nquad(Out, rdf(S,P,O,G))).
+rdf_save_(triples, S, P, O, G, Out, Metadata, Metadata) :-
+  forall(rdf(S, P, O, G), write_ntriple(Out, rdf(S,P,O,G))).
 
 
 
@@ -2118,27 +2105,27 @@ rdf_snap(Goal_0) :-
 
 rdf_statistic(hdt, Key, N, G) :-
   hdt_call_on_graph(G, rdf_statistic(hdt0, Key, N)).
-rdf_statistic(hdt0, nodes, N, Hdt) :- !,
+rdf_statistic(hdt0, nodes, N, Hdt) :-
   rdf_statistic(hdt0, subject_objects, N1, Hdt),
   rdf_statistic(hdt0, subjects, N2, Hdt),
   rdf_statistic(hdt0, objects, N3, Hdt),
   sum_list([N1,N2,N3], N).
-rdf_statistic(hdt0, terms, N, Hdt) :- !,
+rdf_statistic(hdt0, terms, N, Hdt) :-
   rdf_statistic(hdt0, predicates, N1, Hdt),
   rdf_statistic(hdt0, nodes, N2, Hdt),
   sum_list([N1,N2], N).
-rdf_statistic(hdt0, Key, N, Hdt) :- !,
+rdf_statistic(hdt0, Key, N, Hdt) :-
   hdt_header_property(Key, P),
   once(hdt_header(Hdt, _, P, N^^_)).
-rdf_statistic(trp, nodes, N, G) :- !,
+rdf_statistic(trp, nodes, N, G) :-
   aggregate_all(count, rdf_node(trp, _, G), N).
-rdf_statistic(trp, objects, N, G) :- !,
+rdf_statistic(trp, objects, N, G) :-
   aggregate_all(count, rdf_object(trp, _, G), N).
-rdf_statistic(trp, predicates, N, G) :- !,
+rdf_statistic(trp, predicates, N, G) :-
   aggregate_all(count, rdf_predicate(trp, _, G), N).
-rdf_statistic(trp, subjects, N, G) :- !,
+rdf_statistic(trp, subjects, N, G) :-
   aggregate_all(count, rdf_subject(trp, _, G), N).
-rdf_statistic(trp, terms, N, G) :- !,
+rdf_statistic(trp, terms, N, G) :-
   aggregate_all(count, rdf_term(trp, _, G), N).
 rdf_statistic(trp, triples, N, G) :-
   rdf_graph_property(G, triples(N)).
@@ -2227,7 +2214,7 @@ rdf_to_hdt(UriSpec, FileSpec) :-
   % Convert to uncompressed N-Triples.
   debug(semweb(rdf_to_hdt), "Creating uncompressed N-Triples…", []),
   create_temporary_file1(TriplesFile),
-  rdf_to_ntriples(UriSpec, TriplesFile, [], [compression(none)]),
+  rdf_reserialize(triples, UriSpec, TriplesFile, [compression(none)]),
   debug(semweb(rdf_to_hdt), "…uncompressed N-Triples created.", []),
 
   % Create HDT file.
@@ -2254,62 +2241,6 @@ create_temporary_file1(File) :-
 
 
 
-%! rdf_to_ntriples(+UriSpec:term, +FileSpec:term) is det.
-%! rdf_to_ntriples(+UriSpec:term, +FileSpec:term,
-%!                 +InOptions:list(compound),
-%!                 +OutOptions:list(compound)) is det.
-%
-% @arg Options are passed to call_on_rdf/3 and call_to_file/3.
-
-rdf_to_ntriples(UriSpec, FileSpec) :-
-  rdf_to_ntriples(UriSpec, FileSpec, [], []).
-
-
-rdf_to_ntriples(UriSpec, FileSpec, InOptions, OutOptions) :-
-  call_to_file(FileSpec, rdf_to_ntriples_(UriSpec, InOptions), OutOptions).
-
-rdf_to_ntriples_(UriSpec, Options, Out, Metadata, Metadata) :-
-  forall(
-    call_on_rdf(UriSpec, rdf_to_ntriples_(Out), Options),
-    true
-  ).
-
-rdf_to_ntriples_(Out, Tuples1, _) :-
-  convlist(rdf_clean_tuple, Tuples1, Tuples2),
-  maplist(rdf_tuple_triple, Tuples2, Triples),
-  maplist(write_ntriple(Out), Triples).
-
-
-
-%! rdf_to_nquads(+UriSpecs:list(term), +Gs:list(atom), +FileSpec:term) is det.
-%! rdf_to_nquads(+UriSpecs:list(term), +Gs:list(atom), +FileSpec:term,
-%!               +Options:list(compound)) is det.
-%
-% @arg Options are passed to call_on_rdf/3 and call_to_file/3.
-
-rdf_to_nquads(UriSpecs, Gs, FileSpec) :-
-  rdf_to_nquads(UriSpecs, Gs, FileSpec, []).
-
-
-rdf_to_nquads(UriSpecs, Gs, FileSpec, Options) :-
-  call_to_file(FileSpec, rdf_to_nquads_(UriSpecs, Gs, Options), Options).
-
-rdf_to_nquads_(UriSpecs, Gs, Options, Out, Metadata, Metadata) :-
-  maplist(rdf_to_nquads_(Out, Options), UriSpecs, Gs).
-
-rdf_to_nquads_(Out, Options1, UriSpec, G) :-
-  merge_options([graph(G)], Options1, Options2),
-  forall(
-    call_on_rdf(UriSpec, rdf_to_nquads_(Out), Options2),
-    true
-  ).
-
-rdf_to_nquads_(Out, Tuples1, G:_) :-
-  convlist(rdf_clean_tuple, Tuples1, Tuples2),
-  write_nquads(Out, Tuples2, G).
-
-
-
 %! rdf_tuple_quad(+Tuple, +G, -Quad) is det.
 
 rdf_tuple_quad(rdf(S,P,O), G, rdf(S,P,O,G)) :- !.
@@ -2328,6 +2259,41 @@ rdf_tuple_triple(rdf(S,P,O,_), rdf(S,P,O)).
 
 rdf_write_term(Out, Term) :-
   write_object(Out, Term).
+
+
+
+%! write_literal(+Literal:compound) is det.
+%! write_literal(+Out:stream, +Literal:compound) is det.
+
+write_literal(Literal) :-
+  write_literal(current_output, Literal).
+
+
+write_literal(Out, Val^^D) :- !,
+  rdf_literal_lexical_form(Val^^D, Lex),
+  turtle:turtle_write_quoted_string(Out, Lex),
+  write(Out, '^^'),
+  write_iri(Out, D).
+write_literal(Out, Val@LTag) :- !,
+  rdf_literal_lexical_form(Val@LTag, Lex),
+  turtle:turtle_write_quoted_string(Out, Lex),
+  write(Out, '@'),
+  write(Out, LTag).
+write_literal(Out, Val) :-
+  rdf_equal(xsd:string, D),
+  write_literal(Out, Val^^D).
+
+write_object(Out, S) :-
+  write_subject(Out, S), !.
+write_object(Out, Lit) :-
+  write_literal(Out, Lit).
+
+write_predicate(Out, P) :-
+  write_iri(Out, P).
+
+write_subject(Out, Iri) :-
+  rdf_is_iri(Iri), !,
+  write_iri(Out, Iri).
 
 
 
@@ -2378,41 +2344,6 @@ write_iri(Out, Iri) :-
 
 
 
-%! write_literal(+Literal:compound) is det.
-%! write_literal(+Out:stream, +Literal:compound) is det.
-
-write_literal(Literal) :-
-  write_literal(current_output, Literal).
-
-
-write_literal(Out, Val^^D) :- !,
-  rdf_literal_lexical_form(Val^^D, Lex),
-  turtle:turtle_write_quoted_string(Out, Lex),
-  write(Out, '^^'),
-  write_iri(Out, D).
-write_literal(Out, Val@LTag) :- !,
-  rdf_literal_lexical_form(Val@LTag, Lex),
-  turtle:turtle_write_quoted_string(Out, Lex),
-  write(Out, '@'),
-  write(Out, LTag).
-write_literal(Out, Val) :-
-  rdf_equal(xsd:string, D),
-  write_literal(Out, Val^^D).
-
-write_object(Out, S) :-
-  write_subject(Out, S), !.
-write_object(Out, Lit) :-
-  write_literal(Out, Lit).
-
-write_predicate(Out, P) :-
-  write_iri(Out, P).
-
-write_subject(Out, Iri) :-
-  rdf_is_iri(Iri), !,
-  write_iri(Out, Iri).
-
-
-
 %! write_nquads(+Quads) is det.
 %! write_nquads(+Out, +Quads) is det.
 %! write_nquads(+Out, +Tuples, +G) is det.
@@ -2438,7 +2369,7 @@ write_nquads(Out, Tuples, G) :-
 % write_ntriple/2 also accepts quads (compound term rdf/4), but writes
 % them as triples.
 
-write_ntriple(Triple) :- !,
+write_ntriple(Triple) :-
   write_ntriple(current_output, Triple).
 
 
@@ -2454,8 +2385,8 @@ write_ntriple(Out, S, P, O) :-
 
 
 
-%! write_ntuple(+Tuple) is det.
-%! write_ntuple(+Out, +Tuple) is det.
+%! write_ntuple(+Tuple:compound) is det.
+%! write_ntuple(+Out:stream, +Tuple:compound) is det.
 %
 % If Tuple is a triple (compound term rdf/3), it is written as a
 % triple.  If Tuple is a quad (compound term rdf/4), it is written as
