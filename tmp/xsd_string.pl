@@ -40,8 +40,10 @@ xml_char//2 production from XML 1.0 or XML 1.1.
 
 
 
-stringCanonicalMap(A) --> {atom_codes(A, Cs)}, *('Char', Cs).
+stringCanonicalMap(A) -->
+  dcg_atom(*('Char'), A).
 
 
 
-stringLexicalMap(A) --> *('Char', Cs), {atom_codes(A, Cs)}.
+stringLexicalMap(A) -->
+  dcg_atom(*('Char'), A).

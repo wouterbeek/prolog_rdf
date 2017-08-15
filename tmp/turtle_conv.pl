@@ -35,7 +35,10 @@ to_pn_local(A) -->
   to_pn_local_first(L1),
   to_pn_local_middle1(L2),
   to_pn_local_last(L3),
-  {dappend([L1,L2,L3], L), atom_codes(A, L)}.
+  {
+    dappend([L1,L2,L3], L),
+    atom_codes(A, L)
+  }.
 
 to_pn_local_first([C  |H]-H) --> 'PN_CHARS_U'(C), !.
 to_pn_local_first([0':|H]-H) --> ":",             !.
