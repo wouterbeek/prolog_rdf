@@ -24,15 +24,12 @@
 
 
 
-%! mb_date(-Year, -Month, -Day) // is det.
+%! mb_date(?Year, ?Month, ?Day) // is det.
 
-mb_date(Y, Mo, D) -->
-  #(4, digit, YWeights),
-  {integer_weights(Y, YWeights)},
-  #(2, digit, MoWeights),
-  {integer_weights(Mo, MoWeights)},
-  #(2, digit, DWeights),
-  {integer_weights(D, DWeights)}, !.
+mb_date(Year, Month, Day) -->
+  dcg_integer(#(4, digit), Year),
+  dcg_integer(#(2, digit), Month),
+  dcg_integer(#(2, digit), Day).
 
 
 

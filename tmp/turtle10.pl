@@ -45,12 +45,12 @@ name(S) -->
 %            | [#x203F-#x2040]
 % ```
 
-nameChar(C)      --> nameStartChar(C).
-nameChar(0'-)    --> "-".
-nameChar(C)      --> 'DIGIT'(C).
+nameChar(Code) --> nameStartChar(Code).
+nameChar(0'-) --> "-".
+nameChar(Code) --> 'DIGIT'(Code).
 nameChar(0x00B7) --> [0x00B7].
-nameChar(C)      --> [C], {between(0x0300, 0x036F, C)}.
-nameChar(C)      --> [C], {between(0x203F, 0x2040, C)}.
+nameChar(Code) --> between(0x0300, 0x036F, Code).
+nameChar(Code) --> between(0x203F, 0x2040, Code).
 
 
 
@@ -73,20 +73,20 @@ nameChar(C)      --> [C], {between(0x203F, 0x2040, C)}.
 %                 | [#x10000-#xEFFFF]
 % ```
 
-nameStartChar(C)   --> alpha(C).
+nameStartChar(Code) --> alpha(Code).
 nameStartChar(0'_) --> "_".
-nameStartChar(C)   --> [C], {between(0x00C0,  0x00D6,  C)}.
-nameStartChar(C)   --> [C], {between(0x00D8,  0x00F6,  C)}.
-nameStartChar(C)   --> [C], {between(0x00F8,  0x02FF,  C)}.
-nameStartChar(C)   --> [C], {between(0x0370,  0x037D,  C)}.
-nameStartChar(C)   --> [C], {between(0x037F,  0x1FFF,  C)}.
-nameStartChar(C)   --> [C], {between(0x200C,  0x200D,  C)}.
-nameStartChar(C)   --> [C], {between(0x2070,  0x218F,  C)}.
-nameStartChar(C)   --> [C], {between(0x2C00,  0x2FEF,  C)}.
-nameStartChar(C)   --> [C], {between(0x3001,  0xD7FF,  C)}.
-nameStartChar(C)   --> [C], {between(0xF900,  0xFDCF,  C)}.
-nameStartChar(C)   --> [C], {between(0xFDF0,  0xFFFD,  C)}.
-nameStartChar(C)   --> [C], {between(0x10000, 0xEFFFF, C)}.
+nameStartChar(Code) --> between(0x00C0,  0x00D6,  Code).
+nameStartChar(Code) --> between(0x00D8,  0x00F6,  Code).
+nameStartChar(Code) --> between(0x00F8,  0x02FF,  Code).
+nameStartChar(Code) --> between(0x0370,  0x037D,  Code).
+nameStartChar(Code) --> between(0x037F,  0x1FFF,  Code).
+nameStartChar(Code) --> between(0x200C,  0x200D,  Code).
+nameStartChar(Code) --> between(0x2070,  0x218F,  Code).
+nameStartChar(Code) --> between(0x2C00,  0x2FEF,  Code).
+nameStartChar(Code) --> between(0x3001,  0xD7FF,  Code).
+nameStartChar(Code) --> between(0xF900,  0xFDCF,  Code).
+nameStartChar(Code) --> between(0xFDF0,  0xFFFD,  Code).
+nameStartChar(Code) --> between(0x10000, 0xEFFFF, Code).
 
 
 
@@ -95,4 +95,6 @@ nameStartChar(C)   --> [C], {between(0x10000, 0xEFFFF, C)}.
 % nodeID ::= '_:' name
 % ```
 
-nodeID(BNodeLabel) --> "_:", name(BNodeLabel).
+nodeID(BNodeLabel) -->
+  "_:",
+  name(BNodeLabel).

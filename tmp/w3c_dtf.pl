@@ -67,7 +67,7 @@ cYYYY(Y)  --> {between(0, 9999, Y)}, yearCanonicalFragmentMap(Y).
 lYYYY(Y)  --> noDecimalMap(Y), {between(0, 9999, Y)}.
 
 cMM(Mo)   --> unsTwoDigitCanonicalFragmentMap(Mo).
-lMM(Mo)   --> #(2, digit, Weights), {integer_weights(Mo, Weights)}.
+lMM(Month) --> dcg_integer(#(2, digit), Month).
 
 cDD(D)    --> dayCanonicalFragmentMap(D).
 lDD(D)    --> dayFragValue(D).

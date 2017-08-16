@@ -17,7 +17,7 @@
 ).
 :- reexport(library(dcg/sparql10), [
    ]).
-:- use_module(library(dcg/sparql11), [
+:- reexport(library(dcg/sparql11), [
      'BooleanLiteral'//1, % -Lit
      'DOUBLE'//1,         % ?Number
      'ECHAR'//1,          % ?C
@@ -37,6 +37,7 @@
 @version 2015/11-2016/01, 2016/05
 */
 
+:- use_module(library(clpfd)).
 :- use_module(library(dcg/dcg_ext)).
 
 
@@ -51,8 +52,7 @@
 
 'DECIMAL'(N) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  *(digit, Weights1),
-  {integer_weights(I, Weights1)},
+  dcg_integer(*(digit), I),
   ".",
   +(digit, Weights2),
   {
@@ -67,11 +67,10 @@
 % INTEGER ::= [+-]? [0-9]+
 % ```
 
-'INTEGER'(I) -->
+'INTEGER'(I2) -->
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  +(digit, Weights),
-  {integer_weights(I0, Weights)},
-  {I is Sg * I0}.
+  dcg_integer(+(digit), I1),
+  {I2 #= Sg * I1}.
 
 
 
@@ -85,7 +84,7 @@
 'IRIREF'(Iri) --> "<", dcg_atom(iriref_codes, Iri), ">".
 iriref_codes([H|T]) --> iriref_code(H), !, iriref_codes(T).
 iriref_codes([])    --> "".
-iriref_code(_) --> [C], {between(0x00, 0x20, C)}, !, {fail}.
+iriref_code(_) --> between(0x00, 0x20), !, {fail}.
 iriref_code(_) --> "<",   !, {fail}.
 iriref_code(_) --> ">",   !, {fail}.
 iriref_code(_) --> "\"",  !, {fail}.
@@ -252,14 +251,12 @@ sparqlPrefix(PrefixLabel, Iri) -->
 % UCHAR ::= '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
 % ```
 
-'UCHAR'(C) -->
+'UCHAR'(Code) -->
   "\\u",
-  #(4, xdigit, Weights),
-  {integer_weights(C, 16, Weights)}.
-'UCHAR'(C) -->
+  dcg_integer(#(4, xdigit), 16, Code).
+'UCHAR'(Code) -->
   "\\U",
-  #(8, xdigit, Weights),
-  {integer_weights(C, 16, Weights)}.
+  dcg_integer(#(8, xdigit), 16, Code).
 
 
 
