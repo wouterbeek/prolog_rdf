@@ -34,9 +34,7 @@
     rdf_cbd_triple/4,                % +M, +Node, ?G, -Triple
     rdf_cbd_triples/3,               % +M, ?Node,     -Triples
     rdf_cbd_triples/4,               % +M, ?Node, ?G, -Triples
-    rdf_chk/4,                       % ?S, ?P, ?O, ?G
     rdf_chk/5,                       % +M, ?S, ?P, ?O, ?G
-    rdf_chk_lexical_form/4,          % ?S, ?P, -Lex, ?G
     rdf_chk_lexical_form/5,          % +M, ?S, ?P, -Lex, ?G
     rdf_clean_tuple/2,               % +Tuple, -Quad
     rdf_create_bnode_iri/1,          % -BNode
@@ -81,10 +79,8 @@
     rdf_object/3,                    % +M, ?O, ?G
     rdf_predicate/2,                 % +M, ?P
     rdf_predicate/3,                 % +M, ?P, ?G
-    rdf_pref_string/4,               % ?S, ?P, -Lit, ?G
     rdf_pref_string/5,               % +M, ?S, ?P, -Lit, ?G
     rdf_pref_string/6,               % +M, ?S, ?P, +LRange, -Lit, ?G
-    rdf_pref_string_lexical_form/4,  % ?S, ?P, -Lex, ?G
     rdf_pref_string_lexical_form/5,  % +M, ?S, ?P, -Lex, ?G
     rdf_pref_string_lexical_form/6,  % +M, ?S, ?P, +LRange, -Lex, ?G
     rdf_prefix_member/2,             % ?Elem, +L
@@ -485,9 +481,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_cbd_triple(?, o, r, -),
    rdf_cbd_triples(?, o, -),
    rdf_cbd_triples(?, o, r, -),
-   rdf_chk(r, r, o, r),
    rdf_chk(+, r, r, o, r),
-   rdf_chk_lexical_form(r, r, -, r),
    rdf_chk_lexical_form(+, r, r, -, r),
    rdf_deref_quad(r, t),
    rdf_deref_quad(r, t, +),
@@ -525,10 +519,8 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_object(?, o, r),
    rdf_predicate(?, r),
    rdf_predicate(?, r, r),
-   rdf_pref_string(r, r, -, r),
    rdf_pref_string(+, r, r, -, r),
    rdf_pref_string(+, r, r, +, -, r),
-   rdf_pref_string_lexical_form(r, r, -, r),
    rdf_pref_string_lexical_form(+, r, r, -, r),
    rdf_pref_string_lexical_form(+, r, r, +, -, r),
    rdf_prefix_member(t, t),
@@ -1150,24 +1142,14 @@ rdf_cbd_triples(M, Node, G, Triples) :-
 
 
 
-%! rdf_chk(?S, ?P, ?O, ?G) is nondet.
 %! rdf_chk(+M, ?S, ?P, ?O, ?G) is nondet.
-
-rdf_chk(S, P, O, G) :-
-  once(rdf(S, P, O, G)).
-
 
 rdf_chk(M, S, P, O, G) :-
   once(rdf(M, S, P, O, G)).
 
 
 
-%! rdf_chk_lexical_form(?S, ?P, -Lex, ?G) is nondet.
 %! rdf_chk_lexical_form(+M, ?S, ?P, -Lex, ?G) is nondet.
-
-rdf_chk_lexical_form(S, P, Lex, G) :-
-  rdf_chk_lexical_form(trp, S, P, Lex, G).
-
 
 rdf_chk_lexical_form(M, S, P, Lex, G) :-
   once((
@@ -1778,7 +1760,6 @@ rdf_predicate(trp, P, G) :-
 
 
 
-%! rdf_pref_string(?S, ?P, -Lit, ?G) is nondet.
 %! rdf_pref_string(+M, ?S, ?P, -Lit, ?G) is nondet.
 %! rdf_pref_string(+M, ?S, ?P, +LanguageRange, -Lit, ?G) is nondet.
 %
@@ -1791,10 +1772,6 @@ rdf_predicate(trp, P, G) :-
 %      priority list.
 %
 %   3. XSD strings.
-
-rdf_pref_string(S, P, Lit, G) :-
-  rdf_pref_string(trp, S, P, Lit, G).
-
 
 rdf_pref_string(M, S, P, Lit, G) :-
   current_lrange(LRange),
@@ -1851,15 +1828,10 @@ subtag_match(X1, X2):-
 
 
 
-%! rdf_pref_string_lexical_form(?S, ?P, -Lex, ?G) is nondet.
 %! rdf_pref_string_lexical_form(+M, ?S, ?P, -Lex, ?G) is nondet.
 %! rdf_pref_string_lexical_form(+M, ?S, ?P, +LRange, -Lex, ?G) is nondet.
 %
 % Like rdf_pref_string/[4-6], but returns only the lexical form.
-
-rdf_pref_string_lexical_form(S, P, Lex, G) :-
-  rdf_pref_string_lexical_form(trp, S, P, Lex, G).
-
 
 rdf_pref_string_lexical_form(M, S, P, Lex, G) :-
   current_lrange(LRange),
