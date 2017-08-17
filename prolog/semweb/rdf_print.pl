@@ -3,7 +3,7 @@
   [
     rdf_pp_deref_triple/1,   % +Uri
     rdf_pp_deref_triple/2,   % +Uri, +Options
-    rdf_pp_graph/1,          % +G
+    rdf_pp_graph/2,          % +M, +G
     rdf_pp_options/3,        % +Options1, -Out, -Options2
     rdf_pp_quad_groups/1,    % +JoinedPairs:list(pair(atom,list(compound)))
     rdf_pp_quad_groups/2,    % +JoinedPairs:list(pair(atom,list(compound))), +Options
@@ -72,7 +72,7 @@
 :- rdf_meta
    rdf_deref_triple(r),
    rdf_deref_triple(r, +),
-   rdf_pp_graph(r),
+   rdf_pp_graph(+, r),
    rdf_pp_triple(r, r, o),
    rdf_pp_triple(r, r, o, +),
    % DCG
@@ -112,10 +112,10 @@ rdf_pp_deref_triple(Uri, Options) :-
 
 
 
-%! rdf_pp_graph(+G) is det.
+%! rdf_pp_graph(+M, +G) is det.
 
-rdf_pp_graph(G) :-
-  aggregate_all(set(rdf(S,P,O)), rdf(S, P, O, G), Triples),
+rdf_pp_graph(M, G) :-
+  aggregate_all(set(rdf(S,P,O)), rdf(M, S, P, O, G), Triples),
   rdf_pp_triples(Triples).
 
 
