@@ -1954,13 +1954,13 @@ rdf_root(M, Root, G) :-
 
 
 %! rdf_save(+FileSpec:term) is det.
-%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term) is det.
-%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, +G:atom) is det.
-%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, +G:atom,
+%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term) is det.
+%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, +G:atom) is det.
+%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, +G:atom,
 %!          +Options:list(compound)) is det.
-%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, ?S, ?P, ?O,
+%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, ?S, ?P, ?O,
 %!          ?G) is det.
-%! rdf_save(+Type:oneof([nquads,ntriples]), +FileSpec:term, ?S, ?P, ?O, ?G,
+%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, ?S, ?P, ?O, ?G,
 %!          +Options:list(compound)) is det.
 %
 % Options are passed to call_to_file/3.
