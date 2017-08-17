@@ -2185,14 +2185,14 @@ rdf_to_hdt(UriSpec, FileSpec) :-
 
   % Convert to uncompressed N-Triples.
   debug(semweb(rdf_to_hdt), "Creating uncompressed N-Triples…", []),
-  create_temporary_file1(TriplesFile),
-  rdf_reserialize(triples, UriSpec, TriplesFile, [compression(none)]),
+  create_temporary_file1(TriplesFileTmp),
+  rdf_reserialize(triples, UriSpec, TriplesFileTmp, [compression(none)]),
   debug(semweb(rdf_to_hdt), "…uncompressed N-Triples created.", []),
 
   % Create HDT file.
   debug(semweb(rdf_to_hdt), "Creating HDT…", []),
   file_name_extension(File, working, HdtFile),
-  hdt:hdt_create_from_file(HdtFile, TriplesFile, []),
+  hdt:hdt_create_from_file(HdtFile, TriplesFileTmp, []),
   with_mutex(rdf_to_hdt,
     (   % Somebody else was earlier.
         exists_file(File)
@@ -2200,6 +2200,7 @@ rdf_to_hdt(UriSpec, FileSpec) :-
     ;   rename_file(HdtFile, File)
     )
   ),
+  delete_file(TriplesFileTmp),
   debug(semweb(rdf_to_hdt), "…HDT created.", []),
 
   % Create HDT index file.
