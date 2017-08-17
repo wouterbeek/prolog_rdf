@@ -4,8 +4,8 @@
     select_result/3,      % +Result, +Keys, -Values
     sparql_client/3,      % +Uri, +Query, -Result
     sparql_client/4,      % +Uri, +Query, -Result, +Options
-    sparql_client_file/3, % +Uri, +File,   -Result
-    sparql_client_file/4  % +Uri, +File,   -Result, +Options
+    sparql_client_file/3, % +Uri, +File, -Result
+    sparql_client_file/4  % +Uri, +File, -Result, +Options
   ]
 ).
 
