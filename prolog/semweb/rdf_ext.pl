@@ -9,7 +9,7 @@
     hdt_graph_file/2,                % ?G, ?File
     hdt_init/0,
     hdt_init/1,                      % +FileSpec
-    hdt_init/2,                      % +FileSpec, +Name
+    hdt_init/2,                      % +FileSpec, +G
     hdt_warm_index/1,                % +FileSpec
     graph_file/2,                    % ?G, ?File
     prefix_local_iri/3,              % ?Prefix, ?Local, ?Iri
@@ -468,6 +468,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    ntriples_to_nquads(+, t, +),
    hdt_call_on_graph(r, :),
    hdt_graph(?, r),
+   hdt_init(+, r),
    prefix_local_iri(?, ?, r),
    rdf(+, r, r, o, r),
    rdf_aggregate_all(+, t, -),
@@ -853,7 +854,7 @@ hdt_graph_file(G, File) :-
 
 %! hdt_init is det.
 %! hdt_init(+FileSpec:term) is det.
-%! hdt_init(+FileSpec:term, +Local:atom) is det.
+%! hdt_init(+FileSpec:term, +G:atom) is det.
 
 hdt_init :-
   forall(
@@ -872,13 +873,12 @@ hdt_init :-
 
 
 hdt_init(FileSpec) :-
-  hdt_init(FileSpec, default).
+  hdt_init(FileSpec, graph:default).
 
 
-hdt_init(FileSpec, Local) :-
+hdt_init(FileSpec, G) :-
   absolute_file_name(FileSpec, File, [access(read)]),
   hdt_open(Hdt, File),
-  rdf_global_id(graph:Local, G),
   assert(hdt_graph(Hdt, G)),
   debug(hdt_graph, "Open HDT: ~a", [File]).
 
