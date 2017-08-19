@@ -616,6 +616,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 :- rdf_register_prefix(sd, 'http://www.w3.org/ns/sparql-service-description#').
 :- rdf_register_prefix(sf, 'http://www.opengis.net/ont/sf#').
 :- rdf_register_prefix(sfn, ' http://www.w3.org/ns/sparql#').
+:- rdf_register_prefix(sh, 'http://www.w3.org/ns/shacl#').
 :- rdf_register_prefix(sioc, 'http://rdfs.org/sioc/ns#').
 :- rdf_register_prefix(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
 :- rdf_register_prefix(sparql, 'http://www.w3.org/2005/sparql-results#').
