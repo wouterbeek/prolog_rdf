@@ -8,7 +8,8 @@
     rdfa_mbox//3,        % +M, +Agent, ?G
     rdfa_date_time//3,   % +P, +Datetime, +Options
     rdfa_prefixed_iri/2, % +Iri, -PrefixedIri
-    rdfa_prefixes//0
+    rdfa_prefixes//0,
+    rdfa_prefixes//1     % +Pairs:list(pair(atom))
   ]
 ).
 
@@ -29,6 +30,7 @@
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_ext)).
+:- use_module(library(yall)).
 
 :- multifile
     rdfa:prefix/1,
@@ -119,7 +121,7 @@ rdfa_creators_item0(M, G, Agent) -->
 
 %! rdfa_date_time(+P, +Datetime:dt, +Options:list(compound))// is det.
 
-rdfa_date_time(P1, Datetime, Options) -->
+rdfa_date_time(P1, Datetime1, Options) -->
   {
     html_date_time_machine(Datetime1, MachineString),
     dict_get(masks, Options, [], Masks),
@@ -182,6 +184,7 @@ rdfa_prefixed_iri(Iri, PrefixedIri) :-
 
 
 %! rdfa_prefixes// is det.
+%! rdfa_prefixes(+Pairs:list(pair(atom)))// is det.
 %
 % Does not include RDF prefixes that are predefined in RDFa.
 %
@@ -191,24 +194,27 @@ rdfa_prefixed_iri(Iri, PrefixedIri) :-
 rdfa_prefixes -->
   {
     aggregate_all(
-      set(Prefix),
+      set(Prefix-Iri),
       (
         rdfa:prefix(Prefix),
-        \+ rdfa:predefined_prefix(Prefix)
+        \+ rdfa:predefined_prefix(Prefix),
+        rdf_current_prefix(Prefix, Iri)
       ),
-      Prefixes
+      Pairs
     )
   },
-  (   {Prefixes \== []}
-  ->  ""
-  ;   {
-        maplist(rdf_current_prefix, Prefixes, Iris),
-        pairs_keys_values(Pairs, Prefixes, Iris),
-        maplist(pair_to_prefix0, Pairs, Specs),
-        atomic_list_concat(Specs, ' ', AttrValue)
-      },
-      html_root_attribute(prefix, AttrValue)
-  ).
+  rdfa_prefixes(Pairs).
 
-pair_to_prefix0(Prefix-Iri, Spec) :-
-  atomic_list_concat([Prefix,Iri], ': ', Spec).
+
+rdfa_prefixes([]) --> !,
+  html([]).
+rdfa_prefixes(Pairs) -->
+  {
+    maplist(
+      [Prefix-Iri,Atom]>>atomic_list_concat([Prefix,Iri], ': ', Atom),
+      Pairs,
+      Atoms
+    ),
+    atomic_list_concat(Atoms, ' ', Atom)
+  },
+  html_root_attribute(prefix, Atom).
