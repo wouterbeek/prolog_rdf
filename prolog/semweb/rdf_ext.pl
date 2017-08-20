@@ -136,6 +136,7 @@
 ).
 :- reexport(library(hdt)).
 :- reexport(library(semweb/rdf11), except([rdf_save/1,rdf_save/2])).
+:- reexport(library(semweb/rdf11_containers)).
 
 /** <module> RDF extensions
 
