@@ -1,7 +1,8 @@
 :- module(
   sparql_viz,
   [
-    sparql_viz/4 % +Query, +Method, +Format, -Out
+    sparql_viz/4,     % +Query, +Method, +Format, -Out
+    sparql_viz_file/3 % +File, +Method, +Format
   ]
 ).
 
@@ -13,12 +14,13 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(file_ext)).
+:- use_module(library(graphviz)).
 :- use_module(library(lists)).
-:- use_module(library(memfile)).
-:- use_module(library(os_ext)).
 :- use_module(library(semweb/rdf_print)).
 :- use_module(library(semweb/sparql_parser)).
 :- use_module(library(uri/uri_ext)).
+:- use_module(library(yall)).
 
 
 
@@ -26,19 +28,11 @@
 
 %! sparql_viz(+Query:string, +Method:atom, +Format:atom, -Out:stream) is det.
 
-sparql_viz(Query, Method, Format, Out) :-
+sparql_viz(Query, Method, Format, ProcOut) :-
   sparql_parse('https://example.org/', dataset([],[]), Query, State, Algebra),
-  new_memory_file(Handle),
-  setup_call_cleanup(
-    open_memory_file(Handle, write, Out0),
-    with_output_to(Out0, sparql_viz(State, Algebra)),
-    close(Out0)
-  ),
-  setup_call_cleanup(
-    open_memory_file(Handle, read, In),
-    graphviz_open(Method, In, Format, Out),
-    close(In)
-  ).
+  graphviz(Method, ProcIn, Format, ProcOut),
+  with_output_to(ProcIn, sparql_viz(State, Algebra)),
+  close(ProcIn).
 
 sparql_viz(State, Algebra) :-
   flag(node_id, _, 1),
@@ -110,3 +104,16 @@ write_node(Options, N1, N2, Term) :-
   write_label(Options, Term, Label),
   format("  ~d [label=<~a>]\n", [N2,Label]),
   format("  ~d -- ~d\n", [N1,N2]).
+
+
+
+%! sparql_viz_file(+File:atom, +Method:atom, +Format:atom) is det.
+
+sparql_viz_file(File1, Method, Format) :-
+  file_name_extension(Base, _, File1),
+  file_to_string(File1, Query),
+  file_name_extension(Base, Format, File2),
+  call_to_file(
+    File2,
+    {Query,Method,Format}/[Out,Meta,Meta]>>sparql_viz(Query, Method, Format, Out)
+  ).

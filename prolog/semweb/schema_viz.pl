@@ -1,7 +1,8 @@
 :- module(
   schema_viz,
   [
-    schema_viz/1 % +File
+    schema_viz/2,     % +Format, -Out
+    schema_viz_file/2 % +File, +Format
   ]
 ).
 
@@ -14,7 +15,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(file_ext)).
-:- use_module(library(os_ext)).
+:- use_module(library(graphviz)).
 :- use_module(library(semweb/rdf_ext)).
 
 :- rdf_meta
@@ -24,21 +25,12 @@
 
 
 
-%! schema_viz(+File:atom) is det.
+%! schema_viz(+Format, -Out:stream) is det.
 
-schema_viz(File) :-
-  rdf_snap(schema_viz_(File, svg)).
-
-schema_viz_(File1, Ext) :-
-  file_name_extension(Base, _, File1),
-  maplist(file_name_extension(Base), [dot,Ext], [File2,File3]),
-  rdf_retractall,
-  rdf_load2(File1),
-  once(rdf_graph(G)),
-  call_to_file(File2, schema_viz(G), [compression(none)]),
-  run_process(dot, ['-T',Ext,file(File2),'-o',file(File3)]),
-  delete_file(File2),
-  rdf_retractall.
+schema_viz(Format, ProcOut) :-
+  graphviz(dot, ProcIn, Format, ProcOut),
+  call_to_stream(ProcIn, schema_viz(_), [compression(none)]),
+  close(ProcIn).
 
 % Nodes can be described in multiple vocabularies: OWL, SHACL, RDF(S).
 % We therefore first group all nodes with some description, and then
@@ -97,8 +89,6 @@ viz_edge(Out, edge(Class1,Segments,Class2)) :-
 viz_bottom(Out) :-
   format(Out, "}\n", []).
 
-
-
 class(Class, G) :-
   rdf(trp, Class, owl:oneOf, _, G).
 class(Class, G) :-
@@ -130,10 +120,6 @@ edge(edge(Class1,Segments,Class2), G) :-
   path_segments(Path, Segments),
   rdf(trp, Property, sh:class, Class2, G).
 
-
-
-% HELPERS %
-
 graphviz_iri(Iri, Label) :-
   prefix_local_iri(Prefix, Local, Iri), !,
   atomic_list_concat([Prefix,Local], :, Label).
@@ -146,3 +132,19 @@ path_segments(Segment, [Segment]).
 segments_sequence(Segments1, Sequence) :-
   maplist(graphviz_iri, Segments1, Segments2),
   atomic_list_concat(Segments2, /, Sequence).
+
+
+
+%! schema_viz_file(+Format, +File:atom) is det.
+
+schema_viz_file(Format, File1) :-
+  file_name_extension(Base, _, File1),
+  file_name_extension(Base, Format, File2),
+  call_to_file(File2, schema_viz_stream(Format, File1)).
+
+schema_viz_stream(Format, File, Out, Meta, Meta) :-
+  rdf_snap_clean((
+    rdf_load2(File),
+    schema_viz(Format, ProcOut),
+    copy_stream_data(ProcOut, Out)
+  )).
