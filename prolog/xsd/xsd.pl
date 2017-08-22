@@ -4,6 +4,7 @@
     xsd_subtype_of/2 % ?Subtype, ?Supertype
   ]
 ).
+:- reexport(library(xsd/xsd_number)).
 
 /** <module> XML Schema 1.1 Datatypes
 
@@ -12,7 +13,6 @@
 */
 
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(xsd/xsd_number)).
 :- use_module(library(xsdp_types)).
 
 :- arithmetic_function(xsd_div/2).

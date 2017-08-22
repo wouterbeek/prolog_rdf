@@ -171,7 +171,7 @@
 :- use_module(library(solution_sequences)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
-:- use_module(library(xsd/xsd_number)).
+:- use_module(library(xsd/xsd)).
 :- use_module(library(yall)).
 
 :- debug(clean_tuple).
