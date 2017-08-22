@@ -2,7 +2,7 @@
   schema_viz,
   [
     schema_viz/2,     % +Format, -Out
-    schema_viz_file/2 % +File, +Format
+    schema_viz_file/1 % +File
   ]
 ).
 
@@ -14,6 +14,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(debug)).
 :- use_module(library(file_ext)).
 :- use_module(library(graphviz)).
 :- use_module(library(semweb/rdf_ext)).
@@ -44,20 +45,27 @@ schema_viz(G, Out, Meta, Meta) :-
   viz_bottom(Out).
 
 viz_top(Out) :-
-  format(Out, 'digraph G {\n', []).
+  format(Out, 'digraph G {\n', []),
+  debug(gv, 'digraph G {', []).
 
 viz_class(Out, G, Class1) :-
   rdf(trp, Class1, owl:oneOf, List, G), !,
   rdf_list(List, Values),
   graphviz_hash(Class1, NodeId),
   format(Out, '  ~a [label=<<TABLE>\n', [NodeId]),
+  debug(gv, '  ~a [label=<<TABLE>', [NodeId]),
   graphviz_iri(Class1, Class2),
   format(Out, '    <TR><TD><B>~a</B></TD></TR>\n', [Class2]),
+  debug(gv, '    <TR><TD><B>~a</B></TD></TR>', [Class2]),
   forall(
     member(Value, Values),
-    format(Out, '    <TR><TD>~a</TD></TR>\n', [Value])
+    (
+      format(Out, '    <TR><TD>~a</TD></TR>\n', [Value]),
+      debug(gv, '    <TR><TD>~a</TD></TR>', [Value])
+    )
   ),
-  format(Out, '  </TABLE>>,shape="node"];\n', []).
+  format(Out, '  </TABLE>>,shape="node"];\n', []),
+  debug(gv, '  </TABLE>>,shape="node"];', []).
 viz_class(Out, G, Class) :-
   viz_class_top(Out, Class),
   aggregate_all(set(Pair), pp(Class, Pair, G), Pairs),
@@ -67,27 +75,34 @@ viz_class(Out, G, Class) :-
 viz_class_top(Out, Class1) :-
   graphviz_hash(Class1, ClassId),
   format(Out, '  ~a [label=<<TABLE>\n', [ClassId]),
+  debug(gv, '  ~a [label=<<TABLE>', [ClassId]),
   graphviz_iri(Class1, Class2),
-  format(Out, '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>\n', [Class2]).
+  format(Out, '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>\n', [Class2]),
+  debug(gv, '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>', [Class2]).
 
 viz_class_pp(Out, Segments-Target1) :-
   segments_sequence(Segments, Sequence),
   graphviz_iri(Target1, Target2),
-  format(Out, '    <TR><TD>~a</TD><TD>~a</TD></TR>\n', [Sequence,Target2]).
+  format(Out, '    <TR><TD>~a</TD><TD>~a</TD></TR>\n', [Sequence,Target2]),
+  debug(gv, '    <TR><TD>~a</TD><TD>~a</TD></TR>', [Sequence,Target2]).
 
 viz_class_bottom(Out) :-
-  format(Out, '  </TABLE>>,shape="node"];\n', []).
+  format(Out, '  </TABLE>>,shape="node"];\n', []),
+  debug(gv, '  </TABLE>>,shape="node"];', []).
 
 viz_edge(Out, edge(Class1,⊆,Class2)) :- !,
   maplist(graphviz_hash, [Class1,Class2], [NodeId1,NodeId2]),
-  format(Out, '  ~a -> ~a [arrowHead="empty"];\n', [NodeId1,NodeId2]).
+  format(Out, '  ~a -> ~a [arrowHead="empty"];\n', [NodeId1,NodeId2]),
+  debug(gv, '  ~a -> ~a [arrowHead="empty"];', [NodeId1,NodeId2]).
 viz_edge(Out, edge(Class1,Segments,Class2)) :-
   segments_sequence(Segments, Sequence),
   maplist(graphviz_hash, [Class1,Class2], [NodeId1,NodeId2]),
-  format(Out, '  ~a -> ~a [label=<~a>];\n', [NodeId1,NodeId2,Sequence]).
+  format(Out, '  ~a -> ~a [label=<~a>];\n', [NodeId1,NodeId2,Sequence]),
+  debug(gv, '  ~a -> ~a [label=<~a>];', [NodeId1,NodeId2,Sequence]).
 
 viz_bottom(Out) :-
-  format(Out, "}\n", []).
+  format(Out, '}\n', []),
+  debug(gv, '}', []).
 
 class(Class, G) :-
   rdf(trp, Class, owl:oneOf, _, G).
@@ -126,7 +141,7 @@ graphviz_iri(Iri, Label) :-
 graphviz_iri(Iri, Iri).
 
 path_segments(Path, Segments) :-
-   rdf_list(Path, Segments), !.
+  rdf_list(Path, Segments), !.
 path_segments(Segment, [Segment]).
 
 segments_sequence(Segments1, Sequence) :-
@@ -135,16 +150,16 @@ segments_sequence(Segments1, Sequence) :-
 
 
 
-%! schema_viz_file(+Format, +File:atom) is det.
+%! schema_viz_file(+File:atom) is det.
 
-schema_viz_file(Format, File1) :-
+schema_viz_file(File1) :-
   file_name_extension(Base, _, File1),
-  file_name_extension(Base, Format, File2),
-  call_to_file(File2, schema_viz_stream(Format, File1)).
+  file_name_extension(Base, svgz, File2),
+  call_to_file(File2, schema_viz_stream(File1)).
 
-schema_viz_stream(Format, File, Out, Meta, Meta) :-
+schema_viz_stream(File, Out, Meta, Meta) :-
   rdf_snap_clean((
     rdf_load2(File),
-    schema_viz(Format, ProcOut),
+    schema_viz(svg, ProcOut),
     copy_stream_data(ProcOut, Out)
   )).
