@@ -50,7 +50,7 @@ viz_top(Out) :-
 
 viz_class(Out, G, Class1) :-
   rdf(trp, Class1, owl:oneOf, List, G), !,
-  rdf_list(List, Values),
+  aggregate_all(set(Value), rdf_list_member(List, Value), Values),
   graphviz_hash(Class1, NodeId),
   format(Out, '  ~a [label=<<TABLE>\n', [NodeId]),
   debug(gv, '  ~a [label=<<TABLE>', [NodeId]),
@@ -141,7 +141,7 @@ graphviz_iri(Iri, Label) :-
 graphviz_iri(Iri, Iri).
 
 path_segments(Path, Segments) :-
-  rdf_list(Path, Segments), !.
+  aggregate_all(set(Segment), rdf_list_member(Path, Segment), Segments), !.
 path_segments(Segment, [Segment]).
 
 segments_sequence(Segments1, Sequence) :-
