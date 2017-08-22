@@ -2093,7 +2093,7 @@ rdf_snap_clean_(Goal_0) :-
 rdf_statistic(hdt, Key, N, G) :-
   hdt_call_on_graph(G, rdf_statistic(hdt0, Key, N)).
 rdf_statistic(hdt0, nodes, N, Hdt) :-
-  rdf_statistic(hdt0, subject_objects, N1, Hdt),
+  rdf_statistic(hdt0, shared, N1, Hdt),
   rdf_statistic(hdt0, subjects, N2, Hdt),
   rdf_statistic(hdt0, objects, N3, Hdt),
   sum_list([N1,N2,N3], N).
@@ -2119,7 +2119,7 @@ rdf_statistic(trp, triples, N, G) :-
 
 hdt_header_property(objects, '<http://rdfs.org/ns/void#distinctObjects>').
 hdt_header_property(predicates, '<http://rdfs.org/ns/void#properties>').
-hdt_header_property(subject_objects, '<http://purl.org/HDT/hdt#dictionarynumSharedSubjectObject>').
+hdt_header_property(shared, '<http://purl.org/HDT/hdt#dictionarynumSharedSubjectObject>').
 hdt_header_property(subjects, '<http://rdfs.org/ns/void#distinctSubjects>').
 hdt_header_property(triples, '<http://rdfs.org/ns/void#triples>').
 
