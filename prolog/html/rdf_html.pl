@@ -40,6 +40,7 @@
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(http/http_server)).
 :- use_module(library(list_ext)).
+:- use_module(library(semweb/rdf_date_time)).
 :- use_module(library(semweb/rdf_ext)).
 :- use_module(library(uri/uri_ext)).
 
@@ -298,13 +299,14 @@ rdf_html_literal_internal_(Uri^^D, _) -->
 % XSD dateTime
 % XSD gMonthYear
 % XSD gYearMonth
-rdf_html_literal_internal_(V^^D1, Options) -->
+rdf_html_literal_internal_(Value1^^D1, Options) -->
   {
     % @bug here
     rdf11:xsd_date_time_type(D2),
-    rdf_subdatatype_of(D1, D2)
-  }, !,
-  html_date_time(V, Options).
+    rdf_subdatatype_of(D1, D2), !,
+    rdf_date_time_to_dt(Value1, Value2)
+  },
+  html_date_time(Value2, Options).
 % Datatype hooks.
 rdf_html_literal_internal_(Lit, Options) -->
   rdf_html_literal_hook(Lit, Options), !.
