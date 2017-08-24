@@ -1561,6 +1561,10 @@ rdf_literal(M, Literal, G) :-
   rdf_is_literal(Literal).
 
 
+
+%! rdf_literal(+Literal:compound, -D:atom, -Lex:atom, -LTag:atom) is det.
+%! rdf_literal(-Literal:compound, +D:atom, +Lex:atom, ?LTag:atom) is det.
+
 rdf_literal(Lit, D, Lex, LTag) :-
   var(Lit), !,
   legacy_literal_components(Lit0, D, Lex, LTag),
