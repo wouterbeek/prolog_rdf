@@ -49,8 +49,12 @@ viz_top(Out) :-
   debug(gv, 'digraph G {', []).
 
 viz_class(Out, G, Class1) :-
-  rdf(trp, Class1, owl:oneOf, List, G), !,
-  aggregate_all(set(Value), rdf_list_member(List, Value), Values),
+  aggregate_all(
+    set(Value),
+    rdf_list_member(trp, Class1, owl:oneOf, Value, G),
+    Values
+  ),
+  Values \== [], !,
   graphviz_hash(Class1, NodeId),
   format(Out, '  ~a [label=<<TABLE>\n', [NodeId]),
   debug(gv, '  ~a [label=<<TABLE>', [NodeId]),
@@ -118,7 +122,7 @@ pp(Class, Segments-Target, G) :-
   rdf(trp, Shape, sh:targetClass, Class, G),
   rdf(trp, Shape, sh:property, Property, G),
   rdf(trp, Property, sh:path, Path, G),
-  path_segments(Path, Segments),
+  path_segments(Path, Segments, G),
   target(Property, Target, G).
 
 target(Property, Datatype, G) :-
@@ -132,7 +136,7 @@ edge(edge(Class1,Segments,Class2), G) :-
   rdf(trp, Shape, sh:targetClass, Class1, G),
   rdf(trp, Shape, sh:property, Property, G),
   rdf(trp, Property, sh:path, Path, G),
-  path_segments(Path, Segments),
+  path_segments(Path, Segments, G),
   rdf(trp, Property, sh:class, Class2, G).
 
 graphviz_iri(Iri, Label) :-
@@ -140,8 +144,12 @@ graphviz_iri(Iri, Label) :-
   atomic_list_concat([Prefix,Local], :, Label).
 graphviz_iri(Iri, Iri).
 
-path_segments(Path, Segments) :-
-  aggregate_all(set(Segment), rdf_list_member(Path, Segment), Segments), !.
+path_segments(Path, Segments, G) :-
+  aggregate_all(
+    set(Segment),
+    rdf_list_member(trp, Path, Segment, G),
+    Segments
+  ), !.
 path_segments(Segment, [Segment]).
 
 segments_sequence(Segments1, Sequence) :-
