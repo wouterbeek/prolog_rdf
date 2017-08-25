@@ -1071,7 +1071,7 @@ rdf_call_update(Find_0, Transform_0, State) :-
   Find_0, % NONDET
   (   Transform_0
   ->  true
-  ;   print_message(warning, failed_transformation(State.count))
+  ;   print_message(warning, failed_transformation(State.count,Transform_0))
   ),
   dict_inc(count, State),
   fail.
