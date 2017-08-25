@@ -22,7 +22,8 @@
     rdf_html_subject//1,      % +S
     rdf_html_subject//2,      % +S, +Options
     rdf_html_term//1,         % +Term
-    rdf_html_term//2          % +Term, +Options
+    rdf_html_term//2,         % +Term, +Options
+    rdf_html_triple_table//3  % +Uri, ?G, +Triples
   ]
 ).
 :- reexport(library(html/html_ext)).
@@ -68,7 +69,8 @@
    rdf_html_subject(r, ?, ?),
    rdf_html_subject(r, +, ?, ?),
    rdf_html_term(o, ?, ?),
-   rdf_html_term(o, +, ?, ?).
+   rdf_html_term(o, +, ?, ?),
+   rdf_html_triple_table(+, r, t).
 
 
 
@@ -388,6 +390,34 @@ rdf_html_term_(Term, Options) -->
 rdf_html_term_(Lit, Options) -->
   {rdf_is_literal(Lit)}, !,
   rdf_html_literal_(Lit, Options).
+
+
+
+%! rdf_html_triple_table(+Uri:atom, ?G:atom, +Triples:list(compound))// is det.
+
+rdf_html_triple_table(Uri, G, Triples) -->
+  table(
+    \table_header_row(["Subject","Predicate","Object"]),
+    \html_maplist(rdf_html_triple_table_row(Uri, G), Triples)
+  ).
+
+rdf_html_triple_table_row(Uri, G, rdf(S,P,O)) -->
+  {
+    maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
+    (var(G) -> Query = [] ; Query = [graph(G)]),
+    maplist(
+      uri_comp_set(query, Uri),
+      [[subject(AtomS)|Query],[predicate(AtomP)|Query],[object(AtomO)|Query]],
+      [UriS,UriP,UriO]
+    )
+  },
+  html(
+    tr([
+      td(a(href=UriS, \rdf_html_subject(S))),
+      td(a(href=UriP, \rdf_html_predicate(P))),
+      td(a(href=UriO, \rdf_html_object(O)))
+    ])
+  ).
 
 
 
