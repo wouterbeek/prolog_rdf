@@ -12,7 +12,8 @@
 @version 2017/08
 */
 
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(dif)).
+:- use_module(library(semweb/rdf_ext)).
 :- use_module(library(xsdp_types)).
 
 :- arithmetic_function(xsd_div/2).
@@ -32,9 +33,18 @@ xsd_div(X, Y, Z):-
   Z is floor(X rdiv Y).
 
 :- rdf_meta
+   xsd_strict_subtype_of(r, r),
    xsd_subtype_of(r, r).
 
 
+
+
+
+%! xsd_strict_subtype_of(?Subtype:atom, ?Supertype:atom) is nondet.
+
+xsd_strict_subtype_of(X, Y) :-
+  dif(X, Y),
+  xsd_subtype_of(X, Y).
 
 
 
