@@ -1346,10 +1346,7 @@ rdf_deref_quads(UriSpec, Quads) :-
 
 rdf_deref_quads(UriSpec, Quads, Options) :-
   empty_nb_set(Set),
-  forall(
-    call_on_rdf(UriSpec, rdf_deref_quads_(Set), Options),
-    true
-  ),
+  call_on_rdf(UriSpec, rdf_deref_quads_(Set), Options),
   nb_set_to_list(Set, Quads).
 
 rdf_deref_quads_(Set, Tuples, G) :-
