@@ -593,6 +593,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 :- rdf_register_prefix(geof, 'http://www.opengis.net/def/function/geosparql/').
 :- rdf_register_prefix(geonames, 'http://sws.geonames.org/').
 :- rdf_register_prefix(geor, 'http://www.opengis.net/def/rule/geosparql/').
+:- rdf_register_prefix(gg, 'http://www.gemeentegeschiedenis.nl/gg-schema#').
 :- rdf_register_prefix(gml, 'http://www.opengis.net/ont/gml#').
 :- rdf_register_prefix(gr, 'http://purl.org/goodrelations/v1#').
 :- rdf_register_prefix(graph, 'https://example.org/graph/').
