@@ -136,6 +136,10 @@
   ]
 ).
 :- reexport(library(hdt)).
+:- reexport(library(semweb/rdf_db), [
+     rdf_load_db/1 as rdf_load_dump,
+     rdf_save_db/1 as rdf_save_dump
+   ]).
 :- reexport(library(semweb/rdf11), except([rdf_save/1,rdf_save/2])).
 :- reexport(library(semweb/rdf11_containers)).
 
