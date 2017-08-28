@@ -27,7 +27,6 @@
     rdf_atom_to_term/2,              % +Atom, -Term
     rdf_bnode_iri/2,                 % +M, ?BNode
     rdf_bnode_iri/3,                 % +M, ?BNode, ?G
-    rdf_call_update/2,               % :Find_0, Transform_0
     rdf_cbd_quad/3,                  % +M, +Node,     -Quad
     rdf_cbd_quads/3,                 % +M, +Node,     -Quads
     rdf_cbd_triple/3,                % +M, +Node,     -Triple
@@ -430,8 +429,6 @@ register_language_prefixes(Language) :-
     call_on_rdf(+, 2, +),
     hdt_call_on_file(+, 1),
     hdt_call_on_graph(?, 1),
-    rdf_call_update(0, 0),
-    rdf_call_update(0, 0, +),
     rdf_aggregate_all(+, 0, -),
     rdf_snap(0),
     rdf_snap_clean(0),
@@ -482,7 +479,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_assert_action(+, r, r, -, r),
    rdf_assert_agent(+, r, r, +, +, +, r),
    rdf_assert_objects(+, r, r, t, r),
-   rdf_call_update(t, t),
    rdf_cbd_quad(?, o, -),
    rdf_cbd_quads(?, o, -),
    rdf_cbd_triple(?, o, -),
@@ -1054,35 +1050,6 @@ rdf_bnode_iri(M, BNode) :-
 rdf_bnode_iri(M, BNode, G) :-
   rdf_iri(M, BNode, G),
   rdf_is_bnode_iri(BNode).
-
-
-
-%! rdf_call_update(:Find_0, Transform_0) is det.
-%
-% Generic data transformation call:
-%
-%   - Find_0 matches a single candidate for transformation.
-%
-%   - Transform_0 acts on a single matched candidate to effectuate the
-%     transformation.
-%
-% If Transform_0 fails the debugger is opened.
-
-rdf_call_update(Find_0, Transform_0) :-
-  rdf_transaction(
-    rdf_call_update(Find_0, Transform_0, _{count: 0})
-  ).
-
-rdf_call_update(Find_0, Transform_0, State) :-
-  Find_0, % NONDET
-  (   Transform_0
-  ->  true
-  ;   print_message(warning, failed_transformation(State.count,Transform_0))
-  ),
-  dict_inc(count, State),
-  fail.
-rdf_call_update(_, _, State) :-
-  debug(rdf_call_update, "~D updates were made.", [State.count]).
 
 
 
