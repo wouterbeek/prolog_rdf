@@ -32,16 +32,22 @@ whitespace ::= space | tabulator | newline
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(os_ext)).
 :- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_print)).
 :- use_module(library(thread)).
+:- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
 
 :- meta_predicate
-    gml_label(4, +, -).
+    gml_label(4, +, -),
+    gml_node(+, 4, +, -),
+    gml_triple(+, 4, +, 4, +),
+    gml_triples(+, 4, +, 4, +, +).
 
 
 
@@ -73,14 +79,17 @@ rdf2gml(UriSpec, FileSpec, Options) :-
   uuid(Base),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
   atomic_list_concat([Base,edges,tmp], ., EFile),
-  option(node_label_printer(NPrinter_2), Options, rdf_dcg_print_node),
-  option(edge_label_printer(EPrinter_2), Options, rdf_dcg_print_predicate),
+  option(node_label_printer(NPrinter_2), Options, rdf_dcg_node),
+  option(edge_label_printer(EPrinter_2), Options, rdf_dcg_predicate),
   setup_call_cleanup(
     (
       open(EFile, write, EOut),
       open(NFile, write, NOut)
     ),
-    call_on_rdf(UriSpec, gml_triples(NOut, NPrinter_2, EOut, EPrinter_2)),
+    forall(
+      call_on_rdf(UriSpec, gml_triples(NOut, NPrinter_2, EOut, EPrinter_2)),
+      true
+    ),
     (
       close(EOut),
       close(NOut)
@@ -91,19 +100,21 @@ rdf2gml(UriSpec, FileSpec, Options) :-
   call_to_file(FileSpec, write_(NFile,EFile)).
 
 write_(NFile, EFile, Out, Meta, Meta) :-
-  format(Out, "graph [\n  directed 1\n"),
+  format(Out, "graph [\n  directed 1\n", []),
   call_on_uri(NFile, {Out}/[In,Meta,Meta]>>copy_stream_data(In, Out)),
   call_on_uri(EFile, {Out}/[In,Meta,Meta]>>copy_stream_data(In, Out)),
-  format(Out, "]\n"),
+  format(Out, "]\n", []),
   concurrent_maplist(delete_file, [NFile,EFile]).
 
 sort_file(File) :-
-  run_process(sort, ['-o',file(File),file(File)], [env(['LC_ALL'='C'])]).
+  run_process(sort, ['-u','-o',file(File),file(File)], [env(['LC_ALL'='C'])]).
 
 gml_triples(NOut, NPrinter_2, EOut, EPrinter_2, Tuples, _) :-
   maplist(gml_triple(NOut, NPrinter_2, EOut, EPrinter_2), Tuples).
 
-gml_triple(NOut, NPrinter_2, EOut, EPrinter_2, rdf(S,P,O)) :-
+gml_triple(NOut, NPrinter_2, EOut, EPrinter_2, Tuple1) :-
+  rdf_clean_tuple(Tuple1, Tuple2),
+  rdf_tuple_triple(Tuple2, rdf(S,P,O)),
   maplist(gml_node(NOut, NPrinter_2), [S,O], [NId1,NId2]),
   gml_label(EPrinter_2, P, ELabel),
   format(EOut, "  edge [ label \"~s\" source ~a target ~a ]\n",
