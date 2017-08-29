@@ -42,8 +42,6 @@
     rdf_current_prefix/1,            % +Prefix
     rdf_deref_quad/2,                % +Uri, -Quad
     rdf_deref_quad/3,                % +Uri, -Quad, +Options
-    rdf_deref_quads/2,               % +Uri, -Quads
-    rdf_deref_quads/3,               % +Uri, -Quads, +Options
     rdf_deref_triple/2,              % +Uri, -Triple
     rdf_deref_triple/3,              % +Uri, -Triple, +Options
     rdf_endpoint_init/1,             % +Dict
@@ -489,8 +487,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_chk_lexical_form(+, r, r, -, r),
    rdf_deref_quad(r, t),
    rdf_deref_quad(r, t, +),
-   rdf_deref_quads(r, -),
-   rdf_deref_quads(r, -, +),
    rdf_deref_triple(r, t),
    rdf_deref_triple(r, t, +),
    rdf_estimate(+, r, r, o, -),
@@ -1294,38 +1290,22 @@ rdf_current_prefix(Prefix) :-
 
 
 
-%! rdf_deref_quad(+Uri, -Quad) is nondet.
-%! rdf_deref_quad(+Uri, -Quad, +Options) is nondet.
+%! rdf_deref_quad(+UriSpec:compound, -Quad:compound) is nondet.
+%! rdf_deref_quad(+UriSpec:compound, -Quad:compound,
+%!                +Options:list(compound)) is nondet.
 
-rdf_deref_quad(Uri, Quad) :-
-  rdf_deref_quad(Uri, Quad, []).
-
-
-rdf_deref_quad(Uri, Quad, Options) :-
-  rdf_deref_quads(Uri, Quads, Options),
-  member(Quad, Quads).
+rdf_deref_quad(UriSpec, Quad) :-
+  rdf_deref_quad(UriSpec, Quad, []).
 
 
+rdf_deref_quad(UriSpec, Quad, Options) :-
+  call_on_rdf(UriSpec, rdf_deref_quad_, Options),
+  nb_getval(quad, Quad).
 
-%! rdf_deref_quads(+UriSpec:term, -Quads:list(compound)) is nondet.
-%! rdf_deref_quads(+UriSpec:term, -Quads:list(compound),
-%!                 +Options:list(compound)) is nondet.
-%
-% Options are passed to call_on_rdf/3.
-
-rdf_deref_quads(UriSpec, Quads) :-
-  rdf_deref_quads(UriSpec, Quads, []).
-
-
-rdf_deref_quads(UriSpec, Quads, Options) :-
-  empty_nb_set(Set),
-  call_on_rdf(UriSpec, rdf_deref_quads_(Set), Options),
-  nb_set_to_list(Set, Quads).
-
-rdf_deref_quads_(Set, Tuples, G) :-
-  maplist({G}/[Tuple,Quad]>>rdf_tuple_quad(Tuple, G, Quad), Tuples, Quads1),
-  convlist(rdf_clean_quad, Quads1, Quads2),
-  maplist({Set}/[Quad]>>add_nb_set(Quad, Set), Quads2).
+rdf_deref_quad_(Tuples, _) :-
+  member(Tuple, Tuples),
+  rdf_clean_tuple(Tuple, Quad),
+  nb_setval(quad, Quad).
 
 
 
