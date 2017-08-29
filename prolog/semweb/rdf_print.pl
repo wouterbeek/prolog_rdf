@@ -23,6 +23,8 @@
     rdf_dcg_lexical_form//2, % +Lex, +Options
     rdf_dcg_literal//1,      % +Lit
     rdf_dcg_literal//2,      % +Lit, +Options
+    rdf_dcg_node//1,         % +Node
+    rdf_dcg_node//2,         % +Node, +Options
     rdf_dcg_object//1,       % +O
     rdf_dcg_object//2,       % +O, +Options
     rdf_dcg_options/2,       % +Options1, -Options2
@@ -84,6 +86,8 @@
    rdf_dcg_iri(r, +, ?, ?),
    rdf_dcg_literal(o, ?, ?),
    rdf_dcg_literal(o, +, ?, ?),
+   rdf_dcg_node(o, ?, ?),
+   rdf_dcg_node(o, +, ?, ?),
    rdf_dcg_object(o, ?, ?),
    rdf_dcg_object(o, +, ?, ?),
    rdf_dcg_predicate(o, ?, ?),
@@ -302,6 +306,19 @@ rdf_dcg_literal(V@LTag, Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   rdf_dcg_language_tag(LTag, Options).
+
+
+
+%! rdf_dcg_node(+Node)// is det.
+%! rdf_dcg_node(+Node, +Options)// is det.
+
+rdf_dcg_node(Node) -->
+  {rdf_dcg_options(Options)},
+  rdf_dcg_node(Node, Options).
+
+
+rdf_dcg_node(Node, Options) -->
+  rdf_dcg_term(Node, Options).
 
 
 
