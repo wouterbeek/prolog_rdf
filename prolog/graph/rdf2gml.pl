@@ -106,9 +106,6 @@ write_(NFile, EFile, Out, Meta, Meta) :-
   format(Out, "]\n", []),
   concurrent_maplist(delete_file, [NFile,EFile]).
 
-sort_file(File) :-
-  run_process(sort, ['-u','-o',file(File),file(File)], [env(['LC_ALL'='C'])]).
-
 gml_triples(NOut, NPrinter_2, EOut, EPrinter_2, Tuples, _) :-
   maplist(gml_triple(NOut, NPrinter_2, EOut, EPrinter_2), Tuples).
 
