@@ -1299,13 +1299,11 @@ rdf_deref_quad(UriSpec, Quad) :-
 
 
 rdf_deref_quad(UriSpec, Quad, Options) :-
-  call_on_rdf(UriSpec, rdf_deref_quad_, Options),
-  nb_getval(quad, Quad).
+  call_on_rdf(UriSpec, rdf_deref_quad_(Quad), Options).
 
-rdf_deref_quad_(Tuples, _) :-
+rdf_deref_quad_(Quad, Tuples, _) :-
   member(Tuple, Tuples),
-  rdf_clean_tuple(Tuple, Quad),
-  nb_setval(quad, Quad).
+  rdf_clean_tuple(Tuple, Quad).
 
 
 

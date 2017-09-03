@@ -11,7 +11,7 @@ Parses a SPARQL query string into the corresponding algebraic
 expression.
 
 @author Wouter Beek
-@version 2017/05, 2017/08
+@version 2017/05, 2017/08-2017/09
 */
 
 :- use_module(library(apply)).
@@ -98,17 +98,17 @@ sparql_parse0(State, Form, Algebra, In, Out) :-
 %
 % @compat SPARQL 1.1 Query, Section 19.2.
 
-replace_codepoint_escape_sequences, [C] -->
-  codepoint_escape_sequence(C), !,
+replace_codepoint_escape_sequences, [Code] -->
+  codepoint_escape_sequence(Code), !,
   replace_codepoint_escape_sequences.
-replace_codepoint_escape_sequences, [C] -->
-  [C], !,
+replace_codepoint_escape_sequences, [Code] -->
+  [Code], !,
   replace_codepoint_escape_sequences.
 replace_codepoint_escape_sequences --> "".
 
 
 
-%! codepoint_escape_sequence(-C)// .
+%! codepoint_escape_sequence(-Code:code)// .
 %
 % SPARQL alows the following two ways of escaping Unicode codes:
 %
@@ -126,18 +126,18 @@ replace_codepoint_escape_sequences --> "".
 % A Unicode code point in the range U+0 to U+10FFFF inclusive
 % corresponding to the encoded hexadecimal value.
 
-codepoint_escape_sequence(C) -->
+codepoint_escape_sequence(Code) -->
   "\\u", !,
   (   xdigit(D1), xdigit(D2), xdigit(D3), xdigit(D4)
-  ->  {C is D1<<12 + D2<<8 + D3<<4 + D4}
-  ;   {type_error(codepoint_escape_Sequence, C)}
+  ->  {Code is D1<<12 + D2<<8 + D3<<4 + D4}
+  ;   {type_error(codepoint_escape_Sequence, Code)}
   ).
-codepoint_escape_sequence(C) -->
+codepoint_escape_sequence(Code) -->
   "\\U",
   (   xdigit(D1), xdigit(D2), xdigit(D3), xdigit(D4),
       xdigit(D5), xdigit(D6), xdigit(D7), xdigit(D8)
-  ->  {C is D1<<28 + D2<<24 + D3<<20 + D4<<16 + D5<<12 + D6<<8 + D7<<4 + D8}
-  ;   {type_error(codepoint_escape_Sequence, C)}
+  ->  {Code is D1<<28 + D2<<24 + D3<<20 + D4<<16 + D5<<12 + D6<<8 + D7<<4 + D8}
+  ;   {type_error(codepoint_escape_Sequence, Code)}
   ).
 
 
@@ -1594,16 +1594,16 @@ iriOrFunction(State, Function) -->
 % ```
 
 'NumericLiteralNegative'(Lit) -->
-  'INTEGER_NEGATIVE'(Val), !,
-  {rdf_global_object(Val^^xsd:integer, Lit)},
+  'INTEGER_NEGATIVE'(N), !,
+  {rdf_global_object(N^^xsd:integer, Lit)},
   skip_ws.
 'NumericLiteralNegative'(Lit) -->
-  'DECIMAL_NEGATIVE'(Val), !,
-  {rdf_global_object(Val^^xsd:decimal, Lit)},
+  'DECIMAL_NEGATIVE'(N), !,
+  {rdf_global_object(N^^xsd:decimal, Lit)},
   skip_ws.
 'NumericLiteralNegative'(Lit) -->
-  'DOUBLE_NEGATIVE'(Val),
-  {rdf_global_object(Val^^xsd:double, Lit)},
+  'DOUBLE_NEGATIVE'(N),
+  {rdf_global_object(N^^xsd:double, Lit)},
   skip_ws.
 
 
@@ -1617,16 +1617,16 @@ iriOrFunction(State, Function) -->
 % ```
 
 'NumericLiteralPositive'(Lit) -->
-  'INTEGER_POSITIVE'(Val), !,
-  {rdf_global_object(Val^^xsd:integer, Lit)},
+  'INTEGER_POSITIVE'(N), !,
+  {rdf_global_object(N^^xsd:integer, Lit)},
   skip_ws.
 'NumericLiteralPositive'(Lit) -->
-  'DECIMAL_POSITIVE'(Val), !,
-  {rdf_global_object(Val^^xsd:decimal, Lit)},
+  'DECIMAL_POSITIVE'(N), !,
+  {rdf_global_object(N^^xsd:decimal, Lit)},
   skip_ws.
 'NumericLiteralPositive'(Lit) -->
-  'DOUBLE_POSITIVE'(Val),
-  {rdf_global_object(Val^^xsd:double, Lit)},
+  'DOUBLE_POSITIVE'(N),
+  {rdf_global_object(N^^xsd:double, Lit)},
   skip_ws.
 
 
@@ -1638,16 +1638,16 @@ iriOrFunction(State, Function) -->
 % ```
 
 'NumericLiteralUnsigned'(Lit) -->
-  'INTEGER'(Val), !,
-  {rdf_global_object(Val^^xsd:integer, Lit)},
+  'INTEGER'(N), !,
+  {rdf_global_object(N^^xsd:integer, Lit)},
   skip_ws.
 'NumericLiteralUnsigned'(Lit) -->
-  'DECIMAL'(Val), !,
-  {rdf_global_object(Val^^xsd:decimal, Lit)},
+  'DECIMAL'(N), !,
+  {rdf_global_object(N^^xsd:decimal, Lit)},
   skip_ws.
 'NumericLiteralUnsigned'(Lit) -->
-  'DOUBLE'(Val),
-  {rdf_global_object(Val^^xsd:double, Lit)},
+  'DOUBLE'(N),
+  {rdf_global_object(N^^xsd:double, Lit)},
   skip_ws.
 
 
@@ -3070,7 +3070,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'DECIMAL'(-Val)// .
+%! 'DECIMAL'(-N)// .
 %
 % ```ebnf
 % [147] DECIMAL ::= [0-9]* '.' [0-9]+
@@ -3087,7 +3087,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'DECIMAL_NEGATIVE'(-Val)// .
+%! 'DECIMAL_NEGATIVE'(-N)// .
 %
 % ```ebnf
 % [153] DECIMAL_NEGATIVE ::= '-' DECIMAL
@@ -3102,7 +3102,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'DECIMAL_POSITIVE'(-Val)// .
+%! 'DECIMAL_POSITIVE'(-N)// .
 %
 % ```ebnf
 % [150] DECIMAL_POSITIVE ::= '+' DECIMAL
@@ -3114,7 +3114,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'DOUBLE'(-Val)// .
+%! 'DOUBLE'(-N:double)// .
 %
 % ```ebnf
 % [148] DOUBLE ::= [0-9]+ '.' [0-9]* EXPONENT
@@ -3140,7 +3140,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'DOUBLE_NEGATIVE'(-Val)// .
+%! 'DOUBLE_NEGATIVE'(-N:double)// .
 %
 % ```ebnf
 % [154] DOUBLE_NEGATIVE ::= '-' DOUBLE
@@ -3155,7 +3155,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'DOUBLE_POSITIVE'(-Val)// .
+%! 'DOUBLE_POSITIVE'(-N:double)// .
 %
 % ```ebnf
 % [151] DOUBLE_POSITIVE ::= '+' DOUBLE
@@ -3167,7 +3167,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'ECHAR'(-C)// .
+%! 'ECHAR'(-Code:code)// .
 %
 %  Escaped sequences in strings.
 %
@@ -3175,9 +3175,9 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 % [160] ECHAR ::= '\' [tbnrf\"']
 % ```
 
-'ECHAR'(C) -->
+'ECHAR'(Code) -->
   "\\",
-  'ECHAR_'(C).
+  'ECHAR_'(Code).
 
 'ECHAR_'(0'\t) --> "t".
 'ECHAR_'(0'\b) --> "b".
@@ -3190,7 +3190,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'EXPONENT'(-Codes)// .
+%! 'EXPONENT'(-Codes:list(code))// .
 %
 % Floating point exponent.
 %
@@ -3212,7 +3212,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'INTEGER'(-Val)// .
+%! 'INTEGER'(-Value:integer)// .
 %
 % ```ebnf
 % [146] INTEGER ::= [0-9]+
@@ -3227,7 +3227,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'INTEGER_NEGATIVE'(-Val)// .
+%! 'INTEGER_NEGATIVE'(-Value:negative_integer)// .
 %
 % ```ebnf
 % [152] INTEGER_NEGATIVE ::= '-' INTEGER
@@ -3242,7 +3242,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'INTEGER_POSITIVE'(-Val)// .
+%! 'INTEGER_POSITIVE'(-Value:positive_integer)// .
 %
 % ```ebnf
 % [149] INTEGER_POSITIVE ::= '+' INTEGER
@@ -3254,7 +3254,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'IRIREF'(+State, -Iri)// is det.
+%! 'IRIREF'(+State, -Iri:atom)// is det.
 %
 % ```ebnf
 % [139] IRIREF ::= '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
@@ -3286,13 +3286,13 @@ iri_codes([H|T]) -->
   iri_code(H),
   iri_codes(T).
 
-iri_code(C) -->
-  [C],
-  {is_legal_iri_code(C)}.
+iri_code(Code) -->
+  [Code],
+  {is_legal_iri_code(Code)}.
 
-is_legal_iri_code(C) :-
-  illegal_iri_code(C), !,
-  char_code(Char, C),
+is_legal_iri_code(Code) :-
+  illegal_iri_code(Code), !,
+  char_code(Char, Code),
   syntax_error(illegal_iri_code(Char)).
 is_legal_iri_code(_).
 
@@ -3304,12 +3304,12 @@ illegal_iri_code(0'|).
 illegal_iri_code(0'^).
 illegal_iri_code(0'`).
 illegal_iri_code(0'\\).
-illegal_iri_code(C) :-
-  between(0x00, 0x20, C).
+illegal_iri_code(Code) :-
+  between(0x00, 0x20, Code).
 
 
 
-%! 'LANGTAG'(-LTag)// .
+%! 'LANGTAG'(-LTag:atom)// .
 %
 %  Return language tag (without leading @)
 %
@@ -3331,7 +3331,7 @@ illegal_iri_code(C) :-
 
 
 
-%! 'NIL'(-Iri)// .
+%! 'NIL'(-Iri:atom)// .
 %
 % End-of-collection (rdf:nil)
 %
@@ -3347,7 +3347,7 @@ illegal_iri_code(C) :-
 
 
 
-%! 'PERCENT'(-Codes, -T)// .
+%! 'PERCENT'(-Codes:list(code), -T)// .
 %
 % ```ebnf
 % [171] PERCENT ::= '%' HEX HEX
@@ -3359,7 +3359,7 @@ illegal_iri_code(C) :-
 
 
 
-%! 'PLX'(-Codes, -T)// .
+%! 'PLX'(-Codes:list(code), -T)// .
 %
 % ```ebnf
 % [170] PLX ::= PERCENT | PN_LOCAL_ESC
@@ -3370,7 +3370,7 @@ illegal_iri_code(C) :-
 
 
 
-%! 'PN_CHARS'(-C)// .
+%! 'PN_CHARS'(?Code:code)// .
 %
 % ```ebnf
 % [167] PN_CHARS ::= PN_CHARS_U
@@ -3381,12 +3381,12 @@ illegal_iri_code(C) :-
 %                  | [#x203F-#x2040]
 % ```
 
-'PN_CHARS'(C) --> 'VARNAME_2'(C).
+'PN_CHARS'(Code) --> 'VARNAME_2'(Code).
 'PN_CHARS'(0'-) --> "-".
 
 
 
-%! 'PN_CHARS_BASE'(-C)// .
+%! 'PN_CHARS_BASE'(?Code:code)// .
 %
 %  Basic identifier characters
 %
@@ -3407,34 +3407,30 @@ illegal_iri_code(C) :-
 %                       | [#x10000-#xEFFFF]
 % ```
 
-'PN_CHARS_BASE'(C) -->
-  [C],
-  {'PN_CHARS_BASE_'(C)}, !.
-
-'PN_CHARS_BASE_'(C) :- between(0'A, 0'Z, C).
-'PN_CHARS_BASE_'(C) :- between(0'a, 0'z, C).
-'PN_CHARS_BASE_'(C) :- between(0x00C0, 0x00D6, C).
-'PN_CHARS_BASE_'(C) :- between(0x00D8, 0x00F6, C).
-'PN_CHARS_BASE_'(C) :- between(0x00F8, 0x02FF, C).
-'PN_CHARS_BASE_'(C) :- between(0x0370, 0x037D, C).
-'PN_CHARS_BASE_'(C) :- between(0x037F, 0x1FFF, C).
-'PN_CHARS_BASE_'(C) :- between(0x200C, 0x200D, C).
-'PN_CHARS_BASE_'(C) :- between(0x2070, 0x218F, C).
-'PN_CHARS_BASE_'(C) :- between(0x2C00, 0x2FEF, C).
-'PN_CHARS_BASE_'(C) :- between(0x3001, 0xD7FF, C).
-'PN_CHARS_BASE_'(C) :- between(0xF900, 0xFDCF, C).
-'PN_CHARS_BASE_'(C) :- between(0xFDF0, 0xFFFD, C).
-'PN_CHARS_BASE_'(C) :- between(0x10000, 0xEFFFF, C).
+'PN_CHARS_BASE'(Code) --> dcg_between(0'A, 0'Z, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0'a, 0'z, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x00C0, 0x00D6, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x00D8, 0x00F6, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x00F8, 0x02FF, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x0370, 0x037D, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x037F, 0x1FFF, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x200C, 0x200D, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x2070, 0x218F, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x2C00, 0x2FEF, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x3001, 0xD7FF, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0xF900, 0xFDCF, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0xFDF0, 0xFFFD, Code).
+'PN_CHARS_BASE'(Code) --> dcg_between(0x10000, 0xEFFFF, Code).
 
 
 
-%! 'PN_CHARS_U'(-C)// .
+%! 'PN_CHARS_U'(?Code:code)// .
 %
 % ```ebnf
 % [165] PN_CHARS_U ::= PN_CHARS_BASE | '_'
 % ```
 
-'PN_CHARS_U'(C) --> 'PN_CHARS_BASE'(C).
+'PN_CHARS_U'(Code) --> 'PN_CHARS_BASE'(Code).
 'PN_CHARS_U'(0'_) --> "_".
 
 
@@ -3492,7 +3488,7 @@ illegal_iri_code(C) :-
 
 
 
-%! 'PN_LOCAL_ESC'(-Codes, -T)// .
+%! 'PN_LOCAL_ESC'(-Codes:list(code), -T)// .
 %
 % ```ebnf
 % [173] PN_LOCAL_ESC ::= '\'
@@ -3704,23 +3700,18 @@ illegal_iri_code(C) :-
     nb_set_dict(variable_map, State, VariableMap2)
   }.
 
-'VARNAME_1'(C) -->
-  'PN_CHARS_U'(C), !.
-'VARNAME_1'(C) -->
-  digit(C).
+'VARNAME_1'(Code) --> 'PN_CHARS_U'(Code).
+'VARNAME_1'(Code) --> digit(Code).
 
 'VARNAME_2s'([H|T]) -->
   'VARNAME_2'(H), !,
   'VARNAME_2s'(T).
 'VARNAME_2s'([]) --> "".
 
-'VARNAME_2'(C) -->
-  'VARNAME_1'(C), !.
-'VARNAME_2'(0x00B7) -->
-  [0x00B7], !.
-'VARNAME_2'(C) -->
-  [C],
-  {(between(0x0300, 0x036F, C) ; between(0x203F, 0x2040, C))}.
+'VARNAME_2'(Code) --> 'VARNAME_1'(Code).
+'VARNAME_2'(0x00B7) --> [0x00B7].
+'VARNAME_2'(Code) --> dcg_between(0x0300, 0x036F, Code).
+'VARNAME_2'(Code) --> dcg_between(0x203F, 0x2040, Code).
 
 
 
@@ -3895,7 +3886,7 @@ algebra_to_vars([_|T], Vars1, Vars2) :-
 
 
 
-%! keyword(?Str)// .
+%! keyword(?Keyword:string)// .
 %
 % If Keyword is a ground string, then check wheter it occurs modulo
 % case.
@@ -3903,35 +3894,32 @@ algebra_to_vars([_|T], Vars1, Vars2) :-
 % If Keyword is uninstantated, then instantiate it to the next
 % keyword, converted to lowercase.
 
-keyword(Str) -->
-  ({ground(Str)} -> keyword_ground(Str) ; keyword_var(Str)),
+keyword(Keyword) -->
+  ({ground(Keyword)} -> keyword_ground(Keyword) ; keyword_var(Keyword)),
   skip_ws.
 
 keyword_ground([H|T]) -->
-  keyword_char(C),
-  {code_type(H, to_lower(C))},
+  keyword_char(Code),
+  {code_type(H, to_lower(Code))},
   keyword_ground(T).
 keyword_ground([]) -->
   (keyword_char(_) -> !, {fail} ; "").
 
-keyword_var(A) -->
+keyword_var(Keyword3) -->
   +(keyword_char, Codes),
   {
-    string_codes(Str0, Codes),
-    string_lower(Str0, Str),
-    atom_string(A, Str)
+    string_codes(Keyword1, Codes),
+    string_lower(Keyword1, Keyword2),
+    atom_string(Keyword3, Keyword2)
   }.
 
-keyword_char(C) -->
-  alpha(C), !.
-keyword_char(C) -->
-  digit(C), !.
-keyword_char(0'_) -->
-  "_".
+keyword_char(Code) --> alpha(Code).
+keyword_char(Code) --> digit(Code).
+keyword_char(0'_) --> "_".
 
 
 
-%! merge(A, B, C) is semidet.
+%! merge(A:list, B:list, C:list) is semidet.
 %
 % Merge two solution mappings.
 %
@@ -3951,10 +3939,10 @@ merge([Var1-Term1|T1], [Var2-Term2|T2], [Var2-Term2|T3]) :-
 
 
 
-%! must_see_code(+C)// is det.
+%! must_see_code(+Code:code)// is det.
 
-must_see_code(C) -->
-  must_see_code(C, skip_ws).
+must_see_code(Code) -->
+  must_see_code(Code, skip_ws).
 
 
 

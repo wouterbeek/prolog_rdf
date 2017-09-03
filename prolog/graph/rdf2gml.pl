@@ -136,9 +136,15 @@ gml_label(Printer_2, Term, Label) :-
   string_codes(Label, Codes2).
 
 % ASCII
+% ASCII characters, excluding double quote (34) and ampersand (38).
 gml_encode_label, [Code] -->
-  [Code],
-  {gml_unencoded(Code)}, !,
+  dcg_between(0,  33,  Code),
+  gml_encode_label.
+gml_encode_label, [Code] -->
+  dcg_between(35, 37,  Code),
+  gml_encode_label.
+gml_encode_label, [Code] -->
+  dcg_between(39, 127, Code),
   gml_encode_label.
 % &-encoding
 gml_encode_label, Escape -->
@@ -146,11 +152,3 @@ gml_encode_label, Escape -->
   {format(codes(Escape), "&#~d", [Code])},
   gml_encode_label.
 gml_encode_label --> [].
-
-% ASCII characters, excluding double quote (34) and ampersand (38).
-gml_unencoded(Code) :-
-  between(0,  33,  Code), !.
-gml_unencoded(Code) :-
-  between(35, 37,  Code), !.
-gml_unencoded(Code) :-
-  between(39, 127, Code).
