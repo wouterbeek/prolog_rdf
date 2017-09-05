@@ -1647,12 +1647,8 @@ rdf_node(trp, Node) :-
 
 rdf_node(hdt, Node, G) :-
   hdt_call_on_graph(G, rdf_node(hdt0, Node)).
-rdf_node(hdt0, S, Hdt) :-
-  rdf_subject(hdt0, S, Hdt).
-rdf_node(hdt0, O, Hdt) :-
-  rdf_object(hdt0, O, Hdt),
-  % Make sure there are no duplicates.
-  \+ rdf_subject(hdt, O, Hdt).
+rdf_node(hdt0, Node, Hdt) :-
+  hdt_node(hdt0, Node, Hdt).
 rdf_node(trp, S, G) :-
   rdf_subject(trp, S, G).
 rdf_node(trp, O, G) :-
