@@ -150,7 +150,7 @@ path_segments(Path, Segments, G) :-
     rdf_list_member(trp, Path, Segment, G),
     Segments
   ), !.
-path_segments(Segment, [Segment]).
+path_segments(Segment, [Segment], _).
 
 segments_sequence(Segments1, Sequence) :-
   maplist(graphviz_iri, Segments1, Segments2),
