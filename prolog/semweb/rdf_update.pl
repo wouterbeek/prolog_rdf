@@ -2,6 +2,8 @@
   rdf_update,
   [
     rdf_call_update/2,        % :Find_0, Transform_0
+    rdf_update/4,             % ?S, ?P, ?O, +Action
+    rdf_update/5,             % ?S, ?P, ?O, ?G, +Action
     rdf_update_language_tag/3 % +P, +LTag, +G
   ]
 ).
@@ -9,7 +11,7 @@
 /** <module> RDF update
 
 @author Wouter Beek
-@version 2017/08
+@version 2017/08-2017/09
 */
 
 :- use_module(library(dict_ext)).
@@ -21,6 +23,8 @@
 
 :- rdf_meta
    rdf_call_update(t, t),
+   rdf_update(r, r, o, +),
+   rdf_update(r, r, o, r, +),
    rdf_update_language_tag(r, +, r).
 
 
@@ -54,6 +58,21 @@ rdf_call_update(Find_0, Transform_0, State) :-
   fail.
 rdf_call_update(Find_0, _, State) :-
   print_message(informational, rdf_update_succeed(State.count,Find_0)).
+
+
+
+%! rdf_update(?S, ?P, ?O, +Action) is det.
+%! rdf_update(?S, ?P, ?O, ?G, +Action) is det.
+
+rdf_update(S, P, O, Action) :-
+  rdf_update(S, P, O, _, Action).
+
+
+rdf_update(S, P, O, G, Action) :-
+  forall(
+    rdf(S, P, O, G),
+    rdf11:rdf_update(S, P, O, G, Action)
+  ).
 
 
 
