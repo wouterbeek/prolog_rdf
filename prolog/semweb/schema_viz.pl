@@ -9,14 +9,14 @@
 /** <module> Schema visualization
 
 @author Wouter Beek
-@version 2017/08
+@version 2017/08-2017/09
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(file_ext)).
-:- use_module(library(graphviz)).
+:- use_module(library(graph/dot)).
 :- use_module(library(semweb/rdf_ext)).
 
 :- rdf_meta
