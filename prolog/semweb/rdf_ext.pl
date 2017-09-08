@@ -35,6 +35,7 @@
     rdf_cbd_triples/4,               % +M, ?Node, ?G, -Triples
     rdf_chk/5,                       % +M, ?S, ?P, ?O, ?G
     rdf_chk_lexical_form/5,          % +M, ?S, ?P, -Lex, ?G
+    rdf_clean_quad/2,                % +Quad1, -Quad2
     rdf_clean_tuple/2,               % +Tuple, -Quad
     rdf_create_bnode_iri/1,          % -BNode
     rdf_create_iri/3,                % +Prefix, +Path, -Iri
@@ -95,7 +96,8 @@
     rdf_root/3,                      % +M, ?Root, ?G
     rdf_save/1,                      % +FileSpec
     rdf_save/2,                      % +Type, +FileSpec
-    rdf_save/3,                      % +Type, +FileSpec, +Options
+    rdf_save/3,                      % +Type, +FileSpec, +G
+    rdf_save/4,                      % +Type, +FileSpec, +G, +Options
     rdf_save/6,                      % +Type, +FileSpec, ?S, ?P, ?O, ?G
     rdf_save/7,                      % +Type, +FileSpec, ?S, ?P, ?O, ?G, +Options
     rdf_scbd_quad/3,                 % +M, +Node,     -Quad
