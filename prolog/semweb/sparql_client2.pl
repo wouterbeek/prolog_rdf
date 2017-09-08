@@ -125,7 +125,7 @@ sparql_client(Uri1, Query, Result, Options1) :-
   select_option(named_graphs(NamedGraphs), Options4, Options5, []),
   (   Type == query
   ->  select_option(result_set_format(Format), Options5, Options6, xml),
-      result_set_media_type(Format, MediaType),
+      result_set_media_type(Format, ReplyMediaType),
       maplist(
         graph_option('default-graph-uri'),
         DefaultGraphs,
@@ -156,16 +156,16 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ;   % Query via URL-encoded POST
           Method == url_encoded_post
       ->  uri_query_components(QueryComps, [query(Query)|GraphsQuery]),
-          MediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
+          RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
           merge_options(
-            [post(string(MediaType,QueryComps))],
+            [post(string(RequestMediaType,QueryComps))],
             Options6,
             Options7
           ),
           Uri2 = Uri1
       )
   ;   Type == update
-  ->  MediaType = '*/*; charset=UTF-8',
+  ->  ReplyMediaType = '*/*; charset=UTF-8',
       maplist(
         graph_option('using-graph-uri'),
         DefaultGraphs,
@@ -181,24 +181,24 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
           append(QueryComps1, GraphsQuery, QueryComps2),
           uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps2,_)),
-          MediaType = 'application/sparql-update; charset=UTF-8',
-          merge_options([post(string(MediaType,Query))], Options5, Options7)
+          RequestMediaType = 'application/sparql-update; charset=UTF-8',
+          merge_options([post(string(RequestMediaType,Query))], Options5, Options7)
       ;   Method == url_encoded_post
       ->  uri_query_components(QueryComps, [update(Query)|GraphsQuery]),
-          MediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
+          RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
           merge_options(
-            [post(string(MediaType,QueryComps))],
+            [post(string(RequestMediaType,QueryComps))],
             Options5,
             Options7
           ),
           Uri2 = Uri1
       )
   ),
-  merge_options([request_header('Accept'=MediaType)], Options7, Options8),
+  merge_options([request_header('Accept'=ReplyMediaType)], Options7, Options8),
   call_on_uri(Uri2, sparql_client_results(Result), Options8).
 
 %! result_set_media_type(+Format:oneof([csv,json,tsv,xml]),
-%!                        -MediaType:atom) is det.
+%!                        -ReplyMediaType:atom) is det.
 
 result_set_media_type(csv, 'text/csv; charset=UTF-8').
 result_set_media_type(json, 'application/sparql-results+json').
@@ -222,13 +222,13 @@ sparql_client_results(_, In, Metadata, Metadata) :-
   throw(error(http_error_code(Status))),
   copy_stream_data(In, error_output).
 sparql_client_results(Result, In, Metadata, Metadata) :-
-  metadata_content_type(Metadata, MediaType),
+  metadata_content_type(Metadata, ReplyMediaType),
   call_cleanup(
-    sparql_client_results(MediaType, In, Result),
+    sparql_client_results(ReplyMediaType, In, Result),
     close(In)
   ).
 
-%! sparql_client_results(+MediaType:compound, +In:stream,
+%! sparql_client_results(+ReplyMediaType:compound, +In:stream,
 %!                       -Result:compound) is nondet.
 
 sparql_client_results(media(text/csv,_), In, Result) :-
@@ -239,8 +239,8 @@ sparql_client_results(media(text/'tab-separated-values',_), In, Result) :-
   sparql_result_tsv(In, Result).
 sparql_client_results(media(application/'sparql-results+xml',_), In, Result) :-
   sparql_result_xml(In, Result).
-sparql_client_results(MediaType, _, _) :-
-  domain_error(sparql_media_type, MediaType).
+sparql_client_results(ReplyMediaType, _, _) :-
+  domain_error(sparql_media_type, ReplyMediaType).
 
 
 
