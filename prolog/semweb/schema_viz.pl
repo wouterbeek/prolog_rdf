@@ -55,10 +55,10 @@ viz_class(Out, G, Class1) :-
     Values
   ),
   Values \== [], !,
-  graphviz_hash(Class1, NodeId),
+  dot_hash(Class1, NodeId),
   format(Out, '  ~a [label=<<TABLE>\n', [NodeId]),
   debug(gv, '  ~a [label=<<TABLE>', [NodeId]),
-  graphviz_iri(Class1, Class2),
+  dot_iri(Class1, Class2),
   format(Out, '    <TR><TD><B>~a</B></TD></TR>\n', [Class2]),
   debug(gv, '    <TR><TD><B>~a</B></TD></TR>', [Class2]),
   forall(
@@ -77,16 +77,16 @@ viz_class(Out, G, Class) :-
   viz_class_bottom(Out).
 
 viz_class_top(Out, Class1) :-
-  graphviz_hash(Class1, ClassId),
+  dot_hash(Class1, ClassId),
   format(Out, '  ~a [label=<<TABLE>\n', [ClassId]),
   debug(gv, '  ~a [label=<<TABLE>', [ClassId]),
-  graphviz_iri(Class1, Class2),
+  dot_iri(Class1, Class2),
   format(Out, '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>\n', [Class2]),
   debug(gv, '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>', [Class2]).
 
 viz_class_pp(Out, Segments-Target1) :-
   segments_sequence(Segments, Sequence),
-  graphviz_iri(Target1, Target2),
+  dot_iri(Target1, Target2),
   format(Out, '    <TR><TD>~a</TD><TD>~a</TD></TR>\n', [Sequence,Target2]),
   debug(gv, '    <TR><TD>~a</TD><TD>~a</TD></TR>', [Sequence,Target2]).
 
@@ -95,12 +95,12 @@ viz_class_bottom(Out) :-
   debug(gv, '  </TABLE>>,shape="node"];', []).
 
 viz_edge(Out, edge(Class1,⊆,Class2)) :- !,
-  maplist(graphviz_hash, [Class1,Class2], [NodeId1,NodeId2]),
+  maplist(dot_hash, [Class1,Class2], [NodeId1,NodeId2]),
   format(Out, '  ~a -> ~a [arrowHead="empty"];\n', [NodeId1,NodeId2]),
   debug(gv, '  ~a -> ~a [arrowHead="empty"];', [NodeId1,NodeId2]).
 viz_edge(Out, edge(Class1,Segments,Class2)) :-
   segments_sequence(Segments, Sequence),
-  maplist(graphviz_hash, [Class1,Class2], [NodeId1,NodeId2]),
+  maplist(dot_hash, [Class1,Class2], [NodeId1,NodeId2]),
   format(Out, '  ~a -> ~a [label=<~a>];\n', [NodeId1,NodeId2,Sequence]),
   debug(gv, '  ~a -> ~a [label=<~a>];', [NodeId1,NodeId2,Sequence]).
 
@@ -139,10 +139,10 @@ edge(edge(Class1,Segments,Class2), G) :-
   path_segments(Path, Segments, G),
   rdf(trp, Property, sh:class, Class2, G).
 
-graphviz_iri(Iri, Label) :-
+dot_iri(Iri, Label) :-
   prefix_local_iri(Prefix, Local, Iri), !,
   atomic_list_concat([Prefix,Local], :, Label).
-graphviz_iri(Iri, Iri).
+dot_iri(Iri, Iri).
 
 path_segments(Path, Segments, G) :-
   aggregate_all(
@@ -153,7 +153,7 @@ path_segments(Path, Segments, G) :-
 path_segments(Segment, [Segment], _).
 
 segments_sequence(Segments1, Sequence) :-
-  maplist(graphviz_iri, Segments1, Segments2),
+  maplist(dot_iri, Segments1, Segments2),
   atomic_list_concat(Segments2, /, Sequence).
 
 
