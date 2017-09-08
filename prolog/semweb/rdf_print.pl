@@ -285,7 +285,7 @@ rdf_dcg_literal(V^^D, Options) -->
   rdf_dcg_lexical_form(Lex, Options).
 % Abbreviate XSD integers.
 rdf_dcg_literal(Val^^D, _) -->
-  {rdf_equal(xsd:integer, D)}, !,
+  {(rdf_equal(xsd:integer, D) ; rdf_equal(xsd:int, D))}, !,
   thousands(Val).
 % Abbreviate XSD decimals and doubles.
 rdf_dcg_literal(Val^^D, Options) -->
@@ -491,7 +491,7 @@ rdf_dcg_objects1(I, Os, Options) -->
 rdf_dcg_objects2(_, [], _) --> !, [].
 rdf_dcg_objects2(I, [O|Os], Options) -->
   nl,
-  dcg_once(#(I, tab)),
+  dcg_tab(I),
   rdf_dcg_object(O, Options),
   ({Os == []} -> "" ; " ,"),
   rdf_dcg_objects2(I, Os, Options).
