@@ -10,7 +10,6 @@
     hdt_init/0,
     hdt_init/1,                      % +FileSpec
     hdt_init/2,                      % +FileSpec, +G
-    hdt_warm_index/1,                % +FileSpec
     graph_file/2,                    % ?G, ?File
     prefix_local_iri/3,              % ?Prefix, ?Local, ?Iri
     rdf/5,                           % +M, ?S, ?P, ?O, ?G
@@ -150,7 +149,7 @@
 /** <module> RDF extensions
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/09
 */
 
 :- use_module(library(aggregate)).
@@ -883,17 +882,6 @@ hdt_init(FileSpec, G) :-
   hdt_open(Hdt, File),
   assert(hdt_graph(Hdt, G)),
   debug(hdt_graph, "Open HDT: ~a", [File]).
-
-
-
-%! hdt_warm_index(+FileSpec:term) is det.
-
-hdt_warm_index(FileSpec) :-
-  absolute_file_name(FileSpec, File, [access(read)]),
-  hdt_call_on_file(File, hdt_warm_index1).
-
-hdt_warm_index1(Hdt) :-
-  once(hdt:hdt_search(Hdt, _, _, _)).
 
 
 
@@ -2175,7 +2163,7 @@ rdf_to_hdt(UriSpec, FileSpec) :-
 
   % Create HDT index file.
   debug(semweb(rdf_to_hdt), "Creating HDT index…", []),
-  hdt_warm_index(File),
+  hdt_call_on_file(HdtFile, [Hdt]>>once(hdt(Hdt, _,_,_))),
   debug(semweb(rdf_to_hdt), "…HDT index created.", []).
   
 create_temporary_file1(File) :-
