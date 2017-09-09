@@ -1,7 +1,10 @@
 :- module(
   sparql_parser,
   [
-    sparql_parse/5 % +BaseIri, +Dataset, +Query, -State, -Algebra
+    sparql_form/2,           % +Query, -Form
+    sparql_is_query_form/1,  % ?Form
+    sparql_is_update_form/1, % ?Form
+    sparql_parse/5           % +BaseIri, +Dataset, +Query, -State, -Algebra
   ]
 ).
 
@@ -38,6 +41,32 @@ expression.
    'NumericLiteralUnsigned'(o, ?, ?).
 
 
+
+
+
+%! sparql_form(+Query:string,
+%!             -Form:oneof([ask,construct,describe,select])) is det.
+
+sparql_form(Query, Form) :-
+  sparql_parse('https://example.org/', dataset([],[]), Query, State, _),
+  _{form: Form} :< State.
+
+
+
+%! sparql_is_query_form(+Form:atom) is semidet.
+%! sparql_is_query_form(-Form:atom) is multi.
+
+sparql_is_query_form(ask).
+sparql_is_query_form(construct).
+sparql_is_query_form(describe).
+sparql_is_query_form(select).
+
+
+
+%! sparql_is_update_form(+Form:atom) is semidet.
+%! sparql_is_update_form(-Form:atom) is multi.
+
+sparql_is_update_form(dummy).
 
 
 
