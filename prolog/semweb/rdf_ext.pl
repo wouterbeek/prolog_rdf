@@ -58,6 +58,7 @@
     rdf_literal_language_tag/2,      % +Lit, -LTag
     rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?Val
+    rdf_load2/1,                     % +File
     rdf_name/2,                      % +M, ?Name
     rdf_name/3,                      % +M, ?Name, ?G
     rdf_node/2,                      % +M, ?Node
@@ -92,8 +93,6 @@
     rdf_scbd_triple/4,               % +M, +Node, ?G, -Triple
     rdf_scbd_triples/3,              % +M, ?Node,     -Triples
     rdf_scbd_triples/4,              % +M, ?Node, ?G, -Triples
-    rdf_snap/1,                      % :Goal_0
-    rdf_snap_clean/1,                % :Goal_0
     rdf_statistic/4,                 % +M, +Key, -Value, ?G
     rdf_subdatatype_of/2,            % ?Sub, ?Super
     rdf_subject/2,                   % +M, ?S
@@ -420,10 +419,7 @@ register_language_prefixes(Language) :-
 :- meta_predicate
     hdt_call_on_file(+, 1),
     hdt_call_on_graph(?, 1),
-    rdf_aggregate_all(+, 0, -),
-    rdf_snap(0),
-    rdf_snap_clean(0),
-    rdf_snap_clean_(0).
+    rdf_aggregate_all(+, 0, -).
 
 :- multifile
     file_ext:media_type_extension/2,
@@ -1350,6 +1346,23 @@ rdf_literal_value(Val@_, Val).
 
 
 
+%! rdf_load2(+File:atom) is det.
+%
+% Loads RDF based in the file extension of File.
+
+rdf_load2(File) :-
+  file_name_extension(_, Extension, File),
+  rdf_load_format_(Extension, Format),
+  rdf_load(File, [format(Format)]).
+
+rdf_load_format_(nq, nquads).
+rdf_load_format_(nt, ntriples).
+rdf_load_format_(rdf, xml).
+rdf_load_format_(ttl, turtle).
+rdf_load_format_(trig, trig).
+
+
+
 %! rdf_name(+M, ?Name) is nondet.
 %! rdf_name(+M, ?Name, ?G) is nondet.
 
@@ -1699,25 +1712,6 @@ rdf_scbd_triples(M, Node, Triples) :-
 rdf_scbd_triples(M, Node, G, Triples) :-
   rdf_term(M, Node, G),
   aggregate_all(set(Triple), rdf_scbd_triple(M, Node, G, Triple), Triples).
-
-
-
-%! rdf_snap(:Goal_0) is det.
-%! rdf_snap_clean(:Goal_0) is det.
-%
-% Call Goal_0 inside a snapshot of the RDF store.
-
-rdf_snap(Goal_0) :-
-  rdf_transaction(Goal_0, _, [snapshot(true)]).
-
-
-rdf_snap_clean(Goal_0) :-
-  rdf_snap(rdf_snap_clean_(Goal_0)).
-
-rdf_snap_clean_(Goal_0) :-
-  rdf_retractall,
-  Goal_0,
-  rdf_retractall.
 
 
 

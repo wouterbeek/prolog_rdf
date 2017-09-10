@@ -163,11 +163,13 @@ segments_sequence(Segments1, Sequence) :-
 schema_viz_file(File1) :-
   file_name_extension(Base, _, File1),
   file_name_extension(Base, svgz, File2),
-  call_to_file(File2, schema_viz_stream(File1)).
-
-schema_viz_stream(File, Out, Meta, Meta) :-
-  rdf_snap_clean((
-    rdf_load2(File),
-    schema_viz(svg, ProcOut),
-    copy_stream_data(ProcOut, Out)
-  )).
+  setup_call_cleanup(
+    gzopen(File2, write, Out),
+    rdf_transaction((
+        rdf_load2(File1),
+        schema_viz(svg, ProcOut),
+        copy_stream_data(ProcOut, Out)
+      ), _, [snapshot(true)]
+    ),
+    close(Out)
+  ).
