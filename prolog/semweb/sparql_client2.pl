@@ -253,17 +253,50 @@ sparql_client_file(Uri, File, Result, Options) :-
 
 %! sparql_result_csv(+In:stream, -Row:compound) is nondet.
 
-sparql_result_csv(In, Row) :-
+sparql_result_csv(In, select(VarNames,Terms)) :-
   csv_options(Options, []),
-  csv:csv_read_stream_row(In, Row, _Line, Options).
+  once(csv:csv_read_stream_row(In, HeaderRow, _, Options)),
+  HeaderRow =.. [row|VarNames],
+  csv:csv_read_stream_row(In, DataRow, _, Options),
+  DataRow =.. [row|Terms].
 
 
 
 %! sparql_result_tsv(+In:stream, -Row:compound) is nondet.
 
-sparql_result_tsv(In, Row) :-
+sparql_result_tsv(In, select(VarNames2,Terms2)) :-
   csv_options(Options, [separator(0'\t)]),
-  csv:csv_read_stream_row(In, Row, _Line, Options).
+  once(csv:csv_read_stream_row(In, HeaderRow, _, Options)),
+  HeaderRow =.. [row|VarNames1],
+  gtrace,
+  maplist(tsv_var_name, VarNames1, VarNames2),
+  csv:csv_read_stream_row(In, DataRow, _, Options),
+  DataRow =.. [row|Terms1],
+  maplist(tsv_term, Terms1, Terms2).
+
+tsv_var_name(row(VarName1), VarName2) :-
+  atom_concat(?, VarName2, VarName1).
+
+tsv_term(row(Atom), Term) :-
+  atom_phrase(tsv_term(Term), Atom).
+
+tsv_term(Iri) -->
+  "<", ...(Codes), ">", !,
+  {atom_codes(Iri, Codes)}.
+tsv_term(Literal) -->
+  "\"", ...(Codes), "\"", !,
+  {string_codes(Lex, Codes)},
+  (   "^^<"
+  ->  ...(Codes), ">", !,
+      {atom_codes(D, Codes)}
+  ;   "@"
+  ->  rest(Codes),
+      {atom_codes(LTag, Codes)}
+  ),
+  {rdf_literal(Literal, Lex, D, LTag)}.
+tsv_term(BNode) -->
+  rest(Codes),
+  {atom_codes(BNode, Codes)}.
 
 
 
@@ -306,6 +339,8 @@ sparql_result_json_term(Dict, Term) :-
   ;   _{type: bnode, value: Label} :< Dict
   ->   atom_concat('_:', Label, Term)
   ).
+
+
 
 
 
