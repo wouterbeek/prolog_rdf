@@ -118,6 +118,12 @@ sparql_client(Uri1, Query, Result, Options1) :-
   select_option(named_graphs(NamedGraphs), Options4, Options5, []),
   (   sparql_is_query_form(Form)
   ->  select_option(format(Format), Options5, Options6, xml),
+      (   Bugs == virtuoso,
+          Format == tsv
+      ->  print_message(warning, "Virtuoso does not emit valid TSV results."),
+          fail
+      ;   true
+      ),
       result_set_media_type(Format, Bugs, ReplyMediaType1),
       maplist(graph_option('default-graph-uri'), DefaultGraphs,
               DefaultGraphsQuery),
