@@ -217,8 +217,9 @@ graph_option(Key, Value, Option) :-
 %!                       -Result:compound) is nondet.
 
 sparql_client_results(Form, In, MediaType, Result) :-
-  (   MediaType = media(text/csv,_)
-  ->  sparql_result_csv(In, Result)
+  (   MediaType = media(text/csv,Params)
+  ->  (memberchk(header=Value, Params) -> assertion(Value=present) ; true),
+      sparql_result_csv(In, Result)
   ;   MediaType = media(application/'sparql-results+json',_)
   ->  sparql_result_json(Form, In, Result)
   ;   MediaType = media(text/'tab-separated-values',_)
