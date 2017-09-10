@@ -26,25 +26,25 @@ SPARQL 1.1 HTTP responses (result sets).
 @see https://www.w3.org/TR/2013/REC-sparql11-results-json-20130321/
 @see https://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
 @tbd Fix streamed JSON parser.
-@tbd Extract the order of the results set in the XML parsed (<head>).
-@version 2017/03-2017/08
+@tbd Extract the order of the results set in the XML parse (<head>).
+@version 2017/03-2017/09
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
-:- use_module(library(dcg/rfc7159)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(http/http_client2)).
+:- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pure_input)).
-:- use_module(library(readutil)).
 :- use_module(library(semweb/rdf_ext)).
-:- use_module(library(sgml)).
-:- use_module(library(stream_ext)).
+:- use_module(library(semweb/sparql_parser)).
 :- use_module(library(uri/uri_ext)).
+:- use_module(library(xml/xml_ext)).
 
 
 
@@ -92,6 +92,13 @@ select_result_pairs(Pairs1, [Key|Keys], [Value|Values]) :-
 %
 % @arg Options The following options are supported:
 %
+%      * bugs(+oneof([none,virtuoso]))
+%
+%        Purposefully make bugs in performing the SPARQL request.
+%        Supported values are `none' (default) for not making any bugs
+%        on purpose and `virtuoso' for making bugs that are needed in
+%        order to retrieve results from a Virtuoso endpoint.
+%
 %      * default_graphs(+list(atom))
 %
 %        Default is `[]'.
@@ -108,10 +115,6 @@ select_result_pairs(Pairs1, [Key|Keys], [Value|Values]) :-
 %
 %        Default is `post'.
 %
-%      * type(+oneof([query,update]))
-%
-%        Default is `query'.
-%
 %      * Other options are passed to call_on_uri/3.
 
 sparql_client(Uri, Query, Result) :-
@@ -119,23 +122,21 @@ sparql_client(Uri, Query, Result) :-
 
 
 sparql_client(Uri1, Query, Result, Options1) :-
-  select_option(method(Method), Options1, Options2, post),
-  select_option(type(Type), Options2, Options3, query),
+  select_option(bugs(Bugs), Options1, Options2, none),
+  select_option(method(Method), Options2, Options3, post),
+  (   Bugs == virtuoso,
+      Method == post
+  ->  print_message(warning, "Virtuoso cannot handle direct POST requests.")
+  ;   true
+  ),
+  sparql_form(Query, Form),
   select_option(default_graphs(DefaultGraphs), Options3, Options4, []),
   select_option(named_graphs(NamedGraphs), Options4, Options5, []),
-  (   Type == query
+  (   sparql_is_query_form(Form)
   ->  select_option(result_set_format(Format), Options5, Options6, xml),
-      result_set_media_type(Format, ReplyMediaType),
-      maplist(
-        graph_option('default-graph-uri'),
-        DefaultGraphs,
-        DefaultGraphsQuery
-      ),
-      maplist(
-        graph_option('named-graph-uri'),
-        NamedGraphs,
-        NamedGraphsQuery
-      ),
+      result_set_media_type(Format, Bugs, ReplyMediaType1),
+      maplist(graph_option('default-graph-uri'), DefaultGraphs, DefaultGraphsQuery),
+      maplist(graph_option('named-graph-uri'), NamedGraphs, NamedGraphsQuery),
       append(DefaultGraphsQuery, NamedGraphsQuery, GraphsQuery),
       (   % Query via GET
           Method == get
@@ -148,34 +149,18 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
           append(QueryComps1, GraphsQuery, QueryComps2),
           uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps2,_)),
-          merge_options(
-            [post(string('application/sparql-query',Query))],
-            Options6,
-            Options7
-         )
+          merge_options([post(string('application/sparql-query',Query))], Options6, Options7)
       ;   % Query via URL-encoded POST
           Method == url_encoded_post
       ->  uri_query_components(QueryComps, [query(Query)|GraphsQuery]),
           RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
-          merge_options(
-            [post(string(RequestMediaType,QueryComps))],
-            Options6,
-            Options7
-          ),
+          merge_options([post(string(RequestMediaType,QueryComps))], Options6, Options7),
           Uri2 = Uri1
       )
-  ;   Type == update
-  ->  ReplyMediaType = '*/*; charset=UTF-8',
-      maplist(
-        graph_option('using-graph-uri'),
-        DefaultGraphs,
-        DefaultGraphsQuery
-      ),
-      maplist(
-        graph_option('using-named-graph-uri'),
-        NamedGraphs,
-        NamedGraphsQuery
-      ),
+  ;   sparql_is_update_form(Form)
+  ->  ReplyMediaType1 = '*/*; charset=UTF-8',
+      maplist(graph_option('using-graph-uri'), DefaultGraphs, DefaultGraphsQuery),
+      maplist(graph_option('using-named-graph-uri'), NamedGraphs, NamedGraphsQuery),
       append(DefaultGraphsQuery, NamedGraphsQuery, GraphsQuery),
       (   Method == post
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
@@ -186,24 +171,41 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ;   Method == url_encoded_post
       ->  uri_query_components(QueryComps, [update(Query)|GraphsQuery]),
           RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
-          merge_options(
-            [post(string(RequestMediaType,QueryComps))],
-            Options5,
-            Options7
-          ),
+          merge_options([post(string(RequestMediaType,QueryComps))], Options5, Options7),
           Uri2 = Uri1
       )
   ),
-  merge_options([request_header('Accept'=ReplyMediaType)], Options7, Options8),
-  call_on_uri(Uri2, sparql_client_results(Result), Options8).
+  merge_options(
+    [
+      header(content_type,ContentType),
+      request_header('Accept'=ReplyMediaType1),
+      status_code(Status)
+    ],
+    Options7,
+    Options8
+  ),
+  http_open2(Uri2, In, Options8),
+  atom_phrase('content-type'(ReplyMediaType2), ContentType),
+  call_cleanup(
+    (   between(200, 299, Status)
+    ->  sparql_client_results(Form, In, ReplyMediaType2, Result)
+    ;   throw(error(http_error_code(Status))),
+        copy_stream_data(In, error_output)
+    ),
+    close(In)
+  ).
 
 %! result_set_media_type(+Format:oneof([csv,json,tsv,xml]),
-%!                        -ReplyMediaType:atom) is det.
+%!                       +Bugs:oneof([none,virtuoso]),
+%!                       -ReplyMediaType:atom) is det.
 
-result_set_media_type(csv, 'text/csv; charset=UTF-8').
-result_set_media_type(json, 'application/sparql-results+json').
-result_set_media_type(tsv, 'text/tab-separated-values; charset=UTF-8').
-result_set_media_type(xml, 'application/sparql-results+xml; charset=UTF-8').
+result_set_media_type(csv, none, 'text/csv; charset=UTF-8').
+result_set_media_type(csv, virtuoso, 'text/csv').
+result_set_media_type(json, _, 'application/sparql-results+json').
+result_set_media_type(tsv, none, 'text/tab-separated-values; charset=UTF-8').
+result_set_media_type(tsv, virtuoso, 'text/tab-separated-values').
+result_set_media_type(xml, none, 'application/sparql-results+xml; charset=UTF-8').
+result_set_media_type(xml, virtuoso, 'application/sparql-results+xml').
 
 %! graph_option(+Key:atom, +Value:atom, -Option:compound) is det.
 %
@@ -213,33 +215,19 @@ result_set_media_type(xml, 'application/sparql-results+xml; charset=UTF-8').
 graph_option(Key, Value, Option) :-
   Option =.. [Key,Value].
 
-%! sparql_client_results(-Result:compound, +In:stream, +Metadata1:list(dict),
-%!                       -Metadata2:list(dict)) is nondet.
-
-sparql_client_results(_, In, Metadata, Metadata) :-
-  metadata_status_code(Metadata, Status),
-  between(400, 599, Status), !,
-  throw(error(http_error_code(Status))),
-  copy_stream_data(In, error_output).
-sparql_client_results(Result, In, Metadata, Metadata) :-
-  metadata_content_type(Metadata, ReplyMediaType),
-  call_cleanup(
-    sparql_client_results(ReplyMediaType, In, Result),
-    close(In)
-  ).
-
-%! sparql_client_results(+ReplyMediaType:compound, +In:stream,
+%! sparql_client_results(+Form:oneof([ask,construct,describe,select]),
+%!                       +In:stream, +ReplyMediaType:compound,
 %!                       -Result:compound) is nondet.
 
-sparql_client_results(media(text/csv,_), In, Result) :-
+sparql_client_results(_, In, media(text/csv,_), Result) :-
   sparql_result_csv(In, Result).
-sparql_client_results(media(application/'sparql-results+json',_), In, Result) :-
+sparql_client_results(_, In, media(application/'sparql-results+json',_), Result) :-
   sparql_result_json(In, Result).
-sparql_client_results(media(text/'tab-separated-values',_), In, Result) :-
+sparql_client_results(_, In, media(text/'tab-separated-values',_), Result) :-
   sparql_result_tsv(In, Result).
-sparql_client_results(media(application/'sparql-results+xml',_), In, Result) :-
-  sparql_result_xml(In, Result).
-sparql_client_results(ReplyMediaType, _, _) :-
+sparql_client_results(Form, In, media(application/'sparql-results+xml',_), Result) :-
+  sparql_result_xml(Form, In, Result).
+sparql_client_results(_, _, ReplyMediaType, _) :-
   domain_error(sparql_media_type, ReplyMediaType).
 
 
@@ -316,7 +304,8 @@ binding(Dict) -->
 
 % SPARQL QUERY RESULTS XML FORMAT (SECOND EDITION) %
 
-%! sparql_result_xml(+In:stream, -Result:compound) is nondet.
+%! sparql_result_xml(+Form:oneof([ask,construct,describe,select]), +In:stream,
+%!                   -Result:compound) is nondet.
 %
 % Skip the following content:
 %
@@ -336,7 +325,16 @@ binding(Dict) -->
 % <boolean>true</boolean>
 % ```
 
-sparql_result_xml(In, Result) :-
+sparql_result_xml(ask, In, Result) :-
+  Namespace = 'http://www.w3.org/2005/sparql-results#',
+  load_structure(In, Dom1, [dialect(xmlns),space(remove)]),
+  Dom1 = [
+    element(Namespace:sparql,_,[
+      element(Namespace:head,_,[]),
+      element(Namespace:boolean,_,[Result])
+    ])
+  ].
+sparql_result_xml(select, In, Result) :-
   (   debugging(sparql_client)
   ->  peek_string(In, 500, Str),
       debug(sparql_client, Str, [])
