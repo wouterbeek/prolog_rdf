@@ -602,7 +602,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 :- rdf_register_prefix(sh, 'http://www.w3.org/ns/shacl#').
 :- rdf_register_prefix(sioc, 'http://rdfs.org/sioc/ns#').
 :- rdf_register_prefix(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
-:- rdf_register_prefix(sparql, 'http://www.w3.org/2005/sparql-results#').
+:- rdf_register_prefix('sparql-results', 'http://www.w3.org/2005/sparql-results#').
 :- rdf_register_prefix(t, 'https://triply.cc/ontology/').
 :- rdf_register_prefix(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
 :- rdf_register_prefix(vcard, 'http://www.w3.org/2006/vcard/ns#').
