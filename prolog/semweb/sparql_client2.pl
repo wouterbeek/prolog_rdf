@@ -268,7 +268,6 @@ sparql_result_tsv(In, select(VarNames2,Terms2)) :-
   csv_options(Options, [separator(0'\t)]),
   once(csv:csv_read_stream_row(In, HeaderRow, _, Options)),
   HeaderRow =.. [row|VarNames1],
-  gtrace,
   maplist(tsv_var_name, VarNames1, VarNames2),
   csv:csv_read_stream_row(In, DataRow, _, Options),
   DataRow =.. [row|Terms1],
@@ -349,7 +348,7 @@ sparql_result_json_term(Dict, Term) :-
 %! sparql_result_xml(+Form:oneof([ask,select]), +In:stream,
 %!                   -Result:compound) is nondet.
 
-sparql_result_xml(ask, In, Result) :- !,
+sparql_result_xml(ask, In, ask(Result)) :- !,
   NS = 'http://www.w3.org/2005/sparql-results#',
   load_structure(In, Dom1, [dialect(xmlns),space(remove)]),
   Dom1 = [
@@ -358,17 +357,17 @@ sparql_result_xml(ask, In, Result) :- !,
       element(NS:boolean,_,[Result])
     ])
   ].
-sparql_result_xml(select, In, Row) :-
+sparql_result_xml(select, In, Result) :-
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
       maplist(set_sgml_parser(Parser), [dialect(xmlns),space(remove)]),
-      sparql_result_xml_(Parser, In, Row)
+      sparql_result_xml_(Parser, In, Result)
     ),
     free_sgml_parser(Parser)
   ).
 
-sparql_result_xml_(Parser, In, Row) :-
+sparql_result_xml_(Parser, In, select(VarNames,Terms)) :-
   skip_until_tag(In, sparql),
   sgml_parse(Parser, [document(Dom1),parse(element),source(In)]),
   Dom1 = [element(head,_,Dom2)],
@@ -377,14 +376,12 @@ sparql_result_xml_(Parser, In, Row) :-
   repeat,
   sgml_parse(Parser, [document(Dom3),parse(element),source(In)]),
   (   Dom3 = [element(result,_,Dom4)]
-  ->  maplist(xml_binding, Dom4, VarNames, Row)
+  ->  maplist(xml_binding, Dom4, Pairs),
+      select_result_order(Pairs, VarNames, Terms)
   ;   !, fail
   ).
 
 xml_variable_name(element(variable,[name=VarName],[]), VarName).
-
-xml_binding(element(binding,[name=VarName],[Dom]), VarName, Term) :-
-  xml_term(Dom, Term).
 
 % RDF URI Reference U
 %   <binding><uri>U</uri></binding>
@@ -396,7 +393,7 @@ xml_binding(element(binding,[name=VarName],[Dom]), VarName, Term) :-
 %   <binding><literal datatype="D">S</literal></binding>
 % Blank Node label I
 %   <binding><bnode>I</bnode></binding>
-xml_term(Dom, Term) :-
+xml_binding(element(binding,[name=VarName],[Dom]), VarName-Term) :-
   (   Dom = element(uri,_,[Term])
   ->  true
   ;   Dom = element(literal,[datatype=D],[Lex])
