@@ -3,8 +3,6 @@
   [
     call_on_rdf/2,       % +UriSpec, :Goal_2
     call_on_rdf/3,       % +UriSpec, :Goal_2, +Options
-    hdt_call_on_file/2,  % +FileSpec, :Goal_1
-    hdt_call_on_graph/2, % +G, :Goal_1
     rdf_deref_quad/2,    % +Uri, -Quad
     rdf_deref_quad/3,    % +Uri, -Quad, +Options
     rdf_deref_triple/2,  % +Uri, -Triple
@@ -16,8 +14,16 @@
   ]
 ).
 
+/** <module> RDF stream
+
+Streamed processing of RDF data.
+
+@author Wouter Beek
+@version 2017/09
+*/
+
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(semweb/option_ext)).
+:- use_module(library(option)).
 :- use_module(library(semweb/rdf_ext)).
 
 :- meta_predicate
@@ -25,7 +31,6 @@
     call_on_rdf(+, 2, +).
 
 :- rdf_meta
-   hdt_call_on_graph(r, :),
    rdf_deref_quad(r, t),
    rdf_deref_quad(r, t, +),
    rdf_deref_triple(r, t),

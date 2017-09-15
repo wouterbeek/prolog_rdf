@@ -1,6 +1,8 @@
 :- module(
   rdf_ext,
   [
+    hdt_call_on_file/2,              % +FileSpec, :Goal_1
+    hdt_call_on_graph/2,             % +G, :Goal_1
     hdt_graph/2,                     % ?Hdt, ?G
     hdt_graph_file/2,                % ?G, ?File
     hdt_init/0,
@@ -449,6 +451,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 :- rdf_meta
    graph_file(r, -),
    ntriples_to_nquads(+, t, +),
+   hdt_call_on_graph(r, :),
    hdt_graph(?, r),
    hdt_init(+, r),
    prefix_local_iri(?, ?, r),
