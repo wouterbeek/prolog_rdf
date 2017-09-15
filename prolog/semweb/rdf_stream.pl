@@ -22,9 +22,19 @@ Streamed processing of RDF data.
 @version 2017/09
 */
 
+:- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
+:- use_module(library(file_ext)).
+:- use_module(library(http/rfc7231)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_guess)).
+:- use_module(library(semweb/rdf_http_plugin), []).
+:- use_module(library(semweb/rdf_ntriples)).
+:- use_module(library(semweb/rdfa)).
+:- use_module(library(semweb/turtle)).
+:- use_module(library(uri/uri_ext)).
 
 :- meta_predicate
     call_on_rdf(+, 2),
@@ -301,7 +311,7 @@ rdf_to_hdt(UriSpec, FileSpec) :-
 
   % Create HDT index file.
   debug(semweb(rdf_to_hdt), "Creating HDT index…", []),
-  hdt_call_on_file(HdtFile, [Hdt]>>once(hdt(Hdt, _,_,_))),
+  hdt_call_on_file(File, [Hdt]>>once(hdt_search(Hdt, _,_,_))),
   debug(semweb(rdf_to_hdt), "…HDT index created.", []).
   
 create_temporary_file1(File) :-
