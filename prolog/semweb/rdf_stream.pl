@@ -151,7 +151,7 @@ call_on_rdf_stream(Goal_2, Options1, In, [Dict1|Metadata], [Dict2|Metadata]) :-
         ],
         Options1,
         Options2
-      ),gtrace,
+      ),
       rdf_process_turtle(In, Goal_2, Options2)
   ;   % Turtle
       MediaType1 = media(text/turtle,_)

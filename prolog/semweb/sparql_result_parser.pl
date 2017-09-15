@@ -1,7 +1,7 @@
 :- module(
   sparql_result_parser,
   [
-    sparql_result/2 % +UriSpec, -Result
+    sparql_result/2 % +In, -Result
   ]
 ).
 
@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat SPARQL Query Results XML Format (Second Edition)
 @see https://www.w3.org/TR/rdf-sparql-XMLres/
-@version 2017/08
+@version 2017/08-2017/09
 */
 
 :- use_module(library(apply)).
@@ -25,11 +25,11 @@
 
 
 
-%! sparql_result(+UriSpec:term, -Result:list(compound)) is nondet.
+%! sparql_result(+In:stream, -Result:list(compound)) is nondet.
 
-sparql_result(UriSpec, Result) :-
+sparql_result(In, Result) :-
   retractall(result(_)),
-  call_on_xml(UriSpec, result, sparql_result_),
+  call_on_xml(In, [result], sparql_result_),
   retract(result(Result)).
 
 sparql_result_([element(result,_,Bindings)]) :-
