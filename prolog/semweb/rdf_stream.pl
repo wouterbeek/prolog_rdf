@@ -298,7 +298,7 @@ rdf_to_hdt(UriSpec, FileSpec) :-
   % Create HDT file.
   debug(semweb(rdf_to_hdt), "Creating HDT…", []),
   file_name_extension(File, working, HdtFile),
-  hdt:hdt_create_from_file(HdtFile, TriplesFileTmp, []),
+  hdt_create(TriplesFileTmp, [hdt_file(HdtFile)]),
   with_mutex(rdf_to_hdt,
     (   % Somebody else was earlier.
         exists_file(File)
@@ -311,7 +311,7 @@ rdf_to_hdt(UriSpec, FileSpec) :-
 
   % Create HDT index file.
   debug(semweb(rdf_to_hdt), "Creating HDT index…", []),
-  hdt_call_on_file(File, [Hdt]>>once(hdt_search(Hdt, _,_,_))),
+  hdt_call_on_file(File, [Hdt]>>once(hdt(_,_,_,Hdt))),
   debug(semweb(rdf_to_hdt), "…HDT index created.", []).
   
 create_temporary_file1(File) :-

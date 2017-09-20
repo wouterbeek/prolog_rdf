@@ -3,11 +3,6 @@
   [
     hdt_call_on_file/2,              % +FileSpec, :Goal_1
     hdt_call_on_graph/2,             % +G, :Goal_1
-    hdt_graph/2,                     % ?Hdt, ?G
-    hdt_graph_file/2,                % ?G, ?File
-    hdt_init/0,
-    hdt_init/1,                      % +FileSpec
-    hdt_init/2,                      % +FileSpec, +G
     graph_file/2,                    % ?G, ?File
     prefix_local_iri/3,              % ?Prefix, ?Local, ?Iri
     rdf/5,                           % +M, ?S, ?P, ?O, ?G
@@ -39,8 +34,8 @@
     rdf_creator/4,                   % +M, ?Resource, ?Agent, +G
     rdf_current_prefix/1,            % +Prefix
     rdf_endpoint_init/1,             % +Dict
-    rdf_estimate/5,                  % +M, ?S, ?P, ?O, -NumTriples
-    rdf_estimate/6,                  % +M, ?S, ?P, ?O, ?G, -NumTriples
+    rdf_estimate/5,                  % +M, ?S, ?P, ?O, -Count
+    rdf_estimate/6,                  % +M, ?S, ?P, ?O, ?G, -Count
     rdf_familyName/4,                % +M, +Agent, -FamilyName, ?G
     rdf_givenName/4,                 % +M, +Agent, -GivenName, ?G
     rdf_iri/2,                       % +M, ?Iri
@@ -169,10 +164,6 @@
 :- use_module(library(yall)).
 
 :- debug(clean_tuple).
-:- debug(hdt_graph).
-
-:- dynamic
-    hdt_graph/2.
 
 %mime_type_encoding('application/n-quads', utf8).
 %mime_type_encoding('application/n-triples', utf8).
@@ -451,9 +442,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 :- rdf_meta
    graph_file(r, -),
    ntriples_to_nquads(+, t, +),
-   hdt_call_on_graph(r, :),
-   hdt_graph(?, r),
-   hdt_init(+, r),
    prefix_local_iri(?, ?, r),
    rdf(+, r, r, o, r),
    rdf_agent_image(+, r, -, r),
@@ -635,66 +623,18 @@ graph_file(G, File) :-
 hdt_call_on_file(FileSpec, Goal_1) :-
   absolute_file_name(FileSpec, File, [access(read)]),
   setup_call_cleanup(
-    hdt_open(Hdt, File),
+    hdt_open(File, [handle(Hdt)]),
     call(Goal_1, Hdt),
     hdt_close(Hdt)
   ).
 
 
 
-%! hdt_call_on_graph(+G, :Goal_1) is det.
+%! hdt_call_on_graph(+G:atom, :Goal_1) is det.
 
 hdt_call_on_graph(G, Goal_1) :-
   hdt_graph(Hdt, G),
   call(Goal_1, Hdt).
-
-
-
-%! hdt_graph_file(+G, -File) is det.
-%! hdt_graph_file(-G, +File) is det.
-
-hdt_graph_file(G, File) :-
-  ground(G), !,
-  rdf_global_id(graph:Base, G),
-  file_name_extension(Base, hdt, Local),
-  absolute_file_name(data(Local), File, [access(read)]).
-hdt_graph_file(G, File) :-
-  ground(File), !,
-  file_base_name(File, Local),
-  file_name_extension(Base, hdt, Local),
-  rdf_global_id(graph:Base, G).
-
-
-
-%! hdt_init is det.
-%! hdt_init(+FileSpec:term) is det.
-%! hdt_init(+FileSpec:term, +G:atom) is det.
-
-hdt_init :-
-  forall(
-    (
-      absolute_file_name(
-        data(.),
-        Dir,
-        [access(read),file_errors(fail),file_type(directory),solutions(all)]
-      ),
-      directory_path_recursive(Dir, File),
-      directory_file_path(Dir, Local, File),
-      file_name_extension(Base, hdt, Local)
-    ),
-    hdt_init(File, Base)
-  ).
-
-
-hdt_init(FileSpec) :-
-  hdt_init(FileSpec, graph:default).
-
-
-hdt_init(FileSpec, G) :-
-  absolute_file_name(FileSpec, File, [access(read)]),
-  hdt_open(Hdt, File),
-  assert(hdt_graph(Hdt, G)),
-  debug(hdt_graph, "Open HDT: ~a", [File]).
 
 
 
@@ -709,11 +649,7 @@ prefix_local_iri(Prefix, Local, Iri) :-
 %! rdf(+M, ?S, ?P, ?O, ?G) is nondet.
 
 rdf(hdt, S, P, O, G) :-
-  hdt_graph(Hdt, G),
-  rdf(hdt0, S, P, O, Hdt).
-rdf(hdt0, S, P, O, Hdt) :-
-  (var(S) -> true ; \+ rdf_is_literal(S)),
-  hdt_search(Hdt, S, P, O).
+  hdt(S, P, O, G).
 rdf(trp, S, P, O, G) :-
   rdf(S, P, O, G).
 
@@ -1102,15 +1038,15 @@ rdf_current_prefix(Prefix) :-
 
 rdf_endpoint_init(Dict) :-
   dict_get(graphs, Dict, [], Dicts),
-  maplist(init_graph1, Dicts).
+  maplist(rdf_graph_init_, Dicts).
 
-init_graph1(Dict) :-
-  hdt_init(Dict.file, Dict.name).
+rdf_graph_init_(Dict) :-
+  hdt_open(Dict.file, [graph(Dict.name)]).
 
 
 
-%! rdf_estimate(+M, ?S, ?P, ?O, -NumTriples:nonneg) is det.
-%! rdf_estimate(+M, ?S, ?P, ?O, -NumTriples:nonneg, ?G) is det.
+%! rdf_estimate(+M, ?S, ?P, ?O, -Count:nonneg) is det.
+%! rdf_estimate(+M, ?S, ?P, ?O, -Count:nonneg, ?G) is det.
 %
 % @tbd TRP support for rdf_estimate/6.
 
@@ -1119,17 +1055,14 @@ rdf_estimate(_, S, _, _, 0) :-
   rdf_is_literal(S), !.
 rdf_estimate(_, S, P, O, 1) :-
   ground(rdf(S,P,O)), !.
-rdf_estimate(hdt, S, P, O, NumTriples) :- !,
+rdf_estimate(hdt, S, P, O, Count) :- !,
   aggregate_all(
-    sum(NumTriples),
-    (
-      hdt_graph(Hdt, _),
-      rdf_estimate(hdt0, S, P, O, NumTriples, Hdt)
-    ),
-    NumTriples
+    sum(Count),
+    hdt_count(S, P, O, Count),
+    Count
   ).
-rdf_estimate(trp, S, P, O, NumTriples) :-
-  rdf_estimate_complexity(S, P, O, NumTriples).
+rdf_estimate(trp, S, P, O, Count) :-
+  rdf_estimate_complexity(S, P, O, Count).
 
 
 rdf_estimate(_, S, _, _, 0, _) :-
@@ -1137,10 +1070,8 @@ rdf_estimate(_, S, _, _, 0, _) :-
   rdf_is_literal(S), !.
 rdf_estimate(_, S, P, O, 1, _) :-
   ground(rdf(S,P,O)), !.
-rdf_estimate(hdt, S, P, O, NumTriples, G) :- !,
-  hdt_call_on_graph(G, rdf_estimate(hdt0, S, P, O, NumTriples)).
-rdf_estimate(hdt0, S, P, O, NumTriples, Hdt) :-
-  hdt_search_cost(Hdt, S, P, O, NumTriples).
+rdf_estimate(hdt, S, P, O, Count, G) :-
+  hdt_count(S, P, O, Count, G).
 
 
 
@@ -1162,17 +1093,13 @@ rdf_givenName(M, Agent, GivenName, G) :-
 %! rdf_iri(+M, ?Iri, ?G) is nondet.
 
 rdf_iri(hdt, Iri) :-
-  rdf_iri(hdt0, Iri).
-rdf_iri(hdt0, Iri) :-
-  distinct(Iri, rdf_iri(hdt0, Iri, _)).
+  distinct(Iri, rdf_iri(hdt, Iri, _)).
 rdf_iri(trp, Iri) :-
   rdf_iri(Iri).
 
 
 rdf_iri(hdt, Iri, G) :-
-  hdt_call_on_graph(G, rdf_iri(hdt0, Iri)).
-rdf_iri(hdt0, Iri, Hdt) :-
-  rdf_name(hdt, Iri, Hdt),
+  hdt_term(name, Iri, G),
   rdf_is_iri(Iri).
 rdf_iri(trp, Iri, G) :-
   rdf_iri(Iri),
@@ -1370,26 +1297,22 @@ rdf_load_format_(trig, trig).
 %! rdf_name(+M, ?Name, ?G) is nondet.
 
 rdf_name(hdt, Name) :-
-  rdf_name(hdt0, Name).
-rdf_name(hdt0, Name) :-
-  distinct(Name, rdf_name(hdt0, Name, _)).
+  distinct(Name, hdt_term(name, Name)).
 rdf_name(trp, Name) :-
   rdf_name(Name).
 
 
 rdf_name(hdt, Name, G) :-
-  hdt_call_on_graph(G, rdf_name(hdt0, Name)).
-rdf_name(hdt0, Name, Hdt) :-
   (ground(Name) -> rdf_is_subject(Name) ; true),
-  hdt_subject(Hdt, Name).
-rdf_name(hdt0, Name, Hdt) :-
+  hdt_term(subject, Name, G).
+rdf_name(hdt, Name, G) :-
   (ground(Name) -> rdf_is_predicate(Name) ; true),
-  hdt_predicate(Hdt, Name),
-  \+ hdt_subject(Hdt, Name).
-rdf_name(hdt0, Name, Hdt) :-
-  hdt_object(Hdt, Name),
-  \+ hdt_subject(Hdt, Name),
-  \+ hdt_predicate(Hdt, Name).
+  hdt_term(predicate, Name, G),
+  \+ hdt_term(subject, Name, G).
+rdf_name(hdt, Name, G) :-
+  hdt_term(object, Name, G),
+  \+ hdt_term(subject, Name, G),
+  \+ hdt_term(predicate, Name, G).
 rdf_name(trp, Name, G) :-
   rdf_term(trp, Name, G),
   \+ rdf_is_bnode_iri(Name).
@@ -1400,17 +1323,13 @@ rdf_name(trp, Name, G) :-
 %! rdf_node(+M, ?Node, ?G) is nondet.
 
 rdf_node(hdt, Node) :-
-  rdf_node(hdt0, Node).
-rdf_node(hdt0, Node) :-
-  distinct(Node, rdf_node(hdt0, Node, _)).
+  distinct(Node, hdt_term(node, Node)).
 rdf_node(trp, Node) :-
   rdf_node(Node).
 
 
 rdf_node(hdt, Node, G) :-
-  hdt_call_on_graph(G, rdf_node(hdt0, Node)).
-rdf_node(hdt0, Node, Hdt) :-
-  hdt_node(hdt0, Node, Hdt).
+  hdt_term(node, Node, G).
 rdf_node(trp, S, G) :-
   rdf_subject(trp, S, G).
 rdf_node(trp, O, G) :-
@@ -1434,17 +1353,13 @@ rdf_number_of(M, Witness, S, P, O, G, NumWitnesses) :-
 %! rdf_object(+M, ?O, ?G) is nondet.
 
 rdf_object(hdt, O) :-
-  rdf_object(hdt0, O).
-rdf_object(hdt0, O) :-
-  distinct(O, rdf_object(hdt0, O, _)).
+  distinct(O, hdt_term(object, O)).
 rdf_object(trp, O) :-
   rdf_object(O).
 
 
 rdf_object(hdt, O, G) :-
-  hdt_call_on_graph(G, rdf_object(hdt0, O)).
-rdf_object(hdt0, O, Hdt) :-
-  hdt_object(Hdt, O).
+  hdt_term(object, O, G).
 rdf_object(trp, O, G) :-
   % [O] In memory we can pre-enumerate (pre-check is idle).
   (var(O) -> rdf_object(O) ; true),
@@ -1456,18 +1371,14 @@ rdf_object(trp, O, G) :-
 %! rdf_predicate(+M, ?P, ?G) is nondet.
 
 rdf_predicate(hdt, P) :-
-  rdf_predicate(hdt0, P).
-rdf_predicate(hdt0, P) :-
-  distinct(P, rdf_predicate(hdt0, P, _)).
+  distinct(P, hdt_term(predicate, P)).
 rdf_predicate(trp, P) :-
   rdf_predicate(P).
 
 
 rdf_predicate(hdt, P, G) :-
-  hdt_call_on_graph(G, rdf_predicate(hdt0, P)).
-rdf_predicate(hdt0, P, Hdt) :-
   (var(P) -> true ; rdf_is_predicate(P)),
-  hdt_predicate(Hdt, P).
+  hdt_term(predicate, P, G).
 rdf_predicate(trp, P, G) :-
   % [O] In memory we can pre-enumerate and pre-check syntax.
   (var(P) -> rdf_predicate(P) ; rdf_is_iri(P)),
@@ -1746,20 +1657,8 @@ rdf_scbd_triples(M, Node, G, Triples) :-
 %
 %            The number of unique triples.
 
-rdf_statistic(hdt, Key, N, G) :-
-  hdt_call_on_graph(G, rdf_statistic(hdt0, Key, N)).
-rdf_statistic(hdt0, nodes, N, Hdt) :-
-  rdf_statistic(hdt0, shared, N1, Hdt),
-  rdf_statistic(hdt0, subjects, N2, Hdt),
-  rdf_statistic(hdt0, objects, N3, Hdt),
-  sum_list([N1,N2,N3], N).
-rdf_statistic(hdt0, terms, N, Hdt) :-
-  rdf_statistic(hdt0, predicates, N1, Hdt),
-  rdf_statistic(hdt0, nodes, N2, Hdt),
-  sum_list([N1,N2], N).
-rdf_statistic(hdt0, Key, N, Hdt) :-
-  hdt_header_property(Key, P),
-  once(hdt_header(Hdt, _, P, N^^_)).
+rdf_statistic(hdt, Role, N, G) :-
+  hdt_term_count(Role, N, G).
 rdf_statistic(trp, nodes, N, G) :-
   aggregate_all(count, rdf_node(trp, _, G), N).
 rdf_statistic(trp, objects, N, G) :-
@@ -1772,12 +1671,6 @@ rdf_statistic(trp, terms, N, G) :-
   aggregate_all(count, rdf_term(trp, _, G), N).
 rdf_statistic(trp, triples, N, G) :-
   rdf_graph_property(G, triples(N)).
-
-hdt_header_property(objects, '<http://rdfs.org/ns/void#distinctObjects>').
-hdt_header_property(predicates, '<http://rdfs.org/ns/void#properties>').
-hdt_header_property(shared, '<http://purl.org/HDT/hdt#dictionarynumSharedSubjectObject>').
-hdt_header_property(subjects, '<http://rdfs.org/ns/void#distinctSubjects>').
-hdt_header_property(triples, '<http://rdfs.org/ns/void#triples>').
 
 
 
@@ -1792,18 +1685,14 @@ rdf_subdatatype_of(X, Y) :-
 %! rdf_subject(+M, ?S, ?G) is nondet.
 
 rdf_subject(hdt, S) :-
-  rdf_subject(hdt0, S).
-rdf_subject(hdt0, S) :-
-  distinct(S, rdf_subject(hdt0, S, _)).
+  distinct(S, hdt_term(subject, S)).
 rdf_subject(trp, S) :-
   rdf_subject(S).
 
 
 rdf_subject(hdt, S, G) :-
-  hdt_call_on_graph(G, rdf_subject(hdt0, S)).
-rdf_subject(hdt0, S, Hdt) :-
   (var(S) -> true ; rdf_is_subject(S)),
-  hdt_subject(Hdt, S).
+  hdt_term(subject, S, G).
 rdf_subject(trp, S, G) :-
   % [O] In memory we can pre-enumerate and pre-check syntax.
   (var(S) -> rdf_subject(S) ; rdf_is_subject(S)),
@@ -1815,19 +1704,15 @@ rdf_subject(trp, S, G) :-
 %! rdf_term(+M, ?Term, ?G) is nondet.
 
 rdf_term(hdt, Term) :-
-  rdf_term(hdt0, Term).
-rdf_term(hdt0, Term) :-
-  distinct(Term, rdf_term(hdt0, Term, _)).
+  distinct(Term, hdt_term(term, Term)).
 rdf_term(trp, Term) :-
   rdf_term(Term).
 
 
 rdf_term(hdt, Name, G) :-
-  hdt_call_on_graph(G, rdf_term(hdt0, Name)).
-rdf_term(hdt0, Name, Hdt) :-
-  rdf_name(hdt0, Name, Hdt).
-rdf_term(hdt0, BNode, Hdt) :-
-  rdf_bnode_iri(hdt0, BNode, Hdt).
+  rdf_term(name, Name, G).
+rdf_term(hdt, BNode, G) :-
+  rdf_bnode_iri(hdt, BNode, G).
 rdf_term(trp, P, G) :-
   rdf_predicate(trp, P, G).
 rdf_term(trp, Node, G) :-

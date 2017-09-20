@@ -25,7 +25,7 @@
 %! statement(?S, ?P, ?O) is nondet.
 
 statement(S, P, O) :-
-  rdf(hdt, S, P, O, _),
+  hdt(S, P, O),
   rdf_pp_triple(S, P, O).
 
 
@@ -33,9 +33,5 @@ statement(S, P, O) :-
 %! statements(?S, ?P, ?O) is nondet.
 
 statements(S, P, O) :-
-  findall(
-    rdf(S,P,O),
-    rdf(hdt, S, P, O, _),
-    Triples
-  ),
+  findall(rdf(S,P,O), hdt(S, P, O), Triples),
   rdf_pp_triples(Triples).
