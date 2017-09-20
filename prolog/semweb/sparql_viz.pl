@@ -30,9 +30,11 @@
 
 sparql_viz(Query, Method, Format, ProcOut) :-
   sparql_parse('https://example.org/', dataset([],[]), Query, State, Algebra),
-  graphviz(Method, ProcIn, Format, ProcOut),
-  with_output_to(ProcIn, sparql_viz(State, Algebra)),
-  close(ProcIn).
+  setup_call_cleanup(
+    graphviz(Method, ProcIn, Format, ProcOut),
+    with_output_to(ProcIn, sparql_viz(State, Algebra)),
+    close(ProcIn)
+  ).
 
 sparql_viz(State, Algebra) :-
   flag(node_id, _, 1),

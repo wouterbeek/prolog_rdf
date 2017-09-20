@@ -29,9 +29,11 @@
 %! schema_viz(+Format, -Out:stream) is det.
 
 schema_viz(Format, ProcOut) :-
-  graphviz(dot, ProcIn, Format, ProcOut),
-  call_to_stream(ProcIn, schema_viz(_), [compression(none)]),
-  close(ProcIn).
+  setup_call_cleanup(
+    graphviz(dot, ProcIn, Format, ProcOut),
+    call_to_stream(ProcIn, schema_viz(_), [compression(none)]),
+    close(ProcIn)
+  ).
 
 % Nodes can be described in multiple vocabularies: OWL, SHACL, RDF(S).
 % We therefore first group all nodes with some description, and then
