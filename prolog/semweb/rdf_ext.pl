@@ -44,6 +44,7 @@
     rdf_is_legacy_literal/1,         % @Term
     rdf_is_bnode_iri/1,              % @Term
     rdf_is_graph/1,                  % @Term
+    rdf_is_well_known_iri/1,         % @Term
     rdf_list_member/4,               % +M, ?L, ?O, ?G
     rdf_list_member/5,               % +M, ?S, ?P, ?O, ?G
     rdf_list_memberchk/4,            % +M, ?L,  ?O,  ?G
@@ -473,6 +474,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_is_graph(r),
    rdf_is_language_tagged_string(o),
    rdf_is_real_iri(r),
+   rdf_is_well_known_iri(r),
    rdf_list_member(+, r, o, r),
    rdf_list_member(+, r, r, o, r),
    rdf_list_memberchk(+, r, o, r),
@@ -1136,6 +1138,14 @@ rdf_is_language_tagged_string(Term) :-
 rdf_is_legacy_literal(literal(type(_,_))) :- !.
 rdf_is_legacy_literal(literal(lang(_,_))) :- !.
 rdf_is_legacy_literal(literal(_)).
+
+
+
+%! rdf_is_well_known_iri(@Term) is semidet.
+
+rdf_is_well_known_iri(Iri) :-
+  uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
+  ground(Scheme-Authority).
 
 
 
