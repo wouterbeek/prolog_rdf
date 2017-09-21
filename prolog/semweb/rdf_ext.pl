@@ -568,6 +568,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    write_ntuple(+, t).
 
 :- rdf_register_prefix(bibframe, 'http://bibframe.org/vocab/').
+:- rdf_register_prefix('_', 'http://lodlaundromat.org/.well-known/genid/').
 :- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 :- rdf_register_prefix(cms, 'http://SemanticCMS.cc/vocab/').
 :- rdf_register_prefix(crs, 'http://www.opengis.net/def/crs/OGC/1.3/').
