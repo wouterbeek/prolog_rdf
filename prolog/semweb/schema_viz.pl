@@ -29,9 +29,11 @@
 %! schema_viz(+Format, -Out:stream) is det.
 
 schema_viz(Format, ProcOut) :-
-  graphviz(dot, ProcIn, Format, ProcOut),
-  call_to_stream(ProcIn, schema_viz(_), [compression(none)]),
-  close(ProcIn).
+  setup_call_cleanup(
+    graphviz(dot, ProcIn, Format, ProcOut),
+    call_to_stream(ProcIn, schema_viz(_), [compression(none)]),
+    close(ProcIn)
+  ).
 
 % Nodes can be described in multiple vocabularies: OWL, SHACL, RDF(S).
 % We therefore first group all nodes with some description, and then
@@ -163,11 +165,13 @@ segments_sequence(Segments1, Sequence) :-
 schema_viz_file(File1) :-
   file_name_extension(Base, _, File1),
   file_name_extension(Base, svgz, File2),
-  call_to_file(File2, schema_viz_stream(File1)).
-
-schema_viz_stream(File, Out, Meta, Meta) :-
-  rdf_snap_clean((
-    rdf_load2(File),
-    schema_viz(svg, ProcOut),
-    copy_stream_data(ProcOut, Out)
-  )).
+  setup_call_cleanup(
+    gzopen(File2, write, Out),
+    rdf_transaction((
+        rdf_load2(File1),
+        schema_viz(svg, ProcOut),
+        copy_stream_data(ProcOut, Out)
+      ), _, [snapshot(true)]
+    ),
+    close(Out)
+  ).

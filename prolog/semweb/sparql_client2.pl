@@ -1,7 +1,6 @@
 :- module(
   sparql_client2,
   [
-    select_result/3,      % +Result, +Keys, -Values
     sparql_client/3,      % +Uri, +Query, -Result
     sparql_client/4,      % +Uri, +Query, -Result, +Options
     sparql_client_file/3, % +Uri, +File, -Result
@@ -26,46 +25,30 @@ SPARQL 1.1 HTTP responses (result sets).
 @see https://www.w3.org/TR/2013/REC-sparql11-results-json-20130321/
 @see https://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
 @tbd Fix streamed JSON parser.
-@tbd Extract the order of the results set in the XML parsed (<head>).
-@version 2017/03-2017/08
+@tbd Extract the order of the results set in the XML parse (<head>).
+@version 2017/03-2017/09
 */
 
 :- use_module(library(apply)).
 :- use_module(library(csv)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc7159)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(http/http_client2)).
+:- use_module(library(http/http_header)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pure_input)).
-:- use_module(library(readutil)).
 :- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/sparql_parser)).
 :- use_module(library(sgml)).
-:- use_module(library(stream_ext)).
 :- use_module(library(uri/uri_ext)).
+:- use_module(library(xml/xml_ext)).
 
 
-
-
-
-%! select_result(+Result:compound, +Keys:list(atom),
-%!               -Values:list(rdf_term)) is det.
-%
-% Hack that is currently needed to retrieve values in RDF/XML results
-% in the appropriate order.  This can not only be used to enforce the
-% order expressed in the `select' clauses, but also to apply an
-% arbitrary order that is not in the query itself.
-
-select_result(select(Keys0,Values0), Keys, Values) :-
-  pairs_keys_values(Pairs, Keys0, Values0),
-  select_result_pairs(Pairs, Keys, Values).
-
-select_result_pairs([], [], []) :- !.
-select_result_pairs(Pairs1, [Key|Keys], [Value|Values]) :-
-  selectchk(Key-Value, Pairs1, Pairs2),
-  select_result_pairs(Pairs2, Keys, Values).
 
 
 
@@ -92,15 +75,18 @@ select_result_pairs(Pairs1, [Key|Keys], [Value|Values]) :-
 %
 % @arg Options The following options are supported:
 %
+%      * bugs(+oneof([none,virtuoso]))
+%
+%        Purposefully make bugs in performing the SPARQL request.
+%        Supported values are `none' (default) for not making any bugs
+%        on purpose and `virtuoso' for making bugs that are needed in
+%        order to retrieve results from a Virtuoso endpoint.
+%
 %      * default_graphs(+list(atom))
 %
 %        Default is `[]'.
 %
-%      * named_graphs(+list(atom))
-%
-%        Default is `[]'.
-%
-%      * result_set_format(+oneof([csv,json,tsv,xml]))
+%      * format(+oneof([csv,json,tsv,xml]))
 %
 %        Default is `xml'.
 %
@@ -108,9 +94,9 @@ select_result_pairs(Pairs1, [Key|Keys], [Value|Values]) :-
 %
 %        Default is `post'.
 %
-%      * type(+oneof([query,update]))
+%      * named_graphs(+list(atom))
 %
-%        Default is `query'.
+%        Default is `[]'.
 %
 %      * Other options are passed to call_on_uri/3.
 
@@ -119,23 +105,29 @@ sparql_client(Uri, Query, Result) :-
 
 
 sparql_client(Uri1, Query, Result, Options1) :-
-  select_option(method(Method), Options1, Options2, post),
-  select_option(type(Type), Options2, Options3, query),
+  select_option(bugs(Bugs), Options1, Options2, none),
+  select_option(method(Method), Options2, Options3, post),
+  (   Bugs == virtuoso,
+      Method == post
+  ->  print_message(warning, "Virtuoso cannot handle direct POST requests."),
+      fail
+  ;   true
+  ),
+  sparql_form(Query, Form),
   select_option(default_graphs(DefaultGraphs), Options3, Options4, []),
   select_option(named_graphs(NamedGraphs), Options4, Options5, []),
-  (   Type == query
-  ->  select_option(result_set_format(Format), Options5, Options6, xml),
-      result_set_media_type(Format, ReplyMediaType),
-      maplist(
-        graph_option('default-graph-uri'),
-        DefaultGraphs,
-        DefaultGraphsQuery
+  (   sparql_is_query_form(Form)
+  ->  select_option(format(Format), Options5, Options6, xml),
+      (   Bugs == virtuoso,
+          Format == tsv
+      ->  print_message(warning, "Virtuoso does not emit valid TSV results."),
+          fail
+      ;   true
       ),
-      maplist(
-        graph_option('named-graph-uri'),
-        NamedGraphs,
-        NamedGraphsQuery
-      ),
+      result_set_media_type(Format, Bugs, ReplyMediaType1),
+      maplist(graph_option('default-graph-uri'), DefaultGraphs,
+              DefaultGraphsQuery),
+      maplist(graph_option('named-graph-uri'), NamedGraphs, NamedGraphsQuery),
       append(DefaultGraphsQuery, NamedGraphsQuery, GraphsQuery),
       (   % Query via GET
           Method == get
@@ -148,62 +140,69 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
           append(QueryComps1, GraphsQuery, QueryComps2),
           uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps2,_)),
-          merge_options(
-            [post(string('application/sparql-query',Query))],
-            Options6,
-            Options7
-         )
+          merge_options([post(string('application/sparql-query',Query))],
+                        Options6, Options7)
       ;   % Query via URL-encoded POST
           Method == url_encoded_post
       ->  uri_query_components(QueryComps, [query(Query)|GraphsQuery]),
           RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
-          merge_options(
-            [post(string(RequestMediaType,QueryComps))],
-            Options6,
-            Options7
-          ),
+          merge_options([post(string(RequestMediaType,QueryComps))], Options6,
+                        Options7),
           Uri2 = Uri1
       )
-  ;   Type == update
-  ->  ReplyMediaType = '*/*; charset=UTF-8',
-      maplist(
-        graph_option('using-graph-uri'),
-        DefaultGraphs,
-        DefaultGraphsQuery
-      ),
-      maplist(
-        graph_option('using-named-graph-uri'),
-        NamedGraphs,
-        NamedGraphsQuery
-      ),
+  ;   sparql_is_update_form(Form)
+  ->  ReplyMediaType1 = '*/*; charset=UTF-8',
+      maplist(graph_option('using-graph-uri'), DefaultGraphs,
+              DefaultGraphsQuery),
+      maplist(graph_option('using-named-graph-uri'), NamedGraphs,
+              NamedGraphsQuery),
       append(DefaultGraphsQuery, NamedGraphsQuery, GraphsQuery),
       (   Method == post
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
           append(QueryComps1, GraphsQuery, QueryComps2),
           uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps2,_)),
           RequestMediaType = 'application/sparql-update; charset=UTF-8',
-          merge_options([post(string(RequestMediaType,Query))], Options5, Options7)
+          merge_options([post(string(RequestMediaType,Query))], Options5,
+                        Options7)
       ;   Method == url_encoded_post
       ->  uri_query_components(QueryComps, [update(Query)|GraphsQuery]),
           RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
-          merge_options(
-            [post(string(RequestMediaType,QueryComps))],
-            Options5,
-            Options7
-          ),
+          merge_options([post(string(RequestMediaType,QueryComps))], Options5,
+                        Options7),
           Uri2 = Uri1
       )
   ),
-  merge_options([request_header('Accept'=ReplyMediaType)], Options7, Options8),
-  call_on_uri(Uri2, sparql_client_results(Result), Options8).
+  merge_options(
+    [
+      header(content_type,ContentType),
+      request_header('Accept'=ReplyMediaType1),
+      status_code(Status)
+    ],
+    Options7,
+    Options8
+  ),
+  http_open2(Uri2, In, Options8),
+  http_parse_header_value(content_type, ContentType, ReplyMediaType2),
+  call_cleanup(
+    (   between(200, 299, Status)
+    ->  sparql_client_results(Form, In, ReplyMediaType2, Result)
+    ;   throw(error(http_error_code(Status))),
+        copy_stream_data(In, error_output)
+    ),
+    close(In)
+  ).
 
 %! result_set_media_type(+Format:oneof([csv,json,tsv,xml]),
-%!                        -ReplyMediaType:atom) is det.
+%!                       +Bugs:oneof([none,virtuoso]),
+%!                       -ReplyMediaType:atom) is det.
 
-result_set_media_type(csv, 'text/csv; charset=UTF-8').
-result_set_media_type(json, 'application/sparql-results+json').
-result_set_media_type(tsv, 'text/tab-separated-values; charset=UTF-8').
-result_set_media_type(xml, 'application/sparql-results+xml; charset=UTF-8').
+result_set_media_type(csv, none, 'text/csv; charset=UTF-8').
+result_set_media_type(csv, virtuoso, 'text/csv').
+result_set_media_type(json, _, 'application/sparql-results+json').
+result_set_media_type(tsv, none, 'text/tab-separated-values; charset=UTF-8').
+result_set_media_type(tsv, virtuoso, 'text/tab-separated-values').
+result_set_media_type(xml, none, 'application/sparql-results+xml; charset=UTF-8').
+result_set_media_type(xml, virtuoso, 'application/sparql-results+xml').
 
 %! graph_option(+Key:atom, +Value:atom, -Option:compound) is det.
 %
@@ -213,34 +212,22 @@ result_set_media_type(xml, 'application/sparql-results+xml; charset=UTF-8').
 graph_option(Key, Value, Option) :-
   Option =.. [Key,Value].
 
-%! sparql_client_results(-Result:compound, +In:stream, +Metadata1:list(dict),
-%!                       -Metadata2:list(dict)) is nondet.
-
-sparql_client_results(_, In, Metadata, Metadata) :-
-  metadata_status_code(Metadata, Status),
-  between(400, 599, Status), !,
-  throw(error(http_error_code(Status))),
-  copy_stream_data(In, error_output).
-sparql_client_results(Result, In, Metadata, Metadata) :-
-  metadata_content_type(Metadata, ReplyMediaType),
-  call_cleanup(
-    sparql_client_results(ReplyMediaType, In, Result),
-    close(In)
-  ).
-
-%! sparql_client_results(+ReplyMediaType:compound, +In:stream,
+%! sparql_client_results(+Form:oneof([ask,construct,describe,select]),
+%!                       +In:stream, +MediaType:compound,
 %!                       -Result:compound) is nondet.
 
-sparql_client_results(media(text/csv,_), In, Result) :-
-  sparql_result_csv(In, Result).
-sparql_client_results(media(application/'sparql-results+json',_), In, Result) :-
-  sparql_result_json(In, Result).
-sparql_client_results(media(text/'tab-separated-values',_), In, Result) :-
-  sparql_result_tsv(In, Result).
-sparql_client_results(media(application/'sparql-results+xml',_), In, Result) :-
-  sparql_result_xml(In, Result).
-sparql_client_results(ReplyMediaType, _, _) :-
-  domain_error(sparql_media_type, ReplyMediaType).
+sparql_client_results(Form, In, MediaType, Result) :-
+  (   MediaType = media(text/csv,Params)
+  ->  (memberchk(header=Value, Params) -> assertion(Value=present) ; true),
+      sparql_result_csv(In, Result)
+  ;   MediaType = media(application/'sparql-results+json',_)
+  ->  sparql_result_json(Form, In, Result)
+  ;   MediaType = media(text/'tab-separated-values',_)
+  ->  sparql_result_tsv(In, Result)
+  ;   MediaType = media(application/'sparql-results+xml',_)
+  ->  sparql_result_xml(Form, In, Result)
+  ;   domain_error(sparql_media_type, MediaType)
+  ).
 
 
 
@@ -266,17 +253,49 @@ sparql_client_file(Uri, File, Result, Options) :-
 
 %! sparql_result_csv(+In:stream, -Row:compound) is nondet.
 
-sparql_result_csv(In, Row) :-
+sparql_result_csv(In, select(VarNames,Terms)) :-
   csv_options(Options, []),
-  csv:csv_read_stream_row(In, Row, _Line, Options).
+  once(csv:csv_read_stream_row(In, HeaderRow, _, Options)),
+  HeaderRow =.. [row|VarNames],
+  csv:csv_read_stream_row(In, DataRow, _, Options),
+  DataRow =.. [row|Terms].
 
 
 
 %! sparql_result_tsv(+In:stream, -Row:compound) is nondet.
 
-sparql_result_tsv(In, Row) :-
+sparql_result_tsv(In, select(VarNames2,Terms2)) :-
   csv_options(Options, [separator(0'\t)]),
-  csv:csv_read_stream_row(In, Row, _Line, Options).
+  once(csv:csv_read_stream_row(In, HeaderRow, _, Options)),
+  HeaderRow =.. [row|VarNames1],
+  maplist(tsv_var_name, VarNames1, VarNames2),
+  csv:csv_read_stream_row(In, DataRow, _, Options),
+  DataRow =.. [row|Terms1],
+  maplist(tsv_term, Terms1, Terms2).
+
+tsv_var_name(row(VarName1), VarName2) :-
+  atom_concat(?, VarName2, VarName1).
+
+tsv_term(row(Atom), Term) :-
+  atom_phrase(tsv_term(Term), Atom).
+
+tsv_term(Iri) -->
+  "<", ...(Codes), ">", !,
+  {atom_codes(Iri, Codes)}.
+tsv_term(Literal) -->
+  "\"", ...(Codes), "\"", !,
+  {string_codes(Lex, Codes)},
+  (   "^^<"
+  ->  ...(Codes), ">", !,
+      {atom_codes(D, Codes)}
+  ;   "@"
+  ->  rest(Codes),
+      {atom_codes(LTag, Codes)}
+  ),
+  {rdf_literal(Literal, Lex, D, LTag)}.
+tsv_term(BNode) -->
+  rest(Codes),
+  {atom_codes(BNode, Codes)}.
 
 
 
@@ -284,117 +303,86 @@ sparql_result_tsv(In, Row) :-
 
 % SPARQL 1.1 QUERY RESULTS JSON FORMAT %
 
-%! sparql_result_json(+In:stream, -Row:compound) is nondet.
+%! sparql_result_json(+Form:oneof([ask,select]), +In:stream,
+%!                    -Result) is nondet.
+%
+% Assumption: `head' appears before `results', if `Form = select'.
 
-sparql_result_json(In, Row) :-
-  (   debugging(sparql_client)
-  ->  peek_string(In, 1000, String),
-      debug(sparql_client, "~s", [String])
-  ;   true
-  ),
-  phrase_from_stream(result(Row), In).
+sparql_result_json(ask, In, ask(Result)) :- !,
+  json_read_dict(In, Dict, [value_string_as(atom)]),
+  _{boolean: Result, head: _} :< Dict.
+sparql_result_json(select, In, select(VarNames,Result)) :-
+  json_read_dict(In, Dict1, [value_string_as(atom)]),
+  _{head: Head, results: Results} :< Dict1,
+  _{vars: VarNames} :< Head,
+  _{bindings: Bindings} :< Results,
+  member(Binding1, Bindings),
+  dict_pairs(Binding1, Binding2),
+  select_result_order(Binding2, VarNames, Binding3),
+  maplist(sparql_result_json_term, Binding3, Result).
 
-result(Row) -->
-  skip_until_bindings,
-  binding(Row).
+% { "type": "uri", "value": "I" }
+% { "type": "literal","value": "S" }
+% { "type": "literal", "value": "S", "xml:lang": "L" }
+% { "type": "literal", "value": "S", "datatype": "D" }
+% { "type": "bnode", "value": "B" }
+sparql_result_json_term(Dict, Term) :-
+  (   _{type: uri, value: Term} :< Dict
+  ->  true
+  ;   _{type: literal, value: Lex} :< Dict
+  ->  rdf_literal(Term, xsd:string, Lex, _)
+  ;   _{type: literal, value: Lex, 'xml:lang': LTag} :< Dict
+  ->  rdf_literal(Term, rdf:langString, Lex, LTag)
+  ;   _{datatype: D, type: literal, value: Lex} :< Dict
+  ->  rdf_literal(Term, D, Lex, _)
+  ;   _{type: bnode, value: Label} :< Dict
+  ->   atom_concat('_:', Label, Term)
+  ).
 
-skip_until_bindings -->
-  rfc7159:'begin-object',
-  rfc7159:member(head-_),
-  rfc7159:'value-separator',
-  rfc7159:string("results"),
-  rfc7159:'name-separator',
-  rfc7159:'begin-object',
-  rfc7159:string("bindings"),
-  rfc7159:'name-separator',
-  rfc7159:'begin-array'.
 
-binding(Dict) -->
-  rfc7159:object(Dict).
 
 
 
 % SPARQL QUERY RESULTS XML FORMAT (SECOND EDITION) %
 
-%! sparql_result_xml(+In:stream, -Result:compound) is nondet.
-%
-% Skip the following content:
-%
-% ```xml
-% <?xml version='1.0' encoding='UTF-8'?>
-% <sparql xmlns='http://www.w3.org/2005/sparql-results#'>
-% <head>
-%   <variable name='subject'/>
-%   <variable name='predicate'/>
-% </head>
-% <results>
-% ```
-%
-% or
-%
-% ```xml
-% <boolean>true</boolean>
-% ```
+%! sparql_result_xml(+Form:oneof([ask,select]), +In:stream,
+%!                   -Result:compound) is nondet.
 
-sparql_result_xml(In, Result) :-
-  (   debugging(sparql_client)
-  ->  peek_string(In, 500, Str),
-      debug(sparql_client, Str, [])
-  ;   true
-  ),
+sparql_result_xml(ask, In, ask(Result)) :- !,
+  NS = 'http://www.w3.org/2005/sparql-results#',
+  load_structure(In, Dom1, [dialect(xmlns),space(remove)]),
+  Dom1 = [
+    element(NS:sparql,_,[
+      element(NS:head,_,[]),
+      element(NS:boolean,_,[Result])
+    ])
+  ].
+sparql_result_xml(select, In, Result) :-
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
-      set_sgml_parser(Parser, space(remove)),
-      sparql_result_xml0(In, Parser, Result)
+      maplist(set_sgml_parser(Parser), [dialect(xmlns),space(remove)]),
+      sparql_result_xml_(Parser, In, Result)
     ),
     free_sgml_parser(Parser)
   ).
 
-sparql_result_xml0(In, Parser, Result) :-
-  skip_until_tag(In, Name),
-  (   atom_prefix(Name, boolean)
-  ->  sparql_result_xml_ask(In, Parser, Result)
-  ;   atom_prefix(Name, results)
-  ->  sparql_result_xml_select(In, Parser, Result)
-  ;   sparql_result_xml0(In, Parser, Result)
-  ).
-
-
-
-%! sparql_result_xml_ask(+In:stream, +Parser:blob, -Result:compound) is det.
-
-sparql_result_xml_ask(In, Parser, ask(Decision)) :-
-  sgml_parse(
-    Parser,
-    [document(Dom),parse(element),source(In),syntax_errors(quiet)]
-  ),
-  Dom = [Decision].
-
-
-
-%! sparql_result_xml_select(+In:stream, +Parser:blob,
-%!                          -Result:compound) is nondet.
-
-sparql_result_xml_select(In, Parser, select(VarNames,Row)) :-
+sparql_result_xml_(Parser, In, select(VarNames,Terms)) :-
+  skip_until_tag(In, sparql),
+  sgml_parse(Parser, [document(Dom1),parse(element),source(In)]),
+  Dom1 = [element(head,_,Dom2)],
+  maplist(xml_variable_name, Dom2, VarNames),
+  skip_until_tag(In, results),
   repeat,
-  sgml_parse(Parser, [document(Dom),parse(element),source(In)]),
-  (   Dom = [element(result,_,Bindings)]
-  ->  maplist(xml_binding, Bindings, VarNames, Row)
+  sgml_parse(Parser, [document(Dom3),parse(element),source(In)]),
+  (   Dom3 = [element(result,_,Dom4)]
+  ->  maplist(xml_binding, Dom4, Pairs),
+      select_result_order(Pairs, VarNames, Terms)
   ;   !, fail
   ).
 
+xml_variable_name(element(variable,[name=VarName],[]), VarName).
 
-
-%! xml_binding(+Dom:list(compound), -VarName:atom, -Term:rdf_term) is det.
-
-xml_binding(element(binding,[name=VarName],Term1), VarName, Term2) :-
-  xml_term(Term1, Term2).
-
-
-
-%! xml_term(+Dom:list(compound), -Term:rdf_term) is det.
-%
 % RDF URI Reference U
 %   <binding><uri>U</uri></binding>
 % RDF Literal S
@@ -405,16 +393,18 @@ xml_binding(element(binding,[name=VarName],Term1), VarName, Term2) :-
 %   <binding><literal datatype="D">S</literal></binding>
 % Blank Node label I
 %   <binding><bnode>I</bnode></binding>
-
-xml_term([element(uri,_,[Iri])], Iri) :- !.
-xml_term([element(literal,[datatype=DatatypeIri],[LexicalForm])], Literal) :- !,
-  rdf_literal(Literal, DatatypeIri, LexicalForm, _).
-xml_term([element(literal,['xml:lang'=LanguageTag],[LexicalForm])], Literal) :- !,
-  rdf_literal(Literal, rdf:langString, LexicalForm, LanguageTag).
-xml_term([element(literal,[],[LexicalForm])], Literal) :- !,
-  rdf_literal(Literal, xsd:string, LexicalForm, _).
-xml_term([element(bnode,[],[Label])], BNode) :-
-  atom_concat('_:', Label, BNode).
+xml_binding(element(binding,[name=VarName],[Dom]), VarName-Term) :-
+  (   Dom = element(uri,_,[Term])
+  ->  true
+  ;   Dom = element(literal,[datatype=D],[Lex])
+  ->  rdf_literal(Term, D, Lex, _)
+  ;   Dom = element(literal,['xml:lang'=LTag],[Lex])
+  ->  rdf_literal(Term, rdf:langString, Lex, LTag)
+  ;   Dom = element(literal,[],[Lex])
+  ->  rdf_literal(Term, xsd:string, Lex, _)
+  ;   Dom = element(bnode,[],[Label])
+  ->  atom_concat('_:', Label, Term)
+  ).
 
 
 
@@ -436,9 +426,23 @@ get_until_code(In, Code, Codes):-
 
 
 
-%! skip_until_tag(+In:stream, -Name:atom) is semidet.
+%! select_result_order(+Pairs:list(pair(atom,dict)), +Keys:list(atom),
+%!                     -Values:list(dict)) is det.
 
-skip_until_tag(In, Name) :-
+select_result_order([], [], []) :- !.
+select_result_order(Pairs1, [Key|Keys], [Value|Values]) :-
+  selectchk(Key-Value, Pairs1, Pairs2),
+  select_result_order(Pairs2, Keys, Values).
+
+
+
+%! skip_until_tag(+In:stream, -ElementName:atom) is semidet.
+
+skip_until_tag(In, ElementName) :-
   get_until_code(In, 0'<, _),
   get_until_code(In, 0'>, Codes),
-  atom_codes(Name, Codes).
+  atom_codes(Atom, Codes),
+  (   atomic_list_concat([ElementName|_], ' ', Atom)
+  ->  true
+  ;   skip_until_tag(In, ElementName)
+  ).

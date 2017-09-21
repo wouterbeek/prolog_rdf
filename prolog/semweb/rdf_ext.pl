@@ -1,15 +1,8 @@
 :- module(
   rdf_ext,
   [
-    call_on_rdf/2,                   % +UriSpec, :Goal_2
-    call_on_rdf/3,                   % +UriSpec, :Goal_2, +Options
     hdt_call_on_file/2,              % +FileSpec, :Goal_1
     hdt_call_on_graph/2,             % +G, :Goal_1
-    hdt_graph/2,                     % ?Hdt, ?G
-    hdt_graph_file/2,                % ?G, ?File
-    hdt_init/0,
-    hdt_init/1,                      % +FileSpec
-    hdt_init/2,                      % +FileSpec, +G
     graph_file/2,                    % ?G, ?File
     prefix_local_iri/3,              % ?Prefix, ?Local, ?Iri
     rdf/5,                           % +M, ?S, ?P, ?O, ?G
@@ -40,13 +33,9 @@
     rdf_create_iri/3,                % +Prefix, +Path, -Iri
     rdf_creator/4,                   % +M, ?Resource, ?Agent, +G
     rdf_current_prefix/1,            % +Prefix
-    rdf_deref_quad/2,                % +Uri, -Quad
-    rdf_deref_quad/3,                % +Uri, -Quad, +Options
-    rdf_deref_triple/2,              % +Uri, -Triple
-    rdf_deref_triple/3,              % +Uri, -Triple, +Options
     rdf_endpoint_init/1,             % +Dict
-    rdf_estimate/5,                  % +M, ?S, ?P, ?O, -NumTriples
-    rdf_estimate/6,                  % +M, ?S, ?P, ?O, ?G, -NumTriples
+    rdf_estimate/5,                  % +M, ?S, ?P, ?O, -Count
+    rdf_estimate/6,                  % +M, ?S, ?P, ?O, ?G, -Count
     rdf_familyName/4,                % +M, +Agent, -FamilyName, ?G
     rdf_givenName/4,                 % +M, +Agent, -GivenName, ?G
     rdf_iri/2,                       % +M, ?Iri
@@ -55,6 +44,7 @@
     rdf_is_legacy_literal/1,         % @Term
     rdf_is_bnode_iri/1,              % @Term
     rdf_is_graph/1,                  % @Term
+    rdf_is_well_known_iri/1,         % @Term
     rdf_list_member/4,               % +M, ?L, ?O, ?G
     rdf_list_member/5,               % +M, ?S, ?P, ?O, ?G
     rdf_list_memberchk/4,            % +M, ?L,  ?O,  ?G
@@ -66,8 +56,7 @@
     rdf_literal_language_tag/2,      % +Lit, -LTag
     rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?Val
-    rdf_load2/1,                     % +UriSpec
-    rdf_load2/2,                     % +UriSpec, +Options
+    rdf_load2/1,                     % +File
     rdf_name/2,                      % +M, ?Name
     rdf_name/3,                      % +M, ?Name, ?G
     rdf_node/2,                      % +M, ?Node
@@ -83,9 +72,6 @@
     rdf_prefix_member/2,             % ?Elem, +L
     rdf_prefix_memberchk/2,          % ?Elem, +L
     rdf_query_term/2,                % +Term, -QueryTerm
-    rdf_reserialize/2,               % +Uri, +FileSpec
-    rdf_reserialize/3,               % +Kind, +Uri, +FileSpec
-    rdf_reserialize/4,               % +Kind, +Uri, +FileSpec, +Options
     rdf_retractall/0,
     rdf_retractall/1,                % +Tuple
     rdf_reification/4,               % +M, ?S, ?P, ?O
@@ -105,8 +91,6 @@
     rdf_scbd_triple/4,               % +M, +Node, ?G, -Triple
     rdf_scbd_triples/3,              % +M, ?Node,     -Triples
     rdf_scbd_triples/4,              % +M, ?Node, ?G, -Triples
-    rdf_snap/1,                      % :Goal_0
-    rdf_snap_clean/1,                % :Goal_0
     rdf_statistic/4,                 % +M, +Key, -Value, ?G
     rdf_subdatatype_of/2,            % ?Sub, ?Super
     rdf_subject/2,                   % +M, ?S
@@ -114,7 +98,6 @@
     rdf_term/2,                      % +M, ?Term
     rdf_term/3,                      % +M, ?Term, ?G
     rdf_term_to_atom/2,              % +Term, -Atom
-    rdf_to_hdt/2,                    % +UriSpec, +HdtFile
     rdf_tuple_quad/3,                % +Tuple, +G, -Quad
     rdf_tuple_triple/2,              % +Tuple, ?Triple
     rdf_write_term/2,                % +Out, +Term
@@ -182,10 +165,6 @@
 :- use_module(library(yall)).
 
 :- debug(clean_tuple).
-:- debug(hdt_graph).
-
-:- dynamic
-    hdt_graph/2.
 
 %mime_type_encoding('application/n-quads', utf8).
 %mime_type_encoding('application/n-triples', utf8).
@@ -194,7 +173,10 @@
 %mime_type_encoding('text/turtle', utf8).
 
 :- initialization
-   forall(language(LTag), register_language_prefixes(LTag)).
+   forall(
+     language(LTag),
+     register_language_prefixes(LTag)
+   ).
 
 language(ab).
 language(ace).
@@ -429,14 +411,9 @@ register_language_prefixes(Language) :-
   rdf_register_prefix(Prefix4, Uri4).
 
 :- meta_predicate
-    call_on_rdf(+, 2),
-    call_on_rdf(+, 2, +),
     hdt_call_on_file(+, 1),
     hdt_call_on_graph(?, 1),
-    rdf_aggregate_all(+, 0, -),
-    rdf_snap(0),
-    rdf_snap_clean(0),
-    rdf_snap_clean_(0).
+    rdf_aggregate_all(+, 0, -).
 
 :- multifile
     file_ext:media_type_extension/2,
@@ -464,18 +441,12 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#d
 user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#float',_,_), _, _).
 
 :- rdf_meta
-   rdf_agent_image(+, r, -, r),
-   rdf_agent_name(+, r, -, r),
-   rdf_creator(+, r, r, r),
-   rdf_familyName(+, r, -, r),
-   rdf_givenName(+, r, -, r),
    graph_file(r, -),
    ntriples_to_nquads(+, t, +),
-   hdt_call_on_graph(r, :),
-   hdt_graph(?, r),
-   hdt_init(+, r),
    prefix_local_iri(?, ?, r),
    rdf(+, r, r, o, r),
+   rdf_agent_image(+, r, -, r),
+   rdf_agent_name(+, r, -, r),
    rdf_aggregate_all(+, t, -),
    rdf_assert(t),
    rdf_assert(t, r),
@@ -491,12 +462,11 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_cbd_triples(?, o, r, -),
    rdf_chk(+, r, r, o, r),
    rdf_chk_lexical_form(+, r, r, -, r),
-   rdf_deref_quad(r, t),
-   rdf_deref_quad(r, t, +),
-   rdf_deref_triple(r, t),
-   rdf_deref_triple(r, t, +),
+   rdf_creator(+, r, r, r),
    rdf_estimate(+, r, r, o, -),
    rdf_estimate(+, r, r, o, -, r),
+   rdf_familyName(+, r, -, r),
+   rdf_givenName(+, r, -, r),
    rdf_iri(?, r),
    rdf_iri(?, r, r),
    rdf_is_legacy_literal(o),
@@ -504,6 +474,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_is_graph(r),
    rdf_is_language_tagged_string(o),
    rdf_is_real_iri(r),
+   rdf_is_well_known_iri(r),
    rdf_list_member(+, r, o, r),
    rdf_list_member(+, r, r, o, r),
    rdf_list_memberchk(+, r, o, r),
@@ -515,8 +486,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_literal_language_tag(o, -),
    rdf_literal_lexical_form(o, -),
    rdf_literal_value(o, ?),
-   rdf_load2(r),
-   rdf_load2(r, +),
    rdf_name(?, o),
    rdf_name(?, o, r),
    rdf_node(?, o),
@@ -627,7 +596,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 :- rdf_register_prefix(sh, 'http://www.w3.org/ns/shacl#').
 :- rdf_register_prefix(sioc, 'http://rdfs.org/sioc/ns#').
 :- rdf_register_prefix(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
-:- rdf_register_prefix(sparql, 'http://www.w3.org/2005/sparql-results#').
+:- rdf_register_prefix('sparql-results', 'http://www.w3.org/2005/sparql-results#').
 :- rdf_register_prefix(t, 'https://triply.cc/ontology/').
 :- rdf_register_prefix(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
 :- rdf_register_prefix(vcard, 'http://www.w3.org/2006/vcard/ns#').
@@ -644,172 +613,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 
 
 
-%! call_on_rdf(+UriSpec:term, :Goal_2) is nondet.
-%! call_on_rdf(+UriSpec:term, :Goal_2, +Options:list(compound)) is nondet.
-%
-% Makes the call `Goal_2(+Tuple, ?G)'.
-%
-% The following options are supported:
-%
-%   * accept(+list(compound))
-%
-%     The value of the HTTP Accept header, from high to low
-%     precedence.  The default value is a list of all and only
-%     standardized Media Types.
-%
-%   * base_uri(+atom)
-%
-%     The default is the URI of the last metadata element.
-%
-%   * bnode_prefix(+atom)
-%
-%     The default is a well-known IRI as per RDF 1.1.
-%
-%   * Other options are passed to call_on_uri/3 and
-%     rdf_process_ntriples/3.
-
-call_on_rdf(UriSpec, Goal_2) :-
-  call_on_rdf(UriSpec, Goal_2, []).
-
-
-call_on_rdf(UriSpec, Goal_2, Options1) :-
-  findall(MediaType, rdf_media_type(MediaType), DefaultMediaTypes),
-  select_option(accept(MediaTypes), Options1, Options2, DefaultMediaTypes),
-  atom_phrase(accept(MediaTypes), Accept),
-  merge_options(Options2, [request_header('Accept'=Accept)], Options3),
-  call_on_uri(UriSpec, call_on_rdf_stream(Goal_2, Options1), Options3).
-
-call_on_rdf_stream(Goal_2, Options1, In, [Dict1|Metadata], [Dict2|Metadata]) :-
-  % Guess the Media Type based on peeking inside the stream.
-  rdf_guess(In, MediaTypes),
-  (memberchk(MediaType1, MediaTypes) -> true ; throw(error(rdf_unknown,_))),
-
-  % Compare the guessed Media Type to the value of the last
-  % `Content-Type' header.
-  (   metadata_content_type(Metadata, MediaType2)
-  ->  media_type_warning(MediaType1, MediaType2)
-  ;   true
-  ),
-
-  % Compare the guessed Media Type to the URI's path component.
-  metadata_uri(Metadata, Uri),
-  (   uri_media_type(Uri, MediaType3)
-  ->  media_type_warning(MediaType1, MediaType3)
-  ;   true
-  ),
-  
-  % Determine the base URI.
-  option(base_uri(BaseUri), Options1, Uri),
-  
-  % Determine the blank node prefix.
-  call_default_option(
-    bnode_prefix(BNodePrefix),
-    Options1,
-    rdf_create_bnode_iri
-  ),
-  
-  % Parse according to the guessed Media Type.
-
-  (   % N-Quads
-      MediaType1 = media(application/'n-quads',_)
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
-        Options1,
-        Options2
-      ),
-      rdf_process_ntriples(In, Goal_2, Options2)
-  ;   % N-Triples
-      MediaType1 = media(application/'n-triples',_)
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
-        Options1,
-        Options2
-      ),
-      rdf_process_ntriples(In, Goal_2, Options2)
-  ;   % RDF/XML
-      MediaType1 = media(application/'rdf+xml',_)
-  ->  merge_options(
-        [base_uri(BaseUri),blank_nodes(noshare)],
-        Options1,
-        Options2
-      ),
-      process_rdf(In, Goal_2, Options2)
-  ;   % TriG
-      MediaType1 = media(application/trig,_)
-  ->  merge_options(
-        [
-          anon_prefix(BNodePrefix),
-          base_uri(BaseUri),
-          format(trig),
-          resources(iri)
-        ],
-        Options1,
-        Options2
-      ),
-      rdf_process_turtle(In, Goal_2, Options2)
-  ;   % Turtle
-      MediaType1 = media(text/turtle,_)
-  ->  merge_options(
-        [
-          anon_prefix(BNodePrefix),
-          base_uri(BaseUri),
-          format(turtle),
-          resources(iri)
-        ],
-        Options1,
-        Options2
-      ),
-      rdf_process_turtle(In, Goal_2, Options2)
-  ;   % RDFa
-      memberchk(
-        MediaType1,
-        [media(application/'xhtml+xml',_),media(text/html,_)]
-      )
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base(BaseUri)],
-        Options1,
-        Options2
-      ),
-      read_rdfa(In, Triples, Options2),
-      maplist(Goal_2, Triples, _)
-  ;   % An unsupported Media Type (e.g., JSON-LD).
-      print_message(warning, unsupported_media_type(MediaType1))
-  ),
-  dict_put(media_type, Dict1, MediaType1, Dict2).
-
-media_type_warning(MediaType1, MediaType2) :-
-  'rdf_media_type_>'(MediaType1, MediaType2), !.
-media_type_warning(MediaType1, MediaType2) :-
-  print_message(warning, different_media_type(MediaType1,MediaType2)).
-
-'rdf_media_type_>'(X, Y) :-
-  'rdf_media_type_='(X, Y), !.
-'rdf_media_type_>'(X, Z) :-
-  'rdf_media_type_strict>'(X, Y),
-  'rdf_media_type_>'(Y, Z).
-
-'rdf_media_type_='(media(Supertype/Subtype,_),  media(Supertype/Subtype,_)).
-
-'rdf_media_type_strict>'(media(application/trig,_), media(text/turtle,_)).
-'rdf_media_type_strict>'(
-  media(text/turtle,_),
-  media(application/'n-triples',_)
-).
-'rdf_media_type_strict>'(
-  media(application/'n-quads',_),
-  media(application/'n-triples',_)
-).
-
-% Ordering represents precedence, from lower to hgiher.
-rdf_media_type(media(application/'json-ld',[])).
-rdf_media_type(media(application/'rdf+xml',[])).
-rdf_media_type(media(text/turtle,[])).
-rdf_media_type(media(application/'n-triples',[])).
-rdf_media_type(media(application/trig,[])).
-rdf_media_type(media(application/'n-quads',[])).
-
-
-
 %! graph_file(+G, -File) is det.
 
 graph_file(G, File) :-
@@ -823,66 +626,18 @@ graph_file(G, File) :-
 hdt_call_on_file(FileSpec, Goal_1) :-
   absolute_file_name(FileSpec, File, [access(read)]),
   setup_call_cleanup(
-    hdt_open(Hdt, File),
+    hdt_open(File, [handle(Hdt)]),
     call(Goal_1, Hdt),
     hdt_close(Hdt)
   ).
 
 
 
-%! hdt_call_on_graph(+G, :Goal_1) is det.
+%! hdt_call_on_graph(+G:atom, :Goal_1) is det.
 
 hdt_call_on_graph(G, Goal_1) :-
   hdt_graph(Hdt, G),
   call(Goal_1, Hdt).
-
-
-
-%! hdt_graph_file(+G, -File) is det.
-%! hdt_graph_file(-G, +File) is det.
-
-hdt_graph_file(G, File) :-
-  ground(G), !,
-  rdf_global_id(graph:Base, G),
-  file_name_extension(Base, hdt, Local),
-  absolute_file_name(data(Local), File, [access(read)]).
-hdt_graph_file(G, File) :-
-  ground(File), !,
-  file_base_name(File, Local),
-  file_name_extension(Base, hdt, Local),
-  rdf_global_id(graph:Base, G).
-
-
-
-%! hdt_init is det.
-%! hdt_init(+FileSpec:term) is det.
-%! hdt_init(+FileSpec:term, +G:atom) is det.
-
-hdt_init :-
-  forall(
-    (
-      absolute_file_name(
-        data(.),
-        Dir,
-        [access(read),file_errors(fail),file_type(directory),solutions(all)]
-      ),
-      directory_path_recursive(Dir, File),
-      directory_file_path(Dir, Local, File),
-      file_name_extension(Base, hdt, Local)
-    ),
-    hdt_init(File, Base)
-  ).
-
-
-hdt_init(FileSpec) :-
-  hdt_init(FileSpec, graph:default).
-
-
-hdt_init(FileSpec, G) :-
-  absolute_file_name(FileSpec, File, [access(read)]),
-  hdt_open(Hdt, File),
-  assert(hdt_graph(Hdt, G)),
-  debug(hdt_graph, "Open HDT: ~a", [File]).
 
 
 
@@ -897,11 +652,7 @@ prefix_local_iri(Prefix, Local, Iri) :-
 %! rdf(+M, ?S, ?P, ?O, ?G) is nondet.
 
 rdf(hdt, S, P, O, G) :-
-  hdt_graph(Hdt, G),
-  rdf(hdt0, S, P, O, Hdt).
-rdf(hdt0, S, P, O, Hdt) :-
-  (var(S) -> true ; \+ rdf_is_literal(S)),
-  hdt_search(Hdt, S, P, O).
+  hdt(S, P, O, G).
 rdf(trp, S, P, O, G) :-
   rdf(S, P, O, G).
 
@@ -1286,52 +1037,19 @@ rdf_current_prefix(Prefix) :-
 
 
 
-%! rdf_deref_quad(+UriSpec:compound, -Quad:compound) is nondet.
-%! rdf_deref_quad(+UriSpec:compound, -Quad:compound,
-%!                +Options:list(compound)) is nondet.
-
-rdf_deref_quad(UriSpec, Quad) :-
-  rdf_deref_quad(UriSpec, Quad, []).
-
-
-rdf_deref_quad(UriSpec, Quad, Options) :-
-  call_on_rdf(UriSpec, rdf_deref_quad_(Quad), Options).
-
-rdf_deref_quad_(Quad, Tuples, _) :-
-  member(Tuple, Tuples),
-  rdf_clean_tuple(Tuple, Quad).
-
-
-
-%! rdf_deref_triple(+UriSpec:term, -Triple:compound) is nondet.
-%! rdf_deref_triple(+UriSpec:term, -Triple:compound,
-%!                  +Options:list(compound)) is nondet.
-%
-% Options are passed to rdf_deref_quad/3.
-
-rdf_deref_triple(UriSpec, Triple) :-
-  rdf_deref_triple(UriSpec, Triple, []).
-
-
-rdf_deref_triple(UriSpec, Triple, Options) :-
-  rdf_deref_quad(UriSpec, Quad, Options),
-  rdf_tuple_triple(Quad, Triple).
-
-
-
 %! rdf_endpoint_init(+Dict) is det.
 
 rdf_endpoint_init(Dict) :-
   dict_get(graphs, Dict, [], Dicts),
-  maplist(init_graph1, Dicts).
+  maplist(rdf_graph_init_, Dicts).
 
-init_graph1(Dict) :-
-  hdt_init(Dict.file, Dict.name).
+rdf_graph_init_(Dict) :-
+  hdt_open(Dict.file, [graph(Dict.name)]).
 
 
 
-%! rdf_estimate(+M, ?S, ?P, ?O, -NumTriples:nonneg) is det.
-%! rdf_estimate(+M, ?S, ?P, ?O, -NumTriples:nonneg, ?G) is det.
+%! rdf_estimate(+M, ?S, ?P, ?O, -Count:nonneg) is det.
+%! rdf_estimate(+M, ?S, ?P, ?O, -Count:nonneg, ?G) is det.
 %
 % @tbd TRP support for rdf_estimate/6.
 
@@ -1340,17 +1058,14 @@ rdf_estimate(_, S, _, _, 0) :-
   rdf_is_literal(S), !.
 rdf_estimate(_, S, P, O, 1) :-
   ground(rdf(S,P,O)), !.
-rdf_estimate(hdt, S, P, O, NumTriples) :- !,
+rdf_estimate(hdt, S, P, O, Count) :- !,
   aggregate_all(
-    sum(NumTriples),
-    (
-      hdt_graph(Hdt, _),
-      rdf_estimate(hdt0, S, P, O, NumTriples, Hdt)
-    ),
-    NumTriples
+    sum(Count),
+    hdt_count(S, P, O, Count),
+    Count
   ).
-rdf_estimate(trp, S, P, O, NumTriples) :-
-  rdf_estimate_complexity(S, P, O, NumTriples).
+rdf_estimate(trp, S, P, O, Count) :-
+  rdf_estimate_complexity(S, P, O, Count).
 
 
 rdf_estimate(_, S, _, _, 0, _) :-
@@ -1358,10 +1073,8 @@ rdf_estimate(_, S, _, _, 0, _) :-
   rdf_is_literal(S), !.
 rdf_estimate(_, S, P, O, 1, _) :-
   ground(rdf(S,P,O)), !.
-rdf_estimate(hdt, S, P, O, NumTriples, G) :- !,
-  hdt_call_on_graph(G, rdf_estimate(hdt0, S, P, O, NumTriples)).
-rdf_estimate(hdt0, S, P, O, NumTriples, Hdt) :-
-  hdt_search_cost(Hdt, S, P, O, NumTriples).
+rdf_estimate(hdt, S, P, O, Count, G) :-
+  hdt_count(S, P, O, Count, G).
 
 
 
@@ -1383,17 +1096,13 @@ rdf_givenName(M, Agent, GivenName, G) :-
 %! rdf_iri(+M, ?Iri, ?G) is nondet.
 
 rdf_iri(hdt, Iri) :-
-  rdf_iri(hdt0, Iri).
-rdf_iri(hdt0, Iri) :-
-  distinct(Iri, rdf_iri(hdt0, Iri, _)).
+  distinct(Iri, rdf_iri(hdt, Iri, _)).
 rdf_iri(trp, Iri) :-
   rdf_iri(Iri).
 
 
 rdf_iri(hdt, Iri, G) :-
-  hdt_call_on_graph(G, rdf_iri(hdt0, Iri)).
-rdf_iri(hdt0, Iri, Hdt) :-
-  rdf_name(hdt, Iri, Hdt),
+  hdt_term(name, Iri, G),
   rdf_is_iri(Iri).
 rdf_iri(trp, Iri, G) :-
   rdf_iri(Iri),
@@ -1430,6 +1139,14 @@ rdf_is_language_tagged_string(Term) :-
 rdf_is_legacy_literal(literal(type(_,_))) :- !.
 rdf_is_legacy_literal(literal(lang(_,_))) :- !.
 rdf_is_legacy_literal(literal(_)).
+
+
+
+%! rdf_is_well_known_iri(@Term) is semidet.
+
+rdf_is_well_known_iri(Iri) :-
+  uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
+  ground(Scheme-Authority).
 
 
 
@@ -1570,33 +1287,20 @@ rdf_literal_value(Val@_, Val).
 
 
 
-%! rdf_load2(+UriSpec:term) is det.
-%! rdf_load2(+UriSpec:term, +Options:list(compound)) is det.
+%! rdf_load2(+File:atom) is det.
 %
-% Options are passed to call_on_rdf/3.
+% Loads RDF based in the file extension of File.
 
-rdf_load2(In) :-
-  rdf_load2(In, []).
+rdf_load2(File) :-
+  file_name_extension(_, Extension, File),
+  rdf_load_format_(Extension, Format),
+  rdf_load(File, [format(Format)]).
 
-
-rdf_load2(UriSpec, Options) :-
-  forall(
-    call_on_rdf(UriSpec, rdf_assert_clean_tuples1, Options),
-    true
-  ).
-
-rdf_assert_clean_tuples1(Tuples, G) :-
-  maplist(rdf_assert_clean_tuple1(G), Tuples).
-
-rdf_assert_clean_tuple1(G, rdf(S,P,O)) :- !,
-  rdf_assert_clean_quad1(S, P, O, G).
-rdf_assert_clean_tuple1(_, rdf(S,P,O,G)) :-
-  rdf_assert_clean_quad1(S, P, O, G).
-
-rdf_assert_clean_quad1(S1, P1, O1, G1) :-
-  rdf_clean_quad(rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)), !,
-  rdf_assert(S2, P2, O2, G2).
-rdf_assert_clean_quad1(_, _, _, _).
+rdf_load_format_(nq, nquads).
+rdf_load_format_(nt, ntriples).
+rdf_load_format_(rdf, xml).
+rdf_load_format_(ttl, turtle).
+rdf_load_format_(trig, trig).
 
 
 
@@ -1604,26 +1308,22 @@ rdf_assert_clean_quad1(_, _, _, _).
 %! rdf_name(+M, ?Name, ?G) is nondet.
 
 rdf_name(hdt, Name) :-
-  rdf_name(hdt0, Name).
-rdf_name(hdt0, Name) :-
-  distinct(Name, rdf_name(hdt0, Name, _)).
+  distinct(Name, hdt_term(name, Name)).
 rdf_name(trp, Name) :-
   rdf_name(Name).
 
 
 rdf_name(hdt, Name, G) :-
-  hdt_call_on_graph(G, rdf_name(hdt0, Name)).
-rdf_name(hdt0, Name, Hdt) :-
   (ground(Name) -> rdf_is_subject(Name) ; true),
-  hdt_subject(Hdt, Name).
-rdf_name(hdt0, Name, Hdt) :-
+  hdt_term(subject, Name, G).
+rdf_name(hdt, Name, G) :-
   (ground(Name) -> rdf_is_predicate(Name) ; true),
-  hdt_predicate(Hdt, Name),
-  \+ hdt_subject(Hdt, Name).
-rdf_name(hdt0, Name, Hdt) :-
-  hdt_object(Hdt, Name),
-  \+ hdt_subject(Hdt, Name),
-  \+ hdt_predicate(Hdt, Name).
+  hdt_term(predicate, Name, G),
+  \+ hdt_term(subject, Name, G).
+rdf_name(hdt, Name, G) :-
+  hdt_term(object, Name, G),
+  \+ hdt_term(subject, Name, G),
+  \+ hdt_term(predicate, Name, G).
 rdf_name(trp, Name, G) :-
   rdf_term(trp, Name, G),
   \+ rdf_is_bnode_iri(Name).
@@ -1634,17 +1334,13 @@ rdf_name(trp, Name, G) :-
 %! rdf_node(+M, ?Node, ?G) is nondet.
 
 rdf_node(hdt, Node) :-
-  rdf_node(hdt0, Node).
-rdf_node(hdt0, Node) :-
-  distinct(Node, rdf_node(hdt0, Node, _)).
+  distinct(Node, hdt_term(node, Node)).
 rdf_node(trp, Node) :-
   rdf_node(Node).
 
 
 rdf_node(hdt, Node, G) :-
-  hdt_call_on_graph(G, rdf_node(hdt0, Node)).
-rdf_node(hdt0, Node, Hdt) :-
-  hdt_node(hdt0, Node, Hdt).
+  hdt_term(node, Node, G).
 rdf_node(trp, S, G) :-
   rdf_subject(trp, S, G).
 rdf_node(trp, O, G) :-
@@ -1668,17 +1364,13 @@ rdf_number_of(M, Witness, S, P, O, G, NumWitnesses) :-
 %! rdf_object(+M, ?O, ?G) is nondet.
 
 rdf_object(hdt, O) :-
-  rdf_object(hdt0, O).
-rdf_object(hdt0, O) :-
-  distinct(O, rdf_object(hdt0, O, _)).
+  distinct(O, hdt_term(object, O)).
 rdf_object(trp, O) :-
   rdf_object(O).
 
 
 rdf_object(hdt, O, G) :-
-  hdt_call_on_graph(G, rdf_object(hdt0, O)).
-rdf_object(hdt0, O, Hdt) :-
-  hdt_object(Hdt, O).
+  hdt_term(object, O, G).
 rdf_object(trp, O, G) :-
   % [O] In memory we can pre-enumerate (pre-check is idle).
   (var(O) -> rdf_object(O) ; true),
@@ -1690,18 +1382,14 @@ rdf_object(trp, O, G) :-
 %! rdf_predicate(+M, ?P, ?G) is nondet.
 
 rdf_predicate(hdt, P) :-
-  rdf_predicate(hdt0, P).
-rdf_predicate(hdt0, P) :-
-  distinct(P, rdf_predicate(hdt0, P, _)).
+  distinct(P, hdt_term(predicate, P)).
 rdf_predicate(trp, P) :-
   rdf_predicate(P).
 
 
 rdf_predicate(hdt, P, G) :-
-  hdt_call_on_graph(G, rdf_predicate(hdt0, P)).
-rdf_predicate(hdt0, P, Hdt) :-
   (var(P) -> true ; rdf_is_predicate(P)),
-  hdt_predicate(Hdt, P).
+  hdt_term(predicate, P, G).
 rdf_predicate(trp, P, G) :-
   % [O] In memory we can pre-enumerate and pre-check syntax.
   (var(P) -> rdf_predicate(P) ; rdf_is_iri(P)),
@@ -1840,41 +1528,6 @@ rdf_reification(M, S, P, O, G, Stmt) :-
 
 
 
-%! rdf_reserialize(+UriSpec:term, +FileSpec:term) is nondet.
-%! rdf_reserialize(+Kind:oneof([quads,triples]), +UriSpec:term,
-%!                 +FileSpec:term) is nondet.
-%! rdf_reserialize(+Kind:oneof([quads,triples]), +UriSpec:term, +FileSpec:term,
-%!                 +Options:list(compound)) is nondet.
-%
-% Reserializes RDF data from URI to N-Quads FileSpec.
-%
-% Options are passed to call_to_file/3 and call_on_rdf/3.
-
-rdf_reserialize(UriSpec, FileSpec) :-
-  rdf_reserialize(quads, UriSpec, FileSpec).
-
-
-rdf_reserialize(Kind, UriSpec, FileSpec) :-
-  rdf_reserialize(Kind, UriSpec, FileSpec, []).
-
-
-rdf_reserialize(Kind, UriSpec, FileSpec, Options) :-
-  call_to_file(FileSpec, rdf_reserialize_(Kind, UriSpec, Options), Options).
-
-rdf_reserialize_(Kind, UriSpec, Options, Out, Meta, Meta) :-
-  forall(call_on_rdf(UriSpec, write_ntuples_(Kind, Out), Options), true).
-
-write_ntuples_(Kind, Out, Tuples, _) :-
-  convlist(rdf_clean_tuple, Tuples, Quads),
-  maplist(write_ntuple_(Kind, Out), Quads).
-
-write_ntuple_(quads, Out, Quad) :- !,
-  write_nquad(Out, Quad).
-write_ntuple_(triples, Out, Quad) :-
-  write_ntriple(Out, Quad).
-
-
-
 %! rdf_retractall is det.
 %! rdf_retractall(+Tuple:compound) is det.
 
@@ -1987,25 +1640,6 @@ rdf_scbd_triples(M, Node, G, Triples) :-
 
 
 
-%! rdf_snap(:Goal_0) is det.
-%! rdf_snap_clean(:Goal_0) is det.
-%
-% Call Goal_0 inside a snapshot of the RDF store.
-
-rdf_snap(Goal_0) :-
-  rdf_transaction(Goal_0, _, [snapshot(true)]).
-
-
-rdf_snap_clean(Goal_0) :-
-  rdf_snap(rdf_snap_clean_(Goal_0)).
-
-rdf_snap_clean_(Goal_0) :-
-  rdf_retractall,
-  Goal_0,
-  rdf_retractall.
-
-
-
 %! rdf_statistic(+M, +Key, -Value, +G) is det.
 %
 % @arg Key The following keys are supported:
@@ -2034,20 +1668,8 @@ rdf_snap_clean_(Goal_0) :-
 %
 %            The number of unique triples.
 
-rdf_statistic(hdt, Key, N, G) :-
-  hdt_call_on_graph(G, rdf_statistic(hdt0, Key, N)).
-rdf_statistic(hdt0, nodes, N, Hdt) :-
-  rdf_statistic(hdt0, shared, N1, Hdt),
-  rdf_statistic(hdt0, subjects, N2, Hdt),
-  rdf_statistic(hdt0, objects, N3, Hdt),
-  sum_list([N1,N2,N3], N).
-rdf_statistic(hdt0, terms, N, Hdt) :-
-  rdf_statistic(hdt0, predicates, N1, Hdt),
-  rdf_statistic(hdt0, nodes, N2, Hdt),
-  sum_list([N1,N2], N).
-rdf_statistic(hdt0, Key, N, Hdt) :-
-  hdt_header_property(Key, P),
-  once(hdt_header(Hdt, _, P, N^^_)).
+rdf_statistic(hdt, Role, N, G) :-
+  hdt_term_count(Role, N, G).
 rdf_statistic(trp, nodes, N, G) :-
   aggregate_all(count, rdf_node(trp, _, G), N).
 rdf_statistic(trp, objects, N, G) :-
@@ -2060,12 +1682,6 @@ rdf_statistic(trp, terms, N, G) :-
   aggregate_all(count, rdf_term(trp, _, G), N).
 rdf_statistic(trp, triples, N, G) :-
   rdf_graph_property(G, triples(N)).
-
-hdt_header_property(objects, '<http://rdfs.org/ns/void#distinctObjects>').
-hdt_header_property(predicates, '<http://rdfs.org/ns/void#properties>').
-hdt_header_property(shared, '<http://purl.org/HDT/hdt#dictionarynumSharedSubjectObject>').
-hdt_header_property(subjects, '<http://rdfs.org/ns/void#distinctSubjects>').
-hdt_header_property(triples, '<http://rdfs.org/ns/void#triples>').
 
 
 
@@ -2080,18 +1696,14 @@ rdf_subdatatype_of(X, Y) :-
 %! rdf_subject(+M, ?S, ?G) is nondet.
 
 rdf_subject(hdt, S) :-
-  rdf_subject(hdt0, S).
-rdf_subject(hdt0, S) :-
-  distinct(S, rdf_subject(hdt0, S, _)).
+  distinct(S, hdt_term(subject, S)).
 rdf_subject(trp, S) :-
   rdf_subject(S).
 
 
 rdf_subject(hdt, S, G) :-
-  hdt_call_on_graph(G, rdf_subject(hdt0, S)).
-rdf_subject(hdt0, S, Hdt) :-
   (var(S) -> true ; rdf_is_subject(S)),
-  hdt_subject(Hdt, S).
+  hdt_term(subject, S, G).
 rdf_subject(trp, S, G) :-
   % [O] In memory we can pre-enumerate and pre-check syntax.
   (var(S) -> rdf_subject(S) ; rdf_is_subject(S)),
@@ -2103,19 +1715,15 @@ rdf_subject(trp, S, G) :-
 %! rdf_term(+M, ?Term, ?G) is nondet.
 
 rdf_term(hdt, Term) :-
-  rdf_term(hdt0, Term).
-rdf_term(hdt0, Term) :-
-  distinct(Term, rdf_term(hdt0, Term, _)).
+  distinct(Term, hdt_term(term, Term)).
 rdf_term(trp, Term) :-
   rdf_term(Term).
 
 
 rdf_term(hdt, Name, G) :-
-  hdt_call_on_graph(G, rdf_term(hdt0, Name)).
-rdf_term(hdt0, Name, Hdt) :-
-  rdf_name(hdt0, Name, Hdt).
-rdf_term(hdt0, BNode, Hdt) :-
-  rdf_bnode_iri(hdt0, BNode, Hdt).
+  rdf_term(name, Name, G).
+rdf_term(hdt, BNode, G) :-
+  rdf_bnode_iri(hdt, BNode, G).
 rdf_term(trp, P, G) :-
   rdf_predicate(trp, P, G).
 rdf_term(trp, Node, G) :-
@@ -2134,42 +1742,6 @@ rdf_term_to_atom(Lex@LTag, Atom) :- !,
   format(atom(Atom), '"~a"@~a', [Lex,LTag]).
 rdf_term_to_atom(Atom, Atom) :-
   rdf_is_iri(Atom).
-
-
-
-%! rdf_to_hdt(+UriSpec:term, +FileSpec:term) is det.
-
-rdf_to_hdt(UriSpec, FileSpec) :-
-  absolute_file_name(FileSpec, File, [access(write)]),
-
-  % Convert to uncompressed N-Triples.
-  debug(semweb(rdf_to_hdt), "Creating uncompressed N-Triples…", []),
-  create_temporary_file1(TriplesFileTmp),
-  rdf_reserialize(triples, UriSpec, TriplesFileTmp, [compression(none)]),
-  debug(semweb(rdf_to_hdt), "…uncompressed N-Triples created.", []),
-
-  % Create HDT file.
-  debug(semweb(rdf_to_hdt), "Creating HDT…", []),
-  file_name_extension(File, working, HdtFile),
-  hdt:hdt_create_from_file(HdtFile, TriplesFileTmp, []),
-  with_mutex(rdf_to_hdt,
-    (   % Somebody else was earlier.
-        exists_file(File)
-    ->  delete_file(HdtFile)
-    ;   rename_file(HdtFile, File)
-    )
-  ),
-  delete_file(TriplesFileTmp),
-  debug(semweb(rdf_to_hdt), "…HDT created.", []),
-
-  % Create HDT index file.
-  debug(semweb(rdf_to_hdt), "Creating HDT index…", []),
-  hdt_call_on_file(HdtFile, [Hdt]>>once(hdt(Hdt, _,_,_))),
-  debug(semweb(rdf_to_hdt), "…HDT index created.", []).
-  
-create_temporary_file1(File) :-
-  uuid(Uuid),
-  absolute_file_name(Uuid, File, [access(write),extensions([tmp])]).
 
 
 
