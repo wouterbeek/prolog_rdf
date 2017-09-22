@@ -166,12 +166,6 @@
 
 :- debug(clean_tuple).
 
-%mime_type_encoding('application/n-quads', utf8).
-%mime_type_encoding('application/n-triples', utf8).
-%mime_type_encoding('application/sparql-query', utf8).
-%mime_type_encoding('application/trig', utf8).
-%mime_type_encoding('text/turtle', utf8).
-
 :- initialization
    forall(
      language(LTag),
