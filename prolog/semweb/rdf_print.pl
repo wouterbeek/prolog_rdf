@@ -1,8 +1,6 @@
 :- module(
   rdf_print,
   [
-    rdf_pp_deref_triple/1,   % +Uri
-    rdf_pp_deref_triple/2,   % +Uri, +Options
     rdf_pp_graph/2,          % +M, +G
     rdf_pp_options/3,        % +Options1, -Out, -Options2
     rdf_pp_quad_groups/1,    % +JoinedPairs:list(pair(atom,list(compound)))
@@ -13,25 +11,17 @@
     rdf_pp_triples/2,        % +Triples, +Options
     % DCG
     rdf_dcg_bnode//1,        % +BNode
-    rdf_dcg_datatype_iri//1, % +D
-    rdf_dcg_datatype_iri//2, % +D, +Options
-    rdf_dcg_graph_term//1,   % +G
-    rdf_dcg_graph_term//2,   % +G, +Options
     rdf_dcg_iri//1,          % +Iri
     rdf_dcg_iri//2,          % +Iri, +Options
     rdf_dcg_language_tag//2, % +LTag, +Options
     rdf_dcg_lexical_form//2, % +Lex, +Options
     rdf_dcg_literal//1,      % +Lit
     rdf_dcg_literal//2,      % +Lit, +Options
-    rdf_dcg_node//1,         % +Node
-    rdf_dcg_node//2,         % +Node, +Options
-    rdf_dcg_object//1,       % +O
-    rdf_dcg_object//2,       % +O, +Options
+    rdf_dcg_nonliteral//1,   % +S
+    rdf_dcg_nonliteral//2,   % +S, +Options
     rdf_dcg_options/2,       % +Options1, -Options2
     rdf_dcg_predicate//1,    % +P
     rdf_dcg_predicate//2,    % +P, +Options
-    rdf_dcg_subject//1,      % +S
-    rdf_dcg_subject//2,      % +S, +Options
     rdf_dcg_term//1,         % +Term
     rdf_dcg_term//2,         % +Term, +Options
     rdf_dcg_triple//3,       % +S, +P, +O
@@ -59,60 +49,39 @@
 |                |            |             | are printed.                     |
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/09
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf11)).
 
 :- multifile
     rdf_print:rdf_dcg_literal_hook//2.
 
 :- rdf_meta
-   rdf_deref_triple(r),
-   rdf_deref_triple(r, +),
    rdf_pp_graph(+, r),
    rdf_pp_triple(r, r, o),
    rdf_pp_triple(r, r, o, +),
    % DCG
-   rdf_dcg_datatype_iri(r, ?, ?),
-   rdf_dcg_datatype_iri(r, +, ?, ?),
-   rdf_dcg_graph_term(r, ?, ?),
-   rdf_dcg_graph_term(r, +, ?, ?),
    rdf_dcg_iri(r, ?, ?),
    rdf_dcg_iri(r, +, ?, ?),
    rdf_dcg_literal(o, ?, ?),
    rdf_dcg_literal(o, +, ?, ?),
-   rdf_dcg_node(o, ?, ?),
-   rdf_dcg_node(o, +, ?, ?),
-   rdf_dcg_object(o, ?, ?),
-   rdf_dcg_object(o, +, ?, ?),
-   rdf_dcg_predicate(o, ?, ?),
-   rdf_dcg_predicate(o, +, ?, ?),
-   rdf_dcg_subject(o, ?, ?),
-   rdf_dcg_subject(o, +, ?, ?),
+   rdf_dcg_nonliteral(o, ?, ?),
+   rdf_dcg_nonliteral(o, +, ?, ?),
    rdf_dcg_term(o, ?, ?),
    rdf_dcg_term(o, +, ?, ?),
    rdf_dcg_triple(o, o, o, ?, ?),
    rdf_dcg_triple(o, o, o, +, ?, ?).
 
+% TBD: Move this to semweb/rdf11
+rdf_literal_lexical_form(Val^^D, Lex) :- !,
+  rdf11:rdf_lexical_form(Val^^D, Lex^^D).
+rdf_literal_lexical_form(Val@_, Val).
 
 
-
-
-%! rdf_pp_deref_triple(+Uri) is nondet.
-%! rdf_pp_deref_triple(+Uri, +Options) is nondet.
-
-rdf_pp_deref_triple(Uri) :-
-  rdf_pp_deref_triple(Uri, []).
-
-
-rdf_pp_deref_triple(Uri, Options) :-
-  rdf_deref_triple(Uri, rdf(S,P,O), Options),
-  rdf_pp_triple(S, P, O, Options).
 
 
 
@@ -185,31 +154,6 @@ rdf_dcg_bnode(BNode) -->
   {rdf_global_id(bnode:Local, BNode)},
   "_:",
   atom(Local).
-
-
-
-%! rdf_dcg_datatype_iri(+D)// is det.
-%! rdf_dcg_datatype_iri(+D, +Options)// is det.
-
-rdf_dcg_datatype_iri(D) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_datatype_iri(D, Options).
-
-
-rdf_dcg_datatype_iri(D, Options) -->
-  rdf_dcg_iri(D, Options).
-
-
-
-%! rdf_dcg_graph_term(+G)// is det.
-
-rdf_dcg_graph_term(G) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_graph_term(G, Options).
-
-
-rdf_dcg_graph_term(G, Options) -->
-  rdf_dcg_iri(G, Options).
 
 
 
@@ -296,42 +240,16 @@ rdf_dcg_literal(Val^^D, Options) -->
   rdf_dcg_lexical_form(Lex, Options).
 % Unabbreviated datatype IRI that is not `rdf:langString`.
 rdf_dcg_literal(V^^D, Options) --> !,
-  {rdf_literal(V^^D, _, Lex, _)},
+  {rdf_literal_lexical_form(V^^D, Lex)},
   rdf_dcg_lexical_form(Lex, Options),
   "^^",
-  rdf_dcg_datatype_iri(D, Options).
+  rdf_dcg_iri(D, Options).
 % Language-tagged string datatype IRI.
 rdf_dcg_literal(V@LTag, Options) --> !,
   {atom_string(Lex, V)},
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   rdf_dcg_language_tag(LTag, Options).
-
-
-
-%! rdf_dcg_node(+Node)// is det.
-%! rdf_dcg_node(+Node, +Options)// is det.
-
-rdf_dcg_node(Node) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_node(Node, Options).
-
-
-rdf_dcg_node(Node, Options) -->
-  rdf_dcg_term(Node, Options).
-
-
-
-%! rdf_dcg_object(+O)// is det.
-%! rdf_dcg_object(+O, +Options)// is det.
-
-rdf_dcg_object(O) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_object(O, Options).
-
-
-rdf_dcg_object(O, Options) -->
-  rdf_dcg_term(O, Options).
 
 
 
@@ -366,15 +284,15 @@ rdf_dcg_predicate(P, Options) -->
 
 
 
-%! rdf_dcg_subject(+S)// is det.
-%! rdf_dcg_subject(+S, +Options)// is det.
+%! rdf_dcg_nonliteral(+S)// is det.
+%! rdf_dcg_nonliteral(+S, +Options)// is det.
 
-rdf_dcg_subject(S) -->
+rdf_dcg_nonliteral(S) -->
   {rdf_dcg_options(Options)},
-  rdf_dcg_subject(S, Options).
+  rdf_dcg_nonliteral(S, Options).
 
 
-rdf_dcg_subject(S, Options) -->
+rdf_dcg_nonliteral(S, Options) -->
   rdf_dcg_term(S, Options).
 
 
@@ -411,11 +329,11 @@ rdf_dcg_triple(S, P, O) -->
 
 
 rdf_dcg_triple(S, P, O, Options) -->
-  rdf_dcg_subject(S, Options),
+  rdf_dcg_nonliteral(S, Options),
   " ",
   rdf_dcg_predicate(P, Options),
   " ",
-  rdf_dcg_object(O, Options).
+  rdf_dcg_term(O, Options).
 
 
 
@@ -433,7 +351,7 @@ rdf_dcg_groups0([G-Triples|Groups], Options) -->
   (   {var(G)}
   ->  {I2 = I1}
   ;   dcg_tab(I1),
-      rdf_dcg_graph_term(G, Options),
+      rdf_dcg_iri(G, Options),
       " {\n",
       {I2 = I1 + 1}
   ),
@@ -451,7 +369,7 @@ rdf_dcg_triples0(I, Triples, Options) -->
 rdf_dcg_subjects0(_, [], _) --> !, [].
 rdf_dcg_subjects0(I1, [S-POs|Groups1], Options) -->
   dcg_tab(I1),
-  rdf_dcg_subject(S, Options),
+  rdf_dcg_nonliteral(S, Options),
   {
     aggregate_all(set(P-O), member(po(P,O), POs), SortedPairs),
     group_pairs_by_key(SortedPairs, Groups2),
@@ -484,7 +402,7 @@ rdf_dcg_predicates2(I1, [P-Os|Groups], Options) -->
 % There is exactly one object.  Emit it on the same line.
 rdf_dcg_objects1(_, [O], Options) --> !,
   " ",
-  rdf_dcg_object(O, Options).
+  rdf_dcg_term(O, Options).
 rdf_dcg_objects1(I, Os, Options) -->
   rdf_dcg_objects2(I, Os, Options).
 
@@ -492,7 +410,7 @@ rdf_dcg_objects2(_, [], _) --> !, [].
 rdf_dcg_objects2(I, [O|Os], Options) -->
   nl,
   dcg_tab(I),
-  rdf_dcg_object(O, Options),
+  rdf_dcg_term(O, Options),
   ({Os == []} -> "" ; " ,"),
   rdf_dcg_objects2(I, Os, Options).
 
@@ -541,9 +459,3 @@ rdf_dcg_options(
     newline: true
   }
 ).
-
-
-
-%! tab// is det.
-
-tab --> "  ".

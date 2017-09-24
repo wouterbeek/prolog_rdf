@@ -99,8 +99,7 @@
     rdf_term/3,                      % +M, ?Term, ?G
     rdf_term_to_atom/2,              % +Term, -Atom
     rdf_tuple_quad/3,                % +Tuple, +G, -Quad
-    rdf_tuple_triple/2,              % +Tuple, ?Triple
-    rdf_write_term/2                 % +Out, +Term
+    rdf_tuple_triple/2               % +Tuple, ?Triple
   ]
 ).
 :- reexport(library(hdt)).

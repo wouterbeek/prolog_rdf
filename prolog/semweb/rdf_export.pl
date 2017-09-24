@@ -56,12 +56,12 @@ rdf_write_iri(Out, Iri) :-
 rdf_write_literal(Out, Val^^D) :- !,
   rdf_literal_lexical_form(Val^^D, Lex),
   turtle:turtle_write_quoted_string(Out, Lex),
-  format(Out, '^^'),
+  format(Out, "^^", []),
   rdf_write_iri(Out, D).
 rdf_write_literal(Out, Val@LTag) :- !,
   rdf_literal_lexical_form(Val@LTag, Lex),
   turtle:turtle_write_quoted_string(Out, Lex),
-  format(Out, '@~a', [LTag]).
+  format(Out, "@~a", [LTag]).
 rdf_write_literal(Out, Val) :-
   rdf_write_literal(Out, Val^^xsd:string).
 
@@ -95,7 +95,7 @@ rdf_write_quad(Out, rdf(S,P,O,_), G) :-
 rdf_write_quad(Out, S, P, O, G) :-
   rdf_write_triple_open(Out, S, P, O),
   rdf_write_iri(Out, G),
-  format(Out, ' .\n').
+  format(Out, " .\n", []).
 
 rdf_write_triple_open(Out, S, P, O) :-
   rdf_write_nonliteral(Out, S),
@@ -130,7 +130,7 @@ rdf_write_triple(Out, rdf(S,P,O,_)) :-
 
 rdf_write_triple(Out, S, P, O) :-
   rdf_write_triple_open(Out, S, P, O),
-  format(Out, '.\n').
+  format(Out, ".\n", []).
 
 
 

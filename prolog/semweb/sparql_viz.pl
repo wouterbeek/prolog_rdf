@@ -69,7 +69,7 @@ sparql_viz_arg(Options, N, rdf(S,P,O,_)) :- !,
     ", ",
     rdf_dcg_predicate(P, Options),
     ", ",
-    rdf_dcg_object(O, Options),
+    rdf_dcg_term(O, Options),
     "〉"
   )),
   write_node(Options, N, _, Label).
