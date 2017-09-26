@@ -25,7 +25,8 @@ expression.
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf_prefix), []).
 :- use_module(library(sgml)).
 
 :- meta_predicate
@@ -388,7 +389,7 @@ is_aggregate(sum(_)).
 
 'BlankNodePropertyList'(State, Node, Triples) -->
   "[",
-  {rdf_create_bnode_iri(Node)},
+  {rdf_create_bnode(Node)},
   skip_ws,
   'PropertyListNotEmpty'(State, Node, Triples),
   must_see_code(0']),
@@ -404,7 +405,7 @@ is_aggregate(sum(_)).
 
 'BlankNodePropertyListPath'(State, Node, Triples) -->
   "[",
-  {rdf_create_bnode_iri(Node)},
+  {rdf_create_bnode(Node)},
   skip_ws,
   'PropertyListPathNotEmpty'(State, Node, Triples),
   must_see_code(0']),
@@ -2262,16 +2263,16 @@ iriOrFunction(State, Function) -->
 %
 %   * false, which is the same as "false"^^xsd:boolean
 
-'RDFLiteral'(State, Lit) -->
+'RDFLiteral'(State, Literal) -->
   'String'(Lex),
   (   'LANGTAG'(LTag)
   ->  skip_ws,
-      {rdf_literal(Lit, rdf:langString, Lex, LTag)}
+      {format(atom(Literal), '"~a"@~a', [Lex,LTag])}
   ;   "^^"
   ->  skip_ws,
       iri(State, D),
-      {rdf_literal(Lit, D, Lex, _)}
-  ;   {Lit = Lex}
+      {format(atom(Literal), '"~a"^^<~a>', [Lex,D])}
+  ;   {Literal = Lex}
   ).
 
 

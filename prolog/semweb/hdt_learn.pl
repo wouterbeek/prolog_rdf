@@ -2,11 +2,11 @@
   hdt_learn,
   [
     hdt_node_degree/3, % +Hdt, +Node, ?Degree
-    hdt_step_random/4, % +Hdt, +Node1, -EdgeLabel, -Node2
+    hdt_step_random/4, % +Hdt, +V, -E, -W
     hdt_walk_random/4  % +Hdt, +Node, +Depth, -Walk
   ]
 ).
-:- reexport(library(hdt_id)).
+:- reexport(library(hdt_term)).
 
 /** <module> HDT as a Machine Learning bakcend
 
@@ -21,7 +21,10 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_print)).
 
-:- debug(hdt_learn).
+:- rdf_meta
+   hdt_node_degree(+, r, ?),
+   hdt_step_random(+, r, -, -),
+   hdt_walk_random(+, r, +, -).
 
 
 
@@ -30,13 +33,13 @@
 %! hdt_node_degree(+Hdt:blob, +Node, ?Degree:nonneg) is nondet.
 
 hdt_node_degree(Hdt, Node, Degree) :-
-  hdt_triple_count(Node, _, _, OutDegree, Hdt),
-  hdt_triple_count(_, _, Node, InDegree, Hdt),
+  hdt_triple_count(Hdt, Node, _, _, OutDegree),
+  hdt_triple_count(Hdt, _, _, Node, InDegree),
   sum_list([OutDegree,InDegree], Degree).
 
 
 
-%! hdt_step_random(+Hdt:blob, +Node1, -EdgeLabel, -Node2) is det.
+%! hdt_step_random(+Hdt:blob, +V, -E, -W) is det.
 
 hdt_step_random(Hdt, V, E, W) :-
   hdt_triple_count(Hdt, V, _, _, OutDegree),
@@ -47,36 +50,26 @@ hdt_step_random(Hdt, V, E, W) :-
   ->  % forward link
       hdt_triple_random(Hdt, V, E, W),
       (   debugging(hdt_learn)
-      ->  maplist(
-            hdt_term_translate(Hdt),
-            [term(_,ETerm),term(_,WTerm)],
-            [E,W]
-          ),
-          flag(number_of_steps, N, N+1),
+      ->  flag(number_of_steps, N, N+1),
           dcg_debug(hdt_learn, (
             thousands(N),
             " ⮞ ",
-            rdf_dcg_iri(ETerm),
+            rdf_dcg_iri(E),
             " ",
-            rdf_dcg_term(WTerm)
+            rdf_dcg_term(W)
           ))
       ;   true
       )
   ;   % backward link
       hdt_triple_random(Hdt, W, E, V),
       (   debugging(hdt_learn)
-      ->  maplist(
-            hdt_term_translate(Hdt),
-            [term(_,ETerm),term(_,WTerm)],
-            [E,W]
-          ),
-          flag(number_of_steps, N, N+1),
+      ->  flag(number_of_steps, N, N+1),
           dcg_debug(hdt_learn, (
             thousands(N),
             " ⮜ ",
-            rdf_dcg_term(WTerm),
+            rdf_dcg_term(W),
             " ",
-            rdf_dcg_iri(ETerm)
+            rdf_dcg_iri(E)
           ))
       ;   true
       )
@@ -94,7 +87,6 @@ hdt_walk_random(Hdt, V, D, Walk) :-
   must_be(nonneg, D),
   (debugging(hdt_learn) -> flag(number_of_steps, _, 1) ; true),
   hdt_walk_random_(Hdt, V, D, Walk).
-
 
 hdt_walk_random_(_, V, 0, [V]) :- !.
 hdt_walk_random_(Hdt, V, D1, [V,E|Walk]) :-
