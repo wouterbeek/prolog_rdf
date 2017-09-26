@@ -39,8 +39,8 @@
 | `indent`       | nonneg     | 0           |                                  |
 | `iri_abbr`     | boolean    | `true`      | Whether IRIs are abbreviated     |
 |                |            |             | based on the current prefixes.   |
-| `max_iri_len`  | nonneg     | `inf`       | The maximum length of an IRI.    |
-| `max_lit_len`  | nonneg     | `inf`       | The maximum length of a literal. |
+| `max_iri_len`  | nonneg     | `∞`       | The maximum length of an IRI.    |
+| `max_lit_len`  | nonneg     | `∞`       | The maximum length of a literal. |
 | `prefix_map`   | list(pair( |             | A custom list of prefix/IRI      |
 |                | atom))     |             | mappings that overrules and/or   |
 |                |            |             | extends the prefix declarations. |
@@ -55,7 +55,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf_ext)).
 
 :- multifile
     rdf_print:rdf_dcg_literal_hook//2.
@@ -75,11 +75,6 @@
    rdf_dcg_term(o, +, ?, ?),
    rdf_dcg_triple(o, o, o, ?, ?),
    rdf_dcg_triple(o, o, o, +, ?, ?).
-
-% TBD: Move this to semweb/rdf11
-rdf_literal_lexical_form(Val^^D, Lex) :- !,
-  rdf11:rdf_lexical_form(Val^^D, Lex^^D).
-rdf_literal_lexical_form(Val@_, Val).
 
 
 
@@ -439,8 +434,8 @@ memberchk_eq_key(Key, [_|T], Val) :-
 % HELPERS %
 
 %! inf_minus(+X, +Y, -Z) is det.
-  
-inf_minus(inf, _, inf) :- !.
+
+inf_minus(∞, _, ∞) :- !.
 inf_minus(X, Y, X) :-
   X =< Y, !.
 inf_minus(X, Y, Z) :-
@@ -454,8 +449,8 @@ rdf_dcg_options(
   _{
     iri_abbr: true,
     iri_lbl: false,
-    max_iri_len: inf,
-    max_lit_len: inf,
+    max_iri_len: ∞,
+    max_lit_len: ∞,
     newline: true
   }
 ).

@@ -15,7 +15,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(xml/xml_ext)).
 
 :- thread_local
@@ -41,11 +41,11 @@ sparql_binding_(element(binding,_,Term1), Term2) :-
 
 sparql_term_([element(bnode,_,[BNode])], BNode) :- !.
 sparql_term_([element(uri,_,[Uri])], Uri) :- !.
-sparql_term_([element(literal,['xml:lang'=LTag],[Lex])], Lit) :- !,
-  rdf_literal(Lit, rdf:langString, Lex, LTag).
-sparql_term_([element(literal,[datatype=D],[Lex])], Lit) :- !,
-  rdf_literal(Lit, D, Lex, _).
-sparql_term_([element(literal,[],[Lex])], Lit) :- !,
-  rdf_literal(Lit, xsd:string, Lex, _).
+sparql_term_([element(literal,['xml:lang'=LTag],[Lex])], Literal) :- !,
+  literal(Literal, rdf:langString, LTag, Lex).
+sparql_term_([element(literal,[datatype=D],[Lex])], Literal) :- !,
+  literal(Literal, D, _, Lex).
+sparql_term_([element(literal,[],[Lex])], Literal) :- !,
+  literal(Literal, _, _, Lex).
 sparql_term_(Dom, _) :-
   domain_error(sparql_term, Dom).

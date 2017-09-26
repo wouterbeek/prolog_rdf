@@ -42,7 +42,7 @@ SPARQL 1.1 HTTP responses (result sets).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pure_input)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/sparql_parser)).
 :- use_module(library(sgml)).
 :- use_module(library(uri/uri_ext)).
@@ -292,7 +292,7 @@ tsv_term(Literal) -->
   ->  rest(Codes),
       {atom_codes(LTag, Codes)}
   ),
-  {rdf_literal(Literal, Lex, D, LTag)}.
+  {literal(Literal, D, LTag, Lex)}.
 tsv_term(BNode) -->
   rest(Codes),
   {atom_codes(BNode, Codes)}.

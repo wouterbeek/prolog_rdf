@@ -14,7 +14,7 @@ Parses a SPARQL query string into the corresponding algebraic
 expression.
 
 @author Wouter Beek
-@version 2017/05, 2017/08-2017/09
+@version 2017/05-2017/09
 */
 
 :- use_module(library(apply)).
@@ -25,8 +25,7 @@ expression.
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf11)).
-:- use_module(library(semweb/rdf_prefix), []).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(sgml)).
 
 :- meta_predicate
@@ -77,12 +76,19 @@ sparql_is_update_form(dummy).
 % `VariableMap' can include hidden variables, i.e., ones that do not
 % appear in the projection.
 
-sparql_parse(BaseIri, dataset(DefaultGraphs,NamedGraphs), Query, State2, Algebra2) :-
+sparql_parse(
+  BaseIri,
+  dataset(DefaultGraphs,NamedGraphs),
+  Query,
+  State2,
+  Algebra2
+) :-
   atom_codes(Query, Codes1),
   phrase(replace_codepoint_escape_sequences, Codes1, Codes2),
   empty_assoc(VariableMap1),
+  rdf_default_graph(DefaultGraph),
   State1 = _{
-    active_graph: default,
+    active_graph: DefaultGraph,
     base_iri: BaseIri,
     default_graphs: DefaultGraphs,
     named_graphs: NamedGraphs,
@@ -419,9 +425,9 @@ is_aggregate(sum(_)).
 % [134] BooleanLiteral ::= 'true' | 'false'
 % ```
 
-'BooleanLiteral'(true^^xsd:boolean) -->
+'BooleanLiteral'(literal(type(xsd:boolean,true))) -->
   keyword(`true`), !.
-'BooleanLiteral'(false^^xsd:boolean) -->
+'BooleanLiteral'(literal(type(xsd:boolean,false))) -->
   keyword(`false`).
 
 
@@ -988,7 +994,10 @@ set_dataset(_, _, _).
   'VarOrIri'(State, NamedGraph),
   {
     get_dict(named_graphs, State, NamedGraphs),
-    (memberchk(NamedGraph, NamedGraphs) -> true ; existence_error(named_graph, NamedGraph)),
+    (   memberchk(NamedGraph, NamedGraphs)
+    ->  true
+    ;   existence_error(named_graph, NamedGraph)
+    ),
     get_dict(active_graph, State, AG),
     nb_set_dict(active_graph, State, NamedGraph)
   },
@@ -1623,22 +1632,31 @@ iriOrFunction(State, Function) -->
 %                                | DOUBLE_NEGATIVE
 % ```
 
-'NumericLiteralNegative'(Lit) -->
+'NumericLiteralNegative'(Literal) -->
   'INTEGER_NEGATIVE'(N), !,
-  {rdf_global_object(N^^xsd:integer, Lit)},
+  {
+    rdf_equal(xsd:integer, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
-'NumericLiteralNegative'(Lit) -->
+'NumericLiteralNegative'(Literal) -->
   'DECIMAL_NEGATIVE'(N), !,
-  {rdf_global_object(N^^xsd:decimal, Lit)},
+  {
+    rdf_equal(xsd:decimal, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
-'NumericLiteralNegative'(Lit) -->
+'NumericLiteralNegative'(Literal) -->
   'DOUBLE_NEGATIVE'(N),
-  {rdf_global_object(N^^xsd:double, Lit)},
+  {
+    rdf_equal(xsd:double, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
 
 
 
-%! 'NumericLiteralPositive'(-Lit)// is det.
+%! 'NumericLiteralPositive'(-Literal:compound)// is det.
 %
 % ```ebnf
 % [132] NumericLiteralPositive ::= INTEGER_POSITIVE
@@ -1646,38 +1664,56 @@ iriOrFunction(State, Function) -->
 %                                | DOUBLE_POSITIVE
 % ```
 
-'NumericLiteralPositive'(Lit) -->
+'NumericLiteralPositive'(Literal) -->
   'INTEGER_POSITIVE'(N), !,
-  {rdf_global_object(N^^xsd:integer, Lit)},
+  {
+    rdf_equal(xsd:integer, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
-'NumericLiteralPositive'(Lit) -->
+'NumericLiteralPositive'(Literal) -->
   'DECIMAL_POSITIVE'(N), !,
-  {rdf_global_object(N^^xsd:decimal, Lit)},
+  {
+    rdf_equal(xsd:decimal, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
-'NumericLiteralPositive'(Lit) -->
+'NumericLiteralPositive'(Literal) -->
   'DOUBLE_POSITIVE'(N),
-  {rdf_global_object(N^^xsd:double, Lit)},
+  {
+    rdf_equal(xsd:double, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
 
 
 
-%! 'NumericLiteralUnsigned'(-Lit)// is det.
+%! 'NumericLiteralUnsigned'(-Literal:compound)// is det.
 %
 % ```ebnf
 % [131] NumericLiteralUnsigned ::= INTEGER | DECIMAL | DOUBLE
 % ```
 
-'NumericLiteralUnsigned'(Lit) -->
+'NumericLiteralUnsigned'(Literal) -->
   'INTEGER'(N), !,
-  {rdf_global_object(N^^xsd:integer, Lit)},
+  {
+    rdf_equal(xsd:integer, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
-'NumericLiteralUnsigned'(Lit) -->
+'NumericLiteralUnsigned'(Literal) -->
   'DECIMAL'(N), !,
-  {rdf_global_object(N^^xsd:decimal, Lit)},
+  {
+    rdf_equal(xsd:decimal, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
-'NumericLiteralUnsigned'(Lit) -->
+'NumericLiteralUnsigned'(Literal) -->
   'DOUBLE'(N),
-  {rdf_global_object(N^^xsd:double, Lit)},
+  {
+    rdf_equal(xsd:double, D),
+    rdf11:pre_object(N^^D, Literal)
+  },
   skip_ws.
 
 
@@ -2232,7 +2268,7 @@ iriOrFunction(State, Function) -->
 
 
 
-%! 'RDFLiteral'(+State, -Lit)// is det.
+%! 'RDFLiteral'(+State:dict, -Literal:compound)// is det.
 %
 % ```ebnf
 % [129] RDFLiteral ::= String ( LANGTAG | ( '^^' iri ) )?
@@ -2267,12 +2303,12 @@ iriOrFunction(State, Function) -->
   'String'(Lex),
   (   'LANGTAG'(LTag)
   ->  skip_ws,
-      {format(atom(Literal), '"~a"@~a', [Lex,LTag])}
+      {Literal = literal(lang(LTag,Lex))}
   ;   "^^"
   ->  skip_ws,
       iri(State, D),
-      {format(atom(Literal), '"~a"^^<~a>', [Lex,D])}
-  ;   {Literal = Lex}
+      {Literal = literal(type(D,Lex))}
+  ;   {Literal = literal(Lex)}
   ).
 
 
@@ -2296,7 +2332,7 @@ iriOrFunction(State, Function) -->
   (   ","
   ->  skip_ws,
       must_see('Expression'(State, Flags))
-  ;   {rdf_literal(Flags, xsd:string, "", _)}
+  ;   {Flags = literal('')}
   ),
   must_see_code(0')),
   {
@@ -3619,7 +3655,7 @@ illegal_iri_code(Code) :-
 'STRING_LITERAL1'(Str) -->
   "'", !,
   'STRING_LITERAL_'([0''], Codes),
-  {string_codes(Str, Codes)}.
+  {atom_codes(Str, Codes)}.
 
 
 
@@ -3632,7 +3668,7 @@ illegal_iri_code(Code) :-
 'STRING_LITERAL2'(Str) -->
   "\"", !,
   'STRING_LITERAL_'([0'"], Codes), %"
-  {string_codes(Str, Codes)}.
+  {atom_codes(Str, Codes)}.
 
 
 
@@ -3649,7 +3685,7 @@ illegal_iri_code(Code) :-
 'STRING_LITERAL_LONG1'(Str) -->
   "'''", !,
   'STRING_LITERAL_'([0'',0'',0''], Codes),
-  {string_codes(Str, Codes)}.
+  {atom_codes(Str, Codes)}.
 
 
 
@@ -3666,7 +3702,7 @@ illegal_iri_code(Code) :-
 'STRING_LITERAL_LONG2'(Str) -->
   "\"\"\"", !,
   'STRING_LITERAL_'([0'",0'",0'"], Codes), %"
-  {string_codes(Str, Codes)}.
+  {atom_codes(Str, Codes)}.
 
 'STRING_LITERAL_'(End, [H|T]) -->
   'ECHAR'(H), !,
