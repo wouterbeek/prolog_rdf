@@ -70,6 +70,9 @@ rdf_write_literal(Out, Val) :-
 
 %! rdf_write_nonliteral(+Out:stream, +Iri:rdf_iri) is det.
 
+rdf_write_nonliteral(Out, BNode) :-
+  rdf_is_bnode(BNode), !,
+  format(Out, '~a', [BNode]).
 rdf_write_nonliteral(Out, Iri) :-
   rdf_is_iri(Iri), !,
   rdf_write_iri(Out, Iri).
