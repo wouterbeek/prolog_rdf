@@ -1695,9 +1695,9 @@ iriOrFunction(State, Function) -->
 % ```
 
 'NumericLiteralUnsigned'(Literal) -->
-  'INTEGER'(N), !,
+  'DOUBLE'(N), !,
   {
-    rdf_equal(xsd:integer, D),
+    rdf_equal(xsd:double, D),
     rdf11:pre_object(N^^D, Literal)
   },
   skip_ws.
@@ -1709,9 +1709,9 @@ iriOrFunction(State, Function) -->
   },
   skip_ws.
 'NumericLiteralUnsigned'(Literal) -->
-  'DOUBLE'(N),
+  'INTEGER'(N), !,
   {
-    rdf_equal(xsd:double, D),
+    rdf_equal(xsd:integer, D),
     rdf11:pre_object(N^^D, Literal)
   },
   skip_ws.
