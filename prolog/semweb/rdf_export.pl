@@ -48,6 +48,12 @@ rdf_write_iri(Out, Iri) :-
 
 %! rdf_write_literal(+Out:stream, +Literal:rdf_literal) is det.
 
+rdf_write_literal(Out, literal(type(D,Lex))) :- !,
+  format(Out, '"~a"^^<~a>', [Lex,D]).
+rdf_write_literal(Out, literal(lang(LTag,Lex))) :- !,
+  format(Out, '"~a"@~a', [Lex,LTag]).
+rdf_write_literal(Out, literal(Lex)) :- !,
+  format(Out, '"~a"', [Lex]).
 rdf_write_literal(Out, Val^^D) :- !,
   rdf_literal_lexical_form(Val^^D, Lex),
   turtle:turtle_write_quoted_string(Out, Lex),
