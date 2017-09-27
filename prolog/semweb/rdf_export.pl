@@ -20,7 +20,7 @@
 @version 2017/09
 */
 
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/turtle), []).
 
 :- rdf_meta
@@ -34,11 +34,6 @@
    rdf_write_triple(+, t),
    rdf_write_triple(+, r, r, o),
    rdf_write_tuple(+, t).
-
-% TBD: Move this to semweb/rdf11
-rdf_literal_lexical_form(Val^^D, Lex) :- !,
-  rdf11:rdf_lexical_form(Val^^D, Lex^^D).
-rdf_literal_lexical_form(Val@_, Val).
 
 
 
