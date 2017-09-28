@@ -292,7 +292,7 @@ tsv_term(Literal) -->
   ->  rest(Codes),
       {atom_codes(LTag, Codes)}
   ),
-  {literal(Literal, D, LTag, Lex)}.
+  {rdf_literal(Literal, D, LTag, Lex)}.
 tsv_term(BNode) -->
   rest(Codes),
   {atom_codes(BNode, Codes)}.
@@ -330,11 +330,11 @@ sparql_result_json_term(Dict, Term) :-
   (   _{type: uri, value: Term} :< Dict
   ->  true
   ;   _{type: literal, value: Lex} :< Dict
-  ->  rdf_literal(Term, xsd:string, Lex, _)
+  ->  rdf_literal(Term, xsd:string, _, Lex)
   ;   _{type: literal, value: Lex, 'xml:lang': LTag} :< Dict
-  ->  rdf_literal(Term, rdf:langString, Lex, LTag)
+  ->  rdf_literal(Term, rdf:langString, LTag, Lex)
   ;   _{datatype: D, type: literal, value: Lex} :< Dict
-  ->  rdf_literal(Term, D, Lex, _)
+  ->  rdf_literal(Term, D, _, Lex)
   ;   _{type: bnode, value: Label} :< Dict
   ->   atom_concat('_:', Label, Term)
   ).
@@ -397,11 +397,11 @@ xml_binding(element(binding,[name=VarName],[Dom]), VarName-Term) :-
   (   Dom = element(uri,_,[Term])
   ->  true
   ;   Dom = element(literal,[datatype=D],[Lex])
-  ->  rdf_literal(Term, D, Lex, _)
+  ->  rdf_literal(Term, D, _, Lex)
   ;   Dom = element(literal,['xml:lang'=LTag],[Lex])
-  ->  rdf_literal(Term, rdf:langString, Lex, LTag)
+  ->  rdf_literal(Term, rdf:langString, LTag, Lex)
   ;   Dom = element(literal,[],[Lex])
-  ->  rdf_literal(Term, xsd:string, Lex, _)
+  ->  rdf_literal(Term, xsd:string, _, Lex)
   ;   Dom = element(bnode,[],[Label])
   ->  atom_concat('_:', Label, Term)
   ).

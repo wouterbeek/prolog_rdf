@@ -42,10 +42,10 @@ sparql_binding_(element(binding,_,Term1), Term2) :-
 sparql_term_([element(bnode,_,[BNode])], BNode) :- !.
 sparql_term_([element(uri,_,[Uri])], Uri) :- !.
 sparql_term_([element(literal,['xml:lang'=LTag],[Lex])], Literal) :- !,
-  literal(Literal, rdf:langString, LTag, Lex).
+  rdf_literal(Literal, rdf:langString, LTag, Lex).
 sparql_term_([element(literal,[datatype=D],[Lex])], Literal) :- !,
-  literal(Literal, D, _, Lex).
+  rdf_literal(Literal, D, _, Lex).
 sparql_term_([element(literal,[],[Lex])], Literal) :- !,
-  literal(Literal, _, _, Lex).
+  rdf_literal(Literal, _, _, Lex).
 sparql_term_(Dom, _) :-
   domain_error(sparql_term, Dom).
