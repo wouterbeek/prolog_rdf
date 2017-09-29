@@ -7,19 +7,26 @@
     rdf_is_skip_node/1,          % @Term
     rdf_is_well_known_iri/1,     % @Term
     rdf_literal/4,               % ?Literal, ?D, ?LTag, ?Lex
+    rdf_load2/1,                 % +File
     rdf_query_term/2,            % +Term, -QueryTerm
     rdf_prefix_member/2,         % ?Elem, +L
     rdf_prefix_memberchk/2,      % ?Elem, +L
+    rdf_save2/1,                 % +File
+    rdf_save2/2,                 % +Type, +File
+    rdf_save2/3,                 % +Type, +File, +G
+    rdf_save2/4,                 % +Type, +File, +G, +Options
+    rdf_save2/6,                 % +Type, +File, ?S, ?P, ?O, ?G
+    rdf_save2/7,                 % +Type, +File, ?S, ?P, ?O, ?G, +Options
     rdf_term_to_atom/2,          % +Term, -Atom
     rdfs_range/3                 % ?P, ?C, ?G
   ]
 ).
-:- reexport(library(semweb/rdf11), except([
-    %rdf_save/1,
-    %rdf_save/2,
-     rdf_update/4,
-     rdf_update/5
-   ])).
+:- reexport(library(semweb/rdf_db), [
+     rdf_load_db/1 as rdf_load_dump,
+     rdf_save_db/1 as rdf_save_dump
+   ]).
+:- reexport(library(semweb/rdf11)).
+:- reexport(library(semweb/rdf11_containers)).
 
 /** <module> RDF API
 
@@ -28,6 +35,7 @@
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_prefix), []).
@@ -45,6 +53,10 @@
    rdf_literal(o, r, ?, ?),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
+   rdf_save(+, +, r),
+   rdf_save(+, +, r, +),
+   rdf_save(+, +, r, r, o, r),
+   rdf_save(+, +, r, r, o, r, +),
    rdf_term_to_atom(o, -),
    rdfs_range(r, r, r).
 
@@ -198,6 +210,23 @@ rdf_is_well_known_iri(Iri) :-
 
 
 
+%! rdf_load2(+File:atom) is det.
+%
+% Loads RDF based in the file extension of File.
+
+rdf_load2(File) :-
+  file_name_extension(_, Extension, File),
+  rdf_load_format_(Extension, Format),
+  rdf_load(File, [format(Format)]).
+
+rdf_load_format_(nq, nquads).
+rdf_load_format_(nt, ntriples).
+rdf_load_format_(rdf, xml).
+rdf_load_format_(ttl, turtle).
+rdf_load_format_(trig, trig).
+
+
+
 %! rdf_prefix_member(?Elem, +L) is nondet.
 %
 % Calls member/2 under RDF prefix expansion.
@@ -223,6 +252,47 @@ rdf_query_term(Term, QueryTerm) :-
   ground(Value),
   rdf_term_to_atom(Value, Atom),
   QueryTerm =.. [Key,Atom].
+
+
+
+%! rdf_save2(+File:atom) is det.
+%! rdf_save2(+Type:oneof([quads,triples]), +File:atom) is det.
+%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, +G:atom) is det.
+%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, +G:atom,
+%!           +Options:list(compound)) is det.
+%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, ?S, ?P, ?O, ?G) is det.
+%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, ?S, ?P, ?O, ?G,
+%!           +Options:list(compound)) is det.
+%
+% Options are passed to call_to_file/3.
+
+rdf_save2(File) :-
+  rdf_save2(quads, File).
+
+
+rdf_save2(Type, File) :-
+  rdf_save2(Type, File, _).
+
+
+rdf_save2(Type, File, G) :-
+  rdf_save2(Type, File, G, []).
+
+
+rdf_save2(Type, File, G, Options) :-
+  rdf_save2(Type, File, _, _, _, G, Options).
+
+
+rdf_save2(Type, File, S, P, O, G) :-
+  rdf_save2(Type, File, S, P, O, G, []).
+
+
+rdf_save2(Type, File, S, P, O, G, Options) :-
+  call_to_file(File, rdf_save2_(Type, S, P, O, G), Options).
+
+rdf_save2_(quads, S, P, O, G, Out, Metadata, Metadata) :- !,
+  forall(rdf(S, P, O, G), write_nquad(Out, rdf(S,P,O,G))).
+rdf_save2_(triples, S, P, O, G, Out, Metadata, Metadata) :-
+  forall(rdf(S, P, O, G), write_ntriple(Out, rdf(S,P,O,G))).
 
 
 

@@ -19,7 +19,6 @@ Predicates for cleaning XML Scheme 1.1 datatypes.
 @version 2015/07
 */
 
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta(xsd_lexical_canonical_map(r,+,-)).

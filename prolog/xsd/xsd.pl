@@ -9,11 +9,11 @@
 /** <module> XML Schema 1.1 Datatypes
 
 @author Wouter Beek
-@version 2017/08
+@version 2017/08-2017/09
 */
 
 :- use_module(library(dif)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(xsdp_types)).
 
 :- arithmetic_function(xsd_div/2).

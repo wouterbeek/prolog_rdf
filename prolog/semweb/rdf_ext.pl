@@ -52,7 +52,6 @@
     rdf_literal_language_tag/2,      % +Lit, -LTag
     rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?Val
-    rdf_load2/1,                     % +File
     rdf_name/2,                      % +M, ?Name
     rdf_name/3,                      % +M, ?Name, ?G
     rdf_node/2,                      % +M, ?Node
@@ -73,12 +72,6 @@
     rdf_reification/6,               % +M, ?S, ?P, ?O, ?G, -Stmt
     rdf_root/2,                      % +M, ?Root
     rdf_root/3,                      % +M, ?Root, ?G
-    rdf_save/1,                      % +FileSpec
-    rdf_save/2,                      % +Type, +FileSpec
-    rdf_save/3,                      % +Type, +FileSpec, +G
-    rdf_save/4,                      % +Type, +FileSpec, +G, +Options
-    rdf_save/6,                      % +Type, +FileSpec, ?S, ?P, ?O, ?G
-    rdf_save/7,                      % +Type, +FileSpec, ?S, ?P, ?O, ?G, +Options
     rdf_scbd_quad/3,                 % +M, +Node,     -Quad
     rdf_scbd_quads/3,                % +M, +Node,     -Quads
     rdf_scbd_triple/3,               % +M, +Node,     -Triple
@@ -97,11 +90,6 @@
   ]
 ).
 :- reexport(library(hdt)).
-:- reexport(library(semweb/rdf_db), [
-     rdf_load_db/1 as rdf_load_dump,
-     rdf_save_db/1 as rdf_save_dump
-   ]).
-:- reexport(library(semweb/rdf11_containers)).
 
 /** <module> RDF extensions
 
@@ -231,10 +219,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_retractall(t),
    rdf_root(+, r),
    rdf_root(+, r, r),
-   rdf_save(+, +, r),
-   rdf_save(+, +, r, +),
-   rdf_save(+, +, r, r, o, r),
-   rdf_save(+, +, r, r, o, r, +),
    rdf_scbd_quad(?, o, -),
    rdf_scbd_quads(?, o, -),
    rdf_scbd_triple(?, o, -),
@@ -897,23 +881,6 @@ rdf_literal_value(Val@_, Val).
 
 
 
-%! rdf_load2(+File:atom) is det.
-%
-% Loads RDF based in the file extension of File.
-
-rdf_load2(File) :-
-  file_name_extension(_, Extension, File),
-  rdf_load_format_(Extension, Format),
-  rdf_load(File, [format(Format)]).
-
-rdf_load_format_(nq, nquads).
-rdf_load_format_(nt, ntriples).
-rdf_load_format_(rdf, xml).
-rdf_load_format_(ttl, turtle).
-rdf_load_format_(trig, trig).
-
-
-
 %! rdf_name(+M, ?Name) is nondet.
 %! rdf_name(+M, ?Name, ?G) is nondet.
 
@@ -1144,48 +1111,6 @@ rdf_root(M, Root) :-
 rdf_root(M, Root, G) :-
   rdf_subject(M, Root, G),
   \+ rdf(M, _, _, Root, G).
-
-
-
-%! rdf_save(+FileSpec:term) is det.
-%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term) is det.
-%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, +G:atom) is det.
-%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, +G:atom,
-%!          +Options:list(compound)) is det.
-%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, ?S, ?P, ?O,
-%!          ?G) is det.
-%! rdf_save(+Type:oneof([quads,triples]), +FileSpec:term, ?S, ?P, ?O, ?G,
-%!          +Options:list(compound)) is det.
-%
-% Options are passed to call_to_file/3.
-
-rdf_save(FileSpec) :-
-  rdf_save(quads, FileSpec).
-
-
-rdf_save(Type, FileSpec) :-
-  rdf_save(Type, FileSpec, _).
-
-
-rdf_save(Type, FileSpec, G) :-
-  rdf_save(Type, FileSpec, G, []).
-
-
-rdf_save(Type, FileSpec, G, Options) :-
-  rdf_save(Type, FileSpec, _, _, _, G, Options).
-
-
-rdf_save(Type, FileSpec, S, P, O, G) :-
-  rdf_save(Type, FileSpec, S, P, O, G, []).
-
-
-rdf_save(Type, FileSpec, S, P, O, G, Options) :-
-  call_to_file(FileSpec, rdf_save_(Type, S, P, O, G), Options).
-
-rdf_save_(quads, S, P, O, G, Out, Metadata, Metadata) :- !,
-  forall(rdf(S, P, O, G), write_nquad(Out, rdf(S,P,O,G))).
-rdf_save_(triples, S, P, O, G, Out, Metadata, Metadata) :-
-  forall(rdf(S, P, O, G), write_ntriple(Out, rdf(S,P,O,G))).
 
 
 

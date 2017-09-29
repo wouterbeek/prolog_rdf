@@ -11,7 +11,6 @@
 @version 2015/06
 */
 
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
 :- use_module(library(uuid)).
 
 

@@ -2,8 +2,8 @@
   rdf_update,
   [
     rdf_call_update/2,        % :Find_0, Transform_0
-    rdf_update/4,             % ?S, ?P, ?O, +Action
-    rdf_update/5,             % ?S, ?P, ?O, ?G, +Action
+    rdf_update2/4,             % ?S, ?P, ?O, +Action
+    rdf_update2/5,             % ?S, ?P, ?O, ?G, +Action
     rdf_update_language_tag/3 % +P, +LTag, +G
   ]
 ).
@@ -23,8 +23,8 @@
 
 :- rdf_meta
    rdf_call_update(t, t),
-   rdf_update(r, r, o, +),
-   rdf_update(r, r, o, r, +),
+   rdf_update2(r, r, o, +),
+   rdf_update2(r, r, o, r, +),
    rdf_update_language_tag(r, +, r).
 
 
@@ -61,14 +61,14 @@ rdf_call_update(Find_0, _, State) :-
 
 
 
-%! rdf_update(?S, ?P, ?O, +Action) is det.
-%! rdf_update(?S, ?P, ?O, ?G, +Action) is det.
+%! rdf_update2(?S, ?P, ?O, +Action) is det.
+%! rdf_update2(?S, ?P, ?O, ?G, +Action) is det.
 
-rdf_update(S, P, O, Action) :-
-  rdf_update(S, P, O, _, Action).
+rdf_update2(S, P, O, Action) :-
+  rdf_update2(S, P, O, _, Action).
 
 
-rdf_update(S, P, O, G, Action) :-
+rdf_update2(S, P, O, G, Action) :-
   forall(
     rdf(S, P, O, G),
     rdf11:rdf_update(S, P, O, G, Action)
@@ -81,5 +81,5 @@ rdf_update(S, P, O, G, Action) :-
 rdf_update_language_tag(P, LTag, G) :-
   rdf_call_update(
     rdf(S, P, String^^xsd:string, G),
-    rdf_update(S, P, String^^xsd:string, G, object(String@LTag))
+    rdf_update2(S, P, String^^xsd:string, G, object(String@LTag))
   ).

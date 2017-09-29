@@ -21,20 +21,20 @@
 :- use_module(library(semweb/rdf_print)).
 
 :- multifile
-    rdf_print:rdf_dcg_literal_hook//2,
-    rdf11:in_ground_type_hook/3,
-    rdf11:out_type_hook/3.
+    rdf_dcg_literal_hook//2,
+    in_ground_type_hook/3,
+    out_type_hook/3.
 
-rdf_print:rdf_dcg_literal_hook(Shape^^geo:wktLiteral, Opts) -->
+rdf_dcg_literal_hook(Shape^^geo:wktLiteral, Opts) -->
   {atom_phrase(wkt_generate(Shape), Lex)},
   rdf_dcg_lexical_form(Lex, Opts).
 
 % (+D,+Shape,-Lex)
-rdf11:in_ground_type_hook(geo:wktLiteral, Shape, Lex) :-
+in_ground_type_hook(geo:wktLiteral, Shape, Lex) :-
   atom_phrase(wkt_generate(Shape), Lex).
 
 % (+D,-Shape,+Lex)
-rdf11:out_type_hook(geo:wktLiteral, Shape, Lex) :-
+out_type_hook(geo:wktLiteral, Shape, Lex) :-
   atom_phrase(wkt_parse(Shape), Lex).
 
 :- rdf_meta

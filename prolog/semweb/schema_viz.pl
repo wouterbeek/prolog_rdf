@@ -17,7 +17,7 @@
 :- use_module(library(debug)).
 :- use_module(library(file_ext)).
 :- use_module(library(graph/dot)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 
 :- rdf_meta
    schema_viz(r, +).

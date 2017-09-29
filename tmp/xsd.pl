@@ -34,7 +34,6 @@ Support for XML Schema Datatypes.
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(typecheck)).
 :- use_module(library(xsd/xsd_boolean)).
 :- use_module(library(xsd/xsd_hexBinary)).

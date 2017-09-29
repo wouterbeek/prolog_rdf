@@ -59,7 +59,7 @@
 :- use_module(library(semweb/rdf_api)).
 
 :- multifile
-    rdf_print:rdf_dcg_literal_hook//2.
+    rdf_dcg_literal_hook//2.
 
 :- rdf_meta
    rdf_pp_graph(+, r),
@@ -217,7 +217,7 @@ rdf_dcg_literal(Lit) -->
 
 % hook
 rdf_dcg_literal(Lit, Options) -->
-  rdf_print:rdf_dcg_literal_hook(Lit, Options), !.
+  rdf_dcg_literal_hook(Lit, Options), !.
 % xsd:boolean
 rdf_dcg_literal(literal(type(xsd:boolean,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).

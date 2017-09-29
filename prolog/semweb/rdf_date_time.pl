@@ -3,10 +3,10 @@
   [
     dt_to_rdf_date_time/3, % +Datetime1, +D, -Datetime2
     is_rdf_date_time/1,    % @Term
-    rdf_assert_now/4,      % +M, +S, +P, +G
-    rdf_assert_now/5,      % +M, +S, +P, +D, +G
+    rdf_assert_now/3,      % +S, +P, +G
+    rdf_assert_now/4,      % +S, +P, +D, +G
     rdf_date_time_to_dt/2, % +Datetime1, -Datetime2
-    rdf_dt/5               % +M, ?S, ?P, -DataTime, ?G
+    rdf_dt/4               % ?S, ?P, -DataTime, ?G
   ]
 ).
 
@@ -15,12 +15,12 @@
 Support for reading/writing date/time assertions in RDF.
 
 @author Wouter Beek
-@version 2017/08
+@version 2017/08-2017/09
 */
 
 :- use_module(library(date_time)).
 :- use_module(library(error)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 
 :- multifile
     error:has_type/2.
@@ -42,9 +42,9 @@ error:has_type(rdf_date_time, time(H,Mi,S)) :-
   error:has_type(date_time, time(H,Mi,S)).
 
 :- rdf_meta
-   rdf_assert_now(+, o, r, r),
-   rdf_assert_now(+, o, r, r, r),
-   rdf_dt(+, r, r, -, r).
+   rdf_assert_now(o, r, r),
+   rdf_assert_now(o, r, r, r),
+   rdf_dt(r, r, -, r).
 
 
 
@@ -53,7 +53,7 @@ error:has_type(rdf_date_time, time(H,Mi,S)) :-
 %! dt_to_rdf_date_time(+Datetime1:dt, +D:atom, -Datetime2:compound) is det.
 %
 % Converts date/time values to the representation supported by
-% `library(semweb/rdf11)'.
+% `semweb/rdf11'.
 
 dt_to_rdf_date_time(dt(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)) :- !.
 dt_to_rdf_date_time(dt(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)) :- !.
@@ -73,19 +73,19 @@ is_rdf_date_time(Term) :-
 
 
 
-%! rdf_assert_now(+M, +S, +P, +G) is det.
-%! rdf_assert_now(+M, +S, +P, +D, +G) is det.
+%! rdf_assert_now(+S, +P, +G) is det.
+%! rdf_assert_now(+S, +P, +D, +G) is det.
 %
 % The default date/time datatype is `xsd:dateTime`.
 
-rdf_assert_now(M, S, P, G) :-
-  rdf_assert_now(M, S, P, xsd:dateTime, G).
+rdf_assert_now(S, P, G) :-
+  rdf_assert_now(S, P, xsd:dateTime, G).
 
 
-rdf_assert_now(M, S, P, D, G) :-
+rdf_assert_now(S, P, D, G) :-
   now(Now),
   dt_to_rdf_date_time(Now, D, Term),
-  rdf_assert(M, S, P, Term, G).
+  rdf_assert(S, P, Term, G).
 
 
 
@@ -111,9 +111,9 @@ rdf_date_time_to_dt(year_month(Y,Mo), dt(Y,Mo,_,_,_,_,0)).
 
 
 
-%! rdf_dt(+M, ?S, ?P, -Datetime:dt, ?G) is nondet.
+%! rdf_dt(?S, ?P, -Datetime:dt, ?G) is nondet.
 
-rdf_dt(M, S, P, DT, G) :-
-  rdf(M, S, P, Term^^D, G),
+rdf_dt(S, P, DT, G) :-
+  rdf(S, P, Term^^D, G),
   rdf11:xsd_date_time_type(D),
   rdf_date_time_to_dt(Term, DT).
