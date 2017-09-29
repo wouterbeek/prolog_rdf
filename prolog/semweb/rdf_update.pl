@@ -15,7 +15,7 @@
 */
 
 :- use_module(library(dict_ext)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 
 :- meta_predicate
     rdf_call_update(0, 0),

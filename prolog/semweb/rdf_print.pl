@@ -1,10 +1,11 @@
 :- module(
   rdf_print,
   [
-    rdf_pp_graph/2,          % +M, +G
     rdf_pp_options/3,        % +Options1, -Out, -Options2
     rdf_pp_quad_groups/1,    % +JoinedPairs:list(pair(atom,list(compound)))
     rdf_pp_quad_groups/2,    % +JoinedPairs:list(pair(atom,list(compound))), +Options
+    rdf_pp_triple/1,         % +Triple
+    rdf_pp_triple/2,         % +Triple, +Options
     rdf_pp_triple/3,         % +S, +P, +O
     rdf_pp_triple/4,         % +S, +P, +O, +Options
     rdf_pp_triples/1,        % +Triples
@@ -55,13 +56,15 @@
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 
 :- multifile
     rdf_print:rdf_dcg_literal_hook//2.
 
 :- rdf_meta
    rdf_pp_graph(+, r),
+   rdf_pp_triple(t),
+   rdf_pp_triple(t, +),
    rdf_pp_triple(r, r, o),
    rdf_pp_triple(r, r, o, +),
    % DCG
@@ -77,14 +80,6 @@
    rdf_dcg_triple(o, o, o, +, ?, ?).
 
 
-
-
-
-%! rdf_pp_graph(+M, +G) is det.
-
-rdf_pp_graph(M, G) :-
-  aggregate_all(set(rdf(S,P,O)), rdf(M, S, P, O, G), Triples),
-  rdf_pp_triples(Triples).
 
 
 
@@ -110,8 +105,18 @@ rdf_pp_quad_groups(JoinedPairs, Options1) :-
 
 
 
+%! rdf_pp_triple(+Triple) is det.
+%! rdf_pp_triple(+Triple, +Options) is det.
 %! rdf_pp_triple(+S, +P, +O) is det.
 %! rdf_pp_triple(+S, +P, +O, +Options) is det.
+
+rdf_pp_triple(rdf(S,P,O)) :-
+  rdf_pp_triple(S, P, O, _{}).
+
+
+rdf_pp_triple(rdf(S,P,O), Options) :-
+  rdf_pp_triple(S, P, O, Options).
+
 
 rdf_pp_triple(S, P, O) :-
   rdf_pp_triple(S, P, O, _{}).
@@ -202,53 +207,46 @@ rdf_dcg_lexical_form(Lex, Options) -->
 
 
 
-%! rdf_dcg_literal(+Lit)// is det.
-%! rdf_dcg_literal(+Lit, +Options)// is det.
+%! rdf_dcg_literal(+Literal:compound)// is det.
+%! rdf_dcg_literal(+Literal:compound, +Options:list(compound))// is det.
 
 rdf_dcg_literal(Lit) -->
   {rdf_dcg_options(Options)},
   rdf_dcg_literal(Lit, Options).
 
 
-% Datatype hooks.
+% hook
 rdf_dcg_literal(Lit, Options) -->
   rdf_print:rdf_dcg_literal_hook(Lit, Options), !.
-% Abbreviate XSD Boolean.
-rdf_dcg_literal(Lex^^D, Options) -->
-  {rdf_equal(xsd:boolean, D)}, !,
+% xsd:boolean
+rdf_dcg_literal(literal(type(xsd:boolean,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).
-% Abbreviate XSD string.
-rdf_dcg_literal(V^^D, Options) -->
-  {rdf_equal(xsd:string, D)}, !,
-  {atom_string(Lex, V)},
+% xsd:string
+rdf_dcg_literal(literal(type(xsd:string,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).
-% Abbreviate XSD integers.
-rdf_dcg_literal(Val^^D, _) -->
+% xsd:integer, xsd:int
+rdf_dcg_literal(literal(type(D,Lex)), _) -->
   {(rdf_equal(xsd:integer, D) ; rdf_equal(xsd:int, D))}, !,
-  thousands(Val).
-% Abbreviate XSD decimals and doubles.
-rdf_dcg_literal(Val^^D, Options) -->
-  {
-    (rdf_equal(xsd:decimal, D) ; rdf_equal(xsd:double, D)), !,
-    atom_number(Lex, Val)
-  },
+  {xsd_number_string(N, Lex)},
+  thousands(N).
+% xsd:decimal, xsd:double
+rdf_dcg_literal(literal(type(D,Lex)), Options) -->
+  {(rdf_equal(xsd:decimal, D) ; rdf_equal(xsd:double, D))}, !,
   rdf_dcg_lexical_form(Lex, Options).
-% Unabbreviated datatype IRI that is not `rdf:langString`.
-rdf_dcg_literal(V^^D, Options) --> !,
-  {rdf_literal_lexical_form(V^^D, Lex)},
-  rdf_dcg_lexical_form(Lex, Options),
-  "^^",
-  rdf_dcg_iri(D, Options).
-% Language-tagged string datatype IRI.
-rdf_dcg_literal(V@LTag, Options) --> !,
-  {atom_string(Lex, V)},
+% rdf:langString
+rdf_dcg_literal(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   rdf_dcg_language_tag(LTag, Options).
+% other
+rdf_dcg_literal(literal(type(D,Lex)), Options) --> !,
+  rdf_dcg_lexical_form(Lex, Options),
+  "^^",
+  rdf_dcg_iri(D, Options).
 
 
 
-%! rdf_dcg_options(+Options1, -Options2) is det.
+%! rdf_dcg_options(+Options1:list(compound), -Options2:list(compound)) is det.
 %
 % Options for the ‘rdf_print_*’ predicates are automatically resolved,
 % but for the DCG rules ‘rdf_dcg_*’ options need to merged
@@ -307,8 +305,7 @@ rdf_dcg_term(Iri, Options) -->
   {rdf_is_iri(Iri)}, !,
   rdf_dcg_iri(Iri, Options).
 rdf_dcg_term(Lit, Options) -->
-  {rdf_is_literal(Lit)}, !,
-  rdf_dcg_literal(Lit, Options).
+  rdf_dcg_literal(Lit, Options), !.
 rdf_dcg_term(Var, Options) -->
   {var(Var)}, !,
   rdf_dcg_var(Var, Options).

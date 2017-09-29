@@ -1,13 +1,25 @@
 :- module(
   rdf_api,
   [
-    rdf_clean_quad/2,  % +Quad1, -Quad2
-    rdf_literal/4,     % ?Literal, ?D, ?LTag, ?Lex
-    rdf_query_term/2,  % +Term, -QueryTerm
-    rdf_term_to_atom/2 % +Term, -Atom
+    rdf_clean_quad/2,            % +Quad1, -Quad2
+    rdf_create_iri/3,            % +Prefix, +Path, -Iri
+    rdf_create_well_known_iri/1, % -Iri
+    rdf_is_skip_node/1,          % @Term
+    rdf_is_well_known_iri/1,     % @Term
+    rdf_literal/4,               % ?Literal, ?D, ?LTag, ?Lex
+    rdf_query_term/2,            % +Term, -QueryTerm
+    rdf_prefix_member/2,         % ?Elem, +L
+    rdf_prefix_memberchk/2,      % ?Elem, +L
+    rdf_term_to_atom/2,          % +Term, -Atom
+    rdfs_range/3                 % ?P, ?C, ?G
   ]
 ).
-:- reexport(library(semweb/rdf11)).
+:- reexport(library(semweb/rdf11), except([
+    %rdf_save/1,
+    %rdf_save/2,
+     rdf_update/4,
+     rdf_update/5
+   ])).
 
 /** <module> RDF API
 
@@ -19,11 +31,22 @@
 :- use_module(library(hash_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_prefix), []).
+:- use_module(library(uri/uri_ext)).
+:- use_module(library(uuid)).
 :- use_module(library(xsd/xsd_number)).
 
+:- rdf_register_prefix('_', 'https://example.org/.well-known/genid/').
+
 :- rdf_meta
+   rdf_clean_lexical_form(r, +, -),
+   rdf_clean_literal(o, o),
+   rdf_is_skip_node(r),
+   rdf_is_well_known_iri(r),
    rdf_literal(o, r, ?, ?),
-   rdf_term_to_atom(o, -).
+   rdf_prefix_member(t, t),
+   rdf_prefix_memberchk(t, t),
+   rdf_term_to_atom(o, -),
+   rdfs_range(r, r, r).
 
 
 
@@ -55,79 +78,94 @@ rdf_clean_iri(Uri1, Uri2) :-
 
 
 
-%! rdf_clean_object(+O1:term, -O2:term) is semidet.
+%! rdf_clean_lexical_form(+D:atom, +Lex1:atom, -Lex2:atom) is semidet.
 
-rdf_clean_object(Literal1, Literal2) :-
-  rdf_literal(Literal1, D, LTag1, Lex1), !,
-  (   rdf_equal(rdf:'HTML', D)
-  ->  rdf11:write_xml_literal(html, Lex1, Lex2)
-  ;   rdf_equal(rdf:'XMLLiteral', D)
-  ->  rdf11:write_xml_literal(xml, Lex1, Lex2)
-  ;   rdf_equal(xsd:decimal, D)
-  ->  (   string_phrase(decimalLexicalMap(Val), Lex1)
-      ->  atom_phrase(decimalCanonicalMap(Val), Lex2)
-      ;   print_message(warning, invalid_decimal(Lex1)),
-          fail
-      )
-  ;   Lex2 = Lex1
-  ),
-  catch(
-    (
-      rdf11:post_object(Literal2, Literal1),
-      rdf11:pre_object(Literal2, Literal3),
-      rdf_literal(Literal3, D, LTag3, Lex3)
-    ),
-    E,
-    true
-  ),
-  (   % Warn and fail for an incorrect lexical form.
-      var(E)
-  ->  (   % Warn for a non-canonical lexical form.
-          Lex2 \== Lex3
-      ->  print_message(warning, non_canonical_lexical_form(D,Lex2,Lex3))
-      ;   true
-      ),
-      (   % Warn for a non-canonical language tag.
-          ground(LTag1),
-          LTag1 \== LTag3
-      ->  print_message(warning, non_canonical_language_tag(LTag1))
-      ;   true
-      )
-  ;   print_message(warning, E),
+rdf_clean_lexical_form(rdf:'HTML', Lex1, Lex2) :-
+  rdf11:write_xml_literal(html, Lex1, Lex2).
+rdf_clean_lexical_form(rdf:'XMLLiteral', Lex1, Lex2) :-
+  rdf11:write_xml_literal(xml, Lex1, Lex2).
+rdf_clean_lexical_form(xsd:decimal, Lex1, Lex2) :-
+  (   string_phrase(decimalLexicalMap(Val), Lex1)
+  ->  atom_phrase(decimalCanonicalMap(Val), Lex2)
+  ;   print_message(warning, invalid_decimal(Lex1)),
       fail
   ).
-rdf_clean_object(BNode, Iri) :-
-  rdf_is_bnode(BNode), !,
-  rdf_clean_bnode(BNode, Iri).
-rdf_clean_object(Iri1, Iri2) :-
-  rdf_clean_iri(Iri1, Iri2).
+rdf_clean_lexical_form(D, Lex1, Lex2) :-
+  catch(rdf11:out_type(D, Value, Lex1), E, true),
+  rdf11:pre_ground_object(Value, literal(type(D,Lex2))),
+  (   var(E)
+  ->  (   % Warning for a non-canonical lexical form.
+          Lex1 \== Lex2
+      ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
+      ;   true
+      )
+  ;   % Warning+failure for an incorrect lexical form.
+      print_message(warning, E),
+      fail
+  ).
 
 
 
-%! rdf_clean_predicate(+P1:atom, -P2:atom) is det.
+%! rdf_clean_literal(+Literal1:compound, -Literal2:compound) is semidet.
 
-rdf_clean_predicate(P1, P2) :-
-  rdf_clean_iri(P1, P2).
+% rdf:langString
+rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
+  downcase_atom(LTag1, LTag2),
+  % Warning for a non-canonical language tag.
+  (   LTag1 \== LTag2
+  ->  print_message(warning, non_canonical_language_tag(LTag1))
+  ;   true
+  ).
+rdf_clean_literal(literal(type(D,Lex1)), literal(type(D,Lex2))) :- !,
+  rdf_clean_lexical_form(D, Lex1, Lex2).
+rdf_clean_literal(literal(Lex), Literal) :-
+  rdf_clean_literal(literal(type(xsd:string,Lex)), Literal).
 
 
 
 %! rdf_clean_quad(+Quad1:compound, -Quad2:compound) is semidet.
 
 rdf_clean_quad(rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)) :-
-  rdf_clean_subject(S1, S2),
-  rdf_clean_predicate(P1, P2),
-  rdf_clean_object(O1, O2),
+  rdf_clean_nonliteral(S1, S2),
+  rdf_clean_iri(P1, P2),
+  rdf_clean_term(O1, O2),
   rdf_clean_graph(G1, G2).
 
 
 
-%! rdf_clean_subject(+S1:atom, -S2:atom) is det.
+%! rdf_clean_term(+Term1, -Term2) is det.
 
-rdf_clean_subject(BNode, Iri) :-
+rdf_clean_term(Term1, Term2) :-
+  rdf_clean_nonliteral(Term1, Term2), !.
+rdf_clean_term(Literal1, Literal2) :-
+  rdf_clean_literal(Literal1, Literal2).
+
+
+
+%! rdf_clean_nonliteral(+Term1:atom, -Term2:atom) is det.
+
+rdf_clean_nonliteral(BNode, Iri) :-
   rdf_is_bnode(BNode), !,
   rdf_clean_bnode(BNode, Iri).
-rdf_clean_subject(Iri1, Iri2) :-
+rdf_clean_nonliteral(Iri1, Iri2) :-
+  rdf_is_iri(Iri1), !,
   rdf_clean_iri(Iri1, Iri2).
+
+
+
+%! rdf_create_iri(+Prefix:atom, +Segments:list(atom), -Iri:atom) is det.
+
+rdf_create_iri(Prefix, Segments, Iri2) :-
+  rdf_current_prefix(Prefix, Iri1),
+  uri_comp_add(path, Iri1, Segments, Iri2).
+
+
+
+%! rdf_create_well_known_iri(-Iri) is det.
+
+rdf_create_well_known_iri(Iri) :-
+  uuid(Id),
+  rdf_global_id('_':Id, Iri).
 
 
 
@@ -140,6 +178,41 @@ rdf_literal(literal(type(D,Lex)), D, _, Lex) :-
   atom(D), !.
 rdf_literal(literal(Lex), _, _, Lex) :-
   atom(Lex).
+
+
+
+%! rdf_is_skip_node(@Term) is semidet.
+
+rdf_is_skip_node(Term) :-
+  rdf_is_bnode(Term), !.
+rdf_is_skip_node(Term) :-
+  rdf_is_well_known_iri(Term).
+
+
+
+%! rdf_is_well_known_iri(@Term) is semidet.
+
+rdf_is_well_known_iri(Iri) :-
+  uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
+  ground(Scheme-Authority).
+
+
+
+%! rdf_prefix_member(?Elem, +L) is nondet.
+%
+% Calls member/2 under RDF prefix expansion.
+
+rdf_prefix_member(Elem, L) :-
+  member(Elem, L).
+
+
+
+%! rdf_prefix_memberchk(?Elem, +L) is nondet.
+%
+% Calls memberchk/2 under RDF prefix expansion.
+
+rdf_prefix_memberchk(Elem, L) :-
+  memberchk(Elem, L).
 
 
 
@@ -163,3 +236,14 @@ rdf_term_to_atom(literal(Lex), Atom) :- !,
   rdf_term_to_atom(literal(type(xsd:string,Lex)), Atom).
 rdf_term_to_atom(Atom, Atom) :-
   rdf_is_iri(Atom).
+
+
+
+%! rdfs_range(?P, ?C, ?G) is nondet.
+
+rdfs_range(P, C, G) :-
+  rdf(P, rdfs:range, C, G).
+rdfs_range(P, C, G) :-
+  rdf(P, rdfs:subPropertyOf, Q, G),
+  (P == Q -> print_message(warning, direct_cycle(P)) ; true),
+  rdfs_range(Q, C, G).

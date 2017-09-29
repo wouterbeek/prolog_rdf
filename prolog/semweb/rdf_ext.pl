@@ -29,8 +29,6 @@
     rdf_chk_lexical_form/5,          % +M, ?S, ?P, -Lex, ?G
     rdf_clean_quad/2,                % +Quad1, -Quad2
     rdf_clean_tuple/2,               % +Tuple, -Quad
-    rdf_create_bnode_iri/1,          % -BNode
-    rdf_create_iri/3,                % +Prefix, +Path, -Iri
     rdf_creator/4,                   % +M, ?Resource, ?Agent, +G
     rdf_current_prefix/1,            % +Prefix
     rdf_endpoint_init/1,             % +Dict
@@ -42,9 +40,7 @@
     rdf_iri/3,                       % +M, ?Iri, ?G
     rdf_is_language_tagged_string/1, % @Term
     rdf_is_legacy_literal/1,         % @Term
-    rdf_is_bnode_iri/1,              % @Term
     rdf_is_graph/1,                  % @Term
-    rdf_is_well_known_iri/1,         % @Term
     rdf_list_member/4,               % +M, ?L, ?O, ?G
     rdf_list_member/5,               % +M, ?S, ?P, ?O, ?G
     rdf_list_memberchk/4,            % +M, ?L,  ?O,  ?G
@@ -69,8 +65,6 @@
     rdf_pref_string/6,               % +M, ?S, ?P, +LRange, -Lit, ?G
     rdf_pref_string_lexical_form/5,  % +M, ?S, ?P, -Lex, ?G
     rdf_pref_string_lexical_form/6,  % +M, ?S, ?P, +LRange, -Lex, ?G
-    rdf_prefix_member/2,             % ?Elem, +L
-    rdf_prefix_memberchk/2,          % ?Elem, +L
     rdf_query_term/2,                % +Term, -QueryTerm
     rdf_retractall/0,
     rdf_retractall/1,                % +Tuple
@@ -107,12 +101,6 @@
      rdf_load_db/1 as rdf_load_dump,
      rdf_save_db/1 as rdf_save_dump
    ]).
-:- reexport(library(semweb/rdf11), except([
-     rdf_save/1,
-     rdf_save/2,
-     rdf_update/4,
-     rdf_update/5
-   ])).
 :- reexport(library(semweb/rdf11_containers)).
 
 /** <module> RDF extensions
@@ -146,7 +134,6 @@
 :- use_module(library(semweb/turtle)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(uri/uri_ext)).
-:- use_module(library(uuid)).
 :- use_module(library(xsd/xsd)).
 :- use_module(library(yall)).
 
@@ -212,11 +199,9 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_iri(?, r),
    rdf_iri(?, r, r),
    rdf_is_legacy_literal(o),
-   rdf_is_bnode_iri(r),
    rdf_is_graph(r),
    rdf_is_language_tagged_string(o),
    rdf_is_real_iri(r),
-   rdf_is_well_known_iri(r),
    rdf_list_member(+, r, o, r),
    rdf_list_member(+, r, r, o, r),
    rdf_list_memberchk(+, r, o, r),
@@ -240,8 +225,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_pref_string(+, r, r, +, -, r),
    rdf_pref_string_lexical_form(+, r, r, -, r),
    rdf_pref_string_lexical_form(+, r, r, +, -, r),
-   rdf_prefix_member(t, t),
-   rdf_prefix_memberchk(t, t),
    rdf_reification(+, r, r, o),
    rdf_reification(+, r, r, o, r),
    rdf_reification(+, r, r, o, r, r),
@@ -658,22 +641,6 @@ rdf_clean_tuple(rdf(S,P,O,G), Quad) :-
 
 
 
-%! rdf_create_bnode_iri(-BNode) is det.
-
-rdf_create_bnode_iri(BNode) :-
-  uuid(Uuid),
-  rdf_global_id(bnode:Uuid, BNode).
-
-
-
-%! rdf_create_iri(+Prefix:atom, +Segments:list(atom), -Iri:atom) is det.
-
-rdf_create_iri(Prefix, Segments, Iri2) :-
-  rdf_current_prefix(Prefix, Iri1),
-  uri_comp_add(path, Iri1, Segments, Iri2).
-
-
-
 %! rdf_creator(+M, ?Resource, ?Agent, +G) is nondet.
 %
 % @tbd Generatize to rdf_api as “direct resource or resource in list”.
@@ -768,13 +735,6 @@ rdf_iri(trp, Iri, G) :-
 
 
 
-%!  rdf_is_bnode_iri(@Term) is semidet.
-
-rdf_is_bnode_iri(Term) :-
-  rdf_global_id(bnode:_, Term).
-
-
-
 %!  rdf_is_graph(@Term) is semidet.
 
 rdf_is_graph(G) :-
@@ -797,14 +757,6 @@ rdf_is_language_tagged_string(Term) :-
 rdf_is_legacy_literal(literal(type(_,_))) :- !.
 rdf_is_legacy_literal(literal(lang(_,_))) :- !.
 rdf_is_legacy_literal(literal(_)).
-
-
-
-%! rdf_is_well_known_iri(@Term) is semidet.
-
-rdf_is_well_known_iri(Iri) :-
-  uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
-  ground(Scheme-Authority).
 
 
 
@@ -1136,24 +1088,6 @@ rdf_pref_string_lexical_form(M, S, P, Lex, G) :-
 rdf_pref_string_lexical_form(M, S, P, LRange, Lex, G) :-
   rdf_pref_string(M, S, P, LRange, Lit, G),
   rdf_literal_lexical_form(Lit, Lex).
-
-
-
-%! rdf_prefix_member(?Elem, +L) is nondet.
-%
-% Calls member/2 under RDF prefix expansion.
-
-rdf_prefix_member(Elem, L) :-
-  member(Elem, L).
-
-
-
-%! rdf_prefix_memberchk(?Elem, +L) is nondet.
-%
-% Calls memberchk/2 under RDF prefix expansion.
-
-rdf_prefix_memberchk(Elem, L) :-
-  memberchk(Elem, L).
 
 
 
