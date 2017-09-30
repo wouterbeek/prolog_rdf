@@ -71,7 +71,7 @@ rdf_clean_bnode(BNode, Iri) :-
   append(L2, [Local], L1),
   md5(L2, Hash),
   atomic_list_concat([Hash,Local], ':', BNodeLabel),
-  rdf_global_id(bnode:BNodeLabel, Iri).
+  rdf_global_id('_':BNodeLabel, Iri).
 
 
 

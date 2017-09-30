@@ -37,8 +37,8 @@ SPARQL 1.1 HTTP responses (result sets).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
-:- use_module(library(http/http_client2)).
 :- use_module(library(http/http_header)).
+:- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pure_input)).
@@ -181,13 +181,15 @@ sparql_client(Uri1, Query, Result, Options1) :-
     Options7,
     Options8
   ),
-  http_open2(Uri2, In, Options8),
-  http_parse_header_value(content_type, ContentType, ReplyMediaType2),
+  http_open(Uri2, In, Options8),
   call_cleanup(
-    (   between(200, 299, Status)
-    ->  sparql_client_results(Form, In, ReplyMediaType2, Result)
-    ;   throw(error(http_error_code(Status))),
-        copy_stream_data(In, error_output)
+    (
+      http_parse_header_value(content_type, ContentType, ReplyMediaType2),
+      (   between(200, 299, Status)
+      ->  sparql_client_results(Form, In, ReplyMediaType2, Result)
+      ;   throw(error(http_error_code(Status))),
+          copy_stream_data(In, error_output)
+      )
     ),
     close(In)
   ).
