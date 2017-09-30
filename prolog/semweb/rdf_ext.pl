@@ -139,7 +139,7 @@
 
 file_ext:media_type_extension_(media(application/'ld+json',[]), jsonld).
 file_ext:media_type_extension_(media(application/'n-quads',[]), nq).
-file_ext:media_type_extension_(media(application/'n-quads',[]),nquads).
+file_ext:media_type_extension_(media(application/'n-quads',[]), nquads).
 file_ext:media_type_extension_(media(application/'n-triples',[]), nt).
 file_ext:media_type_extension_(media(application/'rdf+xml',[]), rdf).
 file_ext:media_type_extension_(media(application/trig,[]), trig).

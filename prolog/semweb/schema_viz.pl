@@ -14,7 +14,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(graph/dot)).
 :- use_module(library(semweb/rdf_api)).
@@ -47,8 +47,7 @@ schema_viz(G, Out, Meta, Meta) :-
   viz_bottom(Out).
 
 viz_top(Out) :-
-  format(Out, 'digraph G {\n', []),
-  debug(gv, 'digraph G {', []).
+  format_debug(dot, Out, "digraph G {"),
 
 viz_class(Out, G, Class1) :-
   aggregate_all(
@@ -57,21 +56,15 @@ viz_class(Out, G, Class1) :-
     Values
   ),
   Values \== [], !,
-  dot_hash(Class1, NodeId),
-  format(Out, '  ~a [label=<<TABLE>\n', [NodeId]),
-  debug(gv, '  ~a [label=<<TABLE>', [NodeId]),
+  dot_id(Class1, Id),
+  format_debug(dot, Out, "  ~a [label=<<TABLE>", [Id]),
   dot_iri(Class1, Class2),
-  format(Out, '    <TR><TD><B>~a</B></TD></TR>\n', [Class2]),
-  debug(gv, '    <TR><TD><B>~a</B></TD></TR>', [Class2]),
+  format_debug(dot, Out, "    <TR><TD><B>~a</B></TD></TR>", [Class2]),
   forall(
     member(Value, Values),
-    (
-      format(Out, '    <TR><TD>~a</TD></TR>\n', [Value]),
-      debug(gv, '    <TR><TD>~a</TD></TR>', [Value])
-    )
+    format_debug(dot, Out, "    <TR><TD>~a</TD></TR>", [Value])
   ),
-  format(Out, '  </TABLE>>,shape="node"];\n', []),
-  debug(gv, '  </TABLE>>,shape="node"];', []).
+  format_debug(dot, Out, "  </TABLE>>,shape=\"node\"];").
 viz_class(Out, G, Class) :-
   viz_class_top(Out, Class),
   aggregate_all(set(Pair), pp(Class, Pair, G), Pairs),
@@ -79,36 +72,39 @@ viz_class(Out, G, Class) :-
   viz_class_bottom(Out).
 
 viz_class_top(Out, Class1) :-
-  dot_hash(Class1, ClassId),
-  format(Out, '  ~a [label=<<TABLE>\n', [ClassId]),
-  debug(gv, '  ~a [label=<<TABLE>', [ClassId]),
+  dot_id(Class1, ClassId),
+  format_debug(dot, Out, "  ~a [label=<<TABLE>", [ClassId]),
   dot_iri(Class1, Class2),
-  format(Out, '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>\n', [Class2]),
-  debug(gv, '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>', [Class2]).
+  format_debug(
+    dot,
+    Out,
+    "    <TR><TD COLSPAN=\"2\"><B>~a</B></TD></TR>",
+    [Class2]
+  ).
 
 viz_class_pp(Out, Segments-Target1) :-
   segments_sequence(Segments, Sequence),
   dot_iri(Target1, Target2),
-  format(Out, '    <TR><TD>~a</TD><TD>~a</TD></TR>\n', [Sequence,Target2]),
-  debug(gv, '    <TR><TD>~a</TD><TD>~a</TD></TR>', [Sequence,Target2]).
+  format_debug(
+    dot,
+    Out,
+    "    <TR><TD>~a</TD><TD>~a</TD></TR>",
+    [Sequence,Target2]
+  ).
 
 viz_class_bottom(Out) :-
-  format(Out, '  </TABLE>>,shape="node"];\n', []),
-  debug(gv, '  </TABLE>>,shape="node"];', []).
+  format_debug(dot, Out, "  </TABLE>>,shape=\"node\"];").
 
 viz_edge(Out, edge(Class1,⊆,Class2)) :- !,
-  maplist(dot_hash, [Class1,Class2], [NodeId1,NodeId2]),
-  format(Out, '  ~a -> ~a [arrowHead="empty"];\n', [NodeId1,NodeId2]),
-  debug(gv, '  ~a -> ~a [arrowHead="empty"];', [NodeId1,NodeId2]).
+  maplist(dot_id, [Class1,Class2], [Id1,Id2]),
+  format_debug(dot, Out, "  ~a -> ~a [arrowHead=\"empty\"];", [Id1,Id2]).
 viz_edge(Out, edge(Class1,Segments,Class2)) :-
   segments_sequence(Segments, Sequence),
-  maplist(dot_hash, [Class1,Class2], [NodeId1,NodeId2]),
-  format(Out, '  ~a -> ~a [label=<~a>];\n', [NodeId1,NodeId2,Sequence]),
-  debug(gv, '  ~a -> ~a [label=<~a>];', [NodeId1,NodeId2,Sequence]).
+  maplist(dot_id, [Class1,Class2], [Id1,Id2]),
+  format_debug(dot, Out, "  ~a -> ~a [label=<~a>];", [Id1,Id2,Sequence]).
 
 viz_bottom(Out) :-
-  format(Out, '}\n', []),
-  debug(gv, '}', []).
+  format_debug(dot, Out, "}").
 
 class(Class, G) :-
   rdf(trp, Class, owl:oneOf, _, G).
