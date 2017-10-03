@@ -25,7 +25,6 @@
     rdf_cbd_triple/4,                % +M, +Node, ?G, -Triple
     rdf_cbd_triples/3,               % +M, ?Node,     -Triples
     rdf_cbd_triples/4,               % +M, ?Node, ?G, -Triples
-    rdf_chk/5,                       % +M, ?S, ?P, ?O, ?G
     rdf_chk_lexical_form/5,          % +M, ?S, ?P, -Lex, ?G
     rdf_clean_quad/2,                % +Quad1, -Quad2
     rdf_clean_tuple/2,               % +Tuple, -Quad
@@ -116,10 +115,6 @@
 :- use_module(library(rdf)).
 :- use_module(library(semweb/rdf_date_time)).
 :- use_module(library(semweb/rdf_guess)).
-:- use_module(library(semweb/rdf_http_plugin), []).
-:- use_module(library(semweb/rdf_ntriples)).
-:- use_module(library(semweb/rdfa)).
-:- use_module(library(semweb/turtle)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(xsd/xsd)).
@@ -177,7 +172,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_cbd_triple(?, o, r, -),
    rdf_cbd_triples(?, o, -),
    rdf_cbd_triples(?, o, r, -),
-   rdf_chk(+, r, r, o, r),
    rdf_chk_lexical_form(+, r, r, -, r),
    rdf_creator(+, r, r, r),
    rdf_estimate(+, r, r, o, -),
@@ -485,13 +479,6 @@ rdf_cbd_triples(M, Node, Triples) :-
 rdf_cbd_triples(M, Node, G, Triples) :-
   rdf_subject(M, Node, G),
   aggregate_all(set(Triple), rdf_cbd_triple(M, Node, G, Triple), Triples).
-
-
-
-%! rdf_chk(+M, ?S, ?P, ?O, ?G) is nondet.
-
-rdf_chk(M, S, P, O, G) :-
-  once(rdf(M, S, P, O, G)).
 
 
 

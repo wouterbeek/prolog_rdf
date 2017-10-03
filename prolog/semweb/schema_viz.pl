@@ -9,7 +9,7 @@
 /** <module> Schema visualization
 
 @author Wouter Beek
-@version 2017/08-2017/09
+@version 2017/08-2017/10
 */
 
 :- use_module(library(aggregate)).
@@ -47,7 +47,7 @@ schema_viz(G, Out, Meta, Meta) :-
   viz_bottom(Out).
 
 viz_top(Out) :-
-  format_debug(dot, Out, "digraph G {"),
+  format_debug(dot, Out, "digraph G {").
 
 viz_class(Out, G, Class1) :-
   aggregate_all(

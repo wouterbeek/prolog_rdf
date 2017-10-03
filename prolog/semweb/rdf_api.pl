@@ -1,7 +1,9 @@
 :- module(
   rdf_api,
   [
+    rdf_chk/4,                   % ?S, ?P, ?O, ?G
     rdf_clean_quad/2,            % +Quad1, -Quad2
+    rdf_clean_triple/2,          % +Triple1, -Triple2
     rdf_create_iri/3,            % +Prefix, +Path, -Iri
     rdf_create_well_known_iri/1, % -Iri
     rdf_is_skip_node/1,          % @Term
@@ -11,12 +13,6 @@
     rdf_query_term/2,            % +Term, -QueryTerm
     rdf_prefix_member/2,         % ?Elem, +L
     rdf_prefix_memberchk/2,      % ?Elem, +L
-    rdf_save2/1,                 % +File
-    rdf_save2/2,                 % +Type, +File
-    rdf_save2/3,                 % +Type, +File, +G
-    rdf_save2/4,                 % +Type, +File, +G, +Options
-    rdf_save2/6,                 % +Type, +File, ?S, ?P, ?O, ?G
-    rdf_save2/7,                 % +Type, +File, ?S, ?P, ?O, ?G, +Options
     rdf_term_to_atom/2,          % +Term, -Atom
     rdfs_range/3                 % ?P, ?C, ?G
   ]
@@ -38,7 +34,11 @@
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(lists)).
+:- use_module(library(semweb/rdf_http_plugin), []).
+:- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/rdf_prefix), []).
+:- use_module(library(semweb/rdfa)).
+:- use_module(library(semweb/turtle)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
 :- use_module(library(xsd/xsd_number)).
@@ -46,21 +46,27 @@
 :- rdf_register_prefix('_', 'https://example.org/.well-known/genid/').
 
 :- rdf_meta
+   rdf_chk(r, r, o, r),
    rdf_clean_lexical_form(r, +, -),
    rdf_clean_literal(o, o),
+   rdf_clean_quad(t, -),
+   rdf_clean_triple(t, -),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
    rdf_literal(o, r, ?, ?),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
-   rdf_save(+, +, r),
-   rdf_save(+, +, r, +),
-   rdf_save(+, +, r, r, o, r),
-   rdf_save(+, +, r, r, o, r, +),
    rdf_term_to_atom(o, -),
    rdfs_range(r, r, r).
 
 
+
+
+
+%! rdf_chk(?S, ?P, ?O, ?G) is nondet.
+
+rdf_chk(S, P, O, G) :-
+  once(rdf(S, P, O, G)).
 
 
 
@@ -135,12 +141,21 @@ rdf_clean_literal(literal(Lex), Literal) :-
 
 
 
+%! rdf_clean_nonliteral(+Term1:atom, -Term2:atom) is det.
+
+rdf_clean_nonliteral(BNode, Iri) :-
+  rdf_is_bnode(BNode), !,
+  rdf_clean_bnode(BNode, Iri).
+rdf_clean_nonliteral(Iri1, Iri2) :-
+  rdf_is_iri(Iri1), !,
+  rdf_clean_iri(Iri1, Iri2).
+
+
+
 %! rdf_clean_quad(+Quad1:compound, -Quad2:compound) is semidet.
 
 rdf_clean_quad(rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)) :-
-  rdf_clean_nonliteral(S1, S2),
-  rdf_clean_iri(P1, P2),
-  rdf_clean_term(O1, O2),
+  rdf_clean_triple(rdf(S1,P1,O1), rdf(S2,P2,O2)),
   rdf_clean_graph(G1, G2).
 
 
@@ -154,14 +169,12 @@ rdf_clean_term(Literal1, Literal2) :-
 
 
 
-%! rdf_clean_nonliteral(+Term1:atom, -Term2:atom) is det.
+%! rdf_clean_triple(+Triple1:compound, -Triple2:compound) is semidet.
 
-rdf_clean_nonliteral(BNode, Iri) :-
-  rdf_is_bnode(BNode), !,
-  rdf_clean_bnode(BNode, Iri).
-rdf_clean_nonliteral(Iri1, Iri2) :-
-  rdf_is_iri(Iri1), !,
-  rdf_clean_iri(Iri1, Iri2).
+rdf_clean_triple(rdf(S1,P1,O1), rdf(S2,P2,O2)) :- !,
+  rdf_clean_nonliteral(S1, S2),
+  rdf_clean_iri(P1, P2),
+  rdf_clean_term(O1, O2).
 
 
 
@@ -252,47 +265,6 @@ rdf_query_term(Term, QueryTerm) :-
   ground(Value),
   rdf_term_to_atom(Value, Atom),
   QueryTerm =.. [Key,Atom].
-
-
-
-%! rdf_save2(+File:atom) is det.
-%! rdf_save2(+Type:oneof([quads,triples]), +File:atom) is det.
-%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, +G:atom) is det.
-%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, +G:atom,
-%!           +Options:list(compound)) is det.
-%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, ?S, ?P, ?O, ?G) is det.
-%! rdf_save2(+Type:oneof([quads,triples]), +File:atom, ?S, ?P, ?O, ?G,
-%!           +Options:list(compound)) is det.
-%
-% Options are passed to call_to_file/3.
-
-rdf_save2(File) :-
-  rdf_save2(quads, File).
-
-
-rdf_save2(Type, File) :-
-  rdf_save2(Type, File, _).
-
-
-rdf_save2(Type, File, G) :-
-  rdf_save2(Type, File, G, []).
-
-
-rdf_save2(Type, File, G, Options) :-
-  rdf_save2(Type, File, _, _, _, G, Options).
-
-
-rdf_save2(Type, File, S, P, O, G) :-
-  rdf_save2(Type, File, S, P, O, G, []).
-
-
-rdf_save2(Type, File, S, P, O, G, Options) :-
-  call_to_file(File, rdf_save2_(Type, S, P, O, G), Options).
-
-rdf_save2_(quads, S, P, O, G, Out, Metadata, Metadata) :- !,
-  forall(rdf(S, P, O, G), write_nquad(Out, rdf(S,P,O,G))).
-rdf_save2_(triples, S, P, O, G, Out, Metadata, Metadata) :-
-  forall(rdf(S, P, O, G), write_ntriple(Out, rdf(S,P,O,G))).
 
 
 

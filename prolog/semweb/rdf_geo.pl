@@ -11,7 +11,13 @@
 /** <module> RDF Geography Plugin
 
 @author Wouter Beek
-@version 2017/05-2017/09
+
+@tbd Prefix notation does not work in hooks (workaround: datatype
+     match in body).
+
+@tbd Multifile hooks do not work (workaround: module prefix).
+
+@version 2017/05-2017/10
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -20,21 +26,19 @@
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 
-:- multifile
-    rdf_dcg_literal_hook//2,
-    in_ground_type_hook/3,
-    out_type_hook/3.
-
-rdf_dcg_literal_hook(Shape^^geo:wktLiteral, Opts) -->
+rdf_print:rdf_dcg_literal_hook(Shape^^D, Opts) -->
+  {rdf_equal(D, geo:wktLiteral)}, !,
   {atom_phrase(wkt_generate(Shape), Lex)},
   rdf_dcg_lexical_form(Lex, Opts).
 
-% (+D,+Shape,-Lex)
-in_ground_type_hook(geo:wktLiteral, Shape, Lex) :-
+% (+D, +Shape, -Lex)
+rdf11:in_ground_type_hook(D, Shape, Lex) :-
+  rdf_equal(D, geo:wktLiteral), !,
   atom_phrase(wkt_generate(Shape), Lex).
 
-% (+D,-Shape,+Lex)
-out_type_hook(geo:wktLiteral, Shape, Lex) :-
+% (+D, -Shape, +Lex)
+rdf11:out_type_hook(D, Shape, Lex) :-
+  rdf_equal(D, geo:wktLiteral), !,
   atom_phrase(wkt_parse(Shape), Lex).
 
 :- rdf_meta

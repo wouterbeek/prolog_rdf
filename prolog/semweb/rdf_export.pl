@@ -1,6 +1,10 @@
 :- module(
   rdf_export,
   [
+    rdf_save2/1,            % +Out
+    rdf_save2/2,            % +Out, +Type
+    rdf_save2/3,            % +Out, +Type, +G
+    rdf_save2/6,            % +Out, +Type, ?S, ?P, ?O, ?G
     rdf_write_iri/2,        % +Out, +Iri
     rdf_write_literal/2,    % +Out, +Literal
     rdf_write_nonliteral/2, % +Out, +S
@@ -24,6 +28,8 @@
 :- use_module(library(semweb/turtle), []).
 
 :- rdf_meta
+   rdf_save2(+, +, r),
+   rdf_save2(+, +, r, r, o, r),
    rdf_write_iri(+, r),
    rdf_write_literal(+, o),
    rdf_write_nonliteral(+, r),
@@ -36,6 +42,36 @@
    rdf_write_tuple(+, t).
 
 
+
+
+
+%! rdf_save2(+Out:stream) is det.
+%! rdf_save2(+Out:stream, +Type:oneof([quads,triples])) is det.
+%! rdf_save2(+Out:stream, +Type:oneof([quads,triples]), +G) is det.
+%! rdf_save2(+Out:stream, +Type:oneof([quads,triples]), ?S, ?P, ?O, ?G) is det.
+
+rdf_save2(Out) :-
+  rdf_save2(Out, quads).
+
+
+rdf_save2(Out, Type) :-
+  rdf_save2(Out, Type, _).
+
+
+rdf_save2(Out, Type, G) :-
+  rdf_save2(Out, Type, _, _, _, G).
+
+
+rdf_save2(Out, quads, S, P, O, G) :- !,
+  forall(
+    rdf(S, P, O, G),
+    rdf_write_quad(Out, rdf(S,P,O,G))
+  ).
+rdf_save2(Out, triples, S, P, O, G) :-
+  forall(
+    rdf(S, P, O, G),
+    rdf_write_triple(Out, rdf(S,P,O,G))
+  ).
 
 
 
@@ -53,7 +89,8 @@ rdf_write_literal(Out, literal(type(D,Lex))) :- !,
 rdf_write_literal(Out, literal(lang(LTag,Lex))) :- !,
   format(Out, '"~a"@~a', [Lex,LTag]).
 rdf_write_literal(Out, literal(Lex)) :- !,
-  format(Out, '"~a"', [Lex]).
+  rdf_write_literal(Out, literal(type(xsd:string,Lex))).
+/*
 rdf_write_literal(Out, Val^^D) :- !,
   rdf_literal_lexical_form(Val^^D, Lex),
   turtle:turtle_write_quoted_string(Out, Lex),
@@ -65,6 +102,7 @@ rdf_write_literal(Out, Val@LTag) :- !,
   format(Out, "@~a", [LTag]).
 rdf_write_literal(Out, Val) :-
   rdf_write_literal(Out, Val^^xsd:string).
+*/
 
 
 
