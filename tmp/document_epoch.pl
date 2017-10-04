@@ -114,7 +114,7 @@ store_row(Out, MeanMax, [Md5Lit,ExtLit,LModLit,TermLit,MeanLit]):-
 
 
 document_epoch(Lit, I):-
-  rdf_literal_lexical_form(Lit, Lex),
+  rdf_literal(Lit, _, _, Lex),
   (   atom_phrase('last-modified'(DT), Lex)
   ->  timeOnTimeline(DT, S),
       rational_parts(S, I, _)

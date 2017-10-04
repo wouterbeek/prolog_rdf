@@ -2,7 +2,7 @@
   rdf_guess,
   [
     rdf_guess/2, % +In, -MediaTypes
-    rdf_guess/3  % +In, -MediaTypes, +Opts
+    rdf_guess/3  % +In, -MediaTypes, +Options
   ]
 ).
 
@@ -13,7 +13,7 @@ stored in the input stream In.
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2017/04-2017/07
+@version 2017/04-2017/10
 */
 
 :- use_module(library(apply)).
@@ -22,18 +22,15 @@ stored in the input stream In.
 :- use_module(library(memfile)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf_ext)).
 :- use_module(library(sgml)).
 
 :- meta_predicate
     turtle_lexical_form_codes(//, ?, ?).
 
-:- setting(
-     maximum_peek_size,
-     nonneg,
-     100000,
-     "The maximum number of codes that is peeked in order to determine the RDF serialization format."
-   ).
+:- setting(maximum_peek_size, nonneg, 100000,
+           "The maximum number of codes that is peeked from the input stream.").
+:- setting(minimum_peek_size, nonneg, 1000,
+           "The initial number of codes that is peeked from the input stream.").
 
 
 
@@ -86,20 +83,21 @@ rdf_guess(In, MediaTypes) :-
   rdf_guess(In, MediaTypes, []).
 
 
-rdf_guess(In, MediaTypes, Opts) :-
-  option(peek_size(PeekSize), Opts, 1000),
-  must_be(positive_integer, PeekSize),
-  setting(maximum_peek_size, MaxPeekSize),
-  rdf_guess_range(In, PeekSize-MaxPeekSize, MediaTypes).
+rdf_guess(In, MediaTypes, Options) :-
+  setting(minimum_peek_size, Min),
+  option(peek_size(Size), Options, Min),
+  must_be(positive_integer, Size),
+  setting(maximum_peek_size, Max),
+  rdf_guess_range(In, Size-Max, MediaTypes).
 
 % Guess the RDF serialization format based on the current peek size.
-rdf_guess_range(In, PeekSize-MaxPeekSize, MediaTypes) :-
-  PeekSize =< MaxPeekSize,
-  peek_string(In, PeekSize, String),
-  debug(rdf_guess, "[PEEK ~D CHARS] ~s", [PeekSize,String]),
+rdf_guess_range(In, Size-Max, MediaTypes) :-
+  Size =< Max,
+  peek_string(In, Size, String),
+  debug(rdf_guess, "[PEEK ~D CHARS] ~s", [Size,String]),
   string_length(String, Length),
   % Keep track of whether or not the entire stream has been peeked.
-  (Length < PeekSize -> !, EoS = true ; EoS = false),
+  (Length < Size -> !, EoS = true ; EoS = false),
   (   % JSON-LD
       string_phrase(rdf_guess_jsonld, String, _Rest)
   ->  MediaTypes = [media(application/'ld+json',[])]
@@ -117,9 +115,9 @@ rdf_guess_range(In, PeekSize-MaxPeekSize, MediaTypes) :-
 % peek size.
 rdf_guess_range(_, Size-Size, []) :- !.
 % Increase the peek size
-rdf_guess_range(In, PeekSize1-MaxPeekSize, MediaTypes) :-
-  PeekSize2 is min(PeekSize1 * 2,MaxPeekSize),
-  rdf_guess_range(In, PeekSize2-MaxPeekSize, MediaTypes).
+rdf_guess_range(In, Size1-Max, MediaTypes) :-
+  Size2 is min(Size1 * 2,Max),
+  rdf_guess_range(In, Size2-Max, MediaTypes).
 
 
 

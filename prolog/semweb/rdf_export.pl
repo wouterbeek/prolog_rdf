@@ -90,19 +90,17 @@ rdf_write_literal(Out, literal(lang(LTag,Lex))) :- !,
   format(Out, '"~a"@~a', [Lex,LTag]).
 rdf_write_literal(Out, literal(Lex)) :- !,
   rdf_write_literal(Out, literal(type(xsd:string,Lex))).
-/*
-rdf_write_literal(Out, Val^^D) :- !,
-  rdf_literal_lexical_form(Val^^D, Lex),
+rdf_write_literal(Out, Value^^D) :- !,
+  rdf_literal(Value^^D, _, _, Lex),
   turtle:turtle_write_quoted_string(Out, Lex),
   format(Out, "^^", []),
   rdf_write_iri(Out, D).
-rdf_write_literal(Out, Val@LTag) :- !,
-  rdf_literal_lexical_form(Val@LTag, Lex),
+rdf_write_literal(Out, Value@LTag) :- !,
+  rdf_literal(Value@LTag, _, _, Lex),
   turtle:turtle_write_quoted_string(Out, Lex),
   format(Out, "@~a", [LTag]).
-rdf_write_literal(Out, Val) :-
-  rdf_write_literal(Out, Val^^xsd:string).
-*/
+rdf_write_literal(Out, Lex) :-
+  rdf_write_literal(Out, Lex^^xsd:string).
 
 
 

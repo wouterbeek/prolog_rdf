@@ -31,7 +31,7 @@ create_address_store:-
 
 store_addresses(S, P, O, Md5):-
   ldf_triple(S, P, O, Md5),
-  rdf_literal_lexical_form(O, Lex),
+  rdf_literal(O, _, _, Lex),
   Lex \== '',
   assert(address(S, Lex, Md5)),
   fail.

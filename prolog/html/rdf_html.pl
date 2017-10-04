@@ -315,7 +315,7 @@ rdf_html_literal_internal_(Lit, Options) -->
 % Other literals for which there is no hook.
 % E.g., http://www.opengis.net/ont/geosparql#wktLiteral
 rdf_html_literal_internal_(Lit, Options) -->
-  {rdf_literal_lexical_form(Lit, Lex)},
+  {rdf_literal(Lit, _, _, Lex)},
   html_ellipsis(Lex, Options.max_lit_len).
 
 

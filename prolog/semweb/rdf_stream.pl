@@ -1,8 +1,6 @@
 :- module(
   rdf_stream,
   [
-    call_on_rdf/2,       % +UriSpec, :Goal_2
-    call_on_rdf/3,       % +UriSpec, :Goal_2, +Options
     rdf_deref_quad/2,    % +Uri, -Quad
     rdf_deref_quad/3,    % +Uri, -Quad, +Options
     rdf_deref_triple/2,  % +Uri, -Triple
@@ -26,7 +24,6 @@ Streamed processing of RDF data.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(file_ext)).
-:- use_module(library(http/rfc7231)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_ext)).
 :- use_module(library(semweb/rdf_guess)).
@@ -47,172 +44,6 @@ Streamed processing of RDF data.
    rdf_deref_triple(r, t, +).
 
 
-
-
-
-%! call_on_rdf(+UriSpec:term, :Goal_2) is nondet.
-%! call_on_rdf(+UriSpec:term, :Goal_2, +Options:list(compound)) is nondet.
-%
-% Makes the call `Goal_2(+Tuple, ?G)'.
-%
-% The following options are supported:
-%
-%   * accept(+list(compound))
-%
-%     The value of the HTTP Accept header, from high to low
-%     precedence.  The default value is a list of all and only
-%     standardized Media Types.
-%
-%   * base_uri(+atom)
-%
-%     The default is the URI of the last metadata element.
-%
-%   * bnode_prefix(+atom)
-%
-%     The default is a well-known IRI as per RDF 1.1.
-%
-%   * Other options are passed to call_on_uri/3 and
-%     rdf_process_ntriples/3.
-
-call_on_rdf(UriSpec, Goal_2) :-
-  call_on_rdf(UriSpec, Goal_2, []).
-
-
-call_on_rdf(UriSpec, Goal_2, Options1) :-
-  findall(MediaType, rdf_media_type(MediaType), DefaultMediaTypes),
-  select_option(accept(MediaTypes), Options1, Options2, DefaultMediaTypes),
-  atom_phrase(accept(MediaTypes), Accept),
-  merge_options(Options2, [request_header('Accept'=Accept)], Options3),
-  call_on_uri(UriSpec, call_on_rdf_stream(Goal_2, Options1), Options3).
-
-call_on_rdf_stream(Goal_2, Options1, In, [Dict1|Metadata], [Dict2|Metadata]) :-
-  % Guess the Media Type based on peeking inside the stream.
-  rdf_guess(In, MediaTypes),
-  (memberchk(MediaType1, MediaTypes) -> true ; throw(error(rdf_unknown,_))),
-
-  % Compare the guessed Media Type to the value of the last
-  % `Content-Type' header.
-  (   metadata_content_type(Metadata, MediaType2)
-  ->  media_type_warning(MediaType1, MediaType2)
-  ;   true
-  ),
-
-  % Compare the guessed Media Type to the URI's path component.
-  metadata_uri(Metadata, Uri),
-  (   uri_media_type(Uri, MediaType3)
-  ->  media_type_warning(MediaType1, MediaType3)
-  ;   true
-  ),
-  
-  % Determine the base URI.
-  option(base_uri(BaseUri), Options1, Uri),
-  
-  % Determine the blank node prefix.
-  call_default_option(
-    bnode_prefix(BNodePrefix),
-    Options1,
-    rdf_create_bnode_iri
-  ),
-  
-  % Parse according to the guessed Media Type.
-
-  (   % N-Quads
-      MediaType1 = media(application/'n-quads',_)
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
-        Options1,
-        Options2
-      ),
-      rdf_process_ntriples(In, Goal_2, Options2)
-  ;   % N-Triples
-      MediaType1 = media(application/'n-triples',_)
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
-        Options1,
-        Options2
-      ),
-      rdf_process_ntriples(In, Goal_2, Options2)
-  ;   % RDF/XML
-      MediaType1 = media(application/'rdf+xml',_)
-  ->  merge_options(
-        [base_uri(BaseUri),blank_nodes(noshare)],
-        Options1,
-        Options2
-      ),
-      process_rdf(In, Goal_2, Options2)
-  ;   % TriG
-      MediaType1 = media(application/trig,_)
-  ->  merge_options(
-        [
-          anon_prefix(BNodePrefix),
-          base_uri(BaseUri),
-          format(trig),
-          resources(iri)
-        ],
-        Options1,
-        Options2
-      ),
-      rdf_process_turtle(In, Goal_2, Options2)
-  ;   % Turtle
-      MediaType1 = media(text/turtle,_)
-  ->  merge_options(
-        [
-          anon_prefix(BNodePrefix),
-          base_uri(BaseUri),
-          format(turtle),
-          resources(iri)
-        ],
-        Options1,
-        Options2
-      ),
-      rdf_process_turtle(In, Goal_2, Options2)
-  ;   % RDFa
-      memberchk(
-        MediaType1,
-        [media(application/'xhtml+xml',_),media(text/html,_)]
-      )
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base(BaseUri)],
-        Options1,
-        Options2
-      ),
-      read_rdfa(In, Triples, Options2),
-      maplist(Goal_2, Triples, _)
-  ;   % An unsupported Media Type (e.g., JSON-LD).
-      print_message(warning, unsupported_media_type(MediaType1))
-  ),
-  dict_put(media_type, Dict1, MediaType1, Dict2).
-
-media_type_warning(MediaType1, MediaType2) :-
-  'rdf_media_type_>'(MediaType1, MediaType2), !.
-media_type_warning(MediaType1, MediaType2) :-
-  print_message(warning, different_media_type(MediaType1,MediaType2)).
-
-'rdf_media_type_>'(X, Y) :-
-  'rdf_media_type_='(X, Y), !.
-'rdf_media_type_>'(X, Z) :-
-  'rdf_media_type_strict>'(X, Y),
-  'rdf_media_type_>'(Y, Z).
-
-'rdf_media_type_='(media(Supertype/Subtype,_),  media(Supertype/Subtype,_)).
-
-'rdf_media_type_strict>'(media(application/trig,_), media(text/turtle,_)).
-'rdf_media_type_strict>'(
-  media(text/turtle,_),
-  media(application/'n-triples',_)
-).
-'rdf_media_type_strict>'(
-  media(application/'n-quads',_),
-  media(application/'n-triples',_)
-).
-
-% Ordering represents precedence, from lower to hgiher.
-rdf_media_type(media(application/'json-ld',[])).
-rdf_media_type(media(application/'rdf+xml',[])).
-rdf_media_type(media(text/turtle,[])).
-rdf_media_type(media(application/'n-triples',[])).
-rdf_media_type(media(application/trig,[])).
-rdf_media_type(media(application/'n-quads',[])).
 
 
 

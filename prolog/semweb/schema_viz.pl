@@ -107,35 +107,35 @@ viz_bottom(Out) :-
   format_debug(dot, Out, "}").
 
 class(Class, G) :-
-  rdf(trp, Class, owl:oneOf, _, G).
+  rdf(Class, owl:oneOf, _, G).
 class(Class, G) :-
-  rdf(trp, Class, rdfs:subClassOf, _, G).
+  rdf(Class, rdfs:subClassOf, _, G).
 class(Class, G) :-
-  rdf(trp, _, rdfs:subClassOf, Class, G).
+  rdf(_, rdfs:subClassOf, Class, G).
 class(Class, G) :-
-  rdf(trp, Shape, rdf:type, sh:'NodeShape', G),
-  rdf(trp, Shape, sh:targetClass, Class, G).
+  rdf(Shape, rdf:type, sh:'NodeShape', G),
+  rdf(Shape, sh:targetClass, Class, G).
 
 pp(Class, Segments-Target, G) :-
-  rdf(trp, Shape, sh:targetClass, Class, G),
-  rdf(trp, Shape, sh:property, Property, G),
-  rdf(trp, Property, sh:path, Path, G),
+  rdf(Shape, sh:targetClass, Class, G),
+  rdf(Shape, sh:property, Property, G),
+  rdf(Property, sh:path, Path, G),
   path_segments(Path, Segments, G),
   target(Property, Target, G).
 
 target(Property, Datatype, G) :-
-  rdf(trp, Property, sh:datatype, Datatype, G).
+  rdf(Property, sh:datatype, Datatype, G).
 target(Property, Class, G) :-
-  rdf(trp, Property, sh:class, Class, G).
+  rdf(Property, sh:class, Class, G).
 
 edge(edge(Class1,⊆,Class2), G) :-
-  rdf(trp, Class1, rdfs:subClassOf, Class2, G).
+  rdf(Class1, rdfs:subClassOf, Class2, G).
 edge(edge(Class1,Segments,Class2), G) :-
-  rdf(trp, Shape, sh:targetClass, Class1, G),
-  rdf(trp, Shape, sh:property, Property, G),
-  rdf(trp, Property, sh:path, Path, G),
+  rdf(Shape, sh:targetClass, Class1, G),
+  rdf(Shape, sh:property, Property, G),
+  rdf(Property, sh:path, Path, G),
   path_segments(Path, Segments, G),
-  rdf(trp, Property, sh:class, Class2, G).
+  rdf(Property, sh:class, Class2, G).
 
 dot_iri(Iri, Label) :-
   prefix_local_iri(Prefix, Local, Iri), !,

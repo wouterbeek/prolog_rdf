@@ -6,10 +6,13 @@
     rdf_clean_triple/2,          % +Triple1, -Triple2
     rdf_create_iri/3,            % +Prefix, +Path, -Iri
     rdf_create_well_known_iri/1, % -Iri
+    rdf_deref/2,                 % +Uri, :Goal_2
+    rdf_deref/3,                 % +Uri, :Goal_2, +Options
     rdf_is_skip_node/1,          % @Term
     rdf_is_well_known_iri/1,     % @Term
     rdf_literal/4,               % ?Literal, ?D, ?LTag, ?Lex
     rdf_load2/1,                 % +File
+    rdf_load2/2,                 % +File, +Options
     rdf_query_term/2,            % +Term, -QueryTerm
     rdf_prefix_member/2,         % ?Elem, +L
     rdf_prefix_memberchk/2,      % ?Elem, +L
@@ -27,21 +30,32 @@
 /** <module> RDF API
 
 @author Wouter Beek
-@version 2017/09
+@version 2017/09-2017/10
 */
 
+:- use_module(library(apply)).
+:- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
+:- use_module(library(http/http_open)).
+:- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin), []).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/rdf_prefix), []).
+:- use_module(library(semweb/rdf_zlib_plugin)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
 :- use_module(library(xsd/xsd_number)).
+
+:- meta_predicate
+    rdf_deref(+, 2),
+    rdf_deref(+, 2, +).
 
 :- rdf_register_prefix('_', 'https://example.org/.well-known/genid/').
 
@@ -51,6 +65,8 @@
    rdf_clean_literal(o, o),
    rdf_clean_quad(t, -),
    rdf_clean_triple(t, -),
+   rdf_deref(+, :),
+   rdf_deref(+, :, +),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
    rdf_literal(o, r, ?, ?),
@@ -171,7 +187,7 @@ rdf_clean_term(Literal1, Literal2) :-
 
 %! rdf_clean_triple(+Triple1:compound, -Triple2:compound) is semidet.
 
-rdf_clean_triple(rdf(S1,P1,O1), rdf(S2,P2,O2)) :- !,
+rdf_clean_triple(rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
   rdf_clean_nonliteral(S1, S2),
   rdf_clean_iri(P1, P2),
   rdf_clean_term(O1, O2).
@@ -194,15 +210,199 @@ rdf_create_well_known_iri(Iri) :-
 
 
 
+%! rdf_deref(+Uri:atom, :Goal_2) is det.
+%! rdf_deref(+Uri:atom, :Goal_2, +Options:list(compound)) is det.
+%
+% The following options are supported:
+%
+%   * accept(+MediaTypes:list(compound))
+%
+%     The value of the HTTP Accept header, from high to low
+%     precedence.  The default value is a list of all and only
+%     standardized Media Types.
+%
+%   * base_uri(+atom)
+%
+%     The default is the URI of the last metadata element.
+%
+%   * bnode_prefix(+atom)
+%
+%     The default is a well-known IRI as per RDF 1.1.
+%
+%   * content_type(+MediaType:compound)
+%
+%     Overrule the Media Type communicated in the `Content-Type' reply
+%     header.
+%
+%   * format(+MediaType:compound)
+%
+%     Overrule the RDF serialization format.
+
+rdf_deref(Uri, Goal_2) :-
+  rdf_deref(Uri, Goal_2, []).
+
+
+rdf_deref(Uri, Goal_2, Options1) :-
+  % `Accept' header
+  findall(MT, rdf_media_type(MT), DefaultMTs),
+  select_option(accept(MTs), Options1, Options2, DefaultMTs),
+  atom_phrase(accept(MTs), Accept),
+  
+  setup_call_cleanup(
+    http_open(
+      Uri,
+      In,
+      [
+        header(content_type,ContentType),
+        request_header('Accept'=Accept),
+        status_code(Status)
+      ]
+    ),
+    (
+      assertion(Status =:= 200),
+      
+      % Serialization format
+      ignore(option(format(MT), Options2)),
+      (   var(MT)
+      ->  rdf_guess(In, MTs),
+          (   % `Content-Type' header
+              ground(ContentType)
+          ->  http_parse_header_value(content_type, ContentType, MT),
+              member(GuessMT, MTs),
+              (   'rdf_media_type_>'(MT, GuessMT)
+              ->  !, true
+              ;   print_message(warning, inconsistent_media_types(MT,GuessMT))
+              )
+          ;   member(MT, MTs)
+          ),
+          (   % URI path's file name extension
+              uri_media_type(Uri, UriMT),
+              'rdf_media_type_>'(MT, UriMT)
+          ->  !, true
+          ;   print_message(warning, inconsistent_media_types(MT,UriMT))
+          )
+      ;   true
+      ),
+      % Determine the base URI.
+      option(base_uri(BaseUri), Options2, Uri),
+  
+      % Determine the blank node prefix.
+      call_default_option(
+        bnode_prefix(BNodePrefix),
+        Options2,
+        rdf_create_bnode_iri
+      ),
+  
+      % Parse according to the guessed Media Type.
+      (   % N-Quads
+        MT = media(application/'n-quads',_)
+      ->  merge_options(
+            [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
+            Options2,
+            Options3
+          ),
+          rdf_process_ntriples(In, Goal_2, Options3)
+      ;   % N-Triples
+          MT = media(application/'n-triples',_)
+      ->  merge_options(
+            [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
+            Options2,
+            Options3
+          ),
+          rdf_process_ntriples(In, Goal_2, Options3)
+      ;   % RDF/XML
+          MT = media(application/'rdf+xml',_)
+      ->  merge_options(
+            [base_uri(BaseUri),blank_nodes(noshare)],
+            Options2,
+            Options3
+          ),
+          process_rdf(In, Goal_2, Options3)
+      ;   % TriG
+          MT = media(application/trig,_)
+      ->  merge_options(
+            [
+              anon_prefix(BNodePrefix),
+              base_uri(BaseUri),
+              format(trig),
+              resources(iri)
+            ],
+            Options2,
+            Options3
+          ),
+          rdf_process_turtle(In, Goal_2, Options3)
+      ;   % Turtle
+          MT = media(text/turtle,_)
+      ->  merge_options(
+            [
+              anon_prefix(BNodePrefix),
+              base_uri(BaseUri),
+              format(turtle),
+              resources(iri)
+            ],
+            Options2,
+            Options3
+          ),
+          rdf_process_turtle(In, Goal_2, Options3)
+      ;   % RDFa
+          memberchk(MT, [media(application/'xhtml+xml',_),media(text/html,_)])
+      ->  merge_options(
+            [anon_prefix(BNodePrefix),base(BaseUri)],
+            Options2,
+            Options3
+          ),
+          read_rdfa(In, Triples, Options3),
+          maplist(Goal_2, Triples, _)
+      ;   % An unsupported Media Type (e.g., JSON-LD).
+          print_message(warning, unsupported_media_type(MT))
+      )
+    ),
+    close(In)
+  ).
+
+'rdf_media_type_>'(X, Y) :-
+  'rdf_media_type_='(X, Y), !.
+'rdf_media_type_>'(X, Z) :-
+  'rdf_media_type_strict>'(X, Y),
+  'rdf_media_type_>'(Y, Z).
+
+'rdf_media_type_='(media(Supertype/Subtype,_),  media(Supertype/Subtype,_)).
+
+'rdf_media_type_strict>'(media(application/trig,_), media(text/turtle,_)).
+'rdf_media_type_strict>'(
+  media(text/turtle,_),
+  media(application/'n-triples',_)
+).
+'rdf_media_type_strict>'(
+  media(application/'n-quads',_),
+  media(application/'n-triples',_)
+).
+
+% Ordering represents precedence, from lower to hgiher.
+rdf_media_type(media(application/'json-ld',[])).
+rdf_media_type(media(application/'rdf+xml',[])).
+rdf_media_type(media(text/turtle,[])).
+rdf_media_type(media(application/'n-triples',[])).
+rdf_media_type(media(application/trig,[])).
+rdf_media_type(media(application/'n-quads',[])).
+
+
+
 %! rdf_literal(+Literal:compound, -D:atom, -LTag:atom, -Lex:atom) is det.
 %! rdf_literal(-Literal:compound, +D:atom, +LTag:atom, +Lex:atom) is det.
 
-rdf_literal(literal(lang(LTag,Lex)), rdf:langString, LTag, Lex) :-
-  atom(LTag), !.
+%rdf_literal(literal(type(rdf:'HTML',Dom)), rdf:'HTML', _, Dom) :- !.
+%rdf_literal(literal(type(rdf:'XMLLiteral',Dom)), rdf:'XMLLiteral', _, Dom) :- !.
 rdf_literal(literal(type(D,Lex)), D, _, Lex) :-
   atom(D), !.
-rdf_literal(literal(Lex), _, _, Lex) :-
+rdf_literal(literal(lang(LTag,Lex)), rdf:langString, LTag, Lex) :-
+  atom(LTag), !.
+rdf_literal(literal(Lex), _, _, Lex) :- !,
   atom(Lex).
+rdf_literal(Value^^D, D, _, Lex) :- !,
+  rdf11:rdf_lexical_form(Value^^D, Lex^^D).
+rdf_literal(Lex@LTag, rdf:langString, LTag, Lex) :- !.
+rdf_literal(Lex, xsd:string, _, Lex).
 
 
 
@@ -224,13 +424,26 @@ rdf_is_well_known_iri(Iri) :-
 
 
 %! rdf_load2(+File:atom) is det.
+%! rdf_load2(+File:atom, +Options:list(compound)) is det.
 %
 % Loads RDF based in the file extension of File.
 
 rdf_load2(File) :-
-  file_name_extension(_, Extension, File),
-  rdf_load_format_(Extension, Format),
-  rdf_load(File, [format(Format)]).
+  rdf_load2(File, []).
+
+
+rdf_load2(File, Options1) :-
+  ignore(option(format(Format), Options1)),
+  % Guess the serialization format based on the file extension.
+  (   var(Format)
+  ->  file_base_name(File, Base),
+      atomic_list_concat([_|Comps], ., Base),
+      member(Ext, Comps),
+      rdf_load_format_(Ext, Format), !
+  ;   true
+  ),
+  merge_options([format(Format)], Options1, Options2),
+  rdf_load(File, Options2).
 
 rdf_load_format_(nq, nquads).
 rdf_load_format_(nt, ntriples).

@@ -47,9 +47,6 @@
     rdf_literal/2,                   % +M, ?Literal
     rdf_literal/3,                   % +M, ?Literal, ?G
     rdf_literal/4,                   % ?Literal, ?D, ?Lexical, ?Lang
-    rdf_literal_datatype/2,          % +Lit, ?D
-    rdf_literal_language_tag/2,      % +Lit, -LTag
-    rdf_literal_lexical_form/2,      % +Lit, ?Lex
     rdf_literal_value/2,             % +Lit, ?Val
     rdf_name/2,                      % +M, ?Name
     rdf_name/3,                      % +M, ?Name, ?G
@@ -191,9 +188,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_literal(?, o),
    rdf_literal(?, o, r),
    rdf_literal(o, r, ?, ?),
-   rdf_literal_datatype(o, r),
-   rdf_literal_language_tag(o, -),
-   rdf_literal_lexical_form(o, -),
    rdf_literal_value(o, ?),
    rdf_name(?, o),
    rdf_name(?, o, r),
@@ -301,11 +295,11 @@ rdf_agent_image(M, Agent, Image, G) :-
 rdf_agent_name(M, Agent, Name, G) :-
   rdf_givenName(M, Agent, GivenName0, G),
   rdf_familyName(M, Agent, FamilyName0, G), !,
-  maplist(rdf_literal_lexical_form, [GivenName0,FamilyName0], Names),
+  maplist(rdf_literal, [GivenName0,FamilyName0], _, _, Names),
   atomics_to_string(Names, " ", Name).
 rdf_agent_name(M, Agent, Name, G) :-
   rdf_pref_string(M, Agent, foaf:name, Name0, G),
-  rdf_literal_lexical_form(Name0, Name).
+  rdf_literal(Name0, _, _, Name).
 
 
 
@@ -489,7 +483,7 @@ rdf_chk_lexical_form(M, S, P, Lex, G) :-
     rdf(M, S, P, Lit, G),
     rdf_is_literal(Lit)
   )),
-  rdf_literal_lexical_form(Lit, Lex).
+  rdf_literal(Lit, _, _, Lex).
 
 
 
@@ -685,62 +679,6 @@ rdf_literal(M, Literal, G) :-
 
 
 
-%! rdf_literal(+Literal:compound, -D:atom, -Lex:atom, -LTag:atom) is det.
-%! rdf_literal(-Literal:compound, +D:atom, +Lex:atom, ?LTag:atom) is det.
-
-rdf_literal(Lit, D, Lex, LTag) :-
-  var(Lit), !,
-  legacy_literal_components(Lit0, D, Lex, LTag),
-  rdf11:post_object(Lit, Lit0).
-rdf_literal(Lit, D, Lex, LTag) :-
-  rdf11:pre_ground_object(Lit, Lit0), !,
-  legacy_literal_components(Lit0, D, Lex, LTag).
-rdf_literal(Lit, _, _, _) :-
-  type_error(rdf_literal, Lit).
-
-% Legacy language-tagged string.
-legacy_literal_components(literal(lang(LTag,Lex0)), D, Lex, LTag) :-
-  rdf_equal(rdf:langString, D), !,
-  atom_string(Lex0, Lex).
-% Legacy literal with datatype IRI `rdf:HTML' or `rdf:XMLLiteral'.
-% Has a non-atomic lexical form (a DOM compound term).
-legacy_literal_components(literal(type(D,Dom)), D, Dom, _) :-
-  rdf_prefix_memberchk(D, [rdf:'HTML',rdf:'XMLLiteral']), !.
-% Legacy typed literal.
-legacy_literal_components(literal(type(D,Lex0)), D, Lex, _) :- !,
-  atom_string(Lex0, Lex).
-% Legacy simple literal.
-legacy_literal_components(literal(Lex0), D, Lex, _) :-
-  rdf_equal(xsd:string, D),
-  atom_string(Lex0, Lex).
-
-
-
-%! rdf_literal_datatype(+Lit, +D) is semidet.
-%! rdf_literal_datatype(+Lit, -D) is det.
-
-rdf_literal_datatype(_^^D, D).
-rdf_literal_datatype(_@_, rdf:langString).
-
-
-
-%! rdf_literal_language_tag(+Lit, -LTag) is semidet.
-
-rdf_literal_language_tag(_@LTag, LTag).
-
-
-
-%! rdf_literal_lexical_form(+Lit, +Lex) is semidet.
-%! rdf_literal_lexical_form(+Lit, -Lex) is det.
-%
-% The lexical form Lex is always a string.
-
-rdf_literal_lexical_form(Val^^D, Lex) :- !,
-  rdf11:rdf_lexical_form(Val^^D, Lex^^D).
-rdf_literal_lexical_form(Val@_, Val).
-
-
-
 %! rdf_literal_value(+Literal, +Value) is semidet.
 %! rdf_literal_value(+Literal, -Value) is nondet.
 
@@ -922,7 +860,7 @@ rdf_pref_string_lexical_form(M, S, P, Lex, G) :-
 
 rdf_pref_string_lexical_form(M, S, P, LRange, Lex, G) :-
   rdf_pref_string(M, S, P, LRange, Lit, G),
-  rdf_literal_lexical_form(Lit, Lex).
+  rdf_literal(Lit, _, _, Lex).
 
 
 
