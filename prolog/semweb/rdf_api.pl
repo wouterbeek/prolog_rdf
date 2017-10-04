@@ -13,6 +13,7 @@
     rdf_literal/4,               % ?Literal, ?D, ?LTag, ?Lex
     rdf_load2/1,                 % +File
     rdf_load2/2,                 % +File, +Options
+    rdf_media_type_format/2,     % +MediaType, +Format
     rdf_query_term/2,            % +Term, -QueryTerm
     rdf_prefix_member/2,         % ?Elem, +L
     rdf_prefix_memberchk/2,      % ?Elem, +L
@@ -57,7 +58,7 @@
     rdf_deref(+, 2),
     rdf_deref(+, 2, +).
 
-:- rdf_register_prefix('_', 'https://example.org/.well-known/genid/').
+:- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
 :- rdf_meta
    rdf_chk(r, r, o, r),
@@ -93,7 +94,7 @@ rdf_clean_bnode(BNode, Iri) :-
   append(L2, [Local], L1),
   md5(L2, Hash),
   atomic_list_concat([Hash,Local], ':', BNodeLabel),
-  rdf_global_id('_':BNodeLabel, Iri).
+  rdf_global_id(bnode:BNodeLabel, Iri).
 
 
 
@@ -206,7 +207,7 @@ rdf_create_iri(Prefix, Segments, Iri2) :-
 
 rdf_create_well_known_iri(Iri) :-
   uuid(Id),
-  rdf_global_id('_':Id, Iri).
+  rdf_global_id(bnode:Id, Iri).
 
 
 
@@ -378,32 +379,6 @@ rdf_deref(Uri, Goal_2, Options1) :-
   media(application/'n-triples',_)
 ).
 
-% Ordering represents precedence, from lower to hgiher.
-rdf_media_type(media(application/'json-ld',[])).
-rdf_media_type(media(application/'rdf+xml',[])).
-rdf_media_type(media(text/turtle,[])).
-rdf_media_type(media(application/'n-triples',[])).
-rdf_media_type(media(application/trig,[])).
-rdf_media_type(media(application/'n-quads',[])).
-
-
-
-%! rdf_literal(+Literal:compound, -D:atom, -LTag:atom, -Lex:atom) is det.
-%! rdf_literal(-Literal:compound, +D:atom, +LTag:atom, +Lex:atom) is det.
-
-%rdf_literal(literal(type(rdf:'HTML',Dom)), rdf:'HTML', _, Dom) :- !.
-%rdf_literal(literal(type(rdf:'XMLLiteral',Dom)), rdf:'XMLLiteral', _, Dom) :- !.
-rdf_literal(literal(type(D,Lex)), D, _, Lex) :-
-  atom(D), !.
-rdf_literal(literal(lang(LTag,Lex)), rdf:langString, LTag, Lex) :-
-  atom(LTag), !.
-rdf_literal(literal(Lex), _, _, Lex) :- !,
-  atom(Lex).
-rdf_literal(Value^^D, D, _, Lex) :- !,
-  rdf11:rdf_lexical_form(Value^^D, Lex^^D).
-rdf_literal(Lex@LTag, rdf:langString, LTag, Lex) :- !.
-rdf_literal(Lex, xsd:string, _, Lex).
-
 
 
 %! rdf_is_skip_node(@Term) is semidet.
@@ -420,6 +395,28 @@ rdf_is_skip_node(Term) :-
 rdf_is_well_known_iri(Iri) :-
   uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
   ground(Scheme-Authority).
+
+
+
+%! rdf_literal(+Literal:compound, -D:atom, -LTag:atom, -Lex:atom) is det.
+%! rdf_literal(-Literal:compound, +D:atom, +LTag:atom, +Lex:atom) is det.
+%
+% @tbd Special case for `rdf:HTML' and `rdf:XMLLiteral'.
+%
+% @tbd Special case for `xsd:decimal'.
+
+%rdf_literal(literal(type(rdf:'HTML',Dom)), rdf:'HTML', _, Dom) :- !.
+%rdf_literal(literal(type(rdf:'XMLLiteral',Dom)), rdf:'XMLLiteral', _, Dom) :- !.
+rdf_literal(literal(type(D,Lex)), D, _, Lex) :-
+  atom(D), !.
+rdf_literal(literal(lang(LTag,Lex)), rdf:langString, LTag, Lex) :-
+  atom(LTag), !.
+rdf_literal(literal(Lex), _, _, Lex) :- !,
+  atom(Lex).
+rdf_literal(Value^^D, D, _, Lex) :- !,
+  rdf11:rdf_lexical_form(Value^^D, Lex^^D).
+rdf_literal(Lex@LTag, rdf:langString, LTag, Lex) :- !.
+rdf_literal(Lex, xsd:string, _, Lex).
 
 
 
@@ -450,6 +447,29 @@ rdf_load_format_(nt, ntriples).
 rdf_load_format_(rdf, xml).
 rdf_load_format_(ttl, turtle).
 rdf_load_format_(trig, trig).
+
+
+
+%! rdf_media_type(+MediaType:compound) is semidet.
+%! rdf_media_type(-MediaType:compound) is multi.
+
+rdf_media_type(MT) :-
+  rdf_media_type_format(MT, _).
+
+
+
+%! rdf_media_type_format(+MediaType:compound, +Format:atom) is semidet.
+%! rdf_media_type_format(+MediaType:compound, -Format:atom) is det.
+%! rdf_media_type_format(-MediaType:compound, +Format:atom) is det.
+%! rdf_media_type_format(-MediaType:compound, -Format:atom) is multi.
+
+% Ordering represents precedence, from lower to hgiher.
+rdf_media_type_format(media(application/'json-ld',[]),   jsonld).
+rdf_media_type_format(media(application/'rdf+xml',[]),   rdfxml).
+rdf_media_type_format(media(text/turtle,[]),             turtle).
+rdf_media_type_format(media(application/'n-triples',[]), ntriples).
+rdf_media_type_format(media(application/trig,[]),        trig).
+rdf_media_type_format(media(application/'n-quads',[]),   nquads).
 
 
 
