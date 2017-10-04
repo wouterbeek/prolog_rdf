@@ -4,7 +4,6 @@
     hdt_call_on_file/2,              % +FileSpec, :Goal_1
     hdt_call_on_graph/2,             % +G, :Goal_1
     graph_file/2,                    % ?G, ?File
-    prefix_local_iri/3,              % ?Prefix, ?Local, ?Iri
     rdf/5,                           % +M, ?S, ?P, ?O, ?G
     rdf_agent_image/4,               % +M, +Agent, -Image, ?G
     rdf_agent_name/4,                % +M, +Agent, -Name, ?G
@@ -40,8 +39,6 @@
     rdf_is_language_tagged_string/1, % @Term
     rdf_is_legacy_literal/1,         % @Term
     rdf_is_graph/1,                  % @Term
-    rdf_list_member/4,               % +M, ?L, ?O, ?G
-    rdf_list_member/5,               % +M, ?S, ?P, ?O, ?G
     rdf_list_memberchk/4,            % +M, ?L,  ?O,  ?G
     rdf_list_memberchk/5,            % +M, ?S,  ?P,  ?O, ?G
     rdf_literal/2,                   % +M, ?Literal
@@ -152,7 +149,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 :- rdf_meta
    graph_file(r, -),
    ntriples_to_nquads(+, t, +),
-   prefix_local_iri(?, ?, r),
    rdf(+, r, r, o, r),
    rdf_agent_image(+, r, -, r),
    rdf_agent_name(+, r, -, r),
@@ -181,8 +177,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_is_graph(r),
    rdf_is_language_tagged_string(o),
    rdf_is_real_iri(r),
-   rdf_list_member(+, r, o, r),
-   rdf_list_member(+, r, r, o, r),
    rdf_list_memberchk(+, r, o, r),
    rdf_list_memberchk(+, r, r, o, r),
    rdf_literal(?, o),
@@ -251,14 +245,6 @@ hdt_call_on_file(FileSpec, Goal_1) :-
 hdt_call_on_graph(G, Goal_1) :-
   hdt_graph(Hdt, G),
   call(Goal_1, Hdt).
-
-
-
-%! prefix_local_iri(-Prefix:atom, -Local:atom,   +Iri:atom) is det.
-%! prefix_local_iri(+Prefix:atom, +Local:atom, -Iri:atom) is det.
-
-prefix_local_iri(Prefix, Local, Iri) :-
-  rdf_global_id(Prefix:Local, Iri).
 
 
 
@@ -627,26 +613,6 @@ rdf_language_tagged_string(M, S, P, LRange, Lit, G) :-
   rdf(M, S, P, Lex@LTag, G),
   basic_filtering(LRange, LTag),
   Lit = Lex@LTag.
-
-
-
-%! rdf_list_member(+M, ?L, ?O, ?G) is nondet.
-%! rdf_list_member(+M, ?S, ?P, ?O, ?G) is nondet.
-
-rdf_list_member(M, L, O, G) :-
-  rdf(M, L, rdf:first, O, G).
-rdf_list_member(M, L, O, G) :-
-  rdf(M, L, rdf:rest, T, G),
-  rdf_list_member(M, T, O, G).
-
-
-rdf_list_member(M, S, P, O, G) :-
-  ground(O), !,
-  rdf_list_member(M, L, O, G),
-  rdf(M, S, P, L, G).
-rdf_list_member(M, S, P, O, G) :-
-  rdf(M, S, P, L, G),
-  rdf_list_member(M, L, O, G).
 
 
 

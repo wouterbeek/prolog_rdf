@@ -1,6 +1,7 @@
 :- module(
   rdf_api,
   [
+    prefix_local_iri/3,          % ?Prefix, ?Local, ?Iri
     rdf_chk/4,                   % ?S, ?P, ?O, ?G
     rdf_clean_quad/2,            % +Quad1, -Quad2
     rdf_clean_triple/2,          % +Triple1, -Triple2
@@ -11,6 +12,8 @@
     rdf_is_skip_node/1,          % @Term
     rdf_is_well_known_iri/1,     % @Term
     rdf_literal/4,               % ?Literal, ?D, ?LTag, ?Lex
+    rdf_list_member/2,           % ?X, ?L
+    rdf_list_member/3,           % ?S, ?P, ?O
     rdf_load2/1,                 % +File
     rdf_load2/2,                 % +File, +Options
     rdf_media_type_format/2,     % +MediaType, +Format
@@ -61,6 +64,7 @@
 :- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
 :- rdf_meta
+   prefix_local_iri(?, ?, r),
    rdf_chk(r, r, o, r),
    rdf_clean_lexical_form(r, +, -),
    rdf_clean_literal(o, o),
@@ -70,6 +74,8 @@
    rdf_deref(+, :, +),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
+   rdf_list_member(r, t),
+   rdf_list_member(r, r, o),
    rdf_literal(o, r, ?, ?),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
@@ -77,6 +83,16 @@
    rdfs_range(r, r, r).
 
 
+
+
+
+%! prefix_local_iri(-Prefix:atom, -Local:atom,   +Iri:atom) is det.
+%! prefix_local_iri(+Prefix:atom, +Local:atom, -Iri:atom) is det.
+%
+% Variant of rdf_global_id/2 that works with maplist/3 and siblings.
+
+prefix_local_iri(Prefix, Local, Iri) :-
+  rdf_global_id(Prefix:Local, Iri).
 
 
 
@@ -395,6 +411,28 @@ rdf_is_skip_node(Term) :-
 rdf_is_well_known_iri(Iri) :-
   uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
   ground(Scheme-Authority).
+
+
+
+%! rdf_list_member(?L, ?O) is nondet.
+
+rdf_list_member(L, O) :-
+  rdf(L, rdf:first, O).
+rdf_list_member(L, O) :-
+  rdf(L, rdf:rest, T),
+  rdf_list_member(T, O).
+
+
+
+%! rdf_list_member(?S, ?P, ?O) is nondet.
+
+rdf_list_member(S, P, O) :-
+  ground(O), !,
+  rdf_list_member(L, O),
+  rdf(S, P, L).
+rdf_list_member(S, P, O) :-
+  rdf(S, P, L),
+  rdf_list_member(L, O).
 
 
 
