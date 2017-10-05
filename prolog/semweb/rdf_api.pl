@@ -13,7 +13,9 @@
     rdf_is_well_known_iri/1,     % @Term
     rdf_literal/4,               % ?Literal, ?D, ?LTag, ?Lex
     rdf_list_member/2,           % ?X, ?L
-    rdf_list_member/3,           % ?S, ?P, ?O
+    rdf_list_member/3,           % ?X, ?L, ?G
+    rdf_triple_list_member/3,    % ?S, ?P, ?X
+    rdf_triple_list_member/4,    % ?S, ?P, ?X, ?G
     rdf_load2/1,                 % +File
     rdf_load2/2,                 % +File, +Options
     rdf_media_type_format/2,     % +MediaType, +Format
@@ -75,11 +77,13 @@
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
    rdf_list_member(r, t),
-   rdf_list_member(r, r, o),
+   rdf_list_member(r, t, r),
    rdf_literal(o, r, ?, ?),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
    rdf_term_to_atom(o, -),
+   rdf_triple_list_member(r, r, o),
+   rdf_triple_list_member(r, r, o, r),
    rdfs_range(r, r, r).
 
 
@@ -414,25 +418,23 @@ rdf_is_well_known_iri(Iri) :-
 
 
 
-%! rdf_list_member(?L, ?O) is nondet.
+%! rdf_list_member(?X, ?L) is nondet.
 
-rdf_list_member(L, O) :-
-  rdf(L, rdf:first, O).
-rdf_list_member(L, O) :-
+rdf_list_member(X, L) :-
+  rdf(L, rdf:first, X).
+rdf_list_member(X, L) :-
   rdf(L, rdf:rest, T),
-  rdf_list_member(T, O).
+  rdf_list_member(T, X).
 
 
 
-%! rdf_list_member(?S, ?P, ?O) is nondet.
+%! rdf_list_member(?X, ?L, ?G) is nondet.
 
-rdf_list_member(S, P, O) :-
-  ground(O), !,
-  rdf_list_member(L, O),
-  rdf(S, P, L).
-rdf_list_member(S, P, O) :-
-  rdf(S, P, L),
-  rdf_list_member(L, O).
+rdf_list_member(X, L, G) :-
+  rdf(L, rdf:first, X, G).
+rdf_list_member(X, L, G) :-
+  rdf(L, rdf:rest, T, G),
+  rdf_list_member(T, X, G).
 
 
 
@@ -549,6 +551,30 @@ rdf_term_to_atom(literal(Lex), Atom) :- !,
   rdf_term_to_atom(literal(type(xsd:string,Lex)), Atom).
 rdf_term_to_atom(Atom, Atom) :-
   rdf_is_iri(Atom).
+
+
+
+%! rdf_triple_list_member(?S, ?P, ?X) is nondet.
+
+rdf_triple_list_member(S, P, X) :-
+  ground(X), !,
+  rdf_list_member(X, L),
+  rdf(S, P, L).
+rdf_triple_list_member(S, P, X) :-
+  rdf(S, P, L),
+  rdf_list_member(X, L).
+
+
+
+%! rdf_triple_list_member(?S, ?P, ?X, G) is nondet.
+
+rdf_triple_list_member(S, P, X, G) :-
+  ground(X), !,
+  rdf_list_member(X, L, G),
+  rdf(S, P, L, G).
+rdf_triple_list_member(S, P, X, G) :-
+  rdf(S, P, L, G),
+  rdf_list_member(X, L, G).
 
 
 
