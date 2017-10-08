@@ -351,36 +351,6 @@ rdf_assert_objects(M, S, P, Os, G) :-
 
 
 
-%! rdf_atom_to_term(+Atom:atom, -Term:term) is det.
-
-rdf_atom_to_term(Atom, Literal) :-
-  must_be(atom, Atom),
-  atom_phrase(rdf_literal_(Literal), Atom), !.
-rdf_atom_to_term(Iri, Iri).
-
-rdf_literal_(Literal) -->
-  "\"",
-  ...(Codes1),
-  "\"",
-  (   "^^"
-  ->  rdf_iri_(D)
-  ;   "@"
-  ->  rest(Codes2),
-      {atom_codes(LTag, Codes2)}
-  ),
-  {
-    string_codes(Lex, Codes1),
-    rdf_literal(Literal, D, Lex, LTag)
-  }.
-
-rdf_iri_(Iri) -->
-  "<",
-  ...(Codes),
-  ">", !,
-  {atom_codes(Iri, Codes)}.
-
-
-
 %! rdf_bnode_iri(+M, ?BNode) is nondet.
 %! rdf_bnode_iri(+M, ?BNode, ?G) is nondet.
 

@@ -6,7 +6,7 @@
     statements/3 % ?S, ?P, ?O
   ]
 ).
-:- reexport(library(semweb/rdf_ext)).
+:- reexport(library(semweb/rdf_api)).
 :- reexport(library(semweb/rdf_print)).
 
 /** <module> RDF CLI

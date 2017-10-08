@@ -2,6 +2,7 @@
   rdf_api,
   [
     prefix_local_iri/3,          % ?Prefix, ?Local, ?Iri
+    rdf_atom_to_term/2,          % +Atom, -Term
     rdf_chk/4,                   % ?S, ?P, ?O, ?G
     rdf_clean_quad/2,            % +Quad1, -Quad2
     rdf_clean_triple/2,          % +Triple1, -Triple2
@@ -42,6 +43,7 @@
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(http/http_open)).
@@ -97,6 +99,31 @@
 
 prefix_local_iri(Prefix, Local, Iri) :-
   rdf_global_id(Prefix:Local, Iri).
+
+
+
+%! rdf_atom_to_term(+Atom:atom, -Term:compound) is det.
+
+rdf_atom_to_term(Atom, Literal) :-
+  must_be(atom, Atom),
+  atom_phrase(rdf_literal_(Literal), Atom), !.
+rdf_atom_to_term(NonLiteral, NonLiteral).
+
+rdf_literal_(Literal) -->
+  "\"",
+  ...(Codes),
+  "\"", !,
+  ("^^" -> rdf_iri_(D) ; "@" -> rest_as_atom(LTag) ; ""),
+  {
+    atom_codes(Lex, Codes),
+    rdf_literal(Literal, D, LTag, Lex)
+  }.
+
+rdf_iri_(Iri) -->
+  "<",
+  ...(Codes),
+  ">", !,
+  {atom_codes(Iri, Codes)}.
 
 
 

@@ -263,6 +263,7 @@ register_language_prefixes(Language) :-
 :- rdf_register_prefix(dqv, 'http://www.w3.org/ns/dqv#').
 :- rdf_register_prefix(earl, 'http://www.w3.org/ns/earl#').
 :- rdf_register_prefix(ex, 'https://example.org/').
+:- rdf_register_prefix(fabio, 'http://purl.org/spar/fabio/').
 :- rdf_register_prefix(fb, 'http://ogp.me/ns/fb#').
 :- rdf_register_prefix(freebase, 'http://rdf.freebase.com/ns/').
 :- rdf_register_prefix(fn, 'http://www.w3.org/2005/xpath-functions#').
@@ -285,12 +286,14 @@ register_language_prefixes(Language) :-
 :- rdf_register_prefix(nyt, 'http://data.nytimes.com/').
 :- rdf_register_prefix(odp, 'http://www.ontologydesignpatterns.org/').
 :- rdf_register_prefix(openlinks, 'http://www.openlinksw.com/schemas/virtrdf#').
+:- rdf_register_prefix(orcid, 'http://orcid.org/').
 :- rdf_register_prefix(org, 'http://www.w3.org/ns/org#').
 :- rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#').
 :- rdf_register_prefix(qb, 'http://purl.org/linked-data/cube#').
 :- rdf_register_prefix(qt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-query#').
 :- rdf_register_prefix(rdfa, 'http://www.w3.org/ns/rdfa#').
 :- rdf_register_prefix(rdft, 'http://www.w3.org/ns/rdftest#').
+:- rdf_register_prefix(rel, 'http://purl.org/vocab/relationship/').
 :- rdf_register_prefix(rif, 'http://www.w3.org/2007/rif#').
 :- rdf_register_prefix(rif, 'http://www.w3.org/2007/rif#').
 :- rdf_register_prefix(role, 'http://www.w3.org/1999/xhtml/vocab#role').

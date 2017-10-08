@@ -29,7 +29,7 @@
 :- use_module(library(html/rdf_html)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(yall)).
 
 :- multifile

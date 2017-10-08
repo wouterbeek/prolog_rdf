@@ -42,7 +42,7 @@
 :- use_module(library(http/http_server)).
 :- use_module(library(list_ext)).
 :- use_module(library(semweb/rdf_date_time)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(uri/uri_ext)).
 
 :- multifile

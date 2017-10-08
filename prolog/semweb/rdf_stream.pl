@@ -25,7 +25,7 @@ Streamed processing of RDF data.
 :- use_module(library(dict_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin), []).
 :- use_module(library(semweb/rdf_ntriples)).

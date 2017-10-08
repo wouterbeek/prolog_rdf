@@ -37,7 +37,7 @@ whitespace ::= space | tabulator | newline
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(os_ext)).
-:- use_module(library(semweb/rdf_ext)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 :- use_module(library(thread)).
 :- use_module(library(uri/uri_ext)).
