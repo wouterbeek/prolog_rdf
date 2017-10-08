@@ -6,7 +6,7 @@
     hdt_walk_random/4  % +Hdt, +Node, +Depth, -Walk
   ]
 ).
-:- reexport(library(hdt_term)).
+:- reexport(library(hdt_db)).
 
 /** <module> HDT as a Machine Learning bakcend
 
