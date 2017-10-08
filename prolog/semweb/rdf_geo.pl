@@ -23,13 +23,19 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt_generate)).
 :- use_module(library(geo/wkt_parse)).
+:- use_module(library(html/rdf_html)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 
-rdf_print:rdf_dcg_literal_hook(Shape^^D, Opts) -->
+rdf_html:rdf_html_literal_hook(D, Lex, Options) -->
   {rdf_equal(D, geo:wktLiteral)}, !,
   {atom_phrase(wkt_generate(Shape), Lex)},
-  rdf_dcg_lexical_form(Lex, Opts).
+  html("~w"-[Shape]).
+
+rdf_print:rdf_dcg_literal_hook(Shape^^D, Options) -->
+  {rdf_equal(D, geo:wktLiteral)}, !,
+  {atom_phrase(wkt_generate(Shape), Lex)},
+  rdf_dcg_lexical_form(Lex, Options).
 
 % (+D, +Shape, -Lex)
 rdf11:in_ground_type_hook(D, Shape, Lex) :-
