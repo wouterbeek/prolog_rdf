@@ -105,8 +105,8 @@ prefix_local_iri(Prefix, Local, Iri) :-
 %! rdf_atom_to_term(+Atom:atom, -Term:compound) is det.
 
 rdf_atom_to_term(Atom, Literal) :-
-  must_be(atom, Atom),
-  atom_phrase(rdf_literal_(Literal), Atom), !.
+  atom_codes(Atom, Codes),
+  phrase(rdf_literal_(Literal), Codes), !.
 rdf_atom_to_term(NonLiteral, NonLiteral).
 
 rdf_literal_(Literal) -->

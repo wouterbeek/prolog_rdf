@@ -15,7 +15,6 @@
     rdf_assert_agent/7,              % +M, +User, +Group, +Image, +GivenName,
                                      % +FamilyName, +G
     rdf_assert_objects/5,            % +M, +S, +P, +Os, +G
-    rdf_atom_to_term/2,              % +Atom, -Term
     rdf_bnode_iri/2,                 % +M, ?BNode
     rdf_bnode_iri/3,                 % +M, ?BNode, ?G
     rdf_cbd_quad/3,                  % +M, +Node,     -Quad
