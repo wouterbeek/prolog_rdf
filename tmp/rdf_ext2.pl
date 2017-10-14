@@ -59,9 +59,6 @@
     rdf_query_term/2,                % +Term, -QueryTerm
     rdf_retractall/0,
     rdf_retractall/1,                % +Tuple
-    rdf_reification/4,               % +M, ?S, ?P, ?O
-    rdf_reification/5,               % +M, ?S, ?P, ?O, ?G
-    rdf_reification/6,               % +M, ?S, ?P, ?O, ?G, -Stmt
     rdf_root/2,                      % +M, ?Root
     rdf_root/3,                      % +M, ?Root, ?G
     rdf_scbd_quad/3,                 % +M, +Node,     -Quad
@@ -194,9 +191,6 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
    rdf_pref_string(+, r, r, +, -, r),
    rdf_pref_string_lexical_form(+, r, r, -, r),
    rdf_pref_string_lexical_form(+, r, r, +, -, r),
-   rdf_reification(+, r, r, o),
-   rdf_reification(+, r, r, o, r),
-   rdf_reification(+, r, r, o, r, r),
    rdf_retractall(t),
    rdf_root(+, r),
    rdf_root(+, r, r),
@@ -806,25 +800,6 @@ rdf_query_term(Term, QueryTerm) :-
   ground(Value),
   rdf_term_to_atom(Value, Atom),
   QueryTerm =.. [Key,Atom].
-
-
-
-%! rdf_reification(+M, ?S, ?P, ?O) is nondet.
-%! rdf_reification(+M, ?S, ?P, ?O, ?G) is nondet.
-%! rdf_reification(+M, ?S, ?P, ?O, ?G, -Stmt) is nondet.
-
-rdf_reification(M, S, P, O) :-
-  rdf_reification(M, S, P, O, _).
-
-
-rdf_reification(M, S, P, O, G) :-
-  rdf_reification(M, S, P, O, G, _).
-
-
-rdf_reification(M, S, P, O, G, Stmt) :-
-  rdf(M, Stmt, rdf:subject, S, G),
-  rdf(M, Stmt, rdf:predicate, P, G),
-  rdf(M, Stmt, rdf:object, O, G).
 
 
 

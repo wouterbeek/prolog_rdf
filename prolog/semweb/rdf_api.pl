@@ -2,6 +2,8 @@
   rdf_api,
   [
     prefix_local_iri/3,          % ?Prefix, ?Local, ?Iri
+    rdf_assert_reification/4,    % +S, +P, +O, +Stmt
+    rdf_assert_reification/5,    % +S, +P, +O, +G, +Stmt
     rdf_atom_to_term/2,          % +Atom, -Term
     rdf_chk/4,                   % ?S, ?P, ?O, ?G
     rdf_clean_quad/2,            % +Quad1, -Quad2
@@ -20,11 +22,23 @@
     rdf_load2/1,                 % +File
     rdf_load2/2,                 % +File, +Options
     rdf_media_type_format/2,     % +MediaType, +Format
-    rdf_query_term/2,            % +Term, -QueryTerm
     rdf_prefix_member/2,         % ?Elem, +L
     rdf_prefix_memberchk/2,      % ?Elem, +L
+    rdf_query_term/2,            % +Term, -QueryTerm
+    rdf_reification/4,           % ?S, ?P, ?O, ?Stmt
+    rdf_reification/5,           % ?S, ?P, ?O, ?G, ?Stmt
     rdf_term_to_atom/2,          % +Term, -Atom
-    rdfs_range/3                 % ?P, ?C, ?G
+    rdfs_instance/2,             % ?I, ?C
+    rdfs_instance/3,             % ?I, ?C, ?G
+    rdfs_range/2,                % ?P, ?C
+    rdfs_range/3,                % ?P, ?C, ?G
+    rdfs_subclass/2,             % ?C, ?D
+    rdfs_subclass/3,             % ?C, ?D, ?G
+    rdfs_subproperty/2,          % ?P, ?Q
+    rdfs_subproperty/3,          % ?P, ?Q, ?G
+    op(110, xfx, @),             % must be above .
+    op(650, xfx, ^^),            % must be above :
+    op(1150, fx, rdf_meta)
   ]
 ).
 :- reexport(library(semweb/rdf_db), [
@@ -69,6 +83,8 @@
 
 :- rdf_meta
    prefix_local_iri(?, ?, r),
+   rdf_assert_reification(r, r, o, r),
+   rdf_assert_reification(r, r, o, r, r),
    rdf_chk(r, r, o, r),
    rdf_clean_lexical_form(r, +, -),
    rdf_clean_literal(o, o),
@@ -83,10 +99,19 @@
    rdf_literal(o, r, ?, ?),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
+   rdf_reification(r, r, o, r),
+   rdf_reification(r, r, o, r, r),
    rdf_term_to_atom(o, -),
    rdf_triple_list_member(r, r, o),
    rdf_triple_list_member(r, r, o, r),
-   rdfs_range(r, r, r).
+   rdfs_instance(r, r),
+   rdfs_instance(r, r, r),
+   rdfs_range(r, r),
+   rdfs_range(r, r, r),
+   rdfs_subclass(r, r),
+   rdfs_subclass(r, r, r),
+   rdfs_subproperty(r, r),
+   rdfs_subproperty(r, r, r).
 
 
 
@@ -99,6 +124,22 @@
 
 prefix_local_iri(Prefix, Local, Iri) :-
   rdf_global_id(Prefix:Local, Iri).
+
+
+
+%! rdf_assert_reification(+S, +P, +O, +Stmt) is nondet.
+%! rdf_assert_reification(+S, +P, +O, +G, +Stmt) is nondet.
+
+rdf_assert_reification(S, P, O, Stmt) :-
+  rdf_assert(Stmt, rdf:subject, S),
+  rdf_assert(Stmt, rdf:predicate, P),
+  rdf_assert(Stmt, rdf:object, O).
+
+
+rdf_assert_reification(S, P, O, G, Stmt) :-
+  rdf_assert(Stmt, rdf:subject, S, G),
+  rdf_assert(Stmt, rdf:predicate, P, G),
+  rdf_assert(Stmt, rdf:object, O, G).
 
 
 
@@ -568,6 +609,22 @@ rdf_query_term(Term, QueryTerm) :-
 
 
 
+%! rdf_reification(?S, ?P, ?O, ?Stmt) is nondet.
+%! rdf_reification(?S, ?P, ?O, ?G, ?Stmt) is nondet.
+
+rdf_reification(S, P, O, Stmt) :-
+  rdf(Stmt, rdf:subject, S),
+  rdf(Stmt, rdf:predicate, P),
+  rdf(Stmt, rdf:object, O).
+
+
+rdf_reification(S, P, O, G, Stmt) :-
+  rdf(Stmt, rdf:subject, S, G),
+  rdf(Stmt, rdf:predicate, P, G),
+  rdf(Stmt, rdf:object, O, G).
+
+
+
 %! rdf_term_to_atom(+Term, -Atom) is det.
 
 rdf_term_to_atom(literal(type(D,Lex)), Atom) :- !,
@@ -605,11 +662,64 @@ rdf_triple_list_member(S, P, X, G) :-
 
 
 
+%! rdfs_instance(?I, ?C) is nondet.
+%! rdfs_instance(?I, ?C, ?G) is nondet.
+
+rdfs_instance(I, D) :-
+  rdf(I, rdf:type, C),
+  rdfs_subclass(C, D).
+
+
+rdfs_instance(I, D, G) :-
+  rdf(I, rdf:type, C, G),
+  rdfs_subclass(C, D, G).
+
+
+
+%! rdfs_range(?P, ?C) is nondet.
 %! rdfs_range(?P, ?C, ?G) is nondet.
 
+rdfs_range(P, C) :-
+  rdfs_subproperty(P, Q),
+  rdf(Q, rdfs:range, C).
+
+
 rdfs_range(P, C, G) :-
-  rdf(P, rdfs:range, C, G).
-rdfs_range(P, C, G) :-
-  rdf(P, rdfs:subPropertyOf, Q, G),
-  (P == Q -> print_message(warning, direct_cycle(P)) ; true),
-  rdfs_range(Q, C, G).
+  rdfs_subproperty(P, Q, G),
+  rdf(Q, rdfs:range, C, G).
+
+
+
+%! rdfs_subclass(?C, ?D) is nondet.
+%! rdfs_subclass(?C, ?D, ?G) is nondet.
+
+rdfs_subclass(C, D) :-
+  closure0(rdfs_subclass_, C, D).
+
+rdfs_subclass_(C, D) :-
+  rdf(C, rdfs:subClassOf, D).
+
+
+rdfs_subclass(C, D, G) :-
+  closure0(rdfs_subclass_(G), C, D).
+
+rdfs_subclass_(G, C, D) :-
+  rdf(C, rdfs:subClassOf, D, G).
+
+
+
+%! rdfs_subproperty(?P, ?Q) is nondet.
+%! rdfs_subproperty(?P, ?Q, ?G) is nondet.
+
+rdfs_subproperty(P, Q) :-
+  closure0(rdfs_subproperty_, P, Q).
+
+rdfs_subproperty_(P, Q) :-
+  rdf(P, rdfs:subPropertyOf, Q).
+
+
+rdfs_subproperty(P, Q, G) :-
+  closure0(rdfs_subproperty_(G), P, Q).
+
+rdfs_subproperty_(G, P, Q) :-
+  rdf(P, rdfs:subPropertyOf, Q, G).
