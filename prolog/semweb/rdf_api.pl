@@ -22,6 +22,7 @@
     rdf_load2/1,                 % +File
     rdf_load2/2,                 % +File, +Options
     rdf_media_type_format/2,     % +MediaType, +Format
+    rdf_node/2,                  % ?Node, ?G
     rdf_prefix_member/2,         % ?Elem, +L
     rdf_prefix_memberchk/2,      % ?Elem, +L
     rdf_query_term/2,            % +Term, -QueryTerm
@@ -97,6 +98,7 @@
    rdf_list_member(r, t),
    rdf_list_member(r, t, r),
    rdf_literal(o, r, ?, ?),
+   rdf_node(o, r),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
    rdf_reification(r, r, o, r),
@@ -578,6 +580,15 @@ rdf_media_type_format(media(text/turtle,[]),             turtle).
 rdf_media_type_format(media(application/'n-triples',[]), ntriples).
 rdf_media_type_format(media(application/trig,[]),        trig).
 rdf_media_type_format(media(application/'n-quads',[]),   nquads).
+
+
+
+%! rdf_node(?Node, ?G) is nondet.
+
+rdf_node(S, G) :-
+  rdf(S, _, _, G).
+rdf_node(O, G) :-
+  rdf(_, _, O, G).
 
 
 
