@@ -215,31 +215,35 @@ rdf_dcg_literal(Lit) -->
   rdf_dcg_literal(Lit, Options).
 
 
-% hook
 rdf_dcg_literal(Lit, Options) -->
+  {rdf11:pre_object(Lit, Lit0)},
+  rdf_dcg_literal_(Lit0, Options).
+
+% hook
+rdf_dcg_literal_(Lit, Options) -->
   rdf_dcg_literal_hook(Lit, Options), !.
 % xsd:boolean
-rdf_dcg_literal(literal(type(xsd:boolean,Lex)), Options) --> !,
+rdf_dcg_literal_(literal(type(xsd:boolean,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).
 % xsd:string
-rdf_dcg_literal(literal(type(xsd:string,Lex)), Options) --> !,
+rdf_dcg_literal_(literal(type(xsd:string,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).
 % xsd:integer, xsd:int
-rdf_dcg_literal(literal(type(D,Lex)), _) -->
+rdf_dcg_literal_(literal(type(D,Lex)), _) -->
   {(rdf_equal(xsd:integer, D) ; rdf_equal(xsd:int, D))}, !,
   {xsd_number_string(N, Lex)},
   thousands(N).
 % xsd:decimal, xsd:double
-rdf_dcg_literal(literal(type(D,Lex)), Options) -->
+rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
   {(rdf_equal(xsd:decimal, D) ; rdf_equal(xsd:double, D))}, !,
   rdf_dcg_lexical_form(Lex, Options).
 % rdf:langString
-rdf_dcg_literal(literal(lang(LTag,Lex)), Options) --> !,
+rdf_dcg_literal_(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   rdf_dcg_language_tag(LTag, Options).
 % other
-rdf_dcg_literal(literal(type(D,Lex)), Options) --> !,
+rdf_dcg_literal_(literal(type(D,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "^^",
   rdf_dcg_iri(D, Options).
