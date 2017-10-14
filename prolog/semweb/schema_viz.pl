@@ -1,8 +1,7 @@
 :- module(
   schema_viz,
   [
-    schema_viz_file/3,  % +G, +Format, +File
-    schema_viz_stream/3 % +G, +Format, -Out
+    schema_viz/2 % +Out, +G
   ]
 ).
 
@@ -24,47 +23,24 @@
 :- rdf_meta
    edge(t, r),
    export_edge(+, t),
-   schema_viz_file(r, +, +),
-   schema_viz_stream(r, +, -).
+   schema_viz(+, r).
 
 
 
 
 
-%! schema_viz_file(+G:atom, +Format:atom, +File:atom) is det.
+%! schema_viz(+Out:stream, +G:atom) is det.
 
-schema_viz_file(G, Format, File) :-
-  setup_call_cleanup(
-    open(File, write, Out),
-    (
-      schema_viz_stream(G, Format, ProcOut),
-      copy_stream_data(ProcOut, Out)
-    ),
-    close(Out)
-  ).
-
-
-
-%! schema_viz_stream(+G:atom, +Format:atom, -Out:stream) is det.
-
-schema_viz_stream(G, Format, ProcOut) :-
-  setup_call_cleanup(
-    graphviz(dot, ProcIn, Format, ProcOut),
-    (
-      % Nodes can be described in multiple vocabularies: OWL, SHACL,
-      % RDF(S).  We therefore first group all nodes with some
-      % description, and then generate nodes for each one in sequence.
-      export_graph_top(ProcIn),
-      aggregate_all(set(C), class(C, G), Cs),
-      maplist({ProcIn,G}/[C]>>export_class(ProcIn, C, G), Cs),
-      aggregate_all(set(Edge), edge(Edge, G), Edges),
-      maplist(export_edge(ProcIn), Edges),
-      export_graph_bottom(ProcIn)
-    ),
-    close(ProcIn)
-  ).
-
-
+schema_viz_stream(Out, G) :-
+  % Nodes can be described in multiple vocabularies: OWL, SHACL,
+  % RDF(S).  We therefore first group all nodes with some description,
+  % and then generate nodes for each one in sequence.
+  export_graph_top(Out),
+  aggregate_all(set(C), class(C, G), Cs),
+  maplist({Out,G}/[C]>>export_class(Out, C, G), Cs),
+  aggregate_all(set(Edge), edge(Edge, G), Edges),
+  maplist(export_edge(Out), Edges),
+  export_graph_bottom(Out).
 
 
 
@@ -163,8 +139,6 @@ target(P, C, G) :-
 
 
 
-
-
 % LABELS %
 
 %! iri_label(+Iri:atom, -Label:string) is det.
@@ -182,8 +156,6 @@ iri_label(Iri, Label) :-
 pp_label(PP, PP_Label) :-
   maplist(iri_label, PP, PP_Labels),
   atomics_to_string(PP_Labels, /, PP_Label).
-
-
 
 
 
