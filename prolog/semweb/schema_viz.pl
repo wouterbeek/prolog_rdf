@@ -18,7 +18,6 @@
 :- use_module(library(graph/dot)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(yall)).
-:- use_module(library(zlib)).
 
 :- rdf_meta
    edge(t, r),

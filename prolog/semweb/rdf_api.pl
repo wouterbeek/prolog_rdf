@@ -78,7 +78,8 @@
 
 :- meta_predicate
     rdf_deref(+, 2),
-    rdf_deref(+, 2, +).
+    rdf_deref(+, 2, +),
+    rdf_deref_stream(+, +, 2, +).
 
 :- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
@@ -334,11 +335,13 @@ rdf_deref(Uri, Goal_2) :-
 
 
 rdf_deref(Uri, Goal_2, Options1) :-
+  % URI
+  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
+  maplist(ground, [Scheme,Authority]), !,
   % `Accept' header
   findall(MT, rdf_media_type(MT), DefaultMTs),
   select_option(accept(MTs), Options1, Options2, DefaultMTs),
   atom_phrase(accept(MTs), Accept),
-  
   setup_call_cleanup(
     http_open(
       Uri,
@@ -351,104 +354,117 @@ rdf_deref(Uri, Goal_2, Options1) :-
     ),
     (
       assertion(Status =:= 200),
-      
-      % Serialization format
-      ignore(option(format(MT), Options2)),
-      (   var(MT)
-      ->  rdf_guess(In, MTs),
-          (   % `Content-Type' header
-              ground(ContentType)
-          ->  http_parse_header_value(content_type, ContentType, MT),
-              member(GuessMT, MTs),
-              (   'rdf_media_type_>'(MT, GuessMT)
-              ->  !, true
-              ;   print_message(warning, inconsistent_media_types(MT,GuessMT))
-              )
-          ;   member(MT, MTs)
-          ),
-          (   % URI path's file name extension
-              uri_media_type(Uri, UriMT),
-              'rdf_media_type_>'(MT, UriMT)
+      include(ground, [content_type(ContentType)], Options3),
+      merge_options(Options3, Options2, Options4),
+      rdf_deref_stream(Uri, In, Goal_2, Options4)
+    ),
+    close(In)
+  ).
+rdf_deref(File, Goal_2, Options) :-
+  uri_file_name(Uri, File),
+  setup_call_cleanup(
+    gzopen(File, read, In),
+    rdf_deref_stream(Uri, In, Goal_2, Options),
+    close(In)
+  ).
+
+rdf_deref_stream(Uri, In, Goal_2, Options1) :-
+  % Serialization format
+  ignore(option(format(MT), Options1)),
+  (   var(MT)
+  ->  rdf_guess(In, MTs),
+      (   % `Content-Type' header
+          option(content_type(ContentType), Options1)
+      ->  http_parse_header_value(content_type, ContentType, MT),
+          member(GuessMT, MTs),
+          (   'rdf_media_type_>'(MT, GuessMT)
+          ->  !, true
+          ;   print_message(warning, inconsistent_media_types(MT,GuessMT))
+          )
+      ;   member(MT, MTs)
+      ),
+      (   % URI path's file name extension
+          uri_media_type(Uri, UriMT)
+      ->  (   'rdf_media_type_>'(MT, UriMT)
           ->  !, true
           ;   print_message(warning, inconsistent_media_types(MT,UriMT))
           )
       ;   true
-      ),
-      % Determine the base URI.
-      option(base_uri(BaseUri), Options2, Uri),
-  
-      % Determine the blank node prefix.
-      call_default_option(
-        bnode_prefix(BNodePrefix),
-        Options2,
-        rdf_create_bnode_iri
-      ),
-  
-      % Parse according to the guessed Media Type.
-      (   % N-Quads
-        MT = media(application/'n-quads',_)
-      ->  merge_options(
-            [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
-            Options2,
-            Options3
-          ),
-          rdf_process_ntriples(In, Goal_2, Options3)
-      ;   % N-Triples
-          MT = media(application/'n-triples',_)
-      ->  merge_options(
-            [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
-            Options2,
-            Options3
-          ),
-          rdf_process_ntriples(In, Goal_2, Options3)
-      ;   % RDF/XML
-          MT = media(application/'rdf+xml',_)
-      ->  merge_options(
-            [base_uri(BaseUri),blank_nodes(noshare)],
-            Options2,
-            Options3
-          ),
-          process_rdf(In, Goal_2, Options3)
-      ;   % TriG
-          MT = media(application/trig,_)
-      ->  merge_options(
-            [
-              anon_prefix(BNodePrefix),
-              base_uri(BaseUri),
-              format(trig),
-              resources(iri)
-            ],
-            Options2,
-            Options3
-          ),
-          rdf_process_turtle(In, Goal_2, Options3)
-      ;   % Turtle
-          MT = media(text/turtle,_)
-      ->  merge_options(
-            [
-              anon_prefix(BNodePrefix),
-              base_uri(BaseUri),
-              format(turtle),
-              resources(iri)
-            ],
-            Options2,
-            Options3
-          ),
-          rdf_process_turtle(In, Goal_2, Options3)
-      ;   % RDFa
-          memberchk(MT, [media(application/'xhtml+xml',_),media(text/html,_)])
-      ->  merge_options(
-            [anon_prefix(BNodePrefix),base(BaseUri)],
-            Options2,
-            Options3
-          ),
-          read_rdfa(In, Triples, Options3),
-          maplist(Goal_2, Triples, _)
-      ;   % An unsupported Media Type (e.g., JSON-LD).
-          print_message(warning, unsupported_media_type(MT))
       )
-    ),
-    close(In)
+  ;   true
+  ),
+  % Determine the base URI.
+  option(base_uri(BaseUri), Options1, Uri),
+  
+  % Determine the blank node prefix.
+  call_default_option(
+    bnode_prefix(BNodePrefix),
+    Options1,
+    rdf_create_bnode_iri
+  ),
+  
+  % Parse according to the guessed Media Type.
+  (   % N-Quads
+      MT = media(application/'n-quads',_)
+  ->  merge_options(
+        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
+        Options1,
+        Options2
+      ),
+      rdf_process_ntriples(In, Goal_2, Options2)
+  ;   % N-Triples
+      MT = media(application/'n-triples',_)
+  ->  merge_options(
+        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
+        Options1,
+        Options2
+      ),
+      rdf_process_ntriples(In, Goal_2, Options2)
+  ;   % RDF/XML
+      MT = media(application/'rdf+xml',_)
+  ->  merge_options(
+        [base_uri(BaseUri),blank_nodes(noshare)],
+        Options1,
+        Options2
+      ),
+      process_rdf(In, Goal_2, Options2)
+  ;   % TriG
+      MT = media(application/trig,_)
+  ->  merge_options(
+        [
+          anon_prefix(BNodePrefix),
+          base_uri(BaseUri),
+          format(trig),
+          resources(iri)
+        ],
+        Options1,
+        Options2
+      ),
+      rdf_process_turtle(In, Goal_2, Options2)
+  ;   % Turtle
+      MT = media(text/turtle,_)
+  ->  merge_options(
+        [
+          anon_prefix(BNodePrefix),
+          base_uri(BaseUri),
+          format(turtle),
+          resources(iri)
+        ],
+        Options1,
+        Options2
+      ),
+      rdf_process_turtle(In, Goal_2, Options2)
+  ;   % RDFa
+      memberchk(MT, [media(application/'xhtml+xml',_),media(text/html,_)])
+  ->  merge_options(
+        [anon_prefix(BNodePrefix),base(BaseUri)],
+        Options1,
+        Options2
+      ),
+      read_rdfa(In, Triples, Options2),
+      maplist(Goal_2, Triples, _)
+  ;   % An unsupported Media Type (e.g., JSON-LD).
+      print_message(warning, unsupported_media_type(MT))
   ).
 
 'rdf_media_type_>'(X, Y) :-

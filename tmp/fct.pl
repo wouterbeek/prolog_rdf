@@ -17,7 +17,6 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/json)).
-:- use_module(library(json_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/io)).
 :- use_module(library(pair_ext)).

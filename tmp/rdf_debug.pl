@@ -45,5 +45,4 @@ rdf_show_graph(G, Opts1) :-
   rdf_graph_to_export_graph(G, ExportG, Opts1),
   file_name_extension(G, pdf, File),
   graph_viz(ExportG, File, Opts1),
-  merge_options([detached(true),program('XPDF')], Opts1, Opts2),
-  run_process(xpdf, [file(File)], Opts2).
+  open_pdf(File).

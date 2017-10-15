@@ -5,9 +5,9 @@
     rdf_deref_quad/3,    % +Uri, -Quad, +Options
     rdf_deref_triple/2,  % +Uri, -Triple
     rdf_deref_triple/3,  % +Uri, -Triple, +Options
-    rdf_reserialize/2,   % +Uri, +FileSpec
-    rdf_reserialize/3,   % +Kind, +Uri, +FileSpec
-    rdf_reserialize/4,   % +Kind, +Uri, +FileSpec, +Options
+    rdf_reserialize/2,   % +Uri, +File
+    rdf_reserialize/3,   % +Kind, +Uri, +File
+    rdf_reserialize/4,   % +Kind, +Uri, +File, +Options
     rdf_to_hdt/2         % +UriSpec, +HdtFile
   ]
 ).
@@ -80,29 +80,31 @@ rdf_deref_triple(UriSpec, Triple, Options) :-
 
 
 
-%! rdf_reserialize(+UriSpec:term, +FileSpec:term) is nondet.
-%! rdf_reserialize(+Kind:oneof([quads,triples]), +UriSpec:term,
-%!                 +FileSpec:term) is nondet.
-%! rdf_reserialize(+Kind:oneof([quads,triples]), +UriSpec:term, +FileSpec:term,
-%!                 +Options:list(compound)) is nondet.
+%! rdf_reserialize(+File1:atom, +File2:atom) is nondet.
+%! rdf_reserialize(+Kind:oneof([quads,triples]), +File1:atom,
+%!                 +File2:atom) is nondet.
+%! rdf_reserialize(+Kind:oneof([quads,triples]), +File1:atom,
+%!                 +File2:atom, +Options:list(compound)) is nondet.
 %
-% Reserializes RDF data from URI to N-Quads FileSpec.
-%
-% Options are passed to call_to_file/3 and call_on_rdf/3.
+% Reserializes RDF data from URI to N-Quads File.
 
-rdf_reserialize(UriSpec, FileSpec) :-
-  rdf_reserialize(quads, UriSpec, FileSpec).
+rdf_reserialize(File1, File2) :-
+  rdf_reserialize(quads, File1, File2).
 
 
-rdf_reserialize(Kind, UriSpec, FileSpec) :-
-  rdf_reserialize(Kind, UriSpec, FileSpec, []).
+rdf_reserialize(Kind, File1, File2) :-
+  rdf_reserialize(Kind, File1, File2, []).
 
 
-rdf_reserialize(Kind, UriSpec, FileSpec, Options) :-
-  call_to_file(FileSpec, rdf_reserialize_(Kind, UriSpec, Options), Options).
-
-rdf_reserialize_(Kind, UriSpec, Options, Out, Meta, Meta) :-
-  forall(call_on_rdf(UriSpec, write_ntuples_(Kind, Out), Options), true).
+rdf_reserialize(Kind, File1, File2, Options) :-
+  setup_call_cleanup(
+    gzopen(File1, write, Out),
+    forall(
+      call_on_rdf(UriSpec, write_ntuples_(Kind, Out), Options),
+      true
+    ),
+    close(Out)
+  ).
 
 write_ntuples_(Kind, Out, Tuples, _) :-
   convlist(rdf_clean_tuple, Tuples, Quads),
@@ -115,10 +117,10 @@ write_ntuple_(triples, Out, Quad) :-
 
 
 
-%! rdf_to_hdt(+UriSpec:term, +FileSpec:term) is det.
+%! rdf_to_hdt(+UriSpec:term, +File:term) is det.
 
-rdf_to_hdt(UriSpec, FileSpec) :-
-  absolute_file_name(FileSpec, File, [access(write)]),
+rdf_to_hdt(UriSpec, File) :-
+  absolute_file_name(File, File, [access(write)]),
 
   % Convert to uncompressed N-Triples.
   debug(semweb(rdf_to_hdt), "Creating uncompressed N-Triples…", []),

@@ -1,15 +1,20 @@
 :- module(
   sparql_viz,
   [
-    sparql_viz/4,     % +Query, +Method, +Format, -Out
-    sparql_viz_file/3 % +File, +Method, +Format
+    sparql_viz/2 % +Query, +Out
   ]
 ).
 
 /** <module> SPARQL visualization
 
+Example of use:
+
+```prolog
+?- graphviz_show(dot, gtk, [Out]>>sparql_viz(Out, graph:default)).
+```
+
 @author Wouter Beek
-@version 2017/05, 2017/08
+@version 2017/05, 2017/08, 2017/10
 */
 
 :- use_module(library(apply)).
@@ -26,23 +31,13 @@
 
 
 
-%! sparql_viz(+Query:string, +Method:atom, +Format:atom, -Out:stream) is det.
+%! sparql_viz(+Query:string, +Out:stream) is det.
 
-sparql_viz(Query, Method, Format, ProcOut) :-
+sparql_viz(Query, Out) :-
   sparql_parse('https://example.org/', dataset([],[]), Query, State, Algebra),
-  setup_call_cleanup(
-    graphviz(Method, ProcIn, Format, ProcOut),
-    with_output_to(ProcIn, sparql_viz(State, Algebra)),
-    close(ProcIn)
-  ).
-
-sparql_viz(State, Algebra) :-
-  flag(node_id, _, 1),
-  Algebra =.. [Pred|Args],
-  format("graph g {\n"),
-  format("  node [penwidth=0.5,shape=box]\n"),
-  format("  edge [arrowhead=open,penwidth=0.5]\n"),
-  format("  ~a [label=<~a>]\n", [0,Pred]),
+  debug_format(sparql, Out, "graph g {"),
+  debug_format(sparql, Out, "  node [penwidth=0.5,shape=box]"),
+  debug_format(sparql, Out, "  edge [arrowhead=open,penwidth=0.5]"),
   append(
     [fn-'http://www.w3.org/2005/xpath-functions#'],
     State.prefixes,
@@ -52,18 +47,55 @@ sparql_viz(State, Algebra) :-
     _{prefixes: Prefixes, variable_map: State.variable_map},
     Options
   ),
-  maplist(sparql_viz_arg(Options, 0), Args),
-  format("}\n").
+  sparql_viz_term(Out, Algebra, Options).
+  debug_format(sparql, Out, "}").
 
-sparql_viz_arg(Options, N, Var) :-
+
+
+%! sparql_viz_edge(+Out:stream, +Term1:term, +Term2:term) is det.
+
+sparql_viz_edge(Out, Term1, Term2) :-
+  maplist(dot_id, [Term1,Term2], [Id1,Id2]),
+  debug_format(sparql, Out, "  ~a -- ~a", [Id1,Id2]).
+
+
+
+%! write_label(+Term:term, -Label:string, +Options:list(compound)) is det.
+
+write_label(Var, Label, Options) :-
   var(Var), !,
-  write_label(Options, Var, Label),
-  write_node(Options, N, _, Label).
-sparql_viz_arg(Options, N, Args) :-
+  dcg_with_output_to(string(Label), rdf_dcg_var(Var, Options)).
+write_label(Uri, Label, Options) :-
+  is_uri(Uri), !,
+  dcg_with_output_to(string(Label), rdf_dcg_iri(Uri, Options)).
+write_label(Term, Label, _) :-
+  format(string(Label), "~w", [Term]).
+
+
+
+%! write_node(+Out:stream, +Term:term, +Options:list(compound)) is det.
+
+write_node(Out, Term, Options) :-
+  dot_id(Term, Id),
+  write_label(Term, Label, Options),
+  debug_format(sparql, Out, "  ~d [label=<~a>]", [Id,Label]).
+
+
+
+%! sparql_viz_term(+Out:stream, +Term:term, +Options:list(compound)) is det.
+
+sparql_viz_term(Out, Var, Options) :-
+  var(Var), !,
+  write_label(Var, Label, Options),
+  write_node(Out, Label, Options).
+sparql_viz_term(Out, Args, Options) :-
   is_list(Args), !,
-  maplist(sparql_viz_arg(Options, N), Args).
-sparql_viz_arg(Options, N, rdf(S,P,O,_)) :- !,
-  dcg_with_output_to(atom(Label), (
+  maplist(
+    {Out,Options}/[Arg]>>sparql_viz_term(Out, Arg, Options),
+    Args
+  ).
+sparql_viz_term(Out, rdf(S,P,O,_), Options) :- !,
+  dcg_with_output_to(string(Label), (
     "〈",
     rdf_dcg_subject(S, Options),
     ", ",
@@ -72,50 +104,30 @@ sparql_viz_arg(Options, N, rdf(S,P,O,_)) :- !,
     rdf_dcg_term(O, Options),
     "〉"
   )),
-  write_node(Options, N, _, Label).
-sparql_viz_arg(Options, N1, QAlg) :-
-  \+ var(QAlg),
-  QAlg =.. [Pred1|Args], !,
+  write_node(Out, Label, Options).
+sparql_viz_term(Out, Term, Options) :-
+  compound(Term),
+  Term =.. [Pred1|Args], !,
   (   binary_predicate(Pred1, Pred2)
-  ->  maplist(write_label(Options), Args, Labels),
+  ->  maplist(
+        {Options}/[Arg,Label]>>write_label(Arg, Label, Options),
+        Args,
+        Labels
+      ),
       Term =.. [Pred2|Labels],
-      write_node(Options, N1, _, Term)
-  ;   write_node(Options, N1, N2, Pred1),
-      maplist(sparql_viz_arg(Options, N2), Args)
+      write_node(Out, Term, Options)
+  ;   write_node(Out, Pred1, Options),
+      maplist(
+        {Out,Options}/[Arg]>>sparql_viz_term(Out, Arg, Options),
+        Args
+      ),
+      maplist(sparql_viz_edge(Out, Pred1), Args)
   ).
-sparql_viz_arg(Options, N, Term) :-
-  write_node(Options, N, _, Term).
+sparql_viz_term(Out, Term, Options) :-
+  write_node(Out, Term, Options).
 
 binary_predicate(<, '&lt;').
 binary_predicate(=<, '=&lt;').
 binary_predicate(=, =).
 binary_predicate(>=, '&gt;=').
 binary_predicate(>, '&gt;').
-
-write_label(Options, Var, Label) :-
-  var(Var), !,
-  dcg_with_output_to(atom(Label), rdf_dcg_var(Var, Options)).
-write_label(Options, Uri, Label) :-
-  is_uri(Uri), !,
-  dcg_with_output_to(atom(Label), rdf_dcg_iri(Uri, Options)).
-write_label(_, Term, Label) :-
-  format(atom(Label), "~w", [Term]).
-
-write_node(Options, N1, N2, Term) :-
-  flag(node_id, N2, N2+1),
-  write_label(Options, Term, Label),
-  format("  ~d [label=<~a>]\n", [N2,Label]),
-  format("  ~d -- ~d\n", [N1,N2]).
-
-
-
-%! sparql_viz_file(+File:atom, +Method:atom, +Format:atom) is det.
-
-sparql_viz_file(File1, Method, Format) :-
-  file_name_extension(Base, _, File1),
-  file_to_string(File1, Query),
-  file_name_extension(Base, Format, File2),
-  call_to_file(
-    File2,
-    {Query,Method,Format}/[Out,Meta,Meta]>>sparql_viz(Query, Method, Format, Out)
-  ).

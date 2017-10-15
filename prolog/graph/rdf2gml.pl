@@ -1,8 +1,8 @@
 :- module(
   rdf2gml,
   [
-    rdf2gml/2, % +UriSpec, +FileSpec
-    rdf2gml/3  % +UriSpec, +FileSpec, +Options
+    rdf2gml/2, % +File1, +File2
+    rdf2gml/3  % +File1, +File2, +Options
   ]
 ).
 
@@ -28,20 +28,20 @@ whitespace ::= space | tabulator | newline
 ```
 
 @author Wouter Beek
-@version 2016/02, 2017/01, 2017/08
+@version 2016/02, 2017/01, 2017/08, 2017/10
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
-:- use_module(library(os_ext)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 :- use_module(library(thread)).
-:- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
+:- use_module(library(zlib)).
 
 :- meta_predicate
     gml_label(4, +, -),
@@ -53,9 +53,8 @@ whitespace ::= space | tabulator | newline
 
 
 
-%! rdf2gml(+UriSpec:compound, +FileSpec:compound) is det.
-%! rdf2gml(+UriSpec:compound, +FileSpec:compound,
-%!         +Options:list(compound)) is det.
+%! rdf2gml(+File1:atom, +File2:atom) is det.
+%! rdf2gml(+File1:atom, +File2:atom, +Options:list(compound)) is det.
 %
 % Source can be any source, but Sink must be a file.  The reason for
 % this is that GML cannot be written in-stream because vertices and
@@ -71,11 +70,11 @@ whitespace ::= space | tabulator | newline
 %
 %     The DCG writer for GML nodes.  Default is rdf_dcg_node//1.
 
-rdf2gml(UriSpec, FileSpec) :-
-  rdf2gml(UriSpec, FileSpec, []).
+rdf2gml(File1, File2) :-
+  rdf2gml(File1, File2, []).
 
 
-rdf2gml(UriSpec, FileSpec, Options) :-
+rdf2gml(File1, File2, Options) :-
   uuid(Base),
   atomic_list_concat([Base,nodes,tmp], ., NFile),
   atomic_list_concat([Base,edges,tmp], ., EFile),
@@ -86,10 +85,7 @@ rdf2gml(UriSpec, FileSpec, Options) :-
       open(EFile, write, EOut),
       open(NFile, write, NOut)
     ),
-    forall(
-      call_on_rdf(UriSpec, gml_triples(NOut, NPrinter_2, EOut, EPrinter_2)),
-      true
-    ),
+    rdf_deref(File1, gml_triples(NOut, NPrinter_2, EOut, EPrinter_2)),
     (
       close(EOut),
       close(NOut)
@@ -97,14 +93,17 @@ rdf2gml(UriSpec, FileSpec, Options) :-
   ),
   % LC_ALL=C sort -o identity-explicit-sorted.tsv identity-explicit.tsv
   concurrent_maplist(sort_file, [NFile,EFile]),
-  call_to_file(FileSpec, write_(NFile,EFile)).
-
-write_(NFile, EFile, Out, Meta, Meta) :-
-  format(Out, "graph [\n  directed 1\n", []),
-  call_on_uri(NFile, {Out}/[In,Meta,Meta]>>copy_stream_data(In, Out)),
-  call_on_uri(EFile, {Out}/[In,Meta,Meta]>>copy_stream_data(In, Out)),
-  format(Out, "]\n", []),
-  concurrent_maplist(delete_file, [NFile,EFile]).
+  setup_call_cleanup(
+    open(File2, write, Out),
+    (
+      debug_format(gml, Out, "graph ["),
+      debug_format(gml, Out, "  directed 1"),
+      cat(Out, [NFile,EFile]),
+      debug_format(gml, Out, "]"),
+      concurrent_maplist(delete_file, [NFile,EFile])
+    ),
+    close(Out)
+  ).
 
 gml_triples(NOut, NPrinter_2, EOut, EPrinter_2, Tuples, _) :-
   maplist(gml_triple(NOut, NPrinter_2, EOut, EPrinter_2), Tuples).
@@ -114,8 +113,12 @@ gml_triple(NOut, NPrinter_2, EOut, EPrinter_2, Tuple1) :-
   rdf_tuple_triple(Tuple2, rdf(S,P,O)),
   maplist(gml_node(NOut, NPrinter_2), [S,O], [NId1,NId2]),
   gml_label(EPrinter_2, P, ELabel),
-  format(EOut, "  edge [ label \"~s\" source ~a target ~a ]\n",
-         [ELabel,NId1,NId2]).
+  debug_format(
+    gml,
+    EOut,
+    '  edge [ label "~s" source ~a target ~a ]',
+    [ELabel,NId1,NId2]
+  ).
 
 
 
@@ -124,7 +127,7 @@ gml_triple(NOut, NPrinter_2, EOut, EPrinter_2, Tuple1) :-
 gml_node(NOut, NPrinter_2, N, NId) :-
   md5(N, NId),
   gml_label(NPrinter_2, N, NLabel),
-  format(NOut, "  node [ id ~a label \"~s\" ]\n", [NId,NLabel]).
+  debug_format(gml, NOut, '  node [ id ~a label "~s" ]', [NId,NLabel]).
 
 
 

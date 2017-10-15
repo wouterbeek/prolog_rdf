@@ -97,8 +97,6 @@ SPARQL 1.1 HTTP responses (result sets).
 %      * named_graphs(+list(atom))
 %
 %        Default is `[]'.
-%
-%      * Other options are passed to call_on_uri/3.
 
 sparql_client(Uri, Query, Result) :-
   sparql_client(Uri, Query, Result, []).

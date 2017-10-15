@@ -44,7 +44,6 @@
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(http/http_io)).
-:- use_module(library(json_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(memoization)).
 :- use_module(library(ordsets)).

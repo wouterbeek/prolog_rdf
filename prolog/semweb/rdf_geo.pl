@@ -27,7 +27,7 @@
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 
-rdf_html:rdf_html_literal_hook(D, Lex, Options) -->
+rdf_html:rdf_html_literal_hook(D, Lex, _) -->
   {rdf_equal(D, geo:wktLiteral)}, !,
   {atom_phrase(wkt_generate(Shape), Lex)},
   html("~w"-[Shape]).

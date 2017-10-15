@@ -14,7 +14,6 @@
 @version 2016/01
 */
 
-:- use_module(library(json_ext)).
 :- use_module(library(jsonld/jsonld_generics)).
 
 
