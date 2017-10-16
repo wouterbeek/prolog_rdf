@@ -1,12 +1,16 @@
 :- module(
   rdf_geo,
   [
-    rdf_assert_wkt/3, % +Feature, +Shape, +G
-    rdf_assert_wkt/4, % +Feature, +Shape, +G, -Geometry
-    rdf_wkt/2,        % ?Feature, ?Shape
-    rdf_wkt/3         % ?Feature, ?Shape, ?G
+    rdf_assert_wkt/3,      % +Feature, +Shape, +G
+    rdf_assert_wkt/4,      % +Feature, +Shape, +G, -Geometry
+    rdf_wkt/2,             % ?Feature, ?Shape
+    rdf_wkt/3,             % ?Feature, ?Shape, ?G
+    op(110, xfx, @),       % must be above .
+    op(650, xfx, ^^),      % must be above :
+    op(1150, fx, rdf_meta)
   ]
 ).
+:- reexport(library(semweb/rdf_api)).
 
 /** <module> RDF Geography Plugin
 
@@ -24,7 +28,6 @@
 :- use_module(library(geo/wkt_generate)).
 :- use_module(library(geo/wkt_parse)).
 :- use_module(library(html/rdf_html)).
-:- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 
 rdf_html:rdf_html_literal_hook(D, Lex, _) -->
