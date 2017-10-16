@@ -61,6 +61,7 @@
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
+:- use_module(library(http/http_header)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
@@ -216,9 +217,10 @@ rdf_clean_lexical_form(xsd:decimal, Lex1, Lex2) :-
   ;   print_message(warning, invalid_decimal(Lex1)),
       fail
   ).
+rdf_clean_lexical_form(rdf:langString, Lex, Lex).
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
   catch(rdf11:out_type(D, Value, Lex1), E, true),
-  rdf11:pre_ground_object(Value, literal(type(D,Lex2))),
+  rdf11:pre_ground_object(Value^^D, literal(type(D,Lex2))),
   (   var(E)
   ->  (   % Warning for a non-canonical lexical form.
           Lex1 \== Lex2
@@ -396,11 +398,12 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   % Determine the base URI.
   option(base_uri(BaseUri), Options1, Uri),
   
-  % Determine the blank node prefix.
+  % Determine the blank node prefix.  Use a well-known IRI with a UUID
+  % component by default.
   call_default_option(
     bnode_prefix(BNodePrefix),
     Options1,
-    rdf_create_bnode_iri
+    rdf_create_well_known_iri
   ),
   
   % Parse according to the guessed Media Type.
@@ -565,7 +568,7 @@ rdf_load2(File, Options1) :-
       rdf_load_format_(Ext, Format), !
   ;   true
   ),
-  merge_options([format(Format)], Options1, Options2),
+  merge_options([anon_prefix('_:'),format(Format)], Options1, Options2),
   rdf_load(File, Options2).
 
 rdf_load_format_(nq, nquads).

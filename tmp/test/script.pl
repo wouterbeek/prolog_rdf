@@ -22,7 +22,7 @@ script1(M) :-
 script2(M) :-
   rdf_reset_db,
   rdf_equal(ex:script2, G),
-  rdf_create_bnode_iri(D),
+  rdf_create_well_known_iri(D),
   rdf_assert(M, ex:'A', owl:equivalentClass, D, G),
   rdf_assert_value_restriction(ex:p, ex:v1, G, R1),
   rdf_assert_value_restriction(ex:p, ex:v2, G, R2),
