@@ -30,16 +30,18 @@
 
 %! schema_viz(+Out:stream, +G:atom) is det.
 
-schema_viz_stream(Out, G) :-
+schema_viz(Out, G) :-
   % Nodes can be described in multiple vocabularies: OWL, SHACL,
   % RDF(S).  We therefore first group all nodes with some description,
   % and then generate nodes for each one in sequence.
-  export_graph_top(Out),
+  format_debug(dot, Out, "digraph G {"),
   aggregate_all(set(C), class(C, G), Cs),
   maplist({Out,G}/[C]>>export_class(Out, C, G), Cs),
   aggregate_all(set(Edge), edge(Edge, G), Edges),
   maplist(export_edge(Out), Edges),
-  export_graph_bottom(Out).
+  format_debug(dot, Out, "}").
+
+
 
 
 
@@ -138,6 +140,8 @@ target(P, C, G) :-
 
 
 
+
+
 % LABELS %
 
 %! iri_label(+Iri:atom, -Label:string) is det.
@@ -155,6 +159,8 @@ iri_label(Iri, Label) :-
 pp_label(PP, PP_Label) :-
   maplist(iri_label, PP, PP_Labels),
   atomics_to_string(PP_Labels, /, PP_Label).
+
+
 
 
 
@@ -237,20 +243,6 @@ export_edge(Out, edge(C1,PP,C2)) :-
     '  ~a -> ~a [label=<~a>,URL="~a"];',
     [CId1,CId2,PP_Label,FirstP]
   ).
-
-
-
-%! export_graph_bottom(+Out:stream) is det.
-
-export_graph_bottom(Out) :-
-  format_debug(dot, Out, "}").
-
-
-
-%! export_graph_top(+Out:stream) is det.
-
-export_graph_top(Out) :-
-  format_debug(dot, Out, "digraph G {").
 
 
 
