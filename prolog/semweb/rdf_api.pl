@@ -61,8 +61,8 @@
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(http/http_header)).
-:- use_module(library(http/http_open)).
 :- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -345,17 +345,15 @@ rdf_deref(Uri, Goal_2, Options1) :-
   select_option(accept(MTs), Options1, Options2, DefaultMTs),
   atom_phrase(accept(MTs), Accept),
   setup_call_cleanup(
-    http_open(
+    http_open2(
       Uri,
       In,
       [
         header(content_type,ContentType),
-        request_header('Accept'=Accept),
-        status_code(Status)
+        request_header('Accept'=Accept)
       ]
     ),
     (
-      assertion(Status =:= 200),
       include(ground, [content_type(ContentType)], Options3),
       merge_options(Options3, Options2, Options4),
       rdf_deref_stream(Uri, In, Goal_2, Options4)
