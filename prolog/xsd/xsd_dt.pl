@@ -1,19 +1,41 @@
 :- module(
   xsd_dt,
   [
-    daysInMonth/3,   % +Year, +Month, -Days
-    timeOnTimeline/2 % +DT, -Seconds
+    daysInMonth/3,        % +Year, +Month, -Days
+    timeOnTimeline/2,     % +DT, -Seconds
+    xsd_date_time_to_dt/3 % +DateTime, +D, -DT
   ]
 ).
 
 /** <module> XSD date/time
 
 @author Wouter Beek
-@version 2017/08
+@version 2017/08, 2017/10
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(date_time)).
+:- use_module(library(semweb/rdf11)).
+:- use_module(library(xsd/xsd)).
+
+:- arithmetic_function(xsd_div/2).
+
+:- op(400, yfx, xsd_div).
+
+% xsd_div(+M, +N, -Z) is det.
+%
+% # Definition
+%
+% If `M` and `N` are numbers, then `M div N` is the greatest integer
+% less than or equal to `M / N`.
+%
+% @tbd Import from `library(xsd/xsd_number)'.
+
+xsd_div(X, Y, Z):-
+  Z is floor(X rdiv Y).
+
+:- rdf_meta
+   xsd_date_time_to_dt(+, r, -).
 
 
 
@@ -165,6 +187,17 @@ timeOnTimeline(dt(Y1,Mo1,D1,H1,Mi1,S1,Off), N) :-
        + 3600 * H1
        + 60 * Mi2
        + S1.
+
+
+
+%! xsd_date_time_to_dt(+DateTime:compound, +D:atom, -DT:compound) is det.
+
+xsd_date_time_to_dt(date(Y,Mo,D), xsd:date, dt(Y,Mo,D,_,_,_,0)).
+xsd_date_time_to_dt(date_time(Y,Mo,D,H,Mi,S), xsd:dateTime, dt(Y,Mo,D,H,Mi,S,0)).
+xsd_date_time_to_dt(date_time(Y,Mo,D,H,Mi,S,TZ), xsd:dateTime, dt(Y,Mo,D,H,Mi,S,TZ)).
+xsd_date_time_to_dt(month_day(Mo,D), xsd:gMonthDay, dt(_,Mo,D,_,_,_,0)).
+xsd_date_time_to_dt(time(H,Mi,S), xsd:time, dt(_,_,_,H,Mi,S,0)).
+xsd_date_time_to_dt(year_month(Y,Mo), xsd:gYearMonth, dt(Y,Mo,_,_,_,_,0)).
 
 
 

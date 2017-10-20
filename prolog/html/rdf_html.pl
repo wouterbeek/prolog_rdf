@@ -34,6 +34,8 @@
 :- use_module(library(semweb/rdf_date_time)).
 :- use_module(library(sgml)).
 :- use_module(library(uri/uri_ext)).
+:- use_module(library(xsd/xsd_dt)).
+:- use_module(library(xsd/xsd_number)).
 
 :- multifile
     html:html_hook//1,
@@ -140,6 +142,9 @@ rdf_html_literal_external_(xsd:anyURI, _, Uri) --> !,
   ).
 rdf_html_literal_external_(_, _, _) --> [].
 
+% hook
+rdf_html_literal_internal_(D, _, Lex, Options) -->
+  rdf_html_literal_hook(D, Lex, Options), !.
 % rdf:HTML
 rdf_html_literal_internal_(rdf:'HTML', _, Lex, _) --> !,
   html(\[Lex]).
@@ -156,23 +161,25 @@ rdf_html_literal_internal_(rdf:langString, LTag, Lex, Options) --> !,
 % xsd:boolean
 rdf_html_literal_internal_(xsd:boolean, _, Lex, _) -->
   html(Lex).
-% xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay,
-% xsd:gYear, xsd:gYearMonth, xsd:time
-rdf_html_literal_internal_(D, _, Lex, Options) -->
-  {
-    rdf11:xsd_date_time_type(D), !,
-    xsd_time_string(DateTime1, D, Lex),
-    date_time_to_dt(DateTime1, DateTime2)
-  },
-  html_date_time(DateTime2, Options).
-% xsd:decimal
+% xsd:decimal: before other numeric types
 rdf_html_literal_internal_(xsd:decimal, _, Lex, _) --> !,
   {atom_phrase(decimalLexicalMap(N), Lex)},
   html("~w"-[N]).
-% xsd:byte, xsd:double, xsd:float, xsd:int, xsd:integer, xsd:long,
-% xsd:negativeInteger, xsd:nonNegativeInteger, xsd:nonPositiveInteger,
-% xsd:positiveInteger, xsd:short, xsd:unsignedByte, xsd:unsignedInt,
-% xsd:unsignedLong, xsd:unsignedShort
+% xsd:byte
+% xsd:double
+% xsd:float
+% xsd:int
+% xsd:integer
+% xsd:long,
+% xsd:negativeInteger
+% xsd:nonNegativeInteger
+% xsd:nonPositiveInteger
+% xsd:positiveInteger
+% xsd:short
+% xsd:unsignedByte
+% xsd:unsignedInt,
+% xsd:unsignedLong
+% xsd:unsignedShort
 rdf_html_literal_internal_(D, _, Lex, _) -->
   {
     rdf11:xsd_numerical(D, _, Type), !,
@@ -180,16 +187,28 @@ rdf_html_literal_internal_(D, _, Lex, _) -->
     (Type == integer -> Format = "~D" ; Format = "~w")
   },
   html(Format-[N]).
+% xsd:date
+% xsd:dateTime
+% xsd:gDay
+% xsd:gMonth
+% xsd:gMonthDay
+% xsd:gYear
+% xsd:gYearMonth
+% xsd:time
+rdf_html_literal_internal_(D, _, Lex, Options) -->
+  {
+    rdf11:xsd_date_time_type(D), !,
+    xsd_time_string(DateTime, D, Lex),
+    xsd_date_time_to_dt(DateTime, D, DT)
+  },
+  html_date_time(DT, Options).
 % xsd:string
 rdf_html_literal_internal_(xsd:string, _, Lex, Options) --> !,
   html_ellipsis(Lex, Options.max_lit_len).
 % xsd:anyURI
 rdf_html_literal_internal_(xsd:anyUri, _, Uri, _) --> !,
   html(Uri).
-% hook
-rdf_html_literal_internal_(D, _, Lex, Options) -->
-  rdf_html_literal_hook(D, Lex, Options), !.
-% others
+% other
 rdf_html_literal_internal_(_, _, Lex, Options) -->
   html_ellipsis(Lex, Options.max_lit_len).
 

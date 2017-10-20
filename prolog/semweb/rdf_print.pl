@@ -50,13 +50,15 @@
 |                |            |             | are printed.                     |
 
 @author Wouter Beek
-@version 2017/04-2017/09
+@version 2017/04-2017/10
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(date_time)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(semweb/rdf_api)).
+:- use_module(library(xsd/xsd_dt)).
 
 :- multifile
     rdf_dcg_literal_hook//2.
@@ -222,28 +224,61 @@ rdf_dcg_literal(Lit, Options) -->
 % hook
 rdf_dcg_literal_(Lit, Options) -->
   rdf_dcg_literal_hook(Lit, Options), !.
-% xsd:boolean
-rdf_dcg_literal_(literal(type(xsd:boolean,Lex)), Options) --> !,
-  rdf_dcg_lexical_form(Lex, Options).
-% xsd:string
-rdf_dcg_literal_(literal(type(xsd:string,Lex)), Options) --> !,
-  rdf_dcg_lexical_form(Lex, Options).
-% xsd:integer, xsd:int
-rdf_dcg_literal_(literal(type(D,Lex)), _) -->
-  {(rdf_equal(xsd:integer, D) ; rdf_equal(xsd:int, D))}, !,
-  {xsd_number_string(N, Lex)},
-  thousands(N).
-% xsd:decimal, xsd:double
-rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
-  {(rdf_equal(xsd:decimal, D) ; rdf_equal(xsd:double, D))}, !,
-  rdf_dcg_lexical_form(Lex, Options).
 % rdf:langString
 rdf_dcg_literal_(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   rdf_dcg_language_tag(LTag, Options).
+% xsd:boolean
+rdf_dcg_literal_(literal(type(xsd:boolean,Lex)), Options) --> !,
+  rdf_dcg_lexical_form(Lex, Options).
+% xsd:decimal: before other numeric types
+rdf_dcg_literal_(literal(type(xsd:decimal,Lex)), _) --> !,
+  {atom_phrase(decimalLexicalMap(N), Lex)},
+  atom(N).
+% xsd:byte,
+% xsd:double
+% xsd:float
+% xsd:int
+% xsd:integer
+% xsd:long
+% xsd:negativeInteger
+% xsd:nonNegativeInteger
+% xsd:nonPositiveInteger
+% xsd:positiveInteger
+% xsd:short
+% xsd:unsignedByte
+% xsd:unsignedInt
+% xsd:unsignedLong
+% xsd:unsignedShort
+rdf_dcg_literal_(literal(type(D,Lex)), _) -->
+  {rdf11:xsd_numerical(D, _, Type)}, !,
+  {xsd_number_string(N, Lex)},
+  ({Type == integer} -> thousands(N) ; number(N)).
+% xsd:date
+% xsd:dateTime
+% xsd:gDay
+% xsd:gMonth
+% xsd:gMonthDay
+% xsd:gYear
+% xsd:gYearMonth
+% xsd:time
+rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
+  {
+    rdf11:xsd_date_time_type(D), !,
+    xsd_time_string(DateTime, D, Lex),
+    xsd_date_time_to_dt(DateTime, D, DT),
+    dt_label(DT, Label, Options)
+  },
+  atom(Label).
+% xsd:string
+rdf_dcg_literal_(literal(type(xsd:string,Lex)), Options) --> !,
+  rdf_dcg_lexical_form(Lex, Options).
+% xsd:anyURI
+rdf_dcg_literal_(literal(type(xsd:anyURI,Uri)), _) --> !,
+  atom(Uri).
 % other
-rdf_dcg_literal_(literal(type(D,Lex)), Options) --> !,
+rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
   rdf_dcg_lexical_form(Lex, Options),
   "^^",
   rdf_dcg_iri(D, Options).
