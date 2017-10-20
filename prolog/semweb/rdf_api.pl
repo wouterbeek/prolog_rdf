@@ -661,8 +661,10 @@ rdf_term_to_atom(literal(lang(LTag,Lex)), Atom) :- !,
   format(atom(Atom), '"~a"@~a', [Lex,LTag]).
 rdf_term_to_atom(literal(Lex), Atom) :- !,
   rdf_term_to_atom(literal(type(xsd:string,Lex)), Atom).
-rdf_term_to_atom(Atom, Atom) :-
-  rdf_is_iri(Atom).
+rdf_term_to_atom(Iri, Atom) :-
+  rdf_is_iri(Iri), !,
+  format(atom(Atom), '<~a>', [Iri]).
+rdf_term_to_atom(BNode, BNode).
 
 
 
