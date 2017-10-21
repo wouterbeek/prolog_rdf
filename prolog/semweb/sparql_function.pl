@@ -29,6 +29,7 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 
 :- use_module(library(apply)).
 :- use_module(library(lists)).
+:- use_module(library(pcre)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(sgml)).
 
@@ -149,27 +150,9 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
   ).
 
 
-'fn:matches'(
-  Literal,
-  literal(Pattern),
-  literal(Flags)
-) :-
-  string_literal(Literal, _, _, Lex),
-  with_mutex(sparql_regex, (
-    regex_obj(Pattern, Flags, Regex),
-    send(Regex, search, string(Lex))
-  )).
-
-regex_obj(Pattern, Flags, Regex) :-
-  pattern_cache(Pattern, Flags, Regex), !.
-regex_obj(Pattern, Flags, Regex) :-
-  make_regex(Pattern, Flags, Regex),
-  asserta(pattern_cache(Pattern, Flags, Regex)).
-
-make_regex(Pattern, "i", Regex) :- !,
-  new(Regex, regex(Pattern, @(off))).
-make_regex(Pattern, _, Regex) :-
-  new(Regex, regex(Pattern)).
+'fn:matches'(Literal, literal(Pattern), literal(Flags)) :-
+  rdf_literal(Literal, _, _, String),
+  re_match(Pattern/Flags, String).
 
 
 
@@ -180,12 +163,12 @@ make_regex(Pattern, _, Regex) :-
   literal(type(xsd:integer,Start)),
   Literal2
 ) :-
-  string_literal(Literal1, D, LTag, Lex1),
+  rdf_literal(Literal1, D, LTag, Lex1),
   atom_codes(Lex1, Codes1),
   length(Prefix, Start),
   append(Prefix, Codes2, Codes1),
   atom_codes(Lex2, Codes2),
-  string_literal(Literal2, D, LTag, Lex2).
+  rdf_create_string_literal(Literal2, D, LTag, Lex2).
 
 
 
