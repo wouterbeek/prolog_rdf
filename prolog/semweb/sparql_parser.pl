@@ -14,7 +14,7 @@ Parses a SPARQL query string into the corresponding algebraic
 expression.
 
 @author Wouter Beek
-@version 2017/05-2017/09
+@version 2017/05-2017/10
 */
 
 :- use_module(library(apply)).
@@ -515,61 +515,59 @@ is_aggregate(sum(_)).
 %                  MD5, SHA1, SHA256, SHA384, SHA512, isIRI, isURI,
 %                  isBLANK, isLITERAL, isNUMERIC
 'BuiltInCall'(State, Function) -->
-  ( keyword(`str`) -> {Functor = 'STR'}
-  ; keyword(`lang`) -> {Functor = 'LANG'}
-  ; keyword(`datatype`) -> {Functor = 'DATATYPE'}
-  ; keyword(`iri`) -> {Functor = 'IRI'}
-  ; keyword(`uri`) -> {Functor = 'URI'}
-  ; keyword(`abs`) -> {rdf_equal(fn:'numeric-abs', Functor)}
-  ; keyword(`ceil`) -> {rdf_equal(fn:'numeric-ceil', Functor)}
-  ; keyword(`floor`) -> {rdf_equal(fn:'numeric-floor', Functor)}
-  ; keyword(`round`) -> {rdf_equal(fn:'numeric-round', Functor)}
-  ; keyword(`strlen`) -> {rdf_equal(fn:'string-length', Functor)}
-  ; keyword(`ucase`) -> {rdf_equal(fn:'upper-case', Functor)}
-  ; keyword(`lcase`) -> {rdf_equal(fn:'lower-case', Functor)}
-  ; keyword(`encode_for_uri`) -> {rdf_equal(fn:'encode-for-uri', Functor)}
-  ; keyword(`year`) -> {rdf_equal(fn:'year-from-dateTime', Functor)}
-  ; keyword(`month`) -> {rdf_equal(fn:'month-from-dateTime', Functor)}
-  ; keyword(`day`) -> {rdf_equal(fn:'day-from-dateTime', Functor)}
-  ; keyword(`hours`) -> {rdf_equal(fn:'hours-from-dateTime', Functor)}
-  ; keyword(`minutes`) -> {rdf_equal(fn:'minutes-from-dateTime', Functor)}
-  ; keyword(`seconds`) -> {rdf_equal(fn:'seconds-from-dateTime', Functor)}
-  ; keyword(`timezone`) -> {rdf_equal(fn:'timezone-from-dateTime', Functor)}
-  ; keyword(`tz`) -> {Functor = tz}
-  ; keyword(`md5`) -> {Functor = 'MD5'}
-  ; keyword(`sha1`) -> {Functor = 'SHA1'}
-  ; keyword(`sha256`) -> {Functor = 'SHA256'}
-  ; keyword(`sha384`) -> {Functor = 'SHA384'}
-  ; keyword(`sha512`) -> {Functor = 'SHA512'}
-  ; keyword(`isiri`) -> {Functor = isIri}
-  ; keyword(`isuri`) -> {Functor = isUri}
-  ; keyword(`isblank`) -> {Functor = isBlank}
-  ; keyword(`isliteral`) -> {Functor = isLiteral}
-  ; keyword(`isnumeric`) -> {Functor = isNumeric}
+  ( keyword(`str`) -> {Function = 'STR'(E)}
+  ; keyword(`lang`) -> {Function = 'LANG'(E)}
+  ; keyword(`datatype`) -> {Function = 'DATATYPE'(E)}
+  ; keyword(`iri`) -> {Function = 'IRI'(E)}
+  ; keyword(`uri`) -> {Function = 'URI'(E)}
+  ; keyword(`abs`) -> {Function = 'fn:numeric-abs'(E)}
+  ; keyword(`ceil`) -> {Function = 'fn:numeric-ceil'(E)}
+  ; keyword(`floor`) -> {Function = 'fn:numeric-floor'(E)}
+  ; keyword(`round`) -> {Function = 'fn:numeric-round'(E)}
+  ; keyword(`strlen`) -> {Function = 'fn:string-length'(E)}
+  ; keyword(`ucase`) -> {Function = 'fn:upper-case'(E)}
+  ; keyword(`lcase`) -> {Function = 'fn:lower-case'(E)}
+  ; keyword(`encode_for_uri`) -> {Function = 'fn:encode-for-uri'(E)}
+  ; keyword(`year`) -> {Function = 'fn:year-from-dateTime'(E)}
+  ; keyword(`month`) -> {Function = 'fn:month-from-dateTime'(E)}
+  ; keyword(`day`) -> {Function = 'fn:day-from-dateTime'(E)}
+  ; keyword(`hours`) -> {Function = 'fn:hours-from-dateTime'(E)}
+  ; keyword(`minutes`) -> {Function = 'fn:minutes-from-dateTime'(E)}
+  ; keyword(`seconds`) -> {Function = 'fn:seconds-from-dateTime'(E)}
+  ; keyword(`timezone`) -> {Function = 'fn:timezone-from-dateTime'(E)}
+  ; keyword(`tz`) -> {Function = tz(E)}
+  ; keyword(`md5`) -> {Function = 'MD5'(E)}
+  ; keyword(`sha1`) -> {Function = 'SHA1'(E)}
+  ; keyword(`sha256`) -> {Function = 'SHA256'(E)}
+  ; keyword(`sha384`) -> {Function = 'SHA384'(E)}
+  ; keyword(`sha512`) -> {Function = 'SHA512'(E)}
+  ; keyword(`isiri`) -> {Function = isIri(E)}
+  ; keyword(`isuri`) -> {Function = isUri(E)}
+  ; keyword(`isblank`) -> {Function = isBlank(E)}
+  ; keyword(`isliteral`) -> {Function = isLiteral(E)}
+  ; keyword(`isnumeric`) -> {Function = isNumeric(E)}
   ), !,
   must_see_code(0'(),
   must_see('Expression'(State, E)),
-  must_see_code(0')),
-  {Function =.. [Functor,E]}.
+  must_see_code(0')).
 % Binary functions: LANGMATCHES, CONTAINS, STRSTARTS, STRENDS,
 %                   STRBEFORE, STRAFTER, STRLANG, STRDT, sameTerm
 'BuiltInCall'(State, Function) -->
-  ( keyword(`langmatches`) -> {Functor = langMatches}
-  ; keyword(`contains`) -> {rdf_equal(fn:contains, Functor)}
-  ; keyword(`strstarts`) -> {rdf_equal(fn:'starts-with', Functor)}
-  ; keyword(`strends`) -> {rdf_equal(fn:'ends-with', Functor)}
-  ; keyword(`strbefore`) -> {rdf_equal(fn:'substring-before', Functor)}
-  ; keyword(`strafter`) -> {rdf_equal(fn:'substring-after', Functor)}
-  ; keyword(`strlang`) -> {Functor = 'STRLANG'}
-  ; keyword(`strdt`) -> {Functor = 'STRDT'}
-  ; keyword(`sameterm`) -> {Functor = sameTerm}
+  ( keyword(`langmatches`) -> {Function = langMatches(E1,E2)}
+  ; keyword(`contains`) -> {Function = 'fn:contains'(E1,E2)}
+  ; keyword(`strstarts`) -> {Function = 'fn:starts-with'(E1,E2)}
+  ; keyword(`strends`) -> {Function = 'fn:ends-with'(E1,E2)}
+  ; keyword(`strbefore`) -> {Function = 'fn:substring-before'(E1,E2)}
+  ; keyword(`strafter`) -> {Function = 'fn:substring-after'(E1,E2)}
+  ; keyword(`strlang`) -> {Function = 'STRLANG'(E1,E2)}
+  ; keyword(`strdt`) -> {Function = 'STRDT'(E1,E2)}
+  ; keyword(`sameterm`) -> {Function = sameTerm(E1,E2)}
   ), !,
   must_see_code(0'(),
   must_see('Expression'(State, E1)),
   must_see_code(0',),
   must_see('Expression'(State, E2)),
-  must_see_code(0')),
-  {Function =.. [Functor,E1,E2]}.
+  must_see_code(0')).
 % BNODE
 'BuiltInCall'(State, Function) -->
   keyword(`bnode`), !,
@@ -587,26 +585,25 @@ is_aggregate(sum(_)).
   must_see('Var'(State, Var)),
   must_see_code(0')).
 % 0-ary functions: RAND, NOW, UUID, STRUUID
-'BuiltInCall'(_, Functor) -->
-  (   keyword(`rand`) -> {Functor = rand}
-  ;   keyword(`now`) -> {Functor = now}
-  ;   keyword(`uuid`) -> {Functor = 'UUID'}
-  ;   keyword(`struuid`) -> {Functor = 'STRUUID'}
+'BuiltInCall'(_, Function) -->
+  (   keyword(`rand`) -> {Function = rand}
+  ;   keyword(`now`) -> {Function = now}
+  ;   keyword(`uuid`) -> {Function = 'UUID'}
+  ;   keyword(`struuid`) -> {Function = 'STRUUID'}
   ), !,
   must_see('NIL'(_)).
 % N-arg functions: CONCAT, COALESCE
 'BuiltInCall'(State, Function) -->
-  (   keyword(`concat`) -> {rdf_equal(fn:concat, Functor)}
-  ;   keyword(`coalesce`) -> {Functor = 'COALESCE'}
+  (   keyword(`concat`) -> {Function = 'fn:concat'(Es)}
+  ;   keyword(`coalesce`) -> {Function = 'COALESCE'(Es)}
   ), !,
-  must_see('ExpressionList'(State, Es)),
-  {Function =.. [Functor,Es]}.
+  must_see('ExpressionList'(State, Es)).
 % SubstringExpression
-'BuiltInCall'(State, Substr) -->
-  'SubstringExpression'(State, Substr), !.
+'BuiltInCall'(State, Function) -->
+  'SubstringExpression'(State, Function), !.
 % StrReplaceExpression
-'BuiltInCall'(State, Replace) -->
-  'StrReplaceExpression'(State, Replace), !.
+'BuiltInCall'(State, Function) -->
+  'StrReplaceExpression'(State, Function), !.
 % Tertiary functions: IF
 'BuiltInCall'(State, 'IF'(E1,E2,E3)) -->
   keyword(`if`), !,
@@ -1582,15 +1579,11 @@ iriOrFunction(State, Function) -->
 % [126] NotExistsFunc ::= 'NOT' 'EXISTS' GroupGraphPattern
 % ```
 
-'NotExistsFunc'(State, Function) -->
+'NotExistsFunc'(State, 'fn:not'(exists(G))) -->
   keyword(`not`),
   keyword(`exists`),
   % @note G has already been translated.
-  'GroupGraphPattern'(State, G),
-  {
-    rdf_equal(fn:not, Functor),
-    Function =.. [Functor,exists(G)]
-  }.
+  'GroupGraphPattern'(State, G).
 
 
 
@@ -2323,7 +2316,7 @@ iriOrFunction(State, Function) -->
 %                           ')'
 % ```
 
-'RegexExpression'(State, Function) -->
+'RegexExpression'(State, 'fn:matches'(Target,Pattern,Flags)) -->
   keyword(`regex`),
   must_see_code(0'(),
   must_see('Expression'(State, Target)),
@@ -2334,11 +2327,7 @@ iriOrFunction(State, Function) -->
       must_see('Expression'(State, Flags))
   ;   {Flags = literal('')}
   ),
-  must_see_code(0')),
-  {
-    rdf_equal(fn:matches, Functor),
-    Function =.. [Functor,Target,Pattern,Flags]
-  }.
+  must_see_code(0')).
 
 
 
@@ -2728,7 +2717,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 %                                ( ',' Expression )? ')'
 % ```
 
-'StrReplaceExpression'(State, Function) -->
+'StrReplaceExpression'(State, 'fn:replace'(Arg,Pattern,Repl,Flags)) -->
   keyword(`replace`),
   must_see_code(0'(),
   must_see('Expression'(State, Arg)),
@@ -2741,11 +2730,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
       must_see('Expression'(State, Flags))
   ;   {Flags = literal('')}
   ),
-  must_see_code(0')),
-  {
-    rdf_equal(fn:replace, Functor),
-    Function =.. [Functor,Arg,Pattern,Repl,Flags]
-  }.
+  must_see_code(0')).
 
 
 
@@ -2785,14 +2770,10 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
   (   ","
   ->  skip_ws,
       must_see('Expression'(State, Len)),
-      {Args = [Source,Start,Len]}
-  ;   {Args = [Source,Start]}
+      {Function = 'fn:substring'(Source, Start, Len)}
+  ;   {Function = 'fn:substring'(Source, Start)}
   ),
-  must_see_code(0')),
-  {
-    rdf_equal(fn:substring, Functor),
-    Function =.. [Functor|Args]
-  }.
+  must_see_code(0')).
 
 
 
@@ -2913,15 +2894,14 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 'UnaryExpression'(State, Function) -->
   (   "!"
-  ->  {rdf_equal(fn:not, Functor)}
+  ->  {Function = 'fn:not'(E)}
   ;   "+"
-  ->  {Functor = 'op:numeric-unary-plus'}
+  ->  {Function = 'op:numeric-unary-plus'(E)}
   ;   "-"
-  ->  {Functor = 'op:numeric-unary-minus'}
+  ->  {Function = 'op:numeric-unary-minus'(E)}
   ), !,
   skip_ws,
-  'PrimaryExpression'(State, E),
-  {Function =.. [Functor,E]}.
+  'PrimaryExpression'(State, E).
 'UnaryExpression'(State, Function) -->
   'PrimaryExpression'(State, Function).
 

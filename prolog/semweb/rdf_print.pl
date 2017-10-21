@@ -64,7 +64,6 @@
     rdf_dcg_literal_hook//2.
 
 :- rdf_meta
-   rdf_pp_graph(+, r),
    rdf_pp_triple(t),
    rdf_pp_triple(t, +),
    rdf_pp_triple(r, r, o),

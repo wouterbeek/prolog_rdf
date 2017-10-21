@@ -1,19 +1,19 @@
 :- module(
   sparql_function,
   [
-    '_<_'/2,                     % +A, +B
-    '_>_'/2,                     % +A, +B
-    'http://www.w3.org/2005/xpath-functions#concat'/2,             % +Literals, -Result
-    'http://www.w3.org/2005/xpath-functions#matches'/2,            % +Literal, +Pattern
-    'http://www.w3.org/2005/xpath-functions#matches'/3,            % +Literal, +Pattern, +Flags
-    'http://www.w3.org/2005/xpath-functions#substring'/3,          % +Source, +Start, -Var
-    'http://www.w3.org/2005/xpath-functions#year-from-dateTime'/2, % +Arg, -Year
-    isBlank/1,                   % +Term
-    isIri/1,                     % +Term
-    isLiteral/1,                 % +Term
-    isUri/1,                     % +Term
-    'STR'/2,                     % +Term, -A
-    'STRDT'/3                    % +Lex, +D, -Literal
+    '_<_'/2,                   % +A, +B
+    '_>_'/2,                   % +A, +B
+    'fn:concat'/2,             % +Literals, -Result
+    'fn:matches'/2,            % +Literal, +Pattern
+    'fn:matches'/3,            % +Literal, +Pattern, +Flags
+    'fn:substring'/3,          % +Source, +Start, -Var
+    'fn:year-from-dateTime'/2, % +Arg, -Year
+    isBlank/1,                 % +Term
+    isIri/1,                   % +Term
+    isLiteral/1,               % +Term
+    isUri/1,                   % +Term
+    'STR'/2,                   % +Term, -A
+    'STRDT'/3                  % +Lex, +D, -Literal
   ]
 ).
 
@@ -39,11 +39,11 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
    '_<_'(o, o),
    '_>_'(o, o),
     dt_year(+, r, -),
-   'http://www.w3.org/2005/xpath-functions#concat'(t, o),
-   'http://www.w3.org/2005/xpath-functions#matches'(o, o),
-   'http://www.w3.org/2005/xpath-functions#matches'(o, o, o),
-   'http://www.w3.org/2005/xpath-functions#substring'(o, o, o),
-   'http://www.w3.org/2005/xpath-functions#year-from-dateTime'(o, o),
+   'fn:concat'(t, o),
+   'fn:matches'(o, o),
+   'fn:matches'(o, o, o),
+   'fn:substring'(o, o, o),
+   'fn:year-from-dateTime'(o, o),
    'STR'(o, ?),
    'STRDT'(+, r, o).
 
@@ -123,14 +123,14 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 % This function, invoked with the first signature, backs up the "eq",
 % "ne", "gt", "lt", "le" and "ge" operators on string values.
 
-'http://www.w3.org/2005/xpath-functions#compare'(A, B, Order) :-
+'fn:compare'(A, B, Order) :-
   compare(Order, A, B).
 
 
 
 %! 'fn:concat'(+Literals:list(rdf_literal), -Literal:rdf_literal) is det.
 
-'http://www.w3.org/2005/xpath-functions#concat'(Literals, Literal) :-
+'fn:concat'(Literals, Literal) :-
   maplist(rdf_literal, Literals, Ds, LTags, Lexs),
   atomic_list_concat(Lexs, Lex),
   rdf_create_string_literal(Literal, Ds, LTags, Lex).
@@ -141,15 +141,15 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 %! 'fn:matches'(+Literal:compound, +Pattern:compound,
 %!              +Flags:compound) is semidet.
 
-'http://www.w3.org/2005/xpath-functions#matches'(Literal, literal(Pattern)) :-
-  'http://www.w3.org/2005/xpath-functions#matches'(
+'fn:matches'(Literal, literal(Pattern)) :-
+  'fn:matches'(
     Literal,
     literal(Pattern),
     literal('')
   ).
 
 
-'http://www.w3.org/2005/xpath-functions#matches'(
+'fn:matches'(
   Literal,
   literal(Pattern),
   literal(Flags)
@@ -175,7 +175,7 @@ make_regex(Pattern, _, Regex) :-
 
 %! 'fn:substring'(+Source:compound, +Start:compound, -String:compound) is det.
 
-'http://www.w3.org/2005/xpath-functions#substring'(
+'fn:substring'(
   Literal1,
   literal(type(xsd:integer,Start)),
   Literal2
@@ -212,7 +212,7 @@ make_regex(Pattern, _, Regex) :-
 %
 %  * fn:year-from-dateTime(xs:dateTime("1999-12-31T24:00:00")) returns 2000
 
-'http://www.w3.org/2005/xpath-functions#year-from-dateTime'(
+'fn:year-from-dateTime'(
   literal(type(D,Lex1)),
   literal(type(xsd:integer,Lex2))
 ) :-
