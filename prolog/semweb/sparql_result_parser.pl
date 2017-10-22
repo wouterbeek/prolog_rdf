@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat SPARQL Query Results XML Format (Second Edition)
 @see https://www.w3.org/TR/rdf-sparql-XMLres/
-@version 2017/08-2017/09
+@version 2017/08-2017/10
 */
 
 :- use_module(library(apply)).
@@ -29,23 +29,25 @@
 
 sparql_result(In, Result) :-
   retractall(result(_)),
-  call_on_xml(In, [result], sparql_result_),
+  call_on_xml(In, [result], sparql_result),
   retract(result(Result)).
 
-sparql_result_([element(result,_,Bindings)]) :-
-  maplist(sparql_binding_, Bindings, Result),
+sparql_result([element(result,_,Bindings)]) :-
+  maplist(sparql_binding, Bindings, Result),
   assert(result(Result)).
 
-sparql_binding_(element(binding,_,Term1), Term2) :-
-  sparql_term_(Term1, Term2).
+sparql_binding(element(binding,Attrs,Dom), Binding) :-
+  memberchk(name=Name, Attrs),
+  sparql_term(Dom, Term),
+  Binding =.. [Name,Term].
 
-sparql_term_([element(bnode,_,[BNode])], BNode) :- !.
-sparql_term_([element(uri,_,[Uri])], Uri) :- !.
-sparql_term_([element(literal,['xml:lang'=LTag],[Lex])], Literal) :- !,
+sparql_term([element(bnode,_,[BNode])], BNode) :- !.
+sparql_term([element(uri,_,[Uri])], Uri) :- !.
+sparql_term([element(literal,['xml:lang'=LTag],[Lex])], Literal) :- !,
   rdf_literal(Literal, rdf:langString, LTag, Lex).
-sparql_term_([element(literal,[datatype=D],[Lex])], Literal) :- !,
+sparql_term([element(literal,[datatype=D],[Lex])], Literal) :- !,
   rdf_literal(Literal, D, _, Lex).
-sparql_term_([element(literal,[],[Lex])], Literal) :- !,
+sparql_term([element(literal,[],[Lex])], Literal) :- !,
   rdf_literal(Literal, _, _, Lex).
-sparql_term_(Dom, _) :-
+sparql_term(Dom, _) :-
   domain_error(sparql_term, Dom).
