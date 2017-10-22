@@ -81,7 +81,7 @@ sparql_parse(
   dataset(DefaultGraphs,NamedGraphs),
   Query,
   State2,
-  Algebra2
+  Algebra
 ) :-
   atom_codes(Query, Codes1),
   phrase(replace_codepoint_escape_sequences, Codes1, Codes2),
@@ -95,21 +95,8 @@ sparql_parse(
     prefix_map: [],
     variable_map: VarMap1
   },
-  once(phrase(sparql_parse0(State1, Form, Algebra1), Codes2)),
+  once(phrase(sparql_parse0(State1, Form, Algebra), Codes2)),
   _{prefix_map: PrefixMap2, variable_map: VarMap2} :< State1,
-  (   Form == select
-  ->  % Variables in Algebra1 have the form `var(ATOM)'.  In the query
-      % body these are replaced with Prolog variables `VAR'.  In the
-      % query projection these are replaced with `ATOM(VAR)'.  That
-      % way, the query can be executed using Prolog unification, and
-      % the atomic names are preseved in the projection so that we can
-      % name the solution bindings.
-      Algebra1 = 'Slice'('Project'(PV1,Proj1),Start,Length),
-      maplist(replace_projection_var(VarMap2), Proj1, Proj2),
-      replace_vars(VarMap2, PV1, PV2),
-      Algebra2 = 'Slice'('Project'(PV2,Proj2),Start,Length)
-  ;   replace_vars(VarMap2, Algebra1, Algebra2)
-  ),
   assoc_to_list(VarMap2, VarMap3),
   transpose_pairs(VarMap3, InvVarMap),
   State2 = _{
@@ -117,30 +104,6 @@ sparql_parse(
     prefix_map: PrefixMap2,
     variable_map: InvVarMap
   }.
-
-replace_projection_var(Map, var(Name), Term) :-
-  get_assoc(Name, Map, Var),
-  Term =.. [Name,Var].
-
-%%%%replace_vars(_, Var, Var) :-
-%%%%  var(Var), !.
-% named variable
-replace_vars(Map, var(Name), Var) :-
-  get_assoc(Name, Map, Var), !.
-% unnamed variable
-replace_vars(_, var(Var), Var) :- !.
-% list
-replace_vars(Map, L1, L2) :-
-  is_list(L1), !,
-  maplist(replace_vars(Map), L1, L2).
-% compound
-replace_vars(Map, Comp1, Comp2) :-
-  compound(Comp1), !,
-  Comp1 =.. [Pred|Args1],
-  maplist(replace_vars(Map), Args1, Args2),
-  Comp2 =.. [Pred|Args2].
-% other
-replace_vars(_, Term, Term).
 
 sparql_parse0(State, Form, Algebra, In, Out) :-
   catch(
@@ -1207,7 +1170,11 @@ set_dataset(_, _, _).
   ->  {
         translate_group(G1, G2),
         translate_filter(FS1, FS2),
-        (FS2 == [] -> G3 = G2 ; G3 = 'Filter'(FS2,G2))
+        (   FS2 == []
+        ->  G3 = G2
+        ;   algebra_vars(G2, Vars),
+            G3 = 'Filter'(Vars,FS2,G2)
+        )
       }
   ),
   must_see_code(0'}).
@@ -1275,10 +1242,10 @@ translate_group(G1, G4) :-
 translate_group(['BGP'(Triples1),'BGP'(Triples2)|T], G1, G2) :- !,
   append(Triples1, Triples2, Triples3),
   translate_group(['BGP'(Triples3)|T], G1, G2).
-translate_group(['OPTIONAL'('Filter'(F,A))|T], G1, G2) :- !,
-  translate_group(T, 'LeftJoin'(G1,A,F), G2).
+translate_group(['OPTIONAL'('Filter'(Vars,F,A))|T], G1, G2) :- !,
+  translate_group(T, 'LeftJoin'(G1,A,Vars,F), G2).
 translate_group(['OPTIONAL'(A)|T], G1, G2) :- !,
-  translate_group(T, 'LeftJoin'(G1,A,true), G2).
+  translate_group(T, 'LeftJoin'(G1,A,[],true), G2).
 translate_group(['MINUS'(A)|T], G1, G2) :- !,
   translate_group(T, 'Minus'(G1,A), G2).
 translate_group(['BIND'(Var,E)|T], G1, G2) :- !,
@@ -1391,11 +1358,13 @@ simplify(A, A).
 'HavingClause'(State, P1, P2) -->
   keyword(`having`),
   must_see('HavingCondition'(State, E)),
-  'HavingCondition*'(State, 'Filter'(E,P1), P2).
+  {algebra_vars(P1, Vars)},
+  'HavingCondition*'(State, 'Filter'(Vars,E,P1), P2).
 
 'HavingCondition*'(State, P1, P2) -->
   'HavingCondition'(State, E), !,
-  'HavingCondition*'(State, 'Filter'(E,P1), P2).
+  {algebra_vars(P1, Vars)},
+  'HavingCondition*'(State, 'Filter'(Vars,E,P1), P2).
 'HavingCondition*'(_, P, P) --> "".
 
 
@@ -2265,19 +2234,23 @@ iriOrFunction(State, Function) -->
 %               ValuesClause
 % ```
 
-'Query'(State, Form, Algebra) -->
+'Query'(State, Form, Algebra2) -->
   skip_ws,
   'Prologue'(State),
-  (   'SelectQuery'(State, P1, P2, Algebra)
+  (   'SelectQuery'(State, P1, P2, Algebra1)
   ->  {Form = select}
-  ;   'ConstructQuery'(State, P1, P2, Algebra)
+  ;   'ConstructQuery'(State, P1, P2, Algebra1)
   ->  {Form = construct}
-  ;   'DescribeQuery'(State, P1, P2, Algebra)
+  ;   'DescribeQuery'(State, P1, P2, Algebra1)
   ->  {Form = describe}
-  ;   'AskQuery'(State, P1, P2, Algebra)
+  ;   'AskQuery'(State, P1, P2, Algebra1)
   ->  {Form = ask}
   ),
-  'ValuesClause'(State, P1, P2).
+  'ValuesClause'(State, P1, P2),
+  {
+    _{variable_map: VarMap} :< State,
+    replace_vars(VarMap, Algebra1, Algebra2)
+  }.
 
 
 
@@ -2466,6 +2439,7 @@ projection(State, binding(Var,E)) -->
   'SelectClause'(State, Proj, Mod),
   'DatasetClause*'(State),
   'WhereClause'(State, P1),
+  % P3 is a hole in P4 that is filled in later.
   'SolutionModifier'(State, P1, select(Proj,Mod), P2, P3, P4).
 
 
@@ -2505,8 +2479,18 @@ projection(State, binding(Var,E)) -->
 %                           OrderClause?
 %                           LimitOffsetClauses?
 % ```
+%
+% Variables currently have the form `var(ATOM)'.  In the query body
+% these are replaced with Prolog variables `VAR'.  In the query
+% projection these are replaced with `ATOM(VAR)'.  That way, the query
+% can be executed using Prolog unification, and the atomic names are
+% preseved in the projection so that we can name the solution
+% bindings.
 
 'SolutionModifier'(State, P1, TypeSpecific, P3, P4, P10) -->
+  % @bug Cannot do `State.variable_map'?
+  {_{variable_map: VarMap} :< State},
+
   % Extract the inner SELECT expression.
   {(  TypeSpecific = describe(Proj)
   ->  true
@@ -2540,13 +2524,14 @@ projection(State, binding(Var,E)) -->
   % aggregate in SELECT.
   %
   % §18.2.4.4
-  {(  TypeSpecific = describe(PV)
+  {(  TypeSpecific = describe(PV1)
   ->  P4 = P3,
       P5 = P3
   ;   TypeSpecific = select(_,_)
-  ->  select_expression(Proj, P3, P4, P5, PV)
+  ->  select_expression(Proj, P3, P4, P5, PV1)
   ;   P5 = P3
   )},
+  {maplist(projection_var(VarMap), PV1, PV2)},
 
   % §18.2.5 Convert Solution Modifiers
   %
@@ -2573,7 +2558,7 @@ projection(State, binding(Var,E)) -->
   % ```algebra
   % M := Project(M, PV)
   % ```
-  {(var(PV) -> P8 = P7 ; P8 = 'Project'(P7,PV))},
+  {(var(PV2) -> P8 = P7 ; P8 = 'Project'(P7,PV2))},
 
   % §18.2.5.3 DISTINCT
   %
@@ -2670,7 +2655,7 @@ implicit_grouping_expressions(_, _).
 % ```
 
 select_expression(Proj, P3, P4, P5, PV) :-
-  algebra_to_vars(P3, VS),
+  algebra_vars(P3, VS),
   select_expression(Proj, VS, P4, P5, [], PV).
 
 select_expression(*, VS, P, P, _, PV) :- !,
@@ -3867,20 +3852,51 @@ lines([H|T]) -->
 
 
 
-%! 'digit*'(-Codes, -Tail)// .
+%! active_graph(+State:dict, -Graphs:list) is det.
 
-'digit*'([H|T0], T) -->
-  digit(H),
-  'digit*'(T0, T).
-'digit*'(T, T) --> "".
-
+active_graph(State, Gs) :-
+  get_dict(active_graph, State, G),
+  (G == default -> get_dict(default_graphs, State, Gs) ; Gs = [G]).
 
 
-%! 'digit+'(-Codes, -Tail)// .
 
-'digit+'([H|T0], T) -->
-  digit(H),
-  'digit*'(T0, T).
+%! algebra_vars(+Algebra:compound, -Vars:list) is det.
+%
+% We sometimes need to know which SPARQL variables appear in a BGP but
+% outside of the `filter' part.  For example, in the following query
+% we need to know the SPARQL variables that appear outside the
+% `filter' expression:
+%
+% ```sparql
+% prefix foaf: <http://xmlns.com/foaf/0.1/>
+% prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+%
+% select ?person {
+%   ?person rdf:type foaf:Person .
+%   filter not exists { ?person foaf:name ?name }
+% }
+% ```
+%
+% We want to call the following constraint:
+%
+% ```prolog
+% when(ground(Person), \+ rdf(Person, foaf:name, _Name)).
+% ```
+
+algebra_vars(Term, Vars) :-
+  algebra_vars(Term, [], Vars).
+
+algebra_vars(var(Name), Vars1, Vars2) :- !,
+  ord_add_element(Vars1, var(Name), Vars2).
+algebra_vars([], Vars, Vars) :- !.
+algebra_vars([H|T], Vars1, Vars3) :- !,
+  algebra_vars(H, Vars1, Vars2),
+  algebra_vars(T, Vars2, Vars3).
+algebra_vars(Term, Vars1, Vars2) :-
+  compound(Term), !,
+  Term =.. [_|Args],
+  algebra_vars(Args, Vars1, Vars2).
+algebra_vars(_, Vars, Vars).
 
 
 
@@ -3910,45 +3926,20 @@ lines([H|T]) -->
 
 
 
-%! prefix_iri(+State:dict, +Prefix:atom, -Iri:atom) is det.
-%
-% @throws existence_error If Prefix is not part of State.
+%! 'digit*'(-Codes, -Tail)// .
 
-prefix_iri(State, Prefix, Iri) :-
-  prefix_local_iri(State, Prefix, '', Iri).
-
-
-
-%! prefix_local_iri(+State:dict, +Prefix:atom, +Local:atom, -Iri:atom) is det.
-%
-% @throws existence_error If Prefix is not part of State.
-
-prefix_local_iri(State, Prefix, Local, Iri2) :-
-  % @bug Dot notation does not work here.
-  _{prefix_map: PrefixMap} :< State,
-  memberchk(Prefix-Iri1, PrefixMap), !,
-  atomic_concat(Iri1, Local, Iri2).
-prefix_local_iri(_, Prefix, _, _) :-
-  existence_error(rdf_prefix, Prefix).
+'digit*'([H|T0], T) -->
+  digit(H),
+  'digit*'(T0, T).
+'digit*'(T, T) --> "".
 
 
 
-%! algebra_to_vars(+Algebra, -Vars) is det.
+%! 'digit+'(-Codes, -Tail)// .
 
-algebra_to_vars(Term, Vars) :-
-  algebra_to_vars([Term], [], Vars).
-
-algebra_to_vars([], Vars, Vars) :- !.
-algebra_to_vars([var(VarName)|T], Vars1, Vars3) :- !,
-  ord_add_element(Vars1, var(VarName), Vars2),
-  algebra_to_vars(T, Vars2, Vars3).
-algebra_to_vars([H|T], Vars1, Vars2) :-
-  compound(H), !,
-  H =.. [_|Args],
-  append(T, Args, L),
-  algebra_to_vars(L, Vars1, Vars2).
-algebra_to_vars([_|T], Vars1, Vars2) :-
-  algebra_to_vars(T, Vars1, Vars2).
+'digit+'([H|T0], T) -->
+  digit(H),
+  'digit*'(T0, T).
 
 
 
@@ -4023,32 +4014,6 @@ must_see_code(Code) -->
 
 
 
-%! 'SILENT?'(-Silent:oneof([error,silent]))// is det.
-
-'SILENT?'(silent) -->
-  keyword(`silent`), !.
-'SILENT?'(error) --> "".
-
-
-
-%! skip_ws// .
-
-skip_ws -->
-  'WS', !,
-  skip_ws.
-skip_ws -->
-  "#", !,
-  skip_comment,
-  skip_ws.
-skip_ws --> "".
-
-skip_comment --> "\n", !.
-skip_comment --> "\r", !.
-skip_comment --> eos, !.
-skip_comment --> [_], skip_comment.
-
-
-
 %! path_triples(+State, +S, +P, +O, -Triples:dlist) is det.
 %
 %  * `X' and `Y' are RDF terms or variables.
@@ -4108,6 +4073,82 @@ path_triples(State, X, P, Y, ['Path'(X, P, Y, Gs)|T1]-T1) :-
 path_triple(State, S, P, O, rdf(S,P,O,Gs)) :-
   active_graph(State, Gs).
 
-active_graph(State, Gs) :-
-  get_dict(active_graph, State, G),
-  (G == default -> get_dict(default_graphs, State, Gs) ; Gs = [G]).
+
+
+%! prefix_iri(+State:dict, +Prefix:atom, -Iri:atom) is det.
+%
+% @throws existence_error If Prefix is not part of State.
+
+prefix_iri(State, Prefix, Iri) :-
+  prefix_local_iri(State, Prefix, '', Iri).
+
+
+
+%! prefix_local_iri(+State:dict, +Prefix:atom, +Local:atom, -Iri:atom) is det.
+%
+% @throws existence_error If Prefix is not part of State.
+
+prefix_local_iri(State, Prefix, Local, Iri2) :-
+  % @bug Dot notation does not work here.
+  _{prefix_map: PrefixMap} :< State,
+  memberchk(Prefix-Iri1, PrefixMap), !,
+  atomic_concat(Iri1, Local, Iri2).
+prefix_local_iri(_, Prefix, _, _) :-
+  existence_error(rdf_prefix, Prefix).
+
+
+
+%! projection_var(+Map:dict, +ProjTerm1:compound, -ProjTerm2:compound) is det.
+
+projection_var(Map, var(Name), Term) :-
+  get_assoc(Name, Map, Var),
+  Term =.. [Name,Var].
+
+
+
+%! replace_vars(+Map:assoc, +Term1, -Term2) is det.
+
+% Prolog variable
+replace_vars(_, Var, Var) :-
+  var(Var), !.
+% SPARQL variable
+replace_vars(Map, var(Name), Var) :- !,
+  get_assoc(Name, Map, Var).
+% list
+replace_vars(Map, L1, L2) :-
+  is_list(L1), !,
+  maplist(replace_vars(Map), L1, L2).
+% compound
+replace_vars(Map, Comp1, Comp2) :-
+  compound(Comp1), !,
+  Comp1 =.. [Pred|Args1],
+  maplist(replace_vars(Map), Args1, Args2),
+  Comp2 =.. [Pred|Args2].
+% other
+replace_vars(_, Term, Term).
+
+
+
+%! 'SILENT?'(-Silent:oneof([error,silent]))// is det.
+
+'SILENT?'(silent) -->
+  keyword(`silent`), !.
+'SILENT?'(error) --> "".
+
+
+
+%! skip_ws// .
+
+skip_ws -->
+  'WS', !,
+  skip_ws.
+skip_ws -->
+  "#", !,
+  skip_comment,
+  skip_ws.
+skip_ws --> "".
+
+skip_comment --> "\n", !.
+skip_comment --> "\r", !.
+skip_comment --> eos, !.
+skip_comment --> [_], skip_comment.
