@@ -80,30 +80,23 @@ sparql_parse(
   BaseIri,
   dataset(DefaultGraphs,NamedGraphs),
   Query,
-  State2,
+  State,
   Algebra
 ) :-
   atom_codes(Query, Codes1),
   phrase(replace_codepoint_escape_sequences, Codes1, Codes2),
-  empty_assoc(VarMap1),
+  empty_assoc(VarMap),
   rdf_default_graph(DefaultGraph),
-  State1 = _{
+  State = _{
     active_graph: DefaultGraph,
     base_iri: BaseIri,
     default_graphs: DefaultGraphs,
+    form: Form,
     named_graphs: NamedGraphs,
     prefix_map: [],
-    variable_map: VarMap1
+    variable_map: VarMap
   },
-  once(phrase(sparql_parse0(State1, Form, Algebra), Codes2)),
-  _{prefix_map: PrefixMap2, variable_map: VarMap2} :< State1,
-  assoc_to_list(VarMap2, VarMap3),
-  transpose_pairs(VarMap3, InvVarMap),
-  State2 = _{
-    form: Form,
-    prefix_map: PrefixMap2,
-    variable_map: InvVarMap
-  }.
+  once(phrase(sparql_parse0(State, Form, Algebra), Codes2)).
 
 sparql_parse0(State, Form, Algebra, In, Out) :-
   catch(
@@ -1172,7 +1165,7 @@ set_dataset(_, _, _).
         translate_filter(FS1, FS2),
         (   FS2 == []
         ->  G3 = G2
-        ;   algebra_vars(G2, Vars),
+        ;   visible_vars(G2, Vars),
             G3 = 'Filter'(Vars,FS2,G2)
         )
       }
@@ -1358,12 +1351,12 @@ simplify(A, A).
 'HavingClause'(State, P1, P2) -->
   keyword(`having`),
   must_see('HavingCondition'(State, E)),
-  {algebra_vars(P1, Vars)},
+  {visible_vars(P1, Vars)},
   'HavingCondition*'(State, 'Filter'(Vars,E,P1), P2).
 
 'HavingCondition*'(State, P1, P2) -->
   'HavingCondition'(State, E), !,
-  {algebra_vars(P1, Vars)},
+  {visible_vars(P1, Vars)},
   'HavingCondition*'(State, 'Filter'(Vars,E,P1), P2).
 'HavingCondition*'(_, P, P) --> "".
 
@@ -2524,7 +2517,8 @@ projection(State, binding(Var,E)) -->
   ->  P4 = P3,
       P5 = P3
   ;   TypeSpecific = select(_,_)
-  ->  select_expression(Proj, P3, P4, P5, PV)
+  ->  visible_vars(P3, VS),
+      select_expression(Proj, VS, P4, P5, PV)
   ;   P5 = P3
   )},
 
@@ -2608,7 +2602,7 @@ implicit_grouping_expressions(Es, '(1)') :-
 implicit_grouping_expressions(_, _).
 
 
-%! select_expression(+Proj, +P3, +P4, -P5, -PV) is det.
+%! select_expression(+Proj, +VS, +P4, -P5, -PV1) is det.
 %
 % ```algebra
 % SELECT selItem ... { pattern }
@@ -2649,23 +2643,19 @@ implicit_grouping_expressions(_, _).
 % The set PV is used later for projection.
 % ```
 
-select_expression(Proj, P3, P4, P5, PV) :-
-  visible_vars(P3, VS),
-  select_expression(Proj, VS, P4, P5, [], PV).
+select_expression(*, VS, P, P, VS) :- !.
+select_expression(Proj, VS, P1, P2, PV) :-
+  select_expression(Proj, VS, P1, P2, [], PV).
 
-select_expression(*, VS, P, P, _, PV) :- !,
-  PV = VS.
-select_expression([], _, P, P, PV, PV) :- !.
-select_expression([var(VarName)|T], VS, P1, P2, PV1, PV3) :- !,
-  ord_add_element(PV1, var(VarName), PV2),
-  select_expression(T, VS, P1, P2, PV2, PV3).
-select_expression([binding(var(VarName),E)|T], VS, P1, P2, PV1, PV3) :-
+select_expression([], _, P, P, PV1, PV2) :- !,
+  reverse(PV1, PV2).
+select_expression([var(VarName)|T], VS, P1, P2, PV1, PV2) :- !,
+  select_expression(T, VS, P1, P2, [var(VarName)|PV1], PV2).
+select_expression([binding(var(VarName),E)|T], VS, P1, P2, PV1, PV2) :-
   (   (memberchk(var(VarName), VS) ; memberchk(var(VarName), PV1))
-  ->  syntax_error(cannot_use_var(var(VarName)))
-  ;   true
-  ),
-  ord_add_element(PV1, var(VarName), PV2),
-  select_expression(T, VS, 'Extend'(P1,var(VarName),E), P2, PV2, PV3).
+  ->  syntax_error(cannot_use_var(VarName))
+  ;   select_expression(T, VS, 'Extend'(P1,var(VarName),E), P2, [var(VarName)|PV1], PV2)
+  ).
 
 
 
