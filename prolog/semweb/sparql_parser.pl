@@ -3892,6 +3892,9 @@ algebra_vars([], Vars, Vars) :- !.
 algebra_vars([H|T], Vars1, Vars3) :- !,
   algebra_vars(H, Vars1, Vars2),
   algebra_vars(T, Vars2, Vars3).
+% Variables that only appear in `Filter' expressions are hidden.
+algebra_vars('Filter'(_,_,Term), Vars1, Vars2) :- !,
+  algebra_vars(Term, Vars1, Vars2).
 algebra_vars(Term, Vars1, Vars2) :-
   compound(Term), !,
   Term =.. [_|Args],
