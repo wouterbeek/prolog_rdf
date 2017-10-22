@@ -1831,7 +1831,12 @@ iriOrFunction(State, Function) -->
   keyword(`order`),
   must_see(keyword(`by`)),
   must_see('OrderCondition'(State, H)),
-  *('OrderCondition'(State), T).
+  'OrderCondition*'(State, T).
+
+'OrderCondition*'(State, [H|T]) -->
+  'OrderCondition'(State, H), !,
+  'OrderCondition*'(State, T).
+'OrderCondition*'(_, []) --> "".
 
 
 
@@ -2234,23 +2239,19 @@ iriOrFunction(State, Function) -->
 %               ValuesClause
 % ```
 
-'Query'(State, Form, Algebra2) -->
+'Query'(State, Form, Algebra) -->
   skip_ws,
   'Prologue'(State),
-  (   'SelectQuery'(State, P1, P2, Algebra1)
+  (   'SelectQuery'(State, P1, P2, Algebra)
   ->  {Form = select}
-  ;   'ConstructQuery'(State, P1, P2, Algebra1)
+  ;   'ConstructQuery'(State, P1, P2, Algebra)
   ->  {Form = construct}
-  ;   'DescribeQuery'(State, P1, P2, Algebra1)
+  ;   'DescribeQuery'(State, P1, P2, Algebra)
   ->  {Form = describe}
-  ;   'AskQuery'(State, P1, P2, Algebra1)
+  ;   'AskQuery'(State, P1, P2, Algebra)
   ->  {Form = ask}
   ),
-  'ValuesClause'(State, P1, P2),
-  {
-    _{variable_map: VarMap} :< State,
-    replace_vars(VarMap, Algebra1, Algebra2)
-  }.
+  'ValuesClause'(State, P1, P2).
 
 
 
@@ -2407,9 +2408,14 @@ relational_op(>=) --> ">=".
   ->  skip_ws,
       {Proj = *}
   ;   must_see(projection(State, Var)),
-      *(projection(State), Vars)
+      'projection*'(State, Vars)
   ->  {Proj = [Var|Vars]}
   ).
+
+'projection*'(State, [Var|Vars]) -->
+  projection(State, Var), !,
+  'projection*'(State, Vars).
+'projection*'(_, []) --> "".
 
 projection(State, Var) -->
   'Var'(State, Var), !,
@@ -2479,18 +2485,8 @@ projection(State, binding(Var,E)) -->
 %                           OrderClause?
 %                           LimitOffsetClauses?
 % ```
-%
-% Variables currently have the form `var(ATOM)'.  In the query body
-% these are replaced with Prolog variables `VAR'.  In the query
-% projection these are replaced with `ATOM(VAR)'.  That way, the query
-% can be executed using Prolog unification, and the atomic names are
-% preseved in the projection so that we can name the solution
-% bindings.
 
 'SolutionModifier'(State, P1, TypeSpecific, P3, P4, P10) -->
-  % @bug Cannot do `State.variable_map'?
-  {_{variable_map: VarMap} :< State},
-
   % Extract the inner SELECT expression.
   {(  TypeSpecific = describe(Proj)
   ->  true
@@ -2524,14 +2520,13 @@ projection(State, binding(Var,E)) -->
   % aggregate in SELECT.
   %
   % §18.2.4.4
-  {(  TypeSpecific = describe(PV1)
+  {(  TypeSpecific = describe(PV)
   ->  P4 = P3,
       P5 = P3
   ;   TypeSpecific = select(_,_)
-  ->  select_expression(Proj, P3, P4, P5, PV1)
+  ->  select_expression(Proj, P3, P4, P5, PV)
   ;   P5 = P3
   )},
-  {maplist(projection_var(VarMap), PV1, PV2)},
 
   % §18.2.5 Convert Solution Modifiers
   %
@@ -2558,7 +2553,7 @@ projection(State, binding(Var,E)) -->
   % ```algebra
   % M := Project(M, PV)
   % ```
-  {(var(PV2) -> P8 = P7 ; P8 = 'Project'(P7,PV2))},
+  {(var(PV) -> P8 = P7 ; P8 = 'Project'(P7,PV))},
 
   % §18.2.5.3 DISTINCT
   %
@@ -2613,7 +2608,7 @@ implicit_grouping_expressions(Es, '(1)') :-
 implicit_grouping_expressions(_, _).
 
 
-%! select_expression(+Proj, +P3, +P4, -P5, -PV2) is det.
+%! select_expression(+Proj, +P3, +P4, -P5, -PV) is det.
 %
 % ```algebra
 % SELECT selItem ... { pattern }
@@ -2655,23 +2650,22 @@ implicit_grouping_expressions(_, _).
 % ```
 
 select_expression(Proj, P3, P4, P5, PV) :-
-  algebra_vars(P3, VS),
+  visible_vars(P3, VS),
   select_expression(Proj, VS, P4, P5, [], PV).
 
 select_expression(*, VS, P, P, _, PV) :- !,
   PV = VS.
-select_expression([], _, P, P, PV1, PV2) :- !,
-  % @tbd optimize
-  reverse(PV1, PV2).
+select_expression([], _, P, P, PV, PV) :- !.
 select_expression([var(VarName)|T], VS, P1, P2, PV1, PV3) :- !,
-  (memberchk(var(VarName), PV1) -> PV2 = PV1 ; PV2 = [var(VarName)|PV1]),
+  ord_add_element(PV1, var(VarName), PV2),
   select_expression(T, VS, P1, P2, PV2, PV3).
-select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
-  (   (memberchk(Var, VS) ; memberchk(Var, PV1))
-  ->  syntax_error(cannot_use_var(Var))
+select_expression([binding(var(VarName),E)|T], VS, P1, P2, PV1, PV3) :-
+  (   (memberchk(var(VarName), VS) ; memberchk(var(VarName), PV1))
+  ->  syntax_error(cannot_use_var(var(VarName)))
   ;   true
   ),
-  select_expression(T, VS, 'Extend'(P1,Var,E), P2, [Var|PV1], PV2).
+  ord_add_element(PV1, var(VarName), PV2),
+  select_expression(T, VS, 'Extend'(P1,var(VarName),E), P2, PV2, PV3).
 
 
 
@@ -3075,7 +3069,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-% GRAMMAR :TERMINALS %
+% GRAMMAR: TERMINALS %
 
 %! 'ANON'(-BNode)// .
 %
@@ -3755,9 +3749,9 @@ illegal_iri_code(Code) :-
   {
     atom_codes(VarName, [H|T]),
     _{variable_map: VarMap1} :< State,
-    (   get_assoc(VarName, VarMap1, _Var)
+    (   get_assoc(VarName, VarMap1, _)
     ->  VarMap2 = VarMap1
-    ;   put_assoc(VarName, VarMap1, _Var, VarMap2)
+    ;   put_assoc(VarName, VarMap1, _, VarMap2)
     ),
     nb_set_dict(variable_map, State, VarMap2)
   }.
@@ -3857,49 +3851,6 @@ lines([H|T]) -->
 active_graph(State, Gs) :-
   get_dict(active_graph, State, G),
   (G == default -> get_dict(default_graphs, State, Gs) ; Gs = [G]).
-
-
-
-%! algebra_vars(+Algebra:compound, -Vars:list) is det.
-%
-% We sometimes need to know which SPARQL variables appear in a BGP but
-% outside of the `filter' part.  For example, in the following query
-% we need to know the SPARQL variables that appear outside the
-% `filter' expression:
-%
-% ```sparql
-% prefix foaf: <http://xmlns.com/foaf/0.1/>
-% prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-%
-% select ?person {
-%   ?person rdf:type foaf:Person .
-%   filter not exists { ?person foaf:name ?name }
-% }
-% ```
-%
-% We want to call the following constraint:
-%
-% ```prolog
-% when(ground(Person), \+ rdf(Person, foaf:name, _Name)).
-% ```
-
-algebra_vars(Term, Vars) :-
-  algebra_vars(Term, [], Vars).
-
-algebra_vars(var(Name), Vars1, Vars2) :- !,
-  ord_add_element(Vars1, var(Name), Vars2).
-algebra_vars([], Vars, Vars) :- !.
-algebra_vars([H|T], Vars1, Vars3) :- !,
-  algebra_vars(H, Vars1, Vars2),
-  algebra_vars(T, Vars2, Vars3).
-% Variables that only appear in `Filter' expressions are hidden.
-algebra_vars('Filter'(_,_,Term), Vars1, Vars2) :- !,
-  algebra_vars(Term, Vars1, Vars2).
-algebra_vars(Term, Vars1, Vars2) :-
-  compound(Term), !,
-  Term =.. [_|Args],
-  algebra_vars(Args, Vars1, Vars2).
-algebra_vars(_, Vars, Vars).
 
 
 
@@ -4041,8 +3992,6 @@ must_see_code(Code) -->
 % | X seq(P, Q) Y    | X P ?V . ?V Q P |
 % | X P Y            | Path(X, P, Y)   |
 
-path_triples(State, X, var(P), Y, ['BGP'([Triple])|T]-T) :- !,
-  path_triple(State, X, var(P), Y, Triple).
 % InversePath
 %
 % AST: ^iri
@@ -4101,37 +4050,6 @@ prefix_local_iri(_, Prefix, _, _) :-
 
 
 
-%! projection_var(+Map:dict, +ProjTerm1:compound, -ProjTerm2:compound) is det.
-
-projection_var(Map, var(Name), Term) :-
-  get_assoc(Name, Map, Var),
-  Term =.. [Name,Var].
-
-
-
-%! replace_vars(+Map:assoc, +Term1, -Term2) is det.
-
-% Prolog variable
-replace_vars(_, Var, Var) :-
-  var(Var), !.
-% SPARQL variable
-replace_vars(Map, var(Name), Var) :- !,
-  get_assoc(Name, Map, Var).
-% list
-replace_vars(Map, L1, L2) :-
-  is_list(L1), !,
-  maplist(replace_vars(Map), L1, L2).
-% compound
-replace_vars(Map, Comp1, Comp2) :-
-  compound(Comp1), !,
-  Comp1 =.. [Pred|Args1],
-  maplist(replace_vars(Map), Args1, Args2),
-  Comp2 =.. [Pred|Args2].
-% other
-replace_vars(_, Term, Term).
-
-
-
 %! 'SILENT?'(-Silent:oneof([error,silent]))// is det.
 
 'SILENT?'(silent) -->
@@ -4155,3 +4073,42 @@ skip_comment --> "\n", !.
 skip_comment --> "\r", !.
 skip_comment --> eos, !.
 skip_comment --> [_], skip_comment.
+
+
+
+%! visible_vars(+Algebra:compound, -Vars:ordset(compound)) is det.
+%
+% We sometimes need to know which visible SPARQL variables appear in
+% an algebraic expression.  For example, in the following query we
+% need to extract `[?person]'.  Only `?person' should be part of the
+% projection (because `?name' is hidden), and if `?person' is ground
+% the SPARQL engine can check whether filter holds (regardless of
+% whether `?name' is ground or not).
+%
+% ```sparql
+% prefix foaf: <http://xmlns.com/foaf/0.1/>
+% prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+%
+% select * {
+%   ?person rdf:type foaf:Person .
+%   filter not exists { ?person foaf:name ?name }
+% }
+% ```
+
+visible_vars(Term, Vars) :-
+  visible_vars(Term, [], Vars).
+
+visible_vars(var(VarName), Vars1, Vars2) :- !,
+  ord_add_element(Vars1, var(VarName), Vars2).
+visible_vars([], Vars, Vars) :- !.
+visible_vars([H|T], Vars1, Vars3) :- !,
+  visible_vars(H, Vars1, Vars2),
+  visible_vars(T, Vars2, Vars3).
+% Variables that only appear in `Filter' expressions are hidden.
+visible_vars('Filter'(_,_,Term), Vars1, Vars2) :- !,
+  visible_vars(Term, Vars1, Vars2).
+visible_vars(Term, Vars1, Vars2) :-
+  compound(Term), !,
+  Term =.. [_|Args],
+  visible_vars(Args, Vars1, Vars2).
+visible_vars(_, Vars, Vars).
