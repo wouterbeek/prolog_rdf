@@ -73,8 +73,8 @@ sparql_is_update_form(dummy).
 %! sparql_parse(+BaseIri:atom, +Dataset:compound, +Query:string, -State:dict,
 %!              -Algebra:compound) is det.
 %
-% `VariableMap' can include hidden variables, i.e., ones that do not
-% appear in the projection.
+% `VarMap' can include hidden variables, i.e., ones that do not appear
+% in the projection.
 
 sparql_parse(
   BaseIri,
@@ -85,7 +85,7 @@ sparql_parse(
 ) :-
   atom_codes(Query, Codes1),
   phrase(replace_codepoint_escape_sequences, Codes1, Codes2),
-  empty_assoc(VariableMap1),
+  empty_assoc(VarMap1),
   rdf_default_graph(DefaultGraph),
   State1 = _{
     active_graph: DefaultGraph,
@@ -93,28 +93,53 @@ sparql_parse(
     default_graphs: DefaultGraphs,
     named_graphs: NamedGraphs,
     prefix_map: [],
-    variable_map: VariableMap1
+    variable_map: VarMap1
   },
   once(phrase(sparql_parse0(State1, Form, Algebra1), Codes2)),
-  _{prefix_map: PrefixMap2, variable_map: VariableMap2} :< State1,
-  replace_vars(VariableMap2, Algebra1, Algebra2),
-  assoc_to_list(VariableMap2, VariableMap3),
-  transpose_pairs(VariableMap3, InvVariableMap),
-  State2 = _{prefix_map: PrefixMap2, form: Form, variable_map: InvVariableMap}.
+  _{prefix_map: PrefixMap2, variable_map: VarMap2} :< State1,
+  (   Form == select
+  ->  % Variables in Algebra1 have the form `var(ATOM)'.  In the query
+      % body these are replaced with Prolog variables `VAR'.  In the
+      % query projection these are replaced with `ATOM(VAR)'.  That
+      % way, the query can be executed using Prolog unification, and
+      % the atomic names are preseved in the projection so that we can
+      % name the solution bindings.
+      Algebra1 = 'Slice'('Project'(PV1,Proj1),Start,Length),
+      maplist(replace_projection_var(VarMap2), Proj1, Proj2),
+      replace_vars(VarMap2, PV1, PV2),
+      Algebra2 = 'Slice'('Project'(PV2,Proj2),Start,Length)
+  ;   replace_vars(VarMap2, Algebra1, Algebra2)
+  ),
+  assoc_to_list(VarMap2, VarMap3),
+  transpose_pairs(VarMap3, InvVarMap),
+  State2 = _{
+    form: Form,
+    prefix_map: PrefixMap2,
+    variable_map: InvVarMap
+  }.
 
-replace_vars(_, X, X) :-
-  var(X), !.
-replace_vars(VariableMap, var(VarName), X) :-
-  get_assoc(VarName, VariableMap, X), !.
-replace_vars(_, var(X), X) :- !.
-replace_vars(VariableMap, L1, L2) :-
+replace_projection_var(Map, var(Name), Term) :-
+  get_assoc(Name, Map, Var),
+  Term =.. [Name,Var].
+
+%%%%replace_vars(_, Var, Var) :-
+%%%%  var(Var), !.
+% named variable
+replace_vars(Map, var(Name), Var) :-
+  get_assoc(Name, Map, Var), !.
+% unnamed variable
+replace_vars(_, var(Var), Var) :- !.
+% list
+replace_vars(Map, L1, L2) :-
   is_list(L1), !,
-  maplist(replace_vars(VariableMap), L1, L2).
-replace_vars(VariableMap, Comp1, Comp2) :-
+  maplist(replace_vars(Map), L1, L2).
+% compound
+replace_vars(Map, Comp1, Comp2) :-
   compound(Comp1), !,
   Comp1 =.. [Pred|Args1],
-  maplist(replace_vars(VariableMap), Args1, Args2),
+  maplist(replace_vars(Map), Args1, Args2),
   Comp2 =.. [Pred|Args2].
+% other
 replace_vars(_, Term, Term).
 
 sparql_parse0(State, Form, Algebra, In, Out) :-
@@ -720,12 +745,13 @@ is_aggregate(sum(_)).
 %                         )
 % ```
 
-'ConstructQuery'(State, P2, P3, 'Construct'(Templ,P4)) -->
+'ConstructQuery'(State, P2, P3, 'Construct'(Template2,P4)) -->
   keyword(`construct`), !,
-  (   'ConstructTemplate'(State, Templ)
+  (   'ConstructTemplate'(State, Template1)
   ->  'DatasetClause*'(State),
       'WhereClause'(State, P1),
-      'SolutionModifier'(State, P1, construct, P2, P3, P4)
+      'SolutionModifier'(State, P1, construct, P2, P3, P4),
+      {clean_template(Template1, Template2)}
   ;   'DatasetClause*'(State),
       must_see(keyword(`where`)),
       must_see_code(0'{),
@@ -735,18 +761,23 @@ is_aggregate(sum(_)).
       'SolutionModifier'(State, P1, construct, P2, P3, P4)
   ).
 
+clean_template('Path'(S, P, O, _), [rdf(S, P, O)]).
 
 
-%! 'ConstructTemplate'(+State, -Triples:dlist(compound))// is det.
+
+%! 'ConstructTemplate'(+State, -Template:dlist(compound))// is det.
 %
 % ```bnf
 % [73] ConstructTemplate ::= '{' ConstructTriples? '}'
 % ```
 
-'ConstructTemplate'(State, G2) -->
+'ConstructTemplate'(State, Template) -->
   "{",
   skip_ws,
-  ('ConstructTriples'(State, G1) -> {translate_group(G1, G2)} ; {G2 = []}),
+  (   'ConstructTriples'(State, Triples)
+  ->  {translate_group(Triples, Template)}
+  ;   {Template = []}
+  ),
   must_see_code(0'}).
 
 
@@ -2402,13 +2433,13 @@ relational_op(>=) --> ">=".
   (   "*"
   ->  skip_ws,
       {Proj = *}
-  ;   must_see(projection(State, H)),
-      *(projection(State), T)
-  ->  {Proj = [H|T]}
+  ;   must_see(projection(State, Var)),
+      *(projection(State), Vars)
+  ->  {Proj = [Var|Vars]}
   ).
 
-projection(State, H) -->
-  'Var'(State, H), !,
+projection(State, Var) -->
+  'Var'(State, Var), !,
   skip_ws.
 projection(State, binding(Var,E)) -->
   "(", !,
@@ -2942,7 +2973,7 @@ select_expression([binding(Var,E)|T], VS, P1, P2, PV1, PV2) :- !,
 
 
 
-%! 'Var'(+State, -Var)// is det.
+%! 'Var'(+State:dict, -Var)// is det.
 %
 % ```ebnf
 % [108] Var ::= VAR1 | VAR2
@@ -3719,7 +3750,7 @@ illegal_iri_code(Code) :-
 
 
 
-%! 'VARNAME'(+State, -Var)// is det.
+%! 'VARNAME'(+State:dict, -Var)// is det.
 %
 % Name of a variable, i.e., the part after the ‘?’ or ‘$’ character.
 %
@@ -3738,12 +3769,12 @@ illegal_iri_code(Code) :-
   'VARNAME_2s'(T),
   {
     atom_codes(VarName, [H|T]),
-    _{variable_map: VariableMap1} :< State,
-    (   get_assoc(VarName, VariableMap1, _Var)
-    ->  VariableMap2 = VariableMap1
-    ;   put_assoc(VarName, VariableMap1, _Var, VariableMap2)
+    _{variable_map: VarMap1} :< State,
+    (   get_assoc(VarName, VarMap1, _Var)
+    ->  VarMap2 = VarMap1
+    ;   put_assoc(VarName, VarMap1, _Var, VarMap2)
     ),
-    nb_set_dict(variable_map, State, VariableMap2)
+    nb_set_dict(variable_map, State, VarMap2)
   }.
 
 'VARNAME_1'(Code) --> 'PN_CHARS_U'(Code).
