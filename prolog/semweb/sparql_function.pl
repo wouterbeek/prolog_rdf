@@ -12,6 +12,8 @@
     isIri/1,                   % +Term
     isLiteral/1,               % +Term
     isUri/1,                   % +Term
+    'op:numeric-multiply'/3,   % +X, +Y, -Z
+    'op:numeric-subtract'/3,   % +X, +Y, -Z
     'STR'/2,                   % +Term, -A
     'STRDT'/3                  % +Lex, +D, -Literal
   ]
@@ -28,6 +30,7 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 */
 
 :- use_module(library(apply)).
+:- use_module(library(call_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pcre)).
 :- use_module(library(semweb/rdf_api)).
@@ -45,8 +48,11 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
    'fn:matches'(o, o, o),
    'fn:substring'(o, o, o),
    'fn:year-from-dateTime'(o, o),
+   numeric_cast(+, r, -),
+   numeric_type_promotion(r, r),
    'STR'(o, ?),
-   'STRDT'(+, r, o).
+   'STRDT'(+, r, o),
+   subtype_substitution(r, r).
 
 
 
@@ -54,26 +60,20 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 
 %! '_<_'(+A, +B) is semidet.
 
-'_<_'(literal(type(D1,Lex1)), literal(type(D2,Lex2))) :-
+'_<_'(A^^D1, B^^D2) :-
   rdf11:xsd_date_time_type(D1),
   rdf11:xsd_date_time_type(D2), !,
-  xsd_time_string(Val1, D1, Lex1),
-  xsd_time_string(Val2, D2, Lex2),
-  'op:dateTime-less-than'(Val1, Val2).
-'_<_'(literal(type(xsd:boolean,Lex1)), literal(type(xsd:boolean,Lex2))) :- !,
-  rdf11:in_boolean(Lex1, Bool1),
-  rdf11:in_boolean(Lex2, Bool2),
-  'op:boolean-less-than'(Bool1, Bool2).
-'_<_'(literal(type(xsd:string,Lex1)), literal(type(xsd:string,Lex2))) :- !,
-  compare(<, Lex1, Lex2).
-'_<_'(literal(type(D1,Lex1)), literal(type(D2,Lex2))) :-
-  rdf11:xsd_numerical(D1, Domain1, _Type1),
-  rdf11:xsd_numerical(D2, Domain2, _Type2), !,
-  rdf11:xsd_number_string(N1, Lex1),
-  rdf11:xsd_number_string(N2, Lex2),
-  is_of_type(Domain1, N1),
-  is_of_type(Domain2, N2),
-  'op:numeric-less-than'(N1, N2).
+  'op:dateTime-less-than'(A, B).
+'_<_'(A^^xsd:boolean, B^^xsd:boolean) :- !,
+  'op:boolean-less-than'(A, B).
+'_<_'(A^^xsd:string, B^^xsd:string) :- !,
+  compare(<, A, B).
+'_<_'(A^^D1, B^^D2) :-
+  rdf11:xsd_numerical(D1, Dom1, _),
+  rdf11:xsd_numerical(D2, Dom2, _), !,
+  is_of_type(Dom1, A),
+  is_of_type(Dom2, B),
+  'op:numeric-less-than'(A, B).
 '_<_'(A, B) :-
   compare(<, A, B).
 
@@ -88,11 +88,21 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 '_>_'(A^^xsd:string, B^^xsd:string) :-
   compare(>, A, B).
 '_>_'(A^^D1, B^^D2) :-
-  rdf11:xsd_numerical(D1, _, _),
-  rdf11:xsd_numerical(D2, _, _), !,
+  rdf11:xsd_numerical(D1, Dom1, _),
+  rdf11:xsd_numerical(D2, Dom2, _), !,
+  is_of_type(Dom1, A),
+  is_of_type(Dom2, B),
   'op:numeric-greater-than'(A, B).
 '_>_'(A, B) :-
   compare(>, A, B).
+
+
+
+eval(Lit, Lit) :-
+  rdf_is_literal(Lit), !.
+eval(Goal_1, Y) :-
+  call(Goal_1, X),
+  eval(X, Y).
 
 
 
@@ -129,46 +139,48 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 
 
 
-%! 'fn:concat'(+Literals:list(rdf_literal), -Literal:rdf_literal) is det.
+%! 'fn:concat'(+Literals:list(string_literal), -Literal:string_literal) is det.
 
-'fn:concat'(Literals, Literal) :-
-  maplist(rdf_literal, Literals, Ds, LTags, Lexs),
-  atomic_list_concat(Lexs, Lex),
-  rdf_create_string_literal(Literal, Ds, LTags, Lex).
-
-
-
-%! 'fn:matches'(+Literal:compound, +Pattern:compound) is semidet.
-%! 'fn:matches'(+Literal:compound, +Pattern:compound,
-%!              +Flags:compound) is semidet.
-
-'fn:matches'(Literal, literal(Pattern)) :-
-  'fn:matches'(
-    Literal,
-    literal(Pattern),
-    literal('')
+'fn:concat'(Lits, Lit) :-
+  maplist(string_literal, Lits, Ds, LTags, Strs),
+  atomics_to_string(Strs, Str),
+  (   % xsd:string
+      rdf_equal(xsd:string, D),
+      maplist(=(D), Ds)
+  ->  semlit(Lit, D, _, Str)
+  ;   % language-tagged string
+      maplist(=(LTag), LTags),
+      atom(LTag)
+  ->  semlit(Lit, rdf:langString, LTag, Str)
+  ;   % plain literal
+      Lit = Str
   ).
 
 
-'fn:matches'(Literal, literal(Pattern), literal(Flags)) :-
-  rdf_literal(Literal, _, _, String),
-  re_match(Pattern/Flags, String).
+
+%! 'fn:matches'(+Literal:string_literal, +Pattern:string) is semidet.
+%! 'fn:matches'(+Literal:string_literal, +Pattern:string, +Flags:string) is semidet.
+
+'fn:matches'(Literal, Pattern) :-
+  'fn:matches'(Literal, Pattern, "").
+
+
+'fn:matches'(Literal, Pattern, Flags) :-
+  string_literal(Literal, _, _, Str),
+  atom_string(Flags0, Flags),
+  re_match(Pattern/Flags0, Str).
 
 
 
 %! 'fn:substring'(+Source:compound, +Start:compound, -String:compound) is det.
 
-'fn:substring'(
-  Literal1,
-  literal(type(xsd:integer,Start)),
-  Literal2
-) :-
-  rdf_literal(Literal1, D, LTag, Lex1),
-  atom_codes(Lex1, Codes1),
+'fn:substring'(Literal1, Start^^xsd:integer, Literal2) :-
+  semlit(Literal1, D, LTag, Str1),
+  string_codes(Str1, Codes1),
   length(Prefix, Start),
   append(Prefix, Codes2, Codes1),
-  atom_codes(Lex2, Codes2),
-  rdf_create_string_literal(Literal2, D, LTag, Lex2).
+  string_codes(Str2, Codes2),
+  rdf_create_string_literal(Literal2, D, LTag, Str2).
 
 
 
@@ -195,13 +207,8 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 %
 %  * fn:year-from-dateTime(xs:dateTime("1999-12-31T24:00:00")) returns 2000
 
-'fn:year-from-dateTime'(
-  literal(type(D,Lex1)),
-  literal(type(xsd:integer,Lex2))
-) :-
-  xsd_time_string(Date, D, Lex1),
-  dt_year(Date, D, Y),
-  rdf11:in_number(integer, integer, xsd:integer, Y, Lex2).
+'fn:year-from-dateTime'(DT^^D, Y^^xsd:integer) :-
+  dt_year(DT, D, Y).
 
 dt_year(date(Y,_,_), xsd:date, Y).
 dt_year(date_time(Y,_,_,_,_,_), xsd:dateTime, Y).
@@ -237,6 +244,44 @@ isLiteral(Term) :-
 
 isUri(Term) :-
   isIri(Term).
+
+
+
+%! numeric_cast(+N1:number, +D:atom, -N2:number) is det.
+
+numeric_cast(N, xsd:decimal, N) :- !,
+  rational(N).
+numeric_cast(N1, D, N2) :-
+  rdf11:xsd_numerical(D, Domain, Type),
+  (   Type == integer
+  ->  N2 is integer(N1)
+  ;   Type == double
+  ->  N2 is float(N1)
+  ),
+  must_be(Domain, N2).
+
+
+
+%! numeric_datatype(+D1:atom, +D2:atom, -D3:atom) is semidet.
+
+numeric_datatype(A, B, C) :-
+  closure0(rel, A, C),
+  closure0(rel, B, C), !.
+
+rel(X, Y) :-
+  subtype_substitution(X, Y).
+rel(X, Y) :-
+  numeric_type_promotion(X, Y).
+
+
+
+%! numeric_type_promotion(?D1:atom, ?D2:atom) is nondet.
+%
+% D1 can be promoted to D2.
+
+numeric_type_promotion(xsd:decimal, xsd:float).
+numeric_type_promotion(xsd:decimal, xsd:double).
+numeric_type_promotion(xsd:float, xsd:double).
 
 
 
@@ -437,8 +482,43 @@ isUri(Term) :-
 
 
 
-%! rdf_create_string_literal(-Literal:rdf_literal, ?Ds:list(iri), ?LTag:list(atom),
-%!                           +Lex:atom) is det.
+%! 'op:numeric-multiply'(+X:rdf_literal, +Y:rdf_literal, -Z:rdf_literal) is det.
+%
+% @see /XQuery 1.0 and XPath 2.0/, §6.2.3 op:numeric-multiply
+%
+% op:numeric-multiply($arg1 as numeric, $arg2 as numeric) as numeric
+%
+% Summary: Backs up the "*" operator and returns the arithmetic
+% product of its operands: ($arg1 * $arg2).
+%
+% Note: For `xs:float' or `xs:double' values, if one of the operands
+% is a zero and the other is an infinity, `NaN' is returned.  If one
+% of the operands is a non-zero number and the other is an infinity,
+% an infinity with the appropriate sign is returned.
+
+'op:numeric-multiply'(Arg1, Arg2, Val^^D) :-
+  eval(Arg1, A^^D1),
+  eval(Arg2, B^^D2),
+  numeric_datatype(D1, D2, D),
+  C is A * B,
+  numeric_cast(C, D, Val),
+  debug(ws(function), "~w = ~w * ~w", [C,A,B]).
+
+
+
+%! 'op:numeric-subtract'(+X:rdf_literal, +Y:rdf_literal, -Z:rdf_literal) is det.
+
+'op:numeric-subtract'(Arg1, Arg2, Val^^D) :-
+  eval(Arg1, A^^D1),
+  eval(Arg2, B^^D2),
+  numeric_datatype(D1, D2, D),
+  C is A - B,
+  numeric_cast(C, D, Val),
+  debug(ws(function), "~w = ~w - ~w", [C,A,B]).
+
+
+
+%! rdf_create_string_literal(-SemLit:rdf_literal, ?Ds:list(atom), ?LTag:list(atom), +Lex:atom) is det.
 %
 % If all input literals are typed literals of type `xsd:string', then
 % the returned literal is also of type `xsd:string', if all input
@@ -447,15 +527,15 @@ isUri(Term) :-
 % all other cases, the returned literal is a simple literal.
 
 % xsd:string
-rdf_create_string_literal(literal(type(xsd:string,Lex)), Ds, _, Lex) :-
+rdf_create_string_literal(Str^^xsd:string, Ds, _, Str) :-
   rdf_equal(D, xsd:string),
   maplist(==(D), Ds), !.
 % rdf:langString
-rdf_create_string_literal(literal(lang(LTag,Lex)), _, [LTag|LTags], Lex) :-
+rdf_create_string_literal(Str@LTag, _, [LTag|LTags], Str) :-
   atom(LTag),
   maplist(==(LTag), LTags), !.
 % simple literal
-rdf_create_string_literal(literal(Lex), _, _, Lex).
+rdf_create_string_literal(Str, _, _, Str).
 
 
 
@@ -470,14 +550,48 @@ rdf_create_string_literal(literal(Lex), _, _, Lex).
 %
 % @compat SPARQL 1.1 Query §17.4.2.5
 
-'STR'(literal(type(_,Lex)), Lex) :- !.
-'STR'(literal(lang(_,Lex)), Lex) :- !.
-'STR'(literal(Lex), Lex) :- !.
-'STR'(Iri, Iri).
+'STR'(SemLit, Lex) :-
+  synlit_semlit(SynLit, SemLit), !,
+  synlit(SynLit, _, _, Lex).
+'STR'(A, A).
 
 
 
 %! 'STRDT'(+Lex:atom, +D:atom, -Literal:compound) is det.
 %! 'STRDT'(-Lex:atom, -D:atom, +Literal:compound) is det.
 
-'STRDT'(Lex, D, literal(type(D,Lex))).
+'STRDT'(Lex, D, SemLit) :-
+  synlit(literal(type(D,Lex)), SemLit).
+
+
+
+%! string_literal(+Lit:string_literal, -D:atom, -LTag:atom, -String:string) is det.
+%! string_literal(-Lit:string_literal, +D:atom, +LTag:atom, +String:string) is det.
+
+% xsd:string
+string_literal(SemLit, xsd:string, LTag, Str) :-
+  semlit(SemLit, xsd:string, LTag, Str), !.
+% rdf:langString
+string_literal(SemLit, rdf:langString, LTag, Str) :-
+  semlit(SemLit, rdf:langString, LTag, Str), !.
+string_literal(Str, _, _, Str).
+
+
+
+%! subtype_substitution(?D1:atom, ?D2:atom) is nondet.
+%
+% D2 can be substituted for D1.
+
+subtype_substitution(xsd:integer, xsd:decimal).
+subtype_substitution(xsd:long, xsd:integer).
+subtype_substitution(xsd:int, xsd:long).
+subtype_substitution(xsd:short, xsd:int).
+subtype_substitution(xsd:byte, xsd:short).
+subtype_substitution(xsd:nonNegativeInteger, xsd:integer).
+subtype_substitution(xsd:positiveInteger, xsd:nonNegativeInteger).
+subtype_substitution(xsd:unsignedLong, xsd:nonNegativeInteger).
+subtype_substitution(xsd:unsignedInt, xsd:unsignedLong).
+subtype_substitution(xsd:unsignedShort, xsd:unsignedInt).
+subtype_substitution(xsd:unsignedByte, xsd:unsignedShort).
+subtype_substitution(xsd:nonPositiveInteger, xsd:integer).
+subtype_substitution(xsd:negativeInteger, xsd:nonPositiveInteger).

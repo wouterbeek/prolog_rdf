@@ -16,7 +16,6 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dif)).
 :- use_module(library(semweb/rdf_api)).
-:- use_module(library(sgml)).
 :- use_module(library(xsd/xsd_number)).
 :- use_module(library(xsdp_types)).
 
@@ -48,17 +47,7 @@ xsd_div(X, Y, Z):-
 %! xsd_lexical_value(+D:atom, +Lex:atom, -Val:term) is det.
 %! xsd_lexical_value(+D:atom, -Lex:atom, +Val:term) is det.
 
-xsd_lexical_value(rdf:'HTML', Lex, Dom) :-
-  (   atom(Lex)
-  ->  load_structure(atom(Lex), Dom, [dialect(html5),max_errors(0)])
-  ;   rdf11:write_xml_literal(html, Dom, Lex)
-  ).
-xsd_lexical_value(rdf:'XMLLiteral', Lex, Dom) :-
-  (   atom(Lex)
-  ->  load_structure(atom(Lex), Dom, [dialect(xml),max_errors(0)])
-  ;   rdf11:write_xml_literal(xml, Dom, Lex)
-  ).
-xsd_lexical_value(xsd:decimal, Lex, N) :-
+xsd_lexical_value(xsd:decimal, Lex, N) :- !,
   (   atom(Lex)
   ->  atom_phrase(decimalLexicalMap(N), Lex)
   ;   atom_phrase(decimalCanonicalMap(N), Lex)

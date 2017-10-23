@@ -25,7 +25,7 @@ expression.
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(pairs)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(sgml)).
 
@@ -37,6 +37,7 @@ expression.
     prolog:message//1.
 
 :- rdf_meta
+   'BooleanLiteral'(o, ?, ?),
    'NumericLiteralNegative'(o, ?, ?),
    'NumericLiteralPositive'(o, ?, ?),
    'NumericLiteralUnsigned'(o, ?, ?).
@@ -401,20 +402,20 @@ is_aggregate(sum(_)).
 
 
 
-%! 'BooleanLiteral'(-Lit)// is det.
+%! 'BooleanLiteral'(-Literal:rdf_literal)// is det.
 %
 % ```ebnf
 % [134] BooleanLiteral ::= 'true' | 'false'
 % ```
 
-'BooleanLiteral'(literal(type(xsd:boolean,true))) -->
+'BooleanLiteral'(true^^xsd:boolean) -->
   keyword(`true`), !.
-'BooleanLiteral'(literal(type(xsd:boolean,false))) -->
+'BooleanLiteral'(false^^xsd:boolean) -->
   keyword(`false`).
 
 
 
-%! 'BrackettedExpression'(+State, -E)// is det.
+%! 'BrackettedExpression'(+State:dict, -E:compound)// is det.
 %
 % ```ebnf
 % [120] BrackettedExpression ::= '(' Expression ')'
@@ -428,7 +429,7 @@ is_aggregate(sum(_)).
 
 
 
-%! 'BuiltInCall'(+State, -Function)// is det.
+%! 'BuiltInCall'(+State:dict, -Function:compound)// is det.
 %
 % ```ebnf
 % [121] BuiltInCall ::= Aggregate
@@ -1619,26 +1620,20 @@ iriOrFunction(State, Function) -->
 %                                | DOUBLE_NEGATIVE
 % ```
 
-'NumericLiteralNegative'(Literal) -->
+% @bug
+'NumericLiteralNegative'(Lit) -->
   'INTEGER_NEGATIVE'(N), !,
-  {
-    rdf_equal(xsd:integer, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:integer, _, N)},
   skip_ws.
-'NumericLiteralNegative'(Literal) -->
+% @bug
+'NumericLiteralNegative'(Lit) -->
   'DECIMAL_NEGATIVE'(N), !,
-  {
-    rdf_equal(xsd:decimal, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:decimal, _, N)},
   skip_ws.
-'NumericLiteralNegative'(Literal) -->
+% @bug
+'NumericLiteralNegative'(Lit) -->
   'DOUBLE_NEGATIVE'(N),
-  {
-    rdf_equal(xsd:double, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:double, _, N)},
   skip_ws.
 
 
@@ -1651,26 +1646,20 @@ iriOrFunction(State, Function) -->
 %                                | DOUBLE_POSITIVE
 % ```
 
-'NumericLiteralPositive'(Literal) -->
+% @bug
+'NumericLiteralPositive'(Lit) -->
   'INTEGER_POSITIVE'(N), !,
-  {
-    rdf_equal(xsd:integer, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:integer, _, N)},
   skip_ws.
-'NumericLiteralPositive'(Literal) -->
+% @bug
+'NumericLiteralPositive'(Lit) -->
   'DECIMAL_POSITIVE'(N), !,
-  {
-    rdf_equal(xsd:decimal, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:decimal, _, N)},
   skip_ws.
-'NumericLiteralPositive'(Literal) -->
+% @bug
+'NumericLiteralPositive'(Lit) -->
   'DOUBLE_POSITIVE'(N),
-  {
-    rdf_equal(xsd:double, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:double, _, N)},
   skip_ws.
 
 
@@ -1681,26 +1670,20 @@ iriOrFunction(State, Function) -->
 % [131] NumericLiteralUnsigned ::= INTEGER | DECIMAL | DOUBLE
 % ```
 
-'NumericLiteralUnsigned'(Literal) -->
+% @bug
+'NumericLiteralUnsigned'(Lit) -->
   'DOUBLE'(N), !,
-  {
-    rdf_equal(xsd:double, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:double, _, N)},
   skip_ws.
-'NumericLiteralUnsigned'(Literal) -->
+% @bug
+'NumericLiteralUnsigned'(Lit) -->
   'DECIMAL'(N), !,
-  {
-    rdf_equal(xsd:decimal, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:decimal, _, N)},
   skip_ws.
-'NumericLiteralUnsigned'(Literal) -->
+% @bug
+'NumericLiteralUnsigned'(Lit) -->
   'INTEGER'(N), !,
-  {
-    rdf_equal(xsd:integer, D),
-    rdf11:pre_object(N^^D, Literal)
-  },
+  {semlit(Lit, xsd:integer, _, N)},
   skip_ws.
 
 
@@ -2295,12 +2278,12 @@ iriOrFunction(State, Function) -->
   'String'(Lex),
   (   'LANGTAG'(LTag)
   ->  skip_ws,
-      {Literal = literal(lang(LTag,Lex))}
+      {synlit_semlit(literal(lang(LTag,Lex)), Literal)}
   ;   "^^"
   ->  skip_ws,
       iri(State, D),
-      {Literal = literal(type(D,Lex))}
-  ;   {Literal = literal(Lex)}
+      {synlit_semlit(literal(type(D,Lex)), Literal)}
+  ;   {atom_string(Lex, Literal)}
   ).
 
 
@@ -2324,7 +2307,7 @@ iriOrFunction(State, Function) -->
   (   ","
   ->  skip_ws,
       must_see('Expression'(State, Flags))
-  ;   {Flags = literal('')}
+  ;   {Flags = ""}
   ),
   must_see_code(0')).
 

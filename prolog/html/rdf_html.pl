@@ -128,7 +128,7 @@ rdf_html_literal(Literal, Options1) -->
   rdf_html_literal_(Literal, Options2).
 
 rdf_html_literal_(Literal, Options) -->
-  {rdf_literal(Literal, D, LTag, Lex)},
+  {synlit(Literal, D, LTag, Lex)},
   rdf_html_literal_internal_(D, LTag, Lex, Options),
   rdf_html_literal_external_(D, LTag, Lex).
 

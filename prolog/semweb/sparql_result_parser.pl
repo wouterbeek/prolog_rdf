@@ -18,6 +18,9 @@
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(xml/xml_ext)).
 
+:- rdf_meta
+   sparql_term(+, o).
+
 :- thread_local
    result/1.
 
@@ -43,11 +46,11 @@ sparql_binding(element(binding,Attrs,Dom), Binding) :-
 
 sparql_term([element(bnode,_,[BNode])], BNode) :- !.
 sparql_term([element(uri,_,[Uri])], Uri) :- !.
-sparql_term([element(literal,['xml:lang'=LTag],[Lex])], Literal) :- !,
-  rdf_literal(Literal, rdf:langString, LTag, Lex).
-sparql_term([element(literal,[datatype=D],[Lex])], Literal) :- !,
-  rdf_literal(Literal, D, _, Lex).
-sparql_term([element(literal,[],[Lex])], Literal) :- !,
-  rdf_literal(Literal, _, _, Lex).
+sparql_term([element(literal,['xml:lang'=LTag],[Lex])], Str@LTag) :- !,
+  atom_string(Lex, Str).
+sparql_term([element(literal,[datatype=D],[Lex])], Val^^D) :- !,
+  rdf_lexical_value(D, Lex, Val).
+sparql_term([element(literal,[],[Lex])], Str^^xsd:string) :- !,
+  atom_string(Lex, Str).
 sparql_term(Dom, _) :-
   domain_error(sparql_term, Dom).

@@ -34,3 +34,25 @@ This package provides the following modules:
     graphs.
   - ~xsd/xsd_number~: read/write XSD decimal values as Prolog rational
     numbers.
+* Representations
+** Literal representations
+
+| *Name*                 | *Syntactic literal*       | *Semantic literal* |
+|------------------------+---------------------------+--------------------|
+| typed literal          | ~literal(type(D,Lex))~    | ~Value^^D~         |
+| language-tagged string | ~literal(lang(LTag,Lex))~ | ~String@LTag~      |
+| simple literal         | ~literal(Lex)~            |                    |
+
+#+BEGIN_SRC prolog
+%! rdf_lexical_value(+D, +Lex, -Val) is det.
+%! rdf_lexical_value(+D, -Lex, +Val) is det.
+
+%! synlit_semlit(+SynLit, -SemLit) is det.
+%! synlit_semlit(-SynLit, +SemLit) is det.
+
+%! synlit(+SynLit:compound, -D:atom, -LTag:atom, -Lex:atom) is det.
+%! synlit(-SynLit:compound, +D:atom, +LTag:atom, +Lex:atom) is det.
+
+%! semlit(+SemLit:rdf_literal, -D:atom, -LTag:atom, -Val:term) is det.
+%! semlit(-SemLit:rdf_literal, +D:atom, +LTag:atom, +Val:term) is det.
+#+END_SRC

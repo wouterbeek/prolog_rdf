@@ -15,7 +15,7 @@
     rdf_deref/3,                 % +Uri, :Goal_2, +Options
     rdf_is_skip_node/1,          % @Term
     rdf_is_well_known_iri/1,     % @Term
-    rdf_literal/4,               % ?Literal, ?D, ?LTag, ?Lex
+    rdf_lexical_value/3,         % ?D, ?Lex, ?Val
     rdf_list_member/2,           % ?X, ?L
     rdf_list_member/3,           % ?X, ?L, ?G
     rdf_triple_list_member/3,    % ?S, ?P, ?X
@@ -39,6 +39,10 @@
     rdfs_subclass/3,             % ?C, ?D, ?G
     rdfs_subproperty/2,          % ?P, ?Q
     rdfs_subproperty/3,          % ?P, ?Q, ?G
+    semlit/2,                    % +SemLit, -Val
+    semlit/4,                    % ?SemLit, ?D, ?LTag, ?Val
+    synlit/4,                    % ?SynLit, ?D, ?LTag, ?Lex
+    synlit_semlit/2,             % ?SynLit, ?SemLit
     op(110, xfx, @),             % must be above .
     op(650, xfx, ^^),            % must be above :
     op(1150, fx, rdf_meta)
@@ -76,8 +80,10 @@
 :- use_module(library(semweb/rdf_zlib_plugin)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
+:- use_module(library(sgml)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
+:- use_module(library(xsd/xsd)).
 :- use_module(library(xsd/xsd_number)).
 
 :- meta_predicate
@@ -100,9 +106,9 @@
    rdf_deref(+, :, +),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
+   rdf_lexical_value(r, ?, ?),
    rdf_list_member(r, t),
    rdf_list_member(r, t, r),
-   rdf_literal(o, r, ?, ?),
    rdf_node(o, r),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
@@ -118,7 +124,11 @@
    rdfs_subclass(r, r),
    rdfs_subclass(r, r, r),
    rdfs_subproperty(r, r),
-   rdfs_subproperty(r, r, r).
+   rdfs_subproperty(r, r, r),
+   semlit(o, -),
+   semlit(o, r, ?, ?),
+   synlit(o, r, ?, ?),
+   synlit_semlit(o, o).
 
 
 
@@ -420,7 +430,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   ),
   % Determine the base URI.
   option(base_uri(BaseUri), Options1, Uri),
-  
+
   % Determine the blank node prefix.  Use a well-known IRI with a UUID
   % component by default.
   call_default_option(
@@ -428,7 +438,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
     Options1,
     rdf_create_well_known_iri
   ),
-  
+
   % Parse according to the guessed Media Type.
   (   % N-Quads
       MT = media(application/'n-quads',_)
@@ -530,6 +540,24 @@ rdf_is_well_known_iri(Iri) :-
 
 
 
+%! rdf_lexical_value(+D:atom, +Lex:atom, -Val:term) is det.
+%! rdf_lexical_value(+D:atom, -Lex:atom, +Val:term) is det.
+
+rdf_lexical_value(rdf:'HTML', Lex, Dom) :-
+  (   atom(Lex)
+  ->  load_structure(atom(Lex), Dom, [dialect(html5),max_errors(0)])
+  ;   rdf11:write_xml_literal(html, Dom, Lex)
+  ).
+rdf_lexical_value(rdf:'XMLLiteral', Lex, Dom) :-
+  (   atom(Lex)
+  ->  load_structure(atom(Lex), Dom, [dialect(xml),max_errors(0)])
+  ;   rdf11:write_xml_literal(xml, Dom, Lex)
+  ).
+rdf_lexical_value(D, Lex, Val) :-
+  xsd_lexical_value(D, Lex, Val).
+
+
+
 %! rdf_list_member(?X, ?L) is nondet.
 
 rdf_list_member(X, L) :-
@@ -547,28 +575,6 @@ rdf_list_member(X, L, G) :-
 rdf_list_member(X, L, G) :-
   rdf(L, rdf:rest, T, G),
   rdf_list_member(T, X, G).
-
-
-
-%! rdf_literal(+Literal:compound, -D:atom, -LTag:atom, -Lex:atom) is det.
-%! rdf_literal(-Literal:compound, +D:atom, +LTag:atom, +Lex:atom) is det.
-%
-% @tbd Special case for `rdf:HTML' and `rdf:XMLLiteral'.
-%
-% @tbd Special case for `xsd:decimal'.
-
-%rdf_literal(literal(type(rdf:'HTML',Dom)), rdf:'HTML', _, Dom) :- !.
-%rdf_literal(literal(type(rdf:'XMLLiteral',Dom)), rdf:'XMLLiteral', _, Dom) :- !.
-rdf_literal(literal(type(D,Lex)), D, _, Lex) :-
-  atom(D), !.
-rdf_literal(literal(lang(LTag,Lex)), rdf:langString, LTag, Lex) :-
-  atom(LTag), !.
-rdf_literal(literal(Lex), _, _, Lex) :- !,
-  atom(Lex).
-rdf_literal(Value^^D, D, _, Lex) :- !,
-  rdf11:rdf_lexical_form(Value^^D, Lex^^D).
-rdf_literal(Lex@LTag, rdf:langString, LTag, Lex) :- !.
-rdf_literal(Lex, xsd:string, _, Lex).
 
 
 
@@ -809,3 +815,42 @@ rdfs_subproperty(P, Q, G) :-
 
 rdfs_subproperty_(G, P, Q) :-
   rdf(P, rdfs:subPropertyOf, Q, G).
+
+
+
+%! semlit(+SemLit:rdf_literal, -Val:term) is det.
+
+semlit(SemLit, Val) :-
+  semlit(SemLit, _, _, Val).
+
+
+
+%! semlit(+SemLit:rdf_literal, -D:atom, -LTag:atom, -Val:term) is det.
+%! semlit(-SemLit:rdf_literal, +D:atom, +LTag:atom, +Val:term) is det.
+
+semlit(Val^^D, D, _, Val) :-
+  atom(D), !.
+semlit(Str@LTag, rdf:langString, LTag, Str) :-
+  atom(LTag).
+
+
+
+%! synlit(+SynLit:compound, -D:atom, -LTag:atom, -Lex:atom) is det.
+%! synlit(-SynLit:compound, +D:atom, +LTag:atom, +Lex:atom) is det.
+
+synlit(literal(type(D,Lex)), D, _, Lex) :-
+  atom(D), !.
+synlit(literal(lang(LTag,Lex)), rdf:langString, LTag, Lex) :-
+  atom(LTag), !.
+synlit(literal(Lex), _, _, Lex) :-
+  atom(Lex).
+
+
+
+%! synlit_semlit(+SynLit:compound, -SemLit:rdf_term) is det.
+%! synlit_semlit(-SynLit:compound, +SemLit:rdf_term) is det.
+
+synlit_semlit(literal(type(D,Lex)), Val^^D) :-
+  rdf_lexical_value(D, Lex, Val).
+synlit_semlit(literal(lang(LTag,Lex)), String@LTag) :-
+  atom_string(Lex, String).
