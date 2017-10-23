@@ -21,6 +21,7 @@ expression.
 :- use_module(library(assoc)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dlist)).
+:- use_module(library(dialect/hprolog)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
@@ -1235,12 +1236,12 @@ translate_group(G1, G4) :-
 translate_group(['BGP'(Triples1),'BGP'(Triples2)|T], G1, G2) :- !,
   append(Triples1, Triples2, Triples3),
   translate_group(['BGP'(Triples3)|T], G1, G2).
-translate_group(['OPTIONAL'('Filter'(Vars,F,A))|T], G1, G2) :- !,
-  translate_group(T, 'LeftJoin'(G1,A,Vars,F), G2).
-translate_group(['OPTIONAL'(A)|T], G1, G2) :- !,
-  translate_group(T, 'LeftJoin'(G1,A,[],true), G2).
-translate_group(['MINUS'(A)|T], G1, G2) :- !,
-  translate_group(T, 'Minus'(G1,A), G2).
+translate_group(['OPTIONAL'('Filter'(Vars,F,Right))|T], Left, G) :- !,
+  translate_group(T, 'LeftJoin'(Left,Right,Vars,F), G).
+translate_group(['OPTIONAL'(Right)|T], Left, G) :- !,
+  translate_group(T, 'LeftJoin'(Left,Right,[],true), G).
+translate_group(['MINUS'(Right)|T], Left, G) :- !,
+  translate_group(T, 'Minus'(Left,Right), G).
 translate_group(['BIND'(Var,E)|T], G1, G2) :- !,
   translate_group(T, 'Extend'(G1,Var,E), G2).
 translate_group([A|T], G1, G2) :- !,
@@ -2652,7 +2653,7 @@ select_expression([], _, P, P, PV1, PV2) :- !,
 select_expression([var(VarName)|T], VS, P1, P2, PV1, PV2) :- !,
   select_expression(T, VS, P1, P2, [var(VarName)|PV1], PV2).
 select_expression([binding(var(VarName),E)|T], VS, P1, P2, PV1, PV2) :-
-  (   (memberchk(var(VarName), VS) ; memberchk(var(VarName), PV1))
+  (   (memberchk_eq(var(VarName), VS) ; memberchk_eq(var(VarName), PV1))
   ->  syntax_error(cannot_use_var(VarName))
   ;   select_expression(T, VS, 'Extend'(P1,var(VarName),E), P2, [var(VarName)|PV1], PV2)
   ).
