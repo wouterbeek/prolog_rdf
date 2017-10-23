@@ -234,8 +234,7 @@ noDecimalMap(N) -->
 unsignedDecimalPtMap(N) -->
   unsignedNoDecimalMap(I), !,
   ".",
-  (fractionFragValue(F) ; {F = 0.0}),
-  {N is I + F}.
+  (fractionFragValue(F) -> {N is I + F} ; {N is I}).
 unsignedDecimalPtMap(N) -->
   ".",
   fractionFragValue(N).
