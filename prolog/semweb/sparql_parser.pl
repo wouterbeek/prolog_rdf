@@ -796,17 +796,16 @@ clean_template('Path'(S, P, O, _), [rdf(S, P, O)]).
   'NumericLiteral'(Lit), !.
 'DataBlockValue'(_, Lit) -->
   'BooleanLiteral'(Lit), !.
-% UNDEF acts as a Prolog variable.
-'DataBlockValue'(_, _) -->
+'DataBlockValue'(_, 'UNDEF') -->
   keyword(`undef`).
 
-'DataBlockValue*'(State, Terms) -->
-  'DataBlockValue*'(State, Terms, []).
+'DataBlockValue*'(State, Row) -->
+  'DataBlockValue*'(State, Row, []).
 
-'DataBlockValue*'(State, [Term|Terms0], Terms) -->
-  'DataBlockValue'(State, Term), !,
-  'DataBlockValue*'(State, Terms0, Terms).
-'DataBlockValue*'(_, Terms, Terms) --> "".
+'DataBlockValue*'(State, [H|T0], Row) -->
+  'DataBlockValue'(State, H), !,
+  'DataBlockValue*'(State, T0, Row).
+'DataBlockValue*'(_, Row, Row) --> "".
 
 
 
@@ -1375,13 +1374,11 @@ simplify(A, A).
 
 
 
-%! 'InlineData'(+State, -Data:compound)// is det.
+%! 'InlineData'(+State:dict, -Data:compound)// is det.
 %
 % ```ebnf
 % [61] InlineData ::= 'VALUES' DataBlock
 % ```
-%
-% @tbd:
 %
 % The result is a multiset of solution mappings 'data'.
 %
@@ -1405,7 +1402,7 @@ simplify(A, A).
 % The number of variables in the ‘Vars’ list must be the same as the
 % number of values in the ‘Vals’ list.
 
-'InlineDataFull'(State, vars_in(Vars,Terms)) -->
+'InlineDataFull'(State, vars_in(Vars,Rows)) -->
   (   'NIL'(_)
   ->  skip_ws,
       {Vars = []}
@@ -1415,23 +1412,20 @@ simplify(A, A).
       must_see_code(0'))
   ),
   must_see_code(0'{),
-  'InlineDataFull_*'(State, Terms),
+  'InlineDataFull_*'(State, Rows),
   must_see_code(0'}).
 
-'InlineDataFull_*'(State, Terms) -->
-  'InlineDataFull_*'(State, Terms, []).
+'InlineDataFull_*'(State, [H|T]) -->
+  'InlineDataFull_'(State, H), !,
+  'InlineDataFull_*'(State, T).
+'InlineDataFull_*'(_, []) --> "".
 
-'InlineDataFull_*'(State, Terms1, Terms3) -->
-  'InlineDataFull_'(State, Terms1, Terms2), !,
-  'InlineDataFull_*'(State, Terms2, Terms3).
-'InlineDataFull_*'(_, Terms, Terms) --> "".
-
-'InlineDataFull_'(State, Terms1, Terms2) -->
+'InlineDataFull_'(State, Row) -->
   "(", !,
   skip_ws,
-  'DataBlockValue*'(State, Terms1, Terms2),
+  'DataBlockValue*'(State, Row),
   must_see_code(0')).
-'InlineDataFull_'(_, Terms, Terms) -->
+'InlineDataFull_'(_, []) -->
   'NIL'(_),
   skip_ws.
 
@@ -1443,10 +1437,10 @@ simplify(A, A).
 % [63] InlineDataOneVar ::= Var '{' DataBlockValue* '}'
 % ```
 
-'InlineDataOneVar'(State, var_in(Var,Terms)) -->
+'InlineDataOneVar'(State, var_in(Var,Row)) -->
   'Var'(State, Var),
   must_see_code(0'{),
-  'DataBlockValue*'(State, Terms),
+  'DataBlockValue*'(State, Row),
   must_see_code(0'}).
 
 
