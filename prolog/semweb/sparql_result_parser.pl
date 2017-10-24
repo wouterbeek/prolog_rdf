@@ -46,11 +46,13 @@ sparql_binding(element(binding,Attrs,Dom), Binding) :-
 
 sparql_term([element(bnode,_,[BNode])], BNode) :- !.
 sparql_term([element(uri,_,[Uri])], Uri) :- !.
-sparql_term([element(literal,['xml:lang'=LTag],[Lex])], Str@LTag) :- !,
+sparql_term([element(literal,Attrs,[Lex])], Str@LTag) :-
+  memberchk('xml:lang'=LTag, Attrs), !,
   atom_string(Lex, Str).
-sparql_term([element(literal,[datatype=D],[Lex])], Val^^D) :- !,
+sparql_term([element(literal,Attrs,[Lex])], Val^^D) :-
+  memberchk(datatype=D, Attrs), !,
   rdf_lexical_value(D, Lex, Val).
-sparql_term([element(literal,[],[Lex])], Str^^xsd:string) :- !,
+sparql_term([element(literal,_,[Lex])], Str^^xsd:string) :- !,
   atom_string(Lex, Str).
 sparql_term(Dom, _) :-
   domain_error(sparql_term, Dom).
