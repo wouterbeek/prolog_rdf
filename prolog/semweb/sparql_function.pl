@@ -21,10 +21,6 @@
 
 /** <module> SPARQL: Functions
 
-op:numeric-equal(fn:compare(X,Y),1) → compare(>,X,Y)
-op:numeric-equal(fn:compare(X,Y),0) → compare(=,X,Y)
-op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
-
 @author Wouter Beek
 @version 2017/05-2017/10
 */
@@ -42,14 +38,24 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 :- rdf_meta
    '_<_'(o, o),
    '_>_'(o, o),
-    dt_year(+, r, -),
+   dt_year(+, r, -),
+   'fn:compare'(o, o, ?),
    'fn:concat'(t, o),
    'fn:matches'(o, o),
    'fn:matches'(o, o, o),
    'fn:substring'(o, o, o),
    'fn:year-from-dateTime'(o, o),
    numeric_cast(+, r, -),
+   numeric_datatype(r),
    numeric_type_promotion(r, r),
+   'op:boolean-greater-than'(o, o),
+   'op:boolean-less-than'(o, o),
+   'op:dateTime-greater-than'(o, o),
+   'op:dateTime-less-than'(o, o),
+   'op:numeric-greater-than'(o, o, o),
+   'op:numeric-less-than'(o, o, o),
+   'op:numeric-multiply'(o, o, o),
+   'op:numeric-subtract'(o, o, o),
    'STR'(o, ?),
    'STRDT'(+, r, o),
    subtype_substitution(r, r).
@@ -58,43 +64,29 @@ op:numeric-equal(fn:compare(X,Y),-1) → compare(<,X,Y)
 
 
 
-%! '_<_'(+A, +B) is semidet.
+%! '_<_'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'_<_'(A^^D1, B^^D2) :-
-  rdf11:xsd_date_time_type(D1),
-  rdf11:xsd_date_time_type(D2), !,
-  'op:dateTime-less-than'(A, B).
-'_<_'(A^^xsd:boolean, B^^xsd:boolean) :- !,
-  'op:boolean-less-than'(A, B).
-'_<_'(A^^xsd:string, B^^xsd:string) :- !,
-  compare(<, A, B).
-'_<_'(A^^D1, B^^D2) :-
-  rdf11:xsd_numerical(D1, Dom1, _),
-  rdf11:xsd_numerical(D2, Dom2, _), !,
-  is_of_type(Dom1, A),
-  is_of_type(Dom2, B),
-  'op:numeric-less-than'(A, B).
-'_<_'(A, B) :-
-  compare(<, A, B).
+'_<_'(A1, B1) :-
+  eval(A1, A2),
+  eval(B1, B2),
+  (   'op:boolean-less-than'(A2, B2), !
+  ;   'op:dateTime-less-than'(A2, B2), !
+  ;   'op:numeric-less-than'(A2, B2), !
+  ;   'fn:compare'(A2, B2, <)
+  ).
 
 
 
-%! '_>_'(+A, +B) is semidet.
+%! '_>_'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'_>_'(A^^xsd:dateTime, B^^xsd:dateTime) :- !,
-  'op:dateTime-greater-than'(A, B).
-'_>_'(A^^xsd:boolean, B^^xsd:boolean) :- !,
-  'op:boolean-greater-than'(A, B).
-'_>_'(A^^xsd:string, B^^xsd:string) :-
-  compare(>, A, B).
-'_>_'(A^^D1, B^^D2) :-
-  rdf11:xsd_numerical(D1, Dom1, _),
-  rdf11:xsd_numerical(D2, Dom2, _), !,
-  is_of_type(Dom1, A),
-  is_of_type(Dom2, B),
-  'op:numeric-greater-than'(A, B).
-'_>_'(A, B) :-
-  compare(>, A, B).
+'_>_'(A1, B1) :-
+  eval(A1, A2),
+  eval(B1, B2),
+  (   'op:boolean-greater-than'(A2, B2), !
+  ;   'op:dateTime-greater-than'(A2, B2), !
+  ;   'op:numeric-greater-than'(A2, B2), !
+  ;   'fn:compare'(A2, B2, >)
+  ).
 
 
 
@@ -106,36 +98,16 @@ eval(Goal_1, Y) :-
 
 
 
-%! 'fn:compare'(+A, +B)
-%
-% § 7.3.2 fn:compare
-%
-% ```
-% fn:compare($comparand1 as xs:string?,
-%            $comparand2 as xs:string?) as xs:integer?
-% ```
-%
-% fn:compare($comparand1 as xs:string?,  
-%            $comparand2 as xs:string?,  
-%            $collation  as xs:string) as xs:integer?  
-% ```
-%
-% Summary: Returns -1, 0, or 1, depending on whether the value of the
-% $comparand1 is respectively less than, equal to, or greater than the
-% value of $comparand2, according to the rules of the collation that
-% is used.
-%
-% The collation used by the invocation of this function is determined
-% according to the rules in 7.3.1 Collations.
-%
-% If either argument is the empty sequence, the result is the empty
-% sequence.
-%
-% This function, invoked with the first signature, backs up the "eq",
-% "ne", "gt", "lt", "le" and "ge" operators on string values.
+%! 'fn:compare'(+A:rdf_literal, +B:rdf_literal, +Order:oneof([-1,0,1])) is semidet.
+%! 'fn:compare'(+A:rdf_literal, +B:rdf_literal, -Order:oneof([-1,0,1])) is det.
 
-'fn:compare'(A, B, Order) :-
-  compare(Order, A, B).
+'fn:compare'(A, B, Sign) :-
+  compare(Order, A, B),
+  order_sign(Order, Sign).
+
+order_sign(<, -1).
+order_sign(=, 0).
+order_sign(>, 1).
 
 
 
@@ -165,10 +137,10 @@ eval(Goal_1, Y) :-
   'fn:matches'(Literal, Pattern, "").
 
 
-'fn:matches'(Literal, Pattern, Flags) :-
-  string_literal(Literal, _, _, Str),
-  atom_string(Flags0, Flags),
-  re_match(Pattern/Flags0, Str).
+'fn:matches'(Literal, Pattern1, Flags1) :-
+  maplist(string_literal, [Literal,Pattern1,Flags1], [Str,Pattern2,Flags2]),
+  atom_string(Flags0, Flags2),
+  re_match(Pattern2/Flags0, Str).
 
 
 
@@ -185,27 +157,6 @@ eval(Goal_1, Y) :-
 
 
 %! 'fn:year-from-dateTime'(+Arg, -Year) is det.
-%
-% § 10.5.7 fn:year-from-dateTime
-%
-% ```
-% fn:year-from-dateTime($arg as xs:dateTime?) as xs:integer?
-% ```
-%
-% Summary: Returns an xs:integer representing the year component in
-% the localized value of $arg.  The result may be negative.
-%
-% If $arg is the empty sequence, returns the empty sequence.
-%
-% § 10.5.7.1 Examples
-%
-%  * fn:year-from-dateTime(xs:dateTime("1999-05-31T13:20:00-05:00")) returns 1999
-%
-%  * fn:year-from-dateTime(xs:dateTime("1999-05-31T21:30:00-05:00")) returns 1999
-%
-%  * fn:year-from-dateTime(xs:dateTime("1999-12-31T19:20:00")) returns 1999
-%
-%  * fn:year-from-dateTime(xs:dateTime("1999-12-31T24:00:00")) returns 2000
 
 'fn:year-from-dateTime'(DT^^D, Y^^xsd:integer) :-
   dt_year(DT, D, Y).
@@ -262,6 +213,28 @@ numeric_cast(N1, D, N2) :-
 
 
 
+%! numeric_datatype(+D:atom) is semidet.
+%! numeric_datatype(-D:atom) is nondet.
+
+numeric_datatype(xsd:byte).
+numeric_datatype(xsd:double).
+numeric_datatype(xsd:decimal).
+numeric_datatype(xsd:float).
+numeric_datatype(xsd:int).
+numeric_datatype(xsd:integer).
+numeric_datatype(xsd:long).
+numeric_datatype(xsd:negativeInteger).
+numeric_datatype(xsd:nonNegativeInteger).
+numeric_datatype(xsd:nonPositiveInteger).
+numeric_datatype(xsd:positiveInteger).
+numeric_datatype(xsd:short).
+numeric_datatype(xsd:unsignedByte).
+numeric_datatype(xsd:unsignedInt).
+numeric_datatype(xsd:unsignedLong).
+numeric_datatype(xsd:unsignedShort).
+
+
+
 %! numeric_datatype(+D1:atom, +D2:atom, -D3:atom) is semidet.
 
 numeric_datatype(A, B, C) :-
@@ -285,216 +258,62 @@ numeric_type_promotion(xsd:float, xsd:double).
 
 
 
-%! 'op:boolean-greater-than'(+A, +B) is semidet.
-%
-% § 9.2.3 op:boolean-greater-than
-%
-% ```
-% op:boolean-greater-than($arg1 as xs:boolean,
-%                         $arg2 as xs:boolean) as xs:boolean
-% ```
-%
-% Summary: Returns true if $arg1 is true and $arg2 is
-% false. Otherwise, returns false.
-%
-% This function backs up the "gt" and "le" operators on xs:boolean
-% values.
+%! 'op:boolean-greater-than'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'op:boolean-greater-than'(true, false).
+'op:boolean-greater-than'(true^^xsd:boolean, false^^xsd:boolean).
 
 
 
-%! 'op:boolean-less-than'(+A, +B) is semidet.
-%
-% § 9.2.2 op:boolean-less-than
-%
-% ```
-% op:boolean-less-than($arg1 as xs:boolean, $arg2 as xs:boolean) as xs:boolean
-% ```
-%
-% Summary: Returns true if $arg1 is false and $arg2 is
-% true. Otherwise, returns false.
-%
-% This function backs up the "lt" and "ge" operators on xs:boolean
-% values.
+%! 'op:boolean-less-than'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'op:boolean-less-than'(false, true).
+'op:boolean-less-than'(false^^xsd:boolean, true^^xsd:boolean).
 
 
 
-%! 'op:dateTime-greater-than'(+A, +B) is semidet.
-%
-% § 10.4.8 op:dateTime-greater-than
-%
-% ```
-% op:dateTime-greater-than(  $arg1 as xs:dateTime,  
-%   $arg2 as xs:dateTime) as xs:boolean  
-% ```
-%
-% Summary: Returns true if and only if the value of $arg1 is greater
-% than the value of $arg2 according to the algorithm defined in
-% section 3.2.7.4 of [XML Schema Part 2: Datatypes Second Edition]
-% "Order relation on dateTime" for xs:dateTime values with
-% timezones.  Returns false otherwise.
-%
-% This function backs up the "gt" and "ge" operators on xs:dateTime
-% values.
-%
-% The ordering between two dateTimes P and Q is defined by the
-% following algorithm:
-%
-% A. Normalize P and Q. That is, if there is a timezone present, but
-%    it is not Z, convert it to Z using the addition operation defined
-%    in Adding durations to dateTimes (§E).
-%
-%    Thus 2000-03-04T23:00:00+03:00 normalizes to 2000-03-04T20:00:00Z
-%
-% B. If P and Q either both have a time zone or both do not have a
-%    time zone, compare P and Q field by field from the year field
-%    down to the second field, and return a result as soon as it can
-%    be determined.  That is:
-%
-%    For each i in {year, month, day, hour, minute, second}
-%        If P[i] and Q[i] are both not specified, continue to the next i
-%        If P[i] is not specified and Q[i] is, or vice versa, stop and return P <> Q
-%        If P[i] < Q[i], stop and return P < Q
-%        If P[i] > Q[i], stop and return P > Q
-%    Stop and return P = Q
-%
-% C. Otherwise, if P contains a time zone and Q does not, compare as
-%    follows:
-%
-%    P < Q if P < (Q with time zone +14:00)
-%    P > Q if P > (Q with time zone -14:00)
-%    P <> Q otherwise, that is, if (Q with time zone +14:00) < P <
-%                                  (Q with time zone -14:00)
-%
-% D. Otherwise, if P does not contain a time zone and Q does, compare
-%    as follows:
-%
-%    P < Q if (P with time zone -14:00) < Q.
-%    P > Q if (P with time zone +14:00) > Q.
-%    P <> Q otherwise, that is, if (P with time zone +14:00) < Q <
-%                                  (P with time zone -14:00)
-%
-% Examples:
-%
-% | *Determinate*                              | *Indeterminate*                             |
-% |--------------------------------------------|---------------------------------------------|
-% | 2000-01-15T00:00:00 < 2000-02-15T00:00:00  | 2000-01-01T12:00:00 <> 1999-12-31T23:00:00Z |
-% | 2000-01-15T12:00:00 < 2000-01-16T12:00:00Z | 2000-01-16T12:00:00 <> 2000-01-16T12:00:00Z |
-% |                                            | 2000-01-16T00:00:00 <> 2000-01-16T12:00:00Z |
-%
-% @tbd
+%! 'op:dateTime-greater-than'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'op:dateTime-greater-than'(A, B) :-
+'op:dateTime-greater-than'(A^^D1, B^^D2) :-
+  rdf11:xsd_date_time_type(D1),
+  rdf11:xsd_date_time_type(D2), !,
   A > B.
 
 
 
-%! 'op:dateTime-less-than'(+A, +B) is semidet.
-%
-% § 10.4.7 op:dateTime-less-than
-%
-% ```
-% op:dateTime-less-than($arg1 as xs:dateTime,
-%                       $arg2 as xs:dateTime) as xs:boolean
-% ```
-%
-% Summary: Returns true if and only if the value of $arg1 is less than
-% the value of $arg2 according to the algorithm defined in section
-% 3.2.7.4 of [XML Schema Part 2: Datatypes Second Edition] "Order
-% relation on dateTime" for xs:dateTime values with timezones.
-% Returns false otherwise.
-%
-% This function backs up the "lt" and "le" operators on xs:dateTime
-% values.
-%
-% @tbd
+%! 'op:dateTime-less-than'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'op:dateTime-less-than'(A, B) :-
+'op:dateTime-less-than'(A^^D1, B^^D2) :-
+  rdf11:xsd_date_time_type(D1),
+  rdf11:xsd_date_time_type(D2), !,
   A < B.
 
 
 
-%! 'op:numeric-equal'(+A, +B) is semidet.
-%
-% § 6.3.1 op:numeric-equal
-%
-% ```
-% op:numeric-equal($arg1 as numeric, $arg2 as numeric) as xs:boolean
-% ```
-%
-% Summary: Returns true if and only if the value of $arg1 is equal to
-% the value of $arg2.  For xs:float and xs:double values, positive
-% zero and negative zero compare equal.  INF equals INF and -INF
-% equals -INF. NaN does not equal itself.
-%
-% This function backs up the "eq", "ne", "le" and "ge" operators on
-% numeric values.
+%! 'op:numeric-equal'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
 'op:numeric-equal'(A, B) :-
   A =:= B.
 
 
 
-%! 'op:numeric-greater-than'(+A, +B) is semidet.
-%
-% § 6.3.3 op:numeric-greater-than
-%
-% ```
-% op:numeric-greater-than($arg1 as numeric, $arg2 as numeric) as xs:boolean
-% ```
-%
-% Summary: Returns true if and only if $arg1 is greater than $arg2.
-% For xs:float and xs:double values, positive infinity is greater than
-% all other non-NaN values; negative infinity is less than all other
-% non-NaN values.  If $arg1 or $arg2 is NaN, the function returns
-% false.
-%
-% This function backs up the "gt" and "ge" operators on numeric
-% values.
+%! 'op:numeric-greater-than'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'op:numeric-greater-than'(A, B) :-
-  A > B.
+'op:numeric-greater-than'(A^^D1, B^^D2) :-
+  numeric_datatype(D1, D2, -),
+  A > B,
+  debug(ws(function), "~w > ~w", [A,B]).
 
 
 
-%! 'op:numeric-less-than'(+A, +B) is semidet.
-%
-% § 6.3.2 op:numeric-less-than
-%
-% ```
-% op:numeric-less-than($arg1 as numeric, $arg2 as numeric) as xs:boolean
-% ```
-%
-% Summary: Returns true if and only if $arg1 is less than $arg2.  For
-% xs:float and xs:double values, positive infinity is greater than all
-% other non-NaN values; negative infinity is less than all other
-% non-NaN values.  If $arg1 or $arg2 is NaN, the function returns
-% false.
-%
-% This function backs up the "lt" and "le" operators on numeric
-% values.
+%! 'op:numeric-less-than'(+A:rdf_literal, +B:rdf_literal) is semidet.
 
-'op:numeric-less-than'(A, B) :-
-  A < B.
+'op:numeric-less-than'(A^^D1, B^^D2) :-
+  numeric_datatype(D1, D2, _),
+  A < B,
+  debug(ws(function), "~w < ~w", [A,B]).
 
 
 
-%! 'op:numeric-multiply'(+X:rdf_literal, +Y:rdf_literal, -Z:rdf_literal) is det.
-%
-% @see /XQuery 1.0 and XPath 2.0/, §6.2.3 op:numeric-multiply
-%
-% op:numeric-multiply($arg1 as numeric, $arg2 as numeric) as numeric
-%
-% Summary: Backs up the "*" operator and returns the arithmetic
-% product of its operands: ($arg1 * $arg2).
-%
-% Note: For `xs:float' or `xs:double' values, if one of the operands
-% is a zero and the other is an infinity, `NaN' is returned.  If one
-% of the operands is a non-zero number and the other is an infinity,
-% an infinity with the appropriate sign is returned.
+%! 'op:numeric-multiply'(+A:eval, +B:eval, -C:rdf_literal) is det.
 
 'op:numeric-multiply'(Arg1, Arg2, Val^^D) :-
   eval(Arg1, A^^D1),
@@ -506,7 +325,7 @@ numeric_type_promotion(xsd:float, xsd:double).
 
 
 
-%! 'op:numeric-subtract'(+X:rdf_literal, +Y:rdf_literal, -Z:rdf_literal) is det.
+%! 'op:numeric-subtract'(+A:eval, +B:eval, -C:rdf_literal) is det.
 
 'op:numeric-subtract'(Arg1, Arg2, Val^^D) :-
   eval(Arg1, A^^D1),
@@ -563,6 +382,12 @@ rdf_create_string_literal(Str, _, _, Str).
 'STRDT'(Lex, D, SemLit) :-
   synlit(literal(type(D,Lex)), SemLit).
 
+
+
+%! string_literal(+Lit:string_literal, -String:string) is det.
+
+string_literal(Lit, Str) :-
+  string_literal(Lit, _, _, Str).
 
 
 %! string_literal(+Lit:string_literal, -D:atom, -LTag:atom, -String:string) is det.

@@ -2283,7 +2283,10 @@ iriOrFunction(State, Function) -->
   ->  skip_ws,
       iri(State, D),
       {synlit_semlit(literal(type(D,Lex)), Literal)}
-  ;   {atom_string(Lex, Literal)}
+  ;   {
+        atom_string(Lex, Str),
+        rdf_global_object(Str^^xsd:string, Literal)
+      }
   ).
 
 
