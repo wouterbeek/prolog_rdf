@@ -94,11 +94,18 @@ rdf_guess(In, Formats, Options) :-
   setting(minimum_peek_size, Min),
   option(peek_size(Size), Options, Min),
   (   Size == '∞'
-  ->  rdf_guess_inf(In, Formats)
+  ->  rdf_guess_inf(In, Formats0)
   ;   must_be(positive_integer, Size),
       setting(maximum_peek_size, Max),
-      rdf_guess_range(In, Size-Max, Formats)
-  ).
+      rdf_guess_range(In, Size-Max, Formats0)
+  ),
+  maplist(format_mt, Formats0, Formats).
+
+format_mt(jsonld, media(application/'ld+json',[])).
+format_mt(nquads, media(application/'n-quads',[])).
+format_mt(rdfa, media(text/html,[])).
+format_mt(rdfxml, media(application/'rdf+xml',[])).
+format_mt(trig, media(application/trig,[])).
 
 % JSON-LD
 rdf_guess_inf(In, [jsonld]) :-
@@ -308,11 +315,11 @@ n3_format(_, L1, L3) -->
 % characters as well, since they may appear in non-conforming
 % documents without telling us anything about which N3 subtype we are
 % parsing.
+n3_blank --> blank.
+n3_blank --> n3_comment.
+
 n3_blanks -->
-  blank, !,
-  n3_blanks.
-n3_blanks -->
-  comment, !,
+  n3_blank, !,
   n3_blanks.
 n3_blanks --> "".
 

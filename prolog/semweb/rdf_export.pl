@@ -1,6 +1,7 @@
 :- module(
   rdf_export,
   [
+    rdf_reserialize/3,      % +Uri, +In, +File
     rdf_save2/1,            % +Out
     rdf_save2/2,            % +Out, +Type
     rdf_save2/3,            % +Out, +Type, +G
@@ -21,9 +22,10 @@
 /** <module> RDF export
 
 @author Wouter Beek
-@version 2017/09
+@version 2017/09-2017/10
 */
 
+:- use_module(library(apply)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/turtle), []).
 
@@ -42,6 +44,23 @@
    rdf_write_tuple(+, t).
 
 
+
+
+
+%! rdf_reserialize(+Uri:atom, +In:stream, +File:atom) is det.
+
+rdf_reserialize(Uri, In, File) :-
+  setup_call_cleanup(
+    open(File, write, Out),
+    rdf_deref_stream(Uri, In, rdf_clean_assert(Out)),
+    close(Out)
+  ).
+
+rdf_clean_assert(Out, Triples, _) :-
+  maplist(rdf_clean_assert(Out), Triples).
+
+rdf_clean_assert(Out, rdf(S,P,O)):-
+  rdf_write_triple(Out, S, P, O).
 
 
 

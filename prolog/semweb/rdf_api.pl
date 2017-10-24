@@ -11,8 +11,10 @@
     rdf_clean_triple/2,          % +Triple1, -Triple2
     rdf_create_iri/3,            % +Prefix, +Path, -Iri
     rdf_create_well_known_iri/1, % -Iri
-    rdf_deref/2,                 % +Uri, :Goal_2
-    rdf_deref/3,                 % +Uri, :Goal_2, +Options
+    rdf_deref_stream/3,          % +Uri, +In, :Goal_2
+    rdf_deref_stream/4,          % +Uri, +In, :Goal_2, +Options
+    rdf_deref_uri/2,             % +Uri, :Goal_2
+    rdf_deref_uri/3,             % +Uri, :Goal_2, +Options
     rdf_is_skip_node/1,          % @Term
     rdf_is_well_known_iri/1,     % @Term
     rdf_lexical_value/3,         % ?D, ?Lex, ?Val
@@ -87,9 +89,10 @@
 :- use_module(library(xsd/xsd_number)).
 
 :- meta_predicate
-    rdf_deref(+, 2),
-    rdf_deref(+, 2, +),
-    rdf_deref_stream(+, +, 2, +).
+    rdf_deref_stream(+, +, 2),
+    rdf_deref_stream(+, +, 2, +),
+    rdf_deref_uri(+, 2),
+    rdf_deref_uri(+, 2, +).
 
 :- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
@@ -102,8 +105,8 @@
    rdf_clean_literal(o, o),
    rdf_clean_quad(t, -),
    rdf_clean_triple(t, -),
-   rdf_deref(+, :),
-   rdf_deref(+, :, +),
+   rdf_deref_uri(r, :),
+   rdf_deref_uri(r, :, +),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
    rdf_lexical_value(r, ?, ?),
@@ -339,69 +342,12 @@ rdf_create_well_known_iri(Iri) :-
 
 
 
-%! rdf_deref(+Uri:atom, :Goal_2) is det.
-%! rdf_deref(+Uri:atom, :Goal_2, +Options:list(compound)) is det.
-%
-% The following options are supported:
-%
-%   * accept(+MediaTypes:list(compound))
-%
-%     The value of the HTTP Accept header, from high to low
-%     precedence.  The default value is a list of all and only
-%     standardized Media Types.
-%
-%   * base_uri(+atom)
-%
-%     The default is the URI of the last metadata element.
-%
-%   * bnode_prefix(+atom)
-%
-%     The default is a well-known IRI as per RDF 1.1.
-%
-%   * content_type(+MediaType:compound)
-%
-%     Overrule the Media Type communicated in the `Content-Type' reply
-%     header.
-%
-%   * format(+MediaType:compound)
-%
-%     Overrule the RDF serialization format.
+%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_2) is det.
+%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_2, +Options:list(compound)) is det.
 
-rdf_deref(Uri, Goal_2) :-
-  rdf_deref(Uri, Goal_2, []).
+rdf_deref_stream(Uri, In, Goal_2) :-
+  rdf_deref_stream(Uri, In, Goal_2, []).
 
-
-rdf_deref(Uri, Goal_2, Options1) :-
-  % URI
-  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
-  maplist(ground, [Scheme,Authority]), !,
-  % `Accept' header
-  findall(MT, rdf_media_type(MT), DefaultMTs),
-  select_option(accept(MTs), Options1, Options2, DefaultMTs),
-  atom_phrase(accept(MTs), Accept),
-  setup_call_cleanup(
-    http_open2(
-      Uri,
-      In,
-      [
-        header(content_type,ContentType),
-        request_header('Accept'=Accept)
-      ]
-    ),
-    (
-      include(ground, [content_type(ContentType)], Options3),
-      merge_options(Options3, Options2, Options4),
-      rdf_deref_stream(Uri, In, Goal_2, Options4)
-    ),
-    close(In)
-  ).
-rdf_deref(File, Goal_2, Options) :-
-  uri_file_name(Uri, File),
-  setup_call_cleanup(
-    gzopen(File, read, In),
-    rdf_deref_stream(Uri, In, Goal_2, Options),
-    close(In)
-  ).
 
 rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   % Serialization format
@@ -523,6 +469,65 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
 
 
 
+%! rdf_deref_uri(+Uri:atom, :Goal_2) is det.
+%! rdf_deref_uri(+Uri:atom, :Goal_2, +Options:list(compound)) is det.
+%
+% The following options are supported:
+%
+%   * accept(+MediaTypes:list(compound))
+%
+%     The value of the HTTP Accept header, from high to low
+%     precedence.  The default value is a list of all and only
+%     standardized Media Types.
+%
+%   * base_uri(+atom)
+%
+%     The default is the URI of the last metadata element.
+%
+%   * bnode_prefix(+atom)
+%
+%     The default is a well-known IRI as per RDF 1.1.
+%
+%   * content_type(+MediaType:compound)
+%
+%     Overrule the Media Type communicated in the `Content-Type' reply
+%     header.
+%
+%   * format(+MediaType:compound)
+%
+%     Overrule the RDF serialization format.
+
+rdf_deref_uri(Uri, Goal_2) :-
+  rdf_deref_uri(Uri, Goal_2, []).
+
+
+rdf_deref_uri(Uri, Goal_2, Options1) :-
+  % URI
+  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
+  maplist(ground, [Scheme,Authority]), !,
+  % `Accept' header
+  findall(MT, rdf_media_type(MT), DefaultMTs),
+  select_option(accept(MTs), Options1, Options2, DefaultMTs),
+  atom_phrase(accept(MTs), Accept),
+  setup_call_cleanup(
+    http_open2(
+      Uri,
+      In,
+      [
+        header(content_type,ContentType),
+        request_header('Accept'=Accept)
+      ]
+    ),
+    (
+      include(ground, [content_type(ContentType)], Options3),
+      merge_options(Options3, Options2, Options4),
+      rdf_deref_stream(Uri, In, Goal_2, Options4)
+    ),
+    close(In)
+  ).
+
+
+
 %! rdf_is_skip_node(@Term) is semidet.
 
 rdf_is_skip_node(Term) :-
@@ -535,6 +540,7 @@ rdf_is_skip_node(Term) :-
 %! rdf_is_well_known_iri(@Term) is semidet.
 
 rdf_is_well_known_iri(Iri) :-
+  rdf_is_iri(Iri),
   uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
   ground(Scheme-Authority).
 
