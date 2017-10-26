@@ -78,7 +78,6 @@
     rdf_tuple_triple/2               % +Tuple, ?Triple
   ]
 ).
-:- reexport(library(hdt)).
 
 /** <module> RDF extensions
 

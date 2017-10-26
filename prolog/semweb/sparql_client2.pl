@@ -292,7 +292,7 @@ tsv_term(Literal) -->
   ;   "@"
   ->  rest(Codes),
       {atom_codes(LTag, Codes)},
-      {synlist_semlit(literal(lang(LTag,Lex)), Literal))}
+      {synlist_semlit(literal(lang(LTag,Lex)), Literal)}
   ).
 tsv_term(BNode) -->
   rest(Codes),

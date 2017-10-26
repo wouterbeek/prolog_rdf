@@ -6,7 +6,6 @@
     hdt_walk_random/4  % +Hdt, +Node, +Depth, -Walk
   ]
 ).
-:- reexport(library(hdt_db)).
 
 /** <module> HDT as a Machine Learning bakcend
 
@@ -18,6 +17,7 @@
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(random)).
+:- use_module(library(semweb/hdt_db)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 
