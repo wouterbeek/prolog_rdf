@@ -112,6 +112,12 @@ rdf_write_literal(Out, literal(lang(LTag,Lex))) :- !,
   format(Out, "@~a", [LTag]).
 rdf_write_literal(Out, literal(Lex)) :- !,
   rdf_write_literal(Out, literal(type(xsd:string,Lex))).
+rdf_write_literal(Out, Value^^D1) :- !,
+  rdf11:in_type(D1, Value, D2, Lex),
+  rdf_write_literal(Out, literal(type(D2,Lex))).
+rdf_write_literal(Out, String@LTag) :- !,
+  atom_string(Lex, String),
+  rdf_write_literal(Out, literal(lang(LTag,Lex))).
 
 
 
