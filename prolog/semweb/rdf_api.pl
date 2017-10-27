@@ -26,6 +26,7 @@
     rdf_load2/2,                 % +File, +Options
     rdf_media_type_format/2,     % +MediaType, +Format
     rdf_node/2,                  % ?Node, ?G
+    rdf_prefix_maplist/2,        % :Goal_1, +Args1
     rdf_prefix_member/2,         % ?Elem, +L
     rdf_prefix_memberchk/2,      % ?Elem, +L
     rdf_query_term/2,            % +Term, -QueryTerm
@@ -92,7 +93,8 @@
     rdf_deref_stream(+, +, 2),
     rdf_deref_stream(+, +, 2, +),
     rdf_deref_uri(+, 2),
-    rdf_deref_uri(+, 2, +).
+    rdf_deref_uri(+, 2, +),
+    rdf_prefix_maplist(1, +).
 
 :- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
@@ -112,6 +114,7 @@
    rdf_lexical_value(r, ?, ?),
    rdf_list_member(r, t),
    rdf_list_member(r, t, r),
+   rdf_prefix_maplist(:, t),
    rdf_node(o, r),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
@@ -643,6 +646,13 @@ rdf_node(S, G) :-
   rdf(S, _, _, G).
 rdf_node(O, G) :-
   rdf(_, _, O, G).
+
+
+
+%! rdf_prefix_maplist(:Goal_1, +Args1:list) is det.
+
+rdf_prefix_maplist(Goal_1, L) :-
+  maplist(Goal_1, L).
 
 
 
