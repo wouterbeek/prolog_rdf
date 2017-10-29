@@ -258,7 +258,7 @@ register_language_prefixes(Language) :-
 :- rdf_register_prefix(dbt, 'http://dbpedia.org/datatype/').
 :- rdf_register_prefix(dby, 'http://dbpedia.org/class/yago/').
 :- rdf_register_prefix(dcat, 'http://www.w3.org/ns/dcat#').
-:- rdf_register_prefix(dcterms, 'http://purl.org/dc/terms/').
+:- rdf_register_prefix(dct, 'http://purl.org/dc/terms/').
 :- rdf_register_prefix(dctype, 'http://purl.org/dc/dcmitype/').
 :- rdf_register_prefix(dqv, 'http://www.w3.org/ns/dqv#').
 :- rdf_register_prefix(earl, 'http://www.w3.org/ns/earl#').
