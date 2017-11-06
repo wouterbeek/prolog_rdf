@@ -128,9 +128,12 @@ rdf_html_literal(Literal, Options1) -->
   rdf_html_literal_(Literal, Options2).
 
 rdf_html_literal_(Literal, Options) -->
-  {synlit(Literal, D, LTag, Lex)},
+  {synlit(Literal, D, LTag, Lex)}, !,
   rdf_html_literal_internal_(D, LTag, Lex, Options),
   rdf_html_literal_external_(D, LTag, Lex).
+rdf_html_literal_(Semlit, Options) -->
+  {synlit_semlit(Synlit, Semlit)},
+  rdf_html_literal_(Synlit, Options).
 
 rdf_html_literal_external_(xsd:anyURI, _, Uri) --> !,
   html(" "),

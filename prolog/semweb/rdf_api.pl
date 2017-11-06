@@ -188,12 +188,17 @@ rdf_assert_reification(S, P, O, G, Stmt) :-
 
 
 
-%! rdf_atom_to_term(+Atom:atom, -Term:compound) is det.
+%! rdf_atom_to_term(+Atom:atom, -Term:rdf_term) is det.
 
-rdf_atom_to_term(Atom, Literal) :-
+rdf_atom_to_term(Atom, Term) :-
   atom_codes(Atom, Codes),
-  phrase(rdf_literal_(Literal), Codes), !.
-rdf_atom_to_term(NonLiteral, NonLiteral).
+  phrase(rdf_term_(Term), Codes).
+
+rdf_iri_(Iri) -->
+  "<",
+  ...(Codes),
+  ">", !,
+  {atom_codes(Iri, Codes)}.
 
 rdf_literal_(Literal) -->
   "\"",
@@ -202,14 +207,15 @@ rdf_literal_(Literal) -->
   ("^^" -> rdf_iri_(D) ; "@" -> rest_as_atom(LTag) ; ""),
   {
     atom_codes(Lex, Codes),
-    rdf_literal(Literal, D, LTag, Lex)
+    synlit(Literal, D, LTag, Lex)
   }.
 
-rdf_iri_(Iri) -->
-  "<",
-  ...(Codes),
-  ">", !,
-  {atom_codes(Iri, Codes)}.
+rdf_term_(Iri) -->
+  rdf_iri_(Iri), !.
+rdf_term_(Literal) -->
+  rdf_literal_(Literal).
+rdf_term_(BNode) -->
+  rest_as_atom(BNode).
 
 
 
@@ -700,8 +706,11 @@ rdf_reification(S, P, O, G, Stmt) :-
 
 
 
-%! rdf_term_to_atom(+Term, -Atom) is det.
+%! rdf_term_to_atom(+Term:rdf_term, -Atom:atom) is det.
 
+rdf_term_to_atom(SemLit, Atom) :-
+  synlit_semlit(SynLit, SemLit), !,
+  rdf_term_to_atom(SynLit, Atom).
 rdf_term_to_atom(literal(type(D,Lex)), Atom) :- !,
   format(atom(Atom), '"~a"^^<~a>', [Lex,D]).
 rdf_term_to_atom(literal(lang(LTag,Lex)), Atom) :- !,
