@@ -10,11 +10,12 @@
 /** <module> XSD date/time
 
 @author Wouter Beek
-@version 2017/08, 2017/10
+@version 2017/08-2017/11
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(date_time)).
+:- use_module(library(default)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(xsd/xsd)).
 
@@ -102,12 +103,12 @@ daysInMonth(_, _, 31).
 %
 % Let:
 %
-%   - yr be 1971, when dt's year is absent, and dt's year − 1
+%   - yr be 1971, when dt's year is absent, and dt's year - 1
 %     otherwise
 %
 %   - mo be 12 or dt's month, similarly
 %
-%   - da be daysInMonth(yr + 1, mo) − 1 or (dt's day) − 1,
+%   - da be daysInMonth(yr + 1, mo) - 1 or (dt's day) - 1,
 %     similarly
 %
 %   - hr be 0 or dt's hour, similarly
@@ -127,7 +128,7 @@ daysInMonth(_, _, 31).
 %
 %   - (Leap-year Days, month, and day)
 %
-%     - Add 86400 × (yr div 400 − yr div 100 + yr div 4) to ToTl
+%     - Add 86400 × (yr div 400 - yr div 100 + yr div 4) to ToTl
 %
 %     - Add 86400 × Sum_{m < mo} daysInMonth(yr + 1, m) to ToTl
 %
@@ -145,11 +146,11 @@ daysInMonth(_, _, 31).
 
 
 timeOnTimeline(dt(Y1,Mo1,D1,H1,Mi1,S1,Off), N) :-
-  % yr be 1971 when dt's year is absent, and dt's year − 1 otherwise.
+  % yr be 1971 when dt's year is absent, and dt's year - 1 otherwise.
   (var(Y1) -> Y2 = 1971 ; Y2 is Y1 - 1),
   % mo be 12 or dt's month, similarly.
   defval(Mo1, 12, Mo2),
-  % da be daysInMonth(yr + 1, mo) − 1 or (dt's day) − 1, similarly.
+  % da be daysInMonth(yr + 1, mo) - 1 or (dt's day) - 1, similarly.
   Y2_succ is Y2 + 1,
   (   var(D1)
   ->  daysInMonth(Y2_succ, Mo2, D2_succ),
@@ -176,7 +177,7 @@ timeOnTimeline(dt(Y1,Mo1,D1,H1,Mi1,S1,Off), N) :-
   ),
   N is % Set ToTl to 31536000 × yr.
        31536000 * Y2
-       % Leap-year Days: add 86400 × (yr div 400 − yr div 100 + yr div
+       % Leap-year Days: add 86400 × (yr div 400 - yr div 100 + yr div
        % 4) to ToTl.
        + 86400 * ((Y2 xsd_div 400) - (Y2 xsd_div 100) + (Y2 xsd_div 4))
        % Month: add 86400 × Sum_{m < mo} daysInMonth(yr + 1, m) to ToTl

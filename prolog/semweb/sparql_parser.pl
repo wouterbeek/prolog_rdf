@@ -127,23 +127,6 @@ replace_codepoint_escape_sequences --> "".
 
 
 
-%! codepoint_escape_sequence(-Code:code)// .
-%
-% SPARQL alows the following two ways of escaping Unicode codes:
-%
-% ```bnf
-% '\u' HEX HEX HEX HEX
-% ```
-%
-% A Unicode code point in the range U+0 to U+FFFF inclusive
-% corresponding to the encoded hexadecimal value.
-%
-% ```bnf
-% '\U' HEX HEX HEX HEX HEX HEX HEX HEX
-% ```
-%
-% A Unicode code point in the range U+0 to U+10FFFF inclusive
-% corresponding to the encoded hexadecimal value.
 
 codepoint_escape_sequence(Code) -->
   "\\u", !,
@@ -2448,10 +2431,11 @@ projection(State, binding(Var,E)) -->
 
 
 
-%! 'SolutionModifier'(+State, +P1, +TypeSpecific, -P3, -P4, -P11)// is det.
+%! 'SolutionModifier'(+State, +P1, +TypeSpecific, -P3, -P4, -P11)// .
 %
-% Processes solution modifiers into a term
-% ‘solutions(Group,Having,Order,Limit,Offset)’.
+% ```prolog
+% solutions(Group, Having, Order, Limit, Offset)
+% ```
 %
 % ```ebnf
 % [18] SolutionModifier ::= GroupClause?
@@ -3884,8 +3868,8 @@ active_graph(State, Gs) :-
 % If Keyword is a ground string, then check wheter it occurs modulo
 % case.
 %
-% If Keyword is uninstantated, then instantiate it to the next
-% keyword, converted to lowercase.
+% If Keyword is uninstantated, then instantiate it under conversion to
+% lowercase.
 
 keyword(Keyword) -->
   ({ground(Keyword)} -> keyword_ground(Keyword) ; keyword_var(Keyword)),
