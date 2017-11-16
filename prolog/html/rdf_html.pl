@@ -70,7 +70,7 @@ graph_link(G) -->
 
 %! rdf_html_bnode(+BNode:atom)// is det.
 
-rdf_html_bnode(BNode) :-
+rdf_html_bnode(BNode) -->
   html(BNode).
 
 
