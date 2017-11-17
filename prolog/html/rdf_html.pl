@@ -11,15 +11,26 @@
     rdf_html_term//1,         % +Term
     rdf_html_term//2,         % +Term, +Options
     rdf_html_triple//2,       % +Uri, +Triple
-    rdf_html_triple_table//3  % +Uri, ?G, +Triples
+    rdf_html_triple//3,       % +Uri, +Triple, +Options
+    rdf_html_triple_table//3, % +Uri, ?G, +Triples
+    rdf_html_triple_table//4  % +Uri, ?G, +Triples, +Options
   ]
 ).
 :- reexport(library(html/html_ext)).
 
 /** <module> RDF HTML
 
+# Options
+
+| *Option*    | *Type*   |
+|-------------|----------|
+| format      | ntriples |
+| iri_abbr    | Boolean  |
+| max_iri_len | [0,∞)    |
+| max_lit_len | [0,∞)    |
+
 @author Wouter Beek
-@version 2017/05-2017/10
+@version 2017/05-2017/11
 */
 
 :- use_module(library(apply)).
@@ -36,6 +47,7 @@
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(xsd/xsd_dt)).
 :- use_module(library(xsd/xsd_number)).
+:- use_module(library(yall)).
 
 :- multifile
     html:html_hook//1,
@@ -54,7 +66,9 @@
    rdf_html_term(o, ?, ?),
    rdf_html_term(o, +, ?, ?),
    rdf_html_triple(+, t, ?, ?),
-   rdf_html_triple_table(+, r, t).
+   rdf_html_triple(+, t, +, ?, ?),
+   rdf_html_triple_table(+, r, t, ?, ?),
+   rdf_html_triple_table(+, r, t, +, ?, ?).
 
 
 
@@ -100,7 +114,7 @@ rdf_html_iri_internal_(Iri, _) -->
 rdf_html_iri_internal_(Iri, Options) -->
   {
     Options.iri_abbr == true,
-    rdf_global_id(Alias:Local1, Iri), !,
+    rdf_prefix_iri(Alias:Local1, Iri), !,
     atom_ellipsis(Local1, Options.max_iri_len, Local2)
   },
   html([Alias,":",Local2]).
@@ -128,12 +142,12 @@ rdf_html_literal(Literal, Options1) -->
   rdf_html_literal_(Literal, Options2).
 
 rdf_html_literal_(Literal, Options) -->
-  {synlit(Literal, D, LTag, Lex)}, !,
+  {dict_get(format, Options, ntuples)}, !,
+  rdf_html_literal_ntuples(Literal).
+rdf_html_literal_(Literal, Options) -->
+  {rdf_literal(D, LTag, Lex, Literal)},
   rdf_html_literal_internal_(D, LTag, Lex, Options),
   rdf_html_literal_external_(D, LTag, Lex).
-rdf_html_literal_(Semlit, Options) -->
-  {synlit_semlit(Synlit, Semlit)},
-  rdf_html_literal_(Synlit, Options).
 
 rdf_html_literal_external_(xsd:anyURI, _, Uri) --> !,
   html(" "),
@@ -215,6 +229,12 @@ rdf_html_literal_internal_(xsd:anyUri, _, Uri, _) --> !,
 rdf_html_literal_internal_(_, _, Lex, Options) -->
   html_ellipsis(Lex, Options.max_lit_len).
 
+rdf_html_literal_ntuples(syn(D,LTag,Lex)) -->
+  (   {rdf_equal(D, rdf:langString)}
+  ->  html(["\"",Lex,"\"@",LTag])
+  ;   html(["\"",Lex,"\"^^<",a(href=D, D),">"])
+  ).
+
 
 
 %! rdf_html_nonliteral(+S)// is det.
@@ -260,9 +280,16 @@ rdf_html_term_(Literal, Options) -->
 
 
 %! rdf_html_triple(+Uri:atom, +Triple:compound)// is det.
+%! rdf_html_triple(+Uri:atom, +Triple:compound,
+%!                 +Options:list(compound))// is det.
 
-rdf_html_triple(Uri, rdf(S,P,O)) -->
+rdf_html_triple(Uri, Triple) -->
+  rdf_html_triple(Uri, Triple, _{}).
+
+
+rdf_html_triple(Uri, rdf(S,P,O), Options1) -->
   {
+    rdf_html_options(Options1, Options2),
     maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
     maplist(
       uri_comp_set(query, Uri),
@@ -272,23 +299,33 @@ rdf_html_triple(Uri, rdf(S,P,O)) -->
   },
   html(
     tr([
-      td(a(href=UriS, \rdf_html_nonliteral(S))),
-      td(a(href=UriP, \rdf_html_iri(P))),
-      td(a(href=UriO, \rdf_html_term(O)))
+      td(a(href=UriS, \rdf_html_nonliteral_(S, Options2))),
+      td(a(href=UriP, \rdf_html_iri_(P, Options2))),
+      td(a(href=UriO, \rdf_html_term_(O, Options2)))
     ])
   ).
     
 
 
 %! rdf_html_triple_table(+Uri:atom, ?G:atom, +Triples:list(compound))// is det.
+%! rdf_html_triple_table(+Uri:atom, ?G:atom, +Triples:list(compound),
+%!                       +Options:list(compound))// is det.
 
 rdf_html_triple_table(Uri, G, Triples) -->
+  rdf_html_triple_table(Uri, G, Triples, _{}).
+
+
+rdf_html_triple_table(Uri, G, Triples, Options1) -->
+  {rdf_html_options(Options1, Options2)},
   table(
     \table_header_row(["Subject","Predicate","Object"]),
-    \html_maplist(rdf_html_triple_table_row(Uri, G), Triples)
+    \html_maplist(
+      [Triple]>>rdf_html_triple_table_row(Uri, G, Triple, Options2),
+      Triples
+    )
   ).
 
-rdf_html_triple_table_row(Uri, G, rdf(S,P,O)) -->
+rdf_html_triple_table_row(Uri, G, rdf(S,P,O), Options) -->
   {
     maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
     (var(G) -> T = [] ; T = [graph(G)]),
@@ -300,9 +337,9 @@ rdf_html_triple_table_row(Uri, G, rdf(S,P,O)) -->
   },
   html(
     tr([
-      td(a(href=UriS, \rdf_html_nonliteral(S))),
-      td(a(href=UriP, \rdf_html_iri(P))),
-      td(a(href=UriO, \rdf_html_term(O)))
+      td(a(href=UriS, \rdf_html_nonliteral_(S, Options))),
+      td(a(href=UriP, \rdf_html_iri_(P, Options))),
+      td(a(href=UriO, \rdf_html_term_(O, Options)))
     ])
   ).
 
