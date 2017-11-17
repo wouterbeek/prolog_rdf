@@ -57,6 +57,7 @@
     rdf_global_term/2 as rdf_prefix_term,
     rdf_is_bnode/1,
     rdf_is_iri/1,
+    rdf_is_subject/1,
     (rdf_meta)/1,
     op(1150, fx, (rdf_meta))
    ]).
