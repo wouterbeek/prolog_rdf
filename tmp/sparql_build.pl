@@ -506,7 +506,7 @@ term(iri(Iri)) --> !, sparql_iri(Iri).
 term(literal(lang(Lang,Lex))) --> !, "\"", Lex, "\"@", atom(Lang).
 term(literal(type(D0,Lex))) --> !,
   "\"", atom(Lex), "\"^^",
-  {rdf_global_id(D0, D)},
+  {rdf_prefix_iri(D0, D)},
   term(iri(D)).
 term(str(Term)) --> !, "str(", term(Term), ")".
 term(string(String)) --> !, "\"", atom(String), "\"".

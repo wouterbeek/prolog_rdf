@@ -215,7 +215,7 @@ user:message_hook(non_canonical_lexical_form('http://www.w3.org/2001/XMLSchema#f
 %! graph_file(+G, -File) is det.
 
 graph_file(G, File) :-
-  rdf_global_id(graph:Local, G),
+  rdf_prefix_iri(graph:Local, G),
   absolute_file_name(data(Local), File, [access(write),extensions([nt])]).
 
 

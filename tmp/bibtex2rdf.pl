@@ -43,13 +43,13 @@ bibtex2rdf(Source, M, G, Opts) :-
 assert_bibtex_entry(M, G, Entry0) :-
   md5(Entry0, Hash),
   Entry0 = entry(CName,Name,Pairs),
-  rdf_global_id(lobr:Hash, Entry),
-  rdf_global_id(lobo:CName, C),
+  rdf_prefix_iri(lobr:Hash, Entry),
+  rdf_prefix_iri(lobo:CName, C),
   qb_instance(M, Entry, C, G),
   qb(M, Entry, lobo:name, Name, G),
   maplist(assert_bibtex_property(M, Entry, G), Pairs).
 
 
 assert_bibtex_property(M, Entry, G, Key-Val) :-
-  rdf_global_id(lobo:Key, P),
+  rdf_prefix_iri(lobo:Key, P),
   qb(M, Entry, P, Val, G).

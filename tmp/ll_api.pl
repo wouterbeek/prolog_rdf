@@ -455,10 +455,10 @@ ll_docs_by_size_query0(Low, High, Query) :-
 ll_doc_download0(Doc, Iri) :-
   nonvar(Doc), !,
   ll_doc_name0(Doc, Name),
-  rdf_global_id(lld:Name, Iri).
+  rdf_prefix_iri(lld:Name, Iri).
 ll_doc_download0(Doc, Iri) :-
   nonvar(Iri), !,
-  rdf_global_id(lld:Name, Iri),
+  rdf_prefix_iri(lld:Name, Iri),
   ll_doc_name0(Doc, Name).
 
 
@@ -466,7 +466,7 @@ ll_doc_download0(Doc, Iri) :-
 %! ll_doc_name0(?Doc, ?Name) is det.
 
 ll_doc_name0(Doc, Name) :-
-  rdf_global_id(llr:Name, Doc).
+  rdf_prefix_iri(llr:Name, Doc).
 
 
 

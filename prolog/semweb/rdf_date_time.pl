@@ -15,12 +15,13 @@
 Support for reading/writing date/time assertions in RDF.
 
 @author Wouter Beek
-@version 2017/08-2017/09
+@version 2017/08-2017/11
 */
 
 :- use_module(library(date_time)).
 :- use_module(library(error)).
 :- use_module(library(semweb/rdf_api)).
+:- use_module(library(sgml)).
 
 :- multifile
     error:has_type/2.
@@ -114,6 +115,7 @@ rdf_date_time_to_dt(year_month(Y,Mo), dt(Y,Mo,_,_,_,_,0)).
 %! rdf_dt(?S, ?P, -Datetime:dt, ?G) is nondet.
 
 rdf_dt(S, P, DT, G) :-
-  rdf(S, P, Term^^D, G),
+  rdf(S, P, syn(D,_,Lex), G),
   rdf11:xsd_date_time_type(D),
-  rdf_date_time_to_dt(Term, DT).
+  xsd_time_string(DateTime, D, Lex),
+  rdf_date_time_to_dt(DateTime, DT).

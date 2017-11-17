@@ -152,7 +152,7 @@ rdf_dcg_bnode(BNode) -->
   {rdf_is_bnode(BNode)}, !,
   atom(BNode).
 rdf_dcg_bnode(BNode) -->
-  {rdf_global_id(bnode:Local, BNode)},
+  {rdf_prefix_iri(bnode:Local, BNode)},
   "_:",
   atom(Local).
 
@@ -175,7 +175,7 @@ rdf_dcg_iri(Full, Options) -->
         atom_prefix(Full, Iri)
     ->  atom_concat(Iri, Local, Full)
     ;   % Abbreviated based on a global prefix declaration.
-        rdf_global_id(Prefix:Local, Full)
+        rdf_prefix_iri(Prefix:Local, Full)
     ->  true
     ), !,
     atom_length(Prefix, PrefixLength),

@@ -111,48 +111,48 @@ order_sign(>, 1).
 
 
 
-%! 'fn:concat'(+Literals:list(string_literal), -Literal:string_literal) is det.
+%! 'fn:concat'(+Literals:list(rdf_literal), -Literal:rdf_literal) is det.
 
-'fn:concat'(Lits, Lit) :-
-  maplist(string_literal, Lits, Ds, LTags, Strs),
-  atomics_to_string(Strs, Str),
+'fn:concat'(Literals, Literal) :-
+  maplist(rdf_literal, Ds, LTags, Lexs, Literals),
+  atomics_to_string(Lexs, Lex),
   (   % xsd:string
       rdf_equal(xsd:string, D),
       maplist(=(D), Ds)
-  ->  semlit(Lit, D, _, Str)
+  ->  rdf_typed_literal(D, Lex, Literal)
   ;   % language-tagged string
       maplist(=(LTag), LTags),
       atom(LTag)
-  ->  semlit(Lit, rdf:langString, LTag, Str)
+  ->  rdf_language_tagged_string(LTag, Lex, Literal)
   ;   % plain literal
-      Lit = Str
+      Literal = Lex
   ).
 
 
 
-%! 'fn:matches'(+Literal:string_literal, +Pattern:string) is semidet.
-%! 'fn:matches'(+Literal:string_literal, +Pattern:string, +Flags:string) is semidet.
+%! 'fn:matches'(+Literal:rdf_literal, +Pattern:rdf_literal) is semidet.
+%! 'fn:matches'(+Literal:rdf_literal, +Pattern:rdf_literal,
+%!              +Flags:rdf_literal) is semidet.
 
 'fn:matches'(Literal, Pattern) :-
   'fn:matches'(Literal, Pattern, "").
 
 
-'fn:matches'(Literal, Pattern1, Flags1) :-
-  maplist(string_literal, [Literal,Pattern1,Flags1], [Str,Pattern2,Flags2]),
-  atom_string(Flags0, Flags2),
-  re_match(Pattern2/Flags0, Str).
+'fn:matches'(Literal, Pattern, Flags) :-
+  maplist(rdf_literal, _, _, [Lex,PatternLex,FlagsLex], [Literal,Pattern,Flags]),
+  re_match(PatternLex/FlagsLex, Lex).
 
 
 
 %! 'fn:substring'(+Source:compound, +Start:compound, -String:compound) is det.
 
 'fn:substring'(Literal1, Start^^xsd:integer, Literal2) :-
-  semlit(Literal1, D, LTag, Str1),
-  string_codes(Str1, Codes1),
+  rdf_literal(D, LTag, Lex, Literal1),
+  atom_codes(Lex, Codes1),
   length(Prefix, Start),
   append(Prefix, Codes2, Codes1),
-  string_codes(Str2, Codes2),
-  rdf_create_string_literal(Literal2, D, LTag, Str2).
+  atom_codes(Lex2, Codes2),
+  rdf_literal(D, LTag, Lex2, Literal2).
 
 
 
@@ -337,27 +337,6 @@ numeric_type_promotion(xsd:float, xsd:double).
 
 
 
-%! rdf_create_string_literal(-SemLit:rdf_literal, ?Ds:list(atom), ?LTag:list(atom), +Lex:atom) is det.
-%
-% If all input literals are typed literals of type `xsd:string', then
-% the returned literal is also of type `xsd:string', if all input
-% literals are plain literals with identical language tag, then the
-% returned literal is a plain literal with the same language tag, in
-% all other cases, the returned literal is a simple literal.
-
-% xsd:string
-rdf_create_string_literal(Str^^xsd:string, Ds, _, Str) :-
-  rdf_equal(D, xsd:string),
-  maplist(==(D), Ds), !.
-% rdf:langString
-rdf_create_string_literal(Str@LTag, _, [LTag|LTags], Str) :-
-  atom(LTag),
-  maplist(==(LTag), LTags), !.
-% simple literal
-rdf_create_string_literal(Str, _, _, Str).
-
-
-
 %! 'STR'(+Term, +Atom) is semidet.
 %! 'STR'(+Term, -Atom) is det.
 %
@@ -369,9 +348,7 @@ rdf_create_string_literal(Str, _, _, Str).
 %
 % @compat SPARQL 1.1 Query §17.4.2.5
 
-'STR'(SemLit, Lex) :-
-  synlit_semlit(SynLit, SemLit), !,
-  synlit(SynLit, _, _, Lex).
+'STR'(syn(_,_,Lex), Lex) :- !.
 'STR'(A, A).
 
 
@@ -379,27 +356,15 @@ rdf_create_string_literal(Str, _, _, Str).
 %! 'STRDT'(+Lex:atom, +D:atom, -Literal:compound) is det.
 %! 'STRDT'(-Lex:atom, -D:atom, +Literal:compound) is det.
 
-'STRDT'(Lex, D, SemLit) :-
-  synlit(literal(type(D,Lex)), SemLit).
+'STRDT'(Lex, D, Literal) :-
+  rdf_typed_literal(D, Lex, Literal).
 
 
 
-%! string_literal(+Lit:string_literal, -String:string) is det.
+%! string_literal(+Lit:rdf_literal, -String:string) is det.
 
 string_literal(Lit, Str) :-
   string_literal(Lit, _, _, Str).
-
-
-%! string_literal(+Lit:string_literal, -D:atom, -LTag:atom, -String:string) is det.
-%! string_literal(-Lit:string_literal, +D:atom, +LTag:atom, +String:string) is det.
-
-% xsd:string
-string_literal(SemLit, xsd:string, LTag, Str) :-
-  semlit(SemLit, xsd:string, LTag, Str), !.
-% rdf:langString
-string_literal(SemLit, rdf:langString, LTag, Str) :-
-  semlit(SemLit, rdf:langString, LTag, Str), !.
-string_literal(Str, _, _, Str).
 
 
 

@@ -36,7 +36,7 @@ Transforms Media Types as recorded in the IANA registry to RDF.
 %! assert_category_class(+M, +Cat, -C, +G) is det.
 
 assert_category_class(M, Cat, C, G) :-
-  rdf_global_id(mto:Cat, C),
+  rdf_prefix_iri(mto:Cat, C),
   qb_label(M, C, Cat, G),
   qb_subclass(M, C, mto:'MediaType', G).
 
@@ -56,7 +56,7 @@ assert_media_type(M, MediaType, DefExt, G):-
   assert_category_class(M, Cat, C, G),
   % Subtype
   atomic_list_concat([Cat,Subtype], /, Name),
-  rdf_global_id(mtr:Name, Res),
+  rdf_prefix_iri(mtr:Name, Res),
   string_phrase('media-type'(MediaType), S),
   qb_instance(M, Res, C, S),
   % Template

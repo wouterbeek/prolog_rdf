@@ -123,7 +123,7 @@ rdf_annotate(M, S, Txt, G, Opts0):-
   put_dict('@context', Anns1, Context, Anns2),
   fresh_uri(Job, uri(_,_,[annotate],_,_)),
   put_dict('@id', Anns2, Job, Anns3),
-  rdf_global_id(annotate:'AnnotationJob', C),
+  rdf_prefix_iri(annotate:'AnnotationJob', C),
   put_dict('@type', Anns3, C, Anns4),
   forall(jsonld_tuple(Anns4, rdf(S,P,O)), rdf_assert(M, S, P, O, G)),
   option(language(Lang), Opts),

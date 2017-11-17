@@ -27,6 +27,10 @@
 
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_api)).
+:- use_module(library(semweb/rdf11), [
+     op(110, xfx, @),
+     op(650, xfx, ^^)
+   ]).
 :- use_module(library(semweb/turtle), []).
 
 :- rdf_meta

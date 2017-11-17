@@ -178,7 +178,7 @@ rdfa_mbox(M, Agent, G) -->
 %! rdfa_prefixed_iri(+Iri, -PrefixedIri) is det.
 
 rdfa_prefixed_iri(Iri, PrefixedIri) :-
-  rdf_global_id(Alias:Local, Iri),
+  rdf_prefix_iri(Alias:Local, Iri),
   atomic_list_concat([Alias,Local], :, PrefixedIri).
 
 

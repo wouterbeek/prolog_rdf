@@ -147,7 +147,7 @@ target(P, C, G) :-
 %! iri_label(+Iri:atom, -Label:string) is det.
 
 iri_label(Iri, Label) :-
-  rdf_global_id(Prefix:Local, Iri), !,
+  rdf_prefix_iri(Prefix:Local, Iri), !,
   atomics_to_string([Prefix,Local], ":", Label).
 iri_label(Iri, Label) :-
   atom_string(Iri, Label).

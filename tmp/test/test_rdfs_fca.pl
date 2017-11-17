@@ -111,6 +111,6 @@ fca_viz0(Context, GLbl) :-
 
 rdf_assert_number0(M, N, G) :-
   atom_number(A, N),
-  rdf_global_id(ex:A, Iri),
+  rdf_prefix_iri(ex:A, Iri),
   rdf_assert_instance(M, Iri, ex:'Number', G),
   rdfs_assert_label(M, Iri, A, G).

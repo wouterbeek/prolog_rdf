@@ -16,6 +16,10 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dif)).
 :- use_module(library(semweb/rdf_api)).
+:- use_module(library(semweb/rdf11), [
+     op(110, xfx, @),
+     op(650, xfx, ^^)
+   ]).
 :- use_module(library(xsd/xsd_number)).
 :- use_module(library(xsdp_types)).
 
@@ -44,18 +48,18 @@ xsd_div(X, Y, Z):-
 
 
 
-%! xsd_lexical_value(+D:atom, +Lex:atom, -Val:term) is det.
-%! xsd_lexical_value(+D:atom, -Lex:atom, +Val:term) is det.
+%! xsd_lexical_value(+D:atom, +Lex:atom, -Value:term) is det.
+%! xsd_lexical_value(+D:atom, -Lex:atom, +Value:term) is det.
 
 xsd_lexical_value(xsd:decimal, Lex, N) :- !,
   (   atom(Lex)
   ->  atom_phrase(decimalLexicalMap(N), Lex)
   ;   atom_phrase(decimalCanonicalMap(N), Lex)
   ).
-xsd_lexical_value(D, Lex, Val) :-
+xsd_lexical_value(D, Lex, Value) :-
   (   ground(Lex)
-  ->  rdf11:out_type(D, Val, Lex)
-  ;   rdf11:pre_ground_object(Val^^D, literal(type(D,Lex)))
+  ->  rdf11:out_type(D, Value, Lex)
+  ;   rdf11:pre_ground_object(Value^^D, literal(type(D,Lex)))
   ).
 
 
@@ -81,4 +85,4 @@ xsd_global_local_(Global, Local) :-
   var(Global),
   var(Local), !.
 xsd_global_local_(Global, Local) :-
-  rdf_global_id(xsd:Local, Global).
+  rdf_prefix_iri(xsd:Local, Global).

@@ -2255,15 +2255,12 @@ iriOrFunction(State, Function) -->
   'String'(Lex),
   (   'LANGTAG'(LTag)
   ->  skip_ws,
-      {synlit_semlit(literal(lang(LTag,Lex)), Literal)}
+      {rdf_language_tagged_string(LTag, Lex, Literal)}
   ;   "^^"
   ->  skip_ws,
       iri(State, D),
-      {synlit_semlit(literal(type(D,Lex)), Literal)}
-  ;   {
-        atom_string(Lex, Str),
-        rdf_global_object(Str^^xsd:string, Literal)
-      }
+      {rdf_typed_literal(D, Lex, Literal)}
+  ;   {rdf_typed_literal(xsd:string, Lex, Literal)}
   ).
 
 
