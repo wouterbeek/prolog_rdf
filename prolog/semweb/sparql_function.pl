@@ -348,7 +348,8 @@ numeric_type_promotion(xsd:float, xsd:double).
 %
 % @compat SPARQL 1.1 Query §17.4.2.5
 
-'STR'(syn(_,_,Lex), Lex) :- !.
+'STR'(Literal, Lex) :-
+  rdf_literal_lexical_form(Literal, Lex).
 'STR'(A, A).
 
 

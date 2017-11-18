@@ -229,11 +229,10 @@ rdf_html_literal_internal_(xsd:anyUri, _, Uri, _) --> !,
 rdf_html_literal_internal_(_, _, Lex, Options) -->
   html_ellipsis(Lex, Options.max_lit_len).
 
-rdf_html_literal_ntuples(syn(D,LTag,Lex)) -->
-  (   {rdf_equal(D, rdf:langString)}
-  ->  html(["\"",Lex,"\"@",LTag])
-  ;   html(["\"",Lex,"\"^^<",a(href=D, D),">"])
-  ).
+rdf_html_literal_ntuples(literal(lang(LTag,Lex))) -->
+  html(["\"",Lex,"\"@",LTag]).
+rdf_html_literal_ntuples(literal(type(D,Lex))) -->
+  html(["\"",Lex,"\"^^<",a(href=D, D),">"]).
 
 
 

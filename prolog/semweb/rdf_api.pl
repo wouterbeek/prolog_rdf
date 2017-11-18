@@ -8,6 +8,7 @@
     rdf_clean_quad/2,             % +Quad1, -Quad2
     rdf_clean_triple/2,           % +Triple1, -Triple2
     rdf_create_iri/3,             % +Prefix, +Path, -Iri
+    rdf_create_prefix/1,          % +Pair
     rdf_create_well_known_iri/1,  % -Iri
     rdf_deref_stream/3,           % +Uri, +In, :Goal_2
     rdf_deref_stream/4,           % +Uri, +In, :Goal_2, +Options
@@ -20,12 +21,13 @@
     rdf_list_member/2,            % ?X, ?L
     rdf_list_member/3,            % ?X, ?L, ?G
     rdf_literal/4,                % ?D, ?LTag, ?Lex, ?Literal
+    rdf_literal_datatype_iri/2,   % +Literal, ?D
+    rdf_literal_lexical_form/2,   % +Literal, ?Lex
     rdf_load2/1,                  % +File
     rdf_load2/2,                  % +File, +Options
     rdf_media_type_format/2,      % +MediaType, +Format
     rdf_node/2,                   % ?Node, ?G
     rdf_prefix_iri/2,             % ?PrefixedName, ?Iri
-    rdf_prefix_literal/2,         % ?PrefixedLiteral, ?Literal
     rdf_prefix_maplist/2,         % :Goal_1, +Args1
     rdf_prefix_member/2,          % ?Elem, +L
     rdf_prefix_memberchk/2,       % ?Elem, +L
@@ -48,13 +50,14 @@
     rdfs_subproperty/3            % ?P, ?Q, ?G
   ]).
 :- reexport(library(semweb/rdf_db), [
+    rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
    ]).
 :- reexport(library(semweb/rdf11), [
     rdf_equal/2,
     rdf_global_id/2 as rdf_prefix_iri,
-    rdf_global_term/2 as rdf_prefix_term,
+    rdf_global_object/2 as rdf_prefix_term,
     rdf_is_bnode/1,
     rdf_is_iri/1,
     rdf_is_subject/1,
@@ -85,7 +88,9 @@
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/rdf_prefix), []).
 :- use_module(library(semweb/rdf_zlib_plugin)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf11), except([
+     rdf_is_literal/1
+   ])).
 :- use_module(library(semweb/rdf11_containers)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
@@ -106,32 +111,34 @@
 
 :- rdf_meta
    prefix_local_iri(?, ?, r),
-   rdf_assert_reification(r, r, t, r),
-   rdf_assert_reification(r, r, t, r, r),
-   rdf_chk(r, r, t, r),
+   rdf_assert_reification(r, r, o, r),
+   rdf_assert_reification(r, r, o, r, r),
+   rdf_chk(r, r, o, r),
    rdf_clean_lexical_form(r, +, -),
-   rdf_clean_literal(t, t),
+   rdf_clean_literal(o, o),
    rdf_clean_quad(t, -),
    rdf_clean_triple(t, -),
    rdf_deref_uri(r, :),
    rdf_deref_uri(r, :, +),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
-   rdf_language_tagged_string(?, ?, t),
+   rdf_language_tagged_string(?, ?, o),
    rdf_lexical_value(r, ?, ?),
    rdf_list_member(r, t),
    rdf_list_member(r, t, r),
-   rdf_literal(r, ?, ?, t),
+   rdf_literal(r, ?, ?, o),
+   rdf_literal_datatype_iri(o, r),
+   rdf_literal_lexical_form(o, ?),
+   rdf_node(o, r),
    rdf_prefix_maplist(:, t),
-   rdf_node(t, r),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
-   rdf_reification(r, r, t, r),
-   rdf_reification(r, r, t, r, r),
+   rdf_reification(r, r, o, r),
+   rdf_reification(r, r, o, r, r),
    rdf_term_to_atom(t, -),
    rdf_triple_list_member(r, r, t),
    rdf_triple_list_member(r, r, t, r),
-   rdf_typed_literal(r, ?, t),
+   rdf_typed_literal(r, ?, o),
    rdfs_instance(r, r),
    rdfs_instance(r, r, r),
    rdfs_range(r, r),
@@ -350,6 +357,16 @@ rdf_create_iri(Prefix, Segments, Iri2) :-
 
 
 
+%! rdf_create_prefix(+Pair:pair(atom)) is det.
+%
+% Syntactic sugar for registering multiple RDF prefixes using
+% maplist/2.
+
+rdf_create_prefix(Prefix-Iri) :-
+  rdf_register_prefix(Prefix, Iri).
+
+
+
 %! rdf_create_well_known_iri(-Iri) is det.
 
 rdf_create_well_known_iri(Iri) :-
@@ -565,7 +582,7 @@ rdf_is_well_known_iri(Iri) :-
 %! rdf_language_tagged_string(+LTag:atom, +Lex:atom, -Literal:rdf_literal) is det.
 %! rdf_language_tagged_string(-LTag:atom, -Lex:atom, +Literal:rdf_literal) is det.
 
-rdf_language_tagged_string(LTag, Lex, syn(rdf:langString,LTag,Lex)).
+rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 
 
 
@@ -610,7 +627,24 @@ rdf_list_member(X, L, G) :-
 %! rdf_literal(+D:iri, +LTag:atom, +Lex:atom, -Literal:rdf_literal) is det.
 %! rdf_literal(-D:iri, -LTag:atom, -Lex:atom, +Literal:rdf_literal) is det.
 
-rdf_literal(D, LTag, Lex, syn(D,LTag,Lex)).
+rdf_literal(D, _, Lex, literal(type(D,Lex))).
+rdf_literal(rdf:langString, LTag, Lex, literal(lang(LTag,Lex))).
+
+
+
+%! rdf_literal_datatype_iri(+Literal:rdf_literal, +D:iri) is semidet.
+%! rdf_literal_datatype_iri(+Literal:rdf_literal, -D:iri) is det.
+
+rdf_literal_datatype_iri(literal(type(D,_)), D).
+rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
+
+
+
+%! rdf_literal_lexical_form(+Literal:rdf_literal, +Lex:atom) is semidet.
+%! rdf_literal_lexical_form(+Literal:rdf_literal, -Lex:atom) is det.
+
+rdf_literal_lexical_form(literal(type(_,Lex)), Lex).
+rdf_literal_lexical_form(literal(lang(_,Lex)), Lex).
 
 
 
@@ -701,13 +735,6 @@ rdf_prefix_memberchk(Elem, L) :-
 
 
 
-%! rdf_prefix_literal(+PrefixedLiteral:compound, -Literal:rdf_literal) is det.
-
-rdf_prefix_literal(syn(PrefixedD,LTag,Lex), syn(D,LTag,Lex)) :-
-  rdf_prefixed_iri(PrefixedD, D).
-
-
-
 %! rdf_query_term(+Term, -QueryTerm) is det.
 
 rdf_query_term(Term, QueryTerm) :-
@@ -736,10 +763,10 @@ rdf_reification(S, P, O, G, Stmt) :-
 
 %! rdf_term_to_atom(+Term:rdf_term, -Atom:atom) is det.
 
-rdf_term_to_atom(syn(rdf:langString,LTag,Lex), Atom) :-
+rdf_term_to_atom(literal(lang(LTag,Lex)), Atom) :-
   nonvar(LTag), !,
   format(atom(Atom), '"~a"@~a', [Lex,LTag]).
-rdf_term_to_atom(syn(D,_,Lex), Atom) :- !,
+rdf_term_to_atom(literal(type(D,Lex)), Atom) :- !,
   format(atom(Atom), '"~a"^^<~a>', [Lex,D]).
 rdf_term_to_atom(Iri, Atom) :-
   rdf_is_iri(Iri), !,
@@ -806,7 +833,7 @@ rdf_term_var(Literal, Literal, Map, Map).
 %! rdf_typed_literal(+D:iri, +Lex:atom, -Literal:rdf_literal) is det.
 %! rdf_typed_literal(-D:iri, -Lex:atom, +Literal:rdf_literal) is det.
 
-rdf_typed_literal(D, Lex, syn(D,_,Lex)).
+rdf_typed_literal(D, Lex, literal(type(D,Lex))).
 
 
 

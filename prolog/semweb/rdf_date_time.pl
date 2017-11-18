@@ -115,7 +115,7 @@ rdf_date_time_to_dt(year_month(Y,Mo), dt(Y,Mo,_,_,_,_,0)).
 %! rdf_dt(?S, ?P, -Datetime:dt, ?G) is nondet.
 
 rdf_dt(S, P, DT, G) :-
-  rdf(S, P, syn(D,_,Lex), G),
+  rdf(S, P, literal(type(D,Lex)), G),
   rdf11:xsd_date_time_type(D),
   xsd_time_string(DateTime, D, Lex),
   rdf_date_time_to_dt(DateTime, DT).
