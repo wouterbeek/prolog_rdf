@@ -25,6 +25,7 @@
     rdf_literal_lexical_form/2,   % +Literal, ?Lex
     rdf_load2/1,                  % +File
     rdf_load2/2,                  % +File, +Options
+    rdf_media_type/1,             % +MediaType
     rdf_media_type_format/2,      % +MediaType, +Format
     rdf_node/2,                   % ?Node, ?G
     rdf_prefix_iri/2,             % ?PrefixedName, ?Iri
@@ -376,7 +377,8 @@ rdf_create_well_known_iri(Iri) :-
 
 
 %! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_2) is det.
-%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_2, +Options:list(compound)) is det.
+%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_2,
+%!                  +Options:list(compound)) is det.
 
 rdf_deref_stream(Uri, In, Goal_2) :-
   rdf_deref_stream(Uri, In, Goal_2, []).
@@ -384,24 +386,26 @@ rdf_deref_stream(Uri, In, Goal_2) :-
 
 rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   % Serialization format
-  ignore(option(format(MT), Options1)),
-  (   var(MT)
-  ->  rdf_guess(In, MTs),
+  ignore(option(format(MediaType), Options1)),
+  (   var(MediaType)
+  ->  rdf_guess(In, MediaTypes),
       (   % `Content-Type' header
           option(content_type(ContentType), Options1)
-      ->  http_parse_header_value(content_type, ContentType, MT),
-          member(GuessMT, MTs),
-          (   'rdf_media_type_>'(MT, GuessMT)
+      ->  http_parse_header_value(content_type, ContentType, MediaType),
+          member(GuessMediaType, MediaTypes),
+          (   'rdf_media_type_>'(MediaType, GuessMediaType)
           ->  !, true
-          ;   print_message(warning, inconsistent_media_types(MT,GuessMT))
+          ;   print_message(warning,
+                            inconsistent_media_types(MediaType,GuessMediaType))
           )
-      ;   member(MT, MTs)
+      ;   member(MediaType, MediaTypes)
       ),
       (   % URI path's file name extension
-          uri_media_type(Uri, UriMT)
-      ->  (   'rdf_media_type_>'(MT, UriMT)
+          uri_media_type(Uri, UriMediaType)
+      ->  (   'rdf_media_type_>'(MediaType, UriMediaType)
           ->  !, true
-          ;   print_message(warning, inconsistent_media_types(MT,UriMT))
+          ;   print_message(warning,
+                            inconsistent_media_types(MediaType,UriMediaType))
           )
       ;   true
       )
@@ -420,7 +424,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
 
   % Parse according to the guessed Media Type.
   (   % N-Quads
-      MT = media(application/'n-quads',_)
+      MediaType = media(application/'n-quads',_)
   ->  merge_options(
         [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
         Options1,
@@ -428,7 +432,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_ntriples(In, Goal_2, Options2)
   ;   % N-Triples
-      MT = media(application/'n-triples',_)
+      MediaType = media(application/'n-triples',_)
   ->  merge_options(
         [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
         Options1,
@@ -436,7 +440,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_ntriples(In, Goal_2, Options2)
   ;   % RDF/XML
-      MT = media(application/'rdf+xml',_)
+      MediaType = media(application/'rdf+xml',_)
   ->  merge_options(
         [base_uri(BaseUri),blank_nodes(noshare)],
         Options1,
@@ -444,7 +448,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       process_rdf(In, Goal_2, Options2)
   ;   % TriG
-      MT = media(application/trig,_)
+      MediaType = media(application/trig,_)
   ->  merge_options(
         [
           anon_prefix(BNodePrefix),
@@ -457,7 +461,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_turtle(In, Goal_2, Options2)
   ;   % Turtle
-      MT = media(text/turtle,_)
+      MediaType = media(text/turtle,_)
   ->  merge_options(
         [
           anon_prefix(BNodePrefix),
@@ -470,7 +474,8 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_turtle(In, Goal_2, Options2)
   ;   % RDFa
-      memberchk(MT, [media(application/'xhtml+xml',_),media(text/html,_)])
+      memberchk(MediaType,
+                [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_options(
         [anon_prefix(BNodePrefix),base(BaseUri)],
         Options1,
@@ -479,7 +484,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       read_rdfa(In, Triples, Options2),
       maplist(Goal_2, Triples, _)
   ;   % An unsupported Media Type (e.g., JSON-LD).
-      print_message(warning, unsupported_media_type(MT))
+      print_message(warning, unsupported_media_type(MediaType))
   ).
 
 'rdf_media_type_>'(X, Y) :-
@@ -539,9 +544,9 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
   uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
   maplist(ground, [Scheme,Authority]), !,
   % `Accept' header
-  findall(MT, rdf_media_type(MT), DefaultMTs),
-  select_option(accept(MTs), Options1, Options2, DefaultMTs),
-  atom_phrase(accept(MTs), Accept),
+  findall(MediaType, rdf_media_type(MediaType), DefaultMediaTypes),
+  select_option(accept(MediaTypes), Options1, Options2, DefaultMediaTypes),
+  atom_phrase(accept(MediaTypes), Accept),
   setup_call_cleanup(
     http_open2(
       Uri,
@@ -681,8 +686,8 @@ rdf_load_format_(trig, trig).
 %! rdf_media_type(+MediaType:compound) is semidet.
 %! rdf_media_type(-MediaType:compound) is multi.
 
-rdf_media_type(MT) :-
-  rdf_media_type_format(MT, _).
+rdf_media_type(MediaType) :-
+  rdf_media_type_format(MediaType, _).
 
 
 
