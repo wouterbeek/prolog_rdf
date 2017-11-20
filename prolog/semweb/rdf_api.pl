@@ -57,6 +57,7 @@
    ]).
 :- reexport(library(semweb/rdf11), [
     rdf_equal/2,
+    rdf_default_graph/1,
     rdf_global_id/2 as rdf_prefix_iri,
     rdf_global_object/2 as rdf_prefix_term,
     rdf_is_bnode/1,

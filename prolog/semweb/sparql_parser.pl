@@ -25,7 +25,6 @@ expression.
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(sgml)).
 
@@ -391,9 +390,9 @@ is_aggregate(sum(_)).
 % [134] BooleanLiteral ::= 'true' | 'false'
 % ```
 
-'BooleanLiteral'(true^^xsd:boolean) -->
+'BooleanLiteral'(literal(type(xsd:boolean,true))) -->
   keyword(`true`), !.
-'BooleanLiteral'(false^^xsd:boolean) -->
+'BooleanLiteral'(literal(type(xsd:boolean,false))) -->
   keyword(`false`).
 
 

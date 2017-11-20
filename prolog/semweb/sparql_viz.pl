@@ -23,7 +23,6 @@ Example of use:
 :- use_module(library(graph/dot)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_print)).
-:- use_module(library(semweb/sparql_parser)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(yall)).
 
