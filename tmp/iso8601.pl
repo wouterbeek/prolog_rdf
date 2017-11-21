@@ -15,8 +15,8 @@
 
 :- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/rfc2234)).
-:- use_module(library(xsd/datetime/xsd_datetime_fragments)).
-:- use_module(library(xsd/number/xsd_number_aux)).
+:- use_module(library(xml/xsd_dt)).
+:- use_module(library(xml/xsd_number)).
 
 
 

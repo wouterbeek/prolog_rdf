@@ -58,7 +58,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(semweb/rdf_api)).
-:- use_module(library(xsd/xsd_dt)).
+:- use_module(library(xml/xsd_dt)).
 
 :- multifile
     rdf_dcg_literal_hook//2.

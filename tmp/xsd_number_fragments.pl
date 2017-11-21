@@ -38,7 +38,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
-:- use_module(library(xsd/number/xsd_number_aux)).
+:- use_module(library(xml/xsd_number)).
 
 
 

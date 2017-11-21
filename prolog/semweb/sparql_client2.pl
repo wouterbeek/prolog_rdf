@@ -32,21 +32,19 @@ SPARQL 1.1 HTTP responses (result sets).
 :- use_module(library(apply)).
 :- use_module(library(csv)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/rfc7159)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
+:- use_module(library(http/json)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/sparql_parser)).
 :- use_module(library(sgml)).
 :- use_module(library(uri/uri_ext)).
-:- use_module(library(xml/xml_ext)).
 
 
 
@@ -222,10 +220,10 @@ sparql_client_results(Form, In, MediaType, Result) :-
       sparql_result_csv(In, Result)
   ;   MediaType = media(application/'sparql-results+json',_)
   ->  sparql_result_json(Form, In, Result)
-  ;   MediaType = media(text/'tab-separated-values',_)
-  ->  sparql_result_tsv(In, Result)
   ;   MediaType = media(application/'sparql-results+xml',_)
   ->  sparql_result_xml(Form, In, Result)
+  ;   MediaType = media(text/'tab-separated-values',_)
+  ->  sparql_result_tsv(In, Result)
   ;   domain_error(sparql_media_type, MediaType)
   ).
 

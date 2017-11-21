@@ -99,8 +99,8 @@
 :- use_module(library(sgml)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(uuid)).
-:- use_module(library(xsd/xsd)).
-:- use_module(library(xsd/xsd_number)).
+:- use_module(library(xml/xsd)).
+:- use_module(library(xml/xsd_number)).
 
 :- meta_predicate
     rdf_deref_stream(+, +, 2),

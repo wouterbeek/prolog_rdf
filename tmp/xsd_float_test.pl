@@ -1,7 +1,7 @@
 :- module(xsd_float_test, []).
 
 :- use_module(library(plunit)).
-:- use_module(library(xsd/xsd)).
+:- use_module(library(xml/xsd)).
 
 
 

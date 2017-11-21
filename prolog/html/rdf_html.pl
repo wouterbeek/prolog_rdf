@@ -45,8 +45,8 @@
 :- use_module(library(semweb/rdf_date_time)).
 :- use_module(library(sgml)).
 :- use_module(library(uri/uri_ext)).
-:- use_module(library(xsd/xsd_dt)).
-:- use_module(library(xsd/xsd_number)).
+:- use_module(library(xml/xsd_dt)).
+:- use_module(library(xml/xsd_number)).
 :- use_module(library(yall)).
 
 :- multifile

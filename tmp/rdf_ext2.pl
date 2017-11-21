@@ -106,7 +106,7 @@
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(solution_sequences)).
 :- use_module(library(uri/uri_ext)).
-:- use_module(library(xsd/xsd)).
+:- use_module(library(xml/xsd)).
 :- use_module(library(yall)).
 
 :- debug(clean_tuple).

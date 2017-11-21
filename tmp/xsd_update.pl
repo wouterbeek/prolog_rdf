@@ -19,7 +19,7 @@ Predicates for cleaning XML Scheme 1.1 datatypes.
 @version 2015/07
 */
 
-:- use_module(library(xsd/xsd)).
+:- use_module(library(xml/xsd)).
 
 :- rdf_meta(xsd_lexical_canonical_map(r,+,-)).
 :- rdf_meta(xsd_lexical_canonical_map(r,+,r,-)).
