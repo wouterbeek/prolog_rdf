@@ -1,8 +1,9 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess/2, % +In, -Format
-    rdf_guess/3  % +In, -Format, +Options
+    rdf_guess_file/2,   % +File, -MediaType
+    rdf_guess_stream/2, % +In, -MediaType
+    rdf_guess_stream/3  % +In, +Size, -MediaType
   ]
 ).
 
@@ -18,7 +19,7 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2017/04-2017/10
+@version 2017/04-2017/11
 */
 
 :- use_module(library(apply)).
@@ -29,6 +30,8 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(pio)).
+:- use_module(library(semweb/rdf_api)).
+:- use_module(library(semweb/rdf_prefixes)).
 :- use_module(library(sgml)).
 
 :- meta_predicate
@@ -43,11 +46,38 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 
 
-%! rdf_guess(+In:stream, -Formats:list(compound)) is det.
-%! rdf_guess(+In:stream, -Formats:list(compound),
-%!           +Options:list(compound)) is det.
+%! rdf_guess_file(+File:atom, -MediaType:compound) is det.
+
+rdf_guess_file(File, MediaType) :-
+  rdf_guess_file0(File, Format),
+  rdf_media_type_format(MediaType, Format).
+
+% JSON-LD
+rdf_guess_file0(File, jsonld) :-
+  phrase_from_file(jsonld_format, File), !.
+% N-Quads, N-Triples, TriG, Turtle
+rdf_guess_file0(File, Format) :-
+  phrase_from_file(n3_format(false, [nquads,trig], Format), File).
+% RDF/XML
+rdf_guess_file0(File, Format) :-
+  setup_call_cleanup(
+    open(File, read, In),
+    sgml_format(In, Format),
+    close(In)
+  ).
+
+
+
+%! rdf_guess_stream(+In:stream, -MediaType:compound) is det.
+%! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:compound) is det.
 %
-% @arg Formats is a list of compound term of the form
+% @arg Size The initial number of codes that is read from the input
+%      stream In, on which the guess is based.  This number is doubled
+%      while backtracking, until either the end of the stream is
+%      reached or the maximum peek size, as indicated by the input
+%      stream `In', is exceeded.
+%
+% @arg MediaType is a compound term of the form
 %      `media(Supertype/Subtype,Params)'.  This is how Media Types are
 %      represented in the HTTP package (see
 %      http_parse_header_value/3).
@@ -74,77 +104,43 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 %
 %        * media(text/html,_) for RDFa
 %
-% @arg Options The following options are supported:
-%
-%   * peek_size(+positive_integer)
-%
-%     The initial number of codes that is read from the input stream
-%     In, on which the guess is based.  This number is doubled while
-%     backtracking, until either the end of the stream is reached or
-%     the maximum peek size, as indicated by the input stream `In', is
-%     exceeded.
-%
 % Non-determinism causes an increasingly longer prefix to be read.
 
-rdf_guess(In, Formats) :-
-  rdf_guess(In, Formats, []).
-
-
-rdf_guess(In, Formats, Options) :-
+rdf_guess_stream(In, MediaType) :-
   setting(minimum_peek_size, Min),
-  option(peek_size(Size), Options, Min),
-  (   Size == '∞'
-  ->  rdf_guess_inf(In, Formats0)
-  ;   must_be(positive_integer, Size),
-      setting(maximum_peek_size, Max),
-      rdf_guess_range(In, Size-Max, Formats0)
-  ),
-  maplist(format_mt, Formats0, Formats).
+  rdf_guess_stream(In, Min, MediaType).
 
-format_mt(jsonld, media(application/'ld+json',[])).
-format_mt(nquads, media(application/'n-quads',[])).
-format_mt(rdfa, media(text/html,[])).
-format_mt(rdfxml, media(application/'rdf+xml',[])).
-format_mt(trig, media(application/trig,[])).
 
-% JSON-LD
-rdf_guess_inf(In, [jsonld]) :-
-  phrase_from_stream(jsonld_format, In), !.
-% N-Quads, N-Triples, TriG, Turtle
-rdf_guess_inf(In, [Format]) :-
-  phrase_from_stream(n3_format(false, [nquads,trig], [Format]), In).
-% RDF/XML
-rdf_guess_inf(File, Format) :-
-  setup_call_cleanup(
-    open(File, read, In),
-    sgml_format(In, Format),
-    close(In)
-  ).
+rdf_guess_stream(In, Size, MediaType) :-
+  must_be(positive_integer, Size),
+  setting(maximum_peek_size, Max),
+  rdf_guess_stream0(In, Size, Max, Format),
+  rdf_media_type_format(MediaType, Format).
 
 % Guess the RDF serialization format based on the current peek size.
-rdf_guess_range(In, Size-Max, Formats) :-
+rdf_guess_stream0(In, Size, Max, Format) :-
   Size =< Max,
   peek_string(In, Size, String),
   debug(rdf_guess, "[PEEK ~D CHARS] ~s", [Size,String]),
   string_length(String, Length),
   % Keep track of whether or not the entire stream has been peeked.
   (Length < Size -> !, EoS = true ; EoS = false),
-  rdf_guess_string(String, EoS, Formats), !.
+  rdf_guess_string(String, EoS, Format), !.
 % Unable to determine the RDF serialization format within the maximum
 % peek size.
-rdf_guess_range(_, Size-Size, []) :- !.
+rdf_guess_stream0(_, Size, Size, _) :- !, fail.
 % Increase the peek size
-rdf_guess_range(In, Size1-Max, Formats) :-
+rdf_guess_stream0(In, Size1, Max, Format) :-
   Size2 is min(Size1 * 2,Max),
-  rdf_guess_range(In, Size2-Max, Formats).
+  rdf_guess_stream0(In, Size2, Max, Format).
 
-rdf_guess_string(String, _, [jsonld]) :-
+rdf_guess_string(String, _, jsonld) :-
   string_phrase(jsonld_format, String), !.
-rdf_guess_string(String, EoS, Formats) :-
+rdf_guess_string(String, EoS, Format) :-
   % We use the information as to whether or not the end of the stream
   % has been reached.
-  string_phrase(n3_format(EoS, [nquads,trig], Formats), String).
-rdf_guess_string(String, _, [Format]) :-
+  string_phrase(n3_format(EoS, [nquads,trig], Format), String, _).
+rdf_guess_string(String, _, Format) :-
   setup_call_cleanup(
     new_memory_file(MFile),
     (
@@ -161,8 +157,6 @@ rdf_guess_string(String, _, [Format]) :-
     ),
     free_memory_file(MFile)
   ).
-
-
 
 
 
@@ -219,12 +213,11 @@ json_string_rest -->
 
 
 
-
-
-% N3 %
+% N3 FAMILY %
 
 %! n3_format(+EoS:boolean,
-%!           -Subtypes:ordset(oneof([nquads,ntriples])))// is semidet.
+%!           +Formats:ordset(oneof([nquads,trig])),
+%!           -Format:oneof([nquads,trig]))// is semidet.
 %
 % Succeeds on a list of codes that match the beginning of a document
 % in the Turtle-family.
@@ -233,83 +226,79 @@ json_string_rest -->
 %      parsed input.  This matters for determining the RDF
 %      serialization format.  For example, if we have not seen any
 %      graph terms yet it cannot be TriG or N-Quads.
-%
-% @arg Subtypes An ordered set over the atoms `nquads' and `ntriples'.
 
-% done: unique sybtype
-n3_format(_, [Subtype], [Subtype]) --> !,
-  remainder(_).
-% done: end-of-stream; take a _most specific_ subtype
+% done: unique format
+n3_format(_, [Format], Format) --> !.
+% done: end-of-stream; take a _most specific_ format
 %
 % Empty files or files that only consist of N3 comments are also
 % classified as N3 at this step.
 %
 % At end-of-stream the format cannot be TriG, because it should have
 % been the only option by now.
-n3_format(true, L, [nquads]) -->
+n3_format(true, Formats, nquads) -->
   eos, !,
-  {assertion(L == [nquads])},
-  remainder(_).
+  {assertion(Formats == [nquads])}.
 % skip blanks
-n3_format(EoS, L1, L2) -->
+n3_format(EoS, Formats, Format) -->
   n3_blank, !,
   n3_blanks,
-  n3_format(EoS, L1, L2).
+  n3_format(EoS, Formats, Format).
 % N-Quads, N-Triples, TriG, Turtle comment
-n3_format(EoS, L1, L2) -->
+n3_format(EoS, Formats, Format) -->
   n3_comment, !,
-  n3_format(EoS, L1, L2).
+  n3_format(EoS, Formats, Format).
 % Turtle, TriG base or prefix declaration
-n3_format(_, L1, L2) -->
+n3_format(EoS, Formats1, Format) -->
   ("@base" ; "base" ; "@prefix" ; "prefix"), !,
-  {ord_subtract(L1, [nquads], L2)},
-  remainder(_).
+  {ord_subtract(Formats1, [nquads], Formats2)},
+  n3_format(EoS, Formats2, Format).
 % TriG default graph
-n3_format(_, L1, L2) -->
+n3_format(EoS, Formats1, Format) -->
   "{", !,
-  {ord_subtract(L1, [nquads], L2)},
-  remainder(_).
+  {ord_subtract(Formats1, [nquads], Formats2)},
+  n3_format(EoS, Formats2, Format).
 % N-Quads, N-Triples TriG, Turtle triple or quadruple
-n3_format(_, L1, L6) -->
-  n3_subject(L1, L2),
+n3_format(EoS, Formats1, Format) -->
+  n3_subject(Formats1, Formats2),
   n3_blanks,
-  n3_predicate(L2, L3), !,
+  n3_predicate(Formats2, Formats3), !,
   n3_blanks,
-  n3_object(L3, L4),
+  n3_object(Formats3, Formats4),
   n3_blanks,
   (   % end of a triple
       "."
-  ->  {L6 = L4}
+  ->  {Formats6 = Formats4}
   ;   % TriG, Turtle object list notation
       ";"
-  ->  {ord_subtract(L4, [nquads], L6)}
+  ->  {ord_subtract(Formats4, [nquads], Formats6)}
   ;   % TriG, Turtle predicate-object pairs list notation
       ","
-  ->  {ord_subtract(L4, [nquads], L6)}
+  ->  {ord_subtract(Formats4, [nquads], Formats6)}
   ;   % N-Quads end of a quadruple
-      n3_graph(L4, L5),
+      n3_graph(Formats4, Formats5),
       n3_blanks,
       "."
-  ->  {ord_subtract(L5, [trig], L6)}
+  ->  {ord_subtract(Formats5, [trig], Formats6)}
   ),
-  remainder(_).
+  n3_format(EoS, Formats6, Format).
 % TriG, Turtle anonymous blank node
-n3_format(_, L1, L2) -->
+n3_format(EoS, Formats1, Format) -->
   "[", !,
-  {ord_subtract(L1, [nquads], L2)},
-  remainder(_).
+  {ord_subtract(Formats1, [nquads], Formats2)},
+  ns_format(EoS, Formats2, Format).
 % TriG, Turtle collection
-n3_format(_, L1, L2) -->
+n3_format(EoS, Formats1, Format) -->
   "(", !,
-  {ord_subtract(L1, [nquads], L2)},
-  remainder(_).
+  {ord_subtract(Formats1, [nquads], Formats2)},
+  n3_format(EoS, Formats2, Format).
 % TriG named graph
-n3_format(_, L1, L3) -->
-  n3_graph(L1, L2),
+n3_format(EoS, Formats1, Format) -->
+  n3_graph(Formats1, Formats2),
   n3_blanks,
   "{",
-  {ord_subtract(L2, [nquads], L3)},
-  remainder(_).
+  {ord_subtract(Formats2, [nquads], Formats3)},
+  n3_format(EoS, Formats3, Format).
 
 % N3 only allows horizontal tab and space, but we skip other blank
 % characters as well, since they may appear in non-conforming
@@ -338,14 +327,32 @@ n3_graph(L1, L2) -->
 % N-Quads, N-Triples, TriG, Turtle full IRI
 n3_iriref(L, L) -->
   "<", !,
-  string(_),
-  ">".
+  n3_iriref0.
 % TriG, Turtle prefixed IRI
 n3_iriref(L1, L2) -->
   n3_iriref_prefix,
   ":",
   nonblanks,
   {ord_subtract(L1, [nquads], L2)}.
+
+n3_iriref0 -->
+  ">", !.
+n3_iriref0 -->
+  [Code],
+  {\+ non_iri_code(Code)},
+  n3_iriref0.
+
+non_iri_code(Code) :-
+  between(0x0, 0x20, Code).
+non_iri_code(0'<).
+non_iri_code(0'>).
+non_iri_code(0'").%"
+non_iri_code(0'{).
+non_iri_code(0'}).
+non_iri_code(0'|).
+non_iri_code(0'^).
+non_iri_code(0'`).
+non_iri_code(0'\\).
 
 n3_iriref_prefix -->
   ":", !,
@@ -436,8 +443,6 @@ n3_subject(L1, L2) -->
   n3_iriref(L1, L2), !.
 n3_subject(L, L) -->
   n3_bnode.
-
-
 
 
 

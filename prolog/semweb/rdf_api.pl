@@ -1,4 +1,6 @@
-:- module(rdf_api, [
+:- module(
+  rdf_api,
+  [
     isomorphic_graphset/2,        % +GraphSet1, +GraphSet2
     prefix_local_iri/3,           % ?Prefix, ?Local, ?Iri
     rdf_assert_reification/4,     % +S, +P, +O, +Stmt
@@ -389,7 +391,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   % Serialization format
   ignore(option(format(MediaType), Options1)),
   (   var(MediaType)
-  ->  rdf_guess(In, MediaTypes),
+  ->  rdf_guess_stream(In, MediaTypes),
       (   % `Content-Type' header
           option(content_type(ContentType), Options1)
       ->  http_parse_header_value(content_type, ContentType, MediaType),

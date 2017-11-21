@@ -7,7 +7,7 @@
 
 test('n-quads', [forall(doc(MT,Doc))]) :-
   open_string(Doc, In),
-  rdf_guess_media_type(In, MTs),
+  rdf_guess_stream(In, MTs),
   MTs = [MT].
 
 :- end_tests(rdf_guess).

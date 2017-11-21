@@ -59,7 +59,7 @@ sparql_post_graph_file(Iri, G, File0, Opts) :-
   absolute_file_name(File0, File, [access(read)]),
   setup_call_cleanup(
     open(File, read, In),
-    rdf_guess_media_type(In, MT),
+    rdf_guess_stream(In, MT),
     close(In)
   ),
   sparql_post_graph_data(Iri, G, file(MT,File), Opts).
