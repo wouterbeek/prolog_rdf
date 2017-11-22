@@ -701,11 +701,12 @@ rdf_media_type(MediaType) :-
 
 % Ordering represents precedence, from lower to hgiher.
 rdf_media_type_format(media(application/'json-ld',[]),   jsonld).
-rdf_media_type_format(media(application/'rdf+xml',[]),   rdfxml).
-rdf_media_type_format(media(text/turtle,[]),             turtle).
-rdf_media_type_format(media(application/'n-triples',[]), ntriples).
-rdf_media_type_format(media(application/trig,[]),        trig).
 rdf_media_type_format(media(application/'n-quads',[]),   nquads).
+rdf_media_type_format(media(application/'n-triples',[]), ntriples).
+rdf_media_type_format(media(application/'rdf+xml',[]),   rdfxml).
+rdf_media_type_format(media(application/trig,[]),        trig).
+rdf_media_type_format(media(application/'xhtml+xml',[]), rdfa).
+rdf_media_type_format(media(text/turtle,[]),             turtle).
 
 
 
