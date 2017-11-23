@@ -15,7 +15,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
-:- use_module(library(graph/dot)).
+:- use_module(library(graph/gv)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 

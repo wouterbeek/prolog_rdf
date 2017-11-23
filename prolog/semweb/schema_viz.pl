@@ -4,7 +4,7 @@
     schema_viz/2 % +Out, +G
   ]
 ).
-:- reexport(library(graph/dot)).
+:- reexport(library(graph/gv)).
 
 /** <module> Schema visualization
 

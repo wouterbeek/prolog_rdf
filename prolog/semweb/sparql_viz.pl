@@ -10,7 +10,7 @@
 Example of use:
 
 ```prolog
-?- graphviz_show(dot, gtk, [Out]>>sparql_viz(Out, graph:default)).
+?- gv_show(dot, gtk, [Out]>>sparql_viz(Out, graph:default)).
 ```
 
 @author Wouter Beek
@@ -20,7 +20,7 @@ Example of use:
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(file_ext)).
-:- use_module(library(graph/dot)).
+:- use_module(library(graph/gv)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_print)).
 :- use_module(library(uri/uri_ext)).
