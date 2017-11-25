@@ -961,19 +961,17 @@ set_dataset(_, _, _).
 
 'GraphGraphPattern'(State, Pattern) -->
   keyword(`graph`), !,
-  'VarOrIri'(State, NamedGraph),
-  {(  NamedGraph = var(_)
-  ->  true
-  ;   get_dict(named_graphs, State, NamedGraphs),
-      (   memberchk(NamedGraph, NamedGraphs)
-      ->  true
-      ;   existence_error(named_graph, NamedGraph)
-      ),
-      get_dict(active_graph, State, AG),
-      nb_set_dict(active_graph, State, NamedGraph)
-  )},
-  'GroupGraphPattern'(State, Pattern),
-  {nb_set_dict(active_graph, State, AG)}.
+  'VarOrIri'(State, _NamedGraph),
+  %{(  NamedGraph = var(_)
+  %->  true
+  %;   get_dict(named_graphs, State, NamedGraphs1),
+  %    ord_add_element(NamedGraphs1, NamedGraph, NamedGraphs2),
+  %    get_dict(active_graph, State, ActiveGraph),
+  %    nb_set_dict(active_graph, State, NamedGraph),
+  %    nb_set_dict(named_graphs, State, NamedGraphs2)
+  %)},
+  'GroupGraphPattern'(State, Pattern).
+  %{nb_set_dict(active_graph, State, ActiveGraph)}.
 
 
 
