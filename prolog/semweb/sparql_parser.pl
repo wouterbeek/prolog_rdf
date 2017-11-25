@@ -307,7 +307,7 @@ is_aggregate(sum(_)).
 %      IRI?
 
 'BaseDecl'(State) -->
-  keyword(`base`),
+  keyword(`base`), !,
   must_see('IRIREF'(State, Iri)),
   {nb_set_dict(base_iri, State, Iri)}.
 
@@ -875,7 +875,7 @@ set_dataset(_, _, _).
 % ```
 
 'ExistsFunc'(State, exists(G)) -->
-  keyword(`exists`),
+  keyword(`exists`), !,
   % @note G has already been translated.
   'GroupGraphPattern'(State, G).
 
@@ -928,7 +928,7 @@ set_dataset(_, _, _).
 % ```
 
 'Filter'(State, 'FILTER'(Constraint)) -->
-  keyword(`filter`),
+  keyword(`filter`), !,
   must_see('Constraint'(State, Constraint)).
 
 
@@ -1091,7 +1091,7 @@ set_dataset(_, _, _).
 % ```
 
 'GroupClause'(State, Es) -->
-  keyword(`group`),
+  keyword(`group`), !,
   must_see(keyword(`by`)),
   +('GroupCondition'(State), Es).
 
@@ -1336,7 +1336,7 @@ simplify(A, A).
 % ```
 
 'HavingClause'(State, P1, P2) -->
-  keyword(`having`),
+  keyword(`having`), !,
   must_see('HavingCondition'(State, E)),
   {visible_vars(P1, Vars)},
   'HavingCondition*'(State, 'Filter'(Vars,E,P1), P2).
@@ -1465,7 +1465,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'LimitClause'(Len) -->
-  keyword(`limit`),
+  keyword(`limit`), !,
   'INTEGER'(Len),
   skip_ws.
 
@@ -1501,7 +1501,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'MinusGraphPattern'(State, 'MINUS'(G)) -->
-  keyword(`minus`),
+  keyword(`minus`), !,
   'GroupGraphPattern'(State, G).
 
 
@@ -1540,7 +1540,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'NamedGraphClause'(State, NamedGraph) -->
-  keyword(`named`),
+  keyword(`named`), !,
   'SourceSelector'(State, NamedGraph).
 
 
@@ -1555,7 +1555,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'NotExistsFunc'(State, 'fn:not'(exists(G))) -->
-  keyword(`not`),
+  keyword(`not`), !,
   keyword(`exists`),
   % @note G has already been translated.
   'GroupGraphPattern'(State, G).
@@ -1736,7 +1736,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'OffsetClause'(Offset) -->
-  keyword(`offset`),
+  keyword(`offset`), !,
   'INTEGER'(Offset),
   skip_ws.
 
@@ -1760,7 +1760,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'OptionalGraphPattern'(State, 'OPTIONAL'(G)) -->
-  keyword(`optional`),
+  keyword(`optional`), !,
   'GroupGraphPattern'(State, G).
 
 
@@ -1776,7 +1776,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'OrderClause'(State, M, 'OrderBy'(M,[H|T])) -->
-  keyword(`order`),
+  keyword(`order`), !,
   must_see(keyword(`by`)),
   must_see('OrderCondition'(State, H)),
   'OrderCondition*'(State, T).
@@ -2020,7 +2020,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'PrefixDecl'(State) -->
-  keyword(`prefix`),
+  keyword(`prefix`), !,
   must_see('PNAME_NS'(Prefix)),
   skip_ws,
   must_see('IRIREF'(State, Iri)),
@@ -2270,7 +2270,7 @@ iriOrFunction(State, Function) -->
 % ```
 
 'RegexExpression'(State, 'fn:matches'(Target,Pattern,Flags)) -->
-  keyword(`regex`),
+  keyword(`regex`), !,
   must_see_code(0'(),
   must_see('Expression'(State, Target)),
   must_see_code(0',),
@@ -2674,7 +2674,7 @@ select_expression([binding(var(VarName),E)|T], VS, P1, P2, PV1, PV2) :-
 % ```
 
 'StrReplaceExpression'(State, 'fn:replace'(Arg,Pattern,Repl,Flags)) -->
-  keyword(`replace`),
+  keyword(`replace`), !,
   must_see_code(0'(),
   must_see('Expression'(State, Arg)),
   must_see_code(0',),
@@ -2718,7 +2718,7 @@ select_expression([binding(var(VarName),E)|T], VS, P1, P2, PV1, PV2) :-
 % ```
 
 'SubstringExpression'(State, Function) -->
-  keyword(`substr`),
+  keyword(`substr`), !,
   must_see_code(0'(),
   must_see('Expression'(State, Source)),
   must_see_code(0',),
