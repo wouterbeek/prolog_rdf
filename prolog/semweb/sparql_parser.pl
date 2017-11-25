@@ -14,7 +14,7 @@ Parses a SPARQL query string into the corresponding algebraic
 expression.
 
 @author Wouter Beek
-@version 2017/05-2017/10
+@version 2017/05-2017/11
 */
 
 :- use_module(library(apply)).
@@ -818,8 +818,8 @@ set_dataset(State, Ds, Ns) :-
   ->  % We use the default default graph.  The dataset is set
       % by using the SPARQL 1.1 Protocol.  This takes precedence over
       % `FROM' and `FROM NAMED' clauses in the query.
-      rdf_equal(graph:default, D),
-      nb_set_dict(default_graphs, State, [D])
+      rdf_default_graph(DefG),
+      nb_set_dict(default_graphs, State, [DefG])
   ;   % The dataset is set by `FROM' and/or `FROM NAMED' clauses.
       nb_set_dict(default_graphs, State, Ds),
       nb_set_dict(named_graphs, State, Ns)
