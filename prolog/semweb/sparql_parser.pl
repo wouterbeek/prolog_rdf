@@ -955,19 +955,23 @@ set_dataset(_, _, _).
 % ```ebnf
 % [58] GraphGraphPattern ::= 'GRAPH' VarOrIri GroupGraphPattern
 % ```
+%
+% TBD: Do not set the active graph here: the graph name may not be
+%      known yet.
 
 'GraphGraphPattern'(State, Pattern) -->
   keyword(`graph`), !,
   'VarOrIri'(State, NamedGraph),
-  {
-    get_dict(named_graphs, State, NamedGraphs),
-    (   memberchk(NamedGraph, NamedGraphs)
-    ->  true
-    ;   existence_error(named_graph, NamedGraph)
-    ),
-    get_dict(active_graph, State, AG),
-    nb_set_dict(active_graph, State, NamedGraph)
-  },
+  {(  NamedGraph = var(_)
+  ->  true
+  ;   get_dict(named_graphs, State, NamedGraphs),
+      (   memberchk(NamedGraph, NamedGraphs)
+      ->  true
+      ;   existence_error(named_graph, NamedGraph)
+      ),
+      get_dict(active_graph, State, AG),
+      nb_set_dict(active_graph, State, NamedGraph)
+  )},
   'GroupGraphPattern'(State, Pattern),
   {nb_set_dict(active_graph, State, AG)}.
 
@@ -1369,7 +1373,7 @@ simplify(A, A).
 % variable), omitting a binding if the BindingValue is the word UNDEF.
 
 'InlineData'(State, Data) -->
-  keyword(`values`),
+  keyword(`values`), !,
   'DataBlock'(State, Data).
 
 
@@ -1596,20 +1600,17 @@ iriOrFunction(State, Function) -->
 %                                | DOUBLE_NEGATIVE
 % ```
 
-% @bug
 'NumericLiteralNegative'(Lit) -->
   'INTEGER_NEGATIVE'(N), !,
-  {semlit(Lit, xsd:integer, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:integer,N)))},
   skip_ws.
-% @bug
 'NumericLiteralNegative'(Lit) -->
   'DECIMAL_NEGATIVE'(N), !,
-  {semlit(Lit, xsd:decimal, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:decimal,N)))},
   skip_ws.
-% @bug
 'NumericLiteralNegative'(Lit) -->
   'DOUBLE_NEGATIVE'(N),
-  {semlit(Lit, xsd:double, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:double,N)))},
   skip_ws.
 
 
@@ -1622,20 +1623,17 @@ iriOrFunction(State, Function) -->
 %                                | DOUBLE_POSITIVE
 % ```
 
-% @bug
 'NumericLiteralPositive'(Lit) -->
   'INTEGER_POSITIVE'(N), !,
-  {semlit(Lit, xsd:integer, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:integer,N)))},
   skip_ws.
-% @bug
 'NumericLiteralPositive'(Lit) -->
   'DECIMAL_POSITIVE'(N), !,
-  {semlit(Lit, xsd:decimal, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:decimal,N)))},
   skip_ws.
-% @bug
 'NumericLiteralPositive'(Lit) -->
   'DOUBLE_POSITIVE'(N),
-  {semlit(Lit, xsd:double, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:double,N)))},
   skip_ws.
 
 
@@ -1646,20 +1644,17 @@ iriOrFunction(State, Function) -->
 % [131] NumericLiteralUnsigned ::= INTEGER | DECIMAL | DOUBLE
 % ```
 
-% @bug
 'NumericLiteralUnsigned'(Lit) -->
   'DOUBLE'(N), !,
-  {semlit(Lit, xsd:double, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:double,N)))},
   skip_ws.
-% @bug
 'NumericLiteralUnsigned'(Lit) -->
   'DECIMAL'(N), !,
-  {semlit(Lit, xsd:decimal, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:decimal,N)))},
   skip_ws.
-% @bug
 'NumericLiteralUnsigned'(Lit) -->
   'INTEGER'(N), !,
-  {semlit(Lit, xsd:integer, _, N)},
+  {rdf_prefix_any(Lit, value(type(xsd:integer,N)))},
   skip_ws.
 
 
