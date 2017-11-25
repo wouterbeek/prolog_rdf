@@ -3,6 +3,7 @@
   [
     isomorphic_graphset/2,        % +GraphSet1, +GraphSet2
     prefix_local_iri/3,           % ?Prefix, ?Local, ?Iri
+    rdf/4,                        % ?S, ?P, ?O, ?G
     rdf_assert_reification/4,     % +S, +P, +O, +Stmt
     rdf_assert_reification/5,     % +S, +P, +O, +G, +Stmt
     rdf_atom_to_term/2,           % +Atom, -Term
@@ -54,7 +55,6 @@
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
-    rdf/4,
     rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
@@ -116,6 +116,7 @@
 
 :- rdf_meta
    prefix_local_iri(?, ?, r),
+   rdf(r, r, o, r),
    rdf_assert_reification(r, r, o, r),
    rdf_assert_reification(r, r, o, r, r),
    rdf_chk(r, r, o, r),
@@ -186,6 +187,15 @@ graphset_permutation(GraphSet, Graph) :-
 
 prefix_local_iri(Prefix, Local, Iri) :-
   rdf_prefix_iri(Prefix:Local, Iri).
+
+
+
+%! rdf(?S, ?P, ?O, ?G) is nondet.
+
+rdf(S, P, O, G) :-
+  rdf11:pre_graph(G, G0),
+  rdf_db:rdf(S, P, O, G0),
+  rdf11:post_graph(G, G0).
 
 
 
@@ -629,7 +639,7 @@ rdf_list_member(X, L, G) :-
   rdf(L, rdf:first, X, G).
 rdf_list_member(X, L, G) :-
   rdf(L, rdf:rest, T, G),
-  rdf_list_member(T, X, G).
+  rdf_list_member(X, T, G).
 
 
 
