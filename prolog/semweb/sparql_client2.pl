@@ -26,7 +26,7 @@ SPARQL 1.1 HTTP responses (result sets).
 @see https://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
 @tbd Fix streamed JSON parser.
 @tbd Extract the order of the results set in the XML parse (<head>).
-@version 2017/03-2017/09
+@version 2017/03-2017/11
 */
 
 :- use_module(library(apply)).
@@ -37,8 +37,8 @@ SPARQL 1.1 HTTP responses (result sets).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(http/json)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(http/http_header)).
-:- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_api)).
@@ -121,8 +121,11 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ;   true
       ),
       result_set_media_type(Format, Bugs, ReplyMediaType1),
-      maplist(graph_option('default-graph-uri'), DefaultGraphs,
-              DefaultGraphsQuery),
+      maplist(
+        graph_option('default-graph-uri'),
+        DefaultGraphs,
+        DefaultGraphsQuery
+      ),
       maplist(graph_option('named-graph-uri'), NamedGraphs, NamedGraphsQuery),
       append(DefaultGraphsQuery, NamedGraphsQuery, GraphsQuery),
       (   % Query via GET
@@ -142,29 +145,44 @@ sparql_client(Uri1, Query, Result, Options1) :-
           Method == url_encoded_post
       ->  uri_query_components(QueryComps, [query(Query)|GraphsQuery]),
           RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
-          merge_options([post(string(RequestMediaType,QueryComps))], Options6,
-                        Options7),
+          merge_options(
+            [post(string(RequestMediaType,QueryComps))],
+            Options6,
+            Options7
+          ),
           Uri2 = Uri1
       )
   ;   sparql_is_update_form(Form)
   ->  ReplyMediaType1 = '*/*; charset=UTF-8',
-      maplist(graph_option('using-graph-uri'), DefaultGraphs,
-              DefaultGraphsQuery),
-      maplist(graph_option('using-named-graph-uri'), NamedGraphs,
-              NamedGraphsQuery),
+      maplist(
+        graph_option('using-graph-uri'),
+        DefaultGraphs,
+        DefaultGraphsQuery
+      ),
+      maplist(
+        graph_option('using-named-graph-uri'),
+        NamedGraphs,
+        NamedGraphsQuery
+      ),
       append(DefaultGraphsQuery, NamedGraphsQuery, GraphsQuery),
       (   Method == post
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
           append(QueryComps1, GraphsQuery, QueryComps2),
           uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps2,_)),
           RequestMediaType = 'application/sparql-update; charset=UTF-8',
-          merge_options([post(string(RequestMediaType,Query))], Options5,
-                        Options7)
+          merge_options(
+            [post(string(RequestMediaType,Query))],
+            Options5,
+            Options7
+          )
       ;   Method == url_encoded_post
       ->  uri_query_components(QueryComps, [update(Query)|GraphsQuery]),
           RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
-          merge_options([post(string(RequestMediaType,QueryComps))], Options5,
-                        Options7),
+          merge_options(
+            [post(string(RequestMediaType,QueryComps))],
+            Options5,
+            Options7
+          ),
           Uri2 = Uri1
       )
   ),
@@ -177,7 +195,7 @@ sparql_client(Uri1, Query, Result, Options1) :-
     Options7,
     Options8
   ),
-  http_open(Uri2, In, Options8),
+  http_open2(Uri2, In, Options8),
   call_cleanup(
     (
       http_parse_header_value(content_type, ContentType, ReplyMediaType2),
