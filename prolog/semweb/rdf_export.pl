@@ -120,7 +120,8 @@ rdf_write_literal(Out, literal(Lex)) :- !,
 
 rdf_write_nonliteral(Out, BNode) :-
   rdf_is_bnode(BNode), !,
-  format(Out, '~a', [BNode]).
+  md5(BNode, Hash),
+  format(Out, '_:~a', [Hash]).
 rdf_write_nonliteral(Out, Iri) :-
   rdf_is_iri(Iri), !,
   rdf_write_iri(Out, Iri).
