@@ -275,7 +275,6 @@ register_language_prefixes(Language) :-
 :- rdf_register_prefix(gg, 'http://www.gemeentegeschiedenis.nl/gg-schema#').
 :- rdf_register_prefix(gml, 'http://www.opengis.net/ont/gml#').
 :- rdf_register_prefix(gr, 'http://purl.org/goodrelations/v1#').
-:- rdf_register_prefix(graph, 'https://example.org/graph/').
 :- rdf_register_prefix(grddl, 'http://www.w3.org/2003/g/data-view#').
 :- rdf_register_prefix(http, 'http://www.w3.org/2011/http#').
 :- rdf_register_prefix(hydra, 'http://www.w3.org/ns/hydra/core#').
