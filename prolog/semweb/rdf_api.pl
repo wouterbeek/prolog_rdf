@@ -53,6 +53,8 @@
     rdfs_subproperty/3            % ?P, ?Q, ?G
   ]).
 :- reexport(library(semweb/rdf_db), [
+    rdf/3,
+    rdf/4,
     rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
@@ -62,6 +64,7 @@
     rdf_default_graph/1,
     rdf_global_id/2 as rdf_prefix_iri,
     rdf_global_object/2 as rdf_prefix_term,
+    rdf_graph/1,
     rdf_is_bnode/1,
     rdf_is_iri/1,
     rdf_is_subject/1,
@@ -91,10 +94,8 @@
 :- use_module(library(semweb/rdf_http_plugin), []).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/rdf_prefix), []).
+:- use_module(library(semweb/rdf_prefixes)).
 :- use_module(library(semweb/rdf_zlib_plugin)).
-:- use_module(library(semweb/rdf11), except([
-     rdf_is_literal/1
-   ])).
 :- use_module(library(semweb/rdf11_containers)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
@@ -285,7 +286,7 @@ rdf_clean_lexical_form(xsd:decimal, Lex1, Lex2) :-
 rdf_clean_lexical_form(rdf:langString, Lex, Lex).
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
   catch(rdf11:out_type(D, Value, Lex1), E, true),
-  rdf11:pre_ground_object(Value^^D, literal(type(D,Lex2))),
+  in_type(D, Value, D, Lex2),
   (   var(E)
   ->  (   % Warning for a non-canonical lexical form.
           Lex1 \== Lex2
@@ -676,7 +677,7 @@ rdf_load2(File, Options1) :-
   ;   true
   ),
   merge_options([anon_prefix('_:'),format(Format)], Options1, Options2),
-  rdf_load(File, Options2).
+  rdf_db:rdf_load(File, Options2).
 
 rdf_load_format_(nq, nquads).
 rdf_load_format_(nt, ntriples).
