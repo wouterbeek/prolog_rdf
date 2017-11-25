@@ -4,17 +4,22 @@
     isomorphic_graphset/2,        % +GraphSet1, +GraphSet2
     prefix_local_iri/3,           % ?Prefix, ?Local, ?Iri
     rdf/4,                        % ?S, ?P, ?O, ?G
+    rdf_assert/1,                 % +Triple
+    rdf_assert/3,                 % +S, +P, +O
     rdf_assert_reification/4,     % +S, +P, +O, +Stmt
     rdf_assert_reification/5,     % +S, +P, +O, +G, +Stmt
     rdf_atom_to_term/2,           % +Atom, -Term
     rdf_chk/4,                    % ?S, ?P, ?O, ?G
     rdf_clean_quad/2,             % +Quad1, -Quad2
     rdf_clean_triple/2,           % +Triple1, -Triple2
+    rdf_create_graph/1,           % -G
     rdf_create_iri/3,             % +Prefix, +Path, -Iri
     rdf_create_prefix/1,          % +Pair
     rdf_create_well_known_iri/1,  % -Iri
     rdf_deref_stream/3,           % +Uri, +In, :Goal_2
     rdf_deref_stream/4,           % +Uri, +In, :Goal_2, +Options
+    rdf_deref_triple/2,           % +Uri, -Quads
+    rdf_deref_triple/3,           % +Uri, -Quads, +Options
     rdf_deref_uri/2,              % +Uri, :Goal_2
     rdf_deref_uri/3,              % +Uri, :Goal_2, +Options
     rdf_is_skip_node/1,           % @Term
@@ -55,6 +60,7 @@
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
+    rdf_assert/4,
     rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
@@ -120,6 +126,8 @@
 :- rdf_meta
    prefix_local_iri(?, ?, r),
    rdf(r, r, o, r),
+   rdf_assert(t),
+   rdf_assert(r, r, o),
    rdf_assert_reification(r, r, o, r),
    rdf_assert_reification(r, r, o, r, r),
    rdf_chk(r, r, o, r),
@@ -127,6 +135,8 @@
    rdf_clean_literal(o, o),
    rdf_clean_quad(t, -),
    rdf_clean_triple(t, -),
+   rdf_deref_triple(r, -),
+   rdf_deref_triple(r, -, +),
    rdf_deref_uri(r, :),
    rdf_deref_uri(r, :, +),
    rdf_is_skip_node(r),
@@ -199,6 +209,21 @@ rdf(S, P, O, G) :-
   rdf11:pre_graph(G, G0),
   rdf_db:rdf(S, P, O, G0),
   rdf11:post_graph(G, G0).
+
+
+
+%! rdf_assert(+Triple:rdf_triple) is det.
+
+rdf_assert(rdf(S,P,O)) :-
+  rdf_assert(S, P, O).
+
+
+
+%! rdf_assert(+S, +P, +O) is det.
+
+rdf_assert(S, P, O) :-
+  rdf_default_graph(G),
+  rdf_assert(S, P, O, G).
 
 
 
@@ -367,6 +392,14 @@ rdf_clean_triple(rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
 
 
 
+%! rdf_create_graph(-G:iri) is det.
+
+rdf_create_graph(G) :-
+  uuid(Id),
+  rdf_prefix_iri(ex:Id, G).
+
+
+
 %! rdf_create_iri(+Prefix:atom, +Segments:list(atom), -Iri:atom) is det.
 
 rdf_create_iri(Prefix, Segments, Iri2) :-
@@ -405,17 +438,16 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   % Serialization format
   ignore(option(format(MediaType), Options1)),
   (   var(MediaType)
-  ->  rdf_guess_stream(In, MediaTypes),
+  ->  rdf_guess_stream(In, GuessMediaType),
       (   % `Content-Type' header
           option(content_type(ContentType), Options1)
       ->  http_parse_header_value(content_type, ContentType, MediaType),
-          member(GuessMediaType, MediaTypes),
           (   'rdf_media_type_>'(MediaType, GuessMediaType)
           ->  !, true
           ;   print_message(warning,
                             inconsistent_media_types(MediaType,GuessMediaType))
           )
-      ;   member(MediaType, MediaTypes)
+      ;   MediaType = GuessMediaType
       ),
       (   % URI path's file name extension
           uri_media_type(Uri, UriMediaType)
@@ -524,6 +556,32 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
 
 
 
+%! rdf_deref_triple(+Uri:uri, -Triple:rdf_triple) is det.
+%! rdf_deref_triple(+Uri:uri, -Triple:rdf_triple,
+%!                  +Options:list(compound)) is det.
+
+rdf_deref_triple(Uri, Triple) :-
+  rdf_deref_triple(Uri, Triple, []).
+
+
+rdf_deref_triple(Uri, rdf(S,P,O), Options) :-
+  setup_call_cleanup(
+    rdf_create_graph(G),
+    (
+      rdf_deref_uri(Uri, rdf_deref_triples_(G), Options),
+      rdf(S, P, O, G)
+    ),
+    rdf_unload_graph(G)
+  ).
+  
+rdf_deref_triples_(G, Triples, _) :-
+  maplist(rdf_deref_triple_(G), Triples).
+
+rdf_deref_triple_(G, rdf(S,P,O)) :-
+  rdf_assert(S, P, O, G).
+
+
+
 %! rdf_deref_uri(+Uri:atom, :Goal_2) is det.
 %! rdf_deref_uri(+Uri:atom, :Goal_2, +Options:list(compound)) is det.
 %
@@ -568,12 +626,10 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
     http_open2(
       Uri,
       In,
-      [
-        header(content_type,ContentType),
-        request_header('Accept'=Accept)
-      ]
+      [failure(404),metadata([Meta|_]),request_header('Accept'=Accept)]
     ),
     (
+      _{'content-type': [ContentType]} :< Meta.headers,
       include(ground, [content_type(ContentType)], Options3),
       merge_options(Options3, Options2, Options4),
       rdf_deref_stream(Uri, In, Goal_2, Options4)
@@ -713,14 +769,15 @@ rdf_media_type(MediaType) :-
 %! rdf_media_type_format(-MediaType:compound, +Format:atom) is det.
 %! rdf_media_type_format(-MediaType:compound, -Format:atom) is multi.
 
-% Ordering represents precedence, from lower to hgiher.
-rdf_media_type_format(media(application/'json-ld',[]),   jsonld).
-rdf_media_type_format(media(application/'n-quads',[]),   nquads).
-rdf_media_type_format(media(application/'n-triples',[]), ntriples).
-rdf_media_type_format(media(application/'rdf+xml',[]),   rdfxml).
-rdf_media_type_format(media(application/trig,[]),        trig).
+% Ordering represents precedence, as used in HTTP Accept headers, from
+% lower to higher.
 rdf_media_type_format(media(application/'xhtml+xml',[]), rdfa).
+rdf_media_type_format(media(application/'json-ld',[]),   jsonld).
+rdf_media_type_format(media(application/'rdf+xml',[]),   rdfxml).
+rdf_media_type_format(media(application/'n-triples',[]), ntriples).
 rdf_media_type_format(media(text/turtle,[]),             turtle).
+rdf_media_type_format(media(application/'n-quads',[]),   nquads).
+rdf_media_type_format(media(application/trig,[]),        trig).
 
 
 
