@@ -1,7 +1,8 @@
 :- module(
   schema_viz,
   [
-    export_class_hierarchy/2, % +Out, +G
+    export_class_edge/2,     % +Out, +Edge
+    export_class_hierarchy/2 % +Out, +G
   ]
 ).
 :- reexport(library(graph/gv)).
@@ -29,27 +30,15 @@
 
 
 
-%! export_class_hierarchy(+Out:stream, +G:iri) is det.
+%! export_class_edge(+Out:stream, +Edge:edge) is det.
 
-export_class_hierarchy(Out, G) :-
-  format_debug(dot, Out, "digraph class_hierarchy {"),
-  rdf_equal(P, rdfs:subClassOf),
-  aggregate_all(set(edge(C,[P],D)), rdf(C, P, D, G), Edges),
-  maplist(export_edge(Out), Edges),
-  edges_to_vertices(Edges, Nodes),
-  maplist(export_node(Out), Nodes),
-  format_debug(dot, Out, "}").
-
-
-%! export_edge(+Out:stream, +Edge:compound) is det.
-
-export_edge(Out, edge(C1,[P],C2)) :-
+export_class_edge(Out, edge(C1,[P],C2)) :-
   rdf_equal(rdfs:subClassOf, P), !,
   maplist(dot_id, [C1,C2], [Id1,Id2]),
   % By swapping the order in which the nodes are asserted, we are able
   % to show superclasses above subclasses.
   dot_edge(Out, Id2, Id1, [arrowtail(onormal),dir(back),'URL'(P)]).
-export_edge(Out, edge(C1,Ps,C2)) :-
+export_class_edge(Out, edge(C1,Ps,C2)) :-
   property_path_label(Ps, Label),
   % We cannot put in URLs for all property path members, so we only
   % take the first one.
@@ -58,12 +47,26 @@ export_edge(Out, edge(C1,Ps,C2)) :-
   dot_edge(Out, Id1, Id2, [label(Label),'URL'(P)]).
 
 
-%! export_node(+Out:stream, +Node:iri) is det.
+
+%! export_class_hierarchy(+Out:stream, +G:iri) is det.
+
+export_class_hierarchy(Out, G) :-
+  format_debug(dot, Out, "digraph class_hierarchy {"),
+  rdf_equal(P, rdfs:subClassOf),
+  aggregate_all(set(edge(C,[P],D)), rdf(C, P, D, G), Edges),
+  maplist(export_class_edge(Out), Edges),
+  edges_to_vertices(Edges, Nodes),
+  maplist(export_class_node(Out), Nodes),
+  format_debug(dot, Out, "}").
+
+
+
+%! export_class_node(+Out:stream, +Node:iri) is det.
 %
 % Export a simple node, i.e., without its internal UML-like
 % definition.
 
-export_node(Out, Node) :-
+export_class_node(Out, Node) :-
   dot_id(Node, Id),
   iri_label(Node, Label),
   (is_http_uri(Node) -> T = ['URL'(Node)] ; T = []),

@@ -19,6 +19,7 @@
 :- use_module(library(graph/gv)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
+:- use_module(library(semweb/schema_viz)).
 :- use_module(library(yall)).
 
 :- rdf_meta
@@ -71,7 +72,7 @@ shacl_export(Out, G) :-
   aggregate_all(set(C), shacl_class(C, G), Cs),
   maplist({Out,G}/[C]>>shacl_export_class(Out, C, G), Cs),
   aggregate_all(set(Edge), shacl_edge(Edge, G), Edges),
-  maplist(shacl_export_edge(Out), Edges),
+  maplist(export_class_edge(Out), Edges),
   % bottom of graph
   format_debug(dot, Out, "}").
 
