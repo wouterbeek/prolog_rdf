@@ -6,6 +6,9 @@
     rdf/4,                        % ?S, ?P, ?O, ?G
     rdf_assert/1,                 % +Triple
     rdf_assert/3,                 % +S, +P, +O
+    rdf_assert_list/2,            % +PrologList, -RdfList
+    rdf_assert_list/3,            % +PrologList, -RdfList, +G
+    rdf_assert_list/4,            % +S, +P, +PrologList, +G
     rdf_assert_reification/4,     % +S, +P, +O, +Stmt
     rdf_assert_reification/5,     % +S, +P, +O, +G, +Stmt
     rdf_atom_to_term/2,           % +Atom, -Term
@@ -76,6 +79,7 @@
     rdf_is_bnode/1,
     rdf_is_iri/1,
     rdf_is_subject/1,
+    rdf_transaction/1,
     rdf_unload_graph/1,
     (rdf_meta)/1,
     op(1150, fx, (rdf_meta))
@@ -128,6 +132,8 @@
    rdf(r, r, o, r),
    rdf_assert(t),
    rdf_assert(r, r, o),
+   rdf_assert_list(+, -, r),
+   rdf_assert_list(r, r, t, r),
    rdf_assert_reification(r, r, o, r),
    rdf_assert_reification(r, r, o, r, r),
    rdf_chk(r, r, o, r),
@@ -224,6 +230,39 @@ rdf_assert(rdf(S,P,O)) :-
 rdf_assert(S, P, O) :-
   rdf_default_graph(G),
   rdf_assert(S, P, O, G).
+
+
+
+%! rdf_assert_list(+PrologList:list, -RdfList:bnode) is det.
+%! rdf_assert_list(+PrologList:list, -RdfList:bnode, +G:iri) is det.
+%! rdf_assert_list(+S:rdf_subject, +P:iri, +PrologList:list, +G:iri) is det.
+
+rdf_assert_list(PrologList, RdfList) :-
+  rdf_default_graph(G),
+  rdf_assert_list(PrologList, RdfList, G).
+
+
+rdf_assert_list(PrologList, RdfList, G) :-
+  must_be(list, PrologList),
+  rdf_transaction(rdf_assert_list_(PrologList, RdfList, G)).
+
+rdf_assert_list_([], Nil, _) :-
+  rdf_equal(rdf:nil, Nil).
+rdf_assert_list_([H|T], L2, G) :-
+  (var(L2) -> rdf_create_bnode(L2) ; true),
+  rdf_assert(L2, rdf:type, rdf:'List', G),
+  rdf_assert(L2, rdf:first, H, G),
+  (   T == []
+  ->  rdf_assert(L2, rdf:rest, rdf:nil, G)
+  ;   rdf_create_bnode(T2),
+      rdf_assert(L2, rdf:rest, T2, G),
+      rdf_assert_list_(T, T2, G)
+  ).
+
+
+rdf_assert_list(S, P, PrologList, G) :-
+  rdf_assert_list(PrologList, RdfList),
+  rdf_assert(S, P, RdfList, G).
 
 
 
