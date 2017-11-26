@@ -1,6 +1,10 @@
 :- module(
   rdf_print,
   [
+  % LABEL
+    iri_label/2,             % +Iri, -Label
+    property_path_label/2,   % +Ps, -Label
+  % PP
     rdf_pp_options/3,        % +Options1, -Out, -Options2
     rdf_pp_quad_groups/1,    % +JoinedPairs:list(pair(atom,list(compound)))
     rdf_pp_quad_groups/2,    % +JoinedPairs:list(pair(atom,list(compound))), +Options
@@ -10,7 +14,7 @@
     rdf_pp_triple/4,         % +S, +P, +O, +Options
     rdf_pp_triples/1,        % +Triples
     rdf_pp_triples/2,        % +Triples, +Options
-    % DCG
+  % DCG
     rdf_dcg_bnode//1,        % +BNode
     rdf_dcg_iri//1,          % +Iri
     rdf_dcg_iri//2,          % +Iri, +Options
@@ -50,10 +54,11 @@
 |                |            |             | are printed.                     |
 
 @author Wouter Beek
-@version 2017/04-2017/10
+@version 2017/04-2017/11
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(date_time)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
@@ -81,6 +86,24 @@
    rdf_dcg_triple(o, o, o, +, ?, ?).
 
 
+
+
+
+%! iri_label(+Iri:atom, -Label:string) is det.
+
+iri_label(Iri, Label) :-
+  rdf_prefix_iri(Prefix:Local, Iri), !,
+  atomics_to_string([Prefix,Local], ":", Label).
+iri_label(Iri, Label) :-
+  atom_string(Iri, Label).
+
+
+
+%! property_path_label(+Ps:list(iri), -Label:string) is det.
+
+property_path_label(PP, Label) :-
+  maplist(iri_label, PP, Labels0),
+  atomics_to_string(Labels0, /, Label).
 
 
 
