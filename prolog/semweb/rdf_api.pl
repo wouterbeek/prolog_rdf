@@ -43,6 +43,7 @@
     rdf_prefix_maplist/2,         % :Goal_1, +Args1
     rdf_prefix_member/2,          % ?Elem, +L
     rdf_prefix_memberchk/2,       % ?Elem, +L
+    rdf_prefix_selectchk/3,       % +Elem, +List, -Rest
     rdf_prefix_term/2,            % ?PrefixedTerm, ?Term
     rdf_query_term/2,             % +Term, -QueryTerm
     rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
@@ -158,6 +159,7 @@
    rdf_prefix_maplist(:, t),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
+   rdf_prefix_selectchk(t, t, t),
    rdf_reification(r, r, o, r),
    rdf_reification(r, r, o, r, r),
    rdf_term_to_atom(t, -),
@@ -261,7 +263,7 @@ rdf_assert_list_([H|T], L2, G) :-
 
 
 rdf_assert_list(S, P, PrologList, G) :-
-  rdf_assert_list(PrologList, RdfList),
+  rdf_assert_list(PrologList, RdfList, G),
   rdf_assert(S, P, RdfList, G).
 
 
@@ -851,6 +853,13 @@ rdf_prefix_member(Elem, L) :-
 
 rdf_prefix_memberchk(Elem, L) :-
   memberchk(Elem, L).
+
+
+
+%! rdf_prefix_selectchk(+Elem:rdf_term, +List:list, -Rest:list) is det.
+
+rdf_prefix_selectchk(Elem, List, Rest) :-
+  selectchk(Elem, List, Rest).
 
 
 
