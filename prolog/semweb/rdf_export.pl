@@ -95,6 +95,15 @@ rdf_save2(Out, triples, S, P, O, G) :-
 
 
 
+%! rdf_write_graph(+Out:stream, +G:rdf_graph) is det.
+
+rdf_write_graph(_, G) :-
+  rdf_default_graph(G), !.
+rdf_write_graph(Out, G) :-
+  rdf_write_iri(Out, G).
+
+
+
 %! rdf_write_iri(+Out:stream, +Iri:rdf_iri) is det.
 
 rdf_write_iri(Out, Iri) :-
@@ -147,7 +156,7 @@ rdf_write_quad(Out, rdf(S,P,O,_), G) :-
 
 rdf_write_quad(Out, S, P, O, G) :-
   rdf_write_triple_open(Out, S, P, O),
-  rdf_write_iri(Out, G),
+  rdf_write_graph(Out, G),
   format(Out, " .\n", []).
 
 rdf_write_triple_open(Out, S, P, O) :-
@@ -194,9 +203,6 @@ rdf_write_triple(Out, S, P, O) :-
 % rdf/4), it is written as a quadruple.
 
 rdf_write_tuple(Out, rdf(S,P,O)) :- !,
-  rdf_write_triple(Out, S, P, O).
-rdf_write_tuple(Out, rdf(S,P,O,G)) :-
-  rdf_default_graph(G), !,
   rdf_write_triple(Out, S, P, O).
 rdf_write_tuple(Out, rdf(S,P,O,G)) :-
   rdf_write_quad(Out, S, P, O, G).
