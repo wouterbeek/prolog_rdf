@@ -3,6 +3,7 @@
   [
     shacl_assert_class/1, % +Entry
     shacl_assert_class/2, % +Entry, +G
+    shacl_export/1,       % +Out
     shacl_export/2        % +Out, +G
   ]
 ).
@@ -61,11 +62,17 @@ shacl_assert_object(G, O, BNode) :-
 
 
 
+%! shacl_export(+Out:stream) is det.
 %! shacl_export(+Out:stream, +G:iri) is det.
+
+shacl_export(Out) :-
+  shacl_export(Out, _).
+
 
 shacl_export(Out, G) :-
   % top of graph
   format_debug(dot, Out, "digraph shacl {"),
+  format_debug(dot, Out, "  graph [overlap=false];"),
   % Nodes can be described in multiple vocabularies: OWL, SHACL,
   % RDF(S).  We therefore first group all nodes with some description,
   % and then generate nodes for each one in sequence.
@@ -140,7 +147,29 @@ shacl_export_class(Out, C, G) :-
 
 % HELPERS %
 
-%! shacl_class(-C:iri, ?G:rdf_graph) is nondet.
+%! property_class(+Property, -C, +G:rdf_graph) is det.
+
+property_class(Property, C, G) :-
+  rdf(Property, sh:class, C, G).
+property_class(Property, C, G) :-
+  rdf_triple_list_member(Property, sh:or, S, G),
+  rdf(S, sh:class, C, G).
+
+
+
+%! property_path(+Property, -Ps:list, +G:rdf_graph) is det.
+
+property_path(Property, Ps, G) :-
+  rdf(Property, sh:path, Path, G),
+  (   rdf(Path, rdf:type, rdf:'List', G)
+  ->  aggregate_all(set(P), rdf_list_member(P, Path, G), Ps),
+      assertion(Ps = [_,_|_])
+  ;   Ps = [Path]
+  ).
+
+
+
+%! shacl_class(-C:iri, +G:rdf_graph) is nondet.
 
 shacl_class(C, G) :-
   rdf(C, owl:oneOf, _, G).
@@ -156,7 +185,7 @@ shacl_class(C, G) :-
 
 
 
-%! shacl_edge(-Edge:edge, ?G:rdf_graph) is nondet.
+%! shacl_edge(-Edge:edge, +G:rdf_graph) is nondet.
 
 shacl_edge(edge(C,[rdfs:subClassOf],D), G) :-
   rdf(C, rdfs:subClassOf, D, G).
@@ -166,25 +195,21 @@ shacl_edge(edge(C,Ps,D), G) :-
 
 
 %! shacl_property_path_class(+C:iri, -Pair:pair(list(iri),iri),
-%!                           ?G:rdf_graph) is nondet.
+%!                           +G:rdf_graph) is nondet.
 
 shacl_property_path_class(C, Ps-D, G) :-
   rdf(Shape, sh:targetClass, C, G),
   rdf(Shape, sh:property, Property, G),
-  rdf(Property, sh:path, Path, G),
-  aggregate_all(set(P), rdf_list_member(P, Path, G), Ps),
-  assertion(Ps \== []),
-  rdf(Property, sh:class, D, G).
+  property_class(Property, D, G),
+  property_path(Property, Ps, G).
 
 
 
 %! shacl_property_path_datatype(+C:iri, -Pair:pair(list(iri),iri),
-%!                              ?G:rdf_graph) is nondet.
+%!                              +G:rdf_graph) is nondet.
 
 shacl_property_path_datatype(C, Ps-D, G) :-
   rdf(Shape, sh:targetClass, C, G),
   rdf(Shape, sh:property, Property, G),
-  rdf(Property, sh:path, Path, G),
-  aggregate_all(set(P), rdf_list_member(P, Path, G), Ps),
-  assertion(Ps \== []),
+  property_path(Property, Ps, G),
   rdf(Property, sh:datatype, D, G).

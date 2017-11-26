@@ -52,6 +52,7 @@ export_class_edge(Out, edge(C1,Ps,C2)) :-
 
 export_class_hierarchy(Out, G) :-
   format_debug(dot, Out, "digraph class_hierarchy {"),
+  format_debug(dot, Out, "  graph [overlap=false];"),
   rdf_equal(P, rdfs:subClassOf),
   aggregate_all(set(edge(C,[P],D)), rdf(C, P, D, G), Edges),
   maplist(export_class_edge(Out), Edges),
