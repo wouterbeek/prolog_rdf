@@ -244,7 +244,7 @@ register_language_prefixes(Language) :-
   uri_comps(Uri4, uri(http,WikidataAuth,[wiki,''],_,_)),
   rdf_register_prefix(Prefix4, Uri4).
 
-:- rdf_register_prefix(bibframe, 'http://bibframe.org/vocab/').
+:- rdf_register_prefix(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
 :- rdf_register_prefix(cms, 'http://SemanticCMS.cc/vocab/').
 :- rdf_register_prefix(crs, 'http://www.opengis.net/def/crs/OGC/1.3/').
 :- rdf_register_prefix(csvw, 'http://www.w3.org/ns/csvw#').
