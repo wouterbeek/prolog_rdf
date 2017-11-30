@@ -60,7 +60,8 @@
     rdfs_subclass/2,              % ?C, ?D
     rdfs_subclass/3,              % ?C, ?D, ?G
     rdfs_subproperty/2,           % ?P, ?Q
-    rdfs_subproperty/3            % ?P, ?Q, ?G
+    rdfs_subproperty/3,           % ?P, ?Q, ?G
+    t/4                           % +Backend, ?S, ?P, ?O
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
@@ -126,7 +127,8 @@
     rdf_deref_uri(+, 2, +),
     rdf_prefix_maplist(1, +).
 
-:- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
+:- multifile
+    t/4.
 
 :- rdf_meta
    prefix_local_iri(?, ?, r),
@@ -173,7 +175,10 @@
    rdfs_subclass(r, r),
    rdfs_subclass(r, r, r),
    rdfs_subproperty(r, r),
-   rdfs_subproperty(r, r, r).
+   rdfs_subproperty(r, r, r),
+   t(+, r, r, o).
+
+:- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
 
 
@@ -1026,3 +1031,15 @@ rdfs_subproperty(P, Q, G) :-
 
 rdfs_subproperty_(G, P, Q) :-
   rdf(P, rdfs:subPropertyOf, Q, G).
+
+
+
+%! t(+Backend, ?S, ?P, ?O) is nondet.
+
+t(rdf, S, P, O) :-
+  rdf(S, P, O).
+t(rdf(G), S, P, O) :-
+  rdf(S, P, O, G).
+%t(hdt(HdtOrG), S, P, O) :-
+%  (hdt_graph(Hdt, HdtOrG) -> true ; Hdt = HdtOrG),
+%  hdt_triple(Hdt, S, P, O).

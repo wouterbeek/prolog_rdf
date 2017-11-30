@@ -1,8 +1,8 @@
 :- module(
   schema_viz,
   [
-    export_class_edge/2,     % +Out, +Edge
-    export_class_hierarchy/2 % +Out, +G
+    export_class_hierarchy/2,   % +Backend, +Out
+    export_property_hierarchy/2 % +Backend, +Out
   ]
 ).
 :- reexport(library(graph/gv)).
@@ -24,22 +24,30 @@
 :- use_module(library(uri/uri_ext)).
 
 :- rdf_meta
-   export_class_hierarchy(+, r).
+   export_hierarchy_(+, +, r).
 
 
 
 
 
-%! export_class_edge(+Out:stream, +Edge:edge) is det.
+%! export_class_hierarchy(+Backend, +Out:stream) is det.
 
-export_class_edge(Out, edge(C1,[P],C2)) :-
-  rdf_equal(rdfs:subClassOf, P), !,
+export_class_hierarchy(Backend, Out) :-
+  export_hierarchy_(Backend, Out, rdfs:subClassOf).
+
+
+
+%! export_edge(+Backend, +Out:stream, +Edge:compound) is det.
+
+export_edge(_, Out, edge(C1,[P],C2)) :-
+  rdf_prefix_memberchk(P, [rdfs:subClassOf,rdfs:subPropertyOf]), !,
   maplist(dot_id, [C1,C2], [Id1,Id2]),
   % By swapping the order in which the nodes are asserted, we are able
-  % to show superclasses above subclasses.
+  % to show superclasses/superproperties above
+  % subclasses/subproperties.
   dot_edge(Out, Id2, Id1, [arrowtail(onormal),dir(back),'URL'(P)]).
-export_class_edge(Out, edge(C1,Ps,C2)) :-
-  property_path_label(Ps, Label),
+export_edge(Backend, Out, edge(C1,Ps,C2)) :-
+  rdf_property_path_label(Backend, Ps, Label),
   % We cannot put in URLs for all property path members, so we only
   % take the first one.
   Ps = [P|_],
@@ -48,27 +56,37 @@ export_class_edge(Out, edge(C1,Ps,C2)) :-
 
 
 
-%! export_class_hierarchy(+Out:stream, +G:iri) is det.
-
-export_class_hierarchy(Out, G) :-
-  format_debug(dot, Out, "digraph class_hierarchy {"),
-  format_debug(dot, Out, "  graph [overlap=false];"),
-  rdf_equal(P, rdfs:subClassOf),
-  aggregate_all(set(edge(C,[P],D)), rdf(C, P, D, G), Edges),
-  maplist(export_class_edge(Out), Edges),
-  edges_to_vertices(Edges, Nodes),
-  maplist(export_class_node(Out), Nodes),
-  format_debug(dot, Out, "}").
-
-
-
-%! export_class_node(+Out:stream, +Node:iri) is det.
+%! export_node(+Backend, +Out:stream, +Node:iri) is det.
 %
 % Export a simple node, i.e., without its internal UML-like
 % definition.
 
-export_class_node(Out, Node) :-
+export_node(Backend, Out, Node) :-
   dot_id(Node, Id),
-  iri_label(Node, Label),
+  rdf_term_label(Backend, Node, Label),
   (is_http_uri(Node) -> T = ['URL'(Node)] ; T = []),
   dot_node(Out, Id, [label(Label),shape(rect)|T]).
+
+
+
+%! export_property_hierarchy(+Backend, +Out:stream) is det.
+
+export_property_hierarchy(Backend, Out) :-
+  export_hierarchy_(Backend, Out, rdfs:subPropertyOf).
+
+
+
+
+
+% GENERICS %
+
+%! export_hierarchy_(+Backend, +Out:stream, +P:iri) is det.
+
+export_hierarchy_(Backend, Out, P) :-
+  format_debug(dot, Out, "digraph hierarchy {"),
+  format_debug(dot, Out, "  graph [overlap=false];"),
+  aggregate_all(set(edge(C,[P],D)), t(Backend, C, P, D), Edges),
+  maplist(export_edge(Backend, Out), Edges),
+  edges_to_vertices(Edges, Nodes),
+  maplist(export_node(Backend, Out), Nodes),
+  format_debug(dot, Out, "}").

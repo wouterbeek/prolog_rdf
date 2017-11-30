@@ -2,38 +2,39 @@
   rdf_print,
   [
   % LABEL
-    iri_label/2,             % +Iri, -Label
-    property_path_label/2,   % +Ps, -Label
+    rdf_iri_label/2,           % +Iri, -Label
+    rdf_property_path_label/3, % +Backend, +Ps, -Label
+    rdf_term_label/3,          % +Backend, +Term, -Label
   % PP
-    rdf_pp_options/3,        % +Options1, -Out, -Options2
-    rdf_pp_quad_groups/1,    % +JoinedPairs:list(pair(atom,list(compound)))
-    rdf_pp_quad_groups/2,    % +JoinedPairs:list(pair(atom,list(compound))), +Options
-    rdf_pp_triple/1,         % +Triple
-    rdf_pp_triple/2,         % +Triple, +Options
-    rdf_pp_triple/3,         % +S, +P, +O
-    rdf_pp_triple/4,         % +S, +P, +O, +Options
-    rdf_pp_triples/1,        % +Triples
-    rdf_pp_triples/2,        % +Triples, +Options
+    rdf_pp_options/3,          % +Options1, -Out, -Options2
+    rdf_pp_quad_groups/1,      % +JoinedPairs:list(pair(atom,list(compound)))
+    rdf_pp_quad_groups/2,      % +JoinedPairs:list(pair(atom,list(compound))), +Options
+    rdf_pp_triple/1,           % +Triple
+    rdf_pp_triple/2,           % +Triple, +Options
+    rdf_pp_triple/3,           % +S, +P, +O
+    rdf_pp_triple/4,           % +S, +P, +O, +Options
+    rdf_pp_triples/1,          % +Triples
+    rdf_pp_triples/2,          % +Triples, +Options
   % DCG
-    rdf_dcg_bnode//1,        % +BNode
-    rdf_dcg_iri//1,          % +Iri
-    rdf_dcg_iri//2,          % +Iri, +Options
-    rdf_dcg_language_tag//2, % +LTag, +Options
-    rdf_dcg_lexical_form//2, % +Lex, +Options
-    rdf_dcg_literal//1,      % +Lit
-    rdf_dcg_literal//2,      % +Lit, +Options
-    rdf_dcg_nonliteral//1,   % +S
-    rdf_dcg_nonliteral//2,   % +S, +Options
-    rdf_dcg_options/2,       % +Options1, -Options2
-    rdf_dcg_predicate//1,    % +P
-    rdf_dcg_predicate//2,    % +P, +Options
-    rdf_dcg_term//1,         % +Term
-    rdf_dcg_term//2,         % +Term, +Options
-    rdf_dcg_triple//3,       % +S, +P, +O
-    rdf_dcg_triple//4,       % +S, +P, +O, +Options
-    rdf_dcg_triples//1,      % +Triples
-    rdf_dcg_triples//2,      % +Triples, +Options
-    rdf_dcg_var//2           % +Var, +Options
+    rdf_dcg_bnode//1,          % +BNode
+    rdf_dcg_iri//1,            % +Iri
+    rdf_dcg_iri//2,            % +Iri, +Options
+    rdf_dcg_language_tag//2,   % +LTag, +Options
+    rdf_dcg_lexical_form//2,   % +Lex, +Options
+    rdf_dcg_literal//1,        % +Lit
+    rdf_dcg_literal//2,        % +Lit, +Options
+    rdf_dcg_nonliteral//1,     % +S
+    rdf_dcg_nonliteral//2,     % +S, +Options
+    rdf_dcg_options/2,         % +Options1, -Options2
+    rdf_dcg_predicate//1,      % +P
+    rdf_dcg_predicate//2,      % +P, +Options
+    rdf_dcg_term//1,           % +Term
+    rdf_dcg_term//2,           % +Term, +Options
+    rdf_dcg_triple//3,         % +S, +P, +O
+    rdf_dcg_triple//4,         % +S, +P, +O, +Options
+    rdf_dcg_triples//1,        % +Triples
+    rdf_dcg_triples//2,        % +Triples, +Options
+    rdf_dcg_var//2             % +Var, +Options
   ]
 ).
 
@@ -44,8 +45,8 @@
 | `indent`       | nonneg     | 0           |                                  |
 | `iri_abbr`     | boolean    | `true`      | Whether IRIs are abbreviated     |
 |                |            |             | based on the current prefixes.   |
-| `max_iri_len`  | nonneg     | `∞`       | The maximum length of an IRI.    |
-| `max_lit_len`  | nonneg     | `∞`       | The maximum length of a literal. |
+| `max_iri_len`  | nonneg     | `∞`         | The maximum length of an IRI.    |
+| `max_lit_len`  | nonneg     | `∞`         | The maximum length of a literal. |
 | `prefix_map`   | list(pair( |             | A custom list of prefix/IRI      |
 |                | atom))     |             | mappings that overrules and/or   |
 |                |            |             | extends the prefix declarations. |
@@ -69,6 +70,11 @@
     rdf_dcg_literal_hook//2.
 
 :- rdf_meta
+   % LABEL
+   rdf_iri_label(r, -),
+   rdf_property_path_label(+, t, -),
+   rdf_term_label(+, o, -),
+   % PP
    rdf_pp_triple(t),
    rdf_pp_triple(t, +),
    rdf_pp_triple(r, r, o),
@@ -89,22 +95,41 @@
 
 
 
-%! iri_label(+Iri:atom, -Label:string) is det.
+%! rdf_iri_label(+Iri:atom, -Label:string) is det.
 
-iri_label(Iri, Label) :-
+rdf_iri_label(Iri, Label) :-
   rdf_prefix_iri(Prefix:Local, Iri), !,
   atomics_to_string([Prefix,Local], ":", Label).
-iri_label(Iri, Label) :-
+rdf_iri_label(Iri, Label) :-
   atom_string(Iri, Label).
 
 
 
-%! property_path_label(+Ps:list(iri), -Label:string) is det.
+%! rdf_property_path_label(+Backend, +Ps:list(iri), -Label:string) is det.
 
-property_path_label(PP, Label) :-
-  maplist(iri_label, PP, Labels0),
-  atomics_to_string(Labels0, /, Label).
+rdf_property_path_label(Backend, Ps, Label) :-
+  maplist(rdf_term_label(Backend), Ps, Labels),
+  atomics_to_string(Labels, /, Label).
 
+
+
+%! rdf_term_label(+Backend, +Term:rdf_term, -Label) is det.
+
+% RDF node with an RDFS label.
+rdf_term_label(Backend, Term1, Label) :-
+  once(t(Backend, Term1, rdfs:label, Term2)), !,
+  rdf_term_label(Backend, Term2, Label).
+% RDF literal
+rdf_term_label(_, Term, Label) :-
+  rdf_is_literal(Term), !,
+  rdf_literal_lexical_form(Term, Label).
+% IRI
+rdf_term_label(_, Term, Label) :-
+  rdf_is_iri(Term), !,
+  rdf_iri_label(Term, Label).
+% Blank node
+rdf_term_label(_, Term, Term).
+  
 
 
 %! rdf_pp_options(+Options1, -Out, -Options2) is det.

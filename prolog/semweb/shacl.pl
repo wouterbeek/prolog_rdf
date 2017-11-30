@@ -128,8 +128,8 @@ shacl_export_class(Out, C, G) :-
   forall(
     member(Ps-O, Pairs),
     (
-      property_path_label(Ps, PsLabel),
-      iri_label(O, OLabel),
+      rdf_property_path_label(rdf(G), Ps, PsLabel),
+      rdf_term_label(rdf(G), O, OLabel),
       format_debug(
         dot,
         Out,
