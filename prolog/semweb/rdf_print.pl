@@ -2,9 +2,8 @@
   rdf_print,
   [
   % LABEL
-    rdf_iri_label/2,           % +Iri, -Label
-    rdf_property_path_label/3, % +Backend, +Ps, -Label
-    rdf_term_label/3,          % +Backend, +Term, -Label
+    rdf_property_path_label/4, % +Backend, +Options, +Ps, -Label
+    rdf_term_label/4,          % +Backend, +Options, +Term, -Label
   % PP
     rdf_pp_options/3,          % +Options1, -Out, -Options2
     rdf_pp_quad_groups/1,      % +JoinedPairs:list(pair(atom,list(compound)))
@@ -71,9 +70,8 @@
 
 :- rdf_meta
    % LABEL
-   rdf_iri_label(r, -),
-   rdf_property_path_label(+, t, -),
-   rdf_term_label(+, o, -),
+   rdf_property_path_label(+, +, t, -),
+   rdf_term_label(+, +, o, -),
    % PP
    rdf_pp_triple(t),
    rdf_pp_triple(t, +),
@@ -95,41 +93,40 @@
 
 
 
-%! rdf_iri_label(+Iri:atom, -Label:string) is det.
+%! rdf_property_path_label(+Backend, +Options:dict, +Ps:list(iri),
+%!                         -Label:string) is det.
+%
+% Options are passed to rdf_term_label/4.
 
-rdf_iri_label(Iri, Label) :-
-  rdf_prefix_iri(Prefix:Local, Iri), !,
-  atomics_to_string([Prefix,Local], ":", Label).
-rdf_iri_label(Iri, Label) :-
-  atom_string(Iri, Label).
-
-
-
-%! rdf_property_path_label(+Backend, +Ps:list(iri), -Label:string) is det.
-
-rdf_property_path_label(Backend, Ps, Label) :-
-  maplist(rdf_term_label(Backend), Ps, Labels),
+rdf_property_path_label(Backend, Options, Ps, Label) :-
+  maplist(rdf_term_label(Backend, Options), Ps, Labels),
   atomics_to_string(Labels, /, Label).
 
 
 
-%! rdf_term_label(+Backend, +Term:rdf_term, -Label) is det.
+%! rdf_term_label(+Backend, +Options:dict, +Term:rdf_term,
+%!                -Label:string) is det.
+%
+% The following options are supported:
+%
+%   * rdfs_label: boolean
+%
+%     Whether or not to perform RDFS label lookup.  Default is
+%     `false`.
+%
+%   * Other options are passed to rdf_dcg_term//2.
 
 % RDF node with an RDFS label.
-rdf_term_label(Backend, Term1, Label) :-
+rdf_term_label(Backend, Options, Term1, Label) :-
+  _{rdfs_label: true} :< Options,
   once(t(Backend, Term1, rdfs:label, Term2)), !,
-  rdf_term_label(Backend, Term2, Label).
-% RDF literal
-rdf_term_label(_, Term, Label) :-
-  rdf_is_literal(Term), !,
-  rdf_literal_lexical_form(Term, Label).
-% IRI
-rdf_term_label(_, Term, Label) :-
-  rdf_is_iri(Term), !,
-  rdf_iri_label(Term, Label).
-% Blank node
-rdf_term_label(_, Term, Term).
-  
+  rdf_term_label(Backend, Options, Term2, Label).
+% RDF term
+rdf_term_label(_, Options1, Term, Label) :-
+  rdf_dcg_options(Options2),
+  merge_dicts(Options1, Options2, Options),
+  string_phrase(rdf_dcg_term(Term, Options), Label).
+
 
 
 %! rdf_pp_options(+Options1, -Out, -Options2) is det.
