@@ -370,7 +370,7 @@ rdf_clean_lexical_form(xsd:decimal, Lex1, Lex2) :-
 rdf_clean_lexical_form(rdf:langString, Lex, Lex).
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
   catch(rdf11:out_type(D, Value, Lex1), E, true),
-  in_type(D, Value, D, Lex2),
+  rdf11:in_type(D, Value, D, Lex2),
   (   var(E)
   ->  (   % Warning for a non-canonical lexical form.
           Lex1 \== Lex2
