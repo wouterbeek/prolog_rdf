@@ -5,7 +5,6 @@
     rdf_property_path_label/4, % +Backend, +Options, +Ps, -Label
     rdf_term_label/4,          % +Backend, +Options, +Term, -Label
   % PP
-    rdf_pp_options/3,          % +Options1, -Out, -Options2
     rdf_pp_quad_groups/1,      % +JoinedPairs:list(pair(atom,list(compound)))
     rdf_pp_quad_groups/2,      % +JoinedPairs:list(pair(atom,list(compound))), +Options
     rdf_pp_triple/1,           % +Triple
@@ -24,7 +23,6 @@
     rdf_dcg_literal//2,        % +Lit, +Options
     rdf_dcg_nonliteral//1,     % +S
     rdf_dcg_nonliteral//2,     % +S, +Options
-    rdf_dcg_options/2,         % +Options1, -Options2
     rdf_dcg_predicate//1,      % +P
     rdf_dcg_predicate//2,      % +P, +Options
     rdf_dcg_term//1,           % +Term
@@ -54,7 +52,7 @@
 |                |            |             | are printed.                     |
 
 @author Wouter Beek
-@version 2017/04-2017/11
+@version 2017/04-2017/12
 */
 
 :- use_module(library(aggregate)).
@@ -62,6 +60,8 @@
 :- use_module(library(date_time)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(nlp/nlp_lang)).
+:- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(xml/xsd_dt)).
 
@@ -109,7 +109,7 @@ rdf_property_path_label(Backend, Options, Ps, Label) :-
 %
 % The following options are supported:
 %
-%   * rdfs_label: boolean
+%   * label: boolean
 %
 %     Whether or not to perform RDFS label lookup.  Default is
 %     `false`.
@@ -117,24 +117,23 @@ rdf_property_path_label(Backend, Options, Ps, Label) :-
 %   * Other options are passed to rdf_dcg_term//2.
 
 % RDF node with an RDFS label.
-rdf_term_label(Backend, Options, Term1, Label) :-
-  _{rdfs_label: true} :< Options,
-  once(t(Backend, Term1, rdfs:label, Term2)), !,
-  rdf_term_label(Backend, Options, Term2, Label).
+rdf_term_label(Backend, Options, Term, Label) :-
+  _{label: P0} :< Options,
+  rdf_prefix_iri(P0, P),
+  aggregate_all(set(Literal), t(Backend, Term, P, Literal), Literals),
+  Literals = [_|_], !,
+  maplist(rdf_literal, _, LTags, _, Literals),
+  include(ground, LTags, LRange),
+  pairs_keys_values(Pairs, LRange, Literals),
+  (   current_ltag(LRange, LTag)
+  ->  memberchk(LTag-Literal, Pairs)
+  ;   memberchk(Literal, Literals)
+  ),
+  rdf_literal_lexical_form(Literal, Lex),
+  atom_string(Lex, Label).
 % RDF term
-rdf_term_label(_, Options1, Term, Label) :-
-  rdf_dcg_options(Options2),
-  merge_dicts(Options1, Options2, Options),
+rdf_term_label(_, Options, Term, Label) :-
   string_phrase(rdf_dcg_term(Term, Options), Label).
-
-
-
-%! rdf_pp_options(+Options1, -Out, -Options2) is det.
-
-rdf_pp_options(Options1, Out, Options5) :-
-  dict_delete_or_default(out, Options1, current_output, Out, Options3),
-  rdf_dcg_options(Options4),
-  merge_dicts(Options3, Options4, Options5).
 
 
 
@@ -145,9 +144,9 @@ rdf_pp_quad_groups(JoinedPairs) :-
   rdf_pp_quad_groups(JoinedPairs, _{}).
 
 
-rdf_pp_quad_groups(JoinedPairs, Options1) :-
-  rdf_pp_options(Options1, Out, Options2),
-  dcg_with_output_to(Out, rdf_dcg_groups0(JoinedPairs, Options2)).
+rdf_pp_quad_groups(JoinedPairs, Options) :-
+  dict_get(out, Options, current_output, Out),
+  dcg_with_output_to(Out, rdf_dcg_groups0(JoinedPairs, Options)).
 
 
 
@@ -168,9 +167,9 @@ rdf_pp_triple(S, P, O) :-
   rdf_pp_triple(S, P, O, _{}).
 
 
-rdf_pp_triple(S, P, O, Options1) :-
-  rdf_pp_options(Options1, Out, Options2),
-  dcg_with_output_to(Out, rdf_dcg_triple(S, P, O, Options2)).
+rdf_pp_triple(S, P, O, Options) :-
+  dict_get(out, Options, current_output, Out),
+  dcg_with_output_to(Out, rdf_dcg_triple(S, P, O, Options)).
 
 
 
@@ -181,9 +180,9 @@ rdf_pp_triples(Triples) :-
   rdf_pp_triples(Triples, _{}).
 
 
-rdf_pp_triples(Triples, Options1) :-
-  rdf_pp_options(Options1, Out, Options2),
-  dcg_with_output_to(Out, rdf_dcg_triples(Triples, Options2)).
+rdf_pp_triples(Triples, Options) :-
+  dict_get(out, Options, current_output, Out),
+  dcg_with_output_to(Out, rdf_dcg_triples(Triples, Options)).
 
 
 
@@ -207,15 +206,21 @@ rdf_dcg_bnode(BNode) -->
 %! rdf_dcg_iri(+Iri, +Options)// is det.
 
 rdf_dcg_iri(Iri) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_iri(Iri, Options).
+  rdf_dcg_iri(Iri, _{}).
 
 
 rdf_dcg_iri(Full, Options) -->
   {
-    Options.iri_abbr == true,
+    dict_get(iri_abbr, Options, false), !,
+    dict_get(max_iri_len, Options, ∞, Len)
+  },
+  "<",
+  ellipsis(Full, Len),
+  ">".
+rdf_dcg_iri(Full, Options) -->
+  {
     (   % Abbreviated based on a manually passed prefix/IRI pair.
-        dict_get(prefix_map, Options, PrefixMap),
+        dict_get(prefix_map, Options, [], PrefixMap),
         member(Prefix-Iri, PrefixMap),
         atom_prefix(Full, Iri)
     ->  atom_concat(Iri, Local, Full)
@@ -225,31 +230,30 @@ rdf_dcg_iri(Full, Options) -->
     ), !,
     atom_length(Prefix, PrefixLength),
     Minus is PrefixLength + 1,
-    inf_minus(Options.max_iri_len, Minus, Max)
+    dict_get(max_iri_len, Options, ∞, Len),
+    inf_minus(Len, Minus, Max)
   },
   atom(Prefix),
   ":",
   ellipsis(Local, Max).
-rdf_dcg_iri(Full, Options) -->
-  "<",
-  ellipsis(Full, Options.max_iri_len),
-  ">".
 
 
 
 %! rdf_dcg_language_tag(+LTag, +Options)// is det.
 
 rdf_dcg_language_tag(LTag, Options) -->
-  ellipsis(LTag, Options.max_lit_len).
+  {dict_get(max_lit_len, Options, ∞, Len)},
+  ellipsis(LTag, Len).
 
 
 
 %! rdf_dcg_lexical_form(+Lex, +Options)// is det.
 
 rdf_dcg_lexical_form(Lex, Options) -->
-  [34],
-  ellipsis(Lex, Options.max_lit_len),
-  [34].
+  {dict_get(max_lit_len, Options, ∞, Len)},
+  "\"",
+  ellipsis(Lex, Len),
+  "\"".
 
 
 
@@ -278,8 +282,7 @@ rdf_dcg_list_items([H|T], Options) -->
 %! rdf_dcg_literal(+Literal:compound, +Options:list(compound))// is det.
 
 rdf_dcg_literal(Lit) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_literal(Lit, Options).
+  rdf_dcg_literal(Lit, _{}).
 
 
 rdf_dcg_literal(Lit, Options) -->
@@ -350,24 +353,11 @@ rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
 
 
 
-%! rdf_dcg_options(+Options1:list(compound), -Options2:list(compound)) is det.
-%
-% Options for the ‘rdf_print_*’ predicates are automatically resolved,
-% but for the DCG rules ‘rdf_dcg_*’ options need to merged
-% explicitly using this predicate.
-
-rdf_dcg_options(Options1, Options3) :-
-  rdf_dcg_options(Options2),
-  merge_dicts(Options1, Options2, Options3).
-
-
-
 %! rdf_dcg_predicate(+P)// is det.
 %! rdf_dcg_predicate(+P, +Options)// is det.
 
 rdf_dcg_predicate(P) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_predicate(P, Options).
+  rdf_dcg_predicate(P, _{}).
 
 
 rdf_dcg_predicate(P, _) -->
@@ -385,8 +375,7 @@ rdf_dcg_predicate(P, Options) -->
 %! rdf_dcg_nonliteral(+S, +Options)// is det.
 
 rdf_dcg_nonliteral(S) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_nonliteral(S, Options).
+  rdf_dcg_nonliteral(S, _{}).
 
 
 rdf_dcg_nonliteral(S, Options) -->
@@ -398,8 +387,7 @@ rdf_dcg_nonliteral(S, Options) -->
 %! rdf_dcg_term(+Term, +Options)// is det.
 
 rdf_dcg_term(Term) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_term(Term, Options).
+  rdf_dcg_term(Term, _{}).
 
 
 rdf_dcg_term(BNode, _) -->
@@ -457,8 +445,7 @@ turtle_object(_, SkipTriples, SkipTriples, []).
 %! rdf_dcg_triple(+S, +P, +O, +Options)// is det.
 
 rdf_dcg_triple(S, P, O) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_triple(S, P, O, Options).
+  rdf_dcg_triple(S, P, O, _{}).
 
 
 rdf_dcg_triple(S, P, O, Options) -->
@@ -471,8 +458,7 @@ rdf_dcg_triple(S, P, O, Options) -->
 
 
 rdf_dcg_triples(Triples) -->
-  {rdf_dcg_options(Options)},
-  rdf_dcg_triples(Triples, Options).
+  rdf_dcg_triples(Triples, _{}).
 
 
 rdf_dcg_triples(Triples, Options) -->
@@ -517,7 +503,7 @@ rdf_dcg_subjects0(I1, [S-POs|Groups1], SkipTriples1, Options) -->
     I2 is I1 + 1
   },
   rdf_dcg_predicates0(I2, Groups2, SkipTriples1, SkipTriples2, Options),
-  ({Options.newline == true} -> nl ; ""),
+  ({dict_get(newline, Options, false)} -> "" ; nl),
   rdf_dcg_subjects0(I1, Groups1, SkipTriples2, Options).
 
 rdf_dcg_predicates0(I, Groups, SkipTriples1, SkipTriples2, Options) -->
@@ -599,17 +585,3 @@ inf_minus(X, Y, X) :-
   X =< Y, !.
 inf_minus(X, Y, Z) :-
   Z is X - Y.
-
-
-
-%! rdf_dcg_options(-Options) is det.
-
-rdf_dcg_options(
-  _{
-    iri_abbr: true,
-    iri_lbl: false,
-    max_iri_len: ∞,
-    max_lit_len: ∞,
-    newline: true
-  }
-).

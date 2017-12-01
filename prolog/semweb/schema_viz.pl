@@ -1,10 +1,8 @@
 :- module(
   schema_viz,
   [
-    export_class_hierarchy/3,    % +Backend, +Options, +Out
-    export_property_hierarchy/3, % +Backend, +Options, +Out
-    show_class_hierarchy/2,      % +Backend, +Options
-    show_property_hierarchy/2    % +Backend, +Options
+    export_hierarchy/4, % +Backend, +P, +Options, +Out
+    show_hierarchy/3    % +Backend, +P, +Options
   ]
 ).
 :- reexport(library(graph/gv)).
@@ -27,16 +25,10 @@
 :- use_module(library(uri/uri_ext)).
 
 :- rdf_meta
-   export_hierarchy_(+, +, +, r).
+   export_hierarchy(+, r, +, +),
+   show_hierarchy(+, r, +).
 
 
-
-
-
-%! export_class_hierarchy(+Backend, +Options:dict, +Out:stream) is det.
-
-export_class_hierarchy(Backend, Options, Out) :-
-  export_hierarchy_(Backend, Options, Out, rdfs:subClassOf).
 
 
 
@@ -59,6 +51,19 @@ export_edge(Backend, Options, Out, edge(C1,Ps,C2)) :-
 
 
 
+%! export_hierarchy(+Backend, +P:iri, +Options:dict, +Out:stream) is det.
+
+export_hierarchy(Backend, P, Options, Out) :-
+  format_debug(dot, Out, "digraph hierarchy {"),
+  format_debug(dot, Out, "  graph [overlap=false];"),
+  aggregate_all(set(edge(C,[P],D)), t(Backend, C, P, D), Edges),
+  maplist(export_edge(Backend, Options, Out), Edges),
+  edges_to_vertices(Edges, Nodes),
+  maplist(export_node(Backend, Options, Out), Nodes),
+  format_debug(dot, Out, "}").
+
+
+
 %! export_node(+Backend, +Options:dict, +Out:stream, +Node:iri) is det.
 %
 % Export a simple node, i.e., without its internal UML-like
@@ -72,44 +77,10 @@ export_node(Backend, Options, Out, Node) :-
 
 
 
-%! export_property_hierarchy(+Backend, +Options:dict, +Out:stream) is det.
+%! show_hierarchy(+Backend, +P:iri, +Options:dict) is det.
 
-export_property_hierarchy(Backend, Options, Out) :-
-  export_hierarchy_(Backend, Options, Out, rdfs:subPropertyOf).
-
-
-
-%! show_class_hierarchy(+Backend, +Options:dict) is det.
-
-show_class_hierarchy(Backend, Options) :-
-  Format = svg,
-  file_name_extension('class-hierarchy', Format, File),
-  gv_export(dot, Format, File, export_class_hierarchy(Backend, Options)),
+show_hierarchy(Backend, P, Options) :-
+  _{format: Format, method: Method} :< Options,
+  file_name_extension(hierarchy, Format, File),
+  gv_export(Method, Format, File, export_hierarchy(Backend, P, Options)),
   open_format(Format, File).
-
-
-
-%! show_property_hierarchy(+Backend, +Options:dict) is det.
-
-show_property_hierarchy(Backend, Options) :-
-  Format = svg,
-  file_name_extension('property-hierarchy', Format, File),
-  gv_export(dot, Format, File, export_property_hierarchy(Backend, Options)),
-  open_format(Format, File).
-
-
-
-
-
-% GENERICS %
-
-%! export_hierarchy_(+Backend, +Options:dict, +Out:stream, +P:iri) is det.
-
-export_hierarchy_(Backend, Options, Out, P) :-
-  format_debug(dot, Out, "digraph hierarchy {"),
-  format_debug(dot, Out, "  graph [overlap=false];"),
-  aggregate_all(set(edge(C,[P],D)), t(Backend, C, P, D), Edges),
-  maplist(export_edge(Backend, Options, Out), Edges),
-  edges_to_vertices(Edges, Nodes),
-  maplist(export_node(Backend, Options, Out), Nodes),
-  format_debug(dot, Out, "}").

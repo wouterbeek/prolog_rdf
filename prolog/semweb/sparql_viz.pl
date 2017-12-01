@@ -42,11 +42,11 @@ sparql_viz(Query, Out) :-
     State.prefixes,
     Prefixes
   ),
-  rdf_dcg_options(
-    _{prefixes: Prefixes, variable_map: State.variable_map},
-    Options
+  sparql_viz_term(
+    Out,
+    Algebra,
+    _{prefixes: Prefixes, variable_map: State.variable_map}
   ),
-  sparql_viz_term(Out, Algebra, Options).
   debug_format(sparql, Out, "}").
 
 
