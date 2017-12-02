@@ -29,8 +29,10 @@
     rdf_is_well_known_iri/1,      % @Term
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
     rdf_lexical_value/3,          % ?D, ?Lex, ?Val
+    rdf_iri//1,                   % -Iri
     rdf_list_member/2,            % ?X, ?L
     rdf_list_member/3,            % ?X, ?L, ?G
+    rdf_literal//1,               % -Literal
     rdf_literal/4,                % ?D, ?LTag, ?Lex, ?Literal
     rdf_literal_datatype_iri/2,   % +Literal, ?D
     rdf_literal_lexical_form/2,   % +Literal, ?Lex
@@ -48,6 +50,7 @@
     rdf_query_term/2,             % +Term, -QueryTerm
     rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
     rdf_reification/5,            % ?S, ?P, ?O, ?G, ?Stmt
+    rdf_term//1,                  % -Term
     rdf_term_to_atom/2,           % +Term, -Atom
     rdf_triple_list_member/3,     % ?S, ?P, ?X
     rdf_triple_list_member/4,     % ?S, ?P, ?X, ?G
@@ -294,31 +297,6 @@ rdf_assert_reification(S, P, O, G, Stmt) :-
 rdf_atom_to_term(Atom, Term) :-
   atom_codes(Atom, Codes),
   phrase(rdf_term_(Term), Codes).
-
-rdf_iri_(Iri) -->
-  "<",
-  ...(Codes),
-  ">", !,
-  {atom_codes(Iri, Codes)}.
-
-rdf_literal_(Literal) -->
-  "\"",
-  ...(Codes),
-  "\"", !,
-  ("^^" -> rdf_iri_(D) ; "@" -> rest_as_atom(LTag) ; ""),
-  {
-    atom_codes(Lex, Codes),
-    rdf_literal(D, LTag, Lex, Literal)
-  }.
-
-rdf_term_(Iri) -->
-  rdf_iri_(Iri), !.
-rdf_term_(Literal) -->
-  rdf_literal_(Literal).
-rdf_term_(BNode) -->
-  "_:",
-  rest(T),
-  {atom_codes(BNode, [0'_,0':|T])}.
 
 
 
@@ -685,6 +663,16 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
 
 
 
+%! rdf_iri(-Iri:iri)// .
+
+rdf_iri(Iri) -->
+  "<",
+  ...(Codes),
+  ">", !,
+  {atom_codes(Iri, Codes)}.
+
+
+
 %! rdf_is_skip_node(@Term) is semidet.
 
 rdf_is_skip_node(Term) :-
@@ -745,6 +733,20 @@ rdf_list_member(X, L, G) :-
 rdf_list_member(X, L, G) :-
   rdf(L, rdf:rest, T, G),
   rdf_list_member(X, T, G).
+
+
+
+%! rdf_literal(-Literal:rdf_literal)// .
+
+rdf_literal(Literal) -->
+  "\"",
+  ...(Codes),
+  "\"", !,
+  ("^^" -> rdf_iri(D) ; "@" -> rest_as_atom(LTag) ; ""),
+  {
+    atom_codes(Lex, Codes),
+    rdf_literal(D, LTag, Lex, Literal)
+  }.
 
 
 
@@ -891,6 +893,19 @@ rdf_reification(S, P, O, G, Stmt) :-
   rdf(Stmt, rdf:subject, S, G),
   rdf(Stmt, rdf:predicate, P, G),
   rdf(Stmt, rdf:object, O, G).
+
+
+
+%! rdf_term(-Term:rdf_term)// .
+
+rdf_term(Iri) -->
+  rdf_iri(Iri), !.
+rdf_term(Literal) -->
+  rdf_literal(Literal).
+rdf_term(BNode) -->
+  "_:",
+  rest(T),
+  {atom_codes(BNode, [0'_,0':|T])}.
 
 
 
