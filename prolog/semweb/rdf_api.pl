@@ -25,6 +25,7 @@
     rdf_deref_triple/3,           % +Uri, -Quads, +Options
     rdf_deref_uri/2,              % +Uri, :Goal_2
     rdf_deref_uri/3,              % +Uri, :Goal_2, +Options
+    rdf_format_extension/2,       % ?Format, ?Extension
     rdf_is_skip_node/1,           % @Term
     rdf_is_well_known_iri/1,      % @Term
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
@@ -84,6 +85,7 @@
     rdf_is_bnode/1,
     rdf_is_iri/1,
     rdf_is_subject/1,
+    rdf_retractall/4,
     rdf_transaction/1,
     rdf_unload_graph/1,
     (rdf_meta)/1,
@@ -93,7 +95,7 @@
 /** <module> RDF API
 
 @author Wouter Beek
-@version 2017/09-2017/11
+@version 2017/09-2017/12
 */
 
 :- use_module(library(apply)).
@@ -643,7 +645,11 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
   uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
   maplist(ground, [Scheme,Authority]), !,
   % `Accept' header
-  findall(MediaType, rdf_media_type(MediaType), DefaultMediaTypes),
+  findall(
+    media(Supertype/Subtype,[]),
+    rdf_media_type(Supertype/Subtype),
+    DefaultMediaTypes
+  ),
   select_option(accept(MediaTypes), Options1, Options2, DefaultMediaTypes),
   atom_phrase(accept(MediaTypes), Accept),
   setup_call_cleanup(
@@ -660,6 +666,17 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
     ),
     close(In)
   ).
+
+
+
+%! rdf_format_extension(?Format:atom, ?Extension:atom) is nondet.
+
+rdf_format_extension(nquads, nq).
+rdf_format_extension(ntriples, nt).
+rdf_format_extension(rdfa, html).
+rdf_format_extension(trig, trig).
+rdf_format_extension(turtle, ttl).
+rdf_format_extension(xml, rdf).
 
 
 
@@ -790,17 +807,11 @@ rdf_load2(File, Options1) :-
   ->  file_base_name(File, Base),
       atomic_list_concat([_|Comps], ., Base),
       member(Ext, Comps),
-      rdf_load_format_(Ext, Format), !
+      rdf_format_extension(Format, Ext), !
   ;   true
   ),
   merge_options([anon_prefix('_:'),format(Format)], Options1, Options2),
   rdf_db:rdf_load(File, Options2).
-
-rdf_load_format_(nq, nquads).
-rdf_load_format_(nt, ntriples).
-rdf_load_format_(rdf, xml).
-rdf_load_format_(ttl, turtle).
-rdf_load_format_(trig, trig).
 
 
 
@@ -819,13 +830,13 @@ rdf_media_type(MediaType) :-
 
 % Ordering represents precedence, as used in HTTP Accept headers, from
 % lower to higher.
-rdf_media_type_format(media(application/'xhtml+xml',[]), rdfa).
-rdf_media_type_format(media(application/'json-ld',[]),   jsonld).
-rdf_media_type_format(media(application/'rdf+xml',[]),   rdfxml).
-rdf_media_type_format(media(application/'n-triples',[]), ntriples).
-rdf_media_type_format(media(text/turtle,[]),             turtle).
-rdf_media_type_format(media(application/'n-quads',[]),   nquads).
-rdf_media_type_format(media(application/trig,[]),        trig).
+rdf_media_type_format(application/'xhtml+xml', rdfa).
+rdf_media_type_format(application/'json-ld', jsonld).
+rdf_media_type_format(application/'n-quads', nquads).
+rdf_media_type_format(application/'n-triples', ntriples).
+rdf_media_type_format(application/'rdf+xml', rdfxml).
+rdf_media_type_format(application/trig, trig).
+rdf_media_type_format(text/turtle, turtle).
 
 
 
