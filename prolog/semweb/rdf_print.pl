@@ -211,14 +211,7 @@ rdf_dcg_iri(Iri) -->
 
 rdf_dcg_iri(Full, Options) -->
   {
-    dict_get(iri_abbr, Options, false), !,
-    dict_get(max_iri_len, Options, ∞, Len)
-  },
-  "<",
-  ellipsis(Full, Len),
-  ">".
-rdf_dcg_iri(Full, Options) -->
-  {
+    dict_get(iri_abbr, Options, true, true),
     (   % Abbreviated based on a manually passed prefix/IRI pair.
         dict_get(prefix_map, Options, [], PrefixMap),
         member(Prefix-Iri, PrefixMap),
@@ -236,6 +229,11 @@ rdf_dcg_iri(Full, Options) -->
   atom(Prefix),
   ":",
   ellipsis(Local, Max).
+rdf_dcg_iri(Full, Options) -->
+  {dict_get(max_iri_len, Options, ∞, Len)},
+  "<",
+  ellipsis(Full, Len),
+  ">".
 
 
 
