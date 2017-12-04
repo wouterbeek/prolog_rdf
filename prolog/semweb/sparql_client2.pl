@@ -234,7 +234,8 @@ graph_option(Key, Value, Option) :-
 
 sparql_client_results(Form, In, MediaType, Result) :-
   (   MediaType = media(text/csv,Params)
-  ->  (memberchk(header=Value, Params) -> assertion(Value=present) ; true),
+  ->  % BUG: “Singleton variable in branch: Value”
+      (memberchk(header=Value, Params) -> assertion(Value=present) ; true),
       sparql_result_csv(In, Result)
   ;   MediaType = media(application/'sparql-results+json',_)
   ->  sparql_result_json(Form, In, Result)

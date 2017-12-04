@@ -95,7 +95,6 @@
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
-:- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
 :- use_module(library(nb_set)).
 :- use_module(library(nlp/nlp_lang)).

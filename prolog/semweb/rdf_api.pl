@@ -107,7 +107,6 @@
 :- use_module(library(hash_ext)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(http/http_header)).
-:- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_guess)).
@@ -651,7 +650,7 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
     DefaultMediaTypes
   ),
   select_option(accept(MediaTypes), Options1, Options2, DefaultMediaTypes),
-  atom_phrase(accept(MediaTypes), Accept),
+  http_accept_value(MediaTypes, Accept),
   setup_call_cleanup(
     http_open2(
       Uri,
