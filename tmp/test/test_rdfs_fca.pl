@@ -105,7 +105,7 @@ fca_viz0(Context, GLbl) :-
       object_label(dcg_rdf_print_term)
     ]
   ),
-  open_format(pdf, File).
+  open_file(File).
 
 
 

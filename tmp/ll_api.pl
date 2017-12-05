@@ -399,11 +399,7 @@ ll_stream(S, P, O, Doc, Goal_5) :-
 ll_stream(S, P, O, Doc, Goal_5, Opts1) :-
   ll_doc(S, P, O, Doc),
   ll_doc_download0(Doc, Iri),
-  merge_options(
-    [rdf_media_type(application/'n-quads'),retry(1000)],
-    Opts1,
-    Opts2
-  ),
+  merge_options([retry(1000)], Opts1, Opts2),
   call_collect_messages(
     rdf_call_on_tuples(Iri, Goal_5, Opts2),
     Status,

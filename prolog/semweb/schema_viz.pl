@@ -80,7 +80,7 @@ export_node(Backend, Options, Out, Node) :-
 %! show_hierarchy(+Backend, +P:iri, +Options:dict) is det.
 
 show_hierarchy(Backend, P, Options) :-
-  _{format: Format, method: Method} :< Options,
-  file_name_extension(hierarchy, Format, File),
-  gv_export(Method, Format, File, export_hierarchy(Backend, P, Options)),
-  open_format(Format, File).
+  _{format: Ext, method: Method} :< Options,
+  file_name_extension(hierarchy, Ext, File),
+  gv_export(Method, Ext, File, export_hierarchy(Backend, P, Options)),
+  open_file(File).

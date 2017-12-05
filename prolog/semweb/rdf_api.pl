@@ -25,7 +25,6 @@
     rdf_deref_triple/3,           % +Uri, -Quads, +Options
     rdf_deref_uri/2,              % +Uri, :Goal_2
     rdf_deref_uri/3,              % +Uri, :Goal_2, +Options
-    rdf_format_extension/2,       % ?Format, ?Extension
     rdf_is_skip_node/1,           % @Term
     rdf_is_well_known_iri/1,      % @Term
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
@@ -40,7 +39,6 @@
     rdf_load2/1,                  % +File
     rdf_load2/2,                  % +File, +Options
     rdf_media_type/1,             % +MediaType
-    rdf_media_type_format/2,      % +MediaType, +Format
     rdf_node/2,                   % ?Node, ?G
     rdf_prefix_iri/2,             % ?PrefixedName, ?Iri
     rdf_prefix_maplist/2,         % :Goal_1, +Args1
@@ -498,7 +496,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
 
   % Parse according to the guessed Media Type.
   (   % N-Quads
-      MediaType = media(application/'n-quads',_)
+      media_type_comps(MediaType, application, 'n-quads', _)
   ->  merge_options(
         [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
         Options1,
@@ -506,7 +504,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_ntriples(In, Goal_2, Options2)
   ;   % N-Triples
-      MediaType = media(application/'n-triples',_)
+      media_type_comps(MediaType, application, 'n-triples', _)
   ->  merge_options(
         [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
         Options1,
@@ -514,7 +512,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_ntriples(In, Goal_2, Options2)
   ;   % RDF/XML
-      MediaType = media(application/'rdf+xml',_)
+      media_type_comps(MediaType, application, 'rdf+xml', _)
   ->  merge_options(
         [base_uri(BaseUri),blank_nodes(noshare)],
         Options1,
@@ -522,7 +520,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       process_rdf(In, Goal_2, Options2)
   ;   % TriG
-      MediaType = media(application/trig,_)
+      media_type_comps(MediaType, application, trig, _)
   ->  merge_options(
         [
           anon_prefix(BNodePrefix),
@@ -535,7 +533,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_turtle(In, Goal_2, Options2)
   ;   % Turtle
-      MediaType = media(text/turtle,_)
+      media_type_comps(MediaType, text, turtle, _)
   ->  merge_options(
         [
           anon_prefix(BNodePrefix),
@@ -644,12 +642,11 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
   uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
   maplist(ground, [Scheme,Authority]), !,
   % `Accept' header
-  findall(
-    media(Supertype/Subtype,[]),
-    rdf_media_type(Supertype/Subtype),
-    DefaultMediaTypes
+  (   select_option(accept(MediaTypes), Options1, Options2)
+  ->  true
+  ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
+      Options2 = Options1
   ),
-  select_option(accept(MediaTypes), Options1, Options2, DefaultMediaTypes),
   http_accept_value(MediaTypes, Accept),
   setup_call_cleanup(
     http_open2(
@@ -665,17 +662,6 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
     ),
     close(In)
   ).
-
-
-
-%! rdf_format_extension(?Format:atom, ?Extension:atom) is nondet.
-
-rdf_format_extension(nquads, nq).
-rdf_format_extension(ntriples, nt).
-rdf_format_extension(rdfa, html).
-rdf_format_extension(trig, trig).
-rdf_format_extension(turtle, ttl).
-rdf_format_extension(xml, rdf).
 
 
 
@@ -793,49 +779,50 @@ rdf_literal_lexical_form(literal(lang(_,Lex)), Lex).
 %! rdf_load2(+File:atom) is det.
 %! rdf_load2(+File:atom, +Options:list(compound)) is det.
 %
-% Loads RDF based in the file extension of File.
+% Loads RDF based in the file extension of File.  The RDF
+% serialization format can be overruled with the option format/1,
+% which gives an RDF file name extension.
 
 rdf_load2(File) :-
   rdf_load2(File, []).
 
 
 rdf_load2(File, Options1) :-
-  ignore(option(format(Format), Options1)),
-  % Guess the serialization format based on the file extension.
-  (   var(Format)
-  ->  file_base_name(File, Base),
+  ignore(option(format(Ext), Options1)),
+  (   var(Ext)
+  ->  % Guess the RDF serialization format based on the file name
+      % extension.
+      file_base_name(File, Base),
       atomic_list_concat([_|Comps], ., Base),
       member(Ext, Comps),
-      rdf_format_extension(Format, Ext), !
+      rdf_format_extension_(_, Ext), !
   ;   true
   ),
-  merge_options([anon_prefix('_:'),format(Format)], Options1, Options2),
+  rdf_format_extension_(Format0, Ext),
+  merge_options([anon_prefix('_:'),format(Format0)], Options1, Options2),
   rdf_db:rdf_load(File, Options2).
+
+rdf_format_extension_(nquads, nq).
+rdf_format_extension_(ntriples, nt).
+rdf_format_extension_(rdf, html).
+rdf_format_extension_(trig, trig).
+rdf_format_extension_(turtle, ttl).
+rdf_format_extension_(xml, rdf).
 
 
 
 %! rdf_media_type(+MediaType:compound) is semidet.
 %! rdf_media_type(-MediaType:compound) is multi.
 
-rdf_media_type(MediaType) :-
-  rdf_media_type_format(MediaType, _).
-
-
-
-%! rdf_media_type_format(+MediaType:compound, +Format:atom) is semidet.
-%! rdf_media_type_format(+MediaType:compound, -Format:atom) is det.
-%! rdf_media_type_format(-MediaType:compound, +Format:atom) is det.
-%! rdf_media_type_format(-MediaType:compound, -Format:atom) is multi.
-
 % Ordering represents precedence, as used in HTTP Accept headers, from
 % lower to higher.
-rdf_media_type_format(application/'xhtml+xml', rdfa).
-rdf_media_type_format(application/'json-ld', jsonld).
-rdf_media_type_format(application/'n-quads', nquads).
-rdf_media_type_format(application/'n-triples', ntriples).
-rdf_media_type_format(application/'rdf+xml', rdfxml).
-rdf_media_type_format(application/trig, trig).
-rdf_media_type_format(text/turtle, turtle).
+rdf_media_type(media(application/'xhtml+xml',[])).
+rdf_media_type(media(application/'json-ld',[])).
+rdf_media_type(media(application/'n-quads',[])).
+rdf_media_type(media(application/'n-triples',[])).
+rdf_media_type(media(application/'rdf+xml',[])).
+rdf_media_type(media(application/trig,[])).
+rdf_media_type(media(text/turtle,[])).
 
 
 

@@ -144,9 +144,9 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ;   % Query via URL-encoded POST
           Method == url_encoded_post
       ->  uri_query_components(QueryComps, [query(Query)|GraphsQuery]),
-          RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
+          RequestMediaType0 = 'application/x-www-form-urlencoded; charset=UTF-8',
           merge_options(
-            [post(string(RequestMediaType,QueryComps))],
+            [post(string(RequestMediaType0,QueryComps))],
             Options6,
             Options7
           ),
@@ -169,17 +169,17 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
           append(QueryComps1, GraphsQuery, QueryComps2),
           uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps2,_)),
-          RequestMediaType = 'application/sparql-update; charset=UTF-8',
+          RequestMediaType0 = 'application/sparql-update; charset=UTF-8',
           merge_options(
-            [post(string(RequestMediaType,Query))],
+            [post(string(RequestMediaType0,Query))],
             Options5,
             Options7
           )
       ;   Method == url_encoded_post
       ->  uri_query_components(QueryComps, [update(Query)|GraphsQuery]),
-          RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
+          RequestMediaType0 = 'application/x-www-form-urlencoded; charset=UTF-8',
           merge_options(
-            [post(string(RequestMediaType,QueryComps))],
+            [post(string(RequestMediaType0,QueryComps))],
             Options5,
             Options7
           ),
@@ -233,15 +233,15 @@ graph_option(Key, Value, Option) :-
 %!                       -Result:compound) is nondet.
 
 sparql_client_results(Form, In, MediaType, Result) :-
-  (   MediaType = media(text/csv,Params)
+  (   media_type_comps(MediaType, text, csv, Params)
   ->  % BUG: “Singleton variable in branch: Value”
       (memberchk(header=Value, Params) -> assertion(Value=present) ; true),
       sparql_result_csv(In, Result)
-  ;   MediaType = media(application/'sparql-results+json',_)
+  ;   media_type_comps(MediaType, application, 'sparql-results+json', _)
   ->  sparql_result_json(Form, In, Result)
-  ;   MediaType = media(application/'sparql-results+xml',_)
+  ;   media_type_comps(MediaType, application, 'sparql-results+xml', _)
   ->  sparql_result_xml(Form, In, Result)
-  ;   MediaType = media(text/'tab-separated-values',_)
+  ;   media_type_comps(MediaType, text, 'tab-separated-values', _)
   ->  sparql_result_tsv(In, Result)
   ;   domain_error(sparql_media_type, MediaType)
   ).

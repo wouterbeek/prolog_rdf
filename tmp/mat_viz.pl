@@ -78,7 +78,7 @@ mat_viz0(Es, GLabel) :-
   ],
   build_export_graph(graph(Vs,Es), ExportG, Opts),
   graph_viz(ExportG, 'j.pdf', [method(dot),output(pdf)]),
-  open_format(pdf, 'j.pdf').
+  open_file('j.pdf').
 
 
 
