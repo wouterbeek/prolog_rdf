@@ -647,13 +647,8 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
   ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
       Options2 = Options1
   ),
-  http_accept_value(MediaTypes, Accept),
   setup_call_cleanup(
-    http_open2(
-      Uri,
-      In,
-      [failure(404),metadata([Meta|_]),request_header('Accept'=Accept)]
-    ),
+    http_open2(Uri, In, [accept(MediaTypes),failure(404),metadata([Meta|_])]),
     (
       _{'content-type': [ContentType]} :< Meta.headers,
       include(ground, [content_type(ContentType)], Options3),

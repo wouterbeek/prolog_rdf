@@ -187,11 +187,7 @@ sparql_client(Uri1, Query, Result, Options1) :-
       )
   ),
   merge_options(
-    [
-      header(content_type,ContentType),
-      request_header('Accept'=ReplyMediaType1),
-      status_code(Status)
-    ],
+    [accept(ReplyMediaType1),header(content_type,ContentType)],
     Options7,
     Options8
   ),
@@ -199,11 +195,7 @@ sparql_client(Uri1, Query, Result, Options1) :-
   call_cleanup(
     (
       http_parse_header_value(content_type, ContentType, ReplyMediaType2),
-      (   between(200, 299, Status)
-      ->  sparql_client_results(Form, In, ReplyMediaType2, Result)
-      ;   throw(error(http_error_code(Status))),
-          copy_stream_data(In, error_output)
-      )
+      sparql_client_results(Form, In, ReplyMediaType2, Result)
     ),
     close(In)
   ).
