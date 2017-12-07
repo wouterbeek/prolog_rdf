@@ -36,18 +36,18 @@
 
 export_edge(_, _, Out, edge(C1,[P],C2)) :-
   rdf_prefix_memberchk(P, [rdfs:subClassOf,rdfs:subPropertyOf]), !,
-  maplist(dot_id, [C1,C2], [Id1,Id2]),
+  maplist(gv_id, [C1,C2], [Id1,Id2]),
   % By swapping the order in which the nodes are asserted, we are able
   % to show superclasses/superproperties above
   % subclasses/subproperties.
-  dot_edge(Out, Id2, Id1, [arrowtail(onormal),dir(back),'URL'(P)]).
+  gv_edge(Out, Id2, Id1, [arrowtail(onormal),dir(back),'URL'(P)]).
 export_edge(Backend, Options, Out, edge(C1,Ps,C2)) :-
   rdf_property_path_label(Backend, Options, Ps, Label),
   % We cannot put in URLs for all property path members, so we only
   % take the first one.
   Ps = [P|_],
-  maplist(dot_id, [C1,C2], [Id1,Id2]),
-  dot_edge(Out, Id1, Id2, [label(Label),'URL'(P)]).
+  maplist(gv_id, [C1,C2], [Id1,Id2]),
+  gv_edge(Out, Id1, Id2, [label(Label),'URL'(P)]).
 
 
 
@@ -70,10 +70,10 @@ export_hierarchy(Backend, P, Options, Out) :-
 % definition.
 
 export_node(Backend, Options, Out, Node) :-
-  dot_id(Node, Id),
+  gv_id(Node, Id),
   rdf_term_label(Backend, Options, Node, Label),
   (is_http_uri(Node) -> T = ['URL'(Node)] ; T = []),
-  dot_node(Out, Id, [label(Label),shape(rect)|T]).
+  gv_node(Out, Id, [label(Label),shape(rect)|T]).
 
 
 
