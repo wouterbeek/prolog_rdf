@@ -26,7 +26,7 @@ SPARQL 1.1 HTTP responses (result sets).
 @see https://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
 @tbd Fix streamed JSON parser.
 @tbd Extract the order of the results set in the XML parse (<head>).
-@version 2017/03-2017/11
+@version 2017/03-2017/12
 */
 
 :- use_module(library(apply)).
@@ -40,6 +40,7 @@ SPARQL 1.1 HTTP responses (result sets).
 :- use_module(library(http/http_client2)).
 :- use_module(library(http/http_header)).
 :- use_module(library(lists)).
+:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/sparql_parser)).
@@ -191,6 +192,7 @@ sparql_client(Uri1, Query, Result, Options1) :-
     Options7,
     Options8
   ),
+  gtrace,
   http_open2(Uri2, In, Options8),
   call_cleanup(
     (
@@ -204,13 +206,13 @@ sparql_client(Uri1, Query, Result, Options1) :-
 %!                       +Bugs:oneof([none,virtuoso]),
 %!                       -ReplyMediaType:atom) is det.
 
-result_set_media_type(csv, none, 'text/csv; charset=UTF-8').
-result_set_media_type(csv, virtuoso, 'text/csv').
-result_set_media_type(json, _, 'application/sparql-results+json').
-result_set_media_type(tsv, none, 'text/tab-separated-values; charset=UTF-8').
-result_set_media_type(tsv, virtuoso, 'text/tab-separated-values').
-result_set_media_type(xml, none, 'application/sparql-results+xml; charset=UTF-8').
-result_set_media_type(xml, virtuoso, 'application/sparql-results+xml').
+result_set_media_type(csv, none, media(text/csv,[charset('UTF-8')])).
+result_set_media_type(csv, virtuoso, media(text/csv,[])).
+result_set_media_type(json, _, media(application/'sparql-results+json',[])).
+result_set_media_type(tsv, none, media(text/'tab-separated-values',[charset('UTF-8')])).
+result_set_media_type(tsv, virtuoso, media(text/'tab-separated-values',[])).
+result_set_media_type(xml, none, media(application/'sparql-results+xml',[charset('UTF-8')])).
+result_set_media_type(xml, virtuoso, media(application/'sparql-results+xml',[])).
 
 %! graph_option(+Key:atom, +Value:atom, -Option:compound) is det.
 %
