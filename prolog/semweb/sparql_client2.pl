@@ -192,7 +192,6 @@ sparql_client(Uri1, Query, Result, Options1) :-
     Options7,
     Options8
   ),
-  gtrace,
   http_open2(Uri2, In, Options8),
   call_cleanup(
     (
