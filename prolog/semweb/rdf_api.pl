@@ -36,6 +36,7 @@
     rdf_literal/4,                % ?D, ?LTag, ?Lex, ?Literal
     rdf_literal_datatype_iri/2,   % +Literal, ?D
     rdf_literal_lexical_form/2,   % +Literal, ?Lex
+    rdf_literal_value/2,          % +Literal, -Value
     rdf_load2/1,                  % +File
     rdf_load2/2,                  % +File, +Options
     rdf_media_type/1,             % +MediaType
@@ -159,6 +160,7 @@
    rdf_literal(r, ?, ?, o),
    rdf_literal_datatype_iri(o, r),
    rdf_literal_lexical_form(o, ?),
+   rdf_literal_value(o, -),
    rdf_node(o, r),
    rdf_prefix_maplist(:, t),
    rdf_prefix_member(t, t),
@@ -768,6 +770,17 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 
 rdf_literal_lexical_form(literal(type(_,Lex)), Lex).
 rdf_literal_lexical_form(literal(lang(_,Lex)), Lex).
+
+
+
+%! rdf_literal_value(+Literal:rdf_literal, -Value) is det.
+%
+% Notice that languages-tagged strings do not have a value.
+
+rdf_literal_value(literal(type(D,Lex)), Value) :- !,
+  rdf_lexical_value(D, Lex, Value).
+rdf_literal_value(literal(lang(LTag,Lex)), _) :-
+  existence_error(rdf_value,LTag-Lex).
 
 
 
