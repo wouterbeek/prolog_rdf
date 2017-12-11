@@ -107,6 +107,7 @@
 :- use_module(library(http/http_client2)).
 :- use_module(library(http/http_header)).
 :- use_module(library(lists)).
+:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin), []).
@@ -461,7 +462,7 @@ rdf_deref_stream(Uri, In, Goal_2) :-
 
 rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   % Serialization format
-  ignore(option(format(MediaType), Options1)),
+  ignore(option(media_type(MediaType), Options1)),
   (   var(MediaType)
   ->  rdf_guess_stream(In, GuessMediaType),
       (   % `Content-Type' header
@@ -631,7 +632,7 @@ rdf_deref_triple_(G, rdf(S,P,O)) :-
 %     Overrule the Media Type communicated in the `Content-Type' reply
 %     header.
 %
-%   * format(+MediaType:compound)
+%   * media_type(+MediaType:compound)
 %
 %     Overrule the RDF serialization format.
 

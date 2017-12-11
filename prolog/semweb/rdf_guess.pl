@@ -262,7 +262,7 @@ n3_format(EoS, Exts1, Ext) -->
 n3_format(EoS, Exts1, Ext) -->
   n3_subject(Exts1, Exts2),
   n3_blanks,
-  n3_predicate(Exts2, Exts3), !,
+  n3_predicate(Exts2, Exts3),
   n3_blanks,
   n3_object(Exts3, Exts4),
   n3_blanks,
@@ -280,13 +280,13 @@ n3_format(EoS, Exts1, Ext) -->
       n3_blanks,
       "."
   ->  {ord_subtract(Exts5, [trig], Exts6)}
-  ),
+  ), !,
   n3_format(EoS, Exts6, Ext).
 % TriG, Turtle anonymous blank node
 n3_format(EoS, Exts1, Ext) -->
   "[", !,
   {ord_subtract(Exts1, [nq], Exts2)},
-  ns_format(EoS, Exts2, Ext).
+  n3_format(EoS, Exts2, Ext).
 % TriG, Turtle collection
 n3_format(EoS, Exts1, Ext) -->
   "(", !,
@@ -296,9 +296,13 @@ n3_format(EoS, Exts1, Ext) -->
 n3_format(EoS, Exts1, Ext) -->
   n3_graph(Exts1, Exts2),
   n3_blanks,
-  "{",
+  "{", !,
   {ord_subtract(Exts2, [nq], Exts3)},
   n3_format(EoS, Exts3, Ext).
+% The last part of the stream cuts off abrubtly.
+n3_format(_, _, nq) -->
+  rest(Codes),
+  {string_codes(String, Codes), format(user_output, "~s~n", [String])}.
 
 % N3 only allows horizontal tab and space, but we skip other blank
 % characters as well, since they may appear in non-conforming
