@@ -37,11 +37,11 @@ rdf_viz(Out, G) :-
   format_debug(dot, Out, "}").
 
 export_node(Out, Node) :-
-  dot_id(Node, Id),
+  gv_id(Node, Id),
   dcg_with_output_to(string(Label), rdf_dcg_term(Node)),
-  dot_node(Out, Id, [label(Label)]).
+  gv_node(Out, Id, [label(Label)]).
 
 export_edge(Out, rdf(S,P,O)) :-
-  maplist(dot_id, [S,O], [SId,OId]),
+  maplist(gv_id, [S,O], [SId,OId]),
   dcg_with_output_to(string(Label), rdf_dcg_iri(P)),
-  dot_edge(Out, SId, OId, [label(Label)]).
+  gv_edge(Out, SId, OId, [label(Label)]).

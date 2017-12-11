@@ -58,5 +58,5 @@ init_uri_scheme(G, Cat) :-
     Iri,
     File,
     _{host: 'urischeme.org'},
-    [rdf_media_type(text/turtle)]
+    []
   ).

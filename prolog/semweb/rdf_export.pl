@@ -1,6 +1,8 @@
 :- module(
   rdf_export,
   [
+    rdf_clean_assert/3,     % +Out, +Tuples, +G
+    rdf_clean_assert/4,     % +Out, +CleanG, +Tuples, +G
     rdf_reserialize/3,      % +Uri, +In, +File
     rdf_save2/1,            % +Out
     rdf_save2/2,            % +Out, +Type
@@ -48,6 +50,32 @@
 
 
 
+
+%! rdf_clean_assert(+Out:stream, +Tuples:list(compound), +Graph:atom) is det.
+
+rdf_clean_assert(Out, Tuples, _) :-
+  maplist(rdf_clean_assert_(Out), Tuples).
+
+rdf_clean_assert_(Out, rdf(S,P,O)):- !,
+  rdf_write_triple(Out, S, P, O).
+rdf_clean_assert_(Out, rdf(S,P,O,_)):-
+  rdf_write_triple(Out, S, P, O).
+
+
+
+%! rdf_clean_assert(+Out:stream, +CleanGraph:iri, +Tuples:list(compound),
+%!                  +Graph:atom) is det.
+
+rdf_clean_assert(Out, G, Tuples, _) :-
+  maplist(rdf_clean_assert_(Out, G), Tuples).
+
+rdf_clean_assert_(Out, G, rdf(S,P,O)):- !,
+  rdf_write_quad(Out, S, P, O, G).
+rdf_clean_assert_(Out, G, rdf(S,P,O,_)):-
+  rdf_write_quad(Out, S, P, O, G).
+
+
+
 %! rdf_reserialize(+Uri:atom, +In:stream, +File:atom) is det.
 
 rdf_reserialize(Uri, In, File) :-
@@ -56,12 +84,6 @@ rdf_reserialize(Uri, In, File) :-
     rdf_deref_stream(Uri, In, rdf_clean_assert(Out)),
     close(Out)
   ).
-
-rdf_clean_assert(Out, Triples, _) :-
-  maplist(rdf_clean_assert(Out), Triples).
-
-rdf_clean_assert(Out, rdf(S,P,O)):-
-  rdf_write_triple(Out, S, P, O).
 
 
 

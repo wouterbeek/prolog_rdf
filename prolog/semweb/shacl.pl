@@ -95,7 +95,7 @@ shacl_export_class(Out, C, G) :-
     Values
   ),
   Values \== [], !,
-  dot_id(C, CId),
+  gv_id(C, CId),
   % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
   iri_label(C, CLabel),
@@ -113,7 +113,7 @@ shacl_export_class(Out, C, G) :-
 % The instances of class `C' are related to certain property/range
 % pairs.
 shacl_export_class(Out, C, G) :-
-  dot_id(C, CId),
+  gv_id(C, CId),
   % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
   iri_label(C, CLabel),

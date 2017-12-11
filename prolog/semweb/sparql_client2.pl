@@ -26,7 +26,7 @@ SPARQL 1.1 HTTP responses (result sets).
 @see https://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
 @tbd Fix streamed JSON parser.
 @tbd Extract the order of the results set in the XML parse (<head>).
-@version 2017/03-2017/11
+@version 2017/03-2017/12
 */
 
 :- use_module(library(apply)).
@@ -40,6 +40,7 @@ SPARQL 1.1 HTTP responses (result sets).
 :- use_module(library(http/http_client2)).
 :- use_module(library(http/http_header)).
 :- use_module(library(lists)).
+:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/sparql_parser)).
@@ -144,9 +145,9 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ;   % Query via URL-encoded POST
           Method == url_encoded_post
       ->  uri_query_components(QueryComps, [query(Query)|GraphsQuery]),
-          RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
+          RequestMediaType0 = 'application/x-www-form-urlencoded; charset=UTF-8',
           merge_options(
-            [post(string(RequestMediaType,QueryComps))],
+            [post(string(RequestMediaType0,QueryComps))],
             Options6,
             Options7
           ),
@@ -169,17 +170,17 @@ sparql_client(Uri1, Query, Result, Options1) :-
       ->  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,_)),
           append(QueryComps1, GraphsQuery, QueryComps2),
           uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps2,_)),
-          RequestMediaType = 'application/sparql-update; charset=UTF-8',
+          RequestMediaType0 = 'application/sparql-update; charset=UTF-8',
           merge_options(
-            [post(string(RequestMediaType,Query))],
+            [post(string(RequestMediaType0,Query))],
             Options5,
             Options7
           )
       ;   Method == url_encoded_post
       ->  uri_query_components(QueryComps, [update(Query)|GraphsQuery]),
-          RequestMediaType = 'application/x-www-form-urlencoded; charset=UTF-8',
+          RequestMediaType0 = 'application/x-www-form-urlencoded; charset=UTF-8',
           merge_options(
-            [post(string(RequestMediaType,QueryComps))],
+            [post(string(RequestMediaType0,QueryComps))],
             Options5,
             Options7
           ),
@@ -187,11 +188,7 @@ sparql_client(Uri1, Query, Result, Options1) :-
       )
   ),
   merge_options(
-    [
-      header(content_type,ContentType),
-      request_header('Accept'=ReplyMediaType1),
-      status_code(Status)
-    ],
+    [accept(ReplyMediaType1),header(content_type,ContentType)],
     Options7,
     Options8
   ),
@@ -199,11 +196,7 @@ sparql_client(Uri1, Query, Result, Options1) :-
   call_cleanup(
     (
       http_parse_header_value(content_type, ContentType, ReplyMediaType2),
-      (   between(200, 299, Status)
-      ->  sparql_client_results(Form, In, ReplyMediaType2, Result)
-      ;   throw(error(http_error_code(Status))),
-          copy_stream_data(In, error_output)
-      )
+      sparql_client_results(Form, In, ReplyMediaType2, Result)
     ),
     close(In)
   ).
@@ -212,13 +205,13 @@ sparql_client(Uri1, Query, Result, Options1) :-
 %!                       +Bugs:oneof([none,virtuoso]),
 %!                       -ReplyMediaType:atom) is det.
 
-result_set_media_type(csv, none, 'text/csv; charset=UTF-8').
-result_set_media_type(csv, virtuoso, 'text/csv').
-result_set_media_type(json, _, 'application/sparql-results+json').
-result_set_media_type(tsv, none, 'text/tab-separated-values; charset=UTF-8').
-result_set_media_type(tsv, virtuoso, 'text/tab-separated-values').
-result_set_media_type(xml, none, 'application/sparql-results+xml; charset=UTF-8').
-result_set_media_type(xml, virtuoso, 'application/sparql-results+xml').
+result_set_media_type(csv, none, media(text/csv,[charset('UTF-8')])).
+result_set_media_type(csv, virtuoso, media(text/csv,[])).
+result_set_media_type(json, _, media(application/'sparql-results+json',[])).
+result_set_media_type(tsv, none, media(text/'tab-separated-values',[charset('UTF-8')])).
+result_set_media_type(tsv, virtuoso, media(text/'tab-separated-values',[])).
+result_set_media_type(xml, none, media(application/'sparql-results+xml',[charset('UTF-8')])).
+result_set_media_type(xml, virtuoso, media(application/'sparql-results+xml',[])).
 
 %! graph_option(+Key:atom, +Value:atom, -Option:compound) is det.
 %
@@ -233,15 +226,15 @@ graph_option(Key, Value, Option) :-
 %!                       -Result:compound) is nondet.
 
 sparql_client_results(Form, In, MediaType, Result) :-
-  (   MediaType = media(text/csv,Params)
+  (   media_type_comps(MediaType, text, csv, Params)
   ->  % BUG: “Singleton variable in branch: Value”
       (memberchk(header=Value, Params) -> assertion(Value=present) ; true),
       sparql_result_csv(In, Result)
-  ;   MediaType = media(application/'sparql-results+json',_)
+  ;   media_type_comps(MediaType, application, 'sparql-results+json', _)
   ->  sparql_result_json(Form, In, Result)
-  ;   MediaType = media(application/'sparql-results+xml',_)
+  ;   media_type_comps(MediaType, application, 'sparql-results+xml', _)
   ->  sparql_result_xml(Form, In, Result)
-  ;   MediaType = media(text/'tab-separated-values',_)
+  ;   media_type_comps(MediaType, text, 'tab-separated-values', _)
   ->  sparql_result_tsv(In, Result)
   ;   domain_error(sparql_media_type, MediaType)
   ).

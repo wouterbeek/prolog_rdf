@@ -54,7 +54,7 @@ sparql_viz(Query, Out) :-
 %! sparql_viz_edge(+Out:stream, +Term1:term, +Term2:term) is det.
 
 sparql_viz_edge(Out, Term1, Term2) :-
-  maplist(dot_id, [Term1,Term2], [Id1,Id2]),
+  maplist(gv_id, [Term1,Term2], [Id1,Id2]),
   debug_format(sparql, Out, "  ~a -- ~a", [Id1,Id2]).
 
 
@@ -75,7 +75,7 @@ write_label(Term, Label, _) :-
 %! write_node(+Out:stream, +Term:term, +Options:list(compound)) is det.
 
 write_node(Out, Term, Options) :-
-  dot_id(Term, Id),
+  gv_id(Term, Id),
   write_label(Term, Label, Options),
   debug_format(sparql, Out, "  ~d [label=<~a>]", [Id,Label]).
 
