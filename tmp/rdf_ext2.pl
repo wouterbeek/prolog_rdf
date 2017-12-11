@@ -116,17 +116,8 @@
     rdf_aggregate_all(+, 0, -).
 
 :- multifile
-    file_ext:media_type_extension/2,
     http:map_exception_to_http_status_hook/4,
     user:message_hook/3.
-
-file_ext:media_type_extension_(media(application/'ld+json',[]), jsonld).
-file_ext:media_type_extension_(media(application/'n-quads',[]), nq).
-file_ext:media_type_extension_(media(application/'n-quads',[]), nquads).
-file_ext:media_type_extension_(media(application/'n-triples',[]), nt).
-file_ext:media_type_extension_(media(application/'rdf+xml',[]), rdf).
-file_ext:media_type_extension_(media(application/trig,[]), trig).
-file_ext:media_type_extension_(media(text/turtle,[]), ttl).
 
 http:map_exception_to_http_status_hook(
   error(existence_error(hdt_graph,G),_),
