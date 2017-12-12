@@ -298,7 +298,7 @@ rdf_assert_reification(S, P, O, G, Stmt) :-
 
 rdf_atom_to_term(Atom, Term) :-
   atom_codes(Atom, Codes),
-  phrase(rdf_term_(Term), Codes).
+  phrase(rdf_term(Term), Codes).
 
 
 
