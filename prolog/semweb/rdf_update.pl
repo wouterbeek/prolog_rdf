@@ -89,6 +89,6 @@ rdf_update2(S, P, O, G, Action) :-
 
 rdf_update_language_tag(P, LTag, G) :-
   rdf_call_update(
-    rdf(S, P, String^^xsd:string, G),
-    rdf_update2(S, P, String^^xsd:string, G, object(String@LTag))
+    rdf(S, P, literal(type(xsd:string,Lex)), G),
+    rdf_update2(S, P, literal(type(xsd:string,Lex)), G, object(literal(lang(LTag,Lex))))
   ).
