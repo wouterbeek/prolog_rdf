@@ -73,7 +73,6 @@
     rdf_subject/3,                   % +M, ?S, ?G
     rdf_term/2,                      % +M, ?Term
     rdf_term/3,                      % +M, ?Term, ?G
-    rdf_term_to_atom/2,              % +Term, -Atom
     rdf_tuple_quad/3,                % +Tuple, +G, -Quad
     rdf_tuple_triple/2               % +Tuple, ?Triple
   ]
@@ -952,18 +951,6 @@ rdf_term(trp, Node, G) :-
   rdf_node(trp, Node, G),
   % Ensure there are no duplicates.
   \+ rdf_predicate(trp, Node, G).
-
-
-
-%! rdf_term_to_atom(+Term, -Atom) is det.
-
-rdf_term_to_atom(Val^^D, Atom) :- !,
-  rdf11:in_ground_type(D, Val, Lex),
-  format(atom(Atom), '"~a"^^<~a>', [Lex,D]).
-rdf_term_to_atom(Lex@LTag, Atom) :- !,
-  format(atom(Atom), '"~a"@~a', [Lex,LTag]).
-rdf_term_to_atom(Atom, Atom) :-
-  rdf_is_iri(Atom).
 
 
 
