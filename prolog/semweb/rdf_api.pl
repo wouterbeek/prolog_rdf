@@ -298,7 +298,14 @@ rdf_assert_reification(S, P, O, G, Stmt) :-
 
 rdf_atom_to_term(Atom, Term) :-
   atom_codes(Atom, Codes),
-  phrase(rdf_term(Term), Codes).
+  phrase(rdf_term(Term), Codes), !.
+% Expansion of commonly used abbreviations.
+rdf_atom_to_term(a, Iri) :- !,
+  rdf_equal(rdf:type, Iri).
+% Expansion of commonly used prefixes.
+rdf_atom_to_term(Atom, Iri) :-
+  atomic_list_concat([Prefix,Local], :, Atom),
+  rdf_prefix_iri(Prefix:Local, Iri).
 
 
 
@@ -925,7 +932,10 @@ rdf_term_to_atom(literal(type(D,Lex)), Atom) :- !,
 rdf_term_to_atom(Iri, Atom) :-
   rdf_is_iri(Iri), !,
   format(atom(Atom), '<~a>', [Iri]).
-rdf_term_to_atom(BNode, BNode).
+rdf_term_to_atom(BNode, BNode) :-
+  rdf_is_bnode(BNode), !.
+rdf_term_to_atom(Term, _) :-
+  type_error(rdf_term, Term).
 
 
 
