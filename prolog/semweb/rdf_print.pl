@@ -283,23 +283,19 @@ rdf_dcg_literal(Lit) -->
   rdf_dcg_literal(Lit, _{}).
 
 
-rdf_dcg_literal(Lit, Options) -->
-  {rdf11:pre_object(Lit, Lit0)},
-  rdf_dcg_literal_(Lit0, Options).
-
 % hook
-rdf_dcg_literal_(Lit, Options) -->
+rdf_dcg_literal(Lit, Options) -->
   rdf_dcg_literal_hook(Lit, Options), !.
 % rdf:langString
-rdf_dcg_literal_(literal(lang(LTag,Lex)), Options) --> !,
+rdf_dcg_literal(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   rdf_dcg_language_tag(LTag, Options).
 % xsd:boolean
-rdf_dcg_literal_(literal(type(xsd:boolean,Lex)), Options) --> !,
+rdf_dcg_literal(literal(type(xsd:boolean,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).
 % xsd:decimal: before other numeric types
-rdf_dcg_literal_(literal(type(xsd:decimal,Lex)), _) --> !,
+rdf_dcg_literal(literal(type(xsd:decimal,Lex)), _) --> !,
   {atom_phrase(decimalLexicalMap(N), Lex)},
   atom(N).
 % xsd:byte,
@@ -317,7 +313,7 @@ rdf_dcg_literal_(literal(type(xsd:decimal,Lex)), _) --> !,
 % xsd:unsignedInt
 % xsd:unsignedLong
 % xsd:unsignedShort
-rdf_dcg_literal_(literal(type(D,Lex)), _) -->
+rdf_dcg_literal(literal(type(D,Lex)), _) -->
   {rdf11:xsd_numerical(D, _, Type)}, !,
   {xsd_number_string(N, Lex)},
   ({Type == integer} -> thousands(N) ; number(N)).
@@ -329,7 +325,7 @@ rdf_dcg_literal_(literal(type(D,Lex)), _) -->
 % xsd:gYear
 % xsd:gYearMonth
 % xsd:time
-rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
+rdf_dcg_literal(literal(type(D,Lex)), Options) -->
   {
     rdf11:xsd_date_time_type(D), !,
     xsd_time_string(DateTime, D, Lex),
@@ -338,13 +334,13 @@ rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
   },
   atom(Label).
 % xsd:string
-rdf_dcg_literal_(literal(type(xsd:string,Lex)), Options) --> !,
+rdf_dcg_literal(literal(type(xsd:string,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).
 % xsd:anyURI
-rdf_dcg_literal_(literal(type(xsd:anyURI,Uri)), _) --> !,
+rdf_dcg_literal(literal(type(xsd:anyURI,Uri)), _) --> !,
   atom(Uri).
 % other
-rdf_dcg_literal_(literal(type(D,Lex)), Options) -->
+rdf_dcg_literal(literal(type(D,Lex)), Options) -->
   rdf_dcg_lexical_form(Lex, Options),
   "^^",
   rdf_dcg_iri(D, Options).
