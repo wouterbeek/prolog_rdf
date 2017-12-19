@@ -12,6 +12,7 @@
     rdf_html_term//2,         % +Term, +Options
     rdf_html_triple//2,       % +Uri, +Triple
     rdf_html_triple//3,       % +Uri, +Triple, +Options
+    rdf_html_triple_table//2, % +Uri, +Triples
     rdf_html_triple_table//3, % +Uri, ?G, +Triples
     rdf_html_triple_table//4  % +Uri, ?G, +Triples, +Options
   ]
@@ -30,7 +31,7 @@
 | max_lit_len | [0,∞)    |
 
 @author Wouter Beek
-@version 2017/05-2017/11
+@version 2017/05-2017/12
 */
 
 :- use_module(library(apply)).
@@ -306,9 +307,14 @@ rdf_html_triple(Uri, rdf(S,P,O), Options1) -->
     
 
 
+%! rdf_html_triple_table(+Uri:atom, +Triples:list(compound))// is det.
 %! rdf_html_triple_table(+Uri:atom, ?G:atom, +Triples:list(compound))// is det.
 %! rdf_html_triple_table(+Uri:atom, ?G:atom, +Triples:list(compound),
 %!                       +Options:list(compound))// is det.
+
+rdf_html_triple_table(Uri, Triples) -->
+  rdf_html_triple_table(Uri, _, Triples).
+
 
 rdf_html_triple_table(Uri, G, Triples) -->
   rdf_html_triple_table(Uri, G, Triples, _{}).
