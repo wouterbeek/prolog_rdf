@@ -4,7 +4,7 @@
     isomorphic_graphset/2,        % +GraphSet1, +GraphSet2
     prefix_local_iri/3,           % ?Prefix, ?Local, ?Iri
     rdf/4,                        % ?S, ?P, ?O, ?G
-    rdf_assert/1,                 % +Triple
+    rdf_assert/1,                 % +Tuple
     rdf_assert/3,                 % +S, +P, +O
     rdf_assert_list/2,            % +PrologList, -RdfList
     rdf_assert_list/3,            % +PrologList, -RdfList, +G
@@ -230,10 +230,12 @@ rdf(S, P, O, G) :-
 
 
 
-%! rdf_assert(+Triple:rdf_triple) is det.
+%! rdf_assert(+Tuple:rdf_tuple) is det.
 
-rdf_assert(rdf(S,P,O)) :-
+rdf_assert(rdf(S,P,O)) :- !,
   rdf_assert(S, P, O).
+rdf_assert(rdf(S,P,O,G)) :-
+  rdf_assert(S, P, O, G).
 
 
 
