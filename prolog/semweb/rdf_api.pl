@@ -6,6 +6,7 @@
     rdf/4,                        % ?S, ?P, ?O, ?G
     rdf_assert/1,                 % +Tuple
     rdf_assert/3,                 % +S, +P, +O
+    rdf_assert/4,                 % +S, +P, +O, +G
     rdf_assert_list/2,            % +PrologList, -RdfList
     rdf_assert_list/3,            % +PrologList, -RdfList, +G
     rdf_assert_list/4,            % +S, +P, +PrologList, +G
@@ -68,7 +69,8 @@
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
-    rdf_assert/4,
+    rdf_assert/3 as rdf_assert_,
+    rdf_assert/4 as rdf_assert_,
     rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
@@ -139,6 +141,7 @@
    rdf(r, r, o, r),
    rdf_assert(t),
    rdf_assert(r, r, o),
+   rdf_assert(r, r, o, r),
    rdf_assert_list(+, -, r),
    rdf_assert_list(r, r, t, r),
    rdf_assert_reification(r, r, o, r),
@@ -240,10 +243,17 @@ rdf_assert(rdf(S,P,O,G)) :-
 
 
 %! rdf_assert(+S, +P, +O) is det.
+%! rdf_assert(+S, +P, +O, +G) is det.
 
 rdf_assert(S, P, O) :-
-  rdf_default_graph(G),
-  rdf_assert(S, P, O, G).
+  rdf_assert_(S, P, O).
+
+
+rdf_assert(S, P, O, G) :-
+  rdf_default_graph(G), !,
+  rdf_assert_(S, P, O).
+rdf_assert(S, P, O, G) :-
+  rdf_assert_(S, P, O, G).
 
 
 
