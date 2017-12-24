@@ -98,13 +98,13 @@ shacl_export_class(Out, C, G) :-
   gv_id(C, CId),
   % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
-  iri_label(C, CLabel),
+  rdf_label(C, CLabel),
   format_debug(dot, Out, "    <TR><TD><B>~a</B></TD></TR>", [CLabel]),
   % middle of node
   forall(
     member(Value, Values),
     (
-      iri_label(Value, ValueLabel),
+      rdf_label(Value, ValueLabel),
       format_debug(dot, Out, "    <TR><TD>~a</TD></TR>", [ValueLabel])
     )
   ),
@@ -116,7 +116,7 @@ shacl_export_class(Out, C, G) :-
   gv_id(C, CId),
   % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
-  iri_label(C, CLabel),
+  rdf_label(C, CLabel),
   format_debug(
     dot,
     Out,
