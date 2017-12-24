@@ -6,6 +6,7 @@
     rdf/4,                        % ?S, ?P, ?O, ?G
     rdf_assert/1,                 % +Triple
     rdf_assert/3,                 % +S, +P, +O
+    rdf_assert/4,                 % +S, +P, +O, +G
     rdf_assert_list/2,            % +PrologList, -RdfList
     rdf_assert_list/3,            % +PrologList, -RdfList, +G
     rdf_assert_list/4,            % +S, +P, +PrologList, +G
@@ -27,6 +28,7 @@
     rdf_deref_uri/3,              % +Uri, :Goal_2, +Options
     rdf_is_skip_node/1,           % @Term
     rdf_is_well_known_iri/1,      % @Term
+    rdf_label/2,                  % +Term, -Label
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
     rdf_lexical_value/3,          % ?D, ?Lex, ?Val
     rdf_iri//1,                   % -Iri
@@ -68,7 +70,6 @@
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
-    rdf_assert/4,
     rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
@@ -88,7 +89,9 @@
     rdf_transaction/1,
     rdf_unload_graph/1,
     (rdf_meta)/1,
-    op(1150, fx, (rdf_meta))
+    op(1150, fx, (rdf_meta)),
+    op(110, xfx, @),
+    op(650, xfx, ^^)
    ]).
 
 /** <module> RDF API
@@ -139,6 +142,7 @@
    rdf(r, r, o, r),
    rdf_assert(t),
    rdf_assert(r, r, o),
+   rdf_assert(r, r, o, r),
    rdf_assert_list(+, -, r),
    rdf_assert_list(r, r, t, r),
    rdf_assert_reification(r, r, o, r),
@@ -154,6 +158,7 @@
    rdf_deref_uri(r, :, +),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
+   rdf_label(r, -),
    rdf_language_tagged_string(?, ?, o),
    rdf_lexical_value(r, ?, ?),
    rdf_list_member(r, t),
@@ -242,6 +247,15 @@ rdf_assert(rdf(S,P,O)) :-
 rdf_assert(S, P, O) :-
   rdf_default_graph(G),
   rdf_assert(S, P, O, G).
+
+
+
+%! rdf_assert(+S, +P, +O, +G) is det.
+
+rdf_assert(S, P, Term, G) :-
+  must_be(ground, Term),
+  rdf11:pre_ground_object(Term, O),
+  rdf_db:rdf_assert(S, P, O, G).
 
 
 
@@ -447,7 +461,7 @@ rdf_create_iri(Prefix, Segments, Iri2) :-
 % maplist/2.
 
 rdf_create_prefix(Prefix-Iri) :-
-  rdf_register_prefix(Prefix, Iri).
+  rdf_register_prefix(Prefix, Iri, [force(true)]).
 
 
 
@@ -695,6 +709,15 @@ rdf_is_well_known_iri(Iri) :-
   rdf_is_iri(Iri),
   uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
   ground(Scheme-Authority).
+
+
+
+%! rdf_label(+Term:rdf_term, -Label:string) is det.
+
+rdf_label(Term, Label) :-
+  rdf(Term, rdfs:label, Literal),
+  rdf_literal_lexical_form(Literal, Lex),
+  atom_string(Lex, Label).
 
 
 
