@@ -71,8 +71,6 @@
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
-    rdf_assert/3 as rdf_assert_,
-    rdf_assert/4 as rdf_assert_,
     rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
@@ -251,11 +249,11 @@ rdf_assert(rdf(S,P,O,G)) :-
 
 
 %! rdf_assert(+S, +P, +O) is det.
-%! rdf_assert(+S, +P, +O, +G) is det.
 
 rdf_assert(S, P, O) :-
-  rdf_default_graph(G),
-  rdf_assert(S, P, O, G).
+  must_be(ground, Term),
+  rdf11:pre_ground_object(Term, O),
+  rdf_db:rdf_assert(S, P, O).
 
 
 
