@@ -4,7 +4,7 @@
     isomorphic_graphset/2,        % +GraphSet1, +GraphSet2
     prefix_local_iri/3,           % ?Prefix, ?Local, ?Iri
     rdf/4,                        % ?S, ?P, ?O, ?G
-    rdf_assert/1,                 % +Triple
+    rdf_assert/1,                 % +Tuple
     rdf_assert/3,                 % +S, +P, +O
     rdf_assert/4,                 % +S, +P, +O, +G
     rdf_assert_list/2,            % +PrologList, -RdfList
@@ -71,6 +71,8 @@
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
+    rdf_assert/3 as rdf_assert_,
+    rdf_assert/4 as rdf_assert_,
     rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
@@ -239,14 +241,17 @@ rdf(S, P, O, G) :-
 
 
 
-%! rdf_assert(+Triple:rdf_triple) is det.
+%! rdf_assert(+Tuple:rdf_tuple) is det.
 
-rdf_assert(rdf(S,P,O)) :-
+rdf_assert(rdf(S,P,O)) :- !,
   rdf_assert(S, P, O).
+rdf_assert(rdf(S,P,O,G)) :-
+  rdf_assert(S, P, O, G).
 
 
 
 %! rdf_assert(+S, +P, +O) is det.
+%! rdf_assert(+S, +P, +O, +G) is det.
 
 rdf_assert(S, P, O) :-
   rdf_default_graph(G),

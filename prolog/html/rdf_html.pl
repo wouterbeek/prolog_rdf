@@ -233,7 +233,7 @@ rdf_html_literal_internal_(_, _, Lex, Options) -->
 rdf_html_literal_ntuples(literal(lang(LTag,Lex))) -->
   html(["\"",Lex,"\"@",LTag]).
 rdf_html_literal_ntuples(literal(type(D,Lex))) -->
-  html(["\"",Lex,"\"^^<",a(href=D, D),">"]).
+  html(["\"",Lex,"\"^^<",D,">"]).
 
 
 
