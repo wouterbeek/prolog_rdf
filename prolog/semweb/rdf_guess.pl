@@ -51,6 +51,12 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 rdf_guess_file(File, MediaType) :-
   rdf_guess_file0(File, Ext),
+  rdf_guess_media_type(Ext, MediaType).
+
+rdf_guess_media_type(html, media(text/html,[])) :- !.
+rdf_guess_media_type(rdfxml, media(application/'rdf+xml',[])) :- !.
+rdf_guess_media_type(xhtml, media(application/'xhtml+xml',[])) :- !.
+rdf_guess_media_type(Ext, MediaType) :-
   media_type_extension(MediaType, Ext).
 
 % JSON-LD
@@ -116,17 +122,14 @@ rdf_guess_stream(In, Size, MediaType) :-
   must_be(positive_integer, Size),
   setting(maximum_peek_size, Max),
   rdf_guess_stream0(In, Size, Max, Ext),
-  media_type_extension(MediaType, Ext).
+  rdf_guess_media_type(Ext, MediaType).
 
 % Guess the RDF serialization format based on the current peek size.
 rdf_guess_stream0(In, Size, Max, Ext) :-
   Size =< Max,
   peek_string(In, Size, String),
   debug(rdf_guess, "[PEEK ~D CHARS] ~s", [Size,String]),
-  string_length(String, Length),
-  % Keep track of whether or not the entire stream has been peeked.
-  (Length < Size -> !, EoS = true ; EoS = false),
-  rdf_guess_string(String, EoS, Ext), !.
+  rdf_guess_string(String, Ext), !.
 % Unable to determine the RDF serialization format within the maximum
 % peek size.
 rdf_guess_stream0(_, Size, Size, _) :- !, fail.
@@ -135,13 +138,13 @@ rdf_guess_stream0(In, Size1, Max, Ext) :-
   Size2 is min(Size1 * 2,Max),
   rdf_guess_stream0(In, Size2, Max, Ext).
 
-rdf_guess_string(String, _, jsonld) :-
+rdf_guess_string(String, jsonld) :-
   string_phrase(jsonld_format, String), !.
-rdf_guess_string(String, EoS, Ext) :-
+rdf_guess_string(String, Ext) :-
   % We use the information as to whether or not the end of the stream
   % has been reached.
-  string_phrase(n3_format(EoS, [nq,trig], Ext), String, _).
-rdf_guess_string(String, _, Ext) :-
+  string_phrase(n3_format([nq,trig], Ext), String, _).
+rdf_guess_string(String, Ext) :-
   setup_call_cleanup(
     new_memory_file(MFile),
     (
@@ -216,16 +219,14 @@ json_string_rest -->
 
 % N3 FAMILY %
 
-%! n3_format(+EoS:boolean, +Extensions:ordset(oneof([nq,trig])),
+%! n3_format(+Extensions:ordset(oneof([nq,trig])),
 %!           -Extension:oneof([nq,trig]))// is semidet.
 %
 % Succeeds on a list of codes that match the beginning of a document
 % in the Turtle-family.
-%
-% @arg EoS Whether or not the end of stream has been reached on the
-%      parsed input.  This matters for determining the RDF
-%      serialization format.  For example, if we have not seen any
-%      graph terms yet it cannot be TriG or N-Quads.
+
+n3_format(Exts, Ext) -->
+  n3_format(false, Exts, Ext).
 
 % done: unique format
 n3_format(_, [Ext], Ext) --> !.
@@ -240,26 +241,26 @@ n3_format(true, Exts, nq) -->
   eos, !,
   {assertion(Exts == [nq])}.
 % skip blanks
-n3_format(EoS, Exts, Ext) -->
+n3_format(Seen, Exts, Ext) -->
   n3_blank, !,
   n3_blanks,
-  n3_format(EoS, Exts, Ext).
+  n3_format(Seen, Exts, Ext).
 % N-Quads, N-Triples, TriG, Turtle comment
-n3_format(EoS, Exts, Ext) -->
+n3_format(Seen, Exts, Ext) -->
   n3_comment, !,
-  n3_format(EoS, Exts, Ext).
+  n3_format(Seen, Exts, Ext).
 % Turtle, TriG base or prefix declaration
-n3_format(EoS, Exts1, Ext) -->
+n3_format(_, Exts1, Ext) -->
   ("@base" ; "base" ; "@prefix" ; "prefix"), !,
   {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(EoS, Exts2, Ext).
+  n3_format(true, Exts2, Ext).
 % TriG default graph
-n3_format(EoS, Exts1, Ext) -->
+n3_format(Seen, Exts1, Ext) -->
   "{", !,
   {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(EoS, Exts2, Ext).
+  n3_format(Seen, Exts2, Ext).
 % N-Quads, N-Triples TriG, Turtle triple or quadruple
-n3_format(EoS, Exts1, Ext) -->
+n3_format(_, Exts1, Ext) -->
   n3_subject(Exts1, Exts2),
   n3_blanks,
   n3_predicate(Exts2, Exts3),
@@ -281,26 +282,26 @@ n3_format(EoS, Exts1, Ext) -->
       "."
   ->  {ord_subtract(Exts5, [trig], Exts6)}
   ), !,
-  n3_format(EoS, Exts6, Ext).
+  n3_format(true, Exts6, Ext).
 % TriG, Turtle anonymous blank node
-n3_format(EoS, Exts1, Ext) -->
+n3_format(Seen, Exts1, Ext) -->
   "[", !,
   {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(EoS, Exts2, Ext).
+  n3_format(Seen, Exts2, Ext).
 % TriG, Turtle collection
-n3_format(EoS, Exts1, Ext) -->
+n3_format(Seen, Exts1, Ext) -->
   "(", !,
   {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(EoS, Exts2, Ext).
+  n3_format(Seen, Exts2, Ext).
 % TriG named graph
-n3_format(EoS, Exts1, Ext) -->
+n3_format(_, Exts1, Ext) -->
   n3_graph(Exts1, Exts2),
   n3_blanks,
   "{", !,
   {ord_subtract(Exts2, [nq], Exts3)},
-  n3_format(EoS, Exts3, Ext).
+  n3_format(true, Exts3, Ext).
 % The last part of the stream cuts off abrubtly.
-n3_format(_, _, nq) -->
+n3_format(true, _, nq) -->
   rest(Codes),
   {string_codes(String, Codes), format(user_output, "~s~n", [String])}.
 
@@ -523,12 +524,12 @@ on_cdata(_, _) :-
 %! doc_content_type(+Dialect:atom, +Doctype:atom, +Attributes:list(compound),
 %!                  -Extension:atom) is det.
 
-doc_content_type(_, html, _, rdfa) :- !.
-doc_content_type(html, _, _, rdfa) :- !.
-doc_content_type(xhtml, _, _, rdfa) :- !.
-doc_content_type(html5, _, _, rdfa) :- !.
-doc_content_type(xhtml5, _, _, rdfa) :- !.
-doc_content_type(xml, rss, _, rdfa) :- !.
+doc_content_type(_, html, _, html) :- !.
+doc_content_type(html, _, _, html) :- !.
+doc_content_type(xhtml, _, _, xhtml) :- !.
+doc_content_type(html5, _, _, html) :- !.
+doc_content_type(xhtml5, _, _, xhtml) :- !.
+doc_content_type(xml, rss, _, rdfxml) :- !.
 doc_content_type(Dialect, Top,  Attributes, rdfxml) :-
   % Extract the namespace from the doctype.
   dialect_local_name(Dialect, LocalName),

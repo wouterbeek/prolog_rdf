@@ -494,21 +494,18 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   (   var(MediaType)
   ->  rdf_guess_stream(In, GuessMediaType),
       (   % `Content-Type' header
-          option(content_type(ContentType), Options1)
-      ->  http_parse_header_value(content_type, ContentType, MediaType),
-          (   'rdf_media_type_>'(MediaType, GuessMediaType)
-          ->  !, true
-          ;   print_message(warning,
-                            inconsistent_media_types(MediaType,GuessMediaType))
-          )
-      ;   MediaType = GuessMediaType
+          option(content_type(ContentType), Options1),
+          http_parse_header_value(content_type, ContentType, MediaType),
+          'rdf_media_type_>'(MediaType, GuessMediaType)
+      ->  !, true
+      ;   print_message(warning, inconsistent_media_types(MediaType,GuessMediaType)),
+          MediaType = GuessMediaType
       ),
       (   % URI path's file name extension
           uri_media_type(Uri, UriMediaType)
       ->  (   'rdf_media_type_>'(MediaType, UriMediaType)
           ->  !, true
-          ;   print_message(warning,
-                            inconsistent_media_types(MediaType,UriMediaType))
+          ;   print_message(warning, inconsistent_media_types(MediaType,UriMediaType))
           )
       ;   true
       )
@@ -577,8 +574,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
       ),
       rdf_process_turtle(In, Goal_2, Options2)
   ;   % RDFa
-      memberchk(MediaType,
-                [media(application/'xhtml+xml',_),media(text/html,_)])
+      memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_options(
         [anon_prefix(BNodePrefix),base(BaseUri)],
         Options1,
