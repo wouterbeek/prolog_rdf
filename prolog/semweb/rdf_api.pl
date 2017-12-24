@@ -29,6 +29,7 @@
     rdf_is_skip_node/1,           % @Term
     rdf_is_well_known_iri/1,      % @Term
     rdf_label/2,                  % +Term, -Label
+    rdf_label/3,                  % +Term, +P, -Label
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
     rdf_lexical_value/3,          % ?D, ?Lex, ?Val
     rdf_iri//1,                   % -Iri
@@ -111,7 +112,9 @@
 :- use_module(library(http/http_header)).
 :- use_module(library(lists)).
 :- use_module(library(media_type)).
+:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(option)).
+:- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin), []).
 :- use_module(library(semweb/rdf_ntriples)).
@@ -159,6 +162,7 @@
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
    rdf_label(r, -),
+   rdf_label(r, r, -),
    rdf_language_tagged_string(?, ?, o),
    rdf_lexical_value(r, ?, ?),
    rdf_list_member(r, t),
@@ -712,10 +716,23 @@ rdf_is_well_known_iri(Iri) :-
 
 
 
-%! rdf_label(+Term:rdf_term, -Label:string) is det.
+%! rdf_label(+Term:rdf_term, -Label:string) is semidet.
+%! rdf_label(+Term:rdf_term, +P:iri, -Label:string) is semidet.
 
 rdf_label(Term, Label) :-
-  rdf(Term, rdfs:label, Literal),
+  rdf_label(Term, rdfs:label, Label).
+
+
+rdf_label(Term, P, Label) :-
+  aggregate_all(set(Literal), rdf(Term, P, Literal), Literals),
+  Literals = [_|_], !,
+  maplist(rdf_literal, _, LTags, _, Literals),
+  include(ground, LTags, LRange),
+  pairs_keys_values(Pairs, LRange, Literals),
+  (   current_ltag(LRange, LTag)
+  ->  memberchk(LTag-Literal, Pairs)
+  ;   memberchk(Literal, Literals)
+  ),
   rdf_literal_lexical_form(Literal, Lex),
   atom_string(Lex, Label).
 

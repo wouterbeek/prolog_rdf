@@ -11,11 +11,12 @@
 /** <module> SHACL
 
 @author Wouter Beek
-@version 2017/11
+@version 2017/11-2017/12
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(graph/gv)).
 :- use_module(library(semweb/rdf_api)).
@@ -25,7 +26,7 @@
 
 :- rdf_meta
    shacl_assert_class(+, r),
-   shacle_export(+, r).
+   shacl_export(+, r).
 
 
 
@@ -79,7 +80,7 @@ shacl_export(Out, G) :-
   aggregate_all(set(C), shacl_class(C, G), Cs),
   maplist({Out,G}/[C]>>shacl_export_class(Out, C, G), Cs),
   aggregate_all(set(Edge), shacl_edge(Edge, G), Edges),
-  maplist(export_class_edge(Out), Edges),
+  maplist(shacl_export_edge(Out), Edges),
   % bottom of graph
   format_debug(dot, Out, "}").
 
@@ -98,14 +99,14 @@ shacl_export_class(Out, C, G) :-
   gv_id(C, CId),
   % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
-  rdf_label(C, CLabel),
-  format_debug(dot, Out, "    <TR><TD><B>~a</B></TD></TR>", [CLabel]),
+  shacl_node_label(C, CLabel),
+  format_debug(dot, Out, "    <TR><TD><B>~s</B></TD></TR>", [CLabel]),
   % middle of node
   forall(
     member(Value, Values),
     (
-      rdf_label(Value, ValueLabel),
-      format_debug(dot, Out, "    <TR><TD>~a</TD></TR>", [ValueLabel])
+      shacl_node_label(Value, ValueLabel),
+      format_debug(dot, Out, "    <TR><TD>~s</TD></TR>", [ValueLabel])
     )
   ),
   % bottom of node
@@ -116,11 +117,11 @@ shacl_export_class(Out, C, G) :-
   gv_id(C, CId),
   % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
-  rdf_label(C, CLabel),
+  shacl_node_label(C, CLabel),
   format_debug(
     dot,
     Out,
-    '    <TR><TD COLSPAN="2"><B>~a</B></TD></TR>',
+    '    <TR><TD COLSPAN="2"><B>~s</B></TD></TR>',
     [CLabel]
   ),
   % middle of node
@@ -128,19 +129,30 @@ shacl_export_class(Out, C, G) :-
   forall(
     member(Ps-O, Pairs),
     (
-      rdf_property_path_label(rdf(G), Ps, PsLabel),
-      rdf_term_label(rdf(G), O, OLabel),
+      maplist(shacl_node_label, Ps, PLabels),
+      atomics_to_string(PLabels, "/", PsLabel),
+      shacl_node_label(O, OLabel),
       format_debug(
         dot,
         Out,
-        "    <TR><TD>~a</TD><TD>~a</TD></TR>",
+        "    <TR><TD>~s</TD><TD>~s</TD></TR>",
         [PsLabel,OLabel]
       )
     )
   ),
   % bottom of node
   format_debug(dot, Out, '  </TABLE>>,shape="none",URL="~a"];', [C]).
-  
+
+
+
+%! shacl_export_edge(+Out:stream, +Edge:compound) is det.
+
+shacl_export_edge(Out, edge(C,Ps,D)) :-
+  maplist(gv_id, [C,D], [FromId,ToId]),
+  maplist(shacl_node_label, Ps, PLabels),
+  atomics_to_string(PLabels, "/", PsLabel),
+  gv_edge(Out, FromId, ToId, [label(PsLabel)]).
+
 
 
 
@@ -187,10 +199,18 @@ shacl_class(C, G) :-
 
 %! shacl_edge(-Edge:edge, +G:rdf_graph) is nondet.
 
-shacl_edge(edge(C,[rdfs:subClassOf],D), G) :-
-  rdf(C, rdfs:subClassOf, D, G).
+shacl_edge(edge(C,[P],D), G) :-
+  rdf_equal(P, rdfs:subClassOf),
+  rdf(C, P, D, G).
 shacl_edge(edge(C,Ps,D), G) :-
   shacl_property_path_class(C, Ps-D, G).
+
+
+
+%! shacl_node_label(+Term:rdf_term, -Label:string) is det.
+
+shacl_node_label(Term, Label) :-
+  string_phrase(rdf_dcg_term(Term), Label).
 
 
 

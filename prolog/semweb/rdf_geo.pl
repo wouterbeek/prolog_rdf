@@ -1,16 +1,12 @@
 :- module(
   rdf_geo,
   [
-    rdf_assert_wkt/3,      % +Feature, +Shape, +G
-    rdf_assert_wkt/4,      % +Feature, +Shape, +G, -Geometry
-    rdf_wkt/2,             % ?Feature, ?Shape
-    rdf_wkt/3,             % ?Feature, ?Shape, ?G
-    op(110, xfx, @),       % must be above .
-    op(650, xfx, ^^),      % must be above :
-    op(1150, fx, rdf_meta)
+    rdf_assert_wkt/3, % +Feature, +Shape, +G
+    rdf_assert_wkt/4, % +Feature, +Shape, +G, -Geometry
+    rdf_wkt/2,        % ?Feature, ?Shape
+    rdf_wkt/3         % ?Feature, ?Shape, ?G
   ]
 ).
-:- reexport(library(semweb/rdf_api)).
 
 /** <module> RDF Geography Plugin
 
@@ -21,24 +17,13 @@
 
 @tbd Multifile hooks do not work (workaround: module prefix).
 
-@version 2017/05-2017/10
+@version 2017/05-2017/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt_generate)).
 :- use_module(library(geo/wkt_parse)).
-:- use_module(library(html/rdf_html)).
-:- use_module(library(semweb/rdf_print)).
-
-rdf_html:rdf_html_literal_hook(D, Lex, _) -->
-  {rdf_equal(D, geo:wktLiteral)}, !,
-  {atom_phrase(wkt_generate(Shape), Lex)},
-  html("~w"-[Shape]).
-
-rdf_print:rdf_dcg_literal_hook(Shape^^D, Options) -->
-  {rdf_equal(D, geo:wktLiteral)}, !,
-  {atom_phrase(wkt_generate(Shape), Lex)},
-  rdf_dcg_lexical_form(Lex, Options).
+:- use_module(library(semweb/rdf_api)).
 
 % (+D, +Shape, -Lex)
 rdf11:in_ground_type_hook(D, Shape, Lex) :-

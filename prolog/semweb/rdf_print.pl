@@ -1,9 +1,6 @@
 :- module(
   rdf_print,
   [
-  % LABEL
-    rdf_property_path_label/4, % +Backend, +Options, +Ps, -Label
-    rdf_term_label/4,          % +Backend, +Options, +Term, -Label
   % PP
     rdf_pp_quad_groups/1,      % +JoinedPairs:list(pair(atom,list(compound)))
     rdf_pp_quad_groups/2,      % +JoinedPairs:list(pair(atom,list(compound))), +Options
@@ -69,9 +66,6 @@
     rdf_dcg_literal_hook//2.
 
 :- rdf_meta
-   % LABEL
-   rdf_property_path_label(+, +, t, -),
-   rdf_term_label(+, +, o, -),
    % PP
    rdf_pp_triple(t),
    rdf_pp_triple(t, +),
@@ -90,50 +84,6 @@
    rdf_dcg_triple(o, o, o, +, ?, ?).
 
 
-
-
-
-%! rdf_property_path_label(+Backend, +Options:dict, +Ps:list(iri),
-%!                         -Label:string) is det.
-%
-% Options are passed to rdf_term_label/4.
-
-rdf_property_path_label(Backend, Options, Ps, Label) :-
-  maplist(rdf_term_label(Backend, Options), Ps, Labels),
-  atomics_to_string(Labels, /, Label).
-
-
-
-%! rdf_term_label(+Backend, +Options:dict, +Term:rdf_term,
-%!                -Label:string) is det.
-%
-% The following options are supported:
-%
-%   * label: boolean
-%
-%     Whether or not to perform RDFS label lookup.  Default is
-%     `false`.
-%
-%   * Other options are passed to rdf_dcg_term//2.
-
-% RDF node with an RDFS label.
-rdf_term_label(Backend, Options, Term, Label) :-
-  _{label: P0} :< Options,
-  rdf_prefix_iri(P0, P),
-  aggregate_all(set(Literal), t(Backend, Term, P, Literal), Literals),
-  Literals = [_|_], !,
-  maplist(rdf_literal, _, LTags, _, Literals),
-  include(ground, LTags, LRange),
-  pairs_keys_values(Pairs, LRange, Literals),
-  (   current_ltag(LRange, LTag)
-  ->  memberchk(LTag-Literal, Pairs)
-  ;   memberchk(Literal, Literals)
-  ),
-  rdf_literal_lexical_form(Literal, Lex),
-  atom_string(Lex, Label).
-% RDF term
-rdf_term_label(_, Options, Term, Label) :-
-  string_phrase(rdf_dcg_term(Term, Options), Label).
 
 
 

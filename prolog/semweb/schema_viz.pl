@@ -42,12 +42,13 @@ export_edge(_, _, Out, edge(C1,[P],C2)) :-
   % subclasses/subproperties.
   gv_edge(Out, Id2, Id1, [arrowtail(onormal),dir(back),'URL'(P)]).
 export_edge(Backend, Options, Out, edge(C1,Ps,C2)) :-
-  rdf_property_path_label(Backend, Options, Ps, Label),
+  maplist(export_node_label(Backend, Options), Ps, PLabels),
+  atomics_to_string(PLabels, "/", PsLabel),
   % We cannot put in URLs for all property path members, so we only
   % take the first one.
   Ps = [P|_],
   maplist(gv_id, [C1,C2], [Id1,Id2]),
-  gv_edge(Out, Id1, Id2, [label(Label),'URL'(P)]).
+  gv_edge(Out, Id1, Id2, [label(PsLabel),'URL'(P)]).
 
 
 
@@ -71,9 +72,21 @@ export_hierarchy(Backend, P, Options, Out) :-
 
 export_node(Backend, Options, Out, Node) :-
   gv_id(Node, Id),
-  rdf_term_label(Backend, Options, Node, Label),
+  export_node_label(Backend, Options, Node, Label),
   (is_http_uri(Node) -> T = ['URL'(Node)] ; T = []),
   gv_node(Out, Id, [label(Label),shape(rect)|T]).
+
+
+
+%! export_node_label(+Backend, +Options:list(compound), +Node:rdf_term,
+%!                   -Label:string) is det.
+
+export_node_label(Backend, Options, Node, Label) :-
+  _{label: P0} :< Options,
+  rdf_prefix_iri(P0, P),
+  t_label(Backend, Node, P, Label), !.
+export_node_label(_, _, Node, Label) :-
+  string_phrase(rdf_dcg_term(Node), Label).
 
 
 
