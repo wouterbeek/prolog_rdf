@@ -842,20 +842,34 @@ rdf_load2(File) :-
   rdf_load2(File, []).
 
 
-rdf_load2(File, Options1) :-
-  ignore(option(format(Ext), Options1)),
-  (   var(Ext)
-  ->  % Guess the RDF serialization format based on the file name
-      % extension.
-      file_base_name(File, Base),
-      atomic_list_concat([_|Comps], ., Base),
-      member(Ext, Comps),
-      rdf_format_extension_(_, Ext), !
-  ;   true
-  ),
-  rdf_format_extension_(Format0, Ext),
-  merge_options([anon_prefix('_:'),format(Format0)], Options1, Options2),
-  rdf_db:rdf_load(File, Options2).
+rdf_load2(File, Options) :-
+  file_name_extension(Base, gz, File), !,
+  guess_format_from_file(Base, Format, Options),
+  setup_call_cleanup(
+    gzopen(File, read, In),
+    rdf_load_stream(In, Format, Options),
+    close(In)
+  ).
+rdf_load2(File, Options) :-
+  guess_format_from_file(File, Format, Options),
+  setup_call_cleanup(
+    gzopen(File, read, In),
+    rdf_load_stream(In, Format, Options),
+    close(In)
+  ).
+
+guess_format_from_file(_, Format, Options) :-
+  option(format(Ext), Options),
+  rdf_format_extension_(Format, Ext), !.
+guess_format_from_file(File, Format, _) :-
+  file_name_extension(_, Ext, File),
+  rdf_format_extension_(Format, Ext), !.
+guess_format_from_file(File, _, _) :-
+  print_message(warning, unknown_rdf_format(File)).
+
+rdf_load_stream(In, Format, Options1) :-
+  merge_options([anon_prefix('_:'),format(Format)], Options1, Options2),
+  rdf_db:rdf_load(In, Options2).
 
 rdf_format_extension_(nquads, nq).
 rdf_format_extension_(ntriples, nt).
