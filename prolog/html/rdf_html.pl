@@ -293,7 +293,7 @@ rdf_html_triple(Uri, rdf(S,P,O), Options1) -->
     maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
     maplist(
       uri_comp_set(query, Uri),
-      [[subject(AtomS)],[predicate(AtomP)],[object(AtomO)]],
+      [[s(AtomS)],[p(AtomP)],[o(AtomO)]],
       [UriS,UriP,UriO]
     )
   },
@@ -336,7 +336,7 @@ rdf_html_triple_table_row(Uri, G, rdf(S,P,O), Options) -->
     (var(G) -> T = [] ; T = [graph(G)]),
     maplist(
       uri_comp_set(query, Uri),
-      [[subject(AtomS)|T],[predicate(AtomP)|T],[object(AtomO)|T]],
+      [[s(AtomS)|T],[p(AtomP)|T],[o(AtomO)|T]],
       [UriS,UriP,UriO]
     )
   },
