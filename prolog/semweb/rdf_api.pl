@@ -57,6 +57,7 @@
     rdf_term_to_atom/2,           % +Term, -Atom
     rdf_triple_list_member/3,     % ?S, ?P, ?X
     rdf_triple_list_member/4,     % ?S, ?P, ?X, ?G
+    rdf_triple_term/2,            % +Triple, ?Term
     rdf_triples_graphset/2,       % +Triples, -GraphSet
     rdf_typed_literal/3,          % ?D, ?Lex, ?Literal
     rdfs_instance/2,              % ?I, ?C
@@ -181,6 +182,7 @@
    rdf_term_to_atom(t, -),
    rdf_triple_list_member(r, r, t),
    rdf_triple_list_member(r, r, t, r),
+   rdf_triple_term(t, o),
    rdf_typed_literal(r, ?, o),
    rdfs_instance(r, r),
    rdfs_instance(r, r, r),
@@ -1013,6 +1015,15 @@ rdf_triple_list_member(S, P, X, G) :-
 rdf_triple_list_member(S, P, X, G) :-
   rdf(S, P, L, G),
   rdf_list_member(X, L, G).
+
+
+
+%! rdf_triple_term(+Triple:rdf_triple, +Term:rdf_term) is semidet.
+%! rdf_triple_term(+Triple:rdf_triple, -Term:rdf_term) is nondet.
+
+rdf_triple_term(rdf(S,_,_), S).
+rdf_triple_term(rdf(_,P,_), P).
+rdf_triple_term(rdf(_,_,O), O).
 
 
 
