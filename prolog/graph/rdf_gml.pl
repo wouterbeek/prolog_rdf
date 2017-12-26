@@ -1,12 +1,13 @@
 :- module(
-  rdf2gml,
+  rdf_gml,
   [
-    rdf2gml/2, % +File1, +File2
-    rdf2gml/3  % +File1, +File2, +Options
+    rdf2gml/2,       % +File1, +File2
+    rdf2gml/3,       % +File1, +File2, +Options
+    rdf_export_gml/1 % +Triples
   ]
 ).
 
-/** <module> RDF-2-GML
+/** <module> RDF GML
 
 Automatic conversion from RDF to the Graph Markup Language (GML).
 
@@ -28,14 +29,17 @@ whitespace ::= space | tabulator | newline
 ```
 
 @author Wouter Beek
-@version 2016/02, 2017/01, 2017/08, 2017/10
+@version 2016/02, 2017/01-2017/12
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(file_ext)).
+:- use_module(library(graph/gml)).
 :- use_module(library(hash_ext)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
@@ -155,3 +159,29 @@ gml_encode_label, Escape -->
   {format(codes(Escape), "&#~d", [Code])},
   gml_encode_label.
 gml_encode_label --> [].
+
+
+
+%! rdf_export_gml(+Triples:list(rdf_triple)) is det.
+
+rdf_export_gml(Triples) :-
+  aggregate_all(
+    set(Term),
+    (
+      member(Triple, Triples),
+      rdf_triple_term(Triple, Term)
+    ),
+    Terms
+  ),
+  maplist(rdf_export_gml_node_, Terms),
+  maplist(rdf_export_gml_edge_, Triples).
+
+rdf_export_gml_node_(Term) :-
+  gml_id(Term, Id),
+  string_phrase(rdf_dcg_term(Term), Label),
+  gml_node(current_output, Id, [label(Label)]).
+
+rdf_export_gml_edge_(rdf(S,P,O)) :-
+  maplist(gml_id, [S,O], [SId,OId]),
+  string_phrase(rdf_dcg_iri(P), PLabel),
+  gml_edge(current_output, SId, OId, [label(PLabel)]).
