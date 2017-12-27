@@ -855,7 +855,7 @@ rdf_load2(File, Options) :-
 rdf_load2(File, Options) :-
   guess_format_from_file(File, Format, Options),
   setup_call_cleanup(
-    gzopen(File, read, In),
+    open(File, read, In),
     rdf_load_stream(In, Format, Options),
     close(In)
   ).
