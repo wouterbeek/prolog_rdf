@@ -25,6 +25,7 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(media_type)).
 :- use_module(library(memfile)).
