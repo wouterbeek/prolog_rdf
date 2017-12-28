@@ -583,7 +583,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
         Options2
       ),
       read_rdfa(In, Triples, Options2),
-      maplist(Goal_2, Triples, _)
+      call(Goal_2, Triples, _)
   ;   % An unsupported Media Type (e.g., JSON-LD).
       print_message(warning, unsupported_media_type(MediaType))
   ).
