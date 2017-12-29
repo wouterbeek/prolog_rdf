@@ -150,9 +150,9 @@ rdf_guess_string(String, Ext) :-
     new_memory_file(MFile),
     (
       setup_call_cleanup(
-        open_memory_file(MFile, write, Write),
-        format(Write, "~s", [String]),
-        close(Write)
+        open_memory_file(MFile, write, Out),
+        format(Out, "~s", [String]),
+        close(Out)
       ),
       setup_call_cleanup(
         open_memory_file(MFile, read, In),
@@ -238,9 +238,8 @@ n3_format(_, [Ext], Ext) --> !.
 %
 % At end-of-stream the format cannot be TriG, because it should have
 % been the only option by now.
-n3_format(true, Exts, nq) -->
-  eos, !,
-  {assertion(Exts == [nq])}.
+n3_format(true, _, nq) -->
+  eos, !.
 % skip blanks
 n3_format(Seen, Exts, Ext) -->
   n3_blank, !,
@@ -301,10 +300,6 @@ n3_format(_, Exts1, Ext) -->
   "{", !,
   {ord_subtract(Exts2, [nq], Exts3)},
   n3_format(true, Exts3, Ext).
-% The last part of the stream cuts off abrubtly.
-n3_format(true, _, nq) -->
-  rest(Codes),
-  {string_codes(String, Codes), format(user_output, "~s~n", [String])}.
 
 % N3 only allows horizontal tab and space, but we skip other blank
 % characters as well, since they may appear in non-conforming
