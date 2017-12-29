@@ -494,7 +494,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   % Serialization format
   ignore(option(media_type(MediaType), Options1)),
   (   var(MediaType)
-  ->  rdf_guess_stream(In, GuessMediaType),
+  ->  rdf_guess_stream(In, 10000, GuessMediaType),
       (   % `Content-Type' header
           option(content_type(ContentType), Options1),
           http_parse_header_value(content_type, ContentType, MediaType),
@@ -544,7 +544,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   ;   % RDF/XML
       media_type_comps(MediaType, application, 'rdf+xml', _)
   ->  merge_options(
-        [base_uri(BaseUri),blank_nodes(noshare)],
+        [base_uri(BaseUri),blank_nodes(noshare),max_errors(-1)],
         Options1,
         Options2
       ),
@@ -578,7 +578,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
   ;   % RDFa
       memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_options(
-        [anon_prefix(BNodePrefix),base(BaseUri)],
+        [anon_prefix(BNodePrefix),base(BaseUri),max_errors(-1)],
         Options1,
         Options2
       ),

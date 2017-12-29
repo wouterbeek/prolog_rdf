@@ -2,7 +2,6 @@
   rdf_guess,
   [
     rdf_guess_file/2,   % +File, -MediaType
-    rdf_guess_stream/2, % +In, -MediaType
     rdf_guess_stream/3  % +In, +Size, -MediaType
   ]
 ).
@@ -39,11 +38,6 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 :- meta_predicate
     n3_lexical_form_codes(//, ?, ?).
 
-:- setting(maximum_peek_size, nonneg, 100000,
-           "The maximum number of codes that is peeked from the input stream.").
-:- setting(minimum_peek_size, nonneg, 1000,
-           "The initial number of codes that is peeked from the input stream.").
-
 
 
 
@@ -65,7 +59,7 @@ rdf_guess_file0(File, jsonld) :-
   phrase_from_file(jsonld_format, File), !.
 % N-Quads, N-Triples, TriG, Turtle
 rdf_guess_file0(File, Ext) :-
-  phrase_from_file(n3_format(false, [nq,trig], Ext), File).
+  phrase_from_file(n3_format(Ext), File).
 % RDF/XML
 rdf_guess_file0(File, Ext) :-
   setup_call_cleanup(
@@ -76,7 +70,6 @@ rdf_guess_file0(File, Ext) :-
 
 
 
-%! rdf_guess_stream(+In:stream, -MediaType:compound) is det.
 %! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:compound) is det.
 %
 % @arg Size The initial number of codes that is read from the input
@@ -114,37 +107,18 @@ rdf_guess_file0(File, Ext) :-
 %
 % Non-determinism causes an increasingly longer prefix to be read.
 
-rdf_guess_stream(In, MediaType) :-
-  setting(minimum_peek_size, Min),
-  rdf_guess_stream(In, Min, MediaType).
-
-
 rdf_guess_stream(In, Size, MediaType) :-
   must_be(positive_integer, Size),
-  setting(maximum_peek_size, Max),
-  rdf_guess_stream0(In, Size, Max, Ext),
-  rdf_guess_media_type(Ext, MediaType).
-
-% Guess the RDF serialization format based on the current peek size.
-rdf_guess_stream0(In, Size, Max, Ext) :-
-  Size =< Max,
   peek_string(In, Size, String),
-  debug(rdf_guess, "[PEEK ~D CHARS] ~s", [Size,String]),
-  rdf_guess_string(String, Ext), !.
-% Unable to determine the RDF serialization format within the maximum
-% peek size.
-rdf_guess_stream0(_, Size, Size, _) :- !, fail.
-% Increase the peek size
-rdf_guess_stream0(In, Size1, Max, Ext) :-
-  Size2 is min(Size1 * 2,Max),
-  rdf_guess_stream0(In, Size2, Max, Ext).
+  rdf_guess_string(String, Ext),
+  rdf_guess_media_type(Ext, MediaType).
 
 rdf_guess_string(String, jsonld) :-
   string_phrase(jsonld_format, String), !.
 rdf_guess_string(String, Ext) :-
   % We use the information as to whether or not the end of the stream
   % has been reached.
-  string_phrase(n3_format([nq,trig], Ext), String, _).
+  string_phrase(n3_format(Ext), String, _).
 rdf_guess_string(String, Ext) :-
   setup_call_cleanup(
     new_memory_file(MFile),
@@ -220,93 +194,70 @@ json_string_rest -->
 
 % N3 FAMILY %
 
-%! n3_format(+Extensions:ordset(oneof([nq,trig])),
-%!           -Extension:oneof([nq,trig]))// is semidet.
+%! n3_format(-Extension:oneof([nq,trig]))// is semidet.
 %
 % Succeeds on a list of codes that match the beginning of a document
 % in the Turtle-family.
 
-n3_format(Exts, Ext) -->
-  n3_format(false, Exts, Ext).
-
-% done: unique format
-n3_format(_, [Ext], Ext) --> !.
-% done: end-of-stream; take a _most specific_ format
-%
-% Empty files or files that only consist of N3 comments are also
-% classified as N3 at this step.
-%
-% At end-of-stream the format cannot be TriG, because it should have
-% been the only option by now.
-n3_format(true, _, nq) -->
-  eos, !.
 % skip blanks
-n3_format(Seen, Exts, Ext) -->
+n3_format(Ext) -->
   n3_blank, !,
   n3_blanks,
-  n3_format(Seen, Exts, Ext).
+  n3_format(Ext).
 % N-Quads, N-Triples, TriG, Turtle comment
-n3_format(Seen, Exts, Ext) -->
+n3_format(Ext) -->
   n3_comment, !,
-  n3_format(Seen, Exts, Ext).
+  n3_format(Ext).
 % Turtle, TriG base or prefix declaration
-n3_format(_, Exts1, Ext) -->
-  ("@base" ; "base" ; "@prefix" ; "prefix"), !,
-  {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(true, Exts2, Ext).
+n3_format(trig) -->
+  ("@base" ; "base" ; "@prefix" ; "prefix"), !.
 % TriG default graph
-n3_format(Seen, Exts1, Ext) -->
-  "{", !,
-  {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(Seen, Exts2, Ext).
+n3_format(trig) -->
+  "{", !.
 % N-Quads, N-Triples TriG, Turtle triple or quadruple
-n3_format(_, Exts1, Ext) -->
-  n3_subject(Exts1, Exts2),
+n3_format(Ext) -->
+  n3_subject(Ext),
   n3_blanks,
-  n3_predicate(Exts2, Exts3),
+  n3_predicate(Ext),
   n3_blanks,
-  n3_object(Exts3, Exts4),
+  n3_object(Ext),
   n3_blanks,
   (   % end of a triple
       "."
-  ->  {Exts6 = Exts4}
+  ->  ""
   ;   % TriG, Turtle object list notation
       ";"
-  ->  {ord_subtract(Exts4, [nq], Exts6)}
+  ->  {Ext = trig}
   ;   % TriG, Turtle predicate-object pairs list notation
       ","
-  ->  {ord_subtract(Exts4, [nq], Exts6)}
+  ->  {Ext = trig}
   ;   % N-Quads end of a quadruple
-      n3_graph(Exts4, Exts5),
+      n3_graph(Ext),
       n3_blanks,
       "."
-  ->  {ord_subtract(Exts5, [trig], Exts6)}
+  ->  {Ext = trig}
   ), !,
-  n3_format(true, Exts6, Ext).
+  {(var(Ext) -> Ext = nq ; true)}.
 % TriG, Turtle anonymous blank node
-n3_format(Seen, Exts1, Ext) -->
-  "[", !,
-  {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(Seen, Exts2, Ext).
+n3_format(trig) -->
+  "[", !.
 % TriG, Turtle collection
-n3_format(Seen, Exts1, Ext) -->
-  "(", !,
-  {ord_subtract(Exts1, [nq], Exts2)},
-  n3_format(Seen, Exts2, Ext).
+n3_format(trig) -->
+  "(", !.
 % TriG named graph
-n3_format(_, Exts1, Ext) -->
-  n3_graph(Exts1, Exts2),
+n3_format(trig) -->
+  n3_graph(_),
   n3_blanks,
-  "{", !,
-  {ord_subtract(Exts2, [nq], Exts3)},
-  n3_format(true, Exts3, Ext).
+  "{", !.
 
 % N3 only allows horizontal tab and space, but we skip other blank
 % characters as well, since they may appear in non-conforming
 % documents without telling us anything about which N3 subtype we are
 % parsing.
-n3_blank --> blank.
-n3_blank --> n3_comment.
+n3_blank -->
+  blank.
+n3_blank -->
+  n3_comment.
 
 n3_blanks -->
   n3_blank, !,
@@ -322,19 +273,18 @@ n3_comment -->
   string(_),
   (eol ; eos).
 
-n3_graph(L1, L2) -->
-  n3_iriref(L1, L2).
+n3_graph(Ext) -->
+  n3_iriref(Ext).
 
 % N-Quads, N-Triples, TriG, Turtle full IRI
-n3_iriref(L, L) -->
+n3_iriref(_) -->
   "<", !,
   n3_iriref0.
 % TriG, Turtle prefixed IRI
-n3_iriref(L1, L2) -->
+n3_iriref(trig) -->
   n3_iriref_prefix,
   ":",
-  nonblanks,
-  {ord_subtract(L1, [nq], L2)}.
+  nonblanks.
 
 n3_iriref0 -->
   ">", !.
@@ -367,25 +317,22 @@ n3_iriref_prefix -->
 n3_iriref_prefix --> "".
 
 % TriG, Turtle lexical form with triple single quotes
-n3_lexical_form(L1, L2) -->
+n3_lexical_form(trig) -->
   "'''", !,
-  n3_lexical_form_codes([0'',0'',0'']),
-  {ord_subtract(L1, [nq], L2)}.
+  n3_lexical_form_codes([0'',0'',0'']).
 % TriG, Turtle lexical form with single single quotes
-n3_lexical_form(L1, L2) -->
+n3_lexical_form(trig) -->
   "'", !,
-  n3_lexical_form_codes([0'']),
-  {ord_subtract(L1, [nq], L2)}.
+  n3_lexical_form_codes([0'']).
 % TriG, Turtle lexical form with triple double quotes
-n3_lexical_form(L1, L2) -->
+n3_lexical_form(trig) -->
   "\"\"\"", !,
-  n3_lexical_form_codes([0'",0'",0'"]), %"
-  {ord_subtract(L1, [nq], L2)}.
+  n3_lexical_form_codes([0'",0'",0'"]).
 % N-Quads, N-Triples, TriG, Turtle lexical form with single double
 % quotes
-n3_lexical_form(L, L) -->
+n3_lexical_form(_) -->
   "\"",
-  n3_lexical_form_codes([0'"]). %"
+  n3_lexical_form_codes([0'"]).
 
 % Escaped single quote.
 n3_lexical_form_codes(End) -->
@@ -407,42 +354,42 @@ n3_lexical_form_codes(_) --> "".
 
 % TriG, Turtle abbreviated form for XSD boolean, decimal, double, and
 % integer literals
-n3_literal(L1, L2) -->
-  ("false" ; "true" ; "+" ; "-" ; "." ; digit(_)), !,
-  {ord_subtract(L1, [nq], L2)}.
-n3_literal(L1, L3) -->
-  n3_lexical_form(L1, L2),
+n3_literal(trig) -->
+  ("false" ; "true" ; "+" ; "-" ; "." ; digit(_)), !.
+n3_literal(Ext) -->
+  n3_lexical_form(Ext),
   n3_blanks,
-  (   "^^"
-  ->  n3_blanks,
-      n3_iriref(L2, L3)
-  ;   "@"
-  ->  n3_ltag,
-      {L3 = L2}
-  ;   % TriG, Turtle abbreviated form for XSD string literals.
-      {ord_subtract(L2, [nq], L3)}
-  ).
+  n3_literal_type(Ext).
+
+n3_literal_type(Ext) -->
+  "^^", !,
+  n3_blanks,
+  n3_iriref(Ext).
+n3_literal_type(_) -->
+  "@", !,
+  n3_ltag.
+% TriG, Turtle abbreviated form for XSD string literals.
+n3_literal_type(trig) --> "".
 
 n3_ltag -->
   nonblanks.
 
-n3_object(L1, L2) -->
-  n3_iriref(L1, L2), !.
-n3_object(L, L) -->
+n3_object(Ext) -->
+  n3_iriref(Ext), !.
+n3_object(_) -->
   n3_bnode, !.
-n3_object(L1, L2) -->
-  n3_literal(L1, L2).
+n3_object(Ext) -->
+  n3_literal(Ext).
 
-n3_predicate(L1, L2) -->
-  n3_iriref(L1, L2), !.
+n3_predicate(Ext) -->
+  n3_iriref(Ext), !.
 % TriG, Turtle abbreviation for `rdf:type'
-n3_predicate(L1, L2) -->
-  "a",
-  {ord_subtract(L1, [nq], L2)}.
+n3_predicate(trig) -->
+  "a".
 
-n3_subject(L1, L2) -->
-  n3_iriref(L1, L2), !.
-n3_subject(L, L) -->
+n3_subject(Ext) -->
+  n3_iriref(Ext), !.
+n3_subject(_) -->
   n3_bnode.
 
 
