@@ -24,13 +24,14 @@
 /** <module> RDF export
 
 @author Wouter Beek
-@version 2017/09-2017/11
+@version 2017/09-2017/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(hash_ext)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/turtle), []).
+:- use_module(library(uri/uri_ext)).
 
 :- rdf_meta
    rdf_save2(+, +, r),
