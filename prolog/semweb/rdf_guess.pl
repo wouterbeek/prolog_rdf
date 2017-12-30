@@ -1,7 +1,6 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_file/2,   % +File, -MediaType
     rdf_guess_stream/3  % +In, +Size, -MediaType
   ]
 ).
@@ -39,34 +38,6 @@ time, it is not possible to define a valid absolute Turtle-family IRI
     n3_lexical_form_codes(//, ?, ?).
 
 
-
-
-
-%! rdf_guess_file(+File:atom, -MediaType:compound) is det.
-
-rdf_guess_file(File, MediaType) :-
-  rdf_guess_file0(File, Ext),
-  rdf_guess_media_type(Ext, MediaType).
-
-rdf_guess_media_type(html, media(text/html,[])) :- !.
-rdf_guess_media_type(rdfxml, media(application/'rdf+xml',[])) :- !.
-rdf_guess_media_type(xhtml, media(application/'xhtml+xml',[])) :- !.
-rdf_guess_media_type(Ext, MediaType) :-
-  media_type_extension(MediaType, Ext).
-
-% JSON-LD
-rdf_guess_file0(File, jsonld) :-
-  phrase_from_file(jsonld_format, File), !.
-% N-Quads, N-Triples, TriG, Turtle
-rdf_guess_file0(File, Ext) :-
-  phrase_from_file(n3_format(Ext), File).
-% RDF/XML
-rdf_guess_file0(File, Ext) :-
-  setup_call_cleanup(
-    open(File, read, In),
-    sgml_format(In, Ext),
-    close(In)
-  ).
 
 
 
@@ -111,7 +82,7 @@ rdf_guess_stream(In, Size, MediaType) :-
   must_be(positive_integer, Size),
   peek_string(In, Size, String),
   rdf_guess_string(String, Ext),
-  rdf_guess_media_type(Ext, MediaType).
+  media_type_extension(MediaType, Ext).
 
 rdf_guess_string(String, jsonld) :-
   string_phrase(jsonld_format, String), !.
@@ -472,8 +443,8 @@ doc_content_type(html, _, _, html) :- !.
 doc_content_type(xhtml, _, _, xhtml) :- !.
 doc_content_type(html5, _, _, html) :- !.
 doc_content_type(xhtml5, _, _, xhtml) :- !.
-doc_content_type(xml, rss, _, rdfxml) :- !.
-doc_content_type(Dialect, Top,  Attributes, rdfxml) :-
+doc_content_type(xml, rss, _, rdf) :- !.
+doc_content_type(Dialect, Top,  Attributes, rdf) :-
   % Extract the namespace from the doctype.
   dialect_local_name(Dialect, LocalName),
   atomic_list_concat([NS,LocalName], :, Top),
