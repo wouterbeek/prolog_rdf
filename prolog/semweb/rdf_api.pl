@@ -20,12 +20,12 @@
     rdf_create_iri/3,             % +Prefix, +Path, -Iri
     rdf_create_prefix/1,          % +Pair
     rdf_create_well_known_iri/1,  % -Iri
-    rdf_deref_stream/3,           % +Uri, +In, :Goal_2
-    rdf_deref_stream/4,           % +Uri, +In, :Goal_2, +Options
+    rdf_deref_stream/3,           % +Uri, +In, :Goal_3
+    rdf_deref_stream/4,           % +Uri, +In, :Goal_3, +Options
     rdf_deref_triple/2,           % +Uri, -Quads
     rdf_deref_triple/3,           % +Uri, -Quads, +Options
-    rdf_deref_uri/2,              % +Uri, :Goal_2
-    rdf_deref_uri/3,              % +Uri, :Goal_2, +Options
+    rdf_deref_uri/2,              % +Uri, :Goal_3
+    rdf_deref_uri/3,              % +Uri, :Goal_3, +Options
     rdf_is_skip_node/1,           % @Term
     rdf_is_well_known_iri/1,      % @Term
     rdf_label/2,                  % +Term, -Label
@@ -132,10 +132,10 @@
 :- use_module(library(xml/xsd_number)).
 
 :- meta_predicate
-    rdf_deref_stream(+, +, 2),
-    rdf_deref_stream(+, +, 2, +),
-    rdf_deref_uri(+, 2),
-    rdf_deref_uri(+, 2, +),
+    rdf_deref_stream(+, +, 3),
+    rdf_deref_stream(+, +, 3, +),
+    rdf_deref_uri(+, 3),
+    rdf_deref_uri(+, 3, +),
     rdf_prefix_maplist(1, +).
 
 :- multifile
@@ -482,15 +482,14 @@ rdf_create_well_known_iri(Iri) :-
 
 
 
-%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_2) is det.
-%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_2,
-%!                  +Options:list(compound)) is det.
+%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_3) is det.
+%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_3, +Options:list(compound)) is det.
 
-rdf_deref_stream(Uri, In, Goal_2) :-
-  rdf_deref_stream(Uri, In, Goal_2, []).
+rdf_deref_stream(Uri, In, Goal_3) :-
+  rdf_deref_stream(Uri, In, Goal_3, []).
 
 
-rdf_deref_stream(Uri, In, Goal_2, Options1) :-
+rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
   % Serialization format
   ignore(option(media_type(MediaType), Options1)),
   (   var(MediaType)
@@ -523,6 +522,9 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
     Options1,
     rdf_create_well_known_iri
   ),
+  Goal_3 =.. [Pred|Args1],
+  append(Args1, [BNodePrefix], Args2),
+  Goal_2 =.. [Pred|Args2],
 
   % Parse according to the guessed Media Type.
   (   % N-Quads
@@ -532,7 +534,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_ntriples(In, Goal_2, Options2)
+      rdf_process_ntriples(In, Mod:Goal_2, Options2)
   ;   % N-Triples
       media_type_comps(MediaType, application, 'n-triples', _)
   ->  merge_options(
@@ -540,15 +542,11 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_ntriples(In, Goal_2, Options2)
+      rdf_process_ntriples(In, Mod:Goal_2, Options2)
   ;   % RDF/XML
       media_type_comps(MediaType, application, 'rdf+xml', _)
-  ->  merge_options(
-        [base_uri(BaseUri),blank_nodes(noshare),max_errors(-1)],
-        Options1,
-        Options2
-      ),
-      process_rdf(In, Goal_2, Options2)
+  ->  merge_options([base_uri(BaseUri),max_errors(-1)], Options1, Options2),
+      process_rdf(In, Mod:Goal_2, Options2)
   ;   % TriG
       media_type_comps(MediaType, application, trig, _)
   ->  merge_options(
@@ -561,7 +559,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_turtle(In, Goal_2, Options2)
+      rdf_process_turtle(In, Mod:Goal_2, Options2)
   ;   % Turtle
       media_type_comps(MediaType, text, turtle, _)
   ->  merge_options(
@@ -574,7 +572,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_turtle(In, Goal_2, Options2)
+      rdf_process_turtle(In, Mod:Goal_2, Options2)
   ;   % RDFa
       memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_options(
@@ -583,7 +581,7 @@ rdf_deref_stream(Uri, In, Goal_2, Options1) :-
         Options2
       ),
       read_rdfa(In, Triples, Options2),
-      call(Goal_2, Triples, _)
+      call(Mod:Goal_2, Triples, _)
   ;   % An unsupported Media Type (e.g., JSON-LD).
       print_message(warning, unsupported_media_type(MediaType))
   ).
@@ -634,8 +632,8 @@ rdf_deref_triple_(G, rdf(S,P,O)) :-
 
 
 
-%! rdf_deref_uri(+Uri:atom, :Goal_2) is det.
-%! rdf_deref_uri(+Uri:atom, :Goal_2, +Options:list(compound)) is det.
+%! rdf_deref_uri(+Uri:atom, :Goal_3) is det.
+%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:list(compound)) is det.
 %
 % The following options are supported:
 %
@@ -662,11 +660,11 @@ rdf_deref_triple_(G, rdf(S,P,O)) :-
 %
 %     Overrule the RDF serialization format.
 
-rdf_deref_uri(Uri, Goal_2) :-
-  rdf_deref_uri(Uri, Goal_2, []).
+rdf_deref_uri(Uri, Goal_3) :-
+  rdf_deref_uri(Uri, Goal_3, []).
 
 
-rdf_deref_uri(Uri, Goal_2, Options1) :-
+rdf_deref_uri(Uri, Goal_3, Options1) :-
   % URI
   uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
   maplist(ground, [Scheme,Authority]), !,
@@ -682,7 +680,7 @@ rdf_deref_uri(Uri, Goal_2, Options1) :-
       _{'content-type': [ContentType]} :< Meta.headers,
       include(ground, [content_type(ContentType)], Options3),
       merge_options(Options3, Options2, Options4),
-      rdf_deref_stream(Uri, In, Goal_2, Options4)
+      rdf_deref_stream(Uri, In, Goal_3, Options4)
     ),
     close(In)
   ).
