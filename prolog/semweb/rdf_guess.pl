@@ -1,7 +1,8 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_stream/3  % +In, +Size, -MediaType
+    rdf_guess_stream/3, % +In, +Size, -MediaType
+    rdf_guess_string/2  % +String, -MediaType
   ]
 ).
 
@@ -17,7 +18,7 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2017/04-2017/12
+@version 2017/04-2018/01
 */
 
 :- use_module(library(apply)).
@@ -81,16 +82,19 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 rdf_guess_stream(In, Size, MediaType) :-
   must_be(positive_integer, Size),
   peek_string(In, Size, String),
-  rdf_guess_string(String, Ext),
+  rdf_guess_strng(String, MediaType).
+
+rdf_guess_string(String, MediaType) :-
+  rdf_guess_string_(String, Ext),
   media_type_extension(MediaType, Ext).
 
-rdf_guess_string(String, jsonld) :-
+rdf_guess_string_(String, jsonld) :-
   string_phrase(jsonld_format, String), !.
-rdf_guess_string(String, Ext) :-
+rdf_guess_string_(String, Ext) :-
   % We use the information as to whether or not the end of the stream
   % has been reached.
   string_phrase(n3_format(Ext), String, _).
-rdf_guess_string(String, Ext) :-
+rdf_guess_string_(String, Ext) :-
   setup_call_cleanup(
     new_memory_file(MFile),
     (
