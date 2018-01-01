@@ -82,7 +82,11 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 rdf_guess_stream(In, Size, MediaType) :-
   must_be(positive_integer, Size),
   peek_string(In, Size, String),
-  rdf_guess_strng(String, MediaType).
+  rdf_guess_string(String, MediaType).
+
+
+
+%! rdf_guess_string(+String:string, -MediaType:compound) is det.
 
 rdf_guess_string(String, MediaType) :-
   rdf_guess_string_(String, Ext),
