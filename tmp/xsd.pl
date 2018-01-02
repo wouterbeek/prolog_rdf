@@ -55,14 +55,6 @@ Support for XML Schema Datatypes.
 :- use_module(library(xml/number/xsd_number_fragments)).
 :- use_module(library(xsdp_types)).
 
-:- rdf_meta(xsd_canonical_map(r,+,?)).
-:- rdf_meta(xsd_compare_value(r,?,+,+)).
-:- rdf_meta(xsd_datatype(r)).
-:- rdf_meta(xsd_datatype(r,?)).
-:- rdf_meta(xsd_equiv_value(r,+,+)).
-:- rdf_meta(xsd_lexical_map(r,+,?)).
-:- rdf_meta(xsd_subtype_of(r,r)).
-
 
 
 
