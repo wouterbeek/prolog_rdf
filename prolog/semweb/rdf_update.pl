@@ -32,70 +32,51 @@ rdf_update(S, P, O, Action) :-
   rdf_update(S, P, O, _, Action).
 
 
-rdf_update(S, P, O, G, Action) :-
-  must_be(ground, Action),
-  (   update_column(Action, S,P,O,G, On)
-  ->  must_be(ground, On),
-      arg(1, Action, Old),
-      (   On == Old
-      ->  true
-      ;   rdf_transaction(rdf_update_(S, P, O, G, Action), update)
-      )
-  ;   domain_error(rdf_update_action, Action)
-  ).
-
-update_column(datatype(_),  _,_,O,_, O).
-update_column(graph(_),     _,_,_,G, G).
-update_column(ltag(_),      _,_,O,_, O).
-update_column(object(_),    _,_,O,_, O).
-update_column(predicate(_), _,P,_,_, P).
-update_column(subject(_),   S,_,_,_, S).
-
-rdf_update_(S, P, O, G, datatype(D)) :- !,
+rdf_update(S, P, O, G, datatype(D)) :- !,
   forall(
-    rdf2(S, P, O, G),
+    rdf(S, P, O, G),
     (
       update_value(O, Value^^D),
       rdf_retractall(S, P, O, G),
       rdf_assert(S, P, Value^^D, G)
     )
   ).
-rdf_update_(S, P, O, G1, graph(G2)) :- !,
+rdf_update(S, P, O, G1, graph(G2)) :- !,
   forall(
-    rdf2(S, P, O, G1),
+    rdf(S, P, O, G1),
     (
       rdf_retractall(S, P, O, G1),
       rdf_assert(S, P, O, G2)
     )
   ).
-rdf_update_(S, P, O, G, ltag(LTag)) :- !,
+rdf_update(S, P, O, G, ltag(LTag)) :- !,
   forall(
-    rdf2(S, P, O, G),
+    rdf(S, P, O, G),
     (
       rdf_literal_lexical_form(O, Lex),
       rdf_retractall(S, P, O, G),
       rdf_assert(S, P, Lex@LTag, G)
     )
   ).
-rdf_update_(S, P, O1, G, object(O2)) :- !,
+rdf_update(S, P, O1, G, object(O2)) :- !,
   forall(
-    rdf2(S, P, O1, G),
+    rdf(S, P, O1, G),
     (
       rdf_retractall(S, P, O1, G),
       rdf_assert(S, P, O2, G)
     )
   ).
-rdf_update_(S, P1, O, G, predicate(P2)) :- !,
+rdf_update(S, P1, O, G, predicate(P2)) :- !,
   forall(
-    rdf2(S, P1, O, G),
+    rdf(S, P1, O, G),
     (
       rdf_retractall(S, P1, O, G),
       rdf_assert(S, P2, O, G)
     )
   ).
-rdf_update_(S1, P, O, G, subject(S2)) :- !,
+rdf_update(S1, P, O, G, subject(S2)) :- !,
   forall(
-    rdf2(S1, P, O, G),
+    rdf(S1, P, O, G),
     (
       rdf_retractall(S1, P, O, G),
       rdf_assert(S2, P, O, G)
@@ -104,9 +85,13 @@ rdf_update_(S1, P, O, G, subject(S2)) :- !,
 
 update_value(Literal, N^^D) :-
   rdf_literal_value(Literal, Value),
-  xsd_subtype_of(D, xsd:integer), !,
-  value_to_number(Value, M),
-  number_to_integer(M, N).
+  (   rdf_subdatatype(D, xsd:integer)
+  ->  value_to_number(Value, M),
+      number_to_integer(M, N)
+  ;   rdf_subdatatype(D, xsd:double)
+  ->  value_to_number(Value, M),
+      number_to_float(M, N)
+  ).
 
 value_to_number(N, N) :-
   number(N), !.
@@ -115,7 +100,12 @@ value_to_number(Value, N) :-
   atom_number(Value, N).
 value_to_number(Value, N) :-
   string(Value), !,
-  string_number(Value, N).
+  number_string(N, Value).
+
+number_to_float(N, N) :-
+  float(N), !.
+number_to_float(M, N) :-
+  N is float(M).
 
 number_to_integer(N, N) :-
   integer(N), !.
