@@ -4,6 +4,8 @@
     isomorphic_graphset/2,        % +GraphSet1, +GraphSet2
     prefix_local_iri/3,           % ?Prefix, ?Local, ?Iri
     rdf/4,                        % ?S, ?P, ?O, ?G
+    rdf2/3,                       % ?S, ?P, ?O
+    rdf2/4,                       % ?S, ?P, ?O, ?G
     rdf_assert/1,                 % +Tuple
     rdf_assert/3,                 % +S, +P, +O
     rdf_assert/4,                 % +S, +P, +O, +G
@@ -64,11 +66,12 @@
     rdfs_instance/3,              % ?I, ?C, ?G
     rdfs_range/2,                 % ?P, ?C
     rdfs_range/3,                 % ?P, ?C, ?G
+    rdf_retractall/4,             % ?S, ?P, ?O, ?G
+    rdf_retractall2/4,            % ?S, ?P, ?O, ?G
     rdfs_subclass/2,              % ?C, ?D
     rdfs_subclass/3,              % ?C, ?D, ?G
     rdfs_subproperty/2,           % ?P, ?Q
-    rdfs_subproperty/3,           % ?P, ?Q, ?G
-    t/4                           % +Backend, ?S, ?P, ?O
+    rdfs_subproperty/3            % ?P, ?Q, ?G
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
@@ -87,7 +90,6 @@
     rdf_is_bnode/1,
     rdf_is_iri/1,
     rdf_is_subject/1,
-    rdf_retractall/4,
     rdf_transaction/1,
     rdf_unload_graph/1,
     (rdf_meta)/1,
@@ -138,12 +140,11 @@
     rdf_deref_uri(+, 3, +),
     rdf_prefix_maplist(1, +).
 
-:- multifile
-    t/4.
-
 :- rdf_meta
    prefix_local_iri(?, ?, r),
    rdf(r, r, o, r),
+   rdf2(r, r, o),
+   rdf2(r, r, o, r),
    rdf_assert(t),
    rdf_assert(r, r, o),
    rdf_assert(r, r, o, r),
@@ -179,6 +180,8 @@
    rdf_prefix_selectchk(t, t, t),
    rdf_reification(r, r, o, r),
    rdf_reification(r, r, o, r, r),
+   rdf_retractall(r, r, o, r),
+   rdf_retractall2(r, r, o, r),
    rdf_term_to_atom(t, -),
    rdf_triple_list_member(r, r, t),
    rdf_triple_list_member(r, r, t, r),
@@ -191,8 +194,7 @@
    rdfs_subclass(r, r),
    rdfs_subclass(r, r, r),
    rdfs_subproperty(r, r),
-   rdfs_subproperty(r, r, r),
-   t(+, r, r, o).
+   rdfs_subproperty(r, r, r).
 
 :- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
@@ -241,6 +243,22 @@ rdf(S, P, O, G) :-
 
 
 
+%! rdf2(?S, ?P, ?O) is nondet.
+%! rdf2(?S, ?P, ?O, ?G) is nondet.
+
+rdf2(S, P, Term) :-
+  rdf11:pre_object(Term, O),
+  rdf_db:rdf(S, P, O),
+  rdf11:post_object(Term, O).
+
+
+rdf2(S, P, Term, G) :-
+  rdf11:pre_object(Term, O),
+  rdf(S, P, O, G),
+  rdf11:post_object(Term, O).
+
+
+
 %! rdf_assert(+Tuple:rdf_tuple) is det.
 
 rdf_assert(rdf(S,P,O)) :- !,
@@ -252,7 +270,7 @@ rdf_assert(rdf(S,P,O,G)) :-
 
 %! rdf_assert(+S, +P, +O) is det.
 
-rdf_assert(S, P, O) :-
+rdf_assert(S, P, Term) :-
   must_be(ground, Term),
   rdf11:pre_ground_object(Term, O),
   rdf_db:rdf_assert(S, P, O).
@@ -962,6 +980,22 @@ rdf_reification(S, P, O, G, Stmt) :-
 
 
 
+%! rdf_retractall(?S, ?P, ?O, ?G) is det.
+
+rdf_retractall(S, P, O, G) :-
+  rdf11:pre_graph(G, G0),
+  rdf_db:rdf_retractall(S, P, O, G0).
+
+
+
+%! rdf_retractall2(?S, ?P, ?O, ?G) is det.
+
+rdf_retractall2(S, P, Term, G) :-
+  rdf11:pre_object(Term, O),
+  rdf_retractall(S, P, O, G).
+
+
+
 %! rdf_term(-Term:rdf_term)// .
 
 rdf_term(Iri) -->
@@ -1124,15 +1158,3 @@ rdfs_subproperty(P, Q, G) :-
 
 rdfs_subproperty_(G, P, Q) :-
   rdf(P, rdfs:subPropertyOf, Q, G).
-
-
-
-%! t(+Backend, ?S, ?P, ?O) is nondet.
-
-t(rdf, S, P, O) :-
-  rdf(S, P, O).
-t(rdf(G), S, P, O) :-
-  rdf(S, P, O, G).
-%t(hdt(HdtOrG), S, P, O) :-
-%  (hdt_graph(Hdt, HdtOrG) -> true ; Hdt = HdtOrG),
-%  hdt_triple(Hdt, S, P, O).
