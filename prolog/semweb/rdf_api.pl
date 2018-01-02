@@ -55,6 +55,7 @@
     rdf_query_term/2,             % +Term, -QueryTerm
     rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
     rdf_reification/5,            % ?S, ?P, ?O, ?G, ?Stmt
+    rdf_subdatatype/2,            % ?D1, ?D2
     rdf_term//1,                  % -Term
     rdf_term_to_atom/2,           % +Term, -Atom
     rdf_triple_list_member/3,     % ?S, ?P, ?X
@@ -101,12 +102,13 @@
 /** <module> RDF API
 
 @author Wouter Beek
-@version 2017/09-2017/12
+@version 2017/09-2018/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(assoc)).
 :- use_module(library(call_ext)).
+:- use_module(library(closure)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
@@ -182,6 +184,7 @@
    rdf_reification(r, r, o, r, r),
    rdf_retractall(r, r, o, r),
    rdf_retractall2(r, r, o, r),
+   rdf_subdatatype(r, r),
    rdf_term_to_atom(t, -),
    rdf_triple_list_member(r, r, t),
    rdf_triple_list_member(r, r, t, r),
@@ -996,6 +999,14 @@ rdf_retractall2(S, P, Term, G) :-
 
 
 
+%! rdf_subdatatype(?D1:iri, ?D2:iri) is nondet.
+
+rdf_subdatatype(D1, D2) :-
+  xsd_subtype(D1, D2).
+rdf_subdatatype(dbt:kilometer, xsd:double).
+
+
+
 %! rdf_term(-Term:rdf_term)// .
 
 rdf_term(Iri) -->
@@ -1115,13 +1126,21 @@ rdfs_instance(I, D, G) :-
 %! rdfs_range(?P, ?C, ?G) is nondet.
 
 rdfs_range(P, C) :-
+  ground(P), !,
   rdfs_subproperty(P, Q),
   rdf(Q, rdfs:range, C).
+rdfs_range(P, C) :-
+  rdf(Q, rdfs:range, C),
+  rdfs_subproperty(P, Q).
 
 
 rdfs_range(P, C, G) :-
+  ground(P), !,
   rdfs_subproperty(P, Q, G),
   rdf(Q, rdfs:range, C, G).
+rdfs_range(P, C, G) :-
+  rdf(Q, rdfs:range, C, G),
+  rdfs_subproperty(P, Q, G).
 
 
 
@@ -1129,14 +1148,14 @@ rdfs_range(P, C, G) :-
 %! rdfs_subclass(?C, ?D, ?G) is nondet.
 
 rdfs_subclass(C, D) :-
-  closure0(rdfs_subclass_, C, D).
+  path_closure0(rdfs_subclass_, C, D).
 
 rdfs_subclass_(C, D) :-
   rdf(C, rdfs:subClassOf, D).
 
 
 rdfs_subclass(C, D, G) :-
-  closure0(rdfs_subclass_(G), C, D).
+  path_closure0(rdfs_subclass_(G), C, D).
 
 rdfs_subclass_(G, C, D) :-
   rdf(C, rdfs:subClassOf, D, G).
@@ -1147,14 +1166,14 @@ rdfs_subclass_(G, C, D) :-
 %! rdfs_subproperty(?P, ?Q, ?G) is nondet.
 
 rdfs_subproperty(P, Q) :-
-  closure0(rdfs_subproperty_, P, Q).
+  path_closure0(rdfs_subproperty_, P, Q).
 
 rdfs_subproperty_(P, Q) :-
   rdf(P, rdfs:subPropertyOf, Q).
 
 
 rdfs_subproperty(P, Q, G) :-
-  closure0(rdfs_subproperty_(G), P, Q).
+  path_closure0(rdfs_subproperty_(G), P, Q).
 
 rdfs_subproperty_(G, P, Q) :-
   rdf(P, rdfs:subPropertyOf, Q, G).
