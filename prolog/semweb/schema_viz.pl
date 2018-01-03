@@ -10,7 +10,7 @@
 /** <module> Schema visualization
 
 @author Wouter Beek
-@version 2017/08-2017/11
+@version 2017/08-2018/01
 */
 
 :- use_module(library(aggregate)).
@@ -22,6 +22,7 @@
 :- use_module(library(os_ext)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
+:- use_module(library(semweb/t_api)).
 :- use_module(library(uri/uri_ext)).
 
 :- rdf_meta
