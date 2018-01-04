@@ -505,6 +505,14 @@ rdf_create_well_known_iri(Iri) :-
 
 %! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_3) is det.
 %! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_3, +Options:list(compound)) is det.
+%
+% The following options are supported:
+%
+%   * content_type(+MediaType:compound)
+%
+%   * media_type(+MediaType:compound)
+%
+% TBD: Why two options for -- seemingly -- the same thing?
 
 rdf_deref_stream(Uri, In, Goal_3) :-
   rdf_deref_stream(Uri, In, Goal_3, []).
@@ -680,6 +688,8 @@ rdf_deref_triple_(G, rdf(S,P,O)) :-
 %   * media_type(+MediaType:compound)
 %
 %     Overrule the RDF serialization format.
+%
+% TBD: Why two options for -- seemingly -- the same thing?
 
 rdf_deref_uri(Uri, Goal_3) :-
   rdf_deref_uri(Uri, Goal_3, []).
@@ -696,12 +706,13 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
       Options2 = Options1
   ),
   setup_call_cleanup(
-    http_open2(Uri, In, [accept(MediaTypes),failure(404),metadata([Meta|_])]),
+    http_open2(Uri, In, [accept(MediaTypes),failure(404),metadata(Metas)]),
     (
-      _{'content-type': [ContentType]} :< Meta.headers,
-      include(ground, [content_type(ContentType)], Options3),
-      merge_options(Options3, Options2, Options4),
-      rdf_deref_stream(Uri, In, Goal_3, Options4)
+      (   http_metadata_content_type(Metas, MediaType)
+      ->  merge_options(Options2, [media_type(MediaType)], Options3)
+      ;   true
+      ),
+      rdf_deref_stream(Uri, In, Goal_3, Options3)
     ),
     close(In)
   ).
