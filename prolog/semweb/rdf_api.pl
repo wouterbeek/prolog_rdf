@@ -21,6 +21,7 @@
     rdf_create_graph/1,           % -G
     rdf_create_iri/3,             % +Prefix, +Path, -Iri
     rdf_create_prefix/1,          % +Pair
+    rdf_create_prefix/2,          % +Prefix, +Iri
     rdf_create_well_known_iri/1,  % -Iri
     rdf_deref_stream/3,           % +Uri, +In, :Goal_3
     rdf_deref_stream/4,           % +Uri, +In, :Goal_3, +Options
@@ -487,11 +488,16 @@ rdf_create_iri(Prefix, Segments, Iri2) :-
 
 
 %! rdf_create_prefix(+Pair:pair(atom)) is det.
+%! rdf_create_prefix(+Prefix:atom, +Iri:atom) is det.
 %
 % Syntactic sugar for registering multiple RDF prefixes using
 % maplist/2.
 
 rdf_create_prefix(Prefix-Iri) :-
+  rdf_create_prefix(Prefix, Iri).
+
+
+rdf_create_prefix(Prefix, Iri) :-
   rdf_register_prefix(Prefix, Iri, [force(true)]).
 
 
