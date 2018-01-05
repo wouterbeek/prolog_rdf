@@ -508,34 +508,45 @@ rdf_create_well_known_iri(Iri) :-
 %
 % The following options are supported:
 %
+%   * base_uri(+atom)
+%
+%     The default is the URI of the last metadata element.
+%
+%   * bnode_prefix(+atom)
+%
+%     The default is a well-known IRI as per RDF 1.1.
+%
 %   * content_type(+MediaType:compound)
+%
+%     The parsed value of the HTTP `Content-Type' header, if any.
 %
 %   * media_type(+MediaType:compound)
 %
-% TBD: Why two options for -- seemingly -- the same thing?
+%     Overrules the RDF serialization format.
 
 rdf_deref_stream(Uri, In, Goal_3) :-
   rdf_deref_stream(Uri, In, Goal_3, []).
 
 
 rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
-  % Serialization format
-  ignore(option(media_type(MediaType), Options1)),
-  (   var(MediaType)
-  ->  rdf_guess_stream(In, 10000, GuessMediaType),
-      (   % `Content-Type' header
-          option(content_type(ContentType), Options1),
-          http_parse_header_value(content_type, ContentType, MediaType),
-          'rdf_media_type_>'(MediaType, GuessMediaType)
+  % Determine the serialization format.
+  (   % An explicitly specified Media Type overrules everything else.
+      option(media_type(MediaType), Options1)
+  ->  true
+  ;   % Heuristic 1: guess based on a first chunk of the data.
+      rdf_guess_stream(In, 10000, MediaTypeGuess),
+      (   % Heuristic 2: the value of the HTTP `Content-Type' header.
+          option(content_type(MediaType), Options1),
+          'rdf_media_type_>'(MediaType, MediaTypeGuess)
       ->  !, true
-      ;   print_message(warning, inconsistent_media_types(MediaType,GuessMediaType)),
-          MediaType = GuessMediaType
+      ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeGuess)),
+          MediaType = MediaTypeGuess
       ),
-      (   % URI path's file name extension
-          uri_media_type(Uri, UriMediaType)
-      ->  (   'rdf_media_type_>'(MediaType, UriMediaType)
+      (   % Heuristic 3: the URI path's file name extension.
+          uri_media_type(Uri, MediaTypeUri)
+      ->  (   'rdf_media_type_>'(MediaType, MediaTypeUri)
           ->  !, true
-          ;   print_message(warning, inconsistent_media_types(MediaType,UriMediaType))
+          ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeUri))
           )
       ;   true
       )
@@ -636,8 +647,9 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
 
 
 %! rdf_deref_triple(+Uri:uri, -Triple:rdf_triple) is det.
-%! rdf_deref_triple(+Uri:uri, -Triple:rdf_triple,
-%!                  +Options:list(compound)) is det.
+%! rdf_deref_triple(+Uri:uri, -Triple:rdf_triple, +Options:list(compound)) is det.
+%
+% Options are passed to rdf_deref_uri/3.
 
 rdf_deref_triple(Uri, Triple) :-
   rdf_deref_triple(Uri, Triple, []).
@@ -672,24 +684,7 @@ rdf_deref_triple_(G, rdf(S,P,O)) :-
 %     precedence.  The default value is a list of all and only
 %     standardized Media Types.
 %
-%   * base_uri(+atom)
-%
-%     The default is the URI of the last metadata element.
-%
-%   * bnode_prefix(+atom)
-%
-%     The default is a well-known IRI as per RDF 1.1.
-%
-%   * content_type(+MediaType:compound)
-%
-%     Overrule the Media Type communicated in the `Content-Type' reply
-%     header.
-%
-%   * media_type(+MediaType:compound)
-%
-%     Overrule the RDF serialization format.
-%
-% TBD: Why two options for -- seemingly -- the same thing?
+%   * Other options are passed to rdf_deref_stream/4.
 
 rdf_deref_uri(Uri, Goal_3) :-
   rdf_deref_uri(Uri, Goal_3, []).
@@ -709,7 +704,7 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
     http_open2(Uri, In, [accept(MediaTypes),failure(404),metadata(Metas)]),
     (
       (   http_metadata_content_type(Metas, MediaType)
-      ->  merge_options(Options2, [media_type(MediaType)], Options3)
+      ->  merge_options(Options2, [content_type(MediaType)], Options3)
       ;   true
       ),
       rdf_deref_stream(Uri, In, Goal_3, Options3)
