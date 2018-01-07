@@ -29,6 +29,7 @@
     rdf_deref_triple/3,           % +Uri, -Quads, +Options
     rdf_deref_uri/2,              % +Uri, :Goal_3
     rdf_deref_uri/3,              % +Uri, :Goal_3, +Options
+    rdf_is_prefix/1,              % @Term
     rdf_is_skip_node/1,           % @Term
     rdf_is_well_known_iri/1,      % @Term
     rdf_label/2,                  % +Term, -Label
@@ -83,6 +84,7 @@
    ]).
 :- reexport(library(semweb/rdf11), [
     rdf_create_bnode/1,
+    rdf_current_prefix/2,
     rdf_default_graph/1,
     rdf_equal/2,
     rdf_global_id/2 as rdf_prefix_iri,
@@ -340,7 +342,9 @@ rdf_assert_reification(S, P, O, G, Stmt) :-
 
 
 
-%! rdf_atom_to_term(+Atom:atom, -Term:rdf_term) is det.
+%! rdf_atom_to_term(+Atom:atom, -Term:rdf_term) is semidet.
+%
+% Fails if Atom cannot be interpreted.
 
 rdf_atom_to_term(Atom, Term) :-
   atom_codes(Atom, Codes),
@@ -351,6 +355,7 @@ rdf_atom_to_term(a, Iri) :- !,
 % Expansion of commonly used prefixes.
 rdf_atom_to_term(Atom, Iri) :-
   atomic_list_concat([Prefix,Local], :, Atom),
+  rdf_is_prefix(Prefix), !,
   rdf_prefix_iri(Prefix:Local, Iri).
 
 
@@ -728,6 +733,13 @@ rdf_iri(Iri) -->
   ...(Codes),
   ">", !,
   {atom_codes(Iri, Codes)}.
+
+
+
+%! rdf_is_prefix(@Term) is semidet.
+
+rdf_is_prefix(Prefix) :-
+  rdf_current_prefix(Prefix, _).
 
 
 
