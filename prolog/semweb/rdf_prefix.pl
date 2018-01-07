@@ -306,6 +306,7 @@ register_language_prefixes(Language) :-
 :- rdf_register_prefix(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
 :- rdf_register_prefix('sparql-results', 'http://www.w3.org/2005/sparql-results#').
 :- rdf_register_prefix(t, 'https://triply.cc/ontology/').
+:- rdf_register_prefix(umbel, 'http://umbel.org/umbel#').
 :- rdf_register_prefix(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
 :- rdf_register_prefix(vcard, 'http://www.w3.org/2006/vcard/ns#').
 :- rdf_register_prefix(wdr, 'http://www.w3.org/2007/05/powder#').
