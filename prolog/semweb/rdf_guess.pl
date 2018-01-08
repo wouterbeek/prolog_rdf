@@ -43,7 +43,7 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 
 
-%! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:compound) is det.
+%! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:compound) is semidet.
 %
 % @arg Size The initial number of codes that is read from the input
 %      stream In, on which the guess is based.  This number is doubled
@@ -77,8 +77,6 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 %        * media(application/'rdf+xml',[]) for RDF/XML
 %
 %        * media(text/html,_) for RDFa
-%
-% Non-determinism causes an increasingly longer prefix to be read.
 
 rdf_guess_stream(In, Size, MediaType) :-
   must_be(positive_integer, Size),
@@ -87,7 +85,7 @@ rdf_guess_stream(In, Size, MediaType) :-
 
 
 
-%! rdf_guess_string(+String:string, -MediaType:compound) is det.
+%! rdf_guess_string(+String:string, -MediaType:compound) is semidet.
 
 rdf_guess_string(String, MediaType) :-
   rdf_guess_string_(String, Ext),

@@ -371,7 +371,7 @@ rdf_chk(S, P, O, G) :-
 
 rdf_clean_bnode(BNode, Iri) :-
   atomic_list_concat(L1, '_:', BNode),
-  append(L2, [Local], L1),
+  once(append(L2, [Local], L1)),
   md5(L2, Hash),
   atomic_list_concat([Hash,Local], ':', BNodeLabel),
   rdf_prefix_iri(bnode:BNodeLabel, Iri).
@@ -562,7 +562,6 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
           )
       ;   true
       )
-  ;   true
   ),
   % Determine the base URI.
   option(base_uri(BaseUri), Options1, Uri),
