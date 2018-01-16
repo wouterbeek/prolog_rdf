@@ -93,6 +93,8 @@
     rdf_graph/1,
     rdf_is_bnode/1,
     rdf_is_iri/1,
+    rdf_is_object/1,
+    rdf_is_predicate/1,
     rdf_is_subject/1,
     rdf_reset_db/0,
     rdf_transaction/1,

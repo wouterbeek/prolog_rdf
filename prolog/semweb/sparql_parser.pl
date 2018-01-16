@@ -14,7 +14,7 @@ Parses a SPARQL query string into the corresponding algebraic
 expression.
 
 @author Wouter Beek
-@version 2017/05-2017/11
+@version 2017/05-2018/01
 */
 
 :- use_module(library(apply)).
