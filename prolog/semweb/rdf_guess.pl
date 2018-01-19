@@ -22,16 +22,9 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 @version 2017/04-2018/01
 */
 
-:- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
-:- use_module(library(error)).
-:- use_module(library(lists)).
 :- use_module(library(media_type)).
 :- use_module(library(memfile)).
-:- use_module(library(option)).
-:- use_module(library(ordsets)).
-:- use_module(library(pio)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_prefixes)).
 :- use_module(library(sgml)).
@@ -79,7 +72,6 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 %        * media(text/html,_) for RDFa
 
 rdf_guess_stream(In, Size, MediaType) :-
-  must_be(positive_integer, Size),
   peek_string(In, Size, String),
   rdf_guess_string(String, MediaType).
 
