@@ -396,6 +396,7 @@ sgml_doctype(In, Dialect, DocType, Attributes) :-
         [
           call(begin, on_begin),
           call(cdata, on_cdata),
+          call(decl, on_declaration),
           max_errors(-1),
           source(In),
           syntax_errors(quiet)
@@ -424,6 +425,12 @@ on_begin(Tag, Attributes, Parser) :-
 on_cdata(_, _) :-
   throw(error(cdata)).
 
+on_declaration(Text, Parser) :-
+  atomic_list_concat(Components, ' ', Text),
+  Components = ['DOCTYPE',Doctype],
+  get_sgml_parser(Parser, dialect(Dialect)),
+  throw(tag(Dialect, Doctype, [])).
+
 
 %! doc_content_type(+Dialect:atom, +Doctype:atom, +Attributes:list(compound),
 %!                  -Extension:atom) is det.
@@ -433,7 +440,7 @@ doc_content_type(html, _, _, html) :- !.
 doc_content_type(xhtml, _, _, xhtml) :- !.
 doc_content_type(html5, _, _, html) :- !.
 doc_content_type(xhtml5, _, _, xhtml) :- !.
-doc_content_type(xml, rss, _, rdf) :- !.
+%doc_content_type(xml, rss, _, rdf) :- !.
 doc_content_type(Dialect, Top,  Attributes, rdf) :-
   % Extract the namespace from the doctype.
   dialect_local_name(Dialect, LocalName),
