@@ -57,6 +57,8 @@
     rdf_query_term/2,             % +Term, -QueryTerm
     rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
     rdf_reification/5,            % ?S, ?P, ?O, ?G, ?Stmt
+    rdf_retractall/4,             % ?S, ?P, ?O, ?G
+    rdf_retractall2/4,            % ?S, ?P, ?O, ?G
     rdf_subdatatype/2,            % ?D1, ?D2
     rdf_term//1,                  % -Term
     rdf_term_to_atom/2,           % +Term, -Atom
@@ -69,8 +71,6 @@
     rdfs_instance/3,              % ?I, ?C, ?G
     rdfs_range/2,                 % ?P, ?C
     rdfs_range/3,                 % ?P, ?C, ?G
-    rdf_retractall/4,             % ?S, ?P, ?O, ?G
-    rdf_retractall2/4,            % ?S, ?P, ?O, ?G
     rdfs_subclass/2,              % ?C, ?D
     rdfs_subclass/3,              % ?C, ?D, ?G
     rdfs_subproperty/2,           % ?P, ?Q
