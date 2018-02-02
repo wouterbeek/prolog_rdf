@@ -67,6 +67,7 @@
     rdf_triple_term/2,            % +Triple, ?Term
     rdf_triples_graphset/2,       % +Triples, -GraphSet
     rdf_typed_literal/3,          % ?D, ?Lex, ?Literal
+    rdfa_media_type/1,            % ?MediaType
     rdfs_instance/2,              % ?I, ?C
     rdfs_instance/3,              % ?I, ?C, ?G
     rdfs_range/2,                 % ?P, ?C
@@ -1131,6 +1132,21 @@ rdf_term_var(Literal, Literal, Map, Map).
 %! rdf_typed_literal(-D:iri, -Lex:atom, +Literal:rdf_literal) is det.
 
 rdf_typed_literal(D, Lex, literal(type(D,Lex))).
+
+
+
+%! rdfa_media_type(+MediaType:compound) is semidet.
+%! rdfa_media_type(-MediaType:compound) is multi.
+
+rdfa_media_type(MediaType) :-
+  ground(MediaType), !,
+  MediaType = media(Super/Sub,_),
+  rdfa_media_type_(media(Super/Sub,_)).
+rdfa_media_type(MediaType) :-
+  rdfa_media_type_(MediaType).
+
+rdfa_media_type_(media(application/'xhtml+xml',[])).
+rdfa_media_type_(media(text/html,[])).
 
 
 
