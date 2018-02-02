@@ -69,6 +69,8 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 %
 %        * media(application/'rdf+xml',[]) for RDF/XML
 %
+%        * media(application/'xhtml+xml',[]) for RDFa
+%
 %        * media(text/html,_) for RDFa
 
 rdf_guess_stream(In, Size, MediaType) :-
