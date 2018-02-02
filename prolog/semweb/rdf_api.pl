@@ -637,7 +637,7 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
       read_rdfa(In, Triples, Options2),
       call(Mod:Goal_2, Triples, _)
   ;   % An unsupported Media Type (e.g., JSON-LD).
-      print_message(warning, unsupported_media_type(MediaType))
+      print_message(warning, rdf(unsupported_format(MediaType,_)))
   ).
 
 'rdf_media_type_>'(X, Y) :-
