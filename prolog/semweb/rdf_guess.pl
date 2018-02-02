@@ -91,20 +91,9 @@ rdf_guess_string_(String, Ext) :-
   string_phrase(n3_format(Ext), String, _).
 rdf_guess_string_(String, Ext) :-
   setup_call_cleanup(
-    new_memory_file(MFile),
-    (
-      setup_call_cleanup(
-        open_memory_file(MFile, write, Out),
-        format(Out, "~s", [String]),
-        close(Out)
-      ),
-      setup_call_cleanup(
-        open_memory_file(MFile, read, In),
-        sgml_format(In, Ext),
-        close(In)
-      )
-    ),
-    free_memory_file(MFile)
+    open_string(String, In),
+    sgml_format(In, Ext),
+    close(In)
   ).
 
 
