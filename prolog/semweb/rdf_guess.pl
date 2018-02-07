@@ -19,7 +19,7 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2017/04-2018/01
+@version 2017/04-2018/02
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -249,6 +249,14 @@ n3_iriref(trig) -->
 
 n3_iriref0 -->
   ">", !.
+n3_iriref0 -->
+  "\\", !,
+  (   "u"
+  ->  xdigit(_), xdigit(_), xdigit(_), xdigit(_)
+  ;   "U"
+  ->  xdigit(_), xdigit(_), xdigit(_), xdigit(_), xdigit(_), xdigit(_), xdigit(_), xdigit(_)
+  ),
+  n3_iriref0.
 n3_iriref0 -->
   [Code],
   {\+ non_iri_code(Code)},
