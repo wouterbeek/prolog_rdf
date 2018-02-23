@@ -1,8 +1,6 @@
 :- module(
   rdf_api,
   [
-    isomorphic_graphset/2,        % +GraphSet1, +GraphSet2
-    prefix_local_iri/3,           % ?Prefix, ?Local, ?Iri
     rdf/4,                        % ?S, ?P, ?O, ?G
     rdf2/3,                       % ?S, ?P, ?O
     rdf2/4,                       % ?S, ?P, ?O, ?G
@@ -14,59 +12,34 @@
     rdf_assert_list/4,            % +S, +P, +PrologList, +G
     rdf_assert_reification/4,     % +S, +P, +O, +Stmt
     rdf_assert_reification/5,     % +S, +P, +O, +G, +Stmt
-    rdf_atom_to_term/2,           % +Atom, -Term
     rdf_chk/4,                    % ?S, ?P, ?O, ?G
     rdf_clean_quad/2,             % +Quad1, -Quad2
     rdf_clean_triple/2,           % +Triple1, -Triple2
     rdf_create_graph/1,           % -G
     rdf_create_iri/3,             % +Prefix, +Path, -Iri
-    rdf_create_prefix/1,          % +Pair
-    rdf_create_prefix/2,          % +Prefix, +Iri
-    rdf_create_well_known_iri/1,  % -Iri
     rdf_deref_stream/3,           % +Uri, +In, :Goal_3
     rdf_deref_stream/4,           % +Uri, +In, :Goal_3, +Options
     rdf_deref_triple/2,           % +Uri, -Quads
     rdf_deref_triple/3,           % +Uri, -Quads, +Options
     rdf_deref_uri/2,              % +Uri, :Goal_3
     rdf_deref_uri/3,              % +Uri, :Goal_3, +Options
-    rdf_is_prefix/1,              % @Term
-    rdf_is_skip_node/1,           % @Term
-    rdf_is_well_known_iri/1,      % @Term
     rdf_label/2,                  % +Term, -Label
     rdf_label/3,                  % +Term, +P, -Label
-    rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
-    rdf_lexical_value/3,          % ?D, ?Lex, ?Val
-    rdf_iri//1,                   % -Iri
     rdf_list_member/2,            % ?X, ?L
     rdf_list_member/3,            % ?X, ?L, ?G
-    rdf_literal//1,               % -Literal
-    rdf_literal/4,                % ?D, ?LTag, ?Lex, ?Literal
-    rdf_literal_datatype_iri/2,   % +Literal, ?D
-    rdf_literal_lexical_form/2,   % +Literal, ?Lex
-    rdf_literal_value/2,          % +Literal, -Value
     rdf_load2/1,                  % +File
     rdf_load2/2,                  % +File, +Options
     rdf_media_type/1,             % +MediaType
     rdf_node/2,                   % ?Node, ?G
-    rdf_prefix_iri/2,             % ?PrefixedName, ?Iri
-    rdf_prefix_maplist/2,         % :Goal_1, +Args1
-    rdf_prefix_member/2,          % ?Elem, +L
-    rdf_prefix_memberchk/2,       % ?Elem, +L
-    rdf_prefix_selectchk/3,       % +Elem, +List, -Rest
-    rdf_prefix_term/2,            % ?PrefixedTerm, ?Term
     rdf_query_term/2,             % +Term, -QueryTerm
     rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
     rdf_reification/5,            % ?S, ?P, ?O, ?G, ?Stmt
     rdf_retractall/4,             % ?S, ?P, ?O, ?G
     rdf_retractall2/4,            % ?S, ?P, ?O, ?G
     rdf_subdatatype/2,            % ?D1, ?D2
-    rdf_term//1,                  % -Term
-    rdf_term_to_atom/2,           % +Term, -Atom
     rdf_triple_list_member/3,     % ?S, ?P, ?X
     rdf_triple_list_member/4,     % ?S, ?P, ?X, ?G
     rdf_triple_term/2,            % +Triple, ?Term
-    rdf_triples_graphset/2,       % +Triples, -GraphSet
-    rdf_typed_literal/3,          % ?D, ?Lex, ?Literal
     rdfa_media_type/1,            % ?MediaType
     rdfs_instance/2,              % ?I, ?C
     rdfs_instance/3,              % ?I, ?C, ?G
@@ -79,29 +52,13 @@
   ]).
 :- reexport(library(semweb/rdf_db), [
     rdf/3,
-    rdf_is_literal/1,
     rdf_load_db/1 as rdf_load_dump,
     rdf_save_db/1 as rdf_save_dump
    ]).
 :- reexport(library(semweb/rdf11), [
-    rdf_create_bnode/1,
-    rdf_current_prefix/2,
-    rdf_default_graph/1,
-    rdf_equal/2,
-    rdf_global_id/2 as rdf_prefix_iri,
-    rdf_global_object/2 as rdf_prefix_term,
-    rdf_global_term/2 as rdf_prefix_any,
-    rdf_graph/1,
-    rdf_is_bnode/1,
-    rdf_is_iri/1,
-    rdf_is_object/1,
-    rdf_is_predicate/1,
-    rdf_is_subject/1,
     rdf_reset_db/0,
     rdf_transaction/1,
     rdf_unload_graph/1,
-    (rdf_meta)/1,
-    op(1150, fx, (rdf_meta)),
     op(110, xfx, @),
     op(650, xfx, ^^)
    ]).
@@ -130,8 +87,6 @@
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin), []).
 :- use_module(library(semweb/rdf_ntriples)).
-:- use_module(library(semweb/rdf_prefix), []).
-:- use_module(library(semweb/rdf_prefixes)).
 :- use_module(library(semweb/rdf_zlib_plugin)).
 :- use_module(library(semweb/rdf11_containers)).
 :- use_module(library(semweb/rdfa)).
@@ -146,11 +101,9 @@
     rdf_deref_stream(+, +, 3),
     rdf_deref_stream(+, +, 3, +),
     rdf_deref_uri(+, 3),
-    rdf_deref_uri(+, 3, +),
-    rdf_prefix_maplist(1, +).
+    rdf_deref_uri(+, 3, +).
 
 :- rdf_meta
-   prefix_local_iri(?, ?, r),
    rdf(r, r, o, r),
    rdf2(r, r, o),
    rdf2(r, r, o, r),
@@ -170,33 +123,19 @@
    rdf_deref_triple(r, -, +),
    rdf_deref_uri(r, :),
    rdf_deref_uri(r, :, +),
-   rdf_is_skip_node(r),
-   rdf_is_well_known_iri(r),
    rdf_label(r, -),
    rdf_label(r, r, -),
-   rdf_language_tagged_string(?, ?, o),
-   rdf_lexical_value(r, ?, ?),
    rdf_list_member(r, t),
    rdf_list_member(r, t, r),
-   rdf_literal(r, ?, ?, o),
-   rdf_literal_datatype_iri(o, r),
-   rdf_literal_lexical_form(o, ?),
-   rdf_literal_value(o, -),
    rdf_node(o, r),
-   rdf_prefix_maplist(:, t),
-   rdf_prefix_member(t, t),
-   rdf_prefix_memberchk(t, t),
-   rdf_prefix_selectchk(t, t, t),
    rdf_reification(r, r, o, r),
    rdf_reification(r, r, o, r, r),
    rdf_retractall(r, r, o, r),
    rdf_retractall2(r, r, o, r),
    rdf_subdatatype(r, r),
-   rdf_term_to_atom(t, -),
    rdf_triple_list_member(r, r, t),
    rdf_triple_list_member(r, r, t, r),
    rdf_triple_term(t, o),
-   rdf_typed_literal(r, ?, o),
    rdfs_instance(r, r),
    rdfs_instance(r, r, r),
    rdfs_range(r, r),
@@ -206,41 +145,7 @@
    rdfs_subproperty(r, r),
    rdfs_subproperty(r, r, r).
 
-:- rdf_register_prefix(bnode, 'https://example.org/.well-known/genid/').
 
-
-
-
-
-%! isomorphic_graphsets(+GraphSet1:ordset(compound),
-%!                      +GraphSet2:ordset(compound)) is semidet.
-%
-% Is true if there is a consistent mapping between of blank nodes in
-% Graph1 to blank nodes in Graph2 that makes both graphs equal.  This
-% maps to the Prolog notion of _variant_ if there was a canonical
-% ordering of triples.
-%
-% Blank nodes are assumed to be replaced by Prolog variables.
-
-isomorphic_graphset(GraphSet1, GraphSet2) :-
-  once(graphset_permutation(GraphSet1, Perm1)),
-  graphset_permutation(GraphSet2, Perm2),
-  Perm1 =@= Perm2, !.
-
-graphset_permutation(GraphSet, Graph) :-
-  partition(ground, GraphSet, Ground, NonGround),
-  permutation(NonGround, NonGroundPermutation),
-  append(Ground, NonGroundPermutation, Graph).
-
-
-
-%! prefix_local_iri(-Prefix:atom, -Local:atom,   +Iri:atom) is det.
-%! prefix_local_iri(+Prefix:atom, +Local:atom, -Iri:atom) is det.
-%
-% Variant of rdf_prefix_iri/2 that works with maplist/3 and siblings.
-
-prefix_local_iri(Prefix, Local, Iri) :-
-  rdf_prefix_iri(Prefix:Local, Iri).
 
 
 
@@ -342,24 +247,6 @@ rdf_assert_reification(S, P, O, G, Stmt) :-
   rdf_assert(Stmt, rdf:subject, S, G),
   rdf_assert(Stmt, rdf:predicate, P, G),
   rdf_assert(Stmt, rdf:object, O, G).
-
-
-
-%! rdf_atom_to_term(+Atom:atom, -Term:rdf_term) is semidet.
-%
-% Fails if Atom cannot be interpreted.
-
-rdf_atom_to_term(Atom, Term) :-
-  atom_codes(Atom, Codes),
-  phrase(rdf_term(Term), Codes), !.
-% Expansion of commonly used abbreviations.
-rdf_atom_to_term(a, Iri) :- !,
-  rdf_equal(rdf:type, Iri).
-% Expansion of commonly used prefixes.
-rdf_atom_to_term(Atom, Iri) :-
-  atomic_list_concat([Prefix,Local], :, Atom),
-  rdf_is_prefix(Prefix), !,
-  rdf_prefix_iri(Prefix:Local, Iri).
 
 
 
@@ -487,34 +374,11 @@ rdf_create_graph(G) :-
 
 
 
-%! rdf_create_iri(+Prefix:atom, +Segments:list(atom), -Iri:atom) is det.
+%! rdf_create_iri(+Alias:atom, +Segments:list(atom), -Iri:atom) is det.
 
-rdf_create_iri(Prefix, Segments, Iri2) :-
-  rdf_current_prefix(Prefix, Iri1),
+rdf_create_iri(Alias, Segments, Iri2) :-
+  rdf_prefix(Alias, Iri1),
   uri_comp_add(path, Iri1, Segments, Iri2).
-
-
-
-%! rdf_create_prefix(+Pair:pair(atom)) is det.
-%! rdf_create_prefix(+Prefix:atom, +Iri:atom) is det.
-%
-% Syntactic sugar for registering multiple RDF prefixes using
-% maplist/2.
-
-rdf_create_prefix(Prefix-Iri) :-
-  rdf_create_prefix(Prefix, Iri).
-
-
-rdf_create_prefix(Prefix, Iri) :-
-  rdf_register_prefix(Prefix, Iri, [force(true)]).
-
-
-
-%! rdf_create_well_known_iri(-Iri) is det.
-
-rdf_create_well_known_iri(Iri) :-
-  uuid(Id),
-  rdf_prefix_iri(bnode:Id, Iri).
 
 
 
@@ -728,41 +592,6 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
 
 
 
-%! rdf_iri(-Iri:iri)// .
-
-rdf_iri(Iri) -->
-  "<",
-  ...(Codes),
-  ">", !,
-  {atom_codes(Iri, Codes)}.
-
-
-
-%! rdf_is_prefix(@Term) is semidet.
-
-rdf_is_prefix(Prefix) :-
-  rdf_current_prefix(Prefix, _).
-
-
-
-%! rdf_is_skip_node(@Term) is semidet.
-
-rdf_is_skip_node(Term) :-
-  rdf_is_bnode(Term), !.
-rdf_is_skip_node(Term) :-
-  rdf_is_well_known_iri(Term).
-
-
-
-%! rdf_is_well_known_iri(@Term) is semidet.
-
-rdf_is_well_known_iri(Iri) :-
-  rdf_is_iri(Iri),
-  uri_comps(Iri, uri(Scheme,Authority,['.well-known',genid|_],_,_)),
-  ground(Scheme-Authority).
-
-
-
 %! rdf_label(+Term:rdf_term, -Label:string) is semidet.
 %! rdf_label(+Term:rdf_term, +P:iri, -Label:string) is semidet.
 
@@ -785,31 +614,6 @@ rdf_label(Term, P, Label) :-
 
 
 
-%! rdf_language_tagged_string(+LTag:atom, +Lex:atom, -Literal:rdf_literal) is det.
-%! rdf_language_tagged_string(-LTag:atom, -Lex:atom, +Literal:rdf_literal) is det.
-
-rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
-
-
-
-%! rdf_lexical_value(+D:atom, +Lex:atom, -Val:term) is det.
-%! rdf_lexical_value(+D:atom, -Lex:atom, +Val:term) is det.
-
-rdf_lexical_value(rdf:'HTML', Lex, Dom) :-
-  (   atom(Lex)
-  ->  load_structure(atom(Lex), Dom, [dialect(html5),max_errors(0)])
-  ;   rdf11:write_xml_literal(html, Dom, Lex)
-  ).
-rdf_lexical_value(rdf:'XMLLiteral', Lex, Dom) :-
-  (   atom(Lex)
-  ->  load_structure(atom(Lex), Dom, [dialect(xml),max_errors(0)])
-  ;   rdf11:write_xml_literal(xml, Dom, Lex)
-  ).
-rdf_lexical_value(D, Lex, Val) :-
-  xsd_lexical_value(D, Lex, Val).
-
-
-
 %! rdf_list_member(?X, ?L) is nondet.
 
 rdf_list_member(X, L) :-
@@ -827,55 +631,6 @@ rdf_list_member(X, L, G) :-
 rdf_list_member(X, L, G) :-
   rdf(L, rdf:rest, T, G),
   rdf_list_member(X, T, G).
-
-
-
-%! rdf_literal(-Literal:rdf_literal)// .
-
-rdf_literal(Literal) -->
-  "\"",
-  ...(Codes),
-  "\"", !,
-  ("^^" -> rdf_iri(D) ; "@" -> rest_as_atom(LTag) ; ""),
-  {
-    atom_codes(Lex, Codes),
-    rdf_literal(D, LTag, Lex, Literal)
-  }.
-
-
-
-%! rdf_literal(+D:iri, +LTag:atom, +Lex:atom, -Literal:rdf_literal) is det.
-%! rdf_literal(-D:iri, -LTag:atom, -Lex:atom, +Literal:rdf_literal) is det.
-
-rdf_literal(D, _, Lex, literal(type(D,Lex))).
-rdf_literal(rdf:langString, LTag, Lex, literal(lang(LTag,Lex))).
-
-
-
-%! rdf_literal_datatype_iri(+Literal:rdf_literal, +D:iri) is semidet.
-%! rdf_literal_datatype_iri(+Literal:rdf_literal, -D:iri) is det.
-
-rdf_literal_datatype_iri(literal(type(D,_)), D).
-rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
-
-
-
-%! rdf_literal_lexical_form(+Literal:rdf_literal, +Lex:atom) is semidet.
-%! rdf_literal_lexical_form(+Literal:rdf_literal, -Lex:atom) is det.
-
-rdf_literal_lexical_form(literal(type(_,Lex)), Lex).
-rdf_literal_lexical_form(literal(lang(_,Lex)), Lex).
-
-
-
-%! rdf_literal_value(+Literal:rdf_literal, -Value) is det.
-%
-% Notice that languages-tagged strings do not have a value.
-
-rdf_literal_value(literal(type(D,Lex)), Value) :- !,
-  rdf_lexical_value(D, Lex, Value).
-rdf_literal_value(literal(lang(LTag,Lex)), _) :-
-  existence_error(rdf_value,LTag-Lex).
 
 
 
@@ -952,38 +707,6 @@ rdf_node(O, G) :-
 
 
 
-%! rdf_prefix_maplist(:Goal_1, +Args1:list) is det.
-
-rdf_prefix_maplist(Goal_1, L) :-
-  maplist(Goal_1, L).
-
-
-
-%! rdf_prefix_member(?Elem, +L) is nondet.
-%
-% Calls member/2 under RDF prefix expansion.
-
-rdf_prefix_member(Elem, L) :-
-  member(Elem, L).
-
-
-
-%! rdf_prefix_memberchk(?Elem, +L) is nondet.
-%
-% Calls memberchk/2 under RDF prefix expansion.
-
-rdf_prefix_memberchk(Elem, L) :-
-  memberchk(Elem, L).
-
-
-
-%! rdf_prefix_selectchk(+Elem:rdf_term, +List:list, -Rest:list) is det.
-
-rdf_prefix_selectchk(Elem, List, Rest) :-
-  selectchk(Elem, List, Rest).
-
-
-
 %! rdf_query_term(+Term, -QueryTerm) is det.
 
 rdf_query_term(Term, QueryTerm) :-
@@ -1034,36 +757,6 @@ rdf_subdatatype(dbt:kilometer, xsd:double).
 
 
 
-%! rdf_term(-Term:rdf_term)// .
-
-rdf_term(Iri) -->
-  rdf_iri(Iri), !.
-rdf_term(Literal) -->
-  rdf_literal(Literal).
-rdf_term(BNode) -->
-  "_:",
-  rest(T),
-  {atom_codes(BNode, [0'_,0':|T])}.
-
-
-
-%! rdf_term_to_atom(+Term:rdf_term, -Atom:atom) is det.
-
-rdf_term_to_atom(literal(lang(LTag,Lex)), Atom) :-
-  nonvar(LTag), !,
-  format(atom(Atom), '"~a"@~a', [Lex,LTag]).
-rdf_term_to_atom(literal(type(D,Lex)), Atom) :- !,
-  format(atom(Atom), '"~a"^^<~a>', [Lex,D]).
-rdf_term_to_atom(Iri, Atom) :-
-  rdf_is_iri(Iri), !,
-  format(atom(Atom), '<~a>', [Iri]).
-rdf_term_to_atom(BNode, BNode) :-
-  rdf_is_bnode(BNode), !.
-rdf_term_to_atom(Term, _) :-
-  type_error(rdf_term, Term).
-
-
-
 %! rdf_triple_list_member(?S, ?P, ?X) is nondet.
 
 rdf_triple_list_member(S, P, X) :-
@@ -1094,44 +787,6 @@ rdf_triple_list_member(S, P, X, G) :-
 rdf_triple_term(rdf(S,_,_), S).
 rdf_triple_term(rdf(_,P,_), P).
 rdf_triple_term(rdf(_,_,O), O).
-
-
-
-%! rdf_triples_graphset(+Triples:list(compound),
-%!                      -GraphSet:list(compound)) is det.
-
-rdf_triples_graphset(Triples, GraphSet) :-
-  rdf_triples_vars(Triples, Terms),
-  sort(Terms, GraphSet).
-
-rdf_triples_vars(Triples, Terms) :-
-  empty_assoc(Map),
-  rdf_triples_vars(Triples, Terms, Map, _).
-
-rdf_triples_vars([], [], Map, Map).
-rdf_triples_vars([rdf(S1,P,O1)|T1], [rdf(S2,P,O2)|T2], Map1, Map4) :-
-  rdf_nonliteral_var(S1, S2, Map1, Map2),
-  rdf_term_var(O1, O2, Map2, Map3),
-  rdf_triples_vars(T1, T2, Map3, Map4).
-
-rdf_nonliteral_var(BNode, Var, Map1, Map2) :-
-  rdf_is_bnode(BNode), !,
-  (   get_assoc(BNode, Map1, Var)
-  ->  Map2 = Map1
-  ;   put_assoc(BNode, Map1, Var, Map2)
-  ).
-rdf_nonliteral_var(Iri, Iri, Map, Map).
-
-rdf_term_var(NonLiteral, Term, Map1, Map2) :-
-  rdf_nonliteral_var(NonLiteral, Term, Map1, Map2), !.
-rdf_term_var(Literal, Literal, Map, Map).
-
-
-
-%! rdf_typed_literal(+D:iri, +Lex:atom, -Literal:rdf_literal) is det.
-%! rdf_typed_literal(-D:iri, -Lex:atom, +Literal:rdf_literal) is det.
-
-rdf_typed_literal(D, Lex, literal(type(D,Lex))).
 
 
 

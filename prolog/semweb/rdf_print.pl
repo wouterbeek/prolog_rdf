@@ -159,49 +159,12 @@ rdf_dcg_iri(Iri) -->
   rdf_dcg_iri(Iri, _{}).
 
 
-rdf_dcg_iri(Full, Options) -->
-  {
-    dict_get(iri_abbr, Options, true, true),
-    (   % Abbreviated based on a manually passed prefix/IRI pair.
-        dict_get(prefix_map, Options, [], PrefixMap),
-        member(Prefix-Iri, PrefixMap),
-        atom_prefix(Full, Iri)
-    ->  atom_concat(Iri, Local, Full)
-    ;   % Abbreviated based on a global prefix declaration.
-        rdf_prefix_iri(Prefix:Local, Full)
-    ->  true
-    ), !,
-    atom_length(Prefix, PrefixLength),
-    Minus is PrefixLength + 1,
-    dict_get(max_iri_len, Options, ∞, Len),
-    inf_minus(Len, Minus, Max)
-  },
-  atom(Prefix),
-  ":",
-  ellipsis(Local, Max).
-rdf_dcg_iri(Full, Options) -->
-  {dict_get(max_iri_len, Options, ∞, Len)},
-  "<",
-  ellipsis(Full, Len),
-  ">".
-
-
 
 %! rdf_dcg_language_tag(+LTag, +Options)// is det.
 
 rdf_dcg_language_tag(LTag, Options) -->
   {dict_get(max_lit_len, Options, ∞, Len)},
   ellipsis(LTag, Len).
-
-
-
-%! rdf_dcg_lexical_form(+Lex, +Options)// is det.
-
-rdf_dcg_lexical_form(Lex, Options) -->
-  {dict_get(max_lit_len, Options, ∞, Len)},
-  "\"",
-  ellipsis(Lex, Len),
-  "\"".
 
 
 
@@ -236,11 +199,6 @@ rdf_dcg_literal(Lit) -->
 % hook
 rdf_dcg_literal(Lit, Options) -->
   rdf_dcg_literal_hook(Lit, Options), !.
-% rdf:langString
-rdf_dcg_literal(literal(lang(LTag,Lex)), Options) --> !,
-  rdf_dcg_lexical_form(Lex, Options),
-  "@",
-  rdf_dcg_language_tag(LTag, Options).
 % xsd:boolean
 rdf_dcg_literal(literal(type(xsd:boolean,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options).
@@ -289,11 +247,6 @@ rdf_dcg_literal(literal(type(xsd:string,Lex)), Options) --> !,
 % xsd:anyURI
 rdf_dcg_literal(literal(type(xsd:anyURI,Uri)), _) --> !,
   atom(Uri).
-% other
-rdf_dcg_literal(literal(type(D,Lex)), Options) -->
-  rdf_dcg_lexical_form(Lex, Options),
-  "^^",
-  rdf_dcg_iri(D, Options).
 
 
 
@@ -332,20 +285,6 @@ rdf_dcg_nonliteral(S, Options) -->
 
 rdf_dcg_term(Term) -->
   rdf_dcg_term(Term, _{}).
-
-
-rdf_dcg_term(BNode, _) -->
-  {rdf_is_bnode(BNode)}, !,
-  atom(BNode).
-rdf_dcg_term(Iri, Options) -->
-  {rdf_is_iri(Iri)}, !,
-  rdf_dcg_iri(Iri, Options).
-rdf_dcg_term(Lit, Options) -->
-  rdf_dcg_literal(Lit, Options), !.
-rdf_dcg_term(Var, Options) -->
-  {var(Var)}, !,
-  rdf_dcg_var(Var, Options).
-
 
 
 %! rdf_dcg_complex_object(+Indent:nonneg, +Node:rdf_term,
@@ -490,24 +429,6 @@ rdf_dcg_objects2(I, [O|Os], SkipTriples1, SkipTriples3, Options) -->
 
 
 
-%! rdf_dcg_var(+Var, +Options)// is det.
-
-rdf_dcg_var(Var, Options) -->
-  {dict_get(variable_map, Options, VarMap)},
-  "?",
-  {memberchk_eq_key(Var, VarMap, VarName)}, !,
-  atom(VarName).
-rdf_dcg_var(Var, _) -->
-  {format(codes(Cs), "~w", [Var])},
-  Cs.
-
-memberchk_eq_key(Key, [Key0-Val|_], Val) :-
-  Key == Key0, !.
-memberchk_eq_key(Key, [_|T], Val) :-
-  memberchk_eq_key(Key, T, Val).
-
-
-
 
 
 % HELPERS %
@@ -519,13 +440,3 @@ dcg_tab0(N1) -->
   "  ",
   {N2 is N1 - 1},
   dcg_tab0(N2).
-
-
-
-%! inf_minus(+X, +Y, -Z) is det.
-
-inf_minus(∞, _, ∞) :- !.
-inf_minus(X, Y, X) :-
-  X =< Y, !.
-inf_minus(X, Y, Z) :-
-  Z is X - Y.

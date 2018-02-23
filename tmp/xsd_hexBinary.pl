@@ -126,7 +126,7 @@ hexOctetCanonical([High1,High2,High3,High4,Low1,Low2,Low3,Low4]) -->
 % hexOctet in `LEX`, in order, and concatenating the results.
 % Return o.
 
-hexBinaryMap(L) --> *(hexOctetMap, DLs), {lappend(DLs, L)}.
+hexBinaryMap(L) --> *(hexOctetMap, DLs), {dappend_to_list(DLs, L)}.
 
 
 
