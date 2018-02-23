@@ -33,7 +33,7 @@ Support for XML Schema Datatypes.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg_phrase)).
 :- use_module(library(typecheck)).
 :- use_module(library(xml/xsd_boolean)).
 :- use_module(library(xml/xsd_hexBinary)).

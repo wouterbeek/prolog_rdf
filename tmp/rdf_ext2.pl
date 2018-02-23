@@ -87,10 +87,10 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(default)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dict)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
@@ -103,7 +103,7 @@
 :- use_module(library(semweb/rdf_date_time)).
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 :- use_module(library(xml/xsd)).
 :- use_module(library(yall)).
 

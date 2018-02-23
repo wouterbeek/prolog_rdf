@@ -94,8 +94,8 @@ Virtuoso-specific:
 @version 2015/08, 2015/10-2016/01, 2016/05-2016/06
 */
 
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_option)).
+:- use_module(library(dcg_ext)).
+:- use_module(library(dcg_option)).
 :- use_module(library(dcg/sparql11)).
 :- use_module(library(error)).
 :- use_module(library(rdf/rdf_term)).

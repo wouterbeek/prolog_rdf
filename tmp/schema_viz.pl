@@ -15,7 +15,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(graph/graph_ext)).
 :- use_module(library(graph/gv)).
@@ -23,7 +23,7 @@
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 :- use_module(library(semweb/t_api)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- rdf_meta
    export_hierarchy(+, r, +, +),

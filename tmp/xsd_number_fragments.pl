@@ -25,7 +25,7 @@
     unsignedScientificNotationNumeral//1 % +Decimal:rational
   ]
 ).
-:- reexport(library(dcg/dcg_ext), [
+:- reexport(library(dcg_ext), [
      digit//1 % ?Weight:between(0,9)
    ]).
 
@@ -36,7 +36,7 @@
 @version 2015/07, 2015/11
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg_ext)).
 :- use_module(library(lists)).
 :- use_module(library(xml/xsd_number)).
 

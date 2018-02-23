@@ -13,7 +13,7 @@
 @version 2015/07, 2015/11
 */
 
-:- use_module(library(dcg/dcg_cardinal)).
+:- use_module(library(dcg_cardinal)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(xml/xsd_dt)).
 :- use_module(library(xml/xsd_number)).

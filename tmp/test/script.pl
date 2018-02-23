@@ -2,7 +2,7 @@
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(rdf/rdf_term)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 script1(M) :-
   rdf_reset_db,

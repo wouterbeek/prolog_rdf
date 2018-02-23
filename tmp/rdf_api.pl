@@ -73,7 +73,7 @@
 :- use_module(library(assoc)).
 :- use_module(library(call_ext)).
 :- use_module(library(closure)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
@@ -92,7 +92,7 @@
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
 :- use_module(library(sgml)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 :- use_module(library(uuid)).
 :- use_module(library(xml/xsd)).
 :- use_module(library(xml/xsd_number)).

@@ -21,8 +21,8 @@ Streamed processing of RDF data.
 */
 
 :- use_module(library(call_ext)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg_ext)).
+:- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_api)).
@@ -31,7 +31,7 @@ Streamed processing of RDF data.
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- meta_predicate
     call_on_rdf(+, 2),

@@ -14,9 +14,9 @@ Printing of materialization results.
 @version 2015/08-2015/12, 2016/03, 2016/08
 */
 
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
-:- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(dcg_ext)).
+:- use_module(library(dcg_pl)).
+:- use_module(library(dcg_unicode)).
 :- use_module(library(html/html_ext)).
 :- use_module(library(q/rdf_print)).
 

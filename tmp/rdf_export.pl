@@ -18,7 +18,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(semweb/turtle), []).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_term)).

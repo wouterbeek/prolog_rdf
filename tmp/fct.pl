@@ -14,7 +14,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
@@ -23,7 +23,7 @@
 :- use_module(library(rdf/rdf_deref)).
 :- use_module(library(rdf/rdf_term)).
 :- use_module(library(settings)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- setting(
      endpoint_host,

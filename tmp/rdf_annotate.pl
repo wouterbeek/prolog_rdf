@@ -24,7 +24,7 @@
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_build)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 :- use_module(library(yall)).
 
 :- rdf_meta

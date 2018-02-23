@@ -22,8 +22,8 @@ IRIs are linked using ‘owl:sameAs’.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dcg/dcg_cli)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg_cli)).
+:- use_module(library(dcg_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_print)).

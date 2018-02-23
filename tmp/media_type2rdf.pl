@@ -9,7 +9,7 @@ Transforms Media Types as recorded in the IANA registry to RDF.
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg_ext)).
 :- use_module(library(http/http_download)).
 :- use_module(library(http/http11)).
 :- use_module(library(lists)).

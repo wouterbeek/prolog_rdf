@@ -13,7 +13,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dict)).
 :- use_module(library(persistency)).
 :- use_module(library(rdf/rdf_build)).
 

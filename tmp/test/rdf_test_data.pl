@@ -11,8 +11,8 @@
 @version 2015/12-2016/01, 2016/05
 */
 
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
+:- use_module(library(dcg_ext)).
+:- use_module(library(dcg_pl)).
 :- use_module(library(rdf/rdf_build)).
 
 :- rdf_create_alias(ch, 'http://www.wouterbeek.com/ch.owl#' ).

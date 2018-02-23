@@ -22,7 +22,7 @@
 :- use_module(library(os/pdf)).
 :- use_module(library(rdf/rdf__io)).
 :- use_module(library(rdf/rdf_build)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- initialization(list_external_programs).
 
