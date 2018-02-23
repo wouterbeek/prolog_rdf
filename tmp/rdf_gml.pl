@@ -34,7 +34,7 @@ whitespace ::= space | tabulator | newline
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(graph/gml)).

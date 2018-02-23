@@ -49,7 +49,7 @@ Identifiers are atoms.
 @version 2015/08, 2015/10, 2015/12-2016/01
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(lists)).

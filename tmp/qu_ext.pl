@@ -12,7 +12,7 @@
 */
 
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug)).
 :- use_module(library(trp/trp_update)).
 

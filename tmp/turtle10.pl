@@ -16,7 +16,7 @@
 @version 2015/11, 2016/01
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dcg/rfc2234)).
 
 

@@ -24,7 +24,7 @@
 @version 2015/11, 2016/03, 2016/12
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 
 
 

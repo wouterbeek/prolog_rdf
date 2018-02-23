@@ -38,7 +38,7 @@ where:
 */
 
 :- use_module(library(date_time/date_time)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 
 
 

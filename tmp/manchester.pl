@@ -35,7 +35,7 @@
   ]
 ).
 :- reexport(
-     library(dcg_ext),
+     library(dcg),
      [
        digit//1 % ?Digit:between(0,9)
      ]
@@ -59,7 +59,7 @@ annotated_list(_) --> "".
 @version 2015/11-2015/12
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dcg_peek)).
 :- use_module(library(dcg/sparql10)).
 :- use_module(library(ltag/rfc5646)).

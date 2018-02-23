@@ -37,7 +37,7 @@
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(date_time)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(http/http_server)).

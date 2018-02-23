@@ -22,7 +22,7 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 @version 2017/04-2018/02
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(media_type)).
 :- use_module(library(memfile)).
 :- use_module(library(semweb/rdf_api)).

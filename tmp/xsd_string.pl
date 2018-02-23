@@ -32,7 +32,7 @@ xml_char//2 production from XML 1.0 or XML 1.1.
 @version 2015/07, 2015/11
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(xml/xml11_code)).
 
 

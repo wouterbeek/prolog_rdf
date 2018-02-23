@@ -24,7 +24,7 @@ the array as e.g. Well-Known Text (WKT).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug)).
 :- use_module(library(dict)).
 :- use_module(library(http/http_json)).

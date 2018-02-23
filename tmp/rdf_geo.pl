@@ -20,7 +20,7 @@
 @version 2017/05-2017/12
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(geo/wkt_generate)).
 :- use_module(library(geo/wkt_parse)).
 :- use_module(library(semweb/rdf_api)).

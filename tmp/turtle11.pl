@@ -38,7 +38,7 @@
 */
 
 :- use_module(library(clpfd)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 
 
 

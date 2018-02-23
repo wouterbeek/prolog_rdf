@@ -19,7 +19,7 @@ API for performing SPARQL Update requests.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).

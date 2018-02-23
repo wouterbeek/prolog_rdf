@@ -14,7 +14,7 @@
 @version 2015/10, 2015/12-2016/01, 2016/03, 2016/06, 2016/12
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(fca/fca_viz)).
 :- use_module(library(fca/rdfs_fca)).
 :- use_module(library(gv/gv_file)).

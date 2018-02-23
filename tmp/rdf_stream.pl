@@ -21,7 +21,7 @@ Streamed processing of RDF data.
 */
 
 :- use_module(library(call_ext)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(option)).

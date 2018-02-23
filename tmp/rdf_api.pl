@@ -73,7 +73,7 @@
 :- use_module(library(assoc)).
 :- use_module(library(call_ext)).
 :- use_module(library(closure)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).

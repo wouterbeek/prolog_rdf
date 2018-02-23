@@ -233,7 +233,7 @@ rdf_term(Literal) -->
   rdf_literal(Literal).
 rdf_term(BNode) -->
   "_:",
-  rest(T),
+  remainder(T),
   {atom_codes(BNode, [0'_,0':|T])}.
 
 

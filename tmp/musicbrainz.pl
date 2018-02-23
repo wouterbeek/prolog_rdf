@@ -12,7 +12,7 @@
 @version 2014/09-2014/10, 2016/05
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/http_download)).
 :- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).

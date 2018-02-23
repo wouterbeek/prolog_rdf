@@ -40,7 +40,7 @@
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(conv/rdf2gml)).
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(http/http_io)).

@@ -45,7 +45,7 @@ The canonical mapping of hexBinary is given formally in hexBinaryCanonical.
 @version 2015/07, 2015/11
 */
 
-:- use_module(library(dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dlist)).
 
 
