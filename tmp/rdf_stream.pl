@@ -20,17 +20,17 @@ Streamed processing of RDF data.
 @version 2017/09
 */
 
-:- use_module(library(call_ext)).
-:- use_module(library(dcg)).
-:- use_module(library(dict)).
-:- use_module(library(file_ext)).
 :- use_module(library(option)).
-:- use_module(library(semweb/rdf_api)).
-:- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_http_plugin), []).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
+
+:- use_module(library(call_ext)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
+:- use_module(library(file_ext)).
+:- use_module(library(sw/rdf_guess)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate

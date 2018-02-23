@@ -16,11 +16,14 @@
 /** <module> RDFa extensions
 
 @author Wouter Beek
-@version 2017/06-2017/08
+@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(pairs)).
+:- use_module(library(yall)).
+
 :- use_module(library(date_time)).
 :- use_module(library(dict)).
 :- use_module(library(html/html_date_time_human)).
@@ -28,9 +31,6 @@
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/rdf_html)).
 :- use_module(library(nlp/nlp_lang)).
-:- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_api)).
-:- use_module(library(yall)).
 
 :- multifile
     rdfa:prefix/1,

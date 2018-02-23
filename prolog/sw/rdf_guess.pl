@@ -19,15 +19,14 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 @author Wouter Beek
 @author Jan Wielemaker
-@version 2017/04-2018/02
+@version 2017-2018
 */
+
+:- use_module(library(sgml)).
 
 :- use_module(library(dcg)).
 :- use_module(library(media_type)).
-:- use_module(library(memfile)).
-:- use_module(library(semweb/rdf_api)).
-:- use_module(library(semweb/rdf_prefixes)).
-:- use_module(library(sgml)).
+:- use_module(library(sw/rdf_prefix)).
 
 :- meta_predicate
     n3_lexical_form_codes(//, ?, ?).
@@ -233,6 +232,9 @@ n3_comment -->
   "#",
   string(_),
   (eol ; eos).
+
+eol --> "\n".
+eol --> "\r\n".
 
 n3_graph(Ext) -->
   n3_iriref(Ext).
@@ -459,7 +461,7 @@ doc_content_type(Dialect, Top,  Attributes, rdf) :-
   memberchk(Attribute=RDFNS, Attributes),
 
   % Ensure it is indeed the RDF namespace.
-  rdf_current_prefix(rdf, RDFNS).
+  rdf_prefix(rdf, RDFNS).
 
 dialect_local_name(sgml, rdf).
 dialect_local_name(xml, 'RDF').

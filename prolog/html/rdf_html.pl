@@ -35,6 +35,9 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(sgml)).
+:- use_module(library(yall)).
+
 :- use_module(library(atom_ext)).
 :- use_module(library(date_time)).
 :- use_module(library(dcg)).
@@ -42,13 +45,7 @@
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(http/http_server)).
 :- use_module(library(list_ext)).
-:- use_module(library(semweb/rdf_api)).
-:- use_module(library(semweb/rdf_date_time)).
-:- use_module(library(sgml)).
 :- use_module(library(uri_ext)).
-:- use_module(library(xml/xsd_dt)).
-:- use_module(library(xml/xsd_number)).
-:- use_module(library(yall)).
 
 :- multifile
     html:html_hook//1,
