@@ -10,20 +10,17 @@
 
 /** <module> RDF Geography Plugin
 
+Prefix notation does not work in hooks (workaround: datatype
+match in body).
+
+Multifile hooks do not work (workaround: module prefix).
+
 @author Wouter Beek
-
-@tbd Prefix notation does not work in hooks (workaround: datatype
-     match in body).
-
-@tbd Multifile hooks do not work (workaround: module prefix).
-
-@version 2017/05-2017/12
+@version 2017-2018
 */
 
 :- use_module(library(dcg)).
-:- use_module(library(geo/wkt_generate)).
-:- use_module(library(geo/wkt_parse)).
-:- use_module(library(semweb/rdf_api)).
+:- use_module(library(sw/rdf_term)).
 
 % (+D, +Shape, -Lex)
 rdf11:in_ground_type_hook(D, Shape, Lex) :-
@@ -53,7 +50,7 @@ rdf_assert_wkt(Feature, Shape, G) :-
 
 
 rdf_assert_wkt(Feature, Shape, G, Geometry) :-
-  rdf_create_well_known_iri(Geometry),
+  rdf_bnode_iri(Geometry),
   rdf_assert(Feature, geo:hasGeometry, Geometry, G),
   rdf_assert(Geometry, geo:asWKT, Shape^^geo:wktLiteral, G),
   rdf_assert(Geometry, rdf:type, geo:'Geometry', G).

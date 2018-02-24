@@ -43,7 +43,7 @@ jsonld_metadata_abbreviate_iri(Full, Compact) :-
 jsonld_metadata_context(
   _{
     '@vocab':          'http://lodlaundromat.org/ontology/',
-    base_iri:          _{'@type': 'xsd:anyURI'},
+    base_uri:          _{'@type': 'xsd:anyURI'},
     duplicate_tuples:  _{'@type': 'xsd:nonNegativeInteger'},
     formats:           'http://www.w3.org/ns/formats/',
     processed_quads:   _{'@type': 'xsd:nonNegativeInteger'},

@@ -2,8 +2,9 @@
   rdf_term,
   [
     rdf_atom_to_term/2,           % +Atom, -Term
+    rdf_bnode_iri/1,              % -Iri
+    rdf_bnode_iri/2,              % +Local, -Iri
    %rdf_create_bnode/1,           % --BNode
-    rdf_create_well_known_iri/1,  % --Iri
    %rdf_equal/2,                  % ?Term1, ?Term2
    %rdf_default_graph/1,          % ?G
    %rdf_graph/1,                  % ?G
@@ -56,10 +57,10 @@
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(error)).
+:- use_module(library(settings)).
 :- use_module(library(uuid)).
 
 :- rdf_meta
-   rdf_create_well_known_iri(r),
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
    rdf_language_tagged_string(?, ?, o),
@@ -70,6 +71,11 @@
    rdf_literal_value(o, -),
    rdf_term_to_atom(t, -),
    rdf_typed_literal(r, ?, o).
+
+:- setting(base_uri, atom, 'https://example.org/base-uri/',
+           "The default base URI for RDF IRIs.").
+:- setting(bnode_prefix, atom, 'https://example.org/.well-known/genid/',
+           "The IRI prefix of Skolemized blank nodes.").
 
 
 
@@ -106,11 +112,19 @@ rdf_atom_to_term(Atom, _) :-
 
 
 
-%! rdf_create_well_known_iri(-Iri) is det.
+%! rdf_bnode_iri(-Iri:atom) is det.
 
-rdf_create_well_known_iri(Iri) :-
-  uuid(Id),
-  atom_concat('https://example.org/.well-known/genid/', Id, Iri).
+rdf_bnode_iri(Iri) :-
+  uuid(Uuid),
+  rdf_bnode_iri(Uuid, Iri).
+
+
+
+%! rdf_bnode_iri(+Local:atom, -Iri:atom) is det.
+
+rdf_bnode_iri(Local, Iri2) :-
+  setting(bnode_prefix, Iri1),
+  uri_resolve(Iri1, Local, Iri2).
 
 
 

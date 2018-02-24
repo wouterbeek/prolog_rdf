@@ -1,8 +1,8 @@
 :- use_module(library(debug)).
-:- use_module(library(rdf/rdf_build)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(uri_ext)).
+
+:- use_module(library(sw/rdf_print)).
+:- use_module(library(sw/rdf_term)).
+:- use_module(library(uri)).
 
 script1(M) :-
   rdf_reset_db,
@@ -22,7 +22,7 @@ script1(M) :-
 script2(M) :-
   rdf_reset_db,
   rdf_equal(ex:script2, G),
-  rdf_create_well_known_iri(D),
+  rdf_bnode_iri(D),
   rdf_assert(M, ex:'A', owl:equivalentClass, D, G),
   rdf_assert_value_restriction(ex:p, ex:v1, G, R1),
   rdf_assert_value_restriction(ex:p, ex:v2, G, R2),

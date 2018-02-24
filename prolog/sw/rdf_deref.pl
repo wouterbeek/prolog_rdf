@@ -63,7 +63,7 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
       option(media_type(MediaType), Options1)
   ->  true
   ;   % Heuristic 1: guess based on a first chunk of the data.
-      rdf_guess_stream(In, 10000, MediaTypeGuess),
+      rdf_guess_stream(In, 10 000, MediaTypeGuess),
       (   % Heuristic 2: the value of the HTTP `Content-Type' header.
           option(content_type(MediaType), Options1),
           'rdf_media_type_>'(MediaType, MediaTypeGuess)
@@ -85,11 +85,7 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
 
   % Determine the blank node prefix.  Use a well-known IRI with a UUID
   % component by default.
-  call_default_option(
-    bnode_prefix(BNodePrefix),
-    Options1,
-    rdf_create_well_known_iri
-  ),
+  call_default_option(bnode_prefix(BNodePrefix), Options1, rdf_bnode_iri),
   Goal_3 =.. [Pred|Args1],
   append(Args1, [BNodePrefix], Args2),
   Goal_2 =.. [Pred|Args2],
