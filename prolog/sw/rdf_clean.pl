@@ -12,13 +12,18 @@
 @version 2017-2018
 */
 
-:- use_module(library(hash_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11), []).
 :- use_module(library(settings)).
 
+:- use_module(library(dcg)).
+:- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
+:- use_module(library(xsd/xsd)).
+
+:- rdf_meta
+   rdf_clean_lexical_form(r, +, -).
 
 
 
@@ -76,26 +81,18 @@ rdf_clean_lexical_form(rdf:'HTML', Lex1, Lex2) :-
 % rdf:XMLLiteral
 rdf_clean_lexical_form(rdf:'XMLLiteral', Lex1, Lex2) :-
   rdf11:write_xml_literal(xml, Lex1, Lex2).
-% xsd:decimal
-rdf_clean_lexical_form(xsd:decimal, Lex1, Lex2) :-
-  (   string_phrase(decimalLexicalMap(Val), Lex1)
-  ->  atom_phrase(decimalCanonicalMap(Val), Lex2)
-  ;   print_message(warning, invalid_decimal(Lex1)),
-      fail
-  ).
-% rdf:langString
-rdf_clean_lexical_form(rdf:langString, Lex, Lex).
 % other datatype IRIs
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
-  catch(rdf11:out_type(D, Value, Lex1), E, true),
-  rdf11:in_type(D, Value, D, Lex2),
+  catch(xsd_lexical_value(D, Lex1, Value), E, true),
+  xsd_lexical_value(D, Lex2, Value),
   (   var(E)
-  ->  (   % Warning for a non-canonical lexical form.
+  ->  (   % Emit a warning if the lexical form is not canonical.
           Lex1 \== Lex2
       ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
       ;   true
       )
-  ;   % Warning+failure for an incorrect lexical form.
+  ;   % Emit a warning and fail silently if the lexical form cannot be
+      % parsed according to the given datatye IRI.
       print_message(warning, E),
       fail
   ).
@@ -104,18 +101,18 @@ rdf_clean_lexical_form(D, Lex1, Lex2) :-
 
 %! rdf_clean_literal(+Literal:compound, -CleanLiteral:compound) is semidet.
 
-% language-tagged strings (rdf:langString)
+% language-tagged string (rdf:langString)
 rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
   downcase_atom(LTag1, LTag2),
-  % Warning for a non-canonical language tag.
+  % Emit a warning if the language tag is not canonical.
   (   LTag1 \== LTag2
   ->  print_message(warning, non_canonical_language_tag(LTag1))
   ;   true
   ).
-% typed literals
+% typed literal
 rdf_clean_literal(literal(type(D,Lex1)), literal(type(D,Lex2))) :- !,
   rdf_clean_lexical_form(D, Lex1, Lex2).
-% simple literals
+% simple literal
 rdf_clean_literal(literal(Lex), Literal) :-
   rdf_equal(D, xsd:string),
   rdf_clean_literal(literal(type(D,Lex)), Literal).
