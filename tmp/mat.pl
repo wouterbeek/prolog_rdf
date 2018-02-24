@@ -15,47 +15,43 @@
 
 :- use_module(library(apply)).
 :- use_module(library(chr)).
-:- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).
+
+:- use_module(library(debug_ext)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(option_ext)).
+:- use_module(library(sw/rdf_term)).
 
 :- rdf_meta
    mat(r),
    mat(r, r),
    mat(r, r, r).
 
-:- predicate_options(mat/3, 3, [
-     pass_to(mat0/3, 3)
-   ]).
-:- predicate_options(mat0/3, 3, [
-     bnode_results(+boolean),
-     justifications(+boolean)
-   ]).
-
 :- set_prolog_flag(chr_toplevel_show_store, false).
 
 :- chr_constraint
-	'_allTypes'/2,
-	error/0,
-	inList/2,
-	rdf_chr/3.
+   '_allTypes'/2,
+   error/0,
+   inList/2,
+   rdf_chr/3.
 
 
 
 
 
 %! mat(+InputG) is det.
-% Wrapper around mat/2 that asserts materialization results
-% into the input graph.
+%
+% Wrapper around mat/2 that asserts materialization results into the
+% input graph.
 
 mat(G) :-
   mat(G, G).
 
 
 %! mat(+InputG, +OutputG) is det.
+%
 % Wrapper around mat/3 with default options.
 
 mat(InG, OutG) :-
@@ -63,25 +59,31 @@ mat(InG, OutG) :-
 
 
 %! mat(+InputG, +OutputG, +Opts) is det.
-% Materializes the contents of InputGraph into OutputGraph.
 %
+% Materializes the contents of InputGraph into OutputGraph.
+
 %! mat(+InputG, -OutputG, +Optns) is det.
+%
 % Materializes the contents of InputGraph into the default graph
 % (called `default`).
-%
+
 %! mat(-InputG, +OutputG, +Opts) is det.
-% Materializes all contents into OutputGraph.
 %
+% Materializes all contents into OutputGraph.
+
 %! mat(-InputG, -OutputG, +Opts) is det.
+%
 % Materializes all contents into the default graph (called `default`).
 %
 % The following options are supported:
+%
 %   * justifications(+boolean)
-%     Whether justifications for deductions are stored.
-%     Default is `false`.
+%
+%     Whether justifications for deductions are stored.  Default is
+%     `false`.
 
 mat(GIn, GOut, Opts) :-
-  defval(default, GOut),
+  call_default_value(GOut, rdf_default_graph),
   (   var(GIn)
   ->  mat0(GIn, GOut, Opts)
   ;   must_be(atom, GIn),

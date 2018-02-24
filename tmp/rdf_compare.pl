@@ -87,7 +87,7 @@ pair_rows(P-[XYs,Xs,Ys], L) :-
 
 pair_rows(_, [], [], [], []) :- !.
 pair_rows(P, XYs1, Xs1, Ys1, [[P,XY,X,Y]|T]) :-
-  defval('', P),
+  default_value(P, ''),
   (selectchk(XY, XYs1, XYs2) -> true ; XY = '', XYs2 = XYs1),
   (selectchk(X, Xs1, Xs2)    -> true ; X  = '', Xs2  = Xs1 ),
   (selectchk(Y, Ys1, Ys2)    -> true ; Y  = '', Ys2  = Ys1 ),

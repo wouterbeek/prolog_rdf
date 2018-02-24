@@ -26,14 +26,15 @@
 @version 2015/07-2016/02, 2016/06
 */
 
+:- use_module(library(error)).
+:- use_module(library(yall)).
+
 :- use_module(library(date_time/date_time)).
 :- use_module(library(default)).
-:- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(yall)).
+:- use_module(library(sw/rdf_print)).
+:- use_module(library(sw/rdf_term)).
 
 :- rdf_meta
    rdf_assert_id(o, r, o),
@@ -65,7 +66,7 @@ rdf_assert_id(S, P, O, G) :-
   ->  store_id(S, O)
   ;   % 2. Statements other than the identity statement.
       maplist(assign_id, [S,P,O], [Sid,Pid,Oid]),
-      defval(default, G),
+      call_default_value(G, rdf_default_graph),
       assign_graph_id(G, Gid),
       rdf_assert0(Sid, Pid, Oid, Gid)
   ).

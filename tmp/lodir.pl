@@ -26,7 +26,7 @@ query(Q, A):-
 %! query(+Query:atom, ?NumberOfResults:nonneg, -Results:list(compound)) is det.
 
 query(Query, NResults, L):-
-  defval(10, NResults),
+  default_value(NResults, 10),
   uri_query_components(Search, [pattern=Query,size=NResults]),
   uri_components(Uri, uri_components(http,'textindex.fii800.d2s.labs.vu.nl','/phrase',Search,_)),
   http_get(Uri, json_read_dict0(D0)),

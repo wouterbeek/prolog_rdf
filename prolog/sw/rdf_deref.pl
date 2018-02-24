@@ -18,7 +18,7 @@
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
 
-:- use_module(library(call_ext)).
+:- use_module(library(default)).
 :- use_module(library(media_type)).
 :- use_module(library(sw/rdf_guess)).
 :- use_module(library(sw/rdf_media_type)).
