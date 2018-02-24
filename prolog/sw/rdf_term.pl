@@ -60,6 +60,8 @@
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
 
+:- use_module(library(atom_ext)).
+
 :- rdf_meta
    rdf_is_skip_node(r),
    rdf_is_well_known_iri(r),
@@ -122,9 +124,10 @@ rdf_bnode_iri(Iri) :-
 
 %! rdf_bnode_iri(+Local:atom, -Iri:atom) is det.
 
-rdf_bnode_iri(Local, Iri2) :-
+rdf_bnode_iri(Local, Iri3) :-
   setting(bnode_prefix, Iri1),
-  uri_resolve(Iri1, Local, Iri2).
+  uri_resolve(Local, Iri1, Iri2),
+  atom_terminator(Iri2, 0'/, Iri3).
 
 
 
