@@ -12,13 +12,9 @@
 @version 2017-2018
 */
 
-:- use_module(library(lists)).
 :- use_module(library(semweb/rdf11), []).
-:- use_module(library(settings)).
 
-:- use_module(library(dcg)).
 :- use_module(library(hash_ext)).
-:- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
 :- use_module(library(xsd/xsd)).
 
@@ -84,16 +80,16 @@ rdf_clean_lexical_form(rdf:'XMLLiteral', Lex1, Lex2) :-
 % other datatype IRIs
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
   catch(xsd_lexical_value(D, Lex1, Value), E, true),
-  xsd_lexical_value(D, Lex2, Value),
   (   var(E)
-  ->  (   % Emit a warning if the lexical form is not canonical.
+  ->  xsd_lexical_value(D, Lex2, Value),
+      (   % Emit a warning if the lexical form is not canonical.
           Lex1 \== Lex2
       ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
       ;   true
       )
   ;   % Emit a warning and fail silently if the lexical form cannot be
       % parsed according to the given datatye IRI.
-      print_message(warning, E),
+      print_message(warning, incorrect_lexical_form(D,Lex1)),
       fail
   ).
 
