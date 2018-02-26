@@ -79,19 +79,28 @@ rdf_clean_lexical_form(rdf:'XMLLiteral', Lex1, Lex2) :-
   rdf11:write_xml_literal(xml, Lex1, Lex2).
 % other datatype IRIs
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
-  catch(xsd_lexical_value(D, Lex1, Value), E, true),
-  (   var(E)
-  ->  xsd_lexical_value(D, Lex2, Value),
-      (   % Emit a warning if the lexical form is not canonical.
-          Lex1 \== Lex2
-      ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
-      ;   true
+  % Translation ‘lexical form → value’ does not perform full type
+  % checking (e.g., '1.1'^^xsd:int is allowed), so the translation
+  % ‘value → canonical lexical form’ must also anticipate errors.
+  catch(xsd_lexical_value(D, Lex1, Value), E1, true),
+  (   var(E1)
+  ->  catch(xsd_lexical_value(D, Lex2, Value), E2, true),
+      (   var(E2)
+      ->  % Emit a warning if the lexical form is not canonical.
+          (   Lex1 \== Lex2
+          ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
+          ;   true
+          )
+      ;   invalid_lexical_form(D, Lex1)
       )
-  ;   % Emit a warning and fail silently if the lexical form cannot be
-      % parsed according to the given datatye IRI.
-      print_message(warning, incorrect_lexical_form(D,Lex1)),
-      fail
+  ;   invalid_lexical_form(D, Lex1)
   ).
+
+% Emit a warning and fail silently if the lexical form cannot be
+% parsed according to the given datatye IRI.
+invalid_lexical_form(D, Lex) :-
+  print_message(warning, incorrect_lexical_form(D,Lex)),
+  fail.
 
 
 
