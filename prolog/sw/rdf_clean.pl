@@ -72,10 +72,14 @@ rdf_clean_iri(Iri, Iri).
 %! rdf_clean_lexical_form(+D:atom, +Lex:atom, -CleanLex:atom) is semidet.
 
 % rdf:HTML
-rdf_clean_lexical_form(rdf:'HTML', Lex1, Lex2) :-
+rdf_clean_lexical_form(rdf:'HTML', Lex1, Lex2) :- !,
   rdf11:write_xml_literal(html, Lex1, Lex2).
+% rdf:langString
+rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
+  print_message(warning, missing_language_tag(Lex)),
+  fail.
 % rdf:XMLLiteral
-rdf_clean_lexical_form(rdf:'XMLLiteral', Lex1, Lex2) :-
+rdf_clean_lexical_form(rdf:'XMLLiteral', Lex1, Lex2) :- !,
   rdf11:write_xml_literal(xml, Lex1, Lex2).
 % other datatype IRIs
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
