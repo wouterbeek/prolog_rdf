@@ -16,7 +16,6 @@
 
 :- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_term)).
-:- use_module(library(xsd/xsd)).
 
 :- rdf_meta
    rdf_clean_lexical_form(r, +, -).
@@ -71,33 +70,28 @@ rdf_clean_iri(Iri, Iri).
 
 %! rdf_clean_lexical_form(+D:atom, +Lex:atom, -CleanLex:atom) is semidet.
 
-% rdf:HTML
-rdf_clean_lexical_form(rdf:'HTML', Lex1, Lex2) :- !,
-  rdf11:write_xml_literal(html, Lex1, Lex2).
-% rdf:langString
+% language-tagged string
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
   print_message(warning, missing_language_tag(Lex)),
   fail.
-% rdf:XMLLiteral
-rdf_clean_lexical_form(rdf:'XMLLiteral', Lex1, Lex2) :- !,
-  rdf11:write_xml_literal(xml, Lex1, Lex2).
-% other datatype IRIs
+% typed literal
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
   % Translation ‘lexical form → value’ does not perform full type
   % checking (e.g., '1.1'^^xsd:int is allowed), so the translation
   % ‘value → canonical lexical form’ must also anticipate errors.
-  catch(xsd_lexical_value(D, Lex1, Value), E1, true),
-  (   var(E1)
-  ->  catch(xsd_lexical_value(D, Lex2, Value), E2, true),
-      (   var(E2)
-      ->  % Emit a warning if the lexical form is not canonical.
-          (   Lex1 \== Lex2
-          ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
-          ;   true
-          )
-      ;   invalid_lexical_form(D, Lex1)
-      )
-  ;   invalid_lexical_form(D, Lex1)
+  catch(
+    (
+      rdf_lexical_value(D, Lex1, Value),
+      rdf_lexical_value(D, Lex2, Value)
+    ),
+    E,
+    true
+  ),
+  (var(E) -> true ; invalid_lexical_form(D, Lex1)),
+  % Emit a warning if the lexical form is not canonical.
+  (   Lex1 \== Lex2
+  ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
+  ;   true
   ).
 
 % Emit a warning and fail silently if the lexical form cannot be

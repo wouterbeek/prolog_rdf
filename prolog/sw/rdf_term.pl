@@ -61,6 +61,7 @@
 :- use_module(library(uuid)).
 
 :- use_module(library(atom_ext)).
+:- use_module(library(xsd/xsd)).
 
 :- rdf_meta
    rdf_is_skip_node(r),
@@ -173,18 +174,21 @@ rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 % Translate between a value (`Value') and its serialization, according
 % to a given datatype IRI (`D'), into a lexical form (`Lex').
 
-rdf_lexical_value(rdf:'HTML', Lex, Dom) :-
-  (   atom(Lex)
-  ->  load_structure(atom(Lex), Dom, [dialect(html5),max_errors(0)])
-  ;   rdf11:write_xml_literal(html, Dom, Lex)
+% rdf:HTML
+rdf_lexical_value(rdf:'HTML', Lex, Value) :-
+  (   nonvar(Lex)
+  ->  rdf11:parse_partial_xml(load_html, Lex, Value)
+  ;   rdf11:write_xml_literal(html, Value, Lex)
   ).
-rdf_lexical_value(rdf:'XMLLiteral', Lex, Dom) :-
-  (   atom(Lex)
-  ->  load_structure(atom(Lex), Dom, [dialect(xml),max_errors(0)])
-  ;   rdf11:write_xml_literal(xml, Dom, Lex)
+% rdf:XMLLiteral
+rdf_lexical_value(rdf:'XMLLiteral', Lex, Value) :-
+  (   nonvar(Lex)
+  ->  rdf11:parse_partial_xml(load_xml, Lex, Value)
+  ;   write_xml_literal(xml, Value, Lex)
   ).
-rdf_lexical_value(D, Lex, Val) :-
-  xsd_lexical_value(D, Lex, Val).
+% XSD datatype IRIs
+rdf_lexical_value(D, Lex, Value) :-
+  xsd_lexical_value(D, Lex, Value).
 
 
 
