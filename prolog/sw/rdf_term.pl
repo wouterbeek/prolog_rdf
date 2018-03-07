@@ -55,12 +55,12 @@
      op(1150, fx, (rdf_meta))
    ]).
 
-:- use_module(library(dcg/basics)).
 :- use_module(library(error)).
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
 
 :- use_module(library(atom_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(xsd/xsd)).
 
