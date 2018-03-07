@@ -31,7 +31,7 @@
 | max_lit_len | [0,∞)    |
 
 @author Wouter Beek
-@version 2017/05-2017/12
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
@@ -45,6 +45,7 @@
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(http/http_server)).
 :- use_module(library(list_ext)).
+:- use_module(library(sw/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- multifile
