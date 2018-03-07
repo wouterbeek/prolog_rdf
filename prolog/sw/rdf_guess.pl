@@ -450,7 +450,7 @@ doc_content_type(html, _, _, html) :- !.
 doc_content_type(xhtml, _, _, xhtml) :- !.
 doc_content_type(html5, _, _, html) :- !.
 doc_content_type(xhtml5, _, _, xhtml) :- !.
-%doc_content_type(xml, rss, _, rdf) :- !.
+doc_content_type(xml, rss, _, rdf) :- !.
 doc_content_type(Dialect, Top,  Attributes, rdf) :-
   % Extract the namespace from the doctype.
   dialect_local_name(Dialect, LocalName),
