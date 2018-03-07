@@ -61,6 +61,7 @@
 :- use_module(library(uuid)).
 
 :- use_module(library(atom_ext)).
+:- use_module(library(sw/rdf_prefix)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta

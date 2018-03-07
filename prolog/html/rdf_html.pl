@@ -35,6 +35,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(sgml)).
 :- use_module(library(yall)).
 
@@ -45,6 +46,7 @@
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(http/http_server)).
 :- use_module(library(list_ext)).
+:- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
 :- use_module(library(uri_ext)).
 

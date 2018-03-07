@@ -31,6 +31,7 @@
 :- use_module(library(html/html_ext)).
 :- use_module(library(html/rdf_html)).
 :- use_module(library(nlp/nlp_lang)).
+:- use_module(library(sw/rdf_prefix)).
 
 :- multifile
     rdfa:prefix/1,
