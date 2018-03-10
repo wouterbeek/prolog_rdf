@@ -35,13 +35,17 @@ standards SWI-Prolog distribution.
      rdf_global_term/2 as rdf_prefix_any
    ]).
 
+:- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf_prefixes), []).
 :- use_module(library(uri)).
 
 :- use_module(library(sw/rdf_term)).
 
 :- initialization
-   retract(rdf_db:ns(dcterms,_)).
+   maplist(remove_legacy_, [dc,serql]).
+
+remove_legacy_(Alias) :-
+   retract(rdf_db:ns(Alias,_)).
 
 :- meta_predicate
     rdf_prefix_maplist(1, +).
@@ -422,6 +426,7 @@ prefix(dbr, 'http://dbpedia.org/resource/').
 prefix(dbt, 'http://dbpedia.org/datatype/').
 prefix(dby, 'http://dbpedia.org/class/yago/').
 prefix(dcat, 'http://www.w3.org/ns/dcat#').
+prefix(dce, 'http://purl.org/dc/elements/1.1/').
 prefix(dct, 'http://purl.org/dc/terms/').
 prefix(dctype, 'http://purl.org/dc/dcmitype/').
 prefix(dqv, 'http://www.w3.org/ns/dqv#').
