@@ -5,6 +5,7 @@
     rdf_bnode_iri/1,              % -Iri
     rdf_bnode_iri/2,              % +Local, -Iri
    %rdf_create_bnode/1,           % --BNode
+    rdf_create_iri/3,             % +Alias, +Segments, -Iri
    %rdf_equal/2,                  % ?Term1, ?Term2
    %rdf_default_graph/1,          % ?G
    %rdf_graph/1,                  % ?G
@@ -62,6 +63,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(sw/rdf_prefix)).
+:- use_module(library(uri_ext)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta
@@ -130,6 +132,16 @@ rdf_bnode_iri(Local, Iri3) :-
   setting(bnode_prefix, Iri1),
   uri_resolve(Local, Iri1, Iri2),
   atom_terminator(Iri2, 0'/, Iri3).
+
+
+
+%! rdf_create_iri(+Alias, +Segments:list(atom), -Iri:atom) is det.
+
+rdf_create_iri(Alias, Segments2, Iri) :-
+  rdf_prefix(Alias, Prefix),
+  uri_comps(Prefix, uri(Scheme,Authority,Segments1,_,_)),
+  append_segments(Segments1, Segments2, Segments3),
+  uri_comps(Iri, uri(Scheme,Authority,Segments3,_,_)).
 
 
 
