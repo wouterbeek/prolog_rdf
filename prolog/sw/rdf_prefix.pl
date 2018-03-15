@@ -42,7 +42,7 @@ standards SWI-Prolog distribution.
 :- use_module(library(sw/rdf_term)).
 
 :- initialization
-   maplist(remove_legacy_, [dc,serql]).
+   maplist(remove_legacy_, [dc,dcterms,serql]).
 
 remove_legacy_(Alias) :-
    retract(rdf_db:ns(Alias,_)).
