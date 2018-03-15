@@ -29,16 +29,17 @@
 rdf_dcg_iri(Iri, Options) -->
   {
     dict_get(iri_abbr, Options, true, true),
-    (   dict_get(prefix_map, Options, [], Prefix2Alias)
-    ->  (   gen_assoc(Prefix, Prefix2Alias, Alias),
+    (   dict_get(prefix_map, Options, Prefix2Alias)
+    ->  % Abbreviated based on the prefix map specified in options.
+        (   gen_assoc(Prefix, Prefix2Alias, Alias),
             atom_prefix(Iri, Prefix)
         ->  atom_concat(Prefix, Local, Iri)
         )
-    ;   % Abbreviated based on a global prefix declaration.
+    ;   % Abbreviated based on the global prefix declarations.
         rdf_prefix_iri(Alias:Local, Iri)
     ), !,
-    atom_length(Prefix, PrefixLength),
-    Minus is PrefixLength + 1,
+    atom_length(Alias, AliasLength),
+    Minus is AliasLength + 1,
     dict_get(max_iri_len, Options, ∞, Length),
     inf_minus(Length, Minus, Max)
   },
