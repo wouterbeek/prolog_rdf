@@ -25,6 +25,7 @@ RDF export predicates that are backend-independent.
 :- use_module(library(lists)).
 :- use_module(library(semweb/turtle), []).
 
+:- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_term)).
 
 :- rdf_meta
@@ -76,11 +77,10 @@ rdf_write_literal(Out, literal(Lex)) :- !,
 
 rdf_write_nonliteral(Out, BNodePrefix, BNode) :-
   rdf_is_bnode(BNode), !,
-  atomic_list_concat(Comps, '_:', BNode),
-  last(Comps, Label),
+  md5(BNode, Hash),
   (   BNodePrefix == '_:'
-  ->  format(Out, '_:~a', [Label])
-  ;   format(Out, '<~a/~a>', [BNodePrefix,Label])
+  ->  format(Out, '_:~a', [Hash])
+  ;   format(Out, '<~a/~a>', [BNodePrefix,Hash])
   ).
 rdf_write_nonliteral(Out, _, Iri) :-
   rdf_is_iri(Iri), !,
