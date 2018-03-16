@@ -77,8 +77,8 @@ shacl_export(Out) :-
 
 shacl_export(Out, G) :-
   % top of graph
-  format_debug(dot, Out, "digraph shacl {"),
-  format_debug(dot, Out, "  graph [overlap=false];"),
+  format_debug(gv, Out, "digraph shacl {"),
+  format_debug(gv, Out, "  graph [overlap=false];"),
   % Nodes can be described in multiple vocabularies: OWL, SHACL,
   % RDF(S).  We therefore first group all nodes with some description,
   % and then generate nodes for each one in sequence.
@@ -87,7 +87,7 @@ shacl_export(Out, G) :-
   aggregate_all(set(Edge), shacl_edge(Edge, G), Edges),
   maplist(shacl_export_edge(Out), Edges),
   % bottom of graph
-  format_debug(dot, Out, "}").
+  format_debug(gv, Out, "}").
 
 
 
@@ -103,25 +103,25 @@ shacl_export_class(Out, C, G) :-
   Values \== [], !,
   gv_id(C, CId),
   % top of node
-  format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
+  format_debug(gv, Out, "  ~a [label=<<TABLE>", [CId]),
   shacl_node_label(C, CLabel),
-  format_debug(dot, Out, "    <TR><TD><B>~s</B></TD></TR>", [CLabel]),
+  format_debug(gv, Out, "    <TR><TD><B>~s</B></TD></TR>", [CLabel]),
   % middle of node
   forall(
     member(Value, Values),
     (
       shacl_node_label(Value, ValueLabel),
-      format_debug(dot, Out, "    <TR><TD>~s</TD></TR>", [ValueLabel])
+      format_debug(gv, Out, "    <TR><TD>~s</TD></TR>", [ValueLabel])
     )
   ),
   % bottom of node
-  format_debug(dot, Out, '  </TABLE>>,shape="none",URL="~a"];', [C]).
+  format_debug(gv, Out, '  </TABLE>>,shape="none",URL="~a"];', [C]).
 % The instances of class `C' are related to certain property/range
 % pairs.
 shacl_export_class(Out, C, G) :-
   gv_id(C, CId),
   % top of node
-  format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
+  format_debug(gv, Out, "  ~a [label=<<TABLE>", [CId]),
   shacl_node_label(C, CLabel),
   format_debug(
     dot,
@@ -146,7 +146,7 @@ shacl_export_class(Out, C, G) :-
     )
   ),
   % bottom of node
-  format_debug(dot, Out, '  </TABLE>>,shape="none",URL="~a"];', [C]).
+  format_debug(gv, Out, '  </TABLE>>,shape="none",URL="~a"];', [C]).
 
 
 
