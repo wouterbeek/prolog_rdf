@@ -19,8 +19,6 @@
     rdf_create_iri/3,             % +Prefix, +Path, -Iri
     rdf_deref_triple/2,           % +Uri, -Quads
     rdf_deref_triple/3,           % +Uri, -Quads, +Options
-    rdf_deref_uri/2,              % +Uri, :Goal_3
-    rdf_deref_uri/3,              % +Uri, :Goal_3, +Options
     rdf_label/2,                  % +Term, -Label
     rdf_label/3,                  % +Term, +P, -Label
     rdf_list_member/2,            % ?X, ?L
@@ -87,10 +85,6 @@
 :- use_module(library(xml/xsd)).
 :- use_module(library(xml/xsd_number)).
 
-:- meta_predicate
-    rdf_deref_uri(+, 3),
-    rdf_deref_uri(+, 3, +).
-
 :- rdf_meta
    rdf(r, r, o, r),
    rdf2(r, r, o),
@@ -109,8 +103,6 @@
    rdf_clean_triple(t, -),
    rdf_deref_triple(r, -),
    rdf_deref_triple(r, -, +),
-   rdf_deref_uri(r, :),
-   rdf_deref_uri(r, :, +),
    rdf_label(r, -),
    rdf_label(r, r, -),
    rdf_list_member(r, t),
@@ -249,7 +241,7 @@ rdf_chk(S, P, O, G) :-
 
 rdf_create_graph(G) :-
   uuid(Id),
-  rdf_prefix_iri(ex:Id, G).
+  rdf_global_id(ex:Id, G).
 
 
 
@@ -285,47 +277,6 @@ rdf_deref_triples_(G, Triples, _) :-
 
 rdf_deref_triple_(G, rdf(S,P,O)) :-
   rdf_assert(S, P, O, G).
-
-
-
-%! rdf_deref_uri(+Uri:atom, :Goal_3) is det.
-%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:list(compound)) is det.
-%
-% The following options are supported:
-%
-%   * accept(+MediaTypes:list(compound))
-%
-%     The value of the HTTP Accept header, from high to low
-%     precedence.  The default value is a list of all and only
-%     standardized Media Types.
-%
-%   * Other options are passed to rdf_deref_stream/4.
-
-rdf_deref_uri(Uri, Goal_3) :-
-  rdf_deref_uri(Uri, Goal_3, []).
-
-
-rdf_deref_uri(Uri, Goal_3, Options1) :-
-  % URI
-  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
-  maplist(ground, [Scheme,Authority]), !,
-  % `Accept' header
-  (   select_option(accept(MediaTypes), Options1, Options2)
-  ->  true
-  ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
-      Options2 = Options1
-  ),
-  setup_call_cleanup(
-    http_open2(Uri, In, [accept(MediaTypes),failure(404),metadata(Metas)]),
-    (
-      (   http_metadata_content_type(Metas, MediaType)
-      ->  merge_options(Options2, [content_type(MediaType)], Options3)
-      ;   true
-      ),
-      rdf_deref_stream(Uri, In, Goal_3, Options3)
-    ),
-    close(In)
-  ).
 
 
 

@@ -2,7 +2,9 @@
   rdf_deref,
   [
     rdf_deref_stream/3, % +Uri, +In, :Goal_3
-    rdf_deref_stream/4  % +Uri, +In, :Goal_3, +Options
+    rdf_deref_stream/4, % +Uri, +In, :Goal_3, +Options
+    rdf_deref_uri/2,    % +Uri, :Goal_3
+    rdf_deref_uri/3     % +Uri, :Goal_3, +Options
   ]
 ).
 
@@ -12,6 +14,7 @@
 @version 2017-2018
 */
 
+:- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_ntriples)).
@@ -19,14 +22,22 @@
 :- use_module(library(semweb/turtle)).
 
 :- use_module(library(default)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(media_type)).
 :- use_module(library(sw/rdf_guess)).
 :- use_module(library(sw/rdf_media_type)).
+:- use_module(library(sw/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate
     rdf_deref_stream(+, +, 3),
-    rdf_deref_stream(+, +, 3, +).
+    rdf_deref_stream(+, +, 3, +),
+    rdf_deref_uri(+, 3),
+    rdf_deref_uri(+, 3, +).
+
+:- rdf_meta
+   rdf_deref_uri(r, :),
+   rdf_deref_uri(r, :, +).
 
 
 
@@ -149,3 +160,44 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
   ;   % An unsupported Media Type (e.g., JSON-LD).
       print_message(warning, rdf(unsupported_format(MediaType,_)))
   ).
+
+
+
+%! rdf_deref_uri(+Uri:atom, :Goal_3) is det.
+%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:list(compound)) is det.
+%
+% The following options are supported:
+%
+%   * accept(+MediaTypes:list(compound))
+%
+%     The value of the HTTP Accept header, from high to low
+%     precedence.  The default value is a list of all and only
+%     standardized Media Types.
+%
+%   * Other options are passed to rdf_deref_stream/4.
+
+rdf_deref_uri(Uri, Goal_3) :-
+  rdf_deref_uri(Uri, Goal_3, []).
+
+
+rdf_deref_uri(Uri, Goal_3, Options1) :-
+  uri_is_global(Uri), !,
+  % `Accept' header
+  (   select_option(accept(MediaTypes), Options1, Options2)
+  ->  true
+  ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
+      Options2 = Options1
+  ),
+  http_open2(Uri, In, [accept(MediaTypes),failure(404),metadata(Metas)]),
+  call_cleanup(
+    (
+      (   http_metadata_content_type(Metas, MediaType)
+      ->  merge_options(Options2, [content_type(MediaType)], Options3)
+      ;   true
+      ),
+      rdf_deref_stream(Uri, In, Goal_3, Options3)
+    ),
+    close(In)
+  ).
+rdf_deref_uri(Uri, _, _) :-
+  syntax_error(Uri).
