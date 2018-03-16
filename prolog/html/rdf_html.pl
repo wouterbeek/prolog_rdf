@@ -253,7 +253,7 @@ rdf_html_nonliteral_(S, _) -->
   {rdf_is_bnode(S)}, !,
   rdf_html_bnode(S).
 rdf_html_nonliteral_(S, _) -->
-  {rdf_is_well_known_iri(S)}, !,
+  {rdf_is_bnode_iri(S)}, !,
   rdf_html_well_known_iri(S).
 rdf_html_nonliteral_(S, Options) -->
   {rdf_is_iri(S)}, !,

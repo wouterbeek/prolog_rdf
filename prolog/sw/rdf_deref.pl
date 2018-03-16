@@ -21,7 +21,7 @@
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
 
-:- use_module(library(default)).
+:- use_module(library(atom_ext)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(media_type)).
 :- use_module(library(sw/rdf_guess)).
@@ -96,11 +96,11 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
 
   % Determine the blank node prefix.  Use a well-known IRI with a UUID
   % component by default.
-  call_default_option(bnode_prefix(BNodePrefix), Options1, rdf_bnode_iri),
+  rdf_bnode_iri(Uri, BNodePrefix0),
+  atom_terminator(BNodePrefix0, 0'/, BNodePrefix),
   Goal_3 =.. [Pred|Args1],
   append(Args1, [BNodePrefix], Args2),
   Goal_2 =.. [Pred|Args2],
-
   % Parse according to the guessed Media Type.
   (   % N-Quads
       media_type_comps(MediaType, application, 'n-quads', _)

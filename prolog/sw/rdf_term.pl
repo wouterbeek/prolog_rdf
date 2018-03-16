@@ -3,7 +3,8 @@
   [
     rdf_atom_to_term/2,           % +Atom, -Term
     rdf_bnode_iri/1,              % -Iri
-    rdf_bnode_iri/2,              % +Local, -Iri
+    rdf_bnode_iri/2,              % +Document, -Iri
+    rdf_bnode_iri/3,              % +Document, ?Local, -Iri
    %rdf_create_bnode/1,           % --BNode
     rdf_create_iri/3,             % +Alias, +Segments, -Iri
    %rdf_equal/2,                  % ?Term1, ?Term2
@@ -11,13 +12,13 @@
    %rdf_graph/1,                  % ?G
     rdf_iri//1,                   % -Iri
    %rdf_is_bnode/1,               % @Term
+    rdf_is_bnode_iri/1,           % @Term
    %rdf_is_iri/1,                 % @Term
    %rdf_is_literal/1,             % @Term
    %rdf_is_object/1,              % @Term
    %rdf_is_predicate/1,           % @Term
     rdf_is_skip_node/1,           % @Term
    %rdf_is_subject/1,             % @Term
-    rdf_is_well_known_iri/1,      % @Term
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
     rdf_lexical_value/3,          % ?D, ?Lex, ?Val
     rdf_literal//1,               % -Literal
@@ -57,18 +58,20 @@
    ]).
 
 :- use_module(library(error)).
+:- use_module(library(lists)).
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
 
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
+:- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(uri_ext)).
 :- use_module(library(xsd/xsd)).
 
 :- rdf_meta
+   rdf_is_bnode_iri(r),
    rdf_is_skip_node(r),
-   rdf_is_well_known_iri(r),
    rdf_language_tagged_string(?, ?, o),
    rdf_lexical_value(r, ?, ?),
    rdf_literal(r, ?, ?, o),
@@ -80,8 +83,8 @@
 
 :- setting(base_uri, atom, 'https://example.org/base-uri/',
            "The default base URI for RDF IRIs.").
-:- setting(bnode_prefix, atom, 'https://example.org/.well-known/genid/',
-           "The IRI prefix of Skolemized blank nodes.").
+:- setting(bnode_prefix_authority, atom, 'example.org', "").
+:- setting(bnode_prefix_scheme, atom, https, "").
 
 
 
@@ -119,18 +122,28 @@ rdf_atom_to_term(Atom, _) :-
 
 
 %! rdf_bnode_iri(-Iri:atom) is det.
+%! rdf_bnode_iri(+Document:uri, -Iri:atom) is det.
+%! rdf_bnode_iri(+Document:uri, +Local:atom, -Iri:atom) is det.
 
 rdf_bnode_iri(Iri) :-
-  uuid(Uuid),
-  rdf_bnode_iri(Uuid, Iri).
+  setting(bnode_prefix_scheme, Scheme),
+  setting(bnode_prefix_authority, Auth),
+  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid],_,_)).
 
 
+rdf_bnode_iri(Doc, Iri) :-
+  setting(bnode_prefix_scheme, Scheme),
+  setting(bnode_prefix_authority, Auth),
+  md5(Doc, DocId),
+  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid,DocId],_,_)).
 
-%! rdf_bnode_iri(+Local:atom, -Iri:atom) is det.
 
-rdf_bnode_iri(Local, Iri2) :-
-  setting(bnode_prefix, Iri1),
-  uri_resolve(Local, Iri1, Iri2).
+rdf_bnode_iri(Doc, Local, Iri) :-
+  (var(Local) -> uuid(Local) ; true),
+  setting(bnode_prefix_scheme, Scheme),
+  setting(bnode_prefix_authority, Auth),
+  md5(Doc, DocId),
+  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid,DocId,Local],_,_)).
 
 
 
@@ -138,9 +151,9 @@ rdf_bnode_iri(Local, Iri2) :-
 
 rdf_create_iri(Alias, Segments2, Iri) :-
   rdf_prefix(Alias, Prefix),
-  uri_comps(Prefix, uri(Scheme,Authority,Segments1,_,_)),
+  uri_comps(Prefix, uri(Scheme,Auth,Segments1,_,_)),
   append_segments(Segments1, Segments2, Segments3),
-  uri_comps(Iri, uri(Scheme,Authority,Segments3,_,_)).
+  uri_comps(Iri, uri(Scheme,Auth,Segments3,_,_)).
 
 
 
@@ -154,22 +167,22 @@ rdf_iri(Iri) -->
 
 
 
+%! rdf_is_bnode_iri(@Term) is semidet.
+
+rdf_is_bnode_iri(Iri) :-
+  rdf_is_iri(Iri),
+  uri_comps(Iri, uri(Scheme,Auth,Segments,_,_)),
+  maplist(ground, [Scheme,Auth]),
+  prefix(['.well-known',genid], Segments).
+
+
+
 %! rdf_is_skip_node(@Term) is semidet.
 
 rdf_is_skip_node(Term) :-
   rdf_is_bnode(Term), !.
 rdf_is_skip_node(Term) :-
-  rdf_is_well_known_iri(Term).
-
-
-
-%! rdf_is_well_known_iri(@Term) is semidet.
-
-rdf_is_well_known_iri(Iri) :-
-  rdf_is_iri(Iri),
-  uri_components(Iri, uri_components(Scheme,Authority,Path,_,_)),
-  ground(Scheme-Authority),
-  atom_prefix(Path, '/.well-known/genid/').
+  rdf_is_bnode_iri(Term).
 
 
 
