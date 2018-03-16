@@ -27,7 +27,7 @@
 :- use_module(library(sw/rdf_term)).
 :- use_module(library(sw/schema_viz)).
 
-:- rdf_assert_prefix(sh, 'http://www.w3.org/ns/shacl#').
+:- rdf_assert_prefix(sh).
 
 :- rdf_meta
    shacl_assert_class(+, r),
