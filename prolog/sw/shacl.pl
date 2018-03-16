@@ -11,18 +11,23 @@
 /** <module> SHACL
 
 @author Wouter Beek
-@version 2017/11-2017/12
+@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(yall)).
+
 :- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(graph/gv)).
-:- use_module(library(semweb/rdf_api)).
-:- use_module(library(semweb/rdf_print)).
-:- use_module(library(semweb/schema_viz)).
-:- use_module(library(yall)).
+:- use_module(library(sw/rdf_mem)).
+:- use_module(library(sw/rdf_prefix)).
+:- use_module(library(sw/rdf_print)).
+:- use_module(library(sw/rdf_term)).
+:- use_module(library(sw/schema_viz)).
+
+:- rdf_assert_prefix(sh, 'http://www.w3.org/ns/shacl#').
 
 :- rdf_meta
    shacl_assert_class(+, r),
@@ -42,24 +47,24 @@ shacl_assert_class(Entry) :-
 
 shacl_assert_class(C-Groups, G) :-
   atom_concat(C, 'Shape', Shape),
-  rdf_assert(Shape, rdf:type, sh:'NodeShape', G),
-  rdf_assert(Shape, sh:targetClass, C, G),
+  rdf_assert_triple(Shape, rdf:type, sh:'NodeShape', G),
+  rdf_assert_triple(Shape, sh:targetClass, C, G),
   rdf_assert_list(Shape, sh:ignoredProperties, [rdf:type], G),
   maplist(shacl_assert_property(C, G), Groups).
 
 shacl_assert_property(C, G, P-Os) :-
   rdf_create_bnode(BNode),
-  rdf_assert(C, sh:property, BNode, G),
-  rdf_assert(BNode, sh:path, P, G),
+  rdf_assert_triple(C, sh:property, BNode, G),
+  rdf_assert_triple(BNode, sh:path, P, G),
   (   Os = [O]
-  ->  rdf_assert(BNode, sh:class, O, G)
+  ->  rdf_assert_triple(BNode, sh:class, O, G)
   ;   maplist(shacl_assert_object(G), Os, BNodes),
       rdf_assert_list(BNode, sh:or, BNodes, G)
   ).
 
 shacl_assert_object(G, O, BNode) :-
   rdf_create_bnode(BNode),
-  rdf_assert(BNode, sh:class, O, G).
+  rdf_assert_triple(BNode, sh:class, O, G).
 
 
 
@@ -162,18 +167,18 @@ shacl_export_edge(Out, edge(C,Ps,D)) :-
 %! property_class(+Property, -C, +G:rdf_graph) is det.
 
 property_class(Property, C, G) :-
-  rdf(Property, sh:class, C, G).
+  rdf_triple(Property, sh:class, C, G).
 property_class(Property, C, G) :-
   rdf_triple_list_member(Property, sh:or, S, G),
-  rdf(S, sh:class, C, G).
+  rdf_triple(S, sh:class, C, G).
 
 
 
 %! property_path(+Property, -Ps:list, +G:rdf_graph) is det.
 
 property_path(Property, Ps, G) :-
-  rdf(Property, sh:path, Path, G),
-  (   rdf(Path, rdf:type, rdf:'List', G)
+  rdf_triple(Property, sh:path, Path, G),
+  (   rdf_triple(Path, rdf:type, rdf:'List', G)
   ->  aggregate_all(set(P), rdf_list_member(P, Path, G), Ps),
       assertion(Ps = [_,_|_])
   ;   Ps = [Path]
@@ -184,16 +189,16 @@ property_path(Property, Ps, G) :-
 %! shacl_class(-C:iri, +G:rdf_graph) is nondet.
 
 shacl_class(C, G) :-
-  rdf(C, owl:oneOf, _, G).
+  rdf_triple(C, owl:oneOf, _, G).
 %shacl_class(C, G) :-
-%  rdf(_, rdf:type, C, G).
+%  rdf_triple(_, rdf:type, C, G).
 shacl_class(C, G) :-
-  rdf(C, rdfs:subClassOf, _, G).
+  rdf_triple(C, rdfs:subClassOf, _, G).
 shacl_class(C, G) :-
-  rdf(_, rdfs:subClassOf, C, G).
+  rdf_triple(_, rdfs:subClassOf, C, G).
 shacl_class(C, G) :-
-  rdf(Shape, rdf:type, sh:'NodeShape', G),
-  rdf(Shape, sh:targetClass, C, G).
+  rdf_triple(Shape, rdf:type, sh:'NodeShape', G),
+  rdf_triple(Shape, sh:targetClass, C, G).
 
 
 
@@ -201,7 +206,7 @@ shacl_class(C, G) :-
 
 shacl_edge(edge(C,[P],D), G) :-
   rdf_equal(P, rdfs:subClassOf),
-  rdf(C, P, D, G).
+  rdf_triple(C, P, D, G).
 shacl_edge(edge(C,Ps,D), G) :-
   shacl_property_path_class(C, Ps-D, G).
 
@@ -210,7 +215,8 @@ shacl_edge(edge(C,Ps,D), G) :-
 %! shacl_node_label(+Term:rdf_term, -Label:string) is det.
 
 shacl_node_label(Term, Label) :-
-  string_phrase(rdf_dcg_term(Term), Label).
+  string_phrase(rdf_dcg_term(Term), Label0),
+  gv_html_replace(Label0, Label).
 
 
 
@@ -218,8 +224,8 @@ shacl_node_label(Term, Label) :-
 %!                           +G:rdf_graph) is nondet.
 
 shacl_property_path_class(C, Ps-D, G) :-
-  rdf(Shape, sh:targetClass, C, G),
-  rdf(Shape, sh:property, Property, G),
+  rdf_triple(Shape, sh:targetClass, C, G),
+  rdf_triple(Shape, sh:property, Property, G),
   property_class(Property, D, G),
   property_path(Property, Ps, G).
 
@@ -229,7 +235,7 @@ shacl_property_path_class(C, Ps-D, G) :-
 %!                              +G:rdf_graph) is nondet.
 
 shacl_property_path_datatype(C, Ps-D, G) :-
-  rdf(Shape, sh:targetClass, C, G),
-  rdf(Shape, sh:property, Property, G),
+  rdf_triple(Shape, sh:targetClass, C, G),
+  rdf_triple(Shape, sh:property, Property, G),
   property_path(Property, Ps, G),
-  rdf(Property, sh:datatype, D, G).
+  rdf_triple(Property, sh:datatype, D, G).
