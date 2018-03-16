@@ -152,6 +152,12 @@ shacl_export_class(Out, C, G) :-
 
 %! shacl_export_edge(+Out:stream, +Edge:compound) is det.
 
+% spacial edge
+shacl_export_edge(Out, edge(C,[P],D)) :-
+  rdf_prefix_memberchk(P, [rdfs:subClassOf,rdfs:subPropertyOf]), !,
+  maplist(gv_id, [C,D], [FromId,ToId]),
+  gv_edge(Out, ToId, FromId, [arrowtail(onormal),dir(back),'URL'(P)]).
+% regular edge
 shacl_export_edge(Out, edge(C,Ps,D)) :-
   maplist(gv_id, [C,D], [FromId,ToId]),
   maplist(shacl_node_label, Ps, PLabels),
