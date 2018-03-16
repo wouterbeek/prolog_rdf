@@ -128,10 +128,9 @@ rdf_bnode_iri(Iri) :-
 
 %! rdf_bnode_iri(+Local:atom, -Iri:atom) is det.
 
-rdf_bnode_iri(Local, Iri3) :-
+rdf_bnode_iri(Local, Iri2) :-
   setting(bnode_prefix, Iri1),
-  uri_resolve(Local, Iri1, Iri2),
-  atom_terminator(Iri2, 0'/, Iri3).
+  uri_resolve(Local, Iri1, Iri2).
 
 
 
