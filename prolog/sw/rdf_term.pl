@@ -112,7 +112,7 @@ rdf_atom_to_term(a, Iri) :- !,
 rdf_atom_to_term(Atom, Iri) :-
   atomic_list_concat([Alias,Local], :, Atom),
   rdf_prefix(Alias), !,
-  rdf_prefix_iri(Alias:Local, Iri).
+  rdf_global_id(Alias:Local, Iri).
 rdf_atom_to_term(Atom, _) :-
   throw(rdf(cannot_parse,rdf_term,Atom)).
 

@@ -115,7 +115,7 @@ rdf_html_iri_internal_(Iri, _) -->
 rdf_html_iri_internal_(Iri, Options) -->
   {
     Options.iri_abbr == true,
-    rdf_prefix_iri(Alias:Local1, Iri), !,
+    rdf_global_id(Alias:Local1, Iri), !,
     atom_ellipsis(Local1, Options.max_iri_len, Local2)
   },
   html([Alias,":",Local2]).

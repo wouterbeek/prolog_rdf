@@ -45,4 +45,4 @@ rdf_longest_prefix(Iri, LongestPrefix, ShortestLocalName) :-
     Pairs
   ),
   keysort(Pairs, [_-LongestPrefix|_]),
-  rdf_prefix_iri(LongestPrefix:ShortestLocalName, Iri).
+  rdf_global_id(LongestPrefix:ShortestLocalName, Iri).
