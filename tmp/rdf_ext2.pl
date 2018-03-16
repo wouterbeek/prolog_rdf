@@ -15,8 +15,6 @@
     rdf_assert_agent/7,              % +M, +User, +Group, +Image, +GivenName,
                                      % +FamilyName, +G
     rdf_assert_objects/5,            % +M, +S, +P, +Os, +G
-    rdf_bnode_iri/2,                 % +M, ?BNode
-    rdf_bnode_iri/3,                 % +M, ?BNode, ?G
     rdf_cbd_quad/3,                  % +M, +Node,     -Quad
     rdf_cbd_quads/3,                 % +M, +Node,     -Quads
     rdf_cbd_triple/3,                % +M, +Node,     -Triple
@@ -329,20 +327,6 @@ rdf_assert_agent(M, User, Group, Image, GivenName, FamilyName, G) :-
 
 rdf_assert_objects(M, S, P, Os, G) :-
   maplist({M,S,P,G}/[O]>>rdf_assert(M, S, P, O, G), Os).
-
-
-
-%! rdf_bnode_iri(+M, ?BNode) is nondet.
-%! rdf_bnode_iri(+M, ?BNode, ?G) is nondet.
-
-rdf_bnode_iri(M, BNode) :-
-  rdf_iri(M, BNode),
-  rdf_is_bnode_iri(BNode).
-
-
-rdf_bnode_iri(M, BNode, G) :-
-  rdf_iri(M, BNode, G),
-  rdf_is_bnode_iri(BNode).
 
 
 

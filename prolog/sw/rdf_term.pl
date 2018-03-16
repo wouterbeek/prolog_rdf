@@ -3,8 +3,10 @@
   [
     rdf_atom_to_term/2,           % +Atom, -Term
     rdf_bnode_iri/1,              % -Iri
-    rdf_bnode_iri/2,              % +Document, -Iri
+    rdf_bnode_iri/2,              % ?Local, -Iri
     rdf_bnode_iri/3,              % +Document, ?Local, -Iri
+    rdf_bnode_prefix/1,           % -Iri
+    rdf_bnode_prefix/2,           % +Document, -Iri
    %rdf_create_bnode/1,           % --BNode
     rdf_create_iri/3,             % +Alias, +Segments, -Iri
    %rdf_equal/2,                  % ?Term1, ?Term2
@@ -122,28 +124,45 @@ rdf_atom_to_term(Atom, _) :-
 
 
 %! rdf_bnode_iri(-Iri:atom) is det.
-%! rdf_bnode_iri(+Document:uri, -Iri:atom) is det.
-%! rdf_bnode_iri(+Document:uri, +Local:atom, -Iri:atom) is det.
+%! rdf_bnode_iri(+Local:atom, -Iri:atom) is det.
+%! rdf_bnode_iri(+Document:atom, +Local:atom, -Iri:atom) is det.
 
 rdf_bnode_iri(Iri) :-
-  setting(bnode_prefix_scheme, Scheme),
-  setting(bnode_prefix_authority, Auth),
-  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid],_,_)).
+  uuid(Local),
+  rdf_bnode_iri(Local, Iri).
 
 
-rdf_bnode_iri(Doc, Iri) :-
-  setting(bnode_prefix_scheme, Scheme),
-  setting(bnode_prefix_authority, Auth),
-  md5(Doc, DocId),
-  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid,DocId],_,_)).
+rdf_bnode_iri(Local, Iri) :-
+  rdf_bnode_iri_([Local], Iri).
 
 
 rdf_bnode_iri(Doc, Local, Iri) :-
-  (var(Local) -> uuid(Local) ; true),
+  md5(Doc, DocId),
+  rdf_bnode_iri_([DocId,Local], Iri).
+
+rdf_bnode_iri_(T, Iri) :-
   setting(bnode_prefix_scheme, Scheme),
   setting(bnode_prefix_authority, Auth),
+  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid|T],_,_)).
+
+
+
+%! rdf_bnode_prefix(-Iri:atom) is det.
+%! rdf_bnode_prefix(+Document:atom, -Iri:atom) is det.
+
+rdf_bnode_prefix(Iri) :-
+  rdf_bnode_prefix_([], Iri).
+
+
+rdf_bnode_prefix(Doc, Iri) :-
   md5(Doc, DocId),
-  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid,DocId,Local],_,_)).
+  rdf_bnode_prefix_([DocId], Iri).
+
+rdf_bnode_prefix_(T, Iri) :-
+  setting(bnode_prefix_scheme, Scheme),
+  setting(bnode_prefix_authority, Auth),
+  uri_comps(Iri0, uri(Scheme,Auth,['.well-known',genid|T],_,_)),
+  atom_terminator(Iri0, 0'/, Iri).
 
 
 

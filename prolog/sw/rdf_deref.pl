@@ -96,8 +96,7 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
 
   % Determine the blank node prefix.  Use a well-known IRI with a UUID
   % component by default.
-  rdf_bnode_iri(Uri, BNodePrefix0),
-  atom_terminator(BNodePrefix0, 0'/, BNodePrefix),
+  rdf_bnode_prefix(Uri, BNodePrefix),
   Goal_3 =.. [Pred|Args1],
   append(Args1, [BNodePrefix], Args2),
   Goal_2 =.. [Pred|Args2],
