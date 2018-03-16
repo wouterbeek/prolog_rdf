@@ -25,8 +25,6 @@
     rdf_label/3,                  % +Term, +P, -Label
     rdf_list_member/2,            % ?X, ?L
     rdf_list_member/3,            % ?X, ?L, ?G
-    rdf_load2/1,                  % +File
-    rdf_load2/2,                  % +File, +Options
     rdf_node/2,                   % ?Node, ?G
     rdf_query_term/2,             % +Term, -QueryTerm
     rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
@@ -363,65 +361,6 @@ rdf_list_member(X, L) :-
 
 
 
-%! rdf_list_member(?X, ?L, ?G) is nondet.
-
-rdf_list_member(X, L, G) :-
-  rdf(L, rdf:first, X, G).
-rdf_list_member(X, L, G) :-
-  rdf(L, rdf:rest, T, G),
-  rdf_list_member(X, T, G).
-
-
-
-%! rdf_load2(+File:atom) is det.
-%! rdf_load2(+File:atom, +Options:list(compound)) is det.
-%
-% Loads RDF based in the file extension of File.  The RDF
-% serialization format can be overruled with the option format/1,
-% which gives an RDF file name extension.
-
-rdf_load2(File) :-
-  rdf_load2(File, []).
-
-
-rdf_load2(File, Options) :-
-  file_name_extension(Base, gz, File), !,
-  guess_format_from_file(Base, Format, Options),
-  setup_call_cleanup(
-    gzopen(File, read, In),
-    rdf_load_stream(In, Format, Options),
-    close(In)
-  ).
-rdf_load2(File, Options) :-
-  guess_format_from_file(File, Format, Options),
-  setup_call_cleanup(
-    open(File, read, In),
-    rdf_load_stream(In, Format, Options),
-    close(In)
-  ).
-
-guess_format_from_file(_, Format, Options) :-
-  option(format(Ext), Options),
-  rdf_format_extension_(Format, Ext), !.
-guess_format_from_file(File, Format, _) :-
-  file_name_extension(_, Ext, File),
-  rdf_format_extension_(Format, Ext), !.
-guess_format_from_file(File, _, _) :-
-  print_message(warning, unknown_rdf_format(File)).
-
-rdf_load_stream(In, Format, Options1) :-
-  merge_options([anon_prefix('_:'),format(Format)], Options1, Options2),
-  rdf_db:rdf_load(In, Options2).
-
-rdf_format_extension_(nquads, nq).
-rdf_format_extension_(ntriples, nt).
-rdf_format_extension_(rdf, html).
-rdf_format_extension_(trig, trig).
-rdf_format_extension_(turtle, ttl).
-rdf_format_extension_(xml, rdf).
-
-
-
 %! rdf_node(?Node, ?G) is nondet.
 
 rdf_node(S, G) :-
@@ -490,18 +429,6 @@ rdf_triple_list_member(S, P, X) :-
 rdf_triple_list_member(S, P, X) :-
   rdf(S, P, L),
   rdf_list_member(X, L).
-
-
-
-%! rdf_triple_list_member(?S, ?P, ?X, G) is nondet.
-
-rdf_triple_list_member(S, P, X, G) :-
-  ground(X), !,
-  rdf_list_member(X, L, G),
-  rdf(S, P, L, G).
-rdf_triple_list_member(S, P, X, G) :-
-  rdf(S, P, L, G),
-  rdf_list_member(X, L, G).
 
 
 
