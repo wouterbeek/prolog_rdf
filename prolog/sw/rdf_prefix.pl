@@ -66,8 +66,11 @@ remove_legacy_(Alias) :-
 % notation (thus keeping the alias and IRI prefix together) when used
 % with maplist/2.
 
-rdf_assert_prefix(Alias-Iri) :-
-  rdf_assert_prefix(Alias, Iri).
+rdf_assert_prefix(Alias-Prefix) :- !,
+  rdf_assert_prefix(Alias, Prefix).
+rdf_assert_prefix(Alias) :-
+  prefix_(Alias, Prefix),
+  rdf_assert_prefix(Alias-Prefix).
 
 
 %! rdf_assert_prefix(+Alias:atom, +Iri:atom) is det.
@@ -98,6 +101,8 @@ rdf_assert_prefix(Alias-Iri) :-
 % in SPARQL queries.
 
 rdf_assert_prefix(Alias, Iri) :-
+  rdf_prefixes:rdf_current_prefix(Alias, Iri), !.
+rdf_assert_prefix(Alias, Iri) :-
   rdf_prefix(Alias, Old), !,
   throw(rdf(alias_exists(Alias,Old,Iri))).
 rdf_assert_prefix(Alias, Iri) :-
@@ -112,10 +117,10 @@ rdf_assert_prefix(Alias, Iri) :-
 
 rdf_assert_prefixes :-
   rdf_assert_dbpedia_prefixes,
-  forall(prefix(Alias,Iri), rdf_assert_prefix(Alias, Iri)).
+  forall(prefix_(Alias,Iri), rdf_assert_prefix(Alias, Iri)).
 
 rdf_assert_dbpedia_prefixes :-
-  forall(ltag(LTag), rdf_assert_dbpedia_prefixes(LTag)).
+  forall(ltag_(LTag), rdf_assert_dbpedia_prefixes(LTag)).
 
 rdf_assert_dbpedia_prefixes(LTag) :-
   atomic_list_concat([LTag,dbpedia,org], ., DBpediaAuthority),
@@ -195,217 +200,217 @@ rdf_prefix_selectchk(Elem, L, Rest) :-
 
 % LANGUAGE TAGS THAT ARE USED IN DBPEDIA %
 
-ltag(ab).
-ltag(ace).
-ltag(af).
-ltag(als).
-ltag(am).
-ltag(an).
-ltag(ang).
-ltag(ar).
-ltag(arc).
-ltag(arz).
-ltag(as).
-ltag(ast).
-ltag(av).
-ltag(ay).
-ltag(az).
-ltag(ba).
-ltag(bar).
-ltag('bat-smg').
-ltag(bat_smg).
-ltag(bcl).
-ltag(bcl_smg).
-ltag(be).
-ltag('be-x-old').
-ltag(be_x_old).
-ltag(bg).
-ltag(bi).
-ltag(bjn).
-ltag(bm).
-ltag(bn).
-ltag(bo).
-ltag(bpy).
-ltag(br).
-ltag(bs).
-ltag(bxr).
-ltag(ca).
-ltag(cdo).
-ltag(ce).
-ltag(ceb).
-ltag(chr).
-ltag(chy).
-ltag(ckb).
-ltag(co).
-ltag(commons).
-ltag(cr).
-ltag(crh).
-ltag(cs).
-ltag(csb).
-ltag(cv).
-ltag(cy).
-ltag(da).
-ltag(de).
-ltag(diq).
-ltag(dv).
-ltag(ee).
-ltag(el).
-ltag(en).
-ltag(eo).
-ltag(es).
-ltag(et).
-ltag(ext).
-ltag(eu).
-ltag(fa).
-ltag(fi).
-ltag(fiu).
-ltag(fiu_vro).
-ltag(fj).
-ltag(fo).
-ltag(fr).
-ltag(frp).
-ltag(frr).
-ltag(fy).
-ltag(ga).
-ltag(gan).
-ltag(gd).
-ltag(gl).
-ltag(gn).
-ltag(got).
-ltag(gu).
-ltag(gv).
-ltag(ha).
-ltag(hak).
-ltag(he).
-ltag(hi).
-ltag(hif).
-ltag(hr).
-ltag(hsb).
-ltag(ht).
-ltag(hu).
-ltag(hy).
-ltag(ia).
-ltag(id).
-ltag(ig).
-ltag(ilo).
-ltag(io).
-ltag(is).
-ltag(it).
-ltag(ja).
-ltag(jbo).
-ltag(jv).
-ltag(ka).
-ltag(kaa).
-ltag(kab).
-ltag(kbd).
-ltag(ki).
-ltag(kk).
-ltag(kl).
-ltag(km).
-ltag(kn).
-ltag(ko).
-ltag(koi).
-ltag(ks).
-ltag(ku).
-ltag(kv).
-ltag(ky).
-ltag(la).
-ltag(lb).
-ltag(lbe).
-ltag(lez).
-ltag(li).
-ltag(lmo).
-ltag(ln).
-ltag(lt).
-ltag(lv).
-ltag(map_bms).
-ltag(mg).
-ltag(mhr).
-ltag(mk).
-ltag(ml).
-ltag(mn).
-ltag(mr).
-ltag(mrj).
-ltag(ms).
-ltag(my).
-ltag(na).
-ltag(nah).
-ltag(nap).
-ltag(nds).
-ltag(nds_nl).
-ltag(ne).
-ltag(new).
-ltag(nl).
-ltag(nn).
-ltag(no).
-ltag(nrm).
-ltag(nv).
-ltag(oc).
-ltag(or).
-ltag(pa).
-ltag(pam).
-ltag(pcd).
-ltag(pms).
-ltag(pnb).
-ltag(pl).
-ltag(pt).
-ltag(qu).
-ltag(ro).
-ltag('roa-rup').
-ltag(ru).
-ltag(rw).
-ltag(sa).
-ltag(sah).
-ltag(scn).
-ltag(sco).
-ltag(se).
-ltag(sh).
-ltag(si).
-ltag(simple).
-ltag(sk).
-ltag(sl).
-ltag(sm).
-ltag(sn).
-ltag(so).
-ltag(sq).
-ltag(sr).
-ltag(srn).
-ltag(su).
-ltag(sv).
-ltag(sw).
-ltag(szl).
-ltag(ta).
-ltag(te).
-ltag(tg).
-ltag(th).
-ltag(tl).
-ltag(to).
-ltag(tpi).
-ltag(tr).
-ltag(tt).
-ltag(tum).
-ltag(udm).
-ltag(ug).
-ltag(uk).
-ltag(ur).
-ltag(uz).
-ltag(vec).
-ltag(vi).
-ltag(vo).
-ltag(vls).
-ltag(wa).
-ltag(war).
-ltag(wo).
-ltag(wuu).
-ltag(xal).
-ltag(yi).
-ltag(yo).
-ltag(yoh).
-ltag(zh).
-ltag('zh-min-nan').
-ltag(zh_min_nan).
-ltag('zh-yue').
-ltag(zh_yue).
+ltag_(ab).
+ltag_(ace).
+ltag_(af).
+ltag_(als).
+ltag_(am).
+ltag_(an).
+ltag_(ang).
+ltag_(ar).
+ltag_(arc).
+ltag_(arz).
+ltag_(as).
+ltag_(ast).
+ltag_(av).
+ltag_(ay).
+ltag_(az).
+ltag_(ba).
+ltag_(bar).
+ltag_('bat-smg').
+ltag_(bat_smg).
+ltag_(bcl).
+ltag_(bcl_smg).
+ltag_(be).
+ltag_('be-x-old').
+ltag_(be_x_old).
+ltag_(bg).
+ltag_(bi).
+ltag_(bjn).
+ltag_(bm).
+ltag_(bn).
+ltag_(bo).
+ltag_(bpy).
+ltag_(br).
+ltag_(bs).
+ltag_(bxr).
+ltag_(ca).
+ltag_(cdo).
+ltag_(ce).
+ltag_(ceb).
+ltag_(chr).
+ltag_(chy).
+ltag_(ckb).
+ltag_(co).
+ltag_(commons).
+ltag_(cr).
+ltag_(crh).
+ltag_(cs).
+ltag_(csb).
+ltag_(cv).
+ltag_(cy).
+ltag_(da).
+ltag_(de).
+ltag_(diq).
+ltag_(dv).
+ltag_(ee).
+ltag_(el).
+ltag_(en).
+ltag_(eo).
+ltag_(es).
+ltag_(et).
+ltag_(ext).
+ltag_(eu).
+ltag_(fa).
+ltag_(fi).
+ltag_(fiu).
+ltag_(fiu_vro).
+ltag_(fj).
+ltag_(fo).
+ltag_(fr).
+ltag_(frp).
+ltag_(frr).
+ltag_(fy).
+ltag_(ga).
+ltag_(gan).
+ltag_(gd).
+ltag_(gl).
+ltag_(gn).
+ltag_(got).
+ltag_(gu).
+ltag_(gv).
+ltag_(ha).
+ltag_(hak).
+ltag_(he).
+ltag_(hi).
+ltag_(hif).
+ltag_(hr).
+ltag_(hsb).
+ltag_(ht).
+ltag_(hu).
+ltag_(hy).
+ltag_(ia).
+ltag_(id).
+ltag_(ig).
+ltag_(ilo).
+ltag_(io).
+ltag_(is).
+ltag_(it).
+ltag_(ja).
+ltag_(jbo).
+ltag_(jv).
+ltag_(ka).
+ltag_(kaa).
+ltag_(kab).
+ltag_(kbd).
+ltag_(ki).
+ltag_(kk).
+ltag_(kl).
+ltag_(km).
+ltag_(kn).
+ltag_(ko).
+ltag_(koi).
+ltag_(ks).
+ltag_(ku).
+ltag_(kv).
+ltag_(ky).
+ltag_(la).
+ltag_(lb).
+ltag_(lbe).
+ltag_(lez).
+ltag_(li).
+ltag_(lmo).
+ltag_(ln).
+ltag_(lt).
+ltag_(lv).
+ltag_(map_bms).
+ltag_(mg).
+ltag_(mhr).
+ltag_(mk).
+ltag_(ml).
+ltag_(mn).
+ltag_(mr).
+ltag_(mrj).
+ltag_(ms).
+ltag_(my).
+ltag_(na).
+ltag_(nah).
+ltag_(nap).
+ltag_(nds).
+ltag_(nds_nl).
+ltag_(ne).
+ltag_(new).
+ltag_(nl).
+ltag_(nn).
+ltag_(no).
+ltag_(nrm).
+ltag_(nv).
+ltag_(oc).
+ltag_(or).
+ltag_(pa).
+ltag_(pam).
+ltag_(pcd).
+ltag_(pms).
+ltag_(pnb).
+ltag_(pl).
+ltag_(pt).
+ltag_(qu).
+ltag_(ro).
+ltag_('roa-rup').
+ltag_(ru).
+ltag_(rw).
+ltag_(sa).
+ltag_(sah).
+ltag_(scn).
+ltag_(sco).
+ltag_(se).
+ltag_(sh).
+ltag_(si).
+ltag_(simple).
+ltag_(sk).
+ltag_(sl).
+ltag_(sm).
+ltag_(sn).
+ltag_(so).
+ltag_(sq).
+ltag_(sr).
+ltag_(srn).
+ltag_(su).
+ltag_(sv).
+ltag_(sw).
+ltag_(szl).
+ltag_(ta).
+ltag_(te).
+ltag_(tg).
+ltag_(th).
+ltag_(tl).
+ltag_(to).
+ltag_(tpi).
+ltag_(tr).
+ltag_(tt).
+ltag_(tum).
+ltag_(udm).
+ltag_(ug).
+ltag_(uk).
+ltag_(ur).
+ltag_(uz).
+ltag_(vec).
+ltag_(vi).
+ltag_(vo).
+ltag_(vls).
+ltag_(wa).
+ltag_(war).
+ltag_(wo).
+ltag_(wuu).
+ltag_(xal).
+ltag_(yi).
+ltag_(yo).
+ltag_(yoh).
+ltag_(zh).
+ltag_('zh-min-nan').
+ltag_(zh_min_nan).
+ltag_('zh-yue').
+ltag_(zh_yue).
 
 
 
@@ -413,74 +418,74 @@ ltag(zh_yue).
 
 % COMMON AND/OR STANDARDIZED RDF PREFIXES %
 
-prefix(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
-prefix(cms, 'http://SemanticCMS.cc/vocab/').
-prefix(crs, 'http://www.opengis.net/def/crs/OGC/1.3/').
-prefix(csvw, 'http://www.w3.org/ns/csvw#').
-prefix(cyc, 'http://sw.opencyc.org/concept/').
-prefix(dawgt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#').
-prefix(dbc, 'http://dbpedia.org/resource/Category:').
-prefix(dbo, 'http://dbpedia.org/ontology/').
-prefix(dbp, 'http://dbpedia.org/property/').
-prefix(dbr, 'http://dbpedia.org/resource/').
-prefix(dbt, 'http://dbpedia.org/datatype/').
-prefix(dby, 'http://dbpedia.org/class/yago/').
-prefix(dcat, 'http://www.w3.org/ns/dcat#').
-prefix(dce, 'http://purl.org/dc/elements/1.1/').
-prefix(dct, 'http://purl.org/dc/terms/').
-prefix(dctype, 'http://purl.org/dc/dcmitype/').
-prefix(dqv, 'http://www.w3.org/ns/dqv#').
-prefix(earl, 'http://www.w3.org/ns/earl#').
-prefix(ex, 'https://example.org/').
-prefix(fabio, 'http://purl.org/spar/fabio/').
-prefix(fb, 'http://ogp.me/ns/fb#').
-prefix(freebase, 'http://rdf.freebase.com/ns/').
-prefix(fn, 'http://www.w3.org/2005/xpath-functions#').
-prefix(formats, 'http://www.w3.org/ns/formats/').
-prefix(geo, 'http://www.opengis.net/ont/geosparql#').
-prefix(geof, 'http://www.opengis.net/def/function/geosparql/').
-prefix(geonames, 'http://sws.geonames.org/').
-prefix(geor, 'http://www.opengis.net/def/rule/geosparql/').
-prefix(gg, 'http://www.gemeentegeschiedenis.nl/gg-schema#').
-prefix(gml, 'http://www.opengis.net/ont/gml#').
-prefix(gr, 'http://purl.org/goodrelations/v1#').
-prefix(grddl, 'http://www.w3.org/2003/g/data-view#').
-prefix(http, 'http://www.w3.org/2011/http#').
-prefix(hydra, 'http://www.w3.org/ns/hydra/core#').
-prefix(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').
-prefix(lexvo, 'http://lexvo.org/ontology#').
-prefix(ma, 'http://www.w3.org/ns/ma-ont#').
-prefix(mf, 'http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#').
-prefix(nyt, 'http://data.nytimes.com/').
-prefix(odp, 'http://www.ontologydesignpatterns.org/').
-prefix(openlinks, 'http://www.openlinksw.com/schemas/virtrdf#').
-prefix(orcid, 'http://orcid.org/').
-prefix(org, 'http://www.w3.org/ns/org#').
-prefix(prov, 'http://www.w3.org/ns/prov#').
-prefix(qb, 'http://purl.org/linked-data/cube#').
-prefix(qt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-query#').
-prefix(rdfa, 'http://www.w3.org/ns/rdfa#').
-prefix(rdft, 'http://www.w3.org/ns/rdftest#').
-prefix(rel, 'http://purl.org/vocab/relationship/').
-prefix(rif, 'http://www.w3.org/2007/rif#').
-prefix(role, 'http://www.w3.org/1999/xhtml/vocab#role').
-prefix(rr, 'http://www.w3.org/ns/r2rml#').
-prefix(schema, 'http://schema.org/').
-prefix(sd, 'http://www.w3.org/ns/sparql-service-description#').
-prefix(sf, 'http://www.opengis.net/ont/sf#').
-prefix(sfn, ' http://www.w3.org/ns/sparql#').
-prefix(sh, 'http://www.w3.org/ns/shacl#').
-prefix(sioc, 'http://rdfs.org/sioc/ns#').
-prefix(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
-prefix('sparql-results', 'http://www.w3.org/2005/sparql-results#').
-prefix(umbel, 'http://umbel.org/umbel#').
-prefix(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
-prefix(vcard, 'http://www.w3.org/2006/vcard/ns#').
-prefix(wdr, 'http://www.w3.org/2007/05/powder#').
-prefix(wdrs, 'http://www.w3.org/2007/05/powder-s#').
-prefix(wdt, 'http://www.wikidata.org/prop/direct/').
-prefix(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
-prefix(wv, 'http://vocab.org/waiver/terms/norms').
-prefix(xhv, 'http://www.w3.org/1999/xhtml/vocab#').
-prefix(xml, 'http://www.w3.org/XML/1998/namespace').
-prefix(yago, 'http://yago-knowledge.org/resource/').
+prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
+prefix_(cms, 'http://SemanticCMS.cc/vocab/').
+prefix_(crs, 'http://www.opengis.net/def/crs/OGC/1.3/').
+prefix_(csvw, 'http://www.w3.org/ns/csvw#').
+prefix_(cyc, 'http://sw.opencyc.org/concept/').
+prefix_(dawgt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#').
+prefix_(dbc, 'http://dbpedia.org/resource/Category:').
+prefix_(dbo, 'http://dbpedia.org/ontology/').
+prefix_(dbp, 'http://dbpedia.org/property/').
+prefix_(dbr, 'http://dbpedia.org/resource/').
+prefix_(dbt, 'http://dbpedia.org/datatype/').
+prefix_(dby, 'http://dbpedia.org/class/yago/').
+prefix_(dcat, 'http://www.w3.org/ns/dcat#').
+prefix_(dce, 'http://purl.org/dc/elements/1.1/').
+prefix_(dct, 'http://purl.org/dc/terms/').
+prefix_(dctype, 'http://purl.org/dc/dcmitype/').
+prefix_(dqv, 'http://www.w3.org/ns/dqv#').
+prefix_(earl, 'http://www.w3.org/ns/earl#').
+prefix_(ex, 'https://example.org/').
+prefix_(fabio, 'http://purl.org/spar/fabio/').
+prefix_(fb, 'http://ogp.me/ns/fb#').
+prefix_(freebase, 'http://rdf.freebase.com/ns/').
+prefix_(fn, 'http://www.w3.org/2005/xpath-functions#').
+prefix_(formats, 'http://www.w3.org/ns/formats/').
+prefix_(geo, 'http://www.opengis.net/ont/geosparql#').
+prefix_(geof, 'http://www.opengis.net/def/function/geosparql/').
+prefix_(geonames, 'http://sws.geonames.org/').
+prefix_(geor, 'http://www.opengis.net/def/rule/geosparql/').
+prefix_(gg, 'http://www.gemeentegeschiedenis.nl/gg-schema#').
+prefix_(gml, 'http://www.opengis.net/ont/gml#').
+prefix_(gr, 'http://purl.org/goodrelations/v1#').
+prefix_(grddl, 'http://www.w3.org/2003/g/data-view#').
+prefix_(http, 'http://www.w3.org/2011/http#').
+prefix_(hydra, 'http://www.w3.org/ns/hydra/core#').
+prefix_(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').
+prefix_(lexvo, 'http://lexvo.org/ontology#').
+prefix_(ma, 'http://www.w3.org/ns/ma-ont#').
+prefix_(mf, 'http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#').
+prefix_(nyt, 'http://data.nytimes.com/').
+prefix_(odp, 'http://www.ontologydesignpatterns.org/').
+prefix_(openlinks, 'http://www.openlinksw.com/schemas/virtrdf#').
+prefix_(orcid, 'http://orcid.org/').
+prefix_(org, 'http://www.w3.org/ns/org#').
+prefix_(prov, 'http://www.w3.org/ns/prov#').
+prefix_(qb, 'http://purl.org/linked-data/cube#').
+prefix_(qt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-query#').
+prefix_(rdfa, 'http://www.w3.org/ns/rdfa#').
+prefix_(rdft, 'http://www.w3.org/ns/rdftest#').
+prefix_(rel, 'http://purl.org/vocab/relationship/').
+prefix_(rif, 'http://www.w3.org/2007/rif#').
+prefix_(role, 'http://www.w3.org/1999/xhtml/vocab#role').
+prefix_(rr, 'http://www.w3.org/ns/r2rml#').
+prefix_(schema, 'http://schema.org/').
+prefix_(sd, 'http://www.w3.org/ns/sparql-service-description#').
+prefix_(sf, 'http://www.opengis.net/ont/sf#').
+prefix_(sfn, ' http://www.w3.org/ns/sparql#').
+prefix_(sh, 'http://www.w3.org/ns/shacl#').
+prefix_(sioc, 'http://rdfs.org/sioc/ns#').
+prefix_(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
+prefix_('sparql-results', 'http://www.w3.org/2005/sparql-results#').
+prefix_(umbel, 'http://umbel.org/umbel#').
+prefix_(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
+prefix_(vcard, 'http://www.w3.org/2006/vcard/ns#').
+prefix_(wdr, 'http://www.w3.org/2007/05/powder#').
+prefix_(wdrs, 'http://www.w3.org/2007/05/powder-s#').
+prefix_(wdt, 'http://www.wikidata.org/prop/direct/').
+prefix_(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
+prefix_(wv, 'http://vocab.org/waiver/terms/norms').
+prefix_(xhv, 'http://www.w3.org/1999/xhtml/vocab#').
+prefix_(xml, 'http://www.w3.org/XML/1998/namespace').
+prefix_(yago, 'http://yago-knowledge.org/resource/').
