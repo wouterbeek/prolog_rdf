@@ -2,6 +2,7 @@
 :- module(
   rdf_guess,
   [
+    rdf_guess_name/2,   % +File, -MediaType
     rdf_guess_stream/3, % +In, +Size, -MediaType
     rdf_guess_string/2  % +String, -MediaType
   ]
@@ -24,6 +25,7 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 :- use_module(library(sgml)).
 
+:- use_module(library(archive_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(media_type)).
 :- use_module(library(sw/rdf_prefix)).
@@ -32,6 +34,20 @@ time, it is not possible to define a valid absolute Turtle-family IRI
     n3_lexical_form_codes(//, ?, ?).
 
 
+
+
+
+%! rdf_guess_name(+File:atom, -MediaType:compound) is det.
+%
+% The RDF Media Type is based on the last file extension that does not
+% denote an archive format.
+
+rdf_guess_name(File, MediaType) :-
+  file_name_extension(Base, Ext, File),
+  (   archive_extension(Ext)
+  ->  rdf_guess_name(Base, MediaType)
+  ;   media_type_extension(MediaType, Ext)
+  ).
 
 
 
