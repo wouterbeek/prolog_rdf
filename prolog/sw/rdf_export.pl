@@ -3,6 +3,7 @@
   [
     rdf_write_iri/2,     % +Out, +Iri
     rdf_write_literal/2, % +Out, +Literal
+    rdf_write_name/2,    % +Out, +Name
     rdf_write_quad/2,    % +Out, +Quad
     rdf_write_quad/3,    % +Out, +Triple, +G
     rdf_write_quad/5,    % +Out, +S, +P, +O, +G
@@ -31,6 +32,7 @@ RDF export predicates that are backend-independent.
 :- rdf_meta
    rdf_write_iri(+, r),
    rdf_write_literal(+, o),
+   rdf_write_name(+, o),
    rdf_write_quad(+, t),
    rdf_write_quad(+, t, r),
    rdf_write_quad(+, r, r, o, r),
@@ -73,7 +75,19 @@ rdf_write_literal(Out, literal(Lex)) :- !,
 
 
 
-%! rdf_write_nonliteral(+Out:stream, +BNodePrefix:iri, +NonLiteral:rdf_nonliteral) is det.
+%! rdf_write_name(+Out:stream, +Name:rdf_name) is det.
+
+rdf_write_name(Out, Iri) :-
+  rdf_is_iri(Iri), !,
+  rdf_write_iri(Out, Iri).
+rdf_write_name(Out, Literal) :-
+  rdf_is_literal(Literal), !,
+  rdf_write_literal(Out, Literal).
+
+
+
+%! rdf_write_nonliteral(+Out:stream, +BNodePrefix:iri,
+%!                      +NonLiteral:rdf_nonliteral) is det.
 
 rdf_write_nonliteral(Out, BNodePrefix, BNode) :-
   rdf_is_bnode(BNode), !,
