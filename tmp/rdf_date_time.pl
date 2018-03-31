@@ -1,12 +1,9 @@
 :- module(
   rdf_date_time,
   [
-    dt_to_rdf_date_time/3, % +Datetime1, +D, -Datetime2
+    dt_to_rdf_date_time/3, % +Dt, +D, -Datetime2
     is_rdf_date_time/1,    % @Term
-    rdf_assert_now/3,      % +S, +P, +G
-    rdf_assert_now/4,      % +S, +P, +D, +G
-    rdf_date_time_to_dt/2, % +Datetime1, -Datetime2
-    rdf_dt/4               % ?S, ?P, -DataTime, ?G
+    rdf_date_time_to_dt/2  % +Semweb, -Dt
   ]
 ).
 
@@ -15,13 +12,20 @@
 Support for reading/writing date/time assertions in RDF.
 
 @author Wouter Beek
-@version 2017/08-2017/11
+@version 2017-2018
 */
 
-:- use_module(library(date_time)).
+:- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(semweb/rdf_api)).
+:- use_module(library(semweb/rdf11), []).
 :- use_module(library(sgml)).
+
+:- use_module(library(date_time)).
+:- use_module(library(sw/rdf_prefix)).
+
+:- maplist(rdf_assert_prefix, [
+     xsd-'http://www.w3.org/2001/XMLSchema#'
+   ]).
 
 :- multifile
     error:has_type/2.
@@ -51,7 +55,7 @@ error:has_type(rdf_date_time, time(H,Mi,S)) :-
 
 
 
-%! dt_to_rdf_date_time(+Datetime1:dt, +D:atom, -Datetime2:compound) is det.
+%! dt_to_rdf_date_time(+Dt:dt, +D:atom, -Semweb:compound) is det.
 %
 % Converts date/time values to the representation supported by
 % `semweb/rdf11'.
@@ -74,26 +78,11 @@ is_rdf_date_time(Term) :-
 
 
 
-%! rdf_assert_now(+S, +P, +G) is det.
-%! rdf_assert_now(+S, +P, +D, +G) is det.
+%! rdf_date_time_to_dt(+Semweb:rdf_date_time, -Dt:dt) is det.
 %
-% The default date/time datatype is `xsd:dateTime`.
-
-rdf_assert_now(S, P, G) :-
-  rdf_assert_now(S, P, xsd:dateTime, G).
-
-
-rdf_assert_now(S, P, D, G) :-
-  now(Now),
-  dt_to_rdf_date_time(Now, D, Term),
-  rdf_assert(S, P, Term, G).
-
-
-
-%! rdf_date_time_to_dt(+Datetime1:rdf_date_time, -Datetime2:dt) is det.
-%
-% Converts the five Semweb date/time representations to the one
-% XSD-inspired 7-property model representation (type `dt`).
+% Converts the five date/time representations suppoerted by
+% `semweb/rdf11'to the one XSD-inspired 7-property model
+% representation (type `dt`).
 %
 % Semweb uses the following five date/time representations (type
 % `rdf_date_time`):
@@ -109,13 +98,3 @@ rdf_date_time_to_dt(date_time(Y,Mo,D,H,Mi,S), dt(Y,Mo,D,H,Mi,S,0)) :- !.
 rdf_date_time_to_dt(month_day(Mo,D), dt(_,Mo,D,_,_,_,0)) :- !.
 rdf_date_time_to_dt(time(H,Mi,S), dt(_,_,_,H,Mi,S,0)) :- !.
 rdf_date_time_to_dt(year_month(Y,Mo), dt(Y,Mo,_,_,_,_,0)).
-
-
-
-%! rdf_dt(?S, ?P, -Datetime:dt, ?G) is nondet.
-
-rdf_dt(S, P, DT, G) :-
-  rdf(S, P, literal(type(D,Lex)), G),
-  rdf11:xsd_date_time_type(D),
-  xsd_time_string(DateTime, D, Lex),
-  rdf_date_time_to_dt(DateTime, DT).
