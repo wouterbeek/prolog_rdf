@@ -2,7 +2,7 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_name/2,   % +File, -MediaType
+    rdf_guess_file/3,   % +File, +Size, -MediaType
     rdf_guess_stream/3, % +In, +Size, -MediaType
     rdf_guess_string/2  % +String, -MediaType
   ]
@@ -24,9 +24,11 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 */
 
 :- use_module(library(sgml)).
+:- use_module(library(yall)).
 
 :- use_module(library(archive_ext)).
 :- use_module(library(dcg)).
+:- use_module(library(file_ext)).
 :- use_module(library(media_type)).
 :- use_module(library(sw/rdf_prefix)).
 
@@ -37,56 +39,51 @@ time, it is not possible to define a valid absolute Turtle-family IRI
 
 
 
-%! rdf_guess_name(+File:atom, -MediaType:compound) is det.
-%
-% The RDF Media Type is based on the last file extension that does not
-% denote an archive format.
+%! rdf_guess_file(+File:atom, +Size:positiveInteger, -MediaType:compound) is semidet.
 
-rdf_guess_name(File, MediaType) :-
-  file_name_extension(Base, Ext, File),
-  (   archive_extension(Ext)
-  ->  rdf_guess_name(Base, MediaType)
-  ;   media_type_extension(MediaType, Ext)
+rdf_guess_file(File, Size, MediaType) :-
+  call_stream_file(
+    File,
+    {Size,MediaType}/[In]>>rdf_guess_stream(In, Size, MediaType)
   ).
 
 
 
 %! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:compound) is semidet.
 %
-% @arg Size The initial number of codes that is read from the input
-%      stream In, on which the guess is based.  This number is doubled
-%      while backtracking, until either the end of the stream is
-%      reached or the maximum peek size, as indicated by the input
-%      stream `In', is exceeded.
+% @arg Size is the number of codes that is read from the input stream
+% In, on which the guess is based.  This number is doubled while
+% backtracking, until either the end of the stream is reached or the
+% maximum peek size, as indicated by the input stream `In', is
+% exceeded.
 %
 % @arg MediaType is a compound term of the form
-%      `media(Supertype/Subtype,Params)'.  This is how Media Types are
-%      represented in the HTTP package (see
-%      http_parse_header_value/3).
+% `media(Supertype/Subtype,Params)'.  This is how Media Types are
+% represented in the HTTP package (see http_parse_header_value/3).
 %
-%      There is one JSON-family Media Type:
+% There is one JSON-family Media Type:
 %
-%        * media(application/ld+json,[]) for JSON-LD
+%   * media(application/ld+json,[]) for JSON-LD
 %
-%      There are four Turtle-family Media Types:
+% There are four Turtle-family Media Types:
 %
-%        * media(application/trig,[]) for TriG
+%   * media(application/trig,[]) for TriG
 %
-%          This includes the Media Type for Turtle, i.e.,
-%          `media(text/turtle,[])'.
+%     This includes the Media Type for Turtle, i.e.,
+%     `media(text/turtle,[])'.
 %
-%        * media(application/'n-nquads',[]) for N-Quads
+%   * media(application/'n-nquads',[]) for N-Quads
 %
-%          This includes the Media Type for N-Triples, i.e.,
-%          `media(application/'n-triples',[])'.
+%     This includes the Media Type for N-Triples, i.e.,
+%     `media(application/'n-triples',[])'.
 %
-%      There are two SGML-family Media Types that denote RDF:
+% There are two SGML-family Media Types that denote RDF:
 %
-%        * media(application/'rdf+xml',[]) for RDF/XML
+%   * media(application/'rdf+xml',[]) for RDF/XML
 %
-%        * media(application/'xhtml+xml',[]) for RDFa
+%   * media(application/'xhtml+xml',[]) for RDFa
 %
-%        * media(text/html,_) for RDFa
+%   * media(text/html,_) for RDFa
 
 rdf_guess_stream(In, Size, MediaType) :-
   peek_string(In, Size, String),
