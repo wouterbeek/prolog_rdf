@@ -1,9 +1,10 @@
 :- module(
   rdf_media_type,
   [
-    rdf_media_type/1,     % ?MediaType
-    'rdf_media_type_>'/2, % +SuperMediaType +SubMediaType
-    rdfa_media_type/1     % ?MediaType
+    rdf_file_name_media_type/2, % +File, -MediaType
+    rdf_media_type/1,           % ?MediaType
+    'rdf_media_type_>'/2,       % +SuperMediaType +SubMediaType
+    rdfa_media_type/1           % ?MediaType
   ]
 ).
 
@@ -17,6 +18,20 @@
 
 
 
+
+
+
+%! rdf_file_name_media_type(+File:atom, -MediaType:compound) is semidet.
+%
+% The RDF Media Type is based on the last file extension that does not
+% denote an archive format.
+
+rdf_file_name_media_type(File, MediaType) :-
+  file_name_extension(Base, Ext, File),
+  (   archive_extension(Ext)
+  ->  rdf_file_name_media_type(Base, MediaType)
+  ;   media_type_extension(MediaType, Ext)
+  ).
 
 
 
