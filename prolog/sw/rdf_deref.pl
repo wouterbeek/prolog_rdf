@@ -1,6 +1,8 @@
 :- module(
   rdf_deref,
   [
+    rdf_deref_file/2,   % +File, :Goal_3
+    rdf_deref_file/3,   % +File, :Goal_3, +Options
     rdf_deref_stream/3, % +Uri, +In, :Goal_3
     rdf_deref_stream/4, % +Uri, +In, :Goal_3, +Options
     rdf_deref_uri/2,    % +Uri, :Goal_3
@@ -24,12 +26,15 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(media_type)).
+:- use_module(library(stream_ext)).
 :- use_module(library(sw/rdf_guess)).
 :- use_module(library(sw/rdf_media_type)).
 :- use_module(library(sw/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate
+    rdf_deref_file(+, 3),
+    rdf_deref_file(+, 3, +),
     rdf_deref_stream(+, +, 3),
     rdf_deref_stream(+, +, 3, +),
     rdf_deref_uri(+, 3),
@@ -43,14 +48,35 @@
 
 
 
-%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_3) is det.
-%! rdf_deref_stream(+Uri:atom, +In:stream, :Goal_3, +Options:list(compound)) is det.
+%! rdf_deref_file(+File:atom, :Goal_3) is det.
+%! rdf_deref_file(+File:atom, :Goal_3, +Options:list(compound)) is det.
 %
-% The following options are supported:
+% @arg Options allows the following options to be set.
 %
 %   * base_uri(+atom)
 %
-%     The default is the URI of the last metadata element.
+%     By default, the base URI is the file URI.
+%
+%   * Other options are passed to rdf_defer_stream/4.
+
+rdf_deref_file(File, Goal_3) :-
+  rdf_deref_file(File, Goal_3, []).
+
+
+rdf_deref_file(File, Goal_3, Options1) :-
+  uri_file_name(FileUri, File),
+  merge_options(Options1, [base_uri(FileUri)], Options2),
+  call_stream_file(
+    File,
+    {BaseUri,Goal_3,Options2}/[In]>>rdf_deref_stream(BaseUri, In, Goal_3, Options2)
+  ).
+
+
+
+%! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3) is det.
+%! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3, +Options:list(compound)) is det.
+%
+% The following options are supported:
 %
 %   * bnode_prefix(+atom)
 %
@@ -64,11 +90,11 @@
 %
 %     Overrules the RDF serialization format.
 
-rdf_deref_stream(Uri, In, Goal_3) :-
-  rdf_deref_stream(Uri, In, Goal_3, []).
+rdf_deref_stream(BaseUri, In, Goal_3) :-
+  rdf_deref_stream(BaseUri, In, Goal_3, []).
 
 
-rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
+rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
   % Determine the serialization format.
   (   % An explicitly specified Media Type overrules everything else.
       option(media_type(MediaType), Options1)
@@ -83,7 +109,7 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
           MediaType = MediaTypeGuess
       ),
       (   % Heuristic 3: the URI path's file name extension.
-          uri_media_type(Uri, MediaTypeUri)
+          uri_media_type(BaseUri, MediaTypeUri)
       ->  (   'rdf_media_type_>'(MediaType, MediaTypeUri)
           ->  !, true
           ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeUri))
@@ -91,12 +117,9 @@ rdf_deref_stream(Uri, In, Mod:Goal_3, Options1) :-
       ;   true
       )
   ),
-  % Determine the base URI.
-  option(base_uri(BaseUri), Options1, Uri),
-
   % Determine the blank node prefix.  Use a well-known IRI with a UUID
   % component by default.
-  rdf_bnode_prefix(Uri, BNodePrefix),
+  rdf_bnode_prefix(BaseUri, BNodePrefix),
   Goal_3 =.. [Pred|Args1],
   append(Args1, [BNodePrefix], Args2),
   Goal_2 =.. [Pred|Args2],
