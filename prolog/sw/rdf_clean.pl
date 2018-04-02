@@ -49,7 +49,12 @@ rdf_clean_bnode(BNodePrefix, BNode, Iri) :-
 
 rdf_clean_graph(G1, G3) :-
   rdf11:post_graph(G2, G1),
-  (rdf_default_graph(G2) -> G3 = G2 ; rdf_clean_iri(G2, G3)).
+  (   G2 == user
+  ->  rdf_default_graph(G3)
+  ;   rdf_default_graph(G2)
+  ->  G3 = G2
+  ;   rdf_clean_iri(G2, G3)
+  ).
 
 
 
