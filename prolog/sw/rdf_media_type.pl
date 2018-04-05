@@ -14,6 +14,7 @@
 @version 2017-2018
 */
 
+:- use_module(library(archive_ext)).
 :- use_module(library(media_type)).
 
 

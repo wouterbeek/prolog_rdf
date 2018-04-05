@@ -27,7 +27,7 @@
 :- use_module(library(sw/rdf_term)).
 :- use_module(library(sw/schema_viz)).
 
-:- rdf_assert_prefix(sh).
+:- maplist(rdf_assert_prefix, [owl,rdf,rdfs,sh]).
 
 :- rdf_meta
    shacl_assert_class(+, r),

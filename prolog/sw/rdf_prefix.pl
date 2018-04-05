@@ -1,7 +1,7 @@
 :- module(
   rdf_prefix,
   [
-    rdf_assert_prefix/1,    % +Pair
+    rdf_assert_prefix/1,    % +PairOrAlias
     rdf_assert_prefix/2,    % +Alias, +Iri
     rdf_assert_prefixes/0,
     rdf_global_id/2,        % ?PrefixedIri, ?Iri
@@ -35,6 +35,7 @@ standards SWI-Prolog distribution.
      rdf_global_term/2 as rdf_prefix_any
    ]).
 
+:- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db), []).
 :- use_module(library(semweb/rdf_prefixes), []).
 :- use_module(library(uri)).
@@ -42,10 +43,7 @@ standards SWI-Prolog distribution.
 :- use_module(library(sw/rdf_term)).
 
 :- initialization
-   maplist(remove_legacy_, [dc,dcterms,serql]).
-
-remove_legacy_(Alias) :-
-   retract(rdf_db:ns(Alias,_)).
+   init_rdf_prefix.
 
 :- meta_predicate
     rdf_prefix_maplist(1, +).
@@ -60,7 +58,7 @@ remove_legacy_(Alias) :-
 
 
 
-%! rdf_assert_prefix(+Pair:pair(atom)) is det.
+%! rdf_assert_prefix(+PairOrAlias:or([atom,pair(atom)])) is det.
 %
 % Syntactic variant of rdf_assert_prefix/2 that allows for pair
 % notation (thus keeping the alias and IRI prefix together) when used
@@ -434,7 +432,7 @@ prefix_(dbt, 'http://dbpedia.org/datatype/').
 prefix_(dby, 'http://dbpedia.org/class/yago/').
 prefix_(dcat, 'http://www.w3.org/ns/dcat#').
 prefix_(dce, 'http://purl.org/dc/elements/1.1/').
-prefix_(dct, 'http://purl.org/dc/terms/').
+prefix_(dcterm, 'http://purl.org/dc/terms/').
 prefix_(dctype, 'http://purl.org/dc/dcmitype/').
 prefix_(dqv, 'http://www.w3.org/ns/dqv#').
 prefix_(earl, 'http://www.w3.org/ns/earl#').
@@ -491,3 +489,12 @@ prefix_(wv, 'http://vocab.org/waiver/terms/norms').
 prefix_(xhv, 'http://www.w3.org/1999/xhtml/vocab#').
 prefix_(xml, 'http://www.w3.org/XML/1998/namespace').
 prefix_(yago, 'http://yago-knowledge.org/resource/').
+
+
+
+
+
+% INITIALIZATION %
+
+init_rdf_prefix :-
+  maplist([Alias]>>ignore(retract(rdf_db:ns(Alias,_))), [dc,dcterms,serql]).
