@@ -1,7 +1,6 @@
 :- module(
   rdf_html,
   [
-    graph_link//1,            % +G
     rdf_html_iri//1,          % +Iri
     rdf_html_iri//2,          % +Iri, +Options
     rdf_html_literal//1,      % +Literal
@@ -45,6 +44,7 @@
 :- use_module(library(dict)).
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(http/http_server)).
+:- use_module(library(http/rdf_http)).
 :- use_module(library(list_ext)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
@@ -75,10 +75,13 @@
 
 
 
-%! graph_link(+G)// is det.
+%! rdf_html_graph_link(+G:rdf_graph)// is det.
 
-graph_link(G) -->
-  {http_link_to_id(navigator_graph_handler, [graph(G)], Uri)},
+rdf_html_graph_link(G) -->
+  {
+    rdf_http_graph_query(G, Query),
+    http_link_to_id(navigator_graph_handler, Query, Uri)
+  },
   html(a(href=Uri, \rdf_html_iri(G))).
 
 
@@ -308,8 +311,8 @@ rdf_html_triple(Uri, rdf(S,P,O), Options1) -->
 
 
 %! rdf_html_triple_table(+Uri:atom, +Triples:list(compound))// is det.
-%! rdf_html_triple_table(+Uri:atom, ?G:atom, +Triples:list(compound))// is det.
-%! rdf_html_triple_table(+Uri:atom, ?G:atom, +Triples:list(compound),
+%! rdf_html_triple_table(+Uri:atom, ?G:rdf_graph, +Triples:list(compound))// is det.
+%! rdf_html_triple_table(+Uri:atom, ?G:rdf_graph, +Triples:list(compound),
 %!                       +Options:list(compound))// is det.
 
 rdf_html_triple_table(Uri, Triples) -->
@@ -333,7 +336,7 @@ rdf_html_triple_table(Uri, G, Triples, Options1) -->
 rdf_html_triple_table_row(Uri, G, rdf(S,P,O), Options) -->
   {
     maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
-    (var(G) -> T = [] ; T = [graph(G)]),
+    rdf_http_graph_query(G, T),
     maplist(
       uri_comp_set(query, Uri),
       [[s(AtomS)|T],[p(AtomP)|T],[o(AtomO)|T]],

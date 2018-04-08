@@ -119,7 +119,7 @@ rdf_atom_to_term(Atom, Iri) :-
   rdf_prefix(Alias), !,
   rdf_global_id(Alias:Local, Iri).
 rdf_atom_to_term(Atom, _) :-
-  throw(rdf(cannot_parse,rdf_term,Atom)).
+  throw(rdf(cannot_parse(rdf_term,Atom))).
 
 
 
