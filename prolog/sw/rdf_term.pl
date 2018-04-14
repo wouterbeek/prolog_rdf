@@ -29,6 +29,7 @@
     rdf_literal_datatype_iri/2,   % +Literal, ?D
     rdf_literal_lexical_form/2,   % +Literal, ?Lex
     rdf_literal_value/2,          % +Literal, -Value
+    rdf_literal_value/3,          % -Literal, +D, +Value
     rdf_term//1,                  % -Term
     rdf_term_to_atom/2,           % +Term, -Atom
     rdf_typed_literal/3           % ?D, ?Lex, ?Literal
@@ -81,6 +82,7 @@
    rdf_literal_datatype_iri(o, r),
    rdf_literal_lexical_form(o, ?),
    rdf_literal_value(o, -),
+   rdf_literal_value(o, r, +),
    rdf_term_to_atom(t, -),
    rdf_typed_literal(r, ?, o).
 
@@ -298,8 +300,15 @@ rdf_literal_lexical_form(literal(lang(_,Lex)), Lex).
 
 rdf_literal_value(literal(type(D,Lex)), Value) :- !,
   rdf_lexical_value(D, Lex, Value).
-rdf_literal_value(literal(lang(LTag,Lex)), _) :-
-  existence_error(rdf_value,LTag-Lex).
+rdf_literal_value(literal(lang(LTag,Lex)), Lex-LTag).
+
+
+
+%! rdf_literal_value(-Literal:rdf_literal, +D:iri, +Value) is det.
+
+rdf_literal_value(literal(lang(LTag,Lex)), rdf:langString, Lex-LTag) :- !.
+rdf_literal_value(literal(type(D,Lex)), D, Value) :-
+  rdf_lexical_value(D, Lex, Value).
 
 
 
