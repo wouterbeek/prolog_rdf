@@ -22,7 +22,7 @@
     rdf_is_skip_node/1,           % @Term
    %rdf_is_subject/1,             % @Term
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
-    rdf_lexical_value/3,          % ?D, ?Lex, ?Val
+    rdf_lexical_value/3,          % +D, ?Lex, ?Val
     rdf_literal//1,               % -Literal
     rdf_literal/4,                % ?D, ?LTag, ?Lex, ?Literal
     rdf_literal_datatype_iri/2,   % +Literal, ?D
