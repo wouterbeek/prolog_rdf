@@ -15,6 +15,7 @@
     rdf_iri//1,                   % -Iri
    %rdf_is_bnode/1,               % @Term
     rdf_is_bnode_iri/1,           % @Term
+    rdf_is_container_membership_property/1, % @Term
    %rdf_is_iri/1,                 % @Term
    %rdf_is_literal/1,             % @Term
    %rdf_is_object/1,              % @Term
@@ -183,6 +184,18 @@ rdf_iri(Iri) -->
   ...(Codes),
   ">", !,
   {atom_codes(Iri, Codes)}.
+
+
+
+%! rdf_is_container_membership_property(@Term) is semidet.
+
+rdf_is_container_membership_property(P) :-
+  rdf_is_iri(P),
+  rdf_equal(rdf:'_', Prefix),
+  atom_concat(Prefix, Atom, P),
+  atom_number(Atom, N),
+  integer(N),
+  N >= 0.
 
 
 
