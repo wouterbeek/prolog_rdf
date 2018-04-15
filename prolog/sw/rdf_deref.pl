@@ -24,6 +24,7 @@
 :- use_module(library(semweb/turtle)).
 
 :- use_module(library(atom_ext)).
+:- use_module(library(file_ext)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
@@ -64,8 +65,8 @@ rdf_deref_file(File, Goal_3) :-
 
 
 rdf_deref_file(File, Goal_3, Options1) :-
-  uri_file_name(FileUri, File),
-  merge_options(Options1, [base_uri(FileUri)], Options2),
+  uri_file_name(BaseUri, File),
+  merge_options(Options1, [base_uri(BaseUri)], Options2),
   call_stream_file(
     File,
     {BaseUri,Goal_3,Options2}/[In]>>rdf_deref_stream(BaseUri, In, Goal_3, Options2)
@@ -102,11 +103,13 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
   ;   % Heuristic 1: guess based on a first chunk of the data.
       rdf_guess_stream(In, 10 000, MediaTypeGuess),
       (   % Heuristic 2: the value of the HTTP `Content-Type' header.
-          option(content_type(MediaType), Options1),
-          'rdf_media_type_>'(MediaType, MediaTypeGuess)
-      ->  !, true
-      ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeGuess)),
-          MediaType = MediaTypeGuess
+          option(content_type(MediaType), Options1)
+      ->  (   'rdf_media_type_>'(MediaType, MediaTypeGuess)
+          ->  !, true
+          ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeGuess)),
+              MediaType = MediaTypeGuess
+          )
+      ;   MediaType = MediaTypeGuess
       ),
       (   % Heuristic 3: the URI path's file name extension.
           uri_media_type(BaseUri, MediaTypeUri)
