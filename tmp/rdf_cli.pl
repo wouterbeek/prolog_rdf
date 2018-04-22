@@ -10,8 +10,11 @@
 /** <module> RDF CLI
 
 @author Wouter Beek
-@version 2017/06-2017/09
+@version 2017-2018
 */
+
+:- use_module(library(sw/hdt_db)).
+:- use_module(library(sw/hdt_graph)).
 
 :- rdf_meta
    predicate(r),
@@ -20,10 +23,12 @@
 
 
 
+
+
 %! predicate(?P) is nondet.
 
 predicate(P) :-
-  hdt_graph(Hdt, graph:default),
+  hdt_default(Hdt),
   hdt_predicate(Hdt, P).
 
 
@@ -31,14 +36,18 @@ predicate(P) :-
 %! statement(?S, ?P, ?O) is nondet.
 
 statement(S, P, O) :-
-  hdt(S, P, O),
+  statement_(S, P, O),
   rdf_pp_triple(S, P, O),
   nl.
+
+statement_(S, P, O) :-
+  hdt_default(Hdt),
+  hdt_triple(Hdt, S, P, O).
 
 
 
 %! statements(?S, ?P, ?O) is nondet.
 
 statements(S, P, O) :-
-  findall(rdf(S,P,O), hdt(S, P, O), Triples),
+  findall(rdf(S,P,O), statement_(S, P, O), Triples),
   rdf_pp_triples(Triples).

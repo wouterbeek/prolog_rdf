@@ -222,7 +222,7 @@ hdt_call_on_file(FileSpec, Goal_1) :-
 %! hdt_call_on_graph(+G:atom, :Goal_1) is det.
 
 hdt_call_on_graph(G, Goal_1) :-
-  hdt_graph(Hdt, G),
+  hdt_graph(G, Hdt),
   call(Goal_1, Hdt).
 
 
