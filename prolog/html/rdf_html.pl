@@ -84,7 +84,7 @@ html_doc:custom_param_type(Spec) -->
 
 rdf_html_graph_link(G) -->
   {
-    rdf_http_graph_query(G, Query),
+    rdf_http_query([g(G)], Query),
     http_link_to_id(navigator_graph_handler, Query, Uri)
   },
   html(a(href=Uri, \rdf_html_iri(G))).
@@ -340,19 +340,18 @@ rdf_html_triple_table(Uri, G, Triples, Options1) -->
 
 rdf_html_triple_table_row(Uri, G, rdf(S,P,O), Options) -->
   {
-    maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
-    rdf_http_graph_query(G, T),
-    maplist(
-      uri_comp_set(query, Uri),
-      [[s(AtomS)|T],[p(AtomP)|T],[o(AtomO)|T]],
-      [UriS,UriP,UriO]
-    )
+    rdf_http_query([s(S),g(G)], SQuery),
+    uri_comp_set(query, Uri, SQuery, SUri),
+    rdf_http_query([p(P),g(G)], PQuery),
+    uri_comp_set(query, Uri, PQuery, PUri),
+    rdf_http_query([o(O),g(G)], OQuery),
+    uri_comp_set(query, Uri, OQuery, OUri)
   },
   html(
     tr([
-      td(a(href=UriS, \rdf_html_nonliteral_(S, Options))),
-      td(a(href=UriP, \rdf_html_iri_(P, Options))),
-      td(a(href=UriO, \rdf_html_term_(O, Options)))
+      td(a(href=SUri, \rdf_html_nonliteral_(S, Options))),
+      td(a(href=PUri, \rdf_html_iri_(P, Options))),
+      td(a(href=OUri, \rdf_html_term_(O, Options)))
     ])
   ).
 
