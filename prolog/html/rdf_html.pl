@@ -53,7 +53,12 @@
 :- multifile
     html:html_hook//1,
     html:html_hook//2,
+    html_doc:custom_param_type//1,
     rdf_html_literal_hook//3.
+
+html_doc:custom_param_type(Spec) -->
+  {memberchk(rdf_term, Spec)}, !,
+  html("RDF term").
 
 :- rdf_meta
    rdf_html_iri(r, ?, ?),
