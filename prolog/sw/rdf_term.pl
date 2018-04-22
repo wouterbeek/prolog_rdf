@@ -260,7 +260,7 @@ rdf_literal(Literal) -->
   "\"",
   ...(Codes),
   "\"", !,
-  ("^^" -> rdf_iri(D) ; "@" -> rest_as_atom(LTag) ; ""),
+  ("^^" -> rdf_iri(D) ; "@" -> remainder_as_atom(LTag) ; ""),
   {
     atom_codes(Lex, Codes),
     rdf_literal(D, LTag, Lex, Literal)
