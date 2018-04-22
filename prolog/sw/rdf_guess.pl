@@ -13,10 +13,11 @@
 This module heuristically guesses the RDF serialization format that is
 stored in the input stream In.
 
-RDF/XML can be distinguished from Turtle-family, because it is not
-possible to define valid RDF/XML without XML namespaces.  At the same
-time, it is not possible to define a valid absolute Turtle-family IRI
-(`<…>'-notation) with a valid `xmlns' declaration[?].
+RDF/XML can be distinguished from Turtle-family serializations,
+because it is not possible to define valid RDF/XML without declaring
+XML namespaces.
+
+---
 
 @author Wouter Beek
 @author Jan Wielemaker
