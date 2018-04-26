@@ -17,12 +17,12 @@
 
 :- multifile
     http:convert_parameter/3,
-    http:error_status_message/3.
+    http:error_status_message_hook/3.
 
 http:convert_parameter(rdf_term, Atom, G) :-
   rdf_atom_to_term(Atom, G).
 
-http:error_status_message(rdf(cannot_parse(rdf_term,Atom)), 400, Msg) :-
+http:error_status_message_hook(rdf(cannot_parse(rdf_term,Atom)), 400, Msg) :-
   format(
     string(Msg),
     "😿 Your request is incorrect!  You have specified the value ‘~a’, but this cannot be parsed as an RDF term.",
