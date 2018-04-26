@@ -106,6 +106,8 @@ rdf_write_nonliteral(Out, _, Iri) :-
 
 %! rdf_write_quad(+Out:stream, +Quad:rdf_quad) is det.
 %! rdf_write_quad(+Out:stream, +Triple:rdf_triple, +G:rdf_graph) is det.
+%! rdf_write_quad(+Out:stream, +S:rdf_nonliteral, +P:iri, +O:rdf_term, +G:rdf_graph) is det.
+%! rdf_write_quad(+Out:stream, +BNodePrefix:atom, +S:rdf_nonliteral, +P:iri, +O:rdf_term, +G:rdf_graph) is det.
 %
 % Quad must be a quadruple (denoted by compound term rdf/4).  Triples
 % (denoted by compound term rdf/3) are not supported.
