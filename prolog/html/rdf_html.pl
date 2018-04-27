@@ -130,7 +130,7 @@ rdf_html_iri_internal_(Iri, Options) -->
 % Plain IRI, possibly ellipsed.
 rdf_html_iri_internal_(Iri1, Options) -->
   {atom_ellipsis(Iri1, Options.max_iri_len, Iri2)},
-  html(Iri2).
+  html(["<",Iri2,">"]).
 
 rdf_html_iri_external_(Iri) -->
   {is_uri(Iri)}, !,
