@@ -4,10 +4,11 @@
     rdf_assert_prefix/1,    % +PairOrAlias
     rdf_assert_prefix/2,    % +Alias, +Iri
     rdf_assert_prefixes/0,
-    rdf_global_id/2,        % ?PrefixedIri, ?Iri
+   %rdf_global_id/2,        % ?PrefixedIri, ?Iri
     rdf_prefix/1,           % ?Alias
    %rdf_prefix/2,           % ?Alias, ?Iri
    %rdf_prefix_any/2,       % ?PrefixedPlTerm, ?PlTerm
+   %rdf_prefix_term/2,      % ?PrefixedRdfTerm, ?RdfTerm
     rdf_prefix_iri/3,       % ?Alias, ?Local, ?Iri
     rdf_prefix_maplist/2,   % :Goal_1, +Args
     rdf_prefix_member/2,    % ?Elem, +L
