@@ -420,6 +420,7 @@ prefix_(Alias, Prefix) :-
   rdf_db:ns(Alias, Prefix).
 prefix_(bag, 'http://bag.basisregistraties.overheid.nl/def/bag#').
 prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
+prefix_(bibo, 'http://purl.org/ontology/bibo/').
 prefix_(cms, 'http://SemanticCMS.cc/vocab/').
 prefix_(crs, 'http://www.opengis.net/def/crs/OGC/1.3/').
 prefix_(csvw, 'http://www.w3.org/ns/csvw#').
