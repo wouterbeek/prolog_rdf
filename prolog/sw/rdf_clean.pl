@@ -77,7 +77,7 @@ rdf_clean_iri(Iri, Iri).
 
 % language-tagged string
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
-  print_message(warning, missing_language_tag(Lex)),
+  print_message(warning, rdf(missing_language_tag(Lex))),
   fail.
 % typed literal
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
@@ -95,14 +95,14 @@ rdf_clean_lexical_form(D, Lex1, Lex2) :-
   (var(E) -> true ; invalid_lexical_form(D, Lex1)),
   % Emit a warning if the lexical form is not canonical.
   (   Lex1 \== Lex2
-  ->  print_message(warning, non_canonical_lexical_form(D,Lex1,Lex2))
+  ->  print_message(warning, rdf(non_canonical_lexical_form(D,Lex1,Lex2)))
   ;   true
   ).
 
 % Emit a warning and fail silently if the lexical form cannot be
 % parsed according to the given datatye IRI.
 invalid_lexical_form(D, Lex) :-
-  print_message(warning, incorrect_lexical_form(D,Lex)),
+  print_message(warning, rdf(incorrect_lexical_form(D,Lex))),
   fail.
 
 
@@ -114,7 +114,7 @@ rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
   downcase_atom(LTag1, LTag2),
   % Emit a warning if the language tag is not canonical.
   (   LTag1 \== LTag2
-  ->  print_message(warning, non_canonical_language_tag(LTag1))
+  ->  print_message(warning, rdf(non_canonical_language_tag(LTag1)))
   ;   true
   ).
 % typed literal
