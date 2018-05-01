@@ -43,6 +43,7 @@
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(html/html_date_time_machine)).
+:- use_module(library(html/html_ext)).
 :- use_module(library(http/http_server)).
 :- use_module(library(http/rdf_http)).
 :- use_module(library(list_ext)).
@@ -330,8 +331,8 @@ rdf_html_triple_table(Uri, G, Triples) -->
 
 rdf_html_triple_table(Uri, G, Triples, Options1) -->
   {rdf_html_options(Options1, Options2)},
-  table(
-    \table_header_row(["Subject","Predicate","Object"]),
+  html_table(
+    \html_table_header_row(["Subject","Predicate","Object"]),
     \html_maplist(
       [Triple]>>rdf_html_triple_table_row(Uri, G, Triple, Options2),
       Triples
