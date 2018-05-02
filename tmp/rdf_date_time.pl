@@ -55,22 +55,6 @@ error:has_type(rdf_date_time, time(H,Mi,S)) :-
 
 
 
-%! dt_to_rdf_date_time(+Dt:dt, +D:atom, -Semweb:compound) is det.
-%
-% Converts date/time values to the representation supported by
-% `semweb/rdf11'.
-
-dt_to_rdf_date_time(dt(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)) :- !.
-dt_to_rdf_date_time(dt(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)) :- !.
-dt_to_rdf_date_time(dt(_,_,D,_,_,_,_), xsd:gDay, D) :- !.
-dt_to_rdf_date_time(dt(_,Mo,_,_,_,_,_), xsd:gMonth, Mo) :- !.
-dt_to_rdf_date_time(dt(_,Mo,D,_,_,_,_), xsd:gMonthDay, month_day(Mo,D)) :- !.
-dt_to_rdf_date_time(dt(Y,_,_,_,_,_,_), xsd:gYear, Y) :- !.
-dt_to_rdf_date_time(dt(Y,Mo,_,_,_,_,_), xsd:gYearMonth, year_month(Y,Mo)) :- !.
-dt_to_rdf_date_time(dt(_,_,_,H,Mi,S,_), xsd:time, time(H,Mi,S)).
-
-
-
 %! is_rdf_date_time(@Term) is semidet.
 
 is_rdf_date_time(Term) :-
