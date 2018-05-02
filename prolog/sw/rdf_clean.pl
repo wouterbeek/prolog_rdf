@@ -16,6 +16,7 @@
 
 :- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_term)).
+:- use_module(library(uriparser)).
 
 :- rdf_meta
    rdf_clean_lexical_form(r, +, -).
@@ -45,7 +46,7 @@ rdf_clean_bnode(BNodePrefix, BNode, Iri) :-
 
 
 
-%! rdf_clean_graph(+G:rdf_graph, -CleanG:rdf_graph) is det.
+%! rdf_clean_graph(+G:rdf_graph, -CleanG:rdf_graph) is semidet.
 
 rdf_clean_graph(G1, G3) :-
   rdf11:post_graph(G2, G1),
@@ -58,18 +59,21 @@ rdf_clean_graph(G1, G3) :-
 
 
 
-%! rdf_clean_iri(+Iri:atom, -CleanIri:atom) is det.
+%! rdf_clean_iri(+Iri:atom, -CleanIri:atom) is semidet.
 %
-% IRIs are assumed to the made absolute by the respective RDF parsers
-% (that all take either option `base/1' or option `base_uri/1').  If
-% this is not the case, the perform the following prior to cleaning:
+% IRIs are assumed to have been made absolute by the RDF parser prior
+% to cleaning (through option `base/1' or `base_uri/1').  If this is
+% not the case, then perform the following prior to cleaning:
 %
 % ```
 % setting(rdf_term:base_uri, BaseUri),
 % uri_resolve(Iri1, BaseUri, Iri2).
 % ```
+%
+% @tbd No IRI check exists currently.
 
-rdf_clean_iri(Iri, Iri).
+rdf_clean_iri(Iri, Iri) :-
+  is_uri(Iri).
 
 
 
@@ -127,7 +131,7 @@ rdf_clean_literal(literal(Lex), Literal) :-
 
 
 
-%! rdf_clean_nonliteral(+BNodePrefix:iri, +NonLiteral:atom, -CleanNonLiteral:atom) is det.
+%! rdf_clean_nonliteral(+BNodePrefix:iri, +NonLiteral:atom, -CleanNonLiteral:atom) is semidet.
 
 % blank node
 rdf_clean_nonliteral(BNodePrefix, BNode, Iri) :-
