@@ -13,10 +13,11 @@
 */
 
 :- use_module(library(semweb/rdf11), []).
+:- use_module(library(uri)).
 
+:- use_module(library(dcg)).
 :- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_term)).
-:- use_module(library(uriparser)).
 
 :- rdf_meta
    rdf_clean_lexical_form(r, +, -).
@@ -73,7 +74,24 @@ rdf_clean_graph(G1, G3) :-
 % @tbd No IRI check exists currently.
 
 rdf_clean_iri(Iri, Iri) :-
-  is_uri(Iri).
+  uri_components(Iri, uri_components(Scheme,_Auth,_Path,_Query,_Fragment)),
+  atom_phrase(check_scheme, Scheme).
+
+% scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+check_scheme -->
+  alpha(_),
+  'check_scheme_nonfirst*'.
+
+'check_scheme_nonfirst*' -->
+  check_scheme_nonfirst, !,
+  'check_scheme_nonfirst*'.
+'check_scheme_nonfirst*' --> "".
+
+check_scheme_nonfirst --> alpha(_).
+check_scheme_nonfirst --> digit(_).
+check_scheme_nonfirst --> "+".
+check_scheme_nonfirst --> "-".
+check_scheme_nonfirst --> ".".
 
 
 
