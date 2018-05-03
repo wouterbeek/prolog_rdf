@@ -234,16 +234,16 @@ rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 % to a given datatype IRI (`D'), into a lexical form (`Lex').
 
 % rdf:HTML
-rdf_lexical_value(rdf:'HTML', Lex, Value) :-
+rdf_lexical_value(rdf:'HTML', Lex, Value) :- !,
   (   nonvar(Lex)
   ->  rdf11:parse_partial_xml(load_html, Lex, Value)
   ;   rdf11:write_xml_literal(html, Value, Lex)
   ).
 % rdf:XMLLiteral
-rdf_lexical_value(rdf:'XMLLiteral', Lex, Value) :-
+rdf_lexical_value(rdf:'XMLLiteral', Lex, Value) :- !,
   (   nonvar(Lex)
   ->  rdf11:parse_partial_xml(load_xml, Lex, Value)
-  ;   write_xml_literal(xml, Value, Lex)
+  ;   rdf11:write_xml_literal(xml, Value, Lex)
   ).
 % XSD datatype IRIs
 rdf_lexical_value(D, Lex, Value) :-
