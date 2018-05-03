@@ -74,7 +74,8 @@ rdf_clean_graph(G1, G3) :-
 % @tbd No IRI check exists currently.
 
 rdf_clean_iri(Iri, Iri) :-
-  uri_components(Iri, uri_components(Scheme,_Auth,_Path,_Query,_Fragment)),
+  uri_components(Iri, uri_components(Scheme,Auth,_Path,_Query,_Fragment)),
+  ground(Scheme-Auth),
   atom_phrase(check_scheme, Scheme).
 
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
