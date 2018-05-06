@@ -428,10 +428,10 @@ prefix_(csvw, 'http://www.w3.org/ns/csvw#').
 prefix_(cyc, 'http://sw.opencyc.org/concept/').
 prefix_(dawgt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#').
 prefix_(dbc, 'http://dbpedia.org/resource/Category:').
+prefix_(dbd, 'http://dbpedia.org/datatype/').
 prefix_(dbo, 'http://dbpedia.org/ontology/').
 prefix_(dbp, 'http://dbpedia.org/property/').
 prefix_(dbr, 'http://dbpedia.org/resource/').
-prefix_(dbt, 'http://dbpedia.org/datatype/').
 prefix_(dby, 'http://dbpedia.org/class/yago/').
 prefix_(dcat, 'http://www.w3.org/ns/dcat#').
 prefix_(dce, 'http://purl.org/dc/elements/1.1/').

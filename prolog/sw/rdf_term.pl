@@ -273,7 +273,8 @@ rdf_literal(Literal) -->
 %
 % Compose/decompose literals.
 
-rdf_literal(D, _, Lex, literal(type(D,Lex))).
+rdf_literal(D, LTag, Lex, literal(type(D,Lex))) :-
+  var(LTag).
 rdf_literal(rdf:langString, LTag, Lex, literal(lang(LTag,Lex))).
 
 
