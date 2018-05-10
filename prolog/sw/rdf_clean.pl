@@ -10,6 +10,8 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
+@tbd `rdf:HTML' and `rdf:XMLLiteral' do not have a lexical form, and
+     do not have a canonical mapping.
 @version 2017-2018
 */
 
@@ -104,23 +106,28 @@ check_scheme_nonfirst --> ".".
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
   print_message(warning, rdf(missing_language_tag(Lex))),
   fail.
+% rdf:HTML
+rdf_clean_lexical_form(rdf:'HTML', Dom, Dom) :- !.
+% rdf:XMLLiteral
+rdf_clean_lexical_form(rdf:'XMLLiteral', Dom, Dom) :- !.
 % typed literal
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
-  catch(rdf_lexical_value(D, Lex1, Value), _, invalid_lexical_form(D, Lex1)),
+  catch(
+    rdf_lexical_value(D, Lex1, Value),
+    _,
+    (
+      % Emit a warning and fail silently if the lexical form cannot be
+      % parsed according to the given datatye IRI.
+      print_message(warning, rdf(incorrect_lexical_form(D,Lex1))),
+      fail
+    )
+  ),
   rdf_lexical_value(D, Lex2, Value),
   % Emit a warning if the lexical form is not canonical.
-  (   Lex1 \== Lex2,
-      % @tbd Implement the canonical mapping for DOMs.
-      \+ rdf_prefix_memberchk(D, [rdf:'HTML',rdf:'XMLLiteral'])
+  (   Lex1 \== Lex2
   ->  print_message(warning, rdf(non_canonical_lexical_form(D,Lex1,Lex2)))
   ;   true
   ).
-
-% Emit a warning and fail silently if the lexical form cannot be
-% parsed according to the given datatye IRI.
-invalid_lexical_form(D, Lex) :-
-  print_message(warning, rdf(incorrect_lexical_form(D,Lex))),
-  fail.
 
 
 
