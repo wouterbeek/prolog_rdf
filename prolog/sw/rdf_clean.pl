@@ -1,8 +1,9 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean_quad/3,  % +BNodePrefix, +Quad, -CleanQuad
-    rdf_clean_triple/3 % +BNodePrefix, +Triple, -CleanTriple
+    rdf_clean_quad/3,   % +BNodePrefix, +Quad, -CleanQuad
+    rdf_clean_triple/3, % +BNodePrefix, +Triple, -CleanTriple
+    rdf_clean_tuple/3   % +BNodePrefix, +Tuple, -CleanTuple
   ]
 ).
 
@@ -186,3 +187,12 @@ rdf_clean_triple(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
   rdf_clean_nonliteral(BNodePrefix, S1, S2),
   rdf_clean_iri(P1, P2),
   rdf_clean_term(BNodePrefix, O1, O2).
+
+
+
+%! rdf_clean_tuple(+BNodePrefix:iri, +Tuple:compound, -CleanTuple:compound) is semidet.
+
+rdf_clean_tuple(BNodePrefix, rdf(S,P,O,user), Triple) :- !,
+  rdf_clean_triple(BNodePrefix, rdf(S,P,O), Triple).
+rdf_clean_tuple(BNodePrefix, Quad, CleanQuad) :-
+  rdf_clean_quad(BNodePrefix, Quad, CleanQuad).
