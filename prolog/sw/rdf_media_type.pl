@@ -4,6 +4,7 @@
     rdf_file_name_media_type/2, % +File, -MediaType
     rdf_media_type/1,           % ?MediaType
     'rdf_media_type_>'/2,       % +SuperMediaType +SubMediaType
+    rdf_media_type_extension/2, % ?MediaType, ?Extension
     rdfa_media_type/1           % ?MediaType
   ]
 ).
@@ -39,15 +40,10 @@ rdf_file_name_media_type(File, MediaType) :-
 %! rdf_media_type(@MediaType:compound) is semidet.
 %! rdf_media_type(-MediaType:compound) is multi.
 
-% Ordering represents precedence, as used in HTTP Accept headers, from
-% lower to higher.
 rdf_media_type(media(application/'xhtml+xml',[])).
 rdf_media_type(media(application/'json-ld',[])).
-rdf_media_type(media(application/'n-quads',[])).
-rdf_media_type(media(application/'n-triples',[])).
-rdf_media_type(media(application/'rdf+xml',[])).
-rdf_media_type(media(application/trig,[])).
-rdf_media_type(media(text/turtle,[])).
+rdf_media_type(MediaType) :-
+  rdf_media_type_extension(MediaType, _).
 
 
 
@@ -76,6 +72,16 @@ rdf_media_type(media(text/turtle,[])).
   media(application/'n-quads',_),
   media(application/'n-triples',_)
 ).
+
+
+
+%! rdf_media_type_extension(?MediaType:compound, ?Extension:atom) is nondet.
+
+rdf_media_type_extension(media(application/'n-quads',[]),nq).
+rdf_media_type_extension(media(application/'n-triples',[]), nt).
+rdf_media_type_extension(media(application/'rdf+xml',[]), rdf).
+rdf_media_type_extension(media(application/trig,[]), trig).
+rdf_media_type_extension(media(text/turtle,[]), ttl).
 
 
 
