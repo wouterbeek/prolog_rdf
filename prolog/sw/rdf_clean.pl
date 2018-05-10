@@ -80,7 +80,7 @@ rdf_clean_iri(Iri, Iri) :-
 
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 check_scheme -->
-  alpha(_),
+  alpha(_), !,
   'check_scheme_nonfirst*'.
 
 'check_scheme_nonfirst*' -->
