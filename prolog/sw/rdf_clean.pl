@@ -18,6 +18,7 @@
 
 :- use_module(library(dcg)).
 :- use_module(library(hash_ext)).
+:- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
 
 :- rdf_meta
@@ -105,20 +106,12 @@ rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
   fail.
 % typed literal
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
-  % Translation ‘lexical form → value’ does not perform full type
-  % checking (e.g., '1.1'^^xsd:int is allowed), so the translation
-  % ‘value → canonical lexical form’ must also anticipate errors.
-  catch(
-    (
-      rdf_lexical_value(D, Lex1, Value),
-      rdf_lexical_value(D, Lex2, Value)
-    ),
-    E,
-    true
-  ),
-  (var(E) -> true ; invalid_lexical_form(D, Lex1)),
+  catch(rdf_lexical_value(D, Lex1, Value), _, invalid_lexical_form(D, Lex1)),
+  rdf_lexical_value(D, Lex2, Value),
   % Emit a warning if the lexical form is not canonical.
-  (   Lex1 \== Lex2
+  (   Lex1 \== Lex2,
+      % @tbd Implement the canonical mapping for DOMs.
+      \+ rdf_prefix_memberchk(D, [rdf:'HTML',rdf:'XMLLiteral'])
   ->  print_message(warning, rdf(non_canonical_lexical_form(D,Lex1,Lex2)))
   ;   true
   ).
