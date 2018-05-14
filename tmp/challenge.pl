@@ -51,7 +51,7 @@ go_class(String) :-
   member(_-C, SortedPairs),
   docs(_, rdf:type, C, Docs),
   maplist(class_type_goal0(C), Docs, Goals),
-  (concurrent(10, Goals, []) -> fail ; !, true),
+  (concurrent(10, Goals, []) -> fail ; !),
   writeln(C).
 class_type_goal0(C, Doc, \+ ldf(_, P, C, Doc)) :-
   rdf_equal(rdf:type, P).

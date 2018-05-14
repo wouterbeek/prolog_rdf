@@ -69,7 +69,7 @@ rdf_link_objects(Backend, P, G) :-
   length(Froms, NumFroms),
   msg_notification("We're going to link ~D terms…~n", [NumFroms]),
   catch(rdf_link_objects_loop(Backend, 1, NumFroms, Froms, P, G), E, true),
-  (E == user_quits -> !, true ; true),
+  (E == user_quits -> ! ; true),
   rdf_view2store(trp, G),
   rdf_store2view(hdt, G).
 
@@ -169,4 +169,4 @@ rdf_user_chooses_iri(Backend, Lit, Score, Iri) :-
     sq(dcg_rdf_print_iri(Iri)),
     atom(" (Y/N)?")
   )),
-  (user_input(Msg) -> !, true ; fail).
+  (user_input(Msg) -> ! ; fail).
