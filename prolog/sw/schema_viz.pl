@@ -1,8 +1,10 @@
 :- module(
   schema_viz,
   [
-    export_hierarchy/3, % +P, +Options, +Out
-    show_hierarchy/2    % +P, +Options
+    export_hierarchy/3, % +File, +P, +G
+    export_hierarchy/4, % +File, +P, +G, +Options
+    view_hierarchy/2,   % +P, +G
+    view_hierarchy/3    % +P, +G, +Options
   ]
 ).
 
@@ -14,11 +16,13 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(option)).
+:- use_module(library(yall)).
 
 :- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
+:- use_module(library(graph/graph_export)).
 :- use_module(library(graph/graph_ext)).
-:- use_module(library(graph/gv)).
 :- use_module(library(os_ext)).
 :- use_module(library(sw/rdf_mem)).
 :- use_module(library(sw/rdf_prefix)).
@@ -27,74 +31,85 @@
 :- use_module(library(uri_ext)).
 
 :- rdf_meta
-   export_hierarchy(r, +, +),
-   show_hierarchy(r, +).
+   export_hierarchy(+, r, r),
+   export_hierarchy(+, r, r, +),
+   view_hierarchy(r, r),
+   view_hierarchy(r, r, +).
 
 
 
 
 
-%! export_edge(+Options:dict, +Out:stream, +Edge:compound) is det.
+%! export_arc(+Out:stream, +Arc:compound, +Options:list(compound)) is det.
 
-export_edge(_, Out, edge(C1,[P],C2)) :-
+export_arc(Out, arc(C1,[P],C2), _) :-
   rdf_prefix_memberchk(P, [rdfs:subClassOf,rdfs:subPropertyOf]), !,
-  maplist(gv_id, [C1,C2], [Id1,Id2]),
   % By swapping the order in which the nodes are asserted, we are able
   % to show superclasses/superproperties above
   % subclasses/subproperties.
-  gv_edge(Out, Id2, Id1, [arrowtail(onormal),dir(back),'URL'(P)]).
-export_edge(Options, Out, edge(C1,Ps,C2)) :-
-  maplist(export_node_label(Options), Ps, PLabels),
-  atomics_to_string(PLabels, "/", PsLabel),
+  dot_arc(Out, C2, C1, [arrowtail(onormal),dir(back),'URL'(P)]).
+export_arc(Out, arc(C1,Ps,C2), Options) :-
+  maplist({Options}/[P,Label]>>export_node_label(P, Label, Options), Ps, Labels),
+  atomics_to_string(Labels, "/", Label),
   % We cannot put in URLs for all property path members, so we only
   % take the first one.
   Ps = [P|_],
-  maplist(gv_id, [C1,C2], [Id1,Id2]),
-  gv_edge(Out, Id1, Id2, [label(PsLabel),'URL'(P)]).
+  dot_arc(Out, C1, C2, [label(Label),'URL'(P)]).
 
 
 
-%! export_hierarchy(+P:rdf_predicate, +Options:dict, +Out:stream) is det.
+%! export_hierarchy(+File:atom, +P:rdf_predicate, +G:rdf_graph) is det.
+%! export_hierarchy(+File:atom, +P:rdf_predicate, +G:rdf_graph,
+%!                  +Options:list(compound)) is det.
 
-export_hierarchy(P, Options, Out) :-
-  format_debug(dot, Out, "digraph hierarchy {"),
-  format_debug(dot, Out, "  graph [overlap=false];"),
-  aggregate_all(set(edge(C,[P],D)), rdf_triple(C, P, D), Edges),
-  maplist(export_edge(Options, Out), Edges),
-  edges_to_vertices(Edges, Nodes),
-  maplist(export_node(Options, Out), Nodes),
-  format_debug(dot, Out, "}").
+export_hierarchy(File, P, G) :-
+  export_hierarchy(File, P, G, []).
 
 
+export_hierarchy(File, P, G, Options) :-
+  export_graph(
+    File,
+    {P,G,Options}/[Out]>>export_hierarchy_(Out, P, G, Options),
+    Options
+  ).
 
-%! export_node(+Options:dict, +Out:stream, +Node:rdf_node) is det.
+export_hierarchy_(Out, P, G, Options) :-
+  aggregate_all(set(arc(C,[P],D)), rdf_triple(C, P, D, G), Arcs),
+  maplist({Out,Options}/[Arc]>>export_arc(Out, Arc, Options), Arcs),
+  arcs_to_vertices(Arcs, Nodes),
+  maplist({Out,Options}/[Node]>>export_node(Out, Node, Options), Nodes).
+
+
+
+%! export_node(+Out:stream, +Node:rdf_node, +Options:list(compound)) is det.
 %
 % Export a simple node, i.e., without its internal UML-like
 % definition.
 
-export_node(Options, Out, Node) :-
-  gv_id(Node, Id),
-  export_node_label(Options, Node, Label),
+export_node(Out, Node, Options) :-
+  export_node_label(Node, Label, Options),
   (is_http_uri(Node) -> T = ['URL'(Node)] ; T = []),
-  gv_node(Out, Id, [label(Label),shape(rect)|T]).
+  dot_node(Out, Node, [label(Label),shape(rect)|T]).
 
 
 
-%! export_node_label(+Options:dict, +Node:rdf_node, -Label:string) is det.
+%! export_node_label(+Node:rdf_node, -Label:string, +Options:list(compound)) is det.
 
-export_node_label(Options, Node, Label) :-
-  _{label: P0} :< Options,
+export_node_label(Node, Label, Options) :-
+  option(label_property(P0), Options),
   rdf_global_id(P0, P),
   rdf_triple(Node, P, Label, _), !.
-export_node_label(_, Node, Label) :-
+export_node_label(Node, Label, _) :-
   string_phrase(rdf_dcg_term(Node), Label).
 
 
 
-%! show_hierarchy(P:rdf_predicate, +Options:dict) is det.
+%! view_hierarchy(+P:rdf_predicate, +G:rdf_graph) is det.
+%! view_hierarchy(+P:rdf_predicate, +G:rdf_graph, +Options:list(compound)) is det.
 
-show_hierarchy(P, Options) :-
-  _{format: Ext, method: Method} :< Options,
-  file_name_extension(hierarchy, Ext, File),
-  gv_export(Method, Ext, File, export_hierarchy(P, Options)),
-  open_file(File).
+view_hierarchy(P, G) :-
+  view_hierarchy(P, G, []).
+
+
+view_hierarchy(P, G, Options) :-
+  view_graph({P,G,Options}/[Out]>>export_hierarchy_(Out, P, G, Options), Options).

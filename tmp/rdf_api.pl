@@ -1,12 +1,8 @@
 :- module(
   rdf_api,
   [
-    rdf/4,                        % ?S, ?P, ?O, ?G
     rdf2/3,                       % ?S, ?P, ?O
     rdf2/4,                       % ?S, ?P, ?O, ?G
-    rdf_assert/1,                 % +Tuple
-    rdf_assert/3,                 % +S, +P, +O
-    rdf_assert/4,                 % +S, +P, +O, +G
     rdf_assert_list/2,            % +PrologList, -RdfList
     rdf_assert_list/3,            % +PrologList, -RdfList, +G
     rdf_assert_list/4,            % +S, +P, +PrologList, +G
@@ -21,8 +17,6 @@
     rdf_deref_triple/3,           % +Uri, -Quads, +Options
     rdf_label/2,                  % +Term, -Label
     rdf_label/3,                  % +Term, +P, -Label
-    rdf_list_member/2,            % ?X, ?L
-    rdf_list_member/3,            % ?X, ?L, ?G
     rdf_node/2,                   % ?Node, ?G
     rdf_query_term/2,             % +Term, -QueryTerm
     rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
@@ -30,8 +24,6 @@
     rdf_retractall/4,             % ?S, ?P, ?O, ?G
     rdf_retractall2/4,            % ?S, ?P, ?O, ?G
     rdf_subdatatype/2,            % ?D1, ?D2
-    rdf_triple_list_member/3,     % ?S, ?P, ?X
-    rdf_triple_list_member/4,     % ?S, ?P, ?X, ?G
     rdf_triple_term/2,            % +Triple, ?Term
     rdfs_instance/2,              % ?I, ?C
     rdfs_instance/3,              % ?I, ?C, ?G
@@ -86,12 +78,8 @@
 :- use_module(library(xml/xsd_number)).
 
 :- rdf_meta
-   rdf(r, r, o, r),
    rdf2(r, r, o),
    rdf2(r, r, o, r),
-   rdf_assert(t),
-   rdf_assert(r, r, o),
-   rdf_assert(r, r, o, r),
    rdf_assert_list(+, -, r),
    rdf_assert_list(r, r, t, r),
    rdf_assert_reification(r, r, o, r),
@@ -105,16 +93,12 @@
    rdf_deref_triple(r, -, +),
    rdf_label(r, -),
    rdf_label(r, r, -),
-   rdf_list_member(r, t),
-   rdf_list_member(r, t, r),
    rdf_node(o, r),
    rdf_reification(r, r, o, r),
    rdf_reification(r, r, o, r, r),
    rdf_retractall(r, r, o, r),
    rdf_retractall2(r, r, o, r),
    rdf_subdatatype(r, r),
-   rdf_triple_list_member(r, r, t),
-   rdf_triple_list_member(r, r, t, r),
    rdf_triple_term(t, o),
    rdfs_instance(r, r),
    rdfs_instance(r, r, r),
@@ -126,15 +110,6 @@
    rdfs_subproperty(r, r, r).
 
 
-
-
-
-%! rdf(?S, ?P, ?O, ?G) is nondet.
-
-rdf(S, P, O, G) :-
-  rdf11:pre_graph(G, G0),
-  rdf_db:rdf(S, P, O, G0),
-  rdf11:post_graph(G, G0).
 
 
 
@@ -151,66 +126,6 @@ rdf2(S, P, Term, G) :-
   rdf11:pre_object(Term, O),
   rdf(S, P, O, G),
   rdf11:post_object(Term, O).
-
-
-
-%! rdf_assert(+Tuple:rdf_tuple) is det.
-
-rdf_assert(rdf(S,P,O)) :- !,
-  rdf_assert(S, P, O).
-rdf_assert(rdf(S,P,O,G)) :-
-  rdf_assert(S, P, O, G).
-
-
-
-%! rdf_assert(+S, +P, +O) is det.
-
-rdf_assert(S, P, Term) :-
-  must_be(ground, Term),
-  rdf11:pre_ground_object(Term, O),
-  rdf_db:rdf_assert(S, P, O).
-
-
-
-%! rdf_assert(+S, +P, +O, +G) is det.
-
-rdf_assert(S, P, Term, G) :-
-  must_be(ground, Term),
-  rdf11:pre_ground_object(Term, O),
-  rdf_db:rdf_assert(S, P, O, G).
-
-
-
-%! rdf_assert_list(+PrologList:list, -RdfList:bnode) is det.
-%! rdf_assert_list(+PrologList:list, -RdfList:bnode, +G:iri) is det.
-%! rdf_assert_list(+S:rdf_subject, +P:iri, +PrologList:list, +G:iri) is det.
-
-rdf_assert_list(PrologList, RdfList) :-
-  rdf_default_graph(G),
-  rdf_assert_list(PrologList, RdfList, G).
-
-
-rdf_assert_list(PrologList, RdfList, G) :-
-  must_be(list, PrologList),
-  rdf_transaction(rdf_assert_list_(PrologList, RdfList, G)).
-
-rdf_assert_list_([], Nil, _) :-
-  rdf_equal(rdf:nil, Nil).
-rdf_assert_list_([H|T], L2, G) :-
-  (var(L2) -> rdf_create_bnode(L2) ; true),
-  rdf_assert(L2, rdf:type, rdf:'List', G),
-  rdf_assert(L2, rdf:first, H, G),
-  (   T == []
-  ->  rdf_assert(L2, rdf:rest, rdf:nil, G)
-  ;   rdf_create_bnode(T2),
-      rdf_assert(L2, rdf:rest, T2, G),
-      rdf_assert_list_(T, T2, G)
-  ).
-
-
-rdf_assert_list(S, P, PrologList, G) :-
-  rdf_assert_list(PrologList, RdfList, G),
-  rdf_assert(S, P, RdfList, G).
 
 
 
@@ -302,16 +217,6 @@ rdf_label(Term, P, Label) :-
 
 
 
-%! rdf_list_member(?X, ?L) is nondet.
-
-rdf_list_member(X, L) :-
-  rdf(L, rdf:first, X).
-rdf_list_member(X, L) :-
-  rdf(L, rdf:rest, T),
-  rdf_list_member(T, X).
-
-
-
 %! rdf_node(?Node, ?G) is nondet.
 
 rdf_node(S, G) :-
@@ -368,18 +273,6 @@ rdf_retractall2(S, P, Term, G) :-
 rdf_subdatatype(D1, D2) :-
   xsd_subtype(D1, D2).
 rdf_subdatatype(dbt:kilometer, xsd:double).
-
-
-
-%! rdf_triple_list_member(?S, ?P, ?X) is nondet.
-
-rdf_triple_list_member(S, P, X) :-
-  ground(X), !,
-  rdf_list_member(X, L),
-  rdf(S, P, L).
-rdf_triple_list_member(S, P, X) :-
-  rdf(S, P, L),
-  rdf_list_member(X, L).
 
 
 
