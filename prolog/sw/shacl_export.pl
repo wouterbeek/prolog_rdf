@@ -25,7 +25,7 @@
 :- use_module(library(sw/rdf_mem)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_print)).
-:- use_module(library(sw/rdf_term), []).
+:- use_module(library(sw/rdf_term)).
 :- use_module(library(sw/shacl)).
 
 :- maplist(rdf_assert_prefix, [owl,rdf,sh]).
@@ -86,58 +86,41 @@ shacl_export_arc(Out, arc(C,Ps,D)) :-
 
 % The instances of class `C' form an OWL value list.
 shacl_export_class(Out, C, G) :-
-  aggregate_all(
-    set(Value),
-    rdf_triple_list_member(C, owl:oneOf, Value, G),
-    Values
-  ),
+  aggregate_all(set(Value), rdf_triple_list_member(C, owl:oneOf, Value, G), Values),
   Values \== [], !,
   dot_id(C, CId),
-  % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
-  shacl_node_label(C, CLabel),
-  format_debug(dot, Out, "    <TR><TD><B>~s</B></TD></TR>", [CLabel]),
-  % middle of node
-  forall(
-    member(Value, Values),
-    (
-      shacl_node_label(Value, ValueLabel),
-      format_debug(dot, Out, "    <TR><TD>~s</TD></TR>", [ValueLabel])
-    )
-  ),
-  % bottom of node
+  shacl_node_label(C, Label),
+  format_debug(dot, Out, "    <TR><TD><B>~s</B></TD></TR>", [Label]),
+  maplist(shacl_export_class_value(Out), Values),
   format_debug(dot, Out, '  </TABLE>>,shape="none",URL="~a"];', [C]).
 % The instances of class `C' are related to certain property/range
 % pairs.
 shacl_export_class(Out, C, G) :-
   dot_id(C, CId),
-  % top of node
   format_debug(dot, Out, "  ~a [label=<<TABLE>", [CId]),
   shacl_node_label(C, CLabel),
-  format_debug(
-    dot,
-    Out,
-    '    <TR><TD COLSPAN="2"><B>~s</B></TD></TR>',
-    [CLabel]
-  ),
-  % middle of node
+  format_debug(dot, Out, '    <TR><TD COLSPAN="2"><B>~s</B></TD></TR>', [CLabel]),
   aggregate_all(set(Pair), shacl_property_path_datatype(C, Pair, G), Pairs),
-  forall(
-    member(Ps-O, Pairs),
-    (
-      maplist(shacl_node_label, Ps, PLabels),
-      atomics_to_string(PLabels, "/", PsLabel),
-      shacl_node_label(O, OLabel),
-      format_debug(
-        dot,
-        Out,
-        "    <TR><TD>~s</TD><TD>~s</TD></TR>",
-        [PsLabel,OLabel]
-      )
-    )
-  ),
-  % bottom of node
+  maplist(shacl_export_class_path(Out), Pairs),
   format_debug(dot, Out, '  </TABLE>>,shape="none",URL="~a"];', [C]).
+
+
+
+%! shacl_export_class_path(+Out:stream, +Pair:pair(list(rdf_predicate),rdf_object)) is det.
+
+shacl_export_class_path(Out, Ps-O) :-
+  maplist(shacl_node_label, [O|Ps], [OLabel|PLabels]),
+  atomics_to_string(PLabels, "/", PLabel),
+  format_debug(dot, Out, "    <TR><TD>~s</TD><TD>~s</TD></TR>", [PLabel,OLabel]).
+
+
+
+%! shacl_export_class_value(+Out:stream, +Value:term) is det.
+
+shacl_export_class_value(Out, Value) :-
+  shacl_node_label(Value, Label),
+  format_debug(dot, Out, "    <TR><TD>~s</TD></TR>", [Label]).
 
 
 
