@@ -111,15 +111,13 @@ shacl_property_class(Property, C, G) :-
 
 shacl_property_path(Property, Ps, G) :-
   rdf_triple(Property, sh:path, Path, G),
-  (   rdf_triple(Path, rdf:type, rdf:'List', G)
-  ->  aggregate_all(set(P), rdf_list_member(P, Path, G), Ps),
-      assertion(Ps = [_,_|_])
-  ;   Ps = [Path]
-  ).
+  aggregate_all(set(P), rdf_list_member(P, Path, G), Ps0),
+  (Ps0 == [] -> Ps = [Path] ; Ps = Ps0).
 
 
 
-%! shacl_property_path_class(+C:iri, -Pair:pair(list(iri),iri), ?G:rdf_graph) is nondet.
+%! shacl_property_path_class(+C:iri, -Pair:pair(list(rdf_predicate),rdf_class),
+%!                           ?G:rdf_graph) is nondet.
 
 shacl_property_path_class(C, Ps-D, G) :-
   rdf_triple(Shape, sh:targetClass, C, G),
@@ -129,7 +127,8 @@ shacl_property_path_class(C, Ps-D, G) :-
 
 
 
-%! shacl_property_path_datatype(+C:iri, -Pair:pair(list(iri),iri), ?G:rdf_graph) is nondet.
+%! shacl_property_path_datatype(+C:iri, -Pair:pair(list(rdf_predicate),rdf_datatype),
+%!                              ?G:rdf_graph) is nondet.
 
 shacl_property_path_datatype(C, Ps-D, G) :-
   rdf_triple(Shape, sh:targetClass, C, G),
