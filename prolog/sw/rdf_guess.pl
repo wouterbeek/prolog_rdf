@@ -209,7 +209,7 @@ n3_format(Ext) -->
       n3_graph(Ext),
       n3_blanks,
       "."
-  ->  {Ext = trig}
+  ->  {Ext = nq}
   ), !,
   {(var(Ext) -> Ext = nq ; true)}.
 % TriG, Turtle anonymous blank node
@@ -344,17 +344,18 @@ n3_literal(trig) -->
 n3_literal(Ext) -->
   n3_lexical_form(Ext),
   n3_blanks,
-  n3_literal_type(Ext).
-
-n3_literal_type(Ext) -->
-  "^^", !,
-  n3_blanks,
-  n3_iriref(Ext).
-n3_literal_type(_) -->
-  "@", !,
-  n3_ltag.
-% TriG, Turtle abbreviated form for XSD string literals.
-n3_literal_type(trig) --> "".
+  (   % Literal with an explicit datatype IRI (previously: typed
+      % literal).
+      "^^"
+  ->  n3_blanks,
+      n3_iriref(Ext)
+  ;   % Language-tagged string (datatype IRI `rdf:langString').
+      "@"
+  ->  n3_ltag
+  ;   % Abbreviated notation for `xsd:string' (previously: simple
+      % literal).
+      ""
+  ).
 
 n3_ltag -->
   nonblanks.
