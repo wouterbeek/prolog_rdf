@@ -103,7 +103,7 @@ rdf_guess_string_(String, jsonld) :-
 rdf_guess_string_(String, Ext) :-
   % We use the information as to whether or not the end of the stream
   % has been reached.
-  string_phrase(n3_format(Ext), String, _).
+  string_phrase(n3_format(Ext), String, _), !.
 rdf_guess_string_(String, Ext) :-
   setup_call_cleanup(
     open_string(String, In),
