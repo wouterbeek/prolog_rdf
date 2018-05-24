@@ -83,6 +83,7 @@
    rdf_language_tagged_string(?, ?, o),
    rdf_lexical_value(r, ?, ?),
    rdf_lexical_to_value(r, +, -),
+   rdf_lexical_to_value_error(r, +),
    rdf_value_to_lexical(r, +, -),
    rdf_literal(r, ?, ?, o),
    rdf_literal_datatype_iri(o, r),
@@ -91,7 +92,8 @@
    rdf_literal_value(o, r, +),
    rdf_term_to_atom(t, -),
    rdf_typed_literal(r, ?, o),
-   rdf_value_to_lexical(r, +, -).
+   rdf_value_to_lexical(r, +, -),
+   rdf_value_to_lexical_error(r, +).
 
 :- setting(base_uri, atom, 'https://example.org/base-uri/',
            "The default base URI for RDF IRIs.").
@@ -239,34 +241,55 @@ rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 %
 % Translate between a value (`Value') and its serialization, according
 % to a given datatype IRI (`D'), into a lexical form (`Lex').
+%
+% @error syntax_error(+Literal:compound)
+% @error type_error(+D:atom,+Value:term)
+% @error unimplemented_datatype_iri(+D:atom)
 
 rdf_lexical_value(D, Lex, Value) :-
-  nonvar(Lex), !,
-  (   rdf_lexical_to_value(D, Lex, Value)
-  ->  true
-  ;   syntax_error(literal(type(D,Lex)))
-  ).
-rdf_lexical_value(D, Lex, Value) :-
-  (   rdf_value_to_lexical(D, Value, Lex)
-  ->  true
-  ;   type_error(D, Value)
-  ).
+  (   nonvar(Lex)
+  ->  rdf_lexical_to_value(D, Lex, Value)
+  ;   rdf_value_to_lexical(D, Value, Lex)
+  ), !.
+rdf_lexical_value(D, _, _) :-
+  throw(error(unimplemented_datatype_iri(D))).
+
 
 % rdf:HTML
-rdf_lexical_to_value(rdf:'HTML', Lex, Value) :-
-  rdf11:parse_partial_xml(load_html, Lex, Value).
+rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
+  (   rdf11:parse_partial_xml(load_html, Lex, Value)
+  ->  true
+  ;   rdf_lexical_to_value_error(rdf:'HTML', Lex)
+  ).
 rdf_value_to_lexical(rdf:'HTML', Value, Lex) :-
-  rdf11:write_xml_literal(html, Value, Lex).
+  (   rdf11:write_xml_literal(html, Value, Lex)
+  ->  true
+  ;   rdf_value_to_lexical_error(rdf:'HTML', Value)
+  ).
+
 % rdf:XMLLiteral
 rdf_lexical_to_value(rdf:'XMLLiteral', Lex, Value) :-
-  rdf11:parse_partial_xml(load_xml, Lex, Value).
+  (   rdf11:parse_partial_xml(load_xml, Lex, Value)
+  ->  true
+  ;   rdf_lexical_to_value_error(rdf:'XMLLiteral', Lex)
+  ).
 rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :-
-  rdf11:write_xml_literal(xml, Value, Lex).
+  (   rdf11:write_xml_literal(xml, Value, Lex)
+  ->  true
+  ;   rdf_value_to_lexical_error(rdf:'XMLLiteral', Value)
+  ).
+
 % XSD datatype IRIs
 rdf_lexical_to_value(D, Lex, Value) :-
   xsd_lexical_to_value(D, Lex, Value).
 rdf_value_to_lexical(D, Value, Lex) :-
   xsd_value_to_lexical(D, Value, Lex).
+
+rdf_lexical_to_value_error(D, Lex) :-
+  syntax_error(literal(type(D,Lex))).
+
+rdf_value_to_lexical_error(D, Value) :-
+  type_error(D, Value).
 
 
 

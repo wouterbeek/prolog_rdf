@@ -16,14 +16,16 @@
 */
 
 :- use_module(library(semweb/rdf11), []).
-:- use_module(library(uri)).
 
-:- use_module(library(dcg)).
 :- use_module(library(hash_ext)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
+:- use_module(library(uri_ext)).
 
 :- rdf_meta
+   rdf_clean_quad(+, t, -),
+   rdf_clean_triple(+, t, -),
+   rdf_clean_tuple(+, t, -),
    rdf_clean_lexical_form(r, +, -).
 
 
@@ -74,54 +76,28 @@ rdf_clean_graph(G1, G3) :-
 % setting(rdf_term:base_uri, BaseUri),
 % uri_resolve(Iri1, BaseUri, Iri2).
 % ```
-%
-% @tbd No IRI check exists currently.
 
 rdf_clean_iri(Iri, Iri) :-
-  uri_components(Iri, uri_components(Scheme,Auth,_Path,_Query,_Fragment)),
-  ground(Scheme-Auth),
-  atom_phrase(check_scheme, Scheme).
-
-% scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
-check_scheme -->
-  alpha(_), !,
-  'check_scheme_nonfirst*'.
-
-'check_scheme_nonfirst*' -->
-  check_scheme_nonfirst, !,
-  'check_scheme_nonfirst*'.
-'check_scheme_nonfirst*' --> "".
-
-check_scheme_nonfirst --> alpha(_).
-check_scheme_nonfirst --> digit(_).
-check_scheme_nonfirst --> "+".
-check_scheme_nonfirst --> "-".
-check_scheme_nonfirst --> ".".
+  is_iri(Iri).
 
 
 
-%! rdf_clean_lexical_form(+D:atom, +Lex:atom, -CleanLex:atom) is semidet.
+%! rdf_clean_lexical_form(+D:atom, +Lex:atom, -CleanLex:atom) is det.
+%
+% @throw syntax_error
+% @throw type_error
+% @throw unimplemented_datatype_iri
 
 % language-tagged string
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
-  print_message(warning, rdf(missing_language_tag(Lex))),
-  fail.
+  syntax_error(missing_language_tag(Lex)).
 % rdf:HTML
 rdf_clean_lexical_form(rdf:'HTML', Dom, Dom) :- !.
 % rdf:XMLLiteral
 rdf_clean_lexical_form(rdf:'XMLLiteral', Dom, Dom) :- !.
 % typed literal
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
-  catch(
-    rdf_lexical_value(D, Lex1, Value),
-    _,
-    (
-      % Emit a warning and fail silently if the lexical form cannot be
-      % parsed according to the given datatye IRI.
-      print_message(warning, rdf(incorrect_lexical_form(D,Lex1))),
-      fail
-    )
-  ),
+  rdf_lexical_value(D, Lex1, Value),
   rdf_lexical_value(D, Lex2, Value),
   % Emit a warning if the lexical form is not canonical.
   (   Lex1 \== Lex2
@@ -131,7 +107,7 @@ rdf_clean_lexical_form(D, Lex1, Lex2) :-
 
 
 
-%! rdf_clean_literal(+Literal:compound, -CleanLiteral:compound) is semidet.
+%! rdf_clean_literal(+Literal:compound, -CleanLiteral:compound) is det.
 
 % language-tagged string (rdf:langString)
 rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
@@ -142,8 +118,9 @@ rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
   ;   true
   ).
 % typed literal
-rdf_clean_literal(literal(type(D,Lex1)), literal(type(D,Lex2))) :- !,
-  rdf_clean_lexical_form(D, Lex1, Lex2).
+rdf_clean_literal(literal(type(D1,Lex1)), literal(type(D2,Lex2))) :- !,
+  rdf_clean_iri(D1, D2),
+  rdf_clean_lexical_form(D2, Lex1, Lex2).
 % simple literal
 rdf_clean_literal(literal(Lex), Literal) :-
   rdf_equal(D, xsd:string),
@@ -167,8 +144,17 @@ rdf_clean_nonliteral(_, Iri1, Iri2) :-
 %! rdf_clean_quad(+BNodePrefix:iri, +Quad:compound, -CleanQuad:compound) is semidet.
 
 rdf_clean_quad(BNodePrefix, rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)) :-
-  rdf_clean_triple(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)),
-  rdf_clean_graph(G1, G2).
+  catch(
+    (
+      rdf_clean_triple_(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)),
+      rdf_clean_graph(G1, G2)
+    ),
+    E,
+    (
+      print_message(warning, E),
+      fail
+    )
+  ).
 
 
 
@@ -183,7 +169,17 @@ rdf_clean_term(_, Literal1, Literal2) :-
 
 %! rdf_clean_triple(+BNodePrefix:iri, +Triple:compound, -CleanTriple:compound) is semidet.
 
-rdf_clean_triple(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
+rdf_clean_triple(BNodePrefix, Triple1, Triple2) :-
+  catch(
+    rdf_clean_triple_(BNodePrefix, Triple1, Triple2),
+    E,
+    (
+      print_message(warning, E),
+      fail
+    )
+  ).
+
+rdf_clean_triple_(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
   rdf_clean_nonliteral(BNodePrefix, S1, S2),
   rdf_clean_iri(P1, P2),
   rdf_clean_term(BNodePrefix, O1, O2).
@@ -192,7 +188,9 @@ rdf_clean_triple(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
 
 %! rdf_clean_tuple(+BNodePrefix:iri, +Tuple:compound, -CleanTuple:compound) is semidet.
 
-rdf_clean_tuple(BNodePrefix, rdf(S,P,O,user), Triple) :- !,
+% triple
+rdf_clean_tuple(BNodePrefix, rdf(S,P,O), Triple) :- !,
   rdf_clean_triple(BNodePrefix, rdf(S,P,O), Triple).
+% quadruple
 rdf_clean_tuple(BNodePrefix, Quad, CleanQuad) :-
   rdf_clean_quad(BNodePrefix, Quad, CleanQuad).
