@@ -18,10 +18,12 @@
     rdf_is_container_membership_property/1, % @Term
    %rdf_is_iri/1,                 % @Term
    %rdf_is_literal/1,             % @Term
-   %rdf_is_object/1,              % @Term
+    rdf_is_name/1,                % @Term
+    rdf_is_object/1,              % @Term
    %rdf_is_predicate/1,           % @Term
     rdf_is_skip_node/1,           % @Term
    %rdf_is_subject/1,             % @Term
+    rdf_is_term/1,                % @Term
     rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
     rdf_lexical_value/3,          % +D, ?Lex, ?Val
     rdf_literal//1,               % -Literal
@@ -54,7 +56,6 @@
      rdf_graph/1,
      rdf_is_bnode/1,
      rdf_is_iri/1,
-     rdf_is_object/1,
      rdf_is_predicate/1,
      rdf_is_subject/1,
      (rdf_meta)/1,
@@ -79,7 +80,10 @@
 
 :- rdf_meta
    rdf_is_bnode_iri(r),
+   rdf_is_name(o),
+   rdf_is_object(o),
    rdf_is_skip_node(r),
+   rdf_is_term(o),
    rdf_language_tagged_string(?, ?, o),
    rdf_lexical_value(r, ?, ?),
    rdf_lexical_to_value(r, +, -),
@@ -220,12 +224,37 @@ rdf_is_bnode_iri(Iri) :-
 
 
 
+%! rdf_is_name(@Term) is semidet.
+
+rdf_is_name(Iri) :-
+  rdf_is_iri(Iri), !.
+rdf_is_name(Literal) :-
+  rdf_is_literal(Literal).
+
+
+
+%! rdf_is_object(@Term) is semidet.
+
+rdf_is_object(S) :-
+  rdf_is_subject(S), !.
+rdf_is_object(Literal) :-
+  rdf_is_literal(Literal).
+
+
+
 %! rdf_is_skip_node(@Term) is semidet.
 
 rdf_is_skip_node(Term) :-
   rdf_is_bnode(Term), !.
 rdf_is_skip_node(Term) :-
   rdf_is_bnode_iri(Term).
+
+
+
+%! rdf_is_term(@Term) is semidet.
+
+rdf_is_term(O) :-
+  rdf_is_object(O).
 
 
 
