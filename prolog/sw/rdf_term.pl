@@ -77,6 +77,14 @@
     rdf_lexical_to_value/3,
     rdf_value_to_lexical/3.
 
+:- dynamic
+    rdf_lexical_to_value_hook/3,
+    rdf_value_to_lexical_hook/3.
+
+:- multifile
+    rdf_lexical_to_value_hook/3,
+    rdf_value_to_lexical_hook/3.
+
 :- rdf_meta
    rdf_is_bnode_iri(r),
    rdf_is_skip_node(r),
@@ -255,6 +263,11 @@ rdf_lexical_value(D, _, _) :-
   throw(error(unimplemented_datatype_iri(D))).
 
 
+% hooks
+rdf_lexical_to_value(D, Lex, Value) :-
+  rdf_lexical_to_value_hook(D, Lex, Value), !.
+rdf_value_to_lexical(D, Value, Lex) :-
+  rdf_value_to_lexical_hook(D, Value, Lex), !.
 % rdf:HTML
 rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
   (   rdf11:parse_partial_xml(load_html, Lex, Value)
