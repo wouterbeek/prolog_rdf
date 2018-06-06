@@ -19,13 +19,13 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(graph/graph_ext)).
 :- use_module(library(graph/gv)).
-:- use_module(library(http/tapir)).
 :- use_module(library(os_ext)).
 :- use_module(library(real)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_print)).
 :- use_module(library(semweb/schema_viz)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(tapir/tapir_api)).
 :- use_module(library(uri/uri_ext)).
 
 :- maplist(rdf_create_prefix, [

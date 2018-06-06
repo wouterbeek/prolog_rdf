@@ -1,182 +1,220 @@
 :- module(
-  manchester,
+  manchester_parser,
   [
-    abbreviatedIRI//1, % ?Iri:atom
-    annotationPropertyIRI//1, % ?Iri:atom
-    classIRI//1, % ?Iri:atom
-    comment//0,
-    'Datatype'//1, % ?Iri:atom
-    datatypeIRI//1, % ?Iri:atom
-    dataPropertyIRI//1, % ?Iri:atom
-    decimalLiteral//1, % ?Literal:compound
-    digits//1, % ?N:nonneg
-    entity//1, % ?Iri:atom
-    exponent//1, % ?Exponent:integer
-    floatingPointLiteral//1, % ?Literal:compound
-    fullIRI//1, % ?Iri:atom
-    individual//1, % ?Individual:atom
-    individualIRI//1, % ?Individual:atom
-    'IRI'//1, % ?Iri:atom
-    integerLiteral//1, % ?Literal:compound
-    languageTag//1, % ?LanguageTag:list(string)
-    literal//1, % ?Literal:compound
-    nodeID//1, % ?BlankNodeLabel:atom
-    nonNegativeInteger//1, % ?N:nonneg
-    nonZero//1, % ?Digit:between(0,9)
-    objectPropertyIRI//1, % ?Iri:atom
-    positiveInteger//1, % ?N:positive_integer
-    prefixName//1, % ?Prefix:string
-    quotedString//1, % ?String:string
-    simpleIRI//1, % ?SimpleIri:string
-    stringLiteralNoLanguage//1, % ?Literal:compound
-    stringLiteralWithLanguage//1, % ?Literal:compound
-    typedLiteral//1, % ?Literal:compound
-    zero//1 % ?Digit:between(0,0)
   ]
 ).
-:- reexport(
-     library(dcg),
-     [
-       digit//1 % ?Digit:between(0,9)
-     ]
-   ).
 
 /** <module> OWL 2 Web Ontology Language: Manchester Syntax (Second Edition)
 
-```
-'List'(NT) --> NT, list(NT).
-list(NT) --> ",", NT, list(NT).
-list(_) --> "".
-
-'2List'(NT) --> NT, ",", 'List'(NT).
-
-'AnnotatedList'(NT) --> ?(annotations), NT, annotated_list(NT).
-annotated_list(NT) --> ",", ?(annotations), NT, annotated_list(NT).
-annotated_list(_) --> "".
-```
-
 @author Wouter Beek
-@version 2015/11-2015/12
+@compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
+@version 2018
 */
 
 :- use_module(library(dcg)).
-:- use_module(library(dcg_peek)).
-:- use_module(library(dcg/sparql10)).
-:- use_module(library(ltag/rfc5646)).
-:- use_module(library(math/rational_ext)).
+:- use_module(library(sw/rdf_term)).
+:- use_module(library(sw/sparql_parser), [
+     'PNAME_LN'//1
+   ]).
+
+:- rdf_meta
+   'Datatype'(r, ?, ?),
+   decimalLiteral(o, ?, ?),
+   integerLiteral(o, ?, ?),
+   nonNegativeInteger(o, ?, ?).
 
 
 
 
 
-%! abbreviatedIRI(?AbbreviatedIri:string)// .
+%! abbreviatedIRI(-Iri:atom)// .
+%
 % ```
 % abbreviatedIRI := a finite sequence of characters matching the PNAME_LN
 %                   production of [SPARQL]
 % ```
 
-abbreviatedIRI(Iri) --> 'PNAME_LN'(Iri).
+abbreviatedIRI(Iri) -->
+  'PNAME_LN'(Iri).
 
 
 
-%! annotationPropertyIri(?Iri:atom)// .
+%! annotationPropertyIri(-Iri:atom)// .
+%
 % ```
 % annotationPropertyIRI ::= IRI
 % ```
 
-annotationPropertyIRI(Iri) --> 'IRI'(Iri).
+annotationPropertyIRI(Iri) -->
+  'IRI'(Iri).
 
 
 
-%! classIRI(?Iri:atom)// .
+%! annotations(-L:list)// .
+%
+% ```
+% annotations ::= 'Annotations:' annotationAnnotatedList
+% ```
+
+annotations(L) -->
+  "Annotations:",
+  annotationAnnotatedList(L).
+
+
+%! annotation(-X:atom)// .
+%
+% ```
+% annotation ::= annotationPropertyIRI annotationTarget
+% ```
+
+annotation -->
+  annotationPropertyIRI(Iri),
+  annotationTarget(Targer).
+
+
+%! annotationTarget(-Target:rdf_term)// .
+%
+% ```
+% annotationTarget ::= nodeID | IRI | literal
+% ```
+
+annotationTarget(BNode) --> nodeID(BNode), !.
+annotationTarget(Iri) --> 'IRI'(Iri), !.
+annotationTarget(Literal) --> literal(Literal).
+
+
+
+%! ontologyDocument// .
+%
+% ```
+% ontologyDocument ::= { prefixDeclaration } ontology
+% ```
+
+ontologyDocument -->
+  'prefixDeclaration*'(L),
+  ontology.
+
+'prefixDeclaration*'([H|T]) -->
+  prefixDeclaration(H), !,
+  'prefixDeclaration*'(T).
+'prefixDeclaration*'([]) --> "".
+
+
+
+%! prefixDeclaration(-AliasPrefix:pair(atom))// .
+%
+% ```
+% prefixDeclaration ::= 'Prefix:' prefixName fullIRI
+% ```
+
+prefixDeclaration(Alias-Prefix) -->
+  "Prefix:",
+  must_see(prefixName(Alias)),
+  must_see(fullIRI(Prefix)).
+
+
+%! ontology// .
+%
+% ```
+% ontology ::= 'Ontology:' [ ontologyIRI [ versionIRI ] ] { import }
+%              { annotations } { frame }
+% ```
+
+ontology -->
+  "Ontology:",
+  (ontologyIRI(OntologyIri) -> (versionIRI(VersionIri) -> "" ; "") ; ""),
+  'import*'(Imports),
+  'annotations*'(Annotations),
+  'frame*'(Frames).
+
+
+
+ontologyIRI ::= IRI versionIRI ::= IRI import ::= 'Import:' IRI frame ::= datatypeFrame | classFrame | objectPropertyFrame | dataPropertyFrame | annotationPropertyFrame | individualFrame | misc
+
+%! classIRI(-Iri:atom)// .
+%
 % ```
 % classIRI ::= IRI
 % ```
 
-classIRI(Iri) --> 'IRI'(Iri).
+classIRI(Iri) -->
+  'IRI'(Iri).
 
 
 
 % comment// .
-% Comments are maximal sequences of Unicode characters starting with a `#`
-% and not containing a line feed or a carriage return.
+%
+% Comments are maximal sequences of Unicode characters starting with a
+% `#' and not containing a line feed or a carriage return.
 %
 % Note that comments are only recognized where white space is allowed,
 % and thus not inside the above non-terminals.
+
+comment -->
+  "#",
+  string(_),
+  ("\n" ; "\r"), !.
+
+
+
+%! 'Datatype'(-Iri:atom)// .
 %
-% @compat OWL 2 Web Ontology Language Manchester Syntax (Second Edition)
-
-comment --> "#", string(_), ("\n" ; "\r"), !.
-
-
-
-%! Datatype(?Iri:atom)// .
 % ```
 % Datatype ::= datatypeIRI | 'integer' | 'decimal' | 'float' | 'string'
 % ```
 
-'Datatype'(Iri)         --> datatypeIRI(Iri).
-'Datatype'(xsd:integer) --> "integer".
-'Datatype'(xsd:decimal) --> "decimal".
-'Datatype'(xsd:float)   --> "float".
+'Datatype'(Iri)         --> !, datatypeIRI(Iri).
+'Datatype'(xsd:integer) --> !, "integer".
+'Datatype'(xsd:decimal) --> !, "decimal".
+'Datatype'(xsd:float)   --> !, "float".
 'Datatype'(xsd:string)  --> "string".
 
 
 
-%! datatypeIRI(?Iri:atom)// .
+%! datatypeIRI(-Iri:atom)// .
+%
 % ```
 % datatypeIRI ::= IRI
 % ```
 
-datatypeIRI(Iri) --> 'IRI'(Iri).
+datatypeIRI(Iri) -->
+  'IRI'(Iri).
 
 
 
-%! dataPropertyIRI(?Iri:atom)// .
+%! dataPropertyIRI(-Iri:atom)// .
+%
 % ```
 % dataPropertyIRI ::= IRI
 % ```
 
-dataPropertyIRI(Iri) --> 'IRI'(Iri).
+dataPropertyIRI(Iri) -->
+  'IRI'(Iri).
 
 
 
-%! decimalLiteral(?Literal:compound)// .
+%! decimalLiteral(-Literal:rdf_literal)// .
+%
 % ```
 % decimalLiteral ::= ['+' | '-'] digits '.' digits
 % ```
 
-decimalLiteral(literal(type(xsd:decimal,Rat))) -->
-  ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  digits(Weights1),
-  {integer_weights(I, Weights1)},
+decimalLiteral(literal(type(xsd:decimal,Rational))) -->
+  ("+" -> {Sign = 1} ; "-" -> {Sign = -1} ; {Sign = 1}),
+  'digit+'(Weights1),
   ".",
-  digits(Weights2),
+  'digit+'(Weights2),
   {
-    fractional_weights(Frac, Weights2),
-    rational_parts(Rat0, I, Frac),
-    Rat is Sg * Rat0
+    integer_weights(Integer, Weights1),
+    fractional_weights(Fractional, Weights2),
+    decimal_parts(UnsignedRational, Integer, Fractional),
+    Rational is Sign * UnsignedRational
   }.
 
 
 
-%! digit(?Digit:between(0,9))// .
-% ```
-% digit ::= zero | nonZero
-% ```
-
-
-
-%! digits(?Digits:list(between(0,9)))// .
-% ```
-% digits ::= digit { digit }
-% ```
-
-digits(Weights) --> +(digit, Weights).
-
-
-
-%! entity(?Iri:atom)//
+%! entity(-Iri:atom)//
+%
 % ```
 % entity ::= 'Datatype' '(' Datatype ')'
 %          | 'Class' '(' classIRI ')'
@@ -186,133 +224,146 @@ digits(Weights) --> +(digit, Weights).
 %          | 'NamedIndividual' '(' individualIRI ')'
 % ```
 
-entity(Iri) --> "Datatype(",           'Datatype'(Iri),            ")".
-entity(Iri) --> "Class(",              classIRI(Iri),              ")".
-entity(Iri) --> "ObjectProperty(",     objectPropertyIRI(Iri),     ")".
-entity(Iri) --> "DataProperty(",       dataPropertyIRI(Iri),       ")".
-entity(Iri) --> "AnnotationProperty(", annotationPropertyIRI(Iri), ")".
+entity(Iri) --> "Datatype(",           !, 'Datatype'(Iri),            ")".
+entity(Iri) --> "Class(",              !, classIRI(Iri),              ")".
+entity(Iri) --> "ObjectProperty(",     !, objectPropertyIRI(Iri),     ")".
+entity(Iri) --> "DataProperty(",       !, dataPropertyIRI(Iri),       ")".
+entity(Iri) --> "AnnotationProperty(", !, annotationPropertyIRI(Iri), ")".
 entity(Iri) --> "NamedIndividual(",    individualIRI(Iri),         ")".		  
 
 
 
-%! exponent(?Exponent:integer)// .
+%! exponent(-Exponent:integer)// .
+%
 % ```
 % exponent ::= ('e' | 'E') ['+' | '-'] digits
 % ```
 
-exponent(Exp) -->
+exponent(Exponent) -->
   ("e" ; "E"),
-  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
-  digits(Weights),
+  ("+" -> {Sign = 1} ; "-" -> {Sign = -1}),
+  'digit_weight+'(Weights),
   {
-    integer_weights(I, Weights),
-    Exp is Sg * 10 ^ I
+    integer_weights(Integer, Weights),
+    Exponent is Sign * 10 ^ Integer
   }.
 
 
 
-%! floatingPointLiteral(?N:float)// .
+%! floatingPointLiteral(-Literal:rdf_literal)// .
+%
 % ```
 % floatingPointLiteral ::= [ '+' | '-']
 %                          ( digits ['.'digits] [exponent] | '.' digits[exponent])
 %                          ( 'f' | 'F' )
 % ```
 
-floatingPointLiteral(Rat) -->
-  ("+" -> {Sg = 1} ; "-" -> {Sg = -1} ; {Sg = 1}),
-  (   digits(Weights1)
-  ->  ("." -> digits(Weights2) ; {Weights2 = []})
+floatingPointLiteral(literal(xsd:float,Float))) -->
+  ("+" -> {Sign = 1} ; "-" -> {Sign = -1} ; {Sign = 1}),
+  (   'digit_weight+'(Weights1)
+  ->  ("." -> 'digit_weight+'(Weights2) ; {Weights2 = []})
   ;   {Weights1 = []},
       ".",
-      digits(Weights2)
+      'digit_weight+'(Weights2)
   ),
-  def(exponent, Exp, 0),
-  ("f" ; "F"), !,
+  (exponent(Exponent) -> "" ; {Exponent = 0}),
+  ("f" ; "F"),
   {
-    integer_weights(I, Weights1),
-    fractional_weights(Frac, Weights2),
-    Rat is Sg * float(I + Frac) * Exp
+    integer_weights(Integer, Weights1),
+    fractional_weights(Fractional, Weights2),
+    Float is Sign * float(Integer + Fractional) * Exponent
   }.
 
 
 
-%! fullIRI(?Iri:atom)// .
+%! fullIRI(-Iri:atom)// .
+%
 % ```
 % fullIRI := an IRI as defined in [RFC 3987], enclosed in a pair of
 %            < (U+3C) and > (U+3E) characters
 % ```
 
-fullIRI(Iri) --> 'IRI'(Iri).
+fullIRI(Iri) -->
+  'IRI'(Iri).
 
 
 
-%! individual(?Individual:atom))// .
+%! individual(-Individual:atom))// .
+%
 % ```
 % individual ::= individualIRI | nodeID
 % ```
 
-individual(S) --> individualIRI(S).
+individual(S) --> individualIRI(S), !.
 individual(S) --> nodeID(S).
 
 
 
-%! inividualIRI(?Iri:atom)//.
+%! inividualIRI(-Iri:atom)//.
+%
 % ```
 % individualIRI ::= IRI
 % ```
 
-individualIRI(Iri) --> 'IRI'(Iri).
+individualIRI(Iri) -->
+  'IRI'(Iri).
 
 
 
-%! 'IRI'(?Iri:atom)// .
+%! 'IRI'(-Iri:atom)// .
+%
 % ```
 % IRI := fullIRI | abbreviatedIRI | simpleIRI
 % ```
 
-'IRI'(Iri) --> fullIRI(Iri).
-'IRI'(Iri) --> abbreviatedIRI(Iri).
+'IRI'(Iri) --> fullIRI(Iri), !.
+'IRI'(Iri) --> abbreviatedIRI(Iri), !.
 'IRI'(Iri) --> simpleIRI(Iri).
 
 
 
-%! integerLiteral(?Literal:compound)// .
+%! integerLiteral(-Literal:rdf_literal)// .
+%
 % ```
 % integerLiteral ::= [ '+' | '-' ] digits
 % ```
 
-integerLiteral(literal(type(xsd:integer,I))) -->
-  ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
+integerLiteral(literal(type(xsd:integer,Integer))) -->
+  ("+" -> {Sign = 1} ; "-" -> {Sign = -1}),
   digits(Weights),
   {
-    integer_weights(I0, Weights),
-    I is Sg * I0
+    integer_weights(UnsignedInteger, Weights),
+    Integer is Sign * UnsignedInteger
   }.
 
 
 
-%! langageTag(?LanguageTag:list(string))// .
+%! langageTag(-LanguageTag:atom)// .
+%
 % ```
 % languageTag := @ (U+40) followed a nonempty sequence of characters
 %                matching the langtag production from [BCP 47]
 % ```
 
 languageTag(LTag) -->
-  "@", 'Language-Tag'(LTag0),
-  {maplist(atom_string, LTag, LTag0)}.
+  "@",
+  'Language-Tag'(LTag).
 
 
 
-%! lexicalValue(?LexicalValue:atom)// .
+%! lexicalValue(-Lex:atom)// .
+%
 % ```
 % lexicalValue ::= quotedString
 % ```
 
-lexicalValue(Lex) --> quotedString(Lex).
+lexicalValue(Lex) -->
+  quotedString(Lex).
 
 
 
-%! literal(?Literal:compound)// .
+%! literal(-Literal:rdf_literal)// .
+%
 % ```
 % literal ::= typedLiteral
 %           | stringLiteralNoLanguage
@@ -322,55 +373,42 @@ lexicalValue(Lex) --> quotedString(Lex).
 %           | floatingPointLiteral
 % ```
 
-literal(Lit) --> typedLiteral(Lit).
-literal(Lit) --> stringLiteralNoLanguage(Lit).
-literal(Lit) --> stringLiteralWithLanguage(Lit).
-literal(Lit) --> integerLiteral(Lit).
-literal(Lit) --> decimalLiteral(Lit).
+literal(Lit) --> typedLiteral(Lit), !,.
+literal(Lit) --> stringLiteralNoLanguage(Lit), !.
+literal(Lit) --> stringLiteralWithLanguage(Lit), !.
+literal(Lit) --> integerLiteral(Lit), !.
+literal(Lit) --> decimalLiteral(Lit), !.
 literal(Lit) --> floatingPointLiteral(Lit).
 
 
 
-%! nodeID(?BlankNodeLabel:atom)// .
+%! nodeID(-BNodeLabel:atom)// .
+%
 % ```
 % nodeID := a finite sequence of characters matching the BLANK_NODE_LABEL
 %           production of [SPARQL]
 % ```
 
-nodeID(BlankNodeLabel) --> dcg_atom('BLANK_NODE_LABEL', BlankNodeLabel).
+nodeID(BNodeLabel) -->
+  dcg_atom('BLANK_NODE_LABEL', BNodeLabel).
 
 
 
-%! nonNegativeInteger(?N:nonneg)// .
+%! nonNegativeInteger(-Literal:rdf_literal)// .
+%
 % ```
 % nonNegativeInteger ::= zero | positiveInteger
 % ```
 
-nonNegativeInteger(N) --> zero(N), !.
-nonNegativeInteger(N) --> positiveInteger(N).
+nonNegativeInteger(literal(type(xsd:nonNegativeInteger,0))) -->
+  "0", !.
+nonNegativeInteger(Literal) -->
+  positiveInteger(Literal).
 
 
 
-%! nonZero(?Digit:between(0,9))// .
-%! nonZero(?Digit:between(0,9), ?Code:code)// .
-% ```
-% nonZero := '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-% ```
-
-nonZero(D) --> nonZero(D, _).
-nonZero(1, 0'1) --> "1".
-nonZero(2, 0'2) --> "2".
-nonZero(3, 0'3) --> "3".
-nonZero(4, 0'4) --> "4".
-nonZero(5, 0'5) --> "5".
-nonZero(6, 0'6) --> "6".
-nonZero(7, 0'7) --> "7".
-nonZero(8, 0'8) --> "8".
-nonZero(9, 0'9) --> "9".
-
-
-
-%! objectPropertyIRI(?Iri:atom)// .
+%! objectPropertyIRI(-Iri:atom)// .
+%
 % ```
 % objectPropertyIRI ::= IRI
 % ```
@@ -380,19 +418,23 @@ objectPropertyIRI(Iri) -->
 
 
 
-%! positiveInteger(?N:positiveInteger)// .
+%! positiveInteger(-Literal:rdf_litera;)// .
+%
 % ```
 % positiveInteger ::= nonZero { digit }
 % ```
 
-positiveInteger(I) -->
-  nonZero(H),
-  *(digit, T),
-  {integer_weights(I, [H|T])}.
+positiveInteger(literal(type(xsd:positiveInteger,Integer))) -->
+  'digit_weight+'([H|T]),
+  {
+    H =\= 0,
+    integer_weights(Integer, [H|T])
+  }.
 
 
 
-%! prefixName(?Prefix:atom)// .
+%! prefixName(-Prefix:atom)// .
+%
 % ```
 % prefixName := a finite sequence of characters matching the PNAME_NS
 %               production of [SPARQL] and not matching any of the keyword
@@ -402,17 +444,22 @@ positiveInteger(I) -->
 % Prefixes in abbreviated IRIs must not match any of the keywords of
 % this syntax.
 %
-% Prefixes should begin with lower case letters so that they do not clash
-% with colon-terminated keywords introduced in future versions of this syntax.
+% Prefixes should begin with lower case letters so that they do not
+% clash with colon-terminated keywords introduced in future versions
+% of this syntax.
 
 prefixName(Prefix) -->
-  dcg_peek_code(C), {between(0'a, 0'z, C)},
+  % Check whether the first character is a lower case letter.
+  dcg_peek_code(Code),
+  {between(0'a, 0'z, Code)},
   dcg_string('PNAME_NS', Prefix),
+  % Check whether the prefix is not a keyword.
   {throw_if_manchester_keyword(Prefix)}.
 
 
 
-%! quotedString(?String:atom)// .
+%! quotedString(-Lex:atom)// .
+%
 % ```
 % quotedString := a finite sequence of characters in which
 %                 " (U+22) and \ (U+5C) occur only in pairs
@@ -420,16 +467,26 @@ prefixName(Prefix) -->
 %                 enclosed in a pair of " (U+22) characters
 % ```
 
-quotedString(A) --> "\"", dcg_atom(quoted_string_codes, A), "\"".
-quoted_string_codes([0'\\,0'\"|T]) --> "\\\"", !, quoted_string_codes(T).
-quoted_string_codes([0'\",0'\"|T]) --> "\"\"", !, quoted_string_codes(T).
-quoted_string_codes([H|T]) -->
-  [H], {H \== 0'\\, H \== 0'\"}, !,
+quotedString(Lex) -->
+  "\"", !,
+  dcg_atom(quoted_string_codes_, Lex),
+  "\"".
+
+quoted_string_codes_([0'\\,0'\"|T]) -->
+  "\\\"", !,
+  quoted_string_codes(T).
+quoted_string_codes_([0'\",0'\"|T]) -->
+  "\"\"", !,
+  quoted_string_codes(T).
+quoted_string_codes_([H|T]) -->
+  [H],
+  {\+ memberchk(H, [0'\\,0'\"])},
   quoted_string_codes(T).
 
 
 
-%! simpleIRI(?SimpleIri:string)// .
+%! simpleIRI(-SimpleIri:atom)// .
+%
 % ```
 % simpleIRI := a finite sequence of characters matching the PN_LOCAL
 %              production of [SPARQL] and not matching any of the keyword
@@ -441,19 +498,25 @@ quoted_string_codes([H|T]) -->
 
 simpleIRI(Iri) -->
   dcg_string('PN_LOCAL', LocalName),
-  {throw_if_manchester_keyword(LocalName), rdf_prefix_iri('':LocalName, Iri)}.
+  {
+    throw_if_manchester_keyword(LocalName),
+    rdf_prefix_iri('':LocalName, Iri)
+  }.
 
 
-%! stringLiteralNoLanguage(?Literal:compound)// .
+%! stringLiteralNoLanguage(-Literal:rdf_literal)// .
+%
 % ```
 % stringLiteralNoLanguage ::= quotedString
 % ```
 
-stringLiteralNoLanguage(literal(type(xsd:string,Lex))) --> quotedString(Lex).
+stringLiteralNoLanguage(literal(type(xsd:string,Lex))) -->
+  quotedString(Lex).
 
 
 
-%! stringLiteralWithLanguage// .
+%! stringLiteralWithLanguage(-Literal:rdf_literal)// .
+%
 % ```
 % stringLiteralWithLanguage ::= quotedString languageTag
 % ```
@@ -464,23 +527,16 @@ stringLiteralWithLanguage(literal(lang(LTag,Lex))) -->
 
 
 
-%! typedLiteral(?Literal:compound)// .
+%! typedLiteral(-Literal:rdf_literal)// .
+%
 % ```
 % typedLiteral ::= lexicalValue '^^' Datatype
 % ```
 
-typedLiteral(literal(type(D,Lex))) --> lexicalValue(Lex), "^^", 'Datatype'(D).
-
-
-
-%! zero(?Weight:between(0,0))// .
-%! zero(?Weight:between(0,0), ?Code:code)// .
-% ```
-% zero ::= '0'
-% ```
-
-zero(W) --> (W, _).
-zero(0, 0'0) --> "0".
+typedLiteral(literal(type(D,Lex))) -->
+  lexicalValue(Lex),
+  "^^",
+  'Datatype'(D).
 
 
 
@@ -488,44 +544,44 @@ zero(0, 0'0) --> "0".
 
 % HELPERS %
 
-throw_if_manchester_keyword(S) :-
-  manchester_keyword(S), !,
-  syntax_error(manchester_keyword(S)).
+throw_if_manchester_keyword(Keyword) :-
+  manchester_keyword(Keyword), !,
+  syntax_error(manchester_keyword(Keyword)).
 throw_if_manchester_keyword(_).
 
-manchester_keyword("AnnotationProperty").
-manchester_keyword("Annotations").
-manchester_keyword("Asymmetric").
-manchester_keyword("Characteristics").
-manchester_keyword("Class").
-manchester_keyword("DataProperty").
-manchester_keyword("Datatype").
-manchester_keyword("DifferentFrom").
-manchester_keyword("DifferentIndividuals").
-manchester_keyword("DisjointClasses").
-manchester_keyword("DisjointProperties").
-manchester_keyword("DisjointUnionOf").
-manchester_keyword("DisjointWith").
-manchester_keyword("Domain").
-manchester_keyword("EquivalentProperties").
-manchester_keyword("EquivalentTo").
-manchester_keyword("Facts").
-manchester_keyword("Functional").
-manchester_keyword("HasKey").
-manchester_keyword("Import").
-manchester_keyword("Individual").
-manchester_keyword("InverseFunctional").
-manchester_keyword("Irreflexive").
-manchester_keyword("ObjectProperty").
-manchester_keyword("Ontology").
-manchester_keyword("Prefix").
-manchester_keyword("Range").
-manchester_keyword("Reflexive").
-manchester_keyword("SameAs").
-manchester_keyword("SameIndividual").
-manchester_keyword("SubClassOf").
-manchester_keyword("SubPropertyChain").
-manchester_keyword("SubPropertyOf").
-manchester_keyword("Symmetric").
-manchester_keyword("Transitive").
-manchester_keyword("Types").
+manchester_keyword('AnnotationProperty').
+manchester_keyword('Annotations').
+manchester_keyword('Asymmetric').
+manchester_keyword('Characteristics').
+manchester_keyword('Class').
+manchester_keyword('DataProperty').
+manchester_keyword('Datatype').
+manchester_keyword('DifferentFrom').
+manchester_keyword('DifferentIndividuals').
+manchester_keyword('DisjointClasses').
+manchester_keyword('DisjointProperties').
+manchester_keyword('DisjointUnionOf').
+manchester_keyword('DisjointWith').
+manchester_keyword('Domain').
+manchester_keyword('EquivalentProperties').
+manchester_keyword('EquivalentTo').
+manchester_keyword('Facts').
+manchester_keyword('Functional').
+manchester_keyword('HasKey').
+manchester_keyword('Import').
+manchester_keyword('Individual').
+manchester_keyword('InverseFunctional').
+manchester_keyword('Irreflexive').
+manchester_keyword('ObjectProperty').
+manchester_keyword('Ontology').
+manchester_keyword('Prefix').
+manchester_keyword('Range').
+manchester_keyword('Reflexive').
+manchester_keyword('SameAs').
+manchester_keyword('SameIndividual').
+manchester_keyword('SubClassOf').
+manchester_keyword('SubPropertyChain').
+manchester_keyword('SubPropertyOf').
+manchester_keyword('Symmetric').
+manchester_keyword('Transitive').
+manchester_keyword('Types').
