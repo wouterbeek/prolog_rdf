@@ -14,7 +14,7 @@
 */
 
 :- use_module(library(sw/hdt_db)).
-:- use_module(library(sw/hdt_graph)).
+:- use_module(library(sw/hdt_dataset)).
 
 :- rdf_meta
    predicate(r),
@@ -28,7 +28,7 @@
 %! predicate(?P) is nondet.
 
 predicate(P) :-
-  hdt_default(Hdt),
+  hdt(Hdt),
   hdt_predicate(Hdt, P).
 
 
@@ -41,7 +41,7 @@ statement(S, P, O) :-
   nl.
 
 statement_(S, P, O) :-
-  hdt_default(Hdt),
+  hdt(Hdt),
   hdt_triple(Hdt, S, P, O).
 
 
