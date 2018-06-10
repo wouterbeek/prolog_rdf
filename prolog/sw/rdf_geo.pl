@@ -28,8 +28,8 @@
 
 rdf_term:rdf_lexical_to_value_hook(D, Lex, Shape) :-
   rdf_equal(D, geo:wktLiteral), !,
-  atom_phrase(wkt_parse(Shape), Lex).
+  wkt_shape_atom(Shape, Lex).
 
 rdf_term:rdf_value_to_lexical_hook(D, Shape, Lex) :-
   rdf_equal(D, geo:wktLiteral), !,
-  atom_phrase(wkt_generate(Shape), Lex).
+  wkt_shape_atom(Shape, Lex).
