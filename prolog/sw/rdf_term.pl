@@ -7,6 +7,8 @@
     rdf_bnode_iri/3,              % +Document, ?Local, -Iri
     rdf_bnode_prefix/1,           % -Iri
     rdf_bnode_prefix/2,           % +Document, -Iri
+    rdf_bool_false/1,             % ?Literal
+    rdf_bool_true/1,              % ?Literal
    %rdf_create_bnode/1,           % --BNode
     rdf_create_iri/3,             % +Alias, +Segments, -Iri
    %rdf_equal/2,                  % ?Term1, ?Term2
@@ -87,6 +89,8 @@
     rdf_value_to_lexical_hook/3.
 
 :- rdf_meta
+   rdf_bool_false(o),
+   rdf_bool_true(o),
    rdf_is_bnode_iri(r),
    rdf_is_name(o),
    rdf_is_object(o),
@@ -187,6 +191,20 @@ rdf_bnode_prefix_(T, Iri) :-
   setting(bnode_prefix_authority, Auth),
   uri_comps(Iri0, uri(Scheme,Auth,['.well-known',genid|T],_,_)),
   atom_terminator(Iri0, 0'/, Iri).
+
+
+
+%! rdf_bool_false(+Term:rdf_term) is semidet.
+%! rdf_bool_false(-Literal:rdf_literal) is det.
+
+rdf_bool_false(literal(type(xsd:boolean,false))).
+
+
+
+%! rdf_bool_true(+Term:rdf_term) is semidet.
+%! rdf_bool_true(-Literal:rdf_literal) is det.
+
+rdf_bool_true(literal(type(xsd:boolean,true))).
 
 
 
