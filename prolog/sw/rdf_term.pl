@@ -21,6 +21,7 @@
    %rdf_is_iri/1,                 % @Term
    %rdf_is_literal/1,             % @Term
     rdf_is_name/1,                % @Term
+    rdf_is_numeric_literal/1,     % @Term
     rdf_is_object/1,              % @Term
    %rdf_is_predicate/1,           % @Term
     rdf_is_skip_node/1,           % @Term
@@ -93,6 +94,7 @@
    rdf_bool_true(o),
    rdf_is_bnode_iri(r),
    rdf_is_name(o),
+   rdf_is_numeric_literal(o),
    rdf_is_object(o),
    rdf_is_skip_node(r),
    rdf_is_term(o),
@@ -256,6 +258,13 @@ rdf_is_name(Iri) :-
   rdf_is_iri(Iri), !.
 rdf_is_name(Literal) :-
   rdf_is_literal(Literal).
+
+
+
+%! rdf_is_numeric_literal(@Term) is semidet.
+
+rdf_is_numeric_literal(literal(type(D,_))) :-
+  xsd_is_numeric_datatype_iri(D).
 
 
 
