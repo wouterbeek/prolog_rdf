@@ -341,9 +341,9 @@ rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :-
 
 % XSD datatype IRIs
 rdf_lexical_to_value(D, Lex, Value) :-
-  xsd_lexical_to_value(D, Lex, Value).
+  xsd:xsd_lexical_to_value(D, Lex, Value).
 rdf_value_to_lexical(D, Value, Lex) :-
-  xsd_value_to_lexical(D, Value, Lex).
+  xsd:xsd_value_to_lexical(D, Value, Lex).
 
 rdf_lexical_to_value_error(D, Lex) :-
   syntax_error(literal(type(D,Lex))).
