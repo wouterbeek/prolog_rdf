@@ -117,10 +117,6 @@ rdf_html_iri_(Iri, Options) -->
     \rdf_html_iri_external_(Iri)
   ]).
 
-% Abbreviated notation for IRI.
-rdf_html_iri_internal_(Iri, _) -->
-  {rdf_equal(rdf:type, Iri)}, !,
-  html("a").
 rdf_html_iri_internal_(Iri, Options) -->
   {
     Options.iri_abbr == true,
@@ -270,6 +266,17 @@ rdf_html_nonliteral_(S, Options) -->
 
 
 
+%! rdf_html_predicate_(+P:iri, +Options:list(compound))// is det.
+
+% Abbreviated notation for IRI.
+rdf_html_predicate_(Iri, _) -->
+  {rdf_equal(rdf:type, Iri)}, !,
+  html("a").
+rdf_html_predicate_(Iri, Options) -->
+  rdf_html_iri(Iri, Options).
+
+
+
 %! rdf_html_term(+Term)// is det.
 %! rdf_html_term(+Term, +Options)// is det.
 
@@ -299,18 +306,18 @@ rdf_html_triple(Uri, Triple) -->
 rdf_html_triple(Uri, rdf(S,P,O), Options1) -->
   {
     rdf_html_options(Options1, Options2),
-    maplist(rdf_term_to_atom, [S,P,O], [AtomS,AtomP,AtomO]),
-    maplist(
-      uri_comp_set(query, Uri),
-      [[s(AtomS)],[p(AtomP)],[o(AtomO)]],
-      [UriS,UriP,UriO]
-    )
+    rdf_http_query([s(S)], SQuery),
+    uri_comp_set(query, Uri, SQuery, SUri),
+    rdf_http_query([p(P)], PQuery),
+    uri_comp_set(query, Uri, PQuery, PUri),
+    rdf_http_query([o(O)], OQuery),
+    uri_comp_set(query, Uri, OQuery, OUri)
   },
   html(
     tr([
-      td(a(href=UriS, \rdf_html_nonliteral_(S, Options2))),
-      td(a(href=UriP, \rdf_html_iri_(P, Options2))),
-      td(a(href=UriO, \rdf_html_term_(O, Options2)))
+      td(a(href=SUri, \rdf_html_nonliteral_(S, Options2))),
+      td(a(href=PUri, \rdf_html_predicate_(P, Options2))),
+      td(a(href=OUri, \rdf_html_term_(O, Options2)))
     ])
   ).
     
@@ -351,7 +358,7 @@ rdf_html_triple_table_row(Uri, G, rdf(S,P,O), Options) -->
   html(
     tr([
       td(a(href=SUri, \rdf_html_nonliteral_(S, Options))),
-      td(a(href=PUri, \rdf_html_iri_(P, Options))),
+      td(a(href=PUri, \rdf_html_predicate_(P, Options))),
       td(a(href=OUri, \rdf_html_term_(O, Options)))
     ])
   ).
