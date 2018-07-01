@@ -130,9 +130,7 @@
 %  1. RDF terms defined by the N-Triples 1.1 grammar (blank nodes,
 %     IRIs, and literals).
 %
-%  2. The Turtle 1.1 abbreviation ‘a’ for ‘rdf:type’.
-%
-%  3. Turtle 1.1 prefix notation for IRIs.
+%  2. Turtle 1.1 prefix notation for IRIs.
 %
 % @throws rdf(cannot_parse,rdf_term,Atom) if no RDF term can be parsed
 % from `Atom'.
@@ -140,14 +138,6 @@
 rdf_atom_to_term(Atom, Term) :-
   atom_codes(Atom, Codes),
   phrase(rdf_term(Term), Codes), !.
-% Expansion of commonly used abbreviation `a'.
-rdf_atom_to_term(a, Iri) :- !,
-  rdf_equal(rdf:type, Iri).
-% Expansion of commonly used prefixes.
-rdf_atom_to_term(Atom, Iri) :-
-  atomic_list_concat([Alias,Local], :, Atom),
-  rdf_prefix(Alias), !,
-  rdf_global_id(Alias:Local, Iri).
 rdf_atom_to_term(Atom, _) :-
   throw(rdf(cannot_parse(rdf_term,Atom))).
 
@@ -222,11 +212,22 @@ rdf_create_iri(Alias, Segments2, Iri) :-
 
 %! rdf_iri(-Iri:iri)// .
 
+% full IRI
 rdf_iri(Iri) -->
   "<",
   ...(Codes),
   ">", !,
   {atom_codes(Iri, Codes)}.
+% abbreviated IRI
+rdf_iri(Iri) -->
+  ...(Codes),
+  ":",
+  {
+    atom_codes(Alias, Codes),
+    (rdf_prefix(Alias) -> true ; existence_error(rdf_alias,Alias))
+  },
+  remainder_as_atom(Local),
+  {rdf_global_id(Alias:Local, Iri)}.
 
 
 
@@ -425,14 +426,14 @@ rdf_literal_value(literal(type(D,Lex)), D, Value) :-
 
 %! rdf_term(-Term:rdf_term)// .
 
-rdf_term(Iri) -->
-  rdf_iri(Iri), !.
 rdf_term(Literal) -->
-  rdf_literal(Literal).
+  rdf_literal(Literal), !.
 rdf_term(BNode) -->
-  "_:",
+  "_:", !,
   remainder(T),
   {atom_codes(BNode, [0'_,0':|T])}.
+rdf_term(Iri) -->
+  rdf_iri(Iri).
 
 
 
