@@ -186,7 +186,7 @@ rdf_prefix_memberchk(Elem, L) :-
 
 
 
-%! rdf_prefix_selectchk(+Elem:rdf_term, +L:list, -Rest:list) is det.
+%! rdf_prefix_selectchk(+Elem, +L:list, -Rest:list) is det.
 %
 % Calls selectchk/3 under RDF prefix expansion.
 
