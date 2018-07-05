@@ -66,7 +66,7 @@ rdf_guess_file(File, Size, MediaType) :-
 %
 %   * media(application/ld+json,[]) for JSON-LD
 %
-% There are four Turtle-family Media Types:
+% There are two/four Turtle-family Media Types:
 %
 %   * media(application/trig,[]) for TriG
 %
