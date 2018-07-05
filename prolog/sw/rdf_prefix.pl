@@ -419,6 +419,7 @@ ltag_(zh_yue).
 
 prefix_(Alias, Prefix) :-
   rdf_db:ns(Alias, Prefix).
+prefix_(b, 'http://lodlaundromat.org/.well-known/genid/').
 prefix_(bag, 'http://bag.basisregistraties.overheid.nl/def/bag#').
 prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
 prefix_(bibo, 'http://purl.org/ontology/bibo/').
@@ -437,6 +438,7 @@ prefix_(dcat, 'http://www.w3.org/ns/dcat#').
 prefix_(dce, 'http://purl.org/dc/elements/1.1/').
 prefix_(dcterm, 'http://purl.org/dc/terms/').
 prefix_(dctype, 'http://purl.org/dc/dcmitype/').
+prefix_(dolce, 'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#').
 prefix_(dqv, 'http://www.w3.org/ns/dqv#').
 prefix_(earl, 'http://www.w3.org/ns/earl#').
 prefix_(ex, 'https://example.org/').
@@ -456,11 +458,13 @@ prefix_(grddl, 'http://www.w3.org/2003/g/data-view#').
 prefix_(http, 'http://www.w3.org/2011/http#').
 prefix_(hydra, 'http://www.w3.org/ns/hydra/core#').
 prefix_(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').
+prefix_(iolite, 'http://www.ontologydesignpatterns.org/ont/dul/IOLite.owl#').
 prefix_(lexvo, 'http://lexvo.org/ontology#').
+prefix_(lmm1, 'http://www.ontologydesignpatterns.org/ont/lmm/LMM_L1.owl#').
 prefix_(ma, 'http://www.w3.org/ns/ma-ont#').
 prefix_(mf, 'http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#').
 prefix_(nyt, 'http://data.nytimes.com/').
-prefix_(odp, 'http://www.ontologydesignpatterns.org/').
+prefix_(ontopic, 'http://www.ontologydesignpatterns.org/ont/dul/ontopic.owl#').
 prefix_(openlinks, 'http://www.openlinksw.com/schemas/virtrdf#').
 prefix_(orcid, 'http://orcid.org/').
 prefix_(org, 'http://www.w3.org/ns/org#').
@@ -479,6 +483,7 @@ prefix_(sf, 'http://www.opengis.net/ont/sf#').
 prefix_(sfn, ' http://www.w3.org/ns/sparql#').
 prefix_(sh, 'http://www.w3.org/ns/shacl#').
 prefix_(sioc, 'http://rdfs.org/sioc/ns#').
+prefix_(spitfire, 'http://spitfire-project.eu/ontology/ns/').
 prefix_(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
 prefix_('sparql-results', 'http://www.w3.org/2005/sparql-results#').
 prefix_(umbel, 'http://umbel.org/umbel#').
