@@ -24,10 +24,10 @@
 :- use_module(library(graph/graph_export)).
 :- use_module(library(graph/graph_ext)).
 :- use_module(library(os_ext)).
-:- use_module(library(sw/rdf_mem)).
-:- use_module(library(sw/rdf_prefix)).
-:- use_module(library(sw/rdf_print)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_mem)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_print)).
+:- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- rdf_meta

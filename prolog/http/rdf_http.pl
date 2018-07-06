@@ -13,7 +13,7 @@
 
 :- use_module(library(error)).
 
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_term)).
 
 :- multifile
     http:convert_parameter/3,
@@ -43,24 +43,24 @@ rdf_http_query([NonGround|T1], T2) :-
 rdf_http_query([g(G)|T1], T2) :-
   rdf_default_graph(G), !,
   rdf_http_query(T1, T2).
-rdf_http_query([g(G)|T1], [g(GAtom)|T2]) :- !,
-  rdf_term_to_atom(G, GAtom),
+rdf_http_query([g(G)|T1], [g(Atom)|T2]) :- !,
+  rdf_atom_term(Atom, G),
   rdf_http_query(T1, T2).
 % object
-rdf_http_query([o(O)|T1], [o(OAtom)|T2]) :- !,
-  rdf_term_to_atom(O, OAtom),
+rdf_http_query([o(O)|T1], [o(Atom)|T2]) :- !,
+  rdf_atom_term(Atom, O),
   rdf_http_query(T1, T2).
 % predicate
-rdf_http_query([p(P)|T1], [p(PAtom)|T2]) :- !,
-  rdf_term_to_atom(P, PAtom),
+rdf_http_query([p(P)|T1], [p(Atom)|T2]) :- !,
+  rdf_atom_term(Atom, P),
   rdf_http_query(T1, T2).
 % subject
-rdf_http_query([s(S)|T1], [s(SAtom)|T2]) :- !,
-  rdf_term_to_atom(S, SAtom),
+rdf_http_query([s(S)|T1], [s(Atom)|T2]) :- !,
+  rdf_atom_term(Atom, S),
   rdf_http_query(T1, T2).
 % term
-rdf_http_query([term(Term)|T1], [term(TermAtom)|T2]) :- !,
-  rdf_term_to_atom(Term, TermAtom),
+rdf_http_query([term(Term)|T1], [term(Atom)|T2]) :- !,
+  rdf_atom_term(Atom, Term),
   rdf_http_query(T1, T2).
 % done!
 rdf_http_query([], []).

@@ -30,7 +30,7 @@ Streamed processing of RDF data.
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
-:- use_module(library(sw/rdf_guess)).
+:- use_module(library(semweb/rdf_guess)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate

@@ -1,4 +1,4 @@
-#+TITLE: Pro-RDF: Prolog-based RDF library (backend-agnostic)
+#+TITLE: ~pro_rdf~: Prolog-based RDF library (backend-agnostic)
 #+AUTHOR: Wouter Beek
 
 This library provides RDF support that does not require a specific
@@ -6,5 +6,7 @@ backend.  As such, this library is typically used in combination with
 one or more RDF backends.
 
 * Contents
-** Prefix support
+** ~semweb/rdf_prefix~
 The ability to specify, alter, and use RDF prefix notation.
+** ~semweb/rdf_term~
+Support for composing, decomposing, parsing, and generating RDF terms.

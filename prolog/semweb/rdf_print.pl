@@ -32,8 +32,8 @@
 
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
-:- use_module(library(sw/rdf_prefix)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 
 :- rdf_meta
    rdf_dcg_generalized_triple_pattern(t, ?, ?),

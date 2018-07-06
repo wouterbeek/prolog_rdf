@@ -9,8 +9,8 @@
 
 :- use_module(library(dcg)).
 :- use_module(library(gis/wkt)).
-:- use_module(library(sw/rdf_prefix)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 
 :- dynamic
     rdf_lexical_to_value_hook/3,

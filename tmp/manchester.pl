@@ -12,8 +12,8 @@
 */
 
 :- use_module(library(dcg)).
-:- use_module(library(sw/rdf_term)).
-:- use_module(library(sw/sparql_parser), [
+:- use_module(library(semweb/rdf_term)).
+:- use_module(library(semweb/sparql_parser), [
      'PNAME_LN'//1
    ]).
 

@@ -21,9 +21,9 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 
-:- use_module(library(sw/rdf_mem)).
-:- use_module(library(sw/rdf_prefix)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_mem)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 
 :- maplist(rdf_assert_prefix, [owl,rdf,sh]).
 

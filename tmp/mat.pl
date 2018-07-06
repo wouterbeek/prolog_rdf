@@ -22,7 +22,7 @@
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_deb)).
 :- use_module(library(option_ext)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_term)).
 
 :- rdf_meta
    mat(r),

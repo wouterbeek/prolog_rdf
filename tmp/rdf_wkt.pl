@@ -1,4 +1,4 @@
-:- use_module(library(sw/rdf_mem_geo)).
+:- use_module(library(semweb/rdf_mem_geo)).
 
 :- rdf_meta
    rdf_assert_geojson(r, r, +).

@@ -16,7 +16,7 @@
 :- use_module(library(assoc)).
 :- use_module(library(lists)).
 
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_term)).
 
 
 

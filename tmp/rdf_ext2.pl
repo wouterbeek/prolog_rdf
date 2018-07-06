@@ -770,7 +770,7 @@ rdf_pref_string_lexical_form(M, S, P, LRange, Lex, G) :-
 rdf_query_term(Term, QueryTerm) :-
   Term =.. [Key,Value],
   ground(Value),
-  rdf_term_to_atom(Value, Atom),
+  rdf_atom_term(Atom, Value),
   QueryTerm =.. [Key,Atom].
 
 

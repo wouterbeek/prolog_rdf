@@ -21,7 +21,7 @@ Support for reading/writing date/time assertions in RDF.
 :- use_module(library(sgml)).
 
 :- use_module(library(date_time)).
-:- use_module(library(sw/rdf_prefix)).
+:- use_module(library(semweb/rdf_prefix)).
 
 :- maplist(rdf_assert_prefix, [
      xsd-'http://www.w3.org/2001/XMLSchema#'

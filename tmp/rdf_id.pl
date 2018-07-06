@@ -33,8 +33,8 @@
 :- use_module(library(default)).
 :- use_module(library(list_ext)).
 :- use_module(library(ltag/ltag_match)).
-:- use_module(library(sw/rdf_print)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_print)).
+:- use_module(library(semweb/rdf_term)).
 
 :- rdf_meta
    rdf_assert_id(o, r, o),

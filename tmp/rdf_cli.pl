@@ -13,8 +13,8 @@
 @version 2017-2018
 */
 
-:- use_module(library(sw/hdt_db)).
-:- use_module(library(sw/hdt_dataset)).
+:- use_module(library(semweb/hdt_db)).
+:- use_module(library(semweb/hdt_dataset)).
 
 :- rdf_meta
    predicate(r),

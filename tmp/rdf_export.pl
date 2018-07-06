@@ -21,7 +21,7 @@
 :- use_module(library(uri_ext)).
 
 :- use_module(library(hash_ext)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_term)).
 
 :- rdf_meta
    rdf_save(+, +, r),

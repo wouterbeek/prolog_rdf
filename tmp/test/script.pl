@@ -1,7 +1,7 @@
 :- use_module(library(debug)).
 
-:- use_module(library(sw/rdf_print)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_print)).
+:- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri)).
 
 script1(M) :-

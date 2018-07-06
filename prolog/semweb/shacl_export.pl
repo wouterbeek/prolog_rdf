@@ -22,11 +22,11 @@
 :- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(graph/graph_export)).
-:- use_module(library(sw/rdf_mem)).
-:- use_module(library(sw/rdf_prefix)).
-:- use_module(library(sw/rdf_print)).
-:- use_module(library(sw/rdf_term)).
-:- use_module(library(sw/shacl)).
+:- use_module(library(semweb/rdf_mem)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_print)).
+:- use_module(library(semweb/rdf_term)).
+:- use_module(library(semweb/shacl)).
 
 :- maplist(rdf_assert_prefix, [owl,rdf,sh]).
 

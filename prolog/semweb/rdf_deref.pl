@@ -28,9 +28,9 @@
 :- use_module(library(http/http_client2)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
-:- use_module(library(sw/rdf_guess)).
-:- use_module(library(sw/rdf_media_type)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_guess)).
+:- use_module(library(semweb/rdf_media_type)).
+:- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate

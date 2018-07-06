@@ -47,8 +47,8 @@
 :- use_module(library(http/http_server)).
 :- use_module(library(http/rdf_http)).
 :- use_module(library(list_ext)).
-:- use_module(library(sw/rdf_prefix)).
-:- use_module(library(sw/rdf_term)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- multifile
