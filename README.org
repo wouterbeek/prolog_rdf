@@ -1,4 +1,4 @@
-#+TITLE: ~pro_rdf~: Prolog-based RDF library (backend-agnostic)
+#+TITLE: ~prolog_rdf~: Prolog-based RDF library (backend-agnostic)
 #+AUTHOR: Wouter Beek
 
 This library provides RDF support that does not require a specific
