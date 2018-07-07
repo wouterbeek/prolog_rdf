@@ -286,7 +286,7 @@ xsd_global_local_(Global, Local) :-
   var(Global),
   var(Local), !.
 xsd_global_local_(Global, Local) :-
-  rdf_prefix_id(xsd:Local, Global).
+  rdf_prefix_iri(xsd:Local, Global).
 
 
 

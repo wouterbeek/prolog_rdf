@@ -260,7 +260,7 @@ rdf_iri(Iri) -->
     (rdf_prefix(Alias) -> true ; existence_error(rdf_alias,Alias))
   },
   remainder_as_atom(Local),
-  {rdf_global_id(Alias:Local, Iri)}.
+  {rdf_prefix_iri(Alias:Local, Iri)}.
 
 
 
@@ -298,7 +298,7 @@ rdf_is_name(Literal) :-
 %! rdf_is_numeric_literal(@Term) is semidet.
 
 rdf_is_numeric_literal(literal(type(D,_))) :-
-  xsd_is_numeric_datatype_iri(D).
+  xsd_numeric_type(D).
 
 
 

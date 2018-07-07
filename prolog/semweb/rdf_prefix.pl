@@ -1,14 +1,16 @@
 :- module(
   rdf_prefix,
   [
-    rdf_prefix/1,           % ?Alias
-    rdf_prefix_iri/3,       % ?Alias, ?Local, ?Iri
-    rdf_prefix_maplist/2,   % :Goal_1, +Args
-    rdf_prefix_member/2,    % ?Elem, +L
-    rdf_prefix_memberchk/2, % ?Elem, +L
-    rdf_prefix_selectchk/3, % +Elem, +L, -Rest
-    rdf_register_prefix/1,  % +PairOrAlias
-    rdf_register_prefixes/0
+    rdf_prefix/1,            % ?Alias
+    rdf_prefix_iri/3,        % ?Alias, ?Local, ?Iri
+    rdf_prefix_maplist/2,    % :Goal_1, +Args
+    rdf_prefix_member/2,     % ?Elem, +L
+    rdf_prefix_memberchk/2,  % ?Elem, +L
+    rdf_prefix_selectchk/3,  % +Elem, +L, -Rest
+    rdf_register_prefix/1,   % +PairOrAlias
+    rdf_register_prefixes/0,
+    (rdf_meta)/1,
+    op(1150, fx, (rdf_meta))
   ]
 ).
 :- reexport(library(semweb/rdf_prefixes), [
@@ -65,10 +67,10 @@ rdf_prefix(Alias) :-
 %! rdf_prefix_iri(-Alias:atom, -Local:atom, +Iri:atom) is det.
 %! rdf_prefix_iri(+Alias:atom, +Local:atom, -Iri:atom) is det.
 %
-% Syntactic variant of rdf_global_id/2 that works with maplist/3.
+% @see Like rdf_prefix_iri/2, but works with maplist/3.
 
 rdf_prefix_iri(Alias, Local, Iri) :-
-  rdf_global_id(Alias:Local, Iri).
+  rdf_prefix_iri(Alias:Local, Iri).
 
 
 

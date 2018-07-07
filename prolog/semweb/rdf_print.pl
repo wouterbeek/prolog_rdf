@@ -97,7 +97,7 @@ rdf_dcg_iri(Iri, Options) -->
         ->  atom_concat(Prefix, Local, Iri)
         )
     ;   % Abbreviated based on the global prefix declarations.
-        rdf_global_id(Alias:Local, Iri)
+        rdf_prefix_iri(Alias:Local, Iri)
     ), !,
     atom_length(Alias, AliasLength),
     Minus is AliasLength + 1,

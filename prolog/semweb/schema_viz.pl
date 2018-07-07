@@ -97,7 +97,7 @@ export_node(Out, Node, Options) :-
 
 export_node_label(Node, Label, Options) :-
   option(label_property(P0), Options),
-  rdf_global_id(P0, P),
+  rdf_prefix_iri(P0, P),
   rdf_triple(Node, P, Label, _), !.
 export_node_label(Node, Label, _) :-
   string_phrase(rdf_dcg_term(Node), Label).
