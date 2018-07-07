@@ -66,7 +66,7 @@ shacl_assert_class(C-Groups, G) :-
   maplist(shacl_assert_property_(C, G), Groups).
 
 shacl_assert_property_(C, G, P-Os) :-
-  rdf_create_bnode(BNode),
+  rdf_bnode_iri(BNode),
   rdf_assert_triple(C, sh:property, BNode, G),
   rdf_assert_triple(BNode, sh:path, P, G),
   (   Os = [O]
@@ -76,7 +76,7 @@ shacl_assert_property_(C, G, P-Os) :-
   ).
 
 shacl_assert_object_(G, O, BNode) :-
-  rdf_create_bnode(BNode),
+  rdf_bnode_iri(BNode),
   rdf_assert_triple(BNode, sh:class, O, G).
 
 

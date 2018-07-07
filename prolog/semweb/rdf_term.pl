@@ -205,14 +205,14 @@ rdf_bnode_prefix_(Segments, Iri) :-
 %! rdf_bool_false(+Term:rdf_term) is semidet.
 %! rdf_bool_false(-Literal:rdf_literal) is det.
 
-rdf_bool_false(false^^xsd:boolean).
+rdf_bool_false(literal(type(xsd:boolean,false))).
 
 
 
 %! rdf_bool_true(+Term:rdf_term) is semidet.
 %! rdf_bool_true(-Literal:rdf_literal) is det.
 
-rdf_bool_true(true^^xsd:boolean).
+rdf_bool_true(literal(type(xsd:boolean,true))).
 
 
 
@@ -330,7 +330,7 @@ rdf_is_term(O) :-
 %! rdf_language_tagged_string(+LTag:atom, +Lex:atom, -Literal:rdf_literal) is det.
 %! rdf_language_tagged_string(-LTag:atom, -Lex:atom, +Literal:rdf_literal) is det.
 
-rdf_language_tagged_string(LTag, Lex, Lex@LTag).
+rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 
 
 
@@ -402,14 +402,14 @@ rdf_value_to_lexical_error(D, Value) :-
 % Generates or parses a literal in Turtle-family notation.
 
 % Generate a language-tagged string.
-rdf_literal(Lex@LTag) -->
+rdf_literal(literal(lang(LTag,Lex))) -->
   {atom(LTag)}, !,
   "\"",
   atom(Lex),
   "\"@",
   atom(LTag).
 % Generate a typed literal.
-rdf_literal(Lex^^D) -->
+rdf_literal(literal(type(D,Lex))) -->
   {atom(D)}, !,
   "\"",
   atom(Lex),
@@ -433,25 +433,25 @@ rdf_literal(Literal) -->
 %
 % Compose/decompose literals.
 
-rdf_literal(D, LTag, Lex, Lex^^D) :-
+rdf_literal(D, LTag, Lex, literal(type(D,Lex))) :-
   var(LTag).
-rdf_literal(rdf:langString, LTag, Lex, Lex@LTag).
+rdf_literal(rdf:langString, LTag, Lex, literal(lang(LTag,Lex))).
 
 
 
 %! rdf_literal_datatype_iri(+Literal:rdf_literal, +D:atom) is semidet.
 %! rdf_literal_datatype_iri(+Literal:rdf_literal, -D:atom) is det.
 
-rdf_literal_datatype_iri(_^^D, D).
-rdf_literal_datatype_iri(_@_, rdf:langString).
+rdf_literal_datatype_iri(literal(type(D,_)), D).
+rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 
 
 
 %! rdf_literal_lexical_form(+Literal:rdf_literal, +Lex:atom) is semidet.
 %! rdf_literal_lexical_form(+Literal:rdf_literal, -Lex:atom) is det.
 
-rdf_literal_lexical_form(Lex^^_, Lex).
-rdf_literal_lexical_form(Lex@_, Lex).
+rdf_literal_lexical_form(literal(type(_,Lex)), Lex).
+rdf_literal_lexical_form(literal(lang(_,Lex)), Lex).
 
 
 
@@ -466,8 +466,8 @@ rdf_literal_value(Literal, Value) :-
 
 
 % Language-tagged strings do not have a value space.
-rdf_literal_value(Lex@LTag, rdf:langString, Lex-LTag) :- !.
-rdf_literal_value(Lex^^D, D, Value) :-
+rdf_literal_value(literal(lang(LTag,Lex)), rdf:langString, Lex-LTag) :- !.
+rdf_literal_value(literal(type(D,Lex)), D, Value) :-
   rdf_lexical_value(D, Lex, Value).
 
 
@@ -489,4 +489,4 @@ rdf_term(Iri) -->
 %! rdf_typed_literal(+D:atom, +Lex:atom, -Literal:rdf_literal) is det.
 %! rdf_typed_literal(-D:atom, -Lex:atom, +Literal:rdf_literal) is det.
 
-rdf_typed_literal(D, Lex, Lex^^D).
+rdf_typed_literal(D, Lex, literal(type(D,Lex))).
