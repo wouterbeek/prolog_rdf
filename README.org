@@ -1,9 +1,18 @@
-#+TITLE: ~prolog_rdf~: Prolog-based RDF library (backend-agnostic)
+#+TITLE: Pro-RDF: Prolog-based RDF library (backend-agnostic)
 #+AUTHOR: Wouter Beek
 
 This library provides RDF support that does not require a specific
 backend.  As such, this library is typically used in combination with
-one or more RDF backends.
+one or more of the following backends:
+
+  - [[https://github.com/wouterbeek/Pro-HDT][Pro-HDT]] a disk-based backend using limited memory resource.
+  - [[http://github.com/wouterbeek/Pro-RDF-DB][Pro-RDF-DB]] an high-performance, memory-intensive backend.
+
+* Installation
+
+  1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
+  2. Install [[https://github.com/wouterbeek/ppm][Prolog Package Manager]].
+  3. Run the following goal: ~ppm_install(wouterbeek, 'Pro-RDF').~
 
 * Contents
 ** ~semweb/rdf_prefix~
