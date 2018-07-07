@@ -15,7 +15,11 @@ one or more of the following backends:
   3. Run the following goal: ~ppm_install(wouterbeek, 'Pro-RDF').~
 
 * Contents
+
 ** ~semweb/rdf_prefix~
+
 The ability to specify, alter, and use RDF prefix notation.
+
 ** ~semweb/rdf_term~
+
 Support for composing, decomposing, parsing, and generating RDF terms.
