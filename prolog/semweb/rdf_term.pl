@@ -230,15 +230,21 @@ rdf_create_iri(Alias, Segments2, Iri) :-
 %! rdf_iri(-Iri:atom)// .
 %
 % Generates or parses an IRI in Turtle-family notation.
-%
-% @tbd Add support for generating abbreviated IRIs.
 
-% Generate a full IRI.
+% Generate a full or abbreviated IRI.
 rdf_iri(Iri) -->
   {rdf_is_iri(Iri)}, !,
-  "<",
-  atom(Iri),
-  ">".
+  (   {
+        rdf_prefix(Alias, Prefix),
+        atom_concat(Prefix, Local, Iri)
+      }
+  ->  atom(Alias),
+      ":",
+      atom(Local)
+  ;   "<",
+      atom(Iri),
+      ">"
+  ).
 % Parse a full IRI.
 rdf_iri(Iri) -->
   "<",

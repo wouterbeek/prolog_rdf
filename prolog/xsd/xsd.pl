@@ -19,12 +19,12 @@
 :- use_module(library(arithmetic)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
-:- use_module(library(semweb/rdf11), []).
 :- use_module(library(sgml)).
 :- use_module(library(xsdp_types)).
 
 :- use_module(library(dcg)).
 :- use_module(library(list_ext)).
+:- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(uri_ext)).
 
 :- arithmetic_function(xsd_div/2).
