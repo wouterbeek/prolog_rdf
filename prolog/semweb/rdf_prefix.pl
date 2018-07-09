@@ -8,11 +8,12 @@
     rdf_prefix_memberchk/2,  % ?Elem, +L
     rdf_prefix_selectchk/3,  % +Elem, +L, -Rest
     rdf_register_prefix/1,   % +PairOrAlias
-    rdf_register_prefixes/0,
-    (rdf_meta)/1,
-    op(1150, fx, (rdf_meta))
+    rdf_register_prefixes/0
   ]
 ).
+:- reexport(library(semweb/rdf_db), [
+     rdf_equal/2
+   ]).
 :- reexport(library(semweb/rdf_prefixes), [
      rdf_current_prefix/2 as rdf_prefix,
      rdf_global_id/2 as rdf_prefix_iri,
@@ -36,7 +37,6 @@ standards SWI-Prolog distribution.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(semweb/rdf_db), []).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 

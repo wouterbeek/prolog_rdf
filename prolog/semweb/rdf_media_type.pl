@@ -77,7 +77,7 @@ rdf_media_type(MediaType) :-
 
 %! rdf_media_type_extension(?MediaType:compound, ?Extension:atom) is nondet.
 
-rdf_media_type_extension(media(application/'n-quads',[]),nq).
+rdf_media_type_extension(media(application/'n-quads',[]), nq).
 rdf_media_type_extension(media(application/'n-triples',[]), nt).
 rdf_media_type_extension(media(application/'rdf+xml',[]), rdf).
 rdf_media_type_extension(media(application/trig,[]), trig).

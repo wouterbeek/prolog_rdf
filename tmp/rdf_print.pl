@@ -163,8 +163,8 @@ rdf_dcg_iri(Iri) -->
 %! rdf_dcg_language_tag(+LTag, +Options)// is det.
 
 rdf_dcg_language_tag(LTag, Options) -->
-  {dict_get(max_lit_len, Options, ∞, Len)},
-  ellipsis(LTag, Len).
+  {dict_get(max_lit_len, Options, ∞, Length)},
+  ({Length == ∞} -> atom(LTag) ; ellipsis(LTag, Length)).
 
 
 

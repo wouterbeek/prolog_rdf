@@ -11,7 +11,6 @@
     rdf_bool_true/1,              % ?Literal
    %rdf_create_bnode/1,           % --BNode
     rdf_create_iri/3,             % +Alias, +Segments, -Iri
-   %rdf_equal/2,                  % ?Term1, ?Term2
    %rdf_default_graph/1,          % ?G
    %rdf_graph/1,                  % ?G
     rdf_iri//1,                   % ?Iri
@@ -51,16 +50,13 @@
 :- use_module(library(lists)).
 :- reexport(library(semweb/rdf11), [
      rdf_create_bnode/1,
-     rdf_equal/2,
      rdf_default_graph/1,
      rdf_graph/1,
      rdf_is_bnode/1,
      rdf_is_iri/1,
      rdf_is_literal/1,
      rdf_is_predicate/1,
-     rdf_is_subject/1,
-     op(110, xfx, @),
-     op(650, xfx, ^^)
+     rdf_is_subject/1
    ]).
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
@@ -198,7 +194,7 @@ rdf_bnode_prefix(Doc, Iri) :-
 
 rdf_bnode_prefix_(Segments, Iri) :-
   rdf_bnode_iri_(Segments, Iri0),
-  atom_terminator(Iri0, 0'/, Iri).
+  atom_terminator(Iri0, '/', Iri).
 
 
 

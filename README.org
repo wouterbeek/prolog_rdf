@@ -1,9 +1,18 @@
 #+TITLE: Pro-RDF: Prolog-based RDF library (backend-agnostic)
 #+AUTHOR: Wouter Beek
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://www.pirilampo.org/styles/readtheorg/css/htmlize.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://www.pirilampo.org/styles/readtheorg/css/readtheorg.css"/>
+#+HTML_HEAD: <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+#+HTML_HEAD: <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://www.pirilampo.org/styles/readtheorg/js/readtheorg.js"></script>
+#+STARTUP: inlineimages
+#+STARTUP: latexpreview
 
-This library provides RDF support that does not require a specific
-backend.  As such, this library is typically used in combination with
-one or more of the following backends:
+Pro-RDF provides advanced RDF support libraries that focus on
+scalability.  Pro-RDF is backend-agnostic, providing a uniform API
+over one of more storage implementations.  For example, it can be used
+in combination with the following backends:
 
   - [[https://github.com/wouterbeek/Pro-HDT][Pro-HDT]] a disk-based backend using limited memory resource.
   - [[http://github.com/wouterbeek/Pro-RDF-DB][Pro-RDF-DB]] an high-performance, memory-intensive backend.
@@ -14,12 +23,285 @@ one or more of the following backends:
   2. Install [[https://github.com/wouterbeek/ppm][Prolog Package Manager]].
   3. Run the following goal: ~ppm_install(wouterbeek, 'Pro-RDF').~
 
-* Contents
+* Usage
 
-** ~semweb/rdf_prefix~
+  1. Load [[https://github.com/wouterbeek/ppm][Prolog Package Manager]] to make installed packages accessible
+     from the Prolog library path: ~[library(ppm)].~
+  2. Load modules from library Pro-RDF, e.g.,
+     ~[library(semweb/rdf_guess)].~
 
-The ability to specify, alter, and use RDF prefix notation.
+Step 1 can be skipped by adding the following to the Prolog startup
+file (~~/.swiplrc~): ~:- use_module(library(ppm)).~
 
-** ~semweb/rdf_term~
+* Modules
+
+This section enumerates the various modules that are included in
+Pro-DB.  These modules use the following extended Prolog types in
+their predicate documentation headers:
+
+  | *Type*           | *Definition*                                                                         |
+  |------------------+--------------------------------------------------------------------------------------|
+  | ~bnode~          | An atom that starts with ~_:~.                                                       |
+  | ~iri~            | An atom that can be decomposed with ~uri_components/2~ from ~library(uri)~.          |
+  | ~rdf_graph~      | Either a term of type ~iri~ or the atom ~default~.                                   |
+  | ~rdf_literal~    | A compound term of the form ~literal(type(iri,atom))~ or ~literal(lang(atom,atom))~. |
+  | ~rdf_nonliteral~ | A term of type ~bnode~ or ~iri~.                                                     |
+  | ~rdf_quad~       | A compound term of the form ~rdf(rdf_nonliteral,iri,rdf_term,rdf_graph)~.            |
+  | ~rdf_triple~     | A compound term of the form ~rdf(rdf_nonliteral,iri,rdf_term)~.                      |
+  | ~rdf_tuple~      | A term of type ~rdf_quad~ or ~rdf_triple~.                                           |
+
+** ~/html/rdf_html~
+
+This module provides DCG rules that generate simple human-readable
+HTML snippets that represent RDF terms and statements.
+
+** ~/http/rdf_http~
+
+This module supports the use of RDF terms in HTTP APIs, by
+encoding/decoding URI query components that contain RDF terms.
+
+** ~/semweb/rdf_clean~
+
+This module contains data cleaning predicates that were previously
+part of [[http://lodlaundromat.org][LOD Laundromat]].
+
+*** Blank node cleaning
+
+The parsers in the Semantic Web standard library emit blank node
+labels that contain characters that are not allowed in
+standards-compliant output formats (e.g., forward slashes).  This is
+unfortunate, since writing the data into standard-compliant formats
+requires maintaining a state that ensures that Prolog internal blank
+node labels are consistently emitted by the same standard-compliant
+external blank node label.  See [[https://github.com/SWI-Prolog/packages-semweb/issues/68][this Github issue]] for context.
+
+Besides the above considerations, blank nodes form a scalability issue
+in general.  Since blank node labels are only guaranteed to be unique
+within the context of an RDF document, combining data from multiple
+documents requires a check of all blank node labels in the to be
+combined documents.  Furthermore, all blank node labels that appear in
+more than one RDF document must be consistently renamed prior to
+combining the data.
+
+Since Pro-RDF focusses on scalability, it cannot rely on maintaining
+an internal state that consistently maps internal Prolog blank node
+labels to external standards-compliant blank node labels.  For the
+same reasons, it also cannot rely on full document inspection and
+blank node relabeling approaches.  For these reasons, the data
+cleaning prediates in ~semweb/rdf_clean~ replace blank nodes with
+well-known IRIs, in line with the RDF 1.1 standard.  This means that
+every data cleaning predicate must bind a valid well-known IRI to the
+~BNodePrefix~ argument.  It also means that Prolog internal blank node
+labels are hashed using the MD5 algorithm to provide the local names
+for the generated well-known IRIs.  The latter ensures consistent
+relabeling without maintaining an internal state.
+
+*** Graph cleaning
+
+The parsers from the Semantic Web standard library denote the default
+graph with atom ~user~.  This is translated to atom ~default~.  For
+named graphs, this library checks whether they are well-formed IRIs.
+
+*** IRI cleaning
+
+IRI cleaning is the most difficult part of syntactic RDF data
+cleaning.  To date, the IRI grammar ([[https://tools.ietf.org/html/rfc3987][RFC 3987]]) has not yet been
+implemented.  Since this grammar was published over a decade ago, we
+must anticipate a future in which the main syntactic component of the
+Semantic Web cannot be validated.
+
+While there are implementations of the URI grammar ([[https://tools.ietf.org/html/rfc3986][RFC 3986]]), the one
+provided by the Prolog standard library (~library(uri)~) is incorrect.
+
+Because of the above two reasons we currently only check the following:
+  - Whether an IRI can be decomposed into scheme, authority, path,
+    query, and fragment components using the Prolog standard library
+    grammar (~uri_components/2~).
+  - Whether the scheme, authority, and path components are non-empty.
+  - Whether the scheme components conforms to the IRI grammar.
+
+*** Literal cleaning
+
+For language-tagged strings, cleaning involves downcasing the language
+tag.  While there are implementations of the language tag grammar ([[https://tools.ietf.org/html/rfc5646][RFC
+5646]]), we are not yet using these.
+
+Simple literals, i.e., literals with neither language tag not datatype
+IRI, are translated to typed literals with datatype IRI ~xsd:string~.
+
+For typed literals, cleaning involves:
+  - Cleaning the datatype IRI (see [[IRI cleaning]]).
+  - Making sure the datatype IRI is not ~rdf:langString~.
+  - Cleaning the lexical form according to the datatype IRI.  Lexical
+    form cleaning is the most involved step, since there are many
+    different datatype IRIs.  Since it is impractical to implement
+    lexical form cleaning for all datatype IRIs, we focus on those
+    that are most widely used.  For this we use ~rdf_literal_value/3~,
+    which is part of library ~semweb/rdf_term~.
+
+*** Predicates
+
+This library provides the following predicates:
+
+- ~rdf_clean_quad(+BNodePrefix:iri, +Dirty:rdf_quad, -Clean:rdf_quad)~
+
+  Cleans quadruple compound terms.
+
+- ~rdf_clean_triple(+BNodePrefix:iri, +Dirty:rdf_triple, -Clean:rdf_triple)~
+
+  Cleans triple compound terms.
+
+- ~rdf_clean_tuple(+BNodePrefix:iri, +Dirty:rdf_tuple, -Clean:rdf_tuple)~
+
+  Cleans quadruple and/or triple compound terms.
+
+** ~/semweb/rdf_deref~
+
+This module implements RDF dereferencing, i.e., the act of obtaining
+interpreted RDF statements based on a given RDF document, stream, or
+HTTP(S) URI.
+
+*** Predicates
+
+This library provides the following predicates:
+
+  - ~rdf_deref/[2,3]~ calls RDF dereferencing on local RDF documents.
+    Uses heuristics in order to determine the RDF serialization of the
+    file.
+
+  - ~rdf_deref_stream/[3,4]~ performs RDF dereferencing on an input
+    stream containing one of the standardized RDF serialization
+    formats.
+
+  - ~rdf_dered_uri/[2,3]~ performs RDF dereferencing on a URI,
+    typically an HTTP(S) URI.  Uses heuristics in order to determine
+    the RDF serialization of the reply body.
+
+** ~/semweb/rdf_export~
+
+This module writes RDF data in a very simple, yet standards-compliant
+serialization format:
+
+  - ~rdf_write_iri/2~
+  - ~rdf_write_literal/2~
+  - ~rdf_write_name/2~
+  - ~rdf_write_quad/[2,3,5,6]~
+  - ~rdf_write_triple/[2-5]~
+  - ~rdf_write_tuple/2~
+
+** ~/semweb/rdf_geo~
+
+This module extends hooks into module ~/semweb/rdf_term~ that allow
+GeoSPARQL-compliant geo-spatial objects to be read and written.
+
+This module currently supports Well Known Text (WKT), but not
+Geography Markup Language (GML).
+
+** ~/semweb/rdf_graph~
+
+This module supports graph-oriented operations:
+
+  - ~rdf_isomorphic_graphset/2~ determines whether two RDF graphs are
+    isomorphic or not, based on the Prolog notion of a /variant/.
+
+  - ~rdf_triples_graphset/2~ translates a list of triples into an
+    ordered graph set.
+
+** ~/semweb/rdf_guess~
+
+This module peeks at the beginning of a file, stream, or string in
+order to heuristically guesstimate the RDF serialization formats (if
+any) containing in that input:
+
+  - ~rdf_guess_file/3~
+  - ~rdf_guess_stream/3~
+  - ~rdf_guess_string/2~
+
+** ~/semweb/rdf_media_type~
+
+This module provides support for the standardized RDF serialization
+format Media Types:
+
+  - ~rdf_file_name_media_type/2~ guesses the RDF serialization format
+    based on the file name extension alone.
+  - ~rdf_media_type/1~ enumerates all standardized RDF Media Types.
+  - ~'rdf_media_type_>'/2 succeeds if the former argument is an RDF
+    Media Type that syntactically encompasses the latter argument
+    (e.g., TriG > Turtle > N-Triples, N-Quads > N-Triples).
+  - ~rdf_media_type_extension~ gives a standard file name extension
+    for RDF serializations that are not RDFa (which is part of HTML or
+    XHTML content).
+  - ~rdfa_media_type/1~ succeeds for RDFa Media Types.
+
+** ~/semweb/rdf_prefix~
+
+This module provides extended support for working with RDF prefix
+declarations:
+
+*** ~rdf_prefix/[1,2]~
+
+Enumerate the currently declared RDF prefix declarations.
+
+*** ~rdf_prefix_iri/[2,3]~
+
+Succeeds for (alias,local-name) pairs and full IRIs.
+
+*** ~rdf_prefix_maplist/2~
+
+*** ~rdf_prefix_member/2~
+
+*** ~rdf_prefix_memberchk/2~
+
+Provide the corresponding popular Prolog predicates, but apply RDF
+prefix notation expansion on their arguments.
+
+RDF prefix expansion must be specifically declared for arguments in
+predicates.  In the SWI-Prolog standard libraries, such declarations
+have only been added for predicates in the Semantic Web libraries, but
+not for predicates in other standard libraries.  For example, the
+following will not check whether ~P~ is bound to either of the four
+RDFS properties, because the prefix notation is not expanded:
+
+#+BEGIN_SRC prolog
+memberchk(P, [rdfs:domain,rdfs:range,rdfs:subClassOf,rdfs:subPropertyOf]),
+#+END_SRC
+
+Wiht the Semantic Web standard library, the above call must be spelled
+out using ~rdf_equal/2~ in the following way:
+
+#+BEGIN_SRC prolog
+(   rdf_equal(P, rdfs:domain)
+->  true
+;   rdf_equal(P, rdfs:range)
+->  true
+;   rdf_equal(P, rdfs:subClassOf)
+->  true
+;   rdf_equal(P, rdfs:subPropertyOf)
+->  true
+),
+#+END_SRC
+
+When ~library(semweb/rdf_prefix)~ is loade, the above can be written
+as follows:
+
+#+BEGIN_SRC prolog
+rdf_prefix_memberchk(P, [rdfs:domain,rdfs:range,rdfs:subClassOf,rdfs:subPropertyOf]),
+#+END_SRC
+
+*** ~rdf_prefix_selectchk/3~
+
+** ~/semweb/rdf_term~
 
 Support for composing, decomposing, parsing, and generating RDF terms.
+
+** ~/xsd/xsd~
+
+Support for XML Schema 1.1 Part 2: Datatypes.
+
+  - ~xsd_lexical_value/3~ translates between Prolog native values and
+    XSD lexical forms.
+
+  - ~xsd_numeric_type/1~ enumerates XSD numeric datatype IRIs.
+
+  - ~xsd_strict_subtype/2~ and ~xsd:subtype/2~ allow the hierarchy of
+    XSD datatype IRIs to be queried.

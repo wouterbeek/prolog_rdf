@@ -25,10 +25,10 @@
 %! rdf_isomorphic_graphsets(+GraphSet1:ordset(compound),
 %!                          +GraphSet2:ordset(compound)) is semidet.
 %
-% Is true if there is a consistent mapping between of blank nodes in
-% Graph1 to blank nodes in Graph2 that makes both graphs equal.  This
-% maps to the Prolog notion of _variant_ if there was a canonical
-% ordering of triples.
+% Is true if there is a consistent mapping of blank nodes in Graph1 to
+% blank nodes in Graph2 that makes both graphs equal.  This maps to
+% the Prolog notion of _variant_ if there was a canonical ordering of
+% triples.
 %
 % Blank nodes are assumed to be replaced by Prolog variables.
 

@@ -34,18 +34,6 @@
     rdfs_subproperty/2,           % ?P, ?Q
     rdfs_subproperty/3            % ?P, ?Q, ?G
   ]).
-:- reexport(library(semweb/rdf_db), [
-    rdf/3,
-    rdf_load_db/1 as rdf_load_dump,
-    rdf_save_db/1 as rdf_save_dump
-   ]).
-:- reexport(library(semweb/rdf11), [
-    rdf_reset_db/0,
-    rdf_transaction/1,
-    rdf_unload_graph/1,
-    op(110, xfx, @),
-    op(650, xfx, ^^)
-   ]).
 
 /** <module> RDF API
 
