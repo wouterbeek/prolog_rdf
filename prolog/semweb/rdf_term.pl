@@ -1,7 +1,7 @@
 :- module(
   rdf_term,
   [
-    rdf_atom_term/2,              % +Atom, -Term
+    rdf_atom_term/2,              % ?Atom, ?Term
     rdf_bnode_iri/1,              % -Iri
     rdf_bnode_iri/2,              % ?Local, -Iri
     rdf_bnode_iri/3,              % +Document, ?Local, -Iri
@@ -48,13 +48,15 @@
 
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- reexport(library(semweb/rdf_db), [
+     rdf_is_bnode/1,
+     rdf_is_literal/1
+   ]).
 :- reexport(library(semweb/rdf11), [
      rdf_create_bnode/1,
      rdf_default_graph/1,
      rdf_graph/1,
-     rdf_is_bnode/1,
      rdf_is_iri/1,
-     rdf_is_literal/1,
      rdf_is_predicate/1,
      rdf_is_subject/1
    ]).
@@ -64,6 +66,7 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(hash_ext)).
+:- use_module(library(plunit)).
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(uri_ext)).
 :- use_module(library(xsd/xsd)).
@@ -113,10 +116,12 @@
 
 
 
+%! rdf_atom_term(+Atom:atom, +Term:rdf_term) is semidet.
 %! rdf_atom_term(+Atom:atom, -Term:rdf_term) is semidet.
+%! rdf_atom_term(-Atom:atom, +Term:rdf_term) is semidet.
 %
-% Parses the given atom (`Atom') in order to extract the encoded RDF
-% term.  The following syntactic forms are supported:
+% Parses the given Atom in order to extract the encoded RDF Term.  The
+% following syntactic forms are supported:
 %
 %  1. RDF terms defined by the N-Triples 1.1 grammar (blank nodes,
 %     IRIs, and literals).
@@ -137,6 +142,22 @@ rdf_term_to_atom(Atom, _) :-
 rdf_term_to_atom(_, Term) :-
   type_error(rdf_term, Term).
 
+:- begin_tests(rdf_atom_term).
+
+test('rdf_atom_term(+,+)', [forall(test_rdf_atom_term(Atom,Term))]) :-
+  rdf_atom_term(Atom, Term).
+test('rdf_atom_term(+,-)', [forall(test_rdf_atom_term(Atom,Term))]) :-
+  rdf_atom_term(Atom, Term0),
+  assertion(Term == Term0).
+test('rdf_atom_term(-,+)', [forall(test_rdf_atom_term(Atom,Term))]) :-
+  rdf_atom_term(Atom0, Term),
+  assertion(Atom == Atom0).
+
+test_rdf_atom_term('<mailto:x>', 'mailto:x').
+test_rdf_atom_term('""^^<mailto:x>', literal(type('mailto:x',''))).
+
+:- end_tests(rdf_atom_term).
+
 
 
 %! rdf_bnode(+BNode:rdf_bnode)// .
@@ -144,14 +165,21 @@ rdf_term_to_atom(_, Term) :-
 %
 % Generates or parses a blank node in Turtle-family notation.
 
-% Parses a blank node.
 rdf_bnode(BNode) -->
-  {rdf_is_bnode(BNode)}, !,
+  {ground(BNode)}, !,
+  rdf_bnode_generate(BNode).
+rdf_bnode(BNode) -->
+  rdf_bnode_parse(BNode).
+
+rdf_bnode_generate(BNode) -->
   "_:",
   atom(BNode).
-% Generates a blank node.
-rdf_bnode(BNode) -->
-  "_:", !,
+
+rdf_bnode_parse(BNode) -->
+  "_:",
+  rdf_bnode_parse_(BNode).
+
+rdf_bnode_parse_(BNode) -->
   remainder(T),
   {atom_codes(BNode, [0'_,0':|T])}.
 
@@ -229,26 +257,34 @@ rdf_create_iri(Alias, Segments2, Iri) :-
 
 % Generate a full or abbreviated IRI.
 rdf_iri(Iri) -->
-  {rdf_is_iri(Iri)}, !,
-  (   {
-        rdf_prefix(Alias, Prefix),
-        atom_concat(Prefix, Local, Iri)
-      }
-  ->  atom(Alias),
-      ":",
-      atom(Local)
-  ;   "<",
-      atom(Iri),
-      ">"
-  ).
-% Parse a full IRI.
+  {ground(Iri)}, !,
+  rdf_iri_generate(Iri).
 rdf_iri(Iri) -->
+  rdf_iri_parse(Iri).
+
+% Generate an abbreviated IRI.
+rdf_iri_generate(Iri) -->
+  {
+    rdf_prefix(Alias, Prefix),
+    atom_concat(Prefix, Local, Iri)
+  }, !,
+  atom(Alias),
+  ":",
+  atom(Local).
+% Generate a full IRI.
+rdf_iri_generate(Iri) -->
+  "<",
+  atom(Iri),
+  ">".
+
+% Parse a full IRI.
+rdf_iri_parse(Iri) -->
   "<",
   ...(Codes),
   ">", !,
   {atom_codes(Iri, Codes)}.
 % Parse an abbreviated IRI.
-rdf_iri(Iri) -->
+rdf_iri_parse(Iri) -->
   ...(Codes),
   ":",
   {
@@ -391,29 +427,56 @@ rdf_value_to_lexical_error(D, Value) :-
   type_error(D, Value).
 
 
+:- begin_tests(rdf_lexical_value).
+
+:- rdf_meta
+   test_rdf_lexical_value(r, ?, ?).
+
+test('rdf_lexical_value(+,+)', [forall(test_rdf_lexical_value(D, Lex, Value))]) :-
+  rdf_lexical_value(D, Lex, Value).
+test('rdf_lexical_value(+,-)', [forall(test_rdf_lexical_value(D, Lex, Value))]) :-
+  rdf_lexical_value(D, Lex, Value0),
+  assertion(Value == Value0).
+test('rdf_lexical_value(-,+)', [forall(test_rdf_lexical_value(D, Lex, Value))]) :-
+  rdf_lexical_value(D, Lex0, Value),
+  assertion(Lex == Lex0).
+
+test_rdf_lexical_value(xsd:string, abc, "abc").
+
+:- end_tests(rdf_lexical_value).
+
+
 
 %! rdf_literal(+Literal:rdf_literal)// .
 %! rdf_literal(-Literal:rdf_literal)// .
 %
 % Generates or parses a literal in Turtle-family notation.
 
+rdf_literal(Literal) -->
+  {ground(Literal)}, !,
+  rdf_literal_generate(Literal).
+rdf_literal(Literal) -->
+  rdf_literal_parse(Literal).
+
 % Generate a language-tagged string.
-rdf_literal(literal(lang(LTag,Lex))) -->
-  {atom(LTag)}, !,
+rdf_literal_generate(literal(lang(LTag,Lex))) --> !,
   "\"",
   atom(Lex),
   "\"@",
   atom(LTag).
 % Generate a typed literal.
-rdf_literal(literal(type(D,Lex))) -->
+rdf_literal_generate(literal(type(D,Lex))) -->
   {atom(D)}, !,
   "\"",
   atom(Lex),
   "\"^^",
   rdf_iri(D).
-% Parse a literal.
-rdf_literal(Literal) -->
+
+rdf_literal_parse(Literal) -->
   "\"",
+  rdf_literal_parse_(Literal).
+
+rdf_literal_parse_(Literal) -->
   ...(Codes),
   "\"", !,
   ("^^" -> rdf_iri(D) ; "@" -> remainder_as_atom(LTag) ; ""),
@@ -473,12 +536,33 @@ rdf_literal_value(literal(type(D,Lex)), D, Value) :-
 %
 % Generates or parses a term in Turtle-family notation.
 
-rdf_term(Literal) -->
-  rdf_literal(Literal), !.
-rdf_term(BNode) -->
-  rdf_bnode(BNode), !.
-rdf_term(Iri) -->
+rdf_term(Term) -->
+  {ground(Term)}, !,
+  rdf_term_generate(Term).
+rdf_term(Term) -->
+  rdf_term_parse(Term).
+
+rdf_term_generate(Literal) -->
+  {rdf_is_literal(Literal)}, !,
+  rdf_literal_generate(Literal).
+rdf_term_generate(Iri) -->
+  {rdf_is_iri(Iri)}, !,
   rdf_iri(Iri).
+rdf_term_generate(BNode) -->
+  {rdf_is_bnode(BNode)}, !,
+  rdf_bnode(BNode).
+
+% We consume the next character in order to determine the syntactic
+% kind of RDF term.  Notice that IRIs cannot be told aparat in this
+% way, since we support two IRI notations.
+rdf_term_parse(Literal) -->
+  "\"", !,
+  rdf_literal_parse_(Literal).
+rdf_term_parse(BNode) -->
+  "_:", !,
+  rdf_bnode_parse_(BNode).
+rdf_term_parse(Iri) -->
+  rdf_iri_parse(Iri).
 
 
 

@@ -291,8 +291,10 @@ rdf_prefix_memberchk(P, [rdfs:domain,rdfs:range,rdfs:subClassOf,rdfs:subProperty
 *** ~rdf_prefix_selectchk/3~
 
 ** ~/semweb/rdf_term~
+This module provides advanced support for composing, decomposing,
+parsing, and generating RDF terms.
 
-Support for composing, decomposing, parsing, and generating RDF terms.
+
 
 ** ~/xsd/xsd~
 
