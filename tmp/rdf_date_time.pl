@@ -23,9 +23,7 @@ Support for reading/writing date/time assertions in RDF.
 :- use_module(library(date_time)).
 :- use_module(library(semweb/rdf_prefix)).
 
-:- maplist(rdf_assert_prefix, [
-     xsd-'http://www.w3.org/2001/XMLSchema#'
-   ]).
+:- rdf_register_prefix(xsd).
 
 :- multifile
     error:has_type/2.

@@ -1,6 +1,6 @@
 {
   "dependencies": [
-    {"user": "wouterbeek", "repo": "Prolog-Library-Collection", "version": "v1.0.0"}
+    {"user": "wouterbeek", "repo": "Prolog-Library-Collection"}
   ],
   "keywords": ["Linked Data","RDF","Semantic Web"]
 }

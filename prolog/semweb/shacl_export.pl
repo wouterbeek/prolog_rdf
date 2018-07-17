@@ -28,7 +28,7 @@
 :- use_module(library(semweb/rdf_term)).
 :- use_module(library(semweb/shacl)).
 
-:- maplist(rdf_assert_prefix, [owl,rdf,sh]).
+:- maplist(rdf_register_prefix, [owl,rdf,sh]).
 
 :- rdf_meta
    export_shacl(+, r),

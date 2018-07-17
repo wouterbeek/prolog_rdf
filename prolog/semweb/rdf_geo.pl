@@ -20,7 +20,7 @@
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
 
-:- rdf_assert_prefix(geo).
+:- rdf_register_prefix(geo).
 
 :- rdf_meta
    rdf_lexical_to_value_hook(r, +, -),

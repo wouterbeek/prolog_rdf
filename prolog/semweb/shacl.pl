@@ -25,7 +25,7 @@
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_term)).
 
-:- maplist(rdf_assert_prefix, [owl,rdf,sh]).
+:- maplist(rdf_register_prefix, [owl,rdf,sh]).
 
 :- rdf_meta
    shacl_arc(-, r),

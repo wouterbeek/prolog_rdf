@@ -30,6 +30,7 @@
 :- use_module(library(stream_ext)).
 :- use_module(library(semweb/rdf_guess)).
 :- use_module(library(semweb/rdf_media_type)).
+:- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
 
