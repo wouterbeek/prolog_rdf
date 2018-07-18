@@ -11,6 +11,8 @@
     rdf_bool_true/1,              % ?Literal
    %rdf_create_bnode/1,           % --BNode
     rdf_create_iri/3,             % +Alias, +Segments, -Iri
+    rdf_create_literal/2,         % +Input, ?Literal
+    rdf_create_term/2,            % +Input, ?Term
    %rdf_default_graph/1,          % ?G
    %rdf_graph/1,                  % ?G
     rdf_iri//1,                   % ?Iri
@@ -76,10 +78,12 @@
     rdf_value_to_lexical/3.
 
 :- dynamic
+    rdf_create_literal_hook/2,
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
 
 :- multifile
+    rdf_create_literal_hook/2,
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
 
@@ -247,6 +251,117 @@ rdf_create_iri(Alias, Segments2, Iri) :-
   uri_comps(Prefix, uri(Scheme,Auth,Segments1,_,_)),
   append_segments(Segments1, Segments2, Segments3),
   uri_comps(Iri, uri(Scheme,Auth,Segments3,_,_)).
+
+
+
+%! rdf_create_literal(+Input:term, +Literal:rdf_literal) is semidet.
+%! rdf_create_literal(+Input:term, -Literal:rdf_literal) is det.
+%
+% Allows literal terms to be created based on various simplified
+% inputs:
+%
+%
+%   | *Input format*              | *Datatype IRI*         |
+%   |-----------------------------+------------------------|
+%   | pair(string,atom)           | rdf:langString         |
+%   | date(Y,Mo,D)                | xsd:date               |
+%   | date_time(Y,Mo,D,H,Mi,S)    | xsd:dateTime           |
+%   | date_time(Y,Mo,D,H,Mi,S,TZ) | xsd:dateTime           |
+%   | month_day(Mo,D)             | xsd:gMonthDay          |
+%   | time(H,Mi,S)                | xsd:time               |
+%   | year_month(Y,Mo)            | xsd:gYearMonth         |
+%   | nonneg(N)                   | xsd:nonNegativeInteger |
+%   | positive_integer(N)         | xsd:positiveInteger    |
+%   | str(atom)                   | xsd:string             |
+%   | uri(Uri)                    | xsd:anyURI             |
+%   | year(Y)                     | xsd:gYear              |
+%   | integer                     | xsd:integer            |
+%   | float                       | xsd:double             |
+%   | string                      | xsd:string             |
+%   | literal(lang(D,Lex))        | rdf:langString         |
+%   | literal(type(D,Lex))        | D                      |
+%   | oneof([false,true])         | xsd:boolean            |
+
+rdf_create_literal(Term, _) :-
+  var(Term), !,
+  instantiation_error(Term).
+% hook
+rdf_create_literal(Term, O) :-
+  rdf_create_literal_hook(Term, O), !.
+% language-tagged string
+rdf_create_literal(String-LTag, literal(lang(LTag,Lex))) :- !,
+  atom_string(Lex, String).
+% @tbd Support a more convenient/uniform date/time input format.
+% date/3, date_time/[6.7], month_day/2, time/3, year_month/2
+rdf_create_literal(Compound, literal(type(D,Lex))) :-
+  xsd_date_time_term_(Compound), !,
+  xsd_time_string(Compound, D, String),
+  atom_string(Lex, String).
+% nonneg/1 → xsd:nonNegativeInteger
+rdf_create_literal(nonneg(N), literal(type(D,Lex))) :- !,
+  rdf_equal(D, xsd:nonNegativeInteger),
+  must_be(nonneg, N),
+  xsd_number_string(N, Lex).
+% positive_integer/1 → xsd:positiveInteger
+rdf_create_literal(positive_integer(N), literal(type(D,Lex))) :- !,
+  rdf_equal(D, xsd:positiveInteger),
+  must_be(positive_integer, N),
+  xsd_number_string(N, Lex).
+% str/1 → xsd:string
+rdf_create_literal(str(Atomic), literal(type(D,Lex))) :- !,
+  atom_string(Atomic, String),
+  rdf_equal(D, xsd:string),
+  atom_string(Lex, String).
+% uri/1 → xsd:anyURI
+rdf_create_literal(uri(Uri), literal(type(D,Uri))) :- !,
+  rdf_equal(xsd:anyURI, D).
+% year/1 → xsd:gYear
+rdf_create_literal(year(Year), literal(type(D,Lex))) :- !,
+  rdf_equal(D, xsd:gYear),
+  atom_number(Lex, Year).
+% integer → xsd:integer
+rdf_create_literal(Value, literal(type(D,Lex))) :-
+  integer(Value), !,
+  rdf_equal(D, xsd:integer),
+  atom_number(Lex, Value).
+% float → xsd:double
+rdf_create_literal(Value, literal(type(D,Lex))) :-
+  float(Value), !,
+  rdf_equal(D, xsd:double),
+  xsd_number_string(Value, String),
+  atom_string(Lex, String).
+% string → xsd:string
+rdf_create_literal(Value, literal(type(D,Lex))) :-
+  string(Value), !,
+  rdf_equal(D, xsd:string),
+  atom_string(Lex, Value).
+% regular typed literal
+rdf_create_literal(literal(type(D,Lex)), literal(type(D,Lex))) :- !.
+% regular language-tagged string
+rdf_create_literal(literal(lang(LTag,Lex)), literal(lang(LTag,Lex))) :- !.
+% atom `false' and `true' → xsd:boolean
+rdf_create_literal(Lex, literal(type(D,Lex))) :-
+  memberchk(Lex, [false,true]), !,
+  rdf_equal(D, xsd:boolean).
+
+xsd_date_time_term_(date(_,_,_)).
+xsd_date_time_term_(date_time(_,_,_,_,_,_)).
+xsd_date_time_term_(date_time(_,_,_,_,_,_,_)).
+xsd_date_time_term_(month_day(_,_)).
+xsd_date_time_term_(time(_,_,_)).
+xsd_date_time_term_(year_month(_,_)).
+
+
+
+%! rdf_create_term(+Input:term, +Term:rdf_term) is semidet.
+%! rdf_create_term(+Input:term, -Term:rdf_term) is det.
+%
+% Supports the Input formats of rdf_create_literal/2.
+
+rdf_create_term(Term, Literal) :-
+  rdf_create_literal(Term, Literal), !.
+% blank node, IRI
+rdf_create_term(Term, Term).
 
 
 
