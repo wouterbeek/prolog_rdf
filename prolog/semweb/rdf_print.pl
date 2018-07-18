@@ -106,11 +106,11 @@ rdf_dcg_iri(Iri, Options) -->
   },
   atom(Alias),
   ":",
-  ellipsis(Local, Max).
+  ({Max == ∞} -> atom(Local) ; ellipsis(Local, Max)).
 rdf_dcg_iri(Iri, Options) -->
   {dict_get(max_iri_len, Options, ∞, Length)},
   "<",
-  ellipsis(Iri, Length),
+  ({Length == ∞} -> atom(Iri) ; ellipsis(Iri, Length)),
   ">".
 
 inf_minus(∞, _, ∞) :- !.
@@ -134,9 +134,9 @@ rdf_dcg_iri_or_var(Iri, Options) -->
 %! rdf_dcg_lexical_form(+Lex:atom, +Options:dict)// is det.
 
 rdf_dcg_lexical_form(Lex, Options) -->
-  {dict_get(max_lit_len, Options, ∞, Len)},
+  {dict_get(max_lit_len, Options, ∞, Length)},
   "\"",
-  ellipsis(Lex, Len),
+  ({Length == ∞} -> atom(Lex) ; ellipsis(Lex, Length)),
   "\"".
 
 
