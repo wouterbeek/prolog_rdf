@@ -146,7 +146,7 @@ rdf_dcg_bnode(BNode) -->
   {rdf_is_bnode(BNode)}, !,
   atom(BNode).
 rdf_dcg_bnode(BNode) -->
-  {rdf_global_id(bnode:Local, BNode)},
+  {rdf_prefix_iri(bnode:Local, BNode)},
   "_:",
   atom(Local).
 

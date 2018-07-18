@@ -789,19 +789,6 @@ rdf_retractall(rdf(S,P,O,G)) :-
 
 
 
-%! rdf_root(+M, ?Root) is nondet.
-%! rdf_root(+M, ?Root, ?G) is nondet.
-
-rdf_root(M, Root) :-
-  rdf_root(M, Root, _).
-
-
-rdf_root(M, Root, G) :-
-  rdf_subject(M, Root, G),
-  \+ rdf(M, _, _, Root, G).
-
-
-
 %! rdf_scbd_quad(+M, +Node, -Quad) is nondet.
 %! rdf_scbd_quads(+M, +Node, -Quads) is nondet.
 
