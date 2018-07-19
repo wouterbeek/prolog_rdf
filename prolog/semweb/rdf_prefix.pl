@@ -418,7 +418,7 @@ prefix_(gg, 'http://www.gemeentegeschiedenis.nl/gg-schema#').
 prefix_(gml, 'http://www.opengis.net/ont/gml#').
 prefix_(gr, 'http://purl.org/goodrelations/v1#').
 prefix_(grddl, 'http://www.w3.org/2003/g/data-view#').
-prefix_(http, 'http://www.w3.org/2011/http#').
+%prefix_(http, 'http://www.w3.org/2011/http#').
 prefix_(hydra, 'http://www.w3.org/ns/hydra/core#').
 prefix_(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').
 prefix_(iolite, 'http://www.ontologydesignpatterns.org/ont/dul/IOLite.owl#').
