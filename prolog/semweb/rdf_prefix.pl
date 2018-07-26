@@ -2,6 +2,8 @@
   rdf_prefix,
   [
     rdf_prefix/1,            % ?Alias
+    rdf_prefix_append/2,     % +Ls, -L
+    rdf_prefix_append/3,     % +L1, +L2, -L
     rdf_prefix_iri/3,        % ?Alias, ?Local, ?Iri
     rdf_prefix_maplist/2,    % :Goal_1, +Args
     rdf_prefix_member/2,     % ?Elem, +L
@@ -47,6 +49,8 @@ standards SWI-Prolog distribution.
     rdf_prefix_maplist(1, +).
 
 :- rdf_meta
+   rdf_prefix_append(t, t),
+   rdf_prefix_append(t, t, t),
    rdf_prefix_maplist(:, t),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
@@ -61,6 +65,18 @@ standards SWI-Prolog distribution.
 
 rdf_prefix(Alias) :-
   rdf_prefix(Alias, _).
+
+
+
+%! rdf_prefix_append(+Lists:list(list), +List:list) is semidet.
+%! rdf_prefix_append(+Lists:list(list), -List:list) is det.
+
+rdf_prefix_append(Ls, L) :-
+  append(Ls, L).
+
+
+rdf_prefix_append(L1, L2, L) :-
+  append(L1, L2, L).
 
 
 
