@@ -20,7 +20,7 @@
     http:error_status_message_hook/3.
 
 http:convert_parameter(rdf_term, Atom, G) :-
-  rdf_atom_to_term(Atom, G).
+  rdf_atom_term(Atom, G).
 
 http:error_status_message_hook(rdf(cannot_parse(rdf_term,Atom)), 400, Msg) :-
   format(

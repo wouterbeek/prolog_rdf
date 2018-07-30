@@ -2,10 +2,11 @@
 :- module(
   xsd,
   [
-    xsd_lexical_value/3,  % +D, ?Lex, ?Value
-    xsd_numeric_type/1,   % ?D
-    xsd_strict_subtype/2, % ?Sub, ?Super
-    xsd_subtype/2         % ?Sub, ?Super
+    xsd_date_time_to_dt/3, % +DateTime, +D, -DT
+    xsd_lexical_value/3,   % +D, ?Lex, ?Value
+    xsd_numeric_type/1,    % ?D
+    xsd_strict_subtype/2,  % ?Sub, ?Super
+    xsd_subtype/2          % ?Sub, ?Super
   ]
 ).
 

@@ -50,6 +50,7 @@
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
+:- use_module(library(xsd/xsd)).
 
 :- multifile
     html:html_hook//1,
@@ -119,14 +120,24 @@ rdf_html_iri_(Iri, Options) -->
 
 rdf_html_iri_internal_(Iri, Options) -->
   {
-    Options.iri_abbr == true,
+    dict_get(iri_abbr, Options, true, true),
     rdf_prefix_iri(Alias:Local1, Iri), !,
-    atom_ellipsis(Local1, Options.max_iri_len, Local2)
+    dict_get(max_iri_len, Options, ∞, Length),
+    (   Length == ∞
+    ->  Local2 = Local1
+    ;   atom_ellipsis(Local1, Length, Local2)
+    )
   },
   html([Alias,":",Local2]).
 % Plain IRI, possibly ellipsed.
 rdf_html_iri_internal_(Iri1, Options) -->
-  {atom_ellipsis(Iri1, Options.max_iri_len, Iri2)},
+  {
+    dict_get(max_iri_len, Options, ∞, Length),
+    (   Length == ∞
+    ->  Iri2 = Iri1
+    ;   atom_ellipsis(Iri1, Options.max_iri_len, Iri2)
+    )
+  },
   html(["<",Iri2,">"]).
 
 rdf_html_iri_external_(Iri) -->
@@ -175,18 +186,18 @@ rdf_html_literal_internal_(rdf:'HTML', _, Lex, _) --> !,
 rdf_html_literal_internal_(rdf:langString, LTag, Lex, Options) --> !,
   {dict_get(show_flag, Options, true)}, !,
   html([
-    span(lang(LTag), \html_ellipsis(Lex, Options.max_lit_len)),
+    span(lang(LTag), \html_lexical_(Lex, Options)),
     " ",
     \flag_icon(LTag)
   ]).
 rdf_html_literal_internal_(rdf:langString, LTag, Lex, Options) --> !,
-  html(span(lang=LTag, \html_ellipsis(Lex, Options.max_lit_len))).
+  html(span(lang=LTag, \html_lexical_(Lex, Options))).
 % xsd:boolean
 rdf_html_literal_internal_(xsd:boolean, _, Lex, _) -->
   html(Lex).
 % xsd:decimal: before other numeric types
 rdf_html_literal_internal_(xsd:decimal, _, Lex, _) --> !,
-  {atom_phrase(decimalLexicalMap(N), Lex)},
+  {xsd_lexical_value(xsd:decimal, Lex, N)},
   html("~w"-[N]).
 % xsd:byte
 % xsd:double
@@ -227,13 +238,20 @@ rdf_html_literal_internal_(D, _, Lex, Options) -->
   html_date_time(DT, Options).
 % xsd:string
 rdf_html_literal_internal_(xsd:string, _, Lex, Options) --> !,
-  html_ellipsis(Lex, Options.max_lit_len).
+  html_lexical_(Lex, Options).
 % xsd:anyURI
 rdf_html_literal_internal_(xsd:anyUri, _, Uri, _) --> !,
   html(Uri).
 % other
 rdf_html_literal_internal_(_, _, Lex, Options) -->
-  html_ellipsis(Lex, Options.max_lit_len).
+  html_lexical_(Lex, Options).
+
+html_lexical_(Lex, Options) -->
+  {dict_get(max_lit_len, Options, ∞, Length)},
+  (   {Length == ∞}
+  ->  html(Lex)
+  ;   html_ellipsis(Lex, Length)
+  ).
 
 rdf_html_literal_ntuples(literal(lang(LTag,Lex))) -->
   html(["\"",Lex,"\"@",LTag]).
