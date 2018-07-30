@@ -38,7 +38,7 @@
     rdf_literal_value/2,          % +Literal, -Value
     rdf_literal_value/3,          % -Literal, +D, +Value
     rdf_term//1,                  % ?Term
-    rdf_term_to_atom/2,           % +Term, -Atom
+    rdf_term_to_string/2,         % +Term, -String
     rdf_typed_literal/3           % ?D, ?Lex, ?Literal
   ]
 ).
@@ -89,6 +89,7 @@
     rdf_value_to_lexical_hook/3.
 
 :- rdf_meta
+   rdf_atom_term(?, o),
    rdf_bool_false(o),
    rdf_bool_true(o),
    rdf_is_bnode_iri(r),
@@ -107,7 +108,7 @@
    rdf_literal_lexical_form(o, ?),
    rdf_literal_value(o, -),
    rdf_literal_value(o, r, +),
-   rdf_term_to_atom(t, -),
+   rdf_term_to_string(o, -),
    rdf_typed_literal(r, ?, o),
    rdf_value_to_lexical(r, +, -),
    rdf_value_to_lexical_error(r, +).
@@ -141,10 +142,10 @@
 
 rdf_atom_term(Atom, Term) :-
   atom_phrase(rdf_term(Term), Atom), !.
-rdf_term_to_atom(Atom, _) :-
+rdf_atom_term(Atom, _) :-
   atom(Atom), !,
   syntax_error(rdf_term(Atom)).
-rdf_term_to_atom(_, Term) :-
+rdf_atom_term(_, Term) :-
   type_error(rdf_term, Term).
 
 :- begin_tests(rdf_atom_term).
@@ -374,15 +375,6 @@ rdf_iri(Iri) -->
 rdf_iri(Iri) -->
   rdf_iri_parse_(Iri).
 
-% Generate an abbreviated IRI.
-rdf_iri_generate_(Iri) -->
-  {
-    rdf_prefix(Alias, Prefix),
-    atom_concat(Prefix, Local, Iri)
-  }, !,
-  atom(Alias),
-  ":",
-  atom(Local).
 % Generate a full IRI.
 rdf_iri_generate_(Iri) -->
   "<",
@@ -672,6 +664,22 @@ rdf_term_parse_(BNode) -->
   rdf_bnode_parse_(BNode).
 rdf_term_parse_(Iri) -->
   rdf_iri_parse_(Iri).
+
+
+
+%! rdf_term_to_string(+Term:rdf_term, -String:string) is det.
+%
+% Use rdf_atom_term/2 when the serialization must be read back later.
+
+% Abbreviated IRI notation.
+rdf_term_to_string(Term, String) :-
+  rdf_is_iri(Iri),
+  rdf_prefix(Alias, Prefix),
+  atom_concat(Prefix, Local, Iri), !,
+  format(string(String), "~a:~a", [Alias,Local]).
+rdf_term_to_string(Term, String) :-
+  rdf_atom_term(Atom, Term),
+  atom_string(Atom, String).
 
 
 
