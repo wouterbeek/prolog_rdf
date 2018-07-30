@@ -339,13 +339,12 @@ rdf_html_triple(Uri, rdf(S,P,O), Options1) -->
       td(a(href=OUri, \rdf_html_term_(O, Options2)))
     ])
   ).
-    
+
 
 
 %! rdf_html_triple_table(+Uri:atom, +Triples:list(compound))// is det.
 %! rdf_html_triple_table(+Uri:atom, ?G:rdf_graph, +Triples:list(compound))// is det.
-%! rdf_html_triple_table(+Uri:atom, ?G:rdf_graph, +Triples:list(compound),
-%!                       +Options:list(compound))// is det.
+%! rdf_html_triple_table(+Uri:atom, ?G:rdf_graph, +Triples:list(compound), +Options:list(compound))// is det.
 
 rdf_html_triple_table(Uri, Triples) -->
   rdf_html_triple_table(Uri, _, Triples).
