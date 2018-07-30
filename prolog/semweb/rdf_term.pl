@@ -177,14 +177,10 @@ rdf_bnode(BNode) -->
   rdf_bnode_parse_(BNode).
 
 rdf_bnode_generate_(BNode) -->
-  "_:",
   atom(BNode).
 
 rdf_bnode_parse_(BNode) -->
   "_:",
-  rdf_bnode_parse_(BNode).
-
-rdf_bnode_parse_(BNode) -->
   remainder(T),
   {atom_codes(BNode, [0'_,0':|T])}.
 
