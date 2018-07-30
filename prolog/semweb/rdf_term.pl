@@ -172,15 +172,15 @@ test_rdf_atom_term('""^^<mailto:x>', literal(type('mailto:x',''))).
 
 rdf_bnode(BNode) -->
   {ground(BNode)}, !,
-  rdf_bnode_generate(BNode).
+  rdf_bnode_generate_(BNode).
 rdf_bnode(BNode) -->
-  rdf_bnode_parse(BNode).
+  rdf_bnode_parse_(BNode).
 
-rdf_bnode_generate(BNode) -->
+rdf_bnode_generate_(BNode) -->
   "_:",
   atom(BNode).
 
-rdf_bnode_parse(BNode) -->
+rdf_bnode_parse_(BNode) -->
   "_:",
   rdf_bnode_parse_(BNode).
 
@@ -374,12 +374,12 @@ rdf_create_term(Term, Term).
 % Generate a full or abbreviated IRI.
 rdf_iri(Iri) -->
   {ground(Iri)}, !,
-  rdf_iri_generate(Iri).
+  rdf_iri_generate_(Iri).
 rdf_iri(Iri) -->
-  rdf_iri_parse(Iri).
+  rdf_iri_parse_(Iri).
 
 % Generate an abbreviated IRI.
-rdf_iri_generate(Iri) -->
+rdf_iri_generate_(Iri) -->
   {
     rdf_prefix(Alias, Prefix),
     atom_concat(Prefix, Local, Iri)
@@ -388,19 +388,19 @@ rdf_iri_generate(Iri) -->
   ":",
   atom(Local).
 % Generate a full IRI.
-rdf_iri_generate(Iri) -->
+rdf_iri_generate_(Iri) -->
   "<",
   atom(Iri),
   ">".
 
 % Parse a full IRI.
-rdf_iri_parse(Iri) -->
+rdf_iri_parse_(Iri) -->
   "<",
   ...(Codes),
   ">", !,
   {atom_codes(Iri, Codes)}.
 % Parse an abbreviated IRI.
-rdf_iri_parse(Iri) -->
+rdf_iri_parse_(Iri) -->
   ...(Codes),
   ":",
   {
@@ -570,25 +570,25 @@ test_rdf_lexical_value(xsd:string, abc, "abc").
 
 rdf_literal(Literal) -->
   {ground(Literal)}, !,
-  rdf_literal_generate(Literal).
+  rdf_literal_generate_(Literal).
 rdf_literal(Literal) -->
-  rdf_literal_parse(Literal).
+  rdf_literal_parse_(Literal).
 
 % Generate a language-tagged string.
-rdf_literal_generate(literal(lang(LTag,Lex))) --> !,
+rdf_literal_generate_(literal(lang(LTag,Lex))) --> !,
   "\"",
   atom(Lex),
   "\"@",
   atom(LTag).
 % Generate a typed literal.
-rdf_literal_generate(literal(type(D,Lex))) -->
+rdf_literal_generate_(literal(type(D,Lex))) -->
   {atom(D)}, !,
   "\"",
   atom(Lex),
   "\"^^",
   rdf_iri(D).
 
-rdf_literal_parse(Literal) -->
+rdf_literal_parse_(Literal) -->
   "\"",
   rdf_literal_parse_(Literal).
 
@@ -654,31 +654,31 @@ rdf_literal_value(literal(type(D,Lex)), D, Value) :-
 
 rdf_term(Term) -->
   {ground(Term)}, !,
-  rdf_term_generate(Term).
+  rdf_term_generate_(Term).
 rdf_term(Term) -->
-  rdf_term_parse(Term).
+  rdf_term_parse_(Term).
 
-rdf_term_generate(Literal) -->
+rdf_term_generate_(Literal) -->
   {rdf_is_literal(Literal)}, !,
-  rdf_literal_generate(Literal).
-rdf_term_generate(Iri) -->
+  rdf_literal_generate_(Literal).
+rdf_term_generate_(Iri) -->
   {rdf_is_iri(Iri)}, !,
-  rdf_iri(Iri).
-rdf_term_generate(BNode) -->
+  rdf_iri_generate_(Iri).
+rdf_term_generate_(BNode) -->
   {rdf_is_bnode(BNode)}, !,
-  rdf_bnode(BNode).
+  rdf_bnode_generate_(BNode).
 
 % We consume the next character in order to determine the syntactic
 % kind of RDF term.  Notice that IRIs cannot be told aparat in this
 % way, since we support two IRI notations.
-rdf_term_parse(Literal) -->
+rdf_term_parse_(Literal) -->
   "\"", !,
   rdf_literal_parse_(Literal).
-rdf_term_parse(BNode) -->
+rdf_term_parse_(BNode) -->
   "_:", !,
   rdf_bnode_parse_(BNode).
-rdf_term_parse(Iri) -->
-  rdf_iri_parse(Iri).
+rdf_term_parse_(Iri) -->
+  rdf_iri_parse_(Iri).
 
 
 
