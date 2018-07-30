@@ -174,13 +174,13 @@ rdf_bnode(BNode) -->
   {ground(BNode)}, !,
   rdf_bnode_generate_(BNode).
 rdf_bnode(BNode) -->
+  "_:",
   rdf_bnode_parse_(BNode).
 
 rdf_bnode_generate_(BNode) -->
   atom(BNode).
 
 rdf_bnode_parse_(BNode) -->
-  "_:",
   remainder(T),
   {atom_codes(BNode, [0'_,0':|T])}.
 
@@ -568,6 +568,7 @@ rdf_literal(Literal) -->
   {ground(Literal)}, !,
   rdf_literal_generate_(Literal).
 rdf_literal(Literal) -->
+  "\"",
   rdf_literal_parse_(Literal).
 
 % Generate a language-tagged string.
@@ -582,11 +583,7 @@ rdf_literal_generate_(literal(type(D,Lex))) -->
   "\"",
   atom(Lex),
   "\"^^",
-  rdf_iri(D).
-
-rdf_literal_parse_(Literal) -->
-  "\"",
-  rdf_literal_parse_(Literal).
+  rdf_iri_generate_(D).
 
 rdf_literal_parse_(Literal) -->
   ...(Codes),
