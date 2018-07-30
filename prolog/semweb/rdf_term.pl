@@ -672,7 +672,7 @@ rdf_term_parse_(Iri) -->
 % Use rdf_atom_term/2 when the serialization must be read back later.
 
 % Abbreviated IRI notation.
-rdf_term_to_string(Term, String) :-
+rdf_term_to_string(Iri, String) :-
   rdf_is_iri(Iri),
   rdf_prefix(Alias, Prefix),
   atom_concat(Prefix, Local, Iri), !,
