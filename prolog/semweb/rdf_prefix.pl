@@ -1,6 +1,7 @@
 :- module(
   rdf_prefix,
   [
+   %rdf_equal/2,             % +Term1, +Term2
     rdf_prefix/1,            % ?Alias
     rdf_prefix_append/2,     % +Ls, -L
     rdf_prefix_append/3,     % +L1, +L2, -L

@@ -172,9 +172,9 @@ rdf_deref_triple(Uri, rdf(S,P,O), Options) :-
       rdf_deref_uri(Uri, rdf_deref_triples_(G), Options),
       rdf(S, P, O, G)
     ),
-    rdf_unload_graph(G)
+    rdf_retract_graph(G)
   ).
-  
+
 rdf_deref_triples_(G, Triples, _) :-
   maplist(rdf_deref_triple_(G), Triples).
 

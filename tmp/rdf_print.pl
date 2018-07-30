@@ -60,7 +60,7 @@
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_api)).
-:- use_module(library(xml/xsd_dt)).
+:- use_module(library(xsd/xsd)).
 
 :- multifile
     rdf_dcg_literal_hook//2.
@@ -235,7 +235,7 @@ rdf_dcg_literal(literal(type(D,Lex)), _) -->
 % xsd:time
 rdf_dcg_literal(literal(type(D,Lex)), Options) -->
   {
-    rdf11:xsd_date_time_type(D), !,
+    xsd_date_time_type(D), !,
     xsd_time_string(DateTime, D, Lex),
     xsd_date_time_to_dt(DateTime, D, DT),
     dt_label(DT, Label, Options)

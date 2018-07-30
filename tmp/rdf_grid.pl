@@ -37,7 +37,7 @@ rdf_grid(G, Widgets) :-
       rdf_cp_graph(G, TmpG)
     ),
     graph_to_widgets(TmpG, Widgets),
-    rdf_unload_graph(TmpG)
+    rdf_retract_graph(TmpG)
   ).
 
 graph_to_widgets(G, [H|T]) :-

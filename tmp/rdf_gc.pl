@@ -71,7 +71,7 @@ rdf_gc_by_graph0 :-
   findall(Time-G, rdf_touched_graph(_, Time, G), Pairs),
   desc_pairs_values(Pairs, [G|_]),
   retract(rdf_touched_graph(_, Last, G)),
-  rdf_unload_graph(G),
+  rdf_retract_graph(G),
   duration(Last, Duration),
   rdf_number_of_triples(G, N),
   debug(rdf_gc, "[-~:d] [~w] Unloaded graph ~w", [N,Duration,G]),

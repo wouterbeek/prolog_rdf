@@ -35,6 +35,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(semweb/rdf11), []).
 :- use_module(library(sgml)).
 :- use_module(library(yall)).
 

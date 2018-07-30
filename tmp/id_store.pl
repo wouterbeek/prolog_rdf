@@ -323,7 +323,7 @@ rdf_rename_term0(Xid, Yid) :-
   % Firstly. rename the graph `Xid', if it exists.
   (   rdf_graph_id(Xid)
   ->  forall(rdf_id(Sid, Pid, Oid, Xid), qb_id(Sid, Pid, Oid, Yid)),
-      rdf_unload_graph_id(Xid)
+      rdf_retract_graph_id(Xid)
   ;   true
   ),
 

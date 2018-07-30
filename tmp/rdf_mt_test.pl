@@ -95,7 +95,7 @@ build_test_syntax(G) :-
 
 clean_test(G, M) :-
   rdf_unload_model(M),
-  rdf_unload_graph_deb(G).
+  rdf_retract_graph_deb(G).
 
 %! test_name(?Succeeds:boolean, ?Graph:atom, ?Model:atom) is nondet.
 %

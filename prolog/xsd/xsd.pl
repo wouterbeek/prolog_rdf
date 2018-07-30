@@ -3,6 +3,7 @@
   xsd,
   [
     xsd_date_time_to_dt/3, % +DateTime, +D, -DT
+    xsd_date_time_type/1,  % ?D
     xsd_lexical_value/3,   % +D, ?Lex, ?Value
     xsd_numeric_type/1,    % ?D
     xsd_strict_subtype/2,  % ?Sub, ?Super
@@ -21,6 +22,7 @@
 :- use_module(library(arithmetic)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
+:- use_module(library(semweb/rdf11), []).
 :- use_module(library(sgml)).
 :- use_module(library(xsdp_types)).
 
@@ -102,6 +104,14 @@ xsd_date_time_to_dt(Y, xsd:gYear, dt(Y,_,_,_,_,_,0)).
 xsd_date_time_to_dt(year_month(Y,Mo), xsd:gYearMonth, dt(Y,Mo,_,_,_,_,0)).
 % xsd:time
 xsd_date_time_to_dt(time(H,Mi,S), xsd:time, dt(_,_,_,H,Mi,S,0)).
+
+
+
+%! xsd_date_time_type(+D:atom) is semidet.
+%! xsd_date_time_type(-D:atom) is multi.
+
+xsd_date_time_type(D) :-
+  rdf11:xsd_date_time_type(D).
 
 
 
@@ -222,14 +232,14 @@ xsd_value_to_lexical(xsd:string, Value, Lex) :- !,
 % xsd:gYearMonth
 % xsd:time
 xsd_lexical_to_value(D, Lex, Value) :- !,
-  rdf11:xsd_date_time_type(D), !,
+  xsd_date_time_type(D), !,
   (   catch(xsd_time_string(Value0, D, Lex), _, fail),
       xsd_date_time_to_dt(Value0, D, Value)
   ->  true
   ;   xsd_lexical_to_value_error(D, Lex)
   ).
 xsd_value_to_lexical(D, Value, Lex) :- !,
-  rdf11:xsd_date_time_type(D), !,
+  xsd_date_time_type(D), !,
   (   dt_to_xsd_date_time(Value, D, Value0),
       catch(xsd_time_string(Value0, D, Str), _, true),
       atom_string(Lex, Str)
