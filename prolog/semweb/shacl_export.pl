@@ -21,7 +21,7 @@
 
 :- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
-:- use_module(library(graph/graph_export)).
+:- use_module(library(graph/gv)).
 :- use_module(library(semweb/rdf_mem)).
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_print)).
@@ -49,7 +49,7 @@ export_shacl(File, G) :-
 
 export_shacl(File, G, Options1) :-
   merge_options([directed(true)], Options1, Options2),
-  export_graph(File, {G}/[Out]>>shacl_export_graph(Out, G), Options2).
+  gv_export(File, {G}/[Out]>>shacl_export_graph(Out, G), Options2).
 
 
 
@@ -62,7 +62,7 @@ view_shacl(G) :-
 
 view_shacl(G, Options1) :-
   merge_options([directed(true)], Options1, Options2),
-  view_graph(shacl_export_graph(G), Options2).
+  gv_view(shacl_export_graph(G), Options2).
 
 
 
