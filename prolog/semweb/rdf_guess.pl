@@ -43,7 +43,7 @@ XML namespaces.
 %! rdf_guess_file(+File:atom, +Size:positiveInteger, -MediaType:compound) is semidet.
 
 rdf_guess_file(File, Size, MediaType) :-
-  call_stream_file(
+  read_from_file(
     File,
     {Size,MediaType}/[In]>>rdf_guess_stream(In, Size, MediaType)
   ).
