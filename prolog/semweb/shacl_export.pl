@@ -140,5 +140,4 @@ shacl_export_graph(Out, G) :-
 %! shacl_node_label(+Term:rdf_term, -Label:string) is det.
 
 shacl_node_label(Term, Label) :-
-  string_phrase(rdf_dcg_term(Term), Label0),
-  dot_html_replace(Label0, Label).
+  string_phrase(rdf_dcg_term(Term), Label).
