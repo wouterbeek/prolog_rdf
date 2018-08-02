@@ -473,9 +473,10 @@ prefix_(umbel, 'http://umbel.org/umbel#').
 prefix_(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
 prefix_(vcard, 'http://www.w3.org/2006/vcard/ns#').
 %       void
+prefix_(wde, 'http://www.wikidata.org/entity/').
+prefix_(wdp, 'http://www.wikidata.org/prop/direct/').
 prefix_(wdr, 'http://www.w3.org/2007/05/powder#').
 prefix_(wdrs, 'http://www.w3.org/2007/05/powder-s#').
-prefix_(wdt, 'http://www.wikidata.org/prop/direct/').
 prefix_(wgs84, 'http://www.w3.org/2003/01/geo/wgs84_pos#').
 prefix_(wv, 'http://vocab.org/waiver/terms/norms').
 prefix_(xhv, 'http://www.w3.org/1999/xhtml/vocab#').
