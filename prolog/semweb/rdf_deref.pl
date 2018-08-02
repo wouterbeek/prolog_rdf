@@ -68,7 +68,7 @@ rdf_deref_file(File, Goal_3) :-
 rdf_deref_file(File, Goal_3, Options1) :-
   uri_file_name(BaseUri, File),
   merge_options(Options1, [base_uri(BaseUri)], Options2),
-  call_stream_file(
+  read_from_file(
     File,
     {BaseUri,Goal_3,Options2}/[In]>>rdf_deref_stream(BaseUri, In, Goal_3, Options2)
   ).
