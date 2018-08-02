@@ -449,6 +449,7 @@ prefix_(openlinks, 'http://www.openlinksw.com/schemas/virtrdf#').
 prefix_(orcid, 'http://orcid.org/').
 prefix_(org, 'http://www.w3.org/ns/org#').
 %       owl
+prefix_(own16, 'http://www.ontologydesignpatterns.org.it/ont/own/own16.owl#').
 prefix_(prov, 'http://www.w3.org/ns/prov#').
 prefix_(qb, 'http://purl.org/linked-data/cube#').
 prefix_(qt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-query#').
