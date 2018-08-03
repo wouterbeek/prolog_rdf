@@ -525,8 +525,7 @@ rdf_value_to_lexical(D, Value, Lex) :-
   xsd:xsd_value_to_lexical(D, Value, Lex).
 
 rdf_lexical_to_value_error(D, Lex) :-
-  syntax_error(literal(type(D,Lex))).
-
+  throw(rdf(incorrect_lexical_form(D,Lex))).
 rdf_value_to_lexical_error(D, Value) :-
   type_error(D, Value).
 

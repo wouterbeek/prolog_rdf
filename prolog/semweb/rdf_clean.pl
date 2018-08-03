@@ -91,9 +91,9 @@ rdf_clean_iri(Iri, Iri) :-
 % language-tagged string
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
   syntax_error(missing_language_tag(Lex)).
-% rdf:HTML
+% TBD: rdf:HTML
 rdf_clean_lexical_form(rdf:'HTML', Dom, Dom) :- !.
-% rdf:XMLLiteral
+% TBD: rdf:XMLLiteral
 rdf_clean_lexical_form(rdf:'XMLLiteral', Dom, Dom) :- !.
 % typed literal
 rdf_clean_lexical_form(D, Lex1, Lex2) :-

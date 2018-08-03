@@ -249,7 +249,7 @@ xsd_value_to_lexical(D, Value, Lex) :- !,
 
 % error
 xsd_lexical_to_value_error(D, Lex) :-
-  syntax_error(literal(type(D,Lex))).
+  throw(rdf(incorrect_lexical_form(D,Lex))).
 xsd_value_to_lexical_error(D, Value) :-
   type_error(D, Value).
 
