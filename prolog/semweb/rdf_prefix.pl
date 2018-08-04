@@ -440,6 +440,7 @@ prefix_(hydra, 'http://www.w3.org/ns/hydra/core#').
 prefix_(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').
 prefix_(iolite, 'http://www.ontologydesignpatterns.org/ont/dul/IOLite.owl#').
 prefix_(lexvo, 'http://lexvo.org/ontology#').
+prefix_(ll, 'https://lodlaundromat.org/def/').
 prefix_(lmm1, 'http://www.ontologydesignpatterns.org/ont/lmm/LMM_L1.owl#').
 prefix_(ma, 'http://www.w3.org/ns/ma-ont#').
 prefix_(mf, 'http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#').
