@@ -11,7 +11,10 @@
 @version 2018
 */
 
+:- use_module(library(error)).
+
 :- use_module(library(dcg)).
+:- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_term)).
 :- use_module(library(semweb/sparql_parser), [
      'PNAME_LN'//1
@@ -546,7 +549,7 @@ typedLiteral(literal(type(D,Lex))) -->
 
 throw_if_manchester_keyword(Keyword) :-
   manchester_keyword(Keyword), !,
-  syntax_error(manchester_keyword(Keyword)).
+  syntax_error(grammar(manchester,keyword,Keyword)).
 throw_if_manchester_keyword(_).
 
 manchester_keyword('AnnotationProperty').

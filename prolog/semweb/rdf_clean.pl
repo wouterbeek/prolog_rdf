@@ -78,19 +78,16 @@ rdf_clean_graph(G1, G3) :-
 % ```
 
 rdf_clean_iri(Iri, Iri) :-
-  is_iri(Iri).
+  % TBD: There is no implementation for the IRI grammar yet.
+  is_uri(Iri).
 
 
 
 %! rdf_clean_lexical_form(+D:atom, +Lex:atom, -CleanLex:atom) is det.
-%
-% @throw syntax_error
-% @throw type_error
-% @throw unimplemented_datatype_iri
 
 % language-tagged string
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
-  syntax_error(missing_language_tag(Lex)).
+  throw(error(rdf_error(missing_language_tag,Lex),rdf_clean_lexical_form/3)).
 % TBD: rdf:HTML
 rdf_clean_lexical_form(rdf:'HTML', Dom, Dom) :- !.
 % TBD: rdf:XMLLiteral
@@ -101,7 +98,13 @@ rdf_clean_lexical_form(D, Lex1, Lex2) :-
   rdf_lexical_value(D, Lex2, Value),
   % Emit a warning if the lexical form is not canonical.
   (   Lex1 \== Lex2
-  ->  print_message(warning, rdf(non_canonical_lexical_form(D,Lex1,Lex2)))
+  ->  print_message(
+        warning,
+        error(
+          rdf_error(non_canonical_lexical_form,D,Lex1,Lex2),
+          rdf_clean_lexical_form/3
+        )
+      )
   ;   true
   ).
 
@@ -114,7 +117,13 @@ rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
   downcase_atom(LTag1, LTag2),
   % Emit a warning if the language tag is not canonical.
   (   LTag1 \== LTag2
-  ->  print_message(warning, rdf(non_canonical_language_tag(LTag1)))
+  ->  print_message(
+        warning,
+        error(
+          rdf_error(non_canonical_language_tag,LTag1),
+          rdf_clean_literal/2
+        )
+      )
   ;   true
   ).
 % typed literal

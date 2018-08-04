@@ -144,7 +144,7 @@ rdf_atom_term(Atom, Term) :-
   atom_phrase(rdf_term(Term), Atom), !.
 rdf_atom_term(Atom, _) :-
   atom(Atom), !,
-  syntax_error(rdf_term(Atom)).
+  syntax_error(grammar(rdf,term,Atom)).
 rdf_atom_term(_, Term) :-
   type_error(rdf_term, Term).
 
@@ -475,10 +475,6 @@ rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 %
 % Translate between a value (`Value') and its serialization, according
 % to a given datatype IRI (`D'), into a lexical form (`Lex').
-%
-% @error syntax_error(+Literal:compound)
-% @error type_error(+D:atom,+Value:term)
-% @error unimplemented_datatype_iri(+D:atom)
 
 rdf_lexical_value(D, Lex, Value) :-
   (   nonvar(Lex)
@@ -525,7 +521,7 @@ rdf_value_to_lexical(D, Value, Lex) :-
   xsd:xsd_value_to_lexical(D, Value, Lex).
 
 rdf_lexical_to_value_error(D, Lex) :-
-  throw(rdf(incorrect_lexical_form(D,Lex))).
+  syntax_error(grammar(D,Lex)).
 rdf_value_to_lexical_error(D, Value) :-
   type_error(D, Value).
 

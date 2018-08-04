@@ -225,5 +225,3 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
     ),
     close(In)
   ).
-rdf_deref_uri(Uri, _, _) :-
-  syntax_error(Uri).

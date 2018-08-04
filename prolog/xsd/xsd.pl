@@ -117,9 +117,7 @@ xsd_date_time_type(D) :-
 
 %! xsd_lexical_value(+D:atom, +Lex:atom, -Value:term) is semidet.
 %! xsd_lexical_value(+D:atom, -Lex:atom, +Value:term) is semidet.
-%
-% @error syntax_error(+Literal:compound)
-% @error type_error(+D:atom,+Value:term)
+
 
 xsd_lexical_value(D, Lex, Value) :-
   ground(Lex), !,
@@ -134,12 +132,12 @@ xsd_lexical_value(_, Lex, Value) :-
 
 % xsd:anyURI
 xsd_lexical_to_value(xsd:anyURI, Lex, Value) :- !,
-  (   is_iri(Lex)
+  (   is_uri(Lex)
   ->  Value = Lex
   ;   xsd_lexical_to_value_error(xsd:anyURI, Lex)
   ).
 xsd_value_to_lexical(xsd:anyURI, Value, Lex) :- !,
-  (   is_iri(Value)
+  (   is_uri(Value)
   ->  Lex = Value
   ;   xsd_value_to_lexical_error(xsd:anyURI, Value)
   ).
@@ -249,7 +247,7 @@ xsd_value_to_lexical(D, Value, Lex) :- !,
 
 % error
 xsd_lexical_to_value_error(D, Lex) :-
-  throw(rdf(incorrect_lexical_form(D,Lex))).
+  syntax_error(grammar(D,Lex)).
 xsd_value_to_lexical_error(D, Value) :-
   type_error(D, Value).
 
