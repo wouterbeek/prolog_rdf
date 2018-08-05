@@ -278,6 +278,7 @@ rdf_create_iri(Alias, Segments2, Iri) :-
 %   | string                      | xsd:string             |
 %   | literal(lang(D,Lex))        | rdf:langString         |
 %   | literal(type(D,Lex))        | D                      |
+%   | literal(Lex)                | xsd:string             |
 %   | oneof([false,true])         | xsd:boolean            |
 
 rdf_create_literal(Term, _) :-
@@ -337,6 +338,9 @@ rdf_create_literal(Value, literal(type(D,Lex))) :-
 rdf_create_literal(literal(type(D,Lex)), literal(type(D,Lex))) :- !.
 % regular language-tagged string
 rdf_create_literal(literal(lang(LTag,Lex)), literal(lang(LTag,Lex))) :- !.
+% legacy untyped literals
+rdf_create_literal(literal(Lex), literal(type(D,Lex))) :- !,
+  rdf_equal(D, xsd:string).
 % atom `false' and `true' → xsd:boolean
 rdf_create_literal(Lex, literal(type(D,Lex))) :-
   memberchk(Lex, [false,true]), !,
