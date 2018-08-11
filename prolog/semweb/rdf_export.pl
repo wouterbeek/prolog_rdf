@@ -48,6 +48,7 @@ RDF export predicates that are backend-independent.
 
 
 
+
 %! rdf_write_graph(+Out:stream, +G:rdf_graph) is det.
 
 rdf_write_graph(_, G) :-

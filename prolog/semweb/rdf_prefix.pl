@@ -397,11 +397,10 @@ ltag_(zh_yue).
 
 prefix_(Alias, Prefix) :-
   rdf_db:ns(Alias, Prefix).
-prefix_(b, 'https://lodlaundromat.org/.well-known/genid/').
 prefix_(bag, 'http://bag.basisregistraties.overheid.nl/def/bag#').
 prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
 prefix_(bibo, 'http://purl.org/ontology/bibo/').
-prefix_(bnode, 'http://lodlaundromat.org/.well-known/genid/').
+prefix_(bnode, 'https://lodlaundromat.org/.well-known/genid/').
 prefix_(cms, 'http://SemanticCMS.cc/vocab/').
 prefix_(crs, 'http://www.opengis.net/def/crs/OGC/1.3/').
 prefix_(csvw, 'http://www.w3.org/ns/csvw#').
@@ -439,6 +438,7 @@ prefix_(grddl, 'http://www.w3.org/2003/g/data-view#').
 prefix_(hydra, 'http://www.w3.org/ns/hydra/core#').
 prefix_(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').
 prefix_(iolite, 'http://www.ontologydesignpatterns.org/ont/dul/IOLite.owl#').
+prefix_(ldm, 'https://ldm.cc/').
 prefix_(lexvo, 'http://lexvo.org/ontology#').
 prefix_(ll, 'https://lodlaundromat.org/def/').
 prefix_(lmm1, 'http://www.ontologydesignpatterns.org/ont/lmm/LMM_L1.owl#').
