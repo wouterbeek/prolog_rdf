@@ -27,7 +27,7 @@
 :- use_module(library(xsdp_types)).
 
 :- use_module(library(dcg)).
-:- use_module(library(dcg_re)).
+:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(list_ext)).
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(xml_ext)).
@@ -246,12 +246,17 @@ xsd_value_to_lexical(xsd:string, Value, Lex) :- !,
   ).
 
 stringLexicalMap(Lex, String) :-
-  atom_phrase(*('Char'(version(1,1))), Lex, Atom),
-  atom_string(Atom, String).
+  atom_codes(Lex, Codes1),
+  phrase('Char*', Codes1, Codes2),
+  string_codes(String, Codes2).
 
 stringCanonicalMap(String, Lex) :-
-  atom_string(Atom, String),
-  atom_phrase(*('Char'(version(1,1))), Atom, Lex).
+  string_codes(String, Codes1),
+  phrase('Char*', Codes1, Codes2),
+  atom_codes(Lex, Codes2).
+
+'Char*', [Code] --> 'Char'(version(1,1), Code), !, 'Char*'.
+'Char*' --> "".
 
 % xsd:date
 % xsd:dateTime
