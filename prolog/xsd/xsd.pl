@@ -109,9 +109,7 @@ xsd_encode_string, "\\\"" --> [0x22], !, xsd_encode_string.
 xsd_encode_string, "\\'" --> [0x27], !, xsd_encode_string.
 xsd_encode_string, "\\\\" --> [0x5C], !, xsd_encode_string.
 % XML 1.1 Char
-xsd_encode_string, [Code] --> dcg_between(0x1, 0xD7FF, Code), !, xsd_encode_string.
-xsd_encode_string, [Code] --> dcg_between(0xE000, 0xFFFD, Code), !, xsd_encode_string.
-xsd_encode_string, [Code] --> dcg_between(0x10000, 0x10FFFF, Code), !, xsd_encode_string.
+xsd_encode_string, [Code] --> 'Char'(version(1,1), Code), !, xsd_encode_string.
 % Turtle 1.1 UCHAR
 xsd_encode_string, uchar(Code) --> [Code], !, xsd_encode_string.
 xsd_encode_string --> "".
