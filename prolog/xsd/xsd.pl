@@ -98,16 +98,11 @@ xsd_date_time_type(D) :-
 
 
 %! xsd_encode_string// .
+%
+% Turtle 1.1 ECHAR (backslash escape sequences) are handled by
+% turtle:turtle_write_quoted_string/2.  This encoding predicate only
+% takes care of restrictions that are specific to `xsd:string'.
 
-% Turtle 1.1 ECHAR
-xsd_encode_string, "\\b" --> [0x8], !, xsd_encode_string.
-xsd_encode_string, "\\t" --> [0x9], !, xsd_encode_string.
-xsd_encode_string, "\\n" --> [0xA], !, xsd_encode_string.
-xsd_encode_string, "\\f" --> [0xC], !, xsd_encode_string.
-xsd_encode_string, "\\r" --> [0xD], !, xsd_encode_string.
-xsd_encode_string, "\\\"" --> [0x22], !, xsd_encode_string.
-xsd_encode_string, "\\'" --> [0x27], !, xsd_encode_string.
-xsd_encode_string, "\\\\" --> [0x5C], !, xsd_encode_string.
 % XML 1.1 Char
 xsd_encode_string, [Code] --> 'Char'(version(1,1), Code), !, xsd_encode_string.
 % Turtle 1.1 UCHAR
