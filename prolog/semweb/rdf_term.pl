@@ -484,10 +484,7 @@ rdf_lexical_value(D, Lex, Value) :-
   (   nonvar(Lex)
   ->  rdf_lexical_to_value(D, Lex, Value)
   ;   rdf_value_to_lexical(D, Value, Lex)
-  ), !.
-rdf_lexical_value(D, _, _) :-
-  throw(error(unimplemented_datatype_iri(D))).
-
+  ).
 
 % hooks
 rdf_lexical_to_value(D, Lex, Value) :-
@@ -507,12 +504,12 @@ rdf_value_to_lexical(rdf:'HTML', Value, Lex) :-
   ).
 
 % rdf:XMLLiteral
-rdf_lexical_to_value(rdf:'XMLLiteral', Lex, Value) :-
+rdf_lexical_to_value(rdf:'XMLLiteral', Lex, Value) :- !,
   (   rdf11:parse_partial_xml(load_xml, Lex, Value)
   ->  true
   ;   rdf_lexical_to_value_error(rdf:'XMLLiteral', Lex)
   ).
-rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :-
+rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :- !,
   (   rdf11:write_xml_literal(xml, Value, Lex)
   ->  true
   ;   rdf_value_to_lexical_error(rdf:'XMLLiteral', Value)
@@ -520,15 +517,25 @@ rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :-
 
 % XSD datatype IRIs
 rdf_lexical_to_value(D, Lex, Value) :-
-  xsd:xsd_lexical_to_value(D, Lex, Value).
+  xsd:xsd_lexical_to_value(D, Lex, Value), !.
 rdf_value_to_lexical(D, Value, Lex) :-
-  xsd:xsd_value_to_lexical(D, Value, Lex).
+  xsd:xsd_value_to_lexical(D, Value, Lex), !.
+
+rdf_lexical_to_value(D, Lex, _) :-
+  (   ground(D)
+  ->  throw(error(unimplemented_lex2val(D,Lex),rdf_lexical_to_value/3))
+  ;   instantiation_error(D)
+  ).
+rdf_value_to_lexical(D, Value, _) :-
+  (   ground(D)
+  ->  throw(error(unimplemented_val2lex(D,Value),rdf_value_to_lexical/3))
+  ;   instantiation_error(D)
+  ).
 
 rdf_lexical_to_value_error(D, Lex) :-
   syntax_error(grammar(D,Lex)).
 rdf_value_to_lexical_error(D, Value) :-
   type_error(D, Value).
-
 
 :- begin_tests(rdf_lexical_value).
 
