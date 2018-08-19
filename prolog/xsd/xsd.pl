@@ -30,9 +30,9 @@
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(list_ext)).
 :- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(uri_ext)).
 :- use_module(library(xml_ext)).
 :- use_module(library(xsd/xsd_decimal)).
-:- use_module(library(uri_ext)).
 
 :- discontiguous
     xsd_lexical_to_value/3,
@@ -230,28 +230,15 @@ xsd_value_to_lexical(D, Value, Lex) :-
 
 % xsd:string
 xsd_lexical_to_value(xsd:string, Lex, Value) :- !,
-  (   stringLexicalMap(Lex, Value)
+  (   atom_string(Lex, Value)
   ->  true
   ;   xsd_lexical_to_value_error(xsd:string, Lex)
   ).
 xsd_value_to_lexical(xsd:string, Value, Lex) :- !,
-  (   stringCanonicalMap(Value, Lex)
+  (   atom_string(Lex, Value)
   ->  true
   ;   xsd_value_to_lexical_error(xsd:string, Value)
   ).
-
-stringLexicalMap(Lex, String) :-
-  atom_codes(Lex, Codes1),
-  phrase('Char*', Codes1, Codes2),
-  string_codes(String, Codes2).
-
-stringCanonicalMap(String, Lex) :-
-  string_codes(String, Codes1),
-  phrase('Char*', Codes1, Codes2),
-  atom_codes(Lex, Codes2).
-
-'Char*', [Code] --> 'Char'(version(1,1), Code), !, 'Char*'.
-'Char*' --> "".
 
 % xsd:date
 % xsd:dateTime

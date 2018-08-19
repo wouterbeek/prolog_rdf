@@ -142,7 +142,7 @@ rdf_html_iri_internal_(Iri1, Options) -->
   html(["<",Iri2,">"]).
 
 rdf_html_iri_external_(Iri) -->
-  {is_uri(Iri)}, !,
+  {is_iri(Iri)}, !,
   html([" ",\external_link(Iri)]).
 rdf_html_iri_external_(_) --> [].
 

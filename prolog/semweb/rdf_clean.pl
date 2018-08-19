@@ -76,10 +76,13 @@ rdf_clean_graph(G1, G3) :-
 % setting(rdf_term:base_uri, BaseUri),
 % uri_resolve(Iri1, BaseUri, Iri2).
 % ```
+%
+% @tbd There is no implementation for the IRI grammar yet, so we use a
+% conversion from IRIs to URIs, together with an implementation of the
+% URI grammar.
 
 rdf_clean_iri(Iri, Iri) :-
-  % TBD: There is no implementation for the IRI grammar yet.
-  is_uri(Iri).
+  is_iri(Iri).
 
 
 
