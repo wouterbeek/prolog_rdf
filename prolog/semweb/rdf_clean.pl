@@ -10,8 +10,6 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@tbd `rdf:HTML' and `rdf:XMLLiteral' do not have a lexical form, and
-     do not have a canonical mapping.
 @version 2017-2018
 */
 
@@ -92,9 +90,11 @@ rdf_clean_iri(Iri, Iri) :-
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
   throw(error(rdf_error(missing_language_tag,Lex),rdf_clean_lexical_form/3)).
 % TBD: rdf:HTML
-rdf_clean_lexical_form(rdf:'HTML', Dom, Dom) :- !.
+rdf_clean_lexical_form(rdf:'HTML', Dom, Lex) :- !,
+  rdf11:write_xml_literal(html, Dom, Lex).
 % TBD: rdf:XMLLiteral
-rdf_clean_lexical_form(rdf:'XMLLiteral', Dom, Dom) :- !.
+rdf_clean_lexical_form(rdf:'XMLLiteral', Dom, Lex) :- !,
+  rdf11:write_xml_literal(xml, Dom, Lex).
 % typed literal
 rdf_clean_lexical_form(D, Lex1, Lex2) :-
   rdf_lexical_value(D, Lex1, Value),
