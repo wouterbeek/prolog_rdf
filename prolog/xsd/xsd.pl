@@ -2,10 +2,10 @@
 :- module(
   xsd,
   [
+    dt_to_xsd_date_time/3, % +Dt, +D, -DateTime
     xsd_date_time_to_dt/3, % +DateTime, +D, -DT
     xsd_date_time_type/1,  % ?D
     xsd_encode_string//0,  % +String, -EncodedString
-    xsd_lexical_value/3,   % +D, ?Lex, ?Value
     xsd_numeric_type/1,    % ?D
     xsd_strict_subtype/2,  % ?Sub, ?Super
     xsd_subtype/2          % ?Sub, ?Super
@@ -34,21 +34,12 @@
 :- use_module(library(xml_ext)).
 :- use_module(library(xsd/xsd_decimal)).
 
-:- discontiguous
-    xsd_lexical_to_value/3,
-    xsd_value_to_lexical/3.
-
 :- rdf_meta
    dt_to_xsd_date_time(+, r, -),
    xsd_date_time_to_dt(+, r, -),
-   xsd_lexical_to_value(r, +, -),
-   xsd_lexical_to_value_error(r, +),
-   xsd_lexical_value(r, ?, ?),
    xsd_numeric_type(r),
    xsd_strict_subtype(r, r),
-   xsd_subtype(r, r),
-   xsd_value_to_lexical(r, +, -),
-   xsd_value_to_lexical_error(r, +).
+   xsd_subtype(r, r).
 
 
 
@@ -131,144 +122,6 @@ zero_padded(N1, [H|T]) -->
   digit_weight(H),
   {N2 is N1 - 1},
   zero_padded(N2, T).
-
-
-
-%! xsd_lexical_value(+D:atom, +Lex:atom, -Value:term) is semidet.
-%! xsd_lexical_value(+D:atom, -Lex:atom, +Value:term) is semidet.
-
-
-xsd_lexical_value(D, Lex, Value) :-
-  ground(Lex), !,
-  xsd_lexical_to_value(D, Lex, Value0),
-  Value = Value0.
-xsd_lexical_value(D, Lex, Value) :-
-  ground(Value), !,
-  xsd_value_to_lexical(D, Value, Lex0),
-  Lex = Lex0.
-xsd_lexical_value(_, Lex, Value) :-
-  instantiation_error(args([Lex,Value])).
-
-% xsd:anyURI
-xsd_lexical_to_value(xsd:anyURI, Lex, Value) :- !,
-  (   is_uri(Lex)
-  ->  Value = Lex
-  ;   xsd_lexical_to_value_error(xsd:anyURI, Lex)
-  ).
-xsd_value_to_lexical(xsd:anyURI, Value, Lex) :- !,
-  (   is_uri(Value)
-  ->  Lex = Value
-  ;   xsd_value_to_lexical_error(xsd:anyURI, Value)
-  ).
-
-% xsd:boolean
-xsd_lexical_to_value(xsd:boolean, Lex, Value) :- !,
-  (   xsd_lexical_to_value_boolean(Lex, Value)
-  ->  true
-  ;   xsd_lexical_to_value_error(xsd:boolean, Lex)
-  ).
-
-xsd_lexical_to_value_boolean('0', false).
-xsd_lexical_to_value_boolean(false, false).
-xsd_lexical_to_value_boolean('1', true).
-xsd_lexical_to_value_boolean(true, true).
-
-xsd_value_to_lexical(xsd:boolean, Value, Lex) :- !,
-  (   xsd_value_to_lexical_boolean(Value, Lex)
-  ->  true
-  ;   xsd_value_to_lexical_error(xsd:boolean, Value)
-  ).
-
-xsd_value_to_lexical_boolean(false, false).
-xsd_value_to_lexical_boolean(true, true).
-
-% xsd:decimal
-xsd_lexical_to_value(xsd:decimal, Lex, Value) :- !,
-  (   atom_phrase(decimalLexicalMap(Value), Lex)
-  ->  true
-  ;   xsd_lexical_to_value_error(xsd:decimal, Lex)
-  ).
-xsd_value_to_lexical(xsd:decimal, Value, Lex) :- !,
-  (   atom_phrase(decimalCanonicalMap(Value), Lex)
-  ->  true
-  ;   xsd_value_to_lexical_error(xsd:decimal, Value)
-  ).
-
-% xsd:byte
-% xsd:decimal
-% xsd:double
-% xsd;float
-% xsd:int
-% xsd:integer
-% xsd:long
-% xsd:negativeInteger
-% xsd:nonNegativeInteger
-% xsd:nonPositiveInteger
-% xsd:positiveInteger
-% xsd:short
-% xsd:unsignedByte
-% xsd:unsignedInt
-% xsd:unsignedLong
-% xsd:unsignedShort
-xsd_lexical_to_value(D, Lex, Value) :-
-  rdf11:xsd_numerical(D, Domain, Type), !,
-  (   (   Type == double
-      ->  catch(xsd_number_string(Value, Lex), _, fail)
-      ;   Type == integer
-      ->  catch(xsd_number_string(Value, Lex), _, fail),
-          rdf11:check_integer_domain(Domain, D, Value)
-      )
-  ->  true
-  ;   xsd_lexical_to_value_error(D, Lex)
-  ).
-xsd_value_to_lexical(D, Value, Lex) :-
-  rdf11:xsd_numerical(D, Domain, Type), !,
-  (   rdf11:in_number(Type, Domain, D, Value, Lex)
-  ->  true
-  ;   xsd_value_to_lexical_error(D, Value)
-  ).
-
-% xsd:string
-xsd_lexical_to_value(xsd:string, Lex, Value) :- !,
-  (   atom_string(Lex, Value)
-  ->  true
-  ;   xsd_lexical_to_value_error(xsd:string, Lex)
-  ).
-xsd_value_to_lexical(xsd:string, Value, Lex) :- !,
-  (   atom_string(Lex, Value)
-  ->  true
-  ;   xsd_value_to_lexical_error(xsd:string, Value)
-  ).
-
-% xsd:date
-% xsd:dateTime
-% xsd:gDay
-% xsd:gMonth
-% xsd:gMonthDay
-% xsd:gYear
-% xsd:gYearMonth
-% xsd:time
-xsd_lexical_to_value(D, Lex, Value) :- !,
-  xsd_date_time_type(D), !,
-  (   catch(xsd_time_string(Value0, D, Lex), _, fail),
-      xsd_date_time_to_dt(Value0, D, Value)
-  ->  true
-  ;   xsd_lexical_to_value_error(D, Lex)
-  ).
-xsd_value_to_lexical(D, Value, Lex) :- !,
-  xsd_date_time_type(D), !,
-  (   dt_to_xsd_date_time(Value, D, Value0),
-      catch(xsd_time_string(Value0, D, Str), _, true),
-      atom_string(Lex, Str)
-  ->  true
-  ;   xsd_value_to_lexical_error(D, Value)
-  ).
-
-% error
-xsd_lexical_to_value_error(D, Lex) :-
-  syntax_error(grammar(D,Lex)).
-xsd_value_to_lexical_error(D, Value) :-
-  type_error(D, Value).
 
 
 

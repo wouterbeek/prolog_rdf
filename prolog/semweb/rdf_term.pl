@@ -8,8 +8,6 @@
     rdf_bnode_iri/3,              % +Document, ?Local, -Iri
     rdf_bnode_prefix/1,           % -Iri
     rdf_bnode_prefix/2,           % +Document, -Iri
-    rdf_bool_false/1,             % ?Literal
-    rdf_bool_true/1,              % ?Literal
    %rdf_create_bnode/1,           % --BNode
     rdf_create_iri/3,             % +Alias, +Segments, -Iri
     rdf_create_literal/2,         % +Input, ?Literal
@@ -73,6 +71,7 @@
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(uri_ext)).
 :- use_module(library(xsd/xsd)).
+:- use_module(library(xsd/xsd_decimal)).
 
 :- discontiguous
     rdf_lexical_to_value/3,
@@ -90,8 +89,6 @@
 
 :- rdf_meta
    rdf_atom_term(?, o),
-   rdf_bool_false(o),
-   rdf_bool_true(o),
    rdf_is_bnode_iri(r),
    rdf_is_name(o),
    rdf_is_numeric_literal(o),
@@ -225,20 +222,6 @@ rdf_bnode_prefix(Doc, Iri) :-
 rdf_bnode_prefix_(Segments, Iri) :-
   rdf_bnode_iri_(Segments, Iri0),
   atom_terminator(Iri0, '/', Iri).
-
-
-
-%! rdf_bool_false(+Term:rdf_term) is semidet.
-%! rdf_bool_false(-Literal:rdf_literal) is det.
-
-rdf_bool_false(literal(type(xsd:boolean,false))).
-
-
-
-%! rdf_bool_true(+Term:rdf_term) is semidet.
-%! rdf_bool_true(-Literal:rdf_literal) is det.
-
-rdf_bool_true(literal(type(xsd:boolean,true))).
 
 
 
@@ -481,10 +464,10 @@ rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 % to a given datatype IRI (`D'), into a lexical form (`Lex').
 
 rdf_lexical_value(D, Lex, Value) :-
-  (   nonvar(Lex)
-  ->  rdf_lexical_to_value(D, Lex, Value)
-  ;   rdf_value_to_lexical(D, Value, Lex)
-  ).
+  nonvar(Lex), !,
+  rdf_lexical_to_value(D, Lex, Value).
+rdf_lexical_value(D, Lex, Value) :-
+  rdf_value_to_lexical(D, Value, Lex).
 
 % hooks
 rdf_lexical_to_value(D, Lex, Value) :-
@@ -493,33 +476,141 @@ rdf_value_to_lexical(D, Value, Lex) :-
   rdf_value_to_lexical_hook(D, Value, Lex), !.
 % rdf:HTML
 rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
-  (   rdf11:parse_partial_xml(load_html, Lex, Value)
-  ->  true
+  (   rdf11:parse_partial_xml(load_html, Lex, Value0)
+  ->  Value = Value0
   ;   rdf_lexical_to_value_error(rdf:'HTML', Lex)
   ).
 rdf_value_to_lexical(rdf:'HTML', Value, Lex) :-
-  (   rdf11:write_xml_literal(html, Value, Lex)
-  ->  true
+  (   rdf11:write_xml_literal(html, Value, Atom)
+  ->  Lex = Atom
   ;   rdf_value_to_lexical_error(rdf:'HTML', Value)
   ).
 
 % rdf:XMLLiteral
 rdf_lexical_to_value(rdf:'XMLLiteral', Lex, Value) :- !,
-  (   rdf11:parse_partial_xml(load_xml, Lex, Value)
-  ->  true
+  (   rdf11:parse_partial_xml(load_xml, Lex, Value0)
+  ->  Value = Value0
   ;   rdf_lexical_to_value_error(rdf:'XMLLiteral', Lex)
   ).
 rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :- !,
-  (   rdf11:write_xml_literal(xml, Value, Lex)
-  ->  true
+  (   rdf11:write_xml_literal(xml, Value, Atom)
+  ->  Lex = Atom
   ;   rdf_value_to_lexical_error(rdf:'XMLLiteral', Value)
   ).
 
-% XSD datatype IRIs
+% xsd:anyURI
+rdf_lexical_to_value(xsd:anyURI, Lex, Value) :- !,
+  (   is_uri(Lex)
+  ->  Value = Lex
+  ;   rdf_lexical_to_value_error(xsd:anyURI, Lex)
+  ).
+rdf_value_to_lexical(xsd:anyURI, Value, Lex) :- !,
+  (   is_uri(Value)
+  ->  Lex = Value
+  ;   rdf_value_to_lexical_error(xsd:anyURI, Value)
+  ).
+
+% xsd:boolean
+rdf_lexical_to_value(xsd:boolean, Lex, Value) :- !,
+  (   xsd_lexical_to_value_boolean(Lex, Value0)
+  ->  Value = Value0
+  ;   rdf_lexical_to_value_error(xsd:boolean, Lex)
+  ).
+
+xsd_lexical_to_value_boolean('0', false).
+xsd_lexical_to_value_boolean(false, false).
+xsd_lexical_to_value_boolean('1', true).
+xsd_lexical_to_value_boolean(true, true).
+
+rdf_value_to_lexical(xsd:boolean, Value, Lex) :- !,
+  (   xsd_value_to_lexical_boolean(Value, Atom)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(xsd:boolean, Value)
+  ).
+
+xsd_value_to_lexical_boolean(false, false).
+xsd_value_to_lexical_boolean(true, true).
+
+% xsd:decimal
+rdf_lexical_to_value(xsd:decimal, Lex, Value) :- !,
+  (   atom_phrase(decimalLexicalMap(Value0), Lex)
+  ->  Value = Value0
+  ;   rdf_lexical_to_value_error(xsd:decimal, Lex)
+  ).
+rdf_value_to_lexical(xsd:decimal, Value, Lex) :- !,
+  (   atom_phrase(decimalCanonicalMap(Value), Atom)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(xsd:decimal, Value)
+  ).
+
+% xsd:byte
+% xsd:decimal
+% xsd:double
+% xsd;float
+% xsd:int
+% xsd:integer
+% xsd:long
+% xsd:negativeInteger
+% xsd:nonNegativeInteger
+% xsd:nonPositiveInteger
+% xsd:positiveInteger
+% xsd:short
+% xsd:unsignedByte
+% xsd:unsignedInt
+% xsd:unsignedLong
+% xsd:unsignedShort
 rdf_lexical_to_value(D, Lex, Value) :-
-  xsd:xsd_lexical_to_value(D, Lex, Value), !.
+  rdf11:xsd_numerical(D, Domain, Type), !,
+  (   (   Type == double
+      ->  catch(xsd_number_string(Value0, Lex), _, fail)
+      ;   Type == integer
+      ->  catch(xsd_number_string(Value0, Lex), _, fail),
+          rdf11:check_integer_domain(Domain, D, Value0)
+      )
+  ->  Value = Value0
+  ;   rdf_lexical_to_value_error(D, Lex)
+  ).
 rdf_value_to_lexical(D, Value, Lex) :-
-  xsd:xsd_value_to_lexical(D, Value, Lex), !.
+  rdf11:xsd_numerical(D, Domain, Type), !,
+  (   rdf11:in_number(Type, Domain, D, Value, Atom)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(D, Value)
+  ).
+
+% xsd:string
+rdf_lexical_to_value(xsd:string, Lex, Value) :- !,
+  (   atom_string(Lex, Value0)
+  ->  Value = Value0
+  ;   rdf_lexical_to_value_error(xsd:string, Lex)
+  ).
+rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
+  (   atom_string(Atom, Value)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(xsd:string, Value)
+  ).
+
+% xsd:date
+% xsd:dateTime
+% xsd:gDay
+% xsd:gMonth
+% xsd:gMonthDay
+% xsd:gYear
+% xsd:gYearMonth
+% xsd:time
+rdf_lexical_to_value(D, Lex, Value) :- !,
+  xsd_date_time_type(D), !,
+  (   catch(xsd_time_string(Value0, D, Lex), _, fail)
+  ->  xsd_date_time_to_dt(Value0, D, Value)
+  ;   rdf_lexical_to_value_error(D, Lex)
+  ).
+rdf_value_to_lexical(D, Value, Lex) :- !,
+  xsd_date_time_type(D), !,
+  (   dt_to_xsd_date_time(Value, D, Value0),
+      catch(xsd_time_string(Value0, D, String), _, true),
+      atom_string(Atom, String)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(D, Value)
+  ).
 
 rdf_lexical_to_value(D, Lex, _) :-
   (   ground(D)

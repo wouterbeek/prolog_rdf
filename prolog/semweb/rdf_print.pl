@@ -6,6 +6,7 @@
     rdf_dcg_generalized_triple_pattern//2, % +TriplePattern, +Options
     rdf_dcg_generalized_triple_pattern//3, % ?S, ?P, ?O
     rdf_dcg_generalized_triple_pattern//4, % ?S, ?P, ?O, +Options
+    rdf_dcg_iri//2,                        % +Iri
     rdf_dcg_term//1,                       % +Term
     rdf_dcg_term//2,                       % +Term, +Options
     rdf_dcg_term_or_var//1,                % ?Term
@@ -40,6 +41,7 @@
    rdf_dcg_generalized_triple_pattern(t, +, ?, ?),
    rdf_dcg_generalized_triple_pattern(r, r, o, ?, ?),
    rdf_dcg_generalized_triple_pattern(r, r, o, +, ?, ?),
+   rdf_dcg_iri(r, ?, ?),
    rdf_dcg_term(o, ?, ?),
    rdf_dcg_term(o, +, ?, ?),
    rdf_dcg_term_or_var(o, ?, ?),
