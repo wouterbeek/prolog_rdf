@@ -597,13 +597,13 @@ rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
 % xsd:gYear
 % xsd:gYearMonth
 % xsd:time
-rdf_lexical_to_value(D, Lex, Value) :- !,
+rdf_lexical_to_value(D, Lex, Value) :-
   xsd_date_time_type(D), !,
   (   catch(xsd_time_string(Value0, D, Lex), _, fail)
   ->  xsd_date_time_to_dt(Value0, D, Value)
   ;   rdf_lexical_to_value_error(D, Lex)
   ).
-rdf_value_to_lexical(D, Value, Lex) :- !,
+rdf_value_to_lexical(D, Value, Lex) :-
   xsd_date_time_type(D), !,
   (   dt_to_xsd_date_time(Value, D, Value0),
       catch(xsd_time_string(Value0, D, String), _, true),
