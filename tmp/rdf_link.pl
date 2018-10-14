@@ -122,7 +122,7 @@ msg_linked(Term, Iri) :-
     atom(".")
   )),
   dcg_with_output_to(user_output, (
-    ansi_str([1,37,43], Msg),
+    ansi_string([1,37,43], Msg),
     nl,
     nl
   )).

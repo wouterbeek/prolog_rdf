@@ -253,7 +253,7 @@ rdf_create_iri(Alias, Segments2, Iri) :-
 %   | year_month(Y,Mo)            | xsd:gYearMonth         |
 %   | nonneg(N)                   | xsd:nonNegativeInteger |
 %   | positive_integer(N)         | xsd:positiveInteger    |
-%   | str(atom)                   | xsd:string             |
+%   | string(atom)                | xsd:string             |
 %   | uri(Uri)                    | xsd:anyURI             |
 %   | year(Y)                     | xsd:gYear              |
 %   | integer                     | xsd:integer            |
@@ -290,7 +290,7 @@ rdf_create_literal(positive_integer(N), literal(type(D,Lex))) :- !,
   must_be(positive_integer, N),
   xsd_number_string(N, Lex).
 % str/1 → xsd:string
-rdf_create_literal(str(Atomic), literal(type(D,Lex))) :- !,
+rdf_create_literal(string(Atomic), literal(type(D,Lex))) :- !,
   atom_string(Atomic, String),
   rdf_equal(D, xsd:string),
   atom_string(Lex, String).
@@ -722,10 +722,14 @@ rdf_literal_value(Literal, Value) :-
   rdf_literal_value(Literal, _, Value).
 
 
-% Language-tagged strings do not have a value space.
+% language-tagged strings do not have a value space.
 rdf_literal_value(literal(lang(LTag,Lex)), rdf:langString, Lex-LTag) :- !.
-rdf_literal_value(literal(type(D,Lex)), D, Value) :-
+% typed literal
+rdf_literal_value(literal(type(D,Lex)), D, Value) :- !,
   rdf_lexical_value(D, Lex, Value).
+% simple literal
+rdf_literal_value(literal(Lex), xsd:string, Value) :-
+  atom_string(Lex, Value).
 
 
 
