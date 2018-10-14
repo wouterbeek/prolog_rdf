@@ -9,6 +9,8 @@
     rdf_bnode_prefix/1,           % -Iri
     rdf_bnode_prefix/2,           % +Document, -Iri
    %rdf_create_bnode/1,           % --BNode
+    rdf_create_hash_iri/3,        % +Alias, +Term, -Iri
+    rdf_create_hash_iri/4,        % +Alias, +Segments, +Term, -Iri
     rdf_create_iri/3,             % +Alias, +Segments, -Iri
     rdf_create_literal/2,         % +Input, ?Literal
     rdf_create_term/2,            % +Input, ?Term
@@ -222,6 +224,20 @@ rdf_bnode_prefix(Doc, Iri) :-
 rdf_bnode_prefix_(Segments, Iri) :-
   rdf_bnode_iri_(Segments, Iri0),
   atom_terminator(Iri0, '/', Iri).
+
+
+
+%! rdf_create_hash_iri(+Alias:atom, +Term:term, -Iri:atom) is det.
+%! rdf_create_hash_iri(+Alias:atom, +Segments:list(atom), +Term:term, -Iri:atom) is det.
+
+rdf_create_hash_iri(Alias, Term, Iri) :-
+  rdf_create_hash_iri(Alias, [], Term, Iri).
+
+
+rdf_create_hash_iri(Alias, Segments1, Term, Iri) :-
+  md5(Term, Hash),
+  append(Segments1, [Hash], Segments2),
+  rdf_create_iri(Alias, Segments2, Iri).
 
 
 
