@@ -68,6 +68,8 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
+:- use_module(library(gis/gis)).
+:- use_module(library(gis/wkt)).
 :- use_module(library(hash_ext)).
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf_prefix)).
@@ -80,12 +82,12 @@
     rdf_value_to_lexical/3.
 
 :- dynamic
-    rdf_create_literal_hook/2,
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
 
+:- maplist(rdf_register_prefix, [geo,rdf]).
+
 :- multifile
-    rdf_create_literal_hook/2,
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
 
@@ -284,8 +286,10 @@ rdf_create_literal(Term, _) :-
   var(Term), !,
   instantiation_error(Term).
 % hook
-rdf_create_literal(Term, O) :-
-  rdf_create_literal_hook(Term, O), !.
+rdf_create_literal(Shape, Literal) :-
+  gis_is_shape(Shape), !,
+  wkt_shape_atom(Shape, Lex),
+  rdf_typed_literal(geo:wktLiteral, Lex, Literal).
 % language-tagged string
 rdf_create_literal(String-LTag, literal(lang(LTag,Lex))) :- !,
   atom_string(Lex, String).
