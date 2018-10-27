@@ -6,7 +6,7 @@
     rdf_dcg_generalized_triple_pattern//2, % +TriplePattern, +Options
     rdf_dcg_generalized_triple_pattern//3, % ?S, ?P, ?O
     rdf_dcg_generalized_triple_pattern//4, % ?S, ?P, ?O, +Options
-    rdf_dcg_iri//2,                        % +Iri
+    rdf_dcg_iri//2,                        % +Iri, +Options
     rdf_dcg_term//1,                       % +Term
     rdf_dcg_term//2,                       % +Term, +Options
     rdf_dcg_term_or_var//1,                % ?Term
@@ -41,7 +41,7 @@
    rdf_dcg_generalized_triple_pattern(t, +, ?, ?),
    rdf_dcg_generalized_triple_pattern(r, r, o, ?, ?),
    rdf_dcg_generalized_triple_pattern(r, r, o, +, ?, ?),
-   rdf_dcg_iri(r, ?, ?),
+   rdf_dcg_iri(r, +, ?, ?),
    rdf_dcg_term(o, ?, ?),
    rdf_dcg_term(o, +, ?, ?),
    rdf_dcg_term_or_var(o, ?, ?),
@@ -89,6 +89,11 @@ rdf_dcg_generalized_triple_pattern(S, P, O, Options) -->
 
 %! rdf_dcg_iri(+Iri:rdf_iri, +Options:dict)// is det.
 
+% Use custom symbols for some recurring IRIs.
+rdf_dcg_iri(owl:sameAs, _) --> !, "≡".
+rdf_dcg_iri(rdf:nil, _) --> !, "∅".
+rdf_dcg_iri(rdf:type, _) --> !, "∈".
+rdf_dcg_iri(rdfs:subClassOf, _) --> !, "⊆".
 rdf_dcg_iri(Iri, Options) -->
   {
     dict_get(iri_abbr, Options, true, true),
@@ -145,18 +150,28 @@ rdf_dcg_lexical_form(Lex, Options) -->
 
 %! rdf_dcg_literal(+Literal:rdf_literal, +Options:dict)// is det.
 
+% Abbreviated notation for Boolean literals.
+rdf_dcg_literal(literal(type(xsd:boolean,Lex)), _) --> !,
+  dcg_bool(Lex).
+% Do not show the datatype IRI for ‘xsd:decimal’, ‘xsd:float’,
+% and ‘xsd:integer’.
+rdf_dcg_literal(literal(type(D,Lex1)), _) -->
+  {rdf_prefix_memberchk(D, [xsd:decimal,xsd:float,xsd:integer])}, !,
+  {rdf_canonize_lexical_form(D, Lex1, Lex2)},
+  atom(Lex2).
+% Do not show the datatype IRI for ‘xsd:string’.
+rdf_dcg_literal(literal(type(xsd:string,Lex)), _) --> !,
+  "\"", atom(Lex), "\"".
+% Typed literal: lexical form + datatype IRI
+rdf_dcg_literal(literal(type(D,Lex)), Options) --> !,
+  rdf_dcg_lexical_form(Lex, Options),
+  "^^",
+  rdf_dcg_iri(D, Options).
 % language-tagged string
 rdf_dcg_literal(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   atom(LTag).
-% typed literal
-rdf_dcg_literal(literal(type(D,Lex)), Options) --> !,
-  rdf_dcg_lexical_form(Lex, Options),
-  "^^",
-  rdf_dcg_iri(D, Options).
-rdf_dcg_literal(Term, _) -->
-  {type_error(rdf_literal, Term)}.
 
 
 
