@@ -281,25 +281,27 @@ rdf_create_iri(Alias, Segments2, Iri) :-
 %
 %   | *Input format*              | *Datatype IRI*         |
 %   |-----------------------------+------------------------|
-%   | pair(string,atom)           | rdf:langString         |
 %   | date(Y,Mo,D)                | xsd:date               |
 %   | date_time(Y,Mo,D,H,Mi,S)    | xsd:dateTime           |
 %   | date_time(Y,Mo,D,H,Mi,S,TZ) | xsd:dateTime           |
-%   | month_day(Mo,D)             | xsd:gMonthDay          |
-%   | time(H,Mi,S)                | xsd:time               |
-%   | year_month(Y,Mo)            | xsd:gYearMonth         |
-%   | nonneg(N)                   | xsd:nonNegativeInteger |
-%   | positive_integer(N)         | xsd:positiveInteger    |
-%   | string(atom)                | xsd:string             |
-%   | uri(Uri)                    | xsd:anyURI             |
-%   | year(Y)                     | xsd:gYear              |
-%   | integer                     | xsd:integer            |
 %   | float                       | xsd:double             |
-%   | string                      | xsd:string             |
+%   | float(N)                    | xsd:double             |
+%   | integer                     | xsd:integer            |
+%   | integer(N)                  | xsd:integer            |
 %   | literal(lang(D,Lex))        | rdf:langString         |
 %   | literal(type(D,Lex))        | D                      |
 %   | literal(Lex)                | xsd:string             |
+%   | month_day(Mo,D)             | xsd:gMonthDay          |
+%   | nonneg(N)                   | xsd:nonNegativeInteger |
 %   | oneof([false,true])         | xsd:boolean            |
+%   | pair(string,atom)           | rdf:langString         |
+%   | positive_integer(N)         | xsd:positiveInteger    |
+%   | string                      | xsd:string             |
+%   | string(atom)                | xsd:string             |
+%   | time(H,Mi,S)                | xsd:time               |
+%   | uri(Uri)                    | xsd:anyURI             |
+%   | year(Y)                     | xsd:gYear              |
+%   | year_month(Y,Mo)            | xsd:gYearMonth         |
 
 rdf_create_literal(Term, _) :-
   var(Term), !,
@@ -312,12 +314,19 @@ rdf_create_literal(Shape, Literal) :-
 % language-tagged string
 rdf_create_literal(String-LTag, literal(lang(LTag,Lex))) :- !,
   atom_string(Lex, String).
-% @tbd Support a more convenient/uniform date/time input format.
 % date/3, date_time/[6.7], month_day/2, time/3, year_month/2
 rdf_create_literal(Compound, literal(type(D,Lex))) :-
   xsd_date_time_term_(Compound), !,
   xsd_time_string(Compound, D, String),
   atom_string(Lex, String).
+% float/1 → xsd:float
+rdf_create_literal(float(N), literal(type(D,Lex))) :- !,
+  rdf_equal(D, xsd:float),
+  atom_number(Lex, N).
+% integer/1 → xsd:integer
+rdf_create_literal(integer(N), literal(type(D,Lex))) :- !,
+  rdf_equal(D, xsd:integer),
+  atom_number(Lex, N).
 % nonneg/1 → xsd:nonNegativeInteger
 rdf_create_literal(nonneg(N), literal(type(D,Lex))) :- !,
   rdf_equal(D, xsd:nonNegativeInteger),
