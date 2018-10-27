@@ -36,7 +36,7 @@
     rdf_literal_datatype_iri/2,   % +Literal, ?D
     rdf_literal_lexical_form/2,   % +Literal, ?Lex
     rdf_literal_value/2,          % +Literal, -Value
-    rdf_literal_value/3,          % -Literal, +D, +Value
+    rdf_literal_value/3,          % ?Literal, ?D, ?Value
     rdf_term//1,                  % ?Term
     rdf_term_to_string/2,         % +Term, -String
     rdf_typed_literal/3           % ?D, ?Lex, ?Literal
@@ -100,15 +100,14 @@
    rdf_is_skip_node(r),
    rdf_is_term(o),
    rdf_language_tagged_string(?, ?, o),
-   rdf_lexical_value(r, ?, ?),
    rdf_lexical_to_value(r, +, -),
    rdf_lexical_to_value_error(r, +),
-   rdf_value_to_lexical(r, +, -),
+   rdf_lexical_value(r, ?, ?),
    rdf_literal(r, ?, ?, o),
    rdf_literal_datatype_iri(o, r),
    rdf_literal_lexical_form(o, ?),
    rdf_literal_value(o, -),
-   rdf_literal_value(o, r, +),
+   rdf_literal_value(o, r, ?),
    rdf_term_to_string(o, -),
    rdf_typed_literal(r, ?, o),
    rdf_value_to_lexical(r, +, -),
