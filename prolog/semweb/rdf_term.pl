@@ -8,6 +8,8 @@
     rdf_bnode_iri/3,              % +Document, ?Local, -Iri
     rdf_bnode_prefix/1,           % -Iri
     rdf_bnode_prefix/2,           % +Document, -Iri
+    rdf_canonize_lexical_form/3,  % +D, +Lex, -CanonizedLex
+    rdf_canonize_literal/2,       % +Literal, -CanonizedLiteral
    %rdf_create_bnode/1,           % --BNode
     rdf_create_hash_iri/3,        % +Alias, +Term, -Iri
     rdf_create_hash_iri/4,        % +Alias, +Segments, +Term, -Iri
@@ -93,6 +95,8 @@
 
 :- rdf_meta
    rdf_atom_term(?, o),
+   rdf_canonize_lexical_form(r, +, -),
+   rdf_canonize_literal(o, o),
    rdf_is_bnode_iri(r),
    rdf_is_name(o),
    rdf_is_numeric_literal(o),
@@ -225,6 +229,22 @@ rdf_bnode_prefix(Doc, Iri) :-
 rdf_bnode_prefix_(Segments, Iri) :-
   rdf_bnode_iri_(Segments, Iri0),
   atom_terminator(Iri0, '/', Iri).
+
+
+
+%! rdf_canonize_lexical_form(+D:iri, +Lex:atom, -CanonizedLex:atom) is det.
+
+rdf_canonize_lexical_form(D, Lex1, Lex2) :-
+  rdf_lexical_value(D, Lex1, Value),
+  rdf_lexical_value(D, Lex2, Value).
+
+
+
+%! rdf_canonize_literal(+Literal:rdf_literal, -CanonizedLiteral:rdf_literal) is det.
+
+rdf_canonize_literal(Literal1, Literal2) :-
+  rdf_literal_value(Literal1, D, Value),
+  rdf_literal_value(Literal2, D, Value).
 
 
 
