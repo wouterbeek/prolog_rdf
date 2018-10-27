@@ -42,6 +42,7 @@
    rdf_dcg_generalized_triple_pattern(r, r, o, ?, ?),
    rdf_dcg_generalized_triple_pattern(r, r, o, +, ?, ?),
    rdf_dcg_iri(r, +, ?, ?),
+   rdf_dcg_literal(o, +, ?, ?),
    rdf_dcg_term(o, ?, ?),
    rdf_dcg_term(o, +, ?, ?),
    rdf_dcg_term_or_var(o, ?, ?),
@@ -151,8 +152,11 @@ rdf_dcg_lexical_form(Lex, Options) -->
 %! rdf_dcg_literal(+Literal:rdf_literal, +Options:dict)// is det.
 
 % Abbreviated notation for Boolean literals.
-rdf_dcg_literal(literal(type(xsd:boolean,Lex)), _) --> !,
-  dcg_bool(Lex).
+%
+% @bug Prefix expansion does not work.
+rdf_dcg_literal(literal(type('http://www.w3.org/2001/XMLSchema#boolean',Lex1)), _) --> !,
+  {rdf_canonize_lexical_form(xsd:boolean, Lex1, Lex2)},
+  atom(Lex2).
 % Do not show the datatype IRI for ‘xsd:decimal’, ‘xsd:float’,
 % and ‘xsd:integer’.
 rdf_dcg_literal(literal(type(D,Lex1)), _) -->
@@ -160,7 +164,9 @@ rdf_dcg_literal(literal(type(D,Lex1)), _) -->
   {rdf_canonize_lexical_form(D, Lex1, Lex2)},
   atom(Lex2).
 % Do not show the datatype IRI for ‘xsd:string’.
-rdf_dcg_literal(literal(type(xsd:string,Lex)), _) --> !,
+%
+% @bug Prefix expansion does not work.
+rdf_dcg_literal(literal(type('http://www.w3.org/2001/XMLSchema#string',Lex)), _) --> !,
   "\"", atom(Lex), "\"".
 % Typed literal: lexical form + datatype IRI
 rdf_dcg_literal(literal(type(D,Lex)), Options) --> !,
