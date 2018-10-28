@@ -306,10 +306,9 @@ rdf_create_iri(Alias, Segments2, Iri) :-
 rdf_create_literal(Term, _) :-
   var(Term), !,
   instantiation_error(Term).
-% hook
-rdf_create_literal(Shape, Literal) :-
-  gis_is_shape(Shape), !,
-  wkt_shape_atom(Shape, Lex),
+% geospatial shapes
+rdf_create_literal(shape(Z,LRS,CRS,Shape), Literal) :- !,
+  wkt_shape_atom(shape(Z,LRS,CRS,Shape), Lex),
   rdf_typed_literal(geo:wktLiteral, Lex, Literal).
 % language-tagged string
 rdf_create_literal(String-LTag, literal(lang(LTag,Lex))) :- !,
