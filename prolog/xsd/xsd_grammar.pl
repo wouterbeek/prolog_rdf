@@ -421,9 +421,9 @@ daysInMonth(_, _, 31).
 %      duDayTimeCanonicalFragmentMap.
 
 dayTimeDurationCanonicalMap(duration(0,S)) -->
-  ({S < 0} -> "-" ; ""),
+  ({S < 0} -> "-", {SAbs is abs(S)} ; {SAbs is abs(S)}),
   "P",
-  duDayTimeCanonicalFragmentMap(S).
+  duDayTimeCanonicalFragmentMap(SAbs).
 
 
 
