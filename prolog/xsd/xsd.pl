@@ -32,7 +32,7 @@
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(uri_ext)).
 :- use_module(library(xml_ext)).
-:- use_module(library(xsd/xsd_decimal)).
+:- use_module(library(xsd/xsd_grammar)).
 
 :- rdf_meta
    dt_to_xsd_date_time(+, r, -),

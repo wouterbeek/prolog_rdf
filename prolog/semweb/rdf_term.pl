@@ -77,7 +77,7 @@
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(uri_ext)).
 :- use_module(library(xsd/xsd)).
-:- use_module(library(xsd/xsd_decimal)).
+:- use_module(library(xsd/xsd_grammar)).
 
 :- discontiguous
     rdf_lexical_to_value/3,
