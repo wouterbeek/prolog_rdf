@@ -578,6 +578,18 @@ rdf_value_to_lexical(xsd:boolean, Value, Lex) :- !,
 xsd_value_to_lexical_boolean(false, false).
 xsd_value_to_lexical_boolean(true, true).
 
+% xsd:dayTimeDuration
+rdf_lexical_to_value(xsd:dayTimeDuration, Lex, Value) :- !,
+  (   atom_phrase(dayTimeDurationMap(Value0), Lex)
+  ->  Value = Value0
+  ;   rdf_lexical_to_value_error(xsd:dayTimeDuration, Lex)
+  ).
+rdf_value_to_lexical(xsd:dayTimeDuration, Value, Lex) :- !,
+  (   atom_phrase(dayTimeDurationCanonicalMap(Value), Atom)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(xsd:dayTimeDuration, Value)
+  ).
+
 % xsd:decimal
 rdf_lexical_to_value(xsd:decimal, Lex, Value) :- !,
   (   atom_phrase(decimalLexicalMap(Value0), Lex)

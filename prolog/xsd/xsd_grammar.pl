@@ -1,8 +1,10 @@
 :- module(
   xsd_grammar,
   [
-    decimalLexicalMap//1,  % -Value
-    decimalCanonicalMap//1 % +Value
+    dayTimeDurationCanonicalMap//1, % +Duration
+    dayTimeDurationMap//1,          % -Duration
+    decimalLexicalMap//1,           % -Value
+    decimalCanonicalMap//1          % +Value
   ]
 ).
 
@@ -446,7 +448,7 @@ dayTimeDurationCanonicalMap(duration(0,S)) -->
 %
 %   - seconds value is
 %
-%     - −duDayTimeFragmentMap(D), if '-' is present in DT
+%     - -duDayTimeFragmentMap(D), if '-' is present in DT
 %
 %     - duDayTimeFragmentMap(D), otherwise
 
@@ -555,7 +557,6 @@ decimalPtMap(N) -->
 
 
 
-/*
 %! digit(+Integer:between(0,9))// is det.
 %
 % Maps each integer between 0 and 9 to the corresponding digit.
@@ -575,10 +576,6 @@ decimalPtMap(N) -->
 %   - `'1'`, when `i = 1`
 %   - `'2'`, when `i = 2`
 %   - etc.
-
-digit(N) -->
-  decimal_digit(N).
-*/
 
 
 
@@ -1024,7 +1021,7 @@ durationCanonicalMap(duration(Mo,S)) -->
 %
 %     - 0, if Y is not present
 %
-%     - −duYearMonthFragmentMap(Y), if both '-' and Y are present
+%     - -duYearMonthFragmentMap(Y), if both '-' and Y are present
 %
 %     - duYearMonthFragmentMap(Y), otherwise
 %
@@ -1032,7 +1029,7 @@ durationCanonicalMap(duration(Mo,S)) -->
 %
 %     - 0, if D is not present
 %
-%     - −duDayTimeFragmentMap(D), if both '-' and D are present
+%     - -duDayTimeFragmentMap(D), if both '-' and D are present
 %
 %     - duDayTimeFragmentMap(D), otherwise
 
@@ -1319,8 +1316,8 @@ endOfDayFrag(24, 0, 0) -->
 %
 % Return:
 %
-%   - '-' & unsTwoDigitCanonicalFragmentMap(−i div 100) &
-%     unsTwoDigitCanonicalFragmentMap(−i mod 100), when i is negative
+%   - '-' & unsTwoDigitCanonicalFragmentMap(-i div 100) &
+%     unsTwoDigitCanonicalFragmentMap(-i mod 100), when i is negative
 %
 %   - unsTwoDigitCanonicalFragmentMap(i div 100) &
 %     unsTwoDigitCanonicalFragmentMap(i mod 100), otherwise
@@ -1944,7 +1941,7 @@ monthFragValue(Month) -->
 % @arg S  An optional decimal number greater than or equal to 0 and
 %         less than 60.
 %
-% @arg Off An optional integer between −840 and 840 inclusive.
+% @arg Off An optional integer between -840 and 840 inclusive.
 %
 % # Algorithm
 %
@@ -2158,14 +2155,14 @@ normalizeMinute(Y1, Mo1, D1, H1, Mi1, Y2, Mo2, D2, H2, Mi2):-
 %
 % # Algorithm
 %
-%   - Add (mo − 1) div 12 to yr
+%   - Add (mo - 1) div 12 to yr
 %
-%   - Set mo to (mo − 1) mod 12 + 1
+%   - Set mo to (mo - 1) mod 12 + 1
 
 normalizeMonth(Y1, Mo1, Y2, Mo2):-
-  % Add (mo − 1) div 12 to yr.
+  % Add (mo - 1) div 12 to yr.
   Y2 is Y1 + (Mo1 - 1) xsd_div 12,
-  % Set mo to (mo − 1) mod 12 + 1.
+  % Set mo to (mo - 1) mod 12 + 1.
   Mo2 is (Mo1 - 1) xsd_mod 12 + 1.
 
 
@@ -2560,7 +2557,7 @@ timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
 %
 % # Arguments
 %
-% @arg Off An integer between −840 and 840 inclusive.
+% @arg Off An integer between -840 and 840 inclusive.
 %
 % # Algorithm
 %
@@ -2568,8 +2565,8 @@ timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
 %
 %   - 'Z', when t is zero
 %
-%   - '-' & unsTwoDigitCanonicalFragmentMap(−t div 60) & ':' &
-%     unsTwoDigitCanonicalFragmentMap(−t mod 60), when t is negative
+%   - '-' & unsTwoDigitCanonicalFragmentMap(-t div 60) & ':' &
+%     unsTwoDigitCanonicalFragmentMap(-t mod 60), when t is negative
 %
 %   - '+' & unsTwoDigitCanonicalFragmentMap(t div 60) & ':' &
 %     unsTwoDigitCanonicalFragmentMap(t mod 60), otherwise
@@ -2577,12 +2574,11 @@ timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
 timezoneCanonicalFragmentMap(0) --> !,
   "Z".
 timezoneCanonicalFragmentMap(Off) -->
-  {between(-840, 840, Off)},
-  ({Off < 0} -> "-", {Off_abs = -Off} ; "+", {Off_abs = Off}),
-  {H is Off_abs xsd_div 60},
+  ({Off < 0} -> "-", {OffAbs is abs(Off)} ; "+", {OffAbs = Off}),
+  {H is OffAbs xsd_div 60},
   unsTwoDigitCanonicalFragmentMap(H),
   ":",
-  {Mi is Off_abs xsd_mod 60},
+  {Mi is OffAbs xsd_mod 60},
   unsTwoDigitCanonicalFragmentMap(Mi).
 
 
@@ -2610,7 +2606,7 @@ timezoneCanonicalFragmentMap(Off) -->
 %
 %   - 0, when TZ is 'Z'
 %
-%   - −(unsignedDecimalPtMap(H) × 60 + unsignedDecimalPtMap(M)), when
+%   - -(unsignedDecimalPtMap(H) × 60 + unsignedDecimalPtMap(M)), when
 %     the sign is '-'
 %
 %   - unsignedDecimalPtMap(H) × 60 + unsignedDecimalPtMap(M),
@@ -2786,9 +2782,9 @@ unsignedScientificCanonicalMap(N) -->
 
 unsTwoDigitCanonicalFragmentMap(N) -->
   {N1 is N xsd_div 10},
-  digit(N1),
+  digit_weight(N1),
   {N2 is N xsd_mod 10},
-  digit(N2).
+  digit_weight(N2).
 
 
 
@@ -2889,7 +2885,7 @@ yearMonthDurationCanonicalMap(duration(Mo,0)) -->
 %
 %   - months value is:
 %
-%     - −duYearMonthFragmentMap(Y), if '-' is present in YM
+%     - -duYearMonthFragmentMap(Y), if '-' is present in YM
 %
 %     - duYearMonthFragmentMap(Y), otherwise
 %
