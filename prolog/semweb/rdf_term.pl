@@ -5,9 +5,9 @@
     rdf_atom_term/2,              % ?Atom, ?Term
     rdf_bnode_iri/1,              % -Iri
     rdf_bnode_iri/2,              % ?Local, -Iri
-    rdf_bnode_iri/3,              % +Document, ?Local, -Iri
+    rdf_bnode_iri/3,              % +Scope, ?Local, -Iri
     rdf_bnode_prefix/1,           % -Iri
-    rdf_bnode_prefix/2,           % +Document, -Iri
+    rdf_bnode_prefix/2,           % +Scope, -Iri
     rdf_canonize_lexical_form/3,  % +D, +Lex, -CanonizedLex
     rdf_canonize_literal/2,       % +Literal, -CanonizedLiteral
    %rdf_create_bnode/1,           % --BNode
@@ -41,7 +41,8 @@
     rdf_literal_value/3,          % ?Literal, ?D, ?Value
     rdf_term//1,                  % ?Term
     rdf_term_to_string/2,         % +Term, -String
-    rdf_typed_literal/3           % ?D, ?Lex, ?Literal
+    rdf_typed_literal/3,          % ?D, ?Lex, ?Literal
+    well_known_iri/2              % +Segments, -Iri
   ]
 ).
 
@@ -193,7 +194,7 @@ rdf_bnode_parse_(BNode) -->
 
 %! rdf_bnode_iri(-Iri:atom) is det.
 %! rdf_bnode_iri(+Local:atom, -Iri:atom) is det.
-%! rdf_bnode_iri(+Document:atom, +Local:atom, -Iri:atom) is det.
+%! rdf_bnode_iri(+Scope:atom, +Local:atom, -Iri:atom) is det.
 
 rdf_bnode_iri(Iri) :-
   uuid(Local),
@@ -201,33 +202,28 @@ rdf_bnode_iri(Iri) :-
 
 
 rdf_bnode_iri(Local, Iri) :-
-  rdf_bnode_iri_([Local], Iri).
+  well_known_iri([Local], Iri).
 
 
-rdf_bnode_iri(Doc, Local, Iri) :-
-  md5_text(Doc, DocId),
-  rdf_bnode_iri_([DocId,Local], Iri).
-
-rdf_bnode_iri_(Segments, Iri) :-
-  setting(bnode_prefix_scheme, Scheme),
-  setting(bnode_prefix_authority, Auth),
-  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid|Segments],_,_)).
+rdf_bnode_iri(Scope, Local, Iri) :-
+  md5_text(Scope, ScopeId),
+  well_known_iri([ScopeId,Local], Iri).
 
 
 
 %! rdf_bnode_prefix(-Iri:atom) is det.
-%! rdf_bnode_prefix(+Document:atom, -Iri:atom) is det.
+%! rdf_bnode_prefix(+Scope:atom, -Iri:atom) is det.
 
 rdf_bnode_prefix(Iri) :-
   rdf_bnode_prefix_([], Iri).
 
 
-rdf_bnode_prefix(Doc, Iri) :-
-  md5_text(Doc, DocId),
-  rdf_bnode_prefix_([DocId], Iri).
+rdf_bnode_prefix(Scope, Iri) :-
+  md5_text(Scope, ScopeId),
+  rdf_bnode_prefix_([ScopeId], Iri).
 
 rdf_bnode_prefix_(Segments, Iri) :-
-  rdf_bnode_iri_(Segments, Iri0),
+  well_known_iri(Segments, Iri0),
   atom_terminator(Iri0, '/', Iri).
 
 
@@ -847,3 +843,12 @@ rdf_term_to_string(Term, String) :-
 %! rdf_typed_literal(-D:atom, -Lex:atom, +Literal:rdf_literal) is det.
 
 rdf_typed_literal(D, Lex, literal(type(D,Lex))).
+
+
+
+%! well_known_iri(+Segments:list(atom), -Iri:atom) is det.
+
+well_known_iri(Segments, Iri) :-
+  setting(bnode_prefix_scheme, Scheme),
+  setting(bnode_prefix_authority, Auth),
+  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid|Segments],_,_)).
