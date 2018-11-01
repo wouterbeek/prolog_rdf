@@ -8,10 +8,14 @@
     rdf_write_quad/3,    % +Out, +Triple, +G
     rdf_write_quad/5,    % +Out, +S, +P, +O, +G
     rdf_write_quad/6,    % +Out, +BNodePrefix, +S, +P, +O, +G
+    rdf_write_quads/1,   % +Out
+    rdf_write_quads/2,   % +Out, +G
     rdf_write_triple/2,  % +Out, +Tuple
     rdf_write_triple/3,  % +Out, +BNodePrefix, +Tuple
     rdf_write_triple/4,  % +Out, +S, +P, +O
     rdf_write_triple/5,  % +Out, +BNodePrefix, +S, +P, +O
+    rdf_write_triples/1, % +Out
+    rdf_write_triples/2, % +Out, +G
     rdf_write_tuple/2    % +Out, +Tuple
   ]
 ).
@@ -39,10 +43,12 @@ RDF export predicates that are backend-independent.
    rdf_write_quad(+, t, r),
    rdf_write_quad(+, r, r, o, r),
    rdf_write_quad(+, +, r, r, o, r),
+   rdf_write_quads(+, r),
    rdf_write_triple(+, t),
    rdf_write_triple(+, +, t),
    rdf_write_triple(+, r, r, o),
    rdf_write_triple(+, +, r, r, o),
+   rdf_write_triples(+, r),
    rdf_write_tuple(+, t).
 
 
@@ -136,6 +142,21 @@ rdf_write_quad(Out, BNodePrefix, S, P, O, G) :-
 
 
 
+%! rdf_write_quads(+Out:stream) is det.
+%! rdf_write_quads(+Out:stream, +G:iri) is det.
+
+rdf_write_quads(Out) :-
+  rdf_write_quads(Out, _).
+
+
+rdf_write_quads(Out, G) :-
+  forall(
+    rdf_triple(S, P, O, G),
+    rdf_write_quad(Out, S, P, O, G)
+  ).
+
+
+
 %! rdf_write_term(+Out:stream, +BNodePrefix:iri, +Term:rdf_term) is det.
 
 rdf_write_term(Out, BNodePrefix, S) :-
@@ -182,6 +203,24 @@ rdf_write_triple_open(Out, BNodePrefix, S, P, O) :-
   put_char(Out, ' '),
   rdf_write_term(Out, BNodePrefix, O),
   put_char(Out, ' ').
+
+
+
+%! rdf_write_triples(+Out:stream) is det.
+%! rdf_write_triples(+Out:stream, +G:iri) is det.
+
+rdf_write_triples(Out) :-
+  forall(
+    rdf_triple(S, P, O),
+    rdf_write_triple(Out, S, P, O)
+  ).
+
+
+rdf_write_triples(Out, G) :-
+  forall(
+    rdf_triple(S, P, O, G),
+    rdf_write_triple(Out, S, P, O)
+  ).
 
 
 
