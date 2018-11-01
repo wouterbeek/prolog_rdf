@@ -517,13 +517,24 @@ rdf_lexical_to_value(D, Lex, Value) :-
   rdf_lexical_to_value_hook(D, Lex, Value), !.
 rdf_value_to_lexical(D, Value, Lex) :-
   rdf_value_to_lexical_hook(D, Value, Lex), !.
+% geo:hasGeometry
+rdf_lexical_to_value(geo:wktLiteral, Lex, Value) :- !,
+  (   wkt_shape_atom(Value0, Lex)
+  ->  Value = Value0
+  ;   rdf_lexical_to_value_error(geo:wktLiteral,Lex)
+  ).
+rdf_value_to_lexical(geo:wktLiteral, Value, Lex) :- !,
+  (   wkt_shape_atom(Value, Atom)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(geo:wktLiteral, Value)
+  ).
 % rdf:HTML
 rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
   (   rdf11:parse_partial_xml(load_html, Lex, Value0)
   ->  Value = Value0
   ;   rdf_lexical_to_value_error(rdf:'HTML', Lex)
   ).
-rdf_value_to_lexical(rdf:'HTML', Value, Lex) :-
+rdf_value_to_lexical(rdf:'HTML', Value, Lex) :- !,
   (   rdf11:write_xml_literal(html, Value, Atom)
   ->  Lex = Atom
   ;   rdf_value_to_lexical_error(rdf:'HTML', Value)
