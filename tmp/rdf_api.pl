@@ -6,8 +6,6 @@
     rdf_assert_list/2,            % +PrologList, -RdfList
     rdf_assert_list/3,            % +PrologList, -RdfList, +G
     rdf_assert_list/4,            % +S, +P, +PrologList, +G
-    rdf_assert_reification/4,     % +S, +P, +O, +Stmt
-    rdf_assert_reification/5,     % +S, +P, +O, +G, +Stmt
     rdf_chk/4,                    % ?S, ?P, ?O, ?G
     rdf_clean_quad/2,             % +Quad1, -Quad2
     rdf_clean_triple/2,           % +Triple1, -Triple2
@@ -19,8 +17,6 @@
     rdf_label/3,                  % +Term, +P, -Label
     rdf_node/2,                   % ?Node, ?G
     rdf_query_term/2,             % +Term, -QueryTerm
-    rdf_reification/4,            % ?S, ?P, ?O, ?Stmt
-    rdf_reification/5,            % ?S, ?P, ?O, ?G, ?Stmt
     rdf_retractall/4,             % ?S, ?P, ?O, ?G
     rdf_retractall2/4,            % ?S, ?P, ?O, ?G
     rdf_subdatatype/2,            % ?D1, ?D2
@@ -70,8 +66,6 @@
    rdf2(r, r, o, r),
    rdf_assert_list(+, -, r),
    rdf_assert_list(r, r, t, r),
-   rdf_assert_reification(r, r, o, r),
-   rdf_assert_reification(r, r, o, r, r),
    rdf_chk(r, r, o, r),
    rdf_clean_lexical_form(r, +, -),
    rdf_clean_literal(o, o),
@@ -82,8 +76,6 @@
    rdf_label(r, -),
    rdf_label(r, r, -),
    rdf_node(o, r),
-   rdf_reification(r, r, o, r),
-   rdf_reification(r, r, o, r, r),
    rdf_retractall(r, r, o, r),
    rdf_retractall2(r, r, o, r),
    rdf_subdatatype(r, r),
@@ -114,22 +106,6 @@ rdf2(S, P, Term, G) :-
   rdf11:pre_object(Term, O),
   rdf(S, P, O, G),
   rdf11:post_object(Term, O).
-
-
-
-%! rdf_assert_reification(+S, +P, +O, +Stmt) is nondet.
-%! rdf_assert_reification(+S, +P, +O, +G, +Stmt) is nondet.
-
-rdf_assert_reification(S, P, O, Stmt) :-
-  rdf_assert(Stmt, rdf:subject, S),
-  rdf_assert(Stmt, rdf:predicate, P),
-  rdf_assert(Stmt, rdf:object, O).
-
-
-rdf_assert_reification(S, P, O, G, Stmt) :-
-  rdf_assert(Stmt, rdf:subject, S, G),
-  rdf_assert(Stmt, rdf:predicate, P, G),
-  rdf_assert(Stmt, rdf:object, O, G).
 
 
 
@@ -205,15 +181,6 @@ rdf_label(Term, P, Label) :-
 
 
 
-%! rdf_node(?Node, ?G) is nondet.
-
-rdf_node(S, G) :-
-  rdf(S, _, _, G).
-rdf_node(O, G) :-
-  rdf(_, _, O, G).
-
-
-
 %! rdf_query_term(+Term, -QueryTerm) is det.
 
 rdf_query_term(Term, QueryTerm) :-
@@ -221,22 +188,6 @@ rdf_query_term(Term, QueryTerm) :-
   ground(Value),
   rdf_atom_term(Atom, Value),
   QueryTerm =.. [Key,Atom].
-
-
-
-%! rdf_reification(?S, ?P, ?O, ?Stmt) is nondet.
-%! rdf_reification(?S, ?P, ?O, ?G, ?Stmt) is nondet.
-
-rdf_reification(S, P, O, Stmt) :-
-  rdf(Stmt, rdf:subject, S),
-  rdf(Stmt, rdf:predicate, P),
-  rdf(Stmt, rdf:object, O).
-
-
-rdf_reification(S, P, O, G, Stmt) :-
-  rdf(Stmt, rdf:subject, S, G),
-  rdf(Stmt, rdf:predicate, P, G),
-  rdf(Stmt, rdf:object, O, G).
 
 
 

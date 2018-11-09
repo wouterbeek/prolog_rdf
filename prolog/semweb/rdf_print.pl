@@ -6,6 +6,7 @@
     rdf_dcg_generalized_triple_pattern//2, % +TriplePattern, +Options
     rdf_dcg_generalized_triple_pattern//3, % ?S, ?P, ?O
     rdf_dcg_generalized_triple_pattern//4, % ?S, ?P, ?O, +Options
+    rdf_dcg_iri//1,                        % +Iri
     rdf_dcg_iri//2,                        % +Iri, +Options
     rdf_dcg_term//1,                       % +Term
     rdf_dcg_term//2,                       % +Term, +Options
@@ -41,6 +42,7 @@
    rdf_dcg_generalized_triple_pattern(t, +, ?, ?),
    rdf_dcg_generalized_triple_pattern(r, r, o, ?, ?),
    rdf_dcg_generalized_triple_pattern(r, r, o, +, ?, ?),
+   rdf_dcg_iri(r, ?, ?),
    rdf_dcg_iri(r, +, ?, ?),
    rdf_dcg_literal(o, +, ?, ?),
    rdf_dcg_term(o, ?, ?),
@@ -88,7 +90,12 @@ rdf_dcg_generalized_triple_pattern(S, P, O, Options) -->
 
 
 
+%! rdf_dcg_iri(+Iri:rdf_iri)// is det.
 %! rdf_dcg_iri(+Iri:rdf_iri, +Options:dict)// is det.
+
+rdf_dcg_iri(Iri) -->
+  rdf_dcg_iri(Iri, _{}).
+
 
 % Use custom symbols for some recurring IRIs.
 rdf_dcg_iri(owl:sameAs, _) --> !, "≡".

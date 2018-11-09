@@ -397,6 +397,7 @@ ltag_(zh_yue).
 
 prefix_(Alias, Prefix) :-
   rdf_db:ns(Alias, Prefix).
+prefix_(aat, 'http://vocab.getty.edu/aat/').
 prefix_(bag, 'http://bag.basisregistraties.overheid.nl/def/bag#').
 prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
 prefix_(bibo, 'http://purl.org/ontology/bibo/').
@@ -414,8 +415,8 @@ prefix_(dbr, 'http://dbpedia.org/resource/').
 prefix_(dby, 'http://dbpedia.org/class/yago/').
 prefix_(dcat, 'http://www.w3.org/ns/dcat#').
 prefix_(dce, 'http://purl.org/dc/elements/1.1/').
-prefix_(dcterm, 'http://purl.org/dc/terms/').
-prefix_(dctype, 'http://purl.org/dc/dcmitype/').
+prefix_(dcm, 'http://purl.org/dc/dcmitype/').
+prefix_(dct, 'http://purl.org/dc/terms/').
 prefix_(dolce, 'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#').
 prefix_(dqv, 'http://www.w3.org/ns/dqv#').
 prefix_(earl, 'http://www.w3.org/ns/earl#').
@@ -434,6 +435,7 @@ prefix_(gg, 'http://www.gemeentegeschiedenis.nl/gg-schema#').
 prefix_(gml, 'http://www.opengis.net/ont/gml#').
 prefix_(gr, 'http://purl.org/goodrelations/v1#').
 prefix_(grddl, 'http://www.w3.org/2003/g/data-view#').
+prefix_(gvp, 'http://vocab.getty.edu/ontology#').
 %prefix_(http, 'http://www.w3.org/2011/http#').
 prefix_(hydra, 'http://www.w3.org/ns/hydra/core#').
 prefix_(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').

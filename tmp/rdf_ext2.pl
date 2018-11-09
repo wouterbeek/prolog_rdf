@@ -414,10 +414,10 @@ rdf_chk_lexical_form(M, S, P, Lex, G) :-
 
 % An RDF list of multiple creators.
 rdf_creator(M, Resource, Agent, G) :-
-  rdf_list_member(M, Resource, dc:creator, Agent, G).
+  rdf_list_member(M, Resource, dce:creator, Agent, G).
 % A single creator.
 rdf_creator(M, Resource, Agent, G) :-
-  rdf(M, Resource, dc:creator, Agent, G),
+  rdf(M, Resource, dce:creator, Agent, G),
   \+ rdf_list_member(M, Agent, _, G).
 
 
