@@ -63,10 +63,10 @@ sparql_viz_edge(Out, Term1, Term2) :-
 
 write_label(Var, Label, Options) :-
   var(Var), !,
-  dcg_with_output_to(string(Label), rdf_dcg_var(Var, Options)).
+  string_phrase(rdf_dcg_var(Var, Options), Label).
 write_label(Uri, Label, Options) :-
   is_uri(Uri), !,
-  dcg_with_output_to(string(Label), rdf_dcg_iri(Uri, Options)).
+  string_phrase(rdf_dcg_iri(Uri, Options), Label).
 write_label(Term, Label, _) :-
   format(string(Label), "~w", [Term]).
 
@@ -94,15 +94,18 @@ sparql_viz_term(Out, Args, Options) :-
     Args
   ).
 sparql_viz_term(Out, rdf(S,P,O,_), Options) :- !,
-  dcg_with_output_to(string(Label), (
-    "〈",
-    rdf_dcg_subject(S, Options),
-    ", ",
-    rdf_dcg_predicate(P, Options),
-    ", ",
-    rdf_dcg_term(O, Options),
-    "〉"
-  )),
+  phrase_string(
+    (
+      "〈",
+      rdf_dcg_subject(S, Options),
+      ", ",
+      rdf_dcg_predicate(P, Options),
+      ", ",
+      rdf_dcg_term(O, Options),
+      "〉"
+    ),
+    Label
+  ),
   write_node(Out, Label, Options).
 sparql_viz_term(Out, Term, Options) :-
   compound(Term),

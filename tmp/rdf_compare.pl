@@ -71,7 +71,7 @@ rdf_print_comp(X, XG, Y, YG) :-
   pairs_rows(Pairs, DataRows),
   HeadRow = head(['Predicate','XY','X','Y']),
   Opts = [caption(rdf_comp_caption0(X,Y)),cell(rdf_comp_cell0)],
-  dcg_with_output_to(user_output, dcg_table([HeadRow|DataRows], Opts)).
+  dcg_with_output_to(dcg_table([HeadRow|DataRows], Opts)).
 
 pairs_rows(L1, L2) :-
   pairs_rows(L1, [], L2).

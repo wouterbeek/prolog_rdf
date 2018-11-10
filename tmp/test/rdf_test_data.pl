@@ -62,7 +62,3 @@ qb_test(M, semantics(graph_instance), _) :-
   qb(M, X3, rdf:p, X4, ex:'test-graph'),
   qb(M, rdf:a, rdf:p, rdf:b, ex:'test-graph-instance'),
   qb(M, rdf:c, rdf:p, rdf:d, ex:'test-graph-instance').
-  %forall(
-  %  rdf_graph_instance(ex:'test-graph-instance', ex:'test-graph', Map),
-  %  dcg_with_output_to(user_output, (list(term, Map), nl))
-  %).

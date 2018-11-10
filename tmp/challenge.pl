@@ -41,7 +41,7 @@ go_instance(String) :-
   class_one(I, C),
   same_as(I, Js),
   rdf_print_triple(I, rdf:type, C),
-  dcg_with_output_to(user_output, set(Js)).
+  dcg_with_output_to(set(Js)).
 
 go_class(String) :-
   aggregate_all(set(S), lotus(String, S, [rank(lengthnorm)]), Ss),

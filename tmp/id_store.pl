@@ -194,7 +194,7 @@ print_id_store(Opts) :-
   option(indent(N), Opts, 0),
   forall(
     id_to_terms(Tid, Ts),
-    dcg_with_output_to(user_output, (
+    dcg_with_output_to((
       tab(N),
       atom(Tid),
       "\t",

@@ -48,7 +48,7 @@ rdf_term_diff(X, XPos, Y, YPos):-
   format(current_output, "X: ~a~tY: ~a~n", [X,Y]),
   ord_intersection(XPos, YPos, XYPos),
   print_shared(XYPos).
- 
+
 
 term_pairs(S, GroupedPairs):-
   aggregate(set(P-O), ldf(S, P, O), Pairs),
@@ -57,7 +57,7 @@ term_pairs(S, GroupedPairs):-
 
 print_shared(Pos):-
   maplist(pair_list, Pos, Rows),
-  dcg_with_output_to(current_output,
+  dcg_with_output_to(
     dcg_table(Rows, [caption("Shared PO"),cell(id_show_cell)])
   ).
 

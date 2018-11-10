@@ -30,11 +30,11 @@ run(Threads) :-
 
 
 run_on_term(Threads, X) :-
-  run_on_triple_pattern(X, Threads, X, _, _),
-  run_on_triple_pattern(X, Threads, _, _, X).
+  run_on_tp(X, Threads, X, _, _),
+  run_on_tp(X, Threads, _, _, X).
 
 
-run_on_triple_pattern(Counter, Threads, S, P, O) :-
+run_on_tp(Counter, Threads, S, P, O) :-
   create_counter(Counter),
   ll_concurrent(S, P, O, run_on_doc(Counter), Threads),
   delete_counter(Counter),

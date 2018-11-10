@@ -100,7 +100,7 @@ print_j(Rule0, Ps0, C0, J) :-
   % NONDET
   find_j(Rule0, Ps0, C0, J),
   j(Rule, Ps, C, J),
-  dcg_with_output_to(current_output, print_deduction(Rule, Ps, C)).
+  dcg_with_output_to(print_deduction(Rule, Ps, C)).
 
 
 
