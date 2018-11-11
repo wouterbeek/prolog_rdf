@@ -1,12 +1,16 @@
 :- module(
   rdf_dot,
   [
-    rdf_dot_arc/3,      % +Out, +FromNode, +ToNode
-    rdf_dot_arc/4,      % +Out, +FromNode, +ToNode, +Options
-    rdf_dot_node/2,     % +Out, +Node
-    rdf_dot_node/3,     % +Out, +Node, +Options
-    rdf_dot_node_uml/3, % +Out, +Backend, +Node
-    rdf_dot_node_uml/4  % +Out, +Backend, +Node, +Options
+    rdf_dot_arc/3,         % +Out, +FromNode, +ToNode
+    rdf_dot_arc/4,         % +Out, +FromNode, +ToNode, +Options
+    rdf_dot_cluster/3,     % +Out, +Node, :Goal_1
+    rdf_dot_cluster/4,     % +Out, +Node, :Goal_1, +Options
+    rdf_dot_cluster_arc/3, % +Out, +FromNode, +ToNode
+    rdf_dot_cluster_arc/4, % +Out, +FromNode, +ToNode, +Options
+    rdf_dot_node/2,        % +Out, +Node
+    rdf_dot_node/3,        % +Out, +Node, +Options
+    rdf_dot_node_uml/3,    % +Out, +Backend, +Node
+    rdf_dot_node_uml/4     % +Out, +Backend, +Node, +Options
   ]
 ).
 :- reexport(library(graph/dot)).
@@ -32,9 +36,17 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
 :- use_module(library(semweb/rdf_term)).
 :- use_module(library(string_ext)).
 
+:- meta_predicate
+    rdf_dot_cluster(+, +, 1),
+    rdf_dot_cluster(+, +, 1, +).
+
 :- rdf_meta
    rdf_dot_arc(+, r, r),
    rdf_dot_arc(+, r, r, +),
+   rdf_dot_cluster(+, r, :),
+   rdf_dot_cluster(+, r, :, +),
+   rdf_dot_cluster_arc(+, r, r),
+   rdf_dot_cluster_arc(+, r, r, +),
    rdf_dot_node(+, r),
    rdf_dot_node(+, r, +),
    rdf_dot_node_uml(+, t, r),
@@ -53,6 +65,30 @@ rdf_dot_arc(Out, FromNode, ToNode) :-
 
 rdf_dot_arc(Out, FromNode, ToNode, Options) :-
   dot_arc(Out, FromNode, ToNode, Options).
+
+
+
+%! rdf_dot_cluster(+Out:stream, +Node:rdf_node, :Goal_1) is det.
+%! rdf_dot_cluster(+Out:stream, +Node:rdf_node, :Goal_1, +Options:dict) is det.
+
+rdf_dot_cluster(Out, Node, Goal_1) :-
+  rdf_dot_cluster(Out, Node, Goal_1, options{}).
+
+
+rdf_dot_cluster(Out, Node, Goal_1, Options) :-
+  dot_cluster(Out, Node, Goal_1, Options).
+
+
+
+%! rdf_dot_cluster_arc(+Out:stream, +FromNode:rdf_node, +ToNode:rdf_node) is det.
+%! rdf_dot_cluster_arc(+Out:stream, +FromNode:rdf_node, +ToNode:rdf_node, +Options:dict) is det.
+
+rdf_dot_cluster_arc(Out, FromNode, ToNode) :-
+  rdf_dot_cluster_arc(Out, FromNode, ToNode, options{}).
+
+
+rdf_dot_cluster_arc(Out, FromNode, ToNode, Options) :-
+  dot_cluster_arc(Out, FromNode, ToNode, Options).
 
 
 
