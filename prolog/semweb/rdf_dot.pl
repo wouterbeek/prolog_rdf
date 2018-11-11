@@ -19,6 +19,8 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
 @version 2018
 */
 
+:- use_module(library(apply)).
+:- use_module(library(lists)).
 :- use_module(library(yall)).
 
 :- use_module(library(dcg)).
@@ -77,6 +79,7 @@ rdf_dot_node_uml(Out, B, Node) :-
 rdf_dot_node_uml(Out, B, Node, Options) :-
   string_phrase(rdf_dcg_node(Node, Options), NodeString),
   H = [cell(colspan(2), b(NodeString))],
+  % literals
   findall(
     [cell(PString),cell(OString)],
     (
@@ -85,6 +88,20 @@ rdf_dot_node_uml(Out, B, Node, Options) :-
       string_phrase(rdf_dcg_predicate(P, Options), PString),
       string_phrase(rdf_dcg_node(O, Options), OString)
     ),
-    T
+    T1
   ),
+  % RDF lists
+  findall(
+    [cell(PString),cell(table([Row]))],
+    (
+      list_triple(B, Node, P, L),
+      string_phrase(rdf_dcg_predicate(P), PString),
+      maplist(rdf_dot_node_cell_, L, Row)
+    ),
+    T2
+  ),
+  append(T1, T2, T),
   dot_node(Out, Node, options{html: table([H|T])}).
+
+rdf_dot_node_cell_(Term, cell(String)) :-
+  string_phrase(rdf_dcg_node(Term), String).
