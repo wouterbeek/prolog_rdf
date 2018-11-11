@@ -169,12 +169,10 @@ instance(_, C, D) :-
 
 %! list(?Backend, +RdfList:rdf_subject, -PrologList:list(rdf_term)) is nondet.
 
-list(B, L, []) :-
-  triple(B, L, rdf:rest, rdf:nil).
-list(B, L1, [H|T]) :-
-  triple(B, L1, rdf:first, H),
-  triple(B, L1, rdf:rest, L2),
-  list(B, L2, T).
+list(B, L1, L2) :-
+  % Ensure this is an RDF list.
+  triple_chk(B, L1, rdf:rest, _),
+  findall(X, list_member(B, X, L1), L2).
 
 
 
