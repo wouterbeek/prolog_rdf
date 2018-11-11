@@ -31,7 +31,7 @@
 | `prefix_map`   | list(pair(atom))     |             | A custom list of prefix/IRI        |
 |                |                      |             | mappings that overrules and/or     |
 |                |                      |             | extends the prefix declarations.   |
-| `pp`           | boolean              | `true`      | Whether non-Turtle pretty printing |
+| `pp`           | boolean              | `false`     | Whether non-Turtle pretty printing |
 |                |                      |             | should be applied.                 |
 | `variable_map` | list(pair(var,atom)) |             | A list of variable/atom mappings   |
 |                |                      |             | that are required when variables   |
@@ -110,7 +110,9 @@ rdf_dcg_predicate(P) -->
   rdf_dcg_predicate(P, options{}).
 
 
-rdf_dcg_predicate(rdf:type, _) --> !,
+% @bug RDF prefix expansion does not work.
+rdf_dcg_predicate(P, _) -->
+  {rdf_equal(P, rdf:type)}, !,
   "a".
 rdf_dcg_predicate(P, Options) -->
   rdf_dcg_term(P, Options).
@@ -147,7 +149,7 @@ rdf_dcg_term(literal(lang(LTag,Lex)), Options) --> !,
 rdf_dcg_term(literal(type(D,Lex)), Options) --> !,
   (   {rdf_equal(D, xsd:boolean)}
   ->  {rdf_canonical_lexical_form(xsd:boolean, Lex, CanonicalLex)},
-      (   {dict_get(pp, Options, true, true)}
+      (   {dict_get(pp, Options, true)}
       ->  dcg_bool(CanonicalLex)
       ;   atom(CanonicalLex)
       )
@@ -170,27 +172,27 @@ rdf_dcg_term(Iri, Options) -->
   {rdf_is_iri(Iri)}, !,
   (   {well_known_iri(Segments, Iri)}
   ->  % Blank node notation for well-known IRIs.
-      {atomic_list_concat(Segments, /, Local)},
+      {atomic_list_concat(Segments, Local)},
       "_:",
       atom(Local)
       % Use custom symbols for some recurring IRIs.
   ;   {
-        dict_get(pp, Options, true, true),
+        dict_get(pp, Options, true),
         rdf_equal(Iri, owl:sameAs)
       }
   ->  "≡"
   ;   {
-        dict_get(pp, Options, true, true),
+        dict_get(pp, Options, true),
         rdf_equal(Iri, rdf:nil)
       }
   ->  "∅"
   ;   {
-        dict_get(pp, Options, true, true),
+        dict_get(pp, Options, true),
         rdf_equal(Iri, rdf:type)
       }
   ->  "∈"
   ;   {
-        dict_get(pp, Options, true, true),
+        dict_get(pp, Options, true),
         rdf_equal(Iri, rdfs:subClassOf)
       }
   ->  "⊆"
@@ -279,7 +281,7 @@ rdf_dcg_groups0([G-TPs|Groups], Options) -->
   ;   tab(I1),
       rdf_dcg_term(G, Options),
       " {\n",
-      {I2 = I1 + 1}
+      {I2 = I1 + 2}
   ),
   rdf_dcg_tps0(I2, TPs, Options),
   ({var(G)} -> "" ; "}\n"),
@@ -337,14 +339,10 @@ rdf_dcg_subjects0(_, [], _, _) --> !, [].
 rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
   tab(I1),
   rdf_dcg_node(S, Options),
-  {I2 is I1 + 1},
-  rdf_dcg_predicates0(I2, SGroups, SkipTPs1, SkipTPs2, Options),
+  {I2 is I1 + 2},
+  rdf_dcg_predicates1(I2, SGroups, SkipTPs1, SkipTPs2, Options),
   ({dict_get(newline, Options, false)} -> "" ; nl),
   rdf_dcg_subjects0(I1, Groups, SkipTPs2, Options).
-
-rdf_dcg_predicates0(I, Groups, SkipTPs1, SkipTPs2, Options) -->
-  rdf_dcg_predicates1(I, Groups, SkipTPs1, SkipTPs2, Options),
-  ".".
 
 % There is exactly one predicate.  Emit it on the same line.
 rdf_dcg_predicates1(I, [P-Os], SkipTPs1, SkipTPs2, Options) --> !,
@@ -359,7 +357,7 @@ rdf_dcg_predicates2(I1, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
   nl,
   tab(I1),
   rdf_dcg_predicate(P, Options),
-  {I2 is I1 + 1},
+  {I2 is I1 + 2},
   rdf_dcg_objects1(I2, Os, SkipTPs1, SkipTPs2, Options),
   ({Groups == []} -> "." ; ";"),
   rdf_dcg_predicates2(I1, Groups, SkipTPs2, SkipTPs3, Options).
@@ -391,7 +389,7 @@ rdf_dcg_complex_object_(I1, Node, SkipTPs1, SkipTPs3, Options) -->
     turtle_object_(Node, SkipTPs1, SkipTPs2, Pairs),
     Pairs = [_|_], !,
     group_pairs_by_key(Pairs, Groups),
-    I2 is I1 + 1
+    I2 is I1 + 2
   },
   "[",
   rdf_dcg_predicates1(I2, Groups, SkipTPs2, SkipTPs3, Options),
