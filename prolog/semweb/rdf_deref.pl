@@ -50,8 +50,8 @@
 
 
 
-%! rdf_deref_file(+File:atom, :Goal_3) is det.
-%! rdf_deref_file(+File:atom, :Goal_3, +Options:list(compound)) is det.
+%! rdf_deref_file(+File, :Goal_3) is det.
+%! rdf_deref_file(+File, :Goal_3, +Options:list(compound)) is det.
 %
 % @arg Options allows the following options to be set.
 %
@@ -61,11 +61,12 @@
 %
 %   * Other options are passed to rdf_defer_stream/4.
 
-rdf_deref_file(File, Goal_3) :-
-  rdf_deref_file(File, Goal_3, []).
+rdf_deref_file(Spec, Goal_3) :-
+  rdf_deref_file(Spec, Goal_3, []).
 
 
-rdf_deref_file(File, Goal_3, Options1) :-
+rdf_deref_file(Spec, Goal_3, Options1) :-
+  absolute_file_name(Spec, File, [access(read)]),
   uri_file_name(BaseUri, File),
   merge_options(Options1, [base_uri(BaseUri)], Options2),
   read_from_file(
