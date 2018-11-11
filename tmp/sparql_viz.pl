@@ -59,7 +59,7 @@ sparql_viz_edge(Out, Term1, Term2) :-
 
 
 
-%! write_label(+Term:term, -Label:string, +Options:list(compound)) is det.
+%! write_label(+Term:term, -Label:string, +Options:dict) is det.
 
 write_label(Var, Label, Options) :-
   var(Var), !,
@@ -72,7 +72,7 @@ write_label(Term, Label, _) :-
 
 
 
-%! write_node(+Out:stream, +Term:term, +Options:list(compound)) is det.
+%! write_node(+Out:stream, +Term:term, +Options:dict) is det.
 
 write_node(Out, Term, Options) :-
   gv_id(Term, Id),
@@ -81,7 +81,7 @@ write_node(Out, Term, Options) :-
 
 
 
-%! sparql_viz_term(+Out:stream, +Term:term, +Options:list(compound)) is det.
+%! sparql_viz_term(+Out:stream, +Term:term, +Options:dict) is det.
 
 sparql_viz_term(Out, Var, Options) :-
   var(Var), !,

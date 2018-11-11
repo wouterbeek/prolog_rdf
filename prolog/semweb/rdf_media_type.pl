@@ -16,6 +16,7 @@
 */
 
 :- use_module(library(archive_ext)).
+:- use_module(library(file_ext)).
 :- use_module(library(media_type)).
 
 
@@ -29,11 +30,8 @@
 % denote an archive format.
 
 rdf_file_name_media_type(File, MediaType) :-
-  file_name_extension(Base, Ext, File),
-  (   archive_extension(Ext)
-  ->  rdf_file_name_media_type(Base, MediaType)
-  ;   media_type_extension(MediaType, Ext)
-  ).
+  file_media_type(File, MediaType),
+  rdf_media_type(MediaType), !.
 
 
 

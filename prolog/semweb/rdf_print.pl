@@ -337,7 +337,7 @@ rdf_dcg_subjects0(_, [], _, _) --> !, [].
 rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
   tab(I1),
   rdf_dcg_node(S, Options),
-  {I2 is I1 + 1, gtrace},
+  {I2 is I1 + 1},
   rdf_dcg_predicates0(I2, SGroups, SkipTPs1, SkipTPs2, Options),
   ({dict_get(newline, Options, false)} -> "" ; nl),
   rdf_dcg_subjects0(I1, Groups, SkipTPs2, Options).
