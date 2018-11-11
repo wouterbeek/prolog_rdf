@@ -29,7 +29,7 @@ whitespace ::= space | tabulator | newline
 ```
 
 @author Wouter Beek
-@version 2016/02, 2017/01-2017/12
+@version 2016-2018
 */
 
 :- use_module(library(aggregate)).
@@ -58,24 +58,14 @@ whitespace ::= space | tabulator | newline
 
 
 %! rdf2gml(+File1:atom, +File2:atom) is det.
-%! rdf2gml(+File1:atom, +File2:atom, +Options:list(compound)) is det.
+%! rdf2gml(+File1:atom, +File2:atom, +Options:dict) is det.
 %
 % Source can be any source, but Sink must be a file.  The reason for
 % this is that GML cannot be written in-stream because vertices and
 % edges are stored separately.
-%
-% The following options are supported:
-%
-%   * edge_label_printer(+callable)
-%
-%     The DCG writer for GML edges.  Default is rdf_dcg_predicate//1.
-%
-%   * node_label_printer(+callable)
-%
-%     The DCG writer for GML nodes.  Default is rdf_dcg_node//1.
 
 rdf2gml(File1, File2) :-
-  rdf2gml(File1, File2, []).
+  rdf2gml(File1, File2, options{}).
 
 
 rdf2gml(File1, File2, Options) :-
@@ -166,22 +156,22 @@ gml_encode_label --> [].
 
 rdf_export_gml(Triples) :-
   aggregate_all(
-    set(Term),
+    set(Node),
     (
-      member(Triple, Triples),
-      rdf_triple_term(Triple, Term)
+      member(rdf(S,_,O), Triples),
+      (Node = S ; Node = O)
     ),
-    Terms
+    Nodes
   ),
-  maplist(rdf_export_gml_node_, Terms),
+  maplist(rdf_export_gml_node_, Nodes),
   maplist(rdf_export_gml_edge_, Triples).
 
-rdf_export_gml_node_(Term) :-
-  gml_id(Term, Id),
-  string_phrase(rdf_dcg_term(Term), Label),
+rdf_export_gml_node_(Node) :-
+  gml_id(Node, Id),
+  string_phrase(rdf_dcg_node(Node), Label),
   gml_node(current_output, Id, [label(Label)]).
 
 rdf_export_gml_edge_(rdf(S,P,O)) :-
   maplist(gml_id, [S,O], [SId,OId]),
-  string_phrase(rdf_dcg_iri(P), PLabel),
+  string_phrase(rdf_dcg_predicate(P), PLabel),
   gml_edge(current_output, SId, OId, [label(PLabel)]).

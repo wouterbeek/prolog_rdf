@@ -23,5 +23,5 @@ prefix(Prefix):-
     ),
     atom_prefix(X, Prefix)
   )),
-  rdf_print_triple(S, P, O),
+  rdf_dcg_tp(S, P, O),
   fail.

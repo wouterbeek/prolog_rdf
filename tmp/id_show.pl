@@ -61,5 +61,8 @@ print_shared(Pos):-
     dcg_table(Rows, [caption("Shared PO"),cell(id_show_cell)])
   ).
 
-id_show_cell(Os) --> {is_list(Os)}, !, set(rdf_print_object, Os).
-id_show_cell(P) --> rdf_print_predicate(P).
+id_show_cell(Os) -->
+  {is_list(Os)}, !,
+  set(rdf_dcg_node, Os).
+id_show_cell(P) -->
+  rdf_dcg_predicate(P).

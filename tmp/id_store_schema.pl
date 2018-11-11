@@ -46,7 +46,9 @@ run_on_doc(S, P, O, Counter, G) :-
   % NONDET.
   ldf(S, P, O, G),
   increment_counter(Counter, Count),
-  write(Count), tab, rdf_print_quad(M, S, P, O, G),
+  write(Count),
+  tab,
+  rdf_print_quad(M, S, P, O, G),
   qb(M, S, P, O, G),
   fail.
 run_on_doc(_, _, _, _, _) :-

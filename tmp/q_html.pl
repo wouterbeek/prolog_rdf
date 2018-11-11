@@ -1,9 +1,9 @@
 :- module(
   q_html,
   [
-    rdf_html_dataset_graph_menu//3, % +M, +D, +G
-    rdf_html_graph_menu//1,         % +M
-    rdf_html_graph_menu//2          % +Attrs, +M
+    rdf_html_dataset_graph_menu//3, % +Backend, +D, +G
+    rdf_html_graph_menu//1,         % +Backend
+    rdf_html_graph_menu//2          % +Attrs, +Backend
   ]
 ).
 
@@ -19,15 +19,15 @@
 
 
 
-%! rdf_html_dataset_graph_menu(+M, +D, +G)// is det.
+%! rdf_html_dataset_graph_menu(+Backend, +D, +G)// is det.
 %
 % @tbd `class(selected)` does not show a selection in the HTML page.
 %
 % @tbd JavaScript does not work; cannot extract the `value` attribute.
 
-rdf_html_dataset_graph_menu(M, D, G) -->
+rdf_html_dataset_graph_menu(B, D, G) -->
   {
-    rdf_dataset_trees(M, number_of_triples, Trees),
+    rdf_dataset_trees(B, number_of_triples, Trees),
     Trees \== []
   }, !,
   navbar_dropdown_menu(
@@ -49,9 +49,9 @@ $("#dataset-graph-menu").on('change', function(){
 rdf_html_dataset_graph_menu(_, _, _) --> [].
 
 rdf_html_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
-  {with_output_to(string(Lbl), rdf_print_dataset_term(D))},
+  {string_phrase(rdf_dcg_term(D), Label)},
   html(
-    optgroup(label(Lbl),
+    optgroup(label(Label),
       \html_maplist(
         rdf_html_graph_menu_item0(D0, D, G0),
         Trees
@@ -64,32 +64,32 @@ rdf_html_graph_menu_item0(D0, D, G0, t(G,[])) -->
   rdf_html_graph_menu_item(Selected, G).
 
 rdf_html_dataset_term0(D, _) -->
-  {q_dataset_label(D, Lbl)}, !,
-  html(Lbl).
+  {q_dataset_label(D, Label)}, !,
+  html(Label).
 
 rdf_html_graph_term0(G, Opts) -->
   {
     q_dataset_graph(D, G),
-    q_graph_label(G, Lbl)
+    q_graph_label(G, Label)
   }, !,
-  html([\rdf_html_dataset_term0(D, Opts),"/",Lbl]).
+  html([\rdf_html_dataset_term0(D, Opts),"/",Label]).
 
 
 
-%! rdf_html_graph_menu(+M)// is det.
-%! rdf_html_graph_menu(+M, +Attrs)// is det.
+%! rdf_html_graph_menu(+Backend)// is det.
+%! rdf_html_graph_menu(+Backend, +Attributes)// is det.
 
-rdf_html_graph_menu(M) -->
-  rdf_html_graph_menu(M, []).
+rdf_html_graph_menu(B) -->
+  rdf_html_graph_menu(B, []).
 
 
-rdf_html_graph_menu(M, Attrs1) -->
+rdf_html_graph_menu(B, Attrs1) -->
   {
     findall(
       G,
       (
-        gis_graph(M, G),
-        rdf_number_of_triples(M, G, NumTriples)
+        gis_graph(B, G),
+        rdf_number_of_triples(B, G, NumTriples)
       ),
       Pairs
     ),

@@ -8,9 +8,9 @@
     dangling_id/1,      % ?Tid
     graph_id_to_term/2, % +Gid, -G
     graph_term_to_id/2, % +G, -Gid
-    id_terms/1,         % -Ts:ordset
+    id_terms/1,         % -Terms
     id_to_term/2,       % +Tid, -T
-    id_to_terms/2,      % +Tid, -Ts:ordset
+    id_to_terms/2,      % +Tid, -Terms
     print_id_store/0,
     print_id_store/1,   % +Opts
     rdf_is_id/2,        % +T1, +T2
@@ -18,7 +18,7 @@
     store_id/2,         % +Tid1, +Tid2
     term_to_id/2,       % +T, -Tid
     term_to_term/2,     % +T1, -T2
-    term_to_terms/2,    % +T, -Ts
+    term_to_terms/2,    % +T, -Terms
     unload_id_store/0
   ]
 ).
@@ -71,7 +71,7 @@ Identifiers are atoms.
 	term_to_term(o, -),
 	term_to_terms(o, -).
 
-%! id_to_terms0(+Tid, -Ts:ordset) is nondet.
+%! id_to_terms0(+Tid, -Terms:ordset) is nondet.
 %! term_to_id0(+T, -Tid) is nondet.
 
 :- dynamic
@@ -154,26 +154,26 @@ graph_term_to_id(G, Gid) :-
 
 
 
-%! id_terms(-Ts:ordset) is nondet.
+%! id_terms(-Terms:ordset) is nondet.
 % Allows identical terms to be enumerated.
 
-id_terms(Ts) :-
-  id_to_terms(_, Ts).
+id_terms(Terms) :-
+  id_to_terms(_, Terms).
 
 
 
 %! id_to_term(+Tid, -T) is multi.
 
 id_to_term(Id, T) :-
-  id_to_terms(Id, Ts),
-  member(T, Ts).
+  id_to_terms(Id, Terms),
+  member(T, Terms).
 
 
 
-%! id_to_terms(+Tid, -Ts:ordset) is det.
+%! id_to_terms(+Tid, -Terms:ordset) is det.
 
-id_to_terms(Tid, Ts) :-
-  id_to_terms0(Tid, Ts).
+id_to_terms(Tid, Terms) :-
+  id_to_terms0(Tid, Terms).
 
 
 
@@ -193,12 +193,12 @@ print_id_store(Opts) :-
   check_id_store,
   option(indent(N), Opts, 0),
   forall(
-    id_to_terms(Tid, Ts),
+    id_to_terms(Tid, Terms),
     dcg_with_output_to((
       tab(N),
       atom(Tid),
       "\t",
-      *(rdf_print_term, Ts),
+      *(rdf_dct_term, Terms),
       nl
    ))
   ).
@@ -208,8 +208,8 @@ print_id_store(Opts) :-
 %! rdf_is_id(+T1, +T2) is semidet.
 
 rdf_is_id(T1, T2) :-
-  term_to_terms(T1, Ts),
-  memberchk(T2, Ts).
+  term_to_terms(T1, Terms),
+  memberchk(T2, Terms).
 
 
 
@@ -282,16 +282,16 @@ term_to_id(T1, Tid) :-
 %! term_to_term(+T1, -T2) is multi.
 
 term_to_term(T1, T2) :-
-  term_to_terms(T1, Ts),
-  member(T2, Ts).
+  term_to_terms(T1, Terms),
+  member(T2, Terms).
 
 
 
-%! term_to_terms(+T, -Ts:ordset) is det.
+%! term_to_terms(+T, -Terms:ordset) is det.
 
-term_to_terms(T, Ts) :-
+term_to_terms(T, Terms) :-
   term_to_id(T, Tid),
-  id_to_terms(Tid, Ts).
+  id_to_terms(Tid, Terms).
 
 
 

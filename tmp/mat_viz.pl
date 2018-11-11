@@ -16,19 +16,20 @@ Exports materialization results.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg)).
 :- use_module(library(dif)).
+:- use_module(library(lists)).
+:- use_module(library(solution_sequences)).
+
+:- use_module(library(dcg)).
 :- use_module(library(graph/build_export_graph)).
 :- use_module(library(gv/gv_file)).
 :- use_module(library(hash_ext)).
-:- use_module(library(lists)).
 :- use_module(library(mat/j_db)).
 :- use_module(library(mat/mat_print)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(pl_ext)).
-:- use_module(library(rdf/rdf_print)).
-:- use_module(library(rdf/rdf_term)).
-:- use_module(library(solution_sequences)).
+:- use_module(library(semweb/rdf_print)).
+:- use_module(library(semweb/rdf_term)).
 
 :- rdf_meta
    mat_viz(r, r, o).
@@ -131,5 +132,7 @@ proof_node_shape(X, SShape) :-
   SShape = octagon.
 
 
-s_label(rdf(S,P,O)) --> !, dcg_rdf_print_triple(S, P, O).
-s_label(T) --> dcg_rdf_print_term(T).
+s_label(rdf(S,P,O)) --> !,
+  rdf_dcg_tp(S, P, O).
+s_label(T) -->
+   rdf_dcg_term(T).

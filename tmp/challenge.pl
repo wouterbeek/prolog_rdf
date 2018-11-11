@@ -40,7 +40,7 @@ go_instance(String) :-
   lotus_instance(String, I),
   class_one(I, C),
   same_as(I, Js),
-  rdf_print_triple(I, rdf:type, C),
+  dcg_with_output_to(rdf_dcg_tp(I, rdf:type, C)),
   dcg_with_output_to(set(Js)).
 
 go_class(String) :-

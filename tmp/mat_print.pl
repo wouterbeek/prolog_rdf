@@ -50,7 +50,7 @@ print_deduction(Rule, Prems, Conc) -->
 print_expression0(error) --> !,
   falsum.
 print_expression0(rdf(S,P,O)) --> !,
-  dcg_rdf_print_triple(S, P, O).
+  rdf_dcg_tp(S, P, O).
 print_expression0(T) -->
   pl_term(T).
 

@@ -1,8 +1,4 @@
-%! q_link(+Backend, +P, +G) is det.
-
-q_link(Backend, P, G) :-
-  q_link_objects(Backend, P, G).
-  
+:- encoding(utf8).
 :- module(
   rdf_link,
   [
@@ -22,15 +18,16 @@ IRIs are linked using ‘owl:sameAs’.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dcg_cli)).
+:- use_module(library(solution_sequences)).
+
 :- use_module(library(dcg)).
+:- use_module(library(dcg/dcg_cli)).
 :- use_module(library(print_ext)).
 :- use_module(library(rdf/rdf_api)).
 :- use_module(library(rdf/rdf_print)).
 :- use_module(library(service/fct)).
 :- use_module(library(service/ll_api)).
 :- use_module(library(service/lotus_api)).
-:- use_module(library(solution_sequences)).
 :- use_module(library(trp/trp_update)).
 
 :- rdf_meta
@@ -82,9 +79,9 @@ rdf_link_objects_loop(Backend, M1, N, [H|T], P, G) :-
     thousands(M1),
     atom("/"),
     thousands(N),
-    atom(") Let's link "),
-    sq(dcg_rdf_print_literal(H)),
-    atom(":"),
+    atom(") Let's link ‘"),
+    dcg_rdf_term(H),
+    atom("’:"),
     nl
   )),
   rdf_link_object_loop(Backend, H, P, G),
@@ -99,9 +96,9 @@ rdf_link_object_loop(Backend, From, P, G) :-
   msg_linked(From, To).
 rdf_link_object_loop(_, From, _, _) :-
   dcg_with_output_to(user_output, (
-    atom("Could not link "),
-    sq(dcg_rdf_print_literal(From)),
-    atom("."),
+    atom("Could not link ‘"),
+    dcg_rdf_term(From),
+    atom("’."),
     nl
   )).
 
@@ -115,11 +112,11 @@ rdf_link_object_loop(_, From, _, _) :-
 
 msg_linked(Term, Iri) :-
   dcg_with_output_to(string(Msg), (
-    atom("Linked "),
-    sq(dcg_rdf_print_term(Term)),
-    atom(" to "),
-    sq(dcg_rdf_print_iri(Iri)),
-    atom(".")
+    atom("Linked ‘"),
+    dcg_rdf_term(Term),
+    atom("’ to ‘"),
+    dcg_rdf_term(Iri),
+    atom("’.")
   )),
   dcg_with_output_to(user_output, (
     ansi_string([1,37,43], Msg),
@@ -134,14 +131,20 @@ msg_linked(Term, Iri) :-
 % Enumerate classes C for instance I.
 
 print_info(fct, S) :- !,
-  aggregate_all(set(Triple), rdf_deref_triple(S, Triple), Triples),
-  rdf_print_triples(Triples).
+  forall(
+    rdf_deref_triple(S, Triple),
+    dcg_with_output_to(rdf_dcg_tp, Triple)
+  ).
 print_info(lotus, I) :-
   % @bug RDF prefix expansion does not work inside distinct/2.
   rdf_equal(rdf:type, P),
   forall(
     distinct(C, ll_ldf(I, P, C)),
-    (write("  - "), rdf_print_object(C), nl)
+    dcg_with_output_to((
+      write("  - "),
+      rdf_dcg_node(C),
+      nl
+    ))
   ).
 
 
@@ -152,21 +155,21 @@ print_info(lotus, I) :-
 
 rdf_user_chooses_iri(Backend, Lit, Score, Iri) :-
   dcg_with_output_to(user_output, (
-    atom("Evidence for linking "),
-    sq(dcg_rdf_print_literal(Lit)),
-    atom(" to "),
-    sq(dcg_rdf_print_iri(Iri)),
-    atom(":"),
+    atom("Evidence for linking ‘"),
+    dcg_rdf_term(Lit),
+    atom("’ to ‘"),
+    dcg_rdf_term(Iri),
+    atom("’:"),
     nl
   )),
   print_info(Backend, Iri),
   dcg_with_output_to(string(Msg), (
     atom("["),
     number(Score),
-    atom("] Do you want to replace literal "),
-    sq(dcg_rdf_print_literal(Lit)),
-    atom(" with IRI "),
-    sq(dcg_rdf_print_iri(Iri)),
-    atom(" (Y/N)?")
+    atom("] Do you want to replace literal ‘"),
+    dcg_rdf_term(Lit),
+    atom("’ with IRI ‘"),
+    dcg_rdf_term(Iri),
+    atom("’ (Y/N)?")
   )),
   (user_input(Msg) -> ! ; fail).

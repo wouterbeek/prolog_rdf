@@ -100,7 +100,7 @@ export_node_label(Node, Label, Options) :-
   rdf_prefix_iri(P0, P),
   rdf_triple(Node, P, Label, _), !.
 export_node_label(Node, Label, _) :-
-  string_phrase(rdf_dcg_term(Node), Label).
+  string_phrase(rdf_dcg_node(Node), Label).
 
 
 

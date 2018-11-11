@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rdf_compare,
   [
@@ -94,15 +95,16 @@ pair_rows(P, XYs1, Xs1, Ys1, [[P,XY,X,Y]|T]) :-
   pair_rows(_, XYs2, Xs2, Ys2, T).
 
 rdf_comp_caption0(X, Y) -->
-  "Comparing terms ",
-  dcg_rdf_print_term(X),
-  " and ",
-  dcg_rdf_print_term(Y).
+  "Comparing terms ‘",
+  rdf_dcg_term(X),
+  "’ and ‘",
+  rdf_dcg_term(Y),
+  "’".
 rdf_comp_cell0(L) -->
   {is_list(L)}, !,
-  set(dcg_rdf_print_term, L).
-rdf_comp_cell0(T) -->
-  dcg_rdf_print_term(T).
+  set(rdf_dcg_term, L).
+rdf_comp_cell0(Term) -->
+  rdf_dcg_term(Term).
 
 
 

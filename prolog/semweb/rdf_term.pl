@@ -8,8 +8,8 @@
     rdf_bnode_iri/3,              % +Scope, ?Local, -Iri
     rdf_bnode_prefix/1,           % -Iri
     rdf_bnode_prefix/2,           % +Scope, -Iri
-    rdf_canonize_lexical_form/3,  % +D, +Lex, -CanonizedLex
-    rdf_canonize_literal/2,       % +Literal, -CanonizedLiteral
+    rdf_canonical_lexical_form/3, % +D, +Lex, -CanonicaldLex
+    rdf_canonical_literal/2,      % +Literal, -CanonicaldLiteral
    %rdf_create_bnode/1,           % --BNode
     rdf_create_hash_iri/3,        % +Alias, +Term, -Iri
     rdf_create_hash_iri/4,        % +Alias, +Segments, +Term, -Iri
@@ -98,8 +98,8 @@
 
 :- rdf_meta
    rdf_atom_term(?, o),
-   rdf_canonize_lexical_form(r, +, -),
-   rdf_canonize_literal(o, o),
+   rdf_canonical_lexical_form(r, +, -),
+   rdf_canonical_literal(o, o),
    rdf_is_bnode_iri(r),
    rdf_is_name(o),
    rdf_is_numeric_literal(o),
@@ -234,19 +234,19 @@ rdf_bnode_prefix_(Segments, Iri) :-
 
 
 
-%! rdf_canonize_lexical_form(+D:iri, +Lex:atom, -CanonizedLex:atom) is det.
+%! rdf_canonical_lexical_form(+D:iri, +Lex:atom, -CanonicaldLex:atom) is det.
 
-rdf_canonize_lexical_form(D, Lex1, Lex2) :-
-  rdf_lexical_value(D, Lex1, Value),
-  rdf_lexical_value(D, Lex2, Value).
+rdf_canonical_lexical_form(D, Lex, CanonicalLex) :-
+  rdf_lexical_value(D, Lex, Value),
+  rdf_lexical_value(D, CanonicalLex, Value).
 
 
 
-%! rdf_canonize_literal(+Literal:rdf_literal, -CanonizedLiteral:rdf_literal) is det.
+%! rdf_canonical_literal(+Literal:rdf_literal, -CanonicaldLiteral:rdf_literal) is det.
 
-rdf_canonize_literal(Literal1, Literal2) :-
-  rdf_literal_value(Literal1, D, Value),
-  rdf_literal_value(Literal2, D, Value).
+rdf_canonical_literal(Literal, CanonicalLiteral) :-
+  rdf_literal_value(Literal, D, Value),
+  rdf_literal_value(CanonicalLiteral, D, Value).
 
 
 
@@ -889,9 +889,16 @@ rdf_typed_literal(D, Lex, literal(type(D,Lex))).
 
 
 
+%! well_known_iri(+Segments:list(atom), +Iri:atom) is semidet.
 %! well_known_iri(+Segments:list(atom), -Iri:atom) is det.
+%! well_known_iri(-Segments:list(atom), +Iri:atom) is det.
 
 well_known_iri(Segments, Iri) :-
   setting(bnode_prefix_scheme, Scheme),
   setting(bnode_prefix_authority, Auth),
-  uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid|Segments],_,_)).
+  (   ground(Iri)
+  ->  uri_comps(Prefix, uri(Scheme,Auth,['.well-known',genid],_,_)),
+      atom_concat(Prefix, Local, Iri),
+      atomic_list_concat(Segments, /, Local)
+  ;   uri_comps(Iri, uri(Scheme,Auth,['.well-known',genid|Segments],_,_))
+  ).

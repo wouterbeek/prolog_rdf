@@ -90,8 +90,8 @@ rdf_id(S, P, O, G) :-
   ->  term_to_term(O, S)
   ;   % Enumerate identical terms in general.
       var(G)
-  ->  id_terms(Ts),
-      member(S, O, Ts)
+  ->  id_terms(Terms),
+      member(S, O, Terms)
   ;   % Enumerate identical terms at least one of which
       % occurs in the given graph.
       rdf_term(G, S),
@@ -124,8 +124,8 @@ rdf_has_id(S, P, O) :-
   ;   ground(O)
   ->  term_to_term(O, S)
   ;   % Enumerate identical terms in general.
-      id_terms(Ts),
-      member(S, O, Ts)
+      id_terms(Terms),
+      member(S, O, Terms)
   ).
 rdf_has_id(S, P, O) :-
   maplist(matching_term, [S,P,O], [Sid,Pid,Oid]),
@@ -182,8 +182,8 @@ rdf_print_graph_id(Gid, Opts) -->
 rdf_print_id(Tid) -->
   rdf_print_id(Tid, []).
 rdf_print_id(Tid, Opts) -->
-  {id_to_terms(Tid, Ts)},
-  set(rdf_print_term, Ts).
+  {id_to_terms(Tid, Terms)},
+  set(rdf_dcg_term, Terms).
 
 
 

@@ -31,7 +31,7 @@ script2(M) :-
   rdf_print_graph(G).
 
 script3(M) :-
-  rdf_reset_db, 
+  rdf_reset_db,
   rdf_equal(ex:script3, G),
   rdf_assert(M, ex:a, owl:sameAs, ex:b, G),
   rdf_assert(M, ex:b, owl:differentFrom, ex:a, G),
