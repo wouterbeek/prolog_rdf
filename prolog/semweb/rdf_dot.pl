@@ -76,8 +76,8 @@ rdf_dot_node_uml(Out, B, Node) :-
   rdf_dot_node_uml(Out, B, Node, options{}).
 
 
-rdf_dot_node_uml(Out, B, Node, Options) :-
-  string_phrase(rdf_dcg_node(Node, Options), NodeString),
+rdf_dot_node_uml(Out, B, Node, Options0) :-
+  string_phrase(rdf_dcg_node(Node, Options0), NodeString),
   H = [cell(colspan(2), b(NodeString))],
   % literals
   findall(
@@ -85,14 +85,14 @@ rdf_dot_node_uml(Out, B, Node, Options) :-
     (
       triple(B, Node, P, O),
       rdf_is_literal(O),
-      string_phrase(rdf_dcg_predicate(P, Options), PString),
-      string_phrase(rdf_dcg_node(O, Options), OString)
+      string_phrase(rdf_dcg_predicate(P, Options0), PString),
+      string_phrase(rdf_dcg_node(O, Options0), OString)
     ),
     T1
   ),
   % RDF lists
   findall(
-    [cell(PString),cell(table([Row]))],
+    [cell(PString),cell(table(border(0),[Row]))],
     (
       list_triple(B, Node, P, L),
       string_phrase(rdf_dcg_predicate(P), PString),
@@ -101,7 +101,8 @@ rdf_dot_node_uml(Out, B, Node, Options) :-
     T2
   ),
   append(T1, T2, T),
-  dot_node(Out, Node, options{html: table([H|T])}).
+  merge_options(Options0, options{html: table([H|T])}, Options),
+  dot_node(Out, Node, Options).
 
 rdf_dot_node_cell_(Term, cell(String)) :-
   string_phrase(rdf_dcg_node(Term), String).
