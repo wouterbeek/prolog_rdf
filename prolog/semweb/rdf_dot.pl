@@ -10,7 +10,9 @@
     rdf_dot_node/2,        % +Out, +Node
     rdf_dot_node/3,        % +Out, +Node, +Options
     rdf_dot_node_uml/3,    % +Out, +Backend, +Node
-    rdf_dot_node_uml/4     % +Out, +Backend, +Node, +Options
+    rdf_dot_node_uml/4,    % +Out, +Backend, +Node, +Options
+    rdf_dot_node_id_uml/4, % +Out, +Backend, +Node, +Id
+    rdf_dot_node_id_uml/5  % +Out, +Backend, +Node, +Id, +Options
   ]
 ).
 :- reexport(library(graph/dot)).
@@ -50,7 +52,9 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
    rdf_dot_node(+, r),
    rdf_dot_node(+, r, +),
    rdf_dot_node_uml(+, t, r),
-   rdf_dot_node_uml(+, t, r, +).
+   rdf_dot_node_uml(+, t, r, +),
+   rdf_dot_node_id_uml(+, t, r, +),
+   rdf_dot_node_id_uml(+, t, r, +, +).
 
 
 
@@ -101,7 +105,7 @@ rdf_dot_node(Out, Node) :-
 
 rdf_dot_node(Out, Node, Options) :-
   string_phrase(rdf_dcg_node(Node, Options), Label),
-  dot_node(Out, Node, _{label: Label}).
+  dot_node(Out, Node, options{label: Label}).
 
 
 
@@ -112,7 +116,20 @@ rdf_dot_node_uml(Out, B, Node) :-
   rdf_dot_node_uml(Out, B, Node, options{}).
 
 
-rdf_dot_node_uml(Out, B, Node, Options0) :-
+rdf_dot_node_uml(Out, B, Node, Options) :-
+  dot_id(Node, Id),
+  rdf_dot_node_id_uml(Out, B, Node, Id, Options).
+
+
+
+%! rdf_dot_node_id_uml(+Out:stream, +Backend, +Node:rdf_node, +Id:atom) is det.
+%! rdf_dot_node_id_uml(+Out:stream, +Backend, +Node:rdf_node, +Id:atom, +Options:dict) is det.
+
+rdf_dot_node_id_uml(Out, B, Node, Id) :-
+  rdf_dot_node_id_uml(Out, B, Node, Id, options{}).
+
+
+rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
   string_phrase(rdf_dcg_node(Node, Options0), NodeString),
   H = [cell(colspan(2), b(NodeString))],
   % literals
@@ -138,7 +155,7 @@ rdf_dot_node_uml(Out, B, Node, Options0) :-
   ),
   append(T1, T2, T),
   merge_options(Options0, options{html: table([H|T])}, Options),
-  dot_node(Out, Node, Options).
+  dot_node_id(Out, Id, Options).
 
 rdf_dot_node_cell_(Term, cell(String)) :-
   string_phrase(rdf_dcg_node(Term), String).
