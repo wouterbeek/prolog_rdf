@@ -142,10 +142,12 @@ assert_reification_triple(B, S, P, O, Stmt) :-
 
 %! assert_triple(+Backend, +S:rdf_subject, +P:rdf_predicate, +O:rdf_object) is nondet.
 
-assert_triple(B, S, P1, O1) :-
+assert_triple(B1, S, P1, O1) :-
   rdf_predicate_dwim(P1, P2),
   rdf_object_dwim(O1, O2),
-  rdf_api:assert_triple_(B, S, P2, O2).
+  pre_backend_(B1, B2),
+  rdf_api:assert_triple_(B2, S, P2, O2),
+  post_backend_(B1, B2).
 
 rdf_api:assert_triple_(dummy, _, _, _) :-
   fail.
@@ -283,8 +285,10 @@ reification(B, S, P, O, Stmt) :-
 
 %! retractall_triples(+Backend, ?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object) is det.
 
-retractall_triples(B, S, P, O) :-
-  rdf_api:retractall_triples_(B, S, P, O).
+retractall_triples(B1, S, P, O) :-
+  pre_backend_(B1, B2),
+  rdf_api:retractall_triples_(B2, S, P, O),
+  post_backend_(B1, B2).
 
 rdf_api:retractall_triples_(dummy, _, _, _) :-
   fail.
@@ -330,10 +334,12 @@ term_string(_, Name, String) :-
 
 %! triple(?Backend, ?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object) is nondet.
 
-triple(B, S, P1, O1) :-
+triple(B1, S, P1, O1) :-
   (var(P1) -> P2 = P1 ; rdf_predicate_dwim(P1, P2)),
   (var(O1) -> O2 = O1 ; rdf_object_dwim(O1, O2)),
-  rdf_api:triple_(B, S, P2, O2).
+  pre_backend_(B1, B2),
+  rdf_api:triple_(B2, S, P2, O2),
+  post_backend_(B2, B1).
 
 rdf_api:triple_(dummy, _, _, _) :-
   fail.
@@ -349,8 +355,30 @@ triple_chk(B, S, P, O) :-
 
 %! triple_count(?Backend, ?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, -N:nonneg) is nondet.
 
-triple_count(B, S, P, O, N) :-
-  rdf_api:triple_count_(B, S, P, O, N).
+triple_count(B1, S, P, O, N) :-
+  pre_backend_(B1, B2),
+  rdf_api:triple_count_(B2, S, P, O, N),
+  post_backend_(B2, B1).
 
 rdf_api:triple_count_(dummy, _, _, _, 0) :-
   fail.
+
+
+
+
+
+% HELPERS %
+
+%! pre_backend_(+Backend1, -Backend2) is det.
+
+pre_backend_(Var, _) :-
+  var(Var), !.
+pre_backend_(B, B).
+
+
+
+%! post_backend_(+Backend1, +Backend2) is det.
+
+post_backend_(B1, _) :-
+  ground(B1), !.
+post_backend_(B, B).
