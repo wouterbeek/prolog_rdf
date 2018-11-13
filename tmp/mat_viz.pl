@@ -135,4 +135,4 @@ proof_node_shape(X, SShape) :-
 s_label(rdf(S,P,O)) --> !,
   rdf_dcg_tp(S, P, O).
 s_label(T) -->
-   rdf_dcg_term(T).
+   rdf_dcg_node(T).

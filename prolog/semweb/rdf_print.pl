@@ -10,8 +10,6 @@
     rdf_dcg_predicate//2, % +Predicate, +Options
     rdf_dcg_qp//4,        % ?S, ?P, ?O, ?G
     rdf_dcg_qp//5,        % ?S, ?P, ?O, ?G, +Options
-    rdf_dcg_term//1,      % +Term
-    rdf_dcg_term//2,      % +Term, +Options
     rdf_dcg_tp//3,        % ?S, ?P, ?O
     rdf_dcg_tp//4,        % ?S, ?P, ?O, +Options
     rdf_dcg_tps//1,       % +TPs
@@ -26,6 +24,8 @@
 | `indent`       | nonneg               | 0           |                                    |
 | `iri_abbr`     | boolean              | `true`      | Whether IRIs are abbreviated       |
 |                |                      |             | based on the current prefixes.     |
+| `label`        | compound             |             | Use `rdfs:label` from the given    |
+|                |                      |             | backend.                           |
 | `max_iri_len`  | nonneg               | `∞`         | The maximum length of an IRI.      |
 | `max_lit_len`  | nonneg               | `∞`         | The maximum length of a literal.   |
 | `prefix_map`   | list(pair(atom))     |             | A custom list of prefix/IRI        |
@@ -66,8 +66,6 @@
    rdf_dcg_predicate(r, +, ?, ?),
    rdf_dcg_qp(r, r, o, r, ?, ?),
    rdf_dcg_qp(r, r, o, r, +, ?, ?),
-   rdf_dcg_term(o, ?, ?),
-   rdf_dcg_term(o, +, ?, ?),
    rdf_dcg_tp(r, r, o, ?, ?),
    rdf_dcg_tp(r, r, o, +, ?, ?),
    rdf_dcg_tps(t, ?, ?),
@@ -85,7 +83,7 @@ rdf_dcg_node(Node) -->
 
 
 rdf_dcg_node(Node, Options) -->
-  rdf_dcg_term(Node, Options).
+  rdf_dcg_term_(Node, Options).
 
 
 
@@ -115,7 +113,7 @@ rdf_dcg_predicate(P, _) -->
   {rdf_equal(P, rdf:type)}, !,
   "a".
 rdf_dcg_predicate(P, Options) -->
-  rdf_dcg_term(P, Options).
+  rdf_dcg_term_(P, Options).
 
 
 
@@ -129,24 +127,29 @@ rdf_dcg_qp(S, P, O, G) -->
 rdf_dcg_qp(S, P, O, G, Options) -->
   rdf_dcg_tp(S, P, O, Options),
   " @",
-  rdf_dcg_term(G, Options).
+  rdf_dcg_term_(G, Options).
 
 
 
-%! rdf_dcg_term(+Term:rdf_term)// is det.
-%! rdf_dcg_term(+Term:rdf_term, +Options:dict)// is det.
+%! rdf_dcg_term_(+Term:rdf_term)// is det.
+%! rdf_dcg_term_(+Term:rdf_term, +Options:dict)// is det.
 
-rdf_dcg_term(Term) -->
-  rdf_dcg_term(Term, options{}).
+rdf_dcg_term_(Term) -->
+  rdf_dcg_term_(Term, options{}).
 
 
+% rdfs:label
+rdf_dcg_term_(Term, Options) -->
+  {dict_get(label, Options, B)}, !,
+  triple_chk(B, S, rdfs:label, Literal), !,
+  rdf_dcg_term_(Literal, Options).
 % language-tagged string
-rdf_dcg_term(literal(lang(LTag,Lex)), Options) --> !,
+rdf_dcg_term_(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form_(Lex, Options),
   "@",
   atom(LTag).
 % typed literal
-rdf_dcg_term(literal(type(D,Lex)), Options) --> !,
+rdf_dcg_term_(literal(type(D,Lex)), Options) --> !,
   (   {rdf_equal(D, xsd:boolean)}
   ->  {rdf_canonical_lexical_form(xsd:boolean, Lex, CanonicalLex)},
       (   {dict_get(pp, Options, true)}
@@ -165,10 +168,10 @@ rdf_dcg_term(literal(type(D,Lex)), Options) --> !,
       % datatype IRI.
       rdf_dcg_lexical_form_(Lex, Options),
       "^^",
-      rdf_dcg_term(D, Options)
+      rdf_dcg_term_(D, Options)
   ).
 % IRI
-rdf_dcg_term(Iri, Options) -->
+rdf_dcg_term_(Iri, Options) -->
   {rdf_is_iri(Iri)}, !,
   (   {well_known_iri(Segments, Iri)}
   ->  % Blank node notation for well-known IRIs.
@@ -228,7 +231,7 @@ rdf_dcg_term(Iri, Options) -->
       ">"
   ).
 % blank node
-rdf_dcg_term(BNode, _) -->
+rdf_dcg_term_(BNode, _) -->
   {rdf_is_bnode(BNode)}, !,
   atom(BNode).
 
@@ -279,7 +282,7 @@ rdf_dcg_groups0([G-TPs|Groups], Options) -->
   (   {var(G)}
   ->  {I2 = I1}
   ;   tab(I1),
-      rdf_dcg_term(G, Options),
+      rdf_dcg_term_(G, Options),
       " {\n",
       {I2 = I1 + 2}
   ),
@@ -401,7 +404,7 @@ rdf_dcg_complex_object_(_, RdfList, SkipTPs1, SkipTPs2, Options) -->
   }, !,
   rdf_dcg_list_(Terms, Options).
 rdf_dcg_complex_object_(_, Term, SkipTPs, SkipTPs, Options) -->
-  rdf_dcg_term(Term, Options).
+  rdf_dcg_term_(Term, Options).
 
 %! turtle_object_(+RdfList:rdf_node,
 %!                +SkipTPs1:list(tp),
@@ -429,7 +432,7 @@ rdf_dcg_list_(Terms, Options) -->
   "(",
   (   {Terms = [H|T]}
   ->  " ",
-      rdf_dcg_term(H, Options),
+      rdf_dcg_term_(H, Options),
       rdf_dcg_list_tail_(T, Options),
       " "
   ;   ""
@@ -440,6 +443,6 @@ rdf_dcg_list_(Terms, Options) -->
 
 rdf_dcg_list_tail_([H|T], Options) --> !,
   ", ",
-  rdf_dcg_term(H, Options),
+  rdf_dcg_term_(H, Options),
   rdf_dcg_list_tail_(T, Options).
 rdf_dcg_list_tail_([], _) --> "".

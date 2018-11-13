@@ -42,9 +42,9 @@ rdfs_fca_export_graph(B, ExportB, Options1) :-
   rdfs_fca_context(B, Context),
   merge_dicts(
     options{
-      attribute_label: rdf_attribute_label,
+      attribute_label: rdf_dcg_node,
       concept_label: both,
-      object_label: rdf_object_label
+      object_label: rdf_dcg_node
     },
     Options1,
     Options2
@@ -63,17 +63,3 @@ rdfs_fca_viz(B, File) :-
 rdfs_fca_viz(B, File, Options) :-
   rdfs_fca_export_graph(B, ExportB, Options),
   graph_viz(ExportB, File, Options).
-
-
-
-
-
-% HELPERS %
-
-rdf_attribute_label(Term) -->
-  rdf_dcg_term(Term).
-
-
-
-rdf_object_label(Term) -->
-  rdf_dcg_term(Term).

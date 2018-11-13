@@ -49,7 +49,7 @@ $("#dataset-graph-menu").on('change', function(){
 rdf_html_dataset_graph_menu(_, _, _) --> [].
 
 rdf_html_dataset_graph_menu_item(D0, G0, t(D,Trees)) -->
-  {string_phrase(rdf_dcg_term(D), Label)},
+  {string_phrase(rdf_dcg_node(D), Label)},
   html(
     optgroup(label(Label),
       \html_maplist(

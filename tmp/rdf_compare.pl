@@ -96,15 +96,15 @@ pair_rows(P, XYs1, Xs1, Ys1, [[P,XY,X,Y]|T]) :-
 
 rdf_comp_caption0(X, Y) -->
   "Comparing terms ‘",
-  rdf_dcg_term(X),
+  rdf_dcg_node(X),
   "’ and ‘",
-  rdf_dcg_term(Y),
+  rdf_dcg_node(Y),
   "’".
 rdf_comp_cell0(L) -->
   {is_list(L)}, !,
-  set(rdf_dcg_term, L).
+  set(rdf_dcg_node, L).
 rdf_comp_cell0(Term) -->
-  rdf_dcg_term(Term).
+  rdf_dcg_node(Term).
 
 
 

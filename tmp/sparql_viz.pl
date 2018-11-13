@@ -63,10 +63,10 @@ sparql_viz_edge(Out, Term1, Term2) :-
 
 write_label(Var, Label, Options) :-
   var(Var), !,
-  string_phrase(rdf_dcg_term(Var, Options), Label).
+  string_phrase(rdf_dcg_node(Var, Options), Label).
 write_label(Uri, Label, Options) :-
   is_uri(Uri), !,
-  string_phrase(rdf_dcg_term(Uri, Options), Label).
+  string_phrase(rdf_dcg_node(Uri, Options), Label).
 write_label(Term, Label, _) :-
   format(string(Label), "~w", [Term]).
 

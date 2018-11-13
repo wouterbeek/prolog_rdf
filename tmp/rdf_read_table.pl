@@ -46,7 +46,7 @@ rdf_read_table(Table, Opts) -->
     ;   Rows2 = Rows1
     )
   },
-  rdf_table(rdf_dcg_term(Caption), Rows2, Opts).
+  rdf_table(rdf_dcg_node(Caption), Rows2, Opts).
 
 
 %! rdf_table_get_rows(
