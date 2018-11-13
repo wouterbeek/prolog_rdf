@@ -79,7 +79,9 @@ rdf_dot_cluster(Out, Node, Goal_1) :-
   rdf_dot_cluster(Out, Node, Goal_1, options{}).
 
 
-rdf_dot_cluster(Out, Node, Goal_1, Options) :-
+rdf_dot_cluster(Out, Node, Goal_1, Options0) :-
+  string_phrase(rdf_dcg_node(Node, Options0), Label),
+  merge_options(options{label: Label}, Options0, Options),
   dot_cluster(Out, Node, Goal_1, Options).
 
 
