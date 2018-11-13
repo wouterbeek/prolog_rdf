@@ -24,7 +24,7 @@
 | `indent`       | nonneg               | 0           |                                    |
 | `iri_abbr`     | boolean              | `true`      | Whether IRIs are abbreviated       |
 |                |                      |             | based on the current prefixes.     |
-| `label`        | compound             |             | Use `rdfs:label` from the given    |
+| `'rdfs:label'` | compound             |             | Use `rdfs:label` from the given    |
 |                |                      |             | backend.                           |
 | `max_iri_len`  | nonneg               | `∞`         | The maximum length of an IRI.      |
 | `max_lit_len`  | nonneg               | `∞`         | The maximum length of a literal.   |
@@ -54,6 +54,7 @@
 :- use_module(library(dcg)).
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dict)).
+:- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_term)).
 
@@ -140,8 +141,10 @@ rdf_dcg_term_(Term) -->
 
 % rdfs:label
 rdf_dcg_term_(Term, Options) -->
-  {dict_get(label, Options, B)}, !,
-  triple_chk(B, S, rdfs:label, Literal), !,
+  {
+    dict_get('rdfs:label', Options, B),
+    triple_chk(B, Term, rdfs:label, Literal)
+  }, !,
   rdf_dcg_term_(Literal, Options).
 % language-tagged string
 rdf_dcg_term_(literal(lang(LTag,Lex)), Options) --> !,
