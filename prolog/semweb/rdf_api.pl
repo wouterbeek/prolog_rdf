@@ -472,8 +472,8 @@ term_string(_, Name, String) :-
 
 tp(B1, S, P1, O1) :-
   pre_backend_(B1, B2),
-  rdf_predicate_dwim_var_(P1, P2),
-  rdf_object_dwim_var_(O1, O2),
+  tp_predicate_dwim(P1, P2),
+  tp_object_dwim(O1, O2),
   rdf_api:tp_(B2, S, P2, O2),
   post_backend_(B2, B1).
 
@@ -493,8 +493,8 @@ tp_chk(B, S, P, O) :-
 
 tp_count(B1, S, P1, O1, N) :-
   pre_backend_(B1, B2),
-  rdf_predicate_dwim_var_(P1, P2),
-  rdf_object_dwim_var_(O1, O2),
+  tp_predicate_dwim(P1, P2),
+  tp_object_dwim(O1, O2),
   rdf_api:tp_count_(B2, S, P2, O2, N),
   post_backend_(B2, B1).
 
@@ -516,8 +516,8 @@ tp_dt(B, S, P, Dt) :-
 %! tp_retractall(+Backend, ?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object) is det.
 
 tp_retractall(B1, S, P1, O1) :-
-  rdf_predicate_dwim_var_(P1, P2),
-  rdf_object_dwim_var_(O1, O2),
+  tp_predicate_dwim(P1, P2),
+  tp_object_dwim(O1, O2),
   pre_backend_(B1, B2),
   rdf_api:tp_retractall_(B2, S, P2, O2),
   post_backend_(B1, B2).
@@ -620,17 +620,3 @@ pre_backend_(B, B).
 post_backend_(B1, _) :-
   ground(B1), !.
 post_backend_(B, B).
-
-
-
-rdf_object_dwim_var_(O, O) :-
-  var(O), !.
-rdf_object_dwim_var_(O1, O2) :-
-  rdf_object_dwim(O1, O2).
-
-
-
-rdf_predicate_dwim_var_(P, P) :-
-  var(P), !.
-rdf_predicate_dwim_var_(P1, P2) :-
-  rdf_predicate_dwim(P1, P2).

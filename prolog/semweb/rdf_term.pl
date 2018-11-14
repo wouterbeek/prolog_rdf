@@ -45,6 +45,8 @@
     rdf_term//1,                         % ?Term
     rdf_term_to_string/2,                % +Term, -String
     rdf_typed_literal/3,                 % ?D, ?Lex, ?Literal
+    tp_object_dwim/2,                    % ?DWIM, -O
+    tp_predicate_dwim/2,                 % ?DWIM, -P
     well_known_iri/2                     % +Segments, -Iri
   ]
 ).
@@ -125,7 +127,9 @@
    rdf_term_to_string(o, -),
    rdf_typed_literal(r, ?, o),
    rdf_value_to_lexical(r, +, -),
-   rdf_value_to_lexical_error(r, +).
+   rdf_value_to_lexical_error(r, +),
+   tp_object_dwim(o, -),
+   tp_predicate_dwim(r, -).
 
 :- setting(base_uri, atom, 'https://example.org/base-uri/',
            "The default base URI for RDF IRIs.").
@@ -906,6 +910,24 @@ rdf_term_to_string(Term, String) :-
 %! rdf_typed_literal(-D:atom, -Lex:atom, +Literal:rdf_literal) is det.
 
 rdf_typed_literal(D, Lex, literal(type(D,Lex))).
+
+
+
+%! tp_object_dwim(+DWIM:term, -O:rdf_object) is det.
+
+tp_object_dwim(O, O) :-
+  var(O), !.
+tp_object_dwim(O1, O2) :-
+  rdf_object_dwim(O1, O2).
+
+
+
+%! tp_predicate_dwim(+DWIM:term, -P:rdf_predicate) is det.
+
+tp_predicate_dwim(P, P) :-
+  var(P), !.
+tp_predicate_dwim(P1, P2) :-
+  rdf_predicate_dwim(P1, P2).
 
 
 
