@@ -106,7 +106,7 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
       rdf_guess_stream(In, 10 000, MediaTypeGuess),
       (   % Heuristic 2: the value of the HTTP `Content-Type' header.
           option(content_type(MediaType), Options1)
-      ->  (   'rdf_media_type_>'(MediaType, MediaTypeGuess)
+      ->  (   'rdf_media_type_>'(MediaTypeGuess, MediaType)
           ->  !
           ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeGuess)),
               MediaType = MediaTypeGuess
@@ -115,7 +115,7 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
       ),
       (   % Heuristic 3: the URI path's file name extension.
           uri_media_type(BaseUri, MediaTypeUri)
-      ->  (   'rdf_media_type_>'(MediaType, MediaTypeUri)
+      ->  (   'rdf_media_type_>'(MediaTypeUri, MediaType)
           ->  !
           ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeUri))
           )
