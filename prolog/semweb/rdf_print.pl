@@ -143,7 +143,7 @@ rdf_dcg_term_(Term) -->
 rdf_dcg_term_(Term, Options) -->
   {
     dict_get('rdfs:label', Options, B),
-    triple_chk(B, Term, rdfs:label, Literal)
+    tp_chk(B, Term, rdfs:label, Literal)
   }, !,
   rdf_dcg_term_(Literal, Options).
 % language-tagged string

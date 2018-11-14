@@ -233,10 +233,10 @@ rdf_html_literal_internal_(D, _, Lex, _) -->
 rdf_html_literal_internal_(D, _, Lex, Options) -->
   {
     rdf11:xsd_date_time_type(D), !,
-    xsd_time_string(DateTime, D, Lex),
-    xsd_date_time_to_dt(DateTime, D, DT)
+    xsd_time_string(XsdDt, D, Lex),
+    xsd_date_time(XsdDt, D, Dt)
   },
-  html_date_time(DT, Options).
+  html_date_time(Dt, Options).
 % xsd:string
 rdf_html_literal_internal_(xsd:string, _, Lex, Options) --> !,
   html_lexical_(Lex, Options).

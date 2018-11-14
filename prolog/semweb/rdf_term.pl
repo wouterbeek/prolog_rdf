@@ -2,49 +2,50 @@
 :- module(
   rdf_term,
   [
-    rdf_atom_term/2,              % ?Atom, ?Term
-    rdf_bnode_iri/1,              % -Iri
-    rdf_bnode_iri/2,              % ?Local, -Iri
-    rdf_bnode_iri/3,              % +Scope, ?Local, -Iri
-    rdf_bnode_prefix/1,           % -Iri
-    rdf_bnode_prefix/2,           % +Scope, -Iri
-    rdf_canonical_lexical_form/3, % +D, +Lex, -CanonicaldLex
-    rdf_canonical_literal/2,      % +Literal, -CanonicaldLiteral
-   %rdf_create_bnode/1,           % --BNode
-    rdf_create_hash_iri/3,        % +Alias, +Term, -Iri
-    rdf_create_hash_iri/4,        % +Alias, +Segments, +Term, -Iri
-    rdf_create_iri/3,             % +Alias, +Segments, -Iri
-   %rdf_default_graph/1,          % ?G
-   %rdf_graph/1,                  % ?G
-    rdf_iri//1,                   % ?Iri
-   %rdf_is_bnode/1,               % @Term
-    rdf_is_bnode_iri/1,           % @Term
-    rdf_is_container_membership_property/1, % @Term
-   %rdf_is_iri/1,                 % @Term
-   %rdf_is_literal/1,             % @Term
-    rdf_is_name/1,                % @Term
-    rdf_is_numeric_literal/1,     % @Term
-    rdf_is_object/1,              % @Term
-   %rdf_is_predicate/1,           % @Term
-    rdf_is_skip_node/1,           % @Term
-   %rdf_is_subject/1,             % @Term
-    rdf_is_term/1,                % @Term
-    rdf_language_tagged_string/3, % ?LTag, ?Lex, ?Literal
-    rdf_lexical_value/3,          % +D, ?Lex, ?Val
-    rdf_literal//1,               % ?Literal
-    rdf_literal/4,                % ?D, ?LTag, ?Lex, ?Literal
-    rdf_literal_datatype_iri/2,   % +Literal, ?D
-    rdf_literal_dwim/2,           % +DWIM, ?Literal
-    rdf_literal_lexical_form/2,   % +Literal, ?Lex
-    rdf_literal_value/2,          % +Literal, -Value
-    rdf_literal_value/3,          % ?Literal, ?D, ?Value
-    rdf_name_string/2,            % +Name, -String
-    rdf_object_dwim/2,            % +DWIM, ?Term
-    rdf_predicate_dwim/2,         % +DWIM, ?P
-    rdf_term//1,                  % ?Term
-    rdf_term_to_string/2,         % +Term, -String
-    rdf_typed_literal/3,          % ?D, ?Lex, ?Literal
-    well_known_iri/2              % +Segments, -Iri
+    rdf_atom_term/2,                     % ?Atom, ?Term
+    rdf_bnode_iri/1,                     % -Iri
+    rdf_bnode_iri/2,                     % ?Local, -Iri
+    rdf_bnode_iri/3,                     % +Scope, ?Local, -Iri
+    rdf_bnode_prefix/1,                  % -Iri
+    rdf_bnode_prefix/2,                  % +Scope, -Iri
+    rdf_canonical_lexical_form/3,        % +D, +Lex, -CanonicaldLex
+    rdf_canonical_literal/2,             % +Literal, -CanonicaldLiteral
+    rdf_container_membership_property/1, % ?P
+    rdf_container_membership_property/2, % ?P, ?N
+   %rdf_create_bnode/1,                  % --BNode
+    rdf_create_hash_iri/3,               % +Alias, +Term, -Iri
+    rdf_create_hash_iri/4,               % +Alias, +Segments, +Term, -Iri
+    rdf_create_iri/3,                    % +Alias, +Segments, -Iri
+   %rdf_default_graph/1,                 % ?G
+   %rdf_graph/1,                         % ?G
+    rdf_iri//1,                          % ?Iri
+   %rdf_is_bnode/1,                      % @Term
+    rdf_is_bnode_iri/1,                  % @Term
+   %rdf_is_iri/1,                        % @Term
+   %rdf_is_literal/1,                    % @Term
+    rdf_is_name/1,                       % @Term
+    rdf_is_numeric_literal/1,            % @Term
+    rdf_is_object/1,                     % @Term
+   %rdf_is_predicate/1,                  % @Term
+    rdf_is_skip_node/1,                  % @Term
+   %rdf_is_subject/1,                    % @Term
+    rdf_is_term/1,                       % @Term
+    rdf_language_tagged_string/3,        % ?LTag, ?Lex, ?Literal
+    rdf_lexical_value/3,                 % +D, ?Lex, ?Val
+    rdf_literal//1,                      % ?Literal
+    rdf_literal/4,                       % ?D, ?LTag, ?Lex, ?Literal
+    rdf_literal_datatype_iri/2,          % +Literal, ?D
+    rdf_literal_dwim/2,                  % +DWIM, ?Literal
+    rdf_literal_lexical_form/2,          % +Literal, ?Lex
+    rdf_literal_value/2,                 % +Literal, -Value
+    rdf_literal_value/3,                 % ?Literal, ?D, ?Value
+    rdf_name_string/2,                   % +Name, -String
+    rdf_object_dwim/2,                   % +DWIM, ?Term
+    rdf_predicate_dwim/2,                % +DWIM, ?P
+    rdf_term//1,                         % ?Term
+    rdf_term_to_string/2,                % +Term, -String
+    rdf_typed_literal/3,                 % ?D, ?Lex, ?Literal
+    well_known_iri/2                     % +Segments, -Iri
   ]
 ).
 
@@ -100,6 +101,8 @@
    rdf_atom_term(?, o),
    rdf_canonical_lexical_form(r, +, -),
    rdf_canonical_literal(o, o),
+   rdf_container_membership_property(r),
+   rdf_container_membership_property(r, ?),
    rdf_is_bnode_iri(r),
    rdf_is_name(o),
    rdf_is_numeric_literal(o),
@@ -250,6 +253,37 @@ rdf_canonical_literal(Literal, CanonicalLiteral) :-
 
 
 
+%! rdf_container_membership_property(+P:rdf_predicate) is semidet.
+%! rdf_container_membership_property(-P:rdf_predicate) is multi.
+
+rdf_container_membership_property(P) :-
+  rdf_container_membership_property(P, _).
+
+
+%! rdf_container_membership_property(+P:rdf_predicate, +N:positive_integer) is semidet.
+%! rdf_container_membership_property(+P:rdf_predicate, -N:positive_integer) is det.
+%! rdf_container_membership_property(-P:rdf_predicate, +N:positive_integer) is det.
+%! rdf_container_membership_property(-P:rdf_predicate, -N:positive_integer) is multi.
+%
+% True when Property is the Nth container membership property.
+%
+% Success of this goal does not imply that Property is present in the
+% database.
+
+rdf_container_membership_property(P, N) :-
+  var(P), !,
+  between(1, inf, N),
+  rdf_equal(rdf:'_', Prefix),
+  atom_concat(Prefix, N, P).
+rdf_container_membership_property(P, N) :-
+  rdf_equal(rdf:'_', Prefix),
+  atom_concat(Prefix, Atom, P),
+  atom_number(Atom, N),
+  integer(N),
+  N >= 0.
+
+
+
 %! rdf_create_hash_iri(+Alias:atom, +Term:term, -Iri:atom) is det.
 %! rdf_create_hash_iri(+Alias:atom, +Segments:list(atom), +Term:term, -Iri:atom) is det.
 
@@ -308,20 +342,6 @@ rdf_iri_parse_(Iri) -->
   },
   remainder_as_atom(Local),
   {rdf_prefix_iri(Alias:Local, Iri)}.
-
-
-
-%! rdf_is_container_membership_property(@Term) is semidet.
-
-rdf_is_container_membership_property(P) :-
-  var(P), !,
-  instantiation_error(P).
-rdf_is_container_membership_property(P) :-
-  rdf_equal(rdf:'_', Prefix),
-  atom_concat(Prefix, Atom, P),
-  atom_number(Atom, N),
-  integer(N),
-  N >= 0.
 
 
 
@@ -546,19 +566,19 @@ rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
 % xsd:gYear
 % xsd:gYearMonth
 % xsd:time
-rdf_lexical_to_value(D, Lex, Value) :-
+rdf_lexical_to_value(D, Lex, Dt) :-
   xsd_date_time_type(D), !,
-  (   catch(xsd_time_string(Value0, D, Lex), _, fail)
-  ->  xsd_date_time_to_dt(Value0, D, Value)
+  (   catch(xsd_time_string(XsdDt, D, Lex), _, fail)
+  ->  xsd_date_time(Dt, D, XsdDt)
   ;   rdf_lexical_to_value_error(D, Lex)
   ).
-rdf_value_to_lexical(D, Value, Lex) :-
+rdf_value_to_lexical(D, Dt, Lex) :-
   xsd_date_time_type(D), !,
-  (   dt_to_xsd_date_time(Value, D, Value0),
-      catch(xsd_time_string(Value0, D, String), _, true),
+  (   xsd_date_time(Dt, D, XsdDt),
+      catch(xsd_time_string(XsdDt, D, String), _, true),
       atom_string(Atom, String)
   ->  Lex = Atom
-  ;   rdf_value_to_lexical_error(D, Value)
+  ;   rdf_value_to_lexical_error(D, Dt)
   ).
 
 rdf_lexical_to_value(D, Lex, _) :-
