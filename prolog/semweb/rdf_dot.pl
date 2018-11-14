@@ -25,6 +25,7 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
 @version 2018
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(yall)).
@@ -32,6 +33,7 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
 :- use_module(library(dcg)).
 :- use_module(library(default)).
 :- use_module(library(graph/dot)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(semweb/rdf_api)).
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_print)).
@@ -43,6 +45,7 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
     rdf_dot_cluster(+, +, 1, +).
 
 :- rdf_meta
+   image_property(r),
    rdf_dot_arc(+, r, r),
    rdf_dot_arc(+, r, r, +),
    rdf_dot_cluster(+, r, :),
@@ -54,7 +57,8 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
    rdf_dot_node_uml(+, t, r),
    rdf_dot_node_uml(+, t, r, +),
    rdf_dot_node_id_uml(+, t, r, +),
-   rdf_dot_node_id_uml(+, t, r, +, +).
+   rdf_dot_node_id_uml(+, t, r, +, +),
+   skip_property(r).
 
 
 
@@ -133,31 +137,32 @@ rdf_dot_node_id_uml(Out, B, Node, Id) :-
 
 rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
   string_phrase(rdf_dcg_node(Node, Options0), NodeString),
-  H = [cell(colspan(2), b(NodeString))],
-  % literals
+  Row = [cell(colspan(2),b(NodeString))],
+  aggregate_all(set(tp(Node,P,O)), tp(B, Node, P, O), Triples),
   findall(
-    [cell(PString),cell(OString)],
+    [cell(PString),cell(Cell0)],
     (
-      tp(B, Node, P, O),
-      rdf_is_literal(O),
+      member(tp(Node,P,O), Triples),
+      \+ skip_property(P),
       string_phrase(rdf_dcg_predicate(P, Options0), PString),
-      string_phrase(rdf_dcg_node(O, Options0), OString)
+      (   image_property(P)
+      ->  http_sync(O, File),
+          Cell0 = img(src(File))
+      ;   list(B, O, L)
+      ->  maplist(rdf_dot_node_cell_, L, Row),
+          Cell0 = table(border(0),[Row])
+      ;   string_phrase(rdf_dcg_node(O, Options0), Cell0)
+      )
     ),
-    T1
+    Rows
   ),
-  % RDF lists
-  findall(
-    [cell(PString),cell(table(border(0),[Row]))],
-    (
-      list_tp(B, Node, P, L),
-      string_phrase(rdf_dcg_predicate(P), PString),
-      maplist(rdf_dot_node_cell_, L, Row)
-    ),
-    T2
-  ),
-  append(T1, T2, T),
-  merge_options(Options0, options{html: table([H|T])}, Options),
+  merge_options(Options0, options{html: table([Row|Rows])}, Options),
   dot_node_id(Out, Id, Options).
+
+image_property(dbo:thumbnail).
+image_property(foaf:depiction).
+
+skip_property(qsim:quantity).
 
 rdf_dot_node_cell_(Term, cell(String)) :-
   string_phrase(rdf_dcg_node(Term), String).

@@ -287,7 +287,7 @@ rdf_dcg_groups0([G-TPs|Groups], Options) -->
   ;   tab(I1),
       rdf_dcg_term_(G, Options),
       " {\n",
-      {I2 = I1 + 2}
+      {I2 = I1 + 4}
   ),
   rdf_dcg_tps0(I2, TPs, Options),
   ({var(G)} -> "" ; "}\n"),
@@ -345,7 +345,7 @@ rdf_dcg_subjects0(_, [], _, _) --> !, [].
 rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
   tab(I1),
   rdf_dcg_node(S, Options),
-  {I2 is I1 + 2},
+  {I2 is I1 + 4},
   rdf_dcg_predicates1(I2, SGroups, SkipTPs1, SkipTPs2, Options),
   ({dict_get(newline, Options, false)} -> "" ; nl),
   rdf_dcg_subjects0(I1, Groups, SkipTPs2, Options).
@@ -363,7 +363,7 @@ rdf_dcg_predicates2(I1, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
   nl,
   tab(I1),
   rdf_dcg_predicate(P, Options),
-  {I2 is I1 + 2},
+  {I2 is I1 + 4},
   rdf_dcg_objects1(I2, Os, SkipTPs1, SkipTPs2, Options),
   ({Groups == []} -> "." ; ";"),
   rdf_dcg_predicates2(I1, Groups, SkipTPs2, SkipTPs3, Options).
@@ -395,7 +395,7 @@ rdf_dcg_complex_object_(I1, Node, SkipTPs1, SkipTPs3, Options) -->
     turtle_object_(Node, SkipTPs1, SkipTPs2, Pairs),
     Pairs = [_|_], !,
     group_pairs_by_key(Pairs, Groups),
-    I2 is I1 + 2
+    I2 is I1 + 4
   },
   "[",
   rdf_dcg_predicates1(I2, Groups, SkipTPs2, SkipTPs3, Options),
