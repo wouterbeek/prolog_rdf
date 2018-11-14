@@ -40,6 +40,8 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
 :- use_module(library(semweb/rdf_term)).
 :- use_module(library(string_ext)).
 
+:- maplist(rdf_register_prefix, [dbo,foaf]).
+
 :- meta_predicate
     rdf_dot_cluster(+, +, 1),
     rdf_dot_cluster(+, +, 1, +).
@@ -57,8 +59,7 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
    rdf_dot_node_uml(+, t, r),
    rdf_dot_node_uml(+, t, r, +),
    rdf_dot_node_id_uml(+, t, r, +),
-   rdf_dot_node_id_uml(+, t, r, +, +),
-   skip_property(r).
+   rdf_dot_node_id_uml(+, t, r, +, +).
 
 
 
@@ -143,7 +144,6 @@ rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
     [cell(PString),cell(Cell0)],
     (
       member(tp(Node,P,O), Triples),
-      \+ skip_property(P),
       string_phrase(rdf_dcg_predicate(P, Options0), PString),
       (   image_property(P)
       ->  http_sync(O, File),
@@ -161,8 +161,6 @@ rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
 
 image_property(dbo:thumbnail).
 image_property(foaf:depiction).
-
-skip_property(qsim:quantity).
 
 rdf_dot_node_cell_(Term, cell(String)) :-
   string_phrase(rdf_dcg_node(Term), String).
