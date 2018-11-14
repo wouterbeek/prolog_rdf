@@ -138,7 +138,7 @@ rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
   findall(
     [cell(PString),cell(OString)],
     (
-      triple(B, Node, P, O),
+      tp(B, Node, P, O),
       rdf_is_literal(O),
       string_phrase(rdf_dcg_predicate(P, Options0), PString),
       string_phrase(rdf_dcg_node(O, Options0), OString)
@@ -149,7 +149,7 @@ rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
   findall(
     [cell(PString),cell(table(border(0),[Row]))],
     (
-      list_triple(B, Node, P, L),
+      list_tp(B, Node, P, L),
       string_phrase(rdf_dcg_predicate(P), PString),
       maplist(rdf_dot_node_cell_, L, Row)
     ),
