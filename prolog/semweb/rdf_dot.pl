@@ -32,6 +32,7 @@ Extension of library(graph/dot) for exporting RDF nodes and arcs.
 
 :- use_module(library(dcg)).
 :- use_module(library(default)).
+:- use_module(library(dict)).
 :- use_module(library(graph/dot)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(semweb/rdf_api)).
@@ -131,33 +132,41 @@ rdf_dot_node_uml(Out, B, Node, Options) :-
 
 %! rdf_dot_node_id_uml(+Out:stream, +Backend, +Node:rdf_node, +Id:atom) is det.
 %! rdf_dot_node_id_uml(+Out:stream, +Backend, +Node:rdf_node, +Id:atom, +Options:dict) is det.
+%
+% The following options are supported:
+%
+%   * triples(+ordset(rdf_triple))
 
 rdf_dot_node_id_uml(Out, B, Node, Id) :-
   rdf_dot_node_id_uml(Out, B, Node, Id, options{}).
 
 
 rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
-  string_phrase(rdf_dcg_node(Node, Options0), NodeString),
+  (   dict_select(_{triples: Triples}, Options0, Options1)
+  ->  true
+  ;   aggregate_all(set(tp(Node,P,O)), tp(B, Node, P, O), Triples),
+      Options1 = Options0
+  ),
+  string_phrase(rdf_dcg_node(Node, Options1), NodeString),
   Row = [cell(colspan(2),b(NodeString))],
-  aggregate_all(set(tp(Node,P,O)), tp(B, Node, P, O), Triples),
   findall(
     [cell(PString),cell(Cell0)],
     (
       member(tp(Node,P,O), Triples),
-      string_phrase(rdf_dcg_predicate(P, Options0), PString),
+      string_phrase(rdf_dcg_predicate(P, Options1), PString),
       (   image_property(P)
       ->  http_sync(O, File),
           Cell0 = img(src(File))
       ;   list(B, O, L)
       ->  maplist(rdf_dot_node_cell_, L, Row),
           Cell0 = table(border(0),[Row])
-      ;   string_phrase(rdf_dcg_node(O, Options0), Cell0)
+      ;   string_phrase(rdf_dcg_node(O, Options1), Cell0)
       )
     ),
     Rows
   ),
-  merge_options(Options0, options{html: table([Row|Rows])}, Options),
-  dot_node_id(Out, Id, Options).
+  merge_options(Options1, options{html: table([Row|Rows])}, Options2),
+  dot_node_id(Out, Id, Options2).
 
 image_property(dbo:thumbnail).
 image_property(foaf:depiction).
