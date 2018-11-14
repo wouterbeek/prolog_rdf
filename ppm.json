@@ -1,8 +1,0 @@
-{
-  "dependencies": [
-    {"user": "wouterbeek", "repo": "Pro-GIS"},
-    {"user": "wouterbeek", "repo": "Prolog-Library-Collection"},
-    {"user": "wouterbeek", "repo": "Prolog-Web"}
-  ],
-  "keywords": ["Linked Data","RDF","Semantic Web"]
-}
