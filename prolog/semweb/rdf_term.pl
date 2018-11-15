@@ -793,8 +793,9 @@ xsd_date_time_term_(year_month(_,_)).
 %! rdf_literal_lexical_form(+Literal:rdf_literal, +Lex:atom) is semidet.
 %! rdf_literal_lexical_form(+Literal:rdf_literal, -Lex:atom) is det.
 
-rdf_literal_lexical_form(literal(type(_,Lex)), Lex).
-rdf_literal_lexical_form(literal(lang(_,Lex)), Lex).
+rdf_literal_lexical_form(literal(type(_,Lex)), Lex) :- !.
+rdf_literal_lexical_form(literal(lang(_,Lex)), Lex) :- !.
+rdf_literal_lexical_form(literal(Lex), Lex).
 
 
 
