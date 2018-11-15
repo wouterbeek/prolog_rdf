@@ -283,7 +283,7 @@ list(B, L1, L2) :-
 
 
 
-%! list_compare(+Backend, +X:rdf_term, +Y:rdf_term, -Order:oneof([<,0,>])) is det.
+%! list_compare(+Backend, +X:rdf_term, +Y:rdf_term, -Order:oneof([<,=,>])) is det.
 %
 % When X and Y are RDF terms in the same RDF list, Order is unified
 % with their respective order:
@@ -294,7 +294,7 @@ list(B, L1, L2) :-
 %
 %   - `>' when X apears after Y in the list.
 
-list_compare(B, X, X, 0) :-
+list_compare(B, X, X, =) :-
   tp_chk(B, _, rdf:first, X), !.
 list_compare(B, X, Y, <) :-
   'rdf_list_<'(B, X, Y), !.
@@ -449,7 +449,6 @@ subproperty(_, P, Q) :-
   instantiation_error(args([P,Q])).
 subproperty(B, P, Q) :-
   path_closure0(subproperty_(B), P, Q).
-
 subproperty_(B, P, Q) :-
   tp(B, P, rdfs:subPropertyOf, Q).
 
