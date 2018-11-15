@@ -158,14 +158,14 @@ rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
       ->  http_sync(O, File),
           Cell0 = img(src(File))
       ;   list(B, O, L)
-      ->  maplist(rdf_dot_node_cell_, L, Row),
-          Cell0 = table(border(0),[Row])
+      ->  maplist(rdf_dot_node_cell_, L, Row0),
+          Cell0 = table([border(0),cellborder(1)],[Row0])
       ;   string_phrase(rdf_dcg_node(O, Options1), Cell0)
       )
     ),
     Rows
   ),
-  merge_options(Options1, options{html: table([Row|Rows])}, Options2),
+  merge_options(Options1, options{html: table([border(0),cellborder(1)],[Row|Rows])}, Options2),
   dot_node_id(Out, Id, Options2).
 
 image_property(dbo:thumbnail).
