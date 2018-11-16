@@ -456,6 +456,7 @@ prefix_(org, 'http://www.w3.org/ns/org#').
 prefix_(own16, 'http://www.ontologydesignpatterns.org.it/ont/own/own16.owl#').
 prefix_(prov, 'http://www.w3.org/ns/prov#').
 prefix_(qb, 'http://purl.org/linked-data/cube#').
+prefix_(qsim, 'https://krr.triply.cc/webqr/qsim/def/').
 prefix_(qt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-query#').
 %       rdf
 prefix_(rdfa, 'http://www.w3.org/ns/rdfa#').

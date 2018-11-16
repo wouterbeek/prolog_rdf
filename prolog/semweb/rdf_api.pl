@@ -8,7 +8,6 @@
     assert_now/3,                    % +Backend, +S, +P
     assert_now/4,                    % +Backend, +S, +P, +D
     assert_reification/5,            % +Backend, +S, +P, +O, -Statement
-    assert_reification_triple/5,     % +Backend, +S, +P, +O, -Statement
     assert_shape/3,                  % +Backend, +Feature, +Shape
     assert_shape/4,                  % +Backend, +Feature, +Shape, -Geometry
     assert_triple/4,                 % +Backend, +S, +P, +O
@@ -75,7 +74,6 @@ Backend-independent RDF API.
    assert_now(t, r, r),
    assert_now(t, r, r, r),
    assert_reification(t, r, r, o, r, r),
-   assert_reification(t, r, r, o, r, r),
    assert_shape(t, r, +),
    assert_shape(t, r, +, -),
    assert_triple(t, r, r, o),
@@ -98,6 +96,7 @@ Backend-independent RDF API.
    subclass(t, r, r),
    subproperty(t, r, r),
    term_string(t, o, -),
+   term_string_property_(r),
    tp(t, r, r, o),
    tp_chk(t, r, r, o),
    tp_count(t, r, r, o, -),
@@ -157,22 +156,13 @@ assert_now(B, S, P, D) :-
 
 
 
-%! assert_reification(+Backend, +S:rdf_subject, +P:rdf_predicate, +O:rdf_object, +Statement:rdf_subject) is nondet.
+%! assert_reification(+Backend, +S:rdf_subject, +P:rdf_predicate, +O:rdf_object, +Statement:rdf_subject) is det.
+%! assert_reification(+Backend, +S:rdf_subject, +P:rdf_predicate, +O:rdf_object, -Statement:rdf_subject) is det.
+%
+% If Statement is not given, a fresh blank node is created.
 
 assert_reification(B, S, P, O, Stmt) :-
-  assert_triple(B, Stmt, rdf:subject, S),
-  assert_triple(B, Stmt, rdf:predicate, P),
-  assert_triple(B, Stmt, rdf:object, O).
-
-
-
-%! assert_reification_triple(+Backend, +S:rdf_subject, +P:rdf_predicate, +O:rdf_object, +Statement:rdf_subject) is det.
-%
-% If Statement is not given a fresh blank node is created.
-
-assert_reification_triple(B, S, P, O, Stmt) :-
-  call_default_value(Stmt, rdf_bnode_iri),
-  assert_instance(B, Stmt, rdf:'Statement'),
+  (var(Stmt) -> rdf_bnode_iri(Stmt) ; true),
   assert_triple(B, Stmt, rdf:subject, S),
   assert_triple(B, Stmt, rdf:predicate, P),
   assert_triple(B, Stmt, rdf:object, O),
@@ -460,10 +450,15 @@ subproperty_(B, P, Q) :-
 % the given Term.
 
 term_string(B, S, String) :-
-  tp_chk(B, S, rdfs:label, Literal), !,
+  term_string_property_(P),
+  tp_chk(B, S, P, Literal), !,
   term_string(B, Literal, String).
 term_string(_, Name, String) :-
   rdf_name_string(Name, String).
+
+term_string_property_(skos:prefLabel).
+term_string_property_(skos:altLabel).
+term_string_property_(rdfs:label).
 
 
 
