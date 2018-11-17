@@ -50,6 +50,7 @@ Backend-independent RDF API.
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(settings)).
 
 :- use_module(library(closure)).
 :- use_module(library(date_time)).
@@ -104,6 +105,9 @@ Backend-independent RDF API.
    tp_string(t, r, r, -),
    tp_update(t, r, r, o, t),
    tp_value(t, r, r, -).
+
+:- setting(language_range, atom, 'en-us',
+           "Language range indicating language tag preferences.").
 
 
 
@@ -449,16 +453,56 @@ subproperty_(B, P, Q) :-
 % Ensures a String ― preferably a human readable one ― is returned for
 % the given Term.
 
+% term has a preferred label
 term_string(B, S, String) :-
-  term_string_property_(P),
-  tp_chk(B, S, P, Literal), !,
-  term_string(B, Literal, String).
+  findall(O, tp(B, S, skos:prefLabel, O), [H|T]), !,
+  preferred_string([H|T], String).
+% term has a non-preferred label
+term_string(B, S, String) :-
+  findall(
+    O,
+    (
+      rdf_prefix_member(P, [skos:altLabel,rdfs:label]),
+      tp(B, S, P, O)
+    ),
+    [H|T]
+  ), !,
+  preferred_string([H|T], String).
+% name
 term_string(_, Name, String) :-
   rdf_name_string(Name, String).
 
-term_string_property_(skos:prefLabel).
-term_string_property_(skos:altLabel).
-term_string_property_(rdfs:label).
+% language-tagged string conforming to language range
+preferred_string(Os, String) :-
+  setting(language_range, LRange),
+  member(literal(lang(LTag,Lex)), Os),
+  language_match(LTag, LRange), !,
+  atom_string(Lex, String).
+% XSD string
+preferred_string(Os, String) :-
+  rdf_prefix_memberchk(literal(type(xsd:string,Lex)), Os), !,
+  atom_string(Lex, String).
+% simple literal
+preferred_string(Os, String) :-
+  memberchk(literal(Lex), Os),
+  atom(Lex), !,
+  atom_string(Lex, String).
+% Some language-tagged string, not conforming to the language range.
+preferred_string(Os, String) :-
+  memberchk(literal(lang(_,Lex)), Os), !,
+  atom_string(Lex, String).
+% some literal
+preferred_string(Os, String) :-
+  member(O, Os),
+  rdf_literal_lexical_form(O, Lex), !,
+  atom_string(Lex, String).
+% some name
+preferred_string([O|_], String) :-
+  rdf_name_string(O, String).
+
+language_match(_, *) :- !.
+language_match(LTag, LRange) :-
+  atom_prefix(LRange, LTag).
 
 
 
