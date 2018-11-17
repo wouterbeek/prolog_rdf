@@ -87,7 +87,7 @@ rdf_dot_cluster(Out, Node, Goal_1) :-
 
 rdf_dot_cluster(Out, Node, Goal_1, Options0) :-
   string_phrase(rdf_dcg_node(Node, Options0), Label),
-  merge_options(options{label: Label}, Options0, Options),
+  merge_dicts(Options0, options{label: Label}, Options),
   dot_cluster(Out, Node, Goal_1, Options).
 
 
@@ -165,7 +165,7 @@ rdf_dot_node_id_uml(Out, B, Node, Id, Options0) :-
     ),
     Rows
   ),
-  merge_options(Options1, options{html: table([border(0),cellborder(1)],[Row|Rows])}, Options2),
+  merge_dicts(Options1, options{html: table([border(0),cellborder(1)],[Row|Rows])}, Options2),
   dot_node_id(Out, Id, Options2).
 
 image_property(dbo:thumbnail).
