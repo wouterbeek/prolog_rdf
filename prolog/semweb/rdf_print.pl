@@ -176,9 +176,9 @@ rdf_dcg_term_(literal(type(D,Lex)), Options) --> !,
 % IRI
 rdf_dcg_term_(Iri, Options) -->
   {rdf_is_iri(Iri)}, !,
-  (   {well_known_iri(Segments, Iri)}
+  (   {well_known_iri([''|Segments], Iri)}
   ->  % Blank node notation for well-known IRIs.
-      {atomic_list_concat(Segments, Local)},
+      {atomic_list_concat(Segments, /, Local)},
       "_:",
       atom(Local)
       % Use custom symbols for some recurring IRIs.
