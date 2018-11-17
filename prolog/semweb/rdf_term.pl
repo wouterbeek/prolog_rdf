@@ -123,7 +123,7 @@
    rdf_literal_value(o, r, ?),
    rdf_name_string(o, -),
    rdf_object_dwim(t, -),
-   rdf_predicate_dwim(r, -),
+   rdf_predicate_dwim(r, r),
    rdf_term_to_string(o, -),
    rdf_typed_literal(r, ?, o),
    rdf_value_to_lexical(r, +, -),
