@@ -131,8 +131,9 @@ rdf_write_quad(Out, S, P, O, G) :-
 
 rdf_write_quad(Out, BNodePrefix, S, P, O, G) :-
   rdf_write_triple_open(Out, BNodePrefix, S, P, O),
+  put_char(Out, ' '),
   rdf_write_graph(Out, G),
-  format(Out, " .\n", []).
+  format(Out, ".\n", []).
 
 
 
@@ -180,8 +181,7 @@ rdf_write_triple_open(Out, BNodePrefix, S, P, O) :-
   put_char(Out, ' '),
   rdf_write_iri(Out, P),
   put_char(Out, ' '),
-  rdf_write_term(Out, BNodePrefix, O),
-  put_char(Out, ' ').
+  rdf_write_term(Out, BNodePrefix, O).
 
 
 
