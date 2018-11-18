@@ -6,7 +6,8 @@
     rdf_prefix_append/2,     % +Ls, -L
     rdf_prefix_append/3,     % +L1, +L2, -L
     rdf_prefix_iri/3,        % ?Alias, ?Local, ?Iri
-    rdf_prefix_maplist/2,    % :Goal_1, +Args
+    rdf_prefix_maplist/2,    % :Goal_1, +Args1
+    rdf_prefix_maplist/3,    % :Goal_2, +Args1, +Args2
     rdf_prefix_member/2,     % ?Elem, +L
     rdf_prefix_memberchk/2,  % ?Elem, +L
     rdf_prefix_selectchk/3,  % +Elem, +L, -Rest
@@ -47,12 +48,14 @@ standards SWI-Prolog distribution.
    init_rdf_prefix.
 
 :- meta_predicate
-    rdf_prefix_maplist(1, +).
+    rdf_prefix_maplist(1, +),
+    rdf_prefix_maplist(2, +, +).
 
 :- rdf_meta
    rdf_prefix_append(t, t),
    rdf_prefix_append(t, t, t),
    rdf_prefix_maplist(:, t),
+   rdf_prefix_maplist(:, t, t),
    rdf_prefix_member(t, t),
    rdf_prefix_memberchk(t, t),
    rdf_prefix_selectchk(t, t, t).
@@ -92,9 +95,14 @@ rdf_prefix_iri(Alias, Local, Iri) :-
 
 
 %! rdf_prefix_maplist(:Goal_1, +Args1:list) is det.
+%! rdf_prefix_maplist(:Goal_2, +Args1:list, +Args2:list) is det.
 
-rdf_prefix_maplist(Goal_1, L) :-
-  maplist(Goal_1, L).
+rdf_prefix_maplist(Goal_1, L1) :-
+  maplist(Goal_1, L1).
+
+
+rdf_prefix_maplist(Goal_2, L1, L2) :-
+  maplist(Goal_2, L1, L2).
 
 
 
