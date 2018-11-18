@@ -15,8 +15,10 @@
     container_nth1/4,                % +Backend, ?N, ?Container, ?Member
     container_membership_property/3, % ?Backend, ?P, ?N
     instance/3,                      % ?Backend, ?I, ?C
-    list/3,                          % ?Backend, +RdfList, -PrologList
+    list/3,                          % ?Backend, ?RdfList, ?PrologList
     list_compare/4,                  % +Backend, +X, +Y, -Order
+    list_first/3,                    % ?Backend, ?RdfList, ?X
+    list_first_tp/4,                 % ?Backend, ?S, ?P, ?X
     list_last/3,                     % ?Backend, ?RdfList, ?X
     list_last_tp/4,                  % ?Backend, ?S, ?P, ?X
     list_member/3,                   % ?Backend, ?X, ?RdfList
@@ -82,8 +84,10 @@ Backend-independent RDF API.
    container_nth1(t, ?, r, r),
    container_membership_propertry(t, r, ?),
    instance(t, r, o),
-   list(t, r, -),
+   list(t, r, t),
    list_compare(t, o, o, -),
+   list_first(t, r, t),
+   list_first_tp(t, r, r, o),
    list_last(t, r, t),
    list_last_tp(t, r, r, o),
    list_member(t, o, r),
@@ -268,12 +272,27 @@ instance(_, C, D) :-
 
 
 
+%! list(?Backend, +RdfList:rdf_subject, +PrologList:list(rdf_term)) is semidet.
 %! list(?Backend, +RdfList:rdf_subject, -PrologList:list(rdf_term)) is nondet.
+%! list(?Backend, -RdfList:rdf_subject, +PrologList:list(rdf_term)) is nondet.
 
 list(B, L1, L2) :-
+  ground(L1), !,
   % Ensure this is an RDF list.
   tp_chk(B, L1, rdf:rest, _),
   findall(X, list_member(B, X, L1), L2).
+list(B, L1, L2) :-
+  ground(L2), !,
+  list_(B, L1, L2).
+list(_, L1, L2) :-
+  instantiation_error(args([L1,L2])).
+
+list_(_, L, []) :-
+  rdf_equal(rdf:nil, L), !.
+list_(B, L1, [H|T]) :-
+  tp(B, L1, rdf:first, H),
+  tp(B, L1, rdf:rest, L2),
+  list_(B, L2, T).
 
 
 
@@ -308,6 +327,23 @@ list_compare(B, X, Y, >) :-
   tp(B, L2, rdf:rest, L1),
   tp(B, L2, rdf:first, Y),
   'rdf_list_<'(B, Y, Z).
+
+
+
+%! list_first(?Backend, ?L:rdf_list, ?X:rdf_term) is nondet.
+%
+% X is the first item in RDF list L.
+
+list_first(B, L, X) :-
+  tp(B, L, rdf:first, X).
+
+
+
+%! list_first_tp(?Backend, ?S:rdf_subject, ?P:rdf_predicate, ?X:rdf_term) is nondet.
+
+list_first_tp(B, S, P, X) :-
+  list_tp(B, S, P, L),
+  list_first(B, L, X).
 
 
 
