@@ -4,8 +4,10 @@
   [
     dayTimeDurationCanonicalMap//1, % +Duration
     dayTimeDurationMap//1,          % -Duration
-    decimalLexicalMap//1,           % -Value
-    decimalCanonicalMap//1          % +Value
+    decimalLexicalMap//1,           % -Decimal
+    decimalCanonicalMap//1,         % +Decimal
+    durationCanonicalMap//1,        % +Duration
+    durationMap//1                  % -Duration
   ]
 ).
 
@@ -995,7 +997,7 @@ durationCanonicalMap(duration(Mo,S)) -->
 
 
 
-%! durationMap(-Duration)// is det.
+%! durationMap(-Duration:compound)// is det.
 %
 % Separates the durationLexicalRep//1 into the month part and the
 % seconds part, then maps them into the months and seconds of the
