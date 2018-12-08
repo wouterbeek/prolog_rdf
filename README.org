@@ -17,53 +17,71 @@ in combination with the following backends:
   - [[https://github.com/wouterbeek/Pro-HDT][Pro-HDT]] a disk-based backend using limited memory resource.
   - [[http://github.com/wouterbeek/Pro-RDF-DB][Pro-RDF-DB]] an high-performance, memory-intensive backend.
 
+Please report any issues that you find when using this library.
+
 * Installation
 
   1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
-  2. Install [[https://github.com/wouterbeek/ppm][Prolog Package Manager]].
-  3. Run the following goal: ~ppm_install(wouterbeek, 'Pro-RDF').~
+  2. Install [[https://github.com/wouterbeek.com/Prolog-Library-Collection][Prolog-Library-Collection]].
+  3. Clone this library: ~git clone https://github.com/wouterbeek/Prolog-Library-Collection~
+  4. Add the following line to your ~.swiplrc~ file:
+
+#+BEGIN_SRC
+user:file_search_path(library, '/your/path/to/Pro-RDF/prolog').
+#+END_SRC
+
+In order to use module [[~semweb/rdf_dot~]], library [[https://github.com/wouterbeek/graph_export][graph_export]] must
+also be installed.
 
 * Usage
 
-  1. Load [[https://github.com/wouterbeek/ppm][Prolog Package Manager]] to make installed packages accessible
-     from the Prolog library path: ~[library(ppm)].~
-  2. Load modules from library Pro-RDF, e.g.,
-     ~[library(semweb/rdf_guess)].~
+After [[Installation]], libraries can be loaded in the following way:
 
-Step 1 can be skipped by adding the following to the Prolog startup
-file (~~/.swiplrc~): ~:- use_module(library(ppm)).~
+#+BEGIN_SRC prolog
+:- [library(semweb/rdf_term)].
+#+END_SRC
 
 * Modules
 
 This section enumerates the various modules that are included in
-Pro-DB.  These modules use the following extended Prolog types in
+Pro-RDF.  These modules use the following extended Prolog types in
 their predicate documentation headers:
 
-  | *Type*           | *Definition*                                                                         |
-  |------------------+--------------------------------------------------------------------------------------|
-  | ~bnode~          | An atom that starts with ~_:~.                                                       |
-  | ~iri~            | An atom that can be decomposed with ~uri_components/2~ from ~library(uri)~.          |
-  | ~rdf_graph~      | Either a term of type ~iri~ or the atom ~default~.                                   |
-  | ~rdf_literal~    | A compound term of the form ~literal(type(iri,atom))~ or ~literal(lang(atom,atom))~. |
-  | ~rdf_nonliteral~ | A term of type ~bnode~ or ~iri~.                                                     |
-  | ~rdf_quad~       | A compound term of the form ~rdf(rdf_nonliteral,iri,rdf_term,rdf_graph)~.            |
-  | ~rdf_triple~     | A compound term of the form ~rdf(rdf_nonliteral,iri,rdf_term)~.                      |
-  | ~rdf_tuple~      | A term of type ~rdf_quad~ or ~rdf_triple~.                                           |
+  | *Type*        | *Definition*                                                                         |   |
+  |---------------+--------------------------------------------------------------------------------------+---|
+  | ~rdf_bnode~   | An atom that starts with ~_:~.                                                       |   |
+  | ~rdf_graph~   | Either a term of type ~iri~ or the atom ~default~.                                   |   |
+  | ~rdf_iri~     | An atom that can be decomposed with ~uri_components/2~ from ~library(uri)~.          |   |
+  | ~rdf_literal~ | A compound term of the form ~literal(type(iri,atom))~ or ~literal(lang(atom,atom))~. |   |
+  | ~rdf_name~    | An RDF name (IRI or literal).                                                        |   |
+  | ~rdf_quad~    | A compound term of the form ~rdf(rdf_nonliteral,iri,rdf_term,rdf_graph)~.            |   |
+  | ~rdf_term~    | An RDF term (blank node, IRI, or literal).                                           |   |
+  | ~rdf_triple~  | A compound term of the form ~rdf(rdf_nonliteral,iri,rdf_term)~.                      |   |
+  | ~rdf_tuple~   | A term of type ~rdf_quad~ or ~rdf_triple~.                                           |   |
 
 ** ~/html/rdf_html~
 
 This module provides DCG rules that generate simple human-readable
-HTML snippets that represent RDF terms and statements.
+HTML snippets that represent RDF terms and tuples.
 
 ** ~/http/rdf_http~
 
 This module supports the use of RDF terms in HTTP APIs, by
 encoding/decoding URI query components that contain RDF terms.
 
+** ~/semweb/rdf_api~
+
+Provides higher-level RDF functionality based on low-level backend
+operations.  The backend operations themselves are not part of this
+Pro-RDF library, and should be added independently.  See [[https://github.com/wouterbeek/Pro-HDT][Pro-HDT]] and
+[[https://github.com/wouterbeek/Pro-RDF-DB][Pro-RDF-DB]] for two such backends.
+
 ** ~/semweb/rdf_clean~
 
 This module contains data cleaning predicates that were previously
-part of [[http://lodlaundromat.org][LOD Laundromat]].
+part of [[http://lodlaundromat.org][LOD Laundromat]].  They can be used to clean RDF tuples that are
+streamed from an RDF source.  See module [[~semweb/rdf_deref~]] for
+creating streams over RDF sources.
 
 *** Blank node cleaning
 
@@ -143,15 +161,15 @@ For typed literals, cleaning involves:
 
 This library provides the following predicates:
 
-- ~rdf_clean_quad(+BNodePrefix:iri, +Dirty:rdf_quad, -Clean:rdf_quad)~
+- ~rdf_clean_quad(+Site:uri, +Dirty:rdf_quad, -Clean:rdf_quad)~
 
   Cleans quadruple compound terms.
 
-- ~rdf_clean_triple(+BNodePrefix:iri, +Dirty:rdf_triple, -Clean:rdf_triple)~
+- ~rdf_clean_triple(+Site:uri, +Dirty:rdf_triple, -Clean:rdf_triple)~
 
   Cleans triple compound terms.
 
-- ~rdf_clean_tuple(+BNodePrefix:iri, +Dirty:rdf_tuple, -Clean:rdf_tuple)~
+- ~rdf_clean_tuple(+Site:uri, +Dirty:rdf_tuple, -Clean:rdf_tuple)~
 
   Cleans quadruple and/or triple compound terms.
 
@@ -165,9 +183,9 @@ HTTP(S) URI.
 
 This library provides the following predicates:
 
-  - ~rdf_deref/[2,3]~ calls RDF dereferencing on local RDF documents.
-    Uses heuristics in order to determine the RDF serialization of the
-    file.
+  - ~rdf_deref_file/[2,3]~ calls RDF dereferencing on local RDF
+    documents.  Uses heuristics in order to determine the RDF
+    serialization of the file.
 
   - ~rdf_deref_stream/[3,4]~ performs RDF dereferencing on an input
     stream containing one of the standardized RDF serialization
@@ -176,6 +194,12 @@ This library provides the following predicates:
   - ~rdf_dered_uri/[2,3]~ performs RDF dereferencing on a URI,
     typically an HTTP(S) URI.  Uses heuristics in order to determine
     the RDF serialization of the reply body.
+
+** ~/semweb/rdf_dot~
+
+This library provides primitives for generating GraphViz DOT exports
+of RDF terms and tuples.  This module requires library [[https://github.com/wouterbeek/graph_export][graph_export]] to
+be installed.
 
 ** ~/semweb/rdf_export~
 
