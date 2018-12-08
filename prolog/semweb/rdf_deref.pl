@@ -79,6 +79,12 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
 %! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3) is det.
 %! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3, +Options:list(compound)) is det.
 %
+% The following call will be made:
+%
+% ```
+% call(:Goal_3, +Site, +Tuples, ?Graph)
+% ```
+%
 % The following options are supported:
 %
 %   * bnode_prefix(+atom)
@@ -122,11 +128,8 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
       ;   true
       )
   ),
-  % Determine the blank node prefix.  Use a well-known IRI with a UUID
-  % component by default.
-  rdf_bnode_prefix(BaseUri, BNodePrefix),
   Goal_3 =.. [Pred|Args1],
-  append(Args1, [BNodePrefix], Args2),
+  append(Args1, [BaseUri], Args2),
   Goal_2 =.. [Pred|Args2],
   % Parse according to the guessed Media Type.
   (   % N-Quads

@@ -4,10 +4,7 @@
   [
     rdf_atom_term/2,                     % ?Atom, ?Term
     rdf_bnode_iri/1,                     % -Iri
-    rdf_bnode_iri/2,                     % ?Local, -Iri
-    rdf_bnode_iri/3,                     % +Scope, ?Local, -Iri
-    rdf_bnode_prefix/1,                  % -Iri
-    rdf_bnode_prefix/2,                  % +Scope, -Iri
+    rdf_bnode_iri/2,                     % ?Seed, -Iri
     rdf_canonical_lexical_form/3,        % +D, +Lex, -CanonicaldLex
     rdf_canonical_literal/2,             % +Literal, -CanonicaldLiteral
     rdf_container_membership_property/1, % ?P
@@ -206,38 +203,16 @@ rdf_bnode_parse_(BNode) -->
 
 
 %! rdf_bnode_iri(-Iri:atom) is det.
-%! rdf_bnode_iri(+Local:atom, -Iri:atom) is det.
-%! rdf_bnode_iri(+Scope:atom, +Local:atom, -Iri:atom) is det.
+%! rdf_bnode_iri(+Seed:term, -Iri:atom) is det.
 
 rdf_bnode_iri(Iri) :-
-  uuid(Local),
-  rdf_bnode_iri(Local, Iri).
+  uuid(Seed),
+  rdf_bnode_iri(Seed, Iri).
 
 
-rdf_bnode_iri(Local, Iri) :-
-  well_known_iri([Local], Iri).
-
-
-rdf_bnode_iri(Scope, Local, Iri) :-
-  md5_text(Scope, ScopeId),
-  well_known_iri([ScopeId,Local], Iri).
-
-
-
-%! rdf_bnode_prefix(-Iri:atom) is det.
-%! rdf_bnode_prefix(+Scope:atom, -Iri:atom) is det.
-
-rdf_bnode_prefix(Iri) :-
-  rdf_bnode_prefix_([], Iri).
-
-
-rdf_bnode_prefix(Scope, Iri) :-
-  md5_text(Scope, ScopeId),
-  rdf_bnode_prefix_([ScopeId], Iri).
-
-rdf_bnode_prefix_(Segments, Iri) :-
-  well_known_iri(Segments, Iri0),
-  atom_terminator(Iri0, '/', Iri).
+rdf_bnode_iri(Seed, Iri) :-
+  md5(Seed, Hash),
+  well_known_iri([Hash], Iri).
 
 
 

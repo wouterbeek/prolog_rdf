@@ -7,11 +7,8 @@
     rdf_write_quad/2,    % +Out, +Quad
     rdf_write_quad/3,    % +Out, +Triple, +G
     rdf_write_quad/5,    % +Out, +S, +P, +O, +G
-    rdf_write_quad/6,    % +Out, +BNodePrefix, +S, +P, +O, +G
     rdf_write_triple/2,  % +Out, +Tuple
-    rdf_write_triple/3,  % +Out, +BNodePrefix, +Tuple
     rdf_write_triple/4,  % +Out, +S, +P, +O
-    rdf_write_triple/5,  % +Out, +BNodePrefix, +S, +P, +O
     rdf_write_tuple/2    % +Out, +Tuple
   ]
 ).
@@ -38,11 +35,8 @@ RDF export predicates that are backend-independent.
    rdf_write_quad(+, t),
    rdf_write_quad(+, t, r),
    rdf_write_quad(+, r, r, o, r),
-   rdf_write_quad(+, +, r, r, o, r),
    rdf_write_triple(+, t),
-   rdf_write_triple(+, +, t),
    rdf_write_triple(+, r, r, o),
-   rdf_write_triple(+, +, r, r, o),
    rdf_write_tuple(+, t).
 
 
@@ -91,26 +85,9 @@ rdf_write_name(Out, Literal) :-
 
 
 
-%! rdf_write_nonliteral(+Out:stream, +BNodePrefix:iri,
-%!                      +NonLiteral:rdf_nonliteral) is det.
-
-rdf_write_nonliteral(Out, BNodePrefix, BNode) :-
-  rdf_is_bnode(BNode), !,
-  md5(BNode, Hash),
-  (   BNodePrefix == '_:'
-  ->  format(Out, '_:~a', [Hash])
-  ;   format(Out, '<~a/~a>', [BNodePrefix,Hash])
-  ).
-rdf_write_nonliteral(Out, _, Iri) :-
-  rdf_is_iri(Iri), !,
-  rdf_write_iri(Out, Iri).
-
-
-
 %! rdf_write_quad(+Out:stream, +Quad:rdf_quad) is det.
 %! rdf_write_quad(+Out:stream, +Triple:rdf_triple, +G:rdf_graph) is det.
 %! rdf_write_quad(+Out:stream, +S:rdf_nonliteral, +P:iri, +O:rdf_term, +G:rdf_graph) is det.
-%! rdf_write_quad(+Out:stream, +BNodePrefix:atom, +S:rdf_nonliteral, +P:iri, +O:rdf_term, +G:rdf_graph) is det.
 %
 % Quad must be a quadruple (denoted by compound term rdf/4).  Triples
 % (denoted by compound term rdf/3) are not supported.
@@ -126,31 +103,24 @@ rdf_write_quad(Out, rdf(S,P,O,_), G) :-
 
 
 rdf_write_quad(Out, S, P, O, G) :-
-  rdf_write_quad(Out, '_:', S, P, O, G).
-
-
-rdf_write_quad(Out, BNodePrefix, S, P, O, G) :-
-  rdf_write_triple_open(Out, BNodePrefix, S, P, O),
+  rdf_write_triple_open(Out, S, P, O),
   put_char(Out, ' '),
   rdf_write_graph(Out, G),
   format(Out, ".\n", []).
 
 
 
-%! rdf_write_term(+Out:stream, +BNodePrefix:iri, +Term:rdf_term) is det.
+%! rdf_write_term(+Out:stream, +Name:rdf_name) is det.
 
-rdf_write_term(Out, BNodePrefix, S) :-
-  rdf_write_nonliteral(Out, BNodePrefix, S), !.
-rdf_write_term(Out, _, Literal) :-
+rdf_write_term(Out, Iri) :-
+  rdf_write_iri(Out, Iri), !.
+rdf_write_term(Out, Literal) :-
   rdf_write_literal(Out, Literal).
 
 
 
 %! rdf_write_triple(+Out:stream, +Tuple:rdf_tuple) is det.
-%! rdf_write_triple(+Out:stream, +BNodePrefix:iri, +Tuple:rdf_tuple) is det.
 %! rdf_write_triple(+Out, +S:rdf_nonliteral, +P:rdf_iri, +O:rdf_term) is det.
-%! rdf_write_triple(+Out, +BNodePrefix:iri, +S:rdf_nonliteral, +P:rdf_iri,
-%!                  +O:rdf_term) is det.
 %
 % rdf_write_triple/2 also accepts quadrupleds (denoted by compound
 % term rdf/4), but writes them as triples.
@@ -161,27 +131,17 @@ rdf_write_triple(Out, rdf(S,P,O,_)) :-
   rdf_write_triple(Out, S, P, O).
 
 
-rdf_write_triple(Out, BNodePrefix, rdf(S,P,O)) :- !,
-  rdf_write_triple(Out, BNodePrefix, S, P, O).
-rdf_write_triple(Out, BNodePrefix, rdf(S,P,O,_)) :-
-  rdf_write_triple(Out, BNodePrefix, S, P, O).
-
-
 rdf_write_triple(Out, S, P, O) :-
-  rdf_write_triple(Out, '_:', S, P, O).
-
-
-rdf_write_triple(Out, BNodePrefix, S, P, O) :-
-  rdf_write_triple_open(Out, BNodePrefix, S, P, O),
+  rdf_write_triple_open(Out, S, P, O),
   format(Out, ".\n", []).
 
 
-rdf_write_triple_open(Out, BNodePrefix, S, P, O) :-
-  rdf_write_nonliteral(Out, BNodePrefix, S),
+rdf_write_triple_open(Out, S, P, O) :-
+  rdf_write_nonliteral(Out, S),
   put_char(Out, ' '),
   rdf_write_iri(Out, P),
   put_char(Out, ' '),
-  rdf_write_term(Out, BNodePrefix, O).
+  rdf_write_term(Out, O).
 
 
 

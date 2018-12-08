@@ -1,9 +1,9 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean_quad/3,   % +BNodePrefix, +Quad, -CleanQuad
-    rdf_clean_triple/3, % +BNodePrefix, +Triple, -CleanTriple
-    rdf_clean_tuple/3   % +BNodePrefix, +Tuple, -CleanTuple
+    rdf_clean_quad/3,   % +Site, +Quad, -CleanQuad
+    rdf_clean_triple/3, % +Site, +Triple, -CleanTriple
+    rdf_clean_tuple/3   % +Site, +Tuple, -CleanTuple
   ]
 ).
 
@@ -30,14 +30,14 @@
 
 
 
-%! rdf_clean_bnode(+BNodePrefix:iri, +BNode:atom, -Iri:atom) is det.
+%! rdf_clean_bnode(+Site:uri, +BNode:atom, -Iri:rdf_iri) is det.
 %
 % Blank node cleaning results in Skolemization / a well-known IRI.
 %
 % BNodePrefix must uniquely denote the document scope in which the
-% blank node occurs.
+% blank node occurs.  For this we use the Site argument.
 
-rdf_clean_bnode(BNodePrefix, BNode, Iri) :-
+rdf_clean_bnode(Site, BNode, Iri) :-
   % The RDF parsers create long blank node labels that do not conform
   % to serialization grammars (e.g.,
   % '_:http://www.gutenberg.org/feeds/catalog.rdf.bz2#_:Description2').
@@ -46,8 +46,7 @@ rdf_clean_bnode(BNodePrefix, BNode, Iri) :-
   % violate serialization grammars, while (3) retaining the feature
   % that the same blank node in the source document receives the same
   % Skolemized well-known IRI.
-  md5(BNode, Hash),
-  atom_concat(BNodePrefix, Hash, Iri).
+  rdf_bnode_iri(Site-BNode, Iri).
 
 
 
@@ -64,7 +63,7 @@ rdf_clean_graph(G1, G3) :-
 
 
 
-%! rdf_clean_iri(+Iri:atom, -CleanIri:atom) is semidet.
+%! rdf_clean_iri(+Iri:atom, -CleanIri:rdf_iri) is semidet.
 %
 % IRIs are assumed to have been made absolute by the RDF parser prior
 % to cleaning (through option `base/1' or `base_uri/1').  If this is
@@ -84,7 +83,7 @@ rdf_clean_iri(Iri, Iri) :-
 
 
 
-%! rdf_clean_lexical_form(+D:atom, +Lex:atom, -CleanLex:atom) is det.
+%! rdf_clean_lexical_form(+D:rdf_iri, +Lex:atom, -CleanLex:atom) is det.
 
 % language-tagged string
 rdf_clean_lexical_form(rdf:langString, Lex, _) :- !,
@@ -113,7 +112,7 @@ rdf_clean_lexical_form(D, Lex1, Lex2) :-
 
 
 
-%! rdf_clean_literal(+Literal:compound, -CleanLiteral:compound) is det.
+%! rdf_clean_literal(+Literal:rdf_literal, -CleanLiteral:rdf_literal) is det.
 
 % language-tagged string (rdf:langString)
 rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
@@ -140,12 +139,14 @@ rdf_clean_literal(literal(Lex), Literal) :-
 
 
 
-%! rdf_clean_nonliteral(+BNodePrefix:iri, +NonLiteral:atom, -CleanNonLiteral:atom) is semidet.
+%! rdf_clean_nonliteral(+Site:uri,
+%!                      +NonLiteral:or([rdf_bnode,rdf_iri]),
+%!                      -CleanNonLiteral:or([rdf_bnode,rdf_iri])) is semidet.
 
 % blank node
-rdf_clean_nonliteral(BNodePrefix, BNode, Iri) :-
+rdf_clean_nonliteral(Site, BNode, Iri) :-
   rdf_is_bnode(BNode), !,
-  rdf_clean_bnode(BNodePrefix, BNode, Iri).
+  rdf_clean_bnode(Site, BNode, Iri).
 % IRI
 rdf_clean_nonliteral(_, Iri1, Iri2) :-
   rdf_is_iri(Iri1), !,
@@ -153,12 +154,12 @@ rdf_clean_nonliteral(_, Iri1, Iri2) :-
 
 
 
-%! rdf_clean_quad(+BNodePrefix:iri, +Quad:compound, -CleanQuad:compound) is semidet.
+%! rdf_clean_quad(+Site:uri, +Quad:rdf_quad, -CleanQuad:rdf_quad) is semidet.
 
-rdf_clean_quad(BNodePrefix, rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)) :-
+rdf_clean_quad(Site, rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)) :-
   catch(
     (
-      rdf_clean_triple_(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)),
+      rdf_clean_triple_(Site, rdf(S1,P1,O1), rdf(S2,P2,O2)),
       rdf_clean_graph(G1, G2)
     ),
     E,
@@ -170,20 +171,20 @@ rdf_clean_quad(BNodePrefix, rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)) :-
 
 
 
-%! rdf_clean_term(+BNodePrefix:iri, +Term:rdf_term, -CleanTerm:rdf_term) is det.
+%! rdf_clean_term(+Site:uri, +Term:rdf_term, -CleanTerm:rdf_term) is det.
 
-rdf_clean_term(BNodePrefix, Term1, Term2) :-
-  rdf_clean_nonliteral(BNodePrefix, Term1, Term2), !.
+rdf_clean_term(Site, Term1, Term2) :-
+  rdf_clean_nonliteral(Site, Term1, Term2), !.
 rdf_clean_term(_, Literal1, Literal2) :-
   rdf_clean_literal(Literal1, Literal2).
 
 
 
-%! rdf_clean_triple(+BNodePrefix:iri, +Triple:compound, -CleanTriple:compound) is semidet.
+%! rdf_clean_triple(+Site:uri, +Triple:rdf_triple, -CleanTriple:rdf_triple) is semidet.
 
-rdf_clean_triple(BNodePrefix, Triple1, Triple2) :-
+rdf_clean_triple(Site, Triple1, Triple2) :-
   catch(
-    rdf_clean_triple_(BNodePrefix, Triple1, Triple2),
+    rdf_clean_triple_(Site, Triple1, Triple2),
     E,
     (
       print_message(warning, E),
@@ -191,18 +192,18 @@ rdf_clean_triple(BNodePrefix, Triple1, Triple2) :-
     )
   ).
 
-rdf_clean_triple_(BNodePrefix, rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
-  rdf_clean_nonliteral(BNodePrefix, S1, S2),
+rdf_clean_triple_(Site, rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
+  rdf_clean_nonliteral(Site, S1, S2),
   rdf_clean_iri(P1, P2),
-  rdf_clean_term(BNodePrefix, O1, O2).
+  rdf_clean_term(Site, O1, O2).
 
 
 
-%! rdf_clean_tuple(+BNodePrefix:iri, +Tuple:compound, -CleanTuple:compound) is semidet.
+%! rdf_clean_tuple(+Site:uri, +Tuple:rdf_tuple, -CleanTuple:rdf_tuple) is semidet.
 
 % triple
-rdf_clean_tuple(BNodePrefix, rdf(S,P,O), Triple) :- !,
-  rdf_clean_triple(BNodePrefix, rdf(S,P,O), Triple).
+rdf_clean_tuple(Site, rdf(S,P,O), Triple) :- !,
+  rdf_clean_triple(Site, rdf(S,P,O), Triple).
 % quadruple
-rdf_clean_tuple(BNodePrefix, Quad, CleanQuad) :-
-  rdf_clean_quad(BNodePrefix, Quad, CleanQuad).
+rdf_clean_tuple(Site, Quad, CleanQuad) :-
+  rdf_clean_quad(Site, Quad, CleanQuad).
