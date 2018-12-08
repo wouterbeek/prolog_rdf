@@ -3,7 +3,7 @@
   rdf_api,
   [
     assert_instance/3,               % +Backend, +I, +C
-    assert_list/3,                   % +Backend, +PrologList, -RdfList
+    assert_list/3,                   % +Backend, +RdfListBase, +PrologList
     assert_list_triple/4,            % +Backend, +S, +P, +PrologList
     assert_now/3,                    % +Backend, +S, +P
     assert_now/4,                    % +Backend, +S, +P, +D
@@ -51,6 +51,7 @@ Backend-independent RDF API.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(clpfd)).
 :- use_module(library(error)).
 :- use_module(library(settings)).
 
@@ -72,7 +73,7 @@ Backend-independent RDF API.
 
 :- rdf_meta
    assert_instance(t, r, r),
-   assert_list(t, t, r),
+   assert_list(t, r, t),
    assert_list_triple(t, r, r, t),
    assert_now(t, r, r),
    assert_now(t, r, r, r),
@@ -124,18 +125,21 @@ assert_instance(B, I, C) :-
 
 
 
-%! assert_list(+Backend, +PrologList:list(term), -RdfList:rdf_subject) is det.
+%! assert_list(+Backend, +RdfListBase:rdf_subject, +PrologList:list(term)) is det.
 
-assert_list(_, [], rdf:nil) :- !.
-assert_list(B, [H1|T1], L2) :-
-  call_default_value(L2, rdf_bnode_iri),
-  assert_triple(B, L2, rdf:first, H1),
+assert_list(B, Base, L2) :-
+  assert_list(B, Base, 1, L2).
+
+assert_list(_, _, _, []) :- !.
+assert_list(B, Base, N1, [H1|T1]) :-
+  atomic_list_concat([Base,N1], -, L1),
+  assert_triple(B, L1, rdf:first, H1),
   (   T1 == []
-  ->  rdf_equal(rdf:nil, T2),
-      assert_triple(B, L2, rdf:rest, T2)
-  ;   rdf_bnode_iri(T2),
-      assert_triple(B, L2, rdf:rest, T2),
-      assert_list(B, T1, T2)
+  ->  assert_triple(B, L1, rdf:rest, rdf:nil)
+  ;   N2 #= N1 + 1,
+      atom_concat([Base,N2], -, L2),
+      assert_triple(B, L1, rdf:rest, L2),
+      assert_list(B, Base, N2, T1)
   ).
 
 
@@ -143,7 +147,7 @@ assert_list(B, [H1|T1], L2) :-
 %! assert_list_triple(+Backend, +S:rdf_subject, +P:rdf_preficate, +L:list(term)) is det.
 
 assert_list_triple(B, S, P, L1) :-
-  assert_list(B, L1, L2),
+  assert_list(B, S, L1, L2),
   assert_triple(B, S, P, L2).
 
 
@@ -186,7 +190,7 @@ assert_shape(B, Feature, Shape) :-
 
 
 assert_shape(B, Feature, Shape, Geometry) :-
-  rdf_bnode_iri(Geometry),
+  atom_concat(Feature, '-geometry', Geometry),
   assert_instance(B, Geometry, geo:'Geometry'),
   assert_triple(B, Feature, geo:hasGeometry, Geometry),
   assert_triple(B, Geometry, geo:asWKT, Shape).
