@@ -93,8 +93,51 @@
 :- maplist(rdf_register_prefix, [geo,rdf]).
 
 :- multifile
+    error:has_type/2,
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
+
+error:has_type(rdf_bnode, Term) :-
+  rdf_is_bnode(Term).
+error:has_type(rdf_graph, Term) :-
+  error:has_type(rdf_iri, Term).
+error:has_type(rdf_iri, Term) :-
+  rdf_is_iri(Term).
+error:has_type(rdf_literal, Term) :-
+  rdf_is_literal(Term).
+error:has_type(rdf_name,Term) :-
+  error:has_type(rdf_iri, Term).
+error:has_type(rdf_name,Term) :-
+  error:has_type(rdf_literal, Term).
+error:has_type(rdf_object, Term) :-
+  error:has_type(rdf_term, Term).
+error:has_type(rdf_predicate, Term) :-
+  error:has_type(rdf_iri, Term).
+error:has_type(rdf_quad, Term) :-
+  Term = rdf(S,P,O,G),
+  error:has_type(rdf_subject, S),
+  error:has_type(rdf_predicate, P),
+  error:has_type(rdf_object, O),
+  error:has_type(rdf_graph, G).
+error:has_type(rdf_subject, Term) :-
+  error:has_type(rdf_bnode, Term).
+error:has_type(rdf_subject, Term) :-
+  error:has_type(rdf_iri, Term).
+error:has_type(rdf_term, Term) :-
+  error:has_type(rdf_bnode, Term).
+error:has_type(rdf_term, Term) :-
+  error:has_type(rdf_iri, Term).
+error:has_type(rdf_term, Term) :-
+  error:has_type(rdf_literal, Term).
+error:has_type(rdf_triple, Term) :-
+  Term = rdf(S,P,O),
+  error:has_type(rdf_subject, S),
+  error:has_type(rdf_predicate, P),
+  error:has_type(rdf_object, O).
+error:has_type(rdf_tuple, Term) :-
+  error:has_type(rdf_quad, Term).
+error:has_type(rdf_tuple, Term) :-
+  error:has_type(rdf_triple, Term).
 
 :- rdf_meta
    rdf_atom_term(?, o),
