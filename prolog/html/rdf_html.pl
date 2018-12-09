@@ -142,7 +142,7 @@ rdf_html_iri_internal_(Iri1, Options) -->
   html(["<",Iri2,">"]).
 
 rdf_html_iri_external_(Iri) -->
-  {is_iri(Iri)}, !,
+  {rdf_is_iri(Iri)}, !,
   html([" ",\external_link(Iri)]).
 rdf_html_iri_external_(_) --> [].
 
@@ -198,7 +198,7 @@ rdf_html_literal_internal_(xsd:boolean, _, Lex, _) -->
   html(Lex).
 % xsd:decimal: before other numeric types
 rdf_html_literal_internal_(xsd:decimal, _, Lex, _) --> !,
-  {xsd_lexical_value(xsd:decimal, Lex, N)},
+  {rdf_lexical_value(xsd:decimal, Lex, N)},
   html("~w"-[N]).
 % xsd:byte
 % xsd:double
