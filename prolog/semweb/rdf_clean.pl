@@ -19,6 +19,7 @@
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
+:- use_module(library(uri_parse)).
 
 :- rdf_meta
    rdf_clean_quad(+, t, -),
