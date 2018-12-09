@@ -5,6 +5,7 @@
     rdf_media_type/1,           % ?MediaType
     'rdf_media_type_>'/2,       % +SuperMediaType +SubMediaType
     rdf_media_type_extension/2, % ?MediaType, ?Extension
+    rdf_media_type_format/2,    % ?MediaType, ?Format
     rdfa_media_type/1           % ?MediaType
   ]
 ).
@@ -80,6 +81,17 @@ rdf_media_type_extension(media(application/'n-triples',[]), nt).
 rdf_media_type_extension(media(application/'rdf+xml',[]), rdf).
 rdf_media_type_extension(media(application/trig,[]), trig).
 rdf_media_type_extension(media(text/turtle,[]), ttl).
+
+
+
+%! rdf_media_type_format(?MediaType:compound, ?Format:atom) is nondet.
+
+rdf_media_type_format(media(application/'n-quads',[]), nquads).
+rdf_media_type_format(media(application/'n-triples',[]), ntriples).
+rdf_media_type_format(media(text/html,[]), rdfa).
+rdf_media_type_format(media(application/trig,[]), trig).
+rdf_media_type_format(media(text/turtle,[]), turtle).
+rdf_media_type_format(media(application/'rdf+xml',[]), xml).
 
 
 
