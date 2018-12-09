@@ -27,8 +27,8 @@ Please report any issues that you find when using this library.
   3. Clone this library: ~git clone https://github.com/wouterbeek/prolog_rdf~
   4. Add the following line to your ~.swiplrc~ file:
 
-#+BEGIN_SRC
-user:file_search_path(library, '/your/path/to/Pro-RDF/prolog').
+#+BEGIN_SRC prolog
+user:file_search_path(library, '/your/path/to/prolog_rdf/prolog').
 #+END_SRC
 
 Optional installtion steps:
