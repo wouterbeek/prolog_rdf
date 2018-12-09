@@ -73,12 +73,13 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
-:- use_module(library(gis/wkt)).
+:- use_module(library(geo/wkt)).
 :- use_module(library(hash_ext)).
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri_ext)).
+:- use_module(library(uri_parse)).
 :- use_module(library(xsd/xsd)).
 :- use_module(library(xsd/xsd_grammar)).
 

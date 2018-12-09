@@ -87,7 +87,7 @@ rdf_write_name(Out, Literal) :-
 
 %! rdf_write_quad(+Out:stream, +Quad:rdf_quad) is det.
 %! rdf_write_quad(+Out:stream, +Triple:rdf_triple, +G:rdf_graph) is det.
-%! rdf_write_quad(+Out:stream, +S:rdf_nonliteral, +P:iri, +O:rdf_term, +G:rdf_graph) is det.
+%! rdf_write_quad(+Out:stream, +S:rdf_subject, +P:iri, +O:rdf_term, +G:rdf_graph) is det.
 %
 % Quad must be a quadruple (denoted by compound term rdf/4).  Triples
 % (denoted by compound term rdf/3) are not supported.
@@ -120,7 +120,7 @@ rdf_write_term(Out, Literal) :-
 
 
 %! rdf_write_triple(+Out:stream, +Tuple:rdf_tuple) is det.
-%! rdf_write_triple(+Out, +S:rdf_nonliteral, +P:rdf_iri, +O:rdf_term) is det.
+%! rdf_write_triple(+Out, +S:rdf_subject, +P:rdf_iri, +O:rdf_term) is det.
 %
 % rdf_write_triple/2 also accepts quadrupleds (denoted by compound
 % term rdf/4), but writes them as triples.
@@ -137,7 +137,7 @@ rdf_write_triple(Out, S, P, O) :-
 
 
 rdf_write_triple_open(Out, S, P, O) :-
-  rdf_write_nonliteral(Out, S),
+  rdf_write_term(Out, S),
   put_char(Out, ' '),
   rdf_write_iri(Out, P),
   put_char(Out, ' '),
