@@ -3,15 +3,21 @@
   [
    %rdf_equal/2,             % +Term1, +Term2
     rdf_prefix/1,            % ?Alias
+   %rdf_prefix/2,            % ?Alias, ?Prefix
+   %rdf_prefix_any/2,        % +Abbr, -PrologTerm
     rdf_prefix_append/2,     % +Ls, -L
     rdf_prefix_append/3,     % +L1, +L2, -L
+   %rdf_prefix_iri/2,        % +Abbr, -Iri
     rdf_prefix_iri/3,        % ?Alias, ?Local, ?Iri
     rdf_prefix_maplist/2,    % :Goal_1, +Args1
     rdf_prefix_maplist/3,    % :Goal_2, +Args1, +Args2
     rdf_prefix_member/2,     % ?Elem, +L
     rdf_prefix_memberchk/2,  % ?Elem, +L
     rdf_prefix_selectchk/3,  % +Elem, +L, -Rest
+   %rdf_prefix_term/2,       % +Abbr, -Term
     rdf_register_prefix/1,   % +PairOrAlias
+   %rdf_register_prefix/2,   % +Alias, +Prefix
+   %rdf_register_prefix/3,   % +Alias, +Prefix, +Options
     rdf_register_prefixes/0
   ]
 ).
