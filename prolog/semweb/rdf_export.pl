@@ -113,7 +113,8 @@ rdf_write_quad(Out, S, P, O, G) :-
 %! rdf_write_term(+Out:stream, +Name:rdf_name) is det.
 
 rdf_write_term(Out, Iri) :-
-  rdf_write_iri(Out, Iri), !.
+  rdf_is_iri(Iri), !,
+  rdf_write_iri(Out, Iri).
 rdf_write_term(Out, Literal) :-
   rdf_write_literal(Out, Literal).
 
