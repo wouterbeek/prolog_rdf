@@ -33,12 +33,12 @@ user:file_search_path(library, '/your/path/to/prolog_rdf/prolog').
 
 Optional installtion steps:
 
-  1. In order to use module ~semweb/rdf_clean~, library
+  1. In order to use module ~library(semweb/rdf_clean)~, library
      [[https://github.com/wouterbeek/prolog_uriparser][prolog_uriparser]] must be installed.
-  2. In order to use module [[semweb/rdf_dot]], library [[https://github.com/wouterbeek/graph_export][graph_export]] must
-     be installed.
-  3. In order to use module [[semweb/rdf_geo]], library [[https://github.com/wouterbeek/Pro-GIS][Pro-GIS]] must be
-     installed.
+  2. In order to use module ~library(semweb/rdf_dot)~, library
+     [[https://github.com/wouterbeek/graph_export][graph_export]] must be installed.
+  3. In order to use module ~library(semweb/rdf_geo)~, library [[https://github.com/wouterbeek/Pro-GIS][Pro-GIS]]
+     must be installed.
 
 * Usage
 
@@ -70,24 +70,24 @@ documentation headers of predicates:
 This section enumerates the various modules that are included in
 Pro-RDF.
 
-** ~/html/rdf_html~
+** ~library(html/rdf_html)~
 
 This module provides DCG rules that generate simple human-readable
 HTML snippets that represent RDF terms and tuples.
 
-** ~/http/rdf_http~
+** ~library(http/rdf_http)~
 
 This module supports the use of RDF terms in HTTP APIs, by
 encoding/decoding URI query components that contain RDF terms.
 
-** ~/semweb/rdf_api~
+** ~library(semweb/rdf_api)~
 
 Provides higher-level RDF functionality based on low-level backend
 operations.  The backend operations themselves are not part of this
 Pro-RDF library, and should be added independently.  See [[https://github.com/wouterbeek/Pro-HDT][Pro-HDT]] and
 [[https://github.com/wouterbeek/Pro-RDF-DB][Pro-RDF-DB]] for two such backends.
 
-** ~/semweb/rdf_clean~
+** ~library(semweb/rdf_clean)~
 
 This module contains data cleaning predicates that were previously
 part of [[http://lodlaundromat.org][LOD Laundromat]].  They can be used to clean RDF tuples that are
@@ -120,13 +120,13 @@ an internal state that consistently maps internal Prolog blank node
 labels to external standards-compliant blank node labels.  For the
 same reasons, it also cannot rely on full document inspection and
 blank node relabeling approaches.  For these reasons, the data
-cleaning prediates in ~semweb/rdf_clean~ replace blank nodes with
-well-known IRIs, in line with the RDF 1.1 standard.  This means that
-every data cleaning predicate must bind a valid well-known IRI to the
-~BNodePrefix~ argument.  It also means that Prolog internal blank node
-labels are hashed using the MD5 algorithm to provide the local names
-for the generated well-known IRIs.  The latter ensures consistent
-relabeling without maintaining an internal state.
+cleaning prediates in ~library(semweb/rdf_clean)~ replace blank nodes
+with well-known IRIs, in line with the RDF 1.1 standard.  This means
+that every data cleaning predicate must bind a valid well-known IRI to
+the ~BNodePrefix~ argument.  It also means that Prolog internal blank
+node labels are hashed using the MD5 algorithm to provide the local
+names for the generated well-known IRIs.  The latter ensures
+consistent relabeling without maintaining an internal state.
 
 *** Graph cleaning
 
@@ -169,7 +169,7 @@ For typed literals, cleaning involves:
     different datatype IRIs.  Since it is impractical to implement
     lexical form cleaning for all datatype IRIs, we focus on those
     that are most widely used.  For this we use ~rdf_literal_value/3~,
-    which is part of library ~semweb/rdf_term~.
+    which is part of library ~library(semweb/rdf_term)~.
 
 *** Predicates
 
@@ -187,7 +187,7 @@ This library provides the following predicates:
 
   Cleans quadruple and/or triple compound terms.
 
-** ~/semweb/rdf_deref~
+** ~library(semweb/rdf_deref)~
 
 This module implements RDF dereferencing, i.e., the act of obtaining
 interpreted RDF statements based on a given RDF document, stream, or
@@ -209,14 +209,14 @@ This library provides the following predicates:
     typically an HTTP(S) URI.  Uses heuristics in order to determine
     the RDF serialization of the reply body.
 
-** ~/semweb/rdf_dot~
+** ~library(semweb/rdf_dot)~
 
 This library provides primitives for generating GraphViz DOT exports
 of RDF terms and tuples.
 
 This module requires library [[https://github.com/wouterbeek/graph_export][graph_export]] to be installed.
 
-** ~/semweb/rdf_export~
+** ~library(semweb/rdf_export)~
 
 This module writes RDF data in a simple and standards-compliant
 serialization format.  It contains the following predicates:
@@ -228,9 +228,9 @@ serialization format.  It contains the following predicates:
   - ~rdf_write_triple/[2,4]~
   - ~rdf_write_tuple/2~
 
-** ~/semweb/rdf_geo~
+** ~library(semweb/rdf_geo)~
 
-This module extends hooks into module ~/semweb/rdf_term~ that allow
+This module extends hooks into module ~library(semweb/rdf_term)~ that allow
 GeoSPARQL-compliant geo-spatial objects to be read and written.
 
 This module currently supports the following serialization formats for
@@ -240,7 +240,7 @@ geometries:
 
 This module requires library [[https://github.com/wouterbeek/Pro-GIS][Pro-GIS]] to be installed.
 
-** ~/semweb/rdf_guess~
+** ~library(semweb/rdf_guess)~
 
 This module peeks at the beginning of a file, stream, or string in
 order to heuristically guesstimate the RDF serialization formats (if
@@ -250,7 +250,7 @@ any) containing in that input:
   - ~rdf_guess_stream/3~
   - ~rdf_guess_string/2~
 
-** ~/semweb/rdf_media_type~
+** ~library(semweb/rdf_media_type)~
 
 This module provides support for the standardized RDF serialization
 format Media Types:
@@ -270,7 +270,7 @@ format Media Types:
 
   - ~rdfa_media_type/1~ succeeds for RDFa Media Types.
 
-** ~/semweb/rdf_prefix~
+** ~library(semweb/rdf_prefix)~
 
 This module provides extended support for working with RDF prefix
 declarations:
@@ -337,22 +337,22 @@ rdf_prefix_memberchk(P, [rdfs:domain,rdfs:range,rdfs:subClassOf,rdfs:subProperty
 
 *** ~rdf_register_prefixes/0~
 
-** ~semweb/rdf_print~
+** ~library(semweb/rdf_print)~
 
 This module provides DCG rules for printing RDF terms and tuples.
 
-** ~semweb/rdf_term~
+** ~library(semweb/rdf_term)~
 
 This module provides advanced support for composing, decomposing,
 parsing, and generating RDF terms.
 
-** ~semweb/rdf_triple~
+** ~library(semweb/rdf_triple)~
 
-** ~semweb/schema_viz~
+** ~library(semweb/schema_viz)~
 
-** ~semweb/sparql_functions~
+** ~library(semweb/sparql_functions)~
 
-** ~xsd/xsd~
+** ~library(xsd/xsd)~
 
 Support for XML Schema 1.1 Part 2: Datatypes.
 
@@ -372,7 +372,7 @@ Support for XML Schema 1.1 Part 2: Datatypes.
   - ~xsd_strict_subtype/2~ and ~xsd:subtype/2~ allow the hierarchy of
     XSD datatype IRIs to be queried.
 
-** ~xsd/xsd_grammar~
+** ~library(xsd/xsd_grammar)~
 
 DCG grammar rules for decimal and duration datatypes that are not yet
 supported by SWI-Prolog.
