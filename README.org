@@ -34,10 +34,10 @@ user:file_search_path(library, '/your/path/to/prolog_rdf/prolog').
 Optional installtion steps:
 
   1. In order to use module ~semweb/rdf_clean~, library
-     ~[[https://github.com/wouterbeek/prolog_uriparser][prolog_uriparser]]~ must be installed.
-  2. In order to use module ~[[semweb/rdf_dot]]~, library [[https://github.com/wouterbeek/graph_export][graph_export]]
-     must be installed.
-  3. In order to use module ~[[semweb/rdf_geo]]~, library [[https://github.com/wouterbeek/Pro-GIS][Pro-GIS]] must be
+     [[https://github.com/wouterbeek/prolog_uriparser][prolog_uriparser]] must be installed.
+  2. In order to use module [[semweb/rdf_dot]], library [[https://github.com/wouterbeek/graph_export][graph_export]] must
+     be installed.
+  3. In order to use module [[semweb/rdf_geo]], library [[https://github.com/wouterbeek/Pro-GIS][Pro-GIS]] must be
      installed.
 
 * Usage
@@ -91,10 +91,10 @@ Pro-RDF library, and should be added independently.  See [[https://github.com/wo
 
 This module contains data cleaning predicates that were previously
 part of [[http://lodlaundromat.org][LOD Laundromat]].  They can be used to clean RDF tuples that are
-streamed from an RDF source.  See module ~[[semweb/rdf_deref]]~ for
+streamed from an RDF source.  See module [[semweb/rdf_deref]] for
 creating streams over RDF sources.
 
-In order to use this module, library ~[[https://github.com/wouterbeek/prolog_uriparser][prolog_uriparser]]~ must be
+In order to use this module, library [[https://github.com/wouterbeek/prolog_uriparser][prolog_uriparser]] must be
 installed.
 
 *** Blank node cleaning
