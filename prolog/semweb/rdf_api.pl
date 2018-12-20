@@ -35,6 +35,7 @@
     tp/4,                            % ?Backend, ?S, ?P, ?O
     tp_chk/4,                        % ?Backend, ?S, ?P, ?O
     tp_count/5,                      % ?Backend, ?S, ?P, ?O, -N
+    tp_dt/4,                         % ?Backend, ?S, ?P, -Datetime
     tp_retractall/4,                 % +Backend, ?S, ?P, ?O
     tp_string/4,                     % ?Backend, ?S, ?P, -String
     tp_update/5,                     % +Backend, ?S, ?P, ?O, +Action
@@ -106,6 +107,7 @@ Backend-independent RDF API.
    tp(t, r, r, o),
    tp_chk(t, r, r, o),
    tp_count(t, r, r, o, -),
+   tp_dt(t, r, r, -),
    tp_retractall(t, r, r, o),
    tp_string(t, r, r, -),
    tp_update(t, r, r, o, t),
@@ -581,7 +583,7 @@ rdf_api:tp_count_(dummy, _, _, _, 0) :-
 
 
 
-%! tp_dt(+Backend, ?S:rdf_subject, ?P:rdf_predicate, -Datetime:dt) is nondet.
+%! tp_dt(?Backend, ?S:rdf_subject, ?P:rdf_predicate, -Datetime:dt) is nondet.
 
 tp_dt(B, S, P, Dt) :-
   tp(B, S, P, literal(type(D,Lex))),
