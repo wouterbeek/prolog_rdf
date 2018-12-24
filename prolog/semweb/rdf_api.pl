@@ -14,6 +14,8 @@
     container_member/3,              % +Backend, ?Member, ?Container
     container_nth1/4,                % +Backend, ?N, ?Container, ?Member
     container_membership_property/3, % ?Backend, ?P, ?N
+    dataset/1,                       % -Dataset
+    default_graph/1,                 % ?G
     instance/3,                      % ?Backend, ?I, ?C
     list/3,                          % ?Backend, ?RdfList, ?PrologList
     list_compare/4,                  % +Backend, +X, +Y, -Order
@@ -24,6 +26,7 @@
     list_member/3,                   % ?Backend, ?X, ?RdfList
     list_member_tp/4,                % ?Backend, ?S, ?P, ?X
     list_tp/4,                       % ?Backend, ?S, ?P, -PrologList
+    named_graph/2,                   % ?Backend, ?G
     node/2,                          % ?Backend, ?Node
     predicate/2,                     % ?Backend, ?P
     reification/5,                   % ?Backend, ?S, ?P, ?O, -Statement
@@ -51,6 +54,7 @@ Backend-independent RDF API.
 @version 2018
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(clpfd)).
 :- use_module(library(error)).
@@ -67,6 +71,7 @@ Backend-independent RDF API.
 
 :- multifile
     rdf_api:assert_triple_/4,
+    rdf_api:named_graph_/2,
     rdf_api:predicate_/2,
     rdf_api:tp_/4,
     rdf_api:tp_count_/5,
@@ -95,6 +100,7 @@ Backend-independent RDF API.
    list_member(t, o, r),
    list_member_tp(t, r, r, o),
    list_tp(t, r, r, -),
+   named_graph(?, r),
    node(t, o),
    predicate(t, r),
    reification(t, r, r, o, -),
@@ -263,6 +269,22 @@ container_membership_property(B, P, N) :-
 
 
 
+%! dataset(-Dataset:compound) is det.
+
+dataset(dataset([DG],NGs)) :-
+  default_graph(DG),
+  aggregate_all(set(NG), named_graph(_, NG), NGs).
+
+
+
+%! default_graph(+Backend) is semidet.
+%! default_graph(-Backend) is det.
+
+default_graph(mem(G)) :-
+  rdf_default_graph(G).
+
+
+
 %! instance(?Backend, ?Instance:rdf_term, ?Class:rdf_term) is nondet.
 
 instance(B, I, D) :-
@@ -401,6 +423,20 @@ list_member_tp(B, S, P, X) :-
 list_tp(B, S, P, L2) :-
   tp(B, S, P, L1),
   list(B, L1, L2).
+
+
+
+%! named_graph(?Backend, +G:rdf_graph) is semidet.
+%! named_graph(?Backend, -G:rdf_graph) is nondet.
+
+named_graph(B, G) :-
+  ground(G), !,
+  once(rdf_api:named_graph_(B, G)).
+named_graph(B, G) :-
+  rdf_api:named_graph_(B, G).
+
+rdf_api:named_graph_(dummy, _) :-
+  fail.
 
 
 
@@ -691,12 +727,15 @@ tp_value(B, S, P, Value) :-
 
 pre_backend_(Var, _) :-
   var(Var), !.
+pre_backend_(G, B) :-
+  atom(G), !,
+  named_graph(B, G).
 pre_backend_(B, B).
 
 
 
 %! post_backend_(+Backend1, +Backend2) is det.
 
-post_backend_(B1, _) :-
-  ground(B1), !.
+post_backend_(B, _) :-
+  ground(B), !.
 post_backend_(B, B).
