@@ -23,20 +23,26 @@ Please report any issues that you find when using this library.
 * Installation
 
   1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
+
   2. Install [[https://github.com/wouterbeek.com/Prolog-Library-Collection][Prolog-Library-Collection]].
-  3. Clone this library: ~git clone https://github.com/wouterbeek/prolog_rdf~
+
+  3. Clone this library: ~git clone
+     https://github.com/wouterbeek/prolog_rdf~.
+
   4. Add the following line to your ~.swiplrc~ file:
 
-#+BEGIN_SRC prolog
-user:file_search_path(library, '/your/path/to/prolog_rdf/prolog').
-#+END_SRC
+     #+BEGIN_SRC prolog
+     user:file_search_path(library, '/your/path/to/prolog_rdf/prolog').
+     #+END_SRC
 
 Optional installtion steps:
 
   1. In order to use module ~library(semweb/rdf_clean)~, library
      [[https://github.com/wouterbeek/prolog_uriparser][prolog_uriparser]] must be installed.
+
   2. In order to use module ~library(semweb/rdf_dot)~, library
      [[https://github.com/wouterbeek/graph_export][graph_export]] must be installed.
+
   3. In order to use module ~library(semweb/rdf_geo)~, library [[https://github.com/wouterbeek/Pro-GIS][Pro-GIS]]
      must be installed.
 
