@@ -14,7 +14,6 @@
     rdf_create_hash_iri/4,               % +Alias, +Segments, +Term, -Iri
     rdf_create_iri/3,                    % +Alias, +Segments, -Iri
    %rdf_default_graph/1,                 % ?G
-   %rdf_graph/1,                         % ?G
     rdf_iri//1,                          % ?Iri
    %rdf_is_bnode/1,                      % @Term
     rdf_is_bnode_iri/1,                  % @Term
@@ -63,7 +62,6 @@
 :- reexport(library(semweb/rdf11), [
      rdf_create_bnode/1,
      rdf_default_graph/1,
-     rdf_graph/1,
      rdf_is_iri/1,
      rdf_is_predicate/1,
      rdf_is_subject/1
