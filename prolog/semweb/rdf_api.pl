@@ -7,7 +7,7 @@
     assert_list_triple/4,            % +Backend, +S, +P, +PrologList
     assert_now/3,                    % +Backend, +S, +P
     assert_now/4,                    % +Backend, +S, +P, +D
-    assert_reification/5,            % +Backend, +S, +P, +O, -Statement
+    assert_reification/5,            % +Backend, +S, +P, +O, ?Statement
     assert_shape/3,                  % +Backend, +Feature, +Shape
     assert_shape/4,                  % +Backend, +Feature, +Shape, -Geometry
     assert_triple/4,                 % +Backend, +S, +P, +O
