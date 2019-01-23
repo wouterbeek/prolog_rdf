@@ -45,8 +45,8 @@
 :- use_module(library(dict)).
 :- use_module(library(html/html_date_time_machine)).
 :- use_module(library(html/html_ext)).
-:- use_module(library(http/http_server)).
 :- use_module(library(http/rdf_http)).
+:- use_module(library(http/rest_server)).
 :- use_module(library(list_ext)).
 :- use_module(library(semweb/rdf_prefix)).
 :- use_module(library(semweb/rdf_term)).
