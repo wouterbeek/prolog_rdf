@@ -34,7 +34,9 @@
 :- use_module(library(xsd/xsd_grammar)).
 
 :- rdf_meta
+   dt_to_xsd_date_time_(?, r, ?),
    xsd_date_time(?, r, -),
+   xsd_date_time_to_dt_(?, r, ?),
    xsd_numeric_type(r),
    xsd_strict_subtype(r, r),
    xsd_subtype(r, r).
@@ -51,7 +53,7 @@ xsd_date_time(Dt, D, XsdDt) :-
   dt_to_xsd_date_time_(Dt, D, XsdDt).
 xsd_date_time(Dt, D, XsdDt) :-
   nonvar(XsdDt), !,
-  xsd_date_time_to_dt_(Dt, D, XsdDt).
+  xsd_date_time_to_dt_(XsdDt, D, Dt).
 xsd_date_time(Dt, _, XsdDt) :-
   instantiation_error(args([Dt,XsdDt])).
 
