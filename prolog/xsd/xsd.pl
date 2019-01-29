@@ -15,23 +15,18 @@
 
 @author Wouter Beek
 @compat XML Schema 1.1 Part 2: Datatypes
-@version 2017-2018
+@version 2017-2019
 */
 
-:- use_module(library(aggregate)).
 :- use_module(library(dif)).
 :- use_module(library(error)).
 :- use_module(library(semweb/rdf11), []).
-:- use_module(library(sgml)).
 :- use_module(library(xsdp_types)).
 
 :- use_module(library(dcg)).
 :- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(list_ext)).
 :- use_module(library(semweb/rdf_prefix)).
-:- use_module(library(uri_ext)).
 :- use_module(library(xml_ext)).
-:- use_module(library(xsd/xsd_grammar)).
 
 :- rdf_meta
    dt_to_xsd_date_time_(?, r, ?),
