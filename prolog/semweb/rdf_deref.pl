@@ -131,6 +131,9 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
   Goal_3 =.. [Pred|Args1],
   append(Args1, [BaseUri], Args2),
   Goal_2 =.. [Pred|Args2],
+  % Use a well-known IRI with a UUID as blank node prefix.  The UUID
+  % is determined by the base URI seed.
+  rdf_bnode_iri(BaseUri, BNodePrefix),
   % Parse according to the guessed Media Type.
   (   % N-Quads
       media_type_comps(MediaType, application, 'n-quads', _)
