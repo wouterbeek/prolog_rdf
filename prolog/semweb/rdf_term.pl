@@ -3,6 +3,7 @@
   rdf_term,
   [
     rdf_atom_term/2,                     % ?Atom, ?Term
+    rdf_base_uri/1,                      % ?BaseUri
     rdf_bnode_iri/1,                     % -Iri
     rdf_bnode_iri/2,                     % ?Seed, -Iri
     rdf_canonical_lexical_form/3,        % +D, +Lex, -CanonicaldLex
@@ -140,6 +141,7 @@ error:has_type(rdf_tuple, Term) :-
 
 :- rdf_meta
    rdf_atom_term(?, o),
+   rdf_base_uri(r),
    rdf_canonical_lexical_form(r, +, -),
    rdf_canonical_literal(o, o),
    rdf_container_membership_property(r),
@@ -220,6 +222,14 @@ test_rdf_atom_term('<mailto:x>', 'mailto:x').
 test_rdf_atom_term('""^^<mailto:x>', literal(type('mailto:x',''))).
 
 :- end_tests(rdf_atom_term).
+
+
+
+%! rdf_base_uri(+BaseUri:atom) is semidet.
+%! rdf_base_uri(-BaseUri:atom) is det.
+
+rdf_base_uri(BaseUri) :-
+  setting(base_uri, BaseUri).
 
 
 
