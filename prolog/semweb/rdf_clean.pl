@@ -71,7 +71,7 @@ rdf_clean_graph(G1, G3) :-
 % not the case, then perform the following prior to cleaning:
 %
 % ```
-% setting(rdf_term:base_uri, BaseUri),
+% rdf_base_uri(BaseUri),
 % uri_resolve(Iri1, BaseUri, Iri2).
 % ```
 %
