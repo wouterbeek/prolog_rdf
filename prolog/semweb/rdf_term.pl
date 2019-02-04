@@ -28,7 +28,7 @@
    %rdf_is_subject/1,                    % @Term
     rdf_is_term/1,                       % @Term
     rdf_language_tagged_string/3,        % ?LTag, ?Lex, ?Literal
-    rdf_lexical_value/3,                 % +D, ?Lex, ?Val
+    rdf_lexical_value/3,                 % +D, ?Lex, ?Value
     rdf_literal//1,                      % ?Literal
     rdf_literal/4,                       % ?D, ?LTag, ?Lex, ?Literal
     rdf_literal_datatype_iri/2,          % +Literal, ?D
@@ -51,7 +51,7 @@
 /** <module> RDF term support
 
 @author Wouter Beek
-@version 2018
+@version 2018-2019
 */
 
 :- use_module(library(error)).
@@ -877,6 +877,8 @@ rdf_literal_value(literal(lang(LTag,Lex)), rdf:langString, Lex-LTag) :- !.
 % typed literal
 rdf_literal_value(literal(type(D,Lex)), D, Value) :- !,
   rdf_lexical_value(D, Lex, Value).
+% value literal
+rdf_literal_value(literal(value(D,Value)), D, Value) :- !.
 % simple literal
 rdf_literal_value(literal(Lex), xsd:string, Value) :-
   atom_string(Lex, Value).
