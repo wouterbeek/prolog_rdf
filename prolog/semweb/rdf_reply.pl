@@ -12,6 +12,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(http/http_json)).
 :- use_module(library(lists)).
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
@@ -77,5 +78,17 @@ rdf_reply(Out, media(text/turtle,_), Triples) :-
         read_from_file(File, {Out}/[In]>>copy_stream_data(In, Out))
       ),
       delete_file(File)
+    )
+  ).
+% 406 Unacceptable
+rdf_reply(Out, _, _) :-
+  with_output_to(
+    Out,
+    reply_json_dict(
+      _{
+        error: "Unacceptable",
+        reason: "The requested Accept header does not contain a supported RDF serialization format."
+      },
+      [status(406)]
     )
   ).
