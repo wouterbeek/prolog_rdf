@@ -10,6 +10,7 @@
     assert_reification/5,            % +Backend, +S, +P, +O, ?Statement
     assert_shape/3,                  % +Backend, +Feature, +Shape
     assert_shape/4,                  % +Backend, +Feature, +Shape, -Geometry
+    assert_triple/2,                 % +Backend, +Triple
     assert_triple/4,                 % +Backend, +S, +P, +O
     container_member/3,              % +Backend, ?Member, ?Container
     container_nth1/4,                % +Backend, ?N, ?Container, ?Member
@@ -86,6 +87,7 @@ Backend-independent RDF API.
    assert_reification(t, r, r, o, r, r),
    assert_shape(t, r, +),
    assert_shape(t, r, +, -),
+   assert_triple(t, t),
    assert_triple(t, r, r, o),
    container_member(t, r, r),
    container_nth1(t, ?, r, r),
@@ -203,6 +205,12 @@ assert_shape(B, Feature, Shape, Geometry) :-
   assert_triple(B, Feature, geo:hasGeometry, Geometry),
   assert_triple(B, Geometry, geo:asWKT, Shape).
 
+
+
+%! assert_triple(+Backend, +Triple:rdf_triple) is nondet.
+
+assert_triple(B, tp(S,P,O)) :-
+  assert_triple(B, S, P, O).
 
 
 %! assert_triple(+Backend, +S:rdf_subject, +P:rdf_predicate, +O:rdf_object) is nondet.
