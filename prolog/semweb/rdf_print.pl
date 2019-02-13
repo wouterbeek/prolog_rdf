@@ -8,8 +8,12 @@
     rdf_dcg_pp//2,        % +PP, +Options
     rdf_dcg_predicate//1, % +Predicate
     rdf_dcg_predicate//2, % +Predicate, +Options
+    rdf_dcg_proof//1,     % +Proof
+    rdf_dcg_proof//2,     % +Proof, +Options
     rdf_dcg_qp//4,        % ?S, ?P, ?O, ?G
     rdf_dcg_qp//5,        % ?S, ?P, ?O, ?G, +Options
+    rdf_dcg_tp//1,        % +TP
+    rdf_dcg_tp//2,        % +TP, +Options
     rdf_dcg_tp//3,        % ?S, ?P, ?O
     rdf_dcg_tp//4,        % ?S, ?P, ?O, +Options
     rdf_dcg_tps//1,       % +TPs
@@ -40,7 +44,7 @@
 ---
 
 @author Wouter Beek
-@version 2016-2018
+@version 2016-2019
 */
 
 :- use_module(library(aggregate)).
@@ -65,8 +69,12 @@
    rdf_dcg_pp(t, +, ?, ?),
    rdf_dcg_predicate(r, ?, ?),
    rdf_dcg_predicate(r, +, ?, ?),
+   rdf_dcg_proof(t),
+   rdf_dcg_proof(t, +),
    rdf_dcg_qp(r, r, o, r, ?, ?),
    rdf_dcg_qp(r, r, o, r, +, ?, ?),
+   rdf_dcg_tp(t, ?, ?),
+   rdf_dcg_tp(t, +, ?, ?),
    rdf_dcg_tp(r, r, o, ?, ?),
    rdf_dcg_tp(r, r, o, +, ?, ?),
    rdf_dcg_tps(t, ?, ?),
@@ -115,6 +123,29 @@ rdf_dcg_predicate(P, _) -->
   "a".
 rdf_dcg_predicate(P, Options) -->
   rdf_dcg_term_(P, Options).
+
+
+
+%! rdf_dcg_proof(+Proof:compound)// is det.
+%! rdf_dcg_proof(+Proof:compound, +Options:dict)// is det.
+
+rdf_dcg_proof(Proof) -->
+  rdf_dcg_proof(Proof, options{}).
+
+
+rdf_dcg_proof(Proof, Options) -->
+  {dict_get(indent, Options, 0, N)},
+  rdf_dcg_proof_(N, Options, Proof).
+
+rdf_dcg_proof_(N1, Options, p(Rule,Concl,Proofs)) -->
+  tab(N1),
+  "[",
+  term(Rule),
+  "] ",
+  rdf_dcg_tp(Concl),
+  nl,
+  {N2 is N1 + 1},
+  '*'(rdf_dcg_proof_(N2, Options), Proofs).
 
 
 
@@ -246,8 +277,18 @@ rdf_dcg_lexical_form_(Lex, Options) -->
 
 
 
+%! rdf_dcg_tp(+TP:compound)// is det.
+%! rdf_dcg_tp(+TP:compound, +Options:dict)// is det.
 %! rdf_dcg_tp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object)// is det.
 %! rdf_dcg_tp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, +Options:dict)// is det.
+
+rdf_dcg_tp(tp(S,P,O)) -->
+  rdf_dcg_tp(tp(S,P,O), options{}).
+
+
+rdf_dcg_tp(tp(S,P,O), Options) -->
+  rdf_dcg_tp(S, P, O, Options).
+
 
 rdf_dcg_tp(S, P, O) -->
   rdf_dcg_tp(S, P, O, options{}).
