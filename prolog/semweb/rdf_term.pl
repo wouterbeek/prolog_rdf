@@ -176,6 +176,8 @@ error:has_type(rdf_tuple, Term) :-
            "The default base URI for RDF IRIs.").
 :- setting(bnode_prefix_authority, atom, 'example.org', "").
 :- setting(bnode_prefix_scheme, atom, https, "").
+:- setting(max_container_membership_property, positive_integer, 1,
+           "The maximum index for which a container membership property will be generated.").
 
 
 
@@ -303,15 +305,15 @@ rdf_container_membership_property(P) :-
 
 rdf_container_membership_property(P, N) :-
   var(P), !,
-  between(1, inf, N),
+  setting(max_container_membership_property, Max),
+  between(1, Max, N),
   rdf_equal(rdf:'_', Prefix),
   atom_concat(Prefix, N, P).
 rdf_container_membership_property(P, N) :-
   rdf_equal(rdf:'_', Prefix),
   atom_concat(Prefix, Atom, P),
   atom_number(Atom, N),
-  integer(N),
-  N >= 0.
+  must_be(positive_integer, N).
 
 
 
