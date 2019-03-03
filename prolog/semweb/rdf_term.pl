@@ -547,18 +547,6 @@ rdf_value_to_lexical(xsd:decimal, Value, Lex) :- !,
   ;   rdf_value_to_lexical_error(xsd:decimal, Value)
   ).
 
-% xsd:string
-rdf_lexical_to_value(xsd:string, Lex, Value) :- !,
-  (   atom_string(Lex, Value0)
-  ->  Value = Value0
-  ;   rdf_lexical_to_value_error(xsd:string, Lex)
-  ).
-rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
-  (   atom_string(Atom, Value)
-  ->  Lex = Atom
-  ;   rdf_value_to_lexical_error(xsd:string, Value)
-  ).
-
 % xsd:duration
 rdf_lexical_to_value(xsd:duration, Lex, Value) :- !,
   (   atom_phrase(durationMap(Value0), Lex)
@@ -626,6 +614,18 @@ rdf_value_to_lexical(D, Dt, Lex) :-
       atom_string(Atom, String)
   ->  Lex = Atom
   ;   rdf_value_to_lexical_error(D, Dt)
+  ).
+
+% xsd:string
+rdf_lexical_to_value(xsd:string, Lex, Value) :- !,
+  (   atom_string(Lex, Value0)
+  ->  Value = Value0
+  ;   rdf_lexical_to_value_error(xsd:string, Lex)
+  ).
+rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
+  (   atom_string(Atom, Value)
+  ->  Lex = Atom
+  ;   rdf_value_to_lexical_error(xsd:string, Value)
   ).
 
 rdf_lexical_to_value(D, Lex, _) :-
@@ -729,9 +729,10 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %
 %   | *Input format*              | *Datatype IRI*         |
 %   |-----------------------------+------------------------|
-%   | date(Y,Mo,D)                | xsd:date               |
+%   | date(Y,Mo,Da)               | xsd:date               |
 %   | date_time(Y,Mo,D,H,Mi,S)    | xsd:dateTime           |
 %   | date_time(Y,Mo,D,H,Mi,S,TZ) | xsd:dateTime           |
+%   | day(Da)                     | xsd:gDay               |
 %   | decimal(N)                  | xsd:decimal            |
 %   | double(N)                   | xsd:double             |
 %   | duration(S)                 | xsd:dayTimeDuration    |
@@ -740,10 +741,11 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %   | float(N)                    | xsd:float              |
 %   | integer                     | xsd:integer            |
 %   | integer(N)                  | xsd:integer            |
-%   | literal(lang(D,Lex))        | rdf:langString         |
+%   | literal(lang(LTag,Lex))     | rdf:langString         |
 %   | literal(type(D,Lex))        | D                      |
 %   | literal(Lex)                | xsd:string             |
-%   | month_day(Mo,D)             | xsd:gMonthDay          |
+%   | month(Mo)                   | xsd:gMonth             |
+%   | month_day(Mo,Da)            | xsd:gMonthDay          |
 %   | nonneg(N)                   | xsd:nonNegativeInteger |
 %   | oneof([false,true])         | xsd:boolean            |
 %   | pair(string,atom)           | rdf:langString         |
@@ -771,6 +773,10 @@ rdf_literal_dwim(Compound, literal(type(D,Lex))) :-
   xsd_date_time_term_(Compound), !,
   xsd_time_string(Compound, D, String),
   atom_string(Lex, String).
+% day/1
+rdf_literal_dwim(day(Da), literal(type(D,Lex))) :- !,
+  rdf_equal(xsd:gDay, D),
+  xsd_time_string(Da, D, Lex).
 % decimal/1 → xsd:decimal
 rdf_literal_dwim(decimal(N), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:decimal, D),
@@ -795,6 +801,10 @@ rdf_literal_dwim(float(N), literal(type(D,Lex))) :- !,
 rdf_literal_dwim(integer(N), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:integer, D),
   atom_number(Lex, N).
+% month/1
+rdf_literal_dwim(month(Mo), literal(type(D,Lex))) :- !,
+  rdf_equal(xsd:gMonth, D),
+  xsd_time_string(Mo, D, Lex).
 % nonneg/1 → xsd:nonNegativeInteger
 rdf_literal_dwim(nonneg(N), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:nonNegativeInteger, D),
@@ -814,9 +824,9 @@ rdf_literal_dwim(string(Atomic), literal(type(D,Lex))) :- !,
 rdf_literal_dwim(uri(Uri), literal(type(D,Uri))) :- !,
   rdf_equal(D, xsd:anyURI).
 % year/1 → xsd:gYear
-rdf_literal_dwim(year(Year), literal(type(D,Lex))) :- !,
+rdf_literal_dwim(year(Y), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:gYear, D),
-  atom_number(Lex, Year).
+  xsd_time_string(Y, D, Lex).
 % double → xsd:double
 % float → xsd:double
 rdf_literal_dwim(Value, literal(type(D,Lex))) :-
