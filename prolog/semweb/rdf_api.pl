@@ -220,7 +220,7 @@ assert_triple(B1, S, P1, O1) :-
   rdf_object_dwim(O1, O2),
   pre_backend_(B1, B2),
   rdf_api:assert_triple_(B2, S, P2, O2),
-  post_backend_(B1, B2).
+  post_backend_(B2, B1).
 
 rdf_api:assert_triple_(dummy, _, _, _) :-
   fail.
@@ -644,7 +644,7 @@ tp_retractall(B1, S, P1, O1) :-
   tp_object_dwim(O1, O2),
   pre_backend_(B1, B2),
   rdf_api:tp_retractall_(B2, S, P2, O2),
-  post_backend_(B1, B2).
+  post_backend_(B2, B1).
 
 rdf_api:tp_retractall_(dummy, _, _, _) :-
   fail.
@@ -742,8 +742,8 @@ pre_backend_(B, B).
 
 
 
-%! post_backend_(+Backend1, +Backend2) is det.
+%! post_backend_(+Backend2, ?Backend1) is det.
 
-post_backend_(B, _) :-
-  ground(B), !.
+post_backend_(_, B1) :-
+  ground(B1), !.
 post_backend_(B, B).
