@@ -760,6 +760,8 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 rdf_literal_dwim(Term, _) :-
   var(Term), !,
   instantiation_error(Term).
+rdf_literal_dwim(literal(Term), literal(Term)) :-
+  var(Term), !.
 rdf_literal_dwim(literal(value(D,Value)), literal(value(D,Value))) :- !.
 % geospatial shapes
 rdf_literal_dwim(shape(Z,LRS,CRS,Shape), Literal) :- !,
