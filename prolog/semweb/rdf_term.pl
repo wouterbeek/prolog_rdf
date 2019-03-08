@@ -748,7 +748,7 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %   | month_day(Mo,Da)            | xsd:gMonthDay          |
 %   | nonneg(N)                   | xsd:nonNegativeInteger |
 %   | oneof([false,true])         | xsd:boolean            |
-%   | pair(string,atom)           | rdf:langString         |
+%   | pair(string,list(atom))     | rdf:langString         |
 %   | positive_integer(N)         | xsd:positiveInteger    |
 %   | string                      | xsd:string             |
 %   | string(atom)                | xsd:string             |
@@ -766,8 +766,9 @@ rdf_literal_dwim(shape(Z,LRS,CRS,Shape), Literal) :- !,
   wkt_shape_atom(shape(Z,LRS,CRS,Shape), Lex),
   rdf_typed_literal(geo:wktLiteral, Lex, Literal).
 % language-tagged string
-rdf_literal_dwim(String-LTag, literal(lang(LTag,Lex))) :- !,
-  atom_string(Lex, String).
+rdf_literal_dwim(String-Tags, literal(lang(Tag,Lex))) :- !,
+  atom_string(Lex, String),
+  atomic_list_concat(Tags, -, Tag).
 % date/3, date_time/[6.7], month_day/2, time/3, year_month/2
 rdf_literal_dwim(Compound, literal(type(D,Lex))) :-
   xsd_date_time_term_(Compound), !,
@@ -885,7 +886,8 @@ rdf_literal_value(Literal, Value) :-
 
 
 % language-tagged strings do not have a value space.
-rdf_literal_value(literal(lang(LTag,Lex)), rdf:langString, Lex-LTag) :- !.
+rdf_literal_value(literal(lang(Tag,Lex)), rdf:langString, Lex-Tags) :- !,
+  atomic_list_concat(Tags, -, Tag).
 % typed literal
 rdf_literal_value(literal(type(D,Lex)), D, Value) :- !,
   rdf_lexical_value(D, Lex, Value).

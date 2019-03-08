@@ -121,7 +121,7 @@ Backend-independent RDF API.
    tp_update(t, r, r, o, t),
    tp_value(t, r, r, -).
 
-:- setting(language_range, atom, 'en-us',
+:- setting(language_range, list(atom), [en,us],
            "Language range indicating language tag preferences.").
 
 
