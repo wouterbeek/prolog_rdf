@@ -786,6 +786,22 @@ rdf_literal_dwim(decimal(N), literal(type(D,Lex))) :- !,
 rdf_literal_dwim(double(N), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:double, D),
   atom_number(Lex, N).
+% dt/7 → xsd:dateTime
+rdf_literal_dwim(dt(Y,Mo,Da,H,Mi,S,TZ), Literal) :-
+  (   ground(dt(Y,Mo,Da,H,Mi,S,TZ))
+  ->  rdf_literal_dwim(date_time(Y,Mo,Da,H,Mi,S,TZ), Literal)
+  ;   ground(dt(Y,Mo,Da,H,Mi,S))
+  ->  rdf_literal_dwim(date_time(Y,Mo,Da,H,Mi,S), Literal)
+  ;   ground(dt(Y,Mo,Da))
+  ->  rdf_literal_dwim(date(Y,Mo,Da), Literal)
+  ;   ground(dt(Mo,Da))
+  ->  rdf_literal_dwim(month_day(Mo,Da), Literal)
+  ;   ground(dt(H,Mi,S))
+  ->  rdf_literal_dwim(time(H,Mi,S), Literal)
+  ;   ground(dt(Y,Mo))
+  ->  rdf_literal_dwim(year_month(Y,Mo), Literal)
+  ;   instantiation_error(dt(Y,Mo,Da,H,Mi,S,TZ))
+  ).
 % duration/1 → xsd:dayTimeDuration
 rdf_literal_dwim(duration(S), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:dayTimeDuration, D),
