@@ -37,7 +37,6 @@
     subproperty/3,                   % ?Backend, ?P, ?Q
     term_string/3,                   % ?Backend, +Term, -String
     tp/4,                            % ?Backend, ?S, ?P, ?O
-    tp_chk/4,                        % ?Backend, ?S, ?P, ?O
     tp_count/5,                      % ?Backend, ?S, ?P, ?O, -N
     tp_dt/4,                         % ?Backend, ?S, ?P, -Datetime
     tp_retractall/4,                 % +Backend, ?S, ?P, ?O
@@ -52,7 +51,7 @@
 Backend-independent RDF API.
 
 @author Wouter Beek
-@version 2018
+@version 2018-2019
 */
 
 :- use_module(library(aggregate)).
@@ -113,7 +112,6 @@ Backend-independent RDF API.
    term_string(t, o, -),
    term_string_property_(r),
    tp(t, r, r, o),
-   tp_chk(t, r, r, o),
    tp_count(t, r, r, o, -),
    tp_dt(t, r, r, -),
    tp_retractall(t, r, r, o),
@@ -315,7 +313,7 @@ instance(_, C, D) :-
 list(B, L1, L2) :-
   ground(L1), !,
   % Ensure this is an RDF list.
-  tp_chk(B, L1, rdf:rest, _),
+  once(tp(B, L1, rdf:rest, _)),
   findall(X, list_member(B, X, L1), L2).
 list(B, L1, L2) :-
   ground(L2), !,
@@ -344,7 +342,7 @@ list_(B, L1, [H|T]) :-
 %   - `>' when X apears after Y in the list.
 
 list_compare(B, X, X, =) :-
-  tp_chk(B, _, rdf:first, X), !.
+  once(tp(B, _, rdf:first, X)), !.
 list_compare(B, X, Y, <) :-
   'rdf_list_<'(B, X, Y), !.
 list_compare(B, X, Y, >) :-
@@ -606,13 +604,6 @@ rdf_api:tp_(dummy, _, _, _) :-
 
 
 
-%! tp_chk(?Backend, ?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object) is nondet.
-
-tp_chk(B, S, P, O) :-
-  once(tp(B, S, P, O)).
-
-
-
 %! tp_count(?Backend, ?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, -N:nonneg) is nondet.
 
 tp_count(B1, S, P1, O1, N) :-
@@ -654,8 +645,9 @@ rdf_api:tp_retractall_(dummy, _, _, _) :-
 %! tp_string(?Backend, ?S:rdf_subject, ?P:rdf_predicate, -String:string) is nondet.
 
 tp_string(B, S, P, String) :-
-  tp(B, S, P, O),
-  term_string(O, String).
+  tp(B, S, P, literal(Term)),
+  rdf_literal_lexical_form(literal(Term), Lex),
+  atom_string(Lex, String).
 
 
 
