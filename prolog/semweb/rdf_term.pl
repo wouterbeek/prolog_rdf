@@ -176,8 +176,6 @@ error:has_type(rdf_tuple, Term) :-
            "The default base URI for RDF IRIs.").
 :- setting(bnode_prefix_authority, atom, 'example.org', "").
 :- setting(bnode_prefix_scheme, atom, https, "").
-:- setting(max_container_membership_property, positive_integer, 1,
-           "The maximum index for which a container membership property will be generated.").
 
 
 
@@ -304,16 +302,14 @@ rdf_container_membership_property(P) :-
 % database.
 
 rdf_container_membership_property(P, N) :-
-  var(P), !,
-  setting(max_container_membership_property, Max),
-  between(1, Max, N),
   rdf_equal(rdf:'_', Prefix),
-  atom_concat(Prefix, N, P).
-rdf_container_membership_property(P, N) :-
-  rdf_equal(rdf:'_', Prefix),
-  atom_concat(Prefix, Atom, P),
-  atom_number(Atom, N),
-  must_be(positive_integer, N).
+  (   var(P)
+  ->  between(1, inf, N),
+      atom_concat(Prefix, N, P)
+  ;   atom_concat(Prefix, Atom, P),
+      atom_number(Atom, N),
+      must_be(positive_integer, N)
+  ).
 
 
 
@@ -887,9 +883,12 @@ xsd_date_time_term_(year_month(_,_)).
 %! rdf_literal_lexical_form(+Literal:rdf_literal, +Lex:atom) is semidet.
 %! rdf_literal_lexical_form(+Literal:rdf_literal, -Lex:atom) is det.
 
-rdf_literal_lexical_form(literal(type(_,Lex)), Lex) :- !.
-rdf_literal_lexical_form(literal(lang(_,Lex)), Lex) :- !.
-rdf_literal_lexical_form(literal(Lex), Lex).
+rdf_literal_lexical_form(literal(type(_,Lex)), Lex) :- !,
+  must_be(atom, Lex).
+rdf_literal_lexical_form(literal(lang(_,Lex)), Lex) :- !,
+  must_be(atom, Lex).
+rdf_literal_lexical_form(literal(Lex), Lex) :-
+  must_be(atom, Lex).
 
 
 

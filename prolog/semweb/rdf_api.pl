@@ -2,12 +2,16 @@
 :- module(
   rdf_api,
   [
+    assert_alt/4,                    % +Backend, ?Container, +Default, +Others
+    assert_bag/3,                    % +Backend, ?Container, +Set
+    assert_container/3,              % +Backend, ?Container, +Members
     assert_instance/3,               % +Backend, +I, +C
     assert_list/3,                   % +Backend, +RdfListBase, +PrologList
     assert_list_triple/4,            % +Backend, +S, +P, +PrologList
     assert_now/3,                    % +Backend, +S, +P
     assert_now/4,                    % +Backend, +S, +P, +D
     assert_reification/5,            % +Backend, +S, +P, +O, ?Statement
+    assert_seq/3,                    % +Backend, ?Container, +List
     assert_shape/3,                  % +Backend, +Feature, +Shape
     assert_shape/4,                  % +Backend, +Feature, +Shape, -Geometry
     assert_triple/2,                 % +Backend, +Triple
@@ -58,6 +62,7 @@ Backend-independent RDF API.
 :- use_module(library(apply)).
 :- use_module(library(clpfd)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
 :- use_module(library(settings)).
 
 :- use_module(library(closure)).
@@ -78,12 +83,16 @@ Backend-independent RDF API.
     rdf_api:tp_retractall_/4.
 
 :- rdf_meta
+   assert_alt(t, r, o, t),
+   assert_bag(t, r, t),
+   assert_container(t, r, t),
    assert_instance(t, r, r),
    assert_list(t, r, t),
    assert_list_triple(t, r, r, t),
    assert_now(t, r, r),
    assert_now(t, r, r, r),
    assert_reification(t, r, r, o, r, r),
+   assert_seq(t, r, t),
    assert_shape(t, r, +),
    assert_shape(t, r, +, -),
    assert_triple(t, t),
@@ -123,6 +132,38 @@ Backend-independent RDF API.
            "Language range indicating language tag preferences.").
 
 
+
+
+
+%! assert_alt(+Backend, +Container:rdf_subject, +Default:rdf_term, +Others:list(rdf_term)) is det.
+%! assert_alt(+Backend, -Container:iri, +Default:rdf_term, +Others:list(rdf_term)) is det.
+
+assert_alt(B, C, H, T) :-
+  assert_instance(B, C, rdf:'Alt'),
+  assert_container(B, C, [H|T]).
+
+
+
+%! assert_bag(+Backend, +Container:rdf_subject, +Members:list(rdf_term)) is det.
+%! assert_bag(+Backend, -Container:iri, +Members:list(rdf_term)) is det.
+
+assert_bag(B, C, L) :-
+  assert_instance(B, C, rdf:'Bag'),
+  assert_container(B, C, L).
+
+
+
+%! assert_container(+Backend, +Container:rdf_subject, +Members:list(rdf_term)) is det.
+%! assert_container(+Backend, -Container:iri, +Members:list(rdf_term)) is det.
+
+assert_container(B, C, L) :-
+  forall(
+    nth1(N, L, X),
+    (
+      rdf_container_membership_property(P, N),
+      assert_triple(B, C, P, X)
+    )
+  ).
 
 
 
@@ -187,6 +228,16 @@ assert_reification(B, S, P, O, Stmt) :-
   assert_triple(B, Stmt, rdf:predicate, P),
   assert_triple(B, Stmt, rdf:object, O),
   assert_triple(B, S, P, O).
+
+
+
+%! assert_seq(+Backend, +Container:rdf_subject, +Members:list(rdf_term)) is det.
+%! assert_seq(+Backend, -Container:iri, +Members:list(rdf_term)) is det.
+
+assert_seq(B, C, L) :-
+  (var(C) -> rdf_bnode_iri(C) ; true),
+  assert_instance(B, C, rdf:'Seq'),
+  assert_container(B, C, L).
 
 
 
