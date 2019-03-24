@@ -489,6 +489,7 @@ prefix_(sioc, 'http://rdfs.org/sioc/ns#').
 %       skos
 prefix_(spitfire, 'http://spitfire-project.eu/ontology/ns/').
 prefix_(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
+prefix_(time, 'http://www.w3.org/2006/time#').
 prefix_(umbel, 'http://umbel.org/umbel#').
 prefix_(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
 prefix_(vcard, 'http://www.w3.org/2006/vcard/ns#').
