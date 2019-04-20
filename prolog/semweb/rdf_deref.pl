@@ -13,7 +13,7 @@
 /** <module> RDF dereference
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(error)).
@@ -190,7 +190,11 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
       ),
       read_rdfa(In, Triples, Options2),
       call(Mod:Goal_2, Triples, _)
-  ;   % An unsupported Media Type (e.g., JSON-LD).
+  %;   % JSON-LD
+  %    memberchk(MediaType, [media(application/'ld+json',_)])
+  %->  read_jsonld(In, Triples),
+  %    call(Mod:Goal_2, Triples, _)
+  ;   % An unsupported Media Type.
       print_message(warning, rdf(unsupported_format(MediaType,_)))
   ).
 
@@ -226,7 +230,7 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
     (
       (   http_metadata_content_type(Metas, MediaType)
       ->  merge_options(Options2, [content_type(MediaType)], Options3)
-      ;   true
+      ;   Options3 = Options2
       ),
       rdf_deref_stream(Uri, In, Goal_3, Options3)
     ),
