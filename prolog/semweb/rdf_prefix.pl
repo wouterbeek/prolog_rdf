@@ -47,6 +47,7 @@ standards SWI-Prolog distribution.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(error)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
@@ -94,12 +95,10 @@ rdf_prefix_append(L1, L2, L) :-
 %! rdf_prefix_iri(+Alias:atom, +Local:atom, -Iri:atom) is det.
 %
 % @see Like rdf_prefix_iri/2, but works with maplist/3.
-%
-% @bug rdf_global_id/2 does not work sometimes.
 
 rdf_prefix_iri(Alias, Local, Iri) :-
-  rdf_prefix(Alias, Prefix),
-  atom_concat(Prefix, Local, Iri).
+  must_be(atom, Local),
+  rdf_prefix_iri(Alias:Local, Iri).
 
 
 
