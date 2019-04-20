@@ -43,7 +43,7 @@ standards SWI-Prolog distribution.
 @tbd There is currently no way to retract prefix declarations.
 
 @author Wouter Beek
-@version 2018
+@version 2018-2019
 */
 
 :- use_module(library(apply)).
@@ -94,9 +94,12 @@ rdf_prefix_append(L1, L2, L) :-
 %! rdf_prefix_iri(+Alias:atom, +Local:atom, -Iri:atom) is det.
 %
 % @see Like rdf_prefix_iri/2, but works with maplist/3.
+%
+% @bug rdf_global_id/2 does not work sometimes.
 
 rdf_prefix_iri(Alias, Local, Iri) :-
-  rdf_prefix_iri(Alias:Local, Iri).
+  rdf_prefix(Alias, Prefix),
+  atom_concat(Prefix, Local, Iri).
 
 
 
