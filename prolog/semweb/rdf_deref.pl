@@ -23,6 +23,7 @@
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
 
+:- use_module(library(archive_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(http/http_client2)).
@@ -103,18 +104,19 @@ rdf_deref_stream(BaseUri, In, Goal_3) :-
   rdf_deref_stream(BaseUri, In, Goal_3, []).
 
 
-rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
+rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
+  archive_stream(In1, In2),
   % Determine the serialization format.
   (   % An explicitly specified Media Type overrules everything else.
       option(media_type(MediaType), Options1)
   ->  true
   ;   % Heuristic 1: guess based on a first chunk of the data.
-      rdf_guess_stream(In, 10 000, MediaTypeGuess),
+      rdf_guess_stream(In2, 10 000, MediaTypeGuess),
       (   % Heuristic 2: the value of the HTTP `Content-Type' header.
-          option(content_type(MediaType), Options1)
-      ->  (   'rdf_media_type_>'(MediaTypeGuess, MediaType)
+          option(content_type(MediaTypeHttp), Options1)
+      ->  (   'rdf_media_type_>'(MediaTypeGuess, MediaTypeHttp)
           ->  !
-          ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeGuess)),
+          ;   print_message(warning, inconsistent_media_types(MediaTypeHttp,MediaTypeGuess)),
               MediaType = MediaTypeGuess
           )
       ;   MediaType = MediaTypeGuess
@@ -142,7 +144,7 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_ntriples(In, Mod:Goal_2, Options2)
+      rdf_process_ntriples(In2, Mod:Goal_2, Options2)
   ;   % N-Triples
       media_type_comps(MediaType, application, 'n-triples', _)
   ->  merge_options(
@@ -150,11 +152,11 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_ntriples(In, Mod:Goal_2, Options2)
+      rdf_process_ntriples(In2, Mod:Goal_2, Options2)
   ;   % RDF/XML
       media_type_comps(MediaType, application, 'rdf+xml', _)
   ->  merge_options([base_uri(BaseUri),max_errors(-1)], Options1, Options2),
-      process_rdf(In, Mod:Goal_2, Options2)
+      process_rdf(In2, Mod:Goal_2, Options2)
   ;   % TriG
       media_type_comps(MediaType, application, trig, _)
   ->  merge_options(
@@ -167,7 +169,7 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_turtle(In, Mod:Goal_2, Options2)
+      rdf_process_turtle(In2, Mod:Goal_2, Options2)
   ;   % Turtle
       media_type_comps(MediaType, text, turtle, _)
   ->  merge_options(
@@ -180,7 +182,7 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_turtle(In, Mod:Goal_2, Options2)
+      rdf_process_turtle(In2, Mod:Goal_2, Options2)
   ;   % RDFa
       memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_options(
@@ -188,11 +190,11 @@ rdf_deref_stream(BaseUri, In, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      read_rdfa(In, Triples, Options2),
+      read_rdfa(In2, Triples, Options2),
       call(Mod:Goal_2, Triples, _)
   %;   % JSON-LD
   %    memberchk(MediaType, [media(application/'ld+json',_)])
-  %->  read_jsonld(In, Triples),
+  %->  read_jsonld(In2, Triples),
   %    call(Mod:Goal_2, Triples, _)
   ;   % An unsupported Media Type.
       print_message(warning, rdf(unsupported_format(MediaType,_)))
