@@ -11,9 +11,7 @@
     rdf_container_membership_property/1, % ?P
     rdf_container_membership_property/2, % ?P, ?N
    %rdf_create_bnode/1,                  % --BNode
-    rdf_create_hash_iri/3,               % +Alias, +Term, -Iri
-    rdf_create_hash_iri/4,               % +Alias, +Segments, +Term, -Iri
-    rdf_create_iri/3,                    % +Alias, +Segments, -Iri
+    rdf_create_iri/3,                    % +Alias, +Terms, -Iri
    %rdf_default_graph/1,                 % ?G
     rdf_iri//1,                          % ?Iri
    %rdf_is_bnode/1,                      % @Term
@@ -54,7 +52,9 @@
 @version 2018-2019
 */
 
+:- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(date_time)).
 :- use_module(library(lists)).
 :- reexport(library(semweb/rdf_db), [
      rdf_is_bnode/1,
@@ -313,27 +313,21 @@ rdf_container_membership_property(P, N) :-
 
 
 
-%! rdf_create_hash_iri(+Alias:atom, +Term:term, -Iri:atom) is det.
-%! rdf_create_hash_iri(+Alias:atom, +Segments:list(atom), +Term:term, -Iri:atom) is det.
+%! rdf_create_iri(+Alias, +Terms:list(term), -Iri:atom) is det.
 
-rdf_create_hash_iri(Alias, Term, Iri) :-
-  rdf_create_hash_iri(Alias, [], Term, Iri).
+rdf_create_iri(Alias, Terms, Iri) :-
+  convlist(term_to_segment_, Terms, Segments),
+  compound_name_arguments(Fingerprint, Alias, Segments),
+  md5(Fingerprint, Local),
+  rdf_prefix_iri(Alias, Local, Iri).
 
-
-rdf_create_hash_iri(Alias, Segments1, Term, Iri) :-
-  md5(Term, Hash),
-  append(Segments1, [Hash], Segments2),
-  rdf_create_iri(Alias, Segments2, Iri).
-
-
-
-%! rdf_create_iri(+Alias, +Segments:list(atom), -Iri:atom) is det.
-
-rdf_create_iri(Alias, Segments2, Iri) :-
-  rdf_prefix(Alias, Prefix),
-  uri_comps(Prefix, uri(Scheme,Auth,Segments1,_,_)),
-  append_segments(Segments1, Segments2, Segments3),
-  uri_comps(Iri, uri(Scheme,Auth,Segments3,_,_)).
+term_to_segment_(dt(Y,Mo,D,H,Mi,S,TZ), Segment) :- !,
+  dt_label(dt(Y,Mo,D,H,Mi,S,TZ), Segment).
+term_to_segment_(Literal, Segment) :-
+  rdf_is_literal(Literal), !,
+  rdf_literal_lexical_form(Literal, Segment).
+term_to_segment_(Segment, Segment) :-
+  ground(Segment).
 
 
 
