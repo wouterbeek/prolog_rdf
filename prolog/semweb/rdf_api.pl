@@ -44,6 +44,7 @@
     tp/4,                            % ?Backend, ?S, ?P, ?O
     tp_count/5,                      % ?Backend, ?S, ?P, ?O, -N
     tp_dt/4,                         % ?Backend, ?S, ?P, -Datetime
+    tp_lts/5,                        % ?Backend, ?S, ?P, +LTag, -String
     tp_retractall/4,                 % +Backend, ?S, ?P, ?O
     tp_string/4,                     % ?Backend, ?S, ?P, -String
     tp_update/5,                     % +Backend, ?S, ?P, ?O, +Action
@@ -125,6 +126,7 @@ Backend-independent RDF API.
    tp(t, r, r, o),
    tp_count(t, r, r, o, -),
    tp_dt(t, r, r, -),
+   tp_lts(t, r, r, +, -),
    tp_retractall(t, r, r, o),
    tp_string(t, r, r, -),
    tp_update(t, r, r, o, t),
@@ -686,6 +688,18 @@ tp_dt(B, S, P, Dt) :-
   xsd_time_string(XsdDt, D, Lex),
   xsd_date_time(Dt, D, XsdDt).
 
+
+
+%! tp_lts(?Backend,
+%!        ?S:rdf_subject,
+%!        ?P:rdf_predicate,
+%!        +LTag:atom,
+%!        -String:string) is nondet.
+
+tp_lts(B, S, P, LTag, String) :-
+  tp(B, S, P, O),
+  rdf_language_tagged_string(LTag, Lex, O),
+  atom_string(Lex, String).
 
 
 %! tp_retractall(+Backend, ?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object) is det.
