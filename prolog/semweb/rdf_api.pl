@@ -6,6 +6,7 @@
     assert_bag/3,                    % +Backend, ?Container, +Set
     assert_container/3,              % +Backend, ?Container, +Members
     assert_instance/3,               % +Backend, +I, +C
+    assert_label/3,                  % +Backend, +Term, +Label
     assert_list/3,                   % +Backend, +RdfListBase, +PrologList
     assert_list_triple/4,            % +Backend, +S, +P, +PrologList
     assert_now/3,                    % +Backend, +S, +P
@@ -87,6 +88,7 @@ Backend-independent RDF API.
    assert_bag(t, r, t),
    assert_container(t, r, t),
    assert_instance(t, r, r),
+   assert_label(t, r, o),
    assert_list(t, r, t),
    assert_list_triple(t, r, r, t),
    assert_now(t, r, r),
@@ -171,6 +173,13 @@ assert_container(B, C, L) :-
 
 assert_instance(B, I, C) :-
   assert_triple(B, I, rdf:type, C).
+
+
+
+%! assert_label(+Backend, +Term:rdf_term, +Label:rdf_term) is det.
+
+assert_label(B, Term, Label) :-
+  assert_triple(B, Term, rdfs:label, Label).
 
 
 
