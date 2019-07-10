@@ -150,7 +150,7 @@ rdf_dcg_proof_(N1, Options, p(Rule,Concl,Proofs)) -->
 
 
 %! rdf_dcg_qp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?G:rdf_graph)// is det.
-%! rdf_dcg_qp(?S"rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?G:rdf_graph, +Options:dict)// is det.
+%! rdf_dcg_qp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?G:rdf_graph, +Options:dict)// is det.
 
 rdf_dcg_qp(S, P, O, G) -->
   rdf_dcg_qp(S, P, O, G, options{}).
