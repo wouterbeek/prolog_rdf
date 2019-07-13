@@ -456,6 +456,10 @@ rdf_value_to_lexical(geo:wktLiteral, Value, Lex) :- !,
   ;   rdf_value_to_lexical_error(geo:wktLiteral, Value)
   ).
 
+% simple literal
+rdf_value_to_lexical(simple, Value, Lex) :- !,
+  rdf_value_to_lexical(xsd:string, Value, Lex).
+
 % rdf:HTML
 rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
   (   rdf11:parse_partial_xml(load_html, Lex, Value0)
@@ -618,14 +622,14 @@ rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
   ;   rdf_value_to_lexical_error(xsd:string, Value)
   ).
 
-rdf_lexical_to_value(D, Lex, _) :-
+rdf_lexical_to_value(D, Atom, Atom) :-
   (   ground(D)
-  ->  throw(error(unimplemented_lex2val(D,Lex),rdf_lexical_to_value/3))
+  ->  print_message(warning, error(unimplemented_lex2val(D,Atom),rdf_lexical_to_value/3))
   ;   instantiation_error(D)
   ).
-rdf_value_to_lexical(D, Value, _) :-
+rdf_value_to_lexical(D, Atom, Atom) :-
   (   ground(D)
-  ->  throw(error(unimplemented_val2lex(D,Value),rdf_value_to_lexical/3))
+  ->  print_message(warning, error(unimplemented_val2lex(D,Atom),rdf_value_to_lexical/3))
   ;   instantiation_error(D)
   ).
 
