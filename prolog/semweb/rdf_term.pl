@@ -456,10 +456,6 @@ rdf_value_to_lexical(geo:wktLiteral, Value, Lex) :- !,
   ;   rdf_value_to_lexical_error(geo:wktLiteral, Value)
   ).
 
-% simple literal
-rdf_value_to_lexical(simple, Value, Lex) :- !,
-  rdf_value_to_lexical(xsd:string, Value, Lex).
-
 % rdf:HTML
 rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
   (   rdf11:parse_partial_xml(load_html, Lex, Value0)
@@ -709,7 +705,7 @@ rdf_literal(rdf:langString, LTag, Lex, literal(lang(LTag,Lex))).
 %! rdf_literal_datatype_iri(+Literal:rdf_literal, +D:atom) is semidet.
 %! rdf_literal_datatype_iri(+Literal:rdf_literal, -D:atom) is det.
 
-rdf_literal_datatype_iri(literal(type(D,_)), D).
+rdf_literal_datatype_iri(literal(type(D,_)), D) :- !.
 rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 
 
@@ -756,7 +752,6 @@ rdf_literal_dwim(Term, _) :-
   instantiation_error(Term).
 rdf_literal_dwim(literal(Term), literal(Term)) :-
   var(Term), !.
-rdf_literal_dwim(literal(value(D,Value)), literal(value(D,Value))) :- !.
 % geospatial shapes
 rdf_literal_dwim(shape(Z,LRS,CRS,Shape), Literal) :- !,
   wkt_shape_atom(shape(Z,LRS,CRS,Shape), Lex),
@@ -901,16 +896,12 @@ rdf_literal_value(Literal, Value) :-
 
 
 % language-tagged strings do not have a value space.
-rdf_literal_value(literal(lang(Tag,Lex)), rdf:langString, Lex-Tags) :- !,
-  atomic_list_concat(Tags, -, Tag).
+rdf_literal_value(literal(lang(Tag,Lex)), rdf:langString, String-Tags) :- !,
+  atomic_list_concat(Tags, -, Tag),
+  atom_string(Lex, String).
 % typed literal
-rdf_literal_value(literal(type(D,Lex)), D, Value) :- !,
+rdf_literal_value(literal(type(D,Lex)), D, Value) :-
   rdf_lexical_value(D, Lex, Value).
-% value literal
-rdf_literal_value(literal(value(D,Value)), D, Value) :- !.
-% simple literal
-rdf_literal_value(literal(Lex), xsd:string, Value) :-
-  atom_string(Lex, Value).
 
 
 
