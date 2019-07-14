@@ -1104,8 +1104,8 @@ duSecondCanonicalFragmentMap(S) -->
 %     - noDecimalMap(N), otherwise
 
 duSecondFragmentMap(S) -->
-  "S",
-  (decimalPtMap(S) ; noDecimalMap(S)), !.
+  (decimalPtMap(S) ; noDecimalMap(S)),
+  "S".
 
 
 
