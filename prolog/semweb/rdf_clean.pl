@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rdf_clean,
   [
@@ -39,9 +40,9 @@
 % blank node occurs.  For this we use the Site argument.
 
 rdf_clean_bnode(Site, BNode, Iri) :-
-  % The RDF parsers create long blank node labels that do not conform
-  % to serialization grammars (e.g.,
-  % '_:http://www.gutenberg.org/feeds/catalog.rdf.bz2#_:Description2').
+  % The SWI-Prolog RDF parsers create long blank node labels that do
+  % not conform to serialization grammars (e.g.,
+  % ‘_:http://www.gutenberg.org/feeds/catalog.rdf.bz2#_:Description2’).
   % We use MD5 hashes to (1) at least limit the maximum length a blank
   % node label can have, (2) ensure that the blank node label does not
   % violate serialization grammars, while (3) retaining the feature
@@ -157,10 +158,10 @@ rdf_clean_nonliteral(_, Iri1, Iri2) :-
 
 %! rdf_clean_quad(+Site:uri, +Quad:rdf_quad, -CleanQuad:rdf_quad) is semidet.
 
-rdf_clean_quad(Site, rdf(S1,P1,O1,G1), rdf(S2,P2,O2,G2)) :-
+rdf_clean_quad(Site, rdf(S1,P1,O1,G1), tp(S2,P2,O2,G2)) :-
   catch(
     (
-      rdf_clean_triple_(Site, rdf(S1,P1,O1), rdf(S2,P2,O2)),
+      rdf_clean_triple_(Site, rdf(S1,P1,O1), tp(S2,P2,O2)),
       rdf_clean_graph(G1, G2)
     ),
     E,
@@ -193,7 +194,7 @@ rdf_clean_triple(Site, Triple1, Triple2) :-
     )
   ).
 
-rdf_clean_triple_(Site, rdf(S1,P1,O1), rdf(S2,P2,O2)) :-
+rdf_clean_triple_(Site, rdf(S1,P1,O1), tp(S2,P2,O2)) :-
   rdf_clean_nonliteral(Site, S1, S2),
   rdf_clean_iri(P1, P2),
   rdf_clean_term(Site, O1, O2).
