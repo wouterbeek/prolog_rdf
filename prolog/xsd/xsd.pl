@@ -135,22 +135,10 @@ zero_padded(N1, [H|T]) -->
 %! xsd_numeric_type(+D:iri) is semidet.
 %! xsd_numeric_type(-D:iri) is multi.
 
-xsd_numeric_type(xsd:byte).
 xsd_numeric_type(xsd:double).
-xsd_numeric_type(xsd:decimal).
 xsd_numeric_type(xsd:float).
-xsd_numeric_type(xsd:int).
-xsd_numeric_type(xsd:integer).
-xsd_numeric_type(xsd:long).
-xsd_numeric_type(xsd:negativeInteger).
-xsd_numeric_type(xsd:nonNegativeInteger).
-xsd_numeric_type(xsd:nonPositiveInteger).
-xsd_numeric_type(xsd:positiveInteger).
-xsd_numeric_type(xsd:short).
-xsd_numeric_type(xsd:unsignedByte).
-xsd_numeric_type(xsd:unsignedInt).
-xsd_numeric_type(xsd:unsignedLong).
-xsd_numeric_type(xsd:unsignedShort).
+xsd_numeric_type(D) :-
+  xsd_subtype(D, xsd:decimal).
 
 
 
