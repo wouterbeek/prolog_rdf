@@ -768,7 +768,8 @@ rdf_literal_dwim(Compound, literal(type(D,Lex))) :-
 % day/1
 rdf_literal_dwim(day(Da), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:gDay, D),
-  xsd_time_string(Da, D, Lex).
+  xsd_time_string(Da, D, String),
+  atom_string(Lex, String).
 % decimal/1 → xsd:decimal
 rdf_literal_dwim(decimal(N), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:decimal, D),
@@ -812,17 +813,20 @@ rdf_literal_dwim(integer(N), literal(type(D,Lex))) :- !,
 % month/1
 rdf_literal_dwim(month(Mo), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:gMonth, D),
-  xsd_time_string(Mo, D, Lex).
+  xsd_time_string(Mo, D, String),
+  atom_string(Lex, String).
 % nonneg/1 → xsd:nonNegativeInteger
 rdf_literal_dwim(nonneg(N), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:nonNegativeInteger, D),
   must_be(nonneg, N),
-  xsd_number_string(N, Lex).
+  xsd_number_string(N, String),
+  atom_string(Lex, String).
 % positive_integer/1 → xsd:positiveInteger
 rdf_literal_dwim(positive_integer(N), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:positiveInteger, D),
   must_be(positive_integer, N),
-  xsd_number_string(N, Lex).
+  xsd_number_string(N, String),
+  atom_string(Lex, String).
 % str/1 → xsd:string
 rdf_literal_dwim(string(Atomic), literal(type(D,Lex))) :- !,
   atom_string(Atomic, String),
@@ -834,7 +838,8 @@ rdf_literal_dwim(uri(Uri), literal(type(D,Uri))) :- !,
 % year/1 → xsd:gYear
 rdf_literal_dwim(year(Y), literal(type(D,Lex))) :- !,
   rdf_equal(xsd:gYear, D),
-  xsd_time_string(Y, D, Lex).
+  xsd_time_string(Y, D, String),
+  atom_string(Lex, String).
 % double → xsd:double
 % float → xsd:double
 rdf_literal_dwim(Value, literal(type(D,Lex))) :-
@@ -848,10 +853,10 @@ rdf_literal_dwim(Value, literal(type(D,Lex))) :-
   rdf_equal(xsd:integer, D),
   atom_number(Lex, Value).
 % string → xsd:string
-rdf_literal_dwim(Value, literal(type(D,Lex))) :-
-  string(Value), !,
+rdf_literal_dwim(String, literal(type(D,Lex))) :-
+  string(String), !,
   rdf_equal(xsd:string, D),
-  atom_string(Lex, Value).
+  atom_string(Lex, String).
 % regular typed literal
 rdf_literal_dwim(literal(type(D,Lex)), literal(type(D,Lex))) :- !.
 % regular language-tagged string
