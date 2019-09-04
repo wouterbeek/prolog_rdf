@@ -396,8 +396,24 @@ rdf_dcg_predicates1(I, [P-Os], SkipTPs1, SkipTPs2, Options) --> !,
   " ",
   rdf_dcg_predicate(P, Options),
   rdf_dcg_objects1(I, Os, SkipTPs1, SkipTPs2, Options).
-rdf_dcg_predicates1(I, Groups, SkipTPs1, SkipTPs2, Options) -->
-  rdf_dcg_predicates2(I, Groups, SkipTPs1, SkipTPs2, Options).
+rdf_dcg_predicates1(I, Groups1, SkipTPs1, SkipTPs3, Options) -->
+  rdf_dcg_instance_classes1(I, Groups1, Groups2, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_predicates2(I, Groups2, SkipTPs2, SkipTPs3, Options).
+
+rdf_dcg_instance_classes1(I, Groups1, Groups2, SkipTPs1, SkipTPs3, Options) -->
+  % @bug: rdf_prefix_selectchk/3 does not work here.
+  {selectchk('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'-[O|Os], Groups1, Groups2)}, !,
+  " a ",
+  rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_instance_classes2(I, Os, SkipTPs2, SkipTPs3, Options).
+rdf_dcg_instance_classes1(_, Groups, Groups, SkipTPs, SkipTPs, _) --> "".
+
+rdf_dcg_instance_classes2(_, [], SkipTPs, SkipTPs, _) --> !,
+  ";".
+rdf_dcg_instance_classes2(I, [O|Os], SkipTPs1, SkipTPs3, Options) -->
+  ", ",
+  rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_instance_classes2(I, Os, SkipTPs2, SkipTPs3, Options).
 
 rdf_dcg_predicates2(_, [], SkipTPs, SkipTPs, _) --> !, [].
 rdf_dcg_predicates2(I1, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
