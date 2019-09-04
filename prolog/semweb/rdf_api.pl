@@ -234,7 +234,7 @@ assert_now(B, S, P, D) :-
 % If Statement is not given, a fresh blank node is created.
 
 assert_reification(B, S, P, O, Stmt) :-
-  (var(Stmt) -> rdf_bnode_iri(Stmt) ; true),
+  ground_or_bnode_(Stmt),
   assert_triple(B, Stmt, rdf:subject, S),
   assert_triple(B, Stmt, rdf:predicate, P),
   assert_triple(B, Stmt, rdf:object, O),
@@ -246,7 +246,7 @@ assert_reification(B, S, P, O, Stmt) :-
 %! assert_seq(+Backend, -Container:iri, +Members:list(rdf_term)) is det.
 
 assert_seq(B, C, L) :-
-  (var(C) -> rdf_bnode_iri(C) ; true),
+  ground_or_bnode_(C),
   assert_instance(B, C, rdf:'Seq'),
   assert_container(B, C, L).
 
@@ -796,6 +796,16 @@ tp_value(B, S, P, Value) :-
 
 
 % HELPERS %
+
+%! ground_or_bnode_(+Term:rdf_term) is det.
+%! ground_or_bnode_(-Term:rdf_term) is det.
+
+ground_or_bnode_(Term) :-
+  var(Term), !,
+  rdf_bnode_iri(Term).
+ground_or_bnode(_).
+
+
 
 %! pre_backend_(+Backend1, -Backend2) is det.
 
