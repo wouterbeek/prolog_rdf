@@ -388,7 +388,7 @@ rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
   rdf_dcg_node(S, Options),
   {I2 is I1 + 4},
   rdf_dcg_predicates1(I2, SGroups, SkipTPs1, SkipTPs2, Options),
-  ({dict_get(newline, Options, false)} -> "" ; nl),
+  ({Groups == []} -> "" ; nl),
   rdf_dcg_subjects0(I1, Groups, SkipTPs2, Options).
 
 % There is exactly one predicate.  Emit it on the same line.

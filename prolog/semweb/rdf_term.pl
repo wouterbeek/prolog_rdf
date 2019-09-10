@@ -18,6 +18,7 @@
     rdf_is_bnode_iri/1,                  % @Term
    %rdf_is_iri/1,                        % @Term
    %rdf_is_literal/1,                    % @Term
+    rdf_is_literal_dwim/1,               % +DWIM
     rdf_is_name/1,                       % @Term
     rdf_is_numeric_literal/1,            % @Term
     rdf_is_object/1,                     % @Term
@@ -375,6 +376,14 @@ rdf_is_bnode_iri(Iri) :-
   uri_comps(Iri, uri(Scheme,Auth,Segments,_,_)),
   ground([Scheme,Auth]),
   prefix(['.well-known',genid], Segments).
+
+
+
+%! rdf_is_literal_dwim(+DWIM:term) is semidet.
+
+rdf_is_literal_dwim(Term) :-
+  catch(rdf_literal_dwim(Term, _), E, true),
+  var(E).
 
 
 

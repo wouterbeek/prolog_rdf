@@ -803,7 +803,7 @@ tp_value(B, S, P, Value) :-
 ground_or_bnode_(Term) :-
   var(Term), !,
   rdf_bnode_iri(Term).
-ground_or_bnode(_).
+ground_or_bnode_(_).
 
 
 
