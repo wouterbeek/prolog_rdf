@@ -26,6 +26,7 @@
 :- use_module(library(archive_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(file_ext)).
+:- use_module(library(hash_ext)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
@@ -135,7 +136,8 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
   Goal_2 =.. [Pred|Args2],
   % Use a well-known IRI with a UUID as blank node prefix.  The UUID
   % is determined by the base URI seed.
-  rdf_bnode_iri(BaseUri, BNodePrefix),
+  md5(BaseUri, Hash),
+  well_known_iri([Hash], BNodePrefix),
   % Parse according to the guessed Media Type.
   (   % N-Quads
       media_type_comps(MediaType, application, 'n-quads', _)

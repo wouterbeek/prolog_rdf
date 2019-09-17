@@ -11,7 +11,7 @@
 /** <module> RDF cleaning
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(semweb/rdf11), []).
@@ -48,7 +48,8 @@ rdf_clean_bnode(Site, BNode, Iri) :-
   % violate serialization grammars, while (3) retaining the feature
   % that the same blank node in the source document receives the same
   % Skolemized well-known IRI.
-  rdf_bnode_iri(Site-BNode, Iri).
+  md5(Site-BNode, Hash),
+  well_known_iri([Hash], Iri).
 
 
 

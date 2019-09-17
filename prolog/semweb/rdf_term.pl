@@ -4,8 +4,6 @@
   [
     rdf_atom_term/2,                     % ?Atom, ?Term
     rdf_base_uri/1,                      % ?BaseUri
-    rdf_bnode_iri/1,                     % -Iri
-    rdf_bnode_iri/2,                     % ?Seed, -Iri
     rdf_canonical_lexical_form/3,        % +D, +Lex, -CanonicaldLex
     rdf_canonical_literal/2,             % +Literal, -CanonicaldLiteral
     rdf_container_membership_property/1, % ?P
@@ -43,6 +41,7 @@
     rdf_typed_literal/3,                 % ?D, ?Lex, ?Literal
     tp_object_dwim/2,                    % ?DWIM, -O
     tp_predicate_dwim/2,                 % ?DWIM, -P
+    well_known_iri/1,                    % -Iri
     well_known_iri/2                     % +Segments, -Iri
   ]
 ).
@@ -252,20 +251,6 @@ rdf_bnode_generate_(BNode) -->
 rdf_bnode_parse_(BNode) -->
   remainder(T),
   {atom_codes(BNode, [0'_,0':|T])}.
-
-
-
-%! rdf_bnode_iri(-Iri:atom) is det.
-%! rdf_bnode_iri(+Seed:term, -Iri:atom) is det.
-
-rdf_bnode_iri(Iri) :-
-  uuid(Seed),
-  rdf_bnode_iri(Seed, Iri).
-
-
-rdf_bnode_iri(Seed, Iri) :-
-  md5(Seed, Hash),
-  well_known_iri([Hash], Iri).
 
 
 
@@ -1029,6 +1014,14 @@ tp_predicate_dwim(P, P) :-
 tp_predicate_dwim(P1, P2) :-
   rdf_predicate_dwim(P1, P2).
 
+
+
+%! well_known_iri(-Iri:atom) is det.
+
+well_known_iri(Iri) :-
+  uuid(Seed),
+  md5(Seed, Hash),
+  well_known_iri([Hash], Iri).
 
 
 %! well_known_iri(+Segments:list(atom), +Iri:atom) is semidet.
