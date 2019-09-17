@@ -96,11 +96,17 @@ rdf_prefix_append(L1, L2, L) :-
 
 %! rdf_prefix_iri(-Alias:atom, -Local:atom, +Iri:atom) is det.
 %! rdf_prefix_iri(+Alias:atom, +Local:atom, -Iri:atom) is det.
+%! rdf_prefix_iri(+Alias:atom, +Local:list(atom), -Iri:atom) is det.
 %
 % @see Like rdf_prefix_iri/2, but works with maplist/3.
 
-rdf_prefix_iri(Alias, Local, Iri) :-
-  must_be(atom, Local),
+rdf_prefix_iri(Alias, Local0, Iri) :-
+  (   var(Local0)
+  ->  Local = Local0
+  ;   atom(Local0)
+  ->  Local = Local0
+  ;   atomic_list_concat(Local0, /, Local)
+  ),
   rdf_prefix_iri(Alias:Local, Iri).
 
 
