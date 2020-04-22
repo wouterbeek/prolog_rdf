@@ -5,4 +5,4 @@ maintainer('Wouter Beek', 'wouter@triply.cc').
 name(prolog_rdf).
 packager('Wouter Beek', 'wouter@triply.cc').
 title('Prolog RDF Library').
-version('1.0.0').
+version('1.0.1').

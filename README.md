@@ -4,7 +4,7 @@ This library provides advanced support for working with RDF in Prolog.
 
 ## Installation
 
-Run the following command in [SWI-Prolog](http://www.swi-prolog.org):
+Run the following command in [SWI-Prolog](https://www.swi-prolog.org):
 
 ```pl
 pack_install(prolog_rdf).
@@ -40,34 +40,15 @@ documentation headers of predicates:
 This section enumerates the various modules that are included in this
 library.
 
-### `library(rdf_html)`
-
-This module provides DCG rules that generate simple human-readable
-HTML snippets that represent RDF terms and tuples.
-
-### `library(rdf_http)`
-
-This module supports the use of RDF terms in HTTP APIs, by
-encoding/decoding URI query components that contain RDF terms.
-
-### `library(rdf_api)`
-
-Provides higher-level RDF functionality based on low-level backend
-operations.  The backend operations themselves are not part of this
-Pro-RDF library, and should be added independently.  See
-[[https://github.com/wouterbeek/Pro-HDT][Pro-HDT]] and
-[[https://github.com/wouterbeek/Pro-RDF-DB][Pro-RDF-DB]] for two such
-backends.
-
 ### `library(rdf_clean)`
 
 This module contains data cleaning predicates that were previously
-part of [[http://lodlaundromat.org][LOD Laundromat]].  They can be
-used to clean RDF tuples that are streamed from an RDF source.  See
-module [[semweb/rdf_deref]] for creating streams over RDF sources.
+part of [LOD Laundromat](http://lodlaundromat.org).  They can be used
+to clean RDF tuples that are streamed from an RDF source.  See module
+[[semweb/rdf_deref]] for creating streams over RDF sources.
 
 In order to use this module, library
-[[https://github.com/wouterbeek/prolog_uriparser][prolog_uriparser]]
+[`prolog_uriparser`](https://github.com/wouterbeek/prolog_uriparser)
 must be installed.
 
 #### Blank node cleaning
@@ -78,9 +59,9 @@ standards-compliant output formats (e.g., forward slashes).  This is
 unfortunate, since writing the data into standard-compliant formats
 requires maintaining a state that ensures that Prolog internal blank
 node labels are consistently emitted by the same standard-compliant
-external blank node label.  See
-[[https://github.com/SWI-Prolog/packages-semweb/issues/68][this Github
-issue]] for context.
+external blank node label.  See [this Github
+issue](https://github.com/SWI-Prolog/packages-semweb/issues/68) for
+context.
 
 Besides the above considerations, blank nodes form a scalability issue
 in general.  Since blank node labels are only guaranteed to be unique
@@ -112,15 +93,15 @@ named graphs, this library checks whether they are well-formed IRIs.
 #### IRI cleaning
 
 IRI cleaning is the most difficult part of syntactic RDF data
-cleaning.  To date, the IRI grammar
-([[https://tools.ietf.org/html/rfc3987][RFC 3987]]) has not yet been
+cleaning.  To date, the IRI grammar ([RFC
+3987](https://tools.ietf.org/html/rfc3987)) has not yet been
 implemented.  Since this grammar was published over a decade ago, we
 must anticipate a future in which the main syntactic component of the
 Semantic Web cannot be validated.
 
-While there are implementations of the URI grammar
-([[https://tools.ietf.org/html/rfc3986][RFC 3986]]), the one provided
-by the Prolog standard library (`library(uri)`) is incorrect.
+While there are implementations of the URI grammar ([RFC
+3986](https://tools.ietf.org/html/rfc3986)), the one provided by the
+SWI-Prolog standard library (`library(uri)`) is incorrect.
 
 Because of the above two reasons we currently only check the following:
 
@@ -136,8 +117,8 @@ Because of the above two reasons we currently only check the following:
 
 For language-tagged strings, cleaning involves downcasing the language
 tag.  While there are implementations of the language tag grammar
-([RFC 5646](https://tools.ietf.org/html/rfc5646), we are not yet using
-these.
+([RFC 5646](https://tools.ietf.org/html/rfc5646)), we are not yet
+using these.
 
 Simple literals, i.e., literals with neither language tag not datatype
 IRI, are translated to typed literals with datatype IRI `xsd:string`.
@@ -203,8 +184,8 @@ This library provides primitives for generating GraphViz DOT exports
 of RDF terms and tuples.
 
 This module requires library
-[[https://github.com/wouterbeek/graph_export][graph_export]] to be
-installed.
+[`prolog_graphviz`](https://github.com/wouterbeek/prolog_graphviz) to
+be installed.
 
 ### `library(rdf_export)`
 
@@ -217,19 +198,6 @@ serialization format.  It contains the following predicates:
   - `rdf_write_quad/[2,3,5]`
   - `rdf_write_triple/[2,4]`
   - `rdf_write_tuple/2`
-
-### `library(rdf_geo)`
-
-This module extends hooks into module `library(semweb/rdf_term)` that allow
-GeoSPARQL-compliant geo-spatial objects to be read and written.
-
-This module currently supports the following serialization formats for
-geometries:
-
-  - Well Known Text (WKT)
-
-This module requires library
-[[https://github.com/wouterbeek/Pro-GIS][Pro-GIS]] to be installed.
 
 ### `library(rdf_guess)`
 

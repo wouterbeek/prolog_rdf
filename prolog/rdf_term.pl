@@ -38,6 +38,7 @@
     rdf_predicate_dwim/2,                % +DWIM, ?P
     rdf_term//1,                         % ?Term
     rdf_term_to_string/2,                % +Term, -String
+    rdf_triple_term/2,                   % +Triple, ?Term
     rdf_typed_literal/3,                 % ?Datatype, ?Lex, ?Literal
     tp_object_dwim/2,                    % ?DWIM, -O
     tp_predicate_dwim/2,                 % ?DWIM, -P
@@ -164,6 +165,7 @@ error:has_type(rdf_tuple, Term) :-
    rdf_object_dwim(t, -),
    rdf_predicate_dwim(r, r),
    rdf_term_to_string(o, -),
+   rdf_triple_term(t, r),
    rdf_typed_literal(r, ?, o),
    rdf_value_to_lexical(r, +, -),
    rdf_value_to_lexical_error(r, +),
@@ -988,6 +990,15 @@ rdf_term_to_string(Iri, String) :-
 rdf_term_to_string(Term, String) :-
   rdf_atom_term(Atom, Term),
   atom_string(Atom, String).
+
+
+
+%! rdf_triple_term(+Triple:rdf_triple, +Term:rdf_term) is semidet.
+%! rdf_triple_term(+Triple:rdf_triple, -Term:rdf_term) is multi.
+
+rdf_triple_term(tp(S,_,_), S).
+rdf_triple_term(tp(_,P,_), P).
+rdf_triple_term(tp(_,_,O), O).
 
 
 
