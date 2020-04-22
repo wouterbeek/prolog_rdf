@@ -12,8 +12,6 @@
 
 /** <module> RDF Media Types
 
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- use_module(library(archive_ext)).

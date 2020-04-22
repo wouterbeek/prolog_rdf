@@ -17,11 +17,6 @@ RDF/XML can be distinguished from Turtle-family serializations,
 because it is not possible to define valid RDF/XML without declaring
 XML namespaces.
 
----
-
-@author Wouter Beek
-@author Jan Wielemaker
-@version 2017-2018
 */
 
 :- use_module(library(sgml)).
@@ -31,7 +26,7 @@ XML namespaces.
 :- use_module(library(dcg)).
 :- use_module(library(file_ext)).
 :- use_module(library(media_type)).
-:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(rdf_prefix)).
 
 :- meta_predicate
     n3_lexical_form_codes(//, ?, ?).

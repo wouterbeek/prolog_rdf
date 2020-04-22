@@ -12,8 +12,6 @@
 
 /** <module> RDF dereference
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(error)).
@@ -27,13 +25,13 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
-:- use_module(library(http/http_client2)).
+:- use_module(library(http_client2)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
-:- use_module(library(semweb/rdf_guess)).
-:- use_module(library(semweb/rdf_media_type)).
-:- use_module(library(semweb/rdf_prefix)).
-:- use_module(library(semweb/rdf_term)).
+:- use_module(library(rdf_guess)).
+:- use_module(library(rdf_media_type)).
+:- use_module(library(rdf_prefix)).
+:- use_module(library(rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate
@@ -69,7 +67,7 @@ rdf_deref_file(Spec, Goal_3) :-
 
 rdf_deref_file(Spec, Goal_3, Options1) :-
   absolute_file_name(Spec, File, [access(read)]),
-  uri_file_name(BaseUri, File),
+  uri_data_file(BaseUri, File),
   merge_options(Options1, [base_uri(BaseUri)], Options2),
   read_from_file(
     File,
@@ -113,22 +111,25 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
   ->  true
   ;   % Heuristic 1: guess based on a first chunk of the data.
       rdf_guess_stream(In2, 10 000, MediaTypeGuess),
-      (   % Heuristic 2: the value of the HTTP `Content-Type' header.
-          option(content_type(MediaTypeHttp), Options1)
-      ->  (   'rdf_media_type_>'(MediaTypeGuess, MediaTypeHttp)
-          ->  !
-          ;   print_message(warning, inconsistent_media_types(MediaTypeHttp,MediaTypeGuess)),
-              MediaType = MediaTypeGuess
-          )
-      ;   MediaType = MediaTypeGuess
-      ),
-      (   % Heuristic 3: the URI path's file name extension.
-          uri_media_type(BaseUri, MediaTypeUri)
-      ->  (   'rdf_media_type_>'(MediaTypeUri, MediaType)
-          ->  !
-          ;   print_message(warning, inconsistent_media_types(MediaType,MediaTypeUri))
-          )
+      % Heuristic 2: the value of the HTTP `Content-Type' header.
+      ignore(option(content_type(MediaTypeHttp), Options1)),
+      % Heuristic 3: the URI path's file name extension.
+      ignore(uri_media_type(BaseUri, MediaTypeUri)),
+      (   nonvar(MediaTypeHttp),
+          \+ 'rdf_media_type_>'(MediaTypeGuess, MediaTypeHttp)
+      ->  print_message(warning, inconsistent_media_types(http(MediaTypeHttp),guess(MediaTypeGuess)))
       ;   true
+      ),
+      (   nonvar(MediaTypeUri),
+          \+ 'rdf_media_type_>'(MediaTypeUri, MediaTypeHttp)
+      ->  print_message(warning, inconsistent_media_types(MediaType,MediaTypeUri))
+      ;   true
+      ),
+      (   nonvar(MediaTypeHttp)
+      ->  MediaType = MediaTypeHttp
+      ;   nonvar(MediaTypeUri)
+      ->  MediaType = MediaTypeUri
+      ;   MediaType = MediaTypeGuess
       )
   ),
   Goal_3 =.. [Pred|Args1],

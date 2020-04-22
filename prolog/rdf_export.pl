@@ -17,16 +17,14 @@
 
 RDF export predicates that are backend-independent.
 
-@author Wouter Beek
-@version 2018
 */
 
 :- use_module(library(lists)).
 :- use_module(library(semweb/turtle), []).
 
 :- use_module(library(hash_ext)).
-:- use_module(library(semweb/rdf_prefix)).
-:- use_module(library(semweb/rdf_term)).
+:- use_module(library(rdf_prefix)).
+:- use_module(library(rdf_term)).
 
 :- rdf_meta
    rdf_write_iri(+, r),
@@ -126,9 +124,9 @@ rdf_write_term(Out, Literal) :-
 % rdf_write_triple/2 also accepts quadrupleds (denoted by compound
 % term rdf/4), but writes them as triples.
 
-rdf_write_triple(Out, rdf(S,P,O)) :- !,
+rdf_write_triple(Out, tp(S,P,O)) :- !,
   rdf_write_triple(Out, S, P, O).
-rdf_write_triple(Out, rdf(S,P,O,_)) :-
+rdf_write_triple(Out, tp(S,P,O,_)) :-
   rdf_write_triple(Out, S, P, O).
 
 
@@ -152,7 +150,7 @@ rdf_write_triple_open(Out, S, P, O) :-
 % as a triple.  If Tuple is a quadrupled (denoted by compound term
 % rdf/4), it is written as a quadruple.
 
-rdf_write_tuple(Out, rdf(S,P,O)) :- !,
+rdf_write_tuple(Out, tp(S,P,O)) :- !,
   rdf_write_triple(Out, S, P, O).
-rdf_write_tuple(Out, rdf(S,P,O,G)) :-
+rdf_write_tuple(Out, tp(S,P,O,G)) :-
   rdf_write_quad(Out, S, P, O, G).

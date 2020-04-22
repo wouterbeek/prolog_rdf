@@ -4,8 +4,6 @@
   [
     rdf_dcg_node//1,      % +Node
     rdf_dcg_node//2,      % +Node, +Options
-    rdf_dcg_pp//1,        % +PP
-    rdf_dcg_pp//2,        % +PP, +Options
     rdf_dcg_predicate//1, % +Predicate
     rdf_dcg_predicate//2, % +Predicate, +Options
     rdf_dcg_proof//1,     % +Proof
@@ -37,14 +35,7 @@
 |                |                      |             | extends the prefix declarations.   |
 | `pp`           | boolean              | `false`     | Whether non-Turtle pretty printing |
 |                |                      |             | should be applied.                 |
-| `variable_map` | list(pair(var,atom)) |             | A list of variable/atom mappings   |
-|                |                      |             | that are required when variables   |
-|                |                      |             | are printed.                       |
 
----
-
-@author Wouter Beek
-@version 2016-2019
 */
 
 :- use_module(library(aggregate)).
@@ -55,18 +46,17 @@
 :- use_module(library(solution_sequences)).
 :- use_module(library(yall)).
 
+:- use_module(library(abnf)).
+:- use_module(library(atom_ext)).
+:- use_module(library(call_ext)).
 :- use_module(library(dcg)).
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dict)).
-:- use_module(library(semweb/rdf_api)).
-:- use_module(library(semweb/rdf_prefix)).
-:- use_module(library(semweb/rdf_term)).
+:- use_module(library(rdf_prefix)).
+:- use_module(library(rdf_term)).
 
 :- rdf_meta
    rdf_dcg_node(o, ?, ?),
    rdf_dcg_node(o, +, ?, ?),
-   rdf_dcg_pp(t, ?, ?),
-   rdf_dcg_pp(t, +, ?, ?),
    rdf_dcg_predicate(r, ?, ?),
    rdf_dcg_predicate(r, +, ?, ?),
    rdf_dcg_proof(t),
@@ -96,20 +86,6 @@ rdf_dcg_node(Node, Options) -->
 
 
 
-%! rdf_dcg_pp(+PP:list(rdf_predicate))// is det.
-%! rdf_dcg_pp(+PP:list(rdf_predicate), +Options:dict)// is det.
-
-rdf_dcg_pp(PP) -->
-  rdf_dcg_pp(PP, options{}).
-
-
-rdf_dcg_pp([P], Options) --> !,
-  rdf_dcg_predicate(P, Options).
-rdf_dcg_pp(PP, Options) -->
-  *&({Options}/[P]>>rdf_dcg_predicate(P, "/", Options), PP).
-
-
-
 %! rdf_dcg_predicate(+P:rdf_predicate)// is det.
 %! rdf_dcg_predicate(+P:rdf_predicate, +Options:dict)// is det.
 
@@ -117,9 +93,12 @@ rdf_dcg_predicate(P) -->
   rdf_dcg_predicate(P, options{}).
 
 
-% @bug RDF prefix expansion does not work.
-rdf_dcg_predicate(P, _) -->
-  {rdf_equal(P, rdf:type)}, !,
+% BUG: RDF prefix expansion does not work.
+rdf_dcg_predicate(P, Options) -->
+  {
+    dict_get(iri_abbr, Options, true, true),
+    rdf_equal(P, rdf:type)
+  }, !,
   "a".
 rdf_dcg_predicate(P, Options) -->
   rdf_dcg_term_(P, Options).
@@ -158,17 +137,12 @@ rdf_dcg_qp(S, P, O, G) -->
 
 rdf_dcg_qp(S, P, O, G, Options) -->
   rdf_dcg_tp(S, P, O, Options),
-  " @",
+  " ",
   rdf_dcg_term_(G, Options).
 
 
 
-%! rdf_dcg_term_(+Term:rdf_term)// is det.
 %! rdf_dcg_term_(+Term:rdf_term, +Options:dict)// is det.
-
-rdf_dcg_term_(Term) -->
-  rdf_dcg_term_(Term, options{}).
-
 
 % rdfs:label
 rdf_dcg_term_(Term, Options) -->
@@ -197,7 +171,7 @@ rdf_dcg_term_(literal(type(D,Lex)), Options) --> !,
       atom(CanonicalLex)
   ;   % Do not show the datatype IRI for ‘xsd:string’.
       {rdf_equal(D, xsd:string)}
-  ->  "\"", atom(Lex), "\""
+  ->  rdf_dcg_lexical_form_(Lex, Options)
   ;   % Typed literal without special treatment: lexical form +
       % datatype IRI.
       rdf_dcg_lexical_form_(Lex, Options),
@@ -242,7 +216,8 @@ rdf_dcg_term_(Iri, Options) -->
             ->  atom_concat(Prefix, Local, Iri)
             )
         ;   % Abbreviated based on the global prefix declarations.
-            rdf_prefix_iri(Alias:Local, Iri)
+            rdf_prefix_iri(Alias:Local, Iri),
+            \+ sub_atom(Local, /)
         )
       }
   ->  {
@@ -270,10 +245,27 @@ rdf_dcg_term_(BNode, _) -->
   atom(BNode).
 
 rdf_dcg_lexical_form_(Lex, Options) -->
-  {dict_get(max_lit_len, Options, ∞, Length)},
-  "\"",
+  {
+    dict_get(max_lit_len, Options, ∞, Length),
+    extra_quotes_(Lex, ExtraQuotes)
+  },
+  ({ExtraQuotes == true} -> "\"\"\"" ; "\""),
   ({Length == ∞} -> atom(Lex) ; ellipsis(Lex, Length)),
-  "\"".
+  ({ExtraQuotes == true} -> "\"\"\"" ; "\"").
+
+extra_quotes_(Atom, true) :-
+  atom_codes(Atom, Codes),
+  member(Code, [0'",0'\n]),%"
+  memberchk(Code, Codes), !.
+extra_quotes_(_, false).
+
+escape_newlines, "\\n" -->
+  "\n", !,
+  escape_newlines.
+escape_newlines, [Code] -->
+  [Code], !,
+  escape_newlines.
+escape_newlines --> "".
 
 
 
@@ -295,13 +287,11 @@ rdf_dcg_tp(S, P, O) -->
 
 
 rdf_dcg_tp(S, P, O, Options) -->
-  "〈",
   rdf_dcg_node(S, Options),
-  ", ",
+  " ",
   rdf_dcg_predicate(P, Options),
-  ", ",
-  rdf_dcg_node(O, Options),
-  "〉".
+  " ",
+  rdf_dcg_node(O, Options).
 
 
 
@@ -318,9 +308,34 @@ rdf_dcg_tps(TPs) -->
 
 
 rdf_dcg_tps(TPs, Options) -->
+  rdf_dcg_prefixes(TPs),
   rdf_dcg_groups0([_NoGraph-TPs], Options).
 
-rdf_dcg_groups0([], _) --> !, [].
+rdf_dcg_prefixes(TPs) -->
+  {
+    aggregate_all(
+      set(Alias-Prefix),
+      (
+        member(tp(S,P,O), TPs),
+        member(Term, [S,P,O]),
+        rdf_is_iri(Term),
+        rdf_prefix_iri(Alias, _, Term),
+        rdf_prefix(Alias, Prefix)
+      ),
+      Pairs
+    )
+  },
+  '*'(rdf_dcg_prefix, Pairs), !,
+  ({Pairs == []} -> "" ; "\n").
+
+rdf_dcg_prefix(Alias-Prefix) -->
+  "prefix ",
+  atom(Alias),
+  ": <",
+  atom(Prefix),
+  ">\n".
+
+rdf_dcg_groups0([], _) --> !, "".
 rdf_dcg_groups0([G-TPs|Groups], Options) -->
   {dict_get(indent, Options, 0, I1)},
   (   {var(G)}
@@ -328,7 +343,7 @@ rdf_dcg_groups0([G-TPs|Groups], Options) -->
   ;   tab(I1),
       rdf_dcg_term_(G, Options),
       " {\n",
-      {I2 = I1 + 4}
+      {I2 = I1 + 2}
   ),
   rdf_dcg_tps0(I2, TPs, Options),
   ({var(G)} -> "" ; "}\n"),
@@ -347,10 +362,13 @@ rdf_dcg_tps0(I, TPs, Options) -->
 
 % blank node subject term
 is_skip_tp_(tp(S,_,_)) :-
-  rdf_is_bnode(S).
+  rdf_is_bnode(S), !.
+% well-known IRI subject term
+is_skip_tp_(tp(S,_,_)) :-
+  rdf_is_bnode_iri(S), !.
 % RDF list
 is_skip_tp_(tp(_,P,_)) :-
-  rdf_prefix_memberchk(P, [rdf:first,rdf:rest]).
+  rdf_prefix_memberchk(P, [rdf:first,rdf:rest]), !.
 % blank node object term
 is_skip_tp_(tp(_,_,O)) :-
   rdf_is_bnode(O).
@@ -382,61 +400,50 @@ tps_to_groups2(S, P, TPs, Os) :-
 
 %! rdf_dcg_subjects0(+Indent:nonneg, +Groups, +SkipTPs:list(tp), +Options:dict)// is det.
 
-rdf_dcg_subjects0(_, [], _, _) --> !, [].
+rdf_dcg_subjects0(_, [], _, _) --> !, "".
 rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
   tab(I1),
   rdf_dcg_node(S, Options),
-  {I2 is I1 + 4},
+  {I2 is I1 + 2},
   rdf_dcg_predicates1(I2, SGroups, SkipTPs1, SkipTPs2, Options),
+  nl,
   ({Groups == []} -> "" ; nl),
   rdf_dcg_subjects0(I1, Groups, SkipTPs2, Options).
 
-% There is exactly one predicate.  Emit it on the same line.
-rdf_dcg_predicates1(I, [P-Os], SkipTPs1, SkipTPs2, Options) --> !,
+% There is exactly one predicate-object pair; emit it on the same
+% line.
+rdf_dcg_predicates1(I, [P-[O]], SkipTPs1, SkipTPs2, Options) --> !,
   " ",
   rdf_dcg_predicate(P, Options),
-  rdf_dcg_objects1(I, Os, SkipTPs1, SkipTPs2, Options).
-rdf_dcg_predicates1(I, Groups1, SkipTPs1, SkipTPs3, Options) -->
-  rdf_dcg_instance_classes1(I, Groups1, Groups2, SkipTPs1, SkipTPs2, Options),
-  rdf_dcg_predicates2(I, Groups2, SkipTPs2, SkipTPs3, Options).
-
-rdf_dcg_instance_classes1(I, Groups1, Groups2, SkipTPs1, SkipTPs3, Options) -->
-  % @bug: rdf_prefix_selectchk/3 does not work here.
-  {selectchk('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'-[O|Os], Groups1, Groups2)}, !,
-  " a ",
   rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
-  rdf_dcg_instance_classes2(I, Os, SkipTPs2, SkipTPs3, Options).
-rdf_dcg_instance_classes1(_, Groups, Groups, SkipTPs, SkipTPs, _) --> "".
+  ".".
+rdf_dcg_predicates1(I, SGroups, SkipTPs1, SkipTPs2, Options) -->
+  rdf_dcg_predicates2(I, false, false, SGroups, SkipTPs1, SkipTPs2, Options).
 
-rdf_dcg_instance_classes2(_, [], SkipTPs, SkipTPs, _) --> !,
-  ";".
-rdf_dcg_instance_classes2(I, [O|Os], SkipTPs1, SkipTPs3, Options) -->
-  ", ",
-  rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
-  rdf_dcg_instance_classes2(I, Os, SkipTPs2, SkipTPs3, Options).
-
-rdf_dcg_predicates2(_, [], SkipTPs, SkipTPs, _) --> !, [].
-rdf_dcg_predicates2(I1, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
-  nl,
-  tab(I1),
+% That's all, folks!
+rdf_dcg_predicates2(_, _, _, [], SkipTPs, SkipTPs, _) --> !, "".
+rdf_dcg_predicates2(I1, StartOfBlock, InBlock, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
+  start_of_block(I1, StartOfBlock),
   rdf_dcg_predicate(P, Options),
-  {I2 is I1 + 4},
+  {I2 is I1 + 2},
   rdf_dcg_objects1(I2, Os, SkipTPs1, SkipTPs2, Options),
-  ({Groups == []} -> "." ; ";"),
-  rdf_dcg_predicates2(I1, Groups, SkipTPs2, SkipTPs3, Options).
+  ({Groups == []} -> ({InBlock == true} -> " " ; ".") ; ";"),
+  rdf_dcg_predicates2(I1, false, InBlock, Groups, SkipTPs2, SkipTPs3, Options).
+
+start_of_block(I, false) --> !,
+  nl,
+  tab(I).
+start_of_block(_, true) --> " ".
 
 % There is exactly one object.  Emit it on the same line.
 rdf_dcg_objects1(I, [O], SkipTPs1, SkipTPs2, Options) --> !,
-  " ",
   rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options).
-% There are multiple objects: group them together.
+% There are multiple objects: emit each on its one line.
 rdf_dcg_objects1(I, Os, SkipTPs1, SkipTPs2, Options) -->
   rdf_dcg_objects2(I, Os, SkipTPs1, SkipTPs2, Options).
 
-rdf_dcg_objects2(_, [], SkipTPs, SkipTPs, _) --> !, [].
+rdf_dcg_objects2(_, [], SkipTPs, SkipTPs, _) --> !, "".
 rdf_dcg_objects2(I, [O|Os], SkipTPs1, SkipTPs3, Options) -->
-  nl,
-  tab(I),
   rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
   ({Os == []} -> "" ; ","),
   rdf_dcg_objects2(I, Os, SkipTPs2, SkipTPs3, Options).
@@ -447,31 +454,35 @@ rdf_dcg_objects2(I, [O|Os], SkipTPs1, SkipTPs3, Options) -->
 %!                        +SkipTPs2:list(tp),
 %!                        +Options:dict)// is det.
 
-rdf_dcg_complex_object_(I1, Node, SkipTPs1, SkipTPs3, Options) -->
-  {
-    turtle_object_(Node, SkipTPs1, SkipTPs2, Pairs),
-    Pairs = [_|_], !,
-    group_pairs_by_key(Pairs, Groups),
-    I2 is I1 + 4
-  },
-  "[",
-  rdf_dcg_predicates1(I2, Groups, SkipTPs2, SkipTPs3, Options),
-  "]".
 rdf_dcg_complex_object_(_, RdfList, SkipTPs1, SkipTPs2, Options) -->
   {
     linear_list_(RdfList, SkipTPs1, SkipTPs2, Terms),
     Terms = [_|_]
   }, !,
+  " ",
   rdf_dcg_list_(Terms, Options).
+rdf_dcg_complex_object_(I1, Node, SkipTPs1, SkipTPs3, Options) -->
+  {
+    turtle_object_(Node, SkipTPs1, SkipTPs2, Pairs),
+    Pairs = [_|_], !,
+    group_pairs_by_key(Pairs, Groups),
+    I2 is I1 + 2
+  },
+  nl,
+  tab(I1),
+  "[",
+  rdf_dcg_predicates2(I2, true, true, Groups, SkipTPs2, SkipTPs3, Options),
+  "]".
 rdf_dcg_complex_object_(_, Term, SkipTPs, SkipTPs, Options) -->
+  " ",
   rdf_dcg_term_(Term, Options).
 
 %! turtle_object_(+RdfList:rdf_node,
 %!                +SkipTPs1:list(tp),
 %!                -SkipTPs2:list(tp),
 %!                -P_O_Pairs:list(pair(rdf_predicate,rdf_node))) is det.
-turtle_object_(S, SkipTPs1, SkipTPs3, [P-O|T]) :- !,
-  rdf_prefix_selectchk(tp(S,P,O), SkipTPs1, SkipTPs2),
+turtle_object_(S, SkipTPs1, SkipTPs3, [P-O|T]) :-
+  rdf_prefix_selectchk(tp(S,P,O), SkipTPs1, SkipTPs2), !,
   turtle_object_(S, SkipTPs2, SkipTPs3, T).
 turtle_object_(_, SkipTPs, SkipTPs, []).
 
@@ -502,7 +513,7 @@ rdf_dcg_list_(Terms, Options) -->
 %! rdf_dcg_list_tail_(+Terms:list(rdf_term), +Options:dict)// is det.
 
 rdf_dcg_list_tail_([H|T], Options) --> !,
-  ", ",
+  " ",
   rdf_dcg_term_(H, Options),
   rdf_dcg_list_tail_(T, Options).
 rdf_dcg_list_tail_([], _) --> "".

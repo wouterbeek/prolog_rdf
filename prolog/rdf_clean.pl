@@ -10,17 +10,15 @@
 
 /** <module> RDF cleaning
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(semweb/rdf11), []).
 
 :- use_module(library(hash_ext)).
-:- use_module(library(semweb/rdf_prefix)).
-:- use_module(library(semweb/rdf_term)).
+:- use_module(library(rdf_prefix)).
+:- use_module(library(rdf_term)).
 :- use_module(library(uri_ext)).
-:- use_module(library(uri_parse)).
+:- use_module(library(uriparser)).
 
 :- rdf_meta
    rdf_clean_quad(+, t, -),

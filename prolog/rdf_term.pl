@@ -4,7 +4,7 @@
   [
     rdf_atom_term/2,                     % ?Atom, ?Term
     rdf_base_uri/1,                      % ?BaseUri
-    rdf_canonical_lexical_form/3,        % +D, +Lex, -CanonicaldLex
+    rdf_canonical_lexical_form/3,        % +Datatype, +Lex, -CanonicaldLex
     rdf_canonical_literal/2,             % +Literal, -CanonicaldLiteral
     rdf_container_membership_property/1, % ?P
     rdf_container_membership_property/2, % ?P, ?N
@@ -25,20 +25,20 @@
    %rdf_is_subject/1,                    % @Term
     rdf_is_term/1,                       % @Term
     rdf_language_tagged_string/3,        % ?LTag, ?Lex, ?Literal
-    rdf_lexical_value/3,                 % +D, ?Lex, ?Value
+    rdf_lexical_value/3,                 % +Datatype, ?Lex, ?Value
     rdf_literal//1,                      % ?Literal
-    rdf_literal/4,                       % ?D, ?LTag, ?Lex, ?Literal
-    rdf_literal_datatype_iri/2,          % +Literal, ?D
+    rdf_literal/4,                       % ?Datatype, ?LTag, ?Lex, ?Literal
+    rdf_literal_datatype_iri/2,          % +Literal, ?Datatype
     rdf_literal_dwim/2,                  % +DWIM, ?Literal
     rdf_literal_lexical_form/2,          % +Literal, ?Lex
     rdf_literal_value/2,                 % +Literal, -Value
-    rdf_literal_value/3,                 % ?Literal, ?D, ?Value
+    rdf_literal_value/3,                 % ?Literal, ?Datatype, ?Value
     rdf_name_string/2,                   % +Name, -String
     rdf_object_dwim/2,                   % +DWIM, ?Term
     rdf_predicate_dwim/2,                % +DWIM, ?P
     rdf_term//1,                         % ?Term
     rdf_term_to_string/2,                % +Term, -String
-    rdf_typed_literal/3,                 % ?D, ?Lex, ?Literal
+    rdf_typed_literal/3,                 % ?Datatype, ?Lex, ?Literal
     tp_object_dwim/2,                    % ?DWIM, -O
     tp_predicate_dwim/2,                 % ?DWIM, -P
     well_known_iri/1,                    % -Iri
@@ -46,10 +46,8 @@
   ]
 ).
 
-/** <module> RDF term support
+/** <module> Advanced support for RDF terms
 
-@author Wouter Beek
-@version 2018-2019
 */
 
 :- use_module(library(apply)).
@@ -72,15 +70,15 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
-:- use_module(library(geo/wkt)).
 :- use_module(library(hash_ext)).
 :- use_module(library(plunit)).
-:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(rdf_prefix)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri_ext)).
-:- use_module(library(uri_parse)).
-:- use_module(library(xsd/xsd)).
-:- use_module(library(xsd/xsd_grammar)).
+:- use_module(library(uriparser)).
+:- use_module(library(wkt)).
+:- use_module(library(xsd)).
+:- use_module(library(xsd_grammar)).
 
 :- discontiguous
     rdf_lexical_to_value/3,
@@ -254,19 +252,19 @@ rdf_bnode_parse_(BNode) -->
 
 
 
-%! rdf_canonical_lexical_form(+D:iri, +Lex:atom, -CanonicaldLex:atom) is det.
+%! rdf_canonical_lexical_form(+Datatype:iri, +Lex:atom, -CanonicaldLex:atom) is det.
 
-rdf_canonical_lexical_form(D, Lex, CanonicalLex) :-
-  rdf_lexical_value(D, Lex, Value),
-  rdf_lexical_value(D, CanonicalLex, Value).
+rdf_canonical_lexical_form(Datatype, Lex, CanonicalLex) :-
+  rdf_lexical_value(Datatype, Lex, Value),
+  rdf_lexical_value(Datatype, CanonicalLex, Value).
 
 
 
 %! rdf_canonical_literal(+Literal:rdf_literal, -CanonicaldLiteral:rdf_literal) is det.
 
 rdf_canonical_literal(Literal, CanonicalLiteral) :-
-  rdf_literal_value(Literal, D, Value),
-  rdf_literal_value(CanonicalLiteral, D, Value).
+  rdf_literal_value(Literal, Datatype, Value),
+  rdf_literal_value(CanonicalLiteral, Datatype, Value).
 
 
 
@@ -303,12 +301,13 @@ rdf_container_membership_property(P, N) :-
 
 rdf_create_iri(Alias, Terms, Iri) :-
   convlist(term_to_segment_, Terms, Segments),
-  compound_name_arguments(Fingerprint, Alias, Segments),
-  md5(Fingerprint, Local),
+  atomic_list_concat(Segments, /, Local),
+  %compound_name_arguments(Fingerprint, Alias, Segments),
+  %md5(Fingerprint, Local),
   rdf_prefix_iri(Alias, Local, Iri).
 
-term_to_segment_(dt(Y,Mo,D,H,Mi,S,TZ), Segment) :- !,
-  dt_label(dt(Y,Mo,D,H,Mi,S,TZ), Segment).
+term_to_segment_(dt(Y,Mo,Da,H,Mi,S,TZ), Segment) :- !,
+  dt_label(dt(Y,Mo,Da,H,Mi,S,TZ), Segment).
 term_to_segment_(Literal, Segment) :-
   rdf_is_literal(Literal), !,
   rdf_literal_lexical_form(Literal, Segment).
@@ -383,8 +382,8 @@ rdf_is_name(Literal) :-
 
 %! rdf_is_numeric_literal(@Term) is semidet.
 
-rdf_is_numeric_literal(literal(type(D,_))) :-
-  xsd_numeric_type(D).
+rdf_is_numeric_literal(literal(type(Datatype,_))) :-
+  xsd_numeric_type(Datatype).
 
 
 
@@ -420,23 +419,23 @@ rdf_language_tagged_string(LTag, Lex, literal(lang(LTag,Lex))).
 
 
 
-%! rdf_lexical_value(+D:atom, +Lex:atom, -Value:term) is det.
-%! rdf_lexical_value(+D:atom, -Lex:atom, +Value:term) is det.
+%! rdf_lexical_value(+Datatype:atom, +Lex:atom, -Value:term) is det.
+%! rdf_lexical_value(+Datatype:atom, -Lex:atom, +Value:term) is det.
 %
 % Translate between a value (`Value') and its serialization, according
-% to a given datatype IRI (`D'), into a lexical form (`Lex').
+% to a given datatype IRI (`Datatype'), into a lexical form (`Lex').
 
-rdf_lexical_value(D, Lex, Value) :-
+rdf_lexical_value(Datatype, Lex, Value) :-
   nonvar(Lex), !,
-  rdf_lexical_to_value(D, Lex, Value).
-rdf_lexical_value(D, Lex, Value) :-
-  rdf_value_to_lexical(D, Value, Lex).
+  rdf_lexical_to_value(Datatype, Lex, Value).
+rdf_lexical_value(Datatype, Lex, Value) :-
+  rdf_value_to_lexical(Datatype, Value, Lex).
 
 % hooks
-rdf_lexical_to_value(D, Lex, Value) :-
-  rdf_lexical_to_value_hook(D, Lex, Value), !.
-rdf_value_to_lexical(D, Value, Lex) :-
-  rdf_value_to_lexical_hook(D, Value, Lex), !.
+rdf_lexical_to_value(Datatype, Lex, Value) :-
+  rdf_lexical_to_value_hook(Datatype, Lex, Value), !.
+rdf_value_to_lexical(Datatype, Value, Lex) :-
+  rdf_value_to_lexical_hook(Datatype, Value, Lex), !.
 
 % geo:hasGeometry
 rdf_lexical_to_value(geo:wktLiteral, Lex, Value) :- !,
@@ -559,22 +558,22 @@ rdf_value_to_lexical(xsd:duration, Value, Lex) :- !,
 % xsd:unsignedInt
 % xsd:unsignedLong
 % xsd:unsignedShort
-rdf_lexical_to_value(D, Lex, Value) :-
-  rdf11:xsd_numerical(D, Domain, Type), !,
+rdf_lexical_to_value(Datatype, Lex, Value) :-
+  rdf11:xsd_numerical(Datatype, Domain, Type), !,
   (   (   Type == double
       ->  catch(xsd_number_string(Value0, Lex), _, fail)
       ;   Type == integer
       ->  catch(xsd_number_string(Value0, Lex), _, fail),
-          rdf11:check_integer_domain(Domain, D, Value0)
+          rdf11:check_integer_domain(Domain, Datatype, Value0)
       )
   ->  Value = Value0
-  ;   rdf_lexical_to_value_error(D, Lex)
+  ;   rdf_lexical_to_value_error(Datatype, Lex)
   ).
-rdf_value_to_lexical(D, Value, Lex) :-
-  rdf11:xsd_numerical(D, Domain, Type), !,
-  (   rdf11:in_number(Type, Domain, D, Value, Atom)
+rdf_value_to_lexical(Datatype, Value, Lex) :-
+  rdf11:xsd_numerical(Datatype, Domain, Type), !,
+  (   rdf11:in_number(Type, Domain, Datatype, Value, Atom)
   ->  Lex = Atom
-  ;   rdf_value_to_lexical_error(D, Value)
+  ;   rdf_value_to_lexical_error(Datatype, Value)
   ).
 
 % xsd:date
@@ -585,19 +584,19 @@ rdf_value_to_lexical(D, Value, Lex) :-
 % xsd:gYear
 % xsd:gYearMonth
 % xsd:time
-rdf_lexical_to_value(D, Lex, Dt) :-
-  xsd_date_time_type(D), !,
-  (   catch(xsd_time_string(XsdDt, D, Lex), _, fail)
-  ->  xsd_date_time(Dt, D, XsdDt)
-  ;   rdf_lexical_to_value_error(D, Lex)
+rdf_lexical_to_value(Datatype, Lex, Dt) :-
+  xsd_date_time_type(Datatype), !,
+  (   catch(xsd_time_string(XsdDt, Datatype, Lex), _, fail)
+  ->  xsd_date_time(Dt, Datatype, XsdDt)
+  ;   rdf_lexical_to_value_error(Datatype, Lex)
   ).
-rdf_value_to_lexical(D, Dt, Lex) :-
-  xsd_date_time_type(D), !,
-  (   xsd_date_time(Dt, D, XsdDt),
-      catch(xsd_time_string(XsdDt, D, String), _, true),
+rdf_value_to_lexical(Datatype, Dt, Lex) :-
+  xsd_date_time_type(Datatype), !,
+  (   xsd_date_time(Dt, Datatype, XsdDt),
+      catch(xsd_time_string(XsdDt, Datatype, String), _, true),
       atom_string(Atom, String)
   ->  Lex = Atom
-  ;   rdf_value_to_lexical_error(D, Dt)
+  ;   rdf_value_to_lexical_error(Datatype, Dt)
   ).
 
 % xsd:string
@@ -612,34 +611,34 @@ rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
   ;   rdf_value_to_lexical_error(xsd:string, Value)
   ).
 
-rdf_lexical_to_value(D, Atom, Atom) :-
-  (   ground(D)
-  ->  print_message(warning, error(unimplemented_lex2val(D,Atom),rdf_lexical_to_value/3))
-  ;   instantiation_error(D)
+rdf_lexical_to_value(Datatype, Atom, Atom) :-
+  (   ground(Datatype)
+  ->  print_message(warning, error(unimplemented_lex2val(Datatype,Atom),rdf_lexical_to_value/3))
+  ;   instantiation_error(Datatype)
   ).
-rdf_value_to_lexical(D, Atom, Atom) :-
-  (   ground(D)
-  ->  print_message(warning, error(unimplemented_val2lex(D,Atom),rdf_value_to_lexical/3))
-  ;   instantiation_error(D)
+rdf_value_to_lexical(Datatype, Atom, Atom) :-
+  (   ground(Datatype)
+  ->  print_message(warning, error(unimplemented_val2lex(Datatype,Atom),rdf_value_to_lexical/3))
+  ;   instantiation_error(Datatype)
   ).
 
-rdf_lexical_to_value_error(D, Lex) :-
-  syntax_error(grammar(D,Lex)).
-rdf_value_to_lexical_error(D, Value) :-
-  type_error(D, Value).
+rdf_lexical_to_value_error(Datatype, Lex) :-
+  syntax_error(grammar(Datatype,Lex)).
+rdf_value_to_lexical_error(Datatype, Value) :-
+  type_error(Datatype, Value).
 
 :- begin_tests(rdf_lexical_value).
 
 :- rdf_meta
    test_rdf_lexical_value(r, ?, ?).
 
-test('rdf_lexical_value(+,+)', [forall(test_rdf_lexical_value(D, Lex, Value))]) :-
-  rdf_lexical_value(D, Lex, Value).
-test('rdf_lexical_value(+,-)', [forall(test_rdf_lexical_value(D, Lex, Value))]) :-
-  rdf_lexical_value(D, Lex, Value0),
+test('rdf_lexical_value(+,+)', [forall(test_rdf_lexical_value(Datatype, Lex, Value))]) :-
+  rdf_lexical_value(Datatype, Lex, Value).
+test('rdf_lexical_value(+,-)', [forall(test_rdf_lexical_value(Datatype, Lex, Value))]) :-
+  rdf_lexical_value(Datatype, Lex, Value0),
   assertion(Value == Value0).
-test('rdf_lexical_value(-,+)', [forall(test_rdf_lexical_value(D, Lex, Value))]) :-
-  rdf_lexical_value(D, Lex0, Value),
+test('rdf_lexical_value(-,+)', [forall(test_rdf_lexical_value(Datatype, Lex, Value))]) :-
+  rdf_lexical_value(Datatype, Lex0, Value),
   assertion(Lex == Lex0).
 
 test_rdf_lexical_value(xsd:string, abc, "abc").
@@ -667,39 +666,39 @@ rdf_literal_generate_(literal(lang(LTag,Lex))) --> !,
   "\"@",
   atom(LTag).
 % Generate a typed literal.
-rdf_literal_generate_(literal(type(D,Lex))) -->
-  {atom(D)}, !,
+rdf_literal_generate_(literal(type(Datatype,Lex))) -->
+  {atom(Datatype)}, !,
   "\"",
   atom(Lex),
   "\"^^",
-  rdf_iri_generate_(D).
+  rdf_iri_generate_(Datatype).
 
 rdf_literal_parse_(Literal) -->
   ...(Codes),
   "\"", !,
-  ("^^" -> rdf_iri(D) ; "@" -> remainder_as_atom(LTag) ; ""),
+  ("^^" -> rdf_iri(Datatype) ; "@" -> remainder_as_atom(LTag) ; ""),
   {
     atom_codes(Lex, Codes),
-    rdf_literal(D, LTag, Lex, Literal)
+    rdf_literal(Datatype, LTag, Lex, Literal)
   }.
 
 
 
-%! rdf_literal(+D:atom, +LTag:atom, +Lex:atom, -Literal:rdf_literal) is det.
-%! rdf_literal(-D:atom, -LTag:atom, -Lex:atom, +Literal:rdf_literal) is det.
+%! rdf_literal(+Datatype:atom, +LTag:atom, +Lex:atom, -Literal:rdf_literal) is det.
+%! rdf_literal(-Datatype:atom, -LTag:atom, -Lex:atom, +Literal:rdf_literal) is det.
 %
 % Compose/decompose literals.
 
-rdf_literal(D, LTag, Lex, literal(type(D,Lex))) :-
+rdf_literal(Datatype, LTag, Lex, literal(type(Datatype,Lex))) :-
   var(LTag).
 rdf_literal(rdf:langString, LTag, Lex, literal(lang(LTag,Lex))).
 
 
 
-%! rdf_literal_datatype_iri(+Literal:rdf_literal, +D:atom) is semidet.
-%! rdf_literal_datatype_iri(+Literal:rdf_literal, -D:atom) is det.
+%! rdf_literal_datatype_iri(+Literal:rdf_literal, +Datatype:atom) is semidet.
+%! rdf_literal_datatype_iri(+Literal:rdf_literal, -Datatype:atom) is det.
 
-rdf_literal_datatype_iri(literal(type(D,_)), D) :- !.
+rdf_literal_datatype_iri(literal(type(Datatype,_)), Datatype) :- !.
 rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 
 
@@ -726,7 +725,7 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %   | integer                     | xsd:integer            |
 %   | integer(N)                  | xsd:integer            |
 %   | literal(lang(LTag,Lex))     | rdf:langString         |
-%   | literal(type(D,Lex))        | D                      |
+%   | literal(type(Datatype,Lex)) | Datatype               |
 %   | literal(Lex)                | xsd:string             |
 %   | month(Mo)                   | xsd:gMonth             |
 %   | month_day(Mo,Da)            | xsd:gMonthDay          |
@@ -734,6 +733,7 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %   | oneof([false,true])         | xsd:boolean            |
 %   | pair(string,list(atom))     | rdf:langString         |
 %   | positive_integer(N)         | xsd:positiveInteger    |
+%   | shape(Z,LRS,CRS,Shape)      | geo:wktLiteral         |
 %   | string                      | xsd:string             |
 %   | string(atom)                | xsd:string             |
 %   | time(H,Mi,S)                | xsd:time               |
@@ -755,22 +755,22 @@ rdf_literal_dwim(String-Tags, literal(lang(Tag,Lex))) :- !,
   atom_string(Lex, String),
   atomic_list_concat(Tags, -, Tag).
 % date/3, date_time/[6.7], month_day/2, time/3, year_month/2
-rdf_literal_dwim(Compound, literal(type(D,Lex))) :-
+rdf_literal_dwim(Compound, literal(type(Datatype,Lex))) :-
   xsd_date_time_term_(Compound), !,
-  xsd_time_string(Compound, D, String),
+  xsd_time_string(Compound, Datatype, String),
   atom_string(Lex, String).
 % day/1
-rdf_literal_dwim(day(Da), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:gDay, D),
-  xsd_time_string(Da, D, String),
+rdf_literal_dwim(day(Da), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:gDay, Datatype),
+  xsd_time_string(Da, Datatype, String),
   atom_string(Lex, String).
 % decimal/1 → xsd:decimal
-rdf_literal_dwim(decimal(N), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:decimal, D),
-  rdf_lexical_value(D, Lex, N).
+rdf_literal_dwim(decimal(N), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:decimal, Datatype),
+  rdf_lexical_value(Datatype, Lex, N).
 % double/1 → xsd:double
-rdf_literal_dwim(double(N), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:double, D),
+rdf_literal_dwim(double(N), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:double, Datatype),
   atom_number(Lex, N).
 % dt/7 → xsd:dateTime
 rdf_literal_dwim(dt(Y,Mo,Da,H,Mi,S,TZ), Literal) :-
@@ -789,79 +789,79 @@ rdf_literal_dwim(dt(Y,Mo,Da,H,Mi,S,TZ), Literal) :-
   ;   instantiation_error(dt(Y,Mo,Da,H,Mi,S,TZ))
   ).
 % duration/1 → xsd:dayTimeDuration
-rdf_literal_dwim(duration(S), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:dayTimeDuration, D),
-  rdf_lexical_value(D, Lex, duration(0,S)).
+rdf_literal_dwim(duration(S), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:dayTimeDuration, Datatype),
+  rdf_lexical_value(Datatype, Lex, duration(0,S)).
 % duration/2 → xsd:duration
-rdf_literal_dwim(duration(Mo,S), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:duration, D),
-  rdf_lexical_value(D, Lex, duration(Mo,S)).
+rdf_literal_dwim(duration(Mo,S), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:duration, Datatype),
+  rdf_lexical_value(Datatype, Lex, duration(Mo,S)).
 % float/1 → xsd:float
-rdf_literal_dwim(float(N), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:float, D),
+rdf_literal_dwim(float(N), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:float, Datatype),
   atom_number(Lex, N).
 % integer/1 → xsd:integer
-rdf_literal_dwim(integer(N), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:integer, D),
+rdf_literal_dwim(integer(N), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:integer, Datatype),
   atom_number(Lex, N).
 % month/1
-rdf_literal_dwim(month(Mo), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:gMonth, D),
-  xsd_time_string(Mo, D, String),
+rdf_literal_dwim(month(Mo), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:gMonth, Datatype),
+  xsd_time_string(Mo, Datatype, String),
   atom_string(Lex, String).
 % nonneg/1 → xsd:nonNegativeInteger
-rdf_literal_dwim(nonneg(N), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:nonNegativeInteger, D),
+rdf_literal_dwim(nonneg(N), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:nonNegativeInteger, Datatype),
   must_be(nonneg, N),
   xsd_number_string(N, String),
   atom_string(Lex, String).
 % positive_integer/1 → xsd:positiveInteger
-rdf_literal_dwim(positive_integer(N), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:positiveInteger, D),
+rdf_literal_dwim(positive_integer(N), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:positiveInteger, Datatype),
   must_be(positive_integer, N),
   xsd_number_string(N, String),
   atom_string(Lex, String).
 % str/1 → xsd:string
-rdf_literal_dwim(string(Atomic), literal(type(D,Lex))) :- !,
+rdf_literal_dwim(string(Atomic), literal(type(Datatype,Lex))) :- !,
   atom_string(Atomic, String),
-  rdf_equal(xsd:string, D),
+  rdf_equal(xsd:string, Datatype),
   atom_string(Lex, String).
 % uri/1 → xsd:anyURI
-rdf_literal_dwim(uri(Uri), literal(type(D,Uri))) :- !,
-  rdf_equal(D, xsd:anyURI).
+rdf_literal_dwim(uri(Uri), literal(type(Datatype,Uri))) :- !,
+  rdf_equal(Datatype, xsd:anyURI).
 % year/1 → xsd:gYear
-rdf_literal_dwim(year(Y), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:gYear, D),
-  xsd_time_string(Y, D, String),
+rdf_literal_dwim(year(Y), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:gYear, Datatype),
+  xsd_time_string(Y, Datatype, String),
   atom_string(Lex, String).
 % double → xsd:double
 % float → xsd:double
-rdf_literal_dwim(Value, literal(type(D,Lex))) :-
+rdf_literal_dwim(Value, literal(type(Datatype,Lex))) :-
   float(Value), !,
-  rdf_equal(xsd:double, D),
+  rdf_equal(xsd:double, Datatype),
   xsd_number_string(Value, String),
   atom_string(Lex, String).
 % integer → xsd:integer
-rdf_literal_dwim(Value, literal(type(D,Lex))) :-
+rdf_literal_dwim(Value, literal(type(Datatype,Lex))) :-
   integer(Value), !,
-  rdf_equal(xsd:integer, D),
+  rdf_equal(xsd:integer, Datatype),
   atom_number(Lex, Value).
 % string → xsd:string
-rdf_literal_dwim(String, literal(type(D,Lex))) :-
+rdf_literal_dwim(String, literal(type(Datatype,Lex))) :-
   string(String), !,
-  rdf_equal(xsd:string, D),
+  rdf_equal(xsd:string, Datatype),
   atom_string(Lex, String).
 % regular typed literal
-rdf_literal_dwim(literal(type(D,Lex)), literal(type(D,Lex))) :- !.
+rdf_literal_dwim(literal(type(Datatype,Lex)), literal(type(Datatype,Lex))) :- !.
 % regular language-tagged string
 rdf_literal_dwim(literal(lang(LTag,Lex)), literal(lang(LTag,Lex))) :- !.
 % legacy untyped literals
-rdf_literal_dwim(literal(Lex), literal(type(D,Lex))) :- !,
-  rdf_equal(xsd:string, D).
+rdf_literal_dwim(literal(Lex), literal(type(Datatype,Lex))) :- !,
+  rdf_equal(xsd:string, Datatype).
 % atom `false' and `true' → xsd:boolean
-rdf_literal_dwim(Lex, literal(type(D,Lex))) :-
+rdf_literal_dwim(Lex, literal(type(Datatype,Lex))) :-
   memberchk(Lex, [false,true]), !,
-  rdf_equal(xsd:boolean, D).
+  rdf_equal(xsd:boolean, Datatype).
 
 xsd_date_time_term_(date(_,_,_)).
 xsd_date_time_term_(date_time(_,_,_,_,_,_)).
@@ -885,8 +885,8 @@ rdf_literal_lexical_form(literal(Lex), Lex) :-
 
 
 %! rdf_literal_value(+Literal:rdf_literal, -Value:term) is det.
-%! rdf_literal_value(+Literal:rdf_literal, -D:atom, -Value:term) is det.
-%! rdf_literal_value(-Literal:rdf_literal, +D:atom, +Value:term) is det.
+%! rdf_literal_value(+Literal:rdf_literal, -Datatype:atom, -Value:term) is det.
+%! rdf_literal_value(-Literal:rdf_literal, +Datatype:atom, +Value:term) is det.
 %
 % Notice that languages-tagged strings do not have a value.
 
@@ -899,8 +899,8 @@ rdf_literal_value(literal(lang(Tag,Lex)), rdf:langString, String-Tags) :- !,
   atomic_list_concat(Tags, -, Tag),
   atom_string(Lex, String).
 % typed literal
-rdf_literal_value(literal(type(D,Lex)), D, Value) :-
-  rdf_lexical_value(D, Lex, Value).
+rdf_literal_value(literal(type(Datatype,Lex)), Datatype, Value) :-
+  rdf_lexical_value(Datatype, Lex, Value).
 
 
 
@@ -991,10 +991,10 @@ rdf_term_to_string(Term, String) :-
 
 
 
-%! rdf_typed_literal(+D:atom, +Lex:atom, -Literal:rdf_literal) is det.
-%! rdf_typed_literal(-D:atom, -Lex:atom, +Literal:rdf_literal) is det.
+%! rdf_typed_literal(+Datatype:atom, +Lex:atom, -Literal:rdf_literal) is det.
+%! rdf_typed_literal(-Datatype:atom, -Lex:atom, +Literal:rdf_literal) is det.
 
-rdf_typed_literal(D, Lex, literal(type(D,Lex))).
+rdf_typed_literal(Datatype, Lex, literal(type(Datatype,Lex))).
 
 
 

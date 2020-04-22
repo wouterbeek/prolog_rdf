@@ -7,11 +7,9 @@
 
 /** <module> RDF triple
 
-@author Wouter Beek
-@version 2018
 */
 
-:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(rdf_prefix)).
 
 :- rdf_meta
    rdf_triple_term(t, r).

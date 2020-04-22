@@ -484,6 +484,7 @@ prefix_(orcid, 'http://orcid.org/').
 prefix_(org, 'http://www.w3.org/ns/org#').
 %       owl
 prefix_(own16, 'http://www.ontologydesignpatterns.org.it/ont/own/own16.owl#').
+prefix_(pnv, 'https://w3id.org/pnv#').
 prefix_(prov, 'http://www.w3.org/ns/prov#').
 prefix_(qb, 'http://purl.org/linked-data/cube#').
 prefix_(qsim, 'https://krr.triply.cc/webqr/qsim/def/').
@@ -492,12 +493,14 @@ prefix_(qt, 'http://www.w3.org/2001/sw/DataAccess/tests/test-query#').
 prefix_(rdfa, 'http://www.w3.org/ns/rdfa#').
 %       rdfs
 prefix_(rdft, 'http://www.w3.org/ns/rdftest#').
-prefix_(rel, 'http://purl.org/vocab/relationship/').
+%prefix_(relationship, 'http://purl.org/vocab/relationship/').
+%prefix_(relationship, 'http://www.perceive.net/schemas/relationship/').
+prefix_(rel, 'http://id.loc.gov/vocabulary/relators/').
 prefix_(rif, 'http://www.w3.org/2007/rif#').
 prefix_(role, 'http://www.w3.org/1999/xhtml/vocab#role').
 prefix_(rr, 'http://www.w3.org/ns/r2rml#').
-prefix_(schema, 'http://schema.org/').
 prefix_(sd, 'http://www.w3.org/ns/sparql-service-description#').
+prefix_(sdo, 'http://schema.org/').
 prefix_(sf, 'http://www.opengis.net/ont/sf#').
 prefix_(sfn, ' http://www.w3.org/ns/sparql#').
 prefix_(sh, 'http://www.w3.org/ns/shacl#').
@@ -508,7 +511,9 @@ prefix_(skosxl, 'http://www.w3.org/2008/05/skos-xl#').
 prefix_(time, 'http://www.w3.org/2006/time#').
 prefix_(umbel, 'http://umbel.org/umbel#').
 prefix_(uom, 'http://www.opengis.net/def/uom/OGC/1.0/').
+prefix_(vann, 'http://purl.org/vocab/vann/').
 prefix_(vcard, 'http://www.w3.org/2006/vcard/ns#').
+prefix_(vo, 'http://open.vocab.org/terms/').
 %       void
 prefix_(wde, 'http://www.wikidata.org/entity/').
 prefix_(wdp, 'http://www.wikidata.org/prop/direct/').
