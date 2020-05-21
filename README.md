@@ -2,12 +2,16 @@
 
 This library provides advanced support for working with RDF in Prolog.
 
+## Dependencies
+
+Install [SWI-Prolog](https://www.swi-prolog.org).
+
 ## Installation
 
-Run the following command in [SWI-Prolog](https://www.swi-prolog.org):
+Install this library:
 
-```pl
-pack_install(prolog_rdf).
+```sh
+swipl -g 'pack_install(prolog_rdf)' -t halt
 ```
 
 ## Use
@@ -23,7 +27,7 @@ Libraries can be loaded in the following way:
 This library uses the following extended Prolog types in the
 documentation headers of predicates:
 
-| *Type*        | *Definition*                                                                         |
+| **Type**      | **Definition**                                                                       |
 | ------------- | ------------------------------------------------------------------------------------ |
 | `rdf_bnode`   | An atom that starts with `_:`.                                                       |
 | `rdf_graph`   | Either a term of type `iri` or the atom `default`.                                   |
