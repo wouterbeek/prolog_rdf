@@ -26,8 +26,6 @@
 | `indent`       | nonneg               | 0           |                                    |
 | `iri_abbr`     | boolean              | `true`      | Whether IRIs are abbreviated       |
 |                |                      |             | based on the current prefixes.     |
-| `'rdfs:label'` | compound             |             | Use `rdfs:label` from the given    |
-|                |                      |             | backend.                           |
 | `max_iri_len`  | nonneg               | `∞`         | The maximum length of an IRI.      |
 | `max_lit_len`  | nonneg               | `∞`         | The maximum length of a literal.   |
 | `prefix_map`   | list(pair(atom))     |             | A custom list of prefix/IRI        |
@@ -144,13 +142,6 @@ rdf_dcg_qp(S, P, O, G, Options) -->
 
 %! rdf_dcg_term_(+Term:rdf_term, +Options:dict)// is det.
 
-% rdfs:label
-rdf_dcg_term_(Term, Options) -->
-  {
-    dict_get('rdfs:label', Options, B),
-    once(tp(B, Term, rdfs:label, Literal))
-  }, !,
-  rdf_dcg_term_(Literal, Options).
 % language-tagged string
 rdf_dcg_term_(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form_(Lex, Options),
