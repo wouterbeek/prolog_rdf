@@ -408,11 +408,21 @@ rdf_dcg_predicates1(I, [P-[O]], SkipTPs1, SkipTPs2, Options) --> !,
   rdf_dcg_predicate(P, Options),
   rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
   ".".
-rdf_dcg_predicates1(I, SGroups, SkipTPs1, SkipTPs2, Options) -->
-  rdf_dcg_predicates2(I, false, false, SGroups, SkipTPs1, SkipTPs2, Options).
+% There is more than one predicate-object pair; do something special.
+rdf_dcg_predicates1(I, SGroups1, SkipTPs1, SkipTPs2, Options) -->
+  % Display instance-of statements first (regardless of predicate term
+  % order).
+  {types_to_the_front(SGroups1, SGroups2)},
+  rdf_dcg_predicates2(I, false, false, SGroups2, SkipTPs1, SkipTPs2, Options).
+
+types_to_the_front(SGroups1, [P-Os|SGroups2]) :-
+  rdf_prefix_iri(rdf, type, P),
+  selectchk(P-Os, SGroups1, SGroups2), !.
+types_to_the_front(SGroups, SGroups).
 
 % That's all, folks!
 rdf_dcg_predicates2(_, _, _, [], SkipTPs, SkipTPs, _) --> !, "".
+% Another predicate-object pair.
 rdf_dcg_predicates2(I1, StartOfBlock, InBlock, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
   start_of_block(I1, StartOfBlock),
   rdf_dcg_predicate(P, Options),
