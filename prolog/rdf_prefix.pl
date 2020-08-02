@@ -477,6 +477,7 @@ prefix_(ll, 'https://lodlaundromat.org/def/').
 prefix_(lmm1, 'http://www.ontologydesignpatterns.org/ont/lmm/LMM_L1.owl#').
 prefix_(ma, 'http://www.w3.org/ns/ma-ont#').
 prefix_(mf, 'http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#').
+prefix_(nen3610, 'http://definities.geostandaarden.nl/def/nen3610#').
 prefix_(nyt, 'http://data.nytimes.com/').
 prefix_(ontopic, 'http://www.ontologydesignpatterns.org/ont/dul/ontopic.owl#').
 prefix_(openlinks, 'http://www.openlinksw.com/schemas/virtrdf#').
@@ -500,7 +501,7 @@ prefix_(rif, 'http://www.w3.org/2007/rif#').
 prefix_(role, 'http://www.w3.org/1999/xhtml/vocab#role').
 prefix_(rr, 'http://www.w3.org/ns/r2rml#').
 prefix_(sd, 'http://www.w3.org/ns/sparql-service-description#').
-prefix_(sdo, 'http://schema.org/').
+prefix_(sdo, 'https://schema.org/').
 prefix_(sf, 'http://www.opengis.net/ont/sf#').
 prefix_(sfn, ' http://www.w3.org/ns/sparql#').
 prefix_(sh, 'http://www.w3.org/ns/shacl#').
