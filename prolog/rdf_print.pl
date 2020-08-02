@@ -406,7 +406,7 @@ rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
 rdf_dcg_predicates1(I, [P-[O]], SkipTPs1, SkipTPs2, Options) --> !,
   " ",
   rdf_dcg_predicate(P, Options),
-  rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_complex_object_(I, true, O, SkipTPs1, SkipTPs2, Options),
   ".".
 % There is more than one predicate-object pair; do something special.
 rdf_dcg_predicates1(I, SGroups1, SkipTPs1, SkipTPs2, Options) -->
@@ -420,9 +420,9 @@ types_to_the_front(SGroups1, [P-Os|SGroups2]) :-
   selectchk(P-Os, SGroups1, SGroups2), !.
 types_to_the_front(SGroups, SGroups).
 
-% That's all, folks!
+% No more predicates.
 rdf_dcg_predicates2(_, _, _, [], SkipTPs, SkipTPs, _) --> !, "".
-% Another predicate-object pair.
+% Another predicate.
 rdf_dcg_predicates2(I1, StartOfBlock, InBlock, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
   start_of_block(I1, StartOfBlock),
   rdf_dcg_predicate(P, Options),
@@ -438,31 +438,36 @@ start_of_block(_, true) --> " ".
 
 % There is exactly one object.  Emit it on the same line.
 rdf_dcg_objects1(I, [O], SkipTPs1, SkipTPs2, Options) --> !,
-  rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options).
-% There are multiple objects: emit each on its one line.
+  rdf_dcg_complex_object_(I, true, O, SkipTPs1, SkipTPs2, Options).
+% There are multiple objects: emit each one on its own line.
 rdf_dcg_objects1(I, Os, SkipTPs1, SkipTPs2, Options) -->
   rdf_dcg_objects2(I, Os, SkipTPs1, SkipTPs2, Options).
 
+% No more objects.
 rdf_dcg_objects2(_, [], SkipTPs, SkipTPs, _) --> !, "".
+% Another object.
 rdf_dcg_objects2(I, [O|Os], SkipTPs1, SkipTPs3, Options) -->
-  rdf_dcg_complex_object_(I, O, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_complex_object_(I, false, O, SkipTPs1, SkipTPs2, Options),
   ({Os == []} -> "" ; ","),
   rdf_dcg_objects2(I, Os, SkipTPs2, SkipTPs3, Options).
 
 %! rdf_dcg_complex_object_(+Indent:nonneg,
-%!                        +Node:rdf_node,
-%!                        +SkipTPs1:list(tp),
-%!                        +SkipTPs2:list(tp),
-%!                        +Options:dict)// is det.
+%!                         +InLine:boolean,
+%!                         +Node:rdf_node,
+%!                         +SkipTPs1:list(tp),
+%!                         +SkipTPs2:list(tp),
+%!                         +Options:dict)// is det.
 
-rdf_dcg_complex_object_(_, RdfList, SkipTPs1, SkipTPs2, Options) -->
+% The object term is an RDF list (collection).
+rdf_dcg_complex_object_(I, InLine, RdfList, SkipTPs1, SkipTPs2, Options) -->
   {
     linear_list_(RdfList, SkipTPs1, SkipTPs2, Terms),
     Terms = [_|_]
   }, !,
-  " ",
+  ({InLine == true} -> " " ; nl, tab(I)),
   rdf_dcg_list_(Terms, Options).
-rdf_dcg_complex_object_(I1, Node, SkipTPs1, SkipTPs3, Options) -->
+% The object term can be emitted an anonymous node.
+rdf_dcg_complex_object_(I1, _, Node, SkipTPs1, SkipTPs3, Options) -->
   {
     turtle_object_(Node, SkipTPs1, SkipTPs2, Pairs),
     Pairs = [_|_], !,
@@ -474,8 +479,9 @@ rdf_dcg_complex_object_(I1, Node, SkipTPs1, SkipTPs3, Options) -->
   "[",
   rdf_dcg_predicates2(I2, true, true, Groups, SkipTPs2, SkipTPs3, Options),
   "]".
-rdf_dcg_complex_object_(_, Term, SkipTPs, SkipTPs, Options) -->
-  " ",
+% The object term is an atomic term.
+rdf_dcg_complex_object_(I, InLine, Term, SkipTPs, SkipTPs, Options) -->
+  ({InLine == true} -> " " ; nl, tab(I)),
   rdf_dcg_term_(Term, Options).
 
 %! turtle_object_(+RdfList:rdf_node,
