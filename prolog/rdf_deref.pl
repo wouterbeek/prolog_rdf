@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rdf_deref,
   [
@@ -224,7 +225,7 @@ rdf_deref_uri(Uri, Goal_3) :-
 
 rdf_deref_uri(Uri, Goal_3, Options1) :-
   uri_is_global(Uri), !,
-  % `Accept' header
+  % ‘Accept’ header
   (   select_option(accept(MediaTypes), Options1, Options2)
   ->  true
   ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
