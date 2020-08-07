@@ -429,7 +429,7 @@ prefix_(Alias, Prefix) :-
   rdf_db:ns(Alias, Prefix).
 prefix_(aat, 'http://vocab.getty.edu/aat/').
 prefix_(bag, 'http://bag.basisregistraties.overheid.nl/def/bag#').
-prefix_(bgt, 'http://bgt.basisregistraties.overheid.nl/def/bgt#').
+%prefix_(bgt, 'http://bgt.basisregistraties.overheid.nl/def/bgt#').
 prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
 prefix_(bibo, 'http://purl.org/ontology/bibo/').
 prefix_(bnode, 'https://lodlaundromat.org/.well-known/genid/').
