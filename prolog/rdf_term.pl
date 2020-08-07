@@ -723,6 +723,7 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %
 %   | *Input format*              | *Datatype IRI*         |
 %   |-----------------------------+------------------------|
+%   | boolean(Lex)                | xsd:boolean            |
 %   | date(Y,Mo,Da)               | xsd:date               |
 %   | date_time(Y,Mo,D,H,Mi,S)    | xsd:dateTime           |
 %   | date_time(Y,Mo,D,H,Mi,S,TZ) | xsd:dateTime           |
@@ -765,6 +766,10 @@ rdf_literal_dwim(shape(Z,LRS,CRS,Shape), Literal) :- !,
 rdf_literal_dwim(String-Tags, literal(lang(Tag,Lex))) :- !,
   atom_string(Lex, String),
   atomic_list_concat(Tags, -, Tag).
+% boolean/1
+rdf_literal_dwim(boolean(Atom), literal(type(Datatype,Atom))) :- !,
+  must_be(oneof([false,true]), Atom),
+  rdf_equal(xsd:boolean, Datatype).
 % date/3, date_time/[6.7], month_day/2, time/3, year_month/2
 rdf_literal_dwim(Compound, literal(type(Datatype,Lex))) :-
   xsd_date_time_term_(Compound), !,
