@@ -11,6 +11,7 @@
    %rdf_create_bnode/1,                  % --BNode
     rdf_create_iri/3,                    % +Alias, +Terms, -Iri
    %rdf_default_graph/1,                 % ?G
+    rdf_hash_iri/3,                      % +Alias, +Term, -Iri
     rdf_iri//1,                          % ?Iri
    %rdf_is_bnode/1,                      % @Term
     rdf_is_bnode_iri/1,                  % @Term
@@ -315,6 +316,14 @@ term_to_segment_(Literal, Segment) :-
   rdf_literal_lexical_form(Literal, Segment).
 term_to_segment_(Segment, Segment) :-
   ground(Segment).
+
+
+
+%! rdf_hash_iri(+Alias:atom, +Term:term, -Iri:atom) is det.
+
+rdf_hash_iri(Alias, Term, Iri) :-
+  md5(Term, Local),
+  rdf_prefix_iri(Alias, Local, Iri).
 
 
 
