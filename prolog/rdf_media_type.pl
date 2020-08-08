@@ -4,7 +4,6 @@
     rdf_file_name_media_type/2, % +File, -MediaType
     rdf_media_type/1,           % ?MediaType
     'rdf_media_type_>'/2,       % +SuperMediaType +SubMediaType
-    rdf_media_type_extension/2, % ?MediaType, ?Extension
     rdf_media_type_format/2,    % ?MediaType, ?Format
     rdfa_media_type/1           % ?MediaType
   ]
@@ -34,13 +33,16 @@ rdf_file_name_media_type(File, MediaType) :-
 
 
 
-%! rdf_media_type(@MediaType:compound) is semidet.
+%! rdf_media_type(+MediaType:compound) is semidet.
 %! rdf_media_type(-MediaType:compound) is multi.
 
-rdf_media_type(media(application/'xhtml+xml',[])).
 rdf_media_type(media(application/'json-ld',[])).
-rdf_media_type(MediaType) :-
-  rdf_media_type_extension(MediaType, _).
+rdf_media_type(media(application/'n-quads',[])).
+rdf_media_type(media(application/'n-triples',[])).
+rdf_media_type(media(application/'rdf+xml',[])).
+rdf_media_type(media(application/'xhtml+xml',[])).
+rdf_media_type(media(application/trig,[])).
+rdf_media_type(media(text/turtle,[])).
 
 
 
@@ -72,16 +74,6 @@ rdf_media_type(MediaType) :-
 
 
 
-%! rdf_media_type_extension(?MediaType:compound, ?Extension:atom) is nondet.
-
-rdf_media_type_extension(media(application/'n-quads',[]), nq).
-rdf_media_type_extension(media(application/'n-triples',[]), nt).
-rdf_media_type_extension(media(application/'rdf+xml',[]), rdf).
-rdf_media_type_extension(media(application/trig,[]), trig).
-rdf_media_type_extension(media(text/turtle,[]), ttl).
-
-
-
 %! rdf_media_type_format(?MediaType:compound, ?Format:atom) is nondet.
 
 rdf_media_type_format(media(application/'n-quads',[]), nquads).
@@ -93,7 +85,7 @@ rdf_media_type_format(media(application/'rdf+xml',[]), xml).
 
 
 
-%! rdfa_media_type(@MediaType:compound) is semidet.
+%! rdfa_media_type(+MediaType:compound) is semidet.
 %! rdfa_media_type(-MediaType:compound) is multi.
 
 rdfa_media_type(MediaType) :-
