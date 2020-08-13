@@ -17,13 +17,13 @@
 
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(option)).
 :- use_module(library(semweb/rdf_ntriples)).
 :- use_module(library(semweb/rdfa)).
 :- use_module(library(semweb/turtle)).
 
 :- use_module(library(archive_ext)).
 :- use_module(library(atom_ext)).
+:- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(http_client2)).
@@ -52,7 +52,7 @@
 
 
 %! rdf_deref_file(+File, :Goal_3) is det.
-%! rdf_deref_file(+File, :Goal_3, +Options:list(compound)) is det.
+%! rdf_deref_file(+File, :Goal_3, +Options:dict) is det.
 %
 % @arg Options allows the following options to be set.
 %
@@ -69,7 +69,7 @@ rdf_deref_file(Spec, Goal_3) :-
 rdf_deref_file(Spec, Goal_3, Options1) :-
   absolute_file_name(Spec, File, [access(read)]),
   uri_data_file(BaseUri, File),
-  merge_options(Options1, [base_uri(BaseUri)], Options2),
+  merge_dicts(Options1, options{base_uri: BaseUri}, Options2),
   read_from_file(
     File,
     {BaseUri,Goal_3,Options2}/[In]>>rdf_deref_stream(BaseUri, In, Goal_3, Options2)
@@ -78,7 +78,7 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
 
 
 %! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3) is det.
-%! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3, +Options:list(compound)) is det.
+%! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3, +Options:dict) is det.
 %
 % The following call will be made:
 %
@@ -108,14 +108,14 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
   archive_stream(In1, In2),
   % Determine the serialization format.
   (   % An explicitly specified Media Type overrules everything else.
-      option(media_type(MediaType), Options1)
+      options{media_type: MediaType} :< Options1
   ->  true
   ;   % Heuristic 1: guess based on a first chunk of the data.
       rdf_guess_stream(In2, 10 000, MediaTypeGuess),
       % Heuristic 2: the value of the HTTP `Content-Type' header.
-      ignore(option(content_type(MediaTypeHttp), Options1)),
+      ignore(option{content_type: MediaTypeHttp} :< Options1),
       % Heuristic 3: the URI path's file name extension.
-      ignore(uri_media_type(BaseUri, MediaTypeUri)),
+      ignore(options{uri_media_type: BaseUri} :< MediaTypeUri),
       (   nonvar(MediaTypeHttp),
           \+ 'rdf_media_type_>'(MediaTypeGuess, MediaTypeHttp)
       ->  print_message(warning, inconsistent_media_types(http(MediaTypeHttp),guess(MediaTypeGuess)))
@@ -143,54 +143,54 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
   % Parse according to the guessed Media Type.
   (   % N-Quads
       media_type_comps(MediaType, application, 'n-quads', _)
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(nquads)],
+  ->  merge_dicts(
+        otpions{anon_prefix: BNodePrefix, base_uri: BaseUri, format: nquads},
         Options1,
         Options2
       ),
       rdf_process_ntriples(In2, Mod:Goal_2, Options2)
   ;   % N-Triples
       media_type_comps(MediaType, application, 'n-triples', _)
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base_uri(BaseUri),format(ntriples)],
+  ->  merge_dicts(
+        options{anon_prefix: BNodePrefix, base_uri: BaseUri, format: ntriples},
         Options1,
         Options2
       ),
       rdf_process_ntriples(In2, Mod:Goal_2, Options2)
   ;   % RDF/XML
       media_type_comps(MediaType, application, 'rdf+xml', _)
-  ->  merge_options([base_uri(BaseUri),max_errors(-1)], Options1, Options2),
+  ->  merge_dicts(options{base_uri: BaseUri, max_errors: -1}, Options1, Options2),
       process_rdf(In2, Mod:Goal_2, Options2)
   ;   % TriG
       media_type_comps(MediaType, application, trig, _)
-  ->  merge_options(
-        [
-          anon_prefix(BNodePrefix),
-          base_uri(BaseUri),
-          format(trig),
-          resources(iri)
-        ],
+  ->  merge_dicts(
+        options{
+          anon_prefix: BNodePrefix,
+          base_uri: BaseUri,
+          format: trig,
+          resources: iri
+        },
         Options1,
         Options2
       ),
       rdf_process_turtle(In2, Mod:Goal_2, Options2)
   ;   % Turtle
       media_type_comps(MediaType, text, turtle, _)
-  ->  merge_options(
-        [
-          anon_prefix(BNodePrefix),
-          base_uri(BaseUri),
-          format(turtle),
-          resources(iri)
-        ],
+  ->  merge_dicts(
+        options{
+          anon_prefix: BNodePrefix,
+          base_uri: BaseUri,
+          format: turtle,
+          resources: iri
+        },
         Options1,
         Options2
       ),
       rdf_process_turtle(In2, Mod:Goal_2, Options2)
   ;   % RDFa
       memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
-  ->  merge_options(
-        [anon_prefix(BNodePrefix),base(BaseUri),max_errors(-1)],
+  ->  merge_dicts(
+        options{anon_prefix: BNodePrefix, base: BaseUri, max_errors: -1},
         Options1,
         Options2
       ),
@@ -207,7 +207,7 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
 
 
 %! rdf_deref_uri(+Uri:atom, :Goal_3) is det.
-%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:list(compound)) is det.
+%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:dict) is det.
 %
 % The following options are supported:
 %
@@ -220,13 +220,13 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
 %   * Other options are passed to rdf_deref_stream/4.
 
 rdf_deref_uri(Uri, Goal_3) :-
-  rdf_deref_uri(Uri, Goal_3, []).
+  rdf_deref_uri(Uri, Goal_3, options{}).
 
 
 rdf_deref_uri(Uri, Goal_3, Options1) :-
   uri_is_global(Uri), !,
   % ‘Accept’ header
-  (   select_option(accept(MediaTypes), Options1, Options2)
+  (   dict_select(accept, Options1, Options2, MediaTypes)
   ->  true
   ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
       Options2 = Options1
@@ -235,7 +235,7 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
   call_cleanup(
     (
       (   http_metadata_content_type(Metas, MediaType)
-      ->  merge_options(Options2, [content_type(MediaType)], Options3)
+      ->  merge_dicts(Options2, options{content_type: MediaType}, Options3)
       ;   Options3 = Options2
       ),
       rdf_deref_stream(Uri, In, Goal_3, Options3)
