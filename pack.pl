@@ -8,4 +8,4 @@ requires(prolog_geo).
 requires(prolog_library_collection).
 requires(prolog_uriparser).
 title('Prolog RDF Library').
-version('1.0.2').
+version('1.0.3').
