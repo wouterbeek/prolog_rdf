@@ -20,6 +20,7 @@ RDF export predicates that are backend-independent.
 */
 
 :- use_module(library(lists)).
+:- use_module(library(semweb/rdf11), []).
 :- use_module(library(semweb/turtle), []).
 
 :- use_module(library(hash_ext)).
@@ -41,10 +42,10 @@ RDF export predicates that are backend-independent.
 
 
 
-%! rdf_write_graph(+Out:stream, +G:rdf_graph) is det.
+%! rdf_write_graph(+Out:stream, +GraphName:atom) is det.
 
 rdf_write_graph(_, G) :-
-  rdf_default_graph(G), !.
+  rdf11:rdf_default_graph(G), !.
 rdf_write_graph(Out, G) :-
   rdf_write_iri(Out, G).
 
@@ -84,8 +85,8 @@ rdf_write_name(Out, Literal) :-
 
 
 %! rdf_write_quad(+Out:stream, +Quad:rdf_quad) is det.
-%! rdf_write_quad(+Out:stream, +Triple:rdf_triple, +G:rdf_graph) is det.
-%! rdf_write_quad(+Out:stream, +S:rdf_subject, +P:iri, +O:rdf_term, +G:rdf_graph) is det.
+%! rdf_write_quad(+Out:stream, +Triple:rdf_triple, +GraphName:atom) is det.
+%! rdf_write_quad(+Out:stream, +S:rdf_subject, +P:iri, +O:rdf_term, +GraphName:atom) is det.
 %
 % Quad must be a quadruple (denoted by compound term rdf/4).  Triples
 % (denoted by compound term rdf/3) are not supported.
