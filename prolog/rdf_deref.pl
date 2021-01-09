@@ -52,33 +52,33 @@
 
 
 %! rdf_deref_file(+File, :Goal_3) is det.
-%! rdf_deref_file(+File, :Goal_3, +Options:dict) is det.
+%! rdf_deref_file(+File, :Goal_3, +Options:options) is det.
 %
 % @arg Options allows the following options to be set.
 %
-%   * base_uri(+atom)
+%   * base_iri(+atom)
 %
-%     By default, the base URI is the file URI.
+%     By default, the base IRI is the file URI.
 %
 %   * Other options are passed to rdf_defer_stream/4.
 
 rdf_deref_file(Spec, Goal_3) :-
-  rdf_deref_file(Spec, Goal_3, []).
+  rdf_deref_file(Spec, Goal_3, options{}).
 
 
 rdf_deref_file(Spec, Goal_3, Options1) :-
   absolute_file_name(Spec, File, [access(read)]),
-  uri_data_file(BaseUri, File),
-  merge_dicts(Options1, options{base_uri: BaseUri}, Options2),
+  uri_data_file(BaseIri, File),
+  merge_dicts(Options1, options{base_iri: BaseIri}, Options2),
   read_from_file(
     File,
-    {BaseUri,Goal_3,Options2}/[In]>>rdf_deref_stream(BaseUri, In, Goal_3, Options2)
+    {BaseIri,Goal_3,Options2}/[In]>>rdf_deref_stream(BaseIri, In, Goal_3, Options2)
   ).
 
 
 
-%! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3) is det.
-%! rdf_deref_stream(+BaseUri:atom, +In:stream, :Goal_3, +Options:dict) is det.
+%! rdf_deref_stream(+BaseIri:atom, +In:stream, :Goal_3) is det.
+%! rdf_deref_stream(+BaseIri:atom, +In:stream, :Goal_3, +Options:options) is det.
 %
 % The following call will be made:
 %
@@ -100,11 +100,11 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
 %
 %     Overrules the RDF serialization format.
 
-rdf_deref_stream(BaseUri, In, Goal_3) :-
-  rdf_deref_stream(BaseUri, In, Goal_3, []).
+rdf_deref_stream(BaseIri, In, Goal_3) :-
+  rdf_deref_stream(BaseIri, In, Goal_3, options{}).
 
 
-rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
+rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
   archive_stream(In1, In2),
   % Determine the serialization format.
   (   % An explicitly specified Media Type overrules everything else.
@@ -112,39 +112,39 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
   ->  true
   ;   % Heuristic 1: guess based on a first chunk of the data.
       rdf_guess_stream(In2, 10 000, MediaTypeGuess),
-      % Heuristic 2: the value of the HTTP `Content-Type' header.
+      % Heuristic 2: the value of the HTTP Content-Type header.
       ignore(option{content_type: MediaTypeHttp} :< Options1),
       % Heuristic 3: the URI path's file name extension.
-      ignore(options{uri_media_type: BaseUri} :< MediaTypeUri),
+      ignore(uri_media_type(BaseIri, MediaTypeIri)),
       (   nonvar(MediaTypeHttp),
           \+ 'rdf_media_type_>'(MediaTypeGuess, MediaTypeHttp)
       ->  print_message(warning, inconsistent_media_types(http(MediaTypeHttp),guess(MediaTypeGuess)))
       ;   true
       ),
-      (   nonvar(MediaTypeUri),
-          \+ 'rdf_media_type_>'(MediaTypeUri, MediaTypeHttp)
-      ->  print_message(warning, inconsistent_media_types(MediaType,MediaTypeUri))
+      (   nonvar(MediaTypeIri),
+          \+ 'rdf_media_type_>'(MediaTypeIri, MediaTypeHttp)
+      ->  print_message(warning, inconsistent_media_types(MediaType,MediaTypeIri))
       ;   true
       ),
       (   nonvar(MediaTypeHttp)
       ->  MediaType = MediaTypeHttp
-      ;   nonvar(MediaTypeUri)
-      ->  MediaType = MediaTypeUri
+      ;   nonvar(MediaTypeIri)
+      ->  MediaType = MediaTypeIri
       ;   MediaType = MediaTypeGuess
       )
   ),
   Goal_3 =.. [Pred|Args1],
-  append(Args1, [BaseUri], Args2),
+  append(Args1, [BaseIri], Args2),
   Goal_2 =.. [Pred|Args2],
   % Use a well-known IRI with a UUID as blank node prefix.  The UUID
-  % is determined by the base URI seed.
-  md5(BaseUri, Hash),
+  % is determined by the base IRI seed.
+  md5(BaseIri, Hash),
   well_known_iri([Hash], BNodePrefix),
   % Parse according to the guessed Media Type.
   (   % N-Quads
       media_type_comps(MediaType, application, 'n-quads', _)
   ->  merge_dicts(
-        otpions{anon_prefix: BNodePrefix, base_uri: BaseUri, format: nquads},
+        otpions{anon_prefix: BNodePrefix, base_iri: BaseIri, format: nquads},
         Options1,
         Options2
       ),
@@ -152,34 +152,36 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
   ;   % N-Triples
       media_type_comps(MediaType, application, 'n-triples', _)
   ->  merge_dicts(
-        options{anon_prefix: BNodePrefix, base_uri: BaseUri, format: ntriples},
+        options{anon_prefix: BNodePrefix, base_iri: BaseIri, format: ntriples},
         Options1,
         Options2
       ),
       rdf_process_ntriples(In2, Mod:Goal_2, Options2)
   ;   % RDF/XML
       media_type_comps(MediaType, application, 'rdf+xml', _)
-  ->  merge_dicts(options{base_uri: BaseUri, max_errors: -1}, Options1, Options2),
+  ->  merge_dicts(options{base_iri: BaseIri, max_errors: -1}, Options1, Options2),
       process_rdf(In2, Mod:Goal_2, Options2)
   ;   % TriG
       media_type_comps(MediaType, application, trig, _)
   ->  merge_dicts(
         options{
           anon_prefix: BNodePrefix,
-          base_uri: BaseUri,
+          base_iri: BaseIri,
           format: trig,
           resources: iri
         },
         Options1,
         Options2
       ),
-      rdf_process_turtle(In2, Mod:Goal_2, Options2)
+      dict_change_keys(Options2, [base_iri-base_uri], Options3),
+      dict_terms(Options3, Options4),
+      rdf_process_turtle(In2, Mod:Goal_2, Options4)
   ;   % Turtle
       media_type_comps(MediaType, text, turtle, _)
   ->  merge_dicts(
         options{
           anon_prefix: BNodePrefix,
-          base_uri: BaseUri,
+          base_iri: BaseIri,
           format: turtle,
           resources: iri
         },
@@ -190,7 +192,7 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
   ;   % RDFa
       memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_dicts(
-        options{anon_prefix: BNodePrefix, base: BaseUri, max_errors: -1},
+        options{anon_prefix: BNodePrefix, base: BaseIri, max_errors: -1},
         Options1,
         Options2
       ),
@@ -207,7 +209,7 @@ rdf_deref_stream(BaseUri, In1, Mod:Goal_3, Options1) :-
 
 
 %! rdf_deref_uri(+Uri:atom, :Goal_3) is det.
-%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:dict) is det.
+%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:options) is det.
 %
 % The following options are supported:
 %

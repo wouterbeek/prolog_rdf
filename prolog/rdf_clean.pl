@@ -67,12 +67,12 @@ rdf_clean_graph(G1, G3) :-
 %! rdf_clean_iri(+Iri:atom, -CleanIri:rdf_iri) is semidet.
 %
 % IRIs are assumed to have been made absolute by the RDF parser prior
-% to cleaning (through option `base/1' or `base_uri/1').  If this is
+% to cleaning (through option `base/1' or `base_iri/1').  If this is
 % not the case, then perform the following prior to cleaning:
 %
 % ```
-% rdf_base_uri(BaseUri),
-% uri_resolve(Iri1, BaseUri, Iri2).
+% rdf_base_iri(BaseIri),
+% uri_resolve(Iri1, BaseIri, Iri2).
 % ```
 %
 % @tbd There is no implementation for the IRI grammar yet, so we use a
@@ -133,10 +133,9 @@ rdf_clean_literal(literal(lang(LTag1,Lex)), literal(lang(LTag2,Lex))) :- !,
 rdf_clean_literal(literal(type(D1,Lex1)), literal(type(D2,Lex2))) :- !,
   rdf_clean_iri(D1, D2),
   rdf_clean_lexical_form(D2, Lex1, Lex2).
-% simple literal
-rdf_clean_literal(literal(Lex), Literal) :-
-  rdf_equal(D, xsd:string),
-  rdf_clean_literal(literal(type(D,Lex)), Literal).
+% simple literal (RDF 1.0): quickly clean this to a typed literal (RDF 1.1).
+rdf_clean_literal(literal(Lex), literal(type(D,Lex))) :-
+  rdf_equal(xsd:string, D).
 
 
 

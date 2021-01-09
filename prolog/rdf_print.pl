@@ -73,7 +73,7 @@
 
 
 %! rdf_dcg_node(+Node:rdf_node)// is det.
-%! rdf_dcg_node(+Node:rdf_node, +Options:dict)// is det.
+%! rdf_dcg_node(+Node:rdf_node, +Options:options)// is det.
 
 rdf_dcg_node(Node) -->
   rdf_dcg_node(Node, options{}).
@@ -85,7 +85,7 @@ rdf_dcg_node(Node, Options) -->
 
 
 %! rdf_dcg_predicate(+P:rdf_predicate)// is det.
-%! rdf_dcg_predicate(+P:rdf_predicate, +Options:dict)// is det.
+%! rdf_dcg_predicate(+P:rdf_predicate, +Options:options)// is det.
 
 rdf_dcg_predicate(P) -->
   rdf_dcg_predicate(P, options{}).
@@ -104,7 +104,7 @@ rdf_dcg_predicate(P, Options) -->
 
 
 %! rdf_dcg_proof(+Proof:compound)// is det.
-%! rdf_dcg_proof(+Proof:compound, +Options:dict)// is det.
+%! rdf_dcg_proof(+Proof:compound, +Options:options)// is det.
 
 rdf_dcg_proof(Proof) -->
   rdf_dcg_proof(Proof, options{}).
@@ -127,7 +127,7 @@ rdf_dcg_proof_(N1, Options, p(Rule,Concl,Proofs)) -->
 
 
 %! rdf_dcg_qp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?Graph:atom)// is det.
-%! rdf_dcg_qp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?Graph:atom, +Options:dict)// is det.
+%! rdf_dcg_qp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?Graph:atom, +Options:options)// is det.
 
 rdf_dcg_qp(S, P, O, G) -->
   rdf_dcg_qp(S, P, O, G, options{}).
@@ -140,7 +140,7 @@ rdf_dcg_qp(S, P, O, G, Options) -->
 
 
 
-%! rdf_dcg_term_(+Term:rdf_term, +Options:dict)// is det.
+%! rdf_dcg_term_(+Term:rdf_term, +Options:options)// is det.
 
 % language-tagged string
 rdf_dcg_term_(literal(lang(LTag,Lex)), Options) --> !,
@@ -261,9 +261,9 @@ escape_newlines --> "".
 
 
 %! rdf_dcg_tp(+TP:compound)// is det.
-%! rdf_dcg_tp(+TP:compound, +Options:dict)// is det.
+%! rdf_dcg_tp(+TP:compound, +Options:options)// is det.
 %! rdf_dcg_tp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object)// is det.
-%! rdf_dcg_tp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, +Options:dict)// is det.
+%! rdf_dcg_tp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, +Options:options)// is det.
 
 rdf_dcg_tp(tp(S,P,O)) -->
   rdf_dcg_tp(tp(S,P,O), options{}).
@@ -287,7 +287,7 @@ rdf_dcg_tp(S, P, O, Options) -->
 
 
 %! rdf_dcg_tps(+TPs:list(tp))// is det.
-%! rdf_dcg_tps(+TPs:list(tp), +Options:dict)// is det.
+%! rdf_dcg_tps(+TPs:list(tp), +Options:options)// is det.
 %
 % Prints the given TPs, using the abbreviations defined in Turtle
 % 1.1.
@@ -389,7 +389,7 @@ tps_to_groups1(S, TPs, SGroups) :-
 tps_to_groups2(S, P, TPs, Os) :-
   aggregate_all(set(O), member(tp(S,P,O), TPs), Os).
 
-%! rdf_dcg_subjects0(+Indent:nonneg, +Groups, +SkipTPs:list(tp), +Options:dict)// is det.
+%! rdf_dcg_subjects0(+Indent:nonneg, +Groups, +SkipTPs:list(tp), +Options:options)// is det.
 
 rdf_dcg_subjects0(_, [], _, _) --> !, "".
 rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
@@ -456,7 +456,7 @@ rdf_dcg_objects2(I, [O|Os], SkipTPs1, SkipTPs3, Options) -->
 %!                         +Node:rdf_node,
 %!                         +SkipTPs1:list(tp),
 %!                         +SkipTPs2:list(tp),
-%!                         +Options:dict)// is det.
+%!                         +Options:options)// is det.
 
 % The object term is an RDF list (collection).
 rdf_dcg_complex_object_(I, InLine, RdfList, SkipTPs1, SkipTPs2, Options) -->
@@ -504,7 +504,7 @@ linear_list_(S1, SkipTPs1, SkipTPs4, [H|T]) :-
   linear_list_(S2, SkipTPs3, SkipTPs4, T).
 linear_list_(_, SkipTPs, SkipTPs, []).
 
-%! rdf_dcg_list_(+Terms:list(rdf_term), +Options:dict)// is det.
+%! rdf_dcg_list_(+Terms:list(rdf_term), +Options:options)// is det.
 
 rdf_dcg_list_(Terms, Options) -->
   "(",
@@ -517,7 +517,7 @@ rdf_dcg_list_(Terms, Options) -->
   ),
   ")".
 
-%! rdf_dcg_list_tail_(+Terms:list(rdf_term), +Options:dict)// is det.
+%! rdf_dcg_list_tail_(+Terms:list(rdf_term), +Options:options)// is det.
 
 rdf_dcg_list_tail_([H|T], Options) --> !,
   " ",

@@ -3,7 +3,7 @@
   rdf_term,
   [
     rdf_atom_term/2,                     % ?Atom, ?Term
-    rdf_base_uri/1,                      % ?BaseUri
+    rdf_base_iri/1,                      % ?BaseIri
     rdf_canonical_lexical_form/3,        % +Datatype, +Lex, -CanonicaldLex
     rdf_canonical_literal/2,             % +Literal, -CanonicaldLiteral
     rdf_container_membership_property/1, % ?P
@@ -137,7 +137,7 @@ error:has_type(rdf_tuple, Term) :-
 
 :- rdf_meta
    rdf_atom_term(?, o),
-   rdf_base_uri(r),
+   rdf_base_iri(r),
    rdf_canonical_lexical_form(r, +, -),
    rdf_canonical_literal(o, o),
    rdf_container_membership_property(r),
@@ -169,8 +169,8 @@ error:has_type(rdf_tuple, Term) :-
    tp_object_dwim(o, -),
    tp_predicate_dwim(r, -).
 
-:- setting(base_uri, atom, 'https://example.org/base-uri/',
-           "The default base URI for RDF IRIs.").
+:- setting(base_iri, atom, 'https://example.com/',
+           "The default base IRI for RDF IRIs.").
 :- setting(bnode_prefix_authority, atom, 'example.org', "").
 :- setting(bnode_prefix_scheme, atom, https, "").
 :- setting(rdf_container_membership_properties,
@@ -226,11 +226,11 @@ test_rdf_atom_term('""^^<mailto:x>', literal(type('mailto:x',''))).
 
 
 
-%! rdf_base_uri(+BaseUri:atom) is semidet.
-%! rdf_base_uri(-BaseUri:atom) is det.
+%! rdf_base_iri(+BaseIri:atom) is semidet.
+%! rdf_base_iri(-BaseIri:atom) is det.
 
-rdf_base_uri(BaseUri) :-
-  setting(base_uri, BaseUri).
+rdf_base_iri(BaseIri) :-
+  setting(base_iri, BaseIri).
 
 
 

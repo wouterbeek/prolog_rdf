@@ -25,7 +25,7 @@
 
 %! rdf_download(+Uri:atom) is det.
 %! rdf_download(+Uri:atom, ?File:atom) is det.
-%! rdf_download(+Uri:atom, ?File:atom, +Options:dict) is det.
+%! rdf_download(+Uri:atom, ?File:atom, +Options:options) is det.
 %
 % @param Options The options are passed to rdf_deref_uri/3.
 
