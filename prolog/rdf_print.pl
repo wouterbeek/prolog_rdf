@@ -282,7 +282,8 @@ rdf_dcg_tp(S, P, O, Options) -->
   " ",
   rdf_dcg_predicate(P, Options),
   " ",
-  rdf_dcg_node(O, Options).
+  rdf_dcg_node(O, Options),
+  ".".
 
 
 

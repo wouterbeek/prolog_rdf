@@ -110,7 +110,7 @@ error:has_type(rdf_object, Term) :-
 error:has_type(rdf_predicate, Term) :-
   error:has_type(rdf_iri, Term).
 error:has_type(rdf_quad, Term) :-
-  Term = rdf(S,P,O,G),
+  Term = tp(S,P,O,G),
   error:has_type(rdf_subject, S),
   error:has_type(rdf_predicate, P),
   error:has_type(rdf_object, O),
@@ -126,7 +126,7 @@ error:has_type(rdf_term, Term) :-
 error:has_type(rdf_term, Term) :-
   error:has_type(rdf_literal, Term).
 error:has_type(rdf_triple, Term) :-
-  Term = rdf(S,P,O),
+  Term = tp(S,P,O),
   error:has_type(rdf_subject, S),
   error:has_type(rdf_predicate, P),
   error:has_type(rdf_object, O).

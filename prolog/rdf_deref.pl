@@ -203,7 +203,7 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
   %->  read_jsonld(In2, Triples),
   %    call(Mod:Goal_2, Triples, _)
   ;   % An unsupported Media Type.
-      print_message(warning, rdf(unsupported_format(MediaType,_)))
+      print_message(warning, unsupported_format(MediaType,_))
   ).
 
 

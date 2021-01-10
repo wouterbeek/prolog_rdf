@@ -91,14 +91,14 @@ rdf_write_name(Out, Literal) :-
 % Quad must be a quadruple (denoted by compound term rdf/4).  Triples
 % (denoted by compound term rdf/3) are not supported.
 
-rdf_write_quad(Out, rdf(S,P,O,G)) :-
+rdf_write_quad(Out, tp(S,P,O,G)) :-
   rdf_write_quad(Out, S, P, O, G).
 
 
-rdf_write_quad(Out, rdf(S,P,O), G) :- !,
-  rdf_write_quad(Out, rdf(S,P,O,G)).
-rdf_write_quad(Out, rdf(S,P,O,_), G) :-
-  rdf_write_quad(Out, rdf(S,P,O,G)).
+rdf_write_quad(Out, tp(S,P,O), G) :- !,
+  rdf_write_quad(Out, tp(S,P,O,G)).
+rdf_write_quad(Out, tp(S,P,O,_), G) :-
+  rdf_write_quad(Out, tp(S,P,O,G)).
 
 
 rdf_write_quad(Out, S, P, O, G) :-
