@@ -17,9 +17,9 @@
 
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf_ntriples)).
-:- use_module(library(semweb/rdfa)).
-:- use_module(library(semweb/turtle)).
+:- use_module(library(semweb/rdf_ntriples), []).
+:- use_module(library(semweb/rdfa), []).
+:- use_module(library(semweb/turtle), []).
 
 :- use_module(library(archive_ext)).
 :- use_module(library(atom_ext)).
@@ -148,7 +148,8 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_ntriples(In2, Mod:Goal_2, Options2)
+      dict_terms(Options2, Options3),
+      rdf_ntriples:rdf_process_ntriples(In2, Mod:Goal_2, Options3)
   ;   % N-Triples
       media_type_comps(MediaType, application, 'n-triples', _)
   ->  merge_dicts(
@@ -156,11 +157,13 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_ntriples(In2, Mod:Goal_2, Options2)
+      dict_terms(Options2, Options3),
+      rdf_ntriples:rdf_process_ntriples(In2, Mod:Goal_2, Options3)
   ;   % RDF/XML
       media_type_comps(MediaType, application, 'rdf+xml', _)
   ->  merge_dicts(options{base_iri: BaseIri, max_errors: -1}, Options1, Options2),
-      process_rdf(In2, Mod:Goal_2, Options2)
+      dict_terms(Options2, Options3),
+      rdf:process_rdf(In2, Mod:Goal_2, Options3)
   ;   % TriG
       media_type_comps(MediaType, application, trig, _)
   ->  merge_dicts(
@@ -175,7 +178,7 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
       ),
       dict_change_keys(Options2, [base_iri-base_uri], Options3),
       dict_terms(Options3, Options4),
-      rdf_process_turtle(In2, Mod:Goal_2, Options4)
+      turtle:rdf_process_turtle(In2, Mod:Goal_2, Options4)
   ;   % Turtle
       media_type_comps(MediaType, text, turtle, _)
   ->  merge_dicts(
@@ -188,7 +191,8 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      rdf_process_turtle(In2, Mod:Goal_2, Options2)
+      dict_terms(Options2, Options3),
+      rdf_process_turtle(In2, Mod:Goal_2, Options3)
   ;   % RDFa
       memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_dicts(
@@ -196,7 +200,8 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
         Options1,
         Options2
       ),
-      read_rdfa(In2, Triples, Options2),
+      dict_terms(Options2, Options3),
+      rdfa:read_rdfa(In2, Triples, Options3),
       call(Mod:Goal_2, Triples, _)
   %;   % JSON-LD
   %    memberchk(MediaType, [media(application/'ld+json',_)])
