@@ -337,7 +337,7 @@ rdf_dcg_groups0([G-Triples|Groups], Options) -->
 
 rdf_dcg_triples0(I, Triples, Options) -->
   {
-    partition(is_skip_tp_, Triples, SkipTriples, NonSkipTriples),
+    partition(is_skip_tp_(Triples), Triples, SkipTriples, NonSkipTriples),
     triples_to_groups0(NonSkipTriples, Groups)
   },
   rdf_dcg_subjects0(I, Groups, SkipTriples, Options).
@@ -346,17 +346,18 @@ rdf_dcg_triples0(I, Triples, Options) -->
 %
 % Succeeds if TP should be skipped for the purposes of printing.
 
-% blank node subject term
-is_skip_tp_(tp(S,_,_)) :-
-  rdf_is_bnode(S), !.
-% well-known IRI subject term
-is_skip_tp_(tp(S,_,_)) :-
-  rdf_is_bnode_iri(S), !.
+is_skip_tp_(Triples, tp(S,_,_)) :-
+  ( % blank node subject term
+    rdf_is_bnode(S)
+  ; % well-known IRI subject term
+    rdf_is_bnode_iri(S)
+  ), !,
+  memberchk(tp(_,_,S), Triples), !.
 % RDF list
-is_skip_tp_(tp(_,P,_)) :-
+is_skip_tp_(_, tp(_,P,_)) :-
   rdf_prefix_memberchk(P, [rdf:first,rdf:rest]), !.
 % blank node object term
-is_skip_tp_(tp(_,_,O)) :-
+is_skip_tp_(_, tp(_,_,O)) :-
   rdf_is_bnode(O).
 
 %! triples_to_groups0(+Triples:list(tp),
