@@ -14,8 +14,8 @@
     rdf_dcg_tp//2,        % +TP, +Options
     rdf_dcg_tp//3,        % ?S, ?P, ?O
     rdf_dcg_tp//4,        % ?S, ?P, ?O, +Options
-    rdf_dcg_tps//1,       % +TPs
-    rdf_dcg_tps//2        % +TPs, +Options
+    rdf_dcg_triples//1,   % +Triples
+    rdf_dcg_triples//2    % +Triples, +Options
   ]
 ).
 
@@ -23,7 +23,8 @@
 
 | **Key**        | **Value**            | **Default** | **Description**                    |
 |:---------------|:---------------------|:-----------:|:-----------------------------------|
-| `indent`       | nonneg               | 0           |                                    |
+| `indent`       | nonneg               | 0           | The number of spaces for the outer |
+|                |                      |             | indentation level.                 |
 | `iri_abbr`     | boolean              | `true`      | Whether IRIs are abbreviated       |
 |                |                      |             | based on the current prefixes.     |
 | `max_iri_len`  | nonneg               | `∞`         | The maximum length of an IRI.      |
@@ -65,8 +66,8 @@
    rdf_dcg_tp(t, +, ?, ?),
    rdf_dcg_tp(r, r, o, ?, ?),
    rdf_dcg_tp(r, r, o, +, ?, ?),
-   rdf_dcg_tps(t, ?, ?),
-   rdf_dcg_tps(t, +, ?, ?).
+   rdf_dcg_triples(t, ?, ?),
+   rdf_dcg_triples(t, +, ?, ?).
 
 
 
@@ -287,28 +288,29 @@ rdf_dcg_tp(S, P, O, Options) -->
 
 
 
-%! rdf_dcg_tps(+TPs:list(tp))// is det.
-%! rdf_dcg_tps(+TPs:list(tp), +Options:options)// is det.
+%! rdf_dcg_triples(+Triples:list(tp))// is det.
+%! rdf_dcg_triples(+Triples:list(tp), +Options:options)// is det.
 %
-% Prints the given TPs, using the abbreviations defined in Turtle
+% Prints the given triples, using the abbreviations defined in Turtle
 % 1.1.
 %
 % @see https://www.w3.org/TR/turtle/
 
-rdf_dcg_tps(TPs) -->
-  rdf_dcg_tps(TPs, options{}).
+rdf_dcg_triples(Triples) -->
+  rdf_dcg_triples(Triples, options{}).
 
 
-rdf_dcg_tps(TPs, Options) -->
-  rdf_dcg_prefixes(TPs),
-  rdf_dcg_groups0([_NoGraph-TPs], Options).
+rdf_dcg_triples(Triples, Options) -->
+  {dict_get(graph, Options, _NoGraph, GraphName)},
+  rdf_dcg_prefixes(Triples),
+  rdf_dcg_groups0([GraphName-Triples], Options).
 
-rdf_dcg_prefixes(TPs) -->
+rdf_dcg_prefixes(Triples) -->
   {
     aggregate_all(
       set(Alias-Prefix),
       (
-        member(tp(S,P,O), TPs),
+        member(tp(S,P,O), Triples),
         member(Term, [S,P,O]),
         rdf_is_iri(Term),
         rdf_prefix_iri(Alias, _, Term),
@@ -328,7 +330,7 @@ rdf_dcg_prefix(Alias-Prefix) -->
   ">\n".
 
 rdf_dcg_groups0([], _) --> !, "".
-rdf_dcg_groups0([G-TPs|Groups], Options) -->
+rdf_dcg_groups0([G-Triples|Groups], Options) -->
   {dict_get(indent, Options, 0, I1)},
   (   {var(G)}
   ->  {I2 = I1}
@@ -337,16 +339,16 @@ rdf_dcg_groups0([G-TPs|Groups], Options) -->
       " {\n",
       {I2 = I1 + 2}
   ),
-  rdf_dcg_tps0(I2, TPs, Options),
+  rdf_dcg_triples0(I2, Triples, Options),
   ({var(G)} -> "" ; "}\n"),
   rdf_dcg_groups0(Groups, Options).
 
-rdf_dcg_tps0(I, TPs, Options) -->
+rdf_dcg_triples0(I, Triples, Options) -->
   {
-    partition(is_skip_tp_, TPs, SkipTPs, NonSkipTPs),
-    tps_to_groups0(NonSkipTPs, Groups)
+    partition(is_skip_tp_, Triples, SkipTriples, NonSkipTriples),
+    triples_to_groups0(NonSkipTriples, Groups)
   },
-  rdf_dcg_subjects0(I, Groups, SkipTPs, Options).
+  rdf_dcg_subjects0(I, Groups, SkipTriples, Options).
 
 %! is_skip_tp_(+TP:tp) is semidet.
 %
@@ -365,56 +367,60 @@ is_skip_tp_(tp(_,P,_)) :-
 is_skip_tp_(tp(_,_,O)) :-
   rdf_is_bnode(O).
 
-%! tps_to_groups0(+TPs:list(tp), -Groups:ordset(pair(rdf_node,ordset(pair(rdf_predicate,ordset(rdf_node)))))) is det.
+%! triples_to_groups0(+Triples:list(tp),
+%!                    -Groups:ordset(pair(rdf_node,ordset(pair(rdf_predicate,ordset(rdf_node)))))) is det.
 
-tps_to_groups0(TPs, Groups) :-
+triples_to_groups0(Triples, Groups) :-
   aggregate_all(
     set(S-SGroups),
     (
-      distinct(S, member(tp(S,_,_), TPs)),
-      tps_to_groups1(S, TPs, SGroups)
+      distinct(S, member(tp(S,_,_), Triples)),
+      triples_to_groups1(S, Triples, SGroups)
     ),
     Groups
   ).
 
-tps_to_groups1(S, TPs, SGroups) :-
+triples_to_groups1(S, Triples, SGroups) :-
   aggregate_all(
     set(P-Os),
     (
-      distinct(P, member(tp(S,P,_), TPs)),
-      tps_to_groups2(S, P, TPs, Os)
+      distinct(P, member(tp(S,P,_), Triples)),
+      triples_to_groups2(S, P, Triples, Os)
     ),
     SGroups
   ).
 
-tps_to_groups2(S, P, TPs, Os) :-
-  aggregate_all(set(O), member(tp(S,P,O), TPs), Os).
+triples_to_groups2(S, P, Triples, Os) :-
+  aggregate_all(set(O), member(tp(S,P,O), Triples), Os).
 
-%! rdf_dcg_subjects0(+Indent:nonneg, +Groups, +SkipTPs:list(tp), +Options:options)// is det.
+%! rdf_dcg_subjects0(+Indent:nonneg,
+%!                   +Groups,
+%!                   +SkipTriples:list(tp),
+%!                   +Options:options)// is det.
 
 rdf_dcg_subjects0(_, [], _, _) --> !, "".
-rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTPs1, Options) -->
+rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTriples1, Options) -->
   tab(I1),
   rdf_dcg_node(S, Options),
   {I2 is I1 + 2},
-  rdf_dcg_predicates1(I2, SGroups, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_predicates1(I2, SGroups, SkipTriples1, SkipTriples2, Options),
   nl,
   ({Groups == []} -> "" ; nl),
-  rdf_dcg_subjects0(I1, Groups, SkipTPs2, Options).
+  rdf_dcg_subjects0(I1, Groups, SkipTriples2, Options).
 
 % There is exactly one predicate-object pair; emit it on the same
 % line.
-rdf_dcg_predicates1(I, [P-[O]], SkipTPs1, SkipTPs2, Options) --> !,
+rdf_dcg_predicates1(I, [P-[O]], SkipTriples1, SkipTriples2, Options) --> !,
   " ",
   rdf_dcg_predicate(P, Options),
-  rdf_dcg_complex_object_(I, true, O, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_complex_object_(I, true, O, SkipTriples1, SkipTriples2, Options),
   ".".
 % There is more than one predicate-object pair; do something special.
-rdf_dcg_predicates1(I, SGroups1, SkipTPs1, SkipTPs2, Options) -->
+rdf_dcg_predicates1(I, SGroups1, SkipTriples1, SkipTriples2, Options) -->
   % Display instance-of statements first (regardless of predicate term
   % order).
   {types_to_the_front(SGroups1, SGroups2)},
-  rdf_dcg_predicates2(I, false, false, SGroups2, SkipTPs1, SkipTPs2, Options).
+  rdf_dcg_predicates2(I, false, false, SGroups2, SkipTriples1, SkipTriples2, Options).
 
 types_to_the_front(SGroups1, [P-Os|SGroups2]) :-
   rdf_prefix_iri(rdf, type, P),
@@ -422,15 +428,15 @@ types_to_the_front(SGroups1, [P-Os|SGroups2]) :-
 types_to_the_front(SGroups, SGroups).
 
 % No more predicates.
-rdf_dcg_predicates2(_, _, _, [], SkipTPs, SkipTPs, _) --> !, "".
+rdf_dcg_predicates2(_, _, _, [], SkipTriples, SkipTriples, _) --> !, "".
 % Another predicate.
-rdf_dcg_predicates2(I1, StartOfBlock, InBlock, [P-Os|Groups], SkipTPs1, SkipTPs3, Options) -->
+rdf_dcg_predicates2(I1, StartOfBlock, InBlock, [P-Os|Groups], SkipTriples1, SkipTriples3, Options) -->
   start_of_block(I1, StartOfBlock),
   rdf_dcg_predicate(P, Options),
   {I2 is I1 + 2},
-  rdf_dcg_objects1(I2, Os, SkipTPs1, SkipTPs2, Options),
+  rdf_dcg_objects1(I2, Os, SkipTriples1, SkipTriples2, Options),
   ({Groups == []} -> ({InBlock == true} -> " " ; ".") ; ";"),
-  rdf_dcg_predicates2(I1, false, InBlock, Groups, SkipTPs2, SkipTPs3, Options).
+  rdf_dcg_predicates2(I1, false, InBlock, Groups, SkipTriples2, SkipTriples3, Options).
 
 start_of_block(I, false) --> !,
   nl,
@@ -438,39 +444,39 @@ start_of_block(I, false) --> !,
 start_of_block(_, true) --> " ".
 
 % There is exactly one object.  Emit it on the same line.
-rdf_dcg_objects1(I, [O], SkipTPs1, SkipTPs2, Options) --> !,
-  rdf_dcg_complex_object_(I, true, O, SkipTPs1, SkipTPs2, Options).
+rdf_dcg_objects1(I, [O], SkipTriples1, SkipTriples2, Options) --> !,
+  rdf_dcg_complex_object_(I, true, O, SkipTriples1, SkipTriples2, Options).
 % There are multiple objects: emit each one on its own line.
-rdf_dcg_objects1(I, Os, SkipTPs1, SkipTPs2, Options) -->
-  rdf_dcg_objects2(I, Os, SkipTPs1, SkipTPs2, Options).
+rdf_dcg_objects1(I, Os, SkipTriples1, SkipTriples2, Options) -->
+  rdf_dcg_objects2(I, Os, SkipTriples1, SkipTriples2, Options).
 
 % No more objects.
-rdf_dcg_objects2(_, [], SkipTPs, SkipTPs, _) --> !, "".
+rdf_dcg_objects2(_, [], SkipTriples, SkipTriples, _) --> !, "".
 % Another object.
-rdf_dcg_objects2(I, [O|Os], SkipTPs1, SkipTPs3, Options) -->
-  rdf_dcg_complex_object_(I, false, O, SkipTPs1, SkipTPs2, Options),
+rdf_dcg_objects2(I, [O|Os], SkipTriples1, SkipTriples3, Options) -->
+  rdf_dcg_complex_object_(I, false, O, SkipTriples1, SkipTriples2, Options),
   ({Os == []} -> "" ; ","),
-  rdf_dcg_objects2(I, Os, SkipTPs2, SkipTPs3, Options).
+  rdf_dcg_objects2(I, Os, SkipTriples2, SkipTriples3, Options).
 
 %! rdf_dcg_complex_object_(+Indent:nonneg,
 %!                         +InLine:boolean,
 %!                         +Node:rdf_node,
-%!                         +SkipTPs1:list(tp),
-%!                         +SkipTPs2:list(tp),
+%!                         +SkipTriples1:list(tp),
+%!                         +SkipTriples2:list(tp),
 %!                         +Options:options)// is det.
 
 % The object term is an RDF list (collection).
-rdf_dcg_complex_object_(I, InLine, RdfList, SkipTPs1, SkipTPs2, Options) -->
+rdf_dcg_complex_object_(I, InLine, RdfList, SkipTriples1, SkipTriples2, Options) -->
   {
-    linear_list_(RdfList, SkipTPs1, SkipTPs2, Terms),
+    linear_list_(RdfList, SkipTriples1, SkipTriples2, Terms),
     Terms = [_|_]
   }, !,
   ({InLine == true} -> " " ; nl, tab(I)),
   rdf_dcg_list_(Terms, Options).
 % The object term can be emitted an anonymous node.
-rdf_dcg_complex_object_(I1, _, Node, SkipTPs1, SkipTPs3, Options) -->
+rdf_dcg_complex_object_(I1, _, Node, SkipTriples1, SkipTriples3, Options) -->
   {
-    turtle_object_(Node, SkipTPs1, SkipTPs2, Pairs),
+    turtle_object_(Node, SkipTriples1, SkipTriples2, Pairs),
     Pairs = [_|_], !,
     group_pairs_by_key(Pairs, Groups),
     I2 is I1 + 2
@@ -478,32 +484,32 @@ rdf_dcg_complex_object_(I1, _, Node, SkipTPs1, SkipTPs3, Options) -->
   nl,
   tab(I1),
   "[",
-  rdf_dcg_predicates2(I2, true, true, Groups, SkipTPs2, SkipTPs3, Options),
+  rdf_dcg_predicates2(I2, true, true, Groups, SkipTriples2, SkipTriples3, Options),
   "]".
 % The object term is an atomic term.
-rdf_dcg_complex_object_(I, InLine, Term, SkipTPs, SkipTPs, Options) -->
+rdf_dcg_complex_object_(I, InLine, Term, SkipTriples, SkipTriples, Options) -->
   ({InLine == true} -> " " ; nl, tab(I)),
   rdf_dcg_term_(Term, Options).
 
 %! turtle_object_(+RdfList:rdf_node,
-%!                +SkipTPs1:list(tp),
-%!                -SkipTPs2:list(tp),
+%!                +SkipTriples1:list(tp),
+%!                -SkipTriples2:list(tp),
 %!                -P_O_Pairs:list(pair(rdf_predicate,rdf_node))) is det.
-turtle_object_(S, SkipTPs1, SkipTPs3, [P-O|T]) :-
-  rdf_prefix_selectchk(tp(S,P,O), SkipTPs1, SkipTPs2), !,
-  turtle_object_(S, SkipTPs2, SkipTPs3, T).
-turtle_object_(_, SkipTPs, SkipTPs, []).
+turtle_object_(S, SkipTriples1, SkipTriples3, [P-O|T]) :-
+  rdf_prefix_selectchk(tp(S,P,O), SkipTriples1, SkipTriples2), !,
+  turtle_object_(S, SkipTriples2, SkipTriples3, T).
+turtle_object_(_, SkipTriples, SkipTriples, []).
 
 %! linear_list_(+RdfList:rdf_node,
-%!              +SkipTPs1:list(tp),
-%!              -SkipTPs2:list(tp),
+%!              +SkipTriples1:list(tp),
+%!              -SkipTriples2:list(tp),
 %!              -Terms:list(rdf_term)) is det.
 
-linear_list_(S1, SkipTPs1, SkipTPs4, [H|T]) :-
-  rdf_prefix_selectchk(tp(S1,rdf:first,H), SkipTPs1, SkipTPs2),
-  rdf_prefix_selectchk(tp(S1,rdf:rest,S2), SkipTPs2, SkipTPs3), !,
-  linear_list_(S2, SkipTPs3, SkipTPs4, T).
-linear_list_(_, SkipTPs, SkipTPs, []).
+linear_list_(S1, SkipTriples1, SkipTriples4, [H|T]) :-
+  rdf_prefix_selectchk(tp(S1,rdf:first,H), SkipTriples1, SkipTriples2),
+  rdf_prefix_selectchk(tp(S1,rdf:rest,S2), SkipTriples2, SkipTriples3), !,
+  linear_list_(S2, SkipTriples3, SkipTriples4, T).
+linear_list_(_, SkipTriples, SkipTriples, []).
 
 %! rdf_dcg_list_(+Terms:list(rdf_term), +Options:options)// is det.
 
