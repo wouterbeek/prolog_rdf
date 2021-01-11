@@ -304,8 +304,8 @@ rdf_dcg_prefixes(Triples) -->
       (
         member(tp(S,P,O), Triples),
         member(Term, [S,P,O]),
-        rdf_is_iri(Term),
-        rdf_prefix_iri(Alias, _, Term),
+        term_iri_(Term, Iri),
+        rdf_prefix_iri(Alias, _, Iri),
         rdf_prefix(Alias, Prefix)
       ),
       Pairs
@@ -313,6 +313,11 @@ rdf_dcg_prefixes(Triples) -->
   },
   '*'(rdf_dcg_prefix, Pairs), !,
   ({Pairs == []} -> "" ; "\n").
+
+term_iri_(Iri, Iri) :-
+  rdf_is_iri(Iri), !.
+term_iri_(Literal, Iri) :-
+  rdf_literal_datatype_iri(Literal, Iri).
 
 rdf_dcg_prefix(Alias-Prefix) -->
   "prefix ",
