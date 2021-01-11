@@ -251,14 +251,6 @@ extra_quotes_(Atom, true) :-
   memberchk(Code, Codes), !.
 extra_quotes_(_, false).
 
-escape_newlines, "\\n" -->
-  "\n", !,
-  escape_newlines.
-escape_newlines, [Code] -->
-  [Code], !,
-  escape_newlines.
-escape_newlines --> "".
-
 
 
 %! rdf_dcg_tp(+TP:compound)// is det.
