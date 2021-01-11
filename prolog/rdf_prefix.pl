@@ -1,6 +1,7 @@
 :- module(
   rdf_prefix,
   [
+    assert_prefixes/1,       % +File
    %rdf_equal/2,             % +Term1, +Term2
     rdf_prefix/1,            % ?Alias
    %rdf_prefix/2,            % ?Alias, ?Prefix
@@ -52,6 +53,9 @@ standards SWI-Prolog distribution.
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
+:- use_module(library(dcg)).
+:- use_module(library(file_ext)).
+
 :- initialization
    init_rdf_prefix.
 
@@ -71,6 +75,42 @@ standards SWI-Prolog distribution.
    rdf_prefix_selectchk(t, t, t).
 
 
+
+
+
+%! assert_prefixes(+File:atom) is det.
+%
+% Asserts prefixes that appear at the top of the given N-Quads,
+% N-Triples, TriG, or Turtle file.
+
+assert_prefixes(File) :-
+  read_from_file(File, assert_prefixes_).
+
+assert_prefixes_(In) :-
+  repeat,
+  read_line_to_string(In, String),
+  (   String == end_of_file
+  ->  !, fail
+  ;   once(string_phrase(prefix_declaration_(Alias, Prefix), String)),
+      rdf_register_prefix(Alias, Prefix)
+  ->  fail
+  ;   string_phrase(whites, String)
+  ->  fail
+  ;   !, true
+  ).
+
+prefix_declaration_(Alias, Prefix) -->
+  whites,
+  "prefix",
+  whites,
+  '...'(Codes1),
+  ":", !,
+  {atom_codes(Alias, Codes1)},
+  whites,
+  "<",
+  '...'(Codes2),
+  ">", !,
+  {atom_codes(Prefix, Codes2)}.
 
 
 
