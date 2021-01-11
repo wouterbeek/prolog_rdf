@@ -759,6 +759,10 @@ rdf_literal_dwim(Term, _) :-
   instantiation_error(Term).
 rdf_literal_dwim(literal(Term), literal(Term)) :-
   var(Term), !.
+% regular typed literal
+rdf_literal_dwim(literal(type(Datatype,Lex)), literal(type(Datatype,Lex))) :- !.
+% regular language-tagged string
+rdf_literal_dwim(literal(lang(LTag,Lex)), literal(lang(LTag,Lex))) :- !.
 % geospatial shapes
 rdf_literal_dwim(shape(Z,LRS,CRS,Shape), Literal) :- !,
   wkt_shape_atom(shape(Z,LRS,CRS,Shape), Lex),
@@ -868,13 +872,6 @@ rdf_literal_dwim(String, literal(type(Datatype,Lex))) :-
   string(String), !,
   rdf_equal(xsd:string, Datatype),
   atom_string(Lex, String).
-% regular typed literal
-rdf_literal_dwim(literal(type(Datatype,Lex)), literal(type(Datatype,Lex))) :- !.
-% regular language-tagged string
-rdf_literal_dwim(literal(lang(LTag,Lex)), literal(lang(LTag,Lex))) :- !.
-% legacy untyped literals
-rdf_literal_dwim(literal(Lex), literal(type(Datatype,Lex))) :- !,
-  rdf_equal(xsd:string, Datatype).
 % atom `false' and `true' → xsd:boolean
 rdf_literal_dwim(Lex, literal(type(Datatype,Lex))) :-
   memberchk(Lex, [false,true]), !,
