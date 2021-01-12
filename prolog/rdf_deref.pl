@@ -192,7 +192,7 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
         Options2
       ),
       dict_terms(Options2, Options3),
-      rdf_process_turtle(In2, Mod:Goal_2, Options3)
+      turtle:rdf_process_turtle(In2, Mod:Goal_2, Options3)
   ;   % RDFa
       memberchk(MediaType, [media(application/'xhtml+xml',_),media(text/html,_)])
   ->  merge_dicts(
