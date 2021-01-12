@@ -242,8 +242,16 @@ rdf_dcg_lexical_form_(Lex, Options) -->
     extra_quotes_(Lex, ExtraQuotes)
   },
   ({ExtraQuotes == true} -> "\"\"\"" ; "\""),
-  ({Length == ∞} -> atom(Lex) ; ellipsis(Lex, Length)),
+  ({Length == ∞} -> {atom_codes(Lex, Cs)}, lex_(Cs) ; ellipsis(Lex, Length)),
   ({ExtraQuotes == true} -> "\"\"\"" ; "\"").
+
+lex_([0'\\|T]) --> !,
+  "\\\\",
+  lex_(T).
+lex_([H|T]) --> !,
+  [H],
+  lex_(T).
+lex_([]) --> "".
 
 extra_quotes_(Atom, true) :-
   atom_codes(Atom, Codes),
