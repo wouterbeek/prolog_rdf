@@ -2,9 +2,9 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean_quad/3,   % +Site, +Quad, -CleanQuad
-    rdf_clean_triple/3, % +Site, +Triple, -CleanTriple
-    rdf_clean_tuple/3   % +Site, +Tuple, -CleanTuple
+    rdf_clean_quad/3,   % +BaseIri, +Quad, -CleanQuad
+    rdf_clean_triple/3, % +BaseIri, +Triple, -CleanTriple
+    rdf_clean_tuple/3   % +BaseIri, +Tuple, -CleanTuple
   ]
 ).
 
@@ -30,14 +30,14 @@
 
 
 
-%! rdf_clean_bnode(+Site:uri, +BNode:atom, -Iri:rdf_iri) is det.
+%! rdf_clean_bnode(+BaseIri:uri, +BNode:atom, -Iri:rdf_iri) is det.
 %
 % Blank node cleaning results in Skolemization / a well-known IRI.
 %
 % BNodePrefix must uniquely denote the document scope in which the
-% blank node occurs.  For this we use the Site argument.
+% blank node occurs.  For this we use the BaseIri argument.
 
-rdf_clean_bnode(Site, BNode, Iri) :-
+rdf_clean_bnode(BaseIri, BNode, Iri) :-
   % The SWI-Prolog RDF parsers create long blank node labels that do
   % not conform to serialization grammars (e.g.,
   % ‘_:http://www.gutenberg.org/feeds/catalog.rdf.bz2#_:Description2’).
@@ -46,7 +46,7 @@ rdf_clean_bnode(Site, BNode, Iri) :-
   % violate serialization grammars, while (3) retaining the feature
   % that the same blank node in the source document receives the same
   % Skolemized well-known IRI.
-  md5(Site-BNode, Hash),
+  md5(BaseIri-BNode, Hash),
   well_known_iri([Hash], Iri).
 
 
@@ -133,14 +133,14 @@ rdf_clean_literal(literal(Lex), literal(type(D,Lex))) :-
 
 
 
-%! rdf_clean_nonliteral(+Site:uri,
+%! rdf_clean_nonliteral(+BaseIri:uri,
 %!                      +NonLiteral:or([rdf_bnode,rdf_iri]),
 %!                      -CleanNonLiteral:or([rdf_bnode,rdf_iri])) is semidet.
 
 % blank node
-rdf_clean_nonliteral(Site, BNode, Iri) :-
+rdf_clean_nonliteral(BaseIri, BNode, Iri) :-
   rdf_is_bnode(BNode), !,
-  rdf_clean_bnode(Site, BNode, Iri).
+  rdf_clean_bnode(BaseIri, BNode, Iri).
 % IRI
 rdf_clean_nonliteral(_, Iri1, Iri2) :-
   rdf_is_iri(Iri1), !,
@@ -148,12 +148,12 @@ rdf_clean_nonliteral(_, Iri1, Iri2) :-
 
 
 
-%! rdf_clean_quad(+Site:uri, +Quad:rdf_quad, -CleanQuad:rdf_quad) is semidet.
+%! rdf_clean_quad(+BaseIri:uri, +Quad:rdf_quad, -CleanQuad:rdf_quad) is semidet.
 
-rdf_clean_quad(Site, rdf(S1,P1,O1,G1), tp(S2,P2,O2,G2)) :-
+rdf_clean_quad(BaseIri, rdf(S1,P1,O1,G1), tp(S2,P2,O2,G2)) :-
   catch(
     (
-      rdf_clean_triple_(Site, rdf(S1,P1,O1), tp(S2,P2,O2)),
+      rdf_clean_triple_(BaseIri, rdf(S1,P1,O1), tp(S2,P2,O2)),
       rdf_clean_graph(G1, G2)
     ),
     E,
@@ -165,20 +165,20 @@ rdf_clean_quad(Site, rdf(S1,P1,O1,G1), tp(S2,P2,O2,G2)) :-
 
 
 
-%! rdf_clean_term(+Site:uri, +Term:rdf_term, -CleanTerm:rdf_term) is det.
+%! rdf_clean_term(+BaseIri:uri, +Term:rdf_term, -CleanTerm:rdf_term) is det.
 
-rdf_clean_term(Site, Term1, Term2) :-
-  rdf_clean_nonliteral(Site, Term1, Term2), !.
+rdf_clean_term(BaseIri, Term1, Term2) :-
+  rdf_clean_nonliteral(BaseIri, Term1, Term2), !.
 rdf_clean_term(_, Literal1, Literal2) :-
   rdf_clean_literal(Literal1, Literal2).
 
 
 
-%! rdf_clean_triple(+Site:uri, +Triple:rdf_triple, -CleanTriple:rdf_triple) is semidet.
+%! rdf_clean_triple(+BaseIri:uri, +Triple:rdf_triple, -CleanTriple:rdf_triple) is semidet.
 
-rdf_clean_triple(Site, Triple1, Triple2) :-
+rdf_clean_triple(BaseIri, Triple1, Triple2) :-
   catch(
-    rdf_clean_triple_(Site, Triple1, Triple2),
+    rdf_clean_triple_(BaseIri, Triple1, Triple2),
     E,
     (
       print_message(warning, E),
@@ -186,18 +186,18 @@ rdf_clean_triple(Site, Triple1, Triple2) :-
     )
   ).
 
-rdf_clean_triple_(Site, rdf(S1,P1,O1), tp(S2,P2,O2)) :-
-  rdf_clean_nonliteral(Site, S1, S2),
+rdf_clean_triple_(BaseIri, rdf(S1,P1,O1), tp(S2,P2,O2)) :-
+  rdf_clean_nonliteral(BaseIri, S1, S2),
   rdf_clean_iri(P1, P2),
-  rdf_clean_term(Site, O1, O2).
+  rdf_clean_term(BaseIri, O1, O2).
 
 
 
-%! rdf_clean_tuple(+Site:uri, +Tuple:rdf_tuple, -CleanTuple:rdf_tuple) is semidet.
+%! rdf_clean_tuple(+BaseIri:uri, +Tuple:rdf_tuple, -CleanTuple:rdf_tuple) is semidet.
 
 % triple
-rdf_clean_tuple(Site, rdf(S,P,O), Triple) :- !,
-  rdf_clean_triple(Site, rdf(S,P,O), Triple).
+rdf_clean_tuple(BaseIri, rdf(S,P,O), Triple) :- !,
+  rdf_clean_triple(BaseIri, rdf(S,P,O), Triple).
 % quadruple
-rdf_clean_tuple(Site, Quad, CleanQuad) :-
-  rdf_clean_quad(Site, Quad, CleanQuad).
+rdf_clean_tuple(BaseIri, Quad, CleanQuad) :-
+  rdf_clean_quad(BaseIri, Quad, CleanQuad).
