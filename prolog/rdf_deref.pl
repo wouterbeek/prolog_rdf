@@ -77,13 +77,13 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
 
 
 
-%! rdf_deref_stream(+BaseIri:atom, +In:stream, :Goal_3) is det.
-%! rdf_deref_stream(+BaseIri:atom, +In:stream, :Goal_3, +Options:options) is det.
+%! rdf_deref_stream(+BaseIri:iri, +In:stream, :Goal_3) is det.
+%! rdf_deref_stream(+BaseIri:iri, +In:stream, :Goal_3, +Options:options) is det.
 %
 % The following call will be made:
 %
 % ```
-% call(:Goal_3, +Site, +Tuples, ?Graph)
+% call(:Goal_3, +BaseIri, +Tuples, ?Graph)
 % ```
 %
 % The following options are supported:
@@ -213,8 +213,8 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
 
 
 
-%! rdf_deref_uri(+Uri:atom, :Goal_3) is det.
-%! rdf_deref_uri(+Uri:atom, :Goal_3, +Options:options) is det.
+%! rdf_deref_uri(+Uri:uri, :Goal_3) is det.
+%! rdf_deref_uri(+Uri:uri, :Goal_3, +Options:options) is det.
 %
 % The following options are supported:
 %
@@ -238,7 +238,9 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
   ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
       Options2 = Options1
   ),
-  http_open2(Uri, In, [accept(MediaTypes),failure(404),metadata(Metas)]),
+  http_open2(Uri, In, options{accept: MediaTypes,
+                              failure: 404,
+                              metadata: Metas}),
   call_cleanup(
     (
       (   http_metadata_content_type(Metas, MediaType)
