@@ -9,7 +9,7 @@
     rdf_container_membership_property/1, % ?P
     rdf_container_membership_property/2, % ?P, ?N
    %rdf_create_bnode/1,                  % --BNode
-    rdf_create_iri/3,                    % +Alias, +Terms, -Iri
+    rdf_create_iri/3,                    % +Alias, +TermOrTerms, -Iri
     rdf_hash_iri/3,                      % +Alias, +Term, -Iri
     rdf_iri//1,                          % ?Iri
    %rdf_is_bnode/1,                      % @Term
@@ -301,14 +301,17 @@ rdf_container_membership_property(P, N) :-
 
 
 
-%! rdf_create_iri(+Alias, +Terms:list(term), -Iri:atom) is det.
+%! rdf_create_iri(+Alias, +TermOrTerms:or([term,list(term)]), -Iri:atom) is det.
 
 rdf_create_iri(Alias, Terms, Iri) :-
+  is_list(Terms), !,
   convlist(term_to_segment_, Terms, Segments),
   atomic_list_concat(Segments, /, Local),
   %compound_name_arguments(Fingerprint, Alias, Segments),
   %md5(Fingerprint, Local),
   rdf_prefix_iri(Alias, Local, Iri).
+rdf_create_iri(Alias, Term, Iri) :-
+  rdf_create_iri(Alias, [Term], Iri).
 
 term_to_segment_(dt(Y,Mo,Da,H,Mi,S,TZ), Segment) :- !,
   dt_label(dt(Y,Mo,Da,H,Mi,S,TZ), Segment).
