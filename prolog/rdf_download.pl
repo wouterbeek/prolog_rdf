@@ -34,7 +34,7 @@ rdf_download(Uri) :-
 
 
 rdf_download(Uri, File) :-
-  rdf_download(Uri, File, []).
+  rdf_download(Uri, File, options{}).
 
 
 rdf_download(Uri, File, Options) :-
