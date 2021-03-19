@@ -105,7 +105,10 @@ rdf_deref_stream(BaseIri, In, Goal_3) :-
 
 
 rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
-  archive_stream(In1, In2),
+  % BUG: https://github.com/SWI-Prolog/swipl-devel/issues/765
+  %archive_stream(In1, In2),
+  In2 = In1,
+
   % Determine the serialization format.
   (   % An explicitly specified Media Type overrules everything else.
       options{media_type: MediaType} :< Options1
