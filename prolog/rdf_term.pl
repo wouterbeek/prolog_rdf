@@ -16,7 +16,7 @@
     rdf_is_bnode_iri/1,                  % @Term
    %rdf_is_iri/1,                        % @Term
    %rdf_is_literal/1,                    % @Term
-    rdf_is_literal_dwim/1,               % +DWIM
+    rdf_is_literal_dwim/1,               % +Dwim
     rdf_is_name/1,                       % @Term
     rdf_is_numeric_literal/1,            % @Term
     rdf_is_object/1,                     % @Term
@@ -29,19 +29,19 @@
     rdf_literal//1,                      % ?Literal
     rdf_literal/4,                       % ?Datatype, ?LTag, ?Lex, ?Literal
     rdf_literal_datatype_iri/2,          % +Literal, ?Datatype
-    rdf_literal_dwim/2,                  % +DWIM, ?Literal
+    rdf_literal_dwim/2,                  % +Dwim, ?Literal
     rdf_literal_lexical_form/2,          % +Literal, ?Lex
     rdf_literal_value/2,                 % +Literal, -Value
     rdf_literal_value/3,                 % ?Literal, ?Datatype, ?Value
     rdf_name_string/2,                   % +Name, -String
-    rdf_object_dwim/2,                   % +DWIM, ?Term
-    rdf_predicate_dwim/2,                % +DWIM, ?P
+    rdf_object_dwim/2,                   % +Dwim, ?Term
+    rdf_predicate_dwim/2,                % +Dwim, ?P
     rdf_term//1,                         % ?Term
     rdf_term_to_string/2,                % +Term, -String
     rdf_triple_term/2,                   % +Triple, ?Term
     rdf_typed_literal/3,                 % ?Datatype, ?Lex, ?Literal
-    tp_object_dwim/2,                    % ?DWIM, -O
-    tp_predicate_dwim/2,                 % ?DWIM, -P
+    tp_object_dwim/2,                    % ?Dwim, -O
+    tp_predicate_dwim/2,                 % ?Dwim, -P
     well_known_iri/1,                    % -Iri
     well_known_iri/2                     % +Segments, -Iri
   ]
@@ -171,9 +171,7 @@ error:has_type(rdf_tuple, Term) :-
            "The default base IRI for RDF IRIs.").
 :- setting(bnode_prefix_authority, atom, 'example.org', "").
 :- setting(bnode_prefix_scheme, atom, https, "").
-:- setting(rdf_container_membership_properties,
-           positive_integer,
-           3,
+:- setting(rdf_container_membership_properties, positive_integer, 3,
            "The number of supported RDF container membership properties.").
 
 
@@ -376,7 +374,7 @@ rdf_is_bnode_iri(Iri) :-
 
 
 
-%! rdf_is_literal_dwim(+DWIM:term) is semidet.
+%! rdf_is_literal_dwim(+Dwim:term) is semidet.
 
 rdf_is_literal_dwim(Term) :-
   catch(rdf_literal_dwim(Term, _), E, true),
@@ -692,8 +690,8 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 
 
 
-%! rdf_literal_dwim(+DWIM, +Literal:rdf_literal) is semidet.
-%! rdf_literal_dwim(+DWIM, -Literal:rdf_literal) is det.
+%! rdf_literal_dwim(+Dwim:term, +Literal:rdf_literal) is semidet.
+%! rdf_literal_dwim(+Dwim:term, -Literal:rdf_literal) is det.
 %
 % Allows literal terms to be created based on various simplified
 % inputs:
@@ -903,8 +901,8 @@ rdf_name_string(Iri, String) :-
 
 
 
-%! rdf_object_dwim(+DWIM, +Term:rdf_term) is semidet.
-%! rdf_object_dwim(+DWIM, -Term:rdf_term) is det.
+%! rdf_object_dwim(+Dwim:term, +Term:rdf_term) is semidet.
+%! rdf_object_dwim(+Dwim:term, -Term:rdf_term) is det.
 %
 % Supports the Input formats of rdf_literal_dwim/2.
 
@@ -915,7 +913,7 @@ rdf_object_dwim(Term, Term).
 
 
 
-%! rdf_predicate_dwim(+DWIM, -Predicate:rdf_predicate) is det.
+%! rdf_predicate_dwim(+Dwim:term, -Predicate:rdf_predicate) is det.
 
 rdf_predicate_dwim(a, rdf:type) :- !.
 rdf_predicate_dwim(P, P).
@@ -989,7 +987,7 @@ rdf_typed_literal(Datatype, Lex, literal(type(Datatype,Lex))).
 
 
 
-%! tp_object_dwim(+DWIM:term, -O:rdf_object) is det.
+%! tp_object_dwim(+Dwim:term, -O:rdf_object) is det.
 
 tp_object_dwim(O, O) :-
   var(O), !.
@@ -998,7 +996,7 @@ tp_object_dwim(O1, O2) :-
 
 
 
-%! tp_predicate_dwim(+DWIM:term, -P:rdf_predicate) is det.
+%! tp_predicate_dwim(+Dwim:term, -P:rdf_predicate) is det.
 
 tp_predicate_dwim(P, P) :-
   var(P), !.
