@@ -18,7 +18,6 @@
 :- use_module(library(rdf_prefix)).
 :- use_module(library(rdf_term)).
 :- use_module(library(uri_ext)).
-:- use_module(library(uriparser)).
 
 :- rdf_meta
    rdf_clean_quad(+, t, -),
@@ -80,7 +79,7 @@ rdf_clean_graph(G1, G3) :-
 % URI grammar.
 
 rdf_clean_iri(Iri, Iri) :-
-  is_iri(Iri).
+  atom(Iri).
 
 
 

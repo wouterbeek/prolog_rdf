@@ -75,8 +75,6 @@
 :- use_module(library(rdf_prefix)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri_ext)).
-:- use_module(library(uriparser)).
-:- use_module(library(wkt)).
 :- use_module(library(xsd)).
 :- use_module(library(xsd_grammar)).
 
@@ -87,8 +85,6 @@
 :- dynamic
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
-
-:- maplist(rdf_register_prefix, [geo,rdf]).
 
 :- multifile
     error:has_type/2,
@@ -168,6 +164,8 @@ error:has_type(rdf_tuple, Term) :-
    rdf_value_to_lexical_error(r, +),
    tp_object_dwim(o, -),
    tp_predicate_dwim(r, -).
+
+:- rdf_register_prefix(rdf).
 
 :- setting(base_iri, atom, 'https://example.com/',
            "The default base IRI for RDF IRIs.").
@@ -452,18 +450,6 @@ rdf_lexical_to_value(Datatype, Lex, Value) :-
 rdf_value_to_lexical(Datatype, Value, Lex) :-
   rdf_value_to_lexical_hook(Datatype, Value, Lex), !.
 
-% geo:hasGeometry
-rdf_lexical_to_value(geo:wktLiteral, Lex, Value) :- !,
-  (   wkt_shape_atom(Value0, Lex)
-  ->  Value = Value0
-  ;   rdf_lexical_to_value_error(geo:wktLiteral,Lex)
-  ).
-rdf_value_to_lexical(geo:wktLiteral, Value, Lex) :- !,
-  (   wkt_shape_atom(Value, Atom)
-  ->  Lex = Atom
-  ;   rdf_value_to_lexical_error(geo:wktLiteral, Value)
-  ).
-
 % rdf:HTML
 rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
   (   rdf11:parse_partial_xml(load_html, Lex, Value0)
@@ -486,18 +472,6 @@ rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :- !,
   (   rdf11:write_xml_literal(xml, Value, Atom)
   ->  Lex = Atom
   ;   rdf_value_to_lexical_error(rdf:'XMLLiteral', Value)
-  ).
-
-% xsd:anyURI
-rdf_lexical_to_value(xsd:anyURI, Lex, Value) :- !,
-  (   is_uri(Lex)
-  ->  Value = Lex
-  ;   rdf_lexical_to_value_error(xsd:anyURI, Lex)
-  ).
-rdf_value_to_lexical(xsd:anyURI, Value, Lex) :- !,
-  (   is_uri(Value)
-  ->  Lex = Value
-  ;   rdf_value_to_lexical_error(xsd:anyURI, Value)
   ).
 
 % xsd:boolean
@@ -749,11 +723,9 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %   | oneof([false,true])         | xsd:boolean            |
 %   | pair(string,list(atom))     | rdf:langString         |
 %   | positive_integer(N)         | xsd:positiveInteger    |
-%   | shape(Z,LRS,CRS,Shape)      | geo:wktLiteral         |
 %   | string                      | xsd:string             |
 %   | string(atom)                | xsd:string             |
 %   | time(H,Mi,S)                | xsd:time               |
-%   | uri(Uri)                    | xsd:anyURI             |
 %   | year(Y)                     | xsd:gYear              |
 %   | year_month(Y,Mo)            | xsd:gYearMonth         |
 
@@ -766,10 +738,6 @@ rdf_literal_dwim(literal(Term), literal(Term)) :-
 rdf_literal_dwim(literal(type(Datatype,Lex)), literal(type(Datatype,Lex))) :- !.
 % regular language-tagged string
 rdf_literal_dwim(literal(lang(LTag,Lex)), literal(lang(LTag,Lex))) :- !.
-% geospatial shapes
-rdf_literal_dwim(shape(Z,LRS,CRS,Shape), Literal) :- !,
-  wkt_shape_atom(shape(Z,LRS,CRS,Shape), Lex),
-  rdf_typed_literal(geo:wktLiteral, Lex, Literal).
 % language-tagged string
 rdf_literal_dwim(String-Tags, literal(lang(Tag,Lex))) :- !,
   atom_string(Lex, String),
@@ -850,9 +818,6 @@ rdf_literal_dwim(string(Atomic), literal(type(Datatype,Lex))) :- !,
   atom_string(Atomic, String),
   rdf_equal(xsd:string, Datatype),
   atom_string(Lex, String).
-% uri/1 → xsd:anyURI
-rdf_literal_dwim(uri(Uri), literal(type(Datatype,Uri))) :- !,
-  rdf_equal(Datatype, xsd:anyURI).
 % year/1 → xsd:gYear
 rdf_literal_dwim(year(Y), literal(type(Datatype,Lex))) :- !,
   rdf_equal(xsd:gYear, Datatype),
