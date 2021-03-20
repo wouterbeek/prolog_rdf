@@ -2,7 +2,7 @@
 :- module(
   rdf_guess,
   [
-    rdf_guess_file/3,   % +File, +Size, -MediaType
+    rdf_guess_file/3,   % +FileSpec, +Size, -MediaType
     rdf_guess_stream/3, % +In, +Size, -MediaType
     rdf_guess_string/2  % +String, -MediaType
   ]
@@ -35,17 +35,19 @@ XML namespaces.
 
 
 
-%! rdf_guess_file(+File:atom, +Size:positiveInteger, -MediaType:compound) is semidet.
+%! rdf_guess_file(+FileSpec:term,
+%!                +Size:positiveInteger,
+%!                -MediaType:media_type) is semidet.
 
-rdf_guess_file(File, Size, MediaType) :-
+rdf_guess_file(Spec, Size, MediaType) :-
   read_from_file(
-    File,
+    Spec,
     {Size,MediaType}/[In]>>rdf_guess_stream(In, Size, MediaType)
   ).
 
 
 
-%! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:compound) is semidet.
+%! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:media_type) is semidet.
 %
 % @arg Size is the number of codes that is read from the input stream
 % In, on which the guess is based.  This number is doubled while
@@ -87,7 +89,7 @@ rdf_guess_stream(In, Size, MediaType) :-
 
 
 
-%! rdf_guess_string(+String:string, -MediaType:compound) is semidet.
+%! rdf_guess_string(+String:string, -MediaType:media_type) is semidet.
 
 rdf_guess_string(String, MediaType) :-
   rdf_guess_string_(String, Ext),

@@ -2,8 +2,8 @@
 :- module(
   rdf_deref,
   [
-    rdf_deref_file/2,   % +File, :Goal_3
-    rdf_deref_file/3,   % +File, :Goal_3, +Options
+    rdf_deref_file/2,   % +FileSpec, :Goal_3
+    rdf_deref_file/3,   % +FileSpec, :Goal_3, +Options
     rdf_deref_stream/3, % +Uri, +In, :Goal_3
     rdf_deref_stream/4, % +Uri, +In, :Goal_3, +Options
     rdf_deref_uri/2,    % +Uri, :Goal_3
@@ -15,6 +15,7 @@
 
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_ntriples), []).
@@ -30,7 +31,6 @@
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
 :- use_module(library(rdf_guess)).
-:- use_module(library(rdf_media_type)).
 :- use_module(library(rdf_prefix)).
 :- use_module(library(rdf_term)).
 :- use_module(library(uri_ext)).
@@ -51,8 +51,8 @@
 
 
 
-%! rdf_deref_file(+File, :Goal_3) is det.
-%! rdf_deref_file(+File, :Goal_3, +Options:options) is det.
+%! rdf_deref_file(+FileSpec:term, :Goal_3) is det.
+%! rdf_deref_file(+FileSpec:term, :Goal_3, +Options:options) is det.
 %
 % @arg Options allows the following options to be set.
 %
@@ -92,11 +92,11 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
 %
 %     The default is a well-known IRI as per RDF 1.1.
 %
-%   * content_type(+MediaType:compound)
+%   * content_type(+MediaType:media_type)
 %
 %     The parsed value of the HTTP `Content-Type' header, if any.
 %
-%   * media_type(+MediaType:compound)
+%   * media_type(+MediaType:media_type)
 %
 %     Overrules the RDF serialization format.
 
@@ -145,7 +145,7 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
   well_known_iri([Hash], BNodePrefix),
   % Parse according to the guessed Media Type.
   (   % N-Quads
-      media_type_comps(MediaType, application, 'n-quads', _)
+      MediaType = media(application/'n-quads',_)
   ->  merge_dicts(
         otpions{anon_prefix: BNodePrefix, base_iri: BaseIri, format: nquads},
         Options1,
@@ -154,7 +154,7 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
       dict_terms(Options2, Options3),
       rdf_ntriples:rdf_process_ntriples(In2, Mod:Goal_2, Options3)
   ;   % N-Triples
-      media_type_comps(MediaType, application, 'n-triples', _)
+      MediaType = media(application/'n-triples',_)
   ->  merge_dicts(
         options{anon_prefix: BNodePrefix, base_iri: BaseIri, format: ntriples},
         Options1,
@@ -163,12 +163,12 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
       dict_terms(Options2, Options3),
       rdf_ntriples:rdf_process_ntriples(In2, Mod:Goal_2, Options3)
   ;   % RDF/XML
-      media_type_comps(MediaType, application, 'rdf+xml', _)
+      MediaType = media(application/'rdf+xml',_)
   ->  merge_dicts(options{base_iri: BaseIri, max_errors: -1}, Options1, Options2),
       dict_terms(Options2, Options3),
       rdf:process_rdf(In2, Mod:Goal_2, Options3)
   ;   % TriG
-      media_type_comps(MediaType, application, trig, _)
+      MediaType = media(application/trig,_)
   ->  merge_dicts(
         options{
           anon_prefix: BNodePrefix,
@@ -183,7 +183,7 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
       dict_terms(Options3, Options4),
       turtle:rdf_process_turtle(In2, Mod:Goal_2, Options4)
   ;   % Turtle
-      media_type_comps(MediaType, text, turtle, _)
+      MediaType = media(text/turtle,_)
   ->  merge_dicts(
         options{
           anon_prefix: BNodePrefix,
@@ -238,7 +238,7 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
   % ‘Accept’ header
   (   dict_select(accept, Options1, Options2, MediaTypes)
   ->  true
-  ;   findall(MediaType, rdf_media_type(MediaType), MediaTypes),
+  ;   aggregate_all(set(MediaType0), media_type_family(MediaType0, rdf), MediaTypes),
       Options2 = Options1
   ),
   http_open2(Uri, In, options{accept: MediaTypes,
@@ -254,3 +254,33 @@ rdf_deref_uri(Uri, Goal_3, Options1) :-
     ),
     close(In)
   ).
+
+
+
+% GENERICS %
+
+%! 'rdf_media_type_>'(+SuperMediaType:media_type, +SubMediaType:media_type) is semidet.
+%
+% Strict ordering over RDF Media Types.
+%
+% An RDF Media Type A is greater than an RDF Media Type B if all valid
+% documents in B are also valid documents in A, and there are some
+% documents that are valid in A that are not valid in B.
+
+'rdf_media_type_>'(X, Y) :-
+  'rdf_media_type_='(X, Y), !.
+'rdf_media_type_>'(X, Z) :-
+  'rdf_media_type_strict>'(X, Y),
+  'rdf_media_type_>'(Y, Z).
+
+'rdf_media_type_='(media(Supertype/Subtype,_),  media(Supertype/Subtype,_)).
+
+'rdf_media_type_strict>'(media(application/trig,_), media(text/turtle,_)).
+'rdf_media_type_strict>'(
+  media(text/turtle,_),
+  media(application/'n-triples',_)
+).
+'rdf_media_type_strict>'(
+  media(application/'n-quads',_),
+  media(application/'n-triples',_)
+).

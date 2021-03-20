@@ -468,8 +468,8 @@ ltag_(zh_yue).
 prefix_(Alias, Prefix) :-
   rdf_db:ns(Alias, Prefix).
 prefix_(aat, 'http://vocab.getty.edu/aat/').
-prefix_(bag, 'http://bag.basisregistraties.overheid.nl/def/bag#').
-%prefix_(bgt, 'http://bgt.basisregistraties.overheid.nl/def/bgt#').
+prefix_(bag, 'http://bag2.basisregistraties.overheid.nl/bag/def/').
+prefix_(bgt, 'http://bgt.basisregistraties.overheid.nl/bgt/def/').
 prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
 prefix_(bibo, 'http://purl.org/ontology/bibo/').
 prefix_(bnode, 'https://lodlaundromat.org/.well-known/genid/').
@@ -507,7 +507,7 @@ prefix_(gml, 'http://www.opengis.net/ont/gml#').
 prefix_(gr, 'http://purl.org/goodrelations/v1#').
 prefix_(grddl, 'http://www.w3.org/2003/g/data-view#').
 prefix_(gvp, 'http://vocab.getty.edu/ontology#').
-%prefix_(http, 'http://www.w3.org/2011/http#').
+prefix_(http, 'http://www.w3.org/2011/http#').
 prefix_(hydra, 'http://www.w3.org/ns/hydra/core#').
 prefix_(ical, 'http://www.w3.org/2002/12/cal/icaltzd#').
 prefix_(iolite, 'http://www.ontologydesignpatterns.org/ont/dul/IOLite.owl#').

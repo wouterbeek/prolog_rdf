@@ -6,14 +6,10 @@
     rdf_dcg_node//2,      % +Node, +Options
     rdf_dcg_predicate//1, % +Predicate
     rdf_dcg_predicate//2, % +Predicate, +Options
-    rdf_dcg_proof//1,     % +Proof
-    rdf_dcg_proof//2,     % +Proof, +Options
-    rdf_dcg_qp//4,        % ?S, ?P, ?O, ?G
-    rdf_dcg_qp//5,        % ?S, ?P, ?O, ?G, +Options
     rdf_dcg_tp//1,        % +TP
     rdf_dcg_tp//2,        % +TP, +Options
-    rdf_dcg_tp//3,        % ?S, ?P, ?O
-    rdf_dcg_tp//4,        % ?S, ?P, ?O, +Options
+    rdf_dcg_tree//1,      % +Tree
+    rdf_dcg_tree//2,      % +Tree, +Options
     rdf_dcg_triples//1,   % +Triples
     rdf_dcg_triples//2    % +Triples, +Options
   ]
@@ -27,13 +23,10 @@
 |                |                      |             | indentation level.                 |
 | `iri_abbr`     | boolean              | `true`      | Whether IRIs are abbreviated       |
 |                |                      |             | based on the current prefixes.     |
-| `max_iri_len`  | nonneg               | `∞`         | The maximum length of an IRI.      |
-| `max_lit_len`  | nonneg               | `∞`         | The maximum length of a literal.   |
+| `max_length`   | nonneg               | `inf`       | The maximum length of an RDF term. |
 | `prefix_map`   | list(pair(atom))     |             | A custom list of prefix/IRI        |
 |                |                      |             | mappings that overrules and/or     |
 |                |                      |             | extends the prefix declarations.   |
-| `pp`           | boolean              | `false`     | Whether non-Turtle pretty printing |
-|                |                      |             | should be applied.                 |
 
 */
 
@@ -43,7 +36,6 @@
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(solution_sequences)).
-:- use_module(library(yall)).
 
 :- use_module(library(abnf)).
 :- use_module(library(atom_ext)).
@@ -54,195 +46,78 @@
 :- use_module(library(rdf_term)).
 
 :- rdf_meta
+   rdf_dcg_literal(t, +, ?, ?),
    rdf_dcg_node(o, ?, ?),
    rdf_dcg_node(o, +, ?, ?),
    rdf_dcg_predicate(r, ?, ?),
    rdf_dcg_predicate(r, +, ?, ?),
-   rdf_dcg_proof(t),
-   rdf_dcg_proof(t, +),
-   rdf_dcg_qp(r, r, o, r, ?, ?),
-   rdf_dcg_qp(r, r, o, r, +, ?, ?),
    rdf_dcg_tp(t, ?, ?),
    rdf_dcg_tp(t, +, ?, ?),
-   rdf_dcg_tp(r, r, o, ?, ?),
-   rdf_dcg_tp(r, r, o, +, ?, ?),
+   rdf_dcg_tree(t),
+   rdf_dcg_tree(t, +),
    rdf_dcg_triples(t, ?, ?),
    rdf_dcg_triples(t, +, ?, ?).
 
 
 
+%! rdf_dcg_bnode(+BNode:rdf_bnode, +Options:options)// is det.
 
-
-%! rdf_dcg_node(+Node:rdf_node)// is det.
-%! rdf_dcg_node(+Node:rdf_node, +Options:options)// is det.
-
-rdf_dcg_node(Node) -->
-  rdf_dcg_node(Node, options{}).
-
-
-rdf_dcg_node(Node, Options) -->
-  rdf_dcg_term_(Node, Options).
+rdf_dcg_bnode(BNode, Options) -->
+  {dict_get(max_length, Options, inf, Max)},
+  "_:",
+  ellipsis(BNode, Max).
 
 
 
-%! rdf_dcg_predicate(+P:rdf_predicate)// is det.
-%! rdf_dcg_predicate(+P:rdf_predicate, +Options:options)// is det.
+%! rdf_dcg_iri(+Iri:iri, +Options:options)// is det.
 
-rdf_dcg_predicate(P) -->
-  rdf_dcg_predicate(P, options{}).
-
-
-% BUG: RDF prefix expansion does not work.
-rdf_dcg_predicate(P, Options) -->
+% Abbreviated IRI notation.
+rdf_dcg_iri(Iri, Options) -->
   {
     dict_get(iri_abbr, Options, true, true),
-    rdf_equal(P, rdf:type)
+    (   dict_get(prefix_map, Options, Prefix2Alias)
+    ->  % Abbreviated based on the prefix map specified in options.
+        (   gen_assoc(Prefix, Prefix2Alias, Alias),
+            atom_prefix(Iri, Prefix)
+        ->  atom_concat(Prefix, Local, Iri)
+        )
+    ;   % Abbreviated based on the global prefix declarations.
+        rdf_prefix_iri(Alias:Local, Iri),
+        \+ sub_atom(Local, /)
+    )
   }, !,
-  "a".
-rdf_dcg_predicate(P, Options) -->
-  rdf_dcg_term_(P, Options).
-
-
-
-%! rdf_dcg_proof(+Proof:compound)// is det.
-%! rdf_dcg_proof(+Proof:compound, +Options:options)// is det.
-
-rdf_dcg_proof(Proof) -->
-  rdf_dcg_proof(Proof, options{}).
-
-
-rdf_dcg_proof(Proof, Options) -->
-  {dict_get(indent, Options, 0, N)},
-  rdf_dcg_proof_(N, Options, Proof).
-
-rdf_dcg_proof_(N1, Options, p(Rule,Concl,Proofs)) -->
-  tab(N1),
-  "[",
-  term(Rule),
-  "] ",
-  rdf_dcg_tp(Concl),
-  nl,
-  {N2 is N1 + 1},
-  '*'(rdf_dcg_proof_(N2, Options), Proofs).
-
-
-
-%! rdf_dcg_qp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?Graph:atom)// is det.
-%! rdf_dcg_qp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, ?Graph:atom, +Options:options)// is det.
-
-rdf_dcg_qp(S, P, O, G) -->
-  rdf_dcg_qp(S, P, O, G, options{}).
-
-
-rdf_dcg_qp(S, P, O, G, Options) -->
-  rdf_dcg_tp(S, P, O, Options),
-  " ",
-  rdf_dcg_term_(G, Options).
-
-
-
-%! rdf_dcg_term_(+Term:rdf_term, +Options:options)// is det.
-
-% language-tagged string
-rdf_dcg_term_(literal(lang(LTag,Lex)), Options) --> !,
-  rdf_dcg_lexical_form_(Lex, Options),
-  "@",
-  atom(LTag).
-% typed literal
-rdf_dcg_term_(literal(type(D,Lex)), Options) --> !,
-  (   {rdf_equal(D, xsd:boolean)}
-  ->  {rdf_canonical_lexical_form(xsd:boolean, Lex, CanonicalLex)},
-      (   {dict_get(pp, Options, true)}
-      ->  dcg_bool(CanonicalLex)
-      ;   atom(CanonicalLex)
-      )
-  ;   % Do not show the datatype IRI for ‘xsd:decimal’, ‘xsd:float’,
-      % and ‘xsd:integer’.
-      {rdf_prefix_memberchk(D, [xsd:decimal,xsd:float,xsd:integer])}
-  ->  {rdf_canonical_lexical_form(D, Lex, CanonicalLex)},
-      atom(CanonicalLex)
-  ;   % Do not show the datatype IRI for ‘xsd:string’.
-      {rdf_equal(D, xsd:string)}
-  ->  rdf_dcg_lexical_form_(Lex, Options)
-  ;   % Typed literal without special treatment: lexical form +
-      % datatype IRI.
-      rdf_dcg_lexical_form_(Lex, Options),
-      "^^",
-      rdf_dcg_term_(D, Options)
-  ).
-% IRI
-rdf_dcg_term_(Iri, Options) -->
-  {rdf_is_iri(Iri)}, !,
-  (   {well_known_iri([''|Segments], Iri)}
-  ->  % Blank node notation for well-known IRIs.
-      {atomic_list_concat(Segments, /, Local)},
-      "_:",
-      atom(Local)
-      % Use custom symbols for some recurring IRIs.
-  ;   {
-        dict_get(pp, Options, true),
-        rdf_equal(Iri, owl:sameAs)
-      }
-  ->  "≡"
-  ;   {
-        dict_get(pp, Options, true),
-        rdf_equal(Iri, rdf:nil)
-      }
-  ->  "∅"
-  ;   {
-        dict_get(pp, Options, true),
-        rdf_equal(Iri, rdf:type)
-      }
-  ->  "∈"
-  ;   {
-        dict_get(pp, Options, true),
-        rdf_equal(Iri, rdfs:subClassOf)
-      }
-  ->  "⊆"
-  ;   {
-        dict_get(iri_abbr, Options, true, true),
-        (   dict_get(prefix_map, Options, Prefix2Alias)
-        ->  % Abbreviated based on the prefix map specified in options.
-            (   gen_assoc(Prefix, Prefix2Alias, Alias),
-                atom_prefix(Iri, Prefix)
-            ->  atom_concat(Prefix, Local, Iri)
-            )
-        ;   % Abbreviated based on the global prefix declarations.
-            rdf_prefix_iri(Alias:Local, Iri),
-            \+ sub_atom(Local, /)
-        )
-      }
-  ->  {
-        atom_length(Alias, AliasLength),
-        Minus #= AliasLength + 1,
-        dict_get(max_iri_len, Options, ∞, Length),
-        (   Length == '∞'
-        ->  Max = '∞'
-        ;   Length  =< Minus
-        ->  Max = Length
-        ;   Max = Length - Minus
-        )
-      },
-      atom(Alias),
-      ":",
-      ({Max == ∞} -> atom(Local) ; ellipsis(Local, Max))
-  ;   {dict_get(max_iri_len, Options, ∞, Length)},
-      "<",
-      ({Length == ∞} -> atom(Iri) ; ellipsis(Iri, Length)),
-      ">"
-  ).
-% blank node
-rdf_dcg_term_(BNode, _) -->
-  {rdf_is_bnode(BNode)}, !,
-  atom(BNode).
-
-rdf_dcg_lexical_form_(Lex, Options) -->
   {
-    dict_get(max_lit_len, Options, ∞, Length),
+    atom_length(Alias, AliasLength),
+    Minus #= AliasLength + 1,
+    dict_get(max_length, Options, inf, Length),
+    (   Length == inf
+    ->  Max = inf
+    ;   Length =< Minus
+    ->  Max = Length
+    ;   Max = Length - Minus
+    )
+  },
+  atom(Alias),
+  ":",
+  ellipsis(Local, Max).
+% Full IRI notation.
+rdf_dcg_iri(Iri, Options) -->
+  {dict_get(max_length, Options, inf, Max)},
+  "<",
+  ellipsis(Iri, Max),
+  ">".
+
+
+
+%! rdf_dcg_lexical_form(+LexicalForm:atom, +Options:options)// is det.
+
+rdf_dcg_lexical_form(Lex, Options) -->
+  {
+    dict_get(max_length, Options, inf, Length),
     extra_quotes_(Lex, ExtraQuotes)
   },
   ({ExtraQuotes == true} -> "\"\"\"" ; "\""),
-  ({Length == ∞} -> {atom_codes(Lex, Cs)}, lex_(Cs) ; ellipsis(Lex, Length)),
+  ellipsis(Lex, Length),
   ({ExtraQuotes == true} -> "\"\"\"" ; "\"").
 
 lex_([0'\\|T]) --> !,
@@ -261,30 +136,117 @@ extra_quotes_(_, false).
 
 
 
-%! rdf_dcg_tp(+TP:compound)// is det.
-%! rdf_dcg_tp(+TP:compound, +Options:options)// is det.
-%! rdf_dcg_tp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object)// is det.
-%! rdf_dcg_tp(?S:rdf_subject, ?P:rdf_predicate, ?O:rdf_object, +Options:options)// is det.
+%! rdf_dcg_litteral(+Litteral:rdf_literal, +Options:options)// is det.
+
+% Language-tagged string.
+rdf_dcg_literal(literal(lang(LTag,Lex)), Options) --> !,
+  rdf_dcg_lexical_form(Lex, Options),
+  "@",
+  atom(LTag).
+% Typed literal with abbreviated notation.
+rdf_dcg_literal(literal(type(D,Lex)), Options) -->
+  {
+    rdf_prefix_memberchk(
+      D,
+      [xsd:boolean,xsd:decimal,xsd:float,xsd:integer,xsd:string]
+    ), !,
+    rdf_canonical_lexical_form(D, Lex, CanonicalLex)
+  },
+  rdf_dcg_lexical_form(CanonicalLex, Options).
+% Typed literal without abbreviated notation.
+rdf_dcg_literal(literal(type(D,Lex)), Options) -->
+  rdf_dcg_lexical_form(Lex, Options),
+  "^^",
+  rdf_dcg_iri(D, Options).
+
+
+
+%! rdf_dcg_node(+Node:rdf_node)// is det.
+%! rdf_dcg_node(+Node:rdf_node, +Options:options)// is det.
+
+rdf_dcg_node(Node) -->
+  rdf_dcg_node(Node, options{}).
+
+
+rdf_dcg_node(Var, _) -->
+  {var(Var)}, !,
+  {instantiation_error(Var)}.
+% Blank nodes.
+rdf_dcg_node(BNode, Options) -->
+  {rdf_is_bnode(BNode)}, !,
+  rdf_dcg_bnode(BNode, Options).
+% Literals.
+rdf_dcg_node(Literal, Options) -->
+  {rdf_is_literal(Literal)}, !,
+  rdf_dcg_literal(Literal, Options).
+% Well-known IRIs (blank node notation).
+rdf_dcg_node(Iri, Options) -->
+  {well_known_iri([''|Segments], Iri)}, !,
+  {atomic_list_concat(Segments, /, BNode)},
+  rdf_dcg_bnode(BNode, Options).
+% IRIs that are not well-known IRIs.
+rdf_dcg_node(Iri, Options) -->
+  {rdf_is_iri(Iri)}, !,
+  rdf_dcg_iri(Iri, Options).
+% Syntax error.
+rdf_dcg_node(Term, _) -->
+  {syntax_error(rdf_term(Term))}.
+
+
+
+%! rdf_dcg_predicate(+Predicate:iri)// is det.
+%! rdf_dcg_predicate(+Predicate:iri, +Options:options)// is det.
+
+rdf_dcg_predicate(P) -->
+  rdf_dcg_predicate(P, options{}).
+
+
+% BUG: RDF prefix expansion does not work.
+rdf_dcg_predicate(rdf:type, Options) -->
+  {dict_get(iri_abbr, Options, true, true)}, !,
+  "a".
+rdf_dcg_predicate(Iri, Options) -->
+  rdf_dcg_iri(Iri, Options).
+
+
+
+%! rdf_dcg_tp(+TriplePattern:compound)// is det.
+%! rdf_dcg_tp(+TriplePattern:compound, +Options:options)// is det.
 
 rdf_dcg_tp(tp(S,P,O)) -->
   rdf_dcg_tp(tp(S,P,O), options{}).
 
 
 rdf_dcg_tp(tp(S,P,O), Options) -->
-  rdf_dcg_tp(S, P, O, Options).
-
-
-rdf_dcg_tp(S, P, O) -->
-  rdf_dcg_tp(S, P, O, options{}).
-
-
-rdf_dcg_tp(S, P, O, Options) -->
   rdf_dcg_node(S, Options),
   " ",
   rdf_dcg_predicate(P, Options),
   " ",
-  rdf_dcg_node(O, Options),
-  ".".
+  rdf_dcg_node(O, Options).
+
+
+
+%! rdf_dcg_tree(+Tree:compound)// is det.
+%! rdf_dcg_tree(+Tree:compound, +Options:options)// is det.
+
+rdf_dcg_tree(Tree) -->
+  rdf_dcg_tree(Tree, options{}).
+
+
+rdf_dcg_tree(Tree, Options) -->
+  {dict_get(indent, Options, 0, N)},
+  rdf_dcg_tree_(N, Options, Tree).
+
+rdf_dcg_tree_(N1, Options, tree(Rule,Concl,Trees)) -->
+  tab(N1),
+  ({N1 =:= 0} -> "" ; "⤷ "),
+  "[",
+  term(Rule),
+  "] ",
+  rdf_dcg_tp(Concl, Options),
+  nl,
+  {N2 is N1 + 2},
+  '*'(rdf_dcg_tree_(N2, Options), Trees).
 
 
 
@@ -340,7 +302,7 @@ rdf_dcg_groups0([G-Triples|Groups], Options) -->
   (   {var(G)}
   ->  {I2 = I1}
   ;   tab(I1),
-      rdf_dcg_term_(G, Options),
+      rdf_dcg_node(G, Options),
       " {\n",
       {I2 = I1 + 2}
   ),
@@ -495,7 +457,7 @@ rdf_dcg_complex_object_(I1, _, Node, SkipTriples1, SkipTriples3, Options) -->
 % The object term is an atomic term.
 rdf_dcg_complex_object_(I, InLine, Term, SkipTriples, SkipTriples, Options) -->
   ({InLine == true} -> " " ; nl, tab(I)),
-  rdf_dcg_term_(Term, Options).
+  rdf_dcg_node(Term, Options).
 
 %! turtle_object_(+RdfList:rdf_node,
 %!                +SkipTriples1:list(tp),
@@ -523,7 +485,7 @@ rdf_dcg_list_(Terms, Options) -->
   "(",
   (   {Terms = [H|T]}
   ->  " ",
-      rdf_dcg_term_(H, Options),
+      rdf_dcg_node(H, Options),
       rdf_dcg_list_tail_(T, Options),
       " "
   ;   ""
@@ -534,6 +496,6 @@ rdf_dcg_list_(Terms, Options) -->
 
 rdf_dcg_list_tail_([H|T], Options) --> !,
   " ",
-  rdf_dcg_term_(H, Options),
+  rdf_dcg_node(H, Options),
   rdf_dcg_list_tail_(T, Options).
 rdf_dcg_list_tail_([], _) --> "".

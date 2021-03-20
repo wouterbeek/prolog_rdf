@@ -2,9 +2,9 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean_quad/3,   % +BaseIri, +Quad, -CleanQuad
-    rdf_clean_triple/3, % +BaseIri, +Triple, -CleanTriple
-    rdf_clean_tuple/3   % +BaseIri, +Tuple, -CleanTuple
+    rdf_clean_quad/3,   % +BaseIri, +SwiQuad, -Quad
+    rdf_clean_triple/3, % +BaseIri, +SwiTriple, -Triple
+    rdf_clean_tuple/3   % +BaseIri, +SwiTuple, -Tuple
   ]
 ).
 
@@ -29,7 +29,7 @@
 
 
 
-%! rdf_clean_bnode(+BaseIri:uri, +BNode:atom, -Iri:rdf_iri) is det.
+%! rdf_clean_bnode(+BaseIri:iri, +BNode:rdf_bnode, -Iri:iri) is det.
 %
 % Blank node cleaning results in Skolemization / a well-known IRI.
 %
@@ -50,13 +50,13 @@ rdf_clean_bnode(BaseIri, BNode, Iri) :-
 
 
 
-%! rdf_clean_graph(+Graph:atom, -CleanGraph:atom) is semidet.
+%! rdf_clean_graph(+Graph:rdf_graph, -CleanGraph:rdf_graph) is semidet.
 
 rdf_clean_graph(G1, G3) :-
   rdf11:post_graph(G2, G1),
   (   G2 == user
-  ->  rdf11:rdf_default_graph(G3)
-  ;   rdf11:rdf_default_graph(G2)
+  ->  rdf_default_graph(G3)
+  ;   rdf_default_graph(G2)
   ->  G3 = G2
   ;   rdf_clean_iri(G2, G3)
   ).
@@ -132,7 +132,16 @@ rdf_clean_literal(literal(Lex), literal(type(D,Lex))) :-
 
 
 
-%! rdf_clean_nonliteral(+BaseIri:uri,
+%! rdf_clean_node(+BaseIri:iri, +Node:rdf_node, -CleanNode:rdf_node) is det.
+
+rdf_clean_node(BaseIri, Node1, Node2) :-
+  rdf_clean_nonliteral(BaseIri, Node1, Node2), !.
+rdf_clean_node(_, Literal1, Literal2) :-
+  rdf_clean_literal(Literal1, Literal2).
+
+
+
+%! rdf_clean_nonliteral(+BaseIri:iri,
 %!                      +NonLiteral:or([rdf_bnode,rdf_iri]),
 %!                      -CleanNonLiteral:or([rdf_bnode,rdf_iri])) is semidet.
 
@@ -147,7 +156,7 @@ rdf_clean_nonliteral(_, Iri1, Iri2) :-
 
 
 
-%! rdf_clean_quad(+BaseIri:uri, +Quad:rdf_quad, -CleanQuad:rdf_quad) is semidet.
+%! rdf_clean_quad(+BaseIri:iri, +SwiQuad, -Quad:rdf_quad) is semidet.
 
 rdf_clean_quad(BaseIri, rdf(S1,P1,O1,G1), tp(S2,P2,O2,G2)) :-
   catch(
@@ -164,16 +173,7 @@ rdf_clean_quad(BaseIri, rdf(S1,P1,O1,G1), tp(S2,P2,O2,G2)) :-
 
 
 
-%! rdf_clean_term(+BaseIri:uri, +Term:rdf_term, -CleanTerm:rdf_term) is det.
-
-rdf_clean_term(BaseIri, Term1, Term2) :-
-  rdf_clean_nonliteral(BaseIri, Term1, Term2), !.
-rdf_clean_term(_, Literal1, Literal2) :-
-  rdf_clean_literal(Literal1, Literal2).
-
-
-
-%! rdf_clean_triple(+BaseIri:uri, +Triple:rdf_triple, -CleanTriple:rdf_triple) is semidet.
+%! rdf_clean_triple(+BaseIri:iri, +SwiTriple, -Triple:rdf_triple) is semidet.
 
 rdf_clean_triple(BaseIri, Triple1, Triple2) :-
   catch(
@@ -188,11 +188,11 @@ rdf_clean_triple(BaseIri, Triple1, Triple2) :-
 rdf_clean_triple_(BaseIri, rdf(S1,P1,O1), tp(S2,P2,O2)) :-
   rdf_clean_nonliteral(BaseIri, S1, S2),
   rdf_clean_iri(P1, P2),
-  rdf_clean_term(BaseIri, O1, O2).
+  rdf_clean_node(BaseIri, O1, O2).
 
 
 
-%! rdf_clean_tuple(+BaseIri:uri, +Tuple:rdf_tuple, -CleanTuple:rdf_tuple) is semidet.
+%! rdf_clean_tuple(+BaseIri:iri, +SwiTuple, -Tuple:rdf_tuple) is semidet.
 
 % triple
 rdf_clean_tuple(BaseIri, rdf(S,P,O), Triple) :- !,
