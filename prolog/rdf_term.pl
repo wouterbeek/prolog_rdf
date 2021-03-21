@@ -11,7 +11,6 @@
     rdf_container_membership_property/2, % ?Property, ?Index
    %rdf_create_bnode/1,                  % --BNode
     rdf_create_iri/3,                    % +Alias, +TermOrTerms, -Iri
-    rdf_default_graph/1,                 % ?Graph
     rdf_hash_iri/3,                      % +Alias, +Term, -Iri
    %rdf_is_bnode/1,                      % @Term
     rdf_is_bnode_iri/1,                  % @Term
@@ -59,7 +58,6 @@
    ]).
 :- reexport(library(semweb/rdf11), [
      rdf_create_bnode/1,
-     rdf_default_graph/1,
      rdf_is_iri/1,
      rdf_is_predicate/1,
      rdf_is_subject/1
@@ -97,10 +95,8 @@ error:has_type(iri, Term) :-
 % blank node
 error:has_type(rdf_bnode, Term) :-
   rdf_is_bnode(Term).
-% graph
-error:has_type(rdf_graph, Term) :-
-  rdf_default_graph(Term).
-error:has_type(rdf_graph, Term) :-
+% graph name
+error:has_type(rdf_graph_name, Term) :-
   error:has_type(iri, Term).
 % literal
 error:has_type(rdf_literal, Term) :-
@@ -121,7 +117,7 @@ error:has_type(rdf_quad, Term) :-
   error:has_type(maybe(rdf_node), S),
   error:has_type(maybe(iri), P),
   error:has_type(maybe(rdf_node), O),
-  error:has_type(maybe(rdf_graph), G).
+  error:has_type(maybe(rdf_graph_name), G).
 % triple
 error:has_type(rdf_triple, Term) :-
   Term = tp(S,P,O),

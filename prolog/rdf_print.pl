@@ -263,7 +263,7 @@ rdf_dcg_triples(Triples) -->
 
 
 rdf_dcg_triples(Triples, Options) -->
-  {dict_get(graph, Options, _NoGraph, GraphName)},
+  {dict_get(graph, Options, _NoGraphName, GraphName)},
   rdf_dcg_prefixes(Triples),
   rdf_dcg_groups0([GraphName-Triples], Options).
 

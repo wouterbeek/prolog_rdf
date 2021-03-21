@@ -47,7 +47,7 @@ rdf_guess_file(Spec, Size, MediaType) :-
 
 
 
-%! rdf_guess_stream(+In:stream, +Size:nonneg, -MediaType:media_type) is semidet.
+%! rdf_guess_stream(+In:istream, +Size:nonneg, -MediaType:media_type) is semidet.
 %
 % @arg Size is the number of codes that is read from the input stream
 % In, on which the guess is based.  This number is doubled while
@@ -379,7 +379,7 @@ n3_subject(_) -->
 
 % SGML FAMILY %
 
-%! sgml_format(+In:stream, -Extension:atom) is semidet.
+%! sgml_format(+In:istream, -Extension:atom) is semidet.
 %
 % Try to see whether the document is some form of HTML or XML and in
 % particular whether it is RDF/XML.  The latter is basically
@@ -398,7 +398,9 @@ sgml_format(In, Ext) :-
   doc_content_type(Dialect, DocType, Attributes, Ext).
 
 
-%! sgml_doctype(+In:stream, -Dialect:atom, -Doctype:atom,
+%! sgml_doctype(+In:istream,
+%!              -Dialect:atom,
+%!              -Doctype:atom,
 %!              -Attributes:list(compound)) is semidet.
 %
 % Parse a _repositional_ stream and get the name of the first SGML

@@ -77,13 +77,13 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
 
 
 
-%! rdf_deref_stream(+BaseIri:iri, +In:stream, :Goal_3) is det.
-%! rdf_deref_stream(+BaseIri:iri, +In:stream, :Goal_3, +Options:options) is det.
+%! rdf_deref_stream(+BaseIri:iri, +In:istream, :Goal_3) is det.
+%! rdf_deref_stream(+BaseIri:iri, +In:istream, :Goal_3, +Options:options) is det.
 %
 % The following call will be made:
 %
 % ```
-% call(:Goal_3, +BaseIri, +Tuples, ?Graph)
+% call(:Goal_3, +BaseIri:iri, +Tuples:list(rdf_tuple), ?GraphName:rdf_graph_name)
 % ```
 %
 % The following options are supported:

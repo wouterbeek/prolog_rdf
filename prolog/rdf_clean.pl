@@ -50,13 +50,14 @@ rdf_clean_bnode(BaseIri, BNode, Iri) :-
 
 
 
-%! rdf_clean_graph(+Graph:rdf_graph, -CleanGraph:rdf_graph) is semidet.
+%! rdf_clean_graph(+GraphName:rdf_graph_name,
+%!                 -CleanGraphName:rdf_graph_name) is semidet.
 
 rdf_clean_graph(G1, G3) :-
   rdf11:post_graph(G2, G1),
   (   G2 == user
-  ->  rdf_default_graph(G3)
-  ;   rdf_default_graph(G2)
+  ->  rdf11:rdf_default_graph(G3)
+  ;   rdf11:rdf_default_graph(G2)
   ->  G3 = G2
   ;   rdf_clean_iri(G2, G3)
   ).
