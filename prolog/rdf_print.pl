@@ -11,7 +11,8 @@
     rdf_dcg_tree//1,      % +Tree
     rdf_dcg_tree//2,      % +Tree, +Options
     rdf_dcg_triples//1,   % +Triples
-    rdf_dcg_triples//2    % +Triples, +Options
+    rdf_dcg_triples//2,   % +Triples, +Options
+    rdf_dcg_var//2        % --Var, +Options
   ]
 ).
 
@@ -27,6 +28,9 @@
 | `prefix_map`   | list(pair(atom))     |             | A custom list of prefix/IRI        |
 |                |                      |             | mappings that overrules and/or     |
 |                |                      |             | extends the prefix declarations.   |
+| `variable_map` | list(pair(var,atom)) |             | A list of variable/atom mappings   |
+|                |                      |             | that are required when variables   |
+|                |                      |             | are printed.                       |
 
 */
 
@@ -218,11 +222,11 @@ rdf_dcg_tp(tp(S,P,O)) -->
 
 
 rdf_dcg_tp(tp(S,P,O), Options) -->
-  rdf_dcg_node(S, Options),
+  ({var(S)} -> rdf_dcg_var(S, Options) ; rdf_dcg_node(S, Options)),
   " ",
-  rdf_dcg_predicate(P, Options),
+  ({var(P)} -> rdf_dcg_var(P, Options) ; rdf_dcg_predicate(P, Options)),
   " ",
-  rdf_dcg_node(O, Options).
+  ({var(O)} -> rdf_dcg_var(O, Options) ; rdf_dcg_node(O, Options)).
 
 
 
@@ -499,3 +503,18 @@ rdf_dcg_list_tail_([H|T], Options) --> !,
   rdf_dcg_node(H, Options),
   rdf_dcg_list_tail_(T, Options).
 rdf_dcg_list_tail_([], _) --> "".
+
+
+
+%! rdf_dcg_var(--Var, +Options:options)// is det.
+
+rdf_dcg_var(Var, Options) -->
+  {
+    dict_get(variable_map, Options, Var2Atom),
+    gen_assoc(Var0, Var2Atom, VarName),
+    Var0 == Var
+  }, !,
+  ({var(VarName)} -> "[]" ; "?", atom(VarName)).
+rdf_dcg_var(Var, _) -->
+  {format(codes(Codes), "~w", [Var])},
+  Codes.
