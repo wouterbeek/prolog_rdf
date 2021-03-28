@@ -10,9 +10,10 @@
     rdf_prefix_append/3,     % +L1, +L2, -L
    %rdf_prefix_iri/2,        % +Abbr, -Iri
     rdf_prefix_iri/3,        % ?Alias, ?Local, ?Iri
+    rdf_prefix_map/1,        % -PrefixMap
     rdf_prefix_maplist/2,    % :Goal_1, +Args1
     rdf_prefix_maplist/3,    % :Goal_2, +Args1, +Args2
-    rdf_prefix_maplist/4,    % :Goal_4, +Args1, +Args2, +Args3
+    rdf_prefix_maplist/4,    % :Goal_3, +Args1, +Args2, +Args3
     rdf_prefix_member/2,     % ?Elem, +L
     rdf_prefix_memberchk/2,  % ?Elem, +L
     rdf_prefix_selectchk/3,  % +Elem, +L, -Rest
@@ -43,12 +44,11 @@ This module extends module `rdf_prefixes' that is part of the
 standards SWI-Prolog distribution.
 
 @tbd There is currently no way to retract prefix declarations.
-
-@author Wouter Beek
-@version 2018-2019
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(assoc)).
 :- use_module(library(error)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
@@ -148,6 +148,18 @@ rdf_prefix_iri(Alias, Local0, Iri) :-
   ;   atomic_list_concat(Local0, /, Local)
   ),
   rdf_prefix_iri(Alias:Local, Iri).
+
+
+
+%! rdf_prefix_map(-PrefixMap:assoc) is det.
+
+rdf_prefix_map(Alias2Prefix) :-
+  aggregate_all(
+    set(Alias-Prefix),
+    rdf_prefix(Alias, Prefix),
+    Pairs
+  ),
+  ord_list_to_assoc(Pairs, Alias2Prefix).
 
 
 
