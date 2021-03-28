@@ -160,33 +160,14 @@ rdf_clean_nonliteral(_, Iri1, Iri2) :-
 %! rdf_clean_quad(+BaseIri:iri, +SwiQuad, -Quad:rdf_quad) is semidet.
 
 rdf_clean_quad(BaseIri, rdf(S1,P1,O1,G1), tp(S2,P2,O2,G2)) :-
-  catch(
-    (
-      rdf_clean_triple_(BaseIri, rdf(S1,P1,O1), tp(S2,P2,O2)),
-      rdf_clean_graph(G1, G2)
-    ),
-    E,
-    (
-      print_message(warning, E),
-      fail
-    )
-  ).
+  rdf_clean_triple(BaseIri, rdf(S1,P1,O1), tp(S2,P2,O2)),
+  rdf_clean_graph(G1, G2).
 
 
 
 %! rdf_clean_triple(+BaseIri:iri, +SwiTriple, -Triple:rdf_triple) is semidet.
 
-rdf_clean_triple(BaseIri, Triple1, Triple2) :-
-  catch(
-    rdf_clean_triple_(BaseIri, Triple1, Triple2),
-    E,
-    (
-      print_message(warning, E),
-      fail
-    )
-  ).
-
-rdf_clean_triple_(BaseIri, rdf(S1,P1,O1), tp(S2,P2,O2)) :-
+rdf_clean_triple(BaseIri, rdf(S1,P1,O1), tp(S2,P2,O2)) :-
   rdf_clean_nonliteral(BaseIri, S1, S2),
   rdf_clean_iri(P1, P2),
   rdf_clean_node(BaseIri, O1, O2).

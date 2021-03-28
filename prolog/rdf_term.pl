@@ -66,7 +66,6 @@
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
 
-:- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(hash_ext)).
 :- use_module(library(plunit)).
@@ -86,6 +85,7 @@
 
 :- multifile
     error:has_type/2,
+    prolog:message//1,
     rdf_lexical_to_value_hook/3,
     rdf_value_to_lexical_hook/3.
 
@@ -200,6 +200,9 @@ rdf_atom_node(Atom, Node) :-
 rdf_atom_node(Atom, _) :-
   syntax_error(rdf_node(Atom)).
 
+prolog:message(error(syntax_error(rdf_node(Atom)),_)) -->
+  ["Could not parse as RDF node: ~a"-[Atom]].
+
 :- begin_tests(rdf_atom_node).
 
 :- rdf_meta
@@ -240,6 +243,9 @@ rdf_atom_predicate(Atom, P) :-
 rdf_atom_predicate(Atom, _) :-
   atom(Atom), !,
   syntax_error(rdf_predicate(Atom)).
+
+prolog:message(error(syntax_error(rdf_predicate(Atom)),_)) -->
+  ["Could not parse as RDF predicate: ~a"-[Atom]].
 
 
 
@@ -573,9 +579,12 @@ rdf_value_to_lexical(D, Atom, Atom) :-
   ).
 
 rdf_lexical_to_value_error(D, Lex) :-
-  syntax_error(grammar(D,Lex)).
+  syntax_error(rdf_lexical_form(D,Lex)).
 rdf_value_to_lexical_error(D, Value) :-
   type_error(D, Value).
+
+prolog:message(error(syntax_error(rdf_lexical_form(D,Lex)),_)) -->
+  ["Could not parse as <~a>: ~a"-[D,Lex]].
 
 :- begin_tests(rdf_lexical_value).
 
