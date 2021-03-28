@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 1.0.5 (2021-03-28)
+
+This release brings the following changes:
+
+### rdf_clean
+
+- Allow the calling context to determine what to do with RDF errors
+  detected during cleaning.
+
+### rdf_prefix
+
+- Added `rdf_prefix_map/1` to allow all current prefix declarations to
+  be conveniently stored in one object.
+
+### rdf_print
+
+- Added `rdf_dcg_var//2` for printing variables in the SPARQL syntax.
+
+- Allow variables to be printed as part of `rdf_dcg_tp//2` (triple
+  patterns).
+
+### rdf_term
+
+- Added print statements for some of the emitted syntax errors.
+
 ## 1.0.4 (2021-03-20)
 
 This released brings the following changes:
