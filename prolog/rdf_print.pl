@@ -22,8 +22,6 @@
 |:---------------|:---------------------|:-----------:|:-----------------------------------|
 | `indent`       | nonneg               | 0           | The number of spaces for the outer |
 |                |                      |             | indentation level.                 |
-| `iri_abbr`     | boolean              | `true`      | Whether IRIs are abbreviated       |
-|                |                      |             | based on the current prefixes.     |
 | `max_length`   | nonneg               | `inf`       | The maximum length of an RDF term. |
 | `prefix_map`   | list(pair(atom))     |             | A custom list of prefix/IRI        |
 |                |                      |             | mappings that overrules and/or     |
@@ -78,7 +76,6 @@ rdf_dcg_bnode(BNode, Options) -->
 % Abbreviated IRI notation.
 rdf_dcg_iri(Iri, Options) -->
   {
-    dict_get(iri_abbr, Options, true, true),
     (   dict_get(prefix_map, Options, Prefix2Alias)
     ->  % Abbreviated based on the prefix map specified in options.
         (   gen_assoc(Prefix, Prefix2Alias, Alias),
@@ -206,8 +203,7 @@ rdf_dcg_predicate(P) -->
 
 
 % BUG: RDF prefix expansion does not work.
-rdf_dcg_predicate(rdf:type, Options) -->
-  {dict_get(iri_abbr, Options, true, true)}, !,
+rdf_dcg_predicate(rdf:type, _) --> !,
   "a".
 rdf_dcg_predicate(Iri, Options) -->
   rdf_dcg_iri(Iri, Options).
