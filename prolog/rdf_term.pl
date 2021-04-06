@@ -441,6 +441,11 @@ rdf_value_to_lexical(rdf:'XMLLiteral', Value, Lex) :- !,
   ;   rdf_value_to_lexical_error(rdf:'XMLLiteral', Value)
   ).
 
+% xsd:anyURI
+rdf_lexical_to_value(xsd:anyURI, Lex, Lex) :- !.
+
+rdf_value_to_lexical(xsd:anyURI, Lex, Lex) :- !.
+
 % xsd:boolean
 rdf_lexical_to_value(xsd:boolean, Lex, Value) :- !,
   (   xsd_lexical_to_value_boolean(Lex, Value0)
@@ -689,6 +694,7 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %   | string                      | xsd:string             |
 %   | string(atom)                | xsd:string             |
 %   | time(H,Mi,S)                | xsd:time               |
+%   | uri(Uri)                    | xsd:anyURI             |
 %   | year(Y)                     | xsd:gYear              |
 %   | year_month(Y,Mo)            | xsd:gYearMonth         |
 
@@ -767,6 +773,8 @@ rdf_literal_dwim(positive_integer(N), literal(type(xsd:positiveInteger,Lex))) :-
 rdf_literal_dwim(string(Atomic), literal(type(xsd:string,Lex))) :- !,
   atom_string(Atomic, String),
   atom_string(Lex, String).
+% uri/1 → xsd:anyURI
+rdf_literal_dwim(uri(Lex), literal(type(xsd:anyURI,Lex))) :-!.
 % year/1 → xsd:gYear
 rdf_literal_dwim(year(Y), literal(type(xsd:gYear,Lex))) :- !,
   xsd_time_string(Y, xsd:gYear, String),
