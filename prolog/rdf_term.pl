@@ -506,7 +506,7 @@ rdf_value_to_lexical(xsd:duration, Value, Lex) :- !,
 % xsd:byte
 % xsd:decimal
 % xsd:double
-% xsd;float
+% xsd:float
 % xsd:int
 % xsd:integer
 % xsd:long
@@ -704,7 +704,7 @@ rdf_literal_dwim(Term, _) :-
 % regular typed literal
 rdf_literal_dwim(literal(type(D,Lex)), literal(type(D,Lex))) :- !.
 % regular language-tagged string
-rdf_literal_dwim(literal(lang(LTag,Lex)), literal(type(LTag,Lex))) :- !.
+rdf_literal_dwim(literal(lang(LTag,Lex)), literal(lang(LTag,Lex))) :- !.
 % language-tagged string
 rdf_literal_dwim(String-Tags, literal(lang(LTag,Lex))) :- !,
   atom_string(Lex, String),
