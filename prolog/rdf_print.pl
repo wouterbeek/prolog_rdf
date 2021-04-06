@@ -6,13 +6,8 @@
     rdf_dcg_node//2,      % +Node, +Options
     rdf_dcg_predicate//1, % +Predicate
     rdf_dcg_predicate//2, % +Predicate, +Options
-    rdf_dcg_tp//1,        % +TP
-    rdf_dcg_tp//2,        % +TP, +Options
-    rdf_dcg_tree//1,      % +Tree
-    rdf_dcg_tree//2,      % +Tree, +Options
     rdf_dcg_triples//1,   % +Triples
-    rdf_dcg_triples//2,   % +Triples, +Options
-    rdf_dcg_var//2        % --Var, +Options
+    rdf_dcg_triples//2    % +Triples, +Options
   ]
 ).
 
@@ -53,10 +48,6 @@
    rdf_dcg_node(o, +, ?, ?),
    rdf_dcg_predicate(r, ?, ?),
    rdf_dcg_predicate(r, +, ?, ?),
-   rdf_dcg_tp(t, ?, ?),
-   rdf_dcg_tp(t, +, ?, ?),
-   rdf_dcg_tree(t),
-   rdf_dcg_tree(t, +),
    rdf_dcg_triples(t, ?, ?),
    rdf_dcg_triples(t, +, ?, ?).
 
@@ -180,11 +171,6 @@ rdf_dcg_node(BNode, Options) -->
 rdf_dcg_node(Literal, Options) -->
   {rdf_is_literal(Literal)}, !,
   rdf_dcg_literal(Literal, Options).
-% Well-known IRIs (blank node notation).
-rdf_dcg_node(Iri, Options) -->
-  {well_known_iri([''|Segments], Iri)}, !,
-  {atomic_list_concat(Segments, /, BNode)},
-  rdf_dcg_bnode(BNode, Options).
 % IRIs that are not well-known IRIs.
 rdf_dcg_node(Iri, Options) -->
   {rdf_is_iri(Iri)}, !,
@@ -207,46 +193,6 @@ rdf_dcg_predicate(rdf:type, _) --> !,
   "a".
 rdf_dcg_predicate(Iri, Options) -->
   rdf_dcg_iri(Iri, Options).
-
-
-
-%! rdf_dcg_tp(+TriplePattern:compound)// is det.
-%! rdf_dcg_tp(+TriplePattern:compound, +Options:options)// is det.
-
-rdf_dcg_tp(tp(S,P,O)) -->
-  rdf_dcg_tp(tp(S,P,O), options{}).
-
-
-rdf_dcg_tp(tp(S,P,O), Options) -->
-  ({var(S)} -> rdf_dcg_var(S, Options) ; rdf_dcg_node(S, Options)),
-  " ",
-  ({var(P)} -> rdf_dcg_var(P, Options) ; rdf_dcg_predicate(P, Options)),
-  " ",
-  ({var(O)} -> rdf_dcg_var(O, Options) ; rdf_dcg_node(O, Options)).
-
-
-
-%! rdf_dcg_tree(+Tree:compound)// is det.
-%! rdf_dcg_tree(+Tree:compound, +Options:options)// is det.
-
-rdf_dcg_tree(Tree) -->
-  rdf_dcg_tree(Tree, options{}).
-
-
-rdf_dcg_tree(Tree, Options) -->
-  {dict_get(indent, Options, 0, N)},
-  rdf_dcg_tree_(N, Options, Tree).
-
-rdf_dcg_tree_(N1, Options, tree(Rule,Concl,Trees)) -->
-  tab(N1),
-  ({N1 =:= 0} -> "" ; "⤷ "),
-  "[",
-  term(Rule),
-  "] ",
-  rdf_dcg_tp(Concl, Options),
-  nl,
-  {N2 is N1 + 2},
-  '*'(rdf_dcg_tree_(N2, Options), Trees).
 
 
 
@@ -499,18 +445,3 @@ rdf_dcg_list_tail_([H|T], Options) --> !,
   rdf_dcg_node(H, Options),
   rdf_dcg_list_tail_(T, Options).
 rdf_dcg_list_tail_([], _) --> "".
-
-
-
-%! rdf_dcg_var(--Var, +Options:options)// is det.
-
-rdf_dcg_var(Var, Options) -->
-  {
-    dict_get(variable_map, Options, Var2Atom),
-    gen_assoc(Var0, Var2Atom, VarName),
-    Var0 == Var
-  }, !,
-  ({var(VarName)} -> "[]" ; "?", atom(VarName)).
-rdf_dcg_var(Var, _) -->
-  {format(codes(Codes), "~w", [Var])},
-  Codes.
