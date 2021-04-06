@@ -480,8 +480,8 @@ ltag_(zh_yue).
 prefix_(Alias, Prefix) :-
   rdf_db:ns(Alias, Prefix).
 prefix_(aat, 'http://vocab.getty.edu/aat/').
-prefix_(bag, 'http://bag2.basisregistraties.overheid.nl/bag/def/').
-prefix_(bgt, 'http://bgt.basisregistraties.overheid.nl/bgt/def/').
+prefix_(bag, 'https://bag2.basisregistraties.overheid.nl/bag/def/').
+prefix_(bgt, 'https://bgt.basisregistraties.overheid.nl/bgt/def/').
 prefix_(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
 prefix_(bibo, 'http://purl.org/ontology/bibo/').
 prefix_(bnode, 'https://lodlaundromat.org/.well-known/genid/').
