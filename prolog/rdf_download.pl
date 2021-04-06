@@ -13,6 +13,7 @@
 
 :- use_module(library(apply)).
 
+:- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(rdf_clean)).
 :- use_module(library(rdf_deref)).
@@ -40,6 +41,7 @@ rdf_download(Uri, File) :-
 
 
 rdf_download(Uri, File, Options) :-
+  ensure_file_name_(Uri, File, Options),
   (var(File) -> uri_data_file(Uri, File) ; true),
   (   exists_file(File),
       file_size(File, Size),
@@ -47,6 +49,13 @@ rdf_download(Uri, File, Options) :-
   ->  true
   ;   write_to_file(File, rdf_download_(Uri, Options))
   ).
+
+ensure_file_name_(_, File, _) :-
+  ground(File), !.
+ensure_file_name_(Uri, File, Options) :-
+  dict_get(local, Options, data, Local),
+  uri_data_file(Uri, Dir),
+  directory_file_path2(Dir, Local, File).
 
 rdf_download_(Uri, Options, Out) :-
   rdf_deref_uri(Uri, callback_(Out), Options).

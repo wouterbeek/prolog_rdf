@@ -21,6 +21,7 @@
 :- use_module(library(semweb/rdf_ntriples), []).
 :- use_module(library(semweb/rdfa), []).
 :- use_module(library(semweb/turtle), []).
+:- use_module(library(yall)).
 
 :- use_module(library(archive_ext)).
 :- use_module(library(atom_ext)).
@@ -72,9 +73,12 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
   absolute_file_name(Spec, File, [access(read)]),
   uri_data_file(BaseIri, File),
   merge_dicts(Options1, options{base_iri: BaseIri}, Options2),
+  file_media_type(File, MediaType),
+  merge_dicts(Options2, options{media_type: MediaType}, Options3),
   read_from_file(
     File,
-    {BaseIri,Goal_3,Options2}/[In]>>rdf_deref_stream(BaseIri, In, Goal_3, Options2)
+    {BaseIri,Goal_3,Options3}/[In]>>
+      rdf_deref_stream(BaseIri, In, Goal_3, Options3)
   ).
 
 
