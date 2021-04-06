@@ -49,15 +49,16 @@ rdf_guess_file(Spec, Size, MediaType) :-
 
 %! rdf_guess_stream(+In:istream, +Size:nonneg, -MediaType:media_type) is semidet.
 %
-% @arg Size is the number of codes that is read from the input stream
-% In, on which the guess is based.  This number is doubled while
-% backtracking, until either the end of the stream is reached or the
-% maximum peek size, as indicated by the input stream `In', is
-% exceeded.
+% @param Size is the number of codes that is read from the input
+%        stream In, on which the guess is based.  This number is
+%        doubled while backtracking, until either the end of the
+%        stream is reached or the maximum peek size, as indicated by
+%        the input stream `In', is exceeded.
 %
-% @arg MediaType is a compound term of the form
-% `media(Supertype/Subtype,Params)'.  This is how Media Types are
-% represented in the HTTP package (see http_parse_header_value/3).
+% @param MediaType is a compound term of the form
+%        `media(Supertype/Subtype,Params)'.  This is how Media Types
+%        are represented in the HTTP package (see
+%        http_parse_header_value/3).
 %
 % There is one JSON-family Media Type:
 %

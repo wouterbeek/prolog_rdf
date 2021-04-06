@@ -49,18 +49,20 @@
 
 
 
-
-
 %! rdf_deref_file(+FileSpec:term, :Goal_3) is det.
 %! rdf_deref_file(+FileSpec:term, :Goal_3, +Options:options) is det.
 %
-% @arg Options allows the following options to be set.
+% @param Options allows the following options to be set.
 %
-%   * base_iri(+atom)
+%        * base_iri(+atom)
 %
-%     By default, the base IRI is the file URI.
+%          By default, the base IRI is the file URI.
 %
-%   * Other options are passed to rdf_defer_stream/4.
+%        * Other options are passed to rdf_defer_stream/4.
+%
+%        * Tries to set the ‘media_type’ option based on the file
+%          name, if this option is not explicitly specified by the
+%          caller.
 
 rdf_deref_file(Spec, Goal_3) :-
   rdf_deref_file(Spec, Goal_3, options{}).

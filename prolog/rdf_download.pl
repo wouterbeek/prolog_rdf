@@ -21,13 +21,15 @@
 
 
 
-
-
 %! rdf_download(+Uri:atom) is det.
 %! rdf_download(+Uri:atom, ?File:atom) is det.
 %! rdf_download(+Uri:atom, ?File:atom, +Options:options) is det.
 %
-% @param Options The options are passed to rdf_deref_uri/3.
+% @param Options The following options are supported:
+%
+%        * local
+%
+%        * Other options are passed to rdf_deref_uri/3.
 
 rdf_download(Uri) :-
   rdf_download(Uri, _).
