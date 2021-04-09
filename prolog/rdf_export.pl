@@ -55,13 +55,13 @@ rdf_write_literal(Out, Input) :-
   rdf_literal_dwim(Input, Literal),
   rdf_write_literal_(Out, Literal).
 
+rdf_write_literal_(Out, literal(lang(LTag,Lex))) :- !,
+  turtle:turtle_write_quoted_string(Out, Lex),
+  format(Out, "@~a", [LTag]).
 rdf_write_literal_(Out, literal(type(D,Lex))) :-
   turtle:turtle_write_quoted_string(Out, Lex),
   format(Out, "^^", []),
   rdf_write_iri(Out, D).
-rdf_write_literal_(Out, literal(lang(LTag,Lex))) :-
-  turtle:turtle_write_quoted_string(Out, Lex),
-  format(Out, "@~a", [LTag]).
 
 
 
