@@ -12,9 +12,11 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(yall)).
 
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
+:- use_module(library(http_client2)).
 :- use_module(library(rdf_clean)).
 :- use_module(library(rdf_deref)).
 :- use_module(library(rdf_export)).
@@ -22,15 +24,11 @@
 
 
 
-%! rdf_download(+Uri:atom) is det.
-%! rdf_download(+Uri:atom, ?File:atom) is det.
-%! rdf_download(+Uri:atom, ?File:atom, +Options:options) is det.
+%! rdf_download(+Uri:uri) is det.
+%! rdf_download(+Uri:uri, ?File:atom) is det.
+%! rdf_download(+Uri:uri, ?File:atom, +Options:options) is det.
 %
-% @param Options The following options are supported:
-%
-%        * local
-%
-%        * Other options are passed to rdf_deref_uri/3.
+% @param Options are passed to rdf_deref_uri/3.
 
 rdf_download(Uri) :-
   rdf_download(Uri, _).
@@ -41,25 +39,20 @@ rdf_download(Uri, File) :-
 
 
 rdf_download(Uri, File, Options) :-
-  ensure_file_name_(Uri, File, Options),
-  (var(File) -> uri_data_file(Uri, File) ; true),
-  (   exists_file(File),
-      file_size(File, Size),
-      Size =\= 0
+  ensure_file_(Uri, File),
+  (   uri_file_is_fresh(Uri, File)
   ->  true
-  ;   write_to_file(File, rdf_download_(Uri, Options))
+  ;   write_to_file(
+        File,
+        {Uri,Options}/[Out]>>rdf_deref_uri(Uri, callback_(Out), Options)
+      )
   ).
-
-ensure_file_name_(_, File, _) :-
-  ground(File), !.
-ensure_file_name_(Uri, File, Options) :-
-  dict_get(local, Options, data, Local),
-  uri_data_file(Uri, Dir),
-  directory_file_path2(Dir, Local, File).
-
-rdf_download_(Uri, Options, Out) :-
-  rdf_deref_uri(Uri, callback_(Out), Options).
 
 callback_(Out, Site, Tuples1, _) :-
   convlist(rdf_clean_tuple(Site), Tuples1, Tuples2),
   maplist(rdf_write_tuple(Out), Tuples2).
+
+ensure_file_(_, File) :-
+  ground(File), !.
+ensure_file_(Uri, File) :-
+  uri_data_file(Uri, data, File).

@@ -71,14 +71,12 @@ rdf_deref_file(Spec, Goal_3) :-
 
 rdf_deref_file(Spec, Goal_3, Options1) :-
   absolute_file_name(Spec, File, [access(read)]),
-  uri_data_file(BaseIri, File),
+  uri_file_name(BaseIri, File),
   merge_dicts(Options1, options{base_iri: BaseIri}, Options2),
-  file_media_type(File, MediaType),
-  merge_dicts(Options2, options{media_type: MediaType}, Options3),
   read_from_file(
     File,
-    {BaseIri,Goal_3,Options3}/[In]>>
-      rdf_deref_stream(BaseIri, In, Goal_3, Options3)
+    {BaseIri,Goal_3,Options2}/[In]>>
+      rdf_deref_stream(BaseIri, In, Goal_3, Options2)
   ).
 
 
@@ -100,7 +98,7 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
 %
 %   * content_type(+MediaType:media_type)
 %
-%     The parsed value of the HTTP `Content-Type' header, if any.
+%     The parsed value of the HTTP ‘Content-Type’ header, if any.
 %
 %   * media_type(+MediaType:media_type)
 %
@@ -225,13 +223,13 @@ rdf_deref_stream(BaseIri, In1, Mod:Goal_3, Options1) :-
 %! rdf_deref_uri(+Uri:uri, :Goal_3) is det.
 %! rdf_deref_uri(+Uri:uri, :Goal_3, +Options:options) is det.
 %
-% The following options are supported:
+% @param Options The following options are supported:
 %
-%   * accept(+MediaTypes:list(compound))
+%        * accept(+MediaTypes:list(compound))
 %
-%     The value of the HTTP Accept header, from high to low
-%     precedence.  The default value is a list of all and only
-%     standardized Media Types.
+%          The value of the HTTP Accept header, from high to low
+%          precedence.  The default value is a list of all and only
+%          standardized Media Types.
 %
 %   * Other options are passed to rdf_deref_stream/4.
 
@@ -240,23 +238,19 @@ rdf_deref_uri(Uri, Goal_3) :-
 
 
 rdf_deref_uri(Uri, Goal_3, Options1) :-
-  uri_is_global(Uri), !,
   % ‘Accept’ header
-  (   dict_select(accept, Options1, Options2, MediaTypes)
+  (   options{accept: MediaTypes} :< Options1
   ->  true
-  ;   aggregate_all(set(MediaType0), media_type_family(MediaType0, rdf), MediaTypes),
-      Options2 = Options1
+  ;   aggregate_all(set(MediaType0), media_type_family(MediaType0, rdf), MediaTypes)
   ),
-  http_open2(Uri, In, options{accept: MediaTypes,
-                              failure: 404,
-                              metadata: Metas}),
+  http_open2(Uri, In, options{accept: MediaTypes, failure: 404, metadata: Metas}),
   call_cleanup(
     (
       (   http_metadata_content_type(Metas, MediaType)
-      ->  merge_dicts(Options2, options{content_type: MediaType}, Options3)
-      ;   Options3 = Options2
+      ->  merge_dicts(Options1, options{content_type: MediaType}, Options2)
+      ;   Options2 = Options1
       ),
-      rdf_deref_stream(Uri, In, Goal_3, Options3)
+      rdf_deref_stream(Uri, In, Goal_3, Options2)
     ),
     close(In)
   ).
