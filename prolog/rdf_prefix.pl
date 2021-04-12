@@ -10,7 +10,7 @@
     rdf_prefix_append/3,     % +L1, +L2, -L
    %rdf_prefix_iri/2,        % +Abbr, -Iri
     rdf_prefix_iri/3,        % ?Alias, ?Local, ?Iri
-    rdf_prefix_map/1,        % -PrefixMap
+    rdf_prefix_map/1,        % -Alias2Prefix
     rdf_prefix_maplist/2,    % :Goal_1, +Args1
     rdf_prefix_maplist/3,    % :Goal_2, +Args1, +Args2
     rdf_prefix_maplist/4,    % :Goal_3, +Args1, +Args2, +Args3
@@ -151,7 +151,7 @@ rdf_prefix_iri(Alias, Local0, Iri) :-
 
 
 
-%! rdf_prefix_map(-PrefixMap:assoc) is det.
+%! rdf_prefix_map(-Alias2Prefix:assoc(atom,iri)) is det.
 
 rdf_prefix_map(Alias2Prefix) :-
   aggregate_all(
@@ -592,6 +592,6 @@ prefix_(yago, 'http://yago-knowledge.org/resource/').
 
 init_rdf_prefix :-
   maplist(
-    [Alias]>>ignore(retract(rdf_db:ns(Alias,_))),
+    [Alias0]>>ignore(retract(rdf_db:ns(Alias0,_))),
     [dc,dcterms,eor,serql]
   ).

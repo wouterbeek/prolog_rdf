@@ -44,7 +44,7 @@ rdf_download(Uri, File, Options) :-
   ->  true
   ;   write_to_file(
         File,
-        {Uri,Options}/[Out]>>rdf_deref_uri(Uri, callback_(Out), Options)
+        {Uri,Options}/[Out0]>>rdf_deref_uri(Uri, callback_(Out0), Options)
       )
   ).
 

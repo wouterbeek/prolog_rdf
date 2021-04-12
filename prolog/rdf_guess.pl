@@ -42,7 +42,7 @@ XML namespaces.
 rdf_guess_file(Spec, Size, MediaType) :-
   read_from_file(
     Spec,
-    {Size,MediaType}/[In]>>rdf_guess_stream(In, Size, MediaType)
+    {Size,MediaType}/[In0]>>rdf_guess_stream(In0, Size, MediaType)
   ).
 
 

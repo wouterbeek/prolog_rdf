@@ -75,8 +75,8 @@ rdf_deref_file(Spec, Goal_3, Options1) :-
   merge_dicts(Options1, options{base_iri: BaseIri}, Options2),
   read_from_file(
     File,
-    {BaseIri,Goal_3,Options2}/[In]>>
-      rdf_deref_stream(BaseIri, In, Goal_3, Options2)
+    {BaseIri,Goal_3,Options2}/[In0]>>
+      rdf_deref_stream(BaseIri, In0, Goal_3, Options2)
   ).
 
 

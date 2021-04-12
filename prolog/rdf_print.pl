@@ -18,12 +18,11 @@
 | `indent`       | nonneg               | 0           | The number of spaces for the outer |
 |                |                      |             | indentation level.                 |
 | `max_length`   | nonneg               | `inf`       | The maximum length of an RDF term. |
-| `prefix_map`   | list(pair(atom))     |             | A custom list of prefix/IRI        |
+| `prefix2alias` | assoc(iri,atom))     |             | A custom list of prefix/IRI        |
 |                |                      |             | mappings that overrules and/or     |
 |                |                      |             | extends the prefix declarations.   |
-| `variable_map` | list(pair(var,atom)) |             | A list of variable/atom mappings   |
-|                |                      |             | that are required when variables   |
-|                |                      |             | are printed.                       |
+
+@note RDF prefix expansion does not work in DCGs.
 
 */
 
@@ -54,6 +53,10 @@
 
 
 %! rdf_dcg_bnode(+BNode:rdf_bnode, +Options:options)// is det.
+%
+% @param Options The following options are supported:
+%
+%        * max_length(+or([positive_integer,oneof([inf])]))
 
 rdf_dcg_bnode(BNode, Options) -->
   {dict_get(max_length, Options, inf, Max)},
@@ -63,11 +66,17 @@ rdf_dcg_bnode(BNode, Options) -->
 
 
 %! rdf_dcg_iri(+Iri:iri, +Options:options)// is det.
+%
+% @param Options The following options are supported:
+%
+%        * max_length(+or([positive_integer,oneof([inf])]))
+%
+%        * prefix2alias(+assoc(iri,atom))
 
 % Abbreviated IRI notation.
 rdf_dcg_iri(Iri, Options) -->
   {
-    (   dict_get(prefix_map, Options, Prefix2Alias)
+    (   dict_get(prefix2alias, Options, Prefix2Alias)
     ->  % Abbreviated based on the prefix map specified in options.
         (   gen_assoc(Prefix, Prefix2Alias, Alias),
             atom_prefix(Iri, Prefix)
@@ -102,6 +111,10 @@ rdf_dcg_iri(Iri, Options) -->
 
 
 %! rdf_dcg_lexical_form(+LexicalForm:atom, +Options:options)// is det.
+%
+% @param Options The following options are supported:
+%
+%        * max_length(+or([positive_integer,oneof([inf])]))
 
 rdf_dcg_lexical_form(Lex, Options) -->
   {
@@ -129,19 +142,28 @@ extra_quotes_(_, false).
 
 
 %! rdf_dcg_litteral(+Litteral:rdf_literal, +Options:options)// is det.
+%
+% @param Options are passed to rdf_dcg_iri//2 and
+%        rdf_dcg_lexical_form//2.
 
 % Language-tagged string.
 rdf_dcg_literal(literal(lang(LTag,Lex)), Options) --> !,
   rdf_dcg_lexical_form(Lex, Options),
   "@",
   atom(LTag).
-% Typed literal with abbreviated notation.
-rdf_dcg_literal(literal(type(D,Lex)), Options) -->
+% xsd:boolean, xsd:decimal, xsd:float, xsd:integer
+rdf_dcg_literal(literal(type(D,Lex)), _) -->
   {
     rdf_prefix_memberchk(
       D,
-      [xsd:boolean,xsd:decimal,xsd:float,xsd:integer,xsd:string]
-    ), !,
+      [xsd:boolean,xsd:decimal,xsd:float,xsd:integer]
+    )
+  }, !,
+  atom(Lex).
+% xsd:string
+rdf_dcg_literal(literal(type(D,Lex)), Options) -->
+  {
+    rdf_equal(D, xsd:string), !,
     rdf_canonical_lexical_form(D, Lex, CanonicalLex)
   },
   rdf_dcg_lexical_form(CanonicalLex, Options).
@@ -155,6 +177,9 @@ rdf_dcg_literal(literal(type(D,Lex)), Options) -->
 
 %! rdf_dcg_node(+Node:rdf_node)// is det.
 %! rdf_dcg_node(+Node:rdf_node, +Options:options)// is det.
+%
+% @param Options are passed to rdf_dcg_bnode//2, rdf_dcg_iri//2 and
+%        rdf_dcg_literal//2.
 
 rdf_dcg_node(Node) -->
   rdf_dcg_node(Node, options{}).
@@ -183,13 +208,15 @@ rdf_dcg_node(Term, _) -->
 
 %! rdf_dcg_predicate(+Predicate:iri)// is det.
 %! rdf_dcg_predicate(+Predicate:iri, +Options:options)// is det.
+%
+% @param Options are passed to rdf_dcg_iri//2.
 
 rdf_dcg_predicate(P) -->
   rdf_dcg_predicate(P, options{}).
 
 
-% BUG: RDF prefix expansion does not work.
-rdf_dcg_predicate(rdf:type, _) --> !,
+rdf_dcg_predicate(P, _) -->
+  {rdf_equal(P, rdf:type)}, !,
   "a".
 rdf_dcg_predicate(Iri, Options) -->
   rdf_dcg_iri(Iri, Options).

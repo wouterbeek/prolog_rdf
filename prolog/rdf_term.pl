@@ -701,6 +701,9 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 rdf_literal_dwim(Term, _) :-
   var(Term), !,
   instantiation_error(Term).
+% special value literal
+rdf_literal_dwim(literal(value(D,Value)), Literal) :- !,
+  rdf_literal_value(Literal, D, Value).
 % regular typed literal
 rdf_literal_dwim(literal(type(D,Lex)), literal(type(D,Lex))) :- !.
 % regular language-tagged string
