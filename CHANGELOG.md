@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 1.0.6 (2021-04-13)
+
+This release removes the SPARQL-specific features from the RDF
+printing module and adds features for RDF downloading/dereferencing.
+
+### rdf_deref
+
+- If dereferencing IRIs to file: support for setting the file name
+  based on the IRI.
+
+### rdf_download
+
+- Support for setting the file name based on the URL that is
+  downloaded from.
+- Support for skipping downloads for unchanged data.
+
+### rdf_export
+
+- Fixed determinism in `rdf_write_literal/2`.
+
+### rdf_print
+
+- Removed DCGs that are not emitting RDF data: SPARQL triple patterns,
+  RDF Model Theory proof trees, SPARQL variables.
+- Removed support for the `iri_abbr` and `variable_map` options.
+
+### rdf_term
+
+- Added support for datatype IRI `xsd:anyURI`.
+- Fixed typo in `rdf_literal_dwim/2`.
+
 ## 1.0.5 (2021-03-28)
 
 This release brings the following changes:
