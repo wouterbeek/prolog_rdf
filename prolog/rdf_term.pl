@@ -16,7 +16,6 @@
     rdf_is_bnode_iri/1,                  % @Term
    %rdf_is_iri/1,                        % @Term
    %rdf_is_literal/1,                    % @Term
-    rdf_is_literal_dwim/1,               % +Dwim
     rdf_is_name/1,                       % @Term
     rdf_is_numeric_literal/1,            % @Term
     rdf_is_object/1,                     % @Term
@@ -36,8 +35,6 @@
     rdf_predicate_dwim/2,                % +Dwim, ?P
     rdf_triple_term/2,                   % +Triple, ?Term
     rdf_typed_literal/3,                 % ?Datatype, ?LexicalForm, ?Literal
-    rdf_maybe_node_dwim/2,               % ?Dwim, -Node
-    rdf_maybe_predicate_dwim/2,          % ?Dwim, -Predicate
     well_known_iri/1,                    % -Iri
     well_known_iri/2                     % +Segments, -Iri
   ]
@@ -60,7 +57,9 @@
      rdf_create_bnode/1,
      rdf_is_iri/1,
      rdf_is_predicate/1,
-     rdf_is_subject/1
+     rdf_is_subject/1,
+     op(110,xfx,@),
+     op(650,xfx,^^)
    ]).
 :- use_module(library(semweb/turtle), []).
 :- use_module(library(settings)).
@@ -80,14 +79,14 @@
     rdf_value_to_lexical/3.
 
 :- dynamic
-    rdf_lexical_to_value_hook/3,
-    rdf_value_to_lexical_hook/3.
+    rdf:rdf_lexical_to_value_hook/3,
+    rdf:rdf_value_to_lexical_hook/3.
 
 :- multifile
     error:has_type/2,
     prolog:message//1,
-    rdf_lexical_to_value_hook/3,
-    rdf_value_to_lexical_hook/3.
+    rdf:rdf_lexical_to_value_hook/3,
+    rdf:rdf_value_to_lexical_hook/3.
 
 % IRI
 error:has_type(iri, Term) :-
@@ -150,7 +149,7 @@ error:has_type(rdf_tuple, Term) :-
    rdf_lexical_value(r, ?, ?),
    rdf_literal(r, ?, ?, o),
    rdf_literal_datatype_iri(o, r),
-   rdf_literal_dwim(o, -),
+   rdf_literal_dwim(o, o),
    rdf_literal_lexical_form(o, ?),
    rdf_literal_value(o, -),
    rdf_literal_value(o, r, ?),
@@ -160,9 +159,7 @@ error:has_type(rdf_tuple, Term) :-
    rdf_triple_term(t, r),
    rdf_typed_literal(r, ?, o),
    rdf_value_to_lexical(r, +, -),
-   rdf_value_to_lexical_error(r, +),
-   rdf_maybe_node_dwim(o, -),
-   rdf_maybe_predicate_dwim(r, -).
+   rdf_value_to_lexical_error(r, +).
 
 :- maplist(rdf_register_prefix, [rdf,xsd]).
 
@@ -343,14 +340,6 @@ rdf_is_bnode_iri(Iri) :-
 
 
 
-%! rdf_is_literal_dwim(+Dwim:term) is semidet.
-
-rdf_is_literal_dwim(Term) :-
-  catch(rdf_literal_dwim(Term, _), E, true),
-  var(E).
-
-
-
 %! rdf_is_name(@Term) is semidet.
 
 rdf_is_name(Iri) :-
@@ -413,9 +402,9 @@ rdf_lexical_value(D, Lex, Value) :-
 
 % hooks
 rdf_lexical_to_value(D, Lex, Value) :-
-  rdf_lexical_to_value_hook(D, Lex, Value), !.
+  rdf:rdf_lexical_to_value_hook(D, Lex, Value), !.
 rdf_value_to_lexical(D, Value, Lex) :-
-  rdf_value_to_lexical_hook(D, Value, Lex), !.
+  rdf:rdf_value_to_lexical_hook(D, Value, Lex), !.
 
 % rdf:HTML
 rdf_lexical_to_value(rdf:'HTML', Lex, Value) :- !,
@@ -572,17 +561,6 @@ rdf_value_to_lexical(xsd:string, Value, Lex) :- !,
   ;   rdf_value_to_lexical_error(xsd:string, Value)
   ).
 
-rdf_lexical_to_value(D, Atom, Atom) :-
-  (   ground(D)
-  ->  print_message(warning, error(unimplemented_lex2val(D,Atom),rdf_lexical_to_value/3))
-  ;   instantiation_error(D)
-  ).
-rdf_value_to_lexical(D, Atom, Atom) :-
-  (   ground(D)
-  ->  print_message(warning, error(unimplemented_val2lex(D,Atom),rdf_value_to_lexical/3))
-  ;   instantiation_error(D)
-  ).
-
 rdf_lexical_to_value_error(D, Lex) :-
   syntax_error(rdf_lexical_form(D,Lex)).
 rdf_value_to_lexical_error(D, Value) :-
@@ -662,7 +640,7 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 
 
 %! rdf_literal_dwim(+Dwim:term, +Literal:rdf_literal) is semidet.
-%! rdf_literal_dwim(+Dwim:term, -Literal:rdf_literal) is det.
+%! rdf_literal_dwim(+Dwim:term, -Literal:rdf_literal) is semidet.
 %
 % Allows literal terms to be created based on various simplified
 % inputs:
@@ -697,10 +675,16 @@ rdf_literal_datatype_iri(literal(lang(_,_)), rdf:langString).
 %   | uri(Uri)                    | xsd:anyURI             |
 %   | year(Y)                     | xsd:gYear              |
 %   | year_month(Y,Mo)            | xsd:gYearMonth         |
+%   | LexicalForm^^DatatypeIri    | DatatypeIri            |
+%   | LexicalForm@LanguageTag     | rdf:langstring         |
 
-rdf_literal_dwim(Term, _) :-
-  var(Term), !,
-  instantiation_error(Term).
+rdf_literal_dwim(Var, _) :-
+  var(Var), !,
+  fail.
+% SWI typed literal
+rdf_literal_dwim(Lex^^D, literal(type(D,Lex))) :- !.
+% SWI language-tagged string
+rdf_literal_dwim(Lex@LTag, literal(lang(LTag,Lex))) :- !.
 % special value literal
 rdf_literal_dwim(literal(value(D,Value)), Literal) :- !,
   rdf_literal_value(Literal, D, Value).
@@ -798,10 +782,7 @@ rdf_literal_dwim(String, literal(type(xsd:string,Lex))) :-
   atom_string(Lex, String).
 % atom `false' and `true' → xsd:boolean
 rdf_literal_dwim(Lex, literal(type(xsd:boolean,Lex))) :-
-  memberchk(Lex, [false,true]), !.
-% error
-rdf_literal_dwim(Lex, _) :-
-  syntax_error(rdf_literal_dwim(Lex)).
+  memberchk(Lex, [false,true]).
 
 xsd_date_time_term_(date(_,_,_)).
 xsd_date_time_term_(date_time(_,_,_,_,_,_)).
@@ -844,15 +825,16 @@ rdf_literal_value(literal(type(D,Lex)), D, Value) :-
 
 
 %! rdf_node_dwim(+Dwim:term, +Node:rdf_node) is semidet.
-%! rdf_node_dwim(+Dwim:term, -Node:rdf_node) is det.
+%! rdf_node_dwim(+Dwim:term, -Node:rdf_node) is semidet.
 %
 % Supports the Input formats of rdf_literal_dwim/2.
 
-% Literals.
+% blank node or IRI
+rdf_node_dwim(Term, Term) :-
+  rdf_is_subject(Term), !.
+% literal
 rdf_node_dwim(Term, Literal) :-
-  rdf_node_dwim(Term, Literal), !.
-% Blank nodes, IRIs.
-rdf_node_dwim(Term, Term).
+  rdf_literal_dwim(Term, Literal).
 
 
 
@@ -878,24 +860,6 @@ rdf_triple_term(t(_,_,O), O).
 %! rdf_typed_literal(-Datatype:iri, -LexicalForm:atom, +Literal:rdf_literal) is det.
 
 rdf_typed_literal(D, Lex, literal(type(D,Lex))).
-
-
-
-%! rdf_maybe_node_dwim(+Dwim:term, -Node:rdf_node) is det.
-
-rdf_maybe_node_dwim(Var, Var) :-
-  var(Var), !.
-rdf_maybe_node_dwim(Term, Node) :-
-  rdf_node_dwim(Term, Node).
-
-
-
-%! rdf_maybe_predicate_dwim(+Dwim:term, -Predicate:iri) is det.
-
-rdf_maybe_predicate_dwim(P, P) :-
-  var(P), !.
-rdf_maybe_predicate_dwim(P1, P2) :-
-  rdf_predicate_dwim(P1, P2).
 
 
 
