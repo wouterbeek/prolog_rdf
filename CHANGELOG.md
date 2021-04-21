@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.0.7 (2021-04-21)
+
+This release changes the behavior for non-implemented literal to/from
+value transformations.  In the past non-implemented transformations
+would emit an exception, but this makes it more difficult to extend
+the transformation functionality.
+
+This release uses Prolog failure to allow calling code to try to
+transform using a standard transformation, and use its own custom
+transformation in case none of the standard ones works.
+
 ## 1.0.6 (2021-04-13)
 
 This release removes the SPARQL-specific features from the RDF

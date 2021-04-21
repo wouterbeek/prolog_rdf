@@ -6,4 +6,4 @@ name(prolog_rdf).
 packager('Wouter Beek', 'wouter@triply.cc').
 requires(prolog_library_collection).
 title('Prolog RDF Library').
-version('1.0.6').
+version('1.0.7').
