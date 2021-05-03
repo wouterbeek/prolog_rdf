@@ -2,6 +2,8 @@
 :- module(
   rdf_print,
   [
+    rdf_dcg_bnode//1,     % +Label
+    rdf_dcg_bnode//2,     % +Label, +Options
     rdf_dcg_node//1,      % +Node
     rdf_dcg_node//2,      % +Node, +Options
     rdf_dcg_predicate//1, % +Predicate
@@ -52,20 +54,25 @@
 
 
 
-%! rdf_dcg_bnode(+BNode:rdf_bnode, +Options:options)// is det.
+%! rdf_dcg_bnode(+Label:atom)// is det.
+%! rdf_dcg_bnode(+Label:atom, +Options:dict)// is det.
 %
 % @param Options The following options are supported:
 %
 %        * max_length(+or([positive_integer,oneof([inf])]))
 
-rdf_dcg_bnode(BNode, Options) -->
+rdf_dcg_bnode(Label) -->
+  rdf_dcg_bnode(Label, options{}).
+
+
+rdf_dcg_bnode(Label, Options) -->
   {dict_get(max_length, Options, inf, Max)},
   "_:",
-  ellipsis(BNode, Max).
+  ellipsis(Label, Max).
 
 
 
-%! rdf_dcg_iri(+Iri:iri, +Options:options)// is det.
+%! rdf_dcg_iri(+Iri:iri, +Options:dict)// is det.
 %
 % @param Options The following options are supported:
 %
@@ -110,7 +117,7 @@ rdf_dcg_iri(Iri, Options) -->
 
 
 
-%! rdf_dcg_lexical_form(+LexicalForm:atom, +Options:options)// is det.
+%! rdf_dcg_lexical_form(+LexicalForm:atom, +Options:dict)// is det.
 %
 % @param Options The following options are supported:
 %
@@ -141,7 +148,7 @@ extra_quotes_(_, false).
 
 
 
-%! rdf_dcg_litteral(+Litteral:rdf_literal, +Options:options)// is det.
+%! rdf_dcg_litteral(+Litteral:rdf_literal, +Options:dict)// is det.
 %
 % @param Options are passed to rdf_dcg_iri//2 and
 %        rdf_dcg_lexical_form//2.
@@ -176,7 +183,7 @@ rdf_dcg_literal(literal(type(D,Lex)), Options) -->
 
 
 %! rdf_dcg_node(+Node:rdf_node)// is det.
-%! rdf_dcg_node(+Node:rdf_node, +Options:options)// is det.
+%! rdf_dcg_node(+Node:rdf_node, +Options:dict)// is det.
 %
 % @param Options are passed to rdf_dcg_bnode//2, rdf_dcg_iri//2 and
 %        rdf_dcg_literal//2.
@@ -191,7 +198,8 @@ rdf_dcg_node(Var, _) -->
 % Blank nodes.
 rdf_dcg_node(BNode, Options) -->
   {rdf_is_bnode(BNode)}, !,
-  rdf_dcg_bnode(BNode, Options).
+  {sub_atom(BNode, 2, _, 0, Label)},
+  rdf_dcg_bnode(Label, Options).
 % Literals.
 rdf_dcg_node(Literal, Options) -->
   {rdf_is_literal(Literal)}, !,
@@ -207,7 +215,7 @@ rdf_dcg_node(Term, _) -->
 
 
 %! rdf_dcg_predicate(+Predicate:iri)// is det.
-%! rdf_dcg_predicate(+Predicate:iri, +Options:options)// is det.
+%! rdf_dcg_predicate(+Predicate:iri, +Options:dict)// is det.
 %
 % @param Options are passed to rdf_dcg_iri//2.
 
@@ -224,7 +232,7 @@ rdf_dcg_predicate(Iri, Options) -->
 
 
 %! rdf_dcg_triples(+Triples:list(tp))// is det.
-%! rdf_dcg_triples(+Triples:list(tp), +Options:options)// is det.
+%! rdf_dcg_triples(+Triples:list(tp), +Options:dict)// is det.
 %
 % Prints the given triples, using the abbreviations defined in Turtle
 % 1.1.
@@ -337,7 +345,7 @@ triples_to_groups2(S, P, Triples, Os) :-
 %! rdf_dcg_subjects0(+Indent:nonneg,
 %!                   +Groups,
 %!                   +SkipTriples:list(tp),
-%!                   +Options:options)// is det.
+%!                   +Options:dict)// is det.
 
 rdf_dcg_subjects0(_, [], _, _) --> !, "".
 rdf_dcg_subjects0(I1, [S-SGroups|Groups], SkipTriples1, Options) -->
@@ -404,7 +412,7 @@ rdf_dcg_objects2(I, [O|Os], SkipTriples1, SkipTriples3, Options) -->
 %!                         +Node:rdf_node,
 %!                         +SkipTriples1:list(tp),
 %!                         +SkipTriples2:list(tp),
-%!                         +Options:options)// is det.
+%!                         +Options:dict)// is det.
 
 % The object term is an RDF list (collection).
 rdf_dcg_complex_object_(I, InLine, RdfList, SkipTriples1, SkipTriples2, Options) -->
@@ -452,7 +460,7 @@ linear_list_(S1, SkipTriples1, SkipTriples4, [H|T]) :-
   linear_list_(S2, SkipTriples3, SkipTriples4, T).
 linear_list_(_, SkipTriples, SkipTriples, []).
 
-%! rdf_dcg_list_(+Terms:list(rdf_term), +Options:options)// is det.
+%! rdf_dcg_list_(+Terms:list(rdf_term), +Options:dict)// is det.
 
 rdf_dcg_list_(Terms, Options) -->
   "(",
@@ -465,7 +473,7 @@ rdf_dcg_list_(Terms, Options) -->
   ),
   ")".
 
-%! rdf_dcg_list_tail_(+Terms:list(rdf_term), +Options:options)// is det.
+%! rdf_dcg_list_tail_(+Terms:list(rdf_term), +Options:dict)// is det.
 
 rdf_dcg_list_tail_([H|T], Options) --> !,
   " ",
