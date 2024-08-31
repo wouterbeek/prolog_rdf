@@ -31,18 +31,18 @@
 :- use_module(library(http_client2)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
-:- use_module(library(rdf_guess)).
-:- use_module(library(rdf_prefix)).
-:- use_module(library(rdf_term)).
+:- use_module(library(semweb/rdf_guess)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate
-    rdf_deref_file(+, 3),
-    rdf_deref_file(+, 3, +),
-    rdf_deref_stream(+, +, 3),
-    rdf_deref_stream(+, +, 3, +),
-    rdf_deref_uri(+, 3),
-    rdf_deref_uri(+, 3, +).
+   rdf_deref_file(+, 3),
+   rdf_deref_file(+, 3, +),
+   rdf_deref_stream(+, +, 3),
+   rdf_deref_stream(+, +, 3, +),
+   rdf_deref_uri(+, 3),
+   rdf_deref_uri(+, 3, +).
 
 :- rdf_meta
    rdf_deref_uri(r, :),

@@ -2,24 +2,26 @@
 
 This library provides advanced support for working with RDF in Prolog.
 
-## Dependencies
-
-Install [SWI-Prolog](https://www.swi-prolog.org).
-
 ## Installation
 
-Install this library:
+1. Install [SWI-Prolog](https://www.swi-prolog.org).
 
-```sh
-swipl -g 'pack_install(prolog_rdf)' -t halt
-```
+2. Install the [Prolog Library
+Collection](https://github.com/wouterbeek/prolog_library_collection).
+
+3. Clone this repo, and add the following line to your
+`$HOME/.config/swi-prolog/init.pl` file:
+
+   ```prolog
+   user:file_search_path(library, '/your/path/to/prolog_rdf/prolog').
+   ```
 
 ## Use
 
-Libraries can be loaded in the following way:
+You can now load the libraries from this repo in the following way:
 
-```pl
-:- [library(rdf_term)].
+```prolog
+:- [library(semweb/rdf_term)].
 ```
 
 ## RDF-specific Prolog types

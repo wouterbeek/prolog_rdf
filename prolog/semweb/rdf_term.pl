@@ -39,7 +39,7 @@
     well_known_iri/2                     % +Segments, -Iri
   ]
 ).
-:- reexport(library(rdf_prefix)).
+:- reexport(library(semweb/rdf_prefix)).
 
 /** <module> Advanced support for RDF terms
 
@@ -68,7 +68,7 @@
 :- use_module(library(dcg)).
 :- use_module(library(hash_ext)).
 :- use_module(library(plunit)).
-:- use_module(library(rdf_print)).
+:- use_module(library(semweb/rdf_print)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri_ext)).
 :- use_module(library(xsd)).

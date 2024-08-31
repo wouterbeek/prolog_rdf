@@ -2,14 +2,18 @@
 :- module(
   rdf_print,
   [
-    rdf_dcg_bnode//1,     % +Label
-    rdf_dcg_bnode//2,     % +Label, +Options
-    rdf_dcg_node//1,      % +Node
-    rdf_dcg_node//2,      % +Node, +Options
-    rdf_dcg_predicate//1, % +Predicate
-    rdf_dcg_predicate//2, % +Predicate, +Options
-    rdf_dcg_triples//1,   % +Triples
-    rdf_dcg_triples//2    % +Triples, +Options
+    rdf_dcg_bnode//1,          % +Label
+    rdf_dcg_bnode//2,          % +Label, +Options
+    rdf_dcg_node//1,           % +Node
+    rdf_dcg_node//2,           % +Node, +Options
+    rdf_dcg_predicate//1,      % +Predicate
+    rdf_dcg_predicate//2,      % +Predicate, +Options
+    rdf_dcg_triple//1,         % +Triple
+    rdf_dcg_triple//2,         % +Triple, +Options
+    rdf_dcg_triple_pattern//1, % +Triple
+    rdf_dcg_triple_pattern//2, % +Triple, +Options
+    rdf_dcg_triples//1,        % +Triples
+    rdf_dcg_triples//2         % +Triples, +Options
   ]
 ).
 
@@ -40,8 +44,8 @@
 :- use_module(library(call_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
-:- use_module(library(rdf_prefix)).
-:- use_module(library(rdf_term)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 
 :- rdf_meta
    rdf_dcg_literal(t, +, ?, ?),
@@ -49,6 +53,10 @@
    rdf_dcg_node(o, +, ?, ?),
    rdf_dcg_predicate(r, ?, ?),
    rdf_dcg_predicate(r, +, ?, ?),
+   rdf_dcg_triple(t, ?, ?),
+   rdf_dcg_triple(t, +, ?, ?),
+   rdf_dcg_triple_pattern(t, ?, ?),
+   rdf_dcg_triple_pattern(t, +, ?, ?),
    rdf_dcg_triples(t, ?, ?),
    rdf_dcg_triples(t, +, ?, ?).
 
@@ -211,6 +219,38 @@ rdf_dcg_node(Iri, Options) -->
 % Syntax error.
 rdf_dcg_node(Term, _) -->
   {syntax_error(rdf_term(Term))}.
+
+
+
+%! rdf_dcg_triple(+TriplePattern:rdf_triple_pattern)// is det.
+%! rdf_dcg_triple(+TriplePattern:rdf_triple_pattern, +Options:options)// is det.
+
+rdf_dcg_triple(tp(S,P,O)) -->
+  rdf_dcg_triple(tp(S,P,O), options{}).
+
+
+rdf_dcg_triple(tp(S,P,O), Options) -->
+  rdf_dcg_node(S, Options),
+  " ",
+  rdf_dcg_predicate(P, Options),
+  " ",
+  rdf_dcg_node(O, Options).
+
+
+
+%! rdf_dcg_triple_pattern(?TriplePattern:rdf_triple_pattern)// is det.
+%! rdf_dcg_triple_pattern(?TriplePattern:rdf_triple_pattern, +Options:options)// is det.
+
+rdf_dcg_triple_pattern(tp(S,P,O)) -->
+  rdf_dcg_triple_pattern(tp(S,P,O), options{}).
+
+
+rdf_dcg_triple_pattern(tp(S,P,O), Options) -->
+  ({var(S)} -> "?s" ; rdf_dcg_node(S, Options)),
+  " ",
+  ({var(P)} -> "?p" ; rdf_dcg_predicate(P, Options)),
+  " ",
+  ({var(O)} -> "?o" ; rdf_dcg_node(O, Options)).
 
 
 

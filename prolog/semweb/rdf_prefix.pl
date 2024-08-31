@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rdf_prefix,
   [
@@ -60,9 +61,9 @@ standards SWI-Prolog distribution.
    init_rdf_prefix.
 
 :- meta_predicate
-    rdf_prefix_maplist(1, +),
-    rdf_prefix_maplist(2, +, +),
-    rdf_prefix_maplist(3, +, +, +).
+   rdf_prefix_maplist(1, +),
+   rdf_prefix_maplist(2, +, +),
+   rdf_prefix_maplist(3, +, +, +).
 
 :- rdf_meta
    rdf_prefix_append(t, t),

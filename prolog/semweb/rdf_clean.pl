@@ -15,8 +15,8 @@
 :- use_module(library(semweb/rdf11), []).
 
 :- use_module(library(hash_ext)).
-:- use_module(library(rdf_prefix)).
-:- use_module(library(rdf_term)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 :- use_module(library(uri_ext)).
 
 :- rdf_meta

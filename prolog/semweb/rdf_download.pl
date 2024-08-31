@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rdf_download,
   [
@@ -17,9 +18,9 @@
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(http_client2)).
-:- use_module(library(rdf_clean)).
-:- use_module(library(rdf_deref)).
-:- use_module(library(rdf_export)).
+:- use_module(library(semweb/rdf_clean)).
+:- use_module(library(semweb/rdf_deref)).
+:- use_module(library(semweb/rdf_export)).
 :- use_module(library(uri_ext)).
 
 

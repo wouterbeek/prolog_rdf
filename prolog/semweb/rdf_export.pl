@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rdf_export,
   [
@@ -18,8 +19,8 @@ RDF export predicates that are backend-independent.
 :- use_module(library(semweb/turtle), []).
 
 :- use_module(library(hash_ext)).
-:- use_module(library(rdf_prefix)).
-:- use_module(library(rdf_term)).
+:- use_module(library(semweb/rdf_prefix)).
+:- use_module(library(semweb/rdf_term)).
 
 :- rdf_meta
    rdf_write_iri(+, r),
